@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.5 1998/01/08 03:04:30 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.6 1998/01/08 03:46:03 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -84,17 +84,19 @@ class PcapNetwork : public Network {
 public:
 	PcapNetwork() : local_netmask_(0) { }
 	virtual int command(int argc, const char*const* argv);
-protected:
+
 	virtual int open(const char*) = 0;
-	virtual void bindvars();
-
-	int filter(const char*);	// compile + install a filter
-
-	void reset();
-	void close();
-
 	int recv(u_char *buf, int len, u_int32_t& fromaddr);	// get from net
 	void send(u_char *buf, int len);			// write to net
+	void close();
+	void reset();
+
+	int filter(const char*);	// compile + install a filter
+	int stat_pkts();
+	int stat_pdrops();
+
+protected:
+	virtual void bindvars();
 
 	char errbuf_[PCAP_ERRBUF_SIZE];
 	char srcname_[PATH_MAX];		// device of file name
@@ -103,6 +105,7 @@ protected:
 	pcap_t* pcap_;				// reference to pcap state
 	struct bpf_program bpfpgm_;		// generated program
 	struct pcap_pkthdr pkthdr_;		// pkt hdr to fill in
+	struct pcap_stat pcs_;			// status
 
 	unsigned int local_netmask_;	// seems shouldn't be necessary :(
 };
@@ -165,14 +168,14 @@ PcapNetwork::reset()
 	state_ = PNET_PSTATE_INACTIVE;
 	*errbuf_ = '\0';
 	*srcname_ = '\0';
-	Network::reset();
 }
 
 
 void
 PcapNetwork::close()
 {
-	pcap_close(pcap_);
+	if (state_ == PNET_PSTATE_ACTIVE && pcap_)
+		pcap_close(pcap_);
 	reset();
 }
 
@@ -193,7 +196,27 @@ PcapNetwork::filter(const char *pgm)
 			name());
 		return -1;
 	}
-	return 0;
+	return(bpfpgm_.bf_len);
+}
+
+/* return number of pkts received */
+int
+PcapNetwork::stat_pkts()
+{
+	if (pcap_stats(pcap_, &pcs_) < 0)
+		return (-1);
+
+	return (pcs_.ps_recv);
+}
+
+/* return number of pkts dropped */
+int
+PcapNetwork::stat_pdrops()
+{
+	if (pcap_stats(pcap_, &pcs_) < 0)
+		return (-1);
+
+	return (pcs_.ps_drop);
 }
 
 #ifndef MIN
@@ -234,6 +257,18 @@ int PcapNetwork::command(int argc, const char*const* argv)
 			close();
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "srcname") == 0) {
+			tcl.result(srcname_);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "pkts") == 0) {
+			tcl.resultf("%d", stat_pkts());
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "pdrops") == 0) {
+			tcl.resultf("%d", stat_pdrops());
+			return (TCL_OK);
+		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "filter") == 0) {
 			if (state_ != PNET_PSTATE_ACTIVE) {
@@ -241,11 +276,12 @@ int PcapNetwork::command(int argc, const char*const* argv)
 					name());
 				return (TCL_ERROR);
 			}
-			if (filter(argv[2]) < 0) {
+			int plen;
+			if ((plen = filter(argv[2])) < 0) {
 				fprintf(stderr, "problem compiling/installing filter program\n");
 				return (TCL_ERROR);
 			}
-			tcl.result("1");
+			tcl.resultf("%d", plen);
 			return (TCL_OK);
 		}
 	}
@@ -259,13 +295,14 @@ int PcapNetwork::command(int argc, const char*const* argv)
 int
 PcapLiveNetwork::open(const char *devname)
 {
+	close();
 	pcap_ = pcap_open_live((char*) devname, snaplen_, promisc_,
 		int(timeout_ * 1000.), errbuf_);
 
 	if (pcap_ == NULL) {
 		fprintf(stderr,
 		  "pcap/live object (%s) couldn't open packet source %s: %s\n",
-			name(), srcname_, errbuf_);
+			name(), devname, errbuf_);
 		return -1;
 	}
 	strncpy(srcname_, devname, sizeof(srcname_)-1);
@@ -317,6 +354,7 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "open") == 0) {
 			if (open() < 0)
 				return (TCL_ERROR);
+			tcl.result(srcname_);
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
@@ -324,6 +362,7 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "open") == 0) {
 			if (open(argv[2]) < 0)
 				return (TCL_ERROR);
+			tcl.result(srcname_);
 			return (TCL_OK);
 		}
 	}
@@ -338,11 +377,13 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 int
 PcapFileNetwork::open(const char *filename)
 {
+
+	close();
 	pcap_ = pcap_open_offline((char*) filename, errbuf_);
 	if (pcap_ == NULL) {
 		fprintf(stderr,
 		  "pcap/file object (%s) couldn't open packet source %s: %s\n",
-			name(), srcname_, errbuf_);
+			name(), filename, errbuf_);
 		return -1;
 	}
 	strncpy(srcname_, filename, sizeof(srcname_)-1);
@@ -360,6 +401,7 @@ int PcapFileNetwork::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "open") == 0) {
 			if (open(argv[2]) < 0)
 				return (TCL_ERROR);
+			tcl.result("1");
 			return (TCL_OK);
 		}
 	}
