@@ -316,6 +316,7 @@ void TfrcAgent::increase_rate (double p)
 {               
         double newrate, newrate1, mult;
         double now = Scheduler::instance().clock();
+	double maximumrate = size_/rtt_;
 	if (p < 0) {
 		printf ("error\n"); 
 		abort();
@@ -336,7 +337,11 @@ void TfrcAgent::increase_rate (double p)
                 // Increase the sending rate by at most one pkt/RTT.
                 rate_ = newrate;
         }
+	if (maxrate_ > maximumrate) {
+		maximumrate = maxrate_;
+	}
         if (rate_ > maxrate_)
+		// max allowed rate is max of: 2*receive rate, one pkt/RTT
                 rate_ = maxrate_;
         if (rate_ > rcvrate)
                 rate_ = rcvrate;
