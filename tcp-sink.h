@@ -31,9 +31,9 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.12 1999/03/05 18:42:08 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.13 1999/03/05 18:45:32 sfloyd Exp $ (LBL)
  */
-
+ 
 #ifndef ns_tcpsink_h
 #define ns_tcpsink_h
 
