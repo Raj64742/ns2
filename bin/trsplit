@@ -59,8 +59,8 @@ $psize = 1000;
 $tt = '-';
 $ctt = 1;
 $ctime = 2;
-$csrc = 3;
-$cdst = 4;
+$csrc = 9;
+$cdst = 10;
 $cpt = 5;
 $cseq = 11;
 
@@ -68,6 +68,8 @@ $cseq = 11;
 $pt = 'tcp'  if !$pt;
 $ctt--; $ctime--;
 $cpt--; $csrc--; $cdst--; $cseq--;
+
+$fidcount = 4;
 
 while (<>)
 {
@@ -83,10 +85,10 @@ while (<>)
     $seqno{$key} = $col[$cseq];
 
     if ($opt{f}) {
-	$fid = ($src << 16) + $dst;
-	if (! $opened{$fid}) {
+	$fid = $opened{$key};
+	if (! $fid) {
+	    $opened{$key} = $fid = $fidcount++;
 	    open($fid, ">$ARGV.$key");
-	    $opened{$fid} = 1;
 	}
 	printf $fid "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
     }
