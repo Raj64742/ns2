@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.220 2001/06/14 07:18:15 yewei Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.221 2001/06/14 07:25:06 kclan Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -139,6 +139,7 @@ OBJ_CC = \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
 	webcache/mcache.o webcache/webtraf.o \
+	empweb/empweb.o \
 	realaudio/realaudio.o \
 	lanRouter.o filter.o pkt-counter.o \
 	Decapsulator.o Encapsulator.o encap.o \
@@ -332,6 +333,7 @@ NS_TCL_LIB = \
 	tcl/webcache/http-cache.tcl \
 	tcl/webcache/http-mcache.tcl \
 	tcl/webcache/webtraf.tcl \
+	tcl/webcache/empweb.tcl \
 	tcl/plm/plm.tcl \
 	tcl/plm/plm-ns.tcl \
 	tcl/plm/plm-topo.tcl \
