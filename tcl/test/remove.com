@@ -92,6 +92,18 @@ t27:
 set directory=test-output-ecn-ack
 goto doit
 t28:
+set directory=test-output-intserv
+goto doit
+t29: 
+set directory=test-output-mcache
+goto doit
+t30: 
+set directory=test-output-mip
+goto doit
+t31: 
+set directory=test-output-wireless-gridkeeper
+goto doit
+t32: 
 exit
 doit:
 echo $directory
