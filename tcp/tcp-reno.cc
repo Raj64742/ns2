@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.35 2001/05/29 23:11:04 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.36 2001/11/08 19:06:08 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -79,6 +79,12 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		exit(1);
 	}
 #endif
+        /* W.N.: check if this is from a previous incarnation */
+        if (tcph->ts() < lastreset_) {
+                // Remove packet and do nothing
+                Packet::free(pkt);
+                return;
+        }
 	++nackpack_;
 	ts_peer_ = tcph->ts();
 

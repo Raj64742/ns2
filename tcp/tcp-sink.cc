@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.43 2000/12/19 22:48:27 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.44 2001/11/08 19:06:07 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -147,7 +147,8 @@ int Acker::update(int seq, int numBytes)
 	return numToDeliver;
 }
 
-TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL)
+TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL), 
+	lastreset_(0.0)
 {
 	/*
 	 * maxSackBlocks_ does wierd tracing things.
@@ -211,6 +212,8 @@ void TcpSink::reset()
 {
 	acker_->reset();	
 	save_ = NULL;
+	lastreset_ = Scheduler::instance().clock(); /* W.N. - for detecting
+						       packets from previous incarnations */
 }
 
 void TcpSink::ack(Packet* opkt)
@@ -284,6 +287,12 @@ void TcpSink::recv(Packet* pkt, Handler*)
 	int numBytes = hdr_cmn::access(pkt)->size();
 	// number of bytes in the packet just received
 	hdr_tcp *th = hdr_tcp::access(pkt);
+	/* W.N. Check if packet is from previous incarnation */
+	if (th->ts() < lastreset_) {
+		// Remove packet and do nothing
+		Packet::free(pkt);
+		return;
+	}
 	acker_->update_ts(th->seqno(),th->ts());
 	// update the timestamp to echo
 	
@@ -324,6 +333,12 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 	int numToDeliver;
 	int numBytes = hdr_cmn::access(pkt)->size();
 	hdr_tcp *th = hdr_tcp::access(pkt);
+	/* W.N. Check if packet is from previous incarnation */
+	if (th->ts() < lastreset_) {
+		// Remove packet and do nothing
+		Packet::free(pkt);
+		return;
+	}
 	acker_->update_ts(th->seqno(),th->ts());
 	numToDeliver = acker_->update(th->seqno(), numBytes);
 	if (numToDeliver)

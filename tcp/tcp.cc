@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.124 2001/07/03 21:38:52 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.125 2001/11/08 19:06:07 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -72,7 +72,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
 	ect_(0), restart_bugfix_(1), closed_(0), nrexmit_(0),
-	first_decrease_(1)
+	first_decrease_(1), lastreset_(0.0)
 	
 {
 #ifdef TCP_DELAY_BIND_ALL
@@ -395,6 +395,8 @@ TcpAgent::reset()
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
 	first_decrease_ = 1;
+	/* W.N.: for removing packets from previous incarnations */
+	lastreset_ = Scheduler::instance().clock();
 
 	/* Now these variables will be reset 
 	   - Debojyoti Dutta 12th Oct'2000 */
@@ -1178,6 +1180,12 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		return;
 	}
 #endif
+	/* W.N.: check if this is from a previous incarnation */
+	if (tcph->ts() < lastreset_) {
+		// Remove packet and do nothing
+		Packet::free(pkt);
+		return;
+	}
 	++nackpack_;
 	ts_peer_ = tcph->ts();
 	int ecnecho = hdr_flags::access(pkt)->ecnecho();

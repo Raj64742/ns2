@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.18 2000/12/19 22:48:27 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.19 2001/11/08 19:06:08 sfloyd Exp $ (LBL)
  */
  
 #ifndef ns_tcpsink_h
@@ -115,6 +115,7 @@ protected:
 	int RFC2581_immediate_ack_;	// Used to generate ACKs immediately 
 					// for RFC2581-compliant gap-filling.
 
+	double lastreset_; /* W.N. used for detecting packets from previous incarnations */
 };
 
 class DelAckSink;

@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.50 2001/05/29 23:11:04 haldar Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.51 2001/11/08 19:06:08 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -85,6 +85,12 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 		return;
 	}
 #endif
+        /* W.N.: check if this is from a previous incarnation */
+        if (tcph->ts() < lastreset_) {
+                // Remove packet and do nothing
+                Packet::free(pkt);
+                return;
+        }
 	++nackpack_;
 	int ecnecho = hdr_flags::access(pkt)->ecnecho();
 	if (ecnecho && ecn_)
