@@ -49,7 +49,6 @@ McastProtocol instproc getStatus {} {
 McastProtocol instproc upcall { argslist } {
         set code [lindex $argslist 0]
         set argslist [lreplace $argslist 0 0]
-        # puts "does this upcalled"
         switch $code {
                 "CACHE_MISS" { $self handle-cache-miss $argslist }
                 "WRONG_IIF" { $self handle-wrong-iif $argslist }  
@@ -81,7 +80,7 @@ McastProtocol instproc leave-group {} {
 
 McastProtocol instproc trace-dynamics { ns f src {op ""} } {
         $self instvar dynT_
-	if {$op == "nam" && [info exists dynT_]} {
+	if {$op == "nam" && [llength $dynT_] > 0} {
 		foreach tr $dynT_ {
 			$tr namattach $f
 		}
@@ -149,7 +148,7 @@ McastProtoArbiter instproc stop {} {
 }
 
 McastProtoArbiter instproc notify changes {
-	$self instvar protocols
+	$self instvar protocols Node
 	foreach proto $protocols {
 		$proto notify $changes
 	}
@@ -165,7 +164,7 @@ McastProtoArbiter instproc join-group { group } {
 
 McastProtoArbiter instproc join-group-source { group source } {
         $self instvar protocols
-        puts "Arbiter join group $group source $source"
+        # puts "Arbiter join group $group source $source"
         foreach proto $protocols {
                 $proto join-group-source $group $source
         }
@@ -180,7 +179,7 @@ McastProtoArbiter instproc leave-group { group } {
 
 McastProtoArbiter instproc leave-group-source { group source } {
         $self instvar protocols
-        puts "Arbiter leave group $group source $source"
+        # puts "Arbiter leave group $group source $source"
         foreach proto $protocols {
                 $proto leave-group-source $group $source
         }
