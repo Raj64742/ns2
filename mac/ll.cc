@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.7 1997/07/23 19:34:33 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.8 1997/08/21 01:09:28 hari Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -112,19 +112,37 @@ LL::command(int argc, const char*const* argv)
 void
 LL::recv(Packet* p, Handler* h)
 {
+	if (h == 0)		// from MAC classifier
+		recvfrom(p);
+	else			// from higher layer
+		sendto(p, h);
+}
+
+
+void
+LL::recvfrom(Packet* p)
+{
 	Scheduler& s = Scheduler::instance();
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
-	if (h == 0) {		// from MAC classifier
-		if (llh->error() > 0)
-			drop(p);
-		else
-			s.schedule(recvtarget_, p, delay_);
-		return;
-	}
+
+	if (llh->error() > 0)
+		drop(p);
+	else
+		s.schedule(recvtarget_, p, delay_);
+	return;
+}
+
+
+void
+LL::sendto(Packet* p, Handler* h)
+{	
+	Scheduler& s = Scheduler::instance();
+	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
+
 	llh->seqno() = ++seqno_;
 	llh->error() = 0;
 	((hdr_mac*)p->access(off_mac_))->macDA() = peerLL_->mac()->label();
-
-	s.schedule(sendtarget_, p, delay_);
-	s.schedule(h, &intr_, 0.000001); // XXX
+	((hdr_mac*)p->access(off_mac_))->ftype() = MF_DATA;
+	s.schedule(sendtarget_, p, delay_); // schedule (typically) MAC
+	s.schedule(h, &intr_, 0.000001); // XXX -- resume higher layer
 }

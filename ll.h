@@ -32,7 +32,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.6 1997/07/23 19:34:34 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.7 1997/08/21 01:10:01 hari Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -43,12 +43,19 @@
 class ErrorModel;
 class Mac;
 
+enum LLFrameType {
+	LL_DATA   = 0x0001,
+	LL_ACK    = 0x0010,
+};
+
 struct hdr_ll {
+	LLFrameType lltype_;	// link-layer frame type
 	int seqno_;		// sequence number
 	int ack_;		// acknowledgement number
 	int error_;		// error flag
 
 	hdr_ll() : error_(0) {}
+	inline LLFrameType& lltype() { return lltype_; }
 	inline int& seqno() { return seqno_; }
 	inline int& ack() { return ack_; }
 	inline int& error() { return error_; }
@@ -58,9 +65,10 @@ struct hdr_ll {
 class LL : public LinkDelay {
 public:
 	LL();
-	void recv(Packet* p, Handler* h);
+	virtual void recv(Packet* p, Handler* h);
+	virtual void recvfrom(Packet* p);
+	virtual void sendto(Packet* p, Handler* h);
 	inline Mac* mac() { return mac_; }
-
 protected:
 	int command(int argc, const char*const* argv);
 	int seqno_;		// link-layer sequence number
