@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.529 2002/07/10 20:48:26 yuri Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.530 2002/07/12 18:36:03 xuanc Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -65,6 +65,15 @@ file that some ACKs which are actually DATAs (you can tell
 by the packet size)
 2. the sequence number will mess up when both sides
 are sending data using a single FullTcp connection
+
+<p><li><b><a href="mailto:xuanc@isi.edu">[Xuan Chen]</a></b>
+Fri Jul 12 11:33:05 PDT 2002
+<br>
+Add a simple web server model into web traffic.
+Users can choose to include server delay into their simulation.
+Currently, two server scheduling policies are supported:
+first-come-first-serve and shortest-task-first-serve.
+<p>
 
 <p><li><b>[Yuri Pryadkin]</b>
 Fri Jun 14 15:59:49 PDT 2002<br>
