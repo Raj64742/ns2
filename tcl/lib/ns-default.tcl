@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.198 2000/06/20 01:59:57 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.199 2000/06/21 05:29:56 sfloyd Exp $
 
 
 #
@@ -371,6 +371,36 @@ Queue/RED set ave_ 0.0
 Queue/RED set prob1_ 0.0
 Queue/RED set curq_ 0
 
+# Queue/RIO set bytes_ false
+# Queue/RIO set queue_in_bytes_ false
+# Queue/RIO set thresh_ 5
+# Queue/RIO set maxthresh_ 15
+# Queue/RIO set in_thresh_ 15
+# Queue/RIO set in_maxthresh_ 30
+# Queue/RIO set out_thresh_ 5
+# Queue/RIO set out_maxthresh_ 15
+# Queue/RIO set mean_pktsize_ 500
+# Queue/RIO set q_weight_ 0.002
+# Queue/RIO set wait_ true
+# Queue/RIO set linterm_ 10
+# Queue/RIO set in_linterm_ 50
+# Queue/RIO set out_linterm_ 5
+# Queue/RIO set setbit_ false
+# Queue/RIO set gentle_ false
+# Queue/RIO set drop_tail_ true
+# Queue/RIO set drop_front_ false
+# Queue/RIO set drop_rand_ false
+# Queue/RIO set doubleq_ false
+# Queue/RIO set ns1_compat_ false
+# Queue/RIO set dqthresh_ 50
+# Queue/RIO set ave_ 0.0
+# Queue/RIO set in_ave_ 0.0
+# Queue/RIO set out_ave_ 0.0
+# Queue/RIO set prob1_ 0.0
+# Queue/RIO set in_prob1_ 0.0
+# Queue/RIO set out_prob1_ 0.0
+# Queue/RIO set curq_ 0
+
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
 Queue/DRR set quantum_ 250
@@ -478,6 +508,12 @@ QueueMonitor/ED/Flowmon set enable_edrop_ true
 QueueMonitor/ED/Flow set src_ -1
 QueueMonitor/ED/Flow set dst_ -1
 QueueMonitor/ED/Flow set flowid_ -1
+QueueMonitor/ED/Flow/TB set target_rate_ 128000 
+QueueMonitor/ED/Flow/TB set bucket_depth_ 10000
+QueueMonitor/ED/Flow/TB set tbucket_ 10000
+QueueMonitor/ED/Flow/TSW set target_rate_ 0
+QueueMonitor/ED/Flow/TSW set win_len_ 10
+QueueMonitor/ED/Flow/TSW set wait_ true
 
 Application/Traffic/Exponential set burst_time_ .5
 Application/Traffic/Exponential set idle_time_ .5
