@@ -51,6 +51,7 @@ class LinkDelay : public Connector {
 		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
 		return (hdr->size() * 8. / bandwidth_);
 	}
+	double bandwidth() const { return bandwidth_; }
 
  protected:
 	int command(int argc, const char*const* argv);
