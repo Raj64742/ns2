@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.46 2001/08/20 23:11:37 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.47 2001/08/21 22:17:27 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -110,8 +110,14 @@ protected:
 
 class FullTcpAgent : public TcpAgent {
 public:
-	FullTcpAgent();
-	~FullTcpAgent();
+	FullTcpAgent() :
+		closed_(0), pipe_(-1), fastrecov_(FALSE),
+        	last_send_time_(-1.0), infinite_send_(FALSE), irs_(-1),
+        	delack_timer_(this), flags_(0),
+        	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE),
+        	last_state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1) { }
+
+	~FullTcpAgent() { cancel_timers(); rq_.clear(); }
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno); 	// tcp_timers() in real code
 	virtual void close() { usrclosed(); }
@@ -154,7 +160,7 @@ protected:
 	int idle_restart();	// should I restart after idle?
 	int fast_retransmit(int);  // do a fast-retransmit on specified seg
 	inline double now() { return Scheduler::instance().clock(); }
-	void newstate(int ns); // future hook for traces
+	virtual void newstate(int ns) { state_ = ns; }
 
 	void finish();
 	void reset_rtx_timer(int);  	// adjust the rtx timer
@@ -241,8 +247,9 @@ protected:
 
 class SackFullTcpAgent : public FullTcpAgent {
 public:
-	SackFullTcpAgent();
-	~SackFullTcpAgent();
+	SackFullTcpAgent() :
+		sack_min_(-1), sq_(sack_min_), h_seqno_(-1) { }
+	~SackFullTcpAgent() { rq_.clear(); }
 protected:
 
 	virtual void delay_bind_init_all();
@@ -271,11 +278,11 @@ protected:
 	int sack_rtx_cthresh_;	// hole-fill counter threshold
 	int sack_rtx_threshmode_;	// hole-fill mode setting
 
-	ReassemblyQueue sq_;	// SACK queue, used by sender
 
 	void	reset();
 	void	sendpacket(int seqno, int ackno, int pflags, int datalen, int reason);
 
+	ReassemblyQueue sq_;	// SACK queue, used by sender
 	int sack_min_;		// first seq# in sack queue, initializes sq_
 	int h_seqno_;		// next seq# to hole-fill
 };
