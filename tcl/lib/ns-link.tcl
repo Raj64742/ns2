@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.20 1997/09/10 16:59:58 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.21 1997/09/10 17:33:17 kannan Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -164,7 +164,7 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	#
 	set ttl_ [new TTLChecker]
 	$ttl_ target [$link_ target]
-	$ttl_ ttl-drop-target
+	$self ttl-drop-trace
 	$link_ target $ttl_
 }
 
@@ -224,6 +224,7 @@ SimpleLink instproc ttl-drop-trace args {
 	if {[llength $args] != 0} {
 		$ttl_ drop-target [lindex $args 0]
 	} else {
+		$self instvar drophead_
 		$ttl_ drop-target $drophead_
 	}
 }
@@ -233,6 +234,7 @@ SimpleLink instproc transit-drop-trace args {
 	if {[llength $args] != 0} {
 		$link_ drop-target [lindex $args 0]
 	} else {
+		$self instvar drophead_
 		$link_ drop-target $drophead_
 	}
 }
@@ -243,6 +245,7 @@ SimpleLink instproc linkfail-drop-trace args {
 	if {[llength $args] != 0} {
 		$dynamics_ drop-target [lindex $args 0]
 	} else {
+		$self instvar drophead_
 		$dynamics_ drop-target $drophead_
 	}
 }
@@ -369,7 +372,7 @@ SimpleLink instproc sample-queue-size { } {
 }
 
 SimpleLink instproc dynamic {} {
-	$self instvar dynamics_ queue_ head_ enqT_ drpT_
+	$self instvar dynamics_ head_
 
 	if [info exists dynamics_] return
 	
@@ -377,10 +380,6 @@ SimpleLink instproc dynamic {} {
 	$dynamics_ target $head_
 	set head_ $dynamics_
 	
-	if [info exists drpT_] {			;# XXX
-		$dynamics_ down-target $drpT_
-	} else {
-		$dynamics_ down-target [[Simulator instance] set nullAgent_]
-	}
+	$self transit-drop-trace
 	$self all-connectors dynamic
 }
