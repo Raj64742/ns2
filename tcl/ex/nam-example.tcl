@@ -1,31 +1,8 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.5 1998/03/03 02:01:43 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.6 1998/03/07 00:07:26 haoboy Exp $
 #
-
-Simulator instproc dump-namagents {} {
-	$self instvar tracedAgents_ monitoredAgents_
-
-	puts "dump nam agents"
-	if ![$self is-started] {
-		return
-	}
-	if [info exists tracedAgents_] {
-		foreach id [array names tracedAgents_] {
-			puts "tra: $tracedAgents_($id)"
-			$tracedAgents_($id) add-agent-trace $id
-		}
-		unset tracedAgents_
-	}
-	if [info exists monitoredAgents_] {
-		puts "ma: $monitoredAgents_"
-		foreach a $monitoredAgents_ {
-			$a show-monitor
-		}
-		unset monitoredAgents_
-	}
-}
 
 if [string match {*.tcl} $argv0] {
 	set prog [string range $argv0 0 [expr [string length $argv0] - 5]]
@@ -177,4 +154,5 @@ proc finish {} {
     exit 0
 }
 
+$ns at 0.0 "$ns set-animation-rate 0.1ms"
 $ns run
