@@ -47,7 +47,7 @@ set opt(mac)		Mac/802_11
 set opt(ifq)		Queue/DropTail/PriQueue
 set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
-
+set opt(diffFilters)    GradientFilter
 set opt(ifqlen)		50		;# max packet in ifq
 set opt(seed)		0.0
 set opt(lm)             "off"           ;# log movement
@@ -144,6 +144,7 @@ Test/simple-ping instproc run {} {
 		 -phyType $opt(netif) \
 		 -channelType $opt(chan) \
 		 -topoInstance $topo \
+	         -diffusionFilter $opt(diffFilters) \
 		 -agentTrace ON \
                  -routerTrace ON \
                  -macTrace ON 
