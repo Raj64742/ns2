@@ -221,9 +221,9 @@ These OTcl callbacks provide a flexible simulation
 mechanism -- they can be used to start or stop
 sources, dump statistics, instantiate link failures,
 reconfigure the network topology etc.
-The simulation is run via the
+The simulation is started via the
 .I run
-method, and continues until there are no more
+method of the simulator, and continues until there are no more
 events to be processed.
 At this time,
 the original invocation of the
@@ -429,6 +429,7 @@ which may be:
   TCP                   - BSD Tahoe TCP
   TCP/Reno              - BSD Reno TCP
   TCP/Newreno           - a modified version of BSD Reno TCP
+  TCP/Vegas             - Vegas TCP (from U. Arizonia via USC)
   TCP/Sack1             - BSD Reno TCP with selective ACKs
   TCPSink               - standard TCP sink
   TCPSink/DelAck        - TCP sink that generates delayed ACKs
@@ -1297,6 +1298,17 @@ Configuration Parameters \fP
 .IP \fInewreno_changes_\fP
 .RE
 
+.\" .SH "TCP/VEGAS OBJECTS"
+.\" TCP/Vegas objects are a subclass of TCP objects that implement 
+.\" a modified version of the Reno TCP transport protocol (?).
+.\" There are no methods state variables
+.\" specific to this object (?).
+.\" Configuration Parameters \fP
+.\" .LP
+.\" .RS
+.\" .IP \fIvegas_changes_\fP
+.\" .RE
+
 .SH "TCP/SACK1 OBJECTS"
 TCP/Sack1 objects are a subclass of TCP objects that implement 
 the (Tahoe or Reno?) TCP transport protocol with Selective
@@ -1802,7 +1814,7 @@ for more information.
 .IP \fB[2]\fP
 Floyd, S. and Jacobson, V.  Random Early Detection gateways for
 Congestion Avoidance.  IEEE/ACM Transactions on Networking,
-Vol. 1, No. 4.  August 1993.  pp. 197-413.  Available from
+Vol. 1, No. 4.  August 1993.  pp. 397-413.  Available from
 http://www-nrg.ee.lbl.gov/floyd/red.html.
 .IP \fB[3]\fP
 Floyd, S.  Simulator Tests.  July 1995.

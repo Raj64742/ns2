@@ -28,7 +28,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.4 1997/06/20 02:46:18 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.5 1997/07/02 03:09:24 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -76,24 +76,6 @@ VegasTcpAgent::reset()
 	v_incr_ = 0;
 	v_inc_flag_ = 1;
 }
-
-#if 0
-/*
- * xxx: johnh: it's not clear that this is the right def
- * but it's what was done in ns-1
- *
- * Also, this function should just appear by inheritance,
- * but if it's not defined gcc-2.7.2.1 gives me errors at link time:
- * /home/johnh/WORKING/VINT/ns-2/tcp-vegas.cc:54: undefined reference to `VegasTcpAgent::Handler virtual table'
- * /home/johnh/WORKING/VINT/ns-2/tcp-vegas.cc:54: undefined reference to `VegasTcpAgent::TcpAgent virtual table'
- * ...
- */
-int
-VegasTcpAgent::window()
-{
-	return TcpAgent::window();
-}
-#endif /* 0 */
 
 void
 VegasTcpAgent::recv(Packet *pkt, Handler *)

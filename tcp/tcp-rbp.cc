@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.4 1997/07/02 00:28:08 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.5 1997/07/02 03:09:24 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -74,6 +74,8 @@ class RBPVegasTcpAgent : public virtual VegasTcpAgent {
 	virtual void RBPVegasTcpAgent::send_much(int force, int reason, int maxburst);
 
 	double rbp_scale_;   // conversion from actual -> rbp send rates
+	enum rbp_rate_algorithms { RBP_NO_ALGORITHM, RBP_VEGAS_RATE_ALGORITHM, RBP_CWND_ALGORITHM };
+	int rbp_rate_algorithm_;
 protected:
 	void paced_send_one();
 	int able_to_rbp_send_one();
@@ -97,9 +99,11 @@ void RBPPaceTimer::expire(Event *e) { a_->paced_send_one(); }
 
 RBPVegasTcpAgent::RBPVegasTcpAgent() : TcpAgent(),
 	rbp_mode_(RBP_OFF),
-	pace_timer_(this)
+	pace_timer_(this),
+	rbp_rate_algorithm_(RBP_VEGAS_RATE_ALGORITHM)
 {
 	bind("rbp_scale_", &rbp_scale_);
+	bind("rbp_rate_algorithm_", &rbp_rate_algorithm_);
 }
 
 void
@@ -131,19 +135,26 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 	if (rbp_mode_ == RBP_POSSIBLE && able_to_rbp_send_one()) {
 		// start paced mode
 		rbp_mode_ = RBP_GOING; 
-		// Try to follow tcp_output.c here
-		// Calculate the vegas window as its reported rate
-		// times the rtt.
-		double rbwin_vegas = v_actual_ * v_rtt_;
-		RBP_DEBUG_PRINTF(("-----------------\n"));
-		RBP_DEBUG_PRINTF(("rbwin_vegas = %g\nv_actual = %g\nv_rtt =\
-%g\nbase_rtt=%g\n", rbwin_vegas, v_actual_, v_rtt_, v_baseRTT_));
-		// Smooth the vegas window
-		rbwin_vegas *= rbp_scale_;
-		// xxx Need check here; if rbwin_vegas is now less than
-		// mss, then set rbwin_vegas to one mss and stop doing
-		// rate based pacing; such a situation is equivalent
-		// to slow start restart.
+		double rbwin_vegas;
+		switch (rbp_rate_algorithm_) {
+		case RBP_VEGAS_RATE_ALGORITHM:
+			// Try to follow tcp_output.c here
+			// Calculate the vegas window as its reported rate
+			// times the rtt.
+			rbwin_vegas = v_actual_ * v_rtt_;
+			RBP_DEBUG_PRINTF(("-----------------\n"));
+			RBP_DEBUG_PRINTF(("rbwin_vegas = %g\nv_actual = %g\nv_rtt =%g\nbase_rtt=%g\n",
+					  rbwin_vegas, v_actual_, v_rtt_, v_baseRTT_));
+			// Smooth the vegas window
+			rbwin_vegas *= rbp_scale_;
+			break;
+		case RBP_CWND_ALGORITHM:
+			// Pace out scaled cwnd.
+			rbwin_vegas = cwnd() * rbp_scale_;
+			break;
+		default:
+			abort();
+		};
 		if ((int(rbwin_vegas + 0.5)) <= 1) {
 			// Rbp not needed; back out.
 			//
