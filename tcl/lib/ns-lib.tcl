@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112 1998/07/10 23:21:38 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.113 1998/07/15 19:31:31 kannan Exp $
 
 #
 
@@ -436,7 +436,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 			}
 		}
 		intserv {
-			set qtype [lindex $args 1]
+			set qtype [lindex $args 0]
 			set q [new Queue/$qtype]
 		}
 		default {
@@ -567,7 +567,7 @@ Simulator instproc remove-nam-linkconfig {i1 i2} {
 	}
 }
 
-Simulator instproc duplex-link { n1 n2 bw delay type } {
+Simulator instproc duplex-link { n1 n2 bw delay type args } {
 	$self instvar link_
 	set i1 [$n1 id]
 	set i2 [$n2 id]
@@ -575,15 +575,15 @@ Simulator instproc duplex-link { n1 n2 bw delay type } {
 		$self remove-nam-linkconfig $i1 $i2
 	}
 
-	$self simplex-link $n1 $n2 $bw $delay $type
-	$self simplex-link $n2 $n1 $bw $delay $type
+	eval $self simplex-link $n1 $n2 $bw $delay $type $args
+	eval $self simplex-link $n2 $n1 $bw $delay $type $args
 	
 	# nam only has duplex link, so we do a registration here.
 	$self register-nam-linkconfig $link_($i1:$i2)
 }
 
 Simulator instproc duplex-intserv-link { n1 n2 bw pd sched signal adc args } {
-	$self  duplex-link $n1 $n2 $bw $pd "intserv $sched $signal $adc $args"
+	eval $self duplex-link $n1 $n2 $bw $pd intserv $sched $signal $adc $args
 }
 
 Simulator instproc duplex-link-op { n1 n2 op args } {
