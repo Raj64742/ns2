@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.20 1999/08/25 04:00:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.21 1999/09/22 02:12:03 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -49,6 +49,8 @@ TestSuite instproc finish file {
 	}
         ## now use default graphing tool to make a data file
 	## if so desired
+	# regsub \\(.+\\) $file {} filename
+	# exec csh gnuplotA.com temp.rands $filename
         exit 0
 }
 
@@ -456,6 +458,30 @@ Test/stats1 instproc run {} {
         $ns_ run
 }
 
+TestSuite instproc set_lossylink {} {
+    	$self instvar lossylink_ ns_ node_
+    	set lossylink_ [$ns_ link $node_(r1) $node_(k1)]
+   	set em [new ErrorModule Fid]
+    	set errmodel [new ErrorModel/Periodic]
+    	$errmodel unit pkt
+    	$lossylink_ errormodule $em
+}
+
+TestSuite instproc emod {} {
+	$self instvar lossylink_
+        set errmodule [$lossylink_ errormodule]
+        return $errmodule
+}
+
+TestSuite instproc drop_pkts pkts {
+	$self instvar ns_
+	set emod [$self emod]
+	set errmodel1 [new ErrorModel/List]
+	$errmodel1 droplist $pkts
+	$emod insert $errmodel1
+	$emod bind $errmodel1 1
+} 
+
 TestSuite instproc run1 tcp0 {
         $self instvar ns_ node_ testName_
 	set stoptime 30.1
@@ -502,6 +528,44 @@ Test/quiescent_100ms instproc run {} {
 	Agent/TCP set packetSize_ 100 
 	Agent/TCP set window_ 25
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	$self run1 $tcp0
+}
+
+Class Test/quiescentB -superclass TestSuite
+Test/quiescentB instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescentB
+	Agent/TCP set QOption_ 0
+        $self next
+} 
+Test/quiescentB instproc run {} {
+        $self instvar ns_ node_ 
+	$self set_lossylink
+	Agent/TCP set packetSize_ 100 
+	Agent/TCP set window_ 25
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
+	$self drop_pkts {2}
+	$self run1 $tcp0
+}
+
+Class Test/quiescentB_qoption -superclass TestSuite
+Test/quiescentB_qoption instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescentB_qoption
+	Agent/TCP set QOption_ 1
+        $self next
+} 
+Test/quiescentB_qoption instproc run {} {
+        $self instvar ns_ node_ 
+	$self set_lossylink
+	Agent/TCP set packetSize_ 100 
+	Agent/TCP set window_ 25
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
+	$self drop_pkts {2}
 	$self run1 $tcp0
 }
 
