@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.27 1998/04/17 21:24:50 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.28 1998/04/24 17:07:35 haldar Exp $
 #
 
 Class Node
@@ -207,7 +207,6 @@ Node instproc detach { agent nullagent } {
     #
     # remove agent from list
     #
-    debug 1
     set k [lsearch -exact $agents_ $agent]
     if { $k >= 0 } {
 	set agents_ [lreplace $agents_ $k $k]
