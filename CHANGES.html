@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.171 1997/10/28 02:53:23 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.172 1997/10/29 00:03:12 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,22 @@
 [release pending]</H3>
 
 <UL>
+  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+       Tue Oct 28 15:04:32 PST 1997<br>
+       Some test suite work:
+       <ul>
+	 <li> validate:  a new program in the top directory which runs
+	      all known test suites.
+	 <li> bin/fix_flow_id:  sets flow-id to source/dest, or min
+	      of the two.  To prior to this some scripts expected flow
+	      ids to be one or the other, or real flow ids, for plotting
+	      purposes (raw2xg).  Now if you want to something other than
+	      what's in the 7th (zero-based) field of the trace,
+	      use bin/fix_flow_id.
+	 <li> test-suite-tcp.tcl was fixed to use fix_flow_id,
+	      making it work (it had been broken since 22-Oct-97).
+       </ul>
+
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        Mon Oct 27 18:52:25 PST 1997<br>
        Agent/TCP set restart_bugfix_ => false

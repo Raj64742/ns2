@@ -21,7 +21,6 @@ END
 };
 $usage = "usage: $progname [-a] [trace files...]\n";
 
-$opt_a = 0;
 require 'getopts.pl';
 &Getopts('as:m:qlt:') || usage;
 

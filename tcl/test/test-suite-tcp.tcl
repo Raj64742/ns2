@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.6 1997/10/18 19:37:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.7 1997/10/29 00:03:15 heideman Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -41,7 +41,8 @@ source topologies.tcl
 
 TestSuite instproc finish file {
 	global quiet
-        exec ../../bin/getrc -s 2 -d 3 all.tr | \
+        exec ../../bin/set_flow_id -s all.tr | \
+          ../../bin/getrc -s 2 -d 3 | \
           ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &

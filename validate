@@ -1,0 +1,14 @@
+#!/bin/sh
+
+echo "*** test-all"
+./test-all quiet
+
+cd tcl/test
+for i in red sack schedule tcp red-v1 cbq-v1 sack-v1 v1
+do
+	p=./test-all-$i
+	echo "*** $p"
+	$p quiet
+done
+
+exit 0
