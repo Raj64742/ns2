@@ -33,8 +33,8 @@
 #
 
 source misc_simple.tcl
-# FOR UPDATING GLOBAL DEFAULTS:
 source support.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
 
 set wrap 90
 set wrap1 [expr $wrap * 512 + 40]
@@ -302,6 +302,7 @@ Test/quickstart4full instproc run {} {
 }
 
 
+## Algorithm 1 gives a different result that it used to...
 Class Test/high_request -superclass TestSuite
 Test/high_request instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
@@ -311,6 +312,10 @@ Test/high_request instproc init {} {
     "A high quickstart request."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
+    Agent/QSAgent set alloc_rate_ 0.01
+    Agent/QSAgent set rate_function_ 1
+    Agent/QSAgent set algorithm_ 1
+    Agent/TCP set qs_request_mode_ 2
     set qs ON
     $self next pktTraceFile
 }
