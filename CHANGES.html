@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.41 1997/03/27 08:21:56 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.42 1997/03/27 08:26:49 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -10,28 +10,28 @@
 </ul>
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a16.tar.gz>ns-2.0a16</a>
-<i>[PENDING]</i></h3>
+[PENDING]</h3>
 <ul>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
-<i>Thu Mar 27 00:11:31 PST 1997</i><br>
+<b>Thu Mar 27 00:11:31 PST 1997</b><br>
 Added a make rule for "nsx", which is
 just like ns but is a wish interpreter instead of a tclsh.
 Retired ns_tclsh.cc and replaced with tclAppInit.cc and tkAppInit.cc.
 Also added -ldl for bsdi-3.  
 
 <li><b><a href=http://www.cs.berkeley.edu/~elan>[EA]</a></b>
-<i>Wed Mar 26 22:49:30 PST 1997</i><br>
+<b>Wed Mar 26 22:49:30 PST 1997</b><br>
 Fixed up Session/RTP to work with latest version.  Added a 
 <i>rate_change()</i> method to RTPAgent to allow correct behavior when 
  changing transmission rates.  See code in <t>rtp.cc</t> for details.
 
 <li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
-<i>Wed Mar 26 17:11:17 PST 1997</i><br>
+<b>Wed Mar 26 17:11:17 PST 1997</b><br>
 Replace test-suite.tcl with test-suite.tcl from ns-1.
 
 <li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
-<i>Wed Mar 26 15:24:24 PST 1997</i><br>
+<b>Wed Mar 26 15:24:24 PST 1997</b><br>
 The test suites break with the dynamics, because they want to acquire
 an instance of the Simulator.  However, the test-suites operate in
 compatibility mode, and hence only create an instance of OldSim, a
@@ -44,7 +44,7 @@ tcl/rtglib/dynamics.tcl, tcl/rtglib/route-proto.tcl
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a15.tar.gz>ns-2.0a15</a>
-<i>Tue Mar 25 14:56:39 PST 1997</i></h3>
+<b>Tue Mar 25 14:56:39 PST 1997</b></h3>
 <ul>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
@@ -54,18 +54,18 @@ Added trace.h to FILES.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a14.tar.gz>ns-2.0a14</a>
-<i>Tue Mar 25 14:00:35 PST 1997</i></h3>
+<b>Tue Mar 25 14:00:35 PST 1997</b></h3>
 <i>Snapshot for alpha testers.</i>
 <ul>
 
 <li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
-<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+<b>Tue Mar 25 09:16:33 PST 1997</b><br>
 Fix auto configuration so that libotcl.a is found when the directory is
 explicitly specified using --with-otcl.<br>
 Files affected: conf/configure.in.otcl, configure</p>
 
 <li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
-<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+<b>Tue Mar 25 09:16:33 PST 1997</b><br>
 Change Tracing so that trace elements can be created and used entirely
 via OTcl if the tracing is unrelated to packet activity.<br>
 See rtModel::init, rtModel::trace, and rtModel::log-dynamic in
@@ -74,7 +74,7 @@ Files affected:  Makefile.in, trace.cc, tcl/lib/ns-lib.tcl,
 tcl/lib/ns-trace.tcl (<b>new</b>)</p>
 
 <li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
-<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+<b>Tue Mar 25 09:16:33 PST 1997</b><br>
 
 Add dynamics to links and nodes so that portions of the topology can be
 made to fail and recover.  The failure and recovery can be controlled
@@ -94,7 +94,7 @@ tcl/ex/dynamic-nam.tcl(<b>new</b>),
 tcl/nam-demo/nstonam.awk.</p>
 
 <li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
-<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+<b>Tue Mar 25 09:16:33 PST 1997</b><br>
 Add dynamic routing to deal with topology changes (<em>work in progress</em>).
 Currently, the basic all-pairs-spf routing has been modified to fit a
 more uniform API.  Also complete is a session-level routing,
@@ -116,12 +116,12 @@ Added heap.h to FILES.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a13.tar.gz>ns-2.0a13</a>
-<i>Fri Mar 21 09:08:05 PST 1997</i></h3>
+<b>Fri Mar 21 09:08:05 PST 1997</b></h3>
 <i>Snapshot for alpha testers.</i>
 <ul>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
-<i>Tue Mar 18 15:32:01 PST 1997</i><br>
+<b>Tue Mar 18 15:32:01 PST 1997</b><br>
 Integrated
 <a href=http://tns-www.lcs.mit.edu/people/djw/bio.html>
 David Wetherall's</a> calendar queue.
@@ -132,13 +132,13 @@ Use as:
 </pre>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
-<i>Tue Mar 18 15:32:01 PST 1997</i><br>
+<b>Tue Mar 18 15:32:01 PST 1997</b><br>
 Added a simple, completely contrived script to generate
 SRM-like sample paths to illustrate SRM in EECS colloquium
 (see tcl/ex/srm-demo.tcl).
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
-<i>Tue Mar 18 15:32:01 PST 1997</i><br>
+<b>Tue Mar 18 15:32:01 PST 1997</b><br>
 Fixed bug in Packet::copy.  "*p = *this" was bogus because
 bits are now allocated in a separate buffer and this was
 smashing the current packet's bits buffer to point to the
@@ -203,7 +203,7 @@ Use as:
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a12.tar.gz>ns-2.0a12</a>
-<i>Sat Feb 22 22:09:51 PST 1997</i></h3>
+<b>Sat Feb 22 22:09:51 PST 1997</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
@@ -258,7 +258,7 @@ only for simplex links.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a11.tar.gz>ns-2.0a11</a>
-<i>Thu Feb 13 11:28:35 PST 1997</i></h3>
+<b>Thu Feb 13 11:28:35 PST 1997</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
@@ -272,7 +272,7 @@ Prevented test suite from running.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a10.tar.gz>ns-2.0a10</a>
-<i>Mon Feb  3 13:14:48 PST 1997</i></h3>
+<b>Mon Feb  3 13:14:48 PST 1997</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
@@ -297,7 +297,7 @@ to <i>recv</i>.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a9.tar.gz>ns-2.0a9</a>
-<i>Thu Jan 30 21:11:34 PST 1997</i></h3>
+<b>Thu Jan 30 21:11:34 PST 1997</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
@@ -322,7 +322,7 @@ with that of ns-1.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a8.tar.gz>ns-2.0a8</a>
-<i>Mon Jan 27 19:26:17 PST 1997</i></h3>
+<b>Mon Jan 27 19:26:17 PST 1997</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
@@ -335,7 +335,7 @@ Reported by
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a7.tar.gz>ns-2.0a7</a>
-<i>Mon Jan 27 18:09:02 PST 1997</i></h3>
+<b>Mon Jan 27 18:09:02 PST 1997</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
@@ -368,7 +368,7 @@ is toplogically independent.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a6.tar.gz>ns-2.0a6</a>
-<i>Tue Dec 31 18:55:39 PST 1996</i></h3>
+<b>Tue Dec 31 18:55:39 PST 1996</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators.</i>
 <ul>
@@ -387,7 +387,7 @@ Added RTP Session class along with RTP and RTCP agents.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a4.tar.gz>ns-2.0a4</a>
-<i>Sun Nov 10 11:06:46 PST 1996</i></h3>
+<b>Sun Nov 10 11:06:46 PST 1996</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators.</i>
 <ul>
@@ -415,7 +415,7 @@ the queue (grafts are not yet sent reliably).
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a3.tar.gz>ns-2.0a3</a>
-<i>Sun Nov 10 11:06:46 PST 1996</i></h3>
+<b>Sun Nov 10 11:06:46 PST 1996</b></h3>
 <i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators.</i>
 <ul>
@@ -482,7 +482,7 @@ backward compatability code into a new class called <i>OldSim</i>.
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a1.tar.gz>ns-2.0a1</a>
-<i>Wed Nov  6 13:57:31 PST 1996</i></h3>
+<b>Wed Nov  6 13:57:31 PST 1996</b></h3>
 <i>Pre-release to <a href=http://netweb.usc.edu/vint/>VINT</a>
 collaborators.</i>
 
