@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.27 1998/08/22 02:41:24 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.28 1998/08/24 19:39:45 tomh Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -118,6 +118,17 @@ void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
 void Acker::update_ecn_unacked(int value)
 {
 	ecn_unacked_ = value;
+}
+
+int TcpSink::command(int argc, const char*const* argv)
+{
+	if (argc == 2) {
+		if (strcmp(argv[1], "reset") == 0) {
+			reset();
+			return (TCL_OK);
+		}
+	}
+	return (Agent::command(argc, argv));
 }
 
 void TcpSink::reset() 

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.10 1998/08/12 23:41:21 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.11 1998/08/24 19:39:45 tomh Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -92,6 +92,7 @@ public:
 	TcpSink(Acker*);
 	void recv(Packet* pkt, Handler*);
 	void reset();
+	int command(int argc, const char*const* argv);
 	TracedInt& maxsackblocks() { return max_sack_blocks_; }
 protected:
 	void ack(Packet*);
