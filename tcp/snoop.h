@@ -54,6 +54,9 @@
 #define SNOOP_PROPAGATE 0
 #define SNOOP_SUPPRESS   1
 
+#define SNOOP_MAKEHANDLER 1
+#define SNOOP_TAIL 1
+
 struct hdr_snoop {
 	int seqno_;
 	int numRxmit_;
@@ -72,48 +75,28 @@ public:
 						sizeof(hdr_snoop)) {}
 } class_snoophdr;
 
-class Snoop;
-
-class SnoopRxmitHandler : public Handler {
-  public:
-	SnoopRxmitHandler(Snoop *s) : snoop_(s) {}
-	void handle(Event *event);
-  protected:
-	Snoop *snoop_;
-};
-
-class SnoopPersistHandler : public Handler {
-  public:
-	SnoopPersistHandler(Snoop *s) : snoop_(s) {}
-	void handle(Event *);
-  protected:
-	Snoop *snoop_;
-};
-
+class SnoopRxmitHandler;
+class SnoopPersistHandler;
 
 class Snoop : public BaseLL {
+	friend SnoopRxmitHandler;
+	friend SnoopPersistHandler;
   public:
-	Snoop();
+	Snoop(int makeHandler=0);
 	int  command(int argc, const char*const* argv);
 	void recv(Packet *, Handler *);	/* control of snoop actions */
 	void handle(Event *);	/* control of snoop actions */
 	void snoop_rxmit(Packet *);
-
-	inline int next(int i) { return ((i+1) % SNOOP_MAXWIND); }
+	inline int next(int i) { return (i+1) % SNOOP_MAXWIND; }
 	inline int prev(int i) { return ((i == 0) ? SNOOP_MAXWIND-1 : i-1); };
-	inline short& bufhead() { return bufhead_; }
-	inline short& buftail() { return buftail_; }
-	inline int& expNextAck() { return expNextAck_; }
-	inline u_short &fstate() { return fstate_; }
-
-	Packet *pkts[SNOOP_MAXWIND]; /* ringbuf of cached mbufs */
 
   protected:
 	void snoop_data_(Packet *);
 	int  snoop_ack_(Packet *);
 	double snoop_cleanbufs_(int);
 	void snoop_rtt_(double);
-	void insert_(Packet *);
+	int insert_(Packet *);
+	inline int empty_(){return bufhead_==buftail_ &&!(fstate_&SNOOP_FULL);}
 	void savepkt_(Packet *, int, int);
 	void update_state_();
 	inline double timeout_() { 
@@ -140,8 +123,24 @@ class Snoop : public BaseLL {
 	short    bufhead_;	/* next pkt goes here */
 	short    buftail_;	/* first unack'd pkt */
 	Event    *toutPending_;	/* # pending timeouts */
+	Packet   *pkts_[SNOOP_MAXWIND]; /* ringbuf of cached mbufs */
 	
 	int      off_snoop_;	/* snoop header offset */
 	int      off_tcp_;	/* snoop header offset */
 };
 
+class SnoopRxmitHandler : public Handler {
+  public:
+	SnoopRxmitHandler(Snoop *s) : snoop_(s) {}
+	void handle(Event *event);
+  protected:
+	Snoop *snoop_;
+};
+
+class SnoopPersistHandler : public Handler {
+  public:
+	SnoopPersistHandler(Snoop *s) : snoop_(s) {}
+	void handle(Event *);
+  protected:
+	Snoop *snoop_;
+};
