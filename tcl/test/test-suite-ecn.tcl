@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.33 2003/01/16 02:01:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.34 2003/01/16 17:11:34 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -301,7 +301,7 @@ Test/ecn instproc init {} {
     Queue/RED set setbit_ true
     set net_	net2
     set test_	ecn
-    $self next
+    $self next 2
 }
 Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
@@ -442,7 +442,7 @@ Test/ecn_nodrop_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_tahoe instproc run {} {
 	$self instvar ns_
@@ -460,7 +460,7 @@ Test/ecn_twoecn_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_tahoe instproc run {} {
 	$self instvar ns_ lossmodel
@@ -479,7 +479,7 @@ Test/ecn_drop_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_drop_tahoe instproc run {} {
 	$self instvar ns_
@@ -497,7 +497,7 @@ Test/ecn_drop1_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_tahoe instproc run {} {
 	$self instvar ns_
@@ -515,7 +515,7 @@ Test/ecn_drop2_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop2_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_drop2_tahoe instproc run {} {
 	$self instvar ns_
@@ -536,7 +536,7 @@ Test/ecn_noecn_tahoe instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_tahoe
 	Test/ecn_noecn_tahoe instproc run {} [Test/ecn_drop_tahoe info instbody run ]
-        $self next
+        $self next 2
 }
 
 # Multiple dup acks with bugFix_
@@ -549,7 +549,7 @@ Test/ecn_bursty_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_bursty_tahoe instproc run {} {
 	$self instvar ns_
@@ -572,7 +572,7 @@ Test/ecn_burstyEcn_tahoe instproc init {} {
 	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_tahoe
 	Test/ecn_burstyEcn_tahoe instproc run {} [Test/ecn_bursty_tahoe info instbody run ]   
-        $self next
+        $self next 2
 }
 
 # Multiple dup acks without bugFix_
@@ -587,7 +587,7 @@ Test/ecn_noBugfix_tahoe instproc init {} {
         set test_	ecn_noBugfix_tahoe
 	Test/ecn_noBugfix_tahoe instproc run {} [Test/ecn_bursty_tahoe info instbody run ]
 
-        $self next
+        $self next 2
 }
 
 # ECN followed by timeout.
@@ -598,7 +598,7 @@ Test/ecn_timeout_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_timeout_tahoe instproc run {} {
 	$self instvar ns_
@@ -618,7 +618,7 @@ Test/ecn_timeout2_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout2_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_timeout2_tahoe instproc run {} {
 	$self instvar ns_
@@ -636,7 +636,7 @@ Test/ecn_timeout3_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout3_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_timeout3_tahoe instproc run {} {
 	$self instvar ns_
@@ -656,7 +656,7 @@ Test/ecn_smallwin_tahoe instproc init {} {
 	# The default is being changed to true.
         set net_	net2-lossy
         set test_	ecn_smallwin_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_smallwin_tahoe instproc run {} {
 	$self instvar ns_
@@ -677,7 +677,7 @@ Test/ecn_smallwinEcn_tahoe instproc init {} {
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
         set test_	ecn_smallwinEcn_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_tahoe instproc run {} {
 	$self instvar ns_ errmodel1
@@ -703,7 +703,7 @@ Test/ecn_smallwin1Ecn_tahoe instproc init {} {
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
         set test_	ecn_smallwin1Ecn_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_smallwin1Ecn_tahoe instproc run {} {
 	$self instvar ns_ errmodel1 errmodel2
@@ -728,7 +728,7 @@ Test/ecn_smallwin2Ecn_tahoe instproc init {} {
 	# The default is being changed to true.
         set test_	ecn_smallwin2Ecn_tahoe
 	Test/ecn_smallwin2Ecn_tahoe instproc run {} [Test/ecn_smallwinEcn_tahoe info instbody run ]
-        $self next
+        $self next 2
 }
 
 Class Test/ecn_smallwin3Ecn_tahoe -superclass TestSuite
@@ -740,7 +740,7 @@ Test/ecn_smallwin3Ecn_tahoe instproc init {} {
 	Agent/TCP set slow_start_restart_ false
         set test_	ecn_smallwin3Ecn_tahoe
 	Test/ecn_smallwin3Ecn_tahoe instproc run {} [Test/ecn_smallwin1Ecn_tahoe info instbody run ]
-        $self next
+        $self next 2
 }
 
 # Packet drops for the second packet.
@@ -751,7 +751,7 @@ Test/ecn_secondpkt_tahoe instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_secondpkt_tahoe instproc run {} {
 	$self instvar ns_
@@ -770,7 +770,7 @@ Test/ecn_secondpktEcn_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_tahoe
-        $self next
+        $self next 2
 }
 Test/ecn_secondpktEcn_tahoe instproc run {} {
 	$self instvar ns_ errmodel1
@@ -790,7 +790,7 @@ Test/ecn_secondpkt1Ecn_tahoe instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpkt1Ecn_tahoe
 	Test/ecn_secondpkt1Ecn_tahoe instproc run {} [Test/ecn_secondpktEcn_tahoe info instbody run ] 
-        $self next
+        $self next 2
 }
 
 #######################################################################
@@ -805,7 +805,7 @@ Test/ecn_nodrop_tahoe_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_tahoe_delack
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_tahoe_delack instproc run {} {
 	$self instvar ns_
@@ -823,7 +823,7 @@ Test/ecn_twoecn_tahoe_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_tahoe_delack
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_tahoe_delack instproc run {} {
 	$self instvar ns_ lossmodel
@@ -842,7 +842,7 @@ Test/ecn_drop_tahoe_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_tahoe_delack
-        $self next
+        $self next 2
 }
 Test/ecn_drop_tahoe_delack instproc run {} {
 	$self instvar ns_
@@ -860,7 +860,7 @@ Test/ecn_drop1_tahoe_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_tahoe_delack
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_tahoe_delack instproc run {} {
 	$self instvar ns_
@@ -880,7 +880,7 @@ Test/ecn_smallwinEcn_tahoe_delack instproc init {} {
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
         set test_	ecn_smallwinEcn_tahoe_delack
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_tahoe_delack instproc run {} {
 	$self instvar ns_ errmodel1
@@ -903,7 +903,7 @@ Test/ecn_nodrop_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_reno
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_reno instproc run {} {
 	$self instvar ns_
@@ -921,7 +921,7 @@ Test/ecn_twoecn_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_reno
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_reno instproc run {} {
 	$self instvar ns_ lossmodel
@@ -940,7 +940,7 @@ Test/ecn_drop_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_reno
-        $self next
+        $self next 2
 }
 Test/ecn_drop_reno instproc run {} {
 	$self instvar ns_
@@ -959,7 +959,7 @@ Test/ecn_drop1_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_reno
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_reno instproc run {} {
 	$self instvar ns_
@@ -980,7 +980,7 @@ Test/ecn_noecn_reno instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_reno
 	Test/ecn_noecn_reno instproc run {} [Test/ecn_drop_reno info instbody run ]
-        $self next
+        $self next 2
 }
 
 # Multiple dup acks with bugFix_
@@ -993,7 +993,7 @@ Test/ecn_bursty_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_reno
-        $self next
+        $self next 2
 }
 Test/ecn_bursty_reno instproc run {} {
 	$self instvar ns_
@@ -1015,7 +1015,7 @@ Test/ecn_burstyEcn_reno instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_burstyEcn_reno
 	Test/ecn_burstyEcn_reno instproc run {} [Test/ecn_bursty_reno info instbody run ]   
-        $self next
+        $self next 2
 }
 
 # Multiple dup acks without bugFix_
@@ -1030,7 +1030,7 @@ Test/ecn_noBugfix_reno instproc init {} {
         set test_	ecn_noBugfix_reno
 	Test/ecn_noBugfix_reno instproc run {} [Test/ecn_bursty_reno info instbody run ]
 
-        $self next
+        $self next 2
 }
 
 # ECN followed by timeout.
@@ -1041,7 +1041,7 @@ Test/ecn_timeout_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_reno
-        $self next
+        $self next 2
 }
 Test/ecn_timeout_reno instproc run {} {
 	$self instvar ns_
@@ -1060,7 +1060,7 @@ Test/ecn_timeout1_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_reno
-        $self next
+        $self next 2
 }
 Test/ecn_timeout1_reno instproc run {} {
 	$self instvar ns_
@@ -1079,7 +1079,7 @@ Test/ecn_smallwin_reno instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_smallwin_reno
-        $self next
+        $self next 2
 }
 Test/ecn_smallwin_reno instproc run {} {
 	$self instvar ns_
@@ -1098,7 +1098,7 @@ Test/ecn_smallwinEcn_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_reno
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_reno instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1116,7 +1116,7 @@ Test/ecn_smallwin1Ecn_reno instproc init {} {
         set net_	net3-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwin1Ecn_reno
-        $self next
+        $self next 2
 }
 Test/ecn_smallwin1Ecn_reno instproc run {} {
 	$self instvar ns_ errmodel1 errmodel2
@@ -1137,7 +1137,7 @@ Test/ecn_secondpkt_reno instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_reno
-        $self next
+        $self next 2
 }
 Test/ecn_secondpkt_reno instproc run {} {
 	$self instvar ns_
@@ -1156,7 +1156,7 @@ Test/ecn_secondpktEcn_reno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_reno
-        $self next
+        $self next 2
 }
 Test/ecn_secondpktEcn_reno instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1179,7 +1179,7 @@ Test/ecn_nodrop_reno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_reno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_reno_delack instproc run {} {
 	$self instvar ns_
@@ -1197,7 +1197,7 @@ Test/ecn_twoecn_reno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_reno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_reno_delack instproc run {} {
 	$self instvar ns_ lossmodel
@@ -1216,7 +1216,7 @@ Test/ecn_drop_reno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_reno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_drop_reno_delack instproc run {} {
 	$self instvar ns_
@@ -1235,7 +1235,7 @@ Test/ecn_drop1_reno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_reno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_reno_delack instproc run {} {
 	$self instvar ns_
@@ -1253,7 +1253,7 @@ Test/ecn_smallwinEcn_reno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_reno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_reno_delack instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1276,7 +1276,7 @@ Test/ecn_nodrop_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_sack
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_sack instproc run {} {
 	$self instvar ns_
@@ -1294,7 +1294,7 @@ Test/ecn_twoecn_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_sack
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_sack instproc run {} {
 	$self instvar ns_ lossmodel
@@ -1313,7 +1313,7 @@ Test/ecn_drop_sack instproc init {} {
         set net_        net2-lossy
         Agent/TCP set bugFix_ true  
         set test_       ecn_drop_sack
-        $self next
+        $self next 2
 } 
 Test/ecn_drop_sack instproc run {} {
         $self instvar ns_
@@ -1331,7 +1331,7 @@ Test/ecn_drop1_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_sack
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_sack instproc run {} {
 	$self instvar ns_
@@ -1352,7 +1352,7 @@ Test/ecn_noecn_sack instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_sack
 	Test/ecn_noecn_sack instproc run {} [Test/ecn_drop_sack info instbody run ]
-        $self next
+        $self next 2
 }
 
 # Multiple dup acks with bugFix_
@@ -1365,7 +1365,7 @@ Test/ecn_bursty_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_sack
-        $self next
+        $self next 2
 }
 Test/ecn_bursty_sack instproc run {} {
 	$self instvar ns_
@@ -1388,7 +1388,7 @@ Test/ecn_burstyEcn_sack instproc init {} {
 	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_sack
 	Test/ecn_burstyEcn_sack instproc run {} [Test/ecn_bursty_sack info instbody run ]   
-        $self next
+        $self next 2
 }
 
 # Multiple dup acks following ECN
@@ -1399,7 +1399,7 @@ Test/ecn_burstyEcn1_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_burstyEcn1_sack
-        $self next
+        $self next 2
 }
 Test/ecn_burstyEcn1_sack instproc run {} {
 	$self instvar ns_
@@ -1424,7 +1424,7 @@ Test/ecn_noBugfix_sack instproc init {} {
         set test_	ecn_noBugfix_sack
 	Test/ecn_noBugfix_sack instproc run {} [Test/ecn_bursty_sack info instbody run ]
 
-        $self next
+        $self next 2
 }
 
 # ECN followed by timeout.
@@ -1435,7 +1435,7 @@ Test/ecn_timeout_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_sack
-        $self next
+        $self next 2
 }
 Test/ecn_timeout_sack instproc run {} {
 	$self instvar ns_
@@ -1454,7 +1454,7 @@ Test/ecn_timeout1_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_sack
-        $self next
+        $self next 2
 }
 Test/ecn_timeout1_sack instproc run {} {
 	$self instvar ns_
@@ -1473,7 +1473,7 @@ Test/ecn_fourdrops_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_fourdrops_sack
-        $self next
+        $self next 2
 }
 Test/ecn_fourdrops_sack instproc run {} {
 	$self instvar ns_
@@ -1491,7 +1491,7 @@ Test/ecn_smallwin_sack instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_smallwin_sack
-        $self next
+        $self next 2
 }
 Test/ecn_smallwin_sack instproc run {} {
 	$self instvar ns_
@@ -1510,7 +1510,7 @@ Test/ecn_smallwinEcn_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_sack
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_sack instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1528,7 +1528,7 @@ Test/ecn_smallwin1Ecn_sack instproc init {} {
         set net_	net3-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwin1Ecn_sack
-        $self next
+        $self next 2
 }
 Test/ecn_smallwin1Ecn_sack instproc run {} {
 	$self instvar ns_ errmodel1 errmodel2
@@ -1549,7 +1549,7 @@ Test/ecn_secondpkt_sack instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_sack
-        $self next
+        $self next 2
 }
 Test/ecn_secondpkt_sack instproc run {} {
 	$self instvar ns_
@@ -1568,7 +1568,7 @@ Test/ecn_secondpktEcn_sack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_sack
-        $self next
+        $self next 2
 }
 Test/ecn_secondpktEcn_sack instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1591,7 +1591,7 @@ Test/ecn_nodrop_sack_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_sack_delack
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_sack_delack instproc run {} {
 	$self instvar ns_
@@ -1609,7 +1609,7 @@ Test/ecn_twoecn_sack_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_sack_delack
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_sack_delack instproc run {} {
 	$self instvar ns_ lossmodel
@@ -1628,7 +1628,7 @@ Test/ecn_drop_sack_delack instproc init {} {
         set net_        net2-lossy
         Agent/TCP set bugFix_ true  
         set test_       ecn_drop_sack_delack
-        $self next
+        $self next 2
 } 
 Test/ecn_drop_sack_delack instproc run {} {
         $self instvar ns_
@@ -1646,7 +1646,7 @@ Test/ecn_drop1_sack_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_sack_delack
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_sack_delack instproc run {} {
 	$self instvar ns_
@@ -1664,7 +1664,7 @@ Test/ecn_smallwinEcn_sack_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_sack_delack
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_sack_delack instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1687,7 +1687,7 @@ Test/ecn_nodrop_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_newreno instproc run {} {
 	$self instvar ns_
@@ -1705,7 +1705,7 @@ Test/ecn_twoecn_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_newreno instproc run {} {
 	$self instvar ns_ lossmodel
@@ -1724,7 +1724,7 @@ Test/ecn_drop_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_drop_newreno instproc run {} {
 	$self instvar ns_
@@ -1743,7 +1743,7 @@ Test/ecn_drop1_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_newreno instproc run {} {
 	$self instvar ns_
@@ -1764,7 +1764,7 @@ Test/ecn_noecn_newreno instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_newreno
 	Test/ecn_noecn_newreno instproc run {} [Test/ecn_drop_newreno info instbody run ]
-        $self next
+        $self next 2
 }
 
 # Multiple dup acks with bugFix_
@@ -1777,7 +1777,7 @@ Test/ecn_bursty_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_bursty_newreno instproc run {} {
 	$self instvar ns_
@@ -1800,7 +1800,7 @@ Test/ecn_burstyEcn_newreno instproc init {} {
 	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_newreno
 	Test/ecn_burstyEcn_newreno instproc run {} [Test/ecn_bursty_newreno info instbody run ]   
-        $self next
+        $self next 2
 }
 
 # ECN followed by timeout.
@@ -1811,7 +1811,7 @@ Test/ecn_timeout_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_timeout_newreno instproc run {} {
 	$self instvar ns_
@@ -1830,7 +1830,7 @@ Test/ecn_timeout1_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_timeout1_newreno instproc run {} {
 	$self instvar ns_
@@ -1850,7 +1850,7 @@ Test/ecn_smallwin_newreno instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_smallwin_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_smallwin_newreno instproc run {} {
 	$self instvar ns_
@@ -1869,7 +1869,7 @@ Test/ecn_smallwinEcn_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_newreno instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1889,7 +1889,7 @@ Test/ecn_secondpkt_newreno instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_secondpkt_newreno instproc run {} {
 	$self instvar ns_
@@ -1908,7 +1908,7 @@ Test/ecn_secondpktEcn_newreno instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_newreno
-        $self next
+        $self next 2
 }
 Test/ecn_secondpktEcn_newreno instproc run {} {
 	$self instvar ns_ errmodel1
@@ -1931,7 +1931,7 @@ Test/ecn_nodrop_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_newreno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_nodrop_newreno_delack instproc run {} {
 	$self instvar ns_
@@ -1949,7 +1949,7 @@ Test/ecn_twoecn_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_newreno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_twoecn_newreno_delack instproc run {} {
 	$self instvar ns_ lossmodel
@@ -1968,7 +1968,7 @@ Test/ecn_drop_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_newreno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_drop_newreno_delack instproc run {} {
 	$self instvar ns_
@@ -1987,7 +1987,7 @@ Test/ecn_drop1_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_newreno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_drop1_newreno_delack instproc run {} {
 	$self instvar ns_
@@ -2005,7 +2005,7 @@ Test/ecn_smallwinEcn_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_newreno_delack
-        $self next
+        $self next 2
 }
 Test/ecn_smallwinEcn_newreno_delack instproc run {} {
 	$self instvar ns_ errmodel1
@@ -2048,7 +2048,7 @@ Test/ecn1 instproc init {} {
         $self instvar net_ test_
         set net_        net6
         set test_       ecn1_(one_with_ecn1,_one_without)
-        $self next
+        $self next 2
 }
 Test/ecn1 instproc run {} {
         $self instvar ns_ node_ testName_

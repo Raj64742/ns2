@@ -200,7 +200,7 @@ Test/rem1 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ rem1
-    $self next
+    $self next 2
 }
 Test/rem1 instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -242,7 +242,7 @@ Test/ecn instproc init {} {
     Agent/TCP set old_ecn_ 1
     set net_	net2
     set test_	ecn
-    $self next
+    $self next 2
 }
 Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
@@ -283,7 +283,7 @@ Test/rem2 instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	rem2
-    $self next
+    $self next 2
 }
 Test/rem2 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -323,7 +323,7 @@ Test/rem_twoway instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	rem_twoway
-    $self next
+    $self next 2
 }
 Test/rem_twoway instproc run {} {
     $self instvar ns_ node_ testName_
@@ -369,7 +369,7 @@ Test/rem_twowayecn instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	rem_twowayecn
-    $self next
+    $self next 2
 }
 Test/rem_twowayecn instproc run {} {
     $self instvar ns_ node_ testName_

@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.10 2003/01/16 02:08:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.11 2003/01/16 17:11:35 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -106,7 +106,7 @@ Topology/net2b instproc init ns {
 ############################################################
 
 # To use windows larger than 1024 pkts, it is necessary to set
-# MWS in tcp-sink.h, and to set SBSIZE in scoreboard.h.
+# MWS in tcp-sink.h. 
 
 Class Test/tcp -superclass TestSuite
 Test/tcp instproc init {} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-bayfull.tcl,v 1.4 2003/01/16 02:08:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-bayfull.tcl,v 1.5 2003/01/16 17:11:35 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno-bayfull.tcl
@@ -190,7 +190,7 @@ Test/Reno_FullTCP instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	Reno_FullTCP
-	$self next
+	$self next 2
 }
 Test/Reno_FullTCP instproc run {} {
         $self setup FullTcp {5} {15 18}
@@ -207,7 +207,7 @@ Test/Reno_FullTCP2 instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	Reno_FullTCP2
-	$self next
+	$self next 2
 }
 Test/Reno_FullTCP2 instproc run {} {
         $self setup FullTcp {8} {17}

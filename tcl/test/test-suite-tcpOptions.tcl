@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.10 2003/01/16 02:08:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.11 2003/01/16 17:11:35 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -240,7 +240,7 @@ Test/onedrop_tahoe instproc init {} {
 	set net_	net4
 	set test_	onedrop_tahoe
 	set guide_	"Tahoe TCP, numdupacks set to 3."
-	$self next
+	$self next 2
 }
 Test/onedrop_tahoe instproc run {} {
         $self setup Tahoe {3}
@@ -254,7 +254,7 @@ Test/onedrop_numdup4_tahoe instproc init {} {
 	set guide_	"Tahoe TCP, numdupacks set to 4."
 	Agent/TCP set numdupacks_ 4
 	Test/onedrop_numdup4_tahoe instproc run {} [Test/onedrop_tahoe info instbody run ]
-	$self next
+	$self next 2
 }
 
 Class Test/onedrop_tahoe_full -superclass TestSuite
@@ -263,7 +263,7 @@ Test/onedrop_tahoe_full instproc init {} {
 	set net_	net4
 	set test_	onedrop_tahoe_full
 	set guide_	"Tahoe Full TCP, numdupacks set to 3."
-	$self next
+	$self next 2
 }
 Test/onedrop_tahoe_full instproc run {} {
         $self setup FullTcpTahoe {5}
@@ -276,7 +276,7 @@ Test/onedrop_numdup4_tahoe_full instproc init {} {
 	set test_	onedrop_numdup4_tahoe_full
 	set guide_	"Tahoe Full TCP, numdupacks set to 4."
 	Agent/TCP/FullTcp set tcprexmtthresh_ 4
-	$self next
+	$self next 2
 }
 Test/onedrop_numdup4_tahoe_full instproc run {} {
         $self setup FullTcpTahoe {5}
@@ -288,7 +288,7 @@ Test/onedrop_reno instproc init {} {
 	set net_	net4
 	set test_	onedrop_reno
 	set guide_      "Reno TCP, numdupacks set to 3."
-	$self next
+	$self next 2
 }
 Test/onedrop_reno instproc run {} {
         $self setup Reno {3}
@@ -302,7 +302,7 @@ Test/onedrop_numdup4_reno instproc init {} {
 	set guide_	"Reno TCP, numdupacks set to 4."
 	Agent/TCP set numdupacks_ 4
 	Test/onedrop_numdup4_reno instproc run {} [Test/onedrop_reno info instbody run ]
-	$self next
+	$self next 2
 }
 
 Class Test/onedrop_reno_full -superclass TestSuite
@@ -312,7 +312,7 @@ Test/onedrop_reno_full instproc init {} {
 	set net_	net4
 	set test_	onedrop_reno_full
 	set guide_	"Reno Full TCP, numdupacks set to 3."
-	$self next
+	$self next 2
 }
 Test/onedrop_reno_full instproc run {} {
         $self setup FullTcp {5}
@@ -326,7 +326,7 @@ Test/onedrop_numdup4_reno_full instproc init {} {
 	set test_	onedrop_numdup4_reno_full
 	set guide_	"Reno Full TCP, numdupacks set to 4."
 	Agent/TCP/FullTcp set tcprexmtthresh_ 4
-	$self next
+	$self next 2
 }
 Test/onedrop_numdup4_reno_full instproc run {} {
         $self setup FullTcp {5}
@@ -338,7 +338,7 @@ Test/onedrop_newreno instproc init {} {
 	set net_	net4
 	set test_	onedrop_newreno
 	set guide_      "NewReno TCP, numdupacks set to 3."
-	$self next
+	$self next 2
 }
 Test/onedrop_newreno instproc run {} {
         $self setup Newreno {3}
@@ -352,7 +352,7 @@ Test/onedrop_numdup4_newreno instproc init {} {
 	set guide_      "NewReno TCP, numdupacks set to 4."
 	Agent/TCP set numdupacks_ 4
 	Test/onedrop_numdup4_newreno instproc run {} [Test/onedrop_newreno info instbody run ]
-	$self next
+	$self next 2
 }
 
 Class Test/onedrop_newreno_full -superclass TestSuite
@@ -361,7 +361,7 @@ Test/onedrop_newreno_full instproc init {} {
 	set net_	net4
 	set test_	onedrop_newreno_full
 	set guide_      "NewReno Full TCP, numdupacks set to 3."
-	$self next
+	$self next 2
 }
 Test/onedrop_newreno_full instproc run {} {
         $self setup FullTcpNewreno {5}
@@ -374,7 +374,7 @@ Test/onedrop_numdup4_newreno_full instproc init {} {
 	set test_	onedrop_numdup4_newreno_full
 	set guide_      "NewReno Full TCP, numdupacks set to 4."
 	Agent/TCP/FullTcp set tcprexmtthresh_ 4
-	$self next
+	$self next 2
 }
 Test/onedrop_numdup4_newreno_full instproc run {} {
         $self setup FullTcpNewreno {5}
@@ -386,7 +386,7 @@ Test/onedrop_sack instproc init {} {
 	set net_	net4
 	set test_	onedrop_sack
 	set guide_      "Sack TCP, numdupacks set to 3."
-	$self next
+	$self next 2
 }
 Test/onedrop_sack instproc run {} {
         $self setup Sack1 {3}
@@ -400,7 +400,7 @@ Test/onedrop_numdup4_sack instproc init {} {
 	set guide_      "Sack TCP, numdupacks set to 4."
 	Agent/TCP set numdupacks_ 4
 	Test/onedrop_numdup4_sack instproc run {} [Test/onedrop_sack info instbody run ]
-	$self next
+	$self next 2
 }
 
 #Class Test/onedrop_sack_full -superclass TestSuite
@@ -409,7 +409,7 @@ Test/onedrop_numdup4_sack instproc init {} {
 #	set net_	net4
 #	set test_	onedrop_sack_full
 #	set guide_      "Sack Full TCP, numdupacks set to 3."
-#	$self next
+#	$self next 2
 #}
 #Test/onedrop_sack_full instproc run {} {
 #       $self setup FullTcpSack1 {5}
@@ -422,7 +422,7 @@ Test/onedrop_numdup4_sack instproc init {} {
 # 	set test_	onedrop_numdup4_sack_full
 #	set guide_      "Sack Full TCP, numdupacks set to 4."
 # 	Agent/TCP/FullTcp set tcprexmtthresh_ 4
-# 	$self next
+# 	$self next 2
 # }
 # Test/onedrop_numdup4_sack_full instproc run {} {
 #         $self setup FullTcpSack1 {5}

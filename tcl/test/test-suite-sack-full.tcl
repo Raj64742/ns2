@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.16 2003/01/16 02:08:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.17 2003/01/16 17:11:34 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -140,7 +140,7 @@ Topology/net1 instproc init ns {
     set node_(r1) [$ns node]
     set node_(k1) [$ns node]
 
-    $self next
+    $self next 
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail
     $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 100ms DropTail
@@ -159,7 +159,7 @@ Topology/net2 instproc init ns {
     set node_(s3) [$ns node]
     set node_(s4) [$ns node]
 
-    $self next
+    $self next 
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
@@ -199,7 +199,7 @@ Test/sack1 instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1
-    $self next
+    $self next 2
 }
 Test/sack1 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -218,7 +218,7 @@ Test/sack1z instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1z
-    $self next
+    $self next 2
 }
 Test/sack1z instproc run {} {
     $self instvar ns_ node_ testName_
@@ -239,7 +239,7 @@ Test/sack1a instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1a
-    $self next
+    $self next 2
 }
 Test/sack1a instproc run {} {
     $self instvar ns_ node_ testName_
@@ -259,7 +259,7 @@ Test/sack1aa instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1aa
-    $self next
+    $self next 2
 }
 Test/sack1aa instproc run {} {
     $self instvar ns_ node_ testName_
@@ -280,7 +280,7 @@ Test/sack1b instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1b
-    $self next
+    $self next 2
 }
 Test/sack1b instproc run {} {
     $self instvar ns_ node_ testName_
@@ -298,7 +298,7 @@ Test/sack1c instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1c
-    $self next
+    $self next 2
 }
 Test/sack1c instproc run {} {
     $self instvar ns_ node_ testName_
@@ -317,7 +317,7 @@ Test/sack3 instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack3
-    $self next
+    $self next 2
 }
 Test/sack3 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -339,7 +339,7 @@ Test/sack5 instproc init {} {
     $self instvar net_ test_
     set net_	net1
     set test_	sack5
-    $self next
+    $self next 2
 }
 Test/sack5 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -366,7 +366,7 @@ Test/sack5a instproc init {} {
     $self instvar net_ test_
     set net_	net1
     set test_	sack5a
-    $self next
+    $self next 2
 }
 Test/sack5a instproc run {} {
     $self instvar ns_ node_ testName_
@@ -395,7 +395,7 @@ Test/sackB2 instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sackB2
-    $self next
+    $self next 2
 }
 Test/sackB2 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -417,7 +417,7 @@ Test/sackB4 instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	sackB4
-    $self next
+    $self next 2
 }
 Test/sackB4 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -438,7 +438,7 @@ Test/sackB4a instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	sackB4a
-    $self next
+    $self next 2
 }
 Test/sackB4a instproc run {} {
     $self instvar ns_ node_ testName_
@@ -460,7 +460,7 @@ Test/sackB4a instproc run {} {
 #    $self instvar net_ test_
 #    set net_    net0
 #    set test_	delayedSack
-#    $self next
+#    $self next 2
 #}
 #Test/delayedSack instproc run {} {
 #     $self instvar ns_ node_ testName_
@@ -487,7 +487,7 @@ Test/sackB4a instproc run {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	phaseSack
-#    $self next
+#    $self next 2
 #}
 #Test/phaseSack instproc run {} {
 #    $self instvar ns_ node_ testName_
@@ -523,7 +523,7 @@ Test/sackB4a instproc run {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	phaseSack2
-#    $self next
+#    $self next 2
 #}
 #Test/phaseSack2 instproc run {} {
 #    $self instvar ns_ node_ testName_
@@ -561,7 +561,7 @@ Test/sackB4a instproc run {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	phaseSack3
-#    $self next
+#    $self next 2
 #}
 #Test/phaseSack3 instproc run {} {
 #    $self instvar ns_ node_ testName_
@@ -598,7 +598,7 @@ Test/sackB4a instproc run {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	timersSack
-#    $self next
+#    $self next 2
 #}
 #Test/timersSack instproc run {} {
 #     $self instvar ns_ node_ testName_

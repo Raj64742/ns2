@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.7 2003/01/16 02:01:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.8 2003/01/16 17:11:33 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -197,7 +197,7 @@ Test/onedrop_sack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_sack
-	$self next
+	$self next 2
 }
 Test/onedrop_sack instproc run {} {
         $self setup Sack1 {1}
@@ -210,7 +210,7 @@ Test/onedrop_SA_sack instproc init {} {
 	set test_	onedrop_SA_sack
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_sack instproc run {} [Test/onedrop_sack info instbody run ]
-	$self next
+	$self next 2
 }
 
 Class Test/onedrop_ECN_sack -superclass TestSuite
@@ -219,7 +219,7 @@ Test/onedrop_ECN_sack instproc init {} {
 	set net_	net4
 	set test_	onedrop_ECN_sack
 	Agent/TCP set ecn_ 1
-	$self next
+	$self next 2
 }
 Test/onedrop_ECN_sack instproc run {} {
         $self setup Sack1 {1} ECN
@@ -230,7 +230,7 @@ Test/nodrop_sack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	nodrop_sack
-	$self next
+	$self next 2
 }
 Test/nodrop_sack instproc run {} {
         $self setup Sack1 {1000} 
@@ -243,7 +243,7 @@ Test/badtimeout instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	badtimeout
-	$self next
+	$self next 2
 }
 Test/badtimeout instproc run {} {
 	global wrap wrap1
@@ -278,7 +278,7 @@ Test/notimeout instproc init {} {
 	set test_	notimeout
 	Agent/TCP set tcpTick_ 1.0
 	Test/notimeout instproc run {} [Test/badtimeout info instbody run ]
-	$self next
+	$self next 2
 }
 
 # Bad Fast Retransmit.
@@ -287,7 +287,7 @@ Test/badretransmit instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	badretransmit
-	$self next
+	$self next 2
 }
 Test/badretransmit instproc run {} {
 	global wrap wrap1
@@ -321,7 +321,7 @@ Test/nobadretransmit instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	nobadretransmit
-	$self next
+	$self next 2
 }
 Test/nobadretransmit instproc run {} {
 	global wrap wrap1

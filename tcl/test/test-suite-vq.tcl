@@ -199,7 +199,7 @@ Test/vq1 instproc init {} {
     set net_ net2 
     set test_ vq1
     Queue/Vq set buflim_ 0.25
-    $self next
+    $self next 2
 }
 Test/vq1 instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -244,7 +244,7 @@ Test/ecn instproc init {} {
     Agent/TCP set old_ecn_ 1
     set net_	net2
     set test_	ecn
-    $self next
+    $self next 2
 }
 Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
@@ -285,7 +285,7 @@ Test/vq2 instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	vq2
-    $self next
+    $self next 2
 }
 Test/vq2 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -325,7 +325,7 @@ Test/vq_twoway instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	vq_twoway
-    $self next
+    $self next 2
 }
 Test/vq_twoway instproc run {} {
     $self instvar ns_ node_ testName_
@@ -372,7 +372,7 @@ Test/vq_twowaybytes instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	vq_twowaybytes
-    $self next
+    $self next 2
 }
 Test/vq_twowaybytes instproc run {} {
     $self instvar ns_ node_ testName_

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.18 2003/01/16 02:01:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.19 2003/01/16 17:11:33 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -312,7 +312,7 @@ Test/red1 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ red1
-    $self next
+    $self next 2
 }
 Test/red1 instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -326,7 +326,7 @@ Test/red1Adapt instproc init {} {
     $self instvar net_ test_ ns_
     set net_ net2 
     set test_ red1Adapt
-    $self next
+    $self next 2
 }
 Test/red1Adapt instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -346,7 +346,7 @@ Test/red1ECN instproc init {} {
     Queue/RED set setbit_ true
     Agent/TCP set ecn_ 1
     Test/red1ECN instproc run {} [Test/red1 info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/red1AdaptECN -superclass TestSuite
@@ -357,7 +357,7 @@ Test/red1AdaptECN instproc init {} {
     Queue/RED set setbit_ true
     Agent/TCP set ecn_ 1
     Test/red1AdaptECN instproc run {} [Test/red1Adapt info instbody run ]
-    $self next
+    $self next 2
 }
 
 
@@ -370,7 +370,7 @@ Test/red1AdaptFeng instproc init {} {
     Queue/RED set beta_ 2.0
     Queue/RED set feng_adaptive_ 1
     Test/red1AdaptFeng instproc run {} [Test/red1Adapt info instbody run ]
-    $self next
+    $self next 2
 }
 
 #####################################################################
@@ -380,7 +380,7 @@ Test/fastlink instproc init {} {
     $self instvar net_ test_
     set net_ netfast 
     set test_ fastlink
-    $self next
+    $self next 2
 }
 Test/fastlink instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -397,7 +397,7 @@ Test/fastlinkAutowq instproc init {} {
     set test_ fastlinkAutowq
     Queue/RED set q_weight_ 0
     Test/fastlinkAutowq instproc run {} [Test/fastlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/fastlinkAutothresh -superclass TestSuite
@@ -408,7 +408,7 @@ Test/fastlinkAutothresh instproc init {} {
     Queue/RED set thresh_ 0 
     Queue/RED set maxthresh_ 0
     Test/fastlinkAutothresh instproc run {} [Test/fastlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/fastlinkAdapt -superclass TestSuite
@@ -418,7 +418,7 @@ Test/fastlinkAdapt instproc init {} {
     set test_ fastlinkAdapt
     Queue/RED set adaptive_ 1
     Test/fastlinkAdapt instproc run {} [Test/fastlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/fastlinkAllAdapt -superclass TestSuite
@@ -431,7 +431,7 @@ Test/fastlinkAllAdapt instproc init {} {
     Queue/RED set thresh_ 0
     Queue/RED set maxthresh_ 0
     Test/fastlinkAllAdapt instproc run {} [Test/fastlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/fastlinkAllAdaptECN -superclass TestSuite
@@ -446,7 +446,7 @@ Test/fastlinkAllAdaptECN instproc init {} {
     Queue/RED set setbit_ true
     Agent/TCP set ecn_ 1
     Test/fastlinkAllAdaptECN instproc run {} [Test/fastlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 # Changing upper bound for max_p 
@@ -462,7 +462,7 @@ Test/fastlinkAllAdapt1 instproc init {} {
     Queue/RED set top_ 0.2
     Queue/RED set bottom_ 0.1
     Test/fastlinkAllAdapt1 instproc run {} [Test/fastlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 #####################################################################
@@ -472,7 +472,7 @@ Test/longlink instproc init {} {
     $self instvar net_ test_
     set net_ netlong 
     set test_ longlink
-    $self next
+    $self next 2
 }
 Test/longlink instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -492,7 +492,7 @@ Test/longlinkAdapt instproc init {} {
     Queue/RED set q_weight_ 0
     set test_ longlinkAdapt
     Test/longlinkAdapt instproc run {} [Test/longlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/longlinkAdapt1 -superclass TestSuite
@@ -505,7 +505,7 @@ Test/longlinkAdapt1 instproc init {} {
     Queue/RED set q_weight_ -1.0
     set test_ longlinkAdapt1
     Test/longlinkAdapt1 instproc run {} [Test/longlink info instbody run ]
-    $self next
+    $self next 2
 }
 
 #####################################################################
@@ -537,7 +537,7 @@ Test/red2 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ red2
-    $self next
+    $self next 2
 }
 Test/red2 instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -552,7 +552,7 @@ Test/red2Adapt instproc init {} {
     $self instvar net_ test_ ns_
     set net_ net2 
     set test_ red2Adapt
-    $self next
+    $self next 2
 }
 Test/red2Adapt instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -573,7 +573,7 @@ Test/red2A-Adapt instproc init {} {
     Queue/RED set alpha_ 0.02
     Queue/RED set beta_ 0.8
     Test/red2A-Adapt instproc run {} [Test/red2Adapt info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/red2-AdaptFeng -superclass TestSuite
@@ -585,7 +585,7 @@ Test/red2-AdaptFeng instproc init {} {
     Queue/RED set beta_ 2
     Queue/RED set feng_adaptive_ 1
     Test/red2-AdaptFeng instproc run {} [Test/red2Adapt info instbody run ]
-    $self next
+    $self next 2
 }
 
 
@@ -596,7 +596,7 @@ Test/red3 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ red3
-    $self next
+    $self next 2
 }
 Test/red3 instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -611,7 +611,7 @@ Test/red3Adapt instproc init {} {
     $self instvar net_ test_ ns_
     set net_ net2 
     set test_ red3Adapt
-    $self next
+    $self next 2
 }
 Test/red3Adapt instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -633,7 +633,7 @@ Test/red4Adapt instproc init {} {
     Queue/RED set alpha_ 0.02
     Queue/RED set beta_ 0.8
     Test/red4Adapt instproc run {} [Test/red3Adapt info instbody run ]
-    $self next
+    $self next 2
 }
 
 TestSuite instproc printall { fmon } {
@@ -649,7 +649,7 @@ TestSuite instproc printall { fmon } {
 #     set test_ red5
 #     Queue/RED set alpha_ 0.02
 #     Queue/RED set beta_ 0.8
-#     $self next
+#     $self next 2
 # }
 # Test/red5 instproc run {} {
 #     $self instvar ns_ node_ testName_ net_
@@ -673,7 +673,7 @@ Test/transient instproc init {} {
     $self instvar net_ test_
     set net_ netfast 
     set test_ transient
-    $self next
+    $self next 2
 }
 Test/transient instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -706,7 +706,7 @@ Test/transient1 instproc init {} {
     set test_ transient1
     Queue/RED set q_weight_ 0
     Test/transient1 instproc run {} [Test/transient info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/transient2 -superclass TestSuite
@@ -716,7 +716,7 @@ Test/transient2 instproc init {} {
     set test_ transient2
     Queue/RED set q_weight_ 0.0001
     Test/transient2 instproc run {} [Test/transient info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/notcautious -superclass TestSuite
@@ -725,7 +725,7 @@ Test/notcautious instproc init {} {
     set net_ net4
     set test_ notcautious
     Queue/RED set cautious_ 0
-    $self next
+    $self next 2
 }
 Test/notcautious instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -760,7 +760,7 @@ Test/cautious instproc init {} {
     set test_ cautious
     Queue/RED set cautious_ 1
     Test/cautious instproc run {} [Test/notcautious info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/cautious2 -superclass TestSuite
@@ -770,7 +770,7 @@ Test/cautious2 instproc init {} {
     set test_ cautious2
     Queue/RED set cautious_ 2
     Test/cautious2 instproc run {} [Test/notcautious info instbody run ]
-    $self next
+    $self next 2
 }
 
 Class Test/cautious3 -superclass TestSuite
@@ -781,7 +781,7 @@ Test/cautious3 instproc init {} {
     Queue/RED set cautious_ 3
     Queue/RED set idle_pktsize_ 100
     Test/cautious3 instproc run {} [Test/notcautious info instbody run ]
-    $self next
+    $self next 2
 }
 
 

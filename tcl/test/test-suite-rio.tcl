@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.13 2003/01/16 02:11:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.14 2003/01/16 17:11:34 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -210,7 +210,7 @@ Test/strict instproc init {} {
     Queue/RED/RIO set priority_method_ 1
     #Queue/RED/RIO set debug_ true
     Queue/RED/RIO set debug_ false
-    $self next
+    $self next 2
 }
 Test/strict instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -250,7 +250,7 @@ Test/proportional instproc init {} {
     Queue/RED/RIO set linterm_ 12
     Queue/RED/RIO set priority_method_ 1
     Test/proportional instproc run {} [Test/strict info instbody run]
-    $self next
+    $self next 2
 }
 
 #
@@ -272,7 +272,7 @@ Test/gentle instproc init {} {
     Queue/RED/RIO set in_gentle_ true
     Queue/RED/RIO set out_gentle_ true
     Test/gentle instproc run {} [Test/strict info instbody run]
-    $self next
+    $self next 2
 }
 
 #
@@ -294,7 +294,7 @@ Test/notGentle instproc init {} {
     Queue/RED/RIO set in_gentle_ false
     Queue/RED/RIO set out_gentle_ false
     Test/notGentle instproc run {} [Test/strict info instbody run]
-    $self next
+    $self next 2
 }
 
 #
@@ -313,7 +313,7 @@ Test/tagging instproc init {} {
     Queue/RED/RIO set in_linterm_ 10
     Queue/RED/RIO set linterm_ 10
     Queue/RED/RIO set priority_method_ 0
-    $self next
+    $self next 2
 }
 Test/tagging instproc run {} {
     $self instvar ns_ node_ testName_ net_
