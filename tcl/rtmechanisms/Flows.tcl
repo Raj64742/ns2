@@ -1,3 +1,4 @@
+source awkstuff.tcl
 #
 # Set xgraph to 1 to use xgraph, and to 0 to use S.
 # Set xgraph to 2 to make S-graphs later
@@ -329,7 +330,7 @@ proc forcedmakeawk { } {
 # awk code used to produce:
 #      x axis: # arrivals for this flow+category / # total arrivals [bytes]
 #      y axis: # drops for this flow / # drops [pkts and bytes combined]
-proc allmakeawk { } {
+proc allmakeawk_old { } {
     set awkCode {
 	BEGIN { prev=-1; frac_bytes=0; frac_packets=0; frac_arrivals=0; cat0=0; cat1=0}
 	{
@@ -337,7 +338,7 @@ proc allmakeawk { } {
 		print " "; print "\"flow "$5;
 		prev = $5
 	    }
-	    if ($1 != prevtime && cat1 + cat0 > 0) {
+	    if (cat1 + cat0 > 0) {
 		if (frac_packets + frac_bytes > 0) {
 		    cat1_part = frac_packets * cat1 / ( cat1 + cat0 ) 
 		    cat0_part = frac_bytes * cat0 / ( cat1 + cat0 ) 
@@ -367,15 +368,55 @@ proc allmakeawk { } {
 	    }
 	    cat0 = $16-$14;
 	    cat1 = $14;
-	    prevtime = $1
 	}
 	END {
-	    if (frac_packets + frac_bytes > 0) {
+	    if (frac_packets + frac_bytes > 0 && cat1 + cat0 > 0) {
 		cat1_part = frac_packets * cat1 / ( cat1 + cat0 ) 
 		cat0_part = frac_bytes * cat0 / ( cat1 + cat0 ) 
 		print 100.0 * frac_arrivals, 100.0 * ( cat1_part + cat0_part )
 	    }
 	}
+    }
+    return $awkCode
+}
+
+#
+# awk code used to produce:
+#      x axis: # arrivals for this flow+category / # total arrivals [bytes]
+#      y axis: # drops for this flow / # drops [pkts and bytes combined]
+proc allmakeawk { } {
+    set awkCode {
+        BEGIN {prev=-1; tot_bytes=0; tot_packets=0; forced_total=0; unforced_total=0}
+        {
+            if ($5 != prev) {
+                print " "; print "\"flow ",$5;
+                prev = $5
+            }
+            tot_bytes = $19-$11;
+            forced_total= $16-$14;
+            tot_packets = $10;
+            tot_arrivals = $9;
+            unforced_total = $14;
+            if (unforced_total + forced_total > 0) {
+                if ($14 > 0) {
+                    frac_packets = tot_packets/$14;
+                }
+                else { frac_packets = 0;}
+                if ($17-$15 > 0) {
+                    frac_bytes = tot_bytes/($17-$15);
+                }
+                else {frac_bytes = 0;} 
+                if ($13 > 0) {
+                    frac_arrivals = tot_arrivals/$13;
+                }
+                else {frac_arrivals = 0;}
+                if (frac_packets + frac_bytes > 0) {
+                    unforced_total_part = frac_packets * unforced_total / ( unforced_total + forced_total)
+                    forced_total_part = frac_bytes * forced_total / ( unforced_total + forced_total)
+                    print 100.0 * frac_arrivals, 100.0 * ( unforced_total_part +forced_total_part)
+                }
+            }
+        }
     }
     return $awkCode
 }
