@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1994-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,13 +34,11 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.3 1997/08/10 07:49:51 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.4 1998/06/26 02:20:27 gnguyen Exp $ (LBL)";
 #endif
 
 #include "agent.h"
 #include "node.h"
-#include "tclcl.h"
-#include "packet.h"
 
 struct srcpkt {
 	double off;

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -33,16 +34,13 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "tclcl.h"
-#include "packet.h"
 #include "ip.h"
-#include "tcp.h"
 #include "flags.h"
 #include "random.h"
 #include "template.h"
 #include "nilist.h"
+#include "tcp.h"
 #include "tcp-int.h"
-#include "chost.h"
 #include "tcp-session.h"
 
 /*
@@ -317,7 +315,7 @@ TcpSessionAgent::add_pkts(int size, int seqno, int sessionSeqno, int daddr,
 		
 void
 TcpSessionAgent::add_agent(IntTcpAgent *agent, int size, double winMult, 
-		      int winInc, int ssthresh)
+			   int winInc, int ssthresh)
 {
 	CorresHost::add_agent(agent,size,winMult,winInc,ssthresh);
 	wtSum_ += agent->wt_;
@@ -426,7 +424,7 @@ TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason)
 /*	if (reason != TCP_REASON_TIMEOUT && !force && 
 	    burstsnd_timer_.status() == TIMER_PENDING)
 		return;*/
-	if (reason != TCP_REASON_TIMEOUT &&  
+	if (reason != TCP_REASON_TIMEOUT &&
 	    burstsnd_timer_.status() == TIMER_PENDING)
 		return;
 	/* no outstanding data and idle time >= t_rtxcur_ */

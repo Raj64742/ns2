@@ -13,7 +13,7 @@
  * SCCS: @(#) tclAppInit.c 1.17 96/03/26 12:45:29
  */
 
-#include "tclcl.h"
+#include <tclcl.h>
 #include "config.h"
 
 extern void init_misc(void);

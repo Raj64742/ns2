@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,19 +34,17 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.9 1997/08/10 07:49:39 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.10 1998/06/26 02:20:18 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <math.h>
-#include "tclcl.h"
-#include "packet.h"
 #include "cbr.h"
 #include "message.h"
 #include "trace.h"
 
 /* ivs data packet; ctrl packets are sent back as "messages" */
-struct hdr_ivs {                          
+struct hdr_ivs {
         double ts_;             /* timestamp sent at source */
         u_int8_t S_;
         u_int8_t R_;

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
@@ -280,7 +281,7 @@ SemanticPacketQueue::enque(Packet *pkt)
 	if (((hdr_cmn*)pkt->access(off_cmn_))->ptype_ == PT_ACK)
 		ack_count++;
 	else
-	       data_count++;
+		data_count++;
 	if (isMarked(pkt)) 
 		marked_count_++;
 	else

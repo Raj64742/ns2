@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.4 1997/11/27 05:25:40 padmanab Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.5 1998/06/26 02:24:52 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_semantic_packetqueue_h
@@ -88,30 +89,30 @@ class SemanticPacketQueue : public PacketQueue {
 	inline Packet* head() { return head_; }
 
 	/* count of packets of various types */
-        int ack_count;        /* number of TCP acks in the queue */
-	int data_count;       /* number of non-ack packets in the queue */
-	int acks_to_send;     /* number of acks to send in current schedule */
-	int marked_count_;    /* number of marked packets */
-	int unmarked_count_;  /* number of unmarked packets */
+	int ack_count;		/* number of TCP acks in the queue */
+	int data_count;		/* number of non-ack packets in the queue */
+	int acks_to_send;	/* number of ack to send in current schedule */
+	int marked_count_;	/* number of marked packets */
+	int unmarked_count_;	/* number of unmarked packets */
 
 	/* offsets of packet headers */
 	int off_cmn_;
 	int off_flags_;
-        int off_ip_;
-        int off_tcp_;
+	int off_ip_;
+	int off_tcp_;
 
 	/* 
 	 * These indicator variables are bound in derived objects and
 	 * define queueing/scheduling polcies.
 	 */
-	int acksfirst_;         /* deque TCP acks before any other data */
-	int filteracks_;        /* purge old acks when new one arrives */
+	int acksfirst_;		/* deque TCP acks before any other data */
+	int filteracks_;	/* purge old acks when new one arrives */
 	int reconsAcks_;	/* set up queue as an ack recontructor */
-	int replace_head_;      /* new ack should take the place of old ack
+	int replace_head_;	/* new ack should take the place of old ack
 				   closest to the head */
-	int priority_drop_;     /* drop marked (low priority) packets first */
-	int random_drop_;       /* pick packet to drop at random */
-	int random_ecn_;        /* pick packet for ECN at random */
+	int priority_drop_;	/* drop marked (low priority) packets first */
+	int random_drop_;	/* pick packet to drop at random */
+	int random_ecn_;	/* pick packet for ECN at random */
 	virtual Packet* deque();
 	void enque(Packet *);
 	virtual inline void enque_head(Packet *p) {

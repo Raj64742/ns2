@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 //
 // Copyright (c) 1997 by the University of Southern California
 // All rights reserved.
@@ -29,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.16 1998/01/01 01:10:04 kannan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.17 1998/06/26 02:20:33 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -40,9 +41,7 @@ static const char rcsid[] =
 #include <stdio.h>
 #endif
 
-#include "tclcl.h"
 #include "agent.h"
-#include "packet.h"
 #include "ip.h"
 #include "srm.h"
 #include "trace.h"

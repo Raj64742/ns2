@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -44,16 +45,14 @@
 
 #ifndef lint
 static const char  rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/vatrcvr.cc,v 1.1 1998/04/25 00:57:49 bajaj Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/vatrcvr.cc,v 1.2 1998/06/26 02:20:38 gnguyen Exp $";
 #endif
 
+#include <sys/time.h>
 #include "agent.h"
-#include "Tcl.h"
-#include "packet.h"
 #include "rtp.h"
 #include "adaptive-receiver.h"
 #include "vat.h"
-#include <sys/time.h>
 
 //Most of this code is taken from the decoder.cc file of the publicly available
 //vat code with some minor midifications.

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * timer-handler.cc
  * Copyright (C) 1997 by USC/ISI
@@ -20,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.4 1997/12/19 22:20:13 bajaj Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.5 1998/06/26 02:20:38 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>  // abort()
@@ -29,11 +30,10 @@ static const char rcsid[] =
 void
 TimerHandler::cancel()
 {
-	if (status_ != TIMER_PENDING)
-	  {
-	    fprintf(stderr,"Attempting to cancel a timer not scheduled");
-	    abort();
-	  }
+	if (status_ != TIMER_PENDING) {
+		fprintf(stderr,"Attempting to cancel a timer not scheduled");
+		abort();
+	}
 	_cancel();
 	status_ = TIMER_IDLE;
 }
@@ -46,11 +46,10 @@ TimerHandler::cancel()
 void
 TimerHandler::sched(double delay)
 {
-	if (status_ != TIMER_IDLE)
-	  {
-	    fprintf(stderr,"Couldn't schedule timer");
-	    abort();
-	  }
+	if (status_ != TIMER_IDLE) {
+		fprintf(stderr,"Couldn't schedule timer");
+		abort();
+	}
 	_sched(delay);
 	status_ = TIMER_PENDING;
 }

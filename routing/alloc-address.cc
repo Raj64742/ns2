@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -33,13 +34,11 @@
 
 /* functions invoked to allocate bits to the ns-address space */
 
-
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <tclcl.h>
 #include "config.h"
-#include "tclcl.h"
-
 
 
 class AllocAddr : public TclObject {
@@ -48,7 +47,7 @@ public:
 	~AllocAddr();
 	int command(int argc, const char*const* argv);
 protected:
-	void get_mask(nsmask_t  *mask, int fieldsize);
+	void get_mask(nsmask_t *mask, int fieldsize);
 	void alloc(int n);
 	bool check_size(int n);
 	bool AllocAddr::find_free(int len, int *pos);
@@ -78,9 +77,9 @@ int AllocAddr::command(int argc, const char*const* argv)
 		shift,
 		fieldlen;
 	nsmask_t mask;
-  
+
 	Tcl& tcl = Tcl::instance();
-  
+
 	if (argc == 3) {
 		if (strcmp(argv[1], "freebit") == 0) {
 			fieldlen = atoi(argv[2]);
@@ -114,7 +113,7 @@ int AllocAddr::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "expand-port") == 0) {
 			fieldlen = atoi(argv[2]);
 			addrsize = atoi(argv[3]);
-			oldfldlen =  atoi(argv[4]);
+			oldfldlen = atoi(argv[4]);
 			if (!check_size(addrsize)) {
 				tcl.result("expand-port: Size_ increased: Reallocate bits");
 				return (TCL_ERROR);
@@ -139,7 +138,7 @@ int AllocAddr::command(int argc, const char*const* argv)
 
 AllocAddr::AllocAddr()
 {
-	size_ = 0;     
+	size_ = 0;
 	bitmap_ = 0;
 
 }
@@ -172,7 +171,7 @@ bool AllocAddr::check_size(int n)
 		return 0;
 
 	// this check is no longer needed, as now bits are re-allocated every time
-	// the size changes.    
+	// the size changes.
 	//     int *old = bitmap_;
 	//     int osize = size_;
 	//     alloc(n);
@@ -208,10 +207,9 @@ bool AllocAddr::test(int which)
 
 bool AllocAddr::find_free(int len, int *pos) 
 {
-    
 	int count = 0;
 	int temp = 0;
-    
+
 	for (int i = (size_ - 1); i >= 0; i--)
 		if (!test(i)) {
 			/**** check if n contiguous bits are free ****/

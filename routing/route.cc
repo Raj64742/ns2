@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1991-1994 Regents of the University of California.
  * All rights reserved.
@@ -38,12 +39,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.14 1998/05/27 17:14:22 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.15 1998/06/26 02:20:30 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <assert.h>
-#include "tclcl.h"
+#include <tclcl.h>
 #include "config.h"
 
 #define INFINITY       0x3fff

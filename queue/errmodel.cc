@@ -34,18 +34,20 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.51 1998/06/25 23:46:23 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.52 1998/06/26 02:20:16 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.51 1998/06/25 23:46:23 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.52 1998/06/26 02:20:16 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 #include "packet.h"
 #include "flags.h"
+#include "prune.h"
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure
 #include "classifier.h"
@@ -308,7 +310,7 @@ int MultiStateErrorModel::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 	}
-        return ErrorModel::command(argc, argv);
+	return ErrorModel::command(argc, argv);
 }
 
 int MultiStateErrorModel::corrupt(Packet* p)
@@ -324,18 +326,18 @@ int MultiStateErrorModel::corrupt(Packet* p)
  */
 static class PeriodicErrorModelClass : public TclClass {
 public:
-        PeriodicErrorModelClass() : TclClass("ErrorModel/Periodic") {}
-        TclObject* create(int, const char*const*) {
-                return (new PeriodicErrorModel);
-        }
+	PeriodicErrorModelClass() : TclClass("ErrorModel/Periodic") {}
+	TclObject* create(int, const char*const*) {
+		return (new PeriodicErrorModel);
+	}
 } class_periodic_error_model;
 
 PeriodicErrorModel::PeriodicErrorModel() : cnt_(0), last_time_(0.0), first_time_(-1.0)
-{      
+{
 	bind("period_", &period_);
 	bind("offset_", &offset_);
 	bind("burstlen_", &burstlen_);
-}      
+}
 
 int PeriodicErrorModel::corrupt(Packet* p)
 {
@@ -375,8 +377,7 @@ int PeriodicErrorModel::corrupt(Packet* p)
 		if (cnt_ < burstlen_)
 			return 1;
 	}
-
-        return 0;
+	return 0;
 }
 
 /*
@@ -385,10 +386,10 @@ int PeriodicErrorModel::corrupt(Packet* p)
  */
 static class ListErrorModelClass : public TclClass {
 public:
-        ListErrorModelClass() : TclClass("ErrorModel/List") {}
-        TclObject* create(int, const char*const*) {
-                return (new ListErrorModel);
-        }
+	ListErrorModelClass() : TclClass("ErrorModel/List") {}
+	TclObject* create(int, const char*const*) {
+		return (new ListErrorModel);
+	}
 } class_list_error_model;
 
 int ListErrorModel::corrupt(Packet* p)
@@ -398,7 +399,7 @@ int ListErrorModel::corrupt(Packet* p)
 
 	if (unit_ == EU_TIME) {
 		fprintf(stderr,
-		    "ListErrorModel: error, EU_TIME not supported\n");
+			"ListErrorModel: error, EU_TIME not supported\n");
 		return 0;
 	}
 
@@ -497,8 +498,7 @@ ListErrorModel::parse_droplist(int argc, const char *const* argv)
 		while (n = nextval(p)) {
 			if (!isdigit(*p)) {
 				/* problem... */
-				fprintf(stderr,
-				    "ListErrorModel(%s): parse_droplist: unknown drop specifier starting at >>>%s\n",
+				fprintf(stderr, "ListErrorModel(%s): parse_droplist: unknown drop specifier starting at >>>%s\n",
 					name(), p);
 				return (-1);
 			}
@@ -526,8 +526,8 @@ ListErrorModel::parse_droplist(int argc, const char *const* argv)
 	droplist_ = new int[dropcnt_];
 	if (droplist_ == NULL) {
 		fprintf(stderr,
-		   "ListErrorModel(%s): no memory for drop list!\n",
-		   name());
+			"ListErrorModel(%s): no memory for drop list!\n",
+			name());
 		return (-1);
 	}
 
@@ -554,8 +554,8 @@ ListErrorModel::parse_droplist(int argc, const char *const* argv)
 	while (cnt < (dropcnt_ - 1)) {
 		if (droplist_[cnt] == droplist_[cnt+1]) {
 			fprintf(stderr,
-			   "ListErrorModel: error: dup %d in list\n",
-			   droplist_[cnt]);
+				"ListErrorModel: error: dup %d in list\n",
+				droplist_[cnt]);
 			total = -1;	/* error */
 		}
 		++cnt;
@@ -602,13 +602,13 @@ SelectErrorModel::SelectErrorModel()
 
 int SelectErrorModel::command(int argc, const char*const* argv)
 {
-        if (strcmp(argv[1], "drop-packet") == 0) {
+	if (strcmp(argv[1], "drop-packet") == 0) {
 		pkt_type_ = atoi(argv[2]);
 		drop_cycle_ = atoi(argv[3]);
 		drop_offset_ = atoi(argv[4]);
 		return TCL_OK;
-        }
-        return ErrorModel::command(argc, argv);
+	}
+	return ErrorModel::command(argc, argv);
 }
 
 int SelectErrorModel::corrupt(Packet* p)
@@ -632,7 +632,7 @@ public:
 	virtual int corrupt(Packet*);
 protected:
 	int command(int argc, const char*const* argv);
-        int off_srm_;
+	int off_srm_;
 };
 
 static class SRMErrorModelClass : public TclClass {
@@ -645,123 +645,123 @@ public:
 
 SRMErrorModel::SRMErrorModel()
 {
-        bind("off_srm_", &off_srm_);
+	bind("off_srm_", &off_srm_);
 }
 
 int SRMErrorModel::command(int argc, const char*const* argv)
 {
-        int ac = 0;
-        if (strcmp(argv[1], "drop-packet") == 0) {
+	int ac = 0;
+	if (strcmp(argv[1], "drop-packet") == 0) {
 		pkt_type_ = atoi(argv[2]);
 		drop_cycle_ = atoi(argv[3]);
 		drop_offset_ = atoi(argv[4]);
 		return TCL_OK;
-        }
-        return ErrorModel::command(argc, argv);
+	}
+	return ErrorModel::command(argc, argv);
 }
 
 int SRMErrorModel::corrupt(Packet* p)
 {
 	if (unit_ == EU_PKT) {
-                hdr_srm *sh = (hdr_srm*) p->access(off_srm_);
+		hdr_srm *sh = (hdr_srm*) p->access(off_srm_);
 		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
-                if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && 
+		if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && 
 		    (sh->seqnum() % drop_cycle_ == drop_offset_)) {
-		  //printf ("dropping packet type SRM-DATA, seqno %d\n", 
-		  //sh->seqnum());
-		  return 1;
+			//printf ("dropping packet type SRM-DATA, seqno %d\n", 
+			//sh->seqnum());
+			return 1;
 		}
 	}
 	return 0;
 }
 
 static class TraceErrorModelClass : public TclClass {
-public:   
-        TraceErrorModelClass() : TclClass("TraceErrorModel") {}
-        TclObject* create(int, const char*const*) {
-                return (new TraceErrorModel);
-        }
+public:
+	TraceErrorModelClass() : TclClass("TraceErrorModel") {}
+	TclObject* create(int, const char*const*) {
+		return (new TraceErrorModel);
+	}
 } class_traceerrormodel;
 
 TraceErrorModel::TraceErrorModel() :
-        good_(123456789), loss_(0), ErrorModel()   
+	good_(123456789), loss_(0)
 {
-        bind_time("good_", &good_);
-        bind_time("loss_", &loss_);
+	bind_time("good_", &good_);
+	bind_time("loss_", &loss_);
 }
 
 /* opening and reading the trace file/info is done in OTcl */
 int TraceErrorModel::corrupt(Packet* p)
 {
-        Tcl& tcl = Tcl::instance();
-        if ( ! match(p)) return 0;
-        if ( (good_ <= 0) && (loss_ <= 0)) {
-                tcl.evalf("%s read",name());
-                if (good_ < 0) good_ = 123456789; 
-        }
-        if (loss_-- > 0)
-                return 1;
-        good_--;
-        return 0;
+	Tcl& tcl = Tcl::instance();
+	if ( ! match(p)) return 0;
+	if ( (good_ <= 0) && (loss_ <= 0)) {
+		tcl.evalf("%s read",name());
+		if (good_ < 0) good_ = 123456789; 
+	}
+	if (loss_-- > 0)
+		return 1;
+	good_--;
+	return 0;
 }
  
 int TraceErrorModel::match(Packet* p)
 {
-        return 1;
+	return 1;
 }
-                
+
 void TraceErrorModel::recv(Packet* pkt, Handler* h)
 {
-        if (corrupt(pkt)) {
-                /* can send to a loss trace object .. etc */
-                if (drop_) {
-                        drop_->recv(pkt);
-                        return;
-                }
-                // Packet::free(pkt);
-                // return;
-        }
-        if (target_ ) send(pkt,h);
+	if (corrupt(pkt)) {
+		/* can send to a loss trace object .. etc */
+		if (drop_) {
+			drop_->recv(pkt);
+			return;
+		}
+		// Packet::free(pkt);
+		// return;
+	}
+	if (target_ ) send(pkt,h);
 }
-        
+
 static class MrouteErrorModelClass : public TclClass {
 public:
-        MrouteErrorModelClass() : TclClass("MrouteErrorModel") {}
-        TclObject* create(int, const char*const*) {
-                return (new MrouteErrorModel);
-        }
+	MrouteErrorModelClass() : TclClass("MrouteErrorModel") {}
+	TclObject* create(int, const char*const*) {
+		return (new MrouteErrorModel);
+	}
 } class_mrouteerrormodel;
  
 MrouteErrorModel::MrouteErrorModel() : TraceErrorModel()
 {
-        bind("off_prune_", &off_prune_);
+	bind("off_prune_", &off_prune_);
 }
 
 int MrouteErrorModel::command(int argc, const char*const* argv)
 {
-        if (argc == 3) {
-                if (strcmp(argv[1], "drop-packet") == 0) {
-                        const char* s = argv[2];
-                        int n = strlen(s);  
-                        if (n >= this->maxtype()) {
-                                // tcl.result("message type too big");
-                                return (TCL_ERROR);
-                        }
-                        strcpy(msg_type,s);
-                        return(TCL_OK);
-                }
-        }
-        return TraceErrorModel::command(argc, argv);
+	if (argc == 3) {
+		if (strcmp(argv[1], "drop-packet") == 0) {
+			const char* s = argv[2];
+			int n = strlen(s);
+			if (n >= this->maxtype()) {
+				// tcl.result("message type too big");
+				return (TCL_ERROR);
+			}
+			strcpy(msg_type,s);
+			return(TCL_OK);
+		}
+	}
+	return TraceErrorModel::command(argc, argv);
 }
-        
+
 int MrouteErrorModel::match(Packet* p)
-{               
-        hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
-        int indx = strcspn(ph->type(),"/");
-        if (!strncmp(ph->type(),msg_type,indx)) {
-                return 1;
-        }
-        return 0;
+{
+	hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+	int indx = strcspn(ph->type(),"/");
+	if (!strncmp(ph->type(),msg_type,indx)) {
+		return 1;
+	}
+	return 0;
 }
 
 
@@ -782,23 +782,23 @@ int ErrorModule::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
-                if (strcmp(argv[1], "classifier") == 0) {
-                        if (classifier_)
-                                tcl.resultf("%s", classifier_->name());
-                        else
-                                tcl.resultf("");
-                        return (TCL_OK);
-                }
+		if (strcmp(argv[1], "classifier") == 0) {
+			if (classifier_)
+				tcl.resultf("%s", classifier_->name());
+			else
+				tcl.resultf("");
+			return (TCL_OK);
+		}
 	} else if (argc == 3) {
-                if (strcmp(argv[1], "classifier") == 0) {
-                        classifier_ = (Classifier*)
-                                TclObject::lookup(argv[2]);
-                        if (classifier_ == NULL) {
+		if (strcmp(argv[1], "classifier") == 0) {
+			classifier_ = (Classifier*)
+				TclObject::lookup(argv[2]);
+			if (classifier_ == NULL) {
 				tcl.resultf("Couldn't look up classifier %s", argv[2]);
-                                return (TCL_ERROR);
+				return (TCL_ERROR);
 			}
-                        return (TCL_OK);
-                }
+			return (TCL_OK);
+		}
 	}
 	return (Connector::command(argc, argv));
 }

@@ -2,7 +2,6 @@
 #define ns_tcp_session_h
 
 #include "agent.h"
-#include "packet.h"
 #include "timer-handler.h"
 #include "chost.h"
 

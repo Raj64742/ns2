@@ -35,9 +35,7 @@
 #ifndef ns_addr_params
 #define ns_addr_params
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <tclcl.h>
 #include "config.h"
 
 
