@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.11 2002/03/08 21:55:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.12 2002/03/09 17:28:24 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -536,7 +536,6 @@ Test/ecn_timeout1_reno_full instproc run {} {
 }
 
 # Packet drops with a window of one packet.
-
 Class Test/ecn_smallwin_reno_full -superclass TestSuite
 Test/ecn_smallwin_reno_full instproc init {} {
         $self instvar net_ test_
@@ -556,29 +555,25 @@ Test/ecn_smallwin_reno_full instproc run {} {
 }
 
 #ECN with a window of one packet.
-#Reno-full does not back off for a congestion window of one.
-#THIS TEST FAILS.
-#FULL_TCP DOES NOT DO THE RIGHT THING WHEN THE CONGESTION WINDOW IS ONE,
-#AND THE ECN BIT IS SET.
-
-# Class Test/ecn_smallwinEcn_reno_full -superclass TestSuite
-# Test/ecn_smallwinEcn_reno_full instproc init {} {
-#         $self instvar net_ test_ 
-#         Queue/RED set setbit_ true
-#         set net_	net2-lossy
-# 	Agent/TCP set bugFix_ true
-#         set test_	ecn_smallwinEcn_reno_full
-#         $self next
-# }
-# Test/ecn_smallwinEcn_reno_full instproc run {} {
-# 	$self instvar ns_ errmodel1
-# 	Agent/TCP set old_ecn_ 0
-# 	$self ecnsetup Reno 10.0 1
-# 	$self drop_pkts {4 7 8 9 10 11 12 13 120 135 143 148 150 151 152 153} 
-# 	#$self drop_pkts {6 10 11 13 14 15 122 137 145 150 152 153 154 155}
-# 	$errmodel1 set markecn_ true
-# 	$ns_ run
-# }
+Class Test/ecn_smallwinEcn_reno_full -superclass TestSuite
+Test/ecn_smallwinEcn_reno_full instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net2-lossy
+	Agent/TCP set bugFix_ true
+	Agent/TCP set rfc2988_ true
+        set test_	ecn_smallwinEcn_reno_full
+        $self next
+}
+Test/ecn_smallwinEcn_reno_full instproc run {} {
+	$self instvar ns_ errmodel1
+	Agent/TCP set old_ecn_ 0
+	$self ecnsetup Reno 10.0 1
+	$self drop_pkts {4 8 9 10 11 100 115 118 119 121 122}
+	#$self drop_pkts {6 10 11 13 14 15 122 137 145 150 152 153 154 155}
+	$errmodel1 set markecn_ true
+	$ns_ run
+}
 
 # Packet drops for the second packet.
 Class Test/ecn_secondpkt_reno_full -superclass TestSuite
