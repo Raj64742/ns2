@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.4 1997/10/20 23:22:21 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.5 1997/10/22 21:00:28 kannan Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -48,7 +48,10 @@ static const char rcsid[] =
 #include "rng.h"
 
 #if defined(sun)
-extern "C" int atoi(...);
+extern "C" {			// XXX Why not include config.h?
+	int atoi(...);
+	int gettimeofday(struct timeval*, struct timezone*);
+	   }
 #endif
 
 /*

@@ -422,5 +422,8 @@ rtModel/Manual instproc set-parms {op at} {
 
 rtModel/Manual instproc notify {} {
     $self next
-#    delete $self		;# XXX wierd code alert.
+    delete $self		;# XXX wierd code alert.
+	# If needed, this could be commented out, on the assumption that
+	# manual settings will be very limited, and hence not a sufficient
+	# drag on memory resources.  For now, play it safe (or is it risky?)
 }

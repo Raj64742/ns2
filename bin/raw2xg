@@ -1,4 +1,4 @@
-eval 'exec perl -S $0 ${1+"$@"}'
+eval 'exec perl -S $0 ${1+"$@"}'		# -*-perl-*-
 	if 0;
 
 ($progname) = ($0 =~ m!([^/]+)$!);
@@ -21,6 +21,7 @@ END
 };
 $usage = "usage: $progname [-a] [trace files...]\n";
 
+$opt_a = 0;
 require 'getopts.pl';
 &Getopts('as:m:qlt:') || usage;
 
@@ -47,7 +48,7 @@ while (<>) {
 	$is_ack = ($F[4] eq 'ack');
 	next if ($is_ack && !$plot_acks);
 
-	($x, $y) = translate_point(@F[1, 10, 8]);
+	($x, $y) = translate_point(@F[1, 10, 7]);
 	if (defined($opt_q)) {
 	    if (/^\+/) {
 		$statement = undef;
@@ -68,7 +69,7 @@ while (<>) {
 	next;
     };
     /^d / && do {
-	($x, $y) = translate_point(@F[1, 10, 8]);
+	($x, $y) = translate_point(@F[1, 10, 7]);
 	push(@d, "$x $y\n");
 	next;
     };

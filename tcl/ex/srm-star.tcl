@@ -29,8 +29,7 @@ if [string match {*.tcl} $argv0] {
 if {[llength $argv] > 0} {
     set srmSimType [lindex $argv 0]
 } else {
-    set srmSimType Deterministic
-    #set srmSimType Probabilistic
+    set srmSimType Probabilistic
 }
 
 source ../mcast/srm-nam.tcl		;# to separate control messages.

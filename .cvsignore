@@ -12,3 +12,4 @@ ns-src*.tar.gz
 *.tr
 *.dat
 out.*
+temp.rands

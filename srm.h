@@ -36,24 +36,7 @@
 #include "heap.h"
 #include "srm-state.h"
 
-struct hdr_srm {
-
-#define SRM_DATA 1
-#define SRM_SESS 2
-#define SRM_RQST 3
-#define SRM_REPR 4
-
-	int	type_;
-	int	sender_;
-	int	seqnum_;
-	int	round_;
-	
-	// per field member functions
-	int& type()	{ return type_; }
-	int& sender()	{ return sender_; }
-	int& seqnum()	{ return seqnum_; }
-	int& round()	{ return round_; }
-};
+#include "srm-headers.h"
 
 class SRMAgent : public Agent {
 protected:
@@ -115,14 +98,6 @@ public:
 	SRMAgent();
 	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler* h);
-};
-
-
-struct hdr_asrm {
-	double	distance_;
-
-	// per field member functions
-	double& distance()	{ return distance_; }
 };
 
 class ASRMAgent : public SRMAgent {

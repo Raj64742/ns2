@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.14 1997/09/27 23:12:33 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.15 1997/10/22 21:00:28 kannan Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -91,21 +91,6 @@ protected:
         int off_srm_;
 };
 
-struct hdr_srm {
-
-#define SRM_DATA 1
-#define SRM_SESS 2
-#define SRM_RQST 3
-#define SRM_REPR 4
-
-        int     type_;
-        int     sender_;
-        int     seqnum_;
-        
-        // per field member functions
-        int& type()     { return type_; }
-        int& sender()   { return sender_; }
-        int& seqnum()   { return seqnum_; }
-};
+#include "srm-headers.h"		// to get the hdr_srm structure
 
 #endif
