@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.322 2003/08/21 20:55:37 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.323 2003/09/09 18:26:20 sfloyd Exp $
 
 
 #
@@ -1237,3 +1237,5 @@ Agent/TCPSink/QS set RFC2581_immediate_ack_ true
 Queue set util_weight_ 0.8
 
 # Quick Start definitions end here
+
+Delayer set debug_ false

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.21 2000/11/17 22:10:37 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.22 2003/09/09 18:26:20 sfloyd Exp $
 #
 
 #
@@ -571,3 +571,22 @@ Queue/RED/PD instproc attach-traces {src dst file {op ""}} {
 	
 }
 
+Delayer instproc init {} {
+    $self next
+}
+
+Simulator instproc insert-delayer {src dst delayer} {
+    set link [$self link $src $dst]
+    $link insert-delayer $delayer
+}
+
+SimpleLink instproc insert-delayer args  {
+    $self instvar delayer_ queue_
+    if {[info exists delayer_]} {
+        puts stderr "Delayer already inserted"
+    } else {
+        set delayer_ [lindex $args 0]
+	$delayer_ target [$queue_ target]
+        $queue_ target $delayer_
+    }
+}

@@ -290,6 +290,7 @@ OBJ_CC = \
 	pgm/pgm-receiver.o mcast/rcvbuf.o \
 	mcast/classifier-lms.o mcast/lms-agent.o mcast/lms-receiver.o \
 	mcast/lms-sender.o \
+	queue/delayer.o \
 	@V_STLOBJ@
 
 
