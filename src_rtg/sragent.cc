@@ -152,6 +152,7 @@ SRAgent::command(int argc, const char*const* argv)
 		
 	      }
 	  }
+	return (Agent::command(argc,argv));
 }
 
 void SRAgent::install(int slot, NsObject* p)
