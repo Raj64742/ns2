@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.97 2001/05/27 04:46:32 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.98 2001/05/27 21:10:12 sfloyd Exp $
 
 try () {
 	echo "*** $1"
@@ -39,7 +39,7 @@ echo "(Validation can take 1-30 hours to run.)"
 cd tcl/test
 
 for i in \
-simple tcp testReno newreno sack tcpOptions full tcpReset \
+simple simple-full tcp testReno newreno sack tcpOptions full tcpReset \
 tcp-init-win tcpVariants aimd greis rfc793edu rfc2581 rbp \
 friendly srm realaudio \
 ecn ecn-ack ecn-full \
