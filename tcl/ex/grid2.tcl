@@ -29,15 +29,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-test.tcl,v 1.3 1999/08/02 17:33:06 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/grid2.tcl,v 1.1 1999/08/02 17:33:06 yaxu Exp $
 #
-# A simple wireless example file that simulates a 3-mobilenode 
-# topology. Traffic used are CBR and TCP flows.
+# Ported from CMU/Monarch's code, nov'98 -Padma.
 
 # ======================================================================
 # Default Script Options
 # ======================================================================
-
 set opt(chan)		Channel/WirelessChannel
 set opt(prop)		Propagation/TwoRayGround
 #set opt(netif)		NetIf/SharedMedia
@@ -50,17 +48,21 @@ set opt(ant)            Antenna/OmniAntenna
 
 set opt(x)		670	;# X dimension of the topography
 set opt(y)		670		;# Y dimension of the topography
-set opt(cp)		"../mobility/scene/cbr-3-test"
-set opt(sc)		"../mobility/scene/scen-3-test"
+set opt(cp)		"../mobility/scene/cbr-50-10-4-512"
+set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0"
 
 set opt(ifqlen)		50		;# max packet in ifq
-set opt(nn)		3		;# number of nodes
+set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
-set opt(stop)		2000.0		;# simulation time
-set opt(tr)		out-test.tr		;# trace file
-set opt(rp)             dsr          ;# routing protocol script
+set opt(stop)		1000.0		;# simulation time
+set opt(tr)		grid2.tr		;# trace file
+set opt(rp)             dsdv            ;# routing protocol script
 set opt(lm)             "off"           ;# log movement
 
+
+set opt(gkeeper)	0		;# gridkeeper = 0: do use gridkeeper
+set opt(radius)		0		;# node range, used only if 
+					;# opt(gkeeper) = 1
 # ======================================================================
 
 set AgentTrace			ON
@@ -149,12 +151,7 @@ proc cmu-trace { ttype atype node } {
 }
 
 
-proc create-god { nodes } {
-	global ns_ god_ tracefd
 
-	set god_ [new God]
-	$god_ num_nodes $nodes
-}
 
 proc log-movement {} {
     global logtimer ns_ ns
@@ -174,6 +171,34 @@ proc log-movement {} {
     $logtimer sched 0.1
 }
 
+# Grid keeper process
+
+proc create_gridkeeper {} {
+global gkeeper opt node_
+
+set gkeeper [new GridKeeper]
+
+#initialize the gridkeeper
+
+$gkeeper dimension $opt(x) $opt(y)
+
+#
+# add mobile node into the gridkeeper, must be added after
+# scenario file
+#
+
+
+for {set i 0} {$i < $opt(nn) } {incr i} {
+    $gkeeper addnode $node_($i)
+
+    $node_($i) radius 150
+}
+
+#dump grid info
+#$gkeeper dump
+
+}
+
 # ======================================================================
 # Main Program
 # ======================================================================
@@ -182,10 +207,10 @@ getopt $argc $argv
 #
 # Source External TCL Scripts
 #
-source ../lib/ns-mobilenode.tcl
+#source ../lib/ns-mobilenode.tcl
 
 #if { $opt(rp) != "" } {
-	source ../mobility/$opt(rp).tcl
+	#source ../mobility/$opt(rp).tcl
 	#} elseif { [catch { set env(NS_PROTO_SCRIPT) } ] == 1 } {
 	#puts "\nenvironment variable NS_PROTO_SCRIPT not set!\n"
 	#exit
@@ -193,7 +218,9 @@ source ../lib/ns-mobilenode.tcl
 	#puts "\n*** using script $env(NS_PROTO_SCRIPT)\n\n";
         #source $env(NS_PROTO_SCRIPT)
 #}
-source ../lib/ns-cmutrace.tcl
+#source ../lib/ns-cmutrace.tcl
+source ../lib/ns-bsnode.tcl
+source ../mobility/com.tcl
 
 # do the get opt again incase the routing protocol file added some more
 # options to look for
@@ -218,10 +245,6 @@ set prop	[new $opt(prop)]
 set topo	[new Topography]
 set tracefd	[open $opt(tr) w]
 
-set nf [open nam-out-test.nam w]
-set f [open trace-out-test.tr w]
-$ns_ trace-all $f
-
 $topo load_flatgrid $opt(x) $opt(y)
 
 $prop topography $topo
@@ -229,7 +252,10 @@ $prop topography $topo
 #
 # Create God
 #
+
 create-god $opt(nn)
+
+
 
 
 #
@@ -257,9 +283,7 @@ if { [string compare $opt(rp) "dsr"] == 0} {
 	}
 }
 
-#set nam trace
 
-$ns_ namtrace-all-wireless $nf $opt(x) $opt(y)
 
 #
 # Source the Connection and Movement scripts
@@ -274,13 +298,23 @@ if { $opt(cp) == "" } {
 
 
 #
+# trace node movement in nam format
+#
+
+set nf [open gridkeeper.nam w]
+$ns_ namtrace-all-wireless $nf $opt(x) $opt(y)
+
+#
 # Tell all the nodes when the simulation ends
 #
-for {set i } {$i < $opt(nn) } {incr i} {
+for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
-$ns_ at $opt(stop).1 "puts \"NS EXITING...\" ; $ns_ halt"
-$ns_ at $opt(stop) "stop"
+
+$ns_ at $opt(stop) "$ns_ flush-trace; close $nf"
+
+$ns_ at $opt(stop).00000001 "puts \"NS EXITING...\" ; $ns_ halt"
+
 
 if { $opt(sc) == "" } {
 	puts "*** NOTE: no scenario file specified."
@@ -291,6 +325,20 @@ if { $opt(sc) == "" } {
 	puts "Load complete..."
 }
 
+#enable node trace in nam
+
+for {set i 0} {$i < $opt(nn)} {incr i} {
+    $node_($i) namattach $nf
+# 20 defines the node size in nam, must adjust it according to your scenario
+    $ns_ initial_node_pos $node_($i) 20
+}
+
+#
+# Create GridKeeper: OPTIONAL
+#
+
+create_gridkeeper
+
 puts $tracefd "M 0.0 nn $opt(nn) x $opt(x) y $opt(y) rp $opt(rp)"
 puts $tracefd "M 0.0 sc $opt(sc) cp $opt(cp) seed $opt(seed)"
 puts $tracefd "M 0.0 prop $opt(prop) ant $opt(ant)"
@@ -298,9 +346,3 @@ puts $tracefd "M 0.0 prop $opt(prop) ant $opt(ant)"
 puts "Starting Simulation..."
 $ns_ run
 
-proc stop {} {
-    global ns_ f nf
-    $ns_ flush-trace
-    close $f
-    close $nf
-}
