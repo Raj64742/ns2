@@ -18,11 +18,20 @@ RTMechanisms instproc tcp_ref_bw { mtu rtt droprate } {
 	set guideline [expr 1.22 * $mtu / ($rtt*sqrt($droprate)) ]
 }
 
-RTMechanisms instproc droprate { arrs drops } {
-	if { $arrs == 0 } {
+RTMechanisms instproc frac { num denom } {
+	if { $denom == 0 } {
 		return 0.0
 	}
-	return [expr double($drops) / $arrs]
+	return [expr double($num) / $denom]
+}
+
+RTMechanisms instproc vprint args {
+	$self instvar verbose_
+	if { $verbose_ == "true" } {
+		$self instvar ns_
+		puts "[$ns_ now] $args"
+		flush stdout
+	}
 }
 
 #
@@ -43,25 +52,30 @@ RTMechanisms instproc mmetric { op flows } {
 	if { $op == "max" } {
 		set op ">"
 		set metric -1.0
-	} else if { $op == "min" } {
+	}
+	if { $op == "min" } {
 		set op "<"
 		set metric 1000000
 	}
 
-	set flow ""
+	set flow "none"
 
 	foreach f $flows {
 		# need to catch for div by zero
-		set unforced_frac [expr [$f set epdrops_] / $pdrops]
-		set forced_frac [expr ([$f set pdrops_] - [$f set epdrops_]) / \
-			$pdrops]
-		set forced_metric [expr ([$f set bdrops_] - [$f set ebdrops_]) / \
-			$fbdrops
-		set unforced_metric [expr [$f set epdrops_] / $epdrops]
-		set metric [expr $forced_frac * $forced_metric + \
+		set fepdrops [$f set epdrops_]
+		set fpdrops [$f set pdrops_]
+		set unforced_frac [$self frac $fepdrops $pdrops]
+		set forced_frac [$self frac [expr $fpdrops - $fepdrops] $pdrops]
+
+		set fbdrops [$f set bdrops_]
+		set febdrops [$f set ebdrops_]
+			
+		set forced_metric [$self frac [expr $fbdrops - $febdrops] $fbdrops]
+		set unforced_metric [$self frac $fepdrops $epdrops]
+		set fmetric [expr $forced_frac * $forced_metric + \
 			$unforced_frac * $unforced_metric]
-		if { $metric $op $metric } {
-			set metric $metric
+		if { [expr $fmetric $op $metric] } {
+			set metric $fmetric
 			set flow $f
 		}
 	}
@@ -71,6 +85,8 @@ RTMechanisms instproc mmetric { op flows } {
 RTMechanisms instproc setstate { flow reason bandwidth droprate } { 
 	$self instvar state_
 
+	$self vprint "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
+
 	set state_($flow,reason) $reason
 	set state_($flow,bandwidth) $bandwidth
 	set state_($flow,droprate) $droprate
@@ -78,7 +94,7 @@ RTMechanisms instproc setstate { flow reason bandwidth droprate } {
 
 # set new allotment in pbox
 RTMechanisms instproc pallot allotment {
-	$self instvar badclass_
+	$self instvar badclass_ goodclass_
 	$self instvar Maxallot_
 
 	$badclass_ newallot $allotment
@@ -137,29 +153,35 @@ RTMechanisms instproc print_allot_change { oallot nallot } {
 # ie penalize a flow
 #
 RTMechanisms instproc penalize { badflow guideline_bw } {
-	$self instvar npenalty_ badslot_ badhead_ cbqlink_
+	$self instvar npenalty_ badslot_ cbqlink_
+	$self instvar badclass_
 	$self instvar okboxfm_ pboxfm_
 	$self instvar Max_cbw_
-	$self do_reward
+
+	$self vprint "penalizing flow $badflow, guideline bw: $guideline_bw"
 
 	incr npenalty_
-
-	set classifier
+	set classifier [$cbqlink_ classifier]
 
 	#
 	# add the bad flow to the cbq/mechanisms classifier
 	#
-	set slot [$classifier installNext $badhead_]
-	set src [$badflow src]
-	set dst [$badflow dst]
-	set fid [$badflow fid]
-	$classifier set-hash auto $src $dst $fid $slot
+	set src [$badflow set src_]
+	set dst [$badflow set dst_]
+	set fid [$badflow set flowid_]
+	$classifier set-hash auto $src $dst $fid $badslot_
 
 	#
-	# move flow manager state over
 	#
-	$okboxfm_ remove $badflow
-	$pboxfm_ add $badflow
+	# remove flow record from ok fmon
+	# add it to pbox f mon
+	#
+	set okcl [$okboxfm_ classifier]
+	set okslot [$okcl del-hash $src $dst $fid]
+	$okcl clear $okslot
+	set bcl [$pboxfm_ classifier]
+	set bslot [$bcl installNext $badflow]
+	$bcl set-hash auto $src $dst $fid $bslot
 
 	#
 	# reallocate allotment
@@ -169,12 +191,14 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 	if { $new_cbw > $Max_cbw_ } {
 		set $new_cbw $Max_cbw_
 	}
+	$self instvar badclass_
 	set bw [[$cbqlink_ link] set bandwidth_]
-	set oallot [$badclass_ set allot_]
+	set oallot [$badclass_ allot]
 	set cbw [expr $oallot * $bw]
 	set nallot [expr $new_cbw / $bw]
 
 	$self pallot $nallot
+	$self vprint "penalize done.."
 }
 
 #
@@ -184,39 +208,47 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 RTMechanisms instproc unpenalize goodflow {
 	$self instvar npenalty_ badslot_ badhead_ cbqlink_
 	$self instvar okboxfm_ pboxfm_
-	$self do_reward
+	$self instvar badclass_
 
 	incr npenalty_ -1
 
-	set classifier
+	set classifier [$cbqlink_ classifier]
+	$self vprint "UNPENALIZE flow $goodflow"
 
 	#
 	# delete the bad flow from the cbq/mechanisms classifier
 	# this flow will return to the "default" case in the classifier
+	# do not "clear" the entry, as that would lose the reference
+	# to $badclass_ in the CBQ classifier
 	#
-	set src [$goodflow src]
-	set dst [$goodflow dst]
-	set fid [$goodflow fid]
-	set slot [$classifier del-hash auto $src $dst $fid]
-	$classifier clear $slot
+	set src [$goodflow set src_]
+	set dst [$goodflow set dst_]
+	set fid [$goodflow set flowid_]
+	$classifier del-hash $src $dst $fid
 
 	#
-	# move flow manager state over
+	# remove flow record from pbox fmon
+	# add it to okbox box fmon
 	#
-	$pboxfm_ remove $goodflow
-	$okboxfm_ add $goodflow
+	set pcl [$pboxfm_ classifier]
+	set pslot [$pcl del-hash $src $dst $fid]
+	$pcl clear $pslot
+	set gcl [$okboxfm_ classifier]
+	set gslot [$gcl installNext $goodflow]
+	$gcl set-hash auto $src $dst $fid $gslot
 
 	#
 	# reallocate allotment
 	#
 
 	set bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
-	set oallot [$badclass_ set allot_]
+	set oallot [$badclass_ allot]
 	set cbw [expr $oallot * $bw]
 	set new_cbw [expr $npenalty_ * $cbw / ($npenalty_ + 1)]
 	set nallot [expr $new_cbw / $bw]
 
 	$self pallot $nallot
+	$self vprint "unpenalize done..."
 }
 
 # Check if bandwidth in penalty box should be adjusted.
@@ -254,14 +286,30 @@ RTMechanisms instproc checkbw_droprate { droprateB droprateG } {
 #
 # main routine to determine if there are bad flows to penalize
 #
+RTMechanisms instproc sched-detect {} {
+	$self instvar Detect_interval_ detect_pending_
+	$self instvar ns_
+	if { $detect_pending_ == "true" } {
+		return
+	}
+	set now [$ns_ now]
+	set then [expr $now + $Detect_interval_]
+	set detect_pending_ true
+	$ns_ at $then "$self do_detect"
+	$self vprint "SCHEDULING DETECT for $then"
+}
+	
 RTMechanisms instproc do_detect {} {
 	$self instvar ns_
 	$self instvar last_detect_
 	$self instvar Mintime_ Rtt_ Mtu_
 	$self instvar okboxfm_
 	$self instvar state_
+	$self instvar detect_pending_
 
+	set detect_pending_ false
 	set now [$ns_ now]
+	$self vprint "DO_DETECT started at time $now, last: $last_detect_"
 	set elapsed [expr $now - $last_detect_]
 	if { $elapsed < $Mintime_ } {
 		puts "ERROR: do_detect: elapsed: $elapsed, min: $Mintime_"
@@ -271,13 +319,17 @@ RTMechanisms instproc do_detect {} {
 	set barrivals [$okboxfm_ set barrivals_]
 	set parrivals [$okboxfm_ set parrivals_]
 	set ndrops [$okboxfm_ set pdrops_] ; # drops == (total drops, incl epd)
-	set droprateG [$self droprate $parrivals $ndrops]
+	set droprateG [$self frac $ndrops $parrivals]
 
-	set M [$self mmetric max [$okboxfm_ flows]]
+	set M [$self mmetric max "[$okboxfm_ flows]"]
 	set badflow [lindex $M 0]
 	set maxmetric [lindex $M 1]
 
-	if { $badflow == "" } {
+	$self vprint "DO_DETECT: possible bad flow: $badflow, maxmetric:$maxmetric"
+
+	if { $badflow == "none" } {
+		$self vprint "no bad flows... returning"
+		$self sched-detect
 		# nobody
 		return
 	}
@@ -286,33 +338,36 @@ RTMechanisms instproc do_detect {} {
 	set flow_bw_est [expr $maxmetric * .01 * $barrivals / $elapsed]
 	set guideline_bw  [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateG]
 
-	set friendly [$self test_friendly $badflow]
-	if { [$self test_friendly $flow_bw_est $guideline] } {
+	set friendly [$self test_friendly $badflow $guideline_bw]
+	if { $friendly != "ok" } {
 		# didn't pass friendly test
 		$self setstate $badflow "UNFRIENDLY" $flow_bw_est $droprateG
-		$self penalize $badflow
+		$self penalize $badflow $guideline_bw
+		$self sched-reward
 	} else if { $state_($badflow,reason) == "UNRESPONSIVE" } {
 		# was unresponsive once already
 		$self instvar PUFrac_
-		set u [$self test_unresponsive_again
+		set u [$self test_unresponsive_again \
 		    $badflow $flow_bw_est $droprateG $PUFrac_ $PUFrac_]
 		if { $u != "ok" } {
 			# is still unresponsive
-			$self setstate $badflow "UNRESPONSIVE2"
+			$self setstate $badflow "UNRESPONSIVE2" \
 			    $flow_bw_est $droprateG
-			$self penalize $badflow
+			$self penalize $badflow $guideline_bw
 		}
+		$self sched-reward
 	} else {
 		set nxt [$self fhist-add $badflow $droprateG $flow_bw_est]
-		set u [$self test_unresponsive_initial
+		set u [$self test_unresponsive_initial \
 		    $badflow $flow_bw_est $droprateG]
 		if { $u != "ok" } {
 			$self setstate $badflow "UNRESPONSIVE"
 			    $flow_bw_est $droprateG
 		} else if { [$self test_high $flow_bw_est $droprateG $elapsed] != "ok" } {
-			$self setstate $badflow "HIGH"
+			$self setstate $badflow "HIGH" \
 			    $flow_bw_est $droprateG
-			$self penalize $badflow
+			$self penalize $badflow $guideline_bw
+			$self sched-reward
 		} else {
 			set ck1 [$self checkbw_fair $guideline_bw]
 			set ck2 [$self checkbw_fair $flow_bw_est]
@@ -331,7 +386,9 @@ RTMechanisms instproc do_detect {} {
 			}
 		}
 	}
-	$self flowdump
+	$okboxfm_ dump
+	$self vprint "do_detect complete..."
+	$self sched-detect
 }
 
 
@@ -339,14 +396,34 @@ RTMechanisms instproc do_detect {} {
 # main routine to determine if there are restricted flows
 # that are now behaving better
 #
+
+RTMechanisms instproc sched-reward {} {
+	$self instvar Reward_interval_ reward_pending_ 
+	$self instvar ns_
+	if { $reward_pending_ == "true" } {
+		return
+	}
+	set now [$ns_ now]
+	set then [expr $now + $Reward_interval_]
+	set reward_pending_ true
+	$ns_ at $then "$self do_reward"
+	$self vprint "SCHEDULING DETECT for $then"
+}
 RTMechanisms instproc do_reward {} {
 	$self instvar ns_
 	$self instvar last_reward_
 	$self instvar Mintime_
 	$self instvar state_
 	$self instvar pboxfm_ okboxfm_
+	$self instvar npenalty_
+	$self instvar Mtu_ Rtt_
 
+	set reward_pending_ false
+	if { $npenalty_ == 0 } {
+		return
+	}
 	set now [$ns_ now]
+	$self vprint "DO_REWARD starting at $now, last: $last_reward_"
 	set elapsed [expr $now - $last_reward_]
 	if { $elapsed > $Mintime_ / 2 } {
 		set parrivals [$pboxfm_ set parrivals_]
@@ -357,17 +434,22 @@ RTMechanisms instproc do_reward {} {
 		set pflows [$pboxfm_ flows] ; # all penalized flows
 		if { $parrivals == 0 } {
 			# nothing!, everybody becomes good
+			$self vprint "do_reward: no bad flows, reward all"
 			foreach f $pflows {
 				$self unpenalize $f
 			}
+			set npenalty_ 0
 			return
 		}
-		set droprateB [$self droprate $pdrops $parrivals]
-		set M [$self mmetric min $pflows]
+		set droprateB [$self frac $pdrops $parrivals]
+		$self vprint "REWARD: badbox pool of flows: $pflows"
+		set M [$self mmetric min "$pflows"]
 		set goodflow [lindex $M 0]
 		set goodmetric [lindex $M 1]
-		if { $goodflow == "" } {
+		$self vprint "found flow $goodflow as potential good-guy"
+		if { $goodflow == "none" } {
 			#none
+			$self sched-reward
 			return
 		}
 		set flow_bw_est [expr $goodmetric * .01 * $barrivals / $elapsed]
@@ -382,7 +464,7 @@ RTMechanisms instproc do_reward {} {
 				    [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
 				if { $fr == "ok" } {
 					$self setstate $goodflow "OK" $flow_bw_est $droprateB
-					$self reward $goodflow
+					$self unpenalize $goodflow
 				}
 			}
 
@@ -395,7 +477,7 @@ RTMechanisms instproc do_reward {} {
 				      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
 				    if { $fr == "ok" } {
 					$self setstate $goodflow "OK" $flow_bw_est $droprateB
-					$self reward $goodflow
+					$self unpenalize $goodflow
 				    }
 				}
 			}
@@ -412,9 +494,10 @@ RTMechanisms instproc do_reward {} {
 				}
 			}
 		}
-		$fm_ dump
+		$pboxfm_ dump
 		if { $npenalty_ > 0 } {
 			$self checkbw_droprate $droprateB $droprateG
 		}
 	}
+	$self sched-reward
 }
