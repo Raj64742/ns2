@@ -71,6 +71,8 @@
 #define SYNCTIME 14
 #define DATATIME 22
 #define LISTENTIME (SYNCTIME + DATATIME)
+#define CYCLETIME (SLEEPTIME + LISTENTIME)
+
 #define SYNCPERIOD 10   // frequency (num of periods) to send a sync pkt
 #define DIFS 3  // DCF interframe space: 3 CW slot here
 #define SYNC_CW 7   // num of slots in sync contention window, 2^n - 1
@@ -80,7 +82,7 @@
 #define CLOCKRES 5  // clock resolution is 5ms
 
 #define EIFS 15     // about 5 times DIFS when there is a collision or corrupt pkt
-#define CHK_INTERVAL (EIFS * 5)   // interval to check to see if can send data
+
 
 // MAC states
 #define SLEEP 0         // radio is turned off, can't Tx or Rx
@@ -99,6 +101,7 @@
 #define BCASTDATA 1
 #define UNICAST 2
 
+// Types of pkt
 #define DATA_PKT 0
 #define RTS_PKT 1
 #define CTS_PKT 2
@@ -132,6 +135,7 @@
    For tx start symbol and the first byte, it only needs 3ms (1 tick)
 */
 
+#define SYNCPKTTIME 3  // this is hardcoded for now
 
 // radio states for performance measurement
 #define RADIO_SLP 0  // radio off
@@ -181,18 +185,19 @@
 
 #define SIZEOF_SMAC_DATAPKT 50  // hdr(10) + payload - fixed size pkts
 #define SIZEOF_SMAC_CTRLPKT 10
-//#define SIZEOF_SMAC_SYNCPKT 9  // not used for now
+#define SIZEOF_SMAC_SYNCPKT 9  
 
 
 //SYNC PKT 
-/* struct smac_sync_frame { */
-/*   int type; */
-/*   int length; */
-/*   int srcAddr; */
-/*   // syncNode; ??? */
-/*   double sleepTime;  // my next sleep time from now */
-/*   int crc; */
-/* }; */
+struct smac_sync_frame { 
+  int type; 
+  int length; 
+  int srcAddr;
+  //int dstAddr;
+  int syncNode; 
+  double sleepTime;  // my next sleep time from now */
+  int crc; 
+}; 
 
 // RTS, CTS, ACK
 struct smac_control_frame {
@@ -248,18 +253,16 @@ struct hdr_smac {
 /* #define SMAC_EXTEND_LIMIT   5 */
 
 
-/* struct SchedTable { */
-/*   char txSync;  // flag indicating need to send sync */
-/*   char txData;  // flag indicating need to send data */
-/*   //unsigned short counter;  // tick counter */
-/*   //unsigned char numPeriods; // count for number of periods */
-/*   // these are implemented as part of timer for counter */
-/* }; */
+struct SchedTable { 
+  int txSync;  // flag indicating need to send sync 
+  int txData;  // flag indicating need to send data 
+  int numPeriods; // count for number of periods 
+}; 
 
-/* struct NeighbList { */
-/* 	short nodeId; */
-/* 	unsigned char schedId; */
-/* }; */
+struct NeighbList { 
+  int nodeId; 
+  int schedId; 
+}; 
 
 class SMAC;
 
@@ -319,18 +322,26 @@ class SmacCsTimer : public SmacTimer {
   void checkToCancel();
 };
 
-class SmacChkSendTimer : public SmacTimer {
- public:
-  SmacChkSendTimer(SMAC *a) : SmacTimer(a) {}
-  void expire(Event *e);
-};
-
-
-/* class SmacCounterTimer : public SmacTimer { */
-/* public:  */
-/*   SmacCounterTimer(SMAC *a) : SmacTimer(a) {} */
+/* class SmacChkSendTimer : public SmacTimer { */
+/*  public: */
+/*   SmacChkSendTimer(SMAC *a) : SmacTimer(a) {} */
 /*   void expire(Event *e); */
 /* }; */
+
+
+class SmacCounterTimer : public SmacTimer { 
+ public:  
+  friend class SMAC;
+  SmacCounterTimer(SMAC *a, int i) : SmacTimer(a) {index_ = i;}
+  void sched(double t);
+  void expire(Event *e); 
+  double timeToSleep();
+ protected:
+  int index_;
+  int value_;
+  double tts_;
+  double stime_;
+}; 
 
 class SMAC : public Mac {
   
@@ -340,11 +351,15 @@ class SMAC : public Mac {
   friend class SmacNavTimer;
   friend class SmacNeighNavTimer;
   friend class SmacCsTimer; 
-  friend class SmacChkSendTimer;
-  // friend class SmacCounterTimer;
+  friend class SmacCounterTimer;
 
  public:
   SMAC(void);
+  ~SMAC() { 
+    for (int i=0; i< MAX_NUM_SCHEDULES; i++) {
+      delete mhCounter_[i];
+    }
+  }
   void recv(Packet *p, Handler *h);
 
  protected:
@@ -356,16 +371,16 @@ class SMAC : public Mac {
   void handleNavTimer();
   void handleNeighNavTimer();
   void handleCsTimer();
-  void handleChkSendTimer();
-  // void handleCounterTimer();
+  //void handleChkSendTimer();
+  void handleCounterTimer(int i);
   
  private:
-  // XXXX functions for node schedule folowing sleep-wakeup cycles
-  //void setMySched(Packet *syncpkt);
+  // functions for node schedule folowing sleep-wakeup cycles
+  void setMySched(Packet *syncpkt);
   void sleep();
   void wakeup();
 
-  // XXXX functions for handling incoming packets
+  // functions for handling incoming packets
   
   void rxMsgDone(Packet* p);
   //void rxFragDone(Packet *p);  no frag for now
@@ -374,11 +389,15 @@ class SMAC : public Mac {
   void handleCTS(Packet *p);
   void handleDATA(Packet *p);
   void handleACK(Packet *p);
-  //void handleSYNC(Packet *p);
+  void handleSYNC(Packet *p);
 
-  // XXXX functions for handling outgoing packets
+  // functions for handling outgoing packets
   
+#ifdef SMAC_NO_SYNC
+  // function checks for pending data pkt to be tx'ed
+  // when smac is not following SYNC (sleep-wakeup) cycles.
   int checkToSend();               // check if can send, start cs 
+#endif
   bool chkRadio();         // checks radiostate
   void transmit(Packet *p);         // actually transmits packet
 
@@ -397,13 +416,13 @@ class SMAC : public Mac {
   bool sendCTS(double duration);
   bool sendDATA();
   bool sendACK(double duration);
-  //bool sendSYNC();
+  bool sendSYNC();
 
   void sentRTS(Packet *p);
   void sentCTS(Packet *p);
   void sentDATA(Packet *p);
   void sentACK(Packet *p);
-  //void sentSYNC(Packet *p);
+  void sentSYNC(Packet *p);
   
   // Misc functions
   void collision(Packet *p);
@@ -422,10 +441,10 @@ class SMAC : public Mac {
   int drop_RTS(Packet *p, const char* why);
   int drop_CTS(Packet *p, const char* why);
   int drop_DATA(Packet *p, const char* why);
-  //int drop_SYNC(Packet *p, const char* why);
+  int drop_SYNC(Packet *p, const char* why);
   
-  // XXX SMAC variables
-
+  // SMAC internal variables
+  
   NsObject*       logtarget_;
   
   // Internal states
@@ -447,16 +466,16 @@ class SMAC : public Mac {
   SmacRecvTimer         mhRecv_;
   SmacGeneTimer         mhGene_;        // generic timer used sync/CTS/ACK timeout
   SmacCsTimer           mhCS_;          // carrier sense timer
-  SmacChkSendTimer      mhChkSend_;     // periodically chks for data to send
-
-  // array of schedtimer and synctimer, one for each schedule
-  //SmacCounterTimer            mhCounter_[MAX_NUM_SCHEDULES];     // counter tracking node's sleep/awake cycle
+  
+  // array of countertimer, one for each schedule
+  // counter tracking node's sleep/awake cycle
+  SmacCounterTimer      *mhCounter_[MAX_NUM_SCHEDULES];  
 
 
   int numRetry_;	// number of tries for a data pkt
   int numExtend_;      // number of extensions on Tx time when frags are lost
-  int numFrags_;       // number of fragments in this transmission
-  int succFrags_;      // number of successfully transmitted fragments
+  //int numFrags_;       // number of fragments in this transmission
+  //int succFrags_;      // number of successfully transmitted fragments
   int lastRxFrag_;     // keep track of last data fragment recvd to prevent duplicate data
 
   int howToSend_;		// broadcast or unicast
@@ -465,26 +484,25 @@ class SMAC : public Mac {
   double durCtrlPkt_;     // duration of control packet
   double timeWaitCtrl_;   // set timer to wait for a control packet
   
-  //  struct SchedTable schedTab[MAX_NUM_SCHEDULES];   // schedule table
-  // struct NeighbList neighbList[MAX_NUM_NEIGHBORS]; // neighbor list
+  struct SchedTable schedTab_[MAX_NUM_SCHEDULES];   // schedule table
+  struct NeighbList neighbList_[MAX_NUM_NEIGHBORS]; // neighbor list
 
-  //Node *mySyncNode_;                                 // who's my synchronizer
+  int mySyncNode_;                                 // nodeid of my synchronizer
   
-  //int currSched_;      // current schedule I'm talking to
-  //int numSched_;       // number of different schedules
-  //int numNeighb_;      // number of known neighbors
-  //int numBcast_;       // number of times needed to broadcast a packet
+  int currSched_;      // current schedule I'm talking to
+  int numSched_;       // number of different schedules
+  int numNeighb_;      // number of known neighbors
+  int numBcast_;       // number of times needed to broadcast a packet
   
-  //Packet *ctrlPkt_;	        // MAC control packet
-  //Packet *syncPkt_;          // MAC sync packet
   Packet *dataPkt_;		// outgoing data packet
-
   Packet *pktRx_;               // buffer for incoming pkt
   Packet *pktTx_;               // buffer for outgoing pkt
 
+  // flag to check pending data pkt for tx
+  // when smac is not following SYNC (sleep-wakeup) cycles.
 #ifdef SMAC_NO_SYNC
   int txData_ ;
-#endif //NO_SYNC
+#endif
   
  protected:
   int command(int argc, const char*const* argv);
