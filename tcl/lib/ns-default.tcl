@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.226 2000/11/28 02:29:01 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.227 2000/12/01 23:38:37 johnh Exp $
 
 
 #
@@ -836,4 +836,8 @@ Agent/LossMonitor/PLM set seqno_ 0
 
 # MPLS Label Distribution Protocol agent
 Agent/LDP set trace_ldp_ 0
+
+# Default to NOT nix-vector routing
+Simulator set nix-routing 0
+#Node/NixNode set id_ 0
 

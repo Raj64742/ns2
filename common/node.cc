@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.27 2000/11/18 00:06:26 ratul Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.28 2000/12/01 23:38:35 johnh Exp $
  *
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
@@ -41,6 +41,9 @@
 #include <stdarg.h>
 
 #include "address.h"
+#ifdef NIXVECTOR
+#include "nix/nixnode.h"
+#endif /* NIXVECTOR */
 #include "node.h"
 
 static class LinkHeadClass : public TclClass {
@@ -95,13 +98,33 @@ struct node_head Node::nodehead_ = { 0 }; // replaces LIST_INIT macro
 
 char Node::nwrk_[NODE_NAMLOG_BUFSZ];
 
+/* Additions for NixRouting */
+int NixRoutingUsed = -1;
+
 Node::Node() : 
 	address_(-1), nodeid_ (-1), namChan_(0),
+#ifdef NIXVECTOR
+	nixnode_(NULL),
+#endif /* NIXVECTOR */
 	energy_model_(NULL), location_(NULL)
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);
 	insert(&(Node::nodehead_)); // insert self into static list of nodes
+#ifdef NIXVECTOR
+	// Mods for Nix-Vector routing
+	if (NixRoutingUsed < 0)	{
+		// Find out if nix routing is in use
+		Tcl& tcl = Tcl::instance();
+		tcl.evalf("Simulator set nix-routing");
+		tcl.resultAs(&NixRoutingUsed);
+	}
+	if (NixRoutingUsed) {
+		// Create the NixNode pointer
+		if(0)printf("Nix routing in use, creating NixNode\n");
+		nixnode_ = new NixNode();
+	}
+#endif /* NIXVECTOR */
 	neighbor_list_ = NULL;
 }
 
@@ -115,14 +138,47 @@ Node::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
+#ifdef NIXVECTOR
+		// Mods for Nix-Vector Routing
+		if(strcmp(argv[1], "populate-objects") == 0) {
+			if (nixnode_) {
+				nixnode_->PopulateObjects();
+			}
+			return TCL_OK;
+		}
+		// End mods for Nix-Vector routing
+#endif /* NIXVECTOR */
 		if(strcmp(argv[1], "address?") == 0) {
 			tcl.resultf("%d", address_);
  			return TCL_OK;
 		}
 	} else if (argc == 3) {
+#ifdef NIXVECTOR
+		// Mods for Nix-Vector Routing
+		if (strcmp(argv[1], "get-nix-vector") == 0) {
+			if (nixnode_) {
+				nixnode_->GetNixVector(atol(argv[2]));
+			}
+			return TCL_OK;
+		}
+#endif /* NIXVECTOR */
+		if (strcmp(argv[1], "set-neighbor") == 0) {
+#ifdef NIXVECTOR
+			if (nixnode_) {
+				nixnode_->AddAdj(atol(argv[2]));
+			}
+#endif /* NIXVECTOR */
+			return(TCL_OK);
+		}
 		if (strcmp(argv[1], "addr") == 0) {
 			address_ = Address::instance().str2addr(argv[2]);
+#ifdef NIXVECTOR
+			if (nixnode_) {
+				nixnode_->Id(address_);
+			}
+#endif /* NIXVECTOR */
 			return TCL_OK;
+		// End mods for Nix-Vector routing
 		} else if (strcmp(argv[1], "nodeid") == 0) {
 			nodeid_ = atoi(argv[2]);
 			return TCL_OK;

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.208 2000/11/17 22:10:33 ratul Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.209 2000/12/01 23:38:34 johnh Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -169,6 +169,15 @@ OBJ_CC = \
 	linkstate/hdr-ls.o \
 	mpls/classifier-addr-mpls.o mpls/ldp.o mpls/mpls-module.o \
 	rtmodule.o classifier-hier.o addr-params.o \
+         nix/hdr_nv.o nix/classifier-nix.o \
+         nix/nixnode.o \
+         routealgo/rnode.o \
+         routealgo/bfs.o \
+         routealgo/rbitmap.o \
+         routealgo/rlookup.o \
+         routealgo/routealgo.o \
+         nix/nixvec.o \
+	nix/nixroute.o \
 	diffserv/dsred.o diffserv/dsEdge.o diffserv/dsCore.o diffserv/dsPolicy.o diffserv/dsredq.o \
 	red-pd.o \
 	pushback/rate-limit.o pushback/rate-limit-strategy.o \

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.28 2000/11/18 00:06:26 ratul Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.29 2000/12/01 23:38:35 johnh Exp $
  */
 
 /*
@@ -59,6 +59,7 @@
 #include "energy-model.h"
 #include "location.h"
 
+class NixNode;
 class LinkHead;
 
 LIST_HEAD(linklist_head, LinkHead); // declare list head structure 
@@ -158,6 +159,10 @@ protected:
 
 	struct if_head ifhead_; // list of phys for this node
 	struct linklist_head linklisthead_; // list of link heads on node
+
+#ifdef NIXVECTOR
+	NixNode* nixnode_;   // used for nix routing (on-demand source routing for simulator performance)
+#endif /* NIXVECTOR */
 
 public:
 	// XXX Energy related stuff. Should be moved later to a wireless 

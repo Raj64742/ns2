@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.26 2000/09/14 18:19:27 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.27 2000/12/01 23:38:38 johnh Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -254,6 +254,10 @@ Simulator instproc compute-flat-routes {} {
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
+        if { [ Simulator set nix-routing] } {
+            puts "Using NixVector routing, skipping route computations"
+            return
+        }
 	set r [$self get-routelogic]
 	foreach ln [array names link_] {
 		set L [split $ln :]

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.65 2000/10/06 18:47:57 johnh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.66 2000/12/01 23:38:35 johnh Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -46,6 +46,11 @@ static const char rcsid[] =
 #include "flags.h"
 #include "address.h"
 #include "app.h"
+#ifdef NIXVECTOR
+#include "nix/hdr_nv.h"
+#include "nix/nixnode.h"
+#endif /* NIXVECTOR */
+
 
 
 #ifndef min
@@ -472,6 +477,24 @@ Agent::initpkt(Packet* p) const
 	hf->no_ts_ = 0;
 	hf->pri_ = 0;
 	hf->cong_action_ = 0;
+#ifdef NIXVECTOR
+ 	hdr_nv* nv = hdr_nv::access(p);
+ 	if (0)
+		printf("Off hdr_nv %d, ip_hdr %d myaddr %ld\n",
+		       hdr_nv::offset(), hdr_ip::offset(), here_.addr_);
+ 	NixNode* pNixNode = NixNode::GetNodeObject(here_.addr_);
+ 	if (0)
+		printf("Node Object %p\n", pNixNode);
+ 	if (pNixNode) { 
+ 		// If we get non-null, indicates nixvector routing in use
+ 		// Delete any left over nv in the packet
+ 		// Get a nixvector to the target (may create new)
+ 		NixVec* pNv = pNixNode->GetNixVector(dst_.addr_);
+ 		pNv->Reset();
+ 		nv->nv() = pNv; // And set the nixvec in the packet
+ 		nv->h_used = 0; // And reset used portion to 0
+ 	}
+#endif /* NIXVECTOR */
 }
 
 /*

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.214 2000/11/17 22:10:37 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.215 2000/12/01 23:38:37 johnh Exp $
 
 #
 # Word of warning to developers:
@@ -705,6 +705,9 @@ Simulator instproc chk-hier-field-lengths {} {
 }
 
 Simulator instproc run {} {
+	# NIXVECTOR?
+	# global runstart
+	# set runstart [clock seconds]
 	$self check-node-num
 	$self rtmodel-configure			;# in case there are any
 	[$self get-routelogic] configure
@@ -717,6 +720,10 @@ Simulator instproc run {} {
 	#
 	foreach nn [array names Node_] {
 		$Node_($nn) reset
+		# GFR Additions for NixVector Routing
+		if { [Simulator set nix-routing] } {
+			$Node_($nn) populate-objects
+		}
 	}
 	#
 	# Also reset every queue
@@ -729,7 +736,18 @@ Simulator instproc run {} {
 	# Do all nam-related initialization here
 	$self init-nam
 
+	# NIXVECTOR xxx?
+	# global simstart
+	# set simstart [clock seconds]
 	return [$scheduler_ run]
+}
+
+# johnh xxx?
+Simulator instproc log-simstart { } {
+        # GFR Modification to log actual start
+        global simstart
+        puts "Starting Actual Simulation"
+        set simstart [clock seconds]
 }
 
 Simulator instproc halt {} {
@@ -911,6 +929,12 @@ Simulator instproc duplex-link { n1 n2 bw delay type args } {
 	}
 	eval $self simplex-link $n1 $n2 $bw $delay $type $args
 	eval $self simplex-link $n2 $n1 $bw $delay $type $args
+	# Modified by GFR for nix-vector routing
+	if { [Simulator set nix-routing] } {
+		# Inform nodes of neighbors
+		$n1 set-neighbor [$n2 id]
+		$n2 set-neighbor [$n1 id]
+	}
 }
 
 Simulator instproc duplex-intserv-link { n1 n2 bw pd sched signal adc args } {
