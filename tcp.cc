@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.51 1998/04/17 06:15:47 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.52 1998/04/20 23:16:53 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -81,6 +81,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
         bind("eln_", &eln_);
         bind("eln_rxmit_thresh_", &eln_rxmit_thresh_);
 	bind("packetSize_", &size_);
+	bind("synSize_", &synSize_);
 	bind_bool("bugFix_", &bug_fix_);
 	bind_bool("slow_start_restart_", &slow_start_restart_);
 	bind_bool("restart_bugfix_", &restart_bugfix_);
@@ -304,6 +305,9 @@ void TcpAgent::output(int seqno, int reason)
 		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 		hf->ecn_capable_ = 1;
 	}
+	/* Check if this is the initial SYN packet. */
+	if (syn_ && (seqno == 0)) 
+		((hdr_cmn*)p->access(off_cmn_))->size() = synSize_;
         int bytes = ((hdr_cmn*)p->access(off_cmn_))->size();
 
 	/* if no outstanding data, be sure to set rtx timer again */
