@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.6 1998/06/27 01:25:07 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.7 1998/09/12 01:32:28 kfall Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>  // abort()
@@ -31,7 +31,9 @@ void
 TimerHandler::cancel()
 {
 	if (status_ != TIMER_PENDING) {
-		fprintf(stderr,"Attempting to cancel a timer not scheduled");
+		fprintf(stderr,
+		  "Attempting to cancel timer at %p which is not scheduled\n",
+		  this);
 		abort();
 	}
 	_cancel();
