@@ -73,8 +73,8 @@ for {set i 0} {$i < 2} {incr i} {
 	$ns attach-agent $n3 $sink
 	$ns connect $tcp($i) $sink
 	
-	set ftp($i) [new Source/FTP]
-	$ftp($i) set agent_ $tcp($i)
+	set ftp($i) [new Application/FTP]
+	$ftp($i) attach-agent $tcp($i)
 	$ns at 0.$i "$ftp($i) start"
 }
 
@@ -94,8 +94,8 @@ for {set i 2} {$i < 4} {incr i} {
 	$ns attach-agent $n2 $sink
 	$ns connect $tcp($i) $sink
 	
-	set ftp($i) [new Source/FTP]
-	$ftp($i) set agent_ $tcp($i)
+	set ftp($i) [new Application/FTP]
+	$ftp($i) attach-agent $tcp($i)
 	$ns at 0.$i "$ftp($i) start"
 }
 

@@ -65,8 +65,8 @@ set tcp2 [$ns create-connection TCP/Reno $node_(s2) TCPSink $node_(s3) 1]
 $tcp2 set window_ 15
 $tcp2 set ecn_ 1
  
-set ftp1 [$tcp1 attach-source FTP]    
-set ftp2 [$tcp2 attach-source FTP]
+set ftp1 [$tcp1 attach-app FTP]    
+set ftp2 [$tcp2 attach-app FTP]
  
 $ns at 0.0 "$ftp1 start"
 $ns at 0.0 "$ftp2 start"
