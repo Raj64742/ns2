@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.1 1997/10/15 04:25:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.2 1997/10/16 00:59:43 sfloyd Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -78,9 +78,6 @@ for t in $tests; do
     	../../ns $file $t QUIET
     else 
 	../../ns $file $t 
-    fi
-    if (test "$version" = "v2" -a "$quiet" = "false") then
-    	xgraph -bb -tk -nl -m -x time -y packets temp.rands &
     fi
     if [ -f $datafile ]; then
 	if [ ! -f $directory/$t.Z ]; then
