@@ -1,6 +1,7 @@
 #include "packet.h"
 #include "ip.h"
 #include "Encapsulator.h"
+#include "encap.h"
 
 static class EncapsulatorClass : public TclClass {
 public:
@@ -10,39 +11,57 @@ public:
 	}
 } class_encapsulator;
 
-Encapsulator::Encapsulator() : Agent(PT_ENCAPSULATED), status_(0), dest_(0) 
+Encapsulator::Encapsulator() : 
+	Agent(PT_ENCAPSULATED), 
+	status_(1),
+	d_target_(0)
 {
-    bind("dst_", &dest_);
-    bind("status_", &status_);
-
+	bind("status_", &status_);
+	bind("off_encap_", &off_encap_);
 };
+
+int Encapsulator::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		if (strcmp(argv[1], "decap-target") == 0) {
+			if (d_target_ != 0) tcl.result(d_target_->name());
+			return (TCL_OK);
+		}
+	}
+	else if (argc == 3) {
+		if (strcmp(argv[1], "decap-target") == 0) {
+			d_target_ = (NsObject*)TclObject::lookup(argv[2]);
+			if (d_target_ == 0) {
+				tcl.resultf("no such object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+	}
+	return (Agent::command(argc, argv));
+}
+
 void Encapsulator::recv(Packet* p, Handler* h)
 {
-       if (status_ > 0) {
- 	   Packet* encap_p= p->copy();
- 	   encap_p->allocdata(sizeof(Packet*));
-//	   Packet* encap_p= allocpkt(sizeof(Packet*));
-	   
-	   Packet** pp= (Packet**) encap_p->accessdata();
-	   *pp= p;
+	if (d_target_) {
+		Packet *copy_p= p->copy();
+		d_target_->recv(copy_p, h);
+	}
+	if (status_) {
+		Packet* ep= allocpkt(); //sizeof(Packet*));
+		hdr_encap* eh= (hdr_encap*)ep->access(off_encap_);
+		eh->encap(p);
+		//Packet** pp= (Packet**) encap_p->accessdata();
+		//*pp= p;
 
-	   hdr_cmn* ch_e= (hdr_cmn*)encap_p->access(off_cmn_);
-	   hdr_cmn* ch_p= (hdr_cmn*)p->access(off_cmn_);
+		hdr_cmn* ch_e= (hdr_cmn*)ep->access(off_cmn_);
+		hdr_cmn* ch_p= (hdr_cmn*)p->access(off_cmn_);
 	  
-//	   *ch_e= *ch_p;
-	   ch_e->ptype()= PT_ENCAPSULATED;
-	   ch_e->size()+=  ENCAPSULATION_OVERHEAD;
-//	   ch_e->uid()= ch_p->uid();
-//	   ch_e->timestamp()= ch_p->timestamp(); // should decapsulator do smthng about timestamp?
-//	   ch_e->iface()= ch_p->iface();
-//	   ch_e->ref_count()= ch_p->ref_count();
-
-	   hdr_ip* ih_e= (hdr_ip*)encap_p->access(hdr_ip::offset_);
-	   ih_e->dst()= dest_; 
-	   ih_e->flowid()= Agent::fid_;
-	   send(encap_p, h);
-
-       }
-       else
-	   send(p, h); //forward the packet as it is
+		ch_e->ptype()= PT_ENCAPSULATED;
+ 		ch_e->size()= ch_p->size() + ENCAPSULATION_OVERHEAD;
+		ch_e->timestamp()= ch_p->timestamp();
+		send(ep, h);
+	}
+	else send(p, h); //forward the packet as it is
 }
