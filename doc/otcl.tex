@@ -3,14 +3,16 @@
 
 \ns\ is an object oriented simulator,
 written in C++, with an OTcl interpreter as a frontend.
-The simulator supports a class hierarchy in C++,
-also called the compiled hierarchy in this document, 
-and a similar class hierarchy within the OTcl interpreter.
+The simulator supports a class hierarchy in C++
+(also called the compiled hierarchy in this document),
+and a similar class hierarchy within the OTcl interpreter
+(also called the interpreted hierarchy in this document).
 The two hierarchies are closesly related to each other;
 from the user's perspective,
 there is a one-to-one correspondence
 between a class in the interpreted hierarchy
 and one in the compiled hierarchy.
+The root of this hierarchy is the class TclObject.
 Users create new simulator objects through the interpreter;
 these objects are instantiated within the interpreter, 
 and are closesly mirrored by a corresponding object
@@ -19,7 +21,20 @@ The interpreted class hierachy is automatically established through
 methods defined in the class TclClass.
 user instantiated objects are mirrored through methods
 defined in the class TclObject.
+There are other hierarchies in the C++ code and OTcl scripts;
+these other hierarchies are not mirrored in the manner of TclObject.
 
+In this document,
+we use the term ``interpreter''
+to be synonymous with the OTcl interpreter.
+The code to interface with the interpreter resides
+in a separate directory, \code{Tcl}.
+The rest of the simulator code resides in the directory, \code{ns-2}.
+We will use the notation \Tclf{\tup{file}}\
+to refer to a particular \tup{file}\ in the
+\code{Tcl}\ directory.
+Similarly, we will use the notation, \nsf{\tup{file}}
+to refer to a particular \tup{file}\ in the \code{ns-2} directory.
 
 There are a number of classes defined in \Tclf{}.
 We only focus on the six that are used in \ns:
@@ -239,20 +254,24 @@ The hash table is internal to the interpreter.
 to enter, lookup, or delete the TclObject in the hash table.
 \begin{list}{\textbullet}{}
 \item \fcnref{\fcn[TclObject* $o$]{tcl.enter}}{../Tcl/Tcl.cc}{Tcl::enter}
-        will insert a pointer to the TclObject $o$ into the hash table.
-        It is used by
-        \fcnref{\fcn[]{TclClass::create\_shadow}}{../Tcl/Tcl.cc}{TclClass::create\_shadow}
-        to insert an object into the table, when that object is created.
+  will insert a pointer to the TclObject $o$ into the hash table.
+
+  It is used by
+  \fcnref{\fcn[]{TclClass::create\_shadow}}{../Tcl/Tcl.cc}{TclClass::create\_shadow}
+  to insert an object into the table, when that object is created.
+
 \item \fcnref{\fcn[char* $s$]{tcl.lookup}}{../Tcl/Tcl.h}{Tcl::lookup}
-        will retrieve the TclObject with the name $s$.
-        It is used by
-        \fcnref{\fcn[]{TclObject::lookup}}{../Tcl/Tcl.h}{TclObject::lookup}.
+  will retrieve the TclObject with the name $s$.
+
+  It is used by
+  \fcnref{\fcn[]{TclObject::lookup}}{../Tcl/Tcl.h}{TclObject::lookup}.
 \item \fcnref{\fcn[TclObject* $o$]{tcl.remove}}{../Tcl/Tcl.cc}{Tcl::remove}
-        will delete references to the TclObject $o$ from the hash table.
-        It is used by
-        \fcnref{\fcn[]{TclClass::delete\_shadow}}{../Tcl/Tcl.cc}{TclClass::delete\_shadow}
-        to remove an existing entry from the hash table,
-        when that object is deleted.
+  will delete references to the TclObject $o$ from the hash table.
+
+  It is used by
+  \fcnref{\fcn[]{TclClass::delete\_shadow}}{../Tcl/Tcl.cc}{TclClass::delete\_shadow}
+  to remove an existing entry from the hash table,
+  when that object is deleted.
 \end{list}
 These functions are used internally by
 the class TclObject and class TclClass.
@@ -330,7 +349,7 @@ the next line configures
 \href{a bound variable}{Section}{sec:VarBinds};
 and finally, the last line illustrates
 the interpreted object invoking a C++ method
-\href{as if they were an instance procedure}{Section}{sec:commands}.
+\href{as if they were an instance procedure}{Section}{sec:Commands}.
 
 \subsection{Creating and Destroying TclObjects}
 \label{sec:Creation}
@@ -649,7 +668,7 @@ For example,
         Agent/SRM/Adaptive instproc distance? addr \{
                 $self instvar distanceCache_
                 if ![info exists distanceCache_($addr)] \{
-                        set distanceCache_($addr) [{\bfseries $self cmd distance? $addr}]
+                        set distanceCache_($addr) [{\bfseries{}$self cmd distance? $addr}]
                 \}
                 set distanceCache_($addr)
         \}
@@ -981,6 +1000,13 @@ In \nsf{tcl/lib/ns-lib.tcl}, we have the lines:
 \end{program}
 to automatically get srm.tcl sourced by \ns\ at startup.
 
+Two points to note with EmbeddedTcl code are that
+firstly, if the code has an error that is caught during the eval,
+then \ns\ will not run.
+Secondly, the user can explicitly override any of the code in the scripts.
+In particular, they can re-source the entire script after making their own
+changes. 
+
 The rest of this subsection illustrate
 how to integrate individual scripts directly into \ns.
 The first step is convert the script into an EmbeddedTcl object.
@@ -1017,13 +1043,6 @@ explicitly evaluates the array.
 	et_ns_lib.load();
   \end{program}
 \end{list}
-
-Two points to note with EmbeddedTcl code are that
-firstly, if the code has an error that is caught during the eval,
-then \ns\ will not run.
-Secondly, the user can explicitly override any of the code in the scripts.
-In particular, they can re-source the entire script after making their own
-changes. 
 
 \section{Class InstVar}
 \label{sec:InstVar}

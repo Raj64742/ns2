@@ -13,36 +13,37 @@
 \date{\today}
 
 \begin{document}
-\maketitle
-\thispagestyle{empty}
-
-\chapter{Preamble}
-
-\xref{\ns}{http://www-nrg.ee.lbl.gov/ns/}
-\xref{\copyright}{../copyright.html}
-is LBNL's \underline{N}etwork \underline{S}imulator \cite{ns}.
-The simulator is written in C++;
-it uses OTcl as a command and configuration interface.
-\ns~v2 has three substantial changes from \ns~v1:
-(1) the more complex objects in \ns~v1
-    have been decomposed into simpler components
-    for greater flexibility and composability;
-(2) the configuration interface is now OTcl, 
-    an object oriented version of Tcl; and
-(3) the interface code to the OTcl interpreter is
-    separate from the main simulator.
-
-In this document,
-we use the term ``interpreter''
-to be synonymous with the OTcl interpreter.
-The code to interface with the interpreter resides
-in a separate directory, \code{Tcl}.
-The rest of the simulator code resides in the directory, \code{ns-2}.
-We will use the notation \Tclf{\tup{file}}\
-to refer to a particular \tup{file}\ in the
-\code{Tcl}\ directory.
-Similarly, we will use the notation, \nsf{\tup{file}}
-to refer to a particular \tup{file}\ in the \code{ns-2} directory.
+\begin{titlepage}
+  \begin{center}\makeatletter%
+    {\Large\@title\par}%
+    \vskip 1.5em%
+    {\normalsize
+      \begin{tabular}[t]{c}%
+        \@author
+      \end{tabular}\par}%
+    \vskip 1em%
+    {\large\@date}
+  \makeatother\end{center}
+  \par
+  \vfil
+  \begin{quote}\small
+    \xref{\ns}{http://www-nrg.ee.lbl.gov/ns/}
+    \xref{\copyright}{../copyright.html}
+    is LBNL's \underline{N}etwork \underline{S}imulator \cite{ns}.
+    The simulator is written in C++;
+    it uses OTcl as a command and configuration interface.
+    \ns~v2 has three substantial changes from \ns~v1:
+    (1) the more complex objects in \ns~v1
+        have been decomposed into simpler components
+        for greater flexibility and composability;
+    (2) the configuration interface is now OTcl, 
+        an object oriented version of Tcl; and
+    (3) the interface code to the OTcl interpreter is
+        separate from the main simulator.
+  \end{quote}
+  \vfil
+\end{titlepage}
+\clearpage
 
 \tableofcontents
 
@@ -51,14 +52,16 @@ to refer to a particular \tup{file}\ in the \code{ns-2} directory.
 
 \part{Simulator Basics}
 \include{simulator}
-\include{nodeslinks}
+\include{nodes}
+\include{links}
 \include{packets}
 \include{timers}
+\include{events}
 \include{agents}
 
 \part{Support}
 \include{math}
-\include{tracing}
+\include{trace}
 
 \part{Routing}
 \include{unicast}

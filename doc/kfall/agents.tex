@@ -6,7 +6,11 @@
 %        this is a DRAFT DRAFT DRAFT
 %        - KFALL
 %
-\section{\shdr{Agents}{agent.h}{sec:agents}}
+% If you get conflicts, here's what you need to keep:  The chapter heading
+% in the first entry is essential.  The \endinput at end is useful.
+% Other mods are to promote each sub*section one level up.
+%
+\chapter{\shdr{Agents}{agent.h}{sec:agents}}
 
 Agents represent endpoints where network-layer
 packets are constructed or consumed, and provide
@@ -21,7 +25,7 @@ The C++ implementation is contained in \code{agent.cc} and
 \code{agent.h}, and the OTcl support is in
 \code{tcl/lib/ns-agent.tcl}.
 
-\subsection{\shdr{Agent state}{agent.h}{sec:agentstate}}
+\section{\shdr{Agent state}{agent.h}{sec:agentstate}}
 
 The C++ class \code{Agent} includes enough internal state
 to assign various fields to a simulated packet before
@@ -42,7 +46,7 @@ This state includes the following:
 These variables may be modified by any class derived from \code{Agent},
 although not all of them may be needed by any particular agent.
 
-\subsection{\shdr{Agent methods}{agent.h}{sec:agentmethods}}
+\section{\shdr{Agent methods}{agent.h}{sec:agentmethods}}
 
 The \code{Agent} class supports packet generation and reception.
 The following member functions are implemented by the C++ Agent class, and are
@@ -82,7 +86,7 @@ is invoked by upstream nodes when sending a packet.
 In most cases, Agents make no use of the second argument (the handler
 defined by upstream nodes).
 
-\subsection{\shdr{Protocol Agents}{cbr.h}{sec:protoagents}}
+\section{\shdr{Protocol Agents}{cbr.h}{sec:protoagents}}
 
 There are several agents supported in the simulator.
 These are their names in OTcl:
@@ -140,7 +144,7 @@ For agents used in the implementation of lower-layer protocols
 (e.g. routing agents), size and departure timing is generally dictated
 by the agent's own processing of protocol messages.
 
-\subsection{\shdr{OTcl Linkage}{../ns/ns-default.tcl}{sec:agentotcl}}
+\section{\shdr{OTcl Linkage}{../ns/ns-default.tcl}{sec:agentotcl}}
 
 Agents may be created within OTcl and an agent's internal
 state can be modified by use of Tcl's \code{set} function and
@@ -148,7 +152,7 @@ any Tcl functions an Agent (or its base classes) implements.
 Note that some of an Agent's internal state may exist
 only within OTcl, and is thus is not directly accessible from C++.
 
-\subsubsection{\shdr{creating and manipulating agents}{../ns/ns-lib.tcl}{sec:agentcreateotcl}}
+\subsection{\shdr{creating and manipulating agents}{../ns/ns-lib.tcl}{sec:agentcreateotcl}}
 
 The following example illustrates the creation and modification
 of an Agent in OTcl:
@@ -161,7 +165,7 @@ of an Agent in OTcl:
 \end{verbatim}
 \end{small}
 
-\subsubsection{\shdr{default values}{../ns/ns-default.tcl}{sec:agentdefaults}}
+\subsection{\shdr{default values}{../ns/ns-default.tcl}{sec:agentdefaults}}
 
 Default values for member variables, those visible in OTcl only and those
 linked between OTcl and C++ with \code{bind} are initialized
@@ -190,7 +194,7 @@ is created, the calls to \code{bind}
 in the objects' constructors will causes the corresponding member variables
 to be set to these specified defaults.
 
-\subsubsection{\shdr{OTcl methods}{../ns/ns-agent.tcl}{sec:agentmethodsotcl}}
+\subsection{\shdr{OTcl methods}{../ns/ns-agent.tcl}{sec:agentmethodsotcl}}
 
 The instance procedures defined for the OTcl \code{Agent} class are
 currently found in \code{tcl/lib/ns-agent.tcl}.
@@ -203,7 +207,7 @@ They are as follows:
 \end{verbatim}
 \end{small}
 
-\subsection{\shdr{Examples: Tcp, TCP Sink Agents}{tcp-simple.cc}{sec:agentexample}}
+\section{\shdr{Examples: Tcp, TCP Sink Agents}{tcp-simple.cc}{sec:agentexample}}
 
 The class \code{TCP} represents a simplified TCP sender.
 It sends data to a \code{TCPSink} agent and processes its acknowledgments.
@@ -214,7 +218,7 @@ we may see how relatively complex agents are constructed.
 An example from the Tahoe TCP agent \code{TCPAgent} is also given
 to illustrate the use of timers.
 
-\subsubsection{\shdr{creating the agent}{tcp-simple.cc}{sec:createtcpsimple}}
+\subsection{\shdr{creating the agent}{tcp-simple.cc}{sec:createtcpsimple}}
 
 The following OTcl code fragment creates a \code{TCP} agent
 and sets it up:
@@ -288,7 +292,7 @@ two timers, \code{rtx_timer_} and \code{delsnd_timer_}.  \code{TimerHandler}
 objects are initialized by providing a pointer (the \code{this} pointer) to
 the relevant agent.
 
-\subsubsection{\shdr{starting the agent}{tcp.cc}{sec:starttcp}}
+\subsection{\shdr{starting the agent}{tcp.cc}{sec:starttcp}}
 
 The \code{TcpAgent} agent is started in the example when its
 FTP source receives the \code{start} directive at time 1.2.
@@ -346,7 +350,7 @@ is defined in the \code{TimerHandler} base class.
 It is used here to set a retransmission timer if one is not already set
 (a TCP sender only sets one timer per window of packets on each connection).
 
-\subsubsection{\shdr{processing input at receiver}{tcp-sink.cc}{sec:tcpsink}}
+\subsection{\shdr{processing input at receiver}{tcp-sink.cc}{sec:tcpsink}}
 
 Many of the TCP agents can be used with the \code{TCPSink} class
 as the peer.
@@ -394,7 +398,7 @@ fields including separate accesses to the TCP header, IP header,
 Flags header, and common header.
 The call to \code{send} invokes the \code{Connector::send} function.
 
-\subsubsection{\shdr{processing responses at the sender}{tcp-simple.cc}{sec:tcpsimpleack}}
+\subsection{\shdr{processing responses at the sender}{tcp-simple.cc}{sec:tcpsimpleack}}
 
 Once the simple TCP's peer receives data and generates an ACK, the
 sender must (usually) process the ACK.
@@ -433,7 +437,7 @@ In addition, the receipt of the ACK indicates the possibility of sending
 additional data, so the \code{TcpSimpleAgent::send} routine is
 invoked which attempts to send more data if the TCP window allows.
 
-\subsubsection{\shdr{implementing timers}{tcp.cc}{sec:tcptimer}}
+\subsection{\shdr{implementing timers}{tcp.cc}{sec:tcptimer}}
 
 As described in the following section (Section \ref{sec:timers}), specific
 timer classes must be derived from an abstract base class 
@@ -445,7 +449,7 @@ send timer \code{delsnd_timer_} and a retransmission timer \code{rtx_timer_}.
 Section \ref{sec:timerexample} describes the retransmission timer in TCP
 as an example of timer usage.  
 
-\subsection{\shdr{Creating a New Agent}{agent.cc}{sec:createagent}}
+\section{\shdr{Creating a New Agent}{agent.cc}{sec:createagent}}
 
 To create a new agent, one has to do the following:
 \begin{enumerate}
@@ -461,7 +465,7 @@ by means of a very simple example.
 Suppose we wish to construct an agent which performs
 the ICMP ECHO REQUEST/REPLY (or ``ping'') operations.
 
-\subsubsection{\shdr{Example: A ``ping'' requestor (Inheritance Structure)}{agent.h}{sec:pingexample}}
+\subsection{\shdr{Example: A ``ping'' requestor (Inheritance Structure)}{agent.h}{sec:pingexample}}
 
 Deciding on the inheritance structure is a matter of personal choice, but is
 likely to be related to the layer at which the agent will operate
@@ -508,7 +512,7 @@ We may use the following class definitions:
 The implementation of the member functions will look similar to
 the \code{CBR_Agent} described above.
 
-\subsubsection{The \code{recv} and \code{timeout} functions}
+\subsection{The \code{recv} and \code{timeout} functions}
 
 The \code{recv} function is not defined here, as this agent
 represents a request function and will generally not be receiving
@@ -554,7 +558,7 @@ The creation and use of packet headers is described in (see \ref{pheader});
 To send the packet to the next downstream node, \code{Connector::send()}
 is invoked without a handler.
 
-\subsubsection{Linking the ``ping'' agent with OTcl}
+\subsection{Linking the ``ping'' agent with OTcl}
 
 There are three items we must handle to properly link our agent
 with Otcl.
@@ -650,7 +654,7 @@ first packet generation and schedules the next.
 Note this class is so simple it does not even include a
 way to be stopped.
 
-\subsection{Using the agent through OTcl}
+\section{Using the agent through OTcl}
 
 The agent we have created will have to be instantiated and attached
 to a node.
@@ -682,3 +686,5 @@ the following OTcl code is executed:
 
 This will cause our agent to generate one 1024-byte packet destined for
 node \code{$dest} every 1.5 seconds.
+
+\endinput
