@@ -1,0 +1,7 @@
+#! /bin/sh
+
+file="test-suite-simultaneous.tcl"
+directory="test-output-simultaneous"
+version="v2"
+./test-all-template1 $file $directory $version $@
+

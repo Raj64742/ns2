@@ -27,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.16 1998/08/31 23:50:18 tomh Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.17 1999/01/28 23:08:22 yuriy Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -37,7 +37,7 @@
 #include <tcl.h>
 
 #include "config.h"
-#include "heap.h"
+//#include "heap.h"
 #include "srm-state.h"
 #include "srm-headers.h"
 

@@ -16,7 +16,7 @@ Class TestSuite
 TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	set ns_ [new Simulator -multicast on]
-	$ns_ use-scheduler List
+	#$ns_ use-scheduler List
 	if {$test_ == "CtrMcast1"} {
 		Node expandaddr
 	}

@@ -18,7 +18,7 @@ Class TestSuite
 TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	set ns_ [new SessionSim]
-	$ns_ use-scheduler List
+	#$ns_ use-scheduler List
 
 	#$ns_ namtrace-all [open all.tr w]
 	puts "tracing"

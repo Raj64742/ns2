@@ -17,7 +17,7 @@ Class TestSuite
 TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	set ns_ [new Simulator]
-	$ns_ use-scheduler List
+	#$ns_ use-scheduler List
         $ns_ multicast
 
 	$ns_ trace-all [open temp.rands w]

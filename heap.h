@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/heap.h,v 1.4 1998/06/27 01:23:56 gnguyen Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/heap.h,v 1.5 1999/01/28 23:08:20 yuriy Exp $ (USC/ISI)
  */
 
 #ifndef ns_heap_h
@@ -33,6 +33,7 @@
 // a standalone C++ class that you see in this version now.
 
 typedef double heap_key_t;
+typedef unsigned long heap_secondary_key_t;
 
 // This code has (atleast?) one flaw:  It does not check for memory allocated,
 // especially in the constructor, and in heap_insert() when trying
@@ -42,8 +43,10 @@ class Heap
 {
 	struct Heap_elem {
 		heap_key_t he_key;
+		heap_secondary_key_t he_s_key;
 		void*		he_elem;
 	} *h_elems;
+	unsigned int    h_s_key;
 	unsigned int	h_size;
 	unsigned int	h_maxsize;
 	unsigned int	h_iter;
@@ -61,10 +64,13 @@ class Heap
 	unsigned int	KEY_LESS_THAN(heap_key_t k1, heap_key_t k2) {
 		return (k1 < k2);
 	};
+	unsigned int	KEY_LESS_OR_EQUAL_THAN(heap_key_t k1, heap_key_t k2) {
+		return (k1 <= k2);
+	};
 
 public:
 	Heap(int size =HEAP_DEFAULT_SIZE)
-		: h_size(0), h_maxsize(size), h_iter(0) {
+		: h_s_key(0), h_size(0), h_maxsize(size), h_iter(0) {
 		h_elems = new Heap_elem[h_maxsize];
 		for (unsigned int i = 0; i < h_maxsize; i++)
 			h_elems[i].he_elem = 0;
@@ -186,12 +192,15 @@ public:
 	
 		i = h_size++;
 		par = parent(i);
-		while ((i > 0) && (KEY_LESS_THAN(key, h_elems[par].he_key))) {
+		while ((i > 0) && (KEY_LESS_THAN(key, h_elems[par].he_key) ||
+				   ((key==h_elems[par].he_key) &&
+				    h_s_key < h_elems[par].he_s_key))) {
 			h_elems[i] = h_elems[par];
 			i = par;
 			par = parent(i);
 		}
 		h_elems[i].he_key  = key;
+		h_elems[i].he_s_key= h_s_key++;
 		h_elems[i].he_elem = elem;
 		return;
 	};
@@ -258,14 +267,19 @@ public:
 		while (i < h_size) {
 			l = left(i);
 			r = right(i);
-			if (r < h_size)
-				x = (KEY_LESS_THAN(h_elems[l].he_key,
-						   h_elems[r].he_key) ?
-				     l : r);
-			else
+			if (r < h_size) {
+				if (KEY_LESS_THAN(h_elems[l].he_key, h_elems[r].he_key)) {
+					x= l;
+				} else if (h_elems[l].he_key==h_elems[r].he_key)
+					x= (h_elems[l].he_s_key < h_elems[r].he_s_key) ? l : r;
+				else
+					x= r;
+			} else
 				x = (l < h_size ? l : i);
 			if ((x != i) && (KEY_LESS_THAN(h_elems[x].he_key,
-						       h_elems[i].he_key))) {
+						       h_elems[i].he_key) ||
+					 ((h_elems[x].he_key==h_elems[i].he_key) &&
+					  (h_elems[x].he_s_key < h_elems[i].he_s_key)))) {
 				swap(i, x);
 				i = x;
 			} else {
@@ -277,3 +291,9 @@ public:
 };
 
 #endif /* ns_heap_h */
+
+
+
+
+
+

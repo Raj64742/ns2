@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.41 1998/12/24 22:58:51 polly Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.42 1999/01/28 23:08:21 yuriy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.41 1998/12/24 22:58:51 polly Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.42 1999/01/28 23:08:21 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -379,6 +379,10 @@ protected:
 	virtual void reinit(int nbuck, double bwidth, double start);
 	virtual void resize(int newsize);
 	virtual double newwidth();
+
+private:
+	virtual void insert2(Event*);
+
 };
 
 static class CalendarSchedulerClass : public TclClass {
@@ -537,7 +541,8 @@ CalendarScheduler::newwidth()
 	double olt = buckettop_;
 	int olb = lastbucket_;
 	for (int i = 0; i < nsamples; i++) hold[i] = deque();
-	for (int j = nsamples-1; j >= 0; j--) insert(hold[j]);
+	// insert in the inverse order and using insert2 to take care of same-time events.
+	for (int j = nsamples-1; j >= 0; j--) insert2(hold[j]);
 	clock_ = olp;
 	buckettop_ = olt;
 	lastbucket_ = olb;
@@ -594,6 +599,25 @@ Event* CalendarScheduler::lookup(int uid)
 		for (Event* p = buckets_[i]; p != NULL; p = p->next_)
 			if (p->uid_== uid) return p;
 	return NULL;
+}
+
+void CalendarScheduler::insert2(Event* e)
+{
+	// Same as insert, but for inserts e *before* any same-time-events, if
+	//   there should be any.  Since it is used only by CalendarScheduler::newwidth(),
+	//   some important checks present in insert() need not be performed.
+
+	// bucket number and address
+	int i = (int)(((long)(e->time_ * oneonwidth_)) & buckbits_); 
+	Event** p = buckets_ + i;
+
+	// insert event in stable time sorted order
+	while ((*p != NULL) && (e->time_ > (*p)->time_)) // > instead of >=!
+		p = &(*p)->next_;
+
+	e->next_ = *p;
+	*p = e;
+	++qsize_;
 }
 
 #ifndef WIN32

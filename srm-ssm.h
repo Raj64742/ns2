@@ -2,7 +2,7 @@
 #define ns_ssmsrm_h
 
 #include "config.h"
-#include "heap.h"
+//#include "heap.h"
 #include "srm-state.h"
 
 
