@@ -14,12 +14,11 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.4 1997/08/25 04:04:39 breslau Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.5 1997/08/27 21:08:29 gnguyen Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
 #define ns_ranvar_h
-
 
 /* XXX still need to clean up dependencies among parameters such that
  * when one parameter is changed, other parameters are recomputed as
@@ -112,7 +111,5 @@ class HyperExponentialRandomVariable : public RandomVariable {
 	double cov_;
 	double alpha_;
 };
-
-
 
 #endif

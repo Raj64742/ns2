@@ -30,13 +30,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.5 1997/08/15 23:17:04 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.6 1997/08/27 21:08:28 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_random_h
 #define ns_random_h
 
 #include <math.h>
+#include "config.h"
 
 #ifdef USE_RNG
 
@@ -65,8 +66,6 @@ public:
 };
 
 #else
-
-#include "config.h"
 
 class Random {
 public:

@@ -32,20 +32,11 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.8 1997/08/21 02:36:55 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.9 1997/08/27 21:08:29 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_template_h
 #define ns_template_h
-
-#ifdef WIN32
-#include <minmax.h>
-#define NOMINMAX
-#undef min
-#undef max
-#undef abs
-#endif
-
 
 inline int min(int a, int b)
 {

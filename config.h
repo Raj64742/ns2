@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.11 1997/08/27 19:28:05 kannan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.12 1997/08/27 21:08:27 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -107,8 +107,15 @@ void abort();
 
 #include <windows.h>
 #include <winsock.h>
-
 #include <time.h>		/* For clock_t */
+
+#ifdef WIN32
+#include <minmax.h>
+#define NOMINMAX
+#undef min
+#undef max
+#undef abs
+#endif
 
 #define MAXHOSTNAMELEN	256
 
