@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.22 1997/04/25 22:12:00 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.23 1997/04/30 18:52:18 kfall Exp $
 
 
 #
@@ -111,7 +111,6 @@ Queue/DRR set blimit_ 25000
 Queue/DRR set quantum_ 250
 Queue/DRR set mask_ 0
 
-Queue/CBQ set toplevel_ 1
 Queue/CBQ set algorithm_ 0 ;# used by compat only, not bound
 Queue/CBQ/WRR set maxpkt_ 1024
 CBQClass set maxidle_ .004
