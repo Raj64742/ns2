@@ -18,7 +18,7 @@
 source rmcc.tcl
 
 ScenLib/RM instproc make_topo2 { time } {
-    global ns n t
+    global ns n t opts
     $self make_nodes 9
     #color them
     $n(0) color "red"
@@ -32,8 +32,10 @@ ScenLib/RM instproc make_topo2 { time } {
     $n(8) color "green"
 
     #now setup topology
-    $ns duplex-link $n(0) $n(1) 1Mb 10ms DropTail
-    $ns duplex-link-op $n(0) $n(1) queuePos 0.5
+	# First the bottle-neck link
+	$ns duplex-link $n(0) $n(1) $opts(bottleneckBW) \
+			$opts(bottleneckDelay) DropTail
+	$ns duplex-link-op $n(0) $n(1) queuePos 0.5
     $ns duplex-link $n(0) $n(2) 10Mb 10ms DropTail
     $ns duplex-link $n(0) $n(3) 10Mb 10ms DropTail
     $ns duplex-link $n(0) $n(4) 10Mb 10ms DropTail
@@ -46,15 +48,15 @@ ScenLib/RM instproc make_topo2 { time } {
     $ns duplex-link-op $n(0) $n(2) orient left-up
     $ns duplex-link-op $n(0) $n(3) orient left
     $ns duplex-link-op $n(0) $n(4) orient left-down
-    $ns duplex-link-op $n(1) $n(5) orient rightup
+	$ns duplex-link-op $n(1) $n(5) orient rightup
     $ns duplex-link-op $n(1) $n(6) orient right
     $ns duplex-link-op $n(1) $n(7) orient right-down
     $ns duplex-link-op $n(1) $n(8) orient down
 
-    $ns queue-limit $n(0) $n(1) 30
-    $ns queue-limit $n(1) $n(0) 30
+	$ns queue-limit $n(0) $n(1) $opts(bottleneckQSize)
+	$ns queue-limit $n(1) $n(0) $opts(bottleneckQSize)
 
-    $self make_flowmon $time $n(1) $n(5) flowStats_1_5.$t \
+	$self make_flowmon $time $n(1) $n(5) flowStats_1_5.$t \
 	    $n(1) $n(6) flowStats_1_6.$t \
 	    $n(1) $n(7) flowStats_1_7.$t \
 	    $n(1) $n(8) flowStats_1_8.$t

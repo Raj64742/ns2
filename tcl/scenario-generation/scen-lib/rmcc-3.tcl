@@ -21,7 +21,7 @@
 source rmcc.tcl
 
 ScenLib/RM instproc make_topo3 { time } {
-    global ns n t
+    global ns n t opts
     $self make_nodes 10
     #color them
     $n(0) color "red"
@@ -36,8 +36,10 @@ ScenLib/RM instproc make_topo3 { time } {
     $n(9) color "black"
 
     #now setup topology
-    $ns duplex-link $n(0) $n(1) 1Mb 20ms DropTail
-    $ns duplex-link-op $n(0) $n(1) queuePos 0.5
+	# bottleneck link
+    $ns duplex-link $n(0) $n(1) $opts(bottleneckBW) \
+			$opts(bottleneckDelay) DropTail
+	$ns duplex-link-op $n(0) $n(1) queuePos 0.5
     $ns duplex-link $n(0) $n(2) 10Mb 5ms DropTail
     $ns duplex-link $n(0) $n(3) 10Mb 5ms DropTail
     $ns duplex-link $n(0) $n(4) 10Mb 5ms DropTail
@@ -52,32 +54,32 @@ ScenLib/RM instproc make_topo3 { time } {
     $ns duplex-link-op $n(0) $n(1) orient right
     $ns duplex-link-op $n(0) $n(2) orient left-up
     $ns duplex-link-op $n(0) $n(3) orient left
-    $ns duplex-link-op $n(0) $n(4) orient left-down
-    $ns duplex-link-op $n(0) $n(5) orient down
-    $ns duplex-link-op $n(1) $n(6) orient up
-    $ns duplex-link-op $n(1) $n(7) orient right
-    $ns duplex-link-op $n(1) $n(8) orient right-down
-    $ns duplex-link-op $n(1) $n(9) orient down
-
-    $ns queue-limit $n(0) $n(1) 30
-    $ns queue-limit $n(1) $n(0) 30
-
-    $self make_flowmon $time $n(1) $n(6) flowStats_1_6.$t \
-	    $n(1) $n(7) flowStats_1_7.$t \
-	    $n(1) $n(8) flowStats_1_8.$t \
-	    $n(1) $n(9) flowStats_1_9.$t
+	$ns duplex-link-op $n(0) $n(4) orient left-down
+	$ns duplex-link-op $n(0) $n(5) orient down
+	$ns duplex-link-op $n(1) $n(6) orient up
+	$ns duplex-link-op $n(1) $n(7) orient right
+	$ns duplex-link-op $n(1) $n(8) orient right-down
+	$ns duplex-link-op $n(1) $n(9) orient down
+	
+	$ns queue-limit $n(0) $n(1) $opts(bottleneckQSize)
+	$ns queue-limit $n(1) $n(0) $opts(bottleneckQSize)
+	
+	$self make_flowmon $time $n(1) $n(6) flowStats_1_6.$t \
+		    $n(1) $n(7) flowStats_1_7.$t \
+		    $n(1) $n(8) flowStats_1_8.$t \
+		    $n(1) $n(9) flowStats_1_9.$t
 }
 
 proc run {} {
     global ns
     set test_scen [new ScenLib/RM]
-    $test_scen make_topo3 40.0
-    $test_scen create_mcast 2 0.3 1.0 2.0 6
-    $test_scen create_mcast 3 2.3 3.0 7.0 7
-    $test_scen create_mcast 4 8.3 9.0 12.0 8
-    $test_scen create_cbr 4 2.0 9 20.0 30.0 4 5.0 9 30.0 40.0 
-    $ns at 40.0 "finish"
-    $ns run
+	$test_scen make_topo3 40.0
+	$test_scen create_mcast 2 0.3 1.0 2.0 6
+	$test_scen create_mcast 3 2.3 3.0 7.0 7
+	$test_scen create_mcast 4 8.3 9.0 12.0 8
+	$test_scen create_cbr 4 2.0 9 20.0 30.0 4 5.0 9 30.0 40.0 
+	$ns at 40.0 "finish"
+	$ns run
 }
 
 global argv prog opts t mflag
