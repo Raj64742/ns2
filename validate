@@ -46,6 +46,7 @@ if $any_failed
 then
 	echo "validate overall report: some tests failed:"
 	echo "    $failed_list"
+	echo "to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME"
 	exit 1
 else
 	echo "validate overall report: all tests passed"
