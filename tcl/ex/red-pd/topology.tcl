@@ -366,3 +366,35 @@ Topology/netPktsVsBytes instproc init ns {
 
 #   $redpdq_ set debug_ true
 }
+
+Class Topology/netPktsVsBytes1 -superclass Topology
+Topology/netPktsVsBytes1 instproc init ns {
+    $self next $ns 9 2
+    $self instvar node_ redpdq_ redpdflowmon_ redpdlink_
+    
+    $ns duplex-link $node_(s0) $node_(r0) 100Mb 4ms DropTail
+    $ns duplex-link $node_(s1) $node_(r0) 100Mb 34ms DropTail
+     
+    set delay 1
+    for {set i 0} {$i < 9} {incr i} {
+		$ns duplex-link $node_(d$i) $node_(r1) 100Mb ${delay}ms DropTail
+		set delay [expr $delay+0.2]
+    }
+     
+    $ns simplex-link $node_(r0) $node_(r1) 10Mb 5ms RED/PD MEDROP EDROP
+    $ns simplex-link $node_(r1) $node_(r0) 10Mb 5ms DropTail
+
+    $self instvar bandwidth_
+    set bandwidth_ 10000
+
+    set redpdlink_ [$ns link $node_(r0) $node_(r1)]
+    set redpdq_ [$redpdlink_ queue]
+    set redpdflowmon_ [$redpdq_ makeflowmon $redpdlink_]
+ 
+    $self set_red_params $redpdq_ 1000 50 10 33 false false true
+    
+#    global topo_para1_
+#    $redpdq_ set P_testFRp_ $topo_para1_
+
+#   $redpdq_ set debug_ true
+}
