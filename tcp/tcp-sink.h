@@ -29,7 +29,13 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.3 1997/07/23 03:13:36 kfall Exp $ (LBL)
  */
+
+#ifndef ns_tcpsink_h
+#define ns_tcpsink_h
+
 #include <math.h>
 #include "packet.h"
 #include "ip.h"
@@ -83,3 +89,4 @@ protected:
 	double interval_;
 };
 
+#endif
