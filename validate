@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.120 2003/01/03 17:35:57 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.121 2003/02/02 22:16:13 xuanc Exp $
 
 try () {
 	echo "*** $1"
@@ -46,7 +46,7 @@ tcpHighspeed \
 friendly srm realaudio \
 ecn ecn-ack ecn-full \
 manual-routing hier-routing algo-routing lan mcast vc session mixmode \
-red adaptive-red red-pd rio vq rem gk pi cbq schedule rr monitor \
+red adaptive-red red-pd rio vq rem gk pi cbq schedule rr monitor jobs \
 intserv diffserv webcache mcache webtraf \
 simultaneous mip links plm linkstate mpls oddBehaviors \
 wireless-shadowing wireless-lan-aodv wireless-tdma wireless-gridkeeper \

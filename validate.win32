@@ -47,7 +47,7 @@ intserv webcache mcast newreno srm session mixmode algo-routing vc \
 simultaneous lan wireless-lan ecn-ack mip energy wireless-gridkeeper mcache \
 satellite wireless-lan-newnode wireless-lan-aodv WLtutorial aimd greis \
 rfc793edu friendly rfc2581 links wireless-tdma rio testReno \
-wireless-diffusion plm linkstate mpls webtraf
+wireless-diffusion plm linkstate mpls webtraf jobs diffserv
 do
 	try ./test-all-$i
 done

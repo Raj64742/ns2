@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/validate-wired,v 1.6 2002/01/24 01:43:32 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/validate-wired,v 1.7 2003/02/02 22:16:13 xuanc Exp $
 
 try () {
 	echo "*** $1"
@@ -43,7 +43,7 @@ v1 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing \
 intserv webcache mcast newreno srm session mixmode algo-routing vc \
 simultaneous ecn-ack mcache satellite aimd greis \
 rfc793edu friendly rfc2581 links rio testReno plm linkstate mpls diffserv \
-red-pd
+red-pd jobs
 do
 	try ./test-all-$i
 done
