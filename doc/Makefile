@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.25 2000/11/14 00:10:18 johnh Exp $
+# $Id: Makefile,v 1.26 2000/11/28 04:37:57 xuanc Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -49,7 +49,8 @@ FILES= \
 	energymodel.tex \
 	plm.tex \
 	propagation.tex \
-	testsuite.tex
+	testsuite.tex \
+	diffserv.tex
 
 all: everything.dvi everything.ps.gz everything.html everything.pdf
 
