@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.22 2000/07/20 00:33:10 ratul Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.23 2000/07/20 04:56:29 ratul Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -111,8 +111,8 @@ struct edv {
 
 class REDQueue : public Queue {
  public:	
-	REDQueue();
-	REDQueue(const char *);
+	/*	REDQueue();*/
+	REDQueue(const char * = "Drop");
  protected:
 	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);

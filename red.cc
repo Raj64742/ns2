@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.50 2000/07/20 00:33:10 ratul Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.51 2000/07/20 04:56:29 ratul Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -83,16 +83,18 @@ public:
 	}
 } class_red;
 
-
+/* Strangely this didn't work. 
+ * Seg faulted for child classes.
 REDQueue::REDQueue() { 
-	new REDQueue("Drop");
+	REDQueue("Drop");
 }
+*/
 
 /*
  * modified to enable instantiation with special Trace objects - ratul
  */
-REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL),
-	tchan_(0), idle_(1), first_reset_(1), EDTrace(NULL)
+REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL), EDTrace(NULL),
+	tchan_(0), idle_(1), first_reset_(1)
 {
 	//	printf("Making trace type %s\n", trace);
 	if (strlen(trace) >=20) {
