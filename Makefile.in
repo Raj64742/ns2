@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.243 2002/03/12 01:26:49 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.244 2002/03/14 01:14:39 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -213,7 +213,9 @@ OBJ_CC = \
 	tora/tora.o tora/tora_api.o tora/tora_dest.o \
 	tora/tora_io.o tora/tora_logs.o tora/tora_neighbor.o \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
-	dsr/requesttable.o dsr/routecache.o \
+	dsr/requesttable.o dsr/routecache.o dsr/add_sr.o \
+	dsr/dsr_proto.o dsr/flowstruct.o dsr/linkcache.o \
+	dsr/simplecache.o dsr/sr_forwarder.o \
 	aodv/aodv_logs.o aodv/aodv.o \
 	aodv/aodv_rtable.o aodv/aodv_rqueue.o \
 	common/ns-process.o \
