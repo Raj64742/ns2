@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red-pd.cc,v 1.6 2001/12/29 20:12:31 sfloyd Exp $ (ACIRI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red-pd.cc,v 1.7 2002/01/01 00:05:54 sfloyd Exp $ (ACIRI)";
 #endif
 
 #include "red-pd.h"
@@ -184,7 +184,7 @@ void RedPDQueue::enque(Packet* pkt) {
 			// drop a packet 
 			// 1. flow is responsive & (ave_q > min_th) & queue is not empty
 			// 2  flow is unresponsive & (noidle is not set or queue is not empty) 
-			int qlen = qib_ ? bcount_ : q_->length();
+			int qlen = qib_ ? q_->byteLength() : q_->length();
 			if ( P_testFRp_ == -1 && u<= P_monFlow &&
 			     (
 			      (!flow->unresponsive_ && edv_.v_ave >= edp_.th_min && qlen > 1) ||
