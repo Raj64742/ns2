@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.9 1997/04/24 03:19:14 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.10 1997/04/24 03:24:16 kfall Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -146,9 +146,9 @@ SimpleLink instproc init-monitor ns {
 	$self attach-monitors [new SnoopQueue/In] \
 		[new SnoopQueue/Out] [new SnoopQueue/Drop] $qMonitor_
 
-	set bytesInt_ [new BytesIntegrator]
+	set bytesInt_ [new Integrator]
 	$qMonitor_ set-bytes-integrator $bytesInt_
-	set pktsInt_ [new BytesIntegrator]
+	set pktsInt_ [new Integrator]
 	$qMonitor_ set-pkts-integrator $pktsInt_
 	return $qMonitor_
 }
