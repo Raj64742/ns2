@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.20 1998/06/25 23:50:57 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.21 1998/06/26 20:54:38 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -106,8 +106,12 @@ int LL::command(int argc, const char*const* argv)
 
 void LL::recv(Packet* p, Handler* h)
 {
-	if (h == 0)		// from MAC classifier
-		recvtarget_ ? recvfrom(p) : drop(p);
+	if (h == 0) {		// from MAC classifier
+		if (recvtarget_)
+			recvfrom(p);
+		else
+			drop(p);
+	}
 	else {
 		hdr_ll::access(p)->lltype() = LL_DATA;
 		sendto(p, h);
