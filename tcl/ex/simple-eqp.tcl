@@ -86,8 +86,10 @@ $ns duplex-link-op $n2 $n5 orient right-down
 $ns duplex-link-op $n5 $n4 orient right-up
 $ns duplex-link-op $n2 $n5 queuePos 0
 
+#$ns rtproto DV
 set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
+
 
 proc build-tcp { n0 n1 startTime } {
     global ns

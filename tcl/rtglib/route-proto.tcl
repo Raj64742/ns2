@@ -653,6 +653,14 @@ Agent/rtProto/DV instproc send-to-peer nbr {
 	    }
 	}
     }
+
+    ### modifed by Liang Guo, 11/11/99, what if there's no peer on that end?
+    ### needed when only part of the network nodes are using DV routing
+    if { $peers_($nbr) == "" } {
+        return
+    }
+    ##################### End ##########
+
     set id [$class get-next-mid]
     $class set msg_($id) [array get update]
 #    set n [$rtObject_ set node_];					\
