@@ -36,12 +36,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.26 1998/08/22 20:00:38 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.27 1998/08/28 23:08:35 yuriy Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
 #include "mac.h"
 #include "ll.h"
+#include "address.h"
 
 int hdr_ll::offset_;
 
@@ -158,3 +159,4 @@ void LL::handle(Event* e)
 {
 	recv((Packet*)e, 0);
 }
+

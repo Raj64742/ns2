@@ -46,8 +46,8 @@ class Address : public TclObject {
 	~Address();
 	char *print_nodeaddr(int address);
 	char *print_portaddr(int address);
-	int str2addr(char *str);
-	inline int set_word_field(int word, int field, int shift, int mask) {
+	int str2addr(const char *str) const;
+	inline int set_word_field(int word, int field, int shift, int mask) const {
 		return (((field & mask)<<shift) | ((~(mask << shift)) & word));
 	}
 	int PortShift_;

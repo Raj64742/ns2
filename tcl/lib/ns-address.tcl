@@ -389,22 +389,15 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 #
 # create a real hier address from addr string 
 #
+
+
 AddrParams proc set-hieraddr addrstr {
-	AddrParams instvar hlevel_ NodeShift_ NodeMask_
-	set L [split $addrstr .]
-	if { [llength $L] != $hlevel_ } {
-		error "set-hieraddr: hierarchical address doesn't match with \# hier.levels\n"
-	}
-	set word 0
-	for {set i 1} {$i <= $hlevel_} {incr i} {
-		set word [expr [expr [expr [lindex $L [expr $i-1]] & $NodeMask_($i)] << $NodeShift_($i)] | [expr [expr ~[expr $NodeMask_($i) << $NodeShift_($i)]] & $word]]
-		#TESTING
-		# puts "word = $word"
-	}
-	return $word
+	set ns [Simulator instance]
+	set addressObj [[$ns get-AllocAddrBits ""] get-Address]
+	set ip [$addressObj str2addr $addrstr]
+
+	return $ip
 }
-
-
 
 
 

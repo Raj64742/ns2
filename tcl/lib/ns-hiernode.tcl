@@ -44,7 +44,7 @@ HierNode instproc init {args} {
 	$self instvar address_
 	set address_ $args
 	set args [lreplace $args 0 1]
-	eval $self next $args
+	$self next $args
 	
 }
 

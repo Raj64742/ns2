@@ -45,10 +45,11 @@ int lanRouter::next_hop(Packet *p) {
 	hdr_ip* iph= hdr_ip::access(p);
 	char* adst= Address::instance().print_nodeaddr(iph->dst());
 	int next_hopIP;
-	if (enableHrouting_)
+	if (enableHrouting_) {
 		routelogic_->lookup_hier(lanaddr_, adst, next_hopIP);
-	else
+	} else {
 		routelogic_->lookup_flat(lanaddr_, adst, next_hopIP);
+	}
 	delete [] adst;
 
 	return next_hopIP;
@@ -84,3 +85,9 @@ int lanRouter::command(int argc, const char*const* argv)
 	}
 	return NsObject::command(argc, argv);
 }
+
+
+
+
+
+

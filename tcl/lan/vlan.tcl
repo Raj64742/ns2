@@ -82,6 +82,7 @@ LanNode instproc init {ns args} {
 	$self instvar id_ address_ channel_ mcl_ netIface_ 
 	$ns instvar Node_
 
+	$self next
 	set ns_ $ns
 	set nodelist_ ""
 	set cost_ 1
@@ -99,8 +100,12 @@ LanNode instproc init {ns args} {
 	$channel_ target $mcl_
 }
 
-LanNode instproc add-route {dest mac} {
+LanNode instproc add-route {args} {
 	#NOTHING: use defRouter to find routes
+}
+LanNode instproc add-hroute {args} {
+	#NOTHING: use defRouter to find routes
+	#puts "add-hroute: $args"
 }
 
 LanNode instproc assign-mac {ip} {
@@ -110,7 +115,7 @@ LanNode instproc cost c {
 	$self instvar ns_ nodelist_ id_ cost_
 	$ns_ instvar link_
 	set cost_ $c
-	set vlinkcost [expr $c / 2]
+	set vlinkcost [expr $c / 2.0]
 	foreach node $nodelist_ {
 		set nid [$node id]
 		$link_($id_:$nid) cost $vlinkcost
@@ -120,6 +125,10 @@ LanNode instproc cost c {
 LanNode instproc cost? {} {
 	$self instvar cost_
 	return $cost_
+}
+LanNode instproc split-addrstr addrstr {
+	set L [split $addrstr .]
+	return $L
 }
 LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 	$self instvar ifqType_ macType_ chanType_ 
@@ -133,15 +142,18 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 	set vlinkcost [expr $cost_ / 2.0]
 	foreach src $nodes {
 		set nif [new LanIface $src $bw $self -ifqType $ifqType -macType $macType]
+
 		set mac [$nif set mac_]
-		$mac set addr_ [$self assign-mac [$src node-addr]] ;# cf LL's arp(int ip)
+		set ipAddr [AddrParams set-hieraddr [$src node-addr]]
+		set macAddr [$self assign-mac $ipAddr] ;# cf LL's arp(int ip)
+		$mac set addr_ $macAddr
+
 		$mac channel $channel_
 		$mac mcl $mcl_
 		$mcl_ install [$mac set addr_] $mac
+		
+		set lanIface_([$src id]) $nif
 
-		set lanIface_([$src node-addr]) $nif
-
-		# connect self (vnode) with lan nodes by virtual links
 		set sid [$src id]
 		set link_($sid:$id_) [new Vlink $ns_ $self $sid $id_ $bw 0]
 		set link_($id_:$sid) [new Vlink $ns_ $self $id_ $sid $bw 0]
@@ -248,7 +260,7 @@ Vlink instproc cost? {} {
 #------------------------------------------------------------
 lanRouter instproc init {ns lan} {
 	$self next
-	$ns instvar EnableHierRt_ EnableMcast_
+	Simulator instvar EnableHierRt_
 	if {[info exists EnableHierRt_] && $EnableHierRt_} {
 		$self routing hier
 	} else {

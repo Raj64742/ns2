@@ -31,14 +31,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.11 1998/08/27 16:52:40 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.12 1998/08/28 23:08:33 yuriy Exp $
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "address.h"
-
-
+#include "route.h"
+#include <iostream.h>
 static class AddressClass : public TclClass {
 public:
 	AddressClass() : TclClass("Address") {} 
@@ -71,6 +71,12 @@ int Address::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if ((instance_ == 0) || (instance_ != this))
 		instance_ = this;
+	if (argc == 3) {
+		if (strcmp(argv[1], "str2addr") == 0) {
+			tcl.resultf("%d", str2addr(argv[2]));
+			return (TCL_OK);
+		}
+	}
 	if (argc == 4) {
 		if (strcmp(argv[1], "portbits-are") == 0) {
 			PortShift_ = atoi(argv[2]);
@@ -174,22 +180,17 @@ char *Address::print_portaddr(int address)
 }
 
 // Convert address in string format to binary format (int). 
-int Address::str2addr(char *str)
+int Address::str2addr(const char *str) const
 {
-	if (levels_ == 0) 
+	if (levels_ < 2) 
 		return atoi(str);
-	char *delim = ".";
-	char *tok;
-	int addr;
-	for (int i = 1; i <= levels_; i++) {
-		if (i == 1) {
-			tok = strtok(str, delim);
-			addr = atoi(tok);
-		} else {
-			tok = strtok(NULL, delim);
-			addr = set_word_field(addr, atoi(tok), 
-					      NodeShift_[i], NodeMask_[i]);
-		}
+
+
+	int istr[levels_], addr= 0;
+	RouteLogic::ns_strtok((char*)str, istr);
+	for (int i = 0; i < levels_; i++) {
+		addr = set_word_field(addr, --istr[i],
+				      NodeShift_[i+1], NodeMask_[i+1]);
 	}
 	return addr;
 }
