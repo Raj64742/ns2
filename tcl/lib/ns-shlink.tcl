@@ -61,7 +61,12 @@ TraceIp set dst_ 0
 TraceIp set callback_ 0
 
 
-TraceIp instproc init type {
+Class Trace/Recv -superclass Trace
+Trace/Recv instproc init {} {
+	$self next "r"
+}
+
+TraceIp instproc init {type} {
     $self next $type
     $self instvar type_
     set type_ $type
@@ -73,38 +78,97 @@ TraceIp/Drop instproc init {} {
 }
 
 
-Class Trace/Recv -superclass Trace
-Trace/Recv instproc init {} {
-	$self next "r"
+Simulator instproc shared-duplex-link {nodelist bw delay {qtype DropTail} \
+		{lltype LL/Base} {ifqtype Queue/DropTail} {mactype Mac/Base}} \
+{
+	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
+	$self instvar shlink_
+
+	set shlink_($nodelist) [new Link/SharedDuplex $nodelist $bw $delay \
+			$lltype $ifqtype $mactype]
+	$shlink_($nodelist) instvar ifq_ numnodes_
+
+	for {set i 0} {$i < $numnodes_} {incr i} {
+		set src [lindex $nodelist $i]
+		for {set j 0} {$j < $numnodes_} {incr j} {
+			set dst [lindex $nodelist $j]
+			if {$src == $dst} continue
+			set q($src:$dst) [new Queue/$qtype]
+			$q($src:$dst) drop-target $nullAgent_
+			set link_([$src id]:[$dst id]) [new Link/Duplex \
+				$src $dst $bw $delay $q($src:$dst) $lltype]
+		}
+	}
+	for {set i 0} {$i < $numnodes_} {incr i} {
+		set src [lindex $nodelist $i]
+		for {set j 0} {$j < $numnodes_} {incr j} {
+			set dst [lindex $nodelist $j]
+			if {$src == $dst} continue
+			$link_([$src id]:[$dst id]) setuplinkage $src \
+				$link_([$dst id]:[$src id]) $ifq_($src)
+			$self trace-queue $src $dst $traceAllFile_
+		}
+	}
+
+	puts "$shlink_($nodelist) $bw $delay $lltype $ifqtype $mactype"
+	return $shlink_($nodelist)
 }
 
 
-Class SharedDuplexLink
-SharedDuplexLink instproc init {nodelist bw delay lltype ifqtype mactype} {
-	$self instvar numnodes_ channel_ mac_ ifq_
+Class Link/Duplex -superclass SimpleLink
+
+Link/Duplex instproc init { src dst bw delay qtype lltype } {
+	$self next $src $dst $bw $delay $qtype $lltype
+}
+
+Link/Duplex instproc setuplinkage {src dstlink ifq} {
+	$self instvar link_
+	$link_ recvtarget [$src entry]
+	$link_ sendtarget [$dstlink link]
+	$link_ ifq $ifq
+}
+
+Link/Duplex instproc trace { ns f } {
+	$self next $ns $f
+	$self instvar link_ fromNode_ toNode_
+	set recvT_ [$ns create-trace Recv $f $toNode_ $fromNode_]
+	$recvT_ target [$link_ recvtarget]
+	$link_ recvtarget $recvT_
+}
+
+
+Class Link/SharedDuplex
+Link/SharedDuplex instproc init {nodelist bw delay lltype ifqtype mactype} {
+	$self instvar numnodes_ channel_ mac_ ifq_ drop_
 
 	set numnodes_ [llength $nodelist]
 	set channel_ [new Channel]
 	for {set i 0} {$i < $numnodes_} {incr i} {
 		set src [lindex $nodelist $i] 
+		# drop_ share by both IFQ and MAC
+		set drop_ [new TraceIp/Drop]
+		$drop_ set src [$src id]
+
 		set mac_($src) [new $mactype]
 		$mac_($src) set bandwidth_ $bw
 		$mac_($src) set delay_ $delay
 		$mac_($src) channel $channel_
-		$mac_($src) drop-target [new TraceIp/Drop]
+		$mac_($src) drop-target $drop_
+
 		set ifq_($src) [new $ifqtype]
 		$ifq_($src) target $mac_($src)
+		$ifq_($src) drop-target $drop_
 	}
 }
 
-SharedDuplexLink instproc init-monitor {ns qfile sampleInterval src dst} {
+Link/SharedDuplex instproc init-monitor {ns qfile sampleInt src {dst ""}} {
 	$self instvar ns_ qfile_ sampleInterval_
 	$self instvar qMonitor_
 	$self instvar ifq_
 
 	set ns_ $ns
 	set qfile_($src) $qfile
-	set sampleInterval_($src) $sampleInterval
+	set sampleInterval_($src) $sampleInt
 
 	set qMonitor_($src) [new QueueMonitor]
 	set bytesInt_ [new BytesIntegrator]
@@ -116,7 +180,7 @@ SharedDuplexLink instproc init-monitor {ns qfile sampleInterval src dst} {
 	return $qMonitor_($src)
 }
 
-SharedDuplexLink instproc queue-sample-timeout {} {
+Link/SharedDuplex instproc queue-sample-timeout {} {
 	$self instvar ns_ qfile_ sampleInterval_
 	$self instvar qMonitor_
 
@@ -131,7 +195,7 @@ SharedDuplexLink instproc queue-sample-timeout {} {
 			"$self queue-sample-timeout"
 }
 
-SharedDuplexLink instproc sample-queue-size {src} {
+Link/SharedDuplex instproc sample-queue-size {src} {
 	$self instvar ns_ qfile_ sampleInterval_
 	$self instvar qMonitor_
 
@@ -161,66 +225,4 @@ SharedDuplexLink instproc sample-queue-size {src} {
 	set lastSample_ $now
 
 	return "$meanBytesQ $meanPktsQ"
-}
-
-
-Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "Queue/DropTail" } { mactype "Mac/Base" } } {
-	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
-	$self instvar shlink_
-
-	set shlink_($nodelist) [new SharedDuplexLink $nodelist $bw $delay $lltype $ifqtype $mactype]
-	$shlink_($nodelist) instvar ifq_ numnodes_
-
-	if [info exists queueMap_($qtype)] {
-		set qtype $queueMap_($qtype)
-	}
-	for {set i 0} {$i < $numnodes_} {incr i} {
-		set src [lindex $nodelist $i] 
-		for {set j 0} {$j < $numnodes_} {incr j} {
-			set dst [lindex $nodelist $j]
-			if { $src != $dst } {
-				set q($src:$dst) [new Queue/$qtype]
-				$q($src:$dst) drop-target $nullAgent_
-				set link_([$src id]:[$dst id]) [new Link/Simple $src $dst $bw $delay $q($src:$dst) $lltype]
-			}
-		}
-	}
-	for {set i 0} {$i < $numnodes_} {incr i} {
-		set src [lindex $nodelist $i] 
-		for {set j 0} {$j < $numnodes_} {incr j} {
-			set dst [lindex $nodelist $j]
-			if { $src != $dst } {
-				set sid [$src id]
-				set did [$dst id]
-				$link_($sid:$did) setuplinkage $src $ifq_($src) $link_($did:$sid)
-				$self trace-queue $src $dst $traceAllFile_
-			}
-		}
-	}
-
-	puts "$shlink_($nodelist) $bw $delay $lltype $ifqtype $mactype"
-	return $shlink_($nodelist)
-}
-
-
-			
-Class Link/Simple -superclass SimpleLink
-
-Link/Simple instproc init { src dst bw delay qtype lltype } {
-	$self next $src $dst $bw $delay $qtype $lltype
-}
-
-Link/Simple instproc setuplinkage { src ifq dstlink } {
-	$self instvar link_
-	$link_ ifq $ifq
-	$link_ recvtarget [$src entry]
-	$link_ sendtarget [$dstlink link]
-}
-
-Link/Simple instproc trace { ns f } {
-	$self next $ns $f
-	$self instvar link_ fromNode_ toNode_
-	set recvT_ [$ns create-trace Recv $f $toNode_ $fromNode_]
-	$recvT_ target [$link_ recvtarget]
-	$link_ recvtarget $recvT_
 }
