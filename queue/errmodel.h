@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.13 1997/09/19 22:28:49 polly Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.14 1997/09/27 23:12:33 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -59,7 +59,10 @@ protected:
 	ErrorUnit eu_;		// error unit in pkt, bit, or time
 	RandomVariable* ranvar_;
 	double rate_;
+	int onlink_;		// true if this is between a queue and a link
+	Event intr_;		// set callback to queue
 };
+
 
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {

@@ -35,9 +35,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.16 1997/09/19 22:28:48 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.17 1997/09/27 23:12:32 haoboy Exp $ (UCB)";
 #endif
 
+#include "delay.h"
 #include "packet.h"
 #include "ll.h"
 #include "errmodel.h"
@@ -53,7 +54,8 @@ public:
 static char* eu_names[] = { EU_NAMES };
 
 
-ErrorModel::ErrorModel() : Connector(), eu_(EU_PKT), rate_(0), ranvar_(0)
+ErrorModel::ErrorModel() : Connector(), eu_(EU_PKT), rate_(0), ranvar_(0), 
+	onlink_(0)
 {
 	bind("rate_", &rate_);
 }
@@ -72,6 +74,11 @@ int ErrorModel::command(int argc, const char*const* argv)
 		}
 	}
 	else if (argc == 2) {
+		if (strcmp(argv[1], "onlink") == 0) {
+			// this model is between a queue and a link
+			onlink_ = 1;
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "ranvar") == 0) {
 			tcl.resultf("%s", ranvar_->name());
 			return (TCL_OK);
@@ -84,9 +91,19 @@ int ErrorModel::command(int argc, const char*const* argv)
 	return Connector::command(argc, argv);
 }
 
-void ErrorModel::recv(Packet* p, Handler*)
+void ErrorModel::recv(Packet* p, Handler* h)
 {
 	if (corrupt(p)) {
+		if (onlink_) {
+			// do a callback to queue
+			// XXX assume next target is a link
+			LinkDelay *link = (LinkDelay *)target_;
+			double txt = link->txtime(p);
+			Scheduler &s = Scheduler::instance();
+			// XXX take drop time to be a random time during 
+			// transmission
+			s.schedule(h, &intr_, Random::uniform(0, txt));
+		}
 		// if drop_ target exists, drop the corrupted packet
 		// else mark the error() flag of the packet and pass it on
 		if (drop_) {
@@ -96,7 +113,7 @@ void ErrorModel::recv(Packet* p, Handler*)
 		((hdr_cmn*)p->access(off_cmn_))->error() |= 1;
 	}
 	if (target_)
-		target_->recv(p);
+		target_->recv(p, h);
 	// XXX if no target, assume packet is still used by other object
 }
 
@@ -156,6 +173,7 @@ int SelectErrorModel::corrupt(Packet* p)
 	}
 	return 0;
 }
+
 
 
 
