@@ -377,9 +377,14 @@ Test/twowayrandom instproc init topo {
 }
 Test/twowayrandom instproc run {} {
 	$self instvar ns_ node_ testName_
+	global quiet
 
 	set stopt 6.0	
-	set startt [expr [ns-random 0] % 6]
+	if { $quiet == "true" } {
+		set startt 1
+	} else {
+		set startt [expr [ns-random 0] % 6]
+	}
 	puts "second TCP starting at time $startt"
 
 	# set up connection (do not use "create-connection" method because
