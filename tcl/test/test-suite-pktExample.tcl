@@ -81,18 +81,18 @@ Topology/net2 instproc init ns {
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
 
-Class Test/example1 -superclass TestSuite
-Test/example1 instproc init {} {
+Class Test/oneTCP -superclass TestSuite
+Test/oneTCP instproc init {} {
     $self instvar net_ test_ guide_ stopTime1_ 
     set net_	net2
-    set test_ example1	
+    set test_ oneTCP	
     set guide_  \
     "Example validation test with TCP, packet traces."
     set stopTime1_ 10
     Agent/TCP set window_ 64
     $self next pktTraceFile
 }
-Test/example1 instproc run {} {
+Test/oneTCP instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ stopTime1_ 
     if {$quiet == "false"} {puts $guide_}
@@ -110,18 +110,54 @@ Test/example1 instproc run {} {
     $ns_ run
 }
 
-Class Test/example2 -superclass TestSuite
-Test/example2 instproc init {} {
+Class Test/twoTCPs -superclass TestSuite
+Test/twoTCPs instproc init {} {
     $self instvar net_ test_ guide_ stopTime1_ 
     set net_	net2
-    set test_ example2	
+    set test_ twoTCPs	
+    set guide_  \
+    "Example validation test with two TCPs, packet traces."
+    set stopTime1_ 10
+    Agent/TCP set window_ 64
+    $self next pktTraceFile
+}
+Test/twoTCPs instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ stopTime1_ 
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set stopTime $stopTime1_
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    set ftp [new Application/FTP]
+    $ftp attach-agent $tcp1
+    $ns_ at 0 "$ftp produce 100"
+    $ns_ at 3 "$ftp producemore 1000"
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 1]
+    $tcp2 set window 8
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 1.0 "$ftp2 produce 100"
+
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+Class Test/oneTFRC -superclass TestSuite
+Test/oneTFRC instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_ 
+    set net_	net2
+    set test_ oneTFRC	
     set guide_  \
     "Example validation test with TFRC, packet traces."
     set stopTime1_ 10
     Agent/TFRC set SndrType_ 1
     $self next pktTraceFile
 }
-Test/example2 instproc run {} {
+Test/oneTFRC instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ stopTime1_ 
     if {$quiet == "false"} {puts $guide_}
