@@ -324,8 +324,10 @@ PushbackAgent::initialUpdate(RateLimitSession * rls) {
 
   //cancel right now, if arrRate is significantly less than lower bound.
   if (arrRate < 0.75*rls->lowerBound_) {
-    pushbackCancel(rls);
-    return;
+      double now = Scheduler::instance().clock();
+      //printf("Cancel pushback A time: %5.3f\n", now);
+      pushbackCancel(rls);
+      return;
   }
 
   if (newLimit > rls->lowerBound_) {
@@ -522,12 +524,14 @@ PushbackAgent::pushbackRefresh(int qid) {
     sprintf(prnMsg, "Negative Excess Rate. Things maybe fine now.\n");
     printMsg(prnMsg,0);
     //this would make all sessions go away after a while.
+    //printf("Negative Excess Rate - time: %5.3f\n", now);
     requiredLimit = 2*totalRateLimitedArrivalRate;
   } else {
     requiredLimit = (totalRateLimitedArrivalRate - excessRate)/noSessions;
     if (requiredLimit < lowerBound) {
       requiredLimit = lowerBound;
     }
+    //printf("New requiredLimit - time: %5.3f limit: %5.3f\n", now, requiredLimit);
   }
 
   sprintf(prnMsg,"Refresh. target=%g limit=%g floor=%g\n", targetRate, requiredLimit,
@@ -546,18 +550,20 @@ PushbackAgent::pushbackRefresh(int qid) {
 	    continue;
 	}
 	
+        double oldLimit = listItem->rlStrategy_->target_rate_;
 	//Sessions sending less than the limit.
 	if (listItem->getArrivalRateForStatus() < requiredLimit) {
 	    //if it has been sending less for "some" time.
 	    if (now - listItem->refreshTime_ >= MIN_TIME_TO_FREE) {
+      		//printf("Cancel pushback B time: %5.3f\n", now);
 		pushbackCancel(listItem);       //cancel rate-limiting
 	    } else {
 		//refresh upstream with double of max(sending rate, old limit)
 		//just using sending rate, limits the amount an aggregate can grow till next refresh
 		//using just old limit is tricky when different aggregates have different limits.
 		//at the same time, we would prefer not to loosen the hold too much in one step.
+      		//printf("Double limit time: %5.3f\n", now);
 		double sendRate = listItem->getArrivalRateForStatus();
-		double oldLimit = listItem->rlStrategy_->target_rate_;
 		double maxR = sendRate>oldLimit? sendRate: oldLimit;
 		if (now - listItem->refreshTime_ <= PRIMARY_WAITING_ZONE) {
 		    sprintf(prnMsg,"Waiting Zone 1: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
@@ -574,17 +580,15 @@ PushbackAgent::pushbackRefresh(int qid) {
 	    }
 	}
       else {
-	  //reduce the lowerBound to minimum seen.
-	  //this step can corrupt lowerbounds for a long time. 
-	  // but its absence can lead to oscillations. 
-	  // todo: consider this later.
-	  // alternately - there can be another global notion of lower bound 
-	  // based on the current conditions.
-	  //listItem->lowerBound_ = lowerBound; 
-	  
+	  //reduce the rate limit most half way.
 	  //refresh rate-limiting
+	  double newLimit;
+	  if (oldLimit > requiredLimit)
+	    newLimit = 0.5*requiredLimit + 0.5*oldLimit;
+          else newLimit = requiredLimit;
+      	  //printf("Reduce limit - time: %5.3f\n", now);
 	  listItem->refreshed();
-	  listItem->setLimit(requiredLimit);
+	  listItem->setLimit(newLimit);
    	if (listItem->pushbackON_) 
 	    refreshUpstreamLimits(listItem);
 	
@@ -609,6 +613,9 @@ PushbackAgent::pushbackCancel(RateLimitSession * rls) {
   printMsg(prnMsg,0);
   rls->aggSpec_->print();
   fflush(stdout);
+
+  double now = Scheduler::instance().clock();
+  //printf("Cancel pushback C time: %5.3f\n", now);
 
   if (rls->pushbackON_) {
     LoggingDataStructNode * lgdsNode = rls->logData_->first_;
