@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.18 1999/09/24 17:04:35 heideman Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.19 2000/08/09 05:51:14 johnh Exp $ (LBL)";
  */
 
 #ifndef WIN32
@@ -40,8 +40,15 @@
 #include "config.h"
 #include "random.h"
 
+/* __THROW is new with gcc 2.8.x and egcs (in redhat 7.0beta) */
+#if defined(__GNUC__) && defined(__THROW)
+#define GCC_THROW __THROW
+#else
+#define GCC_THROW
+#endif
+
 RANDOM_RETURN_TYPE
-random()
+random() GCC_THROW
 {
 	printf("random() called in ns.\nRandom is not portable, please use Random::uniform() instead.\n");
 	abort();
