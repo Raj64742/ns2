@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,9 +12,9 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
+ *	This product includes software developed by the Daedalus Research 
+ *      Group at the University of California at Berkeley.
+ * 4. Neither the name of the University nor of the Research Group may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
  *
@@ -30,35 +30,44 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+#include <math.h>
+#include <string.h>
+#include <sys/types.h>
+#include "red.h"
+#include "queue-nonfifo.h"
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.3 1997/06/11 04:58:07 gnguyen Exp $ (LBL)";
-#endif
+class NonFifoREDQueue : public REDQueue, QueueHelper {
+  public:	
+	NonFifoREDQueue();
+	PacketQueue *q() { return nfq_; }
+  protected:
+	NonFifoPacketQueue *nfq_;
+	void enque_helper(PacketQueue *q, Packet *pkt) {
+		QueueHelper::enque_helper((NonFifoPacketQueue *)q, pkt, off_cmn_);
+	}
+	Packet* deque_helper(PacketQueue *q) {
+		return QueueHelper::deque_helper((NonFifoPacketQueue *)q, off_cmn_);
+	}
+	void remove_helper(PacketQueue *q, Packet *pkt) {
+		QueueHelper::remove_helper((NonFifoPacketQueue *)q, pkt, off_cmn_);
+	}
+	NonFifoPacketQueue q_;
+};
 
-#include "drop-tail.h"
-
-static class DropTailClass : public TclClass {
- public:
-	DropTailClass() : TclClass("Queue/DropTail") {}
+static class NonFifoREDClass : public TclClass {
+public:
+	NonFifoREDClass() : TclClass("Queue/RED/NonFifo") {}
 	TclObject* create(int argc, const char*const* argv) {
-		return (new DropTail);
+		return (new NonFifoREDQueue);
 	}
-} class_drop_tail;
+} class_red_nonfifo;
 
-/*
- * drop-tail
- */
-void DropTail::enque(Packet* p)
+NonFifoREDQueue::NonFifoREDQueue()
 {
-	enque_helper(q(), p);
-	if (q()->length() >= qlim_) {
-		remove_helper(q(), p);
-		drop(p);
-	}
-}
-
-Packet* DropTail::deque()
-{
-	return deque_helper(q());
+	bind_bool("interleave_", &interleave_);
+	bind_bool("acksfirst_", &acksfirst_);
+	bind_bool("ackfromfront_", &ackfromfront_);
+	bind_bool("fracthresh_", &edp_.fracthresh);
+	edp_.adjusted_for_fracthresh_ = 0;
+	nfq_ = new NonFifoPacketQueue;
 }

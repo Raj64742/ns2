@@ -15,11 +15,6 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
-#ifndef lint
-static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.9 1997/05/21 22:11:49 tomh Exp $ (LBL)";
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -28,23 +23,12 @@ static char rcsid[] =
 #include "tcp.h"
 #include "flags.h"
 
-class RenoTcpAgent : public TcpAgent {
- public:
-	RenoTcpAgent();
-	virtual int window();
-	virtual void recv(Packet *pkt, Handler*);
-	virtual void timeout(int tno);
- protected:
-	u_int dupwnd_;
-};
-
-static class RenoTcpClass : public TclClass {
-public:
-	RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new RenoTcpAgent());
-	}
-} class_reno;
+/*
+ * NOTE: To enable tracing of a certain subset of member variables of 
+ * TcpAgent, all references (read or write) to them in C++ are made via
+ * the member functions defined in tcp.h. For example, cwnd() is used
+ * instead of cwnd_.
+ */ 
 
 int RenoTcpAgent::window()
 {
@@ -53,13 +37,13 @@ int RenoTcpAgent::window()
 	//	dupwnd_ will be non-zero during fast recovery,
 	//	at which time it contains the number of dup acks
 	//
-	int win = int(cwnd_) + dupwnd_;
+	int win = int(cwnd()) + dupwnd_;
 	if (win > int(wnd_))
 		win = int(wnd_);
 	return (win);
 }
 
-RenoTcpAgent::RenoTcpAgent() : dupwnd_(0)
+RenoTcpAgent::RenoTcpAgent() : TcpAgent(), dupwnd_(0)
 {
 }
 
@@ -74,15 +58,16 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		exit(1);
 	}
 #endif
+	ts_peer_ = tcph->ts();
 
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
+	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
 		dupwnd_ = 0;
-		newack(pkt);
-                opencwnd();
+		recv_newack_helper(pkt);
    	} else if (tcph->seqno() == last_ack_)  {
-		if (++dupacks_ == NUMDUPACKS) {
+		if (++dupacks() == NUMDUPACKS) {
 			/*
 			 * Assume we dropped just one packet.
 			 * Retransmit last ack + 1
@@ -92,10 +77,10 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
                         * problems with multiple fast retransmits after
 			* a retransmit timeout.
                         */
-			if ( !bug_fix_ || (highest_ack_ > recover_) ||
+			if ( !bug_fix_ || (highest_ack() > recover_) ||
 			    ( recover_cause_ != 2)) {
 				recover_cause_ = 1;
-				recover_ = maxseq_;
+				recover_ = maxseq();
 				closecwnd(1);
 				reset_rtx_timer(1);
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
@@ -106,7 +91,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
              * followed by a retransmit timeout.  */
 //            else dupacks_ = 0;
 			dupwnd_ = NUMDUPACKS;
-		} else if (dupacks_ > NUMDUPACKS)
+		} else if (dupacks() > NUMDUPACKS)
 			++dupwnd_;
 	}
 	Packet::free(pkt);
@@ -119,7 +104,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 	 * Try to send more data
 	 */
 
-	if (dupacks_ == 0 || dupacks_ > NUMDUPACKS - 1)
+	if (dupacks() == 0 || dupacks() > NUMDUPACKS - 1)
 		send(0, 0, maxburst_);
 }
 
@@ -127,10 +112,10 @@ void RenoTcpAgent::timeout(int tno)
 {
 	if (tno == TCP_TIMER_RTX) {
 		dupwnd_ = 0;
-		dupacks_ = 0;
-		if (bug_fix_) recover_ = maxseq_;
+		dupacks() = 0;
+		if (bug_fix_) recover_ = maxseq();
 		TcpAgent::timeout(tno);
 	} else {
-		send(1, TCP_REASON_TIMEOUT);
+		send(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
 }

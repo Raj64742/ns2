@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-packet.cc,v 1.1 1997/03/29 04:38:01 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-packet.cc,v 1.2 1997/06/11 04:58:21 gnguyen Exp $ (LBL)";
 #endif
 
 #include "transform.h"
@@ -58,6 +58,12 @@ inline int NamPacket::EndPoints(double now, double& tail, double& head) const
 	}
 	double t = now - tx_;
 	tail = (t <= ts_) ? 0. : t - ts_;
+
+	/* 
+	 * This is added to support animations of asymmetric links.
+	 */
+	head = head*edge_->distance()/edge_->GetDelay();
+	tail = tail*edge_->distance()/edge_->GetDelay();
 
 	return (doarrow);
 }

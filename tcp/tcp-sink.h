@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1991,1993 Regents of the University of California.
+ * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,83 +30,56 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-edge.cc,v 1.3 1997/06/11 04:58:20 gnguyen Exp $ (LBL)";
-#endif
-
 #include <math.h>
+#include "packet.h"
+#include "ip.h"
+#include "tcp.h"
+#include "agent.h"
+#include "flags.h"
 
-#include "nam-edge.h"
-#include "nam-node.h"
-#include "netview.h"
-#include "transform.h"
-#include "paint.h"
+/* max window size */
+#define MWS 1024
+#define MWM (MWS-1)
+/* For Tahoe TCP, the "window" parameter, representing the receiver's
+ * advertised window, should be less than MWM.  For Reno TCP, the
+ * "window" parameter should be less than MWM/2.
+ */
 
-NamEdge::NamEdge(NamNode* src, NamNode* dst, double ps,
-		 double bw, double delay, double angle) :
-	Animation(0, 0),
-	src_(src->num()), dst_(dst->num()),
-	neighbor_(dst),
-	x0_(0), y0_(0),
-	x1_(0), y1_(0),
-	psize_(ps),
-	angle_(angle),
-	bandwidth_(bw),
-	delay_(delay),
-	distance_(delay),
-	marked_(0)
-{
-  //        distance_ = delay;
-	paint_ = Paint::instance()->thick();
-}
+class Acker {
+public:
+	Acker();
+	virtual ~Acker() {}
+	void update(int seqno);
+	inline int Seqno() const { return (next_ - 1); }
+	virtual void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
+	void reset();
+protected:
+	int next_;		/* next packet expected  */
+	int maxseen_;		/* max packet number seen */
+	int seen_[MWS];		/* array of packets seen  */
+};
 
-NamEdge::~NamEdge()
-{
-}
+class TcpSink : public Agent {
+public:
+	TcpSink(Acker*);
+	void recv(Packet* pkt, Handler*);
+	void reset();
+protected:
+	void ack(Packet*);
+	virtual void add_to_ack(Packet* pkt);  
+	Acker* acker_;
+	int off_tcp_;
+};
 
-void NamEdge::place(double x0, double y0, double x1, double y1)
-{
-	x0_ = x0;
-	y0_ = y0;
-	x1_ = x1;
-	y1_ = y1;
+#define DELAY_TIMER 0
 
-	double dx = x1 - x0;
-	double dy = y1 - y0;
-	/*XXX*/
-//	delay_ = sqrt(dx * dx + dy * dy);
-	distance_ = sqrt(dx * dx + dy * dy);
-	matrix_.rotate((180 / M_PI) * atan2(dy, dx));
-	matrix_.translate(x0, y0);
+class DelAckSink : public TcpSink {
+public:
+	DelAckSink(Acker* acker);
+	void recv(Packet* pkt, Handler*);
+protected:
+	virtual void timeout(int tno);
+	Packet* save_;		/* place to stash packet while delaying */
+	double interval_;
+};
 
-	bb_.xmin = x0; bb_.ymin = y0;
-	bb_.xmax = x1; bb_.ymax = y1;
-}
-
-void NamEdge::draw(NetView* view, double now) const
-{
-	view->line(x0_, y0_, x1_, y1_, paint_);
-}
-
-void NamEdge::reset(double)
-{
-	paint_ = Paint::instance()->thick();
-}
-
-int NamEdge::inside(double, float px, float py) const
-{
-	return (px >= bb_.xmin &&
-		px <= bb_.xmax &&
-		py >= bb_.ymin - .0005 &&
-		py <= bb_.ymax + .0005);
-}
-
-const char* NamEdge::info() const
-{
-	static char text[128];
-	sprintf(text, "link %d-%d:\n  bw: %g bits/sec\n  delay: %g sec\n",
-		src_, dst_, bandwidth_, delay_);
-	return (text);
-}

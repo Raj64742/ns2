@@ -1,0 +1,206 @@
+/*
+ * Copyright (c) 1997 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the Daedalus Research
+ *	Group at the University of California Berkeley.
+ * 4. Neither the name of the University nor of the Laboratory may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * tcp-asym-sink.cc: contributed by the Daedalus Research Group, U.C.Berkeley 
+ * http://daedalus.cs.berkeley.edu
+ */
+
+/*
+ * tcp-asym includes a set of modifications to several flavors of TCP to enhance
+ * performance over asymmetric-bandwidth networks, where the ack channel is
+ * constrained. The receiver-side code in this file is derived from the regular
+ * TCP sink code. The main additional functionality is that the sink responds
+ * to ECN by performing ack congestion control, i.e. it multiplicatively backs
+ * off the frequency with which it sends acks (up to a limit). For each subsequent 
+ * round-trip period during which it does not receive an ECN, it gradually increases 
+ * the frequency of acks (up to a maximum of 1 per data packet(.
+ */
+
+#include "tcp-sink.h"
+#include "template.h"
+
+
+class TcpAsymSink : public DelAckSink {
+public:
+	TcpAsymSink(Acker*);
+	virtual void recv(Packet* pkt, Handler* h);
+	virtual void timeout(int tno);
+protected:
+	virtual void add_to_ack(Packet* pkt);
+	int off_tcpasym_;
+	int delackcount_;       /* the number of consecutive packets that have
+				   not been acked yet */
+	int maxdelack_;         /* the maximum extent to which acks can be
+				   delayed */
+	int delackfactor_;      /* the dynamically varying limit on the extent
+				   to which acks can be delayed */
+	int delacklim_;         /* limit on the extent of del ack based on the
+				   sender's window */
+	double ts_ecn_;         /* the time when an ECN was received last */
+	double ts_decrease_;    /* the time when delackfactor_ was decreased last */
+	double highest_ts_echo_;/* the highest timestamp echoed by the peer */
+};	
+
+static class TcpAsymSinkClass : public TclClass {
+public:
+	TcpAsymSinkClass() : TclClass("Agent/TCPSink/Asym") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new TcpAsymSink(new Acker));
+	}
+} class_tcpasymsink;
+
+TcpAsymSink::TcpAsymSink(Acker* acker) : delackcount_(0), delackfactor_(1), delacklim_(0), ts_ecn_(0), ts_decrease_(0), DelAckSink(acker)
+{
+	bind("maxdelack_", &maxdelack_);
+	bind("off_tcpasym_", &off_tcpasym_);
+}
+
+/* Add fields to the ack. Not needed? */
+void TcpAsymSink::add_to_ack(Packet* pkt) 
+{
+	hdr_tcpasym *tha = (hdr_tcpasym*)pkt->access(off_tcpasym_);
+	tha->ackcount() = delackcount_;
+}
+
+void TcpAsymSink::recv(Packet* pkt, Handler* h) 
+{
+	int olddelackfactor = delackfactor_;
+	int olddelacklim = delacklim_; 
+	int max_sender_can_send = 0;
+	hdr_flags *fh = (hdr_flags*)pkt->access(off_flags_); 
+	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcpasym *tha = (hdr_tcpasym*)pkt->access(off_tcpasym_);
+	double now = Scheduler::instance().clock();
+
+	acker_->update(th->seqno());
+
+	/* determine the highest timestamp the sender has echoed */
+	highest_ts_echo_ = max(highest_ts_echo_, th->ts_echo());
+	/* 
+	 * if we receive an ECN and haven't received one in the past
+	 * round-trip, double delackfactor_ (and consequently halve
+	 * the frequency of acks) subject to a maximum
+	 */
+	if (fh->ecn_ && highest_ts_echo_ >= ts_ecn_) {
+		delackfactor_ = min(2*delackfactor_, maxdelack_);
+		ts_ecn_ = now;
+	}
+	/*
+	 * else if we haven't received an ECN in the past round trip and
+	 * haven't (linearly) decreased delackfactor_ in the past round
+	 * trip, we decrease delackfactor_ by 1 (and consequently increase
+	 * the frequency of acks) subject to a minimum
+	 */
+	else if (highest_ts_echo_ >= ts_ecn_ && highest_ts_echo_ >= ts_decrease_) {
+		delackfactor_ = max(delackfactor_ - 1, 1);
+		ts_decrease_ = now;
+	}
+
+	/*
+         * if this is the next packet in sequence, we can consider delaying the ack. 
+	 * Set delacklim_ based on how much data the sender can send if we don't
+	 * send back any more acks. The idea is to avoid stalling the sender because
+	 * of a lack of acks.
+         */
+        if (th->seqno() == acker_->Seqno()) {
+		max_sender_can_send = (int) min(tha->win()+acker_->Seqno()-tha->highest_ack(), tha->max_left_to_send());
+		/* XXXX we use a safety factor 2 */
+		delacklim_ = min(maxdelack_, max_sender_can_send/2); 
+	}
+	else
+		delacklim_ = 0;
+
+	if (delackfactor_ < delacklim_) 
+		delacklim_ = delackfactor_;
+
+	/* 
+	 * Log values of variables of interest. Since this is the only place
+	 * where this is done, we decided against using a more general method
+	 * as used for logging TCP sender state variables.
+	 */
+	if (channel_ && (olddelackfactor != delackfactor_ || olddelacklim != delacklim_)) {
+		char wrk[500];
+		int n;
+
+		/* we print src and dst in reverse order to conform to sender side */
+		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d dafactor: %2d dalim: %2d max_scs: %4d win: %4d\n", now, dst_/256, dst_%256, addr_/256, addr_%256, delackfactor_, delacklim_,max_sender_can_send, tha->win());
+		n = strlen(wrk);
+		wrk[n] = '\n';
+		wrk[n+1] = 0;
+		(void)Tcl_Write(channel_, wrk, n+1);
+		wrk[n] = 0;
+	}
+		
+	delackcount_++;
+	/* check if we have waited long enough that we should send an ack */
+	if (delackcount_ < delacklim_) { /* it is not yet time to send an ack */
+		/* if the delayed ack timer is not set, set it now */
+		if (!pending_[DELAY_TIMER]) {
+			save_ = pkt;
+			sched(interval_, DELAY_TIMER);
+		}
+		else {
+			hdr_tcp *sth = (hdr_tcp*)save_->access(off_tcp_);
+			/* save the pkt with the more recent timestamp */
+			if (th->ts() > sth->ts()) {
+				Packet::free(save_);
+				save_ = pkt;
+			}
+		}
+		return;
+	}
+	else { /* send back an ack now */
+		if (pending_[DELAY_TIMER]) {
+			cancel(DELAY_TIMER);
+			Packet::free(save_);
+			save_ = 0;
+		}
+		ack(pkt);
+		delackcount_ = 0;
+		Packet::free(pkt);
+	}
+}
+
+
+void TcpAsymSink::timeout(int tno)
+{
+	/*
+	 * The timer expired so we ACK the last packet seen.
+	 */
+	Packet* pkt = save_;
+	cancel(tno);
+	delackcount_ = 0;
+	ack(pkt);
+	save_ = 0;
+	Packet::free(pkt);
+}
+

@@ -29,10 +29,7 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.5 1997/05/21 21:41:59 tomh Exp $ (LBL)
  */
-
 #ifndef ns_tcp_h
 #define ns_tcp_h
 
@@ -42,6 +39,8 @@
 struct hdr_tcp {
 #define NSA 3
         double ts_;             /* time packet generated (at source) */
+	double ts_echo_;        /* the echoed timestamp (originally sent by
+				   the peer */
 	int seqno_;		/* sequence number */
 	int reason_;		/* reason for a retransmit */
         int sa_start_[NSA+1];   /* selective ack "holes" in packet stream */
@@ -58,6 +57,9 @@ struct hdr_tcp {
 	/* per-field member functions */
 	double& ts() {
 		return (ts_);
+	}
+	double& ts_echo() {
+		return (ts_echo_);
 	}
 	int& seqno() {
 		return (seqno_);
@@ -82,6 +84,30 @@ struct hdr_tcp {
 	}
 };
 
+/* 
+ * The TCP asym header. The sender includes information that the receiver could
+ * use to decide by how much to delay acks.
+ * XXXX some of the fields may not be needed
+ */ 
+struct hdr_tcpasym {
+	int ackcount_;          /* the number of segments this ack represents */
+	int win_;               /* the amount of window remaining */
+	int highest_ack_;       /* the highest ack seen */
+	int max_left_to_send_;  /* the max. amount of data that remains to be sent */
+	int& ackcount() {
+		return (ackcount_);
+	}
+	int& win() {
+		return (win_);
+	}
+	int& highest_ack() {
+		return (highest_ack_);
+	}
+	int& max_left_to_send() {
+		return (max_left_to_send_);
+	}
+};
+
 #define TCP_BETA 2.0
 #define TCP_ALPHA 0.125
 
@@ -101,15 +127,93 @@ struct hdr_tcp {
 
 #define TCP_TIMER_RTX		0
 #define TCP_TIMER_DELSND	1
+#define TCP_TIMER_BURSTSND 2
 
+
+/*
+ * Macro to log a set of member variables. It is triggered when the value of one of
+ * the variables changes. All the state variables are printed out (by print_if_needed()
+ * in a single line.
+ */ 
+#define TCP_TRACE_ALL(memb, old_memb, memb_time) \
+{ \
+	Scheduler& s = Scheduler::instance(); \
+	if (memb != old_memb && print_if_needed(memb_time)) \
+		old_memb = memb; \
+	memb_time = &s ? s.clock() : 0; \
+}
+
+	       
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
 	virtual void recv(Packet*, Handler*);
 	int command(int argc, const char*const* argv);
+
+	/* 
+	 * These return-by-reference functions are used in the TCP code instead
+	 * of directly referring to the variables. These allow us to trace the
+	 * variables as their values change. One problem is that when any of
+	 * these functions is invoked, we can't tell if its value is going to
+	 * be changed (we don't even know whether the variable is being read
+	 * or whether its being written into). So we need to remember the previous
+	 * value to each variable.
+	 */
+	int& maxseq() {
+		TCP_TRACE_ALL(maxseq_, old_maxseq_, maxseq_time_);
+		return (maxseq_);
+	}
+
+	int& highest_ack() {
+		TCP_TRACE_ALL(highest_ack_, old_highest_ack_, highest_ack_time_);
+		return (highest_ack_);
+	}
+
+	int& t_seqno() {
+		TCP_TRACE_ALL(t_seqno_, old_t_seqno_, t_seqno_time_);
+		return (t_seqno_);
+	}
+
+	double& cwnd() {
+		TCP_TRACE_ALL(cwnd_, old_cwnd_, cwnd_time_);
+		return (cwnd_);
+	}
+
+	int& ssthresh() {
+		TCP_TRACE_ALL(ssthresh_, old_ssthresh_, ssthresh_time_);
+		return (ssthresh_);
+	}
+
+	int& dupacks() {
+		TCP_TRACE_ALL(dupacks_, old_dupacks_, dupacks_time_);
+		return (dupacks_);
+	}
+
+	int& t_rtt() {
+		TCP_TRACE_ALL(t_rtt_, old_t_rtt_, t_rtt_time_);
+		return (t_rtt_);
+	}
+
+	int& t_srtt() {
+		TCP_TRACE_ALL(t_srtt_, old_t_srtt_, t_srtt_time_);
+		return (t_srtt_);
+	}
+
+	int& t_rttvar() {
+		TCP_TRACE_ALL(t_rttvar_, old_t_rttvar_, t_rttvar_time_);
+		return (t_rttvar_);
+	}
+
+	int& t_backoff() {
+		TCP_TRACE_ALL(t_backoff_, old_t_backoff_, t_backoff_time_);
+		return (t_backoff_);
+	}
+
+
 protected:
 	virtual int window();
 	virtual void plot();
+	print_if_needed(double memb_time);
 
 	/*
 	 * State encompassing the round-trip-time estimate.
@@ -126,6 +230,8 @@ protected:
 	void rtt_update(double tao);
 	void rtt_backoff();
 
+	double ts_peer_;        /* the most recent timestamp the peer sent */
+
 	/*XXX start/stop */
 	void output(int seqno, int reason = 0);
 	virtual void send(int force, int reason, int maxburst = 0);
@@ -138,6 +244,13 @@ protected:
 	void reset();
 	void newack(Packet* pkt);
 	void quench(int how);
+	void finish(); /* called when the connection is terminated */
+
+	/* Helper functions. Currently used by TCP asym */
+	virtual void output_helper(Packet* p) { return; }
+	virtual void send_helper(int maxburst) { return; }
+	virtual void recv_helper(Packet* p) { return;}
+	virtual void recv_newack_helper(Packet* pkt);
 
 	double overhead_;
 	double wnd_;
@@ -177,6 +290,75 @@ protected:
 	double firstsent_;  /* When first packet was sent  --Allman */
 	int off_ip_;
 	int off_tcp_;
+
+	char finish_[20];       /* name of Tcl proc to call at finish time */
+	int closed_;            /* whether this connection has closed */
+private:
+	double last_log_time_; /* the time at which the state variables were logged
+				  last */
+	/* 
+	 * The following members are used to keep track of the previous value
+	 * of various state variables and the time of the last change. This
+	 * allows us to log them only when the value of the variable changes.
+	 */
+	int old_maxseq_;
+	double maxseq_time_;
+	int old_highest_ack_;
+	double highest_ack_time_;
+	int old_t_seqno_;
+	double t_seqno_time_;
+	double old_cwnd_;
+	double cwnd_time_;
+	int old_ssthresh_;
+	double ssthresh_time_;
+	int old_dupacks_;
+	double dupacks_time_;
+	int old_t_rtt_;
+	double t_rtt_time_;
+	int old_t_srtt_;
+	double t_srtt_time_;
+	int old_t_rttvar_;
+	double t_rttvar_time_;
+	int old_t_backoff_;
+	double t_backoff_time_;
+};
+
+/* TCP Reno */
+class RenoTcpAgent : public virtual TcpAgent {
+ public:
+	RenoTcpAgent();
+	virtual int window();
+	virtual void recv(Packet *pkt, Handler*);
+	virtual void timeout(int tno);
+ protected:
+	u_int dupwnd_;
+};
+
+static class RenoTcpClass : public TclClass {
+public:
+	RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new RenoTcpAgent());
+	}
+} class_reno;
+
+
+/* TCP New Reno */
+class NewRenoTcpAgent : public virtual TcpAgent {
+ public:
+	NewRenoTcpAgent();
+	virtual int window();
+	virtual void recv(Packet *pkt, Handler*);
+	virtual void timeout(int tno);
+ protected:
+	u_int dupwnd_;
+	int newreno_changes_;	/* 0 for fixing unnecessary fast retransmits */
+				/* 1 for additional code from Allman, */
+				/* to implement other algorithms from */
+				/* Hoe's paper */
+	void partialnewack(Packet *pkt);
+	int acked_, new_ssthresh_;  /* used if newreno_changes_ == 1 */
+	double ack2_, ack3_, basertt_; /* used if newreno_changes_ == 1 */
 };
 
 #endif

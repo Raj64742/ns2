@@ -13,7 +13,8 @@
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
  * 	This product includes software developed by the Network Research
- * 	Group at Lawrence Berkeley National Laboratory.
+ * 	Group at Lawrence Berkeley National Laboratory and the Daedalus 
+ *      Research Group and the University of California, Berkeley.
  * 4. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
@@ -29,84 +30,51 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.12 1997/06/11 04:58:11 gnguyen Exp $ (LBL)
  */
 
-#ifndef ns_queue_h
-#define ns_queue_h
+#ifndef ns_queue_nonfifo_h
+#define ns_queue_nonfifo_h
 
-#include "connector.h"
-#include "packet.h"
-#include "ip.h"
+#include "queue.h"
 
-class PacketQueue {
-public:
-	PacketQueue() : head_(0), tail_(&head_), len_(0) {}
-	inline int length() const { return (len_); }
-	inline void enque(Packet* p) {
-		*tail_ = p;
-		tail_ = &p->next_;
-		*tail_ = 0;
-		++len_;
-	}
-	Packet* deque() {
-		Packet* p = head_;
-		if (p != 0) {
-			--len_;
-			head_ = p->next_;
-			if (head_ == 0)
-				tail_ = &head_;
-		}
-		return (p);
-	}
-	Packet* lookup(int n) {
-		for (Packet* p = head_; p != 0; p = p->next_) {
-			if (--n < 0)
-				return (p);
-		}
-		return (0);
-	}
-	/* remove a specific packet, which must be in the queue */
-	void remove(Packet*);
-	/* Remove a packet, located after a given packet. Either could be 0. */
-	void remove(Packet *, Packet *);
-protected:
-	Packet* head_;
-	Packet** tail_;
-	int len_;		// packet count
+class NonFifoPacketQueue : public PacketQueue {
+  public:
+	NonFifoPacketQueue() : ack_count(0), data_count(0), 
+		acks_to_send(0) {}
+	/* interleave between TCP acks and others while dequeuing */
+	Packet* deque_interleave(int off_cmn);
+	/* deque TCP acks before any other type of packet */
+	Packet* deque_acksfirst(int off_cmn);
+	/* 
+	 * If a packet needs to be removed because the queue is full, 
+	 * pick the TCP ack closest to the head. Otherwise, drop the 
+	 * specified pkt (target).
+	 */
+	Packet* remove_ackfromfront(Packet* target, int off_cmn);
+	/* 
+	 * Remove a specific packet given pointers to it and its predecessor
+	 * in the queue. p and/or pp may be NULL.
+	 */
+	void remove(Packet* p, Packet* pp);
+	void purge(Packet *, Packet *);	/* remove pkt 1 (located after 2) */
+
+	inline Packet* head() { return head_; }
+        int ack_count;        /* number of TCP acks in the queue */
+	int data_count;       /* number of non-ack packets in the queue */
+	int acks_to_send;     /* number of acks to send in current schedule */
 };
 
-
-class Queue;
-
-class QueueHandler : public Handler {
-public:
-	inline QueueHandler(Queue& q) : queue_(q) {}
-	void handle(Event*);
-private:
-	Queue& queue_;
-};
-
-class Queue : public Connector {
-public:
-	virtual void enque(Packet*) = 0;
-	virtual Packet* deque() = 0;
-	void recv(Packet*, Handler*);
-	void resume();
-	int blocked() const { return (blocked_ == 1); }
-	void unblock() { blocked_ = 0; }
-	void block() { blocked_ = 1; }
-protected:
-	Queue();
-	int command(int argc, const char*const* argv);
-	void reset();
-	void drop(Packet* p);
-	NsObject* drop_;	/* node to send all dropped packets to */
-	int qlim_;		/* maximum allowed pkts in queue */
-	int blocked_;		/* blocked now? */
-	int unblock_on_resume_;	/* unblock q on idle? */
-	QueueHandler qh_;
+class QueueHelper {
+  public:
+	QueueHelper() {}
+  protected:
+	/* These control (helper) variables are bound in derived objects */
+	int interleave_;	/* interleave TCP acks and other data */
+	int acksfirst_;         /* deque TCP acks before any other data */
+	int ackfromfront_;      /* try and drop ack from front of the queue */
+	virtual Packet* deque_helper(NonFifoPacketQueue *, int);
+	virtual void enque_helper(NonFifoPacketQueue *, Packet *, int);
+	virtual void remove_helper(NonFifoPacketQueue *, Packet *, int);
 };
 
 #endif

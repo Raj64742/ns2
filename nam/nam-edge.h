@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-edge.h,v 1.1 1997/03/29 04:37:59 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-edge.h,v 1.2 1997/06/11 04:58:20 gnguyen Exp $ (LBL)
  */
 
 #ifndef nam_edge_h
@@ -62,6 +62,7 @@ class NamEdge : public Animation {
 	inline double txtime(int n) const { return (double(n << 3)/bandwidth_); }
 	inline double angle() const { return (angle_); }
 	inline double delay() const { return (delay_); }
+	inline double distance() const { return (distance_); }
 	inline double x0() const { return (x0_); }
 	inline double y0() const { return (y0_); }
 	inline NamNode* neighbor() const { return (neighbor_); }
@@ -81,6 +82,7 @@ class NamEdge : public Animation {
 	double angle_;
 	double bandwidth_;	/* link bandwidth (bits/sec) */
 	double delay_;		/* link delay */
+	double distance_;	/* link distance in embedding */
 	Transform matrix_;	/* rotation matrix for packets */
 	int marked_;
 };

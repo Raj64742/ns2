@@ -53,94 +53,7 @@
  *   packets.
  */
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.11 1997/04/30 23:35:16 kfall Exp $ (LBL)";
-#endif
-
-#include <math.h>
-#include <string.h>
-#include <sys/types.h>
-
-#include "queue.h"
-#include "Tcl.h"
-#include "packet.h"
-#include "random.h"
-#include "flags.h"
-#include "delay.h"
-
-/*
- * Early drop parameters, supplied by user
- */
-struct edp {
-	/*
-	 * User supplied.
-	 */
-	int mean_pktsize;	/* avg pkt size, linked into Tcl */
-	int bytes;		/* true if queue in bytes, false if packets */
-	int wait;		/* true for waiting between dropped packets */
-	int setbit;		/* true to set congestion indication bit */
-
-	double th_min;		/* minimum threshold of average queue size */
-	double th_max;		/* maximum threshold of average queue size */
-	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
-	double q_w;		/* queue weight */
-	/*
-	 * Computed as a function of user supplied paramters.
-	 */
-	double ptc;		/* packet time constant in packets/second */
-};
-
-/*
- * Early drop variables, maintained by RED
- */
-struct edv {
-	float v_ave;		/* average queue size */
-	float v_slope;		/* used in computing average queue size */
-	float v_r;			
-	float v_prob;		/* prob. of packet drop */
-	float v_prob1;		/* prob. of packet drop before "count". */
-	float v_a;		/* v_prob = v_a * v_ave + v_b */
-	float v_b;
-	int count;		/* # of packets since last drop */
-	int count_bytes;	/* # of bytes since last drop */
-	int old;		/* 0 when average queue first exceeds thresh */
-};
-
-class REDQueue : public Queue {
- public:	
-	REDQueue();
- protected:
-	int command(int argc, const char*const* argv);
-	void enque(Packet* pkt);
-	Packet* deque();
-	void reset();
-	void run_estimator(int nqueued, int m);
-	void plot();
-	void plot1(int qlen);
-	int drop_early(Packet* pkt);
-	LinkDelay* link_;	/* outgoing link */
-	PacketQueue q_;	/* underlying FIFO queue */
-	int bcount_;	/* byte count */
-	int qib_;	/* bool: queue measured in bytes? */
-
-	/*
-	 * Static state.
-	 */
-	int drop_tail_;
-	edp edp_;
-	int doubleq_;	/* for experiments with priority for small packets */
-	int dqthresh_;	/* for experiments with priority for small packets */
-
-	/*
-	 * Dynamic state.
-	 */
-	int idle_;
-	double idletime_;
-	edv edv_;
-	void print_edp();
-	void print_edv();
-};
+#include "red.h"
 
 static class REDClass : public TclClass {
 public:
@@ -165,10 +78,12 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), idle_(1)
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);
 	bind_bool("drop-tail_", &drop_tail_);
+	bind_bool("fracthresh_", &edp_.fracthresh);
 
 	bind_bool("doubleq_", &doubleq_);
 	bind("dqthresh_", &dqthresh_);
 
+	q_ = new PacketQueue();
 	reset();
 #ifdef notdef
 print_edp();
@@ -185,6 +100,12 @@ void REDQueue::reset()
 	if (link_)
 		edp_.ptc = link_->bandwidth() /
 			(8. * edp_.mean_pktsize);
+	if (edp_.fracthresh && !edp_.adjusted_for_fracthresh_) {
+		edp_.th_min *= qlim_;
+		edp_.th_max *= qlim_;
+		edp_.adjusted_for_fracthresh_ = 1;
+	}
+
 	edv_.v_ave = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
@@ -275,7 +196,8 @@ void REDQueue::plot1(int length)
  */
 Packet* REDQueue::deque()
 {
-	Packet* p = q_.deque();
+	Packet *p;
+	p = deque_helper(q());
 	if (p != 0) {
 		idle_ = 0;
 		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size_;
@@ -327,7 +249,20 @@ int REDQueue::drop_early(Packet* pkt)
 			p = 1.0;
 		edv_.v_prob = p;
 	}
-	// drop probability is computed, pick random number and act
+	/* Trace RED queue parameters. */
+	if (channel_) {
+		char wrk[500];
+		int n;
+		double now = Scheduler::instance().clock();
+		sprintf(wrk, "time: %-6.3f  v_ave: %-6.3f  v_prob: %-6.3f  count: %2d\n", now, edv_.v_ave, edv_.v_prob, edv_.count);
+		n = strlen(wrk);
+		wrk[n] = '\n';
+		wrk[n+1] = 0;
+		(void)Tcl_Write(channel_, wrk, n+1);
+		wrk[n] = 0;
+	}
+
+// drop probability is computed, pick random number and act
 	double u = Random::uniform();
 	if (u <= edv_.v_prob) {
 		edv_.count = 0;
@@ -335,6 +270,7 @@ int REDQueue::drop_early(Packet* pkt)
 		if (edp_.setbit) {
 			hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
 			hf->ecn_ = 1;
+			hf->ecn_to_echo_ = 1; // XXX
 		} else {
 			return (1);
 		}
@@ -362,7 +298,7 @@ void REDQueue::enque(Packet* pkt)
         } else
                 m = 0;
 
-	run_estimator(qib_ ? bcount_ : q_.length(), m + 1);
+	run_estimator(qib_ ? bcount_ : q()->length(), m + 1);
 
 	++edv_.count;
 	edv_.count_bytes += ch->size();
@@ -370,7 +306,7 @@ void REDQueue::enque(Packet* pkt)
 	/*
 	 * if average exceeds the min threshold, we may drop
 	 */
-	if (edv_.v_ave >= edp_.th_min && q_.length() > 1) { 
+	if (edv_.v_ave >= edp_.th_min && q()->length() > 1) { 
 		if (edv_.old == 0) {
 			edv_.count = 1;
 			edv_.count_bytes = ch->size();
@@ -393,20 +329,20 @@ void REDQueue::enque(Packet* pkt)
 	 * checking for absolute queue overflow.
 	 */
 	if (pkt != 0) {
-		q_.enque(pkt);
+		enque_helper(q(), pkt);
 		bcount_ += ch->size();
-		int metric = qib_ ? bcount_ : q_.length();
+		int metric = qib_ ? bcount_ : q()->length();
 		int limit = qib_ ?
 			(qlim_ * edp_.mean_pktsize) : qlim_;
 		if (metric > limit) {
 			int victim;
 			if (drop_tail_)
-				victim = q_.length() - 1;
+				victim = q()->length() - 1;
 			else
-				victim = Random::integer(q_.length());
+				victim = Random::integer(q()->length());
 				
-			pkt = q_.lookup(victim);
-			q_.remove(pkt);
+			pkt = q()->lookup(victim);
+			remove_helper(q(), pkt);
 			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
 			drop(pkt);
 		}

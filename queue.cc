@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.12 1997/04/24 03:13:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.13 1997/06/11 04:58:10 gnguyen Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -51,6 +51,25 @@ void PacketQueue::remove(Packet* target)
 		}
 	}
 	abort();
+}
+
+/*
+ * Remove packet pkt located after packet prev on the queue.  Either p or prev
+ * could be NULL.  If prev is NULL then pkt must be the head of the queue.
+ */
+void PacketQueue::remove(Packet* pkt, Packet *prev)
+{
+	if (pkt) {
+		if (head_ == pkt)
+			deque(); /* decrements len_ internally */
+		else {
+			prev->next_ = pkt->next_;
+			if (tail_ == &pkt->next_)
+				tail_ = &prev->next_;
+			--len_;
+		}
+	}
+	return;
 }
 
 void QueueHandler::handle(Event*)

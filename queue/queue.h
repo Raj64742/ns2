@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.11 1997/04/24 03:13:01 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.12 1997/06/11 04:58:11 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -69,11 +69,14 @@ public:
 	}
 	/* remove a specific packet, which must be in the queue */
 	void remove(Packet*);
+	/* Remove a packet, located after a given packet. Either could be 0. */
+	void remove(Packet *, Packet *);
 protected:
 	Packet* head_;
 	Packet** tail_;
 	int len_;		// packet count
 };
+
 
 class Queue;
 
@@ -81,12 +84,12 @@ class QueueHandler : public Handler {
 public:
 	inline QueueHandler(Queue& q) : queue_(q) {}
 	void handle(Event*);
- private:
+private:
 	Queue& queue_;
 };
 
 class Queue : public Connector {
- public:
+public:
 	virtual void enque(Packet*) = 0;
 	virtual Packet* deque() = 0;
 	void recv(Packet*, Handler*);
@@ -94,7 +97,7 @@ class Queue : public Connector {
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }
 	void block() { blocked_ = 1; }
- protected:
+protected:
 	Queue();
 	int command(int argc, const char*const* argv);
 	void reset();
@@ -105,6 +108,5 @@ class Queue : public Connector {
 	int unblock_on_resume_;	/* unblock q on idle? */
 	QueueHandler qh_;
 };
-
 
 #endif
