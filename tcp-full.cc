@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.40 1998/05/15 22:56:57 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.41 1998/05/16 01:44:26 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -1738,6 +1738,19 @@ int FullTcpAgent::command(int argc, const char*const* argv)
 	}
 	return (TcpAgent::command(argc, argv));
 }
+/*
+ * constructure for reassembly queue-- give it a ref
+ * to the containing tcp's rcv_nxt_ field, plus
+ * allow it to find off_tcp_ and off_cmn_
+ */
+
+ReassemblyQueue::ReassemblyQueue(int& nxt) :
+	head_(NULL), tail_(NULL), rcv_nxt_(nxt)
+{
+	bind("off_tcp_", &off_tcp_);
+	bind("off_cmn_", &off_cmn_);
+}
+
 /*
  * clear out reassembly queue
  */
