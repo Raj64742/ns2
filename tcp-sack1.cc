@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.46 2000/09/07 00:42:17 kclan Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.47 2000/10/03 16:12:51 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -227,17 +227,13 @@ Sack1TcpAgent::dupack_action()
 sack_action:
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
- 	pipe_ = int(cwnd_) - numdupacks_;
-/* temporarily comment out the following code segment since
-   it caused the failure of validation on "red"  
-   Kun-chan , 09/06/2000                                  */
-//	if (oldCode_) {
-//	 	pipe_ = int(cwnd_) - numdupacks_;
-//	} else { 
-//		if (!singledup_)
-//	 		pipe_ = maxseq_ - highest_ack_ - numdupacks_;
-//		else pipe_ = maxseq_ - highest_ack_ - 1;
-//	}
+	if (oldCode_) {
+	 	pipe_ = int(cwnd_) - numdupacks_;
+	} else { 
+		if (!singledup_)
+	 		pipe_ = maxseq_ - highest_ack_ - numdupacks_;
+		else pipe_ = maxseq_ - highest_ack_ - 1;
+	}
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
 	fastrecov_ = TRUE;
