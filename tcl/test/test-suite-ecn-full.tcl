@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.7 2001/05/27 02:14:58 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.8 2001/05/27 04:43:25 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -47,6 +47,9 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
+Agent/TCP set minrto_ 0
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
 catch "cd $dir"
 set scale 0.00001
 set wrap [expr 90 * 1000 + 40]
@@ -400,8 +403,7 @@ Test/ecn_drop_reno_full instproc run {} {
 	$ns_ run
 }
 
-# This should show ECN preceded by packet loss,
-# but instead it shows packet loss preceded by ECN.
+# This shows ECN preceded by packet loss,
 Class Test/ecn_drop1_reno_full -superclass TestSuite
 Test/ecn_drop1_reno_full instproc init {} {
         $self instvar net_ test_
@@ -415,7 +417,7 @@ Test/ecn_drop1_reno_full instproc run {} {
 	$self instvar ns_
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0
-	$self drop_pkt 241
+	$self drop_pkt 237
 	$ns_ run
 }
 
@@ -484,46 +486,44 @@ Test/ecn_noBugfix_reno_full instproc init {} {
 }
 
 # ECN followed by timeout.
-#
-# THIS FAILS FOR FULL_TCP, BECAUSE THE WINDOW IS REDUCED TWICE
-# WHEN AN ECN IS FOLLOWED BY A RETRANSMIT TIMEOUT!!!
-# Class Test/ecn_timeout_reno_full -superclass TestSuite
-# Test/ecn_timeout_reno_full instproc init {} {
-#         $self instvar net_ test_
-#         Queue/RED set setbit_ true
-#         set net_	net2-lossy
-# 	Agent/TCP set bugFix_ true
-#         set test_	ecn_timeout_reno_full
-#         $self next
-# }
-# Test/ecn_timeout_reno_full instproc run {} {
-# 	$self instvar ns_
-# 	$self ecnsetup Reno 3.0 1
-# 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267} 
-# 
-# 	$ns_ run
-# }
+
+Class Test/ecn_timeout_reno_full -superclass TestSuite
+Test/ecn_timeout_reno_full instproc init {} {
+        $self instvar net_ test_
+        Queue/RED set setbit_ true
+        set net_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout_reno_full
+        $self next
+}
+Test/ecn_timeout_reno_full instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Reno 3.0 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267} 
+
+	$ns_ run
+}
 
 # ECN followed by a timeout, followed by an ECN representing a
 # new instance of congestion.
 
-# Class Test/ecn_timeout1_reno_full -superclass TestSuite
-# Test/ecn_timeout1_reno_full instproc init {} {
-#         $self instvar net_ test_
-#         Queue/RED set setbit_ true
-#         set net_	net2-lossy
-# 	Agent/TCP set bugFix_ true
-#         set test_	ecn_timeout1_reno_full
-#         $self next
-# }
-# Test/ecn_timeout1_reno_full instproc run {} {
-# 	$self instvar ns_
-# 	Agent/TCP set old_ecn_ 1
-# 	$self ecnsetup Reno 3.0 1
-# 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262} 
-# 	$self second_tcp Tahoe 1.0
-# 	$ns_ run
-# }
+Class Test/ecn_timeout1_reno_full -superclass TestSuite
+Test/ecn_timeout1_reno_full instproc init {} {
+        $self instvar net_ test_
+        Queue/RED set setbit_ true
+        set net_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout1_reno_full
+        $self next
+}
+Test/ecn_timeout1_reno_full instproc run {} {
+	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
+	$self ecnsetup Reno 3.0 1
+	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262} 
+	$self second_tcp Tahoe 1.2
+	$ns_ run
+}
 
 # Packet drops with a window of one packet.
 
