@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.4 2000/01/15 19:13:09 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.5 2000/01/15 19:30:15 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1059,7 +1059,7 @@ Test/timers instproc run {} {
 }
 
 TestSuite instproc printpkts { label tcp } {
-	puts "tcp $label highest_pkt_num_acked [$tcp set ack_]"
+	puts "tcp $label highest_seqment_acked [$tcp set ack_]"
 }
 TestSuite instproc printdrops { fid fmon } {
 	set fcl [$fmon classifier]; # flow classifier
@@ -1151,7 +1151,7 @@ Test/stats1 instproc run {} {
 	$ns_ queue-limit $node_(k1) $node_(r1) 10
 	set packetSize_ 100
 	Agent/TCP set packetSize_ $packetSize_
-	puts "packetSize=[Agent/TCP set packetSize_]"
+	puts "TCP packetSize [Agent/TCP set packetSize_]"
 
 	set slink [$ns_ link $node_(r1) $node_(k1)]; # link to collect stats on
 	set fmon [$ns_ makeflowmon Fid]
@@ -1170,7 +1170,7 @@ Test/stats1 instproc run {} {
 	set packets_ftp 10
 	set bytes_ftp [expr $packets_ftp * $packetSize_]
 	$ns_ at 1.0 "$ftp0 produce $packets_ftp"
-	puts "ftp 0 packets_produced $packets_ftp (using `FTP produce pktcnt')"
+	puts "ftp 0 segments_produced $packets_ftp (using `FTP produce pktcnt')"
 	$ns_ at 1.0 "$ftp1 send $bytes_ftp"
 	puts "ftp 1 bytes_produced $bytes_ftp (using `FTP send nbytes')"
 
