@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.9 1997/03/09 00:05:44 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.10 1997/03/14 02:35:49 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -88,6 +88,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1)
 	bind("srtt_", &t_srtt_);
 	bind("rttvar_", &t_rttvar_);
 	bind("backoff_", &t_backoff_);
+
+	// reset used for dynamically created agent
+	reset();
 }
 
 void TcpAgent::reset()
