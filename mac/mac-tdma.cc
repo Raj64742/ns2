@@ -24,7 +24,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.8 2000/11/02 22:46:37 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.9 2000/11/02 23:14:18 xuanc Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -86,7 +86,9 @@ void MacTdmaTimer::stop(Packet *p)
   
 	if(paused_ == 0)
 		s.cancel((Event *)p);
-	// xxx: shouldn't p be free'd now?
+
+	// Should free the packet p.
+	Packet::free(p);
   
 	busy_ = 0;
 	paused_ = 0;
