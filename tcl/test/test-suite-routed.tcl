@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.2 1997/05/16 07:58:35 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.3 1997/05/20 17:49:09 tomh Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -408,7 +408,7 @@ Test/reno4 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+	$self traceQueues $node_(s1) [$self openTrace 2.0 $testName_]
 	$ns_ run
 }
 
@@ -435,7 +435,7 @@ Test/reno4a instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+	$self traceQueues $node_(s1) [$self openTrace 2.0 $testName_]
 	$ns_ run
 }
 
