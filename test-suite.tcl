@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.4 1997/04/08 01:40:43 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.5 1997/04/25 02:27:22 kfall Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -689,10 +689,11 @@ proc printpkts { label tcp } {
 	puts "tcp $label total_packets_acked [$tcp get ack]"
 }
 
-proc printdrops { label link } {
-	puts "link $label total_drops [$link stat 0 drops]"
-	puts "link $label total_packets [$link stat 0 packets]"
-	puts "link $label total_bytes [$link stat 0 bytes]"
+proc printdrops { label node1 node2} {
+	set link [ns link $node1 $node2]
+	puts "class: $label per-link total_drops [$link stat $label drops]"
+	puts "class: $label per-link total_packets [$link stat $label packets]"
+	puts "class: $label per-link total_bytes [$link stat $label bytes]"
 }
 
 proc printstop { stoptime } {
@@ -724,8 +725,10 @@ proc test_stats {} {
 	tcpDumpAll $tcp2 5.0 tcp2
 
 	ns at $stoptime "printstop $stoptime" 
-        ns at $stoptime "printpkts 1 $tcp1"
-	ns at $stoptime "printdrops 1 [ns link $r1 $k1]"
+	ns at $stoptime "printpkts 0 $tcp1"
+        ns at $stoptime "printpkts 1 $tcp2"
+	ns at $stoptime "printdrops 0 $r1 $k1"
+	ns at $stoptime "printdrops 1 $r1 $k1"
 
 
 	# trace only the bottleneck link
