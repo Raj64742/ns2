@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.24 2004/01/18 17:08:22 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.25 2004/07/23 19:57:42 johnh Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -156,6 +156,20 @@ cygwin_tests() {
                         test_proceed;
                 fi; 
         done;
+
+        echo -n "Checking for diff... ";
+        diff -v 2>&1 | grep -iv "not found" >/dev/null 2>&1;
+        if [ "$?" -eq "0" ]; then
+                echo "ok";
+        else
+                echo "NO!";
+                echo "";
+                echo "diff is not present on your system.";
+                echo "";
+                echo "Please install it using Cygwin's setup.exe";
+                echo "before trying to install the ns-2 distribution.";
+                test_proceed;
+        fi;     
 }
 
 # Package VERSIONs. Change these when releasing new packages
