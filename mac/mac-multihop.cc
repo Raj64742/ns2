@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.4 1997/10/26 05:44:23 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.5 1997/11/06 04:19:29 hari Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -119,11 +119,12 @@ hdr_ip  *iph  = (hdr_ip *)p->access(24);
 dump_iphdr(iph);
 #endif
 
-	pkt_ = p->copy();
+	pkt_ = p->copy();	/* local copy for poll retries */
 	double timeout = max(pm->rx_tx(), tx_rx_) + 4*pollTxtime(MAC_POLLSIZE);
 	s.schedule(&bh_, pendingPollEvent_, timeout);
 
-	if (checkInterfaces(MAC_IDLE)) {
+	/*  If the other interfaces are idle, then go ahead, else not. */
+	if (checkInterfaces(MAC_IDLE)) { 
 		mode_ = MAC_POLLING;
 		peer_ = pm;
 		s.schedule(pm->ph(), (Event *)pe, pollTxtime(MAC_POLLSIZE));
@@ -138,7 +139,7 @@ PollHandler::handle(Event *e)
 {
 	PollEvent *pe = (PollEvent *) e;
 	Scheduler& s = Scheduler::instance();
-	MultihopMac* pm = mac_->peer(); // here, random unless in MAC_RCV mode
+	MultihopMac* pm = mac_->peer(); /* sensible val only in MAC_RCV mode */
 	
 	/*
 	 * Send POLLACK if either IDLE or currently receiving 
@@ -178,14 +179,13 @@ PollAckHandler::handle(Event *e)
 #ifdef notdef
 //cout << now << " handling pollack for " << ((hdr_cmn *)(mac_->pkt()->access(0)))->uid() << "\n";
 #endif
-
 		mac_->backoffTime(mac_->backoffBase());
 		mac_->mode(MAC_SND);
 		mac_->peer(pe->peerMac());
-		s.cancel(mac_->pendingPE()); // cancel pending timeout
+		s.cancel(mac_->pendingPE()); /* cancel pending timeout */
 		free(mac_->pendingPE());
 		mac_->pendingPE(NULL);
-		mac_->send(mac_->pkt()); // send saved packet
+		mac_->send(mac_->pkt()); /* send saved packet */
 	}
 }
 
@@ -257,6 +257,7 @@ hdr_ip  *iph  = (hdr_ip *)p->access(24);
 #endif
 
 	double txt = txtime(p);
+	((hdr_mac*) p->access(off_mac_))->txtime() = txt;
 	channel_->send(p, txt); // target is peer's mac handler
 	s.schedule(callback_, &intr_, txt); // callback to higher layer (LL)
 	mode_ = MAC_IDLE;
@@ -268,7 +269,7 @@ hdr_ip  *iph  = (hdr_ip *)p->access(24);
 void
 MultihopMac::recv(Packet* p, Handler *h)
 {
-	if (h == 0) {		// from MAC classifier (pass pkt to LL)
+	if (h == 0) {		/* from MAC classifier (pass pkt to LL) */
 		mode_ = MAC_IDLE;
 		target_->recv(p);
 		return;

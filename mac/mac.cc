@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.15 1997/08/29 22:05:15 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.16 1997/11/06 04:19:27 hari Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -145,6 +145,8 @@ void
 Mac::send(Packet* p)
 {
 	double txt = txtime(p);
+	
+	((hdr_mac*) p->access(off_mac_))->txtime() = txt;
 	channel_->send(p, txt);
 	Scheduler::instance().schedule(&mh_, &intr_, txt);
 }
