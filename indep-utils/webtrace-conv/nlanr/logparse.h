@@ -4,6 +4,7 @@
 // Parsing NLANR root cache traces
 
 #include <stdlib.h>
+#include "config.h"
 
 struct lf_entry {
 	double rt;		/* request arrival time */
