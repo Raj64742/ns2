@@ -30,15 +30,53 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.6 1998/08/14 20:14:25 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.7 1998/09/14 03:40:55 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
 #
 
-source misc.tcl
-source topologies.tcl
+source misc_simple.tcl
 
+Class Topology
+
+Topology instproc node? num {
+    $self instvar node_
+    return $node_($num)
+}
+
+Class Topology/net6 -superclass Topology
+Topology/net6 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+    
+    Queue/RED set setbit_ true
+    $ns duplex-link $node_(s1) $node_(r1) 100Mb 5ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 100Mb 5ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 10Mb 100ms RED
+    $ns queue-limit $node_(r1) $node_(k1) 25
+    $ns queue-limit $node_(k1) $node_(r1) 25
+}   
+    
+Class Topology/net7 -superclass Topology
+Topology/net7 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+    
+    Queue/RED set setbit_ true
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms RED
+    $ns queue-limit $node_(r1) $node_(k1) 25
+    $ns queue-limit $node_(k1) $node_(r1) 25
+}   
+    
 TestSuite instproc finish file {
 	global quiet
         exec ../../bin/getrc -s 2 -d 3 all.tr | \
@@ -68,40 +106,6 @@ TestSuite instproc printtimersAll { tcp time interval } {
 	set newTime [expr [$ns_ now] + $interval]
 	$ns_ at $time "$self printtimers $tcp $time"
         $ns_ at $newTime "$self printtimersAll $tcp $newTime $interval"
-}
-
-#
-# Links1 uses 8Mb, 5ms feeders, and a 800Kb 20ms bottleneck.
-# Queue-limit on bottleneck is 25 packets.
-#
-Class Topology/net6 -superclass NodeTopology/4nodes
-Topology/net6 instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Queue/RED set setbit_ true
-    $ns duplex-link $node_(s1) $node_(r1) 100Mb 5ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 100Mb 5ms DropTail
-    $ns duplex-link $node_(r1) $node_(k1) 10Mb 100ms RED
-    $ns queue-limit $node_(r1) $node_(k1) 25
-    $ns queue-limit $node_(k1) $node_(r1) 25
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
-Class Topology/net7 -superclass NodeTopology/4nodes
-Topology/net7 instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Queue/RED set setbit_ true
-    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
-    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms RED
-    $ns queue-limit $node_(r1) $node_(k1) 25
-    $ns queue-limit $node_(k1) $node_(r1) 25
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
 }
 
 # Definition of test-suite tests
@@ -159,16 +163,30 @@ TestSuite instproc make_tcp {nodeA nodeB ID type} {
 	return $tcp
 }
 
+TestSuite instproc setTopo {} {
+    $self instvar node_ net_ ns_ topo_
+
+    set topo_ [new Topology/$net_ $ns_]
+    if {$net_ == "net6" || $net_ == "net7"} {
+        set node_(s1) [$topo_ node? s1]
+        set node_(s2) [$topo_ node? s2] 
+        set node_(r1) [$topo_ node? r1]
+        set node_(k1) [$topo_ node? k1]
+        [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
+    } 
+}   
+
+
 Class Test/tahoe1 -superclass TestSuite
-Test/tahoe1 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/tahoe1 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	tahoe1(variable_packet_sizes)
         $self next
 }
 Test/tahoe1 instproc run {} {
         $self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -182,15 +200,15 @@ Test/tahoe1 instproc run {} {
 }
 
 Class Test/tahoe2 -superclass TestSuite
-Test/tahoe2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6
+Test/tahoe2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net6
 	set test_	tahoe2(static_initial_windows)
 	$self next
 }
 Test/tahoe2 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Tahoe] 
 	$tcp1 set windowInit_ 6
 	set tcp2 [$self make_tcp s2 k1 1 Tahoe]
@@ -204,10 +222,9 @@ Test/tahoe2 instproc run {} {
 }
 
 Class Test/tahoe3 -superclass TestSuite
-Test/tahoe3 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/tahoe3 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	tahoe3(dropped_syn)
         $self next
 }
@@ -226,6 +243,7 @@ TestSuite instproc drop_pkt { link flow n } {
 
 Test/tahoe3 instproc run {} {
         $self instvar ns_ node_ testName_ 
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -236,15 +254,15 @@ Test/tahoe3 instproc run {} {
 }
 
 Class Test/tahoe4 -superclass TestSuite
-Test/tahoe4 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net7
+Test/tahoe4 instproc init {} {
+	$self instvar net_ test_
+	set net_	net7
 	set test_	tahoe4(fast_retransmit)
 	$self next
 }
 Test/tahoe4 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
 	Agent/TCP set syn_ true
@@ -256,15 +274,15 @@ Test/tahoe4 instproc run {} {
 }
 
 Class Test/reno1 -superclass TestSuite
-Test/reno1 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/reno1 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	reno1(variable_packet_sizes)
         $self next
 }
 Test/reno1 instproc run {} {
         $self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -278,15 +296,15 @@ Test/reno1 instproc run {} {
 }
 
 Class Test/reno2 -superclass TestSuite
-Test/reno2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6
+Test/reno2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net6
 	set test_	reno2(static_initial_windows)
 	$self next
 }
 Test/reno2 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Reno] 
 	$tcp1 set windowInit_ 6
 	set tcp2 [$self make_tcp s2 k1 1 Reno]
@@ -300,10 +318,9 @@ Test/reno2 instproc run {} {
 }
 
 Class Test/reno3 -superclass TestSuite
-Test/reno3 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/reno3 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	reno3(dropped_syn)
         $self next
 }
@@ -322,6 +339,7 @@ TestSuite instproc drop_pkt { link flow n } {
 
 Test/reno3 instproc run {} {
         $self instvar ns_ node_ testName_ 
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -332,15 +350,15 @@ Test/reno3 instproc run {} {
 }
 
 Class Test/reno4 -superclass TestSuite
-Test/reno4 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net7
+Test/reno4 instproc init {} {
+	$self instvar net_ test_
+	set net_	net7
 	set test_	reno4(fast_retransmit)
 	$self next
 }
 Test/reno4 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
 	Agent/TCP set syn_ true
@@ -353,15 +371,15 @@ Test/reno4 instproc run {} {
 
 
 Class Test/newreno1 -superclass TestSuite
-Test/newreno1 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/newreno1 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	newreno1(variable_packet_sizes)
         $self next
 }
 Test/newreno1 instproc run {} {
         $self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -375,15 +393,15 @@ Test/newreno1 instproc run {} {
 }
 
 Class Test/newreno2 -superclass TestSuite
-Test/newreno2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6
+Test/newreno2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net6
 	set test_	newreno2(static_initial_windows)
 	$self next
 }
 Test/newreno2 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Newreno] 
 	$tcp1 set windowInit_ 6
 	set tcp2 [$self make_tcp s2 k1 1 Newreno]
@@ -397,10 +415,9 @@ Test/newreno2 instproc run {} {
 }
 
 Class Test/newreno3 -superclass TestSuite
-Test/newreno3 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/newreno3 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	newreno3(dropped_syn)
         $self next
 }
@@ -419,6 +436,7 @@ TestSuite instproc drop_pkt { link flow n } {
 
 Test/newreno3 instproc run {} {
         $self instvar ns_ node_ testName_ 
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -429,15 +447,15 @@ Test/newreno3 instproc run {} {
 }
 
 Class Test/newreno4 -superclass TestSuite
-Test/newreno4 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net7
+Test/newreno4 instproc init {} {
+	$self instvar net_ test_
+	set net_	net7
 	set test_	newreno4(fast_retransmit)
 	$self next
 }
 Test/newreno4 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
 	Agent/TCP set syn_ true
@@ -451,15 +469,15 @@ Test/newreno4 instproc run {} {
 
 
 Class Test/sack1 -superclass TestSuite
-Test/sack1 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/sack1 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	sack1(variable_packet_sizes)
         $self next
 }
 Test/sack1 instproc run {} {
         $self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -473,15 +491,15 @@ Test/sack1 instproc run {} {
 }
 
 Class Test/sack2 -superclass TestSuite
-Test/sack2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6
+Test/sack2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net6
 	set test_	sack2(static_initial_windows)
 	$self next
 }
 Test/sack2 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	set tcp1 [$self make_tcp s1 k1 0 Sack] 
 	$tcp1 set windowInit_ 6
 	set tcp2 [$self make_tcp s2 k1 1 Sack]
@@ -495,10 +513,9 @@ Test/sack2 instproc run {} {
 }
 
 Class Test/sack3 -superclass TestSuite
-Test/sack3 instproc init topo {
-	$self instvar net_ defNet_ test_ 
-	set net_	$topo
-	set defNet_	net6
+Test/sack3 instproc init {} {
+	$self instvar net_ test_ 
+	set net_	net6
 	set test_	sack3(dropped_syn)
         $self next
 }
@@ -517,6 +534,7 @@ TestSuite instproc drop_pkt { link flow n } {
 
 Test/sack3 instproc run {} {
         $self instvar ns_ node_ testName_ 
+	$self setTopo
 	Agent/TCP set syn_ true
 	Agent/TCP set delay_growth_ true
 	Agent/TCP set windowInitOption_ 2
@@ -527,15 +545,15 @@ Test/sack3 instproc run {} {
 }
 
 Class Test/sack4 -superclass TestSuite
-Test/sack4 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net7
+Test/sack4 instproc init {} {
+	$self instvar net_ test_
+	set net_	net7
 	set test_	sack4(fast_retransmit)
 	$self next
 }
 Test/sack4 instproc run {} {
 	$self instvar ns_ node_ testName_
+	$self setTopo
 	Agent/TCP set packetSize_ 1000
 	Agent/TCP set windowInitOption_ 2
 	Agent/TCP set syn_ true
