@@ -74,7 +74,8 @@ void LinkLayerAbs::sendPacket(DiffPacket dp, int len, int dst) {
   iph = HDR_IP(p);
   iph->saddr() = agent_->addr();
   iph->sport() = agent_->port();    //RT_PORT;
-  iph->daddr() = IP_BROADCAST;
+  //iph->daddr() = IP_BROADCAST;
+  iph->daddr() = msg->next_hop_;  // Use diffusion next_hop_
   iph->dport() = agent_->port();    //RT_PORT;
   agent_->send(p, h);
 
