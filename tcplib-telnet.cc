@@ -1,4 +1,4 @@
-/* $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcplib-telnet.cc,v 1.2 1997/07/25 09:10:47 gnguyen Exp $ */
+/* $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcplib-telnet.cc,v 1.3 1997/08/12 09:06:22 gnguyen Exp $ */
 
 /* Generate telnet originator interarrivals from tcplib distribution. */
 
@@ -2012,7 +2012,7 @@ double tcplib_telnet_interarrival()
 {
 	int pos = int(Random::uniform() * 10000.0);
 	if ( pos < 0 || pos >= 10000 ) {
-		perror("oops, bug in tcplib_telnet_interarrival, pos = %d\n");
+		printf("oops, bug in tcplib_telnet_interarrival, pos = %d\n");
 		abort();
 	}
 	return tcplib_telnet[pos];
