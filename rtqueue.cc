@@ -31,7 +31,7 @@ rtqueue::enque(Packet *p)
 
 		assert(p0);
 
-                if(HDR_CMN(p0)->ts_ < CURRENT_TIME) {
+                if(HDR_CMN(p0)->ts_ > CURRENT_TIME) {
 		        drop(p0, DROP_RTR_QFULL);
                 }
                 else {
@@ -104,6 +104,19 @@ rtqueue::deque(nsaddr_t dst)
 	return p;
 }
 
+char 
+rtqueue::find(nsaddr_t dst)
+{
+        Packet *p, *prev;  
+	findPacketWithDst(dst, p, prev);
+	if (0 == p)
+	       return 0;
+	else
+	       return 1;
+}
+
+	
+	
 
 /* ======================================================================
    Private Routines
@@ -142,7 +155,8 @@ rtqueue::findPacketWithDst(nsaddr_t dst, Packet*& p, Packet*& prev)
 	p = prev = 0;
 
 	for(p = head_; p; p = p->next_) {
-		if((HDR_IP(p)->daddr() == dst)) {
+	  //		if(HDR_IP(p)->dst() == dst) {
+	       if(HDR_IP(p)->daddr() == dst) {
 			return;
 		}
 		prev = p;
@@ -165,3 +179,5 @@ rtqueue::verifyQueue()
 	assert(cnt == len_);
 	assert(prev == tail_);
 }
+
+

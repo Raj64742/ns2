@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.170 1999/09/24 23:55:53 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.171 1999/09/30 20:30:02 yaxu Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -143,7 +143,7 @@ OBJ_CC = \
 	phy.o wired-phy.o wireless-phy.o \
 	mac-timers.o cmu-trace.o varp.o \
 	dsdv/dsdv.o dsdv/rtable.o \
-	rtqueue.o \
+	rtqueue.o rttable.o \
 	imep/imep.o imep/dest_queue.o imep/imep_api.o \
 	imep/imep_rt.o imep/rxmit_queue.o imep/imep_timers.o \
 	imep/imep_util.o imep/imep_io.o \
@@ -151,6 +151,7 @@ OBJ_CC = \
 	tora/tora_logs.o tora/tora_neighbor.o \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
+	aodv/aodv.o aodv/aodv_logs.o \
 	ns-process.o \
 	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \

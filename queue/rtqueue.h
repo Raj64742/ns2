@@ -1,5 +1,5 @@
 /* -*- c++ -*-
-   $Id: rtqueue.h,v 1.2 1999/09/09 03:25:24 salehi Exp $
+   $Id: rtqueue.h,v 1.3 1999/09/30 20:30:04 yaxu Exp $
 */
 
 #ifndef __ifqueue_h__
@@ -39,12 +39,15 @@ class rtqueue : public Connector {
          * Returns a packet for destination "D".
          */
         Packet*         deque(nsaddr_t dst);
+  /*
+   * Finds whether a packet with destination dst exists in the queue
+   */
+        char            find(nsaddr_t dst);
 
  private:
         Packet*         remove_head();
         void            purge(void);
-	void		findPacketWithDst(nsaddr_t dst, Packet*& p, 
-					  Packet*& prev);
+	void		findPacketWithDst(nsaddr_t dst, Packet*& p, Packet*& prev);
 	void		verifyQueue(void);
 
         Packet          *head_;
