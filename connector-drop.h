@@ -33,8 +33,8 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
-#ifndef ns_biconnector_h
-#define ns_biconnector_h
+#ifndef ns_connector_drop_h
+#define ns_connector_drop_h
 
 #include "connector.h"
 #include "packet.h"
@@ -45,9 +45,7 @@ public:
 	DropConnector() : Connector(), drop_(0) {}
 protected:
 	int command(int argc, const char*const* argv);
-	virtual void drop(Packet* p) { 
-		drop_ ? drop_->recv(p) : Packet::free(p);
-	}
+	virtual void drop(Packet* p);
 	NsObject* drop_;	// drop target for this connector
 };
 

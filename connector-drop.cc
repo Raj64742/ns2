@@ -60,3 +60,13 @@ DropConnector::command(int argc, const char*const* argv)
 	}
 	return Connector::command(argc, argv);
 }
+
+
+void
+DropConnector::drop(Packet* p)
+{ 
+	if (drop_)
+		drop_->recv(p);
+	else
+		Packet::free(p);
+}

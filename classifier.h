@@ -42,10 +42,10 @@ class Classifier : public NsObject {
 	~Classifier();
 	void recv(Packet*, Handler* h = 0);
 	int maxslot() const { return maxslot_; }
-	inline NsObject* index(int slot) {
-		if ((slot < 0) || (slot >= nslot_))
-			return (NsObject*)NULL;
-		return slot_[slot];
+	inline NsObject* slot(int slot) {
+		if ((slot >= 0) || (slot < nslot_))
+			return slot_[slot];
+		return (NsObject*)NULL;
 	}
 	NsObject* find(Packet*);
 	virtual int classify(Packet *const) = 0;

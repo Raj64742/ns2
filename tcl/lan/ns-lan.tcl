@@ -125,14 +125,13 @@ Simulator instproc make-lan {nodelist bw delay \
 	}
 	foreach src $nodelist {
 		set sid [$src id]
-		set mclass [new Classifier/Mac]
-		[$lan getmac $src] target $mclass
+		set mclass [$lan get-mclass $src]
 		foreach dst $nodelist {
 			if {$src == $dst} continue
 			set did [$dst id]
 			$link_($sid:$did) setuplinkage \
 				$src $dst $link_($did:$sid) $lan
-			set peerlabel [[$lan getmac $dst] set label_]
+			set peerlabel [[$lan get-mac $dst] set label_]
 			$mclass install $peerlabel [$link_($sid:$did) link]
 #			puts "SRC $src DST $dst peerlabel $peerlabel"
 			$self trace-queue $src $dst $traceAllFile_
@@ -153,8 +152,8 @@ Link/LanDuplex instproc setuplinkage {src dst dstlink lan} {
 	$self instvar link_
 	$link_ peerLL [$dstlink link]
 	$link_ recvtarget [$src entry]
-	$link_ sendtarget [$lan getifq $src]
-	$link_ mac [$lan getmac $src]
+	$link_ sendtarget [$lan get-ifq $src]
+	$link_ mac [$lan get-mac $src]
 }
 
 Link/LanDuplex instproc trace { ns f } {
@@ -172,6 +171,7 @@ Link/LanDuplex instproc trace { ns f } {
 Class Link/LanLink
 Link/LanLink instproc init {nodelist bw delay lltype ifqtype mactype chantype} {
 	$self instvar nodelist_ channel_ mac_ ifq_ numifaces_
+	$self instvar mclass_
 	set numifaces_ 0
 
 	set nodelist_ $nodelist
@@ -181,32 +181,42 @@ Link/LanLink instproc init {nodelist bw delay lltype ifqtype mactype chantype} {
 
 	foreach src $nodelist {
 		set mac [set mac_($src) [new $mactype]]
-		set ifq_($src) [new $ifqtype]
-		$ifq_($src) target $mac
 		$mac set bandwidth_ $bw
 		$mac set label_ $numifaces_
 		$mac channel $channel_
 		$mac cclass $cclass
 		$cclass install $numifaces_ $mac
+		set ifq_($src) [new $ifqtype]
+		$ifq_($src) target $mac
+		set mclass_($src) [new Classifier/Mac]
+		$mac target $mclass_($src)
 		incr numifaces_
 		# List of MACs
 		$src addmac $mac
 	}
 }
 
-Link/LanLink instproc getifq {src} {
+Link/LanLink instproc get-ifq {src} {
 	$self instvar ifq_
 	return $ifq_($src)
 }
 
-Link/LanLink instproc getmac {src} {
+Link/LanLink instproc get-mac {src} {
 	$self instvar mac_
 	return $mac_($src)
 }
 
-Link/LanLink instproc channel {} {
-	$self instvar channel_
-	return $channel_
+Link/LanLink instproc get-mclass {src} {
+	$self instvar mclass_
+	return $mclass_($src)
+}
+
+Link/LanLink instproc install-error {src dst em} {
+	$self instvar mac_ mclass_
+	set peerlabel [$mac_($src) set label_]
+	set mclass $mclass_($dst)
+	$em target [$mclass slot $peerlabel]
+	$mclass install $peerlabel $em
 }
 
 Link/LanLink instproc trace {ns f} {

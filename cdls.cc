@@ -62,8 +62,8 @@ Cdls::command(int argc, const char*const* argv)
 {
 	if (argc == 4) {
 		if (strcmp(argv[1], "error") == 0) {
-			IdPacketQueue* q = getQueue(atoi(argv[3]));
-			q->em_ = (ErrorModel*)TclObject::lookup(argv[2]);
+			IdPacketQueue* q = getQueue(atoi(argv[2]));
+			q->em_ = (ErrorModel*)TclObject::lookup(argv[3]);
 			return (TCL_OK);
 		}
 	}

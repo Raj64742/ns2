@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.6 1997/06/24 23:49:25 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.7 1997/07/22 02:12:08 gnguyen Exp $ (LBL)";
 #endif
 
 //
@@ -175,7 +175,7 @@ FlowMon::dumpflows()
 	Flow* f;
 
 	for (i = 0; i <= j; i++) {
-		if ((f = (Flow*)classifier_->index(i)) != NULL)
+		if ((f = (Flow*)classifier_->slot(i)) != NULL)
 			dumpflow(channel_, f);
 	}
 }
@@ -191,7 +191,7 @@ FlowMon::flow_list()
 	q = p + sizeof(wrk_) - 2;
 	*p = '\0';
 	for (i = 0; i <= j; i++) {
-		if ((f = (Flow*)classifier_->index(i)) != NULL) {
+		if ((f = (Flow*)classifier_->slot(i)) != NULL) {
 			z = f->name();
 			while (*z && p < q)
 				*p++ = *z++;

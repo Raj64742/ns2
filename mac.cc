@@ -152,5 +152,5 @@ Mac::resume(Packet* p)
 Mac*
 Mac::getPeerMac(Packet* p)
 {
-	return (Mac*) cclass_->index(((hdr_mac*)p->access(off_mac_))->macDA());
+	return (Mac*) cclass_->slot(((hdr_mac*)p->access(off_mac_))->macDA());
 }
