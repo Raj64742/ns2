@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.11 1999/02/04 06:13:22 yaxu Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.12 1999/10/11 22:32:16 haoboy Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -111,6 +111,21 @@ class NormalRandomVariable : public RandomVariable {
         inline void setavg(double d)    { avg_ = d; };
         inline void setstd(double d)    { std_ = d; };
  private:
+        double avg_;
+        double std_;
+};
+
+class LogNormalRandomVariable : public RandomVariable {
+public:
+        virtual double value();
+        LogNormalRandomVariable();
+        inline double* avgp() { return &avg_; };
+        inline double* stdp() { return &std_; };
+        inline double avg()     { return avg_; };
+        inline double std()     { return std_; };
+        inline void setavg(double d)    { avg_ = d; };
+        inline void setstd(double d)    { std_ = d; };
+private:
         double avg_;
         double std_;
 };

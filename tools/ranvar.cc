@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.14 1999/02/04 06:13:22 yaxu Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.15 1999/10/11 22:32:15 haoboy Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -180,6 +180,24 @@ double NormalRandomVariable::value()
         return(rng_->normal(avg_, std_));
 }
 
+static class LogNormalRandomVariableClass : public TclClass {
+ public:
+        LogNormalRandomVariableClass() : TclClass("RandomVariable/LogNormal") {}
+        TclObject* create(int, const char*const*) {
+                return(new LogNormalRandomVariable());
+        }
+} class_lognormalranvar;
+ 
+LogNormalRandomVariable::LogNormalRandomVariable()
+{ 
+        bind("avg_", &avg_);
+        bind("std_", &std_);
+}
+ 
+double LogNormalRandomVariable::value()
+{
+        return(rng_->lognormal(avg_, std_));
+}
 
 static class ConstantRandomVariableClass : public TclClass {
  public:
