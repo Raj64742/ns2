@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.15 1998/03/03 02:01:41 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.16 1998/05/27 23:09:41 kfall Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -68,8 +68,9 @@ class Agent : public Connector {
  protected:
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler*);
-	Packet* allocpkt() const;
-	Packet* allocpkt(int) const;
+	Packet* allocpkt() const;	/* alloc + set up new pkt */
+	Packet* allocpkt(int) const;	/* same, but w/data buffer */
+	void initpkt(Packet*) const;	/* set up fields in a pkt */
         Tcl_Channel channel_;
 
 	nsaddr_t addr_;		/* address of this agent */

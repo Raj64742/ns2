@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.39 1998/05/20 22:06:38 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.40 1998/05/27 23:09:13 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -312,12 +312,12 @@ void Agent::recv(Packet* p, Handler*)
 }
 
 /*
- * allocate a packet and fill in all the generic fields
+ * initpkt: fill in all the generic fields of a pkt
  */
-Packet* Agent::allocpkt() const
-{
-	Packet* p = Packet::alloc();
 
+void
+Agent::initpkt(Packet* p) const
+{
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	ch->uid() = uidcnt_++;
 	ch->ptype() = type_;
@@ -343,15 +343,24 @@ Packet* Agent::allocpkt() const
 	hf->no_ts_ = 0;
 	hf->pri_ = 0;
 	hf->cong_action_ = 0;
-	// usr1, usr2 now deprecated
+}
 
+/*
+ * allocate a packet and fill in all the generic fields
+ */
+Packet*
+Agent::allocpkt() const
+{
+	Packet* p = Packet::alloc();
+	initpkt(p);
 	return (p);
 }
 
 /* allocate a packet and fill in all the generic fields and allocate
  * a buffer of n bytes for data
  */
-Packet* Agent::allocpkt(int n) const
+Packet*
+Agent::allocpkt(int n) const
 {
         Packet* p = allocpkt();
 
