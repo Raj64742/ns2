@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.31 1998/04/30 21:29:56 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.32 1998/05/07 00:19:00 haldar Exp $
 #
 
 Class Node
@@ -49,10 +49,9 @@ Node instproc init args {
 	set dmux_ ""
 	set np_ 0
 	set id_ [Node getid]
-	#### temporary hack
 	if {![Simulator set EnableHierRt_]} {
 		set classifier_ [new Classifier/Addr]
-		# set up classifer as a router (default value is 8 bit of addr and 8 bit port)
+		# set up classifer as a router (default value 8 bit of addr and 8 bit port)
 		$classifier_ set mask_ [AddrParams set NodeMask_(1)]
 		$classifier_ set shift_ [AddrParams set NodeShift_(1)]
 		set address_ $id_
@@ -190,9 +189,11 @@ Node instproc attach { agent } {
 		set nodeaddr [AddrParams set-hieraddr $address_]
 		
 	} else {
-		set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] << [AddrParams set NodeShift_(1)]]
+		set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] \
+				  << [AddrParams set NodeShift_(1)]]
 	}
-	$agent set addr_ [expr [expr [expr $port & $mask] << $shift] | [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
+	$agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
+			      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
 	
 	$dmux_ install $port $agent
 	
