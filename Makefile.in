@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.235 2001/12/03 18:31:08 buchheim Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.236 2001/12/03 21:16:58 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -57,7 +57,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ -DPGM -DPGM_DEBUG
+DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ -DPGM -DPGM_DEBUG -DNS_DIFFUSION
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -98,8 +98,23 @@ NSE	= nse
 # To allow conf/makefile.win overwrite this macro
 # We will set these two macros to empty in conf/makefile.win since VC6.0
 # does not seem to support the STL in gcc 2.8 and up. 
-OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o
-NS_TCL_LIB_STL = tcl/rtglib/ns-rtProtoLS.tcl
+OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o \
+	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
+	pgm/pgm-receiver.o pgm/rcvbuf.o \
+	diffusion3/nr/nr.o diffusion3/lib/dr.o \
+	diffusion3/ns/diffagent.o diffusion3/ns/diffrtg.o \
+	diffusion3/ns/difftimer.o diffusion3/main/diffusion.o \
+	diffusion3/main/attrs.o diffusion3/main/iodev.o \
+	diffusion3/main/events.o diffusion3/main/message.o \
+	diffusion3/main/hashutils.o diffusion3/main/stats.o \
+	diffusion3/main/tools.o diffusion3/main/drivers/rpc_stats.o \
+	diffusion3/apps/sysapps/gradient.o \
+	diffusion3/apps/agents/diffapp.o \
+	diffusion3/apps/agents/diff-snk.o \
+	diffusion3/apps/agents/diff-src.o 
+
+NS_TCL_LIB_STL = tcl/rtglib/ns-rtProtoLS.tcl \
+	tcl/lib/ns-diffusion.tcl
 
 # WIN32: uncomment the following line to include specific make for VC++
 # !include <conf/makefile.win>
@@ -198,26 +213,6 @@ OBJ_CC = \
 	parentnode.o \
 	basetrace.o \
 	simulator.o \
-	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
-	pgm/pgm-receiver.o pgm/rcvbuf.o \
-	diffusion3/nr/nr.o \
-	diffusion3/lib/dr.o \
-	diffusion3/ns/diffagent.o \
-	diffusion3/ns/diffrtg.o \
-	diffusion3/ns/difftimer.o \
-	diffusion3/main/diffusion.o \
-	diffusion3/main/attrs.o \
-	diffusion3/main/iodev.o \
-	diffusion3/main/events.o \
-	diffusion3/main/message.o \
-	diffusion3/main/hashutils.o \
-	diffusion3/main/stats.o \
-	diffusion3/main/tools.o \
-	diffusion3/main/drivers/rpc_stats.o \
-	diffusion3/apps/sysapps/gradient.o \
-	diffusion3/apps/agents/diffapp.o \
-	diffusion3/apps/agents/diff-snk.o \
-	diffusion3/apps/agents/diff-src.o \
 	@V_STLOBJ@
 
 
@@ -325,7 +320,6 @@ NS_TCL_LIB = \
 	tcl/lib/ns-address.tcl \
 	tcl/lib/ns-intserv.tcl \
 	tcl/lib/ns-autoconf.tcl \
-	tcl/lib/ns-diffusion.tcl \
 	tcl/rtp/session-rtp.tcl \
 	tcl/lib/ns-mip.tcl \
 	tcl/rtglib/dynamics.tcl \
