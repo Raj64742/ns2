@@ -3,7 +3,7 @@
 # To run: "./remove.com"
 # You might have to first make this file executable.
 #
-rm -f temp* *.ps
+rm -f temp* *.ps *core
 rm -f t?.tcl
 rm -f *.tr *.tr1 *.nam *.xgr
 rm -f all.*
