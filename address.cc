@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.4 1998/04/24 17:04:29 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.5 1998/05/01 18:57:46 haldar Exp $
  */
 
 
@@ -56,125 +56,125 @@ Address* Address::instance_;
 
 
 Address::Address() : PortShift_(0), PortMask_(0), McastShift_(0), 
-    McastMask_(0), NodeShift_(NULL), NodeMask_(NULL), levels_(0)
+	McastMask_(0), NodeShift_(NULL), NodeMask_(NULL), levels_(0)
 { }
 
 
 Address::~Address() 
 { 
-    delete [] NodeShift_;
-    delete [] NodeMask_;
+	delete [] NodeShift_;
+	delete [] NodeMask_;
     
 }
 
 
 int Address::command(int argc, const char*const* argv)
 {
-    int i, c, temp=0;
+	int i, c, temp=0;
     
-    Tcl& tcl = Tcl::instance();
-    if ((instance_ == 0) || (instance_ != this))
-      instance_ = this;
-    if (argc == 4) {
-	if (strcmp(argv[1], "portbits-are") == 0) {
-	    PortShift_ = atoi(argv[2]);
-	    PortMask_ = atoi(argv[3]);
-	    return (TCL_OK);
-	}
-
-	if (strcmp(argv[1], "mcastbits-are") == 0) {
-	    McastShift_ = atoi(argv[2]);
-	    McastMask_ = atoi(argv[3]);
-	    return (TCL_OK);
-	}
-    }
-    if (argc >= 4) {
-	    if (strcmp(argv[1], "add-hier") == 0) {
-		    /*
-		     * <address> add-hier <level> <mask> <shift>
-		     */
-		    int level = atoi(argv[2]);
-		    int mask = atoi(argv[3]);
-		    int shift = atoi(argv[4]);
-		    if (levels_ < level)
-			    levels_ = level;
-		    NodeShift_[level] = shift;
-		    NodeMask_[level] = mask;
-		    return (TCL_OK);
-	    }
-
-	if (strcmp(argv[1], "idsbits-are") == 0) {
-	    temp = (argc - 2)/2;
-	    if (levels_) { 
-		if (temp != levels_) {
-		    tcl.resultf("#idshiftbits don't match with #hier levels\n");
-		    return (TCL_ERROR);
+	Tcl& tcl = Tcl::instance();
+	if ((instance_ == 0) || (instance_ != this))
+		instance_ = this;
+	if (argc == 4) {
+		if (strcmp(argv[1], "portbits-are") == 0) {
+			PortShift_ = atoi(argv[2]);
+			PortMask_ = atoi(argv[3]);
+			return (TCL_OK);
 		}
-	    }
-	    else 
-		levels_ = temp;
-	    NodeShift_ = new int[levels_];
-	    for (i = 3, c = 1; c <= levels_; c++, i+=2) 
-		NodeShift_[c] = atoi(argv[i]);
-	    return (TCL_OK); 
+
+		if (strcmp(argv[1], "mcastbits-are") == 0) {
+			McastShift_ = atoi(argv[2]);
+			McastMask_ = atoi(argv[3]);
+			return (TCL_OK);
+		}
 	}
+	if (argc >= 4) {
+		if (strcmp(argv[1], "add-hier") == 0) {
+			/*
+			 * <address> add-hier <level> <mask> <shift>
+			 */
+			int level = atoi(argv[2]);
+			int mask = atoi(argv[3]);
+			int shift = atoi(argv[4]);
+			if (levels_ < level)
+				levels_ = level;
+			NodeShift_[level] = shift;
+			NodeMask_[level] = mask;
+			return (TCL_OK);
+		}
+
+		if (strcmp(argv[1], "idsbits-are") == 0) {
+			temp = (argc - 2)/2;
+			if (levels_) { 
+				if (temp != levels_) {
+					tcl.resultf("#idshiftbits don't match with #hier levels\n");
+					return (TCL_ERROR);
+				}
+			}
+			else 
+				levels_ = temp;
+			NodeShift_ = new int[levels_];
+			for (i = 3, c = 1; c <= levels_; c++, i+=2) 
+				NodeShift_[c] = atoi(argv[i]);
+			return (TCL_OK); 
+		}
 	
-	if (strcmp(argv[1], "idmbits-are") == 0) {
-	    temp = (argc - 2)/2;
-	    if (levels_) { 
-		if (temp != levels_) {
-		    tcl.resultf("#idmaskbits don't match with #hier levels\n");
-		    return (TCL_ERROR);
+		if (strcmp(argv[1], "idmbits-are") == 0) {
+			temp = (argc - 2)/2;
+			if (levels_) { 
+				if (temp != levels_) {
+					tcl.resultf("#idmaskbits don't match with #hier levels\n");
+					return (TCL_ERROR);
+				}
+			}
+			else 
+				levels_ = temp;
+			NodeMask_ = new int[levels_];
+			for (i = 3, c = 1; c <= levels_; c++, i+=2) 
+				NodeMask_[c] = atoi(argv[i]);
+			return (TCL_OK);
 		}
-	    }
-	    else 
-		levels_ = temp;
-	    NodeMask_ = new int[levels_];
-	    for (i = 3, c = 1; c <= levels_; c++, i+=2) 
-		NodeMask_[c] = atoi(argv[i]);
-	    return (TCL_OK);
 	}
-    }
-    return TclObject::command(argc, argv);
+	return TclObject::command(argc, argv);
 }
 
 char *Address::print_nodeaddr(int address)
 {
-  int a;
-  char temp[SMALL_LEN];
-  char str[SMALL_LEN];
-  char *addrstr;
+	int a;
+	char temp[SMALL_LEN];
+	char str[SMALL_LEN];
+	char *addrstr;
   
-  str[0] = '\0';
-  for (int i=1; i <= levels_; i++) {
-      a = address >> NodeShift_[i];
-      if (levels_ > 1)
-	  a = a & NodeMask_[i];
-      sprintf(temp, "%d.", a);
-      strcat(str, temp);
-  }
-  addrstr = new char[strlen(str)+1];
-  strcpy(addrstr, str);
-  // printf("Nodeaddr - %s\n",addrstr);
-  return(addrstr);
+	str[0] = '\0';
+	for (int i=1; i <= levels_; i++) {
+		a = address >> NodeShift_[i];
+		if (levels_ > 1)
+			a = a & NodeMask_[i];
+		sprintf(temp, "%d.", a);
+		strcat(str, temp);
+	}
+	addrstr = new char[strlen(str)+1];
+	strcpy(addrstr, str);
+	// printf("Nodeaddr - %s\n",addrstr);
+	return(addrstr);
 }
 
 
 char *Address::print_portaddr(int address)
 {
-  int a;
-  char str[SMALL_LEN];
-  char *addrstr;
+	int a;
+	char str[SMALL_LEN];
+	char *addrstr;
   
-  str[0] = '\0';
-  a = address >> PortShift_;
-  a = a & PortMask_;
-  sprintf(str, "%d", a);
-  addrstr = new char[strlen(str)+1];
-  strcpy(addrstr, str);
-  // printf("Portaddr - %s\n",addrstr);
+	str[0] = '\0';
+	a = address >> PortShift_;
+	a = a & PortMask_;
+	sprintf(str, "%d", a);
+	addrstr = new char[strlen(str)+1];
+	strcpy(addrstr, str);
+	// printf("Portaddr - %s\n",addrstr);
 
-  return(addrstr);
+	return(addrstr);
 }
 
 // Convert address in string format to binary format (int). 
