@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.31 1998/05/08 22:01:34 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.32 1998/05/27 20:35:34 kfall Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -136,6 +136,7 @@ class ListErrorModel : public ErrorModel {
 	int command(int argc, const char*const* argv);
   protected:
 	int parse_droplist(int argc,  const char *const*);
+	static int nextval(const char*&p);
 	static int intcomp(const void*, const void*);		// for qsort
 	int cnt_;	/* cnt of pkts/bytes we've seen */
 	int* droplist_;	/* array of pkt/byte #s to affect */
