@@ -1200,6 +1200,11 @@ when the queue overflows or the average queue size exceeds
 Set to true to avoid resetting the count since the last packet drop,
 after a forced packet is dropped.  This gives compatibility with
 previous behavior of RED.  The default is set to false.
+.IP \fgentle_\fP
+Set to true to increase the packet drop rate slowly from max_p to
+1 as the average queue size ranges from maxthresh to twice maxthresh.
+The default is set to false, and max_p increases abruptly from
+max_p to 1 when the average queue size exceeds maxthresh.
 .LP
 .HD
 State Variables
