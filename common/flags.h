@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.3 1997/07/22 08:08:32 padmanab Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.4 1997/08/19 18:45:48 heideman Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -41,12 +41,12 @@
 #include "packet.h"
 
 struct hdr_flags {
-	u_char ecn_;
-	u_char ecn_to_echo_;  /* ecn to be echoed back in the opposite direction */
-	u_char fs_;           /* tcp fast start (work in progress --venkat) */
-	u_char pri_;
-	u_char usr1_;
-	u_char usr2_;
+	unsigned char ecn_;
+	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the opposite direction */
+	unsigned char fs_;           /* tcp fast start (work in progress --venkat) */
+	unsigned char pri_;
+	unsigned char usr1_;
+	unsigned char usr2_;
 };
 
 #endif

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.24 1997/08/13 23:58:57 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.25 1997/08/19 18:45:50 heideman Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -286,7 +286,7 @@ class RenoTcpAgent : public virtual TcpAgent {
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
  protected:
-	u_int dupwnd_;
+	unsigned int dupwnd_;
 };
 
 /* TCP New Reno */
@@ -297,7 +297,7 @@ class NewRenoTcpAgent : public virtual TcpAgent {
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
  protected:
-	u_int dupwnd_;
+	unsigned int dupwnd_;
 	int newreno_changes_;	/* 0 for fixing unnecessary fast retransmits */
 				/* 1 for additional code from Allman, */
 				/* to implement other algorithms from */

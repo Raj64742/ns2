@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.19 1997/08/15 23:08:34 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.20 1997/08/19 18:45:49 heideman Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -90,23 +90,23 @@ public:
 
 class Packet : public Event {
 private:
-	u_char* bits_;
-	u_char* data_;  // variable size buffer for 'data'
-	u_int datalen_; // length of variable size buffer
+	unsigned char* bits_;
+	unsigned char* data_;  // variable size buffer for 'data'
+	unsigned int datalen_; // length of variable size buffer
 protected:
 	static Packet* free_;
 public:
 	Packet* next_;	// for queues and the free list
 	static int hdrlen_;
 	Packet() : bits_(0), datalen_(0), next_(0) { }
-	u_char* const bits() { return (bits_); }
+	unsigned char* const bits() { return (bits_); }
 	Packet* copy() const;
         static Packet* alloc();
         static Packet* alloc(int);
 	inline void allocdata(int);
         static void free(Packet*);
-	inline u_char* access(int off) { if (off < 0) abort(); return (&bits_[off]); }
-	inline u_char* accessdata() {return data_;}
+	inline unsigned char* access(int off) { if (off < 0) abort(); return (&bits_[off]); }
+	inline unsigned char* accessdata() {return data_;}
 };
 
 
@@ -117,7 +117,7 @@ inline Packet* Packet::alloc()
 		free_ = p->next_;
 	else {
 		p = new Packet;
-		p->bits_ = new u_char[hdrlen_];
+		p->bits_ = new unsigned char[hdrlen_];
 		if (p == 0 || p->bits_ == 0)
 			abort();
 	}
@@ -139,7 +139,7 @@ inline Packet* Packet::alloc(int n)
 inline void Packet::allocdata(int n)
 {
         datalen_ = n;
-	data_ = new u_char[n];
+	data_ = new unsigned char[n];
 	if (data_ == 0)
 	        abort();
 
@@ -161,7 +161,7 @@ inline Packet* Packet::copy() const
 	memcpy(p->bits(), bits_, hdrlen_);
 	if (datalen_) {
 	        p->datalen_ = datalen_;
-	        p->data_ = new u_char[datalen_];
+	        p->data_ = new unsigned char[datalen_];
 		memcpy(p->data_, data_, datalen_);
 	}
 	return (p);
