@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.3 1997/07/24 21:19:03 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.4 1997/11/29 05:42:53 elan Exp $
 #
 
 Class Session/RTP/Scuba -superclass Session/RTP
@@ -50,18 +50,20 @@ Session/RTP/Scuba instproc init {} {
 	$self set share_ 0.05
 	$self set scuba_srctab_ {}
 	$self set tx_ 0
-	
 }
 
-Session/RTP/Scuba instproc start { transmit } {
+Session/RTP/Scuba instproc start { tx rx } {
     	$self next
-	$self instvar reptimer_ agetimer_ tx_
-	$reptimer_ start
-	$agetimer_ msched 5000
+	$self instvar reptimer_ agetimer_ tx_ srcid_
+	if { $rx == 1 } {
+		$reptimer_ start
+	}
 
-	set tx_ $transmit
-    	if { $tx_ == 1 } {
+	set tx_ $tx  
+  	if { $tx_ == 1 } {
+		$self scuba_register $srcid_ 0
 		$self set_allocation 
+		$agetimer_ msched 5000
 	}
 }
 
@@ -112,7 +114,7 @@ Session/RTP/Scuba instproc leave-group { } {
 }
 
 Session/RTP/Scuba instproc timeout {} {
-	$self instvar localrepid_ repAgent_ srcid_
+	$self instvar localrepid_ repAgent_ srcid_ rx_
 	set rep [$self build_report]
 	$repAgent_ send "$srcid_/$localrepid_/$rep"
 	incr localrepid_
@@ -133,16 +135,11 @@ Session/RTP/Scuba instproc scuba_register { sender repid } {
 	# Add new source if we hear a ctrl message from it as well
 	$self instvar scuba_srctab_ last_repid_ agetab_
 
-	if { [info exists last_repid_($sender)] && \
-	     $repid <= $last_repid_($sender) } {
-		# Old update or duplicate
-		return
-	}
-
 	if { [lsearch -exact $scuba_srctab_ $sender] < 0 } {
 		lappend scuba_srctab_ $sender
 	}
 
+	# XXX get rid of repid_...
 	set last_repid_($sender) $repid
 	set agetab_($sender) 0
 }
@@ -202,7 +199,9 @@ Session/RTP/Scuba instproc set_allocation {} {
 
 	set total 0
 	set tot($lsrcid) 0
-	foreach srcid $scuba_srctab_ {
+	$self instvar srctab_
+	foreach src $srctab_ {
+		set srcid [$src set srcid_]
 		set voters [array names scoretab_ *:$srcid:*]
 		set subtotal 0
 		foreach v $voters {

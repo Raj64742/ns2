@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/complete/demo.tcl,v 1.2 1997/11/29 03:15:14 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/complete/demo.tcl,v 1.3 1997/11/29 05:42:53 elan Exp $
 #
 
 set tcldir ../../../
@@ -51,11 +51,11 @@ Simulator set NumberInterfaces_ 1
 # rtcp reports
 $ns color 32 red
 # scuba reports
-$ns color 33 white
+$ns color 33 green
 
 $ns color 1 gold
 $ns color 2 blue
-$ns color 3 green
+$ns color 3 orange
 $ns color 4 magenta
 
 for { set i 0 } { $i < 8 } { incr i } {
@@ -215,44 +215,44 @@ proc scuba_sim { start } {
 	# start receivers
 	$ns at $t {
 		global sess
-		$sess(4) start 0
-		$sess(5) start 0
-		$sess(6) start 0
+		$sess(4) start 0 1
+		$sess(5) start 0 1
+		$sess(6) start 0 1
 	}
 
 	# start senders
 	flash_annotate [expr $start+1.1] 0.05 "Starting sender 0..."
-	$ns at [expr $start+1.1] "$sess(0) start 1"
+	$ns at [expr $start+1.1] "$sess(0) start 1 0"
 
 	flash_annotate [expr $start+1.2] 0.05 "Starting sender 1..."
-	$ns at [expr $start+1.2] "$sess(1) start 1"
+	$ns at [expr $start+1.2] "$sess(1) start 1 0"
 
 	flash_annotate [expr $start+1.3] 0.05 "Starting sender 2..."
-	$ns at [expr $start+1.3] "$sess(2) start 1"
+	$ns at [expr $start+1.3] "$sess(2) start 1 0"
 
 	# 4 focus on 0
 	flash_annotate [expr $start+1.5] 0.1 "4 focussing on 0..."
 	$ns at [expr $start+1.5] "[$sess(4) set repAgent_] set class_ 4"
 	$ns at [expr $start+1.5] "$sess(4) scuba_focus $sess(0)"
-	$ns at [expr $start+1.7] "[$sess(4) set repAgent_] set class_ 33"
+	$ns at [expr $start+1.55] "[$sess(4) set repAgent_] set class_ 33"
 
 	# 5 focus on 1
 	flash_annotate [expr $start+2.0] 0.1 "5 focussing on 1..."
 	$ns at [expr $start+2.0] "[$sess(5) set repAgent_] set class_ 4"
 	$ns at [expr $start+2.0] "$sess(5) scuba_focus $sess(1)"
-	$ns at [expr $start+2.2] "[$sess(5) set repAgent_] set class_ 33"
+	$ns at [expr $start+2.05] "[$sess(5) set repAgent_] set class_ 33"
 
 	# 5 focus on 0
 	flash_annotate [expr $start+2.5] 0.1 "5 focussing on 0..."
 	$ns at [expr $start+2.5] "[$sess(5) set repAgent_] set class_ 4"
 	$ns at [expr $start+2.5] "$sess(5) scuba_focus $sess(0)"
-	$ns at [expr $start+2.7] "[$sess(5) set repAgent_] set class_ 33"
+	$ns at [expr $start+2.55] "[$sess(5) set repAgent_] set class_ 33"
 
 	# 5 unfocus on 0
 	flash_annotate [expr $start+3.0] 0.1 "5 unfocussing off 0..."
 	$ns at [expr $start+3.0] "[$sess(5) set repAgent_] set class_ 4"
 	$ns at [expr $start+3.0] "$sess(5) scuba_unfocus $sess(0)"
-	$ns at [expr $start+3.2] "[$sess(5) set repAgent_] set class_ 33"
+	$ns at [expr $start+3.05] "[$sess(5) set repAgent_] set class_ 33"
 }
 
 proc finish {} {
