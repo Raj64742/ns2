@@ -17,7 +17,7 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.4 1998/12/16 21:11:24 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.5 1998/12/22 23:38:24 haoboy Exp $
 
 Http/Server instproc init args {
 	eval $self next $args
@@ -237,7 +237,7 @@ Http/Server/epa instproc gen-page { pageid } {
 	$self instvar ns_ pgtr_ 
 
 	if [$self exist-page $pageid] {
-		debug 1
+		#debug 1
 		error "$self: shouldn't use gen-page for existing pages"
 	}
 

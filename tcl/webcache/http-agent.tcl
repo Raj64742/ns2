@@ -17,7 +17,7 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.4 1998/12/16 21:11:22 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.5 1998/12/22 23:38:23 haoboy Exp $
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -551,7 +551,7 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 			simStartTime_ pgtr_
 
 	if ![info exists pending_($pageid)] {
-		debug 1
+		#debug 1
 		error "Client $id_: Unrequested response page $pageid from server/cache [$server id]"
 	}
 
