@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.29 1997/11/14 22:11:27 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.30 1997/11/27 05:20:30 padmanab Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -244,7 +244,7 @@ int REDQueue::drop_early(Packet* pkt)
 		// DROP or MARK
 		edv_.count = 0;
 		edv_.count_bytes = 0;
-		hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
+		hdr_flags* hf = (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
 		if (edp_.setbit && hf->ecn_capable_) {
 			hf->ecn_to_echo_ = 1; 
 		} else {
@@ -255,10 +255,21 @@ int REDQueue::drop_early(Packet* pkt)
 }
 
 /*
+ * Pick packet for early congestion notification (ECN). This packet is then
+ * marked or dropped. Having a separate function do this is convenient for
+ * supporting derived classes that use the standard RED algorithm to compute
+ * average queue size but use a different algorithm for choosing the packet for 
+ * ECN notification.
+ */
+Packet*
+REDQueue::pickPacketForECN(Packet* pkt) {
+	return pkt; /* pick the packet that just arrived */
+}
+
+/*
  * Pick packet to drop. Having a separate function do this is convenient for
  * supporting derived classes that use the standard RED algorithm to compute
- * average queue size but use a (slightly) different algorithm for choosing
- * the victim.
+ * average queue size but use a different algorithm for choosing the victim.
  */
 Packet*
 REDQueue::pickPacketToDrop() 
@@ -368,6 +379,19 @@ void REDQueue::enque(Packet* pkt)
 	}
 
 	if (droptype == DTYPE_UNFORCED) {
+		/* pick packet for ECN, which is dropping in this case */
+		Packet *pkt_to_drop = pickPacketForECN(pkt);
+		/* 
+		 * If the packet picked is different that the one that just arrived,
+		 * add it to the queue and remove the chosen packet.
+		 */
+		if (pkt_to_drop != pkt) {
+			q_->enque(pkt);
+			bcount_ += ch->size();
+			q_->remove(pkt_to_drop);
+			bcount_ -= ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
+			pkt = pkt_to_drop; /* XXX okay because pkt is not needed anymore */
+		}
 		// deliver to special "edrop" target, if defined
 		if (de_drop_ != NULL)
 			de_drop_->recv(pkt);
