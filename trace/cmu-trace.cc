@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.71 2003/02/20 03:19:59 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.72 2003/02/22 03:53:35 buchheim Exp $
  */
 
 #include <packet.h>
@@ -69,30 +69,9 @@ public:
 
 
 
-double calculate_broadcast_radius() {
-	// Calculate the maximum distance at which a packet can be received
-	// based on the two-ray reflection model using the current default
-	// values for Phy/WirelessPhy and Antenna/OmniAntenna.
-
-	double P_t, P_r, G_t, G_r, h, L;
-	Tcl& tcl = Tcl::instance();
-	tcl.evalc("Phy/WirelessPhy set Pt_");
-	P_t = atof(tcl.result());
-	tcl.evalc("Phy/WirelessPhy set RXThresh_");
-	P_r = atof(tcl.result());
-	tcl.evalc("Phy/WirelessPhy set L_");
-	L = atof(tcl.result());
-	tcl.evalc("Antenna/OmniAntenna set Gt_");
-	G_t = atof(tcl.result());
-	tcl.evalc("Antenna/OmniAntenna set Gr_");
-	G_r = atof(tcl.result());
-	tcl.evalc("Antenna/OmniAntenna set Z_");
-	h = atof(tcl.result());
-	
-	return pow(P_t*G_r*G_t*pow(h,4.0)/(P_r*L), 0.25);
-}
-
 double CMUTrace::bradius = 0.0;
+double CMUTrace::radius_scaling_factor_ = 0.0;
+double CMUTrace::duration_scaling_factor_ = 0.0;
 
 
 CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
@@ -127,8 +106,6 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 		nodeColor[i] = 3 ;
         node_ = 0;
 
-	bind("radius_scaling_factor_",&radius_scaling_factor_);
-	bind("duration_scaling_factor_",&duration_scaling_factor_);
 }
 
 void
@@ -879,7 +856,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 		// bradius is calculated assuming 2-ray ground reflectlon
 		// model using default settings of Phy/WirelessPhy and
 		// Antenna/OmniAntenna
-		if (bradius == 0.0) bradius = calculate_broadcast_radius();
+		if (bradius == 0.0) calculate_broadcast_parameters();
 
 		double radius = bradius*radius_scaling_factor_; 
 
@@ -1062,3 +1039,34 @@ int CMUTrace::node_energy()
 	if (energy > 0) return 1;
 	return 0;
 }
+
+void CMUTrace::calculate_broadcast_parameters() {
+	// Calculate the maximum distance at which a packet can be received
+	// based on the two-ray reflection model using the current default
+	// values for Phy/WirelessPhy and Antenna/OmniAntenna.
+
+	double P_t, P_r, G_t, G_r, h, L;
+	Tcl& tcl = Tcl::instance();
+
+	tcl.evalc("Phy/WirelessPhy set Pt_");
+	P_t = atof(tcl.result());
+	tcl.evalc("Phy/WirelessPhy set RXThresh_");
+	P_r = atof(tcl.result());
+	tcl.evalc("Phy/WirelessPhy set L_");
+	L = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Gt_");
+	G_t = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Gr_");
+	G_r = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Z_");
+	h = atof(tcl.result());
+	bradius = pow(P_t*G_r*G_t*pow(h,4.0)/(P_r*L), 0.25);
+
+	// Also get the scaling factors
+	tcl.evalc("CMUTrace set radius_scaling_factor_");
+	radius_scaling_factor_ = atof(tcl.result());
+	tcl.evalc("CMUTrace set duration_scaling_factor_");
+	duration_scaling_factor_ = atof(tcl.result());
+}
+
+
