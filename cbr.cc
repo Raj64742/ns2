@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.8 1997/03/29 01:42:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.9 1997/04/08 00:37:25 bajaj Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -50,7 +50,7 @@ public:
 	}
 } class_cbr;
 
-CBR_Agent::CBR_Agent() : Agent(PT_CBR), random_(0)
+CBR_Agent::CBR_Agent() : Agent(PT_CBR), random_(0), seqno_(-1)
 {
 	Tcl& tcl = Tcl::instance();
 	bind_time("interval_", &interval_);
