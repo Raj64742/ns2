@@ -1769,12 +1769,18 @@ To enable debugging when building ns from source:
     % ./configure --enable-debug
     % make 
 .fi
+.LP
+For more details about ns debugging
+please see
+<http://www-mash.cs.berkeley.edu/ns/ns-debugging.html>.
 
 .SH DIFFERENCES FROM NS-1
-More complex objects in ns-1 have been broken down
+In general, more complex objects in ns-1 have been broken down
 into simpler components for greater flexibility
 and composability.
-[SHOULD GIVE AN EXAMPLE]
+Details of differences between ns-1 and ns-2
+can be found at 
+<http://www-mash.cs.berkeley.edu/ns/ns.html>.
 
 .SH HISTORY
 Work on the LBL Network Simulator began in May 1990 with modifications to
@@ -1805,7 +1811,9 @@ issues are available through URL http://www-nrg.ee.lbl.gov/.
 .SH "SEE ALSO"
 Tcl(1),
 tclsh(1),
-nam(1)
+nam(1),
+otclsh
+
 .IP \fB[1]\fP
 S. Keshav, ``REAL: A Network Simulator''.  UCB CS Tech Report 88/472,
 December 1988.  See
@@ -1836,6 +1844,22 @@ URL ftp://ftp.ee.lbl.gov/papers/ params.ps.Z.  September 1995.
 .IP \fB[7]\fP
 Fall, K., and Floyd, S.  Comparisons of Tahoe, Reno, and Sack TCP.
 December 1995.  URL ftp:// ftp.ee.lbl.gov/papers/sacks.ps.Z.
+.IP \fB[8]\fP
+David Wetherall and Christopher J. Linblad.
+Extending Tcl for Dynamic Object-Oriented Programming.
+In Proceedings of the USENIX Tcl/Tk Workshop, Toronto, Ontario, USENIX.
+July, 1995.
+At <http://www.tns.lcs.mit.edu/publications/tcltk95.djw.html>.
+.LP
+Work on ns is on-going.
+Information about the most recent version is available
+at 
+<http://www-mash.cs.berkeley.edu/ns/ns.html>.
+.LP
+Mailing lists for ns are available,
+send mail to ns-developers-request@mash.cs.berkeley.edu
+or ns-users-request@mash.cs.berkeley.edu
+to join.
 
 .SH AUTHORS
 Steven McCanne (mccanne@ee.lbl.gov), University of California, Berkeley
