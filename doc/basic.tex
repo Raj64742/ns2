@@ -80,8 +80,8 @@ $ns attach-agent $n1 $tcp
 set sink [new Agent/TCPSink]
 $ns attach-agent $n3 $sink
 
-set ftp [new Source/FTP]	\; TCP does not generate its own traffic;
-$ftp set agent_ $tcp
+set ftp [new Application/FTP]	\; TCP does not generate its own traffic;
+$ftp attach-agent $tcp
 $ns at 1.2 "$ftp start"
 
 $ns connect $tcp $sink

@@ -119,7 +119,8 @@ set node2 [$ns node]                     \; agent to reside on this node;
 {\bfseries{}set tcp1 [$ns create-connection TCP $node1 TCPSink $node2 42]}
 $tcp  set window_ 50                   \; configure the TCP agent;
 
-{\bfseries{}set ftp1 [$tcp1 attach-source FTP]}
+{\bfseries{}set ftp1 [new Application/FTP]}
+{\bfseries{}$ftp1 attach-agent $tcp1}
 
 $ns at 0.0 "$ftp start"
 \end{program}
@@ -138,16 +139,12 @@ The return value of the function is the name of the source agent created.
 The TCP agent does not generate any application data on its own;
 instead, the simulation user can connect any traffic generation
 module to the TCP agent to generate data.
-Two sources are commonly used for TCP: FTP and Telnet.
+Two applications are commonly used for TCP: FTP and Telnet.
 FTP represents a bulk data transfer of large size, and telnet chooses
 its transfer sizes randomly from tcplib (see the file
 \code{tcplib-telnet.cc}.
-Creation and configuration of the source
-is accomplished by the {\tt Agent attach-source} {\em stype} function,
-which creates a new object of type \code{Source/}{\em stype} and
-returns its name.
-The returned object may be started at a later time.
-Additional details on these source objects are in Section~\ref{sec:sourceobjects}.
+Details on configuring these application source objects are in
+Section~\ref{sec:simapps}.
 
 \subsection{Other Configuration Parameters}
 

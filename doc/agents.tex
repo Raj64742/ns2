@@ -10,12 +10,11 @@
 \label{sec:agents}
 
 Agents represent endpoints where network-layer
-packets are constructed or consumed, and provide
-some functions helpful in developing transport-layer and other
-protocols.
-Generally, a user wishing to create a new
-source or sink for network-layer packets
-will create a class derived from {\tt Agent}.
+packets are constructed or consumed, and are used in the implementation
+of protocols at various layers.
+%Generally, a user wishing to create a new
+%source or sink for network-layer packets
+%will create a class derived from {\tt Agent}.
 The \clsref{Agent}{../ns-2/agent.h} has an implementation partly in
 OTcl and partly in C++.
 The C++ implementation is contained in \nsf{agent.cc} and
@@ -106,9 +105,11 @@ These are their names in OTcl:
   TCPSink/Sack1 & a SACK TCP receiver   \\
   TCPSink/Sack1/DelAck & a delayed-ACK SACK TCP receiver        \\
         \\
-  CBR & connectionless protocol with sequence numbers    \\
+  UDP & a basic UDP agent\\
+	\\
+  CBR & a UDP-like agent with sequence numbers and a send timer \\
   CBR/RTP & an RTP sender and receiver  \\
-  CBR/UDP & UDP with sequence numbers and traffic sources       \\
+%  CBR/UDP & UDP with sequence numbers and traffic sources       \\
   RTCP & an RTCP sender and receiver    \\
         \\
   LossMonitor & a packet sink which checks for losses   \\
@@ -135,7 +136,8 @@ Agents are used in the implementation of protocols at various layers.
 Thus, for some transport protocols (e.g.~UDP) the distribution
 of packet sizes and/or inter-departure times
 may be dictated by some separate
-object representing the demands of an application.
+object representing the demands of an application.  To this end, agents
+expose an application programming interface (API) to the application.
 For agents used in the implementation of lower-layer protocols
 (e.g. routing agents), size and departure timing is generally dictated
 by the agent's own processing of protocol messages.
@@ -225,8 +227,8 @@ and sets it up:
         $ns attach-agent $n0 $tcp       \; put sender on node $n0;
         $ns attach-agent $n3 $sink      \; put receiver on node $n3;
         $ns connect $tcp $sink          \; establish TCP connection;
-        set ftp [new Source/FTP]        \; create an FTP source "application";
-        $ftp set agent_ $tcp            \; associate FTP with the TCP sender;
+        set ftp [new Application/FTP]        \; create an FTP source "application";
+        $ftp attach-agent $tcp            \; associate FTP with the TCP sender;
         $ns at 1.2 "$ftp start"  \;arrange for FTP to start at time 1.2 sec;
 \end{program}
 The OTcl instruction \code{new Agent/TCP} results in the
@@ -294,20 +296,18 @@ the relevant agent.
 The \code{TcpAgent} agent is started in the example when its
 FTP source receives the \code{start} directive at time 1.2.
 The \code{start} operation is an instance procedure defined on the
-\href{class Source/FTP}{Section}{sec:sourceobjects}.
+\href{class Application/FTP}{Section}{sec:simapps}.
 It is defined in \nsf{tcl/lib/ns-source.tcl} as follows:
 \begin{program}
-        Source/FTP instproc start \{\} \{
-                $self instvar agent_ maxpkts_
-                $agent_ advance $maxpkts_
+        Application/FTP instproc start \{\} \{
+                [$self agent] send -1
         \}
 \end{program}
-In this case, \code{agent_} refers to our simple TCP agent and
-\code{maxpkts_} defaults to a large value
-(\textsc{MAXINT}, or $2^31-1 = 2147483647$).
+In this case, \code{agent} refers to our simple TCP agent and
+\code{send -1} is analogous to sending an arbitrarily large file.
 
-The call to \code{advance} eventually results in the simple TCP sender
-generating some packets.
+The call to \code{send} eventually results in the simple TCP sender
+generating packets.
 The following function \code{output} performs this:
 \begin{program}
         void TcpAgent::output(int seqno, int reason)
@@ -472,9 +472,11 @@ the ICMP ECHO REQUEST/REPLY (or ``ping'') operations.
 Deciding on the inheritance structure is a matter of personal choice, but is
 likely to be related to the layer at which the agent will operate
 and its assumptions on lower layer functionality.
+The simplest type of Agent, connectionless datagram-oriented transport, is
+the \code{Agent/UDP} base class.
 For protocol endpoints wishing to use a connectionless
-datagram-oriented transport layer (like UDP) with sequencing,
-the \code{CBR_Agent} base class is likely to be appropriate.
+datagram-oriented transport layer (like UDP) with sequencing and periodic
+send events, the \code{CBR_Agent} base class is likely to be appropriate.
 For protocols wishing to use a connection-oriented stream transport
 (like TCP), the various TCP Agents could be used.
 Finally, if a new transport or ``sub-transport'' protocol
@@ -680,4 +682,10 @@ the following OTcl code is executed:
 This will cause our agent to generate one 1024-byte packet destined for
 node \code{$dest} every 1.5 seconds.
 
+\section{The Agent API}
+\label{sec:agents:api}
+
+Simulated applications may be implemented on top of protocol agents.  Chapter
+\ref{chap:applications} describes the API used by applications to  access the 
+services provided by the protocol agent. 
 \endinput
