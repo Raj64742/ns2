@@ -178,12 +178,18 @@ methods to create and manage the topology
 
 
 
-                                                                                                                                                                                                                                                               
-
-
 
 
                                                                                                                                                                                                                                                                
+
+
+
+
+
+
+                                                                                                                                                                                                                                                               
+
+
 
 
 
@@ -206,130 +212,99 @@ Simulator instproc create_packetformat \; set up the simulator's packet format;
 
 \section{Commands at a glance}
 \label{sec:simcommand}
-
+\begin{flushleft}
 Synopsis:
-\begin{program}
-ns <otclfile> <arg> <arg>..
-\end{program}
+\code{ns <otclfile> <arg> <arg>..}\\
 Description:
 Basic command to run a simulation script in ns.
 The simulator (ns) is invoked  via the ns interpreter, an extension of the
-vanilla otclsh command shell. A simulation is defined by a OTcl script (file).
+vanilla otclsh command shell. A simulation is defined by a OTcl script
+(file). Several examples of OTcl scripts can be found under \ns/tcl/ex
+directory.
+
 
 The following is a list of simulator commands commonly used in simulation
 scripts:
 
-\begin{program}
-set ns_ [new Simulator]
-\end{program}
-Creating an instance of the simulator object.
+\code{set ns_ [new Simulator]}\\
+This command creates an instance of the simulator object.
 
 
-\begin{program}
-set now [$ns_ now]
-\end{program}
+\code{set now [$ns_ now]}\\
 The scheduler keeps track of time in a simulation. This returns scheduler's
 notion of current time.
 
 
-\begin{program}
-$ns_ halt
-\end{program}
+\code{$ns_ halt}\\
 This stops or pauses the scheduler.
 
 
-\begin{program}
-$ns_ run
-\end{program}
+\code{$ns_ run}\\
 This starts the scheduler.
 
 
-\begin{program}
-$ns_ at <time> <event>
-\end{program}
+\code{$ns_ at <time> <event>}\\
 This schedules an <event> (which is normally a piece of code) to be executed
 at the specified <time>.
 e.g $ns_ at $opt(stop) "puts \"NS EXITING..\" ; $ns_ halt"
 or, $ns_ at 10.0 "$ftp start"
 
 
-\begin{program}
-$ns_ cancel <event>
-\end{program}
+\code{$ns_ cancel <event>}\\
 Cancels the event. In effect, event is removed from scheduler's list of 
 ready to run events.
 
 
-\begin{program}
-$ns_ create-trace <type> <file> <src> <dst> <optional arg: op>
-\end{program}
+\code{$ns_ create-trace <type> <file> <src> <dst> <optional arg: op>}\\
 This creates a trace-object of type <type> between <src> and <dst> objects
 and attaches trace-object to <file> for writing trace-outputs. If op is defined
 as "nam", this creates nam tracefiles; otherwise if op is not defined, ns
 tracefiles are created on default.
 
 
-\begin{program}
-$ns_  flush-trace
-\end{program}
+\code{$ns_  flush-trace}\\
 Flushes all trace object write buffers.
 
 
-\begin{program}
-$ns_ gen-map
-\end{program}
+\code{$ns_ gen-map}\\
 This dumps information like nodes, node components, links etc created for a
 given simulation. This may be broken for some scenarios (like wireless).
 
 
-\begin{program}
-$ns_ at-now <args>
-\end{program}
+\code{$ns_ at-now <args>}\\
 This is in effect like command "$ns_ at $now $args". Note that this function
-may not work becuase of tcl's string number resolution.
-
+may not work because of tcl's string number resolution.
 
 
 These are additional simulator (internal) helper functions (normally used
 for developing/changing the ns core code) :
 
-\begin{program}
-$ns_ use-scheduler <type>
-\end{program}
+\code{$ns_ use-scheduler <type>}\\
 Used to specify the type of scheduler to be used for simulation. The different
 types of scheduler available are List, Calendar, Heap and RealTime. Currently
 Calendar is used as default.
 
 
-\begin{program}
-$ns_ after <delay> <event>
-\end{program}
+\code{$ns_ after <delay> <event>}\\
 Scheduling an <event> to be executed after the lapse of time <delay>.
 
 
-\begin{program}
-$ns_ clearMemTrace
-\end{program}
+\code{$ns_ clearMemTrace}\\
 Used for memory debugging purposes.
 
 
-\begin{program}
-$ns_ is-started
-\end{program}
-This returns true is simulator has started to run and false if not.
+\code{$ns_ is-started}\\
+This returns true if simulator has started to run and false if not.
 
 
-\begin{program}
-$ns_ dumpq
-\end{program}
+\code{$ns_ dumpq}\\
 Command for dumping events queued in scheduler while scheduler is halted.
 
 
-\begin{program}
-$ns_ create_packetformat
-\end{program}
+\code{$ns_ create_packetformat}\\
 This sets up simulator's packet format.
 
+\end{flushleft}
 \end{program}
 
 \endinput

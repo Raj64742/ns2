@@ -1041,8 +1041,8 @@ events and value types associated with these three types of objects.
 Following are the web cache related commands:
 \begin{flushleft}
 \code{set server [new Http/Server <sim> <s-node>]}\\
-This creates an instance of an Http server at the specified <s-node>. An instance
-of the simulator <sim> nedds to be passed as an argument as well.
+This creates an instance of an Http server at the specified <s-node>. An
+instance of the simulator <sim> needs to be passed as an argument.
 
 
 \code{set client [new Http/Client <sim> <c-node>]}\\
@@ -1077,15 +1077,19 @@ requests. Lastly the client is attached to a log file for logging its events.
 
 
 \code{$cache log <log-file>}\\
-The cache is also configured to log its events in a log-file.
+This is part of cache configuration that allows the cache to log its
+events in a log-file. 
+
 
 \code{$client connect <cache>\\
 $cache connect <server>}\\
-Once the client, cache, and server are configures, they need to be connected.
+Once the client, cache, and server are configured, they need to be
+connected as shown in above commands.
+
 
 \code{$client start-session <cache> <server>}\\
-This starts sending request for a random page from the client to the <server>
-via <cache>.
+This starts sending request for a random page from the client to the
+<server> via <cache>.
 
 \end{flushleft}
 \endinput

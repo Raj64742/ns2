@@ -248,42 +248,33 @@ The following methods are defined in the \code{Timer} base class:
 \section{Commands at a glance}
 \label{sec:timercommand}
 
-Following is a list of methods for the class Timer. Note that many different types
-of timers have been derived from this base class (viz. LogTimer, Timer/Iface,
-Timer/Iface/Prune, CacheTimer, Timer/Scuba etc).
-
-\begin{program}
-$timer sched <delay>
-\end{program}
+Following is a list of methods for the class Timer. Note that many
+different types of timers have been derived from this base class (viz.
+LogTimer, Timer/Iface, Timer/Iface/Prune, CacheTimer, Timer/Scuba etc).
+\begin{flushleft}
+\code{$timer sched <delay>}\\
 This command cancels any other event that may have been scheduled and re-schedules
 another event after time <delay>.
 
 
-\begin{program}
-$timer resched <delay>
-\end{program}
+\code{$timer resched <delay>}\\
 Similar to "sched" described above. Added to have similar APIs as that of the
 C++ timers.
 
 
-\begin{program}
-$timer cancel
-\end{program}
+\code{$timer cancel}\\
 This cancels any scheduled event.
 
 
-\begin{program}
-$timer destroy
-\end{program}
+\code{$timer destroy}\\
 This is similar to cancel. Cancels any scheduled event.
 
 
-\begin{program}
-$timer expire
-\end{program}
+\code{$timer expire}\\
 This command calls for a time-out. However the time-out procedure needs to be
 defined in the sub-classes.
 
 
 All these procedures can be found in \ns/tcl/mcast/timer.tcl.
+\end{flushleft}
 \endinput

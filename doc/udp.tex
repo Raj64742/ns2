@@ -2,6 +2,7 @@
 \label{sec:udpAgents}
 
 \section{UDP Agents}
+\label{sec:udpagent}
 UDP agents are implemented in \code{udp.\{cc, h\}}.  A UDP agent accepts
 data in variable size chunks from an application, and segments the data 
 if needed.  UDP packets also contain a monotonically increasing sequence
@@ -75,11 +76,12 @@ $udp set class_ <class-type>\\
 $udp set ttl_ <time-to-live>\\
 ..... etc }
 
-There are different parameter values that may be set as shown above for udp
-agents. The default values can be found in \ns/tcl/lib/ns-default.tcl.
+The above are different parameter values that may be set as shown above
+for udp agents. The default values can be found in 
+\ns/tcl/lib/ns-default.tcl.
 
 For a typical example of setting up an UDP agent used in a simulation, see
-the above section \ref{sec:udpAgents}.
+the above section \ref{sec:udpagent}.
 
 \end{flushleft}
 

@@ -838,9 +838,17 @@ Similar to get-nam-traceall. This returns the file descriptor for ns tracefile
 which is stored as the Simulator instance called \code{traceAllFile_}.
 
 
+\code{$ns_ create-trace <type> <file> <src> <dst> <optional:op>}\\
+This command creates a trace object of type <type> between the <src> and
+<dst> nodes. The traces are written into the <file>. <op> is the argument
+that may be used to specify the type of trace, like nam. if <op> is not
+defined, the default trace object created is for nstraces.
+
+
 \code{$ns_ trace-queue <n1> <n2> <optional:file>}\\
-This command creates a trace object for tracing events on the link represented
-by the nodes <n1> and <n2>. This method calls \code{create-trace}.
+This is a wrapper method for \code{create-trace}. This command creates a
+trace object for tracing events on the link represented by the nodes <n1>
+and <n2>.
 
 
 \code{$ns_ namtrace-queue <n1> <n2> <optional:file>}\\
@@ -859,12 +867,7 @@ This sets up a monitor that keeps track of average queue length of the queue
 on the link between nodes <n1> and <n2>. The default value of
 sampleinterval is 0.1. 
 
-
-\code{$ns_ create-trace <type> <file> <src> <dst> <optional:op>}\\
-This command creates a trace object of type <type> between the <src> and
-<dst> nodes. The traces are written into the <file>. <op> is the argument
-that may be used to specify the type of trace, like nam. if <op> is not
-defined, the default trace object created is for nstraces.
 \end{flushleft}
+
 
 \endinput

@@ -934,6 +934,67 @@ geo-repeater satellite is a degenerate satellite node, in that it does not
 contain things like tracing elements, handoff managers, routing agents, or 
 any other link interfaces other than repeater interfaces.
 
+
+\section{Commands at a glance}
+\label{sec:satcommands}
+
+Following is a list of commands related to satellite networking:
+\begin{flushleft}
+\code{$ns_ satnode-polar <alt> <inc> <lon> <alpha> <plane> <linkargs>
+<chan>}\\
+This a simulator wrapper method for creating a polar satellite node. Two
+links, uplink and downlink, are created along with two channels, uplink
+channel and downlink channel. <alt> is the polar satellite altitude,
+<inc> is orbit inclination w.r.t equator, <lon> is the longitude, <alpha>
+gives the initial position of the satellite, <plane> defines the plane of
+the polar satellite. <linkargs> is a list of link argument options that
+defines the network interface (like LL, Qtype, Qlim, PHY, MAC etc).
+
+
+\code{$ns_ satnode-geo <lon> <linkargs> <chan>}\\
+This is a wrapper method for creating a geo satellite node that first
+creates a satnode plus two link interfaces (uplink and downlink) plus two 
+satellite channels (uplink and downlink). <chan> defines the type of
+channel.
+
+
+\code{$ns_ satnode-geo-repeater <lon> <chan>}\\
+This is a wrapper method for making a geo satellite repeater node that 
+first creates a satnode plus two link interfaces (uplink and downlink)
+plus two satellite channels (uplink and downlink). 
+
+
+\code{$ns_ satnode-terminal <lat> <lon>}\\
+This is a wrapper method that simply creates a terminal node. The <lat>
+and <lon> defines the latitude and longitude respectively of the terminal.
+
+
+\code{$ns_ satnode <type> <args>}\\
+This is a method that creates a satellite of the type <type> which maybe
+polar, geo or terminal. 
+
+
+\code{$satnode add-interface <type> <ll> <qtype> <qlim> <mac_bw> <phy>}\\
+This is an internal method of Node/SatNode that sets up link layer, mac
+layer, interface queue and physical layer structures for the satellite
+nodes.
+
+
+\code{$satnode add-isl <ltype> <node1> <node2> <bw> <qtype> <qlim>}\\
+This method creates an ISL (inter-satellite link) between the two nodes.
+The link type (inter, intra or cross-seam), BW of the link, the queue-type
+and queue-limit are all specified.
+
+
+\code{$satnode add-gsl <ltype> <opt_ll> <opt_ifq> <opt_qlim> <opt_mac> 
+<opt_bw> <opt_phy> <opt_inlink> <opt_outlink>}\\
+This method creates a GSL (ground to satellite link). First a network
+stack is created that is defined by LL, IfQ, Qlim, MAC, BW and PHY layers.
+Next the node is attached to the channel inlink and outlink.
+
+
+\end{flushleft}
+
 \endinput
 
 

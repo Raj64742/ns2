@@ -257,38 +257,28 @@ by always returning the first packet in the packet queue.
 \label{sec:queuecommand}
 
 Following is a list of queue commands used in simulation scripts:
-
-\begin{program}
-$ns_ queue-limit <n1> <n2> <limit>
-\end{program}
+\begin{flushleft}
+\code{$ns_ queue-limit <n1> <n2> <limit>}\\
 This sets a limit on the maximum buffer size of the queue in the link between
 nodes <n1> and <n2>.
 
 
-\begin{program}
-$ns_ trace-queue <n1> <n2> <optional:file>
-\end{program}
+\code{$ns_ trace-queue <n1> <n2> <optional:file>}\\
 This sets up trace objects to log events in the queue. If tracefile is not
 passed, it uses \code{traceAllFile_} to write the events.
 
 
-\begin{program}
-$ns_ namtrace-queue <n1> <n2> <optional:file>
-\end{program}
+\code{$ns_ namtrace-queue <n1> <n2> <optional:file>}\\
 Similar to trace-queue above, this sets up nam-tracing in the queue.
 
 
-\begin{program}
-$ns_ monitor-queue <n1> <n2> <optional:qtrace> <optional:sampleinterval>
-\end{program}
+\code{$ns_ monitor-queue <n1> <n2> <optional:qtrace> 
+<optional:sampleinterval>}\\
 This command inserts objects that allows us to monitor the queue size. This
 returns a handle to the object that may be queried to determine the average
 queue size. The default value for sampleinterval is 0.1.
 
 
-\begin{program}
-$ns_ namtrace-queue <n1> <n2> <optional:file>
-\end{program}
-
+\end{flushleft}
 
 \endinput
