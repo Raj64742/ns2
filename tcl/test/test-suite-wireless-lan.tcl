@@ -156,8 +156,10 @@ TestSuite instproc init {} {
 	for {set i 0} {$i < $opt(nn) } {incr i} {
 		$ns_ at $opt(stop).000000001 "$node_($i) reset";
 	}
-	$ns_ at $opt(stop).00000001 "$self finish"
-	$ns_ at $opt(stop).00000001 "puts \"NS EXITING...\" ; $ns_ halt"
+
+	$ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;" 
+	#$ns_ halt"
+	$ns_ at $opt(stop).1 "$self finish"
 	puts "Loading scenario file..."
 	source $opt(sc)
 	puts "Load complete..."
@@ -176,24 +178,24 @@ TestSuite instproc finish {} {
         #        puts "running nam..."
         #        exec nam temp.rands.nam &
         #}
-	#puts "finishing.."
+	puts "finishing.."
 	exit 0
 }
 
 Test/dsdv instproc init {} {
-	$self instvar ns_ testName_
-	set testName_ dsdv
-	$self next
+    $self instvar ns_ testName_
+    set testName_ dsdv
+    $self next
 }
 
 Test/dsdv instproc run {} {
-	$self instvar ns_
-	puts "Starting Simulation..."
-	$ns_ run
+    $self instvar ns_
+    puts "Starting Simulation..."
+    	$ns_ run
 }
 
 Test/dsr instproc init {} {
-	$self instvar ns_ testName_
+	$self instvar ns_ testName_ 
 	set testName_ dsr
 	$self next 
 }
