@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.5 1997/03/29 01:43:12 mccanne Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.6 1997/07/22 00:53:14 kfall Exp $";
 #endif
 
 #include "packet.h"
@@ -65,7 +65,7 @@ protected:
 static class TTLCheckerClass : public TclClass {
 public:
 	TTLCheckerClass() : TclClass("TTLChecker") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TTLChecker);
 	}
 } ttl_checker_class;

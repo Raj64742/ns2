@@ -37,8 +37,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.6 1997/07/14 08:52:04 kannan Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.7 1997/07/22 00:52:15 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -68,7 +68,7 @@ protected:
 class RouteLogicClass : public TclClass {
 public:
 	RouteLogicClass() : TclClass("RouteLogic") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new RouteLogic());
 	}
 } routelogic_class;

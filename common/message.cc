@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.8 1997/03/29 01:42:54 mccanne Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.9 1997/07/22 00:57:50 kfall Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -60,14 +60,13 @@ protected:
 static class MessageClass : public TclClass {
 public:
 	MessageClass() : TclClass("Agent/Message") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new MessageAgent());
 	}
 } class_message;
 
 MessageAgent::MessageAgent() : Agent(PT_MESSAGE)
 {
-	Tcl& tcl = Tcl::instance();
 	bind("packetSize_", &size_);
 	bind("off_msg_", &off_msg_);
 }
@@ -76,9 +75,11 @@ void MessageAgent::recv(Packet* pkt, Handler*)
 {
 	hdr_msg* mh = (hdr_msg*)pkt->access(off_msg_);
 	char wrk[128];/*XXX*/
-	Tcl& tcl = Tcl::instance();
 	sprintf(wrk, "%s recv {%s}", name(), mh->msg());
-	Tcl::instance().eval(wrk);
+
+	Tcl& tcl = Tcl::instance();
+	tcl.eval(wrk);
+
 	Packet::free(pkt);
 }
 

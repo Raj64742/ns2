@@ -32,7 +32,7 @@
  */
 
 #ifndef lint
-static char rcsid[] =
+static const char rcsid[] =
     "@(#) $Header: /home/barad-dur/b/grad/hari/src/ns/RCS/queue-monitor.cc,v 1.1 1997/03/24 22:
 59:47 hari Exp hari $";
 #endif
@@ -97,7 +97,7 @@ int QueueMonitor::command(int argc, const char*const* argv)
 static class QueueMonitorClass : public TclClass {
  public:
         QueueMonitorClass() : TclClass("QueueMonitor") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new QueueMonitor());
         }
 } queue_monitor_class;
@@ -158,7 +158,7 @@ void QueueMonitor::drop(Packet* p)
 static class SnoopQueueInClass : public TclClass {
 public:
         SnoopQueueInClass() : TclClass("SnoopQueue/In") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new SnoopQueueIn());
         }
 } snoopq_in_class;
@@ -166,7 +166,7 @@ public:
 static class SnoopQueueOutClass : public TclClass {
 public:
         SnoopQueueOutClass() : TclClass("SnoopQueue/Out") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new SnoopQueueOut());
         }
 } snoopq_out_class;
@@ -174,7 +174,7 @@ public:
 static class SnoopQueueDropClass : public TclClass {
 public:
         SnoopQueueDropClass() : TclClass("SnoopQueue/Drop") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new SnoopQueueDrop());
         }
 } snoopq_drop_class;
@@ -182,7 +182,7 @@ public:
 static class SnoopQueueEDropClass : public TclClass {
 public:
         SnoopQueueEDropClass() : TclClass("SnoopQueue/EDrop") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new SnoopQueueEDrop);
         }
 } snoopq_edrop_class;
@@ -190,7 +190,7 @@ public:
 static class QueueMonitorEDClass : public TclClass {
  public: 
         QueueMonitorEDClass() : TclClass("QueueMonitor/ED") {}
-        TclObject* create(int argc, const char*const* argv) { 
+        TclObject* create(int, const char*const*) { 
                 return (new EDQueueMonitor);
         }       
 } queue_monitor_ed_class;
@@ -258,7 +258,7 @@ int QueueMonitorCompat::command(int argc, const char*const* argv)
 static class QueueMonitorCompatClass : public TclClass {
  public: 
         QueueMonitorCompatClass() : TclClass("QueueMonitor/Compat") {}
-        TclObject* create(int argc, const char*const* argv) { 
+        TclObject* create(int, const char*const*) { 
                 return (new QueueMonitorCompat);
         }       
 } queue_monitor_compat_class;
