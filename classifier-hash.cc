@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.15 1998/06/27 01:23:30 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.16 1998/06/30 00:32:46 heideman Exp $ (LBL)";
 #endif
 
 //
@@ -54,12 +54,11 @@ static const char rcsid[] =
 /* class defs for HashClassifier (base), SrcDest, SrcDestFid HashClassifiers */
 
 /*
- * A very strange thing about this code:
- * in hnode, src/dst are stored unencoded
- * in HashClassifier::lookup(nsaddr_t src, nsaddr_t dst, int fid)
- * dst is converted from encoded to unencoded.
- * (Encoded means shifted by the addressing rules.)
- * This use of both kinds of addresses is somewhat confusing.
+ * In the hash buckets, src/dst are stored unencoded.
+ * All addresses from the outside come in encoded
+ * (shifted by [AddrParams set NodeShift_(1)])
+ * and are decoded before being compared to the hash bucket
+ * (in HashClassifier::lookup(nsaddr_t src, nsaddr_t dst, int fid)).
  *
  * Another thing:  we should really switch to using Tcl hashs
  * rather than our own.
