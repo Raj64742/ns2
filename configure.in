@@ -37,7 +37,7 @@ if test "$host_cpu" = alpha ; then
 fi
 
 dnl AC_CHECK_FUNCS will place -D's in @DEFS@
-AC_CHECK_FUNCS(getrusage sbrk)
+AC_CHECK_FUNCS(getrusage sbrk strtoq strtoll)
 
 NS_FNS_TAIL
 define(AcOutputFiles,Makefile tcl/lib/ns-autoconf.tcl)

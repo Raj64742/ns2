@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.23 1998/12/10 18:58:09 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.24 1999/01/26 18:30:40 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -49,7 +49,7 @@
 /* typedef signed char int8_t breaks under Solaris 2.6.  Shouldn't */
 /* autoconf handle stuff like this?  Shouldn't autoconf generate   */
 /* config.h?  Who knows autoconf well enough to fix this?  --AMC   */
-#if defined(sun)
+#if defined(sun) || defined(__hpux)
 #include <sys/types.h>
 typedef unsigned char u_char;
 typedef unsigned short u_short;
@@ -95,8 +95,10 @@ extern "C" {
 #include <arpa/inet.h>
 int strcasecmp(const char *, const char *);
 clock_t clock(void);
+#if !defined(__hpux)
 int gethostid(void);
-#if !defined(_AIX41) && !defined(sun)
+#endif
+#if !defined(_AIX41) && !defined(sun) && !defined(__hpux)
 void srandom(int);
 #endif
 long random(void);

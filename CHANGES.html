@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.300 1999/01/22 02:37:15 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.301 1999/01/26 18:30:38 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,8 +20,22 @@
     <hr>
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
-    <UL>
-    
+    <UL>  
+    <li> <B><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
+         <b>Tue Jan 26 10:18:47 PST 1999</b>
+	 <ul>
+	 <li>Improvements for webcache: (1) support non-cacheable
+	 pages; (2) allow cache push to be either selective push or
+	 always push, adjustable from a tcl command; (3) new ways to
+	 compute staleness time for pages (lower bound RTT/2) <br>
+	 <li>Added a type 'int' for many register var declarations.<br>
+	 <li>Added 64-bit integer support for FreeBSD (quad_t) and
+	 Solaris 2.x (long long). A ns-specific tcl function
+	 <code>ns-add64</code> is provided to add/substract these
+	 64-bit integers.
+	 </ul>
+	 <br>
+
     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
            <b>Thu Jan 21 18:07:18 PST 1999</b><br>
 	 Changed autoconf handling of perl,
@@ -52,7 +66,7 @@
 	 Added support for trace (web server/proxy log) driven web
 	 simulation. Added tests to include that part. Added a simple
 	 introductory script tcl/ex/simple-webcache-trace.tcl. Updated
-	 other outputs of webcache test suite after bug fixes.
+	 other outputs of webcache test suite after bug fixes.<br>
 
     <LI> <B><A href="http://www-scf.usc.edu/~bhuang">[PH]</A></B>
            <b>Wed Dec 16 12:59:46 PST 1998</b><br>

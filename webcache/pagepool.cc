@@ -15,13 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// Load a trace statistics file, and randomly generate requests and 
-// page lifetimes from the trace.
-//
-// Trace statistics file format:
-// <URL> <size> {<modification time>}
-//
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.6 1998/12/17 18:47:21 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.7 1999/01/26 18:30:54 haoboy Exp $
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -39,8 +33,14 @@
 #include <limits.h>
 #include <ctype.h>
 
+extern "C" {
+#include <otcl.h>
+}
 #include "pagepool.h"
 #include "http.h"
+
+// Static/global variables
+int ClientPage::PUSHALL_ = 0;	// Initialized to selective push
 
 void ServerPage::set_mtime(int *mt, int n)
 {
@@ -98,10 +98,31 @@ public:
 	}
 } class_pagepool_agent;
 
+int PagePool::command(int argc, const char*const* argv)
+{
+	if (argc == 2) {
+		if (strcmp(argv[1], "set-allpush") == 0) {
+			ClientPage::PUSHALL_ = 1;
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "set-selpush") == 0) {
+			ClientPage::PUSHALL_ = 0;
+			return (TCL_OK);
+		}
+	}
+	return TclObject::command(argc, argv);
+}
+
 
 // TracePagePool
 // Used for Worrell's filtered server traces only. For handling general 
 // web server traces and proxy traces, have a look at ProxyTracePagePool below.
+//
+// Load a trace statistics file, and randomly generate requests and 
+// page lifetimes from the trace.
+//
+// Trace statistics file format:
+// <URL> <size> {<modification time>}
 
 static class TracePagePoolClass : public TclClass {
 public:
@@ -337,7 +358,7 @@ int TracePagePool::command(int argc, const char *const* argv)
 			return TCL_OK;
 		}
 	}
-	return TclObject::command(argc, argv);
+	return PagePool::command(argc, argv);
 }
 
 
@@ -480,9 +501,14 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 			tcl.resultf("%d", duration_);
 			return TCL_OK;
 		}
+
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "gen-size") == 0) {
-			tcl.resultf("%d", main_size_);
+			int id = atoi(argv[2]);
+			if (id == 0) 
+				tcl.resultf("%d", main_size_);
+			else 
+				tcl.resultf("%d", comp_size_);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "gen-obj-size") == 0) {
 			tcl.resultf("%d", comp_size_);
@@ -544,15 +570,28 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 			tcl.resultf("%d", num_pages_-1);
 			return TCL_OK;
 		}
+
 	} else {
+		// argc > 3
 		if (strcmp(argv[1], "gen-modtime") == 0) {
-			if (rvMainAge_ == 0) {
-				tcl.add_errorf("%s: no page age generator", 
-					       name_);
-				return TCL_ERROR;
+			int id = atoi(argv[2]);
+			if (id == 0) {
+				if (rvMainAge_ == 0) {
+				  tcl.add_errorf("%s: no page age generator", 
+						 name_);
+					return TCL_ERROR;
+				}
+				double mt = strtod(argv[3], NULL);
+				tcl.resultf("%.17g", mt + rvMainAge_->value());
+			} else {
+				if (rvCompAge_ == 0) {
+				   tcl.add_errorf("%s: no page age generator", 
+						  name_);
+				   return TCL_ERROR;
+				}
+				double mt = atoi(argv[3]);
+				tcl.resultf("%.17g", mt + rvCompAge_->value());
 			}
-			double mt = strtod(argv[3], NULL);
-			tcl.resultf("%.17g", mt + rvMainAge_->value());
 			return TCL_OK;
 		} else if (strcmp(argv[1], "gen-obj-modtime") == 0) {
 			if (rvCompAge_ == 0) {
@@ -703,6 +742,8 @@ int ClientPagePool::get_page(const char *name, char *buf)
 		return -1;
 	sprintf(buf, "size %d modtime %.17g time %.17g age %.17g",
 		pg->size(), pg->mtime(), pg->etime(), pg->age());
+	if (pg->is_uncacheable())
+		strcat(buf, " noc 1");
 	return 0;
 }
 

@@ -17,7 +17,7 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.5 1998/12/22 23:38:23 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.6 1999/01/26 18:30:49 haoboy Exp $
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -241,37 +241,47 @@ Http/Client instproc get-response-GET { server pageid args } {
 	# Check stale hits
 	set origsvr [lindex [split $pageid :] 0]
 	set modtime [$origsvr get-modtime $pageid]
+	set reqtime [lindex $pending_($pageid) 0]
+	set reqrtt [expr [$ns_ now] - $reqtime]
+	
+	#
+	# XXX If a stale hit occurs because a page is modified during the RTT
+	# of the request, we should *NOT* consider it a stale hit. We 
+	# implement it by ignoring all stale hits whose modification time is
+	# larger than the request time. 
+	#
 	if {$modtime > $data(modtime)} {
 		# Staleness is the time from now to the time it's last modified
 		set tmp [$origsvr stale-time $pageid $data(modtime)]
-		$self evTrace C STA p $pageid s [$origsvr id] l $tmp
-		if [info exists simStartTime_] {
-			incr stat_(stale-num)
-			set stat_(stale-time) [expr $stat_(stale-time) + $tmp]
-			if {$stat_(st-min) > $tmp} {
-				set stat_(st-min) $tmp
-			}
-			if {$stat_(st-max) < $tmp} {
-				set stat_(st-max) $tmp
+		if {$tmp > $reqrtt/2} {
+			# We have a real stale hit
+			$self evTrace C STA p $pageid s [$origsvr id] l $tmp
+			if [info exists simStartTime_] {
+				incr stat_(stale-num)
+				set stat_(stale-time) [expr \
+					$stat_(stale-time) + $tmp]
+				if {$stat_(st-min) > $tmp} {
+					set stat_(st-min) $tmp
+				}
+				if {$stat_(st-max) < $tmp} {
+					set stat_(st-max) $tmp
+				}
 			}
 		}
 	}
+
 	# Assume this response is for the very first request we've sent. 
 	# Because we'll average the response time at the end, which 
 	# request this response actually corresponds to doesn't matter.
-	set pt [lindex $pending_($pageid) 0]
-	$self evTrace C RCV p $pageid s [$server id] l \
-		[expr [$ns_ now] - $pt] z $data(size)
+	$self evTrace C RCV p $pageid s [$server id] l $reqrtt z $data(size)
 	if [info exists simStartTime_] {
-		set tmp [expr [$ns_ now] - $pt]
-		set stat_(rep-time) [expr $stat_(rep-time) + $tmp]
-		if {$stat_(rt-min) > $tmp} {
-			set stat_(rt-min) $tmp
+		set stat_(rep-time) [expr $stat_(rep-time) + $reqrtt]
+		if {$stat_(rt-min) > $reqrtt} {
+			set stat_(rt-min) $reqrtt
 		}
-		if {$stat_(rt-max) < $tmp} {
-			set stat_(rt-max) $tmp
+		if {$stat_(rt-max) < $reqrtt} {
+			set stat_(rt-max) $reqrtt
 		}
-		unset tmp
 	}
 
 	set pending_($pageid) [lreplace $pending_($pageid) 0 0]
@@ -555,7 +565,7 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 		error "Client $id_: Unrequested response page $pageid from server/cache [$server id]"
 	}
 
-	set origsvr [lindex [split $pageid :] 0]
+	# Check if this is the main page
 	if [$pgtr_ is-mainpage $pageid] {
 		set mpgid $pageid
 		# Get all the embedded objects, do "active OFF" delay 
@@ -580,15 +590,26 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 	array set data $args
 
 	# Check stale hits and record maximum stale hit time
+	set origsvr [lindex [split $pageid :] 0]
 	set modtime [$origsvr get-modtime $pageid]
+	set reqtime [lindex $pending_($pageid) 0]
+	set reqrtt [expr [$ns_ now] - $reqtime]
+	# XXX If a stale hit occurs because a page is modified during the RTT
+	# of the request, we should *NOT* consider it a stale hit. We 
+	# implement it by ignoring all stale hits whose modification time is
+	# larger than the request time. 
+	#
+	# See Http/Client::get-response-GET{}
 	if {$modtime > $data(modtime)} {
 		$self instvar ns_
 		# Staleness is the time from now to the time it's last modified
 		set tmp [$origsvr stale-time $pageid $data(modtime)]
-		if ![info exists max_stale_($mpgid)] {
-			set max_stale_($mpgid) $tmp
-		} elseif {$max_stale_($mpgid) < $tmp} {
-			set max_stale_($mpgid) $tmp
+		if {$tmp > $reqrtt/2} {
+			if ![info exists max_stale_($mpgid)] {
+				set max_stale_($mpgid) $tmp
+			} elseif {$max_stale_($mpgid) < $tmp} {
+				set max_stale_($mpgid) $tmp
+			}
 		}
 	}
 
@@ -600,8 +621,7 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 	# Delete pending record of all embedded objects, but not the main page;
 	# we need it later to compute the response time, etc.
 	# XXX assuming only one request per object
-	$self evTrace C RCV p $pageid s [$server id] l [expr \
-		[$ns_ now] - [lindex $pending_($pageid) 0]] z $data(size)
+	$self evTrace C RCV p $pageid s [$server id] l $reqrtt z $data(size)
 	unset pending_($pageid)
 
 	# Check if we have any pending embedded objects
@@ -613,15 +633,15 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 
 	# Now we've received all objects
 	$self instvar pgtr_
-	# Record response time for the whole page
-	set pt [lindex $pending_($mpgid) 0]
+	# Record response time for the entire compound page
+	set reqtime [lindex $pending_($mpgid) 0]
 	$self evTrace C RCV p $mpgid s [$origsvr id] l \
-			[expr [$ns_ now] - $pt] z $data(size)
+			[expr [$ns_ now] - $reqtime] z $data(size)
 	# We are done with this page
 	unset pending_($mpgid)
 
 	if [info exists simStartTime_] {
-		set tmp [expr [$ns_ now] - $pt]
+		set tmp [expr [$ns_ now] - $reqtime]
 		set stat_(rep-time) [expr $stat_(rep-time) + $tmp]
 		if {$stat_(rt-min) > $tmp} {
 			set stat_(rt-min) $tmp

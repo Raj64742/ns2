@@ -21,7 +21,7 @@
 // If we have interface declaration independent from class type definition,
 // we'll be better off.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.cc,v 1.2 1998/12/16 21:11:01 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.cc,v 1.3 1999/01/26 18:30:55 haoboy Exp $
 
 #include <stdlib.h>
 #include "tclcl.h"

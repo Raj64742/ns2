@@ -17,8 +17,39 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.5 1998/12/22 23:38:24 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.6 1999/01/26 18:30:50 haoboy Exp $
 
+
+#
+# PagePool
+#
+
+# Generage a new page, including size, age, and flags. Do NOT generate 
+# modification time. That's the job of web servers.
+PagePool instproc gen-page { pageid thismod } {
+	set size [$self gen-size $pageid]
+	set age [expr [$self gen-modtime $pageid $thismod] - $thismod]
+	return "size $size age $age modtime $thismod"
+}
+
+#
+# Compound pagepool with a non-cacheable main page
+#
+Class PagePool/CompMath/noc -superclass PagePool/CompMath
+
+PagePool/CompMath/noc instproc gen-page { pageid thismod } {
+	set res [eval $self next $pageid $thismod]
+	if {$pageid == 0} {
+		return "$res noc 1"
+	} else {
+		return $res
+	}
+}
+
+
+#
+# web server codes
+#
 Http/Server instproc init args {
 	eval $self next $args
 	$self instvar node_ stat_
@@ -29,30 +60,6 @@ Http/Server instproc init args {
 Http/Server instproc set-page-generator { pagepool } {
 	$self instvar pgtr_
 	set pgtr_ $pagepool
-}
-
-# Helper functions to generate randomized page size, page last-mod time,
-# and estimated page lifetime
-Http/Server instproc gen-pagesize { id } {
-	# XXX should put a bimodal distribution for page id here
-	$self instvar pgtr_
-	if [info exists pgtr_] {
-		return [$pgtr_ gen-size $id]
-	} else {
-		# Default value, for backward compatibility
-		return 2000
-	}
-}
-
-Http/Server instproc gen-age { id } {
-	$self instvar pgtr_ ns_
-
-	if [info exists pgtr_] {
-		set mtime [$ns_ now]
-		return [expr [$pgtr_ gen-modtime $id $mtime] - $mtime]
-	} else { 
-		return 50
-	}
 }
 
 Http/Server instproc gen-init-modtime { id } {
@@ -90,17 +97,22 @@ Http/Server instproc stale-time { pageid modtime } {
 
 Http/Server instproc modify-page { pageid } {
 	# Set Last-Modified-Time to current time
-	$self instvar ns_ id_ stat_
+	$self instvar ns_ id_ stat_ pgtr_
 
 	incr stat_(mod-num)
 	set id [lindex [split $pageid :] end]
 
 	# Change modtime and lifetime only, do not change page size
 	set modtime [$ns_ now]
-	set size [$self gen-pagesize $id]
-	set age [$self gen-age $id]	;# retrieve next modtime
-	$ns_ at [expr [$ns_ now] + $age] "$self modify-page $pageid"
-	$self enter-page $pageid size $size modtime $modtime age $age
+	if [info exists pgtr_] {
+		set pginfo [$pgtr_ gen-page $id $modtime]
+	} else {
+		set pginfo "size 2000 age 50 modtime $modtime"
+	}
+	array set data $pginfo
+	set age $data(age)
+	$self schedule-nextmod [expr [$ns_ now] + $age] $pageid
+	eval $self enter-page $pageid $pginfo
 
 	$ns_ trace-annotate "S $id_ INV $pageid"
 	$self evTrace S MOD p $pageid m [$ns_ now] n [expr [$ns_ now] + $age]
@@ -108,6 +120,11 @@ Http/Server instproc modify-page { pageid } {
 	$self instvar modtimes_ modseq_
 	incr modseq_($pageid)
 	set modtimes_($pageid:$modseq_($pageid)) $modtime
+}
+
+Http/Server instproc schedule-nextmod { time pageid } {
+	$self instvar ns_
+	$ns_ at $time "$self modify-page $pageid"
 }
 
 # XXX Assumes page doesn't exists before. 
@@ -121,17 +138,22 @@ Http/Server instproc gen-page { pageid } {
 	set id [lindex [split $pageid :] end]
 
 	set modtime [$self gen-init-modtime $id]
-	set size [$self gen-pagesize $id]
-	set age [$self gen-age $id]
-	$ns_ at [expr [$ns_ now] + $age] "$self modify-page $pageid"
+	if [info exists pgtr_] {
+		set pginfo [$pgtr_ gen-page $id $modtime]
+	} else {
+		set pginfo "size 2000 age 50 modtime $modtime"
+	}
+	array set data $pginfo
+	set age $data(age)
+	$self schedule-nextmod [expr [$ns_ now] + $age] $pageid
 
 	$self instvar modtimes_ modseq_
 	set modseq_($pageid) 0
 	set modtimes_($pageid:0) $modtime
 
 	#puts "Generated page $pageid age $age"
-	$self enter-page $pageid size $size modtime $modtime age $age
-	return "size $size modtime $modtime age $age"
+	eval $self enter-page $pageid $pginfo
+	return [join $pginfo]
 }
 
 Http/Server instproc disconnect { client } {
@@ -232,51 +254,46 @@ Http/Server/epa instproc start-update { interval } {
 	$ns_ at [expr [$ns_ now] + $pm_itv_] "$self modify-page"
 }
 
-# Do not schedule the next page modification.
+# Schedule next page modification using another way
+Http/Server/epa instproc schedule-nextmod { time pageid } {
+	$self instvar ns_ pm_itv_
+	$ns_ at [expr [$ns_ now]+$pm_itv_] "$self modify-page $pageid"
+}
+
+# Change the page id to be modified. The pageid given in argument makes 
+# no sense at all.
+Http/Server/epa instproc modify-page args {
+	$self instvar pgtr_
+	set pageid $self:[$pgtr_ pick-pagemod]
+	eval $self next $pageid
+}
+
+# Do not schedule modification during page generation.
 Http/Server/epa instproc gen-page { pageid } {
 	$self instvar ns_ pgtr_ 
 
 	if [$self exist-page $pageid] {
-		#debug 1
 		error "$self: shouldn't use gen-page for existing pages"
 	}
 
 	set id [lindex [split $pageid :] end]
 
 	set modtime [$self gen-init-modtime $id]
-	set size [$self gen-pagesize $id]
-	set age [$self gen-age $id]
+	if [info exists pgtr_] {
+		set pginfo [$pgtr_ gen-page $id $modtime]
+	} else {
+		set pginfo "size 2000 age 50 modtime $modtime"
+	}
+	array set data $pginfo
+	set age $data(age)
 
 	$self instvar modtimes_ modseq_
 	set modseq_($pageid) 0
 	set modtimes_($pageid:0) $modtime
 
 	#puts "Generated page $pageid age $age"
-	$self enter-page $pageid size $size modtime $modtime age $age
-	return "size $size modtime $modtime age $age"
-}
-
-Http/Server/epa instproc modify-page args {
-	# Set Last-Modified-Time to current time
-	$self instvar ns_ id_ stat_ pgtr_ pm_itv_
-
-	incr stat_(mod-num)
-	set id [$pgtr_ pick-pagemod]
-	set pageid $self:$id
-	$ns_ at [expr [$ns_ now]+$pm_itv_] "$self modify-page"
-
-	# Change modtime and lifetime only, do not change page size
-	set modtime [$ns_ now]
-	set size [$self gen-pagesize $id]
-	set age [$self gen-age $id]	;# retrieve next modtime
-	$self enter-page $pageid size $size modtime $modtime age $age
-
-	$ns_ trace-annotate "S $id_ INV $pageid"
-	$self evTrace S MOD p $pageid m [$ns_ now] n [expr [$ns_ now] + $age]
-
-	$self instvar modtimes_ modseq_
-	incr modseq_($pageid)
-	set modtimes_($pageid:$modseq_($pageid)) $modtime
+	eval $self enter-page $pageid $pginfo
+	return [join $pginfo]
 }
 
 
@@ -386,6 +403,8 @@ Http/Server/Inval/Yuc instproc heartbeat {} {
 	$self instvar pcache_ ns_
 	$self send $pcache_ [$self get-hbsize] \
 		"$pcache_ server-hb [$self id]"
+	# XXX 990122 Change to unreliable heartbeat!
+#	$self cmd send-heartbeat
 	$ns_ at [expr [$ns_ now] + [$self next-hb]] \
 		"$self heartbeat"
 }
@@ -469,33 +488,7 @@ Http/Server/Inval/Yuc instproc handle-request-TLC { pageid args } {
 #----------------------------------------------------------------------
 Class Http/Server/Compound -superclass Http/Server
 
-Http/Server/Compound instproc gen-pagesize { id } {
-	if {$id == 0} {
-		return [$self next $id]
-	} else {
-		$self instvar pgtr_
-		if [info exists pgtr_] {
-			return [$pgtr_ gen-obj-size $id]
-		} else { 
-			error "Must have a pagepool to generate compound page"
-		}
-	}
-}
-
-Http/Server/Compound instproc gen-age { id } {
-	if {$id == 0} {
-		return [$self next $id]
-	} else {
-		$self instvar pgtr_ ns_
-		if [info exists pgtr_] {
-			set mtime [$ns_ now]
-			return [expr [$pgtr_ gen-obj-modtime $id $mtime] - $mtime]
-		} else { 
-			error "Must have a pagepool to generate compound page"
-		}
-	}
-}
-
 # Invalidation server for compound pages
 Class Http/Server/Inval/MYuc -superclass \
 		{ Http/Server/Inval/Yuc Http/Server/Compound}
+

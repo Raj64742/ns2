@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.3 1998/12/16 21:10:57 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.4 1999/01/26 18:30:53 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"

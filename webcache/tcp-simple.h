@@ -18,7 +18,7 @@
 // Simple TCP only preserves: 
 // (1) FullTcp::advance-bytes, 
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.h,v 1.3 1998/12/16 21:11:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.h,v 1.4 1999/01/26 18:30:56 haoboy Exp $
 
 #ifndef ns_tcp_simple_h
 #define ns_tcp_simple_h

@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.5 1998/12/16 21:10:55 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.6 1999/01/26 18:30:52 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -286,7 +286,7 @@ int HttpApp::command(int argc, const char*const* argv)
 			return TCL_OK;
 		
 		} else if (strcmp(argv[1], "enter-page") == 0) {
-			double mt = -1, et, age = -1;
+			double mt = -1, et, age = -1, noc = 0;
 			int size = -1;
 			for (int i = 3; i < argc; i+=2) {
 				if (strcmp(argv[i], "modtime") == 0)
@@ -295,6 +295,9 @@ int HttpApp::command(int argc, const char*const* argv)
 					size = atoi(argv[i+1]);
 				else if (strcmp(argv[i], "age") == 0)
 					age = strtod(argv[i+1], NULL);
+				else if (strcmp(argv[i], "noc") == 0)
+					// non-cacheable flag
+					noc = 1;
 			}
 			// XXX allow mod time < 0
 			if ((size < 0) || (age < 0)) {
@@ -303,7 +306,10 @@ int HttpApp::command(int argc, const char*const* argv)
 				return TCL_ERROR;
 			}
 			et = Scheduler::instance().clock();
-			pool_->add_page(argv[2], size, mt, et, age);
+			ClientPage* pg = 
+				pool_->add_page(argv[2], size, mt, et, age);
+			if (noc) 
+				pg->set_uncacheable();
 			return TCL_OK;
 		} else if (strcmp(argv[1], "evTrace") == 0) { 
 			char buf[1024], *p;
@@ -1445,6 +1451,9 @@ int HttpPercInvalCache::command(int argc, const char*const* argv)
 		 * The same arguments as enter-page, but set the page status
 		 * as HTTP_VALID_HEADER, i.e., if we get a request, we need 
 		 * to fetch the actual valid page content
+		 *
+		 * XXX We don't need parsing "noc" here because a non-cacheable
+		 * page won't be processed by a cache.
 		 */
 		double mt = -1, et, age = -1;
 		int size = -1;

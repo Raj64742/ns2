@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.4 1998/12/16 21:11:23 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.5 1999/01/26 18:30:50 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -216,7 +216,7 @@ Http/Cache instproc cache-hit { cl type pageid } {
 	$self evTrace E HIT p $pageid c [$cl id] s [$server id]
 	# XXX don't send any response here. Classify responses according
 	# to request type.
-	$self answer-request-$type $cl $pageid
+	eval $self answer-request-$type $cl $pageid [$self get-page $pageid]
 }
 
 # A response may come from: 
@@ -224,16 +224,21 @@ Http/Cache instproc cache-hit { cl type pageid } {
 Http/Cache instproc get-response-GET { server pageid args } {
 	array set data $args
 
-	if ![$self exist-page $pageid] {
-		# Cache the page if it's not in the pool
-		eval $self enter-page $pageid $args
-		$self evTrace E ENT p $pageid m $data(modtime) \
-			z $data(size) s [$server id]
-	} else {
-		$self instvar id_ ns_
-		error "At [$ns_ now], cache $id_ has requested a page which \
-it already has."
+	if ![info exists data(noc)] {
+		# Cacheable page, continue...
+		if ![$self exist-page $pageid] {
+			# Cache the page if it's not in the pool
+			eval $self enter-page $pageid $args
+			$self evTrace E ENT p $pageid m $data(modtime) \
+					z $data(size) s [$server id]
+		} else {
+			$self instvar id_ ns_
+			# A pushed page may come before a response!
+			puts stderr "At [$ns_ now], cache $id_ has requested a page which it already has."
+		}
 	}
+	# If non-cacheable page, don't cache the page. However, still need to
+	# answer all pending requests
 	eval $self answer-pending-requests $pageid $args
 
 	$self instvar stat_
@@ -253,7 +258,7 @@ Http/Cache instproc answer-pending-requests { pageid args } {
 			set tmp [split $clt /]
 			set cl [lindex $tmp 0]
 			set type [lindex $tmp 1]
-			$self answer-request-$type $cl $pageid
+			eval $self answer-request-$type $cl $pageid $args
 		}
 		unset creq_($pageid)
 		unset pending_($pageid)
@@ -262,14 +267,13 @@ Http/Cache instproc answer-pending-requests { pageid args } {
 	}
 }
 
-Http/Cache instproc answer-request-GET { cl pageid } {
+Http/Cache instproc answer-request-GET { cl pageid args } {
 	# In response to a GET, we should always return
 	# our copy of the page.
-	set pginfo [$self get-page $pageid]
-	set size [$self get-size $pageid]
-	$self send $cl $size \
-		"$cl get-response-GET $self $pageid $pginfo"
-	$self evTrace E SND c [$cl id] p $pageid z $size
+	array set data $args
+	$self send $cl $data(size) \
+		"$cl get-response-GET $self $pageid $args"
+	$self evTrace E SND c [$cl id] p $pageid z $data(size)
 }
 
 
@@ -296,9 +300,12 @@ Http/Cache/TTL instproc set-thresh { th } {
 # XXX we should store modtime of IMS requests somewhere. Then we can check 
 # if that modtime matches this cache's newest modtime when it gets an IMS
 # response back from the server
-Http/Cache/TTL instproc answer-request-IMS { client pageid } {
-	set mt [$self get-modtime $pageid]
+Http/Cache/TTL instproc answer-request-IMS { client pageid args } {
+	if ![$self exist-page $pageid] {
+		error "At [$ns_ now], cache [$self id] gets an IMS of a non-cacheable page."
+	}
 
+	set mt [$self get-modtime $pageid]
 	if ![$client exist-page $pageid] {
 		error "client [$client id] IMS a page which it doesn't have"
 	}
@@ -342,7 +349,7 @@ Http/Cache/TTL instproc get-response-IMS { server pageid args } {
 		# Update entry last validation time
 		$self set-cachetime $pageid [$ns_ now]
 	}
-	eval $self answer-pending-requests $pageid $args
+	eval $self answer-pending-requests $pageid [$self get-page $pageid]
 
 	# Compute total bytes arrived
 	$self instvar stat_
@@ -464,7 +471,11 @@ Http/Cache/Inval instproc mark-rejoin {} {
 	$node_ delete-mark down
 }
 
-Http/Cache/Inval instproc answer-request-REF { cl pageid } {
+Http/Cache/Inval instproc answer-request-REF { cl pageid args } {
+	if ![$self exist-page $pageid] {
+		error "At [$ns_ now], cache [$self id] gets a REF of a non-cacheable page."
+	}
+
 	# Send my new page back
 	set pginfo [$self get-page $pageid]
 	set size [$self get-size $pageid]
@@ -506,7 +517,7 @@ Http/Cache/Inval instproc get-response-REF { server pageid args } {
 		$self evTrace E UPD p $pageid m [$self get-modtime $pageid] \
 				z [$self get-size $pageid] s [$server id]
 	}
-	eval $self answer-pending-requests $pageid $args
+	eval $self answer-pending-requests $pageid [$self get-page $pageid]
 
 	$self instvar node_ marks_ ns_
 	set mk [lindex $marks_($pageid) 0]
@@ -851,7 +862,7 @@ Http/Cache/Inval/Mcast instproc server-join { server cache } {
 	$self send $parent_ [$self get-joinsize] \
 			"$parent_ server-join $server $self"
 
-	# Establishing heartbeat
+	# Establishing a tcp connection. 
 	Http instvar TRANSPORT_
 	$self instvar ns_ node_
 

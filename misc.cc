@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.7 1998/06/27 01:24:12 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.8 1999/01/26 18:30:43 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -47,6 +47,35 @@ static const char rcsid[] =
 #include <ctype.h>
 #include "scheduler.h"
 #include "random.h"
+
+#if defined(HAVE_STRTOQ) || defined(HAVE_STRTOLL)
+class Add64Command : public TclCommand {
+public: 
+	Add64Command() : TclCommand("ns-add64") {}
+	virtual int command(int argc, const char*const* argv);
+};
+
+int Add64Command::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		char res[22]; /* A 64 bit int at most 20 digits */
+#if defined(HAVE_STRTOQ)
+		quad_t d1 = strtoq(argv[1], NULL, 0);
+		quad_t d2 = strtoq(argv[2], NULL, 0);
+		sprintf(res, "%qd", d1+d2);
+#elif defined(HAVE_STRTOLL)
+		long long d1 = strtoll(argv[1], NULL, 0);
+		long long d2 = strtoll(argv[2], NULL, 0);
+		sprintf(res, "%lld", d1+d2);
+#endif
+		tcl.resultf("%s", res);
+		return (TCL_OK);
+	}
+	tcl.add_error("ns-add64 requires two arguments.");
+	return (TCL_ERROR);
+}
+#endif
 
 class RandomCommand : public TclCommand {
 public:
@@ -124,4 +153,7 @@ void init_misc(void)
 	(void)new VersionCommand;
 	(void)new RandomCommand;
 	(void)new TimeAtofCommand;
+#if defined(HAVE_STRTOQ) || defined(HAVE_STRTOLL)
+	(void)new Add64Command;
+#endif
 }

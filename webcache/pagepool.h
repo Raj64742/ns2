@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.4 1998/12/16 21:11:00 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.5 1999/01/26 18:30:54 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -69,6 +69,10 @@ const int HTTP_SERVER_DOWN	= 0x02;	// Server is down. Don't know if
 const int HTTP_VALID_HEADER	= 0x04;	// Only meta-data is valid
 const int HTTP_UNREAD_PAGE	= 0x08;	// Unread valid page
 
+// Used only for server to manage its pages. A none-cacheable page won't be 
+// stored by caches and clients.
+const int HTTP_UNCACHEABLE	= 0x10; // Non-cacheable page
+
 // Page actions
 const int HTTP_PAGE_ACTION_MASK = 0xFF00; // Page action bit mask
 const int HTTP_MANDATORY_PUSH	= 0x1000; // If the page is mandatory pushed
@@ -87,7 +91,6 @@ public:
 	double& etime() { return etime_; }
 	double& age() { return age_; }
 	HttpApp* server() { return server_; }
-	inline int& counter() { return counter_; }
 
 	// Page becomes valid. Clear all other possible invalid bits
 	void validate(double mtime) { 
@@ -119,6 +122,13 @@ public:
 		set_page_state(HTTP_VALID_HEADER); 
 	}
 
+	inline void set_uncacheable() { 
+		set_page_state(HTTP_UNCACHEABLE);
+	}
+	inline int is_uncacheable() {
+		return (status_ & HTTP_UNCACHEABLE);
+	}
+
 	// Has nothing to do with valid/invalid/server_down etc. It can 
 	// be combined with all other page status
 	inline void set_unread() { 
@@ -138,21 +148,32 @@ public:
 		set_page_state(HTTP_SERVER_DOWN);
 	}
 
+	// Flags to indicate whether we want to do all push or selective push
+	// If 0: selective push, otherwise all push
+	static int PUSHALL_; 
+	inline int& counter() { 
+		if (PUSHALL_) counter_ = INT_MAX;
+		return counter_;
+	}
 	inline int count_inval(int a, int th) { 
-		counter_ -= a; 
-#ifndef WEBCACHE_PUSHALL
-		if (counter_ < th) 
-			counter_ = th;
-#endif
-		return counter_; 
+		if (PUSHALL_) 
+			return INT_MAX;
+		else {
+			counter_ -= a; 
+			if (counter_ < th) 
+				counter_ = th;
+			return counter_; 
+		}
 	}
 	inline int count_request(int b, int th) { 
-		counter_ += b; 
-#ifndef WEBCACHE_PUSHALL
-		if (counter_ > th) 
-			counter_ = th;
-#endif
-		return counter_; 
+		if (PUSHALL_) 
+			return INT_MAX;
+		else {
+			counter_ += b; 
+			if (counter_ > th) 
+				counter_ = th;
+			return counter_; 
+		}
 	}
 	inline void set_mpush(double time) { 
 		set_page_action(HTTP_MANDATORY_PUSH), mpushTime_ = time; 
@@ -196,6 +217,7 @@ public:
 	PagePool() : num_pages_(0), start_time_(INT_MAX), end_time_(INT_MIN) {}
 	int num_pages() const { return num_pages_; }
 protected:
+	virtual int command(int argc, const char*const* argv);
 	int num_pages_;
 	double start_time_;
 	double end_time_;

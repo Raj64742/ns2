@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.8 1998/12/23 23:14:10 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.9 1999/01/26 18:30:48 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -843,6 +843,7 @@ Test/SimpleTcp instproc init {} {
 	$self instvar startTime_ finishTime_
 	set startTime_ 10
 	set finishTime_ 20
+	Http set TRANSPORT_ SimpleTcp
 }
 
 Test/SimpleTcp instproc set-routing {} {

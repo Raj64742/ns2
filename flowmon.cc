@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.13 1998/06/27 01:23:53 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.14 1999/01/26 18:30:42 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -172,7 +172,7 @@ FlowMon::edrop(Packet *p)
 void
 FlowMon::dumpflows()
 {
-	register i, j = classifier_->maxslot();
+	register int i, j = classifier_->maxslot();
 	Flow* f;
 
 	for (i = 0; i <= j; i++) {
@@ -213,7 +213,13 @@ void
 FlowMon::fformat(Flow* f)
 {
 	double now = Scheduler::instance().clock();
+#if defined(HAVE_STRTOQ)
+	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %qd %qd %d %d %qd %qd %d %d %d %d %d %d",
+#elif defined(HAVE_STRTOLL)
+	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %lld %lld %d %d %qd %qd %d %d %d %d %d %d",
+#else /* no 64-bit int */
 	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+#endif
 		now,		// 1: time
 		f->flowid(),	// 2: flowid
 		0,		// 3: category

@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.18 1998/10/06 01:26:24 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.19 1999/01/26 18:30:46 haoboy Exp $
 #
 
 #
@@ -115,8 +115,13 @@ Node instproc add-mark { name color {shape "circle"} } {
 
 Node instproc delete-mark { name } {
 	$self instvar id_ markColor_ shape_
-	set ns [Simulator instance]
 
+	# Ignore if the mark $name doesn't exist
+	if ![info exists markColor_($name)] {
+		return
+	}
+
+	set ns [Simulator instance]
 	$ns puts-nam-config \
 		"m -t [$ns now] -s $id_ -n $name -c $markColor_($name) -h $shape_($name) -X"
 }

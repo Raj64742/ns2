@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.18 1998/08/22 02:40:57 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.19 1999/01/26 18:30:40 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -270,7 +270,7 @@ HashClassifier::HashClassifier(int b) : default_(-1), buckets_(b), htab_(NULL)
 
 HashClassifier::~HashClassifier()
 {
-	register i;
+	register int i;
 	hnode *p;
 	hnode *n;
 	for (i = 0; i < buckets_; i++) {
@@ -379,7 +379,7 @@ void
 HashClassifier::reset()
 {
 	hnode *h;
-	register i;
+	register int i;
 	for (i = 0; i < buckets_; i++) {
 		htab_[i].active = 0;
 		h = htab_[i].next;
