@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.6.2.2 1997/04/26 01:00:36 padmanab Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.6.2.3 1997/04/27 06:19:50 padmanab Exp $ (LBL)";
 #endif
 
 //
@@ -112,6 +112,10 @@ void NewRenoTcpAgent::recv(Packet *pkt)
 	    if (tcph->seqno() >= recover_) {
 		dupwnd_ = 0;
 		newack(pkt);
+		if ((highest_ack() >= curseq_-1) && !closed_) {
+			closed_ = 1;
+			finish();
+		}
                 opencwnd();
 	    } else {
 		/* received new ack for a packet sent during Fast

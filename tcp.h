@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.6 1997/04/26 01:00:40 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.7 1997/04/27 06:19:53 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -288,6 +288,7 @@ protected:
 	void reset();
 	void newack(Packet* pkt);
 	void quench(int how);
+	void finish(); /* called when the connection is terminated */
 
 	double overhead_;
 	double wnd_;
@@ -327,6 +328,8 @@ protected:
 	int off_ip_;
 	int off_tcp_;
 
+	char finish_[20];       /* name of Tcl proc to call at finish time */
+	int closed_;            /* whether this connection has closed */
 private:
 	double last_log_time_; /* the time at which the state variables were logged
 				  last */

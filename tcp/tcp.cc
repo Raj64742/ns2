@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13.2.4 1997/04/26 01:00:39 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13.2.5 1997/04/27 06:19:52 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -101,7 +101,7 @@ public:
 	}
 } class_tcp;
 
-TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0), ts_peer_(0), dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), t_backoff_(0), curseq_(0), maxseq_(0)
+TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0), ts_peer_(0), dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), t_backoff_(0), curseq_(0), maxseq_(0), closed_(0)
 {
 /*	InstVarTrace *ivt;*/
 
@@ -133,6 +133,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_tim
 
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
+
+	finish_[0] = 0;
 
 	// reset used for dynamically created agent
 	reset();
@@ -265,6 +267,11 @@ int TcpAgent::command(int argc, const char*const* argv)
 			t_srtt() = other->t_srtt();
 			t_rttvar() = other->t_rttvar();
 			t_backoff() = other->t_backoff();
+			return (TCL_OK);
+		}
+		
+		if (strcmp(argv[1], "finish") == 0) {
+			strcpy(finish_, argv[2]);
 			return (TCL_OK);
 		}
 	}
@@ -544,6 +551,10 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		quench(1);
 	if (tcph->seqno() > last_ack_) {
 		newack(pkt);
+		if ((highest_ack() >= curseq_-1) && !closed_) {
+			closed_ = 1;
+			finish();
+		}
 		opencwnd();
 	} else if (tcph->seqno() == last_ack_) {
 		if (++dupacks() == NUMDUPACKS) {
@@ -556,7 +567,6 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 				recover_cause_ = 1;
 				closecwnd(0);
 				reset_rtx_timer(0);
-				fprintf(stderr,"doing fastrxt\n");
 			}
 			else if (ecn_ && recover_cause_ != 1) {
 				closecwnd(2);
@@ -591,4 +601,14 @@ void TcpAgent::timeout(int tno)
 		 */
 		send(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
+}
+
+void TcpAgent::finish() {
+	char wrk[100];
+
+	if (finish_ != "") 
+		sprintf(wrk, "%s", finish_);
+	else
+		sprintf(wrk, "finish", name());
+	Tcl::instance().eval(wrk);
 }
