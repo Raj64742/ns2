@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.3 1998/07/18 00:44:01 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.4 1998/07/24 21:44:19 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -120,6 +120,18 @@ struct hdr_cmn {
 	int	ref_count_;	// free the pkt until count to 0
 
 	static int offset_;	// offset for this header
+
+	enum iface_constant { 
+		UNKN_IFACE= -1, /* iface value for locally originated packets 
+				 */
+		ANY_IFACE= -2   /* hashnode with iif == ANY_IFACE_                           
+				 * matches any pkt iface (imported from TCL);                
+				 * this value should be different from hdr_cmn::UNKN_IFACE   
+				 * from packet.h                                             
+				 */                                                          
+	};
+	hdr_cmn() : size_(0), error_(0), iface_(UNKN_IFACE), ref_count_(0) {};
+
 	inline static int& offset() { return offset_; }
 	inline static hdr_cmn* access(Packet* p, int off=-1) {
 		return (hdr_cmn*) p->access(off < 0 ? offset_ : off);
