@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.62 1999/06/19 04:58:47 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.63 1999/06/21 18:14:01 tomh Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -274,6 +274,7 @@ struct hdr_cmn {
 	//Monarch extn begins
 	nsaddr_t next_hop_;	// next hop for this packet
 	int      addr_type_;    // type of next_hop_ addr
+	nsaddr_t last_hop_; 	// for tracing on multi-user channels
 #define AF_NONE 0
 #define AF_ILINK 1
 #define AF_INET 2
@@ -362,6 +363,8 @@ inline Packet* Packet::alloc()
 			abort();
 	}
 	init(p); // Initialize bits_[]
+	(HDR_CMN(p))->next_hop_ = -2; // -1 reserved for IP_BROADCAST
+	(HDR_CMN(p))->last_hop_ = -2; // -1 reserved for IP_BROADCAST
 	p->fflag_ = TRUE;
 	(HDR_CMN(p))->direction() = -1;
 	/* setting all direction of pkts to be downward as default; 

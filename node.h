@@ -30,6 +30,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.9 1999/06/21 18:13:59 tomh Exp $
+ *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
 
@@ -43,8 +46,47 @@
 #include "connector.h"
 #include "object.h"
 #include "phy.h"
+#include "list.h"
+#include "net-interface.h"
 
+class LinkHead;
+LIST_HEAD(linklist_head, LinkHead); // declare list head structure 
+/*
+ * The interface between a network stack and the higher layers.
+ * This is analogous to the OTcl Link class's "head_" object.
+ * XXX This object should provide a uniform API across multiple link objects;
+ * right now it is a placeholder.  See satlink.h for now.  It is declared in
+ * node.h for now since all nodes have a linked list of LinkHeads.
+ */
+class Node;
+class NetworkInterface;
+class LinkHead : public Connector {
+public:
+	LinkHead(); 
 
+	// API goes here
+	Node* node() { return node_; }
+	int type() { return type_; }
+	int32_t label();
+	// Future API items could go here 
+
+	// list of all networkinterfaces on a node
+	inline void insertlink(struct linklist_head *head) {
+                LIST_INSERT_HEAD(head, this, link_entry_);
+        }
+        LinkHead* nextlinkhead(void) const { return link_entry_.le_next; }
+
+protected:
+	virtual int command(int argc, const char*const* argv);
+	NetworkInterface* net_if_; // Each link has a Network Interface
+	Node* node_; // Pointer to node object
+	int type_; // Type of link
+	// Each node has a linked list of link heads
+	LIST_ENTRY(LinkHead) link_entry_;
+
+};
+
+LIST_HEAD(node_head, Node); // declare list head structure 
 
 // srm-topo.h already uses class Node- hence the odd name "Node"
 //
@@ -58,9 +100,22 @@ class Node : public TclObject {
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
 	int address_;
-	struct if_head ifhead_;
+
+	// XXX can we deprecate the next line (used in MobileNode)
+	// in favor of accessing phys via a standard link API?
+	struct if_head ifhead_; // list of phys for this node
+	struct linklist_head linklisthead_; // list of link heads on node
+
+	NsObject* intf_to_target(int32_t); 
+
+	// The remaining objects handle a (static) linked list of nodes
+	static struct node_head nodehead_;  // static head of list of nodes
+	inline void insert(struct node_head* head) {
+		LIST_INSERT_HEAD(head, this, entry);
+	}
+	inline Node* nextnode() { return entry.le_next; }
 protected:
-	
+	LIST_ENTRY(Node) entry;  // declare list entry structure
 	
 };
 

@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.27 1999/04/22 18:53:41 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.28 1999/06/21 18:14:04 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -57,7 +57,14 @@ public:
 	}
 } routelogic_class;
 
-
+void RouteLogic::reset_all()
+{
+	delete[] adj_;
+	delete[] route_;
+	adj_ = 0; 
+	route_ = 0;
+	size_ = 0;
+}
 
 int RouteLogic::command(int argc, const char*const* argv)
 {
@@ -91,9 +98,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 	
 		if (strcmp(argv[1], "reset") == 0) {
-			delete[] adj_;
-			adj_ = 0;
-			size_ = 0;
+			reset_all();
 			return (TCL_OK);
 		}
 	} 
@@ -105,7 +110,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 				tcl.result("negative node number");
 				return (TCL_ERROR);
 			}
-			int cost = (argc == 5 ? atoi(argv[4]) : 1);
+			double cost = (argc == 5 ? atof(argv[4]) : 1);
 			insert(src, dst, cost);
 			return (TCL_OK);
 		}
@@ -240,7 +245,7 @@ int RouteLogic::lookup_flat(char* asrc, char* adst, int& result) {
 		tcl.result("node out of range");
 		return (TCL_ERROR);
 	}
-	result = route_[INDEX(src, dst, size_)] - 1;
+	result = route_[INDEX(src, dst, size_)].next_hop - 1;
 	return TCL_OK;
 }
 
@@ -364,9 +369,11 @@ void RouteLogic::alloc(int n)
 {
 	size_ = n;
 	n *= n;
-	adj_ = new int[n];
-	for (int i = 0; i < n; ++i)
-		adj_[i] = INFINITY;
+	adj_ = new adj_entry[n];
+	for (int i = 0; i < n; ++i) {
+		adj_[i].cost = INFINITY;
+		adj_[i].entry = 0;
+	}
 }
 
 /*
@@ -378,7 +385,7 @@ void RouteLogic::check(int n)
 	if (n < size_)
 		return;
 
-	int* old = adj_;
+	adj_entry* old = adj_;
 	int osize = size_;
 	int m = osize;
 	if (m == 0)
@@ -389,35 +396,44 @@ void RouteLogic::check(int n)
 	alloc(m);
 	for (int i = 0; i < osize; ++i) {
 		for (int j = 0; j < osize; ++j)
-			adj_[INDEX(i, j, m)] = old[INDEX(i, j, osize)];
+			adj_[INDEX(i, j, m)].cost =old[INDEX(i, j, osize)].cost;
 	}
 	size_ = m;
 	delete[] old;
 }
 
-void RouteLogic::insert(int src, int dst, int cost)
+void RouteLogic::insert(int src, int dst, double cost)
 {
 	check(src);
 	check(dst);
-	adj_[INDEX(src, dst, size_)] = cost;
+	adj_[INDEX(src, dst, size_)].cost = cost;
+}
+void RouteLogic::insert(int src, int dst, double cost, void* entry_)
+{
+	check(src);
+	check(dst);
+	adj_[INDEX(src, dst, size_)].cost = cost;
+	adj_[INDEX(src, dst, size_)].entry = entry_;
 }
 
 void RouteLogic::reset(int src, int dst)
 {
 	assert(src < size_);
 	assert(dst < size_);
-	adj_[INDEX(src, dst, size_)] = INFINITY;
+	adj_[INDEX(src, dst, size_)].cost = INFINITY;
 }
 
 void RouteLogic::compute_routes()
 {
 	int n = size_;
-	int* hopcnt = new int[n];
 	int* parent = new int[n];
-#define ADJ(i, j) adj_[INDEX(i, j, size_)]
-#define ROUTE(i, j) route_[INDEX(i, j, size_)]
+	double* hopcnt = new double[n];
+#define ADJ(i, j) adj_[INDEX(i, j, size_)].cost
+#define ADJ_ENTRY(i, j) adj_[INDEX(i, j, size_)].entry
+#define ROUTE(i, j) route_[INDEX(i, j, size_)].next_hop
+#define ROUTE_ENTRY(i, j) route_[INDEX(i, j, size_)].entry
 	delete[] route_;
-	route_ = new int[n * n];
+	route_ = new route_entry[n * n];
 	memset((char *)route_, 0, n * n * sizeof(route_[0]));
 
 	/* do for all the sources */
@@ -431,8 +447,10 @@ void RouteLogic::compute_routes()
 		for (v = 1; v < n; ++v) {
 			if (parent[v] != k) {
 				hopcnt[v] = ADJ(k, v);
-				if (hopcnt[v] != INFINITY)
+				if (hopcnt[v] != INFINITY) {
 					ROUTE(k, v) = v;
+					ROUTE_ENTRY(k, v) = ADJ_ENTRY(k, v);
+				}
 			}
 		}
 		for (v = 1; v < n; ++v) {
@@ -458,6 +476,8 @@ void RouteLogic::compute_routes()
 				if (parent[w] != k &&
 				    hopcnt[o] + ADJ(o, w) < hopcnt[w]) {
 					ROUTE(k, w) = ROUTE(k, o);
+					ROUTE_ENTRY(k, w) = 
+					    ROUTE_ENTRY(k, o);
 					hopcnt[w] = hopcnt[o] + ADJ(o, w);
 				}
 			}
@@ -466,14 +486,14 @@ void RouteLogic::compute_routes()
 	/*
 	 * The route to yourself is yourself.
 	 */
-	for (k = 1; k < n; ++k)
+	for (k = 1; k < n; ++k) {
 		ROUTE(k, k) = k;
+		ROUTE_ENTRY(k, k) = 0; // This should not matter
+	}
 
 	delete[] hopcnt;
 	delete[] parent;
 }
-
-
 
 /* hierarchical routing support */
 /* This function creates adjacency matrix for each cluster at the lowest level of the hierarchy for every node in the cluster, for every other cluster in the domain, and every other domain. can be extended from 3-level hierarchy to n-level along similar lines*/
@@ -684,12 +704,12 @@ void RouteLogic::hier_compute_routes(int i, int j)
 {
 	int size = (cluster_size_[i] + C_[j] + D_);
 	int n = size ;
-	int* hopcnt = new int[n];
-	int* parent = new int[n];
-#define HADJ(i, j) adj_[INDEX(i, j, size)]
-#define HROUTE(i, j) route_[INDEX(i, j, size)]
+	double* hopcnt = new double[n];
+#define HADJ(i, j) adj_[INDEX(i, j, size)].cost
+#define HROUTE(i, j) route_[INDEX(i, j, size)].next_hop
 	delete[] route_;
-	route_ = new int[n * n];
+	route_ = new route_entry[n * n];
+	int* parent = new int[n];
 	memset((char *)route_, 0, n * n * sizeof(route_[0]));
 
 	/* do for all the sources */
@@ -785,16 +805,16 @@ void RouteLogic::hier_compute()
 		for (k=1; k < C_[j]; k++) {
 			i = INDEX(j, k, Cmax_);
 			int s = (cluster_size_[i] + C_[j] + D_);
-			adj_ = new int[(s * s)];
+			adj_ = new adj_entry[(s * s)];
 			memset((char *)adj_, 0, s * s * sizeof(adj_[0]));
 			for (n=0; n < s; n++)
 				for(m=0; m < s; m++)
-					adj_[INDEX(n, m, s)] = hadj_[i][INDEX(n, m, s)];
+					adj_[INDEX(n, m, s)].cost = hadj_[i][INDEX(n, m, s)];
 			hier_compute_routes(i, j);
 	
 			for (n=0; n < s; n++)
 				for(m=0; m < s; m++)
-					hroute_[i][INDEX(n, m, s)] = route_[INDEX(n, m, s)];
+					hroute_[i][INDEX(n, m, s)] = route_[INDEX(n, m, s)].next_hop;
 			delete [] adj_;
 		}
 }

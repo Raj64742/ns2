@@ -31,13 +31,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.10 1998/12/08 23:43:08 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.11 1999/06/21 18:14:01 tomh Exp $ (LBL)
  */
 
 #ifndef ns_object_h
 #define ns_object_h
 
 #include "scheduler.h"
+
+#define NOW Scheduler::instance().clock()
 
 class Packet;
 

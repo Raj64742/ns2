@@ -55,6 +55,7 @@ Phy::Phy() : BiConnector() {
 	bandwidth_ = 0.0;
 	channel_ = 0;
 	node_ = 0;
+	head_ = 0;
 }
 
 int
@@ -89,6 +90,11 @@ Phy::command(int argc, const char*const* argv) {
 			// LIST_INSERT_HEAD() is done by Node
 			return TCL_OK;
 		}
+		else if (strcmp(argv[1], "linkhead") == 0) {
+			head_ = (LinkHead*)  obj;
+			return (TCL_OK);
+		}
+
 	} 
 	return BiConnector::command(argc, argv);
 }

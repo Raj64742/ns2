@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.156 1999/05/26 01:20:06 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.157 1999/06/21 18:14:05 tomh Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -145,6 +145,7 @@ OBJ_CC = \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
 	ns-process.o \
+	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
 	webcache/mcache.o 
@@ -233,6 +234,7 @@ NS_TCL_LIB = \
 	tcl/lib/ns-lib.tcl \
 	tcl/lib/ns-link.tcl \
 	tcl/lib/ns-mobilenode.tcl \
+	tcl/lib/ns-sat.tcl \
 	tcl/lib/ns-cmutrace.tcl \
 	tcl/lib/ns-node.tcl \
 	tcl/lib/ns-hiernode.tcl \

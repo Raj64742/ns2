@@ -35,6 +35,9 @@
  * Routing code for general topologies based on min-cost routing algorithm in
  * Bertsekas' book.  Written originally by S. Keshav, 7/18/88
  * (his work covered by identical UC Copyright)
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.h,v 1.4 1999/06/21 18:14:03 tomh Exp $
+ *
  */
 
 #ifndef ns_route_h
@@ -55,6 +58,16 @@ be able to extend it for n levels of hierarchy in the future ***/
 #define C_D_INDEX(i, j, a, b, c)	(((a+i) * (a+b+c)) + (a+(b-1)+j))
 #define D_D_INDEX(i, j, a, b, c)	(((a+(b-1)+i) * (a+b+c)) + (a+(b-1)+j))
 
+struct adj_entry {
+	double cost;
+	void* entry;
+};
+
+struct route_entry {
+public:
+	int next_hop;
+	void* entry;
+};
 
 class RouteLogic : public TclObject {
 public:
@@ -68,11 +81,13 @@ protected:
 
 	void check(int);
 	void alloc(int n);
-	void insert(int src, int dst, int cost);
 	void reset(int src, int dst);
 	void compute_routes();
-	int *adj_;
-	int *route_;
+	void insert(int src, int dst, double cost);
+	adj_entry *adj_;
+	route_entry *route_;
+	void insert(int src, int dst, double cost, void* entry);
+	void reset_all();
 	int size_,
 		maxnode_;
 

@@ -22,38 +22,35 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/net-interface.cc,v 1.7 1998/10/27 00:50:09 yuriy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/net-interface.cc,v 1.8 1999/06/21 18:13:58 tomh Exp $ (USC/ISI)";
 #endif
 
-#include "connector.h"
-#include "packet.h"
+#include "net-interface.h"
 
-class NetworkInterface : public Connector {
-public:
-	NetworkInterface() : intf_label_(UNKN_IFACE.value()) { /*NOTHING*/ }
-	int command(int argc, const char*const* argv) {
-		if (argc > 1) {
-			if (strcmp(argv[1], "label") == 0) {
-				if (argc == 2) {
-					Tcl::instance().resultf("%d", intf_label_);
-					return TCL_OK;
-				}
-				if (argc == 3) {
-					intf_label_ = atoi(argv[2]);
-					return TCL_OK;
-				}
+int NetworkInterface::command(int argc, const char*const* argv) {
+	if (argc > 1) {
+		if (strcmp(argv[1], "label") == 0) {
+			if (argc == 2) {
+				Tcl::instance().resultf("%d", intf_label_);
+				return TCL_OK;
+			}
+			if (argc == 3) {
+				intf_label_ = atoi(argv[2]);
+				return TCL_OK;
 			}
 		}
-        	return (Connector::command(argc, argv));
-        }
-	void recv(Packet* p, Handler* h) {
-		hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
-		ch->iface() = intf_label_;
-		send(p, h);
 	}
-protected:
-	int32_t intf_label_;
-};
+      	return (Connector::command(argc, argv));
+}
+
+void NetworkInterface::recv(Packet* p, Handler* h) {
+	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+#ifdef LEO_DEBUG
+	printf("Marking to %d\n", intf_label_);
+#endif
+	ch->iface() = intf_label_;
+	send(p, h);
+}
 
 static class NetworkInterfaceClass : public TclClass {
 public:
@@ -62,3 +59,4 @@ public:
 		return (new NetworkInterface);
 	}
 } class_networkinterface;
+

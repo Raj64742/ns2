@@ -32,7 +32,8 @@
  * SUCH DAMAGE.
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
- * phy.h
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/phy.h,v 1.6 1999/06/21 18:14:02 tomh Exp $
  *
  * superclass for all network interfaces
  
@@ -61,6 +62,7 @@ LIST_HEAD(if_head, Phy);
 #include "mac.h"
 
 class Node;
+class LinkHead;
 /*--------------------------------------------------------------
   Phy : Base class for all network interfaces used to control
   channel access
@@ -82,16 +84,20 @@ class Phy : public BiConnector {
 		return (8.0 * bytes / bandwidth_); }
 	virtual double  bittime() const { return 1/bandwidth_; }
 
-	// list of all network interfaces, stored in two places
+	// list of all network interfaces on a channel
 	Phy* nextchnl(void) const { return chnl_link_.le_next; }
 	inline void insertchnl(struct if_head *head) {
 		LIST_INSERT_HEAD(head, this, chnl_link_);
 		//channel_ = chnl;
 	}
+	// list of all network interfaces on a node
 	Phy* nextnode(void) const { return node_link_.le_next; }
 	inline void insertnode(struct if_head* head) {
 		LIST_INSERT_HEAD(head, this, node_link_);
 		//node_ = node;
+	}
+	inline void removechnl() {
+		LIST_REMOVE(this, chnl_link_);
 	}
 	void setchnl (Channel *chnl) { channel_ = chnl; }
 	virtual void setnode (Node *node) { node_ = node; }
@@ -99,6 +105,7 @@ class Phy : public BiConnector {
  	virtual Channel* channel(void) const {return channel_;}	
 	
 	virtual void    dump(void) const;
+	LinkHead* head() { return head_; }
 
  protected:
 	//void		drop(Packet *p);
@@ -106,6 +113,7 @@ class Phy : public BiConnector {
 	int             index_;
 	
 	Node* node_;
+	LinkHead* head_; // the entry point of this network stack
   
 	/*
    * A list of all "network interfaces" on a given channel.

@@ -34,7 +34,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.21 1999/05/06 00:29:09 yaxu Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.22 1999/06/21 18:13:57 tomh Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
@@ -64,7 +64,6 @@ public:
 	struct if_head	ifhead_;
 	TclObject* gridkeeper_;
 private:
-	virtual double get_pdelay(Node* tnode, Node* rnode);
 	virtual void sendUp(Packet* p, Phy *txif); 
 	void dump(void);
 	//virtual void contention(Packet*, Handler*); 
@@ -74,6 +73,7 @@ private:
 	//Packet* pkt() { return pkt_; }
 
 protected:
+	virtual double get_pdelay(Node* tnode, Node* rnode);
 	int index_;        // multichannel support
 	double delay_;     // channel delay, for collision interval
 	//double txstop_;    // end of the last transmission
