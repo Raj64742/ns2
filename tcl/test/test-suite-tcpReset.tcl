@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.3 2001/05/27 02:14:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.4 2001/11/08 19:07:10 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -182,6 +182,172 @@ Test/resetDelAck1 instproc run {} {
 	$ns_ at 5.00 "$ftp1 producemore 20"
 
 	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ run
+}
+
+Class Test/reset1 -superclass TestSuite
+Test/reset1 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6
+	set test_	reset1
+	$self next
+}
+Test/reset1 instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connection
+	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink $node_(k1) 1]
+	set tcp1 [lindex $tcp 0]
+        set sink [lindex $tcp 1]
+	$tcp1 set window_ 5
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 produce 10"
+	$ns_ at 0.2 "$tcp1 reset"
+	$ns_ at 0.2 "$sink reset"
+	$ns_ at 0.201 "$ftp1 producemore 20"
+        $self tcpDump $tcp1 1.0
+
+	$self traceQueues $node_(r1) [$self openTrace 3.0 $testName_]
+	$ns_ run
+}
+
+Class Test/resetDelAck2 -superclass TestSuite
+Test/resetDelAck2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6
+	set test_	resetDelAck2
+	$self next
+}
+Test/resetDelAck2 instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connection
+	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
+	set tcp1 [lindex $tcp 0]
+        set sink [lindex $tcp 1]
+	$tcp1 set window_ 5
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 produce 10"
+	$ns_ at 0.32 "$tcp1 reset"
+	$ns_ at 0.32 "$sink reset"
+	$ns_ at 0.321 "$ftp1 producemore 20"
+
+	$self traceQueues $node_(r1) [$self openTrace 3.0 $testName_]
+	$ns_ run
+}
+
+Class Test/resetDelAck3 -superclass TestSuite
+Test/resetDelAck3 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6
+	set test_	resetDelAck3
+	$self next
+}
+Test/resetDelAck3 instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connection
+	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
+	set tcp1 [lindex $tcp 0]
+        set sink [lindex $tcp 1]
+	$tcp1 set window_ 5
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 produce 10"
+	$ns_ at 0.32 "$tcp1 reset"
+	$ns_ at 0.32 "$sink reset"
+	$ns_ at 0.321 "$ftp1 producemore 20"
+
+	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ run
+}
+
+Class Test/resetNewreno -superclass TestSuite
+Test/resetNewreno instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6
+	set test_	resetNewreno
+	$self next
+}
+Test/resetNewreno instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connection
+	set tcp [$ns_ create-connection-list TCP/Newreno $node_(s1) TCPSink $node_(k1) 1]
+	set tcp1 [lindex $tcp 0]
+        set sink [lindex $tcp 1]
+	$tcp1 set window_ 5
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 produce 10"
+	$ns_ at 0.2 "$tcp1 reset"
+	$ns_ at 0.2 "$sink reset"
+	$ns_ at 0.201 "$ftp1 producemore 20"
+        $self tcpDump $tcp1 1.0
+
+	$self traceQueues $node_(r1) [$self openTrace 3.0 $testName_]
+	$ns_ run
+}
+
+Class Test/resetSack1 -superclass TestSuite
+Test/resetSack1 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6
+	set test_	resetSack1
+	$self next
+}
+Test/resetSack1 instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connection
+	set tcp [$ns_ create-connection-list TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 1]
+	set tcp1 [lindex $tcp 0]
+        set sink [lindex $tcp 1]
+	$tcp1 set window_ 5
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 produce 10"
+	$ns_ at 0.2 "$tcp1 reset"
+	$ns_ at 0.2 "$sink reset"
+	$ns_ at 0.201 "$ftp1 producemore 20"
+        $self tcpDump $tcp1 1.0
+
+	$self traceQueues $node_(r1) [$self openTrace 3.0 $testName_]
+	$ns_ run
+}
+
+Class Test/resetReno -superclass TestSuite
+Test/resetReno instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6
+	set test_	resetReno
+	$self next
+}
+Test/resetReno instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connection
+	set tcp [$ns_ create-connection-list TCP/Reno $node_(s1) TCPSink $node_(k1) 1]
+	set tcp1 [lindex $tcp 0]
+        set sink [lindex $tcp 1]
+	$tcp1 set window_ 5
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp1 produce 10"
+	$ns_ at 0.2 "$tcp1 reset"
+	$ns_ at 0.2 "$sink reset"
+	$ns_ at 0.201 "$ftp1 producemore 20"
+        $self tcpDump $tcp1 1.0
+
+	$self traceQueues $node_(r1) [$self openTrace 3.0 $testName_]
 	$ns_ run
 }
 
