@@ -8,25 +8,67 @@
 #
 
 #
-# set up the CBQ/Queue object, link instvars, and classifier
-# once more complex classifiers are introduced, creating the classifier
-# will probably be done elsewhere
+# set up the baseline CBQ or CBQ/WRR object
+#	baseline object contains only an empty classifier
+#	and the scheduler (CBQ or CBQ/WRR) object itself
+#
+# After initialized, the structure is as follows:
+#
+#
+#	head_-> (classifier)
+#	queue_-> (cbq) ==> link_
+#	drophead_ -> (connector) ==> nullAgent
+#
+# == is data flow
+# -- is a pointer reference
 #
 Class CBQLink -superclass SimpleLink
-CBQLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
-        $self next $src $dst $bw $delay $q $lltype
-        $self instvar head_ queue_ link_ classifier_
-	$queue_ link $link_
-        set classifier_ [new Classifier/Hash/Fid 32]
+CBQLink instproc init { src dst bw delay q cl {lltype "DelayLink"} } {
+        $self next $src $dst $bw $delay $q $lltype ; # SimpleLink ctor
+        $self instvar head_ queue_ link_
+	$self instvar  classifier_	; # not found in a SimpleLink
+	$self instvar  drophead_ ; # not found in a SimpleLink
+
+	$queue_ link $link_ ; # queue_ set by SimpleLink ctor, CBQ needs $link_
+        set classifier_ $cl
 	set head_ $classifier_
+	set drophead_ [new Connector]
+	$drophead_ target [[Simulator instance] set nullAgent_]
 	#
 	# the following is merely to inject 'algorithm_' in the
 	# $queue_ class' name space.  It is not used in ns-2, but
 	# is needed here for the compat code to recognize that
 	# 'set algorithm_ foo' commands should work
 	#
-	$queue_ set algorithm_ [Queue/CBQ set algorithm_]
+	set defalg [Queue/CBQ set algorithm_]
+	$queue_ set algorithm_ $defalg
+	# this part actually sets the default
+	$queue_ algorithm $defalg
+}
 
+#
+# set up a trace.  Calling the SimpleLink version is harmless, but doesn't
+# do exactly what we need
+#
+
+CBQLink instproc trace { ns f } {
+	$self next $ns $f
+	$self instvar drpT_ drophead_
+	set nxt [$drophead_ target]
+	$drophead_ target $drpT_
+	$drpT_ target $nxt
+}
+
+#
+# set up monitors.  Once again, the base version is close, but not
+# exactly what's needed
+#
+CBQLink instproc attach-monitors { isnoop osnoop dsnoop qmon } {
+	$self next $isnoop $osnoop $dsnoop $qmon
+	$self instvar drophead_
+	set nxt [$drophead_ target]
+	$drophead_ target $dsnoop
+	$dsnoop target $nxt
 }
 
 CBQLink instproc classifier {} {
@@ -72,24 +114,42 @@ CBQLink instproc bind args {
 #
 # insert the class into the link
 # each class will have an associated queue
-# we must create a set of queue monitors around these queues which
-# cbq uses to monitor demand
+# we must create a set of snoop qs with an associated qmon
+# which cbq uses to monitor demand.  The qmon may either be
+# given, or defaults to just a QueueMonitor type.
+#
+# Otcl usage:
+#	insert $cbqclass
+#	insert $cbqclass $qmon
+#
+# the two different usages are used to make backward compat with
+# ns-1 easier, since in ns-2, insert was in c++
 #
 # general idea:
 #  pkt--> Classifier --> CBQClass --> snoopin --> qdisc --> snoopout --> CBQ
 #
-CBQLink instproc insert cbqcl {
+CBQLink instproc insert args {
 	# queue_ refers to the cbq object
-	$self instvar queue_ snoopDrop_
+	$self instvar queue_ drophead_
+	set nargs [llength $args]
+	set cbqcl [lindex $args 0]
 	set qdisc [$cbqcl qdisc]
+	if { $nargs == 1 } {
+		set qmon [new QueueMonitor]
+	} else {
+		set qmon [lindex $args 1]
+	}
 
 	# qdisc can be null for internal classes
+
+	if { $qmon == "" } {
+		error "CBQ requires a q-monitor for class $cbqcl"
+	}
 	if { $qdisc != "" } {
 		# create in, out, and drop snoop queues
 		# and attach them to the same monitor
 		# this is used by CBQ to assess demand
 		# (we don't need bytes/pkt integrator or stats here)
-		set qmon [new QueueMonitor]
 		set in [new SnoopQueue/In]
 		set out [new SnoopQueue/Out]
 		set drop [new SnoopQueue/Drop]
@@ -104,12 +164,7 @@ CBQLink instproc insert cbqcl {
 		# drop from qdisc -> snoopy dropq
 		# snoopy dropq's target is overall cbq drop target
 		$qdisc drop-target $drop
-		if [info exists snoopDrop_] {
-			$drop target $snoopDrop_
-		} else {
-			set sim [Simulator instance]
-			$drop target [$sim set nullAgent_]
-		}
+		$drop target $drophead_
 
 		# output of queue -> snoopy outq
 		# output of snoopy outq is cbq
