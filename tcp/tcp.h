@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.83 2000/10/31 22:56:07 debo Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.84 2001/03/12 22:57:39 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -371,9 +371,18 @@ class NewRenoTcpAgent : public virtual RenoTcpAgent {
 	int newreno_changes_;	/* 0 for fixing unnecessary fast retransmits */
 				/* 1 for additional code from Allman, */
 				/* to implement other algorithms from */
-				/* Hoe's paper */
-	int newreno_changes1_;  /* 1 for more aggressive retransmissions */
-				/* in response to partial acks */
+				/* Hoe's paper, including sending a new */
+				/* packet for every two duplicate ACKs. */
+				/* The default is set to 0. */
+	int newreno_changes1_;  /* Newreno_changes1_ set to 0 gives the */
+				/* Slow-but-Steady variant of NewReno from */
+				/* RFC 2582, with the retransmit timer reset */
+				/* after each partial new ack. */  
+				/* Newreno_changes1_ set to 1 gives the */
+				/* Impatient variant of NewReno from */
+				/* RFC 2582, with the retransmit timer reset */
+				/* only for the first partial new ack. */
+				/* The default is set to 0 */
 	void partialnewack(Packet *pkt);
 	int allow_fast_retransmit(int last_cwnd_action_);
 	int acked_, new_ssthresh_;  /* used if newreno_changes_ == 1 */
