@@ -51,9 +51,9 @@ END {
 		close(ackfile[f]);
 	}
 	for (i in indexarray) {
-		print indexarray[i] > "index.out"
+		print indexarray[i] > "seq-index.out"
 			}
-	close("index.out");
+	close("seq-index.out");
 }
 
 

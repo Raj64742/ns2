@@ -86,11 +86,13 @@ END {
  	for (i in starttime) {
 		if (endtime[i] == starttime[i]) 
 			print starttime[i], endtime[i], highest_ack[i];
- 		bw = (highest_ack[i]/(endtime[i] - starttime[i]))*8.0;
+		bw = calc_bw(0,highest_ack[i],starttime[i],endtime[i]);
+# 		bw = (highest_ack[i]/(endtime[i] - starttime[i]))*8.0;
 #		duration = endtime[i] - starttime[i];
 		duration = 15;
 		if (i in cwndtime) {
-			ss_bw = ((highest_ack[i] - cwndhiack[i])/(endtime[i] - cwndtime[i]))*8.0;
+			ss_bw = calc_bw(cwndhiack[i],highest_ack[i],cwndtime[i],endtime[i]);
+#			ss_bw = ((highest_ack[i] - cwndhiack[i])/(endtime[i] - cwndtime[i]))*8.0;
 			ss_starttime = cwndtime[i] - starttime[i];
 		}
 		else {
@@ -98,15 +100,18 @@ END {
 			ss_starttime = -1;
 		}
 		if (i in middletime) {
-			sh_bw = ((highest_ack[i] - middlehiack[i])/(endtime[i] - middletime[i]))*8.0;
+			sh_bw = calc_bw(middlehiack[i],highest_ack[i],middletime[i],endtime[i]);
+#			sh_bw = ((highest_ack[i] - middlehiack[i])/(endtime[i] - middletime[i]))*8.0;
 		}
 		else {
 			sh_bw = -1;
 		}
 		on_bw = -1;
 		if (i in turnontime) {
-			if (turnontime[i] < turnofftime[i])
-				on_bw = ((turnoffhiack[i] - turnonhiack[i])/(turnofftime[i] - turnontime[i]))*8.0;
+			if (turnontime[i] < turnofftime[i]) {
+				on_bw = calc_bw(turnonhiack[i],turnoffhiack[i],turnontime[i],turnofftime[i]);
+#				on_bw = ((turnoffhiack[i] - turnonhiack[i])/(turnofftime[i] - turnontime[i]))*8.0;
+			}
 		}
  		print ind[i], duration, bw, ss_starttime, ss_bw, sh_bw, on_bw > "thruput";
  	}
@@ -116,4 +121,13 @@ END {
 			}
 	close("index.out");
 
+}
+
+function calc_bw(startseq, endseq, starttime, endtime) {
+	if (endtime > starttime ) {
+		return ((endseq-startseq)*8.0/(endtime-starttime));
+	}
+	else {
+		return -1;
+	}
 }
