@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.4.2.1 1997/04/16 03:21:27 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.4.2.2 1997/04/18 02:23:41 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -103,6 +103,7 @@ struct hdr_tcp {
 #define TCP_TIMER_DELSND	1
 
 
+#ifdef TCP_TRACE
 /* Macro to log the *specified* member whenever its value changes */
 #define TCP_TRACE(memb, old_memb, memb_time, name) { \
 		       Scheduler& s = Scheduler::instance(); \
@@ -136,7 +137,12 @@ struct hdr_tcp {
 		       } \
                        memb_time = cur_time; \
 }
-		       
+
+#else
+#define TCP_TRACE
+#define TCP_TRACE_ALL
+#endif		       
+
 
 class TcpAgent : public Agent {
 public:

@@ -86,15 +86,15 @@ Csdp::enque(Packet* p)
 Packet*
 Csdp::deque()
 {
-	Scheduler& s = Scheduler::instance();
-	Packet* p;
-	double bestscore = -1000000;
-	int bestindex;
-	for (int i=0;  i < qlen_;  i++) {
+	if (qlen_ < 1)
+		return 0;
+	int bestindex = 0;
+	double bestscore = score(q_[0]);
+	for (int i=1;  i < qlen_;  i++) {
 		if (score(q_[i]) > bestscore)
 			bestindex = i;
 	}
-	p = q_[bestindex];
+	Packet* p = q_[bestindex];
 	q_[bestindex] = NULL;
 	qlen_--;
 	((BlockingLL*)p->source()) ->resume();
