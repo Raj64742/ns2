@@ -1,4 +1,4 @@
-#include "endian.h"
+#include "my-endian.h"
  
 /* rotates 2 bytes */
 unsigned short swap2(u_2bytes In) {

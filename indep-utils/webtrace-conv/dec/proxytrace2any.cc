@@ -8,7 +8,7 @@
 #include <tcl.h>
 
 #include "proxytrace.h"
-#include "endian.h"
+#include "my-endian.h"
  
 #ifdef PC
 #include <io.h>

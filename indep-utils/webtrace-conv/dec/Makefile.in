@@ -28,7 +28,7 @@
 # 
 # Taken from Alex Rousskov's originial code. 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/dec/Makefile.in,v 1.1 1999/02/24 01:28:28 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/dec/Makefile.in,v 1.2 1999/11/24 01:33:55 haoboy Exp $
 
 CC = @CXX@
 INCLUDE = -I. @V_INCLUDES@
@@ -36,7 +36,7 @@ CFLAGS = @V_CCOPT@
 LDFLAGS = @V_STATIC@
 LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
 
-SRC = proxytrace.cc formsquid.cc formtxt.cc endian.cc \
+SRC = proxytrace.cc formsquid.cc formtxt.cc my-endian.cc \
 	proxytrace2any.cc tr-stat.cc
 OBJ = $(SRC:.cc=.o)
 

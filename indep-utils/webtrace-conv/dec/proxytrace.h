@@ -2,19 +2,20 @@
 #define _PROXYTRACE_H_
 
 #include <stdio.h>
+#include <sys/types.h>
 
 typedef  unsigned int u_4bytes;       /* unsigned number - 4 bytes */
 typedef  unsigned short int u_2bytes; /* unsigned number - 2 bytes */
 
-typedef enum {
+enum method_t {
     METHOD_NONE= 0,
     METHOD_GET,
     METHOD_POST,
     METHOD_HEAD,
     METHOD_CONNECT
-} method_t;
+};
 
-typedef enum {
+enum protocol_t {
     PROTO_NONE = 0,
     PROTO_HTTP,
     PROTO_FTP,
@@ -22,9 +23,9 @@ typedef enum {
     PROTO_WAIS,
     PROTO_CACHEOBJ,
     PROTO_MAX
-} protocol_t;
+};
 
-typedef enum {
+enum type_t {
 	EXT_NONE = 0,
 	EXT_HTML,
 	EXT_GIF,
@@ -35,7 +36,7 @@ typedef enum {
 	EXT_JPEG,
 	EXT_MPEG,
 	EXT_OTHER
-} type_t;
+};
 
 const char *MethodStr(int method);
 const char *ProtocolStr(int protocol);
@@ -51,7 +52,7 @@ const char *ExtensionTypeStr(int type); /* the type (e.g. "HTML") */
 #define  EXTENSION_SPECIFIED_FLAG 16 
 #define  CGI_BIN_FLAG 32
 
-typedef struct _TEntryHeader {
+struct TEntryHeader {
 	u_4bytes  event_duration;
 	u_4bytes  server_duration;
 	u_4bytes  last_mod;
@@ -64,21 +65,21 @@ typedef struct _TEntryHeader {
 	u_4bytes  path;
 	u_4bytes  query;
 	u_4bytes  size;
-} TEntryHeader;
+};
 
-typedef struct _TEntryTail {
+struct TEntryTail {
 	unsigned short  status;
 	unsigned  char  type;
 	unsigned  char  flags;
  	method_t        method;
 	protocol_t      protocol;
-} TEntryTail;
+};
 
-typedef struct _TEntry {
+struct TEntry {
 	TEntryHeader head;
 	u_4bytes     url;    /* missing in v1 format */
 	TEntryTail   tail;
-} TEntry;
+};
 
 #define  TRACE_HEADER_SIZE 8192
 
