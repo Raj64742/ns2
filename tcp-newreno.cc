@@ -36,7 +36,7 @@ public:
 	TclObject* create(int argc, const char*const* argv) {
 		return (new NewRenoTcpAgent());
 	}
-} matcher_reno;
+} class_newreno;
 
 int NewRenoTcpAgent::window()
 {
