@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.15 2002/01/02 23:58:18 jahn Exp $
+# $Id: dsr.tcl,v 1.16 2003/12/23 17:36:35 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -214,8 +214,9 @@ proc dsr-create-mobile-node { id args } {
 	}
 
         # connect up the channel
-        $node add-interface $chan $prop $opt(ll) $opt(mac)	\
-	     $opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant) $inerrProc_ $outerrProc_ $FECProc_ 
+        $node add-interface $chan $prop $opt(ll) $opt(mac)     \
+	    $opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant) $topo \
+	    $inerrProc_ $outerrProc_ $FECProc_ 
 
 	#
 	# This Trace Target is used to log changes in direction

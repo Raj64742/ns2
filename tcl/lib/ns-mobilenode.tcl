@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.47 2003/09/23 00:44:07 aditi Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.48 2003/12/23 17:36:35 haldar Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -350,7 +350,7 @@ Node/MobileNode instproc add-target-rtagent { agent port } {
 # and physical layer structures for the mobile node.
 #
 Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
-		qtype qlen iftype anttype inerrproc outerrproc fecproc} {
+		qtype qlen iftype anttype topo inerrproc outerrproc fecproc} {
 	$self instvar arptable_ nifs_ netif_ mac_ ifq_ ll_ imep_ inerr_ outerr_ fec_
 	
 	set ns [Simulator instance]
@@ -503,7 +503,14 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	# Physical Channel
 	#
 	$channel addif $netif
+	
+        # List-based improvement
+	# For nodes talking to multiple channels this should
+	# be called multiple times for each channel
+	$channel add-node $self		
 
+	# let topo keep handle of channel
+	$topo channel $channel
 	# ============================================================
 
 	if { [Simulator set MacTrace_] == "ON" } {

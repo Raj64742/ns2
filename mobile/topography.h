@@ -41,22 +41,16 @@
 #define ns_topography_h
 
 #include <object.h>
+#include "channel.h"
 
 class Topography : public TclObject {
 
 public:
 	Topography() { maxX = maxY = grid_resolution = 0.0; grid = 0; }
 
-        /* -NEW- */
-	// LISTS
-	static bool sorted;
-	void sortLists(void);
-	void updateNodesLists(class MobileNode *mn, double oldX);
-	double calcHighestAntennaZ(void);
-        MobileNode **getAffectedNodes(MobileNode *mn, double radius, int *numAffectedNodes);
-        int numNodes;
-        /* End -NEW- */
-
+	/* List-keeper */
+	void updateNodesList(class MobileNode *mn, double oldX);
+	
 	double	lowerX() { return 0.0; }
 	double	upperX() { return maxX * grid_resolution; }
 	double	lowerY() { return 0.0; }
@@ -74,6 +68,10 @@ private:
 
 	double	grid_resolution;
 	int*	grid;
+
+	/* List-keeper */
+	WirelessChannel *channel_;
+
 };
 
 #endif // ns_topography_h

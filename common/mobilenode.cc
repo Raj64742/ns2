@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.33 2003/11/27 23:27:19 xuanc Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.34 2003/12/23 17:36:32 haldar Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -115,9 +115,6 @@ PositionHandler::handle(Event*)
    Mobile Node
    ====================================================================== */
 
-/* list-based improvement */
-MobileNode* MobileNode::xListHead = NULL;
-
 MobileNode::MobileNode(void) : 
 	pos_handle_(this)
 {
@@ -144,24 +141,6 @@ MobileNode::MobileNode(void) :
 	bind("Z_", &Z_);
 	bind("speed_", &speed_);
 	
-	/* list-based improvement */
-	// Coordinates of mobilenodes are not known yet
-	MobileNode* tmp;
-
-	//x-list
-	//Another option here is to use macros from "queue.h" lib
-	if(xListHead == NULL){
-		fprintf(stderr, "INITIALIZE THE LIST xListHead\n");
-		xListHead = this;
-		xListHead->nextX = NULL;
-		xListHead->prevX = NULL;
-	}else{
-		for(tmp = xListHead; tmp->nextX != NULL; tmp = tmp->nextX);
-		tmp->nextX = this;
-		this->prevX = tmp;
-		this->nextX = NULL;		
-	}
-
 }
 
 int
@@ -504,7 +483,7 @@ MobileNode::update_position()
 	
 	/* list based improvement */
 	if(oldX != X_)// || oldY != Y_)
-		T_->updateNodesLists(this, oldX);//, oldY);
+		T_->updateNodesList(this, oldX);//, oldY);
 	// COMMENTED BY -VAL- // bound_position();
 
 	// COMMENTED BY -VAL- // Z_ = T_->height(X_, Y_);

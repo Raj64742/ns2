@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.40 2003/11/19 00:41:43 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.41 2003/12/23 17:36:34 haldar Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -56,8 +56,7 @@ static const char rcsid[] =
 #include "ip.h"
 #include "dsr/hdr_sr.h"
 #include "gridkeeper.h"
-/* list-based improvement */ 
-#include "tworayground.h" // For TwoRayGetDist(...) - function
+#include "tworayground.h"
 
 static class ChannelClass : public TclClass {
 public:
@@ -115,6 +114,7 @@ int Channel::command(int argc, const char*const* argv)
 			((Phy*) obj)->setchnl(this);
 			return TCL_OK;
 		}
+
 		// add interface for grid_keeper_
 		/*else if(strncasecmp(argv[1], "grid_keeper", 5) == 0) {
 			grid_keeper_ = (GridKeeper*)obj;
@@ -280,7 +280,31 @@ class MobileNode;
 double WirelessChannel::highestAntennaZ_ = -1; // i.e., uninitialized
 double WirelessChannel::distCST_ = -1;
 
-WirelessChannel::WirelessChannel(void) : Channel() {}
+WirelessChannel::WirelessChannel(void) : Channel(), numNodes_(0), 
+					 xListHead_(NULL), sorted_(0) {}
+
+int WirelessChannel::command(int argc, const char*const* argv)
+{
+	
+	if (argc == 3) {
+		TclObject *obj;
+
+		if( (obj = TclObject::lookup(argv[2])) == 0) {
+			fprintf(stderr, "%s lookup failed\n", argv[1]);
+			return TCL_ERROR;
+		}
+		if (strcmp(argv[1], "add-node") == 0) {
+			addNodeToList((MobileNode*) obj);
+			return TCL_OK;
+		}
+		else if (strcmp(argv[1], "remove-node") == 0) {
+			removeNodeFromList((MobileNode*) obj);
+			return TCL_OK;
+		}
+	}
+	return Channel::command(argc, argv);
+}
+
 
 void
 WirelessChannel::sendUp(Packet* p, Phy *tifp)
@@ -327,18 +351,18 @@ WirelessChannel::sendUp(Packet* p, Phy *tifp)
 		  }
  	    }
 	    delete [] outlist; 
-	 } else {
+	 
+	 } else { // use list-based improvement
 	 
 		 MobileNode *mtnode = (MobileNode *) tnode;
 		 MobileNode **affectedNodes;// **aN;
 		 int numAffectedNodes = -1, i;
 		 
-		 if(!Topography::sorted){
-			 mtnode->getTopography()->sortLists();
+		 if(!sorted_){
+			 sortLists();
 		 }
 		 
-		 affectedNodes = mtnode->getTopography()->
-			 getAffectedNodes(mtnode, distCST_ + /* safety */ 5, &numAffectedNodes);
+		 affectedNodes = getAffectedNodes(mtnode, distCST_ + /* safety */ 5, &numAffectedNodes);
 		 for (i=0; i < numAffectedNodes; i++) {
 			 rnode = affectedNodes[i];
 			 
@@ -359,6 +383,214 @@ WirelessChannel::sendUp(Packet* p, Phy *tifp)
 	 Packet::free(p);
 }
 
+
+void
+WirelessChannel::addNodeToList(MobileNode *mn)
+{
+	MobileNode *tmp;
+
+	// create list of mobilenodes for this channel
+	if (xListHead_ == NULL) {
+		fprintf(stderr, "INITIALIZE THE LIST xListHead\n");
+		xListHead_ = mn;
+		xListHead_->nextX_ = NULL;
+		xListHead_->prevX_ = NULL;
+	} else {
+		for (tmp = xListHead_; tmp->nextX_ != NULL; tmp=tmp->nextX_);
+		tmp->nextX_ = mn;
+		mn->prevX_ = tmp;
+		mn->nextX_ = NULL;
+	}
+	numNodes_++;
+}
+
+void
+WirelessChannel::removeNodeFromList(MobileNode *mn) {
+	
+	MobileNode *tmp;
+	// Find node in list
+	for (tmp = xListHead_; tmp->nextX_ != NULL; tmp=tmp->nextX_) {
+		if (tmp == mn) {
+			if (tmp == xListHead_) {
+				xListHead_ = tmp->nextX_;
+				if (tmp->nextX_ != NULL)
+					tmp->nextX_->prevX_ = NULL;
+			} else if (tmp->nextX_ == NULL) 
+				tmp->prevX_->nextX_ = NULL;
+			else {
+				tmp->prevX_->nextX_ = tmp->nextX_;
+				tmp->nextX_->prevX_ = tmp->prevX_;
+			}
+			numNodes_--;
+			return;
+		}
+	}
+	fprintf(stderr, "Channel: node not found in list\n");
+}
+
+void
+WirelessChannel::sortLists(void) {
+	bool flag = true;
+	MobileNode *m, *q;
+
+	sorted_ = true;
+	
+	fprintf(stderr, "SORTING LISTS ...");
+	/* Buble sort algorithm */
+	// SORT x-list
+	while(flag) {
+		flag = false;
+		m = xListHead_;
+		while (m != NULL){
+			if(m->nextX_ != NULL)
+				if ( m->X() > m->nextX_->X() ){
+					flag = true;
+					//delete_after m;
+					q = m->nextX_;
+					m->nextX_ = q->nextX_;
+					if (q->nextX_ != NULL)
+						q->nextX_->prevX_ = m;
+			    
+					//insert_before m;
+					q->nextX_ = m;
+					q->prevX_ = m->prevX_;
+					m->prevX_ = q;
+					if (q->prevX_ != NULL)
+						q->prevX_->nextX_ = q;
+
+					// adjust Head of List
+					if(m == xListHead_) 
+						xListHead_ = m->prevX_;
+				}
+			m = m -> nextX_;
+		}
+	}
+	
+	fprintf(stderr, "DONE!\n");
+}
+
+void
+WirelessChannel::updateNodesList(class MobileNode *mn, double oldX) {
+	
+	MobileNode* tmp;
+	double X = mn->X();
+	bool skipX=false;
+	
+	if(!sorted_) {
+		sortLists();
+		return;
+	}
+	
+	/* xListHead cannot be NULL here (they are created during creation of mobilenode) */
+	
+	/***  DELETE ***/
+	// deleting mn from x-list
+	if(mn->nextX_ != NULL) {
+		if(mn->prevX_ != NULL){
+			if((mn->nextX_->X() >= X) && (mn->prevX_->X() <= X)) skipX = true; // the node doesn't change its position in the list
+			else{
+				mn->nextX_->prevX_ = mn->prevX_;
+				mn->prevX_->nextX_ = mn->nextX_;
+			}
+		}
+		
+		else{
+			if(mn->nextX_->X() >= X) skipX = true; // skip updating the first element
+			else{
+				mn->nextX_->prevX_ = NULL;
+				xListHead_ = mn->nextX_;
+			}
+		}
+	}
+	
+	else if(mn->prevX_ !=NULL){
+		if(mn->prevX_->X() <= X) skipX = true; // skip updating the last element
+		else mn->prevX_->nextX_ = NULL;
+	}
+
+	/*** INSERT ***/
+	//inserting mn in x-list
+	if(!skipX){
+		if(X > oldX){			
+			for(tmp = mn; tmp->nextX_ != NULL && tmp->nextX_->X() < X; tmp = tmp->nextX_);
+			//fprintf(stdout,"Scanning the element addr %d X=%0.f, next addr %d X=%0.f\n", tmp, tmp->X(), tmp->nextX_, tmp->nextX_->X());
+			if(tmp->nextX_ == NULL) { 
+				//fprintf(stdout, "tmp->nextX_ is NULL\n");
+				tmp->nextX_ = mn;
+				mn->prevX_ = tmp;
+				mn->nextX_ = NULL;
+			} 
+			else{ 
+				//fprintf(stdout, "tmp->nextX_ is not NULL, tmp->nextX_->X()=%0.f\n", tmp->nextX_->X());
+				mn->prevX_ = tmp->nextX_->prevX_;
+				mn->nextX_ = tmp->nextX_;
+				tmp->nextX_->prevX_ = mn;  	
+				tmp->nextX_ = mn;
+			} 
+		}
+		else{
+			for(tmp = mn; tmp->prevX_ != NULL && tmp->prevX_->X() > X; tmp = tmp->prevX_);
+				//fprintf(stdout,"Scanning the element addr %d X=%0.f, prev addr %d X=%0.f\n", tmp, tmp->X(), tmp->prevX_, tmp->prevX_->X());
+			if(tmp->prevX_ == NULL) {
+				//fprintf(stdout, "tmp->prevX_ is NULL\n");
+				tmp->prevX_ = mn;
+				mn->nextX_ = tmp;
+				mn->prevX_ = NULL;
+				xListHead_ = mn;
+			} 
+			else{
+				//fprintf(stdout, "tmp->prevX_ is not NULL, tmp->prevX_->X()=%0.f\n", tmp->prevX_->X());
+				mn->nextX_ = tmp->prevX_->nextX_;
+				mn->prevX_ = tmp->prevX_;
+				tmp->prevX_->nextX_ = mn;  	
+				tmp->prevX_ = mn;		
+			}
+		}
+	}
+}
+
+
+MobileNode **
+WirelessChannel::getAffectedNodes(MobileNode *mn, double radius,
+				  int *numAffectedNodes)
+{
+	double xmin, xmax, ymin, ymax;
+	int n = 0;
+	MobileNode *tmp, **list, **tmpList;
+
+	if (xListHead_ == NULL) {
+		*numAffectedNodes=-1;
+		fprintf(stderr, "xListHead_ is NULL when trying to send!!!\n");
+		return NULL;
+	}
+	
+	xmin = mn->X() - radius;
+	xmax = mn->X() + radius;
+	ymin = mn->Y() - radius;
+	ymax = mn->Y() + radius;
+	
+	// First allocate as much as possibly needed
+	tmpList = new MobileNode*[numNodes_];
+	
+
+	for(tmp = mn; tmp != NULL && tmp->X() >= xmin; tmp=tmp->prevX_)
+		if(tmp->Y() >= ymin && tmp->Y() <= ymax){
+			tmpList[n++] = tmp;
+		}
+	for(tmp = mn->nextX_; tmp != NULL && tmp->X() <= xmax; tmp=tmp->nextX_){
+		if(tmp->Y() >= ymin && tmp->Y() <= ymax){
+			tmpList[n++] = tmp;
+		}
+	}
+	
+	list = new MobileNode*[n];
+	memcpy(list, tmpList, n * sizeof(MobileNode *));
+	delete [] tmpList;
+         
+	*numAffectedNodes = n;
+	return list;
+}
+ 
 
 
 /* Only to be used with mobile nodes (WirelessPhy).

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.18 2003/11/19 00:41:43 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.19 2003/12/23 17:36:32 haldar Exp $
  *
  */
 
@@ -124,9 +124,6 @@ public:
 	MobileNode();
 	virtual int command(int argc, const char*const* argv);
 
-        /* For list-based improvement */
-        Topography *getTopography(void) { return T_; }
-
 	double	distance(MobileNode*);
 	double	propdelay(MobileNode*);
 	void	start(void);
@@ -160,10 +157,9 @@ public:
 	//void logrttime(double);
 	virtual void idle_energy_patch(float, float);
 
-	/* For list-keeper, used for improve perf. of mobilenodes*/
-	static MobileNode* xListHead;
-	MobileNode* nextX;
-	MobileNode* prevX;
+	/* For list-keeper */
+	MobileNode* nextX_;
+	MobileNode* prevX_;
 	
 protected:
 	/*

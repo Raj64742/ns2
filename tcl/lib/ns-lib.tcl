@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.261 2003/12/10 21:07:43 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.262 2003/12/23 17:36:35 haldar Exp $
 
 
 #
@@ -645,9 +645,11 @@ Simulator instproc create-wireless-node args {
 		set FECProc_ ""
 	}
 
+	
+
 	# Add main node interface
 	$node add-interface $chan $propInstance_ $llType_ $macType_ \
-			$ifqType_ $ifqlen_ $phyType_ $antType_ \
+	    $ifqType_ $ifqlen_ $phyType_ $antType_ $topoInstance_ \
 			$inerrProc_ $outerrProc_ $FECProc_
 	# Attach agent
 	if {$routingAgent_ != "DSR"} {
@@ -710,7 +712,9 @@ Simulator instproc create-wireless-node args {
         if [info exists idlePower_] {
 		$node setPidle $idlePower_
         }
+
 	$node topography $topoInstance_
+	
 	return $node
 }
 

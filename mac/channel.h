@@ -34,7 +34,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.26 2003/11/19 00:41:44 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.27 2003/12/23 17:36:35 haldar Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
@@ -103,13 +103,27 @@ protected:
 ====================================================================*/
 
 class WirelessChannel : public Channel{
-
+	friend class Topography;
 public:
 	WirelessChannel(void);
+	virtual int command(int argc, const char*const* argv);
         inline double gethighestAntennaZ() { return highestAntennaZ_; }
+
 private:
 	void sendUp(Packet* p, Phy *txif);
 	double get_pdelay(Node* tnode, Node* rnode);
+	
+	/* For list-keeper, channel keeps list of mobilenodes 
+	   listening on to it */
+	int numNodes_;
+	MobileNode *xListHead_;
+	bool sorted_;
+	void addNodeToList(MobileNode *mn);
+	void removeNodeFromList(MobileNode *mn);
+	void sortLists(void);
+	void updateNodesList(class MobileNode *mn, double oldX);
+	MobileNode **getAffectedNodes(MobileNode *mn, double radius, int *numAffectedNodes);
+	
 protected:
 	static double distCST_;        
         static double highestAntennaZ_;
