@@ -84,7 +84,7 @@ Http proc setCDF {rvName value} {
 
 Http instproc init {ns client server args} {
 	eval $self init-vars $args
-	$self instvar srcType_ snkType_ agents_
+	$self instvar srcType_ snkType_ agents_ sinks_
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
 	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
 	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
@@ -114,6 +114,8 @@ Http instproc init {ns client server args} {
 		}
 		set client_($i) [$self newXfer FTP $client $server $csrc $csnk]
 		set server_($i) [$self newXfer FTP $server $client $ssrc $ssnk]
+		set sinks_($client_($i)) $csnk
+		set sinks_($server_($i)) $ssnk
 	}
 }
 
@@ -133,9 +135,13 @@ Http instproc agents {{type source}} {
 
 
 Http instproc transmit {source nbyte {npkt 0}} {
-	$self instvar numPut_ phttp_
+	$self instvar numPut_ phttp_ sinks_ ns_
 	[$source set agent_] instvar packetSize_
 
+#	puts "$source transmit $nbyte $npkt [$ns_ now]"
+	if {$nbyte <= 0} {
+		set nbyte 1000
+	}
 	if {$npkt == 1} {
 		set packetSize_ $nbyte
 	} else {
@@ -143,6 +149,7 @@ Http instproc transmit {source nbyte {npkt 0}} {
 	}
 	if {$phttp_ == 0} {
 		[$source set agent_] reset
+		$sinks_($source) reset
 	}
 	$source producemore $npkt
 }

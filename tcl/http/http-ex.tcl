@@ -15,12 +15,14 @@ if [info exists env(nshome)] {
 	exit 1
 }
 set env(PATH) "$nshome/bin:$env(PATH)"
+source $nshome/tcl/lan/ns-ll.tcl
+source $nshome/tcl/lan/ns-lan.tcl
 source $nshome/tcl/http/http.tcl
 
 set opt(trsplit) "-"
 set opt(tr)	out
 set opt(stop)	20
-set opt(node)	3
+set opt(node)	2
 set opt(seed)	0
 
 set opt(bw)	1.8Mb
@@ -39,6 +41,7 @@ set opt(ftp)	0
 set opt(http)	-1
 
 set opt(webModel) $nshome/tcl/http/data
+set opt(maxConn) 4
 set opt(phttp) 0
 
 if {$argc == 0} {
@@ -165,7 +168,8 @@ proc create-source {} {
 }
 
 proc create-webModel path {
-	Http setCDF rvClientTime $path/HttpThinkTime.cdf
+	Http setCDF rvClientTime 0
+#	Http setCDF rvClientTime $path/HttpThinkTime.cdf
 	Http setCDF rvReqLen $path/HttpRequestLength.cdf
 	Http setCDF rvNumImg $path/HttpConnections.cdf
 	set rv [Http setCDF rvRepLen $path/HttpReplyLength.cdf]
@@ -174,7 +178,7 @@ proc create-webModel path {
 
 proc new_http {i server client} {
 	global ns opt http webm
-	set webopt "-srcType $opt(tcp) -snkType $opt(sink) -phttp $opt(phttp)"
+	set webopt "-srcType $opt(tcp) -snkType $opt(sink) -phttp $opt(phttp) -maxConn $opt(maxConn)"
 	set http($i) [eval new Http $ns $client $server $webopt]
 	$ns at [expr 0 + $i/1000.0] "$http($i) start"
 }
@@ -205,7 +209,7 @@ getopt $argc $argv
 if {[info exists opt(f)] || [info exists opt(g)]} {
 	set opt(trsplit) "-f"
 }
-if {$opt(seed) > 0} {
+if {$opt(seed) >= 0} {
 	ns-random $opt(seed)
 }
 if [info exists opt(qsize)] {
