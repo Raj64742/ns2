@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.8 1999/08/30 21:59:26 yuriy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.9 1999/09/17 23:17:17 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -1243,7 +1243,7 @@ int QA::AllZero(double *arr, int len)
 //
 double QA::TotalBuf(int n, double *buffer)
 {
-	float totbuf = 0.0;
+	double totbuf = 0.0;
 	int i;
 
 	for(i=0; i<n; i++)
@@ -1344,10 +1344,10 @@ AppData* QA::output(int& size, int layer)
 // starting from the base layer. We use this routine instead of bufOpt,
 // for all cases during filling phase. Allocation based on diagonal strips
 //
-double QA::bufOptScen1(int layer, int layers, float currrate, 
-		       float slope, int backoffs)
+double QA::bufOptScen1(int layer, int layers, double currrate, 
+		       double slope, int backoffs)
 {
-	float smallt, larget, side, rate;
+	double smallt, larget, side, rate;
   
 	if (backoffs < 0) {
 		panic("# ERROR: backoff: %d in bufOptScen1\n", 
@@ -1373,10 +1373,10 @@ double QA::bufOptScen1(int layer, int layers, float currrate,
 //
 // Jan 28, 99bufOptScen1(layer, layers, currrate, slope, backoffs)
 //
-double QA::bufOptScen2(int layer, int layers, float currrate, 
-		       float slope, int backoffs)
+double QA::bufOptScen2(int layer, int layers, double currrate, 
+		       double slope, int backoffs)
 {
-	float bufopt = 0.0;
+	double bufopt = 0.0;
 	int bmin, done;
 
 	if(backoffs < 0) {
@@ -1415,9 +1415,9 @@ double QA::bufOptScen2(int layer, int layers, float currrate,
 // DrainArr: return value, used as an incremental chaneg for 
 //   FinalDrainArray
 // bufAvail:  current buffer_ state
-void QA::drain_buf(double* DrainArr, float bufToDrain, 
+void QA::drain_buf(double* DrainArr, double bufToDrain, 
 		   double* FinalDrainArray, double* bufAvail, 
-		   int layers, float rate, float srtt)
+		   int layers, double rate, double srtt)
 {
 	double bufReq1, bufReq2, bufs1[MAX_LAYER], bufs2[MAX_LAYER], slope, 
 		extra, targetArr[MAX_LAYER], maxDrainRemain;
@@ -1697,16 +1697,16 @@ is playing with %.2f buf but layer %d ran dry with %.2f buf\n",
 // ADDED: use the old value of SRTT for bw/etc estimation !!! Jan 26
 // XXX: need to be more compressed add more hooks to for ctrling from  
 // tcl level
-void QA::DumpInfo(float t, float last_t, float rate, 
-		  float avgrate, float srtt)
+void QA::DumpInfo(double t, double last_t, double rate, 
+		  double avgrate, double srtt)
 {
 #define MAXLEN 2000
 	int i,j;
 	char s1[MAXLEN], s2[MAXLEN], tmp[MAXLEN];
-	static float last_srtt = 0, t1,t2 = 0;
+	static double last_srtt = 0, t1,t2 = 0;
 #undef MAXLEN
 
-	float  tot_bw = 0.0, interval, diff;
+	double  tot_bw = 0.0, interval, diff;
 // 	if(rate > 1000000.0){
 // 		debug("WARNING rate: %f is too large\n", rate);
 // 	}

@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.7 1999/09/08 20:27:34 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.8 1999/09/17 23:17:17 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -404,21 +404,21 @@ protected:
 	}
 
 	// Calculate area of a triangle for a given side and slope
-	inline double BufNeed(float side, float slope) {
+	inline double BufNeed(double side, double slope) {
 		return (side <= 0) ? 0.0 : ((side*side) / (2.0*slope));
 	}
 	int AllZero(double *arr, int len);
 	double TotalBuf(int n, double *buffer);
 	AppData* output(int& size, int layer);
-	void DumpInfo(float t, float last_t, float rate, 
-		      float avgrate, float srtt);
-	double bufOptScen1(int layer, int layers, float currrate, 
-			   float slope, int backoffs);
-	double bufOptScen2(int layer, int layers, float currrate, 
-			   float slope, int backoffs);
-	void drain_buf(double* DrainArr, float bufToDrain, 
+	void DumpInfo(double t, double last_t, double rate, 
+		      double avgrate, double srtt);
+	double bufOptScen1(int layer, int layers, double currrate, 
+			   double slope, int backoffs);
+	double bufOptScen2(int layer, int layers, double currrate, 
+			   double slope, int backoffs);
+	void drain_buf(double* DrainArr, double bufToDrain, 
 		       double* FinalDrainArray, double* bufAvail, 
-		       int layers, float rate, float srtt);
+		       int layers, double rate, double srtt);
 	void DrainPacket(double bufToDrain, double* FinalDrainArray, 
 			 int layers, double rate, double srtt, 
 			 double* FinalBuffer);
