@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.45 1998/06/12 21:00:22 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.46 1998/06/18 01:18:56 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -126,7 +126,7 @@ public:
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1),
-	last_send_time_(0.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE)
+	last_send_time_(-1.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -141,6 +141,9 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	bind("ts_option_size_", &ts_option_size_);
 	bind_bool("fastrecov_", &fastrecov_);
 	bind_bool("deflate_on_pack_", &deflate_on_pack_);
+	bind_bool("sack_option_", &sack_option_);
+	bind("sack_option_size_", &sack_option_size_);
+	bind("sack_block_size_", &sack_block_size_);
 
 	reset();
 }
@@ -164,7 +167,7 @@ FullTcpAgent::reset()
 	t_seqno_ = iss_;
 	maxseq_ = -1;
 	irs_ = -1;
-	last_send_time_ = 0.0;
+	last_send_time_ = -1.0;
 	if (ts_option_)
 		recent_ = recent_age_ = 0.0;
 	else
@@ -187,7 +190,7 @@ FullTcpAgent::pack(Packet *pkt)
  *	how big is an IP+TCP header in bytes; include options such as ts
  */
 int
-FullTcpAgent::headersize()
+FullTcpAgent::headersize(int nsackblocks)
 {
 	int total = tcpip_base_hdr_size_;
 	if (total < 1) {
@@ -198,6 +201,10 @@ FullTcpAgent::headersize()
 
 	if (ts_option_)
 		total += ts_option_size_;
+
+	if (sack_option_ && nsackblocks)
+		total += ((nsackblocks * sack_block_size_)
+			+ sack_option_size_);
 
 	return (total);
 }
@@ -322,7 +329,13 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
 	} else {
 		tcph->ts() = tcph->ts_echo() = -1.0;
 	}
+
 	fh->ect() = ect_;	// on after mutual agreement on ECT
+
+	if (sack_option_) {
+		int nblk = rq_.gensack(&tcph->sa_left(0), max_sack_blocks_);
+		tcph->hlen() = headersize(nblk);
+	}
 
 	if (ecn_ && !ect_)	// initializing; ect = 0, ecnecho = 1
 		fh->ecnecho() = 1;
@@ -331,26 +344,26 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
 	}
 
 	// for now, only do cong_action if ecn_ is enabled
-	fh->cong_action() = ecn_ ? cong_action_ : FALSE;
+	fh->cong_action() =  cong_action_;
 
 //printf("TCPF(%s): sending with ts:%f, ts_echo:%f\n",
 //name(), tcph->ts(), tcph->ts_echo());
 
 	/* Open issue:  should tcph->reason map to pkt->flags_ as in ns-1?? */
         tcph->reason() |= reason;
-        th->size() = datalen + headersize();
+        th->size() = datalen + tcph->hlen();
         if (datalen <= 0)
                 ++nackpack_;
         else {
                 ++ndatapack_;
                 ndatabytes_ += datalen;
+		last_send_time_ = now();	// time of last data
         }
         if (reason == REASON_TIMEOUT || reason == REASON_DUPACK) {
                 ++nrexmitpack_;
                 nrexmitbytes_ += datalen;
         }
 
-	last_send_time_ = now();
 	last_ack_sent_ = ackno;
         send(p, 0);
 }
@@ -388,16 +401,6 @@ void FullTcpAgent::output(int seqno, int reason)
 	int pflags = outflags();
 	int emptying_buffer = FALSE;
 
-	//
-	// this is an option that causes us to slow-start if we've
-	// been idle for a "long" time, where long means a rto or longer
-	// the slow-start is a sort that does not set ssthresh
-	//
-
-	if (slow_start_restart_ && idle) {
-		if (idle_restart())
-			slowdown(CLOSE_CWND_INIT);
-	}
 
 	//
 	// in real TCP datalen (len) could be < 0 if there was window
@@ -408,6 +411,18 @@ void FullTcpAgent::output(int seqno, int reason)
 		datalen = 0;
 	} else if (datalen > maxseg_) {
 		datalen = maxseg_;
+	}
+
+	//
+	// this is an option that causes us to slow-start if we've
+	// been idle for a "long" time, where long means a rto or longer
+	// the slow-start is a sort that does not set ssthresh
+	//
+
+	if (slow_start_restart_ && idle && datalen > 0) {
+		if (idle_restart()) {
+			slowdown(CLOSE_CWND_INIT);
+		}
 	}
 
 	//
@@ -782,6 +797,11 @@ int FullTcpAgent::need_send()
 int
 FullTcpAgent::idle_restart()
 {
+	if (last_send_time_ < 0.0) {
+		// last_send_time_ isn't set up yet, we shouldn't
+		// do the idle_restart
+		return (0);
+	}
 
 	double tao = now() - last_send_time_;
 	if (!ts_option_) {
@@ -1828,7 +1848,7 @@ int FullTcpAgent::command(int argc, const char*const* argv)
  */
 
 ReassemblyQueue::ReassemblyQueue(int& nxt) :
-	head_(NULL), tail_(NULL), rcv_nxt_(nxt)
+	head_(NULL), tail_(NULL), rcv_nxt_(nxt), last_startseq_(-1)
 {
 	bind("off_tcp_", &off_tcp_);
 	bind("off_cmn_", &off_cmn_);
@@ -1843,7 +1863,31 @@ void ReassemblyQueue::clear()
 	for (p = head_; p != NULL; p = p->next_)
 		delete p;
 	head_ = tail_ = NULL;
+	last_startseq_ = -1;
 	return;
+}
+
+/*
+ * gensack() -- generate 'maxsblock' sack blocks (start/end seq pairs)
+ * at specified address
+ */
+
+int
+ReassemblyQueue::gensack(int *sacks, int maxsblock)
+{
+	seginfo *p = head_;
+	int cnt = 0;
+
+	while ((p != NULL) && (cnt < maxsblock)) {
+		*sacks++ = p->startseq_;
+		while (p->next_ && (p->next_->startseq_ == (p->endseq_+1))) {
+			p = p->next_;
+		}
+		*sacks++ = p->endseq_;
+		p = p->next_;
+		++cnt;
+	}
+	return (cnt);
 }
 
 /*
@@ -1860,6 +1904,8 @@ int ReassemblyQueue::add(Packet* pkt)
 	int end = start + th->size() - tcph->hlen();
 	int tiflags = tcph->flags();
 	seginfo *q, *p, *n;
+
+	last_startseq_ = start;
 
 	if (head_ == NULL) {
 		// nobody there, just insert
