@@ -163,13 +163,42 @@ detailedDM instproc notify changes {
 	$self instvar Node iif_ ns RPF_
 	$Node instvar replicator_
 	set id [$Node id]
+
+	# check which links/oifs are down (if any) 
+	foreach node [$Node set neighbor_] {
+		set link [$ns set link_($id:[$node id])]
+		if { [$link up?] != "up" } {
+			set oifDown [$Node get-oif $link]
+			set down_($oifDown) 1
+		}
+	}
+
 	# traverse the mcast states and check to which routes have changed
 	foreach index [array names replicator_] {
+	  set rep $replicator_($index)
+	
+	  set src [lindex [split $index :] 0]
+	  set grp [lindex [split $index :] 1]
+
+	  $self instvar PruneTimer_
+	  # remove the down oifs from the oiflist
+	  # take care with crashes, we may never get a graft, and so
+	  # may want to set the prune timer,... but if expired check
+	  # if the links is still down.. so on.. deal with this later XXX
+	  foreach oif [array names down_] {
+	    if { [$rep exists $oif] && [$rep set active_($oif)] } {
+	 	$replicator_($index) disable $oif
+		if ![info exists PruneTimer_($index:[$oif id])] {
+		  set $PruneTimer_($index:[$oif id]) \
+			[new Prune/Iface/Timer $src $grp [$oif id]]
+		}
+		$PruneTimer_($index:[$oif id]) schedule
+	    }
+	  }
+
 	  if ![info exists RPF_($index)] {
 		continue
 	  }
-	  set src [lindex [split $index :] 0]
-	  set grp [lindex [split $index :] 1]
 	  if ![info exists srcDone($src)] {
 		  set nbr [$ns upstream-node $id $src]
 		  set rpf [$nbr id]
@@ -185,34 +214,37 @@ detailedDM instproc notify changes {
 	  set iifChange 0
 	  if [info exists iif_($src)] {
 	    if { $iif_($src) != $newiif } {
-		$self change-iif $replicator_($index) $src $grp $newiif $rpf
+		$self change-iif $rep $src $grp $newiif $rpf
 		set iifChange 1
 	    } else {
 		set iifChange 0
 	    }
 	  }
 	  if !$iifChange {
-	    $self change-rpf $replicator_($index) $src $grp $oldrpf $rpf
+	    $self change-rpf $rep $src $grp $oldrpf $rpf
 	  }
 	}
-	unset srcDone
 }
 
 detailedDM instproc change-rpf { rep src grp oldrpf newrpf } {
-	# invoking this proc means we are on a lan, changed the rpf,
-	# but not the iif
-	if [$rep is-active] {
-		# prune old rpf, and graft new rpf
-		$self instvar RPF_
-		set RPF_($src:$grp) $oldrpf
-		$self send-prune $src $grp
-		set RPF_($src:$grp) $newrpf
-		$self send-graft $src $grp
-		return 1
-	}
-	# if we are a negative cache on a lan, prune off new rpf
-	$self send-prune $src $grp
-}
+        # invoking this proc means we are on a lan, changed the rpf,
+        # but not the iif
+        $self instvar Node
+        puts "Change RPF node [$Node id] oldrpf $oldrpf, newrpf $newrpf"
+        if [$rep is-active] {
+                # prune old rpf, and graft new rpf
+                $self instvar RPF_
+                set RPF_($src:$grp) $oldrpf
+                $self send-prune $src $grp
+                set RPF_($src:$grp) $newrpf
+                $self send-graft $src $grp
+                return 1
+        }
+        # if we are a negative cache on a lan, prune off new rpf
+        $self instvar RPF_
+        set RPF_($src:$grp) $newrpf
+        $self send-prune $src $grp
+}                
 
 detailedDM instproc change-iif { rep src grp newiif newrpf } {
 	$self instvar iif_ RPF_ Node PruneTimer_ ns
@@ -358,10 +390,13 @@ detailedDM instproc recv-graft { src group from msg } {
 	$self send-unicast graftAck $src $group $from
 
 	set id [$Node id]
+	puts "at [$ns now] node $id, recv-graft, src $src, grp $group from $from"
+
 	if { $from == $id } {
 		return 0
 	}
 	set r [$Node getRep $src $group]
+	puts "active [$r is-active]"
 	if { $r == "" || ![$r is-active] && $src != $id } {
 		# send a graft upstream
 		$self send-graft $src $group
@@ -539,16 +574,24 @@ detailedDM instproc delete_oif { src grp oif } {
 }
 
 detailedDM instproc timeoutPrune { oif src grp } {
-	$self instvar Node PruneTimer_
+	$self instvar Node PruneTimer_ ns
 	set r [$Node getRep $src $grp]
 	if { $r == "" } {
 		return -1
 	}
 
-	# debugging
-	global ns
+	# check if the oif is up
+	set nbr [[$Node ifaceGetNode $oif] id]
+	set link [$ns set link_([$Node id]:$nbr)]
+	if { [$link up?] != "up" } {
+		$PruneTimer_($src:$grp:$oif) schedule
+		return 0
+	}
 
 	set oifObj [$Node label2iface $oif]
+	if ![$r is-active] {
+		$self send-graft $src $grp
+	}
 	$r insert $oifObj
 	if [info exists PruneTimer_($src:$grp:$oif)] {
 		$PruneTimer_($src:$grp:$oif) cancel
@@ -655,3 +698,17 @@ Agent/Mcast/Prune/detailedDM instproc handle { msg from src grp } {
 	set L [lreplace $L 0 0]
 	$proto recv-$type $src $grp $from $L
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
