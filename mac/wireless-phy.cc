@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.17 2002/03/14 01:12:53 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.18 2002/05/30 00:10:15 buchheim Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -251,7 +251,7 @@ WirelessPhy::sendDown(Packet *p)
 
 		   if (em()->energy() <= 0) {
 			   em()->setenergy(0);
-			   node()->log_energy(0);
+			   ((MobileNode*)node())->log_energy(0);
 		   }
 
 		} else {
@@ -263,7 +263,7 @@ WirelessPhy::sendDown(Packet *p)
 	/*
 	 *  Stamp the packet with the interface arguments
 	 */
-	p->txinfo_.stamp(node(), ant_->copy(), Pt_, lambda_);
+	p->txinfo_.stamp((MobileNode*)node(), ant_->copy(), Pt_, lambda_);
 
 	// Send the packet
 	channel_->recv(p, this);
@@ -297,7 +297,7 @@ WirelessPhy::sendUp(Packet *p)
 	}
 
 	if(propagation_) {
-		s.stamp(node(), ant_, 0, lambda_);
+		s.stamp((MobileNode*)node(), ant_, 0, lambda_);
 		Pr = propagation_->Pr(&p->txinfo_, &s, this);
 		if (Pr < CSThresh_) {
 			pkt_recvd = 0;
@@ -382,7 +382,7 @@ DONE:
 		if (em()->energy() <= 0) {  
 			// saying node died
 			em()->setenergy(0);
-			node()->log_energy(0);
+			((MobileNode*)node())->log_energy(0);
 		}
 	}
 	
