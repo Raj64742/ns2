@@ -30,19 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.7 1999/07/07 03:39:30 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.8 1999/07/10 17:18:13 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
 
 source misc_simple.tcl
-Agent/TFRM set packetSize_ 1000
-Agent/TFRM set df_ 0.0
-Agent/TFRM set version_ 1
-Agent/TFRM set tcp_tick_ 0.1
-Agent/TFRM set incrrate_ 0.1
-Agent/TFRM set slowincr_ 0
-Agent/TFRM set ndatapack_ 0
+Agent/TFRM set df_ 0.5 
 
 TestSuite instproc finish file {
         global quiet PERL
@@ -181,6 +175,7 @@ TestSuite instproc runFriendly {} {
     set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 3]
     set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 4]
     $ns_ at 0.0 "$tf1 start"
+#    $ns_ at 5.0 "$tf1 start"
     $ns_ at 10.0 "$tf2 start"
     $ns_ at 40 "$tf1 stop"
     $ns_ at 40 "$tf2 stop"
@@ -199,6 +194,7 @@ TestSuite instproc runTcps {} {
     set tcp3 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s4) 2]
     set ftp3 [$tcp3 attach-app FTP] 
     $ns_ at 19.0 "$ftp1 start"
+#    $ns_ at 0.0 "$ftp1 start"
     $ns_ at 20.0 "$ftp2 start"
     $ns_ at 21.0 "$ftp3 start"
     $ns_ at 50 "$ftp2 stop"
@@ -215,6 +211,8 @@ Test/test1 instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	test1
+    Agent/TFRM set version_ 1
+    Agent/TFRM set slowincr_ 0
     $self next
 }
 Test/test1 instproc run {} {
@@ -240,6 +238,8 @@ Test/test2 instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	test2
+    Agent/TFRM set version_ 1
+    Agent/TFRM set slowincr_ 0
     $self next
 }
 Test/test2 instproc run {} {
@@ -262,6 +262,65 @@ Test/test2 instproc run {} {
     $ns_ run
 }
 
+
+# Two TFRM connections and three TCP connections.
+Class Test/multIncr -superclass TestSuite
+Test/multIncr instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	multIncr
+    Agent/TFRM set version 1
+    Agent/TFRM set incrrate_ 1
+    Agent/TFRM set slowincr_ 3
+    $self next
+}
+Test/multIncr instproc run {} {
+    $self instvar ns_ node_ testName_ interval_ dumpfile_
+    $self setTopo
+    set interval_ 1.0
+    set stopTime 60.0
+
+    set dumpfile_ [open temp.s w]
+
+    $self runFriendly 
+    $self runTcps
+    
+    $ns_ at $stopTime "close $dumpfile_; $self finish_1 $testName_"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+# Two TFRM connections and three TCP connections.
+Class Test/multIncr2 -superclass TestSuite
+Test/multIncr2 instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	multIncr2
+    Agent/TFRM set version 1
+    Agent/TFRM set incrrate_ 1
+    Agent/TFRM set slowincr_ 3
+    $self next
+}
+Test/multIncr2 instproc run {} {
+    $self instvar ns_ node_ testName_ interval_ dumpfile_
+    $self setTopo
+    set interval_ 1.0
+    set stopTime 31.0
+
+    set dumpfile_ [open temp.s w]
+    set tracefile [open all.tr w]
+    $ns_ trace-all $tracefile
+
+    $self runFriendly 
+    $self runTcps
+    
+    $ns_ at $stopTime "stop $tracefile;"
+
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 30.0 $testName_]
+    $ns_ run
+}
 
 TestSuite runTest
 
