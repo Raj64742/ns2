@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rap.tcl,v 1.1 2000/01/07 05:48:48 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rap.tcl,v 1.2 2000/01/07 06:26:34 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -133,7 +133,7 @@ TestSuite instproc setup {tcptype list} {
 
         $self drop_pkts $list
 
-        $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+        $self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
         $ns_ run
 }
 
@@ -198,6 +198,38 @@ Test/fourdrops_rap instproc init {} {
 }
 Test/fourdrops_rap instproc run {} {
         $self setup RAP {14 24 26 28}
+}
+
+###################################################
+## Different parameters
+###################################################
+
+Class Test/diff_decrease_rap -superclass TestSuite
+Test/diff_decrease_rap instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	diff_decrease_rap
+	Agent/RAP set beta_ 0.875
+	$self next
+}
+Test/diff_decrease_rap instproc run {} {
+        $self setup RAP {14}
+}
+
+###################################################
+## Different parameters
+###################################################
+
+Class Test/diff_increase_rap -superclass TestSuite
+Test/diff_increase_rap instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	diff_increase_rap
+	Agent/RAP set alpha_ 0.2
+	$self next
+}
+Test/diff_increase_rap instproc run {} {
+        $self setup RAP {14}
 }
 
 
