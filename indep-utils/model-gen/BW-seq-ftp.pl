@@ -27,12 +27,10 @@
 
 sub usage {
         print STDERR <<END;
-	usage: $0 [-s DomainPrefix] [-p Port] 
-	Options:
-	    -s string  specify IP prefix to distinguish Inbound from outbound
-	               traffic (eg. 192.1)
-	    -p string  specify the port number
-
+        usage: $0 [-r Filename]
+	        Options:
+	            -r string  file that contains a list of FTP clients, which
+	                       is output of getFTPclient.pl
 END
 exit 1;
 }
@@ -45,14 +43,12 @@ require "dblib.pl";
 my(@orig_argv) = @ARGV;
 &usage if ($#ARGV < 0);
 my($prog) = &progname;
-my($dbopts) = new DbGetopt("s:p:?", \@ARGV);
+my($dbopts) = new DbGetopt("r:?", \@ARGV);
 my($ch);
 while ($dbopts->getopt) {
         $ch = $dbopts->opt;
-        if ($ch eq 's') {
-                $prefix = $dbopts->optarg;
-        } elsif ($ch eq 'p') {
-                $port = $dbopts->optarg;
+        if ($ch eq 'r') {
+                $infile = $dbopts->optarg;
         } else {
                 &usage;
         };
@@ -60,10 +56,22 @@ while ($dbopts->getopt) {
 
 
 
-$isiPrefix=join(".",$prefix,$port);
 
 open(OUT,"> outbound.seq") || die("cannot open outbound.seq\n");
 open(IN,"> inbound.seq") || die("cannot open inbound.seq\n");
+
+open(FIN,"< $infile") || die("cannot open $infile\n");
+
+$num_ftp=0;
+
+while (<FIN>) {
+   ($host,$newline) = split(/[:() \n]/,$_);
+   $ftpC[$num_ftp]=$host;
+   $num_ftp++;
+}
+
+close(FIN);
+
 
 while (<>) {
         ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
@@ -80,25 +88,37 @@ while (<>) {
 	   $size=$size1;
 	}
 
-	$prefixc=join(".",$ip11,$ip12,$srcPort);
-	$prefixs=join(".",$ip21,$ip22,$dstPort);
-	$client=join(".",$ip11,$ip12,$ip13,$ip14,$srcPort);
-	$server=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
+	$src=join(".",$ip11,$ip12,$ip13,$ip14);
+	$dst=join(".",$ip21,$ip22,$ip23,$ip24);
 
-        if ( $srcPort eq $port ) {
-		$server=join(".",$ip11,$ip12,$ip13,$ip14,$srcPort);
-	 	$client=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
-        }
+	$srcp=join(".",$ip11,$ip12,$ip13,$ip14,$srcPort);
+ 	$dstp=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
 
+
+        $found=0;
+        foreach $j (0 .. $#ftpC) {
+       		if ($src eq $ftpC[$j]) {
+                  	$found=1;
+			$client=$srcp;
+			$server=$dstp;
+                }
+       		if ($dst eq $ftpC[$j]) {
+                  	$found=1;
+			$client=$dstp;
+			$server=$srcp;
+                }
+								                         }
+      	if ($found eq 0) { 
+		print "ERROR in BW-seq-ftp.pl: $src $dst\n";
+ 	}			                    
 
         #capture 3 types of packaets
 	# 1. data packet to the server
 	# 2. data packet from the server
 	# 3. ack packet to the server
 
-        #data packet from ISI
-	if ( $prefixc eq $isiPrefix) {
-
+        #data packet from server
+	if ($srcp eq $server) {
 		if ( $seqe ne "ack" ) {
 			if ( $size eq 1460 ) {
 				print OUT "$client $server $seqe $sTime data\n"
@@ -106,12 +126,11 @@ while (<>) {
                 }
 	}
 	#ACK packet to ISI
-	if (($prefixs eq $isiPrefix) && ($seqe eq "ack")) {   
-		print OUT "$client $server $size $sTime ack\n"
-	}
-        #data packet to ISI
-        if ( ($srcPort eq $port) && ($prefixc ne $isiPrefix)) {
-		if ( $seqe ne "ack" ) {
+	if ($srcp eq $client) {
+		if ($seqe eq "ack") {   
+			print OUT "$client $server $size $sTime ack\n"
+		}
+		else {
 			if ( $size eq 1460 ) {
 				print IN "$client $server $sTime $seqe\n";
 			}

@@ -26,7 +26,7 @@
 #
 
 
-$ftp_port="21";
+$ftp_port=21;
 $num_ftp=0;
 
 
@@ -66,5 +66,5 @@ while (<>)  {
 }
 
 foreach $j (0 .. $#ftpC) {
-	print "$ftpC[$j]:\n";
+	print "$ftpC[$j]\n";
 }

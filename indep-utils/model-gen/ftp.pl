@@ -55,74 +55,91 @@ while ($dbopts->getopt) {
         };
 };
 
-$sarrivef=join(".",$fext,"sess.arrive");
-$farrivef=join(".",$fext,"file.inter");
+$farrivef=join(".",$fext,"arrive");
 $sizef=join(".",$fext,"size");
 $filef=join(".",$fext,"fileno");
 
-open(FSARRIVE,"> $sarrivef") || die("cannot open $sarrivef\n");
 open(FFARRIVE,"> $farrivef") || die("cannot open $farrivef\n");
 open(FSIZE,"> $sizef") || die("cannot open $sizef\n");
 open(FFILE,"> $filef") || die("cannot open $filef\n");
 
 
-$prevS="";
-$prevD="";
-$prevPort="";
-$total=0;
-$fileno=1;
+$fileno=0;
+$fsize=0;
+$oldsrc="";
+$olddst="";
+$oldsrcP="";
+$olddstP="";
+
 
 while (<>) {
-        ($ip11,$ip12,$ip13,$ip14,$srcPort,$ip21,$ip22,$ip23,$ip24,$dstPort,$time1,$time2,$size) = split(/[. ]/,$_);
+        ($ip11,$ip12,$ip13,$ip14,$srcPort,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy,$time1,$time2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
 
-       
-        $srcPort="";
 
-	$src=join(".",$ip11,$ip12,$ip13,$ip14);
+        $time=join(".",$time1,$time2);
+
+        if (!defined($size)) {
+	        $size=0;
+	} else {
+		if (($flag eq "") && ($seqb eq "") && defined($size1)) {     
+			$size=$size1;
+		}
+	}
+        if (!defined($flag)) {
+	        $flag="";
+	}
+
+        $dummy="";
+	$seqe="";
+
+        #not modelig FTP control channel
+        if (($srcPort ne "21") && ($dstPort ne "21")) {
+
+        $srcP=join(".",$ip11,$ip12,$ip13,$ip14,$srcPort);
+	$dstP=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
+        $src=join(".",$ip11,$ip12,$ip13,$ip14);
 	$dst=join(".",$ip21,$ip22,$ip23,$ip24);
-	$time=join(".",$time1,$time2);
+        
+        if ($flag eq "S") {
+		$ssrcP=$srcP;
+		$sdstP=$dstP;
+		$ssrc=$src;
+		$sdst=$dst;
+		$stime=$time;
+	}
 
-
-        #only look at ftp data
-        if (($src eq $prevS) && ($dst eq $prevD)) {
-	   	if ($dstPort eq $prevPort) {
-	   		$total=$total+$size;
-		} else {
-			if ($total ne 0) {
-				print FSIZE "$total\n";
+	if (($src eq $oldsrc) && ($dst eq $olddst)) {
+		if (($srcP eq $oldsrcP) && ($dstP eq $olddstP)) {
+		        $fsize=$fsize+$size;
+        		if ((($flag eq "F") || ($flag eq "FP")) && 
+		    		($ssrcP eq $srcP) && ($sdstP eq $dstP)) {
+		    		$fileno++;
+				if ($fsize != 0) {
+#					print FSIZE "$srcP $dstP $fsize\n";
+					print FSIZE "$fsize\n";
+				}
+				$fsize=0;
+                                print FFARRIVE "$ssrc $sdst $stime\n";
 			}
-			$total=$size+0;
-			$fileno=$fileno+1;
-			$finter=$time-$startTime;
-#			print FFARRIVE "$src $dst $dstPort $startTime $time\n";
-			if ($finter gt 0) {
-				print FFARRIVE "$finter\n";
-			}
-			$startTime=$time;
 		}
 	} else {
-		if ($prevS ne "") {
-			print FFILE "$fileno\n";
+	        if (($oldsrc ne "") && ($olddst ne "")) {
+			if ($fileno != 0) {
+#				print FFILE "$oldsrc $olddst $fileno\n";
+				print FFILE "$fileno\n";
+			}
 		}
-		if ($total ne 0) {
-			print FSIZE "$total\n";
-		}
-		$total=$size+0;
-		$fileno=1;
-		print FSARRIVE "$time\n";
-		$startTime=$time;
+		$fileno=0;
 	}
-	$prevS=$src;
-	$prevD=$dst;
-	$prevPort=$dstPort;
+
+	$oldsrc=$src;
+	$olddst=$dst;
+	$oldsrcP=$srcP;
+	$olddstP=$dstP;
+	}
 }
 
-print FFILE "$fileno\n";
-if ($total ne 0) {
-	print FSIZE "$total\n";
-}
 
-close(FSARRIVE);
 close(FFARRIVE);
 close(FSIZE);
 close(FFILE);

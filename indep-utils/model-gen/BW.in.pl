@@ -95,6 +95,13 @@ while (<>) {
 	$q=$seq;
 
 }
+
+if ( $j gt 3 ) {
+   	@datan = sort numerically @n;
+   	$m=int($j/2);
+   	print INBW "$datan[$m]\n";
+}
+
 close(INBW);
 
 sub numerically { $a <=> $b; }

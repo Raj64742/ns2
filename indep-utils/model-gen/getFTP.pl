@@ -57,19 +57,21 @@ while ($dbopts->getopt) {
 
 open(FIN,"< $infile") || die("cannot open $infile\n");
 
+$special_port=1024;
+$ftp_port=21;
 $num_ftp=0;
-$http_port="80";
 
 while (<FIN>) {
-   ($host,$newline) = split(/[:() ]/,$_);
+   ($host,$newline) = split(/[:() \n]/,$_);
    $ftpC[$num_ftp]=$host;
    $num_ftp++;
 }
 
 close(FIN);
 
+
 while (<>) {
-        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2) = split(/[.:() ]/,$_);
+        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$dummy2) = split(/[.:() ]/,$_);
 
 
         $dummy1="";
@@ -81,7 +83,12 @@ while (<>) {
 	$src=join(".",$ip11,$ip12,$ip13,$ip14);
 	$dst=join(".",$ip21,$ip22,$ip23,$ip24);
 
-        if (($srcPort ne $http_port) && ($dstPort ne $http_port)) {
+
+        if ((($srcPort > $special_port) && ($dstPort > $special_port)) ||
+            (($srcPort > $special_port) && ($dstPort == $ftp_port)) ||
+            (($srcPort == $ftp_port) && ($dstPort > $special_port))) {
+
+
 	           $found=0;
 		   foreach $j (0 .. $#ftpC) {
 		    	if (($src eq $ftpC[$j]) || ($dst eq $ftpC[$j])) {
@@ -89,7 +96,7 @@ while (<>) {
                    	}
 		   }
 
-		   if ($found eq 1) {
+		   if (($found eq 1)  && ($flag ne "udp")) {
 		   	print "$_";
 		   }
 	}

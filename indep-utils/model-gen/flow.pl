@@ -58,10 +58,12 @@ while ($dbopts->getopt) {
 $fsize=join(".",$fext,"size");
 $fdur=join(".",$fext,"dur");
 $fstart=join(".",$fext,"start");
+$flog=join(".",$fext,"log");
 
 open(FSIZE,"> $fsize") || die("cannot open $fsize\n");
 open(FDUR,"> $fdur") || die("cannot open $fdur\n");
 open(FSTART,"> $fstart") || die("cannot open $fstart\n");
+open(FLOG,"> $flog") || die("cannot open $flog\n");
 
 $oldsrc="";
 $olddst="";
@@ -76,11 +78,11 @@ while (<>) {
 
 	if (($oldsrc ne $src) || ($olddst ne $dst)) {
 		if (($oldsrc ne "") && ($olddst ne "") && ($cnt gt 1)) {
-#			print FSIZE "$oldsrc $olddst $totalsize\n";
-			print FSIZE "$totalsize\n";
+			print FSIZE "$oldsrc $olddst $totalsize\n";
+#			print FSIZE "$totalsize\n";
 			$totaldur=$oldstart - $flowstart;
-#			print FDUR "$oldsrc $olddst $totaldur\n";
-			print FDUR "$totaldur\n";
+			print FDUR "$oldsrc $olddst $totaldur\n";
+#			print FDUR "$totaldur\n";
 			$totalsize=$size;
 		}
 		$cnt=1;
@@ -88,12 +90,17 @@ while (<>) {
 		print FSTART "$start\n";
 		$flowstart=$start;
 	} else {
+	        $gap=$start - $oldstart;
+		if ($gap ge 60) {
+			print FLOG "$oldsrc $olddst $oldstart\n";
+			print FLOG "$src $dst $start $gap\n";
+		}
 		$totalsize=$totalsize+$size;
-		$oldstart=$start;
 		$cnt=$cnt+1;
 	}
 	$oldsrc=$src;
 	$olddst=$dst;
+	$oldstart=$start;
 }
 close(FSIZE);
 close(FDUR);

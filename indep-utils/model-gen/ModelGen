@@ -49,15 +49,22 @@
 
 date
 echo "***  parsing tcpdump file  ***"
+echo "***  parsing .all  ***"
 ./tcpdump -n -tt -q -r $1  > $1.all
-#./tcpdump -n -tt -r $1 tcp port 80 > $1.www
+date
+echo "***  parsing .www  ***"
+./tcpdump -n -tt -r $1 tcp port 80 > $1.www
 #./tcpdump -n -tt -r $1 port ftp or port ftp-data > $1.ftp
+date
+echo "***  parsing .ftp  ***"
 ./tcpdump -n -tt -r $1 port ftp  > $1.ftp1
 cat $1.ftp1 | getFTPclient.pl  > $1.ftp2
 cat $1.all | getFTP.pl -r $1.ftp2 > $1.ftp
 #./tcpdump -q -n -tt -r $1 port ftp or port ftp-data > $1.ftps
 #./tcpdump -n -tt -r $1 port domain > $1.dns
-#./tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
+date
+echo "***  parsing .http-srv  ***"
+./tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
 
 date
 echo "***  analyze traffic mix  ***"
@@ -67,22 +74,22 @@ echo "***  analyze traffic mix  ***"
 
 date
 echo "***  analyze flow statistics  ***"
-awk -f flow.awk < $1.all.outbound > $1.all.outbound.flow
-awk -f flow.awk < $1.all.inbound > $1.all.inbound.flow
-sort -s -o $1.all.outbound.flow.sort -T /tmp $1.all.outbound.flow
-sort -s -o $1.all.inbound.flow.sort -T /tmp $1.all.inbound.flow
-cat $1.all.outbound.flow.sort | flow.pl -w $1.outbound.flow
-cat $1.all.inbound.flow.sort | flow.pl -w $1.inbound.flow
-sort -s -o $1.inbound.flow.start.sort $1.inbound.flow.start
-sort -s -o $1.outbound.flow.start.sort $1.outbound.flow.start
-awk -f arrive2inter.awk < $1.outbound.flow.start.sort > $1.outbound.flow.arrival
-awk -f arrive2inter.awk < $1.inbound.flow.start.sort > $1.inbound.flow.arrival
-dat2cdf -e 1024 -i 1024 -d 1024 -t $1.outbound.flow.size
-dat2cdf -e 1024 -i 1024 -d 1024 -t $1.inbound.flow.size
-dat2cdf -e 0 -i 1 -d 1 -t $1.outbound.flow.dur
-dat2cdf -e 0 -i 1 -d 1 -t $1.inbound.flow.dur
-dat2cdf -e 0 -i 0.001 -d 1 -t $1.outbound.flow.arrival
-dat2cdf -e 0 -i 0.001 -d 1 -t $1.inbound.flow.arrival
+#awk -f flow.awk < $1.all.outbound > $1.all.outbound.flow
+#awk -f flow.awk < $1.all.inbound > $1.all.inbound.flow
+#sort -s -o $1.all.outbound.flow.sort -T /tmp $1.all.outbound.flow
+#sort -s -o $1.all.inbound.flow.sort -T /tmp $1.all.inbound.flow
+#cat $1.all.outbound.flow.sort | flow.pl -w $1.outbound.flow
+#cat $1.all.inbound.flow.sort | flow.pl -w $1.inbound.flow
+#sort -s -o $1.inbound.flow.start.sort $1.inbound.flow.start
+#sort -s -o $1.outbound.flow.start.sort $1.outbound.flow.start
+#awk -f arrive2inter.awk < $1.outbound.flow.start.sort > $1.outbound.flow.arrival
+#awk -f arrive2inter.awk < $1.inbound.flow.start.sort > $1.inbound.flow.arrival
+#dat2cdf -e 1024 -i 1024 -d 1024 -t $1.outbound.flow.size
+#dat2cdf -e 1024 -i 1024 -d 1024 -t $1.inbound.flow.size
+#dat2cdf -e 0 -i 1 -d 1 -t $1.outbound.flow.dur
+#dat2cdf -e 0 -i 1 -d 1 -t $1.inbound.flow.dur
+#dat2cdf -e 0 -i 0.001 -d 1 -t $1.outbound.flow.arrival
+#dat2cdf -e 0 -i 0.001 -d 1 -t $1.inbound.flow.arrival
 
 date
 echo "***  seperate Inbound and Outbound traffic  ***"
@@ -91,13 +98,13 @@ echo "DNS"
 
 date
 echo "WWW"
-cat $1.www | io.www.pl -s $3  -w $1.www
+#cat $1.www | io.www.pl -s $3  -w $1.www
 cat $1.http-srv | io.www.pl -s $3  -w $1.http-srv
 
 date
 echo "FTP"
-cat $1.ftp | io.ftp.pl -s $3  -w $1.ftp
-cat $1.ftps | io.ftp.pl -s $3  -w $1.ftps
+#cat $1.ftp | io.ftp.pl -s $3  -w $1.ftp
+#cat $1.ftps | io.ftp.pl -s $3  -w $1.ftps
 
 ##############################
 
