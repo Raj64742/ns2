@@ -270,7 +270,7 @@ DONE:
 	  double rcvtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
 	  // no way to reach here if the energy level < 0
 	  
-	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr);
+	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr_);
 
 	  if ((node_->energy_model())->energy() <= 0) {  
 	  // saying node died
