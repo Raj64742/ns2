@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.211 2000/09/14 18:19:27 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.212 2000/10/04 22:46:42 yewei Exp $
 
 #
 # Word of warning to developers:
@@ -364,13 +364,18 @@ Simulator instproc node-config args {
         # not good style, for back-compability ONLY
 	#
 	# Only create 1 instance of prop
-	if {[info exists propType_] && [info exists propInstance_]} {
-		warn "Both propType and propInstance are set."
+	if {[info exists propInstance_]} {
+		if {[info exists propType_] && [Simulator set propInstCreated_] == 0} {
+			warn "Both propType and propInstance are set. propType is ignored."
+		}
+	} else {
+		if {[info exists propType_]} {
+			set propInstance_ [new $propType_]
+			Simulator set propInstCreated_ 1
+		}
 	}
-	if {[info exists propType_] && ![info exists propInstance_]} {
-		set propInstance_ [new $propType_] 
-	}
-	# Add multi-interface support: 
+	
+	# Add multi-interface support:
  	# User can only specify either channelType_ (single_interface as 
 	# before) or channel_ (multi_interface)
  	# If both variables are specified, error!

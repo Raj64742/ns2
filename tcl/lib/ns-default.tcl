@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.221 2000/10/02 18:55:50 kclan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.222 2000/10/04 22:46:18 yewei Exp $
 
 
 #
@@ -387,6 +387,7 @@ Simulator set MovementTrace_ OFF
 # by Simulator::create-wireless-node{}. 
 Simulator set IMEPFlag_ ""
 Simulator set WirelessNewTrace_ 0
+Simulator set propInstCreated_ 0
 
 # Enable packet reference count
 SessionSim set rc_ 0
