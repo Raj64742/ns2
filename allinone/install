@@ -16,10 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-
-#
-#
-#
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.13 2000/11/01 00:36:46 haoboy Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -43,129 +40,11 @@ XGRAPHVER=12.1
 # Get current path
 CUR_PATH=`pwd`
 
-# create tcl8.3.2 and tk8.3.2 installation directory
+# Compile and install xgraph
 
-if [ ! -d tclbox ]
-then
-	mkdir tclbox
-else
-	rm -fr tclbox
-fi
-
-if [ ! -d tkbox ]
-then
-	mkdir tkbox
-else
-	rm -fr tkbox
-fi
-
-# install and install Tcl8.3.2
-
-echo " "
-echo "* Build tcl$TCLVER"
-echo " "
-
-cd ./tcl$TCLVER/unix
-if [ -f Makefile ] ; then 
-	make distclean
-fi
-
-blame='Tcl is not part of the ns project.  Please see www.Scriptics.com
-to see if they have a fix for your platform.'
-./configure --enable-gcc --prefix="$CUR_PATH/tclbox" || die "tcl8.3.2 configuration failed! Exiting ..."
-if make 
-then 
-	make install || die "tcl8.3.2 installation failed! Exiting ..."
-else
-	echo "tcl$TCLVER make failed! Exiting ..."
-	echo "For problems with Tcl/Tk see http://www.scriptics.com"
-	exit
-fi
-
-cd ../../
-
-# compile and install tk
-
-echo " "
-echo "* Build Tk$TKVER"
-echo " "
-
-cd ./tk$TKVER/unix
-if [ -f Makefile ] ; then
-	make distclean
-fi
-
-blame='Tk is not part of the ns project.  Please see www.Scriptics.com
-to see if they have a fix for your platform.'
-./configure --enable-gcc --prefix=$CUR_PATH/tkbox || die "tk8.3.2 configuration failed! Exiting ..."
-if make 
-then
-	make install || die "tk$TKVER installation failed! Exiting ..."
-else
-	echo "tk$TKVER make failed! Exiting ..."
-	echo "For problems with Tcl/Tk see http://www.scriptics.com"
-	exit
-fi
-
-
-cd ../../
-
-# do some copy for otcl
-
-cp ./tcl$TKVER/generic/*.h ./tclbox/include/ || die "cp failed"
-cp ./tk$TKVER/generic/*.h ./tkbox/include/ || die "cp failed"
-
-# compile and install otcl
-
-echo " "
-echo "* Build OTcl-$OTCLVER"
-echo " "
-
-cd ./otcl-$OTCLVER
-
-blame='Please check http://www.isi.edu/nsnam/ns/ns-problems.html
-for common problems and bug fixes.'
-./configure --with-tcl=../tclbox --with-tk=../tkbox || die "otcl-$OTCLVER configuration failed! Exiting ..."
-
-if make 
-then
-	echo "otcl-$OTCLVER has been installed successfully."
-else
-	echo "otcl-$OTCLVER make failed! Exiting ..."
-	echo "See http://www.isi.edu/nsnam/ns/ns-problems.html for problems"
-	exit
-fi
-
-
-cd ../
-
-# compile and install tclcl
-
-echo " "
-echo "* Build Tclcl-$TCLCLVER"
-echo " "
-
-cd ./tclcl-$TCLCLVER
-
-./configure --with-tcl=../tclbox --with-tk=../tkbox --with-otcl=../otcl-$OTCLVER || die "tclcl-$TCLCLVER configuration failed! Exiting ..."
-
-if make
-then
-	echo "tclcl-$TCLCLVER has been installed successfully."
-else
-	echo "tclcl-$TCLCLVER make failed! Exiting ..."
-	echo "See http://www.isi.edu/nsnam/ns/ns-problems.html for problems"
-	exit
-fi	
-
-
-cd ../
-
-#compile and install xgraph
-
-echo " "
+echo "============================================================"
 echo "* Build XGraph-$XGRAPHVER"
-echo " "
+echo "============================================================"
 
 cd ./xgraph-$XGRAPHVER
 ./configure --prefix=../
@@ -178,11 +57,11 @@ fi
 
 cd ../
 
-#compile and install cweb and sgblib
+# Compile and install cweb and sgblib
 
-echo " "
+echo "============================================================"
 echo "* Build CWeb"
-echo " "
+echo "============================================================"
 
 cd ./cweb
 
@@ -205,16 +84,15 @@ else
 	cd bin
 	ln -s $CUR_PATH/cweb/cweave cweave
 	ln -s $CUR_PATH/cweb/ctangle ctangle
-	
 fi
 
 cd ..
 PATH=$CUR_PATH/bin:$PATH
 export PATH
 
-echo " "
+echo "============================================================"
 echo "* Build Stanford GraphBase"
-echo " "
+echo "============================================================"
 
 cd ./sgb
 if [ ! -f ./Makefile ]
@@ -239,11 +117,11 @@ fi
 
 cd ..
 
-# compile and install gt-itm & sgb2ns
+# Compile and install gt-itm & sgb2ns
 
-echo " "
+echo "============================================================"
 echo "* Build GT-ITM"
-echo " "
+echo "============================================================"
 
 if [ -f ./gt-itm/lib/libgb.a ]
 then
@@ -265,43 +143,16 @@ then
       echo "sgb2ns has been installed successfully."
     fi
    cd ../../
-
  fi
 else
     echo "sgb lib not found. gt-itm & sgb2ns could not be installed. Continuing.."
 fi
 
-# Compile and install ns. Since ns searches for tclsh in $PATH, the following is needed.
-PATH=$CUR_PATH/tclbox/bin:$CUR_PATH/tkbox/bin:$PATH
-export PATH
+# Build zlib
 
-# John's hack
-test -f ./otcl-$OTCLVER/libotcl.a && rm ./otcl-$OTCLVER/libotcl.so
-
-echo " "
-echo "* Build ns-$NSVER"
-echo " "
-
-cd ./ns-$NSVER
-./configure --with-tcl=../tclbox --with-tk=../tkbox --with-otcl=../otcl-$OTCLVER --with-tclcl=../tclcl-$TCLCLVER || die "Ns configuration failed! Exiting ..."
-
-if make
-then
-	echo " Ns has been installed successfully." 
-else
-	echo "Ns make failed!"
-	echo "See http://www-mash.CS.Berkeley.EDU/ns/ns-problems.html for problems"
-	exit
-fi
-
-
-cd ../
-
-#compile and install zlib
-
-echo " "
+echo "============================================================"
 echo "* Build zlib"
-echo " "
+echo "============================================================"
 
 cd ./zlib-1.1.3
 
@@ -319,15 +170,139 @@ fi
 
 cd ../
 
-#compile and install nam
+# Build Tcl8.3.2
 
-echo " "
+echo "============================================================"
+echo "* Build tcl$TCLVER"
+echo "============================================================"
+
+cd ./tcl$TCLVER/unix
+if [ -f Makefile ] ; then 
+	make distclean
+fi
+
+blame='Tcl is not part of the ns project.  Please see www.Scriptics.com
+to see if they have a fix for your platform.'
+./configure --enable-gcc || die "tcl8.3.2 configuration failed! Exiting ..."
+if make 
+then 
+	echo "tcl$TCLVER make succeeded."
+else
+	echo "tcl$TCLVER make failed! Exiting ..."
+	echo "For problems with Tcl/Tk see http://www.scriptics.com"
+	exit
+fi
+
+cd ../../
+
+# compile and install tk
+
+echo "============================================================"
+echo "* Build Tk$TKVER"
+echo "============================================================"
+
+cd ./tk$TKVER/unix
+if [ -f Makefile ] ; then
+	make distclean
+fi
+
+blame='Tk is not part of the ns project.  Please see www.Scriptics.com
+to see if they have a fix for your platform.'
+./configure --enable-gcc || die "tk8.3.2 configuration failed! Exiting ..."
+if make 
+then
+	echo "tk$TKVER build succeeded."
+else
+	echo "tk$TKVER make failed! Exiting ..."
+	echo "For problems with Tcl/Tk see http://www.scriptics.com"
+	exit
+fi
+
+cd ../../
+
+#
+# Since our configures search for tclsh in $PATH, the following 
+# is needed. This is necessary for otcl/tclcl/ns/nam
+#
+PATH=$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix:$PATH
+export PATH
+LD_LIBRARY_PATH=$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
+
+# Build otcl
+
+echo "============================================================"
+echo "* Build OTcl-$OTCLVER"
+echo "============================================================"
+
+cd ./otcl-$OTCLVER
+
+blame='Please check http://www.isi.edu/nsnam/ns/ns-problems.html
+for common problems and bug fixes.'
+./configure || die "otcl-$OTCLVER configuration failed! Exiting ..."
+
+if make 
+then
+	echo "otcl-$OTCLVER has been installed successfully."
+else
+	echo "otcl-$OTCLVER make failed! Exiting ..."
+	echo "See http://www.isi.edu/nsnam/ns/ns-problems.html for problems"
+	exit
+fi
+
+cd ..
+
+# Build tclcl
+
+echo "============================================================"
+echo "* Build Tclcl-$TCLCLVER"
+echo "============================================================"
+
+cd ./tclcl-$TCLCLVER
+
+./configure || die "tclcl-$TCLCLVER configuration failed! Exiting ..."
+
+if make
+then
+	echo "tclcl-$TCLCLVER has been installed successfully."
+else
+	echo "tclcl-$TCLCLVER make failed! Exiting ..."
+	echo "See http://www.isi.edu/nsnam/ns/ns-problems.html for problems"
+	exit
+fi	
+
+cd ../
+
+# John's hack
+test -f ./otcl-$OTCLVER/libotcl.a && rm ./otcl-$OTCLVER/libotcl.so
+
+echo "============================================================"
+echo "* Build ns-$NSVER"
+echo "============================================================"
+
+cd ./ns-$NSVER
+./configure || die "Ns configuration failed! Exiting ..."
+
+if make
+then
+	echo " Ns has been installed successfully." 
+else
+	echo "Ns make failed!"
+	echo "See http://www-mash.CS.Berkeley.EDU/ns/ns-problems.html for problems"
+	exit
+fi
+
+cd ../
+
+# Build nam
+
+echo "============================================================"
 echo "* Build nam-$NAMVER"
-echo " "
+echo "============================================================"
 
 cd ./nam-$NAMVER
 
-./configure --with-tcl=../tclbox --with-tk=../tkbox --with-otcl=../otcl-$OTCLVER --with-tclcl=../tclcl-$TCLCLVER || die "Nam configuration failed! Exiting ..."
+./configure || die "Nam configuration failed! Exiting ..."
 
 if make
 then 
@@ -339,11 +314,10 @@ fi
 
 cd ../
 
-# install nam, ns, xgraph into bin
+# Install nam, ns, xgraph into bin
 
-if [ ! -d bin ]
-then
-mkdir bin
+if [ ! -d bin ] ; then
+    mkdir bin
 fi
 
 cd bin
@@ -381,8 +355,8 @@ echo "Here are the installation places:"
 echo "ns:		$CUR_PATH/ns-$NSVER/ns"
 echo "otcl:		$CUR_PATH/otcl-$OTCLVER"
 echo "tclcl:		$CUR_PATH/tclcl-$TCLCLVER"
-echo "tcl$TCLVER:	$CUR_PATH/tclbox"
-echo "tk$TKVER:		$CUR_PATH/tkbox"
+echo "tcl$TCLVER:	$CUR_PATH/tcl$TCLVER"
+echo "tk$TKVER:		$CUR_PATH/tk$TKVER"
 
 if [ -x $CUR_PATH/nam-$NAMVER/nam ]
 then
@@ -398,19 +372,20 @@ then
 echo "gt-itm:   $CUR_PATH/itm, edriver, sgb2alt, sgb2ns, sgb2comns, sgb2hierns"
 fi
 
-echo ""
-echo "You can delete $CUR_PATH/tcl$TCLVER and $CUR_PATH/tk$TKVER if "
-echo "you want save your disk space"
-
 echo "-----------------------------------------------------"
-echo "Please put $CUR_PATH/bin into your PATH environment."
+echo "Please put $CUR_PATH/bin:$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix" 
+echo "into your PATH environment; so that you'll be able to run itm/tclsh/wish/xgraph..."
 echo ""
-echo "You MUST put $CUR_PATH/otcl-$OTCLVER, $CUR_PATH/tclbox/lib, $CUR_PATH/tkbox/lib"
+echo "You MUST put $CUR_PATH/otcl-$OTCLVER, $CUR_PATH/tcl$TCLVER/unix, $CUR_PATH/tk$TKVER/unix"
 echo "into your LD_LIBRARY_PATH environment variable. If it complains about X libraries,"
 echo "add path to your X libraries into LD_LIBRARY_PATH."
 echo ""
 echo "You can run the ns validation suite with"
 echo "cd ns-$NSVER; ./validate"
+echo ""
+echo "For trouble shooting, please first read ns problems page "
+echo "http://www.isi.edu/nsnam/ns/ns-problems.html. Also search the ns mailing list archive"
+echo "for related posts." 
 
 exit 0
 
