@@ -89,6 +89,12 @@ void SmacRecvTimer::sched(double time) {
 	rtime_ = time;
 }
 
+void SmacRecvTimer::resched(double time) {
+	TimerHandler::resched(time);
+	stime_ = Scheduler::instance().clock();
+	rtime_ = time;
+}
+
 double SmacRecvTimer::timeToExpire() {
 	return ((stime_ + rtime_) - Scheduler::instance().clock());
 }
@@ -520,15 +526,19 @@ void SMAC::handleRecvTimer() {
 		break;
 	case RTS_PKT:
 		handleRTS(pktRx_);
+		Packet::free(pktRx_);
 		break;
 	case CTS_PKT:
 		handleCTS(pktRx_);
+		Packet::free(pktRx_);
 		break;
 	case ACK_PKT:
 		handleACK(pktRx_);
+		Packet::free(pktRx_);
 		break;
 	case SYNC_PKT:
 		handleSYNC(pktRx_);
+		Packet::free(pktRx_);
 		break;
 	default:
 		fprintf(stderr, "Unknown smac pkt type, %d\n", sh->type);
@@ -561,6 +571,7 @@ void SMAC::handleGeneTimer()
       
 		} else {
 			state_ = IDLE;
+			Packet::free(dataPkt_);
 			dataPkt_ = 0;
 			numRetry_ = 0;
 			//numFrags_ = 0;
@@ -840,7 +851,7 @@ void SMAC::recv(Packet *p, Handler *h) {
 		assert(tx_active_);
 		ch->error() = 1;
 		pktRx_ = p;
-		mhRecv_.sched(txtime(p));
+		mhRecv_.resched(txtime(p));
 		return;
 	}
   
@@ -1103,6 +1114,7 @@ void SMAC::handleDATA(Packet *p) {
 		}
 	} else { // unicast pkt destined to other node
 		updateNav(sh->duration);
+		Packet::free(p);
 		if (state_ == IDLE || state_ == CR_SENSE)
 			sleep();
 	}
@@ -1119,6 +1131,7 @@ void SMAC::handleACK(Packet *p) {
 		if (state_ == WAIT_ACK && cf->srcAddr == sendAddr_) {
 			// cancel ACK timer
 			mhGene_.cancel();
+			Packet::free(dataPkt_);
 			dataPkt_ = 0;
 			//numFrags_--;
 			//succFrags_++;
@@ -1250,7 +1263,11 @@ void SMAC::transmit(Packet *p) {
 	radioState_ = RADIO_TX;
 	tx_active_ = 1;
 	pktTx_ = p;
-  
+
+	double transTime = txtime(p);
+	hdr_cmn *ch = hdr_cmn::access(p);
+	ch->txtime() = transTime;
+	
 	downtarget_->recv(p->copy(), this);
 	//Scheduler::instance().schedule(downtarget_, p, 0.000001);
 	mhSend_.sched(txtime(p));

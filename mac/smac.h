@@ -285,6 +285,7 @@ class SmacRecvTimer : public SmacTimer {
  public:
   SmacRecvTimer(SMAC *a) : SmacTimer(a) { stime_ = rtime_ = 0; }
   void sched(double duration);
+  void resched(double time);
   void expire(Event *e);
   double timeToExpire();
  protected:
@@ -337,12 +338,12 @@ class SmacCounterTimer : public SmacTimer {
   double timeToSleep();
  protected:
   int index_;
-  int value_;
-  int syncTime_;
-  int dataTime_;
-  int listenTime_;
-  int sleepTime_;
-  int cycleTime_;
+  double value_;
+  double syncTime_;
+  double dataTime_;
+  double listenTime_;
+  double sleepTime_;
+  double cycleTime_;
   double tts_;
   double stime_;
 }; 
@@ -542,11 +543,11 @@ class SMAC : public Mac {
   double startTime_;  // schedule start time (schedule starts from SYNC period)
 
   // sleep-wakeup cycle times
-  int syncTime_;
-  int dataTime_;
-  int listenTime_;
-  int sleepTime_;
-  int cycleTime_;
+  double syncTime_;
+  double dataTime_;
+  double listenTime_;
+  double sleepTime_;
+  double cycleTime_;
 
   // neighbor discovery
 
