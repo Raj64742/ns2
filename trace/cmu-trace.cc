@@ -557,8 +557,13 @@ CMUTrace::format_aodv(Packet *p, int offset)
                 break;
 
         default:
+#ifdef WIN32
                 fprintf(stderr,
-                        "%s: invalid AODV packet type\n", __FUNCTION__);
+		        "CMUTrace::format_aodv: invalid AODV packet type\n");
+#else
+		fprintf(stderr,
+		        "%s: invalid AODV packet type\n", __FUNCTION__);
+#endif
                 abort();
         }
 }
