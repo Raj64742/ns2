@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.71 2000/01/05 00:00:59 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.72 2000/03/10 18:16:54 haoboy Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -392,6 +392,9 @@ protected:
 	int vegas_expire(Packet*); 
 	void reset();
 	void vegas_inflate_cwnd(int win, double current_time);
+
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 
 	double t_cwnd_changed_; // last time cwnd changed
 	double firstrecv_;	// time recv the 1st ack

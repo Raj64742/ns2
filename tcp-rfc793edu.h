@@ -57,6 +57,9 @@ class RFC793eduTcpAgent : public virtual TcpAgent {
 
 
  protected:
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
+
         int add793expbackoff_;  /* Add Karn's exp. backoff to rfc793 tcp */
         int add793jacobsonrtt_; /* Add Jacobson/Karels RTT estimation */
         int add793fastrtx_;     /* Add the Fast-Retransmit Algorithm */

@@ -58,15 +58,55 @@ public:
 
 RFC793eduTcpAgent::RFC793eduTcpAgent() : TcpAgent() 
 {
-  bind_bool("add793expbackoff_", &add793expbackoff_);
-  bind_bool("add793jacobsonrtt_", &add793jacobsonrtt_);
-  bind_bool("add793fastrtx_", &add793fastrtx_);
-  bind_bool("add793slowstart_", &add793slowstart_);
-  bind_bool("add793additiveinc_", &add793additiveinc_);
-  bind_bool("add793karnrtt_", &add793karnrtt_);
-  bind_bool("add793exponinc_", &add793exponinc_); 
-  bind ("rto_", &rto_);
-  reset();
+}
+
+void
+RFC793eduTcpAgent::delay_bind_init_all()
+{
+	delay_bind_init_one("add793expbackoff_");
+	delay_bind_init_one("add793jacobsonrtt_");
+	delay_bind_init_one("add793fastrtx_");
+	delay_bind_init_one("add793slowstart_");
+	delay_bind_init_one("add793additiveinc_");
+	delay_bind_init_one("add793karnrtt_");
+	delay_bind_init_one("add793exponinc_"); 
+	delay_bind_init_one("rto_");
+	TcpAgent::delay_bind_init_all();
+        reset();
+}
+
+int
+RFC793eduTcpAgent::delay_bind_dispatch(const char *varName, 
+				       const char *localName,TclObject *tracer)
+{
+        if (delay_bind_bool(varName, localName, "add793expbackoff_", 
+			    &add793expbackoff_, tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, "add793jacobsonrtt_", 
+			    &add793jacobsonrtt_, tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, "add793fastrtx_", 
+			    &add793fastrtx_, tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, "add793slowstart_", 
+			    &add793slowstart_, tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, "add793slowstart_", 
+			    &add793slowstart_, tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, "add793additiveinc_", 
+			    &add793additiveinc_, tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, "add793karnrtt_", 
+			    &add793karnrtt_, tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, "add793exponinc_", 
+			    &add793exponinc_, tracer)) 
+		return TCL_OK;
+        if (delay_bind(varName, localName, "rto_", 
+		       &rto_, tracer)) 
+		return TCL_OK;
+        return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
 
 void RFC793eduTcpAgent::reset()

@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.25 1999/07/16 17:45:36 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.26 2000/03/10 18:16:55 haoboy Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -54,13 +54,33 @@ public:
 
 VegasTcpAgent::VegasTcpAgent() : TcpAgent()
 {
-	/* init vegas var */
-	bind("v_alpha_", &v_alpha_);
-	bind("v_beta_", &v_beta_);
-	bind("v_gamma_", &v_gamma_);
-	bind("v_rtt_", &v_rtt_);
+}
 
-	reset();
+void
+VegasTcpAgent::delay_bind_init_all()
+{
+	delay_bind_init_one("v_alpha_");
+	delay_bind_init_one("v_beta_");
+	delay_bind_init_one("v_gamma_");
+	delay_bind_init_one("v_rtt_");
+	TcpAgent::delay_bind_init_all();
+        reset();
+}
+
+int
+VegasTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, 
+				   TclObject *tracer)
+{
+	/* init vegas var */
+        if (delay_bind(varName, localName, "v_alpha_", &v_alpha_, tracer)) 
+		return TCL_OK;
+        if (delay_bind(varName, localName, "v_beta_", &v_beta_, tracer)) 
+		return TCL_OK;
+        if (delay_bind(varName, localName, "v_gamma_", &v_gamma_, tracer)) 
+		return TCL_OK;
+        if (delay_bind(varName, localName, "v_rtt_", &v_rtt_, tracer)) 
+		return TCL_OK;
+        return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
 
 void
