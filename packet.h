@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.14 1997/04/14 22:43:28 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.15 1997/05/22 00:01:00 breslau Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -53,17 +53,22 @@ class Packet : public Event {
 private:
 	friend class PacketQueue;
 	u_char* bits_;
+	u_char* data_;  // variable size buffer for 'data'
+	u_int datalen_; // length of variable size buffer
 	Packet* next_;	// for queues and the free list
 protected:
 	static Packet* free_;
 public:
 	static int hdrlen_;
-	Packet() : bits_(0), next_(0) { }
+	Packet() : bits_(0), next_(0), datalen_(0) { }
 	u_char* const bits() { return (bits_); }
 	Packet* copy() const;
         static Packet* alloc();
+        static Packet* alloc(int);
+	inline void allocdata(int);
         static void free(Packet*);
 	inline u_char* access(int off) { if (off < 0) abort(); return (&bits_[off]); }
+	inline u_char* accessdata() {return data_;}
 };
 
 #include "trace.h"
@@ -82,16 +87,46 @@ inline Packet* Packet::alloc()
 	return (p);
 }
 
+/* allocate a packet with an n byte data buffer */
+
+inline Packet* Packet::alloc(int n)
+{
+        Packet* p = alloc();
+	if (n > 0) 
+	       p->allocdata(n);
+	return (p);
+}
+
+/* allocate an n byte data buffer to an existing packet */
+
+inline void Packet::allocdata(int n)
+{
+        datalen_ = n;
+	data_ = new u_char[n];
+	if (data_ == 0)
+	        abort();
+
+}
+
 inline void Packet::free(Packet* p)
 {
 	p->next_ = free_;
 	free_ = p;
+	if (p->datalen_) {
+	        delete p->data_;
+		p->datalen_ = 0;
+	}
 }
 
 inline Packet* Packet::copy() const
 {
 	Packet* p = alloc();
 	memcpy(p->bits(), bits_, hdrlen_);
+	if (datalen_) {
+	        p->datalen_ = datalen_;
+	        p->data_ = new u_char[datalen_];
+		memcpy(p->data_, data_, datalen_);
+	}
 	return (p);
 }
 

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.13 1997/05/13 22:27:54 polly Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.14 1997/05/22 00:00:58 breslau Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -142,4 +142,17 @@ Packet* Agent::allocpkt() const
 	hf->usr2_ = 0;
 
 	return (p);
+}
+
+/* allocate a packet and fill in all the generic fields and allocate
+ * a buffer of n bytes for data
+ */
+Packet* Agent::allocpkt(int n) const
+{
+        Packet* p = allocpkt();
+
+	if (n > 0)
+	        p->allocdata(n);
+
+	return(p);
 }
