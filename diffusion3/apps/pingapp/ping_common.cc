@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: ping_common.cc,v 1.1 2002/05/06 23:04:07 haldar Exp $
+// $Id: ping_common.cc,v 1.2 2002/05/07 00:09:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
