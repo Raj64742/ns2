@@ -37,7 +37,7 @@ failed_list=""
 
 cd tcl/test
 # session temporarly removed 21-Jul-98 johnh
-for i in simple tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing intserv webcache mcast newreno srm session
+for i in simple tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing intserv webcache mcast newreno srm session lan
 do
 	try ./test-all-$i
 done
