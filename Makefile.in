@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.17 1997/04/24 03:14:40 kfall Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.18 1997/04/25 22:11:55 breslau Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -85,7 +85,8 @@ OBJ_CC = \
 	loss-monitor.o queue-monitor.o message.o ivs.o integrator.o \
 	scoreboard.o tcp-sack1.o \
 	session-rtp.o rtp.o rtcp.o ip.o sfq.o fq.o drr.o \
-	dynalink.o rtProtoDV.o cbq.o
+	dynalink.o rtProtoDV.o cbq.o \
+	udp.o traffictrace.o pareto.o expoo.o
 
 OBJ_NAM = \
 	nam/animation.o \

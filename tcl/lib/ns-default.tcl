@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.21 1997/04/25 02:00:08 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.22 1997/04/25 22:12:00 breslau Exp $
 
 
 #
@@ -172,3 +172,14 @@ Agent/TCPSimple set seqno_ 0
 Agent/TCPSimple set ack_ 0
 Agent/TCPSimple set cwnd_ 1
 Agent/TCPSimple set window_ 20
+
+Traffic/Expoo set burst-time .5
+Traffic/Expoo set idle-time .5
+Traffic/Expoo set rate 64Kb
+Traffic/Expoo set packet-size 210
+
+Traffic/Pareto set burst-time 500ms
+Traffic/Pareto set idle-time 500ms
+Traffic/Pareto set rate 64Kb
+Traffic/Pareto set packet-size 210
+Traffic/Pareto set shape 1.5

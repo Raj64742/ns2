@@ -34,6 +34,7 @@ drop-tail.cc
 drr.cc
 dynalink.cc
 example.tcl
+expoo.cc
 flags.h
 fq.cc
 heap.h
@@ -55,6 +56,7 @@ object.cc
 object.h
 packet.cc
 packet.h
+pareto.cc
 queue.cc
 queue.h
 queue-monitor.h
@@ -96,6 +98,7 @@ tcl/ex/rc.tcl
 tcl/ex/rc-nam.tcl
 tcl/ex/rtp-nam.tcl
 tcl/ex/test-suite.tcl
+tcl/ex/traffic-generator.tcl
 tcl/lib/ns-compat.tcl
 tcl/lib/ns-default.tcl
 tcl/lib/ns-lib.tcl
@@ -138,7 +141,11 @@ test-suite-v2.tcl
 test-suite.tcl
 trace.cc
 trace.h
+trafgen.h
+traffictrace.cc
 ttl.cc
+udp.h
+udp.cc
 nam/animation.cc
 nam/animation.h
 nam/bbox.h
