@@ -33,7 +33,7 @@
 # Code contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
 #
 
-Class Http
+Class Http -superclass InitObject
 
 Http set srcType_ TCP/FullTcp
 Http set snkType_ ""
@@ -130,8 +130,8 @@ Http instproc start {} {
 	set numPut_ 0
 	set len [$self value $rvReqLen_]
 	$client_(0) produceByte $len
-	puts "Http $self starts at $tStart_"
-	puts "$self reqH$numGet_ [$client_(0) set agent_] $len"
+#	puts "Http $self starts at $tStart_"
+#	puts "$self reqH$numGet_ [$client_(0) set agent_] $len"
 }
 
 Http instproc doneRequest {id} {
@@ -145,7 +145,7 @@ Http instproc doneRequest {id} {
 		set len [$self value $rvImgLen_]
 	}
 	$server_($id) produceByte $len
-	puts "$self send$numPut_ [$server_(0) set agent_] $len"
+#	puts "$self send$numPut_ [$server_(0) set agent_] $len"
 }
 
 Http instproc doneReply {id} {
@@ -172,7 +172,7 @@ Http instproc doneReply {id} {
 		set id [expr $id ? $id : 1 + ($i % $maxConn_)]
 		set len [$self value $rvReqLen_]
 		$client_($id) produceByte $len
-		puts "$self reqI$numGet_ [$client_($id) set agent_] $len"
+#		puts "$self reqI$numGet_ [$client_($id) set agent_] $len"
 	}
 }
 
@@ -184,6 +184,6 @@ Http instproc donePage {} {
 	set now [$ns_ now]
 	set tt [$self value $rvThinkTime_]
 	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $tt]
-	puts "Http $self donePage $out"
+#	puts "Http $self donePage $out"
 	$ns_ at [expr $now + $tt] "$self start"
 }
