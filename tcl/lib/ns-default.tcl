@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.177 1999/11/19 04:06:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.178 1999/11/23 23:46:01 haldar Exp $
 
 
 #
@@ -59,6 +59,8 @@ Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
 
 ##Agent set seqno_ 0 now is gone
 ##Agent set class_ 0 now is gone
+
+Agent/Ping set packetSize_ 64
 
 Agent/UDP set packetSize_ 1000
 Agent/UDP instproc done {} { }
