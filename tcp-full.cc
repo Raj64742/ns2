@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.62 1998/07/29 17:45:07 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.63 1998/07/29 21:14:13 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -323,13 +323,13 @@ FullTcpAgent::advance_bytes(int nb)
 void FullTcpAgent::sendmsg(int nbytes, const char *flags)
 {
 	if (flags && strcmp(flags, "MSG_EOF") == 0) 
-		close_on_empty_ = 1;	
+		close_on_empty_ = TRUE;	
 
 //printf("close on empty: %d\n, nbytes: %d\n",
 //close_on_empty_, nbytes);
 
 	if (nbytes == -1) {
-		infinite_send_ = 1;
+		infinite_send_ = TRUE;
 		advance_bytes(0);
 	} else
 		advance_bytes(nbytes);
@@ -526,9 +526,8 @@ void FullTcpAgent::output(int seqno, int reason)
 		//
 		if (!syn) {
 			idle();
-			if (close_on_empty_) {
-				pflags |= TH_FIN;
-				newstate(TCPS_FIN_WAIT_1);
+			if (close_on_empty_ && idle_) {
+				flags_ |= TF_NEEDCLOSE;
 			}
 		}
 		pflags |= TH_PUSH;
@@ -569,8 +568,10 @@ void FullTcpAgent::output(int seqno, int reason)
 	 * to generate acks for out-of-order data
 	 */
 
-	if ((flags_ & TF_ACKNOW) || (pflags & (TH_SYN|TH_FIN)))
+	if ((flags_ & (TF_ACKNOW|TF_NEEDCLOSE)) ||
+	    (pflags & (TH_SYN|TH_FIN))) {
 		goto send;
+	}
 
         /*      
          * No reason to send a segment, just return.
@@ -645,6 +646,13 @@ send:
 	if (rtx_timer_.status() != TIMER_PENDING && reliable) {
 		set_rtx_timer();  // no timer pending, schedule one
 	}
+
+	if (flags_ & TF_NEEDCLOSE) {
+		flags_ &= ~TF_NEEDCLOSE;
+		if (state_ <= TCPS_ESTABLISHED && state_ != TCPS_CLOSED)
+			usrclosed();
+	}
+
 	return;
 }
 
