@@ -53,21 +53,31 @@ ScenLib/RM instproc make_topo2 { time } {
     $ns duplex-link-op $n(1) $n(7) orient right-down
     $ns duplex-link-op $n(1) $n(8) orient down
 
-	$ns queue-limit $n(0) $n(1) $opts(bottleneckQSize)
-	$ns queue-limit $n(1) $n(0) $opts(bottleneckQSize)
-
-	$self make_flowmon $time $n(1) $n(5) flowStats_1_5.$t \
+    $ns queue-limit $n(0) $n(1) $opts(bottleneckQSize)
+    $ns queue-limit $n(1) $n(0) $opts(bottleneckQSize)
+    
+    $self make_flowmon $time $n(1) $n(5) flowStats_1_5.$t \
 	    $n(1) $n(6) flowStats_1_6.$t \
 	    $n(1) $n(7) flowStats_1_7.$t \
 	    $n(1) $n(8) flowStats_1_8.$t
 }
 
+
+
 proc main {} {
-    global ns
+    global ns n
     set test_scen [new ScenLib/RM]
-    $test_scen make_topo2 30.0
+    $test_scen make_topo2 1.0
     $test_scen create_mcast 2 8.3 9.0 10.0 5 6
-    $test_scen create_tcp 3 7 0.0 4 8 20.0
+    $test_scen create_tcp 3 7 0.0
+    $test_scen create_tcp 4 8 20.0
+    $test_scen dump_flowmon $n(1) $n(7) 10.0
+    $test_scen dump_flowmon $n(1) $n(5) 20.0
+    $test_scen dump_flowmon $n(1) $n(7) 20.0
+    $test_scen dump_flowmon $n(1) $n(5) 30.0
+    $test_scen dump_flowmon $n(1) $n(6) 30.0
+    $test_scen dump_flowmon $n(1) $n(7) 30.0
+    $test_scen dump_flowmon $n(1) $n(8) 30.0
     $ns at 30.0 "finish"
     $ns run
 }
