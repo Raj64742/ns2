@@ -22,8 +22,8 @@
 # to run individual test:
 # ns test-suite-wireless-lan-newnode.tcl dsdv
 # ns test-suite-wireless-lan-newnode.tcl dsr
-# ns test-suite-wireless-lan-newnode.tcl wired-cum-wireless
-# ns test-suite-wireless-lan-newnode.tcl wireless-mip
+# ns test-suite-wireless-lan-newnode.tcl new-dsdv-wired-cum-wireless
+# ns test-suite-wireless-lan-newnode.tcl new-dsdv-wireless-mip
 # ....
 #
 # To view a list of available test to run with this script:
@@ -44,11 +44,11 @@ Class Test/dsr -superclass TestSuite
 #Class Test/tora -superclass TestSuite
 #wireless model using TORA
 
-Class Test/dsdv-wired-cum-wireless -superclass TestSuite
+Class Test/new-dsdv-wired-cum-wireless -superclass TestSuite
 # simulation between a wired and a wireless domain through
 # gateways called base-stations.
 
-Class Test/dsdv-wireless-mip -superclass TestSuite
+Class Test/new-dsdv-wireless-mip -superclass TestSuite
 # Wireless Mobile IP model in which a mobilehost roams between 
 # a Home Agent and Foreign Agent. see test-suite-wireless-lan.txt for
 # details
@@ -323,7 +323,7 @@ TestSuite instproc finish-dsr {} {
 
 
 
-Test/dsdv-wired-cum-wireless instproc init {} {
+Test/new-dsdv-wired-cum-wireless instproc init {} {
     global opt god_ node_ topo
     $self instvar ns_ testName_
     set testName_ dsdv-wired-cum-wireless
@@ -430,13 +430,13 @@ Test/dsdv-wired-cum-wireless instproc init {} {
 
 }
 
-Test/dsdv-wired-cum-wireless instproc run {} {
+Test/new-dsdv-wired-cum-wireless instproc run {} {
     $self instvar ns_
     puts "Starting Simulation..."
     $ns_ run
 }
 
-Test/dsdv-wireless-mip instproc init {} {
+Test/new-dsdv-wireless-mip instproc init {} {
     global opt god_ node_ topo
     $self instvar ns_ testName_
     
@@ -548,7 +548,7 @@ Test/dsdv-wireless-mip instproc init {} {
     $ns_ at $opt(stop).20 "puts \"NS EXITING...\" ; "
 }
 
-Test/dsdv-wireless-mip instproc run {} {
+Test/new-dsdv-wireless-mip instproc run {} {
     $self instvar ns_ 
     puts "Starting Simulation..."
     $ns_ run
