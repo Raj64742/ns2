@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.12 2001/11/06 06:16:21 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.13 2002/07/10 02:29:50 tomh Exp $
 
 
 # ======================================================================
@@ -139,13 +139,12 @@ Simulator instproc create-satnode {} {
 	}
 	# Create the satnode
 	set tmp [$self newsatnode]
-	set linkargs "$llType_ $ifqType_ $ifqlen_ $macType_ $downlinkBW_ \
-		$phyType_"
 	# Add uplink and downlink if this is not a terminal
 	if {$satNodeType_ == "polar" || $satNodeType_ == "geo"} {
+		set linkargs "$llType_ $ifqType_ $ifqlen_ $macType_ \
+		    $downlinkBW_ $phyType_"
 		$self add-first-links $tmp gsl $linkargs $channelType_
-	}
-	if {$satNodeType_ == "geo-repeater"} {
+	} elseif {$satNodeType_ == "geo-repeater"} {
 		$self add-first-links $tmp gsl-repeater "" $channelType_
 	}
 	return $tmp

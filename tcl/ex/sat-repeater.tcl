@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-repeater.tcl,v 1.4 2001/11/06 06:20:11 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-repeater.tcl,v 1.5 2002/07/10 02:29:50 tomh Exp $
 #
 # Simple script with a geostationary satellite and two terminals
 # and an error module on the receiving terminal.  The traffic consists of
@@ -43,6 +43,7 @@ global ns
 set ns [new Simulator]
 
 # Global configuration parameters
+# We'll set these global options for the satellite terminals
 
 global opt
 set opt(chan)           Channel/Sat
@@ -61,22 +62,30 @@ $ns trace-all $outfile
 
 # Set up satellite and terrestrial nodes
 
-# GEO satellite at 95 degrees longitude West
+# Configure the node generator for bent-pipe satellite
+# geo-repeater uses type Phy/Repeater
 $ns node-config -satNodeType geo-repeater \
-		-llType $opt(ll) \
-		-ifqType $opt(ifq) \
-		-ifqLen $opt(qlim) \
-		-macType $opt(mac) \
-		-phyType $opt(phy) \
+		-phyType Phy/Repeater \
 		-channelType $opt(chan) \
-		-downlinkBW $opt(bw_down) \
+		-downlinkBW $opt(bw_down)  \
 		-wiredRouting $opt(wiredRouting)
 
+# GEO satellite at 95 degrees longitude West
 set n1 [$ns node]
 $n1 set-position -95
 
+# Configure the node generator for satellite terminals
+$ns node-config -satNodeType terminal \
+                -llType $opt(ll) \
+                -ifqType $opt(ifq) \
+                -ifqLen $opt(qlim) \
+                -macType $opt(mac) \
+                -phyType $opt(phy) \
+                -channelType $opt(chan) \
+                -downlinkBW $opt(bw_down) \
+                -wiredRouting $opt(wiredRouting)
+
 # Two terminals: one in NY and one in SF 
-$ns node-config -satNodeType terminal 
 set n2 [$ns node]
 $n2 set-position 40.9 -73.9; # NY
 set n3 [$ns node]
