@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.47 2000/09/16 01:46:01 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.48 2000/11/06 16:41:53 mehringe Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -92,14 +92,17 @@ struct ns_addr_t {
 #if defined(SIZEOF_LONG) && SIZEOF_LONG >= 8
 #define STRTOI64 strtol
 #define STRTOI64_FMTSTR "%ld"
+//#define STRTOI64(S) strtol((S), NULL, 0)
 
 #elif defined(HAVE_STRTOQ)
 #define STRTOI64 strtoq
 #define STRTOI64_FMTSTR "%qd"
+//#define STRTOI64(S) strtoq((S), NULL, 0)
 
 #elif defined(HAVE_STRTOLL)
 #define STRTOI64 strtoll
 #define STRTOI64_FMTSTR "%lld"
+//#define STRTOI64(S) strtoll((S), NULL, 0)
 #endif
 
 #define	NS_ALIGN	(8)	/* byte alignment for structs (eg packet.cc) */

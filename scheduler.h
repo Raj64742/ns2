@@ -31,13 +31,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.18 2000/01/13 22:15:48 salehi Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.19 2000/11/06 16:41:54 mehringe Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
 #define ns_scheduler_h
 
 #include "config.h"
+
+// Make use of 64 bit integers if available.
+#ifdef HAVE_INT64
+typedef int64_t scheduler_uid_t;
+#define UID_PRINTF_FORMAT "STRTOI64_FMTSTR"
+#define STRTOUID(S) STRTOI64((S), NULL, 0)
+#else
+typedef int scheduler_uid_t;
+#define UID_PRINTF_FORMAT "%d"
+#endif
+
 
 class Handler;
 
@@ -46,7 +57,7 @@ public:
 	Event* next_;		/* event list */
 	Handler* handler_;	/* handler to call when event ready */
 	double time_;		/* time at which event is ready */
-	int uid_;		/* unique ID */
+	scheduler_uid_t uid_;	/* unique ID */
 	Event() : time_(0), uid_(0) {}
 };
 
@@ -71,7 +82,7 @@ public:
 	virtual void run();			// execute the simulator
 	virtual void cancel(Event*) = 0;	// cancel event
 	virtual void insert(Event*) = 0;	// schedule event
-	virtual Event* lookup(int uid) = 0;	// look for event
+	virtual Event* lookup(scheduler_uid_t uid) = 0;	// look for event
 	virtual Event* deque() = 0;		// next event (removes from q)
 	inline double clock() const {		// simulator virtual time
 		return (clock_);
@@ -90,7 +101,7 @@ protected:
 	double clock_;
 	int halted_;
 	static Scheduler* instance_;
-	static int uid_;
+	static scheduler_uid_t uid_;
 };
 
 class ListScheduler : public Scheduler {
@@ -99,7 +110,7 @@ public:
 	virtual void cancel(Event*);
 	virtual void insert(Event*);
 	virtual Event* deque();
-	virtual Event* lookup(int uid);
+	virtual Event* lookup(scheduler_uid_t uid);
 protected:
 	Event* queue_;
 };
@@ -118,7 +129,7 @@ public:
 	virtual void insert(Event* e) {
 		hp_->heap_insert(e->time_, (void*) e);
 	}
-	virtual Event* lookup(int uid);
+	virtual Event* lookup(scheduler_uid_t uid);
 	virtual Event* deque();
 protected:
 	Heap* hp_;
@@ -130,7 +141,7 @@ public:
 	virtual ~CalendarScheduler();
 	virtual void cancel(Event*);
 	virtual void insert(Event*);
-	virtual Event* lookup(int uid);
+	virtual Event* lookup(scheduler_uid_t uid);
 	virtual Event* deque();
 
 protected:

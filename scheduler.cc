@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.58 2000/10/31 21:38:21 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.59 2000/11/06 16:41:54 mehringe Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.58 2000/10/31 21:38:21 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.59 2000/11/06 16:41:54 mehringe Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -50,7 +50,7 @@ static const char rcsid[] =
 #endif
 
 Scheduler* Scheduler::instance_;
-int Scheduler::uid_ = 1;
+scheduler_uid_t Scheduler::uid_ = 1;
 
 // class AtEvent : public Event {
 // public:
@@ -80,7 +80,7 @@ void Scheduler::schedule(Handler* h, Event* e, double delay)
 		fprintf(stderr, "warning: ns Scheduler::schedule: scheduling event\n\twith negative delay (%f) at time %f.\n", delay, clock_);
 	}
 
-	if (uid_ < 0 || uid_ >= INT_MAX) {
+	if (uid_ < 0) {
 		fprintf(stderr, "Scheduler: UID space exhausted!\n");
 		abort();
 	}
@@ -205,8 +205,12 @@ int Scheduler::command(int argc, const char*const* argv)
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "at") == 0 ||
 		    strcmp(argv[1], "cancel") == 0) {
+#ifdef HAVE_INT64
+			Event* p = lookup(STRTOUID(argv[2]));
+#else
 			Event* p = lookup(atoi(argv[2]));
-			if (p != 0) {
+#endif
+      if (p != 0) {
 				/*XXX make sure it really is an atevent*/
 				cancel(p);
 				AtEvent* ae = (AtEvent*)p;
@@ -222,7 +226,7 @@ int Scheduler::command(int argc, const char*const* argv)
 			e->proc_ = new char[n + 1];
 			strcpy(e->proc_, proc);
 			schedule(&at_handler, e, 0);
-			sprintf(tcl.buffer(), "%u", e->uid_);
+			sprintf(tcl.buffer(), UID_PRINTF_FORMAT, e->uid_);
 			tcl.result(tcl.buffer());
 		}
 		return (TCL_OK);
@@ -242,7 +246,7 @@ int Scheduler::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			}
 			schedule(&at_handler, e, delay);
-			sprintf(tcl.buffer(), "%u", e->uid_);
+			sprintf(tcl.buffer(), UID_PRINTF_FORMAT, e->uid_);
 			tcl.result(tcl.buffer());
 			return (TCL_OK);
 		}
@@ -258,8 +262,9 @@ Scheduler::dumpq()
 	printf("Contents of scheduler queue (events) [cur time: %f]---\n",
 		clock());
 	while ((p = deque()) != NULL) {
-		printf("t:%f uid: %d handler: %p\n",
-			p->time_, p->uid_, p->handler_);
+		printf("t:%f uid: ", p->time_);
+		printf(UID_PRINTF_FORMAT, p->uid_);
+		printf(" handler: %p\n", p->handler_);
 	}
 }
 
@@ -301,7 +306,7 @@ void ListScheduler::cancel(Event* e)
 	e->uid_ = - e->uid_;
 }
 
-Event* ListScheduler::lookup(int uid)
+Event* ListScheduler::lookup(scheduler_uid_t uid)
 {
 	Event* e;
 	for (e = queue_; e != 0; e = e->next_)
@@ -508,7 +513,7 @@ public:
 	}
 } class_heap_sched;
 
-Event* HeapScheduler::lookup(int uid)
+Event* HeapScheduler::lookup(scheduler_uid_t uid)
 {
 	Event* e;
 	
@@ -765,7 +770,7 @@ void CalendarScheduler::cancel(Event* e)
 	abort();
 }
 
-Event* CalendarScheduler::lookup(int uid)
+Event* CalendarScheduler::lookup(scheduler_uid_t uid)
 {
 	for (int i = 0; i < nbuckets_; i++)
 		for (Event* p = buckets_[i]; p != NULL; p = p->next_)
