@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.15 1999/02/04 06:13:21 yaxu Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.16 1999/10/09 01:06:39 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -59,6 +59,7 @@ public:
 	static double pareto(double scale, double shape) { return rng()->pareto(scale, shape); }
         static double paretoII(double scale, double shape) { return rng()->paretoII(scale, shape);}
 	static double normal(double avg, double std) { return rng()->normal(avg, std); }
+	static double lognormal(double avg, double std) { return rng()->lognormal(avg, std); }
 };
 
 #endif

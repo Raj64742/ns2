@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.13 1999/04/20 22:34:36 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.14 1999/10/09 01:06:41 haoboy Exp $
 #
 
 #Code to generate random numbers here
@@ -69,28 +69,28 @@ RNG instproc exponential {{mu 1.0}} {
 	expr - $mu * log(([$self next-random] + 1.0) / (0x7fffffff + 1.0))
 }
 
-RNG instproc normal {a1 a2 } {
-        $self instvar z2
-        if {$z2 !=0 } {
-                set z1 $z2
-                set z2 0
-        } else {
-                set w 1
-                while { $w >= 1.0 } {
-                        set v1 [expr 2.0 * ([$self next-random] *1.0/0x7fffffff) - 1.0]
-                        set v2 [expr 2.0 * ([$self next-random] *1.0/0x7fffffff) - 1.0]
-                        set w  [expr ($v1*$v1+$v2*$v2)]
-                }
-                set w [expr  sqrt((-2.0*log($w))/$w)]
-                set z1 [expr $v1*$w]
-                set z2 [expr $v2*$w]
-        }
-        expr $a1 + $z1 *$a2
-}
+#RNG instproc normal {a1 a2 } {
+#        $self instvar z2
+#        if {$z2 !=0 } {
+#                set z1 $z2
+#                set z2 0
+#        } else {
+#                set w 1
+#                while { $w >= 1.0 } {
+#                        set v1 [expr 2.0 * ([$self next-random] *1.0/0x7fffffff) - 1.0]
+#                        set v2 [expr 2.0 * ([$self next-random] *1.0/0x7fffffff) - 1.0]
+#                        set w  [expr ($v1*$v1+$v2*$v2)]
+#                }
+#                set w [expr  sqrt((-2.0*log($w))/$w)]
+#                set z1 [expr $v1*$w]
+#                set z2 [expr $v2*$w]
+#        }
+#        expr $a1 + $z1 *$a2
+#}
 
-RNG instproc lognormal {med stddev } {
-        expr $med *exp($stddev*[$self normal 0.0 1.0])
-}
+#RNG instproc lognormal {med stddev } {
+#        expr $med *exp($stddev*[$self normal 0.0 1.0])
+#}
 
 RandomVariable instproc test count {
 	for {set i 0} {$i < $count} {incr i} {

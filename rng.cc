@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.18 1999/09/28 04:32:17 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.19 1999/10/09 01:06:38 haoboy Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -226,8 +226,7 @@ RNG::command(int argc, const char*const* argv)
 			} else set_seed(HEURISTIC_SEED_SOURCE, 0);
 			return(TCL_OK);
 		}
-	}
-	if (argc == 2) {
+	} else if (argc == 2) {
 		if (strcmp(argv[1], "next-random") == 0) {
 			tcl.resultf("%u", uniform_positive_int());
 			return(TCL_OK);
@@ -249,6 +248,18 @@ RNG::command(int argc, const char*const* argv)
 			return(TCL_OK);
 		}
 #endif
+	} else if (argc == 4) {
+		if (strcmp(argv[1], "normal") == 0) {
+			double avg = strtod(argv[2], NULL);
+			double std = strtod(argv[3], NULL);
+			tcl.resultf("%g", normal(avg, std));
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "lognormal") == 0) {
+			double avg = strtod(argv[2], NULL);
+			double std = strtod(argv[3], NULL);
+			tcl.resultf("%g", lognormal(avg, std));
+			return (TCL_OK);
+		}
 	}
 	return(TclObject::command(argc, argv));
 }
