@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.34 1998/07/29 21:14:00 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.35 1998/08/03 23:20:29 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -60,12 +60,13 @@
 #define TCPS_SYN_SENT           2       /* active, have sent syn */
 #define TCPS_SYN_RECEIVED       3       /* have send and received syn */
 #define TCPS_ESTABLISHED        4       /* established */
+#define TCPS_CLOSE_WAIT		5	/* rcvd fin, waiting for app close */
 #define TCPS_FIN_WAIT_1         6       /* have closed, sent fin */
 #define TCPS_CLOSING            7       /* closed xchd FIN; await FIN ACK */
 #define TCPS_LAST_ACK           8       /* had fin and close; await FIN ACK */
 #define TCPS_FIN_WAIT_2         9       /* have closed, fin is acked */
 
-#define TCPS_HAVERCVDFIN(s)     ((s) == TCPS_CLOSING || (s) == TCPS_CLOSED)
+#define TCPS_HAVERCVDFIN(s) ((s) == TCPS_CLOSING || (s) == TCPS_CLOSED || (s) == TCPS_CLOSE_WAIT)
 
 #define TCPIP_BASE_PKTSIZE      40      /* base TCP/IP header in real life */
 /* these are used to mark packets as to why we xmitted them */
@@ -161,6 +162,7 @@ class FullTcpAgent : public TcpAgent {
 	int irs_;	// initial recv'd # (peer's iss)
 	int dupseg_fix_;    // fix bug with dup segs and dup acks?
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
+	int halfclose_;	    // allow simplex closes?
 	double delack_interval_;
 
 	int headersize();   // a tcp header w/opts
