@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.116 1998/06/29 00:25:56 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.117 1998/07/02 02:52:58 kfall Exp $
 
 
 #
@@ -143,19 +143,18 @@ Agent/TCP/Newreno/Asym set g_ 0.125
 
 
 if [TclObject is-class Agent/TCP/FullTcp] {
-	Agent/TCP/FullTcp set segsperack_ 1
-	Agent/TCP/FullTcp set segsize_ 536
-	Agent/TCP/FullTcp set tcprexmtthresh_ 3
-	Agent/TCP/FullTcp set iss_ 0
-	Agent/TCP/FullTcp set nodelay_ false
-	Agent/TCP/FullTcp set data_on_syn_ false
-	Agent/TCP/FullTcp set dupseg_fix_ true 
-	Agent/TCP/FullTcp set dupack_reset_ false
-	Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
+	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency
+	Agent/TCP/FullTcp set segsize_ 536; # segment size
+	Agent/TCP/FullTcp set tcprexmtthresh_ 3; # num dupacks to enter recov
+	Agent/TCP/FullTcp set iss_ 0; # Initial send seq#
+	Agent/TCP/FullTcp set nodelay_ false; # Nagle disable?
+	Agent/TCP/FullTcp set data_on_syn_ false; # allow data on 1st SYN?
+	Agent/TCP/FullTcp set dupseg_fix_ true ; # no rexmt w/dup segs from peer
+	Agent/TCP/FullTcp set dupack_reset_ false; # exit recov on ack < highest
+	Agent/TCP/FullTcp set interval_ 0.1 ; # delayed ACK interval 100ms 
 	Agent/TCP/FullTcp set close_on_empty_ false
 	Agent/TCP/FullTcp set ts_option_size_ 10; # in bytes
-	Agent/TCP/FullTcp set fastrecov_ true; # fast recov true by default
-	Agent/TCP/FullTcp set deflate_on_pack_ true; # part ack deflate
+	Agent/TCP/FullTcp set reno_fastrecov_ true; # fast recov true by default
 	Agent/TCP/FullTcp set sack_option_ false; # don't use sacks
 	Agent/TCP/FullTcp set sack_block_size_ 8; # bytes in a SACK block
 	Agent/TCP/FullTcp set sack_option_size_ 2; # bytes in an empty SACK opt
