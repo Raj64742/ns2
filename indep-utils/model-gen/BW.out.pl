@@ -22,6 +22,42 @@
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
 #
 
+
+sub usage {
+    print STDERR <<END;
+  usage: $0  [-w FilenameExtention]
+    Options:
+            -w string  specify the filename extention
+
+END
+    exit 1;
+}
+BEGIN {
+    $dblibdir = "./";
+    push(@INC, $dblibdir);
+}
+use DbGetopt;
+require "dblib.pl";
+my(@orig_argv) = @ARGV;
+&usage if ($#ARGV < 0);
+my($prog) = &progname;
+my($dbopts) = new DbGetopt("w:?", \@ARGV);
+my($ch);
+while ($dbopts->getopt) {
+    $ch = $dbopts->opt;
+    if ($ch eq 'w') {
+	$fext = $dbopts->optarg;
+    } else {
+	&usage;
+    };
+};
+
+
+$foutbw=join(".",$fext,"outbound.BW");
+$foutdelay=join(".",$fext,"outbound.delay");
+
+
+
 $oldc="";
 $olds="";
 $c="";
@@ -40,8 +76,8 @@ local(@dataq);
 local(@q);
 
 #estimate delay and bottleneck bandwidth for outbound traffic
-open(OUTBW,"> outbound.BW") || die("cannot open outbound.BW\n");
-open(OUTDELAY,"> outbound.delay") || die("cannot open outbound.delay\n");
+open(OUTBW,"> $foutbw") || die("cannot open $foutbw\n");
+open(OUTDELAY,"> $foutdelay") || die("cannot open $foutdelay\n");
 
 while (<>) {
 	($client,$server,$timed,$timea,$seq) = split(' ',$_);
@@ -74,14 +110,16 @@ while (<>) {
 		$gap2=$timea - $a;
         	if ( $gap2 gt $gap1) {
         		if (($c ne $client) || ($s ne $server)) {
-        			if ($i gt 0 ) {
+			 	#at least 3 samples to take the medium
+        			if ($i gt 3 ) {
 		   			@datan = sort numerically @n;
 				   	$m=int($i/2);
-					$bw=0.01117/$datan[$m];
-					if ( $bw lt 100) {
+#					$bw=0.01117/$datan[$m];
+					$bw=0.01117/$datan[$#n];
+#					if ( $bw lt 100) {
 #				   		print OUTBW "$c $s  $bw\n";
-				   		print OUTBW "$bw\n";
-					}
+ 				   		print OUTBW "$bw\n";
+#					}
 				}
 				$#n=0;
 				$n[0]=$gap2;

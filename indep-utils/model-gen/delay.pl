@@ -25,6 +25,37 @@
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
 #
 
+sub usage {
+        print STDERR <<END;
+	usage: $0 [-p Port] 
+	Options:
+	    -p string  specify the port number
+
+END
+        exit 1;
+}
+BEGIN {
+        $dblibdir = "./";
+        push(@INC, $dblibdir);
+}
+
+use DbGetopt;
+require "dblib.pl";
+my(@orig_argv) = @ARGV;
+&usage if ($#ARGV < 0);
+my($prog) = &progname;
+my($dbopts) = new DbGetopt("p:?", \@ARGV);
+my($ch);
+while ($dbopts->getopt) {
+        $ch = $dbopts->opt;
+        if ($ch eq 'p') {
+                $port = $dbopts->optarg;
+        } else {
+                &usage;
+        };
+};
+
+
 while (<>) {
         ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$seq1,$win,$seq2,$others) = split(/[. ]/,$_);
 
@@ -39,7 +70,7 @@ while (<>) {
 	$client=$src;
 	$server=$dst;
 
-        if ($srcPort eq "80") {
+        if ($srcPort eq $port) {
 		$client=$dst;
 		$server=$src;
 	}

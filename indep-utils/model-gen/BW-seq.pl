@@ -25,7 +25,43 @@
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
 #
 
-$isiPrefix="129.1.80";
+sub usage {
+        print STDERR <<END;
+	usage: $0 [-s DomainPrefix] [-p Port]
+	Options:
+	    -s string  specify IP prefix to distinguish Inbound from outbound
+	               traffic (eg. 192.1)
+	    -p string  specify the port number
+
+END
+exit 1;
+}
+BEGIN {
+    	$dblibdir = "./";
+	push(@INC, $dblibdir);
+}
+use DbGetopt;
+require "dblib.pl";
+my(@orig_argv) = @ARGV;
+&usage if ($#ARGV < 0);
+my($prog) = &progname;
+my($dbopts) = new DbGetopt("s:p:?", \@ARGV);
+my($ch);
+while ($dbopts->getopt) {
+        $ch = $dbopts->opt;
+        if ($ch eq 's') {
+                $prefix = $dbopts->optarg;
+        } elsif ($ch eq 'p') {
+                $port = $dbopts->optarg;
+        } else {
+                &usage;
+        };
+};
+
+
+
+$isiPrefix=join(".",$prefix,$port);
+#$isiPrefix="129.1.80";
 
 open(OUT,"> outbound.seq") || die("cannot open outbound.seq\n");
 open(IN,"> inbound.seq") || die("cannot open inbound.seq\n");
@@ -50,7 +86,7 @@ while (<>) {
 	$client=join(".",$ip11,$ip12,$ip13,$ip14,$srcPort);
 	$server=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
 
-        if ( $srcPort eq "80" ) {
+        if ( $srcPort eq $port ) {
 		$server=join(".",$ip11,$ip12,$ip13,$ip14,$srcPort);
 	 	$client=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
         }
@@ -71,7 +107,7 @@ while (<>) {
 		print OUT "$client $server $size $sTime ack\n"
 	}
         #data packet to ISI
-        if ( ($srcPort eq "80") && ($prefixc ne $isiPrefix)) {
+        if ( ($srcPort eq $port) && ($prefixc ne $isiPrefix)) {
 		if ( $seqe ne "ack" ) {
 			if ( $size eq 1460 ) {
 				print IN "$client $server $sTime $seqe\n";
