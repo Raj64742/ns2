@@ -77,7 +77,11 @@ void BaseTrace::dump()
 		 */
 		wrk_[n] = '\n';
 		wrk_[n + 1] = 0;
+ /* -NEW- */
+		//printf("%s",wrk_);
 		(void)Tcl_Write(channel_, wrk_, n + 1);
+
+ /* END -NEW- */
 		//Tcl_Flush(channel_);
 		wrk_[n] = 0;
 	}

@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.23 2003/04/17 01:58:59 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.24 2003/11/19 00:43:57 haldar Exp $
  */
 
 extern "C" {
@@ -511,7 +511,7 @@ DSDV_Agent::makeUpdate(int& periodic)
      with less than 100+ nodes, an update for all nodes is less than the
      MTU, so don't bother worrying about splitting the update over
      multiple packets -dam 4/26/98 */
-  assert(rtbl_sz <= (1500 / 12));
+  //assert(rtbl_sz <= (1500 / 12)); ---how about 100++ node topologies
 
   p->allocdata((change_count * 9) + 1);
   walk = p->accessdata ();
