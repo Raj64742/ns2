@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.29 2002/05/06 17:10:40 difa Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.30 2002/12/20 18:29:49 buchheim Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -445,7 +445,7 @@ MobileNode::set_destination(double x, double y, double s)
 
 	if (namChan_ != 0) {
 		sprintf(nwrk_,     
-			"n -t %f -s %d -x %f -y %f -u %f -v %f -T %f",
+			"n -t %f -s %d -x %f -y %f -U %f -V %f -T %f",
 			Scheduler::instance().clock(),
 			nodeid_,
 			X_, Y_,
