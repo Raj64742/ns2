@@ -35,10 +35,9 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tracegen.cc,v 1.3 1997/07/24 22:15:56 gnguyen Exp $ ";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tracegen.cc,v 1.4 1997/07/25 00:43:12 gnguyen Exp $ ";
 #endif
 
-#include <strstream.h>
 #include "scheduler.h"
 #include "tracegen.h"
 
