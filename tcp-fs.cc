@@ -46,6 +46,7 @@ public:
 	}
 } class_newrenotcpfs;	
 
+#ifdef USE_FACK
 static class FackTcpFsClass : public TclClass {
 public:
 	FackTcpFsClass() : TclClass("Agent/TCP/Fack/FS") {}
@@ -53,6 +54,7 @@ public:
 		return (new FackTcpFsAgent());
 	}
 } class_facktcpfs;	
+#endif
 
 
 /* mark packets sent as part of fast start */
@@ -122,6 +124,7 @@ TcpFsAgent::send_helper(int maxburst)
 	}
 }
 
+#ifdef USE_FACK
 /* schedule the next burst of data (of size at most maxburst) */
 void 
 FackTcpFsAgent::send_helper(int maxburst) 
@@ -136,6 +139,7 @@ FackTcpFsAgent::send_helper(int maxburst)
 		burstsnd_timer_.resched(t_exact_srtt_*maxburst/window());
 	}
 }
+#endif
 
 /* do appropriate processing depending on the length of idle time */
 void
@@ -316,6 +320,7 @@ NewRenoTcpFsAgent::timeout_nonrtx_helper(int tno)
 	}
 }
 
+#ifdef USE_FACK
 void 
 FackTcpFsAgent::timeout_nonrtx_helper(int tno)
 {
@@ -328,3 +333,4 @@ FackTcpFsAgent::timeout_nonrtx_helper(int tno)
 		send_much(0, TCP_REASON_TIMEOUT);
 	}
 }
+#endif

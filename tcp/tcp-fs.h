@@ -133,6 +133,7 @@ public:
 	virtual void timeout_nonrtx_helper(int tno);
 };
 
+#ifdef USE_FACK
 /* TCP-FS with Fack */
 class FackTcpFsAgent : public FackTcpAgent, public TcpFsAgent {
 public:
@@ -150,5 +151,6 @@ public:
 	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
 	virtual void timeout_nonrtx_helper(int tno);
 };
+#endif
 
 #endif

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.h,v 1.6 2000/01/09 04:54:59 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.h,v 1.7 2000/02/07 21:46:37 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcp_fack_h
@@ -47,7 +47,7 @@
 #define RECOVER_QUENCH  3
 
 /* TCP Fack */
-class FackTcpAgent : public virtual TcpAgent {
+class FackTcpAgent : public TcpAgent {
  public:
 	FackTcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
