@@ -54,11 +54,14 @@
 #define EW_MAX_WIN 8
 #define EW_SWIN_SIZE 4
 #define EW_A_TH 1
-// cut 3/4 of the incoming requests
-#define EW_DROP_RATIO 10
-#define EW_FLOW_TIME_OUT 30.0
-#define EW_SLEEP_INTERVAL 300
+// the max and min dropping probability
+#define EW_DETECT_RANGE 0.1
+#define EW_MIN_DROP_P 0.1
+#define EW_MAX_DROP_P 0.9
+#define EW_FLOW_TIME_OUT 10.0
+#define EW_SAMPLE_INTERVAL 240
 #define EW_DETECT_INTERVAL 60
+#define EW_MIN_SAMPLE_INTERVAL 60
 #define EW_MIN_DETECT_INTERVAL 15
 
 enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer};
@@ -266,31 +269,14 @@ struct SWin {
   struct SWinEntry *tail;
 };
 
-// Data structure for Flip-flop filter
+// Data structure for High-low filter
 // high(t) = alpha * high(t-1) + (1 - alpha) * o(t)
 // low(t) = (1 - alpha) * low(t-1) + alpha * o(t)
-struct FF {
+struct HLF {
   double alpha;
   
   // the estimated value for the high-pass/low-pass filters
   double high, low;
-};
-
-// Data structure to keep the HOTTEST aggragates states
-struct HTableEntry {
-  //The node to be monitored
-  int node_id;   
-  // current measurement
-  int cur_rate;
-
-  // Sliding window:
-  struct SWin swin;
-  
-  // last sample time
-  int last_t; 
-  // The alarm to trigger
-  int alarm_count; 
-  int alarm;    
 };
 
 class EW {
@@ -301,19 +287,21 @@ class EW {
   // Initialize EW
   void init(int, int, int, int);
 
-  // Process EW stuffs
+  // Process EW monitoring and detection
   void runEW(Packet *);
 
-  // Conduct the measurement and change detection
-  void applyDetector(Packet *, double);
   // Test if the alarm has been triggered.
-  int testAlarm(Packet *);
+  float testAlarm(Packet *);
   // Test if the corrsponding alarm on reversed link has been triggered.
-  int testAlarmCouple();
+  float testAlarmCouple(int, int);
 
   // Setup the coupled EW
   void coupleEW(EW *);
-
+  // Enable the detector on packet incoming rate (req rate)
+  void detectPr();
+  // Enable the detector on bit rate (resp rate)
+  void detectBr();
+  
   // output contents in SWin
   void printSWin();
   // Print one entry in SWin
@@ -324,57 +312,79 @@ class EW {
   // Print one entry in AList
   void printAListEntry(struct AListEntry *, int);
 
-  int drop_ratio;
+  // packet dropping probability
+  float drop_p;
+
  private:
   // The nodes connected by EW
   int ew_src, ew_dst;
 
   // The coupled EW
   EW *cew;
-  // EW can choose not to detect traffic change on one direction of the link
-  int detector_on;
-
+  // EW can choose to detect packet arrival rate (Pr)
+  //   or aggregated response rate (Br)
+  //   or not to detect traffic change on one direction of the link
+  int detectorPr, detectorBr;
+  
   // Current time for detection
   double now;
+  
   // Current aggregated response rate
   int cur_rate;
+  // Long term average aggregated response rate
+  int avg_rate;
 
   // Random sampling timer
   int timer;
-  // Bit indicating if EW agent is sleeping or not.
+  // flag indicating if EW agent is sleeping or not.
   int sleep;
 
-  // Detection Threshold
-  int th;
-  // initial threshold
-  int init_th;        
-
-  // Sample interval
-  int inv;
-  // Initial interval
-  int init_inv;  
-
-  // Detection interval
-  int d_inv;
   // Sample interval
   int s_inv;
+  // Initial interval
+  int init_s_inv;  
 
+  // Detection interval (may use if not continous detection)
+  int d_inv;
+
+  // Adjustor
+  float adjustor;
+
+  // Alarm flag
   int alarm, alarm_count;
 
   // List to keep the detection results
   struct AList alist;
   // The sliding window for running average on the aggregated response rate
   struct SWin swin;
-  // Flip-flop filter
-  struct FF ff;
+  // High-low filter
+  struct HLF hlf;
 
+  // keep the packet number;
+  int p_count;
+  // Keep the current request rate (pkt/min)
+  int cur_req;
+  // the long term avergae of request rate
+  int avg_req;
+  
   // Measurement:
+  // Conduct the measurement and update AList
+  void updateAList(Packet *, double);
   // Find the max value in AList
   struct AListEntry *maxAList();
+  // Timeout AList entries
+  void timeoutAList();
+  // Find the matched AList entry
+  struct AListEntry * searchAList(int, int);
+  // Add new entry to AList
+  struct AListEntry * newAListEntry(int, int, int);
   // Choose the high-bandwidth aggregates
   void choseHBA();
   // Reset AList
   void resetAList();
+
+  // update the long term average aggregated response rate
+  void updateAvgRate();
 
   // update flip-flop filter
   void updateFF(int);
@@ -387,14 +397,14 @@ class EW {
   void resetSWin();
 
   // Change detection:
-  // detect the traffic change by 
-  // comparing the running average calculated on the sliding window with 
-  // a threshold and trigger alarm if necessary.
-  void detectChange();
-
-  // Increase/decrease SWin to adjust the detection latency.
-  void decSWin();
-  void incSWin();
+  // detect the traffic change in aggregated response rate
+  void detectChangeB();
+  // Detect the change in packet arrival rate
+  void detectChangeP();
+  
+  // Increase/decrease the sample interval to adjust the detection latency.
+  void decSInv();
+  void incSInv();
 };
 
 class EWPolicy : public Policy {
@@ -411,7 +421,7 @@ class EWPolicy : public Policy {
   //protected:
   EW *ew;
  private:
-  int drop_count;
-  int drop_total;
+  int drop_count, pass_count;
+  int drop_total, pass_total;
 };
 #endif

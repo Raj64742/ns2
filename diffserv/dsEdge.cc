@@ -114,6 +114,23 @@ int edgeQueue::command(int argc, const char*const* argv) {
     EWPolicy *ewpc = (EWPolicy *)((cq->policy).policy_pool[EWP]);
     
     ewp->ew->coupleEW(ewpc->ew);
+    //ewpc->ew->detectorOn();
+    return(TCL_OK);
+  };
+
+  // Enable EW detector on a link
+  if (strcmp(argv[1], "detectPr") == 0) {
+    //    printf("%d, %s, %s\n", argc, argv[0], argv[1]);
+    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
+    ewp->ew->detectPr();
+    return(TCL_OK);
+  };
+
+  // Enable EW detector on a link
+  if (strcmp(argv[1], "detectBr") == 0) {
+    //    printf("%d, %s, %s\n", argc, argv[0], argv[1]);
+    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
+    ewp->ew->detectBr();
     return(TCL_OK);
   };
 
