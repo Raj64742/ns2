@@ -31,8 +31,10 @@ PIM set CREATE 0x8
 PIM set IIF_REG 0x20
 PIM set REG 0x80
 PIM set CACHE 0x200
+PIM set ASSERTED 0x1000
+PIM set SG 0x2000
 
-PIM set ALL_PIM_ROUTERS 0xE00D
+PIM set ALL_PIM_ROUTERS 0xFFCD
 PIM set IPPROTO_PIM 103
 PIM set HELLO [expr [PIM set IPPROTO_PIM] + 0]
 PIM set REGISTER [expr [PIM set IPPROTO_PIM] + 1]
@@ -62,6 +64,11 @@ PIM proc config { sim } {
 	set pimProtos [lindex $collectionList 1]
 	set pimNodes [lindex $collectionList 2]
 	PIM injectRPSet $rpset $pimProtos $pimNodes
+}
+
+PIM instproc Register-off { } {
+        $self instvar RegisterOff
+        set RegisterOff 1
 }
 
 PIM proc collectRPSet { sim } {
@@ -118,15 +125,11 @@ PIM instproc getCRP {} {
 }
 
 PIM instproc configure confArgs {
-        $self instvar Node
-
 	if { ! [set len [llength $confArgs]] } { return 0 }
 	$self instvar CRP CBSR priority
 	set CRP [lindex $confArgs 0]
-	#$Node set c_rp $CRP
 	if { $len == 1 } { return 1 }
 	set CBSR [lindex $confArgs 1]
-	#$Node set c_bsr $CBSR
 	if { $len == 2 } { 
 		set priority 0
 		return 1
@@ -151,3 +154,147 @@ PIM instproc start {} {
         # puts "$self starting pim, joining allpim group [PIM set ALL_PIM_ROUTERS]"
 	$Node join-group $messager [PIM set ALL_PIM_ROUTERS]
 }
+
+PIM instproc stop {} {
+        $self instvar MRTArray groupArray cacheByGroup sourceArray
+        if [info exists MRTArray] {   
+                unset MRTArray   
+        }
+        if [info exists groupArray] {
+                unset groupArray
+        }
+        if [info exists cacheByGroup] {
+                unset cacheByGroup
+        }
+        if [info exists sourceArray] {
+                unset sourceArray
+        }
+}       
+
+PIM proc trace { fp } {
+
+        # reparent the messagers 
+        Agent/Message/pim superclass Agent/Message/trace
+        
+        foreach agent [Agent/Message/pim info instances] {
+                $agent trace $fp
+                $agent set-TxPrefix "PIMS"
+                $agent set-RxPrefix "PIMR"
+        }
+        
+        # not sure I want to trace registering now !
+        # Agent/Message/reg superclass Agent/Message/trace
+}       
+
+### XXXX forcing assert w/ entry creation XXX ###
+PIM instproc force-nextHop { group nxtHop } {
+        $self instvar MRTArray ns
+        $self findWC $group 1
+        $MRTArray($group) setNextHop $nxtHop
+        $MRTArray($group) setiif [$self get-iif-label $nxtHop]
+}
+
+###################################
+### Message Agent stuff 
+###################################
+
+Class Agent/Message/trace -superclass Agent/Message
+
+Agent/Message/trace instproc trace { file } {
+        $self instvar tracer traceFile RxPrefix TxPrefix
+        set tracer 1
+        set traceFile $file
+        set RxPrefix "@"
+        set TxPrefix "-"
+}
+
+Agent/Message/trace instproc set-TxPrefix { str } {
+        $self instvar TxPrefix
+        set TxPrefix $str
+}
+
+Agent/Message/trace instproc set-RxPrefix { str } {
+        $self instvar RxPrefix
+        set RxPrefix $str
+}
+
+Agent/Message/trace instproc handle msg {
+        $self instvar node_ tracer traceFile RxPrefix
+        set rxvString "$RxPrefix Node [$node_ id] agent $self rxvd msg \
+                $msg. @ time [[$node_ set ns_] now]"
+        if [info exists tracer] {
+                puts $traceFile $rxvString
+        } else {
+                puts $rxvString
+        }
+        $self next $msg  
+}
+
+Agent/Message/trace instproc transmit msg {
+        $self instvar node_ tracer traceFile TxPrefix
+        set sendString "$TxPrefix Node [$node_ id] agent $self Sending msg \
+                $msg - time [[$node_ set ns_] now]"
+        if [info exists tracer] {
+                puts $traceFile $sendString
+        } else {
+                puts $sendString
+        }
+        $self send $msg
+}
+
+Agent/Message/trace instproc join-group group {
+	$self instvar node_ tracer traceFile
+	set string "J Node [$node_ id] agent $self join group $group \
+		time [[$node_ set ns_] now]"
+        if [info exists tracer] {
+                puts $traceFile $string  
+        } else {
+                puts $string
+        }
+	$node_ join-group $self $group
+}
+
+Agent/Message/trace instproc leave-group group {
+        $self instvar node_ tracer traceFile
+        set string "L Node [$node_ id] agent $self leave group $group \
+		time [[$node_ set ns_] now]"
+        if [info exists tracer] {
+                puts $traceFile $string
+        } else {
+                puts $string
+        }
+        $node_ leave-group $self $group
+}
+
+Agent/Message instproc transmit msg {
+	$self send $msg
+}
+
+Agent/Message instproc handle msg {
+}
+
+Agent/Message instproc join-group group {
+	$self instvar node_
+	$node_ join-group $self $group
+}
+
+Agent/Message instproc leave-group group {
+	$self instvar node_
+	$node_ leave-group $self $group
+}
+
+####### to change the trace file during simulation
+#####################
+
+Simulator instproc change-all-traces { file } {
+        $self instvar alltrace_ traceAllFile_
+        #XXX clean up, flush and close old file then
+        # assign new file
+        $self flush-trace
+        close $traceAllFile_
+        $self trace-all $file
+        foreach trace $alltrace_ {
+                $trace attach $file
+        }
+}
+
