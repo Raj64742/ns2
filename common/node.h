@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.19 2000/07/10 07:24:45 intanago Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.20 2000/08/16 23:06:01 intanago Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -160,15 +160,7 @@ class Node : public TclObject {
 	void scan_neighbor();
 	void start_powersaving();
 
- 	// -------------------------------
- 	// Just a hack for now : Chalermek
-
- 	void color(char *c);	
-	char *GetColor();
-	bool node_on_;
-
- 	// -------------------------------
-
+	bool node_on_;   // on-off status of this node -- Chalermek
 
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure

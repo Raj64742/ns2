@@ -35,7 +35,7 @@
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.19 2000/08/14 15:57:14 johnh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.20 2000/08/16 23:06:01 intanago Exp $
  */
 
 #include <phy.h>
@@ -380,26 +380,6 @@ Node::scan_neighbor()
 	}
 
 }
-
-
-// ---------------------------------
-// Just a hack for now : Chalermek
-
-void Node::color(char* c)
-{
-  Tcl& tcl = Tcl::instance();
-
-  tcl.evalf("%s color %s", name_, c);
-}
-
-char *Node::GetColor() {
-  Tcl& tcl = Tcl::instance();
-  
-  tcl.evalf("%s get-attribute \"COLOR\"", name_);
-  return tcl.result();
-}
-		     
-// ---------------------------------
 
 
 void
