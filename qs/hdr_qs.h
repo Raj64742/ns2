@@ -36,7 +36,7 @@
 #include <assert.h>
 #include <packet.h>
 
-#define QS_DEBUG 1 // get some output on QS events -PS
+//#define QS_DEBUG 1 // get some output on QS events -PS
 
 enum QS_STATE { QS_DISABLE, QS_REQUEST, QS_RESPONSE };
 
