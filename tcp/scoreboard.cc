@@ -37,8 +37,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.6 1997/03/29 04:44:49 mccanne Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.7 1997/07/22 20:50:40 kfall Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
