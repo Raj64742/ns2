@@ -4,6 +4,9 @@
 #	itself
 #
 
+# set up link classifier's slot table with 2 entries:
+#	entry 0 : good box	[default]
+#	entry 1 : penalty box
 RTMechanisms instproc bindboxes {} {
 	$self instvar cbqlink_
 	$self instvar goodclass_ badclass_
@@ -23,6 +26,10 @@ RTMechanisms instproc set_red_params { redq psize qlim bytes wait } {
         $redq set wait_ $wait
 }    
 
+#
+# create the CBQ classes for the good box and penalty box
+# insert them into the rtm link
+#
 RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
 	$self instvar cbqlink_
 	$self instvar goodclass_ badclass_
@@ -77,6 +84,8 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
 	$self vprint "makeboxes completing: okfm: $okboxfm, okfmcl: [$okboxfm classifier], okredQ: $goodq; pboxfm: $pboxfm, pboxfmcl: [$pboxfm classifier], pboxredQ: $badq"
 }
 
+#
+# create a flow monitor
 RTMechanisms instproc makeflowmon {} {
 	$self instvar ns_ okboxfm_ pboxfm_
 
@@ -117,4 +126,22 @@ flush stdout
 	}
         $flowmon classifier $cl
         return $flowmon
+}
+
+RTMechanisms instproc monitor-link {} {
+	$self instvar ns_ cbqlink_
+	set flowmon [new QueueMonitor/ED/Flowmon]
+	set cl [new Classifier/Hash/SrcDestFid 33]
+	$flowmon classifier $cl
+	$cl proc unknown-flow { src dst fid hashbucket } {
+		set nflow [new QueueMonitor/ED/Flow]
+		set slot [$self installNext $nflow]
+		$self set-hash $hashbucket $src $dst $fid $slot
+	}
+	$cl proc no-slot slotnum {
+		puts stderr "classifier $self, no-slot for slotnum $slotnum"
+	}
+	$cbqlink_ attach-monitors [new SnoopQueue/In] [new SnoopQueue/Out] \
+		[new SnoopQueue/Drop] $flowmon
+	return $flowmon
 }
