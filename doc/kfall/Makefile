@@ -10,7 +10,7 @@ PICTURES= \
 	agent.eps \
 	mcast_classes.eps \
 	multinode.eps \
-	node.eps
+	node.eps packet.eps
 
 
 LATEX=		latex
