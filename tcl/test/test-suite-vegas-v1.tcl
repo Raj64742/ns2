@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.4 1997/12/08 00:47:22 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.5 1998/01/21 22:11:34 heideman Exp $
 #
 # Create a simple four node topology:
 #
@@ -163,7 +163,10 @@ proc finish { file mod } {
 	close $f
 #	exec csh figure.com $file &
 	puts stdout "Calling xgraph."
-	exec xgraph -bb -tk -nl -m -ly 0,$mod -x time -y packet temp.rands &
+        global quiet
+	if {!$quiet} {
+		exec xgraph -bb -tk -nl -m -ly 0,$mod -x time -y packet temp.rands &
+        }
 #	exec xgraph -bb -tk -nl -m -x time -y packet temp.rands &
 	
 	exit 0
@@ -360,6 +363,15 @@ proc test_two_B {} {
 	openTraces1 $endtime test_vegas_two_B out.tr1 $r2 $r1 $mod
 
 	ns run
+}
+
+global quiet
+set quiet 0
+
+if { $argc == 2 && ([lindex $argv 1] == "QUIET" || [lindex $argv 1] == "quiet")} {
+	set quiet 1
+	set argv [lindex $argv 0]
+	set argc 1
 }
 
 if { $argc != 1 } {
