@@ -26,7 +26,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.7 2001/03/08 18:52:19 haldar Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.8 2001/05/23 16:47:15 haldar Exp $
 #
 # OTcl interface definition for the base routing module. They provide 
 # linkage to Node, hence all derived classes should inherit these interfaces
@@ -264,6 +264,43 @@ RtModule/Manual instproc add-route-to-adj-node { args } {
 	return [$self add-route $dst $target]
 }
 
+#
+# Source Routing Nodes.
+#
+RtModule/Source instproc register { node } {
+        $self next $node
+
+        $self instvar classifier_
+        # Keep old classifier so we can use RtModule::add-route{}.
+        $self set classifier_ [$node entry]
+
+        # Set up switch to route unicast packet to slot 0 and
+        # multicast packets to slot 1
+        #[$node set switch_] set mask_ [AddrParams McastMask]
+        #[$node set switch_] set shift_ [AddrParams McastShift]
+
+        # Create a classifier for multicast routing
+        $node set src_classifier_ [new Classifier/SR]
+        $node set src_agent_ [new Agent/SRAgent]
+        $node set switch_ [$node set src_classifier_]
+
+        # $node set multiclassifier_ [new Classifier/Multicast/Replicator]
+        # [$node set multiclassifier_] set node_ $node
+
+
+
+#       $node set mrtObject_ [new mrtObject $node]
+
+        # Install existing classifier at slot 0, new classifier at slot 1
+        $node insert-entry $self [$node set switch_] 1
+
+        [$node set switch_]  install 0 [$node set src_agent_]
+        $node attach [$node set src_agent_]
+
+#       $self set src_rt 1
+
+}
+
 
 #
 # Virtual Classifier Nodes:
@@ -314,7 +351,5 @@ RtModule/Nix instproc register { node } {
 }
 
 RtModule/Nix instproc route-notify { module } { }
-
-
 
 

@@ -31,7 +31,9 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.224 2001/05/23 01:50:09 intanago Exp $
+
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.225 2001/05/23 16:43:39 haldar Exp $
+
 
 #
 # Word of warning to developers:
@@ -165,6 +167,7 @@ source ../lan/vlan.tcl
 source ../lan/abslan.tcl
 source ../mcast/timer.tcl
 source ../mcast/ns-mcast.tcl
+source ns-srcrt.tcl
 source ../mcast/McastProto.tcl
 source ../mcast/DM.tcl
 source ../ctr-mcast/CtrMcast.tcl
@@ -1070,6 +1073,7 @@ Simulator instproc eventtrace-all {{file ""}} {
 	} else {
 		set eventtraceAllFile_ $traceAllFile_
 	}
+	
 }
 
 
