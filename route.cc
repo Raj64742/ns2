@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.23 1998/08/28 23:08:36 yuriy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.24 1998/09/28 19:25:38 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -177,7 +177,8 @@ int RouteLogic::command(int argc, const char*const* argv)
 // 				dst_addr[i] = 0;
 // 			}
 			str2address(argv, src_addr, dst_addr);
-			for (i=0; i < HIER_LEVEL; i++)
+			// for (i=0; i < HIER_LEVEL; i++)
+			for (i=0; i < level_; i++)
 				if (src_addr[i]<=0 || dst_addr[i]<=0){
 					tcl.result ("negative node number");
 					return (TCL_ERROR);
@@ -198,7 +199,8 @@ int RouteLogic::command(int argc, const char*const* argv)
 			str2address(argv, src_addr, dst_addr);
 			// assuming node-node addresses (instead of node-cluster or node-domain pair) 
 			// are sent for hier_reset  
-			for (i=0; i < HIER_LEVEL; i++)
+			// for (i=0; i < HIER_LEVEL; i++)
+			for (i=0; i < level_; i++)
 				if (src_addr[i]<=0 || dst_addr[i]<=0){
 					tcl.result ("negative node number");
 					return (TCL_ERROR);
@@ -269,7 +271,8 @@ int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	ns_strtok(asrc, src);
 	ns_strtok(adst, dst);
 
-	for (i=0; i < HIER_LEVEL; i++)
+	// for (i=0; i < HIER_LEVEL; i++)
+	for (i=0; i < level_; i++)
 		if (src[i] <= 0) {
 			tcl.result("negative src node number");
 			return TCL_ERROR;
