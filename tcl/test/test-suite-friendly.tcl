@@ -30,11 +30,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.18 1999/12/21 00:34:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.19 1999/12/21 21:45:28 sfloyd Exp $
 #
 
 source misc_simple.tcl
-Agent/TFRC set df_ 0.5
+###Agent/TFRC set df_ 0.5
+Agent/TFRC set df_ 0.25
 Agent/TFRC set aggr_incr_ 0
 Agent/TFRC set aggr_dec_  1
 

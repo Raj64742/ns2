@@ -238,9 +238,7 @@ double TfrcSinkAgent::est_loss ()
 	}
 
 	/* do we need to discount weights? */
-	if (sample_count > 8 && discount) {
-		// We don't discount unless we have a full history of
-		//  loss intervals.
+	if (sample_count > 1 && discount) {
 		double ave = weighted_average(1, ds, mult, weights, sample);
 		int factor = 2;
 		double ratio = (factor*ave)/sample[0];
