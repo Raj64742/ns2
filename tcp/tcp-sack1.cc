@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.18 1997/10/13 22:24:43 mccanne Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.19 1997/10/18 21:38:55 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -126,7 +126,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			}
 		}
 		if (dupacks_ == 0)
-			send_much(FALSE, 0, 0);
+			send_much(FALSE, 0, maxburst_);
 	} else {
 		/* we are in fast recovery */
 		--pipe_;
@@ -153,7 +153,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			if (dupacks_ > 0)
 				dupacks_++;
 		}
-		send_much(FALSE, 0, 0);
+		send_much(FALSE, 0, maxburst_);
 	}
 
 	Packet::free(pkt);
