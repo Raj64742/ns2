@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.49 2000/07/19 04:43:11 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.50 2000/07/20 00:33:10 ratul Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -72,14 +72,34 @@ static const char rcsid[] =
 static class REDClass : public TclClass {
 public:
 	REDClass() : TclClass("Queue/RED") {}
-	TclObject* create(int, const char*const*) {
-		return (new REDQueue);
+	TclObject* create(int argc, const char*const* argv) {
+		//		printf("creating RED Queue. argc = %d\n", argc);
+		
+		//mod to enable RED to take arguments
+		if (argc==5) 
+			return (new REDQueue(argv[4]));
+		else
+			return (new REDQueue("Drop"));
 	}
 } class_red;
 
-REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
+
+REDQueue::REDQueue() { 
+	new REDQueue("Drop");
+}
+
+/*
+ * modified to enable instantiation with special Trace objects - ratul
+ */
+REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL),
 	tchan_(0), idle_(1), first_reset_(1), EDTrace(NULL)
 {
+	//	printf("Making trace type %s\n", trace);
+	if (strlen(trace) >=20) {
+		printf("trace type too long - allocate more space to traceType in red.h and recompile\n");
+		exit(0);
+	}
+	strcpy(traceType, trace);
 	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
 	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
 	//	_RENAMED("queue-in-bytes_", "queue_in_bytes_");
@@ -111,15 +131,15 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 	bind("ave_", &edv_.v_ave);		    // average queue sie
 	bind("prob1_", &edv_.v_prob1);		    // dropping probability
 	bind("curq_", &curq_);			    // current queue size
-
+	
 	q_ = new PacketQueue();			    // underlying queue
 	pq_ = q_;
 	reset();
 #ifdef notdef
-print_edp();
-print_edv();
+	print_edp();
+	print_edv();
 #endif
-
+	
 }
 
 void REDQueue::reset()
@@ -128,7 +148,7 @@ void REDQueue::reset()
 	 * If queue is measured in bytes, scale min/max thresh
 	 * by the size of an average packet (which is specified by user).
 	 */
-
+	
         if (qib_ && first_reset_ == 1) {
                 //printf ("edp_.th_min: %5.3f \n", edp_.th_min);
                 edp_.th_min *= edp_.mean_pktsize;  
@@ -454,16 +474,16 @@ void REDQueue::enque(Packet* pkt)
 			bcount_ -= ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
 			pkt = pkt_to_drop; /* XXX okay because pkt is not needed anymore */
 		}
-	
-		//trace first if asked 
-		// if no snoop object (de_drop_) is defined, 
-		// this drop will show up twice in the tracefile.
-		// first because of this and then because of call "drop(pkt)"
 
 		// deliver to special "edrop" target, if defined
 		if (de_drop_ != NULL) {
+	
+		//trace first if asked 
+		// if no snoop object (de_drop_) is defined, 
+		// this packet will not be traced as a special case.
 			if (EDTrace != NULL) 
 				((Trace *)EDTrace)->recvOnly(pkt);
+
 			de_drop_->recv(pkt);
 		}
 		else
@@ -506,15 +526,22 @@ int REDQueue::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "edrop-trace") == 0) {
 			if (EDTrace != NULL) {
 				tcl.resultf("%s", EDTrace->name());
-				//printf("Exists according to RED\n");
+				if (debug_) 
+					printf("edrop trace exists according to RED\n");
 			}
 			else {
-				//printf("Doesn't exist according to RED\n");
+				if (debug_)
+					printf("edrop trace doesn't exist according to RED\n");
 				tcl.resultf("0");
 			}
 			return (TCL_OK);
 		}
-	} else if (argc == 3) {
+		if (strcmp(argv[1], "trace-type") == 0) {
+			tcl.resultf("%s", traceType);
+			return (TCL_OK);
+		}
+	} 
+	else if (argc == 3) {
 		// attach a file for variable tracing
 		if (strcmp(argv[1], "attach") == 0) {
 			int mode;
@@ -550,20 +577,21 @@ int REDQueue::command(int argc, const char*const* argv)
 			de_drop_ = p;
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "attach-edrop-trace") == 0) {
-			//printf("Ok, Here\n");
+		if (strcmp(argv[1], "edrop-trace") == 0) {
+			if (debug_) 
+				printf("Ok, Here\n");
 			NsObject * t  = (NsObject *)TclObject::lookup(argv[2]);
-			if (debug_)  printf("Ok, Here too\n");
-			//	if (t == 0) {
-			//	tcl.resultf("no object %s", argv[2]);
-			//	return (TCL_ERROR);
-			//	}
-			if (debug_)  printf("Ok, Here too too %s\n", t->name());
+			if (debug_)  
+				printf("Ok, Here too\n");
+			if (t == 0) {
+				tcl.resultf("no object %s", argv[2]);
+				return (TCL_ERROR);
+			}
 			EDTrace = t;
-			if (debug_)  printf("Ok, Here too too too %d\n", ((Trace *)EDTrace)->type_);
+			if (debug_)  
+				printf("Ok, Here too too too %d\n", ((Trace *)EDTrace)->type_);
 			return (TCL_OK);
 		}
-		
 		if (!strcmp(argv[1], "packetqueue-attach")) {
 			delete q_;
 			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))

@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.21 2000/07/19 04:43:11 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.22 2000/07/20 00:33:10 ratul Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -112,6 +112,7 @@ struct edv {
 class REDQueue : public Queue {
  public:	
 	REDQueue();
+	REDQueue(const char *);
  protected:
 	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);
@@ -138,6 +139,8 @@ class REDQueue : public Queue {
 	//added to be able to trace EDrop Objects - ratul
 	//the other events - forced drop, enque and deque are traced by a different mechanism.
 	NsObject * EDTrace;    //early drop trace
+	char traceType[20];    //the preferred type for early drop trace. 
+	                       //better be less than 19 chars long
 
 	Tcl_Channel tchan_;	/* place to write trace records */
 	TracedInt curq_;	/* current qlen seen by arrivals */
