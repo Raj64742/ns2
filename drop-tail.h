@@ -43,7 +43,7 @@
 class DropTail : public Queue {
   public:
 	DropTail() { q_ = new PacketQueue; }
-	inline PacketQueue *q() { return q_; }
+	virtual PacketQueue *q() { return q_; }
   protected:
 	int command(int argc, const char*const* argv) {
 		return Queue::command(argc, argv);
@@ -51,9 +51,9 @@ class DropTail : public Queue {
 	void enque(Packet*);
 	Packet* deque();
         PacketQueue *q_; /* underlying FIFO queue */
-	virtual Packet* deque_helper(PacketQueue *q) { return q->deque(); }
-	virtual void enque_helper(PacketQueue *q, Packet *pkt){q->enque(pkt);}
-	virtual void remove_helper(PacketQueue *q, Packet *pkt){q->remove(pkt);}
+	virtual Packet* deque(PacketQueue *q) { return q->deque(); }
+	virtual void enque(PacketQueue *q, Packet *pkt){q->enque(pkt);}
+	virtual void remove(PacketQueue *q, Packet *pkt){q->remove(pkt);}
 };
 
 #endif

@@ -42,16 +42,19 @@ class NonFifoREDQueue : public REDQueue, QueueHelper {
 	PacketQueue *q() { return nfq_; }
   protected:
 	NonFifoPacketQueue *nfq_;
-	void enque_helper(PacketQueue *q, Packet *pkt) {
-		QueueHelper::enque_helper((NonFifoPacketQueue *)q, pkt, off_cmn_);
+	void enque(PacketQueue *q, Packet *pkt) {
+		QueueHelper::enque((NonFifoPacketQueue *)q, pkt, off_cmn_, off_tcp_, off_ip_);
 	}
-	Packet* deque_helper(PacketQueue *q) {
-		return QueueHelper::deque_helper((NonFifoPacketQueue *)q, off_cmn_);
+	Packet* deque(PacketQueue *q) {
+		return QueueHelper::deque((NonFifoPacketQueue *)q, off_cmn_);
 	}
-	void remove_helper(PacketQueue *q, Packet *pkt) {
-		QueueHelper::remove_helper((NonFifoPacketQueue *)q, pkt, off_cmn_);
+	void remove(PacketQueue *q, Packet *pkt) {
+		QueueHelper::remove((NonFifoPacketQueue *)q, pkt, off_cmn_);
 	}
 	NonFifoPacketQueue q_;
+ private:
+        int off_ip_;
+        int off_tcp_;
 };
 
 static class NonFifoREDClass : public TclClass {
@@ -64,10 +67,14 @@ public:
 
 NonFifoREDQueue::NonFifoREDQueue()
 {
+        bind("off_ip_", &off_ip_);
+        bind("off_tcp_", &off_tcp_);
+
 	bind_bool("interleave_", &interleave_);
 	bind_bool("acksfirst_", &acksfirst_);
 	bind_bool("ackfromfront_", &ackfromfront_);
 	bind_bool("fracthresh_", &edp_.fracthresh);
-	edp_.adjusted_for_fracthresh_ = 0;
+	bind_bool("filteracks_", &filteracks_);
+	bind_bool("replace_head_", &replace_head_);
 	nfq_ = new NonFifoPacketQueue;
 }

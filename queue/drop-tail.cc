@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.3 1997/06/11 04:58:07 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.4 1997/07/07 04:16:16 padmanab Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -51,14 +51,14 @@ static class DropTailClass : public TclClass {
  */
 void DropTail::enque(Packet* p)
 {
-	enque_helper(q(), p);
+	enque(q(), p);
 	if (q()->length() >= qlim_) {
-		remove_helper(q(), p);
+		remove(q(), p);
 		drop(p);
 	}
 }
 
 Packet* DropTail::deque()
 {
-	return deque_helper(q());
+	return deque(q());
 }

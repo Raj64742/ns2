@@ -34,18 +34,23 @@
 #include "queue-nonfifo.h"
 
 /*
- * A bounded, drop-tail queue with special helpers for packet prioritization.
+ * A bounded, drop-tail queue with special enque & deque functions.
  */
 class NonFifoDropTail : public DropTail, QueueHelper {
  public:
 	NonFifoDropTail();
+	PacketQueue *q() { return nfq_; }
  protected:
-	void enque_helper(PacketQueue *q, Packet *p) {
-		QueueHelper::enque_helper((NonFifoPacketQueue *)q, p, off_cmn_); }
-	Packet* deque_helper(PacketQueue *q) { 
-		return QueueHelper::deque_helper((NonFifoPacketQueue *)q, off_cmn_); }
-	void remove_helper(Packet *p) {
-		QueueHelper::remove_helper((NonFifoPacketQueue *)q, p, off_cmn_); }
+	NonFifoPacketQueue *nfq_;
+	void enque(PacketQueue *q, Packet *p) {
+		QueueHelper::enque((NonFifoPacketQueue *)q, p, off_cmn_,off_tcp_,off_ip_); }
+	Packet* deque(PacketQueue *q) { 
+		return QueueHelper::deque((NonFifoPacketQueue *)q, off_cmn_); }
+	void remove(PacketQueue *q, Packet *p) {
+		QueueHelper::remove((NonFifoPacketQueue *)q, p, off_cmn_); }
+ private:
+        int off_ip_;
+        int off_tcp_;
 };
 
 static class NonFifoDropTailClass : public TclClass {
@@ -58,7 +63,13 @@ public:
 
 NonFifoDropTail::NonFifoDropTail()
 {
+        bind("off_ip_", &off_ip_);
+        bind("off_tcp_", &off_tcp_);
+
 	bind_bool("interleave_", &interleave_);
 	bind_bool("acksfirst_", &acksfirst_);
 	bind_bool("ackfromfront_", &ackfromfront_);
+	bind_bool("filteracks_", &filteracks_);
+	bind_bool("replace_head_", &replace_head_);
+	nfq_ = new NonFifoPacketQueue;
 }
