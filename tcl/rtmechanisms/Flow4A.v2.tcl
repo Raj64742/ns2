@@ -206,3 +206,4 @@ if { "[info procs test_$testname]" != "test_$testname" } {
         puts stderr "$testname: no such test: $testname"
 }
 test_$testname $seed
+
