@@ -23,7 +23,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/gen-vcmake.pl,v 1.4 1999/03/13 03:53:12 haoboy Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/gen-vcmake.pl,v 1.5 1999/05/24 04:46:39 haoboy Exp $
 #
 # This is not to be used as an executable. Rather, it's intended to be invoked
 # from Makfefile to generate a makefile.vc
@@ -39,6 +39,30 @@ while (<>) {
     /^makefile\.vc:/ && do {
 	# skip this line and the next two lines;
 	<>; <>;
+	next;
+    };
+
+    # Convert ptypes2tcl, change directory separator from '/' to '\'
+    /\.\/ptypes2tcl/ && do { 
+	s/\//\\/;
+	s/ptypes2tcl/ptypes2tcl\.exe/;
+	print $_;
+	next;
+    };
+    # Convert ptypes2tcl to ptypes2tcl.exe
+    /ptypes2tcl / && do {
+	s/ptypes2tcl/ptypes2tcl\.exe/;
+	print $_;
+	next;
+    };
+    /ptypes2tcl:/ && do {
+	s/ptypes2tcl/ptypes2tcl\.exe/;
+	print $_;
+	next;
+    };
+
+    # omit ns-autoconf.tcl, because we cannot generate it. :( 
+    /ns-autoconf\.tcl/ && do {
 	next;
     };
 
