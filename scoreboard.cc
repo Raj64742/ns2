@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.10 1998/06/27 01:24:44 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.11 1999/01/15 20:40:31 heideman Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -74,7 +74,7 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 		first_ = i%SBSIZE;
 		length_++;
 		if (length_ >= SBSIZE) {
-			printf ("Error, scoreboard too large\n");
+			printf ("Error, scoreboard too large (increase SBSIZE for more space)\n");
 			exit(1);
 		}
 	}	
@@ -94,7 +94,7 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 				SBNI.snd_nxt_ = 0;
 				length_++;
 				if (length_ >= SBSIZE) {
-					printf ("Error, scoreboard too large\n");
+					printf ("Error, scoreboard too large (increase SBSIZE for more space)\n");
 					exit(1);
 				}
 			}
