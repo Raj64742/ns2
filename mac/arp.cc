@@ -1,6 +1,41 @@
-/* arp.cc
+/*-*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1997 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the Computer Systems
+ *	Engineering Group at Lawrence Berkeley Laboratory.
+ * 4. Neither the name of the University nor of the Laboratory may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+/* Ported from CMU/Monarch's code, nov'98 -Padma. */
+
+   /* arp.cc
    basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.2 1998/12/10 18:34:42 haldar Exp $
+   $Id: arp.cc,v 1.3 1999/01/04 19:45:03 haldar Exp $
 
    Note: code in this file violates the convention that addresses of
    type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
@@ -11,12 +46,12 @@
 
 #include <delay.h>
 //#include <debug.h>
-#include <new-mac.h>
+#include <mac.h>
 #include <arp.h>
 #include <topography.h>
 #include <cmu-trace.h>
 #include <mobilenode.h>
-#include <new-ll.h>
+#include <ll.h>
 #include <packet.h>
 
 
@@ -41,35 +76,35 @@ public:
    Address Resolution (ARP) Table
    ====================================================================== */
 
-ARPTable_List ARPTable::athead = { 0 };
+ARPTable_List ARPTable::athead_ = { 0 };
 
 void
 ARPTable::Terminate()
 {
 	ARPEntry *ll;
-	for(ll = arphead.lh_first; ll; ll = ll->arp_link.le_next) {
-		if(ll->hold) {
-			drop(ll->hold, DROP_END_OF_SIMULATION);
-			ll->hold = 0;
+	for(ll = arphead_.lh_first; ll; ll = ll->arp_link_.le_next) {
+		if(ll->hold_) {
+			drop(ll->hold_, DROP_END_OF_SIMULATION);
+			ll->hold_ = 0;
 		}
 	}
 }
 
 
 ARPTable::ARPTable(const char *tclnode, const char *tclmac) : LinkDelay() {
-	LIST_INIT(&arphead);
+	LIST_INIT(&arphead_);
 
-        node = (MobileNode*) TclObject::lookup(tclnode);
-	assert(node);
+        node_ = (MobileNode*) TclObject::lookup(tclnode);
+	assert(node_);
 
-	mac = (newMac*) TclObject::lookup(tclmac);
-	assert(mac);
+	mac_ = (Mac*) TclObject::lookup(tclmac);
+	assert(mac_);
 
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
 	bind("off_arp_", &off_arp_);
 
-	LIST_INSERT_HEAD(&athead, this, link);
+	LIST_INSERT_HEAD(&athead_, this, link_);
 }
 
 int
@@ -87,46 +122,19 @@ ARPTable::command(int argc, const char*const* argv)
 
 
 int
-ARPTable::arpresolve(Packet *p, newLL *ll)
+ARPTable::arpresolve(nsaddr_t dst, Packet *p, LL *ll)
 {
         ARPEntry *llinfo ;
-	hdr_cmn *ch = HDR_CMN(p);
-	hdr_ip *ih = HDR_IP(p);
-	nsaddr_t dst = ih->dst();
 	
 	assert(initialized());
-
-	switch(ch->addr_type()) {
-
-	case AF_LINK:
-	  mac->hdr_dst((char*) HDR_MAC(p), ch->next_hop());
-	  return 0;
-
-	case AF_INET:
-	  dst = ch->next_hop();
-	  /* FALL THROUGH */
-	  
-	case AF_NONE:
-	  if (IP_BROADCAST == (u_int32_t) dst)
-	    {
-	      mac->hdr_dst((char*) HDR_MAC(p), MAC_BROADCAST);
-	      return 0;
-	    }
-	   llinfo = arplookup(dst);
-	  break;
-	  
-	default:
-	  fprintf(stderr,"%s: unknown address type %d in arpresolve\n",
-		  __FILE__, ch->addr_type());
-	  exit(-1);
-	}
+	llinfo = arplookup(dst);
 
 #ifdef DEBUG
-        fprintf(stderr, "%d - %s\n", node->index(), __FUNCTION__);
+        fprintf(stderr, "%d - %s\n", node_->index(), __FUNCTION__);
 #endif
 	
-	if(llinfo && llinfo->up) {
-		mac->hdr_dst((char*) HDR_MAC(p), llinfo->macaddr);
+	if(llinfo && llinfo->up_) {
+		mac_->hdr_dst((char*) HDR_MAC(p), llinfo->macaddr_);
 		return 0;
 	}
 
@@ -134,10 +142,10 @@ ARPTable::arpresolve(Packet *p, newLL *ll)
 		/*
 		 *  Create a new ARP entry
 		 */
-		llinfo = new ARPEntry(&arphead, dst);
+		llinfo = new ARPEntry(&arphead_, dst);
 	}
 
-        if(llinfo->count >= ARP_MAX_REQUEST_COUNT) {
+        if(llinfo->count_ >= ARP_MAX_REQUEST_COUNT) {
                 /*
                  * Because there is not necessarily a scheduled event between
                  * this callback and the point where the callback can return
@@ -145,11 +153,12 @@ ARPTable::arpresolve(Packet *p, newLL *ll)
                  * important here so that we don't get into an infinite loop.
                  *                                      - josh
                  */
-                Packet *t = llinfo->hold;
+                Packet *t = llinfo->hold_;
 
-                llinfo->count = 0;
-                llinfo->hold = 0;
-
+                llinfo->count_ = 0;
+                llinfo->hold_ = 0;
+		hdr_cmn* ch;
+		
                 if(t) {
                         ch = HDR_CMN(t);
 
@@ -175,10 +184,10 @@ ARPTable::arpresolve(Packet *p, newLL *ll)
                 return EADDRNOTAVAIL;
         }
 
-	llinfo->count++;
-	if(llinfo->hold)
-		drop(llinfo->hold, DROP_IFQ_ARP_FULL);
-	llinfo->hold = p;
+	llinfo->count_++;
+	if(llinfo->hold_)
+		drop(llinfo->hold_, DROP_IFQ_ARP_FULL);
+	llinfo->hold_ = p;
 
 	/*
 	 *  We don't have a MAC address for this node.  Send an ARP Request.
@@ -186,7 +195,7 @@ ARPTable::arpresolve(Packet *p, newLL *ll)
 	 *  XXX: Do I need to worry about the case where I keep ARPing
 	 *	 for the SAME destination.
 	 */
-	int src = node->index(); // this host's IP addr
+	int src = node_->index(); // this host's IP addr
 	arprequest(src, dst, ll);
 	return EADDRNOTAVAIL;
 }
@@ -197,8 +206,8 @@ ARPTable::arplookup(nsaddr_t dst)
 {
 	ARPEntry *a;
 
-	for(a = arphead.lh_first; a; a = a->nextarp()) {
-		if(a->ipaddr == dst)
+	for(a = arphead_.lh_first; a; a = a->nextarp()) {
+		if(a->ipaddr_ == dst)
 			return a;
 	}
 	return 0;
@@ -206,14 +215,14 @@ ARPTable::arplookup(nsaddr_t dst)
 
 
 void
-ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, newLL *ll)
+ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, LL *ll)
 {
 	Scheduler& s = Scheduler::instance();
 	Packet *p = Packet::alloc();
 
 	hdr_cmn *ch = HDR_CMN(p);
 	char	*mh = (char*) HDR_MAC(p);
-	newhdr_ll	*lh = HDR_LL(p);
+	hdr_ll	*lh = HDR_LL(p);
 	hdr_arp	*ah = HDR_ARP(p);
 
 	ch->uid() = 0;
@@ -222,9 +231,9 @@ ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, newLL *ll)
 	ch->iface() = -2;
 	ch->error() = 0;
 
-	mac->hdr_dst(mh, MAC_BROADCAST);
-	mac->hdr_src(mh, ll->mac_->addr());
-	mac->hdr_type(mh, ETHERTYPE_ARP);
+	mac_->hdr_dst(mh, MAC_BROADCAST);
+	mac_->hdr_src(mh, ll->mac_->addr());
+	mac_->hdr_type(mh, ETHERTYPE_ARP);
 
 	lh->seqno() = 0;
 	lh->lltype() = LL_DATA;
@@ -243,7 +252,7 @@ ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, newLL *ll)
 }
 
 void
-ARPTable::arpinput(Packet *p, newLL *ll)
+ARPTable::arpinput(Packet *p, LL *ll)
 {
 	Scheduler& s = Scheduler::instance();
 	hdr_arp *ah = HDR_ARP(p);
@@ -254,7 +263,7 @@ ARPTable::arpinput(Packet *p, newLL *ll)
 #ifdef DEBUG
 	fprintf(stderr,
                 "%d - %s\n\top: %x, sha: %x, tha: %x, spa: %x, tpa: %x\n",
-		node->index(), __FUNCTION__, ah->arp_op,
+		node_->index(), __FUNCTION__, ah->arp_op,
                 ah->arp_sha, ah->arp_tha, ah->arp_spa, ah->arp_tpa);
 #endif
 
@@ -263,20 +272,20 @@ ARPTable::arpinput(Packet *p, newLL *ll)
 		/*
 		 *  Create a new ARP entry
 		 */
-		llinfo = new ARPEntry(&arphead, ah->arp_spa);
+		llinfo = new ARPEntry(&arphead_, ah->arp_spa);
 	}
         assert(llinfo);
 
-	llinfo->macaddr = ah->arp_sha;
-	llinfo->up = 1;
+	llinfo->macaddr_ = ah->arp_sha;
+	llinfo->up_ = 1;
 
 	/*
 	 *  Can we send whatever's being held?
 	 */
-	if(llinfo->hold) {
-		hdr_cmn *ch = HDR_CMN(llinfo->hold);
-		char *mh = (char*) HDR_MAC(llinfo->hold);
-                hdr_ip *ih = HDR_IP(llinfo->hold);
+	if(llinfo->hold_) {
+		hdr_cmn *ch = HDR_CMN(llinfo->hold_);
+		char *mh = (char*) HDR_MAC(llinfo->hold_);
+                hdr_ip *ih = HDR_IP(llinfo->hold_);
                 
 		if((ch->addr_type() == AF_NONE &&
                     ih->dst() == ah->arp_spa) ||
@@ -285,9 +294,9 @@ ARPTable::arpinput(Packet *p, newLL *ll)
 #ifdef DEBUG
 			fprintf(stderr, "\tsending HELD packet.\n");
 #endif
-			mac->hdr_dst(mh, ah->arp_sha);
-			s.schedule(ll->downtarget_, llinfo->hold, delay_);
-			llinfo->hold = 0;
+			mac_->hdr_dst(mh, ah->arp_sha);
+			s.schedule(ll->downtarget_, llinfo->hold_, delay_);
+			llinfo->hold_ = 0;
 		}
                 else {
                         fprintf(stderr, "\tfatal ARP error...\n");
@@ -296,18 +305,18 @@ ARPTable::arpinput(Packet *p, newLL *ll)
 	}
 
 	if(ah->arp_op == ARPOP_REQUEST &&
-		ah->arp_tpa == node->index()) {
+		ah->arp_tpa == node_->index()) {
 		
 		hdr_cmn *ch = HDR_CMN(p);
 		char	*mh = (char*)HDR_MAC(p);
-		newhdr_ll  *lh = HDR_LL(p);
+		hdr_ll  *lh = HDR_LL(p);
 
 		ch->size() = ARP_HDR_LEN;
 		ch->error() = 0;
 
-		mac->hdr_dst(mh, ah->arp_sha);
-		mac->hdr_src(mh, ll->mac_->addr());
-		mac->hdr_type(mh, ETHERTYPE_ARP);
+		mac_->hdr_dst(mh, ah->arp_sha);
+		mac_->hdr_src(mh, ll->mac_->addr());
+		mac_->hdr_type(mh, ETHERTYPE_ARP);
 
 		lh->seqno() = 0;
 		lh->lltype() = LL_DATA;

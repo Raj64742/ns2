@@ -33,15 +33,18 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.23 1998/10/15 23:11:35 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.24 1999/01/04 19:45:06 haldar Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
 #define ns_ll_h
 
-#include "delay.h"
-#include "classifier.h"
-#include "lanRouter.h"
+#include <delay.h>
+#include <queue.h>
+#include <arp.h>
+#include <classifier.h>
+#include <lanRouter.h>
+#include <varp.h>
 
 enum LLFrameType {
 	LL_DATA		= 0x0001,
@@ -75,30 +78,38 @@ struct hdr_ll {
 
 class LL : public LinkDelay {
 public:
+	friend ARPTable::arpinput(Packet *p, LL* ll);
+	friend ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, LL* ll);
 	LL();
 	virtual void recv(Packet* p, Handler* h);
-	virtual void sendto(Packet* p, Handler* h = 0);
-	virtual void recvfrom(Packet* p);
-
+	void handle(Event* e) { recv((Packet*)e, 0); }
+	virtual void sendUp(Packet* p);
+	virtual void sendDown(Packet* p);
+	
 	inline int seqno() { return seqno_; }
 	inline int ackno() { return ackno_; }
 	inline int macDA() { return macDA_; }
         inline Queue *ifq() { return ifq_; }
-        inline NsObject* sendtarget() { return sendtarget_; }
-        inline NsObject* recvtarget() { return recvtarget_; }
-
+        inline NsObject* downtarget() { return downtarget_; }
+        inline NsObject* uptarget() { return uptarget_; }
+	
 protected:
 	int command(int argc, const char*const* argv);
-	void handle(Event* e) { recv((Packet*)e, 0); }
-	inline virtual int arp (int ip_addr) { return ip_addr; } 
+	
 	int seqno_;			// link-layer sequence number
 	int ackno_;			// ACK received so far
 	int macDA_;			// destination MAC address
+	
         Queue* ifq_;			// interface queue
-        NsObject* sendtarget_;		// for outgoing packet 
-	NsObject* recvtarget_;		// for incoming packet
-
-        LanRouter* lanrouter_; // for lookups of the next hop
+	Mac*   mac_;		        // MAC object
+        LanRouter* lanrouter_;          // for lookups of the next hop
+	ARPTable*  arptable_;           // ARP table object
+	VARPTable* varp_;               // Virtual ARP object
+	
+	NsObject* downtarget_;		// for outgoing packet 
+	NsObject* uptarget_;		// for incoming packet
+        
+	
 };
 
 #endif

@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-  *
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -52,8 +52,8 @@ public:
         // determine if pkt can be recvd.from channel, using diff
 	// propagation models; then send to upstream obj.
 	int sendUp(Packet *p);
-	Node*	node(void) const { return node_; }
-	void setnode (Node *node) { node_ = node; }
+	/* Node* node(void) const { return node_; }
+	   void setnode (Node *node) { node_ = node; } */
 	
 protected:
 	int command(int argc, const char*const* argv);
@@ -62,7 +62,7 @@ protected:
 	   contention, collision features */
 	TclObject* propagation_;  
 
-	Node *node_;
+	//Node *node_;
 private:
   
 	inline int	initialized() {

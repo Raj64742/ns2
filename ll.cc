@@ -36,13 +36,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.32 1998/12/02 22:39:11 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.33 1999/01/04 19:45:05 haldar Exp $ (UCB)";
 #endif
 
-#include "errmodel.h"
-#include "mac.h"
-#include "ll.h"
-#include "address.h"
+#include <errmodel.h>
+#include <mac.h>
+#include <ll.h>
+#include <address.h>
 
 int hdr_ll::offset_;
 
@@ -64,8 +64,9 @@ public:
 } class_ll;
 
 
-LL::LL() : seqno_(0), ackno_(0), macDA_(0), ifq_(0),
-	sendtarget_(0), recvtarget_(0), lanrouter_(0)
+LL::LL() : LinkDelay(), seqno_(0), ackno_(0), macDA_(0), ifq_(0),
+	mac_(0), lanrouter_(0), arptable_(0), varp_(0),
+	downtarget_(0), uptarget_(0)
 {
 	bind("macDA_", &macDA_);
 }
@@ -78,12 +79,27 @@ int LL::command(int argc, const char*const* argv)
 			ifq_ = (Queue*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "sendtarget") == 0) {
-			sendtarget_ = (NsObject*) TclObject::lookup(argv[2]);
+		if(strcmp(argv[1], "arptable") == 0) {
+                        arptable_ = (ARPTable*)TclObject::lookup(argv[2]);
+                        assert(arptable_);
+                        return TCL_OK;
+                }
+		if(strcmp(argv[1], "varp") == 0) {
+                        varp_ = (VARPTable*)TclObject::lookup(argv[2]);
+                        assert(varp_);
+                        return TCL_OK;
+                }
+		if (strcmp(argv[1], "mac") == 0) {
+			mac_ = (Mac*) TclObject::lookup(argv[2]);
+                        assert(mac_);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "recvtarget") == 0) {
-			recvtarget_ = (NsObject*) TclObject::lookup(argv[2]);
+		if (strcmp(argv[1], "down-target") == 0) {
+			downtarget_ = (NsObject*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "up-target") == 0) {
+			uptarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "lanrouter") == 0) {
@@ -97,12 +113,16 @@ int LL::command(int argc, const char*const* argv)
 			tcl.resultf("%s", ifq_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "sendtarget") == 0) {
-			tcl.resultf("%s", sendtarget_->name());
+		if (strcmp(argv[1], "mac") == 0) {
+			tcl.resultf("%s", mac_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "recvtarget") == 0) {
-			tcl.resultf("%s", recvtarget_->name());
+		if (strcmp(argv[1], "down-target") == 0) {
+			tcl.resultf("%s", downtarget_->name());
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "up-target") == 0) {
+			tcl.resultf("%s", uptarget_->name());
 			return (TCL_OK);
 		}
 	}
@@ -110,41 +130,96 @@ int LL::command(int argc, const char*const* argv)
 }
 
 
+
 void LL::recv(Packet* p, Handler* h)
 {
+	char *mh = (char*) HDR_MAC(p);
+	hdr_cmn *ch = HDR_CMN(p);
+	/*
+	 * Sanity Check
+	 */
+	assert(initialized());
+	
 	// If direction = 1, then pass it up the stack
 	// Otherwise, set direction to -1 and pass it down the stack
-	if (hdr_cmn::access(p)->direction() == 1) {
-		recvtarget_ ? recvfrom(p) : drop(p);
+	if(ch->direction() == 1) {
+		if(mac_->hdr_type(mh) == ETHERTYPE_ARP)
+			arptable_->arpinput(p, this);
+		else
+			uptarget_ ? sendUp(p) : drop(p);
 		return;
 	}
 
-	hdr_cmn::access(p)->direction() = -1;
-	hdr_ll::access(p)->lltype() = LL_DATA;
-	sendto(p, h);
+	ch->direction() = -1;
+	sendDown(p);
 }
 
 
-void LL::sendto(Packet* p, Handler* h)
+void LL::sendDown(Packet* p)
 {	
-	int nh = (lanrouter_) ? lanrouter_->next_hop(p) : -1;
-	hdr_mac::access(p)->macDA_= (nh < 0) ? macDA_ : arp(nh);
-	hdr_ll::access(p)->seqno_ = ++seqno_;
+	hdr_cmn *ch = HDR_CMN(p);
+	hdr_ip *ih = HDR_IP(p);
+	nsaddr_t dst = ih->dst();
+	hdr_ll *llh = HDR_LL(p);
+	char *mh = (char*)p->access(hdr_mac::offset_);
 
-	// let mac decide when to take a new packet from the queue.
-	sendtarget_->recv(p, h);
-	if (h) {
+	llh->seqno_ = ++seqno_;
+	llh->lltype() = LL_DATA;
+
+	mac_->hdr_src(mh, mac_->addr());
+	mac_->hdr_type(mh, ETHERTYPE_IP);
+	int tx = 0;
+	
+	switch(ch->addr_type()) {
+
+	case AF_LINK:
+		mac_->hdr_dst((char*) HDR_MAC(p), (int)ch->next_hop());
+		break;
+
+	case AF_INET:
+		dst = ch->next_hop();
+		/* FALL THROUGH */
+		
+	case AF_NONE:
+		if (IP_BROADCAST == (u_int32_t) dst)
+		{
+			mac_->hdr_dst((char*) HDR_MAC(p), (int)MAC_BROADCAST);
+			break;
+		}
+		/* Assuming arptable is present, send query */
+		if (arptable_) {
+			tx = arptable_->arpresolve(dst, p, this);
+			break;
+		}
+		/* FALL THROUGH */
+
+	default:
+		int IPnh = (lanrouter_) ? lanrouter_->next_hop(p) : -1;
+		if (IPnh < 0)
+			mac_->hdr_dst((char*) HDR_MAC(p),macDA_);
+		else if (varp_)
+			tx = varp_->arpresolve(IPnh, p);
+		else
+			mac_->hdr_dst((char*) HDR_MAC(p), IPnh);
+		break;
+	}
+	
+	if (tx == 0) {
 		Scheduler& s = Scheduler::instance();
-		s.schedule(h, &intr_, 0.0000001);
+	// let mac decide when to take a new packet from the queue.
+		s.schedule(downtarget_, p, delay_);
 	}
 }
 
 
-void LL::recvfrom(Packet* p)
+
+void LL::sendUp(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	if (hdr_cmn::access(p)->error() > 0)
 		drop(p);
 	else
-		s.schedule(recvtarget_, p, delay_);
+		s.schedule(uptarget_, p, delay_);
 }
+
+

@@ -33,16 +33,23 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.26 1998/10/15 23:14:08 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.27 1999/01/04 19:45:10 haldar Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
 #define ns_mac_h
 
-#include "connector.h"
-#include "packet.h"
-#include "ip.h"
-#include "route.h"
+#include <assert.h>
+#include <bi-connector.h>
+#include <packet.h>
+#include <ip.h>
+#include <route.h>
+#include <ll.h>
+#include <phy.h>
+#include <marshall.h>
+#include <channel.h>
+
+class Channel;
 
 #define ZERO	0.00000
 
@@ -50,12 +57,26 @@
 // Medium Access Control (MAC)
 */
 
-class Classifier;
-class Channel;
-class Mac;
 
 #define EF_COLLISION 2		// collision error flag
+
+/* ======================================================================
+   Defines / Macros used by all MACs.
+   ====================================================================== */
+
+#define ETHER_ADDR(x)	(GET4BYTE(x))
+
+#define MAC_HDR_LEN	64
+
+#define MAC_BROADCAST	((u_int32_t) 0xffffffff)
 #define BCAST_ADDR -1
+
+#define ETHER_ADDR_LEN	6
+#define ETHER_TYPE_LEN	2
+#define ETHER_FCS_LEN	4
+
+#define ETHERTYPE_IP	0x0800
+#define ETHERTYPE_ARP	0x0806
 
 enum MacState {
 	MAC_IDLE	= 0x0000,
@@ -63,7 +84,9 @@ enum MacState {
 	MAC_RECV 	= 0x0010,
 	MAC_SEND 	= 0x0100,
 	MAC_RTS		= 0x0200,
-	MAC_ACK		= 0x1000,
+	MAC_CTS		= 0x0400,
+	MAC_ACK		= 0x0800,
+	MAC_COLL	= 0x1000,
 };
 
 enum MacFrameType {
@@ -83,25 +106,38 @@ struct hdr_mac {
 	MacFrameType ftype_;	// frame type
 	int macSA_;		// source MAC address
 	int macDA_;		// destination MAC address
+	u_int16_t hdr_type_;     // mac_hdr type
+	
 	double txtime_;		// transmission time
 	double sstime_;		// slot start time
 
 	static int offset_;
-	inline static int& offset() { return offset_; }
-	inline static hdr_mac* access(Packet* p) {
-		return (hdr_mac*) p->access(offset_);
-	}
-
 	inline void set(MacFrameType ft, int sa, int da=-1) {
 		ftype_ = ft;
 		macSA_ = sa;
 		if (da != -1)  macDA_ = da;
 	}
+	inline static int& offset() { return offset_; }
 	inline MacFrameType& ftype() { return ftype_; }
 	inline int& macSA() { return macSA_; }
 	inline int& macDA() { return macDA_; }
+	inline u_int16_t& hdr_type() {return hdr_type_; }
+
 	inline double& txtime() { return txtime_; }
 	inline double& sstime() { return sstime_; }
+};
+
+/* ===================================================================
+   Objects that want to promiscously listen to the packets before
+   address filtering must inherit from class Tap in order to plug into
+   the tap
+   =================================================================*/
+
+class Tap {
+public:
+  virtual void tap(const Packet *p) = 0;
+  // tap is given all packets received by the host.
+  // it must not alter or free the pkt.  If you want to frob it, copy it.
 };
 
 
@@ -122,40 +158,90 @@ protected:
 };
 
 
-class Mac : public Connector {
+/* ==================================================================
+   MAC data structure
+   ================================================================*/
+
+class Mac : public BiConnector {
 public:
 	Mac();
 	virtual void recv(Packet* p, Handler* h);
-	virtual void send(Packet* p);
-	virtual void resume(Packet* p = 0);
+	virtual void sendDown(Packet* p);
+	virtual void sendUp(Packet *p);
 
+	virtual void resume(Packet* p = 0);
+	virtual void installTap(Tap *t) { tap_ = t; }
+	
 	inline double txtime(int bytes) {
 		return (8. * bytes / bandwidth_);
 	}
-	inline double txtime(Packet* p) {
-		return 8. * (hlen_ + hdr_cmn::access(p)->size()) / bandwidth_;
+ 	inline double txtime(Packet* p) {
+		return 8. * (MAC_HDR_LEN + \
+			     (HDR_CMN(p))->size()) / bandwidth_;
 	}
+	
 	inline double bandwidth() const { return bandwidth_; }
-	inline int addr() { return addr_; }
+	
+	inline int addr() { return index_; }
 	inline MacState state() { return state_; }
-	inline MacState state(int m) { return state_ = (MacState) m; }
-	inline Mac*& macList() { return macList_; }
+	inline MacState state(int m) { return state_ = (MacState) m; }        // inline Mac*& macList() { return macList_; }
+	
+        //mac methods to set dst, src and hdt_type in pkt hdrs.
+	virtual inline int hdr_dst(char* hdr, int dst = 0) {
+		struct hdr_mac *dh = (struct hdr_mac*) hdr;
+		if(dst)
+			dh->macDA_ = dst;
+		return dh->macDA();
+	}
+	virtual inline int hdr_src(char* hdr, int src = 0) {
+		struct hdr_mac *dh = (struct hdr_mac*) hdr;
+		if(src)
+			dh->macSA_ = src;
+		return dh->macSA();
+	}
+	virtual inline int hdr_type(char *hdr, u_int16_t type = 0) {
+		struct hdr_mac *dh = (struct hdr_mac*) hdr;
+		if (type)
+			dh->hdr_type_ = type;
+		return dh->hdr_type();
+	}
+
+private:
+	//virtual void discard(Packet *p, const char* why = 0) {};
 
 protected:
 	int command(int argc, const char*const* argv);
-	Mac* getPeerMac(Packet* p);
+	virtual int initialized() 
+		{ return (netif_ && uptarget_ && downtarget_); }
+	int index_;		// MAC address
+	double bandwidth_;      // channel bitrate
+
 	double delay_;		// MAC overhead
-	double bandwidth_;	// MAC bandwidth
-	int hlen_;		// MAC header length
-	int addr_;		// MAC address
-	MacState state_;	// MAC's current state
-	Channel* channel_;	// channel this MAC is connected to
-	Classifier* mcl_;	// MAC classifier to obtain the peer MAC
+	int off_mac_;
+        
+        //Mac* getPeerMac(Packet* p);
+	//int hlen_;		// MAC header length
+	
+	Phy *netif_;            // network interface
+        Tap *tap_;              // tap agent
+	LL *ll_;             // LL this MAC is connected to
+	Channel *channel_;	// channel this MAC is connected to
+
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandlerResume hRes_;	// resume handler
 	MacHandlerSend hSend_;	// handle delay send due to busy channel
-        Mac* macList_;		// circular list of MACs
 	Event intr_;
+
+	// Classifier* mcl_;	// MAC classifier to obtain the peer MAC
+	// Mac* macList_;		// circular list of MACs
+
+/* ============================================================
+	   Internal MAC State
+   ============================================================ */
+	MacState state_;	// MAC's current state
+	Packet *pktRx_;
+	Packet *pktTx_;
+
 };
 
 #endif

@@ -1,6 +1,40 @@
-/* Ported from CMU/Monarch's code, nov'98 -Padma.
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-  *
+ *
+ * Copyright (c) 1996 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the Computer Systems
+ *	Engineering Group at Lawrence Berkeley Laboratory and the Daedalus
+ *	research group at UC Berkeley.
+ * 4. Neither the name of the University nor of the Laboratory may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
    wireless-phy.cc
-   */
+*/
 
 #include <math.h>
 
@@ -28,10 +62,9 @@ public:
 WirelessPhy::WirelessPhy(void) : Phy()
 {
 	propagation_ = 0;
-	node_ = 0;
 	modulation_ = 0;
-	bandwidth_ = 2*1e6;                  // 2 Mb
-	Pt_ = pow(10, 2.45) * 1e-3;   // 24.5 dbm, ~ 281.8mw
+	bandwidth_ = 2*1e6;                 // 2 Mb
+	Pt_ = pow(10, 2.45) * 1e-3;         // 24.5 dbm, ~ 281.8mw
 	lambda_ = SPEED_OF_LIGHT / (914 * 1e6);  // 914 mHz
 	L_ = 1.0;
 	freq_ = -1.0;
@@ -74,15 +107,7 @@ int
 WirelessPhy::command(int argc, const char*const* argv)
 {
   TclObject *obj;    
-  if (argc == 2) {
-	  Tcl& tcl = Tcl::instance();
-	  if(strcmp(argv[1], "node") == 0) {
-		  tcl.resultf("%s", node_->name());
-		  return TCL_OK;
-	  }
-  }
-  
-  else if(argc == 3) {
+  if(argc == 3) {
           if( (obj = TclObject::lookup(argv[2])) == 0) {
 		  fprintf(stderr, "WirelessPhy: %s lookup of %s failed\n", 
 			  argv[1], argv[2]);
@@ -93,14 +118,13 @@ WirelessPhy::command(int argc, const char*const* argv)
 		  propagation_ = (Propagation*) obj;
 		  return TCL_OK;
 	  }
-	  else if (strcmp(argv[1], "node") == 0) {
-		  assert(node_ == 0);
-		  node_ = (MobileNode*) obj;
-		  // LIST_INSERT_HEAD() is done by Node
-		  return TCL_OK;
-	  }
 	  else if (strcasecmp(argv[1], "antenna") == 0) {
 		  ant_ = (Antenna*) obj;
+		  return TCL_OK;
+	  }
+	  else if (strcasecmp(argv[1], "node") == 0) {
+		  assert(node_ == 0);
+		  node_ = (MobileNode*) obj;
 		  return TCL_OK;
 	  }
   }
@@ -110,18 +134,18 @@ WirelessPhy::command(int argc, const char*const* argv)
 void 
 WirelessPhy::sendDown(Packet *p)
 {
-  /*
-   * Sanity Check
-   */
+	/*
+	 * Sanity Check
+	 */
 	assert(initialized());
 	
-  /*
-   *  Stamp the packet with the interface arguments
-   */
-  p->txinfo.stamp(node_, ant_->copy(), Pt_, lambda_);
-  
-  // Send the packet
-  channel_->recv(p, this);
+	/*
+	 *  Stamp the packet with the interface arguments
+	 */
+	p->txinfo.stamp(node_, ant_->copy(), Pt_, lambda_);
+	
+	// Send the packet
+	channel_->recv(p, this);
 }
 
 int 

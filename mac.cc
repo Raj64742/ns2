@@ -36,12 +36,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.31 1998/12/02 22:39:11 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.32 1999/01/04 19:45:09 haldar Exp $ (UCB)";
 #endif
 
-#include "classifier.h"
-#include "channel.h"
-#include "mac.h"
+//#include "classifier.h"
+
+#include <channel.h>
+#include <mac.h>
+
 
 int hdr_mac::offset_;
 
@@ -75,75 +77,117 @@ MacHandlerResume::handle(Event*)
 void
 MacHandlerSend::handle(Event* e)
 {
-	mac_->send((Packet*)e);
+	mac_->sendDown((Packet*)e);
 }
 
+/* =================================================================
+   Mac Class Functions
+  ==================================================================*/
+static int MacIndex = 1;
 
-Mac::Mac() : Connector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0), hRes_(this), hSend_(this), macList_(0)
+Mac::Mac() : BiConnector(), netif_(0), tap_(0), ll_(0), channel_(0), callback_(0), hRes_(this), hSend_(this), state_(MAC_IDLE), pktRx_(0), pktTx_(0)
 {
+	index_ = MacIndex++;
+	bandwidth_ = 2.0 * 1e6;
 	bind_time("delay_", &delay_);
-	bind_bw("bandwidth_", &bandwidth_);
-	bind("hlen_", &hlen_);
-	bind("addr_", &addr_);
+	bind("off_mac_", &off_mac_);
 }
 
 
 int Mac::command(int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
-	if (argc == 3) {
-		if (strcmp(argv[1], "channel") == 0) {
-			channel_ = (Channel*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
+	if(argc == 2) {
+		Tcl& tcl = Tcl::instance();
+		
+		if(strcmp(argv[1], "id") == 0) {
+			tcl.resultf("%d", addr());
+			return TCL_OK;
 		}
-		if (strcmp(argv[1], "classifier") == 0) {
-			mcl_ = (Classifier*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "maclist") == 0) {
-			macList_ = (Mac*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-	} else if (argc == 2) {
-		if (strcmp(argv[1], "channel") == 0) {
+		else if (strcmp(argv[1], "channel") == 0) {
 			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "classifier") == 0) {
-			tcl.resultf("%s", mcl_->name());
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "maclist") == 0) {
-			tcl.resultf("%s", macList_->name());
-			return (TCL_OK);
-		}
+		/*else if (strcmp(argv[1], "classifier") == 0) {
+		  tcl.resultf("%s", mcl_->name());
+		  return (TCL_OK);
+		  }
+		  else if (strcmp(argv[1], "maclist") == 0) {
+		  tcl.resultf("%s", macList_->name());
+		  return (TCL_OK);
+		  }*/
 	}
-	return Connector::command(argc, argv);
+	else if (argc == 3) {
+		TclObject *obj;
+		if( (obj = TclObject::lookup(argv[2])) == 0) {
+			fprintf(stderr, "%s lookup failed\n", argv[1]);
+			return TCL_ERROR;
+		}
+		// if (strcmp(argv[1], "channel") == 0) {
+// 			channel_ = (Channel*) obj;
+// 			return (TCL_OK);
+// 		}
+		else if (strcmp(argv[1], "netif") == 0) {
+			netif_ = (Phy*) obj;
+			return TCL_OK;
+		}
+		// else if (strcmp(argv[1], "up-target") == 0) {
+		// uptarget_ = (NsObject*) obj;
+		// return TCL_OK;
+		//}
+		/* else if (strcmp(argv[1], "down-target") == 0) {
+		   downtarget_ = (NsObject*) obj;
+		   return TCL_OK;
+		   }*/
+		/*else if (strcmp(argv[1], "classifier") == 0) {
+			mcl_ = (Classifier*) obj;
+			return (TCL_OK);
+			}*/
+		/*if (strcmp(argv[1], "maclist") == 0) {
+		  macList_ = (Mac*) obj;
+		  return (TCL_OK);
+		  }*/
+	}
+	
+	return BiConnector::command(argc, argv);
 }
 
 
 void Mac::recv(Packet* p, Handler* h)
 {
-	// if h is NULL, packet comes from the lower layer, ie. MAC classifier
+	// dir : 1 = up, -1 = down; 
 	if (hdr_cmn::access(p)->direction() == 1) {
-		state(MAC_IDLE);
-		Scheduler::instance().schedule(target_, p, delay_);
+		sendUp(p);
 		return;
 	}
 
 	callback_ = h;
-	hdr_mac* mh = hdr_mac::access(p);
-	mh->set(MF_DATA, addr_);
+	hdr_mac* mh = HDR_MAC(p);
+	mh->set(MF_DATA, index_);
 	state(MAC_SEND);
-	send(p);
+	sendDown(p);
+}
+
+void Mac::sendUp(Packet* p) 
+{
+	char* mh = (char*)p->access(hdr_mac::offset_);
+	int dst = this->hdr_dst(mh);
+	
+	state(MAC_IDLE);
+	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_)) {
+		drop(p);
+		return;
+	}
+	Scheduler::instance().schedule(uptarget_, p, \
+				       delay_);
 }
 
 
-void Mac::send(Packet* p)
+
+void Mac::sendDown(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p);
-	channel_->send(p, txt);
+	downtarget_->recv(p, this);
 	s.schedule(&hRes_, &intr_, txt);
 }
 
@@ -157,7 +201,7 @@ void Mac::resume(Packet* p)
 }
 
 
-Mac* Mac::getPeerMac(Packet* p)
-{
-	return (Mac*) mcl_->slot(hdr_mac::access(p)->macDA());
-}
+//Mac* Mac::getPeerMac(Packet* p)
+//{
+//return (Mac*) mcl_->slot(hdr_mac::access(p)->macDA());
+//}

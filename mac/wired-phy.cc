@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-  *
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -64,13 +64,8 @@ WiredPhy::command(int argc, const char*const* argv) {
 			propagation_ = (TclObject*) obj;
 			return TCL_OK;
 		}
-		else if (strcmp(argv[1], "node") == 0) {
-                        assert(node_ == 0);
-			node_ = (Node*) obj;
-			// LIST_INSERT_HEAD() is done by Node
-			return TCL_OK;
-		}
 	}
+	
 	return Phy::command(argc, argv);
 }
 

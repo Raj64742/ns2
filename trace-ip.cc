@@ -34,9 +34,11 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
-#include "ip.h"
-#include "trace.h"
-#include "mac.h"
+#include <ip.h>
+#include <trace.h>
+#include <mac.h>
+#include <packet.h>
+
 
 class TraceIp : public Trace {
 public:
@@ -95,11 +97,15 @@ void TraceIp::recv(Packet* p, Handler* h)
 void TraceIpMac::recv(Packet* p, Handler* h)
 {
 	// XXX: convert IP address to node number
-	hdr_ip *iph = hdr_ip::access(p);
+	// hdr_ip *iph = hdr_ip::access(p);
+	
+	hdr_ip *iph = HDR_IP(p);
+	
 	int src = (src_ >= 0) ? src_ : (iph->src() >> shift_) & mask_;
 	int dst = (iph->dst() >> shift_) & mask_;
 
-	hdr_mac* mh = hdr_mac::access(p);
+	hdr_mac* mh = HDR_MAC(p);
+	
 	if (mh->ftype() == MF_ACK || mh->ftype() == MF_CTS)
 		format(type_, dst, src , p);
 	else

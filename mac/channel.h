@@ -34,48 +34,82 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.18 1998/08/12 20:33:06 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.19 1999/01/04 19:45:05 haldar Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
 #define ns_channel_h
 
-#include "connector.h"
+#include <object.h>
+#include <packet.h>
+#include <phy.h>
+#include <node.h>
 
 class Trace;
+class Node;
+/*=================================================================
+Channel:  a shared medium that supports contention and collision
+        This class is used to represent the physical media to which
+	network interfaces are attached.  As such, the sendUp() 
+	function simply schedules packet reception at the interfaces.
+	The recv() function should never be called.
+=================================================================*/
 
-/*
-// Channel:  a shared medium that supports contention and collision
-*/
-
-class Channel : public Connector {
+class Channel : public TclObject {
 public:
-	Channel();
-	void recv(Packet* p, Handler*);	// call internally or from trace_
-	virtual int send(Packet* p, double txtime); // actual send from MAC
-	virtual void contention(Packet*, Handler*); // content for the channel
-	int jam(double txtime);
-	virtual int collision() { return numtx_ > 1; }
-	virtual double txstop() { return txstop_; }
-	Packet* pkt() { return pkt_; }
+	Channel(void);
+	virtual int command(int argc, const char*const* argv);
+	void recv(Packet* p, Handler*);	
+	struct if_head	ifhead_;
+	TclObject* gridkeeper_;
+private:
+	virtual double get_pdelay(Node* tnode, Node* rnode);
+	virtual void sendUp(Packet* p, Phy *txif); 
+	void dump(void);
+	//virtual void contention(Packet*, Handler*); 
+	//int jam(double txtime);
+	//virtual int collision() { return numtx_ > 1; }
+	//virtual double txstop() { return txstop_; }
+	//Packet* pkt() { return pkt_; }
 
 protected:
-	int command(int argc, const char*const* argv);
-	double delay_;		// channel delay, for collision interval
-	double txstop_;		// end of the last transmission
-	double cwstop_;		// end of the contention window
-	int numtx_;		// number of transmissions during contention
-	Packet* pkt_;		// packet current transmitted on the channel
+	int index_;        // multichannel support
+	double delay_;     // channel delay, for collision interval
+	//double txstop_;    // end of the last transmission
+	//double cwstop_;		// end of the contention window
+	//int numtx_;		// number of transmissions during contention
+	//Packet* pkt_;		// packet current transmitted on the channel
 	Trace* trace_;		// to trace the packet transmitting packets
 };
 
 
-class DuplexChannel : public Channel {
-public:
-	DuplexChannel() : Channel() {}
-	int send(Packet* p, double txtime);
-	void contention(Packet*, Handler*); // content for the channel
-	inline double txstop() { return 0; }
+/*class DuplexChannel : public Channel {
+  public:
+  DuplexChannel() : Channel() {}
+  int send(Packet* p, double txtime);
+  void contention(Packet*, Handler*); // content for the channel
+  inline double txstop() { return 0; }
+  };*/
+
+
+/*====================================================================
+  WirelessChannel
+
+  This class is used to represent the physical media to which
+  
+====================================================================*/
+
+class WirelessChannel : public Channel{
+
+ public:
+	WirelessChannel(void);
+
+ private:
+	double get_pdelay(Node* tnode, Node* rnode);
+
 };
-	
-#endif
+
+#endif //_channel_h_
+
+
+

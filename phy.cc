@@ -1,4 +1,41 @@
-/* Ported from CMU/Monarch's code, nov'98 -Padma.
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1997 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the Computer Systems
+ *	Engineering Group at Lawrence Berkeley Laboratory.
+ * 4. Neither the name of the University nor of the Laboratory may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+
+ * @(#) $Header: 
+
+ *
+ * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * phy.cc
  */
 
@@ -16,6 +53,7 @@ Phy::Phy() {
 	index_ = InterfaceIndex++;
 	bandwidth_ = 0.0;
 	channel_ = 0;
+	node_ = 0;
 }
 
 int
@@ -39,15 +77,16 @@ Phy::command(int argc, const char*const* argv) {
 		}
 		if (strcmp(argv[1], "channel") == 0) {
                         assert(channel_ == 0);
-			channel_ = (newChannel*) obj;
+			channel_ = (Channel*) obj;
 			// LIST_INSERT_HEAD() is done by Channel
 			return TCL_OK;
 		}
-		/*else if (strncasecmp(argv[1], "up-target", 9) == 0) {
-			assert(uptarget_ == 0);
-			uptarget_ = (NsObject*) obj;
+		else if (strcmp(argv[1], "node") == 0) {
+			assert(node_ == 0);
+			node_ = (Node*) obj;
+			// LIST_INSERT_HEAD() is done by Node
 			return TCL_OK;
-			}*/
+		}
 	} 
 	return BiConnector::command(argc, argv);
 }
