@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.255 2002/09/17 05:14:21 sfloyd Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.256 2002/09/17 18:29:36 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -201,11 +201,11 @@ OBJ_CC = \
 	common/Decapsulator.o common/Encapsulator.o \
 	common/encap.o \
 	mac/channel.o mac/mac.o mac/ll.o mac/mac-802_11.o \
-	mac/mac-802_3.o mac/mac-tdma.o \
+	mac/mac-802_3.o mac/mac-tdma.o mac/smac.o \
 	mobile/mip.o mobile/mip-reg.o mobile/gridkeeper.o \
 	mobile/propagation.o mobile/tworayground.o \
 	mobile/antenna.o mobile/omni-antenna.o \
-	mobile/shadowing.o mobile/shadowing-vis.o \
+	mobile/shadowing.o mobile/shadowing-vis.o mobile/dumb-agent.o \
 	common/bi-connector.o common/node.o \
 	common/mobilenode.o \
 	mac/arp.o mobile/god.o mobile/dem.o \
