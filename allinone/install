@@ -7,11 +7,23 @@ die() {
 # Get current path
 CUR_PATH=`pwd`
 
+# create tcl8.0 and tk8.0 installation directory
+
+if [ ! -d tclbox ]
+then
+mkdir tclbox
+fi
+
+if [ ! -d tkbox ]
+then
+mkdir tkbox
+fi
+
 # install and install Tcl8.0
 
 cd ./tcl8.0/unix
 
-./configure --prefix="$CUR_PATH/tcl8.0" || die "tcl8.0 configuration failed! Exiting ..."
+./configure --prefix="$CUR_PATH/tclbox" || die "tcl8.0 configuration failed! Exiting ..."
 make || die "tcl8.0 make failed! Exiting ..."
 make install || die "tcl8.0 installation failed! Exiting ..."
 
@@ -21,17 +33,22 @@ cd ../../
 
 cd ./tk8.0/unix
 
-./configure --prefix="$CUR_PATH/tk8.0" || die "tk8.0 configuration failed! Exiting ..."
+./configure --prefix="$CUR_PATH/tkbox" || die "tk8.0 configuration failed! Exiting ..."
 make || die "tk8.0 make failed! Exiting ..."
 make install || die "tk8.0 installation failed! Exiting ..."
 
 cd ../../
 
+# do some copy for otcl
+
+cp ./tcl8.0/generic/*.h ./tclbox/include/
+cp ./tk8.0/generic/*.h ./tkbox/include/
+
 # compile and install otcl
 
 cd ./otcl 
 
-./configure --with-tcl=../tcl8.0 --with-tk=../tk8.0 || die "otcl configuration failed! Exiting ..."
+./configure --with-tcl=../tclbox --with-tk=../tkbox || die "otcl configuration failed! Exiting ..."
 
 make || die "otcl make failed! Exiting ..."
 
@@ -43,7 +60,7 @@ cd ../
 
 cd ./TclCL
 
-./configure --with-otcl=../otcl --with-tcl=../tcl8.0 --with-tk=../tk8.0  --with-tcl-ver=8.0 --with-tk-ver=8.0 || die "TclCL configuration failed! Exiting ..."
+./configure --with-otcl=../otcl --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0 --with-tk-ver=8.0 || die "TclCL configuration failed! Exiting ..."
 
 make || die "TclCL make failed! Exiting ..."
 
@@ -71,7 +88,7 @@ cd ../
 #compile and install ns
 
 cd ./ns-2
-./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static || die "Ns configuration failed! Exiting ..."
+./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
 
 make || "Ns make failed! Exiting ..."
 
@@ -83,7 +100,7 @@ cd ../
 
 cd ./nam-1
 
-./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static || die "Nam configuration failed! Exiting ..."
+./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Nam configuration failed! Exiting ..."
 
 make || die "Nam make failed! Exiting ..."
 
@@ -116,12 +133,15 @@ echo "ns:	$CUR_PATH/ns-2/ns"
 echo "nam:	$CUR_PATH/nam-1/nam"
 echo "otcl:	$CUR_PATH/otcl"
 echo "TclCL:	$CUR_PATH/TclCL"
-echo "tcl8.0:	$CUR_PATH/tcl8.0"
-echo "tk8.0:	$CUR_PATH/tcl8.0"
+echo "tcl8.0:	$CUR_PATH/tclbox"
+echo "tk8.0:	$CUR_PATH/tkbox"
 if [ -x $CUR_PATH/xgraph/xgraph ]
 then
 echo "xgraph:	$CUR_PATH/xgraph"
 fi
+echo ""
+echo "You can delete $CUR_PATH/tcl8.0 and $CUR_PATH/tk8.0 if "
+echo "you want save your disk space"
 
 echo "-----------------------------------------------------"
 echo "Please put $CUR_PATH/bin into your PATH environment!"

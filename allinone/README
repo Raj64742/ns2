@@ -1,18 +1,38 @@
 1. Introduction
 ----------------
 
-This directory and its descendants contain the sources for ns, the 
-network simulator, and its support software packages including Tcl/Tk,
-TclCL, otcl, nam, and xgraph. The information here corresponds to 
-the software release as below:
+Ns-allinone is a package which contains required components and some of
+optional components used in running ns. The package contains an
+"install" script to automatically configure, compile and install these
+components. If you haven't installed ns before and want to quickly try
+ns out, ns-allinone may be easier than getting all the pieces by hand.
+ 
+Currently the package contains:
+  
+- Tcl     Tcl release 8.0p2     (required component)
+- Tk      Tk release 8.0p2      (required component)
+- Otcl    otcl release 1.0a2    (required component)
+- TclCL   tclcl release 1.0b4   (required component)
+- Ns      ns release 2.1b2      (required component)
+- Nam     Nam release 1.0a4     (optional component)
+- Xgraph  xgraph version 12     (optional component)
 
-otcl	otcl release 1.0a2
-TclCL	tclcl release 1.0b4
-Tcl	Tcl release 8.0p2
-Tk	Tk release 8.0p2
-Xgraph  xgraph version 12
-nam	Nam release 1.0a4
-ns	ns release 2.1b2
+2. FEATURES IN ns-allinone?
+---------------------------
+
+Features in this version include:
+ 
+- Self-containing: All installation will be kept in a directory to help
+		   the user manange and use the package. The execution of ns
+		   ns or nam does not need any ther support outside
+		   this directory
+						   
+- Bugs fixed:      All components inside the package are the most recent
+		   versions
+
+- Easy to use :    Only one-line command is needed to build all ns
+		   components
+
 
 2. Installing the package
 --------------------------
@@ -24,6 +44,12 @@ will tell you the final installation result.
 3. More information
 --------------------
 
-For more information, please check http://catarina.usc.edu/vint
+Ns-allinone is available from
+<http://www-mash.cs.berkeley.edu/ns/ns-build.html>
+
+-----------------------------
+Ya Xu
+ISI/USC.
+yaxu@isi.edu
 
 
