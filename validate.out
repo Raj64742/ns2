@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Wed May 13 18:35:31 PDT 1998
+### on pig.ee.lbl.gov, Wed May 20 14:51:00 PDT 1998,
 ### with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
@@ -117,7 +117,7 @@ retransmit_timeouts: 1
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-full
-Tests: full close twoway twoway1 twoway_bsdcompat oneway_bsdcompat twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedfin smallpkts telnet telnet2 SSR SSR2
+Tests: full close twoway twoway1 twoway_bsdcompat oneway_bsdcompat twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedretransmit droppednearretransmit droppedfastrexmit ecn1 ecn2 droppedfin smallpkts telnet telnet2 SSR SSR2 tsopt winlimited
 Running test full.
 Test output agrees with reference output
 Running test close.
@@ -151,6 +151,16 @@ Running test droppednearfin.
 Test output agrees with reference output
 Running test droppedlastseg.
 Test output agrees with reference output
+Running test droppedretransmit.
+Test output agrees with reference output
+Running test droppednearretransmit.
+Test output agrees with reference output
+Running test droppedfastrexmit.
+Test output agrees with reference output
+Running test ecn1.
+Test output agrees with reference output
+Running test ecn2.
+Test output agrees with reference output
 Running test droppedfin.
 Test output agrees with reference output
 Running test smallpkts.
@@ -162,6 +172,10 @@ Test output agrees with reference output
 Running test SSR.
 Test output agrees with reference output
 Running test SSR2.
+Test output agrees with reference output
+Running test tsopt.
+Test output agrees with reference output
+Running test winlimited.
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red
