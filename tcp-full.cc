@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.30 1998/01/22 02:32:53 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.31 1998/01/22 05:29:44 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -416,6 +416,9 @@ send:
 	 * sequence number so we don't go above maxseq_
 	 */
 
+//printf("%f tcp(%s): pflags:0x%x, flags_:0x%x, seqno:%d, maxseq_:%d, t_seqno_:%d\n",
+//now(), name(), pflags, flags_, seqno, int(maxseq_), int(t_seqno_));
+
 	if (pflags & TH_FIN && flags_ & TF_SENTFIN && seqno == maxseq_)
 		--t_seqno_;
 
@@ -429,7 +432,6 @@ send:
                         ++t_seqno_;
 		}
 		if (pflags & TH_FIN) {
-                        ++t_seqno_;
                         flags_ |= TF_SENTFIN;
 		}
 	}
@@ -565,7 +567,7 @@ void FullTcpAgent::newack(Packet* pkt)
 	// update t_seqno_ here, otherwise we would be doing
 	// go-back-n.
 
-	if (t_seqno_ < highest_ack_)
+	if (t_seqno_ < highest_ack_ && state_ <= TCPS_ESTABLISHED)
 		t_seqno_ = highest_ack_; // seq# to send next
 
         /*
@@ -604,7 +606,7 @@ int FullTcpAgent::predict_ok(Packet* pkt)
         hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
 
 	int p1 = (state_ == TCPS_ESTABLISHED);		// ready
-	int p2 = (tcph->flags() == TH_ACK);		// is an ACK
+	int p2 = ((tcph->flags() & (TH_ACK|TH_PUSH)) == tcph->flags());
 	int p3 = (tcph->seqno() == rcv_nxt_);		// in-order data
 	int p4 = (t_seqno_ == maxseq_);			// not re-xmit
 	int p5 = (fh->ecn_ == 0);			// no ECN
@@ -1261,6 +1263,8 @@ step6:
 		}
 	}
 
+//printf("%f tcp(%s): needout:%d, flags_:0x%x, curseq:%d, iss:%d\n",
+//now(), name(), needoutput, flags_, int(curseq_), int(iss_));
 	if (needoutput || (flags_ & TF_ACKNOW))
 		send_much(1, REASON_NORMAL, 0);
 	else if ((curseq_ + iss_) > highest_ack_)
@@ -1342,19 +1346,39 @@ void FullTcpAgent::listen()
 void FullTcpAgent::usrclosed()
 {
 
-	curseq_ = t_seqno_;	// truncate buffer
+//printf("%f tcp(%s): usrclosed, state:%d\n",
+//now(), name(), state_);
+
+	curseq_ = t_seqno_ - iss_;	// truncate buffer
 	switch (state_) {
 	case TCPS_CLOSED:
 	case TCPS_LISTEN:
-	case TCPS_SYN_SENT:
 		cancel_timers();
 		newstate(TCPS_CLOSED);
+		break;
+	case TCPS_SYN_SENT:
+		newstate(TCPS_CLOSED);
+		/* fall through */
+	case TCPS_LAST_ACK:
+		send_much(1, REASON_NORMAL, 0);
 		break;
 	case TCPS_SYN_RECEIVED:
 	case TCPS_ESTABLISHED:
 		newstate(TCPS_FIN_WAIT_1);
 		send_much(1, REASON_NORMAL, 0);
 		break;
+	case TCPS_FIN_WAIT_1:
+	case TCPS_FIN_WAIT_2:
+	case TCPS_CLOSING:
+		/* usr asked for a close more than once [?] */
+		fprintf(stderr,
+		  "%f FullTcpAgent(%s): app close in bad state %d\n",
+		  now(), name(), state_);
+		break;
+	default:
+		fprintf(stderr,
+		  "%f FullTcpAgent(%s): app close in unknown state %d\n",
+		  now(), name(), state_);
 	}
 
 	return;
@@ -1581,6 +1605,14 @@ FullTcpAgent::dooptions(Packet* pkt)
 	}
 }
 
+void FullTcpAgent::newstate(int ns)
+{
+//printf("%f tcp(%s): state(%d) -> state(%d)\n",
+//now(), name(), state_, ns);
+	state_ = ns;
+}
+
 void DelAckTimer::expire(Event *) {
         a_->timeout(TCP_TIMER_DELACK);
 }
+
