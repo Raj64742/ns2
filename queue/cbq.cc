@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.15 1997/05/02 23:02:37 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.16 1997/05/13 23:59:26 heideman Exp $ (LBL)";
 #endif
 
 //
@@ -191,10 +191,14 @@ public:
 } class_cbqclass;
 
 CBQueue::CBQueue() : last_lender_(NULL), pending_pkt_(NULL), link_(NULL),
-	maxprio_(-1), maxlevel_(-1), toplevel_(MAXLEVEL), eligible_(NULL)
+	maxprio_(-1), maxlevel_(-1), toplevel_(MAXLEVEL)
 {
 	memset(active_, '\0', sizeof(active_));
 	memset(levels_, '\0', sizeof(levels_));
+	// memset(eleigible_) because eligible_(NULL) above
+	// causes (incorrect) compiler errors with gcc-2.7.2.1
+	// under Linux.
+	memset(eligible_, '\0', sizeof(eligible_));
 }
 
 /*
