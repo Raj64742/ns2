@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.20 1999/09/17 22:47:44 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.21 1999/09/18 00:22:55 haoboy Exp $";
 #endif
 
 #include "classifier-addr.h"
@@ -84,7 +84,7 @@ void ReserveAddressClassifier::clear(int slot)
 }
  
 int ReserveAddressClassifier::classify(const Packet *p) {
-		hdr_ip* iph = hdr_ip::access(p);
+		hdr_ip* iph = hdr_ip::access((Packet*)p);
 		return iph->dport();
 };
 
