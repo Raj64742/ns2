@@ -1,5 +1,5 @@
 #
-# cmerge -- "cooked" plot
+# cplot -- "cooked" plot
 #	merge multiple cooked trace files together, eventually
 #	to produce a final plot:
 #
@@ -9,6 +9,10 @@
 # and merge them into a combined graph of the type defined in
 # "package".  for now, package is either xgraph or gnuplot
 #
+# Sources for gnuplot, as of 10/20/97:
+# 	gnuplot3.5: ftp://ftp.dartmouth.edu/pub/gnuplot/
+#	gnuplot3.6beta: ftp://cmpc1.phys.soton.ac.uk/pub
+#	gnuplot3.6beta-mirror: http://www.nas.nasa.gov/~woo/gnuplot/beta/
 
 set labelproc(xgraph) xgraph_label
 set labelproc(gnuplot) gnuplot_label
@@ -63,6 +67,15 @@ proc run {} {
 	cleanup
 }
 
+proc do_file { fname label graphtype tmpchan } {
+	global labelproc
+	$labelproc($graphtype) $tmpchan $label $fname
+}
+
+#
+# xgraph-specific stuff
+#
+
 proc xgraph_header { tmpchan title } {
         puts $tmpchan "TitleText: $title"
         puts $tmpchan "Device: Postscript"
@@ -74,17 +87,35 @@ proc xgraph_header { tmpchan title } {
 	puts $tmpchan "YUnitText: sequence/ack number"
 }
 
-proc xgraph_label { tmpchan label } {
+proc xgraph_label { tmpchan label fname } {
 	puts $tmpchan \n\"$label
-}
-
-proc gnuplot_label { tmpchan label } {
-	puts $tmpchan $label
-}
-
-proc do_file { fname label graphtype tmpchan } {
-	global labelproc
-	$labelproc($graphtype) $tmpchan $label
 	exec cat $fname >@ $tmpchan
 }
+
+#
+# gnuplot-specific stuff
+#
+
+proc gnuplot_header { tmpchan title } {
+	puts $tmpchan "set title '$title'"
+	puts $tmpchan "set xlabel 'time'"
+	puts $tmpchan "set ylabel 'sequence/ack number'"
+	puts $tmpchan "set grid"
+
+	global gnu_first_time gnu_label_index
+	set gnu_first_time 1
+	set gnu_label_index 1
+}
+
+proc gnuplot_label { tmpchan label fname } {
+	global gnu_first_time gnu_label_index
+	if { $gnu_first_time } {
+		puts $tmpchan "plot '$fname' title '$label' w points $gnu_label_index 2"
+		set gnu_first_time 0
+	} else {
+		puts $tmpchan "replot '$fname' title '$label' w points $gnu_label_index 2"
+	}
+	incr gnu_label_index
+}
+
 run
