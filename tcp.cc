@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.63 1998/05/06 23:55:35 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.64 1998/05/07 01:43:28 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -725,9 +725,9 @@ TcpAgent::dupack_action()
 	 * window of data. 
 	 */
 	int recovered = (highest_ack_ > recover_);
-	if (recovered) 
+	if (recovered) {
 		goto tahoe_action;
-        else if (!bug_fix_ && (last_cwnd_action_ == CWND_ACTION_DUPACK
+	} else if (!bug_fix_ && (last_cwnd_action_ == CWND_ACTION_DUPACK
 	  	|| last_cwnd_action_ == CWND_ACTION_TIMEOUT)) {
 		goto tahoe_action;
 	}
@@ -739,6 +739,7 @@ TcpAgent::dupack_action()
 		if (ecn_) {
 			switch (last_cwnd_action_) {
 			case CWND_ACTION_ECN:
+				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				closecwnd(2);
 				reset_rtx_timer(0,0);
 			}
@@ -754,6 +755,7 @@ TcpAgent::dupack_action()
 		if (ecn_) {
 			switch (last_cwnd_action_) {
 			case CWND_ACTION_ECN:
+				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				closecwnd(2);
 				reset_rtx_timer(0,0);
 			}
