@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.67 1999/10/29 07:11:16 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.68 1999/11/05 05:29:01 klan Exp $
 #
 
 # for MobileIP
@@ -860,6 +860,9 @@ Node instproc add-target-NewMobile {agent port} {
 	    } else {
 		set sndT [cmu-trace Send "RTR" $self]
 	    }
+            if [info exists namtraceFile_]  {
+               $sndT namattach $namtraceFile_
+            }
 
             if { $newapi == "ON" } {
                  $agent target $imep_(0)
@@ -889,6 +892,9 @@ Node instproc add-target-NewMobile {agent port} {
 	    } else {
 		 set rcvT [cmu-trace Recv "RTR" $self]
 	    }
+            if [info exists namtraceFile_]  {
+               $rcvT namattach $namtraceFile_
+            }
 
             if {$newapi == "ON" } {
             #    puts "Hacked for tora20 runs!! No RTR revc trace"
@@ -1010,6 +1016,9 @@ Node instproc add-interface { channel pmodel \
 
             set drpT [$ns_ mobility-trace Drop "RTR" $self]
             $imep drop-target $drpT
+            if [info exists namtraceFile_]  {
+               $drpT namattach $namtraceFile_
+            }
             $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
         }
 
@@ -1107,6 +1116,9 @@ Node instproc add-interface { channel pmodel \
 		set rcvT [cmu-trace Recv "MAC" $self]
 	    }
 	    $mac log-target $rcvT
+            if [info exists namtraceFile_]  {
+               $rcvT namattach $namtraceFile_
+            }
 
 
 	    #
@@ -1119,6 +1131,9 @@ Node instproc add-interface { channel pmodel \
 	    }
 	    $sndT target [$mac down-target]
 	    $mac down-target $sndT
+            if [info exists namtraceFile_]  {
+               $sndT namattach $namtraceFile_
+            }
 
 	    #
 	    # Trace Received Packets
@@ -1132,6 +1147,9 @@ Node instproc add-interface { channel pmodel \
 	    }
 	    $rcvT target [$mac up-target]
 	    $mac up-target $rcvT
+            if [info exists namtraceFile_]  {
+               $rcvT namattach $namtraceFile_
+            }
 
 	    #
 	    # Trace Dropped Packets
@@ -1142,6 +1160,9 @@ Node instproc add-interface { channel pmodel \
 		set drpT [cmu-trace Drop "MAC" $self]`
 	    }
 	    $mac drop-target $drpT
+            if [info exists namtraceFile_]  {
+               $drpT namattach $namtraceFile_
+            }
 	} else {
 	    $mac log-target [$ns_ set nullAgent_]
 	    $mac drop-target [$ns_ set nullAgent_]

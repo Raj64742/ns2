@@ -562,7 +562,7 @@ CMUTrace::nam_format(Packet *p, const char *why, int offset)
 	if (op == 's') op = 'h' ;
 
 	sprintf(nwrk_ + offset,
-		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -i %d ",
+		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d ",
 		op,
 		Scheduler::instance().clock(),
 		src,                           // this node

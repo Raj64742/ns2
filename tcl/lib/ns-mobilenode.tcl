@@ -263,6 +263,9 @@ Node/MobileNode instproc add-target {agent port } {
 	    } else {
 		set sndT [cmu-trace Send "RTR" $self]
 	    }
+            if [info exists namtraceFile_] {
+                $sndT namattach $namtraceFile_
+            }
             if { $newapi == "ON" } {
                  $agent target $imep_(0)
                  $imep_(0) sendtarget $sndT
@@ -291,6 +294,9 @@ Node/MobileNode instproc add-target {agent port } {
 	    } else {
 		 set rcvT [cmu-trace Recv "RTR" $self]
 	    }
+            if [info exists namtraceFile_] {
+                $rcvT namattach $namtraceFile_
+            }
             if {$newapi == "ON" } {
             #    puts "Hacked for tora20 runs!! No RTR revc trace"
                 [$self set ll_(0)] up-target $imep_(0)
@@ -479,6 +485,9 @@ Node/MobileNode instproc add-interface { channel pmodel \
             set imep $imep_($t)
 
             set drpT [$ns_ mobility-trace Drop "RTR" $self]
+            if [info exists namtraceFile_] {
+                $drpT namattach $namtraceFile_
+            }
             $imep drop-target $drpT
             $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
         }
@@ -586,6 +595,9 @@ Node/MobileNode instproc add-interface { channel pmodel \
 		set rcvT [cmu-trace Recv "MAC" $self]
 	    }
 	    $mac log-target $rcvT
+            if [info exists namtraceFile_] {
+                $rcvT namattach $namtraceFile_
+            }
 
 
 	    #
@@ -598,6 +610,9 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    }
 	    $sndT target [$mac down-target]
 	    $mac down-target $sndT
+            if [info exists namtraceFile_] {
+                $sndT namattach $namtraceFile_
+            }
 
 	    #
 	    # Trace Received Packets
@@ -611,6 +626,9 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    }
 	    $rcvT target [$mac up-target]
 	    $mac up-target $rcvT
+            if [info exists namtraceFile_] {
+                $rcvT namattach $namtraceFile_
+            }
 
 	    #
 	    # Trace Dropped Packets
@@ -621,6 +639,9 @@ Node/MobileNode instproc add-interface { channel pmodel \
 		set drpT [cmu-trace Drop "MAC" $self]`
 	    }
 	    $mac drop-target $drpT
+            if [info exists namtraceFile_] {
+                $drpT namattach $namtraceFile_
+            }
 	} else {
 	    $mac log-target [$ns_ set nullAgent_]
 	    $mac drop-target [$ns_ set nullAgent_]
@@ -749,6 +770,9 @@ SRNodeNew instproc init {args} {
     if { [Simulator set RouterTrace_] == "ON" } {
 	# Recv Target
 	set rcvT [$ns_ mobility-trace Recv "RTR" $self]
+        if [info exists namtraceFile_] {
+            $rcvT namattach $namtraceFile_
+        }
 	$rcvT target $dsr_agent_
 	set entry_point_ $rcvT	
     } else {
@@ -823,6 +847,9 @@ SRNodeNew instproc add-interface {args} {
     if { [Simulator set RouterTrace_] == "ON" } {
 	# Send Target
 	set sndT [$ns_ mobility-trace Send "RTR" $self]
+        if [info exists namtraceFile_] {
+            $sndT namattach $namtraceFile_
+        }
 	$sndT target $ll_(0)
 	$dsr_agent_ add-ll $sndT $ifq_(0)
     } else {
