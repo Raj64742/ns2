@@ -300,7 +300,8 @@ class TrafficGenerator:
   Packets are constant size.  Optionally, some randomizing dither can be
   enabled on the interpacket departure intervals. 
 \item \code{TrafficTrace}---generates traffic according to a trace file.
-  Each record in the trace file consists of 2 32-bit fields.
+  Each record in the trace file consists of 2 32-bit fields
+   in network (big-endian) byte order.
   The first contains the time in microseconds
   until the next packet is generated.
   The second contains the length in bytes of the next packet.

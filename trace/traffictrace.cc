@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.14 2002/05/21 02:11:15 ddutta Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.15 2002/12/10 01:33:39 difa Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -168,8 +168,8 @@ int TraceFile::setup()
 			}
 			else {
 		
-				t->trec_time = htonl(t->trec_time);
-				t->trec_size = htonl(t->trec_size);
+				t->trec_time = ntohl(t->trec_time);
+				t->trec_size = ntohl(t->trec_size);
 			}
 
 	}
