@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.21 2001/06/04 19:08:27 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.22 2002/04/22 17:49:34 buchheim Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -31,10 +31,10 @@ warn() {
 # Package VERSIONs. Change these when releasing new packages
 TCLVER=8.3.2
 TKVER=8.3.2
-OTCLVER=1.0a7
-TCLCLVER=1.0b11
-NSVER=2.1b8
-NAMVER=1.0a10
+OTCLVER=1.0a8
+TCLCLVER=1.0b12
+NSVER=2.1b9
+NAMVER=1.0a11
 XGRAPHVER=12.1
 
 # Get current path
