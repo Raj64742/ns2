@@ -309,7 +309,7 @@ mrtObject instproc all-mprotos {op args} {
 }
 
 mrtObject instproc start {}	{ $self all-mprotos start	}
-mrtObject instproc stop {}	{ $self all-mprotoc stop	}
+mrtObject instproc stop {}	{ $self all-mprotos stop	}
 mrtObject instproc notify changes { $self all-mprotos notify $changes }
 mrtObject instproc dump-routes args {
 	$self all-mprotos dump-routes $args
