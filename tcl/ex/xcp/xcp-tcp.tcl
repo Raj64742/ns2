@@ -230,7 +230,7 @@ foreach link $all_links {
     set queue [$link queue]
     switch $qType {
 	"XCP" {
-	    $queue set-link-capacity [expr [[$link set link_] set bandwidth_] / 8000];
+	    $queue set-link-capacity [[$link set link_] set bandwidth_];
 	}
 	"DropTail/XCP" {
 	    $queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];

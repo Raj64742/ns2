@@ -15,6 +15,9 @@
 #         /                            
 #       ni                         
 #
+
+Agent/TCP/Reno/XCP      set tcpTick_                    0.001
+
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
     global ns 
     
@@ -135,12 +138,12 @@ proc plot-xcp { TraceName nXCPs  PlotTime what } {
         exec touch temp.tcp
 	global ftracetcp$i 
 	if [info exists ftracetcp$i] { flush [set ftracetcp$i] }
-	set  packetSize [expr 100 * ($i +10)]
-        set result [exec awk -v PlotTime=$PlotTime -v what=$what -v p=$packetSize {
+	set packetsize [expr 100 * ($i +10)]
+        set result [exec awk -v PlotTime=$PlotTime -v what=$what -v s=$packetsize {
 	    {
 		if (( $6 == what ) && ($1 > PlotTime)) {
-			set tmp $7*p
-		    print $1, $tmp >> "temp.tcp";
+			tmp=$7*s
+			print $1, tmp >> "temp.tcp";
 		}
 	    }
 	} xcp$i.tr]
@@ -252,8 +255,7 @@ while { $i < $nXCPs  } {
     set rcvr_XCP      [new Agent/XCPSink]
     $ns attach-agent  $R1 $rcvr_XCP
     set src$i         [new GeneralSender $i [set n$i] $rcvr_XCP "$StartTime TCP/Reno/XCP"]
-	[[set src$i] set tcp_]  set  packetSize_ [expr 100 * ($i +10)]
-
+    [[set src$i] set tcp_]  set  packetSize_ [expr 100 * ($i +10)]
     [[set src$i] set tcp_]  set  window_     [expr $qSize * 10]
     incr i
 }
