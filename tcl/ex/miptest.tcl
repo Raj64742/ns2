@@ -1,3 +1,10 @@
+# miptest.tcl
+#
+# To show mobileIP activities.
+# Modified from a SUN's original example script
+#
+# See the comments from SUN below:
+#
 # kwang: some explanations on how to use this limited implementation of
 #        Mobile IP :
 # 1. Look into "proc create-topology" below for some necessary commands
@@ -14,8 +21,9 @@
 #    for the "bind" statements; beacon period can be set by the statement
 #    "<name of an Agent/MIPBS or Agent/MIPMH> beacon-period <beacon period>".
 # some changes are made by Ya 2/99
+
 set opt(tr)	out
-set opt(namtr)	"out.nam"
+set opt(namtr)	"miptest.nam"
 set opt(seed)	0
 set opt(stop)	20
 
@@ -93,22 +101,25 @@ proc create-topology {} {
 	set node(g) [$ns node]
 	Simulator set node_factory_ Node/MIPBS
 	set node(ha) [$ns node]
+	$node(ha) shape "hexagon"
 	set node(fa) [$ns node]
+	$node(fa) shape "hexagon"
 	Simulator set node_factory_ Node/MIPMH
 	set node(mh) [$ns node]
+	$node(mh) shape "circle"
 
-	$ns duplex-link $node(s) $node(g) 8Mb 5ms DropTail 
-
-#	set lan [$ns newLan "$node(g) $node(ha) $node(fa)" $opt(bw) \
-#		     $opt(delay) -llType $opt(ll) -ifqType $opt(ifq) \
-#		     -macType $opt(mac) -chanType $opt(chan)]
-
-	
+	$ns duplex-link $node(s) $node(g) 2Mb 5ms DropTail 
+	$ns duplex-link-op $node(s) $node(g) orient right
 	$ns duplex-link $node(g) $node(ha) 2Mb 5ms DropTail
+	$ns duplex-link-op $node(g) $node(ha) orient up
 	$ns duplex-link $node(g) $node(fa) 2Mb 5ms DropTail
+	$ns duplex-link-op $node(g) $node(fa) orient right-up
 
 	$ns duplex-link $node(ha) $node(mh) 2Mb 5ms DropTail 
-	$ns duplex-link $node(fa) $node(mh) 2Mb 5ms DropTail 
+	$ns duplex-link-op $node(ha) $node(mh) orient right
+	$ns duplex-link $node(fa) $node(mh) 4Mb 5ms DropTail 
+	$ns duplex-link-op $node(fa) $node(mh) orient left
+
 	set mhid [$node(mh) id]
 	set haid [$node(ha) id]
 	set faid [$node(fa) id]
@@ -126,23 +137,51 @@ proc create-topology {} {
 	[$node(mh) set regagent_] add-sol-bcast-link $link_($mhid:$haid)
 	[$node(mh) set regagent_] add-sol-bcast-link $link_($mhid:$faid)
 
+	$ns at 0.0 "$node(ha) label HomeAgent"
+	$ns at 0.0 "$node(fa) label ForeignAgent"
+	$ns at 0.0 "$node(mh) label MobileHost"
+
+	$ns at 0.0 "$node(ha) color gold"
+	$ns at 0.0 "$node(mh) color gold"
+
+	$ns rtmodel-at 0.1 down $node(mh) $node(fa)
+
 	set swtm [expr 3.0+($opt(stop)-3.0)/4.0]
-	$ns at $swtm "$link_($mhid:$faid) up"
-	$ns at $swtm "$link_($faid:$mhid) up"
-	$ns at [expr $swtm - 1.5] "$link_($mhid:$haid) down"
-	$ns at [expr $swtm - 1.5] "$link_($haid:$mhid) down"
+	$ns rtmodel-at $swtm down $node(mh) $node(ha)
+	$ns rtmodel-at $swtm up $node(mh) $node(fa)
+	$ns at $swtm "$node(ha) color black"
+	$ns at $swtm "$node(fa) color gold"
+
 
 	set swtm [expr 3.0+($opt(stop)-3.0)/2.0]
-	$ns at $swtm "$link_($mhid:$haid) up"
-	$ns at $swtm "$link_($haid:$mhid) up"
-	$ns at [expr $swtm - 1.5] "$link_($mhid:$faid) down"
-	$ns at [expr $swtm - 1.5] "$link_($faid:$mhid) down"
+	$ns rtmodel-at $swtm down $node(mh) $node(fa)
+	$ns rtmodel-at $swtm up $node(mh) $node(ha)
+	$ns at $swtm "$node(ha) color gold"
+	$ns at $swtm "$node(fa) color black"
+
 
 	set swtm [expr 3.0+($opt(stop)-3.0)*3.0/4.0]
-	$ns at $swtm "$link_($mhid:$faid) up"
-	$ns at $swtm "$link_($faid:$mhid) up"
-	$ns at [expr $swtm - 1.5] "$link_($mhid:$haid) down"
-	$ns at [expr $swtm - 1.5] "$link_($haid:$mhid) down"
+	$ns rtmodel-at $swtm down $node(mh) $node(ha)
+	$ns rtmodel-at $swtm up $node(mh) $node(fa)
+	$ns at $swtm "$node(ha) color black"
+	$ns at $swtm "$node(fa) color gold"
+
+#	$ns at $swtm "$link_($mhid:$faid) up"
+#	$ns at $swtm "$link_($faid:$mhid) up"
+#	$ns at [expr $swtm - 1.5] "$link_($mhid:$haid) down"
+#	$ns at [expr $swtm - 1.5] "$link_($haid:$mhid) down"
+
+#	set swtm [expr 3.0+($opt(stop)-3.0)/2.0]
+#	$ns at $swtm "$link_($mhid:$haid) up"
+#	$ns at $swtm "$link_($haid:$mhid) up"
+#	$ns at [expr $swtm - 1.5] "$link_($mhid:$faid) down"
+#	$ns at [expr $swtm - 1.5] "$link_($faid:$mhid) down"
+
+#	set swtm [expr 3.0+($opt(stop)-3.0)*3.0/4.0]
+#	$ns at $swtm "$link_($mhid:$faid) up"
+#	$ns at $swtm "$link_($faid:$mhid) up"
+#	$ns at [expr $swtm - 1.5] "$link_($mhid:$haid) down"
+#	$ns at [expr $swtm - 1.5] "$link_($haid:$mhid) down"
 }
 
 proc create-source {} {
