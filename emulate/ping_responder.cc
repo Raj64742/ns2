@@ -108,6 +108,13 @@ PingResponder::recv(Packet* pkt, Handler*)
 	icmph->icmp_type = ICMP_ECHOREPLY;
 	reflect((ip*) payload);		// like kernel routine icmp_reflect()
 
+	/*
+	 * set up simulator packet to go to the correct place
+	 */
+
+	Agent::initpkt(pkt);
+	ch->size() = psize; // will have been overwrittin by initpkt
+
 printf("OK, should be done\n");
 if (target_ == this) {
 printf("EEK... myself!\n");
@@ -215,7 +222,10 @@ PingResponder::validate(int sz, ip* iph)
 }
 
 /*
- * this routine will just assume no options on the pkt
+ * reflect: fix up the IP and ICMP info to reflect the packet
+ * back from where it came in real life
+ *
+ * this routine will just assume no IP options on the pkt
  */
 void
 PingResponder::reflect(ip* iph)
