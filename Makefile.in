@@ -420,7 +420,6 @@ NS_TCL_LIB = \
 	tcl/webcache/http-cache.tcl \
 	tcl/webcache/http-mcache.tcl \
 	tcl/webcache/webtraf.tcl \
-	tcl/webcache/logweb.tcl \
 	tcl/webcache/empweb.tcl \
 	tcl/webcache/empftp.tcl \
 	tcl/plm/plm.tcl \
