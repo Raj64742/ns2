@@ -63,6 +63,12 @@ int SA_Agent::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
+	if (argc == 2) {
+	        if (strcmp(argv[1], "stoponidle") == 0) {
+		        stoponidle();
+			return(TCL_OK);
+		}
+	}
 	return (UDP_Agent::command(argc,argv));
 }
 
@@ -84,6 +90,20 @@ void SA_Agent::stop()
 		cbr_timer_.cancel();
 		running_ =0;
 	}
+}
+
+void SA_Agent::stoponidle()
+{
+
+        if (trafgen_->on()) {
+        	// Tcl::instance().evalf("puts \"%s waiting for burst at %f\"", name(), Scheduler::instance().clock());
+	        rtd_ = 1;
+	}
+	else {
+	        stop();
+	      Tcl::instance().evalf("%s sched-stop %d", name(), 0);
+	}
+
 }
 
 void SA_Agent::sendreq()

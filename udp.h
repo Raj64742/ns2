@@ -14,7 +14,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.5 1998/04/25 00:57:48 bajaj Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.6 1998/06/09 21:53:20 breslau Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h
@@ -44,6 +44,7 @@ class UDP_Agent : public CBR_Agent {
 	TrafficGenerator *trafgen_;
 	double nextPkttime_;
 	virtual void sendpkt();
+	int rtd_;  /* ready-to-die: waiting for last burst to end */
 };
 
 

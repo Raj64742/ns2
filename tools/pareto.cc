@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.2 1997/07/22 21:52:54 kfall Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.3 1998/06/09 21:53:21 breslau Exp $ (Xerox)";
 #endif
  
 #include "random.h"
@@ -34,6 +34,7 @@ class POO_Source : public TrafficGenerator {
  public:
 	POO_Source();
 	virtual double next_interval(int&);
+	int on()  { return on_ ; }
  protected:
 	void init();
 	double ontime_;  /* average length of burst (sec) */
@@ -49,6 +50,7 @@ class POO_Source : public TrafficGenerator {
 	double p2_;       /* parameter for pareto distribution to compute
 		     	   * length of idle period.
 		     	   */
+	int on_;          /* denotes whether in the on or off state */
 };
 
 
@@ -74,6 +76,7 @@ void POO_Source::init()
 	interval_ = (double)(size_ << 3)/(double)rate_;
 	burstlen_ = ontime_/interval_;
 	rem_ = 0;
+	on_ = 0;
 	p1_ = burstlen_ * (shape_ - 1.0)/shape_;
 	p2_ = offtime_ * (shape_ - 1.0)/shape_;
 }
@@ -82,6 +85,7 @@ double POO_Source::next_interval(int& size)
 {
 	double t = interval_;
 
+	on_ = 1;
 	if (rem_ == 0) {
 		/* compute number of packets in next burst */
 		rem_ = int(Random::pareto(p1_, shape_) + .5);
@@ -90,6 +94,7 @@ double POO_Source::next_interval(int& size)
 			rem_ = 1;	
 		/* start of an idle period, compute idle time */
 		t += Random::pareto(p2_, shape_);
+		on_ = 0;
 	}	
 	rem_--;
 

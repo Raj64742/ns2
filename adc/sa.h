@@ -31,6 +31,7 @@ public:
 protected:
 	void start(); 
 	void stop(); 
+	void stoponidle(); 
 	void sendreq();
 	void sendteardown();
 	void recv(Packet *, Handler *);

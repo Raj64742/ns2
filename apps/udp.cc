@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.5 1998/04/25 00:57:47 bajaj Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.6 1998/06/09 21:53:19 breslau Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -37,7 +37,7 @@ static class UDP_AgentClass : public TclClass {
 	}
 } class_source_agent;
 
-UDP_Agent::UDP_Agent() : trafgen_(0),nextPkttime_(-1)
+UDP_Agent::UDP_Agent() : trafgen_(0),nextPkttime_(-1), rtd_(0)
 {
 }
 
@@ -93,6 +93,19 @@ void UDP_Agent::timeout(int)
 		nextPkttime_ = trafgen_->next_interval(size_);
 		/* schedule it */
 		cbr_timer_.resched(nextPkttime_);
+
+		/* hack: if we are waiting for a current burst to end
+		 * before stopping . . .
+		 */
+		if (rtd_) {
+		        if (trafgen_->on() == 0) {
+			      stop();
+			    //Tcl::instance().evalf("puts \"%s burst over at %f\"", 
+				//		  name(), Scheduler::instance().clock());
+			      Tcl::instance().evalf("%s sched-stop %d", name(), 0);
+			}
+		}      
+
 	}
 }
 
