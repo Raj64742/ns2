@@ -251,11 +251,14 @@ LanIface instproc init {node lan args} {
 }
 
 LanIface instproc trace {ns f {op ""}} {
-	$self instvar hopT_
+	$self instvar hopT_ rcvT_ iface_
 	$self instvar entry_ node_ lan_
 	set hopT_ [$ns create-trace Hop $f $node_ $lan_ $op]
+	set rcvT_ [$ns create-trace Recv $f $lan_ $node_ $op]
 	$hopT_ target $entry_
-	set entry_ $hopT_
+	set entry_ $hopT_ 
+	$rcvT_ target [$iface_ target]
+	$iface_ target $rcvT_
 }
 # should be called after LanIface::trace
 LanIface instproc nam-trace {ns f} {
