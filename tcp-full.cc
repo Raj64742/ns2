@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.85 2001/05/27 20:34:53 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.86 2001/05/27 23:10:46 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -491,6 +491,10 @@ void FullTcpAgent::cancel_timers()
  */
 void FullTcpAgent::output(int seqno, int reason)
 {
+	if (maxseg_ == 0) 
+	   	maxseg_ = size_ - headersize();
+	else
+		size_ =  maxseg_ + headersize();
 	int is_retransmit = (seqno < maxseq_);
 	int quiet = (highest_ack_ == maxseq_);
 	int pflags = outflags();
