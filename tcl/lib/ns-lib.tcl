@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.86 1998/03/30 21:45:38 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.87 1998/04/07 23:42:27 haldar Exp $
 #
 
 #
@@ -61,6 +61,7 @@ if {[info commands debug] == ""} {
 #
 Class Simulator
 
+source ns-address.tcl
 source ns-node.tcl
 source ns-link.tcl
 source ns-source.tcl
@@ -109,9 +110,10 @@ source ns-namsupp.tcl
 source ns-default.tcl
 
 Simulator instproc init args {
-	$self create_packetformat
+        $self create_packetformat
 	$self use-scheduler Calendar
 	$self set nullAgent_ [new Agent/Null]
+        $self set-address-format def
 	eval $self next $args
 }
 
@@ -153,13 +155,13 @@ Simulator instproc dumper obj {
 # no shape OR color parameter is given
 Simulator instproc node {} {
 	$self instvar Node_
-	set node [new Node]
-	set Node_([$node id]) $node
+        set node [new Node]
+        set Node_([$node id]) $node
         if [Simulator set EnableMcast_] {
 	    $node enable-mcast $self
 	}
 
-	return $node
+        return $node
 }
 
 Simulator instproc now {} {
@@ -665,8 +667,8 @@ Simulator instproc connect { src dst } {
 	#
 	set srcNode [$src set node_]
 	set dstNode [$dst set node_]
-	$src set dst_ [expr [$dstNode id] << [Simulator set NodeShift_]  | [$dst port]]
-	$dst set dst_ [expr [$srcNode id] << [Simulator set NodeShift_] | [$src port]]
+	$src set dst_ [expr [$dstNode id] << [AddrParams set NodeShift_(1)]  | [$dst port]]
+	$dst set dst_ [expr [$srcNode id] << [AddrParams set NodeShift_(1)] | [$src port]]
 	return $src
 }
 
