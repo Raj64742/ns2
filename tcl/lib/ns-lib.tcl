@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.250 2002/09/18 05:41:53 sundarra Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.251 2002/10/30 21:05:23 haldar Exp $
 
 
 #
@@ -600,6 +600,9 @@ Simulator instproc create-wireless-node args {
 		    eval $node addr $args
 		    set ragent [$self create-omnimcast-agent $node]
 	    }
+	    DumbAgent {
+		    set ragent [$self create-dumb-agent $node]
+	    }
 	    default {
 		    puts "Wrong node routing agent!"
 		    exit
@@ -635,6 +638,10 @@ Simulator instproc create-wireless-node args {
 		$node instvar ll_
 		$ragent add-ll $ll_(0)
 	}
+	if { $routingAgent_ == "DumbAgent" } {
+		$ragent port-dmux [$node demux]
+	}
+	
 
 	# Bind routing agent and mip agent if existing basestation 
 	# address setting
@@ -731,9 +738,24 @@ Simulator instproc create-dsdv-agent { node } {
 	return $ragent
 }
 
+
+Simulator instproc create-dumb-agent { node } {
+	
+	# create a simple wireless agent
+	# that only forwards packets
+	# used for testing single hop brdcast/unicast mode 
+	# for wireless macs
+
+	set ragent [new Agent/DumbAgent]
+	$node set ragent_ $ragent
+	
+	return $ragent
+}
+
+
 Simulator instproc create-aodv-agent { node } {
         #  Create AODV routing agent
-        set ragent [new Agent/AODV [$node id]]
+	set ragent [new Agent/AODV [$node node-addr]]
         $self at 0.0 "$ragent start"     ;# start BEACON/HELLO Messages
         $node set ragent_ $ragent
         return $ragent

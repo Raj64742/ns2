@@ -70,7 +70,8 @@ public:
         AODVclass() : TclClass("Agent/AODV") {}
         TclObject* create(int argc, const char*const* argv) {
           assert(argc == 5);
-          return (new AODV((nsaddr_t) atoi(argv[4])));
+          //return (new AODV((nsaddr_t) atoi(argv[4])));
+	  return (new AODV((nsaddr_t) Address::instance().str2addr(argv[4])));
         }
 } class_rtProtoAODV;
 
