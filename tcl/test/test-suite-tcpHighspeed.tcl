@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.13 2004/06/07 18:34:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.14 2004/06/24 16:56:49 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -88,7 +88,8 @@ Topology/net2b instproc init ns {
     set node_(s4) [$ns node]
 
     $self next
-    Queue/RED set bottom_ 0.001
+    #Queue/RED set bottom_ 0.001
+    Queue/RED set bottom_ 0
     Queue/RED set thresh_ 0
     Queue/RED set maxthresh_ 0
     Queue/RED set q_weight_ 0
