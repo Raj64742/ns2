@@ -22,6 +22,7 @@
  *
  */
 
+#include "config.h"
 #ifdef HAVE_STL
 #ifdef NIXVECTOR
 

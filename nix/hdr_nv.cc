@@ -22,6 +22,8 @@
  * George F. Riley, Georgia Tech, Spring 2000
  *
  */
+
+#include "config.h"
 #ifdef HAVE_STL
 #include "nix/hdr_nv.h"
 

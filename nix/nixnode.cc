@@ -21,6 +21,8 @@
  * George F. Riley, Georgia Tech, Spring 2000
  *
  */
+
+#include "config.h"
 #ifdef HAVE_STL
 #ifdef NIXVECTOR
 
