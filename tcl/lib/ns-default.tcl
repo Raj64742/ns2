@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.212 2000/08/10 00:05:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.213 2000/08/10 01:07:16 sfloyd Exp $
 
 
 #
@@ -237,8 +237,10 @@ Agent/TFRC set ssmult_ 2 ; 	# Rate of increase during slow-start:
 Agent/TFRC set bval_ 1 ;	# Value of B for TCP formula
 Agent/TFRC set ca_ 1 ; 	 	# Enable Sqrt(RTT) congestion avoidance
 Agent/TFRC set printStatus_ 0 
+Agent/TFRC set maxHeavyRounds_ 1; # Number of rounds for sending rate allowed
+				  #  to be greater than twice receiving rate.
 Agent/TFRC set conservative_ 0 ;  # Set to true for a conservative 
-				# response to heavy congestion.
+				  # response to heavy congestion.
 
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000
