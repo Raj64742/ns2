@@ -103,11 +103,11 @@ A simple example of how it is used is as follows:
 \end{program}
 This tcl code fragment first creates a simulation object,
 then changes the default scheduler implementation to be heap-based
-(see below), and finally schedules the function {\tt \$self complete\_sim}
+(see below), and finally schedules the function \code{$self complete_sim}
 to be executed at time 300.5 (seconds)%
-\footnote{Note that this particular code fragment expects to be encapsulated 
+(Note that this particular code fragment expects to be encapsulated 
 in an object instance procedure, where the appropriate
-reference to \code{\$self} is correctly defined.}.
+reference to \code{$self} is correctly defined.).
 At-events are implemented as events where the handler is
 effectively an execution of the tcl interpreter.
 

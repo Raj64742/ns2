@@ -410,7 +410,7 @@ interfaces on links incident on that node.
 	notifies the arbiter instance to establish the new group. \\
 \proc[a g]{join-group} &
 	An \code{agent} at a node that joins a particular group invokes
-	``\code{\$node~join-group~agent~group}''.  The
+	``\code{node join-group <agent> <group>}''.  The
 	node signals the mrtObject to join the particular \code{group},
 	and adds \code{agent} to its list of agents at that
 	\code{group}.  It then adds \code{agent} to all replicators
