@@ -398,7 +398,7 @@ MobileNode::set_destination(double x, double y, double s)
               nodeid_,
               X,Y,
               speed*dX, speed*dY,
-              ((speed*dX) != 0 ) ? (destX-X)/speed*dX : speed*dX
+              ((speed*dX) != 0 ) ? (destX-X)/(speed*dX) : speed*dX
              );   
      namdump();         
   }
