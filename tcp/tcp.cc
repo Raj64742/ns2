@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.94 1999/11/24 20:32:23 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.95 1999/11/24 20:42:34 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -275,7 +275,7 @@ TcpAgent::reset()
 	closed_ = 0;
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
-	first_decrease_ == 1;
+	first_decrease_ = 1;
 
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
@@ -706,9 +706,9 @@ TcpAgent::slowdown(int how)
 	if (how & CLOSE_CWND_HALF)
 		// For the first decrease, decrease by half
 		// even for non-standard values of decrease_num_.
-		if (first_decrease_ || decrease_num_ == 0.5) {
+		if (first_decrease_ == 1 || decrease_num_ == 0.5) {
 			cwnd_ = halfwin;
-			first_decrease_ == 0;
+			first_decrease_ = 0;
 		} else cwnd_ = decreasewin;
         else if (how & CWND_HALF_WITH_MIN) {
                 cwnd_ = decreasewin;
