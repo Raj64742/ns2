@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.23 1997/07/25 09:10:32 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.24 1997/08/08 00:06:08 sfloyd Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -345,45 +345,40 @@ void REDQueue::enque(Packet* pkt)
 	if (qavg >= edp_.th_min && qlen > 1) {
 		if (qavg >= edp_.th_max) {
 			droptype = DTYPE_FORCED;
-			goto dropv;
-		}
-		if (edv_.old == 0) {
+		} else if (edv_.old == 0) {
 			edv_.count = 1;
 			edv_.count_bytes = ch->size();
 			edv_.old = 1;
 		} else if (drop_early(pkt)) {
 			droptype = DTYPE_UNFORCED;
-			goto dropme;
 		}
 	} else {
 		edv_.v_prob = 0.0;
 		edv_.old = 0;
 	}
-
-	// see if we've exceeded the queue size
-
-	q_->enque(pkt);
-	bcount_ += ch->size();
-	qlen = qib_ ? bcount_ : q_->length();
-
-	if (qlen > qlim) {
+	if (qlen >= qlim) {
+		// see if we've exceeded the queue size
 		droptype = DTYPE_FORCED;
-		goto dropv;
 	}
 
-	return;
-
-dropv:
-	/* drop random victim or last one */
-	pkt = pickPacketToDrop();
-	q_->remove(pkt);
-	bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
-dropme:
-	if (droptype == DTYPE_UNFORCED && de_drop_ != NULL) {
+        if (droptype != DTYPE_UNFORCED) {
+		q_->enque(pkt);
+		bcount_ += ch->size();
+		qlen = qib_ ? bcount_ : q_->length();
+	}
+	if (droptype == DTYPE_FORCED) {
+		/* drop random victim or last one */
+		pkt = pickPacketToDrop();
+		q_->remove(pkt);
+		bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	}
+	else if (droptype == DTYPE_UNFORCED && de_drop_ != NULL) {
 		de_drop_->recv(pkt);
 		return;
 	}
-	drop(pkt);
+	if (droptype == DTYPE_FORCED || droptype == DTYPE_UNFORCED) {
+		drop(pkt);
+	}
 	return;
 }
 
