@@ -254,6 +254,8 @@ Test/bad_router instproc run {} {
     if {$quiet == "false"} {puts $guide_}
     $ns_ node-config -QS $qs
     $self setTopo
+    set router $node_(r2)
+    [$router qs-agent] set qs_enabled_ 0
     set stopTime 6
 
     set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
