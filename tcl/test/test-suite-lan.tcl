@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.10 2000/08/30 18:54:05 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.11 2000/12/20 10:19:45 alefiyah Exp $
 
 
 # To run all tests: test-all-lan
@@ -24,6 +24,8 @@
 # ns test-suite-lan.tcl broadcast
 # ns test-suite-lan.tcl routing-flat
 # ns test-suite-lan.tcl routing-hier
+# ns test-suite-lan.tcl abstract
+# ns test-suite-lan.tcl mactrace
 # ....
 #
 # To view a list of available tests to run with this script:
@@ -41,10 +43,16 @@ Class Test/lan-routing-hier -superclass TestSuite
 # Broadcast test for Classifier/Mac
 Class Test/lan-broadcast -superclass TestSuite
 
+# Routing Test using Abstract LAN
+Class Test/lan-abstract -superclass TestSuite
+
+# Mac level collision traces using flat tracing
+Class Test/lan-mactrace -superclass TestSuite
+
 proc usage {} {
 	global argv0
 	puts stderr "usage: ns $argv0 <tests> "
-	puts "Valid Tests: lan-routing-flat lan-routing-hier lan-broadcast"
+	puts "Valid Tests: lan-routing-flat lan-routing-hier lan-broadcast lan-abstract lan-mactrace"
 	exit 1
 }
 
@@ -86,7 +94,6 @@ Test/lan-routing-flat instproc init {} {
 	$ns_ duplex-link $nodex_ $node_(2) 20Mb 2ms DropTail
 	$ns_ duplex-link-op $nodex_ $node_(2) orient left
 
-	puts "nodex id [$nodex_ id] address [$nodex_ set address_]"
 	set tcp0_ [$ns_ create-connection TCP/Reno $node0_ TCPSink $nodex_ 0]
 	$tcp0_ set window_ 15
 	
@@ -100,6 +107,7 @@ Test/lan-routing-flat instproc run {} {
 	$ns_ run
 
 }
+
 
 Test/lan-routing-hier instproc init {} {
 	$self instvar ns_ testName_ flag_ node_ nodelist_ \
@@ -187,6 +195,81 @@ Test/lan-broadcast instproc run {} {
 }
 
 
+Test/lan-abstract instproc init {} {
+	$self instvar ns_ testName_ flag_ node_ nodelist_ \
+			lan_ tcp0_ tcp1_ ftp0_ ftp1_
+
+	set testName_ lan-abstract
+	$self next
+	set num 4
+	for {set i 0} {$i < $num} {incr i} {
+		set node_($i) [$ns_ node]
+		lappend nodelist_ $node_($i)
+	}
+	set lan_ [$ns_ make-abslan $nodelist_ 10Mb 1ms ]
+
+	set tcp0_ [$ns_ create-connection TCP/Reno $node_(0) TCPSink $node_(1) 0]
+	$tcp0_ set window_ 15
+	set ftp0_ [$tcp0_ attach-app FTP]
+
+	set tcp1_ [$ns_ create-connection TCP/Reno $node_(2) TCPSink $node_(3) 0]
+	$tcp1_ set window_ 15
+	set ftp1_ [$tcp1_ attach-app FTP]
+}
+
+Test/lan-abstract instproc run {} {
+	$self instvar ns_ ftp0_ ftp1_
+	$ns_ at 0.0 "$ftp0_ start"
+	$ns_ at 0.0 "$ftp1_ start"
+	$ns_ at 3.0 "$self finish"
+	$ns_ run
+
+}
+
+
+Test/lan-mactrace instproc init {} {
+	$self instvar ns_ testName_ flag_ node_ nodelist_ \
+			lan_ udp0_ udp1_ cbr0_ cbr1_
+
+	set testName_ lan-mactrace
+	$self next
+	set num 4
+	for {set i 0} {$i < $num} {incr i} {
+		set node_($i) [$ns_ node]
+		lappend nodelist_ $node_($i)
+	}
+	set lan_ [$ns_ make-lan -trace on $nodelist_ 10Mb 1ms LL Queue/DropTail Mac/802_3 Channel Phy/WiredPhy ]
+
+	set udp0_ [new Agent/UDP]
+	$ns_ attach-agent $node_(0) $udp0_
+	set null0_ [new Agent/Null]
+	$ns_ attach-agent $node_(1) $null0_
+	set cbr0_ [new Application/Traffic/CBR]
+	$cbr0_ set interval_ 0.2
+	$ns_ connect $udp0_ $null0_
+	$cbr0_ attach-agent $udp0_
+	
+	set udp1_ [new Agent/UDP]
+	$ns_ attach-agent $node_(2) $udp1_
+	set null1_ [new Agent/Null]
+	$ns_ attach-agent $node_(3) $null1_
+	set cbr1_ [new Application/Traffic/CBR]
+	$cbr1_ set interval_ 0.2
+	$ns_ connect $udp1_ $null1_
+	$cbr1_ attach-agent $udp1_
+	
+}
+
+Test/lan-mactrace instproc run {} {
+	$self instvar ns_ cbr0_ cbr1_
+	$ns_ at 0.0 "$cbr0_ start"
+	$ns_ at 0.0 "$cbr1_ start"
+	$ns_ at 3.0 "$self finish"
+	$ns_ run
+
+}
+
+
 proc runtest {arg} {
 	global quiet
 	set quiet 0
@@ -205,7 +288,9 @@ proc runtest {arg} {
 	switch $test {
 		lan-routing-flat -
 		lan-routing-hier -
-		lan-broadcast {
+		lan-broadcast -
+		lan-abstract -
+		lan-mactrace {
 			set t [new Test/$test]
 		}
 		default {
@@ -218,6 +303,14 @@ proc runtest {arg} {
 
 global argv arg0
 runtest $argv
+
+
+
+
+
+
+
+
 
 
 
