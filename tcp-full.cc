@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.60 1998/07/28 01:37:38 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.61 1998/07/29 16:03:08 heideman Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1773,7 +1773,7 @@ FullTcpAgent::timeout_action()
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
 //printf("%f %s.. timeout\n", now(), name());
 	reset_rtx_timer(1);
-	t_seqno_ = (highest_ack_ < 0) ? iss_ : highest_ack_;
+	t_seqno_ = (highest_ack_ < 0) ? iss_ : int(highest_ack_);
 	fastrecov_ = FALSE;
 	dupacks_ = 0;
 }
