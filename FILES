@@ -2028,6 +2028,7 @@ tcl/test/test-output-newreno/newreno2_A_bugfix_LC.Z
 tcl/test/test-output-newreno/newreno2_B_bugfix_LC.Z 
 tcl/test/test-output-newreno/newreno5_LC.Z 
 tcl/test/test-output-newreno/newreno5_noLT_LC.Z 
+tcl/test/test-output-newreno/newreno6.Z
 tcl/test/test-output-newreno/sack5.Z
 tcl/test/test-output-newreno/reno5.Z 
 tcl/test/test-output-newreno/reno5_noBF.Z
@@ -2236,6 +2237,7 @@ tcl/test/test-output-simple/stats1a.Z
 tcl/test/test-output-simple/stats1aBytes.Z
 tcl/test/test-output-simple/stats2.Z
 tcl/test/test-output-simple/stats3.Z
+tcl/test/test-output-simple/stats4.Z
 tcl/test/test-output-simple/statsECN.Z
 tcl/test/test-output-simple/statsHeaders.Z
 tcl/test/test-output-simple/tahoe1.Z
@@ -2458,6 +2460,15 @@ tcl/test/test-output-tcpVariants/multiple_reno.Z
 tcl/test/test-output-tcpVariants/multiple_sack.Z 
 tcl/test/test-output-tcpVariants/multiple_tahoe.Z
 tcl/test/test-output-tcpVariants/multiple_partial_ack_sack.Z
+tcl/test/test-output-tcpVariants/multiple2_SA_newreno.Z 
+tcl/test/test-output-tcpVariants/multiple2_SA_reno.Z 
+tcl/test/test-output-tcpVariants/multiple2_SA_sack.Z 
+tcl/test/test-output-tcpVariants/multiple2_SA_tahoe.Z 
+tcl/test/test-output-tcpVariants/multiple2_newreno.Z 
+tcl/test/test-output-tcpVariants/multiple2_partial_ack_sack.Z 
+tcl/test/test-output-tcpVariants/multiple2_reno.Z
+tcl/test/test-output-tcpVariants/multiple2_sack.Z 
+tcl/test/test-output-tcpVariants/multiple2_tahoe.Z 
 tcl/test/test-output-tcpVariants/onedrop_SA_newreno.Z
 tcl/test/test-output-tcpVariants/onedrop_SA_reno.Z
 tcl/test/test-output-tcpVariants/onedrop_SA_sack.Z
