@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.63 2002/01/31 00:29:53 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.64 2002/02/06 18:48:48 haldar Exp $
  */
 
 #include <packet.h>
@@ -479,7 +479,6 @@ CMUTrace::format_aodv(Packet *p, int offset)
 
 
         switch(ah->ah_type) {
-		char type[24];
         case AODVTYPE_RREQ:
 
 		if (newtrace_) {
@@ -513,34 +512,30 @@ CMUTrace::format_aodv(Packet *p, int offset)
         case AODVTYPE_HELLO:
 	case AODVTYPE_RERR:
 		
-		if (ah->ah_type == AODVTYPE_RREP)
-			sprintf(type, "REPLY");
-		else if (ah->ah_type == AODVTYPE_HELLO)
-			sprintf(type, "HELLO");
-		else if (ah->ah_type == AODVTYPE_RERR)
-			sprintf(type, "ERROR");
-			
 		if (newtrace_) {
 			
 			sprintf(pt_->buffer() + offset,
-			    "-P aodv -Pt 0x%x -Ph %d -Pd %d -Pds %d -Pl %d -Pc %s ",
+			    "-P aodv -Pt 0x%x -Ph %d -Pd %d -Pds %d -Pl %f -Pc %s ",
 				rp->rp_type,
 				rp->rp_hop_count,
 				rp->rp_dst,
 				rp->rp_dst_seqno,
 				rp->rp_lifetime,
-				type);
+				rp->rp_type == AODVTYPE_RREP ? "REPLY" :
+				(rp->rp_type == AODVTYPE_RERR ? "ERROR" :
+				 "HELLO"));
 	        } else {
 			
 			sprintf(pt_->buffer() + offset,
-				"[0x%x %d [%d %d] %d] (%s)",
+				"[0x%x %d [%d %d] %f] (%s)",
 				rp->rp_type,
 				rp->rp_hop_count,
 				rp->rp_dst,
 				rp->rp_dst_seqno,
 				rp->rp_lifetime,
-				type);
-			//printf("TYPE: %s\n",type);
+				rp->rp_type == AODVTYPE_RREP ? "REPLY" :
+				(rp->rp_type == AODVTYPE_RERR ? "ERROR" :
+				 "HELLO"));
 		}
                 break;
 		
