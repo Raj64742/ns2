@@ -1,3 +1,13 @@
+#include <stdio.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>   
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/ip_icmp.h>
+#include <arpa/inet.h>
+
+
 #include "internet.h"
 
 /*  
@@ -35,3 +45,22 @@ Internet::in_cksum(u_short* addr, int len)
         answer = ~sum;                          /* truncate to 16 bits */
         return(answer);
 }
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
+void
+Internet::print_ip(ip *ip)
+{   
+        char buf[64];
+        u_short off = ntohs(ip->ip_off);
+        printf("IP v:%d, ihl:%d, tos:0x%x, id:%d, off:%d [df:%d, mf:%d], sum:%d, p
+rot:%d\n",
+                ip->ip_v, ip->ip_hl, ip->ip_tos, ntohs(ip->ip_id),
+                off & IP_OFFMASK,
+                (off & IP_DF) ? 1 : 0,
+                (off & IP_MF) ? 1 : 0,
+                ip->ip_sum, ip->ip_p);
+	printf("IP src:%s, ", inet_ntoa(ip->ip_src));
+	printf("dst: %s\n", inet_ntoa(ip->ip_dst));
+        printf("IP len:%d ttl: %d\n",
+                ntohs(ip->ip_len), ip->ip_ttl);
+}   

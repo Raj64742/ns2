@@ -35,8 +35,12 @@
 28 02:44:45 kfall Exp $ (LBL)
  */
 
+#include <sys/types.h>
+
 /* basic helpful routines for Internet */
 
 class Internet {
+public:
 	static u_short in_cksum(u_short*, int);
+	static void print_ip(ip*);
 };
