@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.36 1999/09/24 17:04:29 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.37 1999/09/28 00:49:10 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -61,17 +61,12 @@ typedef struct ns_addr_tag {
 
 // 64-bit integer support
 #if defined(HAVE_STRTOQ)
-#define HAVE_INT64
 #define STRTOI64 strtoq
 #define STRTOI64_FMTSTR "%qd"
 
 #elif defined(HAVE_STRTOLL)
-#define HAVE_INT64
 #define STRTOI64 strtoll
 #define STRTOI64_FMTSTR "%lld"
-#ifndef int64_t
-typedef longlong_t int64_t;
-#endif
 #endif
 
 #define	NS_ALIGN	(8)	/* byte alignment for structs (eg packet.cc) */

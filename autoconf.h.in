@@ -42,15 +42,15 @@
 #undef u_int32_t
 
 /* functions */
-#define HAVE_BCOPY
-#define HAVE_BZERO
-#define HAVE_GETRUSAGE
-#define HAVE_SBRK
-#define HAVE_SNPRINTF
-#define HAVE_STRTOLL
-#define HAVE_STRTOQ
+#undef HAVE_BCOPY
+#undef HAVE_BZERO
+#undef HAVE_GETRUSAGE
+#undef HAVE_SBRK
+#undef HAVE_SNPRINTF
+#undef HAVE_STRTOLL
+#undef HAVE_STRTOQ
 
 /* headers */
-#define HAVE_STRING_H
-#define HAVE_STRINGS_H
+#undef HAVE_STRING_H
+#undef HAVE_STRINGS_H
 
