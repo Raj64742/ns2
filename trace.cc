@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.46 1998/07/02 01:57:58 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.47 1998/07/02 02:50:52 kfall Exp $ (LBL)";
 
 #endif
 
@@ -260,7 +260,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			th->uid() /* was p->uid_ */);
 	} else {
 		sprintf(wrk_, 
-			"%c %g %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d",
+			"%c %g %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -281,7 +281,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			th->uid(), /* was p->uid_ */
 			tcph->ackno(),
 			tcph->flags(),
-			tcph->hlen());
+			tcph->hlen(),
+			tcph->sa_length());
 	}
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
