@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_receiver.cc,v 1.2 2003/07/10 21:18:55 haldar Exp $
+// $Id: gear_receiver.cc,v 1.3 2003/07/10 21:49:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -85,8 +85,8 @@ void GearReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
 
   GetTime(&tmv);
 
-  counterAttr = AppCounterAttr.find(data);
-  timeAttr = TimeAttr.find(data);
+  counterAttr = GearCounterAttr.find(data);
+  timeAttr = GearTimeAttr.find(data);
 
   if (!counterAttr || !timeAttr){
     DiffPrint(DEBUG_ALWAYS, "Received a BAD packet !\n");
@@ -177,7 +177,7 @@ handle GearReceiverApp::setupSubscription()
     }
   }
 
-  attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));
+  attrs.push_back(GearTargetAttr.make(NRAttribute::IS, "F117A"));
 
   handle h = dr_->subscribe(&attrs, mr_);
 
