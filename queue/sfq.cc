@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.6 1998/06/27 01:24:49 gnguyen Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.7 1999/02/02 16:33:36 heideman Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -158,7 +158,7 @@ int SFQ::command(int argc, const char*const* argv)
     }
     if (strcmp(argv[1], "buckets") == 0) {
       clear();
-      maxqueue_ = atoi(argv[2]);
+      buckets_ = atoi(argv[2]);
       return (TCL_OK);
     }
   }
