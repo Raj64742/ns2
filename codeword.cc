@@ -20,10 +20,10 @@
  * This software may freely be used only for non-commercial purposes
  */
 
+#include "config.h" // for memcpy...
 #include "codeword.h"
 #include <assert.h>
 #include <stdlib.h>  // due to definition of NULL
-#include <string.h>  // due to memset,...
 #include <stdio.h>   // due to printf
 
 static unsigned char minbit_array[256];

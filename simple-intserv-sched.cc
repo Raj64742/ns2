@@ -53,7 +53,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/simple-intserv-sched.cc,v 1.4 1999/02/18 02:19:22 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/simple-intserv-sched.cc,v 1.5 1999/09/24 17:04:38 heideman Exp $ (LBL)";
 #endif
 
 
@@ -61,7 +61,7 @@ static const char rcsid[] =
 //ctrl  packets
 
 
-#include <string.h>
+#include "config.h"
 #include "queue.h"
 
 #define CLASSES 2

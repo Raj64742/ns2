@@ -34,12 +34,11 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 
+#include "config.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <config.h>
 #include <dem.h>
 
 int

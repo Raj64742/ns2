@@ -25,10 +25,10 @@
 
 #include <stdlib.h>     // strtoul, etc.
 #include <assert.h>
-#include <string.h>
 
 #include <stdio.h>
 
+#include "config.h"
 #include "Tcl.h"
 #include "agent.h"
 #include "packet.h"

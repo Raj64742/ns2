@@ -31,12 +31,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.14 1999/02/09 00:43:23 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.15 1999/09/24 17:04:35 heideman Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
 #define ns_queue_monitor_h
 
+#include "config.h"  // for int64_t
 #include "integrator.h"
 #include "connector.h"
 #include "packet.h"

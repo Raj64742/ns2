@@ -20,11 +20,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drr.cc,v 1.7 1999/09/09 03:22:37 salehi Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drr.cc,v 1.8 1999/09/24 17:04:32 heideman Exp $ (Xerox)";
 #endif
 
+#include "config.h"   // for string.h
 #include <stdlib.h>
-#include <string.h>
 #include "queue.h"
 
 class PacketDRR;

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.5 1999/09/20 01:55:01 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.6 1999/09/24 17:04:28 heideman Exp $";
 #endif
 extern "C" {
 #include <tcl.h>
@@ -46,7 +46,6 @@ extern "C" {
 #include "route.h"
 #include "object.h"
 #include "address.h"
-#include <string.h>
 
 #include <iostream.h>
 class VirtualClassifier : public Classifier {

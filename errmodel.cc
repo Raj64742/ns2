@@ -34,17 +34,17 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.65 1999/03/06 02:08:41 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.66 1999/09/24 17:04:32 heideman Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.65 1999/03/06 02:08:41 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.66 1999/09/24 17:04:32 heideman Exp $ (UCB)";
 #endif
 
+#include "config.h"
 #include <stdio.h>
 #include <ctype.h>
-#include <string.h>
 #include "packet.h"
 #include "flags.h"
 #include "mcast_ctrl.h"

@@ -21,12 +21,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.8 1999/09/20 01:54:56 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.9 1999/09/24 17:04:27 heideman Exp $";
 #endif
 
 #include <iostream.h>
 #include <assert.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "config.h"

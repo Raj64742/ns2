@@ -19,9 +19,9 @@
  */
 
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 
+#include "config.h"
 #include "Tcl.h"
 #include "srm-topo.h"
 #include "scheduler.h"

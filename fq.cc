@@ -34,11 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fq.cc,v 1.9 1999/03/13 03:52:48 haoboy Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fq.cc,v 1.10 1999/09/24 17:04:33 heideman Exp $ (ANS)";
 #endif
 
+#include "config.h"
 #include <stdlib.h>
-#include <string.h>
 #include "queue.h"
 
 /*XXX*/

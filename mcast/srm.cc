@@ -30,17 +30,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.23 1999/09/09 03:22:49 salehi Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.24 1999/09/24 17:04:40 heideman Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
 #include <assert.h>
-#include <string.h>
 
-#if 0
-#include <stdio.h>
-#endif
-
+#include "config.h"
 #include "agent.h"
 #include "ip.h"
 #include "srm.h"

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.35 1999/09/18 01:30:10 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.36 1999/09/24 17:04:29 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -47,6 +47,9 @@
 #include <stddef.h>
 #endif
 
+/* get autoconf magic */
+#include "autoconf.h"
+
 typedef int32_t nsaddr_t; 
 typedef int32_t nsmask_t; 
 
@@ -61,6 +64,7 @@ typedef struct ns_addr_tag {
 #define HAVE_INT64
 #define STRTOI64 strtoq
 #define STRTOI64_FMTSTR "%qd"
+
 #elif defined(HAVE_STRTOLL)
 #define HAVE_INT64
 #define STRTOI64 strtoll
@@ -80,6 +84,18 @@ typedef longlong_t int64_t;
 #define HUGE_LEN	65536
 #define TRUE		1
 #define FALSE		0
+
+/*
+ * get defintions of bcopy and/or memcpy
+ * Different systems put them in string.h or strings.h, so get both
+ * (with autoconf help).
+ */
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif /* HAVE_STRINGS_H */
 
 #ifndef HAVE_BZERO
 #define bzero(dest,count) memset(dest,0,count)
@@ -213,12 +229,16 @@ time_t time(time_t *);
 }
 #endif
 
+#ifdef WSAECONNREFUSED
 #define ECONNREFUSED	WSAECONNREFUSED
 #define ENETUNREACH	WSAENETUNREACH
 #define EHOSTUNREACH	WSAEHOSTUNREACH
 #define EWOULDBLOCK	WSAEWOULDBLOCK
+#endif /* WSAECONNREFUSED */
 
+#ifndef M_PI
 #define M_PI		3.14159265358979323846
+#endif /* M_PI */
 
 #endif /* WIN32 */
 

@@ -36,11 +36,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sfq.cc,v 1.8 1999/09/09 03:22:47 salehi Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sfq.cc,v 1.9 1999/09/24 17:04:37 heideman Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
-#include <string.h>
+
+#include "config.h"
 #include "queue.h"
 
 class PacketSFQ;		// one queue

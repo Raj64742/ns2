@@ -40,7 +40,8 @@
  */
 
 #include <math.h>
-#include <string.h>
+
+#include "config.h"
 #include <packet.h>
 #include <phy.h>
 #include <dsr/hdr_sr.h>

@@ -31,12 +31,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.17 1999/09/10 22:27:12 heideman Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.18 1999/09/24 17:04:35 heideman Exp $ (LBL)";
  */
 
 #ifndef WIN32
 
 #include <sys/time.h>
+#include "config.h"
 #include "random.h"
 
 RANDOM_RETURN_TYPE
