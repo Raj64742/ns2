@@ -425,9 +425,10 @@ SessionSim instproc merge-path { src mbr } {
 ############## SessionNode ##############
 Class SessionNode -superclass Node
 SessionNode instproc init {} {
-    $self instvar id_ np_
+    $self instvar id_ np_ address_
     set id_ [Node getid]
     set np_ 0
+    set address_ $id_
 }
 
 SessionNode instproc id {} {
@@ -446,12 +447,18 @@ SessionNode instproc alloc-port {} {
 }
 
 SessionNode instproc attach agent {
-    $self instvar id_
+    $self instvar id_ address_
 
     $agent set node_ $self
     set port [$self alloc-port]
-    $agent set addr_ [expr $id_ << 8 | $port]
-
+	set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] \
+			  << [AddrParams set NodeShift_(1)]]
+	
+	set mask [AddrParams set PortMask_]
+	set shift [AddrParams set PortShift_]
+	$agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
+			      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
+	# $agent set addr_ [expr $id_ << 8 | $port]
 	$self namtrace-agent $agent
 }
 
