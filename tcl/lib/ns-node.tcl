@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.61 1999/09/30 23:20:20 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.62 1999/10/01 19:01:10 salehi Exp $
 #
 
 # for MobileIP
@@ -792,7 +792,7 @@ Class Node/Broadcast -superclass Node
  
 Node/Broadcast instproc mk-default-classifier {} {
         $self instvar address_ classifier_ id_ dmux_
-        set classifier_ [new Classifier/Hash/Dest/Bcast]
+        set classifier_ [new Classifier/Hash/Dest/Bcast 32]
  
         $classifier_ set mask_ [AddrParams set NodeMask_(1)]
         $classifier_ set shift_ [AddrParams set NodeShift_(1)]
