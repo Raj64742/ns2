@@ -23,50 +23,46 @@
 // noted when applicable.
 //
 // Ported from CMU/Monarch's code, appropriate copyright applies.  
-
 /* -*- c++ -*-
-   requesttable.h
+   
+   sr_forwarder.h
+   source route forwarder
 
-   implement a table to keep track of the most current request
-   number we've heard from a node in terms of that node's id
+   */
 
-   implemented as a circular buffer
+#ifndef _sr_forwarder_
+#define _sr_forwarder_
 
-*/
+#include <object.h>
+#include <trace.h>
 
-#ifndef _requesttable_h
-#define _requesttable_h
+#include "dsr_proto.h"
+#include "requesttable.h"
+#include "routecache.h"
 
-#include "path.h"
+/* a source route forwarding object takes packets and if it has a SR
+routing header it forwards the packets into target_ according to the
+header.  Otherwise, it gives the packet to the noroute_ object in
+hopes that it knows what to do with it. */
 
-struct Entry;
-
-enum LastType { LIMIT0, UNLIMIT};
-
-class RequestTable {
+class SRForwarder : public NsObject {
 public:
-  RequestTable(int size = 30);
-  ~RequestTable();
-  void insert(const ID& net_id, int req_num);
-  void insert(const ID& net_id, const ID& MAC_id, int req_num);
-  int get(const ID& id) const;
-  // rtns 0 if id not found
-  Entry* getEntry(const ID& id);  
+  SRForwarder();
+
+protected:
+  virtual int command(int argc, const char*const* argv);
+  virtual void recv(Packet*, Handler* callback = 0);
+
+  NsObject* target_;		/* where to send forwarded pkts */
+  DSRProto* route_agent_;	        /* where to send unforwardable pkts */
+  RouteCache* routecache_;	/* the routecache */
+
 private:
-  Entry *table;
-  int size;
-  int ptr;
-  int find(const ID& net_id, const ID& MAC_id ) const;
+  void handlePktWithoutSR(Packet *p);
+  Trace *tracetarget;
+  int off_mac_;
+  int off_ll_;
+  int off_ip_;
+  int off_sr_;
 };
-
-struct Entry {
-  ID MAC_id;
-  ID net_id;
-  int req_num;
-  Time last_arp;
-  int rt_reqs_outstanding;
-  Time last_rt_req;
-  LastType last_type;
-};
-
-#endif //_requesttable_h
+#endif //_sr_forwarder_

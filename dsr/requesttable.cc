@@ -1,44 +1,34 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1997 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// Ported from CMU/Monarch's code, appropriate copyright applies.  
 
 /* requesttable.h
 
    implement a table to keep track of the most current request
    number we've heard from a node in terms of that node's id
 
-   $Id: requesttable.cc,v 1.2 1999/01/04 20:08:41 haldar Exp $
 */
 
 #include "path.h"
@@ -61,8 +51,8 @@ int
 RequestTable::find(const ID& net_id, const ID& MAC_id) const
 {
   for (int c = 0 ; c < size ; c++)
-    if (table[c].net_id == net_id || table[c].MAC_id == MAC_id)
-      return c;
+	  if (table[c].net_id == net_id || table[c].MAC_id == MAC_id)
+		  return c;
   return size;
 }
 

@@ -1,40 +1,31 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1997 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * Ported from CMU/Monarch's code, nov'98 -Padma.
- *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.h,v 1.7 2000/09/01 03:04:10 haoboy Exp $
- */
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so noted when applicable.
+//
+// Ported from CMU/Monarch's code, appropriate copyright applies.  
+/* -*- c++ -*-
+   dsragent.h
+
+   */
 
 #ifndef _DSRAgent_h
 #define _DSRAgent_h
@@ -43,18 +34,19 @@ class DSRAgent;
 
 #include <stdarg.h>
 
-#include "lib/bsd-list.h"
-#include "object.h"
-#include "agent.h"
-#include "trace.h"
-#include "packet.h"
-#include "priqueue.h"
-#include "mac.h"
+#include <object.h>
+#include <agent.h>
+#include <trace.h>
+#include <packet.h>
+#include <priqueue.h>
+#include <mac.h>
+#include <mobilenode.h>
 
 #include "path.h"
 #include "srpacket.h"
 #include "routecache.h"
 #include "requesttable.h"
+#include "flowstruct.h"
 
 #define BUFFER_CHECK 0.03	// seconds between buffer checks
 #define RREQ_JITTER 0.010	// seconds to jitter broadcast route requests
@@ -63,6 +55,8 @@ class DSRAgent;
 #define RTREP_HOLDOFF_SIZE 10
 
 #define GRAT_ROUTE_ERROR 0	// tell_addr indicating a grat route err
+
+#define DSR_FILTER_TAP		/* process a packet only once via the tap */
 
 class ArpCallbackClass;
 struct RtRepHoldoff {
@@ -104,28 +98,42 @@ public:
 
   void Terminate(void);
 	// called at the end of the simulation to purge all packets
-	
   void sendOutBCastPkt(Packet *p);
-
+  
   DSRAgent();
   ~DSRAgent();
 
 private:
 
   Trace *logtarget;
+  int off_mac_;
+  int off_ll_;
+  int off_ip_;
+  int off_sr_;
 
   // will eventually need to handle multiple infs, but this is okay for
   // now 1/28/98 -dam
   ID net_id, MAC_id;		// our IP addr and MAC addr
   NsObject *ll;		        // our link layer output 
   PriQueue *ifq;		// output interface queue
+  Mac *mac_;
 
   // extensions for wired cum wireless sim mode
   MobileNode *node_;
   int diff_subnet(ID dest, ID myid);
-
+  
   // extensions for mobileIP
   NsObject *port_dmux_;    // my port dmux
+  
+#ifdef DSR_FILTER_TAP
+#define TAP_CACHE_SIZE	1024
+#define TAP_BITMASK	(TAP_CACHE_SIZE - 1)
+  /*
+   *  A cache of recently seen packets on the TAP so that I
+   *  don't process them over and over again.
+   */
+  int tap_uid_cache[TAP_CACHE_SIZE];
+#endif
 
   /******** internal state ********/
   RequestTable request_table;
@@ -137,6 +145,10 @@ private:
   RtRepHoldoff rtrep_holdoff[RTREP_HOLDOFF_SIZE]; // not used 1/27/98
   GratReplyHoldDown grat_hold[RTREP_HOLDOFF_SIZE];
   int grat_hold_victim;
+
+  /* for flow state ych 5/2/01 */
+  FlowTable flow_table;
+  ARSTable  ars_table;
 
   bool route_error_held; // are we holding a rt err to propagate?
   ID err_from, err_to;	 // data from the last route err sent to us 
@@ -153,10 +165,10 @@ private:
   void handleRouteRequest(SRPacket &p);
   /* process a route request that isn't targeted at us */
 
-  void handleRteRequestForOutsideDomain(SRPacket& p);
-  /* process route reqs for destination outside domain, incase Iam a base-stn */
-  void returnSrcRteForOutsideDomainToRequestor(SRPacket &p);
-  /* return rte info for outside domain dst, to src, incase Iam a base-stn */
+  /* flow state handle functions ych */
+  void handleFlowForwarding(SRPacket &p);
+  void handleFlowForwarding(SRPacket &p, int flowidx);
+  void handleDefaultForwarding(SRPacket &p);
 
   bool ignoreRouteRequestp(SRPacket& p);
   // assumes p is a route_request: answers true if it should be ignored.
@@ -171,7 +183,7 @@ private:
   // turn p into a route request and launch it, max_prop of request is
   // set as specified
   // p.pkt is freed or handed off
-  void getRouteForPacket(SRPacket &p, ID dest, bool retry);
+  void getRouteForPacket(SRPacket &p, bool retry);
   /* try to obtain a route for packet
      pkt is freed or handed off as needed, unless in_buffer == true
      in which case they are not touched */
@@ -187,22 +199,34 @@ private:
   /* - see if can reply to this route request from our cache
      if so, do it and return true, otherwise, return false 
      - frees or hands off p.pkt i ff returns true */
+  void processUnknownFlowError(SRPacket &p, bool asDefault);
+  void processFlowARS(const Packet *packet);
+  // same idea as below, but for unknown flow error
   void processBrokenRouteError(SRPacket& p);
   // take the error packet and proccess our part of it.
   // if needed, send the remainder of the errors to the next person
   // doesn't free p.pkt
-  void xmitFailed(Packet *pkt);
+
+  void sendUnknownFlow(SRPacket &p, bool asDefault, u_int16_t flowid = 0);
+
+  void xmitFailed(Packet *pkt, const char* reason = "DROP_RTR_MAC_CALLBACK");
+
+  void xmitFlowFailed(Packet *pkt, const char* reason = "DROP_RTR_MAC_CALLBACK");
+
   /* mark our route cache reflect the failure of the link between
      srh[cur_addr] and srh[next_addr], and then create a route err
      message to send to the orginator of the pkt (srh[0]) 
      p.pkt freed or handed off */
+  
   void undeliverablePkt(Packet *p, int mine);
   /* when we've got a packet we can't deliver, what to do with it? 
      frees or hands off p if mine = 1, doesn't hurt it otherwise */
 
   void dropSendBuff(SRPacket &p);
   // log p as being dropped by the sendbuffer in DSR agent
+  
   void stickPacketInSendBuffer(SRPacket& p);
+  
   void sendBufferCheck();
   // see if any packets in send buffer need route requests sent out
   // for them, or need to be expired
@@ -216,9 +240,8 @@ private:
   void testinit();
   void trace(char* fmt, ...);
 
-  virtual void handPktToDmux(SRPacket& p);
-
   friend void XmitFailureCallback(Packet *pkt, void *data);
+  friend void XmitFlowFailureCallback(Packet *pkt, void *data);
   friend int FilterFailure(Packet *p, void *data);
   friend class SendBufferTimer;
 
@@ -229,7 +252,7 @@ private:
   void snoopForRouteReplies(Time t, Packet *p);
   
 friend void RouteReplyHoldoffCallback(Node *node, Time time, EventData *data);
-#endif // 0
+#endif //0
 
   /* the following variables are used to send end-of-sim notices to all objects */
 public:
@@ -237,14 +260,4 @@ public:
 	static DSRAgent_List agthead;
 };
 
-
-class BS_DSRAgent : public DSRAgent {
-public:
-	BS_DSRAgent() { }
-protected:
-	void handPktToDmux(SRPacket& p);
-};
-
 #endif // _DSRAgent_h
-
-

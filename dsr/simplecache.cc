@@ -21,13 +21,13 @@
 //
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
-//
-/* mobicache.cc
+
+/* simplecache.cc
    cache used in the mobicom 98 submission.  see the paper for a description
    Ported from CMU/Monarch's code, appropriate copyright applies.  
 */
 
-//#ifdef DSR_MOBICACHE
+#ifdef DSR_SIMPLECACHE
 
 extern "C" {
 #include <stdio.h>
@@ -124,8 +124,6 @@ public:
   int command(int argc, const char*const* argv);
 
 protected:
-  Cache *primary_cache;   /* routes that we are using, or that we have reason
-			     to believe we really want to hold on to */
   Cache *secondary_cache; /* routes we've learned via a speculative process
 			     that might not pan out */
 
@@ -160,10 +158,8 @@ public:
 ----------------------------------------------------------------*/
 MobiCache::MobiCache(): RouteCache()
 {
-  primary_cache = new Cache("primary", 30, this);
-  secondary_cache = new Cache("secondary", 64, this);
-  //secondary_cache = new Cache("secondary", 10000, this);
-  assert(primary_cache != NULL && secondary_cache != NULL);
+  secondary_cache = new Cache("secondary", 10000, this);
+  assert(secondary_cache != NULL);
 #ifdef DSR_CACHE_STATS
 	stat.reset();
 #endif
@@ -171,7 +167,6 @@ MobiCache::MobiCache(): RouteCache()
 
 MobiCache::~MobiCache()
 {
-  delete primary_cache;
   delete secondary_cache;
 }
 
@@ -202,26 +197,6 @@ MobiCache::periodic_checkCache()
   int link_bad_tested = 0;
   int link_good_tested = 0;
 
-  for(c = 0; c < primary_cache->size; c++)
-    {
-      int x = 0;
-
-      if (primary_cache->cache[c].length() == 0) continue;
-
-      checkRoute(primary_cache->cache[c],
-                 x,
-                 link_bad_count,
-                 link_bad_time,
-                 link_bad_tested,
-                 link_good_tested,
-		 stat.link_good_time);
-
-      route_count += 1;
-      route_bad_count += x ? 1 : 0;
-      
-      subroute_count += primary_cache->cache[c].length() - 1;
-      subroute_bad_count += x;
-    }
   for(c = 0; c < secondary_cache->size; c++)
     {
       int x = 0;
@@ -302,10 +277,10 @@ MobiCache::addRoute(const Path& route, Time t, const ID& who_from)
   int prefix_len = 0;
 
 #ifdef DSR_CACHE_STATS
-  Path *p = primary_cache->addRoute(rt, prefix_len);
+  Path *p = secondary_cache->addRoute(rt, prefix_len);
   checkRoute(p, ACTION_ADD_ROUTE, prefix_len);
 #else
-  (void) primary_cache->addRoute(rt, prefix_len);
+  (void) secondary_cache->addRoute(rt, prefix_len);
 #endif
 }
 
@@ -319,7 +294,6 @@ MobiCache::noticeDeadLink(const ID&from, const ID& to, Time)
 	  Scheduler::instance().clock(), net_id.dump(),
 	  from.dump(), to.dump());
   
-  primary_cache->noticeDeadLink(from, to);
   secondary_cache->noticeDeadLink(from, to);
   return;
 }
@@ -361,18 +335,6 @@ MobiCache::findRoute(ID dest, Path& route, int for_me)
   assert(!(net_id == invalid_addr));
 
   index = 0;
-  while (primary_cache->searchRoute(dest, len, path, index))
-    {
-      min_cache = 2;
-      if (len < min_length)
-	{
-	  min_length = len;
-	  route = path;
-	}
-      index++;
-    }
-  
-  index = 0;
   while (secondary_cache->searchRoute(dest, len, path, index))
     {
       if (len < min_length)
@@ -383,37 +345,6 @@ MobiCache::findRoute(ID dest, Path& route, int for_me)
 	  route = path;
 	}
       index++;
-    }
-
-  if (min_cache == 1 && for_me)
-    { // promote the found route to the primary cache
-      int prefix_len;
- 
-      primary_cache->addRoute(secondary_cache->cache[min_index], prefix_len);
-
-      // no need to run checkRoute over the Path* returned from
-      // addRoute() because whatever was added was already in
-      // the cache.
-
-      //   prefix_len = 0
-      //        - victim was selected in primary cache
-      //        - data should be "silently" migrated from primary to the
-      //          secondary cache
-      //   prefix_len > 0
-      //        - there were two copies of the first prefix_len routes
-      //          in the cache, but after the migration, there will be
-      //          only one.
-      //        - log the first prefix_len bytes of the secondary cache
-      //          entry as "evicted"
-      if(prefix_len > 0)
-        {
-          secondary_cache->cache[min_index].setLength(prefix_len);
-#ifdef DSR_CACHE_STATS
-          checkRoute_logall(&secondary_cache->cache[min_index], 
-                            ACTION_EVICT, 0);
-#endif
-        }
-      secondary_cache->cache[min_index].setLength(0); // kill route
     }
 
   if (min_cache) 
@@ -800,4 +731,4 @@ MobiCache::checkRoute(Path *p, int action, int prefix_len)
 }
 #endif /* DSR_CACHE_STATS */
 
-//#endif /* DSR_MOBICACHE */
+#endif /* DSR_SIMPLECACHE */

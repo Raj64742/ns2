@@ -1,43 +1,33 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1997 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
-
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// Ported from CMU/Monarch's code, appropriate copyright applies.  
 /* -*- c++ -*- 
    path.h
 
    handles source routes
-   $Id: path.h,v 1.5 1999/10/13 22:53:04 heideman Exp $
+   
 */
 #ifndef _path_h
 #define _path_h
@@ -45,10 +35,10 @@
 extern "C" {
 #include <stdio.h>
 #include <assert.h>
-	   }
+}
 
 #include <packet.h>
-#include <dsr/hdr_sr.h>
+#include "hdr_sr.h"
 
 class Path;			// forward declaration
 
@@ -64,6 +54,10 @@ struct ID {
   friend class Path; 
   ID() : type(NONE), t(-1), link_type(LT_NONE), log_stat(LS_NONE) {}
   //  ID():addr(0),type(NONE) {}	// remove for speed? -dam 1/23/98
+  //ID(unsigned long name, ID_Type t):addr(name),type(t), t(-1), link_type(LT_NONE),log_stat(LS_NONE)
+  //{
+  //assert(type == NONE || type == MAC || type == IP);
+  //}
   ID(unsigned long name, ID_Type t):addr(name), type(t), t(-1), 
     link_type(LT_NONE),log_stat(LS_NONE)
 	{
@@ -76,14 +70,15 @@ struct ID {
 		assert(type == NONE || type == MAC || type == IP);
 	}
   inline void fillSRAddr(struct sr_addr& a) {
-    a.addr_type = (int) type;
-    a.addr = addr;
+	  a.addr_type = (int) type;
+	  a.addr = addr;
   }    
   inline nsaddr_t getNSAddr_t() const {
-    assert(type == IP); return addr;
+	  assert(type == IP); return addr;
   }
   inline bool operator == (const ID& id2) const {
-    return (type == id2.type) && (addr == id2.addr); }
+	  return (type == id2.type) && (addr == id2.addr);
+  }
   inline bool operator != (const ID& id2) const {return !operator==(id2);}
   inline int size() const {return (type == IP ? 4 : 6);} 
   void unparse(FILE* out) const;
@@ -108,32 +103,27 @@ public:
   Path(int route_len, const ID *route = NULL);
   Path(const Path& old);
   Path(const struct sr_addr *addrs, int len);
-  Path(const struct hdr_sr *srh);
+  Path(struct hdr_sr *srh);
 
-	~Path();
-	
-	void fillSR(struct hdr_sr *srh);
-	
-	inline ID& next() {assert(cur_index < len); return path[cur_index++];}
-	inline void resetIterator() {  cur_index = 0;}
-	inline void reset() {len = 0; cur_index = 0;}
-	
-	inline void setIterator(int i) {assert(i>=0 && i<len); cur_index = i;}
-	inline void setLength(int l) {assert(l>=0 && l<=MAX_SR_LEN); len = l;}
-	inline ID& operator[] (int n) const {  
-		//debug 
-		//if (n >= len || n < 0) {
-		//printf("..........n-%d,len-%d\n",n,len);
-		//}
-		//assert(n < len && n >= 0);
-		return path[n];
-	}
-	void operator=(const Path& rhs);
-	bool operator==(const Path& rhs);
-	inline void appendToPath(const ID& id) { 
-		assert(len < MAX_SR_LEN); 
-		path[len++] = id;}
-	void appendPath(Path& p);
+  ~Path();
+
+  void fillSR(struct hdr_sr *srh);
+
+  inline ID& next() {assert(cur_index < len); return path[cur_index++];}
+  inline void resetIterator() {  cur_index = 0;}
+  inline void reset() {len = 0; cur_index = 0;}
+
+  inline void setIterator(int i) {assert(i>=0 && i<len); cur_index = i;}
+  inline void setLength(int l) {assert(l>=0 && l<=MAX_SR_LEN); len = l;}
+  inline ID& operator[] (int n) const {  
+    assert(n < len && n >= 0);
+    return path[n];}
+  void operator=(const Path& rhs);
+  bool operator==(const Path& rhs);
+  inline void appendToPath(const ID& id) { 
+    assert(len < MAX_SR_LEN); 
+    path[len++] = id;}
+  void appendPath(Path& p);
   bool member(const ID& id) const;
   bool member(const ID& net_id, const ID& MAC_id) const;
   Path copy() const;
@@ -146,6 +136,7 @@ public:
   inline bool full() const {return (len >= MAX_SR_LEN);}
   inline int length() const {return len;}
   inline int index() const {return cur_index;}
+  inline int &index() {return cur_index;}
   int size() const; // # of bytes needed to hold path in packet
   void unparse(FILE *out) const;
   char *dump() const;

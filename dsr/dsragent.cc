@@ -1,63 +1,54 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1997 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * Ported from CMU/Monarch's code, nov'98 -Padma.
- *
- * Requires a radio model such that sendPacket returns true
- * iff the packet is recieved by the destination node.
- *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.25 2001/06/05 23:49:44 haldar Exp $
- */ 
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+/* 
+   dsragent.cc
 
+   requires a radio model such that sendPacket returns true
+   iff the packet is recieved by the destination node.
+   
+   Ported from CMU/Monarch's code, appropriate copyright applies.  
+*/
+
+extern "C" {
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <signal.h>
 #include <float.h>
+}
 
-#include "lib/bsd-list.h"
-#include "object.h"
-#include "agent.h"
-#include "trace.h"
-#include "packet.h"
-#include "scheduler.h"
-#include "random.h"
+#include <object.h>
+#include <agent.h>
+#include <trace.h>
+#include <packet.h>
+#include <scheduler.h>
+#include <random.h>
 
-#include "mac.h"
-#include "ll.h"
-#include "cmu-trace.h"
-#include "address.h"
-#include "mobilenode.h"
+#include <mac.h>
+#include <ll.h>
+#include <cmu-trace.h>
 
 #include "path.h"
 #include "srpacket.h"
@@ -69,8 +60,40 @@
 /*==============================================================
   Declarations and global defintions
 ------------------------------------------------------------*/
+// #define NEW_IFQ_LOGIC
+// #define NEW_REQUEST_LOGIC
+#define NEW_SALVAGE_LOGIC
+
+#ifdef NEW_SALVAGE_LOGIC
+/*
+ *  Maximum number of times that a packet may be salvaged.
+ */
+static int dsr_salvage_max_attempts = 15;
+/*
+ *  Maximum number of Route Requests that can be sent for a salvaged
+ *  packets that was originated at another node.
+ */
+static int dsr_salvage_max_requests = 1;
+/*
+ *  May an intermediate node send a propagating Route Request for
+ *  a salvaged packet that was originated elsewhere.
+ */
+static bool dsr_salvage_allow_propagating = 0;
+
+#endif
+
+/* couple of flowstate constants... */
+static const bool dsragent_enable_flowstate = true;
+static const bool dsragent_prefer_default_flow = true;
+static const bool dsragent_prefer_shorter_over_default = true;
+static const bool dsragent_always_reestablish = true;
+static const int min_adv_interval = 5;
+static const int default_flow_timeout = 60;
+//#define DSRFLOW_VERBOSE
+
 static const int verbose = 0;
 static const int verbose_srr = 0;
+static const int verbose_ssalv = 1;
 
 DSRAgent_List DSRAgent::agthead = { 0 };
 
@@ -83,7 +106,7 @@ Time rt_rq_max_period = 10.0;	// (sec) maximum time between rt reqs
 Time rt_rep_holdoff_period = 3.0e-3; // secs (about 2*process_time)
 // to determine how long to sit on our rt reply we pick a number
 // U(O.0,rt_rep_holdoff_period) + (our route length-1)*rt_rep_holdoff
-#endif // 0
+#endif //0
 
 Time grat_hold_down_time = 1.0;	// (sec) min time between grat replies for
 				// same route
@@ -168,13 +191,6 @@ Our strategy is as follows:
 /*===========================================================================
   SendBuf management and helpers
 ---------------------------------------------------------------------------*/
-//void
-//SendBufferTimer::expire(Event *e) 
-//{ 
-//  a_->sendBufferCheck(); 
-//  resched(BUFFER_CHECK + BUFFER_CHECK * (double) ((int) e>>5 & 0xff) / 256.0);
-//}
-
 void
 SendBufferTimer::expire(Event *) 
 { 
@@ -233,29 +249,28 @@ DSRAgent::sendBufferCheck()
   // route request or what not
   int c;
 
-  for (c  = 0 ; c <SEND_BUF_SIZE ; c++)
-    {
-      if (send_buf[c].p.pkt == NULL) continue;
-      if (Scheduler::instance().clock() - send_buf[c].t > SEND_TIMEOUT)
-	{	  
-	  dropSendBuff(send_buf[c].p);
-	  send_buf[c].p.pkt = 0;
-	  continue;
-	}
+  for (c  = 0 ; c <SEND_BUF_SIZE ; c++) {
+	  if (send_buf[c].p.pkt == NULL)
+		  continue;
+	  if (Scheduler::instance().clock() - send_buf[c].t > SEND_TIMEOUT) {
+		  dropSendBuff(send_buf[c].p);
+		  send_buf[c].p.pkt = 0;
+		  continue;
+	  }
 #ifdef DEBUG
-      trace("Sdebug %.5f _%s_ checking for route for dst %s",
-	    Scheduler::instance().clock(), net_id.dump(), 
-	    send_buf[c].p.dest.dump());
+	  trace("Sdebug %.5f _%s_ checking for route for dst %s",
+		Scheduler::instance().clock(), net_id.dump(), 
+		send_buf[c].p.dest.dump());
 #endif
 
-      handlePktWithoutSR(send_buf[c].p, true);
+	  handlePktWithoutSR(send_buf[c].p, true);
 #ifdef DEBUG
-      if (send_buf[c].p.pkt == NULL) 
-	trace("Sdebug %.5f _%s_ sendbuf pkt to %s liberated by handlePktWOSR",
-	    Scheduler::instance().clock(), net_id.dump(), 
-	    send_buf[c].p.dest.dump());
+	  if (send_buf[c].p.pkt == NULL) 
+		  trace("Sdebug %.5f _%s_ sendbuf pkt to %s liberated by handlePktWOSR",
+			Scheduler::instance().clock(), net_id.dump(), 
+			send_buf[c].p.dest.dump());
 #endif
-    }
+  }
 }
 
 /*==============================================================
@@ -266,12 +281,20 @@ BackOffTest(Entry *e, Time time)
 // look at the entry and decide if we can send another route
 // request or not.  update entry as well
 {
-  Time next = ((Time) (0x1<<(e->rt_reqs_outstanding*2))) * rt_rq_period;
-  if (next > rt_rq_max_period) next = rt_rq_max_period;
-  if (next + e->last_rt_req > time) return false;
+  Time next = ((Time) (0x1 << (e->rt_reqs_outstanding * 2))) * rt_rq_period;
+
+  if (next > rt_rq_max_period)
+	  next = rt_rq_max_period;
+
+  if (next + e->last_rt_req > time)
+	  return false;
+
   // don't let rt_reqs_outstanding overflow next on the LogicalShiftsLeft's
-  if (e->rt_reqs_outstanding < 15) e->rt_reqs_outstanding++;
+  if (e->rt_reqs_outstanding < 15)
+	  e->rt_reqs_outstanding++;
+
   e->last_rt_req = time;
+
   return true;
 }
 
@@ -286,43 +309,19 @@ public:
   }
 } class_DSRAgent;
 
-static class BS_DSRAgentClass : public TclClass {
-public:
-  BS_DSRAgentClass() : TclClass("Agent/DSRAgent/BS_DSRAgent") {}
-  TclObject* create(int, const char*const*) {
-    return (new BS_DSRAgent);
-  }
-} class_BS_DSRAgent;
-
-/* ***************************************************
- * Comment on compilation error at line 297, dsragent.cc
-
- * The following compiler error has been seen in sunos and solaris
- * for compiler version egcs-2.90.27 980315 (egcs-1.0.2 release) 
- *  dsr/dsragent.cc: In method `SendBufEntry::SendBufEntry()':
- *  dsr/dsragent.cc:297: Internal compiler error.
- *  dsr/dsragent.cc:297: Please submit a full bug report to
- *  `egcs-bugs@cygnus.com'.
-    *** Error code 1
- * Solution: Use GCC or more recent version of C++.
- (the problem seems to go away with egcs 1.1.2 release).
- * Padma Haldar, 09/30/99.
- ***********************************************************/
-
 /*===========================================================================
   DSRAgent methods
 ---------------------------------------------------------------------------*/
-DSRAgent::DSRAgent(): Agent(PT_DSR),request_table(128), \
-route_cache(NULL), send_buf_timer(this)
+DSRAgent::DSRAgent(): Agent(PT_DSR), request_table(128), route_cache(NULL), \
+send_buf_timer(this), flow_table(), ars_table()
 {
-  port_dmux_ = 0;
   int c;
   route_request_num = 1;
 
   route_cache = makeRouteCache();
 
   for (c = 0 ; c < RTREP_HOLDOFF_SIZE ; c++)
-    rtrep_holdoff[c].requested_dest = invalid_addr;
+	  rtrep_holdoff[c].requested_dest = invalid_addr;
   num_heldoff_rt_replies = 0;
 
   target_ = 0;
@@ -332,7 +331,19 @@ route_cache(NULL), send_buf_timer(this)
   for (c = 0; c < RTREP_HOLDOFF_SIZE ; c++)
     grat_hold[c].p.reset();
 
+  //bind("off_SR_", &off_sr_);
+  //bind("off_ll_", &off_ll_);
+  //bind("off_mac_", &off_mac_);
+  //bind("off_ip_", &off_ip_);
+
+  ll = 0;
+  ifq = 0;
+  mac_ = 0;
+
   LIST_INSERT_HEAD(&agthead, this, link);
+#ifdef DSR_FILTER_TAP
+  bzero(tap_uid_cache, sizeof(tap_uid_cache));
+#endif
   route_error_held = false;
 }
 
@@ -368,7 +379,8 @@ DSRAgent::testinit()
       hsr.append_addr( 3, NS_AF_INET );
       hsr.append_addr( 4, NS_AF_INET );
       
-      route_cache->addRoute(Path(hsr.addrs, hsr.num_addrs()), 0.0, ID(1,::IP));
+      route_cache->addRoute(Path(hsr.addrs(),
+				 hsr.num_addrs()), 0.0, ID(1,::IP));
     }
   
   if (net_id == ID(3,::IP))
@@ -379,7 +391,8 @@ DSRAgent::testinit()
       hsr.append_addr( 2, NS_AF_INET );
       hsr.append_addr( 1, NS_AF_INET );
       
-      route_cache->addRoute(Path(hsr.addrs, hsr.num_addrs()), 0.0, ID(3,::IP));
+      route_cache->addRoute(Path(hsr.addrs(),
+				 hsr.num_addrs()), 0.0, ID(3,::IP));
     }
 }
 
@@ -387,25 +400,25 @@ DSRAgent::testinit()
 int
 DSRAgent::command(int argc, const char*const* argv)
 {
-	TclObject *obj;  
-	
-	if (argc == 2) 
+  TclObject *obj;  
+
+  if (argc == 2) 
+    {
+      if (strcasecmp(argv[1], "testinit") == 0)
 	{
-	  if (strcasecmp(argv[1], "testinit") == 0)
-	  {
-		  testinit();
-		  return TCL_OK;
-	  }
-	  if (strcasecmp(argv[1], "reset") == 0)
-	  {
-		  Terminate();
-		  return Agent::command(argc, argv);
-	  }
-	  if (strcasecmp(argv[1], "check-cache") == 0)
-	  {
-		  return route_cache->command(argc, argv);
-	  }
-	  if (strcasecmp(argv[1], "startdsr") == 0)
+	  testinit();
+	  return TCL_OK;
+	}
+      if (strcasecmp(argv[1], "reset") == 0)
+	{
+	  Terminate();
+	  return Agent::command(argc, argv);
+	}
+      if (strcasecmp(argv[1], "check-cache") == 0)
+	{
+	  return route_cache->command(argc, argv);
+	}
+      if (strcasecmp(argv[1], "startdsr") == 0)
 	{
 	  if (ID(1,::IP) == net_id) 
 	    { // log the configuration parameters of the dsragent
@@ -437,9 +450,10 @@ DSRAgent::command(int argc, const char*const* argv)
     {
       if (strcasecmp(argv[1], "addr") == 0) 
 	{
-         int temp;
-	 temp = Address::instance().str2addr(argv[2]);
+	  int temp;
+	  temp = Address::instance().str2addr(argv[2]);
 	 net_id = ID(temp, ::IP);
+	 flow_table.setNetAddr(net_id.addr);
 	 route_cache->net_id = net_id;
 	 return TCL_OK;
 	} 
@@ -457,31 +471,30 @@ DSRAgent::command(int argc, const char*const* argv)
 	  return TCL_ERROR;
 	}
 
-      if (strcasecmp(argv[1], "log-target") == 0 )
- 	{
-	  logtarget = (Trace*) obj;
-	  return route_cache->command(argc, argv);
-	}
+      if (strcasecmp(argv[1], "log-target") == 0)  {
+	      logtarget = (Trace*) obj;
+	      return route_cache->command(argc, argv);
+      }
       else if (strcasecmp(argv[1], "tracetarget") == 0 )
        	{
 	  logtarget = (Trace*) obj;
 	  return route_cache->command(argc, argv);
 	}
-      else if (strcasecmp(argv[1], "install-tap") == 0) 
+      else if (strcasecmp(argv[1], "install-tap") == 0)  
 	{
-	  Mac *m = (Mac*) obj;
-	  m->installTap(this);
+	  mac_ = (Mac*) obj;
+	  mac_->installTap(this);
 	  return TCL_OK;
 	}
       else if (strcasecmp(argv[1], "node") == 0)
 	{
-	   node_ = (MobileNode *) obj;
-	   return TCL_OK;
+	  node_ = (MobileNode *) obj;
+	  return TCL_OK;
 	}
       else if (strcasecmp (argv[1], "port-dmux") == 0) 
 	{
-	   port_dmux_ = (NsObject *) obj;
-	   return TCL_OK;
+	  port_dmux_ = (NsObject *) obj;
+	  return TCL_OK;
 	}
     }
   else if (argc == 4)
@@ -509,27 +522,6 @@ DSRAgent::command(int argc, const char*const* argv)
   return Agent::command(argc, argv);
 }
 
-int
-DSRAgent::diff_subnet(ID dest, ID myid) 
-{
-	int dst = dest.addr;
-	int id = myid.addr;
-	char* dstnet = Address::instance().get_subnetaddr(dst);
-	char * subnet = Address::instance().get_subnetaddr(id);
-	if (subnet != NULL) {
-		if (dstnet != NULL) {
-			if (strcmp(dstnet, subnet) != 0) {
-				delete [] dstnet;
-				return 1;
-			}
-			delete [] dstnet;
-		}
-		delete [] subnet;
-	}
-	assert(dstnet == NULL);
-	return 0;
-}
-
 void
 DSRAgent::sendOutBCastPkt(Packet *p)
 {
@@ -537,13 +529,15 @@ DSRAgent::sendOutBCastPkt(Packet *p)
 	Scheduler::instance().schedule(ll, p, 0.0);
 }
 
+
+
 void
 DSRAgent::recv(Packet* packet, Handler*)
   /* handle packets with a MAC destination address of this host, or
      the MAC broadcast addr */
 {
-  hdr_sr *srh = hdr_sr::access(packet);
-  hdr_ip *iph = hdr_ip::access(packet);
+  hdr_sr *srh =  hdr_sr::access(packet);
+  hdr_ip *iph =  hdr_ip::access(packet);
   hdr_cmn *cmh =  hdr_cmn::access(packet);
 
   // special process for GAF
@@ -557,80 +551,75 @@ DSRAgent::recv(Packet* packet, Handler*)
       }
   }
 
-  
   assert(cmh->size() >= 0);
 
   SRPacket p(packet, srh);
+  //p.dest = ID(iph->dst(),::IP);
+  //p.src = ID(iph->src(),::IP);
   p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
   p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
 
   assert(logtarget != 0);
-  
+
   if (srh->valid() != 1) {
-	  unsigned int dst = cmh->next_hop();
-	  if (dst == IP_BROADCAST) {
-		  // extensions for mobileIP --Padma, 04/99.
-		  // Brdcast pkt - treat differently
-		  if (p.src == net_id)
-			  // I have originated this pkt
-			  sendOutBCastPkt(packet);
-		  else 
-			  //hand it over to port-dmux
-			  port_dmux_->recv(packet, (Handler*)0);
-  } else { 
-  
-  // this must be an outgoing packet, it doesn't have a SR header on it
-  
-   srh->init();		 // give packet an SR header now
-   cmh->size() += IP_HDR_LEN; // add on IP header size
-   if (verbose)
+    unsigned int dst = cmh->next_hop();
+    if (dst == IP_BROADCAST) {
+      // extensions for mobileIP --Padma, 04/99.
+      // Brdcast pkt - treat differently
+      if (p.src == net_id)
+	// I have originated this pkt
+	sendOutBCastPkt(packet);
+      else 
+	//hand it over to port-dmux
+	port_dmux_->recv(packet, (Handler*)0);
+      
+    } else {
+      // this must be an outgoing packet, it doesn't have a SR header on it
+      
+      srh->init();		 // give packet an SR header now
+      cmh->size() += IP_HDR_LEN; // add on IP header size
+      if (verbose)
 	trace("S %.9f _%s_ originating %s -> %s",
-	    Scheduler::instance().clock(), net_id.dump(), p.src.dump(), 
+	      Scheduler::instance().clock(), net_id.dump(), p.src.dump(), 
 	      p.dest.dump());
       handlePktWithoutSR(p, false);
       goto done;
-  }
+    }
   }
   else if (srh->valid() == 1) 
     {
-       if (p.dest == net_id || p.dest == IP_broadcast)
-	      { // this packet is intended for us
-		      handlePacketReceipt(p);
-		      goto done;
-	      }
+      if (p.dest == net_id || p.dest == IP_broadcast)
+	{ // this packet is intended for us
+	  handlePacketReceipt(p);
+	  goto done;
+	}
       
-  // should we check to see if it's an error packet we're handling
-  // and if so call processBrokenRouteError to snoop
-  if (dsragent_snoop_forwarded_errors && srh->route_error())
-    {
-      processBrokenRouteError(p);
-    }
+      // should we check to see if it's an error packet we're handling
+      // and if so call processBrokenRouteError to snoop
+      if (dsragent_snoop_forwarded_errors && srh->route_error())
+	{
+	  processBrokenRouteError(p);
+	}
 
-  if (srh->route_request())
-    { // propagate a route_request that's not for us
-      // DISABLE:drop rte-req if from outside subnet
-	    // if (diff_subnet(p.src,net_id)) {
-//  		    // from outside our subnet, drop pkt
-// 		    Packet::free(p.pkt);
-//  		    p.pkt = 0;
-//  		    return;
-//  	    }
-	    handleRouteRequest(p);
-    }
-  else
-    { // we're not the intended final recpt, but we're a hop
-      handleForwarding(p);
-    }
+      if (srh->route_request())
+	{ // propagate a route_request that's not for us
+	  handleRouteRequest(p);
+	}
+      else
+	{ // we're not the intended final recpt, but we're a hop
+	  handleForwarding(p);
+	}
     }
   else {
-	  // some invalid pkt has reached here
-	  fprintf(stderr,"dsragent: Error-received Invalid pkt!\n");
-	  Packet::free(p.pkt);
-	  p.pkt =0; // drop silently
+    // some invalid pkt has reached here
+    fprintf(stderr,"dsragent: Error-received Invalid pkt!\n");
+    Packet::free(p.pkt);
+    p.pkt =0; // drop silently
   }
-done:
-  assert(p.pkt == 0);
 
+ done:
+  assert(p.pkt == 0);
+  
   p.pkt = 0;
   return;
 }
@@ -644,9 +633,9 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
   /* obtain a source route to p's destination and send it off.
      this should be a retry if the packet is already in the sendbuffer */
 {
-  hdr_sr *srh = hdr_sr::access(p.pkt);
-  
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
   assert(srh->valid());
+
   if (p.dest == net_id)
     { // it doesn't need a source route, 'cause it's for us
       handlePacketReceipt(p);
@@ -658,20 +647,16 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
 
   ID dest;
   if (diff_subnet(p.dest,net_id)) {
-	  dest = ID(node_->base_stn(),::IP);
-	  if (dest == net_id) 
-		  // Iam the base-station
-		  dest = p.dest;
+  dest = ID(node_->base_stn(),::IP);
+  p.dest = dest;
   }
-  else
-	  dest = p.dest;
 
-  if (route_cache->findRoute(dest, p.route, 1))
+  if (route_cache->findRoute(p.dest, p.route, 1))
     { // we've got a route...
       if (verbose)
 	trace("S$hit %.5f _%s_ %s -> %s %s",
 	      Scheduler::instance().clock(), net_id.dump(),
-	      p.src.dump(), dest.dump(), p.route.dump());      
+	      p.src.dump(), p.dest.dump(), p.route.dump());      
       sendOutPacketWithRoute(p, true);
       return;
     } // end if we have a route
@@ -682,7 +667,7 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
 	      Scheduler::instance().clock(), net_id.dump(), 
 	      net_id.dump(), p.dest.dump());
 
-      getRouteForPacket(p, dest, retry);
+      getRouteForPacket(p, retry);
       return;
     } // end of we don't have a route
 }
@@ -691,8 +676,9 @@ void
 DSRAgent::handlePacketReceipt(SRPacket& p)
   /* Handle a packet destined to us */
 {
-  hdr_sr *srh = hdr_sr::access(p.pkt);
-  
+  hdr_cmn *cmh =  hdr_cmn::access(p.pkt);
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
+
   if (srh->route_reply())
     { // we got a route_reply piggybacked on a route_request
       // accept the new source route before we do anything else
@@ -710,47 +696,184 @@ DSRAgent::handlePacketReceipt(SRPacket& p)
 	  return;
 	}
       else
-	{ 
+	{ // we're going to process this request now, so record the req_num
 	  request_table.insert(p.src, p.src, srh->rtreq_seq());
 	  returnSrcRouteToRequestor(p);
 	}
-      
     }
+
   if (srh->route_error())
     { // register the dead route      
-	    processBrokenRouteError(p);
+      processBrokenRouteError(p);
     }
+
+  if (srh->flow_unknown())
+    processUnknownFlowError(p, false);
+
+  if (srh->flow_default_unknown())
+    processUnknownFlowError(p, true);
 
   /* give the data in the packet to our higher layer (our port dmuxer, most 
    likely) */
-  handPktToDmux(p);
-}
-
-void 
-DSRAgent::handPktToDmux(SRPacket &p)
-{
-	//	hdr_ip *iph = HDR_IP(p.pkt);
-	assert(p.dest == net_id || p.dest == MAC_id);
+  //handPktToDmux(p);
+  assert(p.dest == net_id || p.dest == MAC_id);
+  
 #if 0
-	if (iph->dport() == 255) {
-		int mask = Address::instance().portmask();
-		int shift = Address::instance().portshift();  
-		iph->daddr() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & iph->dst());
-	}
+  if (iph->dport() == 255) {
+    int mask = Address::instance().portmask();
+    int shift = Address::instance().portshift();  
+    iph->daddr() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & iph->dst());
+  }
 #endif
-	target_->recv(p.pkt, (Handler*)0);
-	p.pkt = 0;
+  
+  cmh->size() -= srh->size();	// cut off the SR header 4/7/99 -dam
+  srh->valid() = 0;
+  cmh->size() -= IP_HDR_LEN;    // cut off IP header size 4/7/99 -dam
+  target_->recv(p.pkt, (Handler*)0);
+  p.pkt = 0;
+
 }
 
-void 
 
-BS_DSRAgent::handPktToDmux(SRPacket &p)
-{
-	//since the demux has handed this pkt to the DSRagent,
-	// silently drop this pkt.
-	Packet::free(p.pkt);  
-	p.pkt = 0;
+void
+DSRAgent::handleDefaultForwarding(SRPacket &p) {
+  hdr_ip *iph = hdr_ip::access(p.pkt);
+  u_int16_t flowid;
+  int       flowidx;
 
+  if (!flow_table.defaultFlow(p.src.addr, p.dest.addr, flowid)) {
+    sendUnknownFlow(p, true);
+    assert(p.pkt == 0);
+    return;
+  }
+
+  if ((flowidx = flow_table.find(p.src.addr, p.dest.addr, flowid)) == -1) {
+    sendUnknownFlow(p, false, flowid);
+    assert(p.pkt == 0);
+    return;
+  }
+
+  if (iph->ttl() != flow_table[flowidx].expectedTTL) {
+    sendUnknownFlow(p, true);
+    assert(p.pkt == 0);
+    return;
+  }
+
+  // XXX should also check prevhop
+
+  handleFlowForwarding(p, flowidx);
+}
+
+void
+DSRAgent::handleFlowForwarding(SRPacket &p, int flowidx) {
+  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_ip *iph = hdr_ip::access(p.pkt);
+  hdr_cmn *cmnh =  hdr_cmn::access(p.pkt);
+  int amt;
+
+  assert(flowidx >= 0);
+  assert(!srh->num_addrs());
+
+  cmnh->next_hop() = flow_table[flowidx].nextHop;
+  cmnh->addr_type() = ::IP;
+
+  cmnh->xmit_failure_ = XmitFlowFailureCallback;
+  cmnh->xmit_failure_data_ = (void *) this;
+
+  // make sure we aren't cycling packets
+  //assert(p.pkt->incoming == 0); // this is an outgoing packet
+
+  if (!iph->ttl()--) {
+    drop(p.pkt, DROP_RTR_TTL);
+    p.pkt = 0;
+    return;
+  }
+
+  trace("SFf %.9f _%s_ %d [%s -> %s] %d to %d", 
+	Scheduler::instance().clock(), net_id.dump(), cmnh->uid(),
+	p.src.dump(), p.dest.dump(), flow_table[flowidx].flowId,
+	flow_table[flowidx].nextHop);
+
+  // XXX ych 5/8/01 ARS also should check previous hop
+  if (!srh->salvaged() && 
+      (amt = ars_table.findAndClear(cmnh->uid(), flow_table[flowidx].flowId)) &&
+      p.route.index() - amt > 0) {
+    trace("SFARS %.9f _%s_ %d [%s -> %s] %d %d", 
+	  Scheduler::instance().clock(), net_id.dump(), cmnh->uid(),
+	  p.src.dump(), p.dest.dump(), flow_table[flowidx].flowId, amt);
+
+    // stamp a route in the packet...
+    p.route = flow_table[flowidx].sourceRoute;
+    p.route.index() -= amt;
+    sendRouteShortening(p, p.route.index(), 
+			flow_table[flowidx].sourceRoute.index());
+  }
+
+  if (dsragent_always_reestablish) {
+    // XXX this is an utter hack. the flow_table needs to remember the original
+    // timeout value specified, as well as the original time to timeout. No
+    // establishment packets are allowed after the original time. Must make sure
+    // flowids assigned do not overlap. ych 5/8/01
+    flow_table[flowidx].timeout = Scheduler::instance().clock() + 
+				  default_flow_timeout;
+  }
+
+  Scheduler::instance().schedule(ll, p.pkt, 0);
+  p.pkt = 0;
+}
+
+void
+DSRAgent::handleFlowForwarding(SRPacket &p) {
+  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_ip *iph = hdr_ip::access(p.pkt);
+  int flowidx = flow_table.find(p.src.addr, p.dest.addr, srh->flow_id());
+
+  assert(srh->flow_header());
+
+  if (srh->num_addrs()) {
+    assert(srh->flow_timeout());
+
+    if (flowidx == -1) {
+      flow_table.cleanup();
+      flowidx = flow_table.createEntry(p.src.addr, p.dest.addr, srh->flow_id());
+
+      assert(flowidx != -1);
+
+      flow_table[flowidx].timeout = Scheduler::instance().clock() + 
+				    srh->flow_timeout_time();
+      flow_table[flowidx].hopCount = srh->hopCount();
+      flow_table[flowidx].expectedTTL = iph->ttl();
+      flow_table[flowidx].sourceRoute = p.route;
+      flow_table[flowidx].nextHop = srh->get_next_addr();
+      assert(srh->hopCount() == srh->cur_addr());
+      assert(srh->get_next_type() == ::IP);
+      assert(flow_table[flowidx].sourceRoute[flow_table[flowidx].hopCount] == 
+	     net_id);
+
+      flow_table[flowidx].count = 0;            // shouldn't be used
+      flow_table[flowidx].allowDefault = false; // shouldn't be used
+    }
+
+    assert(flowidx != -1);
+    //assert(flow_table[flowidx].hopCount == srh->hopCount());
+    
+    srh->hopCount()++;
+    return;
+  }
+
+  if (flowidx == -1) {
+    // return an error
+    sendUnknownFlow(p, false, srh->flow_id());
+    assert(p.pkt == 0);
+    return;
+  }
+
+  //assert(flow_table[flowidx].hopCount == srh->hopCount());
+
+  srh->hopCount()++;
+
+  // forward the packet
+  handleFlowForwarding(p, flowidx);
 }
 
 void
@@ -758,13 +881,20 @@ DSRAgent::handleForwarding(SRPacket &p)
   /* forward packet on to next host in source route,
    snooping as appropriate */
 {
-  hdr_sr *srh = hdr_sr::access(p.pkt);
-  hdr_cmn *cmh = hdr_cmn::access(p.pkt);
-  //  Node *thisnode;
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
+  hdr_ip *iph = hdr_ip::access(p.pkt);
+  hdr_cmn *ch =  hdr_cmn::access(p.pkt);
+  bool flowOnly = !srh->num_addrs();
 
-  trace("SF %.9f _%s_ --- %d [%s -> %s] %s", 
-	Scheduler::instance().clock(), net_id.dump(), cmh->uid(),
-	p.src.dump(), p.dest.dump(), srh->dump());
+  if (srh->flow_header())
+    handleFlowForwarding(p);
+  else if (!srh->num_addrs())
+    handleDefaultForwarding(p);
+
+  if (flowOnly)
+    return;
+
+  assert(p.pkt); // make sure flow state didn't eat the pkt
 
   // first make sure we are the ``current'' host along the source route.
   // if we're not, the previous node set up the source route incorrectly.
@@ -781,11 +911,6 @@ DSRAgent::handleForwarding(SRPacket &p)
       return;
     }
 
-  //HACK for GAF, log the time of forwarding packets
-
-  //thisnode = Node::get_node_by_address(net_id.addr);
-  //((MobileNode *) thisnode)->logrttime(Scheduler::instance().clock());
-
   // if there's a source route, maybe we should snoop it too
   if (dsragent_snoop_source_routes)
     route_cache->noticeRouteUsed(p.route, Scheduler::instance().clock(), 
@@ -793,8 +918,14 @@ DSRAgent::handleForwarding(SRPacket &p)
 
   // sendOutPacketWithRoute will add in the size of the src hdr, so
   // we have to subtract it out here
-  struct hdr_cmn *ch = HDR_CMN(p.pkt);
   ch->size() -= srh->size();
+
+  // we need to manually decr this, since nothing else does.
+  if (!iph->ttl()--) {
+    drop(p.pkt, DROP_RTR_TTL);
+    p.pkt = 0;
+    return;
+  }
 
   // now forward the packet...
   sendOutPacketWithRoute(p, false);
@@ -804,9 +935,20 @@ void
 DSRAgent::handleRouteRequest(SRPacket &p)
   /* process a route request that isn't targeted at us */
 {
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
+  assert (srh->route_request());
 
-	hdr_sr *srh = hdr_sr::access(p.pkt);
-	assert (srh->route_request());
+#ifdef notdef
+  {
+          int src = mac_->hdr_src(HDR_MAC(p.pkt));
+
+          if(mac_->is_neighbor(src) == 0) {
+                  Packet::free(p.pkt);
+                  p.pkt = 0;
+                  return;
+          }
+  }
+#endif
 
   if (ignoreRouteRequestp(p)) 
     {
@@ -818,7 +960,7 @@ DSRAgent::handleRouteRequest(SRPacket &p)
       p.pkt = 0;
       return; // drop silently
     }
-  
+
   // we're going to process this request now, so record the req_num
   request_table.insert(p.src, p.src, srh->rtreq_seq());
 
@@ -833,6 +975,42 @@ DSRAgent::handleRouteRequest(SRPacket &p)
   if ((srh->max_propagation() == 0 || dsragent_reply_from_cache_on_propagating)
       && replyFromRouteCache(p))
 	  return;			// all done
+
+#ifdef NEW_REQUEST_LOGIC
+  /*
+   * If we are congested, don't forward or answer the Route Reply
+   */
+  if(ifq->prq_length() > 10) {
+	  trace("SRR %.9f _%s_ discarding %s #%d (ifq length %d)",
+		Scheduler::instance().clock(),
+		net_id.dump(),
+		p.src.dump(),
+		srh->rtreq_seq(),
+		ifq->prq_length());
+	  Packet::free(p.pkt);
+	  p.pkt = 0;
+	  return;
+  }
+
+  /*
+   *  If "free air time" < 15%, don't forward or answer the Route Reply
+   */
+  {
+	  double atime = mac_->air_time_free(10);
+
+	  if(atime > 0.0 && atime < 0.15) {
+		  trace("SRR %.9f _%s_ discarding %s #%d (free air time %f)",
+			Scheduler::instance().clock(),
+			net_id.dump(),
+			p.src.dump(),
+			srh->rtreq_seq(),
+			atime);
+		  Packet::free(p.pkt);
+		  p.pkt = 0;
+		  return;
+	  }
+  }  
+#endif /* NEW_REQUEST_LOGIC */
 
   // does the orginator want us to propagate?
   if (p.route.length() > srh->max_propagation())
@@ -879,7 +1057,7 @@ bool
 DSRAgent::ignoreRouteRequestp(SRPacket &p)
 // should we ignore this route request?
 {
-  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
 
   if (request_table.get(p.src) >= srh->rtreq_seq())
     { // we've already processed a copy of this reqest so
@@ -943,8 +1121,8 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
 
   // if there is any other information piggybacked into the
   // route request pkt, we need to forward it on to the dst
-  hdr_cmn *cmh = hdr_cmn::access(p.pkt);
-  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_cmn *cmh =  hdr_cmn::access(p.pkt);
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
   int request_seqnum = srh->rtreq_seq();
   
   if (PT_DSR != cmh->ptype()	// there's data
@@ -982,10 +1160,10 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   p.src = net_id;
   p.pkt = allocpkt();
 
-  hdr_ip *iph = hdr_ip::access(p.pkt);
-  iph->saddr() = Address::instance().create_ipaddr(p.src.addr,RT_PORT);
+  hdr_ip *iph =  hdr_ip::access(p.pkt);
+  iph->saddr() = Address::instance().create_ipaddr(p.src.addr, RT_PORT);
   iph->sport() = RT_PORT;
-  iph->daddr() = Address::instance().create_ipaddr(p.dest.addr,RT_PORT);
+  iph->daddr() = Address::instance().create_ipaddr(p.dest.addr, RT_PORT);
   iph->dport() = RT_PORT;
   iph->ttl() = 255;
 
@@ -999,28 +1177,29 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   // propagate the request sequence number in the reply for analysis purposes
   srh->rtreq_seq() = request_seqnum;
 
-  hdr_cmn *cmnh = hdr_cmn::access(p.pkt);
+  hdr_cmn *cmnh =  hdr_cmn::access(p.pkt);
   cmnh->ptype() = PT_DSR;
   cmnh->size() = IP_HDR_LEN;
 
-  trace("SRR %.9f _%s_ cache-reply-sent %s -> %s #%d (len %d) %s",
-	Scheduler::instance().clock(), net_id.dump(),
-	p.src.dump(), p.dest.dump(), request_seqnum, complete_route.length(),
-	complete_route.dump());
+  if (verbose_srr)
+    trace("SRR %.9f _%s_ cache-reply-sent %s -> %s #%d (len %d) %s",
+	  Scheduler::instance().clock(), net_id.dump(),
+	  p.src.dump(), p.dest.dump(), request_seqnum, complete_route.length(),
+	  complete_route.dump());
   sendOutPacketWithRoute(p, true);
   return true;
 }
 
 
 void
-DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
+DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay = 0.0)
      // take packet and send it out, packet must a have a route in it
      // return value is not very meaningful
      // if fresh is true then reset the path before using it, if fresh
      //  is false then our caller wants us use a path with the index
      //  set as it currently is
 {
-  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
   hdr_cmn *cmnh = hdr_cmn::access(p.pkt);
 
   assert(srh->valid());
@@ -1028,15 +1207,11 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
 
   ID dest;
   if (diff_subnet(p.dest,net_id)) {
-	  //dest = ID(node_->base_stn()->address(),::IP);
-	  dest = ID(node_->base_stn(),::IP);
-	  if (dest == net_id) 
-		  // Iam the base-station
-		  dest = p.dest;
+  dest = ID(node_->base_stn(),::IP);
+  p.dest = dest;
   }
-  else
-	  dest = p.dest;
-  if (dest == net_id)
+
+  if (p.dest == net_id)
     { // it doesn't need to go on the wire, 'cause it's for us
       recv(p.pkt, (Handler *) 0);
       p.pkt = 0;
@@ -1053,36 +1228,165 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
 		net_id.dump(), packet_info.name(cmnh->ptype()), p.route.dump());
 	}
     }
+
   p.route.fillSR(srh);
-  cmnh->size() += srh->size();
+
   // set direction of pkt to DOWN , i.e downward
   cmnh->direction() = hdr_cmn::DOWN;
-  
-  if (srh->route_request())
-    { // broadcast forward
-      cmnh->xmit_failure_ = 0;
-      cmnh->next_hop() = MAC_BROADCAST;
-      cmnh->addr_type() = NS_AF_ILINK;
+
+  // let's see if we can snag this packet for flow state... ych 5/2/01
+  if (dsragent_enable_flowstate &&
+      p.src == net_id && !srh->route_request() && !srh->cur_addr() &&
+      // can't yet decode flow errors and route errors/replies together
+      // so don't tempt the system... ych 5/7/01
+      !srh->route_error() && !srh->route_reply()) {
+    hdr_ip *iph =  hdr_ip::access(p.pkt);
+    int flowidx;
+    u_int16_t flowid, default_flowid;
+    double now = Scheduler::instance().clock();
+
+    // hmmm, let's see if we can save us some overhead...
+    if (dsragent_prefer_default_flow &&
+	flow_table.defaultFlow(p.src.addr, p.dest.addr, flowid) &&
+	-1 != (flowidx = flow_table.find(p.src.addr, p.dest.addr, flowid)) &&
+	flow_table[flowidx].timeout >= now &&
+	(!dsragent_prefer_shorter_over_default || 
+	  flow_table[flowidx].sourceRoute.length() <= p.route.length()) &&
+	!(p.route == flow_table[flowidx].sourceRoute)) {
+
+      p.route = flow_table[flowidx].sourceRoute;
+      p.route.fillSR(srh);
     }
-  else
-    { // forward according to source route
-      cmnh->xmit_failure_ = XmitFailureCallback;
-      cmnh->xmit_failure_data_ = (void *) this;
-      cmnh->next_hop() = srh->get_next_addr();
-      
-      cmnh->addr_type() = srh->get_next_type();
+
+    flowidx = flow_table.find(p.src.addr, p.dest.addr, p.route);
+
+    if (flowidx == -1 || flow_table[flowidx].timeout < now) {
+      // I guess we don't know about this flow; allocate it.
+      flow_table.cleanup();
+      flowid = flow_table.generateNextFlowId(p.dest.addr, true);
+      flowidx = flow_table.createEntry(p.src.addr, p.dest.addr, flowid);
+      assert(flowidx != -1);
+
+      // fill out the table
+      flow_table[flowidx].count = 1;
+      flow_table[flowidx].lastAdvRt = Scheduler::instance().clock();
+      flow_table[flowidx].timeout = now + default_flow_timeout;
+      flow_table[flowidx].hopCount = 0;
+      flow_table[flowidx].expectedTTL = iph->ttl();
+      flow_table[flowidx].allowDefault = true;
+      flow_table[flowidx].sourceRoute = p.route;
+      flow_table[flowidx].nextHop = srh->get_next_addr();
+      assert(srh->get_next_type() == ::IP);
+
+      // fix up the srh for the timeout
+      srh->flow_timeout() = 1;
+      srh->flow_timeout_time() = default_flow_timeout;
       srh->cur_addr() = srh->cur_addr() + 1;
+    } else if (flow_table[flowidx].count <= END_TO_END_COUNT ||
+		flow_table[flowidx].lastAdvRt < 
+		   (Scheduler::instance().clock() - min_adv_interval)) {
+      // I've got it, but maybe someone else doesn't
+      if (flow_table[flowidx].expectedTTL != iph->ttl())
+	flow_table[flowidx].allowDefault = false;
+
+      flow_table[flowidx].count++;
+      flow_table[flowidx].lastAdvRt = Scheduler::instance().clock();
+
+      srh->flow_timeout() = 1;
+      if (dsragent_always_reestablish)
+	srh->flow_timeout_time() = default_flow_timeout;
+      else
+	srh->flow_timeout_time() = (int)(flow_table[flowidx].timeout - now);
+      srh->cur_addr() = srh->cur_addr() + 1;
+    } else {
+      // flow is established end to end
+      assert (flow_table[flowidx].sourceRoute == p.route);
+      srh->flow_timeout() = srh->cur_addr() = srh->num_addrs() = 0;
     }
+
+    if (dsragent_always_reestablish) {
+      // XXX see major problems detailed above (search for dsragent_always_re..)
+      flow_table[flowidx].timeout = now + default_flow_timeout;
+    }
+
+    cmnh->next_hop() = flow_table[flowidx].nextHop;
+    cmnh->addr_type() = ::IP;
+
+    if (flow_table.defaultFlow(p.src.addr, p.dest.addr, default_flowid) &&
+	flow_table[flowidx].flowId == default_flowid &&
+	!srh->num_addrs() && iph->ttl() == flow_table[flowidx].expectedTTL &&
+	flow_table[flowidx].allowDefault) {
+      // we can go without anything... woo hoo!
+      assert(!srh->flow_header());
+    } else {
+      srh->flow_header() = 1;
+      srh->flow_id() = flow_table[flowidx].flowId;
+      srh->hopCount() = 1;
+    }
+
+    trace("SF%ss %.9f _%s_ %d [%s -> %s] %d(%d) to %d %s", 
+	srh->num_addrs() ? "EST" : "",
+	Scheduler::instance().clock(), net_id.dump(), cmnh->uid(),
+	p.src.dump(), p.dest.dump(), flow_table[flowidx].flowId,
+	srh->flow_header(), flow_table[flowidx].nextHop,
+	srh->num_addrs() ? srh->dump() : "");
+
+    cmnh->size() += srh->size();
+    cmnh->xmit_failure_ = srh->num_addrs() ? XmitFailureCallback : 
+					     XmitFlowFailureCallback;
+    cmnh->xmit_failure_data_ = (void *) this;
+
+    assert(!srh->num_addrs() || srh->flow_timeout());
+  } else {
+    // old non-flowstate stuff...
+    assert(p.src != net_id || !srh->flow_header());
+    cmnh->size() += srh->size();
+
+    if (srh->route_request())
+      { // broadcast forward
+        cmnh->xmit_failure_ = 0;
+        cmnh->next_hop() = MAC_BROADCAST;
+        cmnh->addr_type() = NS_AF_ILINK;
+      }
+    else
+      { // forward according to source route
+        cmnh->xmit_failure_ = XmitFailureCallback;
+        cmnh->xmit_failure_data_ = (void *) this;
+
+        cmnh->next_hop() = srh->get_next_addr();
+        cmnh->addr_type() = srh->get_next_type();
+        srh->cur_addr() = srh->cur_addr() + 1;
+      } /* route_request() */
+  } /* can snag for path state */
 
   /* put route errors at the head of the ifq somehow? -dam 4/13/98 */
 
   // make sure we aren't cycling packets
-  //assert(p.pkt->incoming == 0); // this is an outgoing packet
-  //assert(cmnh->direction() == hdr_cmn::DOWN);
+  
+#ifdef notdef
+  if (ifq->prq_length() > 25)
+	  trace("SIFQ %.5f _%s_ len %d",
+		Scheduler::instance().clock(),
+		net_id.dump(), ifq->prq_length());
+#endif
+#ifdef NEW_IFQ_LOGIC
+  /*
+   *  If the interface queue is full, there's no sense in sending
+   *  the packet.  Drop it and generate a Route Error?
+   */
+  /* question for the author: this seems rife with congestion/infinite loop
+   * possibilities. you're responding to an ifq full by sending a rt err.
+   * sounds like the source quench problem. ych 5/5/01
+   */
+  if(ifq->prq_isfull(p.pkt)) {
+	  xmitFailed(p.pkt, DROP_IFQ_QFULL);
+	  p.pkt = 0;
+	  return;
+  }
+#endif /* NEW_IFQ_LOGIC */
 
-  if (ifq->length() > 25)
-    trace("SIFQ %.5f _%s_ len %d",
-          Scheduler::instance().clock(), net_id.dump(), ifq->length());
+  // ych debugging
+  assert(!srh->flow_header() || !srh->num_addrs() || srh->flow_timeout());
 
   // off it goes!
   if (srh->route_request())
@@ -1098,7 +1402,7 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
 }
 
 void
-DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
+DSRAgent::getRouteForPacket(SRPacket &p, bool retry)
   /* try to obtain a route for packet
      pkt is freed or handed off as needed, unless retry == true
      in which case it is not touched */
@@ -1106,16 +1410,8 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   // since we'll commonly be only one hop away, we should
   // arp first before route discovery as an optimization...
 
-
-  Entry *e = request_table.getEntry(dest);
+  Entry *e = request_table.getEntry(p.dest);
   Time time = Scheduler::instance().clock();
-  
-  /* for now, no piggybacking at all, queue all pkts */
-  if (!retry) 
-    {
-      stickPacketInSendBuffer(p);
-      p.pkt = 0; // pkt is handled for now (it's in sendbuffer)
-    }
 
 #if 0
   /* pre 4/13/98 logic -dam removed b/c it seemed more complicated than
@@ -1129,9 +1425,11 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   rrp.pkt = p.pkt->copy();
   hdr_sr *srh = hdr_sr::access(rrp.pkt);
   hdr_ip *iph = hdr_ip::access(rrp.pkt);
-  hdr_cmn *cmnh = hdr_cmn::access(rrp.pkt);
-  iph->daddr() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
+  hdr_cmn *cmh =  hdr_cmn::access(rrp.pkt);
+  //iph->daddr() = p.dest.getNSAddr_t();
+  iph->daddr() = Address::instance().create_ipaddr(p.dest.getNSAddr_t(),RT_PORT);
   iph->dport() = RT_PORT;
+  //iph->saddr() = net_id.getNSAddr_t();
   iph->saddr() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
@@ -1141,18 +1439,17 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
 
   /* make the route request packet */
   SRPacket rrp;
-  rrp.dest = dest;
+  rrp.dest = p.dest;
   rrp.src = net_id;
   rrp.pkt = allocpkt();
-  hdr_sr *srh = hdr_sr::access(rrp.pkt);
+
+  hdr_sr *srh = hdr_sr::access(rrp.pkt); 
   hdr_ip *iph = hdr_ip::access(rrp.pkt);
-  hdr_cmn *cmnh = hdr_cmn::access(rrp.pkt);
+  hdr_cmn *cmnh =  hdr_cmn::access(rrp.pkt);
   
-  iph->daddr() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
-  
+  iph->daddr() = Address::instance().create_ipaddr(p.dest.getNSAddr_t(),RT_PORT);
   iph->dport() = RT_PORT;
-  iph->saddr() =
-	  Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT); 
+  iph->saddr() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_ + IP_HDR_LEN; // add in IP header
@@ -1160,36 +1457,67 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   
   srh->init();
 
-  if (BackOffTest(e, time))
-    { // it's time to start another route request cycle
-      if (dsragent_ring_zero_search)
-	{ // do a ring zero search
-	  e->last_type = LIMIT0;
-	  sendOutRtReq(rrp, 0);
-	}
-      else 
-	{ // do a propagating route request right now
+
+  if (BackOffTest(e, time)) {
+	  // it's time to start another route request cycle
+
+#ifdef NEW_SALVAGE_LOGIC
+	  if(p.src != net_id) {
+
+		  assert(dsr_salvage_max_requests > 0);
+		  assert(p.pkt);
+
+		  if(e->rt_reqs_outstanding > dsr_salvage_max_requests) {
+			  drop(p.pkt, DROP_RTR_NO_ROUTE);
+			  p.pkt = 0;
+
+			  // dump the route request packet we made up
+			  Packet::free(rrp.pkt);
+			  rrp.pkt = 0;
+
+			  return;
+		  }
+	  }
+#endif /* NEW_SALVAGE_LOGIC */
+
+	  if (dsragent_ring_zero_search) {
+		  // do a ring zero search
+		  e->last_type = LIMIT0;
+		  sendOutRtReq(rrp, 0);
+	  } else {
+		  // do a propagating route request right now
+		  e->last_type = UNLIMIT;
+		  sendOutRtReq(rrp, MAX_SR_LEN);
+	  }
+
+	  e->last_arp = time;
+  }  else if (LIMIT0 == e->last_type &&
+#ifdef NEW_SALVAGE_LOGIC
+	      (dsr_salvage_allow_propagating || p.src == net_id) &&
+#endif
+	   (time - e->last_arp) > arp_timeout) {
+	  // try propagating rt req since we haven't heard back
+	  // from limited one
+
 	  e->last_type = UNLIMIT;
 	  sendOutRtReq(rrp, MAX_SR_LEN);
-	}
+  }
+  else {
+	  // it's not time to send another route request...
+	  if (!retry && verbose_srr)
+		  trace("SRR %.5f _%s_ RR-not-sent %s -> %s", 
+			Scheduler::instance().clock(), 
+			net_id.dump(), rrp.src.dump(), rrp.dest.dump());
+	  Packet::free(rrp.pkt); // dump the route request packet we made up
+	  rrp.pkt = 0;
+  }
 
-      e->last_arp = time;
-    } 
-  else if (LIMIT0 == e->last_type && (time - e->last_arp) > arp_timeout)
-   { // try propagating rt req since we haven't heard back from limited one
-     e->last_type = UNLIMIT;
-     sendOutRtReq(rrp, MAX_SR_LEN);
-   }
-  else
-    { // it's not time to send another route request...
-      if (!retry && verbose_srr)
-	trace("SRR %.5f _%s_ RR-not-sent %s -> %s", 
-	      Scheduler::instance().clock(), 
-	      net_id.dump(), rrp.src.dump(), rrp.dest.dump());
-      Packet::free(rrp.pkt); // dump the route request packet we made up
-      rrp.pkt = 0;
-      return;
-    }
+  /* for now, no piggybacking at all, queue all pkts */
+  if (!retry) {
+	  stickPacketInSendBuffer(p);
+	  p.pkt = 0; // pkt is handled for now (it's in sendbuffer)
+  }
+
 }
 
 void
@@ -1198,7 +1526,7 @@ DSRAgent::sendOutRtReq(SRPacket &p, int max_prop)
   // set as specified
   // p.pkt is freed or handed off
 {
-  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
   assert(srh->valid());
 
   srh->route_request() = 1;
@@ -1224,103 +1552,12 @@ DSRAgent::sendOutRtReq(SRPacket &p, int max_prop)
       if(max_prop > 0) route_error_held = false;
     }
 
-  trace("SRR %.5f _%s_ new-request %d %s #%d -> %s", 
-	Scheduler::instance().clock(), net_id.dump(), 
-	max_prop, p.src.dump(), srh->rtreq_seq(), p.dest.dump());
+  if (verbose_srr)
+    trace("SRR %.5f _%s_ new-request %d %s #%d -> %s", 
+	  Scheduler::instance().clock(), net_id.dump(), 
+	  max_prop, p.src.dump(), srh->rtreq_seq(), p.dest.dump());
   sendOutPacketWithRoute(p, false);
 }
-
-// XXX not used currently
-void
-DSRAgent::handleRteRequestForOutsideDomain(SRPacket& p)
-{
-   /* process a route request for a outside-domain dst*/
-   hdr_sr *srh = hdr_sr::access(p.pkt);
-   assert (srh->route_request());
-   
-   if (dsragent_reply_only_to_first_rtreq  && ignoreRouteRequestp(p)) 
-	{ //we only respond to the first route request
-	  // we receive from a host 
-	  Packet::free(p.pkt);     // drop silently
-	  p.pkt = 0;
-	  return;
-	}
-   else
-	{ // we're going to process this request now, so record the req_num
-	  request_table.insert(p.src, p.src, srh->rtreq_seq());
-	  returnSrcRteForOutsideDomainToRequestor(p);
-	}
-
-   if (srh->route_error())
-	{ // register the dead route      
-	   processBrokenRouteError(p);
-	}
-}
-
-// XXX not used currently
-void
-DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
-{
-  // take the route in p, add us and the destination outside subnet
-  // to the end of it and return the route to the sender of p
-  // doesn't free p.pkt
-
-  hdr_sr *old_srh = hdr_sr::access(p.pkt);
-  if (p.route.full()) 
-       return; // alas, the route would be to long once we add ourselves
-  
-  SRPacket p_copy = p;
-  p_copy.pkt = allocpkt();
-  //p_copy.dest = p.src;
-  //p_copy.src = ID(old_srh->req_dest(),::IP);
-
-  p_copy.route.appendToPath(net_id);
-  p_copy.route.appendToPath(p_copy.src);
-  
-  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
-  new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
-  new_iph->dport() = RT_PORT;
-  new_iph->saddr() =
-	  Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT); 
-  new_iph->sport() = RT_PORT;
-  new_iph->ttl() = 255;
-
-  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
-  new_srh->init();
-  for (int i = 0 ; i < p_copy.route.length() ; i++)
-    p_copy.route[i].fillSRAddr(new_srh->reply_addrs()[i]);
-  new_srh->route_reply_len() = p_copy.route.length();
-  new_srh->route_reply() = 1;
-
-  // propagate the request sequence number in the reply for analysis purposes
-  new_srh->rtreq_seq() = old_srh->rtreq_seq();
-
-  hdr_cmn *new_cmnh = hdr_cmn::access(p_copy.pkt);
-  new_cmnh->ptype() = PT_DSR;
-  new_cmnh->size() = IP_HDR_LEN;
-
-  trace("SRR %.9f _%s_ reply-sent %s -> %s #%d (len %d) %s",
-	Scheduler::instance().clock(), net_id.dump(),
-	p_copy.src.dump(), p_copy.dest.dump(), old_srh->rtreq_seq(),
-	p_copy.route.length(), p_copy.route.dump());
-
-  // flip the route around for the return to the requestor, and 
-  // cache the route for future use
-  p_copy.route.reverseInPlace();
-  route_cache->addRoute(p_copy.route, Scheduler::instance().clock(), net_id);
-
-  p_copy.route.resetIterator();
-  p_copy.route.fillSR(new_srh);
-  new_cmnh->size() += new_srh->size();
-  
-  /* we now want to jitter when we first originate route replies, since
-     they are a transmission we make in response to a broadcast packet 
-     -dam 4/23/98
-     sendOutPacketWithRoute(p_copy, true); */
-  Scheduler::instance().schedule(this, p_copy.pkt, Random::uniform(RREQ_JITTER));
-}
-
-
 
 void
 DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
@@ -1340,15 +1577,17 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
 
   p_copy.route.appendToPath(net_id);
 
-  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
+  hdr_ip *new_iph =  hdr_ip::access(p_copy.pkt);
+  //new_iph->daddr() = p_copy.dest.addr;
   new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
+  //new_iph->saddr() = p_copy.src.addr;
   new_iph->saddr() =
 	  Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT); 
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
-  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
+  hdr_sr *new_srh =  hdr_sr::access(p_copy.pkt);
   new_srh->init();
   for (int i = 0 ; i < p_copy.route.length() ; i++)
     p_copy.route[i].fillSRAddr(new_srh->reply_addrs()[i]);
@@ -1358,14 +1597,15 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   // propagate the request sequence number in the reply for analysis purposes
   new_srh->rtreq_seq() = old_srh->rtreq_seq();
 
-  hdr_cmn *new_cmnh = hdr_cmn::access(p_copy.pkt);
+  hdr_cmn *new_cmnh =  hdr_cmn::access(p_copy.pkt);
   new_cmnh->ptype() = PT_DSR;
   new_cmnh->size() = IP_HDR_LEN;
 
-  trace("SRR %.9f _%s_ reply-sent %s -> %s #%d (len %d) %s",
-	Scheduler::instance().clock(), net_id.dump(),
-	p_copy.src.dump(), p_copy.dest.dump(), old_srh->rtreq_seq(),
-	p_copy.route.length(), p_copy.route.dump());
+  if (verbose_srr)
+    trace("SRR %.9f _%s_ reply-sent %s -> %s #%d (len %d) %s",
+	  Scheduler::instance().clock(), net_id.dump(),
+	  p_copy.src.dump(), p_copy.dest.dump(), old_srh->rtreq_seq(),
+	  p_copy.route.length(), p_copy.route.dump());
 
   // flip the route around for the return to the requestor, and 
   // cache the route for future use
@@ -1380,8 +1620,36 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
      they are a transmission we make in response to a broadcast packet 
      -dam 4/23/98
      sendOutPacketWithRoute(p_copy, true); */
-  Scheduler::instance().schedule(this, p_copy.pkt, Random::uniform(RREQ_JITTER));
+  {
+	  double d = Random::uniform(RREQ_JITTER);
+#if 0
+	  fprintf(stderr, "Random Delay: %f\n", d);
+#endif
+	  Scheduler::instance().schedule(this, p_copy.pkt, d);
+  }
 }
+
+int
+DSRAgent::diff_subnet(ID dest, ID myid) 
+{
+	int dst = dest.addr;
+	int id = myid.addr;
+	char* dstnet = Address::instance().get_subnetaddr(dst);
+	char * subnet = Address::instance().get_subnetaddr(id);
+	if (subnet != NULL) {
+		if (dstnet != NULL) {
+			if (strcmp(dstnet, subnet) != 0) {
+				delete [] dstnet;
+				return 1;
+			}
+			delete [] dstnet;
+		}
+		delete [] subnet;
+	}
+	assert(dstnet == NULL);
+	return 0;
+}
+
 
 void
 DSRAgent::acceptRouteReply(SRPacket &p)
@@ -1389,7 +1657,7 @@ DSRAgent::acceptRouteReply(SRPacket &p)
      - see if any packets are waiting to be sent out with this source route
      - doesn't free the pkt */
 {
-  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_sr *srh =  hdr_sr::access(p.pkt);
   Path reply_route(srh->reply_addrs(), srh->route_reply_len());
 
   if (!srh->route_reply())
@@ -1398,11 +1666,12 @@ DSRAgent::acceptRouteReply(SRPacket &p)
       fprintf(stderr,
 	      "dfu: non route containing packet given to acceptRouteReply\n");
     }
-  
-  /* check to see if this reply is valid or not using god info */
-  bool good_reply = true;
+
+  bool good_reply = true;  
 #ifdef USE_GOD_FEEDBACK
+  /* check to see if this reply is valid or not using god info */
   int i;
+  
   for (i = 0; i < reply_route.length()-1 ; i++) 
     if (God::instance()->hops(reply_route[i].getNSAddr_t(), 
 			      reply_route[i+1].getNSAddr_t()) != 1)
@@ -1410,13 +1679,15 @@ DSRAgent::acceptRouteReply(SRPacket &p)
 	good_reply = false;
 	break;
       }
-#endif
-  trace("SRR %.9f _%s_ reply-received %d from %s  %s #%d -> %s %s",
-	Scheduler::instance().clock(), net_id.dump(),
-	good_reply ? 1 : 0,
-	p.src.dump(), reply_route[0].dump(), srh->rtreq_seq(),
-	reply_route[reply_route.length()-1].dump(),
-	reply_route.dump());
+#endif //GOD_FEEDBACK
+
+  if (verbose_srr)
+    trace("SRR %.9f _%s_ reply-received %d from %s  %s #%d -> %s %s",
+	  Scheduler::instance().clock(), net_id.dump(),
+	  good_reply ? 1 : 0,
+	  p.src.dump(), reply_route[0].dump(), srh->rtreq_seq(),
+	  reply_route[reply_route.length()-1].dump(),
+	  reply_route.dump());
 
   // add the new route into our cache
   route_cache->addRoute(reply_route, Scheduler::instance().clock(), p.src);
@@ -1436,15 +1707,11 @@ DSRAgent::acceptRouteReply(SRPacket &p)
 
       // check if pkt is destined to outside domain
       if (diff_subnet(send_buf[c].p.dest,net_id)) {
-	      dest = ID(node_->base_stn(),::IP);
-	      if (dest == net_id) 
-		      // Iam the base-station
-		      dest = send_buf[c].p.dest;
+	dest = ID(node_->base_stn(),::IP);
+	send_buf[c].p.dest = dest;
       }
-      else
-	      dest = send_buf[c].p.dest;
-      if (route_cache->findRoute(dest, send_buf[c].p.route, 1))
-	      
+
+      if (route_cache->findRoute(send_buf[c].p.dest, send_buf[c].p.route, 1))
 	{ // we have a route!
 #ifdef DEBUG
 	  struct hdr_cmn *ch = HDR_CMN(send_buf[c].p.pkt);
@@ -1467,6 +1734,72 @@ DSRAgent::acceptRouteReply(SRPacket &p)
 	  send_buf[c].p.pkt = NULL;
 	}
     }
+}
+
+void
+DSRAgent::processUnknownFlowError(SRPacket &p, bool asDefault) {
+  hdr_sr *srh = hdr_sr::access(p.pkt);
+  int flowidx = -1;
+  struct flow_error *fe;
+  u_int16_t flowid;
+
+  if (asDefault) {
+    assert (srh->flow_default_unknown() && srh->num_default_unknown());
+    fe = &srh->unknown_defaults()[srh->num_default_unknown()-1];
+  } else {
+    assert (srh->flow_unknown() && srh->num_flow_unknown());
+    fe = &srh->unknown_flows()[srh->num_flow_unknown()-1];
+    if (!flow_table.defaultFlow(fe->flow_src, fe->flow_dst, flowid))
+      goto skip_proc;
+  }
+
+  /* not for us; hope it gets the right place... */
+  if (fe->flow_src != (int) net_id.addr)
+    return;
+
+  if (-1 != (flowidx = flow_table.find(fe->flow_src, fe->flow_dst, 
+				       asDefault ? flowid : fe->flow_id)))
+    flow_table[flowidx].count = 0;
+
+skip_proc:
+  trace("SFEr %.9f _%s_ from %d re %d : %d [%d]",
+	Scheduler::instance().clock(), net_id.dump(), p.src.addr, fe->flow_dst,
+	asDefault ? -1 : fe->flow_id, 
+	flowidx != -1 ? flow_table[flowidx].count : -1);
+
+  if ((asDefault ? srh->num_default_unknown() : srh->num_flow_unknown()) == 1)
+    return;
+
+  SRPacket p_copy = p;
+  p_copy.pkt = p.pkt->copy();
+
+  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
+  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
+  
+  // remove us from the list of errors
+  if (asDefault)
+    new_srh->num_default_unknown()--;
+  else
+    new_srh->num_flow_unknown()--;
+  
+  // send the packet to the person listed in what's now the last entry
+  p_copy.dest = ID(fe[-1].flow_src, ::IP);
+  p_copy.src = net_id;
+
+  //new_iph->daddr() = p_copy.dest.addr;
+  new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
+  new_iph->dport() = RT_PORT;
+  //new_iph->saddr() = p_copy.src.addr;
+  new_iph->saddr() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
+  new_iph->sport() = RT_PORT;
+  new_iph->ttl() = 255;
+
+  new_srh->flow_header() = 0;
+  new_srh->flow_timeout() = 0;
+
+  // an error packet is a first class citizen, so we'll
+  // use handlePktWOSR to obtain a route if needed
+  handlePktWithoutSR(p_copy, false);
 }
 
 void
@@ -1493,6 +1826,8 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
       route_cache->noticeDeadLink(ID(srh->down_links()[c].from_addr,::IP),
 				 ID(srh->down_links()[c].to_addr,::IP),
 				 Scheduler::instance().clock());
+      flow_table.noticeDeadLink(ID(srh->down_links()[c].from_addr,::IP),
+				 ID(srh->down_links()[c].to_addr,::IP));
       // I'll assume everything's of type NS_AF_INET for the printout... XXX
       if (verbose_srr)
         trace("SRR %.9f _%s_ dead-link tell %d  %d -> %d",
@@ -1544,17 +1879,72 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
   p_copy.dest = ID(new_srh->down_links()[new_srh->num_route_errors()-1].tell_addr, ::IP);
   p_copy.src = net_id;
 
-  //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
+  //new_iph->daddr() = p_copy.dest.addr;
   new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
-  //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
+  //new_iph->saddr() = p_copy.src.addr;
   new_iph->saddr() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
+
+  new_srh->flow_header() = 0;
+  new_srh->flow_timeout() = 0;
       
   // an error packet is a first class citizen, so we'll
   // use handlePktWOSR to obtain a route if needed
   handlePktWithoutSR(p_copy, false);
+}
+
+#ifdef DSR_FILTER_TAP
+long long dsr_tap = 0;
+long long dsr_tap_skip = 0;
+#endif
+
+// Process flow state Automatic Route Shortening
+void
+DSRAgent::processFlowARS(const Packet *packet) {
+  
+  hdr_sr *srh = hdr_sr::access(packet);
+  hdr_ip *iph = hdr_ip::access(packet);
+  hdr_cmn *cmh = hdr_cmn::access(packet);
+  //hdr_sr  *srh = (hdr_sr*) ((Packet *)packet)->access(off_sr_);
+  //hdr_ip  *iph = (hdr_ip*) ((Packet *)packet)->access(off_ip_);
+  //hdr_cmn *cmh =  (hdr_cmn*)((Packet *)packet)->access(off_cmn_);
+  u_int16_t flowid;
+  int flowidx;
+  int shortamt;
+
+  assert(!srh->num_addrs());
+
+  if (srh->flow_header()) {
+    flowid = srh->flow_id();
+
+    // do I know about this flow?
+    if (-1 == (flowidx = flow_table.find(iph->saddr(), iph->daddr(), flowid)))
+      return;
+
+    shortamt = flow_table[flowidx].hopCount - srh->hopCount();
+  } else {
+    // do I know which flow is default?
+    if (!flow_table.defaultFlow(iph->saddr(), iph->daddr(), flowid))
+      return;
+
+    // do I know about this flow?
+    if (-1 == (flowidx = flow_table.find(iph->saddr(), iph->daddr(), flowid)))
+      return;
+
+    shortamt = iph->ttl() - flow_table[flowidx].expectedTTL;
+  }
+
+  // transmitter downstream from us
+  if (shortamt <= 0)
+    return;
+
+  // this is a _MAJOR_ problem!!!
+  if (flow_table[flowidx].sourceRoute.length() < shortamt)
+    return;
+
+  ars_table.insert(cmh->uid(), flowid, shortamt);
 }
 
 void 
@@ -1564,23 +1954,47 @@ DSRAgent::tap(const Packet *packet)
 {
   hdr_sr *srh = hdr_sr::access(packet);
   hdr_ip *iph = hdr_ip::access(packet);
-  hdr_cmn *cmh = hdr_cmn::access(packet);
+  hdr_cmn *cmh =  hdr_cmn::access(packet);
   
   if (!dsragent_use_tap) return;
 
-  if (srh->valid() != 1) return;	// can't do anything with it
+  if (!srh->valid()) return;	// can't do anything with it
+
+  if (!srh->num_addrs()) {
+    processFlowARS(packet);
+    return;
+  }
 
   // don't trouble me with packets I'm about to receive anyway
   /* this change added 5/13/98 -dam */
-  ID next_hop(srh->addrs[srh->cur_addr()]);
+  ID next_hop(srh->addrs()[srh->cur_addr()]);
   if (next_hop == net_id || next_hop == MAC_id) return;
 
   SRPacket p((Packet *) packet, srh);
+  //p.dest = ID(iph->dst(),::IP);
+  //p.src = ID(iph->src(),::IP);
   p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
   p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
 
   // don't trouble me with my own packets
   if (p.src == net_id) return; 
+
+#ifdef DSR_FILTER_TAP
+  /* 
+   * Don't process packets more than once.  In real implementations
+   * this can be done with the (IP Source, IP ID) pair, but it is
+   * simpler to implement it with the global "uid" in simulation.
+   */
+  {
+          int uid = cmh->uid();
+          if(tap_uid_cache[(uid & TAP_BITMASK)] == uid) {
+		  dsr_tap_skip++;
+                  return;
+	  }
+	  dsr_tap++;
+          tap_uid_cache[(uid & TAP_BITMASK)] = uid;
+  }
+#endif
 
   /* snoop on the SR data */
   if (srh->route_error())
@@ -1723,17 +2137,18 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
   p_copy.route.reverseInPlace();
   p_copy.route.removeSection(0,p_copy.route.index());
 
-  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
+  hdr_ip *new_iph =  hdr_ip::access(p_copy.pkt);
+  //new_iph->daddr() = p_copy.dest.addr;
   new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
-  //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
+  //new_iph->saddr() = p_copy.src.addr;
   new_iph->saddr() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
   // shorten's p's route
   p.route.removeSection(heard_at, xmit_at);
-  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
+  hdr_sr *new_srh =  hdr_sr::access(p_copy.pkt);
   new_srh->init();
   for (int i = 0 ; i < p.route.length() ; i++)
     p.route[i].fillSRAddr(new_srh->reply_addrs()[i]);
@@ -1742,14 +2157,15 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
   // grat replies will have a 0 seq num (it's only for trace analysis anyway)
   new_srh->rtreq_seq() = 0;
 
-  hdr_cmn *new_cmnh = hdr_cmn::access(p_copy.pkt);
+  hdr_cmn *new_cmnh =  hdr_cmn::access(p_copy.pkt);
   new_cmnh->ptype() = PT_DSR;
   new_cmnh->size() += IP_HDR_LEN;
 
-  trace("SRR %.9f _%s_ gratuitous-reply-sent %s -> %s (len %d) %s",
-	Scheduler::instance().clock(), net_id.dump(),
-	p_copy.src.dump(), p_copy.dest.dump(), p.route.length(), 
-	p.route.dump());
+  if (verbose_srr)
+    trace("SRR %.9f _%s_ gratuitous-reply-sent %s -> %s (len %d) %s",
+	  Scheduler::instance().clock(), net_id.dump(),
+	  p_copy.src.dump(), p_copy.dest.dump(), p.route.length(), 
+	  p.route.dump());
 
   // cache the route for future use (we learned the route from p)
   route_cache->addRoute(p_copy.route, Scheduler::instance().clock(), p.src);
@@ -1766,37 +2182,37 @@ DSRAgent::trace(char* fmt, ...)
   
   if (!logtarget) return;
 
-  if (verbose) {
-      va_start(ap, fmt);
-      vsprintf(logtarget->pt_->buffer(), fmt, ap);
-      logtarget->pt_->dump();
-      va_end(ap);
-  }
+  va_start(ap, fmt);
+  vsprintf(logtarget->pt_->buffer(), fmt, ap);
+  logtarget->pt_->dump();
+  va_end(ap);
 }
 
 
 /*==============================================================
   Callback for link layer transmission failures
 ------------------------------------------------------------*/
-
 // XXX Obviously this structure and FilterFailure() is not used anywhere, 
 // because off_cmn_ in this structure cannot be populated at all!
 // Instead of deleting, I'm simply commenting them out, perhaps they'll be 
 // salvaged sometime in the future. - haoboy
 
 //  struct filterfailuredata {
-//  	nsaddr_t dead_next_hop;
-//  	int off_cmn_;
-//  	DSRAgent *agent;
+//    nsaddr_t dead_next_hop;
+//    int off_cmn_;
+//    DSRAgent *agent;
 //  };
-//
-//  int FilterFailure(Packet *p, void *data)
+
+//  int
+//  FilterFailure(Packet *p, void *data)
 //  {
-//  	struct filterfailuredata *ffd = (filterfailuredata *) data;
-//  	hdr_cmn *cmh = hdr_cmn::access(p);
-//  	int remove = cmh->next_hop() == ffd->dead_next_hop;
-//  	if (remove) ffd->agent->undeliverablePkt(p,1);
-//  	return remove;
+//    struct filterfailuredata *ffd = (filterfailuredata *) data;
+//    hdr_cmn *cmh = (hdr_cmn*)p->access(ffd->off_cmn_);
+//    int remove = cmh->next_hop() == ffd->dead_next_hop;
+
+//    if (remove)
+//  	  ffd->agent->undeliverablePkt(p,1);
+//    return remove;
 //  }
 
 void
@@ -1809,6 +2225,8 @@ DSRAgent::undeliverablePkt(Packet *pkt, int mine)
   hdr_cmn *cmh;
 
   SRPacket p(pkt,srh);
+  //p.dest = ID(iph->dst(),::IP);
+  //p.src = ID(iph->src(),::IP);
   p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
   p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
   p.pkt = mine ? pkt : pkt->copy();
@@ -1817,20 +2235,45 @@ DSRAgent::undeliverablePkt(Packet *pkt, int mine)
   iph = hdr_ip::access(p.pkt);
   cmh = hdr_cmn::access(p.pkt);
 
-  if (p.src == net_id)
-    { // it's our packet we couldn't send
-      cmh->size() -= srh->size(); // remove SR header
-      assert(cmh->size() >= 0);
+  // we're about to salvage. flowstate rules say we must strip all flow
+  // state info out of this packet. ych 5/5/01
+  cmh->size() -= srh->size(); // changes affect size of header...
+  srh->flow_timeout() = 0;
+  srh->flow_header() = 0;
+  cmh->size() += srh->size(); // done fixing flow state headers
 
-      handlePktWithoutSR(p, false);
-    }
-  else 
-    { // it's a packet we're forwarding for someone, save it if we can...
-      Path salvage_route;
+  if (ID((Address::instance().get_nodeaddr(iph->saddr())),::IP) == net_id) {
+    // it's our packet we couldn't send
+    cmh->size() -= srh->size(); // remove size of SR header
+    assert(cmh->size() >= 0);
+    
+    handlePktWithoutSR(p, false);
+    
+    return;
+  }
+
+  /*
+   * Am I allowed to salvage?
+   */
+  if(dsragent_salvage_with_cache == 0) {
+	  assert(mine);
+	  drop(pkt, DROP_RTR_NO_ROUTE);  
+	  return;
+  }
+
+#ifdef NEW_SALVAGE_LOGIC
+  if(srh->salvaged() >= dsr_salvage_max_attempts) {
+	  assert(mine);
+	  drop(pkt, DROP_RTR_SALVAGE);
+	  return;
+  }
+#endif /* NEW_SALVAGE_LOGIC */
+
+  // it's a packet we're forwarding for someone, save it if we can...
+  Path salvage_route;
       
-      if (dsragent_salvage_with_cache
-	  && route_cache->findRoute(p.dest, salvage_route, 0))
-	{ // be nice and send the packet out
+  if (route_cache->findRoute(p.dest, salvage_route, 0)) {
+	  // be nice and send the packet out
 #if 0
 	  /* we'd like to create a ``proper'' source route with the
 	     IP src of the packet as the first node, but we can't actually 
@@ -1849,73 +2292,263 @@ DSRAgent::undeliverablePkt(Packet *pkt, int mine)
 
 	  // truncate the route at the bad link and append good bit
 	  int our_index = p.route.index();
-	  p.route.setLength(our_index); // yes this cuts us off the route,
-	  p.route.appendPath(salvage_route); // but we're at the front of s_r
+
+	  p.route.setLength(our_index);
+	  // yes this cuts us off the route,
+
+	  p.route.appendPath(salvage_route);
+	  // but we're at the front of s_r
 	  p.route.setIterator(our_index);
 #else
 	  p.route = salvage_route;
 	  p.route.resetIterator();
 #endif
 
-	  if (dsragent_dont_salvage_bad_replies && srh->route_reply()) 
-	    { // check to see if we'd be salvaging a packet with the
-	      // dead link in it
-	      ID to_id(srh->addrs[srh->cur_addr()+1].addr,
-		       (ID_Type) srh->addrs[srh->cur_addr()].addr_type);
-	      bool bad_reply = false;
+	  if (dsragent_dont_salvage_bad_replies && srh->route_reply()) {
+		  // check to see if we'd be salvaging a packet
+		  // with the dead link in it
 
-	      for (int i = 0 ; i < srh->route_reply_len()-1 ; i++)
-		{
-		  if (net_id == ID(srh->reply_addrs()[i])
-		      && to_id == ID(srh->reply_addrs()[i+1])
-		      || (dsragent_require_bi_routes
-			  && to_id == ID(srh->reply_addrs()[i])
-			  && net_id == ID(srh->reply_addrs()[i+1])))
-		    {
-		      bad_reply = true;
-		      break;
-		    }
-		}
-	      if (bad_reply)
-		{ // think about killing this packet
-		  srh->route_reply() = 0;
-		  if (PT_DSR == cmh->ptype() && !srh->route_request() &&
-		      !srh->route_error())
-		    { // this packet has no reason to live
-		      trace("SRR %.5f _%s_ --- %d dropping bad-reply %s -> %s", 
-			    Scheduler::instance().clock(), net_id.dump(), 
-			    cmh->uid(), p.src.dump(), p.dest.dump());
-		      if (mine) drop(pkt, DROP_RTR_MAC_CALLBACK);
-		      return;
-		    }
-		}
-	      
-	    }
+		  ID to_id(srh->addrs()[srh->cur_addr()+1].addr,
+			   (ID_Type) srh->addrs()[srh->cur_addr()].addr_type);
+		  bool bad_reply = false;
 
-	  trace("Ssalv %.5f _%s_ salvaging %s -> %s --- %d with %s",
-		Scheduler::instance().clock(), net_id.dump(),
-		p.src.dump(), p.dest.dump(), cmh->uid(), p.route.dump());
+		  for (int i = 0 ; i < srh->route_reply_len()-1; i++) {
 
+			  if (net_id == ID(srh->reply_addrs()[i]) &&
+			      to_id == ID(srh->reply_addrs()[i+1]) ||
+			      (dsragent_require_bi_routes &&
+			       to_id == ID(srh->reply_addrs()[i]) &&
+			       net_id == ID(srh->reply_addrs()[i+1]))) {
+					  
+				  bad_reply = true;
+				  break;
+			  }
+		  }
+		  if (bad_reply) {
+			  // think about killing this packet
+			  srh->route_reply() = 0;
+			  if (PT_DSR == cmh->ptype() &&
+			      ! srh->route_request() &&
+			      ! srh->route_error()) {
+				  // this packet has no reason to live
+				  if (verbose_srr)
+					  trace("SRR %.5f _%s_ --- %d dropping bad-reply %s -> %s", 
+						Scheduler::instance().clock(), net_id.dump(), 
+						cmh->uid(), p.src.dump(), p.dest.dump());
+				  if (mine)
+					  drop(pkt, DROP_RTR_MAC_CALLBACK);
+				  return;
+			  }
+		  }
+	  }
+
+	  if (verbose_ssalv) 
+		  trace("Ssalv %.5f _%s_ salvaging %s -> %s --- %d with %s",
+			Scheduler::instance().clock(), net_id.dump(),
+			p.src.dump(), p.dest.dump(),
+			cmh->uid(), p.route.dump());
+
+	  // remove size of SR header, added back in sendOutPacketWithRoute
+	  cmh->size() -= srh->size(); 
+	  assert(cmh->size() >= 0);
+#ifdef NEW_SALVAGE_LOGIC
+	  srh->salvaged() += 1;
+#endif
 	  sendOutPacketWithRoute(p, false);
-	}
-      else
-	{ // we don't have a route, and it's not worth us doing a
+  }
+#ifdef NEW_SALVAGE_LOGIC
+  else if(dsr_salvage_max_requests > 0) {
+	  /*
+	   * Allow the node to perform route discovery for an
+	   * intermediate hop.
+	   */
+	  if (verbose_ssalv) 
+		  trace("Ssalv %.5f _%s_ adding to SB --- %d %s -> %s [%d]", 
+			Scheduler::instance().clock(), 
+			net_id.dump(),
+			cmh->uid(),
+			p.src.dump(), p.dest.dump(),
+			srh->salvaged());
+	  stickPacketInSendBuffer(p);
+  }
+#endif
+  else {
+	  // we don't have a route, and it's not worth us doing a
 	  // route request to try to help the originator out, since
 	  // it might be counter productive
-	  trace("Ssalv %.5f _%s_ dropping --- %d %s -> %s", 
-		Scheduler::instance().clock(), 
-		net_id.dump(), cmh->uid(), p.src.dump(), p.dest.dump());
-	  if (mine) drop(pkt, DROP_RTR_NO_ROUTE);
-	}
-    }
+	  if (verbose_ssalv) 
+		  trace("Ssalv %.5f _%s_ dropping --- %d %s -> %s [%d]", 
+			Scheduler::instance().clock(), 
+			net_id.dump(), cmh->uid(),
+			p.src.dump(), p.dest.dump(),
+			srh->salvaged());
+	  if (mine)
+		  drop(pkt, DROP_RTR_NO_ROUTE);
+  }
 }
 
 #ifdef USE_GOD_FEEDBACK
 static int linkerr_is_wrong = 0;
 #endif
 
+void
+DSRAgent::sendUnknownFlow(SRPacket &p, bool asDefault, u_int16_t flowid = 0) {
+  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_ip *iph = hdr_ip::access(p.pkt);
+  hdr_cmn *cmh = hdr_cmn::access(p.pkt);
+  struct flow_error *fe;
+
+  assert(!srh->num_addrs()); // flow forwarding basis only.
+#if 0
+  // this doesn't always hold true; if an xmit fails, we'll dump the
+  // thing from our flow table, possibly before we even get here (though how
+  // we found out, other than from this packet, is anyone's guess, considering
+  // that underliverablePkt() should have been called in any other circumstance,
+  // so we shouldn't go through the failed stuff.
+  assert(p.src != net_id); // how'd it get here if it were?
+
+  // this doesn't always hold true; I may be sending it default, fail,
+  // the flow times out, but I still know the flowid (whacked paths through
+  // the code, I know... ych 5/7/01
+  assert(srh->flow_header() ^ asDefault); // one or the other, not both
+#endif
+
+  if (p.src == net_id) {
+    Packet::free(p.pkt);
+    p.pkt = 0;
+    return; // gimme a break, we already know!
+  }
+
+  undeliverablePkt(p.pkt, false); // salvage, but don't molest.
+ 
+  /* warp into an error... */
+  if (asDefault) {
+    if (!srh->flow_default_unknown()) {
+      srh->num_default_unknown() = 1;
+      srh->flow_default_unknown() = 1;
+      fe = srh->unknown_defaults();
+    } else if (srh->num_default_unknown() < MAX_ROUTE_ERRORS) {
+      fe = srh->unknown_defaults() + srh->num_default_unknown();
+      srh->num_default_unknown()++;
+    } else {
+      trace("SYFU  %.5f _%s_ dumping maximally nested Flow error %d -> %d",
+      Scheduler::instance().clock(), net_id.dump(), p.src.addr, p.dest.addr);
+
+      Packet::free(p.pkt);        // no drop needed
+      p.pkt = 0;
+      return;
+    }
+  } else {
+    if (!srh->flow_unknown()) {
+      srh->num_flow_unknown() = 1;
+      srh->flow_unknown() = 1;
+      fe = srh->unknown_flows();
+    } else if (srh->num_default_unknown() < MAX_ROUTE_ERRORS) {
+      fe = srh->unknown_flows() + srh->num_flow_unknown();
+      srh->num_flow_unknown()++;
+    } else {
+      trace("SYFU  %.5f _%s_ dumping maximally nested Flow error %d -> %d",
+      Scheduler::instance().clock(), net_id.dump(), p.src.addr, p.dest.addr);
+
+      Packet::free(p.pkt);        // no drop needed
+      p.pkt = 0;
+      return;
+    }
+  }
+
+  trace("SFErr %.5f _%s_ %d -> %d : %d",
+	Scheduler::instance().clock(), net_id.dump(), p.src.addr, p.dest.addr,
+	flowid);
+
+  srh->route_reply() = 0;
+  srh->route_request() = 0;
+  srh->flow_header() = 0;
+  srh->flow_timeout() = 0;
+
+  //iph->daddr() = p.src.addr;
+  iph->daddr() = Address::instance().create_ipaddr(p.src.getNSAddr_t(),RT_PORT);
+  iph->dport() = RT_PORT;
+  //iph->saddr() = net_id.addr;
+  iph->saddr() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
+  iph->sport() = RT_PORT;
+  iph->ttl() = 255;
+
+  //fe->flow_src = p.src.addr;
+  fe->flow_src = p.src.getNSAddr_t();
+  //fe->flow_dst = p.dest.addr;
+  fe->flow_dst = p.dest.getNSAddr_t();
+  fe->flow_id  = flowid;
+
+  //p.src = ID(iph->src(), ::IP);
+  //p.dest = ID(iph->dst(), ::IP);
+  p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
+  p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
+
+
+  cmh->ptype() = PT_DSR;                // cut off data
+  cmh->size() = IP_HDR_LEN;
+  cmh->num_forwards() = 0;
+  // assign this packet a new uid, since we're sending it
+  cmh->uid() = uidcnt_++;
+
+  handlePktWithoutSR(p, false);
+  assert(p.pkt == 0);
+}
+
 void 
-DSRAgent::xmitFailed(Packet *pkt)
+DSRAgent::xmitFlowFailed(Packet *pkt, const char* reason = "DROP_RTR_MAC_CALLBACK")
+{
+  hdr_sr *srh = hdr_sr::access(pkt);
+  hdr_ip *iph = hdr_ip::access(pkt);
+  hdr_cmn *cmh = hdr_cmn::access(pkt);
+  int flowidx = flow_table.find(iph->saddr(), iph->daddr(), srh->flow_id());
+  u_int16_t default_flow;
+
+  assert(!srh->num_addrs());
+
+  if (!srh->flow_header()) {
+    if (!flow_table.defaultFlow(iph->saddr(), iph->daddr(), default_flow)) {
+      SRPacket p(pkt, srh);
+      //p.src = ID(iph->src(), ::IP);
+      //p.dest = ID(iph->dst(), ::IP);
+      p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
+      p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
+
+
+      sendUnknownFlow(p, true);
+      return;
+    }
+    flowidx = flow_table.find(iph->saddr(), iph->daddr(), default_flow);
+  }
+
+  if (flowidx == -1 || 
+      flow_table[flowidx].timeout < Scheduler::instance().clock()) {
+    // blah, the flow has expired, or been forgotten.
+    SRPacket p(pkt, srh);
+    //p.src = ID(iph->src(), ::IP);
+    //p.dest = ID(iph->dst(), ::IP);
+    p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
+    p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
+
+
+    return;
+  }
+
+  cmh->size() -= srh->size(); // gonna change the source route size
+  assert(cmh->size() >= 0);
+  
+  flow_table[flowidx].sourceRoute.fillSR(srh);
+  srh->cur_addr() = flow_table[flowidx].hopCount;
+  assert(srh->addrs()[srh->cur_addr()].addr == (nsaddr_t) net_id.addr);
+  cmh->size() += srh->size();
+
+  // xmitFailed is going to assume this was incr'ed for send
+  srh->cur_addr()++;
+  xmitFailed(pkt, reason);
+}
+
+void 
+DSRAgent::xmitFailed(Packet *pkt, const char* reason = "DROP_RTR_MAC_CALLBACK")
   /* mark our route cache reflect the failure of the link between
      srh[cur_addr] and srh[next_addr], and then create a route err
      message to send to the orginator of the pkt (srh[0])
@@ -1928,10 +2561,6 @@ DSRAgent::xmitFailed(Packet *pkt)
   assert(cmh->size() >= 0);
 
   srh->cur_addr() -= 1;		// correct for inc already done on sending
-
-  if (verbose) 
-    trace("SSendFailure %.9f _%s_ --- %d - %s",
-          Scheduler::instance().clock(), net_id.dump(), cmh->uid(), srh->dump());
 
   if (srh->cur_addr() >= srh->num_addrs() - 1)
     {
@@ -1950,13 +2579,24 @@ DSRAgent::xmitFailed(Packet *pkt)
     }
 
 
-  ID tell_id(srh->addrs[0].addr,
-	     (ID_Type) srh->addrs[srh->cur_addr()].addr_type);
-  ID from_id(srh->addrs[srh->cur_addr()].addr,
-	     (ID_Type) srh->addrs[srh->cur_addr()].addr_type);
-  ID to_id(srh->addrs[srh->cur_addr()+1].addr,
-	     (ID_Type) srh->addrs[srh->cur_addr()].addr_type);
+  ID tell_id(srh->addrs()[0].addr,
+	     (ID_Type) srh->addrs()[srh->cur_addr()].addr_type);
+  ID from_id(srh->addrs()[srh->cur_addr()].addr,
+	     (ID_Type) srh->addrs()[srh->cur_addr()].addr_type);
+  ID to_id(srh->addrs()[srh->cur_addr()+1].addr,
+	     (ID_Type) srh->addrs()[srh->cur_addr()].addr_type);
   assert(from_id == net_id || from_id == MAC_id);
+
+  trace("SSendFailure %.9f _%s_ %d %d %d:%d %d:%d %s->%s %d %d %d %d %s",
+	Scheduler::instance().clock(), net_id.dump(), 
+	cmh->uid(), cmh->ptype(),
+	iph->saddr(), iph->sport(),
+	iph->daddr(), iph->dport(),
+	from_id.dump(),to_id.dump(),
+	God::instance()->hops(from_id.getNSAddr_t(), to_id.getNSAddr_t()),
+	God::instance()->hops(iph->saddr(),iph->daddr()),
+	God::instance()->hops(from_id.getNSAddr_t(), iph->daddr()),
+	srh->num_addrs(), srh->dump());
 
 #ifdef USE_GOD_FEEDBACK
   if (God::instance()->hops(from_id.getNSAddr_t(), to_id.getNSAddr_t()) == 1)
@@ -1971,32 +2611,57 @@ DSRAgent::xmitFailed(Packet *pkt)
       /* put packet back on end of ifq for xmission */
       srh->cur_addr() += 1;	// correct for decrement earlier in proc 
       // make sure we aren't cycling packets
-      assert(p.pkt->incoming == 0); // this is an outgoing packet
+
       ll->recv(pkt, (Handler*) 0);
       return;
     }
 #endif
 
-  /* kill any routes we have using this link */
-  route_cache->noticeDeadLink(from_id, to_id,
-			      Scheduler::instance().clock());
+  if(strcmp(reason, "DROP_IFQ_QFULL") != 0) {
+	  assert(strcmp(reason, "DROP_RTR_MAC_CALLBACK") == 0);
 
-  /* give ourselves a chance to save the packet */
-  undeliverablePkt(pkt->copy(), 1);
+	  /* kill any routes we have using this link */
+	  route_cache->noticeDeadLink(from_id, to_id,
+				      Scheduler::instance().clock());
+	  flow_table.noticeDeadLink(from_id, to_id);
 
-  /* now kill all the other packets in the output queue that would
-     use the same next hop.  This is reasonable, since 802.11 has
-     already retried the xmission multiple times => a persistent failure. */
-  Packet *r, *nr, *head = 0;		// pkts to be recycled
-  while((r = ifq->filter(to_id.getNSAddr_t()))) {
-    r->next_ = head;
-    head = r; 
+	  /* give ourselves a chance to save the packet */
+	  undeliverablePkt(pkt->copy(), 1);
+
+	  /* now kill all the other packets in the output queue that would
+	     use the same next hop.  This is reasonable, since 802.11 has
+	     already retried the xmission multiple times => a persistent
+	     failure. */
+
+	  /* XXX YCH 5/4/01 shouldn't each of these packets get Route Errors
+	   * if one hasn't already been sent? ie if two different routes
+	   * are using this link?
+	   */
+	  {
+	    Packet *r, *nr, *queue1 = 0, *queue2 = 0;
+	    // pkts to be recycled
+	    
+	    while((r = ifq->prq_get_nexthop(to_id.getNSAddr_t()))) {
+	      r->next_ = queue1;
+	      queue1 = r; 
+	    }
+
+	    // the packets are now in the reverse order of how they
+	    // appeared in the IFQ so reverse them again
+	    for(r = queue1; r; r = nr) {
+	      nr = r->next_;
+	      r->next_ = queue2;
+	      queue2 = r;
+	    }
+
+		  // now process them in order
+	    for(r = queue2; r; r = nr) {
+	      nr = r->next_;
+	      undeliverablePkt(r, 1);
+	    }
+	  }
   }
-  for(r = head; r; r = nr) {  
-    nr = r->next_;
-    undeliverablePkt(r, 1);
-  }
-
+  
   /* warp pkt into a route error message */
   if (tell_id == net_id || tell_id == MAC_id)
     { // no need to send the route error if it's for us
@@ -2025,10 +2690,10 @@ DSRAgent::xmitFailed(Packet *pkt)
     }
 
   link_down *deadlink = &(srh->down_links()[srh->num_route_errors()]);
-  deadlink->addr_type = srh->addrs[srh->cur_addr()].addr_type;
-  deadlink->from_addr = srh->addrs[srh->cur_addr()].addr;
-  deadlink->to_addr = srh->addrs[srh->cur_addr()+1].addr;
-  deadlink->tell_addr = srh->addrs[0].addr;
+  deadlink->addr_type = srh->addrs()[srh->cur_addr()].addr_type;
+  deadlink->from_addr = srh->addrs()[srh->cur_addr()].addr;
+  deadlink->to_addr = srh->addrs()[srh->cur_addr()+1].addr;
+  deadlink->tell_addr = srh->addrs()[0].addr;
   srh->num_route_errors() += 1;
 
   if (verbose)
@@ -2042,11 +2707,13 @@ DSRAgent::xmitFailed(Packet *pkt)
   srh->route_error() = 1;
   srh->route_reply() = 0;
   srh->route_request() = 0;
+  srh->flow_header() = 0;
+  srh->flow_timeout() = 0;
 
-  //iph->dst() = (deadlink->tell_addr) << Address::instance().nodeshift();
+  //iph->daddr() = deadlink->tell_addr;
   iph->daddr() = Address::instance().create_ipaddr(deadlink->tell_addr,RT_PORT);
   iph->dport() = RT_PORT;
-  //iph->src() = (net_id.addr) << Address::instance().nodeshift();
+  //iph->saddr() = net_id.addr;
   iph->saddr() = Address::instance().create_ipaddr(net_id.addr,RT_PORT);
   iph->sport() = RT_PORT;
   iph->ttl() = 255;
@@ -2072,6 +2739,13 @@ XmitFailureCallback(Packet *pkt, void *data)
 {
   DSRAgent *agent = (DSRAgent *)data; // cast of trust
   agent->xmitFailed(pkt);
+}
+
+void
+XmitFlowFailureCallback(Packet *pkt, void *data)
+{
+  DSRAgent *agent = (DSRAgent *)data;
+  agent->xmitFlowFailed(pkt);
 }
 
 #if 0
@@ -2179,16 +2853,23 @@ DSRAgent::snoopForRouteReplies(Time t, Packet *p)
 	} // end if we heard a route reply being sent
       else if (entry->requestor == p->src
 	       && entry->requested_dest == p->dest)
-	{ // they're using a route reply! see if ours is better
-	  if (p->route.length() <= entry->our_length)
-	    { // Oh no! they've used a better path than ours!
-	      entry->best_length = -1; //there's no point in replying.
-	    }
-	} // end if they used used route reply
+	{ // they're using a route  reply! see if ours is better
+          if (p->route.length() <= entry->our_length)
+            { // Oh no! they've used a better path than ours!
+              entry->best_length = -1; //there's no point in replying.
+            }
+        } // end if they used used route reply
       else
-	continue;
+        continue;
     }
 }
 
-#endif // 0
+#endif //0
+
+
+
+
+
+
+
 

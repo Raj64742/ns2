@@ -1,42 +1,33 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1997 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// Ported from CMU/Monarch's code, appropriate copyright applies.  
 
 /* path.cc
 
    handles source routes
-   $Id: path.cc,v 1.5 1999/04/10 00:17:32 haldar Exp $
+
 */
 
 extern "C" {
@@ -46,7 +37,7 @@ extern "C" {
 
 #include <packet.h>
 #include <ip.h>
-#include <dsr/hdr_sr.h>
+#include "hdr_sr.h"
 #include "path.h"
 
 /*===========================================================================
@@ -135,24 +126,23 @@ Path::Path(const struct sr_addr *addrs, int len)
   cur_index = 0;
 }
 
-Path::Path(const struct hdr_sr *srh)
+Path::Path(struct hdr_sr *srh)
 { /* make a path from the bits of an NS source route header */
-  path = new ID[MAX_SR_LEN];
+	path = new ID[MAX_SR_LEN];
 
-  if (srh->valid_ != 1)
-    {
-      len = 0;
-      cur_index = 0;
-      return;
-    }
+	if (! srh->valid()) {
+		len = 0;
+		cur_index = 0;
+		return;
+	}
 
-  len = srh->num_addrs_;
-  cur_index = srh->cur_addr_;
+	len = srh->num_addrs();
+	cur_index = srh->cur_addr();
 
-  assert(len <= MAX_SR_LEN);
-  
-  for (int i = 0 ; i < len ; i++)
-	  path[i] = ID(srh->addrs[i]);
+	assert(len <= MAX_SR_LEN);
+	
+	for (int i = 0 ; i < len ; i++)
+		path[i] = ID(srh->addrs()[i]);
 }
 
 void
@@ -160,7 +150,7 @@ Path::fillSR(struct hdr_sr *srh)
 {
   for (int i = 0 ; i < len ; i++)
     {
-      path[i].fillSRAddr(srh->addrs[i]);
+      path[i].fillSRAddr(srh->addrs()[i]);
     }
   srh->num_addrs() = len;
   srh->cur_addr() = cur_index;
@@ -375,8 +365,7 @@ Path::dump() const
   for (int c = 0 ; c < len ; c ++)
     {
       if (c == cur_index) *ptr++ = '(';
-      sprintf(ptr,"%s%s ",path[c].dump(), c == cur_index ? ")" : "");
-      ptr += strlen(ptr);
+      ptr += sprintf(ptr,"%s%s ",path[c].dump(), c == cur_index ? ")" : "");
     }
   *ptr++ = ']';
   *ptr++ = '\0';

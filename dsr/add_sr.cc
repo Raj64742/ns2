@@ -21,52 +21,61 @@
 //
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
-//
-// Ported from CMU/Monarch's code, appropriate copyright applies.  
 
-/* -*- c++ -*-
-   requesttable.h
+/* 
+   add_sr.cc
+   add a compiled constant source route to a packet.
+   for testing purposes
+   Ported from CMU/Monarch's code, appropriate copyright applies.  
+   */
 
-   implement a table to keep track of the most current request
-   number we've heard from a node in terms of that node's id
+#include <packet.h>
+#include <ip.h>
+#include "hdr_sr.h"
 
-   implemented as a circular buffer
+#include <connector.h>
 
-*/
-
-#ifndef _requesttable_h
-#define _requesttable_h
-
-#include "path.h"
-
-struct Entry;
-
-enum LastType { LIMIT0, UNLIMIT};
-
-class RequestTable {
+class AddSR : public Connector {
 public:
-  RequestTable(int size = 30);
-  ~RequestTable();
-  void insert(const ID& net_id, int req_num);
-  void insert(const ID& net_id, const ID& MAC_id, int req_num);
-  int get(const ID& id) const;
-  // rtns 0 if id not found
-  Entry* getEntry(const ID& id);  
+  void recv(Packet*, Handler* callback = 0);
+  AddSR();
+
 private:
-  Entry *table;
-  int size;
-  int ptr;
-  int find(const ID& net_id, const ID& MAC_id ) const;
+  int off_ip_;
+  int off_sr_;
+  int off_ll_;
+  int off_mac_;
 };
 
-struct Entry {
-  ID MAC_id;
-  ID net_id;
-  int req_num;
-  Time last_arp;
-  int rt_reqs_outstanding;
-  Time last_rt_req;
-  LastType last_type;
-};
+static class AddSRClass : public TclClass {
+public:
+  AddSRClass() : TclClass("Connector/AddSR") {}
+  TclObject* create(int, const char*const*) {
+    return (new AddSR);
+  }
+} class_addsr;
 
-#endif //_requesttable_h
+AddSR::AddSR()
+{
+  bind("off_sr_", &off_sr_);
+  bind("off_ll_", &off_ll_);
+  bind("off_mac_", &off_mac_);
+  bind("off_ip_", &off_ip_);
+}
+
+void
+AddSR::recv(Packet* p, Handler* callback)
+{
+  hdr_sr *srh =  hdr_sr::access(p);
+  hdr_ip *iph =  hdr_ip::access(p);
+
+  srh->route_request() = 0;
+  srh->num_addrs() = 0;
+  srh->cur_addr() = 0;
+  srh->valid() = 1;
+  srh->append_addr( 1<<8, NS_AF_INET );
+  srh->append_addr( 2<<8, NS_AF_INET );
+  srh->append_addr( 3<<8, NS_AF_INET );
+  printf(" added sr %s\n",srh->dump());
+  send(p,0);
+}

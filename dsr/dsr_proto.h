@@ -24,49 +24,36 @@
 //
 // Ported from CMU/Monarch's code, appropriate copyright applies.  
 
-/* -*- c++ -*-
-   requesttable.h
+/* -*- c++ -*- 
 
-   implement a table to keep track of the most current request
-   number we've heard from a node in terms of that node's id
+   dsr_proto.h
+   the DSR routing protocol agent
+   */
 
-   implemented as a circular buffer
 
-*/
+#ifndef _dsr_proto_h
+#define _dsr_proto_h
 
-#ifndef _requesttable_h
-#define _requesttable_h
+#include <packet.h>
+#include <object.h>
+#include <agent.h>
 
 #include "path.h"
+#include "routecache.h"
 
-struct Entry;
-
-enum LastType { LIMIT0, UNLIMIT};
-
-class RequestTable {
+class DSRProto : public Agent {
 public:
-  RequestTable(int size = 30);
-  ~RequestTable();
-  void insert(const ID& net_id, int req_num);
-  void insert(const ID& net_id, const ID& MAC_id, int req_num);
-  int get(const ID& id) const;
-  // rtns 0 if id not found
-  Entry* getEntry(const ID& id);  
+  DSRProto();
+  void recv(Packet*, Handler* callback = 0);
+  int command(int argc, const char*const* argv);
+  void noRouteForPacket(Packet *p);
+
 private:
-  Entry *table;
-  int size;
-  int ptr;
-  int find(const ID& net_id, const ID& MAC_id ) const;
-};
-
-struct Entry {
-  ID MAC_id;
+  Trace *tracetarget;
+  RouteCache *routecache;
+  void testinit();
   ID net_id;
-  int req_num;
-  Time last_arp;
-  int rt_reqs_outstanding;
-  Time last_rt_req;
-  LastType last_type;
+  ID mac_id;
 };
 
-#endif //_requesttable_h
+#endif //_dsr_proto_h
