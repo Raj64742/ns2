@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.48 2000/12/16 00:21:25 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.49 2001/05/07 04:36:33 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -155,6 +155,11 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			/* Not out of fast recovery yet.
 			 * Update highest_ack_, but not last_ack_. */
 			--pipe_;
+			/* If this partial ACK is from a retransmitted pkt, 
+			 * then we decrement pipe_ again, so that we never
+			 * do worse than slow-start.  If this partial ACK
+			 * was instead from the original packet, reordered,
+			 * then this might be too aggressive. */
 			highest_ack_ = (int)tcph->seqno();
 			scb_.UpdateScoreBoard (highest_ack_, tcph);
 			t_backoff_ = 1;
