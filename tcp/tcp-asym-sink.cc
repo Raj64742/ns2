@@ -84,6 +84,18 @@ void TcpAsymSink::recv(Packet* pkt, Handler* h)
 	if (delacklimit_ < delacklim) 
 		delacklim = delacklimit_;
 
+	if (channel_) {
+		char wrk[500];
+		int n;
+
+		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d delacklimit: %2d lim: %2d\n", now, addr_/256, addr_%256, dst_/256, dst_%256, delacklimit_, delacklim);
+		n = strlen(wrk);
+		wrk[n] = '\n';
+		wrk[n+1] = 0;
+		(void)Tcl_Write(channel_, wrk, n+1);
+		wrk[n] = 0;
+	}
+		
 	delackcount_++;
 	if (delackcount_ < delacklim) { /* it is not yet time to send an ack */
 		/* set delayed ack timer if it is not already set */
