@@ -12,7 +12,7 @@ set bottleneck_bw 100Mb
 #
 # Create traffic.
 #
-proc traffic1 {} {
+proc traffic_LbwHcg {} {
     global s1 s2 r1 r2 s3 s4
     new_tcp 1.0 $s1 $s3 100 1 1 1000
     new_tcp 4.2 $s2 $s4 100 2 0 50
@@ -33,14 +33,67 @@ proc traffic1 {} {
     new_tcp 440.0 $s2 $s4 100 17 0 512
 }
 
-proc traffic2 {} {
+proc add_tcp_all_nodes {n type win class size start stop} {
+  global s1 s2 r1 r2 s3 s4
+  create_tcps $n $s1 $s3 $type $win $class $size $start $stop
+  create_tcps $n $s3 $s1 $type $win $class $size $start $stop
+  create_tcps $n $s1 $s4 $type $win $class $size $start $stop
+  create_tcps $n $s4 $s1 $type $win $class $size $start $stop
+  create_tcps $n $s2 $s3 $type $win $class $size $start $stop
+  create_tcps $n $s3 $s2 $type $win $class $size $start $stop
+  create_tcps $n $s2 $s4 $type $win $class $size $start $stop
+  create_tcps $n $s4 $s2 $type $win $class $size $start $stop
+}
+
+proc traffic_HbwLcg {} {
   global s1 s2 r1 r2 s3 s4
 
-  traffic1
-  create_tcps 22 $s1 $s3 TCP/Reno 100 22 1000 1.0 400.0
-  #create_tcps 10 $s1 $s4 TCP/Reno 100 30 1000 1.0 400.0
-  #create_tcps 1 $s2 $s3 TCP/Reno 100 30 1000 1.0 400.0
-  #create_tcps 10 $s2 $s4 TCP/Reno 100 30 1000 1.0 400.0
+  traffic_LbwHcg
+  add_tcp_all_nodes 100 TCP/Reno 100 30 2000 50.0 50.0
+#  add_tcp_all_nodes 10 TCP/Reno 100 40 2000 70.0 70.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 50 2000 90.0 90.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 60 2000 110.0 110.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 70 2000 130.0 130.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 80 2000 150.0 150.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 90 2000 170.0 170.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 100 2000 190.0 190.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 110 2000 210.0 210.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 120 2000 230.0 230.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 130 2000 250.0 250.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 140 2000 270.0 270.0 
+ # add_tcp_all_nodes 10 TCP/Reno 100 150 2000 290.0 290.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 160 2000 310.0 310.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 170 2000 330.0 330.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 180 2000 350.0 350.0 
+ # add_tcp_all_nodes 10 TCP/Reno 100 150 2000 370.0 370.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 160 2000 390.0 390.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 170 2000 410.0 410.0
+ # add_tcp_all_nodes 10 TCP/Reno 100 180 2000 430.0 430.0
+}
+
+proc traffic_LbwLcg {} {
+  global s1 s2 r1 r2 s3 s4
+  new_tcp 1.0 $s1 $s3 100 1 1 1000
+  new_tcp 4.2 $s2 $s4 100 2 0 50
+  new_cbr 18.4 $s1 $s4 190 0.01 3
+  new_tcp 65.4 $s1 $s4 4 4 0 2000
+  new_tcp 100.2 $s3 $s1 8 5 0 1000
+  new_tcp 122.6 $s1 $s4 4 6 0 512
+  new_tcp 135.0 $s4 $s2 100 7 0 1000
+  new_tcp 162.0 $s2 $s3 100 8 0 1000
+  new_tcp 220.0 $s1 $s3 100 9 0 512
+  new_tcp 260.0 $s3 $s2 100 10 0 512
+  new_cbr 310.0 $s2 $s4 190 0.1 11
+  new_tcp 320.0 $s1 $s4 100 12 0 512
+  new_tcp 350.0 $s1 $s3 100 13 0 512
+  new_tcp 370.0 $s3 $s2 100 14 0 512
+  new_tcp 390.0 $s2 $s3 100 15 0 512
+  new_tcp 420.0 $s2 $s4 100 16 0 512
+  new_tcp 440.0 $s2 $s4 100 17 0 512
+}
+
+proc add_traffic {} {
+  traffic_HbwLcg
 }
 
 #------------------------------------------------------------------
@@ -95,7 +148,7 @@ proc test {testname seed finishfile label createflows dump queue} {
 	new_tcp 50.2 $s1 $s3 100 21 0 1500
     }
     $createflows $redlink $dump $stoptime
-    traffic2
+    add_traffic
     new_tcp 50.2 $s1 $s3 100 18 0 1460
     new_tcp 50.5 $s1 $s3 100 19 0 1460
 
