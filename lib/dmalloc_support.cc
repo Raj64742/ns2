@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.4 2000/08/18 18:34:03 haoboy Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.5 2002/01/05 16:00:07 alefiyah Exp $ (USC/ISI)
  */
 
 
@@ -38,6 +38,9 @@
  */
 extern "C" {
 #include <stdlib.h>
+/* Prototype declaration for TclpAlloc originally
+defined in tcl8.3.2/generic/tclAlloc.c */ 
+char * TclpAlloc(unsigned int);
 
 #define DMALLOC_DISABLE
 
@@ -83,4 +86,13 @@ operator delete[](void *pnt)
 	_free_leap(file, 0, pnt);
 }
 
+char *
+TclpAlloc(unsigned int nbytes)
+{
+  char *file;
+ 
+  GET_RET_ADDR(file);
+  return (char*) _malloc_leap(file,0,nbytes);
+}
+ 
 #endif /* HAVE_LIBDMALLOC */
