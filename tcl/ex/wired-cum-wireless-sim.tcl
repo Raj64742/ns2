@@ -21,7 +21,7 @@ set opt(cp)             ""
 set opt(sc)             "../mobility/scene/scen-3-test"   
 set opt(stop)           250                           
 set num_wired_nodes      2
-set num_bs_nodes         1
+set num_bs_nodes         2
 
 
 set ns_   [new Simulator]
@@ -41,7 +41,8 @@ set ns_   [new Simulator]
 
   set topo   [new Topography]
   $topo load_flatgrid $opt(x) $opt(y)
-  create-god [expr $opt(nn) + $num_wired_nodes + $num_bs_nodes]
+  # god needs to know the number of all wireless interfaces
+  create-god [expr $opt(nn) + $num_bs_nodes]
 
   #create wired nodes
   set temp {0.0.0 0.1.0}        
