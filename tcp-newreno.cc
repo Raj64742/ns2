@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.14 1997/07/21 21:58:10 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.15 1997/07/22 08:54:28 padmanab Exp $ (LBL)";
 #endif
 
 //
@@ -118,7 +118,8 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		quench(1);
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
-	    if (tcph->seqno() >= recover_) {
+	    if (tcph->seqno() >= recover_ || 
+		(recover_cause_ != 1 && tcph->seqno() > last_ack_)) {
 		dupwnd_ = 0;
 		recv_newack_helper(pkt);
 	    } else {
@@ -144,7 +145,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 				recover_cause_ = 1;
 				recover_ = maxseq();
 				closecwnd(1);
-				reset_rtx_timer(1);
+				reset_rtx_timer(1,0);
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
 			dupwnd_ = NUMDUPACKS;
