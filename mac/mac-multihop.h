@@ -108,6 +108,14 @@ class PollTimeoutHandler : public PollHandler {
 	void handle(Event *);
 };
 
+class BackoffHandler:: public PollHandler {
+  public: 
+	BackoffHandler(MultihopMac *m) : PollHandler(m) {}
+	void handle(Event *);
+  protected:
+	backoffTime_;
+}
+
 class MultihopMacHandler : public MacHandler {
   public:
 	MultihopMacHandler(Mac* m) : MacHandler((Mac &) *m) {}
@@ -120,6 +128,7 @@ class MultihopMac : public Mac {
 	void send(Packet*); /* send data packet (assume POLLed) link */
 	void recv(Packet *, Handler *); /* call from higher layer (LL) */
 	void poll(Packet *); /* poll peer mac */
+	void schedulePoll(MultihopMac *); /* schedule poll for later */
 	inline int mode() { return mode_; }
 	inline int mode(int m) { return mode_ = m; }
 	inline MultihopMac *peer() { return peer_; }
@@ -127,12 +136,15 @@ class MultihopMac : public Mac {
 	inline double tx_rx() { return tx_rx_; } /* access tx_rx time */
 	inline double rx_tx() { return rx_tx_; } /* access rx_tx time */
 	inline double rx_rx() { return rx_rx_; } /* access rx_rx time */
+	inline int attempt() { return attempt_; }
+	inline int attempt(int a) { return attempt_ = a; }
 	inline PollEvent *pendingPE() { return pendingPollEvent_; }
 	inline Packet *pkt() { return pkt_; }
 	inline PollHandler* ph() { return &ph_; } /* access poll handler */
 	inline PollAckHandler* pah() { return &pah_; }
 	inline PollNackHandler* pnh() { return &pnh_; }
 	inline PollTimeoutHandler* pth() { return &pth_; }
+	inline BackoffHandler* bh() { return &bh_; }
 	inline MacHandler* mh() { return &mh_; }
 	inline double pollTxtime(int s) { return (double) s*8.0/bandwidth(); }
   protected:
@@ -142,12 +154,14 @@ class MultihopMac : public Mac {
 	double tx_rx_;		/* Turnaround times: transmit-->recv */
 	double rx_tx_;		/* recv-->transmit */
 	double rx_rx_;		/* recv-->recv */
+	int attempt_;		/*  */
 	PollEvent *pendingPollEvent_; /* pending in scheduler */
 	Packet *pkt_;		/* packet stored for poll retries */
 	PollHandler ph_;	/* handler for POLL events */
 	PollAckHandler pah_;	/* handler for POLL_ACK events */
 	PollNackHandler pnh_;	/* handler for POLL_NACK events */
 	PollTimeoutHandler pth_;/* handler for POLL_TIMEOUT events */
+	BackoffHandler bh_;	/* handler for exponential backoffs */
 	MultihopMacHandler mh_;	/* handle receives of data */
 };
 

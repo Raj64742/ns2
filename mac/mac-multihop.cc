@@ -69,7 +69,9 @@ getPeerMac(Packet *p)
 }
 
 /*
- * Poll a peer node prior to a send.
+ * Poll a peer node prior to a send.  There can be at most one POLL 
+ * outstanding from a node at any point in time.  This is achieved implicitly
+ * because there can be at most one packet down from LL (thru IFQ) to this MAC.
  */
 void
 MultihopMac::poll(Packet *p)
@@ -77,21 +79,21 @@ MultihopMac::poll(Packet *p)
 	Scheduler& s = Scheduler::instance();
 double now = s.clock();
 	MultihopMac *pm = getPeerMac(p);
-	PollEvent pe(pm, this);
-	pendingPollEvent_ = new PollEvent(pm, this);
+	PollEvent *pe = new PollEvent(pm, this);
 	
 	cout << "polling\n";
 	
+	if (mode_ == MAC_SND || mode_ == MAC_RCV) { // schedule poll for later
+		s.schedule(&bh_, pe, 0);
+		return;
+	}
+
 	peer_ = pm;
-	mode_ = MAC_POLLING;
 	pkt_ = new Packet;
-	memcpy(pkt_, p, sizeof(Packet)); // need to copy packet
-	double t = pollTxtime(MAC_POLLSIZE);
-	s.schedule(pm->ph(), &pe, t);
-        /* POLL_TIMEOUT if no response */
-	double pollTimeout = max(pm->rx_tx(), tx_rx_) + 
-		1 + 2*pollTxtime(MAC_POLLSIZE); // XXX
-	s.schedule(&pth_, pendingPollEvent_, pollTimeout);	
+	memcpy(pkt_, p, sizeof(Packet));
+	s.schedule(pm->ph(), pe, pollTxtime(MAC_POLLSIZE)); // poll handler
+	double timeout = max(pm->rx_tx(), tx_rx_) + 2*pollTxtime(MAC_POLLSIZE);
+	s.schedule(&bh_, pe, timeout); // backoff handler
 }
 
 /*
@@ -104,7 +106,7 @@ PollHandler::handle(Event *e)
 	Scheduler& s = Scheduler::instance();
 double now = s.clock();
 	MultihopMac* myMac = (MultihopMac *) (&mac_);
-	MultihopMac* pm = myMac->peer(); // random unless in MAC_RCV mode
+	MultihopMac* pm = myMac->peer(); // here, random unless in MAC_RCV mode
 
 	cout << "handling poll\n";
 
@@ -117,7 +119,6 @@ double now = s.clock();
 		myMac->mode(MAC_RCV);
 		pm = pe->peerMac();
 		myMac->peer(pm);
-//		s.cancel(pm->pendingPE()); // cancel pending timeout
 		PollEvent *pae = new PollEvent(pm, myMac); // POLLACK event
 		double t = myMac->pollTxtime(MAC_POLLACKSIZE) + 
 			max(myMac->tx_rx(), pm->rx_tx());
@@ -128,7 +129,8 @@ double now = s.clock();
 
 /*
  * Handle a POLLACK from a peer node's MAC.
- */void
+ */
+void
 PollAckHandler::handle(Event *e)
 {
 	PollEvent *pe = (PollEvent *) e;
@@ -137,9 +139,9 @@ PollAckHandler::handle(Event *e)
 	MultihopMac *pm = myMac->peer(); // now set to some random peer
 	
 	cout << "handling pollack\n";
-
 	if (myMac->mode() == MAC_POLLING ||
 	    (myMac->mode() == MAC_SND && pe->peerMac() == pm)) {
+		myMac->backoffTime_(0);
 		myMac->mode(MAC_SND);
 		myMac->peer(pe->peerMac());
 		s.cancel(myMac->pendingPE()); // cancel pending timeout
@@ -153,11 +155,23 @@ PollNackHandler::handle(Event *e)
 	
 }
 
+void
+BackoffHandler::handle(Packet *p)
+{
+	Scheduler& s = Scheduler::instance();
+	double now = s.clock();
+	cout << "backing off...\n";
+	backoffTime_ = 2*backoffTime_;
+	double bTime = (1+Random::integer(MAC_TICK)*1./MAC_TICK) *
+		backoffTime_ + 0.5;
+	pendingPollEvent_ = new PollEvent(pm, this);
+	s.schedule(pollTimeoutHandler, pendingPollEvent_, bTime);
+}
+
 void 
 PollTimeoutHandler::handle(Event *e)
 {
 	MultihopMac *myMac = (MultihopMac *) &mac_;;
-	cout << "handling polltimeout\n";
 	myMac->poll(myMac->pkt());
 }
 
@@ -175,8 +189,7 @@ MultihopMac::send(Packet *p)
 	
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p);
-	channel_->send(p, (MultihopMacHandler *)peer_->mh(), 
-		       txt + delay_); // target is peermac's mh_
+	channel_->send(p, peer_->mh(), txt); // target is peer's mac handler
 	s.schedule(callback_, &intr_, txt); // callback to higher layer (LL)
 	mode_ = MAC_IDLE;
 }
