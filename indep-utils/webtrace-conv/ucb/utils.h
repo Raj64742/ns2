@@ -23,7 +23,7 @@
  * utils.h --
  *
  * Various utility functions - sockets, linked list, hash tables.
- * $Id: utils.h,v 1.1 1999/02/24 01:29:01 haoboy Exp $
+ * $Id: utils.h,v 1.2 2000/04/19 00:30:22 haoboy Exp $
  * 
  */
 
@@ -125,87 +125,6 @@ int correct_write(int s, char *data, int len);
  */
 
 int correct_read(int s, char *data, int len);
-
-/*
- * saccept takes an open socket, and blocks while performing an
- * "accept" system call.  "accept" waits for incoming connections from
- * client applications.  If the connection succeeds, the new socket
- * is returned, else an error is indicated through a negative return value.
- */
-
-int saccept(int s);
-
-/* 
- * nbaccept is similar to saccept, except that it is non-blocking.  If
- * a new connection is made, the new socket is returned in the rs
- * argument and 1 is returned.  If the accept call would have blocked,
- * 0 is returned.  -1 is returned on an error.
- */
-
-int nbaccept(int s, int *rs);
-
-/*
- * sconnect takes a string hostname or IP address, and a string port number
- * or service name as arguments.  It then creates a socket, and
- * performs the correct hostname/servicename to inet addr conversions.
- * It finally calls bind and connect as appropriate.  If all functions
- * perform successfully, a new file descriptor is returned, otherwise
- * -1 is returned.  sconnect is intended to be used by clients.
- */
-
-int sconnect(char *hostname, char *servicename);
-
-/*
- * This call attempts to set up a listening socket.  A listening socket
- * passively waits for connections (through the accept command).  The
- * function accepts a string port number or service name that clients
- * will use to contact this listening socket.  The socket, inet addr
- * conversion, bind, and listen functions are performed.  If all succeed,
- * the new listening file descriptor will be returned, else -1 will be
- * returned.
- */
-
-int slisten(char *servicename);
-
-/*
- * This function accepts a socket file descriptor, and returns the port
- * number that it corresponds to, or -1 in case of error.
- */
-
-int sportnum(int s);
-
-/*
- * This primitive function creates the sockaddr_in structure corresponding
- * to the hostname/IPaddress and servicename/portnumber pair passed in
- * as arguments.  In case of error, -1 is returned, else 0 is returned.
- */
-
-int make_inetaddr(char *hostname, char *servicename, 
-                  struct sockaddr_in *inaddr);
-
-/*
- * This primitive function returns the protocol entry number corresponding
- * to the protocol string passed in, or -1 in case of error.
- */
-
-int protonumber(char *protoname);
-
-/* these return -1 for error, 0 for wouldblock, 1 for wouldsucceed */
-
-/*
- * test_readable returns 1 if data is available to be read, 0 if no data
- * is available to be read and thus a read would block, or -1 in case of
- * an error.
- */
-
-int test_readable(int s);
-
-/*
- * test_writable returns 1 if a subsequent write-a-byte operation would
- * succeed, 0 if it would block, and -1 in case of error.
- */
-
-int test_writable(int s);
 
 /*
  ***************** Linked-list routines ****************
