@@ -216,7 +216,7 @@ Post: Adds an entry to policerTable according to the arguments in argv.  No
       If policerTable is full, an error message is printed.
 -----------------------------------------------------------------------------*/
 void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
-  int cur_policy;
+  //int cur_policy;
 
 
   if (policerTableSize == MAX_CP)
