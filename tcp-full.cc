@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.59 1998/07/08 23:39:00 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.60 1998/07/28 01:37:38 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -259,7 +259,9 @@ FullTcpAgent::~FullTcpAgent()
  * 'advance' is normally called by an "application" (i.e. data source)
  * to signal that there is something to send
  *
- * 'curseq_' is the last byte number provided by the application
+ * 'curseq_' is the sequence number of the last byte provided
+ * by the application.  In the case where no data has been supplied
+ * by the application, curseq_ is the iss_.
  */
 void
 FullTcpAgent::advanceby(int np)
@@ -456,18 +458,24 @@ void FullTcpAgent::output(int seqno, int reason)
 	int is_retransmit = (seqno < maxseq_);
 	int idle_ = (highest_ack_ == maxseq_);
 	int pflags = outflags();
+	int syn = (seqno == iss_);
 	int emptying_buffer = FALSE;
+	int buffered_bytes = (infinite_send_) ? TCP_MAXSEQ :
+				curseq_ - highest_ack_ + 1;
 
-	int buffered_bytes =
-		(infinite_send_ ? TCP_MAXSEQ : (curseq_ + iss_) - highest_ack_);
 	int win = window() * maxseg_;	// window (in bytes)
 	int off = seqno - highest_ack_;	// offset of seg in window
 	int datalen;
 
-	if (pipectrl_)
+	if (syn && !data_on_syn_)
+		datalen = 0;
+	else if (pipectrl_)
 		datalen = buffered_bytes - off;
 	else
 		datalen = min(buffered_bytes, win) - off;
+
+//printf("%f (%s): buff_bytes: %d, off: %d, congact:%d\n", now(), name(),
+//buffered_bytes, off, cong_action_);
 
 	//
 	// in real TCP datalen (len) could be < 0 if there was window
@@ -488,34 +496,33 @@ void FullTcpAgent::output(int seqno, int reason)
 
 	if (slow_start_restart_ && idle_ && datalen > 0) {
 		if (idle_restart()) {
+//printf("%f %s.. restart\n", now(), name());
 			slowdown(CLOSE_CWND_INIT);
 		}
 	}
 
 	//
 	// see if sending this packet will empty the send buffer
+	// a SYN packet counts also
 	//
-	if (((seqno + datalen) >= (curseq_ + iss_)) && 
-	    (infinite_send_ == 0 || curseq_ == iss_)) {
+	if ((seqno + datalen) > curseq_ || (syn && datalen == 0)) {
 		emptying_buffer = TRUE;
 		//
 		// if not a retransmission, notify application that 
 		// everything has been sent out at least once.
 		//
-		if ((seqno + datalen) > maxseq_ && !(pflags & TH_SYN))
+		if (!syn) {
 			idle();
-	}
-		
-	if (emptying_buffer) {
+			if (close_on_empty_) {
+				pflags |= TH_FIN;
+				newstate(TCPS_FIN_WAIT_1);
+			}
+		}
 		pflags |= TH_PUSH;
 		//
 		// if close_on_empty set, we are finished
 		// with this connection; close it
 		//
-		if (close_on_empty_) {
-			pflags |= TH_FIN;
-			newstate(TCPS_FIN_WAIT_1);
-		}
 	} else  {
 		/* not emptying buffer, so can't be FIN */
 		pflags &= ~TH_FIN;
@@ -544,13 +551,11 @@ void FullTcpAgent::output(int seqno, int reason)
 		goto send;
 
 	/*
-	 * send now if a SYN or special flag "TF_ACKNOW" is set.
+	 * send now if a control packet or we owe peer an ACK
 	 * TF_ACKNOW can be set during connection establishment and
 	 * to generate acks for out-of-order data
 	 */
-	// K: K has PUSH here also...
-	//	but if nodelay is enabled, the SWS check above should
-	//	push the packet out now.
+
 	if ((flags_ & TF_ACKNOW) || (pflags & (TH_SYN|TH_FIN)))
 		goto send;
 
@@ -560,32 +565,20 @@ void FullTcpAgent::output(int seqno, int reason)
 	return;
 
 send:
-	if (pflags & TH_SYN) {
-		seqno = iss_;
-		if (!data_on_syn_)
-			datalen = 0;
-	}
+
+	syn = (pflags & TH_SYN) ? 1 : 0;
+	int fin = (pflags & TH_FIN) ? 1 : 0;
 
 	/*
+	 * SYNs and FINs each use up one sequence number, but
+	 * there's no reason to advance t_seqno_ by one for a FIN
          * If resending a FIN, be sure not to use a new sequence number.
-         */      
-
-	if (pflags & TH_FIN && flags_ & TF_SENTFIN && seqno == maxseq_)
-		--t_seqno_;
-
-	/*
-	 * SYNs and FINs each use up one sequence number
 	 */
 
-	int ctrl;
-	if (ctrl = (pflags & (TH_SYN|TH_FIN))) {
-		if (pflags & TH_SYN) {
-                        ++t_seqno_;
-		}
-		if (pflags & TH_FIN) {
-			/* why no ++t_seqno_ here??? */
-                        flags_ |= TF_SENTFIN;
-		}
+	if (fin) {
+		if ((flags_ & TF_SENTFIN) && (seqno == maxseq_))
+			--t_seqno_;
+		flags_ |= TF_SENTFIN;
 	}
 
 	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
@@ -605,15 +598,18 @@ send:
 	 * cong_action_ state now  If only a pure ACK, we keep the state
 	 * around until we actually send a segment
 	 */
-	if (cong_action_ && datalen > 0)
+
+	int reliable = datalen + syn + fin; // seq #'s reliably sent
+	if (cong_action_ && reliable > 0)
 		cong_action_ = FALSE;
 
 	if (seqno == t_seqno_)
-		t_seqno_ += datalen;	// update snd_nxt (t_seqno_)
+		t_seqno_ += reliable;	// update snd_nxt (t_seqno_)
 
 	// highest: greatest sequence number sent + 1
 	//	and adjusted for SYNs and FINs which use up one number
-	int highest = seqno + datalen + (ctrl ? 1 : 0);
+
+	int highest = seqno + reliable;
 	if (highest > maxseq_) {
 		maxseq_ = highest;
 		//
@@ -633,10 +629,9 @@ send:
 	 * round-trip time + 2 * round-trip time variance.
 	 * Future values are rtt + 4 * rttvar.
 	 */
-	if ((rtx_timer_.status() != TIMER_PENDING) && (t_seqno_ > highest_ack_)) {
+	if (rtx_timer_.status() != TIMER_PENDING && reliable) {
 		set_rtx_timer();  // no timer pending, schedule one
 	}
-
 	return;
 }
 
@@ -654,7 +649,7 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	 */
 	int win = window() * maxseg_;	// window() in pkts
 	int npackets = 0;
-	int topwin = curseq_ + iss_;
+	int topwin = curseq_; // 1 seq number past the last byte we can send
 	if ((topwin > highest_ack_ + win) || infinite_send_)
 		topwin = highest_ack_ + win;
 
@@ -987,11 +982,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			    cwnd_ >= wnd_ && !fastrecov_) {
 				newack(pkt);	// update timers,  highest_ack_
 				/* no adjustment of cwnd here */
-				if (((curseq_ + iss_) > highest_ack_) ||
-				    infinite_send_) {
-					/* more to send */
+				if (curseq_ >= highest_ack_ || infinite_send_)
 					send_much(0, REASON_NORMAL, maxburst_);
-				}
 				Packet::free(pkt);
 				return;
 			}
@@ -1680,7 +1672,8 @@ step6:
 		 * (completion of active close)
                  */
                 case TCPS_FIN_WAIT_2:
-			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
+//this was extraneous and wrong
+//sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
                         newstate(TCPS_CLOSED);
 			cancel_timers();
                         break;
@@ -1689,7 +1682,7 @@ step6:
 
 	if (needoutput || (flags_ & TF_ACKNOW))
 		send_much(1, REASON_NORMAL, maxburst_);
-	else if (((curseq_ + iss_) > highest_ack_) || infinite_send_)
+	else if (curseq_ >= highest_ack_ || infinite_send_)
 		send_much(0, REASON_NORMAL, maxburst_);
 	// K: which state to return to when nothing left?
 	Packet::free(pkt);
@@ -1742,6 +1735,7 @@ FullTcpAgent::dupack_action()
         }       
     
         if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+//printf("%f %s.. dupecn\n", now(), name());
                 slowdown(CLOSE_CWND_HALF);
 		cancel_rtx_timer();
 		rtt_active_ = FALSE;
@@ -1759,6 +1753,7 @@ FullTcpAgent::dupack_action()
         }
     
 full_reno_action:    
+//printf("%f %s.. renodupack\n", now(), name());
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	cancel_rtx_timer();
 	rtt_active_ = FALSE;
@@ -1776,8 +1771,9 @@ FullTcpAgent::timeout_action()
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+//printf("%f %s.. timeout\n", now(), name());
 	reset_rtx_timer(1);
-	t_seqno_ = highest_ack_;
+	t_seqno_ = (highest_ack_ < 0) ? iss_ : highest_ack_;
 	fastrecov_ = FALSE;
 	dupacks_ = 0;
 }
@@ -1803,15 +1799,6 @@ void FullTcpAgent::reset_rtx_timer(int /* mild */)
 void FullTcpAgent::connect()
 {
 	newstate(TCPS_SYN_SENT);	// sending a SYN now
-
-	if (!data_on_syn_) {
-		// force no data in this segment
-		int cur = curseq_;
-		curseq_ = iss_;
-		output(iss_, REASON_NORMAL);
-		curseq_ = cur + 1;	// K: think I have to add in the syn here
-		return;
-	}
 	output(iss_, REASON_NORMAL);
 	return;
 }
@@ -1834,7 +1821,7 @@ void FullTcpAgent::listen()
 void FullTcpAgent::usrclosed()
 {
 
-	curseq_ = t_seqno_ - iss_;	// truncate buffer
+	curseq_ = t_seqno_ - 1;	// truncate buffer
 	infinite_send_ = 0;
 	switch (state_) {
 	case TCPS_CLOSED:
