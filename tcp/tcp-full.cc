@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.36 1998/05/11 18:49:35 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.37 1998/05/13 18:47:29 gnguyen Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -184,7 +184,6 @@ FullTcpAgent::~FullTcpAgent()
 void
 FullTcpAgent::advanceby(int np)
 {
-	closed_ = 0;
 	// XXX hack:
 	//	because np is in packets and a data source
 	//	may pass a *huge* number as a way to tell us
@@ -223,6 +222,7 @@ FullTcpAgent::advance_bytes(int nb)
 		curseq_ = iss_ + nb;
 		connect();		// initiate new connection
 	} else if (state_ == TCPS_ESTABLISHED) {
+		closed_ = 0;
 		curseq_ += nb;
 		send_much(0, REASON_NORMAL, 0);
 	}
