@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.10 1997/08/19 22:30:12 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.11 1997/09/09 00:13:25 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -115,6 +115,7 @@ RBPVegasTcpAgent::recv(Packet *pkt, Handler *hand)
 	if (rbp_mode_ != RBP_OFF) {
 		// reciept of anything disables rbp
 		rbp_mode_ = RBP_OFF;
+		// Vegas takes care of cwnd.
 	};
 	VegasTcpAgent::recv(pkt, hand);
 }
