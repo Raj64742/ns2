@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.79 2000/08/12 21:45:18 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.80 2000/08/13 05:50:29 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -103,8 +103,8 @@ struct hdr_tcp {
  * 0.01 for new window algorithms,
  */
 
-/* #define NUMDUPACKS 3		This is now set in tcl/lib/ns-default.tcl
- * 				as Agent/Tcp numdupacks_ */
+#define NUMDUPACKS 3		/* This is no longer used.  The variable */
+				/* numdupacks_ is used instead. */
 #define TCP_MAXSEQ 1073741824   /* Number that curseq_ is set to for */
 				/* "infinite send" (2^30)            */
 
