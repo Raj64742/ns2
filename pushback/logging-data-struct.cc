@@ -85,8 +85,11 @@ LoggingDataStruct::log(Packet * pkt) {
  
   LoggingDataStructNode * node = getNodeByID(neighborID);
   if (node == NULL) {
+#ifdef DEBUG_LGDS
     fprintf(stdout,"LGDS: %d neighbor not found in the struct !!\n", myID_);
-    exit(-1);
+#endif
+    return;
+    //exit(-1);
   }
   node->log(pkt);
 }
