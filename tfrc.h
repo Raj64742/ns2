@@ -142,9 +142,8 @@ protected:
 				//  and recever-provded loss estimate
 	double maxrate_;	// prevents sending at more than 2 times the 
 				//  rate at which the receiver is _receving_ 
+	double ss_maxrate_;	// max rate for during slowstart
  	int printStatus_;	// to print status reports
-	int conservative_;	// set to 1 for a conservative response to
-				//  heavy congestion
 
 	/* "accurate" estimates for formula */
 	double rtt_; /*EWMA version*/
@@ -176,9 +175,18 @@ protected:
 	int bval_;		// value of B for the formula
 	double overhead_;	// if > 0, dither outgoing packets 
 	TracedInt ndatapack_;	// number of packets sent
-	int UrgentFlag;		// urget flag
+	int UrgentFlag;		// urgent flag
 	int active_;		// have we shut down? 
 	int round_id ;		// round id
 	int first_pkt_rcvd ;	// first ack received yet?
+
+	/* Responses to heavy congestion. */
+	int conservative_;	// set to 1 for an experimental, conservative 
+				//   response to heavy congestion
+	int heavyrounds_;	// the number of RTTs so far when the
+				//  sending rate > 2 * receiving rate
+	int maxHeavyRounds_;	// the number of allowed rounds for
+				//  sending rate > 2 * receiving rate
+
 
 };

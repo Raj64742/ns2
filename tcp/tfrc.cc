@@ -88,6 +88,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("ca_", &ca_);
 	bind_bool("printStatus_", &printStatus_);
 	bind_bool("conservative_", &conservative_);
+	bind("maxHeavyRounds_", &maxHeavyRounds_);
 }
 
 int TfrcAgent::command(int argc, const char*const* argv)
@@ -119,9 +120,11 @@ void TfrcAgent::start()
 	tzero_ = 0;
 	last_change_=0;
 	maxrate_ = 0; 
+	ss_maxrate_ = 0;
 	ndatapack_=0;
 	active_ = 1; 
 	round_id = 0;
+	heavyrounds_ = 0;
 	t_srtt_ = int(srtt_init_/tcp_tick_) << T_SRTT_BITS;
 	t_rttvar_ = int(rttvar_init_/tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
@@ -223,16 +226,24 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	UrgentFlag = 0;
 
 	if (rate_since_last_report > 0) {
-		if (conservative_ && losses > 2) {
-			if (debug_) printf("time: %5.2f losses: %d rate %5.2f\n", 
-				now, losses, rate_since_last_report);
-			maxrate_ = rate_since_last_report*size_;
-		}
-		else 
-		/* compute the max rate as two times rcv rate */ 
+		/* compute the max rate for slow-start as two times rcv rate */ 
+		ss_maxrate_ = 2*rate_since_last_report*size_;
+		if (conservative_) { 
+			if (losses >= 1) {
+				/* there was a loss in the most recent RTT */
+				if (debug_) printf("time: %5.2f losses: %d rate %5.2f\n", 
+				  now, losses, rate_since_last_report);
+				maxrate_ = rate_since_last_report*size_;
+			} else { 
+				/* there was no loss in the most recent RTT */
+				maxrate_ = 1.5*rate_since_last_report*size_;
+			}
+		} else 
 			maxrate_ = 2*rate_since_last_report*size_;
-	} else 
+	} else {
+		ss_maxrate_ = 0;
 		maxrate_ = 0; 
+	}
 
 		
 	/* update the round trip time */
@@ -295,25 +306,25 @@ void TfrcAgent::slowstart ()
 	} else {
 		/* else multiply the rate by ssmult_, and compute delta, */
 		/*  so that the rate increases slowly to new value       */
-		if (maxrate_ > 0) {
-			if (ssmult_*rate_ < maxrate_ && now - last_change_ > rtt_) {
+		if (ss_maxrate_ > 0) {
+			if (ssmult_*rate_ < ss_maxrate_ && now - last_change_ > rtt_) {
 				rate_ = ssmult_*rate_; 
 				delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 				last_change_=now;
 			} else {
-				if ( (oldrate_ > maxrate_) || (rate_ > maxrate_)) {
-					if (oldrate_ > maxrate_) {
+				if ( (oldrate_ > ss_maxrate_) || (rate_ > ss_maxrate_)) {
+					if (oldrate_ > ss_maxrate_) {
 						delta_ = 0; 
-						rate_ = oldrate_ = 0.5*maxrate_;
+						rate_ = oldrate_ = 0.5*ss_maxrate_;
 						last_change_ = now;
 					} else {
-						rate_ = maxrate_; 
+						rate_ = ss_maxrate_; 
 						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 						last_change_ = now; 
 					}
 				} else {
 					if (now - last_change_ > rtt_) {
-						rate_ = maxrate_;
+						rate_ = ss_maxrate_;
 						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 						last_change_=now;
 					}
@@ -341,15 +352,23 @@ void TfrcAgent::increase_rate (double p)
 	
         rate_change_ = CONG_AVOID;  
         last_change_ = now;
+	heavyrounds_ = 0;
 }       
 
 void TfrcAgent::decrease_rate () 
 {
 	double now = Scheduler::instance().clock(); 
 	rate_ = rcvrate;
+	double maximumrate = (maxrate_>size_/rtt_)?maxrate_:size_/rtt_ ;
 
-	if (conservative_) {
-		double maximumrate = (maxrate_>size_/rtt_)?maxrate_:size_/rtt_ ;
+	// Allow sending rate to be greater than maximumrate
+	//   (which is by default twice the receiving rate)
+	//   for at most maxHeavyRounds_ rounds.
+	if (rate_ > maximumrate)
+		heavyrounds_++;
+	else
+		heavyrounds_ = 0;
+	if (heavyrounds_ > maxHeavyRounds_) {
 		rate_ = (rate_ > maximumrate)?maximumrate:rate_ ;
 	}
 
