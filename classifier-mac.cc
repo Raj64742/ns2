@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mac.cc,v 1.5 1997/11/11 20:11:12 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mac.cc,v 1.6 1998/01/13 03:34:07 gnguyen Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -64,17 +64,17 @@ public:
 
 void MacClassifier::recv(Packet* p, Handler*)
 {
-	NsObject* node = find(p);
-	if (node == 0) {
+	NsObject* node;
+	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
+
+	if (mh->macDA() == BCAST_ADDR || (node = find(p)) == 0) {
 		// Replicate packets to all slots (broadcast)
-		int macSA = ((hdr_mac*) p->access(off_mac_)) ->macSA();
+		int macSA = mh->macSA();
 		for (int i = 1; i < maxslot_; ++i) {
-			if (i == macSA)
-				continue;
-			NsObject* o = slot_[i];
-			if (o != 0)
-				o->recv(p->copy());
+			if (i != macSA && (node = slot_[i]))
+				node->recv(p->copy());
 		}
+		Packet::free(p);
 		return;
 	}
 	node->recv(p);
