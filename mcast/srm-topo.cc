@@ -456,6 +456,7 @@ void SRM_Request::cancel_timer()
 	if (event_) {
 		Scheduler& s = Scheduler::instance();
 		s.cancel(event_);
+		// xxx: should event be free'd?  possible memory leak.
 	}
 }
 

@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.8 2000/08/14 15:57:14 johnh Exp $
+   $Id: mac-802_3.cc,v 1.9 2000/11/02 22:46:37 johnh Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -23,6 +23,7 @@ inline void MacHandler::cancel() {
 	Scheduler& s = Scheduler::instance();
 	assert(busy_);
 	s.cancel(&intr);
+	// No need to free the event intr since it's statically allocated.
 	busy_ = 0;
 }
 

@@ -134,6 +134,7 @@ class CorresHost : public slink, public TcpFsAgent {
 	Event timer_;
 	inline void cancel() {	
 		(void)Scheduler::instance().cancel(&timer_);
+		// No need to free event since it's statically allocated.
 /*		pending_ = 0;*/
 	}
 };

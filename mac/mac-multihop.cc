@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.13 1999/09/09 03:22:40 salehi Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.14 2000/11/02 22:46:37 johnh Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -157,7 +157,7 @@ PollAckHandler::handle(Event *e)
 		mac_->mode(MAC_SND);
 		mac_->peer(pe->peerMac());
 		s.cancel(mac_->pendingPE()); /* cancel pending timeout */
-		free(mac_->pendingPE());
+		free(mac_->pendingPE());  // and free the event
 		mac_->pendingPE(NULL);
 		mac_->send(mac_->pkt()); /* send saved packet */
 	}

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.22 1999/09/09 03:22:47 salehi Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.23 2000/11/02 22:46:37 johnh Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -105,9 +105,11 @@ Snoop::reset()
 	expNextAck_ = 0;
 	expDupacks_ = 0;
 	bufhead_ = buftail_ = 0;
-	if (toutPending_)
+	if (toutPending_) {
 		Scheduler::instance().cancel(toutPending_);
-	toutPending_ = 0;
+		// xxx: I think that toutPending_ doesn't need to be freed because snoop didn't allocate it (but I'm not sure).
+		toutPending_ = 0;
+	};
 	for (int i = 0; i < SNOOP_MAXWIND; i++) {
 		if (pkts_[i]) {
 			Packet::free(pkts_[i]);
@@ -267,6 +269,7 @@ Snoop::snoop_data(Packet *p)
 		resetPending = snoop_insert(p);
 	if (toutPending_ && resetPending == SNOOP_TAIL) {
 		s.cancel(toutPending_);
+		// xxx: I think that toutPending_ doesn't need to be freed because snoop didn't allocate it (but I'm not sure).
 		toutPending_ = 0;
 	}
 	if (!toutPending_ && !empty_()) {
@@ -561,9 +564,11 @@ Snoop::snoop_cleanbufs_(int ack)
 	Scheduler &s = Scheduler::instance();
 	double sndTime = -1;
 
-	if (toutPending_)
+	if (toutPending_) {
 		s.cancel(toutPending_);
-	toutPending_ = 0;
+		// xxx: I think that toutPending_ doesn't need to be freed because snoop didn't allocate it (but I'm not sure).
+		toutPending_ = 0;
+	};
 	if (empty_())
 		return sndTime;
 	int i = buftail_;
@@ -675,8 +680,10 @@ Snoop::snoop_rxmit(Packet *pkt)
 			return SNOOP_PROPAGATE;
 	}
 	/* Reset timeout for later time. */
-	if (toutPending_)
+	if (toutPending_) {
 		s.cancel(toutPending_);
+		// xxx: I think that toutPending_ doesn't need to be freed because snoop didn't allocate it (but I'm not sure).
+	};
 	toutPending_ = (Event *)pkt;
 	s.schedule(rxmitHandler_, toutPending_, timeout());
 	return SNOOP_SUPPRESS;

@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.h,v 1.7 1998/06/27 01:25:08 gnguyen Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.h,v 1.8 2000/11/02 22:46:37 johnh Exp $ (USC/ISI)
  */
 
 #ifndef timer_handler_h
@@ -80,6 +80,7 @@ private:
 	}
 	inline void _cancel() {
 		(void)Scheduler::instance().cancel(&event_);
+		// no need to free event_ since it's statically allocated
 	}
 };
 
