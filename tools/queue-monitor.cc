@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.26 2002/09/17 03:44:35 sfloyd Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.27 2002/09/19 23:19:17 sfloyd Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -139,13 +139,15 @@ QueueMonitor::printRTTs() {
 
 	topBin = maxRTT_ * binsPerSec_;
 	MsPerBin = int(1000/binsPerSec_);
-	printf("Distribution of RTTs, %d ms bins\n", MsPerBin);
+	double now = Scheduler::instance().clock();
+	printf("Distribution of RTTs, %d ms bins, time %4.2f \n", 
+	    MsPerBin, now);
 	for (i = 0; i < topBin; i++) {
 		if (RTTbins_[i] > 0) {
-		   	printf("%d to %d ms: fraction %5.3f number %d\n", 
+		   	printf("%d to %d ms: frac %5.3f num %d time %4.2f\n", 
 		   	  i*MsPerBin, (i+1)*MsPerBin, 
 			  (double)RTTbins_[i]/numRTTs_,
-		   	  RTTbins_[i]); 
+		   	  RTTbins_[i], now); 
 		}
 	}
 	i = topBin - 1;
@@ -160,13 +162,15 @@ QueueMonitor::printSeqnos() {
 	int i, topBin; 
 
 	topBin = int(maxSeqno_ / SeqnoBinSize_);
-	printf("Distribution of Seqnos, %d seqnos per bins\n", SeqnoBinSize_);
+	double now = Scheduler::instance().clock();
+	printf("Distribution of Seqnos, %d seqnos per bin, time %4.2f\n", 
+	   SeqnoBinSize_, now);
 	for (i = 0; i < topBin; i++) {
 		if (SeqnoBins_[i] > 0) {
-		   	printf("%d to %d : fraction %5.3f number %d\n", 
+		   	printf("%d to %d seqnos: frac %5.3f num %d time %4.2f\n", 
 		   	  i*SeqnoBinSize_, (i+1)*SeqnoBinSize_ - 1, 
 			  (double)SeqnoBins_[i]/numSeqnos_,
-		   	  SeqnoBins_[i]); 
+		   	  SeqnoBins_[i], now); 
 		}
 	}
 	i = topBin - 1;
