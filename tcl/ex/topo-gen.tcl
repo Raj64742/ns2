@@ -6,7 +6,7 @@ proc usage { } {
 
 where options are given as: -key value
 example options:
--outfile mytopo -generator itm -type random -nodes 50 -method pure-random
+-outfile mytopo -type random -nodes 50 -method pure-random
 
 "topology -h" help
 }
@@ -18,15 +18,15 @@ proc detailed-usage { } {
 puts {usage: topology [-<key 1> <value 1> -<key 2> <value 2> -<key n> <value n>]
 
 example options: 
--outfile myfile -generator itm -type random -nodes 20 -connection_prob 0.6 
+-generator itm -outfile myfile -type random -nodes 20 -connection_prob 0.6 
 
 keys and corresponding values:
--outfile [the output file that will contain the ns script describing the 
-	  generated topology. This must be given.]
-
 -generator
   possible value: itm (default) [the georgia tech topology generator]
   [note: you need to invoke itm and sgb2ns, e.g. by setting your path]
+
+-outfile [the output file that will contain the ns script describing the 
+	  generated topology. This must be given.]
 
 -type
   possible values: random (default), transit_stub
