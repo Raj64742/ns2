@@ -192,6 +192,8 @@ Single Rate Three Color Marker (srTCMPolicer):
 \item
 Two Rate Three Color Marker (trTCMPolicer): 
   uses a CIR, CBS, PIR, and a PBS to choose from three drop precedences.
+\item
+NullPolicer: does not downgrade any packets
 \end{enumerate}
 
 The policies above are defined as a sub-classes of \code{dsPolicy}.
@@ -199,7 +201,7 @@ The specific meter and policer are implemented in functions
   \code{applyMeter} and \code{applyPolicer},
   which are defined as virtual functions in class~\code{dsPolicy}.
 User specified policy can be added in the similar way.
-Please refer to~\code{DumbPolicy} as the simplest example.
+Please refer to~\code{NullPolicy} as the simplest example.
 
 All policies are stored in the policy table in class~\code{PolicyClassifier}.
 This table is an array that includes fields for 
