@@ -92,8 +92,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /usr/src/mash/repository/vint/ns-2/drop-tail.cc,v 1.9 1998/06/27
- 01:23:44 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/vq.cc,v 1.4 2002/05/30 23:58:29 buchheim Exp $ (LBL)";
 #endif
 #include "flags.h"
 #include "delay.h"
