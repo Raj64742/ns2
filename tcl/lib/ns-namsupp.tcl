@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.37 2000/09/14 18:19:27 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.38 2002/08/28 00:51:49 buchheim Exp $
 #
 
 #
@@ -498,8 +498,9 @@ Simulator instproc trace-annotate { str } {
 	$self puts-ns-traceall [format \
 		"v %s %s {set sim_annotation {%s}}" [$self now] eval $str]
 	incr annotationSeq_
-	$self puts-nam-config \
-	  "v -t [$self now] sim_annotation [$self now] $annotationSeq_ $str"
+	$self puts-nam-config [format \
+		"v -t %.15g -e sim_annotation %.15g $annotationSeq_ $str" \
+		[$self now] [$self now] ]
 }
 
 proc trace_annotate { str } {
