@@ -136,6 +136,46 @@ Errors are returned for both {\em set-address-format} and
 * specified (for each level).  
 \end{quote}
 
+\section{Commands at a glance}
+\label{sec:addresscommand}
+
+The following is a list of address-format related commands used in simulation
+scripts:
+
+\code{$ns_ set-address-format def}
+This command is used internally to set the address format to its default value
+of 8 lower bits for port-id, 1 higher bit for mcast and the rest 7 higher bits
+for port-id. However this API has been replaced by the new node API
+\code{$ns_ node-config -addressType flat}.
+
+
+\code{$ns_ set-address-format hierarchical}
+This command is used to set the address format to the hierarchical configuration
+that consists of 3 levels with 8bits assigned to each level and 8 lower bits
+for port-id. However this API has been replaced by the new node API
+\code{$ns_ node-config -addressType hierarchical}.
+
+
+\code{$ns_ set-address-format hierarchical <levels> <args>}
+This command is used to set the address format to a specific hierarchical
+setting. The <levels> indicate the number of levels of hierarchy in the addressing
+structure, while the args define number of bits for each level. An example
+would be \code{$ns_ set-address-format hierachical 3 4 4 16} , where 4, 4 and
+16 defines the number of bits to be used for the address space in level 1 , 2
+and 3 respectively.
+
+
+\code{$ns_ set-address-format expanded}
+This command was used to expand the address space to 30 bits, allocating
+22 higher bits for node-id and lower 8 bits for port-id. However this command
+is obsoleted now by 32 bit addressing, i.e node-id field is 32 bit wide.
+
+
+\code{expand-port-field-bits <bits-for-portid>}
+Similar to the command above, this was used to expand the address space for
+the port-id field to <bits-for-portid> number of bits. However this command
+is obsolete now that the ports are 32 bit wide.
+
 \endinput
 
 

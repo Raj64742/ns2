@@ -843,6 +843,46 @@ ones.
 The agent will compute new routes if the update contains new information.
 
 
+
+\section{Commands at a glance}
+\label{sec:unicastcommand}
+
+Following is a list of unicast routing related commands used in simulation
+scripts:
+\begin{flushleft}
+\code{$ns_ rtproto <routing-proto>}\\
+where <routing-proto> defines the type of routing protocol to be used, like
+Static, Manual, Session , DV etc.
+
+Internal methods:
+
+\code{$ns_ compute-routes}\\
+This command computes \code{next_hop} information for all nodes in the
+topology using the topology connectivity. This \code{next_hop} info is
+then used to populate the node classifiers or the routing tables.
+compute-routes calls compute-flat-routes or compute-hier-routes depending
+on the type of addressing being used for the simulation.
+
+
+\code{$ns_ get-routelogic}\\
+This returns a handle to the RouteLogic object (the routing table),
+if one has been created. Otherwise a new routing table object is created.
+
+
+\code{$ns_ dump-routelogic-nh}\\
+This dumps next hop information in the routing table.
+
+
+\code{$ns_ dump-routelogic-distance}\\
+This dumps the distance information in the routing table.
+
+
+\code{$node add-route <dst> <Target>}\\
+This is a method used to add routing entries (nexthop information) in the node's
+routing table. The nexthop to <dst> from this node is the <target> object
+and this info is added to the node's classifier.
+\end{flushleft}
+
 \endinput
 
 ### Local Variables:

@@ -792,4 +792,79 @@ In such circumstances, only those fields actually used by
 the classifier in performing the packet-flow mapping should be
 considered reliable.
 
+
+\section{Commands at a glance}
+\label{sec:tracecommand}
+
+Following is a list of trace related commands commonly used in
+simulation scripts:
+\begin{flushleft}
+\code{$ns_ trace-all <tracefile>}\\
+This is the command used to setup tracing in ns. All traces are written in
+the <tracefile>.
+
+
+\code{$ns_ namtrace-all <namtracefile>}\\
+This command sets up nam tracing in ns. All nam traces are written in to
+the <namtracefile>.
+
+
+\code{$ns_ namtrace-all-wireless <namtracefile> <X> <Y>}\\
+This command sets up wireless nam tracing. <X> and <Y> are the x-y co-ordinates
+for the wireless topology and all wireless nam traces are written  into
+the <namtracefile>.
+
+
+\code{$ns_ nam-end-wireless <stoptime>}\\
+This tells nam the simulation stop time  given in <stoptime>.
+
+
+\code{$ns_ trace-all-satlinks <tracefile>}\\
+This is a method to trace satellite links and write traces into <tracefile>.
+
+
+\code{$ns_ flush-trace}\\
+This command flushes the trace buffer and is typically called before the
+simulation run ends.
+
+
+\code{$ns_ get-nam-traceall}\\
+Returns the namtrace file descriptor stored as the Simulator instance
+variable called \code{namtraceAllFile_}.
+
+
+\code{$ns_ get-ns-traceall}\\
+Similar to get-nam-traceall. This returns the file descriptor for ns tracefile
+which is stored as the Simulator instance called \code{traceAllFile_}.
+
+
+\code{$ns_ trace-queue <n1> <n2> <optional:file>}\\
+This command creates a trace object for tracing events on the link represented
+by the nodes <n1> and <n2>. This method calls \code{create-trace}.
+
+
+\code{$ns_ namtrace-queue <n1> <n2> <optional:file>}\\
+This is used to create a trace object for namtracing on the link between
+nodes <n1> and <n2>. This method is very similar to and is the namtrace
+counterpart of method \code{trace-queue}.
+
+
+\code{$ns_ drop-trace <n1> <n2> <trace>}\\
+This command makes the given <trace> object a drop-target for the queue
+associated with the link between nodes <n1> and <n2>.
+
+
+\code{$ns_ monitor-queue <n1> <n2> <qtrace> <optional:sampleinterval>}\\
+This sets up a monitor that keeps track of average queue length of the queue
+on the link between nodes <n1> and <n2>. The default value of
+sampleinterval is 0.1. 
+
+
+\code{$ns_ create-trace <type> <file> <src> <dst> <optional:op>}\\
+This command creates a trace object of type <type> between the <src> and
+<dst> nodes. The traces are written into the <file>. <op> is the argument
+that may be used to specify the type of trace, like nam. if <op> is not
+defined, the default trace object created is for nstraces.
+\end{flushleft}
+
 \endinput

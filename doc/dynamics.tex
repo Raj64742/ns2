@@ -506,6 +506,62 @@ incident on a common node, and the two links experience a topology change
 at the same instant, then the node will be notified more than once.
 \end{enumerate}
 
+
+
+\section{Commands at a glance}
+\label{sec:dynamicscommand}
+
+Following is a list of commands used to the simulation topologies dynamic
+in \ns:
+
+\begin{flushleft}
+\code{$ns_ rtmodel <model> <parms> <args>}\\
+This command defines the dynamic model (currently implemented models are:
+Deterministic, Exponential, Manual or
+Trace) to be applied to nodes and links in the topology. The first two arguments
+consists of the rtmodel and the parameter to configure the model. <args> stands
+for different ype arguments expected with the different model types.
+
+
+\code{$ns_ rtmodel-delete <model>}\\
+This command takes the handle of the routemodel <model> as an argument,
+removes  it from the list of rtmodels maintained by simulator and deletes
+the model.
+
+
+\code{$ns_ rtmodel-at  <at> <op> <args>}\\
+This command is a special interface to the Manual model of network dynamics.
+It takes the time <at>, type of operation <op> and node or link on which
+to apply the operation <args> as the arguments. At time <at>, the operation <op>
+which maybe up or down is applied to a node or link.
+
+\code{$rtmodel trace <ns> <f> <optional:op>}\\
+This enables tracing of dynamics effected by this model in the links. <ns>
+is an instance of the simulator, <f> the output file to write the traces to
+and <op> is an optional argument that may be used to define a type of
+operation (like nam). This is a wrapper for the class Link procedure
+\code{trace-dynamics}.
+
+
+\code{$link trace-dynamics <ns> <f> <optional:op>}\\
+This is a class link instance procedure that is used to setup tracing of
+dynamics in that particular link. The arguments are same as that of class
+rtModel's procedure \code{trace} described above.
+
+
+\code{$link dynamic}\\
+This command inserts a DynamicLink object at the head of the queue and signals
+to all connectors in the link that the link is now dynamic.
+
+
+Internal procedures:\\
+
+\code{$ns_ rtmodel-configure}\\
+This is an internal procedure that configures all dynamic models that are
+present in the list of models maintained by the simulator.
+
+\end{flushleft}
+
 \endinput
 
 ### Local Variables:
