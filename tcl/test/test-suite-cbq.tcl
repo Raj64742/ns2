@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.2 1997/11/04 00:04:33 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.3 1997/11/04 01:51:05 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -43,14 +43,17 @@
 # 	...
 #
 
-puts "This test suite is still under construction"
-exit 1
-
 set dir [pwd]
 catch "cd tcl/test"
 source misc.tcl
 source topologies.tcl
 catch "cd $dir"
+
+TestSuite instproc make_queue cl {
+	$self instvar cbq_qtype_
+	set q [new Queue/$cbq_qtype_]
+	$cl install-queue $q
+}
 
 # ~/newr/rm/testB
 # Create a flat link-sharing structure.
@@ -63,19 +66,25 @@ catch "cd $dir"
 
 TestSuite instproc create_flat { } {
 	$self instvar topclass_ vidclass_ audioclass_ dataclass_
+	$self instvar cbq_qtype_
 
-	set Mbps 1.5
 	set topclass_ [new CBQClass]
-	$topclass_ setparams none 0 0.98 auto 8 1 0 ;# Mbps
+	$topclass_ setparams none 0 0.98 auto 8 2 0
 
  	set vidclass_ [new CBQClass]
-	$vidclass_ setparams $topclass_ 1 0.32 auto 1 2 0 ;# $Mbps
+	$vidclass_ setparams $topclass_ 1 0.32 auto 1 1 0
 
 	set audioclass_ [new CBQClass]
-	$audioclass_ setparams $topclass_ 1 0.03 auto 1 2 0;# $Mbps
+	$audioclass_ setparams $topclass_ 1 0.03 auto 1 1 0
 
 	set dataclass_ [new CBQClass]
-	$dataclass_ setparams $topclass_ 1 0.65 auto 2 2 0; #$Mbps
+	$dataclass_ setparams $topclass_ 1 0.65 auto 2 1 0
+
+	# (topclass_ doesn't have a queue)
+	set cbq_qtype_ DropTail
+	$self make_queue $vidclass_
+	$self make_queue $audioclass_
+	$self make_queue $dataclass_
 }
 
 TestSuite instproc insert_flat { cbqlink } {
@@ -109,7 +118,6 @@ TestSuite instproc create_twoagency { } {
 	$self instvar cbqalgorithm_
 	$self instvar topClass_ topAClass_ topBClass_
 
-	set Mbps 1.5
 	set topClass_ [new CBQClass]
 	set topAClass_ [new CBQClass]
 	set topBClass_ [new CBQClass]
@@ -117,9 +125,9 @@ TestSuite instproc create_twoagency { } {
 	if { $cbqalgorithm_ == "ancestor-only" } { 
 		# For Ancestor-Only link-sharing. 
 		# Maxidle should be smaller for AO link-sharing.
-		$topClass_ setparams none 0 0.97 auto 8 2 0;# Mbps 1.5
-		$topAClass_ setparams $topClass 1 0.69 auto 8 1 0;# Mbps: 1.5
-		$topBClass_ setparams $topClass 1 0.29 auto 8 1 0; # Mbps: 1.5
+		$topClass_ setparams none 0 0.97 auto 8 3 0
+		$topAClass_ setparams $topClass 1 0.69 auto 8 2 0
+		$topBClass_ setparams $topClass 1 0.29 auto 8 2 0
 	} else if { $cbqalgorithm_ == "top-level" } {
 		# For Top-Level link-sharing?
 		# borrowing from $topAClass_ is occuring before from $topClass
@@ -127,27 +135,27 @@ TestSuite instproc create_twoagency { } {
 		# Goes green borrow from $topClass_ or from $topAClass?
 		# When $topBClass_ is unsatisfied, there is no borrowing from
 		#  $topClass_ until a packet is sent from the yellow class.
-		$topClass_ setparams none 0 0.97 0.001 8 2 0; #Mbps: 0
-		$topAClass_ setparams $topClass 1 0.69 auto 8 1 0;# 1.5 Mbps
-		$topBClass_ setparams $topClass 1 0.29 auto 8 1 0;#  1.5 Mbpx
+		$topClass_ setparams none 0 0.97 0.001 8 3 0
+		$topAClass_ setparams $topClass 1 0.69 auto 8 2 0
+		$topBClass_ setparams $topClass 1 0.29 auto 8 2 0
 	} else if { $cbqalgorithm_ == "formal" } {
 		# For Formal link-sharing
 		# The allocated bandwidth can be exact for parent classes.
-		$topClass_ setparams none 0 1.0 1.0 8 2 0;# 0
-		$topAClass_ setparams $topClass 1 0.7 1.0 8 1 0;# 0
-		$topBClass_ setparams $topClass 1 0.3 1.0 8 1 0;# 0
+		$topClass_ setparams none 0 1.0 1.0 8 3 0
+		$topAClass_ setparams $topClass 1 0.7 1.0 8 2 0
+		$topBClass_ setparams $topClass 1 0.3 1.0 8 2 0
 	}
 
 	$self instvar vidAClass_ vidBClass_ dataAClass_ dataBClass_
 
 	set vidAClass_ [new CBQClass]
-	$vidAClass_ setparams $topAClass 1 0.3 auto 1 0 0;# $Mbps
+	$vidAClass_ setparams $topAClass 1 0.3 auto 1 1 0
 	set dataAClass_ [new CBQClass]
- 	$dataAClass_ setparams $topAClass 1 0.4 auto 2 0 0;# $Mbps
+ 	$dataAClass_ setparams $topAClass 1 0.4 auto 2 1 0
  	set vidBClass_ [new CBQClass]
- 	$vidBClass_ setparams $topBClass 1 0.1 auto 1 0 0;# $Mbps
+ 	$vidBClass_ setparams $topBClass 1 0.1 auto 1 1 0
  	set dataBClass_ [new CBQClass]
- 	$dataBClass_ setparams $topBClass 1 0.2 auto 2 0 0;# $Mbps
+ 	$dataBClass_ setparams $topBClass 1 0.2 auto 2 1 0
 }
 
 TestSuite instproc insert_twoAgency { cbqlink } {
@@ -173,41 +181,32 @@ TestSuite instproc insert_twoAgency { cbqlink } {
 # display graph of results
 TestSuite instproc finish testname {
 
-puts "running FINISH (cbq)"
-
-	set awkCode  {
+	set awkCode  { {
 	  if ($1 == "maxbytes") maxbytes = $2;
-	  if ($2 == class) print $1, $3/maxbytes >> "temp.t"; 
-	}
-	set awkCodeAll { 
-	  if ($2 == class) { print time, sum >> "temp.t"; sum = 0; }
+	  if ($2 == class) print $1, $3/maxbytes > "temp.t"; 
+	} }
+	set awkCodeAll { { 
+	  if ($2 == class) { print time, sum > "temp.t"; sum = 0; }
 	  if ($1 == "maxbytes") maxbytes = $2;
 	  sum += $3/maxbytes;
 	  if (NF==3) time = $1; else time = 0;
-	}
+	} }
 
 	set f [open temp.rands w]
 	puts $f "TitleText: $testname"
 	puts $f "Device: Postscript"
 	
+	foreach i { 1 2 3 4 } {
+		exec rm -f temp.p temp.t
+		exec touch temp.p temp.t
+		exec awk $awkCode class=$i temp.s 
+		exec cat temp.t >> temp.p
+		exec echo " " >> temp.p
+		exec mv temp.t temp.$i
+	}
+
 	exec rm -f temp.p temp.t
 	exec touch temp.p temp.t
-	exec awk $awkCode class=1 temp.s 
-	exec cat temp.t >> temp.p
-	exec echo " " >> temp.p
-	exec mv temp.t temp.1
-	exec awk $awkCode class=2 temp.s 
-	exec cat temp.t >> temp.p
-	exec echo " " >> temp.p
-	exec mv temp.t temp.2
-	exec awk $awkCode class=3 temp.s 
-	exec cat temp.t >> temp.p
-	exec echo " " >> temp.p
-	exec mv temp.t temp.3
-	exec awk $awkCode class=4 temp.s 
-	exec cat temp.t >> temp.p
-	exec echo " " >> temp.p
-	exec mv temp.t temp.4
 	exec awk $awkCodeAll class=1 temp.s 
 	exec cat temp.t >> temp.p 
 	exec echo " " >> temp.p  
@@ -230,7 +229,8 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 	$self instvar ns_
 
 	TestSuite instproc cdump { lnk interval file }  {
-	  global oldbytes1 oldbytes2 oldbytes3 oldbytes4
+	  $self instvar oldbytes1 oldbytes2 oldbytes3 oldbytes4
+	  $self instvar ns_
 	  set timenow [$ns_ now]
 	  set bytes1 [$lnk stat 1 bytes]
 	  set bytes2 [$lnk stat 2 bytes]
@@ -246,7 +246,7 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 	  set oldbytes2 $bytes2
 	  set oldbytes3 $bytes3
 	  set oldbytes4 $bytes4
-	  $ns_ at [expr $timenow + $interval] "cdump $lnk $interval $file"
+	  $ns_ at [expr $timenow + $interval] "$self cdump $lnk $interval $file"
 	}
 	set oldbytes1 0
 	set oldbytes2 0
@@ -255,10 +255,10 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 
 	set f [open temp.s w]
 	puts $f "maxbytes $maxBytes"
-	$ns_ at 0.0 "cdump $linkno $interval $f"
+	$ns_ at 0.0 "$self cdump $linkno $interval $f"
 	$ns_ at $stopTime "close $f"
 
-	TestSuite inst proc cdumpdel { lnk file }  {
+	TestSuite instproc cdumpdel { lnk file }  {
 	  set timenow [$ns_ now]
 	  # format: time, class, delay
 	  puts $file "$timenow 1 [$lnk stat 1 mean-qdelay]"
@@ -355,7 +355,7 @@ Test/WRR instproc init topo {
 	set net_ $topo
 	set defNet_ cbq1-wrr
 	set test_ CBQ_WRR
-	$self next; # call ctor for TestSuite now
+	$self next 0; # call ctor for TestSuite now
 }
 
 #
@@ -366,11 +366,14 @@ Test/WRR instproc run {} {
 	$self instvar cbqalgorithm_ ns_ net_ topo_
 	set cbqalgorithm_ top-level
 	set stopTime 28.1
+	set maxbytes 187500
 
+	$topo_ instvar cbqlink_
 	$self create_flat
-	$self insert_flat [$topo_ set cbqlink_]
+	$self insert_flat $cbqlink_
 	$self three_cbrs
 
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
 	$self openTrace $stopTime CBQ_WRR
 
 	$ns_ run
