@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.23 2000/03/23 00:02:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.24 2000/05/12 21:37:03 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -769,6 +769,80 @@ Test/slow instproc run {} {
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+
+
+Class Test/twoDrops -superclass TestSuite
+Test/twoDrops instproc init {} {
+    $self instvar net_ test_ drops_ stopTime1_
+    set net_	net2
+    set test_	twoDrops
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    set drops_ " 2 3 "
+    set stopTime1_ 5.0
+    $self next
+}
+
+Class Test/manyDrops -superclass TestSuite 
+Test/manyDrops instproc init {} { 
+    $self instvar net_ test_ drops_ stopTime1_
+    set net_    net2
+    set test_   manyDrops 
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    set stopTime1_ 100.0
+    set drops_ " 0 1 "
+    Test/manyDrops instproc run {} [Test/twoDrops info instbody run ]
+    $self next
+}
+
+Test/twoDrops instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ drops_ stopTime1_
+    $self setTopo
+    set interval_ 1
+    set stopTime $stopTime1_
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set em [new ErrorModule Fid]
+    set lossylink_ [$ns_ link $node_(r1) $node_(r2)]
+    $lossylink_ errormodule $em
+    $em default pass
+    set emod [$lossylink_ errormodule]
+    set errmodel [new ErrorModel/List]
+    $errmodel unit pkt
+    $errmodel droplist $drops_
+    $emod insert $errmodel
+    $emod bind $errmodel 0
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $ns_ at 0.0 "$tf1 start"
+
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
