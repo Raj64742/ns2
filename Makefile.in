@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.96 1998/02/12 03:52:53 padmanab Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.97 1998/02/19 00:04:17 kfall Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -147,7 +147,8 @@ OBJ_EMULATE_CC = \
 	emulate/net-ip.o \
 	emulate/net.o \
 	emulate/tap.o \
-	emulate/net-pcap.o
+	emulate/net-pcap.o \
+	emulate/ether.o
 
 OBJ_EMULATE_C = \
 	emulate/inet.o
