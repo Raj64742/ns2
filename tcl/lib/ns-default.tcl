@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.157 1999/07/01 00:08:43 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.158 1999/07/02 00:40:43 haoboy Exp $
 
 
 #
@@ -510,4 +510,4 @@ Agent/RAP set kxrtt_ 0.01
 Agent/RAP set debugEnable_ 0
 Agent/RAP set rap_base_hdr_size_ 44
 Agent/RAP set dpthresh_ 50
-
+Agent/RAP instproc done {} { }
