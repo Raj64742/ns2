@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.22 1999/01/07 20:15:07 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.23 1999/01/07 20:46:35 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -151,6 +151,26 @@ TestSuite instproc create_flat3 { rootbw rootmaxidle } {
 	set dataclass_ [new CBQClass]
 	$self make_queue $dataclass_ $qlim
 	$dataclass_ setparams $topclass_ true 0.99 auto 2 1 0
+}
+
+TestSuite instproc create_flat4 { rootbw rootmaxidle } {
+	$self instvar topclass_ audioclass_ dataclass_
+	$self instvar cbq_qtype_
+
+	set qlim 20
+	set cbq_qtype_ DropTail
+
+	set topclass_ [new CBQClass]
+	# (topclass_ doesn't have a queue)
+	$topclass_ setparams none false $rootbw $rootmaxidle 8 2 0
+
+	set audioclass_ [new CBQClass]
+	$self make_queue $audioclass_ $qlim
+	$audioclass_ setparams $topclass_ true 0.01 auto 1 1 0
+
+	set dataclass_ [new CBQClass]
+	$self make_queue $dataclass_ $qlim
+	$dataclass_ setparams $topclass_ true 0.99 auto 1 1 0
 }
 
 TestSuite instproc insert_flat2 cbqlink {
@@ -1118,6 +1138,43 @@ Test/TwoDynamic instproc run {} {
 
         $ns_ at 2.0 "$audioclass_ newallot 0.4; $dataclass_ newallot 0.6"
         $ns_ at 5.0 "$audioclass_ newallot 0.2; $dataclass_ newallot 0.8"
+
+        $ns_ run
+}
+
+#
+# This tests the dynamic allocation of bandwidth to classes.
+# For this test the two classes have the same priority level.
+#
+Class Test/TwoDynamic1 -superclass TestSuite
+Test/TwoDynamic1 instproc init topo { 
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_TwoDynamic1
+        $self next 0
+} 
+Test/TwoDynamic1 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        $self instvar topclass_ audioclass_ dataclass_
+
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+
+        $topo_ instvar cbqlink_ 
+        $self create_flat4 1.0 auto
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0
+        $self make_fmon $cbqlink_
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+
+        $self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+        $self openTrace $stopTime CBQ_TwoDynamic1
+
+        $ns_ at 2.0 "$audioclass_ newallot 0.4; $dataclass_ newallot 0.6"
+        $ns_ at 4.0 "$audioclass_ newallot 0.2; $dataclass_ newallot 0.8"
+	$ns_ at 6.0 "$audioclass_ newallot 0.8; $dataclass_ newallot 0.8"
 
         $ns_ run
 }
