@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.38 1997/07/21 19:30:54 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.39 1997/07/22 00:34:48 kfall Exp $
 
 
 #
@@ -213,14 +213,6 @@ QueueMonitor/ED/Flow set dst_ -1
 QueueMonitor/ED/Flow set flowid_ -1
 
 Agent set class_ 0
-
-Agent/TCPSimple set t_seqno_ 0
-Agent/TCPSimple set dupacks_ 0
-Agent/TCPSimple set packetSize_ 1000
-Agent/TCPSimple set seqno_ 0
-Agent/TCPSimple set ack_ 0
-Agent/TCPSimple set cwnd_ 1
-Agent/TCPSimple set window_ 20
 
 Traffic/Expoo set burst-time .5
 Traffic/Expoo set idle-time .5
