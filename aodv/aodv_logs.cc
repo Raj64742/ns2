@@ -1,6 +1,6 @@
 /* 
    aodv_logs.cc
-   $Id: aodv_logs.cc,v 1.1 1999/09/30 20:30:07 yaxu Exp $
+   $Id: aodv_logs.cc,v 1.2 2001/05/21 19:29:36 haldar Exp $
    */
 
 #include <aodv/aodv.h>
@@ -25,14 +25,14 @@ AODV::log_link_del(nsaddr_t dst)
          *  If "god" thinks that these two nodes are still
          *  reachable then this is an erroneous deletion.
          */
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "A %.9f _%d_ deleting LL hop to %d (delete %d is %s)",
                 CURRENT_TIME,
                 index,
                 dst,
                 ++link_del,
                 God::instance()->hops(index, dst) != 1 ? "VALID" : "INVALID");
-        logtarget->dump();
+        logtarget->pt_->dump();
 }
 
 
@@ -44,7 +44,7 @@ AODV::log_link_broke(Packet *p)
 
         if(! logtarget || ! verbose) return;
 
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "A %.9f _%d_ LL unable to deliver packet %d to %d (%d) (reason = %d, ifqlen = %d)",
                 CURRENT_TIME,
                 index,
@@ -53,7 +53,7 @@ AODV::log_link_broke(Packet *p)
                 ++link_broke,
                 ch->xmit_reason_,
                 ifqueue->length());
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 void
@@ -69,13 +69,13 @@ AODV::log_link_kept(nsaddr_t dst)
          *  unreachable, then we are erroneously keeping
          *  a bad route.
          */
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "A %.9f _%d_ keeping LL hop to %d (keep %d is %s)",
                 CURRENT_TIME,
                 index,
                 dst,
                 ++link_kept,
                 God::instance()->hops(index, dst) == 1 ? "VALID" : "INVALID");
-        logtarget->dump();
+        logtarget->pt_->dump();
 }
 
