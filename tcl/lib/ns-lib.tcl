@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.134 1998/12/16 23:03:20 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.135 1998/12/22 23:38:56 haoboy Exp $
 
 #
 
@@ -47,7 +47,7 @@ proc warn msg {
 	global warned_
 	if ![info exists warned_($msg)] {
 		puts stderr $msg
-		set warned($msg) 1
+		set warned_($msg) 1
 	}
 }
 
