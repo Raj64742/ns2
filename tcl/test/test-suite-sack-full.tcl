@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.1 2001/07/11 00:05:55 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.2 2001/07/17 19:01:46 kfall Exp $
 #
 
 source misc_simple.tcl
@@ -375,9 +375,10 @@ Test/sack5a instproc run {} {
     $ns_ delay $node_(r1) $node_(s1) 3ms
 
     [$self makeproto s1 k1 50 0 FTP 1.0] set bugFix_ false
-    [$self makeproto s2 k1 50 1 FTP 1.75] set bugFix_ false
+    set tcp2 [$self makeproto s2 k1 50 1 none -1]
+    $tcp2 set bugFix_ false
 
-    $ns_ at 1.0 "$ftp1 start"
+    set ftp2 [$tcp2 attach-app FTP]
     $ns_ at 1.75 "$ftp2 produce 100"
 
     # trace only the bottleneck link
