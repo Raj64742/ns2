@@ -1,5 +1,3 @@
-.\".\"
-.\" @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/ns.1,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)
 .\"
 .\" Copyright (c) 1994-1995 Regents of the University of California.
 .\" All rights reserved.
@@ -32,7 +30,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.TH NS 1 "28 Jul 1995"
+.TH NS 1 "24 June 1997"
 .de HD
 .sp 1.5
 .B
@@ -51,239 +49,480 @@ ns \- network simulator
 .ad
 
 .SH DESCRIPTION
+
+.I ns 
+is an event-driven network simulator.
+An extensible simulation engine 
+is implemented in C++ 
+that uses MIT's Object Tool Command Language, OTcl
+(an object oriented version of Tcl)
+as the command and configuration interface.
+A previous version of the simulator 
+i.e. ns version 1 used
+the Tool Command Language, Tcl 
+as the configuration language.
+The current version supports
+simulation scripts written in Tcl
+meant for the ns version 1 simulator.
 .LP
-WARNING: THIS MAN PAGE REFLECT NS VERSION 1 AND IS OUT OF
-DATE WITH THE CURRENT RELEASE.
-.LP
+The simulator is invoked via the
 .I ns
-is an event-driven network simulator embedded into the Tool Command Language,
-.I Tcl(1).
-An extensible simulation engine is implemented in C++ and is configured
-and controlled via a Tcl interface.  The simulator is invoked via
-the
-.I ns
-interpreter, which is an extension of the vanilla
-.I tclsh(1)
+interpreter, an extension of the vanilla
+.I otclsh
 command shell.
-All interaction with the interpreter is via a single, new Tcl
-procedure, ``ns''.
-.LP
-A simulation is defined by a Tcl program.  Using the ns command,
-a network topology is defined, traffic sources and sinks are
-configured, statistics are collected, and the simulation is invoked.
+A simulation is defined by a OTcl script.
+The scripts use the Simulator Class
+as the principal interface 
+to the simulation engine.
+Using the methods defined in this class, 
+a network topology is defined, 
+traffic sources and sinks are configured, 
+the simulation is invoked,
+and the statistics are collected.
 By building upon a fully functional language, arbitrary actions
-can be programmed into the configuration.  The 
-.I ns at
-command allows Tcl procedures to be invoked at arbitrary points
-in simulation time.  These Tcl callbacks provide a flexible
-simulation mechanism --- they can be used to start or stop sources, dump
-statistics, instantiate link failures, reconfigure the
-network topology, etc.
+can be programmed into the configuration.  
 .LP
-A network topology is realized using three primitive building blocks:
-nodes, links, and agents.  Nodes are created with the
-.I ns node
-command and arranged in a network topology with the
-.I ns link
-command.
-Nodes are passive objects which act as containers for
-.I agents,
-the objects that actively drive the simulation.  Each node
-has an automatically-generated, unique address.
-Traffic sources
-and sinks and dynamic routing modules are examples of agents.
-The
-.I ns agent
-command is used to create an agent at a certain node.
-.LP
-The
-.I ns agent,
-.I ns node,
+The first step in the simulation 
+is to acquire
+an instance of the Simulator class
+(In case multicast routing is to be enabled
+an instance of the MultiSim class is
+to be obtained instead.
+The MultiSim class derives from 
+the Simulator class and contains
+additional methods and configuration parameters
+specific to multicast routing.)
+Instances of objects in classes 
+are created and destroyed in ns using the
+.I new
 and
-.I ns link
-commands all create new objects
-and return a procedure that is used to access the object, in the
-spirit of 
-.I Tk(1)
-widgets.
-Once an object is created, it can be manipulated in an object-oriented
-fashion using the new procedure.  For example, we might create
-a tcp agent using this command:
+.I delete
+methods.
+For example, 
+an instance of the Simulator object is
+created by the following command:
+.nf
+
+	e.g. set ns [new Simulator]
+
+.fi
+A network topology is realized 
+using three primitive building blocks:
+nodes, links, and agents.  
+The Simulator class has methods to create/
+configure each of these building blocks.
+Nodes are created with the
+.I node
+Simulator method
+that automatically assigns
+an unique address to each node.
+Links are created between nodes
+to form a network topology with the
+.I simplex-link 
+and 
+.I duplex-link
+methods that set up 
+unidirectional and bidirectional links respectively.
+Agents are the objects that
+actively drive the simulation.
+.I Agents 
+can be thought of as the
+processes and/or transport entities that
+run on 
+.I nodes
+that may be end hosts or routers.
+Traffic sources
+and sinks, dynamic routing modules
+and the various protocol modules
+are all examples of agents.
+Agents are created by
+instantiating objects 
+in the subclass of class Agent i.e., 
+.I Agent/type
+where type specifies 
+the nature of the agent.
+For example a TCP agent
+is created using the command:
 .br
 .nf
 
-	set tcpSource [ns agent tcp ...]
+	set tcp [new Agent/TCP]
 
 .fi
-Then, object attributes can be set by invoking the agent in
-this manner:
-.br
-.nf
-
-	$tcpSource set window-size 25
-
-.fi
-Each agent has a collection of such configuration parameters that
-can be modified as above either before a simulation begins,
-or dynamically, while the simulation is in progress.
-If a parameter is not explicitly set, it defaults to a
-value stored in a global Tcl array.
+.LP
+Once the agents are created,
+they are
+attached to nodes
+with the 
+.I attach-agent
+Simulator method.
+Each agent is automatically assigned a port number unique across
+all agents on a given node (analogous to a tcp or udp port).
+Some types of agents may
+have sources attached to them 
+while others may generate their own data.  
+For example, 
+you can attach ``ftp'' and ``telnet'' sources
+to ``tcp'' agents 
+but ``constant bit-rate'' agents generate their own data.
+Sources are attached to agents
+using the
+.I attach-source
+and
+.I attach-traffic
+agent methods.
+.LP
+Each object has
+some configuration parameters associated with it
+that can be modified.
+Configuration parameters are 
+instance variables of the object.
+These parameters are initialized
+during startup to default values
+that can simply be read from the 
+instance variables of the object.
 For example,
-.I ns_tcp(window-size)
-contains the default window size for tcp objects.
-A set of defaults are built into the 
-.I ns
-interpreter and can be explicitly overridden by simple assignment.
+.I $tcp set window_
+returns the default window size for the tcp object.
+The default values for that object
+can be explicitly overridden by simple assignment
+either before a simulation begins,
+or dynamically, while the simulation is in progress.
+For example the window-size for a particular TCP session 
+can be changed in the
+following manner.
+.br
+.nf
+
+	$tcp set window_ 25
+
+.fi
+The default values for the 
+configuration parameters
+of all the class objects
+subsequently created
+can also be changed by simple assignment.
 For example, we can say
 .br
 .nf
 
-	set ns_tcp(window-size) 30
+	Agent/TCP set window_ 30
 
 .fi
 to make all future tcp agent creations default to a window size of 30.
 .LP
-Once a topology is defined, agents are attached to nodes.
-Agents are the objects that actually produce and
-consume packets.
-Each agent is automatically assigned a port number unique across
-all agents on a given node (analogous to a tcp or udp port).
-.I Links
-can be thought of as the physical transmission links,
-.I nodes
-as end hosts and routers, and
-.I agents
-as transport entities and/or
-processes that run on end hosts.  Some types of agents may
-have sources attached to them while others may generate their
-own data.  For example, you can attach ``ftp'' and ``telnet'' sources
-to ``tcp'' agents but ``constant bit-rate'' agents generate their own data.
-.LP
+Events are scheduled in ns
+using the
+.I at
+Simulator method
+that allows OTcl procedures to be invoked
+at arbitrary points in simulation time.
+These OTcl callbacks provide a flexible simulation
+mechanism -- they can be used to start or stop
+sources, dump statistics, instantiate link failures,
+reconfigure the network topology etc.
 The simulation is run via the
-.I ns run
-command, and continues until there are no more
-events to be processed.  For example, a traffic source might
-be started at time 0 and stopped at time 10 (using the
-.I ns at
-command).  Once all traffic sources are stopped, all pending
-packets will be eventually
-delivered and no more events will remain.  At this time,
+.I run
+method, and continues until there are no more
+events to be processed.
+At this time,
 the original invocation of the
-.I ns run
-command returns and the Tcl script can exit or invoke another
+.I run
+command returns 
+and the Tcl script can exit or invoke another
 simulation run after possible reconfiguration.
-Alternatively, the simulation can be prematurely halted by invoking the
-.I ns stop
+Alternatively, the simulation can be prematurely halted 
+by invoking the
+.I stop
 command or by exiting the script with Tcl's standard
 .I exit
 command.
 .LP
 Packets are forwarded along the shortest path route from
 a source to a destination, where the distance metric is
-simply the hop count.
-If the network topology changes
-during the simulation, routes are recomputed instantaneously --
-i.e., the routing protocol is not simulated.
-Reverse-path forwarding trees are similarly computed
-for multicast routing.
+the sum of costs of the links traversed from
+the source to the destination.
+The cost of a link defaults to 1;
+the distance metric is
+simply the hop count
+in this case.
+The cost of a link is changed with the
+.I cost
+Simulator method.
+A static topology model
+is used as the default in ns
+in which
+the states of nodes/links
+do not change during the course of a simulation.
+Network Dynamics could be specified
+using methods described in NETWORK DYNAMICS METHODS section.
+Also static routing is the default 
+in which the routes are pre-computed over the
+entire topology once prior to
+starting the simulation.
+Methods to enable dynamic unicast routing
+are described in the UNICAST ROUTING METHODS section.
+If multicast routing is used,
+the default is to compute
+reverse-path forwarding trees ???.
+Methods to enable and
+configure multicast routing
+are described in MULTICAST ROUTING METHODS section.
+
 .SH "NS COMMANDS"
-There are two classes of Tcl procedures used to manipulate
-the simulation: the core
-.I ns
-commands and the object commands.  All of the core
-commands are invoked by the
-.I ns
-Tcl procedure while the object commands are invoked
-indirectly on objects that are created with the core commands,
-.I ns node,
-.I ns link,
-.I ns agent,
-and
-.I ns trace.
-This section describes the core commands.
-.IP "\fBns agent\fI type node\fP"
-Create an agent of type
-.I type
-and attach to node
-.I node.  
-.I node
-must
-already have been created with a link command.
-.I type
-identifies the type of agent to create:
-.nf
 
-    tcp               - BSD Tahoe TCP
-    tcp-reno          - BSD Reno TCP
-    tcp-newreno       - a modified version of BSD Reno TCP
-    tcp-sack1         - BSD Reno TCP with selective ACKs
-    tcp-sink          - a standard TCP sink
-    tcp-sink-da       - a TCP sink that generates delayed ACKs
-    sack1-tcp-sink    - a TCP sink that generates selective ACKs
-    sack1-tcp-sink-da - a delayed-ack TCP sink with selective ACKs
-    cbr               - a constant bit rate traffic source
-    loss-monitor      - a CBR sink that reports losses
+This section describes the commands 
+to create the basic building blocks 
+of the simulation
+i.e. the node, link and agent objects 
+as well as the basic commands 
+to run the simulation.
+.LP
+The first step in running a simulation
+as stated before 
+is to acquire an instance of the
+Simulator or MultiSim class 
+depending on whether
+multicast delivery
+is to be enabled.
+Throughout this section 
+the object variable name $ns 
+is used to imply a 
+Simulator/MultiSim object
 
-.fi
-.IP "\fBns node\fP"
-Create a new node and return the Tcl procedure name of
-the corresponding object.
-.IP "\fBns link\fI node1 node2 type\fP"
-Create a new link between
+.IP "\fB$ns node\fP"
+Create a new node object and return a handle to it.
+
+.IP "\fB$ns all-nodes-list\fP"
+Returns a list of all the node objects defined in the simulation.
+
+.IP "\fB$ns simplex-link\fI node1 node2 Bandwidth type\fP"
+Create a new unidirectional link from
 .I node1
-and
+to
 .I node2
-and return the Tcl procedure name of the corresponding object.
+with the 
+.I bandwidth 
+specified in bits per second.
 .I node1
 and
 .I node2
 must have already been created with the
-.I ns node
-command.
-A link is unidirectional -- bidirectional links are
-composed from two unidirectional links.
+.I node
+method.
 The queuing discipline of the link is specified by
 .I type,
 which may be
-.B drop-tail,
-.B red,
+.B DropTail,
+.B FQ,
+.B SFQ,
+.B RED,
+.B CBQ,
 or 
-.B cbq.
-A drop-tail link is a simple FIFO queue which drops the last packet
+.B CBQ/WRR.
+A DropTail link is a simple FIFO queue which drops the last packet
 in the queue when the queue overflows.
-A red link is a random-early drop queue (for details see [2]).
-A cbq link is for class-based queueing (for details see [3]).
-The bandwidth and delay attributes of the link (among others) are set
-using the returned object (see OBJECT COMMANDS section).  A helper
-procedure, ns_duplex, is defined to facilitate building point-to-point
-links (see BUILTINS section).
-.IP "\fBns link\fP"
-Return a list of the names of all the link objects that have
-been created.
-.IP "\fBns link\fI node1 node2\fP"
-Return the name of the link object that connects
+A FQ link is for Fair Queuing (for details see [?]).
+A SFQ link is for Stochastic Fair Queuing (for details see [?]).
+A RED link is a random-early drop queue (for details see [2]).
+A CBQ link is for class-based queuing (for details see [3]).
+A CBQ/WRR link is for class-based queuing with weighted round robin ???
+Some multicast routing protocols 
+require links with interface labels.
+Such links are created by setting NumberInterfaces_ Simulator variable to 1.
+All the subsequently created links will have interface labels.
+To disable creation of interfaces simply reset NumberInterfaces_ to 0
+(this is the default).
+
+.IP "\fB$ns duplex-link\fI node1 node2 Bandwidth type\fP"
+Create a new bidirectional link between
 .I node1
 and
 .I node2
-(there may be only one such object -- multiply connected nodes
-are handled by a single aggregate link object (not yet implemented).
-.IP "\fBns at\fI time proc\fP"
-Evaluate the Tcl code
-.I proc
+with the 
+.I bandwidth 
+specified in bits per second.
+.I node1
+and
+.I node2
+must have already been created with the
+.I node
+method.
+The queuing discipline of the link is specified by
+.I type,
+which may be
+.B DropTail,
+.B FQ
+.B SFQ,
+.B RED,
+.B CBQ,
+or 
+.B CBQ/WRR.
+A DropTail link is a simple FIFO queue which drops the last packet
+in the queue when the queue overflows.
+A FQ link is for Fair Queuing (for details see [?]).
+A SFQ link is for Stochastic Fair Queuing (for details see [?]).
+A RED link is a random-early drop queue (for details see [2]).
+A CBQ link is for class-based queuing (for details see [3]).
+A CBQ/WRR link is for class-based queuing with weighted round robin ???
+Some multicast routing protocols 
+require links with interface labels.
+Such links are created by setting NumberInterfaces_ Simulator variable to 1.
+All the subsequently created links will have interface labels.
+To disable creation of interfaces simply reset NumberInterfaces_ to 0
+(this is the default).
+
+.IP "\fB$ns link\fI node1 node2\fP"
+Returns a reference to the link connecting nodes
+.I node1
+and
+.I node2.
+This is useful for 
+setting link configuration parameters
+and to invoke tracing methods (see LINK METHODS).
+
+.IP "\fB$ns queue-limit\fI node1 node2 queue-limit\fP"
+Set the maximum number of packets
+that can be queued on the link
+in the direction from
+.I node1
+to 
+.I node2
+to
+.I queue-limit.
+The link between node1 and node2
+should have already been created.
+
+.IP "\fB$ns delay\fI node1 node2 time-interval\fP"
+Set the latency of the link
+in the direction from
+.I node1
+to
+.I node2 
+to 
+.I time-interval
+seconds.
+The link between node1 and node2
+should have already been created.
+
+.IP "\fB$ns cost \fI node1 node2 cost-val\fP"
+Assign the cost
+.I cost-val
+to the link between nodes
+.I node1
+and
+.I node2.
+The costs assigned to links
+are used in route computations.
+All the links default
+to a cost of 1.
+
+.IP "\fBnew Agent/\fItype\fP"
+Create an Agent
+of type
+.I type
+which may be:
+.nf
+  Null                  - Traffic Sink
+  LossMonitor           - Traffic Sink that monitors loss parameters
+  TCPSimple             - TCP with basic slow-start and congestion avoidance
+  TCP                   - BSD Tahoe TCP
+  TCP/Reno              - BSD Reno TCP
+  TCP/Newreno           - a modified version of BSD Reno TCP
+  TCP/Sack1             - BSD Reno TCP with selective ACKs
+  TCPSink               - standard TCP sink
+  TCPSink/DelAck        - TCP sink that generates delayed ACKs
+  TCPSink/Sack1         - TCP sink that generates selective ACKs
+  TCPSink/Sack1/DelAck  - delayed-ack TCP sink with selective ACKs
+  CBR                   - constant bit rate traffic source
+  CBR/UDP               - UDP Transport
+  CBR/RTP               - RTP agent
+  Session/RTP           - 
+  RTCP                  - RTCP agent
+  IVS/Source            - 
+  IVS/Receiver          - 
+  SRM                   - 
+.fi
+The methods, configuration parameters 
+and the relevant state variables
+associated with these objects
+are discussed in detail in later sections.
+Note that some agents e.g. TCP or SRM
+do not generate their own data.
+Such agents need sources attached to them
+to generate data
+(see attach-source and attach-traffic methods 
+in AGENT OBJECTS section).
+
+.IP "\fB$ns attach-agent \fInode agent\fP"
+Attach the agent object
+.I agent
+to
+.I node.  
+The
+.I agent
+and
+.I node
+objects should have already been created.
+
+.IP "\fB$ns detach-agent \fInode agent\fP"
+Detach the agent object
+.I agent
+from
+.I node.
+
+.IP "\fB$ns connect \fIsrc dst\fP"
+Establish a two-way connection between the agent
+.I src
+and the agent
+.I dst.
+Returns the handle to
+.I src
+agent.
+Some helper methods
+have been defined to 
+facilitate creating agents, attaching
+them to nodes 
+and establishing connection between them
+(see BUILTINS section).
+
+.IP "\fB$ns use-scheduler \fItype\fP"
+Use an event scheduler of type
+.I type
+in the simulations.
+.I type
+is one of List, Heap, Calendar, RealTime.
+The List scheduler is the default. 
+A Heap scheduler uses a heap for event queueing.
+A Calendar scheduler uses a calendar queue to keep track of events.
+RealTime scheduler is used in emulation mode when the simulator
+interacts with an external agent.
+
+.IP "\fB$ns at\fI time procedure\fP"
+Evaluate
+.I procedure
 at simulation time
 .I time.
+The procedure could be a globally accessible function (proc) or an object
+method (instproc).
 This command can be used to dynamically reconfigure the simulator,
 dump statistics at specified intervals, start and stop sources, etc.
-.IP "\fBns now\fP"
+Returns an event id.
+
+.IP "\fB$ns cancel \fIeid\fP"
+Remove the event specified by the event id
+.I eid
+from the event queue.
+
+.IP "\fB$ns now\fP"
 Return the current simulation time.
-.IP "\fBns trace\fP"
-Create a new trace object and return it.  Trace objects are used
-to generate event level capture logs.  A trace can be bound either
-to a file, using a file identifier created with the standard Tcl 
-.I open
-command, or to a Tcl procedure so that arbitrary event logging
-can be carried out by the user script.
-.IP "\fBns random\fI [ seed ]\fP"
+
+.IP "\fBns-version\fP"
+Return a string identifying the version of ns currently running. 
+This method is executed in 
+the global context 
+by the interpreter.
+.IP "\fBns-random\fI [ seed ]\fP"
 If
 .I seed
 is not present,
@@ -295,189 +534,541 @@ If
 .I seed
 is 0, choose an initial seed heuristically (which varies
 on successive invocations).
-.IP "\fBns version\fP"
-Return a string identifying the version of ns currently running.
+This method is executed in
+the global context
+by the interpreter.
 
 .SH "OBJECT HIERARCHY"
-All ns simulation objects are derived from a single,
-generic object class.  Nested subclasses form a hierarchy
-where child objects implement a superset of their parent's
-functionality.
-Objects can be invoked as a Tcl procedure call, their
-configuration parameters can be dynamically set and queried,
-and their state variables can be queried (but not modified).
+
+A brief description of 
+the object hierarchy in
+.I ns
+is presented in this section.
+This description is
+not intended to be complete.
+It has been provided to depict
+how the methods and configuration parameters
+associated with the various objects
+are inherited.
+For more complete information
+see [ns internals document].
+.LP
+Objects are associated with 
+configuration parameters that can be
+dynamically set and queried,
+and state variables that can be queried 
+(usually modified only when the state variables need to be reset for
+another simulation run).
 .LP
 Configuration parameters represent simulation parameters
 that are usually fixed during the entire simulation (like a
 link bandwidth), but can be changed dynamically if desired.
 State variables represent values that are specific to a
 given object and that object's implementation.
-
+.LP
 The following diagram depicts the object hierarchy:
 .nf
-
-    generic
-        agent
-            tcp
-                tcp-reno
-                tcp-newreno
-                tcp-sack1
-            tcp-sink
-                tcp-sink-da
-                sack1-tcp-sink
-                    sack1-tcp-sink-da
-            cbr
-            loss-monitor
-        tcp-source
-            ftp
-            telnet
-            bursty
-        link
-            drop-tail
-            red
-            cbq
-                wrr-cbq
-        trace
-        node
-        class
+    Simulator
+          MultiSim
+    Node
+    Link
+          DropTail
+          FQ
+          SFQ
+          RED
+          CBQ
+          CBQ/WRR
+    QueueMonitor
+    rtObject
+    Agent
+          rtProto
+               Static
+               Session
+               DV 
+               Direct
+          Null
+          LossMonitor
+          TCPSimple
+          TCP
+               Reno
+               Newreno
+               Sack1
+          TCPSink
+               DelAck
+               Sack1
+                   DelAck
+          CBR
+               UDP
+               RTP
+          RTCP
+          IVS
+               Source
+               Receiver
+          SRM
+          Session
+               RTP [how is this diff from Agent/CBR/RTP]
+    Source
+          FTP
+    Traffic
+          Expoo
+          Pareto
+          Trace
+    Integrator
+    Samples
 .fi
 .LP
 For example, any method that is supported by a
-.I tcp
+.I TCP
 agent is also supported by a
-.I tcp-reno
+.I Reno
 or a
-.I tcp-sack1
+.I Sack1
 agent.
 Default configuration parameters are also inherited.
 For example, 
-.I ns_tcp(window)
+.I $tcp set window_ 20
+where $tcp is a TCP agent
 defines the default TCP window size for both
-.I tcp
+.I TCP
 and
-.I tcp-reno
+.I Reno
 objects.
 
 .SH "OBJECT METHODS"
-This section documents each command that may be executed on an object
-by invoking that object as a Tcl procedure call.
+The following sections document the methods, configuration parameters
+and state variables associated with the various objects 
+as well as those to enable
+Network dynamics, Unicast routing, Multicast routing and
+Trace and Monitoring support.
 The object class is specified implicitly by the object
-variable name in the description.   For example,
+variable name in the description.   
+For example,
 .B $tcp
 implies the tcp object class and all of its child classes, while
 .B $generic
 implies any object class.
 
-.IP "\fB$generic set\fI var value"
-Sets the member variable
-.I var
-of the generic object to
-.I value.
-This command behaves analogously to the Tcl
-.I set
-command, but the variables are private to each object
-and only the predefined configuration parameters can
-be set (i.e., new variables cannot be created).
-.IP "\fB$generic get\fI var"
-Return the current value of the parameter
-.I var
-that is private to the generic object.
-.I var
-is either a configuration parameter or a state variable
-of the generic object.
-.IP "\fB$generic trace\fI trace"
-Attach the trace identified by
-.I trace
-to the generic object.
-.I trace
-must be an identifier return by the
-.I ns trace
-command.
+.SH "NODE OBJECTS"
+.IP "\fB$node attach \fIagent\fP"
+Attach an agent of type
+.I agent
+to this node.
+.IP "\fB$node detach \fIagent\fP"
+Detach an agent of type
+.I agent
+from this node.
+.IP "\fB$node addr\fP"
+Return this node's address.
+.IP "\fB$node agent \fIport\fP"
+Return the Tcl object name of the agent attached to port
+.I port
+on this node.  Returns an empty string if the port is not in use.
+.IP "\fB$node reset \fIport\fP"
+Reset all agents attached to this node.
+This would re-initialize the state variables
+associated with the various agents
+at this node.
+.LP
+There are no state variables or configuration parameters
+specific to the node class.
 
-.SH "LINK METHODS"
-.IP "\fB$link reset\fP"
-Reset all internal statistics variables associated with this link.
-.IP "\fB$link integral\fI util|qsize|qlen"
-Return the integral over time of the utilization, queue size in bytes,
-or queue length in packets, according to the third argument.
-For example, the average queue delay at a give link can be computed
-by dividing the elapsed simulation time into
-.nf
+.SH "LINK OBJECTS"
+.LP
+Any configuration parameters or state variables?
 
-	expr "8 * [$link integral qsize] / [$link get bandwidth]"
-.fi
-.IP "\fB$link filter\fI src.sport dest.dport pkt"
-Drop the 
-.I pkt-th 
-packet seen from source
-.I src,
-port
-.I sport,
-with destination
-.I dest,
-port
-.I dport.
-(The last three arguments should be in quotes.)
-.IP "\fB$link stat\fI class type"
-Return a per-class statistic associated with this link.
-.I class
-identifies the traffic class of interest (all packets are assigned
-an integer class identifier which is determined by the
-.I class
-object variable that sourced the packet).
-.I type
-identifies the statistic of interest and may be one of:
-.I packets,
-.I bytes,
-.I drops,
-.I mean-qlen,
-or
-.I mean-qsize.
-.I packets,
-.I bytes,
-and
-.I drops
-give counts of the number of occurrences of each event for
-the given traffic class.
-.I mean-qlen
-gives the average number of packets in the queue on this link
-as seen by class
-.I class.
-Similarly,
-.I mean-qsize
-gives the average number of bytes in the queue.
+.SH "DROP-TAIL OBJECTS"
+Drop-tail objects are a subclass of link objects that implement simple
+FIFO queue.  There are no methods, configuration parameter,
+or state variables that are specific to drop-tail objects.
+
+.SH "FQ OBJECTS"
+FQ objects are a subclass of link objects that implement
+Fair queuing.  There are no object methods
+that are specific to FQ objects.
 .LP
 .HD
-Configuration Parameters \fI(ns_link)\fP
-.LP
+Configuration Parameters \fP
 .RS
-.IP \fIbandwidth\fP
-The bandwidth of the link, in bits per second.
-.IP \fIdelay\fP
-The latency of the link, in seconds.
-.IP \fIqueue-limit\fP
-The maximum number of packets that can be queued at the link.
+.IP \fIsecsPerByte_\fP
 .LP
-Default values for these parameters are stored
-the
-.I ns_link
-Tcl array, e.g., 
-.I ns_link(bandwidth),
-.I ns_link(delay),
-etc.
-.RE
+There are no state variables associated with this object.
+
+.SH "SFQ OBJECTS"
+SFQ objects are a subclass of link objects that implement
+Stochastic Fair queuing.  There are no object methods
+that are specific to SFQ objects.
+.LP
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fImaxqueue_\fP
+.IP \fIbuckets_\fP
+.LP
+There are no state variables associated with this object.
+
+.SH "RED OBJECTS"
+RED objects are a subclass of link objects that implement
+random early-drop queuing.  There are no object methods
+that are specific to RED objects.
+.LP
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fIbytes_\fP
+Set to "1" to measure the queue in bytes rather than in packets.
+.IP \fIqueue-in-bytes_\fP
+.IP \fIthresh_\fP
+The minimum threshold for the average queue size.
+.IP \fImaxthresh_\fP
+The maximum threshold for the average queue size.
+.IP \fImean_pktsize_\fP
+A rough estimate of the average packet size in bytes.  Used in updating
+the calculated average queue size after an idle period.
+.IP \fIq_weight_\fP
+The queue weight, used in the exponential-weighted moving average for
+calculating the average queue size.
+.IP \fIwait_\fP
+Set to true to maintain an interval between dropped packets.
+.IP \fIlinterm_\fP
+As the average queue size varies between "thresh" and "maxthresh",
+the packet dropping probability varies between 0 and "1/linterm".
+.IP \fIsetbit_\fP
+Set to true to set the congestion indication bit in packet headers 
+rather than drop packets.
+.IP \fIdrop-tail_\fP
+Set to true to use drop-tail rather than random-drop when the queue
+overflows.
+.IP \fIdoubleq_\fP
+Set to true to give priority to small packets.  The default is false.
+.IP \fIdqthresh_\fP
+The largest size in bytes of a "small" packet.  This is only used if
+"doubleq" is set to true.
+For a further explanation of these variables, see [2].
 .LP
 .HD
 State Variables
 .RS
-.IP \fIqueue-length\fP
-The current number of packets queued at this link.
-.IP \fIqueue-size\fP
-The current number of bytes in all packets queued at this link.
+None of the state variables of the RED implementation are accessible.
 .RE
-.SH "AGENT METHODS"
-.IP "\fB$agent addr\fP"
-Return the address of the node to which this agent is attached.
+
+.SH "CBQ OBJECTS"
+CBQ objects are a subclass of link objects that implement
+class-based queueing.
+.IP "\fB$cbq insert $class\fP"
+Insert traffic class
+.I class
+into the link-sharing structure associated with link object 
+.I cbq.
+.IP "\fB$cbq bind $cbqclass $id1 [$id2]\fP"
+Bind class ID
+.I $id1
+or a range if
+.I $id2
+is also specified
+to the traffic class
+.I class
+associated with link object
+.I cbq.
+.LP
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fIalgorithm_\fP
+Set to "0" for Ancestor-Only link-sharing, to "1" for Top-Level
+link-sharing, to "2" for Formal link-sharing.
+.IP \fImaxpkt_\fP
+Used in implementing weighted round-robin.
+
+.SH "CBQ/WRR OBJECTS"
+CBQ/WRR objects are a subclass of CBQ objects that implement
+weighted round-robin scheduling among classes of the same
+priority level.  In contrast, CBQ objects implement packet-by-packet
+round-robin scheduling among classes of the same priority level.
+
+.SH "CBQCLASS OBJECTS"
+CBQClass objects implement the traffic classes associated with CBQ objects. 
+.IP "\fB$cbqclass setparams \fIparent okborrow allot maxidle prio
+level xdelay\fP"
+.IP "\fB$cbqclass install-queue q\fP"
+.LP
+.HD
+Configuration Parameters \fP
+.RS 
+.IP \fIpriority_\fP
+The class's priority level for packet scheduling.  Priority-0 classes
+have the highest priority.
+.IP \fImaxidle_\fP
+Used in calculating the bandwidth used by the class.
+.IP \fIextradelay_\fP
+Used in delaying an overlimit class.
+.IP \fIlevel_\fP
+???
+.IP \fIdef_qtype_\fP
+.IP \fIokborrow_\fP
+For a further explanation of the CBQ variables, see [5] and [6].
+
+.SH "DRR OBJECTS"
+.LP
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fIbuckets_\fP
+.IP \fIblimit_\fP
+.IP \fIquantum_\fP
+.IP \fImask_\fP
+
+.SH "QUEUEMONITOR Objects"
+QueueMonitor Objects are used to monitor
+queue statistics like average queue size etc.
+[see TRACE AND MONITORING METHODS].
+.IP "\fB$queuemonitor set-delay-samples \fIdelaySamp_\fP"
+Set up the Samples object
+.I delaySamp_
+to record statistics about queue delays.
+.I delaySamp_
+is a handle to a Samples object 
+i.e the Samples object should have already been created.
+.IP "\fB$queuemonitor get-bytes-integrator\fP"
+Returns an Integrator object
+that can be used to find the integral of the queue size in bytes.
+(see Integrator Objects section).
+.IP "\fB$queuemonitor get-pkts-integrator \fP"
+Returns an Integrator object
+that can be used to find the integral of the queue size in packets.
+(see Integrator Objects section).
+.IP "\fB$queuemonitor get-delay-samples\fP"
+Returns a Samples object
+.I delaySamp_
+to record statistics about queue delays
+(see Samples Objects section).
+There are no configuration parameters specific to this object.
+.LP
+.HD
+State Variables
+.LP
+.RS
+.IP \fIsize_\fP
+Instantaneous queue size in bytes.
+.IP \fIpkts_\fP
+Instantaneous queue size in packets.
+.IP \fIparrivals_\fP
+Running total of packets that have arrived.
+.IP \fIbarrivals_\fP
+Running total of bytes contained in packets that have arrived.
+.IP \fIpdepartures_\fP
+Running total of packets that have departed.
+.IP \fIbdepartures_\fP
+Running total of bytes contained in packets that have departed.
+.IP \fIpdrops_\fP
+Total number of packets dropped.
+.IP \fIbdrops_\fP
+Total number of bytes dropped.
+.IP \fIbytesInt_\fP
+Integrator object that computes
+the integral of the queue size in bytes. 
+The
+.I sum_
+variable of this object has the running sum (integral)
+of the queue size in bytes.
+.IP \fIpktsInt_\fP
+Integrator object that computes
+the integral of the queue size in packets. 
+The
+.I sum_
+variable of this object has the running sum (integral)
+of the queue size in packets.
+.RE
+
+.SH "NETWORK DYNAMICS METHODS"
+This section describes methods
+to make the
+links and nodes 
+in the topology
+change between up and down states
+according to various distributions.
+A dynamic routing protocol should
+be used whenever 
+a simulation is to be done
+with network dynamics.
+Note that a static topology model
+is the default in ns.
+
+.IP "\fB$ns rtmodel \fImodel model-params node1 [node2]\fP"
+Make the link between
+.I node1
+and
+.I node2
+change between up and down states
+according to the model
+.I model.
+In case only
+.I node1
+is specified all the links 
+incident on the node
+would be brought up and down
+according to the specified
+.I model.
+.I model-params
+contains the parameters required for the relevant model
+and is to be specified as a list
+i.e. the parameters are to be 
+enclosed in curly brackets.
+.I model
+can be one of
+.I Deterministic,
+.I Exponential,
+.I Manual,
+.I Trace.
+Returns a handle to a model object
+corresponding to the specified
+.I model.
+
+In the Deterministic model
+.I model-params
+is
+.I [start-time] up-interval down-interval [finish-time].
+Starting from
+.I start-time
+the link is made up for
+.I up-interval
+and down for
+.I down-interval
+till
+.I finish-time
+is reached.
+The default values for
+start-time, up-interval, down-interval
+are 0.5s, 2.0s, 1.0s respectively.
+finish-time defaults to the end of the simulation.
+The start-time defaults to 0.5s
+in order to let the
+routing protocol computation quiesce.
+
+If the Exponential model is used
+.I model-params
+is of the form
+.I up-interval down-interval
+where the link up-time
+is an exponential distribution
+around the mean
+.I up-interval
+and the link down-time
+is an exponential distribution
+around the mean
+.I down-interval.
+Default values for
+.I up-interval
+and
+.I down-interval
+are 10s and 1s respectively.
+
+If the Manual distribution is used
+.I model-params 
+is
+.I at op
+where
+.I at
+specifies the time at which the operation
+.I op
+should occur.
+.I op
+is one of
+.I up, down.
+Alternately the Manual distribution 
+can be specified using the 
+.I rtmodel-at 
+method described next.
+
+If Trace is specified as the
+.I model
+the link/node dynamics
+is read from a Tracefile.
+The
+.I model-params
+argument would in this case
+be the file-handle of the
+Tracefile that has
+the dynamics information.
+The tracefile format is identical
+to the trace output generated by
+the trace-dynamics link method
+(see TRACE AND MONITORING METHODS SECTION).
+
+.IP "\fB$ns rtmodel-delete \fImodel-handle\fP"
+Delete the instance of
+the route model specified by
+.I model-handle.
+
+.IP "\fB$ns rtmodel-at \fIat op node1 [node2]\fP"
+Used to specify the up and down times
+of the link between nodes
+.I node1
+and 
+.I node2.
+If only
+.I node1
+is given all the links
+incident on 
+.I node1
+will be brought up and down.
+.I at
+is the time
+at which 
+the operation
+.I op
+that can be either
+.I up
+or
+.I down
+is to be performed
+on the specified link(s).
+
+.SH "UNICAST ROUTING METHODS"
+A dynamic unicast routing protocol
+can be specified to run
+on a subset of nodes in the topology.
+Note that a dynamic routing protocol should
+be generally used whenever 
+a simulation is done
+with network dynamics.
+
+.IP "\fB$ns rtproto \fIproto node-list\fP"
+Specifies the dynamic unicast routing protocol
+.I proto 
+to be run on the nodes specified by
+.I node-list.
+Currently
+.I proto
+can be one of
+Static, Session, DV.
+Static routing is the default.
+Session implies
+that the unicast routes
+over the entire topology
+are instantaneously recomputed
+whenever a link goes up or down.
+DV implies that a 
+simple distance vector routing protocol
+is to be simulated.
+.I node-list
+defaults to all the nodes in the topology.
+
+.IP "\fB$ns compute-routes\fP"
+Compute routes between all the nodes in the topology.
+This can be used if static routing is used
+and the routes have to be recomputed
+because the state of a link has changed.
+Note that Session routing (see 
+.I rtproto 
+method above)
+will recompute routes automatically whenever
+the state of any link in the topology changes.
+
+.SH "MULTICAST ROUTING METHODS"
+
+TBD AFTER MULTICAST API STANDARDIZED
+
+.SH "AGENT OBJECTS"
 .IP "\fB$agent port\fP"
 Return the transport-level port of the agent.
 Ports are used to identify agents within a node.
@@ -485,6 +1076,32 @@ Ports are used to identify agents within a node.
 Return the address of the node this agent is connected to.
 .IP "\fB$agent dst-port\fP"
 Return the port that this agent is connected to.
+.IP "\fB$agent attach-source \fItype\fP"
+Install a data source
+of type
+.I type
+in this agent.
+.I type
+is one of FTP or bursty[???].
+See the corresponding object methods
+for information on configuration parameters.
+Returns the name of the Tcl object that corresponds to
+the new source.
+.IP "\fB$agent attach-traffic \fItraffic-object\fP"
+Attach
+.I traffic-object
+to this agent
+.I traffic-object
+is an instance of 
+Traffic/Expoo, Traffic/Pareto or Traffic/Trace.
+Traffic/Expoo generates traffic based on 
+an Exponential On/Off distribution.
+Traffic/Pareto generates traffic based on
+a Pareto On/Off distribution.
+Traffic/Trace generates traffic from a trace file.
+The relevant configuration parameters for 
+each of the above objects can be 
+found in the TRAFFIC METHODS section.
 .IP "\fB$agent join\fI group\fP"
 Add this agent to the multicast host group identified by the address
 .I group.
@@ -502,198 +1119,126 @@ a tcp-source/tcp-sink pair as opposed a cbr/tcp-sink pair).
 Otherwise, the results of the simulation are unpredictable.
 .LP
 .HD
-Configuration Parameters \fI(ns_agent)\fP
+Configuration Parameters \fP
 .RS
-.IP \fIclass\fP
-The traffic class of packets generated from this agent.
-Traffic classes can be used for aggregating (or separating)
-flows for statistical data reduction and are also used
-by the CBQ (class-based queuing) module.  For example,
-in a TCP simulation, you might assign a different traffic
-class to each connection.
-.RE
-.LP
-.HD
-State Variables
-.RS
+.IP \fIdst_\fP
+Address of destination that the agent is connected to. Currently 32
+bits with the higher 24 bits the destination node ID and the
+lower 8 bits being the port number.
 .LP
 There are no state variables specific to the generic agent class.
 .RE
 
-.SH "NODE METHODS"
-.IP "\fB$node addr\fP"
-Return this node's address.
-.IP "\fB$node agent \fIport\fP"
-Return the Tcl object name of the agent attached to port
-.I port
-on this node.  Returns an empty string if the port is not in use.
-.LP
-There are no state variables or configuration parameters
-specific to the node class.
+.SH "NULL OBJECTS"
+Null objects are a subclass of agent objects that 
+simply implement a traffic sink.
+They inherit all of the generic agent object functionality.
+There are no methods, configuration parameters or state variables
+specific to this object.
 
-.SH "DROP-TAIL OBJECTS"
-Drop-tail objects are a subclass of link objects that implement simple
-FIFO queue.  There are no methods, configuration parameter,
-or state variables that are specific to drop-tail objects.
-
-.SH "RED OBJECTS"
-RED objects are a subclass of link objects that implement
-random early-drop queuing.  There are no object methods
-that are specific to RED objects.
+.SH "LOSSMONITOR OBJECTS"
+LossMonitor objects are a subclass of agent objects 
+that implement a traffic sink which also maintains some 
+statistics about the received data e.g.,
+number of bytes received, number of packets lost etc.
+They inherit all of the generic agent object functionality.
+.IP "\fB$lossmonitor clear\fP"
+Resets the expected sequence number to -1.
 .LP
 .HD
-Configuration Parameters \fI(ns_red)\fP
-.RS
-.IP \fIbytes\fP
-Set to "1" to measure the queue in bytes rather than in packets.
-.IP \fIthresh\fP
-The minimum threshold for the average queue size.
-.IP \fImaxthresh\fP
-The maximum threshold for the average queue size.
-.IP \fImean_pktsize\fP
-A rough estimate of the average packet size in bytes.  Used in updating
-the calculated average queue size after an idle period.
-.IP \fIq_weight\fP
-The queue weight, used in the exponential-weighted moving average for
-calculating the average queue size.
-.IP \fIwait\fP
-Set to true to maintain an interval between dropped packets.
-.IP \fIlinterm\fP
-As the average queue size varies between "thresh" and "maxthresh",
-the packet dropping probability varies between 0 and "1/linterm".
-.IP \fIsetbit\fP
-Set to true to set the congestion indication bit in packet headers 
-rather than drop packets.
-.IP \fIdrop-tail\fP
-Set to true to use drop-tail rather than random-drop when the queue
-overflows.
-.IP \fIdoubleq\fP
-Set to true to give priority to small packets.  The default is false.
-.IP \fIdqthresh\fP
-The largest size in bytes of a "small" packet.  This is only used if
-"doubleq" is set to true.
-
-For a further explanation of these variables, see [2].
-
+Configuration Parameters \fP
 .LP
-.HD
-State Variables
 .RS
-None of the state variables of the RED implementation are accessible.
+There are no configuration parameters specific to this object.
+.RE
+.HD
+State Variables \fP
+.LP
+.RS
+.IP \fInlost_\fP
+Number of packets lost.
+.IP \fInpkts_\fP
+Number of packets received.
+.IP \fIbytes_\fP
+Number of bytes received.
+.IP \fIlastPktTime_\fP
+Time at which the last packet was received.
+.IP \fIexpected_\fP
+The expected sequence number of the next packet.
 .RE
 
-.SH "CBQ OBJECTS"
-CBQ objects are a subclass of link objects that implement
-class-based queueing.
-.IP "\fB$cbq insert $class\fP"
-Insert traffic class
-.I class
-into the link-sharing structure associated with link object 
-.I cbq.
-.IP "\fB$cbq bind $class $classID\fP"
-Bind class ID
-.I classID
-to the traffic class
-.I 
-class
-associated with link object
-.I cbq.
+.SH "TCPSIMPLE OBJECTS"
+TCPSimple objects are a subclass of agent objects that implement the
+TCP transport protocol with the basic slow start and congestion
+avoidance algorithms. They do not implement fast retransmit and fast
+recovery modifications to the congestion avoidance algorithms They
+inherit all of the generic agent functionality.
+.IP "\fB$tcpsimple opencwnd\fP"
+Increase the congestion window, cwnd_ to (cwnd_ + 1.0)/cwnd_ .
+.IP "\fB$tcpsimple closecwnd\fP"
+Reduce the congestion window by half.
 .LP
 .HD
-Configuration Parameters \fI(ns_cbq)\fP
+Configuration Parameters \fP
 .RS
-.IP \fIalgorithm\fP
-Set to "0" for Ancestor-Only link-sharing, to "1" for Top-Level
-link-sharing, to "2" for Formal link-sharing.
-.IP \fImax-pktsize\fP
-Used in implementing weighted round-robin.
-
-.SH "WRR-CBQ OBJECTS"
-WRR-CBQ objects are a subclass of CBQ objects that implement
-weighted round-robin scheduling among classes of the same
-priority level.  In contrast, CBQ objects implement packet-by-packet
-round-robin scheduling among classes of the same priority level.
-
-.SH "CLASS OBJECTS"
-CLASS objects implement the traffic classes associated with CBQ objects. 
-.IP "\fB$class1 parent $class2\fP"
-Assign traffic class
-.I class2
-as the parent class of the traffic class 
-.I class1. 
-The root class should have parent class "none".
-.IP "\fB$class1 borrow $class2\fP"
-Assign traffic class
-.I class2
-as the class to borrow bandwidth from
-for the traffic class 
-.I class1.  
-A class that is not allowed to borrow bandwidth should have
-borrow class "none".
-
+.IP \fIt_seqno_\fP
+.IP \fIpacketSize_\fP
+The size in bytes to use for all packets from this source.
+.IP \fIwindow_\fP
+The upper bound on the advertised window for the TCP connection.
+.RE
+.LP  
+.HD 
+State Variables
+.RS
 .LP
-.HD
-Configuration Parameters \fI(ns_class)\fP
-.RS 
-.IP \fIpriority\fP
-The class's priority level for packet scheduling.  Priority-0 classes
-have the highest priority.
-.IP \fIdepth\fP
-Used for the Top-Level link-sharing algorithm.  Leaf classes have
-"depth=0".
-.IP \fIallotment\fP
-The link-sharing bandwidth allocated to the class, given as a fraction of the 
-link bandwidth.
-.IP \fImaxidle\fP
-Used in calculating the bandwidth used by the class.
-.IP \fIminidle\fP
-Used in calculating the bandwidth used by the class.
-.IP \fIextradelay\fP
-Used in delaying an overlimit class.
-
-For a further explanation of the CBQ variables, see [5] and [6].
+.IP \fIdupacks_\fP
+Number of duplicate acks seen since any new data was acknowledged.
+.IP \fIseqno_\fP
+Current position in the sequence space (can move backwards).
+.IP \fIack_\fP
+Highest acknowledgment seen from receiver.
+.IP \fIcwnd_\fP
+Current value of the congestion window.
+.RE
 
 .SH "TCP OBJECTS"
 TCP objects are a subclass of agent objects that implement the
 BSD Tahoe TCP transport protocol.  They inherit all of the 
 generic agent functionality.
-.IP "\fB$tcp source \fIftp|telnet|bursty\fP"
-Install a data source of the type indicated in the tcp agent.
-Returns the name of the Tcl object that corresponds to
-the new source.
 .LP
 .HD
-Configuration Parameters \fI(ns_tcp)\fP
+Configuration Parameters \fP
 .RS
-.IP \fIwindow\fP
+.IP \fIwindow_\fP
 The upper bound on the advertised window for the TCP connection.
-.IP \fIwindow-init\fP
+.IP \fIwindowInit_\fP
 The initial size of the congestion window on slow-start.
-.IP \fIwindow-option\fP
+.IP \fIwindowOption_\fP
 The algorithm to use for managing the congestion window.
-.IP \fIwindow-thresh\fP
+.IP \fIwindowThresh_\fP
 Gain constant to exponential averaging filter used to compute
 .I awnd
 (see below).
 For investigations of different window-increase algorithms.
-.IP \fIoverhead\fP
+.IP \fIoverhead_\fP
 The range of a uniform random variable used to delay each output
 packet.  The idea is to insert random delays at the source
 in order to avoid phase effects, when desired [4].  
 This has only been implemented for the Tahoe ("tcp") version of tcp, not
 for tcp-reno.  This is not intended to be a 
 realistic model of CPU processing overhead.
-.IP \fIecn\fP
+.IP \fIecn_\fP
 Set to true to use explicit congestion notification in addition
 to packet drops to signal congestion.
-.IP \fIpacket-size\fP
+.IP \fIpacketSize_\fP
 The size in bytes to use for all packets from this source.
-.IP \fItcp-tick\fP 
+.IP \fItcpTick_\fP 
 The TCP clock granularity for measuring roundtrip times.
-.IP \fIbug-fix\fP
+.IP \fIbugFix_\fP
 Set to true to remove a bug when multiple fast retransmits are allowed
 for packets dropped in a single window of data.
-.IP \fImaxburst\fP
+.IP \fImaxburst_\fP
 Set to zero to ignore.  Otherwise, the maximum number of packets that
 the source can send in response to a single incoming ACK.
 .IP \fIMWS\fP
@@ -711,129 +1256,303 @@ to a configuration parameter in a future release.)
 State Variables
 .RS
 .LP
-.IP \fIdupacks\fP
+.IP \fIdupacks_\fP
 Number of duplicate acks seen since any new data was acknowledged.
-.IP \fIseqno\fP
+.IP \fIseqno_\fP
 Current position in the sequence space (can move backwards).
-.IP \fIack\fP
+.IP \fIack_\fP
 Highest acknowledgment seen from receiver.
-.IP \fIcwnd\fP
+.IP \fIcwnd_\fP
 Current value of the congestion window.
-.IP \fIawnd\fP
+.IP \fIawnd_\fP
 Current value of a low-pass filtered version of the congestion window.
 For investigations of different window-increase algorithms.
-.IP \fIssthresh\fP
+.IP \fIssthresh_\fP
 Current value of the slow-start threshold.
-.IP \fIrtt\fP
+.IP \fIrtt_\fP
 Round-trip time estimate.
-.IP \fIsrtt\fP
+.IP \fIsrtt_\fP
 Smoothed round-trip time estimate.
-.IP \fIrttvar\fP
+.IP \fIrttvar_\fP
 Round-trip time mean deviation estimate.
-.IP \fIbackoff\fP
+.IP \fIbackoff_\fP
 Round-trip time exponential backoff constant.
 .RE
 
-.SH "SOURCE OBJECTS"
-Source objects create data for a transport object to send
-(e.g., TCP).
-.IP "\fB$source start\fP"
-Causes the source to start producing an unbounded amount of data.
-.IP "\fB$source produce \fIn\fP"
-Causes the source to produce exactly
-.I n
-packets instantaneously.
+.SH "TCP/RENO OBJECTS"
+TCP/Reno objects are a subclass of TCP objects that implement the
+Reno TCP transport protocol.
+There are no methods, configuration parameters or state variables
+specific to this object (?).
 .RE
 
-.HD
-Configuration Parameters \fI(ns_source)\fP
+.SH "TCP/NEWRENO OBJECTS"
+TCP/Newreno objects are a subclass of TCP objects that implement 
+a modified version of the Reno TCP transport protocol (?).
+There are no methods state variables
+specific to this object (?).
+Configuration Parameters \fP
 .LP
 .RS
-.IP \fImaxpkts\fP
-The maximum number of packets generated by the source.
+.IP \fInewreno_changes_\fP
 .RE
 
-.SH "TCP-SINK OBJECTS"
-Tcp-sink objects are a subclass of agent objects that implement 
+.SH "TCP/SACK1 OBJECTS"
+TCP/Sack1 objects are a subclass of TCP objects that implement 
+the (Tahoe or Reno?) TCP transport protocol with Selective
+Acknowledgement Extensions.  
+They inherit all of the TCP object functionality (?).
+There are no methods, configuration parameters or state variables
+specific to this object (?).
+
+.SH "TCPSINK OBJECTS"
+TCPSink objects are a subclass of agent objects that implement 
 a receiver for TCP packets.
 The simulator only implements "one-way" TCP connections, where the
 TCP source sends data packets and the TCP sink sends ACK packets.
-Tcp-sink objects inherit all of the generic agent functionality.
-There are no methods or state variables specific to the tcp-sink object.
+TCPSink objects inherit all of the generic agent functionality.
+There are no methods or state variables specific to the TCPSink object.
 .HD
-Configuration Parameters \fI(ns_sink)\fP
+Configuration Parameters \fP
 .LP
 .RS
-.IP \fIpacket-size\fP
+.IP \fIpacketSize_\fP
 The size in bytes to use for all acknowledgment packets.
+.IP \fImaxSackBlocks_\fP
+Should this go in TCPSink/Sack1?
 .RE
 
-.SH "TCP-SINK-DA OBJECTS"
-Tcp-sink-da objects are a subclass of tcp-sink that implement
+.SH "TCPSINK/DELACK OBJECTS"
+DelAck objects are a subclass of TCPSink that implement
 a delayed-ACK receiver for TCP packets.
-They inherit all of the tcp-sink object functionality.
-There are no methods or state variables specific to the tcp-sink-da object.
+They inherit all of the TCPSink object functionality.
+There are no methods or state variables specific to the DelAck object.
 .HD
-Configuration Parameters \fI(ns_delsink)\fP
+Configuration Parameters \fP
 .LP
 .RS
-.IP \fIinterval\fP
+.IP \fIinterval_\fP
+The amount of time to delay before generating an acknowledgment
+for a single packet.  If another packet arrives before this
+time expires, generate an acknowledgment immediately.
+.RE
+
+.SH "TCPSINK/SACK1 OBJECTS"
+TCPSink/Sack1 objects are a subclass of TCPSink that implement
+a SACK receiver for TCP packets.
+They inherit all of the TCPSink object functionality.
+There are no methods, configuration parameters or state variables
+specific to this object.
+
+.SH "TCPSINK/SACK1/DELACK OBJECTS"
+TCPSink/Sack1/DelAck objects are a subclass of TCPSink/Sack1 that implement
+a delayed-SACK receiver for TCP packets.
+They inherit all of the TCPSink/Sack1 object functionality.
+There are no methods or state variables specific to this object.
+.HD
+Configuration Parameters \fP
+.LP
+.RS
+.IP \fIinterval_\fP
 The amount of time to delay before generating an acknowledgment
 for a single packet.  If another packet arrives before this
 time expires, generate an acknowledgment immediately.
 .RE
 
 .SH "CONSTANT BIT-RATE OBJECTS"
-Cbr objects generate packets at a constant bit rate.
+CBR objects generate packets at a constant bit rate.
 They inherit all of the generic agent functionality.
-There are no state variables specific to the cbr class.
 .IP "\fB$cbr start\fP"
 Causes the source to start generating packets.
 .IP "\fB$cbr stop\fP"
 Causes the source to stop generating packets.
 .LP
 .HD
-Configuration Parameters \fI(ns_cbr)\fP
+Configuration Parameters 
 .LP
 .RS
-.IP \fIinterval\fP
+.IP \fIinterval_\fP
 The amount of time to delay between packet transmission times.
-.IP \fIpacket-size\fP
+.IP \fIpacketSize_\fP
 The size in bytes to use for all packets from this source.
+.IP \fIrandom_\fP
 .RE
 
-.SH "TRACE OBJECTS"
-Trace objects are used to generate event level capture logs, either
-directly to an output file, indirectly through a Tcl procedure,
-or both.
-There are no state variables or configuration parameters
-specific to the trace class.
-.IP "\fB$trace attach \fIfileID\fP"
-Attach a file to a trace object so that events are written to the
-indicated file.
+.SH "FTP SOURCE OBJECTS"
+FTP source objects create data for a transport object to send
+(e.g., TCP). Other source objects are being developed [???].
+.IP "\fB$ftp start\fP"
+Causes the source to start producing an unbounded amount of data.
+.IP "\fB$ftp produce \fIn\fP"
+Causes the source to produce exactly
+.I n
+packets instantaneously.
+.RE
+.HD
+Configuration Parameters \fP
+.LP
+.RS
+.IP \fImaxpkts\fP
+The maximum number of packets generated by the source.
+.RE
+
+.SH "TELNET SOURCE OBJECTS"
+TO BE DONE
+
+.SH "TRAFFIC OBJECTS"
+Traffic objects create data for a transport protocol to send.
+Currently traffic objects can be attached only to UDP transport.
+A Traffic object is created by instantiating an object of class
+Traffic/
+.I type
+where
+.I type
+is one of Expoo, Pareto, Trace.
+Traffic/Expoo objects are for generating Exponential On/Off distributions.
+Traffic/Pareto objects are for generating Pareto On/Off distributions.
+Traffic/Trace objects are for generating traffic using a trace file.
+
+.SH "TRAFFIC/EXPOO OBJECTS"
+.HD
+Configuration Parameters \fP
+.LP
+.RS
+.IP \fIpacket-size\fP
+The packet size in bytes.
+.IP \fIburst-time\fP
+Burst duration in seconds.
+.IP \fIidle-time\fP
+Idle time in seconds.
+.IP \fIrate\fP
+Peak rate in bytes per second.
+
+.SH "TRAFFIC/PARETO OBJECTS"
+.HD
+Configuration Parameters \fP
+.LP
+.RS
+.IP \fIpacket-size\fP
+The packet size in bytes.
+.IP \fIburst-time\fP
+Average on time in seconds.
+.IP \fIidle-time\fP
+Average off time in seconds.
+.IP \fIrate\fP
+Peak rate in bytes per second.
+.IP \fIshape\fP
+Pareto shape parameter.
+
+.SH "TRAFFIC/TRACE OBJECTS"
+This object is used to generate traffic from a trace file.
+.IP "\fB$trace attach-tracefile \fItfile\fP"
+Attach the Tracefile object
+.I tfile
+to this trace.
+The Tracefile object
+specifies the trace file
+from which the traffic data is to be read
+(see TRACEFILE OBJECTS section).
+.LP
+There are no configuration parameters for this object.
+
+.SH "TRACEFILE OBJECTS"
+This object is used to specify the 
+trace file that is to be used 
+for generating traffic (see TRAFFIC/TRACE OBJECTS section).
+$tracefile is an instance of the Tracefile Object.
+.IP "\fB$tracefile filename \fItrace-input\fP"
+Set the filename from which
+the traffic trace data is to be read to
+.I trace-input.
+.LP
+There are no configuration parameters for this object. (Tracefile format?)
+
+.SH "TRACE AND MONITORING METHODS"
+Trace objects are used to generate event level capture logs typically
+to an output file. 
+Throughout this section $ns 
+refers to a Simulator/MultiSim object.
+
+.IP "\fB$ns create-trace \fItype fileID node1 node2\fP"
+Create a Trace object of type
+.I type
+and attach the filehandle
+.I fileID
+to it to monitor the
+queues between nodes
+.I node1
+and
+.I node2.
+.I type
+can be one of
+Enque, Deque, Drop.
+Enque monitors packet arrival at a queue.
+Deque monitors packet departure at a queue.
+Drop monitors packet drops at a queue.
 .I fileID
 must be a file handle returned by the Tcl
 .I open
-command and it must have been open for writing.
-.IP "\fB$trace detach\fP"
-Detach any attached file indicated from the trace object.
-Events will no longer be logged to this file.
-.IP "\fB$trace callback \fIproc\fP"
-Arrange for the Tcl procedure
-.I proc
-to be called for every event logged by the trace object.
-Both the Tcl callback and an attached file may be
-simultaneously active.
-.I proc
-is called with a single argument, which consists of a Tcl list
-representing the captured event.  Be warned that invoking
-the Tcl interpreter on each event like this will substantially
-slow down the simulation.  If
-.I proc
-is an empty string, cancel the callback.
+command and it must have been opened for writing.
+Returns a handle to the trace object.
+
+.IP "\fB$ns drop-trace \fInode1 node2 trace\fP"
+Remove trace object attached to
+the link between nodes
+.I node1
+and
+.I node2
+with 
+.I trace
+as the object handle.
+
+.IP "\fB$ns trace-queue \fInode1 node2 fileID\fP"
+Enable Enque, Deque and Drop
+tracing on the link between
+.I node1
+and
+.I node2.
+
+.IP "\fB$ns trace-all \fIfileID\fP"
+Enable Enque, Deque, Drop Tracing 
+on all the links in the topology
+created after this method is invoked.
+Also enables the tracing of network dynamics.
+.I fileID
+must be a file handle returned by the Tcl
+.I open
+command and it must have been opened for writing.
+
+.IP "\fB$ns monitor-queue \fInode1 node2\fP"
+Arrange for queue length of link
+between nodes
+.I node1
+and
+.I node2
+to be tracked.
+Returns QueueMonitor object that can be queried
+to learn average queue size etc.
+[see QueueMonitor Objects section]
+
+.IP "\fB$ns flush-trace\fP"
+Flush the output channels attached to all the trace objects.
+
+.IP "\fB$link trace-dynamics \fIns fileID\fP"
+Trace the dynamics of this link
+and write the output to
+.I fileID
+filehandle.
+.I ns
+is an instance of the Simulator or MultiSim object
+that was created to invoke the simulation.
 
 .LP
-Trace records for link objects have the following form:
+The tracefile format is backward compatible
+with the output files in the
+ns version 1 simulator
+so that ns-1 post-processing
+scripts can still be used.
+Trace records of traffic for link objects with Enque, Deque or Drop
+Tracing have the following form:
 .LP
 .RS
 .nf
@@ -849,14 +1568,23 @@ where
 <time> := simulation time in seconds
 <hsrc> := first node address of hop/queuing link
 <hdst> := second node address of hop/queuing link
-<packet> :=  <type> <size> <flags> <class> <src.sport> <dst.dport>
+<packet> :=  <type> <size> <flags> <flowID> <src.sport> <dst.dport> <seq> <pktID>
 <type> := tcp|telnet|cbr|ack etc.
 <size> := packet size in bytes
 <flags> := [CP]  C=congestion, P=priority
-<class> := class ID number
+<flowID> := flow identifier field as defined for IPv6
 <src.sport> := transport address (src=node,sport=agent)
 <dst.sport> := transport address (dst=node,dport=agent)
+<seq> := packet sequence number
+<pktID> := unique identifer for every new packet
 .fi
+
+Only those agents interested in
+providing sequencing will generate
+sequence numbers and hence
+this field may not be 
+useful for packets generated by some agents.
+
 .LP
 For links that use RED gateways,
 there are additional trace records as follows:
@@ -878,145 +1606,163 @@ where
 .fi 
 .RE
 
+.LP
+Trace records for link dynamics are of the form:
+.LP
+.RS
+.nf
+    <code> <time> <state> <src> <dst>
+.fi
+.RE
+.LP
+where
+.LP
+.RS
+.nf
+<code> := [v]
+<time> := simulation time in seconds
+<state> := [link-up | link-down]
+<src> := first node address of link
+<dst> := second node address of link
+.fi
+.RE
+
+.SH "INTEGRATOR Objects"
+Integrator Objects support the approximate computation
+of continuous integrals using discrete sums.
+The running sum(integral) is computed as:
+sum_ +=  [lasty_ * (x - lastx_)]
+where (x, y) is the last element entered and (lastx_, lasty_)
+was the element previous to that added to the sum.
+lastx_ and lasty_ are updated as new elements 
+are added.
+The first sample point defaults to (0,0)
+that can be changed by changing the values of (lastx_,lasty_).
+.IP "\fB$integrator newpoint \fIx y\fP"
+Add the point (x,y) to the sum.
+Note that it does not make sense for x to be less than lastx_.
+.LP
+There are no configuration parameters specific to this object.
+.LP
+.HD
+State Variables
+The following state variables can be reset at any time during the simulation.
+.LP
+.RS
+.IP \fIlastx_\fP
+x-coordinate of the last sample point.
+.IP \fIlasty_\fP
+y-coordinate of the last sample point.
+.IP \fIsum_\fP
+Running sum (i.e. the integral) of the sample points.
+
+.SH "SAMPLES Objects"
+Samples Objects support the computation of 
+mean and variance statistics for a given sample.
+.IP "\fB$samples mean\fP"
+Returns mean of the sample.
+.IP "\fB$samples variance\fP"
+Returns variance of the sample.
+.IP "\fB$samples cnt\fP"
+Returns a count of the sample points considered.
+.IP "\fB$samples reset\fP"
+Reset the Samples object to monitor a fresh set of samples.
+.LP
+There are no configuration parameters or state variables specific to
+this object. 
+
 .SH BUILTINS
 Because
-.I Tcl
+.I OTcl
 is a full-fledged programming language, it is easy to build
 high-level simulation constructs from the ns primitives.
 Several library routines have been built in this way, and
-are embedded into the ns interpreter (see the
-.I ns_default.tcl
-file in the distribution for the source code).
+are embedded into the ns interpreter
+as methods of the Simulator class.
+Throughout this section
+$ns represents a Simulator object.
 
-.IP "\fBns_connect \fIsrc sink\fP"
-Establish a two-way connection between the agent
-.I src
-and the agent
-.I sink.
-.IP "\fBns_duplex \fInode1 node2 bandwidth delay type\fP"
-Create a duplex link (i.e., two simplex links) between nodes
-.I node1
-and
-.I node2.
-The bandwidth and delay of each link is set to
-.I bandwidth
-and
-.I delay,
-respectively.
-Both links are of type
-.I type
-(e.g., drop-tail, red, etc.).
-Returns a two-element list containing the Tcl names of the
-two link objects.
-.IP "\fBns_create_connection \fIsrcType srcNode sinkType sinkNode class\fP
+.IP "\fB$ns create-connection \fIsrcType srcNode dstType dstNode class\fP
 Create a source agent of type
 .I srcType
 at node
 .I srcNode
-and connect it to a sink agent of type
-.I sinkType
+and connect it to a destination agent of type
+.I dstType
 at node
-.I sinkNode.
-Also, connect the sink agent to the source agent.
+.I dstNode.
+Also, connect the destination agent to the source agent.
 The traffic class of both agents is set to
 .I class.
-.IP "\fBns_create_cbr \fIsrcNode sinkNode pktSize interval class\fP
-Create a cbr source agent at node
-.I srcNode
-and connect it to a loss-monitor sink agent at node
-.I sinkNode.
-Also, connect the sink agent to the source agent.
-The traffic class of the source agent is set to
-.I class.
-The cbr source sends packets of size
-.I pktSize
-bytes at intervals of
-.I interval
-seconds.
-.IP "\fBns_create_class\fI class parent borrow allot maxIdle minIdle\fP 
-\fIpriority depth extraDelay\fP
-Set the parent class of the traffic class
-.I class
-to
-.I parent 
-and set the class for borrowing bandwidth to
-.I borrow.
-Set the 
-.I allotment,
-.I maxidle,
-.I minidle,
-.I priority,
-.I depth,
-and
-.I extradelay
-parameters to the indicated values.
+This method returns the source agent.
 
 .SH EXAMPLE
 .nf
+    set ns [new Simulator]
+
     #
-    # Create two nodes and connect them with a 1.5Mb link with a
-    # transmission delay of 10ms using FIFO drop-tail queuing
+    # Create two nodes 
     #
-    set n0 [ns node]
-    set n1 [ns node]
-    ns_duplex $n0 $n1 1.5Mb 10ms drop-tail
+    set n0 [$ns node]
+    set n1 [$ns node]
+
+    #
+    # Create a trace and arrange for all the trace events of the 
+    # links subsequently created to be dumped to "out.tr"
+    #
+    set f [open out.tr w]
+    $ns trace-all $f
+
+    #
+    # Connect the two nodes with a 1.5Mb link with a transmission
+    # delay of 10ms using FIFO drop-tail queuing
+    #
+    $ns duplex-link $n0 $n1 1.5Mb 10ms drop-tail
 
     #
     # Set up BSD Tahoe TCP connections in opposite directions.
     #
-    set src1 [ns agent tcp $n0]
-    set snk1 [ns agent tcp-sink $n1]
-    set src2 [ns agent tcp $n1]
-    set snk2 [ns agent tcp-sink $n0]
-    ns_connect $src1 $snk1
-    ns_connect $src2 $snk2
-    $src1 set class 1
-    $src2 set class 2
+    set tcp-src1 [new Agent/TCP]
+    set snk1 [new Agent/TCPSink]
+    set tcp-src2 [new Agent/TCP]
+    set snk2 [new Agent/TCPSink]
+    $ns connect $tcp-src1 $snk1
+    $ns connect $tcp-src2 $snk2
 
     #
     # Create ftp sources at the each node
     #
-    set ftp1 [$src1 source ftp]
-    set ftp2 [$src2 source ftp]
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
 
     #
     # Start up the first ftp at the time 0 and
     # the second ftp staggered 1 second later
     #
-    ns at 0.0 "$ftp1 start"
-    ns at 1.0 "$ftp2 start"
 
-    #
-    # Create a trace and arrange for all link
-    # events to be dumped to "out.tr"
-    #
-    set trace [ns trace]
-    $trace attach [open out.tr w]
-    foreach link [ns link] {
-            $link trace $trace
-    }
+    $ns at 0.0 "$ftp1 start"
+    $ns at 1.0 "$ftp2 start"
 
-    #
-    # Dump the queuing delay on the n0/n1 link
-    # to stdout every second of simulation time.
-    #
-    proc dump { link interval } {
-        ns at [expr [ns now] + $interval] "dump $link $interval"
-        set delay [expr 8 * [$link integral qsize] / [$link get bandwidth]]
-        puts "[ns now] delay=$delay"
-    }
-    ns at 0.0 "dump [ns link $n0 $n1] 1"
 
     #
     # run the simulation for 10 simulated seconds
     #
-    ns at 10.0 "exit 0"
-    ns run
+    $ns at 10.0 "exit 0"
+    $ns run
 .fi
 
 .SH DEBUGGING 
-To enable debugging when building ns from source, simply run
-``./configure --enable-debug'' before running ``make''. 
+To enable debugging when building ns from source:
+.nf
+    % ./configure --enable-debug
+    % make 
+.fi
+
+.SH DIFFERENCES FROM NS-1
+More complex objects in ns-1 have been broken down
+into simpler components for greater flexibility
+and composability.
+[SHOULD GIVE AN EXAMPLE]
 
 .SH HISTORY
 Work on the LBL Network Simulator began in May 1990 with modifications to
@@ -1085,8 +1831,9 @@ and Lawrence Berkeley National Laboratory, Berkeley, CA, and
 Sally Floyd (floyd@ee.lbl.gov)
 Lawrence Berkeley National Laboratory, Berkeley, CA.
 .SH BUGS
-Only a single trace can be attached to any given object.
 
-Several modules from tcpsim have not been ported over yet.
+Not all of the functionality supported in ns-1 has been ported to ns-2.
 
 This manual page is incomplete.
+
+
