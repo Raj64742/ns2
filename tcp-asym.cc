@@ -54,7 +54,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.10 1997/12/03 23:34:31 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.11 1998/01/21 05:43:27 padmanab Exp $ (UCB)";
 #endif
 
 #include "tcp-asym.h"
@@ -75,11 +75,11 @@ public:
 
 TcpAsymAgent::TcpAsymAgent() : TcpAgent(), ecn_to_echo_(0), t_exact_srtt_(0)
 {
-	bind("exact_srtt_", &t_exact_srtt_);
+/*	bind("exact_srtt_", &t_exact_srtt_);*/
 	bind("off_tcpasym_", &off_tcpasym_);
 	bind("g_", &g_);
 /*	bind("avg_win_", &avg_win_);*/
-	bind("damp_", &damp_);
+/*	bind("damp_", &damp_);*/
 }
 
 
