@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.6 1998/09/09 23:44:04 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.7 1999/10/18 22:46:15 salehi Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -103,7 +103,6 @@ int Network::command(int argc, const char*const* argv)
 			tcl.result(modename(mode_));
 			return (TCL_OK);
 		}
-		return (TCL_OK);
 	}
 	return (TclObject::command(argc, argv));
 }
