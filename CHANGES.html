@@ -2,11 +2,11 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; U; Linux 2.2.14-5.0 i686) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.75 [en] (X11; U; Linux 2.2.12 i386) [Netscape]">
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.437 2000/11/13 22:15:22 johnh Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.438 2000/11/18 23:53:27 ratul Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -15,72 +15,102 @@ with the most recent changes coming first.
 -->
 <hr>
 <h3>
-ns-2.1b8 release PENDING</h3>  
+ns-2.1b8 release PENDING</h3>
 
 <ul>
+<li>
+<b><a href="http://www.cs.washington.edu/homes/ratul">[ratul]</a></b> <b>Fri Nov 
+17 14:00:00 PST 2000</b></li>
 
-<li><b><a href="http://catarina.usc.edu/~haoboy">[haoboy]</a></b>
-	<b>Mon Nov 13 10:04:34 PST 2000</b><br>
-	Updated lib/dmalloc_support.cc for 4.7.1/4.8.0 (actually done 
-	long time ago, but log it now.)
-
-  <li>
-    <b><a href="mailto:mehringe@isi.edu">[John Mehringer]</a></b>
-     <b>Thu Nov 2 13:51:28 PST 2000</b>
-     <BR>Added patch from <A HREF="mailto:ehw@lanl.gov">Eric Weigle</A> for scheduler to use 64 bit integers when available.
-  </li>
+<ul>
+<li> Added RED-PD code to ns. RED-PD intorduces a pre-filter in front
+    of a RED queue to drop selected flows preferentially. 
+</li>
+<li> Added a preliminary version of Pushback code to ns. Pushback is
+    used to detect and control high bandwidth aggregates.
+</li>
+<li> Added a simple list structure in node.cc to help a Node keep a list
+    of neighbors. A similar list structure is present in mobile node I 
+    think, wonder if that can be brought down to base node.
+</li>
+</ul>
 
 <li>
-<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a></b> <b>
-Wed Nov  1 13:51:28 PST 2000
-</b></li>
-<br>Integrated diffserv module contributed from Nortel. The source files are 
-located at ns-2/diffserv; there are also some example scripts (ds-cbr-*.tcl) 
+<b><a href="http://catarina.usc.edu/~haoboy">[haoboy]</a></b> <b>Mon Nov
+13 10:04:34 PST 2000</b></li>
+
+<br>Updated lib/dmalloc_support.cc for 4.7.1/4.8.0 (actually done long
+time ago, but log it now.)
+<li>
+<b><a href="mailto:mehringe@isi.edu">[John Mehringer]</a></b> <b>Thu Nov
+2 13:51:28 PST 2000</b></li>
+
+<br>Added patch from <a href="mailto:ehw@lanl.gov">Eric Weigle</a> for
+scheduler to use 64 bit integers when available.
+<li>
+<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a></b> <b>Wed Nov
+1 13:51:28 PST 2000</b></li>
+
+<br>Integrated diffserv module contributed from Nortel. The source files
+are located at ns-2/diffserv; there are also some example scripts (ds-cbr-*.tcl)
 under ns-2/tcl/ex/diffserv.
-
 <li>
-<b><a href="http://www.tik.ee.ethz.ch/~huang">[PH]</a></b> <b>
-Fri Oct 20 14:18:48 CEST 2000</b></li>
+<b><a href="http://www.tik.ee.ethz.ch/~huang">[PH]</a></b> <b>Fri Oct 20
+14:18:48 CEST 2000</b></li>
+
 <br>Two bug fixes related to massive web traffic simulations:
 <ul>
-<li> memory leak fix in tcl/http/htto-mod.tcl for those still 
-using the old web traffic generator code
-<li> bug fix in ReassemblyQueue::add(), full-tcp.cc, according to
-Li Fan's <a href="http://www.isi.edu/nsnam/archive/ns-users/webarch/2000/msg00551.html">report</a> on 10 Feb 2000
+<li>
+memory leak fix in tcl/http/htto-mod.tcl for those still using the old
+web traffic generator code</li>
+
+<li>
+bug fix in ReassemblyQueue::add(), full-tcp.cc, according to Li Fan's <a href="http://www.isi.edu/nsnam/archive/ns-users/webarch/2000/msg00551.html">report</a>
+on 10 Feb 2000</li>
 </ul>
 </ul>
 
 <hr>
 <h3>
-<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b7a.tar.gz">
-ns-2.1b7a</a> released on Mon Oct 16 21:01:42 PDT 2000 </h3>
-
-<ul>
-  <li> <b><a href="http://www.isi.edu/~johnh/">[johnh]</a> Thu Nov  9 10:53:42 PST 2000</b><br>
-       ns-2.1b7a released 
-       by Haobo Yu, Ya Xu, and John Heidemann.
-       This release is exactly what was in ns-2.1b7 with these
-       bug fixes/enhancements:
-       <ul>
-	 <li> a bug in gen-map is fixed
-	 <li> a heap scheduler memory leak is fixed
-	 <li> nse should now build on FreeBSD and Linux
-	 <li> the allinone release should build cleanly on Solaris machines
-	 <li> allinone information about modifying PATH and LD_LIBRARY_PATH is now clarified
-       </ul>
-</ul>
-
-<hr>
-<h3>
-<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b7.tar.gz">
-ns-2.1b7</a> released on Mon Oct 16 21:01:42 PDT 2000 </h3>
+<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b7a.tar.gz">ns-2.1b7a</a>
+released on Mon Oct 16 21:01:42 PDT 2000</h3>
 
 <ul>
 <li>
-<b><a href="http://netweb.usc.edu/yaxu/">[yaxu]</a></b> <b>
-Mon Oct 16 21:01:42 PDT 2000 </b></li>
-ns 2.1b7 released
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a> Thu Nov 9 10:53:42
+PST 2000</b></li>
 
+<br>ns-2.1b7a released by Haobo Yu, Ya Xu, and John Heidemann. This release
+is exactly what was in ns-2.1b7 with these bug fixes/enhancements:
+<ul>
+<li>
+a bug in gen-map is fixed</li>
+
+<li>
+a heap scheduler memory leak is fixed</li>
+
+<li>
+nse should now build on FreeBSD and Linux</li>
+
+<li>
+the allinone release should build cleanly on Solaris machines</li>
+
+<li>
+allinone information about modifying PATH and LD_LIBRARY_PATH is now clarified</li>
+</ul>
+</ul>
+
+<hr>
+<h3>
+<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b7.tar.gz">ns-2.1b7</a>
+released on Mon Oct 16 21:01:42 PDT 2000</h3>
+
+<ul>
+<li>
+<b><a href="http://netweb.usc.edu/yaxu/">[yaxu]</a></b> <b>Mon Oct 16 21:01:42
+PDT 2000</b></li>
+
+<br>ns 2.1b7 released
 <li>
 <b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Fri Oct 13
 11:51:06 PDT 2000</b></li>
@@ -3086,6 +3116,8 @@ PDT 1997</b></li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Major Updates: SRM
 <ul>
 <li>
@@ -3314,6 +3346,8 @@ PDT 1997</b></li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Small change to conf/config.head.in to look for socket() rather than
 poll() when searching for the -lsocket library. Also a new version of the
 configure script based on this.
@@ -3323,6 +3357,8 @@ configure script based on this.
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
@@ -3784,6 +3820,7 @@ Added traffic generation modules to implement on/off sources with exponentially
 and pareto distributed on and off times, and a traffic generation module
 that is driven by a trace file. New files: trafgen.h, pareto.cc, expoo.cc,
 traffictrace.cc, traffictrace.h, udp.cc, udp.h.</li>
+
 <li>
 To support the pareto on/off source, added the function Random::pareto()
 to random.h.</li>
@@ -3797,34 +3834,34 @@ to random.h.</li>
 <li>
 CBQ is now part of the simulator</li>
 
-<p>Generally works.
+<p><br>Generally works.
 <li>
 ALL default queue sizes are now 50 [per ns-1 defaults]</li>
 
 <li>
 QueueMonitors now know the difference between</li>
 
-<p>drops, arrivals, and departures and can monitor these
+<p><br>drops, arrivals, and departures and can monitor these
 <li>
 new class called 'Samples' which collects samples</li>
 
-<p>points of something and can provide a mean and variance of the points
+<p><br>points of something and can provide a mean and variance of the points
 (see integrator.cc)
 <li>
 Queues can be flow controlled</li>
 
-<p>by forcing them to be blocked or unblocked as needed. Also it's possible
-to make it so that when they send a packet they become blocked rather than
-unblocked.
+<p><br>by forcing them to be blocked or unblocked as needed. Also it's
+possible to make it so that when they send a packet they become blocked
+rather than unblocked.
 <li>
 common packet header</li>
 
-<p>contains a timestamp field; this is used to compute queueing delay for
-individual packets at queues
+<p><br>contains a timestamp field; this is used to compute queueing delay
+for individual packets at queues
 <li>
 classifier-hash</li>
 
-<p>a classifier to identify 'flows' ... still in development, but presently
+<p><br>a classifier to identify 'flows' ... still in development, but presently
 used by cbq
 <li>
 bug fixes/mintor changes to red.cc, test-suite-red.tcl</li>
