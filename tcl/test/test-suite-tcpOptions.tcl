@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.14 2003/06/03 23:26:39 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.15 2003/07/28 20:53:37 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -627,5 +627,310 @@ Test/maxburst_sack1 instproc init {} {
 	$self next pktTraceFile
 }
 
+###################################################
+## Timeout, from a list of packets dropped.
+###################################################
+
+TestSuite instproc setup2 {tcptype list endtime} {
+	global wrap wrap1 quiet
+        $self instvar ns_ node_ testName_ guide_
+	$self setTopo 
+	if {$quiet == "false"} {puts $guide_}
+
+	set fid 1
+        # Set up TCP connection
+    	if {$tcptype == "Tahoe"} {
+      		set tcp1 [$ns_ create-connection TCP $node_(s1) \
+          	TCPSink $node_(k1) $fid]
+    	} elseif {$tcptype == "Sack1"} {
+      		set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
+          	TCPSink/Sack1  $node_(k1) $fid]
+    	} elseif {$tcptype == "Fack"} {
+      		set tcp1 [$ns_ create-connection TCP/Fack $node_(s1) \
+          	TCPSink/Sack1  $node_(k1) $fid]
+    	} elseif {$tcptype == "SackRH"} {
+      		set tcp1 [$ns_ create-connection TCP/SackRH $node_(s1) \
+          	TCPSink/Sack1 $node_(k1) $fid]
+    	} elseif {$tcptype == "FullTcp"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp]
+	        set sink [new Agent/TCP/FullTcp]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
+    	} elseif {$tcptype == "FullTcpTahoe"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp/Tahoe]
+	        set sink [new Agent/TCP/FullTcp/Tahoe]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
+    	} elseif {$tcptype == "FullTcpNewreno"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp/Newreno]
+	        set sink [new Agent/TCP/FullTcp/Newreno]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
+    	} elseif {$tcptype == "FullTcpSack1"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp/Sack]
+	        set sink [new Agent/TCP/FullTcp/Sack]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
+    	} else {
+      		set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
+          	TCPSink $node_(k1) $fid]
+    	}
+        $tcp1 set window_ 50
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.0 "$ftp1 start"
+
+        $self tcpDump $tcp1 2.0
+        $self drop_pkts $list
+
+        #$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+	$ns_ at $endtime "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+###################################################
+## Timeouts, scenarios that are better without bugfix.
+##   This also includes tests for timestamps with ts_resetRTO_,
+##   to reset the RTO backoff after a valid RTT measurement.
+###################################################
+
+Class Test/timeouts_tahoe -superclass TestSuite
+Test/timeouts_tahoe instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_tahoe
+	set guide_      "Tahoe, timeouts, bugfix"
+        $self next pktTraceFile
+}
+Test/timeouts_tahoe instproc run {} {
+        $self setup2 Tahoe {7 8 9 10 11 12 13 14 21} 8
+}
+
+Class Test/timeouts_tahoe1 -superclass TestSuite
+Test/timeouts_tahoe1 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_tahoe1
+	set guide_      "Tahoe, timeouts, better without bugfix"
+        Agent/TCP set bugFix_ false
+	Test/timeouts_tahoe1 instproc run {} [Test/timeouts_tahoe info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_tahoe2 -superclass TestSuite
+Test/timeouts_tahoe2 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_tahoe2
+	set guide_      "Tahoe, timeouts, bugfix, with timestamps, new version"
+	Agent/TCP set timestamps_ true
+	Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_tahoe2 instproc run {} [Test/timeouts_tahoe info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_tahoe3 -superclass TestSuite
+Test/timeouts_tahoe3 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_tahoe3
+	set guide_      "Tahoe, timeouts, bugfix, with timestamps, old version"
+	Agent/TCP set timestamps_ true
+	#Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_tahoe3 instproc run {} [Test/timeouts_tahoe info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_reno -superclass TestSuite
+Test/timeouts_reno instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_reno
+	set guide_      "Reno, timeouts, bugfix"
+        $self next pktTraceFile
+}
+Test/timeouts_reno instproc run {} {
+        $self setup2 Reno {7 8 9 10 11 12 13 14 21} 8
+}
+
+Class Test/timeouts_reno1 -superclass TestSuite
+Test/timeouts_reno1 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_reno1
+	set guide_      "Reno, timeouts, better without bugfix"
+        Agent/TCP set bugFix_ false
+	Test/timeouts_reno1 instproc run {} [Test/timeouts_reno info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_reno2 -superclass TestSuite
+Test/timeouts_reno2 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_reno2
+	set guide_      "Reno, timeouts, bugfix, with timestamps, old version"
+	Agent/TCP set timestamps_ true
+	Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_reno2 instproc run {} [Test/timeouts_reno info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_reno3 -superclass TestSuite
+Test/timeouts_reno3 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_reno3
+	set guide_      "Reno, timeouts, bugfix, with timestamps, new version"
+	Agent/TCP set timestamps_ true
+	#Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_reno3 instproc run {} [Test/timeouts_reno info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_newreno -superclass TestSuite
+Test/timeouts_newreno instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_newreno
+	set guide_      "NewReno, timeouts, bugfix"
+        $self next pktTraceFile
+}
+Test/timeouts_newreno instproc run {} {
+        $self setup2 Newreno {7 8 9 10 11 12 13 14 21} 8
+}
+
+Class Test/timeouts_newreno1 -superclass TestSuite
+Test/timeouts_newreno1 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_newreno1
+	set guide_      "NewReno, timeouts, better without bugfix"
+        Agent/TCP set bugFix_ false
+	Test/timeouts_newreno1 instproc run {} [Test/timeouts_newreno info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_newreno2 -superclass TestSuite
+Test/timeouts_newreno2 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_newreno2
+	set guide_      "NewReno, timeouts, bugfix, with timestamps, old version"
+	Agent/TCP set timestamps_ true
+	Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_newreno2 instproc run {} [Test/timeouts_newreno info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_newreno3 -superclass TestSuite
+Test/timeouts_newreno3 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_newreno3
+	set guide_      "NewReno, timeouts, bugfix, with timestamps, new version"
+	Agent/TCP set timestamps_ true
+	#Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_newreno3 instproc run {} [Test/timeouts_newreno info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_sack -superclass TestSuite
+Test/timeouts_sack instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_sack
+	set guide_      "Sack, timeouts, bugfix"
+        $self next pktTraceFile
+}
+Test/timeouts_sack instproc run {} {
+        $self setup2 Sack1 {7 8 9 10 11 12 13 14 21} 8
+}
+
+Class Test/timeouts_sack1 -superclass TestSuite
+Test/timeouts_sack1 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_sack1
+	set guide_      "Sack, timeouts, better without bugfix"
+        Agent/TCP set bugFix_ false
+	Test/timeouts_sack1 instproc run {} [Test/timeouts_sack info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_sack2 -superclass TestSuite
+Test/timeouts_sack2 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_sack2
+	set guide_      "Sack, timeouts, bugfix, with timestamps, old version"
+	Agent/TCP set timestamps_ true
+	Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_sack2 instproc run {} [Test/timeouts_sack info instbody run ]
+        $self next pktTraceFile
+}
+
+Class Test/timeouts_sack3 -superclass TestSuite
+Test/timeouts_sack3 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_sack3
+	set guide_      "Sack, timeouts, bugfix, with timestamps, new version"
+	Agent/TCP set timestamps_ true
+	#Agent/TCP set ts_resetRTO_ true
+	Test/timeouts_sack3 instproc run {} [Test/timeouts_sack info instbody run ]
+        $self next pktTraceFile
+}
+
+###################################################
+## Timeouts, scenarios that are better with bugfix.
+###################################################
+
+Class Test/timeoutsA_tahoe -superclass TestSuite
+Test/timeoutsA_tahoe instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeoutsA_tahoe
+	set guide_      "Tahoe, timeoutsA, bugfix"
+        #Agent/TCP set bugFix_ false
+        $self next pktTraceFile
+}
+Test/timeoutsA_tahoe instproc run {} {
+        $self setup2 Tahoe {20 21 22 23 24 25 26 31 41} 5
+}
+
+Class Test/timeoutsA_tahoe1 -superclass TestSuite
+Test/timeoutsA_tahoe1 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeoutsA_tahoe1
+	set guide_      "Tahoe, timeoutsA, worse without bugfix"
+        Agent/TCP set bugFix_ false
+	Test/timeoutsA_tahoe1 instproc run {} [Test/timeoutsA_tahoe info instbody run ]
+        $self next pktTraceFile
+}
 
 TestSuite runTest
