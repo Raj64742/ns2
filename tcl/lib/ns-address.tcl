@@ -124,7 +124,7 @@ Simulator instproc get-AllocAddrBits {prog} {
     if ![info exists allocAddr_] {
 	set allocAddr_ [new AllocAddrBits]
     } elseif ![string compare $prog "new"] {
-	puts "Warning: existing Address Space was destroyed\n"
+	# puts "Warning: existing Address Space was destroyed\n"
 	set allocAddr_ [new AllocAddrBits]
     }
     return $allocAddr_
@@ -386,10 +386,10 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 ### Hierarchical routing support
 
 #
-# create a real address from addr string 
+# create a real hier address from addr string 
 #
 AddrParams proc set-hieraddr addrstr {
-    $class hlevel_ NodeShift_ NodeMask_
+    AddrParams instvar hlevel_ NodeShift_ NodeMask_
     set L [split $addrstr .]
     if { [llength $L] != $hlevel_ } {
 	error "set-hieraddr: hierarchical address doesn't match with \# hier.levels\n"
@@ -398,7 +398,7 @@ AddrParams proc set-hieraddr addrstr {
     for {set i 1} {$i <= $hlevel_} {incr i} {
 	set word [expr [expr [expr [lindex $L [expr $i-1]] & $NodeMask_($i)] << $NodeShift_($i)] | [expr [expr ~[expr $NodeMask_($i) << $NodeShift_($i)]] & $word]]
 	#TESTING
-	puts "word = $word"
+	# puts "word = $word"
     }
     return $word
 }
@@ -407,36 +407,54 @@ AddrParams proc set-hieraddr addrstr {
 
 
     
-
-AddrParams proc get-nodeaddr {level dst} {
-    set tmp [expr dst >> [$class set NodeShift_($level)] & [$class set NodeMask_($level)]]
-    return tmp
+#
+# Routine to churn up the number of elements at a given level, that is visible to 
+# a node.
+#
+AddrParams proc elements-in-level? {nodeaddr level} {
+    AddrParams instvar hlevel_ eilevel_ eilastlevel_
+    set L [split $nodeaddr .] 
+    ### for now, assuming only 3 levels of hierarchy and that only the last level 
+    ### has non-uniform size distribution
+    if { $level == [expr $hlevel_ - 1]} {
+	### use some hashing function to retrieve the size
+	set funct [expr [expr [lindex $L 0] * [lindex $eilevel_ 1]] + [lindex $L 1]]
+	set size [lindex $eilastlevel_ $funct]
+    } else {
+	set size [lindex $eilevel_ $level]
+    }
+    return $size
 }
-    
-    
 
 
 
 
-# AddrParams instproc init {} {
-#     eval $self next
-#     $self instvar PortShift_ PortMask_ NodeShift_ NodeMask_ 
-#     $self instvar McastShift_ McastMask_
-  
-# }
+#
+# Given an node's address, Return the node 
+#
+Simulator instproc get-node address {
+    $self instvar Node_
+    set n [Node set nn_]
+    for {set q 0} {$q < $n} {incr q} {
+	set nq $Node_($q)
+	if {[string compare [$nq node-addr] $address] == 0} {
+	    return $nq
+	}
+    }
+    error "get-node:Cannot find node with given address"
+}
 
-# AddrParams proc instance {} {
-#     set ap [AddrParams info instances]
-#     if {$ap != ""} {
-# 	return $ap
-#     }
-    
-#     error "Cannot find instance of AddrParams"
-# }
-
-
-
-
-
-
-
+#
+# Given an node's address, Return the node-id
+#
+Simulator instproc get-node-id address {
+$self instvar Node_
+    set n [Node set nn_]
+    for {set q 0} {$q < $n} {incr q} {
+	set nq $Node_($q)
+	if {[string compare [$nq node-addr] $address] == 0} {
+	    return $q
+	}
+    }
+    error "get-node-id:Cannot find node with given address"
+}
