@@ -164,6 +164,8 @@ PushbackAgent::calculateLowerBound(int qid, double arrRate) {
       queue_list_[qid].pbq_->rlsList_->containsLocalAggSpec(aggSpec, node_->nodeid());
       if (rls1 !=NULL) continue;
       lowerBound = (currCluster.count_)*(arrRate/aggReturn->totalCount_);
+      sprintf(prnMsg, "LB: count: %d totalCount_: %d arrRate: %g\n", currCluster.count_, aggReturn->totalCount_, arrRate);
+      printMsg(prnMsg,0);
       break;
   }
   
