@@ -79,11 +79,11 @@ for {set a 3} {$a <= 12} {incr a} {
 
 # Crossseam ISLs
 # Plane 1 <-> Plane 12
-for {set i 100} {$i < 113} {incr i} {
-	set j [expr 1312 - $i]
+for {set i 100} {$i < 112} {incr i} {
+	set j [expr 1311 - $i]
 	$ns add-isl crossseam $n($i) $n($j) $opt(bw_isl) $opt(ifq) $opt(qlim)
 }
-for {set i 113} {$i < 124} {incr i} {
-	set j [expr 1336 - $i]
+for {set i 112} {$i < 124} {incr i} {
+	set j [expr 1335 - $i]
 	$ns add-isl crossseam $n($i) $n($j) $opt(bw_isl) $opt(ifq) $opt(qlim)
 }
