@@ -16,7 +16,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/inet.c,v 1.3 1997/08/10 07:49:38 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.1 1998/01/06 01:44:37 kfall Exp $ (LBL)";
 
 #include <stdlib.h>
 #include <string.h>

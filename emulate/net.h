@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.h,v 1.4 1997/08/10 07:49:44 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.1 1998/01/06 01:46:00 kfall Exp $ (LBL)
  */
 
 #ifndef ns_net_h
