@@ -41,10 +41,32 @@ public:
 
 TcpSessionAgent::TcpSessionAgent() : CorresHost(), 
 	rtx_timer_(this), burstsnd_timer_(this), sessionSeqno_(0),
-	last_send_time_(-1)
+	last_send_time_(-1), curConn_(0), numConsecSegs_(0), 
+	schedDisp_(FINE_ROUND_ROBIN), wtSum_(0), dynWtSum_(0)
 {
-	bind("proxyopt_", &proxyopt_);
+	bind("ownd_", &ownd_);
+	bind("owndCorr_", &owndCorrection_);
+	bind_bool("proxyopt_", &proxyopt_);
+	bind_bool("fixedIw_", &fixedIw_);
+	bind("schedDisp_", &schedDisp_);
 	sessionList_.append(this);
+}
+
+int
+TcpSessionAgent::command(int argc, const char*const* argv)
+{
+	if (argc == 2) {
+		if (!strcmp(argv[1], "resetwt")) {
+			Islist_iter<IntTcpAgent> conn_iter(conns_);
+			IntTcpAgent *tcp;
+
+			while ((tcp = conn_iter()) != NULL) 
+				tcp->wt_ = 1;
+			wtSum_ = conn_iter.count();
+			return (TCL_OK);
+		}
+	}
+	return (CorresHost::command(argc, argv));
 }
 
 void
@@ -130,8 +152,10 @@ TcpSessionAgent::timeout(int tno)
 			reset_rtx_timer(0,1);
 		}
 		ownd_ = 0;
+		owndCorrection_ = 0;
 		while ((curconn = conn_iter()) != NULL) {
 			curconn->t_seqno_ = curconn->highest_ack_ + 1;
+			curconn->recover_ = curconn->maxseq_;
 		}
 		while ((curseg = seg_iter()) != NULL) {
 			/* XXX exclude packets sent "recently"? */
@@ -144,7 +168,7 @@ TcpSessionAgent::timeout(int tno)
 		printf("TcpSessionAgent::timeout(): ignoring unknown timer %d\n", tno);
 }
 
-void 
+Segment* 
 TcpSessionAgent::add_pkts(int size, int seqno, int sessionSeqno, int daddr, int dport,
 			  int sport, double ts, IntTcpAgent *sender)
 {
@@ -155,8 +179,17 @@ TcpSessionAgent::add_pkts(int size, int seqno, int sessionSeqno, int daddr, int 
 	if (!(rtx_timer_.status() == TIMER_PENDING) || seglist_.count() == 0)
 		set_rtx_timer();
 	last_seg_sent_ = CorresHost::add_pkts(size, seqno, sessionSeqno, daddr, dport, sport, ts, sender);
+	return last_seg_sent_;
 }
 		
+void
+TcpSessionAgent::add_agent(IntTcpAgent *agent, int size, double winMult, 
+		      int winInc, int ssthresh)
+{
+	CorresHost::add_agent(agent,size,winMult,winInc,ssthresh);
+	wtSum_ += agent->wt_;
+	reset_dyn_weights();
+}
 
 int
 TcpSessionAgent::window()
@@ -165,6 +198,90 @@ TcpSessionAgent::window()
 		return (int(cwnd_));
 	else
 		return (int(min(cwnd_,maxcwnd_)));
+}
+
+void
+TcpSessionAgent::set_weight(IntTcpAgent *tcp, int wt)
+{
+	wtSum_ -= tcp->wt_;
+	tcp->wt_ = wt;
+	wtSum_ += tcp->wt_;
+}
+			
+void
+TcpSessionAgent::reset_dyn_weights()
+{
+	IntTcpAgent *tcp;
+	Islist_iter<IntTcpAgent> conn_iter(conns_);
+
+	while ((tcp = conn_iter()) != NULL)
+		tcp->dynWt_ = tcp->wt_;
+	dynWtSum_ = wtSum_;
+}
+
+IntTcpAgent *
+TcpSessionAgent::who_to_snd(int how)
+{
+	int i = 0;
+	switch (how) {
+	/* fine-grained interleaving of connections (per pkt) */
+	case FINE_ROUND_ROBIN: { 
+		IntTcpAgent *next;
+		int wtOK = 0;
+
+		if (dynWtSum_ == 0) 
+			reset_dyn_weights();
+		do {
+			wtOK = 0;
+			if ((next = (*connIter_)()) == NULL) {
+				connIter_->set_cur(connIter_->get_last());
+				next = (*connIter_)();
+			}
+			i++;
+			if (next && next->dynWt_>0) {
+				next->dynWt_--;
+				dynWtSum_--;
+				wtOK = 1;
+			}
+		} while (next && (!next->data_left_to_send() || !wtOK)
+			 && (i < connIter_->count()));
+		if (!next->data_left_to_send())
+			next = NULL;
+		return next;
+	}
+	/* coarse-grained interleaving across connections (per block of pkts) */
+	case COARSE_ROUND_ROBIN: {
+		int maxConsecSegs;
+		if (curConn_)
+			maxConsecSegs = (window()*curConn_->wt_)/wtSum_;
+		if (curConn_ && numConsecSegs_++ < maxConsecSegs && 
+			curConn_->data_left_to_send())
+			return curConn_;
+		else {
+			numConsecSegs_ = 0;
+			curConn_ = who_to_snd(FINE_ROUND_ROBIN);
+			if (curConn_)
+				numConsecSegs_++;
+		}
+		return curConn_;
+	}
+	case RANDOM: {
+		IntTcpAgent *next;
+		
+		do {
+			int foo = int(random() * nActive_ + 1);
+			
+			connIter_->set_cur(connIter_->get_last());
+			
+			for (;foo > 0; foo--)
+				(*connIter_)();
+			next = (*connIter_)();
+		} while (next && !next->data_left_to_send());
+		return(next);
+	}
+	default:
+		return NULL;
+	}
 }
 
 void
@@ -191,7 +308,7 @@ TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason)
 			npackets++;
 		}
 		else {
-			IntTcpAgent *sender = who_to_snd(ROUND_ROBIN);
+			IntTcpAgent *sender = who_to_snd(schedDisp_);
 			if (sender) {
 				/* if retransmission */
 				/* XXX we pick random conn even if rtx timeout */
@@ -234,7 +351,7 @@ TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 	if (amt_data_acked > 0) {
 		int i = count_bytes_acked_ ? amt_data_acked:1;
 		while (i-- > 0)
-			opencwnd(size_);
+			opencwnd(size_,agent);
 	}
 	clean_segs(size_, pkt, agent, sessionSeqno_);
 	if (amt_data_acked > 0)
@@ -280,7 +397,7 @@ TcpSessionAgent::removeSessionSeqno(int sessionSeqno)
 	while ((cur = seg_iter()) != NULL) {
 		if (cur->sessionSeqno_ == sessionSeqno) {
 			seglist_.remove(cur, prev);
-			ownd_-= cur->size_;
+			adjust_ownd(cur->size_);
 			return;
 		}
 		prev = cur;
@@ -295,10 +412,35 @@ TcpSessionAgent::quench(int how, IntTcpAgent *sender, int seqno)
 
 	if (i > recover_) {
 		recover_ = sessionSeqno_ - 1;
-		closecwnd(how);
+		sender->recover_ = sender->maxseq_;
+		closecwnd(how,sender);
 	}
 }
 
+void
+TcpSessionAgent::traceVar(TracedVar* v)
+{
+	double curtime;
+	Scheduler& s = Scheduler::instance();
+	char wrk[500];
+	int n;
+	
+	curtime = &s ? s.clock() : 0;
+	if (!strcmp(v->name(), "ownd_") || !strcmp(v->name(), "owndCorr_")) {
+		if (!strcmp(v->name(), "ownd_"))
+			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), double(*((TracedDouble*) v)));
+		else if (!strcmp(v->name(), "owndCorr_"))
+			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %3d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
+		n = strlen(wrk);
+		wrk[n] = '\n';
+		wrk[n+1] = 0;
+		if (channel_)
+			(void)Tcl_Write(channel_, wrk, n+1);
+		wrk[n] = 0;
+	}
+	else
+		TcpAgent::traceVar(v);
+}
 
 			
 
