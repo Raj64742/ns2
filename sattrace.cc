@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.5 1999/10/19 05:07:56 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.6 1999/10/23 23:33:54 tomh Exp $";
 #endif
 
 #include <stdio.h>
@@ -157,20 +157,20 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
                         SatNode *sn = (SatNode*) n;
 			snadd = sn->address();
                         if (lasth == snadd) {
-                                s_lat = (180/PI)*(sn->position()->get_latitude());
-                                s_lon = (180/PI)*(sn->position()->get_longitude());
-                                if (d_lat != -999) {
-                                        break; // Lloyd thinks you can stop
-                                                // traversing the linked list now
-                                }
+                                s_lat = 
+				    (180/PI)*(sn->position()->get_latitude());
+                                s_lon = 
+				    (180/PI)*(sn->position()->get_longitude());
+                                if (d_lat != -999) 
+                                        break; // Have now found both s and d
                         }
                         if (nexth == snadd) {
-                                d_lat = (180/PI)*(sn->position()->get_latitude()); 
-                                d_lon = (180/PI)*(sn->position()->get_longitude());
-                                if (s_lat != -999) {
-                                        break; // Lloyd thinks you can stop
-                                                // traversing the linked list now
-                                }
+                                d_lat = 
+				    (180/PI)*(sn->position()->get_latitude()); 
+                                d_lon = 
+				    (180/PI)*(sn->position()->get_longitude());
+                                if (s_lat != -999) 
+                                        break; // Have now found both s and d
                         }
                 }
 	}

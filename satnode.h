@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.h,v 1.2 1999/09/18 00:26:18 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.h,v 1.3 1999/10/23 23:33:55 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -75,6 +75,7 @@ class SatNode : public Node {
 	SatPosition* pos_;
 	SatTrace* trace_; // a drop trace for packets that can't be routed
 	LinkHandoffMgr* hm_; 
+	void dumpSats();
 };
 
 #endif // __satnode_h__

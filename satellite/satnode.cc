@@ -36,13 +36,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.2 1999/06/23 23:41:57 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.3 1999/10/23 23:33:55 tomh Exp $";
 #endif
 
 #include "satnode.h"
 #include "satlink.h"
 #include "sattrace.h"
 #include "sathandoff.h"
+#include "satposition.h"
 
 static class SatNodeClass : public TclClass {
 public:
@@ -80,6 +81,9 @@ int SatNode::command(int argc, const char*const* argv) {
 				printf("handoff mgr\n");
 				exit(1);
 			}
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "dump_sats") == 0) {
+			dumpSats();
 			return (TCL_OK);
 		}
 	}
@@ -139,3 +143,51 @@ int SatNode::command(int argc, const char*const* argv) {
 	return (Node::command(argc, argv));
 }
 
+// debugging method for dumping out all of the satellite and ISL locations
+// on demand from OTcl.
+void SatNode::dumpSats()
+{
+        int i, j, size;
+	SatNode *snodep, *peer_snodep;
+	SatPosition *sposp, *peer_sposp;
+	SatLinkHead *slhp;
+
+        printf("Dumping satellites at time %.2f\n", NOW);
+        for (snodep= (SatNode*) Node::nodehead_.lh_first; snodep; 
+		snodep = (SatNode*) snodep->nextnode()) {
+		// XXX Need check to see if node is a SatNode
+		sposp = snodep->position();
+                printf("%d\t%.2f\t%.2f\n", snodep->address(), 
+		    180*sposp->get_latitude()/PI, 
+		    180*sposp->get_longitude()/PI);
+	}
+        printf("\n");
+        // Dump satellite links
+        // There is a static list of address classifiers //QQQ
+        printf("Links:\n");
+        for (snodep= (SatNode*) Node::nodehead_.lh_first; snodep; 
+		snodep = (SatNode*) snodep->nextnode()) {
+		// XXX Not all links necessarily satlinks
+		for (slhp = (SatLinkHead*) snodep->linklisthead_.lh_first; 
+		    slhp; slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
+                	if (slhp->type() != LINK_ISL_CROSSSEAM && 
+			    slhp->type() != LINK_ISL_INTERPLANE &&
+			    slhp->type() != LINK_ISL_INTRAPLANE)
+                	        continue;
+                        if (!slhp->linkup_) 
+                                continue;
+                        // Link is up.  Print out source lat point and dest
+                        // lat point.
+			sposp = snodep->position();
+			peer_snodep = hm_->get_peer(slhp);
+			if (peer_snodep == 0)
+				continue; // this link interface is not attached
+			peer_sposp = peer_snodep->position();
+                        printf("%.2f\t%.2f\t%.2f\t%.2f\n", 
+			    180*sposp->get_latitude()/PI,
+			    180*sposp->get_longitude()/PI,
+			    180*peer_sposp->get_latitude()/PI,
+			    180*peer_sposp->get_longitude()/PI);
+		}
+	}
+}

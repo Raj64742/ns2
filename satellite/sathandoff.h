@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.h,v 1.3 1999/08/29 01:28:45 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.h,v 1.4 1999/10/23 23:33:53 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -75,6 +75,7 @@ public:
 	Node* node() { return node_; } // backpointer to node
 	virtual int handoff() { return 0; }
         int command(int argc, const char*const* argv);
+	SatNode* get_peer(SatLinkHead*); // helper function for handoff
 protected:
 	Node* node_;
 	static RNG handoff_rng_;
@@ -83,7 +84,6 @@ protected:
 	// The remaining functions are helper functions for handoff
 	//
 	double distance(coordinate, coordinate);
-	SatNode* get_peer(SatLinkHead*);
 	SatLinkHead* get_peer_next_linkhead(SatNode*);
 	SatLinkHead* get_peer_linkhead(SatLinkHead*);
 };
