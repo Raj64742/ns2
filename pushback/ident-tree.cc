@@ -405,7 +405,7 @@ IdentStruct::setLowerBound(double bound, int averageIt) {
 	   lowerBound_ = alpha * lowerBound_ + (1 - alpha) * bound;
 	}
 
-	printf("lower bound: new = %g avg = %g\n", bound, lowerBound_);
-	fflush(stdout);
+	//printf("lower bound: new = %g avg = %g\n", bound, lowerBound_);
+	//fflush(stdout);
 }
 
