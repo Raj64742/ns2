@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.247 2002/06/04 23:25:19 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.248 2002/06/06 00:28:08 haldar Exp $
 
 
 #
@@ -210,12 +210,11 @@ source ns-pushback.tcl
 
 # STL dependent modules get included
 # ONLY when STL is found
-set NSPATH "/nfs/ruby/haldar/conser/ns-2.test3"
 
 if {[ns-hasSTL] == 1} {
-	source "$NSPATH/tcl/lib/ns-nix.tcl"
-	source "$NSPATH/tcl/pgm/ns-pgm.tcl"
-	source "$NSPATH/tcl/rtglib/ns-rtProtoLS.tcl"
+source ns-nix.tcl
+source ../pgm/ns-pgm.tcl
+source ../rtglib/ns-rtProtoLS.tcl
 }
 
 # Obsolete modules
