@@ -588,7 +588,7 @@ PushbackAgent::pushbackRefresh(int qid) {
 				   now, listItem->localID_, listItem->refreshTime_, MIN_TIME_TO_FREE);
 #endif
 			pushbackCancel(listItem);       //cancel rate-limiting
-			requiredLimit_+= (requiredLimit_ - sendRate)/(noSessions - i);
+			requiredLimit_+= (requiredLimit_ - sendRate)/(noSessions - i - 1);
 		  } 
 		  else {
 			  //refresh upstream with double of max(sending rate, old limit)
@@ -610,7 +610,7 @@ PushbackAgent::pushbackRefresh(int qid) {
 			  }
 			  if (maxR < requiredLimit_) {
 				  listItem->setLimit(maxR);
-				  requiredLimit_ += (requiredLimit_ - maxR)/(noSessions - i);
+				  requiredLimit_ += (requiredLimit_ - maxR)/(noSessions - i - 1);
 			  } 
 			  else {
 				  listItem->setLimit(requiredLimit_);
