@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.13 2001/05/10 20:49:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.14 2001/05/11 05:20:36 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -190,6 +190,9 @@ TestSuite instproc make_tcp {nodeA nodeB ID type} {
 	}
         if {$type == "Sack"} {
 		set tcp [$ns_ create-connection TCP/Sack1 $node_($nodeA) TCPSink/Sack1 $node_($nodeB) $ID]
+	}
+        if {$type == "SackDelAck"} {
+		set tcp [$ns_ create-connection TCP/Sack1 $node_($nodeA) TCPSink/Sack1/DelAck $node_($nodeB) $ID]
 	}
 	return $tcp
 }
@@ -606,6 +609,29 @@ Test/sack4 instproc run {} {
 	$self second_test $tcp1 $tcp2
 }
 
+TestSuite instproc printtimers { tcp time} {
+        global quiet
+        if {$quiet == "false"} {
+		set srtt [expr [$tcp set srtt_]/8 ]
+		set rttvar [expr [$tcp set rttvar_]/4 ]
+		set rto [expr $srtt + 2 * $rttvar ]
+                puts "time: $time sRTT(in ticks): $srtt RTTvar(in ticks): $rttvar sRTT+2*RTTvar: $rto backoff: [$tcp set backoff_]" 
+        }
+}
+
+TestSuite instproc printtimersAll { tcp time interval } {
+        $self instvar dump_inst_ ns_   
+        if ![info exists dump_inst_($tcp)] {
+                set dump_inst_($tcp) 1
+                $ns_ at $time "$self printtimersAll $tcp $time $interval"
+                return
+        }
+        set newTime [expr [$ns_ now] + $interval]
+        $ns_ at $time "$self printtimers $tcp $time"
+        $ns_ at $newTime "$self printtimersAll $tcp $newTime $interval"
+}
+
+
 # This test shows the packets and acknowledgements at the source,
 # for a path with a 9.6Kbps link, and 1000-byte packets.
 Class Test/slowLink -superclass TestSuite
@@ -627,8 +653,34 @@ Test/slowLink instproc run {} {
 	Agent/TCP set minrto_ 1
 	set tcp1 [$self make_tcp s1 k1 0 Sack]
 	$tcp1 set packetSize_ 1000
+	$ns_ at 0.0 "$self printtimersAll $tcp1 0 1"
 	$self runall_test $tcp1 30.0 30.0 
 }
+
+# # This test shows the packets and acknowledgements at the source,
+# # for a path with a 9.6Kbps link, and 1000-byte packets.
+# Class Test/slowLinkDelayAck -superclass TestSuite
+# Test/slowLinkDelayAck instproc init {} {
+# 	global plotacks
+# 	$self instvar net_ test_ 
+# 	set net_	net8
+# 	set test_	slowLinkDelayAck(9.6K-link,1000-byte-pkt)
+#         set plotacks true
+#         $self next
+# }
+# 
+# Test/slowLinkDelayAck instproc run {} {
+#         $self instvar ns_ node_ testName_ 
+# 	$self setTopo
+# 	Agent/TCP set syn_ true
+# 	Agent/TCP set delay_growth_ true
+# 	Agent/TCP set windowInitOption_ 2
+# 	Agent/TCP set minrto_ 1
+# 	set tcp1 [$self make_tcp s1 k1 0 SackDelAck]
+# 	$tcp1 set packetSize_ 1000
+# 	$ns_ at 0.0 "$self printtimersAll $tcp1 0 1"
+# 	$self runall_test $tcp1 30.0 30.0 
+# }
 
 # This test shows the packets and acknowledgements at the source,
 # for a path with a 9.6Kbps link, and 1500-byte packets.
