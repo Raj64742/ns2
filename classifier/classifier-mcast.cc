@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.1 1996/12/19 03:22:44 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.2 1996/12/31 22:44:12 elan Exp $";
 #endif
 
 #include <stdlib.h>
@@ -95,7 +95,8 @@ const MCastClassifier::hashnode*
 MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst) const
 {
 	int h = hash(src, dst);
-	for (const hashnode* p = ht_[h]; p != 0; p = p->next) {
+	const hashnode* p;
+	for (p = ht_[h]; p != 0; p = p->next) {
 		if (p->src == src && p->dst == dst)
 			break;
 	}
@@ -124,7 +125,8 @@ int MCastClassifier::classify(const Packet* pkt)
 
 int MCastClassifier::findslot()
 {
-	for (int i = 0; i < nslot_; ++i)
+	int i;
+	for (i = 0; i < nslot_; ++i)
 		if (slot_[i] == 0)
 			break;
 	return (i);
