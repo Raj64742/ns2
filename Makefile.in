@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.244 2002/03/14 01:14:39 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.245 2002/03/15 19:01:01 ddutta Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -66,7 +66,7 @@ INCLUDES = \
 	-I./adc -I./apps -I./mac -I./mobile -I./trace \
 	-I./routing -I./tools -I./classifier -I./mcast \
 	-I./diffusion3/main -I./diffusion3/lib \
-	-I./diffusion3/nr -I./diffusion3/ns
+	-I./diffusion3/nr -I./diffusion3/ns -I./asim/
 
 
 LIB	= \
@@ -255,7 +255,7 @@ OBJ_CC = \
 	pushback/rate-estimator.o \
 	pushback/pushback-queue.o pushback/pushback.o \
 	common/parentnode.o trace/basetrace.o \
-	common/simulator.o \
+	common/simulator.o asim/asim.o \
 	@V_STLOBJ@
 
 

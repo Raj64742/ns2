@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.32 2002/02/20 23:11:10 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.33 2002/03/15 19:01:01 ddutta Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -585,3 +585,124 @@ Simulator instproc compute-algo-routes {} {
 
 
 
+# Asim routines 
+# Debojyoti Dutta
+# Debo
+
+Simulator instproc asim-run { } {
+
+    $self instvar asim_
+    set asim_ [new Asim]
+    $self asim-dump ddt
+    $asim_ readinput ddt
+    $asim_ run
+
+}
+
+Simulator instproc asim-dump { file } {
+
+	$self instvar routingTable_ Node_ link_
+        
+        set tf_ [open "$file" w]
+    
+	set r [$self get-routelogic]	
+	$self cmd get-routelogic $r  ;# propagate rl in C++
+	# populate the route logic 
+	foreach ln [array names link_] {
+		set L [split $ln :]
+		set srcID [lindex $L 0]
+		set dstID [lindex $L 1]
+		if { [$link_($ln) up?] == "up" } {
+			$r insert $srcID $dstID [$link_($ln) cost?]
+		} else {
+			$r reset $srcID $dstID
+		}
+	}
+	# now compute routes
+	$r compute
+
+	puts $tf_ "# Dumping Approx-Sim Data"  
+
+	set n [Node set nn_]
+	puts $tf_ "m [Link set nl_] "
+        foreach qn [array names link_] {
+                set l $link_($qn)
+	        set q [$l queue]
+	        set t [$q info class]
+	    if {[lindex [split $t "/"] 1] == "DropTail"} {
+                puts $tf_ "link [expr [$l set id_] + 1] [$l delay] [expr [$l bw] / 8000] [expr [$l bw] / 8000]  [$l qsize] $t"
+	    }
+	    if {[lindex [split $t "/"] 1] == "RED"} {
+                puts $tf_ "link [expr [$l set id_] + 1] [$l delay] [expr [$l bw] / 8000] [expr [$l bw] / 8000] [$l qsize] red [$q set thresh_] 0 [$q set maxthresh_] [expr 1.0 / [$q set linterm_] ]"
+	    }
+        }
+
+	puts $tf_ ""
+	global nconn_ conn_
+	puts $tf_ "n $nconn_"
+	
+	set i 0
+	foreach x $conn_ {
+
+		set len 0
+		set str ""
+
+		set list [split $x ":"] 
+		set srcid [lindex $list 0]
+		set dstid [lindex $list 1]
+
+		while { $srcid != $dstid } {
+			incr len
+			# shortened nexthop to nh, to fit add-route in
+			# a single line
+			set nh [$r lookup $srcid $dstid]
+			# print the route 
+			append str " " [expr [$link_($srcid:$nh) id] + 1] 
+			set srcid  $nh
+		}
+		
+		puts $tf_ "route [expr $i + 1] $len $str"
+		incr i
+
+	}
+
+	close $tf_
+}
+
+Simulator instproc asim-getLinkDelay { link } {
+
+    $self instvar asim_
+    set t [$asim_ get-link-delay [$link set id_] ]
+    return $t
+
+}
+
+Simulator instproc asim-getLinkDrop { link } {
+
+    $self instvar asim_
+    set t [$asim_ get-link-drop [$link set id_] ]
+    return $t
+
+}
+
+Simulator instproc asim-getLinkTput { link } {
+
+    $self instvar asim_
+    set t [$asim_ get-link-tput [$link set id_] ]
+    return $t
+
+}
+
+
+Simulator instproc asim-getFlowTput { srcnode dstnode } {
+
+    global conn_
+    $self instvar asim_ 
+    set src [$srcnode id]
+    set dst [$dstnode id]
+#    puts "searching $src:$dst in $conn_"
+    set tt [lsearch -exact $conn_ $src:$dst]
+    set t [$asim_ get-flow-tput $tt ]
+    return $t
+
+}

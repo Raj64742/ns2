@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.238 2002/01/02 23:58:17 jahn Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.239 2002/03/15 19:01:01 ddutta Exp $
 
 
 #
@@ -48,8 +48,8 @@
 #set connections_ [new IDs]
 
 set slinks_(0:0) 0
-set nconn_ 0 
-set conn_(0) 0:0
+set nconn_ 0
+set conn_ ""
 
 proc warn {msg} {
 	global warned_
@@ -1324,6 +1324,23 @@ Simulator instproc attach-tbf-agent { node agent tbf } {
 
 
 Simulator instproc detach-agent { node agent } {
+
+	# Debo added this
+
+	global conn_ nconn_
+
+	set list "" 
+	set s [$node id]
+	set d [[$self get-node-by-addr [$agent set dst_addr_]] id]
+	foreach x $conn_ {
+		if {[string compare $x $s:$d] != 0} {
+			lappend list_ $x
+		}
+	}
+	set conn_ list
+	set nconn_ [expr $nconn_ -1]
+	# ---------------------------------------
+
 	$self instvar nullAgent_
 	$node detach $agent $nullAgent_
 }
@@ -1380,7 +1397,8 @@ Simulator instproc connect {src dst} {
         set did [$dst nodeid]
 
 	if {[lindex [split [$src info class] "/"] 1] == "TCP"} {
-		set conn_($nconn_) $sid:$did
+#		set conn_($nconn_) $sid:$did
+		lappend conn_ $sid:$did
 		incr nconn_
 		# set $nconn_ [expr $nconn_ + 1]
 		# puts "Set a connection with id $nconn_ between $sid and $did"
