@@ -28,6 +28,10 @@ http://www.isi.edu/nsnam/ns/ns-win32-build.html
   at all, comment that macro and you'll be able to compile with tcl/tk
   8.3.2
 
+  NOTE: none of the indep-utils/ are tested (nor known to be compiled)
+  on windows. If you did, please submit a patch/report to ns-users
+  mailing list (ns-users@isi.edu). Thank you.
+
 - After compilation, you should do (1) copy the DLLs (if you are using
   tcl/tk 8.3.2) to one of yours paths (you can see it in the system
   applet from your control panel, or autoexec.bat if you are using
