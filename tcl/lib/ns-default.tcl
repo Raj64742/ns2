@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.328 2004/04/19 22:04:26 liyuan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.329 2004/04/20 16:10:51 haldar Exp $
 
 
 #
@@ -111,6 +111,8 @@ CMUPriQueue set debug_ false
 #notel's diffserv module
 Queue/dsRED set numQueues_ 4
 Queue/dsRED set ecn_ 0
+
+Queue/XCP set maxVirQ_ 3
 
 Queue/RED set bytes_ false
 Queue/RED set queue_in_bytes_ false

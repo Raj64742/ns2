@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.262 2003/12/23 17:36:35 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.263 2004/04/20 16:10:51 haldar Exp $
 
 
 #
@@ -959,24 +959,27 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	# construct the queue
 	set qtypeOrig $qtype
 	switch -exact $qtype {
-	    ErrorModule {
-		if { [llength $args] > 0 } {
-		    set q [eval new $qtype $args]
-		} else {
-		    set q [new $qtype Fid]
+		ErrorModule {
+			if { [llength $args] > 0 } {
+				set q [eval new $qtype $args]
+			} else {
+				set q [new $qtype Fid]
+			}
 		}
-	    }
-	    intserv {
-		set qtype [lindex $args 0]
-		set q [new Queue/$qtype]
-	    }
-	    default {
-		if { [llength $args] == 0} {
-		    set q [new Queue/$qtype]
-		} else {
-		    set q [new Queue/$qtype $args]
+		intserv {
+			set qtype [lindex $args 0]
+			set q [new Queue/$qtype]
 		}
-	    }
+		XCP {
+			set q [ $self create-XCPQ ]
+		}
+		default {
+			if { [llength $args] == 0} {
+				set q [new Queue/$qtype]
+			} else {
+				set q [new Queue/$qtype $args]
+			}
+		}
 	}
 	# Now create the link
 	switch -exact $qtypeOrig {

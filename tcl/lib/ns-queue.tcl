@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.22 2003/09/09 18:26:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.23 2004/04/20 16:10:51 haldar Exp $
 #
 
 #
@@ -589,4 +589,26 @@ SimpleLink instproc insert-delayer args  {
 	$delayer_ target [$queue_ target]
         $queue_ target $delayer_
     }
+}
+
+# XCP queue consists of underlying virtual queues, for xcp, tcp and other flows. 
+
+Simulator instproc create-XCPQ {} {
+    
+    # create xcp wrapper queue
+    set xcp [new Queue/XCP]
+    $xcp create-vqueues
+    return $xcp
+}
+
+Queue/XCP instproc create-vqueues {} {
+    $self instvar vq_ 
+    
+    # create virtual queues for xcp/tcp flows
+    for {set n 0} {$n < [Queue/XCP set maxVirQ_]} {incr n} {
+ 	set vq_($n) [new Queue/RED/XCPQ]
+ 	lappend qlist [set vq_($n)]
+    }
+    
+    eval $self set-virQ $qlist
 }
