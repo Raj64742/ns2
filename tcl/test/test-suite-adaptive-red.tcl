@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.5 2001/07/20 18:40:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.6 2001/07/25 00:58:33 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -497,5 +497,57 @@ TestSuite instproc printall { fmon } {
 # }
 
 #####################################################################
+
+Class Test/transient -superclass TestSuite
+Test/transient instproc init {} {
+    $self instvar net_ test_
+    set net_ netfast 
+    set test_ transient
+    $self next
+}
+Test/transient instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+    set stoptime 5.0
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    $tcp1 set window_ 100
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 1]
+    $tcp2 set window_ 1000
+
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
+
+    $self enable_tracequeue $ns_
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at 2.5 "$ftp2 start"
+
+    $self tcpDump $tcp1 5.0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
+    $ns_ run
+}
+
+Class Test/transient1 -superclass TestSuite
+Test/transient1 instproc init {} {
+    $self instvar net_ test_
+    set net_ netfast 
+    set test_ transient1
+    Queue/RED set q_weight_ 0
+    Test/transient1 instproc run {} [Test/transient info instbody run ]
+    $self next
+}
+
+Class Test/transient2 -superclass TestSuite
+Test/transient2 instproc init {} {
+    $self instvar net_ test_
+    set net_ netfast 
+    set test_ transient2
+    Queue/RED set q_weight_ 0.0001
+    Test/transient2 instproc run {} [Test/transient info instbody run ]
+    $self next
+}
+
 
 TestSuite runTest
