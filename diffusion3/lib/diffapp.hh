@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Padma Haldar
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffapp.hh,v 1.2 2002/03/20 22:49:40 haldar Exp $
+// $Id: diffapp.hh,v 1.3 2002/05/07 00:43:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,8 +20,21 @@
 //
 //
 
-#ifndef DIFFAPP_HH
-#define DIFFAPP_HH
+// This file defines the DiffApp class, the base class for diffusion's
+// applications and filters. In addition to provide the basic NR class
+// pointer and other diffusion related variables, it also implements a
+// basic command line parsing that can be used to set debug level,
+// diffusion port and an optional configuration file (its name will be
+// stored in the char *config_file_ variable for later processing by
+// the application/filter. Also, the file includes everything
+// necessary for creating a diffusion application/filter.
+
+#ifndef _DIFFAPP_HH_
+#define _DIFFAPP_HH_
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif // HAVE_CONFIG_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -39,14 +52,14 @@ public:
   int command(int argc, const char*const* argv);
 #endif // NS_DIFFUSION
 protected:
-  NR *dr;
-  u_int16_t diffusion_port;
-  char *config_file;
+  NR *dr_;
+  u_int16_t diffusion_port_;
+  char *config_file_;
 
 #ifndef NS_DIFFUSION
   void usage(char *s);
-  void ParseCommandLine(int argc, char **argv);
-#endif // NS_DIFFUSION
+  void parseCommandLine(int argc, char **argv);
+#endif // !NS_DIFFUSION
 };
 
-#endif // DIFFAPP_HH
+#endif // !_DIFFAPP_HH_

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.hh,v 1.7 2002/03/21 19:30:55 haldar Exp $
+// $Id: dr.hh,v 1.8 2002/05/07 00:43:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,25 +20,35 @@
 //
 //
 
-#ifndef DR_HH
-#define DR_HH
+// This file defines Diffusion Routing's Publish/Subscribe, Filter and
+// Timer APIs. It is included from diffapp.hh (and therefore
+// applications and filters should include diffapp.hh instead). For a
+// detailed description of the API, please look at the Diffusion
+// Routing API document (available at the SCADDS website:
+// http://www.isi.edu/scadds).
+
+#ifndef _DR_HH_
+#define _DR_HH_
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif // HAVE_CONFIG_H
 
 #include <pthread.h>
 #include <string.h>
 
-#include "events.hh"
-#include "filter.hh"
-#include "config.hh"
-#include "agent.hh"
-#include "iodev.hh"
-#include "tools.hh"
+#include "main/events.hh"
+#include "main/filter.hh"
+#include "main/config.hh"
+#include "main/iodev.hh"
+#include "main/tools.hh"
 
 #ifdef NS_DIFFUSION
 #include "diffagent.h"
 #endif // NS_DIFFUSION
 
 #ifdef UDP
-#include "UDPlocal.hh"
+#include "drivers/UDPlocal.hh"
 #endif // UDP
 
 #define WAIT_FOREVER       -1
@@ -65,7 +75,7 @@ public:
 
 #ifdef NS_DIFFUSION
   DiffusionRouting(u_int16_t port, DiffAppAgent *da);
-  int get_agentid(int id = -1);
+  int getAgentId(int id = -1);
 #else
   DiffusionRouting(u_int16_t port);
   void run(bool wait_condition, long max_timeout);
@@ -73,7 +83,7 @@ public:
 
   virtual ~DiffusionRouting();
 
-  // NR (publish-subscribe) API functions
+  // NR Publish/Subscribe API functions
 
   handle subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb);
 
@@ -100,14 +110,16 @@ public:
 
   int removeTimer(handle hdl);
 
+  // NR API functions that allow single thread support
+
   void doIt();
 
   void doOne(long timeout = WAIT_FOREVER);
 
 #ifndef NS_DIFFUSION
-  // Outside NS, all this can be protected members
+  // Outside NS, all these can be protected members
 protected:
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 
   void recvPacket(DiffPacket pkt);
   void recvMessage(Message *msg);
@@ -138,32 +150,32 @@ protected:
   bool hasScope(NRAttrVec *attrs);
 
   // Handle variables
-  int next_handle;
-  HandleList pub_list;
-  HandleList sub_list;
-  FilterList filter_list;
+  int next_handle_;
+  HandleList pub_list_;
+  HandleList sub_list_;
+  FilterList filter_list_;
 
   // Threads and Mutexes
-  pthread_mutex_t *drMtx;
-  pthread_mutex_t *queueMtx;
+  pthread_mutex_t *dr_mtx_;
+  pthread_mutex_t *queue_mtx_;
 
   // Data structures
-  EventQueue *eq;
+  EventQueue *eq_;
 
   // Lists
-  DeviceList in_devices;
-  DeviceList local_out_devices;
+  DeviceList in_devices_;
+  DeviceList local_out_devices_;
 
   // Node-specific variables
-  u_int16_t diffusion_port;
-  int pkt_count;
-  int rdm_id;
+  u_int16_t diffusion_port_;
+  int pkt_count_;
+  int random_id_;
 
 #ifdef NS_DIFFUSION
-  int agent_id;
+  int agent_id_;
 #else
-  u_int16_t agent_id;
+  u_int16_t agent_id_;
 #endif // NS_DIFFUSION
 };
 
-#endif // DR_HH
+#endif // !_DR_HH_
