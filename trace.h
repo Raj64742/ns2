@@ -30,13 +30,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.13 1997/09/12 01:31:23 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.14 1997/11/17 23:24:15 hari Exp $
  */
 
 #ifndef ns_trace_h
 #define ns_trace_h
 
 #define NAM_TRACE
+
+#define NUMFLAGS 7
 
 #include "packet.h"
 #include "connector.h"

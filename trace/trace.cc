@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.22 1997/10/13 22:24:52 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.23 1997/11/17 23:24:14 hari Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -192,12 +192,14 @@ void Trace::format(int tt, int s, int d, Packet* p)
 		seqno = tcph->seqno();
 	else
 		seqno = -1;
-
-	/*XXX*/
-	char flags[7];
-	flags[0] = flags[1] = flags[2] = flags[3] = flags[4] = flags[5] = '-';
-	flags[6] = '-';
-	flags[7] = 0;
+        /* 
+         * When new flags are added, make sure to change NUMFLAGS
+         * in trace.h
+         */
+        char flags[NUMFLAGS+1];
+        for (int i = 0; i < NUMFLAGS; i++)
+                flags[i] = '-';
+        flags[NUMFLAGS] = 0;
 
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	flags[0] = hf->ecn_ ? 'C' : '-';
