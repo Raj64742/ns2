@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-headers.h,v 1.6 1998/07/01 22:17:10 yaxu Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-headers.h,v 1.7 1998/07/17 22:37:24 yaxu Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_headers_h
@@ -51,7 +51,7 @@ struct hdr_srm {
 	int& round()	{ return round_; }
 };
 
-#define SRM_NAMES "SRM_DATA", "SRM_DATA", "SRM_SESS", "SRM_RQST", "SRM_REPR"
+#define SRM_NAMES "NULL", "SRM_DATA", "SRM_SESS", "SRM_RQST", "SRM_REPR"
 
 struct hdr_asrm {
 	double	distance_;

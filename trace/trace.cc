@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.47 1998/07/02 02:50:52 kfall Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.48 1998/07/17 22:37:25 yaxu Exp $ (LBL)";
 
 #endif
 
@@ -192,7 +192,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
         /* SRM-specific */
 	if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
-            if ( sh->type() < 5 && sh->type() >= 0 ) {
+            if ( sh->type() < 5 && sh->type() > 0 ) {
 	        sname = srm_names[sh->type()];
 	    }
 	}
