@@ -27,8 +27,8 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
 	$self instvar cbqlink_
 	$self instvar goodclass_ badclass_
 	$self instvar okboxfm_ pboxfm_
+	$self instvar ns_
 
-	$self vprint "makeboxes: okfm: $okboxfm okfmcl: [$okboxfm classifier], pboxfm: $pboxfm, pboxfmcl: [$pboxfm classifier]"
 
         set cbq [$cbqlink_ queue]
         set rootcl [new CBQClass]
@@ -50,7 +50,7 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
         $badclass_ install-queue $badq
         $goodclass_ install-queue $goodq
 
-        $badclass_ setparams $rootcl true 0.0 0.004 1 1 0
+        $badclass_ setparams $rootcl false 0.0 0.004 1 1 0
         $goodclass_ setparams $rootcl true 0.98 0.004 1 1 0
         $rootcl setparams none true 0.98 0.004 1 1 0
 
@@ -62,21 +62,19 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
         $cbqlink_ insert $goodclass_ $okboxfm_
 
 	# put in the edrop stuff
-	$cbqlink_ instvar snoopDrop_
-	if { [info exists snoopDrop_] } {
-		set ldrop $snoopDrop_
-	} else {
-		set ldrop [$ns_ set nullAgent_]
-	}
+	$cbqlink_ instvar drophead_
+
 	set edsnoop [new SnoopQueue/EDrop]
 	$edsnoop set-monitor $pboxfm_
-	$edsnoop target $ldrop
+	$edsnoop target $drophead_
 	$badq early-drop-target $edsnoop
 
 	set edsnoop [new SnoopQueue/EDrop]
 	$edsnoop set-monitor $okboxfm_
-	$edsnoop target $ldrop
+	$edsnoop target $drophead_
 	$goodq early-drop-target $edsnoop
+
+	$self vprint "makeboxes completing: okfm: $okboxfm, okfmcl: [$okboxfm classifier], okredQ: $goodq; pboxfm: $pboxfm, pboxfmcl: [$pboxfm classifier], pboxredQ: $badq"
 }
 
 RTMechanisms instproc makeflowmon {} {
@@ -114,6 +112,8 @@ flush stdout
 
         $cl proc unknown-flow { src dst fid hashbucket } $pbody
 	$cl proc no-slot slotnum {
+puts "classifier $self, no-slot for slotnum $slotnum"
+flush stdout
 	}
         $flowmon classifier $cl
         return $flowmon
