@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.37 1998/07/09 21:08:19 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38 1998/07/11 00:08:56 haldar Exp $
 #
 
 Class Node
@@ -42,6 +42,7 @@ Node proc getid {} {
 }
 
 Node instproc init args {
+	set args [lreplace $args 0 1]
 	eval $self next $args
 	$self instvar np_ id_ agents_ dmux_ neighbor_
 	set neighbor_ ""
@@ -100,6 +101,9 @@ Node instproc add-neighbor p {
 }
 
 Node instproc entry {} {
+    if [info exists router_supp_] {
+	return $router_supp_
+    }
 	if [Simulator set EnableMcast_] {
 		$self instvar switch_
 		return $switch_
@@ -451,6 +455,25 @@ Node instproc intf-changed { } {
 }
 
 
+### PGM Router support ###
+
+# Simulator instproc attach-PgmNE (args) {
+#     foreach node $args {
+# 	$node attach-PgmNEAgent
+#     }
+
+# Node instproc attach-PgmNEAgent {} {
+#     $self instvar switch_ router_supp_
+#     # if![Simulator set EnableMcast_] {
+#     # error "Error :Attaching PGM without Mcast option!"
+#     # 	}
+#     set router_supp_ [new Agent/NE/Pgm $switch_]
+#     [Simulator instance] attach-agent $self $router-supp_
+#     $switch_ install 1 $router-supp_
+# }
+
+
+
 #
 # Manual Routing Nodes:
 # like normal nodes, but with a hash classifier.
@@ -509,3 +532,10 @@ ManualRtNode instproc add-route-to-adj-node args {
 	# puts "ManualRtNode::add-route-to-adj-node: in $self for addr $dst to target $target"
 	return [$self add-route $dst $target]
 }
+
+
+
+
+
+
+
