@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.12 2002/02/11 19:33:14 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.13 2002/02/12 20:27:39 kclan Exp $
 
 #include <tclcl.h>
 
@@ -57,10 +57,16 @@ public:
 	Node* dst() { return dst_; }
 
 	void doneObject() {
+		if (sess_->mgr()->isdebug())
+	   		printf("doneObject: %g done=%d total=%d \n", Scheduler::instance().clock(), doneObj_, nObj_);
+
 	 	if (++doneObj_ >= nObj_) {
 	   		printf("doneObject: %g %d %d \n", Scheduler::instance().clock(), doneObj_, nObj_);
 		        sess_->donePage((void*)this);
-	 	}
+	 	} else if (sess_->persistOption_) {
+				sched(sess_->interObj()->value());
+		}
+		
 	}
         inline int curObj() const { return curObj_; }
 	inline int doneObj() const { return doneObj_; }
@@ -75,18 +81,19 @@ private:
 				 (int)ceil(sess_->objSize()->value()),
 				 (int)ceil(sess_->reqSize()->value()), sess_->id());
 		if (sess_->mgr()->isdebug())
-			printf("Session %d launched page %d obj %d\n",
-			       sess_->id(), id_, curObj_);
+			printf("expire: Session %d launched page %d obj %d nObj %d \n",
+			       sess_->id(), id_, curObj_, nObj_);
 	}
 	virtual void handle(Event *e) {
-		// If this is not the last object, schedule the next one
-		  
-		if (curObj_ <  nObj_) {
-			TimerHandler::handle(e);
-			curObj_++;
-			double delay=sess_->interObj()->value();
+		if (sess_->mgr()->isdebug())
+			printf("handle: Session %d launched page %d obj %d\n",
+			       sess_->id(), id_, curObj_);
+
+		TimerHandler::handle(e);
+		curObj_++;
+		if (!sess_->persistOption_) {
 			if (curObj_ <  nObj_) sched(sess_->interObj()->value());
-		} 
+		}
 	}
 	int id_;
 	EmpWebTrafSession* sess_;
@@ -98,9 +105,10 @@ private:
 };
 
 int EmpWebPage::LASTOBJ_ = 1;
-
 
 int EmpWebTrafSession::LASTPAGE_ = 1;
+
+int EmpWebTrafPool::LASTFLOW_ = 1;
 
 // XXX Must delete this after all pages are done!!
 EmpWebTrafSession::~EmpWebTrafSession() 
@@ -131,12 +139,6 @@ EmpWebTrafSession::~EmpWebTrafSession()
 		Tcl::instance().evalf("delete %s", rvServerSel_->name());
 
 */
-//        if ((persistConn_ != NULL) && (getPersOpt() == PERSIST)) {
-//            for (int i = 0; i < maxNumOfPersConn_; i++) {
-//	      if (persistConn_[i] != NULL) delete persistConn_[i];
-//            }
-//	    delete []persistConn_;
-//        }
 
 }
 
@@ -153,25 +155,17 @@ void EmpWebTrafSession::donePage(void* ClntData)
 	}
 	
 	delete pg;
-	
+
+        if (persistOption_) { //for HTTP1.1 persistent-connection
+        	//recycle TCP connection
+		mgr_->recycleTcp(ctcp_);
+		mgr_->recycleTcp(stcp_);
+		mgr_->recycleSink(csnk_);
+		mgr_->recycleSink(ssnk_);
+	}
+
 	// If all pages are done, tell my parent to delete myself
 	if (++donePage_ >= nPage_) {
-
-/*
-           for (int i = 0; i < numOfPersConn_; i++) {
-	      if (persistConn_[i] != NULL) 
-	         // teardown all the persistent connections 
-	         Tcl::instance().evalf("%s teardown-conn %s %s %s %s %s %s", 
-			      mgr_->name(),  
-			      persistConn_[i]->getCNode()->name(), 
-			      persistConn_[i]->getSNode()->name(),
-			      persistConn_[i]->getCTcpAgent()->name(), 
-			      persistConn_[i]->getCTcpSink()->name(), 
-			      persistConn_[i]->getSTcpAgent()->name(),
-			      persistConn_[i]->getSTcpSink()->name());
-            }
-*/
-
 	    mgr_->doneSession(id_);
         } else if (interPageOption_) {
 		sched(rvInterPage_->value());
@@ -192,7 +186,6 @@ void EmpWebTrafSession::expire(Event *)
         if (clientIdx_ < mgr()->nClientL_) n = 0 ; //ISI server
 	else
            n = int(ceil(serverSel()->value()));
-//	   n = int(floor(Random::uniform(mgr()->nSrcL_, mgr()->nSrc_)));
 
 
         assert((n >= 0) && (n < mgr()->nSrc_));
@@ -205,8 +198,23 @@ void EmpWebTrafSession::expire(Event *)
 		printf("Session %d starting page %d, curpage %d \n", 
 		       id_, LASTPAGE_-1, curPage_);
 
-        //count the concurrent session
-        if (curPage_ == 0) mgr_->startSession();
+        if (persistOption_) { //for HTTP1.1 persistent-connection
+
+                mgr_->LASTFLOW_++;
+
+	 	int wins = int(ceil(serverWin()->value()));
+	    	int winc = int(ceil(clientWin()->value()));
+	 	int window = (wins >= winc) ? wins : winc;
+
+	  	// Choose source and dest TCP agents for both source and destination
+	  	ctcp_ = mgr_->picktcp(window);
+	  	stcp_ = mgr_->picktcp(window);
+	  	csnk_ = mgr_->picksink();
+	  	ssnk_ = mgr_->picksink();
+
+		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp_->name(), stcp_->name());
+
+	}
 
 	pg->start();
 }
@@ -232,110 +240,64 @@ void EmpWebTrafSession::handle(Event *e)
 void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize, int sid)
 {
 
+  	TcpAgent* ctcp;
+  	TcpAgent* stcp;
+  	TcpSink* csnk;
+  	TcpSink* ssnk;
+
 	EmpWebPage* pg = (EmpWebPage*)ClntData;
 
-        if (0) { //remove HTTP1.1 for now
-//        if (getPersOpt() == PERSIST) { //for HTTP1.1 persistent-connection
+        if (persistOption_) { //for HTTP1.1 persistent-connection
+		if (mgr_->isdebug()) {
+			printf("HTTP1.1\n");
+		}
 
-//           PersConn* p = lookupPersConn(src_->nodeid(), pg->dst()->nodeid());
+		// use theh same connection
+	  	ctcp = ctcp_;
+	  	stcp = stcp_;
+	  	csnk = csnk_;
+	  	ssnk = ssnk_;
 
-//	   if (p == NULL)  {
 
-
-	      // Choose source and dest TCP agents for both source and destination
-/*
-	      TcpAgent* ctcp = mgr_->picktcp();
-	      TcpAgent* stcp = mgr_->picktcp();
-	      TcpSink* csnk = mgr_->picksink();
-	      TcpSink* ssnk = mgr_->picksink();
-*/
-              // store the state of this connection
-/*
-	      p = new PersConn();
-	      p->setDst(pg->dst()->nodeid());
-	      p->setSrc(src_->nodeid());
-	      p->setCTcpAgent(ctcp);
-	      p->setSTcpAgent(stcp);
-	      p->setCTcpSink(csnk);
-	      p->setSTcpSink(ssnk);
-	      p->setCNode(src_);
-	      p->setSNode(pg->dst());
-	      p->setStatus(INUSE);
-	      persistConn_[numOfPersConn_] = p;
-	      numOfPersConn_++;
-*/
-	      // Setup new TCP connection and launch request
-/*
-	      Tcl::instance().evalf("%s first-launch-reqP %d %s %s %s %s %s %s %d %d %d", 
-			      mgr_->name(), obj, src_->name(), 
-			      pg->dst()->name(),
-			      ctcp->name(), csnk->name(), stcp->name(),
-			      ssnk->name(), size, reqSize, sid);
-*/
-//           } else {
-
-//             if (p->getStatus() == IDLE) {
-//	        p->setStatus(INUSE);
-	        // use existing persistent connection to launch request
-/*
-	        Tcl::instance().evalf("%s launch-reqP %d %s %s %s %s %s %s %d %d %d", 
-			      mgr_->name(), obj, p->getCNode()->name(), 
-			      p->getSNode()->name(),
-			      p->getCTcpAgent()->name(), 
-			      p->getCTcpSink()->name(), 
-			      p->getSTcpAgent()->name(),
-			      p->getSTcpSink()->name(), size, reqSize, sid);
-             }
-             else {
-                p->pendingReqByte_ = p->pendingReqByte_ + reqSize;
-                p->pendingReplyByte_ = p->pendingReplyByte_ + size;
-             }
-	   }
-*/
         } else { //for HTTP1.0 non-consistent connection
+		if (mgr_->isdebug()) {
+			printf("HTTP1.0\n");
+		}
+	
+		mgr_->LASTFLOW_++;
 
-	 int wins = int(ceil(serverWin()->value()));
-	 int winc = int(ceil(clientWin()->value()));
-	 int window = (wins >= winc) ? wins : winc;
+	 	int wins = int(ceil(serverWin()->value()));
+	    	int winc = int(ceil(clientWin()->value()));
+	 	int window = (wins >= winc) ? wins : winc;
 
-	  // Choose source and dest TCP agents for both source and destination
-	  TcpAgent* ctcp = mgr_->picktcp(window);
-	  TcpAgent* stcp = mgr_->picktcp(window);
-	  TcpSink* csnk = mgr_->picksink();
-	  TcpSink* ssnk = mgr_->picksink();
+	  	// Choose source and dest TCP agents for both source and destination
+	  	ctcp = mgr_->picktcp(window);
+	  	stcp = mgr_->picktcp(window);
+	  	csnk = mgr_->picksink();
+	  	ssnk = mgr_->picksink();
 
-	  // Setup new TCP connection and launch request
-	  Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d %d",                             mgr_->name(), obj, pg->id(), 
+		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp->name(), stcp->name());
+
+	}
+
+	// Setup new TCP connection and launch request
+	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d %d %d",                             mgr_->name(), obj, pg->id(), 
 			      src_->name(), pg->dst()->name(),
 			      ctcp->name(), csnk->name(), 
 			      stcp->name(), ssnk->name(), 
-			      size, reqSize, ClntData);
+			      size, reqSize, ClntData,
+			      persistOption_);
 
-	}
 
 	// Debug only
 	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
 
-if (mgr_->isdebug()) {
-	printf("%d \t %d \t %d \t %d \t %g %d %d\n", size, obj, pg->id(), id_,
-	       Scheduler::instance().clock(), 
-	       src_->address(), pg->dst()->address());
-	printf("** Tcp agents %d, Tcp sinks %d\n", mgr_->nTcp(),mgr_->nSink());
-}
+	if (mgr_->isdebug()) {
+	 	printf("size=%d  obj=%d  page=%d  sess=%d  %g src=%d dst=%d\n", size, obj, pg->id(), id_, Scheduler::instance().clock(), src_->address(), pg->dst()->address());
+		printf("** Tcp agents %d, Tcp sinks %d\n", mgr_->nTcp(),mgr_->nSink());
+	}
 }
 
-// Lookup for a particular persistent connection
-/*
-PersConn* EmpWebTrafSession::lookupPersConn(int client, int server)
-{
-    for (int i = 0; i < numOfPersConn_; i++) {
-       if ((persistConn_[i]->getSrc() == client) &&
-           (persistConn_[i]->getDst() == server))
-	   return persistConn_[i];
-    }
-    return NULL;
-}
-*/
 
 static class EmpWebTrafPoolClass : public TclClass {
 public:
@@ -412,6 +374,26 @@ TcpSink* EmpWebTrafPool::picksink()
 	} else 
 		nSink_--;
 	return a;
+}
+
+void EmpWebTrafPool::recycleTcp(Agent* a)
+{
+	if (a == NULL) {
+		fprintf(stderr, "Failed to recycle TCP agent\n");
+		abort();
+	}
+	nTcp_++;
+	insertAgent(&tcpPool_, a);
+}
+
+void EmpWebTrafPool::recycleSink(Agent* a)
+{
+	if (a == NULL) {
+		fprintf(stderr, "Failed to recycle Sink agent\n");
+		abort();
+	}
+	nSink_++;
+	insertAgent(&sinkPool_, a);
 }
 
 int EmpWebTrafPool::command(int argc, const char*const* argv)
@@ -506,40 +488,6 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			insertAgent(&sinkPool_, snk);
 			return (TCL_OK);
 		}
-/*	} else if (argc == 6) {
-
-		if (strcmp(argv[1], "send-pending") == 0) {
-		   int id = atoi(argv[2]);
-		   int client = atoi(argv[3]);
-		   int server = atoi(argv[4]);
-		   int sid = atoi(argv[5]);
-                   PersConn* p = session_[sid]->lookupPersConn(client, server);
-                   if (p != NULL) {
-	              p->setStatus(IDLE);
-*/
-                      //send out the pending request
-/*
-                      if (( p->pendingReqByte_ > 0) &&
-                          ( p->getStatus() != INUSE)) {
-	                   p->setStatus(INUSE);
-
-	                   Tcl::instance().evalf("%s launch-reqP %d %s %s %s %s %s %s %d %d %d", 
-			      this->name(), id, p->getCNode()->name(), 
-			      p->getSNode()->name(),
-			      p->getCTcpAgent()->name(), 
-			      p->getCTcpSink()->name(), 
-			      p->getSTcpAgent()->name(),
-			      p->getSTcpSink()->name(),
-                              p->pendingReplyByte_, p->pendingReqByte_, sid);
-                           p->pendingReqByte_ = 0;
-                           p->pendingReplyByte_ = 0;
-                      }
-		      return (TCL_OK);
-                   } else {
-		     return (TCL_ERROR);
-                   }
-                }
-*/
 	} else if (argc == 15) {
 		if (strcmp(argv[1], "create-session") == 0) {
 			// <obj> create-session <session_index>
@@ -576,7 +524,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 
 			int res = lookup_rv(p->interPage(), argv[5]);
 			res = (res == TCL_OK) ? 
-				lookup_rv1(p->pageSize(), argv[6]) : TCL_ERROR;
+				lookup_rv(p->pageSize(), argv[6]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->interObj(), argv[7]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
@@ -600,10 +548,8 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			session_[n] = p;
 
 		        // decide to use either persistent or non-persistent
-			// use http1.0 for now
-			// int opt = (int)ceil(p->persistSel()->value());
-			//opt = 0;
-			//p->setPersOpt(opt);
+			int opt = (int)ceil(p->persistSel()->value());
+			p->set_persistOption(opt);
                         //p->initPersConn();
                            
 			return (TCL_OK);

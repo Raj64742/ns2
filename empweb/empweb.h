@@ -29,7 +29,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.13 2002/02/11 19:33:14 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.14 2002/02/12 20:27:39 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -55,17 +55,14 @@ public:
 		rvInterObj_(NULL), rvObjSize_(NULL), 
 		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
 		rvServerWin_(NULL), rvClientWin_(NULL),
-//		numOfPersConn_(0), usePers_(0), 
-//		maxNumOfPersConn_(connNum), clientIdx_(cl),
 		clientIdx_(cl), 
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
-		id_(id), interPageOption_(1) {}
+		id_(id), interPageOption_(1), persistOption_(0) {}
 	virtual ~EmpWebTrafSession();
 
 	// Queried by individual pages/objects
 	inline EmpiricalRandomVariable*& interPage() { return rvInterPage_; }
-//	inline EmpiricalRandomVariable*& pageSize() { return rvPageSize_; }
-inline RandomVariable*& pageSize() { return rvPageSize_; }
+	inline EmpiricalRandomVariable*& pageSize() { return rvPageSize_; }
 	inline EmpiricalRandomVariable*& interObj() { return rvInterObj_; }
 	inline EmpiricalRandomVariable*& objSize() { return rvObjSize_; }
 
@@ -83,25 +80,15 @@ inline RandomVariable*& pageSize() { return rvPageSize_; }
 
         inline void set_interPageOption(int option) { interPageOption_ = option; }
 	 
-//        PersConn* lookupPersConn(int client, int server);
-
 	static int LASTPAGE_;
-//	inline void setPersOpt(int opt) { usePers_ = opt; }
-//	inline int getPersOpt() { return usePers_; }
-//	inline void initPersConn() { 
-//	       if (getPersOpt() == PERSIST) {
-//	           persistConn_ = new PersConn*[maxNumOfPersConn_];  
-//	           memset(persistConn_, 0, sizeof(PersConn*)*maxNumOfPersConn_);
-//               }
-//         }
+	inline void set_persistOption(int opt) { persistOption_ = opt; }
+	int persistOption_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
 
 private:
 	virtual void expire(Event *e = 0);
 	virtual void handle(Event *e);
 
-//	EmpiricalRandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
-	EmpiricalRandomVariable *rvInterPage_, *rvInterObj_, *rvObjSize_;
-	RandomVariable *rvPageSize_;
+	EmpiricalRandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
 	EmpiricalRandomVariable *rvReqSize_, *rvPersistSel_, *rvServerSel_;
 	EmpiricalRandomVariable *rvServerWin_, *rvClientWin_;
 	EmpWebTrafPool* mgr_;
@@ -113,11 +100,11 @@ private:
 
         int clientIdx_;
 
-        //modeling HTTP1.1
-//	PersConn** persistConn_; 
-//	int numOfPersConn_ ;
-//	int maxNumOfPersConn_ ;
-//	int usePers_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
+	TcpAgent* ctcp_;
+        TcpAgent* stcp_;
+	TcpSink* csnk_;
+	TcpSink* ssnk_;
+
 };
 
 class EmpWebTrafPool : public PagePool {
@@ -130,11 +117,6 @@ public:
 		if (isdebug()) 
 			printf("concurrent number of sessions = %d \n", concurrentSess_ );
 	}
-//	inline Node* picksrc() {
-//		int n = int(floor(Random::uniform(0, nClient_)));
-//		assert((n >= 0) && (n < nClient_));
-//		return client_[n];
-//	}
 	inline void doneSession(int idx) { 
 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
@@ -146,6 +128,8 @@ public:
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}
+	void recycleTcp(Agent* a);
+	void recycleSink(Agent* a);
 	TcpAgent* picktcp(int size);
 	TcpSink* picksink();
 	inline int nTcp() { return nTcp_; }
@@ -160,6 +144,7 @@ public:
 
 	int concurrentSess_;
 
+	static int LASTFLOW_;
 	int nSrc_;
 	Node** server_;		/* Web servers */
 
@@ -208,13 +193,6 @@ protected:
 		rv = (EmpiricalRandomVariable*)lookup_obj(name);
 		return rv ? (TCL_OK) : (TCL_ERROR);
 	}
-
-        inline int lookup_rv1(RandomVariable*& rv, const char* name) {
-                if (rv != NULL)
-                        Tcl::instance().evalf("delete %s", rv->name());
-                rv = (RandomVariable*)lookup_obj(name);
-                return rv ? (TCL_OK) : (TCL_ERROR);
-        }
 
 	int debug_;
 };

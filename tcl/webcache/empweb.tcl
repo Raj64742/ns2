@@ -21,11 +21,13 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.7 2001/12/03 07:41:53 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.8 2002/02/12 20:26:27 kclan Exp $
 
 PagePool/EmpWebTraf set debug_ false
 PagePool/EmpWebTraf set TCPTYPE_ Reno
 PagePool/EmpWebTraf set TCPSINKTYPE_ TCPSink   ;#required for SACK1 Sinks.
+PagePool/EmpWebTraf set REQ_TRACE_ 0
+PagePool/EmpWebTraf set RESP_TRACE_ 0
 
 #0 for default, fid=id
 #1 for increasing along with new agent allocation (as in red-pd). 
@@ -36,8 +38,15 @@ PagePool/EmpWebTraf set TCPSINKTYPE_ TCPSink   ;#required for SACK1 Sinks.
 #   (see pushback scripts for usage of this).
 PagePool/EmpWebTraf set FID_ASSIGNING_MODE_ 0 
 PagePool/EmpWebTraf set VERBOSE_ 0
+PagePool/EmpWebTraf set maxFid_ 0
 
-PagePool/EmpWebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size reqSize } {
+
+PagePool/EmpWebTraf instproc set-fid { id ctcp stcp} {
+	$stcp set fid_ $id
+	$ctcp set fid_ $id
+}
+
+PagePool/EmpWebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size reqSize pobj persist} {
 	set ns [Simulator instance]
 
 	$ns attach-agent $svr $stcp
@@ -48,47 +57,62 @@ PagePool/EmpWebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size r
 	$ns attach-agent $svr $csnk
 	$ns connect $ctcp $csnk
 
-	if {[PagePool/EmpWebTraf set FID_ASSIGNING_MODE_] == 0} {
-		$stcp set fid_ $id
-		$ctcp set fid_ $id
-	}
+#	if {[PagePool/EmpWebTraf set FID_ASSIGNING_MODE_] == 0} {
+#		$stcp set fid_ $id
+#		$ctcp set fid_ $id
+#	}
 
-	$ctcp proc done {} "$self done-req $id $clnt $svr $ctcp $csnk $stcp $size"
-	$stcp proc done {} "$self done-resp $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
+	$ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $pobj $persist"
+	$stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_] $pobj $persist"
 	
 	# modified to trace web traffic flows (send request: client==>server).
-        #puts "req + obj:$id clnt:[$clnt id] svr:[$svr id] $size [$ns now]"
-        puts "req web clnt [$clnt id] svr [$svr id] [$ns now] obj $id $reqSize $size"
+        	puts "req + obj:$id clnt:[$clnt id] svr:[$svr id] $size [$ns now]"
+	if {[PagePool/EmpWebTraf set REQ_TRACE_]} {
+        	puts "req + obj:$id clnt:[$clnt id] svr:[$svr id] $size [$ns now]"
+	}
 
 	# Send request packets based on empirical distribution
 	$ctcp advanceby $reqSize
 }
 
-PagePool/EmpWebTraf instproc done-req { id clnt svr ctcp csnk stcp size } {
+PagePool/EmpWebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size pobj persist} {
 	set ns [Simulator instance]
 
 	# modified to trace web traffic flows (recv request: client==>server).
-        #puts "req - obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
-	
+        	puts "req - obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
+	if {[PagePool/EmpWebTraf set REQ_TRACE_]} {
+        	puts "req - obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
+	}	
 	# Recycle client-side TCP agents
 	$ns detach-agent $clnt $ctcp
 	$ns detach-agent $svr $csnk
 	$ctcp reset
 	$csnk reset
-	$self recycle $ctcp $csnk
-	#puts "recycled $ctcp $csnk"
+	#don't recycle if it's persistent connection
+	if {$persist != 1} {
+		$self recycle $ctcp $csnk
+	}
 
 	# modified to trace web traffic flows (send responese: server->client).
-	#puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
-	
+		puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
+	if {[PagePool/EmpWebTraf set RESP_TRACE_]} {
+		puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
+	}
+
 	# Advance $size packets
 	$stcp advanceby $size
 }
 
-PagePool/EmpWebTraf instproc done-resp { id clnt svr stcp ssnk size {startTime 0} {fid 0}} {
+PagePool/EmpWebTraf instproc done-resp { id pid clnt svr stcp ssnk size {startTime 0} {fid 0} pobj persist} {
 	set ns [Simulator instance]
 
 	# modified to trace web traffic flows (recv responese: server->client).
+	   	puts "resp - $id $pid $size [$svr id] [$clnt id] [$ns now]"
+	if {[PagePool/EmpWebTraf set RESP_TRACE_]} {
+	   	puts "resp - $id $pid $size [$svr id] [$clnt id] [$ns now]"
+       	}
+
+		puts "done-resp - obj:$id srv:[$svr id] clnt:[$clnt id] $size $startTime [$ns now] $fid"
 	if {[PagePool/EmpWebTraf set VERBOSE_] == 1} {
 		puts "done-resp - obj:$id srv:[$svr id] clnt:[$clnt id] $size $startTime [$ns now] $fid"
 	}
@@ -98,28 +122,13 @@ PagePool/EmpWebTraf instproc done-resp { id clnt svr stcp ssnk size {startTime 0
 	$ns detach-agent $svr $stcp
 	$stcp reset
 	$ssnk reset
-	$self recycle $stcp $ssnk
-	#puts "recycled $stcp $ssnk"
+	#don't recycle if it's persistent connection
+	if {$persist != 1} { 
+		$self recycle $stcp $ssnk
+	}
+	$self doneObj $pobj
 }
 
-PagePool/EmpWebTraf instproc teardown-conn { clnt svr ctcp csnk stcp ssnk } {
-
-
-	set ns [Simulator instance]
-
-	$ns detach-agent $clnt $ctcp
-	$ns detach-agent $svr $csnk
-	$ctcp reset
-	$csnk reset
-	$self recycle $ctcp $csnk
-
-	$ns detach-agent $clnt $ssnk
-	$ns detach-agent $svr $stcp
-	$stcp reset
-	$ssnk reset
-	$self recycle $stcp $ssnk
-
-}
 
 
 # XXX Should allow customizable TCP types. Can be easily done via a 
@@ -134,6 +143,11 @@ PagePool/EmpWebTraf instproc alloc-tcp { size } {
 	set fidMode [PagePool/EmpWebTraf set FID_ASSIGNING_MODE_]
 	if {$fidMode == 1} {
 		$self instvar maxFid_
+
+		if ![info exists maxFid_] {
+			$self set maxFid_ 0
+		}
+
 		$tcp set fid_ $maxFid_
 		incr maxFid_
 	} elseif  {$fidMode == 2} {
@@ -148,76 +162,3 @@ PagePool/EmpWebTraf instproc alloc-tcp-sink {} {
 	return [new Agent/[PagePool/EmpWebTraf set TCPSINKTYPE_]]
 }
 
-PagePool/EmpWebTraf instproc launch-reqP { id clnt svr ctcp csnk stcp ssnk size reqSize sid} {
-
-	set ns [Simulator instance]
-
-	if {[PagePool/EmpWebTraf set FID_ASSIGNING_MODE_] == 0} {
-		$stcp set fid_ $id
-		$ctcp set fid_ $id
-	}
-
-	$ctcp proc done {} "$self done-reqP $id $clnt $svr $ctcp $csnk $stcp $size $sid"
-	$stcp proc done {} "$self done-respP $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
-	
-	# modified to trace web traffic flows (send request: client==>server).
-        #puts "req + sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] $size [$ns now]"
-
-	# Send request packets based on empirical distribution
-	$ctcp advanceby $reqSize
-#	$self senddata $ctcp $reqSize " { $self done-reqP $id $clnt $svr $ctcp $csnk $stcp $size } "
-}
-
-
-PagePool/EmpWebTraf instproc done-reqP { id clnt svr ctcp csnk stcp size sid} {
-
-        $self send-pending $id [$clnt id] [$svr id] $sid
-
-	set ns [Simulator instance]
-
-	# modified to trace web traffic flows (recv request: client==>server).
-        #puts "req - sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
-	
-	# modified to trace web traffic flows (send responese: server->client).
-	#puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
-	
-	# Advance $size packets
-	$stcp advanceby $size
-}
-
-PagePool/EmpWebTraf instproc done-respP { id clnt svr stcp ssnk size {startTime 0} {fid 0}} {
-	set ns [Simulator instance]
-
-	# modified to trace web traffic flows (recv responese: server->client).
-	if {[PagePool/EmpWebTraf set VERBOSE_] == 1} {
-		puts "done-resp - obj:$id srv:[$svr id] clnt:[$clnt id] $size $startTime [$ns now] $fid"
-	}
-
-}
-
-PagePool/EmpWebTraf instproc first-launch-reqP { id clnt svr ctcp csnk stcp ssnk size reqSize sid } {
-	set ns [Simulator instance]
-
-	$ns attach-agent $svr $stcp
-	$ns attach-agent $clnt $ssnk
-	$ns connect $stcp $ssnk
-	
-	$ns attach-agent $clnt $ctcp
-	$ns attach-agent $svr $csnk
-	$ns connect $ctcp $csnk
-
-	if {[PagePool/EmpWebTraf set FID_ASSIGNING_MODE_] == 0} {
-		$stcp set fid_ $id
-		$ctcp set fid_ $id
-	}
-
-	$ctcp proc done {} "$self done-reqP $id $clnt $svr $ctcp $csnk $stcp $size $sid"
-	$stcp proc done {} "$self done-respP $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
-	
-	# modified to trace web traffic flows (send request: client==>server).
-        #puts "req + sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] $size [$ns now]"
-
-	# Send request packets based on empirical distribution
-	$ctcp advanceby $reqSize
-#	$self senddata $ctcp $reqSize " { $self done-reqP $id $clnt $svr $ctcp $csnk $stcp $size } "
-}
