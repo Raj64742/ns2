@@ -3,7 +3,7 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.3 1997/03/21 17:18:18 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.4 1997/03/27 07:05:07 elan Exp $
 #
 
 set ns [new MultiSim]
@@ -283,7 +283,7 @@ proc finish {} {
 	exec rm -f out
 	#XXX
 	puts "running nam..."
-	exec ../../../nam/nam srm-demo-nam &
+	exec nam srm-demo-nam &
 	exit 0
 }
 
