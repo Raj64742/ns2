@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.8 1997/06/23 17:45:52 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.9 1997/07/14 23:07:39 tomh Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -75,7 +75,7 @@ int class_;		/* class to place in packet header */
 			(void)Scheduler::instance().cancel(&timer_[tno]);
 		}
 	}
-#define NTIMER 3
+#define NTIMER 4
 	/*
 	 * xxx:  timers done in this manner should go away.
 	 * Use C++-ish agent timers from agent-timer.h instead.
