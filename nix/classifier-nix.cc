@@ -55,7 +55,7 @@ NsObject* NixClassifier::find(Packet* p)
 		}
 	NixNode* pN = NixNode::GetNodeObject(m_NodeId);
 	hdr_ip* ip = hdr_ip::access(p);
-	if (ip->daddr() == pN->Id())
+	if ((nodeid_t)ip->daddr() == pN->Id())
 		{ // Arrived at destination, pass on to the dmux object
 			if(0)printf("Returning Dmux objet %p\n", m_Dmux);
 			return m_Dmux;
@@ -95,7 +95,7 @@ int NixClassifier::command(int argc, const char*const* argv)
 				{
 					if(0)printf("%s NixClassifier::Command node %ld install %s %s\n",
 								 name(), pN->Id(), argv[2], argv[3]);
-					if (target == pN->Id())
+					if ((nodeid_t)target == pN->Id())
 						{ // This is the only case we care about, need to note the dmux obj
 							m_Dmux = (NsObject*)TclObject::lookup(argv[3]);
 							if(0)printf("m_Dmux obj is %p\n", m_Dmux);

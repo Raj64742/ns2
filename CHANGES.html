@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.508 2002/03/18 17:32:36 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.509 2002/03/22 22:58:59 haldar Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -19,6 +19,9 @@ ns-2.1b9 release PENDING</h3>
 
 <ul>
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
+Applied Benyuan Liu's <benyuan@cs.umass.edu> patch which makes Snoop work again. Example scripts available under ~ns/tcl/ex/snoop. Actually this was added long time back, around oct, 2001. Adding to CHANGES.html now.
+
+<p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Wed Mar 13 16:44:22 PST 2002
 several bug fixes.
 1. incoming_ parameter included in class packet by CMU modifications were used to determine the direction of pkt flow in lower layers of the stack (mac, LL). Later this was replaced by direction_ in hdr_cmn. See packet.h for details about direction_. changes were made to replace incoming_ with direction_.
@@ -27,6 +30,7 @@ several bug fixes.
 
 3. tora bug fixes include removing incoming flag. also replacing
 src() & dst() with saddr() and daddr() resp.
+
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Wed Mar 13 16:44:22 PST 2002
 Bug fixes and changes made to mac-802.11. A special thanks to Gavin Holland<gholland@wins.hrl.com> for providing patches and support for the port.

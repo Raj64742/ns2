@@ -35,9 +35,9 @@
 
 static RNodeVec_t Nodes; // Vector of known nodes
 static int NVCount = 0;  // Number of nix vectors
-static int NVMin = 0;    // Smallest nv
-static int NVMax = 0;    // Largest nv
-static int NVTot = 0;    // Total bitcount for all nv's (to compute avg)
+static Nixl_t NVMin = 0;    // Smallest nv
+static Nixl_t NVMax = 0;    // Largest nv
+static Nixl_t NVTot = 0;    // Total bitcount for all nv's (to compute avg)
 
 NixNode::NixNode() : RNode(), m_Map(-1), m_pNixVecs(0)
 {
@@ -258,7 +258,6 @@ void NixNode::PopulateObjects(void)
 Edge*      pEdge;
 EdgeVec_it it;
 Tcl& tcl = Tcl::instance();
-char* pRes;
 
   for (it = m_Adj.begin(); it != m_Adj.end(); it++)
 		{
@@ -295,7 +294,7 @@ RNodeVec_it it;
 // Global function (debug only)
 void ReportNixStats()
 {
-	printf("Total NV %d Min %d Max %d Avg %f\n", 
+	printf("Total NV %d Min %ld Max %ld Avg %f\n", 
 				 NVCount, NVMin, NVMax, (double)NVTot/(double)NVCount);
 }
 
