@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.30 2001/03/28 07:17:02 debo Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.31 2001/10/03 10:05:34 ddutta Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -176,7 +176,7 @@ Simulator instproc dump-approx-sim-data {} {
 			# a single line
 			set nh [$routingTable_ lookup $srcid $dstid]
 			# print the route 
-			append str " " [$link_($srcid:$nh) id] 
+			append str " " [expr [$link_($srcid:$nh) id] + 1] 
 			set srcid  $nh
 		}
 		
