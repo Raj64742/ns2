@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.12 2003/01/19 03:54:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.13 2004/06/07 18:34:56 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -199,6 +199,22 @@ Test/tcpHighspeed1 instproc init {} {
     $self next noTraceFiles
 }
 
+## tcpHighspeed1A uses cwnd_range_
+Class Test/tcpHighspeed1A -superclass TestSuite
+Test/tcpHighspeed1A instproc init {} {
+    $self instvar net_ test_ sender_ receiver_ guide_
+    set net_	net2b
+    set test_	tcpHighspeed1A
+    set guide_	"Highspeed TCP, good queue, max_ssthresh=100, efficient version."
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set windowOption_ 8
+    Agent/TCP set max_ssthresh_ 100
+    Agent/TCP set cwnd_range_ 50
+    Test/tcpHighspeed1A instproc run {} [Test/tcp info instbody run ]
+    $self next noTraceFiles
+}
+
 ## tcpHighspeed2 uses a different value for low_window_.
 Class Test/tcpHighspeed2 -superclass TestSuite
 Test/tcpHighspeed2 instproc init {} {
@@ -264,23 +280,6 @@ Test/tcpHighspeed5 instproc init {} {
     Agent/TCP set high_p_ 0.000001
     Agent/TCP set high_decrease_ 0.1
     Test/tcpHighspeed5 instproc run {} [Test/tcp info instbody run ]
-    $self next noTraceFiles
-}
-
-## tcpHighspeed6 computes the increase and decrease parameters
-##   less frequently.
-Class Test/tcpHighspeed6 -superclass TestSuite
-Test/tcpHighspeed6 instproc init {} {
-    $self instvar net_ test_ sender_ receiver_ guide_
-    set net_	net2b
-    set test_	tcpHighspeed6
-    set guide_	"Highspeed TCP, good queue, max_ssthresh=100."
-    set sender_ TCP/Sack1
-    set receiver_ TCPSink/Sack1 
-    Agent/TCP set windowOption_ 8
-    Agent/TCP set max_ssthresh_ 100
-    Agent/TCP set cwnd_frac_ 1.1
-    Test/tcpHighspeed6 instproc run {} [Test/tcp info instbody run ]
     $self next noTraceFiles
 }
 
