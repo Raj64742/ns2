@@ -1,5 +1,5 @@
 Class Traffic/Mix -superclass TestSuite
-TestSuite instproc trafficMix {} {
+TestSuite instproc trafficMix { { notused 0 } } {
     $self instvar node_
     
     set fid 1
@@ -91,7 +91,7 @@ TestSuite instproc trafficMix {} {
 }
 
 Class Traffic/AllTCP -superclass TestSuite
-TestSuite instproc trafficAllTCP {} {
+TestSuite instproc trafficAllTCP { { notused 0 } } {
     $self instvar node_
     
     set fid 1
@@ -123,7 +123,7 @@ TestSuite instproc trafficAllTCP {} {
 }
 
 Class Traffic/AllUDP -superclass TestSuite
-TestSuite instproc trafficAllUDP {} {
+TestSuite instproc trafficAllUDP { { notused 0 } } {
 
     $self instvar node_ 
     
@@ -174,8 +174,9 @@ TestSuite instproc trafficAllUDP {} {
     incr fid
 }
 
+# 5 TCP flows. 
 Class Traffic/TestIdent -superclass TestSuite
-TestSuite instproc trafficTestIdent {} {
+TestSuite instproc trafficTestIdent { { notused 0 } } {
 
     $self instvar node_ 
     
@@ -193,7 +194,7 @@ TestSuite instproc trafficTestIdent {} {
 }
 
 Class Traffic/Web -superclass TestSuite
-TestSuite instproc trafficWeb {} {
+TestSuite instproc trafficWeb { { notused 0 } } {
 
     $self instvar node_
     
@@ -333,17 +334,18 @@ TestSuite instproc trafficMulti {noLinks_} {
 }
 
 Class Traffic/TFRC -superclass TestSuite
-TestSuite instproc trafficTFRC {} {
+TestSuite instproc trafficTFRC { { numFlowPairs 2 } } {
     $self instvar node_
 
     set fid 1
-    for {set i 0} {$i<2} {incr i} {
+    for {set i 0} {$i<$numFlowPairs} {incr i} {
+	set k [ expr $i % 2 ]
 	for {set j 0} {$j<1} {incr j} {
 	    #new_TFRC startTime source dest fid pktSize
-	    $self new_TFRC [$self rnd 10] $node_(s$i) $node_(d$j) $fid 1000 
+	    $self new_TFRC [$self rnd 10] $node_(s$k) $node_(d$j) $fid 1000 
 	    incr fid
 	
-	    $self new_Tcp [$self rnd 10] $node_(s$i) $node_(d$j) 50 $fid 1 1000 sack 0
+	    $self new_Tcp [$self rnd 10] $node_(s$k) $node_(d$j) 50 $fid 1 1000 sack 0
 	    incr fid
 
 	}
@@ -351,7 +353,7 @@ TestSuite instproc trafficTFRC {} {
 }
 
 Class Traffic/TestFRp -superclass TestSuite
-TestSuite instproc trafficTestFRp {} {
+TestSuite instproc trafficTestFRp { { notused 0 } } {
 
     $self instvar node_ topo_
     $topo_ instvar redpdq_

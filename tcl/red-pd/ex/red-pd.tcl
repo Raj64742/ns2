@@ -109,12 +109,13 @@ TestSuite instproc finish {} {
 # for tests with a single congested link
 #
 Class Test/one -superclass TestSuite
-Test/one instproc init { name topo traffic enable } {
-    $self instvar net_ test_ traffic_ enable_
+Test/one instproc init { name topo traffic enable numFlows } {
+    $self instvar net_ test_ traffic_ enable_ numFlows_
     set test_ $name
     set net_ $topo   
     set traffic_ $traffic
     set enable_ $enable
+    set numFlows_ numFlows
     $self next
     $self config $name.$topo.traffic.$enable
 }
@@ -122,7 +123,7 @@ Test/one instproc init { name topo traffic enable } {
 Test/one instproc run {} {
     $self instvar ns_ net_ topo_ enable_ stoptime_ test_ traffic_ label_
     $topo_ instvar node_ rtt_ redpdq_ redpdflowmon_ redpdlink_ 
-    $self instvar tcpRateFileDesc_ tcpRateFile_
+    $self instvar tcpRateFileDesc_ tcpRateFile_ numFlows_
     
     #set stoptime_ 100.0
     set stoptime_ 500.0
@@ -148,7 +149,7 @@ Test/one instproc run {} {
     puts $tcpRateFileDesc_ "Device: Postscript"
     
     
-    $self traffic$traffic_
+    $self traffic$traffic_ $numFlows_
 
     $ns_ at $stoptime_ "$self finish"
     
@@ -160,7 +161,7 @@ Test/one instproc run {} {
 #multiple congested link tests
 #
 Class Test/multi -superclass TestSuite
-Test/multi instproc init { name topo traffic enable } {
+Test/multi instproc init { name topo traffic enable {unused 0}} {
     $self instvar net_ test_ traffic_ enable_
     set test_ $name
     set net_ $topo   
@@ -259,8 +260,32 @@ TestSuite proc runTest {} {
 	    $self isProc? Traffic $traffic
 	    
 	    set enable true
+	    set numFlows 2
 	}
 	4 {
+	    set test [lindex $argv 0]
+	    $self isProc? Test $test
+	    
+	    set topo [lindex $argv 1]
+	    $self isProc? Topology $topo
+	    
+	    set traffic [lindex $argv 2]
+	    $self isProc? Traffic $traffic
+	    
+
+	    set enable true
+	    set enable [lindex $argv 3]
+	    if { $enable == "disable" } {
+		set enable false
+	    } elseif { $enable == "enable" } {
+		set enable true
+  	    } else {
+		$self usage
+	    }
+
+	    set numFlows 2
+	}
+	5 {
 	    set test [lindex $argv 0]
 	    $self isProc? Test $test
 	    
@@ -274,15 +299,19 @@ TestSuite proc runTest {} {
 	    set enable [lindex $argv 3]
 	    if { $enable == "disable" } {
 		set enable false
-	    } else {
+	    } elseif { $enable == "enable" } {
+		set enable true
+  	    } else {
 		$self usage
 	    }
+
+	    set numFlows [lindex $argv 4]
 	}
 	default {
 	    $self usage
 	}
     }
-    set t [new Test/$test $test $topo $traffic $enable]
+    set t [new Test/$test $test $topo $traffic $enable $numFlows]
     $t run
 }
 
