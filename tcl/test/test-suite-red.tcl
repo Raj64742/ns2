@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.31 2000/07/18 05:20:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.32 2000/07/19 04:51:52 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -757,7 +757,8 @@ Test/ungentle instproc run {} {
     set stoptime 40.0
     set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
     set fmon [$ns_ makeflowmon Fid]
-    $ns_ attach-fmon $slink $fmon
+   #$ns_ attach-fmon $slink $fmon
+    $ns_ attach-fmon $slink $fmon 1
     
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
     set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 1]
