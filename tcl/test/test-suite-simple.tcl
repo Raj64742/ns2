@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.19 2001/12/31 07:04:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.20 2002/01/01 04:28:21 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -497,6 +497,18 @@ Test/tahoe1 instproc run {} {
 	$ns_ run
 }
 
+Class Test/tahoe1Bytes -superclass TestSuite
+Test/tahoe1Bytes instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	tahoe1Bytes
+	Queue/DropTail set queue_in_bytes_ true
+	Queue/DropTail set mean_pktsize_ 1000
+	Test/tahoe1Bytes instproc run {} [Test/tahoe1 info instbody run ]
+	$self next
+}
+
 # Tahoe1 with RED
 Class Test/tahoe1RED -superclass TestSuite
 Test/tahoe1RED instproc init topo {
@@ -505,6 +517,19 @@ Test/tahoe1RED instproc init topo {
 	set defNet_	net0a
 	set test_	tahoe1RED
 	Test/tahoe1RED instproc run {} [Test/tahoe1 info instbody run ]
+	$self next
+}
+
+# Tahoe1 with RED
+Class Test/tahoe1REDbytes -superclass TestSuite
+Test/tahoe1REDbytes instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0a
+	set test_	tahoe1REDbytes
+	Queue/RED set queue_in_bytes_ true
+	Queue/RED set mean_pktsize_ 1000
+	Test/tahoe1REDbytes instproc run {} [Test/tahoe1 info instbody run ]
 	$self next
 }
 
