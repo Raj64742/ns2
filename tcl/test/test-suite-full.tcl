@@ -99,35 +99,34 @@ TestSuite instproc finish testname {
 			  $fname.acks "acks w/data rcvd" \
 			  $fname.packs "pure acks rcvd" $fname.d "drops" \
 			  $fname.es "zero-len segments sent" \
-			  $fname.ctrl "SYN or FIN" > .gnuplot
+			  $fname.ctrl "SYN or FIN" $fname.ecn "ECN" > .gnuplot
 			exec xterm -T "Gnuplot: $testname" -e gnuplot &
 			exec sleep 1
 			exec rm -f .gnuplot
 		} else {
-	  
 			exec tclsh ../../bin/cplot.tcl $outtype $testname.forw \
 			  $fname.p "segments sent" \
 			  $fname.acks "acks w/data rcvd" \
 			  $fname.packs "pure acks rcvd" $fname.d "drops" \
 			  $fname.es "zero-len segments sent" \
-			  $fname.ctrl "SYN or FIN" | $outtype &
+			  $fname.ctrl "SYN or FIN" $fname.ecn "ECN" | $outtype &
 
 			exec tclsh ../../bin/cplot.tcl $outtype $testname.rev \
 			  $fname.r.p "segments sent" \
 			  $fname.r.acks "acks w/data rcvd" \
 			  $fname.r.packs "pure acks rcvd" $fname.r.d "drops" \
 			  $fname.r.es "zero-len segments sent" \
-			  $fname.r.ctrl "SYN or FIN" | $outtype &
+			  $fname.r.ctrl "SYN or FIN" $fname.r.ecn "ECN" | $outtype &
 		}
 		exec sleep 1
 		exec rm -f \
-		$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es
+		$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es $fname.ecn
 		exec rm -f \
-		$fname.r.p $fname.r.acks $fname.r.packs $fname.r.d $fname.r.ctrl $fname.r.es
+		$fname.r.p $fname.r.acks $fname.r.packs $fname.r.d $fname.r.ctrl $fname.r.es $fname.r.ecn
 	} else {
 		if { $quiet != "true" } {
-			puts "output files are $fname.{p,packs,acks,d,ctrl,es}"
-			puts "  and $fname.r.{p,packs,acks,d,ctrl,es}"
+			puts "output files are $fname.{p,packs,acks,d,ctrl,es,ecn}"
+			puts "  and $fname.r.{p,packs,acks,d,ctrl,es,ecn}"
 		}
 	}
 	exec mv $tmpnam temp.rands
