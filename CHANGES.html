@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.331 1999/05/13 17:11:05 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.332 1999/05/13 21:37:25 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,14 @@
 	Release of ns-2.1b6<a> [PENDING]</a></h3>
 
 <ul>
+    <LI><B><a href="http://www.aciri.org/floyd/">floyd]</a></B>
+    <b>Thu May 13 14:34:00 PDT 1999</b>
+    <br> Added a small bug-fix suggested by Philip Liu at phill@ece.ubc.ca,
+    <br> that resets the RED variables "edv_.count" and "edv_.count_bytes"
+    <br> after a forced drop. 
+    <br> Also added a parameter "ns1-compat_" (default false) to allow 
+    <br> simulations to run without this bug-fix.
+
     <LI><B><a href="http://www.isi.edu/~haldar">[haldar]</a></B>
     <b>Tue May  4 17:37:52 PDT 1999</b>
     <br> Added support for wireless mobileIP which uses CMU's wireless model.
