@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.6 1997/03/28 20:25:41 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.7 1997/03/29 01:42:53 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -54,6 +54,7 @@ protected:
 	int bytes_;
 	int seqno_;
 	double last_packet_time_;
+	int off_rtp_;
 };
 
 static class LossMonitorClass : public TclClass {
@@ -77,14 +78,16 @@ LossMonitor::LossMonitor() : Agent(-1)
 	bind("bytes_", &bytes_);
 	bind("lastPktTime_", &last_packet_time_);
 	bind("expected_", &expected_);
+	bind("off_rtp_", &off_rtp_);
 }
 
 void LossMonitor::recv(Packet* pkt, Handler*)
 {
-	hdr_rtp *p = RTPHeader::access(pkt->bits());
-	hdr_ipv6 *q = IPHeader::access(pkt->bits());
+	hdr_rtp* p = (hdr_rtp*)pkt->access(off_rtp_);
+	hdr_ip* q = 
 	seqno_ = p->seqno();
-	bytes_ += q->size();
+	bytes_ += ((hdr_cmn*)pkt->access(off_cmn_))->size_;
+
 	++npkts_;
 	/*
 	 * Check for lost packets

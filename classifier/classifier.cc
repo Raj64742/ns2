@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.3 1997/03/28 01:24:29 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.4 1997/03/29 01:42:48 mccanne Exp $";
 #endif
 
 #include <stdlib.h>
@@ -43,6 +43,7 @@ static char rcsid[] =
 
 Classifier::Classifier() : slot_(0), nslot_(0), maxslot_(-1)
 {
+	bind("off_ip_", &off_ip_);
 }
 
 Classifier::~Classifier()

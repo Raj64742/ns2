@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.2 1997/03/28 20:25:57 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.3 1997/03/29 01:43:11 mccanne Exp $
  */
 
 #ifndef ns_trace_h
@@ -60,9 +60,10 @@
 #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
         "start", "stop", "prune", "graft", "message", "rtcp", "rtp"
 
-struct hdr_trace {
+struct hdr_cmn {
 	int		ptype_;
 	int		uid_;
+	int		size_;
 
 	/* per-field member functions */
 	int& ptype() {
@@ -71,17 +72,9 @@ struct hdr_trace {
 	int& uid() {
 		return (uid_);
 	}
-};
-
-class TraceHeader;
-extern TraceHeader tracehdr;
-
-class TraceHeader : public PacketHeader {
-public:
-	inline int hdrsize() { return (sizeof(hdr_trace)); }
-        static inline hdr_trace* access(u_char *p) {    
-                return ((hdr_trace*)(p + tracehdr.offset_));
-        }
+	int& size() {
+		return (size_);
+	}
 };
 
 class Trace : public Connector {
@@ -100,6 +93,10 @@ class Trace : public Connector {
         void recv(Packet* p, Handler*);
         void dump();
         inline char* buffer() { return (wrk_); }
+
+	int off_ip_;
+	int off_tcp_;
+	int off_rtp_;
 };
 
 #endif

@@ -30,25 +30,42 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.1 1997/02/27 04:41:32 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.2 1997/03/29 01:43:15 mccanne Exp $
 #
 #
 # set up the packet format for the simulation
 # (initial version)
 #
-Simulator instproc create_packetformat { } {
-	set pmgr [new PacketHeaderManager]
-	set ip [new PacketHeader/IP]
-	set tcp [new PacketHeader/TCP]
-	set rtp [new PacketHeader/RTP]
-	set trace [new PacketHeader/Trace]
-	set message [new PacketHeader/Message]
-	set ivs [new PacketHeader/IVS]
 
-	$pmgr newheader $ip
-	$pmgr newheader $tcp
-	$pmgr newheader $rtp
-	$pmgr newheader $trace
-	$pmgr newheader $message
-	$pmgr newheader $ivs
+PacketHeaderManager set hdrlen_ 0
+
+Simulator instproc create_packetformat { } {
+	set pm [new PacketHeaderManager]
+	foreach pair {
+		{ Common off_cmn_ }
+		{ IP off_ip_ }
+		{ TCP off_tcp_ }
+		{ Flags off_flags_ }
+		{ RTP off_rtp_ } 
+		{ Message off_msg_ }
+		{ IVS off_ivs_ } } {
+
+		set cl [lindex $pair 0]
+		set var [lindex $pair 1]
+		set off [$pm allochdr $cl]
+		TclObject set $var $off
+	}
+}
+
+PacketHeaderManager instproc allochdr cl {
+	set size [PacketHeader/$cl set hdrlen_]
+
+	$self instvar hdrlen_
+	set NS_ALIGN 8
+	# round up to nearest NS_ALIGN bytes
+	set incr [expr ($size + ($NS_ALIGN-1)) & ~($NS_ALIGN-1)]
+	set base $hdrlen_
+	incr hdrlen_ $incr
+
+	return $base
 }

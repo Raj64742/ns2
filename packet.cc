@@ -33,22 +33,50 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.4 1997/03/19 23:11:50 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.5 1997/03/29 01:42:57 mccanne Exp $ (LBL)";
 #endif
 
 #include "packet.h"
+#include "flags.h"
 
-int Packet::hdrsize_ = 0;	/* size of a packet's header */
-int Packet::uidcnt_;		/* running unique id */
+int Packet::hdrlen_ = 0;	/* size of a packet's header */
 Packet* Packet::free_;		/* free list */
+
+PacketHeaderClass::PacketHeaderClass(const char* className, int hdrlen) : 
+	TclClass(className), hdrlen_(hdrlen)
+{
+}
+
+void PacketHeaderClass::bind()
+{
+	TclClass::bind();
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("%s set hdrlen_ %d", classname_, hdrlen_);
+}
+
+TclObject* PacketHeaderClass::create(int argc, const char*const* argv)
+{
+	return (0);
+}
+
+class CommonHeaderClass : public PacketHeaderClass {
+public:
+        CommonHeaderClass() : PacketHeaderClass("PacketHeader/Common",
+						sizeof(hdr_cmn)) {}
+} class_cmnhdr;
+
+class FlagsHeaderClass : public PacketHeaderClass {
+public:
+        FlagsHeaderClass() : PacketHeaderClass("PacketHeader/Flags",
+						sizeof(hdr_flags)) {}
+} class_flagshdr;
 
 /* manages active packet header types */
 class PacketHeaderManager : public TclObject {
-	int		cur_offset_;
-	void allochdr(PacketHeader *p);
 public:
-	PacketHeaderManager() : cur_offset_(0) { }
-	int PacketHeaderManager::command(int, const char*const*);
+	PacketHeaderManager() {
+		bind("hdrlen_", &Packet::hdrlen_);
+	}
 };
 
 static class PacketHeaderManagerClass : public TclClass {
@@ -59,30 +87,3 @@ public:
         }
 } class_packethdr_mgr;
 
-void
-PacketHeaderManager::allochdr(PacketHeader *p)
-{
-	/* round up to nearest NS_ALIGN bytes */
-	int incr = (p->hdrsize() + (NS_ALIGN-1)) & ~(NS_ALIGN-1);
-	cur_offset_ += incr;
-	Packet::addhsize(incr);
-	p->setbase(cur_offset_);
-}
-
-/*
- * $pm newheader $newh
- */
-int PacketHeaderManager::command(int argc, const char*const* argv)
-{
-	PacketHeader *ph;
-	if (argc == 3) {
-		if (strcmp(argv[1], "newheader") == 0) {
-			ph = (PacketHeader*)TclObject::lookup(argv[2]);
-			if (ph == NULL) {
-				return (TCL_ERROR);
-			}
-			allochdr(ph);
-			return (TCL_OK);
-		}
-	}
-}

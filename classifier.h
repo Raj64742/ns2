@@ -51,6 +51,15 @@ class Classifier : public NsObject {
 	NsObject** slot_;	/* table that maps slot number to a NsObject */
 	int nslot_;
 	int maxslot_;
+
+	/*XXX eventually the classifier should be made completely
+	 * indepedent of ip.  it should just take offsets and
+	 * masks.  We can do this as soon as we work out the interface
+	 * between the packet-header templates and the otcl packet
+	 * manager.  then the packet manager can create the right
+	 * kind of classifier for any necessary context.
+	 */
+	int off_ip_;
 };
 
 #endif

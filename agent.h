@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.4 1997/02/27 04:38:33 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.5 1997/03/29 01:42:45 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -75,9 +75,9 @@ int class_;		/* class to place in packet header */
 #define NTIMER 3
 	int pending_[NTIMER];
 	Event timer_[NTIMER];
-#ifdef notdef
-static int uid_;
-#endif
+
+	static int uidcnt_;
+	int off_ip_;
 };
 
 #endif

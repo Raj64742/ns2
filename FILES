@@ -30,6 +30,7 @@ delay.cc
 drop-tail.cc
 dynalink.cc
 example.tcl
+flags.h
 fq.cc
 heap.h
 ip.h
@@ -73,6 +74,8 @@ tcl-expand.tcl
 tcl/ex/dynamic-nam.tcl
 tcl/ex/fq.tcl
 tcl/ex/fq-nam.tcl
+tcl/ex/fq-cbr.tcl
+tcl/ex/fq-cbr-nam.tcl
 tcl/ex/mcast.tcl
 tcl/ex/mcast-nam.tcl
 tcl/ex/simple-nam.tcl

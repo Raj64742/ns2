@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.h,v 1.2 1997/02/27 04:39:08 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.h,v 1.3 1997/03/29 01:43:04 mccanne Exp $
  */
 
 #ifndef ns_scoreboard_h
@@ -47,7 +47,7 @@ class ScoreBoard {
 	void ClearScoreBoard (); 
 	int GetNextRetran ();
 	void MarkRetran (int retran_seqno);
-	void UpdateScoreBoard (int last_ack_, Packet *pkt);
+	void UpdateScoreBoard (int last_ack_, hdr_tcp*);
 	
   protected:
         int first_, length_;

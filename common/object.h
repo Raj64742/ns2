@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.2 1997/01/26 22:32:31 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.3 1997/03/29 01:42:57 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_object_h
@@ -50,6 +50,8 @@ class NsObject : public TclObject, public Handler {
  protected:
 	virtual void reset();
 	void handle(Event*);
+	int off_cmn_;
+	int off_flags_;
 };
 
 #endif

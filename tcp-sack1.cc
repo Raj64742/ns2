@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.6 1997/03/28 20:25:52 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.7 1997/03/29 01:43:07 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -26,6 +26,7 @@ static char rcsid[] =
 
 #include "ip.h"
 #include "tcp.h"
+#include "flags.h"
 #include "scoreboard.h"
 #include "random.h"
 
@@ -69,8 +70,8 @@ Sack1TcpAgent::Sack1TcpAgent() : pipe_(-1), fastrecov_(FALSE)
 
 void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
-	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 	int xmit_seqno;
 	int dontSend = 0;
 
@@ -83,7 +84,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 	}
 #endif
 
-	if (iph->flags() & IP_ECN)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
         if (!fastrecov_) {
                 /* normal... not fast recovery */
@@ -101,7 +102,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
                                         tcph->seqno(), last_ack_);
                                 abort();
                         }
-			scb_.UpdateScoreBoard (last_ack_, pkt);
+			scb_.UpdateScoreBoard (last_ack_, tcph);
                         /*
                          * a duplicate ACK
                          */
@@ -143,12 +144,12 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
                          * Update highest_ack_, but not last_ack_. */
 			--pipe_;
                         highest_ack_ = (int)tcph->seqno();
-		 	scb_.UpdateScoreBoard (highest_ack_, pkt);
+		 	scb_.UpdateScoreBoard (highest_ack_, tcph);
                         t_backoff_ = 1;
                         newtimer(pkt);
                 } else if (timeout_ == FALSE) {
                         /* got another dup ack */
-			scb_.UpdateScoreBoard (last_ack_, pkt);
+			scb_.UpdateScoreBoard (last_ack_, tcph);
                         if (dupacks_ > 0)
                                 dupacks_++;
                 }

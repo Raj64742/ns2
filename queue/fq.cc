@@ -35,7 +35,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.2 1997/03/28 20:25:38 mccanne Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.3 1997/03/29 01:42:51 mccanne Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -67,6 +67,7 @@ protected:
 	}
 	int maxflow_;
 	double secsPerByte_;
+	int off_ip_;
 };
 
 static class FQClass : public TclClass {
@@ -82,10 +83,12 @@ FQ::FQ()
 	for (int i = 0; i < MAXFLOW; ++i) {
 		fs_[i].q_ = 0;
 		fs_[i].hol_ = 0;
+		fs_[i].finishTime_ = 0.;
 	}
 	maxflow_ = -1;
 	secsPerByte_ = 0.;
 	bind("secsPerByte_", &secsPerByte_);
+	bind("off_ip_", &off_ip_);
 }
 
 int FQ::command(int argc, const char*const* argv)
@@ -161,7 +164,7 @@ Packet* FQ::deque()
  */
 void FQ::recv(Packet* p, Handler* handler)
 {
-	hdr_ipv6 *h = IPHeader::access(p->bits());
+	hdr_ip* h = (hdr_ip*)p->access(off_ip_);
 	int flowid = h->flowid();
 	/* shouldn't be called when head-of-line is pending */
 	if (fs_[flowid].hol_ != 0)
@@ -177,7 +180,8 @@ void FQ::recv(Packet* p, Handler* handler)
 	if (now > fs_[flowid].finishTime_)
 		fs_[flowid].finishTime_ = now;
 	fs_[flowid].handler_ = handler;
-	fs_[flowid].delta_ = h->size() * secsPerByte_;
+	int size = ((hdr_cmn*)p->access(off_cmn_))->size();
+	fs_[flowid].delta_ = size * secsPerByte_;
 
 	if (!blocked_) {
 		/*

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.9 1997/03/28 20:25:56 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.10 1997/03/29 01:43:10 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -42,19 +42,8 @@ static char rcsid[] =
 #include "ip.h"
 #include "tcp.h"
 #include "rtp.h"
-#include "trace.h"
+#include "flags.h"
 #include "queue.h"
-
-TraceHeader tracehdr;
-
-static class TraceHeaderClass : public TclClass {
-public:
-        TraceHeaderClass() : TclClass("PacketHeader/Trace") {}
-        TclObject* create(int argc, const char*const* argv) {
-		return &tracehdr;
-        }       
-} class_iphdr;
-
 
 /*
  * tcl command interface
@@ -77,6 +66,10 @@ Trace::Trace(int type)
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
 	bind("callback_", &callback_);
+
+	bind("off_ip_", &off_ip_);
+	bind("off_tcp_", &off_tcp_);
+	bind("off_rtp_", &off_rtp_);
 }
 
 Trace::~Trace()
@@ -124,10 +117,10 @@ char* pt_names[] = {
 // scripts don't break.
 void Trace::format(int tt, int s, int d, Packet* p)
 {
-	hdr_trace *th = TraceHeader::access(p->bits());
-	hdr_ipv6 *iph = IPHeader::access(p->bits());
-	bd_tcp *tcph = TCPHeader::access(p->bits());
-	hdr_rtp *rh = RTPHeader::access(p->bits());
+	hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
+	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 	int t = th->ptype();
 	const char* name = pt_names[t];
 
@@ -143,10 +136,12 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	else
 		seqno = -1;
 
+	/*XXX*/
 	char flags[5];
 	flags[0] = flags[1] = flags[2] = flags[3] = '-';
 	flags[4] = 0;
-	flags[0] = (iph->flags() & IP_ECN) ? 'C' : '-';
+	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+	flags[0] = hf->ecn_ ? 'C' : '-';
 
 #ifdef notdef
 flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
@@ -161,7 +156,7 @@ flags[4] = 0;
 		s,
 		d,
 		name,
-		iph->size(),
+		th->size(),
 		flags,
 		iph->flowid() /* was p->class_ */,
 		iph->src(),

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/session-rtp.cc,v 1.4 1997/03/28 20:25:49 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/session-rtp.cc,v 1.5 1997/03/29 01:43:05 mccanne Exp $";
 #endif
 
 #include <Tcl.h>
@@ -60,7 +60,9 @@ public:
 
 RTPSession::RTPSession() 
 	: allsrcs_(0), last_np_(0), localsrc_(0)
-{}
+{
+	bind("off_rtp_", &off_rtp_);
+}
 
 RTPSession::~RTPSession() 
 {
@@ -127,9 +129,9 @@ int RTPSession::build_sdes()
 	return (20);
 }
 
-void RTPSession::recv(Packet* p)
+void RTPSession::recv(Packet* p, Handler*)
 {
-	hdr_rtp *rh = RTPHeader::access(p->bits());
+	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 	u_int32_t srcid = rh->srcid();
 	RTPSource* s = lookup(srcid);
 	if (s == 0) {
@@ -143,8 +145,8 @@ void RTPSession::recv(Packet* p)
 
 void RTPSession::recv_ctrl(Packet* p)
 {
-	hdr_ipv6 *ip = IPHeader::access(p->bits());
-	Tcl::instance().evalf("%s sample-size %d", name(), ip->size());
+	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	Tcl::instance().evalf("%s sample-size %d", name(), ch->size());
 }
 
 /* XXX Should hash this... */

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.8 1997/03/28 20:25:47 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.9 1997/03/29 01:43:02 mccanne Exp $";
 #endif
 
 
@@ -47,14 +47,10 @@ static char rcsid[] =
 #include "random.h"
 #include "rtp.h"
 
-RTPHeader rtphdr;
-
-static class RTPHeaderClass : public TclClass {
-public:
-        RTPHeaderClass() : TclClass("PacketHeader/RTP") {}
-        TclObject* create(int argc, const char*const* argv) {
-		return &rtphdr;
-        }       
+class RTPHeaderClass : public PacketHeaderClass {
+public: 
+        RTPHeaderClass() : PacketHeaderClass("PacketHeader/RTP",
+					     sizeof(hdr_rtp)) {}
 } class_rtphdr;
 
 
@@ -70,6 +66,7 @@ protected:
 	RTPSession* session_;
 	double lastpkttime_;
 	int seqno_;
+	int off_rtp_;
 };
 
 static class RTPAgentClass : public TclClass {
@@ -86,6 +83,7 @@ RTPAgent::RTPAgent()
 {
 	type_ = PT_RTP;
 	bind("seqno_", &seqno_);
+	bind("off_rtp_", &off_rtp_);
 }
 
 
@@ -147,7 +145,7 @@ void RTPAgent::rate_change()
 void RTPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
-	hdr_rtp *rh = RTPHeader::access(p->bits());
+	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 	lastpkttime_ = Scheduler::instance().clock();
 
 	/* Fill in srcid_ and seqno */

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.2 1997/03/28 20:25:52 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.3 1997/03/29 01:43:08 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -79,6 +79,8 @@ protected:
 	double cwnd_;		/* current window */
 	int maxseq_;		/* used for Karn algorithm */
 				/* highest seqno sent so far */
+
+	int off_tcp_;
 };
 
 static class TcpClass : public TclClass {
@@ -93,6 +95,8 @@ TcpSimpleAgent::TcpSimpleAgent() : Agent(PT_TCP)
 {
 	bind("window_", &wnd_);
 	bind("packetSize_", &size_);
+
+	bind("off_tcp_", &off_tcp_);
 
 	bind("seqno_", &curseq_);
 	bind("ack_", &ack_);
@@ -115,7 +119,7 @@ void TcpSimpleAgent::reset()
 void TcpSimpleAgent::output(int seqno)
 {
 	Packet* p = allocpkt();
-	hdr_tcp *tcph = TCPHeader::access(p->bits());
+	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
 	tcph->ts() = now;
@@ -163,7 +167,7 @@ void TcpSimpleAgent::send()
  */
 void TcpSimpleAgent::newack(Packet* pkt)
 {
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	int ack = tcph->seqno();
 	if (ack_ < ack)
 		ack_ = ack;
@@ -177,8 +181,8 @@ void TcpSimpleAgent::newack(Packet* pkt)
  */
 void TcpSimpleAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
-	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 	if (tcph->seqno() == ack_)
 		++dupacks_;
 	else if (tcph->seqno() > ack_)

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.7 1997/03/28 20:25:41 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.8 1997/03/29 01:42:54 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -42,22 +42,19 @@ static char rcsid[] =
 #include "random.h"
 #include "message.h"
 
-
-MessageHeader msghdr;
-static class MessageHeaderClass : public TclClass {
+static class MessageHeaderClass : public PacketHeaderClass {
 public:
-        MessageHeaderClass() : TclClass("PacketHeader/Message") {}
-        TclObject* create(int argc, const char*const* argv) {
-		return &msghdr;
-        }       
-} class_msgheader;
-
+        MessageHeaderClass() : PacketHeaderClass("PacketHeader/Message",
+					     sizeof(hdr_msg)) {}
+} class_msghdr;
 
 class MessageAgent : public Agent {
  public:
 	MessageAgent();
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler*);
+protected:
+	int off_msg_;
 };
 
 static class MessageClass : public TclClass {
@@ -72,11 +69,12 @@ MessageAgent::MessageAgent() : Agent(PT_MESSAGE)
 {
 	Tcl& tcl = Tcl::instance();
 	bind("packetSize_", &size_);
+	bind("off_msg_", &off_msg_);
 }
 
 void MessageAgent::recv(Packet* pkt, Handler*)
 {
-	hdr_msg* mh = MessageHeader::access(pkt->bits());
+	hdr_msg* mh = (hdr_msg*)pkt->access(off_msg_);
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
 	sprintf(wrk, "%s recv {%s}", name(), mh->msg());
@@ -94,7 +92,7 @@ int MessageAgent::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "send") == 0) {
 			Packet* pkt = allocpkt();
-			hdr_msg *mh = MessageHeader::access(pkt->bits());
+			hdr_msg* mh = (hdr_msg*)pkt->access(off_msg_);
 			const char* s = argv[2];
 			int n = strlen(s);
 			if (n >= mh->maxmsg()) {

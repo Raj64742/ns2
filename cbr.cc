@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.7 1997/03/28 20:25:34 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.8 1997/03/29 01:42:45 mccanne Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -56,6 +56,7 @@ CBR_Agent::CBR_Agent() : Agent(PT_CBR), random_(0)
 	bind_time("interval_", &interval_);
 	bind("packetSize_", &size_);
 	bind("random_", &random_);
+	bind("off_rtp_", &off_rtp_);
 	running_ = 0;
 }
 
@@ -87,7 +88,7 @@ void CBR_Agent::timeout(int)
 void CBR_Agent::sendpkt()
 {
 	Packet* p = allocpkt();
-	hdr_rtp* rh = RTPHeader::access(p->bits());
+	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
 	rh->seqno() = ++seqno_;
 	target_->recv(p);
 }

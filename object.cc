@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.2 1997/01/26 22:32:31 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.3 1997/03/29 01:42:56 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -45,6 +45,8 @@ static char rcsid[] =
 /*XXX*/
 NsObject::NsObject()
 {
+	bind("off_cmn_", &off_cmn_);
+	bind("off_flags_", &off_flags_);
 }
 
 NsObject::~NsObject()

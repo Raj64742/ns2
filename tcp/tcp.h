@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.3 1997/03/28 20:25:55 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.4 1997/03/29 01:43:10 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -39,7 +39,7 @@
 #include "agent.h"
 #include "packet.h"
 
-struct bd_tcp {
+struct hdr_tcp {
 #define NSA 3
         double ts_;             /* time packet generated (at source) */
 	int seqno_;		/* sequence number */
@@ -81,20 +81,6 @@ struct bd_tcp {
 		return (sa_length_);
 	}
 };
-
-/*XXX*/
-class TCPHeader;
-extern TCPHeader tcphdr;
-
-class TCPHeader : public PacketHeader {
-public:
-	inline int hdrsize() { return (sizeof(bd_tcp)); }
-        static inline bd_tcp* access(u_char *p) {
-                return ((bd_tcp*)(p + tcphdr.offset_));
-        }
-};
-
-typedef bd_tcp hdr_tcp;
 
 #define TCP_BETA 2.0
 #define TCP_ALPHA 0.125
@@ -187,6 +173,9 @@ protected:
 	int maxseq_;		/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
+
+	int off_ip_;
+	int off_tcp_;
 };
 
 #endif

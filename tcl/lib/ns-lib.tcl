@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.19 1997/03/28 21:25:43 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.20 1997/03/29 01:43:14 mccanne Exp $
 #
 
 #
@@ -54,10 +54,10 @@ source ../rtglib/route-proto.tcl
 
 Simulator instproc init args {
 	eval $self next $args
+	$self create_packetformat
 	$self instvar scheduler_ nullAgent_
 	set scheduler_ [new Scheduler/List]
 	set nullAgent_ [new Agent/Null]
-	$self create_packetformat
 }
 
 Simulator instproc use-scheduler type {

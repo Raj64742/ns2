@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.3 1997/03/28 20:25:43 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.4 1997/03/29 01:42:58 mccanne Exp $";
 #endif
 
 #include "integrator.h"
@@ -45,12 +45,14 @@ class QueueMonitor : public Integrator {
  public:
 	QueueMonitor() : size_(0) {
 		bind("size_", &size_);
+		bind("off_cmn_", &off_cmn_);
 	}
 	void in(Packet*);
 	void out(Packet*);
 	//	int command(int argc, const char*const* argv);
 protected:
 	int size_;
+	int off_cmn_;
 };
 
 static class QueueMonitorClass : public TclClass {
@@ -63,16 +65,14 @@ public:
 
 void QueueMonitor::in(Packet* p)
 {
-	hdr_ipv6 *iph = IPHeader::access(p->bits());
-	size_ += iph->size();
+	size_ += ((hdr_cmn*)p->access(off_cmn_))->size();
 	double now = Scheduler::instance().clock();
 	newPoint(now, double(size_));
 }
 
 void QueueMonitor::out(Packet* p)
 {
-	hdr_ipv6 *iph = IPHeader::access(p->bits());
-	size_ -= iph->size();
+	size_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
 	double now = Scheduler::instance().clock();
 	newPoint(now, double(size_));
 }

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.7 1997/03/28 20:25:47 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.8 1997/03/29 01:43:02 mccanne Exp $";
 #endif
 
 
@@ -63,6 +63,7 @@ protected:
 	int seqno_;
 	double interval_;
 	RTPSession* session_;
+	int off_rtp_;
 };
 
 static class RTCPAgentClass : public TclClass {
@@ -81,6 +82,7 @@ RTCPAgent::RTCPAgent()
 	bind_time("interval_", &interval_);
 	bind("random_", &random_);
 	bind("seqno_", &seqno_);
+	bind("off_rtp_", &off_rtp_);
 	running_ = 0;
 }
 
@@ -104,7 +106,7 @@ void RTCPAgent::recv(Packet* p, Handler*)
 void RTCPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
-	hdr_rtp *rh = RTPHeader::access(p->bits());
+	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
 
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;

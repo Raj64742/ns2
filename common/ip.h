@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.2 1997/03/28 20:25:39 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.3 1997/03/29 01:42:52 mccanne Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -42,23 +42,20 @@
 
 
 #define	IP_ECN	0x01	/* ECN bit in flags below (experimental) */
-struct hdr_ipv6 {
+struct hdr_ip {
 	/* common to IPv{4,6} */
-	int		size_;
 	nsaddr_t	src_;
 	nsaddr_t	dst_;
 	int		ttl_;
 	/* IPv6 */
 	int		fid_;	/* flow id */
 	int		prio_;
+#ifdef notdef
 	/* ns: experimental */
 	int		flags_;
+#endif
 
 
-	/* per-field member functions */
-	int& size() {
-		return (size_);
-	}
 	nsaddr_t& src() {
 		return (src_);
 	}
@@ -75,23 +72,12 @@ struct hdr_ipv6 {
 	int& prio() {
 		return (prio_);
 	}
+#ifdef notdef
 	/* experimental */
 	int& flags() {
 		return (flags_);
 	}
-};
-
-
-/*XXX*/
-class IPHeader;
-extern IPHeader iphdr;
-
-class IPHeader : public PacketHeader {
-public:
-	inline int hdrsize() { return (sizeof(hdr_ipv6)); }
-        static inline hdr_ipv6* access(u_char *p) {    
-                return ((hdr_ipv6*)(p + iphdr.offset_));
-        }
+#endif
 };
 
 #endif

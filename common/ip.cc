@@ -33,18 +33,15 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.cc,v 1.2 1997/03/28 20:25:39 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.cc,v 1.3 1997/03/29 01:42:51 mccanne Exp $";
 #endif
 
 #include "packet.h"
 #include "ip.h"
 
-IPHeader iphdr;
-
-static class IPHeaderClass : public TclClass {
+static class IPHeaderClass : public PacketHeaderClass {
 public:
-	IPHeaderClass() : TclClass("PacketHeader/IP") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return &iphdr;
-	}
+        IPHeaderClass() : PacketHeaderClass("PacketHeader/IP",
+					    sizeof(hdr_ip)) {}
 } class_iphdr;
+

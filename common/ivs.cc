@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.4 1997/03/28 20:25:40 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.5 1997/03/29 01:42:53 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -86,27 +86,11 @@ struct hdr_ivs {
 	}
 };   
 
-/*XXX*/
-class IVSHeader;
-extern IVSHeader ivshdr;
-
-class IVSHeader : public PacketHeader {
+static class IvsHeaderClass : public PacketHeaderClass {
 public:
-	inline int hdrsize() { return (sizeof(hdr_ivs)); }
-        static inline hdr_ivs* access(u_char *p) {    
-                return ((hdr_ivs*)(p + ivshdr.offset_));
-        }
-} ivshdr;
-
-static class IVSHeaderClass : public TclClass {
-public:
-        IVSHeaderClass() : TclClass("PacketHeader/IVS") {}
-        TclObject* create(int argc, const char*const* argv) {
-		return &ivshdr;
-        }       
+        IvsHeaderClass() : PacketHeaderClass("PacketHeader/IVS",
+					     sizeof(hdr_ivs)) {}
 } class_ivshdr;
-
-
 
 class IvsSource : public CBR_Agent {
 public:
@@ -126,6 +110,9 @@ protected:
 	int keyShift_;
 	int key_;
 	double maxrtt_;
+
+	int off_ivs_;
+	int off_msg_;
 };
 
 struct Mc_Hole {
@@ -158,6 +145,9 @@ protected:
 	int ignoreR_;
 	double lastTime_;	/* last time a resp pkt sent */
 	int key_;
+
+	int off_ivs_;
+	int off_msg_;
 };
 
 static class IvsSourceClass : public TclClass {
@@ -186,6 +176,8 @@ IvsSource::IvsSource() : S_(0), R_(0), state_(ST_U),
 	bind("keyShift_", &keyShift_);
 	bind("key_", &key_);
 	bind("maxrtt_", &maxrtt_);
+	bind("off_ivs_", &off_ivs_);
+	bind("off_msg_", &off_msg_);
 }
 
 void IvsSource::reset()
@@ -200,8 +192,8 @@ void IvsSource::recv(Packet* pkt, Handler*)
 {
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
-	hdr_ivs *p = IVSHeader::access(pkt->bits());
-	hdr_msg *q = MessageHeader::access(pkt->bits());
+	hdr_ivs *p = (hdr_ivs*)pkt->access(off_ivs_);
+	hdr_msg *q = (hdr_msg*)pkt->access(off_msg_);
 	sprintf(wrk, "%s handle {%s}", name(), q->msg());
 	Tcl::instance().eval(wrk);
 	Packet::free(pkt);
@@ -247,7 +239,7 @@ void IvsSource::probe_timeout()
 void IvsSource::sendpkt()
 {
 	Packet* pkt = allocpkt();
-	hdr_ivs *p = IVSHeader::access(pkt->bits());
+	hdr_ivs *p = (hdr_ivs*)pkt->access(off_ivs_);
 	/*fill in ivs fields */
 	p->ts() = Scheduler::instance().clock();
 	p->S() = S_;
@@ -276,6 +268,8 @@ IvsReceiver::IvsReceiver() : Agent(PT_MESSAGE), state_(ST_U),
 	bind("key_", &key_);
 	bind("state_", &state_);
 	bind("packetSize_", &size_);
+	bind("off_ivs_", &off_ivs_);
+	bind("off_msg_", &off_msg_);
 }
 
 inline void IvsReceiver::update_ipg(double v)
@@ -423,7 +417,7 @@ int IvsReceiver::lossMeter(double timeDiff, u_int32_t seq, double maxrtt)
 
 void IvsReceiver::recv(Packet* pkt, Handler*)
 {
-	hdr_ivs *p = IVSHeader::access(pkt->bits());
+	hdr_ivs *p = (hdr_ivs*)pkt->access(off_ivs_);
 	double now = Scheduler::instance().clock();
 
 	if (lastPktTime_ == 0.) {
@@ -489,7 +483,7 @@ int IvsReceiver::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "send") == 0) {
 			Packet* pkt = allocpkt();
-			hdr_msg* p = MessageHeader::access(pkt->bits());
+			hdr_msg* p = (hdr_msg*)pkt->access(off_msg_);
 			const char* s = argv[2];
 			int n = strlen(s);
 			if (n >= p->maxmsg()) {

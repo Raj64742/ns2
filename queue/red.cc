@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.8 1997/03/28 21:25:41 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.9 1997/03/29 01:43:00 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -66,6 +66,7 @@ static char rcsid[] =
 #include "Tcl.h"
 #include "packet.h"
 #include "random.h"
+#include "flags.h"
 
 /*
  * Early drop parameters, supplied by user
@@ -118,6 +119,8 @@ class REDQueue : public Queue {
 	void plot1(int qlen);
 	int drop_early(Packet* pkt);
 	PacketQueue q_;
+	int bcount_;
+
 	/*
 	 * Static state.
 	 */
@@ -187,6 +190,8 @@ void REDQueue::reset()
 	else
 		idletime_ = 0.0; /* sched not instantiated yet */
 	Queue::reset();
+
+	bcount_ = 0;
 }
 
 /*
@@ -264,9 +269,7 @@ Packet* REDQueue::deque()
 	Packet* p = q_.deque();
 	if (p != 0) {
 		idle_ = 0;
-#ifdef notyet
-		log_packet_departure(p);
-#endif
+		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size_;
 	} else {
 		idle_ = 1;
 		// deque() may invoked by Queue::reset at init
@@ -282,7 +285,7 @@ Packet* REDQueue::deque()
 		
 int REDQueue::drop_early(Packet* pkt)
 {
-	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
+	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 	if (edv_.v_ave >= edp_.th_max) {
 		// policy: if above max thresh, force drop
 		edv_.v_prob = 1.0;
@@ -309,7 +312,7 @@ int REDQueue::drop_early(Packet* pkt)
 				p = 1.0;
 		}
 		if (edp_.bytes && p < 1.0) {
-			p = p * iph->size() / edp_.mean_pktsize;
+			p = p * ch->size() / edp_.mean_pktsize;
 		}
 		if (p > 1.0)
 			p = 1.0;
@@ -320,9 +323,10 @@ int REDQueue::drop_early(Packet* pkt)
 	if (u <= edv_.v_prob) {
 		edv_.count = 0;
 		edv_.count_bytes = 0;
-		if (edp_.setbit) 
-			iph->flags() |= IP_ECN;	// ip ecn bit
-		else
+		if (edp_.setbit) {
+			hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
+			hf->ecn_ = 1;
+		} else
 			return (1);
 	}
 	return (0);
@@ -338,7 +342,7 @@ int REDQueue::drop_early(Packet* pkt)
 void REDQueue::enque(Packet* pkt)
 {
 	double now = Scheduler::instance().clock();
-	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
+	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 	int m;
         if (idle_) {
 		/* To account for the period when the queue was empty.  */
@@ -347,15 +351,10 @@ void REDQueue::enque(Packet* pkt)
         } else
                 m = 0;
 
-	run_estimator(edp_.bytes ? q_.bcount() : q_.length(), m + 1);
-
-#ifdef notyet
-	if (trace_)
-		plot1(qnp_);	// current queue size (# packets)
-#endif
+	run_estimator(edp_.bytes ? bcount_ : q_.length(), m + 1);
 
 	++edv_.count;
-	edv_.count_bytes += iph->size();
+	edv_.count_bytes += ch->size();
 
 	/*
 	 * if average exceeds the min threshold, we may drop
@@ -363,17 +362,13 @@ void REDQueue::enque(Packet* pkt)
 	if (edv_.v_ave >= edp_.th_min && q_.length() > 1) { 
 		if (edv_.old == 0) {
 			edv_.count = 1;
-			edv_.count_bytes = iph->size();
+			edv_.count_bytes = ch->size();
 			edv_.old = 1;
 		} else {
 			/*
 			 * Drop each packet with probability edv.v_prob.
 			 */
 			if (drop_early(pkt)) {
-#ifdef notyet
-				log_packet_arrival(pkt);
-				log_packet_drop(pkt);
-#endif
 				drop(pkt);	// shouldn't this be here??-K
 				pkt = 0;
 			}
@@ -388,10 +383,8 @@ void REDQueue::enque(Packet* pkt)
 	 */
 	if (pkt != 0) {
 		q_.enque(pkt);
-#ifdef notyet
-		log_packet_arrival(pkt);
-#endif
-		int metric = edp_.bytes ? q_.bcount() : q_.length();
+		bcount_ += ch->size();
+		int metric = edp_.bytes ? bcount_ : q_.length();
 		int limit = edp_.bytes ?
 			(qlim_ * edp_.mean_pktsize) : qlim_;
 		if (metric > qlim_) {
@@ -403,9 +396,7 @@ void REDQueue::enque(Packet* pkt)
 				
 			pkt = q_.lookup(victim);
 			q_.remove(pkt);
-#ifdef notyet
-			log_packet_drop(pkt);
-#endif
+			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
 			drop(pkt);
 		}
 	}

@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.48 1997/03/28 22:32:38 tomh Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.49 1997/03/29 01:42:42 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -12,6 +12,20 @@
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz>ns-2.0a17</a>
 [PENDING RELEASE DATE]</h3>
 <ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<b>Fri Mar 28 17:33:43 PST 1997</b><br>
+A number of additional changes to the packet format.
+Eliminated the "Header" classes altogether.  Now we have
+a simple template header-class template that just defines
+the header size.  Most of the packet-manager functionality
+moved into ns-packet.tcl.  Factored the flags field out of ip6
+into a separate hdr_flags struct.
+Eliminated old commented-out code in a number of places.
+Created a "common" header (hdr_cmn) and moved
+the size field from the ip header to the new common header.
+Also put the uid here.
+Changed hdr_ipv6 to hdr_ip for consistency.
 
 <li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
 <b>Fri Mar 28 13:36:58 PST 1997</b><br>

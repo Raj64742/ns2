@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.12 1997/03/28 20:25:54 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13 1997/03/29 01:43:09 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -42,16 +42,13 @@ static char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "tcp.h"
+#include "flags.h"
 #include "random.h"
 
-TCPHeader tcphdr;
-
-static class TCPHeaderClass : public TclClass {
+static class TCPHeaderClass : public PacketHeaderClass {
 public:
-        TCPHeaderClass() : TclClass("PacketHeader/TCP") {}
-        TclObject* create(int argc, const char*const* argv) {
-		return &tcphdr;
-        }       
+        TCPHeaderClass() : PacketHeaderClass("PacketHeader/TCP",
+					     sizeof(hdr_tcp)) {}
 } class_tcphdr;
 
 static class TcpClass : public TclClass {
@@ -88,6 +85,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1)
 	bind("srtt_", &t_srtt_);
 	bind("rttvar_", &t_rttvar_);
 	bind("backoff_", &t_backoff_);
+
+	bind("off_ip_", &off_ip_);
+	bind("off_tcp_", &off_tcp_);
 
 	// reset used for dynamically created agent
 	reset();
@@ -176,7 +176,7 @@ void TcpAgent::rtt_backoff()
 void TcpAgent::output(int seqno, int reason)
 {
 	Packet* p = allocpkt();
-	hdr_tcp *tcph = TCPHeader::access(p->bits());
+	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
 	tcph->ts() = now;
@@ -287,7 +287,7 @@ void TcpAgent::set_rtx_timer()
  */
 void TcpAgent::newtimer(Packet* pkt)
 {
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
         if (t_seqno_ > tcph->seqno())
 		set_rtx_timer();
         else if (pending_[TCP_TIMER_RTX])
@@ -418,7 +418,7 @@ void TcpAgent::closecwnd(int how)
  */
 void TcpAgent::newack(Packet* pkt)
 {
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newtimer(pkt);
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
@@ -481,8 +481,8 @@ void TcpAgent::quench(int how)
  */
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
-	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
@@ -491,8 +491,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		return;
 	}
 #endif
-	/*XXX only if ecn_ true*/
-	if (iph->flags() & IP_ECN)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
 	if (tcph->seqno() > last_ack_) {
 		newack(pkt);

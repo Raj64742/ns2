@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.7 1997/03/28 20:25:42 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.8 1997/03/29 01:42:58 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -40,31 +40,30 @@
 #include "config.h"
 #include "scheduler.h"
 
-class PacketHeader : public TclObject {
+class PacketHeaderClass : public TclClass {
 protected:
-	int offset_;	// # of bytes from beginning of packet for this hdr
+	PacketHeaderClass(const char* className, int hdrsize);
+	int hdrlen_;	// # of bytes from beginning of packet for this hdr
 public:
-	PacketHeader() : offset_(-1) { }
-	virtual int hdrsize() = 0; 
-	void setbase(int off) { offset_ = off; }
+	virtual void bind();
+        TclObject* create(int argc, const char*const* argv);
 };
 
 class Packet : public Event {
 private:
 	friend class PacketQueue;
 	u_char* bits_;
-	static int hdrsize_;
 	Packet* next_;	// for queues and the free list
 protected:
 	static Packet* free_;
-	static int uidcnt_;
 public:
+	static int hdrlen_;
 	Packet() : bits_(0), next_(0) { }
 	u_char* const bits() { return (bits_); }
 	Packet* copy() const;
-	static void addhsize(int grow) { hdrsize_ += grow; }
         static Packet* alloc();
         static void free(Packet*);
+	inline u_char* access(int off) { if (off < 0) abort(); return (&bits_[off]); }
 };
 
 #include "trace.h"
@@ -76,13 +75,10 @@ inline Packet* Packet::alloc()
 		free_ = p->next_;
 	else {
 		p = new Packet;
-		p->bits_ = new u_char[hdrsize_];
+		p->bits_ = new u_char[hdrlen_];
 		if (p == 0 || p->bits_ == 0)
 			abort();
 	}
-	// for tracing packets
-	hdr_trace* th = TraceHeader::access(p->bits_);
-	th->uid() = uidcnt_++;
 	return (p);
 }
 
@@ -95,9 +91,7 @@ inline void Packet::free(Packet* p)
 inline Packet* Packet::copy() const
 {
 	Packet* p = alloc();
-	memcpy(p->bits(), bits_, hdrsize_);
-	hdr_trace* th = TraceHeader::access(p->bits_);
-	th->uid() = uidcnt_++;
+	memcpy(p->bits(), bits_, hdrlen_);
 	return (p);
 }
 

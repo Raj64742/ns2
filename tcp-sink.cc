@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.9 1997/03/28 20:25:53 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.10 1997/03/29 01:43:08 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -41,6 +41,7 @@ static char rcsid[] =
 #include "ip.h"
 #include "tcp.h"
 #include "agent.h"
+#include "flags.h"
 
 /* max window size */
 #define MWS 1024
@@ -56,7 +57,7 @@ public:
 	virtual ~Acker() {}
 	void update(int seqno);
 	inline int Seqno() const { return (next_ - 1); }
-	virtual void build_ack(Packet* newpkt, Packet *const pkt) const;
+	virtual void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
 protected:
 	int next_;		/* next packet expected  */
 	int maxseen_;		/* max packet number seen */
@@ -70,6 +71,7 @@ public:
 protected:
 	void ack(Packet*);
 	Acker* acker_;
+	int off_tcp_;
 };
 
 static class TcpSinkClass : public TclClass {
@@ -117,40 +119,38 @@ void Acker::update(int seq)
 TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
 {
 	bind("packetSize_", &size_);
+	bind("off_tcp_", &off_tcp_);
 }
 
-void Acker::build_ack(Packet* newpkt, Packet *const pkt) const
+void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
 {
-	// the following is order-sensitive due to the static
-	// data created by the access() method
-	bd_tcp *h = TCPHeader::access(pkt->bits());
-	double ts = h->ts();
-	h = TCPHeader::access(newpkt->bits());
-	h->seqno() = Seqno();
-	h->ts() = ts;
-	hdr_ipv6 *ip = IPHeader::access(pkt->bits());
-	int flags = ip->flags();
-	int fid = ip->flowid();
-	ip = IPHeader::access(newpkt->bits());
-	ip->flags() = flags;
-	ip->flowid() = fid;
-	
-#ifdef notdef
-newh->class_ = pkt->class_;
-#endif
 }
 
-void TcpSink::ack(Packet *pkt)
+void TcpSink::ack(Packet* opkt)
 {
-	Packet* newpkt = allocpkt();
-	acker_->build_ack(newpkt, pkt);
-	send(newpkt, 0);	// Connector::send()
+	Packet* npkt = allocpkt();
 
+	hdr_tcp *otcp = (hdr_tcp*)opkt->access(off_tcp_);
+	hdr_tcp *ntcp = (hdr_tcp*)npkt->access(off_tcp_);
+	ntcp->seqno() = acker_->Seqno();
+	ntcp->ts() = otcp->ts();
+
+	hdr_ip* oip = (hdr_ip*)opkt->access(off_ip_);
+	hdr_ip* nip = (hdr_ip*)npkt->access(off_ip_);
+	nip->flowid() = oip->flowid();
+
+	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
+	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
+	nf->ecn_ = of->ecn_;
+
+	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
+			   ntcp, otcp->seqno());
+	send(npkt, 0);
 }
 
 void TcpSink::recv(Packet* pkt, Handler*)
 {
-	bd_tcp *th = TCPHeader::access(pkt->bits());
+	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
       	acker_->update(th->seqno());
       	ack(pkt);
 	Packet::free(pkt);
@@ -183,7 +183,7 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker)
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
-	bd_tcp *th = TCPHeader::access(pkt->bits());
+	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
 	acker_->update(th->seqno());
         /*
          * If there's no timer and the packet is in sequence, set a timer.
@@ -279,7 +279,7 @@ class Sacker : public Acker {
 public: 
 	Sacker();
 	~Sacker();
-	void build_ack(Packet* newpkt, Packet *const pkt) const;
+	void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
 	void bind(TclObject* o) {
 		o->bind("maxSackBlocks_", &max_sack_blocks_);
 	}
@@ -323,20 +323,14 @@ Sacker::~Sacker()
 	delete sf_;
 }
 
-void Sacker::build_ack(Packet* newpkt, Packet *const pkt) const
+void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 {
         int sack_index, i, sack_right, sack_left;
 	int recent_sack_left, recent_sack_right;
           
-	Acker::build_ack(newpkt, pkt);
 	int seqno = Seqno();
 
         sack_index = 0;
-
-	// order-constrained; due to static data created by access()
-	bd_tcp *h = TCPHeader::access(pkt->bits());
-	int old_seqno = h->seqno();
-	h = TCPHeader::access(newpkt->bits());
 
         if (old_seqno < 0) {
                 printf("Error: invalid packet number %d\n", old_seqno);
@@ -411,6 +405,5 @@ void Sacker::build_ack(Packet* newpkt, Packet *const pkt) const
                 
         }
 	h->sa_length() = sack_index;
-	hdr_ipv6 *iph = IPHeader::access(newpkt->bits());
-	iph->size() += sack_index * 8;
+	ch->size() += sack_index * 8;
 }

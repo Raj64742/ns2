@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.5 1997/03/29 01:43:13 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.1 1997/03/29 01:43:13 mccanne Exp $
 #
 
 set ns [new Simulator]
@@ -141,7 +141,7 @@ proc build_topology { ns which } {
 		set n$i [$ns node]
 	}
 	$ns duplex-link $n0 $n2 5Mb 2ms DropTail
-	$ns duplex-link $n1 $n2 5Mb 10ms DropTail
+	$ns duplex-link $n1 $n2 5Mb 2ms DropTail
 	if { $which == "FIFO" } {
 		$ns duplex-link $n2 $n3 1.5Mb 10ms DropTail
 	} elseif { $which == "RED" } {
@@ -151,79 +151,17 @@ proc build_topology { ns which } {
 	}
 }
 
-proc build_tcp { from to startTime } {
+proc build_cbr { from to startTime interval } {
 	global ns
-	set tcp [new Agent/TCP]
-	set sink [new Agent/TCPSink]
-	$ns attach-agent $from $tcp
+	set src [new Agent/CBR]
+	$src set interval_ $interval
+	$src set packetSize_ 800
+	set sink [new Agent/Null]
+	$ns attach-agent $from $src
 	$ns attach-agent $to $sink
-	$ns connect $tcp $sink
-	set ftp [new Source/FTP]
-	$ftp set agent_ $tcp
-	$ns at $startTime "$ftp start"
-	return $tcp
-}
-
-proc finish file {
-
-	set f [open temp.rands w]
-	puts $f "TitleText: $file"
-	puts $f "Device: Postscript"
-	
-	exec rm -f temp.p temp.d 
-	exec touch temp.d temp.p
-	#
-	# split queue/drop events into two separate files.
-	# we don't bother checking for the link we're interested in
-	# since we know only such events are in our trace file
-	#
-	exec awk {
-		{
-			if (($1 == "+" || $1 == "-" ) && \
-			    ($5 == "tcp"))\
-					print $2, $8 + ($11 % 90) * 0.01
-		}
-	} out.tr > temp.p
-	exec awk {
-		{
-			if ($1 == "d")
-				print $2, $8 + ($11 % 90) * 0.01
-		}
-	} out.tr > temp.d
-
-	puts $f \"packets
-	flush $f
-	exec cat temp.p >@ $f
-	flush $f
-	# insert dummy data sets so we get X's for marks in data-set 4
-	puts $f [format "\n\"skip-1\n0 1\n\n\"skip-2\n0 1\n\n"]
-
-	puts $f \"drops
-	flush $f
-	#
-	# Repeat the first line twice in the drops file because
-	# often we have only one drop and xgraph won't print marks
-	# for data sets with only one point.
-	#
-	exec head -1 temp.d >@ $f
-	exec cat temp.d >@ $f
-	close $f
-	exec xgraph -bb -tk -nl -m -x time -y packet temp.rands &
-
-	# dump the highest seqno sent of each tcp agent
-	# this gives an idea of throughput
-	set k 1
-	while 1 {
-		global tcp$k
-		if [info exists tcp$k] {
-			set tcp [set tcp$k]
-			puts "tcp$k seqno [$tcp set t_seqno_]"
-		} else {
-			break
-		}
-		incr k
-	}
-	exit 0
+	$ns connect $src $sink
+	$ns at $startTime "$src start"
+	return $src
 }
 
 set f [open out.tr w]
@@ -231,13 +169,13 @@ $ns trace-all $f
 
 build_topology $ns FQ
 
-set tcp1 [build_tcp $n0 $n3 0.1]
-$tcp1 set class_ 1
-set tcp2 [build_tcp $n1 $n3 0.1]
-$tcp2 set class_ 2
+set cbr1 [build_cbr $n0 $n3 0.1 4ms]
+$cbr1 set class_ 1
+set cbr2 [build_cbr $n1 $n3 0.11 8ms]
+$cbr2 set class_ 2
 
-$ns at 40.0 "finish Output"
-#$ns at 8.0 "xfinish"
+#$ns at 40.0 "finish Output"
+$ns at 4.0 "xfinish"
 
 proc xfinish {} {
 	global ns f
@@ -245,11 +183,11 @@ proc xfinish {} {
 	close $f
 
 	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > fq-nam.tr 
+	exec awk -f ../nam-demo/nstonam.awk out.tr > fq-cbr-nam.tr 
 	exec rm -f out
 	#XXX
 	puts "running nam..."
-	exec nam fq-nam &
+	exec nam fq-cbr-nam &
 	exit 0
 }
 

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.2 1997/03/28 20:25:42 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.3 1997/03/29 01:42:55 mccanne Exp $
  */
 
 #ifndef ns_msg_h
@@ -46,17 +46,6 @@ struct hdr_msg {
 	int maxmsg() {
 		return (sizeof(msg_));
 	}
-};
-
-class MessageHeader;
-extern MessageHeader msghdr;
-
-class MessageHeader : public PacketHeader {
-public:
-	inline int hdrsize() { return (sizeof(hdr_msg)); }
-        static inline hdr_msg* access(u_char *p) {    
-                return ((hdr_msg*)(p + msghdr.offset_));
-        }
 };
 
 #endif

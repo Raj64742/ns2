@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.4 1997/03/28 20:25:48 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.5 1997/03/29 01:43:03 mccanne Exp $
  */
 
 
@@ -53,19 +53,6 @@ struct hdr_rtp {
 	}
 };   
 
-/*XXX*/
-class RTPHeader;
-extern RTPHeader rtphdr;
-
-class RTPHeader : public PacketHeader {
-public: 
-	inline int hdrsize() { return (sizeof(hdr_rtp)); }
-        static inline hdr_rtp* access(u_char *p) {
-                return ((hdr_rtp*)(p + rtphdr.offset_));
-        }       
-};   
-
-
 class RTPSource : public TclObject {
 public:
 	RTPSource* next;
@@ -86,11 +73,11 @@ protected:
 	int ehsr_;
 };
 
-class RTPSession : public TclObject {
+class RTPSession : public NsObject {
 public:
 	RTPSession();
 	~RTPSession();
-	virtual void recv(Packet* p);
+	virtual void recv(Packet* p, Handler*);
 	virtual void recv_ctrl(Packet* p);
 	int command(int argc, const char*const* argv);
 	inline u_int32_t srcid() { return (localsrc_->srcid()); }
@@ -104,6 +91,7 @@ protected:
 	RTPSource* lookup(u_int32_t);
 	void enter(RTPSource*);
 	int last_np_;
+	int off_rtp_;
 };
 
 #endif

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.10 1997/03/28 20:25:33 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.11 1997/03/29 01:42:44 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -43,7 +43,7 @@ static char rcsid[] =
 #include "agent.h"
 #include "packet.h"
 #include "ip.h"
-#include "trace.h"
+#include "flags.h"
 
 static class NullAgentClass : public TclClass {
 public:
@@ -52,6 +52,8 @@ public:
 		return (new Agent(-1));
 	}
 } class_null_agent;
+
+int Agent::uidcnt_;		/* running unique id */
 
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
@@ -73,15 +75,7 @@ Agent::Agent(int pkttype) :
 	 */
 	bind("class_", (int*)&fid_);
 
-#ifdef notdef
-/*
- * XXX warning: we don't use "class" here because it conflicts
- * with otcl's member class variable
- */
-bind("class_", &class_);
-bind("seqno_", &seqno_);
-#endif
-
+	bind("off_ip_", &off_ip_);
 }
 
 Agent::~Agent()
@@ -129,20 +123,22 @@ void Agent::recv(Packet* p, Handler*)
 Packet* Agent::allocpkt() const
 {
 	Packet* p = Packet::alloc();
-	hdr_trace *th = TraceHeader::access(p->bits());
+	hdr_cmn* th = (hdr_cmn*)p->access(off_cmn_);
+	th->uid() = uidcnt_++;
 	th->ptype() = type_;
-	hdr_ipv6 *iph = IPHeader::access(p->bits());
-	iph->flags() = flags_;
+	th->size() = size_;
+	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
 	iph->src() = addr_;
 	iph->dst() = dst_;
-	iph->size() = size_;
 	iph->flowid() = fid_;
 	iph->prio() = prio_;
 	iph->ttl() = 32; /*XXX*/
 
-#ifdef notdef
-p->seqno_ = seqno;
-p->class_ = class_;
-#endif
+	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+	hf->ecn_ = 0;
+	hf->pri_ = 0;
+	hf->usr1_ = 0;
+	hf->usr2_ = 0;
+
 	return (p);
 }
