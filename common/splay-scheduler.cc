@@ -16,11 +16,11 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.4 2002/08/02 01:35:20 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.5 2002/12/02 21:15:43 yuri Exp $
  */
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.4 2002/08/02 01:35:20 yuri Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.5 2002/12/02 21:15:43 yuri Exp $";
 #endif
 /**
  *
@@ -93,9 +93,6 @@ public:
 	(t) = LEFT(t);			\
     } while (0)
 
-#define FULL_ZIG_ZAG 0 		/* if true, perform full zig-zags, if
-				 * false, simple top-down splaying */
-
 void
 SplayScheduler::insert(Event *n) 
 {
@@ -128,20 +125,13 @@ SplayScheduler::insert(Event *n)
 			}
 			if (time < x->time_) {
 				ROTATE_RIGHT(t, x);
-				LINK_RIGHT(r, t);
-			} else {
-				LINK_RIGHT(r, t);
-#if FULL_ZIG_ZAG
-				if (t != 0) 
-					LINK_LEFT(l, t);
-#endif
 			}
+			LINK_RIGHT(r, t);
 			if (t == 0) {
 				RIGHT(l) = 0;
 				break;
 			}
-		}
-		if (time >= t->time_) {
+		} else {
 			x = RIGHT(t);
 			if (x == 0) {
 				RIGHT(l) = t; 
@@ -150,18 +140,13 @@ SplayScheduler::insert(Event *n)
 			}
 			if (time >= x->time_) {
 				ROTATE_LEFT(t, x);
-				LINK_LEFT(l, t);
-			} else {
-				LINK_LEFT(l, t);
-#if FULL_ZIG_ZAG
-				if (t != 0)
-					LINK_RIGHT(r, t);
-#endif
 			}
+			LINK_LEFT(l, t);
 			if (t == 0) {
 				LEFT(r) = 0;
 				break;
 			}
+			
 		}
 	} /* for (;;) */
 

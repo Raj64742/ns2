@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:2; tab-width:2; indent-tabs-mode:t -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1994 Regents of the University of California.
  * All rights reserved.
@@ -35,45 +35,37 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-// Event Scheduler using the Standard Template Library map and deque
+
+// Event Scheduler using the standard library std::set
 // Contributed by George F. Riley, Georgia Tech.  Spring 2002
 
 #include <stdio.h>
-#include <map>
-#include <deque>
+#include <set>
 
 #include "scheduler.h"
 
-typedef pair<double,scheduler_uid_t> KeyPair_t; // The key for the multimap
-typedef map<KeyPair_t, Event*, less<KeyPair_t> > EventMap_t;
-typedef deque<Event*> UIDDeq_t;                 // For looking up ev by uid
 
 class MapScheduler : public Scheduler {
 public:
-  MapScheduler();
-  virtual ~MapScheduler();
+	MapScheduler();
+	~MapScheduler();
 public:
-	int command(int argc, const char*const* argv);
-  void cancel(Event*);	                // cancel event
-  void insert(Event*);	                // schedule event
-  Event* lookup(scheduler_uid_t uid);	  // look for event
-  Event* deque();		                    // next event (removes from q)
-	const Event *head() { return EventList.begin()->second; }
-protected:
-  EventMap_t      EventList;                    // The actual event list
-#ifdef USING_UIDDEQ
-	UIDDeq_t        UIDDeq;                       // DEQ Lookup
-#endif
-  scheduler_uid_t fuid;
-  scheduler_uid_t luid;   // First and last+1 in UIDDeq
-  unsigned long   totev;  // Total events (debug)
-  unsigned long   totrm;  // Total events removed (debug)
-	bool            verbose;// True if verbose debug
-	unsigned long   verbosemod;  // Mod factor for verbosity
-  EventMap_t::iterator hint;   // Hint for insertions (right after prior)
+	void cancel(Event*);
+	void insert(Event*);
+	Event* lookup(scheduler_uid_t uid);
+	Event* deque();
+	const Event *head() { return *EventQueue_.begin(); }
 private:
-  void CleanUID();        // Clean up the UID Deq
-  void DBDump(const char* pMsg = NULL);          // Debug Dump
+	struct event_less_adapter {
+		bool operator()(const Event *e1, const Event *e2) const
+		{
+			return e1->time_ < e2->time_ ||
+				(e1->time_ == e2->time_	&& e1->uid_ < e2->uid_); // for FIFO
+		}
+	};
+	typedef std::set<Event *, event_less_adapter> EventQueue_t;
+
+	EventQueue_t EventQueue_;	// The actual event list
 };
 
 static class MapSchedulerClass : public TclClass {
@@ -85,167 +77,48 @@ public:
 } class_stl_sched;
 
 MapScheduler::MapScheduler()
-  : fuid(1), luid(1), totev(0), totrm(0), verbose(false), verbosemod(1000)
 {
-	hint = EventList.end();
 }
 
 MapScheduler::~MapScheduler()
 {
 }
 
-int MapScheduler::command(int argc, const char*const* argv)
-{
-	if (argc == 2)
-		{
-			if (strcmp(argv[1], "verbose") == 0)
-				{
-					verbose = true;
-					return (TCL_OK);
-				}
-		}
-	if (argc == 3)
-		{
-			if (strcmp(argv[1], "verbose") == 0)
-				{
-					verbose = true;
-					verbosemod = atol(argv[2]);
-					return (TCL_OK);
-				}
-		}
-	return Scheduler::command(argc, argv);
-}
-
 void MapScheduler::cancel(Event* p)
 {
-  EventMap_t::iterator i = EventList.find(KeyPair_t(p->time_, p->uid_));
-  if (i != EventList.end())
-    {
-      EventList.erase(i);
-			hint = EventList.end(); 
-      totrm++;
-#ifdef USING_UIDDEQ
-      // Null out the UIDDeq entry
-      if (p->uid_ >= fuid && p->uid_ < luid)
-				{
-					UIDDeq[p->uid_ - fuid] = NULL;
-				}
-#endif
-			p->uid_ = -p->uid_; // Negate the uid for reuse
-    }
+	EventQueue_t::iterator eIT = EventQueue_.find(p);
+	if (eIT != EventQueue_.end()) {
+		EventQueue_.erase(eIT);
+		p->uid_ = -p->uid_; // Negate the uid for reuse
+	}
 }
 
 void MapScheduler::insert(Event* p)
 {
-  hint = EventList.insert(
-							hint, EventMap_t::value_type(KeyPair_t(p->time_, p->uid_), p));
-  // And manage the UID Deq
-  if (p->uid_ != luid)
-    {
-      printf("HuH?  MapScheduler::insert uid mismatch ");
-			printf(UID_PRINTF_FORMAT, p->uid_);
-			printf(" ");
-			printf(UID_PRINTF_FORMAT, luid);
-			printf("\n");
-    }
-#ifdef USING_UIDDEQ
-  UIDDeq.push_back(p);
-#endif
-	luid++;
-	totev++;
-	if (verbose && ((totev % verbosemod) == 0))
-		{
-			printf("STLSched :total of %ld events, current size %ld\n",
-						 totev, totev - totrm);
-		}
+	EventQueue_.insert(p);
 }
 
 Event* MapScheduler::lookup(scheduler_uid_t uid) // look for event
 {
-#ifdef USING_UIDDEQ
-  if (uid >= fuid && uid < luid) return UIDDeq[uid-fuid];
-  printf("HuH?  MapScheduler::lookup, uid out of range ");
-	printf(UID_PRINTF_FORMAT, uid);
-	printf(" ");
-	printf(UID_PRINTF_FORMAT, fuid);
-	printf(" ");
-	printf(UID_PRINTF_FORMAT, luid);
-	printf("\n");
-#else
-	for (EventMap_t::const_iterator i = EventList.begin();
-			 i != EventList.end(); ++i)
-		{
-			if (i->first.second == uid) return i->second; // Found it
-		}
-#endif
-  return NULL;
+	for (EventQueue_t::iterator eIT = EventQueue_.begin();
+	     eIT != EventQueue_.end(); 
+	     ++eIT) {
+		if ((*eIT)->uid_ == uid) 
+			return (*eIT);
+	}
+
+	return 0;
 }
 
-Event* MapScheduler::deque()		// next event (removes from q)
+Event* MapScheduler::deque()
 {
-  if (EventList.size() == 0) return NULL; // HuH?
-  EventMap_t::iterator i = EventList.begin();
-  Event* p = i->second;
-#ifdef USING_UIDDEQ
-  CleanUID();
-  if (UIDDeq.size() == 0)
-    { 
-      printf("HuH? MapScheduler::deque, empty uid list\n");
-    }
-  else
-    {
-      if (i->second->uid_ != UIDDeq[0]->uid_)
-        {
-          if (i->second->uid_ >= fuid && i->second->uid_ < luid)
-            { // Not in order, just null it out
-							UIDDeq[i->second->uid_ - fuid] = NULL;
-            }
-          else
-            {
-              printf("HuH? MapScheduler::deque, uid %ld outofrange %ld %ld\n",
-                     (unsigned long) i->second->uid_,
-                     (unsigned long) fuid,
-                     (unsigned long) luid);
-            }
-        }
-      else
-        { // Is head of list, just remove it
-          UIDDeq.pop_front(); // Remove
-					fuid++;
-        }
-    }
-#endif
-  EventList.erase(i);
-	hint = EventList.end();
-  totrm++;
-  return p;
-}
+	EventQueue_t::const_iterator eIT = EventQueue_.begin();
+	if (eIT == EventQueue_.end()) 
+		return 0;
 
-void MapScheduler::CleanUID()
-{
-#ifdef USING_UIDDEQ
-  while(UIDDeq.size() > 0 && UIDDeq[0] == NULL)
-    { // Remove null entries
-      UIDDeq.pop_front();
-      fuid++;
-    }
-#endif
-}
+	EventQueue_.erase(eIT);
 
-void MapScheduler::DBDump(const char* pMsg)
-{
-  EventMap_t::const_iterator i;
-	if (pMsg) printf(pMsg);
-	printf("Dumping event list\n");
-	for (i = EventList.begin(); i != EventList.end(); ++i)
-		{
-			printf("Time %f/%f uid ", i->first.first, i->second->time_ );
-			printf(UID_PRINTF_FORMAT, i->second->uid_);
-			printf(" e %p\n", i->second);
-			//Event* e = lookup(i->second->uid_);
-			//if (e != i->second) printf("Event mismatch, %p %p\n", e, i->second);
-		}
+	return *eIT;
 }
-
 
 #endif // HAVE_STL

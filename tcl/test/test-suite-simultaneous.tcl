@@ -17,22 +17,38 @@
 #     all of which will occur at the same time.  All events are permuted and
 #     scheduled in a random order.  The output should be a list of integers 
 #     from 1 to ($TIMES*$SIMUL) in increasing order.
-Class TestSuite
+#   - if the output differs it exits with status 1, otherwise it exits with status 0.
 
-TestSuite instproc init {} {
-	$self instvar ns_ rng_
-	set ns_ [new Simulator]
-	set rng_ [new RNG]
+proc comp {a b} {
+	set a1 [lindex $a 0]
+	set b1 [lindex $b 0]
+	if {$a1 > $b1} {
+		return 1
+	}
+	return 0
 }
 
-TestSuite instproc run {} {
-	$self instvar ns_ rng_
+Class TestSuite
+
+TestSuite instproc init { quiet } {
+	$self instvar ns_ rng_ N_ quiet_
+	set ns_ [new Simulator]
+	set rng_ [new RNG]
+	set N_ 0
+	set quiet_ $quiet
+}
+
+TestSuite instproc run { scheduler } {
+	$self instvar ns_ rng_ N_
+	if { [catch "$ns_ use-scheduler $scheduler"] } {
+		puts "*** WARNING: scheduler Scheduler/$scheduler is not supported, test was not run"
+		exit 0
+	}
+	
 	set TIMES 20  ;# $TIMES different times for events
 	set SIMUL 50  ;# each occurs $SIMUL times
 	set TIMEMIN 0 ;# random events are taken from [TIMEMIN, TIMEMAX]
 	set TIMEMAX 5
-
-	set f [open "temp.rands" w]
 
 	# generate random event timings and put them in increasing order by time to occur
 	for {set i 0 } { $i < $TIMES } { incr i } {
@@ -53,8 +69,8 @@ TestSuite instproc run {} {
 		set order [lindex $e 3]
 		set left  [lindex $e 2]
 		set label [expr $SIMUL - $left + 1 + $order*$SIMUL]
-		# puts "schedule at [lindex $e 0] -> $label" 
-		$ns_ at [lindex $e 0] "puts $f $label"
+
+		$ns_ at [lindex $e 0] "$self assert $label"
 
 		incr left -1
 		if {$left==0} {
@@ -65,87 +81,47 @@ TestSuite instproc run {} {
 			set timings [lreplace $timings $i $i $e]
 		}
 	}
-	$ns_ at $TIMEMAX "exit 0"
 	$ns_ run
+	exit 0
 }
 
-proc comp { a b} {
-	set a1 [lindex $a 0]
-	set b1 [lindex $b 0]
-	if {$a1 > $b1} {
-		return 1
+
+TestSuite instproc assert { n } {
+	$self instvar N_ quiet_
+	if { $quiet_ != "QUIET" } {
+		puts $n
 	}
-	return 0
+	if [expr $n != $N_ + 1 ] {
+		exit 1
+	}
+	set N_ $n
 }
 
-proc outp {f arg} {
-	puts $f $arg
-}
-
-
-# List
-Class Test/List -superclass TestSuite
-Test/List instproc init {} {
-	$self instvar ns_
-	$self next
-	$ns_ use-scheduler List
-}
-# Calendar
-Class Test/Calendar -superclass TestSuite
-Test/Calendar instproc init {} {
-	$self instvar ns_
-	$self next
-	$ns_ use-scheduler Calendar
-}
-# Heap
-Class Test/Heap -superclass TestSuite
-Test/Heap instproc init {} {
-	$self instvar ns_
-	$self next
-	$ns_ use-scheduler Heap
-}
-
-proc usage {} {
+TestSuite proc usage {} {
 	global argv0
-	puts stderr "usage: ns $argv0 <tests> "
-	puts stderr "Valid tests are:\t[get-subclasses TestSuite Test/]"
+	puts stderr "usage: ns $argv0 <scheduler> \[quiet\]"
 	exit 1
 }
 
-proc isProc? {cls prc} {
-	if [catch "Object info subclass $cls/$prc" r] {
-		global argv0
-		puts stderr "$argv0: no such $cls: $prc"
-		usage
+
+
+global argc argv
+set quiet ""
+if { $argc == 2 } {
+	set quiet [lindex $argv 1]
+	if { $quiet != "QUIET" && $quiet != "quiet" } {
+		TestSuite usage
 	}
+	set quiet "QUIET"
+	
 }
 
-proc get-subclasses {cls pfx} {
-	set ret ""
-	set l [string length $pfx]
-
-	set c $cls
-	while {[llength $c] > 0} {
-		set t [lindex $c 0]
-		set c [lrange $c 1 end]
-		if [string match ${pfx}* $t] {
-			lappend ret [string range $t $l end]
-		}
-		eval lappend c [$t info subclass]
-	}
-	set ret
-}
-TestSuite proc runTest {} {
-	global argc argv
-	if { $argc==1 || $argc==2 } {
-		set test [lindex $argv 0]
-		isProc? Test $test
-	} else {
-		usage
-	}
-
-	set t [new Test/$test]
-	$t run
+if { $argc > 0 && $argc < 3 } {
+	set scheduler [lindex $argv 0]
+} else {
+	TestSuite usage
 }
 
-TestSuite runTest
+set test [new TestSuite $quiet]
+$test run $scheduler
+
