@@ -185,7 +185,7 @@ main(int argc, char **argv)
 		switch (ch) { 
 
 		case 'n':
-			NODES = atoi(optarg) + 1;
+			NODES = atoi(optarg);
 			break;
 
 		case 'p':
@@ -220,7 +220,7 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stdout, "#\n# nodes: %d, pause: %.2f, max speed: %.2f  max x = %.2f, max y: %.2f\n#\n",
-		NODES - 1, PAUSE, MAXSPEED, MAXX, MAXY);
+		NODES , PAUSE, MAXSPEED, MAXX, MAXY);
 
 	// The more portable solution for random number generation
 	rng = new RNG;
@@ -232,15 +232,15 @@ main(int argc, char **argv)
 		double nexttime = 0.0;
 		u_int32_t i;
 
-		for(i = 1; i < NODES; i++) {
+		for(i = 0; i < NODES; i++) {
 			NodeList[i].Update();
 		}
 
-		for(i = 1; i < NODES; i++) {
+		for(i = 0; i < NODES; i++) {
 			NodeList[i].UpdateNeighbors();
 		}
 
-		for(i = 1; i < NODES; i++) {
+		for(i = 0; i < NODES; i++) {
 			Node *n = &NodeList[i];
 	
 			if(n->time_transition > 0.0) {
@@ -302,8 +302,8 @@ Node::Node()
 
 	index = NodeIndex++;
 
-	if(index == 0)
-		return;
+	//if(index == 0)
+	//	return;
 
 	route_changes = 0;
         link_changes = 0;
@@ -333,7 +333,7 @@ Node::Node()
 		exit(1);
 	}
 
-	for(i = 1; i < NODES; i++) {
+	for(i = 0; i < NODES; i++) {
 		neighbor[i].index = i;
 		neighbor[i].reachable = (index == i) ? 1 : 0;
 		neighbor[i].time_transition = 0.0;
@@ -571,7 +571,7 @@ Node::Dump()
 	fprintf(stdout, "\tArrival: %.2f, Update: %.2f, Transition: %.2f\n",
 		time_arrival, time_update, time_transition);
 
-	for(i = 1; i < NODES; i++) {
+	for(i = 0; i < NODES; i++) {
 		m = &neighbor[i];
 		fprintf(stdout, "\tNeighbor: %d (%x), Reachable: %d, Transition Time: %.2f\n",
 			m->index, (int) m, m->reachable, m->time_transition);
@@ -588,7 +588,7 @@ void dumpall()
 
 	fprintf(stdout, "\nTime: %.2f\n", TIME);
 
-	for(i = 1; i < NODES; i++) {
+	for(i = 0; i < NODES; i++) {
 		NodeList[i].Dump();
 	}
 }
@@ -601,7 +601,7 @@ ComputeW()
 
 	memset(W, '\xff', sizeof(int) * NODES * NODES);
 
-	for(i = 1; i < NODES; i++) {
+	for(i = 0; i < NODES; i++) {
 		for(j = i; j < NODES; j++) {
 			Neighbor *m = &NodeList[i].neighbor[j];
 			if(i == j)
@@ -619,17 +619,17 @@ floyd_warshall()
 
 	ComputeW();	// the connectivity matrix
 
-	for(i = 1; i < NODES; i++) {
-		for(j = 1; j < NODES; j++) {
-			for(k = 1; k < NODES; k++) {
+	for(i = 0; i < NODES; i++) {
+		for(j = 0; j < NODES; j++) {
+			for(k = 0; k < NODES; k++) {
 				D2[j*NODES + k] = min(D2[j*NODES + k], D2[j*NODES + i] + D2[i*NODES + k]);
 			}
 		}
 	}
 
 #ifdef SANITY_CHECKS
-	for(i = 1; i < NODES; i++)
-		for(j = 1; j < NODES; j++) {
+	for(i = 0; i < NODES; i++)
+		for(j = 0; j < NODES; j++) {
 			assert(D2[i*NODES + j] == D2[j*NODES + i]);
 			assert(D2[i*NODES + j] <= INFINITY);
 		}
@@ -645,7 +645,7 @@ show_diffs()
 {
 	u_int32_t i, j;
 
-	for(i = 1; i < NODES; i++) {
+	for(i = 0; i < NODES; i++) {
 		for(j = i + 1; j < NODES; j++) {
 			if(D1[i*NODES + j] != D2[i*NODES + j]) {
 
@@ -688,9 +688,9 @@ show_routes()
 	u_int32_t i, j;
 
 	fprintf(stdout, "#\n# TIME: %.12f\n#\n", TIME);
-	for(i = 1; i < NODES; i++) {
+	for(i = 0; i < NODES; i++) {
 		fprintf(stdout, "# %2d) ", i);
-		for(j = 1; j < NODES; j++)
+		for(j = 0; j < NODES; j++)
 			fprintf(stdout, "%3d ", D2[i*NODES + j] & 0xff);
 		fprintf(stdout, "\n");
 	}
@@ -707,7 +707,7 @@ show_counters()
 	fprintf(stdout, "# Route Changes: %d\n#\n", RouteChangeCount);
         fprintf(stdout, "# Link Changes: %d\n#\n", LinkChangeCount);
         fprintf(stdout, "# Node | Route Changes | Link Changes\n");
-	for(i = 1; i < NODES; i++)
+	for(i = 0; i < NODES; i++)
 		fprintf(stdout, "# %4d |          %4d |         %4d\n",
                         i, NodeList[i].route_changes,
                         NodeList[i].link_changes);
