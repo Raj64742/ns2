@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.cc,v 1.3 1997/03/29 01:42:51 mccanne Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.cc,v 1.4 1997/07/22 21:24:59 kfall Exp $";
 #endif
 
 #include "packet.h"
