@@ -98,7 +98,7 @@ double
 Csdp::weight(IdPacketQueue* q)
 {
 	double w = 1.0 - q->loss() / (q->total() + 1);
-	return w *= q->length();
+	return q->length() ? w : 0;
 }
 
 

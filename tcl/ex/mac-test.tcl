@@ -1,4 +1,4 @@
-set gflag 0
+set flags(0) 0
 set stop 100
 set trfile temp
 set bw 100Kb
@@ -20,7 +20,7 @@ for {set i 0} {$i < $argc} {incr i} {
 	if {$opt == "-stop"} {
 		set stop [lindex $argv [incr i]]
 	} elseif {$opt == "-g"} {
-		set gflag 1
+		set flags([string range $opt 1 1]) 1
 	} elseif {$opt == "-bw"} {
 		set bw [lindex $argv [incr i]]
 	} elseif {$opt == "-delay"} {
@@ -38,89 +38,59 @@ for {set i 0} {$i < $argc} {incr i} {
 }
 
 
-set trfd [open $trfile w]
-
 set ns [new Simulator]
+set trfd [open $trfile w]
 $ns trace-all $trfd
 
-set n0 [$ns node]
-set n1 [$ns node]
-set n2 [$ns node]
-set n3 [$ns node]
+set n(0) [$ns node]
+set n(1) [$ns node]
+set n(2) [$ns node]
+set n(3) [$ns node]
 
-#$ns duplex-link $n0 $n1 2Mb 32us DropTail
-set shl [$ns shared-duplex-link "$n0 $n1 $n2 $n3" $bw $delay DropTail $ll $ifq $mac]
-
+set shl [$ns shared-duplex-link "$n(0) $n(1) $n(2) $n(3)" $bw $delay DropTail $ll $ifq $mac]
 [[$shl set channel_] drop-target] attach $trfd
 
+
+set tcp(0) [$ns create-connection TCP/Reno $n(1) TCPSink $n(0) 0]
+set ftp(0) [$tcp(0) attach-source FTP]
+set tcp(1) [$ns create-connection TCP/Reno $n(0) TCPSink $n(1) 0]
+set ftp(1) [$tcp(1) attach-source FTP]
+set tcp(2) [$ns create-connection TCP/Reno $n(0) TCPSink $n(2) 0]
+set ftp(2) [$tcp(2) attach-source FTP]
+set tcp(3) [$ns create-connection TCP/Reno $n(0) TCPSink $n(3) 0]
+set ftp(3) [$tcp(3) attach-source FTP]
+# $ns at 0.000 "$ftp(0) start"
+$ns at 0.001 "$ftp(1) start"
+$ns at 0.002 "$ftp(2) start"
+$ns at 0.003 "$ftp(3) start"
+
+set cbr(2:3) [$ns create-connection CBR $n(2) Null $n(3) 0]
+# $ns at 5.1 "$cbr(2:3) start"
+
+
 #set qfile [open "q.dat" w]
-#$shl init-monitor $ns $qfile 1 $n0
-#$shl init-monitor $ns $qfile 1 $n1
+#$shl init-monitor $ns $qfile 1 $n(0)
+#$shl init-monitor $ns $qfile 1 $n(1)
 #$ns at 0 "$shl queue-sample-timeout"
 
 
-set tcpSource1 [new Agent/TCP/Reno]
-$tcpSource1 set packetSize_ 1024
-$ns attach-agent $n0 $tcpSource1
-set ftp1 [new Source/FTP]
-$ftp1 set agent_ $tcpSource1
-set tcpSink1 [new Agent/TCPSink]
-$ns attach-agent $n1 $tcpSink1
-$ns connect $tcpSource1 $tcpSink1
-$ns at 0.0 "$ftp1 start"
+proc create-error {ns n} {
+	foreach dst {1 2 3} {
+		set em(0:$dst) [new ErrorModel]
+		[$ns link $n(0) $n($dst)] error-model $em(0:$dst)
+	}
+	$em(0:1) set rate 0
+	$em(0:2) set rate 0.01
+	$em(0:3) set rate 0.02
+}
 
-set tcpSource2 [new Agent/TCP/Reno]
-$tcpSource2 set packetSize_ 1024
-$ns attach-agent $n1 $tcpSource2
-set ftp2 [new Source/FTP]
-$ftp2 set agent_ $tcpSource2
-set tcpSink2 [new Agent/TCPSink]
-$ns attach-agent $n0 $tcpSink2
-$ns connect $tcpSource2 $tcpSink2
-$ns at 0.001 "$ftp2 start"
+if [info exist flags(e)] {
+	create-error $ns $n
+}
 
-set tcp [new Agent/TCP]
-$tcp set class_ 2
-set sink [new Agent/TCPSink]
-$ns attach-agent $n0 $tcp
-$ns attach-agent $n1 $sink
-$ns connect $tcp $sink
-set ftp [new Source/FTP]
-$ftp set agent_ $tcp
-# $ns at 0.001 "$ftp start"
-
-set tcp [new Agent/TCP]
-set sink [new Agent/TCPSink]
-$ns attach-agent $n2 $tcp
-$ns attach-agent $n3 $sink
-$ns connect $tcp $sink
-set ftp [new Source/FTP]
-$ftp set agent_ $tcp
-# $ns at 0.1 "$ftp start"
-
-
-set cbr1 [new Agent/CBR]
-$ns attach-agent $n1 $cbr1
-set cbr2 [new Agent/CBR]
-$ns attach-agent $n2 $cbr2
-
-set null1 [new Agent/Null]
-$ns attach-agent $n0 $null1
-set null2 [new Agent/Null]
-$ns attach-agent $n0 $null2
-
-$ns connect $cbr1 $null1
-$ns connect $cbr2 $null2
-
-#$ns at 5.1 "$cbr1 start"
-#$ns at 6.1 "$cbr2 start"
-
-
-$ns at $stop "finish"
 
 proc finish {} {
-	global ns env
-	global gflag
+	global ns env flags
 	global trfd trfile
 
 	$ns flush-trace
@@ -128,21 +98,29 @@ proc finish {} {
 
 	exec gawk -v trfile=$trfile {
 	BEGIN {
+		trfile_tcp_1_0 = sprintf("%s.tcp.1.0", trfile);
+		trfile_ack_0_1 = sprintf("%s.ack.0.1", trfile);
 		trfile_cbr = sprintf("%s.cbr", trfile);
 		trfile_cbr_r = sprintf("%s.cbr.r", trfile);
 		trfile_tcp_0_1 = sprintf("%s.tcp.0.1", trfile);
-		trfile_tcp_1_0 = sprintf("%s.tcp.1.0", trfile);
-		trfile_ack_0_1 = sprintf("%s.ack.0.1", trfile);
 		trfile_ack_1_0 = sprintf("%s.ack.1.0", trfile);
+		trfile_tcp_0_2 = sprintf("%s.tcp.0.2", trfile);
+		trfile_ack_2_0 = sprintf("%s.ack.2.0", trfile);
+		trfile_tcp_0_3 = sprintf("%s.tcp.0.3", trfile);
+		trfile_ack_3_0 = sprintf("%s.ack.3.0", trfile);
 	}
 	END {
 		fflush("");
+		close(trfile_tcp_1_0);
+		close(trfile_ack_0_1);
 		close(trfile_cbr);
 		close(trfile_cbr_r);
 		close(trfile_tcp_0_1);
-		close(trfile_tcp_1_0);
-		close(trfile_ack_0_1);
 		close(trfile_ack_1_0);
+		close(trfile_tcp_0_2);
+		close(trfile_ack_2_0);
+		close(trfile_tcp_0_3);
+		close(trfile_ack_3_0);
 	}
 	{
 		if ($1 == "-") {
@@ -150,11 +128,17 @@ proc finish {} {
 				print $2, ($11) > trfile_cbr ;
 			}
 			else if ($5 == "tcp") {
-				if (($3 == 0) && ($4 == 1)) {
+				if (($3 == 1) && ($4 == 0)) {
+					print $2, ($11) > trfile_tcp_1_0 ;
+				}
+				else if (($3 == 0) && ($4 == 1)) {
 					print $2, ($11) > trfile_tcp_0_1 ;
 				}
-				else if (($3 == 1) && ($4 == 0)) {
-					print $2, ($11) > trfile_tcp_1_0 ;
+				else if (($3 == 0) && ($4 == 2)) {
+					print $2, ($11) > trfile_tcp_0_2 ;
+				}
+				else if (($3 == 0) && ($4 == 3)) {
+					print $2, ($11) > trfile_tcp_0_3 ;
 				}
 			}
 			else if ($5 == "ack") {
@@ -163,6 +147,12 @@ proc finish {} {
 				}
 				else if (($3 == 1) && ($4 == 0)) {
 					print $2, ($11) > trfile_ack_1_0 ;
+				}
+				else if (($3 == 2) && ($4 == 0)) {
+					print $2, ($11) > trfile_ack_2_0 ;
+				}
+				else if (($3 == 3) && ($4 == 0)) {
+					print $2, ($11) > trfile_ack_3_0 ;
 				}
 			}
 		}
@@ -174,10 +164,11 @@ proc finish {} {
 	}
 	} $trfile
 
-	if {$gflag > 0} {
+	if [info exist flags(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) [glob $trfile.*]
 	}
 	exit 0
 }
 
+$ns at $stop "finish"
 $ns run
