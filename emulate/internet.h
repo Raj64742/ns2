@@ -43,4 +43,6 @@ class Internet {
 public:
 	static u_short in_cksum(u_short*, int);
 	static void print_ip(ip*);
+	static void makeip(ip* iph, u_short len,
+	    u_char ttl, u_char proto, in_addr& src, in_addr& dst);
 };
