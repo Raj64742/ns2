@@ -71,7 +71,7 @@ PositionHandler::handle(Event*)
    Mobile Node
    ====================================================================== */
 
-MobileNode::MobileNode(void) : Nodes(), pos_handle(this)
+MobileNode::MobileNode(void) : Node(), pos_handle(this)
 {
 	X = 0.0; Y = 0.0; Z = 0.0; speed = 0.0;
 	dX=0.0; dY=0.0; dZ=0.0;
@@ -159,7 +159,7 @@ MobileNode::command(int argc, const char*const* argv)
 	    }
 	}
 
-	return Nodes::command(argc, argv);
+	return Node::command(argc, argv);
 }
 
 

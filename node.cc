@@ -8,21 +8,21 @@
 
 
 
-static class NodesClass : public TclClass {
+static class NodeClass : public TclClass {
 public:
-	NodesClass() : TclClass("Node") {}
+	NodeClass() : TclClass("Node") {}
 	TclObject* create(int, const char*const*) {
-                return (new Nodes);
+                return (new Node);
         }
 } class_node;
 
-Nodes::Nodes(void)
+Node::Node(void)
 {
 	LIST_INIT(&ifhead_);	
 }
 
 int
-Nodes::command(int argc, const char*const* argv)
+Node::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
 		if(strncasecmp(argv[1], "addif", 5) == 0) {

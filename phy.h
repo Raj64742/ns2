@@ -60,8 +60,8 @@ class Phy : public BiConnector {
 		//node_ = node;
 	}
 	void setchnl (newChannel *chnl) { channel_ = chnl; }
-	//virtual void setnode (Nodes *node) { node_ = node; }
-	//virtual Nodes*	node(void) const { return node_; }
+	//virtual void setnode (Node *node) { node_ = node; }
+	//virtual Node*	node(void) const { return node_; }
 	
 	
 	virtual void    dump(void) const;
@@ -71,7 +71,7 @@ class Phy : public BiConnector {
 	int		command(int argc, const char*const* argv);
 	int             index_;
 
-	//Nodes* node_;
+	//Node* node_;
   
 	/*
    * A list of all "network interfaces" on a given channel.

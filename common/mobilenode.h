@@ -70,7 +70,7 @@ private:
 };
 
 
-class MobileNode : public Nodes 
+class MobileNode : public Node 
 {
 	friend class PositionHandler;
 public:

@@ -10,15 +10,15 @@
 
 
 
-// srm-topo.h already uses class Node- hence the odd name "Nodes"
+// srm-topo.h already uses class Node- hence the odd name "Node"
 //
 // For now, this is a dummy split object for class Node. In future, we
 // may move somethings over from OTcl.
 //
 
-class Nodes : public TclObject {
+class Node : public TclObject {
  public:
-	Nodes(void);
+	Node(void);
 	virtual int command(int argc, const char*const* argv);
 	//apparently the subclasses cannot access private variable of the superclass 
 	struct if_head ifhead_;
@@ -28,17 +28,17 @@ class Nodes : public TclObject {
 };
 
 #ifdef zero
-class HierNode : public Nodes {
+class HierNode : public Node {
 public:
 	HierNode() {}    
 };
 
-class ManualRtNode : public Nodes {
+class ManualRtNode : public Node {
 public:
 	ManualRtNode() {}    
 };
 
-class VirtualClassifierNode : public Nodes {
+class VirtualClassifierNode : public Node {
 public:
 	VirtualClassifierNode() {}    
 };

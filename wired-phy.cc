@@ -66,7 +66,7 @@ WiredPhy::command(int argc, const char*const* argv) {
 		}
 		else if (strcmp(argv[1], "node") == 0) {
                         assert(node_ == 0);
-			node_ = (Nodes*) obj;
+			node_ = (Node*) obj;
 			// LIST_INSERT_HEAD() is done by Node
 			return TCL_OK;
 		}

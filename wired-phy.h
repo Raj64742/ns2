@@ -52,8 +52,8 @@ public:
         // determine if pkt can be recvd.from channel, using diff
 	// propagation models; then send to upstream obj.
 	int sendUp(Packet *p);
-	Nodes*	node(void) const { return node_; }
-	void setnode (Nodes *node) { node_ = node; }
+	Node*	node(void) const { return node_; }
+	void setnode (Node *node) { node_ = node; }
 	
 protected:
 	int command(int argc, const char*const* argv);
@@ -62,7 +62,7 @@ protected:
 	   contention, collision features */
 	TclObject* propagation_;  
 
-	Nodes *node_;
+	Node *node_;
 private:
   
 	inline int	initialized() {
