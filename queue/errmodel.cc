@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.22 1997/11/15 02:07:35 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.23 1997/11/18 00:48:52 kfall Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -42,6 +42,8 @@ static const char rcsid[] =
 #include "mac.h"
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure
+#include "connector.h"
+#include "classifier.h"
 
 static class ErrorModelClass : public TclClass {
 public:
@@ -106,6 +108,7 @@ int ErrorModel::command(int argc, const char*const* argv)
 
 void ErrorModel::recv(Packet* p, Handler* h)
 {
+
 	if (corrupt(p)) {
 		if (onlink_) {
 			/* Callback to queue: assume next target is link(XXX)*/
@@ -387,4 +390,54 @@ int SRMErrorModel::corrupt(Packet* p)
 		}
 	}
 	return 0;
+}
+
+
+class ErrorModule : public Connector {
+public:
+	ErrorModule() : classifier_(0) {}
+	int command(int, const char*const*);
+protected:
+	void recv(Packet*, Handler*);
+	Classifier* classifier_;
+};
+
+static class ErrorModuleClass : public TclClass {
+public:
+	ErrorModuleClass() : TclClass("ErrorModule") {}
+	TclObject* create(int, const char*const*) {
+		return (new ErrorModule);
+	}
+} class_errormodule;
+
+void
+ErrorModule::recv(Packet *p, Handler *h)
+{
+	classifier_->recv(p, h);
+}
+
+int
+ErrorModule::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+                if (strcmp(argv[1], "classifier") == 0) {
+                        if (classifier_)
+                                tcl.resultf("%s", classifier_->name());
+                        else
+                                tcl.resultf("");
+                        return (TCL_OK);
+                }
+	} else if (argc == 3) {
+                if (strcmp(argv[1], "classifier") == 0) {
+                        classifier_ = (Classifier*)
+                                TclObject::lookup(argv[2]);
+                        if (classifier_ == NULL) {
+				tcl.resultf("Couldn't look up classifier %s", argv[2]);
+                                return (TCL_ERROR);
+			}
+                        return (TCL_OK);
+                }
+	}
+	return (Connector::command(argc, argv));
 }
