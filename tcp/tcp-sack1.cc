@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.39 2000/07/10 01:56:59 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.40 2000/07/17 01:01:10 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -210,7 +210,9 @@ Sack1TcpAgent::dupack_action()
 		 * advertised window, and equation (3) takes into
 		 * accout a data-limited sender.
 		 */
-		pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+		if (!singledup_)
+			pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+		else pipe_ = maxseq_ - highest_ack_ - 1;
 		//pipe_ = int(cwnd_) - NUMDUPACKS;
 		fastrecov_ = TRUE;
 		scb_.MarkRetran(highest_ack_+1);
@@ -232,6 +234,9 @@ sack_action:
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	pipe_ = int(cwnd_) - NUMDUPACKS;
 	//pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+	//if (!singledup_)
+	// 	pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+	//else pipe_ = maxseq_ - highest_ack_ - 1;
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
 	fastrecov_ = TRUE;
