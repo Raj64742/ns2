@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.123 2003/07/10 21:20:41 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.124 2003/07/14 23:54:40 haldar Exp $
 
 try () {
         for excluding in $cygwin_exclude; do
@@ -70,10 +70,10 @@ intserv diffserv webcache mcache webtraf \
 simultaneous mip links plm linkstate mpls oddBehaviors \
 wireless-shadowing wireless-lan-aodv wireless-tdma wireless-gridkeeper \
 wireless-diffusion wireless-lan-newnode satellite WLtutorial energy \
-v1 red-v1 cbq-v1 sack-v1 vegas-v1 source-routing snoop \
+diffusion3 v1 red-v1 cbq-v1 sack-v1 vegas-v1 source-routing snoop \
 misc tagged-trace 
 # smac -- smac taken out  5-Dec-02 pending padma's vacation
-# diffusion3 taken out to merge with diffusion3.2.0
+
 # wireless-lan-gaf
 
 do
