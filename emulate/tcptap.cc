@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.2 2001/09/20 19:05:21 alefiyah Exp $ (ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.3 2002/08/20 00:45:44 alefiyah Exp $ (ISI)";
 #endif
 
 #include "tcptap.h"
@@ -461,6 +461,7 @@ TCPTapAgent::recvpkt()
   hdr_cmn *ns_cmnhdr = HDR_CMN(nspacket);
   ns_cmnhdr->size() = ntohs(ipheader->ip_len);
 
+  Packet::free(p);
 
   // inject into simulator
   target_->recv(nspacket);
@@ -548,10 +549,12 @@ TCPTapAgent::sendpkt(Packet* p)
     fprintf(stderr,"TCPTapAgent(%s): sendpkt (%p, %d): %s\n",
 	    name(), p->accessdata(), ns_cmnhdr->size(), strerror(errno));
     Packet::free(p);
+    free(packet);
     return (-1);
     
   }
   
+  free(packet);
   TDEBUG3("TCPTapAgent(%s): sent packet (sz: %d)\n", name(), hc->size());
   return 0;
 }
