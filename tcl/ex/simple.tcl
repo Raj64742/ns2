@@ -44,7 +44,7 @@ $ftp set agent $tcp
 $ns at 1.2 "$ftp start"
 
 puts [$cbr0 set packet-size]
-puts [$cbr0 set interval]
+puts [$cbr0 set interval_]
 
 $ns at 2.0 "finish"
 
@@ -54,7 +54,7 @@ proc finish {} {
 	exec rm -f out
 	#XXX
 	puts "running nam..."
-	exec ../../../nam/nam simple-nam &
+	exec nam simple-nam &
 	exit 0
 }
 
