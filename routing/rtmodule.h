@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.5 2001/02/22 19:45:39 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.6 2001/03/06 20:49:05 haldar Exp $
  *
  * Definition of RoutingModule, base class for all extensions to routing 
  * functionality in a Node. These modules are meant to be "plugin", and 
@@ -42,8 +42,7 @@ class DestHashClassifier;
 
 class RoutingModule : public TclObject {
 public:
-	RoutingModule() : next_rtm_(NULL), n_(NULL),  
-		classifier_(NULL) {}
+	RoutingModule(); 
 	/*
 	 * Returns the node to which this module is attached.
 	 */ 

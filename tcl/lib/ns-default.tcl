@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.232 2001/03/02 03:47:11 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.233 2001/03/06 20:49:05 haldar Exp $
 
 
 #
@@ -867,3 +867,9 @@ Agent/LDP set trace_ldp_ 0
 Simulator set nix-routing 0
 #Node/NixNode set id_ 0
 
+#Routing Module variable setting
+RtModule set classifier_ ""
+RtModule/Base set classifier_ ""
+#RtModule/Hier set classifier_ [new Classifier/Hier]
+#RtModule/Manual set classifier_ [new Classifier/Hash/Dest 2]
+#RtModule/VC set classifier_ [new Classifier/Virtual]

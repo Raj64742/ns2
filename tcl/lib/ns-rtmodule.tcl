@@ -26,7 +26,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.5 2001/03/02 19:31:01 haldar Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.6 2001/03/06 20:49:05 haldar Exp $
 #
 # OTcl interface definition for the base routing module. They provide 
 # linkage to Node, hence all derived classes should inherit these interfaces
@@ -38,6 +38,15 @@ RtModule instproc register { node } {
 	$node route-notify $self
 	$node port-notify $self
 }
+
+#RtModule instproc init { node } {
+#	$self instvar classifier_
+#	$self next 
+#	# Attach to node and register routing notifications
+#	$self attach-node $node
+#	$node route-notify $self
+#	$node port-notify $self
+#}
 
 # Only called when the default classifier of this module is REPLACED.
 RtModule instproc unregister {} {
@@ -85,17 +94,17 @@ RtModule instproc reset {} {
 RtModule/Base instproc register { node } {
 	$self next $node
 
-	# Create classifier
 	$self instvar classifier_
 	set classifier_ [new Classifier/Hash/Dest 32]
 	$classifier_ set mask_ [AddrParams NodeMask 1]
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	# XXX Base should ALWAYS be the first module to be installed.
+
 	$node install-entry $self $classifier_
 
 	#XXX this should go away when classifier_ becomes a 
 	#XXX a bound object across C++/OTcl line
-	$self attach-classifier $classifier_
+	#$self attach-classifier $classifier_
 }
 
 
@@ -110,7 +119,7 @@ RtModule/Base instproc register { node } {
 RtModule/Mcast instproc register { node } {
 	$self next $node
 	$self instvar classifier_
-
+	
 	# Keep old classifier so we can use RtModule::add-route{}.
 	$self set classifier_ [$node entry]
 	
@@ -145,7 +154,7 @@ RtModule/Hier instproc register { node } {
 	$self instvar classifier_
 	set classifier_ [new Classifier/Hier]
 	$node install-entry $self $classifier_
-	$self attach-classifier $classifier_
+	#$self attach-classifier $classifier_
 }
 
 RtModule/Hier instproc delete-route args {
@@ -192,15 +201,14 @@ Classifier/Hier instproc install { dst target } {
 #
 RtModule/Manual instproc register { node } {
 	$self next $node
-
-	$self instvar classifier_
+	$self instvar classifier_	
 	# Note the very small hash size---
 	# you're supposed to resize it if you want more.
 	set classifier_ [new Classifier/Hash/Dest 2]
 	$classifier_ set mask_ [AddrParams NodeMask 1]
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	$node install-entry $self $classifier_
-	$self attach-classifier $classifier_
+	#$self attach-classifier $classifier_
 }
 
 RtModule/Manual instproc add-route {dst_address target} {
@@ -243,17 +251,18 @@ RtModule/Manual instproc add-route-to-adj-node { args } {
 #
 RtModule/VC instproc register { node } {
 	# We do not do route-notify. Only port-notify will suffice.
+	$self instvar classifier_
+
 	$self attach-node $node
 	$node port-notify $self
 
-	$self instvar classifier_
 	set classifier_ [new Classifier/Virtual]
 	$classifier_ set node_ $node
 	$classifier_ set mask_ [AddrParams NodeMask 1]
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	$classifier_ nodeaddr [$node node-addr]
 	$node install-entry $self $classifier_ 
-	$self attach-classifier $classifier_
+	#$self attach-classifier $classifier_
 	#$self attach-self $node
 }
 
