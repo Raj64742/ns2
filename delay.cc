@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 The Regents of the University of California.
+ * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,12 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.3 1997/01/27 01:16:14 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.4 1997/02/27 04:38:40 kfall Exp $ (LBL)";
 #endif
 
 #include "packet.h"
 #include "queue.h"
+#include "ip.h"
 
 class LinkDelay : public Connector {
  public:
@@ -68,7 +69,8 @@ LinkDelay::LinkDelay()
 
 void LinkDelay::recv(Packet* p, Handler* h)
 {
-	double txtime = p->size_ * 8. / bandwidth_;
+	IPHeader *hdr = IPHeader::access(p->bits());
+	double txtime = hdr->size() * 8. / bandwidth_;
 	Scheduler& s = Scheduler::instance();
 	s.schedule(target_, p, txtime + delay_);
 	/*XXX only need one intr_ since upstream object should

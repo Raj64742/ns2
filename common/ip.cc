@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996-1997 Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,34 +33,19 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.3 1997/02/27 04:39:22 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.cc,v 1.1 1997/02/27 04:38:42 kfall Exp $";
 #endif
 
 #include "packet.h"
 #include "ip.h"
-#include "connector.h"
 
-class TTLChecker : public Connector {
-public:
-	//int command(int argc, const char*const* argv);
-	void recv(Packet* p, Handler* h) {
-		IPHeader *iph = IPHeader::access(p->bits());
-		int ttl = iph->ttl() - 1;
-		if (ttl <= 0) {
-			/* XXX should send to a drop object.*/
-			Packet::free(p);
-			printf("ttl exceeded\n");
-			return;
-		}
-		iph->ttl() = ttl;
-		send(p, h);
-	}
-};
+IPHeader iphdr;
+IPHeader* IPHeader::myaddress_ = &iphdr;
 
-static class TTLCheckerClass : public TclClass {
+static class IPHeaderClass : public TclClass {
 public:
-	TTLCheckerClass() : TclClass("TTLChecker") {}
+	IPHeaderClass() : TclClass("PacketHeader/IP") {}
 	TclObject* create(int argc, const char*const* argv) {
-		return (new TTLChecker);
+			return &iphdr;
 	}
-} ttl_checker_class;
+} class_iphdr;

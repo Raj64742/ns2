@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1994-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.2 1997/02/27 04:39:01 kfall Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -138,11 +138,15 @@ void RLM_Sender::timeout(int)
 void RLM_Sender::sendpkt(int size, int level)
 {
 	Packet* p = allocpkt(seqno_[level]++);
-	p->blkno_ = blkno_;
-	p->blkitem_ = blkitem_++;
-	p->size_ = size;
-	p->dst_ += level;
-	p->class_ += level;/*XXX*/
+	IPHeader *iph = IPHeader::access(p->bits());
+	RLMHeader *rh = RLMHeader::access(p->bits());
+	rh->blkno() = blkno_;
+	rh->blkitem() = blkitem_++;
+	iph->size() = size;
+	iph->dst() += level;
+#ifdef notdef
+	iph->class() += level;/*XXX*/
+#endif
 	node_->transmit(p);
 }
 
@@ -226,8 +230,10 @@ RLM_Receiver::RLM_Receiver() : Agent(-1), proc_(0), expected_(-1)
 
 void RLM_Receiver::recv(Packet* pkt)
 {
-	bytes_ += pkt->size_;
-	int seqno = pkt->seqno_;
+	IPHeader *iph = IPHeader::access(pkt->bits());
+	SequenceHeader *sh = SequenceHeader::access(pkt->bits());
+	bytes_ += iph->size();
+	int seqno = sh->seqno();
 	int blkno = seqno >> 16;
 	seqno &= 0xffff;
 	
@@ -235,14 +241,14 @@ void RLM_Receiver::recv(Packet* pkt)
 	 * Check for lost packets
 	 */
 	if (expected_ >= 0) {
-		int loss = pkt->seqno_ - expected_;
+		int loss = sh->seqno() - expected_;
 		if (loss > 0) {
 			loss_ += loss;
 			if (proc_ != 0)
 				Tcl::instance().eval(proc_);
 		}
 	}
-	expected_ = pkt->seqno_ + 1;
+	expected_ = sh->seqno() + 1;
 	Packet::free(pkt);
 }
 

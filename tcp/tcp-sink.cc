@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1991-1995 Regents of the University of California.
+ * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,13 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.6 1997/02/02 18:57:33 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.7 1997/02/27 04:39:15 kfall Exp $ (LBL)";
 #endif
 
 #include <math.h>
 #include "packet.h"
+#include "ip.h"
+#include "tcp.h"
 #include "agent.h"
 
 /* max window size */
@@ -54,7 +56,7 @@ public:
 	virtual ~Acker() {}
 	void update(int seqno);
 	inline int Seqno() const { return (next_ - 1); }
-	virtual void build_ack(Packet* newpkt, const Packet *pkt) const;
+	virtual void build_ack(Packet* newpkt, Packet *const pkt) const;
 protected:
 	int next_;		/* next packet expected  */
 	int maxseen_;		/* max packet number seen */
@@ -85,6 +87,7 @@ Acker::Acker() : next_(0), maxseen_(0)
 
 void Acker::update(int seq)
 {
+
 	if (seq - next_ >= MWM)
 		// Protect seen_ array from overflow.
 		// The missing ACK will ultimately cause sender timeout
@@ -116,24 +119,37 @@ TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
 	bind("packetSize_", &size_);
 }
 
-void Acker::build_ack(Packet* newpkt, const Packet *pkt) const
+void Acker::build_ack(Packet* newpkt, Packet *const pkt) const
 {
-	newpkt->seqno_ = Seqno();
-	newpkt->flags_ = pkt->flags_;
-	newpkt->bd_.tcp_.ts_ = pkt->bd_.tcp_.ts_;
-	newpkt->class_ = pkt->class_;
+	// the following is order-sensitive due to the static
+	// data created by the access() method
+	TCPHeader *h = TCPHeader::access(pkt->bits());
+	double ts = h->ts();
+	h = TCPHeader::access(newpkt->bits());
+	h->seqno() = Seqno();
+	h->ts() = ts;
+	IPHeader *ip = IPHeader::access(pkt->bits());
+	int flags = ip->flags();
+	ip = IPHeader::access(newpkt->bits());
+	ip->flags() = flags;
+
+#ifdef notdef
+newh->class_ = pkt->class_;
+#endif
 }
 
 void TcpSink::ack(Packet *pkt)
 {
 	Packet* newpkt = allocpkt();
 	acker_->build_ack(newpkt, pkt);
-	send(newpkt, 0);
+	send(newpkt, 0);	// Connector::send()
+
 }
 
 void TcpSink::recv(Packet* pkt, Handler*)
 {
-      	acker_->update(pkt->seqno_);
+	TCPHeader *th = TCPHeader::access(pkt->bits());
+      	acker_->update(th->seqno());
       	ack(pkt);
 	Packet::free(pkt);
 }
@@ -165,12 +181,13 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker)
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
-	acker_->update(pkt->seqno_);
+	TCPHeader *th = TCPHeader::access(pkt->bits());
+	acker_->update(th->seqno());
         /*
          * If there's no timer and the packet is in sequence, set a timer.
          * Otherwise, send the ack and update the timer.
          */
-        if (!pending_[DELAY_TIMER] && pkt->seqno_ == acker_->Seqno()) {
+        if (!pending_[DELAY_TIMER] && th->seqno() == acker_->Seqno()) {
                 /*
                  * There's no timer, so set one and delay this ack.
                  */
@@ -260,7 +277,7 @@ class Sacker : public Acker {
 public: 
 	Sacker();
 	~Sacker();
-	void build_ack(Packet* newpkt, const Packet *pkt) const;
+	void build_ack(Packet* newpkt, Packet *const pkt) const;
 	void bind(TclObject* o) {
 		o->bind("maxSackBlocks_", &max_sack_blocks_);
 	}
@@ -304,7 +321,7 @@ Sacker::~Sacker()
 	delete sf_;
 }
 
-void Sacker::build_ack(Packet* newpkt, const Packet *pkt) const
+void Sacker::build_ack(Packet* newpkt, Packet *const pkt) const
 {
         int sack_index, i, sack_right, sack_left;
 	int recent_sack_left, recent_sack_right;
@@ -314,30 +331,32 @@ void Sacker::build_ack(Packet* newpkt, const Packet *pkt) const
 
         sack_index = 0;
 
-	bd_tcp* bd = &newpkt->bd_.tcp_;
+	// order-constrained; due to static data created by access()
+	TCPHeader *h = TCPHeader::access(pkt->bits());
+	int old_seqno = h->seqno();
+	h = TCPHeader::access(newpkt->bits());
 
-        if (pkt->seqno_<0) {
-                printf("Error: invalid packet number %d\n", pkt->seqno_);
-        }
-	else if (seqno >= maxseen_ && (sf_->cnt() != 0))
+        if (old_seqno < 0) {
+                printf("Error: invalid packet number %d\n", old_seqno);
+        } else if (seqno >= maxseen_ && (sf_->cnt() != 0))
 		sf_->reset();
 	else if ((seqno < maxseen_) && (max_sack_blocks_ > 0)) {
                 /*  Build FIRST SACK block  */
                 sack_right=-1;
 
 		/* look rightward for first hole */
-                for (i=pkt->seqno_; i<=maxseen_; i++) {
-                              if (!seen_[i & MWM]) {
-                                                sack_right=i;
-                                                break;
-		}
+                for (i=old_seqno; i<=maxseen_; i++) {
+			if (!seen_[i & MWM]) {
+				sack_right=i;
+				break;
+			}
 		}
 
                 if (sack_right == -1) {
                                 sack_right = maxseen_+1;
                 }
 
-		if (pkt->seqno_ <= seqno) {
+		if (old_seqno <= seqno) {
 			sack_left = 0;
 		} else {
 			/* look leftward from right edge for first hole */
@@ -347,8 +366,8 @@ void Sacker::build_ack(Packet* newpkt, const Packet *pkt) const
 	                                        break;
 	                                }
 	                }
-			bd->sa_left_[sack_index] = sack_left;
-			bd->sa_right_[sack_index] = sack_right;
+			h->sa_left()[sack_index] = sack_left;
+			h->sa_right()[sack_index] = sack_right;
 			sack_index++;
 		}
 
@@ -374,14 +393,14 @@ void Sacker::build_ack(Packet* newpkt, const Packet *pkt) const
 				continue;
 			}
 
-			bd->sa_left_[sack_index] = sack_left;
-			bd->sa_right_[sack_index] = sack_right;
+			h->sa_left()[sack_index] = sack_left;
+			h->sa_right()[sack_index] = sack_right;
 			sack_index++;
 			k++;
 
                 }
 
-		if (pkt->seqno_ > seqno) {
+		if (old_seqno > seqno) {
 		 	/* put most recent block onto stack */
 			sf_->push();
 			sf_->head_left() = recent_sack_left;
@@ -389,7 +408,7 @@ void Sacker::build_ack(Packet* newpkt, const Packet *pkt) const
 		}
                 
         }
-	bd->sa_length_ = sack_index;
-	newpkt->size_ += sack_index * 8;
+	h->sa_length() = sack_index;
+	IPHeader *iph = IPHeader::access(newpkt->bits());
+	iph->size() += sack_index * 8;
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996-1997 Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -29,38 +29,39 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.1 1997/02/27 04:38:50 kfall Exp $
  */
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.3 1997/02/27 04:39:22 kfall Exp $";
-#endif
+#ifndef ns_msg_h
+#define ns_msg_h
 
-#include "packet.h"
-#include "ip.h"
-#include "connector.h"
+struct bd_msg {
+	char msg_[64];
+};
 
-class TTLChecker : public Connector {
+class MessageHeader : public PacketHeader {
+private:
+        static MessageHeader* myaddress_;
+        bd_msg* hdr_;
 public:
-	//int command(int argc, const char*const* argv);
-	void recv(Packet* p, Handler* h) {
-		IPHeader *iph = IPHeader::access(p->bits());
-		int ttl = iph->ttl() - 1;
-		if (ttl <= 0) {
-			/* XXX should send to a drop object.*/
-			Packet::free(p);
-			printf("ttl exceeded\n");
-			return;
-		}
-		iph->ttl() = ttl;
-		send(p, h);
+        MessageHeader() : hdr_(NULL) { }
+	inline int hdrsize() { return (sizeof(*hdr_)); }
+        inline void header_addr(u_char *base) {
+                if (offset_ < 0) abort();
+                hdr_ = (bd_msg *) (base + offset_);
+        }
+        static inline MessageHeader* access(u_char *p) {    
+                myaddress_->header_addr(p);
+                return (myaddress_);
+        }
+        /* per-field member functions */
+        char* msg() {
+                return (hdr_->msg_);
+        }
+	int maxmsg() {
+		return (sizeof(hdr_->msg_));
 	}
 };
 
-static class TTLCheckerClass : public TclClass {
-public:
-	TTLCheckerClass() : TclClass("TTLChecker") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new TTLChecker);
-	}
-} ttl_checker_class;
+#endif

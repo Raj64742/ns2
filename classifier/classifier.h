@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ class Classifier : public NsObject {
 	void install(int slot, NsObject*);
 	void clear(int slot);
 	virtual int command(int argc, const char*const* argv);
-	virtual int classify(const Packet*) = 0;
+	virtual int classify(Packet *const) = 0;
 	void alloc(int);
 	NsObject** slot_;	/* table that maps slot number to a NsObject */
 	int nslot_;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) @ Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.4 1997/01/26 23:26:23 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.5 1997/02/27 04:39:03 kfall Exp $";
 #endif
 
 
@@ -103,10 +103,10 @@ void RTCPAgent::recv(Packet* p, Handler*)
 void RTCPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
+	RTPHeader *rh = RTPHeader::access(p->bits());
 
 	/* Fill in srcid_ */
-	p->bd_.rtp_.srcid_ = session_->srcid();
-
+	rh->srcid() = session_->srcid();
 	target_->recv(p);
 }
 

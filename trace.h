@@ -30,84 +30,82 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.3 1997/02/27 04:39:06 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.1 1997/02/27 04:39:21 kfall Exp $
  */
 
+#ifndef ns_trace_h
+#define ns_trace_h
 
-#ifndef ns_rtp_h
-#define ns_rtp_h
+/* a trace header; things in a packet one may want to look at */
 
 #include "config.h"
+#include "packet.h"
+#include "connector.h"
 
-/* rtp packet.  For now, just have srcid + seqno. */
-struct bd_rtp { 
-        u_int32_t srcid_;
-	int seqno_;
-};   
+#define PT_TCP          0
+#define PT_TELNET       1
+#define PT_CBR          2
+#define PT_AUDIO        3
+#define PT_VIDEO        4
+#define PT_ACK          5
+#define PT_START        6
+#define PT_STOP         7
+#define PT_PRUNE        8
+#define PT_GRAFT        9
+#define PT_MESSAGE      10
+#define PT_RTCP         11
+#define PT_RTP          12
+#define PT_NTYPE        13
 
-class RTPHeader : public PacketHeader {
+#define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
+        "start", "stop", "prune", "graft", "message", "rtcp", "rtp"
+
+struct bd_trace {
+	int		ptype_;
+	int		uid_;
+};
+
+
+class TraceHeader : public PacketHeader {
 private:
-        static RTPHeader* myaddress_;
-        bd_rtp* hdr_;
-public: 
-        RTPHeader() : hdr_(NULL) { }
+	static TraceHeader* myaddress_;
+	bd_trace* hdr_;
+public:
+	TraceHeader() : hdr_(NULL) { }
 	inline int hdrsize() { return (sizeof(*hdr_)); }
         inline void header_addr(u_char *base) {
                 if (offset_ < 0) abort();
-                hdr_ = (bd_rtp *) (base + offset_);
-        }       
-        static inline RTPHeader* access(u_char *p) {
+                hdr_ = (bd_trace *) (base + offset_);
+        }
+        static inline TraceHeader* access(u_char *p) {    
                 myaddress_->header_addr(p);
                 return (myaddress_);
-        }       
-        /* per-field member functions */
-	u_int32_t& srcid() {
-		return (hdr_->srcid_);
+        }
+	/* per-field member functions */
+	int& ptype() {
+		return (hdr_->ptype_);
 	}
-	int& seqno() {
-		return (hdr_->seqno_);
+	int& uid() {
+		return (hdr_->uid_);
 	}
-};   
-
-
-class RTPSource : public TclObject {
-public:
-	RTPSource* next;
-
-	RTPSource(u_int32_t srcid);
-	inline u_int32_t srcid() { return (srcid_); }
-	inline int np() { return (np_); }
-	inline int snp() { return (snp_); }
-	inline int ehsr() { return (ehsr_); }
-
-	inline void np(int n) { np_ += n; }
-	inline void snp(int n) { snp_ = n; }
-	inline void ehsr(int n) { ehsr_ = n; }
-protected:
-	u_int32_t srcid_;
-	int np_;
-	int snp_;
-	int ehsr_;
 };
 
-class RTPSession : public TclObject {
-public:
-	RTPSession();
-	~RTPSession();
-	virtual void recv(Packet* p);
-	virtual void recv_ctrl(Packet* p);
-	int command(int argc, const char*const* argv);
-	inline u_int32_t srcid() { return (localsrc_->srcid()); }
-	int build_report(int bye);
-	void localsrc_update(int);
-protected:
-	RTPSource* allsrcs_;
-	RTPSource* localsrc_;
-	int build_sdes();
-	int build_bye();
-	RTPSource* lookup(u_int32_t);
-	void enter(RTPSource*);
-	int last_np_;
+class Trace : public Connector {
+ protected:
+        int type_;
+        nsaddr_t src_;
+        nsaddr_t dst_;
+        Tcl_Channel channel_;
+        int callback_;
+        char wrk_[256];
+        void format(int tt, int s, int d, Packet* p);
+ public:
+        Trace(int type);
+        ~Trace();
+        int command(int argc, const char*const* argv);
+        void recv(Packet* p, Handler*);
+        void dump();
+        inline char* buffer() { return (wrk_); }
 };
 
 #endif

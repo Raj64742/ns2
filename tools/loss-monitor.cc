@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1994-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,14 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.4 1997/01/27 01:16:15 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.5 1997/02/27 04:38:48 kfall Exp $ (LBL)";
 #endif
 
 #include "agent.h"
 #include "Tcl.h"
 #include "packet.h"
+#include "ip.h"
+#include "rtp.h"
 
 class LossMonitor : public Agent {
  public:
@@ -50,6 +52,7 @@ protected:
 	int npkts_;
 	int expected_;
 	int bytes_;
+	int seqno_;
 	double last_packet_time_;
 };
 
@@ -68,6 +71,7 @@ LossMonitor::LossMonitor() : Agent(-1)
 	npkts_ = 0;
 	expected_ = -1;
 	last_packet_time_ = 0.;
+	seqno_ = 0;
 	bind("nlost_", &nlost_);
 	bind("npkts_", &npkts_);
 	bind("bytes_", &bytes_);
@@ -77,8 +81,10 @@ LossMonitor::LossMonitor() : Agent(-1)
 
 void LossMonitor::recv(Packet* pkt, Handler*)
 {
-	seqno_ = pkt->seqno_;
-	bytes_ += pkt->size_;
+	RTPHeader *p = RTPHeader::access(pkt->bits());
+	IPHeader *q = IPHeader::access(pkt->bits());
+	seqno_ = p->seqno();
+	bytes_ += q->size();
 	++npkts_;
 	/*
 	 * Check for lost packets

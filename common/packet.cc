@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1994-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,56 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.2 1997/02/27 04:38:51 kfall Exp $ (LBL)";
 #endif
 
 #include "packet.h"
 
-Packet* Packet::free_;
-int Packet::uidcnt_;
+int Packet::hdrsize_ = 0;	/* size of a packet's header */
+int Packet::uidcnt_;		/* running unique id */
+Packet* Packet::free_;		/* free list */
+
+/* manages active packet header types */
+class PacketHeaderManager : public TclObject {
+	int		nheaders_;
+	int		cur_offset_;
+	void allochdr(PacketHeader *p);
+public:
+	PacketHeaderManager() : nheaders_(0), cur_offset_(0) { }
+	int nheaders() { return (nheaders_); }
+	int PacketHeaderManager::command(int, const char*const*);
+};
+
+static class PacketHeaderManagerClass : public TclClass {
+public:
+        PacketHeaderManagerClass() : TclClass("PacketHeaderManager") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new PacketHeaderManager);
+        }
+} class_packethdr_mgr;
+
+void
+PacketHeaderManager::allochdr(PacketHeader *p)
+{
+	cur_offset_ += p->hdrsize();
+	Packet::addhsize(p->hdrsize());
+	p->setbase(cur_offset_);
+}
+
+/*
+ * $pm newheader $newh
+ */
+int PacketHeaderManager::command(int argc, const char*const* argv)
+{
+	PacketHeader *ph;
+	if (argc == 3) {
+		if (strcmp(argv[1], "newheader") == 0) {
+			ph = (PacketHeader*)TclObject::lookup(argv[2]);
+			if (ph == NULL) {
+				return (TCL_ERROR);
+			}
+			allochdr(ph);
+			return (TCL_OK);
+		}
+	}
+}

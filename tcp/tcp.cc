@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1991-1994 Regents of the University of California.
+ * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,27 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.6 1997/02/23 06:00:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.7 1997/02/27 04:39:16 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <math.h>
 #include "Tcl.h"
-#include "tcp.h"
 #include "packet.h"
+#include "ip.h"
+#include "tcp.h"
 #include "random.h"
+
+TCPHeader tcphdr;
+TCPHeader* TCPHeader::myaddress_ = &tcphdr;
+
+static class TCPHeaderClass : public TclClass {
+public:
+        TCPHeaderClass() : TclClass("PacketHeader/TCP") {}
+        TclObject* create(int argc, const char*const* argv) {
+                        return &tcphdr;
+        }       
+} class_tcphdr;
 
 static class TcpClass : public TclClass {
 public:
@@ -85,7 +97,7 @@ void TcpAgent::reset()
 	dupacks_ = 0;
 	curseq_ = 0;
 	cwnd_ = wnd_init_;
-	seqno_ = 0;
+	t_seqno_ = 0;
 	maxseq_ = -1;
 	last_ack_ = -1;
 	highest_ack_ = -1;
@@ -160,10 +172,12 @@ void TcpAgent::rtt_backoff()
 
 void TcpAgent::output(int seqno, int reason)
 {
-	Packet* p = allocpkt(seqno);
+	Packet* p = allocpkt();
+	TCPHeader *tcph = TCPHeader::access(p->bits());
 	double now = Scheduler::instance().clock();
-	p->bd_.tcp_.ts_ = now;
-	p->flags_ |= reason;
+	tcph->seqno() = seqno;
+	tcph->ts() = now;
+	tcph->reason() = reason;
 	Connector::send(p, 0);
 	if (seqno > maxseq_) {
 		maxseq_ = seqno;
@@ -177,8 +191,6 @@ void TcpAgent::output(int seqno, int reason)
 		/* No timer pending.  Schedule one. */
 		set_rtx_timer();
 }
-
-
 
 int TcpAgent::command(int argc, const char*const* argv)
 {
@@ -222,9 +234,9 @@ void TcpAgent::send(int force, int reason, int maxburst)
 	int win = window();
 	int npackets = 0;
 
-	while (seqno_ <= highest_ack_ + win && seqno_ < curseq_) {
+	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
 		if (overhead_ == 0 || force) {
-			output(seqno_++, reason);
+			output(t_seqno_++, reason);
 			npackets++;
 		} else if (!pending_[TCP_TIMER_DELSND]) {
 			/*
@@ -248,7 +260,7 @@ void TcpAgent::reset_rtx_timer(int mild)
 	set_rtx_timer();
 	rtt_backoff();
 	if (!mild)
-		seqno_ = highest_ack_ + 1;
+		t_seqno_ = highest_ack_ + 1;
 	rtt_active_ = 0;
 }
 
@@ -270,7 +282,8 @@ void TcpAgent::set_rtx_timer()
  */
 void TcpAgent::newtimer(Packet* pkt)
 {
-        if (seqno_ > pkt->seqno_)
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+        if (t_seqno_ > tcph->seqno())
 		set_rtx_timer();
         else if (pending_[TCP_TIMER_RTX])
                 cancel(TCP_TIMER_RTX);
@@ -400,18 +413,19 @@ void TcpAgent::closecwnd(int how)
  */
 void TcpAgent::newack(Packet* pkt)
 {
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
 	newtimer(pkt);
 	dupacks_ = 0;
-	last_ack_ = pkt->seqno_;
+	last_ack_ = tcph->seqno();
 	highest_ack_ = last_ack_;
-	if (seqno_ < last_ack_ + 1)
-		seqno_ = last_ack_ + 1;
-	if (rtt_active_ && pkt->seqno_ >= rtt_seq_) {
+	if (t_seqno_ < last_ack_ + 1)
+		t_seqno_ = last_ack_ + 1;
+	if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
 		rtt_active_ = 0;
 		t_backoff_ = 1;
 	}
 	/* with timestamp option */
-	double tao = Scheduler::instance().clock() - pkt->bd_.tcp_.ts_;
+	double tao = Scheduler::instance().clock() - tcph->ts();
 	rtt_update(tao);
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
@@ -442,14 +456,14 @@ void TcpAgent::plot()
 void TcpAgent::quench(int how)
 {
 	if (highest_ack_ >= recover_) {
-		recover_ = seqno_ - 1;
+		recover_ = t_seqno_ - 1;
 		recover_cause_ = 3;
 		closecwnd(how);
 #ifdef notdef
 		if (trace_) {
 			double now = Scheduler::instance().clock();
 			sprintf(trace_->buffer(),
-				"%g pkt %d\n", now, seqno_ - 1);
+				"%g pkt %d\n", now, t_seqno_ - 1);
 			trace_->dump();
 		}
 #endif
@@ -462,19 +476,23 @@ void TcpAgent::quench(int how)
  */
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	IPHeader *iph = IPHeader::access(pkt->bits());
+#ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
 				      name());
 		Packet::free(pkt);
 		return;
 	}
+#endif
 	/*XXX only if ecn_ true*/
-	if (pkt->flags_ & PF_ECN)
+	if (iph->flags() & IP_ECN)
 		quench(1);
-	if (pkt->seqno_ > last_ack_) {
+	if (tcph->seqno() > last_ack_) {
 		newack(pkt);
 		opencwnd();
-	} else if (pkt->seqno_ == last_ack_) {
+	} else if (tcph->seqno() == last_ack_) {
 		if (++dupacks_ == NUMDUPACKS) {
                    /* The line below, for "bug_fix_" true, avoids
 		    * problems with multiple fast retransmits in one
@@ -511,12 +529,12 @@ void TcpAgent::timeout(int tno)
 		recover_cause_ = 2;
 		closecwnd(0);
 		reset_rtx_timer(0);
-		send(0, PF_TIMEOUT);
+		send(0, TCP_REASON_TIMEOUT);
 	} else {
 		/*
 		 * delayed-send timer, with random overhead
 		 * to avoid phase effects
 		 */
-		send(1, PF_TIMEOUT);
+		send(1, TCP_REASON_TIMEOUT);
 	}
 }

@@ -33,20 +33,21 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.1 1997/02/23 02:53:40 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.2 1997/02/27 04:38:54 kfall Exp $";
 #endif
 
 #include "integrator.h"
 #include "connector.h"
 #include "packet.h"
+#include "ip.h"
 
 class QueueMonitor : public Integrator {
  public:
 	QueueMonitor() : size_(0) {
 		bind("size_", &size_);
 	}
-	void in(const Packet*);
-	void out(const Packet*);
+	void in(Packet*);
+	void out(Packet*);
 	//	int command(int argc, const char*const* argv);
 protected:
 	int size_;
@@ -60,16 +61,18 @@ public:
 	}
 } queue_monitor_class;
 
-void QueueMonitor::in(const Packet* p)
+void QueueMonitor::in(Packet* p)
 {
-	size_ += p->size_;
+	IPHeader *iph = IPHeader::access(p->bits());
+	size_ += iph->size();
 	double now = Scheduler::instance().clock();
 	newPoint(now, double(size_));
 }
 
-void QueueMonitor::out(const Packet* p)
+void QueueMonitor::out(Packet* p)
 {
-	size_ -= p->size_;
+	IPHeader *iph = IPHeader::access(p->bits());
+	size_ -= iph->size();
 	double now = Scheduler::instance().clock();
 	newPoint(now, double(size_));
 }

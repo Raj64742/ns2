@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1990-1994 Regents of the University of California.
+ * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.6 1997/02/23 01:28:55 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.7 1997/02/27 04:38:32 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -42,6 +42,8 @@ static char rcsid[] =
 #include "Tcl.h"
 #include "agent.h"
 #include "packet.h"
+#include "ip.h"
+#include "trace.h"
 
 static class NullAgentClass : public TclClass {
 public:
@@ -52,17 +54,27 @@ public:
 } class_null_agent;
 
 Agent::Agent(int pkttype) : 
-	type_(pkttype), dst_(-1), addr_(-1), seqno_(0), size_(0), class_(0)
+	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
+	prio_(-1), flags_(0)
 {
 	memset(pending_, 0, sizeof(pending_));
-	/*
-	 * XXX warning: we don't use "class" here because it conflicts
-	 * with otcl's member class variable
-	 */
-	bind("class_", &class_);
+	// this is really an IP agent, so set up
+	// for generating the appropriate IP fields...
 	bind("addr_", (int*)&addr_);
 	bind("dst_", (int*)&dst_);
-	bind("seqno_", &seqno_);
+	bind("fid_", (int*)&fid_);
+	bind("prio_", (int*)&prio_);
+	bind("flags_", (int*)&flags_);
+
+#ifdef notdef
+/*
+ * XXX warning: we don't use "class" here because it conflicts
+ * with otcl's member class variable
+ */
+bind("class_", &class_);
+bind("seqno_", &seqno_);
+#endif
+
 }
 
 Agent::~Agent()
@@ -107,16 +119,23 @@ void Agent::recv(Packet* p, Handler*)
 /*
  * allocate a packet and fill in all the generic fields
  */
-Packet* Agent::allocpkt(int seqno) const
+Packet* Agent::allocpkt() const
 {
 	Packet* p = Packet::alloc();
-	p->type_ = type_;
-	p->flags_ = 0;
-	p->class_ = class_;
-	p->src_ = addr_;
-	p->dst_ = dst_;
-	p->size_ = size_;
-	p->seqno_ = seqno;
-	p->ttl_ = 32;/*XXX*/
+	TraceHeader *th = TraceHeader::access(p->bits());
+	IPHeader *iph = IPHeader::access(p->bits());
+	th->ptype() = type_;
+	iph->flags() = flags_;
+	iph->src() = addr_;
+	iph->dst() = dst_;
+	iph->size() = size_;
+	iph->flowid() = fid_;
+	iph->prio() = prio_;
+	iph->ttl() = 32; /*XXX*/
+
+#ifdef notdef
+p->seqno_ = seqno;
+p->class_ = class_;
+#endif
 	return (p);
 }

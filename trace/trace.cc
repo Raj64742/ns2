@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1990-1994 Regents of the University of California.
+ * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,31 +33,27 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.5 1997/02/03 16:59:10 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.6 1997/02/27 04:39:20 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "packet.h"
+#include "ip.h"
+#include "tcp.h"
+#include "trace.h"
 #include "queue.h"
 
-class Trace : public Connector {
- public:
-	Trace(int type);
-	~Trace();
-	int command(int argc, const char*const* argv);
-	void recv(Packet* p, Handler*);
-	void dump();
-	inline char* buffer() { return (wrk_); }
- protected:
-	int type_;
-	nsaddr_t src_;
-	nsaddr_t dst_;
-	Tcl_Channel channel_;
-	int callback_;
-	char wrk_[256];
-	void format(int tt, int s, int d, Packet* p);
-};
+TraceHeader tracehdr;
+TraceHeader* TraceHeader::myaddress_ = &tracehdr;
+static class TraceHeaderClass : public TclClass {
+public:
+        TraceHeaderClass() : TclClass("PacketHeader/Trace") {}
+        TclObject* create(int argc, const char*const* argv) {
+                        return &tracehdr;
+        }       
+} class_iphdr;
+
 
 /*
  * tcl command interface
@@ -143,24 +139,50 @@ char* pt_names[] = {
 	PT_NAMES
 };
 
+// this function should retain some backward-compatibility, so that
+// scripts don't break.
 void Trace::format(int tt, int s, int d, Packet* p)
 {
-	const char* name = pt_names[p->type_];
+	TraceHeader *th = TraceHeader::access(p->bits());
+	IPHeader *iph = IPHeader::access(p->bits());
+	TCPHeader *tcph = TCPHeader::access(p->bits());
+	const char* name = pt_names[th->ptype()];
+
 	if (name == 0)
 		abort();
 
+	int seqno;
+	/* XXX */
+	if (strncmp(name, "tcp", 3) == 0)
+		seqno = tcph->seqno();
+	else
+		seqno = -1;
+
 	char flags[5];
-	flags[0] = (p->flags_ & PF_ECN) ? 'C' : '-';
-	flags[1] = (p->flags_ & PF_PRI) ? 'P' : '-';
-	flags[2] = (p->flags_ & PF_USR1) ? '1' : '-';
-	flags[3] = (p->flags_ & PF_USR2) ? '2' : '-';
+	flags[0] = flags[1] = flags[2] = flags[3] = '-';
 	flags[4] = 0;
+	flags[0] = (iph->flags() & IP_ECN) ? 'C' : '-';
+
+#ifdef notdef
+flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
+flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
+flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
+flags[4] = 0;
+#endif
 
 	sprintf(wrk_, "%c %g %d %d %s %d %s %d %d %d %d %d",
-		tt, Scheduler::instance().clock(), s, d,
-		name, p->size_, flags, p->class_,
-		p->src_, p->dst_,
-		p->seqno_, p->uid_);
+		tt,
+		Scheduler::instance().clock(),
+		s,
+		d,
+		name,
+		iph->size(),
+		flags,
+		iph->flowid() /* was p->class_ */,
+		iph->src(),
+		iph->dst(),
+		seqno,
+		th->uid() /* was p->uid_ */);
 }
 
 void Trace::dump()

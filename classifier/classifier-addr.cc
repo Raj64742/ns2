@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,12 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.3 1997/01/27 01:16:13 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.4 1997/02/27 04:38:36 kfall Exp $";
 #endif
 
 #include "config.h"
 #include "packet.h"
+#include "ip.h"
 #include "classifier.h"
 
 class AddressClassifier : public Classifier {
@@ -47,8 +48,9 @@ public:
 		bind("shift_", &shift_);
 	}
 protected:
-	int classify(const Packet* p) {
-		return ((p->dst_ >> shift_) & mask_);
+	int classify(Packet *const p) {
+		IPHeader *h = IPHeader::access(p->bits());
+		return ((h->dst() >> shift_) & mask_);
 	}
 	nsaddr_t mask_;
 	int shift_;

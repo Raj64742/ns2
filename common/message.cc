@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1994-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,26 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.5 1997/02/02 18:57:33 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.6 1997/02/27 04:38:49 kfall Exp $ (LBL)";
 #endif
 
 #include "agent.h"
 #include "Tcl.h"
 #include "packet.h"
 #include "random.h"
+#include "message.h"
+
+
+MessageHeader msgheader;
+MessageHeader* MessageHeader::myaddress_ = &msgheader;
+static class MessageHeaderClass : public TclClass {
+public:
+        MessageHeaderClass() : TclClass("PacketHeader/Message") {}
+        TclObject* create(int argc, const char*const* argv) {
+                        return &msgheader;
+        }       
+} class_msgheader;
+
 
 class MessageAgent : public Agent {
  public:
@@ -64,9 +77,10 @@ MessageAgent::MessageAgent() : Agent(PT_MESSAGE)
 
 void MessageAgent::recv(Packet* pkt, Handler*)
 {
+	MessageHeader *mh = MessageHeader::access(pkt->bits());
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
-	sprintf(wrk, "%s recv {%s}", name(), pkt->bd_.msg_);
+	sprintf(wrk, "%s recv {%s}", name(), mh->msg());
 	Tcl::instance().eval(wrk);
 	Packet::free(pkt);
 }
@@ -80,15 +94,17 @@ int MessageAgent::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1], "send") == 0) {
-			Packet* pkt;
+			Packet* pkt = allocpkt();
+			MessageHeader *mh =
+				MessageHeader::access(pkt->bits());
 			const char* s = argv[2];
 			int n = strlen(s);
-			if (n >= sizeof(pkt->bd_.msg_)) {
+			if (n >= mh->maxmsg()) {
 				tcl.result("message too big");
+				Packet::free(pkt);
 				return (TCL_ERROR);
 			}
-			pkt = allocpkt();
-			strcpy(pkt->bd_.msg_, s);
+			strcpy(mh->msg(), s);
 			send(pkt, 0);
 			return (TCL_OK);
 		}

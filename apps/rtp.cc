@@ -1,5 +1,5 @@
 /*
- * Copyright (c) @ Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.4 1997/01/26 23:26:24 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.5 1997/02/27 04:39:05 kfall Exp $";
 #endif
 
 
@@ -46,6 +46,17 @@ static char rcsid[] =
 #include "cbr.h"
 #include "random.h"
 #include "rtp.h"
+
+RTPHeader rtphdr;
+RTPHeader* RTPHeader::myaddress_ = &rtphdr;
+static class RTPHeaderClass : public TclClass {
+public:
+        RTPHeaderClass() : TclClass("PacketHeader/RTP") {}
+        TclObject* create(int argc, const char*const* argv) {
+                        return &rtphdr;
+        }       
+} class_rtphdr;
+
 
 class RTPAgent : public CBR_Agent {
 public:
@@ -105,9 +116,9 @@ int RTPAgent::command(int argc, const char*const* argv)
 void RTPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
+	RTPHeader *rh = RTPHeader::access(p->bits());
 
 	/* Fill in srcid_ */
-	p->bd_.rtp_.srcid_ = session_->srcid();
-
+	rh->srcid() = session_->srcid();
 	target_->recv(p);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 The Regents of the University of California.
+ * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.2 1997/02/27 04:39:07 kfall Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -43,6 +43,7 @@ static char rcsid[] =
 #include <math.h>
 
 #include "packet.h"
+#include "tcp.h"
 #include "scoreboard.h"
 
 #define ASSERT(x) if (!(x)) {printf ("Assert SB failed\n"); exit(1);}
@@ -70,10 +71,10 @@ void ScoreBoard::UpdateScoreBoard (int last_ack, Packet *pkt)
 		}
 	}	
 
-	bd_tcp* bd = &pkt->bd_.tcp_;
-	for (sack_index=0; sack_index < bd->sa_length_; sack_index++) {
-		sack_left = bd->sa_left_[sack_index];
-		sack_right = bd->sa_right_[sack_index];
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
+		sack_left = tcph->sa_left()[sack_index];
+		sack_right = tcph->sa_right()[sack_index];
 
 		//  Create new entries off the right side.
 		if (sack_right > SBN[(first_+length_)%SBSIZE].seq_no_) {

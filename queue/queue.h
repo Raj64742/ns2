@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 The Regents of the University of California.
+ * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.3 1997/02/23 01:28:57 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.4 1997/02/27 04:38:57 kfall Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -38,6 +38,7 @@
 
 #include "connector.h"
 #include "packet.h"
+#include "ip.h"
 
 class PacketQueue {
 public:
@@ -45,17 +46,19 @@ public:
 	inline int length() const { return (len_); }
 	inline int bcount() const { return (bcount_); }
 	inline void enque(Packet* p) {
+		IPHeader *ip = IPHeader::access(p->bits());
 		*tail_ = p;
 		tail_ = &p->next_;
 		*tail_ = 0;
 		++len_;
-		bcount_ += p->size_;
+		bcount_ += ip->size();
 	}
 	Packet* deque() {
 		Packet* p = head_;
 		if (p != 0) {
 			--len_;
-			bcount_ -= p->size_;
+			IPHeader *ip = IPHeader::access(p->bits());
+			bcount_ -= ip->size();
 			head_ = p->next_;
 			if (head_ == 0)
 				tail_ = &head_;

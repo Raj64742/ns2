@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995 The Regents of the University of California.
+ * Copyright (c) 1995-1997 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.2 1997/02/27 04:38:39 kfall Exp $ (LBL)
  */
 
 #ifndef vic_config_h
@@ -50,7 +50,7 @@ typedef unsigned int u_int32_t;
 typedef int int32_t;
 #endif
 
-typedef u_int32_t nsaddr_t;
+typedef int32_t nsaddr_t;
 
 #if (defined(__hpux) || defined(_AIX)) && defined(__cplusplus)
 #include <stdlib.h>

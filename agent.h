@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1993 Regents of the University of California.
+ * Copyright (c) 1993-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,16 +30,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.3 1997/01/26 22:32:24 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.4 1997/02/27 04:38:33 kfall Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
 #define ns_agent_h
 
 #include "config.h"
+#include "packet.h"
+#include "trace.h"
 #include "connector.h"
-
-class Packet;
 
 class Agent : public Connector {
  public:
@@ -48,15 +48,21 @@ class Agent : public Connector {
  protected:
 	void recv(Packet*, Handler*);
 	void handle(Event*);
-	Packet* allocpkt(int seqno) const;
-	inline Packet* allocpkt() { return (allocpkt(seqno_++)); }
+	Packet* allocpkt() const;
 
 	nsaddr_t addr_;		/* address of this agent */
 	nsaddr_t dst_;		/* destination address for pkt flow */
-	int seqno_;		/* current seqno */
 	int size_;		/* fixed packet size */
 	int type_;		/* type to place in packet header */
-	int class_;		/* class to place in packet header */
+	int fid_;		/* for IPv6 flow id field */
+	int prio_;		/* for IPv6 prio field */
+	int flags_;		/* for experiments (see ip.h) */
+
+#ifdef notdef
+int seqno_;		/* current seqno */
+int class_;		/* class to place in packet header */
+#endif
+
 
 	virtual void timeout(int tno);
 	void sched(double delay, int tno);
@@ -69,7 +75,9 @@ class Agent : public Connector {
 #define NTIMER 3
 	int pending_[NTIMER];
 	Event timer_[NTIMER];
-	static int uid_;
+#ifdef notdef
+static int uid_;
+#endif
 };
 
 #endif

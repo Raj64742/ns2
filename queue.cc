@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 The Regents of the University of California.
+ * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,14 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.5 1997/02/23 01:28:57 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.6 1997/02/27 04:38:55 kfall Exp $ (LBL)";
 #endif
 
 #include "queue.h"
 
 void PacketQueue::remove(Packet* target)
 {
+	IPHeader *ip = IPHeader::access(target->bits());
 	for (Packet** p = &head_; *p != 0; p = &(*p)->next_) {
 		Packet* pkt = *p;
 		if (pkt == target) {
@@ -47,7 +48,7 @@ void PacketQueue::remove(Packet* target)
 			if (tail_ == &pkt->next_)
 				tail_ = p;
 			--len_;
-			bcount_ -= target->size_;
+			bcount_ -= ip->size();
 			return;
 		}
 	}

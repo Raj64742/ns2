@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,24 +33,26 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.2 1997/02/23 06:00:46 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.3 1997/02/27 04:39:22 kfall Exp $";
 #endif
 
 #include "packet.h"
+#include "ip.h"
 #include "connector.h"
 
 class TTLChecker : public Connector {
 public:
 	//int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler* h) {
-		int ttl = p->ttl_ - 1;
+		IPHeader *iph = IPHeader::access(p->bits());
+		int ttl = iph->ttl() - 1;
 		if (ttl <= 0) {
 			/* XXX should send to a drop object.*/
 			Packet::free(p);
 			printf("ttl exceeded\n");
 			return;
 		}
-		p->ttl_ = ttl;
+		iph->ttl() = ttl;
 		send(p, h);
 	}
 };

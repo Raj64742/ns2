@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,84 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.2 1997/01/27 01:16:14 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.3 1997/02/27 04:38:45 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <math.h>
 #include "Tcl.h"
-#include "cbr.h"
 #include "packet.h"
+#include "cbr.h"
+#include "message.h"
+#include "trace.h"
+
+/* ivs data packet; ctrl packets are sent back as "messages" */
+struct bd_ivs {                          
+        double ts_;             /* timestamp sent at source */
+        u_int8_t S_;
+        u_int8_t R_;
+        u_int8_t state_;
+        u_int8_t rshft_;
+        u_int8_t kshft_;
+        u_int16_t key_;
+        double maxrtt_;
+	int seqno_;
+};   
+class IVSHeader : public PacketHeader {
+private:
+        static IVSHeader* myaddress_;
+        bd_ivs* hdr_;
+public:
+        IVSHeader() : hdr_(NULL) { }
+	inline int hdrsize() { return (sizeof(*hdr_)); }
+        inline void header_addr(u_char *base) {
+                if (offset_ < 0) abort();
+                hdr_ = (bd_ivs *) (base + offset_);
+        }
+        static inline IVSHeader* access(u_char *p) {    
+                myaddress_->header_addr(p);
+                return (myaddress_);
+        }
+        /* per-field member functions */
+	double& ts() {
+		return (hdr_->ts_);
+	}
+	u_int8_t& S() {
+		return (hdr_->S_);
+	}
+	u_int8_t& R() {
+		return (hdr_->R_);
+	}
+	u_int8_t& state() {
+		return (hdr_->state_);
+	}
+	u_int8_t& rshft() {
+		return (hdr_->rshft_);
+	}
+	u_int8_t& kshft() {
+		return (hdr_->kshft_);
+	}
+	u_int16_t& key() {
+		return (hdr_->key_);
+	}
+	double& maxrtt() {
+		return (hdr_->maxrtt_);
+	}
+	int& seqno() {
+		return (hdr_->seqno_);
+	}
+} ivshdr;
+IVSHeader* IVSHeader::myaddress_ = &ivshdr;
+
+static class IVSHeaderClass : public TclClass {
+public:
+        IVSHeaderClass() : TclClass("PacketHeader/IVS") {}
+        TclObject* create(int argc, const char*const* argv) {
+                        return &ivshdr;
+        }       
+} class_ivshdr;
+
+
 
 class IvsSource : public CBR_Agent {
 public:
@@ -132,14 +202,11 @@ void IvsSource::reset()
  */
 void IvsSource::recv(Packet* pkt, Handler*)
 {
-	if (pkt->type_ != PT_MESSAGE) {
-		fprintf(stderr,
-			"ns: confiuration error: ivs received bogon\n");
-		exit(1);
-	}
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
-	sprintf(wrk, "%s handle {%s}", name(), pkt->bd_.msg_);
+	IVSHeader *p = IVSHeader::access(pkt->bits());
+	MessageHeader *q = MessageHeader::access(pkt->bits());
+	sprintf(wrk, "%s handle {%s}", name(), q->msg());
 	Tcl::instance().eval(wrk);
 	Packet::free(pkt);
 }
@@ -184,22 +251,21 @@ void IvsSource::probe_timeout()
 void IvsSource::sendpkt()
 {
 	Packet* pkt = allocpkt();
+	IVSHeader *p = IVSHeader::access(pkt->bits());
 	/*fill in ivs fields */
-	bd_ivs* p = &pkt->bd_.ivs_;
-	p->ts_ = Scheduler::instance().clock();
-	p->S_ = S_;
-	p->R_ = R_;
-	p->state_ = state_;
-	p->rshft_ = rttShift_;
-	p->kshft_ = keyShift_;
-	p->key_ = key_;
-	p->maxrtt_ = maxrtt_;
+	p->ts() = Scheduler::instance().clock();
+	p->S() = S_;
+	p->R() = R_;
+	p->state() = state_;
+	p->rshft() = rttShift_;
+	p->kshft() = keyShift_;
+	p->key() = key_;
+	p->maxrtt() = maxrtt_;
 
 	target_->recv(pkt, 0);
 }
 
-IvsReceiver::IvsReceiver()
-	: Agent(PT_MESSAGE), state_(ST_U),
+IvsReceiver::IvsReceiver() : Agent(PT_MESSAGE), state_(ST_U),
 	  nextSeq_(0),
 	  timeMean_(0.), timeVar_(0.),/*XXX*/
 	  head_(0),
@@ -361,16 +427,8 @@ int IvsReceiver::lossMeter(double timeDiff, u_int32_t seq, double maxrtt)
 
 void IvsReceiver::recv(Packet* pkt, Handler*)
 {
-	if (pkt->type_ != PT_CBR) {
-		/*
-		 * XXX shouldn't happen (message packets are unicast
-		 * back to source)
-		 */
-		abort();
-	}
-
+	IVSHeader *p = IVSHeader::access(pkt->bits());
 	double now = Scheduler::instance().clock();
-        bd_ivs* p = &pkt->bd_.ivs_;
 
 	if (lastPktTime_ == 0.) {
 		lastPktTime_ = now;
@@ -378,16 +436,16 @@ void IvsReceiver::recv(Packet* pkt, Handler*)
 		return;
 	}
 	update_ipg(now - lastPktTime_);
-	double ts = p->ts_;
+	double ts = p->ts();
 	int prevState = state_;
-	state_ = lossMeter(now - ts, pkt->seqno_, p->maxrtt_);
+	state_ = lossMeter(now - ts, p->seqno(), p->maxrtt());
   
 	lastPktTime_ = now;
 
 	/* If soliciting rtt */
-	if (p->R_ && !ignoreR_)
+	if (p->R() && !ignoreR_)
 		/* upcall into tcl */
-		upcall_rtt_solicit(ts, p->rshft_);
+		upcall_rtt_solicit(ts, p->rshft());
 
 	/*
 	 * send a response if we're congested and its over an rtt since
@@ -397,19 +455,19 @@ void IvsReceiver::recv(Packet* pkt, Handler*)
 	 * sent a response
 	 */
 
-	if (now - lastTime_ < p->maxrtt_ && state_ <= prevState) {
+	if (now - lastTime_ < p->maxrtt() && state_ <= prevState) {
 		Packet::free(pkt);
 		return;
 	}
 
-	int shift = p->kshft_;
+	int shift = p->kshft();
 	int match;
-	if (p->key_ == 0)
+	if (p->key() == 0)
 		match = 1;
 	else
-		match = (key_ >> shift) == (p->key_ >> shift);
+		match = (key_ >> shift) == (p->key() >> shift);
 
-	int matchS = match ? p->S_ : 0;
+	int matchS = match ? p->S() : 0;
 
 	if (state_ == ST_C || matchS || (match && state_ == ST_L)) {
 		upcall_respond(ts, matchS);
@@ -434,15 +492,16 @@ int IvsReceiver::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1], "send") == 0) {
-			Packet* pkt;
+			Packet* pkt = allocpkt();
+			MessageHeader *p = MessageHeader::access(pkt->bits());
 			const char* s = argv[2];
 			int n = strlen(s);
-			if (n >= sizeof(pkt->bd_.msg_)) {
+			if (n >= p->maxmsg()) {
 				tcl.result("message too big");
+				Packet::free(pkt);
 				return (TCL_ERROR);
 			}
-			pkt = allocpkt();
-			strcpy(pkt->bd_.msg_, s);
+			strcpy(p->msg(), s);
 			target_->recv(pkt, 0);
 			return (TCL_OK);
 		}

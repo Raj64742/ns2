@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1993 Regents of the University of California.
+ * Copyright (c) 1993-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.2 1997/02/27 04:38:35 kfall Exp $ (LBL)
  */
 
 #ifndef ns_cbr_h

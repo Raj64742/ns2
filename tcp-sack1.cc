@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1990 Regents of the University of California.
+ * Copyright (c) 1990, 1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
@@ -17,13 +17,14 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.4 1997/01/28 02:09:03 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.5 1997/02/27 04:39:14 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include "ip.h"
 #include "tcp.h"
 #include "scoreboard.h"
 #include "random.h"
@@ -68,21 +69,25 @@ Sack1TcpAgent::Sack1TcpAgent() : pipe_(-1), fastrecov_(FALSE)
 
 void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	IPHeader *iph = IPHeader::access(pkt->bits());
 	int xmit_seqno;
 	int dontSend = 0;
 
+#ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
 				      name());
 		Packet::free(pkt);
 		return;
 	}
+#endif
 
-	if (pkt->flags_ & PF_ECN)
+	if (iph->flags() & IP_ECN)
 		quench(1);
         if (!fastrecov_) {
                 /* normal... not fast recovery */
-                if ((int)pkt->seqno_ > last_ack_) {
+                if ((int)tcph->seqno() > last_ack_) {
                         /*
                          * regular ACK not in fast recovery... normal
                          */
@@ -91,9 +96,9 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
                         timeout_ = FALSE;
 			scb_.ClearScoreBoard();
                 } else if (timeout_ == FALSE)  {
-                        if (pkt->seqno_ != last_ack_) {
+                        if (tcph->seqno() != last_ack_) {
                                 fprintf(stderr, "pkt seq %d should be %d\n" ,
-                                        pkt->seqno_, last_ack_);
+                                        tcph->seqno(), last_ack_);
                                 abort();
                         }
 			scb_.UpdateScoreBoard (last_ack_, pkt);
@@ -115,7 +120,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
                                         reset_rtx_timer(1);
 					fastrecov_ = TRUE;
 					scb_.MarkRetran (last_ack_+1);
-                                        output(last_ack_ + 1, PF_DUPACK);
+                                        output(last_ack_ + 1, TCP_REASON_DUPACK);
                                 }
                         }
                 }
@@ -124,7 +129,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
         } else {
                 /* we are in fast recovery */
                 --pipe_;
-                if ((int)pkt->seqno_ >= recover_) {
+                if ((int)tcph->seqno() >= recover_) {
                         /* ACK indicates fast recovery is over */
 			recover_ = 0;
 			fastrecov_ = FALSE;
@@ -133,11 +138,11 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			scb_.ClearScoreBoard();
 
                         /* New window: W/2 - K or W/2? */
-                } else if ((int)pkt->seqno_ > highest_ack_) {
+                } else if ((int)tcph->seqno() > highest_ack_) {
                         /* Not out of fast recovery yet.
                          * Update highest_ack_, but not last_ack_. */
 			--pipe_;
-                        highest_ack_ = (int)pkt->seqno_;
+                        highest_ack_ = (int)tcph->seqno();
 		 	scb_.UpdateScoreBoard (highest_ack_, pkt);
                         t_backoff_ = 1;
                         newtimer(pkt);
@@ -167,7 +172,7 @@ void Sack1TcpAgent::timeout(int tno)
 			last_ack_ = highest_ack_;
 #ifdef DEBUGSACK1A
 		printf ("timeout. highest_ack: %d seqno: %d\n", 
-		  highest_ack_, seqno_);
+		  highest_ack_, t_seqno_);
 #endif
 		recover_ = maxseq_;
 		scb_.ClearScoreBoard();
@@ -185,9 +190,9 @@ void Sack1TcpAgent::send(int force, int reason, int maxburst)
         /*
          * as long as the pipe is open and there is app data to send...
          */
-        while (((!fastrecov_  && (seqno_ <= last_ack_ + win)) ||
+        while (((!fastrecov_  && (t_seqno_ <= last_ack_ + win)) ||
             (fastrecov_ && (pipe_ < int(cwnd_)))) 
-		&& seqno_ < curseq_ && found) {
+		&& t_seqno_ < curseq_ && found) {
 
                 if (overhead_ == 0 || force) {
                         found = 0;
@@ -198,10 +203,10 @@ void Sack1TcpAgent::send(int force, int reason, int maxburst)
 			highest_ack_, xmit_seqno);
 #endif
 			if (xmit_seqno == -1) { 
-			    if ((!fastrecov_ && seqno_<=highest_ack_+win)||
-			     (fastrecov_ && seqno_<=last_ack_+int(2*wnd_))){ 
+			    if ((!fastrecov_ && t_seqno_<=highest_ack_+win)||
+			     (fastrecov_ && t_seqno_<=last_ack_+int(2*wnd_))){ 
 				found = 1;
-				xmit_seqno = seqno_++;
+				xmit_seqno = t_seqno_++;
 #ifdef DEBUGSACK1A
 				printf("sending %d fastrecovery: %d win %d\n",
 				  xmit_seqno, fastrecov_, win);
@@ -216,8 +221,8 @@ void Sack1TcpAgent::send(int force, int reason, int maxburst)
 			}
 			if (found) {
                         	output(xmit_seqno, reason);
-                                if (seqno_ <= xmit_seqno)
-                                        seqno_ = xmit_seqno + 1;
+                                if (t_seqno_ <= xmit_seqno)
+                                        t_seqno_ = xmit_seqno + 1;
 				npacket++;
 				pipe_++;
 			}

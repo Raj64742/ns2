@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.4 1997/01/27 01:58:07 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.5 1997/02/27 04:38:59 kfall Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -264,6 +264,7 @@ Packet* REDQueue::deque()
 		
 int REDQueue::drop_early(Packet* pkt)
 {
+	IPHeader *iph = IPHeader::access(pkt->bits());
 	if (edv_.v_ave >= edp_.th_max) {
 		// policy: if above max thresh, force drop
 		edv_.v_prob = 1.0;
@@ -271,7 +272,7 @@ int REDQueue::drop_early(Packet* pkt)
 		double p = edv_.v_a * edv_.v_ave + edv_.v_b;
 		p /= edp_.max_p_inv;
 		if (edp_.bytes)
-			p *= pkt->size_ / edp_.mean_pktsize;
+			p *= iph->size() / edp_.mean_pktsize;
 		if (edp_.wait) {
 			if (edv_.count * p < 1)
 				p = 0;
@@ -292,7 +293,7 @@ int REDQueue::drop_early(Packet* pkt)
 	if (u <= edv_.v_prob) {
 		edv_.count = 0;
 		if (edp_.setbit) 
-			pkt->flags_ |= PF_ECN;	// congestion bit in pkt
+			iph->flags() |= IP_ECN;	// ip ecn bit
 		else
 			return (1);
 	}

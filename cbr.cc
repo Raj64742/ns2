@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1994-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.4 1997/01/27 01:16:12 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.5 1997/02/27 04:38:34 kfall Exp $ (LBL)";
 #endif
 
 #include "cbr.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1991-1994 Regents of the University of California.
+ * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.2 1997/02/27 04:39:18 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -39,12 +39,70 @@
 #include "agent.h"
 #include "packet.h"
 
+struct bd_tcp {
+#define NSA 3
+        double ts_;             /* time packet generated (at source) */
+	int seqno_;		/* sequence number */
+	int reason_;		/* reason for a retransmit */
+        int sa_start_[NSA+1];   /* selective ack "holes" in packet stream */
+        int sa_end_[NSA+1];     /* For each hole i, sa_start[i] contains the
+                                 * starting packet sequence no., and sa_end[i]  
+                                 * contains the ending packet sequence no. */
+        int sa_left_[NSA+1];
+        int sa_right_[NSA+1];   /* In Jamshid's implementation, this    *
+                                 * pair of variables represents the blocks*
+                                 * not the holes.                         */
+        int sa_length_;         /* Indicate the number of SACKs in this  *
+                                 * packet.  Adds 2+sack_length*8 bytes   */ 
+};
+class TCPHeader : public PacketHeader {
+private:
+        static TCPHeader* myaddress_;           // TCPHeader object
+        bd_tcp* hdr_;               		// address in a packet
+public:
+	TCPHeader() : hdr_(NULL) { }
+	inline int hdrsize() { return (sizeof(*hdr_)); }
+        inline void header_addr(u_char *base) {
+		if (offset_ < 0) abort();
+                hdr_ = (bd_tcp *) (base + offset_);
+        }
+        static inline TCPHeader* access(u_char *p) {
+                myaddress_->header_addr(p);
+                return (myaddress_);
+        }
+	/* per-field member functions */
+	double& ts() {
+		return (hdr_->ts_);
+	}
+	int& seqno() {
+		return (hdr_->seqno_);
+	}
+	int& reason() {
+		return (hdr_->reason_);
+	}
+	int* sa_start() {
+		return (hdr_->sa_start_);
+	}
+	int* sa_end() {
+		return (hdr_->sa_end_);
+	}
+	int* sa_left() {
+		return (hdr_->sa_left_);
+	}
+	int* sa_right() {
+		return (hdr_->sa_right_);
+	}
+	int& sa_length() {
+		return (hdr_->sa_length_);
+	}
+};
+
 #define TCP_BETA 2.0
 #define TCP_ALPHA 0.125
 
 /* these are used to mark packets as to why we xmitted them */
-#define PF_TIMEOUT  PF_USR1
-#define PF_DUPACK   PF_USR2
+#define TCP_REASON_TIMEOUT	0x01
+#define	TCP_REASON_DUPACK	0x02
 
 /*
  * tcp_tick_:
@@ -73,6 +131,7 @@ protected:
 	 * srtt and rttvar are stored as fixed point;
 	 * srtt has 3 bits to the right of the binary point, rttvar has 2.
 	 */
+	int t_seqno_;		/* sequence number */
 	int t_rtt_;      	/* round trip time */
 	int t_srtt_;     	/* smoothed round-trip time */
 	int t_rttvar_;   	/* variance in round-trip time */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1990 Regents of the University of California.
+ * Copyright (c) 1990, 1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.2 1997/01/26 23:26:26 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.3 1997/02/27 04:39:12 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -30,6 +30,8 @@ static char rcsid[] =
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include "packet.h"
+#include "ip.h"
 #include "tcp.h"
 
 class NewRenoTcpAgent : public TcpAgent {
@@ -74,16 +76,17 @@ NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0)
  */
 void NewRenoTcpAgent::partialnewack(Packet* pkt)
 {
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
         newtimer(pkt);
 #ifdef notyet
         if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
                 stp->endtime = (float) realtime();
 #endif
-        last_ack_ = pkt->seqno_;
+        last_ack_ = tcph->seqno();
         highest_ack_ = last_ack_;
-        if (seqno_ < last_ack_ + 1)
-                seqno_ = last_ack_ + 1;
-        if (rtt_active_ && pkt->seqno_ >= rtt_seq_) {
+        if (t_seqno_ < last_ack_ + 1)
+                t_seqno_ = last_ack_ + 1;
+        if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
                 rtt_active_ = 0;
                 t_backoff_ = 1;
         }
@@ -91,28 +94,31 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 
 void NewRenoTcpAgent::recv(Packet *pkt)
 {
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	IPHeader *iph = IPHeader::access(pkt->bits());
+#ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		fprintf(stderr,
 			"ns: confiuration error: tcp received non-ack\n");
 		exit(1);
 	}
+#endif
 
-	if (pkt->flags_ & PF_ECN)
+	if (iph->flags() & IP_ECN)
 		quench(1);
-	if (pkt->seqno_ > last_ack_) {
-	    if (pkt->seqno_ >= recover_) {
+	if (tcph->seqno() > last_ack_) {
+	    if (tcph->seqno() >= recover_) {
 		dupwnd_ = 0;
 		newack(pkt);
                 opencwnd();
-	    }
-	    else {
+	    } else {
 		/* received new ack for a packet sent during Fast
 		 *  Recovery, but sender stays in Fast Recovery */
 		dupwnd_ = 0;
 		partialnewack(pkt);
 		output(last_ack_ + 1, 0);
 	    }
-   	} else if (pkt->seqno_ == last_ack_)  {
+   	} else if (tcph->seqno() == last_ack_)  {
 		if (++dupacks_ == NUMDUPACKS) {
 			/*
 			 * Assume we dropped just one packet.
@@ -129,7 +135,7 @@ void NewRenoTcpAgent::recv(Packet *pkt)
 				recover_ = maxseq_;
 				closecwnd(1);
 				reset_rtx_timer(1);
-				output(last_ack_ + 1, PF_DUPACK);
+				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
 			dupwnd_ = NUMDUPACKS;
 		} else if (dupacks_ > NUMDUPACKS)

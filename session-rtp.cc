@@ -1,5 +1,5 @@
 /*
- * Copyright (c) @ Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,13 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/session-rtp.cc,v 1.2 1996/12/31 22:51:59 elan Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/session-rtp.cc,v 1.3 1997/02/27 04:39:09 kfall Exp $";
 #endif
 
 #include <Tcl.h>
 #include <stdlib.h>
 #include "packet.h"
+#include "ip.h"
 #include "rtp.h"
 
 static class RTPSourceClass : public TclClass {
@@ -128,7 +129,8 @@ int RTPSession::build_sdes()
 
 void RTPSession::recv(Packet* p)
 {
-	u_int32_t srcid = p->bd_.rtp_.srcid_;
+	RTPHeader *rh = RTPHeader::access(p->bits());
+	u_int32_t srcid = rh->srcid();
 	RTPSource* s = lookup(srcid);
 	if (s == 0) {
 		Tcl& tcl = Tcl::instance();
@@ -136,18 +138,20 @@ void RTPSession::recv(Packet* p)
 		s = (RTPSource*)TclObject::lookup(tcl.result());
 	}
 	s->np(1);
-	s->ehsr(p->seqno_);
+	s->ehsr(rh->seqno());
 }
 
 void RTPSession::recv_ctrl(Packet* p)
 {
-	Tcl::instance().evalf("%s sample-size %d", name(), p->size_);
+	IPHeader *ip = IPHeader::access(p->bits());
+	Tcl::instance().evalf("%s sample-size %d", name(), ip->size());
 }
 
 /* XXX Should hash this... */
 RTPSource* RTPSession::lookup(u_int32_t srcid)
 {
-	for (RTPSource *p = allsrcs_; p != 0; p = p->next)
+	RTPSource *p;
+	for (p = allsrcs_; p != 0; p = p->next)
 		if (p->srcid() == srcid)
 			return (p);
 

@@ -33,11 +33,12 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.3 1997/01/26 23:26:22 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.4 1997/02/27 04:39:00 kfall Exp $";
 #endif
 
 #include "classifier.h"
 #include "packet.h"
+#include "ip.h"
 
 /*
  * A replicator is not really a packet classifier but
@@ -49,7 +50,7 @@ class Replicator : public Classifier {
 public:
 	Replicator();
 	void recv(Packet*, Handler* h = 0);
-	virtual int classify(const Packet*) {};
+	virtual int classify(Packet* const) {};
 protected:
 	int ignore_;
 };
@@ -69,10 +70,11 @@ Replicator::Replicator() : ignore_(0)
 
 void Replicator::recv(Packet* p, Handler*)
 {
+	IPHeader *iph = IPHeader::access(p->bits());
 	if (maxslot_ < 0) {
 		if (!ignore_)
 			Tcl::instance().evalf("%s drop %u %u", name(), 
-					      p->src_, p->dst_);
+				iph->src(), iph->dst());
 		Packet::free(p);
 		return;
 	}

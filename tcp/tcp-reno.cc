@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1990 Regents of the University of California.
+ * Copyright (c) 1990, 1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms are permitted
@@ -17,13 +17,14 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.4 1997/02/27 00:22:38 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.5 1997/02/27 04:39:13 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include "ip.h"
 #include "tcp.h"
 
 class RenoTcpAgent : public TcpAgent {
@@ -63,19 +64,23 @@ RenoTcpAgent::RenoTcpAgent() : dupwnd_(0)
 
 void RenoTcpAgent::recv(Packet *pkt, Handler*)
 {
+	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	IPHeader *iph = IPHeader::access(pkt->bits());
+#ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		fprintf(stderr,
 			"ns: confiuration error: tcp received non-ack\n");
 		exit(1);
 	}
+#endif
 
-	if (pkt->flags_ & PF_ECN)
+	if (iph->flags() & IP_ECN)
 		quench(1);
-	if (pkt->seqno_ > last_ack_) {
+	if (tcph->seqno() > last_ack_) {
 		dupwnd_ = 0;
 		newack(pkt);
                 opencwnd();
-   	} else if (pkt->seqno_ == last_ack_)  {
+   	} else if (tcph->seqno() == last_ack_)  {
 		if (++dupacks_ == NUMDUPACKS) {
 			/*
 			 * Assume we dropped just one packet.
@@ -92,7 +97,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 				recover_ = maxseq_;
 				closecwnd(1);
 				reset_rtx_timer(1);
-				output(last_ack_ + 1, PF_DUPACK);
+				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
 			dupwnd_ = NUMDUPACKS;
 		} else if (dupacks_ > NUMDUPACKS)
