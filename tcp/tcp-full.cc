@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.61 1998/07/29 16:03:08 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.62 1998/07/29 17:45:07 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -305,6 +305,8 @@ FullTcpAgent::advance_bytes(int nb)
 		connect();		// initiate new connection
 	} else if (state_ == TCPS_ESTABLISHED) {
 		closed_ = 0;
+		if (curseq_ < iss_)
+			curseq_ = iss_;
 		curseq_ += nb;
 		send_much(0, REASON_NORMAL, maxburst_);
 	}
@@ -322,6 +324,10 @@ void FullTcpAgent::sendmsg(int nbytes, const char *flags)
 {
 	if (flags && strcmp(flags, "MSG_EOF") == 0) 
 		close_on_empty_ = 1;	
+
+//printf("close on empty: %d\n, nbytes: %d\n",
+//close_on_empty_, nbytes);
+
 	if (nbytes == -1) {
 		infinite_send_ = 1;
 		advance_bytes(0);
@@ -467,6 +473,13 @@ void FullTcpAgent::output(int seqno, int reason)
 	int off = seqno - highest_ack_;	// offset of seg in window
 	int datalen;
 
+	// be careful if we have not received any ACK yet
+	if (highest_ack_ < 0) {
+		if (!infinite_send_)
+			buffered_bytes = curseq_ - iss_;;
+		off = seqno - iss_;
+	}
+
 	if (syn && !data_on_syn_)
 		datalen = 0;
 	else if (pipectrl_)
@@ -503,7 +516,7 @@ void FullTcpAgent::output(int seqno, int reason)
 
 	//
 	// see if sending this packet will empty the send buffer
-	// a SYN packet counts also
+	// a dataless SYN packet counts also
 	//
 	if ((seqno + datalen) > curseq_ || (syn && datalen == 0)) {
 		emptying_buffer = TRUE;
