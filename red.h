@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.14 1998/06/27 01:24:29 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.15 1999/05/13 20:34:18 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -135,6 +135,8 @@ class REDQueue : public Queue {
 	int drop_tail_;		/* drop-tail */
 	int drop_front_;	/* drop-from-front */
 	int drop_rand_;		/* drop-tail, or drop random? */
+	int ns1_compat_;	/* for ns-1 compatibility, bypass a */
+				/*   small bugfix */
 
 	edp edp_;	/* early-drop params */
 	int doubleq_;	/* for experiments with priority for small packets */

@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.34 1999/01/07 19:01:57 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.35 1999/05/13 20:34:19 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -92,6 +92,7 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 	bind_bool("drop-tail_", &drop_tail_);	    // drop last pkt
 	bind_bool("drop-front_", &drop_front_);	    // drop first pkt
 	bind_bool("drop-rand_", &drop_rand_);	    // drop pkt at random
+	bind_bool("ns1-compat_", &ns1_compat_);	    // ns-1 compatibility
 
 	bind("ave_", &edv_.v_ave);		    // average queue sie
 	bind("prob1_", &edv_.v_prob1);		    // dropping probability
@@ -430,6 +431,11 @@ void REDQueue::enque(Packet* pkt)
 			q_->remove(pkt);
 			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
 			drop(pkt);
+			if (!ns1_compat_) {
+				// bug-fix from Philip Liu, <phill@ece.ubc.ca>
+				edv_.count = 0;
+				edv_.count_bytes = 0;
+			}
 		}
 	}
 	return;
