@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: nr.hh,v 1.6 2002/11/26 22:45:40 haldar Exp $
+// $Id: nr.hh,v 1.7 2003/01/22 06:20:21 xuanc Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -41,12 +41,12 @@ using namespace std;
 
 typedef signed int int32_t;
 typedef signed short int16_t;
-#ifdef sparc
+#if defined (sparc) || defined (__CYGWIN__)
 typedef char int8_t;
 #else
-// Conflicts with system declaration of int8_t in Solaris
+// Conflicts with system declaration of int8_t in Solaris and Cygwin
 typedef signed char int8_t;
-#endif // sparc
+#endif // sparc/cygwin
 
 #define FAIL -1
 #define OK    0
