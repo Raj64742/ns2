@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.87 1998/01/20 03:36:29 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.88 1998/01/21 05:53:58 padmanab Exp $
 
 
 #
@@ -126,7 +126,9 @@ Agent/TCP/Reno/RBP set rbp_inter_pace_delay_ 0
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
 
 Agent/TCP/Asym set g_ 0.125
-Agent/TCP/Asym set damp_ 0
+Agent/TCP/Reno/Asym set g_ 0.125
+Agent/TCP/Newreno/Asym set g_ 0.125
+
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1
