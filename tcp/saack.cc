@@ -59,7 +59,7 @@ void SAack_Agent::recv(Packet *p, Handler *h)
 		hdr_cmn *newch=(hdr_cmn*)newp->access(off_cmn_);
 		newch->ptype() = PT_REPLY;
 		newch->size()=ch->size();
-		// turn the packet around by sweapping src and dst
+		// turn the packet around by swapping src and dst
 		hdr_ip * iph = (hdr_ip*)p->access(off_ip_);
 		hdr_ip * newiph = (hdr_ip*)newp->access(off_ip_);
 		newiph->dst()=iph->src();

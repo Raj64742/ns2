@@ -2,9 +2,11 @@ Class SessionSim -superclass Simulator
 
 SessionSim instproc bw_parse { bspec } {
         if { [scan $bspec "%f%s" b unit] == 1 } {
-                set unit bps
+                set unit b
         }
+	# xxx: all units should support X"ps" --johnh
         switch $unit {
+        b  { return $b }
         bps  { return $b }
         kb { return [expr $b*1000] }
         Mb { return [expr $b*1000000] }
