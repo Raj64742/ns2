@@ -106,22 +106,29 @@ CtrMcastComp instproc compute-branch { src group nodeh } {
 		}
 
 
-		### set iif : RPF link dest id: interface label
+		### set iif : RPF link interface label
 		if {$tmp == $target} {
-			if {$tt == "SPT" || $tmp == $src} {
-				set iif -1
-			} else {
-				# when member is RP, find iif from RP to source
-				#set rpfl [$ns_ link [$tmp rpf-nbr $src] $tmp]
-				#set iif [$rpfl if-label?]
-				set iif -1			    
-			}
+		    # at src or RP
+		    set iif -1
 		} else {
-			set rpfl [$ns_ link [$tmp rpf-nbr $target] $tmp]
-		    if {$rpfl != ""} {
-			set iif [$rpfl if-label?]
-		    } else {
+		    set rpfl [$ns_ link [$tmp rpf-nbr $target] $tmp]
+
+		    if {[SessionSim set MixMode_] && $rpfl == ""} {
+			# in mix mode: default -1 unless find a 
+			# detailed link on the rpf path
 			set iif -1
+			set ttmp $tmp
+			while {$ttmp != $target} {
+			    set rpfl [$ns_ link [$ttmp rpf-nbr $target] $ttmp]
+			    if {$rpfl != ""} {
+				set iif [$rpfl if-label?]
+				break
+			    }
+			    set ttmp [$ttmp rpf-nbr $target]
+			}
+		    } else {
+			# in regular detailed mode
+			set iif [$rpfl if-label?]
 		    }
 		}
 
@@ -136,6 +143,7 @@ CtrMcastComp instproc compute-branch { src group nodeh } {
 			    } 
 			}
 		}
+
 		if { [set r [$tmp getReps [$src id] $group]] != "" } {
 			if [$r is-active] {
 				# puts "reach merging point, $group [$src id] [$target id] [$tmp id] [$nodeh id], iif $iif, oif $oiflist"

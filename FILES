@@ -344,6 +344,7 @@ tcl/ex/newmcast/mcast2.tcl
 tcl/ex/newmcast/mcast3.tcl
 tcl/ex/newmcast/mix-mode1.tcl
 tcl/ex/newmcast/mix-mode2.tcl
+tcl/ex/newmcast/mix-mode3.tcl
 tcl/ex/newmcast/pim-loss.tcl
 tcl/ex/newmcast/pim-no-loss.tcl
 tcl/ex/newmcast/pim-test-suite-1.tcl
