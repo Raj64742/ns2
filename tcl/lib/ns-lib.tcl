@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.63 1997/11/04 22:26:43 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.64 1997/11/04 23:27:30 haoboy Exp $
 #
 
 #
@@ -745,3 +745,15 @@ Simulator instproc attach-fmon {lnk fm { edrop 0 } } {
     }
     [$lnk queue] drop-target $dsnoop
 }
+
+# Imported from session.tcl. It is deleted there.
+### to insert loss module to regular links in detailed Simulator
+Simulator instproc lossmodel {lossobj from to} {
+    set link [$self link $from $to]
+    set head [$link head]
+    # puts "[[$head target] info class]"
+    $lossobj target [$head target]
+    $head target $lossobj
+    # puts "[[$head target] info class]"
+}
+    
