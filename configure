@@ -1219,7 +1219,6 @@ V_RANLIB=ranlib
 V_AR="ar cr"
 
 #XXX
-V_STATIC="-static"
 V_SHM="-DUSE_SHM"
 
 # Check whether --enable-debug or --disable-debug was given.
@@ -1352,12 +1351,12 @@ else
 	done
 	if test "$V_INCLUDE_TCL" = FAIL; then
 		cat > conftest.$ac_ext <<EOF
-#line 1354 "configure"
+#line 1355 "configure"
 #include "confdefs.h"
 #include <tcl.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1359: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1360: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1408,7 +1407,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ltcl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1410 "configure"
+#line 1411 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -1416,7 +1415,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1418: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1419: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1543,12 +1542,12 @@ else
 	done
 	if test "$V_INCLUDE_OTCL" = FAIL; then
 		cat > conftest.$ac_ext <<EOF
-#line 1545 "configure"
+#line 1546 "configure"
 #include "confdefs.h"
 #include <otcl.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1550: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1551: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1594,7 +1593,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lotcl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1596 "configure"
+#line 1597 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -1602,7 +1601,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1604: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1605: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1716,12 +1715,12 @@ else
         done
 	if test "$V_INCLUDE_BTCL" = FAIL; then
 		cat > conftest.$ac_ext <<EOF
-#line 1718 "configure"
+#line 1719 "configure"
 #include "confdefs.h"
 #include <Tcl.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1723: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1724: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1765,7 +1764,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lTcl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1767 "configure"
+#line 1768 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -1773,7 +1772,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1775: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1776: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1859,7 +1858,6 @@ sparc-sun-sunos*)
 		CC="cc -xansi -D__STDC__ -Dinline="
 		CXX="CC +p -float -DSGI_COMPAT"
 	fi
-	V_STATIC=""
 	V_RANLIB="ar ts"
 	;;
 *-*-bsdi1*)
@@ -1877,7 +1875,7 @@ sparc-sun-sunos*)
 	V_SHM=""
 	V_TARCMD="tar cfL"
 	V_CCOPT="-O2 -m486"
-	V_LIB="$V_LIB -ldl"
+	V_LIB="$V_LIB -lipc"
 	;;
 *-*-netbsd*)
 	V_TARCMD="tar -h -c -f"
@@ -1895,7 +1893,6 @@ EOF
 	V_CCOPT="-O"
 	;;
 *-*-aix3*)
-	V_STATIC=""
 	V_DEFINE="$V_DEFINE -DSIGARGS=int"
 	if test "$V_LIB_AIXSHM" != "" ; then
 		V_LIB="$V_LIB $V_LIB_AIXSHM"
@@ -1905,7 +1902,6 @@ EOF
 	CXX="xlC -+"
 	;;
 *-*-aix4*)
-	V_STATIC=""
 	V_DEFINE="$V_DEFINE -DSIGARGS=int -D_AIX41"
 	if test "$V_LIB_AIXSHM" != "" ; then
 		V_LIB="$V_LIB $V_LIB_AIXSHM"
@@ -1944,8 +1940,20 @@ EOF
 fi
 
 
-# tcl7.5 needs a dynamic loading library (unless built with the
+# we now default to non-static linking, although if the "magic" file
+# .devel exists in the current directory, we try for a static link
+# under the assumption we are trying to produce re-distributable
+# binaries.
+#
+# tcl7.x needs a dynamic loading library (unless built with the
 # -disable-load flag).  Try to find the appropriate one.
+
+if test -f .devel ; then
+	echo "Development version: enabling static compilation in Makefile"
+	V_STATIC="-static"
+else
+	V_STATIC=""
+fi
 
 if test ! -z "$V_NEED_DL" ; then
 	V_LIB_DL=""
@@ -1968,7 +1976,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1970 "configure"
+#line 1980 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1980,7 +1988,7 @@ int t() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:1982: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1992: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2010,7 +2018,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2012 "configure"
+#line 2022 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -2018,7 +2026,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:2020: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:2030: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
