@@ -3,6 +3,9 @@
  *       network simulator
  * Author: Marc Greis (greis@cs.uni-bonn.de), May 1998
  *
+ * IMPORTANT: Incase of any changes made to this file ,
+ * tutorial/examples/ping.h  (used in Greis' tutorial) should
+ * be updated as well.
  */
 
 
