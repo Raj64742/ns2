@@ -3,10 +3,10 @@
  * It expects to be the target of a FullTcpAgent.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.4 2001/07/19 17:57:02 haldar Exp $ ()";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.5 2001/09/06 21:01:18 johnh Exp $ ()";
 
 #include "tcp-full-bay.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "random.h"
 #include "trace.h"
 #include "tcp.h"

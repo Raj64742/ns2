@@ -36,10 +36,10 @@
  */
 
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.4 2001/07/19 17:57:02 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.5 2001/09/06 21:01:18 johnh Exp $ (LBL)";
 
 #include "tcp-full-bay.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "trace.h"
 #include "random.h"
 #include "ftp.h"
