@@ -82,7 +82,7 @@ proc finish {} {
 	}
 	exec perl $nshome/bin/trsplit -tt r -pt tcp -c '$comment' \
 			$force $opt(tr) >& $opt(tr)-bw
-	exec head -1 $opt(tr)-bw >@ stdout
+	exec head -n 1 $opt(tr)-bw >@ stdout
 
 	if [info exists opt(g)] {
 		catch "exec xgraph -nl -M -display $env(DISPLAY) \

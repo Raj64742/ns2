@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.16 1999/09/15 19:34:21 yuriy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.17 2004/08/17 15:26:51 johnh Exp $
 #
 
 set ns [new Simulator]
@@ -331,7 +331,7 @@ proc finish file {
 	# often we have only one drop and xgraph won't print marks
 	# for data sets with only one point.
 	#
-	exec head -1 temp.d >@ $f
+	exec head -n 1 temp.d >@ $f
 	exec cat temp.d >@ $f
 	close $f
 	exec xgraph -bb -tk -nl -m -x time -y packet temp.rands &
