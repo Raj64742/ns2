@@ -53,7 +53,7 @@ class SRMAgent : public Agent {
 	int	sessCtr_;		  /* # of session messages sent */
 	int	packetSize_;	          /* size of data messages for repr */
 	SRMinfo* sip_;		          /* sender info ptr. */
-	int	nsip_;
+	int	groupSize_;
 	int off_srm_;
 	int off_cmn_;
 
@@ -68,7 +68,7 @@ class SRMAgent : public Agent {
 			ret = new SRMinfo(sender);
 			ret->next_ = sip_->next_;
 			sip_->next_ = ret;
-			nsip_++;
+			groupSize_++;
 		}
 		return ret;
 	}

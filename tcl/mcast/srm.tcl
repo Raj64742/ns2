@@ -39,6 +39,7 @@ Agent instproc traffic-source agent {
 }
 
 Agent/SRM set packetSize_  1024	;# assume default message size for repair is 1K
+Agent/SRM set groupSize_   1
 
 Agent/SRM set C1_	2.0
 Agent/SRM set C2_	2.0
@@ -60,6 +61,8 @@ Class Agent/SRM/Probabilistic -superclass Agent/SRM
 Agent/SRM/Probabilistic set C1_ 0.0
 Agent/SRM/Probabilistic set D1_ 0.0
 
+Class Agent/SRM/AdaptiveRepair -superclass Agent/SRM
+#
 Agent/SRM instproc init {} {
     $self next
     $self instvar ns_ requestFunction_ repairFunction_
@@ -87,7 +90,6 @@ Agent/SRM instproc delete {} {
     }
 }
 
-#
 Agent/SRM instproc start {} {
     $self instvar node_ dst_		;# defined in Agent base class
     set dst_ [expr $dst_]		;# get rid of possibly leading 0x etc.
@@ -182,6 +184,11 @@ Agent/SRM instproc recv-repair {sender msgid} {
     }
 }
 
+Agent/SRM/AdaptiveRepair instproc repair args {
+    $self set D1_ [expr log10([$self set groupSize_])]
+    $self set D2_ [expr log10([$self set groupSize_])]
+    $self next
+}
 #
 Agent/SRM instproc clear {obj s m} {
     $self instvar pending_ done_
@@ -222,7 +229,6 @@ Agent/SRM instproc dump-stats {obj s m} {
 Agent/SRM instproc evTrace {op type args} {
     # no-op
 }
-
 #
 #
 # Note that the SRM event handlers are not rooted as TclObjects.
@@ -450,12 +456,12 @@ SRM/session instproc delete {} {
 }
 
 SRM/session instproc schedule {} {
-    $self instvar ns_ sessionDelay_ eventID_
+    $self instvar ns_ agent_ sessionDelay_ eventID_
 
     # What is a reasonable interval to schedule session messages?
     set fireTime [expr $sessionDelay_ * [uniform 0.9 1.1]]
     # set fireTime [expr $sessionDelay_ * [uniform 0.9 1.1] * \
-	    (1 + log([$self groupSize?])) ]
+	    (1 + log([$agent_ set groupSize_])) ]
 
     $self instvar statistics_
     incr statistics_(#sent)

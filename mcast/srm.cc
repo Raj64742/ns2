@@ -56,11 +56,11 @@ SRMAgent::SRMAgent()
         : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1)
 {
 	sip_ = new SRMinfo(-1);
-	nsip_ = 1;
 	
 	bind("off_srm_", &off_srm_);
 	bind("off_cmn_", &off_cmn_);
 	bind("packetSize_", &packetSize_);
+	bind("groupSize_", &groupSize_);
 }
 
 int SRMAgent::command(int argc, const char*const* argv)
@@ -93,18 +93,14 @@ int SRMAgent::command(int argc, const char*const* argv)
 				tcl.result("");	 //      yet active.
 				return TCL_OK;
 			}
-			tcl.resultf("%d 0.0", sip_->sender_);
-			for (SRMinfo* sp = sip_->next_; sp; sp = sp->next_)
+			for (SRMinfo* sp = sip_; sp; sp = sp->next_)
 				tcl.resultf("%s %d %f", tcl.result(),
 					    sp->sender_, sp->distance_);
 			return TCL_OK;
 		}
 		if (strcmp(argv[1], "start") == 0) {
 			sip_->sender_ = addr_;
-			return TCL_OK;
-		}
-		if (strcmp(argv[1], "groupSize?") == 0) {
-			tcl.resultf("%d", nsip_);
+			sip_->distance_ = 0.0;
 			return TCL_OK;
 		}
 	}
@@ -224,7 +220,7 @@ void SRMAgent::recv_repr(int sender, int msgid, u_char*)
 
 void SRMAgent::send_sess()
 {
-	int	size = (1 + nsip_ * 4) * sizeof(int);
+	int	size = (1 + groupSize_ * 4) * sizeof(int);
         Packet* p = Agent::allocpkt(size);
         hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
         sh->type() = SRM_SESS;
@@ -232,7 +228,7 @@ void SRMAgent::send_sess()
         sh->seqnum() = ++sessCtr_;
 
         int* data = (int*) p->accessdata();
-	*data++ = nsip_;
+	*data++ = groupSize_;
 	for (SRMinfo* sp = sip_; sp; sp = sp->next_) {
                 *data++ = sp->sender_;
                 *data++ = sp->ldata_;
