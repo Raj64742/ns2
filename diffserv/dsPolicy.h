@@ -61,18 +61,6 @@ struct policerTableEntry {
 	int downgrade2;
 };
 
-struct flow_entry {
-  int fid;
-  double last_update;
-  int bytes_sent;
-  struct flow_entry *next;
-};
-
-struct flow_list {
-  struct flow_entry *head;
-  struct flow_entry *tail;
-};
-
 class Policy : public TclObject {
  public:
   Policy();
@@ -197,19 +185,37 @@ class TRTCMPolicy : public Policy {
   int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
 };
 
+struct flow_entry {
+  int fid;
+  double last_update;
+  int bytes_sent;
+  struct flow_entry *next;
+};
+
+struct flow_list {
+  struct flow_entry *head;
+  struct flow_entry *tail;
+};
+
 class FWPolicy : public Policy {
  public:
   FWPolicy();
+  ~FWPolicy();
   void addPolicyEntry(int argc, const char*const* argv);
   void addPolicerEntry(int argc, const char*const* argv);
 
   void printPolicyTable();		
   void printPolicerTable();
+  void printFlowTable();
 
  protected:
+  // The table to keep the flow states.
+  struct flow_list flow_table;
+
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
   int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
 };
 
 #endif
+

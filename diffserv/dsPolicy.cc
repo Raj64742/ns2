@@ -984,7 +984,23 @@ void TRTCMPolicy::printPolicerTable() {
 // Beginning of FW
 //Constructor.
 FWPolicy::FWPolicy() : Policy() {
-  printf("hello\n!");
+  flow_table.head = NULL;
+  flow_table.tail = NULL;
+}
+
+//Deconstructor.
+FWPolicy::~FWPolicy(){
+  struct flow_entry *p, *q;
+  p = q = flow_table.head;
+  while (p) {
+    printf("free flow: %d\n", p->fid);
+    q = p;
+    p = p->next;
+    free(q);
+  }
+
+  p = q = NULL;
+  flow_table.head = flow_table.tail = NULL;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1026,40 +1042,72 @@ void FWPolicy::addPolicerEntry(int argc, const char*const* argv) {
 }
 
 /*-----------------------------------------------------------------------------
-void FWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
-    Prints the policyTable, one entry per line.
+ void FWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
+ Flow states are kept in a linked list.
+ Record how many bytes has been sent per flow and check if there is any flow
+ timeout.
 -----------------------------------------------------------------------------*/
 void FWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
-  int entry;
-  
+  int fid;
+  struct flow_entry *p, *q, *new_entry;
+
   double now = Scheduler::instance().clock();
   hdr_cmn* hdr = hdr_cmn::access(pkt);
   hdr_ip* iph = hdr_ip::access(pkt);
+  fid = iph->flowid();
   
   //  printf("enter applyMeter\n");
-  // The flow states are kept in a hash table.
-  entry = iph->flowid() % MAX_FLOW;
-  
-  //  printf("entry: %d, time_stamp: %f, fid: %d, byteSent: %d\n", entry,  fw_counter[entry].time_stamp, fw_counter[entry].fid, fw_counter[entry].bytesSent);
 
-  // Test if this is the first flow.
-  //  if (fw_counter[entry].time_stamp == 0) {
-  //   printf ("FIRST set flow %d\n", iph->flowid());
-  // fw_counter[entry].bytesSent = 0;
-  // fw_counter[entry].fid = iph->flowid();
-  //}
-  // Test if the entry has kept the states for dead flow.
-  /*
-  if (fw_counter[entry].time_stamp + FLOW_TIME_OUT < now) {
-    printf ("TIMEOUT flow %d change to flow %d\n", fw_counter[entry].fid, iph->flowid());
-    fw_counter[entry].bytesSent = 0;
-    fw_counter[entry].fid = iph->flowid();
+  p = q = flow_table.head;
+  while (p) {
+    // Check if the flow has been recorded before.
+    if (p->fid == fid) {
+      p->last_update = now;
+      p->bytes_sent += hdr->size();
+      return;
+    } else if (p->last_update + FLOW_TIME_OUT < now){
+      // The coresponding flow is dead.      
+      if (p == flow_table.head){
+	if (p == flow_table.tail) {
+	  flow_table.head = flow_table.tail = NULL;
+	  free(p);
+	  p = q = NULL;
+	} else {
+	  flow_table.head = p->next;
+	  free(p);
+	  p = q = flow_table.head;
+	}
+      } else {
+	q->next = p->next;
+	if (p == flow_table.tail)
+	  flow_table.tail = q;
+	free(p);
+	p = q->next;
+      }
+    } else {
+      q = p;
+      p = q->next;
+    }
   }
-
-  fw_counter[entry].time_stamp = now;
-  fw_counter[entry].bytesSent += hdr->size();
-  */
-  //printf("leave applyMeter\n");
+  
+  // This is the firt time the flow shown up
+  if (!p) {
+    new_entry = new flow_entry;
+    new_entry->fid = fid;
+    new_entry->last_update = now;
+    new_entry->bytes_sent = hdr->size();
+    new_entry->next = NULL;
+    
+    // always insert the new entry to the tail.
+    if (flow_table.tail)
+      flow_table.tail->next = new_entry;
+    else
+      flow_table.head = new_entry;
+    flow_table.tail = new_entry;
+  }
+  
+  //  printf("leave applyMeter\n");
+  return;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1067,25 +1115,53 @@ void FWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet 
     Prints the policyTable, one entry per line.
 -----------------------------------------------------------------------------*/
 int FWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt) {
-  int entry;
+  struct flow_entry *p;
   hdr_ip* iph = hdr_ip::access(pkt);
   
   //  printf("enter applyPolicer\n");
-  // The flow states are kept in a hash table.
-  entry = iph->flowid() % MAX_FLOW;
-  /*
-  if (fw_counter[entry].fid != iph->flowid())
-    printf ("MISS: flow %d in table, looking for flow %d\n", fw_counter[entry].fid, iph->flowid());
-  */
-  // Apply policy
-  //if (fw_counter[entry].bytesSent > policy->cir) {
-  //printf("leave applyPolicer, downgrade\n");
-  // return(downgradeOne(FW, initialCodePt));
-  //}
-  // else {
-    //    printf("leave applyPolicer, initial\n");
+  //  printFlowTable();
+  
+  p = flow_table.head;
+  while (p) {
+    // Check if the flow has been recorded before.
+    if (p->fid == iph->flowid()) {
+      if (p->bytes_sent > policy->cir) {
+	//	printf("leave applyPolicer, downgrade\n");
+	return(downgradeOne(FW, initialCodePt));
+      }
+      else {
+	//        printf("leave applyPolicer, initial\n");
+	return(initialCodePt);
+      }
+    }
+    p = p->next;
+  }
+
+  // Can't find the record for this flow.
+  if (!p) {
+    printf ("MISS: no flow %d in the table\n", iph->flowid());
+    printFlowTable();
+  };
+
   return(initialCodePt);
-    //}
+}
+
+/*------------------------------------------------------------------------------
+void FWPolicy::printFlowTable()
+    Prints the flowTable, one entry per line.
+------------------------------------------------------------------------------*/
+void FWPolicy::printFlowTable() {
+  struct flow_entry *p;
+  printf("Flow table:\n");
+
+  p = flow_table.head;
+  while (p) {
+    printf("flow id: %d, bytesSent: %d, last_update: %f\n", \
+	   p->fid, p->bytes_sent, p->last_update);
+    p = p-> next;
+  }
+  p = NULL;
+  printf("\n");
 }
 
 /*------------------------------------------------------------------------------
@@ -1118,7 +1194,9 @@ void FWPolicy::printPolicerTable() {
 	   policerTable[i].initialCodePt,
 	   policerTable[i].downgrade1);
   }
+  printFlowTable();
   printf("\n");
 }
+
 // End of FW
 
