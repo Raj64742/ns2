@@ -135,7 +135,7 @@ Http instproc agents {{type source}} {
 
 
 Http instproc transmit {source nbyte {npkt 0}} {
-	$self instvar numPut_ phttp_ sinks_ ns_
+	$self instvar numPut_ phttp_ sinks_ ns_ sessionLen_
 	[$source set agent_] instvar packetSize_
 
 #	puts "$source transmit $nbyte $npkt [$ns_ now]"
@@ -145,12 +145,13 @@ Http instproc transmit {source nbyte {npkt 0}} {
 	if {$npkt == 1} {
 		set packetSize_ $nbyte
 	} else {
-		set npkt [expr ceil(1.0 * $nbyte / $packetSize_)]
+		set npkt [expr int(ceil(1.0 * $nbyte / $packetSize_))]
 	}
 	if {$phttp_ == 0} {
 		[$source set agent_] reset
 		$sinks_($source) reset
 	}
+	incr sessionLen_ $npkt
 	$source producemore $npkt
 }
 
@@ -158,11 +159,13 @@ Http instproc transmit {source nbyte {npkt 0}} {
 Http instproc start {} {
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
 	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
+	$self instvar ns_ numImg_ numGet_ numPut_ sessionLen_ \
+			client_ server_ tStart_
 
 	set tStart_ [$ns_ now]
 	set numGet_ 0
 	set numPut_ 0
+	set sessionLen_ 0
 	set len [rvValue $rvReqLen_ round]
 	$self transmit $client_(0) $len 1
 
@@ -228,11 +231,14 @@ Http instproc doneReply {id} {
 
 Http instproc donePage {} {
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
-	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
+	$self instvar ns_ numImg_ numGet_ numPut_ sessionLen_ \
+			client_ server_ tStart_
 
 	set now [$ns_ now]
 	set ct [rvValue $rvClientTime_]
-	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $ct]
-	puts "$now Http $self donePage $out"
+	set out [format "%.3f %.0f %d %.3f" [expr $now - $tStart_] [expr $numImg_+1] $sessionLen_ $ct]
+	set curtime [format "%.3f" $now]
+	# print "curtime transaction_time num_connections sessionlen thinktime"
+	puts "$curtime Http $self donePage $out"
 	$ns_ at [expr $now + $ct] "$self start"
 }
