@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.16 1997/11/06 04:19:27 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.17 1998/01/13 03:27:42 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -67,7 +67,7 @@ public:
 
 
 void
-MacHandler::handle(Event*)
+MacHandlerResume::handle(Event*)
 {
 	mac_->resume();
 }
@@ -79,12 +79,13 @@ MacHandlerSend::handle(Event* e)
 }
 
 
-Mac::Mac() : Connector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0), mh_(this), mhSend_(this), macList_(0)
+Mac::Mac() : Connector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0), hRes_(this), hSend_(this), macList_(0)
 {
-	bind("hlen_", &hlen_);
+	bind_time("delay_", &delay_);
 	bind_bw("bandwidth_", &bandwidth_);
-	bind("off_mac_", &off_mac_);
+	bind("hlen_", &hlen_);
 	bind("label_", &label_);
+	bind("off_mac_", &off_mac_);
 }
 
 
@@ -134,8 +135,7 @@ Mac::recv(Packet* p, Handler* h)
 	}
 	callback_ = h;
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
-	mh->macSA() = label_;
-	mh->ftype() = MF_DATA;
+	mh->set(MF_DATA, label_);
 	state(MAC_SEND);
 	send(p);
 }
@@ -144,11 +144,13 @@ Mac::recv(Packet* p, Handler* h)
 void
 Mac::send(Packet* p)
 {
+	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p);
-	
-	((hdr_mac*) p->access(off_mac_))->txtime() = txt;
-	channel_->send(p, txt);
-	Scheduler::instance().schedule(&mh_, &intr_, txt);
+	if (channel_)
+		channel_->send(p, txt);
+	else
+		s.schedule(target_, p, txt);
+	s.schedule(&hRes_, &intr_, txt);
 }
 
 

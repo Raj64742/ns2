@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.13 1997/12/05 23:30:40 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.14 1998/01/13 03:27:42 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -50,6 +50,9 @@ class Classifier;
 class Channel;
 class Mac;
 
+#define EF_COLLISION 2		// collision error flag
+#define BCAST_ADDR -1
+
 enum MacState {
 	MAC_IDLE	= 0x0000,
 	MAC_POLLING	= 0x0001,
@@ -60,15 +63,16 @@ enum MacState {
 };
 
 enum MacFrameType {
-	MF_BEACON	= 0x0008,
+	MF_BEACON	= 0x0008, // beaconing
 	MF_CONTROL	= 0x0010, // used as mask for control frame
-	MF_RTS		= 0x001b,
-	MF_CTS		= 0x001c,
-	MF_ACK		= 0x001d,
-	MF_CF_END	= 0x001e,
-	MF_POLL		= 0x001f,
+	MF_SLOTS	= 0x001a, // announce slots open for contention
+	MF_RTS		= 0x001b, // request to send
+	MF_CTS		= 0x001c, // clear to send, grant
+	MF_ACK		= 0x001d, // acknowledgement
+	MF_CF_END	= 0x001e, // contention free period end
+	MF_POLL		= 0x001f, // polling
 	MF_DATA		= 0x0020, // also used as mask for data frame
-	MF_DATA_ACK	= 0x0021,
+	MF_DATA_ACK	= 0x0021, // ack for data frames
 };
 
 struct hdr_mac {
@@ -76,26 +80,28 @@ struct hdr_mac {
 	int macSA_;		// source MAC address
 	int macDA_;		// destination MAC address
 	double txtime_;		// transmission time
+	double sstime_;		// slot start time
 
 	static int offset_;
 	inline int& offset() { return offset_; }
 
-	inline hdr_mac* set(MacFrameType ft, int sa, int da=-1) {
+	inline hdr_mac* set(MacFrameType ft, int sa, int da=-99999) {
 		ftype_ = ft;
 		macSA_ = sa;
-		if (da >= 0)
+		if (da > -999)
 			macDA_ = da;
 	}
 	inline MacFrameType& ftype() { return ftype_; }
 	inline int& macSA() { return macSA_; }
 	inline int& macDA() { return macDA_; }
 	inline double& txtime() { return txtime_; }
+	inline double& sstime() { return sstime_; }
 };
 
 
-class MacHandler : public Handler {
+class MacHandlerResume : public Handler {
 public:
-	MacHandler(Mac* m) : mac_(m) {}
+	MacHandlerResume(Mac* m) : mac_(m) {}
 	void handle(Event*);
 protected:
 	Mac* mac_;
@@ -133,15 +139,16 @@ public:
 protected:
 	int command(int argc, const char*const* argv);
 	Mac* getPeerMac(Packet* p);
-	double bandwidth_;	// bandwidth of this MAC
+	double delay_;		// MAC overhead
+	double bandwidth_;	// MAC bandwidth
 	int hlen_;		// MAC header length
 	int label_;		// MAC address
 	MacState state_;	// MAC's current state
 	Channel* channel_;	// channel this MAC is connected to
 	Classifier* cclass_;	// classifier to obtain the peer MAC
 	Handler* callback_;	// callback for end-of-transmission
-	MacHandler mh_;		// resume handler
-	MacHandlerSend mhSend_;	// handle delay send due to busy channel
+	MacHandlerResume hRes_;	// resume handler
+	MacHandlerSend hSend_;	// handle delay send due to busy channel
 	int off_mac_;		// MAC header offset
         Mac* macList_;		// circular list of MACs
 	Event intr_;
