@@ -124,7 +124,7 @@ Simulator instproc shared-duplex-link {nodelist bw delay {qtype DropTail} \
 
 	$shl trace $self $traceAllFile_
 	set shlink_($nodelist_) $shl
-	puts "$shl $bw $delay $lltype $ifqtype $mactype"
+#	puts "$shl $bw $delay $lltype $ifqtype $mactype"
 	return $shl
 }
 
