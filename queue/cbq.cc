@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.14 1997/05/02 03:16:37 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.15 1997/05/02 23:02:37 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -426,8 +426,6 @@ CBQueue::find_lender(CBQClass* cl, double now)
 /*
  * rule #2 for formal link-sharing
  *	class must have no unsatisfied classes below it
- *	optimization here: no unsatisfied classes below this class
- *		and on or above level 'baselevel'
  */
 int
 CBQueue::eligible_formal(CBQClass *cl, double now)
