@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.21 2002/01/01 04:50:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.22 2002/01/01 22:36:45 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -467,15 +467,19 @@ Topology/net2 instproc init ns {
 
 Class Test/tahoe1 -superclass TestSuite
 Test/tahoe1 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	tahoe
+	set guide_ 	\
+	"Tahoe TCP with multiple packets dropped from a window of data."
 	Queue/DropTail set summarystats_ true
 	$self next
 }
 Test/tahoe1 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
@@ -504,10 +508,11 @@ Test/tahoe1 instproc run {} {
 
 Class Test/tahoe1Bytes -superclass TestSuite
 Test/tahoe1Bytes instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	tahoe1Bytes
+	set guide_	"DropTail queue in bytes instead of packets."
 	Queue/DropTail set queue_in_bytes_ true
 	Queue/DropTail set mean_pktsize_ 1000
 	Queue/DropTail set summarystats_ true
@@ -518,10 +523,12 @@ Test/tahoe1Bytes instproc init topo {
 # Tahoe1 with RED
 Class Test/tahoe1RED -superclass TestSuite
 Test/tahoe1RED instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0a
 	set test_	tahoe1RED
+	set guide_	\
+	"RED queue, configured for 5 packets instead of DropTail's 6 packets."
 	Queue/RED set summarystats_ true
 	Test/tahoe1RED instproc run {} [Test/tahoe1 info instbody run ]
 	$self next
@@ -530,10 +537,11 @@ Test/tahoe1RED instproc init topo {
 # Tahoe1 with RED
 Class Test/tahoe1REDbytes -superclass TestSuite
 Test/tahoe1REDbytes instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0a
 	set test_	tahoe1REDbytes
+	set guide_      "RED queue in bytes."
 	Queue/RED set queue_in_bytes_ true
 	Queue/RED set mean_pktsize_ 1000
 	Queue/RED set summarystats_ true
@@ -543,14 +551,17 @@ Test/tahoe1REDbytes instproc init topo {
 
 Class Test/tahoe2 -superclass TestSuite
 Test/tahoe2 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	tahoe2
+	set guide_	"Tahoe TCP with one packet dropped."
 	$self next
 }
 Test/tahoe2 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 14
@@ -567,14 +578,18 @@ Test/tahoe2 instproc run {} {
 
 Class Test/tahoe3 -superclass TestSuite
 Test/tahoe3 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	tahoe3
+	set guide_      \
+	"Tahoe TCP, two packets dropped from a congestion window of 5 packets."
 	$self next
 }
 Test/tahoe3 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8   
 	$ns_ queue-limit $node_(k1) $node_(r1) 8   
@@ -600,24 +615,30 @@ Test/tahoe3 instproc run {} {
 # Tahoe3 with RED.
 Class Test/tahoe3RED -superclass TestSuite
 Test/tahoe3RED instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0a
 	set test_	tahoe3RED
+	set guide_      \
+	"Tahoe TCP, two packets dropped, RED queue configured for 5 packets."
 	Test/tahoe3RED instproc run {} [Test/tahoe3 info instbody run ]
 	$self next
 }
 
 Class Test/tahoe4 -superclass TestSuite
 Test/tahoe4 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	tahoe4
+	set guide_	\
+	"Tahoe TCP, two connections with different round-trip times."
 	$self next
 }
 Test/tahoe4 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -644,14 +665,17 @@ Test/tahoe4 instproc run {} {
 
 Class Test/no_bug -superclass TestSuite
 Test/no_bug instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net1
 	set test_	no_bug
+	set guide_      "Tahoe TCP with TCP/bugFix_ set to true."
 	$self next
 }
 Test/no_bug instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s1) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s1) 3ms
@@ -676,14 +700,17 @@ Test/no_bug instproc run {} {
 
 Class Test/bug -superclass TestSuite
 Test/bug instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net1
 	set test_	bug
+	set guide_      "Tahoe TCP with TCP/bugFix_ set to false."
 	$self next
 }
 Test/bug instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s1) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s1) 3ms
@@ -710,14 +737,18 @@ Test/bug instproc run {} {
 
 Class Test/reno1 -superclass TestSuite
 Test/reno1 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	reno1
+	set guide_	\
+	"Reno TCP, one packet dropped, Fast Recovery and Fast Retransmit"
 	$self next
 }
 Test/reno1 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 14
@@ -734,14 +765,18 @@ Test/reno1 instproc run {} {
 
 Class Test/reno -superclass TestSuite
 Test/reno instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	reno
+	set guide_      \
+	"Reno TCP, limited by maximum congestion window maxcwnd_."
 	$self next
 }
 Test/reno instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 28
@@ -759,14 +794,18 @@ Test/reno instproc run {} {
 
 Class Test/renoA -superclass TestSuite
 Test/renoA instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	renoA
+	set guide_ 	\
+	"Reno TCP, one packet dropped, Fast Recovery and Fast Retransmit"
 	$self next
 }
 Test/renoA instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8
 
@@ -795,14 +834,18 @@ Test/renoA instproc run {} {
 
 Class Test/reno2 -superclass TestSuite
 Test/reno2 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	reno2
+	set guide_ 	\
+	"Reno TCP, multiple packets dropped, Retransmit Timeout."
 	$self next
 }
 Test/reno2 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 9
 
@@ -826,14 +869,18 @@ Test/reno2 instproc run {} {
 
 Class Test/reno3 -superclass TestSuite
 Test/reno3 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	reno3
+	set guide_	\
+	"Reno TCP, two packets dropped from a congestion window of 5 packets."
 	$self next
 }
 Test/reno3 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8
 	$ns_ queue-limit $node_(k1) $node_(r1) 8
@@ -858,14 +905,18 @@ Test/reno3 instproc run {} {
 
 Class Test/reno4 -superclass TestSuite
 Test/reno4 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net2
 	set test_	reno4
+	set guide_	\
+	"Reno TCP, two packets dropped, no Retransmit Timeout"
 	$self next
 }
 Test/reno4 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(r2) 29
 
@@ -885,14 +936,18 @@ Test/reno4 instproc run {} {
 
 Class Test/reno4a -superclass TestSuite
 Test/reno4a instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net2
 	set test_	reno4a
+	set guide_	\
+	"Reno TCP, two packets dropped, Retransmit Timeout"
 	$self next
 }
 Test/reno4a instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(r2) 29
 
@@ -912,14 +967,18 @@ Test/reno4a instproc run {} {
 
 Class Test/reno5 -superclass TestSuite
 Test/reno5 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	reno5
+	set guide_	\
+	"Reno TCP, TCP/bugFix_ set to false."
 	$self next
 }
 Test/reno5 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 9
 
@@ -945,16 +1004,20 @@ Test/reno5 instproc run {} {
 
 Class Test/telnet -superclass TestSuite
 Test/telnet instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	telnet
+	set guide_	\
+	"Telnet connections with two different packet generation processes."
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
 	$self next
 }
 Test/telnet instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8
 	$ns_ queue-limit $node_(k1) $node_(r1) 8
@@ -985,14 +1048,18 @@ Test/telnet instproc run {} {
 
 Class Test/delayed -superclass TestSuite
 Test/delayed instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	delayed
+	set guide_	\
+	"TCP receiver with delayed acknowledgements."
 	$self next
 }
 Test/delayed instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink/DelAck $node_(k1) 0]
 	$tcp1 set window_ 50
@@ -1012,14 +1079,17 @@ Test/delayed instproc run {} {
 
 Class Test/phase -superclass TestSuite
 Test/phase instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	phase
+	set guide_	"Phase effects: connection 0 wins."
 	$self next
 }
 Test/phase instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s2) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s2) 3ms
@@ -1046,14 +1116,17 @@ Test/phase instproc run {} {
 
 Class Test/phase1 -superclass TestSuite
 Test/phase1 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	phase1
+	set guide_	"Phase effects: connection 1 wins."
 	$self next
 }
 Test/phase1 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s2) $node_(r1) 9.5ms
 	$ns_ delay $node_(r1) $node_(s2) 9.5ms
@@ -1080,14 +1153,18 @@ Test/phase1 instproc run {} {
 
 Class Test/phase2 -superclass TestSuite
 Test/phase2 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	phase2
+	set guide_	\
+	"Phase effects: TCP/overhead_ is used, and neither connection loses."
 	$self next
 }
 Test/phase2 instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s2) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s2) 3ms
@@ -1099,7 +1176,10 @@ Test/phase2 instproc run {} {
 	$tcp1 set overhead_ 0.01
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 32 
-	$tcp2 set overhead_ 0.01
+	# $tcp2 set overhead_ 0.01
+	# The random overhead_ was increased slightly to illustrate fairness 
+	#   for this scenario.
+	$tcp2 set overhead_ 0.015
 
 	set ftp1 [$tcp1 attach-app FTP]
 	set ftp2 [$tcp2 attach-app FTP]
@@ -1116,16 +1196,20 @@ Test/phase2 instproc run {} {
 
 Class Test/timers -superclass TestSuite
 Test/timers instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	timers
+	set guide_	"TCP retransmit timers."
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
 	$self next
 }
+
 Test/timers instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 2
 	$ns_ queue-limit $node_(k1) $node_(r1) 100
@@ -1155,14 +1239,17 @@ Test/timers instproc run {} {
 # Many small TCP flows.
 Class Test/manyflows -superclass TestSuite
 Test/manyflows instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	manyflows
+	set guide_	"Using FTP commands to create many small flows."
 	$self next
 }
 Test/manyflows instproc run {} {
-	$self instvar ns_ node_ testName_
+	global quiet
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connections
 
@@ -1222,14 +1309,18 @@ TestSuite instproc printall { fmon } {
 
 Class Test/stats -superclass TestSuite
 Test/stats instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	set test_	stats
+	set guide_	\
+	"TCP statistics, and per-flow and aggregate link statistics."
 	$self next
 }
 Test/stats instproc run {} {
-	$self instvar ns_ node_ testName_ 
+	global quiet
+	$self instvar ns_ node_ testName_ guide_ 
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -1269,15 +1360,20 @@ Test/stats instproc run {} {
 
 Class Test/stats1 -superclass TestSuite
 Test/stats1 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0
 	Queue/DropTail set summarystats_ true
 	set test_	stats1
+	set guide_	\
+	"FTP statistics on bytes produced, and queue statistics.
+	Should be:	fid: 0 per-link total_bytes 940."
 	$self next
 }
 Test/stats1 instproc run {} {
-	$self instvar ns_ node_ testName_ 
+	global quiet
+	$self instvar ns_ node_ testName_ guide_ 
+	if {$quiet == "false"} {puts $guide_}
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -1323,65 +1419,79 @@ Test/stats1 instproc run {} {
 	$ns_ run
 }
 
-# Class Test/stats1Bytes -superclass TestSuite
-# Test/stats1Bytes instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net0
-# 	Queue/DropTail set summarystats_ true
-# 	Queue/DropTail set queue_in_bytes_ true
-# 	set test_	stats1Bytes
-# 	Test/stats1Bytes instproc run {} [Test/stats1 info instbody run]
-# 	$self next
-# }
+Class Test/stats1Bytes -superclass TestSuite
+Test/stats1Bytes instproc init topo {
+	$self instvar net_ defNet_ test_ guide_
+	set net_	$topo
+	set defNet_	net0
+	Queue/DropTail set summarystats_ true
+	Queue/DropTail set queue_in_bytes_ true
+	set test_	stats1Bytes
+	set guide_	"Queue statistics for a queue in bytes.
+	Should be:      True average queue: 0.439 (in bytes)"
+	Test/stats1Bytes instproc run {} [Test/stats1 info instbody run]
+	$self next
+}
 
 Class Test/stats1a -superclass TestSuite
 Test/stats1a instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0a
 	Queue/RED set summarystats_ true
 	set test_	stats1a
+	set guide_	"Queue statistics for a RED queue.
+	Should be:	True average queue: 0.004"
 	Test/stats1a instproc run {} [Test/stats1 info instbody run]
 	$self next
 }
 
 Class Test/stats1aBytes -superclass TestSuite
 Test/stats1aBytes instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0a
 	Queue/RED set summarystats_ true
 	Queue/RED set queue_in_bytes_ true
 	set test_	stats1aBytes
+	set guide_	"Queue statistics for a RED queue in bytes.
+	Should be:      True average queue: 0.439 (in bytes)"
 	Test/stats1aBytes instproc run {} [Test/stats1 info instbody run]
 	$self next
 }
 
 Class Test/statsHeaders -superclass TestSuite
 Test/statsHeaders instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net0a
 	Queue/RED set summarystats_ true
 	Agent/TCP set useHeaders_ true
 	set test_	statsHeaders
+	set guide_	\
+	"FTP and packet statistics for TCP with correct accounting for headers.
+	Should be:	fid: 0 per-link total_bytes 1300"
 	Test/statsHeaders instproc run {} [Test/stats1 info instbody run]
 	$self next
 }
 
 Class Test/stats2 -superclass TestSuite
 Test/stats2 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net2
 	Queue/RED set summarystats_ true
 	set test_	stats2
+	set guide_	\
+	"Queue statistics for the true average queue size.
+	Should be:     True average queue: 8.632"
 	$self next
 }
 
 Test/stats2 instproc run {} {
-	$self instvar ns_ node_ testName_ 
+	global quiet
+	$self instvar ns_ node_ testName_ guide_ 
+	if {$quiet == "false"} {puts $guide_}
 	set stoptime 10.1 
 
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
