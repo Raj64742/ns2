@@ -41,6 +41,11 @@ proc cong_act { time seqno } {
 	puts $cactchan "$time $seqno"
 }
 
+proc salen { time ackno } {
+	global sachan
+	puts $sachan "$time $ackno"
+}
+
 set synfound 0
 proc parse_line line {
 	global synfound active_opener passive_opener
@@ -73,6 +78,7 @@ proc parse_line line {
 	set field(tcpackno) [lindex $sline 12]
 	set field(tcpflags) [lindex $sline 13]
 	set field(tcphlen) [lindex $sline 14]
+	set field(salen) [lindex $sline 15]
 
 	if { !($synfound) && [expr $field(tcpflags) & 0x02] } {
 		global reverse
@@ -137,6 +143,9 @@ proc parse_line line {
 			[string last N $field(pflags)] >= 0 } {
 			ecnecho_pkt $field(time) $field(tcpackno)
 		}
+		if { $field(salen) > 0 } {
+			salen $field(time) $field(tcpackno)
+		}
 		return
 	}
 
@@ -156,7 +165,7 @@ proc parse_file chan {
 }
 
 proc dofile { infile outfile } {
-	global ackchan packchan segchan dropchan ctrlchan emptysegchan ecnchan cactchan
+	global ackchan packchan segchan dropchan ctrlchan emptysegchan ecnchan cactchan sachan
 
         set ackstmp $outfile.acks ; # data-full acks
         set segstmp $outfile.p; # segments
@@ -166,7 +175,8 @@ proc dofile { infile outfile } {
 	set ctltmp $outfile.ctrl ; # SYNs + FINs
 	set ecntmp $outfile.ecn ; # ECN acks
 	set cacttmp $outfile.cact; # cong action
-        exec rm -f $ackstmp $segstmp $esegstmp $dropstmp $packstmp $ctltmp $ecntmp $cacttmp
+	set satmp $outfile.sack; # sack info
+        exec rm -f $ackstmp $segstmp $esegstmp $dropstmp $packstmp $ctltmp $ecntmp $cacttmp $satmp
 
 	set ackchan [open $ackstmp w]
 	set segchan [open $segstmp w]
@@ -176,6 +186,7 @@ proc dofile { infile outfile } {
 	set ctrlchan [open $ctltmp w]
 	set ecnchan [open $ecntmp w]
 	set cactchan [open $cacttmp w]
+	set sachan [open $satmp w]
 
 	set inf [open $infile r]
 
@@ -189,6 +200,7 @@ proc dofile { infile outfile } {
 	close $ctrlchan
 	close $ecnchan
 	close $cactchan
+	close $sachan
 }
 
 if { $argc < 2 || $argc > 3 } {
