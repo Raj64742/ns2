@@ -29,9 +29,13 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $
  */
+
+#ifndef lint
+static char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.2 1996/12/31 22:50:44 elan Exp $";
+#endif
+
 
 
 #include <stdlib.h>
@@ -88,6 +92,7 @@ void RTCPAgent::start()
 
 void RTCPAgent::stop()
 {
+	cancel(0);
 	running_ = 0;
 }
 
@@ -99,6 +104,10 @@ void RTCPAgent::recv(Packet* p, Handler*)
 void RTCPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
+
+	/* Fill in srcid_ */
+	p->bd_.rtp_.srcid_ = session_->srcid();
+
 	target_->recv(p);
 }
 
@@ -110,8 +119,10 @@ void RTCPAgent::timeout(int)
 		double t = interval_;
 		if (random_)
 			/* add some zero-mean white noise */
-			t += interval_ * Random::uniform(-0.5, 0.5);
+			t += interval_ * Random::uniform(-0.5, 0.5);	
 		sched(t, 0);
+		/* XXX */
+		Tcl::instance().evalf("%s rtcp_timeout", session_->name());
 	}
 }
 
