@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.24 2000/11/11 00:26:32 xuanc Exp $
+# $Id: Makefile,v 1.25 2000/11/14 00:10:18 johnh Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -89,7 +89,10 @@ gv: everything.ps $(FILES)
 clean:
 	rm *.aux *.log *.toc
 
-ns-doc-auto: everything.ps.gz everything.pdf everything.html
+ns-doc-auto:
+	$(MAKE) everything.ps.gz
+	$(MAKE) everything.pdf
+	$(MAKE) everything.html
 	cp everything.ps.gz  $(WEB_TARGET_DIR)/ns_doc.ps.gz
 	cp everything.pdf $(WEB_TARGET_DIR)/ns_doc.pdf
 	cp $(L2H_WORKING_DIR)/everything/*.{html,css,gif} $(WEB_TARGET_DIR)
