@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.29 2000/06/20 03:25:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.30 2000/07/06 17:04:30 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -980,6 +980,48 @@ Test/HighLossTCP instproc run {} {
     # trace only the bottleneck link
     $ns_ run
 }
+
+Class Test/printLosses -superclass TestSuite
+Test/printLosses instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	printLosses
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set printLosses_ 1
+    Agent/TFRCSink set printLoss_ 1
+    $self next
+}
+Test/printLosses instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 3.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $ns_ at 0.0 "$tf1 start"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
 
 TestSuite runTest
 
