@@ -99,7 +99,7 @@ public:
     double t;
     t=(1-rho)*pow(rho,k);
     t/=1-pow(rho,K+1);
-    
+    return t;
   }  
 
   double Lq(double rho, int K){
@@ -121,7 +121,7 @@ public:
 
     if (strcmp(argv[1], "run") == 0) {
       int niter=0;
-      for(int i=0; i<10; i++){
+      for(int i=0; i<20; i++){
 	CalcLinkDelays(1);
 	CalcPerFlowDelays();
 	newupdate(niter);
@@ -137,6 +137,7 @@ public:
     }
 
     if (strcmp(argv[1], "get-link-drop") == 0) {
+      cout << "Hi";
       Tcl& tcl = Tcl::instance();
       tcl.resultf("%lf",get_link_drop(atoi(argv[2])));
       return (TCL_OK);
@@ -150,7 +151,6 @@ public:
 
     if (strcmp(argv[1], "get-link-tput") == 0) {
       Tcl& tcl = Tcl::instance();
-      //cout << "linkid = " << atoi(argv[2]) << " tput = " << get_link_tput(atoi(argv[2])) << endl;
       tcl.resultf("%lf",get_link_tput(atoi(argv[2])));
       return (TCL_OK);
     }  
@@ -173,12 +173,13 @@ public:
       return (TCL_OK);
     }
 
-    return (TCL_OK);
   }
   
   double get_link_drop(int x){
     assert(x<nLinks);
     return links[x].drop;
+    cout << "Hi there";
+    PrintResults();
   }
 
   double get_link_delay(int x){
@@ -506,6 +507,7 @@ double redFn(double minth, double pmin,
   assert(maxth>=minth);
   assert(pmax>pmin);
 
+  double t;
   if(qlength<minth)
     return 0;
   if(qlength>maxth)
@@ -526,8 +528,9 @@ void  CalcLinkDelays(int flag = 0){
     double rho = links[i].lambda/links[i].mu;
     double qlength = Lq(rho,links[i].buffer);
 
-    //  cout << "delay = " << links[i].qdelay << " and drop = " << links[i].drop << endl;
     links[i].qdelay = qlength/links[i].mu; 
+    links[i].drop = Pk(rho,links[i].buffer,links[i].buffer);
+//cout << "rho = " << rho << " drop = " << links[i].drop << endl;
 
     // Special code for RED gateways
     if(flag){
@@ -613,7 +616,7 @@ void PrintResults(){
   for(int i=0;i<nLinks;i++){
     // cout << i << sp << links[i].qdelay << sp << links[i].drop;
     cout << sp << "Qdelay = " << links[i].prop << sp << links[i].lambda;
-    cout << sp << links[i].tlambda << endl;
+    cout << sp << links[i].drop << endl;
   }
 
   for(int i=0; i<nConnections; i++){
@@ -650,7 +653,7 @@ void Update(int niter){
   for(int i=0; i<nLinks; i++){
     links[i].plambda = links[i].lambda;
     double t;
-    double tk=links[i].mu*(1.05)+5;
+    double tk=links[i].mu*(1.1);
     
     if(niter){
       if(links[i].tlambda>tk)
@@ -757,7 +760,7 @@ void Update3(int flag = 0){
       cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
     }
 
-    //char x =getchar();
+    char x =getchar();
 
     // Recalculate the flows' stats
     UpdateHelper(0);
@@ -792,7 +795,7 @@ void newupdate(int niter){
   // 1st init all unscaled tputs and cap
 
   for (int i=0;i<nLinks;i++){
-    links[i].uc = links[i].mu*(1.05)+5;
+    links[i].uc = links[i].mu*(1.1);
     links[i].utput = 0;
   }
 
