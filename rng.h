@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.16 1999/10/09 01:06:38 haoboy Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.17 2000/07/21 04:56:58 yewei Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -120,7 +120,7 @@ public:
                 { return (scale * ((1.0/pow(uniform(), 1.0/shape)) - 1));}
 	double normal(double avg, double std);
 	double lognormal(double avg, double std) 
-		{ return (avg * exp(std * normal(0.0, 1.0))); }
+                { return (exp(normal(avg, std))); }
 
 protected:   // need to be public?
 	RNGImplementation stream_;

@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  */
 /* tworayground.cc
-   $Id: tworayground.cc,v 1.3 2000/05/24 00:22:25 heideman Exp $
+   $Id: tworayground.cc,v 1.4 2000/07/21 04:56:58 yewei Exp $
  */
 
 #include <math.h>
@@ -62,20 +62,6 @@ TwoRayGround::TwoRayGround()
 }
 
 // use Friss at less than crossover distance
-static double 
-Friss(double Pt, double Gt, double Gr, double lambda, double L, double d)
-{
-        /*
-         * Friss free space equation:
-         *
-         *       Pt * Gt * Gr * (lambda^2)
-         *   P = --------------------------
-         *       (4 *pi * d)^2 * L
-         */
-  double M = lambda / (4 * PI * d);
-  return (Pt * Gt * Gr * (M * M)) / L;
-}
-
 // use two-ray at more than crossover distance
 static double
 TwoRay(double Pt, double Gt, double Gr, double ht, double hr, double d)

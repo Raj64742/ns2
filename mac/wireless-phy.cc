@@ -75,54 +75,6 @@ public:
 
 WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
 {
-	/*
-	node_ = 0;
-	propagation_ = 0;
-	modulation_ = 0;
-	bandwidth_ = 2*1e6;                 // 100 kb
-	Pt_ = pow(10, 2.45) * 1e-3;         // 24.5 dbm, ~ 281.8mw
-	Pr_ = Pt_;
-	lambda_ = SPEED_OF_LIGHT / (914 * 1e6);  // 914 mHz
-	L_ = 1.0;
-	freq_ = -1.0;
-	*/
-
-
-	// Assume AT&T's Wavelan PCMCIA card -- Chalermek
-
-	node_ = 0;
-	propagation_ = 0;
-	modulation_ = 0;
-
-	//	bandwidth_ = 1.6e6;                
-
-	bandwidth_ = 2*1e6;                 // 2Mb
-
-	//	Pt_signal_ = 8.5872e-4; // For 40m transmission range.
-	//      Pt_signal_ = 7.214e-3;  // For 100m transmission range.
-	//      Pt_signal_ = 0.2818; // For 250m transmission range.
-
-	Pt_signal_ = pow(10, 2.45) * 1e-3;         // 24.5 dbm, ~ 281.8mw
-	Pt_ = 0.660;  // 1.6 W drained power for transmission 
-	Pr_ = 0.395;  // 1.2 W drained power for reception 
-
-	//	P_idle_ = 0.035; // 1.15 W drained power for idle
-
-	P_idle_ = 0.0;
-
-	channel_idle_time_ = NOW;
-	update_energy_time_ = NOW;
-	last_send_time_ = NOW;
-
-	//	lambda_ = SPEED_OF_LIGHT / (915 * 1e6);  // 915 mHz
-
-	lambda_ = SPEED_OF_LIGHT / (914 * 1e6);  // 914 mHz
-	L_ = 1.0;
-	freq_ = -1.0;
-
-	idle_timer_.resched(1.0);
-
-
 
   /*
    *  It sounds like 10db should be the capture threshold.
@@ -140,22 +92,39 @@ WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
    *
    */
 	
-	CPThresh_ = 10.0;
-	CSThresh_ = 1.559e-11;
-	RXThresh_ = 3.652e-10;
+	bind("CPThresh_", &CPThresh_);
+	bind("CSThresh_", &CSThresh_);
+	bind("RXThresh_", &RXThresh_);
+	bind("bandwidth_", &bandwidth_);
+	bind("Pt_", &Pt_);
+	bind("freq_", &freq_);
+	bind("L_", &L_);
+	
+	lambda_ = SPEED_OF_LIGHT / freq_;
 
-	//bind("CPThresh_", &CPThresh_);
-	//bind("CSThresh_", &CSThresh_);
-	//bind("RXThresh_", &RXThresh_);
-	//bind("bandwidth_", &bandwidth_);
-	//bind("Pt_", &Pt_);
-	//bind("freq_", &freq_);
-	//bind("L_", &L_);
+	node_ = 0;
+	propagation_ = 0;
+	modulation_ = 0;
 
-  if (freq_ != -1.0) 
-    { // freq was set by tcl code
-      lambda_ = SPEED_OF_LIGHT / freq_;
-    }
+	// Assume AT&T's Wavelan PCMCIA card -- Chalermek
+        //	Pt_ = 8.5872e-4; // For 40m transmission range.
+	//      Pt_ = 7.214e-3;  // For 100m transmission range.
+	//      Pt_ = 0.2818; // For 250m transmission range.
+	//	Pt_ = pow(10, 2.45) * 1e-3;         // 24.5 dbm, ~ 281.8mw
+	
+	Pt_consume_ = 0.660;  // 1.6 W drained power for transmission
+	Pr_consume_ = 0.395;  // 1.2 W drained power for reception
+
+	//	P_idle_ = 0.035; // 1.15 W drained power for idle
+
+	P_idle_ = 0.0;
+
+	channel_idle_time_ = NOW;
+	update_energy_time_ = NOW;
+	last_send_time_ = NOW;
+	
+	idle_timer_.resched(1.0);
+
 }
 
 int
@@ -187,11 +156,11 @@ WirelessPhy::command(int argc, const char*const* argv)
 
   else if(argc == 3) {
 	  if (strcasecmp(argv[1], "setTxPower") == 0) {
-		  Pt_ = atof(argv[2]);
+		  Pt_consume_ = atof(argv[2]);
 		  return TCL_OK;
 	  }
 	  else if (strcasecmp(argv[1], "setRxPower") == 0) {
-		  Pr_ = atof(argv[2]);
+		  Pr_consume_ = atof(argv[2]);
 		  return TCL_OK;
 	  }
 	  else if (strcasecmp(argv[1], "setIdlePower") == 0) {
@@ -246,7 +215,7 @@ WirelessPhy::sendDown(Packet *p)
 		    double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
 		    /*
 		    node_->add_sndtime(txtime);
-		    (node_->energy_model())->DecrTxEnergy(txtime,Pt_);
+		    (node_->energy_model())->DecrTxEnergy(txtime,Pt_consume_);
 		    */
 
 		    double start_time = max(channel_idle_time_, NOW);
@@ -292,12 +261,12 @@ WirelessPhy::sendDown(Packet *p)
 		    if (gap_adjust_time > 0.0) {
 		       if (status_ == RECV) {
 			  (node_->energy_model())->DecrTxEnergy(
-						   gap_adjust_time, Pt_-Pr_);
+						   gap_adjust_time, Pt_consume_-Pr_consume_);
 		       }
 		    }
 
 
-		    (node_->energy_model())->DecrTxEnergy(actual_txtime,Pt_);
+		    (node_->energy_model())->DecrTxEnergy(actual_txtime,Pt_consume_);
 
 		    if (end_time > channel_idle_time_) {
 			    status_ = SEND;
@@ -329,7 +298,7 @@ WirelessPhy::sendDown(Packet *p)
 	/*
 	 *  Stamp the packet with the interface arguments
 	 */
-	p->txinfo_.stamp(node_, ant_->copy(), Pt_signal_, lambda_);
+	p->txinfo_.stamp(node_, ant_->copy(), Pt_, lambda_);
 
 	// Send the packet
 	channel_->recv(p, this);
@@ -428,7 +397,7 @@ DONE:
 
 	  /*
  	  node_->add_rcvtime(rcvtime);	  
-	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr_);
+	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr_consume_);
 	  */
 
 	  double start_time = max(channel_idle_time_, NOW);
@@ -442,7 +411,7 @@ DONE:
 		  update_energy_time_ = start_time;
 	  }
 	  
-	  (node_->energy_model())->DecrRcvEnergy(actual_rcvtime,Pr_);
+	  (node_->energy_model())->DecrRcvEnergy(actual_rcvtime,Pr_consume_);
 
 	  if (end_time > channel_idle_time_) {
 		  status_ = RECV;

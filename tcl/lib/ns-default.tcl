@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.205 2000/07/19 21:41:26 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.206 2000/07/21 04:56:58 yewei Exp $
 
 
 #
@@ -337,7 +337,7 @@ Agent/rtProto/DV set advertInterval	  2
 Agent/Encapsulator set status_ 1
 Agent/Encapsulator set overhead_ 20
 
-
+
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0
 Integrator set sum_ 0.0
@@ -703,8 +703,9 @@ Antenna/OmniAntenna set Gr_ 1.0
 Phy/WirelessPhy set CPThresh_ 10.0
 Phy/WirelessPhy set CSThresh_ 1.559e-11
 Phy/WirelessPhy set RXThresh_ 3.652e-10
-Phy/WirelessPhy set Rb_ 2*1e6
-Phy/WirelessPhy set Pt_ 0.2818
+#Phy/WirelessPhy set Rb_ 2*1e6
+Phy/WirelessPhy set bandwidth_ 2e6
+Phy/WirelessPhy set Pt_ 0.28183815
 Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0  
 Phy/WirelessPhy set debug_ false
@@ -717,6 +718,12 @@ LanRouter set debug_ false
 Phy/Sat set debug_ false
 Mac/Sat set debug_ false
 LL/Sat set debug_ false
+
+#Shadowing propagation model
+Propagation/Shadowing set pathlossExp_ 2.0
+Propagation/Shadowing set std_db_ 4.0
+Propagation/Shadowing set dist0_ 1.0
+Propagation/Shadowing set seed_ 0
 
 # PLM contributed by Arnaud Legout at INRIA
 Agent/LossMonitor/PLM set flag_PP_ 0

@@ -120,7 +120,7 @@ Phy/WirelessPhy set CPThresh_ 10.0
 Phy/WirelessPhy set CSThresh_ 1.559e-11
 Phy/WirelessPhy set RXThresh_ 3.652e-10
 Phy/WirelessPhy set Rb_ 2*1e6
-Phy/WirelessPhy set Pt_ 0.2818
+Phy/WirelessPhy set Pt_ 0.28183815
 Phy/WirelessPhy set freq_ 914e+6 
 Phy/WirelessPhy set L_ 1.0
 

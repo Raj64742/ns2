@@ -76,7 +76,11 @@ public:
   virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *);
 
   virtual int command(int argc, const char*const* argv);
-  
+
+  // Friss free space model, likely to be used by other propagation models.
+  // So moved here from tworayground.cc -Wei Ye
+  double Friss(double Pt, double Gt, double Gr, double lambda, double L, double d);
+
 protected:
   char *name;
   Topography *topo;

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.19 1999/10/09 01:06:38 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.20 2000/07/21 04:56:58 yewei Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -249,12 +249,26 @@ RNG::command(int argc, const char*const* argv)
 		}
 #endif
 	} else if (argc == 4) {
+		if (strcmp(argv[1], "seed") == 0) {
+			int s = atoi(argv[3]);
+			if (strcmp(argv[2], "raw") == 0) {
+				set_seed(RNG::RAW_SEED_SOURCE, s);
+			} else if (strcmp(argv[2], "predef") == 0) {
+				set_seed(RNG::PREDEF_SEED_SOURCE, s);
+				// s is the index in predefined seed array
+				// 0 <= s < 64
+			} else if (strcmp(argv[2], "heuristic") == 0) {
+				set_seed(RNG::HEURISTIC_SEED_SOURCE, 0);
+			}
+			return(TCL_OK);
+		}
 		if (strcmp(argv[1], "normal") == 0) {
 			double avg = strtod(argv[2], NULL);
 			double std = strtod(argv[3], NULL);
 			tcl.resultf("%g", normal(avg, std));
 			return (TCL_OK);
-		} else if (strcmp(argv[1], "lognormal") == 0) {
+		}
+		if (strcmp(argv[1], "lognormal") == 0) {
 			double avg = strtod(argv[2], NULL);
 			double std = strtod(argv[3], NULL);
 			tcl.resultf("%g", lognormal(avg, std));
@@ -295,6 +309,8 @@ RNG::set_seed(RNGSources source, int seed)
 
 	switch (source) {
 	case RAW_SEED_SOURCE:
+		if (seed <= 0 || (unsigned int)seed >= MAXINT)    // Wei Ye
+			abort();
 		// use it as it is
 		break;
 	case PREDEF_SEED_SOURCE:

@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  * 
  propagation.cc
- $Id: propagation.cc,v 1.3 1999/07/02 21:02:07 haoboy Exp $
+ $Id: propagation.cc,v 1.4 2000/07/21 04:56:58 yewei Exp $
 */
 
 #include <stdio.h>
@@ -86,4 +86,18 @@ Propagation::Pr(PacketStamp *, PacketStamp *, WirelessPhy *)
 		name);
 	abort();
 	return 0; // Make msvc happy
+}
+
+double
+Propagation::Friss(double Pt, double Gt, double Gr, double lambda, double L, double d)
+{
+        /*
+         * Friss free space equation:
+         *
+         *       Pt * Gt * Gr * (lambda^2)
+         *   P = --------------------------
+         *       (4 *pi * d)^2 * L
+         */
+  double M = lambda / (4 * PI * d);
+  return (Pt * Gt * Gr * (M * M)) / L;
 }

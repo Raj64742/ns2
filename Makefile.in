@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.187 2000/07/19 21:43:47 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.188 2000/07/21 04:56:58 yewei Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -138,7 +138,7 @@ OBJ_CC = \
 	mac-802_3.o mac-tdma.o \
 	mip.o mip-reg.o gridkeeper.o \
 	propagation.o tworayground.o antenna.o omni-antenna.o \
-	bi-connector.o node.o mobilenode.o \
+	shadowing.o bi-connector.o node.o mobilenode.o \
 	arp.o god.o dem.o topography.o modulation.o priqueue.o \
 	phy.o wired-phy.o wireless-phy.o \
 	mac-timers.o cmu-trace.o varp.o \

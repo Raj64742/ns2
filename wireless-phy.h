@@ -84,11 +84,11 @@ class WirelessPhy : public Phy {
 	//void setnode (MobileNode *node) { node_ = node; }
 	
  protected:
-  double Pt_;			// transmission power consumption (W)
-  double Pr_;                   // reception power consumption (W)
+  double Pt_;			// transmitted signal power (W)
+  double Pt_consume_;		// power consumption for transmission (W)
+  double Pr_consume_;		// power consumption for reception (W)
 
   double P_idle_;               // idle power consumption (W)
-  double Pt_signal_;            // This power defines transmission range !
 
   double channel_idle_time_;    // channel idle time.
   double update_energy_time_;   // the last time we update energy.

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.195 2000/07/20 00:44:10 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.196 2000/07/21 04:56:58 yewei Exp $
 
 #
 
@@ -230,6 +230,7 @@ Simulator instproc adhocRouting  {val} { $self set routingAgent_  $val }
 Simulator instproc llType  {val} { $self set llType_  $val }
 Simulator instproc macType  {val} { $self set macType_  $val }
 Simulator instproc propType  {val} { $self set propType_  $val }
+Simulator instproc propInstance  {val} { $self set propInstance_  $val }
 Simulator instproc ifqType  {val} { $self set ifqType_  $val }
 Simulator instproc ifqLen  {val} { $self set ifqlen_  $val }
 Simulator instproc phyType  {val} { $self set phyType_  $val }
@@ -317,6 +318,11 @@ Simulator instproc node-config args {
         # not good style, for back-compability ONLY
 
 	# Only create 1 instance of prop
+	
+	if {[info exists propType_] && [info exists propInstance_]} {
+	    warn "Both propType and propInstance are set."
+	}
+
 	if {[info exists propType_] && ![info exists propInstance_]} {
             set propInstance_ [new $propType_] 
 	}
@@ -326,7 +332,7 @@ Simulator instproc node-config args {
 	}
 
 	if [info exists topoInstance_] {
-	    $propType_  topography $topoInstance_
+	    $propInstance_  topography $topoInstance_
 	}
 # set address type, hierarchical or expanded
 
