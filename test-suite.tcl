@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.6 1997/05/28 00:57:13 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.7 1997/05/28 17:49:23 tomh Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1046,15 +1046,15 @@ Test/stats instproc printpkts { label tcp } {
 }
 #XXX Still unfinished in ns-2
 Test/stats instproc printdrops { label link } {
-	puts "link $label total_drops [$link stat 0 drops]"
-	puts "link $label total_packets [$link stat 0 packets]"
-	puts "link $label total_bytes [$link stat 0 bytes]"
+	puts "class: $label per-link total_drops [$link stat $label drops]"
+	puts "class: $label per-link total_packets [$link stat $label packets]"
+	puts "class: $label per-link total_bytes [$link stat $label bytes]"
 }
 Test/stats instproc printstop { stoptime } {
 	puts "stop-time $stoptime"
 }
 Test/stats instproc run {} {
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ 
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -1078,8 +1078,10 @@ Test/stats instproc run {} {
 	$self tcpDumpAll $tcp2 5.0 tcp2
 
 	$ns_ at $stoptime "$self printstop $stoptime"
-	$ns_ at $stoptime "$self printpkts 1 $tcp1"
+	$ns_ at $stoptime "$self printpkts 0 $tcp1"
+	$ns_ at $stoptime "$self printpkts 1 $tcp2"
 	#XXX Awaiting completion of link stats
+	#$ns_ at $stoptime "$self printdrops 0 [$ns_ link $node_(r1) $node_(k1)]"
 	#$ns_ at $stoptime "$self printdrops 1 [$ns_ link $node_(r1) $node_(k1)]"
 
 	# trace only the bottleneck link
