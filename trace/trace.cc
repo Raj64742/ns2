@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.13 1997/06/11 04:46:39 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.14 1997/06/16 21:26:51 elan Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -94,6 +94,11 @@ int Trace::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
+		if (strcmp(argv[1], "annotate") == 0) {
+			if (channel_ != 0)
+				annotate(argv[2]);
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "attach") == 0) {
 			int mode;
 			const char* id = argv[2];
@@ -107,6 +112,13 @@ int Trace::command(int argc, const char*const* argv)
 		}
 	}
 	return (Connector::command(argc, argv));
+}
+
+void Trace::annotate(const char* s)
+{
+	sprintf(wrk_, "v %g eval {set sim_annotation {%s}}", 
+		Scheduler::instance().clock(), s);
+	dump();
 }
 
 char* pt_names[] = {
