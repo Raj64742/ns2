@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.h,v 1.9 1998/04/08 20:09:44 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.h,v 1.10 1998/05/06 02:33:25 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_802_11_h
@@ -78,8 +78,7 @@ protected:
 };
 	
 
-class Mac802_11 : public MacCsmaCa
-{
+class Mac802_11 : public MacCsmaCa {
 public:
 	Mac802_11();
 	virtual void recv(Packet* p, Handler* h);

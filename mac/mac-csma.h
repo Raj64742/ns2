@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.h,v 1.13 1998/04/08 20:09:45 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.h,v 1.14 1998/05/06 02:33:25 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_csma_h
@@ -80,15 +80,13 @@ protected:
 };
 
 
-class MacCsmaCd : public MacCsma
-{
+class MacCsmaCd : public MacCsma {
 public:
 	void endofContention(Packet*);
 };
 
 
-class MacCsmaCa : public MacCsma
-{
+class MacCsmaCa : public MacCsma {
 public:
 	virtual void send(Packet*);
 };
