@@ -36,5 +36,8 @@ if test "$host_cpu" = alpha ; then
 	AC_DEFINE(INT_64,u_long)
 fi
 
+dnl AC_CHECK_FUNCS will place -D's in @DEFS@
+AC_CHECK_FUNCS(getrusage sbrk)
+
 NS_FNS_TAIL
 builtin(include, ./conf/configure.in.tail)

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.123 1998/08/25 20:29:00 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.124 1998/09/01 00:02:03 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -54,7 +54,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@ 
+DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \

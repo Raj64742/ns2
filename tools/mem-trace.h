@@ -21,11 +21,18 @@
 
 #include "config.h"
 #include <stdio.h>
-#ifndef WIN32
+
+/* Unix platforms should get these from configure */
+#ifdef WIN32
+#undef HAVE_GETRUSAGE
+#undef HAVE_SBRK
+#endif
+
+#ifdef HAVE_GETRUSAGE
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
-#endif /* WIN32 */
+#endif
 
 /* hpux patch from Ketil Danielsen <Ketil.Danielsen@hiMolde.no> */
 #ifdef hpux
@@ -51,18 +58,21 @@ public:
 		int i;
 		stack_ = (long)&i;
 
-#ifdef WIN32
-		heap_ = 0;
-		utime_.tv_sec = utime_.tv_usec = 0;
-		stime_.tv_sec = stime_.tv_usec = 0;
-#else /* ! WIN32 */
-		heap_ = (long)sbrk(0);
-
+#ifdef HAVE_GETRUSAGE
 		struct rusage ru;
 		getrusage(RUSAGE_SELF, &ru);
 		utime_ = ru.ru_utime;
 		stime_ = ru.ru_stime;
-#endif /* WIN32 */
+#else /* ! HAVE_GETRUSAGE */
+		utime_.tv_sec = utime_.tv_usec = 0;
+		stime_.tv_sec = stime_.tv_usec = 0;
+#endif /* HAVE_GETRUSAGE */
+
+#ifdef HAVE_SBRK
+		heap_ = (long)sbrk(0);
+#else /* ! HAVE_SBRK */
+		heap_ = 0;
+#endif /* HAVE_SBRK */
 	}
 };
 

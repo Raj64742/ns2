@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.17 1998/08/18 23:59:29 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.18 1998/09/01 00:02:06 heideman Exp $
 #
 #
 # set up the packet format for the simulation
@@ -96,6 +96,7 @@ PacketHeaderManager instproc allochdr cl {
 	$self instvar hdrlen_
 	set NS_ALIGN 8
 	# round up to nearest NS_ALIGN bytes
+	# (needed on sparc/solaris)
 	set incr [expr ($size + ($NS_ALIGN-1)) & ~($NS_ALIGN-1)]
 	set base $hdrlen_
 	incr hdrlen_ $incr
