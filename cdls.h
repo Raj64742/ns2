@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.9 1997/08/12 22:38:55 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.10 1997/09/08 22:03:21 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_cdls_h
@@ -81,7 +81,6 @@ protected:
 	int maxq_;		// current size of q_ table
 	int numq_;		// current number of valid queue in q_ table
 	IdPacketQueue** q_;	// table of queues
-	int off_ll_;
 	int off_mac_;
 };
 

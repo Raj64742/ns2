@@ -35,7 +35,6 @@
 
 #include "random.h"
 #include "errmodel.h"
-#include "ll.h"
 #include "mac.h"
 #include "cdls.h"
 
@@ -51,7 +50,6 @@ public:
 
 Cdls::Cdls() : qlen_(0), total_(0), maxq_(4), numq_(0)
 {
-	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
 	q_ = (IdPacketQueue**) malloc(sizeof(IdPacketQueue*) * maxq_);
 }
@@ -101,7 +99,7 @@ Cdls::deque()
 		qlen_--;
 		total_++;
 		if (q->em() && q->em()->corrupt(p))
-			((hdr_ll*)p->access(off_ll_))->error() = 1;
+			((hdr_cmn*)p->access(off_cmn_))->error() = 1;
 	}
 	return p;
 }

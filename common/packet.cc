@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.9 1997/08/29 22:05:16 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.10 1997/09/08 22:03:24 gnguyen Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -109,8 +109,9 @@ public:
 	}
 	void export_offsets() {
 		field_offset("ptype_", OFFSET(hdr_cmn, ptype_));
-		field_offset("uid_", OFFSET(hdr_cmn, uid_));
 		field_offset("size_", OFFSET(hdr_cmn, size_));
+		field_offset("uid_", OFFSET(hdr_cmn, uid_));
+		field_offset("error_", OFFSET(hdr_cmn, error_));
 	};
 } class_cmnhdr;
 

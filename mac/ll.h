@@ -32,7 +32,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.7 1997/08/21 01:10:01 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.8 1997/09/08 22:03:23 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -40,7 +40,6 @@
 
 #include "delay.h"
 
-class ErrorModel;
 class Mac;
 
 enum LLFrameType {
@@ -52,13 +51,10 @@ struct hdr_ll {
 	LLFrameType lltype_;	// link-layer frame type
 	int seqno_;		// sequence number
 	int ack_;		// acknowledgement number
-	int error_;		// error flag
 
-	hdr_ll() : error_(0) {}
 	inline LLFrameType& lltype() { return lltype_; }
 	inline int& seqno() { return seqno_; }
 	inline int& ack() { return ack_; }
-	inline int& error() { return error_; }
 };
 
 

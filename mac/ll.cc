@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.8 1997/08/21 01:09:28 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.9 1997/09/08 22:03:22 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -123,9 +123,7 @@ void
 LL::recvfrom(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
-
-	if (llh->error() > 0)
+	if (((hdr_cmn*)p->access(off_cmn_))->error() > 0)
 		drop(p);
 	else
 		s.schedule(recvtarget_, p, delay_);
@@ -140,7 +138,6 @@ LL::sendto(Packet* p, Handler* h)
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 
 	llh->seqno() = ++seqno_;
-	llh->error() = 0;
 	((hdr_mac*)p->access(off_mac_))->macDA() = peerLL_->mac()->label();
 	((hdr_mac*)p->access(off_mac_))->ftype() = MF_DATA;
 	s.schedule(sendtarget_, p, delay_); // schedule (typically) MAC

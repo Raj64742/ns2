@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.11 1997/09/06 04:39:07 polly Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.12 1997/09/08 22:03:22 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -42,14 +42,14 @@
 #include "ranvar.h"
 
 
-enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME, EU_SPKT };
+enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME };
 #define EU_NAMES "pkt", "bit", "time"
 #define STR2EU(s) (!strcmp(s,"bit") ? EU_BIT : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
 
 
 class ErrorModel : public Connector {
 public:
-	ErrorModel(ErrorUnit eu=EU_PKT);
+	ErrorModel();
 	void recv(Packet*, Handler*);
 	virtual int corrupt(Packet*);
 	inline double rate() { return rate_; }
@@ -59,21 +59,17 @@ protected:
 	ErrorUnit eu_;		// error unit in pkt, bit, or time
 	RandomVariable* ranvar_;
 	double rate_;
-	int off_ll_;
 };
 
+
+/* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {
 public:
-	SelectErrorModel(ErrorUnit eu=EU_SPKT);
-	void recv(Packet*, Handler*);
+	SelectErrorModel();
 	virtual int corrupt(Packet*);
-	inline double rate() { return rate_; }
 
 protected:
 	int command(int argc, const char*const* argv);
-	ErrorUnit eu_;
-        /* For Selective packet drop */
-	double rate_;
         int pkt_type_;
         int drop_cycle_;
 	int drop_offset_;

@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.13 1997/09/08 19:50:14 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.14 1997/09/08 22:03:21 gnguyen Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -46,25 +46,19 @@ static class ErrorModelClass : public TclClass {
 public:
 	ErrorModelClass() : TclClass("ErrorModel") {}
 	TclObject* create(int argc, const char*const* argv) {
-		ErrorUnit eu = EU_PKT;
-		if (argc >= 5)
-			eu = STR2EU(argv[4]);
-		return (new ErrorModel(eu));
+		return (new ErrorModel);
 	}
 } class_errormodel;
 
 static char* eu_names[] = { EU_NAMES };
 
 
-ErrorModel::ErrorModel(ErrorUnit eu) : Connector(), eu_(eu), rate_(0)
+ErrorModel::ErrorModel() : Connector(), eu_(EU_PKT), rate_(0), ranvar_(0)
 {
 	bind("rate_", &rate_);
-	bind("off_ll_", &off_ll_);
 }
 
-
-int 
-ErrorModel::command(int argc, const char*const* argv)
+int ErrorModel::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
@@ -90,29 +84,24 @@ ErrorModel::command(int argc, const char*const* argv)
 	return Connector::command(argc, argv);
 }
 
-
-void
-ErrorModel::recv(Packet* p, Handler*)
+void ErrorModel::recv(Packet* p, Handler*)
 {
-	hdr_ll* llh = (hdr_ll*)p->access(off_ll_);
 	if (corrupt(p)) {
 		if (drop_) {
 			drop_->recv(p);
 			return;
 		}
-		llh->error() |= 1;
+		((hdr_cmn*)p->access(off_cmn_))->error() |= 1;
 	}
 	if (target_)
 		target_->recv(p);
 	// XXX if no target, assume packet is still used by other object
 }
 
-
-int
-ErrorModel::corrupt(Packet* p)
+int ErrorModel::corrupt(Packet* p)
 {
 	hdr_cmn *hdr;
-	double rv = ranvar_->value();
+	double rv = ranvar_ ? ranvar_->value() : Random::uniform();
 
 	switch (eu_) {
 	case EU_PKT:
@@ -135,48 +124,32 @@ public:
 	}
 } class_selecterrormodel;
 
-SelectErrorModel::SelectErrorModel(ErrorUnit eu) : eu_(eu)
+
+SelectErrorModel::SelectErrorModel() : ErrorModel()
 {
-  bind("off_cmn_", &off_cmn_);
 }
 
-
-int 
-SelectErrorModel::command(int argc, const char*const* argv)
+int SelectErrorModel::command(int argc, const char*const* argv)
 {
         int ac = 0;
         if (strcmp(argv[1], "drop-packet") == 0) {
-          pkt_type_ = atoi(argv[2]);
-          drop_cycle_ = atoi(argv[3]);
-	  drop_offset_ = atoi(argv[4]);
-          return TCL_OK;
+		pkt_type_ = atoi(argv[2]);
+		drop_cycle_ = atoi(argv[3]);
+		drop_offset_ = atoi(argv[4]);
+		return TCL_OK;
         }
-        return Connector::command(argc, argv);
+        return ErrorModel::command(argc, argv);
 }
 
-
-int
-SelectErrorModel::corrupt(Packet* p)
+int SelectErrorModel::corrupt(Packet* p)
 {
-  if (eu_ == EU_SPKT) {
-    hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
-    //printf ("may drop packet type %d, uid %d\n", pkt_type_, ch->uid());
-    if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ == drop_offset_) {
-      printf ("drop packet type %d, uid %d\n", pkt_type_, ch->uid());
-      return 1;
-    }
-  }
-  return 0;
-}
-
-void
-SelectErrorModel::recv(Packet* p, Handler*)
-{
-	if (corrupt(p)) {
-		Packet::free(p);
-		return;
+	if (eu_ == EU_PKT) {
+		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+		//printf ("may drop packet type %d, uid %d\n", pkt_type_, ch->uid());
+		if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ == drop_offset_) {
+			printf ("drop packet type %d, uid %d\n", pkt_type_, ch->uid());
+			return 1;
+		}
 	}
-	if (target_)
-		target_->recv(p);
-	// XXX if no target, assume packet is still used by other object
+	return 0;
 }

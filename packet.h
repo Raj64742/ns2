@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.23 1997/08/29 22:05:17 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.24 1997/09/08 22:03:24 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -66,21 +66,23 @@
 
 
 struct hdr_cmn {
-	double	ts_;		// timestamp: for q-delay measurement
 	int	ptype_;		// packet type (see above)
-	int	uid_;		// unique id
 	int	size_;		// simulated packet size
+	int	uid_;		// unique id
+	int	error_;		// error flag
+	double	ts_;		// timestamp: for q-delay measurement
 	int	iface_;		// receiving interface (label)
 
 	static int offset_;	// offset for this header
-	int& offset() { return offset_; }
+	inline int& offset() { return offset_; }
 
 	/* per-field member functions */
-	int& ptype() { return (ptype_); }
-	int& uid() { return (uid_); }
-	int& size() { return (size_); }
-	int& iface() { return (iface_); }
-	double& timestamp() { return (ts_); }
+	inline int& ptype() { return (ptype_); }
+	inline int& size() { return (size_); }
+	inline int& uid() { return (uid_); }
+	inline int& error() { return error_; }
+	inline double& timestamp() { return (ts_); }
+	inline int& iface() { return (iface_); }
 };
 
 
