@@ -66,7 +66,7 @@ RouteLogic/Algorithmic instproc BFS {} {
     set traversed($root_) 1
     set queue "$root_"
 
-    while [llength $queue] {
+    while {[llength $queue] > 0} {
 	puts "queue: $queue, queue-length: [llength $queue]"
 	set parent [lindex $queue 0]
 	set queue [lreplace $queue 0 0]
@@ -90,7 +90,7 @@ RouteLogic/Algorithmic instproc BFS {} {
 	if {$rank_ < $num_children} {
 	    set rank_ $num_children
 	}
-	puts "rank: $rank_, queue: $queue"
+	puts "rank: $rank_, queue: $queue, queue-length: [llength $queue]"
     }
 }
 
@@ -98,7 +98,7 @@ RouteLogic/Algorithmic instproc compute {} {
     $self instvar root_ children_ rank_ id_ algoAdd_
 
     # set queue "$root_"
-    # while [llength $queue] {
+    # while {[llength $queue] > 0} {
 	# set parent [lindex $queue 0]
 	# set queue [lreplace $queue 0 0]
 	# puts "$parent: $children_($parent)"
@@ -109,7 +109,7 @@ RouteLogic/Algorithmic instproc compute {} {
 
     set queue [list [list $root_ 0]]
 
-    while [llength $queue] {
+    while {[llength $queue] > 0} {
 #	puts $queue
 	set parent [lindex $queue 0]
 	set queue [lreplace $queue 0 0]
