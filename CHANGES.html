@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.531 2002/07/16 22:36:18 yuri Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.532 2002/07/17 18:26:38 buchheim Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -100,16 +100,8 @@ Thu Jun  6 15:44:17 PDT 2002
 Added Fred Stann's fix to macc-802.11 that now allows random slot selection in the contention window everytime a data brdcast pkt or an RTS is sent out to the network.
 
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
-Tue Jun  4 16:22:13 PDT 2002
-Made changes to allow non-stl builds of ns. All stl specific tcl code has been moved under respective files and they get sourced (or not) from ns-lib.tcl as opposed to from the Makefile as before.
-
-<p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Wed May 29 15:00:03 PDT 2002
 Added GEAR into diffusion. added tcl wrappers for gear.
-
-<p><li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Wed May 22 11:51:40 PDT 2002
-</b></li>
-     <p> Added autoconf detection of STL namespace (ported from lavaps :-).
 
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Tue May 14 14:01:21 PDT 2002
@@ -131,10 +123,29 @@ Merged another round of changes of diffusion (3.1.0) into ns. Dir locations have
 Tue Apr 30 10:25:20 PDT 2002.
 Added configurable parameter "mark_p_" to Queue/RED to control the
 decision of whether a selected packet is to be marked or dropped.  When
-p < mark_p, the selected packet is marked if ECN is being used.
-When p > mark_p, the selected packet is dropped instead of marked, whether 
+p &lt; mark_p, the selected packet is marked if ECN is being used.
+When p &gt; mark_p, the selected packet is dropped instead of marked, whether 
 or not ECN is being used.  By default, mark_p_ is set to 0.1, and with 
 this setting, the behavior of the validation tests is unchanged.
+</ul>
+
+<hr>
+<h3>
+<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b9a.tar.gz">ns-2.1b9a</a> released on Wed Jul  3 18:00:00 PDT 2002</h3>
+
+<ul>
+<li><p><b><a href="http://www.isi.edu/~buchheim/">[Tim Buchheim]</a></b>
+Wed Jul  3 18:00:00 PDT 2002<br>
+Many fixes to allow compilation on Windows</p>
+<li><p><b><a href="http://www.isi.edu/~buchheim/">[Tim Buchheim]</a></b>
+Wed Jul  3 18:00:00 PDT 2002<br>
+Fixes for compiling on FreeBSD, Solaris, SUSE Linux</p>
+<li><p><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
+Tue Jun  4 16:22:13 PDT 2002<br>
+Made changes to allow non-STL builds of ns. All STL specific tcl code has been moved under respective files and they get sourced (or not) from ns-lib.tcl as opposed to from the Makefile as before.</p>
+<li><p><b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b>
+Wed May 22 11:51:40 PDT 2002<br>
+Added autoconf detection of STL namespace (ported from lavaps :-).</p>
 </ul>
 
 <hr>
