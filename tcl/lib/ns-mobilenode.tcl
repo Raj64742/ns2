@@ -61,15 +61,20 @@ ARPTable set off_arp_           0
 
 
 Node/MobileNode instproc init args {
-	eval $self next $args		;# parent class constructor
+    $self instvar nifs_ arptable_
+    $self instvar netif_ mac_ ifq_ ll_
+    $self instvar X_ Y_ Z_
+    $self instvar address_
 
-	$self instvar nifs_ arptable_
-	$self instvar netif_ mac_ ifq_ ll_
-	$self instvar X_ Y_ Z_
-
-	set X_ 0.0
-	set Y_ 0.0
-	set Z_ 0.0
+    if {[llength $args] != 0} {
+	set address_ $args
+	set args [lreplace $args 0 1]
+    }
+    eval $self next $args		;# parent class constructor
+    
+    set X_ 0.0
+    set Y_ 0.0
+    set Z_ 0.0
 
 #	set netif_	""		;# network interfaces
 #	set mac_	""		;# MAC layers
@@ -98,20 +103,6 @@ Node/MobileNode instproc reset {} {
 }
 
 
-## replaced by base class Node methods
-
-#Node/MobileNode instproc alloc-port {} {
-#	$self instvar nports_ 
-#	set p $nports_
-#	incr nports_ 
-#	return $p
-#} 
-
-#Node/MobileNode instproc entry {} {
-#        $self instvar classifier_
-#        return $classifier_
-#}
-
 
 #
 # Attach an agent to a node.  Pick a port and
@@ -121,7 +112,7 @@ Node/MobileNode instproc reset {} {
 Node/MobileNode instproc add-target {agent port } {
     
     global RouterTrace AgentTrace
-    $self instvar dmux_
+    $self instvar dmux_ classifier_
     
     $agent set sport_ $port
     
@@ -139,7 +130,7 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    set rcvT [cmu-trace Recv "RTR" $self]
 	    $rcvT target $agent
-	    [$self set classifier_] defaulttarget $rcvT
+	    $classifier_ defaulttarget $rcvT
 	    $dmux_ install $port $rcvT
 	    
 	} else {
@@ -151,7 +142,7 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    # Recv Target
 	    #
-	    [$self set classifier_] defaulttarget $agent
+	    $classifier_ defaulttarget $agent
 	    $dmux_ install $port $agent
 	}
 	
@@ -221,8 +212,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	#
 	if { $arptable_ == "" } {
             set arptable_ [new ARPTable $self $mac]
-            #set drpT [cmu-trace Drop "IFQ" $self]
-            #$arptable_ drop-target $drpT
+            set drpT [cmu-trace Drop "IFQ" $self]
+            $arptable_ drop-target $drpT
         }
 
 	#
@@ -238,8 +229,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	#
 	$ifq target $mac
 	$ifq set qlim_ $qlen
-	#set drpT [cmu-trace Drop "IFQ" $self]
-	#$ifq drop-target $drpT
+	set drpT [cmu-trace Drop "IFQ" $self]
+	$ifq drop-target $drpT
 
 	#
 	# Mac Layer
@@ -265,37 +256,37 @@ Node/MobileNode instproc add-interface { channel pmodel \
 
 	# ============================================================
 
-	#if { $MacTrace == "ON" } {
-		#
-		# Trace RTS/CTS/ACK Packets
-		#
-		#set rcvT [cmu-trace Recv "MAC" $self]
-		#$mac log-target $rcvT
+	if { $MacTrace == "ON" } {
+	    #
+	    # Trace RTS/CTS/ACK Packets
+	    #
+	    set rcvT [cmu-trace Recv "MAC" $self]
+	    $mac log-target $rcvT
 
 
-		#
-		# Trace Sent Packets
-		#
-		#set sndT [cmu-trace Send "MAC" $self]
-		#$sndT target [$mac sendtarget]
-		#$mac sendtarget $sndT
+	    #
+	    # Trace Sent Packets
+	    #
+	    set sndT [cmu-trace Send "MAC" $self]
+	    $sndT target [$mac sendtarget]
+	    $mac sendtarget $sndT
 
-		#
-		# Trace Received Packets
-		#
-		#set rcvT [cmu-trace Recv "MAC" $self]
-		#$rcvT target [$mac recvtarget]
-		#$mac recvtarget $rcvT
+	    #
+	    # Trace Received Packets
+	    #
+	    set rcvT [cmu-trace Recv "MAC" $self]
+	    $rcvT target [$mac recvtarget]
+	    $mac recvtarget $rcvT
 
-		#
-		# Trace Dropped Packets
-		#
-		#set drpT [cmu-trace Drop "MAC" $self]
-		#$mac drop-target $drpT
-	#} else {
-		$mac log-target [$ns_ set nullAgent_]
-		$mac drop-target [$ns_ set nullAgent_]
-	#}
+	    #
+	    # Trace Dropped Packets
+	    #
+	    set drpT [cmu-trace Drop "MAC" $self]
+	    $mac drop-target $drpT
+	} else {
+	    $mac log-target [$ns_ set nullAgent_]
+	    $mac drop-target [$ns_ set nullAgent_]
+	}
 
 	# ============================================================
 

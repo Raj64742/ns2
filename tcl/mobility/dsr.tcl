@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.6 1999/04/14 01:12:40 haldar Exp $
+# $Id: dsr.tcl,v 1.7 1999/04/22 18:54:03 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -80,16 +80,18 @@ SRNode instproc init {args} {
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
 		#
-		if [Simulator set EnableHierRt_] {
-			$self add-hroute $address_ $dmux_
-		} else {
-			$self add-route $address_ $dmux_
-		}
+		#if [Simulator set EnableHierRt_] {
+		    #$self add-hroute $address_ $dmux_
+		#} else {
+		    #$self add-route $address_ $dmux_
+		#}
 	}
 	# puts "making dsragent for node [$self id]"
 	set dsr_agent_ [new Agent/DSRAgent]
 	# setup address (supports hier-address) for dsragent
+
 	$dsr_agent_ addr $address_
+	$dsr_agent_ node $self
 	# set up IP address
 	$self addr $address_
 	
@@ -183,11 +185,14 @@ SRNode instproc reset args {
 
 # ======================================================================
 
-proc dsr-create-mobile-node { id } {
+proc dsr-create-mobile-node { id args } {
 	global ns_ chan prop topo tracefd opt node_
 	set ns_ [Simulator instance] 
-	set node_($id) [new SRNode]
-
+        if {[Simulator set EnableHierRt_]} {
+	    set node_($id) [new SRNode $args]
+	} else {
+	    set node_($id) [new SRNode]
+	}
 	set node $node_($id)
 	$node random-motion 0		;# disable random motion
 	$node topography $topo
@@ -207,6 +212,7 @@ proc dsr-create-mobile-node { id } {
 	$node log-target $T
 
         $ns_ at 0.0 "$node start-dsr"
+	return $node
 }
 
 

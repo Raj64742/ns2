@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.h -*- c++ -*-
-   $Id: dsdv.h,v 1.3 1999/03/13 03:53:14 haoboy Exp $
+   $Id: dsdv.h,v 1.4 1999/04/22 18:53:45 haldar Exp $
 
    */
 
@@ -95,6 +95,7 @@ protected:
   void processUpdate (Packet * p);
   void forwardPacket (Packet * p);
   void startUp();
+  int diff_subnet(int dst);
   
   // update old_rte in routing table to to new_rte
   Trace *tracetarget;       // Trace Target
@@ -104,6 +105,14 @@ protected:
   PriQueue *ll_queue;       // link level output queue
   int seqno_;               // Sequence number to advertise with...
   int myaddr_;              // My address...
+  
+  // Extensions for mixed type simulations using wired and wireless
+  // nodes
+  char *subnet_;            // My subnet
+  MobileNode *node_;        // My node
+  // for debugging
+  char *address;
+
   Event *periodic_callback_;           // notify for periodic update
   
   // Randomness/MAC/logging parameters

@@ -35,7 +35,7 @@
 
 /* -*- c++ -*- 
    routecache.h
-   $Id: routecache.h,v 1.4 1999/04/10 00:10:50 haldar Exp $
+   $Id: routecache.h,v 1.5 1999/04/22 18:53:49 haldar Exp $
 
    Interface all route caches must support
 
@@ -55,8 +55,7 @@ extern "C" {
 
 #ifdef DSR_CACHE_STATS
 class RouteCache;
-#include "cache_stats.h"
-
+#include <dsr/cache_stats.h>
 #endif
 
 class RouteCache : public TclObject {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.52 1999/03/02 02:00:35 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.53 1999/04/22 18:53:59 haldar Exp $
 #
 
 # for MobileIP
@@ -61,13 +61,22 @@ Node instproc init args {
 	$self mk-default-classifier
 }
 
+
+## splitting up address str: used by other non-hier classes
+Node instproc split-addrstr addrstr {
+	set L [split $addrstr .]
+	return $L
+}
+
 Node instproc mk-default-classifier {} {
-	$self instvar address_ classifier_ id_
-	set classifier_ [new Classifier/Addr]
-	# set up classifer as a router (default value 8 bit of addr and 8 bit port)
-	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
-	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
-	set address_ $id_
+    $self instvar address_ classifier_ id_
+    set classifier_ [new Classifier/Addr]
+    # set up classifer as a router (default value 8 bit of addr and 8 bit port)
+    $classifier_ set mask_ [AddrParams set NodeMask_(1)]
+    $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+    if ![info exists address_] {
+	    set address_ $id_
+	}
 }
 
 Node instproc enable-mcast sim {
@@ -131,6 +140,7 @@ Node instproc add-route { dst target } {
 	$self incr-rtgtable-size
 }
 
+
 Node instproc id {} {
 	$self instvar id_
 	return $id_
@@ -160,13 +170,13 @@ Node instproc alloc-port { nullagent } {
 #
 Node instproc attach { agent { port "" } } {
 
-	$self instvar agents_ address_ dmux_
+	$self instvar agents_ address_ dmux_ classifier_
+	$self instvar classifiers_
 	#
 	# assign port number (i.e., this agent receives
 	# traffic addressed to this host and port)
 	#
 	lappend agents_ $agent
-	
 	#
 	# Check if number of agents exceeds length of port-address-field size
 	#
@@ -188,6 +198,13 @@ Node instproc attach { agent { port "" } } {
 
 	$agent set node_ $self
 	
+	if [Simulator set EnableHierRt_] {
+	    set nodeaddr [AddrParams set-hieraddr $address_]
+	    
+	} else {
+	    set nodeaddr [expr ( $address_ & [AddrParams set NodeMask_(1)] ) <<	[AddrParams set NodeShift_(1) ]]
+	}
+	
 	#
 	# If a port demuxer doesn't exist, create it.
 	#
@@ -201,11 +218,11 @@ Node instproc attach { agent { port "" } } {
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
 		#
-		if [Simulator set EnableHierRt_] {
-			$self add-hroute $address_ $dmux_
-		} else {
-			$self add-route $address_ $dmux_
-		}
+	    if {[Simulator set EnableHierRt_]} {
+		$self add-hroute $address_ $dmux_
+	    } else {
+		$self add-route $address_ $dmux_
+	    }
 	}
 	if {$port == ""} {
 		set ns_ [Simulator instance]
@@ -214,14 +231,7 @@ Node instproc attach { agent { port "" } } {
 	}
 	$agent set portID_ $port
 	
-	if [Simulator set EnableHierRt_] {
-		set nodeaddr [AddrParams set-hieraddr $address_]
-		
-	} else {
-		set nodeaddr [expr ( $address_ &			\
-				[AddrParams set NodeMask_(1)] ) <<	\
-					[AddrParams set NodeShift_(1) ]]
-	}
+	
 	$agent set addr_ [expr (($port & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
 	
 	$self add-target $agent $port

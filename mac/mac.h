@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.28 1999/03/13 03:52:53 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.29 1999/04/22 18:53:39 haldar Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -187,15 +187,16 @@ public:
 	inline MacState state(int m) { return state_ = (MacState) m; }        // inline Mac*& macList() { return macList_; }
 	
         //mac methods to set dst, src and hdt_type in pkt hdrs.
-	virtual inline int hdr_dst(char* hdr, int dst = 0) {
+	// note: -1 is the broadcast mac addr.
+	virtual inline int hdr_dst(char* hdr, int dst = -2) {
 		struct hdr_mac *dh = (struct hdr_mac*) hdr;
-		if(dst)
+		if(dst > -2)
 			dh->macDA_ = dst;
 		return dh->macDA();
 	}
-	virtual inline int hdr_src(char* hdr, int src = 0) {
+	virtual inline int hdr_src(char* hdr, int src = -2) {
 		struct hdr_mac *dh = (struct hdr_mac*) hdr;
-		if(src)
+		if(src > -2)
 			dh->macSA_ = src;
 		return dh->macSA();
 	}

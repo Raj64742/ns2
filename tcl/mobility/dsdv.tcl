@@ -73,7 +73,7 @@ Agent/DSDV instproc init args {
 
 # ======================================================================
 
-proc create-routing-agent { node id } {
+proc create-dsdv-routing-agent { node id } {
     global ns_ ragent_ tracefd opt
 
     #
@@ -83,10 +83,15 @@ proc create-routing-agent { node id } {
     set ragent_($id) [new $opt(ragent)]
     set ragent $ragent_($id)
 
-    ## setup address (supports hier-addr) for dsdv agent and mobilenode
+    ## setup address (supports hier-addr) for dsdv agent 
+    ## and mobilenode
     set addr [$node node-addr]
+    
     $ragent addr $addr
+    $ragent node $node
+
     $node addr $addr
+    $node set ragent_ $ragent
     
     $node attach $ragent 255
 
@@ -114,13 +119,16 @@ proc create-routing-agent { node id } {
 }
 
 
-proc dsdv-create-mobile-node { id } {
+proc dsdv-create-mobile-node { id args } {
 	global ns ns_ chan prop topo tracefd opt node_
 	global chan prop tracefd topo opt
-	
-	set ns_ [Simulator instance]
-	set node_($id) [new Node/MobileNode]
-
+        
+        set ns_ [Simulator instance]
+	if {[Simulator set EnableHierRt_]} {
+	   set node_($id) [new Node/MobileNode/BaseStationNode $args]
+	} else {
+	   set node_($id) [new Node/MobileNode]
+	}
 	set node $node_($id)
 	$node random-motion 0		;# disable random motion
 	$node topography $topo
@@ -141,7 +149,7 @@ proc dsdv-create-mobile-node { id } {
 	#
 	# Create a Routing Agent for the Node
 	#
-	create-routing-agent $node $id
+	create-$opt(rp)-routing-agent $node $id
 
 	# ============================================================
 
@@ -160,7 +168,9 @@ proc dsdv-create-mobile-node { id } {
 
 		$ns_ at 0.0 "$node_($id) start"
 	}
+	return $node
 }
+
 
 
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.36 1999/04/10 00:10:35 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.37 1999/04/22 18:53:38 haldar Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -168,7 +168,7 @@ void LL::sendDown(Packet* p)
 	//nsaddr_t dst = ih->dst();
 	hdr_ll *llh = HDR_LL(p);
 	char *mh = (char*)p->access(hdr_mac::offset_);
-
+	
 	llh->seqno_ = ++seqno_;
 	llh->lltype() = LL_DATA;
 
@@ -187,8 +187,9 @@ void LL::sendDown(Packet* p)
 		/* FALL THROUGH */
 		
 	case AF_NONE:
+		
 		if (IP_BROADCAST == (u_int32_t) dst)
-			{
+		{
 			mac_->hdr_dst((char*) HDR_MAC(p), MAC_BROADCAST);
 			break;
 		}
@@ -197,9 +198,15 @@ void LL::sendDown(Packet* p)
 			tx = arptable_->arpresolve(dst, p, this);
 			break;
 		}
+		if (varp_) {
+			tx = varp_->arpresolve(dst, p);
+			break;
+			
+		}			
 		/* FALL THROUGH */
 
 	default:
+		
 		int IPnh = (lanrouter_) ? lanrouter_->next_hop(p) : -1;
 		if (IPnh < 0)
 			mac_->hdr_dst((char*) HDR_MAC(p),macDA_);
@@ -221,6 +228,7 @@ void LL::sendDown(Packet* p)
 
 void LL::sendUp(Packet* p)
 {
+
 	Scheduler& s = Scheduler::instance();
 	if (hdr_cmn::access(p)->error() > 0)
 		drop(p);

@@ -64,8 +64,7 @@ void VARPTable::sizeinit(int n)
 	
 	if (size_ == 0)
 		size_ = 10;
-	else 
-		while(!(n < size_))
+	while(!(n < size_))
 			size_ = 2*size_;
 	maddr_ = new int[size_];
 	for (i=0;i<osize;i++)

@@ -259,8 +259,8 @@ class Mac802_11 : public Mac {
 public:
 	Mac802_11(PHY_MIB* p, MAC_MIB *m);
 	void		recv(Packet *p, Handler *h);
-	inline int	hdr_dst(char* hdr, int dst = 0);
-	inline int	hdr_src(char* hdr, int src = 0);
+	inline int	hdr_dst(char* hdr, int dst = -2);
+	inline int	hdr_src(char* hdr, int src = -2);
 	inline int	hdr_type(char* hdr, u_int16_t type = 0);
 
 protected:

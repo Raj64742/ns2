@@ -116,7 +116,7 @@ MobileNode::MobileNode(void) : Node(), pos_handle(this)
 
         // address_ = MobileNodeIndex++;
 	random_motion_ = 0;
-
+	base_stn_ = 0;
 	T = 0;
 
 	position_update_interval = POSITION_UPDATE_INTERVAL;
@@ -184,6 +184,12 @@ MobileNode::command(int argc, const char*const* argv)
 				return TCL_ERROR;
 			return TCL_OK;
 		}
+		else if (strcmp(argv[1],"base-station") == 0) {
+			base_stn_ = (MobileNode*) TclObject::lookup(argv[2]);
+			if(base_stn_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		} 
 	} else if (argc == 5) {
 	  if (strcmp(argv[1], "setdest") == 0)
 	    { /* <mobilenode> setdest <X> <Y> <speed> */

@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.7 1999/04/10 00:10:47 haldar Exp $
+   $Id: dsragent.cc,v 1.8 1999/04/22 18:53:46 haldar Exp $
 */
 
 #include <assert.h>
@@ -59,6 +59,7 @@
 #include <ll.h>
 #include <cmu-trace.h>
 #include <address.h>
+#include <mobilenode.h>
 
 #include "path.h"
 #include "srpacket.h"
@@ -443,7 +444,12 @@ DSRAgent::command(int argc, const char*const* argv)
 	  m->installTap(this);
 	  return TCL_OK;
 	}
-
+      else if (strcasecmp(argv[1], "node") == 0)
+	{
+	   node_ = (MobileNode *) obj;
+	   return TCL_OK;
+	}
+      
     }
   else if (argc == 4)
     {
@@ -468,6 +474,27 @@ DSRAgent::command(int argc, const char*const* argv)
 
     }
   return Agent::command(argc, argv);
+}
+
+int
+DSRAgent::diff_subnet(ID dest, ID myid) 
+{
+	int dst = dest.addr;
+	int id = myid.addr;
+	char* dstnet = Address::instance().get_subnetaddr(dst);
+	char * subnet = Address::instance().get_subnetaddr(id);
+	if (subnet != NULL) {
+		if (dstnet != NULL) {
+			if (strcmp(dstnet, subnet) != 0) {
+				delete [] dstnet;
+				return 1;
+			}
+			delete [] dstnet;
+		}
+		delete [] subnet;
+	}
+	assert(dstnet == NULL);
+	return 0;
 }
 
 void
@@ -515,7 +542,14 @@ DSRAgent::recv(Packet* packet, Handler*)
 
   if (srh->route_request())
     { // propagate a route_request that's not for us
-      handleRouteRequest(p);
+      // DISABLE:drop rte-req if from outside subnet
+	    // if (diff_subnet(p.src,net_id)) {
+//  		    // from outside our subnet, drop pkt
+// 		    Packet::free(p.pkt);
+//  		    p.pkt = 0;
+//  		    return;
+//  	    }
+	    handleRouteRequest(p);
     }
   else
     { // we're not the intended final recpt, but we're a hop
@@ -545,20 +579,29 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
      this should be a retry if the packet is already in the sendbuffer */
 {
   hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+  
   assert(srh->valid());
-
   if (p.dest == net_id)
     { // it doesn't need a source route, 'cause it's for us
       handlePacketReceipt(p);
       return;
     }
 
-  if (route_cache->findRoute(p.dest, p.route, 1))
+  // Extensions for wired cum wireless simulation mode
+  //if pkt dst outside my subnet, route to base_stn
+
+  ID dest;
+  if (diff_subnet(p.dest,net_id)) 
+ 	  dest = ID(node_->base_stn()->address(),::IP);
+  else
+	  dest = p.dest;
+
+  if (route_cache->findRoute(dest, p.route, 1))
     { // we've got a route...
       if (verbose)
 	trace("S$hit %.5f _%s_ %s -> %s %s",
 	      Scheduler::instance().clock(), net_id.dump(),
-	      p.src.dump(), p.dest.dump(), p.route.dump());      
+	      p.src.dump(), dest.dump(), p.route.dump());      
       sendOutPacketWithRoute(p, true);
       return;
     } // end if we have a route
@@ -569,7 +612,7 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
 	      Scheduler::instance().clock(), net_id.dump(), 
 	      net_id.dump(), p.dest.dump());
 
-      getRouteForPacket(p, retry);
+      getRouteForPacket(p, dest, retry);
       return;
     } // end of we don't have a route
 }
@@ -598,25 +641,27 @@ DSRAgent::handlePacketReceipt(SRPacket& p)
 	  return;
 	}
       else
-	{ // we're going to process this request now, so record the req_num
+	{ 
 	  request_table.insert(p.src, p.src, srh->rtreq_seq());
 	  returnSrcRouteToRequestor(p);
 	}
+      
     }
-
   if (srh->route_error())
     { // register the dead route      
-      processBrokenRouteError(p);
+	    processBrokenRouteError(p);
     }
 
   /* give the data in the packet to our higher layer (our port dmuxer, most 
    likely) */
   assert(p.dest == net_id || p.dest == MAC_id);
   // set pkt address format as the dmux expects 
-  int mask = Address::instance().portmask();
-  int shift = Address::instance().portshift();
-  iph->dst() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & \
-						   iph->dst());
+  
+  if (iph->dport() == 255) {
+	  int mask = Address::instance().portmask();
+	  int shift = Address::instance().portshift();  
+	  iph->dst() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & iph->dst());
+  }
   target_->recv(p.pkt, (Handler*)0);
   p.pkt = 0;
 }
@@ -680,7 +725,7 @@ DSRAgent::handleRouteRequest(SRPacket &p)
       p.pkt = 0;
       return; // drop silently
     }
-
+  
   // we're going to process this request now, so record the req_num
   request_table.insert(p.src, p.src, srh->rtreq_seq());
 
@@ -694,7 +739,7 @@ DSRAgent::handleRouteRequest(SRPacket &p)
       - otherwise, just propagate if possible. */
   if ((srh->max_propagation() == 0 || dsragent_reply_from_cache_on_propagating)
       && replyFromRouteCache(p))
-    return;			// all done
+	  return;			// all done
 
   // does the orginator want us to propagate?
   if (p.route.length() > srh->max_propagation())
@@ -845,9 +890,9 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   p.pkt = allocpkt();
 
   hdr_ip *iph =  (hdr_ip*)p.pkt->access(off_ip_);
-  iph->src() = p.src.addr << Address::instance().nodeshift();
+  iph->src() = Address::instance().create_ipaddr(p.src.addr,0);
   iph->sport() = RT_PORT;
-  iph->dst() = p.dest.addr << Address::instance().nodeshift();
+  iph->dst() = Address::instance().create_ipaddr(p.dest.addr,0);
   iph->dport() = RT_PORT;
   iph->ttl() = 255;
 
@@ -888,7 +933,12 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
   assert(srh->valid());
   assert(cmnh->size() > 0);
 
-  if (p.dest == net_id)
+  ID dest;
+  if (diff_subnet(p.dest,net_id)) 
+	  dest = ID(node_->base_stn()->address(),::IP);
+  else
+	  dest = p.dest;
+  if (dest == net_id)
     { // it doesn't need to go on the wire, 'cause it's for us
       recv(p.pkt, (Handler *) 0);
       p.pkt = 0;
@@ -920,8 +970,8 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
     { // forward according to source route
       cmnh->xmit_failure_ = XmitFailureCallback;
       cmnh->xmit_failure_data_ = (void *) this;
-
       cmnh->next_hop() = srh->get_next_addr();
+      
       cmnh->addr_type() = srh->get_next_type();
       srh->cur_addr() = srh->cur_addr() + 1;
     }
@@ -950,7 +1000,7 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
 }
 
 void
-DSRAgent::getRouteForPacket(SRPacket &p, bool retry)
+DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   /* try to obtain a route for packet
      pkt is freed or handed off as needed, unless retry == true
      in which case it is not touched */
@@ -958,7 +1008,8 @@ DSRAgent::getRouteForPacket(SRPacket &p, bool retry)
   // since we'll commonly be only one hop away, we should
   // arp first before route discovery as an optimization...
 
-  Entry *e = request_table.getEntry(p.dest);
+
+  Entry *e = request_table.getEntry(dest);
   Time time = Scheduler::instance().clock();
   
   /* for now, no piggybacking at all, queue all pkts */
@@ -981,9 +1032,9 @@ DSRAgent::getRouteForPacket(SRPacket &p, bool retry)
   hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
-  iph->dst() = (p.dest.getNSAddr_t()) << Address::instance().nodeshift();
+  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),0);
   iph->dport() = RT_PORT;
-  iph->src() = (net_id.getNSAddr_t()) << Address::instance().nodeshift();
+  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),0);
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_;
@@ -992,17 +1043,17 @@ DSRAgent::getRouteForPacket(SRPacket &p, bool retry)
 
   /* make the route request packet */
   SRPacket rrp;
-  rrp.dest = p.dest;
+  rrp.dest = dest;
   rrp.src = net_id;
   rrp.pkt = allocpkt();
   hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
-  iph->dst() = (p.dest.getNSAddr_t()) << \
-	  Address::instance().nodeshift();
+  
+  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),0);
+  
   iph->dport() = RT_PORT;
-  iph->src() = (net_id.getNSAddr_t()) << \
-	  Address::instance().nodeshift();
+  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),0);
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_ + IP_HDR_LEN; // add in IP header
@@ -1080,6 +1131,97 @@ DSRAgent::sendOutRtReq(SRPacket &p, int max_prop)
   sendOutPacketWithRoute(p, false);
 }
 
+// XXX not used currently
+void
+DSRAgent::handleRteRequestForOutsideDomain(SRPacket& p)
+{
+   /* process a route request for a outside-domain dst*/
+   hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+   assert (srh->route_request());
+   
+   if (dsragent_reply_only_to_first_rtreq  && ignoreRouteRequestp(p)) 
+	{ //we only respond to the first route request
+	  // we receive from a host 
+	  Packet::free(p.pkt);     // drop silently
+	  p.pkt = 0;
+	  return;
+	}
+   else
+	{ // we're going to process this request now, so record the req_num
+	  request_table.insert(p.src, p.src, srh->rtreq_seq());
+	  returnSrcRteForOutsideDomainToRequestor(p);
+	}
+
+   if (srh->route_error())
+	{ // register the dead route      
+	   processBrokenRouteError(p);
+	}
+}
+
+// XXX not used currently
+void
+DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
+{
+  // take the route in p, add us and the destination outside subnet
+  // to the end of it and return the route to the sender of p
+  // doesn't free p.pkt
+
+  hdr_sr *old_srh = (hdr_sr*)p.pkt->access(off_sr_);
+  if (p.route.full()) 
+       return; // alas, the route would be to long once we add ourselves
+  
+  SRPacket p_copy = p;
+  p_copy.pkt = allocpkt();
+  //p_copy.dest = p.src;
+  //p_copy.src = ID(old_srh->req_dest(),::IP);
+
+  p_copy.route.appendToPath(net_id);
+  p_copy.route.appendToPath(p_copy.src);
+  
+  hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
+  new_iph->dport() = RT_PORT;
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
+  new_iph->sport() = RT_PORT;
+  new_iph->ttl() = 255;
+
+  hdr_sr *new_srh =  (hdr_sr*)p_copy.pkt->access(off_sr_);
+  new_srh->init();
+  for (int i = 0 ; i < p_copy.route.length() ; i++)
+    p_copy.route[i].fillSRAddr(new_srh->reply_addrs()[i]);
+  new_srh->route_reply_len() = p_copy.route.length();
+  new_srh->route_reply() = 1;
+
+  // propagate the request sequence number in the reply for analysis purposes
+  new_srh->rtreq_seq() = old_srh->rtreq_seq();
+
+  hdr_cmn *new_cmnh =  (hdr_cmn*)p_copy.pkt->access(off_cmn_);
+  new_cmnh->ptype() = PT_DSR;
+  new_cmnh->size() = IP_HDR_LEN;
+
+  trace("SRR %.9f _%s_ reply-sent %s -> %s #%d (len %d) %s",
+	Scheduler::instance().clock(), net_id.dump(),
+	p_copy.src.dump(), p_copy.dest.dump(), old_srh->rtreq_seq(),
+	p_copy.route.length(), p_copy.route.dump());
+
+  // flip the route around for the return to the requestor, and 
+  // cache the route for future use
+  p_copy.route.reverseInPlace();
+  route_cache->addRoute(p_copy.route, Scheduler::instance().clock(), net_id);
+
+  p_copy.route.resetIterator();
+  p_copy.route.fillSR(new_srh);
+  new_cmnh->size() += new_srh->size();
+  
+  /* we now want to jitter when we first originate route replies, since
+     they are a transmission we make in response to a broadcast packet 
+     -dam 4/23/98
+     sendOutPacketWithRoute(p_copy, true); */
+  Scheduler::instance().schedule(this, p_copy.pkt, Random::uniform(RREQ_JITTER));
+}
+
+
+
 void
 DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   // take the route in p, add us to the end of it and return the
@@ -1099,9 +1241,9 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   p_copy.route.appendToPath(net_id);
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
   new_iph->dport() = RT_PORT;
-  new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1159,6 +1301,7 @@ DSRAgent::acceptRouteReply(SRPacket &p)
   /* check to see if this reply is valid or not using god info */
   int i;
   bool good_reply = true;
+#ifdef USE_GOD_FEEDBACK
   for (i = 0; i < reply_route.length()-1 ; i++) 
     if (God::instance()->hops(reply_route[i].getNSAddr_t(), 
 			      reply_route[i+1].getNSAddr_t()) != 1)
@@ -1166,7 +1309,7 @@ DSRAgent::acceptRouteReply(SRPacket &p)
 	good_reply = false;
 	break;
       }
-
+#endif
   trace("SRR %.9f _%s_ reply-received %d from %s  %s #%d -> %s %s",
 	Scheduler::instance().clock(), net_id.dump(),
 	good_reply ? 1 : 0,
@@ -1185,11 +1328,17 @@ DSRAgent::acceptRouteReply(SRPacket &p)
   // see if the addtion of this route allows us to send out
   // any of the packets we have waiting
   Time delay = 0.0;
+  ID dest;
   for (int c = 0; c < SEND_BUF_SIZE; c++)
     {
       if (send_buf[c].p.pkt == NULL) continue;
-      if (route_cache->findRoute(send_buf[c].p.dest,
-				 send_buf[c].p.route, 1))
+      // check if pkt is destined to outside domain
+      if (diff_subnet(send_buf[c].p.dest,net_id)) 
+	      dest = ID(node_->base_stn()->address(),::IP);
+      else
+	      dest = send_buf[c].p.dest;
+      if (route_cache->findRoute(dest, send_buf[c].p.route, 1))
+	      
 	{ // we have a route!
 #ifdef DEBUG
 	  struct hdr_cmn *ch = HDR_CMN(send_buf[c].p.pkt);
@@ -1289,9 +1438,11 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
   p_copy.dest = ID(new_srh->down_links()[new_srh->num_route_errors()-1].tell_addr, ::IP);
   p_copy.src = net_id;
 
-  new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
+  //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
   new_iph->dport() = RT_PORT;
-  new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
+  //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
       
@@ -1467,9 +1618,11 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
   p_copy.route.removeSection(0,p_copy.route.index());
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
+  //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
   new_iph->dport() = RT_PORT;
-  new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
+  //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1778,9 +1931,11 @@ DSRAgent::xmitFailed(Packet *pkt)
   srh->route_reply() = 0;
   srh->route_request() = 0;
 
-  iph->dst() = (deadlink->tell_addr) << Address::instance().nodeshift();
+  //iph->dst() = (deadlink->tell_addr) << Address::instance().nodeshift();
+  iph->dst() = Address::instance().create_ipaddr(deadlink->tell_addr,0);
   iph->dport() = RT_PORT;
-  iph->src() = (net_id.addr) << Address::instance().nodeshift();
+  //iph->src() = (net_id.addr) << Address::instance().nodeshift();
+  iph->src() = Address::instance().create_ipaddr(net_id.addr,0);
   iph->sport() = RT_PORT;
   iph->ttl() = 255;
 

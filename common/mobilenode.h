@@ -93,6 +93,8 @@ public:
 	inline MobileNode* nextnode() { return link.le_next; }
 
 	void dump(void);
+	
+	inline MobileNode* base_stn() { return base_stn_; }
 
 protected:
 	// Used to generate position updates
@@ -169,6 +171,10 @@ private:
 	 */
 	Trace* log_target;
 
+	/* a base_stn for mobilenodes communicating with 
+	 *  wired nodes
+	 */
+	MobileNode* base_stn_;
 };
 
 

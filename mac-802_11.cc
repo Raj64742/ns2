@@ -251,24 +251,24 @@ Mac802_11::dump(char *fname)
    Packet Headers Routines
    ====================================================================== */
 inline int
-Mac802_11::hdr_dst(char* hdr, int dst)
+Mac802_11::hdr_dst(char* hdr, int dst )
 {
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
 	//dst = (u_int32_t)(dst);
 
-	if(dst)
+	if(dst > -2)
 		STORE4BYTE(&dst, (dh->dh_da));
 
 	return ETHER_ADDR(dh->dh_da);
 }
 
 inline int 
-Mac802_11::hdr_src(char* hdr, int src)
+Mac802_11::hdr_src(char* hdr, int src )
 {
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
 	//src = (u_int32_t)(src);
 	
-	if(src)
+	if(src > -2)
 		STORE4BYTE(&src, (dh->dh_sa));
 
 	return ETHER_ADDR(dh->dh_sa);

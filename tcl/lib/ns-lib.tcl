@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.145 1999/04/10 00:17:34 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.146 1999/04/22 18:53:57 haldar Exp $
 
 #
 
@@ -129,6 +129,7 @@ source ../webcache/http-agent.tcl
 source ns-namsupp.tcl
 source ../mobility/dsdv.tcl
 source ../mobility/dsr.tcl
+#source ../mobility/com.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
@@ -174,10 +175,12 @@ Simulator instproc dumper obj {
 	return $t
 }
 
+
+
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
 Simulator instproc node args {
-	$self instvar Node_
+	$self instvar Node_ 
         if { [Simulator info vars EnableMcast_] != "" } {
                 warn "Flag variable Simulator::EnableMcast_ discontinued.\n\t\
                       Use multicast methods as:\n\t\t\
@@ -197,6 +200,7 @@ Simulator instproc node args {
 	if [$self multicast?] {
 		$node enable-mcast $self
 	}
+	
 	$self check-node-num
 	return $node
 }

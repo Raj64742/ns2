@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.26 1999/02/04 06:13:27 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.27 1999/04/22 18:54:00 haldar Exp $
 #
 #
 # set up the packet format for the simulation
@@ -52,6 +52,7 @@ foreach cl [PacketHeader info subclass] {
 foreach pair {
 	{ Common off_cmn_ }
 	{ Mac off_mac_ }
+	{ Mac802_11 off_mac802_11_ }
 	{ LL off_ll_ }
 	{ ARP off_arp_ }
 	{ Snoop off_snoop_ }

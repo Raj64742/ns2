@@ -671,6 +671,7 @@ tcl/ex/vlantest-mcst.tcl
 tcl/ex/web-traffic.tcl
 tcl/ex/wireless.tcl
 tcl/ex/wireless-test.tcl
+tcl/ex/wired-cum-wireless-sim.tcl
 tcl/http/README
 tcl/http/data/HttpConnections.cdf
 tcl/http/data/HttpReplyLength.cdf
@@ -699,6 +700,7 @@ tcl/lib/ns-lib.tcl
 tcl/lib/ns-link.tcl
 tcl/lib/ns-mip.tcl
 tcl/lib/ns-mobilenode.tcl
+tcl/lib/ns-bsnode.tcl
 tcl/lib/ns-nam.tcl
 tcl/lib/ns-namsupp.tcl
 tcl/lib/ns-node.tcl
@@ -726,6 +728,7 @@ tcl/mcast/srm.tcl
 tcl/mcast/timer.tcl
 tcl/mobility/dsdv.tcl
 tcl/mobility/dsr.tcl
+tcl/mobility/com.tcl
 tcl/mobility/scene/cbr-50-20-4-512
 tcl/mobility/scene/cbr-3-test
 tcl/mobility/scene/loopize

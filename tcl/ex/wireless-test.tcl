@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-test.tcl,v 1.1 1999/04/10 00:13:18 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-test.tcl,v 1.2 1999/04/22 18:53:50 haldar Exp $
 #
 # A simple wireless example file that simulates a 3-mobilenode 
 # topology. Traffic used are CBR and TCP flows.
@@ -58,8 +58,8 @@ set opt(nn)		3		;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		2000.0		;# simulation time
 set opt(tr)		out-test.tr		;# trace file
-set opt(rp)             dsdv            ;# routing protocol script
-set opt(lm)             "on"           ;# log movement
+set opt(rp)             dsr          ;# routing protocol script
+set opt(lm)             "off"           ;# log movement
 
 # ======================================================================
 

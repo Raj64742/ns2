@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.6 1999/04/10 00:10:45 haldar Exp $
+   $Id: dsdv.cc,v 1.7 1999/04/22 18:53:44 haldar Exp $
 
    */
 
@@ -50,6 +50,8 @@ extern "C" {
 
 #include <cmu-trace.h>
 #include <address.h>
+#include <mobilenode.h>
+
 
 #define DSDV_STARTUP_JITTER 2.0	// secs to jitter start of periodic activity from
 				// when start-dsr msg sent to agent
@@ -101,9 +103,9 @@ DSDV_Agent::tracepkt (Packet * p, double now, int me, const char *type)
   while (ct--)
     {
       dst = *(walk++);
-      //dst = dst << 8 | *(walk++);
-      //dst = dst << 8 | *(walk++);
-      //dst = dst << 8 | *(walk++);
+      dst = dst << 8 | *(walk++);
+      dst = dst << 8 | *(walk++);
+      dst = dst << 8 | *(walk++);
       met = *(walk++);
       seq = *(walk++);
       seq = seq << 8 | *(walk++);
@@ -514,7 +516,7 @@ DSDV_Agent::makeUpdate(int& periodic)
      multiple packets -dam 4/26/98 */
   assert(rtbl_sz <= (1500 / 12));
 
-  p->allocdata((change_count * 6) + 1);
+  p->allocdata((change_count * 9) + 1);
   walk = p->accessdata ();
   *(walk++) = change_count;
 
@@ -538,11 +540,11 @@ DSDV_Agent::makeUpdate(int& periodic)
 	    trace ("VCT %.5f _%d_ %d", now, myaddr_, prte->dst);
 
 	  //assert (prte->dst < 256 && prte->metric < 256);
-	  *(walk++) = prte->dst;
-	  //*(walk++) = prte->dst >> 24;
- 	  //*(walk++) = (prte->dst >> 16) & 0xFF;
- 	  //*(walk++) = (prte->dst >> 8) & 0xFF;
- 	  //*(walk++) = (prte->dst >> 0) & 0xFF;
+	  //*(walk++) = prte->dst;
+	  *(walk++) = prte->dst >> 24;
+ 	  *(walk++) = (prte->dst >> 16) & 0xFF;
+ 	  *(walk++) = (prte->dst >> 8) & 0xFF;
+ 	  *(walk++) = (prte->dst >> 0) & 0xFF;
 	  *(walk++) = prte->metric;
 	  *(walk++) = (prte->seqnum) >> 24;
 	  *(walk++) = ((prte->seqnum) >> 16) & 0xFF;
@@ -622,9 +624,9 @@ DSDV_Agent::processUpdate (Packet * p)
       prte = NULL;
 
       dst = *(w++);
-      //dst = dst << 8 | *(w++);
-      //dst = dst << 8 | *(w++);
-      //dst = dst << 8 | *(w++);
+      dst = dst << 8 | *(w++);
+      dst = dst << 8 | *(w++);
+      dst = dst << 8 | *(w++);
 
       if ((prte = table_->GetEntry (dst)))
 	{
@@ -843,17 +845,71 @@ DSDV_Agent::processUpdate (Packet * p)
 
 }
 
+int 
+DSDV_Agent::diff_subnet(int dst) 
+{
+	char* dstnet = Address::instance().get_subnetaddr(dst);
+	if (subnet_ != NULL) {
+		if (dstnet != NULL) {
+			if (strcmp(dstnet, subnet_) != 0) {
+				delete [] dstnet;
+				return 1;
+			}
+			delete [] dstnet;
+		}
+	}
+	assert(dstnet == NULL);
+	return 0;
+}
+
+
+
 void
 DSDV_Agent::forwardPacket (Packet * p)
 {
   hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
   Scheduler & s = Scheduler::instance ();
   double now = s.clock ();
-
-  int dst = Address::instance().get_nodeaddr(iph->dst_);
+  hdr_cmn *hdrc = HDR_CMN (p);
+  
   // We should route it.
   //printf("(%d)-->forwardig pkt\n",myaddr_);
-  hdr_cmn *hdrc = HDR_CMN (p);
+  // set direction of pkt to -1 , i.e downward
+  hdrc->direction_ = -1;
+
+  // if the destination is outside mobilenode's domain
+  // forward it to base_stn node
+  // Note: pkt is not buffered if route to base_stn is unknown
+  
+  if (diff_subnet(iph->dst_)) {
+	  int dst = (node_->base_stn())->address();
+	  rtable_ent *prte = table_->GetEntry (dst);
+	  if (prte && prte->metric != BIG) {
+		  hdrc->addr_type_ = AF_INET;
+		  hdrc->xmit_failure_ = mac_callback;
+		  hdrc->xmit_failure_data_ = this;
+		  if (prte->metric > 1)
+			hdrc->next_hop_ = prte->hop;
+		  else
+			  hdrc->next_hop_ = dst;
+		  if (verbose_)
+			  trace ("Routing pkts outside domain:
+VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
+				 iph->sport_, iph->dst_,
+				 iph->dport_);  
+		  assert (!HDR_CMN (p)->xmit_failure_ ||
+			 HDR_CMN (p)->xmit_failure_ == mac_callback);
+		  target_->recv(p, (Handler *)0);
+		  return;
+	  }
+	  else {
+		  //drop pkt with warning
+		  fprintf(stderr, "warning: Route to base_stn not known: dropping pkt\n");
+		  Packet::free(p);
+		  return;
+	  }
+  }
+  int dst = Address::instance().get_nodeaddr(iph->dst_);
   rtable_ent *prte = table_->GetEntry (dst);
 
       //    trace("VDEBUG-RX %d %d->%d %d %d 0x%08x 0x%08x %d %d", 
@@ -940,8 +996,8 @@ DSDV_Agent::recv (Packet * p, Handler *)
 {
   hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
   hdr_cmn *cmh = (hdr_cmn *)p->access (off_cmn_);
-
   int src = Address::instance().get_nodeaddr(iph->src_);
+  
   /*
    *  Must be a packet I'm originating...
    */
@@ -975,7 +1031,11 @@ DSDV_Agent::recv (Packet * p, Handler *)
   
   if ((src != myaddr_) && (iph->dport_ == ROUTER_PORT))
     {
-      processUpdate(p);
+	    //drop pkt if rtg update from some other domain
+	    if (diff_subnet(iph->src_)) 
+		    drop(p, DROP_OUTSIDE_SUBNET);
+	    else    
+		    processUpdate(p);
     }
   else
     {
@@ -996,7 +1056,8 @@ static class DSDVClass:public TclClass
 } class_dsdv;
 
 DSDV_Agent::DSDV_Agent (): Agent (PT_MESSAGE), ll_queue (0), seqno_ (0), 
-  myaddr_ (0), periodic_callback_ (0), be_random_ (1), 
+  myaddr_ (0), subnet_ (0), node_ (0),
+  periodic_callback_ (0), be_random_ (1), 
   use_mac_ (0), verbose_ (1), trace_wst_ (0), lasttup_ (-10), 
   alpha_ (0.875),  wst0_ (6), perup_ (15), 
   min_update_periods_ (3)	// constants
@@ -1012,9 +1073,10 @@ DSDV_Agent::DSDV_Agent (): Agent (PT_MESSAGE), ll_queue (0), seqno_ (0),
   bind ("be_random_", &be_random_);
   bind ("alpha_", &alpha_);
   bind ("min_update_periods_", &min_update_periods_);
-  //bind ("myaddr_", &myaddr_);
   bind ("verbose_", &verbose_);
   bind ("trace_wst_", &trace_wst_);
+  //DEBUG
+  address = 0;
   
 }
 
@@ -1023,6 +1085,11 @@ DSDV_Agent::startUp()
 {
  Time now = Scheduler::instance().clock();
 
+  subnet_ = Address::instance().get_subnetaddr(myaddr_);
+  //DEBUG
+  address = Address::instance().print_nodeaddr(myaddr_);
+  //printf("myaddress: %d -> %s\n",myaddr_,address);
+  
   rtable_ent rte;
   bzero(&rte, sizeof(rte));
 
@@ -1099,30 +1166,33 @@ DSDV_Agent::command (int argc, const char *const *argv)
     }
   else if (argc == 3)
     {
+      if (strcasecmp (argv[1], "addr") == 0) {
+	 int temp;
+	 temp = Address::instance().str2addr(argv[2]);
+	 myaddr_ = temp;
+	 return TCL_OK;
+      }
+      TclObject *obj;
+      if ((obj = TclObject::lookup (argv[2])) == 0)
+	{
+	  fprintf (stderr, "%s: %s lookup of %s failed\n", __FILE__, argv[1],
+		   argv[2]);
+	  return TCL_ERROR;
+	}
       if (strcasecmp (argv[1], "tracetarget") == 0)
 	{
-	  TclObject *obj;
-	  if ((obj = TclObject::lookup (argv[2])) == 0)
-	    {
-	      fprintf (stderr, "%s: %s lookup of %s failed\n", __FILE__, argv[1],
-		       argv[2]);
-	      return TCL_ERROR;
-	    }
+	  
 	  tracetarget = (Trace *) obj;
 	  return TCL_OK;
 	}
-      else if (strcasecmp (argv[1], "addr") == 0) {
-	      int temp;
-	      temp = Address::instance().str2addr(argv[2]);
-	      myaddr_ = temp;
+      else if (strcasecmp (argv[1], "node") == 0) {
+	      node_ = (MobileNode*) obj;
 	      return TCL_OK;
       }
     }
-
-return (Agent::command (argc, argv));
+  
+  return (Agent::command (argc, argv));
 }
-
-
 
 
 

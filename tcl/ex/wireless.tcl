@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.3 1999/04/10 00:10:57 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.4 1999/04/22 18:53:53 haldar Exp $
 #
 # Ported from CMU/Monarch's code, nov'98 -Padma.
 
@@ -57,7 +57,7 @@ set opt(seed)		0.0
 set opt(stop)		1000.0		;# simulation time
 set opt(tr)		out.tr		;# trace file
 set opt(rp)             dsdv            ;# routing protocol script
-set opt(lm)             "on"           ;# log movement
+set opt(lm)             "off"           ;# log movement
 
 # ======================================================================
 
@@ -147,12 +147,7 @@ proc cmu-trace { ttype atype node } {
 }
 
 
-proc create-god { nodes } {
-	global ns_ god_ tracefd
 
-	set god_ [new God]
-	$god_ num_nodes $nodes
-}
 
 proc log-movement {} {
     global logtimer ns_ ns
@@ -180,10 +175,10 @@ getopt $argc $argv
 #
 # Source External TCL Scripts
 #
-source ../lib/ns-mobilenode.tcl
+#source ../lib/ns-mobilenode.tcl
 
 #if { $opt(rp) != "" } {
-	source ../mobility/$opt(rp).tcl
+	#source ../mobility/$opt(rp).tcl
 	#} elseif { [catch { set env(NS_PROTO_SCRIPT) } ] == 1 } {
 	#puts "\nenvironment variable NS_PROTO_SCRIPT not set!\n"
 	#exit
@@ -191,7 +186,9 @@ source ../lib/ns-mobilenode.tcl
 	#puts "\n*** using script $env(NS_PROTO_SCRIPT)\n\n";
         #source $env(NS_PROTO_SCRIPT)
 #}
-source ../lib/ns-cmutrace.tcl
+#source ../lib/ns-cmutrace.tcl
+source ../lib/ns-bsnode.tcl
+source ../mobility/com.tcl
 
 # do the get opt again incase the routing protocol file added some more
 # options to look for

@@ -49,9 +49,11 @@ HierNode instproc init {args} {
 }
 
 HierNode instproc mk-default-classifier {} {
+
 	$self instvar np_ id_ classifiers_ agents_ dmux_ neighbor_ address_ 
 	# puts "id=$id_"
 	set levels [AddrParams set hlevel_]
+
 	for {set n 1} {$n <= $levels} {incr n} {
 		set classifiers_($n) [new Classifier/Addr]
 		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
@@ -60,13 +62,16 @@ HierNode instproc mk-default-classifier {} {
 }
 
 HierNode instproc entry {} {
-	$self instvar ns_
-	if [$ns_ multicast?] {
-		$self instvar switch_
-		return $switch_
-	}
-	$self instvar classifiers_
-	return $classifiers_(1)
+    $self instvar ns_
+    if ![info exist ns_] {
+	set ns_ [Simulator instance]
+    }
+    if [$ns_ multicast?] {
+	$self instvar switch_
+	return $switch_
+    }
+    $self instvar classifiers_
+    return $classifiers_(1)
 }
 
 
@@ -121,23 +126,24 @@ HierNode instproc add-hroute { dst target } {
 }
 
 
-HierNode instproc node-addr {} {
-	$self instvar address_
-	return $address_
-}
 
 
 #
 # split up hier address string 
 #
-HierNode instproc split-addrstr addrstr {
-	set L [split $addrstr .]
-	return $L
-}
+#HierNode instproc split-addrstr addrstr {
+	#set L [split $addrstr .]
+	#return $L
+#}
 
 
 
 # as of now, hierarchical routing support not extended for equal cost multi path routing
 ### feature may be added in future
+
+
+
+
+
 
 

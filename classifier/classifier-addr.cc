@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.14 1999/03/13 03:52:43 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.15 1999/04/22 18:53:36 haldar Exp $";
 #endif
 
 #include "classifier-addr.h"
@@ -65,6 +65,7 @@ public:
 int ReserveAddressClassifier::command(int argc, const char*const* argv)
 {
         // Tcl& tcl = Tcl::instance();
+
         if (argc == 3 && strcmp(argv[1],"reserve-port") == 0) {
                 reserved_ = atoi(argv[2]);
                 alloc((maxslot_ = reserved_ - 1));
@@ -111,6 +112,8 @@ NsObject* BcastAddressClassifier::find(Packet* p)
                         // would be delivered back to sender
                         return bcast_recver_;
                 }
+		if (default_target_) 
+			return default_target_;
  
                 /*
                  * Sigh.  Can't pass the pkt out to tcl because it's
@@ -131,6 +134,7 @@ NsObject* BcastAddressClassifier::find(Packet* p)
 int BcastAddressClassifier::command(int argc, const char*const* argv)
 {
         // Tcl& tcl = Tcl::instance();
+
         if (argc == 3 && strcmp(argv[1],"bcast-receiver") == 0) {
                 bcast_recver_ = (NsObject*)TclObject::lookup(argv[2]);
                 return(TCL_OK);

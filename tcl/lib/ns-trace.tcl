@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.17 1998/10/27 00:50:18 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.18 1999/04/22 18:54:01 haldar Exp $
 #
 
 Trace instproc init type {
@@ -141,11 +141,14 @@ Simulator instproc gen-map {} {
 	# Did you ever see such uglier code? duh?
 	#
 
-	$self instvar Node_ link_
+	$self instvar Node_ link_ MobileNode_
 
 	set nn [Node set nn_]
 	for {set i 0} {$i < $nn} {incr i} {
-		set n $Node_($i)
+		if ![info exists Node($i)] {
+			incr i
+			continue
+		}
 		puts "Node [$n tn]"
 		foreach nc [$n info vars] {
 			switch $nc {
@@ -186,6 +189,8 @@ Simulator instproc gen-map {} {
 		puts "---"
 	}
 }
+
+
 
 Simulator instproc maybeEnableTraceAll {obj args} {
         foreach {file tag} {

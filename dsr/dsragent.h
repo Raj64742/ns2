@@ -36,7 +36,7 @@
 /* -*- c++ -*-
    dsragent.h
 
-   $Id: dsragent.h,v 1.3 1999/03/13 03:53:17 haoboy Exp $
+   $Id: dsragent.h,v 1.4 1999/04/22 18:53:47 haldar Exp $
    */
 
 #ifndef _DSRAgent_h
@@ -124,6 +124,10 @@ private:
   NsObject *ll;		        // our link layer output 
   PriQueue *ifq;		// output interface queue
 
+	// extensions for wired cum wireless sim mode
+	MobileNode *node_;
+	int diff_subnet(ID dest, ID myid);
+
   /******** internal state ********/
   RequestTable request_table;
   RouteCache *route_cache;
@@ -150,6 +154,11 @@ private:
   void handleRouteRequest(SRPacket &p);
   /* process a route request that isn't targeted at us */
 
+  void handleRteRequestForOutsideDomain(SRPacket& p);
+  /* process route reqs for destination outside domain, incase Iam a base-stn */
+  void returnSrcRteForOutsideDomainToRequestor(SRPacket &p);
+  /* return rte info for outside domain dst, to src, incase Iam a base-stn */
+
   bool ignoreRouteRequestp(SRPacket& p);
   // assumes p is a route_request: answers true if it should be ignored.
   // does not update the request table (you have to do that yourself if
@@ -163,7 +172,7 @@ private:
   // turn p into a route request and launch it, max_prop of request is
   // set as specified
   // p.pkt is freed or handed off
-  void getRouteForPacket(SRPacket &p, bool retry);
+  void getRouteForPacket(SRPacket &p, ID dest, bool retry);
   /* try to obtain a route for packet
      pkt is freed or handed off as needed, unless in_buffer == true
      in which case they are not touched */

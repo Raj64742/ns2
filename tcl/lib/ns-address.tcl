@@ -187,6 +187,8 @@ Simulator instproc set-address {node port} {
 Simulator instproc expand-address {} {
 	if ![Simulator set EnableHierRt_] {
 		$self set-address 23 8
+	} else {
+		puts "Address format set to hierarchical mode;"
 	}
 	set mcastshift [AddrParams set McastShift_]
 	Simulator set McastAddr_ [expr 1 << $mcastshift]
@@ -203,7 +205,7 @@ Simulator instproc set-hieraddress {hlevel args} {
 		### By default, setting hierarchical addressing also turns on hier rtg, 
 		### provided the level is greater than 1
 		Simulator set EnableHierRt_ 1
-	Simulator set node_factory_ HierNode
+		Simulator set node_factory_ HierNode
 	}
 	if [$self multicast?] {
 		$a set-mcastbits 1

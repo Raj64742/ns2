@@ -50,7 +50,8 @@ class Address : public TclObject {
 	int   get_lastaddr(int address);
 	int   get_nodeaddr(int address);
 	int   str2addr(const char *str) const;
-
+	int   create_ipaddr(int nodeid, int portid);
+	
 	inline int portshift() {return PortShift_;}
 	inline int portmask() {return PortMask_;}
 	inline int nodeshift() {return NodeShift_[levels_];}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.20 1998/10/14 21:45:43 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.21 1999/04/22 18:54:00 haldar Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -152,14 +152,16 @@ Simulator instproc dump-routelogic-distance {} {
 
 Simulator instproc compute-routes {} {
 	
-    #
-    # call hierarchical routing, if applicable
-    #
-    if [Simulator set EnableHierRt_] {
-	$self compute-hier-routes 
-    } else {
-	$self compute-flat-routes
-    }
+	#
+	# call hierarchical routing, if applicable
+	#
+	if [Simulator set EnableHierRt_] {
+		$self compute-hier-routes 
+		
+	} else {
+		$self compute-flat-routes
+	}
+	
 }
 
 Simulator instproc compute-flat-routes {} {
@@ -376,10 +378,14 @@ Simulator instproc compute-hier-routes {} {
 	# n-levels of hierarchy
 	#
 	#puts "Computing Hierarchical routes\n"
-	set level [AddrParams set hlevel_]
-	$r hlevel-is $level
+
+        if ![info exists link_] {
+	 return
+	}
+        set level [AddrParams set hlevel_]
+        $r hlevel-is $level
 	$self hier-topo $r
-	
+
 	foreach ln [array names link_] {
 		set L [split $ln :]
 		set srcID [[$self get-node-by-id [lindex $L 0]] node-addr]
@@ -389,8 +395,10 @@ Simulator instproc compute-hier-routes {} {
 		} else {
 			$r hier-reset $srcID $dstID
 		}
-	}
-	$r hier-compute
+	  }
+	
+	  $r hier-compute
+
 	#
 	# Set up each classifier (n for n levels of hierarchy) for every node
 	#
@@ -400,6 +408,11 @@ Simulator instproc compute-hier-routes {} {
 	#for each node
 	#
 	while { $i < $n } {
+		if ![info exists Node_($i)] {
+		    incr i
+		    continue
+		}
+
 		set n1 $Node_($i)
 		set addr [$n1 node-addr]
 		set L [$n1 split-addrstr $addr]
@@ -511,3 +524,80 @@ Simulator instproc compute-algo-routes {} {
 		incr i
 	}
 }
+
+
+Simulator instproc compute-route-for-mobilenodes {} {
+	$self instvar MobileNode_
+	Simulator instvar mn_
+	
+	set r [$self get-routelogic]
+	
+	set level [AddrParams set hlevel_]
+	$r hlevel-is $level
+	$self hier-topo $r
+	
+	for {set i 0} {$i < $mn_} {incr i} {
+		set srcID [$MobileNode_($i) node-addr]
+		debug 1
+		set bs [$MobileNode_($i) base-station?]
+		set dstID [$bs node-addr]
+		$r hier-insert $srcID $dstID 1  
+		## we donot setup basestn nodes as compute-hier 
+		## takes care of them
+	}
+	$r hier-compute
+
+	$self populate-mobilenode $level
+}
+
+Simulator instproc populate-mobilenode {level} {
+	Simulator instvar mn_
+	$self instvar MobileNode_
+	set i 0
+	
+	while { $i < $mn_ } {
+		set n1 $MobileNode_($i)
+		set addr [$n1 node-addr]
+		set L [$n1 split-addrstr $addr]
+		#
+		# for each hierarchy level, populate classifier 
+		# for that level
+		#
+		for {set k 0} {$k < $level} {incr k} {
+			set csize [AddrParams elements-in-level? $addr $k]
+			#
+			# for each element in that level 
+			# (elements maybe nodes or clusters or domains 
+			#
+			if {$k > 0} {
+				set prefix [$r append-addr $k $L]
+			}
+			for {set m 0} {$m < $csize} {incr m} {
+				if { $m != [lindex $L $k]} {
+					if {$k > 0} {
+						set str $prefix
+						append str . $m
+					} else {
+						set str $m
+					}
+
+					set nh [$r hier-lookup $addr \
+							$str]
+					# add entry in clasifier 
+					# only if hier-lookup 
+					# returns a value. 
+					if {$nh != -1} {
+						set node [$self get-node-by-addr $nh]
+						if { $node > 0 } {
+							$n1 add-hroute $str $node
+						}
+					}
+				}
+			}
+		}
+		incr i
+	}
+}
+
+
+

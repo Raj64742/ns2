@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.15 1999/04/10 00:10:31 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.16 1999/04/22 18:53:35 haldar Exp $
  */
 
 #include <stdio.h>
@@ -185,7 +185,7 @@ char *Address::get_subnetaddr(int address)
 		}
 		addrstr = new char[strlen(str)+1];
 		strcpy(addrstr, str);
-		printf("Subnet_addr - %s\n",addrstr);
+		//printf("Subnet_addr - %s\n",addrstr);
 		return(addrstr);
 	}
 	return NULL;
@@ -204,6 +204,19 @@ int Address::get_nodeaddr(int address)
 	return a;
 }
 
+
+//Sets address in pkthdr format (having port and node fields)
+int Address::create_ipaddr(int nodeid, int portid)
+{
+	int address;
+	if (levels_ < 2) 
+		address = (nodeid & NodeMask_[1]) << NodeShift_[1];
+	else 
+		address = nodeid;
+	address = ((portid & PortMask_) << PortShift_) | \
+		((~(PortMask_) << PortShift_) & address);
+	return address;
+}
 
 int Address::get_lastaddr(int address)
 {
@@ -257,4 +270,12 @@ int Address::str2addr(const char *str) const
 
 	return addr;
 }
+
+
+
+
+
+
+
+
 

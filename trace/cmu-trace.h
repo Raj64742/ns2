@@ -73,6 +73,7 @@
 
 #define DROP_IFQ_QFULL                  "IFQ"   // no buffer space in IFQ
 #define DROP_IFQ_ARP_FULL               "ARP"   // dropped by ARP
+#define DROP_OUTSIDE_SUBNET             "OUT"   // dropped by base stations if received rtg updates from nodes outside its domain.
 
 #define MAX_ID_LEN	3
 

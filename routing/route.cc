@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.26 1999/04/14 01:12:42 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.27 1999/04/22 18:53:41 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -74,7 +74,6 @@ int RouteLogic::command(int argc, const char*const* argv)
 		
 		if (strcmp(argv[1], "hier-compute") == 0) {
 			if (hadj_ == 0) {
-				fprintf(stderr, "No adjacency info; Probably a disconnected topology! Hier-route not computed..\n");
 				return (TCL_OK);
 			}
 			hier_compute();
