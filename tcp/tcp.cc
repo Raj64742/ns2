@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.120 2001/05/11 05:18:15 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.121 2001/05/12 21:32:43 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -931,7 +931,7 @@ void TcpAgent::newack(Packet* pkt)
 	 * Wouldn't it be better to set the timer *after*
 	 * updating the RTT, instead of *before*? 
 	 */
-	if (timerfix_ == false) newtimer(pkt);
+	if (!timerfix_) newtimer(pkt);
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
 	prev_highest_ack_ = highest_ack_ ;
@@ -965,7 +965,7 @@ void TcpAgent::newack(Packet* pkt)
 				rtt_update(now - rtt_ts_);
 		}
 	}
-	if (timerfix_ == true) newtimer(pkt);
+	if (timerfix_) newtimer(pkt);
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
 	awnd_ += wnd_th_ * cwnd_;
