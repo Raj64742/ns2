@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.6 2004/08/10 22:16:50 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.7 2004/08/13 23:24:13 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -58,6 +58,7 @@ XcpAgent::XcpAgent(): RenoTcpAgent(), shrink_cwnd_timer_(this)
 
 	last_send_ticks_ = 0;
 	s_sent_bytes_ = 0;
+	estimated_throughput_ = 0;
 	sent_bytes_ = 0;
 	xcp_feedback_ = 0;
 }
@@ -110,20 +111,22 @@ void XcpAgent::output(int seqno, int reason)
 	xh->rtt_ = srtt_estimate_;
 	xh->xcpId_ = tcpId_;
 	
-	double estimated_throughput = 0;
 	if (xcp_metered_output_) {
 		double now = Scheduler::instance().clock();
 		long now_ticks = long(now / tcp_tick_);
 		if (last_send_ticks_ == 0) {
-			last_send_ticks_ = now_ticks;
-			xcp_feedback_ = 0.0;
+			if (srtt_estimate_ != 0) {
+				last_send_ticks_ = now_ticks;
+				xcp_feedback_ = 0.0;
+			}
 		} else {
 			long delta_ticks = now_ticks - last_send_ticks_;
 			while (delta_ticks >= TP_TO_TICKS) {
 				/* each iteration is a "timeout" */
 				if (sent_bytes_ > s_sent_bytes_)
 					s_sent_bytes_ = sent_bytes_;
-				else {
+				else 
+				{
 					s_sent_bytes_ *= (TP_AVG_EXP - 1);
 					s_sent_bytes_ += sent_bytes_;
 					s_sent_bytes_ /= TP_AVG_EXP;
@@ -133,12 +136,12 @@ void XcpAgent::output(int seqno, int reason)
 				xcp_feedback_ = 0;
 				last_send_ticks_ = now_ticks;
 			}
-			estimated_throughput = s_sent_bytes_ / tcp_tick_ / TP_TO_TICKS;
+			estimated_throughput_ = (s_sent_bytes_ 
+						 / tcp_tick_ 
+						 / TP_TO_TICKS);
 		}
-	}
 #define MAX_THROUGHPUT	1e24
-	if (xcp_metered_output_) {
-		xh->throughput_ = estimated_throughput;
+		xh->throughput_ = estimated_throughput_;
 		if (srtt_estimate_ != 0)
 			xh->delta_throughput_ = (MAX_THROUGHPUT 
 						 - xh->throughput_);
@@ -235,19 +238,21 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 	if (xcp_metered_output_) {
 		xcp_feedback_ += xh->reverse_feedback_;
 	}
-	
-	double delta_cwnd = (xh->reverse_feedback_ 
-			     * srtt_estimate_ 
-			     / size_);
 
-// 	double estimated_throughput = s_sent_bytes_ / tcp_tick_ / TP_TO_TICKS;
-	
-// 	if (estimated_throughput == 0)
-// 		estimated_throughput = 1;
-// 	double delta_cwnd = (xh->reverse_feedback_ 
-// 			     / (estimated_throughput + xcp_feedback_) 
-// 			     * cwnd_);
-//	double delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
+	double delta_cwnd = 0;
+	if (xcp_metered_output_) {
+		if (estimated_throughput_ != 0.0) {
+			delta_cwnd = (xh->reverse_feedback_ 
+				      / (estimated_throughput_ + xcp_feedback_)
+				      * cwnd_);
+		}
+	} else {
+		delta_cwnd = (xh->reverse_feedback_ 
+			      * srtt_estimate_ 
+			      / size_);
+// 		delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
+	}
+
 	double newcwnd = (cwnd_ + delta_cwnd);
 
 	if (newcwnd < 1.0)

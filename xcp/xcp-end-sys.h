@@ -53,10 +53,10 @@ struct hdr_xcp {
  * This code is to be written later!
  */
 
-#define MAX(a,b)	((a) > (b) ? (a) : (b))
-#define TP_TO_TICKS	MAX(1, (t_srtt_ >> T_SRTT_BITS))
-//#define TP_TO_S		(srtt_estimate_*2 + tcp_tick_)
-#define TP_AVG_EXP	4	// used for xcp_metered_output_ == true
+#define		MAX(a,b)	((a) > (b) ? (a) : (b))
+#define		TP_TO_TICKS	MAX(1, (t_srtt_ >> T_SRTT_BITS))
+
+#define TP_AVG_EXP		4	// used for xcp_metered_output_ == true
 
 class XcpAgent;
   
@@ -102,6 +102,7 @@ class XcpAgent : public RenoTcpAgent {
 	long   sent_bytes_;
 	long   s_sent_bytes_;
 	long   last_send_ticks_;
+	double estimated_throughput_;
 	cwndShrinkingTimer shrink_cwnd_timer_;
 };
 
