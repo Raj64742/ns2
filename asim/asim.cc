@@ -173,6 +173,7 @@ public:
       return (TCL_OK);
     }
 
+    return (TCL_OK);
   }
   
   double get_link_drop(int x){
@@ -505,7 +506,6 @@ double redFn(double minth, double pmin,
   assert(maxth>=minth);
   assert(pmax>pmin);
 
-  double t;
   if(qlength<minth)
     return 0;
   if(qlength>maxth)
@@ -757,7 +757,7 @@ void Update3(int flag = 0){
       cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
     }
 
-    char x =getchar();
+    //char x =getchar();
 
     // Recalculate the flows' stats
     UpdateHelper(0);
