@@ -101,6 +101,11 @@ Trace/Loss instproc init {} {
 Simulator instproc newLan {nodelist bw delay args} {
 	set lan [eval new LanLink $self $args]
 	$lan addNode $nodelist $bw $delay
+
+        # added for nam trace purpose
+	$self instvar LanLinks_
+	set LanLinks_([$lan nid]) $lan
+
 	return $lan
 }
 
@@ -111,6 +116,11 @@ Simulator instproc make-lan {nodelist bw delay {llType LL} \
 	set lan [new LanLink $self -llType $llType -ifqType $ifqType \
 			-macType $macType -chanType $chanType]
 	$lan addNode $nodelist $bw $delay $llType $ifqType $macType
+
+	# added for nam trace purpose
+	$self instvar LanLinks_
+	set LanLinks_([$lan nid]) $lan
+
 	return $lan
 }
 
@@ -206,14 +216,21 @@ LanLink instproc init {ns args} {
 	$self instvar llType_ ifqType_ macType_ chanType_
 	$self instvar ns_ nodelist_
 	$self instvar id_ channel_ mcl_ netIface_
+	$self instvar nid_
 
 	set ns_ $ns
 	set nodelist_ ""
 	set id_ 0
+	set nid_ [Node getid]
 	set channel_ [new $chanType_]
 	set mcl_ [new Classifier/Mac]
 	$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
 	$channel_ target $mcl_
+}
+
+LanLink instproc nid {} {
+	$self instvar nid_
+	return $nid_
 }
 
 LanLink instproc trace {{ns ""} {f ""}} {
@@ -245,11 +262,16 @@ LanLink instproc addNode {nodes bw delay {sllType ""} \
 	$self instvar id_ channel_ mcl_ netIface_
 	$self instvar ns_ nodelist_
 	$ns_ instvar link_
+	$self instvar bw_ delay_
+
+	set bw_ $bw
+	set delay_ $delay
 
 	if {$ifqType == ""} { set ifqType $ifqType_ }
 	if {$macType == ""} { set macType $macType_ }
 	if {$sllType == ""} { set sllType $llType_ }
 	if {$dllType == ""} { set dllType $llType_ }
+
 
 	foreach src $nodes {
 		set nif [new NetIface $src $bw \
@@ -395,3 +417,25 @@ LanLink instproc sample-queue-size {src} {
 
 	return "$meanBytesQ $meanPktsQ"
 }
+
+# XXX, defined the same as ns-namsupp.tcl,  
+
+LanLink instproc dump-namconfig {} {
+        $self instvar nid_ bw_ delay_ nodelist_ ns_
+        
+        $ns_ puts-nam-config \
+        "X -t * -n $nid_ -r $bw_ -D $delay_ -o left"
+        
+        set cnt 0
+        set LanOrient(0) up
+        set LanOrient(1) down
+            
+        foreach dst $nodelist_ {
+            $ns_ puts-nam-config \
+            "L -t * -s $nid_ -d [$dst id] -o $LanOrient($cnt)"
+            incr cnt
+            set cnt [expr $cnt % 2]
+        }
+
+}
+
