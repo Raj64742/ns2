@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.6 1997/05/14 02:47:29 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.7 1997/05/23 18:16:34 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -248,6 +248,9 @@ void HeapScheduler::run()
  * Calendar queue scheduler contributed by
  * David Wetherall <djw@juniper.lcs.mit.edu>
  * March 18, 1997.
+ *
+ * A calendar queue basically hashes events into buckets based on
+ * arrival time.
  */
 
 class CalendarScheduler : public Scheduler {
