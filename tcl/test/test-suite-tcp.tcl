@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.5 1997/10/18 13:43:36 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.6 1997/10/18 19:37:05 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -147,8 +147,6 @@ Test/ecn instproc run {} {
 # This test shows the retransmit timeout value when the first packet
 # of a connection is dropped, and the backoff of the retransmit timer
 # as subsequent packets are dropped.
-# (It looks like the retransmit timer is not backed off after the
-# first drop.)
 #
 # This test also shows that once the retransmit timer is backed off,
 # it is later un-backed.
@@ -178,16 +176,11 @@ Test/timers instproc run {} {
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 5
 	set ftp1 [$tcp1 attach-source FTP]
-	$ns_ at 0.0 "$ftp1 produce 1600"
-	$ns_ at 25.3 "$ftp1 producemore 5"
-	$ns_ at 25.7 "$ftp1 producemore 5" 
-	$ns_ at 26.1 "$ftp1 producemore 5" 
-	$ns_ at 26.5 "$ftp1 producemore 5" 
-	$ns_ at 26.9 "$ftp1 producemore 5" 
-	$ns_ at 28.8 "$ftp1 producemore 5" 
+	$ns_ at 0.0 "$ftp1 produce 800"
+	$ns_ at 20.3 "$ftp1 producemore 5"
+	$ns_ at 20.7 "$ftp1 producemore 5" 
 
-
-	$self traceQueues $node_(r1) [$self openTrace 30.0 $testName_]
+	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 	$ns_ run
 }
 
