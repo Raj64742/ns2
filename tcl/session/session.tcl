@@ -35,7 +35,11 @@ SessionSim instproc delay_parse { dspec } {
 
 SessionSim instproc node args {
     $self instvar Node_
-    set node [new SessionNode $args]
+    if {[llength $args] == 0} {
+	set node [new SessionNode]
+    } else {
+	set node [new SessionNode $args]
+    }
     set Node_([$node id]) $node
     return $node
 }
@@ -487,14 +491,15 @@ SessionNode instproc attach agent {
     $agent set node_ $self
     set port [$self alloc-port]
 
+    set mask [AddrParams set PortMask_]
+    set shift [AddrParams set PortShift_]
     if [Simulator set EnableHierRt_] {
 	set nodeaddr [AddrParams set-hieraddr $address_]
     } else {
-	set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] \
+	set nodeaddr [expr [expr $address_ & [AddrParams set NodeMask_(1)]] \
 			  << [AddrParams set NodeShift_(1)]]
     }
-    set mask [AddrParams set PortMask_]
-    set shift [AddrParams set PortShift_]
+
     $agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
 		      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
     # $agent set addr_ [expr $id_ << 8 | $port]
