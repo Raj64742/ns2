@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.241 2002/01/31 00:29:45 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.242 2002/02/01 06:28:33 xuanc Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -239,8 +239,9 @@ OBJ_CC = \
          routealgo/routealgo.o \
          nix/nixvec.o \
 	nix/nixroute.o \
-	diffserv/dsred.o diffserv/dsEdge.o diffserv/dsCore.o \
-	diffserv/dsPolicy.o diffserv/dsredq.o \
+	diffserv/dsred.o diffserv/dsredq.o \
+	diffserv/dsEdge.o diffserv/dsCore.o \
+	diffserv/dsPolicy.o diffserv/ew.o\
 	queue/red-pd.o queue/pi.o queue/vq.o queue/rem.o \
 	queue/gk.o \
 	pushback/rate-limit.o pushback/rate-limit-strategy.o \
