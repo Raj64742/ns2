@@ -109,4 +109,5 @@ test-suite-red.tcl
 test-suite-sack.tcl
 test-suite.tcl
 trace.cc
+trace.h
 ttl.cc
