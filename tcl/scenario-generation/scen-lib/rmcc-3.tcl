@@ -1,3 +1,4 @@
+# rmcc-3.tcl
 # Multiple RM flows scenario
 #                  
 #             RM sender1   
@@ -17,6 +18,12 @@
 # RM sender 3 starts to send at t=10
 # CBR sender 1 starts to send at t=20s at 500Kbps
 # CBR reduces its rate to 200Kbps at t=40s
+# comparison of flow bandwidth for RM flows by flow monitors attached on
+# links 1-6, 1-7, 1-8 and 1-9
+
+# usage : ns rmcc-3.tcl
+#
+
 
 source rmcc.tcl
 

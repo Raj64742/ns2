@@ -14,15 +14,19 @@
 #
 
 # 
-# Simulation A : All links have 1Mbps BW. There is 10% loss in link S-I1
+# Simulation A : All links have 1Mbps BW. There is 10% loss in link 0-1
 # No loss in other links.
 
 # Simulation B: Similar to setup of A except that 10% loss now takes 
-# place in links I1-I2 and I1-I3. No loss in other links. 
+# place in links 1-2 and 1-3. No loss in other links. 
 
-# Simulation C: 10% loss in link I1-I3. and 5% loss in link I1-I2. No 
+# Simulation C: 10% loss in link 1-3. and 5% loss in link 1-2. No 
 # loss in other links. 
-#
+# Flow monitors measure thruput at link 2-4, 2-5 and 3-6.
+
+#usage: ns rmcc-1.tcl -test <#test no>
+#test number options: 1,2, 3 or 4
+
 
 source ../../mcast/srm-nam.tcl		;#to separate control messages
 source rmcc.tcl

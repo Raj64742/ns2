@@ -116,6 +116,7 @@ ScenLib/RM instproc init {} {
 	$ns color 7 coral
 	$ns color 8 OrangeRed
 	$ns color 9 maroon
+	$ns color 10 DarkBlue
 	
 	$self set_traces
 	return $self
@@ -308,18 +309,19 @@ ScenLib/RM instproc create_tcp {args} {
 		$tcp($k) set fid_ [incr fid_]
 		$tcp($k) set packetSize_ $opts(pktSize)
 		$ns attach-agent $n($k) $tcp($k)
-		#puts "ns attach-agent n($k) tcp (fid \
-			[$tcp($k) set fid_]"
+		#puts "ns attach-agent n($k) tcp (fid [$tcp($k) set fid_]"
 		
 		incr i
 		set tcp_sink($k) [new Agent/$opts(sinkType)]
 		$ns attach-agent $n([lindex $args $i]) $tcp_sink($k)
+		#puts "dest=[lindex $args $i]"
 		$ns connect $tcp($k) $tcp_sink($k)
 		incr i
 		set ftp($k) [new Application/$opts(tcpSrcType)]
 		$ftp($k) attach-agent $tcp($k)
 		set time [lindex $args $i]
 		$ns at $time "$ftp($k) start"
+		#puts "At $time, tcp (from node$k) starts.. "
 	}
 }
 
@@ -331,10 +333,18 @@ proc finish {} {
 	#close $srmStats
 	#close $srmEvents
 	#XXX
-	puts "Filtering ..."
+	#puts "Filtering ..."
 	#exec tclsh8.0 ../../../../nam-1/bin/namfilter.tcl out-$t.nam
 	puts "running nam..."
 	exec nam out-$t.nam &
 	exit 0
 }
+
+
+
+
+
+
+
+
 

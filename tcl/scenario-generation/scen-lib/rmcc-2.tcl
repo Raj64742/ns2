@@ -1,3 +1,4 @@
+# rmcc-2.tcl
 # Competing with TCP scenario 
 
 #                  RM sender   
@@ -14,6 +15,11 @@
 # tcp sender 2 starts to send at t=20s
 # BW of link 0-1 = 1 Mbps and delay is 20ms . For rest of the 
 # topology BW = 10Mbps and delay of 5ms.
+# flowmonitors compare thruput of TCP and rm flows in links 1-5, 1-6,
+# 1-7 and 1-8.
+#
+# usage:  ns rmcc-2.tcl
+#
 
 source rmcc.tcl
 
