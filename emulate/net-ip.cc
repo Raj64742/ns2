@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.2 1998/01/30 23:38:59 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.3 1998/02/20 23:41:30 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -51,6 +51,7 @@ static const char rcsid[] =
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+typedef int Socket;
 #endif
 #if defined(sun) && defined(__svr4__)
 #include <sys/systeminfo.h>
@@ -61,47 +62,67 @@ static const char rcsid[] =
 #include "inet.h"
 #include "tclcl.h"
 
+//
+// IPNetwork: a low-level (raw) IP network object
+//
+
 class IPNetwork : public Network {
     public:
 	IPNetwork();
 
-        void send(u_char* buf, int len);
-        int recv(u_char* buf, int len, u_int32_t& from);
 	void reset();
-	int command(int argc, const char*const* argv);
+	int command(int argc, const char*const* argv);	// virtual in Network
+	inline Socket rchannel() { return(rsock_); }	// virtual in Network
+	inline Socket schannel() { return(ssock_); }	// virtual in Network
 
-	inline int rchannel() { return(rsock_); }
-	inline int schannel() { return(ssock_); }
-        inline int port() const { return (port_); }
+        int send(u_char* buf, int len) {		// virtual in Network
+		return (::send(ssock_, (char*)buf, len, 0));
+	}
+        int recv(u_char* buf, int len, sockaddr& from);	// virtual in Network
+
+        inline in_addr& laddr() { return (localaddr_); }
+        inline in_addr& dstaddr() { return (destaddr_); }
+
+	static int bindsock(Socket, in_addr&, u_int16_t, sockaddr_in&);
+	static int connectsock(Socket, in_addr&, u_int16_t, sockaddr_in&);
+	static int rbufsize(Socket, int);
+	static int sbufsize(Socket, int);
+
+    protected:
+
+	in_addr destaddr_;		// remote side, if set (network order)
+	in_addr localaddr_;		// local side (network order)
+	Socket rsock_;
+	Socket ssock_;
+
+	int open();
+	int close();
+	static void getaddr(Socket, sockaddr_in*);	// sock -> addr discovery
+	time_t last_reset_;
+};
+
+class UDPIPNetwork : public IPNetwork {
+public:
+	void reset();
+	int add_membership();
+	void drop_membership();
         inline int ttl() const { return (ttl_); }
         inline int noloopback_broken() const {
 		return (noloopback_broken_);
 	}
-
-        inline u_int32_t addr() const { return (addr_); }
-        inline u_int32_t interface() const { return (local_); }
-
-    protected:
-        u_int32_t addr_;
-        u_int32_t local_;
-        u_short lport_;
-        u_short port_;
-	int rsock_;
-	int ssock_;
+	int send(u_char*, int);
+	int recv(u_char*, int, sockaddr&);
+	int open(in_addr&, u_int16_t, int);
+	int open(u_int16_t);
+	int command(int argc, const char*const* argv);
+protected:
+	int msetup(Socket, int ttl);
+	int openssock(in_addr& addr, u_int16_t port, int ttl);
+	int openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local);
+        u_int16_t lport_;	// local port (network order)
+        u_int16_t port_;	// remote (dst) port (network order)
         int ttl_;
         int noloopback_broken_;
-
-
-	int open(u_int32_t addr, int port, int ttl);
-	int open(int port);
-	int close();
-	void localname(sockaddr_in*);
-	int openssock(u_int32_t addr, u_short port, int ttl);
-	int openrsock(u_int32_t addr, u_short port,
-		      const struct sockaddr_in& local);
-	int add_membership();
-	void drop_membership();
-	time_t last_reset_;
 };
 
 static class IPNetworkClass : public TclClass {
@@ -112,20 +133,32 @@ static class IPNetworkClass : public TclClass {
 	}
 } nm_ip;
 
+static class UDPIPNetworkClass : public TclClass {
+    public:
+	UDPIPNetworkClass() : TclClass("Network/IP/UDP") {}
+	TclObject* create(int, const char*const*) {
+		return (new UDPIPNetwork);
+	}
+} nm_ip_udp;
+
 IPNetwork::IPNetwork() :
-        addr_(0), 
-        local_(0),
+        rsock_(-1), 
+        ssock_(-1)
+{
+	localaddr_.s_addr = 0L;
+	destaddr_.s_addr = 0L;
+}
+
+UDPIPNetwork::UDPIPNetwork() :
         lport_(0), 
         port_(0),
         ttl_(0),  
-        rsock_(-1), 
-        ssock_(-1),
         noloopback_broken_(0)
 {
 }
 
-void
-IPNetwork::send(u_char* buf, int len)
+int
+UDPIPNetwork::send(u_char* buf, int len)
 {
 	int cc = ::send(ssock_, (char*)buf, len, 0);
 	if (cc < 0) {
@@ -183,18 +216,35 @@ IPNetwork::send(u_char* buf, int len)
 			 * icmp unreachable, so we should be able to
 			 * send now.
 			 */
-			(void)::send(ssock_, (char*)buf, len, 0);
+			cc = ::send(ssock_, (char*)buf, len, 0);
 			break;
 
 		default:
 			perror("send");
-			return;
+			return -1;
 		}
 	}
+	return cc;
+}
+
+//
+// raw IP network recv()
+//
+int
+IPNetwork::recv(u_char* buf, int len, sockaddr& sa)
+{
+	int fromlen = sizeof(sa);
+	int cc = ::recvfrom(rsock_, (char*)buf, len, 0, &sa, &fromlen);
+	if (cc < 0) {
+		if (errno != EWOULDBLOCK)
+			perror("recvfrom");
+		return (-1);
+	}
+	return (cc);
 }
 
 int
-IPNetwork::recv(u_char* buf, int len, u_int32_t& from)
+UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from)
 {
 	sockaddr_in sfrom;
 	int fromlen = sizeof(sfrom);
@@ -205,31 +255,21 @@ IPNetwork::recv(u_char* buf, int len, u_int32_t& from)
 			perror("recvfrom");
 		return (-1);
 	}
-	from = sfrom.sin_addr.s_addr;
-	if (noloopback_broken_ && from == local_ && sfrom.sin_port == lport_)
+	from = *((sockaddr*)&sfrom);
+	if (noloopback_broken_ &&
+	    sfrom.sin_addr.s_addr == localaddr_.s_addr &&
+	    sfrom.sin_port == lport_) {
 		return (0);
+	}
 
 	return (cc);
 }
 
-
-int IPNetwork::command(int argc, const char*const* argv)
+int UDPIPNetwork::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
-		if (strcmp(argv[1], "close") == 0) {
-			close();
-			return (TCL_OK);
-		}
 		char* cp = tcl.result();
-		if (strcmp(argv[1], "addr") == 0) {
-			strcpy(cp, intoa(addr_));
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "interface") == 0) {
-			strcpy(cp, intoa(local_));
-			return (TCL_OK);
-		}
 		if (strcmp(argv[1], "port") == 0) {
 			sprintf(cp, "%d", ntohs(port_));
 			return (TCL_OK);
@@ -239,7 +279,7 @@ int IPNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "ismulticast") == 0) {
-			tcl.result(IN_CLASSD(ntohl(addr_))? "1" : "0");
+			tcl.result(IN_CLASSD(ntohl(destaddr_.s_addr))? "1" : "0");
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "add-membership") == 0) {
@@ -251,15 +291,7 @@ int IPNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
-		if (strcmp(argv[1], "open") == 0) {
-			int port = htons(atoi(argv[2]));
-			if (open(port) < 0)
-				tcl.result("0");
-			else
-				tcl.result("1");
-			return (TCL_OK);
-		}
-			
+
 		if (strcmp(argv[1], "loopback") == 0) {
 			char c = atoi(argv[2]);
 /* XXX why isn't this a problem in mash... */
@@ -279,10 +311,20 @@ int IPNetwork::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
+
+		if (strcmp(argv[1], "open") == 0) {
+			u_int16_t port = htons(atoi(argv[2]));
+			if (open(port) < 0)
+				tcl.result("0");
+			else
+				tcl.result("1");
+			return (TCL_OK);
+		}
 	} else if (argc == 5) {
 		if (strcmp(argv[1], "open") == 0) {
-			u_int32_t addr = LookupHostAddr(argv[2]);
-			int port = htons(atoi(argv[3]));
+			in_addr addr;
+			addr.s_addr = LookupHostAddr(argv[2]);
+			u_int16_t port = htons(atoi(argv[3]));
 			int ttl = atoi(argv[4]);
 			if (open(addr, port, ttl) < 0)
 				tcl.result("0");
@@ -291,18 +333,53 @@ int IPNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
+	return (IPNetwork::command(argc, argv));
+}
+
+int IPNetwork::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		if (strcmp(argv[1], "close") == 0) {
+			close();
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "open") == 0) {
+			open();
+			return (TCL_OK);
+		}
+
+		char* cp = tcl.result();
+		if (strcmp(argv[1], "destaddr") == 0) {
+			strcpy(cp, inet_ntoa(destaddr_));
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "localaddr") == 0) {
+			strcpy(cp, inet_ntoa(localaddr_));
+			return (TCL_OK);
+		}
+		/* for backward compatability */
+		if (strcmp(argv[1], "addr") == 0) {
+			strcpy(cp, inet_ntoa(destaddr_));
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "interface") == 0) {
+			strcpy(cp, inet_ntoa(localaddr_));
+			return (TCL_OK);
+		}
+	}
 	return (Network::command(argc, argv));
 }
 
-int IPNetwork::open(u_int32_t addr, int port, int ttl)
+int UDPIPNetwork::open(in_addr& addr, u_int16_t port, int ttl)
 {
-	addr_ = addr;
-	port_ = port;
-	ttl_ = ttl;
-
 	ssock_ = openssock(addr, port, ttl);
 	if (ssock_ < 0)
 		return (-1);
+
+	destaddr_ = addr;
+	port_ = port;
+	ttl_ = ttl;
 
 	/*
 	 * Open the receive-side socket.
@@ -314,33 +391,29 @@ int IPNetwork::open(u_int32_t addr, int port, int ttl)
 	return (0);
 }
 
-/* UDP unicast server */
-int IPNetwork::open(int port)
+int UDPIPNetwork::open(u_int16_t port)
 {
-	int fd;
+	Socket fd;
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("socket");
 		return (-1);
 	}
-	addr_ = INADDR_ANY;
+	rsock_ = fd;
+
+	localaddr_.s_addr = INADDR_ANY;
 	port_ = port;
 	ttl_ = 0;
-
 	struct sockaddr_in saddr;
-	bzero((char*)&saddr, sizeof(saddr));
-	saddr.sin_family = AF_INET;
-	saddr.sin_addr.s_addr = INADDR_ANY;
-	saddr.sin_port = port;
-	if (::bind(fd, (struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
+	if (bindsock(fd, localaddr_, port, saddr) < 0) {
 		perror("bind");
-		return(-1);
+		return (-1);
 	}
-	rsock_ = fd;
 	last_reset_ = 0;
 	return (0);
 }
 
-int IPNetwork::close()
+int
+IPNetwork::close()
 {
 	if (ssock_ >= 0) {
 		::close(ssock_);
@@ -361,13 +434,15 @@ int IPNetwork::close()
  * socket multicast address binding and we should leave
  * the igmp group by closing the socket anyway).
  */
-void IPNetwork::drop_membership()
+void
+UDPIPNetwork::drop_membership()
 {
 	::close(rsock_);
 	rsock_ = -1;
 }
 
-int IPNetwork::add_membership()
+int
+UDPIPNetwork::add_membership()
 {
 	if (rsock_ >= 0)
 		return (0);
@@ -378,14 +453,14 @@ int IPNetwork::add_membership()
 	 * to the same local address the kernel has chosen to send on.
 	 */
 	sockaddr_in local;
-	localname(&local);
-	rsock_ = openrsock(addr_, port_, local);
+	getaddr(ssock_, &local);
+	rsock_ = openrsock(destaddr_, port_, local);
 	if (rsock_ < 0) {
 		if (ssock_ >= 0)
 			(void)::close(ssock_);
 		return (-1);
 	}
-	local_ = local.sin_addr.s_addr;
+	localaddr_ = local.sin_addr;
 #if defined(sun) && defined(__svr4__)
 	/*
 	 * gethostname on solaris prior to 2.6 always returns 0 for
@@ -394,7 +469,7 @@ int IPNetwork::add_membership()
 	 * this to open the recv sock, only for the 'interface'
 	 * tcl command).
 	 */
-	if (local_ == 0) {
+	if (localaddr_ == 0) {
 		char myhostname[1024];
 		int error;
 
@@ -411,12 +486,13 @@ int IPNetwork::add_membership()
 	return (0);
 }
 
-void IPNetwork::localname(sockaddr_in* p)
+void
+IPNetwork::getaddr(Socket s, sockaddr_in* p)
 {
 	memset((char *)p, 0, sizeof(*p));
 	p->sin_family = AF_INET;
 	int len = sizeof(*p);
-	if (getsockname(ssock_, (struct sockaddr *)p, &len) < 0) {
+	if (::getsockname(s, (struct sockaddr *)p, &len) < 0) {
 		perror("getsockname");
 		p->sin_addr.s_addr = 0;
 		p->sin_port = 0;
@@ -426,13 +502,14 @@ void IPNetwork::localname(sockaddr_in* p)
 		char hostname[80];
 		struct hostent *hp;
 
-		if (gethostname(hostname, sizeof(hostname)) >= 0) {
-			if ((hp = gethostbyname(hostname)) >= 0) {
+		if (::gethostname(hostname, sizeof(hostname)) >= 0) {
+			if ((hp = ::gethostbyname(hostname)) >= 0) {
 				p->sin_addr.s_addr = ((struct in_addr *)hp->h_addr)->s_addr;
 			}
 		}
 	}
 #endif	
+	return;
 }
 
 void IPNetwork::reset()
@@ -443,18 +520,30 @@ void IPNetwork::reset()
 		last_reset_ = t;
 		if (ssock_ >= 0) {
 			(void)::close(ssock_);
-			ssock_ = openssock(addr_, port_, ttl_);
+			open();
 		}
 	}
 }
 
-int IPNetwork::openrsock(u_int32_t addr, u_short port,
-			    const struct sockaddr_in& local)
+void UDPIPNetwork::reset()
 {
-	int fd;
-	struct sockaddr_in sin;
+	time_t t = time(0);
+	int d = int(t - last_reset_);
+	if (d > 3) {
+		last_reset_ = t;
+		if (ssock_ >= 0) {
+			(void)::close(ssock_);
+			ssock_ = openssock(destaddr_, port_, ttl_);
+		}
+	}
+}
 
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
+Socket
+UDPIPNetwork::openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local)
+{
+	Socket fd;
+
+	fd = ::socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		perror("socket");
 		exit(1);
@@ -473,21 +562,20 @@ int IPNetwork::openrsock(u_int32_t addr, u_short port,
 		exit(1);
 	}
 #endif
-	memset((char *)&sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_port = port;
+
+	struct sockaddr_in sin;
+
 #ifdef IP_ADD_MEMBERSHIP
-	if (IN_CLASSD(ntohl(addr))) {
+	if (IN_CLASSD(ntohl(addr.s_addr))) {
 		/*
 		 * Try to bind the multicast address as the socket
 		 * dest address.  On many systems this won't work
 		 * so fall back to a destination of INADDR_ANY if
 		 * the first bind fails.
 		 */
-		sin.sin_addr.s_addr = addr;
-		if (::bind(fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-			sin.sin_addr.s_addr = INADDR_ANY;
-			if (::bind(fd, (struct sockaddr*)&sin, sizeof(sin)) < 0) {
+		if (bindsock(fd, addr, port, sin) < 0) {
+			struct in_addr any = { INADDR_ANY };
+			if (bindsock(fd, any, port, sin) < 0) {
 				perror("bind");
 				exit(1);
 			}
@@ -502,7 +590,7 @@ int IPNetwork::openrsock(u_int32_t addr, u_short port,
 		 */
 		struct ip_mreq mr;
 
-		mr.imr_multiaddr.s_addr = addr;
+		mr.imr_multiaddr = addr;
 		mr.imr_interface.s_addr = INADDR_ANY;
 		if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, 
 			       (char *)&mr, sizeof(mr)) < 0) {
@@ -514,11 +602,10 @@ int IPNetwork::openrsock(u_int32_t addr, u_short port,
 	{
 		/*
 		 * bind the local host's address to this socket.  If that
-		 * fails, another vic probably has the addresses bound so
+		 * fails, another process probably has the addresses bound so
 		 * just exit.
 		 */
-		sin.sin_addr.s_addr = local.sin_addr.s_addr;
-		if (::bind(fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+		if (bindsock(fd, local.sin_addr, port, sin) < 0) {
 			perror("bind");
 			exit(1);
 		}
@@ -535,100 +622,119 @@ int IPNetwork::openrsock(u_int32_t addr, u_short port,
 		/*
 		 * (try to) connect the foreign host's address to this socket.
 		 */
-		sin.sin_port = 0;
-		sin.sin_addr.s_addr = addr;
-		connect(fd, (struct sockaddr *)&sin, sizeof(sin));
+		connectsock(fd, addr, 0, sin);
 #endif
 	}
 	/*
 	 * XXX don't need this for the session socket.
 	 */	
-	int bufsize = 80 * 1024;
-	if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&bufsize,
-			sizeof(bufsize)) < 0) {
-		bufsize = 32 * 1024;
-		if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char *)&bufsize,
-				sizeof(bufsize)) < 0)
+	if (rbufsize(fd, 80*1024) < 0) {
+		if (rbufsize(fd, 32*1024) < 0) {
 			perror("SO_RCVBUF");
+			exit(1);
+		}
 	}
 	return (fd);
 }
 
-int IPNetwork::openssock(u_int32_t addr, u_short port, int ttl)
+int
+IPNetwork::bindsock(Socket s, in_addr& addr, u_int16_t port, sockaddr_in& sin)
 {
-	int fd;
-	struct sockaddr_in sin;
+	memset((char *)&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_port = port;
+	sin.sin_addr = addr;
+	return(::bind(s, (struct sockaddr *)&sin, sizeof(sin)));
+}
 
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
+int
+IPNetwork::connectsock(Socket s, in_addr& addr, u_int16_t port, sockaddr_in& sin)
+{
+	memset((char *)&sin, 0, sizeof(sin));
+	sin.sin_family = AF_INET;
+	sin.sin_port = port;
+	sin.sin_addr = addr;
+	return(::connect(s, (struct sockaddr *)&sin, sizeof(sin)));
+}
+int 
+IPNetwork::sbufsize(Socket s, int cnt)
+{   
+        return(setsockopt(s, SOL_SOCKET, SO_SNDBUF, (char *)&cnt, sizeof(cnt)));
+}   
+
+int
+IPNetwork::rbufsize(Socket s, int cnt)
+{   
+        return(setsockopt(s, SOL_SOCKET, SO_RCVBUF, (char *)&cnt, sizeof(cnt)));
+}   
+
+int
+UDPIPNetwork::msetup(Socket s, int ttl)
+{
+	int rval = 0;
+#ifdef IP_ADD_MEMBERSHIP
+	char c;
+	/* turn off loopback */
+	c = 0;
+	if (setsockopt(s, IPPROTO_IP, IP_MULTICAST_LOOP, &c, 1) < 0) {
+		/*
+		 * If we cannot turn off loopback (Like on the
+		 * Microsoft TCP/IP stack), then declare this
+		 * option broken so that our packets can be
+		 * filtered on the recv path.
+		 */
+		if (c == 0)
+			rval = 1;
+	}
+	/* set the multicast TTL */
+#ifdef WIN32
+	u_int t;
+#else   
+	u_char t;
+#endif  
+	t = (ttl > 255) ? 255 : (ttl < 0) ? 0 : ttl;
+	if (setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL,
+		       (char*)&t, sizeof(t)) < 0) {
+		perror("IP_MULTICAST_TTL");
+		return (-1);
+	}
+#else	/* IP_ADD_MEMBERSHIP NOT DEFINED */
+	fprintf(stderr, "\
+not compiled with support for IP multicast\n\
+you must specify a unicast destination\n");
+	return (-1);
+#endif  
+	return(0);
+}
+
+Socket
+UDPIPNetwork::openssock(in_addr& addr, u_short port, int ttl)
+{
+	Socket fd = ::socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		perror("socket");
 		exit(1);
 	}
 	nonblock(fd);
 
+	struct sockaddr_in sin;
+	static struct in_addr any = { INADDR_ANY };
 #ifdef WIN32
-	memset((char *)&sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_port = 0;
-	sin.sin_addr.s_addr = INADDR_ANY;
-	if (::bind(fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-		perror("bind");
-		exit(1);
-	}
+	bindsock(fd, any, 0, sin);
 #endif
-	memset((char *)&sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	sin.sin_port = port;
-	sin.sin_addr.s_addr = addr;
-	if (connect(fd, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-		perror("connect");
-		exit(1);
-	}
-	if (IN_CLASSD(ntohl(addr))) {
-#ifdef IP_ADD_MEMBERSHIP
-		char c;
+	connectsock(fd, addr, port, sin);
 
-		/* turn off loopback */
-		c = 0;
-		if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &c, 1) < 0) {
-			/*
-			 * If we cannot turn off loopback (Like on the
-			 * Microsoft TCP/IP stack), then declare this
-			 * option broken so that our packets can be
-			 * filtered on the recv path.
-			 */
-			if (c == 0)
-				noloopback_broken_ = 1;
-		}
-		/* set the multicast TTL */
-#ifdef WIN32
-		u_int t;
-#else
-		u_char t;
-#endif
-		t = (ttl > 255) ? 255 : (ttl < 0) ? 0 : ttl;
-		if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_TTL,
-			       (char*)&t, sizeof(t)) < 0) {
-			perror("IP_MULTICAST_TTL");
+	if (IN_CLASSD(ntohl(addr.s_addr))) {
+		int ms = msetup(fd, ttl);
+		if (ms < 0)
 			exit(1);
-		}
-#else
-		fprintf(stderr, "\
-not compiled with support for IP multicast\n\
-you must specify a unicast destination\n");
-		exit(1);
-#endif
+		noloopback_broken_ = ms;
 	}
-	/*
-	 * XXX don't need this for the session socket.
-	 */
-	int bufsize = 80 * 1024;
-	if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize,
-		       sizeof(bufsize)) < 0) {
-		bufsize = 48 * 1024;
-		if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize,
-			       sizeof(bufsize)) < 0)
-			perror("SO_SNDBUF");
+
+	if (sbufsize(fd, 80*1024) < 0) {
+		if (sbufsize(fd, 48*1024) < 0) {
+			perror("set sock buf send size");
+		}
 	}
 	return (fd);
 }
