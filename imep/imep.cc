@@ -1,6 +1,6 @@
 /*
   imep.cc
-  $Id: imep.cc,v 1.3 1999/08/08 22:58:27 yaxu Exp $
+  $Id: imep.cc,v 1.4 1999/08/09 21:11:02 haoboy Exp $
   */
 
 #include <packet.h>
@@ -137,8 +137,8 @@ imepAgent::findObjectSequence(u_int8_t seqno)
 
 		if(ob->ob_num_responses <=0) {
 			fprintf(stderr,
-				"%s: Object Block without response list\n",
-				__FUNCTION__);
+				"imepAgent::findObjectSequence: "
+				"Object Block without response list\n");
 			abort();
 		}
 

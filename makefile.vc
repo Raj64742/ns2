@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.20 1999/07/02 21:36:57 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.21 1999/08/09 21:10:56 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -142,15 +142,23 @@ OBJ_CC = \
 	phy.o wired-phy.o wireless-phy.o \
 	mac-timers.o cmu-trace.o varp.o \
 	dsdv/dsdv.o dsdv/rtable.o \
+	rtqueue.o \
+	imep/imep.o imep/dest_queue.o imep/imep_api.o \
+	imep/imep_rt.o imep/rxmit_queue.o imep/imep_timers.o \
+	imep/imep_util.o imep/imep_io.o \
+	tora/tora.o tora/tora_api.o tora/tora_dest.o tora/tora_io.o \
+	tora/tora_logs.o tora/tora_neighbor.o \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
 	ns-process.o \
 	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	webcache/mcache.o 
-#mac-csma.o mac-multihop.o\
-
+	webcache/mcache.o tfrm.o tfrm-sink.o energy-model.o \
+	#mac-csma.o mac-multihop.o\
+#	sensor-nets/landmark.o mac-simple-wireless.o \
+#	sensor-nets/tags.o sensor-nets/sensor-query.o \
+#	sensor-nets/flood-agent.o \
 
 # what was here before is now in emulate/
 OBJ_C =
@@ -200,7 +208,7 @@ CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
 	ptypes2tcl.exe ptypes2tcl.o
 
-$(NS): $(OBJ) tclAppInit.o Makefile
+$(NS): $(OBJ) tclAppInit.o 
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) $(LIB)
 

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.28 1999/08/05 21:23:11 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.29 1999/08/09 21:10:56 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -225,6 +225,7 @@ time_t time(time_t *);
 
 #define bzero(dest,count) memset(dest,0,count)
 #define bcopy(src,dest,size) memcpy(dest,src,size)
+#define strncasecmp _strnicmp
 #if defined(__cplusplus)
 }
 #endif

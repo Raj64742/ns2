@@ -55,7 +55,9 @@
 #include <propagation.h>
 #include <mobilenode.h>
 
-static LIST_HEAD(, MobileNode)      nodehead = { 0 };
+// XXX Must supply the first parameter in the macro otherwise msvc
+// is unhappy. 
+static LIST_HEAD(_dummy_MobileNodeList, MobileNode)      nodehead = { 0 };
 
 //static int	MobileNodeIndex = 0;
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*-
    imep.h
-   $Id: imep.h,v 1.1 1999/08/03 04:12:35 yaxu Exp $
+   $Id: imep.h,v 1.2 1999/08/09 21:11:03 haoboy Exp $
    */
 
 #ifndef __imep_h__
@@ -247,7 +247,9 @@ private:
 	Trace		*logtarget_;
 	// allows the IMEP agent to write info to the log file.
 
-	LIST_HEAD(,imepLink) imepLinkHead;
+	// XXX Must declare the first parameter in the macro, otherwise
+	// msvc will be unhappy.
+	LIST_HEAD(_dummy_imepLinkList,imepLink) imepLinkHead;
 	// List of links to neighbors and corresponding status
 
 	// ============================================================

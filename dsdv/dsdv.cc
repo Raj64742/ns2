@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.14 1999/07/07 22:17:54 salehi Exp $
+   $Id: dsdv.cc,v 1.15 1999/08/09 21:11:00 haoboy Exp $
 
    */
 
@@ -216,7 +216,7 @@ DSDV_Agent::cancelTriggersBefore(Time t)
   // Cancel any triggered events scheduled to take place *before* time
   // t (exclusive)
 {
-  struct rtable_ent *prte;
+  rtable_ent *prte;
   Scheduler & s = Scheduler::instance ();
 
   for (table_->InitLoop (); (prte = table_->NextLoop ());)
@@ -570,8 +570,7 @@ DSDV_Agent::makeUpdate(int& periodic)
 }
 
 void
-DSDV_Agent::updateRoute(struct rtable_ent *old_rte, 
-			struct rtable_ent *new_rte)
+DSDV_Agent::updateRoute(rtable_ent *old_rte, rtable_ent *new_rte)
 {
   assert(new_rte);
 

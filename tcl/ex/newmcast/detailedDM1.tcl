@@ -32,6 +32,9 @@ set ns [new Simulator]
 Simulator set EnableMcast_ 1
 Simulator set NumberInterfaces_ 1
 
+source ../../mcast/DM.tcl
+source ../../mcast/detailedDM.tcl
+
 $ns color 2 black
 $ns color 1 blue
 $ns color 0 yellow

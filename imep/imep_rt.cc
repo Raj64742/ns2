@@ -29,6 +29,7 @@ imepAgent::toraHeaderLength(struct hdr_tora *t)
 	default:
 		abort();
 	}
+	return 0; /* Make msvc happy */
 }
 
 void

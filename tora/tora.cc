@@ -1,6 +1,6 @@
 /*
   tora.cc
-  $Id: tora.cc,v 1.2 1999/08/08 22:58:29 yaxu Exp $
+  $Id: tora.cc,v 1.3 1999/08/09 21:11:01 haoboy Exp $
   */
 
 #include <agent.h>
@@ -158,7 +158,7 @@ toraAgent::dst_dump()
    Route Resolution
    ====================================================================== */
 void
-toraAgent::forward(Packet *p, nsaddr_t nexthop, Time delay = 0.0)
+toraAgent::forward(Packet *p, nsaddr_t nexthop, Time delay)
 {
         struct hdr_cmn *ch = HDR_CMN(p);
 
