@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.50 2003/06/03 23:32:26 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.51 2003/07/29 20:24:28 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -141,6 +141,7 @@ NewRenoTcpAgent::dupack_action()
                  */
                 reset_rtx_timer(1,0);
                 output(last_ack_ + 1, TCP_REASON_DUPACK);
+		dupwnd_ = numdupacks_;
                 return;
         }
 
@@ -160,6 +161,7 @@ reno_action:
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
         reset_rtx_timer(1,0);
         output(last_ack_ + 1, TCP_REASON_DUPACK);       // from top
+	dupwnd_ = numdupacks_;
         return;
 }
 
@@ -211,16 +213,19 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
 		if (tcph->seqno() >= recover_ 
-		    || (last_cwnd_action_ != CWND_ACTION_DUPACK &&
-			tcph->seqno() > last_ack_)) {
-			if (dupwnd_ > 0 && exit_recovery_fix_) {
+		    || (last_cwnd_action_ != CWND_ACTION_DUPACK)) {
+			if (dupwnd_ > 0) {
+			     dupwnd_ = 0;
+			     if (last_cwnd_action_ == CWND_ACTION_DUPACK)
+				last_cwnd_action_ == CWND_ACTION_EXITED;
+			     if (exit_recovery_fix_) {
 				int outstanding = maxseq_ - tcph->seqno() + 1;
 				if (ssthresh_ < outstanding)
-					cwnd_ = ssthresh_;
-				else
-					cwnd_ = outstanding;
+                                        cwnd_ = ssthresh_;
+                                else
+                                        cwnd_ = outstanding;
+			    }
 			}
-			dupwnd_ = 0;
 			firstpartial_ = 0;
 			recv_newack_helper(pkt);
 			if (last_ack_ == 0 && delay_growth_) {
@@ -240,8 +245,10 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		}
 		if (++dupacks_ == numdupacks_) {
 			dupack_action();
-			dupwnd_ = numdupacks_;
-		} else if (dupacks_ > numdupacks_) {
+                        if (!exitFastRetrans_)
+                                dupwnd_ = numdupacks_;
+		} else if (dupacks_ > numdupacks_ && (!exitFastRetrans_
+		      || last_cwnd_action_ == CWND_ACTION_DUPACK)) {
 			trace_event("NEWRENO_FAST_RECOVERY");
 			++dupwnd_;	// fast recovery
 

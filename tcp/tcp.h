@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.111 2003/07/28 20:52:12 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.112 2003/07/29 20:24:29 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -88,6 +88,8 @@ struct hdr_tcp {
 #define	CWND_ACTION_DUPACK	1	// dup acks/fast retransmit
 #define	CWND_ACTION_TIMEOUT	2	// retransmission timeout
 #define	CWND_ACTION_ECN		3	// ECN bit [src quench if supported]
+#define CWND_ACTION_EXITED      4       // congestion recovery has ended
+					// (when previously CWND_ACTION_DUPACK)
 
 /* these are bits for how to change the cwnd and ssthresh values */
 
@@ -282,6 +284,8 @@ protected:
         int numdupacks_;	/* dup ACKs before fast retransmit */
 	int numdupacksFrac_;	/* for a larger numdupacks_ with large */
 				/* windows */
+	int exitFastRetrans_;	/* True to clean exits of Fast Retransmit */ 
+				/* False for buggy old behavior */
 	double maxrto_;		/* max value of an RTO */
 	double minrto_;         /* min value of an RTO */
 	int old_ecn_;		/* For backwards compatibility with the 

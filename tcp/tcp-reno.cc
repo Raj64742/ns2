@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.39 2003/06/03 23:32:26 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.40 2003/07/29 20:24:28 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -97,6 +97,8 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
+		if (last_cwnd_action_ == CWND_ACTION_DUPACK)
+			last_cwnd_action_ == CWND_ACTION_EXITED;
 		dupwnd_ = 0;
 		recv_newack_helper(pkt);
 		if (last_ack_ == 0 && delay_growth_) {
@@ -109,8 +111,10 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		}
 		if (++dupacks_ == numdupacks_) {
 			dupack_action();
-			dupwnd_ = numdupacks_;
-		} else if (dupacks_ > numdupacks_) {
+			if (!exitFastRetrans_)
+				dupwnd_ = numdupacks_;
+		} else if (dupacks_ > numdupacks_ && (!exitFastRetrans_ 
+		     || last_cwnd_action_ == CWND_ACTION_DUPACK )) {
 			++dupwnd_;	// fast recovery
 		} else if (dupacks_ < numdupacks_ && singledup_ ) {
 			send_one();
@@ -178,6 +182,7 @@ RenoTcpAgent::dupack_action()
 		 */
 		reset_rtx_timer(1,0);
 		output(last_ack_ + 1, TCP_REASON_DUPACK);
+		dupwnd_ = numdupacks_;
 		return; 
 	}
 
@@ -198,6 +203,7 @@ reno_action:
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
 	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
+        dupwnd_ = numdupacks_;
 	return;
 }
 

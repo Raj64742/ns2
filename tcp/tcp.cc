@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.148 2003/07/28 20:52:11 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.149 2003/07/29 20:24:28 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -137,6 +137,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("maxcwnd_");
 	delay_bind_init_one("numdupacks_");
 	delay_bind_init_one("numdupacksFrac_");
+	delay_bind_init_one("exitFastRetrans_");
         delay_bind_init_one("maxrto_");
 	delay_bind_init_one("minrto_");
         delay_bind_init_one("srtt_init_");
@@ -232,6 +233,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "maxcwnd_", &maxcwnd_ , tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "numdupacks_", &numdupacks_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "numdupacksFrac_", &numdupacksFrac_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "exitFastRetrans_", &exitFastRetrans_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxrto_", &maxrto_ , tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "minrto_", &minrto_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "srtt_init_", &srtt_init_ , tracer)) return TCL_OK;

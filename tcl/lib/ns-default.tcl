@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.318 2003/07/28 20:52:11 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.319 2003/07/29 20:24:28 sfloyd Exp $
 
 
 #
@@ -711,6 +711,9 @@ Agent/TCP set numdupacks_ 3
 Agent/TCP set numdupacksFrac_ 100 ;	# Added 2002/10/18.
 					# Set to 100000 for this to have
 					# no effect even for large windows.
+Agent/TCP set exitFastRetrans_ true ;	# Added 2003/7/28.
+					# For clean exits of Fast Retransmit.
+					# False for old buggy behavior.
 Agent/TCP set window_ 20
 # Agent/TCP set windowInit_ 1
 Agent/TCP set windowInit_ 2 ;		# default changed on 2001/5/26.
