@@ -3,8 +3,7 @@
 \usepackage{times}
 \usepackage[T1]{fontenc}
 
-\PassOptionsToPackage{draft}{MyPreamble}
-\usepackage[widen-page,skrunch-figures]{MyPreamble}
+\PassOptionsToPackage{draft}{nsDoc}
 \usepackage{nsDoc}
 
 \begin{document}
@@ -12,11 +11,9 @@
 \title{\nsTcl\ internals documentation}
 \author{%
   Kevin Fall \tup{kfall@ee.lbl.gov}\\
+  Polly Huang \tup{huang@isi.edu}\\
   Kannan Varadhan \tup{kannan@catarina.usc.edu}}
 \date{\today}
-
-\def\c#1{\ensuremath{C_{#1}}}
-\def\d#1{\ensuremath{D_{#1}}}
 
 % \maketitle
 
@@ -57,13 +54,13 @@ this order:
         $src  set dst_ $group            \; configure the source;
         $ns attach-agent $node $src
 
-        $ns create-session $node $src \; creating the session helper and attaching to the source
+        $ns create-session $node $src \; creating the session helper and attaching to the source;
 
-	set rcvr [new Agent/NULL]        \; configure the receiver
+	set rcvr [new Agent/NULL]        \; configure the receiver;
 	$ns attach-agent $node $rcvr
-	$ns at 0.0 "$node join-group $rcvr $group" \; joining the session
+	$ns at 0.0 "$node join-group $rcvr $group" \; joining the session;
 
-	$ns at 0.1 "$src start"          \; start the source
+	$ns at 0.1 "$src start"          \; start the source;
 
 \end{program}
 
@@ -81,18 +78,19 @@ The following code gives an example to create a uniform
 0.1 loss rate.
 
 \begin{program}
-set loss_random_variable [new RandomVariable/Uniform] \; creating a uniform distribution random variable
+set loss_random_variable [new RandomVariable/Uniform] \; creating a uniform distribution random variable;
 $loss_random_variable set min_ 0
 $loss_random_variable set max_ 100
 
-set loss_module [new ErrorModel]                    \; creating an error module
-$loss_module drop-target [new Agent/Null]           \; set target for dropped packets
-$loss_module set rate_ 10             \; set error rate to 0.1, 1/(10-0)
-$loss_module ranvar $loss_random_variable \; attaching the random variable to the loss module
+set loss_module [new ErrorModel]                    \; creating an error module;
+$loss_module drop-target [new Agent/Null]           \; set target for dropped packets;
+$loss_module set rate_ 10             \; set error rate to 0.1, 1/(10-0);
+$loss_module ranvar $loss_random_variable \; attaching the random variable to the loss module;
 \end{program}
 
-Several random variable distributions are available.  Please refer to
-tcl/ex/ranvar.tcl.
+Several random variable distributions are available.
+%%% Need xref to ranvar pages
+Please refer to tcl/ex/ranvar.tcl.
 
 \paragraph{Inserting a Loss Module}
 
@@ -102,8 +100,8 @@ loss module when created.  Loss modules can only be inserted after the
 corresponding receivers finish joining the group.
 
 \begin{program}
-set sessionhelper [$ns create-session $node $src] \; keep a handle to the loss module
-$ns at 0.1 "$sessionhelper insert-loss $loss_module $rcvr" \; insert the loss module
+set sessionhelper [$ns create-session $node $src] \; keep a handle to the loss module;
+$ns at 0.1 "$sessionhelper insert-loss $loss_module $rcvr" \; insert the loss module;
 \end{program}
 
 Please note that packets dropped for a particular receiver should also 
@@ -154,56 +152,58 @@ its bandwidth and delay, and a node contains only its id and port number
 for next agent.
 
 \begin{program}
-SessionSim instproc simplex-link { n1 n2 bw delay type } {
+SessionSim instproc simplex-link \{ n1 n2 bw delay type \} \{
     $self instvar link_ delay_
     set sid [$n1 id]
     set did [$n2 id]
 
     set link_($sid:$did) [expr [string trimright $bw Mb] * 1000000]
     set delay_($sid:$did) [expr [string trimright $delay ms] * 0.001]
-}
+\}
 
-SessionNode instproc init {} {
+SessionNode instproc init \{\} \{
     $self instvar id_ np_
     set id_ [Node getid]
     set np_ 0
-}
+\}
 \end{program}
 
 \paragraph{Replicator}
 One replicator is required per source.  While the source is configured,
 a replicator (session helper) need to be attached to the source.  By
-calling create-session{}, a replicator is:
+calling \proc[]{create-session}, a replicator is:
 1. created,
 2. attached to the source application
-3. kept in a SessionSim instance variable session_ array with 
+3. kept in a SessionSim instance variable \code{session_} array with 
 its source and destination addresses as the index.
 
 Note that the destination of source agent must be set before
-calling create-session{}.
+calling \proc[]{create-session}.
 
 \begin{program}
-SessionSim instproc create-session { node agent } {
+SessionSim instproc create-session \{ node agent \} \{
     $self instvar session_
 
-    set nid [$node id]                           \; get source address
-    set dst [$agent set dst_]                    \; get destination address
-    set session_($nid:$dst) [new Classifier/Replicator/Demuxer]  \; creating the replicator
-    $agent target $session_($nid:$dst)           \; attach the replicator to the source
-    return $session_($nid:$dst)                  \; keep the replicator in the SessionSim instance variable session_ array
-}
+    set nid [$node id]                           \; get source address;
+    set dst [$agent set dst_]                    \; get destination address;
+    set session_($nid:$dst) [new Classifier/Replicator/Demuxer]  \; creating the replicator;
+    $agent target $session_($nid:$dst)           \; attach the replicator to the source;
+    return $session_($nid:$dst)                  \; keep the replicator in the SessionSim instance variable session_ array;
+\}
 \end{program}
 
 \paragraph{Delay and Loss Modules}
 
-%% PH: not sure \ref is the right syntax
-At least one delay module is required per receiver. See section \ref{sec:loss-config} for inserting a loss module for a receiver.
-When a receiver joins a group, the join-group{} method goes through
-all replicators (session helpers) maintained in session_.  If the destination index matches the group address the receiver intends to join, 
-then the following actions are performed.
+At least one delay module is required per receiver.
+See Section~\ref{sec:loss-config} for inserting a loss module for a receiver.
+When a receiver joins a group, 
+the \proc[]{join-group} method goes through
+all replicators (session helpers) maintained in \code{session_}.
+If the destination index matches the group address
+the receiver intends to join, then the following actions are performed.
 
 1. a new slot of the replicator (session helper) is created and assigned to the receiver.
-2. accumulated bandwidth and delay between the source and receiver are obtained by SessionSim instance procedure get-bw{} and get-delay{}.
+2. accumulated bandwidth and delay between the source and receiver are obtained by SessionSim instance procedure \proc[]{get-bw} and \proc[]{get-delay}.
 3. a constant random variable is created and assigned with the
 accumulative delay.
 4. a delay module is created and assigned with the constant random 
@@ -212,12 +212,12 @@ variable and the accumulative bandwidth.
 front of the receiver.
 
 \begin{program}
-SessionSim instproc join-group { agent group } {
+SessionSim instproc join-group \{ agent group \} \{
     $self instvar session_
 
-    foreach index [array names session_] {
+    foreach index [array names session_] \{
 	set pair [split $index :]
-	if {[lindex $pair 1] == $group} {
+	if \{[lindex $pair 1] == $group\} \{
 	    # Note: must insert the chain of loss, delay, 
 	    # and destination agent in this order:
 
@@ -242,9 +242,9 @@ SessionSim instproc join-group { agent group } {
 
 	    #4. insert the delay module in front of the dest agent
 	    $session_($index) insert-module $delay_module $agent
-	}
-    }
-}
+	\}
+    \}
+\}
 \end{program}
 
 
@@ -262,7 +262,7 @@ must be a receiver application.
 \begin{program}
                     / Loss module - Delay module - Receiver 1
 Source - Replicator --------------- Delay module - Receiver 2
-    (Session Helper)\ Loss module - Delay module - Receiver 3
+    (Session Helper)\bs Loss module - Delay module - Receiver 3
 
 \end{program}
 
