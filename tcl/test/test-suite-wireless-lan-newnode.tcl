@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.17 2000/09/14 18:19:31 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.18 2001/05/10 20:49:35 sfloyd Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan
@@ -29,6 +29,9 @@
 #
 # To view a list of available test to run with this script:
 # ns test-suite-wireless-lan.tcl
+
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 Class TestSuite
 

@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.14 1999/09/20 17:42:47 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.15 2001/05/10 20:49:35 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -17,6 +17,9 @@ source topologies.tcl
 # Misc setup
 #----------------------------------------------------------------------
 set tcl_precision 10
+
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 
 #----------------------------------------------------------------------

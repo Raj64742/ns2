@@ -30,6 +30,9 @@
 # ns test-suite-mip.tcl
 #
 
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
+
 Class TestSuite
 
 # Mobile IP test - simple case

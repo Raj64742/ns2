@@ -37,6 +37,8 @@ catch "cd tcl/test"
 source misc_simple.tcl
 catch "cd $dir"
 Queue/RED set gentle_ true
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 source ../ex/red-pd/monitoring.tcl
 set target_rtt_ 0.040

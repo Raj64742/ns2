@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1a.tcl,v 1.3 2000/08/20 04:29:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1a.tcl,v 1.4 2001/05/10 20:49:34 sfloyd Exp $
 #
 
 #
@@ -38,6 +38,9 @@
 # Don't copy this code for use in new simulations,
 # copy the new code with the new interfaces!
 #
+
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 set quiet false
 Agent/TCP set oldCode_ true

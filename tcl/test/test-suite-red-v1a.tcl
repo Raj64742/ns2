@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1a.tcl,v 1.5 1999/09/17 22:48:12 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1a.tcl,v 1.6 2001/05/10 20:49:34 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -49,6 +49,9 @@
 #       
 # The default value for ns_red(linterm) has been changed from 50 (its
 #  old value)to 10.
+
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 set flowfile fairflow.tr
 set flowgraphfile fairflow.xgr

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.6 2000/01/19 00:22:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.7 2001/05/10 20:49:35 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -51,6 +51,9 @@
 # This script is a simplified version of tcl/test/test-suite-routed.tcl
 
 # ns-random 0
+
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 Class TestSuite
 

@@ -1,5 +1,8 @@
 source misc_simple.tcl
 
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
+
 Trace set show_tcphdr_ 1
 
 set wrap 90

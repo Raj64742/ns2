@@ -30,10 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.9 2000/07/18 05:20:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.10 2001/05/10 20:49:34 sfloyd Exp $
 #
 
 source misc_simple.tcl
+
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 TestSuite instproc finish file {
         global quiet PERL

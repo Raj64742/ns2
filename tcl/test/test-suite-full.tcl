@@ -45,6 +45,9 @@ source misc.tcl
 source topologies.tcl
 catch "cd $dir"
 
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
+
 Trace set show_tcphdr_ 1 ; # needed to plot ack numbers for tracing 
 
 TestSuite instproc printtimers { tcp time} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.38 2001/04/23 22:31:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.39 2001/05/10 20:49:34 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -44,6 +44,8 @@ Agent/TFRCSink set discount_ 0
 # The default for discount_ is 1
 Agent/TCP set oldCode_ true
 # The default for oldCode_ is false.
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 Agent/TCP set window_ 100
 # Uncomment the line below to use a random seed for the

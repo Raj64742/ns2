@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.6 2000/09/14 18:19:31 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.7 2001/05/10 20:49:34 sfloyd Exp $
 
 ###########################################################################
 # IMPORTANT NOTE:
@@ -36,6 +36,9 @@
 # To view a list of available test to run with this script:
 # ns test-suite-WLtutorial.tcl
 #
+
+Agent/TCP set minrto_ 0
+# The default is being changed to minrto_ 1
 
 Class TestSuite
 
