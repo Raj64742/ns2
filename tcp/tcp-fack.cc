@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.10 1997/08/14 00:04:47 tomh Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.11 1997/08/26 03:18:13 padmanab Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -31,12 +31,7 @@ static const char rcsid[] =
 #include "scoreboard.h"
 #include "random.h"
 #include "tcp-fack.h"
-
-#define TRUE    1
-#define FALSE   0
-#define RECOVER_DUPACK  1
-#define RECOVER_TIMEOUT 2
-#define RECOVER_QUENCH  3
+#include "template.h"
 
 static class FackTcpClass : public TclClass {
 public:
@@ -70,6 +65,13 @@ void FackTcpAgent::oldack(Packet* pkt)
 
     last_ack_ = tcph->seqno();
     highest_ack_ = last_ack_;
+    fack_ = max(fack_,highest_ack_);
+    /* 
+     * There are conditions under which certain versions of TCP (e.g., tcp-fs)
+     * retract maxseq_. The following line of code helps in those cases. For
+     * versions of TCP, it is a NOP.
+     */
+    maxseq_ = max(maxseq_, highest_ack_);
     if (t_seqno_ < last_ack_ + 1)
         t_seqno_ = last_ack_ + 1;
     newtimer(pkt);      
@@ -247,9 +249,17 @@ void FackTcpAgent::timeout(int tno)
 #endif
 		retran_data_ = 0;
 		recover_cause_ = RECOVER_TIMEOUT;
-		closecwnd(0);  // close down to 1 segment
+		/* if there is no outstanding data, don't cut down ssthresh_ */
+		if (highest_ack_ == maxseq_ && restart_bugfix_) 
+			closecwnd(3);
+		else 
+			closecwnd(0);  // close down to 1 segment
 		scb_.ClearScoreBoard();
-		reset_rtx_timer(TCP_REASON_TIMEOUT,1);
+		/* if there is no outstanding data, don't back off rtx timer */
+		if (highest_ack_ == maxseq_)
+			reset_rtx_timer(TCP_REASON_TIMEOUT,0);
+		else
+			reset_rtx_timer(TCP_REASON_TIMEOUT,1);
 		fack_ = last_ack_;
 		t_seqno_ = last_ack_ + 1;  
 		send_much(0, TCP_REASON_TIMEOUT);
@@ -268,7 +278,13 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 
 	if (!force && delsnd_timer_.status() == TIMER_PENDING)
 		return;
-
+	/* 
+	 * If TCP_TIMER_BURSTSND is pending, cancel it. The timer is
+	 * set again, if necessary, after the maxburst pakts have been
+	 * sent out.
+	 */
+	if (burstsnd_timer_.status() == TIMER_PENDING)
+		burstsnd_timer_.cancel();
 	found = 1;
     /*
      * as long as the pipe is open and there is app data to send...
