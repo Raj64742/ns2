@@ -114,8 +114,8 @@ set ns_		[new Simulator]
 
 # set wireless channel, radio-model and topography objects
 
-set wchan	[new $opt(chan)]
-set wprop	[new $opt(prop)]
+#set wchan	[new $opt(chan)]
+#set wprop	[new $opt(prop)]
 set wtopo	[new Topography]
 
 # create trace object for ns and nam
@@ -129,7 +129,7 @@ $ns_ namtrace-all-wireless $namtrace $opt(x) $opt(y)
 # define topology
 $wtopo load_flatgrid $opt(x) $opt(y)
 
-$wprop topography $wtopo
+#$wprop topography $wtopo
 
 #
 # Create God
@@ -150,6 +150,8 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -antType $opt(ant) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
+		 -channelType $opt(chan) \
+		 -topoInstance $wtopo \
 		 -agentTrace ON \
                  -routerTrace OFF \
                  -macTrace OFF 
@@ -159,9 +161,9 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 #  to the channel. 
 
 for {set i 0} {$i < $opt(nn) } {incr i} {
-	set node_($i) [$ns_ node $wchan]	
+	set node_($i) [$ns_ node]	
 	$node_($i) random-motion 0		;# disable random motion
-	$node_($i) topography $wtopo
+#	$node_($i) topography $wtopo
 }
 
 

@@ -149,8 +149,7 @@ TestSuite instproc init {} {
 	     lappend eilastlevel 1 1 4 1
 	     AddrParams set nodes_num_ $eilastlevel
         }  
-	set chan	[new $opt(chan)]
-	set prop	[new $opt(prop)]
+
 	set topo	[new Topography]
 	set tracefd	[open $opt(tr) w]
 	
@@ -158,8 +157,6 @@ TestSuite instproc init {} {
 
 	#set opt(rp) $testName_
 	$topo load_flatgrid $opt(x) $opt(y)
-	$prop topography $topo
-
 	
 	puts $tracefd "M 0.0 nn:$opt(nn) x:$opt(x) y:$opt(y) rp:$opt(rp)"
 	puts $tracefd "M 0.0 sc:$opt(sc) cp:$opt(cp) seed:$opt(seed)"
@@ -193,7 +190,9 @@ Test/dsdv instproc init {} {
                          -antType $opt(ant) \
                          -propType $opt(prop) \
                          -phyType $opt(netif) \
-                         -agentTrace ON \
+			 -channelType $opt(chan) \
+			 -topoInstance $topo \
+                        -agentTrace ON \
                          -routerTrace OFF \
                          -macTrace OFF \
                          -movementTrace OFF
@@ -201,11 +200,8 @@ Test/dsdv instproc init {} {
     
 
     for {set i 0} {$i < $opt(nn) } {incr i} {
-                set node_($i) [$ns_ node $chan]
+                set node_($i) [$ns_ node]
                 $node_($i) random-motion 0              ;# disable random motion
-                $node_($i) topography $topo
-
-
     }
     puts "Loading connection pattern..."
     source $opt(cp)

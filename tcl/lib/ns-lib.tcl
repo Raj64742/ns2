@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.164 1999/09/09 03:34:34 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.165 1999/09/09 17:13:03 yaxu Exp $
 
 #
 
@@ -190,8 +190,10 @@ Simulator instproc dumper obj {
 #                  -propType
 #                  -ifqType
 #                  -ifqLen
-#                  phyType
-#                  antType
+#                  -phyType
+#                  -antType
+#                  -channelType
+#                  -topologyInstance
 #                  -energyModel    "EnergyModel"
 #                  -initialEnergy  (in Joules)
 #                  -rxPower        (in W)
@@ -223,6 +225,8 @@ Simulator instproc ifqType  {val} { $self set ifqType_  $val }
 Simulator instproc ifqLen  {val} { $self set ifqlen_  $val }
 Simulator instproc phyType  {val} { $self set phyType_  $val }
 Simulator instproc antType  {val} { $self set antType_  $val }
+Simulator instproc channelType {val} {$self set channelType_ $val}
+Simulator instproc topoInstance {val} {$self set topoInstance_ $val}
 Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc txPower  {val} { $self set txPower__  $val }
@@ -236,6 +240,7 @@ Simulator instproc node-config args {
         set args [eval $self init-vars $args]
         $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
         $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
+        $self instvar channelType_ topoInstance_
 
         if [info exists macTrace_] {
             Simulator set MacTrace_ $macTrace_
@@ -258,8 +263,17 @@ Simulator instproc node-config args {
         # hacking for matching old cmu add-interface
         # not good style, for back-compability ONLY
 
-        set propType_ [new $propType_] 
+	if [info exists propType_] {
+            set propType_ [new $propType_] 
+	}
+	
+	if [info exists channelType_] {
+	    set channelType_ [new $channelType_]
+	}
 
+	if [info exists topoInstance_] {
+	    $propType_  topography $topoInstance_
+	}
 # set address type, hierarchical or expanded
 
     if {[string compare $addressType_ ""] != 0} {
@@ -291,7 +305,7 @@ Simulator instproc node args {
 
 	if [info exists routingAgent_] {
 	    if  {[string compare $routingAgent_ ""] != 0} {
-	        set node [$self create-wireless-node $args]
+	        set node [$self create-wireless-node]
 	        return $node
 	    }
 	}
@@ -320,9 +334,9 @@ Simulator instproc imep-support {} {
 Simulator instproc create-wireless-node { args } {
 
         $self instvar routingAgent_
-        $self instvar propType_ llType_ macType_ ifqType_ ifqlen_ phyType_
+        $self instvar propType_ llType_ macType_ ifqType_ ifqlen_ phyType_ channelType_
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
-        $self instvar imepflag_
+        $self instvar imepflag_ topoInstance_
 
 
         set imepflag_ OFF
@@ -376,7 +390,7 @@ Simulator instproc create-wireless-node { args } {
 
 	# add main node interface
 
-	$node add-interface $args $propType_ $llType_ $macType_ \
+	$node add-interface $channelType_ $propType_ $llType_ $macType_ \
 	       $ifqType_ $ifqlen_ $phyType_ $antType_
 
 	# attach agent
@@ -419,6 +433,7 @@ Simulator instproc create-wireless-node { args } {
 	    $node setPr $rxPower_
         }
 
+	$node topography $topoInstance_
 	return $node
 
 }
