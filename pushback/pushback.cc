@@ -203,11 +203,11 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
   //this is a quick way of achieving this.
   //but it can be justified on some grounds. will do a check with Sally later.
   int noSessions = queue_list_[qid].pbq_->rlsList_->noMySessions(node_->nodeid());
-  if (noSessions >= MAX_SESSIONS) {
-	  sprintf(prnMsg, "My hands are full\n");
-	  printMsg(prnMsg,0); 
-	  return;
-  }
+//   if (noSessions >= MAX_SESSIONS) {
+// 	  sprintf(prnMsg, "My hands are full\n");
+// 	  printMsg(prnMsg,0); 
+// 	  return;
+//   }
 	  
   AggReturn * aggReturn = queue_list_[qid].idTree_->identifyAggregate(arrRate, linkBW);
   if (aggReturn == NULL) return;
@@ -235,30 +235,22 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
     }
     
     double estimate = (currCluster.count_)*(arrRate/aggReturn->totalCount_);
-    double ambientDropRate = 1 - linkBW/arrRate;
-    double requiredDropRate = 1 - aggReturn->limit_/estimate;
-
-    sprintf(prnMsg, "starting rate-limiting lower=%g estimate=%g adr=%g rdr=%g agg ",  
-	   aggReturn->limit_, estimate, ambientDropRate, requiredDropRate);
+    
+    if (noSessions >= MAX_SESSIONS) {
+	int rank = queue_list_[qid].pbq_->rlsList_->rankRate(node_->nodeid(), estimate);
+	if (rank >= MAX_SESSIONS) {
+	    sprintf(prnMsg, "got rate <= minRate. agg = ");
+	    printMsg(prnMsg,0);aggSpec->print(); fflush(stdout);
+	    delete(aggSpec);	    
+	    continue;
+	} 
+    }
+    
+    sprintf(prnMsg, "starting rate-limiting lower=%g estimate=%g agg ",  
+	    aggReturn->limit_, estimate);
     printMsg(prnMsg,0);
     aggSpec->print();  fflush(stdout);
     
-//     if (requiredDropRate < ambientDropRate) {
-//       RateLimitSession * rls = new RateLimitSession(aggSpec, estimate, 0, aggReturn->limit_, 
-// 						    node_->nodeid(), qid, 
-// 						    RATE_LIMIT_TIME_DEFAULT, aggReturn->limit_,
-// 						    node_, rtLogic_);
-//       queue_list_[qid].pbq_->rlsList_->insert(rls);
-    
-//       sprintf(prnMsg, " enable pushback = %d\n",  enable_pushback_);
-//       printMsg(prnMsg,0);
-//       //pushback check only if you have upstream neighbors and pushback is enabled.
-//       if (rls->logData_->count_!=0 && enable_pushback_) {
-// 	PushbackEvent * event = new PushbackEvent(PUSHBACK_CHECK_TIME, PUSHBACK_CHECK_EVENT, rls);
-// 	timer_->insert(event);
-//       }
-//     }
-//     else {
     double initialLimit = estimate; //*(1 - ambientDropRate);
     RateLimitSession * rls = new RateLimitSession(aggSpec, estimate, 1, initialLimit, 
 						  node_->nodeid(), qid, 
@@ -270,16 +262,7 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
     timer_->insert(event);
     //    }
 
-   
     noSessions++;
-    //let sessions that are identified together be rate-limited together. 
-    //inexplicably, i observed an improvement in link utilization 
-    // with the following commented out. could be a a matter of chance though.
-    //     if (noSessions >= MAX_SESSIONS) {
-    // 	    sprintf(prnMsg, "My hands are full. Limiting fewer than identified aggregates\n");
-    // 	    printMsg(prnMsg,0); 
-    // 	    break;
-    //     }
   }
 
   queue_list_[qid].idTree_->setLowerBound(aggReturn->limit_, 0);
@@ -536,46 +519,65 @@ PushbackAgent::pushbackRefresh(int qid) {
   listItem = pbq->rlsList_->first_;
   while (listItem != NULL) {
     if (listItem->origin_ == node_->nodeid()) {
-      if (listItem->merged_ || listItem->getArrivalRateForStatus() < requiredLimit) {
-	if (now - listItem->refreshTime_ >= MIN_TIME_TO_FREE) {
-	  //cancel rate-limiting
-	  pushbackCancel(listItem);
-	} else {
-	  //refresh upstream with double of max(sending rate, old limit)
-	  //just using sending rate, limits the amount an aggregate can grow till next refresh
-	  //using just old limit is tricky when different aggregates have different limits.
-	  //at the same time, we would prefer not to loosen the hold too much in one step.
-	  double sendRate = listItem->getArrivalRateForStatus();
-	  double oldLimit = listItem->rlStrategy_->target_rate_;
-	  double maxR = sendRate>oldLimit? sendRate: oldLimit;
-	  if (now - listItem->refreshTime_ <= PRIMARY_WAITING_ZONE) {
-	     sprintf(prnMsg,"Waiting Zone 1: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
-	     printMsg(prnMsg,0);
-	  listItem->setLimit(maxR);
-	  }
-	  else {
-	     sprintf(prnMsg,"Waiting Zone 2: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
-	     printMsg(prnMsg,0);
-	     listItem->setLimit(1.5*maxR);
-	  } 
-	  if (listItem->pushbackON_) 
-	    refreshUpstreamLimits(listItem);
+	
+	//get rid of merged RLS's
+	if (listItem->merged_) {
+	    pushbackCancel(listItem);
+	    listItem = listItem->next_;
+	    continue;
 	}
-      }
-      else {
-	//reduce the lowerBound to minimum seen.
-	//this step can corrupt lowerbounds for a long time. 
-	// but its absence can lead to oscillations. 
-	// todo: consider this later.
-	// alternately - there can be another global notion of lower bound 
-	// based on the current conditions.
-	//listItem->lowerBound_ = lowerBound; 
 
-	//refresh rate-limiting
-	listItem->refreshed();
-	listItem->setLimit(requiredLimit);
+	//check if some sessions need to be discarded because of rate-limiting too many sessions
+	int rank = pbq->rlsList_->rankRate(node_->nodeid(), listItem->getArrivalRateForStatus());
+	if (rank >= MAX_SESSIONS && (now - listItem->startTime_) >= EARLIEST_TIME_TO_FREE) {
+	    sprintf(prnMsg,"Releasing because of too many being rate-limited\n");
+	    printMsg(prnMsg,0);
+	    pushbackCancel(listItem);
+	    listItem = listItem->next_;
+	    continue;
+	}
+
+	//Sessions sending less than the limit.
+	if (listItem->getArrivalRateForStatus() < requiredLimit) {
+	    //if it has been sending less for "some" time.
+	    if (now - listItem->refreshTime_ >= MIN_TIME_TO_FREE) {
+		pushbackCancel(listItem);       //cancel rate-limiting
+	    } else {
+		//refresh upstream with double of max(sending rate, old limit)
+		//just using sending rate, limits the amount an aggregate can grow till next refresh
+		//using just old limit is tricky when different aggregates have different limits.
+		//at the same time, we would prefer not to loosen the hold too much in one step.
+		double sendRate = listItem->getArrivalRateForStatus();
+		double oldLimit = listItem->rlStrategy_->target_rate_;
+		double maxR = sendRate>oldLimit? sendRate: oldLimit;
+		if (now - listItem->refreshTime_ <= PRIMARY_WAITING_ZONE) {
+		    sprintf(prnMsg,"Waiting Zone 1: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
+		    printMsg(prnMsg,0);
+		    listItem->setLimit(maxR);
+		}
+		else {
+		    sprintf(prnMsg,"Waiting Zone 2: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
+		    printMsg(prnMsg,0);
+		    listItem->setLimit(1.5*maxR);
+		} 
+		if (listItem->pushbackON_) 
+		    refreshUpstreamLimits(listItem);
+	    }
+	}
+      else {
+	  //reduce the lowerBound to minimum seen.
+	  //this step can corrupt lowerbounds for a long time. 
+	  // but its absence can lead to oscillations. 
+	  // todo: consider this later.
+	  // alternately - there can be another global notion of lower bound 
+	  // based on the current conditions.
+	  //listItem->lowerBound_ = lowerBound; 
+	  
+	  //refresh rate-limiting
+	  listItem->refreshed();
+	  listItem->setLimit(requiredLimit);
    	if (listItem->pushbackON_) 
-	  refreshUpstreamLimits(listItem);
+	    refreshUpstreamLimits(listItem);
 	
       }
     }    

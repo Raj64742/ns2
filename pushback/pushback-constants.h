@@ -56,7 +56,7 @@
 #define LOWER_BOUND_MODE 1
 
 //maximum number of rate-limiting sessions that a congested router can start.
-#define MAX_SESSIONS 3
+#define MAX_SESSIONS 6
 
 //0 for No Mergers of aggregate prefixes
 //1 for Mergers
@@ -65,6 +65,10 @@
 // maximum no of queues on the node
 #define MAX_QUEUES 10
 
+//min time to release an aggregate after starting to rate-limit it.
+#define EARLIEST_TIME_TO_FREE 10
+
+//min time to release an aggregate after it goes below limit imposed on it.
 #define MIN_TIME_TO_FREE 20
 #define PRIMARY_WAITING_ZONE 10
 #define RATE_LIMIT_TIME_DEFAULT 30    //in seconds

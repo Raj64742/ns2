@@ -267,6 +267,20 @@ RateLimitSessionList::endSession(RateLimitSession * rls) {
   exit(-1);
 }
 
+int 
+RateLimitSessionList::rankRate(int myID, double rate) {
+    int rank=0;
+    RateLimitSession * listItem = first_;
+    while (listItem != NULL) {
+	if (listItem->origin_ == myID && listItem->getArrivalRateForStatus() > rate) {
+	    rank++;
+	}
+	listItem = listItem->next_;
+    }
+    
+    return rank;
+}	
+	
 // ############################# RateLmitSession Methods #####################
 
 //local constructor

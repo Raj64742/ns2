@@ -130,6 +130,10 @@ class RateLimitSessionList {
   void merge(int prefix, int bits, int myID);
   RateLimitSession * getSessionByLocalID(int localID);
   RateLimitSession * getSessionByRemoteID(int remoteID);
+  
+  //returns number of sessions with sending rate strictly more than this rate.
+  int rankRate(int myID, double rate);	
 };
+
 
 #endif
