@@ -326,12 +326,16 @@ LanIface instproc trace {ns f {op ""}} {
 }
 # should be called after LanIface::trace
 LanIface instproc nam-trace {ns f} {
-	$self instvar hopT_
+	$self instvar hopT_ rcvT_ enqT_ deqT_ drpT_ 
 	if [info exists hopT_] {
 		$hopT_ namattach $f
 	} else {
 		$self trace $ns $f "nam"
 	}
+	$rcvT_ namattach $f
+	$enqT_ namattach $f
+	$deqT_ namattach $f
+	$drpT_ namattach $f
 }
 LanIface instproc add-receive-filter filter {
 	$self instvar mac_
