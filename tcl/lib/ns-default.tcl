@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.307 2003/02/01 04:21:04 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.308 2003/02/02 22:19:15 xuanc Exp $
 
 
 #
@@ -822,6 +822,7 @@ Agent/TCPSink set ts_echo_bugfix_ false
 Agent/TCPSink set generateDSacks_ false
 Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
+Agent/TCPSink set bytes_ 0
 
 Agent/TCPSink/DelAck set interval_ 100ms
 catch {
