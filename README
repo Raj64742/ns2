@@ -1,12 +1,39 @@
-@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/README,v 1.2 1997/01/28 03:29:24 mccanne Exp $
+@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/README,v 1.3 1998/04/21 16:58:57 heideman Exp $
 
 MASH Research Group
 University of California, Berkeley
 ns@mash.cs.berkeley.edu
-http://www-mash.cs.berkeley.edu/ns/
+<http://www-mash.cs.berkeley.edu/ns/>
 
-This directory contains a source code or binary distribution
-of ns, the UCB/LBNL Network Simulator.  For more information,
-see the html documention in html/ns.html from the source code
-distribution, or for the latest information, consult the
-on-line documentation in http://www-mash.cs.berkeley.edu/ns/
+VINT Project
+A collaboration among USC/ISI, Xerox PARC, LBNL, and UCB 
+<http://netweb.usc.edu/vint/>
+
+This directory contains a source code or binary distribution of ns,
+the UCB/LBNL Network Simulator.
+Ns should configure with GNU autoconfigure.
+Additional information:
+
+QUICK START:  try
+	./configure; make; ./validate
+
+DOWNLOADING AND BUILDING NS:
+	<http://www-mash.cs.berkeley.edu/ns/ns-build.html>
+
+INSTALLATION PROBLEMS AND BUG FIXES:
+	<http://www-mash.cs.berkeley.edu/ns/ns-problems.html>
+
+DOCUMENTATION:
+	<http://www-mash.cs.berkeley.edu/ns/>
+	(includes notes about the limitations of model, debugging tips,
+	and a >50 page design overview/tutorial)
+
+	ns.1   (the ns man page, included in this distribution)
+
+LATEST INFORMATION:
+	<http://www-mash.cs.berkeley.edu/ns/>
+
+
+If you find ns useful, you may also wish to look at nam, the network
+animator <http://www-mash.cs.berkeley.edu/nam/nam.html>.
+
