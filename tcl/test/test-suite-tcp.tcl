@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.15 1999/08/18 00:58:36 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.16 1999/08/19 04:18:02 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -456,24 +456,17 @@ Test/stats1 instproc run {} {
         $ns_ run
 }
 
-Class Test/quiescent -superclass TestSuite
-Test/quiescent instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     net6
-        set test_       quiescent
-	Agent/TCP set QOption_ 0
-        $self next
-} 
-Test/quiescent instproc run {} {
+TestSuite instproc run1 tcp0 {
         $self instvar ns_ node_ testName_
-	Agent/TCP set packetSize_ 100 
-	Agent/TCP set window_ 25
 	set stoptime 30.1
 
 	set count 100 
-	set count1 1
-    	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	set count1 3
+    	#set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+    	#set tcp0 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
+	#set tcp0 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(k1) 0]
+	#set tcp0 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+
     	set ftp0 [$tcp0 attach-app FTP]
     	$ns_ at 0.0  "$ftp0 produce $count" 
 	$ns_ at 2.0  "$ftp0 producemore $count"  
@@ -499,26 +492,95 @@ Test/quiescent instproc run {} {
 	$ns_ run
 }
 
-Class Test/quiescent_op -superclass TestSuite
-Test/quiescent_op instproc init topo {
+Class Test/quiescent_100ms -superclass TestSuite
+Test/quiescent_100ms instproc init topo {
         $self instvar net_ defNet_ test_
         set net_        $topo
         set defNet_     net6
-        set test_       quiescent_op
+        set test_       quiescent_100ms
+	Agent/TCP set QOption_ 0
+        $self next
+} 
+Test/quiescent_100ms instproc run {} {
+        $self instvar ns_ node_ 
+	Agent/TCP set packetSize_ 100 
+	Agent/TCP set window_ 25
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	$self run1 $tcp0
+}
+
+Class Test/quiescent_100ms_fine -superclass TestSuite
+Test/quiescent_100ms_fine instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_100ms_fine
 	Agent/TCP set QOption_ 1
-	Test/quiescent_op instproc run {} [Test/quiescent info instbody run ]
+	Test/quiescent_100ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
         $self next
 } 
 
-Class Test/quiescent_op2 -superclass TestSuite
-Test/quiescent_op2 instproc init topo {
+Class Test/quiescent_100ms_coarse -superclass TestSuite
+Test/quiescent_100ms_coarse instproc init topo {
         $self instvar net_ defNet_ test_
         set net_        $topo
         set defNet_     net6
-        set test_       quiescent_op2
+        set test_       quiescent_100ms_coarse
 	Agent/TCP set QOption_ 1
 	Agent/TCP set CoarseTimer_ 1
-	Test/quiescent_op2 instproc run {} [Test/quiescent info instbody run ]
+	Test/quiescent_100ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_1ms_fine -superclass TestSuite
+Test/quiescent_1ms_fine instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_1ms_fine
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.001 
+	Agent/TCP set CoarseTimer_ 0 
+	Test/quiescent_1ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_1ms_coarse -superclass TestSuite
+Test/quiescent_1ms_coarse instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_1ms_coarse
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.001 
+	Agent/TCP set CoarseTimer_ 0 
+	Test/quiescent_1ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_500ms_fine -superclass TestSuite
+Test/quiescent_500ms_fine instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_500ms_fine
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.500
+	Agent/TCP set CoarseTimer_ 0 
+	Test/quiescent_500ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_500ms_coarse -superclass TestSuite
+Test/quiescent_500ms_coarse instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_500ms_coarse
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.500 
+	Agent/TCP set CoarseTimer_ 1 
+	Test/quiescent_500ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
         $self next
 } 
 
