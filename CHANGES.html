@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.37 1997/03/25 22:57:41 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.38 1997/03/26 23:28:05 kannan Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -12,6 +12,16 @@
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a15.tar.gz>ns-2.0a15</a>
 <i>Tue Mar 25 14:56:39 PST 1997</i></h3>
 <ul>
+
+<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<i>Wed Mar 26 15:24:24 PST 1997</i><br>
+The test suites break with the dynamics, because they want to acquire
+an instance of the Simulator.  However, the test-suites operate in
+compatibility mode, and hence only create an instance of OldSim, a
+subclass of Simulator.  So, wrote a `Simulator instance' procedure that
+returns the current instance of the simulator.<br>
+Files affected: tcl/lib/ns-lib.tcl, tcl/lib/ns-trace.tcl,
+tcl/rtglib/dynamics.tcl, tcl/rtglib/route-proto.tcl
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 Added trace.h to FILES.

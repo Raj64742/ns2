@@ -311,13 +311,13 @@ rtModel/Deterministic instproc parms args {
     $self instvar upInterval_ downInterval_
 
     if { [llength $args] >= 1 } {
-	set upInterval_ [lindex args 0]
+	set upInterval_ [lindex $args 0]
     } else {
 	set upInterval_ [$class set upInterval_]
     }
 
     if { [llength $args] >= 2 } {
-	set downInterval_ [lindex args 1]
+	set downInterval_ [lindex $args 1]
     } else {
 	set downInterval_ [$class set downInterval_]
     }

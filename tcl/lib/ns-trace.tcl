@@ -5,10 +5,14 @@ Trace instproc init type {
 }
 
 Trace instproc format args {
+    # The strange puts construction below helps us write formats such as
+    # 	$traceObject format {$src_} {$dst_} 
+    # that will then put ths source or destination id in the desired place.
+
     $self instvar type_ fp_ src_ dst_
 
-    set ns [Simulator info instances]
-    eval puts $fp_ "\"$type_ [$ns now] $args\""
+    set ns [Simulator instance]
+    puts $fp_ [eval list $type_ [$ns now] [eval concat $args]]
 }
 
 Trace instproc attach fp {

@@ -22,7 +22,7 @@ RouteLogic instproc register {proto args} {
 }
 
 RouteLogic proc configure args {
-    set ns [Simulator info instances]
+    set ns [Simulator instance]
     eval [$ns get-routelogic] config-protos $args
 }
 
@@ -69,7 +69,7 @@ RouteLogic instproc config-protos args {
 }
 
 RouteLogic instproc lookup { nodeid destid } {
-    set ns [Simulator info instances]
+    set ns [Simulator instance]
     set node [$ns get-node-by-id $nodeid]
     if { [$node info vars rtObject_] != "" } {
 	set dest [$ns get-node-by-id $destid]
@@ -104,6 +104,7 @@ Class rtObject
 rtObject instproc init node {
     $self next
 
+    $node rtObject $self
     $self add-proto Direct $node
     $self intf-changed
 }
@@ -120,13 +121,17 @@ rtObject instproc add-proto proto {
     $self instvar rtProtos_
     set rtProtos_($proto) [new rtProto/$proto $node]
     
-    set ns [Simulator info instances]
+    set ns [Simulator instance]
     $ns attach-agent $node $rtProtos_($proto)
 }
 
 rtObject instproc rtProto? proto {
     $self instvar rtProtos_
-    return $rtProtos_($proto)
+    if [info exists rtProtos_($proto)] {
+	return $rtProtos_($proto)
+    } else {
+	return ""
+    }
 }
 
 rtObject instproc compute-routes {} {
@@ -136,7 +141,7 @@ rtObject instproc compute-routes {} {
     }
 }
 
-rtObject instproc recompute-routes {} {
+rtObject instproc new-routes-computed? {} {
     $self instvar rtProtos_ nextHop_ rtpref_ metric_
 
     set changes 0
@@ -150,19 +155,18 @@ rtObject instproc recompute-routes {} {
 }
 
 rtObject instproc assess-changes p {
-    foreach node [Simulator all-nodes-list] {
-	if { [$p info vars nextHop_($node)] && [info exists nextHop_($node)] } {
-	    set pnh [$p set nextHop_($node)]
-	    set ppf [$p set rtpref_($node)]
-	    set pmt [$p set metric_($node)]
-	    if { $pnh != $nextHop_($node) &&
-	         { $ppf < $rtpref_($node) ||
-		   { $ppf == $rtpref_($node) && $pmt < $metric_($node) }}} {
-		set nextHop_($node) $pnh
-		set rtpref_($node)  $ppf
-		set metric_($node)  $pmt
-		incr changes
-	    }
+    set changes 0
+    foreach dest [Simulator all-nodes-list] {
+	set pnh [$p set nextHop_($dest)]
+	set ppf [$p set rtpref_($dest)]
+	set pmt [$p set metric_($dest)]
+	if { $pnh != "" && $pnh != $nextHop_($dest) &&
+	     { $ppf < $rtpref_($dest) ||
+	       { $ppf == $rtpref_($dest) && $pmt < $metric_($dest) }}} {
+	    set nextHop_($dest) $pnh
+	    set rtpref_($dest)  $ppf
+	    set metric_($dest)  $pmt
+	    incr changes
 	}
     }
     return changes
@@ -170,8 +174,8 @@ rtObject instproc assess-changes p {
 
 rtObject instproc install-routes {} {
     $self instvars node_ nextHop_
-    foreach node [Simulator all-nodes-list] {
-	$node_ add-route $node [$nextHop_($node) head]
+    foreach dest [Simulator all-nodes-list] {
+	$node_ add-route $dest [$nextHop_($dest) head]
     }
 }
 
@@ -180,10 +184,14 @@ rtObject instproc lookup dest {
 }
 
 rtObject instproc intf-changed {} {
+    $self compute-routes
+    $self install-if-new-routes
+}
+
+rtObject instproc install-if-new-routes {} {
     $self instvar rtProtos_
 
-    $self compute-routes
-    if [$self recompute-routes] {
+    if [$self new-routes-computed?] {
 	install-routes
         foreach proto $rtProtos_ {
 	    $proto send-updates
@@ -248,12 +256,12 @@ rtProto/Direct instproc compute-routes {} {
     $self instvar ifs_ ifstat_ nextHop_ rtsChanged_
     set rtsChanged_ 0
     foreach nbr [array names ifs_] {
-	if {$nextHop_($nbr) == "" && [$ifs_($nbr) status?]} {
+	if {$nextHop_($nbr) == "" && [$ifs_($nbr) status?] == "up"} {
 	    set ifstat_($nbr) 1
 	    set nextHop_($nbr) $ifs_($nbr)
 	    set metric_($nbr) 1
 	    incr rtsChanged_
-	} elsif {$nextHop_($nbr) != "" && ![$ifs_($nbr) status?]} {
+	} elsif {$nextHop_($nbr) != "" && [$ifs_($nbr) status?] != "up"} {
 	    set ifstat_($nbr) 0
 	    set nextHop_($nbr) ""
 	    set metric_($nbr) -1
@@ -271,7 +279,7 @@ rtProto/Static proc init-all args {
     # The Simulator knows the entire topology.
     # Hence, the current compute-routes method in the Simulator class is
     # well suited.  We use it as is.
-    [Simulator info instances] compute-routes
+    [Simulator instance] compute-routes
 }
 
 #
@@ -280,11 +288,49 @@ rtProto/Static proc init-all args {
 Class rtProto/Session -superclass rtProto
 
 rtProto/Session proc init-all args {
-    [Simulator info instances] compute-routes
+    [Simulator instance] compute-routes
 }
 
 rtProto/Session proc compute-all {} {
-    [Simulator info instances] compute-routes
+    [Simulator instance] compute-routes
+}
+
+#########################################################################
+#
+# Code below this line is experimental, and should be considered work
+# in progress.  None of this code is used in production test-suites, or
+# in the release yet, and hence should not be a problem to anyone.
+#
+
+Class rtPeer
+
+rtPeer instproc init {addr class} {
+    $self next
+    $self instproc addr_ metric_ rtpref_
+    set addr_ $addr
+    foreach dest [Simulator all-nodes-list] {
+	set metric_($dest) [$class set $INFINITY]
+	set rtpref_($dest) [$class set $preference_]
+    }
+}
+rtPeer instproc metric {dest val} {
+    $self instproc metric_
+    set metric_($dest) $val
+}
+
+rtPeer instproc metric? dest {
+    $self instproc metric_
+    return $metric_($dest)
+}
+
+rtPeer instproc preference {dest val} {
+    $self instproc rtpref_
+    set rtpref_($dest) $val
+}
+
+rtPeer instproc preference? dest {
+    $self instproc rtpref_
+    return $rtpref_($dest)
 }
 
 #
@@ -294,6 +340,7 @@ rtProto/Session proc compute-all {} {
 Class rtProto/DV -superclass rtProto
 
 rtProto/DV set preference_ 120
+rtProto/DV set INFINITY	    32
 
 rtProto/DV proc init-all args {
     if { [lindex args] == 0 } {
@@ -307,32 +354,95 @@ rtProto/DV proc init-all args {
     }
     foreach $node $nodeslist {
 	set srtproto [[$node rtObject?] rtProto? DV]
-	set saddr [$srtproto addr?]
+	set saddr [$srtproto set addr_]
 	foreach nbr [$node neighbors] {
-	    set nrtproto [[$nbr rtObject?] rtProto? DV]
-	    if { $nrtproto != "" } {
-		$srtproto add-neighbor [$nrtproto addr?]
+	    set nrtObject [$nbr rtObject?]
+	    if { $nrtObject != "" } {
+		set nrtproto [$nrtObject rtProto? DV]
+		if { $nrtproto != "" } {
+		    $srtproto add-neighbor $nbr [$nrtproto set addr_]
+		}
 	    }
 	}
     }
+    $self send-updates
 }
 
 rtProto/DV instproc init node {
     $self next $node
-    $self instvar preference_ rtpref_ nextHop_ metric_
+    $self instvar preference_ rtpref_ nextHop_ metric_ node_
 
-    foreach node [Simulator all-nodes-list] {
-	set rtpref_($node) $preference_
-	set nextHop_($node) ""
-	set metric_($node) -1
+    foreach dest [Simulator all-nodes-list] {
+	set rtpref_($dest) $preference_
+	set nextHop_($dest) ""
+	set metric_($dest) -1
     }
 }
 
-rtProto/DV instproc add-neighbor nagent {
+rtProto/DV instproc add-neighbor {nbr agent-addr} {
+    $self instvar neighbors_
+    $self set neighbors_($nbr) [new rtPeer $agent-addr]
 }
 
 rtProto/DV instproc compute-routes {} {
+    $self instvar neighbors_ rtsChanged_
+
+    set rtsChanged_ 0
+    foreach nbr [array names neighbors_] {
+	foreach dest [Simulator all-nodes-list] {
+	    set ppf [$neighbors_($nbr) preference?]
+	    set pmt [$neighbors_($nbr) metric?]
+	    if { $pmt < [$class set INFINITY] &&
+	        { $ppf < $rtpref_($dest) ||
+	    { $ppf == $rtpref_($dest) && $pmt < $metric_($dest) }}} {
+		set rtpref_($dest) $ppf
+		set metric_($dest) $pmt
+		set nextHop_($dest) $nbr
+		incr rtsChanged_
+	    }
+	}
+    }
+    return $rtsChanged_
+}
+
+rtProto/DV instproc recv-updates {peer args} {
+    set metricsChanged 0
+    set nn [Node set nn_]
+    for {set i 0} {i < $nn} {incr i} {
+	set metric [expr [lindex $args $i] + [$ifs_($peer) cost?]]
+	if { $metric > [$class set INFINITY] } {
+	    set metric [$class set INFINITY]
+	}	    
+	if {[$rtPeer($peer) metric?] != $metric} {
+	    $rtPeer($peer) metric $metric
+	    incr metricsChanged
+	}
+    }
+    if $metricsChanged {
+	$self compute-routes
+	$self instvar rtsChanged_ node_
+	if $rtsChanged_ {
+	    [$node_ rtObject?] install-if-new-routes
+	}
+    }
 }
 
 rtProto/DV instproc send-updates {} {
+    $self instvar neighbors_ ifs_ rtObject_
+    foreach peer [array names neighbors_] {
+	if { $ifs_($peer) up? == "up" } {
+	    set update ""
+	    set nn [Node set nn_]
+	    for {set i 0} {i < $nn} {incr i} {
+		set dest [get-node-by-id $i]
+		set nhop [$rtObject_ nextHop? $dest]
+		if {$nhop != "" && $nhop != $peer} {
+		    lappend update [$rtObject_ metric? $dest]
+		} else {
+		    lappend update [$class set $INFINITY]
+		}
+	    }
+	    eval $self send-to-peer $nn $update
+	}
+    }
 }

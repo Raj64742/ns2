@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.15 1997/03/25 22:22:18 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.16 1997/03/26 23:28:05 kannan Exp $
 #
 
 #
@@ -230,11 +230,8 @@ Simulator instproc compute-routes {} {
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
-	if [info exists routingTable_] {
-		set r $routingTable_
-	} else {
-		set r [new RouteLogic]
-	}
+        set r [$self get-routelogic]
+        #set r [new RouteLogic]		;# must not create multiple instances
 	foreach ln [array names link_] {
 		set L [split $ln :]
 		set srcID [lindex $L 0]
@@ -273,13 +270,27 @@ Simulator instproc compute-routes {} {
 	}
 #	delete $r
 #XXX used by multicast router
-	set routingTable_ $r
+	#set routingTable_ $r		;# already set by get-routelogic
 }
 
 #
 # Here are a bunch of helper methods.
 #
 
+Simulator proc instance {} {
+    set ns [Simulator info instances]
+    if { $ns != "" } {
+	return $ns
+    }
+    foreach sim [Simulator info subclass] {
+	set ns [$sim info instances]
+	if { $ns != "" } {
+	    return $ns
+	}
+    }
+    abort "Cannot find instance of simulator"
+}
+		
 Simulator instproc get-node-by-id id {
     $self instvar Node_
     return $Node_($id)
