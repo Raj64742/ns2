@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.135 1998/12/22 23:38:56 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.136 1999/01/22 02:37:22 heideman Exp $
 
 #
 
@@ -83,6 +83,7 @@ proc find-max list {
 #
 Class Simulator
 
+source ns-autoconf.tcl
 source ns-address.tcl
 source ns-node.tcl
 source ns-hiernode.tcl

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.3 1998/09/23 00:46:16 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.4 1999/01/22 02:37:27 heideman Exp $
 #
 
 # UNDER CONSTRUCTION!!
@@ -38,9 +38,9 @@
 source misc_simple.tcl
 
 TestSuite instproc finish file {
-        global quiet
-        exec ../../bin/getrc -s 2 -d 3 all.tr | \
-          ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+        global quiet PERL
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
         }

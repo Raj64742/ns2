@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.18 1998/02/07 05:57:04 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.19 1999/01/22 02:37:24 heideman Exp $
 #
 
 #source plotting.tcl
@@ -108,8 +108,9 @@ TestSuite instproc finish file {
 #	for xgraph, and raw2gp, that suitable for gnuplot.
 #
 #       To reproduce old functionality:
-#	../../bin/getrc -s 2 -d 3 all.tr | \
-#	  ../../bin/raw2xg -s 0.01 -m 90 | \
+#	global PERL
+#	$PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+#	  $PERL ../../bin/raw2xg -s 0.01 -m 90 | \
 #	  xgraph -bb -tk -nl -m -x time -y packets
 #	
 #       catch "$self exit 0"

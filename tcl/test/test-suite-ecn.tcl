@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.16 1998/11/30 18:21:27 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.17 1999/01/22 02:37:26 heideman Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -103,12 +103,12 @@ Topology/net2-lossy instproc init ns {
 } 
 
 TestSuite instproc finish file {
-	global quiet 
+	global quiet PERL
 	$self instvar ns_ tchan_ testName_ cwnd_chan_
-        exec ../../bin/getrc -s 2 -d 3 all.tr | \
-	   ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp.rands
-	exec ../../bin/getrc -s 3 -d 2 all.tr | \
-	  ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp1.rands
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+	   $PERL ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp.rands
+	exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	  $PERL ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp1.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 # The line below plots both data and ack packets.

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.141 1999/01/04 19:45:01 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.142 1999/01/22 02:37:17 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -46,7 +46,7 @@ INSTALL	= @INSTALL@
 LN	= ln
 TEST	= test
 RM	= rm -f
-PERL	= perl
+PERL	= @PERL@
 
 
 CCOPT	= @V_CCOPT@

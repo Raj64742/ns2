@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.24 1998/10/21 23:18:12 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.25 1999/01/22 02:37:28 heideman Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -48,10 +48,10 @@ set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
 
 TestSuite instproc finish file {
-	global quiet
+	global quiet PERL
 	$self instvar ns_ tchan_ testName_
-        exec ../../bin/getrc -s 2 -d 3 all.tr | \
-          ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp.rands
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+          $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp.rands
 	if {$quiet == "false"} {
         	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}

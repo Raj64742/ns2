@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.7 1998/09/14 03:40:55 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.8 1999/01/22 02:37:31 heideman Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -78,9 +78,9 @@ Topology/net7 instproc init ns {
 }   
     
 TestSuite instproc finish file {
-	global quiet
-        exec ../../bin/getrc -s 2 -d 3 all.tr | \
-          ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+	global quiet PERL
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}

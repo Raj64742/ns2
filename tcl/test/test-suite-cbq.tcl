@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.23 1999/01/07 20:46:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.24 1999/01/22 02:37:25 heideman Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -674,10 +674,10 @@ Test/FORMAL instproc run {} {
 }
 
 TestSuite instproc finish_max tname {
-	global quiet
+	global quiet PERL
         $self instvar ns_ tchan_ testName_
-        exec ../../bin/getrc -s 2 -d 3 out.tr | \
-          ../../bin/raw2xg -s 0.01 -m 90 -t $tname > temp.rands
+        exec $PERL ../../bin/getrc -s 2 -d 3 out.tr | \
+          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $tname > temp.rands
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
         }

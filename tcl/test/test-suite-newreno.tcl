@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.4 1998/11/10 04:56:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.5 1999/01/22 02:37:28 heideman Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -79,10 +79,10 @@ Topology/net4 instproc init ns {
 
 
 TestSuite instproc finish file {
-	global quiet wrap
-        exec ../../bin/set_flow_id -s all.tr | \
-          ../../bin/getrc -s 2 -d 3 | \
-          ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+	global quiet wrap PERL
+        exec $PERL ../../bin/set_flow_id -s all.tr | \
+          $PERL ../../bin/getrc -s 2 -d 3 | \
+          $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}

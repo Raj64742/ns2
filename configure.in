@@ -40,4 +40,5 @@ dnl AC_CHECK_FUNCS will place -D's in @DEFS@
 AC_CHECK_FUNCS(getrusage sbrk)
 
 NS_FNS_TAIL
+define(AcOutputFiles,Makefile tcl/lib/ns-autoconf.tcl)
 builtin(include, ./conf/configure.in.tail)

@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.299 1999/01/04 22:29:23 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.300 1999/01/22 02:37:15 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,17 @@
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>
     
+    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+           <b>Thu Jan 21 18:07:18 PST 1999</b><br>
+	 Changed autoconf handling of perl,
+	 added support in tcl to keep track of the good perl
+	 we find
+	 and use it in the test suites.
+	 <p>
+	 The proper way to invoke a perl program from within ns
+	 is { global PERL; exec $PERL path/to/script.pl args; }.
+	 For examples in context, see test-suite-tcp.tcl.
+
     <LI> <B><A href="http://www.isi.edu/~haldar">[haldar]</a></b>
     <b>Mon Jan  4 14:20:34 PST 1999</b><br>
     Committed changes to integrate the lower layer stacks for cmu and ns
