@@ -56,15 +56,16 @@ proc usage {} {
 }
 
 TestSuite instproc init {} {
-	$self instvar ns_ n_ g_ flag_ testName_
-	if {$testName_ == "hier-session"} {
-		set ns_ [new SessionSim]
-		set g_ [Node allocaddr]
-		$ns_ namtrace-all [open temp.rands w]
-	} else {
-		set ns_ [new Simulator]
-		$ns_ trace-all [open temp.rands w]
-	}
+    $self instvar ns_ n_ g_ flag_ testName_
+    if {$testName_ == "hier-session"} {
+	set ns_ [new SessionSim]
+	set g_ [Node allocaddr]
+	#$ns_ namtrace-all [open temp.rands w]
+    } else {
+	set ns_ [new Simulator]
+	#$ns_ trace-all [open temp.rands w]
+    }
+    $ns_ trace-all [open temp.rands w]
 	$ns_ set-address-format hierarchical
 	if {$flag_} {
 		Simulator set EnableMcast_ 1
