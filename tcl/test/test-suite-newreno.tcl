@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.20 2003/04/16 21:38:07 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.21 2003/04/24 01:51:14 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -1160,6 +1160,27 @@ Test/reno5a_noLT_noBF instproc init {} {
 	"Reno #5a, reordering, without Limited Transmit, without bugfix."
 	Test/reno5a_noLT_noBF instproc run {} [Test/reno5a info instbody run ]
 	$self next pktTraceFile
+}
+
+#
+# In this scenario, we do a Fast Retransmit after packet 33 is dropped,
+# and that seems good.  Packet 33 was sent after the first
+# Fast Retransmit was initiated.
+#
+Class Test/newreno6 -superclass TestSuite
+Test/newreno6 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno6
+	Agent/TCP set singledup_ 1
+	set guide_ "NewReno, a new packet transmitted after FR is dropped."
+	$self next pktTraceFile
+}
+Test/newreno6 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
+	Agent/TCP set bugFix_ false
+        $self setup Newreno {14 26 28 33}
 }
 
 
