@@ -32,6 +32,7 @@ install-sh
 ivs.cc
 integrator.cc
 integrator.h
+log.cc
 loss-monitor.cc
 message.cc
 misc.cc
@@ -60,6 +61,7 @@ scheduler.h
 scoreboard.cc
 scoreboard.h
 session-rtp.cc
+sfq.cc
 tcl-expand.tcl
 tcl/ex/mcast.tcl
 tcl/ex/mcast-nam.tcl
