@@ -1,5 +1,3 @@
-source ../lib/ns-mhmac.tcl
-
 set gflag 0
 set stop 100
 set trfile temp
