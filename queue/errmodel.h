@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.30 1998/05/07 00:49:31 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.31 1998/05/08 22:01:34 kfall Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -124,6 +124,24 @@ class PeriodicErrorModel : public ErrorModel {
 	double first_time_;
 };
 
+/*
+ * List error model: specify which packets to drop in tcl
+ */
+class ListErrorModel : public ErrorModel {
+  public:
+        ListErrorModel() : cnt_(0), droplist_(NULL),
+		dropcnt_(0), cur_(0) { }
+	~ListErrorModel() { if (droplist_) delete droplist_; }
+        int corrupt(Packet*);
+	int command(int argc, const char*const* argv);
+  protected:
+	int parse_droplist(int argc,  const char *const*);
+	static int intcomp(const void*, const void*);		// for qsort
+	int cnt_;	/* cnt of pkts/bytes we've seen */
+	int* droplist_;	/* array of pkt/byte #s to affect */
+	int dropcnt_;	/* # entries in droplist_ total */
+	int cur_;	/* current index into droplist_ */
+};
 
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {
