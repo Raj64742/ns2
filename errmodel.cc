@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.44 1998/05/27 20:35:56 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.45 1998/05/29 21:14:22 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.44 1998/05/27 20:35:56 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.45 1998/05/29 21:14:22 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -126,27 +126,27 @@ void ErrorModel::recv(Packet* p, Handler* h)
 
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	int error = corrupt(p);
-	ch->error() |= error;
-	if (!error || !drop_ || markecn_) {
-		if (error && markecn_) {
+
+	if (h && ((error && drop_) || !target)) {
+		// if we drop or there is no target_, then resume handler
+		double delay = Random::uniform(8.0 * ch->size() / bandwidth_);
+		Scheduler::instance().schedule(h, &intr_, delay);
+	}
+	if (error) {
+		ch->error() |= error;
+		if (markecn_) {
 			hdr_flags* hf = (hdr_flags*) p->access(off_flags_);
 			hf->ce() = 1;
 		}
-		if (target_) {
-			target_->recv(p, h);
+		if (drop_) {
+			drop_->recv(p);
 			return;
 		}
 	}
 
-	// we are going to drop.  Since there won't be a downstream
-	// node to call the handler back, do so here.
-
-	if (h != 0) {
-		// if pkt just come from queue, then resume queue
-		double delay = Random::uniform(ch->size() / bandwidth_);
-		Scheduler::instance().schedule(h, &intr_, delay);
+	if (target_) {
+		target_->recv(p, h);
 	}
-	drop_->recv(p);
 }
 
 
