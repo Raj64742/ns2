@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.18 2001/12/03 16:55:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.19 2001/12/31 07:04:46 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1290,6 +1290,18 @@ Test/stats1 instproc run {} {
 	$ns_ run
 }
 
+# Class Test/stats1Bytes -superclass TestSuite
+# Test/stats1Bytes instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net0
+# 	Queue/DropTail set summarystats_ true
+# 	Queue/DropTail set queue_in_bytes_ true
+# 	set test_	stats1Bytes
+# 	Test/stats1Bytes instproc run {} [Test/stats1 info instbody run]
+# 	$self next
+# }
+
 Class Test/stats1a -superclass TestSuite
 Test/stats1a instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -1298,6 +1310,18 @@ Test/stats1a instproc init topo {
 	Queue/RED set summarystats_ true
 	set test_	stats1a
 	Test/stats1a instproc run {} [Test/stats1 info instbody run]
+	$self next
+}
+
+Class Test/stats1aBytes -superclass TestSuite
+Test/stats1aBytes instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0a
+	Queue/RED set summarystats_ true
+	Queue/RED set queue_in_bytes_ true
+	set test_	stats1aBytes
+	Test/stats1aBytes instproc run {} [Test/stats1 info instbody run]
 	$self next
 }
 
