@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.260 2001/08/20 22:50:46 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.261 2001/08/22 00:07:40 kfall Exp $
 
 
 #
@@ -819,6 +819,7 @@ Agent/TFRCSink set history_ 0.75 ;    # loss history for EWMA
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency
+	Agent/TCP/FullTcp set spa_thresh_ 0; # below do 1 seg per ack [0:disable]
 	Agent/TCP/FullTcp set segsize_ 536; # segment size
 	Agent/TCP/FullTcp set tcprexmtthresh_ 3; # num dupacks to enter recov
 	Agent/TCP/FullTcp set iss_ 0; # Initial send seq#
