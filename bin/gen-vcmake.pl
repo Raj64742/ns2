@@ -23,7 +23,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/gen-vcmake.pl,v 1.5 1999/05/24 04:46:39 haoboy Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/gen-vcmake.pl,v 1.6 1999/08/20 18:14:17 haoboy Exp $
 #
 # This is not to be used as an executable. Rather, it's intended to be invoked
 # from Makfefile to generate a makefile.vc
@@ -72,6 +72,13 @@ while (<>) {
 	    chomp;
 	    last if ($_ eq '');
 	};
+	next;
+    };
+
+    # remove dependence on Makefile from $(NS)
+    /^\$\(NS\)/ && do {
+	s/ Makefile//;
+	print $_;
 	next;
     };
 
