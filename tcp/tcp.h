@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.22 1997/07/25 06:54:36 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.23 1997/08/01 00:44:25 kfall Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -212,6 +212,7 @@ protected:
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
 	int maxburst_;		/* max # packets can send back-2-back */
 	int maxcwnd_;		/* max # cwnd can ever be */
+	double maxrto_;		/* max value of an RTO */
 	FILE *plotfile_;
 	/*
 	 * Dynamic state.
