@@ -6,8 +6,8 @@ Queue/RED set q_weight_ 0.1
 
 # set up simulation
 set ns [new Simulator]
-set numsrc 6
-set numdst 6
+set numsrc 20
+set numdst 20
 for {set i 0} {$i < $numsrc} {incr i} {
 	set n(0$i) [$ns node]
 }
@@ -394,6 +394,7 @@ while {$count < $argc} {
 	
 	set arg [lindex $argv $count]
 	set slow_start_restart true
+	set fs_enable false
 	set srctype "TCP/Fack"
 	set sinktype "TCPSink"
 	set sessionFlag false
@@ -406,6 +407,7 @@ while {$count < $argc} {
 		'-tahoefs' {
 			set srctype "TCP/FS"
 			set slow_start_restart false
+			set fs_enable true
 		}
 		'-reno' {
 			set srctype "TCP/Reno"
@@ -413,6 +415,7 @@ while {$count < $argc} {
 		'-renofs' {
 			set srctype "TCP/Reno/FS"
 			set slow_start_restart false
+			set fs_enable true
 		}
 		'-newreno' {
 			set srctype "TCP/Newreno"
@@ -420,6 +423,7 @@ while {$count < $argc} {
 		'-newrenofs' {
 			set srctype "TCP/Newreno/FS"
 			set slow_start_restart false
+			set fs_enable true
 		}
 		'-fack' {
 			set srctype "TCP/Fack"
@@ -429,6 +433,7 @@ while {$count < $argc} {
 			set srctype "TCP/Fack/FS"
 			set sinktype "TCPSink/Sack1"
 			set slow_start_restart false
+			set fs_enable true
 		}
 		'-renoasym' {
 			set srctype "TCP/Reno/Asym"
@@ -442,15 +447,23 @@ while {$count < $argc} {
 			set srctype "TCP/Newreno/Asym/FS"
 			set sinktype "TCPSink/Asym"
 			set slow_start_restart false
+			set fs_enable true
 		}
 		'-int' {
 			set srctype "TCP/Int"
 			set sessionFlag true
 		}
+		'-intfs' {
+			set srctype "TCP/Int"
+			set sessionFlag true
+			set slow_start_restart false
+			set fs_enable true
+		}
 		default {
 			incr count -1
 		}
 	}
+	set randTime 0
 	incr count 1
 	set arg [lindex $argv $count]
 	set startTime $arg
@@ -460,7 +473,12 @@ while {$count < $argc} {
         if { $arg == "-graph" } {
                 set connGraph 1
                 incr count 1
-        }
+        } elseif { $arg == "-rand" } {
+		incr count 1
+		set arg [lindex $argv $count]
+		set randTime $arg
+		incr count 1
+	}
 	if {($direction == "up") && ($upwin > 0)} {
 		set win $upwin
 	} elseif {($burstflag == 1) && ($burstwin > 0)} {
@@ -472,14 +490,14 @@ while {$count < $argc} {
 	}
 
 	if {$webFlag} {
-		set web [new WebCS $ns $src $dst "$srctype $maxburst $tcpTick $win $slow_start_restart" $tcptrace "$sinktype $sinktrace" false $sessionFlag "$count_bytes_acked $schedDisp"]
+		set web [new WebCS $ns $src $dst "$srctype $maxburst $tcpTick $win $slow_start_restart $fs_enable" $tcptrace "$sinktype $sinktrace" false $sessionFlag "$count_bytes_acked $schedDisp"]
 		$ns at startTime "$web start"
 	} else {
-		set tcp [createTcpSource $srctype $maxburst $tcpTick $win $slow_start_restart]
+		set tcp [createTcpSource $srctype $maxburst $tcpTick $win $slow_start_restart $fs_enable]
 		set sink [createTcpSink $sinktype $sinktrace]
 		set ftp [createFtp $ns $src $tcp $dst $sink]
 		if {$sessionFlag} {
-			setupTcpSession $tcp $count_bytes_acked $schedDisp
+			setupTcpSession $tcp $count_bytes_acked $schedDisp $fs_enable
 			#		set d [expr ([$tcp set dst_]/256)*256]
 			#		set session [[$tcp set node_] getTcpSession $d]
 		}
@@ -500,7 +518,7 @@ while {$count < $argc} {
 			} else {
 				$ns at $startTime "$ftp produce $burstsz"
 			}
-			$ns at [expr $pause+[expr $startTime/20.0]] "periodic_burst $ns $ftp $burstsz $pause"
+			$ns at [expr $pause+$randTime] "periodic_burst $ns $ftp $burstsz $pause"
 		} else {
 			$tcp proc done {} "burst_finish $ns $ftp $burstsz $pause"
 			if {$firstburstsz > 0} {
@@ -560,8 +578,8 @@ if {$topology == "fs"} {
 	configQueue $ns $n(1) $n(2) $fgw $queuetrace $fqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
 	configQueue $ns $n(2) $n(1) $rgw $queuetrace $rqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
 	#configQueue $ns $n(1) $n(2) $fgw 0 $fqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
-	configREDQueue $ns $n(1) $n(2) $fgw_q_weight
-	configREDQueue $ns $n(2) $n(1) $rgw_q_weight
+	configREDQueue $ns $n(1) $n(2) $redtrace $fgw_q_weight 1 0.15 0.6 
+	configREDQueue $ns $n(2) $n(1) $redtrace $rgw_q_weight 1 0.15 0.6
 } elseif {$topology == "asym"} {
 	# topology
 	#
@@ -569,14 +587,18 @@ if {$topology == "fs"} {
 	#  n00 ------------ n1 ------------ n2 ------------ n30
 	#                     28.8Kb, 50ms 
 	#
-	$ns duplex-link $n(00) $n(1) 10Mb 1ms DropTail
+	for {set i 0} {$i < $numsrc} {incr i 1} {
+		$ns duplex-link $n(0$i) $n(1) 10Mb 1ms DropTail
+	}
 	$ns simplex-link $n(1) $n(2) 10Mb 2ms DropTail
 	$ns simplex-link $n(2) $n(1) $rbw 50ms $rgw
-	$ns duplex-link $n(2) $n(30) 10Mb 1ms DropTail
+	for {set i 0} {$i < $numdst} {incr i 1} {
+		$ns duplex-link $n(2) $n(3$i) 10Mb 1ms DropTail
+	}
 	
 	# configure reverse bottleneck queue
 	configQueue $ns $n(2) $n(1) $rgw 0 $rqsize $nonfifo $acksfirst $filteracks $replace_head
-	configREDQueue $ns $n(2) $n(1) $rgw_q_weight
+	configREDQueue $ns $n(2) $n(1) $redtrace $rgw_q_weight
 }
 
 # trace queues

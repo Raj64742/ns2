@@ -1,6 +1,7 @@
-#! /usr/local/bin/tclsh
+#! /usr/sww/bin/tclsh
 
 set burstsize 30
+set firstburstsize 0
 set pause 50
 set duration 99
 set redwt 0.002
@@ -8,10 +9,11 @@ set window 32
 set qsize 30
 set rqsize 30
 set acksz 6
-set dir "/tmp"
+set dir "."
 set tcptype newreno
 
 set opt(bs) burstsize
+set opt(fbs) firstburstsize
 set opt(pause) pause
 set opt(dur) duration
 set opt(redwt) redwt
@@ -81,9 +83,9 @@ set errfid [open "err-tcptype.res" w]
 for {set iter 0} {$iter < 30} {incr iter} {
 	set seed [expr int([exec rand 0 1000])]
 	set burstStartTime [exec rand 0 5]
-	foreach rqsize {5 10 15 20 30 50} {
+	foreach rqsize {20 30} {
 		for {set j 0} {$j < [llength $tcptype_opt]} {incr j} {
-			set cmd "../../../../ns ../test1.tcl -fp -nonfifo -topo asym -mb 4 -bs $burstsize -pause $pause -dur $duration -redwt $redwt -win $window -seed $seed -q $qsize -rq $rqsize -acksz $acksz -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -dir $dir [lindex $rgw_opt $j] -dn -burst [lindex $tcptype_opt $j] $burstStartTime -up $tcptype 10"
+			set cmd "../../../../ns.solaris ../test1.tcl -fp -nonfifo -sred -topo asym -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -dur $duration -redwt $redwt -win $window -seed $seed -overhead 0.001 -q $qsize -rq $rqsize -acksz $acksz -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -dir $dir [lindex $rgw_opt $j] -dn -burst [lindex $tcptype_opt $j] $burstStartTime -up -$tcptype 40 -up -$tcptype 41 -up -$tcptype 42 -up -$tcptype 43"
 			eval "exec $cmd"
 			Asym2WayComputeResults
 		}

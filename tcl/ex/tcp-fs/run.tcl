@@ -6,16 +6,22 @@
 #set pdrop_opt {-null -null "-null -nofrt" "-null -nofrt -noflr" -pdrop "-pdrop -nofrt" "-pdrop -nofrt -noflr"}
 #set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs -newrenofs -newrenofs}
 
-set pdrop_opt {-null -null -pdrop "-pdrop -nofrt" "-pdrop -nofrt -noflr"}
-set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs}
+#set pdrop_opt {-null -null -pdrop "-pdrop -nofrt" "-pdrop -nofrt -noflr"}
+#set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs}
+
+set pdrop_opt {-null -pdrop}
+set tcptype_opt {-newrenofs -newrenofs}
 
 #initial values
+set tick 0.1
 set maxnumconn 4
 set numburstconn 1
 set tcptype newreno
 set burstonly 3
 set bulkCrossTraffic 1
 set burstsize 50
+set qsize 20
+set delay 50ms
 set firstburstsize 0
 set window 32
 set burstwin 32
@@ -23,14 +29,19 @@ set redwt 0.002
 set pause 30
 set duration 59
 set burstStartTime 0
+set burstEndTime 1
 set bulkStartTime 5
-set dir "/home/dwight/4c/home/padmanab/run"
+set bulkEndTime 10
+set dir "."
+set opt(tk) tick
 set opt(nc) maxnumconn
 set opt(nbc) numburstconn
 set opt(tt) tcptype
 set opt(bo) burstonly
 set opt(bulk) bulkCrossTraffic
 set opt(bs) burstsize
+set opt(q) qsize
+set opt(del) delay 
 set opt(fbs) firstburstsize
 set opt(win) window
 set opt(bwin) burstwin
@@ -38,7 +49,9 @@ set opt(redwt) redwt
 set opt(pause) pause
 set opt(dur) duration
 set opt(burststart) burstStartTime
+set opt(burstend) burstEndTime
 set opt(bulkstart) bulkStartTime
+set opt(bulkend) bulkEndTime
 set opt(dir) dir
 
 proc getopt {argc argv} {
@@ -90,7 +103,7 @@ proc BulkWebComputeResults { } {
 		}
 	}
 
-	set dropcount [exec gawk -v start=[expr $burstStartTime+$pause] -v end=[expr $burstStartTime+$pause+5] {BEGIN {drops[0] = 0; drops[1] = 0;} {if ($1 == "d" && $2 >= start && $2 <= end) drops[int($9)]++;} END {print drops[0], drops[1]}} out.tr]
+	set dropcount [exec gawk -v start=[expr $burstStartTime+$pause] -v end=[expr $burstStartTime+$pause+5] {BEGIN {drops[0] = 0; drops[1] = 0;} {if ($1 == "d" && $2 >= start && $2 <= end) drops[int($9)]++;} END {print drops[0], drops[1]}} $dir/out.tr]
 
 	set outstr [format "%2s %11s %26s %3d %6s %2d %8s %8s %10s" $iter [lindex $tcptype_opt $j] [lindex $pdrop_opt $j] $qsize $delay $numconn $thruputsum $responseTimeAvg(0) $dropcount]
 	puts $fid "$outstr"
@@ -129,7 +142,7 @@ proc WebOnlyComputeResults { } {
 		}
 	}
 
-	set dropcount [exec gawk -v start=[expr $burstStartTime+$pause] {BEGIN {drops[0] = 0; drops[1] = 0;} {if ($1 == "d" && $2 >= start) drops[int($9)]++;} END {print drops[0], drops[1]}} out.tr]
+	set dropcount [exec gawk -v start=[expr $burstStartTime+$pause] {BEGIN {drops[0] = 0; drops[1] = 0;} {if ($1 == "d" && $2 >= start) drops[int($9)]++;} END {print drops[0], drops[1]}} $dir/out.tr]
 	
 	set outstr [format "%2s %11s %26s %3d %6s 0 %8s %8s %10s" $iter [lindex $tcptype_opt $j] [lindex $pdrop_opt $j] $qsize $delay $responseTimeAvg(0) $responseTimeAvg(1) $dropcount]
 	puts $fid "$outstr"
@@ -145,12 +158,13 @@ set cmdfid [open "cmd-$tcptype-$maxnumconn-$numburstconn.res" w]
 
 #set numconn $maxnumconn
 for {set iter 0} {$iter < 10} {incr iter} {
-for {set numconn 0} {$numconn <= $maxnumconn} {incr numconn} { 
+for {set numconn $maxnumconn} {$numconn <= $maxnumconn} {incr numconn} { 
 	set seed [expr int([exec rand 0 1000])]
 #	puts -nonewline $cmdfid "$iter "
 	for {set k 0} {$k < $numburstconn} {incr k} {
 #		set cmd1_rand($k) [exec rand 0 10]
-		set cmd1_rand($k) [exec rand $burstStartTime [expr $burstStartTime+1]]
+		set cmd1_start($k) [exec rand $burstStartTime $burstEndTime]
+		set cmd1_rand($k) [exec rand 0 1]
 #		puts -nonewline $cmdfid " $cmd1_rand($k)"
 	}
 	set cmd2 ""
@@ -159,15 +173,15 @@ for {set numconn 0} {$numconn <= $maxnumconn} {incr numconn} {
 	}
 	for {set k 0} {$k < $numconn} {incr k} {
 		if {$bulkCrossTraffic} {
-			append cmd2 " -$tcptype [exec rand $bulkStartTime [expr $bulkStartTime+5]]"
+			append cmd2 " -$tcptype [exec rand $bulkStartTime $bulkEndTime]"
 		} else {
-			append cmd2 " -burst -$tcptype [exec rand $burstStartTime [expr $burstStartTime+10]]"
+			append cmd2 " -burst -$tcptype [exec rand $bulkStartTime $bulkEndTime] -rand [exec rand 0 1]"
 		}
 	}
 #	puts $cmdfid "$cmd2"
 #	flush $cmdfid
-	foreach qsize {200} {
-		foreach delay {200ms} {
+#	foreach qsize {200} {
+#		foreach delay {200ms} {
 			for {set j 0} {$j < [llength $pdrop_opt]} {incr j} {
 				set cmd1 ""
 				if {[lindex $tcptype_opt $j] == "-null"} {
@@ -175,7 +189,7 @@ for {set numconn 0} {$numconn <= $maxnumconn} {incr numconn} {
 				}
 				append cmd1 " -src 00 -dst 30"
 				for {set k 0} {$k < $numburstconn} {incr k} {
-					append cmd1 " -burst [lindex $tcptype_opt $j] $cmd1_rand($k)"
+					append cmd1 " -burst [lindex $tcptype_opt $j] $cmd1_start($k) -rand $cmd1_rand($k)"
 				}
 				if {[file exists "thruput"]} {
 					exec rm "thruput"
@@ -183,13 +197,14 @@ for {set numconn 0} {$numconn <= $maxnumconn} {incr numconn} {
 				foreach f [glob -nocomplain $dir/{burst*.out}] {
 					exec rm $f
 				}
-#				set cmd "../../../../ns.bsdi ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -fpef -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
-				set cmd "../../../../ns.solaris ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
+#				set cmd "../../../../ns.bsdi ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -tk $tick -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
+				set cmd "../../../../ns.solaris ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -tk $tick -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
 				append cmd $cmd1
 				append cmd $cmd2
 				puts -nonewline $cmdfid "$iter "
 				puts $cmdfid "$cmd"
 				flush $cmdfid
+#				puts $cmd
 				eval "exec $cmd"
 				if {$bulkCrossTraffic} {
 					BulkWebComputeResults
@@ -197,8 +212,8 @@ for {set numconn 0} {$numconn <= $maxnumconn} {incr numconn} {
 					WebOnlyComputeResults
 				}
 			}
-		}
-	}
+#		}
+#	}
 }
 }
 			
