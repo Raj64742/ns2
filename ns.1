@@ -1112,7 +1112,8 @@ Leaf nodes in the tree are considered to be at level 1;
 their parents are at level 2, etc.
 .IP \fBextradelay_\fP
 increase the delay experienced by a delayed class by the specified
-time
+number of seconds.
+.\" check units?
 
 .SH "QUEUEMONITOR Objects"
 QueueMonitor Objects are used to monitor
@@ -1601,21 +1602,28 @@ with ``$tcp attach [open trace.tr w]''.
 Configuration Parameters \fP
 .RS
 .IP \fIwindow_\fP
-The upper bound on the advertised window for the TCP connection.
+The upper bound on the advertised window for the TCP connection
+(in packets).
 .IP \fImaxcwnd_\fP
 The upper bound on the congestion window for the TCP connection.
 Set to zero to ignore.  (This is the default.)
+Measured in packets.
 .IP \fIwindowInit_\fP
-The initial size of the congestion window on slow-start.
+The initial size of the congestion window on slow-start
+(in packets).
 .IP \fIwindowOption_\fP
-The algorithm to use for managing the congestion window.
+The algorithm to use for managing the congestion window
+in linear phase.
+The standard algorithm is 1 (the default).
+Other experimental algorithms are documented in the source code.
 .IP \fIwindowThresh_\fP
 Gain constant to exponential averaging filter used to compute
 .I awnd
 (see below).
 For investigations of different window-increase algorithms.
 .IP \fIoverhead_\fP
-The range of a uniform random variable used to delay each output
+The range (in seconds)
+of a uniform random variable used to delay each output
 packet.  The idea is to insert random delays at the source
 in order to avoid phase effects, when desired [4].  
 This has only been implemented for the Tahoe ("tcp") version of tcp, not
@@ -1631,6 +1639,7 @@ The size in bytes to use for all packets from this source.
 .IP \fItcpTick_\fP 
 The TCP clock granularity for measuring roundtrip times.  Note that it is set
 by default to the non-standard value of 100ms.  
+Measured in seconds.
 .IP \fIbugFix_\fP
 Set to true to remove a bug when multiple fast retransmits are allowed
 for packets dropped in a single window of data.
@@ -1638,7 +1647,8 @@ for packets dropped in a single window of data.
 Set to zero to ignore.  Otherwise, the maximum number of packets that
 the source can send in response to a single incoming ACK.
 .IP \fIslow_start_restart_\fP
-Set to 1 to slow-start after the connection goes idle.  On by default.
+Boolean; set to 1 to slow-start after the connection goes idle.
+On by default.
 .RE 
 .LP 
 .HD 
@@ -1667,18 +1677,23 @@ Current transmit sequence number.
 .IP \fIack_\fP
 Highest acknowledgment seen from receiver.
 .IP \fIcwnd_\fP
-Current value of the congestion window.
+Current value of the congestion window
+(in packets).
 .IP \fIawnd_\fP
 Current value of a low-pass filtered version of the congestion window.
 For investigations of different window-increase algorithms.
 .IP \fIssthresh_\fP
-Current value of the slow-start threshold.
+Current value of the slow-start threshold
+(in packets).
 .IP \fIrtt_\fP
 Round-trip time estimate.
+In seconds.
 .IP \fIsrtt_\fP
 Smoothed round-trip time estimate.
+In seconds.
 .IP \fIrttvar_\fP
 Round-trip time mean deviation estimate.
+.\" what units?
 .IP \fIbackoff_\fP
 Round-trip time exponential backoff constant.
 .RE
@@ -1853,7 +1868,8 @@ The list can be directly loaded into a Tcl array.
 Configuration Parameters \fP
 .RS
 .IP \fIpacketSize_\fP
-The data packet size that will be used for repair messages. The default value
+The data packet size in bytes
+that will be used for repair messages. The default value
 is 1024. 
 .IP \fIrequestFunction_\fP
 The algorithm used to produce a retransmission request, e.g., setting 
@@ -1870,7 +1886,9 @@ The algorithm used to generate session messages. Default is SRM/session
 The basic interval of session messages. Slight random variation is added to 
 this interval to avoid global synchronization of session messages. User may 
 want to adjust this variable according to their specific simulation. 
-Default value is 1.0.
+Measured in seconds;
+default value is 1.0 seconds.
+.\" check units?
 .IP "\fIC1_, C2_\fP"
 The parameters which control the request timer. Refer to [8] for detail. The
 default value is \fIC1_\fP = \fIC2_\fP = 2.0.
@@ -1919,6 +1937,7 @@ in [8]. These values define the dynamic range of \fID1_\fP and \fID2_\fP.
 Higher bound for average duplicates.
 .IP \fIAveDelay\fP
 Higher bound for average delay.
+.\" units?
 .IP \fIeps\fP
 \fIAveDups\fP - \fIdups\fP determines the lower bound of the number of 
 duplicates, when we should adjust parameters to decrease delay.
@@ -1937,7 +1956,8 @@ Configuration Parameters
 .LP
 .RS
 .IP \fIinterval_\fP
-The amount of time to delay between packet transmission times.
+The amount of time (in seconds)
+to delay between packet transmission times.
 .IP \fIpacketSize_\fP
 The size in bytes to use for all packets from this source.
 .IP \fIrandom_\fP
