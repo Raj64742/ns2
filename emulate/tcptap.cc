@@ -33,11 +33,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.1 2001/05/15 21:23:38 alefiyah Exp $ (ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.2 2001/09/20 19:05:21 alefiyah Exp $ (ISI)";
 #endif
 
 #include "tcptap.h"
-
 
 static class TCPTapAgentClass : public TclClass {
  public:
@@ -222,10 +221,13 @@ TCPTapAgent::tcp_gen(char *packet, unsigned short sport, unsigned short dport,
 	Packet *nsp)
 {
   struct tcphdr *tcpheader;
+
   hdr_tcp* ns_tcphdr = HDR_TCP(nsp);
 
   tcpheader = (struct tcphdr *) packet;
   memset((char *)tcpheader, '\0', sizeof(struct tcphdr));
+
+#ifndef LINUX_TCP_HEADER
 
   tcpheader->th_sport = htons(sport);
   tcpheader->th_dport = htons(dport);
@@ -258,11 +260,43 @@ TCPTapAgent::tcp_gen(char *packet, unsigned short sport, unsigned short dport,
     tcpheader->th_flags |= TH_ACK;
   if (ns_tcphdr->tcp_flags_ & TH_URG) 
     tcpheader->th_flags |= TH_URG;
+
+#else  /* LINUX_TCP_HEADER */
+
+#define TH_FIN  0x01
+#define TH_SYN  0x02
+#define TH_RST  0x04
+#define TH_PUSH 0x08
+#define TH_ACK  0x10
+#define TH_URG  0x20
+
+  tcpheader->source = htons(sport);
+  tcpheader->dest = htons(dport);
+
+  tcpheader->seq = htonl(ns_tcphdr->seqno_);
+  tcpheader->ack_seq = htonl(ns_tcphdr->ackno_);
   
+  tcpheader->doff = (TCP_HEADER_LEN / 4);
+  tcpheader->window = htons(adv_window);
+
+  /* Set the appropriate flag bits */
+ if (ns_tcphdr->tcp_flags_ & TH_FIN) 
+    tcpheader->fin= 1;
+  if (ns_tcphdr->tcp_flags_ & TH_SYN) 
+    tcpheader->syn = 1;
+  if (ns_tcphdr->tcp_flags_ & TH_RST) 
+    tcpheader->rst =1;
+  if (ns_tcphdr->tcp_flags_ & TH_PUSH) 
+    tcpheader->psh = 1;
+  if (ns_tcphdr->tcp_flags_ & TH_ACK) 
+    tcpheader->ack = 1;
+  if (ns_tcphdr->tcp_flags_ & TH_URG) 
+    tcpheader->urg =1;
+
+#endif /* End of LINUX_TCP_HEADER */
+
+
 }
-
-
-
 
 
 
@@ -352,7 +386,9 @@ TCPTapAgent::recvpkt()
   hdr_ip *ns_iphdr = HDR_IP(nspacket);
   ns_iphdr->ttl() = ttl;
 
-  hdr_tcp *ns_tcphdr = HDR_TCP(nspacket);
+  hdr_tcp *ns_tcphdr = HDR_TCP(nspacket);	
+#ifndef LINUX_TCP_HEADER 
+
   ns_tcphdr->seqno() = ntohl(tcpheader->th_seq);
   ns_tcphdr->ackno() = ntohl(tcpheader->th_ack);
   ns_tcphdr->hlen() = (ipheader->ip_hl + tcpheader->th_off) * 4;
@@ -380,6 +416,46 @@ TCPTapAgent::recvpkt()
         ns_tcphdr->flags() |= TH_ACK;
   if (tcpheader->th_flags & TH_URG) 
         ns_tcphdr->flags() |= TH_URG;
+
+#else /* LINUX_TCP_HEADER */
+ 
+  ns_tcphdr->seqno() = ntohl(tcpheader->seq);
+  ns_tcphdr->ackno() = ntohl(tcpheader->ack);
+  ns_tcphdr->hlen() = (ipheader->ip_hl + tcpheader->doff) * 4;
+  ns_tcphdr->ts() = Scheduler::instance().clock();
+  ns_tcphdr->reason() |= REASON_UNKNOWN;
+
+  /* 
+     Here we only propogate the "well-known" flags.
+     If you want to add other flags, uncomment this line
+     and comment the rest.
+
+     ns_tcphdr->flags() = tcpheader->th_flags;
+  */
+
+#define TH_FIN  0x01
+#define TH_SYN  0x02
+#define TH_RST  0x04
+#define TH_PUSH 0x08
+#define TH_ACK  0x10
+#define TH_URG  0x20
+
+  ns_tcphdr->flags() = 0;
+
+  if (tcpheader->fin == 1 )
+    ns_tcphdr->flags() |= TH_FIN;
+  if (tcpheader->syn == 1 ) 
+        ns_tcphdr->flags() |= TH_SYN;
+  if (tcpheader->rst == 1 ) 
+        ns_tcphdr->flags() |= TH_RST;
+  if (tcpheader->psh == 1) 
+        ns_tcphdr->flags() |= TH_PUSH;
+  if (tcpheader->ack == 1) 
+        ns_tcphdr->flags() |= TH_ACK;
+  if (tcpheader->urg == 1) 
+        ns_tcphdr->flags() |= TH_URG;
+
+#endif  /* LINUX_TCP_HEADER */
 
 
   hdr_cmn *ns_cmnhdr = HDR_CMN(nspacket);
@@ -452,9 +528,16 @@ TCPTapAgent::sendpkt(Packet* p)
 
   tcp_gen((char *)tcpheader, nsnode.sin_port, extnode.sin_port, p);
 
+#ifndef LINUX_TCP_HEADER
   tcpheader->th_sum = trans_check(IPPROTO_TCP, (char *) tcpheader,
 				  sizeof(struct tcphdr) + datalen,
 				  nsnode.sin_addr, extnode.sin_addr);
+#else 
+  tcpheader->check = trans_check(IPPROTO_TCP, (char *) tcpheader,
+				  sizeof(struct tcphdr) + datalen,
+				  nsnode.sin_addr, extnode.sin_addr);
+
+#endif 
 
   /* 
      Limits the packets going out to only IP + TCP header. 
@@ -472,4 +555,11 @@ TCPTapAgent::sendpkt(Packet* p)
   TDEBUG3("TCPTapAgent(%s): sent packet (sz: %d)\n", name(), hc->size());
   return 0;
 }
+
+
+
+
+
+
+
 
