@@ -143,7 +143,6 @@ if { $opt(x) == 0 || $opt(y) == 0 } {
 	exit 1
 }
 
-
 if {$opt(seed) > 0} {
 	puts "Seeding Random number generator with $opt(seed)\n"
 	ns-random $opt(seed)
