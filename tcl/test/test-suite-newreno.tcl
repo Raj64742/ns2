@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.25 2003/08/14 04:26:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.26 2003/09/23 02:55:51 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -54,10 +54,6 @@ Topology instproc node? num {
     return $node_($num)
 }
 
-#
-# Links1 uses 8Mb, 5ms feeders, and a 800Kb 10ms bottleneck.
-# Queue-limit on bottleneck is 2 packets.
-#
 Class Topology/net4 -superclass Topology
 Topology/net4 instproc init ns {
     $self instvar node_
@@ -95,6 +91,29 @@ Topology/net4a instproc init ns {
     $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
     $ns queue-limit $node_(r1) $node_(k1) 80
     $ns queue-limit $node_(k1) $node_(r1) 80
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r1) $node_(k1)]
+    set em [new ErrorModule Fid] 
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+}
+
+Class Topology/net4b -superclass Topology
+Topology/net4b instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 200ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 8
+    $ns queue-limit $node_(k1) $node_(r1) 8
 
     $self instvar lossylink_
     set lossylink_ [$ns link $node_(r1) $node_(k1)]
@@ -161,7 +180,12 @@ TestSuite instproc drop_pkts pkts {
     $emod bind $errmodel1 1
 }
 
-TestSuite instproc setup {tcptype list {settopo 1}} {
+TestSuite instproc rfc2582 {} {
+    Agent/TCP/Newreno set newreno_changes1_ 1
+    Agent/TCP/Newreno set partial_window_deflation_ 1
+}
+
+TestSuite instproc setup {tcptype list {settopo 1} {stoptime 6} {window 28}} {
 	global wrap wrap1
         $self instvar ns_ node_ testName_
 	if {$settopo == 1} {$self setTopo}
@@ -222,15 +246,14 @@ TestSuite instproc setup {tcptype list {settopo 1}} {
       		set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
           	TCPSink $node_(k1) $fid]
     	}
-        $tcp1 set window_ 28
+        $tcp1 set window_ $window
         set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 1.0 "$ftp1 start"
 
         $self tcpDump $tcp1 5.0
         $self drop_pkts $list
 
-        #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
-	$ns_ at 6.0 "$self cleanupAll $testName_"
+	$ns_ at $stoptime "$self cleanupAll $testName_"
         $ns_ run
 }
 
@@ -1203,6 +1226,7 @@ Test/newreno_rto_loss instproc init {} {
 Test/newreno_rto_loss instproc run {} {
 	global quiet; $self instvar guide_
 	if {$quiet == "false"} {puts $guide_}
+	$self rfc2582
         $self setup Newreno {15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 37}
 }
  
@@ -1270,6 +1294,36 @@ Test/newreno_rto_dup_ack instproc init {} {
 	Test/newreno_rto_dup_ack instproc run {} [Test/newreno_rto_dup info instbody run]
 }
  
+TestSuite instproc drop_acks acks {
+    $self instvar ns_ node_
+    set emod2 [new ErrorModule Fid]
+    [$ns_ link $node_(k1) $node_(r1)] errormodule $emod2
+    set errmodel1 [new ErrorModel/List]
+    $errmodel1 droplist $acks
+    $emod2 insert $errmodel1
+    $emod2 bind $errmodel1 1
+}
+
+# ACK heuristic fails due to ACK losses.
+Class Test/newreno_rto_loss_ackf -superclass TestSuite
+Test/newreno_rto_loss_ackf instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       newreno_rto_loss_ackf
+        Agent/TCP set bugFix_ack_ true
+        set guide_ "NewReno after timeout, lost packet and ACKs, ACK heuristic fails."      
+        $self next pktTraceFile
+}
+Test/newreno_rto_loss_ackf instproc run {} {
+        global quiet
+        $self instvar guide_
+        if {$quiet == "false"} {puts $guide_}
+	$self rfc2582
+        $self setTopo
+        $self drop_acks {23 24 25 26}
+        $self setup Newreno {15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 43} 0
+} 
+
 Class Test/newreno_rto_dup_ts -superclass TestSuite
 Test/newreno_rto_dup_ts instproc init {} {
 	$self instvar net_ test_ guide_
@@ -1296,6 +1350,130 @@ Test/newreno_rto_dup_tsh instproc init {} {
 }
 
 #########################################################################3
- 
+# Impatient (newreno_changes1_ to 1) vs. 
+# Slow-but-steady (newreno_changes1_ 0)
+#########################################################################3
+
+
+Class Test/impatient1 -superclass TestSuite
+Test/impatient1 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	impatient1
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	set guide_ \
+	"NewReno, Impatient."
+	$self next pktTraceFile
+}
+Test/impatient1 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP set singledup_ 1
+        $self setup Newreno {15 16 17 18 19 20 21 22 23 24 25 26 27 } 1 10 16
+}
+
+Class Test/slow1 -superclass TestSuite
+Test/slow1 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	slow1
+	Agent/TCP/Newreno set newreno_changes1_ 0
+	set guide_ \
+	"NewReno, Slow-but-Steady.  Impatient is better."
+	Test/slow1 instproc run {} [Test/impatient1 info instbody run]
+	$self next pktTraceFile
+}
+
+Class Test/impatient2 -superclass TestSuite
+Test/impatient2 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	impatient2
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	set guide_ \
+	"NewReno, Impatient.  Slow-but-Steady is better."
+	$self next pktTraceFile
+}
+Test/impatient2 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP set singledup_ 1
+        $self setup Newreno {15 16 17 18 19 } 1 10 16
+}
+
+Class Test/slow2 -superclass TestSuite
+Test/slow2 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	slow2
+	Agent/TCP/Newreno set newreno_changes1_ 0
+	set guide_ \
+	"NewReno, Slow-but-Steady."
+	Test/slow2 instproc run {} [Test/impatient2 info instbody run]
+	$self next pktTraceFile
+}
+
+Class Test/impatient3 -superclass TestSuite
+Test/impatient3 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	impatient3
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	set guide_ \
+	"NewReno, Impatient.  Slow-but-Steady is better."
+	$self next pktTraceFile
+}
+Test/impatient3 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP set singledup_ 1
+        $self setup Newreno {15 16 17 18 19 22 27 } 1 10 16
+}
+
+Class Test/slow3 -superclass TestSuite
+Test/slow3 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	slow3
+	Agent/TCP/Newreno set newreno_changes1_ 0
+	set guide_ \
+	"NewReno, Slow-but-Steady."
+	Test/slow3 instproc run {} [Test/impatient3 info instbody run]
+	$self next pktTraceFile
+}
+
+Class Test/impatient4 -superclass TestSuite
+Test/impatient4 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	impatient4
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	set guide_ \
+	"NewReno, Impatient."
+	$self next pktTraceFile
+}
+Test/impatient4 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP set singledup_ 1
+        $self setup Newreno {30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55} 1 20 32
+}
+
+Class Test/slow4 -superclass TestSuite
+Test/slow4 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4b
+	set test_	slow4
+	Agent/TCP/Newreno set newreno_changes1_ 0
+	set guide_ \
+	"NewReno, Slow-but-Steady.  Impatient is better."
+	Test/slow4 instproc run {} [Test/impatient4 info instbody run]
+	$self next pktTraceFile
+}
+
 TestSuite runTest
 
