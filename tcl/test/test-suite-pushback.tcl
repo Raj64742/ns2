@@ -259,17 +259,6 @@ Topology/net3 instproc init ns {
     $ns queue-limit $node_(r1) $node_(r0) 100
 }   
 
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ topo_
-
-    set topo_ [new Topology/$net_ $ns_]
-    foreach i [$topo_ array names node_] {
-        set node_($i) [$topo_ node? $i]
-        # puts "i = $i $node_($i)"
-    }
-    [$ns_ link $node_(r0) $node_(r1)] trace-dynamics $ns_ stdout
-}
-
 TestSuite instproc new-tcp {source dest size window fid startTime} {
     $self instvar ns_
 

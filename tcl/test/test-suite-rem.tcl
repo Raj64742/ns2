@@ -195,19 +195,6 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
     }
 }       
 
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ 
-
-    set topo_ [new Topology/$net_ $ns_]
-    set node_(s1) [$topo_ node? s1]
-    set node_(s2) [$topo_ node? s2]
-    set node_(s3) [$topo_ node? s3]
-    set node_(s4) [$topo_ node? s4]
-    set node_(r1) [$topo_ node? r1]
-    set node_(r2) [$topo_ node? r2]
-    [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
-}
-
 Class Test/rem1 -superclass TestSuite
 Test/rem1 instproc init {} {
     $self instvar net_ test_

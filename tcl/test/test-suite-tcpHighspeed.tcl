@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.9 2002/12/06 00:25:45 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.10 2003/01/16 02:08:35 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -103,25 +103,9 @@ Topology/net2b instproc init ns {
     $ns duplex-link $node_(s4) $node_(r2) 100Mb 5ms DropTail
 }
 
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ topo_
-
-    set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net2a" || $net_ == "net2b"} {
-        set node_(s1) [$topo_ node? s1]
-        set node_(s2) [$topo_ node? s2]
-        set node_(s3) [$topo_ node? s3]
-        set node_(s4) [$topo_ node? s4]
-        set node_(r1) [$topo_ node? r1]
-        set node_(r2) [$topo_ node? r2]
-        [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
-    }
-}
-
-
 ############################################################
 
-# To use windows larger than 1024 pkts, it is necessary to set 
+# To use windows larger than 1024 pkts, it is necessary to set
 # MWS in tcp-sink.h, and to set SBSIZE in scoreboard.h.
 
 Class Test/tcp -superclass TestSuite

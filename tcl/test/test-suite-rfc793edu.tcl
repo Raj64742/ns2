@@ -200,42 +200,6 @@ TestSuite instproc printtimersAll { tcp time interval } {
 
 
 ## 
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ topo_
-    if {$net_ == "net5"} {
-	set topo_ [new Topology/$net_ $ns_]
-	set node_(s1) [$topo_ node? s1]
-	set node_(s2) [$topo_ node? s2]
-	set node_(s3) [$topo_ node? s3]
-	set node_(r1) [$topo_ node? r1]
-	set node_(k1) [$topo_ node? k1]
-	[$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
-    } elseif {$net_ == "net6" || $net_ == "net7"} {
-	set topo_ [new Topology/$net_ $ns_]
-	set node_(s1) [$topo_ node? s1]
-	set node_(r1) [$topo_ node? r1]
-	set node_(k1) [$topo_ node? k1]
-	[$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
-    } elseif {$net_ == "net8"} {
-	set topo_ [new Topology/$net_ $ns_]
-	set node_(s1) [$topo_ node? s1]
-	set node_(r1) [$topo_ node? r1]
-	set node_(k1) [$topo_ node? k1]
-	set node_(k2) [$topo_ node? k2]
-	set node_(k3) [$topo_ node? k3]
-	set node_(k4) [$topo_ node? k4]
-	set node_(k5) [$topo_ node? k5]
-	set node_(k6) [$topo_ node? k6]
-	set node_(r2) [$topo_ node? r2]
-	set node_(d1) [$topo_ node? d1]
-	[$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
-    }
-}   
-
-
-
-############ Setup ##########################
-
 TestSuite instproc setup {tcptype list} {
     global wrap wrap1 quiet
     $self instvar ns_ node_ testName_

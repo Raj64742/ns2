@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.19 2002/10/19 22:44:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.20 2003/01/16 02:08:35 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -189,28 +189,6 @@ Topology/net4 instproc init ns {
     $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 20ms DropTail
     $ns queue-limit $node_(r1) $node_(k1) 25
     $ns queue-limit $node_(k1) $node_(r1) 25
-}
-
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ topo_
-
-    set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net0" || $net_ == "net1" || $net_ == "net4"} {
-        set node_(s1) [$topo_ node? s1]
-        set node_(s2) [$topo_ node? s2]
-        set node_(r1) [$topo_ node? r1]
-        set node_(k1) [$topo_ node? k1]
-        [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
-    }
-    if {$net_ == "net2" | $net_ == "net3"} {
-        set node_(s1) [$topo_ node? s1]
-        set node_(s2) [$topo_ node? s2]
-        set node_(s3) [$topo_ node? s3]
-        set node_(s4) [$topo_ node? s4]
-        set node_(r1) [$topo_ node? r1]
-        set node_(r2) [$topo_ node? r2]
-        [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
-    }
 }
 
 TestSuite instproc drops4 {delayPkt delay} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.12 2002/03/08 21:55:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.13 2003/01/16 02:08:35 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-schedule.tcl
@@ -168,20 +168,6 @@ TestSuite instproc runDetailed {} {
 	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
 }
-
-TestSuite instproc setTopo {} {
-    	$self instvar node_ net_ ns_ topo_
-
-    	set topo_ [new Topology/$net_ $ns_]
-        set node_(s1) [$topo_ node? s1]
-        set node_(s2) [$topo_ node? s2]
-        set node_(r1) [$topo_ node? r1]
-        set node_(k1) [$topo_ node? k1]
-        [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
-} 
-
-
-#######################################################
 
 Class Test/fifo-droptail -superclass TestSuite
 Test/fifo-droptail instproc init {} {

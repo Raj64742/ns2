@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rh.tcl,v 1.6 2002/03/08 21:55:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rh.tcl,v 1.7 2003/01/16 02:11:56 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -285,44 +285,6 @@ TestSuite instproc setloss {} {
                 exit 1
         }
 	return $errmodel
-}
-
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ topo_
-
-    set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net2" || $net_ == "net2-lossy"} {
-        set node_(s1) [$topo_ node? s1]    
-        set node_(s2) [$topo_ node? s2]    
-        set node_(s3) [$topo_ node? s3]    
-        set node_(s4) [$topo_ node? s4]    
-        set node_(r1) [$topo_ node? r1]    
-        set node_(r2) [$topo_ node? r2]    
-
-        set node_(a1) [$topo_ node? a1]    
-        set node_(a2) [$topo_ node? a2]    
-        set node_(a3) [$topo_ node? a3]    
-        set node_(a4) [$topo_ node? a4]    
-        set node_(a5) [$topo_ node? a5]    
-        set node_(a6) [$topo_ node? a6]    
-
-        set node_(b1) [$topo_ node? b1]    
-        set node_(b2) [$topo_ node? b2]    
-        set node_(b3) [$topo_ node? b3]    
-        set node_(b4) [$topo_ node? b4]    
-        set node_(b5) [$topo_ node? b5]    
-        set node_(b6) [$topo_ node? b6]    
-
-
-        [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout    
-    }
-    if {$net_ == "net6"} {
-        set node_(s1) [$topo_ node? s1]
-        set node_(s2) [$topo_ node? s2] 
-        set node_(r1) [$topo_ node? r1]
-        set node_(k1) [$topo_ node? k1]
-        [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
-    } 
 }
 
 TestSuite instproc enable_tracecwnd { ns tcp } {
