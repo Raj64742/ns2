@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Polly Huang <huang@isi.edu>
-# Version Date: $Date: 1999/04/20 22:34:32 $
+# Version Date: $Date: 1999/09/20 17:42:43 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/web-traffic.tcl,v 1.1 1999/04/20 22:34:32 polly Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/web-traffic.tcl,v 1.2 1999/09/20 17:42:43 haoboy Exp $ (USC/ISI)
 #
 #
 # An example script that simulates web traffic. 
@@ -33,7 +33,8 @@ source dumbbell.tcl
 global num_node n
 
 set ns [new Simulator]
-$ns set-address 7 24     ;# set-address <bits for node address> <bits for port>
+#$ns set-address-format expanded
+#$ns set-address 7 24     ;# set-address <bits for node address> <bits for port>
 
 # set up colors for nam 
 for {set i 1} {$i <= 30} {incr i} {

@@ -5,8 +5,8 @@ set ns [new Simulator]
 Simulator set EnableMcast_ 1
 # 5 possible address formatting APIs and their combo thereof:
 
-#$ns set-address-format def
-$ns set-address-format expanded
+$ns set-address-format def
+#$ns set-address-format expanded
 #$ns set-address-format hierarchical
 #$ns set-address-format hierarchical 3 3 3 5
 

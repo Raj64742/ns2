@@ -5,7 +5,6 @@
 
 
 set ns [new Simulator]
-$ns set-address-format expanded
 source ./ts1000.tcl
 set linkBW 5Mb
 global n ns

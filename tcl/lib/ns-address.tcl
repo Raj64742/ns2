@@ -140,7 +140,8 @@ Simulator instproc set-address-format {opt args} {
 		Simulator set McastAddr_ [expr 1 << $mcastshift]
 		mrtObject expandaddr
 	} elseif {[string compare $opt "expanded"] == 0} {
-		$self expand-address
+		#$self expand-address
+		puts "set-address-format expanded is obsoleted by 32-bit addressing."
 	} elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
 		if [$self multicast?] {
 			$self set-hieraddress 3 9 11 11

@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.15 1999/09/16 21:58:37 yaxu Exp $
+   $Id: dsragent.cc,v 1.16 1999/09/20 17:42:29 haoboy Exp $
 */
 
 #include <assert.h>
@@ -1539,9 +1539,9 @@ DSRAgent::tap(const Packet *packet)
   /* process packets that are promiscously listened to from the MAC layer tap
   *** do not change or free packet *** */
 {
-  hdr_sr *srh =  (hdr_sr*) ((Packet *)packet)->access(off_sr_);
-  hdr_ip *iph =  (hdr_ip*)((Packet *)packet)->access(off_ip_);
-  hdr_cmn *cmh =  (hdr_cmn*)((Packet *)packet)->access(off_cmn_);
+  hdr_sr *srh =  (hdr_sr*)packet->access(off_sr_);
+  hdr_ip *iph =  (hdr_ip*)packet->access(off_ip_);
+  hdr_cmn *cmh =  (hdr_cmn*)packet->access(off_cmn_);
   
   if (!dsragent_use_tap) return;
 

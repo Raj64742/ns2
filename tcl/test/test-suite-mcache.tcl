@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.3 1999/09/09 03:44:17 salehi Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.4 1999/09/20 17:42:46 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -69,9 +69,6 @@ Test instproc init {} {
 			ntrace_
 
 	set ns_ [new Simulator -multicast on]
-
-	# Must be called before allocating any nodes!
-	$ns_ set-address-format expanded
 
 	set cls [$self info class]
 	set cls [split $cls /]
