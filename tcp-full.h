@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.23 1998/06/12 18:05:04 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.24 1998/06/18 01:18:03 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -102,16 +102,18 @@ class ReassemblyQueue : public TclObject {
 	};
 
 public:
-	ReassemblyQueue(int& nxt);
+	ReassemblyQueue(int& rcvnxt);
 	int empty() { return (head_ == NULL); }
 	int add(Packet*);
+	int gensack(int *sacks, int maxsblock);
 	void clear();
 protected:
-	int off_tcp_;
-	int off_cmn_;
-	seginfo* head_;
-	seginfo* tail_;
-	int& rcv_nxt_;
+	int last_startseq_;	// last added
+	int off_tcp_;		// TCP header offset
+	int off_cmn_;		// common header offset
+	seginfo* head_;		// head of segs linked list
+	seginfo* tail_;		// end of segs linked list
+	int& rcv_nxt_;		// reference to tcp's rcv_nxt_
 };
 
 class FullTcpAgent : public TcpAgent {
@@ -127,6 +129,10 @@ class FullTcpAgent : public TcpAgent {
  protected:
 	int closed_;
 	int ts_option_size_;	// header bytes in a ts option
+	int sack_option_size_;	// base # bytes for sack opt (no blks)
+	int sack_block_size_;	// # bytes in a sack block (def: 8)
+	int sack_option_;	// sack option enabled?
+	int max_sack_blocks_;	// max # sack blocks to send
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int fastrecov_;	    // fast recovery on?
@@ -141,7 +147,7 @@ class FullTcpAgent : public TcpAgent {
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
 	double delack_interval_;
 
-	int headersize();   // a tcp header
+	int headersize(int nsackblks = 0);   // a tcp header w/opts
 	int outflags();     // state-specific tcp header flags
 	int rcvseqinit(int, int); // how to set rcv_nxt_
 	int predict_ok(Packet*); // predicate for recv-side header prediction
