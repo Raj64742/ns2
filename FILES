@@ -960,6 +960,9 @@ tcl/test/test-output-ecn/ecn_twoecn_newreno.Z
 tcl/test/test-output-ecn/ecn_twoecn_reno.Z
 tcl/test/test-output-ecn/ecn_twoecn_sack.Z
 tcl/test/test-output-ecn/ecn_twoecn_tahoe.Z
+tcl/test/test-output-friendly
+tcl/test/test-output-friendly/test1.Z
+tcl/test/test-output-friendly/test2.Z
 tcl/test/test-output-full
 tcl/test/test-output-full/SSR.Z
 tcl/test/test-output-full/SSR2.Z
@@ -1391,6 +1394,12 @@ template.h
 test-all
 test-output
 tfcc.cc
+tfrm.cc
+tfrm.h
+tfrm-sink.cc
+tfrm-sink.h
+formula.h
+formula-with-inverse.h
 timer-handler.cc
 timer-handler.h
 timewindow-est.cc
