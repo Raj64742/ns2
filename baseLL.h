@@ -40,13 +40,15 @@
 
 struct hdr_ll {
 	int seqno_;          /* sequence number */
-	int ack_;            /* ack number */
+	int ack_;            /* acknowledgement number */
 
 	int& seqno() {
 		return (seqno_);
 	}
+	
 	int& ack() {
 		return (ack_);
+	}
 };
 
 class BaseLL : public LinkDelay {
