@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.12 1997/05/01 19:14:13 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.13 1997/05/02 02:32:55 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -127,6 +127,7 @@ protected:
 	int		level_;			// depth in link-sharing tree
 	int		delayed_;		// boolean-was I delayed
 	int		bytes_alloc_;		// for wrr only
+	int		permit_borrowing_;	// ok to borrow?
 
 };
 
@@ -379,7 +380,8 @@ int CBQueue::send_permitted(CBQClass* cl, double now)
 		cl->delayed_ = 0;
 		last_lender_ = cl;
 		return (1);
-	} else if ((cl = find_lender(cl, now)) != NULL) {
+	} else if (cl->permit_borrowing_ &&
+	    (((cl = find_lender(cl, now)) != NULL))) {
 		last_lender_ = cl;
 		return (1);
 	}
@@ -743,12 +745,14 @@ WRR_CBQueue::setM()
 CBQClass::CBQClass() : cbq_(0), peer_(0), level_peer_(0), lender_(0),
 	q_(0), qmon_(0), allotment_(0.0), maxidle_(0.0), maxrate_(0.0),
 	extradelay_(0.0), last_time_(0.0), undertime_(0.0), avgidle_(0.0),
-	pri_(-1), level_(-1), delayed_(0), bytes_alloc_(0)
+	pri_(-1), level_(-1), delayed_(0), bytes_alloc_(0),
+	permit_borrowing_(1)
 {
 	bind("maxidle_", &maxidle_);
 	bind("priority_", &pri_);
 	bind("level_", &level_);
 	bind("extradelay_", &extradelay_);
+	bind_bool("okborrow_", &permit_borrowing_);
 
 	if (pri_ < 0 || pri_ > (MAXPRIO-1))
 		abort();
