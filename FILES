@@ -400,6 +400,7 @@ tcl/test/nam.tcl
 tcl/test/queuemon-test.tcl
 tcl/test/route-test.tcl
 tcl/test/sack-v1.tcl
+tcl/test/test-all-cbq
 tcl/test/test-all-cbq-v1
 tcl/test/test-all-full
 tcl/test/test-all-mcast
