@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.119 1998/08/14 20:09:36 tomh Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.120 1998/08/18 23:43:26 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -54,7 +54,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@
+DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@ 
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -128,6 +128,8 @@ OBJ_CC = \
 	alloc-address.o address.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
+	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
+	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o
 
 # what was here before is now in emulate/
 OBJ_C =
@@ -253,7 +255,10 @@ NS_TCL_LIB = \
 	tcl/emulate/ns-emulate.tcl \
 	tcl/lan/ns-lan.tcl \
 	tcl/lan/ns-ll.tcl \
-	tcl/lan/ns-mac.tcl
+	tcl/lan/ns-mac.tcl \
+	tcl/webcache/http-agent.tcl \
+	tcl/webcache/http-server.tcl \
+	tcl/webcache/http-cache.tcl 
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl | $(TCL2C) et_ns_lib > $@
