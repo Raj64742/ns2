@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.95 2002/03/08 17:29:19 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.96 2002/03/29 05:06:33 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -197,7 +197,10 @@ protected:
 	virtual void newtimer(Packet*);
 	virtual void dupack_action();		/* do this on dupacks */
 	virtual void send_one();		/* do this on 1-2 dupacks */
+	double linear(double x, double x_1, double y_1, double x_2, double y_2);
+	/* the "linear" function is for experimental highspeed TCP */
 	void opencwnd();
+
 	void slowdown(int how);			/* reduce cwnd/ssthresh */
 	void ecn(int seqno);		/* react to quench */
 	virtual void set_initial_window();	/* set IW */
@@ -330,6 +333,13 @@ protected:
 	int noFastRetrans_;	/* No Fast Retransmit option.  */
 	int oldCode_;		/* Use old code. */
 	int useHeaders_;	/* boolean: Add TCP/IP header sizes */
+
+	/* for experimental high-speed TCP */
+	int low_window_;	/* window for turning on high-speed TCP */
+	int high_window_;	/* target window for new response function */
+	double high_p_;		/* target drop rate for new response function */
+	double high_decrease_;	/* decrease rate at target window */
+        /* end of section for experimental high-speed TCP */
 
 
         /* support for event-tracing */

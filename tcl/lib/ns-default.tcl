@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.281 2002/03/21 23:21:09 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.282 2002/03/29 05:06:34 sfloyd Exp $
 
 
 #
@@ -730,6 +730,12 @@ Agent/TCP set singledup_ 1 ;		# default changed on 2001/11/28.
 Agent/TCP set precisionReduce_ false
 Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 
+
+# These are all variables for experimental high-speed TCP.
+Agent/TCP set low_window_ 13
+Agent/TCP set high_window_ 12500
+Agent/TCP set high_p_ 0.000001
+Agent/TCP set high_decrease_ 0.1
 
 # These are all variables for tracing information.
 Agent/TCP set ndatapack_ 0
