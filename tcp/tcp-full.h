@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.43 2001/08/16 00:07:03 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.44 2001/08/17 18:53:04 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -185,15 +185,11 @@ class FullTcpAgent : public TcpAgent {
 	}
 	virtual void oldack() {			// what to do on old ack
 		dupacks_ = 0;
-		pipe_ -= maxseg_;	// Q: what if not maxseg?
-//printf("%f: oldack(): pipe decr by %d, now %d\n", now(), maxseg_, pipe_);
 	}
 
 	virtual void extra_ack() {		// dup ACKs after threshold
 		if (reno_fastrecov_)
 			cwnd_++;
-		pipe_ -= maxseg_;	// Q: what if not maxseg?
-//printf("%f: extra_ack(): pipe decr by %d, now %d\n", now(), maxseg_, pipe_);
 	}
 
 	void sendpacket(int seq, int ack, int flags, int dlen, int why);
