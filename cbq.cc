@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.4 1997/04/02 04:38:41 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.5 1997/04/02 04:51:30 kfall Exp $ (LBL)";
 #endif
 
 /*
@@ -114,6 +114,7 @@ typedef CBQClass* (CBQClass::*LinkageMethod)();
 class CBQClass : public Connector {
     public:
 	friend class CBQueue;
+	friend class WRR_CBQueue;
 	void recv(Packet*, Handler*);	// from classifier
 	Packet* nextpkt() { return (qdisc_->deque()); }
 	CBQClass();
@@ -172,6 +173,9 @@ class CBQueue : public Queue {
 	void	recv(Packet *, Handler*);
 	void	addallot(int, double);	// change allotment at some pri level
 	double	linkbw() { return (link_bw_); }
+	int	algorithm() { return(algorithm_); }
+	int	maxdepth() { return (maxdepth_); }
+	void	maxdepth(int m) { maxdepth_ = m; }
     protected:
 	virtual void insert_class(CBQClass*);	// WRR and PKT-by-PKT RR
 	void	delay_action(CBQClass*);
@@ -333,6 +337,19 @@ CBQueue::CBQueue() : borrowed_(0), list_(0), maxdepth_(MAXDEPTH)
 	memset(active_, '\0', sizeof(active_));
 	memset(num_, '\0', sizeof(num_));
 	memset(alloc_, '\0', sizeof(alloc_));
+}
+
+void
+CBQueue::recv(Packet* p, Handler* h)
+{
+/* XXXX fill me in XXX */
+}
+
+void
+CBQueue::enque(Packet*)
+{
+	/* shouldn't ever happen */
+	abort();
 }
 
 /*
@@ -597,7 +614,7 @@ void CBQueue::plot(CBQClass* cl, double idle)
 void CBQueue::update_class_util(CBQClass* cl, double now, int pktsize)
 {
 	int queue_length; 
-	double txt = pktsize * 8. / bandwidth();	// xmit time
+	double txt = pktsize * 8. / link_bw_;	// xmit time
 	now += txt;				// after this pkt is sent
 	queue_length = cl->pcount_;
 
@@ -695,19 +712,18 @@ CBQueue::deque()
  *	belongs to, so we just need to do the appropriate stuff here
  */
 void CBQClass::recv(Packet *p, Handler *h)
-
+{
 	double now = Scheduler::instance().clock();
-	if (cbq_->algorithm_ == 1 && cbq_->maxdepth_ > 0) {
+	if (cbq_->algorithm() == 1 && cbq_->maxdepth() > 0) {
 		if (undertime_ < now) 
-			cbq_->maxdepth_ = 0;
-		else if (cbq_->maxdepth_ > 1 && borrow_ != 0) {
+			cbq_->maxdepth(0);
+		else if (cbq_->maxdepth() > 1 && borrow_ != 0) {
 			if (borrow_->undertime_ < now)
-				cbq_->maxdepth_ = 1;
+				cbq_->maxdepth(1);
 			}
 	}
 	if (qdisc_ == NULL) {
-		fprintf(stderr, "CBQ: enque: no qdisc for pkt@%p\n",
-			pkt);
+		fprintf(stderr, "CBQ: recv: no qdisc for pkt@%p\n", p);
 		abort();
 	}
 	qdisc_->enque(p);
