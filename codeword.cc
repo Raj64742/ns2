@@ -62,6 +62,7 @@ sb_void Codeword::setSourceWordLen(sb_ulong k_)
 {
     k = k_;
     n = ((CW_PATTERN_t) 1) << (k-1);
+    //n = ((unsigned long long) 1) << (k-1);
     cw_index = 0;
     cw_pat = 1;
     cw_saved = 0;
@@ -96,6 +97,7 @@ CW_PATTERN_t Codeword::getNextCwPat()
     cw_index = (cw_index + 1) % n;
 
     assert(0 < ret && ret < ((CW_PATTERN_t) n << 1) | 1);
+    //assert(0 < ret && ret < ((unsigned long long) n << 1) | 1);
     return ret;
 }
 

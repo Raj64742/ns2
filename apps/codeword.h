@@ -82,6 +82,7 @@ protected:
     CW_PATTERN_t n;
     CW_PATTERN_t cw_saved;
     CW_PATTERN_t cw_index;
+    //unsigned long long cw_index;
     CW_PATTERN_t cw_pat;
 };
 

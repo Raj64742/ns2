@@ -483,6 +483,11 @@ sb_int MFTPSndAgent::send_data()
                   (unsigned long) nmstats.CurrentGroup,
                   (unsigned long) nmstats.CwPat & mask);
 
+        //tcl.evalf("%s send-notify %lu %lu %llu", name_,
+        //          (unsigned long) nmstats.CurrentPass,
+        //          (unsigned long) nmstats.CurrentGroup,
+        //          (unsigned long long) nmstats.CwPat & mask);
+
         /* RESET THE DTU STATUS BIT IN THE NACK BITMAP */
         RESET_BIT(naks, nmstats.CurrentGroup);
 
