@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.84 1998/11/29 05:26:55 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.85 1998/11/29 19:14:21 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -341,12 +341,14 @@ void TcpAgent::output(int seqno, int reason)
         }
 	/* Check if this is the initial SYN packet. */
 	if (seqno == 0) {
-		if (syn_)
+		if (syn_) {
 			hdr_cmn::access(p)->size() = tcpip_base_hdr_size_;
-//		if (ecn_) {
-//			hf->ecnecho() = 1;
+		}
+		if (ecn_) {
+			hf->ecnecho() = 1;
 //			hf->cong_action() = 1;
-//		}
+			hf->ect() = 0;
+		}
 	}
         int bytes = hdr_cmn::access(p)->size();
 
@@ -722,21 +724,21 @@ void TcpAgent::ecn(int seqno)
 void TcpAgent::recv_newack_helper(Packet *pkt) {
 	//hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
-	if (!ect_ && hdr_flags::access(pkt)->ecnecho() &&
-		!hdr_flags::access(pkt)->cong_action())
-		ect_ = 1;
-	if (!ecn_ || !hdr_flags::access(pkt)->ecnecho() ||
+	if (!ect_ || !hdr_flags::access(pkt)->ecnecho() ||
 		(old_ecn_ && ecn_burst_)) 
 		/* If "old_ecn", this is not the first ACK carrying ECN-Echo
 		 * after a period of ACKs without ECN-Echo.
 		 * Therefore, open the congestion window. */
 	        opencwnd();
-	if (ecn_) {
+	if (ect_) {
 		if (!ecn_burst_ && hdr_flags::access(pkt)->ecnecho())
 			ecn_burst_ = TRUE;
 		else if (ecn_burst_ && ! hdr_flags::access(pkt)->ecnecho())
 			ecn_burst_ = FALSE;
 	}
+	if (!ect_ && hdr_flags::access(pkt)->ecnecho() &&
+		!hdr_flags::access(pkt)->cong_action())
+		ect_ = 1;
 	/* if the connection is done, call finish() */
 	if ((highest_ack_ >= curseq_-1) && !closed_) {
 		closed_ = 1;
@@ -846,11 +848,8 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
-		if (last_ack_ == 0) { 
-			if (delay_growth_ && !ecnecho)
-				cwnd_ = initial_window();
-			else if (ecnecho)
-				cwnd_ = 0;
+		if (last_ack_ == 0 && delay_growth_) { 
+			cwnd_ = initial_window();
 		}
 	} else if (tcph->seqno() == last_ack_) {
                 if (hdr_flags::access(pkt)->eln_ && eln_) {
