@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.54 1998/07/06 17:41:10 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.55 1998/07/08 18:31:26 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -106,7 +106,7 @@ public:
 	TahoeFullTcpClass() : TclClass("Agent/TCP/FullTcp/Tahoe") {}
 	TclObject* create(int, const char*const*) { 
 		// tcl lib code
-		// sets fastrecov_ to false
+		// sets reno_fastrecov_ to false
 		return (new TahoeFullTcpAgent());
 	}
 } class_tahoe_full;
@@ -121,6 +121,14 @@ public:
 	}
 } class_newreno_full;
 
+static class SackFullTcpClass : public TclClass { 
+public:
+	SackFullTcpClass() : TclClass("Agent/TCP/FullTcp/Sack") {}
+	TclObject* create(int, const char*const*) { 
+		return (new SackFullTcpAgent());
+	}
+} class_sack_full;
+
 /*
  * Tcl bound variables:
  *	segsperack: for delayed ACKs, how many to wait before ACKing
@@ -130,7 +138,7 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1), infinite_send_(0),
 	last_send_time_(-1.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE),
-	sq_(sack_min_), fastrecov_(FALSE)
+	fastrecov_(FALSE), pipe_(0)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -144,10 +152,7 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	bind("interval_", &delack_interval_);
 	bind("ts_option_size_", &ts_option_size_);
 	bind_bool("reno_fastrecov_", &reno_fastrecov_);
-	bind_bool("sack_option_", &sack_option_);
-	bind("sack_option_size_", &sack_option_size_);
-	bind("sack_block_size_", &sack_block_size_);
-	bind("max_sack_blocks_", &max_sack_blocks_);
+	bind_bool("pipectrl_", &pipectrl_);
 
 	reset();
 }
@@ -163,11 +168,11 @@ FullTcpAgent::reset()
 	cancel_timers();	// cancel timers first
 	TcpAgent::reset();	// resets most variables
 	rq_.clear();
-	sq_.clear();
 	rtt_init();
 
 	last_ack_sent_ = -1;
 	rcv_nxt_ = -1;
+	pipe_ = 0;
 	flags_ = 0;
 	t_seqno_ = iss_;
 	maxseq_ = -1;
@@ -178,7 +183,6 @@ FullTcpAgent::reset()
 	else
 		recent_ = recent_age_ = -1.0;
 
-	sack_max_ = sack_min_ = -1;
 	fastrecov_ = FALSE;
 }
 
@@ -190,12 +194,8 @@ int
 FullTcpAgent::pack(Packet *pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-//printf("%f(%s): pack: ackno: %d, highest: %d, recover: %d\n",
-//now(), name(), tcph->ackno(), int(highest_ack_), int(recover_));
 	return (tcph->ackno() >= highest_ack_ &&
 		tcph->ackno() < recover_);
-	//fastrecov_);
-	//return (tcph->ackno() < recover_);
 }
 
 /*
@@ -220,11 +220,6 @@ void
 FullTcpAgent::ack_action(Packet* p)
 {
 	FullTcpAgent::pack_action(p);
-	if (sack_option_) {
-		// fill in the sack queue with everything
-		// ack'd so far
-		sq_.add(iss_, highest_ack_, 0);
-	}
 }
 
 /*
@@ -232,7 +227,7 @@ FullTcpAgent::ack_action(Packet* p)
  *	how big is an IP+TCP header in bytes; include options such as ts
  */
 int
-FullTcpAgent::headersize(int nsackblocks)
+FullTcpAgent::headersize()
 {
 	int total = tcpip_base_hdr_size_;
 	if (total < 1) {
@@ -244,10 +239,6 @@ FullTcpAgent::headersize(int nsackblocks)
 	if (ts_option_)
 		total += ts_option_size_;
 
-	if (sack_option_ && (nsackblocks > 0))
-		total += ((nsackblocks * sack_block_size_)
-			+ sack_option_size_);
-
 	return (total);
 }
 
@@ -258,7 +249,6 @@ FullTcpAgent::~FullTcpAgent()
 {
 	cancel_timers();	// cancel all pending timers
 	rq_.clear();		// free mem in reassembly queue
-	sq_.clear();		// free mem in sack queue
 }
 
 /*
@@ -364,6 +354,20 @@ int FullTcpAgent::rcvseqinit(int seq, int dlen)
 	return (seq + dlen + 1);
 }
 
+int
+FullTcpAgent::build_options(hdr_tcp* tcph)
+{
+	int total = 0;
+	if (ts_option_) {
+		tcph->ts() = now();
+		tcph->ts_echo() = recent_;
+		total += ts_option_size_;
+	} else {
+		tcph->ts() = tcph->ts_echo() = -1.0;
+	}
+	return (total);
+}
+
 /*
  * sendpacket: 
  *	allocate a packet, fill in header fields, and send
@@ -372,46 +376,42 @@ int FullTcpAgent::rcvseqinit(int seq, int dlen)
  * fill in packet fields.  Agent::allocpkt() fills
  * in most of the network layer fields for us.
  * So fill in tcp hdr and adjust the packet size.
+ *
+ * Also, return the size of the tcp header.
  */
-void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reason)
+void
+FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reason)
 {
         Packet* p = allocpkt();
         hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
-        hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
-        hdr_flags *fh = (hdr_flags *)p->access(off_flags_);
+
+	/* build basic header w/options */
+
         tcph->seqno() = seqno;
         tcph->ackno() = ackno;
         tcph->flags() = pflags;
-        tcph->hlen() = headersize();
-	if (ts_option_) {
-		tcph->ts() = now();
-		tcph->ts_echo() = recent_;
-	} else {
-		tcph->ts() = tcph->ts_echo() = -1.0;
-	}
+        tcph->reason() |= reason; // make tcph->reason look like ns1 pkt->flags?
+	tcph->sa_length() = 0;    // may be increased by build_options()
+        tcph->hlen() = tcpip_base_hdr_size_;
+	tcph->hlen() += build_options(tcph);
 
+	/* ECT, ECN, and congestion action */
+
+        hdr_flags *fh = (hdr_flags *)p->access(off_flags_);
 	fh->ect() = ect_;	// on after mutual agreement on ECT
-
-	if (sack_option_ && !rq_.empty()) {
-		int nblk = rq_.gensack(&tcph->sa_left(0), max_sack_blocks_);
-		tcph->hlen() = headersize(nblk);
-		tcph->sa_length() = nblk;
-	} else {
-		tcph->sa_length() = 0;
-	}
-
 	if (ecn_ && !ect_)	// initializing; ect = 0, ecnecho = 1
 		fh->ecnecho() = 1;
 	else {
 		fh->ecnecho() = recent_ce_;
 	}
-
-	// for now, only do cong_action if ecn_ is enabled
 	fh->cong_action() =  cong_action_;
 
-	/* Open issue:  should tcph->reason map to pkt->flags_ as in ns-1?? */
-        tcph->reason() |= reason;
-        th->size() = datalen + tcph->hlen();
+
+	/* actual size is data length plus header length */
+
+        hdr_cmn *ch = (hdr_cmn*)p->access(off_cmn_);
+        ch->size() = datalen + tcph->hlen();
+
         if (datalen <= 0)
                 ++nackpack_;
         else {
@@ -425,7 +425,7 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
         }
 
 	last_ack_sent_ = ackno;
-        send(p, 0);
+	send(p, 0);
 }
 
 void FullTcpAgent::cancel_timers()
@@ -454,14 +454,19 @@ void FullTcpAgent::output(int seqno, int reason)
 {
 	int is_retransmit = (seqno < maxseq_);
 	int idle_ = (highest_ack_ == maxseq_);
-	int buffered_bytes = (infinite_send_ ? TCP_MAXSEQ : (curseq_ + iss_) - 
-	    highest_ack_);
-	int win = window() * maxseg_;
-	int off = seqno - highest_ack_;
-	int datalen = min(buffered_bytes, win) - off;
 	int pflags = outflags();
 	int emptying_buffer = FALSE;
 
+	int buffered_bytes =
+		(infinite_send_ ? TCP_MAXSEQ : (curseq_ + iss_) - highest_ack_);
+	int win = window() * maxseg_;	// window (in bytes)
+	int off = seqno - highest_ack_;	// offset of seg in window
+	int datalen;
+
+	if (pipectrl_)
+		datalen = buffered_bytes - off;
+	else
+		datalen = min(buffered_bytes, win) - off;
 
 	//
 	// in real TCP datalen (len) could be < 0 if there was window
@@ -560,10 +565,6 @@ send:
 			datalen = 0;
 	}
 
-//printf("%f tcp(%s): output: pflags:0x%x, flags_:0x%x, seqno:%d, maxseq_:%d, t_seqno_:%d, highest_ack_:%d\n",
-//now(), name(), pflags, flags_, seqno, int(maxseq_), int(t_seqno_),
-//int(highest_ack_));
-
 	/*
          * If resending a FIN, be sure not to use a new sequence number.
          */      
@@ -619,8 +620,6 @@ send:
 		// establish timing on this segment
 		//
 		if (!ts_option_ && rtt_active_ == FALSE) {
-//printf("%f: tcp(%s): starting rtt timer on seq:%d\n",
-//now(), name(), seqno);
 			rtt_active_ = TRUE;	// set timer
 			rtt_seq_ = seqno; 	// timed seq #
 			rtt_ts_ = now();	// when set
@@ -634,8 +633,6 @@ send:
 	 * Future values are rtt + 4 * rttvar.
 	 */
 	if ((rtx_timer_.status() != TIMER_PENDING) && (t_seqno_ > highest_ack_)) {
-//printf("%f: tcp(%s): starting RTX timeout on seq:%d\n",
-//now(), name(), seqno);
 		set_rtx_timer();  // no timer pending, schedule one
 	}
 
@@ -668,36 +665,13 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	 * loop forever here
 	 */
 
-	int nxtblk[2]; // left, right of 1 sack block
-	if (sack_option_ && !sq_.empty()) {
-		sq_.sync(); // reset to beginning of sack list
-		while (sq_.nextblk(nxtblk)) {
-			// skip past anything old
-			if (t_seqno_ <= nxtblk[0])
-				break;
-		}
-	}
+	while (force ||
+	      (pipectrl_ ? (pipe_ < window()) : (t_seqno_ < topwin))) {
 
-	while (force || (t_seqno_ < topwin)) {
-		if (overhead_ != 0 && (delsnd_timer_.status() != TIMER_PENDING)) {
+		if (overhead_ != 0 &&
+		    (delsnd_timer_.status() != TIMER_PENDING)) {
 			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
-		}
-
-		if (sack_option_ && !sq_.empty()) {
-//printf("%f SENDER(%s): tseq: %d sacks [nxt: %d, %d]:",
-//now(), name(), int(t_seqno_), nxtblk[0], nxtblk[1]);
-//sq_.dumplist();
-			if (t_seqno_ < maxseq_ && t_seqno_ > sack_max_)
-				break;	// no extra out-of-range retransmits
-
-			if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
-				t_seqno_ = nxtblk[1];
-				sq_.nextblk(nxtblk);
-//printf("%f (%s) SKIPSACK: tseq:%d, blk [%d, %d]\n",
-//now(), name(), int(t_seqno_), nxtblk[0], nxtblk[1]);
-				continue;
-			}
 		}
 
 		/*
@@ -711,7 +685,7 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 		if (t_seqno_ == save) {		// progress?
 			break;
 		}
-
+		++pipe_;
 		force = 0;
 
 		if ((outflags() & (TH_SYN|TH_FIN)) ||
@@ -785,10 +759,6 @@ void FullTcpAgent::newack(Packet* pkt)
         hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
         if (!fh->no_ts_) {
                 if (ts_option_) {
-
-//printf("%f: tcp(%s): rtt update with ts_option: %f\n",
-//now(), name(), now() - tcph->ts_echo());
-
 			recent_age_ = now();
 			recent_ = tcph->ts();
                         rtt_update(now() - tcph->ts_echo());
@@ -843,6 +813,8 @@ FullTcpAgent::predict_ok(Packet* pkt)
 	int p6 = (t_seqno_ == maxseq_);			// not re-xmit
 	int p7 = (!ecn_ || fh->ecnecho() == 0);		// no ECN
 
+return (FALSE);
+
 	return (p1 && p2 && p3 && p4 && p5 && p6 && p7);
 }
 
@@ -856,8 +828,6 @@ FullTcpAgent::predict_ok(Packet* pkt)
 
 void FullTcpAgent::fast_retransmit(int seq)
 {
-//printf("%f TCPF(%s) tcpf fast rtx\n", now(), name());
-
 	int onxt = t_seqno_;		// output() changes t_seqno_
 	recover_ = maxseq_;		// keep a copy of highest sent
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
@@ -946,10 +916,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	if (state_ == TCPS_CLOSED)
 		goto drop;
 
-//printf("%f TCP(%s): ecn:%d, ect:%d, CEBIT %d, ecnecho %d, seq: %d, dlen:%d, flags: 0x%x\n",
-//now(), name(), ecn_, ect_,
-//fh->ce(), fh->ecnecho(), int(tcph->seqno()), datalen, tiflags);
-
         /*
          * Process options if not in LISTEN state,
          * else do it below
@@ -1019,7 +985,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// recovery, go below so we can remember to deflate
 			// the window if we need to
 			if (ackno > highest_ack_ && ackno < maxseq_ &&
-			    cwnd_ >= wnd_ && !fastrecov_ && sq_.empty()) {
+			    cwnd_ >= wnd_ && !fastrecov_) {
 				newack(pkt);	// update timers,  highest_ack_
 				/* no adjustment of cwnd here */
 				if (((curseq_ + iss_) > highest_ack_) ||
@@ -1411,22 +1377,14 @@ trimthenstep6:
                                 recent_ce_ = FALSE;
                 }
 
-		//
-		// look for SACKs, if present
-		//
-
-		if (sack_option_) {
-			sack_action(tcph);
-		}
-
 		// look for dup ACKs (dup ack numbers, no data)
 		//
 		// do fast retransmit/recovery if at/past thresh
 		if (ackno <= highest_ack_) {
-//printf("%f TCPF(%s): ackno(%d) dupacks:%d\n",
-//now(), name(), ackno, int(dupacks_));
 			// an ACK which doesn't advance highest_ack_
 			if (datalen == 0 && (!dupseg_fix_ || !dupseg)) {
+				--pipe_; // ACK indicates pkt cached @ receiver
+
                                 /*
                                  * If we have outstanding data
                                  * this is a completely
@@ -1452,22 +1410,27 @@ trimthenstep6:
 					dupacks_ = 0;
 					fastrecov_ = FALSE;
 				} else if (++dupacks_ == tcprexmtthresh_) {
+
 					fastrecov_ = TRUE;
-					// possibly trigger fast retransmit
-					dupack_action();
-					if (sack_option_)
-						t_seqno_ = highest_ack_;
+
+					/* re-sync the pipe_ estimate */
+					pipe_ = maxseq_ - highest_ack_;
+					pipe_ /= maxseg_;
+					pipe_ -= dupacks_;
+
+
+					dupack_action(); // maybe fast rexmt
 					goto drop;
+
 				} else if (dupacks_ > tcprexmtthresh_) {
-					// don't to fast recov with sack
-					if (!sack_option_ && reno_fastrecov_) {
+					if (reno_fastrecov_) {
 						// we just measure cwnd in
 						// packets, so don't scale by
 						// maxseg_ as real
 						// tcp does
 						cwnd_++;
-						send_much(0, REASON_NORMAL, maxburst_);
 					}
+					send_much(0, REASON_NORMAL, maxburst_);
 					goto drop;
 				}
 			} else {
@@ -1512,6 +1475,7 @@ process_ACK:
                  * timer, using current (possibly backed-off) value.
                  */
 		newack(pkt);	// handle timers, update highest_ack_
+		--pipe_;
 
 		/*
 		 * if this is a partial ACK, invoke whatever we should
@@ -1548,8 +1512,6 @@ process_ACK:
 		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
 			last_state_ == TCPS_ESTABLISHED) {
 			opencwnd();
-//printf("%f TCP(%s): opencwnd ssthresh now %d, cwnd: %d,  maxburst_: %d, dupacks:%d\n",
-//now(), name(), int(ssthresh_), int(cwnd_), maxburst_, int(dupacks_));
 		}
 
 		// K: added state check in equal but diff way
@@ -1654,8 +1616,6 @@ step6:
 			tiflags = rq_.add(pkt);
 			if (rcv_nxt_ > rcv_nxt_old_)
 				recvBytes(rcv_nxt_ - rcv_nxt_old_);
-//printf("%f RECV(%s): RQ:", now(), name());
-//rq_.dumplist();
 			if (tiflags & TH_PUSH) {
 				// K: APPLICATION recv
 				needoutput = need_send();
@@ -1725,9 +1685,6 @@ step6:
                         break;
 		}
 	} /* end of if FIN bit on */
-
-//printf("%f tcp(%s): needout:%d, flags_:0x%x, curseq:%d, iss:%d\n",
-//now(), name(), needoutput, flags_, int(curseq_), int(iss_));
 
 	if (needoutput || (flags_ & TF_ACKNOW))
 		send_much(1, REASON_NORMAL, maxburst_);
@@ -1802,8 +1759,6 @@ FullTcpAgent::dupack_action()
     
 full_reno_action:    
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
-//printf("%f TCP(%s): ssthresh now %d, cwnd: %d,  maxburst_: %d\n",
-//now(), name(), int(ssthresh_), int(cwnd_), maxburst_);
 	cancel_rtx_timer();
 	rtt_active_ = FALSE;
 	fast_retransmit(highest_ack_);
@@ -1815,22 +1770,15 @@ full_reno_action:
 }
 
 void
-FullTcpAgent::sack_action(hdr_tcp* tcph)
+FullTcpAgent::timeout_action()
 {
-	int slen = tcph->sa_length();
-	int i;
-
-	if (tcph->ackno() > sack_min_)
-		sack_min_ = tcph->ackno();
-
-	for (i = 0; i < slen; ++i) {
-		if (sack_max_ < tcph->sa_right(i))
-			sack_max_ = tcph->sa_right(i);
-//printf("%f TCP(%s): recv sack [%d, %d] (high ack:%d)\n", now(), name(),
-//tcph->sa_left(i), tcph->sa_right(i), int(highest_ack_));
-		sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);
-	}
-//printf("---\n");
+	recover_ = maxseq_;
+	last_cwnd_action_ = CWND_ACTION_TIMEOUT;
+	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+	reset_rtx_timer(1);
+	t_seqno_ = highest_ack_;
+	fastrecov_ = FALSE;
+	dupacks_ = 0;
 }
 
 //
@@ -1884,9 +1832,6 @@ void FullTcpAgent::listen()
 
 void FullTcpAgent::usrclosed()
 {
-
-//printf("%f tcp(%s): usrclosed, state:%d\n",
-//now(), name(), state_);
 
 	curseq_ = t_seqno_ - iss_;	// truncate buffer
 	infinite_send_ = 0;
@@ -2272,9 +2217,6 @@ endfast:
 
 void FullTcpAgent::timeout(int tno)
 {
-//printf("%f: tcp(%s): timeout\n",
-//now(), name());
-
 	/*
 	 * shouldn't be getting timeouts here
 	 */
@@ -2287,17 +2229,7 @@ void FullTcpAgent::timeout(int tno)
 	if (tno == TCP_TIMER_RTX) {
 		/* retransmit timer */
 		++nrexmit_;
-		recover_ = maxseq_;
-		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
-		slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
-		reset_rtx_timer(1);
-		t_seqno_ = highest_ack_;
-		fastrecov_ = FALSE;
-		dupacks_ = 0;
-		if (sack_option_) {
-			sq_.clear();
-			sack_min_ = highest_ack_;
-		}
+		timeout_action();
 		send_much(1, PF_TIMEOUT, maxburst_);
 	} else if (tno == TCP_TIMER_DELSND) {
 		/*
@@ -2342,8 +2274,6 @@ FullTcpAgent::dooptions(Packet* pkt)
 
 void FullTcpAgent::newstate(int ns)
 {
-//printf("%f tcp(%s): state(%d) -> state(%d)\n",
-//now(), name(), state_, ns);
 	state_ = ns;
 }
 
@@ -2448,4 +2378,220 @@ NewRenoFullTcpAgent::ack_action(Packet* p)
 		save_maxburst_ = -1;
 	}
 	FullTcpAgent::ack_action(p);
+}
+
+/*
+ *
+ * ****** SACK ******
+ *
+ * for Sack, do the following
+ */
+
+SackFullTcpAgent::SackFullTcpAgent() : sq_(sack_min_), sack_nxt_(-1)
+{
+	bind("sack_option_size_", &sack_option_size_);
+	bind("sack_block_size_", &sack_block_size_);
+	bind("max_sack_blocks_", &max_sack_blocks_);
+}
+
+SackFullTcpAgent::~SackFullTcpAgent()
+{
+	sq_.clear();
+}
+
+void
+SackFullTcpAgent::reset()
+{
+	sq_.clear();
+	sack_max_ = sack_min_ = -1;
+	reno_fastrecov_ = FALSE;	// always F for sack
+	FullTcpAgent::reset();
+}
+
+void
+SackFullTcpAgent::recv(Packet* pkt, Handler* h)
+{
+	hdr_tcp* tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	int ackno = tcph->ackno();
+
+	if (state_ == TCPS_ESTABLISHED &&
+	    (ackno > iss_ && ackno <= maxseq_)) {
+
+		int slen = tcph->sa_length();
+		int i;  
+	   
+		if (tcph->ackno() > sack_min_)
+			sack_min_ = tcph->ackno();
+	   
+		for (i = 0; i < slen; ++i) {
+			if (sack_max_ < tcph->sa_right(i))
+				sack_max_ = tcph->sa_right(i);
+			sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);  
+		}
+	}
+	FullTcpAgent::recv(pkt, h);
+}
+
+
+int
+SackFullTcpAgent::hdrsize(int nsackblocks)
+{
+	int total = FullTcpAgent::headersize();
+        if (nsackblocks > 0) {
+                total += ((nsackblocks * sack_block_size_)
+                        + sack_option_size_);
+	}
+	return (total);
+}
+
+void
+SackFullTcpAgent::ack_action(Packet* p)
+{
+	FullTcpAgent::ack_action(p);
+	// fill in the sack send q with everything
+	// ack'd so far
+	if (!sq_.empty() && sack_max_ <= highest_ack_) {
+		sq_.clear();
+	}
+
+	if (sack_nxt_ < highest_ack_)
+		sack_nxt_ = highest_ack_;
+	//sq_.add(iss_, highest_ack_, 0);
+	pipectrl_ = FALSE;
+}
+
+void
+SackFullTcpAgent::dupack_action()
+{
+
+        int recovered = (highest_ack_ > recover_);
+
+        if (recovered || (!bug_fix_ && !ecn_) ||
+            last_cwnd_action_ == CWND_ACTION_DUPACK) {
+                goto full_sack_action;
+        }           
+
+        if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+		pipectrl_ = TRUE;
+                slowdown(CLOSE_CWND_HALF);
+                cancel_rtx_timer();
+                rtt_active_ = FALSE;
+		recover_ = maxseq_;
+		send_much(1, REASON_DUPACK, maxburst_);
+                return; 
+        }               
+   
+        if (bug_fix_) {
+                /*                              
+                 * The line below, for "bug_fix_" true, avoids
+                 * problems with multiple fast retransmits in one
+                 * window of data.
+                 */      
+                return;  
+        }
+   
+full_sack_action:                               
+        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+        cancel_rtx_timer();
+        rtt_active_ = FALSE;
+	pipectrl_ = TRUE;
+	recover_ = maxseq_;
+	send_much(1, REASON_DUPACK, maxburst_);
+        cwnd_ = ssthresh_ + dupacks_;
+        return;
+}
+
+void
+SackFullTcpAgent::pack_action(Packet*)
+{
+	if (reno_fastrecov_ && fastrecov_ && cwnd_ > ssthresh_) {
+		cwnd_ = ssthresh_; // retract window if inflated
+	}
+	if (sack_nxt_ < highest_ack_)
+		sack_nxt_ = highest_ack_;
+}
+
+void
+SackFullTcpAgent::send_much(int force, int reason, int maxburst)
+{
+	if (fastrecov_)
+		send_holes(force, maxburst);
+	FullTcpAgent::send_much(force, reason, maxburst);
+}
+
+int
+SackFullTcpAgent::build_options(hdr_tcp* tcph)
+{
+	int total = FullTcpAgent::build_options(tcph);
+
+        if (!rq_.empty()) {
+                int nblk = rq_.gensack(&tcph->sa_left(0), max_sack_blocks_);
+                tcph->sa_length() = nblk;
+		total += (nblk * sack_block_size_) + sack_option_size_;
+        } else {
+                tcph->sa_length() = 0;
+        }
+	return (total);
+}
+
+void
+SackFullTcpAgent::send_holes(int force, int maxburst)
+{
+
+	int npack = 0;
+	int save_tseq = t_seqno_;
+	t_seqno_ = sack_nxt_;
+
+	if (sq_.empty()) {
+		// no holes, just return
+		return;
+	}
+
+        int nxtblk[2]; // left, right of 1 sack block
+	sq_.sync(); // reset to beginning of sack list
+
+	while (sq_.nextblk(nxtblk)) {
+		if (t_seqno_ <= nxtblk[1])
+			break;
+	}
+
+	while (force || (pipe_ < window())) {
+		force = 0;
+                if (overhead_ != 0 &&
+                    (delsnd_timer_.status() != TIMER_PENDING)) {
+                        delsnd_timer_.resched(Random::uniform(overhead_));
+			break;
+                }
+		if (t_seqno_ >= sack_max_ || t_seqno_ > recover_)
+			break;
+		if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
+			t_seqno_ = nxtblk[1];
+			if (sq_.nextblk(nxtblk))
+				continue;
+
+			break;
+		}
+		int save = t_seqno_;
+
+		output(t_seqno_, REASON_SACK);
+		if (t_seqno_ == save) {
+			break;
+		}
+		++pipe_;		// sent something
+
+		if ((maxburst && ++npack >= maxburst) ||
+		    (outflags() & (TH_SYN|TH_FIN)))
+			break;
+	}
+	sack_nxt_ += (t_seqno_ - sack_nxt_);
+	t_seqno_ = save_tseq;
+	return;
+}
+
+void
+SackFullTcpAgent::timeout_action()
+{
+	FullTcpAgent::timeout_action();
+	sq_.clear();
+	sack_min_ = sack_max_ = highest_ack_;
 }
