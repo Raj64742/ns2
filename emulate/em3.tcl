@@ -47,6 +47,7 @@ set nd0c [$bpf0c open readonly fxp0]
 set nd0d [$bpf0d open readonly fxp0]
 set nd1c [$bpf1c open readonly fxp1]
 set nd1d [$bpf1d open readonly fxp1]
+
 $ipnet open writeonly
 
 puts "bpf0c($bpf0c) on dev $nd0c, bpf1c($bpf1c) on dev $nd1c, ipnet is $ipnet"
@@ -64,6 +65,11 @@ set 0cfilter "(ip dst host bit) and $notme and $notbcast and $ftpctrl"
 set 0dfilter "(ip dst host bit) and $notme and $notbcast and $ftpdata"
 set 1cfilter "(ip src host bit) and $notme and $notbcast and $ftpctrl"
 set 1dfilter "(ip src host bit) and $notme and $notbcast and $ftpdata"
+
+$bpf0c filter $0cfilter
+$bpf0d filter $0dfilter
+$bpf1c filter $1cfilter
+$bpf1d filter $1dfilter
 
 set a0c [new Agent/Tap]
 set a0d [new Agent/Tap]
@@ -104,7 +110,12 @@ $errmodel set offset_ 1.0
 $errmodel set period_ 10.0
 $lossylink errormodule $em
 $em insert $errmodel
-$em bind $errmodel 0	; # drop pkts with fid 0 (those from fxp0 intf)
+$em bind $errmodel 1	; # drop pkts with fid 1 (ftp data)
+
+set conn [new Connector]
+$conn target [$errmodel target]
+$conn drop-target [$errmodel target]
+$em bind $conn 0	; # pass through fid 0 (ftp ctrl)
 
 #
 # attach-agent winds up calling $node attach $agent which does
