@@ -107,7 +107,7 @@ Node proc expandaddr {} {
 	#if ![Simulator set EnableHierRt_] {
 	set ns [Simulator instance]
 	$ns set-address-format expanded
-		puts"Backward compatibility: Use $ns set-address-format expanded instead of \"Node expandaddr\";" 
+		puts "Backward compatibility: Use \"set-address-format expanded\" instead of \"Node expandaddr\";" 
 		
 	#}
 	#set mcastshift [AddrParams set McastShift_]
