@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.37 2002/06/14 00:36:41 yuri Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.38 2002/06/14 23:15:03 yuri Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -237,7 +237,6 @@ Channel::dump(void)
  *
  * DRAWBACKS: 
  *
- * 	- No multicast/broadcast supported.
  *	- No propagation model supported (uses constant prop delay for 
  *        all nodes), although it should be easy to change that.
  *	- Macs should be EXTREMELY careful handling these reference 
@@ -285,8 +284,7 @@ void NoDupChannel::sendUp(Packet *p, Phy *txif) {
 	for(Phy *rifp = ifhead_.lh_first; rifp; rifp = rifp->nextchnl()) {
 		if(rifp == txif)
 			continue;
-		hdr->ref_count()++;
-		rifp->recv(p, 0);
+		rifp->recv(p->refcopy(), 0);
 	}
 	Packet::free(p);
 }

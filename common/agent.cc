@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.73 2002/05/30 17:44:02 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.74 2002/06/14 23:15:02 yuri Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -452,7 +452,7 @@ Agent::initpkt(Packet* p) const
 	ch->timestamp() = Scheduler::instance().clock();
 	ch->iface() = UNKN_IFACE.value(); // from packet.h (agent is local)
 	ch->direction() = hdr_cmn::NONE;
-	ch->ref_count() = 0;	/* reference count */
+
 	ch->error() = 0;	/* pkt not corrupt to start with */
 
 	hdr_ip* iph = hdr_ip::access(p);

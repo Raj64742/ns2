@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.19 2000/09/01 03:04:07 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.20 2002/06/14 23:15:03 yuri Exp $ (USC/ISI)";
 #endif
 
 #include "config.h"
@@ -117,7 +117,6 @@ SessionHelper::SessionHelper() : dstobj_(0), ndst_(0), rc_(0)
 
 void SessionHelper::recv(Packet* pkt, Handler*)
 {
-	dstobj *tmpdst = dstobj_;
 	Scheduler& s = Scheduler::instance();
 	hdr_cmn* th = hdr_cmn::access(pkt);
 	hdr_ip* iph = hdr_ip::access(pkt);
@@ -127,45 +126,38 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 	clear_dropped();
 
 	get_dropped(loss_dependency_->loss_dep, pkt);
-	if (rc_) {
-		th->ref_count() = ndst_;
-	}
 
-	while (tmpdst != 0) {
-	  if (!(tmpdst->dropped)) {
-	    int ttl = iph->ttl() - tmpdst->ttl;
-	    if (ttl > 0) {
-	      if (tmpdst->bw == 0) {
-		tmp_arrival = tmpdst->delay;
-	      } else {
-		tmp_arrival = th->size()*8/tmpdst->bw + tmpdst->delay;
-	      }
-	      if (tmpdst->prev_arrival >= tmp_arrival) {
-		tmp_arrival = tmpdst->prev_arrival + 0.000001;
-		/* Assume 1 ns process delay; just to maintain the causality */
-	      }
-	      tmpdst->prev_arrival = tmp_arrival;
-	      if (rc_) {
-		// reference count
-		//s.rc_schedule(tmpdst->obj, pkt, tmp_arrival);
-		      RcEvent* rc = new RcEvent;
-		      rc->packet_ = pkt;
-		      rc->real_handler_ = tmpdst->obj;
-		      s.schedule(&rc_handler, rc, tmp_arrival);
-	      } else {
-		Packet* tmppkt = pkt->copy();
-		hdr_ip* tmpiph = hdr_ip::access(tmppkt);
-		tmpiph->ttl() = ttl;
-		s.schedule(tmpdst->obj, tmppkt, tmp_arrival);
-	      }
-	    } else {
-	      if (rc_) th->ref_count() -= 1;
-	    }
-	  } else {
-	    if (rc_) th->ref_count() -= 1;
-	  }
-	  tmpdst = tmpdst->next;
+	for (dstobj *tmpdst = dstobj_; tmpdst; tmpdst = tmpdst->next) {
+		int ttl;
+		if (tmpdst->dropped 
+		    || (ttl = iph->ttl() - tmpdst->ttl) <= 0)
+			continue;
+		
+		if (tmpdst->bw == 0) {
+			tmp_arrival = tmpdst->delay;
+		} else {
+			tmp_arrival = th->size()*8/tmpdst->bw + tmpdst->delay;
+		}
+		if (tmpdst->prev_arrival >= tmp_arrival) {
+			tmp_arrival = tmpdst->prev_arrival + 0.000001;
+			/* Assume 1 ns process delay; just to maintain the causality */
+		}
+		tmpdst->prev_arrival = tmp_arrival;
+		if (rc_) {
+			// reference count
+			//s.rc_schedule(tmpdst->obj, pkt, tmp_arrival);
+			RcEvent* rc = new RcEvent;
+			rc->packet_ = pkt->refcopy();
+			rc->real_handler_ = tmpdst->obj;
+			s.schedule(&rc_handler, rc, tmp_arrival);
+		} else {
+			Packet* tmppkt = pkt->copy();
+			hdr_ip* tmpiph = hdr_ip::access(tmppkt);
+			tmpiph->ttl() = ttl;
+			s.schedule(tmpdst->obj, tmppkt, tmp_arrival);
+		}
 	}
+	
 	Packet::free(pkt);
 }
 

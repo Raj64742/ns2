@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.89 2002/05/30 17:44:03 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.90 2002/06/14 23:15:02 yuri Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -303,13 +303,16 @@ private:
 	bool fflag_;
 protected:
 	static Packet* free_;	// packet free list
+	int	ref_count_;	// free the pkt until count to 0
 public:
 	Packet* next_;		// for queues and the free list
 	static int hdrlen_;
 
-	Packet() : bits_(0), data_(0), next_(0) { }
+	Packet() : bits_(0), data_(0), ref_count_(0), next_(0) { }
 	inline unsigned char* const bits() { return (bits_); }
 	inline Packet* copy() const;
+	inline Packet* refcopy() { ++ref_count_; return this; }
+	inline int& ref_count() { return (ref_count_); }
 	static inline Packet* alloc();
 	static inline Packet* alloc(int);
 	inline void allocdata(int);
@@ -411,7 +414,6 @@ struct hdr_cmn {
 	double	ts_;		// timestamp: for q-delay measurement
 	int	iface_;		// receiving interface (label)
 	dir_t	direction_;	// direction: 0=none, 1=up, -1=down
-	int	ref_count_;	// free the pkt until count to 0
 	// source routing 
         char src_rt_valid;
 
@@ -460,7 +462,6 @@ struct hdr_cmn {
 	inline double& timestamp() { return (ts_); }
 	inline int& iface() { return (iface_); }
 	inline dir_t& direction() { return (direction_); }
-	inline int& ref_count() { return (ref_count_); }
 	// monarch_begin
 	inline nsaddr_t& next_hop() { return (next_hop_); }
 	inline int& addr_type() { return (addr_type_); }
@@ -542,9 +543,8 @@ inline Packet* Packet::alloc(int n)
 
 inline void Packet::free(Packet* p)
 {
-	hdr_cmn* ch = hdr_cmn::access(p);
 	if (p->fflag_) {
-		if (ch->ref_count() == 0) {
+		if (p->ref_count_ == 0) {
 			/*
 			 * A packet's uid may be < 0 (out of a event queue), or
 			 * == 0 (newed but never gets into the event queue.
@@ -560,7 +560,7 @@ inline void Packet::free(Packet* p)
 			free_ = p;
 			p->fflag_ = FALSE;
 		} else {
-			ch->ref_count() = ch->ref_count() - 1;
+			--p->ref_count_;
 		}
 	}
 }

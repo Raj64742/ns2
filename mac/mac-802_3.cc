@@ -1,7 +1,8 @@
-/* 
-   mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.15 2002/06/14 00:36:42 yuri Exp $
-   */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * mac-802_3.cc
+ * $Id: mac-802_3.cc,v 1.16 2002/06/14 23:15:03 yuri Exp $
+ */
 #include <packet.h>
 #include <random.h>
 #include <arp.h>
@@ -315,7 +316,18 @@ void Mac802_3::recv_complete(Packet *p) {
 
 
 	/* we could schedule an event to account for mac-delay */
-	uptarget_->recv(p, (Handler*) 0);
+	
+	if ((p->ref_count() > 0) /* so the channel is using ref-copying */
+	    && (dst == BCAST_ADDR)) {
+		/* make a real copy only if broadcasting, otherwise
+		 * all nodes except the receiver are going to free
+		 * this packet 
+		 */
+		uptarget_->recv(p->copy(), (Handler*) 0);
+		Packet::free(p); // this will decrement ref counter
+	} else {
+		uptarget_->recv(p, (Handler*) 0);
+	}
 
  done:
 	mhIFS_.schedule(netif_->txtime(int(IEEE_8023_IFS_BITS/8.0)));// wait for one IFS, then resume
