@@ -14,6 +14,11 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  */
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.2 1997/07/22 21:53:52 kfall Exp $ (Xerox)";
+#endif
  
 #include "random.h"
 #include "trafgen.h"
@@ -41,14 +46,13 @@ class EXPOO_Source : public TrafficGenerator {
 static class EXPClass : public TclClass {
  public:
 	EXPClass() : TclClass("Traffic/Expoo") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new EXPOO_Source());
 	}
 } class_expoo;
 
 EXPOO_Source::EXPOO_Source() 
 {
-	Tcl& tcl = Tcl::instance();
 	bind_time("burst-time", &ontime_);
 	bind_time("idle-time", &offtime_);
 	bind_bw("rate", &rate_);
