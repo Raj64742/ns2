@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.38 2001/12/20 00:15:32 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.39 2002/01/14 20:04:15 xuanc Exp $";
 #endif
 
 #include <stdlib.h>
@@ -237,7 +237,11 @@ int Classifier::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			}
 			while (slot < nslot_) {
-				if (strcmp(slot_[slot]->name(), argv[2]) == 0) {
+				// check if the slot is empty (xuanc, 1/14/02) 
+				// fix contributed by Frank A. Zdarsky 
+				// <frank.zdarsky@kom.tu-darmstadt.de>
+				if (slot_[slot] && 
+				    strcmp(slot_[slot]->name(), argv[2]) == 0){
 					tcl.resultf("%u", slot);
 					return (TCL_OK);
 				}
