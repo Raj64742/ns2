@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-full.tcl,v 1.4 2001/07/25 04:45:55 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-full.tcl,v 1.5 2001/07/25 05:06:26 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno-full.tcl
@@ -260,6 +260,9 @@ Test/Reno_FullTCP instproc run {} {
         $self setup FullTcp {5} {15 18}
 }
 
+# What is this test doing?
+# After the partial ACK, it seems that BayFullTCP keeps the inflated
+#  congestion window, but advances the left edge of the congestion window? 
 Class Test/Reno_BayFullTCP -superclass TestSuite
 Test/Reno_BayFullTCP instproc init {} {
 	$self instvar net_ test_
@@ -268,7 +271,6 @@ Test/Reno_BayFullTCP instproc init {} {
 	$self next
 }
 Test/Reno_BayFullTCP instproc run {} {
-	# Agent/TCP/BayFullTcp set open_cwnd_on_pack_ false
         $self setup BayFullTcp {5} {14 17}
 }
 
