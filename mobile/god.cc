@@ -43,7 +43,7 @@
    NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
    node->index() are 1 based.
 
-   $Id: god.cc,v 1.2 1999/01/04 19:58:59 haldar Exp $
+   $Id: god.cc,v 1.3 1999/02/18 02:19:17 yuriy Exp $
    */
 
 #include <object.h>
@@ -87,7 +87,7 @@ God::stampPacket(Packet *p)
 
         assert(min_hops);
 
-        if (!DATA_PACKET(ch->ptype())) return;
+        if (!packet_info.data_packet(ch->ptype())) return;
 
         if (dst > num_nodes || src > num_nodes) return; // broadcast pkt
    

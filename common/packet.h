@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.52 1999/02/17 03:25:27 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.53 1999/02/18 02:19:20 yuriy Exp $ (LBL)
 
  */
 
@@ -60,76 +60,120 @@
 #define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
 //
 
-#define PT_TCP		0
-#define PT_UDP		1
-#define PT_CBR		2
-#define PT_AUDIO	3
-#define PT_VIDEO	4
-#define PT_ACK		5
-#define PT_START	6
-#define PT_STOP		7
-#define PT_PRUNE	8
-#define PT_GRAFT	9
-#define PT_GRAFTACK     10
-#define PT_JOIN         11
-#define PT_ASSERT       12
-#define PT_MESSAGE	13
-#define PT_RTCP		14
-#define PT_RTP		15
-#define PT_RTPROTO_DV	16
-#define PT_CtrMcast_Encap 17
-#define PT_CtrMcast_Decap 18
-#define PT_SRM		19
-/* simple signalling messages */
-#define PT_REQUEST	20
-#define PT_ACCEPT	21
-#define PT_CONFIRM	22
-#define PT_TEARDOWN	23
-#define	PT_LIVE		24		// packet from live network
-#define PT_REJECT	25
+enum packet_t {
+	PT_TCP,
+	PT_UDP,
+	PT_CBR,
+	PT_AUDIO,
+	PT_VIDEO,
+	PT_ACK,
+	PT_START,
+	PT_STOP,
+	PT_PRUNE,
+	PT_GRAFT,
+	PT_GRAFTACK,
+	PT_JOIN,
+	PT_ASSERT,
+	PT_MESSAGE,
+	PT_RTCP,
+	PT_RTP,
+	PT_RTPROTO_DV,
+	PT_CtrMcast_Encap,
+	PT_CtrMcast_Decap,
+	PT_SRM,
+	/* simple signalling messages */
+	PT_REQUEST,	
+	PT_ACCEPT,	
+	PT_CONFIRM,	
+	PT_TEARDOWN,	
+	PT_LIVE,	// packet from live network
+	PT_REJECT,
 
-#define PT_TELNET	26		// not needed: telnet use TCP
-#define PT_FTP		27
-#define PT_PARETO	28
-#define PT_EXP		29
-#define PT_INVAL	30
-#define PT_HTTP		31
+	PT_TELNET,	// not needed: telnet use TCP
+	PT_FTP,
+	PT_PARETO,
+	PT_EXP,
+	PT_INVAL,
+	PT_HTTP,
+	/* new encapsulator */
+	PT_ENCAPSULATED,
+	PT_MFTP,
+	/* CMU/Monarch's extnsions */
+	PT_ARP,
+	PT_MAC,
+	PT_TORA,
+	PT_DSR,
+	PT_AODV,
 
-/* new encapsulator */
-#define PT_ENCAPSULATED	32
-#define PT_MFTP         33
+	// insert new packet types here
 
-/* CMU/Monarch's extnsions */
-#define PT_ARP		34
-#define PT_MAC		35
-#define PT_TORA		36
-#define PT_DSR		37
-#define PT_AODV         38
+	PT_NTYPE // This MUST be the LAST one
+};
 
-// This MUST be the HIGHEST of all packet indices!!
-#define PT_NTYPE	39
+class p_info {
+public:
+	p_info() {
+		name_[PT_TCP]= "tcp";
+		name_[PT_UDP]= "udp";
+		name_[PT_CBR]= "cbr";
+		name_[PT_AUDIO]= "audio";
+		name_[PT_VIDEO]= "video";
+		name_[PT_ACK]= "ack";
+		name_[PT_START]= "start";
+		name_[PT_STOP]= "stop";
+		name_[PT_PRUNE]= "prune";
+		name_[PT_GRAFT]= "graft";
+		name_[PT_GRAFTACK]= "graftAck";
+		name_[PT_JOIN]= "join";
+		name_[PT_ASSERT]= "assert";
+		name_[PT_MESSAGE]= "message";
+		name_[PT_RTCP]= "rtcp";
+		name_[PT_RTP]= "rtp";
+		name_[PT_RTPROTO_DV]= "rtProtoDV";
+		name_[PT_CtrMcast_Encap]= "CtrMcast_Encap";
+		name_[PT_CtrMcast_Decap]= "CtrMcast_Decap";
+		name_[PT_SRM]= "SRM";
 
-#define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
-	"start", "stop", "prune", "graft", "graftAck", "join", \
-	"assert","message", "rtcp", "rtp", \
-	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
-	"sa_req","sa_accept","sa_conf","sa_teardown", "live", \
-	"sa_reject", \
-	"telnet", "ftp", "pareto", "exp", "httpInval", "http", \
-	"encap", "mftp", "ARP", "MAC", "TORA", "DSR", "AODV"
+		name_[PT_REQUEST]= "sa_req";	
+		name_[PT_ACCEPT]= "sa_accept";
+		name_[PT_CONFIRM]= "sa_conf";
+		name_[PT_TEARDOWN]= "sa_teardown";
+		name_[PT_LIVE]= "live"; 
+		name_[PT_REJECT]= "sa_reject";
 
-// Monarch ext
-extern char* packet_names[]; /* map PT_* to string name */
-
-#define DATA_PACKET(type) ( (type) == PT_TCP || \
-			    (type) == PT_TELNET || \
-			    (type) == PT_CBR || \
-			    (type) == PT_AUDIO || \
-			    (type) == PT_VIDEO || \
-			    (type) == PT_ACK \
-			    )
-//end_monarch
-
+		name_[PT_TELNET]= "telnet";
+		name_[PT_FTP]= "ftp";
+		name_[PT_PARETO]= "pareto";
+		name_[PT_EXP]= "exp";
+		name_[PT_INVAL]= "httpInval";
+		name_[PT_HTTP]= "http";
+		name_[PT_ENCAPSULATED]= "encap";
+		name_[PT_MFTP]= "mftp";
+		name_[PT_ARP]= "ARP";
+		name_[PT_MAC]= "MAC";
+		name_[PT_TORA]= "TORA";
+		name_[PT_DSR]= "DSR";
+		name_[PT_AODV]= "AODV";
+		name_[PT_NTYPE]= "undefined";
+	}
+	const char* name(packet_t p) const { 
+		if ( p <= PT_NTYPE ) return name_[p];
+		return 0;
+	}
+	static bool data_packet(packet_t type) {
+		return ( (type) == PT_TCP || \
+			 (type) == PT_TELNET || \
+			 (type) == PT_CBR || \
+			 (type) == PT_AUDIO || \
+			 (type) == PT_VIDEO || \
+			 (type) == PT_ACK \
+			 );
+	}
+private:
+	static char* name_[PT_NTYPE];
+};
+extern p_info packet_info; /* map PT_* to string name */
+//extern char* p_info::name_[];
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
@@ -203,7 +247,7 @@ static const iface_literal ANY_IFACE(iface_literal::ANY_IFACE, "*");
 
 
 struct hdr_cmn {
-	int	ptype_;		// packet type (see above)
+	packet_t ptype_;		// packet type (see above)
 	int	size_;		// simulated packet size
 	int	uid_;		// unique id
 	int	error_;		// error flag
@@ -245,7 +289,7 @@ struct hdr_cmn {
 	}
 	
         /* per-field member functions */
-	inline int& ptype() { return (ptype_); }
+	inline packet_t& ptype() { return (ptype_); }
 	inline int& size() { return (size_); }
 	inline int& uid() { return (uid_); }
 	inline int& error() { return error_; }

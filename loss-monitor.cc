@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.13 1998/06/27 01:24:02 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.14 1999/02/18 02:19:17 yuriy Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -66,7 +66,7 @@ public:
 	}
 } class_loss_mon;
 
-LossMonitor::LossMonitor() : Agent(-1)
+LossMonitor::LossMonitor() : Agent(PT_NTYPE)
 {
 	bytes_ = 0;
 	nlost_ = 0;

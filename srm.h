@@ -27,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.17 1999/01/28 23:08:22 yuriy Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.18 1999/02/18 02:19:23 yuriy Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -54,7 +54,7 @@ protected:
 	int off_cmn_;
 	int off_rtp_;
 	int app_fid_;
-	int app_type_;
+	packet_t app_type_;
 
 	virtual void start() {
 		int new_entry = 0;

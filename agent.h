@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.21 1998/08/22 02:40:55 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.22 1999/02/18 02:19:14 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -63,7 +63,7 @@ struct OldValue {
 
 class Agent : public Connector {
  public:
-	Agent(int pktType);
+	Agent(packet_t pktType);
 	virtual ~Agent();
 	void recv(Packet*, Handler*);
 	void send(Packet* p, Handler* h) { target_->recv(p, h); }
@@ -78,7 +78,7 @@ class Agent : public Connector {
 	virtual void attachApp(Application* app);
 	virtual int& size() { return size_; }
 	inline nsaddr_t& addr() { return addr_; }
-	void set_pkttype(int pkttype) { type_ = pkttype; }
+	void set_pkttype(packet_t pkttype) { type_ = pkttype; }
 
  protected:
 	int command(int argc, const char*const* argv);
@@ -96,7 +96,7 @@ class Agent : public Connector {
 	nsaddr_t addr_;			// address of this agent
 	nsaddr_t dst_;			// destination address for pkt flow
 	int size_;			// fixed packet size
-	int type_;			// type to place in packet header
+	packet_t type_;			// type to place in packet header
 	int fid_;			// for IPv6 flow id field
 	int prio_;			// for IPv6 prio field
 	int flags_;			// for experiments (see ip.h)

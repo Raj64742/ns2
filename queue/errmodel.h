@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.38 1998/10/15 23:34:44 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.39 1999/02/18 02:19:15 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -42,7 +42,7 @@
 
 #include "connector.h"
 #include "ranvar.h"
-
+#include "packet.h"
 
 enum ErrorUnit { EU_TIME=0, EU_BYTE, EU_PKT };
 #define EU_NAMES "time", "byte", "pkt"
@@ -165,7 +165,7 @@ public:
 	virtual int corrupt(Packet*);
 protected:
 	int command(int argc, const char*const* argv);
-	int pkt_type_;
+	packet_t pkt_type_;
 	int drop_cycle_;
 	int drop_offset_;
 };

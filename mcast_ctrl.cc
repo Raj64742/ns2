@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.2 1998/10/14 01:13:44 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.3 1999/02/18 02:19:19 yuriy Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -32,7 +32,7 @@ static const char rcsid[] =
 
 class mcastControlAgent : public Agent {
 public:
-	mcastControlAgent() : Agent(-1) {
+	mcastControlAgent() : Agent(PT_NTYPE) {
 		bind("packetSize_", &size_);
 		bind("off_mcast_ctrl_", &off_mcast_ctrl_);
 	}

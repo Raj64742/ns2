@@ -90,7 +90,7 @@ Packet*
 SemanticPacketQueue::deque_acksfirst() {
 	Packet* p = head_;
 	Packet* pp = NULL;
-	int type;
+	packet_t type;
 
 	if (ack_count > 0) {
 		while (p) {

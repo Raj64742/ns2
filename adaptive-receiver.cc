@@ -20,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adaptive-receiver.cc,v 1.3 1998/08/22 02:40:53 haoboy Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adaptive-receiver.cc,v 1.4 1999/02/18 02:19:12 yuriy Exp $";
 #endif
 
 #include "agent.h"
@@ -33,7 +33,7 @@ static const char rcsid[] =
 
 #define myabs(r) (r<0)?-r:r
 
-AdaptiveRcvr::AdaptiveRcvr() : Agent(-1)
+AdaptiveRcvr::AdaptiveRcvr() : Agent(PT_NTYPE)
 {
 	//bind("npkts_",&npkts_);
 	//bind("ndelay_",&ndelay_);

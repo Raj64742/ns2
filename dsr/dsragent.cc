@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.4 1999/01/08 19:04:50 haldar Exp $
+   $Id: dsragent.cc,v 1.5 1999/02/18 02:19:26 yuriy Exp $
 */
 
 extern "C" {
@@ -887,7 +887,7 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay = 0.0)
 	{
 	  trace("SO %.9f _%s_ originating %s %s", 
 		Scheduler::instance().clock(), 
-		net_id.dump(), packet_names[cmnh->ptype()], p.route.dump());
+		net_id.dump(), packet_info.name(cmnh->ptype()), p.route.dump());
 	}
     }
   p.route.fillSR(srh);

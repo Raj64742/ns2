@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.20 1999/01/04 19:59:05 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.21 1999/02/18 02:19:23 yuriy Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -193,7 +193,7 @@ Snoop::recv(Packet* p, Handler* h)
 		handle((Event *) p);
 		return;
 	}
-	int type = hdr_cmn::access(p)->ptype();
+	packet_t type = hdr_cmn::access(p)->ptype();
 	/* Put packet (if not ack) in cache after checking, and send it on */
 	if (type == PT_TCP)
 		snoop_data(p);
@@ -210,7 +210,7 @@ void
 Snoop::handle(Event *e)
 {
 	Packet *p = (Packet *) e;
-	int type = hdr_cmn::access(p)->ptype();
+	packet_t type = hdr_cmn::access(p)->ptype();
 	//int seq = hdr_tcp::access(p)->seqno();
 	int prop = SNOOP_PROPAGATE; // by default;  propagate ack or packet
 	Scheduler& s = Scheduler::instance();

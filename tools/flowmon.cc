@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.15 1999/02/09 00:43:22 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.16 1999/02/18 02:19:16 yuriy Exp $ (LBL)";
 #endif
 
 //
@@ -54,7 +54,7 @@ static const char rcsid[] =
 
 class Flow : public EDQueueMonitor {
 public:
-	Flow() : src_(-1), dst_(-1), fid_(-1), type_(-1) {
+	Flow() : src_(-1), dst_(-1), fid_(-1), type_(PT_NTYPE) {
 		bind("off_ip_" ,&off_ip_);
 		bind("src_", &src_);
 		bind("dst_", &dst_);
@@ -63,7 +63,7 @@ public:
 	nsaddr_t src() const { return (src_); }
 	nsaddr_t dst() const { return (dst_); }
 	int flowid() const { return (fid_); }
-	int ptype() const { return (type_); }
+	packet_t ptype() const { return (type_); }
 	void setfields(Packet *p) {
 		hdr_ip* hdr = (hdr_ip*)p->access(off_ip_);
 		hdr_cmn* chdr = (hdr_cmn*)p->access(off_cmn_);
@@ -77,7 +77,7 @@ protected:
 	nsaddr_t	src_;
 	nsaddr_t	dst_;
 	int		fid_;
-	int		type_;
+	packet_t	type_;
 };
 
 /*

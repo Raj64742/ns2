@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.56 1998/10/06 21:36:57 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.57 1999/02/18 02:19:24 yuriy Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -165,9 +165,9 @@ void Trace::annotate(const char* s)
 	namdump();
 }
 
-char* pt_names[] = {
-	PT_NAMES
-};
+//  char* pt_names[] = {
+//  	PT_NAMES
+//  };
 
 char* srm_names[] = {
         SRM_NAMES
@@ -192,8 +192,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #endif
 	const char* sname = "null";
 
-	int t = th->ptype();
-	const char* name = pt_names[t];
+	packet_t t = th->ptype();
+	const char* name = packet_info.name(t);
 
         /* SRM-specific */
 	if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0 || strcmp(name,"udp") == 0) {
@@ -432,8 +432,8 @@ DequeTrace::recv(Packet* p, Handler* h)
 #endif
 		const char* sname = "null";   
 
-		int t = th->ptype();
-		const char* name = pt_names[t];
+		packet_t t = th->ptype();
+		const char* name = packet_info.name(t);
 		
 		if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0 || strcmp(name,"udp") == 0) {
 		    if ( sh->type() < 5 && sh->type() > 0  ) {

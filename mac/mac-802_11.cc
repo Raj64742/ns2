@@ -114,7 +114,7 @@
 /* ======================================================================
    Global Variables
    ====================================================================== */
-extern char* pt_names[];
+//extern char* pt_names[];
 
 static PHY_MIB PMIB =
 {
@@ -219,7 +219,7 @@ Mac802_11::trace_pkt(Packet *p) {
 	fprintf(stderr, "\t[ %2x %2x %2x %2x ] %x %s %d\n",
 		*t, dh->dh_duration,
 		ETHER_ADDR(dh->dh_da), ETHER_ADDR(dh->dh_sa),
-		index_, pt_names[ch->ptype()], ch->size());
+		index_, packet_info.name(ch->ptype()), ch->size());
 }
 
 void

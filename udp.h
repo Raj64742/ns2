@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.11 1998/10/22 00:10:45 tomh Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.12 1999/02/18 02:19:25 yuriy Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h
@@ -23,6 +23,7 @@
 
 #include "agent.h"
 #include "trafgen.h"
+#include "packet.h"
 
 //"rtp timestamp" needs the samplerate
 #define SAMPLERATE 8000
@@ -31,7 +32,7 @@
 class UdpAgent : public Agent {
 public:
 	UdpAgent();
-	UdpAgent(int);
+	UdpAgent(packet_t);
 	virtual void sendmsg(int nbytes, const char *flags = 0);
 protected:
 	int seqno_;

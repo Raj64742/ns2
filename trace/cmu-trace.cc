@@ -46,7 +46,7 @@
 
 // #define LOG_POSITION
 
-extern char* pt_names[];
+//extern char* pt_names[];
 
 static class CMUTraceClass : public TclClass {
 public:
@@ -123,7 +123,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		why,
 
                 ch->uid(),                      // identifier for this event
-		pt_names[ch->ptype()],
+		packet_info.name(ch->ptype()),
 		ch->size(),
 
 		*((u_int16_t*) &mh->dh_fc),
@@ -264,7 +264,7 @@ void CMUTrace::format(Packet* p, const char *why)
 
 		default:
 			fprintf(stderr, "%s - invalid packet type (%s).\n",
-				__PRETTY_FUNCTION__, pt_names[ch->ptype()]);
+				__PRETTY_FUNCTION__, packet_info.name(ch->ptype()));
 			exit(1);
 		}
 	}

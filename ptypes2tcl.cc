@@ -2,9 +2,7 @@
 #include <ctype.h>
 #include "packet.h"
 
-char* ptype[] = {
-        PT_NAMES
-};
+char* p_info::name_[PT_NTYPE];
 
 void
 printLine(char *s) {
@@ -12,7 +10,7 @@ printLine(char *s) {
 }
 
 char *
-lcase(char *s) {
+lcase(const char *s) {
 	static char charbuf[512];
 	char* to = charbuf;
 	while ((*to++ = tolower(*s++)))
@@ -22,16 +20,17 @@ lcase(char *s) {
 }
 
 main() {
-	int i;
+	p_info pinfo;
+
 	printLine("static const char code[] = \"");
 	printLine("global ptype pvals");
 	printLine("set ptype(error) -1");
 	printLine("set pvals(-1) error");
 	char strbuf[512];
-	for (i = 0; i < PT_NTYPE; i++) {
-		sprintf(strbuf, "set ptype(%s) %d", lcase(ptype[i]), i);
+	for (int i = 0; i < PT_NTYPE; i++) {
+		sprintf(strbuf, "set ptype(%s) %d", lcase(pinfo.name(packet_t(i))), i);
 		printLine(strbuf);
-		sprintf(strbuf, "set pvals(%d) %s", i, ptype[i]);
+		sprintf(strbuf, "set pvals(%d) %s", i, pinfo.name(packet_t(i)));
 		printLine(strbuf);
 	}
 	printLine("proc ptype2val {str} {");

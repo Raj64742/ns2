@@ -35,7 +35,7 @@ protected:
 	int off_resv_;
 };
 
-SAack_Agent::SAack_Agent(): Agent(0)
+SAack_Agent::SAack_Agent(): Agent(PT_TCP)
 {
 	bind("off_resv_",&off_resv_);
 }

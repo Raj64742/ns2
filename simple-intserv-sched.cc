@@ -53,7 +53,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/simple-intserv-sched.cc,v 1.3 1998/06/27 01:46:40 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/simple-intserv-sched.cc,v 1.4 1999/02/18 02:19:22 yuriy Exp $ (LBL)";
 #endif
 
 
@@ -105,7 +105,7 @@ void SimpleIntServ::enque(Packet* p)
 	
 	if (q_[cl]->length() >= (qlimit_[cl]-1)) {
 		hdr_cmn* ch=(hdr_cmn*)p->access(off_cmn_);
-		int ptype = ch->ptype();
+		packet_t ptype = ch->ptype();
 		if ( (ptype != PT_REQUEST) && (ptype != PT_REJECT) && (ptype != PT_ACCEPT) && (ptype != PT_CONFIRM) && (ptype != PT_TEARDOWN) ) {
 			drop(p);
 		}

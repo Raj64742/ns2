@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.49 1998/12/02 22:39:09 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.50 1999/02/18 02:19:13 yuriy Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -56,7 +56,7 @@ static class AgentClass : public TclClass {
 public:
 	AgentClass() : TclClass("Agent") {} 
 	TclObject* create(int, const char*const*) {
-		return (new Agent(-1));
+		return (new Agent(PT_NTYPE));
 	}
 } class_agent;
 
@@ -64,7 +64,7 @@ int Agent::uidcnt_;		/* running unique id */
 
 
 
-Agent::Agent(int pkttype) : 
+Agent::Agent(packet_t pkttype) : 
 	size_(0), type_(pkttype), 
 	channel_(0), traceName_(NULL),
 	oldValueList_(NULL), app_(0)
@@ -188,7 +188,7 @@ int Agent::command(int argc, const char*const* argv)
 			sendmsg(atoi(argv[2]));
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "set_pkttype") == 0) {
-			set_pkttype(atoi(argv[2]));
+			set_pkttype(packet_t(atoi(argv[2])));
 			return (TCL_OK);
 		}
 	}

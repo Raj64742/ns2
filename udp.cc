@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.14 1998/10/22 00:10:45 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.15 1999/02/18 02:19:25 yuriy Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -39,7 +39,7 @@ UdpAgent::UdpAgent() : Agent(PT_UDP), seqno_(-1)
 	bind("off_rtp_", &off_rtp_);
 }
 
-UdpAgent::UdpAgent(int type) : Agent(type)
+UdpAgent::UdpAgent(packet_t type) : Agent(type)
 {
 	bind("packetSize_", &size_);
 }
