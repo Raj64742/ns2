@@ -1,7 +1,7 @@
 # NS tcl script template - usable for snapshot 18-09-00
 #
 # contributed by Schrader, J.H.R. <J.H.R.Schrader@kpn.com>
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/MPLS-sim-template.txt,v 1.1 2000/09/21 16:50:26 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/MPLS-sim-template.txt,v 1.2 2000/09/22 16:37:06 haoboy Exp $
 
 #
 # Create simulator object
@@ -19,7 +19,7 @@ set f0 [open mpls.tr w]
 # Finish procedure which closes the trace file and opens Xgraph and NAM
 #
 proc finish {} {
-	global ns nf
+	global ns nf f0
 	$ns flush-trace
 	close $nf
 	close $f0
@@ -89,7 +89,7 @@ for {set i 1} {$i < 12} {incr i} {
 	set a LSR$i
 	for {set j [expr $i+1]} {$j < 12} {incr j} {
 		set b LSR$j
-		eval $ns_ LDP-peer $$a $$b
+		eval $ns LDP-peer $$a $$b
 	}
 	set m [eval $$a get-module "MPLS"]
 	$m enable-reroute "new"
