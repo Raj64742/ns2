@@ -37,6 +37,10 @@ McastProtocol instproc start {} {
         set status "up"
 }
 
+McastProtocol instproc stop {} {   
+
+}
+
 McastProtocol instproc getStatus {} {
         $self instvar status
         return $status
@@ -91,6 +95,17 @@ McastProtocol instproc notify changes {
 #############################################
 Class McastProtoArbiter
 
+#XXX well-known groups (WKG) with local multicast/broadcast
+# start from 0xFFC0 to 0xFFFF; i.e. the mask is [0xFFC0 >> 6]
+McastProtoArbiter set WKGMask 0xFFC0
+McastProtoArbiter set WKGMaskLen 6
+
+McastProtoArbiter proc expandaddr {} {
+	# extend the space to 32 bits
+	McastProtoArbiter set WKGMask 0xFFC00000
+	McastProtoArbiter set WKGMaskLen 21
+}
+
 # initialize with a list of the mcast protocols
 McastProtoArbiter instproc init { protos } {
         $self next
@@ -120,6 +135,13 @@ McastProtoArbiter instproc start {} {
         }
 }
 
+McastProtoArbiter instproc stop {} {   
+        $self instvar protocols
+        foreach proto $protocols {     
+                $proto stop
+        }
+}
+
 McastProtoArbiter instproc notify changes {
 	$self instvar protocols
 	foreach proto $protocols {
@@ -135,6 +157,14 @@ McastProtoArbiter instproc join-group { group } {
         }
 }
 
+McastProtoArbiter instproc join-group-source { group source } {
+        $self instvar protocols
+        puts "Arbiter join group $group source $source"
+        foreach proto $protocols {
+                $proto join-group-source $group $source
+        }
+}
+
 McastProtoArbiter instproc leave-group { group } {
         $self instvar protocols
         foreach proto $protocols {
@@ -142,12 +172,34 @@ McastProtoArbiter instproc leave-group { group } {
         }
 }
 
-McastProtoArbiter instproc upcall { argslist } {
+McastProtoArbiter instproc leave-group-source { group source } {
         $self instvar protocols
+        puts "Arbiter leave group $group source $source"
         foreach proto $protocols {
-                $proto upcall $argslist
+                $proto leave-group-source $group $source
         }
 }
+
+McastProtoArbiter instproc upcall { argslist } {
+  set group [lindex $argslist 2]
+  # check if the group is local multicast to well-known group
+  if { [expr [expr $group & [McastProtoArbiter set WKGMask]] >> \
+                [McastProtoArbiter set WKGMaskLen]]
+                   == [expr [McastProtoArbiter set WKGMask] >> \
+                        [McastProtoArbiter set WKGMaskLen]] } {
+              
+                $self instvar Node
+                set oiflist ""
+                set src [lindex $argslist 1]
+                $Node add-mfc $src $group -1 $oiflist      
+                return 1
+        }
+        $self instvar protocols
+        foreach proto $protocols {
+              $proto upcall $argslist
+        }
+}
+
 
 McastProtoArbiter instproc drop { replicator src dst } {
         $self instvar protocols
