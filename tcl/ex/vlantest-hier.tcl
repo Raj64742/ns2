@@ -91,7 +91,7 @@ set ftp0 [$tcp0 attach-source FTP]
 
 #set udp0 [new Agent/UDP]
 #$ns attach-agent $node0 $udp0
-#set cbr0 [new Agent/CBR]
+#set cbr0 [new Application/Traffic/CBR]
 #$cbr0 attach-agent $udp0
 #set rcvr0 [new Agent/Null]
 #$ns attach-agent $nodex $rcvr0
