@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.21 2003/04/01 01:19:45 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.22 2003/04/18 04:23:19 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -39,12 +39,11 @@
 source misc_simple.tcl
 Agent/TCP set singledup_ 0
 # The default has been changed to 1
-#Agent/TCP set LimTransmitFix_ true
 
 Trace set show_tcphdr_ 1
 
 set wrap 90
-set wrap1 [expr 90 * 512 + 40]
+set wrap1 [expr $wrap * 512 + 40]
 
 Class Topology
 
@@ -82,10 +81,23 @@ Topology/net4 instproc init ns {
 
 
 TestSuite instproc finish file {
-	global quiet wrap PERL
-        exec $PERL ../../bin/set_flow_id -s all.tr | \
-          $PERL ../../bin/getrc -s 2 -d 3 | \
-          $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+	global quiet wrap wrap1 PERL
+        set space 512
+        if [string match {*full*} $file] {
+                exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+                   $PERL ../../bin/raw2xg -c -n $space -s 0.01 -m $wrap1 -t $file > temp.rands
+                exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+                   $PERL ../../bin/raw2xg -a -c -f -p -y -n $space -s 0.01 -m $wrap1 -t $file >> temp.rands
+        } else {
+                exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+                  $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+                exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+                  $PERL ../../bin/raw2xg -a -c -p -y -s 0.01 -m $wrap -t $file \
+                  >> temp.rands
+        }  
+        #exec $PERL ../../bin/set_flow_id -s all.tr | \
+        #  $PERL ../../bin/getrc -s 2 -d 3 | \
+        #  $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
