@@ -1,12 +1,12 @@
-@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/README,v 1.1 1996/12/19 03:22:44 mccanne Exp $
+@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/README,v 1.2 1997/01/28 03:29:24 mccanne Exp $
 
-MAGNET Research Group
+MASH Research Group
 University of California, Berkeley
-ns@magnet.cs.berkeley.edu
-http://www-magnet.cs.berkeley.edu/ns/
+ns@mash.cs.berkeley.edu
+http://www-mash.cs.berkeley.edu/ns/
 
 This directory contains a source code or binary distribution
 of ns, the UCB/LBNL Network Simulator.  For more information,
 see the html documention in html/ns.html from the source code
 distribution, or for the latest information, consult the
-on-line documentation in http://www-magnet.cs.berkeley.edu/ns/
+on-line documentation in http://www-mash.cs.berkeley.edu/ns/
