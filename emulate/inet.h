@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.h,v 1.2 1998/02/23 23:50:49 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.h,v 1.3 2003/02/15 00:55:31 buchheim Exp $ (LBL)
  */
 
 #ifndef ns_inet_h
@@ -116,6 +116,12 @@ struct msghdr {
 #define	IN_CLASSD_HOST		((u_long)0x0fffffff)/* routing needn't know.  */
 #define	IN_MULTICAST(i)		IN_CLASSD(i)
 #endif
+
+/* for systems without socklen_t (such as Darwin/Mac OS X) */
+#ifndef HAVE_SOCKLEN_T
+typedef int socklen_t;
+#endif
+
 
 #endif
 

@@ -46,6 +46,9 @@
 #define SIZEOF_LONG 4
 #undef int64_t
 
+/* socklen_t (for nse) */
+#undef HAVE_SOCKLEN_T
+
 /* functions */
 #undef HAVE_BCOPY
 #undef HAVE_BZERO
