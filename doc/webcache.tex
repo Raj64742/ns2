@@ -105,8 +105,8 @@ Process enables Application to link together.
 
 \subsection{Transmitting user data over UDP}
 
-Currently there are no supports in class Agent to transmit user
-data. There are two ways to  transmit serialized ADU through transport
+Currently there is no support in class Agent to transmit user
+data. There are two ways to transmit a serialized ADU through transport
 agents. First, for UDP agent (and all agents derived from there), we
 can derive from class UDP and add a new method
 \code{send(int nbytes, char *userdata)} to pass user data from
@@ -223,7 +223,7 @@ First, we create FullTcp agents and connect them:
         $tcp2 listen
 \end{program}
 
-Then we Create TcpApps and connect them:
+Then we create TcpApps and connect them:
 
 \begin{program}
         set app1 [new Application/TcpApp $tcp1]
