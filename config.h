@@ -30,11 +30,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.2 1997/02/27 04:38:39 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.3 1997/03/07 02:17:45 kfall Exp $ (LBL)
  */
 
-#ifndef vic_config_h
-#define vic_config_h
+#ifndef ns_config_h
+#define ns_config_h
 
 #if defined(sgi) || defined(__bsdi__)
 #include <sys/types.h>
@@ -61,7 +61,7 @@ extern "C" {
 int strcasecmp(const char *, const char *);
 clock_t clock(void);
 int gethostid(void);
-#ifndef _AIX41
+#if !defined(_AIX41) && !defined(sun)
 void srandom(int);
 #endif
 long random(void);
@@ -74,11 +74,11 @@ char *ctime(const time_t *);
 extern "C" {
 struct timeval;
 struct timezone;
-int gettimeofday(struct timeval*, struct timezone*);
+int gettimeofday(struct timeval*, ...);
 int ioctl(int fd, int request, ...);
 int close(int);
 int strcasecmp(const char*, const char*);
-int srandom(int);
+int srandom(int);	/* (int) for sunos, (unsigned) for solaris */
 int random();
 int socket(int, int, int);
 int setsockopt(int s, int level, int optname, void* optval, int optlen);
