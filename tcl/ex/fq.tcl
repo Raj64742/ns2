@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.8 1997/04/09 22:14:27 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.9 1997/04/15 23:12:45 sfloyd Exp $
 #
 
 set ns [new Simulator]
@@ -11,6 +11,7 @@ set ns [new Simulator]
 $ns proc simplex-link { n1 n2 bw delay type } {
 
 	$self instvar link_ queueMap_ nullAgent_
+	$self instvar traceAllFile_
 	set sid [$n1 id]
 	set did [$n2 id]
 	if [info exists queueMap_($type)] {
@@ -31,6 +32,9 @@ $ns proc simplex-link { n1 n2 bw delay type } {
 	 	set bw [[$link_($sid:$did) set link_] set bandwidth_]
 		$q set ptc_ [expr $bw / (8. * [$q set mean_pktsize_])]
 	}
+        if [info exists traceAllFile_] {
+                $self trace-queue $n1 $n2 $traceAllFile_
+        }
 }
 
 Class Classifier/Flow/FQ -superclass Classifier/Flow
