@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.14 1998/07/10 21:02:52 heideman Exp $
+# $Id: many_tcp.tcl,v 1.15 1998/07/10 22:25:08 heideman Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -538,7 +538,8 @@ Main instproc finish {} {
 			set raw2xg_opts "$raw2xg_opts -q"
 		}
 		# always run raw2xg because maybe we need the output
-		exec $raw2xg -a $raw2xg_opts -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg
+		set cmd "$raw2xg -a $raw2xg_opts -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg"
+		eval "exec $cmd"
 		if {$opts(graph-results)} {
 			if {$opts(graph-join-queueing)} {
 				exec xgraph -t $title  < $trace_filename_.xg &
