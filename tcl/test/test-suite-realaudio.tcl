@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-realaudio.tcl,v 1.1 2000/10/03 01:11:44 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-realaudio.tcl,v 1.2 2000/10/04 06:13:50 kclan Exp $
 
 # To run all tests: test-all-realaudio
 #
@@ -44,7 +44,7 @@ global seed packetsize nn cnn plottime
 
 set seed           1
 set packetsize     245
-set nn             10             ;# number of nodes
+set nn             3             ;# number of nodes
 set cnn            [expr $nn -2 ]   ;# number of clients
 set plottime 15000.0
 
