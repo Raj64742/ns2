@@ -54,7 +54,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.8 1997/10/26 05:51:59 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.9 1997/11/27 05:28:27 padmanab Exp $ (UCB)";
 #endif
 
 
@@ -237,8 +237,10 @@ void TcpAsymAgent::traceVar(TracedVar* v) {
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", 
 			curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
 			v->name(), double(*((TracedDouble*) v)));
-	else
-		return TcpAgent::traceVar(v);
+	else {
+		TcpAgent::traceVar(v);
+		return;
+	}
 
 	int n = strlen(wrk);
 	wrk[n] = '\n';
