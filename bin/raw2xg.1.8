@@ -1,0 +1,118 @@
+eval 'exec perl -S $0 ${1+"$@"}'
+	if 0;
+
+($progname) = ($0 =~ m!([^/]+)$!);
+sub usage {
+    print STDERR <<END;
+usage: $progname [options] [trace files...]
+
+options:
+    -a		plot acks
+    -s SCALE    scale TCP sequence numbers by SCALE
+    -m MODULUS  treat TCP sequence numbers as mod MODULUS
+    -q		show queueing delay by connecting lines
+    -l		show packet length
+    -t TITLE    title of test
+
+Traditional ``wrapping'' ns plots (as called from the test scripts)
+can be generated with -s 0.01 -m 90.
+END
+    exit 1;
+};
+$usage = "usage: $progname [-a] [trace files...]\n";
+
+require 'getopts.pl';
+&Getopts('as:m:qlt:') || usage;
+
+$c = 0;
+@p = @a = @d = @lu = @ld = ();
+%q_time_seg = ();
+$modulus = defined($opt_m) ? $opt_m : 2 ** 31;
+$scale = defined($opt_s) ? $opt_s : 1;
+$plot_acks = defined($opt_a);
+
+$file = $acks = '';
+
+sub translate_point {
+    my($time, $seq, $flow) = @_;
+    return ($time, $flow + ($seq % $modulus) * $scale);
+}
+
+while (<>) {
+    $dfile = $ARGV;
+    @F = split;
+    /testName/ && ($file = $F[2], next);
+    /^[\+-] / && do {
+	$c = $F[7] if ($c < $F[7]);
+	$is_ack = ($F[4] eq 'ack');
+	next if ($is_ack && !$plot_acks);
+
+	($x, $y) = translate_point(@F[1, 10, 8]);
+	if (defined($opt_q)) {
+	    if (/^\+/) {
+		$statement = undef;
+		$q_time_seg{$is_ack,$y} = $x;
+	    };
+	    $statement = "move $q_time_seg{$is_ack,$y} $y\ndraw $x $y\n"
+		if (/^\-/);
+	} else {
+	    $statement = "$x $y\n";
+	};
+	if (defined($statement)) {
+	    if ($is_ack) { 
+		push(@a, $statement);
+	    } else {
+	        push(@p, $statement);
+	    };
+	};
+	next;
+    };
+    /^d / && do {
+	($x, $y) = translate_point(@F[1, 10, 8]);
+	push(@d, "$x $y\n");
+	next;
+    };
+    /link-down/ &&	(push(@ld, $F[1]), next);
+    /link-up/ &&	(push(@lu, $F[1]), next);
+}	
+
+if ($file eq '') {
+	($file) = ($dfile =~ m!([^/]+)$!);
+}
+
+$title  = defined($opt_t) ? $opt_t : $file;
+print "TitleText: $title\n" .
+    "Device: Postscript\n" .
+    "BoundBox: true\n" .
+    "Ticks: true\n" .
+    (defined($opt_q) ? "" : "NoLines: true\n") .
+    "Markers: true\n" .
+    "XUnitText: time\n" .
+    "YUnitText: packets\n";
+
+print "\n\"packets\n", @p;
+
+# insert dummy data sets so we get X's for marks in data-set 4
+printf "\n\"skip-1\n0 1\n";
+if ($plot_acks) {
+    print "\n\"acks\n", @a;
+} else {
+    printf "\n\"skip-2\n0 1\n";
+}
+
+#
+# Repeat the first line twice in the drops file because often we have only
+# one drop and xgraph won't print marks for data sets with only one point.
+#
+print "\n\"drops\n", @d[0..3], @d;
+
+$c++;
+print "\n";
+foreach $i (@ld) {
+	print "\"link-down\n$i 0\n$i $c\n";
+}
+foreach $i (@lu) {
+	print "\"link-up\n$i 0\n$i $c\n";
+}
+
+exit 0;
