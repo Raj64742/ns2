@@ -26,12 +26,11 @@ set ackSize 40
 set rbw 28.8Kb
 set rqsize 10
 set qsize 10
-set rgw "DropTail" 
+set rgw "DropTail"
+set nonfifo 0 
 set acksfirst false
 set filteracks false
 set replace_head false
-set acksfromfront false
-set interleave false
 set midtime 0
 
 proc printUsage {} {
@@ -93,7 +92,7 @@ while {$count < $argc} {
 			continue
 		}
 		'-nonfifo' {
-			set rgw "DropTail/NonFifo"
+			set nonfifo 1
 			incr count -1
 			continue
 		}
@@ -104,11 +103,6 @@ while {$count < $argc} {
 		}
 		'-red' {
 			set rgw "RED"
-			incr count -1
-			continue
-		}
-		'-red_nonfifo' {
-			set rgw "RED/NonFifo"
 			incr count -1
 			continue
 		}
@@ -210,7 +204,7 @@ $ns simplex-link $n2 $n1 $rbw 50ms $rgw
 $ns duplex-link $n2 $n3 10Mb 1ms DropTail
 
 # configure reverse bottleneck queue
-configQueue $ns $n2 $n1 $rgw $redtrace $rqsize $acksfirst $filteracks $replace_head
+configQueue $ns $n2 $n1 $rgw $redtrace $rqsize $nonfifo $acksfirst $filteracks $replace_head
 
 # end simulation
 $ns at 30.0 "finish $ns $f $tcptrace $graph $midtime"

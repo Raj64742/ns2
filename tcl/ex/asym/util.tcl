@@ -112,7 +112,7 @@ proc createFtp { ns n0 tcp0 n1 sink0 } {
 	return $ftp0
 }
 
-proc configQueue { ns n0 n1 type trace { size -1 } { acksfirst false } { filteracks false } { replace_head false } { acksfromfront false } { interleave false } } {
+proc configQueue { ns n0 n1 type trace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } } { 
 	if { $size >= 0 } {
 		$ns queue-limit $n0 $n1 $size
 	}
@@ -120,12 +120,14 @@ proc configQueue { ns n0 n1 type trace { size -1 } { acksfirst false } { filtera
 	set id1 [$n1 id]
 	set l01 [$ns set link_($id0:$id1)]
 	set q01 [$l01 set queue_]
-	if {[string first "NonFifo" $type] != -1} {
-		$q01 set acksfirst_ $acksfirst
-		$q01 set filteracks_ $filteracks
-		$q01 set replace_head_ $replace_head
-		$q01 set acksfromfront_ $acksfromfront
-		$q01 set interleave_ $interleave
+	if {$nonfifo} {
+		set spq [new PacketQueue/Semantic]
+		$spq set acksfirst_ $acksfirst
+		$spq set filteracks_ $filteracks
+		$spq set replace_head_ $replace_head
+		$spq set priority_drop_ $priority_drop
+		$spq set random_drop_ $random_drop
+		$q01 packetqueue-attach $spq
 	}
 	if {[string first "RED" $type] != -1} {
 		configREDQueue $ns $n0 $n1 [$q01 set q_weight_] 1
