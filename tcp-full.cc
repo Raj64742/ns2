@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.17 1997/11/26 21:32:57 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.18 1997/11/26 22:28:31 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -396,7 +396,7 @@ send:
 	 */
 
 	if (pflags & TH_FIN && flags_ & TF_SENTFIN && seqno >= maxseq_)
-		--seqno;
+		--t_seqno_;
 
 	/*
 	 * SYNs and FINs each use up one sequence number
@@ -609,7 +609,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
 	int ackno = tcph->ackno();	// ack # from packet
 	int tiflags = tcph->flags() ; // tcp flags from packet
-
 
 	if (state_ == TCPS_CLOSED)
 		goto drop;
@@ -1241,6 +1240,7 @@ void FullTcpAgent::listen()
 void FullTcpAgent::usrclosed()
 {
 
+	curseq_ = t_seqno_;	// truncate buffer
 	switch (state_) {
 	case TCPS_CLOSED:
 	case TCPS_LISTEN:
@@ -1254,6 +1254,7 @@ void FullTcpAgent::usrclosed()
 		send_much(1, REASON_NORMAL, 0);
 		break;
 	}
+
 	return;
 }
 
