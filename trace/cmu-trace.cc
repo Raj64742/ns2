@@ -551,6 +551,8 @@ CMUTrace::format_aodv(Packet *p, int offset)
 void
 CMUTrace::nam_format(Packet *p, int offset)
 {
+	Node* srcnode = 0 ;
+	Node* dstnode = 0 ;
         struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
 	char op = (char) type_;
@@ -558,15 +560,18 @@ CMUTrace::nam_format(Packet *p, int offset)
 	int src = Address::instance().get_nodeaddr(ih->saddr());
 	int dst = Address::instance().get_nodeaddr(ih->daddr());
 
-	Node* srcnode = Node::get_node_by_address(src);
-	Node* dstnode = Node::get_node_by_address(dst);
+	srcnode = Node::get_node_by_address(src);
+	dstnode = Node::get_node_by_address(dst);
 
-	MobileNode* tmnode = (MobileNode*)srcnode;
-	MobileNode* rmnode = (MobileNode*)dstnode;
+
 	double distance = 0;
 
-        if ((tmnode) && (rmnode))
+        if ((srcnode) && (dstnode)) {
+	   MobileNode* tmnode = (MobileNode*)srcnode;
+	   MobileNode* rmnode = (MobileNode*)dstnode;
+
 	   distance = tmnode->propdelay(rmnode) * 300000000 ;
+	}
 
 
 	// convert to nam format 
@@ -630,7 +635,7 @@ void CMUTrace::format(Packet* p, const char *why)
 	format_mac(p, why, offset);
 
 #ifdef NAM_TRACE
-	nam_format(p, offset);
+	if (namChan_) nam_format(p, offset);
 #endif
 	offset = strlen(wrk_);
 
