@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.68 1999/11/05 05:29:01 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.69 2000/02/14 22:24:19 polly Exp $
 #
 
 # for MobileIP
@@ -54,6 +54,7 @@ Node instproc init args {
 	eval $self next $args
         $self instvar np_ id_ agents_ dmux_ neighbor_ rtsize_ address_
         $self instvar nodetype_
+        $self instvar multiPath_
 
         set nodetype_ [[Simulator instance] get-nodetype]
 
@@ -69,6 +70,7 @@ Node instproc init args {
 	$self mk-default-classifier$nodetype_
 #        $self mk-default-classifier
 	$self cmd addr $address_; # new by tomh
+      set multiPath_ [$class set multiPath_]
 
 }
 
