@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.25 1999/09/30 23:09:24 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.26 2000/06/21 05:27:52 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -56,8 +56,8 @@ extern "C" {
 #include "classifier.h"
 #include "classifier-hash.h"
 
-
 /****************** HashClassifier Methods ************/
+
 int HashClassifier::classify(Packet * p) {
 	int slot= lookup(p);
 	if (slot >= 0 && slot <=maxslot_)
@@ -99,6 +99,29 @@ int HashClassifier::command(int argc, const char*const* argv)
 			tcl.resultf("");
 			return (TCL_OK);
 		}
+                // Added by Yun Wang to set rate for TBFlow or TSWFlow
+                if (strcmp(argv[1], "set-flowrate") == 0) {
+                        int fid = atoi(argv[2]);
+                        nsaddr_t src = 0;  // only use fid
+                        nsaddr_t dst = 0;  // to classify flows
+                        int slot = get_hash( src, dst, fid );
+                        if ( slot >= 0 && slot <= maxslot_ ) {
+                                Flow* f = (Flow*)slot_[slot];
+                                tcl.evalf("%u set target_rate_ %s",
+                                        f, argv[3]);
+                                tcl.evalf("%u set bucket_depth_ %s",
+                                        f, argv[4]);
+                                tcl.evalf("%u set tbucket_ %s",
+                                        f, argv[5]);
+                                return (TCL_OK);
+                        }
+                        else {
+                          tcl.evalf("%s set-rate %u %u %u %u %s %s %s",
+                          name(), src, dst, fid, slot, argv[3], argv[4],argv[5])
+;
+                          return (TCL_OK);
+                        }
+                }  
 	} else if (argc == 5) {
 		/* $classifier del-hash src dst fid */
 		if (strcmp(argv[1], "del-hash") == 0) {
@@ -120,7 +143,6 @@ int HashClassifier::command(int argc, const char*const* argv)
 	}
 	return (Classifier::command(argc, argv));
 }
-
 
 /**************  TCL linkage ****************/
 static class SrcDestHashClassifierClass : public TclClass {

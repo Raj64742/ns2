@@ -32,6 +32,8 @@
  * SUCH DAMAGE.
  */
 
+class Flow;
+
 /* class defs for HashClassifier (base), SrcDest, SrcDestFid HashClassifiers */
 class HashClassifier : public Classifier {
 public:
@@ -135,6 +137,8 @@ protected:
 class SrcDestHashClassifier : public HashClassifier {
 public:
 	SrcDestHashClassifier() : HashClassifier(2) {
+	int command(int argc, const char*const* argv);
+	int classify(Packet *p);
 	}
 protected:
 	const char*  hashkey(nsaddr_t src, nsaddr_t dst, int) {

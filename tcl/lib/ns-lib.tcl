@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.189 2000/05/27 23:58:50 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.190 2000/06/21 05:26:31 sfloyd Exp $
 
 #
 
@@ -895,6 +895,11 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	if {[string first "RED" $qtype] != -1} {
 		$q link [$link_($sid:$did) set link_]
 	}
+
+        #XXX Yun Wang
+        if {[string first "RIO" $qtype] != -1} {
+                $q link [$link_($sid:$did) set link_]
+        }
 	
 	set trace [$self get-ns-traceall]
 	if {$trace != ""} {
@@ -1507,6 +1512,92 @@ Simulator instproc attach-fmon {lnk fm { edrop 0 } } {
 		$edsnoop target [$self set nullAgent_]
 	}
 	[$lnk queue] drop-target $dsnoop
+}
+
+# Added by Yun Wang
+
+Simulator instproc maketbtagger { cltype { clslots 29 } } {
+
+        set tagger [new QueueMonitor/ED/Tagger]
+        set cl [new Classifier/Hash/$cltype $clslots]
+
+        $cl proc unknown-flow { src dst fid }  {
+                set fdesc [new QueueMonitor/ED/Flow/TB]
+                set dsamp [new Samples]
+                $fdesc set-delay-samples $dsamp
+                set slot [$self installNext $fdesc]
+                $self set-hash auto $src $dst $fid $slot
+        }
+
+        $cl proc set-rate { src dst fid hashbucket rate depth init} {
+                set fdesc [new QueueMonitor/ED/Flow/TB]
+                set dsamp [new Samples]
+                $fdesc set-delay-samples $dsamp
+                $fdesc set target_rate_ $rate
+                $fdesc set bucket_depth_ $depth
+                # Initialize the bucket as full
+                $fdesc set tbucket_ $init  
+                set slot [$self installNext $fdesc]
+                $self set-hash $hashbucket $src $dst $fid $slot
+        }
+
+        $cl proc no-slot slotnum {
+                #
+                # note: we can wind up here when a packet passes
+                # through either an Out or a Drop Snoop Queue for
+                # a queue that the flow doesn't belong to anymore.
+                # Since there is no longer hash state in the
+                # hash classifier, we get a -1 return value for the
+                # hash classifier's classify() function, and there
+                # is no node at slot_[-1].  What to do about this?
+                # Well, we are talking about flows that have already
+                # been moved and so should rightly have their stats
+                # zero'd anyhow, so for now just ignore this case..
+                # puts "classifier $self, no-slot for slotnum $slotnum"
+        }
+        $tagger classifier $cl
+        return $tagger
+}
+
+# Added by Yun Wang
+
+Simulator instproc maketswtagger { cltype { clslots 29 } } {
+
+        set tagger [new QueueMonitor/ED/Tagger]
+        set cl [new Classifier/Hash/$cltype $clslots]
+
+        $cl proc unknown-flow { src dst fid hashbucket }  {
+                set fdesc [new QueueMonitor/ED/Flow/TSW]
+                set dsamp [new Samples]
+                $fdesc set-delay-samples $dsamp
+                set slot [$self installNext $fdesc]
+                $self set-hash $hashbucket $src $dst $fid $slot
+        }
+
+        $cl proc no-slot slotnum {
+                #
+                # note: we can wind up here when a packet passes
+                # through either an Out or a Drop Snoop Queue for
+                # a queue that the flow doesn't belong to anymore.
+                # Since there is no longer hash state in the
+                # hash classifier, we get a -1 return value for the
+                # hash classifier's classify() function, and there
+                # is no node at slot_[-1].  What to do about this?
+                # Well, we are talking about flows that have already
+                # been moved and so should rightly have their stats
+                # zero'd anyhow, so for now just ignore this case..
+                # puts "classifier $self, no-slot for slotnum $slotnum"
+        }
+        $tagger classifier $cl
+        return $tagger
+}
+
+# attach a Tagger to a link
+# Added by Yun Wang
+
+Simulator instproc attach-tagger {lnk fm} {
+        set isnoop [new SnoopQueue/Tagger]
+        $lnk attach-taggers $isnoop $fm
 }
 
 # Imported from session.tcl. It is deleted there.

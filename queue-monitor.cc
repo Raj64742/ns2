@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.19 1998/06/27 01:24:22 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.20 2000/06/21 05:24:24 sfloyd Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -222,6 +222,15 @@ public:
 		return (new SnoopQueueEDrop);
 	}
 } snoopq_edrop_class;
+
+/* Added by Yun Wang, for use of In/Out tagger */
+static class SnoopQueueTaggerClass : public TclClass {
+public:
+        SnoopQueueTaggerClass() : TclClass("SnoopQueue/Tagger") {}
+        TclObject* create(int, const char*const*) {
+                return (new SnoopQueueTagger);
+        }
+} snoopq_tagger_class;
 
 static class QueueMonitorEDClass : public TclClass {
 public: 

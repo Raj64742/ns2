@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.43 1999/08/11 22:16:23 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.44 2000/06/21 05:26:30 sfloyd Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -370,6 +370,30 @@ SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
 	$snoopOut_ set-monitor $qmon
 	$snoopDrop_ set-monitor $qmon
 	set qMonitor_ $qmon
+}
+
+# 
+# Added by Yun Wang, based on attach-monitors
+# 
+# like init-monitor, but allows for specification of more of the items
+# attach-taggers $insnoop $inqm
+#
+SimpleLink instproc attach-taggers { insnoop qmon } {
+        $self instvar drpT_ queue_ head_ snoopIn_ snoopOut_ snoopDrop_
+        $self instvar qMonitor_ drophead_
+
+        set snoopIn_ $insnoop
+
+        $snoopIn_ target $head_
+        set head_ $snoopIn_
+
+        $snoopIn_ set-monitor $qmon
+
+# This may cause problem when you want to insert both flow monitor and tagger.
+# Yun Wang
+
+        set qMonitor_ $qmon
+
 }
 
 #

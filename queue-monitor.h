@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.15 1999/09/24 17:04:35 heideman Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.16 2000/06/21 05:24:24 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -150,6 +150,18 @@ public:
 		qm_->drop(p);
 		send(p, h);
 	}
+};
+
+/* Tagger, Like a normal FlowMonitor, use SnoopQueueTagger
+ * to start it.
+ * By Yun Wang 
+ */
+class SnoopQueueTagger : public SnoopQueue {
+public:
+        void recv(Packet* p, Handler* h) {
+                qm_->in(p);
+                send(p, h);
+        }
 };
 
 /*
