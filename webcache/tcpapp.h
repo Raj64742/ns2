@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.1 1998/08/18 23:42:44 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.2 1998/08/19 00:31:41 haoboy Exp $
 //
 // TcpApp - Transmitting real application data via TCP
 //
@@ -81,6 +81,7 @@ protected:
 class TcpApp : public Application {
 public:
 	TcpApp(Agent *tcp);
+	~TcpApp();
 
 	virtual void recv(int nbytes);
 	void send(int nbytes, int datasize, const char *data);
