@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.11 2001/09/14 04:06:46 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.12 2001/09/18 06:10:26 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -91,7 +91,47 @@ int Mult64Command::command(int argc, const char*const* argv)
 	tcl.add_error("ns-mult64 requires two arguments.");
 	return (TCL_ERROR);
 }
+
+class Int64ToDoubleCommand : public TclCommand {
+public: 
+	Int64ToDoubleCommand() : TclCommand("ns-int64todbl") {}
+	virtual int command(int argc, const char*const* argv);
+};
+
+int Int64ToDoubleCommand::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		char res[22]; /* A 64 bit int at most 20 digits */
+		int64_t d1 = STRTOI64(argv[1], NULL, 0);
+		double  d2 = d1;
+		sprintf(res, "%.1f",d2);
+		tcl.resultf("%s", res);
+		return (TCL_OK);
+	}
+	tcl.add_error("ns-int64todbl requires only one arguments.");
+	return (TCL_ERROR);
+}
 #endif
+
+class HasInt64Command : public TclCommand {
+public: 
+	HasInt64Command() : TclCommand("ns-hasint64") {}
+	virtual int command(int argc, const char*const* argv);
+};
+
+int HasInt64Command::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	char res[2];
+	int flag = 0; 
+	#if defined(HAVE_INT64)
+		flag = 1; 
+	#endif
+	sprintf(res, "%d", flag);
+	tcl.resultf("%s", res);
+	return (TCL_OK);
+}
 
 class RandomCommand : public TclCommand {
 public:
@@ -169,8 +209,10 @@ void init_misc(void)
 	(void)new VersionCommand;
 	(void)new RandomCommand;
 	(void)new TimeAtofCommand;
+	(void)new HasInt64Command;
 #if defined(HAVE_INT64)
 	(void)new Add64Command;
 	(void)new Mult64Command;
+	(void)new Int64ToDoubleCommand;
 #endif
 }
