@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.26 2001/05/11 16:34:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.27 2001/05/11 17:34:42 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -681,6 +681,8 @@ Test/ecn_smallwinEcn_tahoe instproc init {} {
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         set test_	ecn_smallwinEcn_tahoe
         $self next
 }
@@ -705,6 +707,8 @@ Test/ecn_smallwin1Ecn_tahoe instproc init {} {
         Queue/RED set setbit_ true
         set net_	net3-lossy
 	Agent/TCP set bugFix_ true
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         set test_	ecn_smallwin1Ecn_tahoe
         $self next
 }
@@ -727,6 +731,8 @@ Test/ecn_smallwin2Ecn_tahoe instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set slow_start_restart_ false
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         set test_	ecn_smallwin2Ecn_tahoe
 	Test/ecn_smallwin2Ecn_tahoe instproc run {} [Test/ecn_smallwinEcn_tahoe info instbody run ]
         $self next
@@ -878,6 +884,8 @@ Test/ecn_smallwinEcn_tahoe_delack instproc init {} {
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         set test_	ecn_smallwinEcn_tahoe_delack
         $self next
 }
