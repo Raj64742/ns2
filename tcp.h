@@ -30,13 +30,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.17 1997/07/23 03:15:17 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.18 1997/07/24 08:58:37 padmanab Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
 
 #include "agent.h"
 #include "packet.h"
+#include "tracedvar.h"
 
 struct hdr_tcp {
 #define NSA 3
@@ -147,24 +148,6 @@ struct hdr_tcpasym {
 #define TCP_TIMER_BURSTSND	3
 
 
-/*
- * Macro to log a set of member variables. It is triggered when the value of one of
- * the variables changes. All the state variables are printed out (by print_if_needed()
- * in a single line.
- */
-#ifndef NO_TCP_TRACE
-#define TCP_TRACE_ALL(memb, old_memb, memb_time) \
-{ \
-	Scheduler& s = Scheduler::instance(); \
-	if (memb != old_memb && print_if_needed(memb_time)) \
-		old_memb = memb; \
-	memb_time = &s ? s.clock() : 0; \
-}
-#else
-#define TCP_TRACE_ALL(memb, old_memb, memb_time)
-#endif
-
-	       
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
@@ -172,81 +155,55 @@ public:
 	virtual void recv(Packet*, Handler*);
 	int command(int argc, const char*const* argv);
 
-	/* 
-	 * These return-by-reference functions are used in the TCP code instead
-	 * of directly referring to the variables. These allow us to trace the
-	 * variables as their values change. One problem is that when any of
-	 * these functions is invoked, we can't tell if its value is going to
-	 * be changed (we don't even know whether the variable is being read
-	 * or whether its being written into). So we need to remember the previous
-	 * value to each variable.
-	 */
-	int& maxseq() {
-		TCP_TRACE_ALL(maxseq_, old_maxseq_, maxseq_time_);
-		return (maxseq_);
-	}
-
-	int& highest_ack() {
-		TCP_TRACE_ALL(highest_ack_, old_highest_ack_, highest_ack_time_);
-		return (highest_ack_);
-	}
-
-	int& t_seqno() {
-		TCP_TRACE_ALL(t_seqno_, old_t_seqno_, t_seqno_time_);
-		return (t_seqno_);
-	}
-
-	double& cwnd() {
-		TCP_TRACE_ALL(cwnd_, old_cwnd_, cwnd_time_);
-		return (cwnd_);
-	}
-
-	int& ssthresh() {
-		TCP_TRACE_ALL(ssthresh_, old_ssthresh_, ssthresh_time_);
-		return (ssthresh_);
-	}
-
-	int& dupacks() {
-		TCP_TRACE_ALL(dupacks_, old_dupacks_, dupacks_time_);
-		return (dupacks_);
-	}
-
-	int& t_rtt() {
-		TCP_TRACE_ALL(t_rtt_, old_t_rtt_, t_rtt_time_);
-		return (t_rtt_);
-	}
-
-	int& t_srtt() {
-		TCP_TRACE_ALL(t_srtt_, old_t_srtt_, t_srtt_time_);
-		return (t_srtt_);
-	}
-
-	int& t_rttvar() {
-		TCP_TRACE_ALL(t_rttvar_, old_t_rttvar_, t_rttvar_time_);
-		return (t_rttvar_);
-	}
-
-	int& t_backoff() {
-		TCP_TRACE_ALL(t_backoff_, old_t_backoff_, t_backoff_time_);
-		return (t_backoff_);
-	}
-
-
+	void trace(TracedVar* v);
 protected:
 	virtual int window();
 	virtual void plot();
 	print_if_needed(double memb_time);
+	void traceAll();
+	void traceVar(TracedVar* v);
+
+	TracedInt& t_seqno() {
+		return (t_seqno_);
+	}
+	TracedInt& t_rtt() {
+		return (t_rtt_);
+	}
+	TracedInt& t_srtt() {
+		return (t_srtt_);
+	}
+	TracedInt& t_rttvar() {
+		return (t_rttvar_);
+	}
+	TracedInt& t_backoff() {
+		return (t_backoff_);
+	}
+	TracedInt& dupacks() {
+		return (dupacks_);
+	}
+	TracedInt& highest_ack() {
+		return (highest_ack_);
+	}
+	TracedDouble& cwnd() {
+		return (cwnd_);
+	}
+	TracedInt& ssthresh() {
+		return (ssthresh_);
+	}
+	TracedInt& maxseq() {
+		return (maxseq_);
+	}
 
 	/*
 	 * State encompassing the round-trip-time estimate.
 	 * srtt and rttvar are stored as fixed point;
 	 * srtt has 3 bits to the right of the binary point, rttvar has 2.
 	 */
-	int t_seqno_;		/* sequence number */
-	int t_rtt_;      	/* round trip time */
-	int t_srtt_;     	/* smoothed round-trip time */
-	int t_rttvar_;   	/* variance in round-trip time */
-	int t_backoff_;
+	TracedInt t_seqno_;	/* sequence number */
+	TracedInt t_rtt_;      	/* round trip time */
+	TracedInt t_srtt_;     	/* smoothed round-trip time */
+	TracedInt t_rttvar_;   	/* variance in round-trip time */
+	TracedInt t_backoff_;
 	void rtt_init();
 	double rtt_timeout();
 	void rtt_update(double tao);
@@ -269,7 +226,7 @@ protected:
 	void quench(int how);
 	void finish(); /* called when the connection is terminated */
 
-	/* Helper functions. Currently used by TCP asym */
+	/* Helper functions. Currently used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }
 	virtual void send_helper(int) { return; }
 	virtual void send_idle_helper() { return; }
@@ -290,25 +247,25 @@ protected:
 	/*
 	 * Dynamic state.
 	 */
-	int dupacks_;		/* number of duplicate acks */
+	TracedInt dupacks_;	/* number of duplicate acks */
 	int curseq_;		/* highest seqno "produced by app" */
 	int last_ack_;		/* largest consecutive ACK, frozen during
 				 *		Fast Recovery */
-	int highest_ack_;	/* not frozen during Fast Recovery */
+	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
 	int recover_;		/* highest pkt sent before dup acks, */
 				/*   timeout, or source quench 	*/
 	int recover_cause_;	/* 1 for dup acks */
 				/* 2 for timeout */
 				/* 3 for source quench */
-	double cwnd_;		/* current window */
+	TracedDouble cwnd_;	/* current window */
 	double base_cwnd_;	/* base window (for experimental purposes) */
 	double awnd_;		/* averaged window */
-	int ssthresh_;		/* slow start threshold */
+	TracedInt ssthresh_;	/* slow start threshold */
 	int count_;		/* used in window increment algorithms */
 	double fcnt_;		/* used in window increment algorithms */
 	int rtt_active_;	/* 1 for a first-time transmission of a pkt */
 	int rtt_seq_;		/* first-time seqno sent after retransmits */
-	int maxseq_;		/* used for Karn algorithm */
+	TracedInt maxseq_;	/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
 	int disable_ecn_;       /* 1 if reaction to ECN is disabled */
@@ -320,34 +277,6 @@ protected:
 				      */
 	char finish_[100];      /* name of Tcl proc to call at finish time */
 	int closed_;            /* whether this connection has closed */
-private:
-	double last_log_time_; /* the time at which the state variables were logged
-				  last */
-	/* 
-	 * The following members are used to keep track of the previous value
-	 * of various state variables and the time of the last change. This
-	 * allows us to log them only when the value of the variable changes.
-	 */
-	int old_maxseq_;
-	double maxseq_time_;
-	int old_highest_ack_;
-	double highest_ack_time_;
-	int old_t_seqno_;
-	double t_seqno_time_;
-	double old_cwnd_;
-	double cwnd_time_;
-	int old_ssthresh_;
-	double ssthresh_time_;
-	int old_dupacks_;
-	double dupacks_time_;
-	int old_t_rtt_;
-	double t_rtt_time_;
-	int old_t_srtt_;
-	double t_srtt_time_;
-	int old_t_rttvar_;
-	double t_rttvar_time_;
-	int old_t_backoff_;
-	double t_backoff_time_;
 };
 
 /* TCP Reno */

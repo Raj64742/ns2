@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.26 1997/07/22 08:58:14 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.27 1997/07/24 08:58:36 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -44,61 +44,6 @@ static const char rcsid[] =
 #include "tcp.h"
 #include "flags.h"
 #include "random.h"
-
-/*
- * NOTE: To enable tracing of a certain subset of member variables of 
- * TcpAgent, all references (read as well as write) to them in C++ are 
- * made via the member functions defined in tcp.h. For example, cwnd() 
- * is used instead of cwnd_.
- */ 
-
-/*
- * These are functions to read and write certain member variables of 
- * TcpClass. These allow us to trace changes in the values of the variables
- * induced from Tcl. These functions are needed because we can't pass
- * pointers to the corresponding member functions (defined in tcp.h)
- * as arguments to the bind() functions (that are part of libTcl).
- */
-int& maxseqf(TclObject *t) {
-	return(((TcpAgent *)t)->maxseq());
-}
-
-int& highest_ackf(TclObject *t) {
-	return(((TcpAgent *)t)->highest_ack());
-}
-
-int& t_seqnof(TclObject *t) {
-	return(((TcpAgent *)t)->t_seqno());
-}
-
-double& cwndf(TclObject *t) {
-	return(((TcpAgent *)t)->cwnd());
-}
-
-int& ssthreshf(TclObject *t) {
-	return(((TcpAgent *)t)->ssthresh());
-}
-
-int& dupacksf(TclObject *t) {
-	return(((TcpAgent *)t)->dupacks());
-}
-
-int& t_rttf(TclObject *t) {
-	return(((TcpAgent *)t)->t_rtt());
-}
-
-int& t_srttf(TclObject *t) {
-	return(((TcpAgent *)t)->t_srtt());
-}
-
-int& t_rttvarf(TclObject *t) {
-	return(((TcpAgent *)t)->t_rttvar());
-}
-
-int& t_backofff(TclObject *t) {
-	return(((TcpAgent *)t)->t_backoff());
-}
-
 
 static class TCPHeaderClass : public PacketHeaderClass {
 public:
@@ -115,11 +60,7 @@ public:
 } class_tcp;
 
 TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
-	last_log_time_(0), old_maxseq_(0), old_highest_ack_(0),
-	old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0),
-	old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0),
-	old_t_rttvar_(0), old_t_backoff_(0), ts_peer_(0),
-	dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
+	ts_peer_(0),dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
 	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0)
 {
@@ -139,23 +80,6 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("maxburst_", &maxburst_);
 	bind("maxcwnd_", &maxcwnd_);
 
-#ifdef old_tcp_tracing
-	/*
-	 * for variables that are to be traced, we also bind the functions
-	 * (defined above) to read/write from them
-	 */
-	bind("dupacks_", &dupacks_, (TclObject *)this, dupacksf);
-	bind("seqno_", &curseq_);
-	bind("t_seqno_", &t_seqno_, (TclObject *)this, t_seqnof);
-	bind("ack_", &highest_ack_, (TclObject *)this, highest_ackf);
-	bind("cwnd_", &cwnd_, (TclObject *)this, cwndf);
-	bind("awnd_", &awnd_);
-	bind("ssthresh_", &ssthresh_, (TclObject *)this, ssthreshf);
-	bind("rtt_", &t_rtt_, (TclObject *)this, t_rttf);
-	bind("srtt_", &t_srtt_, (TclObject *)this, t_srttf);
-	bind("rttvar_", &t_rttvar_, (TclObject *)this, t_rttvarf);
-	bind("backoff_", &t_backoff_, (TclObject *)this, t_backofff);
-#else
 	bind("dupacks_", &dupacks_);
 	bind("seqno_", &curseq_);
 	bind("t_seqno_", &t_seqno_);
@@ -167,9 +91,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("srtt_", &t_srtt_);
 	bind("rttvar_", &t_rttvar_);
 	bind("backoff_", &t_backoff_);
+	bind("maxseq_", &maxseq_);
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
-#endif
 
 	finish_[0] = 0;
 
@@ -177,42 +101,50 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	reset();
 }
 
-/*
- * Print the values of a subset of TcpAgent member variables if the value of 
- * any one of them has changed. 
- */
-TcpAgent::print_if_needed(double memb_time)
-{
-	double cur_time;
+/* Print out all the traced variables whenever any one is changed */
+void
+TcpAgent::traceAll() {
+	double curtime;
 	Scheduler& s = Scheduler::instance();
 	char wrk[500];
 	int n;
-	cur_time = &s ? s.clock() : 0;
-	/* 
-	 * Since many member variables may get updated at the same point in time 
-	 * (for example, when an ack is received) and we wish to avoid printing
-	 * out a line for each change, we wait till that time has passed and
-	 * print out all the changes at once.
-	 */
-	if (cur_time > memb_time) {
-		/* 
-		 * make sure that the change in value happened more recently than 
-		 * the last time we logged all the variables
-		 */
-		if (memb_time > last_log_time_) {
-			sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", memb_time, addr_/256, addr_%256, dst_/256, dst_%256, maxseq_, highest_ack_, t_seqno_, cwnd_, ssthresh_, dupacks_, t_rtt_*tcp_tick_, (t_srtt_ >> 3)*tcp_tick_, (t_rttvar_ >> 2)*tcp_tick_, t_backoff_);
-			n = strlen(wrk);
-			wrk[n] = '\n';
-			wrk[n+1] = 0;
-			if (channel_)
-				(void)Tcl_Write(channel_, wrk, n+1);
-			wrk[n] = 0;
-			last_log_time_ = memb_time;
-		}
-		return 1;
-	}
-	memb_time = cur_time;
-	return 0;
+
+	curtime = &s ? s.clock() : 0;
+	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, int(maxseq_), int(highest_ack_), int(t_seqno_), double(cwnd_), int(ssthresh_), int(dupacks_), int(t_rtt_)*tcp_tick_, (int(t_srtt_) >> 3)*tcp_tick_, (int(t_rttvar_) >> 2)*tcp_tick_, int(t_backoff_));
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	if (channel_)
+		(void)Tcl_Write(channel_, wrk, n+1);
+	wrk[n] = 0;
+	return;
+}
+
+/* Print out just the variable that is modified */
+void
+TcpAgent::traceVar(TracedVar* v) {
+	double curtime;
+	Scheduler& s = Scheduler::instance();
+	char wrk[500];
+	int n;
+
+	curtime = &s ? s.clock() : 0;
+	if (!strcmp(v->name(), "cwnd_"))
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), double(*((TracedDouble*) v)));
+	else
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	if (channel_)
+		(void)Tcl_Write(channel_, wrk, n+1);
+	wrk[n] = 0;
+	return;
+}
+
+void
+TcpAgent::trace(TracedVar* v) {
+	traceVar(v);
 }
 
 void TcpAgent::reset()
