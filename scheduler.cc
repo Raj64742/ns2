@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.42 1999/01/28 23:08:21 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.43 1999/06/09 21:23:34 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.42 1999/01/28 23:08:21 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.43 1999/06/09 21:23:34 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -685,9 +685,11 @@ void RealTimeScheduler::run()
 
 	while (!halted_) {
 		now = tod();
-		if ((clock_ - now) > slop_) {
-			fprintf(stderr, "RealTimeScheduler: warning: slop %f exceeded limit %f\n",
-				(clock_ - now), slop_);
+		//if ((clock_ - now) > slop_) {
+		if ((now - clock_) > slop_) {
+			fprintf(stderr,
+			"RealTimeScheduler: warning: slop %f exceeded limit %f [now:%f, clock_:%f\n",
+				now - clock_, slop_, now, clock_);
 		}
 
 		//
