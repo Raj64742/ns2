@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.16 1997/11/21 00:36:57 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.17 1997/11/21 02:06:57 haoboy Exp $
 #
 
 #source plotting.tcl
@@ -172,15 +172,16 @@ TestSuite instproc openTrace { stopTime testName } {
 TestSuite instproc traceQueues { node traceFile } {
 	$self instvar ns_
 	foreach nbr [$node neighbors] {
-		global quiet
-		if {$quiet == "false"} {
-			$ns_ namtrace-queue $node $nbr $traceFile
-			[$ns_ link $node $nbr] trace-dynamics $ns_ \
-				$traceFile "nam"
-		} else {
-			$ns_ trace-queue $node $nbr $traceFile
-			[$ns_ link $node $nbr] trace-dynamics $ns_ $traceFile
-		}
+		$ns_ trace-queue $node $nbr $traceFile
+		[$ns_ link $node $nbr] trace-dynamics $ns_ $traceFile
+	}
+}
+
+TestSuite instproc namtraceQueues { node traceFile } {
+	$self instvar ns_
+	foreach nbr [$node neighbors] {
+		$ns_ namtrace-queue $node $nbr $traceFile
+		[$ns_ link $node $nbr] trace-dynamics $ns_ $traceFile "nam"
 	}
 }
 
