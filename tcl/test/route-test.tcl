@@ -1,4 +1,4 @@
-set r [new route-logic]
+set r [new RouteLogic]
 foreach pair "{1 2} {1 5} {2 3} {3 5} {5 0} {3 4}" {
     set src [lindex $pair 0]
     set dst [lindex $pair 1]

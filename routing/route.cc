@@ -38,7 +38,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.2 1997/01/26 23:26:23 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.3 1997/02/22 05:30:10 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -189,7 +189,7 @@ void RouteLogic::compute_routes()
 		/* set the route for all neighbours first */
 		for (v = 1; v < n; ++v) {
 			if (parent[v] != k) {
-				hopcnt[v] = ADJ(v, k);
+				hopcnt[v] = ADJ(k, v);
 				if (hopcnt[v] != INFINITY)
 					ROUTE(k, v) = v;
 			}
