@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.2 1998/08/19 04:16:14 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.3 1998/08/20 01:27:57 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -150,6 +150,8 @@ const int HTTP_JOIN		= 4;
 const int HTTP_LEAVE		= 5;
 const int HTTP_PUSH		= 6; // Selectively pushed pages (v2)
 
+const int HTTPDATA_COST		= 8;
+
 // User-level packets
 class HttpData {
 private:
@@ -175,6 +177,8 @@ public:
 	inline int& type() { return type_; }
 	inline int& id() { return id_; }
 	virtual int size() { return sizeof(hdr); }
+	virtual int cost() { return HTTPDATA_COST; }
+
 	// Pack type and id into buf, and return a pointer to next 
 	// available area
 	virtual int hdrlen() { return sizeof(hdr); }
@@ -230,9 +234,11 @@ public:
 		delete []inv_rec_;
 	}
 
-	virtual int size() { 
-		return (num_inv_*HTTPHBDATA_COST + sizeof(hdr));
+	virtual int size() {
+		return (num_inv_*sizeof(InvalRec) + sizeof(hdr));
 	}
+	// XXX byte cost to appear in trace file
+	virtual int cost() { return (num_inv_*HTTPHBDATA_COST); }
 	virtual int hdrlen() { return sizeof(hdr); }
 	virtual void pack(char *buf) {
 		HttpData::pack(buf);
@@ -249,8 +255,6 @@ public:
 	inline double& rec_mtime(int i) { return inv_rec()[i].mtime_; }
 	void extract(InvalidationRec*& ivlist);
 };
-
-const int HTTPUPD_COST = 40;
 
 class HttpUpdateData : public HttpData {
 protected:
@@ -293,8 +297,9 @@ public:
 	}
 
 	virtual int size() { 
-		return sizeof(hdr) + num_*HTTPUPD_COST; 
+		return sizeof(hdr) + num_*sizeof(PageRec); 
 	}
+	virtual int cost() { return pgsize_; }
 	virtual int hdrlen() { return sizeof(hdr); }
 	virtual void pack(char *buf) {
 		HttpData::pack(buf);
@@ -343,8 +348,9 @@ public:
 	}
 
 	virtual int size() { 
-		return sizeof(hdr) + num_*HTTPLEAVE_COST;
+		return sizeof(hdr) + num_*sizeof(int);
 	}
+	virtual int cost() { return num_*HTTPLEAVE_COST; }
 	virtual int hdrlen() { return sizeof(hdr); }
 	virtual void pack(char* buf) {
 		HttpData::pack(buf);

@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.2 1998/08/19 17:08:41 heideman Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.3 1998/08/20 01:27:58 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -216,8 +216,8 @@ int HttpApp::command(int argc, const char*const* argv)
 			log_ = Tcl_GetChannel(tcl.interp(), 
 					      (char*)argv[2], &mode);
 			if (log_ == 0) {
-				tcl.resultf("%s: invalid log file handle %d\n",
-					    argv[2]);
+				tcl.resultf("%d: invalid log file handle %s\n",
+					    id_, argv[2]);
 				return TCL_ERROR;
 			}
 			return TCL_OK;
@@ -438,7 +438,7 @@ int HttpYucInvalServer::command(int argc, const char*const* argv)
  HTTP_HBEXPIRE_COUNT*hb_interval_)) {
 			// If mandatory push timer expires, stop push
 				pg->clear_mpush();
-				fprintf(stderr, "server %d timeout mpush\n", id_);
+			fprintf(stderr, "server %d timeout mpush\n", id_);
 			}
 			tcl.resultf("%d", (enable_upd_ && 
 					   (pg->counter() >= push_thresh_) ||
@@ -1022,8 +1022,7 @@ void HttpMInvalCache::send_leave(HttpLeaveData *d)
 {
 	char *tmp = new char[d->size()];
 	d->pack(tmp);
-	// XXX send at least 1 byte
-	send_hb_helper(d->size()-d->hdrlen()+1, d->size(), tmp);
+	send_hb_helper(d->cost(), d->size(), tmp);
 	delete []tmp;
 }
 
@@ -1227,8 +1226,7 @@ void HttpMInvalCache::send_heartbeat()
 	HttpHbData* d = pack_heartbeat();
 	char *tmp = new char[d->size()];
 	d->pack(tmp);
-	// XXX Send at least 1 byte
-	send_hb_helper(d->size()-d->hdrlen()+1, d->size(), (const char *)tmp);
+	send_hb_helper(d->cost(), d->size(), (const char *)tmp);
 	delete []tmp;
 	delete d;
 }
