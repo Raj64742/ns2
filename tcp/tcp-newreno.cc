@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.6 1997/03/29 01:43:06 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.7 1997/05/21 21:42:41 tomh Exp $ (LBL)";
 #endif
 
 //
@@ -43,6 +43,10 @@ class NewRenoTcpAgent : public TcpAgent {
 	virtual void timeout(int tno);
  protected:
 	u_int dupwnd_;
+	int newreno_changes_;	/* 0 for fixing unnecessary fast retransmits */
+					/* 1 for additional code from Allman, */
+					/* to implement other algorithms from */
+					/* Hoe's paper */
 	void partialnewack(Packet *pkt);
 };
 
@@ -67,8 +71,9 @@ int NewRenoTcpAgent::window()
         return (win);
 }
 
-NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0)
+NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0), newreno_changes_(0)
 {
+	bind("newreno_changes_", &newreno_changes_);
 }
 
 /* 
@@ -97,6 +102,28 @@ void NewRenoTcpAgent::recv(Packet *pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+
+	static int acked = 0;
+	int new_ssthresh;
+	static double ack2, ack3, basertt;
+
+	/* Use first packet to calculate the RTT  --contributed by Allman */
+
+	if (++acked == 1) 
+		basertt = Scheduler::instance().clock() - firstsent_;
+
+	/* Estimate ssthresh based on the calculated RTT and the estimated
+		bandwidth (using ACKs 2 and 3).  */
+
+	else if (acked == 2)
+		ack2 = Scheduler::instance().clock();
+	else if (acked == 3) {
+		ack3 = Scheduler::instance().clock();
+		new_ssthresh = int((basertt * (size_ / (ack3 - ack2))) / size_);
+		if (newreno_changes_ > 0 && new_ssthresh < ssthresh_)
+			ssthresh_ = new_ssthresh;
+	}
+
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		fprintf(stderr,
@@ -139,8 +166,16 @@ void NewRenoTcpAgent::recv(Packet *pkt)
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
 			dupwnd_ = NUMDUPACKS;
-		} else if (dupacks_ > NUMDUPACKS)
+		} else if (dupacks_ > NUMDUPACKS) {
 			++dupwnd_;
+			/* For every two duplicate ACKs we receive (in the
+			 * "fast retransmit phase"), send one entirely new
+			 * data packet "to keep the flywheel going".  --Allman
+			 */
+			if (newreno_changes_ > 0 && (dupacks_ % 2) == 1)
+				output (t_seqno_++,0);
+
+		}
 	}
 	Packet::free(pkt);
 #ifdef notyet
@@ -157,7 +192,7 @@ void NewRenoTcpAgent::recv(Packet *pkt)
                  *   window of data on exiting Fast Recovery.
                  */
 		send(0, 0, maxburst_);
-	else if (dupacks_ > NUMDUPACKS - 1)
+	else if (dupacks_ > NUMDUPACKS - 1 && newreno_changes_ == 0)
 		send(0, 0, 2);
 }
 

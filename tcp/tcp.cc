@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.15 1997/05/21 00:14:51 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.16 1997/05/21 21:42:18 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -248,6 +248,11 @@ void TcpAgent::send(int force, int reason, int maxburst)
 
 	if (!force && pending_[TCP_TIMER_DELSND])
 		return;
+
+	/* Save time when first packet was sent, for newreno  --Allman */
+	if (t_seqno_ == 0)
+		firstsent_ = Scheduler::instance().clock();
+
 	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
 		if (overhead_ == 0 || force) {
 			output(t_seqno_++, reason);

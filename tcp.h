@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4 1997/03/29 01:43:10 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.5 1997/05/21 21:41:59 tomh Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -164,6 +164,7 @@ protected:
 				/* 2 for timeout */
 				/* 3 for source quench */
 	double cwnd_;		/* current window */
+	double base_cwnd_;	/* base window (for experimental purposes) */
 	double awnd_;		/* averaged window */
 	int ssthresh_;		/* slow start threshold */
 	int count_;		/* used in window increment algorithms */
@@ -173,7 +174,7 @@ protected:
 	int maxseq_;		/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
-
+	double firstsent_;  /* When first packet was sent  --Allman */
 	int off_ip_;
 	int off_tcp_;
 };
