@@ -1,5 +1,5 @@
 #
-# Copyright (c) @ Regents of the University of California.
+# Copyright (c) 1997 Regents of the University of California.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-nam.tcl,v 1.2 1997/01/01 00:13:36 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-nam.tcl,v 1.3 1997/07/24 21:18:58 heideman Exp $
 #
 Class NamSimulator -superclass Simulator
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) @ Regents of the University of California.
+# Copyright (c) 1997 Regents of the University of California.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.2 1997/06/22 19:06:19 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.3 1997/07/24 21:19:03 heideman Exp $
 #
 
 Class Session/RTP/Scuba -superclass Session/RTP

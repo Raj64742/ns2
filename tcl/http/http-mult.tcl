@@ -30,7 +30,8 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# This file contributed by Curtis Villamizar <curtis@ans.net>, May 1997.
+# This file was contributed by Curtis Villamizar <curtis@ans.net>, May 1997.
+# Maintainer: John Heidemann <johnh@isi.edu>.
 #
 
 #
