@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.11 1998/08/22 02:41:14 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.12 1998/10/05 17:43:47 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -195,7 +195,7 @@ class SnoopRxmitHandler : public Handler {
 class SnoopPersistHandler : public Handler {
   public:
 	SnoopPersistHandler(Snoop *s) : snoop_(s) {}
-	void handle(Event *);
+	//void handle(Event *);
   protected:
 	Snoop *snoop_;
 };

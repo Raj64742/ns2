@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.2 1998/08/22 02:41:36 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.3 1998/10/05 17:43:44 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -246,18 +246,19 @@ protected:
 // What if simulated response time
 // is longer and a real client request for the same page happened before the 
 // simulated request completes? 
-class ClientTracePagePool : public TracePagePool {
-public:
-	ClientTracePagePool(const char *fn);
-	virtual ~ClientTracePagePool();
-	virtual int command(int argc, const char*const* argv);
 
-protected:
-	struct Page {
-	};
-	// How would we handle different types of page modifications? How 
-	// to integrate bimodal, and multi-modal distributions?
-	virtual Page* load_page(FILE *fp);
-};
+// class ClientTracePagePool : public TracePagePool {
+// public:
+// 	ClientTracePagePool(const char *fn);
+// 	virtual ~ClientTracePagePool();
+// 	virtual int command(int argc, const char*const* argv);
+
+// protected:
+// 	struct Page {
+// 	};
+// 	// How would we handle different types of page modifications? How 
+// 	// to integrate bimodal, and multi-modal distributions?
+// 	virtual Page* load_page(FILE *fp);
+// };
 
 #endif //ns_pagepool_h
