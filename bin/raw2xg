@@ -18,6 +18,7 @@ options:
     -t TITLE    title of test
     -e		plot ecn flags
     -d		plot only drops and ECN marks
+    -v          plot events
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
@@ -27,10 +28,11 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('aeds:m:n:qlt:') || usage;
+&Getopts('aeds:m:n:qlvt:') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
+@vto = @vss = @vfr = @vrfr = @vfc = ();
 %q_time_seg = ();
 $scale = defined($opt_s) ? $opt_s : 1;
 $modulus = defined($opt_m) ? $opt_m : 2 ** 31;
@@ -38,6 +40,7 @@ $flow_factor = defined($opt_n) ? $opt_n : 1;
 $plot_acks = defined($opt_a);
 $plot_ecn = defined($opt_e);
 $plot_drops = defined($opt_d);
+$plot_event = defined($opt_v);
 
 $file = $acks = '';
 
@@ -105,6 +108,31 @@ while (<>) {
     };
     /link-down/ &&	(push(@ld, $F[1]), next);
     /link-up/ &&	(push(@lu, $F[1]), next);
+    if ($plot_event) {
+	/^E / && do {
+	    ($x, $y) = translate_point(@F[1, 7, 6]);
+	    if ($F[5] eq 'TCP_TIMEOUT') {
+		push(@vto, "$x $y\n");
+		next;
+	    }
+	    if ($F[5] eq 'SLOW_START') {
+		push(@vss, "$x $y\n");
+		next;
+	    }
+	    if ($F[5] eq 'FAST_RETX') {
+		push(@vfr, "$x $y\n");
+		next;
+	    }
+	    if ($F[5] eq 'RENO_FAST_RETX') {
+		push(@vrfr, "$x $y\n");
+		next;
+	    }
+	    if ($F[5] eq 'FAST_RECOVERY') {
+		push(@vfc, "$x $y\n");
+		next;
+	    }
+	};
+    }
 }	
 
 if ($file eq '') {
@@ -117,12 +145,30 @@ print "TitleText: $title\n" .
     "BoundBox: true\n" .
     "Ticks: true\n" .
     (defined($opt_q) ? "" : "NoLines: true\n") .
+
     "Markers: true\n" .
     "XUnitText: time\n" .
     "YUnitText: packets\n";
 
 @sorted_p = sort (@p);
 print "\n\"packets\n", @p;
+
+
+if ($plot_event) {
+# Event tracing
+    print "\n\"events\n";
+    @sorted_vto = sort (@vto);
+    print "\n\"event_timeout\n", @vto[0..3], @sorted_vto;
+    @sorted_vss = sort (@vss);
+    print "\n\"event_slowstart\n", @vss[0..3], @sorted_vss;
+    @sorted_vfr = sort (@vfr);
+    print "\n\"event_fastretx\n", @vfr[0..3], @sorted_vfr;
+    @sorted_vrfr = sort (@vrfr);
+    print "\n\"event_renofastretx\n", @vrfr[0..3], @sorted_vrfr;
+    @sorted_vfc = sort (@vfc);
+    print "\n\"event_fastrecovery\n", @vfc[0..3], @sorted_vfc;
+}
+
 if (defined($pc[0])) {
     @sorted_pc = sort (@pc);
     print "\n\"ecn_packets\n", @pc[0..3], @sorted_pc;
@@ -155,6 +201,8 @@ if ($plot_acks) {
 #
 @sorted_d = sort (@d);
 print "\n\"drops\n", @d[0..3], @sorted_d;
+
+
 
 
 $c++;

@@ -15,17 +15,20 @@ options:
 	-b		bi-directional, i.e. gather lines 
 	-d node2	specify destination
 	-f flowid	specify flow id
+	-e              get event-trace
 ENDUSAGE
 }
 
-$usage = "usage: $progname [-b] [-o outfile] -s node1 [-d node2] [-f flowid] [trace files...]\n";
+$usage = "usage: $progname [-b] [-e] [-o outfile] -s node1 [-d node2] [-f flowid] [trace files...]\n";
 
 $opt_s = -1;
 $opt_d = -1;
 $opt_b = 0;
 $opt_f = -1;
+$opt_e = 0;
+
 require 'getopts.pl';
-(&Getopts('bo:s:d:f:') && $opt_s != -1) || usage;
+(&Getopts('bo:s:d:ef:') && $opt_s != -1) || usage;
 
 open(STDOUT, ">$opt_o") if ($opt_o);
 while (<>) {
@@ -34,6 +37,7 @@ while (<>) {
 	next;
     };
     @F = split;
+    
     if ($F[2] == $opt_s) {				# if src matches
 	if (($opt_f != -1) && $F[7] != $opt_f) {
 		next;
@@ -48,6 +52,12 @@ while (<>) {
 	print $_ unless (($opt_d != -1) && $F[2] != $opt_d);	# prt unless dst & !mch sfld
 	next;
     }
+    if ($opt_e) {
+	print $_ unless !($F[0] eq 'E');
+	next;
+    }
+    
 }
 close(STDOUT);
 exit;
+

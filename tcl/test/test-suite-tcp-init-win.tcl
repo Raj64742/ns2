@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.16 2001/05/27 02:14:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.17 2001/05/29 22:45:34 haldar Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -107,11 +107,11 @@ Topology/net8 instproc init ns {
     
 TestSuite instproc finish file {
 	global quiet PERL plotacks
-        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+        exec $PERL ../../bin/getrc -e -s 2 -d 3 all.tr | \
+          $PERL ../../bin/raw2xg -v -s 0.01 -m 90 -t $file > temp.rands
         if {$plotacks == "true"} {
-	  exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
-	    $PERL ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp1.rands
+	  exec $PERL ../../bin/getrc -e -s 3 -d 2 all.tr | \
+	    $PERL ../../bin/raw2xg -v -a -e -s 0.01 -m 90 -t $file > temp1.rands
 	}
 	if {$quiet == "false"} {
 		if {$plotacks == "false"} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.4 2001/01/11 06:34:40 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.5 2001/05/29 22:45:34 haldar Exp $
 #
 
 Object instproc exit args {
@@ -42,7 +42,7 @@ Object instproc exit args {
 Class TestSuite
 
 TestSuite instproc init { {dotrace 1} } {
-	global quiet
+	global quiet argv0
 	$self instvar ns_ test_ node_ testName_ 
 	$self instvar allchan_ namchan_
 	if [catch "$self get-simulator" ns_] {
@@ -54,6 +54,11 @@ TestSuite instproc init { {dotrace 1} } {
 		set namchan_ [open all.nam w]
 		if {$quiet == "false"} {
                 	$ns_ namtrace-all $namchan_
+		}
+		## for now, till all tcp-test-suites get converted
+		#$ns_ eventtrace-all
+		if {[regexp {tcp-init-win} $argv0]} {
+			$ns_ eventtrace-all
 		}
 	}
 	set testName_ "$test_"
