@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.40 1998/10/28 19:26:49 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.41 1999/03/02 20:22:00 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -141,12 +141,6 @@ Link instproc all-connectors op {
 			}
 		}
 	}
-}
-
-Link instproc install-error {em} {
-	$self instvar link_
-	$em target [$link_ target]
-	$link_ target $em
 }
 
 Class SimpleLink -superclass Link
@@ -464,8 +458,12 @@ SimpleLink instproc dynamic {} {
 # insert an "error module" after the queue
 # point the em's drop-target to the drophead
 #
+# Must be inserted *RIGHT AFTER* the deqT_ (if present) or queue_, because
+# nam can only visualize a packet drop if and only if it is on the link or 
+# in the queue
+#
 SimpleLink instproc errormodule args {
-	$self instvar errmodule_ queue_ drophead_
+	$self instvar errmodule_ queue_ drophead_ deqT_ 
 	if { $args == "" } {
 		return $errmodule_
 	}
@@ -473,7 +471,20 @@ SimpleLink instproc errormodule args {
 	set em [lindex $args 0]
 	set errmodule_ $em
 
-	$self add-to-head $em
+	#$self add-to-head $em
+        if [info exists deqT_] {
+                $em target [$deqT_ target]
+                $deqT_ target $em
+        } else {
+                $em target [$queue_ target]
+                $queue_ target $em
+        }
 
 	$em drop-target $drophead_
+}
+
+# Simply to provide backward compatibility
+SimpleLink instproc install-error {em} {
+	puts "Obsolete interface. Please use errormodule{}"
+	$self errormodule $em
 }

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.139 1999/02/26 23:06:34 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.140 1999/03/02 20:22:00 haoboy Exp $
 
 #
 
@@ -1049,11 +1049,7 @@ Simulator instproc attach-fmon {lnk fm { edrop 0 } } {
 ### to insert loss module to regular links in detailed Simulator
 Simulator instproc lossmodel {lossobj from to} {
 	set link [$self link $from $to]
-	set head [$link head]
-	# puts "[[$head target] info class]"
-	$lossobj target [$head target]
-	$head target $lossobj
-	# puts "[[$head target] info class]"
+	$link errormodule $lossobj
 }
 
 Simulator instproc bw_parse { bspec } {
