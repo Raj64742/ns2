@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.338 1999/06/12 00:03:23 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.339 1999/06/22 01:24:29 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,19 @@
 
 
 <ul>
+	<LI><B><A HREF="http://www.cs.berkeley.edu/~tomh/">[tomh]</A></B>
+	  <b>Mon Jun 21 11:30:50 PDT 1999</b><br>
+	  Added support for geostationary and LEO satellite constellations.
+          This required minor changes to a number of existing files 
+	  (Makefile.in, channel.h, mac.cc, net-interface.cc, node.h, node.cc, 
+	  object.h, packet.h, phy.h, phy.cc, route.h, route.cc, trace.h,
+	  tcl/lib/ns-lib.tcl, tcl/lib/ns-node.tcl), and the addition of
+	  several new files (net-interface.h, sat.h, sathandoff.h, 
+	  sathandoff.cc, satnode.h, satnode.cc, satposition.h, 
+	  satposition.cc, satroute.h, satroute.cc, sattrace.h, sattrace.cc, 
+	  tcl/lib/ns-sat.tcl).
+
+  	 <p>
 	<LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
 	  <b>Fri Jun 11 17:01:50 PDT 1999</b><br>
           Added "gentle" option to RED, to increase the packet drop rate
