@@ -159,7 +159,7 @@ void GAFAgent::processDiscoveryMsg(Packet* p)
         gid_  = God::instance()->getMyGrid(x,y);
 	
 	// If the msg is not from my grid, ignore it
-	if (gid_ != emsg.gid) return;
+	if (((u_int32_t)gid_) != (u_int32_t)emsg.gid) return;
 
 
 	switch (emsg.state) {
@@ -173,16 +173,16 @@ void GAFAgent::processDiscoveryMsg(Packet* p)
 	  switch (state_) {
 	  case GAF_LEADER:
 
-	    ttl = leader_settime_ - NOW;
+	    ttl = (int)(leader_settime_ - NOW);
 	    if (ttl < 0) ttl = 0;
 
-    	    if ( ttl > emsg.ttl) {
+    	    if ( ((u_int32_t)ttl) > (u_int32_t) emsg.ttl) {
     	          //supress the partner
     	          send_discovery();
    		  return; 
     	    
 	    } else {
-    	          if (ttl == emsg.ttl && nid_ < emsg.nid) {
+    	          if (((u_int32_t)ttl) == emsg.ttl && (u_int32_t)nid_ < emsg.nid) {
     	              send_discovery();
     		      return;
 		  }
@@ -208,16 +208,16 @@ void GAFAgent::processDiscoveryMsg(Packet* p)
 	  break;
 	case GAF_FREE:
 	  if (state_ == GAF_FREE) {
-	      if ((ttl = myttl()) > MIN_LIFETIME) {
+	      if ((ttl = (int)myttl()) > MIN_LIFETIME) {
     	         ttl = ttl/2;
     	      }
     
-    	      if ( ttl > emsg.ttl) {
+    	      if ( ttl > (int)emsg.ttl) {
     	          //supress other node
     	          send_discovery();
    		  return; 
     	      } else {
-    	          if (ttl == emsg.ttl && nid_ < emsg.nid) {
+    	          if ((u_int32_t)ttl == emsg.ttl && (u_int32_t)nid_ < emsg.nid) {
     	              send_discovery();
     		      return;
     	          }
@@ -299,7 +299,7 @@ void GAFAgent::timeout(GafMsgType msgt)
                 ttl = (int) ttl/2;
         }
         
-	leader_settime_ = ttl + NOW;  
+	leader_settime_ = (int) (ttl + NOW);  
 
 	// schdule to tell me that I can switch after ttl
 
@@ -485,7 +485,7 @@ GAFAgent::makeUpDiscoveryMsg(Packet *p)
 
   if (state_ == GAF_LEADER) {
       // must send real msg because I am the leader
-	ttl = leader_settime_ - NOW;
+	ttl = (int)(leader_settime_ - NOW);
 	if (ttl < 0) ttl = 0;
 
   } else {
@@ -601,7 +601,7 @@ void GAFPartner::recv(Packet* p, Handler *h)
 	/* own ip address */	
 	if ( hdrc->ptype() == PT_GAF ) {
 	  if (gafagent_ == 1) {
-	    if (hdr->daddr() == IP_BROADCAST) {
+	    if (((u_int32_t)hdr->daddr()) == IP_BROADCAST) {
 		hdr->daddr() = here_.addr_;
 	    }	    
 	  } else {
