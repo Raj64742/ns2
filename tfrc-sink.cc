@@ -216,7 +216,7 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 		lossvec_[seqno%hsz] = RCVD;
 		i = maxseq+1 ;
 		if (i < seqno) {
-			double delta = (tsvec_[seqno]-tsvec_[maxseq%hsz])/(seqno-maxseq) ; 
+			double delta = (tsvec_[seqno%hsz]-tsvec_[maxseq%hsz])/(seqno-maxseq) ; 
 			double tstamp = tsvec_[maxseq%hsz]+delta ;
 			//double delta = 0 ;
 			//double tstamp = last_timestamp_ ;
