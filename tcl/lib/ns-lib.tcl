@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.111 1998/07/06 23:55:49 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112 1998/07/10 23:21:38 haldar Exp $
 
 #
 
@@ -163,7 +163,7 @@ Simulator instproc dumper obj {
 # no shape OR color parameter is given
 Simulator instproc node args {
 	$self instvar Node_
-	set node [new [Simulator set node_factory_]]
+	set node [new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
 	if [Simulator set EnableMcast_] {
 		$node enable-mcast $self
