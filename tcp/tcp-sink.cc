@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.21 1998/05/02 01:40:53 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.22 1998/05/21 00:35:01 sfloyd Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -46,7 +46,7 @@ public:
 	}
 } class_tcpsink;
 
-Acker::Acker() : next_(0), maxseen_(0), ts_to_echo_(0)
+Acker::Acker() : next_(0), maxseen_(0), ts_to_echo_(0), ecn_unacked_(0)
 {
 	memset(seen_, 0, sizeof(seen_));
 }
@@ -107,6 +107,11 @@ void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
 {
 }
 
+void Acker::update_ecn_unacked(int value)
+{
+	ecn_unacked_ = value;
+}
+
 void TcpSink::reset() 
 {
 	acker_->reset();	
@@ -133,8 +138,13 @@ void TcpSink::ack(Packet* opkt)
 
 	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
 	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
-	nf->ecnecho() = of->ce();
-
+	if (of->cong_action())
+		/* Sender has responded to congestion. */
+		acker_->update_ecn_unacked(0);
+	if (of->ce() && of->ect())
+		/* New report of congestion. */
+		acker_->update_ecn_unacked(1);
+ 	nf->ecnecho() = acker_->ecn_unacked();
 	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
 			   ntcp, otcp->seqno());
 	add_to_ack(npkt);

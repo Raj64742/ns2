@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.70 1998/05/20 22:06:32 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.71 1998/05/21 00:35:00 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -65,7 +65,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
 	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(1),
 	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this),
-	count_(0), fcnt_(0)
+	count_(0), fcnt_(0), cong_action_(0)
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
 	bind("window_", &wnd_);
@@ -313,14 +313,18 @@ void TcpAgent::output(int seqno, int reason)
 	int force_set_rtx_timer = 0;
 	Packet* p = allocpkt();
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
 	if (ecn_) {
-		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 		hf->ect() = 1;	// ECN-capable transport
 	}
+	if (cong_action_) {
+		hf->cong_action() = TRUE;  // Congestion action.
+		cong_action_ = FALSE;
+        }
 	/* Check if this is the initial SYN packet. */
 	if (syn_ && (seqno == 0)) 
 		((hdr_cmn*)p->access(off_cmn_))->size() = tcpip_base_hdr_size_;
@@ -595,6 +599,8 @@ TcpAgent::slowdown(int how)
 		cwnd_ = int(wnd_init_);
 	else if (how & CLOSE_CWND_ONE)
 		cwnd_ = 1;
+	if (how & (CLOSE_CWND_HALF|CLOSE_CWND_RESTART|CLOSE_CWND_INIT|CLOSE_CWND_ONE))
+		cong_action_ = TRUE;
 
 	fcnt_ = count_ = 0;
 }
@@ -650,7 +656,7 @@ void TcpAgent::newack(Packet* pkt)
  */
 void TcpAgent::ecn(int seqno)
 {
-	if (highest_ack_ >= recover_ || 
+	if (seqno > recover_ || 
 	      last_cwnd_action_ == CWND_ACTION_TIMEOUT) {
 		recover_ =  maxseq_;
 		last_cwnd_action_ = CWND_ACTION_ECN;
@@ -661,9 +667,17 @@ void TcpAgent::ecn(int seqno)
 void TcpAgent::recv_newack_helper(Packet *pkt) {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newack(pkt);
-	if ( !((hdr_flags*)pkt->access(off_flags_))->ecnecho() || !ecn_ ) {
+	if (ecn_ && !ecn_burst_ &&
+             ((hdr_flags*)pkt->access(off_flags_))->ecnecho())
+		ecn_burst_ = TRUE;
+        else {
+		/* This is not the first ACK carrying ECN-Echo
+		 * after a period of ACKs without ECN-Echo.
+		 * Therefore, open the congestion window. */
 	        opencwnd();
 	}
+	if (ecn_burst_ && !((hdr_flags*)pkt->access(off_flags_))->ecnecho())
+		ecn_burst_ = FALSE;
 	/* if the connection is done, call finish() */
 	if ((highest_ack_ >= curseq_-1) && !closed_) {
 		closed_ = 1;
