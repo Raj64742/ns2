@@ -21,8 +21,6 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind("SampleSizeMult_", &SampleSizeMult_);
 	bind("MinNumLoss_", &MinNumLoss_);
 	bind("InitHistorySize_", &InitHistorySize_);
-	bind("HysterisisLower_", &HysterisisLower_);
-	bind("HysterisisUpper_", &HysterisisUpper_);
 	bind("bval_", &bval_);
 	bind("NumFeedback_", &NumFeedback_);
 
