@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.h,v 1.2 2001/12/20 18:18:44 haldar Exp $ (ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.h,v 1.3 2002/09/23 23:25:05 alefiyah Exp $ (ISI)
  */
 
 #ifndef tcptap_h
@@ -50,10 +50,10 @@
 #define DEFAULT_ADV_WINDOW    65535 /* Large enough so that min(cong, adv 
 					window) is cong */
 #define DEFAULT_EXT_PORT       8192
-#define DEFAULT_EXT_ADDR "128.9.160.95"
+#define DEFAULT_EXT_ADDR "192.168.123.116"
 
 #define DEFAULT_NS_PORT        16384
-#define DEFAULT_NS_ADDR   "10.0.0.1"
+#define DEFAULT_NS_ADDR   "192.168.123.253"
 
 
 #define TCPIP_BASE_PKTSIZE      40      /* base TCP/IP header in real life */
@@ -93,10 +93,12 @@ class TCPTapAgent : public TapAgent {
   void tcp_gen(char *, unsigned short, unsigned short, Packet *);
   void recvpkt();
   int sendpkt(Packet*);
+  void processpkt(Packet *, const struct timeval &);
   
  public:
   TCPTapAgent();
   int command(int, const char*const*);
+  static void pkt_handler(void *, Packet *, const struct timeval &);
 
 };
 
