@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.97 1997/06/28 03:25:57 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.98 1997/07/03 03:45:42 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,23 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</A>
 [PENDING RELEASE DATE]</H3>
 <ul>
+  <li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a>
+       Wed Jul  2 20:37:33 PDT 1997</b><br>
+     Add the "flowmon" module and update supporting scripts in tcl/rtmechanisms.
+     This module is able to keep per-flow state.  A flow is defined by
+     creating a classifier (typically of the classifier-hash variety) and
+     giving it to the flowmon.  Examples are to be found in the rtmechanisms
+     directory.  Files affected:<ul>
+        <li>flowmon.cc              -> new functionality
+        <li>tcl/lib/ns-default.tcl  -> defaults for Flow and Flowmon
+        <li>tcl/lib/ns-queue.tcl    -> rework the way CBQ handles drops
+        <li>tcl/lib/ns-lib.tcl      -> add hack to allow specification of a
+                                   classifier object with a CBQ or CBQ/WRR
+                                   queue type when creating a "simplex-link"
+        <li>Makefile.in		    -> include flowmon.o
+	<li>FILES		    -> add flowmon.cc + rtm stuff
+	</ul>
+
   <li><b><a href="http://www-scf.usc.edu/~bhuang/">[PH]</a>
        Fri Jun 27 20:13:23 PDT 1997</b><br>
        <ul>
