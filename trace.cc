@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.30 1998/04/17 22:44:01 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.31 1998/04/17 23:04:15 haldar Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -402,7 +402,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
 		
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
+			"%c -t %.17g -s %s -d %s -p %s -e %d -c %d -i %d -a %d",
 			'h',
 			Scheduler::instance().clock(),
 			// src_,
