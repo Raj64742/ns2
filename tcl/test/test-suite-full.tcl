@@ -73,7 +73,8 @@ TestSuite instproc finish testname {
 	$ns_ halt
 
 	set fname [pid]
-	set tmpnam /tmp/$fname
+	## set tmpnam /tmp/$fname
+	set tmpnam $fname
 	exec ../../bin/getrc -s 2 -f 0 out.tr > $tmpnam
 
 	set outtype text
