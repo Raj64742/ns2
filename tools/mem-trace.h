@@ -22,7 +22,9 @@
 #include "config.h"
 #include <stdio.h>
 #include <sys/time.h>
+#ifdef WIN32
 #include <sys/resource.h>
+#endif /* WIN32 */
 #include <unistd.h>
 
 
@@ -30,44 +32,49 @@
 #define absolute(var) (var > 0 ? var : -var)
 #define normalize(var) var.tv_sec * 1000 + (int) (var.tv_usec / 1000)
 
-struct MemInfo {
-	long stack;
-	long heap;
-	struct rusage time;
+class MemInfo {
+public:
+	MemInfo() {}
+	long stack_;
+	long heap_;
+	struct timeval utime_, stime_;
+
+	checkpoint() {
+		int i;
+		stack_ = (long)&i;
+
+#ifdef WIN32
+		heap_ = 0;
+		utime_.tv_sec = utime_.tv_usec = 0;
+		stime_.tv_sec = stime_.tv_usec = 0;
+#else /* ! WIN32 */
+		heap_ = (long)sbrk(0);
+
+		struct rusage ru;
+		getrusage(RUSAGE_SELF, &ru);
+		utime_ = ru.ru_utime;
+		stime_ = ru.ru_stime;
+#endif /* WIN32 */
+	};
 };
 
-void *cur_stack(struct MemInfo *meminfo)
-{
-	int i;
-	meminfo->stack = (long)&i;
-}
-
-void *cur_heap(struct MemInfo *meminfo)
-{
-	meminfo->heap = (long)sbrk(0);
-}
 
 class MemTrace {
+private:
+	MemInfo start_, now_;
+
 public:
 	MemTrace() {
-		(void) cur_stack(&start_);
-		(void) cur_heap(&start_);
-		(void) getrusage(RUSAGE_SELF, &(start_.time));
+		start_.checkpoint();
 	}
 	void diff(char* prompt) {
-		(void) cur_stack(&now_);
-		(void) cur_heap(&now_);
-		(void) getrusage(RUSAGE_SELF, &(now_.time));
-	fprintf (stdout, "%s: utime/stime: %d %d \tstack/heap: %d %d\n",\
-		prompt, \
-	normalize(now_.time.ru_utime) - normalize(start_.time.ru_utime), \
-	normalize(now_.time.ru_stime) - normalize(start_.time.ru_stime), \
-		fDIFF(stack), fDIFF(heap));
-		(void) cur_stack(&start_);
-		(void) cur_heap(&start_);
-		(void) getrusage(RUSAGE_SELF, &(start_.time));
+		now_.checkpoint();
+		fprintf (stdout, "%s: utime/stime: %d %d \tstack/heap: %d %d\n",
+			 prompt, 
+			 normalize(now_.utime_) - normalize(start_.utime_), 
+			 normalize(now_.stime_) - normalize(start_.stime_), 
+			 fDIFF(stack_), fDIFF(heap_));
+		start_.checkpoint();
 	}
-private:
-	struct MemInfo start_, now_;
 };
 
