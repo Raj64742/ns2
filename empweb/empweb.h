@@ -25,19 +25,11 @@
 // noted when applicable.
 //
 //
-<<<<<<< empweb.h
 // Empirical Web traffic model that simulates Web traffic based on a set of
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.8 2001/10/11 19:20:58 kclan Exp $
-=======
-// XXX This has nothing to do with the HttpApp classes. Because we are 
-// only interested in traffic pattern here, we do not want to be bothered 
-// with the burden of transmitting HTTP headers, etc. 
-//
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.8 2001/10/11 19:20:58 kclan Exp $
->>>>>>> 1.7
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.9 2001/10/11 20:01:50 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
