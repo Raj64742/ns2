@@ -163,7 +163,6 @@ create-god $opt(nn)
 #
 for {set i 0} {$i < $opt(nn) } {incr i} {
 	create-mobile-node $i
-
 }
 
 #

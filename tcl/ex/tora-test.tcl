@@ -18,7 +18,7 @@ set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0"		;# scenario file
 #set opt(cp)		"../mobility/scene/cbr-3-test"
 
 set opt(ifqlen)		50		;# max packet in ifq
-set opt(nn)		3		;# number of nodes
+set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		900.0		;# simulation time
 set opt(tr)		out.tr		;# trace file
@@ -149,21 +149,24 @@ set prop	[new $opt(prop)]
 set topo	[new Topography]
 set tracefd	[open $opt(tr) w]
 
-$topo load_flatgrid [expr $opt(x)./100] [expr $opt(y)./100] 100
+#$topo load_flatgrid [expr $opt(x)./100] [expr $opt(y)./100] 100
+
+$topo load_flatgrid $opt(x) $opt(y)
+
+$prop topography $topo
 
 #
 # Create God
 #
 create-god $opt(nn)
 
-
 #
 #  Create the specified number of nodes $opt(nn) and "attach" them
 #  the channel.
 #
+
 for {set i 0} {$i < $opt(nn) } {incr i} {
 	create-mobile-node $i
-
 }
 
 #
