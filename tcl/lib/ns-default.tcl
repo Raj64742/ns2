@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.113 1998/06/18 01:13:31 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.114 1998/06/19 22:17:08 kfall Exp $
 
 
 #
@@ -249,19 +249,12 @@ DelayLink set bandwidth_ 1.5Mb
 DelayLink set delay_ 100ms
 DynamicLink set status_ 1
 
+# these are assigned when created
 Classifier set offset_ 0
 Classifier set shift_ 0
 Classifier set mask_ 0xffffffff
 
-Classifier/Addr set shift_ 12
-Classifier/Addr set mask_ 0xffffffff
-
-Classifier/Flow set shift_ 0
-Classifier/Flow set mask_ 0xffffffff
-
-Classifier/Hash set shift_ 0
-Classifier/Hash set mask_ 0xffffffff
-Classifier/Hash set default_ -1
+Classifier/Hash set default_ -1; # none
 
 Agent/LossMonitor set nlost_ 0
 Agent/LossMonitor set npkts_ 0
