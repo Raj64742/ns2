@@ -98,6 +98,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	double p = -1;
 
 	if (numsamples < 0) {
+		// This is the first packet received.
 		numsamples = DEFAULT_NUMSAMPLES ;	
 		sample = (int *)malloc((numsamples+1)*sizeof(int));
 		weights = (double *)malloc((numsamples+1)*sizeof(double));
@@ -169,6 +170,7 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 	register int seqno = tfrch->seqno;
 	
 	if (lossvec_ == NULL) {
+		// Initializing history.
 		rtvec_=(double *)malloc(sizeof(double)*hsz);
 		lossvec_=(char *)malloc(sizeof(double)*hsz);
 		if (rtvec_ && lossvec_) {
@@ -193,11 +195,15 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 			rtvec_[i%hsz]=now;	
 			if ((last_timestamp_-lastloss > rtt_) && 
 			    (round_id > lastloss_round_id)) {
+				// Lost packets are marked as "LOST"
+				// at most once per RTT.
 				lossvec_[i%hsz] = LOST;
 				lastloss = tfrch->timestamp;
 				lastloss_round_id = round_id ;
 			}
 			else {
+				// This lost packet is marked "NOLOSS"
+				// because it does not begin a loss event.
 				lossvec_[i%hsz] = NOLOSS; 
 			}
 			i++;
@@ -221,8 +227,7 @@ double TfrcSinkAgent::est_loss ()
 	for (i = last_sample; i <= maxseq ; i ++) {
 		sample[0]++; 
 		if (lossvec_[i%hsz] == LOST) {
-		        //   new loss event
-			//  do we want to do this after the loss event is over?
+		        //  new loss event
 			sample_count ++;
 			shift_array (sample, numsamples+1); 
 			multiply_array(mult, numsamples+1, mult_factor_);
@@ -235,15 +240,14 @@ double TfrcSinkAgent::est_loss ()
 	(sample_count>numsamples+1)?ds=numsamples+1:ds=sample_count ;
 
 	if (sample_count == 1 && false_sample == 0) 
+		// no losses yet
 		return 0; 
-
 	if (sample_count <= numsamples+1 && false_sample > 0) {
 		sample[ds-1] += false_sample;
 		false_sample = 0 ; 
 	}
-
 	/* do we need to discount weights? */
-	if (sample_count > 1 && discount) {
+	if (sample_count > 1 && discount && sample[0] > 0) {
 		double ave = weighted_average(1, ds, 1.0, mult, weights, sample);
 		int factor = 2;
 		double ratio = (factor*ave)/sample[0];
@@ -257,13 +261,12 @@ double TfrcSinkAgent::est_loss ()
 	}
 	// Calculations including the most recent loss interval.
 	ave_interval1 = weighted_average(0, ds, mult_factor_, mult, weights, sample);
-	// Calculations not including the most recent loss interval.
-	ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
 	if (domax) {
 		// The most recent loss interval does not end in a loss
 		// event.  Include the most recent interval in the 
 		// calculations only if this increases the estimated loss
 		// interval.
+		ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
 		if (ave_interval2 > ave_interval1)
 			ave_interval1 = ave_interval2;
 	}
@@ -271,6 +274,7 @@ double TfrcSinkAgent::est_loss ()
 //double now = Scheduler::instance().clock();
 //double drops = 1/ave_interval1;
 //printf ("%7.5f %7.5f\n", now, drops);
+//printf ("%7.5f %5d\n", now, sample[0]);
 		return 1/ave_interval1; 
 	} else return 999;     
 }
@@ -313,10 +317,11 @@ void TfrcSinkAgent::shift_array_new(double *a, int sz, double defval) {
 	a[0] = defval;
 }
 
-// Multiply array by value.
+// Multiply array by value, starting with array index 1.
+// Array index 0 of the unshifted array contains the most recent interval.
 void TfrcSinkAgent::multiply_array(double *a, int sz, double multiplier) {
 	int i ;
-	for (i = sz-1; i >= 0 ; i--) {
+	for (i = 1; i <= sz-1; i++) {
 		double old = a[i];
 		a[i] = old * multiplier ;
 	}
