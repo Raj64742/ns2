@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.10 1998/04/13 17:54:52 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.11 1998/05/07 16:57:40 bajaj Exp $
 #
 
 #Code to generate random numbers here
@@ -86,6 +86,10 @@ RNG instproc normal {a1 a2 } {
                 set z2 [expr $v2*$w]
         }
         expr $a1 + $z1 *$a2
+}
+
+RNG instproc lognormal {med stddev } {
+        expr $med *exp($stddev*[$self normal 0.0 1.0])
 }
 
 RandomVariable instproc test count {
