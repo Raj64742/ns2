@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.53 1998/06/27 01:23:47 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54 1998/07/08 19:14:06 polly Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.53 1998/06/27 01:23:47 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54 1998/07/08 19:14:06 polly Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -617,8 +617,8 @@ int SelectErrorModel::corrupt(Packet* p)
 		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
 		if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ 
 		    == drop_offset_) {
-			printf ("dropping packet type %d, uid %d\n", 
-				ch->ptype(), ch->uid());
+			//printf ("dropping packet type %d, uid %d\n", 
+			//	ch->ptype(), ch->uid());
 			return 1;
 		}
 	}
