@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.15 1998/01/20 03:04:12 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.16 1998/01/22 06:19:30 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -141,7 +141,7 @@ class FullTcpAgent : public TcpAgent {
 	int idle_restart();	// should I restart after idle?
 	void fast_retransmit(int);  // do a fast-retransmit on specified seg
 	inline double now() { return Scheduler::instance().clock(); }
-	void newstate(int ns) { state_ = ns; } // future hook for traces
+	void newstate(int ns); // future hook for traces
 
 	void reset_rtx_timer(int);  // adjust the rtx timer
 	void reset();       		// reset to a known point
