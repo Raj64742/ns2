@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.4 1998/01/08 01:27:28 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.5 1998/01/08 03:04:30 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -73,6 +73,7 @@ extern "C" {
  *	pcap_lookupdev returns a ptr to static data
  *	q: does lookupdev only return devs in the AF_INET addr family?
  *	why does pcap_compile require a netmask? seems odd
+ *	would like some way to tell it what buffer to use
  */
 
 #define	PNET_PSTATE_INACTIVE	0
@@ -92,12 +93,16 @@ protected:
 	void reset();
 	void close();
 
+	int recv(u_char *buf, int len, u_int32_t& fromaddr);	// get from net
+	void send(u_char *buf, int len);			// write to net
+
 	char errbuf_[PCAP_ERRBUF_SIZE];
 	char srcname_[PATH_MAX];		// device of file name
 	int state_;
 	int optimize_;				// bpf optimizer enable
 	pcap_t* pcap_;				// reference to pcap state
 	struct bpf_program bpfpgm_;		// generated program
+	struct pcap_pkthdr pkthdr_;		// pkt hdr to fill in
 
 	unsigned int local_netmask_;	// seems shouldn't be necessary :(
 };
@@ -160,6 +165,7 @@ PcapNetwork::reset()
 	state_ = PNET_PSTATE_INACTIVE;
 	*errbuf_ = '\0';
 	*srcname_ = '\0';
+	Network::reset();
 }
 
 
@@ -190,6 +196,36 @@ PcapNetwork::filter(const char *pgm)
 	return 0;
 }
 
+#ifndef MIN
+#define MIN(x, y) ((x)<(y) ? (x) : (y))
+#endif
+
+/* recv is what others call to grab a packet from the pfilter */
+int
+PcapNetwork::recv(u_char *buf, int len, u_int32_t& fromaddr)
+{
+	if (state_ != PNET_PSTATE_ACTIVE) {
+		fprintf(stderr, "warning: net/pcap obj(%s) read-- not active\n",
+			name());
+		return -1;
+	}
+
+	const u_char *pkt;
+	pkt = pcap_next(pcap_, &pkthdr_);
+	int n = MIN(pkthdr_.caplen, len);
+	memcpy(buf, pkt, n);
+	fromaddr = 0;	// for now
+	return n;
+}
+
+void
+PcapNetwork::send(u_char *buf, int len)
+{
+	if (write(ssock_, buf, len) < 0)
+		perror("write to pcap fd");
+	return;
+}
+
 int PcapNetwork::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
@@ -201,12 +237,12 @@ int PcapNetwork::command(int argc, const char*const* argv)
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "filter") == 0) {
 			if (state_ != PNET_PSTATE_ACTIVE) {
-				tcl.resultf("net/pcap obj(%s): can't install filter prior to opening data source\n",
+				fprintf(stderr, "net/pcap obj(%s): can't install filter prior to opening data source\n",
 					name());
 				return (TCL_ERROR);
 			}
 			if (filter(argv[2]) < 0) {
-				tcl.resultf("problem compiling/installing filter program");
+				fprintf(stderr, "problem compiling/installing filter program\n");
 				return (TCL_ERROR);
 			}
 			tcl.result("1");
@@ -241,6 +277,7 @@ PcapLiveNetwork::open(const char *devname)
 		  name(), errbuf_) ;
 	}
 
+	rsock_ = ssock_ = pcap_fileno(pcap_);	// make Network object happy
 	return 0;
 }
 
@@ -310,6 +347,7 @@ PcapFileNetwork::open(const char *filename)
 	}
 	strncpy(srcname_, filename, sizeof(srcname_)-1);
 	state_ = PNET_PSTATE_ACTIVE;
+	rsock_ = ssock_ = pcap_fileno(pcap_);	// make Network object happy
 	return 0;
 }
 
