@@ -18,8 +18,8 @@
 #
 
 #
-# Maintainer: Ya Xu <yaxu@isi.edu>
-# Version Date: 1998/07/14 21:54:39 $
+# Maintainer: Nader Salehi <salehi@isi.edu>
+# Version Date: 1999/03/16 16:10:50 PST
 #
 #
 
@@ -30,7 +30,7 @@ die() {
 # Get current path
 CUR_PATH=`pwd`
 
-# create tcl8.0 and tk8.0 installation directory
+# create tcl8.0.4 and tk8.0.4 installation directory
 
 if [ ! -d tclbox ]
 then
@@ -42,52 +42,52 @@ then
 mkdir tkbox
 fi
 
-# install and install Tcl8.0
+# install and install Tcl8.0.4
 
-cd ./tcl8.0/unix
+cd ./tcl8.0.4/unix
 
-./configure --prefix="$CUR_PATH/tclbox" || die "tcl8.0 configuration failed! Exiting ..."
-make || die "tcl8.0 make failed! Exiting ..."
-make install || die "tcl8.0 installation failed! Exiting ..."
+./configure --prefix="$CUR_PATH/tclbox" || die "tcl8.0.4 configuration failed! Exiting ..."
+make || die "tcl8.0.4 make failed! Exiting ..."
+make install || die "tcl8.0.4 installation failed! Exiting ..."
 
 cd ../../
 
 # compile and install tk
 
-cd ./tk8.0/unix
+cd ./tk8.0.4/unix
 
-./configure --prefix="$CUR_PATH/tkbox" || die "tk8.0 configuration failed! Exiting ..."
-make || die "tk8.0 make failed! Exiting ..."
-make install || die "tk8.0 installation failed! Exiting ..."
+./configure --prefix="$CUR_PATH/tkbox" || die "tk8.0.4 configuration failed! Exiting ..."
+make || die "tk8.0.4 make failed! Exiting ..."
+make install || die "tk8.0.4 installation failed! Exiting ..."
 
 cd ../../
 
 # do some copy for otcl
 
-cp ./tcl8.0/generic/*.h ./tclbox/include/
-cp ./tk8.0/generic/*.h ./tkbox/include/
+cp ./tcl8.0.4/generic/*.h ./tclbox/include/
+cp ./tk8.0.4/generic/*.h ./tkbox/include/
 
 # compile and install otcl
 
-cd ./otcl 
+cd ./otcl-1.0a4
 
-./configure --with-tcl=../tclbox --with-tk=../tkbox || die "otcl configuration failed! Exiting ..."
+./configure --with-tcl=../tclbox --with-tk=../tkbox || die "otcl-1.0a4 configuration failed! Exiting ..."
 
-make || die "otcl make failed! Exiting ..."
+make || die "otcl-1.0a4 make failed! Exiting ..."
 
-echo "otcl has been installed successfully."
+echo "otcl-1.0a4 has been installed successfully."
 
 cd ../
 
-# compile and install tclcl
+# compile and install tclcl-1.0b8
 
-cd ./tclcl
+cd ./tclcl-1.0b8
 
-./configure --with-otcl=../otcl --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0 --with-tk-ver=8.0 || die "tclcl configuration failed! Exiting ..."
+./configure --with-otcl=../otcl-1.0a4 --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0.4 --with-tk-ver=8.0.4 || die "tclcl-1.0b8 configuration failed! Exiting ..."
 
-make || die "tclcl make failed! Exiting ..."
+make || die "tclcl-1.0b8 make failed! Exiting ..."
 
-echo "tclcl has been installed successfully."
+echo "tclcl-1.0b8 has been installed successfully."
 
 cd ../
 
@@ -165,7 +165,7 @@ cd ..
 # compile and install gt-itm & sgb2ns
 
 ## don't need to do this any longer
-##./tclbox/bin/tclsh8.0 ./bin/gtitm.tcl
+##./tclbox/bin/tclsh8.0.4 ./bin/gtitm.tcl
 
 if [ -f ./gt-itm/lib/libgb.a ]
 then
@@ -199,10 +199,10 @@ export PATH
 #echo $PATH
 
 # John's hack
-rm ./otcl/libotcl.so
+rm ./otcl-1.0a4/libotcl.so
 
-cd ./ns-2
-./configure --with-otcl=../otcl --with-tclcl=../tclcl --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
+cd ./ns-2.1b5
+./configure --with-otcl=../otcl-1.0a4 --with-tclcl=../tclcl-1.0b8 --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
 
 make || die "Ns make failed! Exiting ..."
 
@@ -210,11 +210,26 @@ echo " Ns has been installed successfully."
 
 cd ../
 
+#compile and install zlib
+
+cd ./zlib-1.1.3
+
+./configure --exec-prefix=../ --prefix=../ || die "Zlib-1.1.3 configuration failed! Exiting ..."
+
+if make
+then
+    echo "Zlib has been installed successfully."
+else
+    echo "Zlib make failed! Continue ..."
+fi
+
+cd ../
+
 #compile and install nam
 
-cd ./nam-1
+cd ./nam-1.0a7
 
-./configure --with-otcl=../otcl --with-tclcl=../tclcl --with-tcl=../tclbox --with-tk=../tkbox --with-tcldebug=no --disable-static || die "Nam configuration failed! Exiting ..."
+./configure --with-otcl=../otcl-1.0a4 --with-tclcl=../tclcl-1.0b8 --with-tcl=../tclbox --with-tk=../tkbox --with-tcldebug=no --disable-static || die "Nam configuration failed! Exiting ..."
 
 if make
 then 
@@ -234,11 +249,11 @@ fi
 
 cd bin
 
-ln -s $CUR_PATH/ns-2/ns ns
+ln -s $CUR_PATH/ns-2.1b5/ns ns
 
-if test -x $CUR_PATH/nam-1/nam
+if test -x $CUR_PATH/nam-1.0a7/nam
 then
-    ln -s $CUR_PATH/nam-1/nam nam
+    ln -s $CUR_PATH/nam-1.0a7/nam nam
 else
     echo "Please compile your nam separately."
 fi
@@ -264,15 +279,15 @@ fi
 
 echo "Ns-allinone package has been installed successfully."
 echo "Here are the installation places:"
-echo "ns:	$CUR_PATH/ns-2/ns"
-echo "otcl:	$CUR_PATH/otcl"
-echo "tclcl:	$CUR_PATH/tclcl"
-echo "tcl8.0:	$CUR_PATH/tclbox"
-echo "tk8.0:	$CUR_PATH/tkbox"
+echo "ns:	$CUR_PATH/ns-2.1b5/ns"
+echo "otcl:	$CUR_PATH/otcl-1.0a4"
+echo "tclcl:	$CUR_PATH/tclcl-1.0b8"
+echo "tcl8.0.4:	$CUR_PATH/tclbox"
+echo "tk8.0.4:	$CUR_PATH/tkbox"
 
-if [ -x $CUR_PATH/nam-1/nam ]
+if [ -x $CUR_PATH/nam-1.0a7/nam ]
 then
-echo "nam:	$CUR_PATH/nam-1/nam"
+echo "nam:	$CUR_PATH/nam-1.0a7/nam"
 fi
 
 if [ -x $CUR_PATH/xgraph/xgraph ]
@@ -285,15 +300,15 @@ echo "gt-itm:   $CUR_PATH/itm, edriver, sgb2alt, sgb2ns, sgb2comns, sgb2hierns"
 fi
 
 echo ""
-echo "You can delete $CUR_PATH/tcl8.0 and $CUR_PATH/tk8.0 if "
+echo "You can delete $CUR_PATH/tcl8.0.4 and $CUR_PATH/tk8.0.4 if "
 echo "you want save your disk space"
 
 echo "-----------------------------------------------------"
 echo "Please put $CUR_PATH/bin into your PATH environment."
-echo "Please put $CUR_PATH/otcl into your LD_LIBRARY_PATH environment!"
+echo "Please put $CUR_PATH/otcl-1.0a4 into your LD_LIBRARY_PATH environment!"
 echo ""
 echo "You can run the ns validation suite with"
-echo "cd ns-2; ./validate"
+echo "cd ns-2.1b5; ./validate"
 
 exit 0
 
