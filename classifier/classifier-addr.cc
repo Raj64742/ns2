@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.12 1999/02/04 06:13:20 yaxu Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.13 1999/03/12 23:39:56 salehi Exp $";
 #endif
 
 #include "classifier-addr.h"
@@ -64,7 +64,6 @@ public:
  
 int ReserveAddressClassifier::command(int argc, const char*const* argv)
 {
-        Tcl& tcl = Tcl::instance();
         if (argc == 3 && strcmp(argv[1],"reserve-port") == 0) {
                 reserved_ = atoi(argv[2]);
                 alloc((maxslot_ = reserved_ - 1));
@@ -130,7 +129,6 @@ NsObject* BcastAddressClassifier::find(Packet* p)
  
 int BcastAddressClassifier::command(int argc, const char*const* argv)
 {
-        Tcl& tcl = Tcl::instance();
         if (argc == 3 && strcmp(argv[1],"bcast-receiver") == 0) {
                 bcast_recver_ = (NsObject*)TclObject::lookup(argv[2]);
                 return(TCL_OK);

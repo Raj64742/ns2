@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/traffictrace.cc,v 1.9 1998/10/22 00:10:44 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/traffictrace.cc,v 1.10 1999/03/12 23:39:57 salehi Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -32,7 +32,7 @@ static const char rcsid[] =
 
 // hpux fix from Ketil Danielsen <Ketil.Danielsen@hiMolde.no>
 // get htonl from in.h
-#ifdef hpux
+#if defined(hpux) || defined(sun)
 #include <netinet/in.h>
 #endif
 
