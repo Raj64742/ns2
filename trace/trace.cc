@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.10 1997/03/29 01:43:10 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.11 1997/04/30 18:29:38 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -129,7 +129,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
 	int seqno;
 	/* XXX */
-	if (t == PT_RTP)
+		/* CBR's now have seqno's too */
+	if (t == PT_RTP || t == PT_CBR)
 		seqno = rh->seqno();
 	else if (t == PT_TCP || t == PT_ACK)
 		seqno = tcph->seqno();
@@ -150,7 +151,7 @@ flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
 flags[4] = 0;
 #endif
 
-	sprintf(wrk_, "%c %g %d %d %s %d %s %d %d %d %d %d",
+	sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
 		tt,
 		Scheduler::instance().clock(),
 		s,
@@ -159,8 +160,8 @@ flags[4] = 0;
 		th->size(),
 		flags,
 		iph->flowid() /* was p->class_ */,
-		iph->src(),
-		iph->dst(),
+		iph->src() >> 8, iph->src() & 0xff,	// XXX
+		iph->dst() >> 8, iph->dst() & 0xff,	// XXX
 		seqno,
 		th->uid() /* was p->uid_ */);
 }
