@@ -21,6 +21,7 @@ ENDUSAGE
 $usage = "usage: $progname [-b] [-o outfile] -s node1 [-d node2] [-f flowid] [trace files...]\n";
 
 $opt_s = -1;
+$opt_d = -1;
 $opt_b = 0;
 $opt_f = -1;
 require 'getopts.pl';
@@ -37,14 +38,14 @@ while (<>) {
 	if (($opt_f != -1) && $F[7] != $opt_f) {
 		next;
 	}
-	print $_ unless ($opt_d && $F[3] != $opt_d);	# print unless dst & !match
+	print $_ unless (($opt_d != -1) && $F[3] != $opt_d);	# print unless dst & !match
 	next;
     }
     if ($opt_b && $F[3] == $opt_s) {			# else if bi && dst fld mch
 	if (($opt_f != -1) && $F[7] != $opt_f) {
 		next;
 	}
-	print $_ unless ($opt_d && $F[2] != $opt_d);	# prt unless dst & !mch sfld
+	print $_ unless (($opt_d != -1) && $F[2] != $opt_d);	# prt unless dst & !mch sfld
 	next;
     }
 }
