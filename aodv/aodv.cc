@@ -414,7 +414,7 @@ AODV::rt_down(aodv_rt_entry *rt) {
     return;
   }
 
-  assert (rt->rt_seqno%2); // is the seqno odd?
+  // assert (rt->rt_seqno%2); // is the seqno odd?
   rt->rt_last_hop_count = rt->rt_hops;
   rt->rt_hops = INFINITY2;
   rt->rt_flags = RTF_DOWN;
@@ -553,7 +553,8 @@ struct hdr_cmn *ch = HDR_CMN(p);
 struct hdr_ip *ih = HDR_IP(p);
 
  assert(initialized());
- assert(p->incoming == 0);
+ //assert(p->incoming == 0);
+ // XXXXX NOTE: use of incoming flag has been depracated; In order to track direction of pkt flow, direction_ in hdr_cmn is used instead. see packet.h for details.
 
  if(ch->ptype() == PT_AODV) {
    ih->ttl_ -= 1;
@@ -757,9 +758,9 @@ rt_update(rt0, rq->rq_src_seqno, rq->rq_hop_count, ih->saddr(),
  else if (rt && (rt->rt_hops != INFINITY2) && 
 	  	(rt->rt_seqno >= rq->rq_dst_seqno) ) {
 
-   assert (rt->rt_flags == RTF_UP);
+   //assert (rt->rt_flags == RTF_UP);
    assert(rq->rq_dst == rt->rt_dst);
-   assert ((rt->rt_seqno%2) == 0);	// is the seqno even?
+   //assert ((rt->rt_seqno%2) == 0);	// is the seqno even?
    sendReply(rq->rq_src,
              rt->rt_hops + 1,
              rq->rq_dst,

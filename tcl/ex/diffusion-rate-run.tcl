@@ -1,3 +1,5 @@
+# XXXXXXXX NOTE: This is an example of the older version of diffusion. For example scripts of the newer version, see tcl/ex/diffusion3. And see ~ns/diffusion3 for the implementation.
+
 # ======================================================================
 # Define options
 # ======================================================================

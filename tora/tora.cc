@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.13 2001/05/21 19:27:34 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.14 2002/03/18 17:32:36 haldar Exp $
  */
 
 #include <agent.h>
@@ -235,7 +235,7 @@ toraAgent::rt_resolve(Packet *p)
 
 		trace("T %.9f _%d_ tora enq %d->%d",
 		      Scheduler::instance().clock(), ipaddr(), 
-		      ih->src(), ih->dst());
+		      ih->saddr(), ih->daddr());
 
 		if(!td->rt_req)
 		  { // if no QRY pending, then send one
@@ -260,8 +260,6 @@ toraAgent::recv(Packet *p, Handler *)
 	struct hdr_ip *ih = HDR_IP(p);
 
 	assert(initialized());
-
-        //assert(p->incoming == 0);
 
 	if(ch->ptype() == PT_TORA) {
 		recvTORA(p);
@@ -461,7 +459,7 @@ toraAgent::recvUPD(Packet *p)
 	         // that was delayed in the IMEP layer for sequencing -dam
 	         // no way at the TORA level to tell if we're connected...
 	         trace("T %.9f _%d_ received `UPD` from non-neighbor %d",
-		       CURRENT_TIME, ipaddr(), ih->src_);		 
+		       CURRENT_TIME, ipaddr(), ih->saddr());		 
 #ifdef DEBUG
 		fprintf(stderr,
                         "node %d received `UPD` from non-neighbor %d\n",
@@ -647,7 +645,7 @@ toraAgent::recvCLR(Packet *p)
 			 *  XXX - update link status?
 			 */
 		        trace("T %.9f _%d_ received `CLR` from non-neighbor %d",
-		               CURRENT_TIME, index, ih->src_);		
+		               CURRENT_TIME, index, ih->saddr());		
 #ifdef DEBUG
 			fprintf(stderr,
 				"node %d received `CLR` from non-neighbor %d\n",
