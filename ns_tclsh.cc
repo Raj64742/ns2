@@ -25,7 +25,7 @@
  */
 
 #include <stdio.h>
-#include <tclcl.h>
+#include "config.h"
 
 extern init_misc();
 

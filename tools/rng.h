@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.14 1999/08/14 00:19:48 haldar Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.15 1999/09/28 03:46:34 heideman Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -49,7 +49,7 @@
 #include <stdlib.h>			// for atoi
 
 #ifndef stand_alone
-#include <tclcl.h>
+#include "config.h"
 #endif   /* stand_alone */
 
 /*

@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.42 1999/09/24 17:04:36 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.43 1999/09/28 03:46:33 heideman Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -68,7 +68,6 @@ static const char rcsid[] =
 #include "flags.h"
 #include "delay.h"
 #include "red.h"
-#include "tclcl.h"
 
 static class REDClass : public TclClass {
 public:

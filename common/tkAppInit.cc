@@ -14,7 +14,7 @@
  */
 
 #include <tk.h>
-#include <tclcl.h>
+#include "config.h"
 
 extern init_misc();
 

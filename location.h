@@ -2,7 +2,7 @@
 #define location_h_
 
 #include <assert.h>
-#include <tclcl.h>
+#include "config.h"
 
 class Location : public TclObject {
 

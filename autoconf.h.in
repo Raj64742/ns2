@@ -41,6 +41,10 @@
 #undef u_int16_t
 #undef u_int32_t
 
+/* 64-bits */
+#undef HAVE_INT64
+#undef int64_t
+
 /* functions */
 #undef HAVE_BCOPY
 #undef HAVE_BZERO

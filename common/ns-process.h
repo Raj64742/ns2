@@ -26,14 +26,14 @@
 //
 // ADU and ADU processor
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ns-process.h,v 1.2 1999/08/24 04:16:15 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ns-process.h,v 1.3 1999/09/28 03:46:31 heideman Exp $
 
 #ifndef ns_process_h
 #define ns_process_h
 
 #include <assert.h>
 #include <string.h>
-#include <tclcl.h>
+#include "config.h"
 
 // Application-level data unit types
 enum AppDataType {

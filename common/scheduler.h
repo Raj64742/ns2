@@ -31,13 +31,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.16 1999/09/16 23:16:11 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.17 1999/09/28 03:46:35 heideman Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
 #define ns_scheduler_h
 
-#include <tclcl.h>
+#include "config.h"
 
 class Handler;
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.9 1999/02/09 00:43:23 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.10 1999/09/28 03:46:31 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -45,6 +45,7 @@ static const char rcsid[] =
 #include <sys/time.h>
 #endif
 #include <ctype.h>
+#include "config.h"
 #include "scheduler.h"
 #include "random.h"
 

@@ -74,7 +74,7 @@ int main() {
 #else
 	printf("\";\n");
 #endif
-	printf("#include \"tclcl.h\"\n");
+	printf("#include \"config.h\"\n");
 	printf("EmbeddedTcl et_ns_ptypes(code);\n");
 	return 0;
 }

@@ -10,9 +10,9 @@
 #include <iostream.h>
 #include <iomanip.h>
 #include <assert.h>
-#include <tclcl.h>
-#include <trace.h>
-#include <rng.h>
+#include "config.h"
+#include "trace.h"
+#include "rng.h"
 
 
 class EnergyModel : public TclObject {
