@@ -57,7 +57,7 @@ $ns attach-agent $n1 $null1
 
 $ns connect $s1 $null1
 
-set exp1 [new Traffic/Expoo]
+set exp1 [new Application/Traffic/Exponential]
 $exp1 set packet-size 210
 $exp1 set burst-time 500ms
 $exp1 set idle-time 500ms
@@ -76,7 +76,7 @@ $ns attach-agent $n1 $null2
 
 $ns connect $s2 $null2
 
-set pareto2 [new Traffic/Pareto]
+set pareto2 [new Application/Traffic/Pareto]
 $pareto2 set packet-size 210
 $pareto2 set burst-time 500ms
 $pareto2 set idle-time 500ms
@@ -104,7 +104,7 @@ set tfile [new Tracefile]
 #$tfile filename /tmp/example-trace
 $tfile filename example-trace
 
-set trace3 [new Traffic/Trace]
+set trace3 [new Application/Traffic/Trace]
 $trace3 attach-tracefile $tfile
 
 $s3 attach-traffic $trace3
@@ -120,7 +120,7 @@ $ns attach-agent $n1 $null4
 
 $ns connect $s4 $null4
 
-set trace4 [new Traffic/Trace]
+set trace4 [new Application/Traffic/Trace]
 $trace4 attach-tracefile $tfile
 
 $s4 attach-traffic $trace4
