@@ -86,7 +86,7 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 
 	set vlinkcost [expr $cost_ / 2.0]
 	foreach src $nodes {
-		set nif [new LanIface $src $bw $self -ifqType $ifqType -macType $macType]
+		set nif [new LanIface $src $self -ifqType $ifqType -macType $macType]
 
 		set mac [$nif set mac_]
 		set ipAddr [AddrParams set-hieraddr [$src node-addr]]
@@ -98,16 +98,17 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 		$mcl_ install [$mac set addr_] $mac
 
 		set lanIface_([$src id]) $nif
-		$nif instvar iface_ ;#interface object
-		$ns_ set interfaces_($src:$self) $iface_
-		$ns_ set interfaces_($self:$src) $iface_
+		# not sure if these are used anywhere...
+		$ns_ set interfaces_($src:$self) $nif
+		$ns_ set interfaces_($self:$src) $nif
+
 		$src add-neighbor $self
 
 		set sid [$src id]
 		set link_($sid:$id_) [new Vlink $ns_ $self $sid $id_ $bw 0]
 		set link_($id_:$sid) [new Vlink $ns_ $self $id_ $sid $bw 0]
-		$link_($sid:$id_) set ifacein_ $nif
-		$nif set intf_label_ [[$iface_ entry] set intf_label_]
+		$link_($sid:$id_) set ifacein_ [$nif entry]
+		[$nif entry] set intf_label_ [[$nif exitpoint] set intf_label_]
 
 		$link_($sid:$id_) queue [$nif set ifq_]
 		$link_($id_:$sid) queue [$nif set ifq_]
@@ -147,7 +148,7 @@ LanNode instproc reset {} {
 }
 LanNode instproc is-lan? {} { return 1 }
 LanNode instproc dump-namconfig {} {
-	# Redefine this function if needed
+	# Redefine this function if want a different lan layout
 	$self instvar ns_ bw_ delay_ nodelist_ id_
 	$ns_ puts-nam-config \
 			"X -t * -n $id_ -r $bw_ -D $delay_ -o left"
@@ -193,7 +194,7 @@ LanNode instproc split-addrstr addrstr {
 #
 # node's interface to a LanNode
 #------------------------------------------------------------
-Class LanIface -superclass Connector
+Class LanIface -superclass NetInterface
 LanIface set ifqType_ Queue/DropTail
 LanIface set macType_ Mac/Csma/Cd
 LanIface set llType_  LL
@@ -202,28 +203,27 @@ LanIface instproc llType {val} { $self set llType_ $val }
 LanIface instproc ifqType {val} { $self set ifqType_ $val }
 LanIface instproc macType {val} { $self set macType_ $val }
 
-LanIface instproc init {node bw lan args} {
+LanIface instproc entry {} { $self set ifq_ }
+LanIface instproc init {node lan args} {
 	set args [eval $self init-vars $args]
 	eval $self next $args
 
 	$self instvar llType_ ifqType_ macType_
-	$self instvar node_ ifq_ mac_ ll_ iface_
+	$self instvar node_ ifq_ mac_ ll_
 
 	set node_ $node
 	set ll_ [new $llType_]
 	set ifq_ [new $ifqType_]
 	set mac_ [new $macType_]
-	set iface_ [new NetInterface]
 
 	$ll_ lanrouter [$lan set defRouter_]
 
-	$self target $ifq_
 	$ifq_ target $ll_
 	$ll_ sendtarget $mac_
-	$ll_ recvtarget [$iface_ entry]
+	$ll_ recvtarget [$self set iface]
 	$mac_ target $ll_
 
-	$node addInterface $iface_
+	$node addInterface $self
 }
 
 # Vlink------------------------------------------------------
@@ -249,20 +249,20 @@ Vlink instproc init {ns lan src dst b d} {
 	set delay_ $d
 }
 Vlink instproc dump-nam-queueconfig {} {
-	#nothing
+	#NOTHING
 }
 Vlink instproc head {} {
 	$self instvar lan_ dst_ src_
 	if {$src_ == [$lan_ set id_]} {
 		# if this is a link FROM the lan vnode, 
-		# return the LL object of the dest.
-		set dst_lif [$lan_ set lanIface_($dst_)]
-		return  [$dst_lif set ll_]
+		# it doesn't matter what we return, because
+		# it's only used by $lan add-route (empty)
+		return ""
 	} else {
 		# if this is a link TO the lan vnode, 
-		# return the lanIface object
+		# return the entry to the lanIface object
 		set src_lif [$lan_ set lanIface_($src_)]
-		return $src_lif
+		return [$src_lif entry]
 	}
 }
 Vlink instproc cost c { $self set cost_ $c}	
