@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.7 1997/07/24 21:19:01 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.8 1997/08/13 05:24:17 gnguyen Exp $
 #
 
 
@@ -81,6 +81,11 @@ Trace/Drop instproc init {} {
 Class Trace/Generic -superclass Trace
 Trace/Generic instproc init {} {
 	$self next "v"
+}
+
+Class Trace/Var -superclass Trace
+Trace/Var instproc init {} {
+	$self next "f"
 }
 
 proc gc o {
