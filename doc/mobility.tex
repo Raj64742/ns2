@@ -372,7 +372,7 @@ docuentation from CMU shall be available in the future.
   there is a buffer for a single packet. Incase additional packets to
   the same destination is sent to ARP, the earlier buffered packet is
   dropped. Once the hardware address of a
-  packet"s next hop is known, the packet is inserted into the
+  packet's next hop is known, the packet is inserted into the
   interface queue. The \clsref{ARPTable}{../ns-2/arp.h} is implemented
   in \nsf{arp.\{cc,h\}} and \nsf{tcl/lib/ns-mobilenode.tcl}.
 
@@ -441,16 +441,16 @@ See \nsf{mac-802\_11.\{cc,h\}} for implementation details.
 \subsubsection{Preamble based TDMA protocol}
 \label{sec:tdma}
 {\bf Note:} this works is still at a preliminary stage,
-  some pratical issues, such as:
+  some practical issues, such as:
   contention in the preamble phase and 
   time slot reuse in a multi-hop environment are not considered.
 
 Unlike contention based MAC protocol (802.11, for example), 
   a TDMA MAC protocol allocates different time slots for nodes to 
   send and receive packets.
-The supper-set of these time slots is called a TDMA frame.
+The superset of these time slots is called a TDMA frame.
 
-Currently, \ns supports a single hop, 
+Currently, \ns\ supports a single hop, 
   preamble-based TDMA MAC protocol.
 With this protocl,
   a TDMA frame contains preamble besides the data transmission slots.
@@ -780,7 +780,7 @@ r 160.093884945 _6_ RTR  --- 5 tcp 1492 [a2 4 6 800] ------- [655
 \end{program}
 Here we see a TCP data packet being received by a node with id of 6. UID
 of this pkt is 5 with a cmn hdr size of 1492. The mac details shows an IP
-pkt (ETHERTYPE\_IP is defined as 0x0800, ETHERTYPE\_IP is 0x0806 ), mac-id
+pkt (ETHERTYPE\_IP is defined as 0x0800, ETHERTYPE\_ARP is 0x0806 ), mac-id
 of this receiving node is 6. That of the sending node is 4 and expected
 time to send this data pkt over the wireless channel is a2 (hex2dec
 conversion: 160+2 sec). Additionally, IP traces information about IP src
