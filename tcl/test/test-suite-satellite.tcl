@@ -35,7 +35,7 @@ Agent/TCP set singledup_ 0
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #    
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.4 2001/07/31 02:20:14 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.5 2001/10/11 14:15:57 tomh Exp $
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #    
@@ -45,8 +45,10 @@ Agent/TCP set singledup_ 0
 #
 # To run individual tests:
 # ns test-suite-satellite.tcl mixed 
+# ns test-suite-satellite.tcl mixed.legacy 
 # ns test-suite-satellite.tcl repeater
 # ns test-suite-satellite.tcl aloha
+# ns test-suite-satellite.tcl aloha.collisions
 #
 #
 # To view a list of available tests to run with this script:
@@ -374,6 +376,81 @@ Test/aloha instproc run {} {
     $self instvar ns_  
 	
 	global opt f 
+
+	Mac/Sat set trace_drops_ false
+	Mac/Sat set trace_collisions_ false
+
+	set opt(bw_up)          2Mb
+	set opt(bw_down)        2Mb
+	set opt(mac)            Mac/Sat/UnslottedAloha 
+
+	$ns_ node-config -satNodeType geo-repeater \
+			-llType $opt(ll) \
+			-ifqType $opt(ifq) \
+			-ifqLen $opt(qlim) \
+			-macType $opt(mac) \
+			-phyType $opt(phy) \
+			-channelType $opt(chan) \
+			-downlinkBW $opt(bw_down)
+
+	# GEO satellite at prime meridian
+	set n1 [$ns_ node]
+	$n1 set-position 0
+
+	# Place 30 nodes at 30 different locations
+	$ns_ node-config -satNodeType terminal
+	set num_nodes           30
+	for {set a 1} {$a <= $num_nodes} {incr a} {
+		set n($a) [$ns_ node]
+        	$n($a) set-position [expr -15 + $a ] [expr 15 - $a ]
+        	$n($a) add-gsl geo $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) \
+		    $opt(bw_up) $opt(phy) [$n1 set downlink_] [$n1 set uplink_]
+	}
+
+	for {set a 1} {$a <= $num_nodes} {incr a} {
+        	set b [expr int($a + (0.5 * $num_nodes))]
+        	if {$b > 30} {
+                	incr b -30 
+        	}
+
+        	set udp($a) [new Agent/UDP]
+        	$ns_ attach-agent $n($a) $udp($a)
+        	set exp($a) [new Application/Traffic/Exponential]
+        	$exp($a) attach-agent $udp($a)
+        	$exp($a) set rate_ 3Kb
+
+        	set null($a) [new Agent/Null]
+        	$ns_ attach-agent $n($b) $null($a)
+
+        	$ns_ connect $udp($a) $null($a)
+        	$ns_ at 1.0 "$exp($a) start"
+	}
+
+	$ns_ trace-all-satlinks $f
+
+	# We use centralized routing
+	set satrouteobject_ [new SatRouteObject]
+	$satrouteobject_ compute_routes
+
+	$ns_ at 50.0 "$self finish"
+
+	$ns_ run
+}
+
+Class Test/aloha.collisions -superclass TestSuite
+Test/aloha.collisions instproc init {} {
+	$self instvar test_
+	set test_ 	aloha	
+	$self next
+}
+
+Test/aloha.collisions instproc run {} {
+    $self instvar ns_  
+	
+	global opt f 
+
+	Mac/Sat set trace_drops_ true
+	Mac/Sat set trace_collisions_ true
 
 	set opt(bw_up)          2Mb
 	set opt(bw_down)        2Mb
