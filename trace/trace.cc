@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.25 1998/02/25 02:18:45 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.26 1998/03/07 04:02:59 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -156,7 +156,7 @@ void Trace::write_nam_trace(const char *s)
 
 void Trace::annotate(const char* s)
 {
-	sprintf(wrk_, "v %.17g eval {set sim_annotation {%s}}", 
+	sprintf(wrk_, "v %g eval {set sim_annotation {%s}}", 
 		Scheduler::instance().clock(), s);
 	dump();
 	sprintf(nwrk_, "v %.17g sim_annotation %.17g %s", 
@@ -218,7 +218,7 @@ flags[5] = 0;
 #endif
 
 	if (!show_tcphdr_) {
-		sprintf(wrk_, "%c %.17g %d %d %s %d %s %d %d.%d %d.%d %d %d",
+		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -232,7 +232,7 @@ flags[5] = 0;
 			seqno,
 			th->uid() /* was p->uid_ */);
 	} else {
-		sprintf(wrk_, "%c %.17g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
+		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
