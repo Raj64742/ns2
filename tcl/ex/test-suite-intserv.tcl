@@ -143,7 +143,7 @@ Est/ExpAvg set w_ [expr $w_]
 Est set period_ [expr $S_*$ptime]
 
 #Helper function to schedule stop time for the new flow
-Agent/CBR/UDP/SA instproc sched-stop { decision } {
+Agent/SA instproc sched-stop { decision } {
 	global hold simtime ns trace_flow
 	$self instvar node_ lifetime_
 	
@@ -195,7 +195,7 @@ proc show-simtime {} {
 
 proc create-source {node rcvr starttime  i} {
 	global ns hold hvar
-	set a [new Agent/CBR/UDP/SA]
+	set a [new Agent/SA]
 	$ns attach-agent $node $a
 	
 	$a set fid_ $i
