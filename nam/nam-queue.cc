@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-queue.cc,v 1.1 1997/03/29 04:38:02 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-queue.cc,v 1.2 1997/03/29 05:08:43 mccanne Exp $ (LBL)";
 #endif
 
 #include <osfcn.h>
@@ -42,7 +42,6 @@ static char rcsid[] =
 #include "netview.h"
 #include "nam-queue.h"
 #include "nam-drop.h"
-#include "sincos.h"
 
 QueueItem::QueueItem(const PacketAttr& p, double tim, long offset)
 	: qnext_(0), Animation(tim, offset)
@@ -112,10 +111,9 @@ NamQueue::NamQueue(float angle)
 void NamQueue::place(double psize, double x, double y)
 {
 	psize_ = psize;
-	double qc, qs;
-	SINCOSPI(angle_, &qs, &qc);
-	dx_ = qc * psize_;
-	dy_ = qs * psize_;
+
+	dx_ = cos(M_PI * angle_) * psize_;
+	dy_ = sin(M_PI * angle_) * psize_;
 
 	px_ = 3 * dx_ / 4;
 	py_ = 3 * dy_ / 4;

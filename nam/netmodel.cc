@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netmodel.cc,v 1.1 1997/03/29 04:38:06 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netmodel.cc,v 1.2 1997/03/29 05:08:44 mccanne Exp $ (LBL)";
 #endif
 
 #include <osfcn.h>
@@ -50,7 +50,6 @@ static char rcsid[] =
 #include "nam-trace.h"
 #include "netmodel.h"
 #include "paint.h"
-#include "sincos.h"
 #include "state.h"
 
 #include <float.h>
@@ -517,9 +516,9 @@ int NetModel::command(int argc, const char *const *argv)
 void NetModel::placeEdge(NamEdge* e, NamNode* src) const
 {
 	if (e->marked() == 0) {
-		double nsin, ncos;
 		NamNode *dst = e->neighbor();
-		SINCOSPI(e->angle(), &nsin, &ncos);
+		double nsin = sin(M_PI * e->angle());
+		double ncos = cos(M_PI * e->angle());
 		double x0 = src->x() + src->size() * ncos * .75;
 		double y0 = src->y() + src->size() * nsin * .75;
 		double x1 = dst->x() - dst->size() * ncos * .75;
@@ -559,10 +558,8 @@ void NetModel::layout()
 
 void NetModel::move(double& x, double& y, double angle, double d) const
 {
-	double ncos, nsin;
-	SINCOSPI(angle, &nsin, &ncos);
-	x += d * ncos;
-	y += d * nsin;
+	x += d * cos(M_PI * angle);
+	y += d * sin(M_PI * angle);
 }
 
 /*
