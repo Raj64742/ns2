@@ -123,11 +123,11 @@ set namtrace    [open $opt(nam) w]
 
 
 $ns_ trace-all $tracefd
-$ns_ namtrace-all-wireless $namtrace $opt(x) $opt(y)
+$ns_ namtrace-all-wireless $namtrace 500 500
 
 # use new trace file format
 
-$ns_ use-newtrace 
+#$ns_ use-newtrace 
 
 # define topology
 $wtopo load_flatgrid $opt(x) $opt(y)
@@ -154,10 +154,10 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
 		 -channelType $opt(chan) \
-		 -topoInstance $wtopo \
-		 -agentTrace ON \
-                 -routerTrace OFF \
-                 -macTrace OFF 
+    -topoInstance $wtopo \
+    -agentTrace ON \
+    -routerTrace OFF \
+    -macTrace ON 
 
 #
 #  Create the specified number of nodes [$opt(nn)] and "attach" them
@@ -185,7 +185,7 @@ source $opt(sc)
 # Define node initial position in nam
 
 for {set i 0} {$i < $opt(nn)} {incr i} {
-
+    
     # 20 defines the node size in nam, must adjust it according to your scenario
     # The function must be called after mobility model is defined
     
