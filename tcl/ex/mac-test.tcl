@@ -1,22 +1,26 @@
 #!/bin/sh
-# \
-test -x ../../ns && nshome=../../
-# \
-exec ${nshome}ns "$0" "$@"
+# the next line finds ns \
+nshome=`dirname $0`; [ ! -x $nshome/ns ] && [ -x ../../ns ] && nshome=../..
+# the next line starts ns \
+export nshome; exec $nshome/ns "$0" "$@"
 
-set nshome ""
-if [file executable ../../ns] {
-	set nshome ../../
+if [info exists env(nshome)] {
+	set nshome $env(nshome)
+} elseif [file executable ../../ns] {
+	set nshome ../..
+} elseif {[file executable ./ns] || [file executable ./ns.exe]} {
+	set nshome "[pwd]"
+} else {
+	puts "$argv0 cannot find ns directory"
+	exit 1
 }
-source ${nshome}tcl/lan/ns-mac.tcl
-source ${nshome}tcl/lan/ns-lan.tcl
-set env(PATH) "${nshome}bin:$env(PATH)"
-
+set env(PATH) "$nshome/bin:$env(PATH)"
 
 set opt(tr)	out
-set opt(stop)	20
-set opt(num)	3
+set opt(namtr)	""
 set opt(seed)	0
+set opt(stop)	20
+set opt(node)	3
 
 set opt(qsize)	100
 set opt(bw)	2Mb
@@ -25,59 +29,42 @@ set opt(ll)	LL
 set opt(ifq)	Queue/DropTail
 set opt(mac)	Mac/Csma/Ca
 set opt(chan)	Channel
-set opt(tp)	TCP/Reno
+set opt(tcp)	TCP/Reno
 set opt(sink)	TCPSink
+
 set opt(source)	FTP
-set opt(cbr)	0
 
 
-if {$argc == 0} {
-	puts "Usage: $argv0 \[-stop sec\] \[-seed value\] \[-num nodes\]"
+proc Usage {} {
+	global opt argv0
+	puts "Usage: $argv0 \[-stop sec\] \[-seed value\] \[-node numNodes\]"
 	puts "\t\[-tr tracefile\] \[-g\]"
-	puts "\t\[-ll lltype\] \[-ifq ifqtype\] \[-mac mactype\] \[-chan chan\]"
+	puts "\t\[-ll lltype\] \[-ifq qtype\] \[-mac mactype\]"
 	puts "\t\[-bw $opt(bw)] \[-delay $opt(delay)\]"
 	exit 1
 }
 
-proc getopt {argc argv} {
-	global opt
-	lappend optlist tr stop num seed tmp
-	lappend optlist qsize bw delay ll ifq mac chan tp sink source cbr
-
+proc Getopt {} {
+	global opt argc argv
+	if {$argc == 0} Usage
 	for {set i 0} {$i < $argc} {incr i} {
-		set arg [lindex $argv $i]
-		if {[string range $arg 0 0] != "-"} continue
-
-		set name [string range $arg 1 end]
-		if {$name == "ll"} {
-			set opt(ll) LL/[lindex $argv [incr i]]
-		} elseif {$name == "ifq"} {
-			set opt(ifq) Queue/[lindex $argv [incr i]]
-		} elseif {$name == "mac"} {
-			set opt(mac) Mac/[lindex $argv [incr i]]
-		} elseif {[lsearch $optlist $name] >= 0} {
-			set opt($name) [lindex $argv [incr i]]
-		} else {
-			set opt($name) [lindex $argv [expr $i+1]]
+		set key [lindex $argv $i]
+		if ![string match {-*} $key] continue
+		set key [string range $key 1 end]
+		set val [lindex $argv [incr i]]
+		set opt($key) $val
+		if [string match {-[A-z]*} $val] {
+			incr i -1
+			continue
+		}
+		switch $key {
+			ll  { set opt($key) LL/$val }
+			ifq { set opt($key) Queue/$val }
+			mac { set opt($key) Mac/$val }
 		}
 	}
 }
 
-proc cat {filename} {
-	set fd [open $filename r]
-	while {[gets $fd line] >= 0} {
-		puts $line
-	}
-	close $fd
-}
-
-proc UseTemp {tmp trfile} {
-	cd $tmp
-	set dirname [file dirname $trfile]
-	if {$dirname != "" && ![file exists $dirname]} {
-		exec mkdir -p $dirname
-	}
-}
 
 proc finish {} {
 	global env nshome pwd
@@ -85,108 +72,86 @@ proc finish {} {
 
 	$ns flush-trace
 	close $trfd
+	foreach key {node bw delay ll ifq mac seed} {
+		lappend comment $opt($key)
+	}
 
-	exec perl $pwd/${nshome}bin/trsplit -f -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt > $opt(tr)-bw
-	cat $opt(tr)-bwt
-	exec cat $opt(tr)-bw $opt(tr)-bwt >> $pwd/$opt(tr)-bw
-	exec rm $opt(tr)-bwt
-	if [info exists opt(z)] {
-		exec gzip -c $opt(tr) > $pwd/$opt(tr).gz
+	set force ""
+	if {[info exists opt(f)] || [info exists opt(g)]} {
+		set force "-f"
 	}
-	if [info exists opt(tmp)] {
-		exec rm $opt(tr) $opt(tr)-bw
-	}
+	exec perl $nshome/bin/trsplit -tt r -pt tcp -c "$comment" \
+			$force $opt(tr) >& $opt(tr)-bw
+	exec head -1 $opt(tr)-bw >@ stdout
 
 	if [info exists opt(g)] {
-		eval exec xgraph -nl -M -display $env(DISPLAY) \
-				[lsort [glob $opt(tr).*]]
+		catch "exec xgraph -nl -M -display $env(DISPLAY) \
+				[lsort [glob $opt(tr).*]] &"
 	}
-	exit
+	exit 0
 }
 
 
-proc create-trace {trfile} {
-	global trfd
-	if [file exists $trfile] {
-		exec touch $trfile.
-		eval exec rm $trfile [glob $trfile.*]
+proc create-trace {} {
+	global ns opt
+
+	if [file exists $opt(tr)] {
+		exec touch $opt(tr).
+		eval exec rm -f $opt(tr) $opt(tr)-bw [glob $opt(tr).*]
 	}
-	set trfd [open $trfile w]
+
+	set trfd [open $opt(tr) w]
+	$ns trace-all $trfd
+	if {$opt(namtr) != ""} {
+		$ns namtrace-all [open $opt(namtr) w]
+	}
+	return $trfd
 }
 
-proc trace-mac {lan trfd} {
-	set channel [$lan set channel_]
-	set trHop [new TraceIp/Mac/Hop]
-	$trHop attach $trfd
-	$trHop target $channel
-	$channel trace-target $trHop
-}
 
-
-proc create-topology {num} {
+proc create-topology {} {
 	global ns opt
 	global lan node source
 
+	set num $opt(node)
 	for {set i 0} {$i <= $num} {incr i} {
 		set node($i) [$ns node]
 		lappend nodelist $node($i)
 	}
 
-	set lan [$ns make-lan $nodelist $opt(bw) $opt(delay) \
-			$opt(ll) $opt(ifq) $opt(mac) $opt(chan)]
-#	puts "LAN: $lan $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)"
+	set lan [$ns newLan $nodelist $opt(bw) $opt(delay) \
+			-llType $opt(ll) -ifqType $opt(ifq) \
+			-macType $opt(mac) -chanType $opt(chan)]
 }
 
-proc create-source {num} {
+proc create-source {} {
 	global ns opt
 	global lan node source
 
+	set num $opt(node)
 	for {set i 1} {$i <= $num} {incr i} {
-		if [info exists opt(up)] {
-			set src $i
-			set dst 0
-		} else {
-			set src 0
-			set dst $i
-		}
-		set tp($i) [$ns create-connection $opt(tp) \
+		set src 0
+		set dst $i
+		set tp($i) [$ns create-connection $opt(tcp) \
 				$node($src) $opt(sink) $node($dst) 0]
 		set source($i) [$tp($i) attach-source $opt(source)]
 		$ns at [expr $i/1000.0] "$source($i) start"
-	}
-
-	for {set i 0} {$i < $opt(cbr)} {incr i} {
-		set dst [expr $i % $num + 1]
-		set cbr($i) [$ns create-connection CBR \
-				$node(0) Null $node($dst) 0]
-		$ns at 0 "$cbr($i) start"
 	}
 }
 
 
 ## MAIN ##
-getopt $argc $argv
-set pwd [pwd]
-if [info exists opt(tmp)] {
-	UseTemp $opt(tmp) $opt(tr)
-}
-
-if {$opt(seed) > 0} {
-	ns-random $opt(seed)
-}
-Queue set limit_ $opt(qsize)
+Getopt
+if {$opt(seed) >= 0} { ns-random $opt(seed) }
+if [info exists opt(qsize)] { Queue set limit_ $opt(qsize) }
 
 set ns [new Simulator]
+set trfd [create-trace]
 
-create-trace $opt(tr)
-$ns trace-all $trfd
+create-topology
+create-source
 
-create-topology $opt(num)
 $lan trace $ns $trfd
-
-if [info exists opt(tracemac)] { trace-mac $lan $trfd }
-if [info exists opt(e)] { create-error $opt(num) }
-create-source $opt(num)
 
 $ns at $opt(stop) "finish"
 $ns run
