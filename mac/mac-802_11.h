@@ -342,6 +342,22 @@ private:
 
 	inline void rst_cw() { cw_ = phymib_->CWMin; }
 
+	inline u_int16_t usec(double t) {
+		u_int16_t us = (u_int16_t)ceil(t *= 1e6);
+		return us;
+		/*
+		u_int16_t us = (u_int16_t)(t *= 1e6);
+		
+		if(us < t) {
+		   us++;
+		}
+		
+		return us;
+		*/
+		
+	}
+
+
 	inline void set_nav(u_int16_t us) {
 		double now = Scheduler::instance().clock();
 		double t = us * 1e-6;
@@ -354,12 +370,7 @@ private:
 		}
 	}
 
-	inline u_int16_t usec(double t) {
-		u_int16_t us = (u_int16_t) (t *= 1e6);
-		if(us < t)
-			us++;
-		return us;
-	}
+
 
 protected:
 	PHY_MIB		*phymib_;

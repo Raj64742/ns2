@@ -937,7 +937,7 @@ Mac802_11::sendDATA(Packet *p)
 
 	if((u_int32_t)ETHER_ADDR(dh->dh_da) != MAC_BROADCAST)
 		dh->dh_duration = DATA_DURATION();
-	else
+         else
 		dh->dh_duration = 0;
 
 	pktTx_ = p;
