@@ -108,6 +108,27 @@ ReassemblyQueue::push(seginfo *p)
 }
 
 /*
+ * counts: return the # of blks and byte counts in
+ * them starting at the given node
+ */
+void
+ReassemblyQueue::cnts(seginfo *p, int& blkcnt, int& bytecnt)
+{
+	int blks = 0;
+	int bytes = 0;
+
+	while (p != NULL) {
+		++blks;
+		bytes += (p->endseq_ - p->startseq_);
+		p = p->next_;
+	}
+	blkcnt = blks;
+	bytecnt = bytes;
+	return;
+}
+
+
+/*
  * clear out reassembly queue and stack
  */
 
@@ -149,6 +170,12 @@ ReassemblyQueue::clearto(TcpSeq seq)
 			p = q;
 		} else
 			break;
+	}
+	/* we might be trimming in the middle */
+	if (p && p->startseq_ <= seq && p->endseq_ > seq) {
+		total_ -= (seq - p->startseq_);
+		p->startseq_ = seq;
+		flag |= p->pflags_;
 	}
 	return flag;
 }
@@ -563,7 +590,9 @@ dumplist();
  * look for the next hole, starting with the given
  * sequence number.  If this seq number is contained in
  * a SACK block we have, return the ending sequence number
- * of the block.  If not, return -1, but 
+ * of the block.  Also, fill in the nxtcnt and nxtbytes fields
+ * with the number and sum total size of the sack regions above
+ * the block.
  */
 int
 ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt, int& nxtbytes)
@@ -571,40 +600,25 @@ ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt, int& nxtbytes)
 
 	nxtbytes = nxtcnt = -1;
 	hint_ = head_;
-#ifdef notdef
-	if (hint_ == NULL) {
-again:
-		hint_ = head_;
-	}
-#endif
-		
+
 	seginfo* p;
 	for (p = hint_; p; p = p->next_) {
 		// seq# is prior to SACK region
-		// so it looksl like a legit "hole"
+		// so seq# is a legit hole
 		if (p->startseq_ > seq) {
-			nxtcnt = p->cnt_;
-			nxtbytes = (p->endseq_ - p->startseq_);
+			cnts(p, nxtcnt, nxtbytes);
 			return (seq);
-//return (-1);
 		}
 
 		// seq# is covered by SACK region
 		// so the hole is at the end of the region
 		if ((p->startseq_ <= seq) && (p->endseq_ >= seq)) {
-			//hint_ = p;
 			if (p->next_) {
-				nxtcnt = p->next_->cnt_;
-				nxtbytes = (p->next_->endseq_ - p->next_->startseq_);
+				cnts(p->next_, nxtcnt, nxtbytes);
 			}
 			return (p->endseq_);
 		}
 	}
-#ifdef notdef
-	if (hint_ != head_) {
-		goto again;
-	}
-#endif
 	return (-1);
 }
 
@@ -643,14 +657,14 @@ main()
 	rq.add(5,10, 0, 0);
 	rq.add(11,20, 0, 0);
 	rq.add(5,10, 0, 0);	// dup left
-	rq.dumplist();	// [(5,10),2], [(11,20),1]
+	rq.dumplist();	// [(5,10),1], [(11,20),1]
 
 	printf("X1:\n");
 	rq.init(1);
 	rq.add(5,10, 0, 0);
 	rq.add(11,20, 0, 0);
 	rq.add(11,20, 0, 0);	// dup rt
-	rq.dumplist();	// [(5,10),1], [(11,20),2]
+	rq.dumplist();	// [(5,10),1], [(11,20),1]
 
 	printf("X2:\n");
 	rq.init(1);
@@ -658,15 +672,15 @@ main()
 	rq.add(11,20, 0, 0);
 	rq.add(30, 40, 0, 0);
 	rq.add(11,20, 0, 0);	// dup mid
-	rq.dumplist();	// [(5,10),1], [(11,20),2], [(30,40),1]
+	rq.dumplist();	// [(5,10),1], [(11,20),1], [(30,40),1]
 
 	printf("X3\n");
 	rq.add(30,50,0,0);	// dup rt
-	rq.dumplist();	// [(5,10),1], [(11,20),2], [(30,50),2]
+	rq.dumplist();	// [(5,10),1], [(11,20),1], [(30,50),2]
 
 	printf("X4\n");
 	rq.add(1,10,0,0);	// dup lt
-	rq.dumplist();	// [(1,10),2], [(11,20),2], [(30,50),2]
+	rq.dumplist();	// [(1,10),2], [(11,20),1], [(30,50),2]
 
 	printf("C1:\n");
 	rq.init(1);
@@ -737,12 +751,14 @@ main()
 	rq.dumplist();	// [(1,5),1], [(10,20),1]
 	//rq.add(40321, 41281, 0, 0);
 	rq.add(1, 5, 0, 0);
-	rq.dumplist();	// [(1,5),2], [(10,20),1]
+	rq.dumplist();	// [(1,5),1], [(10,20),1]
 
-	int x;
-	rq.nexthole(3, x);
-	rq.clear();
-	rq.nexthole(5, x);
+	int x, y;
+	printf("NH1: %d\n", rq.nexthole(3, x, y));
+	printf("NH2: %d\n", rq.nexthole(5, x, y));
+	printf("CLR to 4\n");
+	rq.clearto(4);
+	rq.dumplist();
 
 	exit(0);
 }
