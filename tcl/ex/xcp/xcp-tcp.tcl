@@ -230,7 +230,7 @@ foreach link $all_links {
     set queue [$link queue]
     switch $qType {
 	"XCP" {
-		$queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
+	    $queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
 	}
 	"DropTail/XCP" {
 	    $queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
@@ -282,7 +282,7 @@ foreach queue_name "Bottleneck rBottleneck" {
 	    global "ft_red_$queue_name"
 	    global "tcp_$queue_name"
 	    set "ft_red_$queue_name" [open ft_red_[set queue_name].tr w]
-	    debug 1
+
 	    set xcpq [$queue set vq_(0)]
 	    $xcpq attach [set ft_red_$queue_name]
 	    $xcpq trace curq_
@@ -296,11 +296,6 @@ foreach queue_name "Bottleneck rBottleneck" {
 	    $tcpq trace ave_
 	    $tcpq trace prob1_
 	    
-	    
-	    #$queue attach       [set ft_red_$queue_name]
-	    #$queue trace curq_
-	    #$queue trace ave_
-	    #$queue trace prob1_
 	}
 	"DropTail/XCP" {}
     }
