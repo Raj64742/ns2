@@ -38,7 +38,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.9 1998/04/17 22:43:39 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.10 1998/04/24 17:47:57 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -91,10 +91,9 @@ protected:
     void hier_compute();
     void hier_compute_routes(int index);
 
-    /* temp testing functions for printing */
+    /* Debugging print functions */
     void hier_print_hadj();
     void hier_print_route();
-    void hier_print_connect();
     /* for ref : void send-hier-data(int *clus_size, int cluster_num, int domain_num);*/
 
     int **hadj_;
@@ -143,11 +142,6 @@ int RouteLogic::command(int argc, const char*const* argv)
 	    return (TCL_OK);
 	}
 	
-	if (strcmp(argv[1], "hier-print-connect") == 0) {
-	    hier_print_connect();
-	    return (TCL_OK);
-	}
-
 	if (strcmp(argv[1], "reset") == 0) {
 	    delete[] adj_;
 	    adj_ = 0;
@@ -274,7 +268,6 @@ int RouteLogic::command(int argc, const char*const* argv)
 		    if((src[2] <= size) ||
 		       (dst[2] <= cluster_size_[INDEX(dst[0], dst[1], C_)]))
 			;
-		 	// printf("node within range\n");
 	    }
 	    else { 
 		tcl.result("node out of range");
@@ -284,23 +277,19 @@ int RouteLogic::command(int argc, const char*const* argv)
 	    /* if node-domain lookup */
 	    if ((dst[1] <= 0) && (dst[2] <= 0)) {
 		next_hop = hroute_[index][N_D_INDEX(src[2], dst[0], size, C_, D_)];
-		// printf("Node-domain lookup:Next hop = %d\n",next_hop);
 	    }
       
 	    /* if node-cluster lookup */
 	    else if (dst[2] <= 0) {
 		next_hop = hroute_[index][N_C_INDEX(src[2], dst[1], size, C_, D_)];
-// 		printf("Node-cluster lookup:Next hop = %d\n",next_hop);
 	    }
       
 	    /* if node-node lookup */
 	    else {
 		next_hop = hroute_[index][N_N_INDEX(src[2], dst[2], size, C_, D_)];	
-// 		printf("Node-node lookup:Next hop = %d\n",next_hop);
 	    }
 	    char target[SMALL_LEN];
 	    get_address(target, next_hop, index, size, src);
-// 	    printf("Target = %s\n",target);
 	    tcl.resultf("%s",target);	   
 	    return (TCL_OK);
 	}
@@ -355,24 +344,6 @@ RouteLogic::~RouteLogic()
 {
     delete[] adj_;
     delete[] route_;
-    for (int x=1; x < D_; x++) {
-	for (int y=1; y < C_; y++) {
-	    int i = INDEX(x, y, C_);
-	    int n = cluster_size_[i];
-	    for (int j=0; j < (n + 1) * (C_+ D_); j++) {
-		if (hconnect_[i][j] != NULL)
-		    delete [] hconnect_[i][j];
-	    }
-	}
-    }
-    for (int n =0; n < (C_ * D_); n++) {
-	if (hadj_[n] != NULL)
-	    delete hadj_[n];
-	if (hroute_[n] != NULL)
-	    delete hroute_[n];
-	if (hconnect_[n] != NULL)
-	    delete hconnect_[n];
-    }
     delete [] hsize_;
     delete [] cluster_size_;
     delete [] hadj_;
@@ -501,26 +472,21 @@ void RouteLogic::compute_routes()
 
 void RouteLogic::hier_alloc(int i)
 {
-    // printf("Comes to hier_alloc..\n");
   
     hsize_[i] = cluster_size_[i]+ C_+ D_ ;
-    // hsize_[i] = hsize_[i] * (cluster_size_[i]+1); 
     hsize_[i] *= hsize_[i];
     hadj_[i] = new int[hsize_[i]];
     hroute_[i] = new int[hsize_[i]];
-    // hconnect_[i] = new (char*)[hsize_[i]];
     hconnect_[i] = new (char*)[(C_+D_) * (cluster_size_[i]+1)];
     for (int n = 0; n < hsize_[i]; n++){
 	hadj_[i][n] = INFINITY;
 	hroute_[i][n] = INFINITY;
     }
-//     printf("Passes hier_alloc..\n");
 }
 
 
 void RouteLogic::hier_check(int i)
 {
-    // printf("Hier_size[%d] = %d\n",i,hsize_[i]);
     if(hsize_[i] > 0)
 	return;
     else
@@ -545,8 +511,10 @@ void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_add
     char tmpstr[SMALL_LEN];
     char *next,
 	*index;
-    char *addr[2];
+    char **addr;
 
+
+    addr = new char* [2];
     /* initializing src and dst addr */
     for (i=0; i < SMALL_LEN; i++){
 	src_addr[i] = 0;
@@ -554,9 +522,8 @@ void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_add
     }
   
     for (i=0, n=2; n<=3; i++,n++){
-	addr[i] = new char;
+	addr[i] = new char [strlen(argv[n])];
 	strcpy(addr[i], argv[n]);
-//	printf("addr[%d] = %s\n",i,addr[i]);
     }
 
     for (n=0; n < 2; n++) {
@@ -583,34 +550,25 @@ void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_add
 	    }
 	}
     }
-    // TESTING
-//     for (n=0; n < 3; n++) {
-// 	printf("src_addr[%d] = %d\n",n,src_addr[n]);
-// 	printf("dst_addr[%d] = %d\n",n,dst_addr[n]);
-//     }
-    
     delete [] addr;
+    
 }
 
 
 void RouteLogic::get_address(char *address, int next_hop, int index, int size, int *src)
 {
-//     printf("size = %d\n", size);
     if (next_hop <= size) {
 	sprintf(address,"%d.%d.%d", src[0]-1, src[1]-1, next_hop-1);
-// 	printf("target address = %s\n",address);
     }
     else if ((next_hop > size) && (next_hop < (size+C_))) {
 	int temp = next_hop-size;
 	int I = src[2] * (C_+D_) + temp;
 	strcpy(address, hconnect_[index][I]);
-// 	printf("target address = %s\n", address);
     }
     else {
 	int temp = next_hop-size-(C_-1);
 	int I = src[2] * (C_+D_) + (C_- 1 +temp);
 	strcpy(address,hconnect_[index][I]);
-// 	printf("target address = %s\n", address);
     }
 }
 
@@ -661,38 +619,32 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
     int n,
 	i;
 
-    // printf("src_addr:%d.%d.%d\ndst_addr:%d.%d.%d\n\n",X1,Y1,Z1,X2,Y2,Z2);
     if ( X1 == X2)
 	if (Y1 == Y2){ 
 	    /*
 	     * For the same domain & cluster 
 	     */
-	    // printf("Same domain & same cluster..\n");
 	    i = INDEX(X1, Y1, C_);
 	    n = cluster_size_[i];
 	    hier_check(i);
 	    hadj_[i][N_N_INDEX(Z1, Z2, n, C_, D_)] = cost;
-	    // printf("%d - %d => pos(%d)\n",Z1, Z2, C_C_INDEX(Z1, Z2, n, C_, D_));
 	}
   
 	else { 
 	    /* 
 	     * For the same domain but diff clusters 
 	     */
-	    // printf("Same domain but diff. cluster..\n"); 
 	    for (int y=1; y < C_; y++) { /* insert cluster connectivity */
 		i = INDEX(X1, y, C_);
 		n = cluster_size_[i];
 		hier_check(i);
 		hadj_[i][C_C_INDEX(Y1, Y2, n, C_, D_)] = cost;
-		// printf("%d - %d => pos(%d)\n",Y1,Y2,C_C_INDEX(Y1, Y2, n, C_, D_));
 
 		if (y == Y1) {  /* insert node conn. */
 		    hadj_[i][N_C_INDEX(Z1, Y2, n, C_, D_)] = cost;
 		    int I = Z1 * (C_+ D_) + Y2;
 		    hconnect_[i][I] = new char[SMALL_LEN];
 		    sprintf(hconnect_[i][I],"%d.%d.%d",X2-1,Y2-1,Z2-1);
-		    // printf("Added hconnect: at [%d][%d] = %s\n",i, I, hconnect_[i][I]);
 		}
 	    }
 	}
@@ -701,15 +653,12 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 	/* 
 	 * For different domains 
 	 */
-	// printf("Diff. domain..\n"); 
 	for (int x=1; x < D_; x++) { /* inset domain connectivity */
 	    for (int y=1; y < C_; y++) {
 		i = INDEX(x, y, C_);
 		n = cluster_size_[i];
-		/* printf("index = %d\ncluster_size = %d\n",i,n); */
 		hier_check(i);
 		hadj_[i][D_D_INDEX(X1, X2, n, C_, D_)] = cost;
-		// printf("%d - %d => pos(%d)\n",X1,X2,D_D_INDEX(X1, X2, n, C_, D_));
 	    }
 	}
 	for (int y=1; y < C_; y++) { /* insert cluster connectivity */
@@ -717,7 +666,6 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 	    n = cluster_size_[i];
 	    hier_check(i);
 	    hadj_[i][C_D_INDEX(Y1, X2, n, C_, D_)] = cost;
-	    // printf("%d - %d => pos(%d)\n",Y1,X2,C_D_INDEX(Y1, X2, n, C_, D_));
 	}
 	/* insert node connectivity */
 	i = INDEX(X1, Y1, C_);
@@ -726,7 +674,6 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 	int I = Z1 * (C_+ D_) + (C_- 1 + X2);
 	hconnect_[i][I] = new char[SMALL_LEN];
 	sprintf(hconnect_[i][I],"%d.%d.%d",X2-1,Y2-1,Z2-1);
-	// printf("Added hconnect: at [%d][%d] = %s\n",i, I, hconnect_[i][I]);
     }
   
 }
@@ -851,6 +798,9 @@ void RouteLogic::hier_compute()
 	}
 }
 
+/*
+ * Prints routing table - debugging function
+ */
 
 void RouteLogic::hier_print_route()
 {
@@ -876,38 +826,4 @@ void RouteLogic::hier_print_route()
 	}
 }
 
-void RouteLogic::hier_print_connect()
-{
-    
-    for (int j=1; j < D_; j++) 
-	for (int k=1; k < C_; k++) {
-	    int i = INDEX(j, k, C_);
-	    int s = (cluster_size_[i]);
-	    printf("size = %d\n",s);
-	    printf("CONNECT_TABLE[%d] for cluster %d.%d :\n",i,j,k);
-	    printf(" ");
-	    int temp = 1;
-	    while(temp < C_) {
-		printf("     C%d",temp);
-		temp++;
-	    }
-	    temp =1;
-	    while(temp < D_) {
-		printf("     D%d",temp);
-		temp++;
-	    }
-	    int t = C_+D_;
-	    printf("\n");
-	    for(int n=1; n < s+1; n++){
-		printf("%d ",n);
-		for(int m=1; m < t; m++) {
-		    // if (hconnect_[i][INDEX(n, m, t)] != NULL) {
-		    printf(" %d ",INDEX(n, m, t));
-		    printf("%s ",hconnect_[i][INDEX(n, m, t)]);
-		}
-		printf("\n");
-	    }
-	    printf("\n\n");
-	}
-}
 	    
