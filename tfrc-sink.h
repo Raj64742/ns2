@@ -77,7 +77,8 @@ protected:
 	double est_thput(); 
 	void shift_array(int *a, int sz) ;
 	void shift_array_new(double *a, int sz, double defval) ;
-	double weighted_average(int start, int end, double *m, double *w, int *sample);
+	void multiply_array(double *a, int sz, double multiplier);
+	double weighted_average(int start, int end, double factor, double *m, double *w, int *sample);
 
 	int command(int argc, const char*const* argv);
 
@@ -100,6 +101,7 @@ protected:
 	int *sample;
 	double *weights ;
 	double *mult ;
+	double mult_factor_;	// most recent multiple of mult array
 	int sample_count ;
 	int last_sample ;  
 

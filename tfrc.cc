@@ -248,6 +248,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 
 	int x = 0 ;
 	if (flost <= prevflost && rtt_ <= prevrtt && tzero_ <= prevto && aggr_incr_) {
+		// By default, aggr_incr_ is 0 and this is not executed. 
 		increase_rate(flost);
 		x = 1 ;
 	}
@@ -352,6 +353,7 @@ void TfrcAgent::decrease_rate (double p)
 		rate_ = rcvrate;
 	}
 	else {
+		// By default, aggr_dec_ is 1, and this is not executed.
 		rate_ = rate_*prevrtt/rtt_ ; 
 	}
 	oldrate_ = rate_;
