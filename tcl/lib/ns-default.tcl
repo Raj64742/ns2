@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.299 2002/12/17 00:37:58 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.300 2002/12/17 06:11:06 sfloyd Exp $
 
 
 #
@@ -906,9 +906,9 @@ Agent/TFRCSink set history_ 0.75 ;    # loss history for EWMA
 Agent/TFRCSink set PreciseLoss_ 1 ;   # 1 for more precise loss events
 				      # Introduced on 12/11/02, default 1.
 				      # No change in performance.
-Agent/TFRCSink set numPkts_ 1;	# Num non-sequential packets before loss
+Agent/TFRCSink set numPkts_ 3;	# Num non-sequential packets before loss
 				# Introduced on 12/12/02, with default 1.
-				# No change in performance.
+				# Default changed to 3 on 12/16/02.
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency
