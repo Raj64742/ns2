@@ -57,15 +57,13 @@ Agent/Message/reg instproc init { src grp rp protocol } {
 }
 
 Agent/Message/reg instproc handle msg {
-	$self instvar source group proto
-	set type [PIM set REGISTER]
-	set mysrcAdd [expr [[$proto set Node] id] << 8 | [$self port]]
-	set origsrcAdd $source
-	set nullBit 0
-	set borderBit 0
-#$self send "$type/$mysrcAdd/$origsrcAdd/$group/$nullBit/$borderBit/$msg"
-$self send "$type/$mysrcAdd/$origsrcAdd/$group/$nullBit/$borderBit"
-
+        $self next $msg
+        $self instvar source group proto
+        set type [PIM set REGISTER]
+        set mysrcAdd [expr [[$proto set Node] id] << 8 | [$self port]]
+        set origsrcAdd $source
+        set nullBit 0
+        set borderBit 0
+        set mesg "$type/$mysrcAdd/$origsrcAdd/$group/$nullBit/$borderBit/$msg"
+        $self transmit $mesg
 }
-
-
