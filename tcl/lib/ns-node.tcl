@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.9 1997/05/13 22:27:58 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.10 1997/07/25 19:27:12 kkumar Exp $
 #
 
 Class Node
@@ -55,12 +55,47 @@ Node instproc init args {
 	$classifier_ set shift_ 8
 }
 
+Node instproc enable-mcast sim {
+        $self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
+	$self set ns_ $sim
+
+	$self set switch_ [new Classifier/Addr]
+        #
+	# set up switch to route unicast packet to slot 0 and
+	# multicast packets to slot 1
+	#
+	[$self set switch_] set mask_ 1
+	[$self set switch_] set shift_ [Simulator set McastShift_]
+
+	#
+	# create a classifier for multicast routing
+	#
+	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
+	[$self set multiclassifier_] set node_ $self
+
+	[$self set switch_] install 0 $classifier_
+	[$self set switch_] install 1 $multiclassifier_
+
+	#
+	# Create a prune agent.  Each multicast routing node
+	# has a private prune agent that sends and receives
+	# prune/graft messages and dispatches them to the
+	# appropriate replicator object.
+	#
+
+        $self set mcastproto_ [new McastProtoArbiter ""]
+}
+
 Node instproc add-neighbor p {
 	$self instvar neighbor_
 	lappend neighbor_ $p
 }
 
 Node instproc entry {} {
+        if [Simulator set EnableMcast_] {
+	    $self instvar switch_
+	    return $switch_
+	}
 	$self instvar classifier_
 	return $classifier_
 }
@@ -222,3 +257,6 @@ Node instproc get-vif {} {
         $self addInterface $vif_
         return $vif_
 }
+
+
+
