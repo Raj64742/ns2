@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.72 1999/05/26 01:26:12 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.73 1999/08/17 01:46:34 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1367,20 +1367,13 @@ trimthenstep6:
         case TCPS_LAST_ACK:
 
 		//
-		// look for ECNs, react as necessary
+		// look for ECNs in ACKs, react as necessary
 		//
 
-		if (fh->ecnecho()) {
-			if (!ecn_ || !ect_) {
-				fprintf(stderr, "%f: FullTcp(%s): warning, recvd ecnecho but I am not ECN capable!\n",
-					now(), name());
-			} else {
-				/* TCP-full has not been changed to
-				 * have the ECN-Echo sent on
-				 * multiple ACK packets.
-				 */
-				ecn(highest_ack_);
-			}
+		if (fh->ecnecho() && (!ecn_ || !ect_)) {
+			fprintf(stderr,
+			    "%f: FullTcp(%s): warning, recvd ecnecho but I am not ECN capable!\n",
+				now(), name());
 		}
 
                 //
@@ -1504,6 +1497,13 @@ process_ACK:
 			pack_action(pkt);
 		else
 			ack_action(pkt);
+
+		/*
+		 * if this is an ACK with an ECN indication, handle this
+		 */
+
+		if (fh->ecnecho())
+			ecn(highest_ack_);  // updated by newack(), above
 
 		// CHECKME: handling of rtx timer
 		if (ackno == maxseq_) {
@@ -2368,11 +2368,12 @@ TahoeFullTcpAgent::dupack_action()
         }
    
         if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
-                slowdown(CLOSE_CWND_HALF);
+		last_cwnd_action_ = CWND_ACTION_DUPACK;
+                slowdown(CLOSE_CWND_ONE);
 		set_rtx_timer();
                 rtt_active_ = FALSE;
 		t_seqno_ = highest_ack_;	// slow-start
-		send_much(0, REASON_NORMAL, 0);
+//send_much(0, REASON_NORMAL, 0);
                 return; 
         }
    
