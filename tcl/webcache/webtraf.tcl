@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.11 2002/03/12 00:41:02 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.12 2002/03/14 04:32:50 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 # TCPTYPE_ could be set to FullTCP also (xuanc)
@@ -38,6 +38,10 @@ PagePool/WebTraf set TCPSINKTYPE_ TCPSink   ;#required for SACK1 Sinks.
 #   (see pushback scripts for usage of this).
 PagePool/WebTraf set FID_ASSIGNING_MODE_ 0 
 PagePool/WebTraf set VERBOSE_ 0
+
+# Support the reuse of page level attributes to save
+#  memory for large simulations
+PagePool/WebTraf set recycle_page_ 1
 
 # modified to trace web traffic flows (request and response).
 # used to evaluate SFD algorithm.
@@ -87,7 +91,6 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size 
 	    }
 	}
 
-	# Advance $size packets
 	if {[PagePool/WebTraf set FLOW_SIZE_OPS_] == 2 && $size > $flow_th} {
 	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $flow_th $pobj"
 	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $flow_th $flow_th [$ns now] [$stcp set fid_] $pobj"
@@ -103,14 +106,16 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size 
 	if {[PagePool/WebTraf set REQ_TRACE_]} {	
 	    puts "req + $id $pid $size [$clnt id] [$svr id] [$ns now]"
 	}	
+
 	# Send a single packet as a request
-	$ctcp advanceby 1
+	$self send-message $ctcp 1
     }
 }
 
 PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent pobj} {
     set ns [Simulator instance]
     
+
     # modified to trace web traffic flows (recv request: client==>server).
     if {[PagePool/WebTraf set REQ_TRACE_]} {	
 	puts "req - $id $pid $size [$clnt id] [$svr id] [$ns now]"
@@ -129,8 +134,8 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent po
 	puts "resp + $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
     }
     
-    # Advance $size packets
-    $stcp advanceby $sent
+    # Send $sent packets
+    $self send-message $stcp $sent
 }
 
 PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0} pobj} {
@@ -165,7 +170,7 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	    $stcp set fid_ $id
 
 	    if {[PagePool/WebTraf set fulltcp_] == 1} {
-		$ssn set fid_ $id
+		$ssnk set fid_ $id
 	    }
 	}
 
@@ -177,7 +182,8 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	    }
 	    set sent [expr $sent + $left]
 	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $sent $sent_th [$ns now] [$stcp set fid_]"
-	    $stcp advanceby $left
+
+	    $self send-message $stcp $left
 	} else {
 	    # modified to trace web traffic flows (send responese: server->client).
 	    if {[PagePool/WebTraf set RESP_TRACE_]} {
@@ -185,7 +191,8 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	    }
 	    set sent [expr $sent + $sent_th]
 	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $sent $sent_th [$ns now] [$stcp set fid_]"
-	    $stcp advanceby $sent_th
+
+	    $self send-message $stcp $sent_th
 	}
     } else {
 	# Recycle server-side TCP agents
@@ -214,5 +221,15 @@ PagePool/WebTraf instproc alloc-tcp {} {
 
 PagePool/WebTraf instproc alloc-tcp-sink {} {
     return [new Agent/[PagePool/WebTraf set TCPSINKTYPE_]]
+}
+
+PagePool/WebTraf instproc send-message {tcp num_packet} {
+    if {[PagePool/WebTraf set fulltcp_] == 1} {
+	# for fulltcp: need to use flag
+	$tcp sendmsg [expr $num_packet * 1000] "MSG_EOF"
+    } else {
+	#Advance $num_packet packets: for one-way tcp
+	$tcp advanceby $num_packet
+    }
 }
 
