@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.124 1998/10/20 01:55:24 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.125 1998/10/23 17:48:29 heideman Exp $
 
 #
 
@@ -485,6 +485,11 @@ Simulator instproc duplex-link { n1 n2 bw delay type args } {
 
 Simulator instproc duplex-intserv-link { n1 n2 bw pd sched signal adc args } {
 	eval $self duplex-link $n1 $n2 $bw $pd intserv $sched $signal $adc $args
+}
+
+Simulator instproc simplex-link-op { n1 n2 op args } {
+	$self instvar link_
+	eval $link_([$n1 id]:[$n2 id]) $op $args
 }
 
 Simulator instproc duplex-link-op { n1 n2 op args } {
