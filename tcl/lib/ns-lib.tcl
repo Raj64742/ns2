@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.41 1997/08/05 01:12:28 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.42 1997/08/08 02:55:33 polly Exp $
 #
 
 #
@@ -90,6 +90,7 @@ source ../pim/pim-recvr.tcl
 source ../pim/pim-sender.tcl
 source ../pim/pim-vifs.tcl
 source ../mcast/srm.tcl
+source ../mcast/McastMonitor.tcl
 source ../session/session.tcl
 
 Simulator instproc init args {

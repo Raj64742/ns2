@@ -18,47 +18,23 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.h,v 1.3 1997/07/25 02:21:02 polly Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.h,v 1.4 1997/08/08 02:55:29 polly Exp $ (USC/ISI)
  */
 
 #ifndef ns_ctrmcast_h
 #define ns_ctrmcast_h
 
 #include "packet.h"
-#include "ip.h"
 
 struct hdr_CtrMcast {
-        nsaddr_t       src_;            //mcast data source
-	nsaddr_t       group_;          //mcast data destination group
-	int            fid_;
-
-        // per field member functions
-        nsaddr_t& src() { return src_;   }
-        nsaddr_t& group() { return group_;   }
-        int& flowid() { return fid_;   }
-};
-
-class CtrMcastEncap : public Agent {
-public:
-        CtrMcastEncap() : Agent(PT_CtrMcast_Encap) { 
-                bind("off_CtrMcast_", &off_CtrMcast_);
-
-        }
-        int command(int argc, const char*const* argv);
-        void recv(Packet* p, Handler*);
-protected:
-        int off_CtrMcast_;
-};
-
-class CtrMcastDecap : public Agent {
-public:
-        CtrMcastDecap() : Agent(PT_CtrMcast_Decap) { 
-                bind("off_CtrMcast_", &off_CtrMcast_);
-        }
-        int command(int argc, const char*const* argv);
-        void recv(Packet* p, Handler*);
-protected:
-        int off_CtrMcast_;
+  nsaddr_t       src_;            /* mcast data source */
+  nsaddr_t       group_;          /* mcast data destination group */
+  int            fid_;
+  
+  /* per field member functions */
+  nsaddr_t& src() { return src_;   }
+  nsaddr_t& group() { return group_;   }
+  int& flowid() { return fid_;   }
 };
 
 #endif

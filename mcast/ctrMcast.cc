@@ -27,7 +27,30 @@ static const char rcsid[] =
 #endif
 
 #include "agent.h"
+#include "ip.h"
 #include "ctrMcast.h"
+
+class CtrMcastEncap : public Agent {
+public:
+  CtrMcastEncap() : Agent(PT_CtrMcast_Encap) { 
+    bind("off_CtrMcast_", &off_CtrMcast_);
+  }
+  int command(int argc, const char*const* argv);
+  void recv(Packet* p, Handler*);
+protected:
+  int off_CtrMcast_;
+};
+
+class CtrMcastDecap : public Agent {
+public:
+  CtrMcastDecap() : Agent(PT_CtrMcast_Decap) { 
+    bind("off_CtrMcast_", &off_CtrMcast_);
+  }
+  int command(int argc, const char*const* argv);
+  void recv(Packet* p, Handler*);
+protected:
+  int off_CtrMcast_;
+};
 
 static class CtrMcastHeaderClass : public PacketHeaderClass {
 public:

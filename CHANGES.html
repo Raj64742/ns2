@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.121 1997/08/07 19:54:37 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.122 1997/08/08 02:55:22 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,18 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+<LI><A HREF="mailto:huang@isi.edu">[PH]</A> <B>Thu Aug  7 19:53:17 PDT 1997<BR></B>
+<UL>
+<LI> Added delay models for session level packet distribution.
+Files added: delaymodel.[cc,h]
+<LI> Modified structure of 'virtual links'.  Loss and delay modules
+can be inserted flexibly.  Example script to insert loss module:
+tcl/ex/newmcast/session3.tcl.
+<LI> Added helper functions to monitor packets in transit. Example script:
+tcl/ex/newmcast/pktintran.tcl
+</UL>
+
 <LI><A HREF="http://www.cs.berkeley.edu/~tomh">[TH]</A> <B>Thu Aug 7 12:47:34 PDT 1997<BR></B> Redid tcp-full.cc timers to conform to the C++ timers defined in 
 timer-handler.cc. </LI>
 

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.56 1997/08/05 01:12:12 polly Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.57 1997/08/08 02:55:25 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -96,7 +96,7 @@ OBJ_CC = \
 	ctrMcast.o prune.o srm.o \
 	net.o net-ip.o tap.o \
 	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o \
-	sessionhelper.o
+	sessionhelper.o delaymodel.o
 
 OBJ_C = \
 	inet.o
@@ -128,7 +128,7 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
 	delay.h \
 	snoop.h ll.h mac.h mac-multihop.h mac-csma.h mac-802_11.h \
-	rtProtoDV.h ctrMcast.h prune.h ranvar.h
+	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
 	gen/* core core.ns core.nsx
@@ -175,6 +175,7 @@ NS_TCL_LIB = \
         tcl/mcast/pimDM.tcl \
 	tcl/mcast/srm.tcl \
 	tcl/mcast/srm-adaptive.tcl \
+	tcl/mcast/McastMonitor.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
         tcl/ctr-mcast/CtrMcastComp.tcl \
         tcl/ctr-mcast/CtrRPComp.tcl \

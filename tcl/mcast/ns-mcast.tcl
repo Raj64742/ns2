@@ -477,7 +477,9 @@ Classifier/Replicator/Demuxer instproc drop { src dst } {
 	#
 	set src [expr $src >> 8]
 	$self instvar node_
-        [$node_ set mcastproto_] drop $self $src $dst
+        if [info exists node_] {
+	    [$node_ set mcastproto_] drop $self $src $dst
+	}
         return 1
 }
 

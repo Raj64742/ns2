@@ -33,10 +33,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.15 1997/07/24 04:45:07 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.16 1997/08/08 02:55:30 polly Exp $ (LBL)";
 #endif
 
 #include "delay.h"
+#include "prune.h"
+#include "ctrMcast.h"
 
 static class LinkDelayClass : public TclClass {
 public:
@@ -50,6 +52,9 @@ LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
 {
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
+        bind("off_ip_", &off_ip_);
+        bind("off_prune_", &off_prune_);
+        bind("off_CtrMcast_", &off_CtrMcast_);
 }
 
 int LinkDelay::command(int argc, const char*const* argv)
@@ -60,7 +65,18 @@ int LinkDelay::command(int argc, const char*const* argv)
 			itq_ = new PacketQueue();
 			return TCL_OK;
 		}
-	}
+	} else if (argc == 6) {
+                if (strcmp(argv[1], "pktintran") == 0) {
+                        int src = atoi(argv[2]);
+                        int grp = atoi(argv[3]);
+                        int from = atoi(argv[4]);
+                        int to = atoi(argv[5]);
+                        pktintran (src, grp);
+                        Tcl::instance().evalf("%s puttrace %d %d %d %d %d %d %d %d", name(), total_[0], total_[1], total_[2], total_[3], src, grp, from, to);
+                        return TCL_OK;
+                }
+        }
+
 	return Connector::command(argc, argv);
 }
 
@@ -111,4 +127,46 @@ void LinkDelay::handle(Event* e)
 	send(nextPacket_, (Handler*) NULL);
 	nextPacket_ = (Packet*) NULL;
 	schedule_next();
+}
+
+void LinkDelay::pktintran(int src, int group)
+{
+        int reg = 1;
+        int prune = 30;
+        int graft = 31;
+        int data = 0;
+        for (int i=0; i<4; i++) {
+          total_[i] = 0;
+        }
+
+        if (dynamic_) {
+          int len = itq_->length();
+          while (len) {
+            len--;
+            Packet* p = itq_->lookup(len);
+            hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+
+            if (iph->flowid() == prune) {
+              hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+              if (ph->src() == src && ph->group() == group) {
+                total_[0]++;
+              }
+            } else if (iph->flowid() == graft) {
+              hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+              if (ph->src() == src && ph->group() == group) {
+                total_[1]++;
+              }
+            } else if (iph->flowid() == reg) {
+              hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
+              if (ch->src() == src+1 && ch->group() == group) {
+                total_[2]++;
+              }
+            } else if (iph->flowid() == data) {
+              if (iph->src() == src+1 && iph->dst() == group) {
+                total_[3]++;
+              }
+            }
+          }
+        }
+        //printf ("%f %d %d %d %d\n", Scheduler::instance().clock(), total_[0], total_[1], total_[2],total_[3]);
 }

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.h,v 1.9 1997/07/24 04:45:08 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.h,v 1.10 1997/08/08 02:55:31 polly Exp $ (LBL)
  */
 
 #ifndef ns_delay_h
@@ -55,7 +55,7 @@ class LinkDelay : public Connector {
 		return (hdr->size() * 8. / bandwidth_);
 	}
 	double bandwidth() const { return bandwidth_; }
-
+        void pktintran(int src, int group);
  protected:
 	int command(int argc, const char*const* argv);
 	void reset();
@@ -66,6 +66,10 @@ class LinkDelay : public Connector {
 	Event inTransit_;
 	PacketQueue* itq_;
 	Packet* nextPacket_;
+        int off_ip_;
+        int off_prune_;
+        int off_CtrMcast_;
+        int total_[4];
 
 private:
 	void schedule_next() {

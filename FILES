@@ -56,6 +56,8 @@ ctrMcast.cc
 ctrMcast.h
 delay.cc
 delay.h
+delaymodel.cc
+delaymodel.h
 drop-tail.cc
 drop-tail.h
 drr.cc
@@ -282,6 +284,7 @@ tcl/lib/ns-random.tcl
 tcl/lib/ns-source.tcl
 tcl/lib/ns-trace.tcl
 tcl/mcast/DM.tcl
+tcl/mcast/McastMonitor.tcl
 tcl/mcast/McastProto.tcl
 tcl/mcast/dynamicDM.tcl
 tcl/mcast/ns-mcast.tcl
