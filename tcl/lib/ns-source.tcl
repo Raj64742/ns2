@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.12 1997/07/25 09:04:34 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.13 1998/01/22 08:03:04 gnguyen Exp $
 #
 
 #set ns_telnet(interval) 1000ms
@@ -82,4 +82,9 @@ Source/FTP instproc producemore { pktcnt } {
 Source/FTP instproc attach o {
 	$self instvar agent_
 	set agent_ $o
+}
+
+Source/FTP instproc produceByte {nbyte} {
+	set npkt [expr ceil($nbyte / [$agent set packetSize_])]
+	$self producemore $npkt
 }
