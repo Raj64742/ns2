@@ -1,14 +1,19 @@
 %
-% Ported from the Manual of diffserv from Nortel
+% Most parts are ported from the Manual of diffserv from Nortel
 % -xuanc (Nov 16, 2000)        
 %
-\chapter{Differentiated Services Model in ns}
+% DRAFT!!!
+%
+\chapter{Differentiated Services Module in ns}
 \label{chap:diffserv}
 
-This chapter describes the Differentiated Services Model that was originally 
-ported as Nortel's Differentiated Services extension to ns.
 
-Differentiated Services [1], or Diffserv, is an IP QoS architecture based on 
+\textbf{Note: This chapter is incomplete and subject to change.}
+
+This chapter describes the Differentiated Services Module that was originally 
+ported as Nortel's Differentiated Services extension to ns \cite{Diffserv}.
+
+Differentiated Services, or Diffserv, is an IP QoS architecture based on 
 packet-marking that allows packets to be prioritized according to user 
 requirements.  During the time of congestion, more low priority packets are 
 discarded than high priority packets.
@@ -393,21 +398,3 @@ $qCE2 printCoreStats
 These methods output the policy or policer tables on link and different statistics.  
 
 For further information, please refer to the example scripts under \ns/tcl/ex/diffserv.
-
-\section{Reference}
-\label{sec:diffservref}
-
-\label{1}[1] Blake, S., D. Black, M. Carlson, E. Davies, Z. Wang, and W. Weiss.  "An Architecture for Differentiated Services."  RFC 2475.  December 1998.
-\label{2}[2] Fall, K. and K. Varadhan, editors.  "ns Notes and Documentation."                    http://www.isi.edu/nsnam/ns/ns-documentation.html
-\label{3}[3] http://www.isi.edu/nsnam/ns/
-\label{4}[4] http://dev.ajubasolutions.com/
-\label{5}[5] http://www.isi.edu/nsnam/nam/
-\label{6}[6] Greis, Marc.  "Tutorial for the Network simulator 'ns.'" 
-http://www.isi.edu/nsnam/ns/tutorial/index.html
-\label{7}[7] http://www-sop.inria.fr/rodeo/Antoine.Clerget/ns/
-\label{8}[8] Heinanen, J., F. Baker, W. Weiss, and J. Wroclawski.  "Assured Forwarding PHB Group."  RFC 2597.  June 1999.
-\label{9}[9] Floyd, S. and V. Jacobson.  "Random Early Detection Gateways for Congestion Avoidance."  1993.
-\label{10}[10] Clark, D. and W. Fang.  "Explicit Allocation of Best Effort Packet Delivery Service."  
-\label{11}[11] Fang, W., N. Seddigh, and B. Nandy.  "A Time Sliding Window Three Color Marker" (Internet draft).  March, 2000.
-\label{12}[12] Heinanen, J., T. Finland, and R. Guerin.  "A Single Rate Three Color Marker" (Internet draft).  May, 1999.
-\label{13}[13] Heinanen, J., T. Finland, and R. Guerin.  "A Two Rate Three Color Marker" (Internet draft).  May, 1999.

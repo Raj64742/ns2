@@ -110,6 +110,11 @@ S.K. Park and R.W. Miller.
 \newblock Random number generation: Good ones are hard to find.
 \newblock {\em Communications of the ACM}, 31(10):1192--1201, October 1988.
 
+\bibitem{Diffserv}
+Peter Pieda, Jeremy Ethridge, Mandeep Baines, and Farhan Shallwani.
+\newblock {\em A Network Simulator, Differentiated Services Implementation}.
+\newblock Open IP, Nortel Networks, 2000.
+
 \bibitem{Rappaport96}
 T.~S. Rappaport.
 \newblock {\em Wireless communications, principles and practice}.
