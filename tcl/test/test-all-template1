@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.26 2000/08/29 19:28:04 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.27 2000/08/29 20:00:47 haoboy Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -101,7 +101,7 @@ for t in $tests; do
     *-session.tcl | *-mixmode.tcl | *-mpls.tcl)
 	$NS $file $t $qflag > temp.rands ;;
     *)
-	$NS $file $t ;;
+	$NS $file $t $qflag ;;
     esac
     if test $? = 2 ; then 
 	echo "Test not implemented"
