@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.34 2002/03/18 10:14:47 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.35 2002/03/19 07:10:16 ddutta Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -587,7 +587,6 @@ Simulator instproc compute-algo-routes {} {
 
 # Asim routines 
 # Debojyoti Dutta
-# Debo
 
 Simulator instproc asim-run { } {
 
@@ -638,8 +637,8 @@ Simulator instproc asim-dump { file } {
         }
 
 	puts $tf_ ""
-	global nconn_ conn_
-	puts $tf_ "n $nconn_"
+	global nconn_ conn_ sflows_
+	puts $tf_ "n [expr $nconn_ + $nsflows_]"
 	
 	set i 0
 	foreach x $conn_ {
@@ -662,6 +661,32 @@ Simulator instproc asim-dump { file } {
 		}
 		
 		puts $tf_ "route [expr $i + 1] $len $str"
+		incr i
+
+	}
+
+	foreach x $sflows_ {
+
+		set len 0
+		set str ""
+
+		set list [split $x ":"] 
+		set srcid [lindex $list 0]
+		set dstid [lindex $list 1]
+	        set lambda [lindex $list 2]
+	        set mu [lindex $list 3]
+
+		while { $srcid != $dstid } {
+			incr len
+			# shortened nexthop to nh, to fit add-route in
+			# a single line
+			set nh [$r lookup $srcid $dstid]
+			# print the route 
+			append str " " [expr [$link_($srcid:$nh) id] + 1] 
+			set srcid  $nh
+		}
+		
+		puts $tf_ "route [expr $i + 1] $len $str sh $lambda $mu"
 		incr i
 
 	}
@@ -692,7 +717,6 @@ Simulator instproc asim-getLinkTput { link } {
     return $t
 
 }
-
 
 Simulator instproc asim-getAggrTput { srcnode dstnode } {
 

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.17 2001/06/15 22:22:43 kclan Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.18 2002/03/19 07:10:16 ddutta Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -67,7 +67,7 @@ int  RandomVariable::seed(char *x){
                         return(TCL_ERROR);
                 }
                 return(TCL_OK);
-
+ 
 }
 
 

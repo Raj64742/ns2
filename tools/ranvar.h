@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.14 2000/10/13 17:05:13 debo Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.15 2002/03/19 07:10:16 ddutta Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -32,6 +32,7 @@
 class RandomVariable : public TclObject {
  public:
 	virtual double value() = 0;
+	virtual double avg() = 0;
 	int command(int argc, const char*const* argv);
 	RandomVariable();
 	// This is added by Debojyoti Dutta 12th Oct 2000
@@ -43,6 +44,7 @@ class RandomVariable : public TclObject {
 class UniformRandomVariable : public RandomVariable {
  public:
 	virtual double value();
+	virtual inline double avg() { return (max_-min_)/2; };
 	UniformRandomVariable();
 	UniformRandomVariable(double, double);
 	double* minp()	{ return &min_; };
@@ -62,7 +64,7 @@ class ExponentialRandomVariable : public RandomVariable {
 	ExponentialRandomVariable();
 	ExponentialRandomVariable(double);
 	double* avgp() { return &avg_; };
-	double avg() { return avg_; };
+	virtual inline double avg() { return avg_; };
 	void setavg(double d) { avg_ = d; };
  private:
 	double avg_;
@@ -75,7 +77,7 @@ class ParetoRandomVariable : public RandomVariable {
 	ParetoRandomVariable(double, double);
 	double* avgp() { return &avg_; };
 	double* shapep() { return &shape_; };
-	double avg()	{ return avg_; };
+	virtual inline double avg()	{ return avg_; };
 	double shape()	{ return shape_; };
 	void setavg(double d)	{ avg_ = d; };
 	void setshape(double d)	{ shape_ = d; };
@@ -92,7 +94,7 @@ class ParetoIIRandomVariable : public RandomVariable {
         ParetoIIRandomVariable(double, double);
         double* avgp() { return &avg_; };
         double* shapep() { return &shape_; };
-        double avg()   { return avg_; };
+        virtual inline double avg()   { return avg_; };
         double shape()   { return shape_; };
         void setavg(double d)  { avg_ = d; };
         void setshape(double d)  { shape_ = d; };
@@ -108,7 +110,7 @@ class NormalRandomVariable : public RandomVariable {
         NormalRandomVariable();
         inline double* avgp() { return &avg_; };
         inline double* stdp() { return &std_; };
-        inline double avg()     { return avg_; };
+        virtual inline double avg()     { return avg_; };
         inline double std()     { return std_; };
         inline void setavg(double d)    { avg_ = d; };
         inline void setstd(double d)    { std_ = d; };
@@ -123,7 +125,7 @@ public:
         LogNormalRandomVariable();
         inline double* avgp() { return &avg_; };
         inline double* stdp() { return &std_; };
-        inline double avg()     { return avg_; };
+        virtual inline double avg()     { return avg_; };
         inline double std()     { return std_; };
         inline void setavg(double d)    { avg_ = d; };
         inline void setstd(double d)    { std_ = d; };
@@ -135,6 +137,7 @@ private:
 class ConstantRandomVariable : public RandomVariable {
  public:
 	virtual double value();
+	virtual double avg(){ return val_;}
 	ConstantRandomVariable();
 	ConstantRandomVariable(double);
 	double* valp() { return &val_; };
@@ -151,7 +154,7 @@ class HyperExponentialRandomVariable : public RandomVariable {
 	HyperExponentialRandomVariable(double, double);
 	double* avgp()	{ return &avg_; };
 	double* covp()	{ return &cov_; };
-	double avg()	{ return avg_; };
+	virtual double avg()	{ return avg_; };
 	double cov()	{ return cov_; };
 	void setavg(double d)	{ avg_ = d; };
 	void setcov(double d)	{ cov_ = d; };
@@ -175,6 +178,7 @@ class EmpiricalRandomVariable : public RandomVariable {
 public:
 	virtual double value();
 	virtual double interpolate(double u, double x1, double y1, double x2, double y2);
+	virtual double avg(){ return value(); } // junk
 	EmpiricalRandomVariable();
 	double& minCDF() { return minCDF_; }
 	double& maxCDF() { return maxCDF_; }
@@ -193,3 +197,7 @@ protected:
 };
 
 #endif
+
+
+
+

@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.240 2002/03/18 10:14:47 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.241 2002/03/19 07:10:15 ddutta Exp $
 
 
 #
@@ -44,12 +44,12 @@
 
 # Debojyoti added this
 
-#set edges_ [new IDs]
-#set connections_ [new IDs]
-
 set slinks_(0:0) 0
 set nconn_ 0
 set conn_ ""
+# for short flows stuff
+set sflows_ "" 
+set nsflows_ 0
 
 proc warn {msg} {
 	global warned_
