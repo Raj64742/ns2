@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.11 2001/12/31 04:06:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.12 2001/12/31 17:33:30 sfloyd Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -109,6 +109,9 @@ Packet* DropTail::deque()
 
 void DropTail::print_summarystats()
 {
-	double now = Scheduler::instance().clock();
-	printf("True average queue: %5.3f time: %5.3f\n", true_ave_, total_time_);
+	//double now = Scheduler::instance().clock();
+        printf("True average queue: %5.3f", true_ave_);
+        if (qib_)
+                printf(" (in bytes)");
+        printf(" time: %5.3f\n", total_time_);
 }
