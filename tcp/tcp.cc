@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13 1997/03/29 01:43:09 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.14 1997/05/14 00:20:23 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -206,6 +206,15 @@ int TcpAgent::command(int argc, const char*const* argv)
 		/*
 		 * Curtis Villamizar's trick to transfer tcp connection
 		 * parameters to emulate http persistent connections.
+		 *
+		 * This implementation may not correctly emulate
+		 * pure-BSD-based systems which close cwnd after the
+		 * connection goes idle.  See Jacobson and Karels
+		 * ``Congestion Avoidance and Control'' in CCR (*not*
+		 * the original '88 paper) for why BSD does this.
+		 * See ``Performance Interactions Between P-HTTP and
+		 * TCP Implementations'' in CCR 27(2) for descriptions
+		 * of what other systems do the same.
 		 */
 		if (strcmp(argv[1], "persist") == 0) {
 			TcpAgent *other
