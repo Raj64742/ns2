@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.83 1998/11/28 17:43:05 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.84 1998/11/29 05:26:55 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -69,7 +69,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
-	restart_bugfix_(1), closed_(0), nrexmit_(0)
+	ect_(0), restart_bugfix_(1), closed_(0), nrexmit_(0)
 	
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
@@ -340,8 +340,14 @@ void TcpAgent::output(int seqno, int reason)
 		cong_action_ = FALSE;
         }
 	/* Check if this is the initial SYN packet. */
-	if (syn_ && (seqno == 0)) 
-		hdr_cmn::access(p)->size() = tcpip_base_hdr_size_;
+	if (seqno == 0) {
+		if (syn_)
+			hdr_cmn::access(p)->size() = tcpip_base_hdr_size_;
+//		if (ecn_) {
+//			hf->ecnecho() = 1;
+//			hf->cong_action() = 1;
+//		}
+	}
         int bytes = hdr_cmn::access(p)->size();
 
 	/* if no outstanding data, be sure to set rtx timer again */
@@ -526,9 +532,9 @@ void TcpAgent::set_rtx_timer()
 void TcpAgent::newtimer(Packet* pkt)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
-	if (t_seqno_ > tcph->seqno()) {
+	if (t_seqno_ > tcph->seqno()) 
 		set_rtx_timer();
-	} else
+	else
 		cancel_rtx_timer();
 }
 
@@ -649,6 +655,10 @@ void TcpAgent::newack(Packet* pkt)
 {
 	double now = Scheduler::instance().clock();
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	/* 
+	 * Wouldn't it be better to set the timer *after*
+	 * updating the RTT, instead of *before*? 
+	 */
 	newtimer(pkt);
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
@@ -680,7 +690,8 @@ void TcpAgent::newack(Packet* pkt)
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
 	awnd_ += wnd_th_ * cwnd_;
-	if (last_ack_ == 0) newtimer(pkt);
+	/* hack to reset timer for first packet */
+//	if (last_ack_ == 0) newtimer(pkt);
 }
 
 
@@ -711,6 +722,9 @@ void TcpAgent::ecn(int seqno)
 void TcpAgent::recv_newack_helper(Packet *pkt) {
 	//hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
+	if (!ect_ && hdr_flags::access(pkt)->ecnecho() &&
+		!hdr_flags::access(pkt)->cong_action())
+		ect_ = 1;
 	if (!ecn_ || !hdr_flags::access(pkt)->ecnecho() ||
 		(old_ecn_ && ecn_burst_)) 
 		/* If "old_ecn", this is not the first ACK carrying ECN-Echo
