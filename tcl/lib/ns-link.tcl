@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.28 1997/11/04 22:26:44 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.29 1997/11/18 00:50:44 kfall Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -176,7 +176,10 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	$link_ target [$dst entry]
 
 	#set head_ $queue_ -> replace by the following
-        if { [$src info class] == "DuplexNetInterface" } {
+	# xxx this is hacky
+	if { [[$q info class] info heritage ErrModule] == "ErrorModule" } {
+		set head_ [$q classifier]
+	} elseif { [$src info class] == "DuplexNetInterface" } {
                 set head_ [$src exitpoint]
                 set ifacein_ $head_
                 $head_ target $queue_
@@ -236,6 +239,7 @@ SimpleLink instproc nam-trace { ns f } {
 # create nam trace files if op == "nam"
 #
 SimpleLink instproc trace { ns f {op ""} } {
+
 	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
 	$self instvar rcvT_ ttl_
 	$self instvar drophead_		;# idea stolen from CBQ and Kevin
@@ -456,4 +460,26 @@ SimpleLink instproc dynamic {} {
 	
 	$self transit-drop-trace
 	$self all-connectors dynamic
+}
+
+#
+# insert an "error module" after the queue
+# point the em's drop-target to the drophead
+#
+SimpleLink instproc errormodule args {
+	$self instvar errmodule_ queue_ drophead_ head_
+	if { $args == "" } {
+		return $errmodule_
+	}
+
+	set em [lindex $args 0]
+	set errmodule_ $em
+
+	#set h [$queue_ target]
+	set h $head_
+	#$queue_ target $em
+	set head_ $em
+	$em target $h
+
+	$em drop-target $drophead_
 }
