@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.32 1998/05/23 02:48:22 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.33 1998/06/19 21:24:03 gnguyen Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.32 1998/05/23 02:48:22 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.33 1998/06/19 21:24:03 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -581,6 +581,8 @@ void CalendarScheduler::cancel(Event* e)
 {
 	int i = (int)(((long)(e->time_ * oneonwidth_)) & buckbits_);
 
+	if (e->uid_ <= 0)	// event not in queue
+		return;
 	for (Event** p = buckets_ + i; (*p) != NULL; p = &(*p)->next_)
 		if ((*p) == e) {
 			(*p) = (*p)->next_;
