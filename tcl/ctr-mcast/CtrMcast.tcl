@@ -273,7 +273,7 @@ Agent/CtrMcast/Encap instproc init {} {
 
 #################### MultiNode: add-mfc-reg ################
 
-MultiNode instproc add-mfc-reg { src group iif oiflist } {
+Node instproc add-mfc-reg { src group iif oiflist } {
     $self instvar multiclassifier_ Regreplicator_
 
     #XXX node addr is in upper 24 bits
@@ -302,7 +302,7 @@ MultiNode instproc add-mfc-reg { src group iif oiflist } {
     $multiclassifier_ add-rep $r $src $group $iif
 }
 
-MultiNode instproc getRegreplicator group {
+Node instproc getRegreplicator group {
     $self instvar Regreplicator_
     if [info exists Regreplicator_($group)] {
 	return $Regreplicator_($group)
@@ -310,5 +310,6 @@ MultiNode instproc getRegreplicator group {
 	return -1
     }
 }
+
 
 
