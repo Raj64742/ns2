@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-routing.cc,v 1.14 2002/11/26 22:45:37 haldar Exp $
+// $Id: geo-routing.cc,v 1.15 2003/03/10 18:27:13 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -703,8 +703,9 @@ GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
   last_neighbor_request_tv_.tv_sec = 0;
   last_neighbor_request_tv_.tv_usec = 0;
 
+#ifndef NS_DIFFUSION
   getNodeLocation(&geo_longitude_, &geo_latitude_);
-
+#endif
   // Get current time
   GetTime(&tv);
 
