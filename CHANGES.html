@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.261 1998/07/09 21:11:36 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.262 1998/07/11 00:59:02 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,11 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+    <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A></B>
+       <b>Fri Jul  10 17:54:49 PDT 1998</b><br>
+	added session simulator validation test<br>
+	tcl/test/test-all-session<br>
+
     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Thu Jul  9 14:02:19 PDT 1998</b><br>
 	 tclclassinstvars turned on by default.
@@ -707,6 +712,7 @@ control from Tcl, and derived TCP classes can define their own trace function. <
 Files: tcp.{cc,h}
 	
 	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
+
 
 
 

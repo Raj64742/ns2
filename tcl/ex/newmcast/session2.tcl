@@ -76,10 +76,13 @@ $ns at 0.1 "$cbr0 start"
 $ns at 1.6 "finish"
 
 proc finish {} {
-        #global rcvr3 rcvr4 rcvr5
-        #puts "lost [$rcvr3 set nlost_] pkt, rcv [$rcvr3 set npkts_]"
-        #puts "lost [$rcvr4 set nlost_] pkt, rcv [$rcvr4 set npkts_]"
-        #puts "lost [$rcvr5 set nlost_] pkt, rcv [$rcvr5 set npkts_]"
+        global rcvr3 rcvr4 rcvr5 rcvr0 rcvr1 rcvr2
+        puts "lost [$rcvr0 set nlost_] pkt, rcv [$rcvr0 set npkts_]"
+        puts "lost [$rcvr1 set nlost_] pkt, rcv [$rcvr1 set npkts_]"
+        puts "lost [$rcvr2 set nlost_] pkt, rcv [$rcvr2 set npkts_]"
+        puts "lost [$rcvr3 set nlost_] pkt, rcv [$rcvr3 set npkts_]"
+        puts "lost [$rcvr4 set nlost_] pkt, rcv [$rcvr4 set npkts_]"
+        puts "lost [$rcvr5 set nlost_] pkt, rcv [$rcvr5 set npkts_]"
         exit 0
 }
 
