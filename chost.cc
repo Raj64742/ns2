@@ -41,7 +41,7 @@
 #include "random.h"
 
 CorresHost::CorresHost() : slink(), TcpFsAgent(), connWithPktBeforeFS_(NULL),
-	dontAdjustOwnd_(0), pktReordered_(0), lastackTS_(0)
+	dontAdjustOwnd_(0), dontIncrCwnd_(0), lastackTS_(0), rexmtSegCount_(0)
 {
 	nActive_ = nTimeout_ = nFastRec_ = 0;
 	ownd_ = 0;
@@ -137,14 +137,24 @@ CorresHost::closecwnd(int how, IntTcpAgent *sender)
 	case 0:
 	case 10:
 		/* timeouts */
+
+		/* 
+		 * XXX we use cwnd_ instead of ownd_ here, which may not be
+		 * appropriate if the sender does not fully utilize the
+		 * available congestion window (ownd_ < cwnd_).
+		 */
 		ssthresh_ = int(cwnd_ * winMult_);
-/*		ssthresh_ = int( ownd_ * winMult_ );*/
 		cwnd_ = int(wndInit_);
 		break;
 		
 	case 1:
 		/* Reno dup acks, or after a recent congestion indication. */
-/*		cwnd_ = ownd_ * winMult_;*/
+
+		/* 
+		 * XXX we use cwnd_ instead of ownd_ here, which may not be
+		 * appropriate if the sender does not fully utilize the
+		 * available congestion window (ownd_ < cwnd_).
+		 */
 		cwnd_ *= winMult_;
 		ssthresh_ = int(cwnd_);
 		if (ssthresh_ < 2)
@@ -210,11 +220,11 @@ CorresHost::adjust_ownd(int size)
 		printf("In adjust_ownd(): ownd_ = %g  owndCorrection_ = %d\n", double(ownd_), double(owndCorrection_));
 }
 
-
 int
 CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSeqno, int amt_data_acked)
 { 
     Segment *cur, *prev=NULL, *newseg;
+    int i;
     int rval = -1;
 
     /* remove all acked pkts from list */
@@ -232,56 +242,74 @@ CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSe
     /*
      * A pkt is a candidate for retransmission if it is the leftmost one in the
      * unacked window for the connection AND has at least NUMDUPACKS
-     * dupacks + later acks AND (at least one dupack OR a later packet also
-     * with the threshold number of dup/later acks OR a packet sent 2*200 = 400ms
-     * later has been acked). A pkt is also a candidate for immediate 
-     * retransmission if it has partialack_ set, indicating that a partial ack
-     * has been received for it.
+     * dupacks/later acks AND (at least one dupack OR a later packet also
+     * with the threshold number of dup/later acks). A pkt is also a candidate
+     * for immediate retransmission if it has partialack_ set, indicating that
+     * a partial new ack has been received for it.
      */
-    Islist_iter<Segment> seg_iter(seglist_);
-    while ((cur = seg_iter()) != NULL) {
-	int remove_flag = 0;
-	if (cur->seqno_ == cur->sender_->highest_ack_ + 1 &&
-	    ((cur->dupacks_ + cur->later_acks_ >= NUMDUPACKS &&
-	      (cur->dupacks_ > 0 || sender == cur->sender_ ||
-	       cur->sender_->num_thresh_dupack_segs_ > 1 ||
-	       lastackTS_-cur->ts_ >= 0.2*2)) || cur->partialack_)) {
-		if (cur->sessionSeqno_ <= recover_ &&
-		    last_cwnd_action_ != CWND_ACTION_TIMEOUT)
-			dontAdjustOwnd_ = 1;
-		if ((cur->sessionSeqno_ > recover_) ||
-		    (last_cwnd_action_ == CWND_ACTION_TIMEOUT) ||
-		    (proxyopt_ && cur->seqno_ > cur->sender_->recover_) ||
-		    (proxyopt_ && cur->sender_->last_cwnd_action_ == CWND_ACTION_TIMEOUT)) { 
-			/* new loss window */
-			closecwnd(1, cur->ts_, cur->sender_);
-			recover_ = sessionSeqno - 1;
-			last_cwnd_action_ = CWND_ACTION_DUPACK;
-			cur->sender_->recover_ = cur->sender_->maxseq_;
-			cur->sender_->last_cwnd_action_ = CWND_ACTION_DUPACK;
-			dontAdjustOwnd_ = 0;
-		}
-		if (newseg = cur->sender_->rxmit_last(TCP_REASON_DUPACK, 
-			      cur->seqno_, cur->sessionSeqno_, cur->ts_)) {
-			newseg->rxmitted_ = 1;
-			adjust_ownd(cur->size_);
-			if (!dontAdjustOwnd_) {
-				owndCorrection_ += min(double(ownd_),cur->dupacks_);
-				ownd_ -= min(double(ownd_),cur->dupacks_);
-			}
-			seglist_.remove(cur, prev);
-			remove_flag = 1;
-			delete cur;
-		}
-	}
-	if (!remove_flag)
-		prev = cur;
+
+    for (i=0; i < rexmtSegCount_; i++) {
+	    int remove_flag = 0;
+	    /* 
+	     * curArray_ only contains segments that are the first oldest
+	     * unacked segments of their connection (i.e., they are at the left
+	     * edge of their window) and have either received a
+	     * partial ack and/or have received at least NUMDUPACKS
+	     * dupacks/later acks. Thus, segments in curArray_ have a high
+	     * probability (but not certain) of being eligible for 
+	     * retransmission. Using curArray_ avoids having to scan
+	     * through all the segments.
+	     */
+	    cur = curArray_[i];
+	    prev = prevArray_[i];
+	    if (cur->partialack_ || cur->dupacks_ > 0 || 
+		cur->sender_->num_thresh_dupack_segs_ > 1 ) {
+		    if (cur->thresh_dupacks_) {
+			    cur->thresh_dupacks_ = 0;
+			    cur->sender_->num_thresh_dupack_segs_--;
+		    }
+		    if (cur->sessionSeqno_ <= recover_ && 
+			last_cwnd_action_ != CWND_ACTION_TIMEOUT /* XXX 2 */)
+			    dontAdjustOwnd_ = 1;
+		    if ((cur->sessionSeqno_ > recover_) || 
+			(last_cwnd_action_ == CWND_ACTION_TIMEOUT /* XXX 2 */)
+			|| (proxyopt_ && cur->seqno_ > cur->sender_->recover_)
+			|| (proxyopt_ && cur->sender_->last_cwnd_action_ == CWND_ACTION_TIMEOUT /* XXX 2 */)) { 
+			    /* new loss window */
+			    closecwnd(1, cur->ts_, cur->sender_);
+			    recover_ = sessionSeqno - 1;
+			    last_cwnd_action_ = CWND_ACTION_DUPACK /* XXX 1 */;
+			    cur->sender_->recover_ = cur->sender_->maxseq_;
+			    cur->sender_->last_cwnd_action_ = 
+				    CWND_ACTION_DUPACK /* XXX 1 */;
+			    dontAdjustOwnd_ = 0;
+		    }
+		    if (newseg = cur->sender_->rxmit_last(TCP_REASON_DUPACK, 
+				  cur->seqno_, cur->sessionSeqno_, cur->ts_)) {
+			    newseg->rxmitted_ = 1;
+			    adjust_ownd(cur->size_);
+			    if (!dontAdjustOwnd_) {
+				    owndCorrection_ += 
+					    min(double(ownd_),cur->dupacks_);
+				    ownd_ -= min(double(ownd_),cur->dupacks_);
+			    }
+			    seglist_.remove(cur, prev);
+			    remove_flag = 1;
+			    delete cur;
+		    }
+		    /* 
+		     * if segment just removed used to be the one just previous
+		     * to the next segment in the array, update prev for the
+		     * next segment
+		     */
+		    if (remove_flag && cur == prevArray_[i+1])
+			    prevArray_[i+1] = prev;
+	    }
     }
+    rexmtSegCount_ = 0;
     return(0);
 }
-
-
-
+		    
 
 int
 CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
@@ -289,7 +317,7 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 	Islist_iter<Segment> seg_iter(seglist_);
 	Segment *cur, *prev=0;
 	int found = 0;
-	int head = 1;
+	int done = 0;
 	int new_data_acked = 0;
 	int partialack = 0;
 	int latest_susp_loss = -1;
@@ -298,36 +326,42 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 	if (tcph->ts_echo() > lastackTS_)
 		lastackTS_ = tcph->ts_echo();
 
-	while ((!found) && ((cur = seg_iter()) != NULL)) {
+	while (((cur = seg_iter()) != NULL) &&
+	       (!done || tcph->ts_echo() > cur->ts_)) {
 		int remove_flag = 0;
 		/* ack for older pkt of another connection */
 		if (sender != cur->sender_ && tcph->ts_echo() > cur->ts_) {
 			cur->later_acks_++;
 			latest_susp_loss = 
 				max(latest_susp_loss,cur->sessionSeqno_);
+			dontIncrCwnd_ = 1;
 		} 
 		/* ack for same connection */
 		else if (sender == cur->sender_) {
 			/* found packet acked */
 			if (tcph->seqno() == cur->seqno_ && 
-			    tcph->ts_echo() == cur->ts_)
+			    tcph->ts_echo() == cur->ts_) 
 				found = 1;
 			/* higher ack => clean up acked packets */
 			if (tcph->seqno() >= cur->seqno_) {
 				adjust_ownd(cur->size_);
 				seglist_.remove(cur, prev);
 				remove_flag = 1;
-				new_data_acked = 1;
-				if (!prev)
-					prev = seg_iter.get_last();
+				new_data_acked += cur->size_;
+				if (new_data_acked >= amt_data_acked)
+					done = 1;
 				if (prev == cur) 
 					prev = NULL;
 				if (cur == rtt_seg_)
 					rtt_seg_ = NULL;
 				delete cur;
-				seg_iter.set_cur(prev);
+				if (seg_iter.get_cur() && prev)
+					seg_iter.set_cur(prev);
+				else if (seg_iter.get_cur())
+					seg_iter.set_cur(seg_iter.get_last());
 			} 
 			/* partial new ack => rexmt immediately */
+			/* XXX should we check recover for session? */
 			else if (amt_data_acked > 0 && 
 				 tcph->seqno() == cur->seqno_-1 &&
 				 cur->seqno_ <= sender->recover_ &&
@@ -336,6 +370,9 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 				partialack = 1;
 				latest_susp_loss = 
 					max(latest_susp_loss,cur->sessionSeqno_);
+				if (new_data_acked >= amt_data_acked)
+					done = 1;
+				dontIncrCwnd_ = 1;
 			}
 			/* 
 			 * If no new data has been acked AND this segment has
@@ -343,13 +380,13 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 			 * that this is the next segment to be acked, then
 			 * increment dupack count.
 			 */
-			else if (!new_data_acked && !cur->rxmitted_ &&
+			else if (!amt_data_acked && !cur->rxmitted_ &&
 				 tcph->seqno() == cur->seqno_-1) {
-
-				/* cur->later_acks_++;*/
 				cur->dupacks_++;
 				latest_susp_loss = 
 					max(latest_susp_loss,cur->sessionSeqno_);
+				done = 1;
+				dontIncrCwnd_ = 1;
 			} 
 		}
 		if (cur->dupacks_+cur->later_acks_ >= NUMDUPACKS &&
@@ -357,18 +394,27 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 			cur->thresh_dupacks_ = 1;
 			cur->sender_->num_thresh_dupack_segs_++;
 		}
-		/* check if there is packet reordering */
-		if (head && !new_data_acked)
-			pktReordered_ = 1;
+
+		if (amt_data_acked==0 && tcph->seqno()==cur->seqno_-1)
+			done = 1;
 		/* XXX we could check for rexmt candidates here if we ignore 
 		   the num_thresh_dupack_segs_ check */
+		if (!remove_flag &&
+		    cur->seqno_ == cur->sender_->highest_ack_ + 1 &&
+		    (cur->dupacks_ + cur->later_acks_ >= NUMDUPACKS ||
+		     cur->partialack_)) {
+			curArray_[rexmtSegCount_] = cur;
+			prevArray_[rexmtSegCount_] = prev;
+			rexmtSegCount_++;
+		}
 		if (!remove_flag)
 			prev = cur;
 	}
 	/* partial ack => terminate fast start mode */
-	if (partialack && fs_enable_ && fs_mode_) 
+	if (partialack && fs_enable_ && fs_mode_) {
 		timeout(TCP_TIMER_RESET);
-/*	return new_data_acked;*/
+		rexmtSegCount_ = 0;
+	}
 	return latest_susp_loss;
 }
 	
@@ -376,6 +422,10 @@ void
 CorresHost::add_agent(IntTcpAgent *agent, int size, double winMult, 
 		      int winInc, int ssthresh)
 {
+	if (nActive_ >= MAX_PARALLEL_CONN) {
+		printf("In add_agent(): reached limit of number of parallel conn (%d); returning\n", nActive_);
+		return;
+	}
 	nActive_++;
 	if ((!fixedIw_ && nActive_ > 1) || cwnd_ == 0)
 		cwnd_ += 1; /* XXX should this be done? */
@@ -393,6 +443,8 @@ CorresHost::ok_to_snd(int size)
 		printf("In ok_to_snd(): ownd_ = %g  owndCorrection_ = %g\n", double(ownd_), double(owndCorrection_));
 	return (cwnd_ >= ownd_+1);
 }
+
+
 
 
 
