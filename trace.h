@@ -30,65 +30,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.10 1997/07/24 00:08:07 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.11 1997/08/12 22:22:46 gnguyen Exp $
  */
 
 #ifndef ns_trace_h
 #define ns_trace_h
 
-/* a trace header; things in a packet one may want to look at */
-
-#include "config.h"
 #include "packet.h"
 #include "connector.h"
 
-#define PT_TCP          0
-#define PT_TELNET       1
-#define PT_CBR          2
-#define PT_AUDIO        3
-#define PT_VIDEO        4
-#define PT_ACK          5
-#define PT_START        6
-#define PT_STOP         7
-#define PT_PRUNE        8
-#define PT_GRAFT        9
-#define PT_MESSAGE      10
-#define PT_RTCP         11
-#define PT_RTP          12
-#define PT_RTPROTO_DV	13
-#define PT_CtrMcast_Encap 14
-#define PT_CtrMcast_Decap 15
-#define	PT_SRM		16
-#define PT_NTYPE        17
-
-#define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
-        "start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
-	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM"
-
-struct hdr_cmn {
-	double		ts_;	// timestamp: for q-delay measurement
-	int		ptype_;	// packet type (see above)
-	int		uid_;	// unique id
-	int		size_;	// simulated packet size
-	int		iface_;	// receiving interface (label)
-
-	/* per-field member functions */
-	int& ptype() {
-		return (ptype_);
-	}
-	int& uid() {
-		return (uid_);
-	}
-	int& size() {
-		return (size_);
-	}
-	int& iface() {
-		return (iface_);
-	}
-	double& timestamp() {
-		return (ts_);
-	}
-};
 
 class Trace : public Connector {
  protected:
@@ -100,12 +50,13 @@ class Trace : public Connector {
         char wrk_[256];
         void format(int tt, int s, int d, Packet* p);
         void annotate(const char* s);
-		int show_tcphdr_;  // bool flags; backward compat
+	int show_tcphdr_;  // bool flags; backward compat
  public:
         Trace(int type);
         ~Trace();
         int command(int argc, const char*const* argv);
         void recv(Packet* p, Handler*);
+	void trace(TracedVar*);
         void dump();
         inline char* buffer() { return (wrk_); }
 

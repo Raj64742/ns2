@@ -30,15 +30,54 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.17 1997/06/11 05:18:38 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.18 1997/08/12 22:22:45 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
 #define ns_packet_h
 
-#include <sys/types.h>
 #include "config.h"
 #include "scheduler.h"
+
+#define PT_TCP          0
+#define PT_TELNET       1
+#define PT_CBR          2
+#define PT_AUDIO        3
+#define PT_VIDEO        4
+#define PT_ACK          5
+#define PT_START        6
+#define PT_STOP         7
+#define PT_PRUNE        8
+#define PT_GRAFT        9
+#define PT_MESSAGE      10
+#define PT_RTCP         11
+#define PT_RTP          12
+#define PT_RTPROTO_DV	13
+#define PT_CtrMcast_Encap 14
+#define PT_CtrMcast_Decap 15
+#define PT_SRM		16
+#define PT_NTYPE        17
+
+#define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
+	"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
+	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM"
+
+
+struct hdr_cmn {
+	double	ts_;		// timestamp: for q-delay measurement
+	int	ptype_;		// packet type (see above)
+	int	uid_;		// unique id
+	int	size_;		// simulated packet size
+	int	iface_;		// receiving interface (label)
+
+	/* per-field member functions */
+	int& ptype() { return (ptype_); }
+	int& uid() { return (uid_); }
+	int& size() { return (size_); }
+	int& iface() { return (iface_); }
+	double& timestamp() { return (ts_); }
+};
+
 
 class PacketHeaderClass : public TclClass {
 protected:
@@ -71,7 +110,6 @@ public:
 	inline u_char* accessdata() {return data_;}
 };
 
-#include "trace.h"
 
 inline Packet* Packet::alloc()
 {

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.17 1997/07/22 08:58:43 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.18 1997/08/12 22:22:47 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -43,7 +43,7 @@ static const char rcsid[] =
 #include "tcp.h"
 #include "rtp.h"
 #include "flags.h"
-#include "queue.h"
+#include "trace.h"
 
 /*
  * tcl command interface
@@ -225,4 +225,22 @@ void Trace::recv(Packet* p, Handler* h)
 		Packet::free(p);
 	else
 		send(p, h);
+}
+
+
+void Trace::trace(TracedVar* var)
+{
+	char tmp[256] = "";
+	Scheduler& s = Scheduler::instance();
+	if (&s == 0)
+		return;
+
+	// format: use Mark's nam feature code without the '-' prefix
+	sprintf(wrk_, "%c t%g a%s n%s v%s",
+		type_,
+		s.clock(),
+		var->owner()->name(),
+		var->name(),
+		var->value(tmp));
+	dump();
 }
