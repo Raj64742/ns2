@@ -51,8 +51,8 @@ public:
 	}
 } class_mipbsagent;
 
-MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), bcast_target_(0), timer_(this),
-	beacon_(1.0), shift_(8), mask_(0xffffffff), adlftm_(~0)
+MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), beacon_(1.0), bcast_target_(0), 
+            timer_(this), mask_(0xffffffff), shift_(8), adlftm_(~0)
 {
 	bind("adSize_", &size_);
 	bind("shift_", &shift_);
@@ -63,7 +63,7 @@ MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), bcast_target_(0), timer_(this),
 	seqno_ = -1;
 }
 
-void MIPBSAgent::recv(Packet* p, Handler *h)
+void MIPBSAgent::recv(Packet* p, Handler *)
 {
 	Tcl& tcl = Tcl::instance();
 	char *objname;
@@ -119,7 +119,7 @@ void MIPBSAgent::recv(Packet* p, Handler *h)
 	}
 }
 
-void MIPBSAgent::timeout(int tno)
+void MIPBSAgent::timeout(int )
 {
 	send_ads();
 	timer_.resched(beacon_);
@@ -162,7 +162,7 @@ void MIPBSAgent::send_ads(int dst, NsObject *target)
 	else target->recv(p, (Handler*)0);
 }
 
-void AgtListTimer::expire(Event *e) {
+void AgtListTimer::expire(Event *) {
 	a_->timeout(MIP_TIMER_AGTLIST);
 }
 
@@ -174,9 +174,9 @@ public:
 	}
 } class_mipmhagent;
 
-MIPMHAgent::MIPMHAgent() : Agent(PT_UDP), ha_(-1), coa_(-1), agts_(0),
-	rtx_timer_(this), agtlist_timer_(this), shift_(8), mask_(0xffffffff),
-	reglftm_(~0), adlftm_(0.0), beacon_(1.0), bcast_target_(0)
+MIPMHAgent::MIPMHAgent() : Agent(PT_UDP), ha_(-1), coa_(-1),
+	beacon_(1.0),bcast_target_(0),agts_(0),rtx_timer_(this), 
+	agtlist_timer_(this),mask_(0xffffffff),shift_(8),reglftm_(~0),adlftm_(0.0)
 {
 	bind("home_agent_", &ha_);
 	bind("rreqSize_", &size_);
@@ -189,7 +189,7 @@ MIPMHAgent::MIPMHAgent() : Agent(PT_UDP), ha_(-1), coa_(-1), agts_(0),
 	seqno_ = -1;
 }
 
-void MIPMHAgent::recv(Packet* p, Handler *h)
+void MIPMHAgent::recv(Packet* p, Handler *)
 {
 	Tcl& tcl = Tcl::instance();
 	hdr_mip *miph = (hdr_mip *)p->access(off_mip_);

@@ -48,8 +48,8 @@ public:
 	}
 } class_mipencapsulator;
 
-MIPEncapsulator::MIPEncapsulator() : Connector(), addr_(-1), shift_(8),
-	mask_(0xffffffff), defttl_(32)
+MIPEncapsulator::MIPEncapsulator() : Connector(), addr_(-1),
+	mask_(0xffffffff), shift_(8), defttl_(32)
 {
 	bind("addr_", (int*)&addr_);
 	bind("shift_", &shift_);

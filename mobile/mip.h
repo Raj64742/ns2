@@ -83,7 +83,7 @@ class SimpleTimer : public TimerHandler {
 public: 
 	SimpleTimer(Agent *a) : TimerHandler() { a_ = a; }
 protected:
-	inline void expire(Event *e) { a_->timeout(MIP_TIMER_SIMPLE); }
+	inline void expire(Event *) { a_->timeout(MIP_TIMER_SIMPLE); }
 	Agent *a_;
 };
 
