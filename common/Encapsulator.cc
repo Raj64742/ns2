@@ -32,9 +32,10 @@ int Encapsulator::command(int argc, const char*const* argv)
 	else if (argc == 3) {
 		if (strcmp(argv[1], "decap-target") == 0) {
 			d_target_ = (NsObject*)TclObject::lookup(argv[2]);
-			if (d_target_ == 0) {
-				tcl.resultf("no such object %s", argv[2]);
-				return (TCL_ERROR);
+ 			if (d_target_ == 0) {
+				tcl.resultf("set d_target_ to zero!");
+// 				tcl.resultf("no such object %s", argv[2]);
+// 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
 		}

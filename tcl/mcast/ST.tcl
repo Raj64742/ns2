@@ -55,7 +55,8 @@ ST instproc init { sim node } {
 				puts "attaching a Encapsulator for group $grp, node $id"
 				set e [new Agent/Encapsulator]
 				$e set class_ 32
-				$e set status_ 1 
+				$e set status_ 1
+				$e decap-target ""
 				$node attach $e
 				lappend encaps_($grp) $e
 

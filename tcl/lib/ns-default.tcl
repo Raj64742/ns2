@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.122.2.2 1998/07/18 00:53:36 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.122.2.3 1998/07/20 18:28:23 yuriy Exp $
 
 
 #
@@ -429,8 +429,8 @@ TBF set qlen_ 0
 set tcl_precision 17
 
 #Encapsulator/Decapsulator
-Agent/Encapsulator set dst_ 0
+#Agent/Encapsulator set dst_ 0
 Agent/Encapsulator set status_ 1
 #Agent/Decapsulator set src_ 0
-Agent/Decapsulator set star_value_ 0
+#Agent/Decapsulator set star_value_ 0
 #Agent/Decapsulator set decapsulated?_ 0

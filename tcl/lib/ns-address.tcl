@@ -180,7 +180,6 @@ Simulator instproc set-address {node port} {
 	# mcast option is enabled before the initialization of Simulator.
 	#	if { [$self multicast?] }
 	$a set-mcastbits 1
-	#     }
 
 	set lastbit [expr $node - [$a set mcastsize_]]
 	$a set-idbits 1 $lastbit
