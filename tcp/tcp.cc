@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.133 2002/04/23 05:07:17 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.134 2002/04/29 01:56:39 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -834,6 +834,7 @@ double TcpAgent::linear(double x, double x_1, double y_1, double x_2, double y_2
  */
 void TcpAgent::opencwnd()
 {
+	double increment, increment1;
 	if (cwnd_ < ssthresh_) {
 		/* slow-start (exponential) */
 		cwnd_ += 1;
@@ -850,7 +851,14 @@ void TcpAgent::opencwnd()
 
 		case 1:
 			/* This is the standard algorithm. */
-			cwnd_ += increase_num_ / cwnd_;
+			increment = increase_num_ / cwnd_;
+			if (last_cwnd_action_ == 0 && max_ssthresh_ > 0) {
+				int round = int(cwnd_ / (double(max_ssthresh_)/2.0));
+				increment1 = 1.0/(double(round)); 
+				if (increment < increment1)
+					increment = increment1;
+			}
+			cwnd_ += increment;
 			break;
 
 		case 2:
@@ -906,6 +914,10 @@ void TcpAgent::opencwnd()
  		case 8: 
 			double increase, decrease, p, max_increase; 
 
+			/* extending the slow-start for high-speed TCP */
+			//if (last_cwnd_action_ == 0 ) {
+			//} else
+
                         /* for highspeed TCP -- from Sylvia Ratnasamy, */
 			/* modifications by Sally Floyd and Evandro de Souza */
  	// p ranges from 1.5/W^2 at congestion window low_window_, to
@@ -913,11 +925,13 @@ void TcpAgent::opencwnd()
         // The decrease factor ranges from 0.5 to high_decrease
 	//  as the window ranges from low_window to high_window, 
 	//  as the log of the window. 
+	// For an efficient implementation, this would just be looked up
+	//   in a table, with the increase and decrease being a function of the
+	//   congestion window.
 
-                        if(cwnd_ <= low_window_) { 
-                                cwnd_ += 1 / cwnd_ ; 
+                        if (cwnd_ <= low_window_) { 
+                                increment = 1 / cwnd_ ; 
                         } else { 
-				//p = exp(log(0.120) - log(cwnd_));
 				double low_p = 1.5/(low_window_*low_window_);
 				p = exp(linear(log(cwnd_), log(low_window_), log(low_p), log(high_window_), log(high_p_)));
 				decrease = linear(log(cwnd_), log(low_window_), 0.5, log(high_window_), high_decrease_);
@@ -926,8 +940,15 @@ void TcpAgent::opencwnd()
 			//	if (increase > max_increase) { 
 			//		increase = max_increase;
 			//	} 
-                                cwnd_ += (increase / cwnd_) ;
+                                increment = (increase / cwnd_) ;
                         }       
+			if (last_cwnd_action_ == 0 && max_ssthresh_ > 0) {
+				int round = int(cwnd_ / (double(max_ssthresh_)/2.0));
+				increment1 = 1.0/(double(round)); 
+				if (increment < increment1)
+					increment = increment1;
+			}
+			cwnd_ += increment;
                         break;
 		default:
 #ifdef notdef
