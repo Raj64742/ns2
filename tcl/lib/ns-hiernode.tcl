@@ -43,9 +43,9 @@ Class HierNode -superclass Node
 HierNode instproc init {args} {
 	$self instvar address_
 	set address_ $args
+        
 	set args [lreplace $args 0 1]
 	$self next $args
-	
 }
 
 HierNode instproc mk-default-classifier {} {
@@ -126,17 +126,18 @@ HierNode instproc add-hroute { dst target } {
 }
 
 
-
-
 #
 # split up hier address string 
 #
-#HierNode instproc split-addrstr addrstr {
-	#set L [split $addrstr .]
-	#return $L
-#}
+HierNode instproc split-addrstr addrstr {
+	set L [split $addrstr .]
+	return $L
+}
 
-
+HierNode instproc node-addr {} {
+	$self instvar address_
+	return $address_
+}
 
 # as of now, hierarchical routing support not extended for equal cost multi path routing
 ### feature may be added in future

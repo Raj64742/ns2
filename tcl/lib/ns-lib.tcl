@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.168 1999/09/16 03:51:04 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.169 1999/09/18 00:10:25 yaxu Exp $
 
 #
 
@@ -183,8 +183,8 @@ Simulator instproc dumper obj {
 # New node structure
 
 # Define global node configuration
-# $ns_ node-config -addressingType flat/hierarchical/expanded
-#                  -adhocRouting   "Agent/DSDV"/"Agent/DSR"
+# $ns_ node-config -addressType flat/hierarchical
+#                  -adhocRouting   DSDV/DSR/TORA
 #                  -llType
 #                  -macType
 #                  -propType
@@ -194,6 +194,7 @@ Simulator instproc dumper obj {
 #                  -antType
 #                  -channelType
 #                  -topologyInstance
+#                  -wiredRouting   ON/OFF
 #                  -energyModel    "EnergyModel"
 #                  -initialEnergy  (in Joules)
 #                  -rxPower        (in W)
@@ -201,7 +202,7 @@ Simulator instproc dumper obj {
 #                  -agentTrace  ON
 #                  -routerTrace ON 
 #                  -macTrace OFF 
-#                  -toraDebug OFF
+#                  -toraDebug OFF                
 #                  -movementTrace OFF
 
 Simulator set routingAgent_ ""
@@ -228,6 +229,7 @@ Simulator instproc phyType  {val} { $self set phyType_  $val }
 Simulator instproc antType  {val} { $self set antType_  $val }
 Simulator instproc channelType {val} {$self set channelType_ $val}
 Simulator instproc topoInstance {val} {$self set topoInstance_ $val}
+Simulator instproc wiredRouting {val} {$self set wiredRouting_ $val}
 Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc txPower  {val} { $self set txPower__  $val }
@@ -238,11 +240,12 @@ Simulator instproc macTrace  {val} { $self set macTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 
+
 Simulator instproc node-config args {
         set args [eval $self init-vars $args]
         $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
         $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
-        $self instvar channelType_ topoInstance_
+        $self instvar channelType_ topoInstance_ propInstance_ chan
 
         if [info exists macTrace_] {
             Simulator set MacTrace_ $macTrace_
@@ -265,12 +268,13 @@ Simulator instproc node-config args {
         # hacking for matching old cmu add-interface
         # not good style, for back-compability ONLY
 
-	if [info exists propType_] {
-            set propType_ [new $propType_] 
+	# Only create 1 instance of prop
+	if {[info exists propType_] && ![info exists propInstance_]} {
+            set propInstance_ [new $propType_] 
 	}
 	
-	if [info exists channelType_] {
-	    set channelType_ [new $channelType_]
+	if {[info exists channelType_] && ![info exists chan]} {
+	    set chan [new $channelType_]
 	}
 
 	if [info exists topoInstance_] {
@@ -279,6 +283,7 @@ Simulator instproc node-config args {
 # set address type, hierarchical or expanded
 
     if {[string compare $addressType_ ""] != 0} {
+
 	    $self set-address-format $addressType_ 
 	}
 
@@ -288,7 +293,7 @@ Simulator instproc node-config args {
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
 Simulator instproc node args {
-	$self instvar Node_ routingAgent_
+	$self instvar Node_ routingAgent_ wiredRouting_
         if { [Simulator info vars EnableMcast_] != "" } {
                 warn "Flag variable Simulator::EnableMcast_ discontinued.\n\t\
                       Use multicast methods as:\n\t\t\
@@ -307,7 +312,12 @@ Simulator instproc node args {
 
 	if [info exists routingAgent_] {
 	    if  {[string compare $routingAgent_ ""] != 0} {
-	        set node [$self create-wireless-node]
+	        set node [$self create-wireless-node $args]
+
+		# for base node
+		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
+		   set Node_([$node id]) $node
+		}
 	        return $node
 	    }
 	}
@@ -335,8 +345,8 @@ Simulator instproc imep-support {} {
 
 Simulator instproc create-wireless-node { args } {
 
-        $self instvar routingAgent_
-        $self instvar propType_ llType_ macType_ ifqType_ ifqlen_ phyType_ channelType_
+        $self instvar routingAgent_ wiredRouting_
+        $self instvar propInstance_ llType_ macType_ ifqType_ ifqlen_ phyType_ chan
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
         $self instvar imepflag_ topoInstance_
 
@@ -345,6 +355,12 @@ Simulator instproc create-wireless-node { args } {
         # create node instance
 
         set node [$self create-node-instance $args]
+
+    
+        # basestation address setting
+        if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
+	    $node base-station [AddrParams set-hieraddr [$node node-addr]]
+    	}
 
         switch -exact $routingAgent_ {
 	    DSDV {
@@ -369,7 +385,7 @@ Simulator instproc create-wireless-node { args } {
 
 	# add main node interface
 
-	$node add-interface $channelType_ $propType_ $llType_ $macType_ \
+	$node add-interface $chan $propInstance_ $llType_ $macType_ \
 	       $ifqType_ $ifqlen_ $phyType_ $antType_
 
 	# attach agent
@@ -417,34 +433,58 @@ Simulator instproc create-wireless-node { args } {
 
 }
 
-Simulator instproc create-node-instance { args } {
-               $self instvar routingAgent_
-               if {[Simulator set EnableHierRt_]} {
-                    if [Simulator set mobile_ip_] {
-			if {$routingAgent_ == "DSR"} {
-			    set node [SRNodeNew/MIPMH $args]
-			    return $node
-			}
-                        set node [new MobileNode/MIPMH $args]			
-                    } else {
-			if {$routingAgent_ == "DSR"} {
-			    set node [new SRNodeNew $args]
-			    return $node
-			}
-                        set node [new Node/MobileNode/BaseStationNode $args]
-                    }
-               } else {
-		    if {$routingAgent_ == "DSR"} {
-			set node [new SRNodeNew]
-			return $node
-		    }
-                    set node [new Node/MobileNode]
-		    
-               }        
+#Class BaseNode -superclass {HierNode Node/MobileNode}
 
-	       return $node
+Simulator instproc create-node-instance { args } {
+              $self instvar routingAgent_
+    
+	      if {[Simulator set EnableHierRt_]} {
+		  if [Simulator set mobile_ip_] {
+		      set nodetype MobileNode/MIPMH
+		  } else {
+		      #set nodetype Node/MobileNode/BaseStationNode
+		      set nodetype BaseNode
+		  }
+	      } else {
+		  set nodetype Node/MobileNode
+	      }
+		
+	      # DSR is a special case
+	      if {$routingAgent_ == "DSR"} {
+		  set nodetype [$self set-dsr-nodetype]
+	      }
+
+	      
+	      if {$args != "{}" && $args != "{{}}"} {
+		  set node [new $nodetype $args]
+	      } else {
+		  
+		  set node [new $nodetype]
+	      }
+
+	      return $node
+
 }
 
+Simulator instproc set-dsr-nodetype {} {
+       $self instvar wiredRouting_ 
+       
+       set nodetype SRNodeNew
+
+       # MIP mobilenode
+
+       if [Simulator set mobile_ip_] {
+	   set nodetype SRNodeNew/MIPMH
+       }
+
+       # basestation dsr node
+       if { [info exists wiredRouting_] && $wiredRouting_ == "ON"} {
+	   set nodetype Node/MobileNode/BaseStationNode
+       }
+       
+       return $nodetype
+
+}
 
 Simulator instproc create-tora-agent { node } {
 

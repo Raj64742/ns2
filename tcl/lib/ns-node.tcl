@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.56 1999/09/09 03:34:36 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.57 1999/09/18 00:10:27 yaxu Exp $
 #
 
 # for MobileIP
@@ -61,6 +61,7 @@ Node instproc init args {
         set rtsize_ 0
 	$self mk-default-classifier
 	$self cmd addr $address_; # new by tomh
+
 }
 
 

@@ -83,7 +83,7 @@ Node/MobileNode instproc init args {
         set arptable_ ""                ;# no ARP table yet
 
 	set nifs_	0		;# number of network interfaces
-
+    
 }
 
 Node/MobileNode instproc reset {} {
@@ -104,8 +104,6 @@ Node/MobileNode instproc reset {} {
 	    $arptable_ reset 
 	}
 }
-
-
 
 #
 # Attach an agent to a node.  Pick a port and
@@ -189,18 +187,22 @@ Node/MobileNode instproc add-target {agent port } {
                 # need a second tracer to see the actual
                 # types of tora packets after imep unpacks them
                 #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
-		    
-		if {[info exists toraDebug_] && $toraDebug_ == "ON"} {
-		         
-                                set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
-                                $rcvT2 target $agent
-                                [$self set classifier_] defaulttarget $rcvT2
-                 }
+		# no need to support any hier node
 
+		if {[info exists toraDebug_] && $toraDebug_ == "ON" } {
+		    set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
+		    $rcvT2 target $agent
+		    [$self set classifier_] defaulttarget $rcvT2
+		}
+		
              } else {
                  $rcvT target $agent
-                 [$self set classifier_] defaulttarget $rcvT
-		 $classifier_ defaulttarget $rcvT
+
+		 $self install-defaulttarget $rcvT
+
+#                 [$self set classifier_] defaulttarget $rcvT
+#		 $classifier_ defaulttarget $rcvT
+
                  $dmux_ install $port $rcvT
 	     }
 
@@ -217,7 +219,11 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    # Recv Target
 	    #
-	    $classifier_ defaulttarget $agent
+
+	    $self install-defaulttarget $agent
+	    
+	    #$classifier_ defaulttarget $agent
+
 	    $dmux_ install $port $agent
 	}
 	
@@ -260,6 +266,10 @@ Node/MobileNode instproc add-target {agent port } {
 	    $dmux_ install $port $agent
 	}
     }
+}
+
+Node/MobileNode instproc install-defaulttarget {rcvT} {
+    [$self set classifier_] defaulttarget $rcvT
 }
 
 # set receiving power
@@ -633,7 +643,27 @@ SRNodeNew instproc reset args {
     $dsr_agent_ reset
 }
 
+#new base station node
 
+Class BaseNode -superclass {HierNode Node/MobileNode}
+
+BaseNode instproc init {args} {
+
+    $self instvar address_
+    $self next $args
+    set address_ $args
+
+}
+
+BaseNode instproc install-defaulttarget {rcvT} {
+
+    $self instvar classifiers_
+    set level [AddrParams set hlevel_]
+    for {set i 1} {$i <= $level} {incr i} {
+		$classifiers_($i) defaulttarget $rcvT
+#		$classifiers_($i) bcast-receiver $rcvT
+    }
+}
 
 
 #
