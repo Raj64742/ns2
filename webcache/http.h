@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.5 1999/02/18 22:58:28 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.6 1999/02/18 23:15:44 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -48,7 +48,7 @@ public:
 	void log(const char *fmt, ...);
 	int id() const { return id_; }
 
-	virtual void process_data(AppData* d);
+	virtual void process_data(int size, char* d);
 
 protected:
 	int add_cnc(HttpApp *client, TcpApp *agt);
@@ -132,7 +132,7 @@ public:
 #endif /* JOHNH_CLASSINSTVAR */
 
 	virtual int command(int argc, const char*const* argv);
-	virtual void process_data(AppData* data);
+	virtual void process_data(int size, char* data);
 	virtual void timeout(int reason);
 
 	void handle_node_failure(int cid);

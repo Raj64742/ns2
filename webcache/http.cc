@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.8 1999/02/18 22:58:27 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.9 1999/02/18 23:15:43 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -287,9 +287,7 @@ int HttpApp::command(int argc, const char*const* argv)
 			char *buf = strdup(argv[4]);
 			HttpNormalData *d = 
 				new HttpNormalData(id_, bytes, buf);
-			AppData *tmp = d->pack();
-			cnc->send(bytes, tmp);
-			delete tmp;
+			cnc->send(bytes, d);
 			delete d;
 			free(buf);
 			return TCL_OK;
@@ -354,23 +352,24 @@ void HttpApp::log(const char* fmt, ...)
 		Tcl_Write(log_, buf, strlen(buf));
 }
 
-void HttpApp::process_data(AppData *data)
+void HttpApp::process_data(int, char* data)
 {
-	HttpData *d = new HttpData((char *)(data->data()));
-	switch (d->type()) {
+	if (data == NULL) 
+		return;
+
+	switch (AppData::type(data)) {
 	case HTTP_NORMAL: {
-		HttpNormalData *tmp=new HttpNormalData((char*)(data->data()));
+		HttpNormalData *tmp=new HttpNormalData(data);
 		Tcl::instance().eval(tmp->str());
 		delete tmp;
 		break;
 	}
 	default:
 		fprintf(stderr, "Bad http invalidation data type %d\n", 
-			d->type());
+			AppData::type(data));
 		abort();
 		break;
 	}
-	delete d;
 }
 
 
@@ -619,9 +618,7 @@ void HttpYucInvalServer::send_heartbeat()
 		return;
 
 	HttpHbData* d = pack_heartbeat();
-	AppData* tmp = d->pack();
-	send_hb_helper(d->cost(), tmp);
-	delete tmp;
+	send_hb_helper(d->cost(), d);
 	delete d;
 }
 
@@ -1228,9 +1225,7 @@ void HttpMInvalCache::recv_leave(HttpLeaveData *d)
 
 void HttpMInvalCache::send_leave(HttpLeaveData *d)
 {
-	AppData* tmp = d->pack();
-	send_hb_helper(d->cost(), tmp);
-	delete tmp;
+	send_hb_helper(d->cost(), d);
 }
 
 void HttpMInvalCache::timeout(int reason)
@@ -1250,39 +1245,38 @@ void HttpMInvalCache::timeout(int reason)
 	}
 }
 
-void HttpMInvalCache::process_data(AppData* data)
+void HttpMInvalCache::process_data(int size, char* data)
 {
-	HttpData *d = new HttpData((char *)(data->data()));
-	
-	switch (d->type()) {
+	if (data == NULL)
+		return;
+
+	switch (AppData::type(data)) {
 	case HTTP_INVALIDATION: {
 		// Update timer for the source of the heartbeat
-		recv_heartbeat(d->id());
-		HttpHbData *inv = new HttpHbData((char *)(data->data()));
+		HttpHbData *inv = new HttpHbData(data);
+		recv_heartbeat(inv->id());
 		recv_inv(inv);
 		delete inv;
 		break;
 	}
 	case HTTP_UPDATE: {
 		// Replace all updated pages
-		HttpUpdateData *pg = new HttpUpdateData((char*)(data->data()));
+		HttpUpdateData *pg = new HttpUpdateData(data);
 		recv_upd(pg);
 		delete(pg);
 		break;
 	}
 	// JOIN messages are sent via TCP and direct TCL callback.
 	case HTTP_LEAVE: {
-		HttpLeaveData *l = new HttpLeaveData((char *)(data->data()));
+		HttpLeaveData *l = new HttpLeaveData(data);
 		recv_leave(l);
 		delete(l);
 		break;
 	}
 	default:
-		HttpApp::process_data(data);
+		HttpApp::process_data(size, data);
 		return;
 	}
-	// Delete user packet after use
-	delete(d);
 }
 
 void HttpMInvalCache::add_inv(const char *name, double mtime)
@@ -1444,9 +1438,7 @@ void HttpMInvalCache::send_heartbeat()
 		return;
 
 	HttpHbData* d = pack_heartbeat();
-	AppData* tmp = d->pack();
-	send_hb_helper(d->cost(), tmp);
-	delete tmp;
+	send_hb_helper(d->cost(), d);
 	delete d;
 }
 
@@ -1523,9 +1515,7 @@ void HttpMInvalCache::send_upd(ClientPage *page)
 		return;
 
 	HttpUpdateData* d = pack_upd(page);
-	AppData *tmp = d->pack();
-	send_upd_helper(d->pgsize(), tmp);
-	delete tmp;
+	send_upd_helper(d->pgsize(), d);
 	delete d;
 }
 

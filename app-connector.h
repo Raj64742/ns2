@@ -26,7 +26,7 @@
 //
 // Application connector
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/app-connector.h,v 1.1 1999/02/18 22:55:58 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/app-connector.h,v 1.2 1999/02/18 23:15:20 haoboy Exp $
 
 #ifndef ns_app_connector_h
 #define ns_app_connector_h
@@ -37,80 +37,66 @@
 
 #include "app.h"
 
-class AppConnector;
+// Application-level data unit types
+enum AppDataType {
+	// Illegal type
+	ADU_ILLEGAL,
 
+	// HTTP ADUs
+	HTTP_DATA,
+	HTTP_INVALIDATION,	// Heartbeat that may contain invalidation
+	HTTP_UPDATE,		// Pushed page updates (version 1)
+	HTTP_PROFORMA,		// Pro forma sent when a direct request is sent
+	HTTP_JOIN,
+	HTTP_LEAVE,
+	HTTP_PUSH,		// Selectively pushed pages 
+	HTTP_NORMAL,		// Normal req/resp packets
+
+	// TcpApp ADU
+	TCPAPP_STRING,
+
+	// Last ADU
+	ADU_LAST
+};
+
+// Interface for generic application-level data unit. It should know its 
+// size and how to make itself persistent.
 class AppData {
-public:
-	AppData() { d_ = NULL; size_ = 0; } 
-	AppData(int size) {
-		if (size > 0) {
-			size_ = size;
-			d_ = new char[size];
-			assert(d_ != NULL);
-		} else {
-			d_ = NULL;
-			size_ = 0;
-		}
-	}
-	AppData(int size, const void* data) {
-		if (size > 0) {
-			size_ = size;
-			d_ = new char[size];
-			assert(d_ != NULL);
-			assert(data != NULL);
-			memcpy(d_, data, size);
-		} else {
-			d_ = NULL;
-			size_ = 0;
-		}
-	}
-	AppData(AppData *a) {
-		if ((a == NULL) || (a->size == 0)) {
-			d_ = NULL;
-			size_ = 0;
-		} else {
-			size_ = a->size_;
-			d_ = new char[size_];
-			assert(d_ != NULL);
-			memcpy(d_, a->d_, size_);
-		}
-	}
-	// Persistence
-	AppData(char *buf) {
-		assert(buf != 0);
-		size_ = ((hdr *)buf)->size_;
-		buf += sizeof(hdr);
-		if (size_ > 0) {
-			d_ = new char[size_];
-			assert(d_ != NULL);
-			memcpy(d_, buf, size_);
-		} else {
-			d_ = NULL;
-			size_ = 0;
-		}
-	}
-	~AppData() {
-		if (d_ != NULL)
-			delete[] d_;
-	}
-
-	// Handlers
-	void* data() { return d_; }
-	int size() { return sizeof(hdr) + size_; }
-
-	// Persistence
-	void pack(char *buf) {
-		((hdr *)buf)->size_ = size_;
-		buf += sizeof(hdr);
-		memcpy(buf, d_, size_);
-	}
-
 private:
-	void* d_;
-	int size_;
+	AppDataType type_;  // ADU type
+public:
 	struct hdr {
-		int size_;
+		AppDataType type_;
 	};
+public:
+	AppData(AppDataType type) { type_ = type; }
+	AppData(char* b) {
+		assert(b != NULL);
+		type_ = ((hdr *)b)->type_;
+	}
+
+	// Attributes
+	virtual int size() const = 0;
+	virtual int hdrlen() const { return sizeof(hdr); }
+	virtual AppDataType type() const { return type_; }
+
+	// Persistence
+	virtual void pack(char* buf) const {
+		assert(buf != NULL);
+		((hdr *)buf)->type_ = type_;
+	}
+
+	// Static type checking on a persistent ADU
+	// XXX hacky and dangerous!! Better ideas??
+	static AppDataType type(char* buf) {
+		if (buf == NULL)
+			return ADU_ILLEGAL;
+		AppDataType t = ((hdr *)buf)->type_;
+		if ((t >= ADU_LAST) || (t <= ADU_ILLEGAL))
+			return ADU_ILLEGAL;
+		else
+			return t;
+	}
 };
 
 class AppConnector {
@@ -118,10 +104,10 @@ public:
 	AppConnector() : target_(0) {}
 	inline AppConnector*& target() { return target_; }
 
-	virtual void process_data(AppData* data) = 0;
-	virtual void send_data(AppData* data = 0) {
+	virtual void process_data(int size, char* data) = 0;
+	virtual void send_data(int size, char* data = 0) {
 		if (target_)
-			((AppConnector*)target_)->process_data(data);
+			((AppConnector*)target_)->process_data(size, data);
 	}
 
 protected:

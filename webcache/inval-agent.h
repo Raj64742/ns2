@@ -17,7 +17,7 @@
 //
 // Definition of Agent/Invalidation
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.5 1999/02/18 22:58:29 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.6 1999/02/18 23:15:45 haoboy Exp $
 
 #ifndef ns_invalagent_h
 #define ns_invalagent_h
@@ -66,7 +66,7 @@ public:
 	void send(int realsize, AppData* data) {
 		TcpApp::send(realsize, data);
 	}
-	virtual void process_data(AppData *data);
+	virtual void process_data(int size, char *data);
 protected:
 	virtual int command(int argc, const char*const* argv);
 };

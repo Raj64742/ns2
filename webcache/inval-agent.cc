@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.6 1999/02/18 22:58:29 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.7 1999/02/18 23:15:45 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
@@ -51,9 +51,8 @@ void HttpInvalAgent::recv(Packet *pkt, Handler*)
 		return;
 	if (app_ == 0) 
 		return;
-	AppData* tmp = new AppData((char *)pkt->accessdata());
-	((HttpApp*)app_)->process_data(tmp);
-	delete tmp;
+	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
+	((HttpApp*)app_)->process_data(ih->size(), (char *)pkt->accessdata());
 	Packet::free(pkt);
 }
 
@@ -89,9 +88,9 @@ public:
 	}
 } class_httpuinval_agent;
 
-void HttpUInvalAgent::process_data(AppData *data) 
+void HttpUInvalAgent::process_data(int size, char* data) 
 {
-	target_->process_data(data);
+	target_->process_data(size, data);
 }
 
 int HttpUInvalAgent::command(int argc, const char*const* argv)
