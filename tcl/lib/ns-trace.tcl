@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.15 1998/02/09 20:58:42 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.16 1998/03/07 04:04:22 haoboy Exp $
 #
 
 Trace instproc init type {
@@ -185,22 +185,4 @@ Simulator instproc gen-map {} {
 		}
 		puts "---"
 	}
-}
-
-Simulator instproc trace-annotate { str } {
-	$self puts-ns-traceall [format \
-		"v %s %s {set sim_annotation {%s}}" [$self now] eval $str]
-	$self puts-nam-traceall "v -t [$self now] sim_annotation [$self now] $str"
-}
-
-proc trace_annotate { str } {
-	set ns [Simulator instance]
-
-	$ns trace-annotate $str
-}
-
-proc flash_annotate { start duration msg } {
-	set ns [Simulator instance]
-	$ns at $start "trace_annotate {$msg}"
-	$ns at [expr $start+$duration] "trace_annotate periodic_message"
 }
