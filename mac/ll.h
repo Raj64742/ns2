@@ -32,7 +32,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.4 1997/07/23 02:19:30 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.5 1997/07/23 02:20:39 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -73,7 +73,6 @@ protected:
 	Mac* mac_;		// MAC object
         NsObject* sendtarget_;	// where packet is passed down the stack
 	NsObject* recvtarget_;	// where packet is passed up the stack
-	ErrorModel* em_;
 };
 
 #endif

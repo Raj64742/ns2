@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.5 1997/07/22 22:03:39 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.6 1997/07/23 02:20:40 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -57,7 +57,7 @@ public:
 } class_ll;
 
 
-LL::LL() : LinkDelay(), seqno_(0), peerLL_(0), mac_(0), em_(0)
+LL::LL() : LinkDelay(), seqno_(0), peerLL_(0), mac_(0)
 {
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
@@ -83,10 +83,6 @@ LL::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "recvtarget") == 0) {
 			recvtarget_ = (NsObject*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "error") == 0) {
-			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 	}
@@ -119,7 +115,7 @@ LL::recv(Packet* p, Handler* h)
 	Scheduler& s = Scheduler::instance();
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 	if (h == 0) {		// from MAC classifier
-		if (llh->error() > 0 || (em_ && em_->corrupt(p)))
+		if (llh->error() > 0)
 			drop(p);
 		else
 			s.schedule(recvtarget_, p, delay_);
