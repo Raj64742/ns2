@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.290 2002/07/19 02:34:10 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.291 2002/08/12 22:47:33 sfloyd Exp $
 
 
 #
@@ -745,7 +745,10 @@ Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 
 
 # These are all variables for experimental high-speed TCP.
-Agent/TCP set low_window_ 31
+# Agent/TCP set low_window_ 31
+Agent/TCP set low_window_ 38
+# low_window_ was changed on 2002/8/12 from 31 to 38, for low_p_ of 0.001.
+# This should be an undetectable change in performance.
 Agent/TCP set high_window_ 83000
 Agent/TCP set high_p_ 0.0000001
 Agent/TCP set high_decrease_ 0.1
