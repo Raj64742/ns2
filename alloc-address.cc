@@ -50,11 +50,12 @@ public:
 protected:
     void get_mask(nsmask_t  *mask, int fieldsize);
     void alloc(int n);
-    void check_size(int n);
+    bool check_size(int n);
     bool AllocAddr::find_free(int len, int *pos);
     bool AllocAddr::test(int which);
     void set_field(int offset, int len, nsmask_t *mask, int *shift);
     void free_field(int len);
+    void mark(int i);
     int size_;
     int *bitmap_;
 };
@@ -83,30 +84,57 @@ int AllocAddr::command(int argc, const char*const* argv)
     if (argc == 3) {
 	if (strcmp(argv[1], "freebit") == 0) {
 	    fieldlen = atoi(argv[2]);
+	    assert(fieldlen > 0);
 	    free_field(fieldlen);
 	    return (TCL_OK);
 	}
     }
 
 
-    if (argc == 4) {
+    else if (argc == 4) {
 	if (strcmp(argv[1], "setbit") == 0) {
 	    fieldlen = atoi(argv[2]);
 	    addrsize = atoi(argv[3]);
-	    check_size(addrsize);
+	    if (!check_size(addrsize)) {
+	      tcl.result("setbit: Size_ increased: Reallocate bits");
+	      return (TCL_ERROR);
+	    }
 	    if (!find_free(fieldlen, &offset)) {
-		
-		tcl.result("alloc-address: no contiguous space found\n");
+		tcl.result("setbit: no contiguous space found\n");
 		return (TCL_ERROR);
 	    }
 	    set_field(offset, fieldlen, &mask, &shift);
-	    tcl.resultf("0x%x %d", mask, shift);
+	    // TESTING
+	    tcl.resultf("%d %d", mask, shift);
+	    return (TCL_OK);
+	}
+    }
+    else if (argc == 5) {
+	int oldfldlen;
+	if (strcmp(argv[1], "expand-port") == 0) {
+	    fieldlen = atoi(argv[2]);
+	    addrsize = atoi(argv[3]);
+	    oldfldlen =  atoi(argv[4]);
+	    if (!check_size(addrsize)) {
+	      tcl.result("expand-port: Size_ increased: Reallocate bits");
+	      return (TCL_ERROR);
+	    }
+	    if (!find_free(fieldlen, &offset)) {
+		tcl.result("expand-port: no contiguous space found\n");
+		return (TCL_ERROR);
+	    }
+	    int i, k;
+	    for (i = offset, k = 0; k < fieldlen; k++, i--) {
+		bitmap_[i] = 1;
+	    }
+	    shift = offset - (fieldlen - 1);
+	    get_mask(&mask, fieldlen + oldfldlen);
+	    // TESTING
+	    tcl.resultf("%d %d", mask, shift);
 	    return (TCL_OK);
 	}
     }
 }
-
-
 
 
 AllocAddr::AllocAddr()
@@ -116,14 +144,11 @@ AllocAddr::AllocAddr()
 
 }
 
-
 AllocAddr::~AllocAddr()
 {
     delete [] bitmap_;
 
 }
-
-
 
 void AllocAddr::alloc(int n)
 {
@@ -134,23 +159,31 @@ void AllocAddr::alloc(int n)
 }
 
 
-
-
-void AllocAddr::check_size(int n)
+bool AllocAddr::check_size(int n)
 {
-    if (n < size_)
-	return;
+    if (n <= size_)
+	return 1;
+    assert (n > 0);
     if (size_ == 0) {
 	alloc(n);
-	return;
+	return 1;
     }
-    
-    int *old = bitmap_;
-    int osize = size_;
-    alloc(n);
-    for (int i = 0; i < osize; i++) 
-	bitmap_[i] = old[i];
-    delete [] old;
+    if (n > size_) 
+      return 0;
+
+    // this check is no longer needed, as now bits are re-allocated every time
+    // the size changes.    
+    //     int *old = bitmap_;
+    //     int osize = size_;
+    //     alloc(n);
+    //     for (int i = 0; i < osize; i++) 
+    // 	bitmap_[i] = old[i];
+    //     delete [] old;
+}
+
+void AllocAddr::mark(int i)
+{
+    bitmap_[i] = 1;
 }
 
 
@@ -165,8 +198,7 @@ void AllocAddr::get_mask(nsmask_t *mask, int fieldsize)
 
 bool AllocAddr::test(int which)
 {
-    
-    assert(which >= 0 && which < size_);
+    assert(which <= size_);
     if (bitmap_[which] == 1)
 	return TRUE;
     else
@@ -180,18 +212,18 @@ bool AllocAddr::find_free(int len, int *pos)
     int count = 0;
     int temp = 0;
     
-    for (int i = 0; i < size_; i++)
+    for (int i = (size_ - 1); i >= 0; i--)
         if (!test(i)) {
 	    /**** check if n contiguous bits are free ****/
 	    temp = i;
-	    for (int k = 0; k < len; k++, i++){
+	    for (int k = 0; (k < len) && (i >=0); k++, i--){
 		if(test(i)) {
 		    count = 0;
 		    break;
 		}
 		count++;
 	    }
-	    if (count) {
+	    if (count == len) {
 		*pos = temp;
 		return 1;
 	    }
@@ -200,20 +232,16 @@ bool AllocAddr::find_free(int len, int *pos)
 }
 
 
-
-
-
 void AllocAddr::set_field(int offset, int len, nsmask_t *mask, int *shift)
 {
     int i, k;
 
-    for (k = 0, i = offset; k < len; k++, i++) {
+    for (k = 0, i = offset; k < len; k++, i--) {
 	bitmap_[i] = 1; 
     }
-    *shift = offset;
+    *shift = offset - (len-1);
     get_mask(mask, len);
 }
-
 
 
 void AllocAddr::free_field(int len)
