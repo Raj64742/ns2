@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Wed May 27 1998,
+### on pig.ee.lbl.gov, Mon Jun 29 10:39:34 PDT 1998,
 ### with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
@@ -551,6 +551,99 @@ Test output agrees with reference output
 Running test fourdrops_newreno.
 Test output agrees with reference output
 Running test fourdrops_sack.
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-ecn
+Tests: ecn ecn_nodrop_tahoe ecn_twoecn_tahoe ecn_drop_tahoe ecn_drop1_tahoe ecn_drop2_tahoe ecn_noecn_tahoe ecn_bursty_tahoe ecn_burstyEcn_tahoe ecn_noBugfix_tahoe ecn_timeout_tahoe ecn_timeout2_tahoe ecn_timeout3_tahoe ecn_nodrop_reno ecn_twoecn_reno ecn_drop_reno ecn_drop1_reno ecn_noecn_reno ecn_bursty_reno ecn_burstyEcn_reno ecn_noBugfix_reno ecn_timeout_reno ecn_timeout1_reno ecn_nodrop_sack ecn_twoecn_sack ecn_drop_sack ecn_drop1_sack ecn_noecn_sack ecn_bursty_sack ecn_burstyEcn_sack ecn_burstyEcn1_sack ecn_noBugfix_sack ecn_timeout_sack ecn_timeout1_sack ecn_fourdrops_sack ecn_nodrop_newreno ecn_twoecn_newreno ecn_drop_newreno ecn_drop1_newreno ecn_noecn_newreno ecn_bursty_newreno ecn_burstyEcn_newreno ecn_timeout_newreno ecn_timeout1_newreno ecn1
+Running test ecn.
+Test output agrees with reference output
+Running test ecn_nodrop_tahoe.
+Test output agrees with reference output
+Running test ecn_twoecn_tahoe.
+Test output agrees with reference output
+Running test ecn_drop_tahoe.
+Test output agrees with reference output
+Running test ecn_drop1_tahoe.
+Test output agrees with reference output
+Running test ecn_drop2_tahoe.
+Test output agrees with reference output
+Running test ecn_noecn_tahoe.
+Test output agrees with reference output
+Running test ecn_bursty_tahoe.
+Test output agrees with reference output
+Running test ecn_burstyEcn_tahoe.
+Test output agrees with reference output
+Running test ecn_noBugfix_tahoe.
+Test output agrees with reference output
+Running test ecn_timeout_tahoe.
+Test output agrees with reference output
+Running test ecn_timeout2_tahoe.
+Test output agrees with reference output
+Running test ecn_timeout3_tahoe.
+Test output agrees with reference output
+Running test ecn_nodrop_reno.
+Test output agrees with reference output
+Running test ecn_twoecn_reno.
+Test output agrees with reference output
+Running test ecn_drop_reno.
+Test output agrees with reference output
+Running test ecn_drop1_reno.
+Test output agrees with reference output
+Running test ecn_noecn_reno.
+Test output agrees with reference output
+Running test ecn_bursty_reno.
+Test output agrees with reference output
+Running test ecn_burstyEcn_reno.
+Test output agrees with reference output
+Running test ecn_noBugfix_reno.
+Test output agrees with reference output
+Running test ecn_timeout_reno.
+Test output agrees with reference output
+Running test ecn_timeout1_reno.
+Test output agrees with reference output
+Running test ecn_nodrop_sack.
+Test output agrees with reference output
+Running test ecn_twoecn_sack.
+Test output agrees with reference output
+Running test ecn_drop_sack.
+Test output agrees with reference output
+Running test ecn_drop1_sack.
+Test output agrees with reference output
+Running test ecn_noecn_sack.
+Test output agrees with reference output
+Running test ecn_bursty_sack.
+Test output agrees with reference output
+Running test ecn_burstyEcn_sack.
+Test output agrees with reference output
+Running test ecn_burstyEcn1_sack.
+Test output agrees with reference output
+Running test ecn_noBugfix_sack.
+Test output agrees with reference output
+Running test ecn_timeout_sack.
+Test output agrees with reference output
+Running test ecn_timeout1_sack.
+Test output agrees with reference output
+Running test ecn_fourdrops_sack.
+Test output agrees with reference output
+Running test ecn_nodrop_newreno.
+Test output agrees with reference output
+Running test ecn_twoecn_newreno.
+Test output agrees with reference output
+Running test ecn_drop_newreno.
+Test output agrees with reference output
+Running test ecn_drop1_newreno.
+Test output agrees with reference output
+Running test ecn_noecn_newreno.
+Test output agrees with reference output
+Running test ecn_bursty_newreno.
+Test output agrees with reference output
+Running test ecn_burstyEcn_newreno.
+Test output agrees with reference output
+Running test ecn_timeout_newreno.
+Test output agrees with reference output
+Running test ecn_timeout1_newreno.
+Test output agrees with reference output
+Running test ecn1.
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
