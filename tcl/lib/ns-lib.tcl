@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.199 2000/07/27 01:29:16 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.200 2000/07/27 04:57:55 haoboy Exp $
 
 #
 
@@ -142,7 +142,7 @@ source ../plm/plm-ns.tcl
 source ../plm/plm-topo.tcl
 
 # link state routing
-source ns-rtProtoLS.tcl
+#source ns-rtProtoLS.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl

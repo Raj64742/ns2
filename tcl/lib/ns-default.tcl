@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.208 2000/07/27 01:29:16 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.209 2000/07/27 04:57:55 haoboy Exp $
 
 
 #
@@ -738,6 +738,6 @@ Application/Traffic/CBR_PP set maxpkts_ 268435456; # 0x10000000
 Application/Traffic/CBR_PP set PBM_ 2
 
 # LS stuffs
-Agent/rtProto/LS set preference_        120
-Agent/rtProto/LS set INFINITY            [Agent set ttl_]
-Agent/rtProto/LS set advertInterval       1800 ;# seconds = 30 minutes
+#Agent/rtProto/LS set preference_        120
+#Agent/rtProto/LS set INFINITY            [Agent set ttl_]
+#Agent/rtProto/LS set advertInterval       1800 ;# seconds = 30 minutes
