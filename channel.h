@@ -34,7 +34,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.22 1999/06/21 18:13:57 tomh Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.23 2000/02/16 23:38:09 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
@@ -63,6 +63,7 @@ public:
 	void recv(Packet* p, Handler*);	
 	struct if_head	ifhead_;
 	TclObject* gridkeeper_;
+	double maxdelay() { return delay_; }
 private:
 	virtual void sendUp(Packet* p, Phy *txif); 
 	void dump(void);

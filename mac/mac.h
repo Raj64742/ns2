@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.31 1999/11/20 02:50:12 kkumar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.32 2000/02/16 23:38:09 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -110,6 +110,8 @@ struct hdr_mac {
 
 	double txtime_;		// transmission time
 	double sstime_;		// slot start time
+
+	int padding_;
 
 	static int offset_;
 	inline void set(MacFrameType ft, int sa, int da=-1) {
