@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.13 1999/02/04 06:13:24 yaxu Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.14 1999/08/14 00:19:48 haldar Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -47,7 +47,10 @@
 
 #include <math.h>
 #include <stdlib.h>			// for atoi
+
+#ifndef stand_alone
 #include <tclcl.h>
+#endif   /* stand_alone */
 
 /*
  * RNGImplementation is internal---do not use it, use RNG.
@@ -68,7 +71,11 @@ private:
 /*
  * Use class RNG in real programs.
  */
-class RNG : public TclObject {
+class RNG 
+#ifndef stand_alone
+: public TclObject 
+#endif  /* stand_alone */
+	{
 
 public:
 	enum RNGSources { RAW_SEED_SOURCE, PREDEF_SEED_SOURCE, HEURISTIC_SEED_SOURCE };
@@ -80,13 +87,14 @@ public:
 	int seed() { return stream_.seed(); }
 	static RNG* defaultrng() { return (default_); }
 
+#ifndef stand_alone
 	int command(int argc, const char*const* argv);
-
+#endif  /* stand_alone */
 	// These are primitive but maybe useful.
 	inline int uniform_positive_int() {  // range [0, MAXINT]
 		return (int)(stream_.next());
 	}
-	inline double uniform_double() { // range [0.0, 1.0)
+	double uniform_double() { // range [0.0, 1.0)
 		return stream_.next_double();
 	}
 
@@ -115,7 +123,7 @@ public:
 protected:   // need to be public?
 	RNGImplementation stream_;
 	static RNG* default_;
-};
+}; 
 
 /*
  * Create an instance of this class to test RNGImplementation.

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.15 1999/02/04 06:13:23 yaxu Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.16 1999/08/14 00:19:46 haldar Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -160,10 +160,10 @@ RNGImplementation::next_double()
 }
 
 
-
 /*
  * RNG implements a nice front-end around RNGImplementation
  */
+#ifndef stand_alone
 static class RNGClass : public TclClass {
 public:
 	RNGClass() : TclClass("RNG") {}
@@ -171,6 +171,7 @@ public:
 		return(new RNG());
 	}
 } class_rng;
+#endif /* stand_alone */
 
 /* default RNG */
 
@@ -202,7 +203,7 @@ RNG::normal(double avg, double std)
   }
 }
 
-
+#ifndef stand_alone
 int
 RNG::command(int argc, const char*const* argv)
 {
@@ -263,6 +264,7 @@ RNG::command(int argc, const char*const* argv)
 	}
 	return(TclObject::command(argc, argv));
 }
+#endif /* stand_alone */
 
 void
 RNG::set_seed(RNGSources source, int seed)
@@ -331,7 +333,6 @@ RNG::set_seed(RNGSources source, int seed)
 }
 
 
-
 /*
  * RNGTest:
  * Make sure the RNG makes known values.
