@@ -20,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timer-handler.cc,v 1.2 1997/07/23 05:16:51 kfall Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timer-handler.cc,v 1.3 1997/08/04 23:41:02 ahelmy Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>  // abort()
@@ -35,6 +35,11 @@ TimerHandler::cancel()
 	status_ = TIMER_IDLE;
 }
 
+/* sched checks the state of the timer before shceduling the
+ * event. It the timer is already set, abort is called.
+ * This is different than the OTcl timers in tcl/ex/timer.tcl,
+ * where sched is the same as reshced, and no timer state is kept.
+ */
 void
 TimerHandler::sched(double delay)
 {
