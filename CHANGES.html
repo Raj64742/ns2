@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.511 2002/04/01 18:02:46 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.512 2002/04/10 01:37:27 kclan Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -190,6 +190,24 @@ Mon Dec  3 2001
 40-byte packet consists of header bytes, with no data bytes used.
 
 <p>
+<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>Mon Dec 3 7:43:48 PST 2001</li>
+
+<br>First cut codes for empftp.{cc.h,tcl}, which are now part of empweb module
+<p>
+<ul>Features: Modeling FTP traffic based on empirical CDF for the 
+following parameters:
+<li> User arrival</li>
+<li> Number of files tranmission per User session</li>
+<li> file interarrival time</li>
+<li> file size</li>
+<li> TCP window size</li>
+<li> Server selection</li>
+</ul>
+<p>
+empftp is  based on empweb
+<p>
+
+<p>
 <p><li><b><a href="http://www.isi.edu/~buchheim/">[Tim Buchheim]</a></b>
 Fri Nov 30 2001
 <br> Added a patch from Michele C. Weigle to replace the existing random number generator (an implementation of LCG16807) with a much better one (MRG32k3a, by Pierre L'Ecuyer).  The output of scripts using random numbers <i>will</i> change!
@@ -246,6 +264,22 @@ ns documentation).  New example script:  tcl/ex/sat-wired.tcl
 Thur Oct 11 07:15:31 PDT 2001
 <br>Added support for tracing satellite aloha collisions, and enhanced the
 example test script.
+
+<p><li>
+<b><a href="http://www.isi.edu/~kclan">[Kun-chan Lan]</a></b> <b>Wed Oct 10 23:50:46 PST 2001</b></li>
+
+<br>First cut of ModelGen is added. ModelGen is a tool that
+rapidly generates traffic model from raw trace for simulation and 
+traffic analysis.  ModelGen contains a set of C/Perl/Tcl programs. It 
+takes a tcpdump file as input and outputs a set of CDF 
+(Cumulative Distribution Function) files that model the user-level
+statistics and network characteristics including RTT and bottleneck
+bandwidth.  Currently it only supports Web and FTP traffic.
+
+<p><li>
+<b><a href="mailto:mehringe@isi.edu">[John Mehringer]</a></b> <b>Thu Nov
+2 13:51:28 PST 2000</b></li>
+
 
   <p>
 <li><b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b>
@@ -355,8 +389,30 @@ PDT 2001</li>
 <br>Added a parameter summarystats_ to Queue/RED to report the true average
 queue size since the beginning of the simulation. The validation test and
 example is in ``./test-all-simple stats2'' in ``tcl/tests''.
+<p>
 
-<p><li>
+<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>Mon Jun 11 19:42:22 PDT 2001</li>
+
+<br>First cut codes for module empweb. The files added include ~ns-2/empweb/empeb.cc, ~ns-2/empweb.h and ~ns-2/tcl/webcache/empweb.tcl
+<p>
+<ul>Features: Modeling Web traffic based on empirical CDF for the 
+following parameters:
+<li> User arrival</li>
+<li> Number of Pages per User session</li>
+<li> Page interarrival time</li>
+<li> Page size</li>
+<li> Number of Object per Page</li>
+<li> Object interarrival time</li>
+<li> Object size</li>
+<li> Request size</li>
+<li> TCP window size</li>
+<li> Usage of Persistent and non-persistent connection</li>
+<li> Server selection</li>
+</ul>
+<p>
+empweb is  based on previous Polly/Haobo's web model (i.e. webtraf.{cc.h})
+<p>
+
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Sat Jun 9 13:44:00
 PDT 2001</li>
 
@@ -473,6 +529,7 @@ PST 2001</li>
 <br>Added bind function for binding TclObjects in tclcl. Files modified:
 tclcl.h, Tcl.cc. See rtmodule.cc &amp; ns-rtmodule.tcl for example.
 <p><li>
+
 <b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Fri Mar 2 10:59:12
 PST 2001</li>
 
@@ -522,6 +579,7 @@ tcl/test/test-output-nixvec/{NixVec.Z,NoNixVec.Z,quite.Z}</li>
 </ul>
 Contact info of contributor: George Riley(riley@cc.gatech.edu)
 <p><li>
+
 <b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Thu Mar 1 10:27:46
 PST 2001</li>
 
@@ -1104,7 +1162,7 @@ Scott.
 <br>Changes to support <a href="http://www.ee.surrey.ac.uk/Personal/L.Wood/ns/sat-plot-scripts/">Lloyd
 Wood's improved perl scripts</a> for the satellite code.
 <p><li>
-<b><a href="http://www.isi.edu/~kclan/">[kclan]</a></b> <b>Tue Jun 21 11:12:54
+<b><a href="http://www.isi.edu/~kclan/">[Kun-chan Lan]</a></b> <b>Tue Jun 21 11:12:54
 PDT 2000</b></li>
 
 <br>Fix to full-tcp reassembly from Matt Sanders and George Riley of Georgia
