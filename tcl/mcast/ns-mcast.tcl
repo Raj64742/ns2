@@ -525,16 +525,16 @@ Simulator instproc RPF-link { src from to } {
 	return ""
 }
 
-Node instproc RPF-interface { src from to } {
-        $self instvar ns_
-        set oifInfo ""  
-        set link [$ns_ RPF-link $src $from $to]
-
-        if { $link != "" } {
-                set oifInfo [$self get-oif $link]
-        }
-        return $oifInfo
-}
+#Node instproc RPF-interface { src from to } {
+#        $self instvar ns_
+#        set oifInfo ""  
+#        set link [$ns_ RPF-link $src $from $to]
+#
+#        if { $link != "" } {
+#                set oifInfo [$self get-oif $link]
+#        }
+#        return $oifInfo
+#}
 
 #-------------------------------------------------------------------------------
 # differences

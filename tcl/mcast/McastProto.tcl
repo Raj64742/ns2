@@ -226,33 +226,33 @@ McastProtocol instproc from-node-iface { node } {
 	return "?" ;#unknown iface
 }
 
-McastProtocol instproc rpf-nbr src {
-	$self instvar node_
-	$node_ rpf-nbr $src
-}
-
-
-McastProtocol instproc iface2link ifid {
-	$self instvar node_
-	$node_ if2link $ifid
-}
-
-McastProtocol instproc link2iif link {
-	$self instvar node_
-	if { [$link dst] != $node_ } {
-		# oops...naughty, naughty
-	}
-	$link if-label?
-}
-
-McastProtocol instproc link2oif link {
-	$self instvar node_
-	if { [$link src] != $node_ } {
-		# ooops, naughty, naughty
-	}
-	$node_ link2oif $link
-}
-
+#McastProtocol instproc rpf-nbr src {
+#	 $self instvar node_
+#	 $node_ rpf-nbr $src
+#}
+#
+#
+#McastProtocol instproc iface2link ifid {
+#	 $self instvar node_
+#	 $node_ iif2link $ifid
+#}
+#
+#McastProtocol instproc link2iif link {
+#	 $self instvar node_
+#	 if { [$link dst] != $node_ } {
+#		 return ""
+#	 }
+#	 $link if-label?
+#}
+#
+#McastProtocol instproc link2oif link {
+#	 $self instvar node_
+#	 if { [$link src] != $node_ } {
+#		 # ooops, naughty, naughty
+#	 }
+#	 $node_ link2oif $link
+#}
+#
 
 ###################################################
 Class mrtObject
@@ -324,7 +324,7 @@ mrtObject instproc all-mprotos {op args} {
 
 mrtObject instproc start {}	{ $self all-mprotos start	}
 mrtObject instproc stop {}	{ $self all-mprotos stop	}
-mrtObject instproc notify changes { $self all-mprotos notify $changes }
+mrtObject instproc notify dummy { $self all-mprotos notify $dummy }
 mrtObject instproc dump-routes args {
 	$self all-mprotos dump-routes $args
 }
