@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.11 1997/08/22 00:09:32 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.12 1997/08/22 05:43:52 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -76,6 +76,9 @@ struct hdr_mac {
 	int macSA_;		// source MAC address
 	int macDA_;		// destination MAC address
 	double txtime_;		// transmission time
+
+	static int offset_;
+	inline int& offset() { return offset_; }
 
 	inline MacFrameType& ftype() { return ftype_; }
 	inline int& macSA() { return macSA_; }

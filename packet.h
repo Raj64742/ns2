@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.21 1997/08/22 00:09:33 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.22 1997/08/22 05:43:54 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -72,6 +72,9 @@ struct hdr_cmn {
 	int	size_;		// simulated packet size
 	int	iface_;		// receiving interface (label)
 
+	static int offset_;	// offset for this header
+	int& offset() { return offset_; }
+
 	/* per-field member functions */
 	int& ptype() { return (ptype_); }
 	int& uid() { return (uid_); }
@@ -83,23 +86,27 @@ struct hdr_cmn {
 
 class PacketHeaderClass : public TclClass {
 protected:
-	PacketHeaderClass(const char* className, int hdrsize);
-	void bind_offset(const char* fieldName, int offset);
-	int hdrlen_;	// # of bytes from beginning of packet for this hdr
+	PacketHeaderClass(const char* classname, int hdrsize);
+	virtual int method(int argc, const char*const* argv);
+	void field_offset(const char* fieldname, int offset);
+	inline void offset(int* off) { offset_ = off; }
+	int hdrlen_;		// # of bytes for this header
+	int* offset_;		// offset for this header
 public:
 	virtual void bind();
+	virtual void export_offset();
         TclObject* create(int argc, const char*const* argv);
 };
 
 class Packet : public Event {
 private:
 	unsigned char* bits_;
-	unsigned char* data_;  // variable size buffer for 'data'
-	unsigned int datalen_; // length of variable size buffer
+	unsigned char* data_;	// variable size buffer for 'data'
+	unsigned int datalen_;	// length of variable size buffer
 protected:
 	static Packet* free_;
 public:
-	Packet* next_;	// for queues and the free list
+	Packet* next_;		// for queues and the free list
 	static int hdrlen_;
 	Packet() : bits_(0), datalen_(0), next_(0) { }
 	unsigned char* const bits() { return (bits_); }

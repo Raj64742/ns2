@@ -33,31 +33,20 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.7 1997/08/22 00:09:33 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.8 1997/08/22 05:43:53 gnguyen Exp $ (LBL)";
 #endif
 
 #include "packet.h"
 #include "flags.h"
 
+int hdr_cmn::offset_;
 int Packet::hdrlen_ = 0;	/* size of a packet's header */
 Packet* Packet::free_;		/* free list */
 
-PacketHeaderClass::PacketHeaderClass(const char* className, int hdrlen) : 
-	TclClass(className), hdrlen_(hdrlen)
-{
-}
 
-void PacketHeaderClass::bind()
+PacketHeaderClass::PacketHeaderClass(const char* classname, int hdrlen) : 
+	TclClass(classname), hdrlen_(hdrlen), offset_(0)
 {
-	TclClass::bind();
-	Tcl& tcl = Tcl::instance();
-	tcl.evalf("%s set hdrlen_ %d", classname_, hdrlen_);
-}
-
-void PacketHeaderClass::bind_offset(const char* fieldName, int offset)
-{
-	Tcl& tcl = Tcl::instance();
-	tcl.evalf("%s set offset_(%s) %d", classname_, fieldName, offset);
 }
 
 TclObject* PacketHeaderClass::create(int, const char*const*)
@@ -65,10 +54,64 @@ TclObject* PacketHeaderClass::create(int, const char*const*)
 	return (0);
 }
 
+void PacketHeaderClass::bind()
+{
+	TclClass::bind();
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("%s set hdrlen_ %d", classname_, hdrlen_);
+	export_offset();
+	add_method("offset");
+}
+
+void PacketHeaderClass::export_offset()
+{
+}
+
+void PacketHeaderClass::field_offset(const char* fieldname, int offset)
+{
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("%s set offset_(%s) %d", classname_, fieldname, offset);
+}
+
+int PacketHeaderClass::method(int ac, const char*const* av)
+{
+	Tcl& tcl = Tcl::instance();
+	int argc = ac - 2;
+	const char*const* argv = av + 2;
+	if (argc == 3) {
+		if (strcmp(argv[1], "offset") == 0) {
+			if (offset_) {
+				*offset_ = atoi(argv[2]);
+				return TCL_OK;
+			}
+			tcl.resultf("Warning: cannot set offset_ for %s",
+				    classname_);
+			return TCL_OK;
+		}
+	}
+	else if (argc == 2) {
+		if (strcmp(argv[1], "offset") == 0) {
+			if (offset_) {
+				tcl.resultf("%d", *offset_);
+				return TCL_OK;
+			}
+		}
+	}
+	return TclClass::method(argc, argv);
+}
+
+
 class CommonHeaderClass : public PacketHeaderClass {
 public:
         CommonHeaderClass() : PacketHeaderClass("PacketHeader/Common",
-						sizeof(hdr_cmn)) {}
+						sizeof(hdr_cmn)) {
+		offset(&hdr_cmn::offset_);
+	}
+	void export_offset() {
+		field_offset("ptype_", OFFSET(hdr_cmn, ptype_));
+		field_offset("uid_", OFFSET(hdr_cmn, uid_));
+		field_offset("size_", OFFSET(hdr_cmn, size_));
+	};
 } class_cmnhdr;
 
 class FlagsHeaderClass : public PacketHeaderClass {
