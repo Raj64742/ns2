@@ -12,7 +12,7 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- * 	This product includes software developed by the MASH Research
+ * 	This product includes software developed by the Daedalus Research
  * 	Group at the University of California Berkeley.
  * 4. Neither the name of the University nor of the Research Group may be
  *    used to endorse or promote products derived from this software without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.3 1997/07/22 22:08:32 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.4 1997/07/23 04:23:20 hari Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -72,6 +72,10 @@ Snoop::command(int argc, const char*const* argv)
 	return LL::command(argc, argv); // for now, only this much
 }
 
+/*
+ * Receive a packet from higher layer.  Call snoop_data() if TCP packet and
+ * forward it on if it's an ack.
+ */
 void
 Snoop::recv(Packet* p, Handler* h)
 {
@@ -91,6 +95,10 @@ Snoop::recv(Packet* p, Handler* h)
 	LL::recv(p, h);
 }
 
+/*
+ * Handle a packet received from peer across wireless link.  Check first
+ * for packet errors, then call snoop_ack() or pass it up as necessary.
+ */
 void
 Snoop::handle(Event *e)
 {
@@ -98,6 +106,12 @@ Snoop::handle(Event *e)
 	int type = ((hdr_cmn*) p->access(off_cmn_))->ptype_;
 	int prop = SNOOP_PROPAGATE; // by default. propagate ack or packet
 	Scheduler& s = Scheduler::instance();
+
+	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
+	if (llh->error()) {
+		drop(p);        // drop packet if it's been corrupted
+		return;
+	}
 
 	if (type == PT_ACK)
 		prop = snoop_ack_(p);
