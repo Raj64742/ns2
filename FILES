@@ -32,6 +32,7 @@ dynalink.cc
 example.tcl
 fq.cc
 heap.h
+ip.h
 install-sh
 ivs.cc
 integrator.cc
