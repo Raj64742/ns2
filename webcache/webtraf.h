@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.9 2001/11/21 17:33:51 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.10 2002/03/12 00:40:39 xuanc Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -51,11 +51,7 @@ class WebTrafPool;
 
 class WebTrafSession : public TimerHandler {
 public: 
-	WebTrafSession(WebTrafPool *mgr, Node *src, int np, int id) : 
-		rvInterPage_(NULL), rvPageSize_(NULL),
-		rvInterObj_(NULL), rvObjSize_(NULL), 
-		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
-		id_(id), interPageOption_(1) {}
+	WebTrafSession(WebTrafPool *mgr, Node *src, int np, int id, int tcp);
 	virtual ~WebTrafSession();
 
 	// Queried by individual pages/objects
@@ -81,6 +77,9 @@ private:
 	Node* src_;		// One Web client (source of request) per session
 	int nPage_, curPage_, donePage_;
 	int id_, interPageOption_;
+	
+	// fulltcp support
+	int fulltcp_;
 };
 
 class WebTrafPool : public PagePool {
@@ -162,6 +161,8 @@ protected:
 		return rv ? (TCL_OK) : (TCL_ERROR);
 	}
 	int debug_;
+	// fulltcp support
+	int fulltcp_;
 };
 
 

@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.13 2002/02/11 19:35:39 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.14 2002/03/12 00:40:39 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -110,8 +110,16 @@ private:
 
 int WebPage::LASTOBJ_ = 1;
 
-
 int WebTrafSession::LASTPAGE_ = 1;
+
+// Constructor
+WebTrafSession::WebTrafSession(WebTrafPool *mgr, Node *src, int np, int id, int tcp) : 
+	rvInterPage_(NULL), rvPageSize_(NULL),
+	rvInterObj_(NULL), rvObjSize_(NULL), 
+	mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
+	id_(id), interPageOption_(1), fulltcp_(0) {
+	fulltcp_ = tcp;
+}
 
 // XXX Must delete this after all pages are done!!
 WebTrafSession::~WebTrafSession() 
@@ -199,13 +207,20 @@ void WebTrafSession::handle(Event *e)
 // Launch a request for a particular object
 void WebTrafSession::launchReq(void* ClntData, int obj, int size)
 {
+	Agent *csnk, *ssnk;
 	WebPage* pg = (WebPage*)ClntData;
 
 	// Choose source and dest TCP agents for both source and destination
 	TcpAgent* ctcp = mgr_->picktcp();
 	TcpAgent* stcp = mgr_->picktcp();
-	TcpSink* csnk = mgr_->picksink();
-	TcpSink* ssnk = mgr_->picksink();
+
+	if (fulltcp_) {
+		csnk = mgr_->picktcp();
+		ssnk = mgr_->picktcp();
+	} else {
+		csnk = mgr_->picksink();
+		ssnk = mgr_->picksink();
+	}
 
 	// Setup TCP connection and done
 	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d", 
@@ -263,8 +278,9 @@ int WebTrafPool::delay_bind_dispatch(const char *varName,const char *localName,
 // By default we use constant request interval and page size
 WebTrafPool::WebTrafPool() : 
 	session_(NULL), nSrc_(0), server_(NULL), nClient_(0), client_(NULL),
-	nTcp_(0), nSink_(0)
+	nTcp_(0), nSink_(0), fulltcp_(0)
 {
+	bind("fulltcp_", &fulltcp_);
 	LIST_INIT(&tcpPool_);
 	LIST_INIT(&sinkPool_);
 }
@@ -392,7 +408,7 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			int npg = (int)strtod(argv[3], NULL);
 			double lt = strtod(argv[4], NULL);
 			WebTrafSession* p = 
-				new WebTrafSession(this, picksrc(), npg, n);
+				new WebTrafSession(this, picksrc(), npg, n, fulltcp_);
 			int res = lookup_rv(p->interPage(), argv[5]);
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->pageSize(), argv[6]) : TCL_ERROR;
