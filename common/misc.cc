@@ -34,8 +34,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.3 1997/02/18 02:43:15 gnguyen Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.4 1997/07/21 21:31:05 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -78,7 +78,7 @@ extern "C" char version_string[];
 class VersionCommand : public TclCommand {
 public:
 	VersionCommand() : TclCommand("ns-version") { }
-        virtual int command(int argc, const char*const* argv) {
+        virtual int command(int, const char*const*) {
 		Tcl::instance().result(version_string);
 		return (TCL_OK);
 	}
