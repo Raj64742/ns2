@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.37 1997/08/26 03:29:27 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.38 1997/09/29 23:49:41 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -258,6 +258,10 @@ void TcpAgent::output(int seqno, int reason)
 	tcph->ts() = now;
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
+	if (ecn_) {
+		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+		hf->ecn_capable_ = 1;
+	}
 
 	/* if no outstanding data, be sure to set rtx timer again */
 	if (highest_ack_== maxseq_)

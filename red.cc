@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.24 1997/08/08 00:06:08 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.25 1997/09/29 23:49:04 sfloyd Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -261,8 +261,8 @@ int REDQueue::drop_early(Packet* pkt)
 		// DROP or MARK
 		edv_.count = 0;
 		edv_.count_bytes = 0;
-		if (edp_.setbit) {
-			hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
+		hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
+		if (edp_.setbit && hf->ecn_capable_) {
 			hf->ecn_to_echo_ = 1; 
 		} else {
 			return (1);
