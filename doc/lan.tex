@@ -97,14 +97,21 @@ Layer           | Channel |---------------->| Classifier/Mac |
 
 \end{verbatim}
 
-The above figure illustrates the extended network stack that is make
-simulations of local area network possible in \ns.  At the bottom of the
-stack, the physical layer is composed of two simulation objects: the
-\code{Channel} and \code{Classifier/Mac}.  The \code{Channel} object
-simulates the shared medium and support the medium access mechanisms of
-the MAC objects on the sending side of the transmission.  On the
-receiving side, the \code{Classifier/Mac} is responsible for delivering
-and optionally replicating packets to the receiving MAC objects.
+The above figure illustrates the extended network stack that makes
+simulations of local area network possible in \ns.  A packet sent down
+from the network layer at the sender side flows through the link layer
+(\code{LL} and \code{Queue}), the MAC layer (\code{Mac}), and the
+physical layer (\code{Channel} to \code{Classifier/Mac} at the receiver
+side).  It then makes its way up the receiver's network stack through
+the \code{Mac}, the link-layer \code{Classifier}, and the \code{LL}.
+
+At the bottom of the stack, the physical layer is composed of two
+simulation objects: the \code{Channel} and \code{Classifier/Mac}.  The
+\code{Channel} object simulates the shared medium and support the medium
+access mechanisms of the MAC objects on the sending side of the
+transmission.  On the receiving side, the \code{Classifier/Mac} is
+responsible for delivering and optionally replicating packets to the
+receiving MAC objects.
 
 Depending on the type of physical layer, the MAC layer must contain a
 certain set of functionalities such as: carrier sense, collision
@@ -260,7 +267,7 @@ receiving side, the \code{Mac} object asynchronously receives packets
 from the classifier of the physical layer.  After MAC protocol
 processing, it passes the data packet to the link layer.
 
-\subsection{MAC State}
+\subsection{Mac State}
 \label{sec:macstate}
 
 The C++ \clsref{Mac}{../ns-2/mac.h} class contains enough internal state
@@ -273,7 +280,7 @@ OTcl configuration parameter:
 \code{label\_} & MAC address \\
 \end{tabularx}
 
-\subsection{MAC Methods}
+\subsection{Mac Methods}
 \label{sec:macmethods}
 
 The \clsref{Mac}{../ns-2/mac.cc} class added several Tcl methods for
@@ -359,17 +366,17 @@ this time, the basic \code{CsmaMac} just transmit the packet using
 \end{program}
 
 The \code{CsmaCdMac} extends \code{CsmaMac} to carry out collision
-detection in the \code{endofContention} method.  When the channel
-signals the end of contention period, the \code{CsmaCdMac} object checks
-for collision using the \code{Channel::collision()} method.  If there is
-a collision, the MAC invokes its \code{backoff} method to schedule the
-next carrier sense to retransmit the packet.
+detection procedure of the CSMA/CD (Ethernet) protocol.  When the
+channel signals the end of contention period, the \code{endofContention}
+method checks for collision using the \code{Channel::collision()}
+method.  If there is a collision, the MAC invokes its \code{backoff}
+method to schedule the next carrier sense to retransmit the packet.
 
 The \code{CsmaCaMac} extends the \code{send} method of \code{CsmaMac} to
-carry out the collision avoidance procedure.  Instead of transmitting
-immediately when the channel is idle, the \code{CsmaCaMac} object
-backoff a random number of slots, and transmit if the channel remains
-idle until the end of the backoff period.
+carry out the collision avoidance (CSMA/CA) procedure.  Instead of
+transmitting immediately when the channel is idle, the \code{CsmaCaMac}
+object backoff a random number of slots, then transmit if the channel
+remains idle until the end of the backoff period.
 
 \subsection{Example:  creating MAC layer from Mac, Queue, and Classifier}
 \label{ex:maclayer}
