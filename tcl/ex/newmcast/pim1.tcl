@@ -50,8 +50,9 @@ PIM config $ns
 puts "config done.. "
 
 Agent/Message instproc handle msg {
+	global ns
         $self instvar node_
-        puts "@@@@@@@@@node [$node_ id] agent $self rxvd msg $msg. @@@@@@@@"
+    puts "@@ time [$ns now] node [$node_ id] agent $self rxvd msg $msg. @@" 
 }
 
 set rcvr0 [new Agent/Message]
