@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.44 1998/06/12 18:05:05 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.45 1998/06/12 21:00:22 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -126,7 +126,7 @@ public:
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1),
-	last_send_time_(0.0), irs_(-1), ect_(FALSE), recent_ce_(0)
+	last_send_time_(0.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -330,6 +330,9 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
 		fh->ecnecho() = recent_ce_;
 	}
 
+	// for now, only do cong_action if ecn_ is enabled
+	fh->cong_action() = ecn_ ? cong_action_ : FALSE;
+
 //printf("TCPF(%s): sending with ts:%f, ts_echo:%f\n",
 //name(), tcph->ts(), tcph->ts_echo());
 
@@ -506,6 +509,18 @@ send:
          * Any pending ACK has now been sent.
          */      
 	flags_ &= ~(TF_ACKNOW|TF_DELACK);
+
+	/*
+	 * if we have reacted to congestion recently, the
+	 * slowdown() procedure will have set cong_action_ and
+	 * sendpacket will have copied that to the outgoing pkt
+	 * CACT field. If that packet contains data, then
+	 * it will be reliably delivered, so we are free to turn off the
+	 * cong_action_ state now  If only a pure ACK, we keep the state
+	 * around until we actually send a segment
+	 */
+	if (cong_action_ && datalen > 0)
+		cong_action_ = FALSE;
 
 	if (seqno == t_seqno_)
 		t_seqno_ += datalen;	// update snd_nxt (t_seqno_)
@@ -873,10 +888,15 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                 }
 
 		//
-		// turn around ce bits we see
+		// generate a stream of ecnecho bits until we see a true
+		// cong_action bit
 		//
-		if (ecn_)
-			recent_ce_ = fh->ce();
+		if (ecn_) {
+			if (fh->ce() && fh->ect())
+				recent_ce_ = TRUE;
+			else if (fh->cong_action())
+				recent_ce_ = FALSE;
+		}
 
 		if (datalen == 0) {
 			// check for a received pure ACK in the correct range..
@@ -1268,11 +1288,16 @@ trimthenstep6:
 			}
 		}
 
-		//
-		// turn around ce bits we see
-		//
-		if (ecn_)
-			recent_ce_ = fh->ce();
+                //
+                // generate a stream of ecnecho bits until we see a true
+                // cong_action bit
+                // 
+                if (ecn_) {
+                        if (fh->ce() && fh->ect())
+                                recent_ce_ = TRUE;
+                        else if (fh->cong_action())
+                                recent_ce_ = FALSE;
+                }
 
 		// look for dup ACKs (dup ack numbers, no data)
 		//
