@@ -212,9 +212,22 @@ proc create-error { lan src dstlist emname rate unit {trans ""}} {
 		set e2 [new ErrorModel/Expo $rate $unit]
 	}
 
-	$lan instvar channel_
-	$e1 target [$channel_ target]
-	$channel_ target $e1
+	foreach dst $dstlist {
+		add-error $lan $src $dst $e1
+		add-error $lan $dst $src $e2
+	}
+}
+
+proc add-error {lan src dst errmodel} {
+	$lan instvar lanIface_
+
+	set nif $lanIface_([$dst id])
+	set filter [new Filter/Field]
+	$nif add-receive-filter $filter
+	$filter filter-target $errmodel
+	$errmodel target [$filter target]
+	$filter set offset_ [PktHdr_offset PacketHeader/Mac macSA_]
+	$filter set match_ [$src node-addr] # will not work with hier. routing
 }
 
 # Topology
