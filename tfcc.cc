@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.12 1998/09/17 02:04:06 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.13 1998/09/17 18:53:54 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -91,6 +91,8 @@ public:
 /**************************** class defn ********************************/
 
 class TFCCAgent : public RTPAgent {
+	friend class TFCCAckTimer;
+	friend class TFCCRttTimer;
 public:
 	TFCCAgent() : srtt_(-1.0), srtt_chg_(-1.0),
 	rttvar_(-1.0), peer_rtt_est_(-1.0),
@@ -651,7 +653,7 @@ double
 ETFCCAgent::eqn_interval(double droprate)
 {
 	// this is the reciprocal of the eqn
-	double pps = efactor_ / (srtt_ * sqrt(droprate));
+	double pps = efactor_ / (peer_rtt_est_ * sqrt(droprate));
 	if (pps > 0.0) {
 printf("%f eqn_interval(drate:%f) returning %f\n", now(), droprate, 1.0 / pps);
 		return (1.0/pps);
@@ -662,9 +664,10 @@ printf("%f eqn_interval(drate:%f) returning %f\n", now(), droprate, 1.0 / pps);
 double
 ETFCCAgent::eqn_droprate(double interval)
 {
-	double pp = ((efactor_ * interval) / srtt_);
-	pp *= pp;
-	return (pp);
+	double pp = ((efactor_ * interval) / peer_rtt_est_);
+	return (pp * pp);
+//	pp *= pp;
+//	return (pp);
 }
 
 void
