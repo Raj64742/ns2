@@ -63,8 +63,7 @@ private:
 				(e1->time_ == e2->time_	&& e1->uid_ < e2->uid_); // for FIFO
 		}
 	};
-	typedef std::set<Event *, event_less_adapter> EventQueue_t;
-
+	typedef set<Event *, event_less_adapter> EventQueue_t;
 	EventQueue_t EventQueue_;	// The actual event list
 };
 
