@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.h,v 1.1 1998/01/06 01:44:54 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.h,v 1.2 1998/02/23 23:50:49 kfall Exp $ (LBL)
  */
 
 #ifndef ns_inet_h
@@ -70,6 +70,7 @@ extern char *InetNtoa(u_int32_t addr);
 extern u_int32_t LookupLocalAddr(void);
 extern u_int32_t LookupHostAddr(const char* host);
 extern const char* intoa(u_int32_t addr);
+extern u_short in_cksum(u_short*, int);
 #ifdef __cplusplus
 }
 #endif
