@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.314 1999/03/09 05:20:15 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.315 1999/03/09 20:19:56 yaxu Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,34 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>  
+
+    <LI> <B><A href="mailto:yaxu@isi.edu">[yaxu]</A></B>
+	<b>Thu March 9 15:20:00 PDT 1999</b><br>	
+	Re-implement wiredLAN(802.3) by porting cmu's 802.3 module,
+	and make wiredLAN work again. Highlights:<br>
+	<pre>
+	(1) All 802.3 features including contention detection
+	    are implemented in mac layer. (Old wiredLAN uses
+	    channel to detect contention)
+	(2) Channel broadcasts packets to every nodes attached to
+	    the wiredLAN except the sender. It is up to mac layer
+	    to decide whether it receives or drops the packet
+	    according to the destination mac address of the packet.
+	    (In old wiredLAN, channel does unicast by default)
+	(3) WiredLAN uses the same structure as wireless LAN (from
+	    bottom up, channel, phy, mac, ifq, ll, arp). These modules
+	    have the same function definition.
+	(4) csma.cc is fully replaced by mac-802_3.cc
+	(5) The reference output of wiredlan test suite have been
+	    changed
+	(6) The nam packet flow of wiredlan test suite does not
+	    exactly reflect the packet sequences under ll. It is
+	    due to (a) no trace object is inserted below ll; (b) nam
+	    is not in the good position so far to animate LAN behavior
+	    below ll. We put it into TODO list.
+	  
+	</pre>
+        </br>
 
     <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
         <b>Mon Mar  8 21:11:47 PST 1999</b><br>
