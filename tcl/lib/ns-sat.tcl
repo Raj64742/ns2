@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.3 1999/06/27 22:45:29 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.4 1999/07/02 01:17:18 tomh Exp $
 
 
 # ======================================================================
@@ -298,8 +298,8 @@ Node/SatNode instproc add-interface args {
 	set mac_bw	[lindex $args 5]
 	set phy_tx_($t)	[new [lindex $args 6]]		;# interface
 	set phy_rx_($t)	[new [lindex $args 6]]		;# interface
-	set outchan 	[lindex $args 7]
-	set inchan 	[lindex $args 8]
+	set inchan 	[lindex $args 7]
+	set outchan 	[lindex $args 8]
 	set drophead_($t) [new Connector]	;# drop target for queue
 	set iif_($t) [new NetworkInterface]
 	

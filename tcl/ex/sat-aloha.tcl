@@ -64,7 +64,7 @@ $ns trace-all $f
 
 # Set up satellite and terrestrial nodes
 
-# GEO satellite at 95 degrees longitude West
+# GEO satellite at 0 degrees longitude 
 set n1 [$ns satnode-geo-repeater 0 $opt(chan)]
 
 # Place 100 nodes at 100 different locations
