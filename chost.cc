@@ -58,6 +58,7 @@ CorresHost::CorresHost() : slink(), TcpFsAgent()
 {
 	nActive_ = nTimeout_ = nFastRec_ = 0;
 	ownd_ = 0;
+	owndCorrection_ = 0;
 #ifdef 0
 	recover_ = 0;
 	maxcwnd_ = maxcwnd;
@@ -67,7 +68,7 @@ CorresHost::CorresHost() : slink(), TcpFsAgent()
 	wndOption_ = wndOption;
 	pathmtu_ = pathmtu;
 #endif
-	wndOption_ = 0;
+/*	wndOption_ = 0;*/
 	pathmtu_ = 1500; /* XXX */
 	closecwTS_ = 0;
 	pending_ = 0;
@@ -90,7 +91,7 @@ CorresHost::opencwnd(int size, IntTcpAgent *sender = 0)
 		/* linear */
 		double f;
 		if (!proxyopt_) {
-			switch (wndOption_) {
+			switch (wnd_option_) {
 			case 0:
 				if ((count_ = count_ + winInc_) >= cwnd_) {
 					count_ = 0;
@@ -104,26 +105,23 @@ CorresHost::opencwnd(int size, IntTcpAgent *sender = 0)
 			default:
 #ifdef notdef
 				/*XXX*/
-				error("illegal window option %d", wndOption_);
+				error("illegal window option %d", wnd_option_);
 #endif
 				abort();
 			}
 		} else {	// proxy
-			switch (wndOption_) {
-			case 0:
-				if ((sender->count_ = sender->count_+winInc_) >= 
-				    cwnd_/nActive_) {
-					sender->count_ = 0;
-					cwnd_ += winInc_;
-				}
-				break;
+			switch (wnd_option_) {
+			case 0: 
 			case 1:
-				cwnd_ += winInc_ / (cwnd_/nActive_);
+				if (sender->highest_ack_ >= sender->wndIncSeqno_) {
+					cwnd_ += winInc_;
+					sender->wndIncSeqno_ = 0;
+				}
 				break;
 			default:
 #ifdef notdef
 				/*XXX*/
-				error("illegal window option %d", wndOption_);
+				error("illegal window option %d", wnd_option_);
 #endif
 				abort();
 			}
@@ -136,45 +134,39 @@ CorresHost::opencwnd(int size, IntTcpAgent *sender = 0)
 	return;
 }
 
-
-/*
- * Close down the congestion window.
- */
 void 
 CorresHost::closecwnd(int how, double ts, IntTcpAgent *sender=0)
 {
 	if (proxyopt_) {
-		if (ts > sender->closecwTS_)
+		if (!sender || ts > sender->closecwTS_)
 			closecwnd(how, sender);
-	} else {
+	}
+	else {
 		if (ts > closecwTS_)
 			closecwnd(how, sender);
 	}
 }
-    
+
 void 
 CorresHost::closecwnd(int how, IntTcpAgent *sender=0)
 {
+	int sender_ownd = 0;
+	if (sender)
+		sender_ownd = sender->maxseq_ - sender->highest_ack_;
 	closecwTS_ = Scheduler::instance().clock();
 	if (proxyopt_) {
-		sender->closecwTS_ = closecwTS_;
+		if (sender)
+			sender->closecwTS_ = closecwTS_;
 		how += 10;
 	}
 	switch (how) {
 	case 0:
-		/* timeouts, Tahoe dup acks */
+	case 10:
+		/* timeouts */
 		ssthresh_ = int( ownd_ * winMult_ );
-		/* Old code: ssthresh_ = int(cwnd_ / 2); */
 		cwnd_ = int(wndInit_);
 		break;
 		
-	case 10:
-		/* timeouts, Tahoe dup acks */
-		ssthresh_ = int( ownd_ - (ownd_/nActive_) * (1-winMult_));
-		/* Old code: ssthresh_ = int(cwnd_ / 2); */
-		cwnd_ = ownd_ - (ownd_/nActive_ - wndInit_);
-		break;
-
 	case 1:
 		/* Reno dup acks, or after a recent congestion indication. */
 		cwnd_ = ownd_ * winMult_;
@@ -184,21 +176,15 @@ CorresHost::closecwnd(int how, IntTcpAgent *sender=0)
 		break;
 
 	case 11:
-	    /* Reno dup acks, or after a recent congestion indication. */
-		cwnd_ = ownd_ - (ownd_/nActive_) * (1 - winMult_);
+		/* Reno dup acks, or after a recent congestion indication. */
+		cwnd_ = ownd_ - sender_ownd*(1-winMult_);
 		ssthresh_ = int(cwnd_);
 		if (ssthresh_ < 2)
 			ssthresh_ = 2;
 		break;
 
-	case 2:
-	case 12:
-		/* Tahoe dup acks after a recent congestion indication */
-		cwnd_ = wndInit_;
-		break;
-
 	case 3:
-	case 31:
+	case 13:
 		/* idle time >= t_rtxcur_ */
 		cwnd_ = wndInit_;
 		break;
@@ -211,7 +197,6 @@ CorresHost::closecwnd(int how, IntTcpAgent *sender=0)
 	if (sender)
 		sender->count_ = 0;
 }
-
 
 Segment* 
 CorresHost::add_pkts(int size, int seqno, int sessionSeqno, int daddr, int dport, 
@@ -233,6 +218,18 @@ CorresHost::add_pkts(int size, int seqno, int sessionSeqno, int daddr, int dport
 	return news;
 }
 
+void
+CorresHost::adjust_ownd(int size) 
+{
+	if (owndCorrection_ > 0) {
+		owndCorrection_ -= size;
+		if (owndCorrection_ < 0)
+			printf("In adjust_ownd(): ownd_ = %g  owndCorrection_ = %d\n", double(ownd_), owndCorrection_);
+	}
+	else
+		ownd_ -= size;
+}
+
 int
 CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSeqno,
 		       int clean_dup = 1, int uniq_ts = 0)
@@ -240,30 +237,43 @@ CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSe
     Segment *cur, *prev=NULL;
     int rval = -1;
 
-    // remove all acked pkts from list
-    int found = rmv_old_segs(pkt, sender, clean_dup, uniq_ts);
-
-    // find a candidate for rxmit - either 200 * 2 ms old or 3 late acks for 
-    // two packet on same conn
+    /* remove all acked pkts from list */
+    int acked_new_data = rmv_old_segs(pkt, sender, clean_dup, uniq_ts);
+    /* XXX if matching segment not found, increment ownd correction factor */
+    if (!acked_new_data) {
+	    owndCorrection_++;
+	    ownd_--;
+    }
+    /*
+     * find a candidate for rxmit - either 200 * 2 ms old or 3 late acks for 
+     * two packet on same conn
+     */
     Islist_iter<Segment> seg_iter(seglist_);
-    while ((cur = seg_iter()) != NULL && cur->later_acks_ >= NUMDUPACKS) {
-	    Segment *start = cur, *match;
+    while ((cur = seg_iter()) != NULL) {
+        if (cur->later_acks_ < NUMDUPACKS) {
+	    prev = cur;
+	    continue;
+        }
+	int remove_flag = 0;
+	Segment *start = cur, *match;
 	Islist_iter<Segment> match_iter(seglist_);
 
 	match_iter.set_cur(cur);
 	
-	if ( (cur->ts_ < lastackTS_ - (0.2 * 2) ) || 
-	     sender == cur->sender_) {
-		// delack interval or current packet a dupack from sender
-		if (cur->sessionSeqno_ > recover_) { /* new loss window */
+	if ( (cur->ts_ < lastackTS_ - (0.2 * 2) ) || sender == cur->sender_) {
+		/* delack interval or current packet a dupack from sender */
+		if ((cur->sessionSeqno_ > recover_) ||
+		    (proxyopt_ && cur->seqno_ > cur->sender_->recover_)) { 
+			/* new loss window */
 			closecwnd(1, cur->ts_, cur->sender_);
 			recover_ = sessionSeqno - 1;
+			cur->sender_->recover_ = cur->sender_->maxseq_;
 		}
 		if (cur->sender_->rxmit_last(TCP_REASON_DUPACK, cur->seqno_, 
 					     cur->sessionSeqno_, cur->ts_)) {
-			ownd_ -= start->size_;
+			adjust_ownd(cur->size_);
 			seglist_.remove(cur, prev);
-			return 0;	// XXX should I still check other senders
+			remove_flag = 1;
 		}
 	}
 
@@ -272,24 +282,27 @@ CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSe
 		/* XXX we need to slide "start" through the list in order
 		   to find the first pkt of each connection */
 		if (start->sender_ == match->sender_){
-			if (start->sessionSeqno_ > recover_) { /* new loss window */
+			if ((start->sessionSeqno_ > recover_) || 
+			    (proxyopt_ && start->seqno_ > start->sender_->recover_)) { 
+				/* new loss window */
 				closecwnd(1, start->ts_, start->sender_);
 				recover_ = sessionSeqno - 1;
+				cur->sender_->recover_ = cur->sender_->maxseq_;
 			}
 			if (start->sender_->rxmit_last(TCP_REASON_DUPACK, 
 						       start->seqno_, 
 						       start->sessionSeqno_, 
 						       start->ts_)) {
-				ownd_ -= start->size_;
+				adjust_ownd(start->size_);
 				seglist_.remove(start, prev); 
+				remove_flag = 1;
 				// can send one for every other DUPACK XXXX
-				return 0;	// should I still check other senders
 			} else
 				break;
 		}		
 	}
-	
-	prev = cur;
+	if (!remove_flag)
+		prev = cur;
     }
     return(0);
 }
@@ -301,28 +314,30 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int clean_dup = 1,
 	Islist_iter<Segment> seg_iter(seglist_);
 	Segment *cur, *prev=0;
 	int found = 0;
+	int new_data_acked = 0;
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 
 	if (tcph->ts_echo() > lastackTS_)
 		lastackTS_ = tcph->ts_echo();
 
-	while ((!found) &&
-	       ((cur = seg_iter()) != NULL) && 
-	       (tcph->ts_echo() >= cur->ts_)) {
-
-		/* older pkt */
-		if (sender != cur->sender_) {
+	while ((!found) && ((cur = seg_iter()) != NULL)) {
+		int remove_flag = 0;
+		/* ack for older pkt of another connection */
+		if (sender != cur->sender_ && tcph->ts_echo() >= cur->ts_) {
 			cur->later_acks_++;
-			prev = cur;
-		} else {
+		} 
+		/* ack for same connection */
+		else if (sender == cur->sender_) {
+			/* found packet acked */
 			if (tcph->seqno() == cur->seqno_ && 
 			    tcph->ts_echo() == cur->ts_)
-				/* found it */
 				found = 1;
+			/* higher ack => clean up acked packets */
 			if (tcph->seqno() >= cur->seqno_) {
-				/* clean up acked pkts */
-				ownd_ -= cur->size_;
+				adjust_ownd(cur->size_);
 				seglist_.remove(cur, prev);
+				remove_flag = 1;
+				new_data_acked = 1;
 				if (!prev)
 					prev = seg_iter.get_last();
 				if (prev == cur) 
@@ -331,43 +346,30 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int clean_dup = 1,
 					rtt_seg_ = NULL;
 				delete cur;
 				seg_iter.set_cur(prev);
-			} else {
-				if (tcph->ts_echo() > cur->ts_) {
-					cur->later_acks_++;
-					prev = cur;
-					ownd_ -= cur->size_;
-					cur->size_ = 0;
-				} else /* pkt.ts == cur.ts */
-					if (cur->size_ != 0 && clean_dup) {
-						ownd_ -= cur->size_;
-						if (uniq_ts) {
-							seglist_.remove(cur, 
-									prev);
-							if (!prev)
-								prev = seg_iter.get_last();
-							if (prev == cur) 
-								prev = NULL;
-							if (cur == rtt_seg_)
-								rtt_seg_ = NULL;
-							delete cur;
-							seg_iter.set_cur(prev);
-							found = 1;
-						} else 
-							cur->size_ = 0;
-						break; // most likely a dupack do first only
-					}
-			}
+			} 
+			/* 
+			 * ack with later timestamp (XXX shouldn't happen if
+			 * the receiver is using the correct echo algorithms) OR
+			 * ack for ack for seqno that is one less (=> dupack)
+			 */
+			else if (tcph->ts_echo() >= cur->ts_ ||
+				 tcph->seqno() == cur->seqno_-1) {
+				cur->later_acks_++;
+			} 
 		}
+		if (!remove_flag)
+			prev = cur;
 	}
-	return found;
+	return new_data_acked;
 }
 	
 void
 CorresHost::add_agent(IntTcpAgent *agent, int size, double winMult, 
 		      int winInc, int ssthresh)
 {
-	nActive_++; 
-	cwnd_ += 1; /* XXX should this be done? */
+	nActive_++;
+	if (!fixedIw_ || cwnd_ == 0)
+		cwnd_ += 1; /* XXX should this be done? */
 	wndInit_ = 1;
 	winMult_ = winMult;
 	winInc_ = winInc;
@@ -378,44 +380,10 @@ CorresHost::add_agent(IntTcpAgent *agent, int size, double winMult,
 int
 CorresHost::ok_to_snd(int size)
 {
-	return (cwnd_ >= ownd_ + 1);
+	if (ownd_ <= -0.5)
+		printf("In ok_to_snd(): ownd_ = %g  owndCorrection_ = %d\n", double(ownd_), owndCorrection_);
+	return (cwnd_ >= ownd_+1);
 }
 
-IntTcpAgent *
-CorresHost::who_to_snd(int how)
-{
-	int i = 0;
-	switch (how) {
-	case ROUND_ROBIN: {
-		IntTcpAgent *next;
-		
-		do {
-			if ((next = (*connIter_)()) == NULL) {
-				connIter_->set_cur(connIter_->get_last());
-				next = (*connIter_)();
-			}
-			i++;
-		} while (next && !next->data_left_to_send() && 
-			 (i < connIter_->count()));
-		if (!next->data_left_to_send())
-			next = NULL;
-		return next;
-	}
-	case RANDOM: {
-		IntTcpAgent *next;
-		
-		do {
-			int foo = int(random() * nActive_ + 1);
-			
-			connIter_->set_cur(connIter_->get_last());
-			
-			for (;foo > 0; foo--)
-				(*connIter_)();
-			next = (*connIter_)();
-		} while (next && !next->data_left_to_send());
-		return(next);
-	}
-	default:
-		return NULL;
-	}
-}
+
+

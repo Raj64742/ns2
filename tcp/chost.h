@@ -40,9 +40,6 @@
 #include "tcp-int.h"
 #include "nilist.h"
 
-#define ROUND_ROBIN 1
-#define RANDOM 2
-
 class Segment : public slink {
 	friend class CorresHost;
 	friend class TcpSessionAgent;
@@ -70,7 +67,7 @@ class CorresHost : public slink, public TcpFsAgent {
 /*	CorresHost(int addr, int cwndinit = 0, int path_mtu_ = 1500, 
 		   int maxcwnd = 999999, int wnd_option = 0 );*/
 	/* add pkt to pipe */
-	Segment* add_pkts(int size, int seqno, int sessionSeqno, int daddr, 
+	virtual Segment* add_pkts(int size, int seqno, int sessionSeqno, int daddr, 
 		      int dport, int sport, double ts, IntTcpAgent *sender); 
 	/* remove pkt from pipe */
 	int clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSeqno,
@@ -81,9 +78,9 @@ class CorresHost : public slink, public TcpFsAgent {
 	void opencwnd(int size, IntTcpAgent *sender=0);
 	void closecwnd(int how, double ts, IntTcpAgent *sender=0);
 	void closecwnd(int how, IntTcpAgent *sender=0);
+	void adjust_ownd(int size);
 	int ok_to_snd(int size);
-	IntTcpAgent *who_to_snd(int how);
-	void add_agent(IntTcpAgent *agent, int size, double winMult,
+	virtual void add_agent(IntTcpAgent *agent, int size, double winMult,
 		       int winInc, int ssthresh);
 	void del_agent(IntTcpAgent *agent) {nActive_--;};
 	void agent_tout(IntTcpAgent *agent) {nTimeout_++;};
@@ -102,12 +99,14 @@ class CorresHost : public slink, public TcpFsAgent {
 	double closecwTS_; 
 	double winMult_;
 	int winInc_;
-	TracedDouble ownd_;	     /* outstanding data to host */
-	int wndOption_;
+	TracedDouble ownd_;  /* outstanding data to host */
+	TracedInt owndCorrection_; /* correction factor to account for dupacks */   
+/*	int wndOption_;*/
 	int pathmtu_;	     /* should do path mtu discovery here */
 			     /* should also do t/tcp cache info here */
 	int proxyopt_;	     /* indicates whether the connections are on behalf
 			        of distinct users (like those from a proxy) */
+	int fixedIw_;        /* fixed initial window (not a function of # conn) */
 	class Islist<Segment> seglist_;	/* list of unack'd segments to peer */
 	double lastackTS_;
 	/*
