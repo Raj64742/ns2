@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.64 1998/05/07 01:43:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.65 1998/05/09 00:33:51 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -672,7 +672,8 @@ void TcpAgent::newack(Packet* pkt)
  */
 void TcpAgent::quench(int how)
 {
-	if (highest_ack_ >= recover_) {
+	if (highest_ack_ >= recover_ || 
+	      last_cwnd_action_ == CWND_ACTION_TIMEOUT) {
 		recover_ =  maxseq_;
 		last_cwnd_action_ = CWND_ACTION_ECN;
 		closecwnd(how);
