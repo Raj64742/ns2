@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.18 1998/06/26 18:08:45 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.19 1998/06/26 18:41:44 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -125,9 +125,11 @@ void abort();
 }
 #endif
 
-#if defined(sunos) || defined(solaris)
+#if defined(NEED_SUNOS_PROTOS) || defined(solaris)
 extern "C" {
-	// yuck yuck yuck
+	#if defined(NEED_SUNOS_PROTOS)
+	caddr_t sbrk(int incr);
+	#endif
 	int getrusage(int who, struct rusage* rusage);
 }
 #endif
