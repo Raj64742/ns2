@@ -79,6 +79,7 @@ emulate/net.h
 emulate/net.h
 emulate/tap.cc
 emulate/tap.cc
+emulate/em3.tcl
 errmodel.cc
 errmodel.h
 estimator.cc
