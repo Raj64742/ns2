@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.6 1998/01/08 03:46:03 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.7 1998/01/31 00:25:34 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -82,7 +82,9 @@ extern "C" {
 class PcapNetwork : public Network {
 
 public:
-	PcapNetwork() : local_netmask_(0) { }
+	PcapNetwork() : local_netmask_(0), pfd_(-1) { }
+	int rchannel() { return(pfd_); }
+	int schannel() { return(pfd_); }
 	virtual int command(int argc, const char*const* argv);
 
 	virtual int open(const char*) = 0;
@@ -98,9 +100,10 @@ public:
 protected:
 	virtual void bindvars();
 
-	char errbuf_[PCAP_ERRBUF_SIZE];
-	char srcname_[PATH_MAX];		// device of file name
-	int state_;
+	char errbuf_[PCAP_ERRBUF_SIZE];		// place to put err msgs
+	char srcname_[PATH_MAX];		// device or file name
+	int pfd_;				// pcap fd
+	int state_;				// PNET_PSTATE_xxx (above)
 	int optimize_;				// bpf optimizer enable
 	pcap_t* pcap_;				// reference to pcap state
 	struct bpf_program bpfpgm_;		// generated program
@@ -122,8 +125,8 @@ protected:
 	const char*	autodevname();
 	void	bindvars();
 
-	int snaplen_;
-	int promisc_;
+	int snaplen_;		// # of bytes to grab
+	int promisc_;		// put intf into promisc mode?
 	double timeout_;
 
 	unsigned int local_net_;
@@ -166,6 +169,8 @@ void
 PcapNetwork::reset()
 {
 	state_ = PNET_PSTATE_INACTIVE;
+	pfd_ = -1;
+	pcap_ = NULL;
 	*errbuf_ = '\0';
 	*srcname_ = '\0';
 }
@@ -244,7 +249,7 @@ PcapNetwork::recv(u_char *buf, int len, u_int32_t& fromaddr)
 void
 PcapNetwork::send(u_char *buf, int len)
 {
-	if (write(ssock_, buf, len) < 0)
+	if (write(pfd_, buf, len) < 0)
 		perror("write to pcap fd");
 	return;
 }
@@ -305,6 +310,7 @@ PcapLiveNetwork::open(const char *devname)
 			name(), devname, errbuf_);
 		return -1;
 	}
+	pfd_ = pcap_fileno(pcap_);
 	strncpy(srcname_, devname, sizeof(srcname_)-1);
 	state_ = PNET_PSTATE_ACTIVE;
 
@@ -314,7 +320,6 @@ PcapLiveNetwork::open(const char *devname)
 		  name(), errbuf_) ;
 	}
 
-	rsock_ = ssock_ = pcap_fileno(pcap_);	// make Network object happy
 	return 0;
 }
 
@@ -386,9 +391,9 @@ PcapFileNetwork::open(const char *filename)
 			name(), filename, errbuf_);
 		return -1;
 	}
+	pfd_ = pcap_fileno(pcap_);
 	strncpy(srcname_, filename, sizeof(srcname_)-1);
 	state_ = PNET_PSTATE_ACTIVE;
-	rsock_ = ssock_ = pcap_fileno(pcap_);	// make Network object happy
 	return 0;
 }
 
