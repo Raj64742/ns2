@@ -36,20 +36,33 @@ proc default_options {prog} {
 	set opts(srmSimType) SRM
 	set opts(rmSrcType) CBR
 	set opts(tcpSrcType) FTP
-	set opts(tcpType) TCP
-	set opts(sinkType) TCPSink
 	set opts(pktSize) 1000
 	
 	switch $prog {
 		rmcc-1 {
 			set opts(test) -1
+			set opts(tcpType) TCP
+			set opts(sinkType) TCPSink
 		}
-		rmcc-2 -
-		rmcc-3 -
-		rmcc-4 {
+		rmcc-2 {
+			set opts(tcpType) TCP/Reno
+			set opts(sinkType) TCPSink/DelAck
 			set opts(bottleneckBW) 1Mbps
 			set opts(bottleneckDelay) 20ms
 			set opts(bottleneckQSize) 30
+		}
+		rmcc-3 {
+			set opts(tcpType) TCP
+			set opts(sinkType) TCPSink
+			set opts(bottleneckBW) 1Mbps
+			set opts(bottleneckDelay) 20ms
+			set opts(bottleneckQSize) 30
+		}
+		rmcc-4 {
+			set opts(tcpType) TCP/Sack1
+			set opts(sinkType) TCPSink/Sack1
+			set opts(bottleneckDelay) 20ms
+			set opts(clientNum) 10
 			# other options 
 		}
 	}
@@ -284,6 +297,7 @@ ScenLib/RM instproc create_tcp {args} {
 		$tcp($k) set fid_ [incr fid_]
 		$tcp($k) set packetSize_ $opts(pktSize)
 		$ns attach-agent $n($k) $tcp($k)
+		puts "ns attach-agent n($k) tcp"
 		
 		incr i
 		set tcp_sink($k) [new Agent/$opts(sinkType)]
@@ -306,7 +320,7 @@ proc finish {} {
 	close $srmEvents
 	#XXX
 	puts "Filtering ..."
-	exec tclsh8.0 ../../../../nam-1/bin/namfilter.tcl out-$t.nam
+	#exec tclsh8.0 ../../../../nam-1/bin/namfilter.tcl out-$t.nam
 	puts "running nam..."
 	exec nam out-$t.nam &
 	#exit 0
