@@ -77,7 +77,8 @@ TcpFsAgent::output_helper(Packet *pkt)
 		 * was in slow start before the start of the idle period and
 		 * cwnd_-1 if it was in congestion avoidance phase.
 		 */
-		if (cwnd_ < ssthresh_+1)
+/*		if (cwnd_ < ssthresh_+1)*/
+		if (cwnd_ < ssthresh_)
 			cwnd_ = int(cwnd_/2);
 		else
 			cwnd_ -= 1;
@@ -154,6 +155,14 @@ TcpFsAgent::recv_newack_helper(Packet *pkt)
 	double delta;
 	int ackcount, i;
 
+	/*
+	 * If we are counting the actual amount of data acked, ackcount >= 1.
+	 * Otherwise, ackcount=1 just as in standard TCP.
+	 */
+	if (count_bytes_acked_)
+		ackcount = tcph->seqno() - last_ack_;
+	else
+		ackcount = 1;
 	newack(pkt);
 	maxseq_ = max(maxseq_, highest_ack_);
 	if (t_exact_srtt_ != 0) {
@@ -173,14 +182,6 @@ TcpFsAgent::recv_newack_helper(Packet *pkt)
 		t_exact_srtt_ = tao;
 		t_exact_rttvar_ = tao/2;
 	}
-	/*
-	 * If we are counting the actual amount of data acked, ackcount >= 1.
-	 * Otherwise, ackcount=1 just as in standard TCP.
-	 */
-	if (count_bytes_acked_)
-		ackcount = tcph->seqno() - last_ack_;
-	else
-		ackcount = 1;
 	/* grow cwnd. ackcount > 1 indicates that actual ack counting is enabled */
 	for (i=0; i<ackcount; i++)
 		opencwnd();
