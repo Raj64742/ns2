@@ -9,7 +9,7 @@
 ### gcc version 2.7.2.1, tcl7.6, tk4.2, otcl-0.96.
 ###
 ### "Validate" ran correctly for Kevin Fall with this output,
-### on pig.ee.lbl.gov, after an update Tue evening, Jan 28, PST 1998,
+### on pig.ee.lbl.gov, after an update Tue afternoon (12.17pm), Jan 28, PST 1998,
 ### including the updated version of TclCl.
 ### gcc version 2.7.2.1, tcl8.0p1, tk8.0p1, otcl-0.96.
 ###
