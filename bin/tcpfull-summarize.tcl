@@ -5,15 +5,19 @@
 # invoke with "tclsh thisfile infile outprefix"
 #
 proc forward_segment { time seqno } {
-
 	global segchan
 	puts $segchan "$time $seqno"
 }
-proc forward_dataful_ack { time ackno } {
+
+proc forward_emptysegment { time seqno } {
+	global emptysegchan
+	puts $emptysegchan "$time $seqno"
+}
+proc backward_dataful_ack { time ackno } {
 	global ackchan
 	puts $ackchan "$time $ackno"
 }
-proc forward_pure_ack { time ackno } {
+proc backward_pure_ack { time ackno } {
 	global packchan
 	puts $packchan "$time $ackno"
 }
@@ -22,7 +26,7 @@ proc drop_pkt { time ackno } {
 	puts $dropchan "$time $ackno"
 }
 
-proc forward_ctrl { time tflags seq } {
+proc ctrl { time tflags seq } {
 	global ctrlchan
 	puts $ctrlchan "$time $seq"
 }
@@ -76,34 +80,37 @@ proc parse_line line {
 		# either SYN or FIN is on
 		if { $field(src) == $active_opener && \
 		    $field(dst)  == $passive_opener } {
-			forward_ctrl $field(time) $field(tcpflags) \
+			ctrl $field(time) $field(tcpflags) \
 				$field(seqno)
 		} elseif { $field(src) == $passive_opener && \
 		    $field(dst) == $active_opener } {
-			forward_ctrl $field(time) $field(tcpflags) \
+			ctrl $field(time) $field(tcpflags) \
 				$field(tcpackno)
 		}
 	}
 
-	if { $interesting && $field(len) > $field(tcphlen) &&
-	    $field(src) == $active_opener && $field(dst) == $passive_opener } {
-		# record a forward segment (seq #s) that contains some data
-		forward_segment $field(time) \
-			[expr $field(seqno) + $field(len) - $field(tcphlen)]
+	if { $interesting && $field(src) == $active_opener && $field(dst) == $passive_opener } {
+		if { $field(len) > $field(tcphlen) } {
+			forward_segment $field(time) \
+				[expr $field(seqno) + $field(len) - $field(tcphlen)]
+		} else {
+			    forward_emptysegment $field(time) \
+				[expr $field(seqno) + $field(len) - $field(tcphlen)]
+		}
 		return
 	}
 
 	if { $interesting && $field(len) > $field(tcphlen) &&
 	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
 		# record acks for the forward direction that have data
-		forward_dataful_ack $field(time) $field(tcpackno)
+		backward_dataful_ack $field(time) $field(tcpackno)
 		return
 	}
 
 	if { $interesting && $field(len) == $field(tcphlen) &&
 	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
 		# record pure acks for the forward direction
-		forward_pure_ack $field(time) $field(tcpackno)
+		backward_pure_ack $field(time) $field(tcpackno)
 		return
 	}
 
@@ -114,7 +121,6 @@ proc parse_line line {
 		return
 	}
 
-
 }
 
 proc parse_file chan {
@@ -124,17 +130,19 @@ proc parse_file chan {
 }
 
 proc dofile { infile outfile } {
-	global ackchan packchan segchan dropchan ctrlchan
+	global ackchan packchan segchan dropchan ctrlchan emptysegchan
 
         set ackstmp $outfile.acks ; # data-full acks
         set segstmp $outfile.p; # segments
+	set esegstmp $outfile.es; # empty segments
         set dropstmp $outfile.d; # drops
         set packstmp $outfile.packs; # pure acks
 	set ctltmp $outfile.ctrl ; # SYNs + FINs
-        exec rm -f $ackstmp $segstmp $dropstmp $packstmp $ctltmp
+        exec rm -f $ackstmp $segstmp $esegstmp $dropstmp $packstmp $ctltmp
 
 	set ackchan [open $ackstmp w]
 	set segchan [open $segstmp w]
+	set emptysegchan [open $esegstmp w]
 	set dropchan [open $dropstmp w]
 	set packchan [open $packstmp w]
 	set ctrlchan [open $ctltmp w]
@@ -145,10 +153,11 @@ proc dofile { infile outfile } {
 
 	close $ackchan
 	close $segchan
+	close $emptysegchan
 	close $dropchan
 	close $packchan
 	close $ctrlchan
-}	
+}
 
 if { $argc != 2 } {
 	puts stderr "usage: tclsh tcpfull-summarize.tcl tracefile outprefix"
