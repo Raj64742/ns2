@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.170 1999/08/25 18:14:09 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.171 1999/08/29 02:21:41 haldar Exp $
 
 
 #
@@ -124,6 +124,18 @@ Agent/TCP/Fack set rampdown_ false
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
 Agent/TCP set delay_growth_ false
+
+# Default values used by wireless simulations
+Agent/Null set sport_           0
+Agent/Null set dport_           0
+
+Agent/CBR set sport_            0
+Agent/CBR set dport_            0
+
+Agent/TCPSink set sport_        0
+Agent/TCPSink set dport_        0         
+
+Agent/TCP set CoarseTimer_      0
 
 # setting this to 1 implements some changes to reno 
 # proposed by Janey Hoe (other than fixing reno's
@@ -536,19 +548,6 @@ LL set delay_                   25us
 LL set bandwidth_               0       ;# not used
 LL set off_prune_               0       ;# not used
 LL set off_CtrMcast_            0       ;# not used
-
-Agent/Null set sport_           0
-Agent/Null set dport_           0      
-
-Agent/CBR set sport_            0
-Agent/CBR set dport_            0
-
-Agent/TCPSink set sport_        0
-Agent/TCPSink set dport_        0
-
-Agent/TCP set sport_            0
-Agent/TCP set dport_            0
-Agent/TCP set packetSize_       1460
 
 Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
 
