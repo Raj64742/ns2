@@ -166,7 +166,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red
-Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined
+Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle ungentleBadParams gentleBadParams
 ../../ns test-suite-red.tcl red1 QUIET
 Test output agrees with reference output
 ../../ns test-suite-red.tcl ecn QUIET
@@ -182,6 +182,18 @@ Test output agrees with reference output
 ../../ns test-suite-red.tcl flows_forced QUIET
 Test output agrees with reference output
 ../../ns test-suite-red.tcl flows_combined QUIET
+Test output agrees with reference output
+../../ns test-suite-red.tcl ungentle QUIET
+total_drops 438 total_packets 7588
+Test output agrees with reference output
+../../ns test-suite-red.tcl gentle QUIET
+total_drops 370 total_packets 7734
+Test output agrees with reference output
+../../ns test-suite-red.tcl ungentleBadParams QUIET
+total_drops 677 total_packets 6401
+Test output agrees with reference output
+../../ns test-suite-red.tcl gentleBadParams QUIET
+total_drops 463 total_packets 7041
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack
@@ -1039,23 +1051,68 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-lan
-Tests: dsdv dsr
+Tests: dsdv dsdv-wired-cum-wireless dsdv-wireless-mip
 ../../ns test-suite-wireless-lan.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+NS EXITING...
+finishing..
 Test output agrees with reference output
-../../ns test-suite-wireless-lan.tcl dsr QUIET
+../../ns test-suite-wireless-lan.tcl dsdv-wired-cum-wireless QUIET
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+NS EXITING...
+finishing..
+Test output agrees with reference output
+../../ns test-suite-wireless-lan.tcl dsdv-wireless-mip QUIET
+Loading connection pattern...
+Starting Simulation...
+finishing..
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn-ack
 Tests: ecn_ack
 ../../ns test-suite-ecn-ack.tcl ecn_ack QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-mip
+Tests: mip-adv-one mip-adv-zero mip-adv-multi
+../../ns test-suite-mip.tcl mip-adv-one QUIET
+Test output agrees with reference output
+../../ns test-suite-mip.tcl mip-adv-zero QUIET
+Test output agrees with reference output
+../../ns test-suite-mip.tcl mip-adv-multi QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-wireless-gridkeeper
+Tests: dsdv
+../../ns test-suite-wireless-gridkeeper.tcl dsdv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-mcache
+Tests: media1 media2
+../../ns test-suite-mcache.tcl media1 QUIET
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media2 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-satellite
+Tests: repeater mixed aloha
+../../ns test-suite-satellite.tcl repeater QUIET
+Test output agrees with reference output
+../../ns test-suite-satellite.tcl mixed QUIET
+Test output agrees with reference output
+../../ns test-suite-satellite.tcl aloha QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
