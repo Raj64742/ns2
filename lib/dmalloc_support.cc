@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.5 2002/01/05 16:00:07 alefiyah Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.6 2002/01/10 17:13:48 alefiyah Exp $ (USC/ISI)
  */
 
 
@@ -40,7 +40,9 @@ extern "C" {
 #include <stdlib.h>
 /* Prototype declaration for TclpAlloc originally
 defined in tcl8.3.2/generic/tclAlloc.c */ 
-char * TclpAlloc(unsigned int);
+char *TclpAlloc(unsigned int);
+char *Tcl_Alloc(unsigned int);
+
 
 #define DMALLOC_DISABLE
 
@@ -94,5 +96,37 @@ TclpAlloc(unsigned int nbytes)
   GET_RET_ADDR(file);
   return (char*) _malloc_leap(file,0,nbytes);
 }
- 
+
+char *
+Tcl_Alloc (unsigned int size)
+  /*    unsigned int size; */
+  {
+      char *result;
+      char *file;
+
+      /* 
+       * Replacing the call to TclpAlloc with malloc directly to help 
+       * memory debugging 
+       *    result = TclpAlloc(size);
+       */
+
+      GET_RET_ADDR(file);
+      result = (char *)_malloc_leap(file,0,size);
+     /*
+      * Most systems will not alloc(0), instead bumping it to one so
+      * that NULL isn't returned.  Some systems (AIX, Tru64) will alloc(0)
+      * by returning NULL, so we have to check that the NULL we get is
+      * not in response to alloc(0).
+      *
+      * The ANSI spec actually says that systems either return NULL *or*
+      * a special pointer on failure, but we only check for NULL
+      */
+
+      if ((result == NULL) && size) {
+	printf("unable to alloc %d bytes", size);
+      }
+      return result;
+}
+
+
 #endif /* HAVE_LIBDMALLOC */
