@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.6 2001/07/25 00:58:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.7 2001/10/26 00:00:08 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -352,6 +352,22 @@ Test/fastlinkAllAdapt instproc init {} {
     $self next
 }
 
+# Changing upper bound for max_p 
+Class Test/fastlinkAllAdapt1 -superclass TestSuite
+Test/fastlinkAllAdapt1 instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ netfast 
+    set test_ fastlinkAllAdapt1
+    Queue/RED set adaptive_ 1
+    Queue/RED set q_weight_ 0
+    Queue/RED set thresh_ 0
+    Queue/RED set maxthresh_ 0
+    Queue/RED set top_ 0.2
+    Queue/RED set bottom_ 0.1
+    Test/fastlinkAllAdapt1 instproc run {} [Test/fastlink info instbody run ]
+    $self next
+}
+
 #####################################################################
 
 # This reuses connection state, with $nums effective TCP connections,
@@ -548,6 +564,5 @@ Test/transient2 instproc init {} {
     Test/transient2 instproc run {} [Test/transient info instbody run ]
     $self next
 }
-
 
 TestSuite runTest
