@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.4 1997/11/04 03:05:38 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.5 1997/11/04 03:33:43 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -250,10 +250,9 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 	  foreach i $fids {
 		  set flow($i) [$fcl lookup auto 0 0 $i]
 		  if { $flow($i) != "" } {
-puts "FLOW: $i, FCL: $fcl, flows: [$fmon_ flows]"
 			  set bytes($i) [$flow($i) set bdepartures_]
-			  puts $file "$now $i [expr $bytes($i) - oldbytes_($i)]"
-			  set oldbytes_($i) bytes($i)
+			  puts $file "$now $i [expr $bytes($i) - $oldbytes_($i)]"
+			  set oldbytes_($i) $bytes($i)
 		  }
 	  }
 	  $ns_ at [expr $now + $interval] "$self cdump $lnk $interval $file"
@@ -316,15 +315,15 @@ puts "FLOW: $i, FCL: $fcl, flows: [$fmon_ flows]"
 #
 TestSuite instproc three_cbrs {} {
 	$self instvar ns_ node_
-	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r1) 1]
+	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
 	$cbr1 set packetSize_ 190
 	$cbr1 set interval_ 0.001
 
-	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r1) 2]
+	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
 	$cbr2 set packetSize_ 500
 	$cbr2 set interval_ 0.002
 
-	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r1) 3]
+	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r2) 3]
 	$cbr3 set packetSize_ 1000
 	$cbr3 set interval_ 0.005
 
@@ -339,19 +338,19 @@ TestSuite instproc three_cbrs {} {
 
 TestSuite instproc four_cbrs {} {
 	$self instvar ns_ node_
-	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r1) 1]
+	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
 	$cbr1 set packetSize_ 190
 	$cbr1 set interval_ 0.001
 
-	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r1) 2]
+	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
 	$cbr2 set packetSize_ 1000
 	$cbr2 set interval_ 0.005
 
-	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r1) 3]
+	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r2) 3]
 	$cbr3 set packetSize_ 500
 	$cbr3 set interval_ 0.002
 
-	set cbr4 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r1) 4]
+	set cbr4 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r2) 4]
 	$cbr4 set packetSize_ 1000
 	$cbr4 set interval_ 0.005
 
@@ -374,7 +373,7 @@ Test/WRR instproc init topo {
 	set net_ $topo
 	set defNet_ cbq1-wrr
 	set test_ CBQ_WRR
-	$self next 0; # call ctor for TestSuite now
+	$self next 0
 }
 
 #
@@ -389,9 +388,9 @@ Test/WRR instproc run {} {
 
 	$topo_ instvar cbqlink_
 	$self create_flat
-	$self make_fmon $cbqlink_
 	$self insert_flat $cbqlink_
 	$self three_cbrs
+	$self make_fmon $cbqlink_
 
 	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
 	$self openTrace $stopTime CBQ_WRR
@@ -403,6 +402,7 @@ Test/WRR instproc run {} {
 
 Class Test/PRR -superclass TestSuite
 Test/PRR instproc init topo {
+exit 1
 	$self instvar net_ defNet_ test_
 	set net_ $topo
 	set defNet_ cbq1
