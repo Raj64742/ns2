@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.392 2000/05/16 06:01:49 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.393 2000/05/16 18:33:04 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -27,7 +27,7 @@
 	The first fix is not to reset the retransmit timer when a new
 	ack arrives and cwnd < 1.  The second fix is, when the
 	retransmit timer expires and cwnd < 1, to reset cwnd to 1.
-	The first bug was reported by Li Li.  I also added four
+	The first bug was reported by Yin Zhang.  I also added four
 	new ECN validation tests to test these bugfixes,
 	./test-all-ecn ecn_secondpkt1Ecn_tahoe, ecn_smallwin1Ecn_tahoe,
 	ecn_smallwin2Ecn_tahoe, and ecn_smallwin3Ecn_tahoe.
