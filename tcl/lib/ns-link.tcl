@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.31 1998/02/17 20:35:30 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.32 1998/03/04 20:58:26 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -215,6 +215,9 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 SimpleLink instproc nam-trace { ns f } {
 	$self instvar enqT_ deqT_ drpT_ rcvT_ dynT_
 
+	#XXX 
+	# we use enqT_ as a flag of whether tracing has been
+	# initialized
 	if [info exists enqT_] {
 		$enqT_ namattach $f
 		if [info exists deqT_] {
@@ -232,9 +235,6 @@ SimpleLink instproc nam-trace { ns f } {
 			}
 		}
 	} else {
-		#XXX 
-		# we use enqT_ as a flag of whether tracing has been
-		# initialized
 		$self trace $ns $f "nam"
 	}
 }
@@ -336,7 +336,7 @@ SimpleLink instproc linkfail-drop-trace args {
 #
 SimpleLink instproc trace-callback {ns cmd} {
 	$self trace $ns {}
-	foreach part {enqT_ deqT_ drpT_} {
+	foreach part {enqT_ deqT_ drpT_ rcvT_} {
 		$self instvar $part
 		set to [$self set $part]
 		$to set callback_ 1
