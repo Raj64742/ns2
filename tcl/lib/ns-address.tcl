@@ -196,10 +196,12 @@ Simulator instproc set-address {node port} {
 
 Simulator instproc set-hieraddress {hlevel args} {
 	set a [$self get-AllocAddrBits "new"]
-	$a set size_ [AllocAddrBits set MAXADDRSIZE_]
-	if ![Simulator set EnableHierRt_] {
-		Simulator set EnableHierRt_ 1
-		Simulator set node_factory_ HierNode
+    $a set size_ [AllocAddrBits set MAXADDRSIZE_]
+    if { ![Simulator set EnableHierRt_] && $hlevel > 1} {
+	### By default, setting hierarchical addressing also turns on hier rtg, 
+	### provided the level is greater than 1
+	Simulator set EnableHierRt_ 1
+	Simulator set node_factory_ HierNode
 	}
 	if [Simulator set EnableMcast_] {
 		$a set-mcastbits 1
