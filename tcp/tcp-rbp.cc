@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.9 1997/07/25 05:26:02 padmanab Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.10 1997/08/19 22:30:12 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -100,7 +100,8 @@ public:
 
 void RBPVegasPaceTimer::expire(Event *) { a_->paced_send_one(); }
 
-RBPVegasTcpAgent::RBPVegasTcpAgent() : TcpAgent(),
+
+RBPVegasTcpAgent::RBPVegasTcpAgent() : VegasTcpAgent(),
 	rbp_mode_(RBP_OFF),
 	pace_timer_(this)
 {

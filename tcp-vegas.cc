@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.8 1997/08/14 00:05:23 tomh Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.9 1997/08/19 22:30:13 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -57,6 +57,8 @@ VegasTcpAgent::VegasTcpAgent() : TcpAgent()
 	bind("v_alpha_", &v_alpha_);
 	bind("v_beta_", &v_beta_);
 	bind("v_gamma_", &v_gamma_);
+
+	reset();
 }
 
 void
@@ -75,6 +77,8 @@ VegasTcpAgent::reset()
 	v_baseRTT_ = 1000000000.;
 	v_incr_ = 0;
 	v_inc_flag_ = 1;
+
+	TcpAgent::reset();
 }
 
 void
@@ -111,7 +115,9 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			ssthresh_ = 2;
 		}
 		int oldack = last_ack_;
-		newack(pkt);
+
+		recv_newack_helper(pkt);
+		
 		/*
 		 * begin of once per-rtt actions
 		 * 	1. update path fine-grained rtt and baseRTT
