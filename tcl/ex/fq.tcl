@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.5 1997/03/29 01:43:13 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.6 1997/03/31 07:37:01 aswan Exp $
 #
 
 set ns [new Simulator]
@@ -29,7 +29,7 @@ $ns proc simplex-link { n1 n2 bw delay type } {
 	#XXX yuck
 	if { $type == "RED" } {
 	 	set bw [[$link_($sid:$did) set link_] set bandwidth_]
-		$q set ptc_ [expr $bw / (8. * [$q set meanPacketSize_])]
+		$q set ptc_ [expr $bw / (8. * [$q set mean_pktize_])]
 	}
 }
 
@@ -90,7 +90,7 @@ FQLink instproc new-flow flowID {
 	#XXX yuck
 	if { $type == "RED" } {
 	 	set bw [$link_ set bandwidth_]
-		$q set ptc_ [expr $bw / (8. * [$q set meanPacketSize_])]
+		$q set ptc_ [expr $bw / (8. * [$q set mean_pktsize_])]
 	}
 	$q drop-target $drpT_
 
