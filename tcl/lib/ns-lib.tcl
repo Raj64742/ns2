@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.27 1997/04/28 19:31:26 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.28 1997/05/06 00:35:44 kfall Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -364,41 +364,4 @@ Classifier instproc no-slot slot {
 	#XXX should say something better for routing problem
 	puts stderr "$self: no target for slot $slot"
 	exit 1
-}
-
-Agent instproc port {} {
-	$self instvar portID_
-	return $portID_
-}
-
-#
-# Lower 8 bits of dst_ are portID_.  this proc supports setting the interval
-# for delayed acks
-#       
-Agent instproc dst-port {} {
-	$self instvar dst_
-	return [expr $dst_%256]
-}
-
-#
-# Add source of type s_type to agent and return the source
-#
-Agent instproc attach-source {s_type} {
-	set source [new Source/$s_type]
-	$source set agent_ $self
-	$self set type_ $s_type
-	return $source
-}
-
-Agent/LossMonitor instproc log-loss {} {
-}
-
-Agent/TCPSimple instproc opencwnd {} {
-	$self instvar cwnd_
-	set cwnd_ [expr $cwnd_ + 1.0 / $cwnd_]
-}
-
-Agent/TCPSimple instproc closecwnd {} {
-	$self instvar cwnd_
-	set cwnd_ [expr 0.5 * $cwnd_]
 }
