@@ -183,8 +183,8 @@ EWdetector::EWdetector() {
   hlf.setAlpha(EW_FADING_FACTOR);
 }
 
-EWdetector::~EWdetector() {
-};
+//EWdetector::~EWdetector() {
+//};
 
 // Enable detecting and debugging
 void EWdetector::setDt(int inv) {
@@ -343,25 +343,8 @@ void EWdetectorB::updateCur() {
 
 // Check if the packet belongs to existing flow
 int EWdetectorB::exFlow(Packet *pkt) {
-  hdr_ip *iph = hdr_ip::access(pkt);
-  int src_id = iph->saddr();
-  int dst_id = iph->daddr();
-  int f_id = iph->flowid(); 
-  AListEntry *p;
-
-  // Protect existing connection
-  // Responses are from Server to Client
-  // Use svr-cli pair: time-out is long
-  // Use fid: req and resp are not the same
-  //p = searchAList(dst_id, src_id, f_id);
-
-  if (p) {
-    //printf("%d %d %d %d ", (int)now, src_id, dst_id, f_id);
-    //printAListEntry(p, 0);
-
-    //return(1);
-  }
-  
+  // Should check SYN packets to protect existing connections
+  //   need to use FullTCP
   return(0);
 }
 
@@ -401,7 +384,6 @@ void EWdetectorB::updateAList(Packet *pkt) {
 // Get the median for a part of AList 
 //   starting from index with count entries
 int EWdetectorB::getMedianAList(int index, int count) {
-  struct AListEntry *med;
   int m;
   
   if (!count)
@@ -440,7 +422,6 @@ int EWdetectorB::getRateAList(int index) {
 // Calculate the aggragated response rate for high-bandwidth flows
 int EWdetectorB::computeARR() {
   int i, agg_rate;
-  struct AListEntry *max;
 
   // Explicit garbage collection first 
   //  before both choosing HBFs and searching AList
@@ -796,13 +777,11 @@ void EWdetectorB::decSInv() {
 
 // Increase the sample interval
 void EWdetectorB::incSInv() {
-  struct SWinEntry *p;
+  //if(s_inv * 2 <= init_s_inv) {
+  //  s_inv = s_inv * 2;
   
-//if(s_inv * 2 <= init_s_inv) {
-//  s_inv = s_inv * 2;
-    
-    //printf("SINV increased by 2.\n");
-// }
+  //printf("SINV increased by 2.\n");
+  // }
 }
 
 // Prints one entry in SWin
@@ -1098,8 +1077,9 @@ int EWPolicy::dropPacket(Packet *pkt) {
     //    if (cewB->exFlow(pkt))
     hdr_tcp *tcph = hdr_tcp::access(pkt);
     // Protecting non-SYN packets: existing connections
-    if ((tcph->flags() & TH_SYN) == 0) 
-      return(0);
+    if ((tcph->flags() & TH_SYN) == 0) {
+      //return(0);
+    }
 
     // Check alarm
     detect(pkt);

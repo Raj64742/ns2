@@ -168,7 +168,7 @@ class TBrateLimitor {
 class EWdetector {
  public:
   EWdetector();
-  ~EWdetector();
+  //virtual ~EWdetector() = 0;
 
   // Enable detecting and debugging rate (eg: pkt or bit rate)
   void setDb(int);
@@ -224,7 +224,7 @@ class EWdetector {
 class EWdetectorP : public EWdetector {
  public:
   EWdetectorP();
-  ~EWdetectorP();
+  virtual ~EWdetectorP();
 
   // update packet stats
   void updateStats(int);
@@ -252,7 +252,7 @@ class EWdetectorP : public EWdetector {
 class EWdetectorB : public EWdetector {
  public:
   EWdetectorB();
-  ~EWdetectorB();
+  virtual ~EWdetectorB();
 
   // Initialize EW
   void init(int);

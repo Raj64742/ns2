@@ -112,7 +112,7 @@ int edgeQueue::command(int argc, const char*const* argv) {
     EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
 
     // Get the pointer to the queue to be coupled (in c++)
-    Tcl& tcl = Tcl::instance();
+    //Tcl& tcl = Tcl::instance();
     edgeQueue *cq = (edgeQueue*) TclObject::lookup(argv[2]);
     EWPolicy *ewpc = (EWPolicy *)((cq->policy).policy_pool[EWP]);
 
