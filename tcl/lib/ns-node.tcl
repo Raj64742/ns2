@@ -30,88 +30,93 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.26 1998/04/08 22:44:19 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.27 1998/04/17 21:24:50 haldar Exp $
 #
 
 Class Node
 Node set nn_ 0
 Node proc getid {} {
-	set id [Node set nn_]
-	Node set nn_ [expr $id + 1]
-	return $id
+    set id [Node set nn_]
+    Node set nn_ [expr $id + 1]
+    return $id
 }
 
 Node instproc init args {
-	eval $self next $args
-	$self instvar np_ id_ classifier_ agents_ dmux_ neighbor_ address_
-	set neighbor_ ""
-	set agents_ ""
-	set dmux_ ""
-	set np_ 0
-	set id_ [Node getid]
-        set classifier_ [new Classifier/Addr]
-	# set up classifer as a router (default value is , 8 bit of addr and 8 bit port)
-        $classifier_ set mask_ [AddrParams set NodeMask_(1)]
-        $classifier_ set shift_ [AddrParams set NodeShift_(1)]
-        set address_ $id_
-	
+    eval $self next $args
+    $self instvar np_ id_ classifier_ agents_ dmux_ neighbor_ address_
+    set neighbor_ ""
+    set agents_ ""
+    set dmux_ ""
+    set np_ 0
+    set id_ [Node getid]
+    set classifier_ [new Classifier/Addr]
+    # set up classifer as a router (default value is , 8 bit of addr and 8 bit port)
+    $classifier_ set mask_ [AddrParams set NodeMask_(1)]
+    $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+    set address_ $id_
+    
 }
 
 Node instproc enable-mcast sim {
-        $self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
-	$self set ns_ $sim
+    $self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
+    $self set ns_ $sim
 
-	$self set switch_ [new Classifier/Addr]
-        #
-	# set up switch to route unicast packet to slot 0 and
-	# multicast packets to slot 1
-	#
+    $self set switch_ [new Classifier/Addr]
+    #
+    # set up switch to route unicast packet to slot 0 and
+    # multicast packets to slot 1
+    #
     
     [$self set switch_] set mask_ [AddrParams set McastMask_]
     [$self set switch_] set shift_ [AddrParams set McastShift_]
 
-	#
-	# create a classifier for multicast routing
-	#
-	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
-	[$self set multiclassifier_] set node_ $self
+    #
+    # create a classifier for multicast routing
+    #
+    $self set multiclassifier_ [new Classifier/Multicast/Replicator]
+    [$self set multiclassifier_] set node_ $self
 
-	[$self set switch_] install 0 $classifier_
-	[$self set switch_] install 1 $multiclassifier_
+    [$self set switch_] install 0 $classifier_
+    [$self set switch_] install 1 $multiclassifier_
 
-	#
-	# Create a prune agent.  Each multicast routing node
-	# has a private prune agent that sends and receives
-	# prune/graft messages and dispatches them to the
-	# appropriate replicator object.
-	#
+    #
+    # Create a prune agent.  Each multicast routing node
+    # has a private prune agent that sends and receives
+    # prune/graft messages and dispatches them to the
+    # appropriate replicator object.
+    #
 
-        $self set mcastproto_ [new McastProtoArbiter ""]
-	$mcastproto_ set Node $self
+    $self set mcastproto_ [new McastProtoArbiter ""]
+    $mcastproto_ set Node $self
 }
 
 Node instproc add-neighbor p {
-	$self instvar neighbor_
-	lappend neighbor_ $p
+    $self instvar neighbor_
+    lappend neighbor_ $p
 }
 
 Node instproc entry {} {
-        if [Simulator set EnableMcast_] {
-	    $self instvar switch_
-	    return $switch_
-	}
-	$self instvar classifier_
-	return $classifier_
+    if [Simulator set EnableMcast_] {
+	$self instvar switch_
+	return $switch_
+    }
+    $self instvar classifier_
+    return $classifier_
 }
 
 Node instproc add-route { dst target } {
-	$self instvar classifier_
-	$classifier_ install $dst $target
+    $self instvar classifier_
+    $classifier_ install $dst $target
 }
 
 Node instproc id {} {
-	$self instvar id_
-	return $id_
+    $self instvar id_
+    return $id_
+}
+
+Node instproc node-addr {} {
+    $self instvar address_
+    return $address_
 }
 
 Node instproc alloc-port {} {
@@ -132,45 +137,49 @@ Node instproc alloc-port {} {
 # bind the agent to the port number.
 #
 Node instproc attach agent {
-	$self instvar agents_ classifier_ address_ dmux_
-	#
-	# assign port number (i.e., this agent receives
-	# traffic addressed to this host and port)
-	#
-	lappend agents_ $agent
-	
-
-	#
-	# Attach agents to this node (i.e., the classifier inside).
-	# We call the entry method on ourself to find the front door
-	# (e.g., for multicast the first object is not the unicast
-	#  classifier)
-	# Also, stash the node in the agent and set the
-	# local addr of this agent.
-	#
-	$agent target [$self entry]
-	$agent set node_ $self
+    $self instvar agents_ classifier_ address_ dmux_
+    #
+    # assign port number (i.e., this agent receives
+    # traffic addressed to this host and port)
+    #
+    lappend agents_ $agent
     
 
-	#
-	# If a port demuxer doesn't exist, create it.
-	#
-	if { $dmux_ == "" } {
-		set dmux_ [new Classifier/Addr]
-	    $dmux_ set mask_ [AddrParams set PortMask_]
-	    # $dmux_ set shift_ 0
-	    $dmux_ set shift_ [AddrParams set PortShift_]
-		#
-		# point the node's routing entry to itself
-		# at the port demuxer (if there is one)
-		#
-		$self add-route $address_ $dmux_
-	}
-    set port [$self alloc-port]
-    $agent set portID_ $port
+    #
+    # Attach agents to this node (i.e., the classifier inside).
+    # We call the entry method on ourself to find the front door
+    # (e.g., for multicast the first object is not the unicast
+    #  classifier)
+    # Also, stash the node in the agent and set the
+    # local addr of this agent.
+    #
+    $agent target [$self entry]
+    $agent set node_ $self
     
+
+    #
+    # If a port demuxer doesn't exist, create it.
+    #
     set mask [AddrParams set PortMask_]
     set shift [AddrParams set PortShift_]
+    if { $dmux_ == "" } {
+	set dmux_ [new Classifier/Addr]
+	$dmux_ set mask_ $mask
+	$dmux_ set shift_ $shift
+	
+	# $dmux_ set shift_ 0
+	#
+	# point the node's routing entry to itself
+	# at the port demuxer (if there is one)
+	#
+	if [Simulator set EnableHierRt_] {
+	    $self add-hroute $address_ $dmux_
+	} else {
+	    $self add-route $address_ $dmux_
+	}
+    }
+    set port [$self alloc-port]
+    $agent set portID_ $port
     
     if [Simulator set EnableHierRt_] {
 	set nodeaddr [AddrParams set-hieraddr $address_]
@@ -179,13 +188,14 @@ Node instproc attach agent {
 	set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] << [AddrParams set NodeShift_(1)]]
     }
     $agent set addr_ [expr [expr [expr $port & $mask] << $shift] | [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
-    
-    #TESTING
-    # set addr [$agent set addr_]
-#     puts "Agent addr: $addr" 
 
     $dmux_ install $port $agent
     
+    #TESTING
+    set addr [$agent set addr_]
+#     puts "node address: $address_"
+#     puts "Agent addr: $addr" 
+
 }
 
 #
@@ -193,44 +203,45 @@ Node instproc attach agent {
 #
 
 Node instproc detach { agent nullagent } {
-	$self instvar agents_ dmux_
-	#
-	# remove agent from list
-	#
-	set k [lsearch -exact $agents_ $agent]
-	if { $k >= 0 } {
-		set agents_ [lreplace $agents_ $k $k]
-	}
+    $self instvar agents_ dmux_
+    #
+    # remove agent from list
+    #
+    debug 1
+    set k [lsearch -exact $agents_ $agent]
+    if { $k >= 0 } {
+	set agents_ [lreplace $agents_ $k $k]
+    }
 
-	#
-	# sanity -- clear out any potential linkage
-	#
-	$agent set node_ ""
-	$agent set addr_ 0
-	$agent target $nullagent
+    #
+    # sanity -- clear out any potential linkage
+    #
+    $agent set node_ ""
+    $agent set addr_ 0
+    $agent target $nullagent
 
-	set port [$agent set portID_]
-	$dmux_ clear $port
+    set port [$agent set portID_]
+    $dmux_ clear $port
 }
 
 Node instproc agent port {
-        $self instvar agents_
-        foreach a $agents_ {
-                if { [$a set portID_] == $port } {
-                        return $a
-                }
-        }
-        return ""
+    $self instvar agents_
+    foreach a $agents_ {
+	if { [$a set portID_] == $port } {
+	    return $a
+	}
+    }
+    return ""
 }
 
 #
 # reset all agents attached to this node
 #
 Node instproc reset {} {
-	$self instvar agents_
-	foreach a $agents_ {
-		$a reset
-	}
+    $self instvar agents_
+    foreach a $agents_ {
+	$a reset
+    }
 }
 
 #
@@ -245,34 +256,34 @@ Node instproc neighbors {} {
 # Helpers for interface stuff
 #
 Node instproc attachInterfaces ifs {
-        $self instvar ifaces_
-        set ifaces_ $ifs
-        foreach ifc $ifaces_ {
-                $ifc setNode $self
-        }
+    $self instvar ifaces_
+    set ifaces_ $ifs
+    foreach ifc $ifaces_ {
+	$ifc setNode $self
+    }
 }
 
 Node instproc addInterface { iface } {
-        $self instvar ifaces_
-        lappend ifaces_ $iface
-        $iface setNode $self 
+    $self instvar ifaces_
+    lappend ifaces_ $iface
+    $iface setNode $self 
 }
 
 Node instproc createInterface { num } {
-        $self instvar ifaces_
-        set newInterface [new NetInterface]
-        if { $num < 0 } { return 0 }
-        $newInterface set-label $num
-        return 1
+    $self instvar ifaces_
+    set newInterface [new NetInterface]
+    if { $num < 0 } { return 0 }
+    $newInterface set-label $num
+    return 1
 }
- 
+
 Node instproc getInterfaces {} {
-        $self instvar ifaces_
-        return $ifaces_
+    $self instvar ifaces_
+    return $ifaces_
 }
 
 Node instproc getNode {} {  
-        return $self
+    return $self
 }
 
 
@@ -281,56 +292,56 @@ Node instproc getNode {} {
 #
 
 Node instproc get-vif {} {
-        $self instvar vif_ 
-        if [info exists vif_] { return $vif_ }
-        set vif_ [new NetInterface]
-        $self addInterface $vif_
-        return $vif_
+    $self instvar vif_ 
+    if [info exists vif_] { return $vif_ }
+    set vif_ [new NetInterface]
+    $self addInterface $vif_
+    return $vif_
 }
 
 # List of corresponding peer TCP hosts from this node, used in IntTcp
 
 Node instproc addCorresHost {addr cw mtu maxcw wndopt } {
-	$self instvar chaddrs_
+    $self instvar chaddrs_
 
-	if { ![info exists chaddrs_($addr)] } {
-		set chost [new Agent/Chost $addr $cw $mtu $maxcw $wndopt]
-		set chaddrs_($addr) $chost
-	}
-	return $chaddrs_($addr)
+    if { ![info exists chaddrs_($addr)] } {
+	set chost [new Agent/Chost $addr $cw $mtu $maxcw $wndopt]
+	set chaddrs_($addr) $chost
+    }
+    return $chaddrs_($addr)
 }
 
 Node instproc createTcpSession {dst} {
-	$self instvar tcpSession_
+    $self instvar tcpSession_
 
-	if { ![info exists tcpSession_($dst)] } {
-		set tcpsession [new Agent/TCP/Session]
-		$self attach $tcpsession
-		$tcpsession set dst_ $dst
-		set tcpSession_($dst) $tcpsession
-	}
-	return $tcpSession_($dst)
+    if { ![info exists tcpSession_($dst)] } {
+	set tcpsession [new Agent/TCP/Session]
+	$self attach $tcpsession
+	$tcpsession set dst_ $dst
+	set tcpSession_($dst) $tcpsession
+    }
+    return $tcpSession_($dst)
 }
 
 Node instproc getTcpSession {dst} {
-	$self instvar tcpSession_
+    $self instvar tcpSession_
 
-	if { [info exists tcpSession_($dst)] } {
-		return $tcpSession_($dst)
-	} else {
-		puts "In getTcpSession(): no session exists for destination [$dst set addr_]"
-		return ""
-	}
+    if { [info exists tcpSession_($dst)] } {
+	return $tcpSession_($dst)
+    } else {
+	puts "In getTcpSession(): no session exists for destination [$dst set addr_]"
+	return ""
+    }
 }
 
 Node instproc existsTcpSession {dst} {
-	$self instvar tcpSession_
+    $self instvar tcpSession_
 
-	if { [info exists tcpSession_($dst)] } {
-		return 1
-	} else {
-		return 0
-	}
+    if { [info exists tcpSession_($dst)] } {
+	return 1
+    } else {
+	return 0
+    }
 }
 
 #
@@ -373,7 +384,7 @@ Node instproc add-routes {id ifs} {
 	return
     }
     if {$routes_($id) <= 0 && [llength $ifs] == 1 && 	\
-	 ![info exists mpathClsfr_($id)]} {
+	    ![info exists mpathClsfr_($id)]} {
 	$self add-route $id [$ifs head]
 	set routes_($id) 1
     } else {
