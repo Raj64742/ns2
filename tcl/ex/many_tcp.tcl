@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.6 1998/06/30 17:19:11 heideman Exp $
+# $Id: many_tcp.tcl,v 1.7 1998/07/01 00:54:05 sfloyd Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -119,6 +119,8 @@ set raw_opt_info {
 	# NEEDSWORK: should add HTTP model over TCP.
 	source-tcp-method TCP/Reno
 	sink-ack-method TCPSink/DelAck
+	# Set init-win to 1 for larger initial windows.
+	init-win 0
 
 	#
 	# BOTTLENECK LINK MODEL:
@@ -138,6 +140,7 @@ set raw_opt_info {
 	graph-join-queueing 1
 	gen-map 0
 	mem-trace 0
+	print-drop-rate 0
 	debug 1
 	title none
 	# set test-suite to write the graph to opts(test-suite-file)
@@ -213,6 +216,8 @@ Main instproc process_args {av} {
 
 
 proc my-duplex-link {ns n1 n2 bw delay queue_method queue_length} {
+	global opts 
+
 	$ns duplex-link $n1 $n2 $bw $delay $queue_method
 	$ns queue-limit $n1 $n2 $queue_length
 	$ns queue-limit $n2 $n1 $queue_length
@@ -225,7 +230,7 @@ proc my-duplex-link-set-delay {ns n1 n2 delay} {
 
 
 Main instproc init_network {} {
-	global opts
+	global opts fmon
 	# nodes
 	# build right to left
 	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ ns_ cs_count_ ns_
@@ -234,8 +239,10 @@ Main instproc init_network {} {
 	# Figure supported load.
 	#
 	set expected_load_per_client_in_bps [expr ($opts(client-mouse-chance)/100.0)*$opts(client-mouse-packets)*$opts(client-pkt-size)*8 + (1.0-$opts(client-mouse-chance)/100.0)*$opts(client-elephant-packets)*$opts(client-pkt-size)*8]
-	set max_clients_per_second [expr [$ns_ bw_parse $opts(bottle-bw)]/$expected_load_per_client_in_bps]
-	puts "maximum clients per second: $max_clients_per_second"
+	if {$opts(debug)} {
+		set max_clients_per_second [expr [$ns_ bw_parse $opts(bottle-bw)]/$expected_load_per_client_in_bps]
+		puts [format "maximum clients per second: $max_clients_per_second"]
+	}
 
 	# Compute optimal (?) bottleneck queue size
 	# as the bw-delay product.
@@ -253,6 +260,11 @@ Main instproc init_network {} {
 	set bottle_l_ [$ns_ node]
 	set bottle_r_ [$ns_ node]
 	my-duplex-link $ns_ $bottle_l_ $bottle_r_ $opts(bottle-bw) $opts(bottle-delay) $opts(bottle-queue-method) $opts(bottle-queue-length)
+        if {$opts(print-drop-rate)} {
+		set slink [$ns_ link $bottle_l_ $bottle_r_]
+		set fmon [$ns_ makeflowmon Fid]
+		$ns_ attach-fmon $slink $fmon
+	}
 
 	# Bottlenecks need large routing tables.
 #	[$bottle_l_ set classifier_] resize 511
@@ -436,9 +448,16 @@ Main instproc open_trace { stop_time } {
 # with -a -q, use just -a.
 
 Main instproc finish {} {
-        global opts
+        global opts fmon
 	$self instvar trace_filename_ ns_
 
+	if {$opts(print-drop-rate)} {
+		set drops [$fmon set pdrops_]
+		set pkts [$fmon set parrivals_]
+		puts "total_drops $drops total_packets $pkts"
+		set droprate [expr 100.0*$drops / $pkts ]
+		puts [format "drop_percentage %7.4f" $droprate]
+	}
 	if {$opts(graph-join-queueing)} {
 		set q "-q"
 	} else {
@@ -523,6 +542,11 @@ Main instproc init {av} {
 	if {$opts(gen-map)} {
 		$ns_ gen-map
 	}       
+	if {$opts(init-win)} {
+		Agent/TCP set syn_ true
+		Agent/TCP set delay_growth_ true
+		Agent/TCP set windowInitOption_ 2
+	}
 	$ns_ run
 }
 
