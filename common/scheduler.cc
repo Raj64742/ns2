@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.7 1997/05/23 18:16:34 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.8 1997/05/23 22:53:30 breslau Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -443,13 +443,14 @@ double CalendarScheduler::newwidth()
  */
 void CalendarScheduler::cancel(Event* e)
 {
-	for (int i = 0; i < nbuckets_; i++)
-		for (Event** p = &buckets_[i]; (*p) != NULL; p = &(*p)->next_)
-			if ((*p) == e) {
-				(*p) = (*p)->next_;
-				return;
-			}
-  
+	int i = (int)(((long)(e->time_ * oneonwidth_)) & buckbits_);
+
+	for (Event** p = buckets_ + i; (*p) != NULL; p = &(*p)->next_)
+		if ((*p) == e) {
+			(*p) = (*p)->next_;
+			qsize_--;
+			return;
+		}
 	abort();
 }
 

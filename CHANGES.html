@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.72 1997/05/23 01:08:48 polly Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.73 1997/05/23 22:53:29 breslau Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -16,6 +16,14 @@
 [PENDING RELEASE DATE]</h3>
 
 <ul>
+<li><b><a href="mailto:breslau@parc.xerox.com">[LB]</a></b>
+<b>Fri May 23 15:46:16 PDT 1997</b><br>
+     Fixed a bug in CalendarScheduler::cancel() that corrupted the
+     calendar data structure and caused the simulator to crash.
+     Also improved the efficiency of that function.  File changed:
+     scheduler.cc
+<br>
+
 <li><b><a href="http://www-scf.usc.edu/~bhuang">[PH]</a></b>
 <b>Thu May 22 18:03:36 PDT 1997</b><br>
 <ul>
