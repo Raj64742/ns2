@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.14 2002/09/17 18:27:02 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.15 2003/02/01 04:21:05 buchheim Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -98,6 +98,8 @@ private:
         int     tracetype;
         MobileNode *node_;
 	int     newtrace_;
+	double  radius_scaling_factor_;
+	double  duration_scaling_factor_;
 
         int initialized() { return node_ && 1; }
 	int node_energy();

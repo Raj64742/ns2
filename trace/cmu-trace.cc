@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.68 2002/11/07 00:18:35 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.69 2003/02/01 04:21:05 buchheim Exp $
  */
 
 #include <packet.h>
@@ -99,6 +99,9 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 	for (int i=0 ; i < MAX_NODE ; i++) 
 		nodeColor[i] = 3 ;
         node_ = 0;
+
+	bind("radius_scaling_factor_",&radius_scaling_factor_);
+	bind("duration_scaling_factor_",&duration_scaling_factor_);
 }
 
 void
@@ -825,7 +828,13 @@ CMUTrace::nam_format(Packet *p, int offset)
 	    }   
         }
 
-	sprintf(pt_->nbuffer() ,
+
+	// don't generate an "r" event for a broadcast packet
+	// as it was already generated when the "h" event was written
+	if (next_hop == -1 && op == 'r')
+		return;
+	
+	sprintf(pt_->nbuffer(),
 		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s",
 		op,
 		Scheduler::instance().clock(),
@@ -836,6 +845,40 @@ CMUTrace::nam_format(Packet *p, int offset)
 		pkt_color,
 		ch->uid(),
 		tracename);
+
+	if (next_hop == -1 && op == 'h') {
+		// print extra fields for broadcast packets
+
+		// radius is calculated assuming 2-ray ground reflectlon
+		// model using default settings of Phy/WirelessPhy and
+		// Antenna/OmniAntenna
+		double radius = 250.0*radius_scaling_factor_; 
+
+		// duration is calculated based on above radius and
+		// the speed of light
+		double duration = 0.0008333333333*duration_scaling_factor_;
+
+
+		sprintf(pt_->nbuffer() + strlen(pt_->nbuffer()),
+			" -R %.2f -D %.2f",
+			radius,
+			duration);
+
+		// schedule "r" event
+		Tcl& tcl = Tcl::instance();
+		tcl.evalf("[Simulator instance] at %f {[Simulator instance] puts-nam-traceall {r -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s -R %.2f -D %.2f}}",
+			Scheduler::instance().clock() + duration,
+			Scheduler::instance().clock() + duration,
+			src_,
+			next_hop,
+			packet_info.name(ch->ptype()),
+			ch->size(),
+			pkt_color,
+			ch->uid(),
+			tracename,
+			radius,
+			duration);
+	}
 
 	offset = strlen(pt_->nbuffer());
 	pt_->namdump();
