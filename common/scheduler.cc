@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.2 1997/01/26 23:26:25 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.3 1997/03/11 00:41:20 kannan Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -198,3 +198,48 @@ void ListScheduler::run()
 	}
 }
 
+#include "heap.h"
+
+class HeapScheduler : public Scheduler {
+public:
+	inline HeapScheduler() { hp_ = new Heap; } 
+	virtual void cancel(Event* p) {
+		hp_->heap_delete((void*) p);
+	}
+	virtual void insert(Event* p) {
+		hp_->heap_insert(p->time_, (void*) p);
+	}
+	virtual Event* lookup(int uid);
+	virtual void run();
+protected:
+	Heap* hp_;
+};
+
+static class HeapSchedulerClass : public TclClass {
+public:
+	HeapSchedulerClass() : TclClass("Scheduler/Heap") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new HeapScheduler);
+	}
+} class_heap_sched;
+
+Event* HeapScheduler::lookup(int uid)
+{
+        Event* p;
+	
+	for (p = (Event*) hp_->heap_iter_init(); p;
+	     p = (Event*) hp_->heap_iter())
+		if (p->uid_ == uid)
+			break;
+	return p;
+}
+
+void HeapScheduler::run()
+{
+	Event* p;
+	instance_ = this;
+	while ((p = (Event*) hp_->heap_extract_min()) != 0) {
+		clock_ = p->time_;
+		p->handler_->handle(p);
+	}
+}

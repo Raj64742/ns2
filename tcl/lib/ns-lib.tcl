@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.11 1997/03/07 07:08:52 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.12 1997/03/11 00:41:21 kannan Exp $
 #
 
 #
@@ -55,6 +55,12 @@ Simulator instproc init args {
 	set scheduler_ [new Scheduler/List]
 	set nullAgent_ [new Agent/Null]
 	$self create_packetformat
+}
+
+Simulator instproc use-scheduler type {
+	$self instvar scheduler_
+	delete $scheduler_
+	set scheduler_ [new Scheduler/$type]
 }
 
 #
