@@ -44,23 +44,28 @@
 #include "tcp-session.h"
 
 /*
- * We separate TCP functionality into two parts: that having to do with providing
- * a reliable, ordered byte-stream service, and that having to do with congestion
- * control and loss recovery. The former is done on a per-connection basis and is
- * implemented as part of IntTcpAgent ("integrated TCP"). The latter is done in 
- * an integrated fashion across multiple TCP connections, and is implemented as 
- * part of TcpSessionAgent ("TCP session"). TcpSessionAgent is derived from 
- * CorresHost ("correspondent host"), which keeps track of the state of all TCP 
- * (TCP/Int) connections to a host that it is corresponding with.
+ * We separate TCP functionality into two parts: that having to do with 
+ * providing a reliable, ordered byte-stream service, and that having to do with
+ * congestion control and loss recovery. The former is done on a per-connection
+ * basis and is implemented as part of IntTcpAgent ("integrated TCP"). The 
+ * latter is done in an integrated fashion across multiple TCP connections, and
+ * is implemented as part of TcpSessionAgent ("TCP session"). TcpSessionAgent is
+ * derived from CorresHost ("correspondent host"), which keeps track of the 
+ * state of all TCP (TCP/Int) connections to a host that it is corresponding 
+ * with.
  *
  * The motivation for this separation of functionality is to make an ensemble of
- * connection more well-behaved than a set of independent TCP connections and 
- * improve the chances of losses being recovered via data-driven techniques 
- * (rather than via timeouts). At the same time, we do not introduce any 
- * unnecessary between the logically-independent byte-streams that the set of 
- * connections represents. This is in contrast to the coupling that is inherent 
- * in the multiplexing at the application layer of multiple byte-streams onto a 
- * single TCP connection.
+ * connection more well-behaved than a set of independent TCP connections.
+ * The packet loss rate is cut down and the chances of losses being recovered 
+ * via data-driven techniques (rather than via timeouts) is improved. At the 
+ * same time, we do not introduce any unnecessary coupling between the 
+ * logically-independent byte-streams that the set of connections represents. 
+ * This is in contrast to the coupling that is inherent in the multiplexing at 
+ * the application layer of multiple byte-streams onto a single TCP connection.
+ *
+ * For questions/comments, please contact:
+ *   Venkata N. Padmanabhan (padmanab@cs.berkeley.edu)
+ *   http://www.cs.berkeley.edu/~padmanab
  */
 
 static class TcpSessionClass : public TclClass {
@@ -260,6 +265,7 @@ TcpSessionAgent::timeout(int tno)
 		else {
 			slowdown(CLOSE_CWND_INIT);
 			reset_rtx_timer(0,0);
+			send_much(NULL, 0, TCP_REASON_TIMEOUT);
 		}
 	}
 	else if (tno == TCP_TIMER_RTX) {
@@ -281,6 +287,7 @@ TcpSessionAgent::timeout(int tno)
 			slowdown(CLOSE_CWND_RESTART|CLOSE_SSTHRESH_HALF);
 			reset_rtx_timer(0,1);
 		}
+		nrexmit_++;
 		ownd_ = 0;
 		owndCorrection_ = 0;
 		while ((curconn = conn_iter()) != NULL) {
@@ -421,9 +428,6 @@ TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason)
 	int npackets = 0;
 	Islist_iter<Segment> seg_iter(seglist_);
 
-/*	if (reason != TCP_REASON_TIMEOUT && !force && 
-	    burstsnd_timer_.status() == TIMER_PENDING)
-		return;*/
 	if (reason != TCP_REASON_TIMEOUT &&
 	    burstsnd_timer_.status() == TIMER_PENDING)
 		return;
@@ -444,14 +448,9 @@ TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason)
 			fs_mode_ = 1;
 		}
 	}
-/*	while (ok_to_snd(size_) || (reason == TCP_REASON_TIMEOUT) || 
-	       (force && agent)) {*/
+
 	while (ok_to_snd(size_)) {
-/*		if (force && agent) {
-			agent->send_one(sessionSeqno_++);
-			npackets++;
-		}
-		else */ {
+		{
 			IntTcpAgent *sender = who_to_snd(schedDisp_);
 			if (sender) {
 				/*
@@ -464,7 +463,8 @@ TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason)
 				/* if retransmission */
 				/* XXX we pick random conn even if rtx timeout */
 				if (sender->t_seqno_ < sender->maxseq_) {
-					int i = findSessionSeqno(sender, sender->t_seqno_);
+					int i = 
+				findSessionSeqno(sender, sender->t_seqno_);
 					removeSessionSeqno(i);
 					sender->send_one(i);
 				}
@@ -503,12 +503,13 @@ TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 	/* XXX okay to do this after clean_segs? */
 	/* if new data acked and this is not a partial ack */
 	if (amt_data_acked > 0 && (tcph->seqno() >= agent->recover_ ||
-		agent->last_cwnd_action_ != CWND_ACTION_DUPACK) && !pktReordered_) {
+	   agent->last_cwnd_action_ != CWND_ACTION_DUPACK /* XXX 1*/) 
+	    && !dontIncrCwnd_) {
 		int i = count_bytes_acked_ ? amt_data_acked:1;
 		while (i-- > 0)
 			opencwnd(size_,agent);
 	}
-	pktReordered_ = 0;
+	dontIncrCwnd_ = 0;
 	if (amt_data_acked > 0) {
 		if (fs_enable_ && fs_mode_ && connWithPktBeforeFS_ == agent)
 			connWithPktBeforeFS_ = NULL;
