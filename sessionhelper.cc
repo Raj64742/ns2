@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.15 1998/12/24 22:58:52 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.16 1999/01/28 01:19:03 polly Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -232,7 +232,15 @@ loss_depobj* SessionHelper::find_loss_depobj(ErrorModel* err) {
 	top->next = 0;
 
 	while (top != 0) {
-		if (top->loss_obj->obj == err) return (top->loss_obj);
+		if (top->loss_obj->obj == err) {
+			loss_depobj *tmp_loss_obj = top->loss_obj;
+			while (top != 0) {
+				stackobj *befreed = top;
+				top = top->next;
+				free(befreed);
+			}
+			return (tmp_loss_obj);
+		}
 		loss_depobj *tmploss = top->loss_obj->loss_dep;
 		stackobj *befreed = top;
 		top = top->next;

@@ -57,9 +57,9 @@ RouteLogic/Algorithmic instproc BFS {} {
 	}
     }
 
-    # foreach index [array names adj] {
-	# puts "$index: $adj($index)"
-    # }
+    foreach index [array names adj] {
+	puts "$index: $adj($index)"
+    }
 
     set rank_ 0
     set root_ 0
@@ -67,13 +67,15 @@ RouteLogic/Algorithmic instproc BFS {} {
     set queue "$root_"
 
     while [llength $queue] {
+	puts "queue: $queue, queue-length: [llength $queue]"
 	set parent [lindex $queue 0]
 	set queue [lreplace $queue 0 0]
+	puts "parent: $parent, queue: $queue, queue-length: [llength $queue]"
 	if ![info exist children_($parent)] {
 	    set children_($parent) ""
 	}
 
-#	puts "adj: $adj($parent)"
+	puts "adj: $adj($parent)"
 	foreach nd $adj($parent) {
 	    if ![info exist traversed($nd)] {
 		set traversed($nd) 0
@@ -88,7 +90,7 @@ RouteLogic/Algorithmic instproc BFS {} {
 	if {$rank_ < $num_children} {
 	    set rank_ $num_children
 	}
-#	puts "$rank_ $queue"
+	puts "rank: $rank_, queue: $queue"
     }
 }
 
