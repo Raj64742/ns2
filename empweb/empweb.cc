@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.13 2002/02/12 20:27:39 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.14 2002/02/13 22:58:04 kclan Exp $
 
 #include <tclcl.h>
 
@@ -44,7 +44,7 @@
 class EmpWebPage : public TimerHandler {
 public:
 	EmpWebPage(int id, EmpWebTrafSession* sess, int nObj, Node* dst, int svrId) :
-		id_(id), sess_(sess), nObj_(nObj), curObj_(0), doneObj_(0), dst_(dst), svrId_(svrId) {}
+		id_(id), sess_(sess), nObj_(nObj), curObj_(0), doneObj_(0), dst_(dst), svrId_(svrId), persistOption_(0) {}
 	virtual ~EmpWebPage() {}
 
 	inline void start() {
@@ -63,7 +63,9 @@ public:
 	 	if (++doneObj_ >= nObj_) {
 	   		printf("doneObject: %g %d %d \n", Scheduler::instance().clock(), doneObj_, nObj_);
 		        sess_->donePage((void*)this);
-	 	} else if (sess_->persistOption_) {
+//		}
+//		sched(sess_->interObj()->value());
+	 	} else if (persistOption_) {
 				sched(sess_->interObj()->value());
 		}
 		
@@ -71,6 +73,8 @@ public:
         inline int curObj() const { return curObj_; }
 	inline int doneObj() const { return doneObj_; }
 		
+	inline void set_persistOption(int opt) { persistOption_ = opt; }
+	int persistOption_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
 
 private:
 	virtual void expire(Event* = 0) {
@@ -79,7 +83,7 @@ private:
 			return;
 		sess_->launchReq(this, LASTOBJ_++, 
 				 (int)ceil(sess_->objSize()->value()),
-				 (int)ceil(sess_->reqSize()->value()), sess_->id());
+				 (int)ceil(sess_->reqSize()->value()), sess_->id(), persistOption_);
 		if (sess_->mgr()->isdebug())
 			printf("expire: Session %d launched page %d obj %d nObj %d \n",
 			       sess_->id(), id_, curObj_, nObj_);
@@ -91,7 +95,7 @@ private:
 
 		TimerHandler::handle(e);
 		curObj_++;
-		if (!sess_->persistOption_) {
+		if (!persistOption_) {
 			if (curObj_ <  nObj_) sched(sess_->interObj()->value());
 		}
 	}
@@ -154,15 +158,16 @@ void EmpWebTrafSession::donePage(void* ClntData)
 	                abort();
 	}
 	
-	delete pg;
 
-        if (persistOption_) { //for HTTP1.1 persistent-connection
+        if (pg->persistOption_) { //for HTTP1.1 persistent-connection
         	//recycle TCP connection
 		mgr_->recycleTcp(ctcp_);
 		mgr_->recycleTcp(stcp_);
 		mgr_->recycleSink(csnk_);
 		mgr_->recycleSink(ssnk_);
 	}
+
+	delete pg;
 
 	// If all pages are done, tell my parent to delete myself
 	if (++donePage_ >= nPage_) {
@@ -187,18 +192,22 @@ void EmpWebTrafSession::expire(Event *)
 	else
            n = int(ceil(serverSel()->value()));
 
-
         assert((n >= 0) && (n < mgr()->nSrc_));
         Node* dst = mgr()->server_[n];
 
 	// Make sure page size is not 0!
 	EmpWebPage* pg = new EmpWebPage(LASTPAGE_++, this, 
 				  (int)ceil(rvPageSize_->value()), dst, n);
+
+        //each page either use persistent or non-persistent connection
+	int opt = (int)ceil(this->persistSel()->value());
+        pg->set_persistOption(opt);
+
 	if (mgr_->isdebug())
 		printf("Session %d starting page %d, curpage %d \n", 
 		       id_, LASTPAGE_-1, curPage_);
 
-        if (persistOption_) { //for HTTP1.1 persistent-connection
+        if (pg->persistOption_) { //for HTTP1.1 persistent-connection
 
                 mgr_->LASTFLOW_++;
 
@@ -237,7 +246,7 @@ void EmpWebTrafSession::handle(Event *e)
 }
 
 // Launch a request for a particular object
-void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize, int sid)
+void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize, int sid, int persist)
 {
 
   	TcpAgent* ctcp;
@@ -247,7 +256,7 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 
 	EmpWebPage* pg = (EmpWebPage*)ClntData;
 
-        if (persistOption_) { //for HTTP1.1 persistent-connection
+        if (persist) { //for HTTP1.1 persistent-connection
 		if (mgr_->isdebug()) {
 			printf("HTTP1.1\n");
 		}
@@ -286,7 +295,7 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 			      ctcp->name(), csnk->name(), 
 			      stcp->name(), ssnk->name(), 
 			      size, reqSize, ClntData,
-			      persistOption_);
+			      persist);
 
 
 	// Debug only
@@ -547,10 +556,6 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			p->sched(lt);
 			session_[n] = p;
 
-		        // decide to use either persistent or non-persistent
-			int opt = (int)ceil(p->persistSel()->value());
-			p->set_persistOption(opt);
-                        //p->initPersConn();
                            
 			return (TCL_OK);
 		}

@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.8 2002/02/12 20:26:27 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.9 2002/02/13 22:58:55 kclan Exp $
 
 PagePool/EmpWebTraf set debug_ false
 PagePool/EmpWebTraf set TCPTYPE_ Reno
@@ -86,10 +86,11 @@ PagePool/EmpWebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size pobj
 	# Recycle client-side TCP agents
 	$ns detach-agent $clnt $ctcp
 	$ns detach-agent $svr $csnk
-	$ctcp reset
-	$csnk reset
-	#don't recycle if it's persistent connection
+
+	#don't recycle and reset if it's persistent connection
 	if {$persist != 1} {
+		$ctcp reset
+		$csnk reset
 		$self recycle $ctcp $csnk
 	}
 
@@ -120,10 +121,11 @@ PagePool/EmpWebTraf instproc done-resp { id pid clnt svr stcp ssnk size {startTi
 	# Recycle server-side TCP agents
 	$ns detach-agent $clnt $ssnk
 	$ns detach-agent $svr $stcp
-	$stcp reset
-	$ssnk reset
+
 	#don't recycle if it's persistent connection
 	if {$persist != 1} { 
+		$stcp reset
+		$ssnk reset
 		$self recycle $stcp $ssnk
 	}
 	$self doneObj $pobj

@@ -29,7 +29,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.14 2002/02/12 20:27:39 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.15 2002/02/13 22:58:04 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -57,7 +57,7 @@ public:
 		rvServerWin_(NULL), rvClientWin_(NULL),
 		clientIdx_(cl), 
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
-		id_(id), interPageOption_(1), persistOption_(0) {}
+		id_(id), interPageOption_(1) {}
 	virtual ~EmpWebTrafSession();
 
 	// Queried by individual pages/objects
@@ -74,15 +74,13 @@ public:
 	inline EmpiricalRandomVariable*& clientWin() { return rvClientWin_; }
 
 	void donePage(void* ClntData);
-	void launchReq(void* ClntData, int obj, int size, int reqSize, int sid);
+	void launchReq(void* ClntData, int obj, int size, int reqSize, int sid, int p);
 	inline int id() const { return id_; }
 	inline EmpWebTrafPool* mgr() { return mgr_; }
 
         inline void set_interPageOption(int option) { interPageOption_ = option; }
 	 
 	static int LASTPAGE_;
-	inline void set_persistOption(int opt) { persistOption_ = opt; }
-	int persistOption_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
 
 private:
 	virtual void expire(Event *e = 0);
