@@ -66,6 +66,19 @@ Simulator instproc mrtproto { mproto { nodelist "" } } {
 		$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
 	}
 
+	if { $mproto == "BST" } {
+		foreach n [array names Node_] {
+			if ![$Node_($n) is-lan?] {
+			    $Node_($n) instvar multiclassifier_ switch_
+# 			    delete $multiclassifier_
+			    set multiclassifier_ [new Classifier/Multicast/Replicator/BST]
+			    [$Node_($n) set multiclassifier_] set node_ $Node_($n)
+			    $switch_ install 1 $multiclassifier_
+			}
+
+		}
+	}
+
 	if { $nodelist == "" } {
 		foreach n [array names Node_] {
 			$self mrtproto-iifs $mproto $Node_($n) ""
@@ -570,4 +583,9 @@ Node instproc from-node-iface { node } {
 		return [$rpflink if-label?]
 	}
 	return "?" ;#unknown iface
+}
+
+Vlink instproc if-label? {} {
+	$self instvar iif_
+	$iif_ label
 }

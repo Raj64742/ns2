@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.157 1999/06/21 18:14:05 tomh Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.158 1999/06/28 23:45:22 salehi Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -99,7 +99,7 @@ OBJ_CC = \
 	packet.o ip.o route.o connector.o ttl.o \
 	trace.o trace-ip.o \
 	classifier.o classifier-addr.o classifier-hash.o classifier-virtual.o \
-	classifier-mcast.o classifier-mpath.o replicator.o \
+	classifier-mcast.o classifier-bst.o classifier-mpath.o replicator.o \
 	classifier-mac.o \
 	app.o telnet.o tcplib-telnet.o \
 	trafgen.o traffictrace.o pareto.o expoo.o cbr_traffic.o \
@@ -255,6 +255,7 @@ NS_TCL_LIB = \
 	tcl/rtglib/route-proto.tcl \
 	tcl/rtglib/algo-route-proto.tcl \
         tcl/interface/ns-iface.tcl \
+	tcl/mcast/BST.tcl \
         tcl/mcast/ns-mcast.tcl \
         tcl/mcast/McastProto.tcl \
         tcl/mcast/DM.tcl \

@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-bst.cc,v 1.1 1999/06/28 22:56:01 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-bst.cc,v 1.2 1999/06/28 23:45:21 salehi Exp $";
 #endif
 
 #include <iostream.h>
@@ -47,10 +47,10 @@ typedef struct upstream_info_tag {
 	struct upstream_info_tag* next;
 } upstream_info;
 
-class MCastBiDirClassifier : public MCastClassifier {
+class MCastBSTClassifier : public MCastClassifier {
 public:
-	MCastBiDirClassifier();
-	~MCastBiDirClassifier();
+	MCastBSTClassifier();
+	~MCastBSTClassifier();
 	static const char STARSYM[]; //"source" field for shared trees
 protected:
 	virtual int classify(Packet *const p);
@@ -64,28 +64,28 @@ protected:
 };
 
 
-const char MCastBiDirClassifier::STARSYM[]= "x"; //"source" field for shared trees
+const char MCastBSTClassifier::STARSYM[]= "x"; //"source" field for shared trees
 
-static class MCastBiDirClassifierClass : public TclClass {
+static class MCastBSTClassifierClass : public TclClass {
 public:
-	MCastBiDirClassifierClass() : TclClass("Classifier/Multicast/BiDir") {}
+	MCastBSTClassifierClass() : TclClass("Classifier/Multicast/BST") {}
 	TclObject* create(int, const char*const*) {
-		return (new MCastBiDirClassifier());
+		return (new MCastBSTClassifier());
 	}
 } class_mcast_bidir_classifier;
 
-MCastBiDirClassifier::MCastBiDirClassifier()
+MCastBSTClassifier::MCastBSTClassifier()
 {
 	oif2RP_ = NULL;
 	node_id_ = -1;
 }
 
-MCastBiDirClassifier::~MCastBiDirClassifier()
+MCastBSTClassifier::~MCastBSTClassifier()
 {
 	clearAll();
 }
 
-int MCastBiDirClassifier::classify(Packet *const pkt)
+int MCastBSTClassifier::classify(Packet *const pkt)
 {
 	hdr_cmn* h = hdr_cmn::access(pkt);
 	hdr_ip* ih = hdr_ip::access(pkt);
@@ -130,7 +130,7 @@ int MCastBiDirClassifier::classify(Packet *const pkt)
 }
 
 
-void MCastBiDirClassifier::recv(Packet *p, Handler *h) 
+void MCastBSTClassifier::recv(Packet *p, Handler *h) 
 {
 	hdr_cmn* h_cmn = hdr_cmn::access(p);
 	hdr_ip* ih = hdr_ip::access(p);
@@ -221,7 +221,7 @@ void MCastBiDirClassifier::recv(Packet *p, Handler *h)
 	} else {
 		int match;
 		
-		tcl.evalf("%s match-BiDir-iif %d %d", name(),
+		tcl.evalf("%s match-BST-iif %d %d", name(),
 			  h_cmn->iface(), dst);  
 		sscanf(tcl.result(), "%d", (int *)&match);
 		if (!match) {
@@ -231,9 +231,9 @@ void MCastBiDirClassifier::recv(Packet *p, Handler *h)
 	} // else
 
 	node->recv(p, h);
-} // MCastBiDirClassifier::recv
+} // MCastBSTClassifier::recv
 
-void MCastBiDirClassifier::upstream_add(int dst, char *link, int node_id)
+void MCastBSTClassifier::upstream_add(int dst, char *link, int node_id)
 {
 	struct upstream_info *next,
 		*current;
@@ -262,9 +262,9 @@ void MCastBiDirClassifier::upstream_add(int dst, char *link, int node_id)
 		oif2RP_->node_id = node_id;
 		oif2RP_->next = NULL;
 	} // else
-} // MCastBiDirClassifier::upstream_add
+} // MCastBSTClassifier::upstream_add
 
-upstream_info* MCastBiDirClassifier::upstream_find(int dst)
+upstream_info* MCastBSTClassifier::upstream_find(int dst)
 {
 	upstream_info *index;
 
@@ -274,9 +274,9 @@ upstream_info* MCastBiDirClassifier::upstream_find(int dst)
 			return index;
 	} // while
 	return NULL;
-} // MCastBiDirClassifier::upstream_find
+} // MCastBSTClassifier::upstream_find
 
-void MCastBiDirClassifier::insert_upstream_info(int dst) 
+void MCastBSTClassifier::insert_upstream_info(int dst) 
 {
 	char temp_str[100];
 	int nodeID;
@@ -287,5 +287,5 @@ void MCastBiDirClassifier::insert_upstream_info(int dst)
 	tcl.evalf("%s upstream-link %d", name(), dst);
 	sscanf(tcl.result(), "%s %d", temp_str, &nodeID);
 	upstream_add(dst, temp_str, nodeID);
-} // MCastBiDirClassifier::insert_upstream_info
+} // MCastBSTClassifier::insert_upstream_info
 
