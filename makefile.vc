@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.22 1999/08/20 18:13:34 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.23 1999/09/10 22:32:29 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -100,7 +100,7 @@ OBJ_CC = \
 	trace.o trace-ip.o \
 	classifier.o classifier-addr.o classifier-hash.o classifier-virtual.o \
 	classifier-mcast.o classifier-bst.o classifier-mpath.o replicator.o \
-	classifier-mac.o \
+	classifier-mac.o classifier-port.o \
 	app.o telnet.o tcplib-telnet.o \
 	trafgen.o traffictrace.o pareto.o expoo.o cbr_traffic.o \
 	tbf.o resv.o sa.o saack.o \
@@ -154,8 +154,11 @@ OBJ_CC = \
 	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	webcache/mcache.o tfrc.o tfrc-sink.o energy-model.o \
-	#mac-csma.o mac-multihop.o\
+	webcache/mcache.o tfrc.o tfrc-sink.o energy-model.o
+
+# don't allow comments to follow continuation lines
+
+#  mac-csma.o mac-multihop.o\
 #	sensor-nets/landmark.o mac-simple-wireless.o \
 #	sensor-nets/tags.o sensor-nets/sensor-query.o \
 #	sensor-nets/flood-agent.o \
