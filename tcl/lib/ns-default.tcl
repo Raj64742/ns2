@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.129 1998/09/14 21:59:27 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.130 1998/09/15 02:39:10 kfall Exp $
 
 
 #
@@ -256,6 +256,8 @@ Agent/RTCP set seqno_ 0
 Agent/RTP/TFCC set alpha_ 0.75; # EWMA multiplier on srtt
 Agent/RTP/TFCC set beta_ 0.75; # EWMA multiplier on rttvar
 Agent/RTP/TFCC set srtt_ -1.0; # initial smoothed rtt
+Agent/RTP/TFCC set minrtt_ 1000000.0; # initial min rtt (1M secs)
+Agent/RTP/TFCC set maxrtt_ -1.0; # initial min rtt
 Agent/RTP/TFCC set rttvar_ -1.0; # initial rtt var
 Agent/RTP/TFCC set peer_rtt_est_ -1.0; # initial value of peer's rtt est
 Agent/RTP/TFCC set ack_interval_ 1.0; # initial ack sending interval
