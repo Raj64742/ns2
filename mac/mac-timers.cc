@@ -129,6 +129,8 @@ DeferTimer::handle(Event *)
 	stime = 0.0;
 	rtime = 0.0;
 
+
+
 	mac->deferHandler();
 }
 
@@ -172,6 +174,8 @@ TxTimer::handle(Event *)
 	paused_ = 0;
 	stime = 0.0;
 	rtime = 0.0;
+
+
 
 	mac->sendHandler();
 }
@@ -217,7 +221,11 @@ BackoffTimer::start(int cw, int idle)
 	busy_ = 1;
 	paused_ = 0;
 	stime = s.clock();
+	
+
 	rtime = (Random::random() % cw) * mac->phymib_->SlotTime;
+
+
 #ifdef USE_SLOT_TIME
 	ROUND_TIME();
 #endif
@@ -236,7 +244,18 @@ void
 BackoffTimer::pause()
 {
 	Scheduler &s = Scheduler::instance();
-	int slots = (int) ((s.clock() - (stime + difs_wait)) / mac->phymib_->SlotTime);
+
+	//the caculation below make validation pass for linux though it
+	// looks dummy
+
+	double st = s.clock();
+	double rt = stime + difs_wait;
+	double sr = st - rt;
+        double mst = (mac->phymib_->SlotTime);
+
+        int slots = int (sr/mst);
+
+    //int slots = (int) ((s.clock() - (stime + difs_wait)) / mac->phymib_->SlotTime);
 	if(slots < 0)
 		slots = 0;
 	assert(busy_ && ! paused_);
@@ -266,12 +285,13 @@ BackoffTimer::resume(double difs)
 	 * decrementing the counter, so I add difs time in here.
 	 */
 	difs_wait = difs;
-
+	/*
 #ifdef USE_SLOT_TIME
 	ROUND_TIME();
 #endif
+	*/
 	assert(rtime + difs_wait >= 0.0);
-	s.schedule(this, &intr, rtime + difs_wait);
+       	s.schedule(this, &intr, rtime + difs_wait);
 }
 
 
