@@ -395,6 +395,8 @@ tcl/test/test-all-schedule
 tcl/test/test-all-tcp
 tcl/test/test-all-template1
 tcl/test/test-all-v1
+tcl/test/test-all-mcast
+tcl/test/test-all-template-mcast
 tcl/test/test-output-red/ecn.Z
 tcl/test/test-output-red/red1.Z
 tcl/test/test-output-red/red1_bytes.Z
@@ -425,6 +427,11 @@ tcl/test/test-output-tcp/timers3.Z
 tcl/test/test-output-tcp/timers4.Z
 tcl/test/test-output-tcp/timers5.Z
 tcl/test/test-output-tcp/timersA.Z
+tcl/test/test-output-mcast/CtrMcast1.Z
+tcl/test/test-output-mcast/DM1.Z
+tcl/test/test-output-mcast/DM2.Z
+tcl/test/test-output-mcast/DM3.Z
+tcl/test/test-output-mcast/DM4.Z
 tcl/test/test-sack-v1
 tcl/test/test-suite-cbq-v1.tcl
 tcl/test/test-suite-cbq-v1a.tcl
@@ -442,6 +449,7 @@ tcl/test/test-suite-schedule.tcl
 tcl/test/test-suite-tcp.tcl
 tcl/test/test-suite-v1.tcl
 tcl/test/test-suite-v1a.tcl
+tcl/test/test-suite-mcast.tcl
 tcl/test/test-vegas-v1
 tcl/test/topologies.tcl
 tclAppInit.cc
