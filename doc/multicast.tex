@@ -77,7 +77,7 @@ An example of a relatively simple multicast configuration is:
         set ns [new Simulator]
         {\bfseries{}Simulator set EnableMcast_ 1} \; enable multicast routing;
         Node expandaddr  \; expand address space, required if more than 128 nodes;
-        set group [{\bfseries{}Node allocaddr}]   \; allocate a mulicast address;
+        set group [{\bfseries{}Node allocaddr}]   \; allocate a multicast address;
         set node0 [$ns node]         \; create multicast capable nodes;
         set node1 [$ns node]
         {\bfseries{}Simulator set NumberInterfaces_ 1}  \; number interfaces for all links;
@@ -133,7 +133,7 @@ similar to PIM-SM \cite{Deer94a:Architecture}.
 A Rendezvous Point (RP) rooted shared tree is built
 for a multicast group.  The actual sending of prune, join messages
 etc. to set up state at the nodes is not simulated.  A centralized
-computation agent is used to compute the fowarding trees and set up
+computation agent is used to compute the forwarding trees and set up
 multicast forwarding state, \tup{S, G} at the relevant nodes as new
 receivers join a group.  Data packets from the senders to a group are
 unicast to the RP.  Note that data packets from the senders are
@@ -144,7 +144,7 @@ Note that whenever network dynamics occur or unicast routing changes,
 The instantaneous re-computation feature of centralised algorithms
 may result in causality violations during the transient
 periods.  Thus, centralised multicast routing strategies are not
-ideal for studying transient behaviours.
+ideal for studying transient behaviors.
 
 The method of enabling centralised multicast routing in a simulation is:
 \begin{program}
@@ -206,7 +206,7 @@ However, this implementation is also capable of adapting to changes
 in the topology.
 
 As in the case of DM, a node in this implementation uses the
-unicast routing tables at all of its adjacent neighbours to
+unicast routing tables at all of its adjacent neighbors to
 compute its parent-child relationships%
 \footnote{This is somewhat different from classic DVMRP, in that
 the implementation does not actually send out route updates;
@@ -214,11 +214,11 @@ however, it infers the arrival of these updates from other events
 and attempts to reduce memory usage through shared routing table information.}.
 The multicast routes are computed periodically every
 \code{ReportRouteTimeout} seconds.
-They are also computed when netowrk dynamics triggers a notification,
+They are also computed when network dynamics triggers a notification,
 or the node receives a unicast route update.
-The last event is used as a signal of a neighbour sending a 
+The last event is used as a signal of a neighbor sending a 
 DVMRP-like unicast route update to notify multicast route changes at that
-neighbour.
+neighbor.
 The class dynamicDM is
 inherited from the class DM.
 \begin{program}
@@ -233,7 +233,7 @@ The Protocol Independent Multicast Dense Mode implementation
 does not compute any parent-child relationships.
 Therefore, incoming  data packets at a node are broadcast
 to all outgoing links except the link that the packet came over.
-Neighbours send prune messages if they have no listeners
+Neighbors send prune messages if they have no listeners
 at that node or downstream of them.
 The prune timeout value is 0.5s by default.
 This class pimDM is inherited from the class DM.
@@ -269,7 +269,7 @@ However, most simulations in \ns\ appear to be
 configured with one multicast routing protocol for the entire simulations.
 
 Whenever there is a multicast related action in a node, the
-node will access its multicast protcols through this McastProtoArbiter.
+node will access its multicast protocols through this McastProtoArbiter.
 
 Basic functions are \proc[]{join-group}, \proc[]{leave-group}, and
 \proc[]{upcall}.
@@ -402,7 +402,7 @@ global, unique CtrMcastComp
 (centralized multicast computation) agent to compute and install the new
 entries.
 We will describe the centralised multicast computation details
-in the followingparagraphs.
+in the following paragraphs.
 
 --- 
 \proc[]{join-group} adds the node to the instance variable
@@ -432,7 +432,7 @@ its outgoing interface to the encapsulation agent.
 \item
 \code{CtrMcastComp} is the centralised multicast route computation agent.
 \begin{alist}
-\proc[]{reset-mroutes} & resets all mutlicast forwarding entries.\\
+\proc[]{reset-mroutes} & resets all multicast forwarding entries.\\
 \proc[]{compute-mroutes} & (re)computes all multicast forwarding entries.\\
 \proc[source, group]{compute-tree} & computes a multicast tree for one source to reach 
                 all the receivers in a specific group.\\
@@ -444,7 +444,7 @@ its outgoing interface to the encapsulation agent.
         finding successive next hops,
         until it either reaches the source or RP,
         or it reaches a node that is already 
-        a part of the relevent multicast tree.
+        a part of the relevant multicast tree.
          During the process, several new replicators and an
         outgoing interface will be installed.\\
 \proc[source, group, member]{prune-branch} & is similar to \proc[]{compute-branch} except the
@@ -468,9 +468,9 @@ its outgoing interface to the encapsulation agent.
  &      However, for dynamic dense mode,
         the incoming interface must be set properly so packets from the
         wrong incoming interfaces will be dropped. \\
- &      Finally, in the case of pim dense mode, 
+ &      Finally, in the case of PIM dense mode, 
         \proc[]{handle-cache-miss} is the same as in dynamic dense mode,
-        except that the outgoing interface list is set to all neighbours
+        except that the outgoing interface list is set to all neighbors
         excluding the incoming interface.\\
 \proc[replicator, source, group]{drop} & sends prune messages upstream.
         Recall that the packet is only dropped when there are
@@ -486,8 +486,8 @@ its outgoing interface to the encapsulation agent.
         it forwards the graft upstream.\\
 \proc[]{periodic-check} & This procedure is only used in dynamic dense mode.
         Each node periodically updates its parent-child relationships
-        with respect to each of its neighbours.\\
-proc[]{handle-wrong-iif} & This proceudre is only used by PIM dense mode.
+        with respect to each of its neighbors.\\
+proc[]{handle-wrong-iif} & This procedure is only used by PIM dense mode.
         This is invoked when the multicast classifier drops a packet
         because it arrived on the wrong interface, and
         invoked \proc[]{new-group}.
@@ -496,7 +496,7 @@ proc[]{handle-wrong-iif} & This proceudre is only used by PIM dense mode.
         forwarding entry has become outdated.
         If so, this procedure will update the forwarding entry to the
         new incoming interface;
-        otherwise, it will send a prume message back towards the
+        otherwise, it will send a prune message back towards the
         wrong incoming interface to stop packets
         reaching from the wrong path.
 \end{alist}

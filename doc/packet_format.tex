@@ -129,7 +129,7 @@ is used to provide linkage to OTcl when the RTP header is
 enabled at configuration time.
 When the simulator executes, this static object calls
 the \code{PacketHeaderClass} constructor with arguments
-\code{"PacketHeader/RTP"} and \code{sizeof(hdr_rtp}.
+\code{"PacketHeader/RTP"} and \code{sizeof(hdr_rtp)}.
 This causes the size of the RTP header to be stored
 and made available to the packet header manager
 at configuration time (see below, Section~\ref{sec:packethdrmgr}).
@@ -152,12 +152,12 @@ Assuming we wish to create a new header called \code{newhdr}
 the following steps are performed:
 \begin{enumerate}\itemsep0pt
   \item create a new structure defining the raw fields
-	(called \code{hdr_newhdr})
+        (called \code{hdr_newhdr})
   \item define member functions for needed fields
   \item create a static class to perform OTcl linkage
-	(defines \code{PacketHeader/Newhdr})
+        (defines \code{PacketHeader/Newhdr})
   \item edit \nsf{tcl/lib/ns-packet.tcl} to enable new packet format
-	(see \ref{sec:configpacket})
+        (see \ref{sec:configpacket})
 \end{enumerate}
 
 \section{Packet Classes}
@@ -338,7 +338,7 @@ header which is defined in \nsf{packet.h} as follows:
 \end{program}
 This structure primarily defines fields used for tracing
 the flow of packets or measuring other quantities.
-The time stamp field is used to measure queueing delay
+The time stamp field is used to measure queuing delay
 at switch nodes.
 The \code{ptype_} field is used to identify the
 type of packets, which makes reading traces simpler.

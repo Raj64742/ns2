@@ -75,7 +75,7 @@ It also zero-fills in the following fields of the Flags header:
 Any packet header information not included in these lists must
 be must be handled in the classes derived from \code{Agent}.
 
-The \fcn[]{recv} method is the main entrypoint for an
+The \fcn[]{recv} method is the main entry point for an
 Agent which receives packets, and
 is invoked by upstream nodes when sending a packet.
 In most cases, Agents make no use of the second argument (the handler
@@ -106,7 +106,7 @@ These are their names in OTcl:
   TCPSink/Sack1 & a SACK TCP receiver   \\
   TCPSink/Sack1/DelAck & a delayed-ACK SACK TCP receiver        \\
         \\
-  CBR & connectioness protocol with sequence numbers    \\
+  CBR & connectionless protocol with sequence numbers    \\
   CBR/RTP & an RTP sender and receiver  \\
   CBR/UDP & UDP with sequence numbers and traffic sources       \\
   RTCP & an RTCP sender and receiver    \\
@@ -227,7 +227,7 @@ and sets it up:
         $ns connect $tcp $sink          \; establish TCP connection;
         set ftp [new Source/FTP]        \; create an FTP source "application";
         $ftp set agent_ $tcp            \; associate FTP with the TCP sender;
-        $ns at 1.2 "$ftp start"  \;arrange for FTP to start at time 1.2 secs;
+        $ns at 1.2 "$ftp start"  \;arrange for FTP to start at time 1.2 sec;
 \end{program}
 The OTcl instruction \code{new Agent/TCP} results in the
 creation of a C++ \code{TcpAgent} class object.

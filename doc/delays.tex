@@ -83,7 +83,7 @@ This object supports one
 to set its variable, \code{dynamic_}. 
 This variable determines whether the link is dynamic or not (\ie, prone
 to fail/recover at appropriate times).
-The internal behaviour of the link in each case is different.
+The internal behavior of the link in each case is different.
 
 For ``non-dynamic'' links,
 this method operates by receiving a packet, $p$,  and scheduling two
@@ -109,7 +109,7 @@ Otherwise, there is at least one packet in transit on the link that must
 be delivered before $p$ at $E_2$.
 Therefore, packet $p$ is held in the object's inTransit queue, \code{itq_}.
 When the packet just before $p$ in transit on the link is delivered
-at the neighbour node, 
+at the neighbor node, 
 the DelayLink object will schedule an event for itself to fire at $E_2$.
 At that appropriate time then, 
 \fcnref{it's \fcn[]{handle} method}{../ns-2/delay.cc}{LinkDelay::handle}

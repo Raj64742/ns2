@@ -29,16 +29,16 @@ will be in packets, and the random variable will be uniform distributed
 from 0 to 1.  Below is a simple example of creating an error model with
 the packet error rate of 1 percent (0.01):
 \begin{program}
-        # {]cf create a loss_module and set its packet error rate to 1 percent}
+        # create a loss_module and set its packet error rate to 1 percent
         set loss_module [new ErrorModel]
-        $loss_module set rate_ 0.01
+        \$loss_module set rate_ 0.01
 
         # {\cf optional:  set the unit and random variable}
-        $em unit pkt            \; error unit: packets (the default);
-        $em ranvar [new RandomVariable/Uniform]
+        \$loss_module unit pkt            \; error unit: packets (the default);
+        \$loss_module ranvar [new RandomVariable/Uniform]
 
         # {\cf set target for dropped packets}
-        $loss_module drop-target [new Agent/Null]
+        \$loss_module drop-target [new Agent/Null]
 \end{program}
 
 In C++, the \code{ErrorModel} contains both the mechanism and policy for
@@ -46,20 +46,20 @@ dropping packets.  The packet dropping mechanism is handled by the
 \code{recv} method, and packet corrupting policy is handled by the
 \code{corrupt} method.
 \begin{program}
-	enum ErrorUnit \{ EU_PKT=0, EU_BIT, EU_TIME \};
+        enum ErrorUnit \{ EU_PKT=0, EU_BIT, EU_TIME \};
 
-	class ErrorModel : public Connector \{
-	public:
-	       	ErrorModel();
-	        void recv(Packet*, Handler*);
-        	virtual int corrupt(Packet*);
-	        inline double rate() \{ return rate_; \bs{}n \}
-	protected:
-        	int command(int argc, const char*const* argv);
-	        ErrorUnit eu_;		\* error unit in pkt, bit, or time */
-	        RandomVariable* ranvar_;
-        	double rate_;
-	\};
+        class ErrorModel : public Connector \{
+        public:
+                ErrorModel();
+                void recv(Packet*, Handler*);
+                virtual int corrupt(Packet*);
+                inline double rate() \{ return rate_; \}
+        protected:
+                int command(int argc, const char*const* argv);
+                ErrorUnit eu_;          \* error unit in pkt, bit, or time */
+                RandomVariable* ranvar_;
+                double rate_;
+        \};
 \end{program}
 The \code{ErrorModel} only implements a simple policy based on a single
 error rate, either in packets of bits.  More sophisticated dropping

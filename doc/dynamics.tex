@@ -12,7 +12,7 @@ the following section describes
 \href{the interaction with unicast routing}{Section}{sec:unicast-int}.
 This aspect of network dynamics is still somewhat experimental in \ns.
 The last section of this chapter outlines some of
-\href{the deficiencies in the current realisation}{Section}{sec:deficiencies}
+\href{the deficiencies in the current realization}{Section}{sec:deficiencies}
 of network dynamics, some one or which
 may be fixed in the future.
 
@@ -110,7 +110,7 @@ The rest of the arguments to the \proc[]{rtmodel} procedure
 define the node or link that the model will be applied to.
 If only one node is specified,
 it is assumed that the node will fail.
-This is modelled by making the links incident on the node fail.
+This is modeled by making the links incident on the node fail.
 If two nodes are specified, then the command assumes that
 the two are adjacent to each other, and the model is applied to the
 link incident on the two nodes.
@@ -174,7 +174,7 @@ Each model of network dynamics is implemented as a separate class,
 derived from the base \clsref{rtModel}{../ns-2/dynamics.tcl}.
 We begin by describing
 \href{the base class rtModel and the derived classes}{Section}{sec:rtmodel}.
-The network dynamics models use an internal queueing structure
+The network dynamics models use an internal queuing structure
 to ensure that simultaneous events are correctly handled,
 the \clsref{rtQueue}{../ns-2/dynamics.tcl}.
 \href{The next subsection}{Section}{sec:rtqueue}
@@ -196,7 +196,7 @@ The individual instance procedures that accomplish this in pieces are:
 \item The 
   \fcnref{constructor for the base class}{../ns-2/dynamics.tcl}{rtModel::init}
   stores a reference to the Simulator in its instance variable, \code{ns_}.
-  It also initialises the \code{startTime_} and \code{finishTime_}
+  It also initializes the \code{startTime_} and \code{finishTime_}
   from the class variables of the same name.
 \item The instance procedure 
   \fcnref{set-elements}{../ns-2/dynamics.tcl}{rtModel::set-elements}
@@ -222,7 +222,7 @@ The individual instance procedures that accomplish this in pieces are:
   Additional details on \proc[]{trace-dynamics} is discussed in the
   \href{section on extensions to the class Link}{Section}{sec:nd-extensions}.
 \end{list}
-The next sequnce of configuration steps are taken just prior to
+The next sequence of configuration steps are taken just prior to
 the start of the simulator.
 \ns\ invokes 
 \fcnref{\proc[]{rtmodel-configure}}{../ns-2/dynamics.tcl}{Simulator::rtmodel-configure}

@@ -15,9 +15,9 @@ and one in the compiled hierarchy.
 The root of this hierarchy is the class TclObject.
 Users create new simulator objects through the interpreter;
 these objects are instantiated within the interpreter, 
-and are closesly mirrored by a corresponding object
+and are closely mirrored by a corresponding object
 in the compiled hierarchy.
-The interpreted class hierachy is automatically established through
+The interpreted class hierarchy is automatically established through
 methods defined in the class TclClass.
 user instantiated objects are mirrored through methods
 defined in the class TclObject.
@@ -425,9 +425,9 @@ The steps are:
   The last constructor in \ns\ is
   \fcnref{the TclObject constructor}{../Tcl/tcl-object.tcl}{TclObject::init}.
   This constructor is responsible for setting up the shadow object, and 
-  performing other initialisations and bindings, as we explain below.
+  performing other initializations and bindings, as we explain below.
   \emph{It is preferable to call the parent constructors first before
-    performing the initialisations required in this class.}
+    performing the initializations required in this class.}
   This allows the shadow objects to be set up,
   and the variable bindings established.
 \item The TclObject constructor invokes the instance procedure
@@ -435,9 +435,9 @@ The steps are:
 \item When the shadow object is created,
   \ns\ calls all of the constructors for the compiled object,
   each of which may establish variable bindings for objects in that class,
-  and perform other necessary initialisations.
+  and perform other necessary initializations.
   Hence our earlier injunction that it is preferable to invoke the parent
-  constructors prior to performing the class initialisations.
+  constructors prior to performing the class initializations.
 \item After the shadow object is successfully created,
   \fcnref{\fcn{create\_shadow}}{../Tcl/Tcl.cc}{TclClass::create\_shadow}
   \begin{enumerate}
@@ -924,7 +924,7 @@ interpreted class hierarchy is constructed:
   with the name of the interpreted class as its argument.
 \item The TclClass constructor stores the name of the class,
   and inserts this object into a linked list of the TclClass objects.
-\item During initialisation of the simulator,
+\item During initialization of the simulator,
   \fcnref{\fcn{Tcl\_AppInit}}{../ns-2/ns_tclsh.cc}{::Tcl\_AppInit}
   invokes 
   \fcnref{\fcn{TclClass::bind}}{../Tcl/Tcl.cc}{TclClass::bind}
@@ -947,7 +947,7 @@ simple commands to the interpreter,
 that can then be executed within a global context by the interpreter.
 There are two functions defined in \nsf{misc.cc}:
 \code{ns-random} and \code{ns-version}.
-These two functions are initialised by the function
+These two functions are initialized by the function
 \fcnref{\fcn{init\_misc}}{../ns-2/misc.cc}{::init\_misc},
 defined in \nsf{misc.cc};
 \code{init_misc} is invoked by
@@ -968,13 +968,13 @@ during startup.
   uniformly distributed in the interval $[0, 2^{31}-1]$.
 
   When specified an argument, it takes that argument as the seed.
-  If this seed value is 0, the command uses a hueristic seed value;
+  If this seed value is 0, the command uses a heuristic seed value;
   otherwise, it sets the seed for the random number generator to the
   specified value.
 \begin{program}
             % ns-random                 \; return a random number;
             2078917053
-            % ns-random 0               \;set the seed hueristically;
+            % ns-random 0               \;set the seed heuristically;
             858190129
             % ns-random 23786           \;set seed to specified value;
             23786
@@ -1066,7 +1066,7 @@ These functions are defined in \nsf{tcl/lib/ns-lib.tcl}.
 \label{sec:EmbeddedTcl}
 
 \ns\ permits the development of functionality in either compiled code,
-or through interpreter code, that is evaluated at initialisation.
+or through interpreter code, that is evaluated at initialization.
 For example, the scripts \Tclf{tcl-object.tcl} or the scripts in
 \nsf{tcl/lib}.
 Such loading and evaluation of scripts is done through objects in the
@@ -1096,9 +1096,9 @@ Secondly, the user can explicitly override any of the code in the scripts.
 In particular, they can re-source the entire script after making their own
 changes. 
 Finally, after adding the scripts to \nsf{tcl/lib/ns-lib.tcl}, and
-everytime thereafter that they change their script, the user
+every time thereafter that they change their script, the user
 must recompile \ns\ for their changes to take effect.
-Ofcourse, in most cases\footnote{%
+Of course, in most cases\footnote{%
 The few places where this might not work
 are when certain variables might have to be defined or undefined,
 or otherwise the script contains code
@@ -1123,7 +1123,7 @@ with the corresponding source files.
 The program, \xref{\Tclf{tcl2cc.c}}{../Tcl/tcl2c++.c.html},
 converts the OTcl code into an equivalent EmbeddedTcl object, \code{et_ns_lib}.
 
-During initialisation, invoking the method \code{EmebddedTcl::load}
+During initialization, invoking the method \code{EmbeddedTcl::load}
 explicitly evaluates the array.
 \begin{list}{---}{}
 \item

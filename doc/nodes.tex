@@ -36,7 +36,6 @@ The basic primitive for acquiring a node is
 \begin{program}
     set ns [new Simulator]
     $ns \fcnref{\textbf{node}}{../ns-2/ns-lib.tcl}{Simulator::node}
-    $ns node
 \end{program}
 The instance procedure \code{node} constructs
 a node out of more simple
@@ -94,7 +93,7 @@ Procedures to configure an individual node can be classified into:
 \item Control functions
 \item Address and Port number management, unicast routing functions
 \item Agent management
-\item Adding neighbours
+\item Adding neighbors
 \end{list}
 We describe each of the functions in the following paragraphs.
 
@@ -124,7 +123,7 @@ classifier as appropriate.
 
 \paragraph{Address and Port number management}
 The procedure \code{$node id} returns the node number of the node.
-This number is automatically incremenetd and assigned to each node at
+This number is automatically incremented and assigned to each node at
 creation by the class Simulator method, \code{$ns node}.
 The class Simulator also stores an instance variable array\footnote{%
   \ie, an instance variable of a class that is also an array variable},
@@ -198,8 +197,8 @@ Conversely, \proc[]{detach}will remove the agent from \code{agents_},
 and point the agent's target, and the entry in the node \code{dmux_}
 to \code{nullagent}.
 
-\paragraph{Tracking Neighbours}
-Each node keeps a list of its adjacent neighbours in its instance variable,
+\paragraph{Tracking Neighbors}
+Each node keeps a list of its adjacent neighbors in its instance variable,
 \code{neighbor_}.  The procedure \proc[]{add-neighbor} adds a neighbor to the list.  The procedure \proc[]{neighbors} returns this list.
 
 \section{The Classifier}
@@ -551,9 +550,9 @@ The \code{default_} may be set optionally.
 The methods for a hash classifier are as follows:
 \begin{program}
         $hashcl set-hash buck src dst fid slot
-	$hashcl lookup buck src dst fid
-	$hashcl del-hash src dst fid
-	$hashcl resize nbuck
+        $hashcl lookup buck src dst fid
+        $hashcl del-hash src dst fid
+        $hashcl resize nbuck
 \end{program}
 
 The \fcn[]{set-hash} method inserts a new entry into the hash
@@ -584,8 +583,8 @@ perform a call into OTcl when it
 receives a packet which matches no flow criteria.
 The call takes the following form:
 \begin{program}
-        $obj unknown-flow src dst flowid buck
-\end{program}
+        \$obj unknown-flow src dst flowid buck
+\end{program} 
 Thus, when a packet matching no flow criteria is received,
 the method {\tt unknown-flow} of the instantiated hash classifier
 object is invoked with the source, destination, and flow id
@@ -610,7 +609,7 @@ To support multicast packet forwarding, a classifier receiving a
 multicast packet from source $S$
 destined for group $G$ computes a hash function $h(S,G)$ giving
 a ``slot number'' in the classifier's object table.
-Thus, the maximum size of the table is $O(|S|\times|G|)$.
+%Thus, the maximum size of the table is $O(|S|\times|G|)$.
 In multicast delivery, the packet must be copied once for
 each link leading to nodes subscribed to $G$ minus one.
 Production of additional copies of the packet is performed

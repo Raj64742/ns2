@@ -66,7 +66,7 @@ If a simulation script does not specify any \proc[]{rtproto} command,
 then \ns\ will run Static routing on all the nodes in the topology.
 
 Multiple \proc[]{rtproto} lines for the same or different routing 
-procotols can occur in a simulation script.
+protocols can occur in a simulation script.
 However, a simulation cannot use both
 centralised routing mechanisms such as static or session routing and 
 detailed dynamic routing protocols such as DV.
@@ -88,8 +88,8 @@ If there are multiple candidate routes from the same or different protocols,
 then, currently,
 one of the agent's routes is randomly chosen\footnote{%
 This really is undesirable, and may be fixed at some point.
-The fix will probably be to favour the agents in class preference order.
-A user level simulation relying on this behaviour,
+The fix will probably be to favor the agents in class preference order.
+A user level simulation relying on this behavior,
 or getting into this situation in specific topologies is
 not recommended.}.
 
@@ -150,7 +150,7 @@ that can achieve such a result:
 \hfil
 \begin{minipage}{1.85in}
 Nodes $n_1$ and $n_2$ use different paths to reach each other.
-All other pairs of nodes use symetric paths to reach each other.
+All other pairs of nodes use symmetric paths to reach each other.
 \end{minipage}
 \hfil
 \begin{minipage}{1.in}
@@ -167,7 +167,7 @@ All other pairs of nodes use symetric paths to reach each other.
   \begin{program}
     $ns cost $n1 $r1 2
     $ns cost $n2 $r2 2
-    $ns cost $r2 $n2 3
+    $ns cost $r1 $n2 3
   \end{program}
 \end{minipage}
 \hfil
@@ -267,7 +267,7 @@ We start with a discussion of the classes associated with
 unicast routing, and the code path used to configure and execute
 each of the different routing protocols.
 We conclude with a description of
-the interface netween unicast routing and network dynamics, and
+the interface between unicast routing and network dynamics, and
 that between unicast and multicast routing.
 
 \subsection{The classes}
@@ -296,7 +296,7 @@ of nodes that will run this protocol.
 \fcnref{\proc[]{configure}}{../ns-2/route-proto.tcl}{RouteLogic::configure}
 reads the \code{rtprotos_} instance variable, and 
 for each element in the array, 
-invokes route protocol methods to perform the appropriate initialisations.
+invokes route protocol methods to perform the appropriate initializations.
 It is invoked by
 \fcnref{the simulator run procedure}{../ns-2/ns-lib.tcl}{Simulator::run}.
 
@@ -311,7 +311,7 @@ the routine invokes Static routing, as
 \item The instance procedure
 \fcnref{\proc[]{lookup}}{../ns-2/route-proto.tcl}{RouteLogic::lookup}
 takes two node numbers, $nodeId_1$ and $nodeId_2$, as argument;
-it returns the id of the neighbour node that $nodeId_1$ uses to 
+it returns the id of the neighbor node that $nodeId_1$ uses to 
 reach $nodeId_2$.
 
 The procedure is used by the static route computation procedure to query
@@ -347,8 +347,8 @@ It subsequently invokes its \code{compute-routes}.
 
 The assumption is that the constructor for each of the new objects
 will instantiate the ``Direct'' route protocol at each of these nodes.
-This route protocol si responsible for computing the routes to 
-immediately adjacent neighbours.
+This route protocol is responsible for computing the routes to 
+immediately adjacent neighbors.
 When \proc[]{compute-routes} is run by the \proc[]{init-all} 
 procedure, these direct routes are installed in the node by the
 appropriate route object.
@@ -360,7 +360,7 @@ The constructor sets up pointers from itself to the node,
 in its instance variable \code{node_}, and from the node to itself,
 through the Node instance procedure
 \proc[]{init-routing} and the Node instance variable \code{rtObject_}.
-It then initialises an array of
+It then initializes an array of
 \code{nextHop_}, \code{rtpref_}, \code{metric_}, \code{rtVia_}.
 The index of each of these arrays is the handle of the destination node.
 
@@ -382,11 +382,11 @@ It also attaches the protocol object to the node,
 and returns the handle of the protocol object.
 
 \item \fcnref{\proc[]{lookup}}{../ns-2/route-proto.tcl}{rtObject::lookup}
-takes a destination node handle, and returns the id of the neighbour node
+takes a destination node handle, and returns the id of the neighbor node
 that is used to reach the destination.
 
 If multiple paths are in use, then it returns a list of the
-neighbour nodes that will be used.
+neighbor nodes that will be used.
 
 If the node does not have a route to the destination,
 the procedure will return -1.
@@ -447,7 +447,7 @@ that destination.
 Similarly,
 \fcnref{\proc[]{rtpref?}}{../ns-2/route-proto.tcl}{rtObject::rtpref?} and
 \fcnref{\proc[]{metric?}}{../ns-2/route-proto.tcl}{rtObject::metric?}
-take a destination node handle as argument, and return the prefernce
+take a destination node handle as argument, and return the preference
 and metric of the route to the destination installed at the node.
 \end{itemize}
 
@@ -476,7 +476,7 @@ returns the address of the peer agent.
 This class is the base class from
 which all routing protocol agents are derived.
 Each protocol agent must define the procedure\proc[]{init-all}
-to initialise the complete protocol,
+to initialize the complete protocol,
 and possibly instance procedures \proc[]{init}, \proc[]{compute-routes}, and
 \proc[]{send-updates}.
 In addition, if the topology is dynamic, and the protocol supports 
@@ -494,8 +494,8 @@ to their separate section at the end of the chapter.
 \item
 The procedure
 \fcnref{\proc[]{init-all}}{../ns-2/route-proto.tcl}{Agent/rtProto::init-all}
-is a global initialisation procedure for the class.
-It may be given a list fo the nodes as an argument.
+is a global initialization procedure for the class.
+It may be given a list of the nodes as an argument.
 This the list of nodes that should run this routing protocol.
 However, centralised routing protocols such as static and session routing
 will ignore this argument;
@@ -511,10 +511,10 @@ procedures explicitly.
 The instance procedure
 \fcnref{\proc[]{init}}{../ns-2/route-proto.tcl}{Agent/rtProto::init}
 is the constructor for protocol agents that are created.
-The base class constructor initialises the default preference 
+The base class constructor initializes the default preference 
 for objects in this class,
 identifies the interfaces incident on the node and their current status.
-The interfaces are idexed by the neighbour handle and stored in the instance
+The interfaces are indexed by the neighbor handle and stored in the instance
 variable array, \code{ifs_};
 the corresponding status instance variable array is \code{ifstat_}.
 
@@ -574,8 +574,8 @@ and
 
 The instance procedure \proc[]{init-routing}
 is invoked by the \code{rtObject} at the node.
-It stoeres a pointer to the rtObject, in its instance variable
-\code{rtObject_}, for later mainpulation or retrieval.
+It stores a pointer to the rtObject, in its instance variable
+\code{rtObject_}, for later manipulation or retrieval.
 It also checks its class variable to see if it should use multiPath routing,
 and sets up an instance variable to that effect.
 If multiPath routing could be used,
@@ -591,7 +591,7 @@ The instance procedure \proc[]{add-routes}
 takes a node id, and a list of links.
 It will add the list of links as the routes to reach the destination
 identified by the node id.
-The realisation of multiPath routing is done by using a separate
+The realization of multiPath routing is done by using a separate
 Classifier/multiPath.
 For any given destination id $d$, if this node has multiple paths to $d$,
 then the main classifier points to this multipath classifier instead of 
@@ -602,12 +602,12 @@ The multipath classifier will use each of the links installed in it for
 succeeding packets forwarded to it.
 
 The instance procedure \proc[]{delete-routes}
-takes a node id, a list of itnerfaces, and a nullAgent.
+takes a node id, a list of interfaces, and a nullAgent.
 It removes each of the interfaces in the list from the installed list of
-itnerfaces.
+interfaces.
 If the entry did not previously use a multipath classifier,
 then it must have had only one route, and the route entry is set to point
-to the nullagent specified.
+to the nullAgent specified.
 
 Q:  WHY DOES IT NOT POINT TO NULLAGENT IF THE ENTRIES IN THE MPATHCLASSIFIER
 GOES TO ZERO?
@@ -697,7 +697,7 @@ the multicast route object to take appropriate action.
 The one exception
 to the interface between unicast and multicast routing is the interaction
 between dynamic dense mode multicast and detailed unicast routing.
-This dynamicDM implementation in \ns\ assumes neighbour nodes
+This dynamicDM implementation in \ns\ assumes neighbor nodes
 will send an implicit update whenever their routes change,
 without actually sending the update.  
 It then uses this implicit information to compute
@@ -729,7 +729,7 @@ internal route protocol agent, ``Direct'' routing.
 
 \paragraph{Direct Routing}
 This protocol tracks the state of the incident links,
-and maintains routes to immediately adjacent neighbours only.
+and maintains routes to immediately adjacent neighbors only.
 As with the other protocols, it maintains instance variable arrays
 of \code{nextHop_}, \code{rtpref_}, and \code{metric_}, indexed by 
 the handle of each of the possible destinations in the topology.
@@ -765,7 +765,7 @@ Each of these procedures directly invokes \proc[]{compute-routes}.
 
 \paragraph{DV Routing}
 In a dynamic routing strategy, nodes send and receive messages,
-and compute the rouets in the topology based on the messages exchanged.
+and compute the routes in the topology based on the messages exchanged.
 The procedure
 \fcnref{\proc[]{init-all}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::init-all}
 takes a list of nodes as the argument;
@@ -779,7 +779,7 @@ and creates the relevant \code{rtPeer} objects.
 The
 \fcnref{constructor for the DV agent}{%
         ../ns-2/route-proto.tcl}{Agent/rtProto/DV::init}
-initialises a number of instance variables;
+initializes a number of instance variables;
 each agent stores an array, indexed by the destination node handle,
 of the preference and metric, the interface (or link) to the next hop,
 and the remote peer incident on the interface,
@@ -795,7 +795,7 @@ the address of the peer agent, the metric and preference
 of the route to each destination advertised by that peer.
 We discuss the rtPeer structure later
 when discuss the route architecture.
-The peer structures are initialised by the procedure
+The peer structures are initialized by the procedure
 \fcnref{\proc[]{add-peer}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::add-peer}
 invoked by \proc[]{init-all}.
 
@@ -804,13 +804,13 @@ The routine
 invokes \proc[]{send-updates} to send the actual updates.
 It then reschedules sending the next periodic update
 after \code{advertInterval} jitterred slightly to avoid
-possible synchronisation effects.
+possible synchronization effects.
 
 \fcnref{\proc[]{send-updates}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::send-updates}
 will send updates to a select set of peers.
 If any of the routes at that node have changed, or for periodic updates,
 the procedure will send updates to all peers.
-Otherwise, if some incident links have jsut recovered,
+Otherwise, if some incident links have just recovered,
 the procedure will send updates to the adjacent peers on those incident
 links only.
 

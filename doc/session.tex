@@ -87,14 +87,14 @@ The steps involved in doing this are:
 Figure~\ref{fig:conversions} shows the difference between a
 multicast tree in a detailed simulation and one in a session level simulation.
 Notice that the translation process results in a session level simulation
-ignoring queueing delays.
+ignoring queuing delays.
 For most simulations, \ns\ already ignores processing delays at all of the nodes.
 
 \subsection{Inserting a Loss Module}
 \label{sec:loss-config}
 
 When studying a protocol (\eg, SRM error recovery mechanism), 
-it might be useful to study protocol behaviour over lossy links.
+it might be useful to study protocol behavior over lossy links.
 However, since a session level simulation scales by abstracting 
 out the internal topology,
 we need additional mechanisms to insert a loss module appropriately.
@@ -291,7 +291,7 @@ The delay module will forward the packet with a delay to its target which
 must be a receiver application.
 \begin{figure}[tb]
 %  \centerline{\includegraphics{sessionArch}}
-  \caption{Architectural Realisation of a Session Level Simulation Session}
+  \caption{Architectural Realization of a Session Level Simulation Session}
   \label{fig:session}
 \end{figure}
 

@@ -47,7 +47,7 @@ contains the following protected members:
 \fcn[Event* e]{virtual void handle} & \code{=0} &
          consumes an event\\
 \code{int status\_} & &  keeps track of the current timer status\\
-\code{Event event\_} & & event to be consumed upon timer expiry\\
+\code{Event event\_} & & event to be consumed upon timer expiration\\
 \end{tabularx}
 
 The pure virtual functions must be defined by the timer classes deriving
@@ -162,7 +162,7 @@ In the following, we will focus only on the retransmission timer.  Various
 helper methods may be defined to schedule timer events; \eg,
 \begin{program}
         /*
-         *{\cf Set retransmit timer using current rtt estimate.  By calling \fcn[]{sched}}
+         *{\cf Set retransmit timer using current rtt estimate.  By calling \fcn[]{resched}}
          *{\cf it does not matter whether the timer was already running.}
          */
         void TcpAgent::set_rtx_timer()

@@ -150,7 +150,7 @@ for each SRM agent are:
         Agent/SRM set D1_       1.0 \; repair parameters;
         Agent/SRM set D2_       1.0
 \end{program}
-It is thus possible to trivially obtain two flavours of SRM agents
+It is thus possible to trivially obtain two flavors of SRM agents
 based on whether the agents use probabilistic or deterministic
 suppression by using the following definitions:
 \begin{program}
@@ -240,7 +240,7 @@ and distance is the distance to the original sender of the packet.
 For repair objects, startTime is the time that a request for
 retransmission is received, serviceTime is the time send a repair,
 and the distance is the distance to the original requester.
-For both types of objects, the serviceTime is normalised by the
+For both types of objects, the serviceTime is normalized by the
 distance.
 For  the session object,
 startTime is the time that the agent joins the multicast group.
@@ -425,7 +425,7 @@ into packet handling, loss recovery, and session message activity.
   by instance procedures in OTcl.
 \end{list}
 We first describe the C++
-\href{processing due to receipt of messages}{Section}{sec:reciept}.
+\href{processing due to receipt of messages}{Section}{sec:receipt}.
 Loss recovery and the sending of session messages involves
 timer based processing.
 The agent uses a separate \clsref{SRM}{../ns-2/srm.tcl}
@@ -440,7 +440,7 @@ Finally, each agent uses one timer based function
 for \href{sending periodic session messages}{Section}{sec:session}.
 
 \section{Packet Handling: Processing received messages}
-\label{sec:reciept}
+\label{sec:receipt}
 
 The
 \fcnref{\fcn[]{recv}}{../ns-2/srm.cc}{SRMAgent::recv}
@@ -529,8 +529,8 @@ then the agent can be in one of three states:
 (2) it has the data, and has seen an earlier request,
     upon which it has a repair pending for it, or
 (3) it has the data, and probably scheduled a repair for it at some time;
-    after error recovery, its holddown timer (equal to three times its
-    distance to some requestor) expired, at which time the pending object
+    after error recovery, its hold down timer (equal to three times its
+    distance to some requester) expired, at which time the pending object
     was cleared.  In this last situation, the agent will simply ignore
     the repair, for lack of being able to do anything meaningful.
 All of these error recovery mechanisms are done in OTcl;
@@ -617,12 +617,12 @@ no encapsulating methods are provided.  These are:
 \label{sec:recovery}
 
 In the last section,
-we described the agent behaviour when it receives a message.
+we described the agent behavior when it receives a message.
 Timers are used to control when any particular control message is to be sent.
 The SRM agent uses a separate
 \clsref{SRM}{../ns-2/srm.tcl}
 to do the timer based processing.
-In this section, we describe the basecs if the class SRM,
+In this section, we describe the basics if the class SRM,
 and the loss recovery objects.
 The following section will describe how the class SRM is used 
 for sending periodic session messages.
@@ -651,10 +651,10 @@ The key to the array is the message identifier \tup{sender}:\tup{msgid}.
 \item 
   The default \code{requestFunction_} is \clsref{SRM/request}.
   The constructor for the class SRM/request
-  calls the base class constructor to initialise 
+  calls the base class constructor to initialize 
   the simulator instance (\code{ns_}), the SRM agent (\code{agent_}),
   trace file (\code{trace_}), and the \code{times_} array.
-  It then initialises its \code{statistics_} array with the pertinent elements.
+  It then initializes its \code{statistics_} array with the pertinent elements.
 
 \item
   A separate call to
@@ -737,9 +737,9 @@ the agent will hand the message off to the object for processing.
   If it is the former, there will be an event pending
   to send a request, and \code{eventID_} will point to that event.
   The object will compute its serviceTime, cancel that event,
-  and set a holddown period during which it will ignore 
+  and set a hold-down period during which it will ignore 
   other requests.
-  At the end of the holddown period, the object will ask its
+  At the end of the hold-down period, the object will ask its
   agent to clear it.
   It will write the trace entry ``\textsc{q repair ignores } \tup{ignore}''.
   On the other hand, if this is a duplicate repair,
@@ -871,7 +871,7 @@ is the default \code{sessionFunction_} for the agent.
 In
 \href{the earlier section on configuration parameters}{Section}{sec:config-param},
 we had shown how to trivially extend the agent to
-get deterministic and probabilistic protocol behaviour.
+get deterministic and probabilistic protocol behavior.
 In this section, we describe how to derive more complex
 extensions to the protocol for fixed and adaptive timer mechanisms.
 
@@ -982,10 +982,10 @@ As an example, the definition of
 \end{program}
 
 
-Sinilarly, the method
+Similarly, the method
 \fcnref{\fcn[]{parseExtendedHeaders}}{../ns-2/srm.h}{%
         ASRMAgent::parseExtendedHeaders}
-is invoked everytime an SRM paket is received.
+is invoked every time an SRM packet is received.
 It sets the agent member variable \code{pdistance_}
 to the distance advertised by the peer that sent the message.
 The member variable is bound to an instance variable of the same name,
