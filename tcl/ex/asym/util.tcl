@@ -2,11 +2,11 @@
 Queue/RED set setbit_ true
 Queue/RED set drop-tail_ true
 Queue/RED set fracthresh_ true
-Queue/RED set fracminthresh_ 0.4
-Queue/RED set fracmaxthresh_ 0.7
+Queue/RED set fracminthresh_ 0.15
+Queue/RED set fracmaxthresh_ 0.6
 Queue/RED set q_weight_ 0.25
 Queue/RED set wait_ false
-Queue/RED set linterm_ 1
+Queue/RED set linterm_ 10
 
 Queue set interleave_ false
 Queue set acksfirst_ false
@@ -17,12 +17,15 @@ Queue set priority_drop_ false
 Queue set random_drop_ false
 
 Agent/TCP set disable_ecn_ 0
+Agent/TCP set restart_bugfix_ true
 Agent/TCP/Fack set ss-div4 0
 Agent/TCP/Fack set rampdown 0
 
-proc plotgraph {graph midtime { qtraceflag false } } {
+proc plotgraph {graph connGraphFlag midtime { qtraceflag false } } {
 	global env
+	upvar $connGraphFlag graphFlag
 
+	exec gawk --lint -f ../../../ex/asym/tcp-trace.awk tcp-raw.tr
 	exec gawk --lint -f ../../../ex/asym/seq.awk out.tr
 	exec gawk --lint -v mid=$midtime -f ../../../ex/asym/tcp.awk tcp.tr
 	exec gawk --lint -f ../../../ex/asym/tcp-burst.awk tcp.tr
@@ -30,9 +33,9 @@ proc plotgraph {graph midtime { qtraceflag false } } {
 		exec gawk --lint -f ../../../ex/asym/queue.awk q.tr
 	}
 
-	if {$graph} {
-		set if [open index.out r]
-		while {[gets $if i] >= 0} {
+	set if [open index.out r]
+	while {[gets $if i] >= 0} {
+		if {$graph || $graphFlag($i)} {
 			set seqfile [format "seq-%s.out" $i]
 			set ackfile [format "ack-%s.out" $i]
 			set cwndfile [format "cwnd-%s.out" $i]
@@ -42,8 +45,8 @@ proc plotgraph {graph midtime { qtraceflag false } } {
 			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y seqno $seqfile $ackfile &
 			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y window $cwndfile &
 		}
-		close $if
 	}
+	close $if
 
 	if { $qtraceflag } {
 		set qif [open qindex.out r]
@@ -73,12 +76,17 @@ proc trace_queue {ns n0 n1 queuetrace} {
 }
 
 
-proc createTcpSource { type tcptrace { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
+proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
 	set tcp0 [new Agent/$type]
 	$tcp0 set class_ 1
 	$tcp0 set maxburst_ $maxburst
 	$tcp0 set tcpTick_ $tcpTick
 	$tcp0 set window_ $window
+	$tcp0 set maxcwnd_ $window
+	return $tcp0
+} 
+
+proc setupTcpTracing { tcp0 tcptrace } {
 	$tcp0 attach $tcptrace
 	$tcp0 trace "t_seqno_" 
 	$tcp0 trace "rtt_" 
@@ -87,11 +95,21 @@ proc createTcpSource { type tcptrace { maxburst 0 } { tcpTick 0.1 } { window 100
 	$tcp0 trace "backoff_" 
 	$tcp0 trace "dupacks_" 
 	$tcp0 trace "ack_" 
-	$tcp0 trace "cwnd_" 
+	$tcp0 trace "cwnd_"
 	$tcp0 trace "ssthresh_" 
 	$tcp0 trace "maxseq_" 
-	return $tcp0
-} 
+}
+
+proc setupGraphing { tcp connGraph connGraphFlag} {
+	upvar $connGraphFlag graphFlag
+
+	set saddr [expr [$tcp set addr_]/256]
+	set sport [expr [$tcp set addr_]%256]
+	set daddr [expr [$tcp set dst_]/256]
+	set dport [expr [$tcp set dst_]%256]
+	set conn [format "%d,%d-%d,%d" $saddr $sport $daddr $dport]
+	set graphFlag($conn) $connGraph
+}
 
 proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
 	set sink0 [new Agent/$type]
