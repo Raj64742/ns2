@@ -62,6 +62,7 @@ public:
 		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
 		return (hdr->size() * 8. / bandwidth_);
 	}
+	inline Mac *macList() { return macList_; }
 
 protected:
 	int command(int argc, const char*const* argv);
@@ -69,6 +70,7 @@ protected:
 	Channel* channel_;	// channel this MAC is connected to
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandler mh_;		// handle delay send due to busy channel
+        Mac *macList_;		// circular list of MACs
 };
 
 #endif
