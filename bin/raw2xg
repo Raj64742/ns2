@@ -17,6 +17,7 @@ options:
     -l		show packet length
     -t TITLE    title of test
     -e		plot ecn flags
+    -d		plot only drops and ECN marks
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
@@ -26,7 +27,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('aes:m:n:qlt:') || usage;
+&Getopts('aeds:m:n:qlt:') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -36,6 +37,7 @@ $modulus = defined($opt_m) ? $opt_m : 2 ** 31;
 $flow_factor = defined($opt_n) ? $opt_n : 1;
 $plot_acks = defined($opt_a);
 $plot_ecn = defined($opt_e);
+$plot_drops = defined($opt_d);
 
 $file = $acks = '';
 
@@ -68,24 +70,28 @@ while (<>) {
 	    $statement = "$x $y\n";
 	};
 	if (defined($statement)) {
-	    if ($is_ack) { 
-		if ($is_ecn) {
-		    push(@ac, $statement);
-		} else {
-		    push(@a, $statement);
-		};
-		if ($is_echo) {
-		    push(@ae, $statement);
-		};
+	    if ($plot_drops && $is_ecn) {
+		push(@pc, $statement);
 	    } else {
-		if ($is_ecn) {
-		    push(@pc, $statement);
-	        } else {
-	            push(@p, $statement);
-		};
-		if ($is_cong) {
-		    push(@pg, $statement);
-	        }
+                if ($is_ack) { 
+                    if ($is_ecn) {
+                        push(@ac, $statement);
+                    } else {
+                        push(@a, $statement);
+                    };
+                    if ($is_echo) {
+                        push(@ae, $statement);
+                    };
+                } else {
+                    if ($is_ecn) {
+                        push(@pc, $statement);
+                        } else {
+                            push(@p, $statement);
+                    };
+                    if ($is_cong) {
+                        push(@pg, $statement);
+                        }
+                };
 	    };
 	};
 	next;
