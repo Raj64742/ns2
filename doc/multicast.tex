@@ -31,7 +31,7 @@ This is done in one of two ways:
     {\rm or}
         set ns [new Simulator]
         $ns multicast
-\end{program}			%$
+\end{program}                   %$
 When multicast extensions are thus enabled, nodes will be created with
 additional classifiers and replicators for multicast forwarding, and
 links will contain elements to assign incoming interface labels to all
@@ -40,7 +40,7 @@ packets entering a node.
 A multicast routing strategy is the mechanism by which
 the multicast distribution tree is computed in the simulation.
 \ns\ supports three multiast route computation strategies:
-	centralised, dense mode(DM) or shared tree mode(ST).
+        centralised, dense mode(DM) or shared tree mode(ST).
 
 The method \proc[]{mrtproto} in the Class Simulator specifies either
 the route computation strategy, for centralised multicast routing, or
@@ -95,7 +95,7 @@ An example of a relatively simple multicast configuration is:
 
         set mproto DM          \; configure multicast protocol;
         set mrthandle [{\bfseries{}$ns mrtproto $mproto}] \; all nodes will contain multicast protocol agents;
-        set udp [new Agent/UDP]		\; create a source agent at node 0;
+        set udp [new Agent/UDP]         \; create a source agent at node 0;
         $ns attach-agent $node0 $udp 
         set src [new Application/Traffic/CBR]        
         $src attach-agent $udp
@@ -218,7 +218,7 @@ configured through the DM class variable, \code{PruneTimeout}.  A
 typical DM configuration is shown below:
 \begin{program}
         DM set PruneTimeout 0.3           \; default 0.5 (sec);
-        DM set CacheMissMode dvmrp	  \; default pimdm;
+        DM set CacheMissMode dvmrp        \; default pimdm;
         $ns mrtproto DM
 \end{program} %$
 
@@ -277,40 +277,40 @@ node.
 \begin{alist}
 {\let\[=[\let\]=]
 \proc[instance, \[iiflist\]]{addproto}} &
-	adds the handle for a protocol instance to its array of
-	protocols.  The second optional argument is the incoming
-	interface list controlled by the protocol.  If this argument
-	is an empty list or not specified, the protocol is assumed to
-	run on all interfaces (just one protocol). \\
+        adds the handle for a protocol instance to its array of
+        protocols.  The second optional argument is the incoming
+        interface list controlled by the protocol.  If this argument
+        is an empty list or not specified, the protocol is assumed to
+        run on all interfaces (just one protocol). \\
 \proc[protocol]{getType} &
-	returns the handle to the protocol instance active at that
-	node that matches the specified type (first and only
-	argument).  This function is often used to locate a protocol's
-	peer at another node.  An empty string is returned if the
-	protocol of the given type could not be found. \\
+        returns the handle to the protocol instance active at that
+        node that matches the specified type (first and only
+        argument).  This function is often used to locate a protocol's
+        peer at another node.  An empty string is returned if the
+        protocol of the given type could not be found. \\
 \proc[op, args]{all-mprotos} &
-	internal routine to execute ``\code{op}'' with ``\code{args}''
-	on all protocol instances active at that node. \\
+        internal routine to execute ``\code{op}'' with ``\code{args}''
+        on all protocol instances active at that node. \\
 \proc[]{start} & \\
 \proc[]{stop} &
-	start/stop execution of all protocols. \\
+        start/stop execution of all protocols. \\
 \proc[dummy]{notify} &
-	is called when a topology change occurs. The dummy argument is
-	currently not used.\\
+        is called when a topology change occurs. The dummy argument is
+        currently not used.\\
 {\let\[=[\let\]=]
 \proc[file-handle, \[grp\], \[src\]]{dump-mroutes}} &
-	dump multicast routes to specified file-handle. \\
+        dump multicast routes to specified file-handle. \\
 \proc[G, S]{join-group} &
-	signals all protocol instances to join \tup{S, G}. \\
+        signals all protocol instances to join \tup{S, G}. \\
 \proc[G, S]{leave-group} &
-	signals all protocol instances to leave \tup{S, G}. \\
+        signals all protocol instances to leave \tup{S, G}. \\
 \proc[code, s, g, iif]{upcall} &
-	signalled by node on forwarding errors in classifier;
-	this routine in turn signals the protocol instance that owns
-	the incoming interface (\code{iif}) by invoking the
-	appropriate handle function for that particular code.\\ 
+        signalled by node on forwarding errors in classifier;
+        this routine in turn signals the protocol instance that owns
+        the incoming interface (\code{iif}) by invoking the
+        appropriate handle function for that particular code.\\ 
 \proc[rep, s, g, iif]{drop} &
-	Called on packet drop, possibly to prune an interface. \\
+        Called on packet drop, possibly to prune an interface. \\
 \end{alist}
 
 In addition, the mrtObject class supports the concept of well known
@@ -322,11 +322,11 @@ The \clsref{mrtObject}{../ns-2/tcl/mcast/McastProto.tcl} defines
 two class procedures to set and get information about these well known groups.
 \begin{alist}
 \proc[name]{registerWellKnownGroups} & 
-	assigns \code{name} a well known group address. \\
+        assigns \code{name} a well known group address. \\
 \proc[name]{getWellKnownGroup} &
-	returns the address allocated to well known group, \code{name}.
-	If \code{name} is not registered as a well known group,
-	then it returns the address for \code{ALL\_ROUTERS}.
+        returns the address allocated to well known group, \code{name}.
+        If \code{name} is not registered as a well known group,
+        then it returns the address for \code{ALL\_ROUTERS}.
 \end{alist}
 
 \paragraph{McastProtocol class}
@@ -334,16 +334,16 @@ This is the base class for the implementation of all the multicast protocols.
 It contains basic multicast functions:
 \begin{alist}
 \proc[]{start}, \proc[]{stop} &
-	Set the \code{status\_} of execution of this protocol instance. \\
+        Set the \code{status\_} of execution of this protocol instance. \\
 \proc[]{getStatus} &
-	return the status of execution of this protocol instance. \\
+        return the status of execution of this protocol instance. \\
 \proc[]{getType} &
-	return the type of protocol executed by this instance. \\
+        return the type of protocol executed by this instance. \\
 \proc[code args]{upcall} &
-	invoked when the node classifier signals an error, either due to 
-	a cache-miss or a wrong-iif for incoming packet.  This routine
-	invokes the protocol specific handle, \proc{handle-\tup{code}} with
-	specified \code{args} to handle the signal. \\
+        invoked when the node classifier signals an error, either due to 
+        a cache-miss or a wrong-iif for incoming packet.  This routine
+        invokes the protocol specific handle, \proc{handle-\tup{code}} with
+        specified \code{args} to handle the signal. \\
 \end{alist}
 
 A few words about interfaces.  Multicast implementation in \ns\
@@ -384,98 +384,98 @@ interfaces on links incident on that node.
 \begin{alist}
 \proc[]{expandaddr}, & \\
 \proc[]{allocaddr} &
-	Class procedures for address management.
-	\proc[]{expandaddr} increases the address space from 128
-	multicast capable nodes to $2^{30} - 1$.
-	\proc[]{allocaddr} allocates the next available multicast
-	address.\\[2ex]
+        Class procedures for address management.
+        \proc[]{expandaddr} increases the address space from 128
+        multicast capable nodes to $2^{30} - 1$.
+        \proc[]{allocaddr} allocates the next available multicast
+        address.\\[2ex]
 \proc[]{start-mcast}, & \\
 \proc[]{stop-mcast} &
-	To start and stop multicast routing at that node. \\
+        To start and stop multicast routing at that node. \\
 \proc[]{notify-mcast} &
-	\proc[]{notify-mcast} signals the mrtObject at that node to
-	recompute multicastroutes following a topology change or
-	unicast route update from a neighbour.  \\[2ex]
+        \proc[]{notify-mcast} signals the mrtObject at that node to
+        recompute multicastroutes following a topology change or
+        unicast route update from a neighbour.  \\[2ex]
 \proc[]{getArbiter} &
-	returns a handle to mrtObject operating at that node. \\
+        returns a handle to mrtObject operating at that node. \\
 \proc[file-handle]{dump-routes} &
-	to dump the multicast forwarding tables at that node. \\[2ex]
+        to dump the multicast forwarding tables at that node. \\[2ex]
 \proc[s g iif code]{new-group} &
-	When a multicast data packet is received, and the multicast
-	classifier cannot find the slot corresponding to that data
-	packet, it invokes \proc[]{Node~nstproc~new-group} to
-	establish the appropriate entry.  The code indicates the
-	reason for not finding the slot.  Currently there are two
-	possibilities, cache-miss and wrong-iif.  This procedure
-	notifies the arbiter instance to establish the new group. \\
+        When a multicast data packet is received, and the multicast
+        classifier cannot find the slot corresponding to that data
+        packet, it invokes \proc[]{Node~nstproc~new-group} to
+        establish the appropriate entry.  The code indicates the
+        reason for not finding the slot.  Currently there are two
+        possibilities, cache-miss and wrong-iif.  This procedure
+        notifies the arbiter instance to establish the new group. \\
 \proc[a g]{join-group} &
-	An \code{agent} at a node that joins a particular group invokes
-	``\code{node join-group <agent> <group>}''.  The
-	node signals the mrtObject to join the particular \code{group},
-	and adds \code{agent} to its list of agents at that
-	\code{group}.  It then adds \code{agent} to all replicators
-	associated with \code{group}. \\
+        An \code{agent} at a node that joins a particular group invokes
+        ``\code{node join-group <agent> <group>}''.  The
+        node signals the mrtObject to join the particular \code{group},
+        and adds \code{agent} to its list of agents at that
+        \code{group}.  It then adds \code{agent} to all replicators
+        associated with \code{group}. \\
 \proc[a g]{leave-group} &
-	\code{Node~instproc~leave-group} reverses the process
-	described earlier.  It disables the outgoing interfaces to the
-	receiver agents for all the replicators of the group, deletes
-	the receiver agents from the local \code{Agents\_} list; it
-	then invokes the arbiter instance's
-	\proc[]{leave-group}.\\[2ex]
+        \code{Node~instproc~leave-group} reverses the process
+        described earlier.  It disables the outgoing interfaces to the
+        receiver agents for all the replicators of the group, deletes
+        the receiver agents from the local \code{Agents\_} list; it
+        then invokes the arbiter instance's
+        \proc[]{leave-group}.\\[2ex]
 \proc[s g iif oiflist]{add-mfc} &
-	\code{Node~instproc~add-mfc} adds a \textit{multicast forwarding cache}
-	entry for a particular \tup{source, group, iif}.
-	The mechanism is:
-	\begin{itemize}
-	\item create a new replicator (if one does not already exist),
-	\item update the \code{replicator\_} instance variable array at the node,
-	\item add all outgoing interfaces and local agents to the
-	    appropriate replicator,
-	\item invoke the multicast classifier's \proc[]{add-rep}
-	    to create a slot for the replicator in the multicast
-	    classifier.
-	\end{itemize} \\
+        \code{Node~instproc~add-mfc} adds a \textit{multicast forwarding cache}
+        entry for a particular \tup{source, group, iif}.
+        The mechanism is:
+        \begin{itemize}
+        \item create a new replicator (if one does not already exist),
+        \item update the \code{replicator\_} instance variable array at the node,
+        \item add all outgoing interfaces and local agents to the
+            appropriate replicator,
+        \item invoke the multicast classifier's \proc[]{add-rep}
+            to create a slot for the replicator in the multicast
+            classifier.
+        \end{itemize} \\
 \proc[s g oiflist]{del-mfc} &
-	disables each oif in \code{oiflist} from the replicator for \tup{s, g}.\\
+        disables each oif in \code{oiflist} from the replicator for \tup{s, g}.\\
 \end{alist}
 
 The list of primitives accessible at the node to control its interfaces are listed below.
 \begin{alist}
 \proc[ifid link]{add-iif}, & \\
 \proc[link if]{add-oif} &
-	Invoked during link creation to prep the node about its 
-	incoming interface label and outgoing interface object. \\
+        Invoked during link creation to prep the node about its 
+        incoming interface label and outgoing interface object. \\
 
 \proc[]{get-all-oifs} &
-	Returns all oifs for this node. \\
+        Returns all oifs for this node. \\
 \proc[]{get-all-iifs} &
-	Returns all iifs for this node. \\
+        Returns all iifs for this node. \\
 
 \proc[ifid]{iif2link} &
-	Returns the link object labelled with given interface
-	label. \\
+        Returns the link object labelled with given interface
+        label. \\
 \proc[link]{link2iif} &
-	Returns the incoming interface label for the given
-	\code{link}. \\
+        Returns the incoming interface label for the given
+        \code{link}. \\
 
 \proc[oif]{oif2link} &
-	Returns the link object corresponding to the given outgoing
-	interface. \\
+        Returns the link object corresponding to the given outgoing
+        interface. \\
 \proc[link]{link2oif} &
-	Returns the outgoing interface for the \code{link} (\ns\
-	object that is incident to the node).\\
+        Returns the outgoing interface for the \code{link} (\ns\
+        object that is incident to the node).\\
 
 \proc[src]{rpf-nbr} &
-	Returns a handle to the neighbour node that is its next hop to the 
-	specified \code{src}.\\
+        Returns a handle to the neighbour node that is its next hop to the 
+        specified \code{src}.\\
 
 \proc[s g]{getReps} &
-	Returns a handle to the replicator that matches \tup{s, g}.
-	Either argument can be a wildcard (*). \\
+        Returns a handle to the replicator that matches \tup{s, g}.
+        Either argument can be a wildcard (*). \\
 \proc[s g]{getReps-raw} &
-	As above, but returns a list of \tup{key, handle} pairs. \\
+        As above, but returns a list of \tup{key, handle} pairs. \\
 \proc[s g]{clearReps} &
-	Removes all replicators associated with \tup{s, g}. \\[2ex]
+        Removes all replicators associated with \tup{s, g}. \\[2ex]
 \end{alist}
 
 \paragraph{Class Link and SimpleLink}
@@ -485,14 +485,14 @@ There is one additional method to actually place the interface objects on this l
 These methods are:
 \begin{alist}
 \proc[]{if-label?} & 
-	returns the interface label affixed by this link to packets
-	that traverse it. \\
-\proc[]{enable-mcast} & 
-	Internal procedure called by the SimpleLink constructor to add
-	appropriate objects and state for multicast.  By default, (and
-	for the point-to-point link case) it places a NetworkInterface
-	object at the end of the link, and signals the nodes on
-	incident on the link about this link.\\
+        returns the interface label affixed by this link to packets
+        that traverse it. \\
+% \proc[]{enable-mcast} & 
+%       Internal procedure called by the SimpleLink constructor to add
+%       appropriate objects and state for multicast.  By default, (and
+%       for the point-to-point link case) it places a NetworkInterface
+%       object at the end of the link, and signals the nodes on
+%       incident on the link about this link.\\
 \end{alist}
 
 \paragraph{Class NetworkInterface}
@@ -505,9 +505,9 @@ to be manipulated by user level simulation scripts.  The object only
 supports two methods:
 \begin{alist}
 \proc[ifid]{label} & 
-	assigns \code{ifid} that this object will affix to each packet. \\
+        assigns \code{ifid} that this object will affix to each packet. \\
 \proc[]{label} & 
-	returns the label that this object affixes to each packet.\\
+        returns the label that this object affixes to each packet.\\
 \end{alist}
 The global class variable, \code{ifacenum\_}, specifies the next
 available \code{ifid} number.
@@ -529,12 +529,12 @@ invoke an upcall \proc[]{new-group} for the classifier, with one of
 two codes to identify the problem:
 
 \begin{itemize}
-	\item \code{cache-miss} indicates that the classifier did not
-	find any \tup{source, group} entries;
+        \item \code{cache-miss} indicates that the classifier did not
+        find any \tup{source, group} entries;
 
-	\item \code{wrong-iif} indicates that the classifier found
-	\tup{source, group} entries, but none matching the interface
-	that this packet arrived on.
+        \item \code{wrong-iif} indicates that the classifier found
+        \tup{source, group} entries, but none matching the interface
+        that this packet arrived on.
 \end{itemize}
 These upcalls to TCL give it a chance to correct the situation:
 install an appropriate MFC--entry (for \code{cache-miss}) or change
@@ -586,38 +586,38 @@ commands, and redirects the CtrMcastComp agent to recompute the
 appropriate routes.
 \begin{alist}
 \proc[]{join-group} &
-	registers the new member with the \code{CtrMCastComp} agent, and
-	invokes that agent to recompute routes for that member. \\
+        registers the new member with the \code{CtrMCastComp} agent, and
+        invokes that agent to recompute routes for that member. \\
 \proc[]{leave-group} & is the inverse of \proc[]{join-group}. \\
 \proc[]{handle-cache-miss} &
-	 called when no proper forwarding entry is found
-	 for a particular packet source.
-	In case of centralized multicast,
-	it means a new source has started sending data packets.
-	Thus, the CtrMcast agent registers this new source with the
-	\code{CtrMcastComp} agent.
-	If there are any members in that group, compute the new multicast tree.
-	If the group is in RPT (shared tree) mode, then
-	\begin{enumerate} 
-	\item create an encapsulation agent at the source;
-	\item a corresponding decapsulation agent is created at the RP;
-	\item the two agents are connected by unicast; and
-	\item the \tup{S,G} entry points its outgoing interface to the
-	      encapsulation agent.
-	\end{enumerate}
+         called when no proper forwarding entry is found
+         for a particular packet source.
+        In case of centralized multicast,
+        it means a new source has started sending data packets.
+        Thus, the CtrMcast agent registers this new source with the
+        \code{CtrMcastComp} agent.
+        If there are any members in that group, compute the new multicast tree.
+        If the group is in RPT (shared tree) mode, then
+        \begin{enumerate} 
+        \item create an encapsulation agent at the source;
+        \item a corresponding decapsulation agent is created at the RP;
+        \item the two agents are connected by unicast; and
+        \item the \tup{S,G} entry points its outgoing interface to the
+              encapsulation agent.
+        \end{enumerate}
 \end{alist}
 
 \code{CtrMcastComp} is the centralised multicast route computation agent.
 \begin{alist}
 \proc[]{reset-mroutes} & 
-	resets all multicast forwarding entries.\\
+        resets all multicast forwarding entries.\\
 \proc[]{compute-mroutes} & 
-	(re)computes all multicast forwarding entries.\\
+        (re)computes all multicast forwarding entries.\\
 \proc[source, group]{compute-tree} & 
-	computes a multicast tree for one source to reach all the
-	receivers in a specific group.\\ 
+        computes a multicast tree for one source to reach all the
+        receivers in a specific group.\\ 
 \proc[source, group, member]{compute-branch} & 
-	is executed when a receiver joins a multicast group.  It could
+        is executed when a receiver joins a multicast group.  It could
         also be invoked by \proc[]{compute-tree} when it itself is
         recomputing the multicast tree, and has to reparent all
         receivers.  The algorithm starts at the receiver, recursively
@@ -626,7 +626,7 @@ appropriate routes.
         the relevant multicast tree.  During the process, several new
         replicators and an outgoing interface will be installed.\\
 \proc[source, group, member]{prune-branch} & 
-	is similar to \proc[]{compute-branch} except the outgoing
+        is similar to \proc[]{compute-branch} except the outgoing
         interface is disabled; if the outgoing interface list is empty
         at that node, it will walk up the multicast tree, pruning at
         each of the intermediate nodes, until it reaches a node that
@@ -637,35 +637,35 @@ appropriate routes.
 \subsubsection{Dense Mode}
 \begin{alist}
 \proc[group]{join-group} & 
-	sends graft messages upstream if \tup{S,G} does not contain
+        sends graft messages upstream if \tup{S,G} does not contain
         any active outgoing slots (\ie, no downstream receivers).
         If the next hop towards the source is a LAN, icrements a
         counter of receivers for a particular group for the LAN\\
 \proc[group]{leave-group} & 
-	decrements LAN counters. \\
+        decrements LAN counters. \\
 \proc[srcID group iface]{handle-cache-miss} & 
-	depending on the value of \code{CacheMissMode} calls either
+        depending on the value of \code{CacheMissMode} calls either
         \code{handle-cache-miss-pimdm} or
         \code{handle-cache-miss-dvmrp}. \\
 \proc[srcID group iface]{handle-cache-miss-pimdm} &   
-	if the packet was received on the correct iif (from the node
+        if the packet was received on the correct iif (from the node
         that is the next hop towards the source), fan out the packet
         on all oifs except the oif that leads back to the
         next--hop--neighbor and oifs that are LANs for which this node
         is not a forwarder. Otherwise, if the interface was incorrect,
         send a prune back.\\
 \proc[srcID group iface]{handle-cache-miss-dvmrp} &
-	fans out the packet only to nodes for which this node is a
-	next hop towards the source (parent).\\
+        fans out the packet only to nodes for which this node is a
+        next hop towards the source (parent).\\
 \proc[replicator source group iface]{drop} & 
-	sends a prune message back to the previous hop.\\
+        sends a prune message back to the previous hop.\\
 \proc[from source group iface]{recv-prune} & 
-	resets the prune timer if the interface had been pruned
+        resets the prune timer if the interface had been pruned
         previously; otherwise, it starts the prune timer and disables
         the interface; furthermore, if the outgoing interface list
         becomes empty, it propagates the prune message upstream.\\
 \proc[from source group iface]{recv-graft} & 
-	cancels any existing prune timer, andre-enables the pruned
+        cancels any existing prune timer, andre-enables the pruned
         interface.  If the outgoing interface list was previously
         empty, it forwards the graft upstream.\\
 \proc[srcID group iface]{handle-wrong-iif} & 
@@ -680,62 +680,62 @@ appropriate routes.
 \begin{alist}
 \textbf{Class mrtObject}\hfill & \\
 \code{protocols\_} &
-	An array of handles of protocol instances active at the node
-	at which this protocol operates indexed by incoming
-	interface. \\
+        An array of handles of protocol instances active at the node
+        at which this protocol operates indexed by incoming
+        interface. \\
 \code{mask-wkgroups} &
-	Class variable---defines the mask used to identify well known
-	groups. \\
+        Class variable---defines the mask used to identify well known
+        groups. \\
 \code{wkgroups} &
-	Class array variable---array of allocated well known groups
-	addresses, indexed by the group name.  \code{wkgroups}(Allocd)
-	is a special variable indicating the highest currently
-	allocated well known group. \\[3ex]
+        Class array variable---array of allocated well known groups
+        addresses, indexed by the group name.  \code{wkgroups}(Allocd)
+        is a special variable indicating the highest currently
+        allocated well known group. \\[3ex]
 
 \textbf{McastProtocol}\hfill & \\
 \code{status\_} &
-	takes values ``up'' or ``down'', to indicate the status of
-	execution of the protocol instance. \\
+        takes values ``up'' or ``down'', to indicate the status of
+        execution of the protocol instance. \\
 \code{type\_} &
-	contains the type (class name) of protocol executed by this
-	instance, \eg, DM, or ST. \\
+        contains the type (class name) of protocol executed by this
+        instance, \eg, DM, or ST. \\
 
 \textbf{Simulator}\hfill & \\
 \code{multiSim\_} &
-	1 if multicast simulation is enabled, 0 otherwise.\\
+        1 if multicast simulation is enabled, 0 otherwise.\\
 \code{MrtHandle\_} &
-	handle to the centralised multicast simulation object.\\[3ex]
+        handle to the centralised multicast simulation object.\\[3ex]
 
 \textbf{Node}\hfill & \\
 \code{switch\_} & 
-	handle for classifier that looks at the high bit of the
-	destination address in each packet to determine whether it is
-	a multicast packet (bit = 1) or a unicast packet (bit = 0).\\
+        handle for classifier that looks at the high bit of the
+        destination address in each packet to determine whether it is
+        a multicast packet (bit = 1) or a unicast packet (bit = 0).\\
 \code{multiclassifier\_} & 
-	handle to classifier that performs the \tup{s, g, iif} match. \\
+        handle to classifier that performs the \tup{s, g, iif} match. \\
 \code{replicator\_} & 
-	array indexed by \tup{s, g} of handles that replicate a
-	multicast packet on to the required links. \\
+        array indexed by \tup{s, g} of handles that replicate a
+        multicast packet on to the required links. \\
 \code{Agents\_} & 
-	array indexed by multicast group of the list of agents at the
-	local node that listen to the specific group. \\
+        array indexed by multicast group of the list of agents at the
+        local node that listen to the specific group. \\
 \code{outLink\_} & 
-	Cached list of outgoing interfaces at this node.\\
+        Cached list of outgoing interfaces at this node.\\
 \code{inLink\_} &
-	Cached list of incoming interfaces at this node.\\
+        Cached list of incoming interfaces at this node.\\
 
 \textbf{Link} and \textbf{SimpleLink}\hfill & \\
 \code{iif\_} & 
-	handle for the NetworkInterface object placed on this link.\\
+        handle for the NetworkInterface object placed on this link.\\
 \code{head\_} & 
-	first object on the link, a no-op connector.  However, this
-	object contains the instance variable, \code{link\_}, that
-	points to the container Link object.\\
+        first object on the link, a no-op connector.  However, this
+        object contains the instance variable, \code{link\_}, that
+        points to the container Link object.\\
 
 \textbf{NetworkInterface}\hfill & \\
 \code{ifacenum\_} & 
-	Class variable---holds the next available interface
-	number.\\
+        Class variable---holds the next available interface
+        number.\\
 \end{alist}
 
 

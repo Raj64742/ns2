@@ -7,7 +7,7 @@ We begin by describing
 through methods in the \clsref{Simulator}{../ns-2/ns-lib.tcl}
 and the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}.
 We then describe
-\href{configuration mechanisms for specialised routing}{%
+\href{configuration mechanisms for specialized routing}{%
         Section}{sec:uni:specroute}
 such as asymmetric routing, or equal cost multipath routing
 The next section describes the
@@ -30,7 +30,7 @@ A routing strategy is a general mechanism by which \ns\
 will compute routes for the simulation.
 There are three routing strategies in \ns:
 Static, Session, and Dynamic.
-Conversely, a routing protocol is a realisation of a specific algorithm.
+Conversely, a routing protocol is a realization of a specific algorithm.
 Currently, Static and Session routing use
 the
 \fcnref{Dijkstra's all-pairs SPF algorithm \cite{}}{../ns-2/route.cc}{%
@@ -69,7 +69,7 @@ then \ns\ will run Static routing on all the nodes in the topology.
 Multiple \proc[]{rtproto} lines for the same or different routing 
 protocols can occur in a simulation script.
 However, a simulation cannot use both
-centralised routing mechanisms such as static or session routing and 
+centralized routing mechanisms such as static or session routing and 
 detailed dynamic routing protocols such as DV.
 
 In dynamic routing, each node can be running more than one routing protocol.
@@ -189,7 +189,7 @@ A typical configuration is as shown below:
 {\rm or alternately}
         set n1 [$ns Node] \; only enable $n1 to use multiPaths where applicable;
         $n1 set multiPath_ 1
-\end{program}
+\end{program}%$
 Currently, only DV routing can generate multipath routes.
 
 \section{Protocol Specific Configuration Parameters}
@@ -498,7 +498,7 @@ The procedure
 is a global initialization procedure for the class.
 It may be given a list of the nodes as an argument.
 This the list of nodes that should run this routing protocol.
-However, centralised routing protocols such as static and session routing
+However, centralized routing protocols such as static and session routing
 will ignore this argument;
 detailed dynamic routing protocols such as DV will use this argument
 list to instantiate protocols agents at each of the nodes specified.
@@ -718,7 +718,7 @@ for each of the protocols that were ever installed at any of the nodes.
 Centralized routing protocols such as session routing use this signal to
 recompute the routes to the topology.
 Finally, the \proc[]{RouteLogic::notify} procedure notifies 
-any instances of centralised multicast that are operating at the node.
+any instances of centralized multicast that are operating at the node.
 
 \section{Protocol Internals}
 \label{sec:protocol-internals}
@@ -804,7 +804,7 @@ The routine
 \fcnref{\proc[]{send-periodic-update}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::send-periodic-update}
 invokes \proc[]{send-updates} to send the actual updates.
 It then reschedules sending the next periodic update
-after \code{advertInterval} jitterred slightly to avoid
+after \code{advertInterval} jittered slightly to avoid
 possible synchronization effects.
 
 \fcnref{\proc[]{send-updates}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::send-updates}
@@ -840,14 +840,15 @@ The agent will compute new routes if the update contains new information.
 
 \section{Unicast routing objects}
 \label{sec:routeobjects}
-Routelogic and rtobject are two objects that are significant to unicast
+
+Routelogic and rtObject are two objects that are significant to unicast
 routing in \ns. Routelogic, essentially, represents the routing table
 that is created and maintained centrally for every unicast simulation.
-Routeobject is the object that every node taking part in dynamic
+rtObject is the object that every node taking part in dynamic
 unicast routing, has an instance of. Note that nodes will not have an
 instance of this object if Session routing is done as a detailed
 routing protocol is not being simulated in this case. The methods for
-routelogic and routeobjects are mentioned in the next section.
+RouteLogic and rtObject are described in the next section.
 
 
 \section{Commands at a glance}
@@ -856,7 +857,8 @@ routelogic and routeobjects are mentioned in the next section.
 Following is a list of unicast routing related commands used in simulation
 scripts:
 \begin{flushleft}
-\code{$ns_ rtproto <routing-proto> <args>}\\
+\code{$ns_ rtproto <routing-proto> <args>}%$
+
 where <routing-proto> defines the type of routing protocol to be used, like
 Static, Manual, Session , DV etc. args may define the list of nodes on
 which the protocol is to be run. The node list defaults to all nodes in
@@ -864,65 +866,67 @@ the topology.
 
 Internal methods:
 
-\code{$ns_ compute-routes}\\
+\code{$ns_ compute-routes}%$
+
 This command computes \code{next_hop} information for all nodes in the
 topology using the topology connectivity. This \code{next_hop} info is
 then used to populate the node classifiers or the routing tables.
 compute-routes calls compute-flat-routes or compute-hier-routes depending
 on the type of addressing being used for the simulation.
 
+\code{$ns_ get-routelogic}%$
 
-\code{$ns_ get-routelogic}\\
 This returns a handle to the RouteLogic object (the routing table),
 if one has been created. Otherwise a new routing table object is created.
 
+\code{$ns_ dump-routelogic-nh}%$
 
-\code{$ns_ dump-routelogic-nh}\\
 This dumps next hop information in the routing table.
 
+\code{$ns_ dump-routelogic-distance}%$
 
-\code{$ns_ dump-routelogic-distance}\\
 This dumps the distance information in the routing table.
 
+\code{$node add-route <dst> <Target>}%$
 
-\code{$node add-route <dst> <Target>}\\
-This is a method used to add routing entries (nexthop information) in the node's
+This is a method used to add routing entries (nexthop information) in
+the node's 
 routing table. The nexthop to <dst> from this node is the <target> object
 and this info is added to the node's classifier.
 
+\code{$routelogic lookup <srcid> <destid>}%$
 
-\code{$routelogic lookup <srcid> <destid>}\\
 Returns the id of the node that is the next hop from the node with id
 srcid to the node with id destid. 
 
+\code{$routelogic dump <nodeid>}%$
 
-\code{$routelogic dump <nodeid>}\\
 Dump the routing tables of all nodes whose id is less than nodeid. Node
 ids are typically assigned to nodes in ascending fashion starting from 0
 by their order of creation. 
 
+\code{rtobject dump-routes <fileID>}
 
-\code{rtobject dump-routes <fileID>}\\
 Dump the routing table to the output channel specified by fileID. fileID
 must be a file handle returned by the Tcl open command and it must have
 been opened for writing. 
 
+\code{$rtobject rtProto? <proto>}%$
 
-\code{$rtobject rtProto? <proto>}\\
 Returns a handle to the routing protocol agent specified by proto if it
 exists at that node. Returns an empty string otherwise. 
 
+\code{$rtobject nextHop? <destID>}%$
 
-\code{$rtobject nextHop? <destID>}\\
 Returns the id of the node that is the next hop to the destination
 specified by the node id, <destID>. 
 
+\code{$rtobject rtpref? destID }%$
 
-\code{$rtobject rtpref? destID }\\
 Returns the preference for the route to destination node given by destid.
 
+\code{$rtobject metric? destID }%$
 
-\code{$rtobject metric? destID }\\
 Returns metric for the route to destid.
 
 \end{flushleft}
@@ -935,3 +939,11 @@ Returns metric for the route to destid.
 ### backup-by-copying-when-linked: t
 ### file-precious-flag: nil
 ### End:
+% LocalWords:  Unicast unicast API ns lib tcl RouteLogic uni specroute rtg SPF
+% LocalWords:  multipath protconfig rtglib mcast McastProto rtProtoDV cc outes
+% LocalWords:  rtProto DV rtproto LS rtpref eps multiPath advertInterval rtPeer
+% LocalWords:  multicast rtObject rtprotos rt init RPF instproc co nextHop addr
+% LocalWords:  rtVia rtProtos rtsChanged intf OTcl ifs ifstat rtglibAPI msg nh
+% LocalWords:  routelogic nullAgent MPATHCLASSIFIER installNext adjacents recv
+% LocalWords:  dynamicDM rtobject hier dst nexthop nodeid ids fileID destID
+% LocalWords:  destid flushleft

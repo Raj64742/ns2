@@ -139,7 +139,7 @@ In order to use dmalloc do the following:
 \item Define an alias 
 \begin{verbatim}
 for csh: alias dmalloc 'eval `\dmalloc -C \!*`', 
-for bash: function dmalloc { eval `command dmalloc -b $*` }
+for bash: function dmalloc { eval `command dmalloc -b $*` }%$
 \end{verbatim}
 \item Next turn debugging on by typing \code{dmalloc -l logfile low }
 \item Run your program (which was configured and built with dmalloc as
@@ -206,12 +206,17 @@ Saving is about 80 Byte/variable.
 malloc() overhead on FreeBSD is less than on some other systems. We will
 eventually port that allocator to other platofrms. 
 
-\item[Dynamic binding (NEW) :]
+\item[Dynamic binding :]
 Using bind() in C++ consumes memory for each object you create. This
 approach can be very expensive if you create many identical objects.
 Changing \code{bind()} to \code{delay_bind()} changes this memory
 requirement to per-class. See \ns/object.cc for an example of how to do
 binding, either way.
+
+\item[Disabling packet headers :]
+For packet-intensive simulations, disabling all packet headers that
+you will not use in your simulation may significantly reduce memory
+usage. See Section~\ref{sec:ppackethdr} for detail.
  
 \end{description}
 

@@ -7,8 +7,14 @@ In
 \href{the next chapter}{Chapter}{chap:links},
 we will describe second aspect of creating the topology,
 \ie, connecting the nodes to form links.
+This chapter does not describe the detailed internal organization of
+a node (although some schematics are given), nor the interaction
+between a node and its routing modules; please refer to
+Chapter~\ref{chap:rtarch} for detailed discussion.
+
 Recall that each simulation requires a single instance of the
-\clsref{Simulator}{../ns-/ns-lib.tcl} to control and operate that simulation.
+\clsref{Simulator}{../ns-2/tcl/lib/ns-lib.tcl} to control and operate
+that simulation. 
 The class provides instance procedures to create and manage the topology,
 and internally stores references to each element of the topology.
 We begin 
@@ -25,6 +31,7 @@ from which the more complex node objects are formed.
 
 The procedures and functions described in this chapter can be found in
 \nsf{tcl/lib/ns-lib.tcl}, \nsf{tcl/lib/ns-nodes.tcl}, \\
+\nsf{tcl/lib/ns-rtmodule.tcl}, \nsf{rtmodule.\{cc,h\}}, 
 \nsf{classifier.\{cc, h\}}, \nsf{classifier-addr.cc},
 \nsf{classifier-mcast.cc}, \nsf{classifier-mpath.cc}, 
 and, \nsf{replicator.cc}.
@@ -36,7 +43,7 @@ The basic primitive for acquiring a node is
 \begin{program}
     set ns [new Simulator]
     $ns \fcnref{\textbf{node}}{../ns-2/ns-lib.tcl}{Simulator::node}
-\end{program}
+\end{program} %$
 The instance procedure \code{node} constructs
 a node out of more simple
 \href{classifier objects}{Section}{sec:node:classifiers}.
@@ -45,12 +52,13 @@ However, most of the components of the node are themselves TclObjects.
 The typical structure of a node is as shown in Figure~\ref{fig:node:unicast}.
 \begin{figure}[tb]
   \centerline{\includegraphics{node}}
-  \caption{Structure of an Unicast Node}
+  \caption{Structure of an Unicast Node. Notice that entry\_ is simply a
+    label variable instead of a real object, e.g., the classifier\_.}
   \label{fig:node:unicast}
 \end{figure}
 
-The address of an agent in a node is 16 bits wide:
-the higher 8 bits define the node \code{id_},
+Before \ns\ release 2.1b6, the address of an agent in a node is 16
+bits wide: the higher 8 bits define the node \code{id_},
 the lower 8 bits identify the individual agent at the node.
 This limits the number of nodes in a simulation to 256 nodes.
 If the user needs to create a topology larger than 256 nodes,
@@ -58,30 +66,33 @@ then they should first expand the address space before creating any
 nodes, as
 \begin{program}
         $ns set-address-format expanded
-\end{program}
+\end{program} %$
 This expands the address space to 30 bits, the higher 22 of which are 
 used to assign node numbers.
-{\bf NOTE}: Starting from release 2.1b6, the above is no longer necessary;
-\ns is using 32-bit integers for both address and port.
-Therefore, the above restriction of 256 nodes is no longer applicable.
+
+\framebox{
+  \begin{minipage}{\textwidth}
+    {\bf Note}: Starting from release 2.1b6, the above is no longer
+    necessary; \ns\ uses 32-bit integers for both address and port.
+    Therefore, the above restriction of 256 nodes is no longer applicable.
+  \end{minipage}
+}
 
 By default, nodes in \ns\ are constructed for unicast simulations.
-%In order to create nodes for multicast simulation, the
-%class variable, \code{EnableMcast_}, should be set to 1, as:
 In order to enable multicast simulation, the simulation should be created 
 with an option ``-multicast on'', e.g.:
 \begin{program}
         set ns [new Simulator -multicast on]
 \end{program}
-{\bf NOTE}: the old way of enabling multicast,
-	e.g., \code{Simulator set EnableMcast_ 1},
-	is no longer needed.
+% {\bf NOTE}: the old way of enabling multicast,
+%         e.g., \code{Simulator set EnableMcast_ 1},
+%         is no longer needed.
 The internal structure of a typical multicast node is shown in
-Figure~\ref{sec:node:multicast}.
+Figure~\ref{fig:node:multicast}.
 \begin{figure}
   \centerline{\includegraphics{mcastNode}}
-  \caption{Internal Structure of a Multicast Node}
-  \label{sec:node:multicast}
+  \caption{Internal Structure of a Multicast Node.}
+  \label{fig:node:multicast}
 \end{figure}
 
 When a simulation uses multicast routing,
@@ -106,7 +117,8 @@ We describe each of the functions in the following paragraphs.
 
 \paragraph{Control functions}
 \begin{enumerate}
-\item \code{$node entry} returns the entry point for a node.
+\item \code{$node entry} %$
+returns the entry point for a node.
 This is the first element which will handle packets arriving at that node.
 
 The Node instance variable, \code{entry_}, stores the reference this element.
@@ -119,25 +131,23 @@ However, for multicast nodes, the entry point is the
 it should forward the packet to the unicast classifier, or the multicast
 classifier as appropriate.
 
-\item \code{$node reset} will reset all agents at the node.
-
-\item \code{$node enable-mcast} is an internal procedure used
-  by the class simulator when creating a node.
-  This procedure installs the additional classifiers needed
-  to convert a unicast node to a multicast node.
+\item \code{$node reset} %$
+will reset all agents at the node.
 \end{enumerate}
 
 
 \paragraph{Address and Port number management}
-The procedure \code{$node id} returns the node number of the node.
+The procedure \code{$node id} %$
+returns the node number of the node.
 This number is automatically incremented and assigned to each node at
-creation by the class Simulator method, \code{$ns node}.
+creation by the class Simulator method, \code{$ns node}.%$
 The class Simulator also stores an instance variable array\footnote{%
   \ie, an instance variable of a class that is also an array variable},
   \code{Node_}, indexed by the node id, and contains a reference to the
   node with that id.
 
-The procedure \code{$node agent \tup{port}} returns the handle of the
+The procedure \code{$node agent \tup{port}} %$
+returns the handle of the
 agent at the specified port.
 If no agent at the specified port number is available, the procedure returns
 the null string.
@@ -150,13 +160,13 @@ The procedures, \code{add-route} and \code{add-routes},
 are used by \href{unicast routing}{Chapter}{chap:unicast}
 to add routes to populate the \code{classifier_}
 The usage syntax is
-\code{$node add-route \tup{destination id} \tup{TclObject}};
+\code{$node add-route \tup{destination id} \tup{TclObject}}. %$
 \code{TclObject} is the entry of \code{dmux_}, the port demultiplexer
 at the node, if the destination id is the same as this node's id,
 it is often the head of a link to send packets for that destination to,
 but could also be the the entry for other classifiers or types of classifiers.
 
-\code{$node add-routes \tup{destination id} \tup{TclObjects}}
+\code{$node add-routes \tup{destination id} \tup{TclObjects}} %$
 is used to add multiple routes to the same destination that must be used
 simultaneously in round robin manner to spread the bandwidth used to reach
 that destination across all links equally.
@@ -207,6 +217,143 @@ to \code{nullagent}.
 \paragraph{Tracking Neighbors}
 Each node keeps a list of its adjacent neighbors in its instance variable,
 \code{neighbor_}.  The procedure \proc[]{add-neighbor} adds a neighbor to the list.  The procedure \proc[]{neighbors} returns this list.
+
+\section{Configuring Node Functionality}
+\label{sec:node:nodeconfig}
+
+\proc[]{Simulator::node-config} accomodates flexible and modular
+construction of different node definitions within the same base Node
+class.
+For instance, to create a mobile node capable
+of wireless communication, one no longer needs a specialized node
+creation command, e.g., \proc[]{dsdv-create-mobile-node}; instead, one
+simply say \proc[]{node-config -adhocRouting dsdv}.
+Together with routing modules, this allows
+one to combine ``arbitrary'' routing functionalities within a single
+node without resorting to multiple inheritance and other fancy object
+gimmicks. 
+We will describe this in more detail in Chapter~\ref{chap:rtarch}.
+
+This section describes node configuration interfaces and compare them with
+the old ones. 
+The functions and procedures relevant to the new node APIs may be
+found in \nsf{tcl/lib/ns-node.tcl}.
+
+\framebox{
+  \begin{minipage}{\textwidth}
+    {\bf NOTE}: This API, especially its internal implementation which
+    is messy at this point, is still a moving target. It may undergo
+    significant changes in the near future. However, we will do our
+    best to maintain the same interface as described in this chapter.
+    In addition, this API currently does not cover all existing nodes
+    in the old format, namely, nodes built using inheritance. In
+    particular, satellite simulation and part of mobile IP are not
+    covered. 
+    [Sep 15, 2000].
+  \end{minipage}
+}
+
+\subsection{Node Configuration Interface}
+\label{sec:newnode-API}
+
+The node configuration interface consists of two parts. 
+The first part deals with node configuration, while the second part
+actually creates nodes of the specified type. 
+We have already seen the latter in Section~\ref{sec:node:simulator},
+in this section we will describe the configuration part. 
+
+Node configuration essentially consists of defining the different node
+characteristics before creating them. They may consist of the type of
+addressing structure used in the simulation, defining the network
+components for mobilenodes, turning on or off the trace options at
+Agent/Router/MAC levels, selecting the type of adhoc routing protocol for
+wirelessnodes or defining their energy model.
+The node configuration API in its entirety looks as the following:
+
+\begin{program}
+                   OPTION_TYPE    AVAILABLE OPTION_VALUES
+                  -------------   --------------------------
+
+ \$ns_ node-config -addressingType flat or hierarchical or expanded
+                  -adhocRouting   DSDV or DSR or TORA or AODV
+                  -llType         LL
+                  -macType        Mac/802_11
+                  -propType       Propagation/TwoRayGround
+                  -ifqType        Queue/DropTail/PriQueue
+                  -ifqLen         50
+                  -phyType        Phy/WirelessPhy
+                  -antType        Antenna/OmniAntenna
+                  -channelType    Channel/WirelessChannel
+                  -topoInstance   \$topo_instance
+                  -wiredRouting   ON or OFF
+                  -mobileIP       ON or OFF
+                  -energyModel    EnergyModel
+                  -initialEnergy  (in Joules)
+                  -rxPower        (in W)
+                  -txPower        (in W)
+                  -agentTrace     ON or OFF
+                  -routerTrace    ON or OFF
+                  -macTrace       ON or OFF
+                  -movementTrace  ON or OFF
+                  -reset
+\end{program}
+
+The default values for all the above options are NULL except -addressingType
+whose default value is flat. The option -reset can be used to reset all
+node-config parameters to their default value.
+
+Thus node-configuration for a wireless, mobile node that runs AODV as its
+adhoc routing protocol in a hierarchical topology would be as shown below.
+We decide to turn tracing on at the agent and router level only. Also we 
+assume a topology has been instantiated with "set topo [new Topography]". 
+The node-config command would look like the following:
+
+\begin{program}
+  \$ns_ node-config -addressingType hierarchical
+                   -adhocRouting AODV
+                   -llType LL
+                   -macType Mac/802_11
+                   -ifqType Queue/DropTail/PriQueue
+                   -ifqLen 50
+                   -antType Antenna/OmniAntenna
+                   -propType Propagation/TwoRayGround
+                   -phyType Phy/WirelessPhy
+                   -topoInstance \$topo
+                   -channelType Channel/WirelessChannel
+                   -agentTrace ON
+                   -routerTrace ON
+                   -macTrace OFF
+                   -movementTrace OFF
+\end{program}
+
+Note that the config command can be broken down into separate lines like
+\begin{program}
+        \$ns_ node-config -addressingType hier
+        \$ns_ node-config -macTrace ON
+\end{program}
+The options that need to be changed may only be called. For example after
+configuring for AODV mobilenodes as shown above (and after creating AODV
+mobilenodes), we may configure for AODV base-station nodes in the
+following way: 
+\begin{program}
+        \$ns_ node-config -wiredRouting ON
+\end{program}
+While all other features for base-station nodes and mobilenodes are same,
+the base-station nodes are capable of wired routing, while mobilenodes are
+not. In this way we can change node-configuration only when it is required.
+
+All node instances created after a given node-configuration command will
+have the same property unless a part or all of the node-config command is
+executed with different parameter values. And all parameter values remain
+unchanged unless they are expicitly changed. So after creation of the AODV
+base-station and mobilenodes, if we want to create simple nodes, we will
+use the following node-configuration command:
+\begin{program}
+        \$ns_ node-config -reset
+\end{program}
+This will set all parameter values to their default setting which
+basically defines configuration of a simple node.
+
 
 \section{The Classifier}
 \label{sec:node:classifiers}
@@ -329,7 +476,7 @@ as follows in \nsf{classifier.cc}:
                 \}
                 return (NsObject::command(argc, argv));
         \}
-\end{program}
+\end{program} %$
 When a classifier \fcn[]{recv}'s a packet,
 it hands it to the \fcn[]{classify} method.
 This is defined differently in each type of classifier
@@ -571,7 +718,7 @@ as {\tt auto}.
 The {\tt src, dst} and {\tt fid} arguments specify the IP source,
 destination, and flow IDs to be matched for flow classification.
 Fields not used by a particular classifier (e.g. specifying {\tt src}
-flor a flow-id classifier) is ignored.
+for a flow-id classifier) is ignored.
 The {\tt slot} argument indicates the index into the underlying
 slot table in the base {\tt Classifier} object from which
 the hash classifier is derived.
@@ -664,132 +811,360 @@ The last entry in the table gets the ``original'' packet.
 Since the \fcn[]{classify} method is pure virtual in the base class,
 the replicator defines an empty \fcn[]{classify} method.
 
-\clearpage
+\section{Routing Module and Classifier Organization}
+\label{sec:node:rtarch}
+
+As we have seen, a \ns\ node is essentially a collection of
+classifiers.
+The simplest node (unicast) contains only one address classifier and
+one port classifier, as shown in Figure~\ref{fig:node:unicast}.
+When one extends the functionality of the node, more classifiers are added
+into the base node, for instance, the multicast node shown in
+Figure~\ref{fig:node:multicast}.
+As more function blocks is added, and each of these blocks requires
+its own classifier(s), it becomes important for the node to
+provide a {\em uniform} interface to organize these classifiers and to
+bridge these classifiers to the route computation blocks.
+
+The classical method to handle this case is through class
+inheritance.
+For instance, if one wants a node that supports hierarchical routing,
+one simply derive a Node/Hier from the base node and override the
+classifier setup methods to insert hierarchical classifiers.
+This method works well when the new function blocks are independent
+and cannot be ``arbitrarily'' mixed. 
+For instance, both hierarchical routing and ad hoc routing use their
+own set of classifiers. 
+Inheritance would require that we have Node/Hier that supports
+the former, and Node/Mobile for the latter.
+This becomes slightly problematic when one wants an ad hoc routing
+node that supports hierarchical routing.
+In this simple case one may use multiple inheritance to solve the
+problem, but this quickly becomes infeasible as the number of such
+function blocks increases. 
+
+The only method to solve this problem is object composition. 
+The base node needs to define a set of interfaces for classifier
+access and organization. 
+These interfaces should
+\begin{itemize}
+\item allow individual routing modules that implement
+  their own classifiers to insert their classifiers into the node;
+\item allow route computation blocks to populate routes to classifiers
+  in all routing modules that need this information, 
+\item provide a single point of management for existing routing modules. 
+\end{itemize}
+In addition, we should also define a uniform interface for routing
+modules to connect to the node interfaces, so as to provide a
+systematic approach to extending node functionality. 
+In this section we will describe the design of routing modules as well
+as that of the corresponding node interfaces.
+
+\subsection{Routing Module}
+
+In general, every routing implementation in \ns\ consists of three
+function blocks: 
+\begin{itemize}
+\item {\em Routing agent} exchanges routing packet with neighbors, 
+\item {\em Route logic} uses the information gathered by routing
+  agents (or the global topology database in the case of static
+  routing) to perform the actual route computation, 
+\item {\em Classifiers} sit inside a Node. They use the computed
+  routing table to perform packet forwarding.
+\end{itemize}
+Notice that when implementing a new routing protocol, one does not
+necessarily implement all of these three blocks.
+For instance, when one implements a link state routing protocol, one
+simply implement a routing agent that exchanges information in the
+link state manner, and a route logic that does Dijkstra on the
+resulting topology database. 
+It can then use the same classifiers as other unicast routing
+protocols.
+
+\begin{figure}[tb]
+  \begin{center}
+    \includegraphics{rtmodule}
+    \caption{Interaction among node, routing module, and routing. The
+      dashed line shows the details of one routing module.}
+    \label{fig:node:rtmodule}
+  \end{center}
+\end{figure}
+
+When a new routing protocol implementation includes more than one
+function blocks, especially when it contains its own classifier, it is
+desirable to have another object, which we call 
+a {\em routing module}, that manages all these function 
+blocks and to interface with node to organize its classifiers.
+Figure~\ref{fig:node:rtmodule} shows functional relation among these
+objects.
+Notice that routing modules may have direct relationship with route
+computation blocks, i.e., route logic and/or routing agents.
+However, route computation MAY not install their routes directly
+through a routing module, because there may exists other modules that
+are interested in learning about the new routes.
+This is not a requirement, however, because it is possible that some
+route computation is specific to one particular routing module, for
+instance, label installation in the MPLS module. 
+
+A routing module contains three major functionalities:
+\begin{enumerate}
+\item %Management
+  A routing module initializes its connection to a node through
+  \proc[]{register}, and tears the connection down via
+  \proc[]{unregister}.
+  Usually, in \proc[]{register} a routing module (1) tells the node
+  whether it
+  interests in knowing route updates and transport agent attachments,
+  and (2) creates its classifiers and install them in the node
+  (details described in the next subsection).
+  In \proc[]{unregister} a routing module does the exact opposite: it
+  deletes its classifiers and removes its hooks on routing update in
+  the node.
+\item %Route handler
+  If a routing module is interested in knowing routing updates, the
+  node will inform the module via \\
+  \proc[dst, target]{RtModule::add-route} and
+  \proc[dst, nullagent]{RtModule::delete-route}.
+\item %Transport agent handler
+  If a routing module is interested in learning about transport agent
+  attachment and detachment in a node, the node will inform the module
+  via \\ 
+  \proc[agent, port]{RtModule::attach} and
+  \proc[agent, nullagent]{RtModule::detach}.
+\end{enumerate}
+
+There are two steps to write your own routing module:
+\begin{enumerate}
+\item You need to declare the C++ part of your routing
+  module (see \nsf{rtmodule.\{cc,h\}}). For many modules this only
+  means to declare a virtual method \code{name()} which returns a
+  string descriptor of the module. However, you are free to implement
+  as much functionality as you like in C++; if necessary you may
+  later move functionality from OTcl into C++ for better performance. 
+\item You need to look at the above interfaces implemented in the base
+  routing module (see \nsf{tcl/lib/ns-rtmodule.tcl}) and decide which
+  one you'll inherit, which one you'll override, and put them in OTcl
+  interfaces of your own module. 
+\end{enumerate}
+There are several derived routing module examples in
+\nsf{tcl/lib/ns-rtmodule.tcl}, which may serve as templates for your
+modules.
+
+Currently, there are six routing modules implemented in \ns:
+\begin{table}[htbp]
+  \begin{center}
+    \begin{tabular}[htbp]{|c|p{5in}|}
+      \hline
+      Module Name & Functionality \\ 
+      \hline \hline
+      RtModule/Base & Interface to unicast routing protocols. Provide
+        basic functionality to add/delete route and attach/detach
+        agents. \\ \hline
+      RtModule/Mcast & Interface to multicast routing protocols. Its
+        only purpose is establishes multicast classifiers. All other
+        multicast functionalities are implemented as instprocs of
+        Node. This should be converted in the future. \\ \hline
+      RtModule/Hier & Hierarchical routing. It's a wrapper for
+        managing hierarchical classifiers and route installation. Can
+        be combined with other routing protocols, e.g., ad hoc
+        routing. \\ \hline
+      RtModule/Manual & Manual routing. \\ \hline
+      RtModule/VC & Uses virtual classifier instead of vanilla
+        classifier. \\ \hline
+      RtModule/MPLS & Implements MPLS functionality. This is the only
+        existing module that is completely self-contained and does not
+        pollute the Node namespace. \\
+      \hline
+    \end{tabular}
+    \caption{Available routing modules}
+    \label{tab:node:rtmodule}
+  \end{center}
+\end{table}
+
+\subsection{Node Interface}
+
+To connect to the above interfaces of routing module, a node provides
+a similar set of interfaces:
+\begin{itemize}
+\item %Management
+  In order to know which module to register during creation, the Node
+  class keeps a list of modules as a class variable. 
+  The default value of this list contains only the base routing
+  module.
+  The Node class provides the following two {\em procs} to manipulate
+  this module list:
+  \begin{alist}
+    {\let\[=[\let\]=] \proc[\[name\]]{Node::enable-module}} & If module
+    \code{RtModule/[name]} exists, this proc puts [name] into the
+    module list. \\ 
+    {\let\[=[\let\]=]\proc[\[name\]]{Node::disable-module}} & If
+    [name] is in the module 
+    list, remove it from the list. 
+  \end{alist}
+  When a node is created, it goes through the module list of the Node
+  class, creates all modules included in the list, and register these
+  modules at the node.
+
+  After a node is created, one may use the following instprocs to list
+  modules registered at the node, or to get a handle of a module with
+  a particular name:
+  \begin{alist}
+    \proc[]{Node::list-modules} & Return a list of the handles (shadow
+    objects) of all registered modules. \\
+    {\let\[=[\let\]=]\proc[\[name\]]{Node::get-module}} & Return a
+    handle of the 
+    registered module whose name matches the given one. Notice that
+    any routing module can only have a single instance registered at
+    any node.
+  \end{alist}
+\item %route and port
+  To allow routing modules register their interests of routing
+  updates, a node object provide the following instprocs:
+  \begin{alist}
+    \proc[module]{Node::route-notify} & Add \code{module} into route
+    update notification list. \\
+    \proc[module]{Node::unreg-route-notify} & Remove \code{module}
+    from route update notification list. \\
+  \end{alist}
+  Similarly, the following instprocs provide hooks on the attachment
+  of transport agents:
+  \begin{alist}
+    \proc[module]{Node::port-notify} & Add \code{module} into agent
+    attachment notification list. \\
+    \proc[module]{Node::unreg-port-notify} & Remove \code{module} from
+    agent attachment notification list. \\
+  \end{alist}
+  Notice that in all of these instprocs, parameter \code{module}
+  should be a module handle instead of a module name. 
+\item %classifier
+  Node provides the following instprocs to manipulate its address and
+  port classifiers:
+  \begin{itemize}
+  \item \proc[module, clsfr, hook]{Node::insert-entry} inserts
+    classifier \code{clsfr} into the entry point of the node. It also
+    associates the new classifier with \code{module} so that if this
+    classifier is removed later, \code{module} will be unregistered.
+    If \code{hook} is specified as a number, the existing classifier
+    will be inserted into slot \code{hook} of the new classifier. 
+    In this way, one may establish a ``chain'' of classifiers; see
+    Figure~\ref{fig:node:multicast} for an example.
+    {\bf NOTE}: \code{clsfr} needs NOT to be a classifier. In some
+    cases one may want to put an agent, or any class derived from
+    Connector, at the entry point of a node. In such cases, one simply
+    supplies \code{target} to parameter \code{hook}.
+  \item \proc[module, clsfr, hook]{Node::install-entry} differs from
+    \code{Node::insert-entry} in that it deletes the existing
+    classifier at the node entry point, unregisters any associated
+    routing module, and installs the new classifier at that point. 
+    If \code{hook} is given, and the old classifier is connected into
+    a classifier chain, it will connect the chain into slot
+    \code{hook} of the new classifier. 
+    As above, if \code{hook} equals to \code{target}, \code{clsfr}
+    will be treated as an object derived from Connector instead of a
+    classifier. 
+  \item \proc[demux, port]{Node::install-demux} places the given
+    classifier \code{demux} as the default demultiplexer. If
+    \code{port} is given, it plugs the existing demultiplexer into
+    slot \code{port} of the new one. Notice that in either case it does
+    not delete the existing demultiplexer.
+  \end{itemize}
+\end{itemize}
 
 \section{Commands at a glance}
 \label{sec:nodescommand}
 \begin{flushleft}
+
 Following is a list of common node commands used in simulation scripts:
 
-\code{$ns_ node}\\
-Command to create a simple node. This returns a handle to the node instance
-created.
+\code{$ns_ node [<hier_addr>]}\\ %$
+Command to create and return a node instance. If <hier\_addr> is given,
+assign the node address to be <hier\_addr>. Note that the latter MUST
+only be used when hierarchical addressing is enabled via either
+\proc[]{set-address-format hierarchical} or 
+\proc[]{node-config -addressType hierarchical}. 
 
+\code{$ns_ node-config -<config-parameter> <optional-val>}\\%$
+This command is used to configure nodes. The different config-parameters
+are addressingType, different type of the network stack components,
+whether tracing will be turned on or not, mobileIP flag is truned or not,
+energy model is being used or not etc. An option -reset maybe used to set
+the node configuration to its default state. The default setting of 
+node-config, i.e if no values are specified, creates a simple node (base
+class Node) with flat addressing/routing. For the syntax details see
+Section~\ref{sec:node:nodeconfig}.
 
-\code{$ns_ node <hierarchical address>}\\
-Command to create a node with hierarchical addressing/routing. This too returns
-a handle to the hier-node instance.
-
-
-\code{$ns_ node-config <-option> <value>}\\
-This command is a part of the new Node APIs and sets up configuration for a
-given node type. Note that this command has to be called before creation of
-the nodes. The default value (i.e if node-config is not called) sets up
-configuration for a simple node with flat addressing/routing. The details
-on different <options> and their available <values> that can be used to
-configure a node can be found in chapter titled "Restructuring ns node
-and new Node APIs" in ns Notes and Documentation. 
-
-
-\code{$node id}\\
+\code{$node id}\\%$
 Returns the id number of the node.
 
-
-\code{$node node-addr}\\
+\code{$node node-addr}\\%$
 Returns the address of the node. In case of flat addressing, the node address
 is same as its node-id. In case of hierarchical addressing, the node address
 in the form of a string (viz. "1.4.3") is returned.
 
-
-\code{$node reset}\\
+\code{$node reset} \\%$
 Resets all agent attached to this node.
 
-
-\code{$node agent <port_num>}\\
+\code{$node agent <port_num>} \\%$
 Returns the handle of the agent at the specified port. If no agent is found
 at the given port, a null string is returned.
 
+\code{$node entry}\\%$
+Returns the entry point for the node. This is first object that
+handles packet receiving at this node.
 
-\code{$node entry}\\
-Returns the entry point for the node. This is first object that handles packet
-receiving at this node.
-
-
-\code{$node attach <agent> <optional:port_num>}\\
+\code{$node attach <agent> <optional:port_num>}\\%$
 Attaches the <agent> to this node. Incase no specific port number is passed,
 the node allocates a port number and binds the agent to this port. Thus once
-the agent is attached, it receives packets destined for this host (node) and port.
+the agent is attached, it receives packets destined for this host
+(node) and port. 
 
+\code{$node detach <agent> <null_agent>}\\%$
+This is the dual of "attach" described above. It detaches the agent
+from this node 
+and installs a null-agent to the port this agent was attached. This is
+done to handle transit packets that may be destined to the detached
+agent. These on-the-fly packets are then sinked  at the null-agent.
 
-\code{$node detach <agent> <null_agent>}\\
-This is the dual of "attach" described above. It detaches the agent from this node
-and installs a null-agent to the port this agent was attached. This is done to
-handle transit packets that may be destined to the detached agent. These on-the-fly
-pkts are then sinked  at the null-agent.
-
-
-\code{$node neighbors}\\
+\code{$node neighbors}\\%$
 This returns the list of neighbors for the node.
 
-
-\code{$node add-neighbor <neighbor_node>}\\
+\code{$node add-neighbor <neighbor_node>}\\%$
 This is a command to add \code{<neighbor_node>} to the list of neighbors 
 maintained by the node.
 
-
+\rule{\linewidth}{0.3mm}
 Following is a list of internal node methods:
 
-\code{$node enable-mcast}\\
-This is an internal procedure used by Class Simulator while creating a 
-node and is used to install additional multicast classifiers within the node
-that converts an unicast node into a multicast one.
-
-
-\code{$node add-route <destination_id> <target>}\\
+\code{$node add-route <destination_id> <target>}\\%$
 This is used in unicast routing to populate the classifier. The target is a
 Tcl object, which may be the entry of \code{dmux_} (port demultiplexer in
 the node) incase the \code{<destination_id>} is same as this node-id.
 Otherwise it is usually the head of the link for that destination. It
 could also be the entry for other classifiers.
 
+\code{$node alloc-port <null_agent>}\\%$
+This returns the next available port number.
 
-\code{$node alloc-port <null_agent>}\\
-This returns the next available port number. Uses instance variable
-\code{np_} to track the next unallocated port number.
-
-
-\code{$node incr-rtgtable-size}\\
+\code{$node incr-rtgtable-size}\\%$
 The instance variable \code{rtsize_} is used to keep track of size of
 routing-table in each node. This command is used to increase the
 routing-table size every time an routing-entry is added to the
 classifiers.
 
-
-\code{$node getNode}\\
-Returns the instance of self (the node).
-
-
-\code{$node attachInterfaces <ifaces>}\\
-Attaches the node to each of the <ifaces>.
-
-
-\code{$node addInterface <iface>}\\
-Adds the <iface> to the list of interfaces for the node.
-
-
-\code{$node createInterface <num>}\\
-Creates a new network interface and labels it with <num>.
-
-
-\code{$node getInterfaces}\\
-Returns the list of interfaces for the node.
-
-
 There are other node commands that supports hierarchical
-routing, PIM, IntTCP, detailed dynamic routing, equal cost multipath
-routing, PGM router, manual routing and power model for mobilenodes. These
+routing, detailed dynamic routing, equal cost multipath
+routing, manual routing, and energy model for mobile nodes. These
 and other methods described earlier can be found in 
-\ns/tcl/lib/ns-node.tcl.
+\nsf{tcl/lib/ns-node.tcl} and \nsf{tcl/lib/ns-mobilenode.tcl}.
 
 \end{flushleft}
 \endinput
+% LocalWords:  ns tcl lib rtmodule addr cc mcast mpath replicator unicast pt ht
+% LocalWords:  multicast mcastNode TclObject dmux installNext strcmp argv int
+% LocalWords:  atoi NsObject NsObject argc recv instproc OTcl AddressClassifier
+% LocalWords:  const IPHeader IPHeader dst nsaddr Otcl MCastClassifierClass src
+% LocalWords:  TclClass MCastClassifier findslot struct hashnode pkt XXX evalf
+% LocalWords:  MultiPath multipath MultiPathForwarder cl ip flowid ip NodeShift
+% LocalWords:  NodeMask AddrParams SrcDest Dest SrcDestFid hashcl nbuck IDs del
+% LocalWords:  flor bj LANs iph maxslot Hier onsists tb MPLS RtModule nullagent
+% LocalWords:  config config val num alloc incr rtgtable
