@@ -1736,10 +1736,19 @@ tcl/test/test-output-energy/dsr.Z
 tcl/test/test-output-friendly/BadParams.Z
 tcl/test/test-output-friendly/HighLoss.Z
 tcl/test/test-output-friendly/HighLossConservative.Z
+tcl/test/test-output-friendly/HighLossImprecise.Z 
 tcl/test/test-output-friendly/HighLossTCP.Z
 tcl/test/test-output-friendly/OnlyTcp.Z
 tcl/test/test-output-friendly/TFRC_FTP.Z
+tcl/test/test-output-friendly/delayedTCP.Z 
+tcl/test/test-output-friendly/delayedTFRC.Z 
+tcl/test/test-output-friendly/delayedTFRC1.Z 
+tcl/test/test-output-friendly/delayedTFRC2.Z 
+tcl/test/test-output-friendly/droppedTCP.Z
+tcl/test/test-output-friendly/droppedTFRC.Z
 tcl/test/test-output-friendly/ecn.Z
+tcl/test/test-output-friendly/goodTCP.Z 
+tcl/test/test-output-friendly/goodTFRC.Z
 tcl/test/test-output-friendly/impulse.Z
 tcl/test/test-output-friendly/impulseCA.Z
 tcl/test/test-output-friendly/impulseDiscount.Z
@@ -1814,7 +1823,6 @@ tcl/test/test-output-hier-routing/hier-session-bc.Z
 tcl/test/test-output-hier-routing/hier-session.Z
 tcl/test/test-output-hier-routing/hier-simple-bc.Z
 tcl/test/test-output-hier-routing/hier-simple.Z
-tcl/test/test-output-tcpHighspeed
 tcl/test/test-output-intserv/ACTO.Z
 tcl/test/test-output-intserv/ACTP.Z
 tcl/test/test-output-intserv/HB.Z
@@ -2171,6 +2179,7 @@ tcl/test/test-output-tcp-init-win-full/tahoe1A.Z
 tcl/test/test-output-tcp-init-win-full/tahoe2.Z
 tcl/test/test-output-tcp-init-win-full/tahoe3.Z
 tcl/test/test-output-tcp-init-win-full/tahoe4.Z
+tcl/test/test-output-tcpHighspeed
 tcl/test/test-output-tcpHighspeed/tcp.Z
 tcl/test/test-output-tcpHighspeed/tcp1.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed.Z
@@ -2179,6 +2188,7 @@ tcl/test/test-output-tcpHighspeed/tcpHighspeed2.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed3.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed4.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed5.Z
+tcl/test/test-output-tcpHighspeed/tcpHighspeed6.Z 
 tcl/test/test-output-tcpOptions/onedrop_newreno.Z
 tcl/test/test-output-tcpOptions/onedrop_newreno_full.Z
 tcl/test/test-output-tcpOptions/onedrop_numdup4_newreno.Z
@@ -2367,6 +2377,7 @@ tcl/test/test-output-wireless-tdma/dsdv.Z
 tcl/test/test-output-wireless-tdma/dsr.Z
 tcl/test/test-sack
 tcl/test/test-sack-v1
+tcl/test/test-suite-tcpHighspeed.tcl
 tcl/test/test-suite-LimTransmit.tcl
 tcl/test/test-suite-WLtutorial.tcl
 tcl/test/test-suite-adaptive-red.tcl
