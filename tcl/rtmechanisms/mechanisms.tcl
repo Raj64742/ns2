@@ -11,24 +11,24 @@ RTMechanisms instproc tcp_ref_bw { mtu rtt droprate } {
 	set guideline [expr 1.22 * $mtu / ($rtt*sqrt($droprate)) ]
 }
 
-RTMechanisms instproc notokbandwidth { ref_bw flow_bw } {
-	$self instvar safety_factor
-	if { $flow_bw > ($safety_factor * $ref_bw) } {
-		return "true"
-	}
-	return "false"
-}
-
 RTMechanisms instproc droprate { arrs drops } {
 	set droprate [expr double($drops) / $arrs]
 }
 
+RTMechanisms instproc test_friendly { flow_bw ref_bw } {
+	$self instvar Safety_factor_
+	if { $flow_bw  > ($Safety_factor_ * $ref_bw) } {
+		return "fail"
+	}
+	return "ok"
+}
+
 RTMechanisms isntproc maxmetric flows {
 	$self instvar okboxfm_
-	set bdrops [$okboxfm_ set bdrops] ; # total bytes dropped
-	set pdrops [$okboxfm_ set pdrops] ; # total pkts dropped
-	set ebdrops [$okboxfm_ set ebdrops] ; # bytes dropped early (unforced)
-	set epdrops [$okboxfm_ set epdrops] ; # pkts drooped early (unforced)
+	set bdrops [$okboxfm_ set bdrops_] ; # total bytes dropped
+	set pdrops [$okboxfm_ set pdrops_] ; # total pkts dropped
+	set ebdrops [$okboxfm_ set ebdrops_] ; # bytes dropped early (unforced)
+	set epdrops [$okboxfm_ set epdrops_] ; # pkts drooped early (unforced)
 	set fpdrops [expr $pdrops - $epdrops] ; # pkts dropped (forced)
 	set fbdrops [expr $bdrops - $ebdrops] ; # bytes dropped (forced)
 
@@ -37,12 +37,12 @@ RTMechanisms isntproc maxmetric flows {
 
 	foreach f $flows {
 		# need to catch for div by zero
-		set unforced_frac [expr [$f set epdrops] / $pdrops]
-		set forced_frac [expr ([$f set pdrops] - [$f set epdrops]) / \
+		set unforced_frac [expr [$f set epdrops_] / $pdrops]
+		set forced_frac [expr ([$f set pdrops_] - [$f set epdrops_]) / \
 			$pdrops]
-		set forced_metric [expr ([$f set bdrops] - [$f set ebdrops]) / \
+		set forced_metric [expr ([$f set bdrops_] - [$f set ebdrops_]) / \
 			$fbdrops
-		set unforced_metric [expr [$set epdrops] / $epdrops]
+		set unforced_metric [expr [$f set epdrops_] / $epdrops]
 		set metric [expr $forced_frac * $forced_metric + \
 			$unforced_frac * $unforced_metric]
 		if { $metric > $maxmetric } {
@@ -177,8 +177,9 @@ RTMechanisms instproc checkbandwidth guideline_bw {
 RTMechanisms instproc do_detect {} {
 	$self instvar ns_
 	$self instvar last_detect_
-	$self instvar Mintime_
+	$self instvar Mintime_ Rtt_ Mtu_
 	$self instvar okboxfm_
+	$self instvar state_
 
 	set now [$ns_ now]
 	set elapsed [expr $now - $last_detect_]
@@ -187,8 +188,8 @@ RTMechanisms instproc do_detect {} {
 		exit 1
 	}
 
-	set barrivals [$okboxfm_ set barrivals]
-	set ndrops [$okboxfm_ set pdrops] ; # drops == (total drops, incl epd)
+	set barrivals [$okboxfm_ set barrivals_]
+	set ndrops [$okboxfm_ set pdrops_] ; # drops == (total drops, incl epd)
 	set droprateG [$self $narrivals $ndrops]
 	set M [$self maxmetric [$okboxfm_ flows]]
 	set badflow [lindex $M 0]
@@ -196,11 +197,14 @@ RTMechanisms instproc do_detect {} {
 
 	# estimate the bw's arrival rate without knowing it directly
 	set flow_bw_est [expr $maxmetric * .01 * $barrivals / $elapsed]
+	set guideline_bw  [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateG]
 
-	if { [$self test_friendly $badflow] != "ok" } {
+	set friendly [$self test_friendly $badflow]
+	if { [$self test_friendly $flow_bw_est $guideline] } {
 		# didn't pass friendly test
+		set state_($badflow) UNFRIENDLY
 		$self penalize $badflow
-	} else if { [info exists $unresponsive($badflow)] } {
+	} else if { $state_($badflow) == "UNRESPONSIVE" } {
 		# was unresponsive once already
 		if { [$self test_unresponsive $badflow] != "ok" } {
 			# is still unresponsive
@@ -209,13 +213,74 @@ RTMechanisms instproc do_detect {} {
 	} else {
 		if { [$self test_unresponsive $badflow] != "ok" } {
 			$self add-history $badflow
-			set unresponsive($badflow) $now
+			set state_($badflow) "UNRESPONSIVE"
 		} else if { [$self test_high $badflow] != "ok" } {
+			set state_($badflow) "HIGH"
 			$self penalize $badflow
 		} else {
-			$self checkbandwidth $guideline
+			$self checkbandwidth $guideline_bw
 			$self checkbandwidth $flow_bw_est
 		}
 	}
 	$self flowdump
+}
+
+
+#
+# main routine to determine if there are restricted flows
+# that are now behaving better
+#
+RTMechanisms instproc do_reward {} {
+	$self instvar ns_
+	$self instvar last_reward_
+	$self instvar Mintime_
+	$self instvar pboxfm_
+	$self instvar state_
+
+	set now [$ns_ now]
+	set elapsed [expr $now - $last_reward_]
+	if { $elapsed > $Mintime_ / 2 } {
+		set parrivals [$pboxfm_ set parrivals_]
+		set pdrops [$pboxfm_ set pdrops_]
+		set barrivals [$pboxfm_ set barrivals_]
+		set badBps [expr $barrivals / $elapsed]
+		set pgoodarrivals [$okboxfm_ set parrivals_]
+		if { $parrivals == 0 } {
+			# nothing!, everybody becomes good
+			return
+		}
+		set droprateB [droprate $pdrops $parrivals]
+		set M [$pboxfm_ minmetric]
+		set goodflow [lindex $M 0]
+		set goodmetric [lindex $M 1]
+		set flow_bw_est [expr $goodmetric * .01 * $barrivals / $elapsed]
+		switch $state_($goodflow) {
+			"UNFRIENDLY" {
+				set fr [$self test_friendly  $flow_bw_est \
+				    [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
+				if { $fr == "ok" } {
+					$self reward $goodflow
+				}
+			}
+
+			"UNRESPONSIVE" {
+				set unr [$self test_unresponsive $goodflow]
+				if { $unr == "ok" } {
+					$self reward $goodflow
+				}
+			}
+
+			"HIGH" {
+				set h [$self test_high $goodflow]
+				if { $h == "ok" } {
+					$self reward $goodflow
+				}
+			}
+		}
+		$pboxfm_ dump
+		if { $npenalty_ > 0 } {
+			$self checkbandwidth xxxx
+		}
+	}
+}
 }
