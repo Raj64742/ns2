@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.8 1997/04/09 00:10:13 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.9 1997/04/24 03:19:14 kfall Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -101,19 +101,17 @@ SimpleLink instproc trace { ns f } {
 	$enqT_ target $head_
 	set head_ $enqT_
 }
-
 #
-# Insert objects that allow us to monitor the queue size
-# of this link.  Return the name of the object that
-# can be queried to determine the average queue size.
+# like init-monitor, but allows for specification of more of the items
+# attach-monitors $insnoop $inqm $outsnoop $outqm $dropsnoop $dropqm
 #
-SimpleLink instproc init-monitor ns {
-	$self instvar drpT_ queue_ head_ \
-		snoopIn_ snoopOut_ snoopDrop_ qMonitor_
+SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
+	$self instvar drpT_ queue_ head_ snoopIn_ snoopOut_ snoopDrop_
+	$self instvar qMonitor_
 
-	set snoopIn_ [new SnoopQueue/In]
-	set snoopOut_ [new SnoopQueue/Out]
-	set snoopDrop_ [new SnoopQueue/Out]
+	set snoopIn_ $insnoop
+	set snoopOut_ $outsnoop
+	set snoopDrop_ $dropsnoop
 
 	$snoopIn_ target $head_
 	set head_ $snoopIn_
@@ -125,19 +123,32 @@ SimpleLink instproc init-monitor ns {
 		$snoopDrop_ target [$drpT_ target]
 		$drpT_ target $snoopDrop_
 	} else {
-		$snoopDrop_ target [$ns set nullAgent_]
+		$snoopDrop_ target [ns set nullAgent_]
 	}
 	$queue_ drop-target $snoopDrop_
 
+	$snoopIn_ set-monitor $qmon
+	$snoopOut_ set-monitor $qmon
+	$snoopDrop_ set-monitor $qmon
+	set qMonitor_ $qmon
+}
+
+#
+# Insert objects that allow us to monitor the queue size
+# of this link.  Return the name of the object that
+# can be queried to determine the average queue size.
+#
+SimpleLink instproc init-monitor ns {
+	$self instvar qMonitor_
+
 	set qMonitor_ [new QueueMonitor]
+
+	$self attach-monitors [new SnoopQueue/In] \
+		[new SnoopQueue/Out] [new SnoopQueue/Drop] $qMonitor_
+
 	set bytesInt_ [new BytesIntegrator]
 	$qMonitor_ set-bytes-integrator $bytesInt_
 	set pktsInt_ [new BytesIntegrator]
 	$qMonitor_ set-pkts-integrator $pktsInt_
-
-	$snoopIn_ set-monitor $qMonitor_
-	$snoopOut_ set-monitor $qMonitor_
-	$snoopDrop_ set-monitor $qMonitor_
-
 	return $qMonitor_
 }
