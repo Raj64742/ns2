@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
  * License is granted to copy, to use, and to make and to use derivative
@@ -16,11 +16,13 @@
  * These notices must be retained in any copies of any part of this software.
  *
  * This file contributed by Sandeep Bajaj <bajaj@parc.xerox.com>, Mar 1997.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drr.cc,v 1.9 2000/09/01 03:04:05 haoboy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drr.cc,v 1.8 1999/09/24 17:04:32 heideman Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drr.cc,v 1.9 2000/09/01 03:04:05 haoboy Exp $ (Xerox)";
 #endif
 
 #include "config.h"   // for string.h
@@ -86,7 +88,6 @@ protected:
 	int flwcnt ; //total number of active flows
 	PacketDRR *curr; //current active flow
 	PacketDRR *drr ; //pointer to the entire drr struct
-	int off_ip_;
 
 	inline PacketDRR *getMaxflow (PacketDRR *curr) { //returns flow with max pkts
 		int i;
@@ -133,7 +134,6 @@ DRR::DRR()
 	bind("blimit_",&blimit_);
 	bind("quantum_",&quantum_);
 	bind("mask_",&mask_);
-	bind ("off_ip_",&off_ip_);
 }
  
 void DRR::enque(Packet* pkt)
@@ -141,8 +141,8 @@ void DRR::enque(Packet* pkt)
 	PacketDRR *q,*remq;
 	int which;
 
-	hdr_cmn *ch=(hdr_cmn*)pkt->access(off_cmn_);
-	hdr_ip *iph = (hdr_ip*)pkt->access(off_ip_);
+	hdr_cmn *ch= hdr_cmn::access(pkt);
+	hdr_ip *iph = hdr_ip::access(pkt);
 	if (!drr)
 		drr=new PacketDRR[buckets_];
 	which= hash(pkt) % buckets_;
@@ -175,8 +175,8 @@ void DRR::enque(Packet* pkt)
 		hdr_ip *remiph;
 		remq=getMaxflow(curr);
 		p=remq->deque();
-		remch=(hdr_cmn*)p->access(off_cmn_);
-		remiph=(hdr_ip*)p->access(off_ip_);
+		remch=hdr_cmn::access(p);
+		remiph=hdr_ip::access(p);
 		remq->bcount -= remch->size();
 		bytecnt -= remch->size();
 		drop(p);
@@ -206,8 +206,8 @@ Packet *DRR::deque(void)
 		}
 
 		pkt=curr->lookup(0);  
-		ch=(hdr_cmn*)pkt->access(off_cmn_);
-		iph= (hdr_ip*)pkt->access(off_ip_);
+		ch=hdr_cmn::access(pkt);
+		iph=hdr_ip::access(pkt);
 		if (curr->deficitCounter >= ch->size()) {
 			curr->deficitCounter -= ch->size();
 			pkt=curr->deque();
@@ -284,13 +284,9 @@ int DRR::command(int argc, const char*const* argv)
 	return (Queue::command(argc, argv));
 }
 
-
-
-
-
 int DRR::hash(Packet* pkt)
 {
-	hdr_ip *iph=(hdr_ip*)pkt->access(off_ip_);
+	hdr_ip *iph=hdr_ip::access(pkt);
 	int i;
 	if (mask_)
 		i = (int)iph->saddr() & (0xfff0);

@@ -27,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.19 1999/09/09 03:25:25 salehi Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.20 2000/09/01 03:04:07 haoboy Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -50,9 +50,6 @@ protected:
 	Tcl_HashTable*	siphash_;
 	int	groupSize_;
 	int seqno_;			/* Seqno for CBR packets */
-	int off_srm_;
-	int off_cmn_;
-	int off_rtp_;
 	int app_fid_;
 	packet_t app_type_;
 
@@ -136,18 +133,16 @@ public:
 class ASRMAgent : public SRMAgent {
 	double pdistance_;
 	int    requestor_;
-	int    off_asrm_;
 public:
 	ASRMAgent() {
 		bind("pdistance_", &pdistance_);
 		bind("requestor_", &requestor_);
-		bind("off_asrm_", &off_asrm_);
 	}
 protected:
 	virtual void addExtendedHeaders(Packet* p) {
 		SRMinfo* sp;
-		hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-		hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
+		hdr_srm* sh = hdr_srm::access(p);
+		hdr_asrm* seh = hdr_asrm::access(p);
 		switch (sh->type()) {
 		case SRM_RQST:
 			sp = get_state(sh->sender());
@@ -169,7 +164,7 @@ protected:
 	}
 	virtual void parseExtendedHeaders(Packet* p) {
 		SRMAgent::parseExtendedHeaders(p);
-		hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
+		hdr_asrm* seh = hdr_asrm::access(p);
 		pdistance_ = seh->distance();
 	}
 };

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.12 1998/10/05 17:43:47 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.13 2000/09/01 03:04:07 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -79,7 +79,7 @@ struct hdr_snoop {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_snoop* access(Packet* p) {
+	inline static hdr_snoop* access(const Packet* p) {
 		return (hdr_snoop*) p->access(offset_);
 	}
 
@@ -179,8 +179,6 @@ class Snoop : public NsObject {
 	double   snoopTick_;	/* minimum rxmission timer granularity */
 	double   g_;		/* gain in EWMA for srtt_ and rttvar_ */
 	int      integrate_;	/* integrate loss rec across active conns */
-	int      off_snoop_;	/* snoop header offset */
-	int      off_tcp_;	/* tcp header offset */
 	int      lru_;		/* an lru cache? */
 };
 

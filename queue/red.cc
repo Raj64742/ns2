@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.51 2000/07/20 04:56:29 ratul Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.52 2000/09/01 03:04:06 haoboy Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -73,7 +73,7 @@ static class REDClass : public TclClass {
 public:
 	REDClass() : TclClass("Queue/RED") {}
 	TclObject* create(int argc, const char*const* argv) {
-		//		printf("creating RED Queue. argc = %d\n", argc);
+		//printf("creating RED Queue. argc = %d\n", argc);
 		
 		//mod to enable RED to take arguments
 		if (argc==5) 
@@ -226,7 +226,7 @@ Packet* REDQueue::deque()
 	p = q_->deque();
 	if (p != 0) {
 		idle_ = 0;
-		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
+		bcount_ -= hdr_cmn::access(p)->size();
 	} else {
 		idle_ = 1;
 		// deque() may invoked by Queue::reset at init
@@ -304,7 +304,7 @@ REDQueue::modify_p(double p, int count, int count_bytes, int bytes,
 int
 REDQueue::drop_early(Packet* pkt)
 {
-	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(pkt);
 
 	edv_.v_prob1 = calculate_p(edv_.v_ave, edp_.th_max, edp_.gentle, 
   	  edv_.v_a, edv_.v_b, edv_.v_c, edv_.v_d, edp_.max_p_inv);
@@ -317,7 +317,7 @@ REDQueue::drop_early(Packet* pkt)
 		// DROP or MARK
 		edv_.count = 0;
 		edv_.count_bytes = 0;
-		hdr_flags* hf = (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
+		hdr_flags* hf = hdr_flags::access(pickPacketForECN(pkt));
 		if (edp_.setbit && hf->ect() && edv_.v_ave < edp_.th_max) {
 			hf->ce() = 1; 	// mark Congestion Experienced bit
 			return (0);	// no drop
@@ -416,7 +416,7 @@ void REDQueue::enque(Packet* pkt)
 	 * it has been since the last early drop)
 	 */
 
-	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(pkt);
 	++edv_.count;
 	edv_.count_bytes += ch->size();
 
@@ -473,7 +473,7 @@ void REDQueue::enque(Packet* pkt)
 			q_->enque(pkt);
 			bcount_ += ch->size();
 			q_->remove(pkt_to_drop);
-			bcount_ -= ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
+			bcount_ -= hdr_cmn::access(pkt_to_drop)->size();
 			pkt = pkt_to_drop; /* XXX okay because pkt is not needed anymore */
 		}
 
@@ -500,7 +500,7 @@ void REDQueue::enque(Packet* pkt)
 			/* drop random victim or last one */
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
-			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
+			bcount_ -= hdr_cmn::access(pkt)->size();
 			drop(pkt);
 			if (!ns1_compat_) {
 				// bug-fix from Philip Liu, <phill@ece.ubc.ca>

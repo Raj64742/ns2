@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.7 1999/09/09 03:25:25 salehi Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.8 2000/09/01 03:04:07 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_semantic_packetqueue_h
@@ -97,12 +97,6 @@ class SemanticPacketQueue : public PacketQueue {
 	int acks_to_send;	/* number of ack to send in current schedule */
 	int marked_count_;	/* number of marked packets */
 	int unmarked_count_;	/* number of unmarked packets */
-
-	/* offsets of packet headers */
-	int off_cmn_;
-	int off_flags_;
-	int off_ip_;
-	int off_tcp_;
 
 	/* 
 	 * These indicator variables are bound in derived objects and

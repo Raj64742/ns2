@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.14 2000/01/25 20:59:43 salehi Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.15 2000/09/01 03:04:05 haoboy Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -69,7 +69,7 @@ struct hdr_ip {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_ip* access(Packet* p) {
+	inline static hdr_ip* access(const Packet* p) {
 		return (hdr_ip*) p->access(offset_);
 	}
 

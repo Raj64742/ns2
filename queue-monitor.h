@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- 
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  * 
@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.16 2000/06/21 05:24:24 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.17 2000/09/01 03:04:06 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -59,7 +59,6 @@ public:
 		bind("bdepartures_", &bdepartures_);
 		bind("pdrops_", &pdrops_);
 		bind("bdrops_", &bdrops_);
-		bind("off_cmn_", &off_cmn_);
 	};
 
 	int size() const { return (size_); }
@@ -103,7 +102,6 @@ protected:
 #endif
 	int pdrops_;
 	int bdrops_;
-	int off_cmn_;
 	int srcId_;
 	int dstId_;
 	Tcl_Channel channel_;
@@ -177,7 +175,7 @@ public:
 		bind("epdrops_", &epdrops_);
 	}
 	void edrop(Packet* p) {
-		hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+		hdr_cmn* hdr = hdr_cmn::access(p);
 		ebdrops_ += hdr->size();
 		epdrops_++;
 		QueueMonitor::drop(p);
@@ -216,7 +214,6 @@ public:
 	int command(int argc, const char*const* argv);
 protected:
 	void	flowstats(int flowid);	/* create a flowstats structure */
-	int	off_ip_;
 
 	int	pkts_[MAXFLOW];
 	int	bytes_[MAXFLOW];

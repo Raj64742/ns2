@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sfq.cc,v 1.9 1999/09/24 17:04:37 heideman Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sfq.cc,v 1.10 2000/09/01 03:04:07 haoboy Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -95,7 +95,6 @@ protected:
   PacketSFQ *active;
   int occupied;
   int fairshare;
-  int off_ip_;
 };
 
 static class SFQClass : public TclClass {
@@ -114,7 +113,6 @@ SFQ::SFQ()
   active = 0;
   bind("maxqueue_", &maxqueue_);
   bind("buckets_", &buckets_);
-  bind("off_ip_", &off_ip_);
 }
 
 void SFQ::clear()
@@ -235,7 +233,7 @@ void SFQ::enque(Packet* pkt)
 
 int SFQ::hash(Packet* pkt)
 {
-  hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+  hdr_ip* iph = hdr_ip::access(pkt);
   int i = (int)iph->saddr();
   int j = (int)iph->daddr();
   int k = i + j;

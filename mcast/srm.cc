@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.24 1999/09/24 17:04:40 heideman Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.25 2000/09/01 03:04:07 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -87,9 +87,6 @@ SRMAgent::SRMAgent()
 {
 	sip_ = new SRMinfo(-1);
 
-	bind("off_srm_", &off_srm_);
-	bind("off_cmn_", &off_cmn_);
-        bind("off_rtp_", &off_rtp_);
 	bind("packetSize_", &packetSize_);
 	bind("groupSize_", &groupSize_);
 	bind("app_fid_", &app_fid_);
@@ -156,8 +153,8 @@ int SRMAgent::command(int argc, const char*const* argv)
 
 void SRMAgent::recv(Packet* p, Handler* h)
 {
-	hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+	hdr_ip*  ih = hdr_ip::access(p);
+	hdr_srm* sh = hdr_srm::access(p);
 	
 	if (ih->daddr() == -1) {
 		// Packet from local agent.  Add srm headers, set dst, and fwd
@@ -217,10 +214,10 @@ void SRMAgent::sendmsg(int nbytes, const char* /*flags*/)
 	size_ = nbytes;
 	Packet *p;
 	p = allocpkt();
-        hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
-	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+        hdr_ip*  ih = hdr_ip::access(p);
+        hdr_srm* sh = hdr_srm::access(p);
+	hdr_rtp* rh = hdr_rtp::access(p);
+	hdr_cmn* ch = hdr_cmn::access(p);
 	//hdr_cmn* ch = hdr_cmn::access(p);
 	
 	ch->ptype() = app_type_;
@@ -240,14 +237,14 @@ void SRMAgent::sendmsg(int nbytes, const char* /*flags*/)
 void SRMAgent::send_ctrl(int type, int round, int sender, int msgid, int size)
 {
 	Packet* p = Agent::allocpkt();
-	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+	hdr_srm* sh = hdr_srm::access(p);
 	sh->type() = type;
 	sh->sender() = sender;
 	sh->seqnum() = msgid;
 	sh->round() = round;
 	addExtendedHeaders(p);
 
-	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
 	ch->size() = sizeof(hdr_srm) + size;
 	target_->recv(p);
 }
@@ -298,7 +295,7 @@ void SRMAgent::send_sess()
 {
 	int	size = (1 + groupSize_ * 4) * sizeof(int);
 	Packet* p = Agent::allocpkt(size);
-	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+	hdr_srm* sh = hdr_srm::access(p);
 	sh->type() = SRM_SESS;
 	sh->sender() = addr();
 	sh->seqnum() = ++sessCtr_;
@@ -315,7 +312,7 @@ void SRMAgent::send_sess()
 	data = (int*) p->accessdata();
 	data[4] = (int) (Scheduler::instance().clock()*1000);
 
-	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
 	ch->size() = size+ sizeof(hdr_srm);
 
 	target_->recv(p, (Handler*)NULL);

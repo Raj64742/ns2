@@ -55,7 +55,6 @@ protected:
 	int bytes_;
 	int seqno_;
 	double last_packet_time_;
-	int off_rtp_;
 };
 
 #endif // ns_loss_monitor_h

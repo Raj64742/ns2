@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  * 
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.16 1999/09/24 17:04:36 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.17 2000/09/01 03:04:06 haoboy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -70,7 +70,6 @@ protected:
 	int seqno_;
 	double interval_;
 	RTPSession* session_;
-	int off_rtp_;
 
 	RTCP_Timer rtcp_timer_;
 };
@@ -91,7 +90,6 @@ RTCPAgent::RTCPAgent()
 	bind_time("interval_", &interval_);
 	bind("random_", &random_);
 	bind("seqno_", &seqno_);
-	bind("off_rtp_", &off_rtp_);
 	running_ = 0;
 }
 
@@ -115,7 +113,7 @@ void RTCPAgent::recv(Packet* p, Handler*)
 void RTCPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
-	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+	hdr_rtp* rh = hdr_rtp::access(p);
 
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;

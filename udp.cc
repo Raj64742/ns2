@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.16 2000/05/24 00:22:25 heideman Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.17 2000/09/01 03:04:08 haoboy Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -36,7 +36,6 @@ public:
 UdpAgent::UdpAgent() : Agent(PT_UDP), seqno_(-1)
 {
 	bind("packetSize_", &size_);
-	bind("off_rtp_", &off_rtp_);
 }
 
 UdpAgent::UdpAgent(packet_t type) : Agent(type)
@@ -63,7 +62,7 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 	double local_time = Scheduler::instance().clock();
 	while (n-- > 0) {
 		p = allocpkt();
-		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+		hdr_rtp* rh = hdr_rtp::access(p);
 		rh->flags() = 0;
 		rh->seqno() = ++seqno_;
 		hdr_cmn::access(p)->timestamp() = 
@@ -77,7 +76,7 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 	if (n > 0) {
 		p = allocpkt();
 		hdr_cmn::access(p)->size() = n;
-		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+		hdr_rtp* rh = hdr_rtp::access(p);
 		rh->flags() = 0;
 		rh->seqno() = ++seqno_;
 		hdr_cmn::access(p)->timestamp() = 

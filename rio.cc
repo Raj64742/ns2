@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.cc,v 1.7 2000/07/05 21:05:26 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.cc,v 1.8 2000/09/01 03:04:06 haoboy Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -160,11 +160,11 @@ Packet* RIOQueue::deque()
 	p = REDQueue::deque();
         // printf( "qlen %d %d\n", q_->length(), length());
 	if (p != 0) {
-		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+		hdr_flags* hf = hdr_flags::access(p);
                 if (hf->pri_) {   
 		  /* Regular In packets */
                   in_idle_ = 0;
-		  in_bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
+		  in_bcount_ -= hdr_cmn::access(p)->size();
 		  --in_len_;
 		}
 	} else {
@@ -179,7 +179,7 @@ Packet* RIOQueue::deque()
 int
 RIOQueue::drop_in_early(Packet* pkt)
 {
-	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(pkt);
 
         edv_in_.v_prob1 = REDQueue::calculate_p(edv_in_.v_ave, edp_in_.th_max, 
 	  edp_in_.gentle, edv_in_.v_a, edv_in_.v_b, edv_in_.v_c, 
@@ -194,8 +194,7 @@ RIOQueue::drop_in_early(Packet* pkt)
 		// DROP or MARK
 		edv_in_.count = 0;
 		edv_in_.count_bytes = 0;
-		hdr_flags* hf = 
-                  (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
+		hdr_flags* hf = hdr_flags::access(pickPacketForECN(pkt));
 		if (edp_.setbit && hf->ect() && 
 				edv_in_.v_ave < edp_in_.th_max) {
 			hf->ce() = 1; 	// mark Congestion Experienced bit
@@ -217,7 +216,7 @@ RIOQueue::drop_in_early(Packet* pkt)
 
 int RIOQueue::drop_out_early(Packet* pkt)
 {
-        hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+        hdr_cmn* ch = hdr_cmn::access(pkt);
 
         edv_out_.v_prob1 = REDQueue::calculate_p(edv_.v_ave, edp_out_.th_max, 
 	  edp_out_.gentle, edv_out_.v_a, edv_out_.v_b, edv_out_.v_c, 
@@ -232,8 +231,7 @@ int RIOQueue::drop_out_early(Packet* pkt)
            	// DROP or MARK
            	edv_out_.count = 0;
            	edv_out_.count_bytes = 0;
-           	hdr_flags* hf = 
-			(hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
+           	hdr_flags* hf = hdr_flags::access(pickPacketForECN(pkt));
            	if (edp_.setbit && hf->ecn_capable_ &&
 				edv_.v_ave < edp_out_.th_max) {
 			hf->ce() = 1; 	// mark Congestion Experienced bit
@@ -272,9 +270,8 @@ void RIOQueue::enque(Packet* pkt)
 
         /* Duplicate the RED algorithm to carry out a separate
          * calculation for Out packets -- Wenjia */
-	hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
-	int off_ip_ = hdr_ip::offset();
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	hdr_flags* hf = hdr_flags::access(pkt);
+	hdr_ip* iph = hdr_ip::access(pkt);
 	if (priority_method_ == 1) {
 		hf->pri_ = iph->flowid();
 	}
@@ -322,7 +319,7 @@ void RIOQueue::enque(Packet* pkt)
 	 * it has been since the last early drop)
 	 */
 
-	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(pkt);
 	++edv_.count;
 	edv_.count_bytes += ch->size();
 
@@ -338,7 +335,7 @@ void RIOQueue::enque(Packet* pkt)
 	 *	3> if (q+1) > hard q limit, this is a FORCED drop
 	 */
 
-	register double qavg = edv_.v_ave;
+	// register double qavg = edv_.v_ave;
 	register double in_qavg = edv_in_.v_ave;
 	int droptype = DTYPE_NONE;
 	int qlen = qib_ ? bcount_ : q_->length();
@@ -389,12 +386,11 @@ void RIOQueue::enque(Packet* pkt)
 			in_bcount_ += ch->size();
 			q_->remove(pkt_to_drop);
                         // printf("remove qlen %d %d\n",q_->length(),length());
-			bcount_ -= 
-                          ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
-                        if(((hdr_flags*)pkt_to_drop->access(off_flags_))->pri_)
+			bcount_ -= hdr_cmn::access(pkt_to_drop)->size();
+                        if (hdr_flags::access(pkt_to_drop)->pri_)
                            {
                              in_bcount_ -= 
-                               ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
+				     hdr_cmn::access(pkt_to_drop)->size();
                              --in_len_;
                            }
 			pkt = pkt_to_drop; /* ok 'cause pkt not needed anymore */
@@ -418,10 +414,9 @@ void RIOQueue::enque(Packet* pkt)
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
                         // printf("remove qlen %d %d\n",q_->length(),length());
-			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
-                        if(((hdr_flags*)pkt->access(off_flags_))->pri_) {
-                          in_bcount_ -= 
-                            ((hdr_cmn*)pkt->access(off_cmn_))->size(); 
+			bcount_ -= hdr_cmn::access(pkt)->size();
+                        if (hdr_flags::access(pkt)->pri_) {
+                          in_bcount_ -= hdr_cmn::access(pkt)->size(); 
                           --in_len_;
                           }
 			drop(pkt);
@@ -443,7 +438,7 @@ void RIOQueue::enque(Packet* pkt)
            * it has been since the last early drop)
            */
 
-          hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+          hdr_cmn* ch = hdr_cmn::access(pkt);
           ++edv_.count;
           edv_.count_bytes += ch->size();
 
@@ -513,12 +508,10 @@ void RIOQueue::enque(Packet* pkt)
                           bcount_ += ch->size();
                           q_->remove(pkt_to_drop);
 			  //printf("remove qlen %d %d\n",q_->length(),length());
-                          bcount_ -= 
-                            ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
-                          if(((hdr_flags*)pkt_to_drop->access(off_flags_))->pri_)
+                          bcount_ -= hdr_cmn::access(pkt_to_drop)->size();
+                          if (hdr_flags::access(pkt_to_drop)->pri_)
 			  {
-                             in_bcount_ -= 
-                               ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
+                             in_bcount_ -=hdr_cmn::access(pkt_to_drop)->size();
 			     --in_len_;
 			  }
                           pkt = pkt_to_drop;/* ok cause pkt not needed anymore */
@@ -540,11 +533,10 @@ void RIOQueue::enque(Packet* pkt)
                           pkt = pickPacketToDrop();
                           q_->remove(pkt);
 			  //printf("remove qlen %d %d\n",q_->length(),length());
-                          bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
-                          if (((hdr_flags*)pkt->access(off_flags_))->pri_)
+                          bcount_ -= hdr_cmn::access(pkt)->size();
+                          if (hdr_flags::access(pkt)->pri_)
 			  {
-                            in_bcount_ -= 
-                              ((hdr_cmn*)pkt->access(off_cmn_))->size();
+                            in_bcount_ -= hdr_cmn::access(pkt)->size();
 			    --in_len_;
 			  }
                           drop(pkt);

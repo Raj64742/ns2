@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.28 2000/08/12 21:45:39 sfloyd Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.29 2000/09/01 03:04:07 haoboy Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -106,11 +106,10 @@ VegasTcpAgent::reset()
 void
 VegasTcpAgent::recv_newack_helper(Packet *pkt)
 {
-	//hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newack(pkt);
 #if 0
 	// like TcpAgent::recv_newack_helper, but without this
-	if ( !((hdr_flags*)pkt->access(off_flags_))->ecnecho() || !ecn_ ) {
+	if ( !hdr_flags::access(pkt)->ecnecho() || !ecn_ ) {
 	        opencwnd();
 	}
 #endif
@@ -125,8 +124,8 @@ void
 VegasTcpAgent::recv(Packet *pkt, Handler *)
 {
 	double currentTime = vegastime();
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_flags *flagh = (hdr_flags*)pkt->access(off_flags_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	hdr_flags *flagh = hdr_flags::access(pkt);
 
 #if 0
 	if (pkt->type_ != PT_ACK) {
@@ -411,7 +410,7 @@ void
 VegasTcpAgent::output(int seqno, int reason)
 {
 	Packet* p = allocpkt();
-	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(p);
 	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
 	tcph->ts() = now;
@@ -464,7 +463,7 @@ VegasTcpAgent::output(int seqno, int reason)
 int
 VegasTcpAgent::vegas_expire(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	double elapse = vegastime() - v_sendtime_[(tcph->seqno()+1)%v_maxwnd_];
 	if (elapse >= v_timeout_) {
 		return(tcph->seqno()+1);

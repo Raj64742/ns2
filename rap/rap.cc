@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.11 2000/01/07 06:25:32 sfloyd Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.12 2000/09/01 03:04:11 haoboy Exp $
 
 #include "rap.h"
 
@@ -114,7 +114,6 @@ RapAgent::RapAgent() : Agent(PT_RAP_DATA), ipgTimer_(this), rttTimer_(this),
 
 	bind("debugEnable_", &debugEnable_);	// Default FALSE
 
-	bind("off_rap_", &off_rap_);
 	bind("rap_base_hdr_size_", &rap_base_hdr_size_);
 
 	bind("dpthresh_", &dpthresh_);
@@ -266,7 +265,7 @@ void RapAgent::SendPacket(int nbytes, AppData *data)
 		pkt = allocpkt();
 
 	// Fill in RAP headers
-	hdr_rap* hdr = (hdr_rap*) pkt->access(off_rap_);
+	hdr_rap* hdr = hdr_rap::access(pkt);
 	hdr->seqno() = ++seqno_;	// Start counting from 1;
 	hdr->lastRecv = hdr->lastMiss = hdr->prevRecv = 0; // Ignore @ sender
 	hdr->flags() = RH_DATA;
@@ -278,7 +277,7 @@ void RapAgent::SendPacket(int nbytes, AppData *data)
 	}
 	// XXX Simply set packet size to the given ADU's nominal size. 
 	// Make sure that the size is reasonable!!
-	hdr_cmn *ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn *ch = hdr_cmn::access(pkt);
 	ch->size() = nbytes; 
 
 	send(pkt, 0);
@@ -300,7 +299,7 @@ void RapAgent::recv(Packet* pkt, Handler*)
 	Debug(debugEnable_, logfile_, 
 	      "%.3f: RAP packet received.\n", Scheduler::instance().clock());
 
-	hdr_rap* hdr = (hdr_rap*) pkt->access(off_rap_); // Access RAP header
+	hdr_rap* hdr = hdr_rap::access(pkt); // Access RAP header
 
 	switch (hdr->flags()) { 
 	case RH_DATA:
@@ -635,7 +634,7 @@ void RapAgent::SendAck(int seqNum)
 {
 	type_ = PT_RAP_ACK;
 	Packet* pkt = allocpkt();	// Create a new packet
-	hdr_rap* hdr = (hdr_rap*) pkt->access(off_rap_);   // Access header
+	hdr_rap* hdr = hdr_rap::access(pkt);   // Access header
 
 	hdr->seqno() = seqNum;
 	hdr->flags() = RH_ACK;
@@ -644,7 +643,7 @@ void RapAgent::SendAck(int seqNum)
 	hdr->lastMiss = lastMiss_;
 	hdr->prevRecv = prevRecv_;
 
-	hdr_cmn *ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn *ch = hdr_cmn::access(pkt);
 	ch->size() = rap_base_hdr_size_;
 
 	send(pkt, 0);

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.81 2000/08/20 00:24:35 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.82 2000/09/01 03:04:08 haoboy Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -296,7 +296,6 @@ protected:
         int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
         int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */
 	double firstsent_;	/* When first packet was sent  --Allman */
-	int off_tcp_;
 	int slow_start_restart_; /* boolean: re-init cwnd after connection 
 				    goes idle.  On by default. */
 	int restart_bugfix_;    /* ssthresh is cut down because of

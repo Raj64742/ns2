@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.h,v 1.2 2000/08/18 18:34:03 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.h,v 1.3 2000/09/01 03:04:10 haoboy Exp $
 
 #ifndef ns_rtprotols_h
 #define ns_rtprotols_h
@@ -50,7 +50,6 @@ extern LsMessageCenter messageCenter;
 class rtProtoLS : public Agent , public LsNode {
 public:
         rtProtoLS() : Agent(PT_RTPROTO_LS) { 
-		bind("off_LS_", &off_LS_);
 		LS_ready_ = 0;
 	}
         int command(int argc, const char*const* argv);
@@ -58,8 +57,6 @@ public:
         void recv(Packet* p, Handler*);
 
 protected:
-	int off_LS_;
-
 	void initialize(); // init nodeState_ and routing_
 	void setDelay(int nbrId, double delay) {
 		delayMap_.insert(nbrId, delay);

@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.41 2000/08/12 21:45:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.42 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -60,7 +60,7 @@ NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0),
  */
 void NewRenoTcpAgent::partialnewack(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 #ifdef notyet
 	if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
 		stp->endtime = (float) realtime();
@@ -158,7 +158,7 @@ reno_action:
 
 void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
@@ -187,7 +187,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 	++nackpack_;
 	ts_peer_ = tcph->ts();
 
-	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
+	if (hdr_flags::access(pkt)->ecnecho() && ecn_)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
@@ -215,7 +215,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			partialnewack_helper(pkt);
 		}
 	} else if (tcph->seqno() == last_ack_) {
-		if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
+		if (hdr_flags::access(pkt)->eln_ && eln_) {
 			tcp_eln(pkt);
 			return;
 		}

@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.2 2000/08/12 21:46:10 sfloyd Exp $ (PSC-SACKRH)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.3 2000/09/01 03:04:07 haoboy Exp $ (PSC-SACKRH)";
 #endif
 
 #include <stdio.h>
@@ -98,7 +98,7 @@ SackRHTcpAgent::SackRHTcpAgent() : fack_(-1),
 void SackRHTcpAgent::recv(Packet *pkt, Handler*)
 {
 	int old_fack, old_retran_data, old_ack, old_numdupacks;
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
 	int ecnecho = (hdr_flags::access(pkt)->ecnecho() && last_ack_ != -1);
 	int sackpresent = (tcph->sa_length() > 0);

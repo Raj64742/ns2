@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.h,v 1.5 1999/09/09 03:25:24 salehi Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.h,v 1.6 2000/09/01 03:04:06 haoboy Exp $ (USC/ISI)
  */
 
 #ifndef ns_rtprotodv_h
@@ -31,7 +31,7 @@ struct hdr_DV {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_DV* access(Packet* p) {
+	inline static hdr_DV* access(const Packet* p) {
 		return (hdr_DV*) p->access(offset_);
 	}
 
@@ -41,14 +41,10 @@ struct hdr_DV {
 
 class rtProtoDV : public Agent {
 public:
-	rtProtoDV() : Agent(PT_RTPROTO_DV) { 
-		bind("off_DV_", &off_DV_);
-	}
+	rtProtoDV() : Agent(PT_RTPROTO_DV) {}
 	int command(int argc, const char*const* argv);
 	void sendpkt(ns_addr_t dst, u_int32_t z, u_int32_t mtvar);
 	void recv(Packet* p, Handler*);
-protected:
-	int off_DV_;
 };
 
 #endif

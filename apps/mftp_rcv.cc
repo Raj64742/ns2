@@ -18,6 +18,8 @@
  * Last change: Dec 14, 1998
  *
  * This software may freely be used only for non-commercial purposes
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/Attic/mftp_rcv.cc,v 1.8 2000/09/01 03:04:06 haoboy Exp $
  */
 
 // This file contains functionality specific to an MFTP receiver.
@@ -84,8 +86,8 @@ int MFTPRcvAgent::command(int argc, const char*const* argv)
 // process reception of a packet
 void MFTPRcvAgent::recv(Packet* p, Handler* h)
 {
-    hdr_ip* ih = (hdr_ip*) p->access(off_ip_);
-    hdr_mftp* mh = (hdr_mftp*) p->access(off_mftp_);
+    hdr_ip* ih = hdr_ip::access(p);
+    hdr_mftp* mh = hdr_mftp::access(p);
 
     if(ih->daddr() == 0) {
         // packet from local agent
@@ -191,9 +193,9 @@ void MFTPRcvAgent::send_nak(unsigned long pass_nb, unsigned long block_nb)
     }
 
     if(bit_count > 0) {
-        hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
-        hdr_mftp* hdr = (hdr_mftp*) p->access(off_mftp_);
-        hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+        hdr_ip* iph = hdr_ip::access(p);
+        hdr_mftp* hdr = hdr_mftp::access(p);
+        hdr_cmn* ch = hdr_cmn::access(p);
 
         // now generate the header
 	iph->dst() = reply_;    // overwrite settings from Agent::allocpkt()

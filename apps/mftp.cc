@@ -18,6 +18,8 @@
  * Last change: Dec 07, 1998
  *
  * This software may freely be used only for non-commercial purposes
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/Attic/mftp.cc,v 1.3 2000/09/01 03:04:06 haoboy Exp $
  */
 
 // This file contains functionality common to both MFTP sender and receivers.
@@ -34,10 +36,6 @@ MFTPAgent::MFTPAgent() :
     bind("dtusPerBlock_", &dtusPerBlock_);
     bind("dtusPerGroup_", &dtusPerGroup_);
     bind("seekCount_", &seekCount_);
-
-    bind("off_mftp_", &off_mftp_);
-    bind("off_cmn_", &off_cmn_);
-
 };
 
 int MFTPAgent::init()

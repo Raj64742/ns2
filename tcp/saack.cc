@@ -16,6 +16,8 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/saack.cc,v 1.7 2000/09/01 03:04:07 haoboy Exp $
  */
 
 //SignalAckClass
@@ -32,12 +34,10 @@ public:
 protected:
 	void recv(Packet *, Handler *);
 	int command(int,const char* const*);
-	int off_resv_;
 };
 
 SAack_Agent::SAack_Agent(): Agent(PT_TCP)
 {
-	bind("off_resv_",&off_resv_);
 }
 
 static class SAackClass : public TclClass {
@@ -51,21 +51,21 @@ public:
 
 void SAack_Agent::recv(Packet *p, Handler *h)
 {
-	hdr_cmn *ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn *ch = hdr_cmn::access(p);
 	
 	if (ch->ptype() == PT_REQUEST) {
 		Packet *newp =allocpkt();
-		hdr_cmn *newch=(hdr_cmn*)newp->access(off_cmn_);
+		hdr_cmn *newch=hdr_cmn::access(newp);
 		newch->size()=ch->size();
 		// turn the packet around by swapping src and dst
-		hdr_ip * iph = (hdr_ip*)p->access(off_ip_);
-		hdr_ip * newiph = (hdr_ip*)newp->access(off_ip_);
+		hdr_ip * iph = hdr_ip::access(p);
+		hdr_ip * newiph = hdr_ip::access(newp);
 		newiph->dst()=iph->src();
 		newiph->flowid()=iph->flowid();
 		newiph->prio()=iph->prio();
 		
-		hdr_resv* rv=(hdr_resv*)p->access(off_resv_);
-		hdr_resv* newrv=(hdr_resv*)newp->access(off_resv_);
+		hdr_resv* rv=hdr_resv::access(p);
+		hdr_resv* newrv=hdr_resv::access(newp);
 		newrv->decision()=rv->decision();
 		newrv->rate()=rv->rate();
 		newrv->bucket()=rv->bucket();

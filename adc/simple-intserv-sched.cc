@@ -53,7 +53,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/simple-intserv-sched.cc,v 1.5 1999/09/24 17:04:38 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/simple-intserv-sched.cc,v 1.6 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
 #endif
 
 
@@ -77,15 +77,12 @@ public:
 			sprintf(buf,"qlimit%d_",i);
 			bind(buf,&qlimit_[i]);
 		}
-		bind("off_ip_",&off_ip_);
 	}
 	protected :
 	void enque(Packet *);
 	Packet *deque();
 	PacketQueue *q_[CLASSES];
 	int qlimit_[CLASSES];
-	int off_ip_;
-	
 };
 
 
@@ -100,11 +97,11 @@ public:
 void SimpleIntServ::enque(Packet* p)
 {
 	
-	hdr_ip* iph=(hdr_ip*)p->access(off_ip_);
+	hdr_ip* iph=hdr_ip::access(p);
 	int cl=(iph->flowid()) ? 1:0;
 	
 	if (q_[cl]->length() >= (qlimit_[cl]-1)) {
-		hdr_cmn* ch=(hdr_cmn*)p->access(off_cmn_);
+		hdr_cmn* ch=hdr_cmn::access(p);
 		packet_t ptype = ch->ptype();
 		if ( (ptype != PT_REQUEST) && (ptype != PT_REJECT) && (ptype != PT_ACCEPT) && (ptype != PT_CONFIRM) && (ptype != PT_TEARDOWN) ) {
 			drop(p);

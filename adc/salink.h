@@ -39,8 +39,6 @@ protected:
 	void recv(Packet *,Handler *);
 	ADC *adc_;
 	int RTT;
-	int off_ip_;
-	int off_resv_;
 	pending pending_[NFLOWS];
 	int lookup(int);
 	int get_nxt();

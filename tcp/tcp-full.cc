@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.81 2000/08/23 01:05:13 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.82 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -228,7 +228,7 @@ FullTcpAgent::reset()
 int
 FullTcpAgent::pack(Packet *pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	return (tcph->ackno() >= highest_ack_ &&
 		tcph->ackno() < recover_);
 }
@@ -422,7 +422,7 @@ void
 FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reason)
 {
         Packet* p = allocpkt();
-        hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+        hdr_tcp *tcph = hdr_tcp::access(p);
 
 	/* build basic header w/options */
 
@@ -436,7 +436,7 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 
 	/* ECT, ECN, and congestion action */
 
-        hdr_flags *fh = (hdr_flags *)p->access(off_flags_);
+        hdr_flags *fh = hdr_flags::access(p);
 	fh->ect() = ect_;	// on after mutual agreement on ECT
 	if (ecn_ && !ect_)	// initializing; ect = 0, ecnecho = 1
 		fh->ecnecho() = 1;
@@ -448,7 +448,7 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 
 	/* actual size is data length plus header length */
 
-        hdr_cmn *ch = (hdr_cmn*)p->access(off_cmn_);
+        hdr_cmn *ch = hdr_cmn::access(p);
         ch->size() = datalen + tcph->hlen();
 
         if (datalen <= 0)
@@ -772,7 +772,7 @@ void FullTcpAgent::finish()
  */
 void FullTcpAgent::newack(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
 	register int ackno = tcph->ackno();
 	int progress = (ackno > highest_ack_);
@@ -808,7 +808,7 @@ void FullTcpAgent::newack(Packet* pkt)
          * in the network intersperse acks (e.g., ack-reconstructors) for
          * various reasons (without violating e2e semantics).
          */
-        hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+        hdr_flags *fh = hdr_flags::access(pkt);
         if (!fh->no_ts_) {
                 if (ts_option_) {
 			recent_age_ = now();
@@ -852,8 +852,8 @@ void FullTcpAgent::newack(Packet* pkt)
 int
 FullTcpAgent::predict_ok(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-        hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+        hdr_flags *fh = hdr_flags::access(pkt);
 
 	/* not the fastest way to do this, but perhaps clearest */
 
@@ -947,9 +947,9 @@ FullTcpAgent::set_initial_window() {
  */
 void FullTcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
-	hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	hdr_cmn *th = hdr_cmn::access(pkt);
+	hdr_flags *fh = hdr_flags::access(pkt);
 
 	int needoutput = FALSE;
 	int ourfinisacked = FALSE;
@@ -1617,7 +1617,7 @@ cancel_timers();	// DOES THIS BELONG HERE?, probably (see tcp_cose
 				goto drop;
 			} else {
 				// should be a FIN we've seen
-				hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+				hdr_ip* iph = hdr_ip::access(pkt);
                                 fprintf(stderr,
                                 "%f: %d.%d>%d.%d FullTcpAgent::recv(%s) received non-ACK (state:%d)\n",
                                         now(),
@@ -1972,8 +1972,6 @@ int FullTcpAgent::command(int argc, const char*const* argv)
 ReassemblyQueue::ReassemblyQueue(int& nxt) :
 	head_(NULL), tail_(NULL), ptr_(NULL), rcv_nxt_(nxt)
 {
-	bind("off_tcp_", &off_tcp_);
-	bind("off_cmn_", &off_cmn_);
 }
 
 /*
@@ -2237,8 +2235,8 @@ ReassemblyQueue::sync()
 
 int ReassemblyQueue::add(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	hdr_cmn *th = hdr_cmn::access(pkt);
 
 	int start = tcph->seqno();
 	int end = start + th->size() - tcph->hlen();
@@ -2437,8 +2435,8 @@ FullTcpAgent::dooptions(Packet* pkt)
 	// interesting options: timestamps (here),
 	//	CC, CCNEW, CCECHO (future work perhaps)
 
-        hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+        hdr_flags *fh = hdr_flags::access(pkt);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
 	if (ts_option_ && !fh->no_ts_) {
 		if (tcph->ts() < 0.0) {
@@ -2601,7 +2599,7 @@ SackFullTcpAgent::reset()
 void
 SackFullTcpAgent::recv(Packet* pkt, Handler* h)
 {
-	hdr_tcp* tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp* tcph = hdr_tcp::access(pkt);
 	int ackno = tcph->ackno();
 
 	if (state_ == TCPS_ESTABLISHED &&

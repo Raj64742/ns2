@@ -16,6 +16,8 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/salink.cc,v 1.5 2000/09/01 03:04:07 haoboy Exp $
  */
 
 #include "packet.h"
@@ -33,18 +35,13 @@ public:
 	}
 }class_salink;
 
-
-
 SALink::SALink() : adc_(0), numfl_(-1), tchan_(0), onumfl_(0), last_(-1)
 {
-
 	int i;
 	for (i=0;i<NFLOWS;i++) {
 		pending_[i].flowid=-1;
 		pending_[i].status=0;
 	}
-	bind("off_resv_",&off_resv_);
-	bind("off_ip_",&off_ip_);
 	bind("src_", &src_);
 	bind("dst_", &dst_);
 
@@ -58,9 +55,9 @@ void SALink::recv(Packet *p, Handler *h)
 	int decide;
 	int j;
 	
-	hdr_cmn *ch=(hdr_cmn*)p->access(off_cmn_);
-	hdr_ip *iph=(hdr_ip*)p->access(off_ip_);
-	hdr_resv *rv=(hdr_resv*)p->access(off_resv_);
+	hdr_cmn *ch=hdr_cmn::access(p);
+	hdr_ip *iph=hdr_ip::access(p);
+	hdr_resv *rv=hdr_resv::access(p);
 	
 	//CLEAN THIS UP
 	int cl=(iph->flowid())?1:0;

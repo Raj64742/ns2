@@ -16,6 +16,8 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/resv.h,v 1.4 2000/09/01 03:04:06 haoboy Exp $
  */
 
 /* define a simple reservation header service */
@@ -33,7 +35,7 @@ struct hdr_resv {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_resv* access(Packet* p) {
+	inline static hdr_resv* access(const Packet* p) {
 		return (hdr_resv*) p->access(offset_);
 	}
 

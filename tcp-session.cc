@@ -30,6 +30,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-session.cc,v 1.18 2000/09/01 03:04:07 haoboy Exp $
  */
 
 #include <stdlib.h>
@@ -201,8 +203,8 @@ TcpSessionAgent::newack(Packet *pkt)
 {
 	double now = Scheduler::instance().clock();
 	Islist_iter<Segment> seg_iter(seglist_);
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	hdr_flags *fh = hdr_flags::access(pkt);
 
 	if (!fh->no_ts_) {
 		/* if the timestamp option is being used */
@@ -496,9 +498,9 @@ TcpSessionAgent::send_much(IntTcpAgent* /*agent*/, int force, int reason)
 void
 TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 {
-	hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
-	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
+	if (hdr_flags::access(pkt)->ecnecho() && ecn_)
 		quench(1, agent, tcph->seqno());
 	clean_segs(size_, pkt, agent, sessionSeqno_,amt_data_acked);
 	/* XXX okay to do this after clean_segs? */
@@ -523,7 +525,7 @@ TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 void
 TcpSessionAgent::setflags(Packet *pkt)
 {
-	hdr_flags *hf = (hdr_flags *) pkt->access(off_flags_);
+	hdr_flags *hf = hdr_flags::access(pkt);
 	if (ecn_)
 		hf->ect() = 1;
 }

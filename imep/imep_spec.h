@@ -30,13 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep_spec.h,v 1.3 2000/09/01 03:04:10 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code*/
-
-/* -*- c++ -*-
-   imep_spec.h
-   $Id: imep_spec.h,v 1.2 1999/08/12 21:17:21 yaxu Exp $
-   */
 
 #ifndef __imep_spec_h__
 #define __imep_spec_h__
@@ -104,6 +102,13 @@ struct hdr_imep {
 	u_int8_t          imep_version : 4;
 	u_int8_t	  imep_block_flags : 4;
 	u_int16_t	  imep_length;
+
+	// Header access methods
+	static int offset_; // required by PacketHeaderManager
+	inline static int& offset() { return offset_; }
+	inline static hdr_imep* access(const Packet* p) {
+		return (hdr_imep*) p->access(offset_);
+	}
 };
 
 /* hdr_imep actually takes 4 bytes, not 3, b/c we aren't packing the

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.115 2000/08/20 00:24:35 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.116 2000/09/01 03:04:08 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -74,9 +74,6 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	first_decrease_(1)
 	
 {
-        off_ip_ = hdr_ip::offset();
-        off_tcp_ = hdr_tcp::offset();
-
 #ifdef TCP_DELAY_BIND_ALL
 #else /* ! TCP_DELAY_BIND_ALL */
 	// not delay-bound because delay-bound tracevars aren't yet supported

@@ -30,17 +30,14 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
-
-/* 
-   dsragent.cc
-
-   requires a radio model such that sendPacket returns true
-   iff the packet is recieved by the destination node.
-
-   $Id: dsragent.cc,v 1.21 2000/08/18 18:34:02 haoboy Exp $
-*/
+ *
+ * Ported from CMU/Monarch's code, nov'98 -Padma.
+ *
+ * Requires a radio model such that sendPacket returns true
+ * iff the packet is recieved by the destination node.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.22 2000/09/01 03:04:09 haoboy Exp $
+ */ 
 
 #include <assert.h>
 #include <math.h>
@@ -335,11 +332,6 @@ route_cache(NULL), send_buf_timer(this)
   for (c = 0; c < RTREP_HOLDOFF_SIZE ; c++)
     grat_hold[c].p.reset();
 
-  bind("off_SR_", &off_sr_);
-  bind("off_ll_", &off_ll_);
-  bind("off_mac_", &off_mac_);
-  bind("off_ip_", &off_ip_);
-
   LIST_INSERT_HEAD(&agthead, this, link);
   route_error_held = false;
 }
@@ -550,9 +542,9 @@ DSRAgent::recv(Packet* packet, Handler*)
   /* handle packets with a MAC destination address of this host, or
      the MAC broadcast addr */
 {
-  hdr_sr *srh =  (hdr_sr*)packet->access(off_sr_);
-  hdr_ip *iph =  (hdr_ip*)packet->access(off_ip_);
-  hdr_cmn *cmh =  (hdr_cmn*)packet->access(off_cmn_);
+  hdr_sr *srh = hdr_sr::access(packet);
+  hdr_ip *iph = hdr_ip::access(packet);
+  hdr_cmn *cmh =  hdr_cmn::access(packet);
   
   assert(cmh->size() >= 0);
 
@@ -640,7 +632,7 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
   /* obtain a source route to p's destination and send it off.
      this should be a retry if the packet is already in the sendbuffer */
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
   
   assert(srh->valid());
   if (p.dest == net_id)
@@ -687,8 +679,7 @@ void
 DSRAgent::handlePacketReceipt(SRPacket& p)
   /* Handle a packet destined to us */
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
-  //hdr_ip *iph = HDR_IP(p.pkt);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
   
   if (srh->route_reply())
     { // we got a route_reply piggybacked on a route_request
@@ -755,8 +746,8 @@ DSRAgent::handleForwarding(SRPacket &p)
   /* forward packet on to next host in source route,
    snooping as appropriate */
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
-  hdr_cmn *cmh =  (hdr_cmn*)p.pkt->access(off_cmn_);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_cmn *cmh = hdr_cmn::access(p.pkt);
 
   trace("SF %.9f _%s_ --- %d [%s -> %s] %s", 
 	Scheduler::instance().clock(), net_id.dump(), cmh->uid(),
@@ -796,7 +787,7 @@ DSRAgent::handleRouteRequest(SRPacket &p)
   /* process a route request that isn't targeted at us */
 {
 
-	hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+	hdr_sr *srh = hdr_sr::access(p.pkt);
 	assert (srh->route_request());
 
   if (ignoreRouteRequestp(p)) 
@@ -870,7 +861,7 @@ bool
 DSRAgent::ignoreRouteRequestp(SRPacket &p)
 // should we ignore this route request?
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
 
   if (request_table.get(p.src) >= srh->rtreq_seq())
     { // we've already processed a copy of this reqest so
@@ -934,8 +925,8 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
 
   // if there is any other information piggybacked into the
   // route request pkt, we need to forward it on to the dst
-  hdr_cmn *cmh =  (hdr_cmn*)p.pkt->access(off_cmn_);
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_cmn *cmh = hdr_cmn::access(p.pkt);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
   int request_seqnum = srh->rtreq_seq();
   
   if (PT_DSR != cmh->ptype()	// there's data
@@ -973,14 +964,14 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   p.src = net_id;
   p.pkt = allocpkt();
 
-  hdr_ip *iph =  (hdr_ip*)p.pkt->access(off_ip_);
+  hdr_ip *iph = hdr_ip::access(p.pkt);
   iph->saddr() = Address::instance().create_ipaddr(p.src.addr,RT_PORT);
   iph->sport() = RT_PORT;
   iph->daddr() = Address::instance().create_ipaddr(p.dest.addr,RT_PORT);
   iph->dport() = RT_PORT;
   iph->ttl() = 255;
 
-  srh = (hdr_sr*)p.pkt->access(off_sr_);
+  srh = hdr_sr::access(p.pkt);
   srh->init();
   for (int i = 0 ; i < complete_route.length() ; i++)
     complete_route[i].fillSRAddr(srh->reply_addrs()[i]);
@@ -990,7 +981,7 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   // propagate the request sequence number in the reply for analysis purposes
   srh->rtreq_seq() = request_seqnum;
 
-  hdr_cmn *cmnh =  (hdr_cmn*)p.pkt->access(off_cmn_);
+  hdr_cmn *cmnh = hdr_cmn::access(p.pkt);
   cmnh->ptype() = PT_DSR;
   cmnh->size() = IP_HDR_LEN;
 
@@ -1011,8 +1002,8 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
      //  is false then our caller wants us use a path with the index
      //  set as it currently is
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
-  hdr_cmn *cmnh = (hdr_cmn*)p.pkt->access(off_cmn_);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
+  hdr_cmn *cmnh = hdr_cmn::access(p.pkt);
 
   assert(srh->valid());
   assert(cmnh->size() > 0);
@@ -1118,9 +1109,9 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   /* make the route request packet */
   SRPacket rrp = p;
   rrp.pkt = p.pkt->copy();
-  hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
-  hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
-  hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
+  hdr_sr *srh = hdr_sr::access(rrp.pkt);
+  hdr_ip *iph = hdr_ip::access(rrp.pkt);
+  hdr_cmn *cmnh = hdr_cmn::access(rrp.pkt);
   iph->daddr() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
   iph->dport() = RT_PORT;
   iph->saddr() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
@@ -1135,9 +1126,9 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   rrp.dest = dest;
   rrp.src = net_id;
   rrp.pkt = allocpkt();
-  hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
-  hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
-  hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
+  hdr_sr *srh = hdr_sr::access(rrp.pkt);
+  hdr_ip *iph = hdr_ip::access(rrp.pkt);
+  hdr_cmn *cmnh = hdr_cmn::access(rrp.pkt);
   
   iph->daddr() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
   
@@ -1189,7 +1180,7 @@ DSRAgent::sendOutRtReq(SRPacket &p, int max_prop)
   // set as specified
   // p.pkt is freed or handed off
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
   assert(srh->valid());
 
   srh->route_request() = 1;
@@ -1226,7 +1217,7 @@ void
 DSRAgent::handleRteRequestForOutsideDomain(SRPacket& p)
 {
    /* process a route request for a outside-domain dst*/
-   hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+   hdr_sr *srh = hdr_sr::access(p.pkt);
    assert (srh->route_request());
    
    if (dsragent_reply_only_to_first_rtreq  && ignoreRouteRequestp(p)) 
@@ -1256,7 +1247,7 @@ DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
   // to the end of it and return the route to the sender of p
   // doesn't free p.pkt
 
-  hdr_sr *old_srh = (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_sr *old_srh = hdr_sr::access(p.pkt);
   if (p.route.full()) 
        return; // alas, the route would be to long once we add ourselves
   
@@ -1268,7 +1259,7 @@ DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
   p_copy.route.appendToPath(net_id);
   p_copy.route.appendToPath(p_copy.src);
   
-  hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
+  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
   new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
   new_iph->saddr() =
@@ -1276,7 +1267,7 @@ DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
-  hdr_sr *new_srh =  (hdr_sr*)p_copy.pkt->access(off_sr_);
+  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
   new_srh->init();
   for (int i = 0 ; i < p_copy.route.length() ; i++)
     p_copy.route[i].fillSRAddr(new_srh->reply_addrs()[i]);
@@ -1286,7 +1277,7 @@ DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
   // propagate the request sequence number in the reply for analysis purposes
   new_srh->rtreq_seq() = old_srh->rtreq_seq();
 
-  hdr_cmn *new_cmnh =  (hdr_cmn*)p_copy.pkt->access(off_cmn_);
+  hdr_cmn *new_cmnh = hdr_cmn::access(p_copy.pkt);
   new_cmnh->ptype() = PT_DSR;
   new_cmnh->size() = IP_HDR_LEN;
 
@@ -1319,7 +1310,7 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   // route to the sender of p
   // doesn't free p.pkt
 {
-  hdr_sr *old_srh = (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_sr *old_srh = hdr_sr::access(p.pkt);
 
   if (p.route.full()) 
     return; // alas, the route would be to long once we add ourselves
@@ -1331,7 +1322,7 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
 
   p_copy.route.appendToPath(net_id);
 
-  hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
+  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
   new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
   new_iph->saddr() =
@@ -1339,7 +1330,7 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
-  hdr_sr *new_srh =  (hdr_sr*)p_copy.pkt->access(off_sr_);
+  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
   new_srh->init();
   for (int i = 0 ; i < p_copy.route.length() ; i++)
     p_copy.route[i].fillSRAddr(new_srh->reply_addrs()[i]);
@@ -1349,7 +1340,7 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   // propagate the request sequence number in the reply for analysis purposes
   new_srh->rtreq_seq() = old_srh->rtreq_seq();
 
-  hdr_cmn *new_cmnh =  (hdr_cmn*)p_copy.pkt->access(off_cmn_);
+  hdr_cmn *new_cmnh = hdr_cmn::access(p_copy.pkt);
   new_cmnh->ptype() = PT_DSR;
   new_cmnh->size() = IP_HDR_LEN;
 
@@ -1380,7 +1371,7 @@ DSRAgent::acceptRouteReply(SRPacket &p)
      - see if any packets are waiting to be sent out with this source route
      - doesn't free the pkt */
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
   Path reply_route(srh->reply_addrs(), srh->route_reply_len());
 
   if (!srh->route_reply())
@@ -1466,7 +1457,7 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
 // if needed, send the remainder of the errors to the next person
 // doesn't free p.pkt
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+  hdr_sr *srh = hdr_sr::access(p.pkt);
 
   if (!srh->route_error())
     return; // what happened??
@@ -1525,8 +1516,8 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
   SRPacket p_copy = p;
   p_copy.pkt = p.pkt->copy();
 
-  hdr_sr *new_srh = (hdr_sr*)p_copy.pkt->access(off_sr_);
-  hdr_ip *new_iph = (hdr_ip*)p_copy.pkt->access(off_ip_);
+  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
+  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
   
   // remove us from the list of errors
   new_srh->num_route_errors() -= 1;
@@ -1553,9 +1544,9 @@ DSRAgent::tap(const Packet *packet)
   /* process packets that are promiscously listened to from the MAC layer tap
   *** do not change or free packet *** */
 {
-  hdr_sr *srh =  (hdr_sr*)packet->access(off_sr_);
-  hdr_ip *iph =  (hdr_ip*)packet->access(off_ip_);
-  hdr_cmn *cmh =  (hdr_cmn*)packet->access(off_cmn_);
+  hdr_sr *srh = hdr_sr::access(packet);
+  hdr_ip *iph = hdr_ip::access(packet);
+  hdr_cmn *cmh = hdr_cmn::access(packet);
   
   if (!dsragent_use_tap) return;
 
@@ -1714,8 +1705,7 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
   p_copy.route.reverseInPlace();
   p_copy.route.removeSection(0,p_copy.route.index());
 
-  hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
+  hdr_ip *new_iph = hdr_ip::access(p_copy.pkt);
   new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
   //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
@@ -1725,7 +1715,7 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
 
   // shorten's p's route
   p.route.removeSection(heard_at, xmit_at);
-  hdr_sr *new_srh =  (hdr_sr*)p_copy.pkt->access(off_sr_);
+  hdr_sr *new_srh = hdr_sr::access(p_copy.pkt);
   new_srh->init();
   for (int i = 0 ; i < p.route.length() ; i++)
     p.route[i].fillSRAddr(new_srh->reply_addrs()[i]);
@@ -1734,7 +1724,7 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
   // grat replies will have a 0 seq num (it's only for trace analysis anyway)
   new_srh->rtreq_seq() = 0;
 
-  hdr_cmn *new_cmnh =  (hdr_cmn*)p_copy.pkt->access(off_cmn_);
+  hdr_cmn *new_cmnh = hdr_cmn::access(p_copy.pkt);
   new_cmnh->ptype() = PT_DSR;
   new_cmnh->size() += IP_HDR_LEN;
 
@@ -1770,29 +1760,34 @@ DSRAgent::trace(char* fmt, ...)
 /*==============================================================
   Callback for link layer transmission failures
 ------------------------------------------------------------*/
-struct filterfailuredata {
-  nsaddr_t dead_next_hop;
-  int off_cmn_;
-  DSRAgent *agent;
-};
 
-int
-FilterFailure(Packet *p, void *data)
-{
-  struct filterfailuredata *ffd = (filterfailuredata *) data;
-  hdr_cmn *cmh = (hdr_cmn*)p->access(ffd->off_cmn_);
-  int remove = cmh->next_hop() == ffd->dead_next_hop;
-  if (remove) ffd->agent->undeliverablePkt(p,1);
-  return remove;
-}
+// XXX Obviously this structure and FilterFailure() is not used anywhere, 
+// because off_cmn_ in this structure cannot be populated at all!
+// Instead of deleting, I'm simply commenting them out, perhaps they'll be 
+// salvaged sometime in the future. - haoboy
+
+//  struct filterfailuredata {
+//  	nsaddr_t dead_next_hop;
+//  	int off_cmn_;
+//  	DSRAgent *agent;
+//  };
+//
+//  int FilterFailure(Packet *p, void *data)
+//  {
+//  	struct filterfailuredata *ffd = (filterfailuredata *) data;
+//  	hdr_cmn *cmh = hdr_cmn::access(p);
+//  	int remove = cmh->next_hop() == ffd->dead_next_hop;
+//  	if (remove) ffd->agent->undeliverablePkt(p,1);
+//  	return remove;
+//  }
 
 void
 DSRAgent::undeliverablePkt(Packet *pkt, int mine)
   /* when we've got a packet we can't deliver, what to do with it? 
      frees or hands off p if mine = 1, doesn't hurt it otherwise */
 {
-  hdr_sr *srh =  (hdr_sr*)pkt->access(off_sr_);
-  hdr_ip *iph = (hdr_ip*)pkt->access(off_ip_);
+  hdr_sr *srh = hdr_sr::access(pkt);
+  hdr_ip *iph = hdr_ip::access(pkt);
   hdr_cmn *cmh;
 
   SRPacket p(pkt,srh);
@@ -1800,9 +1795,9 @@ DSRAgent::undeliverablePkt(Packet *pkt, int mine)
   p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
   p.pkt = mine ? pkt : pkt->copy();
 
-  srh =  (hdr_sr*)p.pkt->access(off_sr_);
-  iph = (hdr_ip*)p.pkt->access(off_ip_);
-  cmh = (hdr_cmn*)p.pkt->access(off_cmn_);
+  srh = hdr_sr::access(p.pkt);
+  iph = hdr_ip::access(p.pkt);
+  cmh = hdr_cmn::access(p.pkt);
 
   if (p.src == net_id)
     { // it's our packet we couldn't send
@@ -1908,9 +1903,9 @@ DSRAgent::xmitFailed(Packet *pkt)
      message to send to the orginator of the pkt (srh[0])
      p.pkt freed or handed off */
 {
-  hdr_sr *srh = (hdr_sr*)pkt->access(off_sr_);
-  hdr_ip *iph = (hdr_ip*)pkt->access(off_ip_);
-  hdr_cmn *cmh = (hdr_cmn*)pkt->access(off_cmn_);
+  hdr_sr *srh = hdr_sr::access(pkt);
+  hdr_ip *iph = hdr_ip::access(pkt);
+  hdr_cmn *cmh = hdr_cmn::access(pkt);
 
   assert(cmh->size() >= 0);
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.10 2000/08/30 00:10:45 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.11 2000/09/01 03:04:07 haoboy Exp $";
 #endif
 
 #include "satroute.h"
@@ -125,7 +125,7 @@ int SatRouteAgent::command (int argc, const char *const *argv)
  */
 void SatRouteAgent::forwardPacket(Packet * p)
 {
-	hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
+	hdr_ip *iph = hdr_ip::access(p);
   	hdr_cmn *hdrc = HDR_CMN (p);
 	NsObject *link_entry_;
 
@@ -167,8 +167,8 @@ void SatRouteAgent::forwardPacket(Packet * p)
 
 void SatRouteAgent::recv (Packet * p, Handler *)
 {
-	hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
-	hdr_cmn *cmh = (hdr_cmn *) p->access (off_cmn_);
+	hdr_ip *iph = hdr_ip::access(p);
+	hdr_cmn *cmh = hdr_cmn::access(p);
 
 	if (iph->saddr() == myaddr_ && cmh->num_forwards() == 0) {
 	 	// Must be a packet I'm originating... add the IP header

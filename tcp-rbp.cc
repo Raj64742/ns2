@@ -16,7 +16,6 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- **
  *
  * Tcp-vegas with Rate-based pacing by John Heidemann <johnh@isi.edu>
  * and Vikram Visweswaraiah <visweswa@isi.edu>.
@@ -34,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.18 1999/03/13 03:53:06 haoboy Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.19 2000/09/01 03:04:07 haoboy Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -285,7 +284,7 @@ RBPRenoTcpAgent::recv(Packet *pkt, Handler *hand)
 		rbp_mode_ = RBP_OFF;
 
 		// reset cwnd such that we're now ack clocked.
-		hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+		hdr_tcp *tcph = hdr_tcp::access(pkt);
 		if (tcph->seqno() > last_ack_) {
 			/* reno does not do rate adjustments as Vegas;
 			 * normally, one wouldn't do any adjustments to

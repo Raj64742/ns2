@@ -24,14 +24,13 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-//	Maintainer:	
-//	Version Date:	Tue Jul 22 15:41:16 PDT 1997
 // The code implements scalable session message. See
 // http://catarina.usc.edu/estrin/papers/infocom98/ssession.ps
-//
+
+
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm-ssm.cc,v 1.9 1999/10/05 20:54:13 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm-ssm.cc,v 1.10 2000/09/01 03:04:07 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -49,7 +48,6 @@ static const char rcsid[] =
 #include "trace.h"
 
 int hdr_srm_ext::offset_;
-
 static class SRMEXTHeaderClass : public PacketHeaderClass {
 public:
 	SRMEXTHeaderClass() : PacketHeaderClass("PacketHeader/SRMEXT",
@@ -57,7 +55,6 @@ public:
 		bind_offset(&hdr_srm_ext::offset_);
 	}
 } class_srmexthdr;
-
 
 static class SSMSRMAgentClass : public TclClass {
 public:
@@ -75,7 +72,6 @@ SSMSRMAgent::SSMSRMAgent()
   bind("local_scope_",&localScope_);
   bind("scope_flag_",&scopeFlag_);
   bind("rep_id_", &repid_);
-  bind("off_srm_ext_", &off_srm_ext_);
 }
 
 int SSMSRMAgent::command(int argc, const char*const* argv)
@@ -176,9 +172,9 @@ int SSMSRMAgent::command(int argc, const char*const* argv)
 
 void SSMSRMAgent::recv(Packet* p, Handler* h)
 {
-  hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-  hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-  hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
+  hdr_ip*  ih = hdr_ip::access(p);
+  hdr_srm* sh = hdr_srm::access(p);
+  hdr_srm_ext* seh = hdr_srm_ext::access(p);
 	
   if (ih->daddr() == 0) {
     // Packet from local agent.  Add srm headers, set dst, and fwd
@@ -235,15 +231,15 @@ void SSMSRMAgent::recv_data(int sender, int id, int repid, u_char* data)
 void SSMSRMAgent::send_ctrl(int type, int round, int sender, int msgid, int size)
 {
   Packet* p = Agent::allocpkt();
-  hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-  hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
+  hdr_srm* sh = hdr_srm::access(p);
+  hdr_srm_ext* seh = hdr_srm_ext::access(p);
   sh->type() = type;
   sh->sender() = sender;
   sh->seqnum() = msgid;	
   sh->round() = round;
   seh->repid() = repid_;  /* For ctrl messages this is your own repid */
 
-  hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+  hdr_cmn* ch = hdr_cmn::access(p);
   ch->size() = sizeof(hdr_srm) + size;
   target_->recv(p, (Handler*)NULL);
 }
@@ -283,8 +279,8 @@ void SSMSRMAgent::send_glb_sess()
 	/* Currently do extra allocation, later change */
 	int     num_entries;
         Packet* p = Agent::allocpkt(size);
-        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-        hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
+        hdr_srm* sh = hdr_srm::access(p);
+        hdr_srm_ext* seh = hdr_srm_ext::access(p);
 
 #if 0
 	printf("sending global session message\n");
@@ -318,9 +314,9 @@ void SSMSRMAgent::send_glb_sess()
 	size = (SESS_CONST + num_entries * SESSINFO_SIZE) * sizeof(int);
 	data[5] = (int) (Scheduler::instance().clock()*1000);
 
-	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
         ch->size() += size+ sizeof(hdr_srm); /* Add size of srm_hdr_ext */
-        hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
+        hdr_ip*  ih = hdr_ip::access(p);
 	ih->ttl() = groupScope_;
 	// Currently put this to distinguish various session messages
 	ih->flowid() = SRM_GLOBAL;
@@ -335,8 +331,8 @@ void SSMSRMAgent::send_loc_sess()
 	/* Currently do extra allocation, later change */
 	int     num_entries;
         Packet* p = Agent::allocpkt(size);
-        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-        hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
+        hdr_srm* sh = hdr_srm::access(p);
+        hdr_srm_ext* seh = hdr_srm_ext::access(p);
         sh->type() = SRM_SESS;
         sh->sender() = addr();
         sh->seqnum() = ++loc_sessCtr_;
@@ -375,9 +371,9 @@ void SSMSRMAgent::send_loc_sess()
 	size = (SESS_CONST + num_entries * SESSINFO_SIZE) * sizeof(int);
 	data[5] = (int) (Scheduler::instance().clock()*1000);
 
-	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
         ch->size() += size+ sizeof(hdr_srm);
-        hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
+        hdr_ip*  ih = hdr_ip::access(p);
 	ih->ttl() = localScope_;
 	// Currently put this to distinguish various session messages
 	ih->flowid() = SRM_LOCAL;
@@ -392,8 +388,8 @@ void SSMSRMAgent::send_rep_sess()
 	/* Currently do extra allocation, later change */
 	int     num_entries, num_local_members;
         Packet* p = Agent::allocpkt(size);
-        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-        hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
+        hdr_srm* sh = hdr_srm::access(p);
+        hdr_srm_ext* seh = hdr_srm_ext::access(p);
         sh->type() = SRM_SESS;
         sh->sender() = addr();
         sh->seqnum() = ++rep_sessCtr_;
@@ -435,9 +431,9 @@ void SSMSRMAgent::send_rep_sess()
 	size = (SESS_CONST + num_entries * SESSINFO_SIZE) * sizeof(int);  
 	data[5] = (int) (Scheduler::instance().clock()*1000);
 
-	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
         ch->size() += size+ sizeof(hdr_srm);
-        hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
+        hdr_ip*  ih = hdr_ip::access(p);
 	ih->ttl() = localScope_;
 	// Currently put this to distinguish various session messages
 	ih->flowid() = SRM_RINFO;
@@ -482,9 +478,8 @@ void SSMSRMAgent::recv_glb_sess(int sessCtr, int* data, Packet* p)
   SRMinfo* sp;
   int ttl;
 
-  hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-  //hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-  hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
+  hdr_ip*  ih = hdr_ip::access(p);
+  hdr_srm_ext* seh = hdr_srm_ext::access(p);
   ttl = seh->ottl() - ih->ttl();
 	
   int sender, dataCnt, rtime, stime,repid;
@@ -570,9 +565,8 @@ void SSMSRMAgent::recv_loc_sess(int sessCtr, int* data, Packet* p)
   SRMinfo* sp;
   int ttl;
 
-  hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-  //hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-  hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
+  hdr_ip*  ih = hdr_ip::access(p);
+  hdr_srm_ext* seh = hdr_srm_ext::access(p);
   ttl = seh->ottl() - ih->ttl();
   
   int sender, dataCnt, rtime, stime,repid;

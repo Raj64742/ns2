@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.cc,v 1.7 2000/02/14 16:37:06 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.cc,v 1.8 2000/09/01 03:04:06 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -68,7 +68,7 @@ void rtProtoDV::sendpkt(ns_addr_t dst, u_int32_t mtvar, u_int32_t size)
 	size_ = size;
 	
 	Packet* p = Agent::allocpkt();
-	hdr_DV *rh = (hdr_DV*)p->access(off_DV_);
+	hdr_DV *rh = hdr_DV::access(p);
 	rh->metricsVar() = mtvar;
 
 	target_->recv(p);
@@ -76,8 +76,8 @@ void rtProtoDV::sendpkt(ns_addr_t dst, u_int32_t mtvar, u_int32_t size)
 
 void rtProtoDV::recv(Packet* p, Handler*)
 {
-	hdr_DV* rh = (hdr_DV*)p->access(off_DV_);
-	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
+	hdr_DV* rh = hdr_DV::access(p);
+	hdr_ip* ih = hdr_ip::access(p);
 	Tcl::instance().evalf("%s recv-update %d %d", name(),
 			      ih->saddr(), rh->metricsVar());
 	Packet::free(p);

@@ -85,7 +85,7 @@ struct hdr_arp {
 	// Header access methods
 	static int offset_; // required by PacketHeaderManager
 	inline static int& offset() { return offset_; }
-	inline static hdr_arp* access(Packet* p) {
+	inline static hdr_arp* access(const Packet* p) {
 		return (hdr_arp*) p->access(offset_);
 	}
 };
@@ -124,10 +124,6 @@ public:
 	void arprequest(nsaddr_t src, nsaddr_t dst, LL *ll);
 
 	void	Terminate(void);
-//  protected:
-//  	int off_mac_;
-//  	int off_ll_;
-//  	int off_arp_;
 
 private:
 	inline int initialized() { return node_ && mac_; }

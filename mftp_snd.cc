@@ -18,6 +18,8 @@
  * Last change: Dec 07, 1998
  *
  * This software may freely be used only for non-commercial purposes
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mftp_snd.cc,v 1.9 2000/09/01 03:04:06 haoboy Exp $
  */
 
 
@@ -49,11 +51,13 @@ public:
     }
 } class_mftpsnd_agent;
 
-
+int hdr_mftp::offset_;
 static class MFTPHeaderClass : public PacketHeaderClass {
 public:
     MFTPHeaderClass() : PacketHeaderClass("PacketHeader/MFTP",
-                                          sizeof(hdr_mftp)) {}
+                                          sizeof(hdr_mftp)) {
+	    bind_offset(&hdr_mftp::offset_);
+    }
 } class_mftphdr;
 
 
@@ -117,8 +121,8 @@ int MFTPSndAgent::command(int argc, const char*const* argv)
 
 void MFTPSndAgent::recv(Packet* p, Handler* h)
 {
-    hdr_ip* ih = (hdr_ip*) p->access(off_ip_);
-    hdr_mftp* mh = (hdr_mftp*) p->access(off_mftp_);
+    hdr_ip* ih = hdr_ip::access(p);
+    hdr_mftp* mh = hdr_mftp::access(p);
 
     if(ih->daddr() == 0) {
         assert(false);        // Packet from local agent.
@@ -146,7 +150,7 @@ void MFTPSndAgent::send_status_request(unsigned long pass_nb,
                                        double rsp_backoff_window)
 {
     Packet* p = Agent::allocpkt();
-    hdr_mftp* hdr = (hdr_mftp*) p->access(off_mftp_);
+    hdr_mftp* hdr = hdr_mftp::access(p);
 
     assert(FileDGrams > 0);                    // we need this requirement here
 
@@ -158,7 +162,7 @@ void MFTPSndAgent::send_status_request(unsigned long pass_nb,
     hdr->spec.statReq.RspBackoffWindow = rsp_backoff_window;
 
     // transmit packet
-    hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+    hdr_cmn* ch = hdr_cmn::access(p);
     ch->size() = sizeof(hdr_mftp);
     target_->recv(p);
 }
@@ -338,7 +342,7 @@ void MFTPSndAgent::fill_read_ahead_buf()
 int MFTPSndAgent::send_data()
 {
     Packet* p = Agent::allocpkt();
-    hdr_mftp* hdr = (hdr_mftp*) p->access(off_mftp_);
+    hdr_mftp* hdr = hdr_mftp::access(p);
     CW_PATTERN_t mask;
     Tcl& tcl = Tcl::instance();
 
@@ -388,7 +392,7 @@ int MFTPSndAgent::send_data()
                   (unsigned long) CurrentGroup,
                   (char*) buf);
 
-        hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+        hdr_cmn* ch = hdr_cmn::access(p);
         ch->size() = sizeof(hdr_mftp) + dtu_size;
 
         // transmit packet

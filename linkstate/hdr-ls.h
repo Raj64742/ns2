@@ -22,6 +22,8 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/hdr-ls.h,v 1.2 2000/09/01 03:04:10 haoboy Exp $
+
 //  Copyright (C) 1998 by Mingzhou Sun. All rights reserved.
 //  This software is developed at Rensselaer Polytechnic Institute under 
 //  DARPA grant No. F30602-97-C-0274
@@ -33,8 +35,6 @@
 //  Rensselaer  Polytechnic Institute.  The name of the University may not 
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
-//
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/hdr-ls.h,v 1.1 2000/08/18 18:34:03 haoboy Exp $
 
 // Link state header should be present in ns regardless if the link state
 // module is included (it may be omitted if standard STL is not supported
@@ -59,7 +59,7 @@ struct hdr_LS {
 	// Header access methods
 	static int offset_; // required by PacketHeaderManager
 	inline static int& offset() { return offset_; }
-	inline static hdr_LS* access(Packet* p) {
+	inline static hdr_LS* access(const Packet* p) {
 		return (hdr_LS*) p->access(offset_);
 	}
 };

@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.417 2000/08/31 20:11:47 haoboy Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.418 2000/09/01 03:04:04 haoboy Exp $-->
 
 <h1>ns: Change History</h1>
 
@@ -23,6 +23,29 @@ with the most recent changes coming first.
 of ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
+
+<p><li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
+<b>Thu Aug 31 13:34:25 PDT 2000</b>
+<br>
+<ol>
+<li> Added procedures into ns-packet.tcl to help customizing
+packet headers in simulation. This may lead to big savings in
+packet-intensive applications. For instance, currently all
+protocol headers add up to about 2KB per packet, but including
+only the common header, IP header and TCP header takes only
+about 100 bytes. This may mean a lot of savings for, say,
+large-scale web traffic simulation. But I've not tested it. 
+
+<li> Get rid of all off_[hdr]_ stuff from all source
+files. Now ns-packet.tcl does not create these offset
+variables at all. This saves two bounded variables per
+NsObject.
+
+<li> Move static packet header declaration from encap.h to
+encap.cc. A variable _instantiation_ should not reside in a
+header file.
+</ol>
 
 <p><li>
 	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>

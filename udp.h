@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.12 1999/02/18 02:19:25 yuriy Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.13 2000/09/01 03:04:08 haoboy Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h
@@ -36,7 +36,6 @@ public:
 	virtual void sendmsg(int nbytes, const char *flags = 0);
 protected:
 	int seqno_;
-	int off_rtp_;
 };
 
 #endif

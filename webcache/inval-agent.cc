@@ -17,17 +17,20 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.12 1999/09/09 04:02:55 salehi Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.13 2000/09/01 03:04:12 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
 #include "http.h"
 
 // Implementation 1: Invalidation via multicast heartbeat
+int hdr_inval::offset_;
 static class HttpInvalHeaderClass : public PacketHeaderClass {
 public:
         HttpInvalHeaderClass() : PacketHeaderClass("PacketHeader/HttpInval",
-						   sizeof(hdr_inval)) {}
+						   sizeof(hdr_inval)) {
+		bind_offset(&hdr_inval::offset_);
+	}
 } class_httpinvalhdr;
 
 static class HttpInvalClass : public TclClass {
@@ -40,20 +43,19 @@ public:
 
 HttpInvalAgent::HttpInvalAgent() : Agent(PT_INVAL)
 {
-	bind("off_inv_", &off_inv_);
 	// It should be initialized to the same as tcpip_base_hdr_size_
 	bind("inval_hdr_size_", &inval_hdr_size_);
 }
 
 void HttpInvalAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_ip *ip = (hdr_ip *)pkt->access(off_ip_);
+	hdr_ip *ip = hdr_ip::access(pkt);
 	if ((ip->saddr() == addr()) && (ip->sport() == port()))
 		// XXX Why do we need this?
 		return;
 	if (app_ == 0) 
 		return;
-	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
+	hdr_inval *ih = hdr_inval::access(pkt);
 	((HttpApp*)app_)->process_data(ih->size(), pkt->userdata());
 	Packet::free(pkt);
 }
@@ -64,12 +66,12 @@ void HttpInvalAgent::recv(Packet *pkt, Handler*)
 void HttpInvalAgent::send(int realsize, AppData* data)
 {
 	Packet *pkt = allocpkt(data->size());
-	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
+	hdr_inval *ih = hdr_inval::access(pkt);
 	ih->size() = data->size();
 	pkt->setdata(data);
 
 	// Set packet size proportional to the number of invalidations
-	hdr_cmn *ch = (hdr_cmn*) pkt->access(off_cmn_);
+	hdr_cmn *ch = hdr_cmn::access(pkt);
 	ch->size() = inval_hdr_size_ + realsize;
 	Agent::send(pkt, 0);
 }

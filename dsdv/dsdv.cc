@@ -30,13 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code, nov'98 -Padma.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.21 2000/09/01 03:04:09 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
-
-/* dsdv.cc
-   $Id: dsdv.cc,v 1.20 1999/11/13 01:16:04 yaxu Exp $
-
-   */
 
 extern "C" {
 #include <stdarg.h>
@@ -355,10 +353,9 @@ DSDV_Agent::lost_link (Packet *p)
   //DEBUG
   //printf("(%d)..Lost link..\n",myaddr_);
   if (verbose_ && hdrc->addr_type_ == NS_AF_INET)
-    trace ("VLL %.8f %d->%d lost at %d",
-  Scheduler::instance ().clock (),
-	   ((hdr_ip *) p->access (off_ip_))->saddr(),
-	   ((hdr_ip *) p->access (off_ip_))->daddr(),
+    trace("VLL %.8f %d->%d lost at %d",
+    Scheduler::instance().clock(),
+	   hdr_ip::access(p)->saddr(), hdr_ip::access(p)->daddr(),
 	   myaddr_);
 
   if (!use_mac_ || !prte || hdrc->addr_type_ != NS_AF_INET)
@@ -367,10 +364,10 @@ DSDV_Agent::lost_link (Packet *p)
   if (verbose_)
     trace ("VLP %.5f %d:%d->%d:%d lost at %d [hop %d]",
   Scheduler::instance ().clock (),
-	   ((hdr_ip *) p->access (off_ip_))->saddr(),
-	   ((hdr_ip *) p->access (off_ip_))->sport(),
-	   ((hdr_ip *) p->access (off_ip_))->daddr(),
-	   ((hdr_ip *) p->access (off_ip_))->dport(),
+	   hdr_ip::access (p)->saddr(),
+	   hdr_ip::access (p)->sport(),
+	   hdr_ip::access (p)->daddr(),
+	   hdr_ip::access (p)->dport(),
 	   myaddr_, prte->dst);
 
   if (prte->timeout_event)
@@ -393,10 +390,10 @@ DSDV_Agent::lost_link (Packet *p)
     {
       if (verbose_)
       trace ("VRS %.5f %d:%d->%d:%d lost at %d", Scheduler::instance ().clock (),
-	       ((hdr_ip *) p2->access (off_ip_))->saddr(),
-	       ((hdr_ip *) p2->access (off_ip_))->sport(),
-	       ((hdr_ip *) p2->access (off_ip_))->daddr(),
-	       ((hdr_ip *) p2->access (off_ip_))->dport(), myaddr_);
+	       hdr_ip::access (p2)->saddr(),
+	       hdr_ip::access (p2)->sport(),
+	       hdr_ip::access (p2)->daddr(),
+	       hdr_ip::access (p2)->dport(), myaddr_);
 
       recv(p2, 0);
     }
@@ -405,10 +402,10 @@ DSDV_Agent::lost_link (Packet *p)
     {
       if (verbose_)
       trace ("VRS %.5f %d:%d->%d:%d lost at %d", Scheduler::instance ().clock (),
-	       ((hdr_ip *) p2->access (off_ip_))->saddr(),
-	       ((hdr_ip *) p2->access (off_ip_))->sport(),
-	       ((hdr_ip *) p2->access (off_ip_))->daddr(),
-	       ((hdr_ip *) p2->access (off_ip_))->dport(), myaddr_);
+	       hdr_ip::access (p2)->saddr(),
+	       hdr_ip::access (p2)->sport(),
+	       hdr_ip::access (p2)->daddr(),
+	       hdr_ip::access (p2)->dport(), myaddr_);
 
       recv (p2, 0);
     }
@@ -434,7 +431,7 @@ DSDV_Agent::makeUpdate(int& periodic)
 	//printf("(%d)-->Making update pkt\n",myaddr_);
 	
   Packet *p = allocpkt ();
-  hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
+  hdr_ip *iph = hdr_ip::access(p);
   hdr_cmn *hdrc = HDR_CMN (p);
   double now = Scheduler::instance ().clock ();
   rtable_ent *prte;
@@ -601,7 +598,7 @@ DSDV_Agent::updateRoute(rtable_ent *old_rte, rtable_ent *new_rte)
 void
 DSDV_Agent::processUpdate (Packet * p)
 {
-  hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
+  hdr_ip *iph = HDR_IP(p);
   Scheduler & s = Scheduler::instance ();
   double now = s.clock ();
   
@@ -874,7 +871,7 @@ DSDV_Agent::diff_subnet(int dst)
 void
 DSDV_Agent::forwardPacket (Packet * p)
 {
-  hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
+  hdr_ip *iph = HDR_IP(p);
   Scheduler & s = Scheduler::instance ();
   double now = s.clock ();
   hdr_cmn *hdrc = HDR_CMN (p);
@@ -994,12 +991,6 @@ void
 DSDV_Agent::sendOutBCastPkt(Packet *p)
 {
   Scheduler & s = Scheduler::instance ();
-  //hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
-  //hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
-  //hdrc->next_hop_ = IP_BROADCAST;
-  //hdrc->addr_type_ = NS_AF_INET;
-  //iph->dst() = IP_BROADCAST << Address::instance().nodeshift();
-  //iph->dport() = 0;
   // send out bcast pkt with jitter to avoid sync
   s.schedule (target_, p, jitter(DSDV_BROADCAST_JITTER, be_random_));
 }
@@ -1008,8 +999,8 @@ DSDV_Agent::sendOutBCastPkt(Packet *p)
 void
 DSDV_Agent::recv (Packet * p, Handler *)
 {
-  hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
-  hdr_cmn *cmh = (hdr_cmn *)p->access (off_cmn_);
+  hdr_ip *iph = HDR_IP(p);
+  hdr_cmn *cmh = HDR_CMN(p);
   int src = Address::instance().get_nodeaddr(iph->saddr());
   int dst = cmh->next_hop();
   /*
@@ -1162,7 +1153,7 @@ DSDV_Agent::command (int argc, const char *const *argv)
       else if (strcmp (argv[1], "dumprtab") == 0)
 	{
 	  Packet *p2 = allocpkt ();
-	  hdr_ip *iph2 = (hdr_ip *) p2->access (off_ip_);
+	  hdr_ip *iph2 = HDR_IP(p2);
 	  rtable_ent *prte;
 
 	  printf ("Table Dump %d[%d]\n----------------------------------\n",

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.7 2000/02/10 01:48:30 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.8 2000/09/01 03:04:10 haoboy Exp $";
 #endif
 
 #include <stdio.h>
@@ -173,7 +173,7 @@ NatAgent::fixipcksum(ip* iph, int iphlen)
 void
 NatAgent::nat(Packet* pkt)
 {
-        hdr_cmn* hc = (hdr_cmn*)pkt->access(off_cmn_);
+        hdr_cmn* hc = HDR_CMN(pkt);
         ip* iph = (ip*) pkt->accessdata();
 	if (pkt->datalen() < hc->size()) {
 		fprintf(stderr,

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.63 2000/01/05 00:00:58 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.64 2000/09/01 03:04:05 haoboy Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -62,14 +62,11 @@ public:
 
 int Agent::uidcnt_;		/* running unique id */
 
-
-
 Agent::Agent(packet_t pkttype) : 
 	size_(0), type_(pkttype), 
 	channel_(0), traceName_(NULL),
 	oldValueList_(NULL), app_(0)
 {
-	off_ip_ = hdr_ip::offset();
 }
 
 void
@@ -84,9 +81,6 @@ Agent::delay_bind_init_all()
 	delay_bind_init_one("flags_");
 	delay_bind_init_one("ttl_");
 	delay_bind_init_one("class_");
-#ifdef OFF_HDR
-	delay_bind_init_one("off_ip_");
-#endif
 	Connector::delay_bind_init_all();
 }
 
@@ -101,7 +95,6 @@ Agent::delay_bind_dispatch(const char *varName, const char *localName, TclObject
 	if (delay_bind(varName, localName, "prio_", (int*)&prio_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "flags_", (int*)&flags_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "ttl_", &defttl_, tracer)) return TCL_OK;
-	if (delay_bind(varName, localName, "off_ip_", &off_ip_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "class_", (int*)&fid_, tracer)) return TCL_OK;
 	return Connector::delay_bind_dispatch(varName, localName, tracer);
 }

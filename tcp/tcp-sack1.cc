@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.44 2000/08/20 04:25:36 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.45 2000/09/01 03:04:07 haoboy Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -75,7 +75,7 @@ void Sack1TcpAgent::reset ()
 
 void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {

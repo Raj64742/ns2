@@ -60,7 +60,7 @@ void TBF::recv(Packet *p, Handler *)
 	}
 
 	
-	hdr_cmn *ch=(hdr_cmn *)p->access(off_cmn_);
+	hdr_cmn *ch=hdr_cmn::access(p);
 
 	//enque packets appropriately if a non-zero q already exists
 	if (q_->length() !=0) {
@@ -114,7 +114,7 @@ void TBF::timeout(int)
 	Packet *p=q_->deque();
 	double tok;
 	tok = getupdatedtokens();
-	hdr_cmn *ch=(hdr_cmn *)p->access(off_cmn_);
+	hdr_cmn *ch=hdr_cmn::access(p);
 	int pktsize = ch->size()<<3;
 
 	//We simply send the packet here without checking if we have enough tokens
@@ -124,7 +124,7 @@ void TBF::timeout(int)
 
 	if (q_->length() !=0 ) {
 		p=q_->head();
-		hdr_cmn *ch=(hdr_cmn *)p->access(off_cmn_);
+		hdr_cmn *ch=hdr_cmn::access(p);
 		pktsize = ch->size()<<3;
 		tbf_timer_.resched((pktsize-tokens_)/rate_);
 	}

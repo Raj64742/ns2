@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
  * License is granted to copy, to use, and to make and to use derivative
@@ -20,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.cc,v 1.6 1999/11/20 00:40:07 heideman Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.cc,v 1.7 2000/09/01 03:04:05 haoboy Exp $";
 #endif
 
 #include "config.h"
@@ -39,17 +39,14 @@ AdaptiveRcvr::AdaptiveRcvr() : Agent(PT_NTYPE)
 	//bind("npkts_",&npkts_);
 	//bind("ndelay_",&ndelay_);
 	//bind("nvar_",&nvar_);
-	bind("off_rtp_",&off_rtp_);
 }
-
 
 void AdaptiveRcvr::recv(Packet *pkt,Handler*)
 {
 	int delay;
 	int seq_no;
-	hdr_cmn* ch= (hdr_cmn*)pkt->access(off_cmn_);
-	//hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-	hdr_rtp *rh=(hdr_rtp*) pkt->access(off_rtp_);
+	hdr_cmn* ch= hdr_cmn::access(pkt);
+	hdr_rtp *rh = hdr_rtp::access(pkt);
 	
 	seq_no= rh->seqno();
 	register u_int32_t send_time = (int)ch->timestamp();

@@ -61,7 +61,7 @@ public:
 void
 TcpFsAgent::output_helper(Packet *pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	double now = Scheduler::instance().clock();
 	double idle_time = now - last_recv_time_;
 	double timeout = ((t_srtt_ >> 3) + t_rttvar_) * tcp_tick_ ;
@@ -91,12 +91,12 @@ TcpFsAgent::output_helper(Packet *pkt)
 		fs_mode_ = 1;
 	}
 	/* initially set fs_ flag to 0 */
-	((hdr_flags*)pkt->access(off_flags_))->fs_ = 0;
+	hdr_flags::access(pkt)->fs_ = 0;
 	/* check if packet belongs to the fast start phase. */
 	if (tcph->seqno() >= fs_startseq_ && tcph->seqno() < fs_endseq_ && fs_mode_) {
 		/* if not a retransmission, mark the packet */
 		if (tcph->seqno() > maxseq_) {
-			((hdr_flags*)pkt->access(off_flags_))->fs_ = 1;
+			hdr_flags::access(pkt)->fs_ = 1;
 		}
 	}
 }
@@ -156,7 +156,7 @@ TcpFsAgent::send_idle_helper()
 void
 TcpFsAgent::recv_newack_helper(Packet *pkt) 
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	double tao = Scheduler::instance().clock() - tcph->ts_echo();
 	double g = 1/8; /* gain used for smoothing rtt */
 	double h = 1/4; /* gain used for smoothing rttvar */

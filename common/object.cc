@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) 1994 Regents of the University of California.
  * All rights reserved.
  *
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.17 2000/03/24 19:40:50 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.18 2000/09/01 03:04:06 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdarg.h>
@@ -49,11 +49,6 @@ NsObject::~NsObject()
 
 NsObject::NsObject()
 {
-#ifdef OFF_HDR
-#else
-	off_cmn_ = hdr_cmn::offset();
-	off_flags_ = hdr_flags::offset();
-#endif
 	// Turn off debug by default
 	debug_ = 0;
 }
@@ -61,28 +56,16 @@ NsObject::NsObject()
 void
 NsObject::delay_bind_init_all()
 {
-#ifdef OFF_HDR
-	delay_bind_init_one("off_cmn_");
-	delay_bind_init_one("off_flags_");
-#endif
 	delay_bind_init_one("debug_");
 }
 
 int
 NsObject::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
-#ifdef OFF_HDR
-	if (delay_bind(varName, localName, "off_cmn_", &off_cmn_, tracer)) 
-		return TCL_OK;
-	if (delay_bind(varName, localName, "off_flags_", &off_flags_, tracer)) 
-		return TCL_OK;
-#endif
 	if (delay_bind_bool(varName, localName, "debug_", &debug_, tracer)) 
 		return TCL_OK;
 	return TclObject::delay_bind_dispatch(varName, localName, tracer);
 }
-
-
 
 void NsObject::reset()
 {

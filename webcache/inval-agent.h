@@ -17,7 +17,7 @@
 //
 // Definition of Agent/Invalidation
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.10 1999/08/24 04:16:25 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.11 2000/09/01 03:04:12 haoboy Exp $
 
 #ifndef ns_invalagent_h
 #define ns_invalagent_h
@@ -32,6 +32,13 @@
 struct hdr_inval {
 	int size_;
 	int& size() { return size_; }
+
+	// Header access methods
+	static int offset_; // required by PacketHeaderManager
+	inline static int& offset() { return offset_; }
+	inline static hdr_inval* access(const Packet* p) {
+		return (hdr_inval*) p->access(offset_);
+	}
 };
 
 // XXX If we have an interface declaration, we could define a common 
@@ -54,7 +61,6 @@ public:
 	virtual void send(int realsize, AppData* data);
 
 protected:
-	int off_inv_;
 	int inval_hdr_size_;
 };
 

@@ -30,31 +30,31 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code
+ *
+ * basic formats, constants and datatypes for TORA pkts.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora_packet.h,v 1.3 2000/09/01 03:04:12 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code*/
 
-/* -*- c++ -*-
-   $Id: tora_packet.h,v 1.2 1999/08/12 21:12:38 yaxu Exp $
-   
-   basic formats, constants and datatypes for TORA pkts.
-   */
 #ifndef __tora_packet_h__
 #define __tora_packet_h__
 
-#include <config.h>
+#include "config.h"
+#include "packet.h"
 
 /*
  * TORA Routing Protocol Header Macros
  */
-#define HDR_TORA_QRY(p)         ((struct hdr_tora_qry*)(p)->access(off_TORA_))
-#define HDR_TORA_UPD(p)         ((struct hdr_tora_upd*)(p)->access(off_TORA_))
-#define HDR_TORA_CLR(p)         ((struct hdr_tora_clr*)(p)->access(off_TORA_))
+#define HDR_TORA_QRY(p)   ((struct hdr_tora_qry*)hdr_tora::access(p))
+#define HDR_TORA_UPD(p)   ((struct hdr_tora_upd*)hdr_tora::access(p))
+#define HDR_TORA_CLR(p)   ((struct hdr_tora_clr*)hdr_tora::access(p))
 
 // why do we have Height defined here?  seems like there oughta be a better
 // place. -dam 9/30/98
 class Height {
 public:
-
 	Height(int ID) : tau(-1.0), oid(-1), r(-1), delta(-1), id(ID) {}
 
 	/*
@@ -96,8 +96,6 @@ public:
 	nsaddr_t	id;	// Unique id of the router
 };
 
-
-
 /* ======================================================================
    Packet Formats
    ====================================================================== */
@@ -118,6 +116,13 @@ struct hdr_tora {
         u_int16_t       th_type;
 	u_int16_t	reserved;
         nsaddr_t        th_dst;
+
+	// Header access methods
+	static int offset_; // required by PacketHeaderManager
+	inline static int& offset() { return offset_; }
+	inline static hdr_tora* access(const Packet* p) {
+		return (hdr_tora*) p->access(offset_);
+	}
 };
 
 struct hdr_tora_qry {

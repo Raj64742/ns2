@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.h,v 1.18 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.h,v 1.19 2000/09/01 03:04:06 haoboy Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -99,6 +99,8 @@ struct ack_frame {
 	u_char			af_fcs[ETHER_FCS_LEN];
 };
 
+// XXX This header does not have its header access function because it shares
+// the same header space with hdr_mac.
 struct hdr_mac802_11 {
 	struct frame_control	dh_fc;
 	u_int16_t		dh_duration;

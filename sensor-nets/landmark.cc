@@ -1,9 +1,33 @@
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sensor-nets/landmark.cc,v 1.7 2000/09/01 03:04:11 haoboy Exp $
+
 // Author: Satish Kumar, kkumar@isi.edu
 
-extern "C" {
 #include <stdarg.h>
 #include <float.h>
-};
 
 #include "landmark.h"
 #include <random.h>
@@ -508,7 +532,7 @@ ParentChildrenList::UpdatePotlChild(nsaddr_t id, nsaddr_t next_hop, int num_hops
 void
 LandmarkAgent::ProcessHierUpdate(Packet *p)
 {
-  hdr_ip *iph = (hdr_ip *) p->access(off_ip_);
+  hdr_ip *iph = HDR_IP(p);
   hdr_cmn *hdrc = HDR_CMN(p);
   Scheduler &s = Scheduler::instance();
   double now = s.clock();
@@ -1327,8 +1351,8 @@ LandmarkAgent::periodic_callback(Event *e, int level)
 	while(lmnode) {
 	  if(lmnode->id_ != myaddr_) {
 	    newp = p->copy();
-	    new_iph = (hdr_ip *) newp->access(off_ip_);
-	    new_cmh = (hdr_cmn *) newp->access (off_cmn_);
+	    new_iph = HDR_IP(newp);
+	    new_cmh = HDR_CMN(newp);
 	    walk = newp->accessdata();
 	    //    trace("Node %d: Generating unicast advert to child %d at time %f with next hop %d",myaddr_,lmnode->id_,now,lmnode->next_hop_);
 	    
@@ -1358,8 +1382,8 @@ LandmarkAgent::periodic_callback(Event *e, int level)
       }
       if(cur_pcl->parent_) {
 	if((cur_pcl->parent_)->id_ != myaddr_) {
-	  iph = (hdr_ip *) p->access(off_ip_);
-	  cmh = (hdr_cmn *) p->access (off_cmn_);
+	  iph = HDR_IP(p);
+	  cmh = HDR_CMN(p);
 	  walk = p->accessdata();
 	  
 	  //	  trace("Node %d: Generating unicast advert to parent %d at time %f with next hop %d",myaddr_,cur_pcl->parent_->id_,now,(cur_pcl->parent_)->next_hop_);
@@ -1469,7 +1493,7 @@ Packet *
 LandmarkAgent::makeUpdate(ParentChildrenList *pcl, int pkt_type, int action)
 {
   Packet *p = allocpkt();
-  hdr_ip *iph = (hdr_ip *) p->access(off_ip_);
+  hdr_ip *iph = HDR_IP(p);
   hdr_cmn *hdrc = HDR_CMN(p);
   unsigned char *walk;
   compr_taglist *adv_tags = NULL;
@@ -2140,7 +2164,7 @@ LandmarkAgent::command (int argc, const char *const *argv)
       else if (strcmp (argv[1], "dumprtab") == 0)
 	{
 	  Packet *p2 = allocpkt ();
-	  hdr_ip *iph2 = (hdr_ip *) p2->access (off_ip_);
+	  hdr_ip *iph2 = HDR_IP(p2);
 	  //	  rtable_ent *prte;
 
           trace ("Table Dump %d[%d]\n----------------------------------\n",
@@ -2823,8 +2847,8 @@ LandmarkAgent::aggregate_tags(compr_taglist *unagg_tags, int agg_level, int *num
 void
 LandmarkAgent::recv(Packet *p, Handler *)
 {
-  hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
-  hdr_cmn *cmh = (hdr_cmn *) p->access (off_cmn_);
+  hdr_ip *iph = HDR_IP(p);
+  hdr_cmn *cmh = HDR_CMN(p);
 
   /*
    *  Must be a packet being originated by the query agent at my node?
@@ -2881,14 +2905,11 @@ LandmarkAgent::recv(Packet *p, Handler *)
     }
 }
 
-
-
-
 void
 LandmarkAgent::ForwardPacket(Packet *p)
 {
-  hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
-  hdr_cmn *cmh = (hdr_cmn *) p->access (off_cmn_);
+  hdr_ip *iph = HDR_IP(p);
+  hdr_cmn *cmh = HDR_CMN(p);
   Packet *newp;
   hdr_ip *new_iph;
   hdr_cmn *new_cmh;
@@ -3146,8 +3167,8 @@ LandmarkAgent::ForwardPacket(Packet *p)
 
 	  newp = p->copy();
 
-	  new_iph = (hdr_ip *) newp->access(off_ip_);
-	  new_cmh = (hdr_cmn *) newp->access (off_cmn_);
+	  new_iph = HDR_IP(newp);
+	  new_cmh = HDR_CMN(newp);
 
 	  new_iph->daddr() = dst_ptr->dst_node_;
 	  new_iph->dport() = ROUTER_PORT;

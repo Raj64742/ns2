@@ -19,7 +19,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.h,v 1.5 1998/06/27 01:23:43 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.h,v 1.6 2000/09/01 03:04:05 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_delaymodel_h
@@ -34,7 +34,7 @@ public:
 	DelayModel();
 	void recv(Packet*, Handler*);
 	inline double txtime(Packet* p) {
-		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
+		hdr_cmn *hdr = hdr_cmn::access(p);
 		return bandwidth_ ? (hdr->size() * 8. / bandwidth_) : 0;
 	}
 	double bandwidth() const { return bandwidth_; }

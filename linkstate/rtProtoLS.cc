@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.2 2000/08/18 18:34:03 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.3 2000/09/01 03:04:10 haoboy Exp $
 
 #include "hdr-ls.h"
 #include "rtProtoLS.h"
@@ -137,7 +137,7 @@ void rtProtoLS::sendpkt(ns_addr_t dst, u_int32_t mtvar, u_int32_t size)
 	size_ = size;
 	
         Packet* p = Agent::allocpkt();
-	hdr_LS *rh = (hdr_LS*)p->access(off_LS_);
+	hdr_LS *rh = hdr_LS::access(p);
         rh->metricsVar() = mtvar;
 
         target_->recv(p);               
@@ -145,8 +145,8 @@ void rtProtoLS::sendpkt(ns_addr_t dst, u_int32_t mtvar, u_int32_t size)
 
 void rtProtoLS::recv(Packet* p, Handler*)
 {   
-	hdr_LS* rh = (hdr_LS*)p->access(off_LS_);
-	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
+	hdr_LS* rh = hdr_LS::access(p);
+	hdr_ip* ih = hdr_ip::access(p);
 	// -- LS stuffs --
 	if (LS_ready_ || (rh->metricsVar() == LS_BIG_NUMBER))
 		receiveMessage(findPeerNodeId(ih->src()), rh->msgId());
@@ -302,7 +302,7 @@ bool rtProtoLS::sendMessage(int destId, u_int32_t messageId, int size)
 	size_ = size;
   
 	Packet* p = Agent::allocpkt();
-	hdr_LS *rh = (hdr_LS*)p->access(off_LS_);
+	hdr_LS *rh = hdr_LS::access(p);
 	rh->msgId() = messageId;
 	rh->metricsVar() = LS_BIG_NUMBER;
 	target_->recv(p);           

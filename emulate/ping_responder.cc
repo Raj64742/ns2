@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ping_responder.cc,v 1.7 1998/05/27 23:21:38 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ping_responder.cc,v 1.8 2000/09/01 03:04:10 haoboy Exp $";
 #endif
 
 #include <stdio.h>
@@ -81,7 +81,7 @@ public:
 void
 PingResponder::recv(Packet* pkt, Handler*)
 {
-	hdr_cmn *ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn *ch = HDR_CMN(pkt);
 	int psize = ch->size();
 	u_char* payload = pkt->accessdata();
 

@@ -16,19 +16,17 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.h,v 1.2 1998/06/27 01:23:20 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.h,v 1.3 2000/09/01 03:04:05 haoboy Exp $
  */
 
 #ifndef ns_adaptivercvr_h
 #define ns_adaptivercvr_h
 
 class AdaptiveRcvr : public Agent {
-	public :
+public :
 	AdaptiveRcvr();
 	void recv(Packet* pkt, Handler*);
-	protected :
-	int off_rtp_;
-
+protected :
 	virtual int adapt(Packet *pkt,u_int32_t time)=0;
 };
 

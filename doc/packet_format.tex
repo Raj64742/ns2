@@ -61,17 +61,12 @@ The following classes create the needed header
                 /* {\cf Packet header access functions} */
                 static int offset_;
                 inline static int& offset() \{ return offset_; \}
-                inline static hdr_rtp* access(Packet* p) \{
+                inline static hdr_rtp* access(const Packet* p) \{
                         return (hdr_rtp*) p->access(offset_);
                 \}
         \};
 
 {\rm From rtp.cc:}
-
-        class RTPAgent: public Agent \{
-                \ldots
-                int off_rtp_;
-        \};
 
         class RTPHeaderClass : public PacketHeaderClass \{
         public: 
@@ -122,12 +117,19 @@ For example, to access the RTP packet header in a packet pointed by
 The actual binding of \code{offset_} to the position of this header in
 a packet is done by routines inside \nsf{tcl/lib/ns-packet.tcl} and
 \nsf{packet.cc}.
+The \code{const} in \code{access()}'s argument provides (presumably)
+read-only access to a \code{const} Packet, lthough read-only is
+enforced since the return pointer is not \code{const}. 
+One correct way to do this is to provide two methods, one for write
+access, the other for read-only access.
+However, this is not currently implemented.
 
 {\bf IMPORTANT}: Notice that this is completely different from the
-original method to access a packet header, which requires that an
+{\em original} (and obsolete) method to access a packet header, which
+requires that an 
 integer variable, \code{off_\tup{hdrname}_}, be defined for any packet
 header that one needs to access.
-This is now an obsolete method; its usage is tricky and its misuse can
+This method is now obsolete; its usage is tricky and its misuse can
 be very difficult to detect. 
 
 % which is accomplished by declaring and binding the integer variable
@@ -182,10 +184,69 @@ the following steps are performed:
         in its constructor. 
   \item edit \nsf{tcl/lib/ns-packet.tcl} to enable new packet format
         (see \ref{sec:pinfoclass}, \ref{sec:configpacket}).
-        Alternatively, one may call \code{create-packet-header} in
-        one's own code (see \nsf{tcl/lib/ns-packet.tcl} for example
-        of using this Tcl function. 
 \end{enumerate}
+
+{\em This is the recommended way to add your packet headers. 
+  If you do
+  not follow this method, your simulation may still work, but it may 
+  behave in a unpredictable way when more protocols are added into
+  your simulation. 
+  The reason is that the BOB (Bag of Bits,
+  Section~\ref{sec:packetclass}) in \ns packet is a large
+  sparse space, assigning one wrong packet header offset may not
+  trigger failure immediately.}
+
+\subsection{Selectively Including Packet Headers in Your Simulation}
+
+By default, ns includes {\em ALL} packet headers of {\em ALL}
+protocols in ns in {\em EVERY} packet in your simulation. 
+This is a LOT of overhead, and will increase as more
+protocols are added into ns.
+For ``packet-intensive'' simulations, this could be a huge overhead.
+For instance, as of now (Aug 30, 2000), the size of packet headers of
+all protocols in ns is about 1.9KB; however, if you turn on only the
+common header, the IP header and the TCP header, they add up to about
+100 bytes. 
+If you are doing large-scale web traffic simulation with many big fat
+pipes, reducing unused packet headers can lead to major memory
+saving.
+
+To include only the packet headers that are of interest to you in your 
+specific simulation, follow this pattern (e.g., you want to remove AODV
+and ARP headers from your simulation):
+\begin{program}
+        remove-packet-header AODV ARP
+        ......
+        set ns [new Simulator]
+\end{program}
+Notice that \code{remove-packet-header} MUST go before the simulator
+is created.
+All packet header names are in the forms of
+\code{PacketHeader/[hdr]}. 
+You only need to supply the \code{[hdr]} part, not the prefix.
+To find the names of packet headers, you may either look them up in 
+\nsf{tcl/lib/ns-packet.tcl}, or run the following simple commands in
+\ns: 
+\begin{program}
+        foreach cl [PacketHeader info subclass] \{
+                puts $cl
+        \}
+\end{program} %$
+
+To include only a specific set of headers in your simulation, e.g., IP
+and TCP, follow this pattern:
+\begin{program}
+        remove-all-packet-headers
+        add-packet-header IP TCP
+        ......
+        set ns [new Simulator]
+\end{program}
+IMPORTANT: You MUST never remove common header from your
+simulation. 
+As you can see in \nsf{tcl/lib/ns-packet.tcl}, this is enforced
+by these header manipulation procs.
+
+{\em Notice that by default, all packet headers are included}.
 
 \section{Packet Classes}
 \label{sec:packetclasses}
@@ -429,60 +490,43 @@ assign each of them unique offsets in the BOB.
 It is defined in both the C++ and OTcl code:
 \begin{program}
 {\rm From tcl/lib/ns-packet.tcl:}
-
         PacketHeaderManager set hdrlen_ 0
-
-        #XXX could potentially get rid of this by searching having a more
-        # uniform offset concept...
-        foreach pair \{
-                        \{ Common off_cmn_ \}
-                        \{ Mac off_mac_ \}
-                        \{ LL off_ll_ \}
-                        \{ Snoop off_snoop_ \}
-                        \{ IP off_ip_ \}
-                        \{ TCP off_tcp_ \}
-                        \{ TCPA off_tcpasym_ \}
-                        \{ Flags off_flags_ \}
-                        \{ RTP off_rtp_ \}
-                        \{ Message off_msg_ \}
-                        \{ IVS off_ivs_ \}
-                        \{ rtProtoDV off_DV_ \}
-                        \{ CtrMcast off_CtrMcast_ \}
-                        \{ Prune off_prune_ \}
-                        \{ Tap off_tap_ \}
-                        \{ aSRM off_asrm_ \}
-                        \{ SRM off_srm_ \}\} \{
-                set cl [lindex $pair 0]
-                set var [lindex $pair 1]
-                PacketHeaderManager set vartab_($cl) $var
-        \}    
-
-        Simulator instproc create_packetformat \{ \} \{
+        ......
+        foreach prot \{
+                AODV
+                ARP
+                aSRM 
+                Common 
+                CtrMcast 
+                Diffusion
+                ......
+                TORA
+                UMP 
+        \} \{
+                add-packet-header $prot
+        \}
+        Simulator instproc create_packetformat \{\} \{
+                PacketHeaderManager instvar tab_
                 set pm [new PacketHeaderManager]
-                foreach oclass [PacketHeader info subclass] \{
-                        set L [split $oclass /]
-                        set cl [lindex $L 1]
-                        set var [PacketHeaderManager set vartab_($cl)]
-                        set off [$pm allochdr $cl]
-                        TclObject set $var $off
-                \}       
+                foreach cl [PacketHeader info subclass] \{
+                        if [info exists tab_($cl)] \{
+                                set off [$pm allochdr $cl]
+                                $cl offset $off
+                        \}
+                \}
                 $self set packetManager_ $pm
-        \}    
+        \}
         PacketHeaderManager instproc allochdr cl \{
-                set size [PacketHeader/$cl set hdrlen_]
-             
-                $self instvar hdrlen_ 
-                set NS_ALIGN 8
-                # round up to nearest NS_ALIGN bytes
+                set size [$cl set hdrlen_]
+                $self instvar hdrlen_
+                set NS_ALIGN 8 \; round up to nearest NS_ALIGN bytes, (needed on sparc/solaris);
                 set incr [expr ($size + ($NS_ALIGN-1)) & ~($NS_ALIGN-1)]
                 set base $hdrlen_
                 incr hdrlen_ $incr
-
                 return $base
         \}
 
 {\rm From packet.cc:}
-
         /* {\cf manages active packet header types} */
         class PacketHeaderManager : public TclObject \{
         public:
@@ -495,14 +539,9 @@ The code in \nsf{tcl/lib/ns-packet.tcl} is executed
 when the simulator initializes.
 Thus, the {\tt foreach} statement is executed before the
 simulation begins, and initializes the OTcl class array
-\code{vartab_} to contain the mapping between class
-the name and the name of the variable used to contain
-that class's header in a packet (which is initialized later).
-For example, the value of \code{vartab_(IP)} is set to
-\code{off_ip_}.
-Notice that here the \code{off_\tup{hdrname}_} stuff is only provided
-for backward compatibility reasons;
-as discussed above (\ref{sec:ppackethdr}), packet headers should
+\code{tab_} to contain the mapping between class
+the name and the names of the currently active packet header classes.
+As discussed above (\ref{sec:ppackethdr}), packet headers should
 be accessed using \code{hdr_\tup{hdrname}::access()}. 
 
 The \proc[]{create\_packetformat} instance procedure is part of the
@@ -546,15 +585,32 @@ unaligned accesses result in an abnormal program termination.}.
 
 Following is a list of packet-header related procedures:
 \begin{flushleft}
-\code{$ns_ create_packetformat}\\
+\code{Simulator::create_packetformat}
+
 This is an internal simulator procedure and is called once during the simulator
 configuration to setup a packetHeaderManager object.
 
+\code{PacketHeaderManager::allochdr}
 
-\code{$pktHdrManager allochdr}\\
-This is another internal procedure of Class PacketHeaderManager that keeps track
-of a variable called \code{hdrlen_} as new packet-headers are enabled. It also
-allows 8-byte allignment for any newly-enabled pkt header.
+This is another internal procedure of Class PacketHeaderManager that
+keeps track 
+of a variable called \code{hdrlen_} as new packet-headers are
+enabled. 
+It also allows 8-byte allignment for any newly-enabled pkt header.
+
+\code{add-packet-header}
+takes a list of arguments, each of which is a packet header name
+(without \code{PacketHeader/} prefix). This global proc will tell
+simulator to include the specified packet header(s) in your
+simulation. 
+\code{remove-packet-header} operates in the same syntax, but it
+removes the specified headers from your simulation; notice that it
+does not remove the common header even it is instructed to do so.
+
+\code{remove-all-packet-headers} is a global Tcl proc. It takes no
+argument and removes all packet headers, except the common header,
+from your simulation. \code{add-all-packet-headers} is its
+counterpart. 
 
 \end{flushleft}
 \endinput

@@ -33,6 +33,8 @@
  *
  * ack-recons.cc: contributed by the Daedalus Research Group, 
  * UC Berkeley (http://daedalus.cs.berkeley.edu).
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/ack-recons.cc,v 1.6 2000/09/01 03:04:05 haoboy Exp $
  */
 
 /*
@@ -70,7 +72,7 @@ void
 AckReconsController::recv(Packet *p, Handler *)
 {
 	Tcl& tcl = Tcl::instance();
-	hdr_ip *ip = (hdr_ip *)p->access(off_ip_);
+	hdr_ip *ip = hdr_ip::access(p);
 	tcl.evalf("%s demux %d %d", name(),
 		  ip->saddr(), ip->daddr());
 	AckRecons *ackRecons = 
@@ -87,7 +89,7 @@ void
 AckRecons::recv(Packet *pkt)
 {
 	double now = Scheduler::instance().clock();
-	hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int &ack = tcph->seqno(), a, i;
 	Tcl& tcl = Tcl::instance();
 #ifdef DEBUG
@@ -149,11 +151,11 @@ AckRecons::sendack(int ack, double t)
 {
 	Packet *ackp = ackTemplate_->copy();
 	Scheduler &s = Scheduler::instance();
-	hdr_tcp *th = (hdr_tcp *) ackp->access(off_tcp_);
+	hdr_tcp *th = hdr_tcp::access(ackp);
 	th->seqno() = ack;
 	/* Set no_ts_ in flags because we don't want an rtt sample for this */
-	if (th->ts() == ((hdr_tcp *) ackp->access(off_tcp_))->ts()) {
-		hdr_flags *fh = (hdr_flags *) ackp->access(off_flags_);
+	if (th->ts() == hdr_tcp::access(ackp)->ts()) {
+		hdr_flags *fh = hdr_flags::access(ackp);
 		fh->no_ts_ = 1;
 		th->ts_ = s.clock();	/* for debugging purposes only */
 	}
@@ -172,7 +174,7 @@ void
 AckRecons::handle(Event *e)
 {
 	Packet *p = (Packet *) e;
-	hdr_tcp *th = (hdr_tcp *) p->access(off_tcp_);
+	hdr_tcp *th = hdr_tcp::access(p);
 	ackPending_--;
 	if (lastAck_ < th->seqno()) {
 		spq_->reconsAcks_ = 0;

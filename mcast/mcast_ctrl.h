@@ -19,7 +19,7 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/mcast_ctrl.h,v 1.2 1998/10/14 01:13:43 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/mcast_ctrl.h,v 1.3 2000/09/01 03:04:06 haoboy Exp $ (LBL)
  */
     
 
@@ -34,6 +34,13 @@ struct hdr_mcast_ctrl {
         char*     type()  { return ptype_; }
 	int&	  args()  { return args_;  }
 	int maxtype()     { return sizeof(ptype_); }
+
+	// Header access methods
+	static int offset_; // required by PacketHeaderManager
+	inline static int& offset() { return offset_; }
+	inline static hdr_mcast_ctrl* access(const Packet* p) {
+		return (hdr_mcast_ctrl*) p->access(offset_);
+	}
 };
 
 #endif

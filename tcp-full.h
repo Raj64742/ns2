@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.37 2000/01/05 00:00:59 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.38 2000/09/01 03:04:07 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -121,9 +121,6 @@ public:
 	void dumplist();	// for debugging
 
 protected:
-
-	int off_tcp_;		// TCP header offset
-	int off_cmn_;		// common header offset
 	seginfo* head_;		// head of segs linked list
 	seginfo* tail_;		// end of segs linked list
 	seginfo* ptr_;		// used for nextblk() iterator

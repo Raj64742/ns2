@@ -30,15 +30,14 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ * 
+ * Ported from CMU/Monarch's code, nov'98 -Padma.
+ *
+ * source route header
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/hdr_sr.h,v 1.6 2000/09/01 03:04:10 haoboy Exp $ 
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
-/* -*- c++ -*-
-   hdr_sr.h
-
-   source route header
-   $Id: hdr_sr.h,v 1.5 2000/08/18 18:34:02 haoboy Exp $
-*/
 #ifndef sr_hdr_h
 #define sr_hdr_h
 
@@ -97,7 +96,7 @@ struct hdr_sr {
 
 	static int offset_;		/* offset for this header */
 	inline static int& offset() { return offset_; }
-	inline static hdr_sr* access(Packet* p) {
+	inline static hdr_sr* access(const Packet* p) {
 		return (hdr_sr*)p->access(offset_);
 	}
 

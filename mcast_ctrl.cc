@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.5 1999/09/28 03:46:30 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.6 2000/09/01 03:04:06 haoboy Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -33,12 +33,11 @@ class mcastControlAgent : public Agent {
 public:
 	mcastControlAgent() : Agent(PT_NTYPE) {
 		bind("packetSize_", &size_);
-		bind("off_mcast_ctrl_", &off_mcast_ctrl_);
 	}
 
 	void recv(Packet* pkt, Handler*) {
-		hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)pkt->access(off_mcast_ctrl_);
-		hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+		hdr_mcast_ctrl* ph = hdr_mcast_ctrl::access(pkt);
+		hdr_cmn* ch = hdr_cmn::access(pkt);
 		// Agent/Mcast/Control instproc recv type from src group iface
 		Tcl::instance().evalf("%s recv %s %d %d", name(),
 				      ph->type(), ch->iface(), ph->args());
@@ -71,9 +70,8 @@ public:
 					tcl.result("invalid control message");
 					return (TCL_ERROR);
 				}
-
 				Packet* pkt = allocpkt();
-				hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)pkt->access(off_mcast_ctrl_);
+				hdr_mcast_ctrl* ph=hdr_mcast_ctrl::access(pkt);
 				strcpy(ph->type(), argv[2]);
 				ph->args()  = atoi(argv[3]);
 				send(pkt, 0);
@@ -82,18 +80,18 @@ public:
 		}
 		return (Agent::command(argc, argv));
 	}
-
-protected:
-	int off_mcast_ctrl_;
 };
 
 //
 // Now put the standard OTcl linkage templates here
 //
+int hdr_mcast_ctrl::offset_;
 static class mcastControlHeaderClass : public PacketHeaderClass {
 public:
         mcastControlHeaderClass() : PacketHeaderClass("PacketHeader/mcastCtrl",
-					     sizeof(hdr_mcast_ctrl)) {}
+					     sizeof(hdr_mcast_ctrl)) {
+		bind_offset(&hdr_mcast_ctrl::offset_);
+	}
 } class_mcast_ctrl_hdr;
 
 static class mcastControlClass : public TclClass {

@@ -1,3 +1,29 @@
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/mip-reg.cc,v 1.7 2000/09/01 03:04:06 haoboy Exp $
+
 /*
  * Copyright (c) Sun Microsystems, Inc. 1998 All rights reserved.
  *
@@ -38,10 +64,12 @@
 #define AGENT_ADS_SIZE		48
 #define REG_REQUEST_SIZE	52
 
+int hdr_mip::offset_;
 static class MIPHeaderClass : public PacketHeaderClass {
 public:
 	MIPHeaderClass() : PacketHeaderClass("PacketHeader/MIP",
 					     sizeof(hdr_mip)) {
+		bind_offset(&hdr_mip::offset_);
 	}
 } class_miphdr;
 
@@ -60,7 +88,6 @@ MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), beacon_(1.0),
 	//bind("shift_", &shift_);
 	//bind("mask_", &mask_);
 	bind("ad_lifetime_", &adlftm_);
-	bind("off_mip_", &off_mip_);
 	size_ = AGENT_ADS_SIZE;
 	seqno_ = -1;
 }
@@ -70,9 +97,9 @@ void MIPBSAgent::recv(Packet* p, Handler *)
 	Tcl& tcl = Tcl::instance();
 	char *objname = NULL;
 	NsObject *obj = NULL;
-	hdr_mip *miph = (hdr_mip *)p->access(off_mip_);
-	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
-	hdr_cmn *ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_mip *miph = hdr_mip::access(p);
+	hdr_ip *iph = hdr_ip::access(p);
+	hdr_cmn *ch = hdr_cmn::access(p);
 	int nodeaddr = Address::instance().get_nodeaddr(addr());
 	
 	switch (miph->type_) {
@@ -170,8 +197,8 @@ int MIPBSAgent::command(int argc, const char*const* argv)
 void MIPBSAgent::send_ads(int dst, NsObject *target)
 {
 	Packet *p = allocpkt();
-	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
-	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
+	hdr_mip *h = hdr_mip::access(p);
+	hdr_ip *iph = hdr_ip::access(p);
 	h->haddr_ = h->ha_ = -1;
 	//h->coa_ = addr_ >> shift_ & mask_;
 	h->coa_ = Address::instance().get_nodeaddr(addr());
@@ -179,8 +206,6 @@ void MIPBSAgent::send_ads(int dst, NsObject *target)
 	h->lifetime_ = adlftm_;
 	h->seqno_ = ++seqno_;
 	if (dst != -1) {
-	  //hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
-	  //iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (dst & mask_) << shift_;
 	  iph->daddr() = dst;
 	  iph->dport() = 0;
 	}
@@ -199,8 +224,8 @@ void MIPBSAgent::send_ads(int dst, NsObject *target)
 void
 MIPBSAgent::sendOutBCastPkt(Packet *p)
 {
-  hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
-  hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
+  hdr_ip *iph = hdr_ip::access(p);
+  hdr_cmn *hdrc = hdr_cmn::access(p);
   hdrc->next_hop_ = IP_BROADCAST;
   hdrc->addr_type_ = NS_AF_INET;
   iph->daddr() = IP_BROADCAST;
@@ -226,10 +251,7 @@ MIPMHAgent::MIPMHAgent() : Agent(PT_UDP), ha_(-1), coa_(-1),
 	bind("home_agent_", &ha_);
 	bind("rreqSize_", &size_);
 	bind("reg_rtx_", &reg_rtx_);
-	//bind("shift_", &shift_);
-	//bind("mask_", &mask_);
 	bind("reg_lifetime_", &reglftm_);
-	bind("off_mip_", &off_mip_);
 	size_ = REG_REQUEST_SIZE;
 	seqno_ = -1;
 }
@@ -237,7 +259,7 @@ MIPMHAgent::MIPMHAgent() : Agent(PT_UDP), ha_(-1), coa_(-1),
 void MIPMHAgent::recv(Packet* p, Handler *)
 {
 	Tcl& tcl = Tcl::instance();
-	hdr_mip *miph = (hdr_mip *)p->access(off_mip_);
+	hdr_mip *miph = hdr_mip::access(p);
 	switch (miph->type_) {
 	case MIPT_REG_REPLY:
 		if (miph->coa_ != coa_) break; // not pending
@@ -368,11 +390,11 @@ void MIPMHAgent::reg()
 	}
 	Tcl& tcl = Tcl::instance();
 	Packet *p = allocpkt();
-	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
+	hdr_ip *iph = hdr_ip::access(p);
 	//iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (coa_ & mask_) << shift_;
 	iph->daddr() = coa_;
 	iph->dport() = 0;
-	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
+	hdr_mip *h = hdr_mip::access(p);
 	//h->haddr_ = addr_ >> shift_ & mask_;
 	h->haddr_ = Address::instance().get_nodeaddr(addr());
 	h->ha_ = ha_;
@@ -391,7 +413,7 @@ void MIPMHAgent::reg()
 void MIPMHAgent::send_sols()
 {
 	Packet *p = allocpkt();
-	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
+	hdr_mip *h = hdr_mip::access(p);
 	h->coa_ = -1;
 	//h->haddr_ = addr_ >> shift_ & mask_;
 	h->haddr_ = Address::instance().get_nodeaddr(addr());
@@ -401,20 +423,20 @@ void MIPMHAgent::send_sols()
 	h->seqno_ = seqno_;
 	sendOutBCastPkt(p);
 	if (bcast_target_) 
-	  bcast_target_->recv(p, (Handler*) 0);
+		bcast_target_->recv(p, (Handler*) 0);
 	else if (target_) 
-	  target_->recv(p, (Handler*) 0);
+		target_->recv(p, (Handler*) 0);
 	else 
-	  Packet::free(p); // drop; may log in future code
+		Packet::free(p); // drop; may log in future code
 }
 
 
 void MIPMHAgent::sendOutBCastPkt(Packet *p)
 {
-  hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
-  hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
-  hdrc->next_hop_ = IP_BROADCAST;
-  hdrc->addr_type_ = NS_AF_INET;
-  iph->daddr() = IP_BROADCAST;
-  iph->dport() = 0;
+	hdr_ip *iph = hdr_ip::access(p);
+	hdr_cmn *hdrc = hdr_cmn::access(p);
+	hdrc->next_hop_ = IP_BROADCAST;
+	hdrc->addr_type_ = NS_AF_INET;
+	iph->daddr() = IP_BROADCAST;
+	iph->dport() = 0;
 }

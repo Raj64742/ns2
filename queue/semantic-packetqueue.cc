@@ -52,12 +52,6 @@ public:
 SemanticPacketQueue::SemanticPacketQueue() : ack_count(0), data_count(0), 
 	acks_to_send(0), marked_count_(0), unmarked_count_(0) 
 {
-	bind("off_cmn_", &off_cmn_);
-	bind("off_flags_", &off_flags_);
-	bind("off_ip_", &off_ip_);
-	bind("off_tcp_", &off_tcp_);
-	bind("off_flags_", &off_flags_);
-	
 	bind_bool("acksfirst_", &acksfirst_);
 	bind_bool("filteracks_", &filteracks_);
 	bind_bool("reconsAcks_", &reconsAcks_);
@@ -94,7 +88,7 @@ SemanticPacketQueue::deque_acksfirst() {
 
 	if (ack_count > 0) {
 		while (p) {
-			type = ((hdr_cmn*)p->access(off_cmn_))->ptype_;
+			type = hdr_cmn::access(p)->ptype_;
 			if (type == PT_ACK)
 				break;
 			pp = p;
@@ -122,19 +116,19 @@ SemanticPacketQueue::filterAcks(Packet *pkt, int replace_head)
 	int done_replacement = 0;
 
 	Packet *p, *pp, *new_p;
-	hdr_tcp *tcph = (hdr_tcp*) pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int &ack = tcph->seqno();
 
-	hdr_ip *iph = (hdr_ip*) pkt->access(off_ip_);
+	hdr_ip *iph = hdr_ip::access(pkt);
 	for (p = head(), pp = p; p != 0; ) {
 		/* 
 		 * Check if packet in the queue belongs to the 
 		 * same connection as the most recent ack
 		 */
-		if (compareFlows((hdr_ip*) p->access(off_ip_), iph)) {
+		if (compareFlows(hdr_ip::access(p), iph)) {
 			/* check if queued packet is an ack */
-			if (((hdr_cmn*)p->access(off_cmn_))->ptype_==PT_ACK) {
-				hdr_tcp *th = (hdr_tcp*) p->access(off_tcp_);
+			if (hdr_cmn::access(p)->ptype_==PT_ACK) {
+				hdr_tcp *th = hdr_tcp::access(p);
 				/* is this ack older than the current one? */
 				if ((th->seqno() < ack) ||
 				    (replace_head && th->seqno() == ack)) { 
@@ -190,7 +184,7 @@ SemanticPacketQueue::filterAcks(Packet *pkt, int replace_head)
 int
 SemanticPacketQueue::isMarked(Packet *p) 
 {
-	return(((hdr_flags*)p->access(off_flags_))->fs_);
+	return (hdr_flags::access(p)->fs_);
 }
 
 
@@ -274,11 +268,11 @@ SemanticPacketQueue::pickPacketToDrop()
 void 
 SemanticPacketQueue::enque(Packet *pkt)
 {
-	if (reconsAcks_&&(((hdr_cmn*)pkt->access(off_cmn_))->ptype_==PT_ACK)) {
+	if (reconsAcks_&&(hdr_cmn::access(pkt)->ptype_==PT_ACK)) {
 		reconsCtrl_->recv(pkt);
 		return;
 	}
-	if (((hdr_cmn*)pkt->access(off_cmn_))->ptype_ == PT_ACK)
+	if (hdr_cmn::access(pkt)->ptype_ == PT_ACK)
 		ack_count++;
 	else
 		data_count++;
@@ -289,7 +283,7 @@ SemanticPacketQueue::enque(Packet *pkt)
 
 	PacketQueue::enque(pkt); /* actually enqueue the packet */
 
-	if (filteracks_ && (((hdr_cmn*)pkt->access(off_cmn_))->ptype_==PT_ACK))
+	if (filteracks_ && (hdr_cmn::access(pkt)->ptype_==PT_ACK))
 		filterAcks(pkt, replace_head_);
 }
 
@@ -304,7 +298,7 @@ SemanticPacketQueue::deque()
 		pkt = PacketQueue::deque();
 	
 	if (pkt) {
-		if (((hdr_cmn*)pkt->access(off_cmn_))->ptype_ == PT_ACK)
+		if (hdr_cmn::access(pkt)->ptype_ == PT_ACK)
 			ack_count--;
 		else
 			data_count--;
@@ -321,7 +315,7 @@ SemanticPacketQueue::remove(Packet *pkt)
 {
 	PacketQueue::remove(pkt);
 	if (pkt) {
-		if (((hdr_cmn*)pkt->access(off_cmn_))->ptype_ == PT_ACK)
+		if (hdr_cmn::access(pkt)->ptype_ == PT_ACK)
 			ack_count--;
 		else
 			data_count--;

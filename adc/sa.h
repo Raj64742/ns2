@@ -54,7 +54,6 @@ protected:
 	void recv(Packet *, Handler *);
         void stoponidle(const char *);
 	virtual void sendpkt();
-	int off_resv_;
 	double rate_;
 	int bucket_;
 	NsObject* ctrl_target_;
@@ -64,7 +63,6 @@ protected:
 
 	SA_Timer sa_timer_;
 	double nextPkttime_;
-	int off_rtp_;
 	int running_;
 	int seqno_;
 	int size_;

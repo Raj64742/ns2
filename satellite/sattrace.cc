@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.9 2000/07/27 01:29:16 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.10 2000/09/01 03:04:07 haoboy Exp $";
 #endif
 
 #include <stdio.h>
@@ -71,19 +71,12 @@ char* srm_names_[] = {
 
 void SatTrace::format(int tt, int s, int d, Packet* p)
 {
-#ifdef OFF_HDR
-	hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
-	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
-	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
-	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
-	hdr_srm *sh = (hdr_srm*)p->access(off_srm_); 
-#else
 	hdr_cmn *th = hdr_cmn::access(p);
 	hdr_ip *iph = hdr_ip::access(p);
 	hdr_tcp *tcph = hdr_tcp::access(p);
 	hdr_rtp *rh = hdr_rtp::access(p);
 	hdr_srm *sh = hdr_srm::access(p); 
-#endif
+
 	const char* sname = "null";
 	int lasth, nexth, snadd;
 	Node* n;
@@ -120,11 +113,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 		flags[i] = '-';
         flags[NUMFLAGS] = 0;
 
-#ifdef OFF_HDR
-	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
-#else
 	hdr_flags* hf = hdr_flags::access(p);
-#endif
 	flags[0] = hf->ecn_ ? 'C' : '-';          // Ecn Echo
 	flags[1] = hf->pri_ ? 'P' : '-'; 
 	flags[2] = '-';
@@ -279,15 +268,9 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 	namdump();
 
 	if (namChan_ != 0) {
-#ifdef OFF_HDR
-		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
-		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
-		hdr_srm *sh = (hdr_srm*)p->access(off_srm_);
-#else
 		hdr_cmn *th = hdr_cmn::access(p);
 		hdr_ip *iph = hdr_ip::access(p);
 		hdr_srm *sh = hdr_srm::access(p);
-#endif
 		const char* sname = "null";   
 
 		packet_t t = th->ptype();
@@ -309,11 +292,7 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 			flags[i] = '-';
 		flags[NUMFLAGS] = 0;
 
-#ifdef OFF_HDR
-		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
-#else
 		hdr_flags* hf = hdr_flags::access(p);
-#endif
 		flags[0] = hf->ecn_ ? 'C' : '-';          // Ecn Echo
 		flags[1] = hf->pri_ ? 'P' : '-'; 
 		flags[2] = '-';

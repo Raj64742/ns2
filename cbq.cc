@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.26 1999/01/29 05:36:35 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.27 2000/09/01 03:04:05 haoboy Exp $ (LBL)";
 #endif
 
 
@@ -745,7 +745,7 @@ found:
 			// by the packet size.  If we're
 			// still positive, we get to go again
 			int bytes = eligible->bytes_alloc_;
-			hdr_cmn* hdr = (hdr_cmn*)pending_pkt_->access(off_cmn_);
+			hdr_cmn* hdr = hdr_cmn::access(pending_pkt_);
 			if (bytes > 0) {
 				eligible->bytes_alloc_ -= hdr->size();
 			}
@@ -867,7 +867,7 @@ void CBQClass::update(Packet* p, double now)
 {
 	double idle, avgidle;
 
-	hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* hdr = hdr_cmn::access(p);
 	int pktsize = hdr->size();
 
 	double tx_time = cbq_->link()->txtime(p);

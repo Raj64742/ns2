@@ -30,6 +30,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/chost.cc,v 1.13 2000/09/01 03:04:05 haoboy Exp $
  */
 
 /*
@@ -322,7 +324,7 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 	int new_data_acked = 0;
 	int partialack = 0;
 	int latest_susp_loss = -1;
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
 	if (tcph->ts_echo() > lastackTS_)
 		lastackTS_ = tcph->ts_echo();

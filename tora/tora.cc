@@ -30,12 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.12 2000/09/01 03:04:12 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code*/
-/*
-  tora.cc
-  $Id: tora.cc,v 1.11 1999/10/14 22:19:49 yuriy Exp $
-  */
 
 #include <agent.h>
 #include <random.h>
@@ -62,10 +61,13 @@
 /* ======================================================================
    TCL Hooks
    ====================================================================== */
+int hdr_tora::offset_;
 static class TORAHeaderClass : public PacketHeaderClass {
 public:
         TORAHeaderClass() : PacketHeaderClass("PacketHeader/TORA",
-					      TORA_HDR_LEN) { } 
+					      TORA_HDR_LEN) { 
+		bind_offset(&hdr_tora::offset_);
+	} 
 } class_toraAgent_hdr;
 
 static class toraAgentclass : public TclClass {
@@ -85,7 +87,6 @@ toraAgent::toraAgent(nsaddr_t id) :
 	rtAgent(id, PT_TORA),
 	rqueue()
 {
-	bind("off_TORA_", &off_TORA_);
 	LIST_INIT(&dstlist);
 	imepagent = 0;
 	logtarget = 0;
@@ -95,12 +96,10 @@ toraAgent::toraAgent(nsaddr_t id) :
 void
 toraAgent::reset()
 {
-  Packet *p;
-  while((p = rqueue.deque())) 
-    {
-      drop(p,DROP_END_OF_SIMULATION);
-    }
-
+	Packet *p;
+	while((p = rqueue.deque())) {
+		drop(p,DROP_END_OF_SIMULATION);
+	}
 }
 
 int

@@ -18,12 +18,12 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- * 
+ *
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.18 1999/11/20 00:40:12 heideman Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.19 2000/09/01 03:04:07 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include "config.h"
@@ -93,7 +93,6 @@ protected:
 	nsaddr_t src_;
 	dstobj *dstobj_;
 	loss_depobj *loss_dependency_;
-	int off_ip_;
 	int ndst_;
 	int rc_; //enable reference count
 };
@@ -108,7 +107,6 @@ public:
 
 SessionHelper::SessionHelper() : dstobj_(0), ndst_(0), rc_(0)
 {
-	bind("off_ip_", &off_ip_);
 	bind("rc_", &rc_);
 	loss_dependency_ = new loss_depobj;
 	loss_dependency_->obj = 0;
@@ -121,8 +119,8 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 {
 	dstobj *tmpdst = dstobj_;
 	Scheduler& s = Scheduler::instance();
-	hdr_cmn* th = (hdr_cmn*)pkt->access(off_cmn_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	hdr_cmn* th = hdr_cmn::access(pkt);
+	hdr_ip* iph = hdr_ip::access(pkt);
 	double tmp_arrival;
 
 	//printf ("src %d,  size %d, iface %d\n", src_, th->size(), th->iface());
@@ -156,7 +154,7 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 		      s.schedule(&rc_handler, rc, tmp_arrival);
 	      } else {
 		Packet* tmppkt = pkt->copy();
-		hdr_ip* tmpiph = (hdr_ip*)tmppkt->access(off_ip_);
+		hdr_ip* tmpiph = hdr_ip::access(tmppkt);
 		tmpiph->ttl() = ttl;
 		s.schedule(tmpdst->obj, tmppkt, tmp_arrival);
 	      }

@@ -18,6 +18,8 @@
  * Last change: Dec 07, 1998
  *
  * This software may freely be used only for non-commercial purposes
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/Attic/mftp.h,v 1.4 2000/09/01 03:04:06 haoboy Exp $
  */
 
 // This file contains functionality common to both MFTP sender and receivers.
@@ -29,9 +31,7 @@
 #include "agent.h"     // due to class Agent
 #include "assert.h"    // due to assert()
 
-
-class hdr_mftp {
-public:
+struct hdr_mftp {
     enum { PDU_DATA_TRANSFER, PDU_STATUS_REQUEST, PDU_NAK }; // allowed types of PDU's
 
     int type;          // field for PDU-type
@@ -63,6 +63,13 @@ public:
             // is dynamically allocated.
         } nak;
     } spec;
+
+    // Header access methods
+    static int offset_; // required by PacketHeaderManager
+    inline static int& offset() { return offset_; }
+    inline static hdr_mftp* access(const Packet* p) {
+        return (hdr_mftp*) p->access(offset_);
+    }
 };
 
 class MFTPAgent : public Agent {
@@ -77,9 +84,6 @@ protected:
     int dtusPerGroup_;
     int seekCount_;
     
-    int off_mftp_;
-    int off_cmn_;
-
     // the following variables are not accessible from tcl-scripts:
     unsigned long FileSize;           // size of file of this transfer
     unsigned long FileDGrams;         // number of datagrams in this transfer

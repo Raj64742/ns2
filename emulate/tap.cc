@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.12 1998/09/09 23:43:24 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.13 2000/09/01 03:04:10 haoboy Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -203,7 +203,7 @@ TapAgent::recvpkt()
 	TDEBUG4("%f: Tap(%s): recvpkt, cc:%d\n", now(), name(), cc);
 
 	// inject into simulator
-	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch = HDR_CMN(p);
 	ch->size() = cc;
 
 	/*
@@ -274,7 +274,7 @@ TapAgent::sendpkt(Packet* p)
 	}
 
 	// send packet into the live network
-	hdr_cmn* hc = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* hc = HDR_CMN(p);
 	if (net_ == NULL) {
 		fprintf(stderr,
 	         "TapAgent(%s): sendpkt attempted with NULL net\n",

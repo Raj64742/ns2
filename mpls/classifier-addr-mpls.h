@@ -1,6 +1,6 @@
 // -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
 //
-// Time-stamp: <2000-08-29 11:27:15 haoboy>
+// Time-stamp: <2000-08-31 17:42:02 haoboy>
 //
 // Copyright (c) 2000 by the University of Southern California
 // All rights reserved.
@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.h,v 1.1 2000/08/29 19:28:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.h,v 1.2 2000/09/01 03:04:11 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -79,7 +79,7 @@ struct hdr_mpls {
 	// Header access methods
 	static int offset_; // required by PacketHeaderManager
 	inline static int& offset() { return offset_; }
-	inline static hdr_mpls* access(Packet* p) {
+	inline static hdr_mpls* access(const Packet* p) {
 		return (hdr_mpls*)p->access(offset_);
 	}
 };

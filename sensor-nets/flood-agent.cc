@@ -1,15 +1,48 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1997,2000 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by the Computer Systems
+ *	Engineering Group at Lawrence Berkeley Laboratory.
+ * 4. Neither the name of the University nor of the Laboratory may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sensor-nets/flood-agent.cc,v 1.4 2000/09/01 03:04:11 haoboy Exp $
+ */
+
 // Author: Satish Kumar, kkumar@isi.edu
 
-extern "C" {
 #include <stdarg.h>
 #include <float.h>
-};
 
 #include "flood-agent.h"
 #include <random.h>
 #include <cmu-trace.h>
 #include <address.h>
-
 
 #define OLD_QRY_ENTRY 0
 #define OLD_SHORTER_ENTRY 1
@@ -173,15 +206,11 @@ FloodAgent::startUp()
 
 }
 
-
-
-
 void
 FloodAgent::recv(Packet *p, Handler *)
 {
-
-  hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
-  hdr_cmn *cmh = (hdr_cmn *) p->access (off_cmn_);
+  hdr_ip *iph = HDR_IP(p);
+  hdr_cmn *cmh = HDR_CMN(p);
   unsigned char *walk, *X_ptr, *Y_ptr;
   compr_taglist *tag_ptr;
   int found = FALSE, action, X, Y, obj_name, origin_time, next_hop_level;

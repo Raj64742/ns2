@@ -1,7 +1,28 @@
-/* -*- c++ -*-
-   aodv.h
-   $I`d$
-   */
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/aodv/aodv.h,v 1.6 2000/09/01 03:04:08 haoboy Exp $
 
 /* The AODV code developed by the CMU/MONARCH group was optimized
  * and tuned by Samir Das (UTSA) and Mahesh Marina (UTSA). The 
@@ -102,12 +123,12 @@ redistribute these changes without encumbrance.
 
 class AODV;
 
+// XXX This is ugly. Why don't you declare a union of all 3 AODV headers and 
+// do a sizeof() ??
 #define AODV_HDR_LEN    64      // amount of space allocated in the pkt hdr
 
 #define ID_NOT_FOUND    0x00
 #define ID_FOUND        0x01
-
-//#define INFINITY        0xff
 
 /*
  * Constants defined in AODV internet draft. May need changes for performance
@@ -130,12 +151,8 @@ class AODV;
 #define ALLOWED_HELLO_LOSS      3               // packets
 #define BAD_LINK_LIFETIME       3               // 3000 ms
 
-// Must be larger than the time difference between a node propagates a route request 
-// and gets the route reply back.
-
-
-// #define RREP_WAIT_TIME          (3 * NODE_TRAVERSAL_TIME * NETWORK_DIAMETER) // ms
-//#define RREP_WAIT_TIME          (2 * REV_ROUTE_LIFE)  // seconds
+// Must be larger than the time difference between a node propagates a route 
+// request and gets the route reply back.
 
 #define RREP_WAIT_TIME         1.0  // sec
 
@@ -248,13 +265,7 @@ class AODV: public Agent {
         friend class LocalRepairTimer;
  public:
         AODV(nsaddr_t id);
-
         void		recv(Packet *p, Handler *);
-
-        /*
-         * HDR offsets
-         */
-        int             off_AODV_;
 
  protected:
         int             command(int, const char *const *);

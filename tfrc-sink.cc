@@ -424,7 +424,7 @@ double TfrcSinkAgent::est_loss_WALI ()
 		sample[0]++;
 		if (lossvec_[i%hsz] == LOST) {
 		        //  new loss event
-			double now = Scheduler::instance().clock();
+			// double now = Scheduler::instance().clock();
 			sample_count ++;
 			shift_array (sample, numsamples+1, 0); 
 			multiply_array(mult, numsamples+1, mult_factor_);

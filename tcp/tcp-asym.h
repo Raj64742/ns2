@@ -33,6 +33,8 @@
  *
  * Contributed by the Daedalus Research Group, U.C.Berkeley
  * http://daedalus.cs.berkeley.edu
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.h,v 1.4 2000/09/01 03:04:07 haoboy Exp $
  */
 
 #ifndef ns_tcp_asym_h
@@ -56,7 +58,7 @@ struct hdr_tcpasym {
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
-	inline static hdr_tcpasym* access(Packet* p) {
+	inline static hdr_tcpasym* access(const Packet* p) {
 		return (hdr_tcpasym*) p->access(offset_);
 	}
 
@@ -80,7 +82,6 @@ public:
 	virtual void traceAll();
 	virtual void traceVar(TracedVar* v);
 protected:
-	int off_tcpasym_;
 	int ecn_to_echo_;
 	TracedDouble t_exact_srtt_;
 /*	TracedDouble avg_win_; */

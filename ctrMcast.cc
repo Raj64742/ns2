@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.cc,v 1.8 1999/09/09 03:22:36 salehi Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.cc,v 1.9 2000/09/01 03:04:05 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -43,24 +43,16 @@ public:
 
 class CtrMcastEncap : public Agent {
 public:
-	CtrMcastEncap() : Agent(PT_CtrMcast_Encap) { 
-		bind("off_CtrMcast_", &off_CtrMcast_);
-	}
+	CtrMcastEncap() : Agent(PT_CtrMcast_Encap) {}
 	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler*);
-protected:
-	int off_CtrMcast_;
 };
 
 class CtrMcastDecap : public Agent {
 public:
-	CtrMcastDecap() : Agent(PT_CtrMcast_Decap) { 
-		bind("off_CtrMcast_", &off_CtrMcast_);
-	}
+	CtrMcastDecap() : Agent(PT_CtrMcast_Decap) {}
 	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler*);
-protected:
-	int off_CtrMcast_;
 };
 
 static class CtrMcastEncapclass : public TclClass {
@@ -92,8 +84,8 @@ int CtrMcastDecap::command(int argc, const char*const* argv)
 
 void CtrMcastEncap::recv(Packet* p, Handler*)
 {
-	hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
-	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
+	hdr_CtrMcast* ch = hdr_CtrMcast::access(p);
+	hdr_ip* ih = hdr_ip::access(p);
 
 	ch->src() = ih->saddr();
 	ch->group() = ih->daddr();
@@ -109,8 +101,8 @@ void CtrMcastEncap::recv(Packet* p, Handler*)
 
 void CtrMcastDecap::recv(Packet* p, Handler*)
 {
-	hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
-	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
+	hdr_CtrMcast* ch = hdr_CtrMcast::access(p);
+	hdr_ip* ih = hdr_ip::access(p);
 
 	ih->saddr() = ch->src();
 	ih->daddr() = ch->group();

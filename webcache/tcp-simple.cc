@@ -21,7 +21,7 @@
 // If we have interface declaration independent from class type definition,
 // we'll be better off.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.cc,v 1.8 1999/05/26 01:20:22 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.cc,v 1.9 2000/09/01 03:04:12 haoboy Exp $
 
 #include <stdlib.h>
 #include "tclcl.h"
@@ -55,18 +55,18 @@ void SimpleTcpAgent::sendmsg(int bytes, const char* /*flags*/)
 	seqno_ ++;
 
 	Packet *p = allocpkt();
-	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+	hdr_tcp *tcph = HDR_TCP(p);
 	tcph->seqno() = seqno_;
 	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
-        hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
+        hdr_cmn *th = HDR_CMN(p);
 	th->size() = bytes + tcpip_base_hdr_size_;
 	send(p, 0);
 }
 
 void SimpleTcpAgent::recv(Packet *pkt, Handler *)
 {
-        hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
+        hdr_cmn *th = HDR_CMN(pkt);
 	int datalen = th->size() - tcpip_base_hdr_size_;
 	if (app_)
 		app_->recv(datalen);

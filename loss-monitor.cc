@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.17 2000/07/19 20:54:39 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.18 2000/09/01 03:04:06 haoboy Exp $ (LBL)";
 #endif
 
 #include <tclcl.h>
@@ -67,14 +67,13 @@ LossMonitor::LossMonitor() : Agent(PT_NTYPE)
 	bind("bytes_", &bytes_);
 	bind("lastPktTime_", &last_packet_time_);
 	bind("expected_", &expected_);
-	bind("off_rtp_", &off_rtp_);
 }
 
 void LossMonitor::recv(Packet* pkt, Handler*)
 {
-	hdr_rtp* p = (hdr_rtp*)pkt->access(off_rtp_);
+	hdr_rtp* p = hdr_rtp::access(pkt);
 	seqno_ = p->seqno();
-	bytes_ += ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	bytes_ += hdr_cmn::access(pkt)->size();
 	++npkts_;
 	/*
 	 * Check for lost packets

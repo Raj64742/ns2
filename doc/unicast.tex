@@ -61,7 +61,7 @@ As an example, the following commands illustrate the use of the
         $ns rtproto Static            \; Enable static route strategy for the simulation;
         $ns rtproto Session           \; Enable session routing for this simulation;
         $ns rtproto DV $n1 $n2 $n3    \; Run DV agents on nodes $n1, $n2, and $n3;
-        $ns rtproto LS $n1 $n2        \; Run link state routing on specified nodes
+        $ns rtproto LS $n1 $n2        \; Run link state routing on specified nodes;
 \end{program}
 If a simulation script does not specify any \proc[]{rtproto} command,
 then \ns\ will run Static routing on all the nodes in the topology.

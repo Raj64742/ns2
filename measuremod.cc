@@ -16,6 +16,8 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/measuremod.cc,v 1.4 2000/09/01 03:04:06 haoboy Exp $
  */
 
 //Basic Measurement block derived from a connector
@@ -41,7 +43,7 @@ MeasureMod::MeasureMod() : nbits_(0),npkts_(0)
 
 void MeasureMod::recv(Packet *p,Handler *h)
 {
-	hdr_cmn *ch=(hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn *ch = hdr_cmn::access(p);
 	nbits_ += ch->size()<<3;
 	npkts_++;
 	send(p,h);

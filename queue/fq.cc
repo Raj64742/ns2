@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.10 1999/09/24 17:04:33 heideman Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.11 2000/09/01 03:04:05 haoboy Exp $ (ANS)";
 #endif
 
 #include "config.h"
@@ -66,7 +66,6 @@ protected:
 	}
 	int maxflow_;
 	double secsPerByte_;
-	int off_ip_;
 };
 
 static class FQClass : public TclClass {
@@ -87,7 +86,6 @@ FQ::FQ()
 	maxflow_ = -1;
 	secsPerByte_ = 0.;
 	bind("secsPerByte_", &secsPerByte_);
-	bind("off_ip_", &off_ip_);
 }
 
 int FQ::command(int argc, const char*const* argv)
@@ -166,7 +164,7 @@ Packet* FQ::deque()
  */
 void FQ::recv(Packet* p, Handler* handler)
 {
-	hdr_ip* h = (hdr_ip*)p->access(off_ip_);
+	hdr_ip* h = hdr_ip::access(p);
 	int flowid = h->flowid();
 	/* shouldn't be called when head-of-line is pending */
 	if (flowid >= MAXFLOW || fs_[flowid].hol_ != 0)
@@ -182,7 +180,7 @@ void FQ::recv(Packet* p, Handler* handler)
 	if (now > fs_[flowid].finishTime_)
 		fs_[flowid].finishTime_ = now;
 	fs_[flowid].handler_ = handler;
-	int size = ((hdr_cmn*)p->access(off_cmn_))->size();
+	int size = hdr_cmn::access(p)->size();
 	fs_[flowid].delta_ = size * secsPerByte_;
 
 	if (!blocked_) {

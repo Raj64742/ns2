@@ -16,6 +16,8 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/sa.cc,v 1.14 2000/09/01 03:04:06 haoboy Exp $
  */
 
 //packets after it succeeds in a3-way handshake from the receiver
@@ -31,8 +33,6 @@
 SA_Agent::SA_Agent() : Agent(PT_UDP), trafgen_(0), rtd_(0), callback_(0), 
     sa_timer_(this), nextPkttime_(-1), running_(0), seqno_(-1)
 {
-	bind ("off_resv_",&off_resv_);
-	bind("off_rtp_", &off_rtp_);
 	bind_bw("rate_",&rate_);
 	bind("bucket_",&bucket_);
 	bind("packetSize_", &size_);
@@ -125,11 +125,11 @@ void SA_Agent::stop()
 void SA_Agent::sendreq()
 {
 	Packet *p = allocpkt();
-	hdr_cmn* ch= (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch= hdr_cmn::access(p);
 	ch->ptype()=PT_REQUEST;
 	ch->size()=20;
 	//also put in the r,b parameters for the flow in the packet
-	hdr_resv* rv=(hdr_resv*)p->access(off_resv_);
+	hdr_resv* rv=hdr_resv::access(p);
 	rv->decision() =1;
 	rv->rate()=rate_;
 	rv->bucket()=bucket_;
@@ -139,11 +139,11 @@ void SA_Agent::sendreq()
 void SA_Agent::sendteardown()
 {
 	Packet *p = allocpkt();
-	hdr_cmn* ch= (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch= hdr_cmn::access(p);
 	ch->ptype()=PT_TEARDOWN;
 	ch->size()=20;
 	//also put in the r,b parameters for the flow in the packet
-	hdr_resv* rv=(hdr_resv*)p->access(off_resv_);
+	hdr_resv* rv=hdr_resv::access(p);
 	rv->decision() =1;
 	rv->rate()=rate_;
 	rv->bucket()=bucket_;
@@ -153,9 +153,9 @@ void SA_Agent::sendteardown()
 
 void SA_Agent::recv(Packet *p, Handler *) 
 {
-	hdr_cmn *ch= (hdr_cmn *)p->access(off_cmn_);
-	hdr_resv *rv=(hdr_resv *)p->access(off_resv_);
-	hdr_ip * iph = (hdr_ip*)p->access(off_ip_);
+	hdr_cmn *ch= hdr_cmn::access(p);
+	hdr_resv *rv=hdr_resv::access(p);
+	hdr_ip * iph = hdr_ip::access(p);
 	if ( ch->ptype() == PT_ACCEPT || ch->ptype() == PT_REJECT ) {
 		ch->ptype() = PT_CONFIRM;
 
@@ -233,13 +233,13 @@ void SA_Agent::timeout(int)
 void SA_Agent::sendpkt()
 {
         Packet* p = allocpkt();
-        hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+        hdr_rtp* rh = hdr_rtp::access(p);
         rh->seqno() = ++seqno_;
         rh->flags()=0;
 
         double local_time=Scheduler::instance().clock();
         /*put in "rtp timestamps" and begining of talkspurt labels */
-        hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+        hdr_cmn* ch = hdr_cmn::access(p);
         ch->timestamp()=(u_int32_t)(SAMPLERATE*local_time);
         ch->size()=size_;
         if ((nextPkttime_ != trafgen_->interval()) || (nextPkttime_ == -1))
@@ -264,14 +264,14 @@ void SA_Agent::sendmsg(int nbytes, const char* /*flags*/)
         }
         while (n-- > 0) {
        		p = allocpkt();
-                hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+                hdr_rtp* rh = hdr_rtp::access(p);
                 rh->seqno() = seqno_;
                 target_->recv(p);
         }
         n = nbytes % size_;
         if (n > 0) {
         	p = allocpkt();
-        	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+        	hdr_rtp* rh = hdr_rtp::access(p);
         	rh->seqno() = seqno_;
         	target_->recv(p);
         }

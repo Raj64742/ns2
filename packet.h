@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.78 2000/08/29 19:28:02 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.79 2000/09/01 03:04:06 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -47,24 +47,23 @@
 #include "packet-stamp.h"
 #include "ns-process.h"
 
+// Used by wireless routing code to attach routing agent
 #define RT_PORT		255	/* port that all route msgs are sent to */
-#define HDR_CMN(p)      ((struct hdr_cmn*)(p)->access(hdr_cmn::offset_))
-#define HDR_ARP(p)      ((struct hdr_arp*)(p)->access(hdr_arp::offset_))
-#define HDR_MAC(p)      ((struct hdr_mac*)(p)->access(hdr_mac::offset_))
-#define HDR_MAC802_11(p) ((struct hdr_mac802_11*)(p)->access(hdr_mac::offset_))
-#define HDR_MAC_TDMA(p) ((struct hdr_mac_tdma*)(p)->access(hdr_mac::offset_))
-#define HDR_LL(p)       ((struct hdr_ll*)(p)->access(hdr_ll::offset_))
-#define HDR_IP(p)       ((struct hdr_ip*)(p)->access(hdr_ip::offset_))
-#define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
-#define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
-#define HDR_SR(p)       ((struct hdr_sr*)(p)->access(hdr_sr::offset_))
-#define HDR_TFRC(p)      ((struct hdr_tfrc*)(p)->access(hdr_tfrc::offset_))
-#define HDR_TORA(p)     ((struct hdr_tora*)(p)->access(off_TORA_))
-#define HDR_IMEP(p)     ((struct hdr_imep*)(p)->access(off_IMEP_))
 
-/* Added for directed diffusion by Chalermek Intanagonwiwat 4/28/99    */
- 
-#define HDR_DIFF(p)     ((struct hdr_diff*)(p)->access(hdr_diff::offset_))
+#define HDR_CMN(p)      (hdr_cmn::access(p))
+#define HDR_ARP(p)      (hdr_arp::access(p))
+#define HDR_MAC(p)      (hdr_mac::access(p))
+#define HDR_MAC802_11(p) ((hdr_mac802_11 *)hdr_mac::access(p))
+#define HDR_MAC_TDMA(p) ((hdr_mac_tdma *)hdr_mac::access(p))
+#define HDR_LL(p)       (hdr_ll::access(p))
+#define HDR_IP(p)       (hdr_ip::access(p))
+#define HDR_RTP(p)      (hdr_rtp::access(p))
+#define HDR_TCP(p)      (hdr_tcp::access(p))
+#define HDR_SR(p)       (hdr_sr::access(p))
+#define HDR_TFRC(p)     (hdr_tfrc::access(p))
+#define HDR_TORA(p)     (hdr_tora::access(p))
+#define HDR_IMEP(p)     (hdr_imep::access(p))
+#define HDR_DIFF(p)     (hdr_diff::access(p))
  
 /* --------------------------------------------------------------------*/
 
@@ -408,7 +407,7 @@ struct hdr_cmn {
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
-	inline static hdr_cmn* access(Packet* p) {
+	inline static hdr_cmn* access(const Packet* p) {
 		return (hdr_cmn*) p->access(offset_);
 	}
 	
@@ -501,8 +500,7 @@ inline Packet* Packet::alloc(int n)
 
 inline void Packet::free(Packet* p)
 {
-	int off_cmn_ = hdr_cmn::offset_;
-	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
 	if (p->fflag_) {
 		if (ch->ref_count() == 0) {
 			/*
@@ -558,10 +556,4 @@ Packet::dump_header(Packet *p, int offset, int length)
         }
 }
 
-
-
-
 #endif
-
-
-

@@ -30,13 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.h,v 1.5 2000/09/01 03:04:10 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code*/
-
-/* -*- c++ -*-
-   imep.h
-   $Id: imep.h,v 1.4 2000/08/17 00:03:38 haoboy Exp $
-   */
 
 #ifndef __imep_h__
 #define __imep_h__
@@ -261,12 +259,6 @@ private:
 
 	nsaddr_t	ipaddr;
 	// IP Address of this node.
-
-	int		off_IMEP_;
-	// offset of the IMEP header in a packet.
-
-	int off_TORA_;
-	// offset of the TORA header in a packet.
 
 	u_int32_t	controlSequence;
 

@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.24 2000/08/12 21:46:10 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.25 2000/09/01 03:04:07 haoboy Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -69,7 +69,7 @@ void FackTcpAgent::reset ()
  */
 void FackTcpAgent::oldack(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
 	last_ack_ = tcph->seqno();
 	highest_ack_ = last_ack_;
@@ -103,7 +103,7 @@ void FackTcpAgent::oldack(Packet* pkt)
 
 int FackTcpAgent::maxsack(Packet *pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int maxsack=-1, sack_index; 
 
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
@@ -126,7 +126,7 @@ void FackTcpAgent::recv_newack_helper(Packet *pkt) {
 
 void FackTcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int ms; 
 
 #ifdef notdef
@@ -139,7 +139,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 #endif
 
 	ts_peer_ = tcph->ts();
-	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
+	if (hdr_flags::access(pkt)->ecnecho() && ecn_)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 

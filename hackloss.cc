@@ -1,7 +1,7 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.5 1999/09/09 03:22:38 salehi Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.6 2000/09/01 03:04:05 haoboy Exp $";
 #endif
 
 #include "connector.h"
@@ -12,7 +12,6 @@ static const char rcsid[] =
 class HackLossyLink : public Connector {
 public:
 	HackLossyLink() : down_(0), src_(0), dst_(0), fid_(0), ctr_(0), nth_(0){
-		bind("off_ip_", &off_ip_);
 	}
 protected:
 	int command(int argc, const char*const* argv);
@@ -20,7 +19,6 @@ protected:
 	NsObject* down_;
 	int src_, dst_, fid_;
 	int ctr_, nth_;
-	int off_ip_;
 };
 
 static class HackLossyLinkClass : public TclClass {
@@ -63,7 +61,7 @@ int HackLossyLink::command(int argc, const char*const* argv)
 
 void HackLossyLink::recv(Packet* p, Handler* h)
 {
-	hdr_ip* iph = (hdr_ip*) p->access(off_ip_);
+	hdr_ip* iph = hdr_ip::access(p);
 	if (nth_ && (iph->flowid() == fid_) &&
 	    (iph->saddr() == src_) && (iph->daddr() == dst_) &&
 	    ((++ctr_ % nth_) == 0))

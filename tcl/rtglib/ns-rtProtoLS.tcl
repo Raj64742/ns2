@@ -38,14 +38,17 @@
 #
 # Link State Routing Agent
 #
-# $Header
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/ns-rtProtoLS.tcl,v 1.2 2000/09/01 03:04:12 haoboy Exp $
 
+#
+# XXX These default values have to stay here because link state module
+# may be disabled during configuration time. If these stay in ns-default.tcl,
+# Agent/rtProto/LS may be unknown when ns-default.tcl is loaded.
+#
 Agent/rtProto/LS set UNREACHABLE  [rtObject set unreach_]
 Agent/rtProto/LS set preference_        120
 Agent/rtProto/LS set INFINITY           [Agent set ttl_]
 Agent/rtProto/LS set advertInterval     1800
-
-create-packet-header rtProtoLS off_LS_
 
 Simulator instproc get-number-of-nodes {} {
 	$self instvar Node_
@@ -67,14 +70,16 @@ Agent/rtProto/LS proc init-all args {
 	foreach node $nodeslist {
 		foreach nbr [$node neighbors] {
 			set rtobj [$nbr rtObject?]
-			if { $rtobj != "" } {
-				set rtproto [$rtobj rtProto? LS]
-				if { $rtproto != "" } {
-					$proto($node) add-peer $nbr \
-						[$rtproto set agent_addr_] \
-						[$rtproto set agent_port_]
-				}
+			if { $rtobj == "" } {
+				continue
 			}
+			set rtproto [$rtobj rtProto? LS]
+			if { $rtproto == "" } {
+				continue
+			}
+			$proto($node) add-peer $nbr \
+					[$rtproto set agent_addr_] \
+					[$rtproto set agent_port_]
 		}
 	}
 
@@ -82,15 +87,17 @@ Agent/rtProto/LS proc init-all args {
 	set first_node [lindex $nodeslist 0 ]
 	foreach node $nodeslist {
 		set rtobj [$node rtObject?]
-		if { $rtobj != "" } {
-			set rtproto [$rtobj rtProto? LS]
-			if { $rtproto != "" } {
-				$rtproto cmd initialize
-				if { $node == $first_node } {
-					$rtproto cmd setNodeNumber [[Simulator instance] get-number-of-nodes]
-				}
-				# $rtproto cmd sendUpdates
-			}
+		if { $rtobj == "" } {
+			continue
+		}
+		set rtproto [$rtobj rtProto? LS]
+		if { $rtproto == "" } {
+			continue
+		}
+		$rtproto cmd initialize
+		if { $node == $first_node } {
+			$rtproto cmd setNodeNumber \
+				[[Simulator instance] get-number-of-nodes]
 		}
 	}
 }
@@ -204,25 +211,24 @@ Agent/rtProto/LS instproc install-routes {} {
 			set metric_($dst) $UNREACH
 			set nextHop_($dst) ""
 			continue
-		} else {
-			set cost [lindex $path 0]
-			set rtpref_($dst) $preference_
-			set metric_($dst) $cost
-			
-			if { ! $multiPath_ } {
-				set nhNode [$ns_ get-node-by-id [lindex $path 1]]
-				set nextHop_($dst) $ifs_($nhNode)
-				continue
-			}
-			set nextHop_($dst) ""
-			set nh ""
-			set count [llength $path]
-			foreach nbr [array names peers_] {
-				foreach nhId [lrange $path 1 $count ] {
-					if { [$nbr id] == $nhId } {
-						lappend nextHop_($dst) $ifs_($nbr)
-						break
-					}
+		}
+		set cost [lindex $path 0]
+		set rtpref_($dst) $preference_
+		set metric_($dst) $cost
+		
+		if { ! $multiPath_ } {
+			set nhNode [$ns_ get-node-by-id [lindex $path 1]]
+			set nextHop_($dst) $ifs_($nhNode)
+			continue
+		}
+		set nextHop_($dst) ""
+		set nh ""
+		set count [llength $path]
+		foreach nbr [array names peers_] {
+			foreach nhId [lrange $path 1 $count ] {
+				if { [$nbr id] == $nhId } {
+					lappend nextHop_($dst) $ifs_($nbr)
+					break
 				}
 			}
 		}
@@ -234,7 +240,7 @@ Agent/rtProto/LS instproc send-updates changes {
 }
 
 Agent/rtProto/LS proc compute-all {} {
-    # Because proc methods are not inherited from the parent class.
+	# Because proc methods are not inherited from the parent class.
 }
 
 Agent/rtProto/LS instproc get-node-id {} {

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/icmp.cc,v 1.4 2000/02/08 23:35:12 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/icmp.cc,v 1.5 2000/09/01 03:04:10 haoboy Exp $";
 #endif
 
 #include <stdio.h>
@@ -97,7 +97,7 @@ IcmpAgent::sendredirect(in_addr& me, in_addr& target, in_addr& dst, in_addr& gw)
 	// data
 	int iplen = sizeof(ip) + 8 + sizeof(ip) + 8;
         Packet* p = allocpkt(iplen);
-	hdr_cmn* hc = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* hc = HDR_CMN(p);
 	ip* iph = (ip*) p->accessdata();
 	hc->size() = iplen;
 

@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.4 2000/01/07 06:25:32 sfloyd Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.5 2000/09/01 03:04:11 haoboy Exp $
 
 #ifndef RAP_H
 #define RAP_H
@@ -97,7 +97,7 @@ struct hdr_rap
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
-	inline static hdr_rap* access(Packet* p) {
+	inline static hdr_rap* access(const Packet* p) {
 		return (hdr_rap*) p->access(offset_);
 	}
 
@@ -235,7 +235,6 @@ protected:
 	void UpdateLastHole(int seqNum);
 	void SendAck(int seqNum);
 
-	int off_rap_;
 	int rap_base_hdr_size_;
 
 	// Data packet counter: the number of data packets that we've sent 

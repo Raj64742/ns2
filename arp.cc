@@ -1,5 +1,5 @@
-/*-*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/*-*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -30,17 +30,20 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/arp.cc,v 1.11 2000/09/01 03:04:05 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma. */
 
-   /* arp.cc
-   basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.10 2000/08/18 18:34:01 haoboy Exp $
 
-   Note: code in this file violates the convention that addresses of
-   type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
-   Many variables in nsaddr_t's in this file store ip addrs as simple ints.
-   */
+/* 
+ * Ported from CMU/Monarch's code, nov'98 -Padma.
+ *
+ * basic arp cache and MAC addr resolution
+ *
+ * Note: code in this file violates the convention that addresses of
+ * type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
+ * Many variables in nsaddr_t's in this file store ip addrs as simple ints.
+ */
 
 #include <errno.h>
 
@@ -102,27 +105,18 @@ ARPTable::ARPTable(const char *tclnode, const char *tclmac) : LinkDelay() {
 
 	mac_ = (Mac*) TclObject::lookup(tclmac);
 	assert(mac_);
-//  	off_mac_ = hdr_mac::offset_;
-//  	bind("off_ll_", &off_ll_);
-	//bind("off_mac_", &off_mac_);
-//  	bind("off_arp_", &off_arp_);
-
 	LIST_INSERT_HEAD(&athead_, this, link_);
 }
 
 int
 ARPTable::command(int argc, const char*const* argv)
 {
-
-  if (argc == 2 && strcasecmp(argv[1], "reset") == 0)
-    {
-      Terminate();
-      //FALL-THROUGH to give parents a chance to reset
-    }
-
-  return LinkDelay::command(argc, argv);
+	if (argc == 2 && strcasecmp(argv[1], "reset") == 0) {
+		Terminate();
+		//FALL-THROUGH to give parents a chance to reset
+	}
+	return LinkDelay::command(argc, argv);
 }
-
 
 int
 ARPTable::arpresolve(nsaddr_t dst, Packet *p, LL *ll)

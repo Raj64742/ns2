@@ -30,14 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code, nov'98 -Padma.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.h,v 1.7 2000/09/01 03:04:10 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
-
-/* -*- c++ -*-
-   dsragent.h
-
-   $Id: dsragent.h,v 1.6 2000/08/18 18:34:02 haoboy Exp $
-   */
 
 #ifndef _DSRAgent_h
 #define _DSRAgent_h
@@ -116,10 +113,6 @@ public:
 private:
 
   Trace *logtarget;
-  int off_mac_;
-  int off_ll_;
-  int off_ip_;
-  int off_sr_;
 
   // will eventually need to handle multiple infs, but this is okay for
   // now 1/28/98 -dam

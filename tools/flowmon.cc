@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
  * 
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.20 2000/08/14 15:57:14 johnh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.21 2000/09/01 03:04:05 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -57,7 +57,6 @@ static const char rcsid[] =
 class Flow : public EDQueueMonitor {
 public:
 	Flow() : src_(-1), dst_(-1), fid_(-1), type_(PT_NTYPE) {
-		bind("off_ip_" ,&off_ip_);
 		bind("src_", &src_);
 		bind("dst_", &dst_);
 		bind("flowid_", &fid_);
@@ -67,8 +66,8 @@ public:
 	int flowid() const { return (fid_); }
 	packet_t ptype() const { return (type_); }
 	void setfields(Packet *p) {
-		hdr_ip* hdr = (hdr_ip*)p->access(off_ip_);
-		hdr_cmn* chdr = (hdr_cmn*)p->access(off_cmn_);
+		hdr_ip* hdr = hdr_ip::access(p);
+		hdr_cmn* chdr = hdr_cmn::access(p);
 		src_ = hdr->saddr();
 		dst_ = hdr->daddr();
 		fid_ = hdr->flowid();
@@ -76,7 +75,6 @@ public:
 	}
 	virtual void tagging(Packet *) {}
 protected:
-	int		off_ip_;
 	nsaddr_t	src_;
 	nsaddr_t	dst_;
 	int		fid_;
@@ -95,10 +93,9 @@ public:
 		bind_bw("target_rate_", &target_rate_);
 		bind("bucket_depth_", &bucket_depth_);
 		bind("tbucket_", &tbucket_);
-		bind("off_flags_", &off_flags_);
 	}
 	void tagging(Packet *p) {
-	    hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+	    hdr_cmn* hdr = hdr_cmn::access(p);
             double now = Scheduler::instance().clock();
             double time_elapsed;
 
@@ -108,7 +105,7 @@ public:
                 tbucket_ = bucket_depth_;         /* never overflow */
 
       	    if ((double)hdr->size_ < tbucket_ ) {
-		((hdr_flags*)p->access(off_flags_))->pri_=1; //Tag the packet as In.
+		hdr_flags::access(p)->pri_=1; //Tag the packet as In.
           	tbucket_ -= hdr->size_;
                 total_in += 1;
             }
@@ -127,7 +124,6 @@ protected:
 	double 	time_last_sent_;
 	double	total_in;
 	double	total_out;
-	int 	off_flags_;
 };
 
 /* TaggerTSWFlow will use Time Slide Window to check whehter the data flow 
@@ -142,12 +138,11 @@ public:
 		bind_bw("target_rate_", &target_rate_);
 		bind("win_len_", &win_len_);
 		bind_bool("wait_", &wait_);
-		bind("off_flags_", &off_flags_);
 	}
 	void tagging(Packet *);
 	void run_rate_estimator(Packet *p, double now){
 
-	        hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+	        hdr_cmn* hdr = hdr_cmn::access(p);
 		double bytes_in_tsw = avg_rate_ * win_len_;
 		double new_bytes    = bytes_in_tsw + hdr->size_;
 		avg_rate_ = new_bytes / (now - t_front_ + win_len_);
@@ -165,7 +160,6 @@ protected:
 	/* Counters for In/Out packets. */
 	double 	total_in;
 	double 	total_out;
-	int	off_flags_;
 };
 
 void TaggerTSWFlow::tagging(Packet *pkt)
@@ -218,7 +212,7 @@ void TaggerTSWFlow::tagging(Packet *pkt)
         }
 
         if (retVal == 0) {
-            ((hdr_flags*)pkt->access(off_flags_))->pri_=1; //Tag the packet as In.
+            hdr_flags::access(pkt)->pri_=1; //Tag the packet as In.
             total_in = total_in + 1;
             ++count;
         }

@@ -45,7 +45,7 @@
 
 #ifndef lint
 static const char  rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/vatrcvr.cc,v 1.5 1998/08/22 02:41:30 haoboy Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/vatrcvr.cc,v 1.6 2000/09/01 03:04:08 haoboy Exp $";
 #endif
 
 #ifndef WIN32
@@ -136,11 +136,11 @@ static inline int newoffset(
 
 int VatRcvr::adapt(Packet *pkt, u_int32_t local_clock)
 {
-	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(pkt);
 	register u_int32_t tstamp = (int)ch->timestamp();
 	register int hoff = (int)hostoffset_;
 	register int offset = (tstamp + hoff - local_clock) &~ 3;
-	hdr_rtp *rh = (hdr_rtp*)pkt->access(off_rtp_);
+	hdr_rtp *rh = hdr_rtp::access(pkt);
 	int new_ts = rh->flags() & RTP_M ;
 
 	//struct timeval tv;

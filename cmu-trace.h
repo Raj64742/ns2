@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -30,7 +30,10 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.h,v 1.12 2000/09/01 03:04:05 haoboy Exp $
  */
+
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 #ifndef __cmu_trace__
@@ -85,13 +88,6 @@ public:
 	void	recv(Packet *p, const char* why);
 
 private:
-	int off_arp_;
-	int off_mac_;
-	int off_sr_;
-        int off_TORA_;
-        int off_IMEP_;
-	int off_AODV_;
-
 	char	tracename[MAX_ID_LEN + 1];
 	int	nodeColor[MAX_NODE];
         int     tracetype;
@@ -116,9 +112,6 @@ private:
 	void	format_tora(Packet *p, int offset);
         void    format_imep(Packet *p, int offset);
         void    format_aodv(Packet *p, int offset);
-
 };
-
-
 
 #endif /* __cmu_trace__ */

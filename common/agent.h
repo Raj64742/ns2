@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.30 2000/07/20 03:48:07 ratul Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.31 2000/09/01 03:04:05 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -119,7 +119,6 @@ class Agent : public Connector {
 #endif
 
 	static int uidcnt_;
-	int off_ip_;
 
 	Tcl_Channel channel_;
 	char *traceName_;		// name used in agent traces

@@ -30,14 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code 
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.h,v 1.5 2000/09/01 03:04:12 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code */
-/* -*- c++ -*-
-   tora.h
-   $Id: tora.h,v 1.4 2000/08/17 00:03:39 haoboy Exp $
-  
-  */
-
 
 #ifndef __tora_h__
 #define __tora_h__
@@ -130,8 +127,6 @@ private:
 	inline int initialized() {
 		 return logtarget && ifqueue && imepagent;
 	}
-
-	int		off_TORA_;	// byte offset of TORA header
 
 	td_head		dstlist;	// Active destinations
 

@@ -36,10 +36,12 @@
 
 #define IP_HEADER_SIZE	20
 
+int hdr_ipinip::offset_;
 static class IPinIPHeaderClass : public PacketHeaderClass {
 public:
         IPinIPHeaderClass() : PacketHeaderClass("PacketHeader/IPinIP",
 					    sizeof(hdr_ipinip*)) {
+		bind_offset(&hdr_ipinip::offset_);
 	}
 } class_ipiniphdr;
 
@@ -58,8 +60,6 @@ MIPEncapsulator::MIPEncapsulator() : Connector(), mask_(0xffffffff),
 	bind("port_", (int*)&(here_.port_));
 	bind("shift_", &shift_);
 	bind("mask_", &mask_);
-	bind("off_ip_", &off_ip_);
-	bind("off_ipinip_", &off_ipinip_);
 	bind("ttl_", &defttl_);
 }
 
@@ -67,8 +67,8 @@ void MIPEncapsulator::recv(Packet* p, Handler *h)
 {
 	Tcl& tcl = Tcl::instance();
 
-	hdr_ip* hdr = (hdr_ip*)p->access(off_ip_);
-	hdr_ipinip **ppinhdr = (hdr_ipinip **)p->access(off_ipinip_);
+	hdr_ip* hdr = hdr_ip::access(p);
+	hdr_ipinip **ppinhdr = (hdr_ipinip**)hdr_ipinip::access(p);
 	if (--hdr->ttl_ <= 0) {
 		/*
 		 * XXX this should be "dropped" somehow.  Right now,
@@ -100,7 +100,7 @@ void MIPEncapsulator::recv(Packet* p, Handler *h)
 	hdr->daddr() = te;
 	hdr->dport() = 1;
 	hdr->ttl() = defttl_;
-	((hdr_cmn*)p->access(off_cmn_))->size() += IP_HEADER_SIZE;
+	hdr_cmn::access(p)->size() += IP_HEADER_SIZE;
 
 	target_->recv(p,h);
 }
@@ -115,29 +115,13 @@ public:
 
 MIPDecapsulator::MIPDecapsulator() : AddressClassifier()
 {
-  //def_target_ = NULL;
-	bind("off_ipinip_", &off_ipinip_);
-	bind("off_ip_", &off_ip_);
 }
-
-
-// int MIPDecapsulator::command(int argc, const char*const* argv)
-// {
-//   if (argc == 3) {
-//     if (strcmp(argv[1], "def-target") == 0) {
-//       def_target_ = (NsObject *)TclObject::lookup(argv[2]);
-//       return TCL_OK;
-//     }
-//   }
-//   return (AddressClassifier::command(argc, argv));
-// }
-
 
 void MIPDecapsulator::recv(Packet* p, Handler *h)
 {
-	hdr_ipinip **ppinhdr = (hdr_ipinip **)p->access(off_ipinip_);
+	hdr_ipinip **ppinhdr = (hdr_ipinip **)hdr_ipinip::access(p);
 	// restore inner header
-	hdr_ip *pouthdr = (hdr_ip *)p->access(off_ip_);
+	hdr_ip *pouthdr = hdr_ip::access(p);
 	assert(ppinhdr);
 	hdr_ip *pinhdr = &(*ppinhdr)->hdr_;
 	*ppinhdr = (*ppinhdr)->next_;
@@ -167,7 +151,7 @@ void MIPDecapsulator::recv(Packet* p, Handler *h)
 	}
 	delete pinhdr;
 
-	((hdr_cmn*)p->access(off_cmn_))->size() -= IP_HEADER_SIZE;
+	hdr_cmn::access(p)->size() -= IP_HEADER_SIZE;
 
 	link->recv(p,h);
 }

@@ -30,14 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code 
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.cc,v 1.9 2000/09/01 03:04:10 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code */
-
-
-/*
-  imep.cc
-  $Id: imep.cc,v 1.8 1999/10/13 22:53:05 heideman Exp $
-  */
 
 #include <packet.h>
 #include <ip.h>
@@ -55,10 +52,13 @@ static const int imep_use_mac_callback = 1;
 //   TCL Hooks
 // ======================================================================
 
+int hdr_imep::offset_;
 static class IMEPHeaderClass : public PacketHeaderClass {
 public:
         IMEPHeaderClass() : PacketHeaderClass("PacketHeader/IMEP",
-					      IMEP_HDR_LEN) { } 
+					      IMEP_HDR_LEN) { 
+		bind_offset(&hdr_imep::offset_);
+	} 
 } class_imep_hdr;
 
 static class agentIMEPclass : public TclClass {
@@ -95,8 +95,6 @@ imepAgent::imepAgent(nsaddr_t index) :
 	ipaddr(index),
 	incomingQ(this, index)
 {
-	bind("off_IMEP_", &off_IMEP_);
-	bind("off_TORA_", &off_TORA_);
 	controlSequence = 0;
 	recvtarget_ = sendtarget_ = 0;
 	logtarget_ = 0;
@@ -984,7 +982,7 @@ imepAgent::imep_dump_header(Packet *p)
 	fprintf(stderr,
 		"imep_length: 0x%04x\n", U_INT16_T(im->imep_length));
 
-	Packet::dump_header(p, off_IMEP_, 64);
+	Packet::dump_header(p, hdr_imep::offset_, 64);
 }
 
 void

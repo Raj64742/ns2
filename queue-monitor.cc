@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.21 2000/08/16 15:58:49 yaxu Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.22 2000/09/01 03:04:06 haoboy Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -136,7 +136,7 @@ QueueMonitor::printStats() {
 // packet arrival to a queue
 void QueueMonitor::in(Packet* p)
 {
-	hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* hdr = hdr_cmn::access(p);
 	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
@@ -156,7 +156,7 @@ void QueueMonitor::in(Packet* p)
 
 void QueueMonitor::out(Packet* p)
 {
-	hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* hdr = hdr_cmn::access(p);
 	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
@@ -176,7 +176,7 @@ void QueueMonitor::out(Packet* p)
 
 void QueueMonitor::drop(Packet* p)
 {
-	hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* hdr = hdr_cmn::access(p);
 	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
@@ -251,8 +251,6 @@ public:
 #include "ip.h"
 QueueMonitorCompat::QueueMonitorCompat()
 {
-	bind("off_ip_", &off_ip_);
-
 	memset(pkts_, 0, sizeof(pkts_));
 	memset(bytes_, 0, sizeof(bytes_));
 	memset(drops_, 0, sizeof(drops_));
@@ -293,8 +291,8 @@ QueueMonitorCompat::flowstats(int flowid)
 
 void QueueMonitorCompat::out(Packet* pkt)
 {
-	hdr_cmn* hdr = (hdr_cmn*)pkt->access(off_cmn_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	hdr_cmn* hdr = hdr_cmn::access(pkt);
+	hdr_ip* iph = hdr_ip::access(pkt);
 	double now = Scheduler::instance().clock();
 	int fid = iph->flowid();
 
@@ -303,7 +301,7 @@ void QueueMonitorCompat::out(Packet* pkt)
 		/*NOTREACHED*/
 	}
 	// printf("QueueMonitorCompat::out(), fid=%d\n", fid);
-	bytes_[fid] += ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	bytes_[fid] += hdr_cmn::access(pkt)->size();
 	pkts_[fid]++;
 	if (flowstats_[fid] == 0) {
 		flowstats(fid);
@@ -314,7 +312,7 @@ void QueueMonitorCompat::out(Packet* pkt)
 
 void QueueMonitorCompat::in(Packet* pkt)
 {
-	hdr_cmn* hdr = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_cmn* hdr = hdr_cmn::access(pkt);
 	double now = Scheduler::instance().clock();
 	// QueueMonitor::in() *may* do this, but we always need it...
 	hdr->timestamp() = now;
@@ -324,7 +322,7 @@ void QueueMonitorCompat::in(Packet* pkt)
 void QueueMonitorCompat::drop(Packet* pkt)
 {
 
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	hdr_ip* iph = hdr_ip::access(pkt);
 	int fid = iph->flowid();
 	if (fid >= MAXFLOW) {
 		abort();

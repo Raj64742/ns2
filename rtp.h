@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.13 1998/09/17 01:38:29 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.14 2000/09/01 03:04:06 haoboy Exp $
  */
 
 #ifndef ns_rtp_h
@@ -53,7 +53,7 @@ struct hdr_rtp {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_rtp* access(Packet* p) {
+	inline static hdr_rtp* access(const Packet* p) {
 		return (hdr_rtp*) p->access(offset_);
 	}
 
@@ -101,7 +101,6 @@ protected:
 	RTPSource* lookup(u_int32_t);
 	void enter(RTPSource*);
 	int last_np_;
-	int off_rtp_;
 };
 
 class RTPAgent;
@@ -136,9 +135,7 @@ class RTPAgent : public Agent {
         int random_;
         int maxpkts_;
         double interval_;
-
         RTPTimer rtp_timer_;
-        int off_rtp_;
 };
 
 

@@ -26,7 +26,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-adaptive.tcl,v 1.7 1998/02/24 23:42:36 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-adaptive.tcl,v 1.8 2000/09/01 03:04:12 haoboy Exp $ (USC/ISI)
 #
 
 Agent/SRM/Adaptive set pdistance_	0.0	;# bound instance variables
@@ -54,14 +54,14 @@ Agent/SRM/Adaptive set AveDelay_	1.0
 
 Agent/SRM/Adaptive set eps_	0.10
 
-Agent/SRM/Adaptive set done_	0
-
+#Agent/SRM/Adaptive set done_	0
 Agent/SRM/Adaptive instproc init args {
-    if ![$class set done_] {
-	set pm [[Simulator instance] set packetManager_]
-	TclObject set off_asrm_ [$pm allochdr aSRM]
-	$class set done_ 1
-    }
+    # XXX These are now done in tcl/lib/ns-packet.tcl
+#      if ![$class set done_] {
+#  	set pm [[Simulator instance] set packetManager_]
+#  	TclObject set off_asrm_ [$pm allochdr aSRM]
+#  	$class set done_ 1
+#      }
 
     eval $self next $args
     $self array set closest_ "requestor 0 repairor 0"

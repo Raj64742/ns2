@@ -33,6 +33,8 @@
  *
  * ack-recons.cc: contributed by the Daedalus Research Group, 
  * UC Berkeley (http://daedalus.cs.berkeley.edu).
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ack-recons.h,v 1.4 2000/09/01 03:04:05 haoboy Exp $
  */
 
 /*
@@ -51,13 +53,9 @@
 
 class AckReconsController : public TclObject {
 public:
-	AckReconsController() : spq_(0) { 
-		bind("off_ip_", &off_ip_);
-	}
+	AckReconsController() : spq_(0) {}
 	void recv(Packet *p, Handler *h=0);
 	SemanticPacketQueue *spq_;
-private:
-	int off_ip_;
 };
 	
 class AckRecons : public Agent {
@@ -75,7 +73,6 @@ public:
 			bind("deltaAckThresh_", &deltaAckThresh_);
 			bind("delack_", &delack_);
 			bind("adaptive_", &adaptive_);
-			bind("off_tcp_", &off_tcp_);
 			bind("alpha_", &alpha_);
 			bind("size_", &size_);
 		}
@@ -103,8 +100,6 @@ private:
 	int	delack_;	/* generate ack at least every delack_ acks */
 	int	adaptive_;	/* whether to adapt ack bandwidth? */
 	double	alpha_;	/* used in linear filter for ack rate est. */
-
-	int	off_tcp_;	/* offset of TCP header in packet */
 };
 
 #endif

@@ -46,17 +46,17 @@ int hdr_tfrc_ack::offset_;
 static class TFRCHeaderClass : public PacketHeaderClass {
 public:
 	TFRCHeaderClass() : PacketHeaderClass("PacketHeader/TFRC",
-	       sizeof(hdr_tfrc)) {
-    	bind_offset(&hdr_tfrc::offset_);
-  }
+					      sizeof(hdr_tfrc)) {
+		bind_offset(&hdr_tfrc::offset_);
+	}
 } class_tfrchdr;
 
 static class TFRC_ACKHeaderClass : public PacketHeaderClass {
 public:
 	TFRC_ACKHeaderClass() : PacketHeaderClass("PacketHeader/TFRC_ACK",
-	       sizeof(hdr_tfrc_ack)) {
-    	bind_offset(&hdr_tfrc_ack::offset_);
-  }
+						  sizeof(hdr_tfrc_ack)) {
+		bind_offset(&hdr_tfrc_ack::offset_);
+	}
 } class_tfrc_ackhdr;
 
 static class TfrcClass : public TclClass {
@@ -218,7 +218,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	hdr_tfrc_ack *nck = hdr_tfrc_ack::access(pkt);
 	double ts = nck->timestamp_echo;
 	double rate_since_last_report = nck->rate_since_last_report;
-	double NumFeedback_ = nck->NumFeedback_;
+	// double NumFeedback_ = nck->NumFeedback_;
 	double flost = nck->flost; 
 	int losses = nck->losses;
 

@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.33 2000/08/31 20:11:49 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.34 2000/09/01 03:04:06 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -112,13 +112,11 @@ struct hdr_mac {
 
 	int padding_;
 
-	static int offset_;
 	inline void set(MacFrameType ft, int sa, int da=-1) {
 		ftype_ = ft;
 		macSA_ = sa;
 		if (da != -1)  macDA_ = da;
 	}
-	inline static int& offset() { return offset_; }
 	inline MacFrameType& ftype() { return ftype_; }
 	inline int& macSA() { return macSA_; }
 	inline int& macDA() { return macDA_; }
@@ -126,6 +124,13 @@ struct hdr_mac {
 
 	inline double& txtime() { return txtime_; }
 	inline double& sstime() { return sstime_; }
+
+	// Header access methods
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_mac* access(const Packet* p) {
+		return (hdr_mac*) p->access(offset_);
+	}
 };
 
 /* ===================================================================
@@ -220,9 +225,7 @@ protected:
 	}
 	int index_;		// MAC address
 	double bandwidth_;      // channel bitrate
-
 	double delay_;		// MAC overhead
-	int off_mac_;
         
 	Phy *netif_;            // network interface
         Tap *tap_;              // tap agent

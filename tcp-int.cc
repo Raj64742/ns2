@@ -33,6 +33,8 @@
  *
  * Contributed by the Daedalus Research Group, U.C.Berkeley
  * http://daedalus.cs.berkeley.edu
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-int.cc,v 1.15 2000/09/01 03:04:07 haoboy Exp $
  */
 
 
@@ -122,7 +124,7 @@ IntTcpAgent::command(int argc, const char*const* argv)
 void
 IntTcpAgent::newack(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	last_ack_ = tcph->seqno();
 	highest_ack_ = last_ack_;
 
@@ -138,7 +140,7 @@ IntTcpAgent::newack(Packet* pkt)
 void 
 IntTcpAgent::recv(Packet *pkt, Handler *)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int amt_data_acked = 0;
 
 	if (tcph->seqno() > last_ack_) {
@@ -175,7 +177,7 @@ void
 IntTcpAgent::output(int seqno, int reason)
 {
 	Packet *pkt = allocpkt();
-	hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
@@ -183,7 +185,7 @@ IntTcpAgent::output(int seqno, int reason)
 
 	session_->setflags(pkt);
 	
-	int bytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	int bytes = hdr_cmn::access(pkt)->size();
 
 	/* call helper function to fill in additional fields */
 	output_helper(pkt);
@@ -290,7 +292,7 @@ IntTcpAgent::output_helper(Packet *p)
 	double now = Scheduler::instance().clock();
 	output_helper_count++;
 	last_clock = now;
-	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(p);
 
 	/* This is to make sure that we get unique times for each xmission */
 	while (uniqTS_ && now <= lastTS_) {
@@ -301,7 +303,7 @@ IntTcpAgent::output_helper(Packet *p)
 	tcph->ts() = now;
 	/* if this is a fast start pkt and not a retransmission, mark it */
 	if (session_->fs_pkt() && tcph->seqno() > maxseq_)
-		((hdr_flags*)p->access(off_flags_))->fs_ = 1;
+		hdr_flags::access(p)->fs_ = 1;
 	return;
 }
 

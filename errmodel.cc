@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.67 1999/11/29 17:55:22 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.68 2000/09/01 03:04:05 haoboy Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.67 1999/11/29 17:55:22 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.68 2000/09/01 03:04:05 haoboy Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -771,7 +771,6 @@ public:
  
 MrouteErrorModel::MrouteErrorModel() : TraceErrorModel()
 {
-        bind("off_mcast_ctrl_", &off_mcast_ctrl_);
 }
 
 int MrouteErrorModel::command(int argc, const char*const* argv)
@@ -793,7 +792,7 @@ int MrouteErrorModel::command(int argc, const char*const* argv)
 
 int MrouteErrorModel::match(Packet* p)
 {
-	hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)p->access(off_mcast_ctrl_);
+	hdr_mcast_ctrl* ph = hdr_mcast_ctrl::access(p);
 	int indx = strcspn(ph->type(),"/");
 	if (!strncmp(ph->type(),msg_type,indx)) {
 		return 1;

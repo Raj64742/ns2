@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/plm/loss-monitor-plm.cc,v 1.1 2000/07/19 21:36:47 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/plm/loss-monitor-plm.cc,v 1.2 2000/09/01 03:04:11 haoboy Exp $ (LBL)";
 #endif
 
 #include <tclcl.h>
@@ -71,12 +71,12 @@ PLMLossMonitor::PLMLossMonitor() : LossMonitor()
 void PLMLossMonitor::recv(Packet* pkt, Handler*)
 {
 	packet_time_PP_ = Scheduler::instance().clock();
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	hdr_ip* iph = HDR_IP(pkt);
 	fid_PP_ = iph->flowid();
 
-	hdr_rtp* p = (hdr_rtp*)pkt->access(off_rtp_);
+	hdr_rtp* p = HDR_RTP(pkt);
 	seqno_ = p->seqno();
-	bytes_ += ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	bytes_ += HDR_CMN(pkt)->size();
 	flag_PP_ = p->flags();
 	++npkts_;
 	/*

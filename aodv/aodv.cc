@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997, 1998 Carnegie Mellon University.  All Rights
  * Reserved. 
@@ -36,7 +37,7 @@
  * and tuned by Samir Das (UTSA) and Mahesh Marina (UTSA). The 
  * work was partially done in Sun Microsystems.
  * 
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/aodv/aodv.cc,v 1.8 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/aodv/aodv.cc,v 1.9 2000/09/01 03:04:08 haoboy Exp $
  */
 
 #include "aodv/aodv.h"
@@ -61,10 +62,13 @@ static int route_request = 0;
 /* ===================================================================
    TCL Hooks
    ================================================================= */
+int hdr_aodv::offset_;
 static class AODVHeaderClass : public PacketHeaderClass {
 public:
         AODVHeaderClass() : PacketHeaderClass("PacketHeader/AODV",
-                                              AODV_HDR_LEN) { } 
+                                              AODV_HDR_LEN) {
+		bind_offset(&hdr_aodv::offset_);
+	} 
 } class_rtProtoAODV_hdr;
 
 static class AODVclass : public TclClass {
@@ -149,17 +153,12 @@ LocalRepairTimer::handle(Event* p)    // SRD: 5/4/99
 	Packet::free((Packet *)p);
 }
 
-
-
-
 /*================================================================== */
 
 AODV::AODV(nsaddr_t id) : Agent(PT_AODV),
         btimer(this), htimer(this), ntimer(this), rtimer(this), lrtimer(this),
         rqueue()
 {
-        bind("off_AODV_", &off_AODV_);
-                
         index = id;
         seqno = 1;
         bid = 1;

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.30 2000/07/27 01:29:16 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.31 2000/09/01 03:04:08 haoboy Exp $
  */
 
 #ifndef ns_trace_h
@@ -83,12 +84,6 @@ public:
 		return (double)floor(x*precision + 0.5)/precision;
 	}
 
-#ifdef OFF_HDR
-	int off_ip_;
-	int off_tcp_;
-	int off_rtp_;
-	int off_srm_;
-#endif
 	virtual void write_nam_trace(const char *s);
 	void namdump();
 };

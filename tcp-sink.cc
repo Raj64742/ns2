@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.41 2000/04/15 03:09:06 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.42 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -236,16 +236,16 @@ void TcpSink::ack(Packet* opkt)
 		ntcp->ts_echo() = otcp->ts();
 	// echo the original's time stamp
 
-	hdr_ip* oip = (hdr_ip*)opkt->access(off_ip_);
-	hdr_ip* nip = (hdr_ip*)npkt->access(off_ip_);
+	hdr_ip* oip = hdr_ip::access(opkt);
+	hdr_ip* nip = hdr_ip::access(npkt);
 	// get the ip headers
 	nip->flowid() = oip->flowid();
 	// copy the flow id
 	
-	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
-	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
+	hdr_flags* of = hdr_flags::access(opkt);
+	hdr_flags* nf = hdr_flags::access(npkt);
 	if (save_ != NULL) 
-		sf = (hdr_flags*)save_->access(off_flags_);
+		sf = hdr_flags::access(save_);
 		// Look at delayed packet being acked. 
 	if ( (save_ != NULL && sf->cong_action()) || of->cong_action() ) 
 		// Sender has responsed to congestion. 
@@ -264,7 +264,7 @@ void TcpSink::ack(Packet* opkt)
 		 // In this respect, this does not conform to the 
 		 // specifications in the internet draft 
 		nf->ecnecho() = 1;
-	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
+	acker_->append_ack(hdr_cmn::access(npkt),
 			   ntcp, otcp->seqno());
 	add_to_ack(npkt);
 	// the above function is used in TcpAsymSink
@@ -281,7 +281,7 @@ void TcpSink::add_to_ack(Packet*)
 void TcpSink::recv(Packet* pkt, Handler*)
 {
 	int numToDeliver;
-	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	int numBytes = hdr_cmn::access(pkt)->size();
 	// number of bytes in the packet just received
 	hdr_tcp *th = hdr_tcp::access(pkt);
 	acker_->update_ts(th->seqno(),th->ts());
@@ -317,7 +317,7 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
 	int numToDeliver;
-	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	int numBytes = hdr_cmn::access(pkt)->size();
 	hdr_tcp *th = hdr_tcp::access(pkt);
 	acker_->update_ts(th->seqno(),th->ts());
 	numToDeliver = acker_->update(th->seqno(), numBytes);
