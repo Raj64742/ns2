@@ -35,6 +35,10 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 Agent/TCP set singledup_ 0
 Agent/TCP set overhead_ 0.001
 # The default is being changed to 1

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.29 2001/05/27 02:14:58 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.30 2001/11/28 23:04:25 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -47,6 +47,8 @@ set dir [pwd]
 catch "cd tcl/test"
 source misc.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0

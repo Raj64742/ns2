@@ -1,9 +1,4 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
 #
 # Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
@@ -21,7 +16,15 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.20 2001/05/27 02:15:00 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.21 2001/11/28 23:04:29 sfloyd Exp $
+
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan

@@ -19,6 +19,10 @@
 # This test suite is for validating nixvector routing
 # To run the test: test-all-nixvec
 
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
+
 Simulator instproc progress { } {
     global progress_interval
     puts [format "Progress to %6.1f seconds" [$self now]]

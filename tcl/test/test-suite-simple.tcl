@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.15 2001/11/27 22:40:22 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.16 2001/11/28 23:04:28 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -53,6 +53,8 @@
 # ns-random 0
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
 

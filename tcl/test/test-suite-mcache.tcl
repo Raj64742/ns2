@@ -5,13 +5,15 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.10 2001/07/24 23:19:45 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.11 2001/11/28 23:04:26 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
 #source misc.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0

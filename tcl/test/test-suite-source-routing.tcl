@@ -17,7 +17,7 @@
 #
 # Contributed by Rishi Bhargava <rishi_bhargava@yahoo.com> May, 2001.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.1 2001/05/29 20:55:00 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.2 2001/11/28 23:04:28 sfloyd Exp $
 #
 
 #
@@ -25,6 +25,10 @@
 # expected to pop up xgraph output (unless QUIET)
 # and to leave the plot in temp.rands
 #
+
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 
 Class TestSuite
 

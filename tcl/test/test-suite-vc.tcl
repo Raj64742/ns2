@@ -16,6 +16,10 @@ Agent/TCP set singledup_ 0
 # To view a list of available tests to run with this script:
 # ns test-suite-mixmode.tcl
 #
+
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.

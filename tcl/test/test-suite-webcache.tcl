@@ -5,24 +5,21 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.18 2001/05/27 02:14:59 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.19 2001/11/28 23:04:28 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
 source misc.tcl
+source topologies.tcl
+
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
-source topologies.tcl
-
-#----------------------------------------------------------------------
-# Misc setup
-#----------------------------------------------------------------------
-set tcl_precision 10
-
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
 Agent/TCP set timerfix_ false
@@ -30,6 +27,12 @@ Agent/TCP set timerfix_ false
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+
+#----------------------------------------------------------------------
+# Misc setup
+#----------------------------------------------------------------------
+set tcl_precision 10
+
 
 
 #----------------------------------------------------------------------

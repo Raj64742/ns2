@@ -40,6 +40,10 @@ Agent/TCP set singledup_ 0
 Agent/TCP set overhead_ 0.001
 catch "cd $dir"
 
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
+
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
 

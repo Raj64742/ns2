@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-manual-routing.tcl,v 1.1 1998/06/29 23:57:43 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-manual-routing.tcl,v 1.2 2001/11/28 23:04:26 sfloyd Exp $
 #
 
 #
@@ -32,6 +32,9 @@ Test suites for manual routing.
 	exit 1
 }
 
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
 
 global in_test_suite
 set in_test_suite 1
