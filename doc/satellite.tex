@@ -712,12 +712,72 @@ is open to interested contributors.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Integration with other modules}
+\subsection{Integration with wired and wireless code}
 \label{sec:satellite/usage/integration}
-Currenty, these satellite extensions do not interoperate with the wireless
-code, mobile-IP code, and OTcl routing protocols (in particular, multicast).
-This is an active work item for the \ns~developers and more support along
-these lines will be added later.
+
+Recently (November 2001), support has been added to connect traditional
+OTcl-based wired nodes with the satellite nodes.  This section describes
+the capabilities and limitations of that code.
+
+The satellite code (and the wireless code) normally performs all routing 
+in C++, while the traditional ns code uses a mix of OTcl and C++ code.   
+For backward compatibility reasons, it is difficult to fully integrate
+both the wired and wireless code.   The strategy for integrating wireless 
+and wired code has been to define a special gateway node (called a 
+"basestation"), to use hierarchial routing, and to locate a single basestation 
+node in the wireless network with a network stack located in both the
+wireless and the wired subnet.  Because routing is not fully integrated, 
+the topology of the simulation is limited to only one gateway node per
+wireless subnet (i.e., a packet cannot enter the wireless network from 
+one wired gateway and leave via another).
+
+The satellite/wired code integration takes a different strategy.  By
+selecting the node configuration
+\code{$ns node-config -wiredRouting ON} option, the C++
+routing in the satellite code is turned off, and instead, all satellite 
+topology changes lead to upcalls into the OTcl code.  As a result, 
+the \code{link_} array in OTcl is manipulated according to all topology 
+changes, and OTcl-based routing can occur.  The penalty for doing this 
+is a much longer execution time for larger simulations (such as Teledesic), 
+but for smaller simulations, the difference is not as noticeable.
+
+An example script detailing the use of this new option is shown in
+\nsf{tcl/ex/sat-wired.tcl}, and a similar test in the satellite test suite
+exercises this code.  Additionally, all of the satellite example scripts
+in \nsf{tcl/ex} directory can be converted to OTcl routing by using the 
+\code{$ns node-config -wiredRouting ON} option.  However, there are a
+few caveats: 
+\begin{itemize}
+\item The wired routing option for satellite has only been tested with
+(the default) static routing: \code{$ns rtProto Static}.  The code triggers
+a global routing table update upon any satellite topology change.
+\item The option \code{data_driven_computation_}
+can not be set to ``true'' when wiredRouting is ON.  Note that the enabling
+or disabling of \code{data_driven_computation_}  can give subtle differences 
+in simulation output since routes are computed at different times (while
+propagation delays are continuously changing).  This effect can be seen
+by toggling this parameter in the Iridium example 
+script \nsf{tcl/ex/sat-iridium.tcl}.
+\item In the trace file, when a packet is dropped due to ``no route to
+host'' (such as when there is a topology change), the trace looks a bit
+different depending on whether wiredRouting is turned OFF or ON.  In the
+former case, there is one line per drop, with the destination labelled
+as ``-2''.  In the latter case, there are three events (enque ``+'', 
+deque ``-'', and drop ``d'') corresponding to the same packet, and the
+destination is shown as ``-1''.  
+\item In rare cases, there may be warning messages during the execution
+indicating ``node out of range.''  This can occur if a node becomes
+disconnected in the topology and then another node tries to send a packet
+to it.  For example, try enabling \code{wiredRouting} in the file
+\nsf{tcl/ex/sat-mixed.tcl}.  This occurs because the routing table is
+dynamically sized upon topology change, and if a node becomes disconnected  
+it may not have any entries inserted in the routing table (and hence
+the routing table is not grown to accommodate its node number).  This
+warning should not affect actual trace output.
+\item There has been no attempt to interoperate with wireless or 
+mobile-IP code.
+\end{itemize}
+ 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -728,6 +788,8 @@ Example scripts can be found in the \nsf{tcl/ex} directory, including:
 \begin{itemize}
 \item \code{sat-mixed.tcl}  A simulation with a mixture of polar and
 geostationary satellites.
+\item \code{sat-wired.tcl}  Similar to the previous script, but shows how
+to connect wired nodes to a satellite simulation.
 \item \code{sat-repeater.tcl}  Demonstrates the use of a simple bent-pipe
 geostationary satellite, and also error models.
 \item \code{sat-aloha.tcl}  Simulates one hundred terminals in a mesh-VSAT
@@ -735,7 +797,9 @@ configuration using an unslotted Aloha MAC protocol
 with a ``bent-pipe'' geostationary satellite.  Terminals listen to their
 own transmissions (after a delay), and if they do not successfully receive
 their own packet within a timeout interval, they perform exponential 
-backoff and then retransmit the packet. 
+backoff and then retransmit the packet. Three variants exist:
+\code{basic}, \code{basic_tracing}, and \code{poisson}.  These variants
+are described further in the header comments of the script.
 \item \code{sat-iridium.tcl}  Simulates a broadband LEO constellation with
 parameters similar to that of the Iridium constellation (with supporting
 scripts \code{sat-iridium-links.tcl}, \code{sat-iridium-linkswithcross.tcl}, 
