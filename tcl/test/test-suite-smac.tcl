@@ -165,7 +165,7 @@ TestSuite instproc init {} {
 			 -topoInstance $topo_ \
 			 -agentTrace ON \
 			 -routerTrace ON \
-			 -macTrace ON 
+			 -macTrace OFF 
 
     if {$testname_ == "unicast12" } {
 	$ns_ node-config --IncomingErrProc $opt(err)

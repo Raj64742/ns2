@@ -45,6 +45,7 @@
 #define NS_SMAC
 
 #include "mac.h"
+#include "mac-802_11.h"
 #include "cmu-trace.h"
 #include "random.h"
 #include "timer-handler.h"
@@ -437,6 +438,26 @@ class SMAC : public Mac {
   int drop_CTS(Packet *p, const char* why);
   int drop_DATA(Packet *p, const char* why);
   int drop_SYNC(Packet *p, const char* why);
+
+  // smac methods to set dst, src and hdr_type in pkt hdrs
+  inline int hdr_dst(char* hdr, int dst = -2) {
+    struct hdr_smac *sh = (struct hdr_smac *) hdr;
+    if (dst > -2)
+      sh->dstAddr = dst;
+    return sh->dstAddr;
+  }
+  inline int hdr_src(char* hdr, int src = -2) {
+    struct hdr_smac *sh = (struct hdr_smac *) hdr;
+    if (src > -2)
+      sh->srcAddr = src;
+    return sh->srcAddr;
+  }
+  inline int hdr_type(char *hdr, u_int16_t type = 0) {
+    struct hdr_smac *sh = (struct hdr_smac *) hdr;
+    if (type)
+      sh->type = type;
+    return sh->type;
+  }
   
   // SMAC internal variables
   

@@ -19,6 +19,11 @@ with the most recent changes coming first.
 [PENDING RELEASE DATE]</h3>
 <ul>
 
+<p><li><b>[Padma Haldar]</b>
+Thu Jan 30 16:06:34 PST 2003</li>
+<br>
+Fixed a synchronisation bug in smac that resulted in 2 neighbor nodes not hearing each other as one sleeps when other is awake. Now all nodes wait for SYNCPERIOD and then try to send out a sync pkt. Any node that receives a sync pkt for the firsttime resets its schedule to match that of its neighbor. Essentially all nodes follow the same schedule.
+
 <p><li><b>[Sally Floyd]</b>
 <br>
 Fri Jan 24 2003
