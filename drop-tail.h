@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.h,v 1.10 1999/05/28 19:11:22 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.h,v 1.11 1999/06/09 22:32:58 kfall Exp $ (LBL)
  */
 
 #ifndef ns_drop_tail_h
@@ -39,6 +39,7 @@
 
 #include <string.h>
 #include "queue.h"
+#include "tclcl.h"
 
 /*
  * A bounded, drop-tail queue
