@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.3 1997/04/18 00:55:26 bajaj Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.4 1997/07/21 21:33:52 kfall Exp $ (LBL)";
 #endif
 
 #include <sys/time.h>
