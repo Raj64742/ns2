@@ -49,6 +49,6 @@ The topology in this case is -
 		                         IN BETWEEN HA AND FA.
 
 
-The HA ad FA represents two different domains and the MH moves between them. A tcp flow established between W1 and MH. Initially MH is within range of HA and receives all pkts directly through the HA. Then at time=100, MH starts to move away from HA towards FA. All pkts now reaching HA is tunnelled towards FA that decapsulates and hands pkt over to MH. At time=200, the MH again starts to come back to HA. This simulation shows the working of mobileIP. 
+The HA ad FA represents two different domains and the MH moves between them. A tcp flow established between W1 and MH. Initially MH is within range of HA and receives all pkts directly through the HA. Then at time=100, MH starts to move away from HA towards FA. All pkts now reaching HA is tunnelled towards FA that decapsulates and hands pkt over to MH. At time=200, the MH again starts to come back to HA. This simulation shows the working of mobileIP. There are some interim periods that the MH may not be within the range of either the FA or HA and thus may be dropping pkts destined to W1, temporarily. This is what we see as a "warning: Route to base_stn not known: dropping pkt"
 
 
