@@ -4,13 +4,21 @@
 
 Class PostProcess
 
-PostProcess instproc init {} {
-	$self next
-	set xgraph 1
-	set flowgraphfile fairflow.xgr
-	set timegraphfile fairflow1.xgr
-	set fracgraphfile fairflow2.xgr
-	set friendlygraphfile fairflow3.xgr
+PostProcess instproc init { l lf lg gf gg bf bg } {
+        $self instvar linkflowfile_ linkgraphfile_
+        $self instvar goodflowfile_ goodgraphfile_
+        $self instvar badflowfile_ badgraphfile_
+        $self instvar label_ post_
+
+	set label_ $l
+        set linkflowfile_ $lf
+        set linkgraphfile_ $lg
+        set goodflowfile_ $gf
+        set goodgraphfile_ $gg
+        set badflowfile_ $bf
+        set badgraphfile_ $bg
+
+	set format_ "xgraph"	; # default
 }
 
 #       x axis: # arrivals for this flow+category / # total arrivals [bytes]
@@ -406,16 +414,16 @@ PostProcess instproc reclass_awk { } {
 }
 
 # plot time vs. per-flow bytes
-PostProcess instproc create_bytes_graph { graphtitle infile graphfile bandwidth } {
-	global penaltyfile
+PostProcess instproc create_bytes_graph { graphtitle in out bandwidth } {
         set tmpfile /tmp/fg1[pid]
 	# print: time class bytes interval
 	set awkCode {
 		{ printf "%4d %8d %16d $4d\n", $4, $2, $6, $7; }
 	}
 
-        exec rm -f $graphfile
-        set outdesc [open $graphfile w]
+	puts "removing graph file: $out"
+        exec rm -f $out
+        set outdesc [open $out w]
         #
         # this next part is xgraph specific
         #
@@ -423,27 +431,29 @@ PostProcess instproc create_bytes_graph { graphtitle infile graphfile bandwidth 
         puts $outdesc "Device: Postscript"
 
         exec rm -f $tmpfile 
-        puts "writing flow xgraph data to $graphfile..."
-	exec awk $awkCode $infile | sort > $tmpfile
-        exec awk [byte_awk] bandwidth=$bandwidth $tmpfile >@ $outdesc
+        puts "writing flow data to $out ..."
+	exec awk $awkCode $in | sort > $tmpfile
+        exec awk [$self byte_awk] bandwidth=$bandwidth $tmpfile >@ $outdesc
 	exec rm -f $tmpfile
-	## exec awk [reclass_awk] $penaltyfile >@ $outdesc
         close $outdesc
 }
 
 # Plot per-flow bytes vs. time.
-PostProcess instproc plot_bytes { name infile outfile bandwidth } {
-	global xgraph
-	create_bytes_graph $name $infile $outfile $bandwidth 
-	puts "running xgraph for plotting per-flow bytes..."
-	if { $xgraph == 1 } {
-	  exec xgraph -bb -tk -m -ly 0,100 -x "time" -y "Bandwidth(%)" $outfile &
+PostProcess instproc plot_bytes { bandwidth } {
+	$self instvar format_
+	$self instvar label_ linkflowfile_ linkgraphfile_
+	$self create_bytes_graph $label_ $linkflowfile_ $linkgraphfile_ $bandwidth 
+	puts "running $format_ for plotting per-flow bytes..."
+	if { $format_ == "xgraph" } {
+		exec xgraph -bb -tk -m -ly 0,100 -x "time" -y "Bandwidth(%)" $linkgraphfile_ &
+		return
 	}
-	if { $xgraph == 0 } {
-		exec csh bandwidth.com $outfile &
+	if { $format_ == "" } {
+		puts stderr "output format not defined"
+		return
 	}
+	puts stderr "output format $format_ not supported"
 }
-
 #--------------------------------------------------------
 
 # awk code used to produce:
