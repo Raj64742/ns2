@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.96 2002/03/29 05:06:33 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.97 2002/04/23 05:07:17 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -339,6 +339,7 @@ protected:
 	int high_window_;	/* target window for new response function */
 	double high_p_;		/* target drop rate for new response function */
 	double high_decrease_;	/* decrease rate at target window */
+	int max_ssthresh_;	/* max value for ssthresh_ */
         /* end of section for experimental high-speed TCP */
 
 

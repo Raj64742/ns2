@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.132 2002/03/29 05:06:33 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.133 2002/04/23 05:07:17 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -159,6 +159,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("high_window_");
 	delay_bind_init_one("high_p_");
 	delay_bind_init_one("high_decrease_");
+	delay_bind_init_one("max_ssthresh_");
 	delay_bind_init_one("timerfix_");
 	delay_bind_init_one("rfc2988_");
 
@@ -244,6 +245,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind(varName, localName, "high_window_", &high_window_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "high_p_", &high_p_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "high_decrease_", &high_decrease_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "max_ssthresh_", &max_ssthresh_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "rfc2988_", &rfc2988_, tracer)) return TCL_OK;
 
@@ -408,6 +410,8 @@ TcpAgent::reset()
 	last_ack_ = -1;
 	highest_ack_ = -1;
 	ssthresh_ = int(wnd_);
+	if (max_ssthresh_ > 0 && max_ssthresh_ < ssthresh_) 
+		ssthresh_ = max_ssthresh_;
 	wnd_restart_ = 1.;
 	awnd_ = wnd_init_ / 2.0;
 	recover_ = 0;

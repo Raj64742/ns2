@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.284 2002/04/04 01:03:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.285 2002/04/23 05:07:18 sfloyd Exp $
 
 
 #
@@ -739,6 +739,7 @@ Agent/TCP set low_window_ 31
 Agent/TCP set high_window_ 83000
 Agent/TCP set high_p_ 0.0000001
 Agent/TCP set high_decrease_ 0.1
+Agent/TCP set max_ssthresh_ 0
 
 # These are all variables for tracing information.
 Agent/TCP set ndatapack_ 0

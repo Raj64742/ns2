@@ -1,4 +1,3 @@
-
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -30,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.6 2002/04/04 01:06:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.7 2002/04/23 05:07:18 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -186,6 +185,18 @@ Test/tcp1 instproc init {} {
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Test/tcp1 instproc run {} [Test/tcp info instbody run ]
+    $self next 0
+}
+Class Test/tcp1A -superclass TestSuite
+Test/tcp1A instproc init {} {
+    $self instvar net_ test_ sender_ receiver_ guide_
+    set net_	net2b
+    set test_	tcp
+    set guide_	"Sack TCP, good queue, max_ssthresh=100."
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set max_ssthresh_ 100
+    Test/tcp1A instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
 Class Test/tcpHighspeed1 -superclass TestSuite
