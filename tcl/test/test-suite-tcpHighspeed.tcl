@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.2 2002/03/08 21:55:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.3 2002/03/29 05:14:48 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -204,6 +204,20 @@ Test/tcpHighspeed1 instproc init {} {
     Test/tcpHighspeed1 instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
+Class Test/tcpHighspeed2 -superclass TestSuite
+Test/tcpHighspeed2 instproc init {} {
+    $self instvar net_ test_ sender_ receiver_ guide_
+    set net_	net2b
+    set test_	tcpHighspeed2
+    set guide_	"Highspeed TCP, good queue."
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set windowOption_ 8
+    Agent/TCP set low_window_ 25
+    Test/tcpHighspeed2 instproc run {} [Test/tcp info instbody run ]
+    $self next 0
+}
+
 
 TestSuite runTest 
 
