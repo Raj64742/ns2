@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.188 2000/05/11 23:43:19 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.189 2000/05/27 23:58:50 sfloyd Exp $
 
 #
 
@@ -1250,7 +1250,7 @@ Simulator instproc detach-agent { node agent } {
 #
 #   Helper proc for setting delay on an existing link
 #
-Simulator instproc delay { n1 n2 delay } {
+Simulator instproc delay { n1 n2 delay {type simplex} } {
 	$self instvar link_
 	set sid [$n1 id]
 	set did [$n2 id]
@@ -1258,7 +1258,33 @@ Simulator instproc delay { n1 n2 delay } {
 		set d [$link_($sid:$did) link]
 		$d set delay_ $delay
 	}
+	if {$type == "duplex"} {
+		if [info exists link_($did:$sid)] {
+			set d [$link_($did:$sid) link]
+			$d set delay_ $delay
+		}
+	}
 }
+
+# 
+#   Helper proc for setting bandwidth on an existing link
+#
+Simulator instproc bandwidth { n1 n2 bandwidth {type simplex} } {
+        $self instvar link_
+        set sid [$n1 id]
+        set did [$n2 id]
+        if [info exists link_($sid:$did)] {
+                set d [$link_($sid:$did) link]
+                $d set bandwidth_ $bandwidth
+        } 
+        if {$type == "duplex"} {
+                if [info exists link_($did:$sid)] {
+                        set d [$link_($did:$sid) link]
+                        $d set bandwidth_ $bandwidth
+                }
+        }
+}
+
 
 #XXX need to check that agents are attached to nodes already
 Simulator instproc connect {src dst} {
