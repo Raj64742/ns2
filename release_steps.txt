@@ -5,7 +5,9 @@ OTCL/TCLCL/NAM RELEASE
 If necessary, do a otcl,tclcl release. Following are things you need to do for a otcl, tclcl or nam release:
 
 1. update configure (or conf/*) to show current versions of pkgs 
-1.a re-autoconf if you have changed conf/*
+1.1. re-autoconf if you have changed conf/*
+1.2. update the windows makefile with "make makefile.vc"
+	(if possible, test this by building under windows
 2. update CHANGES.html to show when release happens.
 3. make srctar.
 
