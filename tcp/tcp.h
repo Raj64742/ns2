@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.93 2001/12/20 19:27:43 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.94 2001/12/30 04:52:31 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -299,10 +299,10 @@ protected:
         int eln_;               /* Explicit Loss Notification (wireless) */
         int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
         int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */
-        double firstsent_;	/* When first packet was sent  --Allman */
-        double lastreset_;	/* W.N. Last time connection was reset -
-				   for detecting packets from previous incarnations */
-        int slow_start_restart_; /* boolean: re-init cwnd after connection 
+	double firstsent_;	/* When first packet was sent  --Allman */
+	double lastreset_;	/* W.N. Last time connection was reset - for */
+				/* detecting pkts from previous incarnations */
+	int slow_start_restart_; /* boolean: re-init cwnd after connection 
 				    goes idle.  On by default. */
 	int restart_bugfix_;    /* ssthresh is cut down because of
 				   timeouts during a connection's idle period.
@@ -316,6 +316,10 @@ protected:
 				   when there was data outstanding */
         TracedInt nrexmitpack_; /* number of retransmited packets */
         TracedInt nrexmitbytes_; /* number of retransmited bytes */
+        TracedInt necnresponses_; /* number of times cwnd was reduced
+			   	   in response to an ecn packet -- sylvia */
+        TracedInt ncwndcuts_; 	/* number of times cwnd was reduced 
+				   for any reason -- sylvia */
 	int trace_all_oneline_;	/* TCP tracing vars all in one line or not? */
 	int nam_tracevar_;      /* Output nam's variable trace or just plain 
 				   text variable trace? */
@@ -325,6 +329,7 @@ protected:
 	int noFastRetrans_;	/* No Fast Retransmit option.  */
 	int oldCode_;		/* Use old code. */
 	int useHeaders_;	/* boolean: Add TCP/IP header sizes */
+
 
         /* support for event-tracing */
         //EventTrace *et_;

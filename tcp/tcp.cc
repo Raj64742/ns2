@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.129 2001/12/20 19:27:43 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.130 2001/12/30 04:52:31 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -95,6 +95,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         bind("nrexmit_", &nrexmit_);
         bind("nrexmitpack_", &nrexmitpack_);
         bind("nrexmitbytes_", &nrexmitbytes_);
+        bind("necnresponses_", &necnresponses_);
+        bind("ncwndcuts_", &ncwndcuts_);
 	bind("singledup_", &singledup_);
 #endif /* TCP_DELAY_BIND_ALL */
 
@@ -174,6 +176,8 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("nrexmit_");
         delay_bind_init_one("nrexmitpack_");
         delay_bind_init_one("nrexmitbytes_");
+        delay_bind_init_one("necnresponses_");
+        delay_bind_init_one("ncwndcuts_");
 	delay_bind_init_one("singledup_");
 #endif /* TCP_DELAY_BIND_ALL */
 
@@ -201,7 +205,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "eln_rxmit_thresh_", &eln_rxmit_thresh_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "packetSize_", &size_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "tcpip_base_hdr_size_", &tcpip_base_hdr_size_, tracer)) return TCL_OK;
-        if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "bugFix_", &bug_fix_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "slow_start_restart_", &slow_start_restart_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "restart_bugfix_", &restart_bugfix_ , tracer)) return TCL_OK;
@@ -254,6 +258,8 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "nrexmit_", &nrexmit_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "nrexmitpack_", &nrexmitpack_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "nrexmitbytes_", &nrexmitbytes_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "necnresponses_", &necnresponses_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ncwndcuts_", &ncwndcuts_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "noFastRetrans_", &noFastRetrans_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "precisionReduce_", &precision_reduce_, tracer)) return TCL_OK;
@@ -411,6 +417,8 @@ TcpAgent::reset()
 	nrexmitbytes_ = 0;
 	nrexmit_ = 0;
 	nrexmitpack_ = 0;
+	necnresponses_ = 0;
+	ncwndcuts_ = 0;
 
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
@@ -539,7 +547,6 @@ int TcpAgent::headersize()
         return (total);
 }
 
-
 void TcpAgent::output(int seqno, int reason)
 {
 	int force_set_rtx_timer = 0;
@@ -570,7 +577,7 @@ void TcpAgent::output(int seqno, int reason)
 //			hf->cong_action() = 1;
 			hf->ect() = 0;
 		}
-	} 
+	}
 	else if (useHeaders_ == true) {
 		hdr_cmn::access(p)->size() += headersize();
 	}
@@ -599,7 +606,7 @@ void TcpAgent::output(int seqno, int reason)
 		}
 	} else {
         	++nrexmitpack_;
-        	nrexmitbytes_ += databytes;
+		nrexmitbytes_ += databytes;
 	}
 	if (!(rtx_timer_.status() == TIMER_PENDING) || force_set_rtx_timer)
 		/* No timer pending.  Schedule one. */
@@ -793,6 +800,8 @@ void TcpAgent::newtimer(Packet* pkt)
  */
 void TcpAgent::opencwnd()
 {
+	double a,b,p; /* added for highspeed - sylvia */
+
 	if (cwnd_ < ssthresh_) {
 		/* slow-start (exponential) */
 		cwnd_ += 1;
@@ -862,7 +871,27 @@ void TcpAgent::opencwnd()
                         /* binomial controls */ 
                         cwnd_ += increase_num_ / (cwnd_*pow(cwnd_,k_parameter_));                
                         break; 
+ 		case 8: 
+                        /* for highspeed TCP -- sylvia */
+			/* hard coded for BB=1Gbps, RTT=100ms, P=1KB */
+			/* p goes as 1/cwnd_ from 9.6*10^-3 at 1Mbps */
+			/*   to 9.6*10^-6 at 1Gbps */
+			/* b goes linearly over log(cwnd_) from 0.5 at 1Mbps */
+			/*   to 0.1 at 1Gbps */
+			/* a calculated from equation */
 
+                        if(cwnd_ <= 12.5) { 
+                                cwnd_ += 1 / cwnd_ ; 
+                        } else { 
+				p = exp(log(0.120) - log(cwnd_));
+				b = ((0.1 - 0.5) * ((log(cwnd_) - log(12.5))/(log(12500)-log(12.5)))) + 0.5 ;
+				a = (cwnd_ * cwnd_ * 2.0 * b * p)/(2.0 - b); 
+				if(a > 157.8) { 
+					a = 157.8;
+				} 
+                                cwnd_ += (a / cwnd_) ;
+                        }       
+                        break;
 		default:
 #ifdef notdef
 			/*XXX*/
@@ -881,19 +910,27 @@ void TcpAgent::opencwnd()
 void
 TcpAgent::slowdown(int how)
 {
+	double b;  /* added for highspeed - sylvia */
 	double win, halfwin, decreasewin;
 	int slowstart = 0;
+	++ncwndcuts_; 
 	// we are in slowstart for sure if cwnd < ssthresh
 	if (cwnd_ < ssthresh_) 
 		slowstart = 1;
-
         if (precision_reduce_) {
 		halfwin = windowd() / 2;
-                if (wnd_option_ == 6) {
+                if (wnd_option_ == 6) {         
                         /* binomial controls */
                         decreasewin = windowd() - (1.0-decrease_num_)*pow(windowd(),l_parameter_);
-                } else
+                } else if (wnd_option_ == 8 && (cwnd_ > 12.5)) { 
+			b = ((0.1 - 0.5) * ((log(cwnd_) - log(16.66))/(log(13157) - log(16.66)))) + 0.5 ;
+			if (b < 0.1) 
+				b = 0.1;
+			decrease_num_ = b;
+                        decreasewin = windowd() - (b * windowd());
+                } else {
 	 		decreasewin = decrease_num_ * windowd();
+		}
 		win = windowd();
 	} else  {
 		int temp;
@@ -902,8 +939,16 @@ TcpAgent::slowdown(int how)
                 if (wnd_option_ == 6) {
                         /* binomial controls */
                         temp = (int)(window() - (1.0-decrease_num_)*pow(window(),l_parameter_));
-                } else
-	 		temp = (int)(decrease_num_ * window());
+                } else if ((wnd_option_ == 8) && (cwnd_ > 12.5)) { 
+                        /* highspeed */
+			b = ((0.1 - 0.5) * ((log(cwnd_) - log(16.66))/(log(13157) - log(16.66)))) + 0.5 ;
+			if (b < 0.1)
+                                b = 0.1;		
+			decrease_num_ = b;
+                        temp = (int)(windowd() - (b * windowd()));
+                } else {
+ 			temp = (int)(decrease_num_ * window());
+		}
 		decreasewin = (double) temp;
 		win = (double) window();
 	}
@@ -913,7 +958,7 @@ TcpAgent::slowdown(int how)
 		if (first_decrease_ == 1 || slowstart ||
 			last_cwnd_action_ == CWND_ACTION_TIMEOUT) {
 			// Do we really want halfwin instead of decreasewin
-			// after a timeout?
+		// after a timeout?
 			ssthresh_ = (int) halfwin;
 		} else {
 			ssthresh_ = (int) decreasewin;
@@ -1042,6 +1087,8 @@ void TcpAgent::ecn(int seqno)
 			else ecn_backoff_ = 1;
 		} else ecn_backoff_ = 0;
 		slowdown(CLOSE_CWND_HALF|CLOSE_SSTHRESH_HALF);
+		++necnresponses_ ;
+		// added by sylvia to count number of ecn responses 
 	}
 }
 
