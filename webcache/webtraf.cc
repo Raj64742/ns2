@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.15 2002/03/14 04:32:26 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.16 2002/03/15 05:38:01 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -397,13 +397,14 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			if ((tcp == NULL) || (snk == NULL))
 				return (TCL_ERROR);
 
-			nTcp_++;
-			// XXX TBA: recycle tcp agents
-			insertAgent(&tcpPool_, tcp);
 			if (fulltcp_) {
-				nTcp_++;
-				insertAgent(&tcpPool_, snk);
+				delete tcp;
+				delete snk;
 			} else {
+				// Recyle both tcp and sink objects
+				nTcp_++;
+				// XXX TBA: recycle tcp agents
+				insertAgent(&tcpPool_, tcp);
 				nSink_++;
 				insertAgent(&sinkPool_, snk);
 			}
