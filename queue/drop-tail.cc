@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.15 2003/01/16 19:02:54 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.16 2003/11/03 20:18:52 sfloyd Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -60,6 +60,10 @@ DropTail::command(int argc, const char*const* argv) {
 			print_summarystats();
 			return (TCL_OK);
 		}
+ 		if (strcmp(argv[1], "shrink-queue") == 0) {
+ 			shrink_queue();
+ 			return (TCL_OK);
+ 		}
 	}
 	if (argc == 3) {
 		if (!strcmp(argv[1], "packetqueue-attach")) {
@@ -98,6 +102,27 @@ void DropTail::enque(Packet* p)
 	} else {
 		q_->enque(p);
 	}
+}
+
+//AG if queue size changes, we drop excessive packets...
+void DropTail::shrink_queue() 
+{
+        int qlimBytes = qlim_ * mean_pktsize_;
+	if (debug_)
+		printf("shrink-queue: time %5.2f qlen %d, qlim %d\n",
+ 			Scheduler::instance().clock(),
+			q_->length(), qlim_);
+        while ((!qib_ && q_->length() > qlim_) || 
+            (qib_ && q_->byteLength() > qlimBytes)) {
+                if (drop_front_) { /* remove from head of queue */
+                        Packet *pp = q_->deque();
+                        drop(pp);
+                } else {
+                        Packet *pp = q_->tail();
+                        q_->remove(pp);
+                        drop(pp);
+                }
+        }
 }
 
 Packet* DropTail::deque()

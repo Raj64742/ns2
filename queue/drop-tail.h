@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.17 2002/01/01 04:26:10 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.18 2003/11/03 20:18:52 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_drop_tail_h
@@ -63,6 +63,7 @@ class DropTail : public Queue {
 	int command(int argc, const char*const* argv); 
 	void enque(Packet*);
 	Packet* deque();
+	void shrink_queue();	// To shrink queue and drop excessive packets.
 	PacketQueue *q_;	/* underlying FIFO queue */
 	int drop_front_;	/* drop-from-front (rather than from tail) */
 	int summarystats;

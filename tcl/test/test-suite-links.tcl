@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.16 2003/09/09 18:29:40 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.17 2003/11/03 20:18:52 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -610,6 +610,68 @@ Test/channelAllocDelay1 instproc run {} {
 	$ns_ at 10.0 "$self cleanupAll $testName_"
 	$ns_ run
 }
+
+#
+# Does not drop extra packets immediately when queue size is lowered.
+#
+Class Test/change_queue -superclass TestSuite
+Test/change_queue instproc init {} {
+        $self instvar net_ test_
+        set net_        net4
+        set test_       change_queue
+        $self next pktTraceFile
+}
+Test/change_queue instproc run {} {
+        global wrap wrap1
+        $self instvar ns_ node_ testName_
+        $self setTopo
+
+        set fid 1
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) $fid]
+	$tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.0 "$ftp1 start"
+
+        set link1 [$ns_ link $node_(r1) $node_(k1)]
+        set queue1 [$link1 queue]
+        $ns_ at 5.0 "$ns_ queue-limit $node_(r1) $node_(k1) 5"
+
+        $self tcpDump $tcp1 5.0
+        $ns_ at 10.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+#
+# Drops extra packets when queue size is lowered.
+# Validation test from Andrei Gurtov.
+#
+Class Test/queue_shrink -superclass TestSuite
+Test/queue_shrink instproc init {} {
+        $self instvar net_ test_
+        set net_        net4
+        set test_       queue_shrink
+        $self next pktTraceFile
+}
+Test/queue_shrink instproc run {} {
+        global wrap wrap1
+        $self instvar ns_ node_ testName_
+        $self setTopo
+
+        set fid 1
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) $fid]
+	$tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.0 "$ftp1 start"
+
+        set link1 [$ns_ link $node_(r1) $node_(k1)]
+        set queue1 [$link1 queue]
+        $ns_ at 5.0 "$ns_ queue-limit $node_(r1) $node_(k1) 5; $queue1 shrink-queue"
+
+        $self tcpDump $tcp1 5.0
+        $ns_ at 10.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
 
 TestSuite runTest
 
