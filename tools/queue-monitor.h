@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.8 1997/06/12 22:55:16 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.9 1997/07/22 08:15:42 padmanab Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -46,7 +46,8 @@ class QueueMonitor : public TclObject {
           size_(0), pkts_(0),
           parrivals_(0), barrivals_(0),
           pdepartures_(0), bdepartures_(0),
-          pdrops_(0), bdrops_(0) {
+	  pdrops_(0), bdrops_(0),
+  	  srcId_(0), dstId_(0) {
 
                 bind("size_", &size_);
                 bind("pkts_", &pkts_);
@@ -67,6 +68,7 @@ class QueueMonitor : public TclObject {
 	int bdepartures() const { return (bdepartures_); }
 	int pdrops() const { return (pdrops_); }
 	int bdrops() const { return (bdrops_); }
+	void printStats();
         virtual void in(Packet*);
         virtual void out(Packet*);
 	virtual void drop(Packet*);
@@ -86,6 +88,9 @@ protected:
 	int pdrops_;
 	int bdrops_;
         int off_cmn_;
+	int srcId_;
+	int dstId_;
+        Tcl_Channel channel_;
 };   
 
 class SnoopQueue : public Connector {
