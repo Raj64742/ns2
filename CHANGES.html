@@ -5,7 +5,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.112 1997/07/25 19:55:40 kkumar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.113 1997/07/26 00:31:12 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -19,6 +19,19 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</A>
 [PENDING RELEASE DATE]</H3>
 <ul>
+  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a> and
+       <a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a>
+       Fri Jul 25 17:29:12 PDT 1997</b><br>
+       ns-compat now catches access to old default variables
+       (like ns_tcp(window)).
+       This approach is a stop-gap, eventually we could
+       map the old reads/writes to the new variables
+       if we think we must.
+
+  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Fri Jul 25 17:00:00 PDT 1997</b><br>
+       Configure now checks for libTcl-1.0b2.
+
     <li><b><a href="http://www.isi.edu/~kkumar/">[SK]</a>
 	  Fri Jul 25 12:49:36 PDT 1997
       Made modifications to remove MultiSim and MultiNode.
