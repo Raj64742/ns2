@@ -44,8 +44,9 @@ public:
 } class_baseLL;
 
 
-BaseLL::BaseLL() : LinkDelay(), em_(0), sendtarget_(0), recvtarget_(0)
+BaseLL::BaseLL() : LinkDelay(), em_(0), sendtarget_(0), recvtarget_(0), seqno_(0)
 {
+	bind("off_ll_", &off_ll_);
 }
 
 
@@ -97,6 +98,8 @@ void
 BaseLL::recv(Packet* p, Handler* h)
 {
 	Scheduler& s = Scheduler::instance();
+	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
+	llh->seqno() = ++seqno_;
 	if (em_ && em_->corrupt(p)) {
 		p->error(1);
 	}
@@ -109,6 +112,7 @@ void
 BaseLL::handle(Event* e)    
 {
 	Scheduler& s = Scheduler::instance();
+	hdr_ll *llh = (hdr_ll*)((Packet*)e)->access(off_ll_);
 	((Packet*)e)->target(recvtarget_);  // the classifier on this node
 	s.schedule(recvtarget_, e, 0);
 }
