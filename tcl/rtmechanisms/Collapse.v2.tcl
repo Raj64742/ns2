@@ -1,3 +1,5 @@
+#  ../../ns Collapse.v2.tcl simple $interval $bandwidth $scheduling $cbrs $tcps
+
 source Setred.v2.tcl
 #set packetsize 512
 set packetsize 1500
@@ -11,7 +13,8 @@ proc create_flowstats { redlink stoptime } {
     set r1fm [$ns makeflowmon Fid]
     set flowdesc [open $flowfile w]
     $r1fm attach $flowdesc
-    $ns attach-fmon $redlink $r1fm 1
+#    $ns attach-fmon $redlink $r1fm 1
+    $ns attach-fmon $redlink $r1fm
     $ns at $stoptime "$r1fm dump; close $flowdesc"
 }
 
@@ -116,6 +119,28 @@ proc new_tcp { startTime source dest window class dump size file stoptime } {
     $ns at $stoptime "printTcpPkts $tcp $class $file"
     if {$dump == 1 } {puts $file "class $class packet-size [$tcp set packetSize_]"}
 }
+proc make_queue { cl qt qlim } {
+        set q [new Queue/$qt]
+        $q set limit_ $qlim
+        $cl install-queue $q
+}
+
+proc create_flat { link qtype qlim number} {
+
+        set topclass_ [new CBQClass]
+        # (topclass_ doesn't have a queue)
+        $topclass_ setparams none 0 0.98 auto 8 2 0
+
+	set share [expr 100. / $number ]
+       for {set i 0} {$i < $number} {incr i 1} {
+		set cls [new CBQClass]
+                $cls setparams $topclass_ true .$share auto 1 1 0
+		make_queue $cls $qtype $qlim
+                $link insert $cls
+                $link bind $cls $i
+        }
+} 
+
 
 #
 # Create a simple six node topology:
@@ -131,13 +156,14 @@ proc create_testnet5 { queuetype bandwidth } {
     
     $ns duplex-link $s1 $r1 10Mb 2ms DropTail
     $ns duplex-link $s2 $r1 10Mb 3ms DropTail
+    $ns duplex-link $s3 $r2 10Mb 10ms DropTail
+    $ns duplex-link $s4 $r2 $bandwidth 5ms DropTail
+
     $ns simplex-link $r1 $r2 1.5Mb 3ms $queuetype
     $ns simplex-link $r2 $r1 1.5Mb 3ms DropTail
     set redlink [$ns link $r1 $r2]
     [[$ns link $r2 $r1] queue] set limit_ 100
     [[$ns link $r1 $r2] queue] set limit_ 100
-    $ns duplex-link $s3 $r2 10Mb 10ms DropTail
-    $ns duplex-link $s4 $r2 $bandwidth 5ms DropTail
     return $redlink
 }
 
@@ -149,27 +175,34 @@ proc finish_ns {f} {
     puts "simulation complete"
 }
 
-proc test_simple { interval bandwidth datafile } {
+proc test_simple { interval bandwidth datafile scheduling cbrs tcps } {
     global ns s1 s2 r1 r2 s3 s4 flowfile packetsize
     set testname simple
     set stoptime 100.1
     set printtime 100.0
-    set queuetype RED
+    set qtype RED
+    set qlim 100
     
     set ns [new Simulator]
     
-    set redlink [create_testnet5 $queuetype $bandwidth]
-    if {$queuetype == "RED"} {
-        set_Red_Oneway $r1 $r2
+    if { $scheduling == "wrr" } {
+	    set xlink [create_testnet5 CBQ/WRR $bandwidth]
+	    create_flat $xlink $qtype $qlim [expr $cbrs + $tcps]
+    } elseif { $scheduling == "fifo" } {
+	    set xlink [create_testnet5 RED $bandwidth]
+	    set_Red_Oneway $r1 $r2
     }
-    create_flowstats $redlink $printtime
+ 
+    create_flowstats $xlink $printtime
     set f [open $datafile w]
     
     $ns at $stoptime "printstop $printtime $f"
-    new_tcp 0.0 $s1 $s3 100 1 1 $packetsize $f $printtime
-    new_tcp 0.0 $s1 $s3 100 1 1 $packetsize $f $printtime
-    new_tcp 0.0 $s1 $s3 100 1 1 $packetsize $f $printtime
-    new_cbr 1.4 $s2 $s4 100 0 1 $interval $f $printtime
+    for {set i 0} {$i < $cbrs} {incr i 1} {
+      new_cbr 1.4 $s2 $s4 100 $i 1 $interval $f $printtime
+    }
+    for {set i $cbrs} {$i < $cbrs + $tcps} {incr i 1} {
+       new_tcp 0.0 $s1 $s3 100 $i 1 $packetsize $f $printtime
+    }
     $ns at $stoptime "finish_flowstats $flowfile $f"
     $ns at $stoptime "finish_ns $f"
     puts seed=[ns-random 0]
@@ -180,7 +213,7 @@ proc test_simple { interval bandwidth datafile } {
 # This is the main program: 
 #
 
-if { $argc < 2 || $argc > 3} {
+if { $argc < 2 || $argc > 6} {
     puts stderr {usage: ns $argv [ arguments ]}
     exit 1
 } elseif { $argc == 2 } {
@@ -195,8 +228,17 @@ if { $argc < 2 || $argc > 3} {
     set bandwidth [lindex $argv 2]
     set datafile Fairness.tr
     puts "interval: $interval"
+} elseif { $argc == 6 } {
+    set testname [lindex $argv 0]
+    set interval [lindex $argv 1]
+    set bandwidth [lindex $argv 2]
+        set scheduling [lindex $argv 3]
+        set cbrs [lindex $argv 4]
+        set tcps [lindex $argv 5]
+    set datafile temp.tr
+    puts "interval: $interval" 
 }
 if { "[info procs test_$testname]" != "test_$testname" } {
     puts stderr "$testname: no such test: $testname"
 }
-test_$testname $interval $bandwidth $datafile
+test_$testname $interval $bandwidth $datafile $scheduling $cbrs $tcps
