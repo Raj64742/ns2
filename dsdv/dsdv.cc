@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.10 1999/05/07 01:02:39 haldar Exp $
+   $Id: dsdv.cc,v 1.11 1999/05/07 19:06:43 yaxu Exp $
 
    */
 
@@ -790,14 +790,14 @@ DSDV_Agent::processUpdate (Packet * p)
       if (rte.q && rte.metric != BIG)
 	{
 	  Packet *queued_p;
-	  //while ((queued_p = rte.q->deque()))
+	  while ((queued_p = rte.q->deque()))
 	  // XXX possible loop here  
 	  // while ((queued_p = rte.q->deque()))
 	  // Only retry once to avoid looping
-	  for (int jj = 0; jj < rte.q->length(); jj++){
-	    queued_p = rte.q->deque();
+	  // for (int jj = 0; jj < rte.q->length(); jj++){
+	  //  queued_p = rte.q->deque();
 	    recv(queued_p, 0); // give the packets to ourselves to forward
-	  }
+	  // }
 	  delete rte.q;
 	  rte.q = 0;
 	  table_->AddEntry(rte); // record the now zero'd queue
