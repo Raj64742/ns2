@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.3 1997/03/07 02:17:45 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.4 1997/03/10 21:51:56 kfall Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -51,6 +51,7 @@ typedef int int32_t;
 #endif
 
 typedef int32_t nsaddr_t;
+#define	NS_ALIGN	(8)	/* byte alignment for structs (eg packet.cc) */
 
 #if (defined(__hpux) || defined(_AIX)) && defined(__cplusplus)
 #include <stdlib.h>
