@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.28 2000/05/18 22:43:45 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.29 2000/06/20 03:25:06 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -348,6 +348,32 @@ Test/slowStart instproc run {} {
 
     # trace only the bottleneck link
     $ns_ run
+}
+
+# This test uses EWMA for estimating the loss event rate.
+Class Test/slowStartEWMA -superclass TestSuite
+Test/slowStartEWMA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	slowStartEWMA
+    Agent/TFRCSink set algo_ 2
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/slowStartEWMA instproc run {} [Test/slowStart info instbody run ]
+    $self next
+}
+
+# This test uses Fixed Windows for estimating the loss event rate.
+Class Test/slowStartFixed -superclass TestSuite
+Test/slowStartFixed instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	slowStartFixed
+    Agent/TFRCSink set algo_ 3
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/slowStartFixed instproc run {} [Test/slowStart info instbody run ]
+    $self next
 }
 
 Class Test/slowStartTcp -superclass TestSuite
