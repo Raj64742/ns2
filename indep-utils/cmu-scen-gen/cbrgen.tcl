@@ -25,7 +25,7 @@
 #
 # Traffic source generator from CMU's mobile code.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/cbrgen.tcl,v 1.2 1999/03/10 01:03:49 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/cbrgen.tcl,v 1.3 1999/05/12 00:32:01 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -139,7 +139,7 @@ $u use-rng $rng
 set cbr_cnt 0
 set src_cnt 0
 
-for {set i 1} {$i <= $opt(nn) } {incr i} {
+for {set i 0} {$i < $opt(nn) } {incr i} {
 
 	set x [$u value]
 
@@ -148,9 +148,9 @@ for {set i 1} {$i <= $opt(nn) } {incr i} {
 	incr src_cnt
 
 	set dst [expr ($i+1) % [expr $opt(nn) + 1] ]
-	if { $dst == 0 } {
-		set dst [expr $dst + 1]
-	}
+	#if { $dst == 0 } {
+	    #set dst [expr $dst + 1]
+	    #}
 
 	if { $opt(type) == "cbr" } {
 		create-cbr-connection $i $dst
@@ -165,9 +165,9 @@ for {set i 1} {$i <= $opt(nn) } {incr i} {
 	if {$x < 75} {continue;}
 
 	set dst [expr ($i+2) % [expr $opt(nn) + 1] ]
-	if { $dst == 0 } {
-		set dst [expr $dst + 1]
-	}
+	#if { $dst == 0 } {
+		#set dst [expr $dst + 1]
+	#}
 
 	if { $opt(type) == "cbr" } {
 		create-cbr-connection $i $dst
