@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1995-1997 The Regents of the University of California.
+# Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-red.tcl,v 1.3 1997/03/31 22:35:34 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-red.tcl,v 1.4 1997/04/25 02:26:36 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -38,6 +38,9 @@
 # URL ftp://ftp.ee.lbl.gov/papers/redsims.ps.Z.
 #
 # To run all tests: test-all-red
+#       
+# The default value for ns_red(linterm) has been changed from 50 (its
+#  old value)to 10.
 
 set flowfile fairflow.tr
 set flowgraphfile fairflow.xgr
@@ -62,7 +65,7 @@ set pthresh 100
 #
 proc create_testnet2 { } {
 
-	global s1 s2 r1 r2 s3 s4
+	global s1 s2 r1 r2 s3 s4 
 	set s1 [ns node]
 	set s2 [ns node]
 	set r1 [ns node]
@@ -73,11 +76,6 @@ proc create_testnet2 { } {
 	ns_duplex $s1 $r1 10Mb 2ms drop-tail
 	ns_duplex $s2 $r1 10Mb 3ms drop-tail
 	set L [ns_duplex $r1 $r2 1.5Mb 20ms red]
-	# force identical behavior to ns-1.
-	# the recommended value for linterm is now 10
-	# and is placed in the default file (3/31/97)
-	[ns link $r1 $r2] set linterm 50
-	[ns link $r2 $r1] set linterm 50
 	[lindex $L 0] set queue-limit 25
 	[lindex $L 1] set queue-limit 25
 	ns_duplex $s3 $r2 10Mb 4ms drop-tail
@@ -566,8 +564,6 @@ proc flows {} {
 	create_testnet2
 	[ns link $r1 $r2] set mean_pktsize 1000
 	[ns link $r2 $r1] set mean_pktsize 1000
-	[ns link $r1 $r2] set linterm 10
-	[ns link $r2 $r1] set linterm 10
 	[ns link $r1 $r2] set queue-limit 100
 	[ns link $r2 $r1] set queue-limit 100
 
@@ -613,8 +609,6 @@ proc test_flowsAll {} {
 	create_testnet2
 	[ns link $r1 $r2] set mean_pktsize 1000
 	[ns link $r2 $r1] set mean_pktsize 1000
-	[ns link $r1 $r2] set linterm 10
-	[ns link $r2 $r1] set linterm 10
 	[ns link $r1 $r2] set queue-limit 100
 	[ns link $r2 $r1] set queue-limit 100
 
