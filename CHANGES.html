@@ -1,5 +1,6 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.53 1997/03/29 04:52:06 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.54 1997/04/01 02:34:01 bajaj Exp $-->
 <html><head><title>ns Change Log</title></head><body>
+<!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
 <ul>
 
@@ -9,16 +10,19 @@
 
 </ul>
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz>ns-2.0a17</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</a>
 [PENDING RELEASE DATE]</h3>
 <ul>
+<li><b><a href="http://www.parc.xerox.com/csl/members/bajaj">[SB]</a></b>
+<b>Mon Mar 31 17:46:04 PST 1997</b><br>
+Added deficit round robin scheduling (drr.cc)
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Fri Mar 28 20:45:40 PST 1997</b><br>
-Update <li><b><a href=http://www.cs.berkeley.edu/~tomh>[TH]'s</a></b>
+Update <li><b><a href="http://www.cs.berkeley.edu/~tomh">[TH]'s</a></b>
 scoreboard changes with respect to this afternoon's packet format changes.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Fri Mar 28 20:32:24 PST 1997</b><br>
 First cut at integration of nam into ns code base.
 Basically just ported the pieces verbatim so that
@@ -27,14 +31,14 @@ In this crude initial version,
 you can run "../nsx srm-demo-nam.tcl -name nam"
 from the nam directory.
 
-<li><b><a href=http://www.cs.berkeley.edu/~tomh>[TH]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~tomh">[TH]</a></b>
 <b>Fri Mar 28 18:45:00 PST 1997</b><br>
 Brought scoreboard.cc and scoreboard.h up to date with the latest versions
 that were in ns-1 (9/96 PSC version:  UpdateScoreBoard, CheckSndNxt, 
 MarkRetran modified for fack).  Now most of test-suite-sack test cases work
 correctly.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Fri Mar 28 17:33:43 PST 1997</b><br>
 A number of additional changes to the packet format.
 Eliminated the "Header" classes altogether.  Now we have
@@ -48,7 +52,7 @@ the size field from the ip header to the new common header.
 Also put the uid here.
 Changed hdr_ipv6 to hdr_ip for consistency.
 
-<li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
+<li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a></b>
 <b>Fri Mar 28 13:36:58 PST 1997</b><br>
 Updates to make RED gateways work.  Includes mods to red.cc and
 RED's default parameter names,
@@ -58,14 +62,14 @@ called (previously, only nodes and agents had this done to them, but RED
 and probably some other queue types need to be reset to compute
 functions of their Otcl-linked variables before the sim starts).
 
-<li><b><a href=http://www.cs.berkeley.edu/~tomh>[TH]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~tomh">[TH]</a></b>
 <b>Fri Mar 28 12:50:02 PST 1997</b><br>
 Added test-suite-v2.tcl to the repository (port of "test-suite.tcl").  Added
 two new instprocs to ns-lib.tcl which help to set up tcp connections.  Moved
 the "Agent instproc dst-port" from ns-compat.tcl to ns-lib.tcl since it can
 also be used in ns-2.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Fri Mar 28 12:23:58 PST 1997</b><br>
 Another cut at packet format reorg.  Eliminated the need for
 static variables.  Moved the accessor methods from the
@@ -77,42 +81,42 @@ that pointed at the packet header.)
 
 </ul>
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a16.tar.gz>ns-2.0a16</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a16.tar.gz">ns-2.0a16</a>
 Fri Mar 28 00:56:48 PST 1997</h3>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Thu Mar 27 23:49:57 PST 1997</b><br>
 Added some new modules in tcl/ex for CS268 homework 3.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Thu Mar 27 23:49:57 PST 1997</b><br>
 Put back seqno's in cbr agents.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Thu Mar 27 17:19:42 PST 1997</b><br>
 Added a simple fair queuing module that uses flow id's (aka classes)
 to differentiate flows.  Added an example script: tcl/ex/fq.tcl.
 Some of the code in fq.tcl should migrate into the built-in library.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Thu Mar 27 00:11:31 PST 1997</b><br>
 Added a make rule for "nsx", which is
 just like ns but is a wish interpreter instead of a tclsh.
 Retired ns_tclsh.cc and replaced with tclAppInit.cc and tkAppInit.cc.
 Also added -ldl for bsdi-3.  
 
-<li><b><a href=http://www.cs.berkeley.edu/~elan>[EA]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~elan">[EA]</a></b>
 <b>Wed Mar 26 22:49:30 PST 1997</b><br>
 Fixed up Session/RTP to work with latest version.  Added a 
 <i>rate_change()</i> method to RTPAgent to allow correct behavior when 
  changing transmission rates.  See code in <t>rtp.cc</t> for details.
 
-<li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
+<li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a></b>
 <b>Wed Mar 26 17:11:17 PST 1997</b><br>
 Replace test-suite.tcl with test-suite.tcl from ns-1.
 
-<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
 <b>Wed Mar 26 15:24:24 PST 1997</b><br>
 The test suites break with the dynamics, because they want to acquire
 an instance of the Simulator.  However, the test-suites operate in
@@ -125,28 +129,28 @@ tcl/rtglib/dynamics.tcl, tcl/rtglib/route-proto.tcl
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a15.tar.gz>ns-2.0a15</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a15.tar.gz">ns-2.0a15</a>
 <b>Tue Mar 25 14:56:39 PST 1997</b></h3>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Added trace.h to FILES.
 
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a14.tar.gz>ns-2.0a14</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a14.tar.gz">ns-2.0a14</a>
 <b>Tue Mar 25 14:00:35 PST 1997</b></h3>
 <i>Snapshot for alpha testers.</i>
 <ul>
 
-<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
 <b>Tue Mar 25 09:16:33 PST 1997</b><br>
 Fix auto configuration so that libotcl.a is found when the directory is
 explicitly specified using --with-otcl.<br>
 Files affected: conf/configure.in.otcl, configure</p>
 
-<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
 <b>Tue Mar 25 09:16:33 PST 1997</b><br>
 Change Tracing so that trace elements can be created and used entirely
 via OTcl if the tracing is unrelated to packet activity.<br>
@@ -155,7 +159,7 @@ tcl/rtglib/dynamics.tcl for how to use.<br>
 Files affected:  Makefile.in, trace.cc, tcl/lib/ns-lib.tcl,
 tcl/lib/ns-trace.tcl (<b>new</b>)</p>
 
-<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
 <b>Tue Mar 25 09:16:33 PST 1997</b><br>
 
 Add dynamics to links and nodes so that portions of the topology can be
@@ -175,7 +179,7 @@ tcl/ex/simple-dyn.tcl (<b>new</b>),
 tcl/ex/dynamic-nam.tcl(<b>new</b>),
 tcl/nam-demo/nstonam.awk.</p>
 
-<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
 <b>Tue Mar 25 09:16:33 PST 1997</b><br>
 Add dynamic routing to deal with topology changes (<em>work in progress</em>).
 Currently, the basic all-pairs-spf routing has been modified to fit a
@@ -191,21 +195,21 @@ Files affected: Makefile.in, tcl/lib/ns-lib.tcl,
 tcl/rtglib/route-proto.tcl (<b>new</b>),
 tcl/ex/simple-rtg.tcl (<b>new</b>).</p>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Added heap.h to FILES.
 
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a13.tar.gz>ns-2.0a13</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a13.tar.gz">ns-2.0a13</a>
 <b>Fri Mar 21 09:08:05 PST 1997</b></h3>
 <i>Snapshot for alpha testers.</i>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Tue Mar 18 15:32:01 PST 1997</b><br>
 Integrated
-<a href=http://tns-www.lcs.mit.edu/people/djw/bio.html>
+<a href="http://tns-www.lcs.mit.edu/people/djw/bio.html">
 David Wetherall's</a> calendar queue.
 Use as:
 <pre>
@@ -213,13 +217,13 @@ Use as:
 	$ns use-scheduler Calendar
 </pre>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Tue Mar 18 15:32:01 PST 1997</b><br>
 Added a simple, completely contrived script to generate
 SRM-like sample paths to illustrate SRM in EECS colloquium
 (see tcl/ex/srm-demo.tcl).
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Tue Mar 18 15:32:01 PST 1997</b><br>
 Fixed bug in Packet::copy.  "*p = *this" was bogus because
 bits are now allocated in a separate buffer and this was
@@ -227,16 +231,16 @@ smashing the current packet's bits buffer to point to the
 old one, which was both leaking memory and causing unwanted
 sharing of private buffers.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 First cut at agent detaching code.  Suggested by
-<a href=http://www-video.eecs.berkeley.edu/~emile/>Emile Sahouria</a>.
+<a href="http://www-video.eecs.berkeley.edu/~emile/">Emile Sahouria</a>.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fixed bug pointed out by
-<a href=http://www-video.eecs.berkeley.edu/~emile/>Emile Sahouria</a>,
-<a href=http://www.cs.berkeley.edu/~gnguyen>Giao Nguyen</a>,
+<a href="http://www-video.eecs.berkeley.edu/~emile/">Emile Sahouria</a>,
+<a href="http://www.cs.berkeley.edu/~gnguyen">Giao Nguyen</a>,
 and
-<a href=http://www.cs.berkeley.edu/~tomh>Tom Henderson</a>,
+<a href="http://www.cs.berkeley.edu/~tomh">Tom Henderson</a>,
 where node port demuxer was created in wrong place.
 Moved this code from compute-routes to Node::attach
 (i.e., should install locate route to port demuxer
@@ -244,39 +248,39 @@ first time the demuxer is created, not when compute-routes
 is run, becase in latter case port demuxer might
 not yet exist).
 
-<li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
+<li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a></b>
 Arrange for dynamic linking to be the default instead of
 static.  Static linking is performed if '.devel' exists in
 the build directory.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fix up tcl/ex/simple.tcl for v2.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Set flow-id in tcp ack agent just as we used to set the
 class-id.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Arrange for tcl variable "class_" to be bound to flow-id
 field so that scripts impacted by Kevin's recent
 packet header changes continue to work.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Added a new TCPSimple that does minimal Go-back-N (no slow-start,
 no fast restransmit, etc) for a CS268 homework.
 
-<li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
+<li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a></b>
 Change to ns-source.tcl to incorporate Source/FTP "produce" function,
 needed by some of the ns-1 conformance tests.  Added "agent"
 instproc to node to return the agent with the specified port ID.
 Fixed up some typedef and other type conflicts in packet.h and
 with respect to srandom() and gettimeofday() on suns.
 
-<li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
+<li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a></b>
 Support for new packet format.
 Fix bug relating to header double-word alignment, happens on suns.
 
-<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
 Add support for heap schedulers.
 Use as:
 <pre>        set ns [new Simulator]
@@ -284,44 +288,44 @@ Use as:
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a12.tar.gz>ns-2.0a12</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a12.tar.gz">ns-2.0a12</a>
 <b>Sat Feb 22 22:09:51 PST 1997</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators and
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<a href="http://www-mash.cs.berkeley.edu/cs268/">CS268 students.</a></i>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
-Bug fix from <a href=mailto:mjh@isi.edu>Mark Handley</a>.
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
+Bug fix from <a href="mailto:mjh@isi.edu">Mark Handley</a>.
 Reno tcp agent had wrong prototype for recv method and
 thus was not overriding the default virtual.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Added
-<a href=http://www.brookfield.ans.net/ans/nanog/ns-hacks.html>
+<a href="http://www.brookfield.ans.net/ans/nanog/ns-hacks.html">
 several changes</a> from
-<a href=mailto:curtis@ans.net>Curtis Villamizar</a>,
+<a href="mailto:curtis@ans.net">Curtis Villamizar</a>,
 including a simple stochastic fair queuing module and
 a simple change to the tcp agent to emulate persistent connections.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Regenerated configure using
-<a href=http://www-nrg.ee.lbl.gov/kfall>Kevin Fall's</a>
+<a href="http://www-nrg.ee.lbl.gov/kfall">Kevin Fall's</a>
 latest fixes to our conf module.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Changed drop-trace method to drop-target.  This should only
 affect the internal APIs and shouldn't break any scripts.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Bumped size of max message in packet structure to 80 bytes.
 This limit eventually must be removed.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Eliminated C++ statically defined default drop-target and
 changed link building code to point a queue's drop-target to a null-agent.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Added first cut for queue-size monitoring agents
 (add integrator.cc).
 Cleaned up approach for splicing objects into
@@ -329,118 +333,118 @@ Link pipeline.
 Added ttl field to packets and TTLChecker object to update
 ttl and throw out ttl-expired packets (and ttl.cc).
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fixed long-standing bug in static routing code; problem
 found by, and fix supplied by,
-<a href=http://www.cs.berkeley.edu/~aswan/>Andrew Swan</a>.
+<a href="http://www.cs.berkeley.edu/~aswan/">Andrew Swan</a>.
 Went undetected for so long because bug occurs
 only for simplex links.
 
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a11.tar.gz>ns-2.0a11</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a11.tar.gz">ns-2.0a11</a>
 <b>Thu Feb 13 11:28:35 PST 1997</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators and
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<a href="http://www-mash.cs.berkeley.edu/cs268/">CS268 students.</a></i>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fixed bug in ftp source compat code introduced by last rev.
 Prevented test suite from running.
 
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a10.tar.gz>ns-2.0a10</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a10.tar.gz">ns-2.0a10</a>
 <b>Mon Feb  3 13:14:48 PST 1997</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators and
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<a href="http://www-mash.cs.berkeley.edu/cs268/">CS268 students.</a></i>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Made a number of small changes to help out with
-<a href=http://www-mash.cs.berkeley.edu/cs268/hw1.html>homework 1</a>
+<a href="http://www-mash.cs.berkeley.edu/cs268/hw1.html">homework 1</a>
 for
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268</a>.
+<a href="http://www-mash.cs.berkeley.edu/cs268/">CS268</a>.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fixed missing-return bug introduced in last rev.
 Thanks to 
-<a href=http://www.isi.edu/~wlee/>WeeSan Lee</a>.
+<a href="http://www.isi.edu/~wlee/">WeeSan Lee</a>.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Changed <i>Agent/Message</i> callback name from <i>handle</i>
 to <i>recv</i>.
 
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a9.tar.gz>ns-2.0a9</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a9.tar.gz">ns-2.0a9</a>
 <b>Thu Jan 30 21:11:34 PST 1997</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators and
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<a href="http://www-mash.cs.berkeley.edu/cs268/">CS268 students.</a></i>
 <ul>
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fixed inconsistent declaration of random() and
 problem with binding of "maxSackBlocks_".
 Reported by 
-<a href=http://www.isi.edu/~wlee/>WeeSan Lee</a>.
+<a href="http://www.isi.edu/~wlee/">WeeSan Lee</a>.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Restructured the way agents are reset.  Moved from node
 "attach time" to simulation "run time".  Otherwise, state variables
 that change between attach and run-time aren't consistent
 with the reset operation.
 This fix prompted by
-<a href=http://www.cs.berkeley.edu/~tomh>Tom Henderson</a>,
+<a href="http://www.cs.berkeley.edu/~tomh">Tom Henderson</a>,
 who noticed that delayed-ACK TCP output was inconsistent
 with that of ns-1.
 
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a8.tar.gz>ns-2.0a8</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a8.tar.gz">ns-2.0a8</a>
 <b>Mon Jan 27 19:26:17 PST 1997</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators and
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<a href="http://www-mash.cs.berkeley.edu/cs268/">CS268 students.</a></i>
 <ul>
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Omitted connector.cc and connector.h from distribution; now added.
 Reported by 
-<a href=http://www.isi.edu/~wlee/>WeeSan Lee</a>.
+<a href="http://www.isi.edu/~wlee/">WeeSan Lee</a>.
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a7.tar.gz>ns-2.0a7</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a7.tar.gz">ns-2.0a7</a>
 <b>Mon Jan 27 18:09:02 PST 1997</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators and
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<a href="http://www-mash.cs.berkeley.edu/cs268/">CS268 students.</a></i>
 <ul>
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
-Added <a href=mailto:dante@valhalla.internet-cafe.com>Dante De Lucia's</a>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
+Added <a href="mailto:dante@valhalla.internet-cafe.com">Dante De Lucia's</a>
 generic, reusable logging module.  (See log.cc.)
 But have not compiled it in yet because of xmalloc references.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fixed bugs in compat code that prevented SACK code from
 being properly configured.  Reported by 
-<a href=http://www.cs.berkeley.edu/~tomh>Tom Henderson</a>.
+<a href="http://www.cs.berkeley.edu/~tomh">Tom Henderson</a>.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Changed instance variable naming conventions to append underscore
 to all names, e.g., Agent::dst is now Agent::dst_.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Changed class naming conventions to use consistent mixed case,
 e.g., Agent/TCP instead of agent/tcp.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Eliminated Node class since splitting NsObject and Node into
 no longer makes any sense.  Also, "Node" was a bad name because
 it implies something about topology and at this level it
@@ -449,9 +453,9 @@ is toplogically independent.
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a6.tar.gz>ns-2.0a6</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a6.tar.gz">ns-2.0a6</a>
 <b>Tue Dec 31 18:55:39 PST 1996</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators.</i>
 <ul>
 
@@ -468,26 +472,26 @@ Added RTP Session class along with RTP and RTCP agents.
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a4.tar.gz>ns-2.0a4</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a4.tar.gz">ns-2.0a4</a>
 <b>Sun Nov 10 11:06:46 PST 1996</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators.</i>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Removed re-parenting hooks from <i>ns-lib.tcl</i> since
 TclClass now automatically makes all the classes in
 a class path name.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Ported partially completed <i>ivs</i> module from ns-1.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Fix from
-<a href=http://www-scf.usc.edu/~ahelmy/>Ahmed A-G Helmy</a>
+<a href="http://www-scf.usc.edu/~ahelmy/">Ahmed A-G Helmy</a>
 to omit unecessary code in <i>MultiNode::init</i>.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Coalesce multiple sources into a single graft message
 to avoid dropped grafts with a large number of messages
 would otherwise blast into the first hop and overflow
@@ -496,13 +500,13 @@ the queue (grafts are not yet sent reliably).
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a3.tar.gz>ns-2.0a3</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a3.tar.gz">ns-2.0a3</a>
 <b>Sun Nov 10 11:06:46 PST 1996</b></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators.</i>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Implemented simple RPF style flood and prune multicast
 (see <i>tcl/lib/ns-mcast.tcl</i>).  Multicast routing object
 is build from a number of classifier objects (e.g.,
@@ -513,49 +517,49 @@ Multicast routes are computed statically from unicast routes.
 Prune timers are not yet implemented and grafts are currently
 sent unreliably.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Created <i>Node</i> and <i>Link</i> classes to clean up
 <i>Simulator</i> class and allow these objects to be
 more easily abstracted into composite object.  E.g.,
 a multicast-node is composed of a number of sub-objects.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Use re-parenting trick across a lot more classes in <i>ns-lib.tcl</i>.
 Created <i>source</i> base class
 for <i>source/ftp</i>, <i>source/telnet</i>, etc.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Modified tcp-sink module to avoid virtual multiple inheritance
 (this causes too many problems with non-compliant C++ compilers).
 Created Acker and Sacker classes that are instanced in
 the sink classes.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Type-cast bug fixes from
-<a href=http://www-scf.usc.edu/~ahelmy/>
+<a href="http://www-scf.usc.edu/~ahelmy/">
 Ahmed A-G Helmy</a>.
 
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a2.tar.gz>ns-2.0a2</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a2.tar.gz">ns-2.0a2</a>
 <i>Thu Nov 7 1996</i></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Snapshot to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators.</i>
 <ul>
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 First cut at multicast router from fine-grained
 objects.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Add missing files to FILES.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Implemented <i>replicator</i> and <i>classifier/mcast</i> objects 
 as first step toward supporting multicast routers and broadcast LANs.
 
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Clean up class interface.  Created <i>Simulator</i> OTcl class as uniform
 API for manipulating simulator.  Moved almost all of the ns-1
 backward compatability code into a new class called <i>OldSim</i>.
@@ -563,19 +567,19 @@ backward compatability code into a new class called <i>OldSim</i>.
 </ul>
 
 <hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a1.tar.gz>ns-2.0a1</a>
+<h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a1.tar.gz">ns-2.0a1</a>
 <b>Wed Nov  6 13:57:31 PST 1996</b></h3>
-<i>Pre-release to <a href=http://netweb.usc.edu/vint/>VINT</a>
+<i>Pre-release to <a href="http://netweb.usc.edu/vint/">VINT</a>
 collaborators.</i>
 
 <ul>
-<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 Major architectural changes.  Object are now finer grained.
 We have developed a more cleanly defined Tcl API so that developers
 can change the back-end while more easily maintaining backward
 compatibility. 
 The simulator is now based entirely
-MIT's <a href=ftp://ftp.tns.lcs.mit.edu/pub/otcl/README.html>
+MIT's <a href="ftp://ftp.tns.lcs.mit.edu/pub/otcl/README.html">
 Object Tcl</a>.
 The TclClass C++ base class replaces the old Matcher class.
 An OTcl class is created in C++ by statically declaring
@@ -597,7 +601,7 @@ syntax erros and what not in scheduled tcl stubs.
 as the only SACK TCP implementation distributed with ns.
 
 <li>Put back hook to source "~/.ns.tcl" since people rely on this.
-Fix provided by <a href=mailto:jtw@mercury.lcs.mit.edu>John Wroclawski</a>.
+Fix provided by <a href="mailto:jtw@mercury.lcs.mit.edu">John Wroclawski</a>.
 
 </ul>
 
@@ -615,7 +619,7 @@ the case when multiple packets are dropped from a single window of data.
 <li>Fixed bug in tcp-sink.cc that allowed an infinite loop under some
 circumstances when the number of outstanding packets in TCP was exactly 
 MWS-1.  Also added a note to the man page about MWS and other constants 
-in ns.  Thanks to <a href=mailto:suter@big.att.com>Bernhard Suter</a> for
+in ns.  Thanks to <a href="mailto:suter@big.att.com">Bernhard Suter</a> for
 the bug report and fix.
 
 <li>In TCP, changed the constant TCP_TICK to the variable tcp_tick_,
@@ -647,11 +651,11 @@ corrected use of the receiver's advertised window, and to use
 uses the tcl_RcFileName C variable.
 
 <li>Fixed a couple more SunPro C++ compiler problems.  Patcjes
-from <a href=mailto:earce@ukraine.corp.mot.comf>Michael Pearce</a>.
+from <a href="mailto:earce@ukraine.corp.mot.comf">Michael Pearce</a>.
 
 <li>Corrected TCP's window decrease algorithm from "cwnd_ /= 2;"
 to "cwnd_ = window() / 2;".  Thanks to
-<a href=mailto:tzieg@cosy.sbg.ac.at>Thomas Ziegler</a> for the
+<a href="mailto:tzieg@cosy.sbg.ac.at">Thomas Ziegler</a> for the
 bug report.
 
 </ul>
@@ -661,14 +665,14 @@ bug report.
 <ul>
 <li>Fixed bug in tcp.cc that caused the retransmit timeout backoff behavior
 never to reset.  Thanks to 
-<a href=mailto:mahdavi@psc.edu>Jamshid Mahdavi</a> 
+<a href="mailto:mahdavi@psc.edu">Jamshid Mahdavi</a> 
 for reporting both the bug and the fix.
 
 <li>Fixed bug in tcplib telnet module.  Random number generator was
 being seeded on each call (from the system clock) rather than once
 at start-up.  Replaced calls to random number routines with calls
 to Random::uniform.  Thanks to
-<a href=mailto:vogels@CS.Cornell.EDU>Werner Vogels</a>
+<a href="mailto:vogels@CS.Cornell.EDU">Werner Vogels</a>
 for reporting this bug.
 
 <li>Added local explicit-join notification for experimentation
@@ -695,7 +699,7 @@ a Poisson rather than fixed-rate packet stream.
 loop at start up.
 
 <li>Incorporated patches from
-<a href=mailto:pearce@ukraine.corp.mot.com>Michael Pearce</a> to
+<a href="mailto:pearce@ukraine.corp.mot.com">Michael Pearce</a> to
 compile with SunPro C++ v3.0.1.
 
 <li>Fixed bug that caused memory corruption when using class ID's
@@ -821,10 +825,10 @@ machinery.
 <ul>
 
 <li>Fixed test-suite.tcl so that old awk works.  Problem reported
-by <a href=mailto:kannan@catarina.usc.edu>Kannan Varadhan</a>.
+by <a href="mailto:kannan@catarina.usc.edu">Kannan Varadhan</a>.
 
 <li>Fixed Makefile.in to use V_LIB_TCL, as intended.  Fix supplied
-by <a href=mailto:kannan@catarina.usc.edu>Kannan Varadhan</a>.
+by <a href="mailto:kannan@catarina.usc.edu">Kannan Varadhan</a>.
 
 </ul>
 
@@ -845,7 +849,7 @@ by <a href=mailto:kannan@catarina.usc.edu>Kannan Varadhan</a>.
 <li>Fixed more for-stmt scope bugs.
 
 <li>Fixed compilation problems with Sun and DEC compilers.
-Problem reported by <a href=mailto:turletti@cayenne.lcs.mit.edu>
+Problem reported by <a href="mailto:turletti@cayenne.lcs.mit.edu">
 Thierry Turletti</a>.
 
 </ul>
@@ -870,10 +874,10 @@ Thierry Turletti</a>.
 
 <li>Ported to tcl-7.4.
 
-<li>Include <a href=mailto:mathis@psc.edu>Matt Mathis'</a> test-all script.
+<li>Include <a href="mailto:mathis@psc.edu">Matt Mathis'</a> test-all script.
 
 <li>Changed "for" statement conventions to adhere to the proposed
-	<a href=http://www.cygnus.com/~mrs/wp-draft/stmt.html#stmt.for>
+	<a href="http://www.cygnus.com/~mrs/wp-draft/stmt.html#stmt.for">
 	ANSI standard change</a> which re-defines the lexical scope
 	semantics of the initializer statement.
   In order to be compatible with both the old and new semantics, we have
