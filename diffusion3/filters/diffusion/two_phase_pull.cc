@@ -3,7 +3,7 @@
 // author             : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: two_phase_pull.cc,v 1.2 2003/07/10 21:18:57 haldar Exp $
+// $Id: two_phase_pull.cc,v 1.3 2003/07/14 23:44:49 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -135,7 +135,7 @@ void GradientFilter::gradientTimeout()
   RoutingTable::iterator routing_itr;
   GradientList::iterator grad_itr;
   AgentList::iterator agent_itr;
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
   GradientEntry *gradient_entry;
   AgentEntry *agent_entry;
   struct timeval tmv;
@@ -203,7 +203,7 @@ void GradientFilter::reinforcementTimeout()
   DataNeighborList::iterator data_neighbor_itr;
   DataNeighborEntry *data_neighbor_entry;
   RoutingTable::iterator routing_itr;
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
   Message *my_message;
 
   DiffPrint(DEBUG_MORE_DETAILS, "Reinforcement Timeout !\n");
@@ -268,7 +268,7 @@ int GradientFilter::subscriptionTimeout(NRAttrVec *attrs)
 {
   AttributeList::iterator attribute_itr;
   AttributeEntry *attribute_entry;
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
   struct timeval tmv;
 
   DiffPrint(DEBUG_MORE_DETAILS, "Subscription Timeout !\n");
@@ -306,10 +306,10 @@ int GradientFilter::subscriptionTimeout(NRAttrVec *attrs)
   return 0;
 }
 
-void GradientFilter::deleteRoutingEntry(RoutingEntry *routing_entry)
+void GradientFilter::deleteRoutingEntry(TppRoutingEntry *routing_entry)
 {
   RoutingTable::iterator routing_itr;
-  RoutingEntry *current_entry;
+  TppRoutingEntry *current_entry;
 
   for (routing_itr = routing_list_.begin(); routing_itr != routing_list_.end(); ++routing_itr){
     current_entry = *routing_itr;
@@ -322,10 +322,10 @@ void GradientFilter::deleteRoutingEntry(RoutingEntry *routing_entry)
   DiffPrint(DEBUG_ALWAYS, "Error: deleteRoutingEntry could not find entry to delete !\n");
 }
 
-RoutingEntry * GradientFilter::matchRoutingEntry(NRAttrVec *attrs, RoutingTable::iterator start, RoutingTable::iterator *place)
+TppRoutingEntry * GradientFilter::matchRoutingEntry(NRAttrVec *attrs, RoutingTable::iterator start, RoutingTable::iterator *place)
 {
   RoutingTable::iterator routing_itr;
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
 
   for (routing_itr = start; routing_itr != routing_list_.end(); ++routing_itr){
     routing_entry = *routing_itr;
@@ -337,10 +337,10 @@ RoutingEntry * GradientFilter::matchRoutingEntry(NRAttrVec *attrs, RoutingTable:
   return NULL;
 }
 
-RoutingEntry * GradientFilter::findRoutingEntry(NRAttrVec *attrs)
+TppRoutingEntry * GradientFilter::findRoutingEntry(NRAttrVec *attrs)
 {
   RoutingTable::iterator routing_itr;
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
 
   for (routing_itr = routing_list_.begin(); routing_itr != routing_list_.end(); ++routing_itr){
     routing_entry = *routing_itr;
@@ -350,7 +350,7 @@ RoutingEntry * GradientFilter::findRoutingEntry(NRAttrVec *attrs)
   return NULL;
 }
 
-AttributeEntry * GradientFilter::findMatchingSubscription(RoutingEntry *routing_entry,
+AttributeEntry * GradientFilter::findMatchingSubscription(TppRoutingEntry *routing_entry,
 							  NRAttrVec *attrs)
 {
   AttributeList::iterator attribute_itr;
@@ -364,7 +364,7 @@ AttributeEntry * GradientFilter::findMatchingSubscription(RoutingEntry *routing_
   return NULL;
 }
 
-void GradientFilter::updateGradient(RoutingEntry *routing_entry,
+void GradientFilter::updateGradient(TppRoutingEntry *routing_entry,
 				    int32_t last_hop, bool reinforced)
 {
   GradientList::iterator gradient_itr;
@@ -389,7 +389,7 @@ void GradientFilter::updateGradient(RoutingEntry *routing_entry,
   routing_entry->gradients_.push_back(gradient_entry);
 }
 
-void GradientFilter::updateAgent(RoutingEntry *routing_entry,
+void GradientFilter::updateAgent(TppRoutingEntry *routing_entry,
 				 u_int16_t source_port)
 {
   AgentList::iterator agent_itr;
@@ -414,7 +414,7 @@ void GradientFilter::forwardPushExploratoryData(Message *msg,
 						DataForwardingHistory *forwarding_history)
 {
   RoutingTable::iterator routing_itr;
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
   AgentList::iterator agent_itr;
   AgentEntry *agent_entry;
   Message *data_msg, *sink_message;
@@ -498,7 +498,7 @@ void GradientFilter::forwardPushExploratoryData(Message *msg,
 }
 
 void GradientFilter::forwardExploratoryData(Message *msg,
-					    RoutingEntry *routing_entry,
+					    TppRoutingEntry *routing_entry,
 					    DataForwardingHistory *forwarding_history)
 {
 #ifdef USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
@@ -602,7 +602,7 @@ void GradientFilter::forwardExploratoryData(Message *msg,
 #endif // USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
 }
 
-void GradientFilter::forwardData(Message *msg, RoutingEntry *routing_entry,
+void GradientFilter::forwardData(Message *msg, TppRoutingEntry *routing_entry,
 				 DataForwardingHistory *forwarding_history)
 {
   GradientList::iterator gradient_itr;
@@ -760,7 +760,7 @@ GradientEntry * GradientFilter::findReinforcedGradients(GradientList *gradients,
 }
 
 GradientEntry * GradientFilter::findReinforcedGradient(int32_t node_addr,
-						       RoutingEntry *routing_entry)
+						       TppRoutingEntry *routing_entry)
 {
   GradientList::iterator gradient_itr;
   GradientEntry *gradient_entry;
@@ -784,7 +784,7 @@ GradientEntry * GradientFilter::findReinforcedGradient(int32_t node_addr,
   return NULL;
 }
 
-void GradientFilter::deleteGradient(RoutingEntry *routing_entry,
+void GradientFilter::deleteGradient(TppRoutingEntry *routing_entry,
 				    GradientEntry *gradient_entry)
 {
   GradientList::iterator gradient_itr;
@@ -803,7 +803,7 @@ void GradientFilter::deleteGradient(RoutingEntry *routing_entry,
 	    "Error: deleteGradient could not find gradient to delete !\n");
 }
 
-void GradientFilter::setReinforcementFlags(RoutingEntry *routing_entry,
+void GradientFilter::setReinforcementFlags(TppRoutingEntry *routing_entry,
 					   int32_t last_hop, int new_message)
 {
   DataNeighborList::iterator data_neighbor_itr;
@@ -827,7 +827,7 @@ void GradientFilter::setReinforcementFlags(RoutingEntry *routing_entry,
   routing_entry->data_neighbors_.push_back(data_neighbor_entry);
 }
 
-void GradientFilter::sendInterest(NRAttrVec *attrs, RoutingEntry *routing_entry)
+void GradientFilter::sendInterest(NRAttrVec *attrs, TppRoutingEntry *routing_entry)
 {
   AgentList::iterator agent_itr;
   AgentEntry *agent_entry;
@@ -850,7 +850,7 @@ void GradientFilter::sendInterest(NRAttrVec *attrs, RoutingEntry *routing_entry)
 }
 
 void GradientFilter::sendDisinterest(NRAttrVec *attrs,
-				     RoutingEntry *routing_entry)
+				     TppRoutingEntry *routing_entry)
 {
   NRAttrVec *new_attrs;
   NRSimpleAttribute<int> *nrclass = NULL;
@@ -892,7 +892,7 @@ void GradientFilter::recv(Message *msg, handle h)
 
 void GradientFilter::processOldMessage(Message *msg)
 {
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
   RoutingTable::iterator routing_itr;
 
   switch (msg->msg_type_){
@@ -985,7 +985,7 @@ void GradientFilter::processNewMessage(Message *msg)
   NRSimpleAttribute<int> *nrscope = NULL;
   ReinforcementBlob *reinforcement_blob;
   RoutingTable::iterator routing_itr;
-  RoutingEntry *routing_entry;
+  TppRoutingEntry *routing_entry;
   GradientList::iterator gradient_itr;
   GradientEntry *gradient_entry;
   NRAttrVec::iterator place;
@@ -1016,7 +1016,7 @@ void GradientFilter::processNewMessage(Message *msg)
 
     if (!routing_entry){
       // Create a new routing entry for this data type
-      routing_entry = new RoutingEntry;
+      routing_entry = new TppRoutingEntry;
       routing_entry->attrs_ = CopyAttrs(msg->msg_attr_vec_);
       routing_list_.push_back(routing_entry);
       new_data_type = true;
@@ -1082,7 +1082,7 @@ void GradientFilter::processNewMessage(Message *msg)
 	routing_entry->attr_list_.push_back(attribute_entry);
 	sendInterest(attribute_entry->attrs_, routing_entry);
       }
-      // Move to the next RoutingEntry
+      // Move to the next TppRoutingEntry
       routing_itr++;
       routing_entry = matchRoutingEntry(msg->msg_attr_vec_, routing_itr,
 					&routing_itr);
@@ -1196,7 +1196,7 @@ void GradientFilter::processNewMessage(Message *msg)
       }
 
       // Create new Routing Entry
-      routing_entry = new RoutingEntry;
+      routing_entry = new TppRoutingEntry;
       routing_entry->attrs_ = CopyAttrs(msg->msg_attr_vec_);
       routing_list_.push_back(routing_entry);
     }

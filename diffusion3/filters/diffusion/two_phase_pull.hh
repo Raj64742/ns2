@@ -3,7 +3,7 @@
 // author             : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: two_phase_pull.hh,v 1.2 2003/07/10 21:18:57 haldar Exp $
+// $Id: two_phase_pull.hh,v 1.3 2003/07/14 23:44:49 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -116,13 +116,13 @@ typedef list<AgentEntry *> AgentList;
 typedef list<GradientEntry *> GradientList;
 typedef list<DataNeighborEntry *> DataNeighborList;
 
-class RoutingEntry {
+class TppRoutingEntry {
 public:
-  RoutingEntry() {
+  TppRoutingEntry() {
     GetTime(&tv_);
   };
 
-  ~RoutingEntry() {
+  ~TppRoutingEntry() {
     DataNeighborList::iterator data_neighbor_itr;
     AttributeList::iterator attr_itr;
     GradientList::iterator grad_itr;
@@ -165,7 +165,7 @@ public:
   DataNeighborList data_neighbors_;
 };
 
-typedef list<RoutingEntry *> RoutingTable;
+typedef list<TppRoutingEntry *> RoutingTable;
 class GradientFilter;
 
 class GradientFilterReceive : public FilterCallback {
@@ -281,27 +281,27 @@ protected:
   handle setupFilter();
 
   // Matching functions
-  RoutingEntry * findRoutingEntry(NRAttrVec *attrs);
-  void deleteRoutingEntry(RoutingEntry *routing_entry);
-  RoutingEntry * matchRoutingEntry(NRAttrVec *attrs, RoutingTable::iterator start, RoutingTable::iterator *place);
-  AttributeEntry * findMatchingSubscription(RoutingEntry *routing_entry, NRAttrVec *attrs);
+  TppRoutingEntry * findRoutingEntry(NRAttrVec *attrs);
+  void deleteRoutingEntry(TppRoutingEntry *routing_entry);
+  TppRoutingEntry * matchRoutingEntry(NRAttrVec *attrs, RoutingTable::iterator start, RoutingTable::iterator *place);
+  AttributeEntry * findMatchingSubscription(TppRoutingEntry *routing_entry, NRAttrVec *attrs);
 
   // Data structure management
-  void updateGradient(RoutingEntry *routing_entry, int32_t last_hop, bool reinforced);
-  void updateAgent(RoutingEntry *routing_entry, u_int16_t source_port);
+  void updateGradient(TppRoutingEntry *routing_entry, int32_t last_hop, bool reinforced);
+  void updateAgent(TppRoutingEntry *routing_entry, u_int16_t source_port);
   GradientEntry * findReinforcedGradients(GradientList *agents, GradientList::iterator start, GradientList::iterator *place);
-  GradientEntry * findReinforcedGradient(int32_t node_addr, RoutingEntry *routing_entry);
-  void deleteGradient(RoutingEntry *routing_entry, GradientEntry *gradient_entry);
-  void setReinforcementFlags(RoutingEntry *routing_entry, int32_t last_hop, int new_message);
+  GradientEntry * findReinforcedGradient(int32_t node_addr, TppRoutingEntry *routing_entry);
+  void deleteGradient(TppRoutingEntry *routing_entry, GradientEntry *gradient_entry);
+  void setReinforcementFlags(TppRoutingEntry *routing_entry, int32_t last_hop, int new_message);
 
   // Message forwarding functions
-  void sendInterest(NRAttrVec *attrs, RoutingEntry *routing_entry);
-  void sendDisinterest(NRAttrVec *attrs, RoutingEntry *routing_entry);
+  void sendInterest(NRAttrVec *attrs, TppRoutingEntry *routing_entry);
+  void sendDisinterest(NRAttrVec *attrs, TppRoutingEntry *routing_entry);
   void sendPositiveReinforcement(NRAttrVec *reinf_attrs, int32_t data_rdm_id,
 				 int32_t data_pkt_num, int32_t destination);
-  void forwardData(Message *msg, RoutingEntry *routing_entry,
+  void forwardData(Message *msg, TppRoutingEntry *routing_entry,
 		   DataForwardingHistory *forwarding_history);
-  void forwardExploratoryData(Message *msg, RoutingEntry *routing_entry,
+  void forwardExploratoryData(Message *msg, TppRoutingEntry *routing_entry,
 			      DataForwardingHistory *forwarding_history);
   void forwardPushExploratoryData(Message *msg,
 				  DataForwardingHistory *forwarding_history);
