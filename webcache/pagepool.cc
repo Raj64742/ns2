@@ -21,7 +21,7 @@
 // Trace statistics file format:
 // <URL> <size> {<modification time>}
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.1 1998/08/18 23:42:42 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.2 1998/08/19 04:16:15 haoboy Exp $
 
 #include <stdio.h>
 #include <limits.h>
@@ -243,7 +243,7 @@ int TracePagePool::command(int argc, const char *const* argv)
 			tcl.resultf("%d", num_pages_);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-start-time") == 0) {
-			tcl.resultf("%d", start_time_);
+			tcl.resultf("%.17g", start_time_);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-duration") == 0) {
 			tcl.resultf("%d", duration_);
@@ -295,7 +295,7 @@ int TracePagePool::command(int argc, const char *const* argv)
 			}
 			for (int i = 0; i < pg->num_mtime(); i++) 
 				if (pg->mtime(i) > mt) {
-					tcl.resultf("%d", 
+					tcl.resultf("%.17g", 
 						    pg->mtime(i)+start_time_);
 					return TCL_OK;
 				}
@@ -333,7 +333,7 @@ int MathPagePool::command(int argc, const char *const* argv)
 			tcl.result("1");
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-start-time") == 0) {
-			tcl.resultf("%d", start_time_);
+			tcl.resultf("%.17g", start_time_);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-duration") == 0) {
 			tcl.resultf("%d", duration_);
@@ -433,7 +433,7 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 			tcl.result("1");
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-start-time") == 0) {
-			tcl.resultf("%d", start_time_);
+			tcl.resultf("%.17g", start_time_);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-duration") == 0) {
 			tcl.resultf("%d", duration_);

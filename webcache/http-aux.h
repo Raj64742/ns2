@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.1 1998/08/18 23:42:40 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.2 1998/08/19 04:16:14 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -185,6 +185,8 @@ public:
 };
 
 const int HTTPDATA_MAXURLLEN = 20;
+// XXX assign cost to a constant so as to be more portable
+const int HTTPHBDATA_COST = 32;
 
 // Struct used to pack invalidation records into packets
 class HttpHbData : public HttpData {
@@ -198,7 +200,7 @@ protected:
 		// Used only to mark that this page will be send in the 
 		// next multicast update. The updating field in this agent 
 		// will only be set after it gets the real update.
-		char updating_; 
+		int updating_; 
 		void copy(InvalidationRec *v) {
 			strcpy(pg_, v->pg());
 			mtime_ = v->mtime();
@@ -229,7 +231,7 @@ public:
 	}
 
 	virtual int size() { 
-		return (num_inv_*sizeof(InvalRec) + sizeof(hdr));
+		return (num_inv_*HTTPHBDATA_COST + sizeof(hdr));
 	}
 	virtual int hdrlen() { return sizeof(hdr); }
 	virtual void pack(char *buf) {
@@ -247,6 +249,8 @@ public:
 	inline double& rec_mtime(int i) { return inv_rec()[i].mtime_; }
 	void extract(InvalidationRec*& ivlist);
 };
+
+const int HTTPUPD_COST = 40;
 
 class HttpUpdateData : public HttpData {
 protected:
@@ -289,7 +293,7 @@ public:
 	}
 
 	virtual int size() { 
-		return sizeof(hdr) + num_*sizeof(PageRec); 
+		return sizeof(hdr) + num_*HTTPUPD_COST; 
 	}
 	virtual int hdrlen() { return sizeof(hdr); }
 	virtual void pack(char *buf) {
@@ -311,6 +315,8 @@ public:
 	inline double& rec_age(int i) { return rec()[i].age_; }
 	inline double& rec_mtime(int i) { return rec()[i].mtime_; }
 };
+
+const int HTTPLEAVE_COST = 4;
 
 // Message: server leave
 class HttpLeaveData : public HttpData {
@@ -337,7 +343,7 @@ public:
 	}
 
 	virtual int size() { 
-		return sizeof(hdr) + num_*sizeof(int);
+		return sizeof(hdr) + num_*HTTPLEAVE_COST;
 	}
 	virtual int hdrlen() { return sizeof(hdr); }
 	virtual void pack(char* buf) {
