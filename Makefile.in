@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.21 1997/05/13 23:59:06 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.22 1997/05/14 02:49:27 mccanne Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -87,7 +87,11 @@ OBJ_CC = \
 	session-rtp.o rtp.o rtcp.o ip.o sfq.o fq.o drr.o \
 	dynalink.o rtProtoDV.o cbq.o \
 	udp.o traffictrace.o pareto.o expoo.o \
-	net-interface.o
+	net-interface.o \
+	net.o net-ip.o tap.o
+
+OBJ_C = \
+	inet.o
 
 OBJ_NAM = \
 	nam/animation.o \
