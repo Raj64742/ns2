@@ -58,7 +58,7 @@ if [file executable ../../../ns] {
 
 source ${nshome}tcl/lan/ns-mac.tcl
 source ${nshome}tcl/lan/ns-lan.tcl
-source ${nshome}tcl/lib/ns-ber.tcl
+source ${nshome}tcl/lib/ns-errmodel.tcl
 source ${nshome}tcl/ex/snoop/util.tcl
 
 set env(PATH) "${nshome}bin:$env(PATH)"
@@ -81,9 +81,9 @@ set opt(tp)	TCP/Reno
 set opt(sink)	TCPSink
 set opt(source)	FTP
 set opt(cbr)	0
-set opt(e)      0
-set opt(errmodel) expo
+set opt(em)     expo
 set opt(eu)     time
+set opt(trans)  ""
 
 LL/Snoop set snoopTick_ [expr [Agent/TCP set tcpTick_]/5]
 LL/Snoop set bandwidth_ 2Mb
@@ -116,6 +116,8 @@ proc getopt {argc argv} {
 			set opt(ifq) Queue/[lindex $argv [incr i]]
 		} elseif {$name == "mac"} {
 			set opt(mac) Mac/[lindex $argv [incr i]]
+		} elseif {$name == "r"} {
+			set opt(r) 1
 		} elseif {[lsearch $optlist $name] >= 0} {
 			set opt($name) [lindex $argv [incr i]]
 		} else {
@@ -219,7 +221,6 @@ proc create-source {num} {
 	}
 }
 
-
 ## MAIN ##
 getopt $argc $argv
 if { [info exists opt(r)] } {
@@ -238,8 +239,12 @@ $lan trace $ns $trfd
 
 if [info exists opt(tracemac)] { trace-mac $lan $ltrfd }
 
-if { $opt(e) > 0 } {
-	create-error $opt(num) $opt(e) $opt(errmodel) $opt(eu)
+if { [info exists opt(e)] } {
+	for {set i 1} {$i <= $opt(num)} {incr i} {
+		lappend dstlist $node($i)
+	}
+	$lan create-error $node(0) $dstlist $opt(em) $opt(e) $opt(eu) \
+			$opt(trans)
 }
 
 create-source $opt(num)
