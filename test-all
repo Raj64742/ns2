@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.6 1997/07/26 05:56:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.7 1997/07/28 19:58:03 heideman Exp $
 #
 # This script was written and contributed by Matt Mathis (mathis@psc.edu)
 #
@@ -67,8 +67,13 @@ for t in $tests; do
 		cp temp.rands test-output/$t.test
 		echo "Diagnose with: diff test-output/$t.test test-output/$t"
 		echo "Differences due to floating-point formatting are not significant."
-		echo "Tests telnet, reno4, reno4a, and phase2 all use randomization,"
-		echo "and can give different results for different random number generators."
+
+		case $t in
+		telnet|reno4|reno4a|phase2)
+			echo "Tests telnet, reno4, reno4a, and phase2 all use randomization,"
+			echo "and can give different results for different random number generators."
+			;;
+		esac
 	    fi
 	fi
     fi
