@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.6 1997/07/21 21:21:52 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.7 1997/08/22 00:09:33 gnguyen Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -52,6 +52,12 @@ void PacketHeaderClass::bind()
 	TclClass::bind();
 	Tcl& tcl = Tcl::instance();
 	tcl.evalf("%s set hdrlen_ %d", classname_, hdrlen_);
+}
+
+void PacketHeaderClass::bind_offset(const char* fieldName, int offset)
+{
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("%s set offset_(%s) %d", classname_, fieldName, offset);
 }
 
 TclObject* PacketHeaderClass::create(int, const char*const*)

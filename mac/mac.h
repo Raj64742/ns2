@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.10 1997/07/24 04:45:10 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.11 1997/08/22 00:09:32 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -40,11 +40,6 @@
 
 #include "connector.h"
 #include "packet.h"
-
-#ifndef ns_pkt_h
-#define bind_offset(fieldName, offset)
-#define OFFSET(struct, field)
-#endif
 
 
 /*

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.20 1997/08/19 18:45:49 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.21 1997/08/22 00:09:33 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -62,6 +62,8 @@
 	"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
 	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM"
 
+#define OFFSET(type, field)	((int) &((type *)0)->field)
+
 
 struct hdr_cmn {
 	double	ts_;		// timestamp: for q-delay measurement
@@ -82,6 +84,7 @@ struct hdr_cmn {
 class PacketHeaderClass : public TclClass {
 protected:
 	PacketHeaderClass(const char* className, int hdrsize);
+	void bind_offset(const char* fieldName, int offset);
 	int hdrlen_;	// # of bytes from beginning of packet for this hdr
 public:
 	virtual void bind();
