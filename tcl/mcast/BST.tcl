@@ -24,8 +24,8 @@
 # timers.  Nodes send grafts/prunes toward the RP to join/leave the
 # group.  The user needs to set two protocol variables: 
 #
-# "ST set RP_($group) $node" - indicates that $node 
-#                              acts as an RP for the $group
+# "BST set RP_($group) $node" - indicates that $node 
+#                               acts as an RP for the $group
 
 Class BST -superclass McastProtocol
 
@@ -43,6 +43,7 @@ BST instproc start {} {
 	$self instvar node_ oiflist_
 	BST instvar RP_
 
+	# need to do it in start when unicast routing is computed
 	foreach grpx [array names RP_] {
                 set grp [expr $grpx]
                	$self dbg "BST: grp $grp, node [$node_ id]"
@@ -97,7 +98,7 @@ BST instproc handle-wrong-iif { srcID group iface } {
 	
 	$self dbg "BST: wrong iif $iface, src $srcID, grp $group"
 	$self dbg "\t oiflist: $oiflist_($group)"
-	#debug 1
+
 	set rep [$node_ getReps "x" $group]
 	
 	$node_ add-mfc "x" $group $iface $oiflist_($group)
@@ -134,10 +135,7 @@ BST instproc handle-cache-miss { srcID group iface } {
 	} else {
 		set rpfoif ""
 	}
-	#puts "rpfoif= $rpfoif"
-	#if { [lsearch $oiflist_($group) $rpfoif] < 0 } {
-	#	set oiflist_($group) [concat $oiflist_($group) $rpfoif]
-	#}
+
 	$self dbg "********* miss: adding <x, $group, $iface, $oiflist_($group)>"
 	$node_ add-mfc "x" $group $iface $oiflist_($group)
 
@@ -175,7 +173,13 @@ BST instproc recv-prune { from src group iface} {
 		if { $idx >= 0 } {
 			set oiflist_($group) [lreplace $oiflist_($group) $idx $idx]
 			$rep disable $oif
-			if { $oiflist_($group) == "" } {
+			set rpfiif [$node_ from-node-iface $RP_($group)]
+			if { $rpfiif != "?" } {
+				set rpfoif [$node_ iif2oif $rpfiif]
+			} else {
+				set rpfoif ""
+	}
+			if { $oiflist_($group) == $rpfoif && ![$node_ check-local $group] } {
 				# propagate
 				$self send-ctrl "prune" $RP_($group) $group
 			}
@@ -196,8 +200,7 @@ BST instproc recv-graft { from to group iface } {
 		set rpfoif ""
 	}
 
-	if { ($oiflist_($group) == "" || $oiflist_($group) == $rpfoif) && \
-			![$node_ check-local $group] } {
+	if { $oiflist_($group) == $rpfoif && ![$node_ check-local $group] } {
 		# propagate
 		$self send-ctrl "graft" $RP_($group) $group
 	}
@@ -206,20 +209,9 @@ BST instproc recv-graft { from to group iface } {
 		if { [$node_ lookup-iface "x" $group] != $iface } {
 			set rep [$node_ getReps "x" $group]
 			if { $rep != "" } {
-				# received graft before any cache misses
-			#	 set rpfiif [$node_ from-node-iface $RP_($group)]
-			#	 if { $rpfiif != "?" } {
-			#		 set rpfoif [$node_ iif2oif $rpfiif]
-			#	 } else {
-			#		 set rpfoif ""
-			#	 }
-			#	 $node_ add-mfc "x" $group $rpfiif $oif
-			#	 $self dbg "********* recv-graft: adding <x, $group, $oif>"
-			#	 set rep [$node_ getReps "x" $group]
-			#
-			$rep insert $oif
+				$rep insert $oif
+			}
 		}
-	}
 	}
 	$self dbg "oiflist: $oiflist_($group)"
 }
