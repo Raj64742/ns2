@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.266 2001/11/28 23:04:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.267 2001/11/29 04:47:13 sfloyd Exp $
 
 
 #
@@ -690,8 +690,8 @@ Agent/TCP set srtt_ 0
 Agent/TCP set rttvar_ 0
 Agent/TCP set backoff_ 0
 Agent/TCP set maxseq_ 0
-Agent/TCP set singledup_ 0
-# Agent/TCP set singledup_ 1 ;		# This will become the new default.
+# Agent/TCP set singledup_ 0
+Agent/TCP set singledup_ 1 ;		# default changed on 2001/11/28.
 Agent/TCP set precisionReduce_ false
 Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 
@@ -718,7 +718,7 @@ Agent/TCP/Fack set rampdown_ false
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
 # Agent/TCP set delay_growth_ false
-Agent/TCP set delay_growth_ true ;		# default changed on 2001/5/17.
+Agent/TCP set delay_growth_ true ;	# default changed on 2001/5/17.
 
 Agent/TCP set CoarseTimer_      0
 
