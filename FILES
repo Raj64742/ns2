@@ -449,6 +449,7 @@ tcl/test/test-all-cbq-v1
 tcl/test/test-all-ecn
 tcl/test/test-all-ecn-ack
 tcl/test/test-all-full
+tcl/test/test-all-intserv
 tcl/test/test-all-manual-routing
 tcl/test/test-all-mcast
 tcl/test/test-all-rbp
@@ -497,6 +498,7 @@ tcl/test/test-suite-ecn-ack.tcl
 tcl/test/test-suite-ecn.tcl
 tcl/test/test-suite-ecn.txt
 tcl/test/test-suite-full.tcl
+tcl/test/test-suite-intserv.tcl
 tcl/test/test-suite-manual-routing.tcl
 tcl/test/test-suite-mcast.tcl
 tcl/test/test-suite-rbp.tcl
@@ -635,6 +637,11 @@ tcl/test/test-output-full/twoway1.Z
 tcl/test/test-output-full/twoway_bsdcompat.Z
 tcl/test/test-output-full/twowayrandom.Z
 tcl/test/test-output-full/winlimited.Z
+tcl/test/test-output-intserv/MS.Z
+tcl/test/test-output-intserv/HB.Z
+tcl/test/test-output-intserv/ACTP.Z
+tcl/test/test-output-intserv/ACTO.Z
+tcl/test/test-output-intserv/Param.Z
 tcl/test/test-output-manual-routing/one_client.Z
 tcl/test/test-output-mcast/CtrMcast1.Z
 tcl/test/test-output-mcast/CtrMcast2.Z
