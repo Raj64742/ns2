@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.1 1997/08/14 06:59:04 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.2 1997/08/14 09:41:53 gnguyen Exp $
 
 
 TOOLS32	= c:\msdev
@@ -40,21 +40,26 @@ LIB_OTCL = $(OTCL_DIR)\otcl.lib
 LIB_TCLCL = $(TCLCL_DIR)\tclcl.lib
 LIB_GSM  = $(GSM_DIR)\lib\gsm.lib
 
+LIBRARY_TK = $(TK_DIR)\library
+LIBRARY_TCL = $(TCL_DIR)\library
+
 cc32	= cl
 rc32	= rc
 link32	= link
 MKDEP	= makedep2
 PERL	= perl
 TCLSH	= tclsh76
-TCL2C	= $(TCLCL_DIR)\tcl2c++
+AR	= lib -out:
+RANLIB	= echo
+RM	= del
 
 CPP	= $(cc32)
 CC	= $(cc32)
 LINK	= $(link32)
-LDFLAGS = -libpath:$(TOOLS32)\lib
+STATIC	= 
+CCOPT	= -Zi -Gm -Gi -YX -Zm400
+LDFLAGS = -LIBPATH:$(TOOLS32)\lib $(lflags) $(conlibs)
 LDOUT	= -out:
-CCOPT	= /Zi /Gm /Gi /YX /Zm400
-
 
 INCLUDE_TK = -I$(TK_DIR)\win -I$(TK_DIR)\generic
 INCLUDE_TCL = -I$(TCL_DIR)\win -I$(TCL_DIR)\generic
@@ -75,9 +80,12 @@ LIBS =	$(LIB_TCLCL) $(LIB_OTCL) $(LIB_TK) $(LIB_TCL) \
 	$(LIB_GRABBER) $(LIB_GSM)
 #winmm.lib
 
-BFLAGS = -DWIN32 $(DEFINE) $(INCLUDES)
-CFLAGS = $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
 
+# LIB =
+TCL2C	= $(TCLCL_DIR)\tcl2c++.exe
+
+BFLAGS	= -DWIN32 $(DEFINE) $(INCLUDES)
+CFLAGS	= $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
 
 .SUFFIXES : .cc
 
