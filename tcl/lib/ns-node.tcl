@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.77 2000/09/09 02:40:38 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.78 2000/09/13 03:06:52 haoboy Exp $
 #
 
 Node set nn_ 0
@@ -433,13 +433,6 @@ Node instproc delete-routes {id ifs nullagent} {
 			if [info exists nonLink($link)] {
 				$mpathClsfr_($id) clear $slot
 				incr routes_($id) -1
-				# XXX Point to null agent if entries goes to 0?
-				# Is this the right procedure??
-				if { $routes_($id) == 0 } {
-					delete $mpathClsfr_($id)
-					unset mpathClsfr_($id)
-					$self delete-route $id $nullagent
-				}
 			}
 		}
 	} else {

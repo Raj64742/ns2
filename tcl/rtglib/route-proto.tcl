@@ -23,7 +23,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/route-proto.tcl,v 1.28 2000/08/29 19:28:03 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/route-proto.tcl,v 1.29 2000/09/13 03:06:52 haoboy Exp $
 
 #
 # Author: <kannan@isi.edu> (this email address has deprecated.)
@@ -231,7 +231,8 @@ rtObject instproc dump-routes chan {
     puts $chan [concat "Node:\t${node_}([$node_ id])\tat t ="		\
 	    [format "%4.2f" $time]]
     puts $chan "  Dest\t\t nextHop\tPref\tMetric\tProto"
-    foreach dest [lsort -command SplitObjectCompare [$ns_ all-nodes-list]] {
+    #foreach dest [lsort -command SplitObjectCompare [$ns_ all-nodes-list]] {
+    foreach dest [$ns_ all-nodes-list] {
 	if {[llength $nextHop_($dest)] > 1} {
 	    set p [split [$rtVia_($dest) info class] /]
 	    set proto [lindex $p [expr [llength $p] - 1]]
@@ -519,7 +520,7 @@ Agent/rtProto/DV instproc compute-routes {} {
 	set pf $MAXPREF
 	set mt $INFINITY
 	set nh(0) 0
-	foreach nbr [array names peers_] {
+	foreach nbr [lsort -dictionary [array names peers_]] {
 	    set pmt [$peers_($nbr) metric? $dst]
 	    set ppf [$peers_($nbr) preference? $dst]
 
@@ -591,7 +592,7 @@ Agent/rtProto/DV instproc intf-changed {} {
     $self instvar ns_ peers_ ifs_ ifstat_ ifsUp_ nextHop_ nextHopPeer_ metric_
     set INFINITY [$class set INFINITY]
     set ifsUp_ ""
-    foreach nbr [array names peers_] {
+    foreach nbr [lsort -dictionary [array names peers_]] {
 	set state [$ifs_($nbr) up?]
 	if {$state != $ifstat_($nbr)} {
 	    set ifstat_($nbr) $state
@@ -625,7 +626,7 @@ Agent/rtProto/DV instproc send-updates changes {
     $self instvar peers_ ifs_ ifsUp_
 
     if $changes {
-	set to-send-to [array names peers_]
+	set to-send-to [lsort -dictionary [array names peers_]]
     } else {
 	set to-send-to $ifsUp_
     }
@@ -663,19 +664,6 @@ Agent/rtProto/DV instproc send-to-peer nbr {
 
     set id [$class get-next-mid]
     $class set msg_($id) [array get update]
-#    set n [$rtObject_ set node_];					\
-    puts stderr [concat [format ">>> %7.5f" [$ns_ now]]			\
-	    "${n}([$n id]/[$self set addr_]) send update"		\
-	    "to ${nbr}([$nbr id]/[$peers_($nbr) addr?]) id = $id"];	\
-    set j 0;								\
-    foreach i [lsort -command TclObjectCompare [array names update]] {	\
-	puts -nonewline "\t${i}([$i id]) $update($i)";			\
-        if {$j == 3} {							\
-	    puts "";							\
-	};								\
-	set j [expr ($j + 1) % 4];					\
-    };									\
-    if $j { puts ""; }
 
     # XXX Note the singularity below...
     $self send-update [$peers_($nbr) addr?] [$peers_($nbr) port?] $id [array size update]
@@ -689,10 +677,7 @@ Agent/rtProto/DV instproc recv-update {peerAddr id} {
     set UNREACHABLE  [$class set UNREACHABLE]
     set msg [$class retrieve-msg $id]
     array set metrics $msg
-#    set n [$rtObject_ set node_];					\
-    puts stderr [concat [format "<<< %7.5f" [[Simulator instance] now]]	\
-	    "${n}([$n id]) recv update from peer $peerAddr id = $id"]
-    foreach nbr [array names peers_] {
+    foreach nbr [lsort -dictionary [array names peers_]] {
 	if {[$peers_($nbr) addr?] == $peerAddr} {
 	    set peer $peers_($nbr)
 	    if { [array size metrics] > [Node set nn_] } {

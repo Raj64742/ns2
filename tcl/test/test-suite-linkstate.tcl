@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.3 2000/08/29 19:28:04 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.4 2000/09/13 03:06:53 haoboy Exp $
 
 # Simple test for Link State routing contributed by 
 # Mingzhou Sun <msun@rainfinity.com> based on Kannan's old equal-cost 
@@ -71,6 +71,12 @@ Test/eqp instproc init {} {
 	set f [open temp.rands w]
 	$ns trace-all $f
 
+	global quiet
+	if { $quiet == "false" } {
+		set nf [open eqp.nam w]
+		$ns namtrace-all $nf
+	}
+
 	$ns color 0 blue
 	$ns color 1 red
 	$ns color 2 white
@@ -100,7 +106,7 @@ Test/eqp instproc init {} {
 	[$self build-tcp $n0 $n4 0.7] set class_ 0
 	[$self build-tcp $n1 $n4 0.9] set class_ 1
 
-	$ns rtmodel Deterministic {.25 .25} $n2 $n4
+	$ns rtmodel Deterministic {.35 .25} $n2 $n4
 	[$ns link $n2 $n4] trace-dynamics $ns stdout
 
 	$ns rtproto LS

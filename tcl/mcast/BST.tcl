@@ -186,7 +186,7 @@ BST instproc handle-cache-miss { srcID group iface } {
 	BST instvar RP_
 	
 	if { [$node_ getReps "x" $group] != "" } {
-		debug 1
+		error
 	}
 
 	
