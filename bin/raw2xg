@@ -1,34 +1,73 @@
+#!/home/johnh/BIN/perl5 
 #! /nfs/filb2/public/bin/perl
 #! /import/bin/perl
 
 ($progname) = ($0 =~ m!([^/]+)$!);
+sub usage {
+    print STDERR <<END;
+usage: $progname [options] [trace files...]
+
+options:
+    -a		plot acks
+    -s SCALE    scale TCP sequence numbers by SCALE
+    -m MODULUS  treat TCP sequence numbers as mod MODULUS
+    -q		show queueing delay by connecting lines
+    -l		show packet length
+END
+    exit 1;
+};
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 $opt_a = 0;
 require 'getopts.pl';
-&Getopts('a') || die $usage;
+&Getopts('as:m:ql') || usage;
 
-sub writeln { print @_, "\n"; }
 $c = 0;
 @p = @a = @d = @lu = @ld = ();
+%q_time_seg = ();
+$modulus = defined($opt_m) ? $opt_m : 2 ** 31;
+$scale = defined($opt_s) ? $opt_s : 1;
+$plot_acks = defined($opt_a);
 
 $file = $acks = '';
+
+sub translate_point {
+    my($time, $seq, $flow) = @_;
+    return ($time, $flow + ($seq % $modulus) * $scale);
+}
 
 while (<>) {
     $dfile = $ARGV;
     @F = split;
     /testName/ && ($file = $F[2], next);
     /^[\+-] / && do {
-	if ($F[4] eq 'tcp') {    
-	    push(@p, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
-	} elsif ($opt_a && $F[4] eq 'ack') {
-	    push(@a, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
-	}
 	$c = $F[7] if ($c < $F[7]);
+	$is_ack = ($F[4] eq 'ack');
+	next if ($is_ack && !$plot_acks);
+
+	($x, $y) = translate_point(@F[1, 10, 7]);
+	if (defined($opt_q)) {
+	    if (/^\+/) {
+		$statement = undef;
+		$q_time_seg{$is_ack,$y} = $x;
+	    };
+	    $statement = "move $q_time_seg{$is_ack,$y} $y\ndraw $x $y\n"
+		if (/^\-/);
+	} else {
+	    $statement = "$x $y\n";
+	};
+	if (defined($statement)) {
+	    if ($is_ack) { 
+		push(@a, $statement);
+	    } else {
+	        push(@p, $statement);
+	    };
+	};
 	next;
     };
     /^d / && do {
-	push(@d, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
+	($x, $y) = translate_point(@F[1, 7, 10]);
+	push(@d, "$x $y\n");
 	next;
     };
     /link-down/ &&	(push(@ld, $F[1]), next);
@@ -39,29 +78,38 @@ if ($file eq '') {
 	($file) = ($dfile =~ m!([^/]+)$!);
 }
 
-writeln('TitleText: ', $file);
-writeln('Device: ', 'Postscript');
-writeln('"packets', "\n", @p);
+print "TitleText: $file\n" .
+    "Device: Postscrip\n" .
+    "BoundBox: true\n" .
+    "Ticks: true\n" .
+    (defined($opt_q) ? "" : "NoLines: true\n") .
+    "Markers: true\n" .
+    "XUnitText: time\n" .
+    "YUnitText: packets\n";
+
+print "\n\"packets\n", @p;
 
 # insert dummy data sets so we get X's for marks in data-set 4
-writeln('"skip-1', "\n", '0 1', "\n");
-if ($#a > $[) {
-    writeln('"acks', "\n", @a);
+printf "\n\"skip-1\n0 1\n";
+if ($plot_acks) {
+    print "\n\"acks\n", @a;
 } else {
-    writeln('"skip-2', "\n", '0 1', "\n");
+    printf "\n\"skip-2\n0 1\n";
 }
 
 #
 # Repeat the first line twice in the drops file because often we have only
 # one drop and xgraph won't print marks for data sets with only one point.
 #
-writeln("\n", '"drops', "\n", @d[0..3], @d);
+print "\n\"drops\n", @d[0..3], @d;
 
 $c++;
+print "\n";
 foreach $i (@ld) {
-	writeln("\n", '"link-down', "\n$i 0", "\n$i $c");
+	print "\"link-down\n$i 0\n$i $c\n";
 }
 foreach $i (@lu) {
-	writeln("\n", '"link-up', "\n$i 0", "\n$i $c");
+	print "\"link-up\n$i 0\n$i $c\n";
 }
-exit;
+
+exit 0;
