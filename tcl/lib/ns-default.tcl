@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.235 2001/04/05 22:49:46 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.236 2001/04/24 00:36:41 sfloyd Exp $
 
 
 #
@@ -103,7 +103,8 @@ Queue/RED set q_weight_ 0.002
 Queue/RED set wait_ true
 Queue/RED set linterm_ 10
 Queue/RED set setbit_ false
-Queue/RED set gentle_ false
+Queue/RED set gentle_ true
+### Queue/RED/gentle_ was changed from false to true on Apr 23, 2001.
 Queue/RED set drop_tail_ true
 Queue/RED set drop_front_ false
 Queue/RED set drop_rand_ false
