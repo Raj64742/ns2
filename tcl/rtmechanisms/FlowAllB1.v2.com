@@ -1,4 +1,4 @@
-# To run this:  "csh FlowAllA1.v2.com".
+# To run this:  "csh FlowAllB1.v2.com".
 #
 set randomseed=0
 set filename=fairflow.xgr
