@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-state.h,v 1.6 1997/10/23 20:53:24 kannan Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-state.h,v 1.7 1998/01/06 17:13:10 kannan Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_state_h
@@ -94,7 +94,7 @@ protected:
 public:
 	SRMinfo(int sender) : next_(0), sender_(sender),
 		lsess_(-1), sendTime_(0), recvTime_(0), distance_(1.0),
-		activeFlag_(ACTIVE), distanceFlag_(NO_DISTANCE),
+		senderFlag_(0), activeFlag_(ACTIVE), distanceFlag_(NO_DISTANCE),
 		ldata_(-1), received_(0), recvmax_(-1) { 
                     lglbsess_ = -1;
                     llocsess_ = -1;

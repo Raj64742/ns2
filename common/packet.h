@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.24 1997/09/08 22:03:24 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.25 1998/01/06 17:13:10 kannan Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -132,6 +132,8 @@ inline Packet* Packet::alloc()
 		p->bits_ = new unsigned char[hdrlen_];
 		if (p == 0 || p->bits_ == 0)
 			abort();
+//		p->data_ = 0;
+//		p->datalen_ = 0;
 	}
 	return (p);
 }
@@ -162,7 +164,8 @@ inline void Packet::free(Packet* p)
 	p->next_ = free_;
 	free_ = p;
 	if (p->datalen_) {
-	        delete p->data_;
+	        delete[] p->data_;
+//		p->data_ = 0;
 		p->datalen_ = 0;
 	}
 }

@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.11 1998/01/01 01:10:04 kannan Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.12 1998/01/06 17:13:11 kannan Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -61,17 +61,17 @@ protected:
 		siphash_ = new Tcl_HashTable;
 		Tcl_InitHashTable(siphash_, TCL_ONE_WORD_KEYS);
 		Tcl_HashEntry* he = Tcl_CreateHashEntry(siphash_,
-							(char*) &addr_,
+							(char*) addr_,
 							&new_entry);
 		Tcl_SetHashValue(he, (ClientData*)sip_);
 		groupSize_++;
 	}
 	SRMinfo* get_state(int sender) {
-		assert(sip_);
+		assert(siphash_);
 
 		int new_entry = 0;
 		Tcl_HashEntry* he = Tcl_CreateHashEntry(siphash_,
-							(char*) &sender,
+							(char*) sender,
 							&new_entry);
 		if (new_entry) {
 			groupSize_++;
