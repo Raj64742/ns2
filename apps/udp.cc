@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.6 1998/06/09 21:53:19 breslau Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.7 1998/06/10 18:23:19 breslau Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -37,8 +37,15 @@ static class UDP_AgentClass : public TclClass {
 	}
 } class_source_agent;
 
-UDP_Agent::UDP_Agent() : trafgen_(0),nextPkttime_(-1), rtd_(0)
+UDP_Agent::UDP_Agent() : trafgen_(0),nextPkttime_(-1), rtd_(0), callback_(0)
 {
+}
+
+UDP_Agent::~UDP_Agent()
+{
+        if (callback_)
+	        delete[] callback_;
+
 }
 
 int UDP_Agent::command(int argc, const char*const* argv)
@@ -113,6 +120,24 @@ void UDP_Agent::stop()
 {
 	cbr_timer_.cancel();
 	running_ = 0;
+}
+
+
+void UDP_Agent::stoponidle(const char *s)
+{
+  
+  callback_ = new char[strlen(s)+1];
+  strcpy(callback_, s);
+
+        if (trafgen_->on()) {
+        	// Tcl::instance().evalf("puts \"%s waiting for burst at %f\"", name(), Scheduler::instance().clock());
+	        rtd_ = 1;
+	}
+	else {
+	        stop();
+	      Tcl::instance().evalf("%s %s", name(), callback_);
+	}
+
 }
 
 void UDP_Agent::start()

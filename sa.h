@@ -31,7 +31,6 @@ public:
 protected:
 	void start(); 
 	void stop(); 
-	void stoponidle(); 
 	void sendreq();
 	void sendteardown();
 	void recv(Packet *, Handler *);
@@ -39,6 +38,7 @@ protected:
 	double rate_;
 	int bucket_;
 	NsObject* ctrl_target_;
+	char* callback_;
 };
 
 

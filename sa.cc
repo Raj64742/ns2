@@ -27,7 +27,8 @@
 #include "packet.h"
 #include "random.h"
 
-SA_Agent::SA_Agent() {
+SA_Agent::SA_Agent() 
+{
 	bind ("off_resv_",&off_resv_);
 	bind_bw("rate_",&rate_);
 	bind("bucket_",&bucket_);
@@ -62,10 +63,8 @@ int SA_Agent::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
-	}
-	if (argc == 2) {
 	        if (strcmp(argv[1], "stoponidle") == 0) {
-		        stoponidle();
+		        stoponidle(argv[2]);
 			return(TCL_OK);
 		}
 	}
@@ -92,19 +91,6 @@ void SA_Agent::stop()
 	}
 }
 
-void SA_Agent::stoponidle()
-{
-
-        if (trafgen_->on()) {
-        	// Tcl::instance().evalf("puts \"%s waiting for burst at %f\"", name(), Scheduler::instance().clock());
-	        rtd_ = 1;
-	}
-	else {
-	        stop();
-	      Tcl::instance().evalf("%s sched-stop %d", name(), 0);
-	}
-
-}
 
 void SA_Agent::sendreq()
 {
