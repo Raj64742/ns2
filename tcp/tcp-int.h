@@ -34,24 +34,33 @@
 #ifndef TCPINT_H
 #define TCPINT_H
 
+#include "tcp.h"
+#include "nilist.h"
+
+/*class CorresHost;*/
 class CorresHost;
+class TcpSessionAgent;
 
 class IntTcpAgent : public TcpAgent, public slink {
 	friend class CorresHost;
+	friend class TcpSessionAgent;
   public:
 	IntTcpAgent();
-	int window();
-	void initPeer();
+	void createTcpSession();
 	void send_much(int force, int reason, int maxburst = 0);
+	void send_one(int sessionSeqno);
 	void recv(Packet *pkt, Handler *);
 	void opencwnd();
 	void closecwnd(int how);
-	void timeout(int tno);
-	int rxmit_last(int reason, int seqno, double ts);
+	int rxmit_last(int reason, int seqno, int sessionSeqno, double ts);
+	void output(int seqno, int reason = 0);
 	void output_helper(Packet *p);
+	int data_left_to_send();
+	void newack(Packet* pkt);
 	
   protected:
-	class CorresHost *peer_;
+/*	class CorresHost *peer_;*/
+	class TcpSessionAgent *session_;
 	double rxmitPend_;
 	double lastTS_;
 	int uniqTS_;

@@ -32,20 +32,23 @@
  */
 
 /*
- * tcp-int.cc is a version of TCP that maintains and uses various TCP 
- * control block parameters on a per-host, rather than per-connection,
- * basis.  This makes the host a better net-citizen and also improves
- * the loss recovery of the ensemble of connections.  This is because
- * of more data-driven retransmissions and a reduced dependence on timers.
- * 
- * chost.cc contains the per-host stuff; the per-connection parameters are
- * mostly useless for this version of TCP.  
- * nilist.cc contains some general-purpose linked list routines used by chost
- * and tcp-int.
- * ns-node.tcl has an instproc addCorresHost that tcp-int uses.  It is an 
- * array of all the CorresHost's from a given node to other peer nodes.
+ * We separate TCP functionality into two parts: that having to do with providing
+ * a reliable, ordered byte-stream service, and that having to do with congestion
+ * control and loss recovery. The former is done on a per-connection basis and is
+ * implemented as part of IntTcpAgent ("integrated TCP"). The latter is done in an 
+ * integrated fashion across multiple TCP connections, and is implemented as part 
+ * of TcpSessionAgent ("TCP session"). TcpSessionAgent is derived from CorresHost 
+ * ("correspondent host"), which keeps track of the state of all TCP (TCP/Int) 
+ * connections to a host that it is corresponding with.
+ *
+ * The motivation for this separation of functionality is to make an ensemble of
+ * connection more well-behaved than a set of independent TCP connections and improve
+ * the chances of losses being recovered via data-driven techniques (rather than
+ * via timeouts). At the same time, we do not introduce any unnecessary between the
+ * logically-independent byte-streams that the set of connections represents. This is
+ * in contrast to the coupling that is inherent in the multiplexing at the application
+ * layer of multiple byte-streams onto a single TCP connection.
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,8 +61,10 @@
 #include "nilist.h"
 #include "tcp-int.h"
 #include "chost.h"
+#include "tcp-session.h"
 #include "random.h"
 
+class Islist<TcpSessionAgent> TcpSessionAgent::sessionList_;
 
 static class IntTcpClass : public TclClass {
 public:
@@ -69,134 +74,148 @@ public:
 	}
 } class_tcp_int;
 
-
-IntTcpAgent::IntTcpAgent() : rxmitPend_(0), closecwTS_(0), peer_(0), 
-	count_(0), lastTS_(-1)
+IntTcpAgent::IntTcpAgent() : TcpAgent(), slink(), 
+	rxmitPend_(0), closecwTS_(0), session_(0), count_(0), lastTS_(-1)
 {
 	bind("rightEdge_", &rightEdge_);
 	bind("uniqTS_", &uniqTS_);
 	bind("winInc_", &winInc_);
 	bind("winMult_", &winMult_);
+#ifdef 0
 	bind("shift_", &shift_);
 	bind("mask_", &mask_);
+#endif
 }
 
-int
-IntTcpAgent::window()
+/* 
+ * Update the ack information and reset the timer. RTT update is done in 
+ * TcpSessionAgent.
+ */
+void
+IntTcpAgent::newack(Packet* pkt)
 {
-	return(int(wnd_));
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	last_ack_ = tcph->seqno();
+	highest_ack_ = last_ack_;
+
+	if (t_seqno_ < last_ack_ + 1)
+		t_seqno_ = last_ack_ + 1;
+	/* if the connection is done, call finish() */
+	if ((highest_ack_ >= curseq_-1) && !closed_) {
+		closed_ = 1;
+		finish();
+	}
 }
 
 void 
 IntTcpAgent::recv(Packet *pkt, Handler *)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	int amt_data_acked = 0;
 
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)
-		quench(1);
-	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
+		amt_data_acked = tcph->seqno() - last_ack_;
 		newack(pkt);
 		if (rxmitPend_) {
 			rxmitPend_ = 0;
-			peer_->agent_frcov(this);
+			session_->agent_frcov(this); /* XXX needed ? */
 		}
-		opencwnd();
-	} else if (tcph->seqno() == last_ack_)  {
-		if (++dupacks_ == NUMDUPACKS) {
-		} else if (dupacks_ > NUMDUPACKS) {
-		}
-	}
-	peer_->clean_segs(size_, pkt, this, rightEdge_, uniqTS_);
-	Packet::free(pkt);
-/*
-	if (trace_)
-		plot();
-*/
-	/*
-	 * Try to send more data
-	 */
-	if (peer_->ok_to_snd(size_)) {
-		IntTcpAgent *next = peer_->who_to_snd(ROUND_ROBIN);
-		next->send_much(0, 0, maxburst_);
-	}
+	} 
+	session_->recv(this, pkt, amt_data_acked);
 }
 
-
 void
-IntTcpAgent::initPeer()
+IntTcpAgent::createTcpSession()
 {
 	Tcl& tcl = Tcl::instance();
 
-	/* initialize and bind relevant parameters */
-	firstsent_ = Scheduler::instance().clock();
 	tcl.evalf("%s set node_", name());
-	tcl.evalf("%s addCorresHost %d %d %d %d %d", tcl.result(), daddr_, 
-		  0, 1500, maxcwnd_*size_, wnd_option_);
-	peer_ = (CorresHost *) TclObject::lookup(tcl.result());
-	if (peer_ == 0) {
-		printf("Unexpected null peer_\n");
+	tcl.evalf("%s createTcpSession %d", tcl.result(), dst_);
+	Islist_iter<TcpSessionAgent> session_iter(TcpSessionAgent::sessionList_);
+	TcpSessionAgent *cur;
+
+	while ((cur = session_iter()) != NULL) {
+		if (cur->addr()/256 == addr_/256 && cur->dst()/256 == dst_/256) {
+			session_ = cur;
+			break;
+		}
+	}
+	if (!session_) {
+		printf("In IntTcpAgent::createTcpSession(): failed\n");
 		abort();
 	}
-	peer_->add_agent(this, size_, winMult_, winInc_, ssthresh_);
+	session_->add_agent(this, size_, winMult_, winInc_, ssthresh_);
+}
+
+void
+IntTcpAgent::output(int seqno, int reason = 0)
+{
+	Packet *pkt = allocpkt();
+	hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);
+	tcph->seqno() = seqno;
+	tcph->ts() = Scheduler::instance().clock();
+	tcph->ts_echo() = ts_peer_;
+	tcph->reason() = reason;
+
+	session_->setflags(pkt);
+	
+	int bytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
+
+	/* call helper function to fill in additional fields */
+	output_helper(pkt);
+
+        ++ndatapack_;
+	ndatabytes_ += bytes;
+	send(pkt, 0);
+	if (seqno > maxseq_) {
+		maxseq_ = seqno;
+	}
+	else {
+        	++nrexmitpack_;
+        	nrexmitbytes_ += bytes;
+	}
 }
 
 
 /*
- * Try to send as much data as the window will allow.  The link layer will 
- * do the buffering; we ask the application layer for the size of the packets.
+ * Unlike in other flavors of TCP, IntTcpAgent does not decide when to send packets
+ * and how many of them to send. That decision is made by TcpSessionAgent. So
+ * send_much() does little more than defer to TcpSessionAgent.
  */
-void 
+void
 IntTcpAgent::send_much(int force, int reason, int maxburst)
 {
-	int win = window();
-	int npackets = 0;
-
-	daddr_ = dst_ >> shift_;
-	dport_ = dst_ & mask_;
-	sport_ = addr_ & mask_;
-
-	if (peer_ == NULL) {
-		initPeer();
-	}
-	/* peer_ shouldn't be NULL now */
+	if (!session_)
+		createTcpSession();
 	if (!force && delsnd_timer_.status() == TIMER_PENDING)
 		return;
-	if (burstsnd_timer_.status() == TIMER_PENDING)
+	if (overhead_ && !force) {
+		delsnd_timer_.resched(Random::uniform(overhead_));
 		return;
-
-	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
-		if (!peer_->ok_to_snd(size_) && reason!=TCP_REASON_TIMEOUT && 
-		    !force)
-			break;
-		if (overhead_ == 0 || force) {
-			TcpAgent::output(t_seqno_++, reason);
-			peer_->add_pkts(size_,t_seqno_-1,daddr_,dport_,sport_, 
-					lastTS_, this);
-			npackets++;
-		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
-			/*
-			 * Set a delayed send timeout.
-			 */
-			delsnd_timer_.resched(Random::uniform(overhead_));
-			return;
-		}
-		if (maxburst && npackets == maxburst)
-			break;
-		if (reason == TCP_REASON_TIMEOUT || force)
-			break;
 	}
+	session_->send_much(this, force,reason);
 }
 
-void 
-IntTcpAgent::timeout(int tno)
+/*
+ * Send one new packet.
+ */
+void
+IntTcpAgent::send_one(int sessionSeqno)
 {
-	if (tno == TCP_TIMER_RTX) {
-		dupacks_ = 0;
-		if (bug_fix_) recover_ = maxseq_;
-		TcpAgent::timeout(tno);
-	}
+	int daddr = dst_/256;
+	int dport = dst_%256;
+	int sport = addr_%256;
+
+	if (!session_)
+		createTcpSession();
+	/* 
+	 * XXX We assume that the session layer has already made sure that
+	 * we have data to send.
+	 */
+	output(t_seqno_++); 
+	session_->add_pkts(size_,t_seqno_-1,sessionSeqno,daddr,dport,sport,lastTS_,this);
 }
+
 
 /*
  * open up the congestion window
@@ -204,7 +223,7 @@ IntTcpAgent::timeout(int tno)
 void 
 IntTcpAgent::opencwnd()
 {
-       peer_->opencwnd(size_, this);
+	session_->opencwnd(size_, this);
 }
 
 /*
@@ -213,27 +232,24 @@ IntTcpAgent::opencwnd()
 void 
 IntTcpAgent::closecwnd(int how)
 {   
-    peer_->closecwnd(how, this);
+	session_->closecwnd(how, this);
 }
 
 int
-IntTcpAgent::rxmit_last(int reason, int seqno, double ts)
+IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
 {
 	if (uniqTS_ || 
 	    (seqno == last_ack_+1 && (ts == rxmitPend_ || rxmitPend_ == 0))) {
 		rxmitPend_ = Scheduler::instance().clock();
-		peer_->agent_rcov(this);
-		if (seqno > recover_) {	/* not a partial ack retransmission */
-			peer_->closecwnd(1, ts, this);    
-			recover_ = maxseq_;
-		}
-		reset_rtx_timer(1);
-		TcpAgent::output(seqno, reason);
-		daddr_ = dst_ >> shift_;
-		dport_ = dst_ & mask_;
-		sport_ = addr_ & mask_;
-		peer_->add_pkts(size_, seqno, dst_, dport_, sport_, 
-				lastTS_, this);
+		session_->agent_rcov(this);
+		/* XXX kludge -- IntTcpAgent is not supposed to deal with rtx timer */
+		session_->reset_rtx_timer(1,0); 
+		output(seqno, reason);
+		daddr_ = dst_/256;
+		dport_ = dst_%256;
+		sport_ = addr_%256;
+		session_->add_pkts(size_, seqno, sessionSeqno, daddr_, dport_, 
+				   sport_, lastTS_, this);
 		return 1;
 	}
 	return 0;
@@ -251,4 +267,9 @@ IntTcpAgent::output_helper(Packet *p)
 	lastTS_ = now;
 	tcph->ts() = now;
 	return;
+}
+
+int 
+IntTcpAgent::data_left_to_send() {
+	return (curseq_ > t_seqno_);
 }
