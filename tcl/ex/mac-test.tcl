@@ -1,7 +1,7 @@
 #!../../ns
 
 set flags(0) 0
-set stop 100
+set stop 10
 set trfile temp
 set tcpfile tcpstats
 set bw 100Kb
@@ -12,9 +12,10 @@ set mac Mac/Multihop
 
 
 if {$argc == 0} {
-	puts "Usage: $argv0 \[-stop $stop\] \[-tr $trfile\] \[-stat $tcpfile\]"
-	puts "\t\[-bw $bw] \[-delay $delay\]"
+	puts "Usage: $argv0 \[-stop $stop\] \[-seed #]"
+	puts "\t\[-tr $trfile\] \[-stat $tcpfile\]"
 	puts "\t\[-ll lltype\] \[-ifq ifqtype\] \[-mac mactype\]"
+	puts "\t\[-bw $bw] \[-delay $delay\]"
 	exit 1
 }
 
@@ -44,9 +45,13 @@ for {set i 0} {$i < $argc} {incr i} {
 	}
 }
 
+if [file exist ${trfile}] {
+	eval exec rm [glob ${trfile}*]
+}
 
-set ns [new Simulator]
+
 set trfd [open $trfile w]
+set ns [new Simulator]
 $ns trace-all $trfd
 
 
@@ -103,8 +108,8 @@ if [info exists flags(mh)] {
 	set tcp(3) [$ns create-connection TCP/Reno $n(0) TCPSink $n(3) 0]
 	set ftp(3) [$tcp(3) attach-source FTP]
 	$ns at 0 "$ftp(1) start"
-	$ns at 0.002 "$ftp(2) start"
-	$ns at 0.003 "$ftp(3) start"
+	$ns at 0.02 "$ftp(2) start"
+	$ns at 0.03 "$ftp(3) start"
 
 	set cbr(2:3) [$ns create-connection CBR $n(2) Null $n(3) 0]
 	# $ns at 5.1 "$cbr(2:3) start"
@@ -208,15 +213,23 @@ proc finish {} {
 	}
 	} $trfile
 
+	foreach af [lsort [glob ${trfile}.ack.*]] {
+		exec tail -1 $af | gawk -v af=$af {
+			{
+				printf("%s\t%f\t%d\t%f\n", af, $1, $2, $2/$1);
+			}
+		} >> ${trfile}-bw
+	}
+	exec cat ${trfile}-bw >> /dev/stdout
+
 	if [info exist flags(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
 				[lsort [glob $trfile.*]]
 	}
 
-	exec tail -1 ${trfile}.ack.1.0 >> ${trfile}-bw.1.0
-	exec gawk { {print $1, $2, $2/$1} } ${trfile}-bw.1.0 > /dev/stdout
 	exit 0
 }
+
 
 $ns at $stop "finish"
 $ns run
