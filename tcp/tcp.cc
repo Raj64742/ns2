@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.151 2004/06/07 18:33:35 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.152 2004/07/27 21:02:29 yuri Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -65,18 +65,19 @@ public:
 	}
 } class_tcp;
 
-TcpAgent::TcpAgent() : Agent(PT_TCP), 
-	t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
-	t_backoff_(0), ts_peer_(0), ts_echo_(0),
-	rtx_timer_(this), delsnd_timer_(this), 
-	burstsnd_timer_(this), 
-	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
-	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
-	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
-        ect_(0), lastreset_(0.0),
-        restart_bugfix_(1), closed_(0), nrexmit_(0),
-	first_decrease_(1), qs_requested_(0), qs_approved_(0), tss(NULL),
-	tss_size_(100)
+TcpAgent::TcpAgent() 
+	: Agent(PT_TCP), 
+	  t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
+	  t_backoff_(0), ts_peer_(0), ts_echo_(0),
+	  rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this), 
+	  tss(NULL), tss_size_(100), 
+	  dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
+	  count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
+	  maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
+	  ect_(0), lastreset_(0.0),
+	  restart_bugfix_(1), closed_(0), nrexmit_(0),
+	  first_decrease_(1), qs_requested_(0), qs_approved_(0)
+	
 {
 #ifdef TCP_DELAY_BIND_ALL
 #else /* ! TCP_DELAY_BIND_ALL */
@@ -304,76 +305,74 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         return Agent::delay_bind_dispatch(varName, localName, tracer);
 }
 
+#define TCP_WRK_SIZE		512
 /* Print out all the traced variables whenever any one is changed */
 void
 TcpAgent::traceAll() {
+	if (!channel_)
+		return;
+
 	double curtime;
 	Scheduler& s = Scheduler::instance();
-	char wrk[500];
-	int n;
+	char wrk[TCP_WRK_SIZE];
 
 	curtime = &s ? s.clock() : 0;
-	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport:"
-		" %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f"
-		" ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f"
-		" rttvar: %-6.3f bkoff: %-d", curtime, addr(), port(),
-		daddr(), dport(), int(maxseq_), int(highest_ack_),
-		int(t_seqno_), double(cwnd_), int(ssthresh_),
-		int(dupacks_), int(t_rtt_)*tcp_tick_, 
-		(int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_, 
-		int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_)); 
-	n = strlen(wrk);
-	wrk[n] = '\n';
-	wrk[n+1] = 0;
-	if (channel_)
-		(void)Tcl_Write(channel_, wrk, n+1);
-	wrk[n] = 0;
-	return;
+	snprintf(wrk, TCP_WRK_SIZE,
+		 "time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport:"
+		 " %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f"
+		 " ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f"
+		 " rttvar: %-6.3f bkoff: %-d\n", curtime, addr(), port(),
+		 daddr(), dport(), int(maxseq_), int(highest_ack_),
+		 int(t_seqno_), double(cwnd_), int(ssthresh_),
+		 int(dupacks_), int(t_rtt_)*tcp_tick_, 
+		 (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_, 
+		 int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_)); 
+	(void)Tcl_Write(channel_, wrk, -1);
 }
 
 /* Print out just the variable that is modified */
 void
 TcpAgent::traceVar(TracedVar* v) 
 {
+	if (!channel_)
+		return;
+
 	double curtime;
 	Scheduler& s = Scheduler::instance();
-	char wrk[500];
-	int n;
+	char wrk[TCP_WRK_SIZE];
 
 	curtime = &s ? s.clock() : 0;
-	if (!strcmp(v->name(), "cwnd_") || !strcmp(v->name(), "maxrto_")) 
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
-			curtime, addr(), port(), daddr(), dport(),
-			v->name(), double(*((TracedDouble*) v))); 
-	else if (!strcmp(v->name(), "minrto_")) 
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
-			curtime, addr(), port(), daddr(), dport(),
-			v->name(), double(*((TracedDouble*) v))); 
-	else if (!strcmp(v->name(), "rtt_"))
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
-			curtime, addr(), port(), daddr(), dport(),
-			v->name(), int(*((TracedInt*) v))*tcp_tick_); 
-	else if (!strcmp(v->name(), "srtt_")) 
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
-			curtime, addr(), port(), daddr(), dport(),
-			v->name(), 
-			(int(*((TracedInt*) v)) >> T_SRTT_BITS)*tcp_tick_); 
-	else if (!strcmp(v->name(), "rttvar_"))
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
-			curtime, addr(), port(), daddr(), dport(),
-			v->name(), 
-			int(*((TracedInt*) v))*tcp_tick_/4.0); 
+
+	// XXX comparing addresses is faster than comparing names
+	if (v == &cwnd_)
+		snprintf(wrk, TCP_WRK_SIZE,
+			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
+			 curtime, addr(), port(), daddr(), dport(),
+			 v->name(), double(*((TracedDouble*) v))); 
+ 	else if (v == &t_rtt_)
+		snprintf(wrk, TCP_WRK_SIZE,
+			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
+			 curtime, addr(), port(), daddr(), dport(),
+			 v->name(), int(*((TracedInt*) v))*tcp_tick_); 
+	else if (v == &t_srtt_)
+		snprintf(wrk, TCP_WRK_SIZE,
+			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
+			 curtime, addr(), port(), daddr(), dport(),
+			 v->name(), 
+			 (int(*((TracedInt*) v)) >> T_SRTT_BITS)*tcp_tick_); 
+	else if (v == &t_rttvar_)
+		snprintf(wrk, TCP_WRK_SIZE,
+			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
+			 curtime, addr(), port(), daddr(), dport(),
+			 v->name(), 
+			 int(*((TracedInt*) v))*tcp_tick_/4.0); 
 	else
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d",
-			curtime, addr(), port(), daddr(), dport(),
-			v->name(), int(*((TracedInt*) v))); 
-	n = strlen(wrk);
-	wrk[n] = '\n';
-	wrk[n+1] = 0;
-	if (channel_)
-		(void)Tcl_Write(channel_, wrk, n+1);
-	wrk[n] = 0;
-	return;
+		snprintf(wrk, TCP_WRK_SIZE,
+			 "%-8.5f %-2d %-2d %-2d %-2d %s %d\n",
+			 curtime, addr(), port(), daddr(), dport(),
+			 v->name(), int(*((TracedInt*) v))); 
+
+	(void)Tcl_Write(channel_, wrk, -1);
 }
 
 void
