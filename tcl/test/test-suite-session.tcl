@@ -391,9 +391,74 @@ Test/Session3 instproc run {} {
 	$loss_module3 drop-packet 2 10 1
 	$loss_module3 drop-target [$ns_ set nullAgent_]
 
-	$ns_ insert-loss $loss_module1 0 1
-	$ns_ insert-loss $loss_module2 1 3
-	$ns_ insert-loss $loss_module3 0 2
+	$ns_ insert-loss $loss_module1 $node_(n0) $node_(n1)
+	$ns_ insert-loss $loss_module2 $node_(n1) $node_(n3)
+	$ns_ insert-loss $loss_module3 $node_(n0) $node_(n2)
+
+	$ns_ at 0.1 "$cbr0 start"
+	$ns_ at 1.6 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3 \
+$rcvr4 $rcvr5]"
+	
+	$ns_ run
+}
+
+# Testing algorithmic routing for SessionSim in a 6-node topology
+Class Test/Session4 -superclass TestSuite
+Test/Session4 instproc init net {
+	$self instvar net_ defNet_ test_
+	set defNet_	net6
+	set test_	Session4
+	set net_	$net
+	$self next
+}
+
+Test/Session4 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+        $ns_ rtproto Algorithmic
+	set udp0 [new Agent/UDP]
+	$udp0 set ttl_ 4
+	$ns_ attach-agent $node_(n4) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	set sessionhelper [$ns_ create-session $node_(n4) $udp0]
+	
+	set rcvr0 [new Agent/LossMonitor]
+	set rcvr1 [new Agent/LossMonitor]
+	set rcvr2 [new Agent/LossMonitor]
+	set rcvr3 [new Agent/LossMonitor]
+	set rcvr4 [new Agent/LossMonitor]
+	set rcvr5 [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n0) $rcvr0
+	$ns_ attach-agent $node_(n1) $rcvr1
+	$ns_ attach-agent $node_(n2) $rcvr2
+	$ns_ attach-agent $node_(n3) $rcvr3
+	$ns_ attach-agent $node_(n4) $rcvr4
+	$ns_ attach-agent $node_(n5) $rcvr5
+	
+	$ns_ at 0.2 "$node_(n0) join-group $rcvr0 0x8002"
+	$ns_ at 0.2 "$node_(n1) join-group $rcvr1 0x8002"
+	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 0x8002"
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr3 0x8002"
+	$ns_ at 0.2 "$node_(n4) join-group $rcvr4 0x8002"
+	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 0x8002"
+	
+	set loss_module1 [new SelectErrorModel]
+	$loss_module1 drop-packet 2 20 1
+	$loss_module1 drop-target [$ns_ set nullAgent_]
+
+	set loss_module2 [new SelectErrorModel]
+	$loss_module2 drop-packet 2 10 1
+	$loss_module2 drop-target [$ns_ set nullAgent_]
+
+	set loss_module3 [new SelectErrorModel]
+	$loss_module3 drop-packet 2 10 1
+	$loss_module3 drop-target [$ns_ set nullAgent_]
+
+	$ns_ insert-loss $loss_module1 $node_(n0) $node_(n1)
+	$ns_ insert-loss $loss_module2 $node_(n1) $node_(n3)
+	$ns_ insert-loss $loss_module3 $node_(n0) $node_(n2)
 
 	$ns_ at 0.1 "$cbr0 start"
 	$ns_ at 1.6 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3 \

@@ -576,6 +576,7 @@ tcl/test/route-test.tcl
 tcl/test/sack-v1.tcl
 tcl/test/session-hier-1000.tcl
 tcl/test/test-1000.tcl
+tcl/test/test-all-algo-routing
 tcl/test/test-all-cbq
 tcl/test/test-all-cbq-v1
 tcl/test/test-all-ecn
@@ -606,6 +607,7 @@ tcl/test/test-all-v1
 tcl/test/test-all-vegas-v1
 tcl/test/test-all-webcache
 tcl/test/test-alloc-address.tcl
+tcl/test/test-output-algo-routing
 tcl/test/test-output-cbq
 tcl/test/test-output-cbq-v1
 tcl/test/test-output-ecn
@@ -634,6 +636,7 @@ tcl/test/test-output-v1
 tcl/test/test-output-vegas-v1
 tcl/test/test-output-webcache
 tcl/test/test-sack-v1
+tcl/test/test-suite-algo-routing.tcl
 tcl/test/test-suite-cbq-v1.tcl
 tcl/test/test-suite-cbq-v1a.tcl
 tcl/test/test-suite-cbq.tcl
@@ -676,6 +679,8 @@ tcl/test/test-suite-vegas-v1.tcl
 tcl/test/test-suite-webcache.tcl
 tcl/test/topologies.tcl
 tcl/test/ts1000.tcl
+tcl/test/test-output-algo-routing/Algo1.Z
+tcl/test/test-output-algo-routing/Algo2.Z
 tcl/test/test-output-cbq/AO.Z
 tcl/test/test-output-cbq/EXTRA1.Z
 tcl/test/test-output-cbq/EXTRA2.Z
@@ -893,6 +898,7 @@ tcl/test/test-output-schedule/sfq.Z
 tcl/test/test-output-session/Session1.Z
 tcl/test/test-output-session/Session2.Z
 tcl/test/test-output-session/Session3.Z
+tcl/test/test-output-session/Session4.Z
 tcl/test/test-output-simple/bug.Z
 tcl/test/test-output-simple/delayed.Z
 tcl/test/test-output-simple/no_bug.Z
