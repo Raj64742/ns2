@@ -2284,9 +2284,9 @@ Please insure you have an up-to-date copy of TclCL and re-run your configuration
 fi
 
 
-# Check whether --with-TclCL or --without-TclCL was given.
-if test "${with_TclCL+set}" = set; then
-  withval="$with_TclCL"
+# Check whether --with-tclcl or --without-tclcl was given.
+if test "${with_tclcl+set}" = set; then
+  withval="$with_tclcl"
   d=$withval
 else
   d=""
