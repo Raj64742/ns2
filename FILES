@@ -233,6 +233,10 @@ tcl/ex/newmcast/dense-mode2-nam.tcl
 tcl/ex/newmcast/dense-mode2.tcl
 tcl/ex/newmcast/dense-mode3-nam.tcl
 tcl/ex/newmcast/dense-mode3.tcl
+tcl/ex/newmcast/detailedDM1-nam.tcl
+tcl/ex/newmcast/detailedDM1.tcl
+tcl/ex/newmcast/detailedDM2-nam.tcl
+tcl/ex/newmcast/detailedDM2.tcl
 tcl/ex/newmcast/mcast1.tcl
 tcl/ex/newmcast/mcast2-nam.tcl
 tcl/ex/newmcast/mcast2.tcl
