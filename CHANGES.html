@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.17 1997/02/22 05:30:09 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.18 1997/02/23 01:28:53 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -12,6 +12,26 @@
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
 <ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Changed drop-trace method to drop-target.  This should only
+affect the internal APIs and shouldn't break any scripts.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Bumped size of max message in packet structure to 80 bytes.
+This limit eventually must be removed.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Eliminated C++ statically defined default drop-target and
+changed link building code to point a queue's drop-target to a null-agent.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Added first cut for queue-size monitoring agents
+(add integrator.cc).
+Cleaned up approach for splicing objects into
+Link pipeline.
+Added ttl field to packets and TTLChecker object to update
+ttl and throw out ttl-expired packets (and ttl.cc).
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 Fixed long-standing bug in static routing code found

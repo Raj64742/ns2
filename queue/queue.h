@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.2 1997/01/26 22:32:33 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.3 1997/02/23 01:28:57 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -78,11 +78,6 @@ protected:
 	int bcount_;		// byte count
 };
 
-class DefaultDropNode : public NsObject {
-public:
-	void recv(Packet*, Handler*);
-};
-
 class Queue;
 
 class QueueHandler : public Handler {
@@ -107,7 +102,6 @@ class Queue : public Connector {
 	int qlim_;		/* maximum allowed pkts in queue */
  private:
 	int blocked_;
-	DefaultDropNode dnode_;
 	QueueHandler qh_;
 };
 

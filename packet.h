@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.2 1996/12/31 22:46:55 elan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.3 1997/02/23 01:28:56 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -97,7 +97,7 @@ union body {
 	bd_tcp tcp_;
 	bd_ivs ivs_;
 	bd_rtp rtp_;
-	char msg_[64];		/* too hard to make this variable length */
+	char msg_[80];		/* too hard to make this variable length */
 };
 	
 /*
@@ -108,7 +108,9 @@ class Packet : public Event {
 	Packet* copy() const;
 	Packet* next_;
 	u_int8_t type_;		/* type */
-	u_int8_t class_;		/* class for router stats and/or cbq */
+	u_int8_t class_;	/* class for router stats and/or cbq */
+	u_int8_t ttl_;		/* time-to-live */
+
 #define PF_ECN 0x01	// congestion indication bit
 #define PF_PRI 0x02	// two-level priority bit
 #define PF_USR1 0x04		/* protocol defined */

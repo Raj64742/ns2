@@ -30,6 +30,8 @@ drop-tail.cc
 example.tcl
 install-sh
 ivs.cc
+integrator.cc
+integrator.h
 loss-monitor.cc
 message.cc
 misc.cc
@@ -42,6 +44,7 @@ packet.cc
 packet.h
 queue.cc
 queue.h
+queue-monitor.cc
 random.cc
 random.h
 red.cc
@@ -95,3 +98,4 @@ test-suite-red.tcl
 test-suite-sack.tcl
 test-suite.tcl
 trace.cc
+ttl.cc

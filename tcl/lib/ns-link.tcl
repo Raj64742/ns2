@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.3 1997/01/27 01:16:24 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.4 1997/02/23 01:29:00 mccanne Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -55,7 +55,7 @@ Class SimpleLink -superclass Link
 
 SimpleLink instproc init { src dst bw delay q } {
 	$self next $src $dst
-	$self instvar link_ queue_ head_ toNode_
+	$self instvar link_ queue_ head_ toNode_ ttl_
 	set queue_ $q
 	set link_ [new Delay/Link]
 	$link_ set bandwidth_ $bw
@@ -63,7 +63,18 @@ SimpleLink instproc init { src dst bw delay q } {
 
 	$queue_ target $link_
 	$link_ target [$toNode_ entry]
+
 	set head_ $queue_
+
+	# XXX
+	# put the ttl checker after the delay
+	# so we don't have to worry about accounting
+	# for ttl-drops within the trace and/or monitor
+	# fabric
+	#
+	set ttl_ [new TTLChecker]
+	$ttl_ target [$link_ target]
+	$link_ target $ttl_
 }
 
 #
@@ -75,10 +86,48 @@ SimpleLink instproc trace { ns f } {
 	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
 	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
 	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
-	$drpT_ target [$ns set nullAgent_]
-	$enqT_ target $queue_
+
+	$drpT_ target [$queue_ drop-target]
+	$queue_ drop-target $drpT_
+
+	$deqT_ target [$queue_ target]
 	$queue_ target $deqT_
-	$queue_ drop-trace $drpT_
-	$deqT_ target $link_
+
+	$enqT_ target $head_
 	set head_ $enqT_
+}
+
+#
+# Insert objects that allow us to monitor the queue size
+# of this link.  Return the name of the object that
+# can be queried to determine the average queue size.
+#
+SimpleLink instproc init-monitor ns {
+	$self instvar drpT_ queue_ head_ \
+		snoopIn_ snoopOut_ snoopDrop_ qMonitor_
+
+	set snoopIn_ [new SnoopQueue/In]
+	set snoopOut_ [new SnoopQueue/Out]
+	set snoopDrop_ [new SnoopQueue/Out]
+
+	$snoopIn_ target $head_
+	set head_ $snoopIn_
+
+	$snoopOut_ target [$queue_ target]
+	$queue_ target $snoopOut_
+
+	if [info exists drpT_] {
+		$snoopDrop_ target [$drpT_ target]
+		$drpT_ target $snoopDrop_
+	} else {
+		$snoopDrop_ target [$ns set nullAgent_]
+	}
+	$queue_ drop-target $snoopDrop_
+
+	set qMonitor_ [new QueueMonitor]
+	$snoopIn_ set-monitor $qMonitor_
+	$snoopOut_ set-monitor $qMonitor_
+	$snoopDrop_ set-monitor $qMonitor_
+
+	return $qMonitor_
 }

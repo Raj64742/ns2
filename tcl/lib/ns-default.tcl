@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.7 1997/02/03 16:59:11 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.8 1997/02/23 01:28:59 mccanne Exp $
 
 
 #
@@ -112,4 +112,9 @@ Agent/LossMonitor set npkts_ 0
 Agent/LossMonitor set bytes_ 0
 Agent/LossMonitor set lastPktTime_ 0
 Agent/LossMonitor set expected_ 0
+
+QueueMonitor set sum_ 0
+QueueMonitor set lastx_ 0
+QueueMonitor set lasty_ 0
+QueueMonitor set size_ 0
 

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.5 1997/01/27 01:16:12 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.6 1997/02/23 01:28:55 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -117,5 +117,6 @@ Packet* Agent::allocpkt(int seqno) const
 	p->dst_ = dst_;
 	p->size_ = size_;
 	p->seqno_ = seqno;
+	p->ttl_ = 32;/*XXX*/
 	return (p);
 }

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.7 1997/02/03 16:59:12 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.8 1997/02/23 01:28:59 mccanne Exp $
 #
 
 #
@@ -100,13 +100,15 @@ Simulator instproc run { } {
 }
 
 Simulator instproc simplex-link { n1 n2 bw delay type } {
-	$self instvar link_ queueMap_
+	$self instvar link_ queueMap_ nullAgent_
 	set sid [$n1 id]
 	set did [$n2 id]
 	if [info exists queueMap_($type)] {
 		set type $queueMap_($type)
 	}
 	set q [new Queue/$type]
+	$q drop-target $nullAgent_
+
 	set link_($sid:$did) [new SimpleLink $n1 $n2 $bw $delay $q]
 	$n1 add-neighbor $n2
 
@@ -156,6 +158,16 @@ Simulator instproc trace-queue { n1 n2 file } {
 	$link_([$n1 id]:[$n2 id]) trace $self $file
 }
 
+#
+# arrange for queue length of link between nodes n1 and n2
+# to be tracked and return object that can be queried
+# to learn average q size etc.  XXX this API still rough
+#
+Simulator instproc monitor-queue { n1 n2 } {
+	$self instvar link_
+	return [$link_([$n1 id]:[$n2 id]) init-monitor $self]
+}
+
 Simulator instproc queue-limit { n1 n2 limit } {
 	$self instvar link_
 	[$link_([$n1 id]:[$n2 id]) queue] set limit_ $limit
@@ -163,7 +175,7 @@ Simulator instproc queue-limit { n1 n2 limit } {
 
 Simulator instproc drop-trace { n1 n2 trace } {
 	$self instvar link_
-	[$link_([$n1 id]:[$n2 id]) queue] drop-trace $trace
+	[$link_([$n1 id]:[$n2 id]) queue] drop-target $trace
 }
 
 Simulator instproc attach-agent { node agent } {
