@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.38 1998/05/02 01:41:45 kfall Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.39 1998/05/20 22:01:47 sfloyd Exp $ (LBL)";
 
 #endif
 
@@ -202,11 +202,11 @@ void Trace::format(int tt, int s, int d, Packet* p)
         flags[NUMFLAGS] = 0;
 
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
-	flags[0] = hf->ecn_ ? 'C' : '-';
+	flags[0] = hf->ecn_ ? 'C' : '-';          // Ecn Echo
 	flags[1] = hf->pri_ ? 'P' : '-'; 
-	flags[2] = hf->usr1_ ? '1' : '-';
-	flags[3] = '-'; /* usr2 now deprecated */
-	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';
+	flags[2] = '-';
+	flags[3] = hf->cong_action_ ? 'A' : '-';   // Congestion Action
+	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';   // Congestion Experienced
 	flags[5] = hf->fs_ ? 'F' : '-';
 	flags[6] = hf->ecn_capable_ ? 'N' : '-';
 	
