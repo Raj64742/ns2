@@ -12,6 +12,12 @@ classifier.cc
 classifier.h
 classifier-addr.cc
 classifier-mcast.cc
+conf/conf/configure.in.head
+conf/configure.in.tcl
+conf/configure.in.otcl
+conf/configure.in.Tcl
+conf/configure.in.misc
+conf/configure.in.tail
 config.guess
 config.h
 config.sub
