@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.25 1999/12/20 19:20:37 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.26 2000/07/11 23:30:29 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -54,7 +54,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DTCP_DELAY_BIND -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@
+DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -135,7 +135,7 @@ OBJ_CC = \
 	Decapsulator.o Encapsulator.o \
 	channel.o mac.o ll.o \
 	mac-802_11.o \
-	mac-802_3.o \
+	mac-802_3.o mac-tdma.o \
 	mip.o mip-reg.o gridkeeper.o \
 	propagation.o tworayground.o antenna.o omni-antenna.o \
 	bi-connector.o node.o mobilenode.o \
@@ -157,7 +157,11 @@ OBJ_CC = \
 	satposition.o satroute.o sattrace.o \
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	tfrc.o tfrc-sink.o energy-model.o ping.o tcp-rfc793edu.o
+	diffusion/diffusion.o diffusion/diff_rate.o diffusion/diff_prob.o \
+	diffusion/diff_sink.o diffusion/flooding.o diffusion/omni_mcast.o \
+	diffusion/hash_table.o diffusion/routing_table.o diffusion/iflist.o \
+	tfrc.o tfrc-sink.o energy-model.o ping.o tcp-rfc793edu.o \
+	rio.o semantic-rio.o tcp-sack-rh.o scoreboard-rh.o
 
 # don't allow comments to follow continuation lines
 
@@ -177,11 +181,11 @@ OBJ_EMULATE_CC = \
 	emulate/net.o \
 	emulate/tap.o \
 	emulate/ether.o \
-	emulate/net-pcap.o \
 	emulate/internet.o \
 	emulate/ping_responder.o \
 	emulate/arp.o \
 	emulate/icmp.o \
+	emulate/net-pcap.o \
 	emulate/nat.o
 
 OBJ_EMULATE_C = \
@@ -191,7 +195,7 @@ OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o $(GEN_DIR)ptypes.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) \
 	$(OBJ_EMULATE_C:.o=.c) $(OBJ_EMULATE_CC:.o=.cc) \
-	tclAppInit.cc tkAppInit.cc
+	tclAppInit.cc tkAppInit.cc 
 
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
@@ -207,7 +211,7 @@ SUBDIRS=\
 	indep-utils/webtrace-conv/nlanr \
 	indep-utils/webtrace-conv/ucb
 
-all: $(NS) # all-recursive
+all: $(NS) all-recursive
 
 all-recursive:
 	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) all; ) done

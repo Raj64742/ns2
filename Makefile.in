@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.185 2000/07/10 07:24:45 intanago Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.186 2000/07/11 23:30:29 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -185,8 +185,8 @@ OBJ_EMULATE_CC = \
 	emulate/ping_responder.o \
 	emulate/arp.o \
 	emulate/icmp.o \
-	emulate/nat.o \
-	emulate/net-pcap.o
+	emulate/net-pcap.o \
+	emulate/nat.o
 
 OBJ_EMULATE_C = \
 	emulate/inet.o
@@ -194,8 +194,8 @@ OBJ_EMULATE_C = \
 OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o $(GEN_DIR)ptypes.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) \
-	$(OBJ_EMULATE_C:.o=.c) tclAppInit.cc tkAppInit.cc \
-	$(OBJ_EMULATE_CC:.o=.cc) 
+	$(OBJ_EMULATE_C:.o=.c) $(OBJ_EMULATE_CC:.o=.cc) \
+	tclAppInit.cc tkAppInit.cc 
 
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
