@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.32 1998/07/08 18:28:31 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.33 1998/07/08 23:39:17 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -143,6 +143,7 @@ class FullTcpAgent : public TcpAgent {
 	int ts_option_size_;	// header bytes in a ts option
 	int pipe_;		// estimate of pipe occupancy (for Sack)
 	int pipectrl_;		// use pipe-style control
+	int open_cwnd_on_pack_;	// open cwnd on a partial ack?
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int fastrecov_;	    // are we in fast recovery?
