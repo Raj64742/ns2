@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.241 1998/05/18 22:34:00 aswan Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.242 1998/05/21 00:43:02 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,17 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+
+    <li><b><a href="http://www-nrg.ee.lbl.gov/floyd/">[floyd]</A></B>
+       <b>Wed May 20 17:37:59 PDT 1998</b><br>
+	 Changes to one-way tcp implementations so that the TCP
+	 receiver sends the ECN-Echo packet to the TCP sender on
+	 multiple ACK packets.  This approach is described in
+	 "http://www-nrg.ee.lbl.gov/floyd/ECN-TCP.txt".  The
+	 change includes a new flag in the packet header,
+	 "cong_action_", a.k.a. Congestion Action, for the TCP
+	 sender to notify the TCP receiver that it has responded to
+	 congestion.
 
     <li><b><a href=http://www.cs.berkeley.edu/~aswan>[aswan]</a></b>
        <b>Mon May 18 15:31:45 PDT 1998</b><br>
