@@ -189,6 +189,7 @@ ReassemblyQueue::dumplist()
 		printf("\n");
 	}
 	printf("\n");
+	fflush(stdout);
 }
 
 /*
@@ -224,6 +225,8 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		head_->pflags_ = tiflags;
 		head_->rqflags_ = rqflags;
 
+		rcv_nxt_ = end;
+
 		return (tiflags);
 	} else {
 
@@ -251,20 +254,22 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		}
 
 		// not first or last...
-		// look for segment before this one, starting at end
-		for (q = tail_; q && (q->startseq_ > end); q = q->prev_)
-			;
-		
-		p = q;
-		q = q->next_;
-
-		if (p->endseq_ >= start || q->startseq_ <= end) {
-			if (p->endseq_ > start || q->startseq_ < end) {
+		// look for segments before and after this one
+		for (p = head_, q = p->next_; q; p = q, q = q->next_) {
+			if (p->endseq_ == start || q->startseq_ == end) {
+				needmerge = TRUE;
+				break;
+			} else if (p->endseq_ < start && q->startseq_ > end) {
+				break;
+			} else {
 				fprintf(stderr,
-				   "ReassemblyQueue::add() fault-- I don't (yet) handle repacketized segments\n");
+				   "ReassemblyQueue::add(%d,%d,%d,%d) fault-- I don't (yet) handle repacketized segments\n",
+				   	start, end, tiflags, rqflags);
+				fprintf(stderr, "\tp(%d,%d), q(%d,%d)\n",
+					p->startseq_, p->endseq_,
+					q->startseq_, q->endseq_);
 				abort();
 			}
-			needmerge = TRUE;
 		}
 
 endfast:
@@ -281,8 +286,15 @@ endfast:
 
 		if (p)
 			p->next_ = n;
-		else
+		else {
 			head_ = n;
+			// only if inserting at head
+			// can this lead to an update of
+			// rcv_nxt_.  Set it to end now,
+			// and coalesce will update it higher
+			// needed
+			rcv_nxt_ = end;
+		}
 
 		if (q)
 			q->prev_ = n;
@@ -312,14 +324,13 @@ ReassemblyQueue::coalesce(seginfo *p, seginfo *n, seginfo *q)
 		// new block fills hole between p and q
 		// delete the new block and the block after, update p
 		sremove(n);
-		sremove(n);
-		fremove(q);
+		fremove(n);
+		sremove(q);
 		fremove(q);
 		p->endseq_ = q->endseq_;
 		flags = (p->pflags_ |= n->pflags_);
 		delete n;
 		delete q;
-		flags = p->pflags_;
 	} else if (p && (p->endseq_ == n->startseq_)) {
 		// new block joins p, but not q
 		// update p with n's seq data, delete new block
@@ -336,7 +347,17 @@ ReassemblyQueue::coalesce(seginfo *p, seginfo *n, seginfo *q)
 		q->startseq_ = n->startseq_;
 		flags = (q->pflags_ |= n->pflags_);
 		delete n;
+		p = q;	// ensure p points to something
 	}
+
+	//
+	// at this point, p points to the updated/coalesced
+	// block.  If it advances the highest in-seq value,
+	// update rcv_nxt_ appropriately
+	//
+	if (p->endseq_ > rcv_nxt_);
+		rcv_nxt_ = p->endseq_;
+
 	return (flags);
 }
 
@@ -359,7 +380,10 @@ main()
 	rq.dumplist();
 	rq.add(22, 25, 0, 0);
 	rq.dumplist();
+	rq.add(3, 5, 0, 0);
+	rq.dumplist();
 
+	printf("rcvnxt: %d\n", rcvnxt);
 	rq.gensack(blocks, nblocks);
 	for (i = 0; i < nblocks; i++) {
 		printf(">%d, %d<, ", blocks[0], blocks[1]);
@@ -367,6 +391,9 @@ main()
 		++blocks;
 	}
 	printf("\n");
+
+	rq.clear();
+	rq.dumplist();
 
 	exit(0);
 }
