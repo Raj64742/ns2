@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.504 2002/02/25 20:30:33 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.505 2002/03/08 17:47:27 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -20,6 +20,15 @@ ns-2.1b9 release PENDING</h3>
 <ul>
 
 <p>
+
+<p><li><b><a href="http://www.icir.org/floyd/">[Sally Floyd]</a></b>
+Fri Mar 8 2002</li>
+<br>
+Added bug-fixes to the retransmit timer backoff in two-way TCP.
+The backoff of the retransmit timer was not working correctly 
+when the timestamp option was enabled (it was backing off when 
+it didn't need to).  A bug in the backoff also was fixed for ECN with
+small windows.  Bug-fixes contributed by Tom Kelly.
 
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Mon Feb 25 12:26:08 PST 2002
