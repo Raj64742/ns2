@@ -1,6 +1,10 @@
-Some Explaination of MPLS Code
+Some Explaination of MPLS Code 
 
 August 29, 2000
+
+- MPLS CODE IS HIGHLY EXPERIMENTAL AND IS NOT THOROUGHLY TESTED. YOU 
+  SHOULD CAREFULLY VALIDATE IT FOR YOUR SPECIFIC USAGE. IF YOU FIND 
+  ANY BUG, OR HAVE ANY PATCH, PLEASE SEND TO ns-users@isi.edu
 
 - It does not work with multicast routing, particularly because (1)
   there is no label setup mechanism for multicast groups, (2) there is
