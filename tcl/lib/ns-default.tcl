@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.43 1997/07/24 09:00:32 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.44 1997/07/24 18:14:05 sfloyd Exp $
 
 
 #
@@ -111,6 +111,8 @@ Agent/TCP/FullTcp set data_on_syn_ false
 Agent/TCP/FullTcp set dupseg_fix_ true 
 Agent/TCP/FullTcp set dupack_reset_ false
 Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
+
+Agent/TCPSink set maxSackBlocks_ 3
 
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0
