@@ -1,6 +1,6 @@
 (Validation can take 1-30 hours to run.)
 *** ./test-all-simple
-Tests: tahoe1 tahoe1RED tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats stats1 stats1a statsHeaders stats2
+Tests: tahoe1 tahoe1RED tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats stats1 stats1a stats1aBytes statsHeaders stats2
 Running test tahoe1:
 ../../ns test-suite-simple.tcl tahoe1 QUIET
 Test output agrees with reference output
@@ -130,6 +130,25 @@ fid: 1 per-link total_bytes 940
 aggregate per-link total_drops 0
 aggregate per-link total_packets 20
 True average queue: 0.004 time: 3.007
+Test output agrees with reference output
+Running test stats1aBytes:
+../../ns test-suite-simple.tcl stats1aBytes QUIET
+TCP packetSize 100
+ftp 0 segments_produced 9 (using `FTP produce pktcnt')
+ftp 1 bytes_produced 900 (using `FTP send nbytes')
+tcp 0 highest_seqment_acked 9
+tcp 0 data_bytes_sent 900
+tcp 1 highest_seqment_acked 9
+tcp 1 data_bytes_sent 900
+fid: 0 per-link total_drops 0
+fid: 0 per-link total_packets 10
+fid: 0 per-link total_bytes 940
+fid: 1 per-link total_drops 0
+fid: 1 per-link total_packets 10
+fid: 1 per-link total_bytes 940
+aggregate per-link total_drops 0
+aggregate per-link total_packets 20
+True average queue: 0.439 (in bytes) time: 3.007
 Test output agrees with reference output
 Running test statsHeaders:
 ../../ns test-suite-simple.tcl statsHeaders QUIET
@@ -1717,7 +1736,7 @@ Running test q_weight_auto:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-adaptive-red
-Tests: red1 red1Adapt fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious
+Tests: red1 red1Adapt fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious cautious2 cautious3
 Running test red1:
 ../../ns test-suite-adaptive-red.tcl red1 QUIET
 Test output agrees with reference output
@@ -1783,6 +1802,12 @@ Running test notcautious:
 Test output agrees with reference output
 Running test cautious:
 ../../ns test-suite-adaptive-red.tcl cautious QUIET
+Test output agrees with reference output
+Running test cautious2:
+../../ns test-suite-adaptive-red.tcl cautious2 QUIET
+Test output agrees with reference output
+Running test cautious3:
+../../ns test-suite-adaptive-red.tcl cautious3 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red-pd
