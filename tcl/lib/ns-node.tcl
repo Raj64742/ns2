@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.21 1997/12/31 17:24:53 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.22 1998/01/01 04:32:52 kannan Exp $
 #
 
 Class Node
@@ -355,17 +355,19 @@ Node instproc rtObject? {} {
 #
 Node instproc add-routes {id ifs} {
     $self instvar classifier_ multiPath_ routes_ mpathClsfr_
-    if {[llength $ifs] > 1 && ! $multiPath_} {
-	puts stderr "$class::$proc cannot install multiple routes"
-	set ifs [llength $ifs 0]
-	set routes_($id) 0
-    }
-    if { $routes_($id) <= 0 && [llength $ifs] == 1 &&	\
-	    ![info exists mpathClsfr_($id)] } {
-	# either we really have no route, or
-	# only one route that must be replaced.
+    if !$multiPath_ {
+	if {[llength $ifs] > 1} {
+	    warn "$class::$proc cannot install multiple routes"
+	    set ifs [lindex $ifs 0]
+	}
 	$self add-route $id [$ifs head]
-	incr routes_($id)
+	set routes_($id) 1
+	return
+    }
+    if {$routes_($id) <= 0 && [llength $ifs] == 1 && 	\
+	 ![info exists mpathClsfr_($id)]} {
+	$self add-route $id [$ifs head]
+	set routes_($id) 1
     } else {
 	if ![info exists mpathClsfr_($id)] {
             # 1. get new MultiPathClassifier,

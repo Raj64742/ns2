@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.75 1997/12/31 17:24:53 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.76 1998/01/01 04:32:51 kannan Exp $
 #
 
 #
@@ -41,15 +41,18 @@
 #
 
 
-if {[info commands debug] == ""} {
-    set warnedFlag 0
-    proc debug args {
-	global warnedFlag
-	if !$warnedFlag {
-	    puts stderr "Script debugging disabled.  Reconfigure with --with-tcldebug, and recompile."
-	    set warnedFlag 1
+proc warn msg {
+	global warned_
+	if ![info exists warned_($msg)] {
+		puts stderr $msg
+		set warned($msg) 1
 	}
-    }
+}
+
+if {[info commands debug] == ""} {
+	proc debug args {
+		warn {Script debugging disabled.  Reconfigure with --with-tcldebug, and recompile.}
+	}
 }
 
 #
