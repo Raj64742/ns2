@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.50 1998/02/16 20:37:43 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.51 1998/04/17 06:15:47 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -70,6 +70,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	// Defaults for bound variables should be set in ns-default.tcl.
 	bind("window_", &wnd_);
 	bind("windowInit_", &wnd_init_);
+	bind("windowInitOption_", &wnd_init_option_);
+	bind_bool("syn_", &syn_);
 	bind("windowOption_", &wnd_option_);
 	bind("windowConstant_", &wnd_const_);
 	bind("windowThresh_", &wnd_th_);
@@ -179,7 +181,11 @@ void TcpAgent::reset()
 	/*XXX lookup variables */
 	dupacks_ = 0;
 	curseq_ = 0;
-	cwnd_ = wnd_init_;
+	if (syn_) {
+		cwnd_ = 1.0;
+	} else {
+		set_init_window();
+	}
 	t_seqno_ = 0;
 	maxseq_ = -1;
 	last_ack_ = -1;
@@ -690,6 +696,26 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 }
 
 /*
+ * Set the initial window. 
+ */
+void TcpAgent::set_init_window()
+{
+	if (wnd_init_option_ == 1) {
+		cwnd_ = wnd_init_;
+	}
+        else if (wnd_init_option_ == 2) {
+ 		if (size_ <= 1095) {
+			cwnd_ = 4;
+	 	} else if (size_ < 2190) {
+	   		cwnd_ = 3;
+		} else {
+			cwnd_ = 2;
+		}
+	}
+}
+
+
+/*
  * main reception path - should only see acks, otherwise the
  * network connections are misconfigured
  */
@@ -712,6 +738,9 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
+		if (last_ack_ == 0 && syn_) {
+			set_init_window();
+		}
 	} else if (tcph->seqno() == last_ack_) {
                 if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
                         tcp_eln(pkt);

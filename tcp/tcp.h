@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.38 1998/02/16 20:37:49 hari Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.39 1998/04/17 06:15:48 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -217,6 +217,7 @@ protected:
 	virtual void newtimer(Packet*);
 	void opencwnd();
 	void closecwnd(int how);
+	void set_init_window();
 	void reset();
 	void newack(Packet*);
 	void quench(int how);
@@ -255,6 +256,9 @@ protected:
 	double wnd_restart_;
 	double tcp_tick_;	/* clock granularity */
 	int wnd_option_;
+	int wnd_init_option_;   /* 1 for using wnd_init_ */
+				/* 2 for using large initial windows */
+	int syn_;		/* 1 for modeling SYN/ACK exchange */
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
 	int ts_option_;		/* use RFC1323-like timestamps? */
 	int maxburst_;		/* max # packets can send back-2-back */
