@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.1 1997/09/30 02:08:45 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.2 1997/10/02 01:44:04 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcl.tcl
@@ -304,15 +304,15 @@ NodeTopology/4nodes instproc init ns {
 # Links1 uses 8Mb, 5ms feeders, and a 800Kb 100ms bottleneck.
 # Queue-limit on bottleneck is 6 packets.
 #
-Class Topology/net0 -superclass NodeTopology/4nodes
-Topology/net0 instproc init ns {
+Class Topology/net4 -superclass NodeTopology/4nodes
+Topology/net4 instproc init ns {
     $self next $ns
     $self instvar node_
     $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
-    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
-    $ns queue-limit $node_(r1) $node_(k1) 6
-    $ns queue-limit $node_(k1) $node_(r1) 6
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 10ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 2
+    $ns queue-limit $node_(k1) $node_(r1) 2
     if {[$class info instprocs config] != ""} {
 	$self config $ns
     }
@@ -339,12 +339,15 @@ Topology/net3 instproc init ns {
 
 # Definition of test-suite tests
 
+# This test shows two TCPs when one is ECN-capable and the other
+# is not.
+
 Class Test/ecn -superclass TestSuite
 Test/ecn instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net3
-	set test_	ecn_(one_with,_one_without)
+	set test_	ecn_(one_with_ecn,_one_without)
 	$self next
 }
 Test/ecn instproc run {} {
@@ -371,6 +374,52 @@ Test/ecn instproc run {} {
 	$ns_ run
 }
 
+# This test shows the retransmit timeout value when the first packet
+# of a connection is dropped, and the backoff of the retransmit timer
+# as subsequent packets are dropped.
+# (It looks like the retransmit timer is not backed off after the
+# first drop.)
+#
+# This test also shows that once the retransmit timer is backed off,
+# it is later un-backed.
+
+Class Test/timers -superclass TestSuite
+Test/timers instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	timers_(first_packet_dropped)
+	$self next
+}
+Test/timers instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connection
+	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 0]
+	$tcp2 set window_ 3
+	set ftp2 [$tcp2 attach-source FTP]
+	$ns_ at 0.09 "$ftp2 start"
+
+	# Set up TCP connection
+	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	$tcp1 set window_ 5
+	set ftp1 [$tcp1 attach-source FTP]
+	$ns_ at 0.0 "$ftp1 produce 1600"
+	$ns_ at 25.3 "$ftp1 producemore 5"
+	$ns_ at 25.7 "$ftp1 producemore 5" 
+	$ns_ at 26.1 "$ftp1 producemore 5" 
+	$ns_ at 26.5 "$ftp1 producemore 5" 
+	$ns_ at 26.9 "$ftp1 producemore 5" 
+	$ns_ at 28.8 "$ftp1 producemore 5" 
+
+
+	$self tcpDump $tcp1 5.0
+
+	$self traceQueues $node_(r1) [$self openTrace 30.0 $testName_]
+	$ns_ run
+}
+
+#	Agent/TCP set tcpTick_ 0.5
 
 TestSuite runTest
 
