@@ -21,7 +21,12 @@
  *
  */
 
-#include "edge.h"
+/* 
+ * Integrated into ns (Nov 01, 2000) by Xuan Chen (xuanc@isi.edu)
+ * rename to dsEdge.cc
+ */
+
+#include "dsEdge.h"
 #include "dsPolicy.h"
 #include "packet.h"
 #include "tcp.h"

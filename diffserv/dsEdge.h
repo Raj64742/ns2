@@ -20,8 +20,13 @@
  * edge.h
  */
 
-#ifndef edge_h
-#define edge_h
+/* 
+ * Integrated into ns (Nov 01, 2000) by Xuan Chen (xuanc@isi.edu)
+ * renamed as dsEdge.h
+ */
+
+#ifndef DS_EDGE_H
+#define DS_EDGE_H
 
 #include "dsred.h"
 #include "dsPolicy.h"
@@ -43,4 +48,3 @@ protected:
 };
 
 #endif
-

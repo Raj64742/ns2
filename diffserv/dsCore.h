@@ -16,13 +16,18 @@
  *
  */
 
-/*
+/* 
  * core.h
+ */
+
+/* 
+ * Integrated into ns on Nov 01, 2000, by Xuan Chen (xuanc@isi.edu)  
+ * Rename as dsCore.h
  *
  */
 
-#ifndef core_h
-#define core_h
+#ifndef DS_CORE_H
+#define DS_CORE_H
 #include "dsred.h"
 
 

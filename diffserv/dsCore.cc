@@ -17,11 +17,15 @@
  */
 
 /*
- * core.h
- *
+ * core.cc
  */
 
-#include "core.h"
+/*
+ * Integrated into ns (Nov 01, 2000) by Xuan Chen (xuanc@isi.edu) 
+ * rename to dsCore.cc
+ */
+
+#include "dsCore.h"
 
 
 /*------------------------------------------------------------------------------
