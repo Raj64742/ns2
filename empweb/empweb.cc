@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.3 2001/06/14 20:27:55 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.4 2001/06/28 06:21:50 kclan Exp $
 
 #include <tclcl.h>
 
@@ -477,7 +477,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 				new EmpWebTrafSession(this, picksrc(), npg, n, nSrc_);
 			int res = lookup_rv(p->interPage(), argv[5]);
 			res = (res == TCL_OK) ? 
-				lookup_rv(p->pageSize(), argv[6]) : TCL_ERROR;
+				lookup_rv1(p->pageSize(), argv[6]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->interObj(), argv[7]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 

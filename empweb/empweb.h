@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.5 2001/06/15 20:24:18 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.6 2001/06/28 06:21:50 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -63,7 +63,8 @@ public:
 
 	// Queried by individual pages/objects
 	inline EmpiricalRandomVariable*& interPage() { return rvInterPage_; }
-	inline EmpiricalRandomVariable*& pageSize() { return rvPageSize_; }
+//	inline EmpiricalRandomVariable*& pageSize() { return rvPageSize_; }
+inline RandomVariable*& pageSize() { return rvPageSize_; }
 	inline EmpiricalRandomVariable*& interObj() { return rvInterObj_; }
 	inline EmpiricalRandomVariable*& objSize() { return rvObjSize_; }
 
@@ -92,7 +93,9 @@ private:
 	virtual void expire(Event *e = 0);
 	virtual void handle(Event *e);
 
-	EmpiricalRandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
+//	EmpiricalRandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
+	EmpiricalRandomVariable *rvInterPage_, *rvInterObj_, *rvObjSize_;
+	RandomVariable *rvPageSize_;
 	EmpiricalRandomVariable *rvReqSize_, *rvPersistSel_, *rvServerSel_;
 	EmpWebTrafPool* mgr_;
 	Node* src_;		// One Web client (source of request) per session
@@ -181,6 +184,14 @@ protected:
 		rv = (EmpiricalRandomVariable*)lookup_obj(name);
 		return rv ? (TCL_OK) : (TCL_ERROR);
 	}
+
+        inline int lookup_rv1(RandomVariable*& rv, const char* name) {
+                if (rv != NULL)
+                        Tcl::instance().evalf("delete %s", rv->name());
+                rv = (RandomVariable*)lookup_obj(name);
+                return rv ? (TCL_OK) : (TCL_ERROR);
+        }
+
 	int debug_;
 };
 
