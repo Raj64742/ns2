@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.8 1998/09/16 21:07:31 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.9 1998/09/17 00:06:55 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -63,6 +63,7 @@ struct hdr_tfcc {
 	double& rttest() { return (rttest_); }
 	double& ts() { return (ts_); }
 	double& ts_echo() { return (ts_echo_); }
+	double& interval() { return (interval_); }
 	int& cseq() { return (cong_seq_); }
 	int& nlost() { return (nlost_); }
 
@@ -82,6 +83,8 @@ public:
                 field_offset("ts_", OFFSET(hdr_tfcc, ts_));
                 field_offset("ts_echo_", OFFSET(hdr_tfcc, ts_echo_));
                 field_offset("cong_seq_", OFFSET(hdr_tfcc, cong_seq_));
+                field_offset("interval_", OFFSET(hdr_tfcc, interval_));
+                field_offset("nlost_", OFFSET(hdr_tfcc, nlost_));
         }
 } class_tfcchdr;
 
@@ -90,8 +93,9 @@ public:
 class TFCCAgent : public RTPAgent {
 public:
 	TFCCAgent() : srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
-	last_ts_(-1.0), last_loss_time_(-1.0), last_rtime_(-1.0),
-	expected_(0), nlost_(0), plost_(0), cseq_(0), highest_cseq_seen_(-1),
+	peer_interval_(-1.0), last_ts_(-1.0), last_loss_time_(-1.0),
+	last_rtime_(-1.0), expected_(0), nrcv_(0), nlost_(0), plost_(0),
+	cseq_(0), highest_cseq_seen_(-1),
 	last_cseq_checked_(-1), silence_(0), needresponse_(0), last_ecn_(0),
 	ack_timer_(this), rtt_timer_(this) {
 		bind("alpha_", &alpha_);
@@ -111,25 +115,28 @@ protected:
 	virtual void ecn_event();	// called when seeing an ECN
 	virtual void peer_rttest_known(double); // called when peer knows rtt
 	virtual void rtt_known(double);	// called when we know rtt
-	void ack_rate_change();		// changes the ack gen rate
-	virtual void slowdown();	// reason to slow down
+	virtual void slowdown(int);	// reason to slow down
 	virtual void speedup();		// possible opportunity to speed up
 	virtual void nopeer();		// lost ack stream from peer
+	virtual double winchg();	// pkts to speed up by
 
 	virtual void rtt_timeout(TimerHandler*);	// rtt heartbeat
 	virtual void ack_timeout(TimerHandler*);	// ack sender
 
+	void ack_rate_change();		// changes the ack gen rate
         double now() const { return Scheduler::instance().clock(); };
 	double rtt_sample(double samp);
 
 	double alpha_;		// weighting factor for rtt mean estimate
 	double beta_;		// weighting factor for rtt var estimate
 
-	double srtt_;
+	double srtt_;		// current smoothed rtt
+	double srtt_chg_;	// srtt when speedup/slowdown last called
 	double rttvar_;
 	double maxrtt_;		// max rtt seen
 	double minrtt_;		// min rtt seen
 	double peer_rtt_est_;	// peer's est of the rtt
+	double peer_interval_;	// last known peer's interval_
 	double last_ts_;	// ts field carries on last pkt
 	double last_loss_time_;	// last time we saw a loss
 	double ack_interval_;	// "ack" sending rate
@@ -137,6 +144,7 @@ protected:
 	double last_rtime_;	// last time a pkt was received
 
 	int expected_;		// next expected sequence number
+	int nrcv_;		// # pkts recv'd (cumulative)
 	int nlost_;		// # pkts lost (cumulative)
 	int plost_;		// # pkts peer reported lost
 	int cseq_;		// congest epoch seq # (as receiver)
@@ -178,6 +186,8 @@ public:
 double
 TFCCAgent::rtt_sample(double m)
 {       
+//printf("%f %s: RTT  SAMPLE: %f\n", now(), name(), m);
+
 	// m is new measurement
         if (srtt_ > 0.0) {
                 double delta = m - srtt_;
@@ -206,7 +216,7 @@ TFCCAgent::makepkt(Packet* p)
 
 	th->ts_echo() = last_ts_;
 	th->ts() = now();
-//th->interval() = interval_;
+	th->interval() = interval_;
 	th->nlost() = nlost_;
 	th->rttest() = srtt_;
 	th->cseq() = cseq_;
@@ -229,6 +239,8 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 	hdr_tfcc* th = (hdr_tfcc*)pkt->access(hdr_tfcc::offset_);
 	hdr_flags* fh = (hdr_flags*)pkt->access(hdr_flags::offset_);
 
+	++nrcv_;
+
 printf("%f: %s: recv: seq: %d, cseq: %d, expect:%d\n", now(), name(),
 	rh->seqno(), th->cseq(), expected_);
 
@@ -248,6 +260,7 @@ printf("%f: %s: recv: seq: %d, cseq: %d, expect:%d\n", now(), name(),
 		needresponse_ = 1;
 	}
 
+	peer_interval_ = th->interval();
 	last_ts_ = th->ts();
 
 	if (fh->ect()) {
@@ -307,11 +320,12 @@ TFCCAgent::loss_event(int nlost)
 	// if its been awhile (more than an rtt estimate) since the last loss,
 	// this is a new indication of congestion
 printf("%f %s: loss event: nlost:%d\n", now(), name(), nlost);
-	if (peer_rtt_est_ < 0.0 || (now() - last_loss_time_) > peer_rtt_est_) {
+	if (peer_rtt_est_ < 0.0 || (last_loss_time_ < 0.0) ||
+	    (now() - last_loss_time_) > peer_rtt_est_) {
 		++cseq_;
 		needresponse_ = 1;
+		last_loss_time_ = now();
 	}
-	last_loss_time_ = now();
 }
 
 /*
@@ -355,29 +369,44 @@ printf("%s: RTT KNOWN (%f), starting timer\n", name(), rtt);
  * new congestion indications
  */
 
+double
+TFCCAgent::winchg()
+{
+	return (1.0);
+}
+
 void
 TFCCAgent::speedup()
 {
+	if (srtt_chg_ < 0.0)
+		srtt_chg_ = srtt_;
 	if (running_) {
-		interval_ = (srtt_ * interval_) / (srtt_ + interval_);
-printf("%s %f SPEEDUP [srtt:%f], new interval:%f, ppw:%d\n",
-	name(), now(), srtt_, interval_, int(srtt_ / interval_));
+		interval_ = (srtt_ * interval_) /
+			(srtt_chg_ + winchg() * interval_);
+printf("%s %f SPEEDUP [srtt:%f], new interval:%f, ppw:%f\n",
+	name(), now(), srtt_, interval_, srtt_ / interval_);
+		srtt_chg_ = srtt_;
 		rate_change();
 	}
 }
 
 /*
  * as a sender, this is called when we are receiving acks with
- * new congestion indications
+ * new congestion indications.  nce is the number of congestion
+ * events.  Each one results in a 1/2-ing of the rate.
  */
 
 void
-TFCCAgent::slowdown()
+TFCCAgent::slowdown(int nce)
 {
+	if (srtt_chg_ < 0.0)
+		srtt_chg_ = srtt_;
 	if (running_) {
-		interval_ *= 2.0;
-printf("%s %f SLOWDOWN [srtt: %f], new interval:%f, ppw:%d\n",
-	name(), now(), srtt_, interval_, int(srtt_ / interval_));
+		while (--nce)
+			interval_ *= 2.0;
+printf("%s %f SLOWDOWN [srtt: %f], new interval:%f, ppw:%f\n",
+	name(), now(), srtt_, interval_, srtt_ / interval_);
+		srtt_chg_ = srtt_;
 		rate_change();
 	}
 }
@@ -392,7 +421,7 @@ TFCCAgent::nopeer()
 {
 	// for now, just 1/2 sending rate
 printf("%s %f NOPEER, silence:%d\n", name(), now(), silence_);
-	slowdown();
+	slowdown(1);
 	silence_ = 0;
 }
 
@@ -421,8 +450,6 @@ printf(">>>>> %f: %s: RTT beat: last_checked:%d, highest_seen:%d\n",
 	if (last_cseq_checked_ < 0) {
 		// initialize
 		last_cseq_checked_ = highest_cseq_seen_;
-		last_expected_ = expected_;
-		timer->resched(srtt_);
 	} else {
 		//
 		// check peer's congestion status
@@ -430,7 +457,7 @@ printf(">>>>> %f: %s: RTT beat: last_checked:%d, highest_seen:%d\n",
 		if (last_cseq_checked_ == highest_cseq_seen_) {
 			speedup();
 		} else {
-			slowdown();
+			slowdown(highest_cseq_seen_ - last_cseq_checked_);
 			last_cseq_checked_ = highest_cseq_seen_;
 		}
 
@@ -446,8 +473,9 @@ printf(">>>>> %f: %s: RTT beat: last_checked:%d, highest_seen:%d\n",
 			// yep, heard something
 			silence_ = 0;
 		}
-		timer->resched(srtt_);
 	}
+	last_expected_ = expected_;
+	timer->resched(srtt_);
 	return;
 }
 
@@ -467,7 +495,7 @@ class VTFCCAgent : public TFCCAgent {
 public:
 	VTFCCAgent() : lastseq_(0), lastlost_(0) { }
 protected:
-	void slowdown();
+	void slowdown(int);
 	void linear_slowdown();
 	void speedup();
 	void rtt_known(double rtt);
@@ -497,7 +525,7 @@ VTFCCAgent::rtt_known(double rtt)
 }
 
 void
-VTFCCAgent::slowdown()
+VTFCCAgent::slowdown(int)
 {
 	if (running_) {
 		interval_ *= 2.0;
@@ -545,4 +573,67 @@ printf("%s V-SPEEDUP [srtt:%f], new interval:%f, ppw:%d\n",
 		rate_change();
 		expectedrate_ = srtt_ / (interval_ * minrtt_);
 	}
+}
+
+/******************** EXTENSIONS ****************************/
+// ETFCC -- "Equation-based tfcc"
+class ETFCCAgent : public TFCCAgent {
+public:
+	ETFCCAgent() : cseq_save_(0) {
+		bind("efactor_", &efactor_);
+		bind("echkint_", &echkint_);
+	}
+protected:
+	int echkint_;		// eqn check interval (every k pkts)
+	int cseq_save_;		// saved copy of cseq
+	double efactor_;	// multiplier of eqn
+	void loss_event(int nlost);
+	double eqn_interval(double);
+	void nopeer();
+};
+
+static class ETFCCAgentClass : public TclClass {
+public:
+	ETFCCAgentClass() : TclClass("Agent/RTP/TFCC/ETFCC") {}
+	TclObject* create(int, const char*const*) {
+		return (new ETFCCAgent());
+	}
+} class_etfcc_agent;
+
+void
+ETFCCAgent::loss_event(int nlost)
+{
+	// echkint: equation check interval
+	TFCCAgent::loss_event(nlost);
+	needresponse_ = 0;
+	if (nrcv_ > echkint_) {
+		int newcseq = cseq_ - cseq_save_;
+		double cerate = double(newcseq) / nrcv_;
+printf("%f %s ECHK: newcseq:%d, cerate: %f, eqn:%f, peerint:%f\n",
+now(), name(), newcseq, cerate, eqn_interval(cerate), peer_interval_);
+		if (peer_interval_ < eqn_interval(cerate)) {
+			// if peer is too fast, tell it to slow down
+			needresponse_ = 1;
+		}
+		nrcv_ = 0;
+		cseq_save_ = cseq_;
+	}
+}
+
+double
+ETFCCAgent::eqn_interval(double droprate)
+{
+	// this is the reciprocal of the eqn
+	double pps = efactor_ / (srtt_ * sqrt(droprate));
+	if (pps > 0.0) {
+printf("%f eqn_interval(drate:%f) returning %f\n", now(), droprate, 1.0 / pps);
+		return (1.0/pps);
+	}
+	return (10000.);	// large interval
+}
+
+void
+ETFCCAgent::nopeer()
+{
+	// don't do anything here either
 }
