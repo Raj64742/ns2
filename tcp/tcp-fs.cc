@@ -42,6 +42,7 @@ public:
 		fs_startseq_(0), fs_endseq_(0), fs_mode_(0), reset_timer_(this) 
 	{
 		bind_bool("fast_loss_recov_", &fast_loss_recov_);
+		bind_bool("fast_reset_timer_", &fast_reset_timer_);
 	}
 
 	/* helper functions */
@@ -64,6 +65,7 @@ protected:
 	int fs_endseq_;
 	int fs_mode_;
 	int fast_loss_recov_;
+	int fast_reset_timer_;
 	ResetTimer reset_timer_;
 };
 
@@ -308,8 +310,10 @@ TcpFsAgent::set_rtx_timer()
 		rtx_timer_.cancel();
 	if (reset_timer_.status() == TIMER_PENDING)
 		reset_timer_.cancel();
-	if (fs_mode_ && fast_loss_recov_)
+	if (fs_mode_ && fast_loss_recov_ && fast_reset_timer_)
 		reset_timer_.resched(rtt_exact_timeout());
+	else if (fs_mode_ && fast_loss_recov_)
+		reset_timer_.resched(rtt_timeout());
 	else 
 		rtx_timer_.resched(rtt_timeout());
 }
