@@ -18,7 +18,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/acto-adc.cc,v 1.2 1998/05/08 00:30:29 bajaj Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/acto-adc.cc,v 1.3 1998/06/11 04:54:07 breslau Exp $";
 #endif
 
 
@@ -30,13 +30,20 @@ static const char rcsid[] =
 
 class ACTO_ADC : public ADC {
 public:
-	ACTO_ADC() : rejected_(0) { bind ("s_",&s_);};
+	ACTO_ADC();
 	void teardown_action(int,double,int);
 protected:
 	int admit_flow(int,double,int);
 	int rejected_; 
 	double s_;
 };
+
+ACTO_ADC::ACTO_ADC() : rejected_(0)
+{
+	bind("s_", &s_);
+	type_ = new char[5];
+	strcpy(type_, "ACTO");
+}
 
 
 int ACTO_ADC::admit_flow(int cl,double r,int b)

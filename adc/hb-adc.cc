@@ -18,7 +18,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/hb-adc.cc,v 1.3 1998/06/05 20:51:38 breslau Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/hb-adc.cc,v 1.4 1998/06/11 04:54:08 breslau Exp $";
 #endif
 
 //Hoeffding Bounds Admission Control
@@ -29,7 +29,7 @@ static const char rcsid[] =
 
 class HB_ADC : public ADC {
 public:
-	HB_ADC() : rejected_(0),sump2_(0) { bind ("epsilon_",&epsilon_);};
+	HB_ADC();
 	void teardown_action(int,double,int);
 	void rej_action(int,double,int);
 protected:
@@ -38,6 +38,13 @@ protected:
 	double epsilon_;
 	double sump2_;
 };
+
+HB_ADC::HB_ADC() : rejected_(0), sump2_(0)
+{
+	bind("epsilon_", &epsilon_);
+	type_ = new char[3];
+	strcpy(type_, "HB");
+}
 
 
 int HB_ADC::admit_flow(int cl,double r,int b)
