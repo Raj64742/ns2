@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.4 1997/02/27 04:38:40 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.5 1997/03/13 01:48:34 mccanne Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -45,7 +45,6 @@ class LinkDelay : public Connector {
 	LinkDelay();
 	void recv(Packet* p, Handler*);
  protected:
-	void send();
 	double bandwidth_;	/* bandwidth of underlying link (bits/sec) */
 	double delay_;		/* line latency */
 	Event intr_;
