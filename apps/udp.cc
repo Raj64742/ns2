@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.4 1997/08/14 00:06:45 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.5 1998/04/25 00:57:47 bajaj Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -25,6 +25,9 @@ static const char rcsid[] =
 #include "tclcl.h"
 #include "packet.h"
 #include "random.h"
+
+//"rtp timestamp" needs the samplerate
+#define SAMPLERATE 8000
 
 static class UDP_AgentClass : public TclClass {
  public:
@@ -34,14 +37,14 @@ static class UDP_AgentClass : public TclClass {
 	}
 } class_source_agent;
 
-UDP_Agent::UDP_Agent() : trafgen_(0)
+UDP_Agent::UDP_Agent() : trafgen_(0),nextPkttime_(-1)
 {
 }
 
 int UDP_Agent::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-
+	
 	if (argc == 2) {
 		if (strcmp(argv[1], "start") == 0) {
 			start();
@@ -69,6 +72,15 @@ void UDP_Agent::sendpkt()
 	Packet* p = allocpkt();
 	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
 	rh->seqno() = ++seqno_;
+	rh->flags()=0;
+	
+	double local_time=Scheduler::instance().clock();
+	/*put in "rtp timestamps" and begining of talkspurt labels */
+        hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	ch->timestamp()=(u_int32_t)(SAMPLERATE*local_time);
+        if ((nextPkttime_ != trafgen_->interval()) || (nextPkttime_ == -1))
+		rh->flags() |= RTP_M;
+	
 	target_->recv(p);
 }
 
@@ -78,9 +90,9 @@ void UDP_Agent::timeout(int)
 	        /* send a packet */
 	        sendpkt();
 		/* figure out when to send the next one */
-		double t = trafgen_->next_interval(size_);
+		nextPkttime_ = trafgen_->next_interval(size_);
 		/* schedule it */
-		cbr_timer_.resched(t);
+		cbr_timer_.resched(nextPkttime_);
 	}
 }
 

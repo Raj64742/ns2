@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.6 1997/08/12 22:27:46 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.7 1998/04/25 00:57:46 bajaj Exp $
  */
 
 
@@ -40,11 +40,15 @@
 #include "config.h"
 #include "object.h"
 
+#define RTP_M 0x0080 // marker for significant events
+
 /* rtp packet.  For now, just have srcid + seqno. */
 struct hdr_rtp { 
         u_int32_t srcid_;
 	int seqno_;
-
+	//rtp flags indicating significant event(begining of talkspurt)
+	u_int16_t flags_; 
+	
         /* per-field member functions */
 	u_int32_t& srcid() {
 		return (srcid_);
@@ -52,6 +56,9 @@ struct hdr_rtp {
 	int& seqno() {
 		return (seqno_);
 	}
+	u_int16_t& flags() {
+                return (flags_);
+        }
 };   
 
 class RTPSource : public TclObject {

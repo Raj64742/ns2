@@ -14,7 +14,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/trafgen.h,v 1.2 1997/07/23 03:18:43 kfall Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/trafgen.h,v 1.3 1998/04/25 00:57:47 bajaj Exp $ (Xerox)
  */
  
 #ifndef ns_trafgen_h
@@ -46,6 +46,7 @@ class TrafficGenerator : public NsObject {
 	TrafficGenerator() {}
 	virtual double next_interval(int &) = 0;
 	virtual void init() {}
+	virtual double interval(){return 0;}
  protected:
 	/* recv() shouldn't ever get called, it is needed because
 	 * all NsObjects are Handlers as well. 

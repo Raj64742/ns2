@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.4 1997/12/01 23:56:46 breslau Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.5 1998/04/25 00:57:46 bajaj Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -36,6 +36,10 @@ class EXPOO_Source : public TrafficGenerator {
  public:
 	EXPOO_Source();
 	virtual double next_interval(int&);
+	//HACK so that udp agent knows interpacket arrival time within a burst
+	inline double interval() {
+	return (interval_);
+	}
  protected:
 	void init();
 	double ontime_;   /* average length of burst (sec) */

@@ -8,6 +8,8 @@ ack-recons.cc
 ack-recons.h
 acto-adc.cc
 actp-adc.cc
+adaptive-receiver.cc
+adaptive-receiver.h
 adc.cc
 adc.h
 agent.cc
@@ -54,6 +56,7 @@ configure
 configure.in
 connector.cc
 connector.h
+consrcvr.cc
 ctrMcast.cc
 ctrMcast.h
 delay.cc
@@ -322,8 +325,9 @@ tcl/ex/tcp-fs/web.tcl
 tcl/ex/tcp-int.tcl
 tcl/ex/test-drr.tcl
 tcl/ex/test-emulator.tcl
-tcl/ex/test-tbf.tcltcl/ex/test-suite.tcl
-
+tcl/ex/test-rcvr.tcl
+tcl/ex/test-tbf.tcl
+tcl/ex/test-suite.tcl
 tcl/ex/tg.tcl
 tcl/ex/tg.txt
 tcl/ex/timer.tcl
@@ -682,6 +686,8 @@ udp.cc
 udp.h
 validate
 validate.out
+vat.h
+vatrcvr.cc
 win32.c
 tcl/ex/test-suite-intserv.tcl
 tcl/ex/test-suite-intserv.txt
