@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.13 1997/11/01 05:19:52 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.14 1997/11/03 19:49:13 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -88,6 +88,7 @@ Topology/net2 instproc config ns {
 }
 
 TestSuite instproc plotQueue file {
+	global quiet
 	$self instvar tchan_
 	#
 	# Plot the queue size and average queue size, for RED gateways.
@@ -122,7 +123,9 @@ TestSuite instproc plotQueue file {
 	###puts $f 0 [[ns link $r1 $r2] get thresh]
 	###puts $f $end [[ns link $r1 $r2] get thresh]
 	close $f
-	exec xgraph -bb -tk -x time -y queue temp.queue &
+	if {$quiet == "false"} {
+		exec xgraph -bb -tk -x time -y queue temp.queue &
+	}
 }
 
 TestSuite instproc tcpDumpAll { tcpSrc interval label } {
@@ -506,24 +509,26 @@ puts "awkprocedure: $awkprocedure_"
 }
 
 TestSuite instproc finish_flows testname {
-	global flowgraphfile flowfile flowchan
+	global flowgraphfile flowfile flowchan quiet
 	$self instvar r1fm_
 	$r1fm_ dump
 	close $flowchan
 	$self create_flow_graph $testname $flowgraphfile
 	puts "running xgraph..."
-	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $flowgraphfile &
+	if {$quiet == "false"} {
+		exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $flowgraphfile &
+	}
 	exit 0
 }
 
-TestSuite instproc new_tcp { startTime source dest window class dump size } {
+TestSuite instproc new_tcp { startTime source dest window class quiet size } {
 	$self instvar ns_
 	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $class ]
 	$tcp set window_ $window
 	if {$size > 0}  {$tcp set packetSize_ $size }
 	set ftp [$tcp attach-source FTP]
 	$ns_ at $startTime "$ftp start"
-        if {$dump == 1 } {$self tcpDumpAll $tcp 20.0 $class }
+        if {$quiet == "false" } {$self tcpDumpAll $tcp 20.0 $class }
 }
 
 TestSuite instproc new_cbr { startTime source dest pktSize interval class } {
@@ -571,6 +576,7 @@ TestSuite instproc dumpflows interval {
 }   
 
 TestSuite instproc droptest { stoptime } {
+	global quiet
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 
 	set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
@@ -589,8 +595,8 @@ TestSuite instproc droptest { stoptime } {
 	$forwq set bytes_ true
 	$revq set wait_ false
 
-        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
+        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 $quiet 1000
+	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 $quiet 50
 	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
 ##	$self new_cbr 1.4 $node_(s1) $node_(s4) 500 0.003 3
 
@@ -600,8 +606,8 @@ TestSuite instproc droptest { stoptime } {
 }
 
 
-Class Test/flows-unforced -superclass TestSuite
-Test/flows-unforced instproc init topo {
+Class Test/flows_unforced -superclass TestSuite
+Test/flows_unforced instproc init topo {
     $self instvar net_ defNet_ test_
     set net_    $topo   
     set defNet_ net2
@@ -609,7 +615,7 @@ Test/flows-unforced instproc init topo {
     $self next 0; # zero here means don't product all.tr
 }   
 
-Test/flows-unforced instproc run {} {
+Test/flows_unforced instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 	$self instvar dump_pthresh_
@@ -623,8 +629,8 @@ Test/flows-unforced instproc run {} {
 
 }
 
-Class Test/flows-forced -superclass TestSuite
-Test/flows-forced instproc init topo {
+Class Test/flows_forced -superclass TestSuite
+Test/flows_forced instproc init topo {
     $self instvar net_ defNet_ test_
     set net_    $topo   
     set defNet_ net2
@@ -632,7 +638,7 @@ Test/flows-forced instproc init topo {
     $self next 0; # zero here means don't product all.tr
 }   
 
-Test/flows-forced instproc run {} {
+Test/flows_forced instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 	$self instvar dump_pthresh_
@@ -645,8 +651,8 @@ Test/flows-forced instproc run {} {
 	$self droptest $stoptime
 }
 
-Class Test/flows-combined -superclass TestSuite
-Test/flows-combined instproc init topo {
+Class Test/flows_combined -superclass TestSuite
+Test/flows_combined instproc init topo {
     $self instvar net_ defNet_ test_
     set net_    $topo   
     set defNet_ net2
@@ -654,7 +660,7 @@ Test/flows-combined instproc init topo {
     $self next 0; # zero here means don't product all.tr
 }   
 
-Test/flows-combined instproc run {} {
+Test/flows_combined instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 	$self instvar dump_pthresh_
