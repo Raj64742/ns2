@@ -14,7 +14,7 @@ extern "C" {
 #include <err.h>
 #endif
 };
-#include <rng.h>
+#include "../../../rng.h"
 
 #include "setdest.h"
 
