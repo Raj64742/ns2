@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.17 2000/09/01 03:04:06 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.18 2000/11/17 22:10:33 ratul Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -49,8 +49,10 @@ public:
 		parrivals_(0), barrivals_(0),
 		pdepartures_(0), bdepartures_(0),
 		pdrops_(0), bdrops_(0),
-		srcId_(0), dstId_(0), channel_(0)
-	{
+		srcId_(0), dstId_(0), channel_(0),
+		//variables for flow rate estimation
+		estimate_rate_(0), k_(0.1), estRate_(0.0), temp_size_(0) {
+		
 		bind("size_", &size_);
 		bind("pkts_", &pkts_);
 		bind("parrivals_", &parrivals_);
@@ -59,12 +61,22 @@ public:
 		bind("bdepartures_", &bdepartures_);
 		bind("pdrops_", &pdrops_);
 		bind("bdrops_", &bdrops_);
+
+		//variable binding for flow rate estimation
+		bind_bool("estimate_rate_", &estimate_rate_);
+		bind("k_", &k_);
+		bind("prevTime_", &prevTime_);
+		bind("startTime_", &startTime_);
+ 		bind("estRate_", &estRate_);
+
+		startTime_ = Scheduler::instance().clock();
+		prevTime_  = startTime_;
 	};
 
 	int size() const { return (size_); }
 	int pkts() const { return (pkts_); }
 #if defined(HAVE_INT64)
-	int64_t parrivals() const { return (parrivals_); }
+	int64_t parrivals() const { return (parrivals_); }	
 	int64_t barrivals() const { return (barrivals_); }
 	int64_t pdepartures() const { return (pdepartures_); }
 	int64_t bdepartures() const { return (bdepartures_); }
@@ -105,6 +117,22 @@ protected:
 	int srcId_;
 	int dstId_;
 	Tcl_Channel channel_;
+
+	// the estimation of incoming rate using an exponential averaging algorithm due to Stoica
+	// hence a lot of this stuff is inspired by csfq.cc(Stoica)
+	// put in here so that it can be used to estimate the arrival rate for both whole queues as 
+	// well as flows (Flow inherits from EDQueueMonitor);
+public:
+	int estimate_rate_;           /* boolean - whether rate estimation is on or not */
+	double k_;                    /* averaging interval for rate estimation in seconds*/
+	double estRate_;              /* current flow's estimated rate in bps */
+	double prevTime_;             /* time of last packet arrival */
+	double startTime_;            /* time when the flow started */
+
+protected:
+	int temp_size_;               /* keep track of packets that arrive at the same time */
+
+	void estimateRate(Packet *p);
 };
 
 class SnoopQueue : public Connector {
@@ -167,24 +195,45 @@ public:
  * but also supports the notion of "early" drops
  */
 
-
+/* 
+ * The mon* things added to make it work with redpd. 
+ * I tried more "elegant" ways -- but mulitple inheritance sucks !!.
+ * -ratul
+ */
 class EDQueueMonitor : public QueueMonitor {
 public:
-	EDQueueMonitor() : ebdrops_(0), epdrops_(0) {
+	EDQueueMonitor() : ebdrops_(0), epdrops_(0), mon_ebdrops_(0), mon_epdrops_(0) {
 		bind("ebdrops_", &ebdrops_);
 		bind("epdrops_", &epdrops_);
+		bind("mon_ebdrops_", &mon_ebdrops_);
+		bind("mon_epdrops_", &mon_epdrops_);
 	}
 	void edrop(Packet* p) {
 		hdr_cmn* hdr = hdr_cmn::access(p);
 		ebdrops_ += hdr->size();
 		epdrops_++;
+		// remove later - ratul
+		// printf("My epdrops = %d\n",epdrops_);
 		QueueMonitor::drop(p);
 	}
+	
+	void mon_edrop(Packet *p) {
+		hdr_cmn* hdr = hdr_cmn::access(p);
+		mon_ebdrops_ += hdr->size();
+		mon_epdrops_++;
+	
+		QueueMonitor::drop(p);
+	}
+	
 	int epdrops() const { return (epdrops_); }
 	int ebdrops() const { return (ebdrops_); }
+	int mon_epdrops() const { return (mon_epdrops_); }
+	int mon_ebdrops() const { return (mon_ebdrops_); }
 protected:
 	int	ebdrops_;
 	int	epdrops_;
+	int	mon_ebdrops_;
+	int	mon_epdrops_;
 };
 
 class SnoopQueueEDrop : public SnoopQueue {
@@ -222,3 +271,4 @@ protected:
 };
 
 #endif
+

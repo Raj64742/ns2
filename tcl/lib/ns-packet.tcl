@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.40 2000/09/01 03:04:11 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.41 2000/11/17 22:10:37 ratul Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -142,6 +142,7 @@ foreach prot {
 	TFRC_ACK
 	TORA
 	UMP 
+	PUSHBACK
 } {
 	add-packet-header $prot
 }

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.81 2000/11/09 01:53:50 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.82 2000/11/17 22:10:33 ratul Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -135,6 +135,9 @@ enum packet_t {
 	// ReadAudio traffic
 	PT_REALAUDIO,
 
+	// Pushback Messages
+	PT_PUSHBACK,
+
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -203,6 +206,9 @@ public:
 
 		// RealAudio packets
 		name_[PT_REALAUDIO] = "ra";
+
+		//pushback 
+		name_[PT_PUSHBACK] = "pushback";
 
 		name_[PT_NTYPE]= "undefined";
 	}

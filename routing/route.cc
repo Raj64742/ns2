@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.36 2000/09/16 01:46:01 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.37 2000/11/17 22:10:33 ratul Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -218,6 +218,24 @@ int RouteLogic::lookup_flat(char* asrc, char* adst, int& result) {
 	}
 	result = route_[INDEX(src, dst, size_)].next_hop - 1;
 	return TCL_OK;
+}
+
+//added for pushback. a method callable from c++ code. 
+//probably could have been concocted from already existing methods - ratul
+int RouteLogic::lookup_flat(int sid, int did) {
+	int src = sid+1;
+	int dst = did+1;
+	if (route_ == 0) {
+		// routes are computed only after the simulator is running
+		// ($ns run).
+		printf("routes not yet computed\n");
+		return (-1);
+	}
+	if (src >= size_ || dst >= size_) {
+		printf("node out of range\n");
+		return (-2);
+	}
+	return route_[INDEX(src, dst, size_)].next_hop - 1;
 }
 
 // xxx: using references as in this result is bogus---use pointers!
@@ -546,6 +564,7 @@ void RouteLogic::ns_strtok(char *addr, int *addrstr)
 		}
 	}
 }
+
 
 void RouteLogic::get_address(char *address, int next_hop, int index, int d, 
 			     int size, int *src)

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.224 2000/11/01 21:47:59 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.225 2000/11/17 22:10:36 ratul Exp $
 
 
 #
@@ -147,6 +147,14 @@ Queue/RED/RIO set out_prob1_ 0.0
 Queue/RED/RIO set curq_ 0
 Queue/RED/RIO set priority_method_ 0
 
+#for RedPDQueue - ratul
+Queue/RED/PD set auto_ false
+Queue/RED/PD set global_target_ false
+Queue/RED/PD set noMonitored_ 0
+Queue/RED/PD set targetBW_ 0
+Queue/RED/PD set unresponsive_penalty_ 2
+Queue/RED/PD set P_testFRp_ -1
+
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
 Queue/DRR set quantum_ 250
@@ -184,21 +192,47 @@ QueueMonitor set pdepartures_ 0
 QueueMonitor set bdepartures_ 0
 QueueMonitor set pdrops_ 0
 QueueMonitor set bdrops_ 0
+
+#added for online rate monitoring - ratul
+QueueMonitor set k_ 0.1
+QueueMonitor set prevTime_ 0
+QueueMonitor set startTime_ 0
+QueueMonitor set estRate_ 0
+QueueMonitor set estimate_rate_ 0
+
 QueueMonitor/ED set epdrops_ 0
 QueueMonitor/ED set ebdrops_ 0
+
+#mon stuff added for RedPD and Pushback - ratul
+QueueMonitor/ED set mon_epdrops_ 0                     
+QueueMonitor/ED set mon_ebdrops_ 0
+
 QueueMonitor/ED/Flowmon set enable_in_ true
 QueueMonitor/ED/Flowmon set enable_out_ true
 QueueMonitor/ED/Flowmon set enable_drop_ true
 QueueMonitor/ED/Flowmon set enable_edrop_ true
+QueueMonitor/ED/Flowmon set enable_mon_edrop_ true
+
 QueueMonitor/ED/Flow set src_ -1
 QueueMonitor/ED/Flow set dst_ -1
 QueueMonitor/ED/Flow set flowid_ -1
+
 QueueMonitor/ED/Flow/TB set target_rate_ 128000 
 QueueMonitor/ED/Flow/TB set bucket_depth_ 10000
 QueueMonitor/ED/Flow/TB set tbucket_ 10000
 QueueMonitor/ED/Flow/TSW set target_rate_ 0
 QueueMonitor/ED/Flow/TSW set win_len_ 10
 QueueMonitor/ED/Flow/TSW set wait_ true
+
+#RedPDFlow  - ratul
+QueueMonitor/ED/Flow/RedPD set targetBW_ 0
+QueueMonitor/ED/Flow/RedPD set currentBW_ 0
+QueueMonitor/ED/Flow/RedPD set monitored_ 0
+QueueMonitor/ED/Flow/RedPD set unresponsive_ 0
+QueueMonitor/ED/Flow/RedPD set monitorStartTime_ 0
+QueueMonitor/ED/Flow/RedPD set unresponsiveStartTime_ 0
+QueueMonitor/ED/Flow/RedPD set lastDropTime_ 0 
+QueueMonitor/ED/Flow/RedPD set auto_ 0 
 
 DelayLink set bandwidth_ 1.5Mb
 DelayLink set delay_ 100ms
@@ -210,6 +244,8 @@ DynamicLink set debug_ false
 Filter set debug_ false
 Filter/Field set offset_ 0
 Filter/Field set match_  -1
+
+
 
 # these are assigned when created
 Classifier set offset_ 0
@@ -388,6 +424,10 @@ AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
 Simulator set node_factory_ Node
 Simulator set nsv1flag 0
 Simulator set mobile_ip_ 0			 ;# flag for mobileIP
+
+#this was commented out - ratul
+#Simulator set EnableHierRt_ 0   ;# is hierarchical routing on?  (to turn it on, call set-hieraddress)
+
 Simulator set routingAgent_ ""
 Simulator set addressType_   ""
 Simulator set MovementTrace_ OFF

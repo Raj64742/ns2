@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.3 2000/09/07 19:56:07 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.4 2000/11/17 22:10:37 ratul Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -30,9 +30,9 @@ PagePool/WebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size } {
 	set ns [Simulator instance]
 
 #	modified for web traffic flow trace. 
-#	puts "launch request $id : [$clnt id] -> [$svr id] size $size at [$ns now]"
-#	puts "  client: $ctcp $csnk"
-#	puts "  server: $stcp $ssnk"
+# 	puts "launch request $id : [$clnt id] -> [$svr id] size $size at [$ns now]"
+# 	puts "  client: $ctcp $csnk"
+# 	puts "  server: $stcp $ssnk"
 
 	$ns attach-agent $clnt $ctcp
 	$ns attach-agent $svr $csnk

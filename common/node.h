@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.26 2000/09/14 18:19:25 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.27 2000/11/17 22:10:33 ratul Exp $
  */
 
 /*
@@ -99,6 +99,10 @@ protected:
 
 LIST_HEAD(node_head, Node); // declare list head structure 
 
+//declare the neighbor list structure
+//added for pushback, but should be useful otherwise also.
+LIST_HEAD(node_neighbor, Node);
+
 // Size of the buffer for dumping nam traces.
 const int NODE_NAMLOG_BUFSZ = 256;
 
@@ -129,6 +133,9 @@ public:
 		return linklisthead_; 
 	}
 	
+	LIST_ENTRY(Node) neighbor_list_entry_;
+	struct node_neighbor neighbor_list_;
+
 	static Node* get_node_by_address(nsaddr_t);
 
 protected:

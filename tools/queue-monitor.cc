@@ -34,11 +34,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.22 2000/09/01 03:04:06 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.23 2000/11/17 22:10:33 ratul Exp $";
 #endif
 
 #include "queue-monitor.h"
 #include "trace.h"
+#include <math.h>
 
 int QueueMonitor::command(int argc, const char*const* argv)
 {
@@ -140,6 +141,14 @@ void QueueMonitor::in(Packet* p)
 	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
+       	//if enabled estimate rate now
+	if (estimate_rate_) {
+		estimateRate(p);
+	}
+	else {
+		prevTime_ = now;
+	}
+
 	barrivals_ += pktsz;
 	parrivals_++;
 	size_ += pktsz;
@@ -152,6 +161,7 @@ void QueueMonitor::in(Packet* p)
 		hdr->timestamp() = now;
 	if (channel_)
 		printStats();
+
 }
 
 void QueueMonitor::out(Packet* p)
@@ -191,6 +201,34 @@ void QueueMonitor::drop(Packet* p)
 	if (channel_)
 		printStats();
 }
+
+// The procedure to estimate the rate of the incoming traffic
+void QueueMonitor::estimateRate(Packet *pkt) {
+	
+	hdr_cmn* hdr  = hdr_cmn::access(pkt);
+	int pktSize   = hdr->size() << 3; /* length of the packet in bits */
+
+	double now = Scheduler::instance().clock();
+	double timeGap = ( now - prevTime_);
+
+	if (timeGap == 0) {
+		temp_size_ += pktSize;
+		return;
+	}
+	else {
+		pktSize+= temp_size_;
+		temp_size_ = 0;
+	}
+	
+	prevTime_ = now;
+	
+	estRate_ = (1 - exp(-timeGap/k_))*((double)pktSize)/timeGap + exp(-timeGap/k_)*estRate_;
+}
+
+/* ##############
+ * Tcl Stuff
+ * ##############
+ */
 
 static class SnoopQueueInClass : public TclClass {
 public:
@@ -241,11 +279,13 @@ public:
 	}
 } queue_monitor_ed_class;
 
-/*
+
+/* ############################################################
  * a 'QueueMonitorCompat', which is used by the compat
  * code to produce the link statistics used available in ns-1
  *
  * in ns-1, the counters are the number of departures
+ * ############################################################
  */
 
 #include "ip.h"

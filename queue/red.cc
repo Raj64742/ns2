@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.54 2000/10/05 21:25:34 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.55 2000/11/17 22:10:33 ratul Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -488,10 +488,13 @@ void REDQueue::enque(Packet* pkt)
 			if (EDTrace != NULL) 
 				((Trace *)EDTrace)->recvOnly(pkt);
 
+			reportDrop(pkt);
 			de_drop_->recv(pkt);
 		}
-		else
+		else {
+			reportDrop(pkt);
 			drop(pkt);
+		}
 	} else {
 		/* forced drop, or not a drop: first enqueue pkt */
 		q_->enque(pkt);
@@ -502,7 +505,10 @@ void REDQueue::enque(Packet* pkt)
 			/* drop random victim or last one */
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
+
 			bcount_ -= hdr_cmn::access(pkt)->size();
+			reportDrop(pkt);
+
 			drop(pkt);
 			if (!ns1_compat_) {
 				// bug-fix from Philip Liu, <phill@ece.ubc.ca>

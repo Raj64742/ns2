@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.21 2000/09/01 03:04:05 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.22 2000/11/17 22:10:33 ratul Exp $ (LBL)";
 #endif
 
 //
@@ -43,124 +43,7 @@ static const char rcsid[] =
 // object framework -KF
 //
 
-#include <stdlib.h>
-#include "config.h"
-#include "queue-monitor.h"
-#include "classifier.h"
-#include "ip.h"
-#include "flags.h"
-#include "random.h"
-
-// for convenience, we need most of the stuff in a QueueMonitor
-// plus some flow info which looks like pkt header info
-
-class Flow : public EDQueueMonitor {
-public:
-	Flow() : src_(-1), dst_(-1), fid_(-1), type_(PT_NTYPE) {
-		bind("src_", &src_);
-		bind("dst_", &dst_);
-		bind("flowid_", &fid_);
-	}
-	nsaddr_t src() const { return (src_); }
-	nsaddr_t dst() const { return (dst_); }
-	int flowid() const { return (fid_); }
-	packet_t ptype() const { return (type_); }
-	void setfields(Packet *p) {
-		hdr_ip* hdr = hdr_ip::access(p);
-		hdr_cmn* chdr = hdr_cmn::access(p);
-		src_ = hdr->saddr();
-		dst_ = hdr->daddr();
-		fid_ = hdr->flowid();
-		type_ = chdr->ptype();
-	}
-	virtual void tagging(Packet *) {}
-protected:
-	nsaddr_t	src_;
-	nsaddr_t	dst_;
-	int		fid_;
-	packet_t	type_;
-};
-
-/* TaggerTBFlow will use Token Bucket to check whehter the data flow stays in
- * the pre-set profile and mark it as In or Out accordingly.
- * By Yun Wang, based on Wenjia's algorithm.
- */
-class TaggerTBFlow : public Flow {
-public:
-	TaggerTBFlow() : target_rate_(0.0), time_last_sent_(0.0),
-			total_in(0.0), total_out(0.0)
-	{
-		bind_bw("target_rate_", &target_rate_);
-		bind("bucket_depth_", &bucket_depth_);
-		bind("tbucket_", &tbucket_);
-	}
-	void tagging(Packet *p) {
-	    hdr_cmn* hdr = hdr_cmn::access(p);
-            double now = Scheduler::instance().clock();
-            double time_elapsed;
-
-            time_elapsed      = now - time_last_sent_;
-            tbucket_ += time_elapsed * target_rate_ / 8.0;
-            if (tbucket_ > bucket_depth_)
-                tbucket_ = bucket_depth_;         /* never overflow */
-
-      	    if ((double)hdr->size_ < tbucket_ ) {
-		hdr_flags::access(p)->pri_=1; //Tag the packet as In.
-          	tbucket_ -= hdr->size_;
-                total_in += 1;
-            }
-      	    else {
-                total_out += 1;
-      	    }
-	    time_last_sent_ = now;
-	}
-protected:
-	/* User defined parameters */
-	double	target_rate_;		//predefined flow rate in bytes/sec
-	double	bucket_depth_;		//depth of the token bucket
-
-	double 	tbucket_;
-	/* Dynamic state variables */
-	double 	time_last_sent_;
-	double	total_in;
-	double	total_out;
-};
-
-/* TaggerTSWFlow will use Time Slide Window to check whehter the data flow 
- * stays in the pre-set profile and mark it as In or Out accordingly.
- * By Yun Wang, based on Wenjia's algorithm.
- */
-class TaggerTSWFlow : public Flow {
-public:
-	TaggerTSWFlow() : target_rate_(0.0), avg_rate_(0.0), 
-			t_front_(0.0), total_in(0.0), total_out(0.0) 
-	{
-		bind_bw("target_rate_", &target_rate_);
-		bind("win_len_", &win_len_);
-		bind_bool("wait_", &wait_);
-	}
-	void tagging(Packet *);
-	void run_rate_estimator(Packet *p, double now){
-
-	        hdr_cmn* hdr = hdr_cmn::access(p);
-		double bytes_in_tsw = avg_rate_ * win_len_;
-		double new_bytes    = bytes_in_tsw + hdr->size_;
-		avg_rate_ = new_bytes / (now - t_front_ + win_len_);
-		t_front_  = now;
-	}
-protected:
-	/* User-defined parameters. */
-	double	target_rate_;		//predefined flow rate in bytes/sec
-	double	win_len_;		//length of the slide window
-	double	avg_rate_;		//average rate
-	double	t_front_;
-	int	count;
-	int	wait_;
-
-	/* Counters for In/Out packets. */
-	double 	total_in;
-	double 	total_out;
-};
+#include "flowmon.h"
 
 void TaggerTSWFlow::tagging(Packet *pkt)
 {
@@ -222,26 +105,10 @@ void TaggerTSWFlow::tagging(Packet *pkt)
         }
 };
 
-/* Tagger performes like the queue monitor with a classifier
- * to demux by flow and mark the packets based on the flow profile
+/* ####################################
+ * Methods for Tagger
+ * ####################################
  */
-class Tagger : public EDQueueMonitor {
-public:
-	Tagger() : classifier_(NULL), channel_(NULL) {}
-	void in(Packet *);
-	int command(int argc, const char*const* argv);
-protected:
-        void    dumpflows();
-        void    dumpflow(Tcl_Channel, Flow*);
-        void    fformat(Flow*);
-        char*   flow_list();
-
-        Classifier*     classifier_;
-        Tcl_Channel     channel_;
-
-        char    wrk_[2048];     // big enough to hold flow list
-};
-
 void
 Tagger::in(Packet *p)
 {
@@ -380,37 +247,13 @@ Tagger::command(int argc, const char*const* argv)
         return (EDQueueMonitor::command(argc, argv));
 }
 
-/*
- * flow monitoring is performed like queue-monitoring with
- * a classifier to demux by flow
+/* ####################################
+ * Methods for FlowMon
+ * ####################################
  */
 
-class FlowMon : public EDQueueMonitor {
-public:
-	FlowMon();
-	void in(Packet*);	// arrivals
-	void out(Packet*);	// departures
-	void drop(Packet*);	// all drops (incl 
-	void edrop(Packet*);	// "early" drops
-	int command(int argc, const char*const* argv);
-protected:
-	void	dumpflows();
-	void	dumpflow(Tcl_Channel, Flow*);
-	void	fformat(Flow*);
-	char*	flow_list();
-
-	Classifier*	classifier_;
-	Tcl_Channel	channel_;
-
-	int enable_in_;		// enable per-flow arrival state
-	int enable_out_;	// enable per-flow depart state
-	int enable_drop_;	// enable per-flow drop state
-	int enable_edrop_;	// enable per-flow edrop state
-	char	wrk_[2048];	// big enough to hold flow list
-};
-
 FlowMon::FlowMon() : classifier_(NULL), channel_(NULL),
-	enable_in_(1), enable_out_(1), enable_drop_(1), enable_edrop_(1)
+	enable_in_(1), enable_out_(1), enable_drop_(1), enable_edrop_(1), enable_mon_edrop_(1)
 {
 	bind_bool("enable_in_", &enable_in_);
 	bind_bool("enable_out_", &enable_out_);
@@ -422,14 +265,16 @@ void
 FlowMon::in(Packet *p)
 {
 	Flow* desc;
+
 	EDQueueMonitor::in(p);
 	if (!enable_in_)
 		return;
-	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
+	if ((desc = ((Flow *)classifier_->find(p))) != NULL) {
 		desc->setfields(p);
 		desc->in(p);
 	}
 }
+
 void
 FlowMon::out(Packet *p)
 {
@@ -469,6 +314,20 @@ FlowMon::edrop(Packet *p)
 	}
 }
 
+//added for monitored early drops - ratul
+void
+FlowMon::mon_edrop(Packet *p)
+{
+	Flow* desc;
+	EDQueueMonitor::mon_edrop(p);
+	if (!enable_mon_edrop_)
+		return;
+	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
+		desc->setfields(p);
+		desc->mon_edrop(p);
+	}
+}
+
 void
 FlowMon::dumpflows()
 {
@@ -491,11 +350,14 @@ FlowMon::flow_list()
 	register char* q;
 	q = p + sizeof(wrk_) - 2;
 	*p = '\0';
+
 	for (i = 0; i <= j; i++) {
 		if ((f = (Flow*)classifier_->slot(i)) != NULL) {
+			
 			z = f->name();
-			while (*z && p < q)
+			while (*z && p < q) {
 				*p++ = *z++;
+			}
 			*p++ = ' ';
 		}
 		if (p >= q) {
@@ -570,6 +432,7 @@ FlowMon::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "flows") == 0) {
+			//	printf("command says gimme flow list\n");
 			tcl.result(flow_list());
 			return (TCL_OK);
 		}
@@ -597,6 +460,10 @@ FlowMon::command(int argc, const char*const* argv)
 	return (EDQueueMonitor::command(argc, argv));
 }
 
+/*#####################################
+ * Tcl Stuff
+ *#####################################
+ */
 static class FlowMonitorClass : public TclClass {
  public:
 	FlowMonitorClass() : TclClass("QueueMonitor/ED/Flowmon") {}

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.207 2000/11/14 02:15:00 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.208 2000/11/17 22:10:33 ratul Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -170,7 +170,13 @@ OBJ_CC = \
 	mpls/classifier-addr-mpls.o mpls/ldp.o mpls/mpls-module.o \
 	rtmodule.o classifier-hier.o addr-params.o \
 	diffserv/dsred.o diffserv/dsEdge.o diffserv/dsCore.o diffserv/dsPolicy.o diffserv/dsredq.o \
+	red-pd.o \
+	pushback/rate-limit.o pushback/rate-limit-strategy.o \
+	pushback/ident-tree.o pushback/agg-spec.o \
+	pushback/logging-data-struct.o pushback/rate-estimator.o \
+	pushback/pushback-queue.o pushback/pushback.o \
 	@V_STLOBJ@
+
 
 # don't allow comments to follow continuation lines
 
@@ -315,6 +321,7 @@ NS_TCL_LIB = \
 	tcl/mpls/ns-mpls-ldpagent.tcl \
 	tcl/mpls/ns-mpls-node.tcl \
 	tcl/mpls/ns-mpls-simulator.tcl \
+	tcl/lib/ns-pushback.tcl \
 	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.213 2000/11/02 04:02:10 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.214 2000/11/17 22:10:37 ratul Exp $
 
 #
 # Word of warning to developers:
@@ -191,6 +191,9 @@ source ../mpls/ns-mpls-classifier.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
+
+#pushback
+source ns-pushback.tcl
 
 # Obsolete modules
 #source ns-wireless-mip.tcl
@@ -444,6 +447,10 @@ Simulator instproc node args {
 	# before all related code are wiped out.
 	set node [eval new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
+	
+	#set the nodeid in c++ Node - ratul
+	$node nodeid [$node id]
+
 	$node set ns_ $self
 	$self check-node-num
 	return $node

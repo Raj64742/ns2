@@ -30,12 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.20 2000/07/20 00:41:19 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.21 2000/11/17 22:10:37 ratul Exp $
 #
 
 #
 # This file contains auxillary support for CBQ and CBQ links, and
 # some embryonic stuff for Queue Monitors. -KF
+#
+
+# Also contains some support for queue tracing and 
+# procs for some queues like FQ and RED/PD
 #
 
 #
@@ -326,9 +330,11 @@ QueueMonitor instproc reset {} {
 
 QueueMonitor/ED instproc reset {} {
 	$self next
-	$self instvar epdrops_ ebdrops_
+	$self instvar epdrops_ ebdrops_ mon_epdrops_ mon_ebdrops_
 	set epdrops_ 0
 	set ebdrops_ 0
+	set mon_epdrops_ 0
+	set mon_ebdrops_ 0
 }
 
 Class AckReconsClass -superclass Agent
@@ -436,48 +442,48 @@ FQLink instproc up? { } {
 	return up
 }
 
-# #
-# #Added by ratul for RedPDQueue
-# #
-# Queue/RED/PD instproc makeflowmon { link {cltype "SrcDestFid"} {cslots 29}} {
+#
+#Added by ratul for RedPDQueue
+#
+Queue/RED/PD instproc makeflowmon { link {cltype "SrcDestFid"} {cslots 29}} {
 
-#     set flowmon [new QueueMonitor/ED/Flowmon]
-#     set cl [new Classifier/Hash/$cltype $cslots]
+    set flowmon [new QueueMonitor/ED/Flowmon]
+    set cl [new Classifier/Hash/$cltype $cslots]
     
-#     $cl proc unknown-flow { src dst fid } {
-# 	set nflow [new QueueMonitor/ED/Flow/RedPD]
-# 	set slot [$self installNext $nflow]
-# 	#     	puts "New Flow : $nflow at slot $slot"
-# 	$self set-hash auto $src $dst $fid $slot
-# 	#     	puts "Installed It\n";
-#     }
+    $cl proc unknown-flow { src dst fid } {
+	set nflow [new QueueMonitor/ED/Flow/RedPD]
+	set slot [$self installNext $nflow]
+	#     	puts "New Flow : $nflow at slot $slot"
+	$self set-hash auto $src $dst $fid $slot
+	#     	puts "Installed It\n";
+    }
     
-#     $cl proc no-slot slotnum {
-# 	puts stderr "classifier $self, no-slot for slotnum $slotnum"
-#     }
+    $cl proc no-slot slotnum {
+	puts stderr "classifier $self, no-slot for slotnum $slotnum"
+    }
     
-#     $flowmon classifier $cl
-#     $self attach-flowmon $flowmon
+    $flowmon classifier $cl
+    $self attach-flowmon $flowmon
     
-#     set isnoop [new SnoopQueue/In]
-#     set osnoop [new SnoopQueue/Out]
-#     set dsnoop [new SnoopQueue/Drop]
-#     set edsnoop [new SnoopQueue/EDrop]
+    set isnoop [new SnoopQueue/In]
+    set osnoop [new SnoopQueue/Out]
+    set dsnoop [new SnoopQueue/Drop]
+    set edsnoop [new SnoopQueue/EDrop]
     
-#     $link attach-monitors $isnoop $osnoop $dsnoop $flowmon
-#     $edsnoop set-monitor $flowmon
-#     $self early-drop-target $edsnoop 
-#     set ns [Simulator instance]
-#     $edsnoop target [$ns set nullAgent_]
+    $link attach-monitors $isnoop $osnoop $dsnoop $flowmon
+    $edsnoop set-monitor $flowmon
+    $self early-drop-target $edsnoop 
+    set ns [Simulator instance]
+    $edsnoop target [$ns set nullAgent_]
 	
-#     # $edsnoop target [$dsnoop target]
-#     # $edsnoop drop-target [$dsnoop drop-target]
+    # $edsnoop target [$dsnoop target]
+    # $edsnoop drop-target [$dsnoop drop-target]
  
-#     $self drop-target $dsnoop
+    $self drop-target $dsnoop
     
-#     return $flowmon
+    return $flowmon
 
-# }	
+}	
 
 #############################################################
 # Stuff below has been added to enable queue specific tracing
@@ -505,7 +511,6 @@ Queue instproc attach-traces {src dst file {op ""}} {
 	#Do nothing here
 }
 
-
 #
 # Added to be able to trace the edrop events 
 #
@@ -519,10 +524,11 @@ Queue/RED instproc attach-traces {src dst file {op ""}} {
 		set type "Drop"
 	}
 	
+	#puts "In attach-trace: $type"
+
 	set newtrace [$ns create-trace $type $file $src $dst $op]
-	
-	#    puts "In attach-trace"
 	set oldTrace [$self edrop-trace]
+
 	#    puts "oldTrace - $oldTrace"
 	if {$oldTrace!=0} {
 		#	puts "exists"
@@ -535,33 +541,33 @@ Queue/RED instproc attach-traces {src dst file {op ""}} {
 	$self edrop-trace $newtrace
 }
 
-# #
-# # Added to be able to trace the mon_edrop and edrop events
-# #
-# Queue/RED/PD instproc attach-traces {src dst file {op ""}} {
+#
+# Added to be able to trace the mon_edrop and edrop events
+#
+Queue/RED/PD instproc attach-traces {src dst file {op ""}} {
 
-#     $self next $src $dst $file $op
-
-#     set ns [Simulator instance]
-#     set type [$self mon-trace-type]
-    
-#     #nam does not understand anything else yet
-#     if {$op == "nam"} {
-# 	set type "Drop"
-#     }
-
-#     set medtrace [$ns create-trace $type $file $src $dst $op]
-    
-#     set oldTrace [$self mon-edrop-trace]
-#     if {$oldTrace!=0} {
-# 	puts "exists"
-# 	$medtrace target $oldTrace
-#     } else {
-# 	puts "Does not exist"
-# 	$medtrace target [$ns set nullAgent_]
-#     }
-
-#     $self mon-edrop-trace $medtrace
-
-# }
+	$self next $src $dst $file $op
+	
+	set ns [Simulator instance]
+	set type [$self mon-trace-type]
+	
+	#nam does not understand anything else yet
+	if {$op == "nam"} {
+		set type "Drop"
+	}
+	
+	set medtrace [$ns create-trace $type $file $src $dst $op]
+	
+	set oldTrace [$self mon-edrop-trace]
+	if {$oldTrace!=0} {
+		puts "exists"
+		$medtrace target $oldTrace
+	} else {
+		#	puts "Does not exist"
+		$medtrace target [$ns set nullAgent_]
+	}
+	
+	$self mon-edrop-trace $medtrace
+	
+}
 
