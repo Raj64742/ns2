@@ -157,7 +157,7 @@ class aodv_rtable {
         aodv_rt_entry*       rt_lookup(nsaddr_t id);
 
  private:
-        LIST_HEAD(, aodv_rt_entry) rthead;
+        LIST_HEAD(aodv_rthead, aodv_rt_entry) rthead;
 };
 
 #endif /* _aodv__rtable_h__ */
