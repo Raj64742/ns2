@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-v2.tcl,v 1.1 1997/03/28 20:12:03 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-v2.tcl,v 1.2 1997/03/28 20:24:16 tomh Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -343,7 +343,6 @@ proc test_bug {} {
 	set ftp2 [$tcp2 attach-source FTP]
 	
 	$ns at 1.0 "$ftp1 start"
-#	$ns at 1.0 "$ftp2 start"
 	$ns at 1.75 "$ftp2 produce 100"
 
 	$ns tcpDump $tcp1 1.0
