@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.273 1998/08/11 20:16:15 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.274 1998/08/14 20:39:31 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,16 @@
     Release of ns-2.1b4<a> on [PENDING]</h3>
     <p>
     <UL>    
+  <LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B>
+        <b>Fri Aug 14 13:30:00 PDT 1998</b><br>
+	Removed CBR_Agent; use Application/Traffic/CBR over Agent/UDP now. 
+	Packet type for trace file is now settable from application.  
+	Source changes: agent.h, app.h, cbr_traffic.cc, errmodel.cc, expoo.cc, 
+	ivs.cc, packet.h, pareto.cc, rtp.cc, sa.cc,sa.h,scheduler.cc, telnet.cc,
+	telnet.h, trace.cc, traffictrace.cc, trafgen.cc, udp.h, udp.cc,
+	tcl/lib/ns-default.tcl, tcl/lib/ns-intserv.tcl, tcl/lib/ns-source.tcl.  
+	Removed cbr.h and cbr.cc. 
+
      <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
            <b>Tue Aug 11 13:04:40 PDT 1998</b><br>
 	  Portability fixes for HPUX from 
