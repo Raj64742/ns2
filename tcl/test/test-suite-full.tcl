@@ -86,10 +86,10 @@ TestSuite instproc finish testname {
 			puts "output files are $fname.{p,packs,acks,d,ctrl,es,ecn,cact}"
 			puts "  and $fname.r.{p,packs,acks,d,ctrl,es,ecn,cact}"
 		} else {
-			exec ../../bin/tcpf2xgr $tfile $outtype
+			exec ../../bin/tcpf2xgr $tfile $outtype $testname &
 		}
 	}
-	exec mv $tfile temp.rands; # verification scripts wants stuff in 'temp.rands'
+	exec cp $tfile temp.rands; # verification scripts wants stuff in 'temp.rands'
 }
 
 TestSuite instproc bsdcompat tcp {
