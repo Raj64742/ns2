@@ -148,9 +148,9 @@ Agent/SRM/Adaptive instproc recompute-repair-params {} {
     $self instvar closest_ D1_ D2_ stats_ AveDups_ AveDelay_ eps_
     if {$stats_(ave-rep-delay) < 0} {
 	# This is the very first repair this agent is doing.
-	if {$D1_ != -1 || $D2_ != -1} {
-	    error "invalid repair parameters <$D1_, $D2_>"
-	}
+#	if {$D1_ != -1 || $D2_ != -1} {
+#	    error "invalid repair parameters <$D1_, $D2_>"
+#	}
         set logG [expr log10([$self set groupSize_])]
 	set D1_  $logG
 	set D2_  $logG

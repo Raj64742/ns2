@@ -143,7 +143,11 @@ Agent/SRM instproc repairFunction f {
 	set repairFunction_ $f
 }
 
-set alpha	0.25
+global alpha
+if ![info exists alpha] {
+	set alpha	0.25
+}
+
 proc ewma {ave cur} {
 	if {$ave < 0} {
 		return $cur
