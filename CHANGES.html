@@ -20,6 +20,29 @@ with the most recent changes coming first.
 <ul>
 
 <p><li><b>[Sally Floyd]</b>
+Wed Dec 18 21:24:43 PST 2002
+<br>
+Added oldCode_ for TFRC, for those who want to use the old code that
+does not give good behavior with data-limited applications.
+<p>
+For the new code, added "datalimited_" to identify a data-limited
+application, so that TFRC can send a packet immediately when new data  
+becomes available from the application.  The old code always waited
+for the next send timer to expire.
+<p>
+Also, when a timer expires saying that no status report has been
+received from the receiver, the old code always halved the allowed 
+sending rate.  The new code only halves the allowed sending rate
+when a packet had been sent within the most recent two round-trip
+times, or when the current rate was greater than four pkts per RTT.
+Thus, in the new code, then the timer expires because no packets   
+had been sent by the sender, the allowed sending rate is not reduced
+below two packets per RTT.
+<p> 
+The validation test for these changes is "./test-all-quiescent"
+in the directory tcl/test.
+
+<p><li><b>[Sally Floyd]</b>
 Tue Dec 17 09:27:13 PST 2002
 <br>
 Made a change to the TFRC receiver to add robustness in the presence of
