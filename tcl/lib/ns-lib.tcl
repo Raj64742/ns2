@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.182 1999/10/29 02:15:48 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.183 1999/11/27 19:38:27 yaxu Exp $
 
 #
 
@@ -495,7 +495,7 @@ Simulator instproc create-wireless-node { args } {
         }
 
         if [info exists txPower_] {
-	    $node setPr $txPower_
+	    $node setPt $txPower_
         }
 
         if [info exists rxPower_] {
