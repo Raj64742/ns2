@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.64 1997/11/04 23:27:30 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.65 1997/11/06 02:48:23 kkumar Exp $
 #
 
 #
@@ -133,10 +133,6 @@ Simulator instproc dumper obj {
 	$t target $obj
 	return $t
 }
-
-Simulator set EnableMcast_ 0
-Simulator set McastShift_ 15
-Simulator set McastAddr_ 0x8000
 
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
