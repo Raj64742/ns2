@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.37 1998/05/01 19:06:59 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.38 1998/05/02 01:41:45 kfall Exp $ (LBL)";
 
 #endif
 
@@ -205,7 +205,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	flags[0] = hf->ecn_ ? 'C' : '-';
 	flags[1] = hf->pri_ ? 'P' : '-'; 
 	flags[2] = hf->usr1_ ? '1' : '-';
-	flags[3] = hf->usr2_ ? '2' : '-';
+	flags[3] = '-'; /* usr2 now deprecated */
 	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';
 	flags[5] = hf->fs_ ? 'F' : '-';
 	flags[6] = hf->ecn_capable_ ? 'N' : '-';
