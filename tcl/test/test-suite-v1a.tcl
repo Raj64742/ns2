@@ -10,6 +10,8 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
+Agent/TCP set exitFastRetrans_ false
+#
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -41,7 +43,7 @@ Agent/TCP set singledup_ 0
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1a.tcl,v 1.8 2002/03/08 21:55:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1a.tcl,v 1.9 2003/07/29 20:37:24 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -68,6 +70,7 @@ Agent/TCP set timerfix_ false
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+Agent/TCP set exitFastRetrans_ false
 
 set quiet false
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.22 2003/05/06 04:21:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.23 2003/07/29 20:37:24 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -41,6 +41,7 @@ Agent/TCP/Newreno set newreno_changes1_ 0
 # The default is being changed to 1 on 5/5/03, to reflect RFC 2582.
 Agent/TCP/Newreno set partial_window_deflation_ 0  
 # The default is being changed to 1 on 5/5/03, to reflect RFC 2582.
+Agent/TCP set exitFastRetrans_ false
 
 Trace set show_tcphdr_ 1
 

@@ -54,6 +54,7 @@ Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+Agent/TCP set exitFastRetrans_ false
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 

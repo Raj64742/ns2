@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.30 2003/04/01 23:04:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.31 2003/07/29 20:37:24 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -861,6 +861,7 @@ Test/reno2 instproc init topo {
 	set net_	$topo
 	set defNet_	net0
 	set test_	reno2
+	Agent/TCP set exitFastRetrans_ false
 	set guide_ 	\
 	"Reno TCP, multiple packets dropped, Retransmit Timeout."
 	$self next
@@ -1033,6 +1034,7 @@ Test/reno5_nobug instproc init topo {
 	set guide_	\
 	"Reno TCP, TCP/bugFix_ set to true."
 	Agent/TCP set bugFix_ true
+	Agent/TCP set exitFastRetrans_ false
 	Test/reno5_nobug instproc run {} [Test/reno5 info instbody run ]
 
 	$self next
