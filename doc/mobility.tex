@@ -1213,6 +1213,106 @@ between its HA and a FA. The HA and FA are each connected to a wired
 domain on one side and to their wireless domains on the other. TCP flows
 are set up between the MH and a wired node. 
 
+
+\section{Lists of changes for merging code developed in older version of ns (2.1b5 or later) into the current version (2.1b8) }
+\label{old-merge}
+
+The CMU-wireless model developed by David Johnhson's Monarch project was merged into ns around 1998-99 in what was then the ns-2.1b5 version. Since then the ns versions used by Monarch and by us here at ISI have forked quite a bit. Recently we ported a newer version of DSR developed by the Monarch group back into ns and in the process have created a list of changes that were required to be made for the merge. Hopefully this list will be helpful for those who have been working on older versions of ns from around that time or or later, to have their stuff merged in to the current version of ns-2.1b8. 
+
+The following lists of changes are required for merging the cmu version of ns (2.1b5) in to current version of 2.1b8. Each change is followed by a brief explanation for why the change was made.
+
+\begin{flushleft}
+
+Methods for accessing pkt hdrs have changed from \\
+\code{(hdr_sr *)p->access(off_sr) } \\
+to a static access method defined for each hdr, as \\
+\code{hdr_sr::access(p)} \\
+where for class hdr\_sr a static method \code{access()} is defined as
+\begin{program}
+ inline static hdr_sr* access(const Packet* p) {
+		 return (hdr_sr*)p->access(offset_); 
+ }
+\end{program}
+\code{why:} This change avoids using casts everywhere.
+
+
+As the method for accessing hdrs have changed, there is no need to explicitly bind the hdr offset values. This is now done while establishing tcl linkage for the individual hdr classes.
+so lines like \\
+\code{bind("off_SR_", &off_sr_);}\\	
+  \code{bind("off_ll_", &off_ll_);}\\
+  \code{bind("off_mac_", &off_mac_);}\\
+  \code{bind("off_ip_", &off_ip_); }\\
+should be removed.
+
+AF\_ enumerations replaced by NS\_AF\_ as in \\
+\code{enum ns_af_enum { NS_AF_NONE, NS_AF_ILINK, NS_AF_INET };}\\
+\code{why:} This avoids header clashes between ns and the OS.
+
+
+The ip hdr (dst/src) address fields that used be integers are now defined as structures called ns\_addr\_t. ns\_addr\_t has 2 members address\_ and port\_ that are both defined as int. 
+Hence lines like \\
+\code{iph->src()} should change to\\
+\code{iph->saddr() & iph->sport();} \\
+Also lines like \\
+\code{dst_ = (IP_BROADCAST << 8) | RT_PORT } \\
+should be replaced by \\
+\code{ dst_.addr_ = IP_BROADCAST;} \\
+\code{dst_.port_ = RT_PORT;} \\
+\code{Why:} This extension supports 32bit addressing.
+
+
+The addrs\_ member for hdr\_sr class has a separate function for returning its value . Thus need to call \code{hsr.addrs()} instead of hsr.addrs.\\
+\code{why:} addrs\_ is now a private variable which is accessed by public function \code{addrs()}.
+
+
+All includes that had absolute paths by using \code{<>} were replaced by \code{""}. Thus\\
+\code{<cmu/dsr/dsragent.h>}\\
+was changed to\\
+\code{"cmu/dsr/dsragent.h"}
+
+
+The tcl command "ip-addr" was changed to "addr".\\
+Other new tcl commands like "node", "port-dmux" and "trace-target" were added.\\
+\code{why:}  Part of support for mobileIP and wired-cum-wireless simulations.
+
+
+Need to convert address in string format into int format; 
+so use\\
+\code{Address::instance().str2addr(argv[2]) }\\
+instead of \\
+\code{atoi(argv[2])}\\
+\code{why:} This is required for supporting hier-addressing/routing.
+
+
+The array \code{packet_names[]} has changed to \code{packet_info.name()}\\
+\code{why:} In order to remove a bunch of \code{#}defines for pkt types, an enumeration called packet\_t now describes all packet types in ns. class p\_info was created that now describes an array name\_ that has replaced packet\_names array used previously.
+
+
+Have to explicitly set direction of new pkts to DOWN before sending them down to the LL.\\
+\code{why:} A variable direction\_ in hdr\_cmn is now used. This is used in the lower layers like LL, mac, phy etc to determine the direction of the pkt flow. All incoming pkts are marked as UP by channel, which should be remarked as DOWN by agents before sending them out into the network again.
+
+
+Instead of \code{logtarget->buffer}, should now call \code{logtarget->pt_->buffer}.\\
+\code{why:} This change reflects support for eventtracing. 
+Tracing has evolved into two types, packet tracing and event tracing.
+Class Trace essentially supports packet tracing. 
+However in addition to the basic tracing properties that it derives from a BaseTrace class, pkt-tracing also requires to inherit some of the Connector class properties as well. Hence pt\_, a basetrace object represents the pure tracing functionalities required for a trace object.
+
+
+The parameter used to describe the reason a pkt was dropped used to be an integer. This was changed to \code{char*}. Hence needed to define different pkt-drop reasons in string formats. \\
+\code{Why:} Allows greater expandibility and flexibility.
+
+
+linkHead changed to dsrLinkHead.\\
+\code{why:} name clashed with linkHead used elsewhere in ns.
+
+
+The older cmu model used an incoming\_ flag added in all pkts to figure out direction of pkt flow in the lower layers like ll, mac etc. Later this was replaced by a variable called direction\_ added in cmn\_hdr. direction value can be set to UP, DOWN or NONE. all pkts created with a DOWN dir by default. \\
+\code{why:} Both these flags were being used which is not really reqd. so incoming\_ flag has been replaced with direction\_.
+
+\end{flushleft}
+
+
 \section{Commands at a glance}
 \label{sec:wirelesscommand}
 
