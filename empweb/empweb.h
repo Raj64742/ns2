@@ -1,6 +1,6 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 //
-// Copyright (c) 1999 by the University of Southern California
+// Copyright (c) 2001 by the University of Southern California
 // All rights reserved.
 //
 // Permission to use, copy, modify, and distribute this software and its
@@ -29,7 +29,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.11 2001/12/03 07:43:48 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.12 2001/12/19 18:57:51 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h

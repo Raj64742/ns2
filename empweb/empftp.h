@@ -1,6 +1,6 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 //
-// Copyright (c) 1999 by the University of Southern California
+// Copyright (c) 2001 by the University of Southern California
 // All rights reserved.
 //
 // Permission to use, copy, modify, and distribute this software and its
@@ -27,7 +27,7 @@
 //
 // Empirical FTP traffic model that simulates FTP traffic based on a set of
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
-// The structure of this file is largely borrowed from empftp.h
+// The structure of this file is largely borrowed from empweb.h
 //
 
 #ifndef ns_empftp_h
