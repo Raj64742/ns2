@@ -143,15 +143,24 @@ CtrMcastComp instproc compute-branch { src group member } {
 
 	set node [$ns set Node_($tmp)]
 	if [$node exists-Rep $src $group] {
-	    if { $oiflist != "" } {
-		[$node set replicator_($src:$group)] insert [lindex $oiflist 0]
+	    set r [$node set replicator_($src:$group)]
+	    if [$r is-active] {
+		### reach merging point
+		if { $oiflist != "" } {
+		    $r insert [lindex $oiflist 0]
+		}
+		return 1
+	    } else {
+		### hasn't reached merging point, so continue to insert the oif
+		if { $oiflist != "" } {
+		    $r insert [lindex $oiflist 0]
+		}
 	    }
-	    ### reach merging point
-	    return 1
+	} else {
+	    ### hasn't reached merging point, so keep creating (S,G) like a graft
+	    $node add-mfc $src $group $iif $oiflist
 	}
 
-	### hasn't reached merging point, so keep creating (S,G) like a graft
-	$node add-mfc $src $group $iif $oiflist
 	set downstreamtmp $tmp
 	set tmp [[$ns upstream-node $tmp $target] id]
     }

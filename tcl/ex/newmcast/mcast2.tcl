@@ -27,14 +27,13 @@ $ns duplex-link-of-interfaces $n2 $n5 1.5Mb 10ms DropTail
 
 ### Start multicast configuration
 DM set PruneTimeout 0.3
-dynamicDM set periodic 0
 dynamicDM set ReportRouteTimeout 0.15
-set mproto dynamicDM
+set mproto CtrMcast
 set mrthandle [$ns mrtproto $mproto  {}]
 ### End of multicast  config
 
 set cbr0 [new Agent/CBR]
-$ns attach-agent $n0 $cbr0
+$ns attach-agent $n1 $cbr0
 $cbr0 set dst_ 0x8002
  
 set rcvr [new Agent/LossMonitor]

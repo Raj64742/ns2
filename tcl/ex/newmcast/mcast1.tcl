@@ -26,13 +26,10 @@ $ns duplex-link-of-interfaces $n1 $n3 1.5Mb 10ms DropTail
 ### CtrMcast : centralized multicast
 ### DM       : static DVMRP (can't adapt to link up/down or node up/down)
 ### dynamicDM: dynamic DVMRP 
-###      dynamic DM set periodic 0: does triggered parent-child table update
-###      dynamic DM set periodic 1: does periodic parent-child table update
 ### pimDM    : PIM dense mode
 
 ### Uncomment following lines to change default
 #DM set PruneTimeout 0.3               ;# default 0.5 (sec)
-#dynamicDM set periodic 1              ;# default = 0 (sec) 
 #dynamicDM set ReportRouteTimeout 0.5  ;# default 1 (sec)
 
 set mproto dynamicDM

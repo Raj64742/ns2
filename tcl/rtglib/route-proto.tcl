@@ -130,8 +130,11 @@ RouteLogic instproc notify {} {
     foreach i [array names rtprotos_] {
 	Agent/rtProto/$i compute-all
     }
-    foreach i [CtrMcastComp info instances] {
-	$i compute-mroutes
+    set ns [Simulator instance]
+    if {[$ns info class] == "MultiSim"} {
+	foreach i [CtrMcastComp info instances] {
+	    $i notify
+	}
     }
 }
 
@@ -392,6 +395,12 @@ rtObject instproc compute-routes { } {
     #			Agent/rtProto/DV handles ifsUp_
     # $changes > 0	if new unicast routes were installed.
     #
+    if {[$ns_ info class] == "MultiSim"} {
+       set magent [[$node_ getArbiter] getType dynamicDM]
+       if {$magent != -1} {
+           $magent check-downstream-list
+       }
+    }
 }
 
 rtObject instproc intf-changed {} {
