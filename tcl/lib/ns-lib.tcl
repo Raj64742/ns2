@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.94 1998/05/04 17:10:59 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.95 1998/05/08 21:44:11 haoboy Exp $
 
 #
 
@@ -466,47 +466,73 @@ Simulator instproc register-nam-lanconfig mlink {
 # A poor hack. :( Any better ideas?
 #
 Simulator instproc register-nam-linkconfig link {
-	$self instvar linkConfigList_ link_
-	if [info exists linkConfigList_] {
-		# Check whether the reverse simplex link is registered,
-		# if so, don't register this link again.
-		# We should have a separate object for duplex link.
-		set i1 [[$link fromNode] id]
-		set i2 [[$link toNode] id]
-		if [info exists link_($i2:$i1)] {
-			set pos [lsearch $linkConfigList_ $link_($i2:$i1)]
-			if {$pos >= 0} {
-				set a1 [$link_($i2:$i1) get-attribute "ORIENTATION"]
-				set a2 [$link get-attribute "ORIENTATION"]
-				if {$a1 == "" && $a2 != ""} {
-					# If this duplex link has not been 
-					# assigned an orientation, do it.
-					set linkConfigList_ \
-					    [lreplace $linkConfigList_ $pos $pos]
-				} else {
-					return
-				}
-			}
+<<<<<<< ns-lib.tcl
+    $self instvar linkConfigList_ link_
+    if [info exists linkConfigList_] {
+	# Check whether the reverse simplex link is registered,
+	# if so, don't register this link again.
+	# We should have a separate object for duplex link.
+	set i1 [[$link fromNode] id]
+	set i2 [[$link toNode] id]
+	if [info exists link_($i2:$i1)] {
+	    set pos [lsearch $linkConfigList_ $link_($i2:$i1)]
+	    if {$pos >= 0} {
+		set a1 [$link_($i2:$i1) get-attribute "ORIENTATION"]
+		set a2 [$link get-attribute "ORIENTATION"]
+		if {$a1 == "" && $a2 != ""} {
+		    # If this duplex link has not been 
+		    # assigned an orientation, do it.
+		    set linkConfigList_ \
+			[lreplace $linkConfigList_ $pos $pos]
+		} else {
+		    return
 		}
-		
-		# Remove $link from list if it's already there
-		set pos [lsearch $linkConfigList_ $link]
-		if {$pos >= 0} {
-			set linkConfigList_ \
-			    [lreplace $linkConfigList_ $pos $pos]
-		}
+	    }
 	}
-	lappend linkConfigList_ $link
+
+	# Remove $link from list if it's already there
+	set pos [lsearch $linkConfigList_ $link]
+	if {$pos >= 0} {
+	    set linkConfigList_ \
+		[lreplace $linkConfigList_ $pos $pos]
+	}
+    }
+    lappend linkConfigList_ $link
+}
+
+#
+# GT-ITM may occasionally generate duplicate links, so we need this check
+# to ensure duplicated links do not appear in nam trace files.
+#
+Simulator instproc remove-nam-linkconfig {i1 i2} {
+	$self instvar linkConfigList_ link_
+	if ![info exists linkConfigList_] {
+		return
+	}
+	set pos [lsearch $linkConfigList_ $link_($i1:$i2)]
+	if {$pos >= 0} {
+		set linkConfigList_ [lreplace $linkConfigList_ $pos $pos]
+		return
+	}
+	set pos [lsearch $linkConfigList_ $link_($i2:$i1)]
+	if {$pos >= 0} {
+		set linkConfigList_ [lreplace $linkConfigList_ $pos $pos]
+	}
 }
 
 Simulator instproc duplex-link { n1 n2 bw delay type } {
+	$self instvar link_
+	set i1 [$n1 id]
+	set i2 [$n2 id]
+	if [info exists link_($i1:$i2)] {
+		$self remove-nam-linkconfig $i1 $i2
+	}
+
 	$self simplex-link $n1 $n2 $bw $delay $type
 	$self simplex-link $n2 $n1 $bw $delay $type
 	
-	# nam only has duplex link. We do a registration here because 
-	# automatic layout doesn't require calling Link::orient.
-	$self instvar link_
-	$self register-nam-linkconfig $link_([$n1 id]:[$n2 id])
+	# nam only has duplex link, so we do a registration here.
+	$self register-nam-linkconfig $link_($i1:$i2)
 }
 
 Simulator instproc duplex-intserv-link { n1 n2 bw pd sched signal adc args } {
