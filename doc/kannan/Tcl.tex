@@ -1011,21 +1011,59 @@ For example, the scripts \Tclf{tcl-object.tcl} or the scripts in
 Such loading and evaluation of scripts is done through objects in the
 \clsref{EmbeddedTcl}{../Tcl/Tcl.h}.
 
-An EmbeddedTcl object is initialised with an OTcl script converted into an
-array of octets.
+The easiest way to extend \ns\ is to add OTcl code
+to either \Tclf{tcl-object.tcl} or through scripts
+in the \nsf{tcl/lib} directory.
+Note that, in the latter case, \ns\ sources
+\nsf{tcl/lib/ns-lib.tcl} automatically, and hence
+the programmer must add a couple of lines to this file
+so that their script will also get automatically sourced by \ns\
+at startup.
+As an example,
+the file \nsf{tcl/mcast/srm.tcl} defines some of the instance procedures
+to run SRM.
+In \nsf{tcl/lib/ns-lib.tcl}, we have the lines:
+\begin{program}
+	source tcl/mcast/srm.tcl
+\end{program}
+to automatically get srm.tcl sourced by \ns\ at startup.
+
+The rest of this subsection illustrate
+how to integrate individual scripts directly into \ns.
+The first step is convert the script into an EmbeddedTcl object.
+The lines below expand ns-lib.tcl and create the EmbeddedTcl object
+instance called \code{et_ns_lib}:
+\begin{program}
+        tclsh bin/tcl-expand.tcl tcl/lib/ns-lib.tcl | \bs
+                               ../Tcl/tcl2c++ et_ns_lib > gen/ns_tcl.cc
+\end{program}
+The script, \xref{\nsf{bin/tcl-expand.tcl}}{../ns-2/tcl-expand.tcl}
+expands \code{ns-lib.tcl} by replacing all \code{source} lines
+with the corresponding source files.
+The program, \xref{\Tclf{tcl2cc.c}}{../Tcl/tcl2c++.c.html},
+converts the OTcl code into an equivalent EmbeddedTcl object, \code{et_ns_lib}.
+
 During initialisation, invoking the method \code{EmebddedTcl::load}
 explicitly evaluates the array.
-
-The program, \xref{\Tclf{tcl2cc.c}}{../Tcl/tcl2c++.c.html},
-converts OTcl code into an equivalent EmbeddedTcl object.
-An example of such OTcl code is \code{tcl-object.tcl},
-its equivalent EmbeddedTcl object is \code{embedded-tclobj.cc}.
-
-\xref{\Tclf{tcl-object.tcl}}{../Tcl/tcl-object.tcl} is evaluated by the method
-\fcnref{\fcn{Tcl::init}}{../Tcl/Tcl.cc}{Tcl::init}, invoked by \code{Tcl_AppInit}.
-Similarly,
-\xref{\nsf{tcl/lib/ns-lib.tcl}}{../ns-2/tcl/lib/ns-lib.tcl}
-is evaluated directly by \code{Tcl_AppInit} in \nsf{ns\_tclsh.cc}.
+\begin{list}{---}{}
+\item
+  \xref{\Tclf{tcl-object.tcl}}{../Tcl/tcl-object.tcl}
+  is evaluated by the method
+  \fcnref{\fcn{Tcl::init}}{../Tcl/Tcl.cc}{Tcl::init};
+  \fcnref{\fcn[]{Tcl\_AppInit}}{../ns-2/tclAppInit.cc}{::Tcl\_AppInit}
+  invokes \fcn[]{Tcl::Init}.
+  The exact command syntax for the load is:
+  \begin{program}
+	et_tclobject.load();
+  \end{program}
+\item
+  Similarly,
+  \xref{\nsf{tcl/lib/ns-lib.tcl}}{../ns-2/tcl/lib/ns-lib.tcl}
+  is evaluated directly by \code{Tcl_AppInit} in \nsf{ns\_tclsh.cc}.
+  \begin{program}
+	et_ns_lib.load();
+  \end{program}
+\end{list}
 
 Two points to note with EmbeddedTcl code are that
 firstly, if the code has an error that is caught during the eval,
@@ -1037,15 +1075,10 @@ changes.
 \section{Class InstVar}
 \label{sec:InstVar}
 
-\danger
 This section describes the internals of the \clsref{InstVar}{../Tcl/Tcl.cc}.
-The entire section should be considered flagged with danger bends.
-
-In this section, we describe instance variables and how they are set up.
-Instance variables are the compiled member
-variables that are also accessible through the interpreter.
-The class Instvar sets up the binding
-between the compiled member variable and the interpreted member variable.
+This class defines the methods and mechanisms to bind
+a C++ member variable in the compiled shadow object
+to a specified OTcl instance variable in the equivalent interpreted object.
 The binding is set up such that the value of the variable can be
 set or accessed either from within the interpreter, or from
 within the compiled code at all times.
@@ -1137,101 +1170,3 @@ within the interpreter.
 ### backup-by-copying-when-linked: t
 ### file-precious-flag: nil
 ### End:
-
-#LaTeX2HTML Version 96.1 : dot.latex2html-init
-#
-
-$MAX_SPLIT_DEPTH = 2;                           #$
-$MAX_LINK_DEPTH = 2;                            #$
-$BOTTOM_NAVIGATION = 1;                         #$
-
-#
-# The \LaTeXe\ commands
-#
-
-sub do_cmd_textasciitilde {
-    join('', '\~', $_[0]);                      #$
-}
-
-#
-# Some from the ifthen package
-#
-sub do_cmd_equal {
-    local($_) = @_;                             #$
-
-    s/$next_pair_pr_rx//o;                      #$
-    local($a) = $&;
-    $a =~ s/$1//g;
-
-    s/$next_pair_pr_rx//o;                      #$
-    local($b) = $&;
-    $b =~ s/$1//g;
-
-    join('', ($a eq $b ? 1 : 0), $_);
-}
-
-sub do_cmd_ifthenelse {
-    local($_) = @_;                             #$
-
-    s/$next_pair_pr_rx//o;                      #$
-    local($a) = $&;
-    $a =~ s/<#$1#>//g;
-
-    s/$next_pair_pr_rx//o;                      #$
-    local($then) = $&;
-
-    s/$next_pair_pr_rx//o;                      #$
-    local($else) = $&;
-
-    join('', ($a eq 1 ? $then : $else), $_);
-}
-
-sub do_cmd_tup {
-    local($_) = @_;                             #$
-    local($rest) = $_;
-    $rest =~ s/$next_pair_pr_rx//o;
-    join('', '&lt;', $&, '&gt;', $rest);
-}
-
-sub do_cmd_danger {
-    join('', '<IMG ALIGN=LEFT ALT="DANGER" SRC="../images/dbend.gif">', $_[0]);
-}                                               #$
-
-&ignore_commands (<<_IGNORED_CMDS_);
-closedanger
-font
-manual
-endgroup
-endgraf
-_IGNORED_CMDS_
-
-sub top_navigation_panel {
-    "$CONTENTS $PREVIOUS_GROUP $PREVIOUS $UP $NEXT $NEXT_GROUP $INDEX"; #$
-}
-
-sub bot_navigation_panel {
-'<hr>List of Indices
-<ul>
-<li> <a href=../ns/CClassIndex.html>C++ classes in <em>ns</em></a>
-<li> <a href=../ns/CFuncIndex.html>C++ functions in <em>ns</em></a>
-<li> <a href=../ns/TclClassIndex.html>Tcl classes in <em>ns</em></a>
-<li> <a href=../ns/TclProcIndex.html>Tcl procedures in <em>ns</em></a>
-<li> <a href=../Tcl/CClassIndex.html>C++ classes in <em>ns/Tcl</em></a>
-<li> <a href=../Tcl/CFuncIndex.html>C++ functions in <em>ns/Tcl</em></a>
-<li> <a href=../Tcl/TclClassIndex.html>Tcl classes in <em>ns/Tcl</em></a>
-<li> <a href=../Tcl/TclProcIndex.html>Tcl procedures in <em>ns/Tcl</em></a>
-</ul><P>
-<a href=../ns.html>The main <em>ns</em> page</a>
-';
-}
-
-### Local Variables:
-### mode: perl
-### comment-column: 60
-### backup-by-copying-when-linked: t
-### file-precious-flag: nil
-### End:
-
-1;      # This must be the last line
-
-

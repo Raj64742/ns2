@@ -2,19 +2,6 @@
 \RequirePackage{html}
 \RequirePackage{alltt}
 
-\RequirePackage[dvips]{graphics}    % Alternative for psfig.
-\DeclareGraphicsRule{.eps.gz}{eps}{.bb}{`zcat #1}
-\DeclareGraphicsRule{.ps.gz}{eps}{.bb}{`zcat #1}
-\DeclareGraphicsRule{.epsf.gz}{eps}{.bb}{`zcat #1}
-\DeclareGraphicsExtensions{.eps, .ps, .epsf, .eps.gz, .ps.gz, .epsf.gz}
-\graphicspath{
-  {./}
-  {../}
-  {./figures/}
-  {../figures/}
-  {/home/caldera/kannan/figures/}
-  }
-
 \evensidemargin       -15pt
 \oddsidemargin        -15pt
 \topmargin            -20pt
@@ -58,14 +45,6 @@
 \newcommand{\href}[3]{\hyperref{#1}{#1 (#2~}{)}{#3}}
 \newcommand{\xref}{\htmladdnormallink}
 
-\font\manual=manfnt
-\def\dbend{{\manual\char127}}
-\def\d@nger{\medbreak\begingroup\clubpenalty=10000%
-  \def\par{\endgraf\endgroup\medbreak} \noindent\hangindent3pc\hangafter=-2%
-  \hbox to0pt{\hskip-\hangindent\dbend\hfill}\normalfont}
-\def\danger{\d@nger}
-\def\closedanger{\endgraf\endgroup}
-
 \def\program{\bgroup%
   \def\;##1;{\hfil;\#{\rmfamily\itshape ##1}}%
   \def\*##1*/{\hfil/*{\rmfamily\itshape ##1}*/}%
@@ -76,9 +55,7 @@
 
 \def\ie{\textit{i.e.}}
 \def\etal{\textit{et\,al}}
-
-\def\|{\bgroup\catcode`\#=11\catcode`\_=11\catcode`\$=11\catcode`\&=11\relax\@|}
-\def\@|#1|{\ttfamily #1\egroup}
+\def\via{\textit{via}}
 
 \def\timestring{\begingroup     % stolen from eplain.tex
    \count0 = \time
