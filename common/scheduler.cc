@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.66 2002/07/09 02:23:33 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.67 2002/07/16 22:28:09 yuri Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.66 2002/07/09 02:23:33 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.67 2002/07/16 22:28:09 yuri Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -224,7 +224,7 @@ int Scheduler::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "at") == 0 ||
 		    strcmp(argv[1], "cancel") == 0) {
 			Event* p = lookup(STRTOUID(argv[2]));
-      if (p != 0) {
+			if (p != 0) {
 				/*XXX make sure it really is an atevent*/
 				cancel(p);
 				AtEvent* ae = (AtEvent*)p;
