@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.23 2000/11/02 22:46:37 johnh Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.24 2001/10/12 00:45:46 buchheim Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -167,18 +167,23 @@ void LLSnoop::recv(Packet *p, Handler *h)
 {
 	Tcl &tcl = Tcl::instance();
 	hdr_ip *iph = hdr_ip::access(p);
-	
+
 	/* get-snoop creates a snoop object if none currently exists */
-	if (h == 0)
+	hdr_cmn *ch = HDR_CMN(p);
+	if(ch->direction() == hdr_cmn::UP) 
+		/* get-snoop creates a snoop object if none currently exists */
 		/* In ns, addresses have ports embedded in them. */
 		tcl.evalf("%s get-snoop %d %d", name(), iph->daddr(),
 			  iph->saddr()); 
-	else
+       
+	else  
 		tcl.evalf("%s get-snoop %d %d", name(), iph->saddr(),
 			  iph->daddr());
 	
 	Snoop *snoop = (Snoop *) TclObject::lookup(tcl.result());
+	
 	snoop->recv(p, h);
+	
 	if (integrate_)
 		tcl.evalf("%s integrate %d %d", name(), iph->saddr(),
 			  iph->daddr());
@@ -192,18 +197,28 @@ void LLSnoop::recv(Packet *p, Handler *h)
  * Call snoop_data() if TCP packet and forward it on if it's an ack.
  */
 void
-Snoop::recv(Packet* p, Handler* h)
-{
-	if (h == 0) {		// from MAC classifier
+Snoop::recv(Packet* p, Handler* h )
+{	
+	
+	hdr_cmn *ch = HDR_CMN(p);	
+	if(ch->direction() == hdr_cmn::UP) {
 		handle((Event *) p);
 		return;
 	}
+	
 	packet_t type = hdr_cmn::access(p)->ptype();
 	/* Put packet (if not ack) in cache after checking, and send it on */
-	if (type == PT_TCP)
+	
+	if (type == PT_TCP) 
 		snoop_data(p);
+	
 	else if (type == PT_ACK)
 		snoop_wired_ack(p);
+	
+	ch->direction() = hdr_cmn::DOWN;  // Ben added
+
+	int seq = hdr_tcp::access(p)->seqno();
+
 	parent_->sendDown(p);	/* vector to LLSnoop's sendto() */
 }
 
@@ -214,6 +229,7 @@ Snoop::recv(Packet* p, Handler* h)
 void
 Snoop::handle(Event *e)
 {
+
 	Packet *p = (Packet *) e;
 	packet_t type = hdr_cmn::access(p)->ptype();
 	//int seq = hdr_tcp::access(p)->seqno();
@@ -226,15 +242,18 @@ Snoop::handle(Event *e)
 		return;
 	}
 
-	if (type == PT_ACK)
-		prop = snoop_ack(p);
+	if (type == PT_ACK) 
+		prop = snoop_ack(p); 
+
 	else if (type == PT_TCP) /* XXX what about TELNET? */
 		snoop_wless_data(p);
 
 	if (prop == SNOOP_PROPAGATE)
 		s.schedule(recvtarget_, e, parent_->delay());
 	else {			// suppress ack
-/*		printf("---- %f suppressing ack %d\n", s.clock(), seq);*/
+		/*		printf("---- %f suppressing ack %d\n", s.clock(), seq);*/
+		
+		int seq = hdr_tcp::access(p)->seqno();
 		Packet::free(p);
 	}
 }
@@ -249,9 +268,8 @@ Snoop::snoop_data(Packet *p)
 	Scheduler &s = Scheduler::instance();
 	int seq = hdr_tcp::access(p)->seqno();
 	int resetPending = 0;
-
-//	printf("%x snoop_data: %f sending packet %d\n", this, s.clock(), seq);
 	
+	//	printf("%x snoop_data: %f sending packet %d\n", this, s.clock(), seq);
 	if (fstate_ & SNOOP_ALIVE && seq == 0)
 		reset();
 	fstate_ |= SNOOP_ALIVE;
@@ -265,6 +283,7 @@ Snoop::snoop_data(Packet *p)
 	 * Only if the ifq is NOT full do we insert, since otherwise we want
 	 * congestion control to kick in.
 	 */
+
 	if (parent_->ifq()->length() < parent_->ifq()->limit()-1)
 		resetPending = snoop_insert(p);
 	if (toutPending_ && resetPending == SNOOP_TAIL) {
@@ -291,9 +310,12 @@ Snoop::snoop_data(Packet *p)
 int
 Snoop::snoop_insert(Packet *p)
 {
+
+
+
 	int i, seq = hdr_tcp::access(p)->seqno(), retval=0;
 
-	if (seq <= lastAck_)
+	if (seq <= lastAck_) 
 		return retval;
 	
 	if (fstate_ & SNOOP_FULL) {
@@ -314,25 +336,36 @@ Snoop::snoop_insert(Packet *p)
 	} else {
 		for (i = buftail_; i != bufhead_; i = next(i)) {
 			hdr_snoop *sh = hdr_snoop::access(pkts_[i]);
-			if (sh->seqno() == seq) {
+			if (sh->seqno() == seq) {  // cached before
+
 				sh->numRxmit() = 0;
-				sh->senderRxmit() = 1;
+				sh->senderRxmit() = 1; //must be a sender retr
 				sh->sndTime() = Scheduler::instance().clock();
 				return SNOOP_TAIL;
-			} else if (sh->seqno() > seq) {
+			} else if (sh->seqno() > seq) { 
+
+				//not cached before, should insert in the middle
+				// find the position it should be: prev(i)
+ 
 				Packet *temp = pkts_[prev(buftail_)];
 				for (int j = buftail_; j != i; j = next(j)) 
 					pkts_[prev(j)] = pkts_[j];
 				i = prev(i);
-				pkts_[i] = temp;
+				pkts_[i] = temp;   // seems not necessary. Ben comments
 				buftail_ = prev(buftail_);
 				break;
 			}
 		}
+
+		// This should not happen, since seq must be > lastSeen, which is 
+		// handled before in the first if.   Ben comments
 		if (i == bufhead_)
 			bufhead_ = next(bufhead_);
 	}
+	
+	// save in the buffer
 	savepkt_(p, seq, i);
+	
 	if (bufhead_ == buftail_)
 		fstate_ |= SNOOP_FULL;
 	/* 
@@ -355,6 +388,7 @@ Snoop::snoop_insert(Packet *p)
 		retval = SNOOP_TAIL;
 	} else
 		lastSeen_ = seq;
+	
 	return retval;
 }
 
@@ -380,6 +414,7 @@ Snoop::snoop_ack(Packet *p)
 	Packet *pkt;
 
 	int ack = hdr_tcp::access(p)->seqno();
+
 	/*
 	 * There are 3 cases:
 	 * 1. lastAck_ > ack.  In this case what has happened is
@@ -394,33 +429,45 @@ Snoop::snoop_ack(Packet *p)
 	 * 3. lastAck_ < ack.  Set lastAck_ = ack, and update
 	 *    the head of the buffer queue. Also clean up ack'd packets.
 	 */
-	if (fstate_ & SNOOP_CLOSED || lastAck_ > ack)
+	if (fstate_ & SNOOP_CLOSED || lastAck_ > ack) 
 		return SNOOP_PROPAGATE;	// send ack onward
+
 	if (lastAck_ == ack) {	
 		/* A duplicate ack; pure window updates don't occur in ns. */
+
 		pkt = pkts_[buftail_];
-		if (pkt == 0)
+		
+		if (pkt == 0) 
 			return SNOOP_PROPAGATE;
+		
 		hdr_snoop *sh = hdr_snoop::access(pkt);
+
 		if (pkt == 0 || sh->seqno() > ack + 1) 
 			/* don't have packet, letting thru' */
-			return SNOOP_PROPAGATE;
+		        return SNOOP_PROPAGATE;
+
 		/* 
 		 * We have the packet: one of 3 possibilities:
 		 * 1. We are not expecting any dupacks (expDupacks_ == 0)
 		 * 2. We are expecting dupacks (expDupacks_ > 0)
 		 * 3. We are in an inconsistent state (expDupacks_ == -1)
 		 */
+
+			
 		if (expDupacks_ == 0) {	// not expecting it
 #define RTX_THRESH 1
+			
 			static int thresh = 0;
-			if (thresh++ < RTX_THRESH) {
+			if (thresh++ < RTX_THRESH) 
 				/* no action if under RTX_THRESH */
 				return SNOOP_PROPAGATE;
-			}
+			
 			thresh = 0;
+			
+			// if the packet is a sender retransmission, pass on
 			if (sh->senderRxmit()) 
 				return SNOOP_PROPAGATE;
+			
 			/*
 			 * Otherwise, not triggered by sender.  If this is
 			 * the first dupack recd., we must determine how many
@@ -428,12 +475,15 @@ Snoop::snoop_ack(Packet *p)
 			 * rexmit the desired packet.  Note that expDupacks_
 			 * will be -1 if we miscount for some reason.
 			 */
+			
+			
 			expDupacks_ = bufhead_ - expNextAck_;
 			if (expDupacks_ < 0)
 				expDupacks_ += SNOOP_MAXWIND;
 			expDupacks_ -= RTX_THRESH + 1;
 			expNextAck_ = next(buftail_);
-			if (sh->numRxmit() == 0)
+
+			if (sh->numRxmit() == 0) 
 				return snoop_rxmit(pkt);
 		} else if (expDupacks_ > 0) {
 			expDupacks_--;
@@ -445,11 +495,15 @@ Snoop::snoop_ack(Packet *p)
 		} else		// let sender deal with it
 			return SNOOP_PROPAGATE;
 	} else {		// a new ack
+
 		fstate_ &= ~SNOOP_NOACK; // have seen at least 1 new ack
+
 		/* free buffers */
 		double sndTime = snoop_cleanbufs_(ack);
+		
 		if (sndTime != -1)
 			snoop_rtt(sndTime);
+
 		expDupacks_ = 0;
 		expNextAck_ = buftail_;
 		lastAck_ = ack;
@@ -569,8 +623,10 @@ Snoop::snoop_cleanbufs_(int ack)
 		// xxx: I think that toutPending_ doesn't need to be freed because snoop didn't allocate it (but I'm not sure).
 		toutPending_ = 0;
 	};
+
 	if (empty_())
 		return sndTime;
+
 	int i = buftail_;
 	do {
 		hdr_snoop *sh = hdr_snoop::access(pkts_[i]);
@@ -596,6 +652,7 @@ Snoop::snoop_cleanbufs_(int ack)
 		hdr_snoop *sh = hdr_snoop::access(pkts_[buftail_]);
 		tailTime_ = sh->sndTime();
 	}
+
 	return sndTime;
 }
 
@@ -651,9 +708,10 @@ int
 Snoop::snoop_qlong()
 {
 	/* For now only instantaneous lengths */
-	if (parent_->ifq()->length() <= 3*parent_->ifq()->limit()/4)
-		return 1;
-	return 0;
+	//	if (parent_->ifq()->length() <= 3*parent_->ifq()->limit()/4)
+	
+	return 1;
+		//	return 0;
 }
 
 /*
@@ -666,12 +724,17 @@ Snoop::snoop_rxmit(Packet *pkt)
 	if (pkt != 0) {
 		hdr_snoop *sh = hdr_snoop::access(pkt);
 		if (sh->numRxmit() < SNOOP_MAX_RXMIT && snoop_qlong()) {
-/*			&& sh->seqno() == lastAck_+1)  */
-
+			/*			&& sh->seqno() == lastAck_+1)  */
+			
 #if 0
 			printf("%f Rxmitting packet %d\n", s.clock(), 
 			       hdr_tcp::access(pkt)->seqno());
 #endif
+			
+			// need to specify direction, in this case, down
+			hdr_cmn *ch = HDR_CMN(pkt);       
+			ch->direction() = hdr_cmn::DOWN;  // Ben added
+
 			sh->sndTime() = s.clock();
 			sh->numRxmit() = sh->numRxmit() + 1;
 			Packet *p = pkt->copy();
@@ -706,8 +769,11 @@ SnoopRxmitHandler::handle(Event *)
 		return;
 	if ((snoop_->bufhead_ != snoop_->buftail_) || 
 	    (snoop_->fstate_ & SNOOP_FULL)) {
-/*		printf("%f timeout\n", Scheduler::instance().clock());*/
+		//		printf("%f Snoop timeout\n", Scheduler::instance().clock());
 		if (snoop_->snoop_rxmit(p) == SNOOP_SUPPRESS)
 			snoop_->expNextAck_ = snoop_->next(snoop_->buftail_);
 	}
 }
+
+
+

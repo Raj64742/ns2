@@ -17,7 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.35 2001/05/30 19:08:06 alefiyah Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.36 2001/10/12 00:45:47 buchheim Exp $
 
 # LanNode----------------------------------------------------
 #
@@ -285,7 +285,8 @@ LanIface instproc init {node lan args} {
 	$ll_ up-target $iface_
 	$ll_ down-target $ifq_
 	$ll_ mac $mac_
-	
+	$ll_ ifq $ifq_
+
 	$ifq_ target $mac_
 	
 	$mac_ up-target $ll_
