@@ -156,7 +156,7 @@ ln -s $CUR_PATH/nam-1/nam nam
 if test -x $CUR_PATH/xgraph/xgraph
 then
     ln -s $CUR_PATH/xgraph/xgraph xgraph
-endif
+fi
 
 echo "Ns-allinone package has been installed successfully !"
 echo "Here are the installation places:"
