@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.321 2003/08/21 18:22:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.322 2003/08/21 20:55:37 haldar Exp $
 
 
 #
@@ -61,7 +61,9 @@ Trace set src_ -1
 Trace set dst_ -1
 Trace set callback_ 0
 Trace set show_tcphdr_ 0
+Trace set show_sctphdr_ 0
 Trace set debug_ false
+
 
 CMUTrace set debug_ false
 CMUTrace set show_sctphdr_ 0
