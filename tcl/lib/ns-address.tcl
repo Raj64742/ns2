@@ -47,13 +47,15 @@
 #
 # Option:1      def (default settings)
 # Synopsis :    set-address-format def
-# Description:  This allows default settings in the following manner:
+# Currently 32 bit address space is the default feature in ns 
+# (OLD) Description:  This allows default settings in the following manner:
 #               * 8bits portid
 #               * 1 bit for mcast and 7 bits nodeid (mcast should be enabled
 #               before Simulator is inited (new Simulator is called)--> leads 
 # 		to unnecessary wasting of 1 bit even if mcast is not set.
-#
-# Option 2:     expanded
+
+# [This is obsoleted by default 32 bit address space]
+# Option 2:     expanded 
 # Synopsis :    set-address-format expanded
 # Description:  This allows to expand the address space from default size 16 
 # 		to 32 with bit allocated to the field in the foll manner:
@@ -204,7 +206,7 @@ Simulator instproc expand-port-field-bits nbits {
 }
 
 Simulator instproc expand-address {} {
-	puts "Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides"
+	puts "Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wide"
 	return
 }
 
