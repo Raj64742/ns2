@@ -30,11 +30,23 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.45 2000/11/01 21:47:59 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.46 2001/03/28 07:16:33 debo Exp $
 #
+
 Class Link
+
+Link set nl_ 0
+
 Link instproc init { src dst } {
 	$self next
+
+	# Debo
+	$self instvar id_
+	set id_ [Link set nl_]
+        Link set nl_ [expr $id_ + 1]
+
+# puts -nonewline "Link " 
+# puts " $id_  init"
 
         #modified for interface code
 	$self instvar trace_ fromNode_ toNode_ color_ oldColor_
@@ -78,6 +90,11 @@ Link instproc cost? {} {
 	}
 	set cost_
 }
+
+# Debo
+Link instproc id {} 	{ $self set id_ }
+Link instproc setid { x } { $self set id_ $x }
+Link instproc bw {} { $self set bandwidth_ }
 
 Link instproc if-label? {} {
 	$self instvar iif_
@@ -206,6 +223,23 @@ SimpleLink instproc enable-mcast {src dst} {
 
         $src add-oif [$self head]  $self
         $dst add-iif [$iif_ label] $self
+}
+
+# Debo
+
+SimpleLink instproc bw {} { 
+	$self instvar link_
+	$link_ set bandwidth_ 
+
+}
+
+SimpleLink instproc delay {} {
+        $self instvar link_
+        $link_ set delay_
+}
+
+SimpleLink instproc qsize {} {
+	[$self queue] set limit_
 }
 
 #

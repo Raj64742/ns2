@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.220 2001/03/07 18:30:03 jahn Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.221 2001/03/28 07:16:33 debo Exp $
 
 #
 # Word of warning to developers:
@@ -39,6 +39,15 @@
 # ns executable.  You need to rebuild ns or explicitly
 # source this code to see changes take effect.
 #
+
+# Debojyoti added this
+
+#set edges_ [new IDs]
+#set connections_ [new IDs]
+
+set slinks_(0:0) 0
+set nconn_ 0 
+set conn_(0) 0:0
 
 proc warn {msg} {
 	global warned_
@@ -194,6 +203,7 @@ source ../mpls/ns-mpls-classifier.tcl
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
 
+
 #pushback
 source ns-pushback.tcl
 
@@ -202,6 +212,10 @@ source ns-pushback.tcl
 #source ns-nam.tcl
 
 Simulator instproc init args {
+
+	# Debojyoti added this 
+	# global edges_ connections_;
+
 	$self create_packetformat
 	$self use-scheduler Calendar
 	$self set nullAgent_ [new Agent/Null]
@@ -740,6 +754,7 @@ Simulator instproc run {} {
 	#
 	# Reset every node, which resets every agent.
 	#
+
 	foreach nn [array names Node_] {
 		$Node_($nn) reset
 		# GFR Additions for NixVector Routing
@@ -747,9 +762,11 @@ Simulator instproc run {} {
 			$Node_($nn) populate-objects
 		}
 	}
+
 	#
 	# Also reset every queue
 	#
+
 	foreach qn [array names link_] {
 		set q [$link_($qn) queue]
 		$q reset
@@ -796,6 +813,10 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	$self instvar link_ queueMap_ nullAgent_
 	set sid [$n1 id]
 	set did [$n2 id]
+
+	# Debo
+	global slink_
+	set slink_($sid:$did) $self
 	
 	if [info exists queueMap_($qtype)] {
 		set qtype $queueMap_($qtype)
@@ -1217,6 +1238,7 @@ Simulator instproc cost {n1 n2 c} {
 
 Simulator instproc attach-agent { node agent } {
 	$node attach $agent
+	$agent set nodeid_ [$node id]
 }
 
 Simulator instproc attach-tbf-agent { node agent tbf } {
@@ -1271,14 +1293,30 @@ Simulator instproc bandwidth { n1 n2 bandwidth {type simplex} } {
 
 #XXX need to check that agents are attached to nodes already
 Simulator instproc connect {src dst} {
+
 	$self simplex-connect $src $dst
 	$self simplex-connect $dst $src
+
+	# Debo
+
+	global nconn_ conn_
+	set sid [$src id]
+        set did [$dst id]
+
+	if {[lindex [split [$src info class] "/"] 1] == "TCP"} {
+		set conn_($nconn_) $sid:$did
+		incr nconn_
+		# set $nconn_ [expr $nconn_ + 1]
+		# puts "Set a connection with id $nconn_ between $sid and $did"
+	}
+
 	return $src
 }
 
 Simulator instproc simplex-connect { src dst } {
 	$src set dst_addr_ [$dst set agent_addr_] 
 	$src set dst_port_ [$dst set agent_port_]
+
 
         # Polly Huang: to support abstract TCP simulations
         if {[lindex [split [$src info class] "/"] 1] == "AbsTCP"} {
