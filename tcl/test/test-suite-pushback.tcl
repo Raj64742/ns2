@@ -135,8 +135,8 @@ TestSuite instproc finishflows {testname maxAggregate} {
         exec touch temp.p
 	for {set i 1} {$i < $maxAggregate + 1 } {incr i} {
                 exec echo "\n\"flow $i" >> temp.p
-                exec awk $awkCode flow=$i maxpkts=$maxpkts temp.s > flow$i
-                exec cat flow$i >> temp.p
+                exec awk $awkCode flow=$i maxpkts=$maxpkts temp.s > flows$i
+                exec cat flows$i >> temp.p
                 exec echo " " >> temp.p
         }
 
@@ -467,95 +467,43 @@ TestSuite instproc setup1 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self instvar maxAggregates_
 
-    set stoptime 35.0
+    set stoptime 50.0
     #set dumptime 5.0
     set dumptime 1.0
     #set stoptime 5.0
     set stoptime1 [expr $stoptime + 1.0]
     set packetsize_ 200
-    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set random_ 0.001
     Application/Traffic/CBR set packetSize_ $packetsize_
 
     set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
     set fmon [$ns_ makeflowmon Fid]
     $ns_ attach-fmon $slink $fmon
 
-    set udp1 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 1]
-    set cbr1_ [$udp1 attach-app Traffic/CBR]
-    $cbr1_ set rate_ 0.12Mb
-    $cbr1_ set random_ 0.005
-
-    set udp2 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 2]
-    set cbr2_ [$udp2 attach-app Traffic/CBR]
-    $cbr2_ set rate_ 0.08Mb
-    $cbr2_ set random_ 0.005
-
-    set udp3 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 3]
-    set cbr3_ [$udp3 attach-app Traffic/CBR]
-    $cbr3_ set rate_ 0.07Mb
-    $cbr3_ set random_ 0.005
-
-    set udp4 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 4]
-    set cbr4_ [$udp4 attach-app Traffic/CBR]
-    $cbr4_ set rate_ 0.05Mb
-    $cbr4_ set random_ 0.005
-
-    set udp5 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 5]
-    set cbr5_ [$udp5 attach-app Traffic/CBR]
-    $cbr5_ set rate_ 0.04Mb
-    $cbr5_ set random_ 0.005
-
-    set udp6 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 6]
-    set cbr6_ [$udp6 attach-app Traffic/CBR]
-    $cbr6_ set rate_ 0.04Mb
-    $cbr6_ set random_ 0.005
-
-    $ns_ at 0.2 "$cbr1_ start"
-    $ns_ at 0.1 "$cbr2_ start"
-    $ns_ at 0.3 "$cbr3_ start"
-    $ns_ at 0.4 "$cbr4_ start"
-    $ns_ at 0.5 "$cbr5_ start"
-    $ns_ at 0.6 "$cbr6_ start"
+    $self new-cbr $node_(s0) $node_(d0) $packetsize_ 0.12Mb 1 0.1 
+    $self new-cbr $node_(s1) $node_(d1) $packetsize_ 0.08Mb 2 0.2
+    $self new-cbr $node_(s1) $node_(d1) $packetsize_ 0.07Mb 3 0.3
+    $self new-cbr $node_(s1) $node_(d1) $packetsize_ 0.06Mb 4 0.4
+    $self new-cbr $node_(s1) $node_(d1) $packetsize_ 0.04Mb 5 0.5
 
     # bad traffic
-    set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 5]
-    set cbr_ [$udp attach-app Traffic/CBR]
-    $cbr_ set rate_ 0.1Mb
-    $cbr_ set random_ 0.001
+    set cbr_ [$self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.09Mb 5 0.0]
 
-    set maxAggregates_ 7
+    set maxAggregates_ 5
 
-    $ns_ at 0.0 "$cbr_ start"
-    $ns_ at 1.0 "$cbr_ set rate_ 0.15Mb"
-    $ns_ at 2.0 "$cbr_ set rate_ 0.2Mb"
-    $ns_ at 3.0 "$cbr_ set rate_ 0.25Mb"
-    $ns_ at 4.0 "$cbr_ set rate_ 0.3Mb"
-    $ns_ at 5.0 "$cbr_ set rate_ 0.35Mb"
-    $ns_ at 6.0 "$cbr_ set rate_ 0.4Mb"
-    $ns_ at 7.0 "$cbr_ set rate_ 0.45Mb"
-    $ns_ at 8.0 "$cbr_ set rate_ 0.5Mb"
-    $ns_ at 9.0 "$cbr_ set rate_ 0.55Mb"
-    $ns_ at 10.0 "$cbr_ set rate_ 0.6Mb"
-    $ns_ at 11.0 "$cbr_ set rate_ 0.65Mb"
-    $ns_ at 12.0 "$cbr_ set rate_ 0.7Mb"
-    $ns_ at 13.0 "$cbr_ set rate_ 0.75Mb"
-    $ns_ at 14.0 "$cbr_ set rate_ 0.8Mb"
-    $ns_ at 15.0 "$cbr_ set rate_ 0.855Mb"
-    $ns_ at 17.0 "$cbr_ set rate_ 0.8Mb"
-    $ns_ at 17.0 "$cbr_ set rate_ 0.75Mb"
-    $ns_ at 18.0 "$cbr_ set rate_ 0.7Mb"
-    $ns_ at 19.0 "$cbr_ set rate_ 0.65Mb"
-    $ns_ at 20.0 "$cbr_ set rate_ 0.6Mb"
-    $ns_ at 21.0 "$cbr_ set rate_ 0.55Mb"
-    $ns_ at 22.0 "$cbr_ set rate_ 0.5Mb"
-    $ns_ at 23.0 "$cbr_ set rate_ 0.45Mb"
-    $ns_ at 24.0 "$cbr_ set rate_ 0.4Mb"
-    $ns_ at 25.0 "$cbr_ set rate_ 0.35Mb"
-    $ns_ at 26.0 "$cbr_ set rate_ 0.3Mb"
-    $ns_ at 27.0 "$cbr_ set rate_ 0.25Mb"
-    $ns_ at 28.0 "$cbr_ set rate_ 0.2Mb"
-    $ns_ at 29.0 "$cbr_ set rate_ 0.15Mb"
-    $ns_ at 30.0 "$cbr_ set rate_ 0.1Mb"
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.1Mb 5 13.0 39.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.1Mb 5 14.0 38.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 15.0 37.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 16.0 36.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 17.0 35.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 18.0 34.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 19.0 33.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 20.0 32.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 21.0 31.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 22.0 30.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 23.0 29.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 24.0 28.0
+    $self new-cbr $node_(s0) $node_(d1) $packetsize_ 0.05Mb 5 25.0 27.0
 
     $self statsDump $dumptime $fmon $packetsize_ 0
     # trace only the bottleneck link
