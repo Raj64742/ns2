@@ -132,11 +132,11 @@ proc sim1 {} {
 	set src3 [create_source $s1 $s4 200]
 		# 500Kb/s CBR
 		$src3 set packetSize_ 190
-		$src3 set interval_ 0.003
+		$src3 set interval_ 0.002
 	set src4 [create_source $s1 $s4 300]
 		# 434Kb/s CBR
-		$src3 set packetSize_ 190
-		$src3 set interval_ 0.0035
+		$src4 set packetSize_ 190
+		$src4 set interval_ 0.0035
 
 	$ns at $start1 "$src1 start"
 	$ns at $start2 "$src2 start"
