@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.87 1998/04/07 23:42:27 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.88 1998/04/09 01:23:24 haldar Exp $
 #
 
 #
@@ -667,8 +667,8 @@ Simulator instproc connect { src dst } {
 	#
 	set srcNode [$src set node_]
 	set dstNode [$dst set node_]
-	$src set dst_ [expr [$dstNode id] << [AddrParams set NodeShift_(1)]  | [$dst port]]
-	$dst set dst_ [expr [$srcNode id] << [AddrParams set NodeShift_(1)] | [$src port]]
+	$src set dst_ [expr [$dstNode id] << [AddrParams set NodeShift_(1)]  | [expr [$dst port] << [AddrParams set PortShift_]]]
+	$dst set dst_ [expr [$srcNode id] << [AddrParams set NodeShift_(1)] | [expr [$src port] << [AddrParams set PortShift_]]]
 	return $src
 }
 
