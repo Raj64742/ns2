@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.20 1997/10/20 21:32:06 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.21 1997/10/21 02:20:32 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.20 1997/10/20 21:32:06 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.21 1997/10/21 02:20:32 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -563,7 +563,9 @@ void RealTimeScheduler::run()
 		}
 		if (p->time_ > now + 0.001) {
 			Tcl_TimerToken token;
-			token = Tcl_CreateTimerHandler(p->time_ - now,
+			// time diff, in millseconds
+			double dmsec = (p->time_ - now) * 1000.;
+			token = Tcl_CreateTimerHandler(int(dmsec),
 						       nullTimer, 0);
 			Tcl_DoOneEvent(0);
 			Tcl_DeleteTimerHandler(token);
