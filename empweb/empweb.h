@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.1 2001/06/11 19:42:22 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.2 2001/06/14 07:16:55 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -51,11 +51,12 @@ class EmpWebTrafPool;
 
 class EmpWebTrafSession : public TimerHandler {
 public: 
-	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id) : 
+	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum, int clientId) : 
 		rvInterPage_(NULL), rvPageSize_(NULL),
 		rvInterObj_(NULL), rvObjSize_(NULL), 
 		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
-		numOfPersConn_(0), usePers_(0),
+		numOfPersConn_(0), usePers_(0), clientId_(clientId),
+		maxNumOfPersConn_(connNum),
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
 		id_(id) {}
 	virtual ~EmpWebTrafSession();
@@ -75,7 +76,17 @@ public:
 	inline int id() const { return id_; }
 	inline EmpWebTrafPool* mgr() { return mgr_; }
 
+        PersConn* lookupPersConn(int client, int server);
+
 	static int LASTPAGE_;
+	inline void setPersOpt(int opt) { usePers_ = opt; }
+	inline int getPersOpt() { return usePers_; }
+	inline void initPersConn() { 
+	       if (getPersOpt() == PERSIST) {
+	           persistConn_ = new PersConn*[maxNumOfPersConn_];  
+	           memset(persistConn_, 0, sizeof(PersConn*)*maxNumOfPersConn_);
+               }
+         }
 
 private:
 	virtual void expire(Event *e = 0);
@@ -87,10 +98,12 @@ private:
 	Node* src_;		// One Web client (source of request) per session
 	int nPage_, curPage_, donePage_;
 	int id_;
+	int clientId_ ;
 
         //modeling HTTP1.1
 	PersConn** persistConn_; 
 	int numOfPersConn_ ;
+	int maxNumOfPersConn_ ;
 	int usePers_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
 };
 
@@ -105,9 +118,10 @@ public:
 		return client_[n];
 	}
 	inline void doneSession(int idx) { 
+
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
 		if (isdebug())
-			printf("deleted session %d\n", idx);
+			printf("deleted session %d \n", idx );
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}

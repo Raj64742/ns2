@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.1 2001/06/11 19:42:22 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.2 2001/06/14 07:16:55 kclan Exp $
 
 #include <tclcl.h>
 
@@ -41,8 +41,8 @@
 
 class EmpWebPage : public TimerHandler {
 public:
-	EmpWebPage(int id, EmpWebTrafSession* sess, int nObj, Node* dst) :
-		id_(id), sess_(sess), nObj_(nObj), curObj_(0), dst_(dst) {}
+	EmpWebPage(int id, EmpWebTrafSession* sess, int nObj, Node* dst, int svrId) :
+		id_(id), sess_(sess), nObj_(nObj), curObj_(0), dst_(dst), svrId_(svrId) {}
 	virtual ~EmpWebPage() {}
 
 	inline void start() {
@@ -51,6 +51,7 @@ public:
 		handle(&event_);
 	}
 	inline int id() const { return id_; }
+	inline int svrId() const { return svrId_; }
 	Node* dst() { return dst_; }
 
 private:
@@ -61,7 +62,7 @@ private:
 		sess_->launchReq(this, LASTOBJ_++, 
 				 (int)ceil(sess_->objSize()->value()),
 				 (int)ceil(sess_->reqSize()->value()));
-//		if (sess_->mgr()->isdebug())
+		if (sess_->mgr()->isdebug())
 			printf("Session %d launched page %d obj %d\n",
 			       sess_->id(), id_, curObj_);
 	}
@@ -84,6 +85,7 @@ private:
 	EmpWebTrafSession* sess_;
 	int nObj_, curObj_;
 	Node* dst_;
+	int svrId_ ;
 	static int LASTOBJ_;
 };
 
@@ -95,6 +97,7 @@ int EmpWebTrafSession::LASTPAGE_ = 1;
 // XXX Must delete this after all pages are done!!
 EmpWebTrafSession::~EmpWebTrafSession() 
 {
+
 	if (donePage_ != curPage_) {
 		fprintf(stderr, "done pages %d != all pages %d\n",
 			donePage_, curPage_);
@@ -104,6 +107,7 @@ EmpWebTrafSession::~EmpWebTrafSession()
 		fprintf(stderr, "EmpWebTrafSession must be idle when deleted.\n");
 		abort();
 	}
+	
 	if (rvInterPage_ != NULL)
 		Tcl::instance().evalf("delete %s", rvInterPage_->name());
 	if (rvPageSize_ != NULL)
@@ -118,6 +122,15 @@ EmpWebTrafSession::~EmpWebTrafSession()
 		Tcl::instance().evalf("delete %s", rvPersistSel_->name());
 	if (rvServerSel_ != NULL)
 		Tcl::instance().evalf("delete %s", rvServerSel_->name());
+
+
+        if ((persistConn_ != NULL) && (getPersOpt() == PERSIST)) {
+            for (int i = 0; i < maxNumOfPersConn_; i++) {
+	      if (persistConn_[i] != NULL) delete persistConn_[i];
+            }
+	    delete []persistConn_;
+        }
+
 }
 
 void EmpWebTrafSession::donePage(void* ClntData) 
@@ -125,26 +138,39 @@ void EmpWebTrafSession::donePage(void* ClntData)
 	if (mgr_->isdebug()) 
 		printf("Session %d done page %d\n", id_, 
 		       ((EmpWebPage*)ClntData)->id());
+
 	delete (EmpWebPage*)ClntData;
 	// If all pages are done, tell my parent to delete myself
-	if (++donePage_ >= nPage_)
-		mgr_->doneSession(id_);
+	if (++donePage_ >= nPage_) {
+	
+            for (int i = 0; i < numOfPersConn_; i++) {
+	      if (persistConn_[i] != NULL) 
+	         // teardown all the persistent connections 
+	         Tcl::instance().evalf("%s teardown-conn %s %s %s %s %s %s", 
+			      mgr_->name(),  
+			      persistConn_[i]->getCNode()->name(), 
+			      persistConn_[i]->getSNode()->name(),
+			      persistConn_[i]->getCTcpAgent()->name(), 
+			      persistConn_[i]->getCTcpSink()->name(), 
+			      persistConn_[i]->getSTcpAgent()->name(),
+			      persistConn_[i]->getSTcpSink()->name());
+            }
+	    
+	    mgr_->doneSession(id_);
+        }
 }
 
 // Launch the current page
 void EmpWebTrafSession::expire(Event *)
 {
 	// Pick destination for this page
-//	Node* dst = mgr_->pickdst();
         int n = int(ceil(serverSel()->value()));
         assert((n >= 0) && (n < mgr()->nSrc_));
         Node* dst = mgr()->server_[n];
 
-	printf("choose server %d\n", n);
-
 	// Make sure page size is not 0!
 	EmpWebPage* pg = new EmpWebPage(LASTPAGE_++, this, 
-				  (int)ceil(rvPageSize_->value()), dst);
+				  (int)ceil(rvPageSize_->value()), dst, n);
 	if (mgr_->isdebug())
 		printf("Session %d starting page %d, curpage %d \n", 
 		       id_, LASTPAGE_-1, curPage_);
@@ -169,18 +195,70 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 
 	EmpWebPage* pg = (EmpWebPage*)ClntData;
 
-	// Choose source and dest TCP agents for both source and destination
-	TcpAgent* ctcp = mgr_->picktcp();
-	TcpAgent* stcp = mgr_->picktcp();
-	TcpSink* csnk = mgr_->picksink();
-	TcpSink* ssnk = mgr_->picksink();
+        if (getPersOpt() == PERSIST) {
 
-	// Setup TCP connection and done
-	Tcl::instance().evalf("%s launch-req %d %s %s %s %s %s %s %d %d", 
+           PersConn* p = lookupPersConn(clientId_, pg->svrId());
+
+	   if (p == NULL)  {
+
+
+	      // Choose source and dest TCP agents for both source and destination
+	      TcpAgent* ctcp = mgr_->picktcp();
+	      TcpAgent* stcp = mgr_->picktcp();
+	      TcpSink* csnk = mgr_->picksink();
+	      TcpSink* ssnk = mgr_->picksink();
+
+	      // Setup new TCP connection and launch request
+	      Tcl::instance().evalf("%s first-launch-reqP %d %s %s %s %s %s %s %d %d", 
 			      mgr_->name(), obj, src_->name(), 
 			      pg->dst()->name(),
 			      ctcp->name(), csnk->name(), stcp->name(),
 			      ssnk->name(), size, reqSize);
+
+              // store the state of this connection
+	      p = new PersConn();
+	      p->setDst(pg->svrId());
+	      p->setSrc(clientId_);
+	      p->setCTcpAgent(ctcp);
+	      p->setSTcpAgent(stcp);
+	      p->setCTcpSink(csnk);
+	      p->setSTcpSink(ssnk);
+	      p->setCNode(src_);
+	      p->setSNode(pg->dst());
+	      p->setStatus(INUSE);
+	      persistConn_[numOfPersConn_] = p;
+	      numOfPersConn_++;
+
+           } else {
+
+	      // use existing persistent connection to launch request
+	     Tcl::instance().evalf("%s launch-reqP %d %s %s %s %s %s %s %d %d", 
+			      mgr_->name(), obj, p->getCNode()->name(), 
+			      p->getSNode()->name(),
+			      p->getCTcpAgent()->name(), 
+			      p->getCTcpSink()->name(), 
+			      p->getSTcpAgent()->name(),
+			      p->getSTcpSink()->name(), size, reqSize);
+
+	   }
+        } else {
+
+
+	  // Choose source and dest TCP agents for both source and destination
+	  TcpAgent* ctcp = mgr_->picktcp();
+	  TcpAgent* stcp = mgr_->picktcp();
+	  TcpSink* csnk = mgr_->picksink();
+	  TcpSink* ssnk = mgr_->picksink();
+
+	  // Setup new TCP connection and launch request
+	  Tcl::instance().evalf("%s launch-req %d %s %s %s %s %s %s %d %d", 
+			      mgr_->name(), obj, src_->name(), 
+			      pg->dst()->name(),
+			      ctcp->name(), csnk->name(), stcp->name(),
+			      ssnk->name(), size, reqSize);
+
+	}
+
 	// Debug only
 	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
 #if 0
@@ -191,7 +269,18 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 #endif
 }
 
-
+// Lookup for a particular persistent connection
+PersConn* EmpWebTrafSession::lookupPersConn(int client, int server)
+{
+
+    for (int i = 0; i < numOfPersConn_; i++) {
+       if ((persistConn_[i]->getSrc() == client) &&
+           (persistConn_[i]->getDst() == server))
+	   return persistConn_[i];
+    }
+    return NULL;
+}
+
 static class EmpWebTrafPoolClass : public TclClass {
 public:
         EmpWebTrafPoolClass() : TclClass("PagePool/EmpWebTraf") {}
@@ -347,8 +436,13 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			}
 			int npg = (int)strtod(argv[3], NULL);
 			double lt = strtod(argv[4], NULL);
+
+		        int c = int(floor(Random::uniform(0, nClient_)));
+			assert((c >= 0) && (c < nClient_));
+                        Node* src = client_[c];
+
 			EmpWebTrafSession* p = 
-				new EmpWebTrafSession(this, picksrc(), npg, n);
+				new EmpWebTrafSession(this, src, npg, n, nSrc_, c);
 			int res = lookup_rv(p->interPage(), argv[5]);
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->pageSize(), argv[6]) : TCL_ERROR;
@@ -369,6 +463,12 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			}
 			p->sched(lt);
 			session_[n] = p;
+		       
+		        // decide to use either persistent or non-persistent
+			int opt = (int)ceil(p->persistSel()->value());
+			p->setPersOpt(opt);
+                        p->initPersConn();
+                           
 			return (TCL_OK);
 		}
 	}

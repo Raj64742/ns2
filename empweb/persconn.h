@@ -10,6 +10,8 @@
 
 #define IDLE 0
 #define INUSE 1
+#define NONPERSIST 0
+#define PERSIST 1
 
 
 // Abstract page pool, used for interface only
@@ -36,10 +38,32 @@ protected:
 class PersConn : public TclObject {
 public: 
 	PersConn() : status_(IDLE), ctcp_(NULL), csnk_(NULL), client_(NULL), server_(NULL) {}
+	inline void setDst(int d) { dst_ = d ;}
+	inline void setSrc(int s) { src_ = s ;}
+	inline int getDst() { return dst_ ;}
+	inline int getSrc() { return src_ ;}
+	inline TcpAgent* getCTcpAgent() { return ctcp_ ;}
+	inline TcpSink* getCTcpSink() { return csnk_ ;}
+	inline TcpAgent* getSTcpAgent() { return stcp_ ;}
+	inline TcpSink* getSTcpSink() { return ssnk_ ;}
+	inline Node* getCNode() { return client_ ;}
+	inline Node* getSNode() { return server_ ;}
+	inline void setCTcpAgent(TcpAgent* c) { ctcp_ = c;}
+	inline void setCTcpSink(TcpSink* c) { csnk_ = c;}
+	inline void setSTcpAgent(TcpAgent* s) { stcp_ = s;}
+	inline void setSTcpSink(TcpSink* s) { ssnk_ = s;}
+	inline void setCNode(Node* c) { client_ = c;}
+	inline void setSNode(Node* s) { server_ = s;}
+	inline void setStatus(int status) { status_ = status;}
+
 protected:
 	int status_ ;
+	int src_ ;
+	int dst_ ;
 	TcpAgent* ctcp_ ;
 	TcpSink* csnk_ ;
+	TcpAgent* stcp_ ;
+	TcpSink* ssnk_ ;
 	Node* client_ ;
 	Node* server_ ;
 
