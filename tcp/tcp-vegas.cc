@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.31 2000/10/12 19:33:46 debo Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.32 2000/10/31 18:25:23 haoboy Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -449,6 +449,9 @@ VegasTcpAgent::output(int seqno, int reason)
 			if (seqno > rtt_seq_) {
 				rtt_seq_ = seqno;
 				rtt_ts_ = now;
+			} else {
+				++nrexmitpack_;
+				nrexmitbytes_ += bytes;
 			}
 		}
 	}
