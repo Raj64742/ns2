@@ -218,8 +218,9 @@ QueueMonitor instproc reset {} {
 	$self instvar pdepartures_ bdepartures_
 	$self instvar pdrops_ bdrops_
 
-	set size_ 0
-	set pkts_ 0
+	# don't reset size_ and pkts_ here
+	# because they are not cumulative measurements
+	# the way the following values are
 	set parrivals_ 0
 	set barrivals_ 0
 	set pdepartures_ 0
