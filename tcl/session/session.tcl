@@ -447,6 +447,17 @@ SessionSim instproc dump-namlinks {} {
     }
 }
 
+SessionSim instproc dump-namnodes {} {
+        $self instvar sessionNode_
+        if ![$self is-started] {
+                return
+        }
+        foreach nn [array names sessionNode_] {
+                if ![$sessionNode_($nn) is-lan?] {
+                        $sessionNode_($nn) dump-namconfig
+                }
+        }
+}     
 ### Routing support
 SessionSim instproc compute-routes {} {
     #
