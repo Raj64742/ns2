@@ -267,10 +267,10 @@ protected:
 	void finish(); /* called when the connection is terminated */
 
 	/* Helper functions. Currently used by TCP asym */
-	virtual void output_helper(Packet* pkt) { return; }
-	virtual void send_helper(int maxburst) { return; }
-	virtual void recv_helper(Packet* pkt) { return; }
-	virtual void recv_newack_helper(Packet* pkt);
+	virtual void output_helper(Packet*) { return; }
+	virtual void send_helper(int) { return; }
+	virtual void recv_helper(Packet*) { return; }
+	virtual void recv_newack_helper(Packet*);
 
 	double overhead_;
 	double wnd_;
