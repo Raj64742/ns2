@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.16 2000/02/05 04:08:25 podolsky Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.17 2000/04/15 03:09:06 sfloyd Exp $ (LBL)
  */
  
 #ifndef ns_tcpsink_h
@@ -62,6 +62,7 @@ public:
 	void reset();
 	double ts_to_echo() { return ts_to_echo_;}
 	int ecn_unacked() { return ecn_unacked_;}
+	inline int Maxseen() const { return (maxseen_); }
 
 protected:
 	int next_;		/* next packet expected */
@@ -111,6 +112,8 @@ protected:
 	Packet* save_;		/* place to stash saved packet while delaying */
 				/* used by DelAckSink */
 	int generate_dsacks_;	// used only by sack sinks
+	int RFC2581_immediate_ack_;	// Used to generate ACKs immediately 
+					// for RFC2581-compliant gap-filling.
 
 };
 

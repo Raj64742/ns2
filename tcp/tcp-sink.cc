@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.40 2000/02/05 04:08:25 podolsky Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.41 2000/04/15 03:09:06 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -165,6 +165,7 @@ TcpSink::delay_bind_init_all()
         delay_bind_init_one("packetSize_");
         delay_bind_init_one("ts_echo_bugfix_");
         delay_bind_init_one("generateDSacks_"); // used only by sack
+	delay_bind_init_one("RFC2581_immediate_ack_");
 #if defined(TCP_DELAY_BIND_ALL) && 0
         delay_bind_init_one("maxSackBlocks_");
 #endif /* TCP_DELAY_BIND_ALL */
@@ -178,6 +179,7 @@ TcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObje
         if (delay_bind(varName, localName, "packetSize_", &size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ts_echo_bugfix_", &ts_echo_bugfix_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "generateDSacks_", &generate_dsacks_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "RFC2581_immediate_ack_", &RFC2581_immediate_ack_, tracer)) return TCL_OK;
 #if defined(TCP_DELAY_BIND_ALL) && 0
         if (delay_bind(varName, localName, "maxSackBlocks_", &max_sack_blocks_, tracer)) return TCL_OK;
 #endif /* TCP_DELAY_BIND_ALL */
@@ -323,12 +325,26 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 		recvBytes(numToDeliver);
         // If there's no timer and the packet is in sequence, set a timer.
         // Otherwise, send the ack and update the timer.
-        if (delay_timer_.status() != TIMER_PENDING && 
-				th->seqno() == acker_->Seqno()) {
-               	// There's no timer, so set one and delay this ack.
-		save_ = pkt;
-		delay_timer_.resched(interval_);
-                return;
+        if (delay_timer_.status() != TIMER_PENDING &&
+                                th->seqno() == acker_->Seqno()) {
+                // There's no timer, so we can set one and choose
+		// to delay this ack.
+		// If we're following RFC2581 (section 4.2) exactly,
+		// we should only delay the ACK if we're know we're
+		// not doing recovery, i.e. not gap-filling.
+		// Since this is a change to previous ns behaviour,
+		// it's controlled by an optional bound flag.
+		// discussed April 2000 in the ns-users list archives.
+		if (RFC2581_immediate_ack_ && 
+			(th->seqno() < acker_->Maxseen())) {
+			// don't delay the ACK since
+			// we're filling in a gap
+		} else {
+			// delay the ACK and start the timer.
+	                save_ = pkt;
+        	        delay_timer_.resched(interval_);
+                	return;
+		}
         }
         // If there was a timer, turn it off.
 	if (delay_timer_.status() == TIMER_PENDING) 
