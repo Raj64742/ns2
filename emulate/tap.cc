@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.1 1998/01/09 21:57:57 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.2 1998/02/21 03:03:11 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -50,7 +50,7 @@ class TapAgent : public Agent, public IOHandler {
 	void dispatch(int);
 	int off_tap_;
 	Network* net_;
-	void sendpkt(Packet*);
+	int sendpkt(Packet*);
 	void recvpkt();
 };
 
@@ -62,7 +62,7 @@ static class TapAgentClass : public TclClass {
 	}
 } class_tap_agent;
 
-TapAgent::TapAgent() : Agent(/*XXX*/PT_MESSAGE)
+TapAgent::TapAgent() : Agent(PT_LIVE), net_(NULL)
 {
 	bind("off_tap_", &off_tap_);
 }
@@ -81,8 +81,27 @@ int TapAgent::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "network") == 0) {
 			net_ = (Network *)TclObject::lookup(argv[2]);
 			unlink();
-			if (net_ != 0)
-				link(net_->rchannel(), TCL_READABLE);
+			if (net_ != 0) {
+				int chan = net_->rchannel();
+				if (chan < 0) {
+					fprintf(stderr,
+					"TapAgent(%s): network %s not open\n",
+					    name(), argv[2]);
+					return (TCL_ERROR);
+				}
+				link(chan, TCL_READABLE);
+			} else {
+				fprintf(stderr,
+				"TapAgent(%s): unknown network %s\n",
+				    name(), argv[2]);
+				return (TCL_ERROR);
+			}
+			if (off_tap_ == 0) {
+				fprintf(stderr,
+				"TapAgent(%s): warning: off_tap == 0: ",
+				    name(), argv[2]);
+				fprintf(stderr, "is RealTime scheduler on?\n");
+			}
 			return(TCL_OK);
 		}	
 	}
@@ -105,12 +124,18 @@ public:
  */
 void TapAgent::recvpkt()
 {
+	sockaddr addr;
+
 	Packet* p = allocpkt();
 	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
-	u_int32_t addr;
 	int cc = net_->recv(ht->buf, sizeof(ht->buf), addr);
-	hdr_cmn* th = (hdr_cmn*)p->access(off_cmn_);
-	th->size() = cc;
+	if (cc < 0) {
+		perror("recv");
+	}
+
+	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+printf("TAP(%s): recvpkt of size %d\n", name(), cc);
+	ch->size() = cc;
 	target_->recv(p);
 }
 
@@ -122,25 +147,38 @@ void TapAgent::dispatch(int)
 	 * if there is a queue in the socket buffer; this allows
 	 * other events to get a chance to slip in...
 	 */
+printf("TAP(%s): dispatch invoked\n", name());
 	Scheduler::instance().sync();
 	recvpkt();
 }
 
 /*
  * Receive a packet from the simulation and inject into the network.
+ * if there is no network attached, call Connector::drop() to send
+ * to drop target
  */
-void TapAgent::sendpkt(Packet* p)
-{
-	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
-	hdr_cmn* hc = (hdr_cmn*)p->access(off_cmn_);
-	net_->send(ht->buf, hc->size());
-}
 
 void TapAgent::recv(Packet* p, Handler*)
 {
-	/*
-	 * didn't expect packet (or we're a null agent?)
-	 */
-	sendpkt(p);
-	Packet::free(p);
+	if (sendpkt(p) == 0)
+		Packet::free(p);
+
+	return;
+}
+
+int
+TapAgent::sendpkt(Packet* p)
+{
+	// send packet into the live network
+	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
+	hdr_cmn* hc = (hdr_cmn*)p->access(off_cmn_);
+	if (net_ == NULL) {
+		drop(p);
+		return -1;
+	}
+printf("TAP(%s): sending pkt (net:0x%p)\n", name(), net_);
+	if (net_->send(ht->buf, hc->size()) < 0) {
+		perror("send");
+	}
+	return 0;
 }

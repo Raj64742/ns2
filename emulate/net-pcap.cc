@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.8 1998/02/04 01:33:51 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.9 1998/02/21 03:03:09 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -107,8 +107,8 @@ public:
 
 	virtual int open(const char*) = 0;
 	virtual int skiphdr() = 0;
-	int recv(u_char *buf, int len, u_int32_t& fromaddr);	// get from net
-	void send(u_char *buf, int len);			// write to net
+	int recv(u_char *buf, int len, sockaddr&);		// get from net
+	int send(u_char *buf, int len);			// write to net
 	void close();
 	void reset();
 
@@ -167,7 +167,8 @@ protected:
 
 private:
 
-	// XXX somewhat specific to bpf
+	// XXX somewhat specific to bpf-- this stuff is  a hack until pcap
+	// can be fixed to allow for opening the bpf r/w
 	pcap_t * pcap_open_live(char *, int slen, int prom, int, char *, int);
 	int bpf_open(pcap_t *p, char *errbuf, int how);
 };
@@ -272,7 +273,7 @@ PcapNetwork::stat_pdrops()
 #include "ether.h"
 /* recv is what others call to grab a packet from the pfilter */
 int
-PcapNetwork::recv(u_char *buf, int len, u_int32_t& fromaddr)
+PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr)
 {
 	if (state_ != PNET_PSTATE_ACTIVE) {
 		fprintf(stderr, "warning: net/pcap obj(%s) read-- not active\n",
@@ -287,21 +288,24 @@ PcapNetwork::recv(u_char *buf, int len, u_int32_t& fromaddr)
 	int s = skiphdr();
 	memcpy(buf, pkt + s, n - s);
 
-Ethernet::ether_print(pkt, n);
-	fromaddr = 0;	// for now
+Ethernet::ether_print(pkt);
 	return n - s;
 }
 
-void
+/* send a packet out through the packet filter */
+int
 PcapNetwork::send(u_char *buf, int len)
 {
 	int n;
+
+printf("PcapNetwork(%s): writing %d bytes to bpf fd %d\n",
+name(), n, pfd_);
+Ethernet::ether_print(buf);
+
 	if ((n = write(pfd_, buf, len)) < 0)
 		perror("write to pcap fd");
-printf("TAP(%s): wrote %d bytes to bpf fd %d\n",
-name(), n, pfd_);
 
-	return;
+	return n;
 }
 
 int PcapNetwork::command(int argc, const char*const* argv)
@@ -382,9 +386,6 @@ PcapLiveNetwork::open(const char *devname)
 		}
 		linkaddr_.len_ = ETHER_ADDR_LEN;	// for now
 		memcpy(linkaddr_.addr_, sa->sa_data, linkaddr_.len_);
-
-printf("ETHER is:%s\n",
-Ethernet::etheraddr_string(linkaddr_.addr_));
 	}
 
 	state_ = PNET_PSTATE_ACTIVE;
@@ -465,6 +466,11 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 			if (open() < 0)
 				return (TCL_ERROR);
 			tcl.result(srcname_);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "linkaddr") == 0) {
+			/// XXX: only for ethernet now
+			tcl.result(Ethernet::etheraddr_string(linkaddr_.addr_));
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {

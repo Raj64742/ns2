@@ -31,11 +31,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.3 1998/01/31 00:26:10 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.4 1998/02/21 03:03:10 kfall Exp $ (LBL)
  */
 
 #ifndef ns_net_h
 #define ns_net_h
+
+#include <sys/socket.h>
 
 #include "tclcl.h"
 #include "iohandler.h"
@@ -49,8 +51,8 @@
 class Network : public TclObject {
 public:
 	virtual int command(int argc, const char*const* argv);
-	virtual void send(u_char* buf, int len) = 0;
-	virtual int recv(u_char* buf, int len, u_int32_t& from) = 0;
+	virtual int send(u_char* buf, int len) = 0;
+	virtual int recv(u_char* buf, int len, sockaddr& from) = 0;
 	virtual int rchannel() = 0;
 	virtual int schannel() = 0;
 	static int nonblock(int fd);
