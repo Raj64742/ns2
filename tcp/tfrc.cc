@@ -102,7 +102,6 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind_bool("ss_changes_", &ss_changes_);
 	bind_bool("voip_", &voip_);
 	bind("voip_max_pkt_rate_", &voip_max_pkt_rate_);
-	bind("voip_max_rate_", &voip_max_rate_);
 	seqno_ = -1;
 	maxseq_ = 0;
 	datalimited_ = 0;
@@ -251,13 +250,6 @@ void TfrcAgent::nextpkt()
 			xrate = rate_ * sqrtrtt_/sqrt(rttcur_);
 		else
 			xrate = rate_;
-	}
-	if (voip_) {
-		// enforce max rate for voip_ flows
-		// convert from Kbps to Bps
-		double max_Bps = 1000.0 * voip_max_rate_/8.0;
-		if (xrate > max_Bps) 
-			xrate = max_Bps;
 	}
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate;

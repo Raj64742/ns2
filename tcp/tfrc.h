@@ -216,5 +216,4 @@ protected:
 				//  sending rate > 2 * receiving rate
 	int voip_;		// 1 for voip mode.
 	int voip_max_pkt_rate_ ;	// Max pkt rate in pps, for voip mode.
-	int voip_max_rate_ ;	// Max rate in bps, for voip mode.
 };
