@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.16 2002/06/27 21:26:42 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.17 2002/07/12 18:29:45 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -144,14 +144,7 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent po
     set sdelay 0 
     
     if {[PagePool/WebTraf set server_delay_]} {
-	#set svr [new SimpleServer [Simulator instance] 1]
-	#set sdelay [$svr job_arrival $sent]
-	set sdelay [$self job_arrival [$svr id] $size]
-	#	puts "$sdelay"
-
-	# schedule to send packets later
-	set timer_ [new ServerTimer $self]
-	$timer_ sched $stcp $sent $sdelay
+	$self job_arrival [$svr id] $stcp $size
     } else {
 	# no server delay, send packets right away.
 	$self send-message $stcp $sent
@@ -244,7 +237,7 @@ PagePool/WebTraf instproc alloc-tcp-sink {} {
 }
 
 PagePool/WebTraf instproc send-message {tcp num_packet} {
-    #puts "send message: [[Simulator instance] now]"
+    #puts "send message: [[Simulator instance] now], $num_packet"
     if {[PagePool/WebTraf set fulltcp_] == 1} {
 	# for fulltcp: need to use flag
 	$tcp sendmsg [expr $num_packet * 1000] "MSG_EOF"
@@ -280,32 +273,4 @@ PagePool/WebTraf instproc  add2asim { srcid dstid lambda mu } {
 
     #puts "setup short flow .. now sflows_ = $sf_"
 
-}
-
-# Timer for server side delay
-Class ServerTimer -superclass Timer
-ServerTimer instproc init {webtraf} {
-    $self instvar webtraf_
-    $self set webtraf_ $webtraf
-
-    $self next [Simulator instance]
-}
-
-ServerTimer instproc sched {tcp sent delay} {
-    $self instvar tcp_
-    $self instvar pkt_
-
-    $self set tcp_ $tcp
-    $self set pkt_ $sent
-
-    $self next $delay
-}
-
-ServerTimer instproc timeout {} {
-    $self instvar webtraf_
-    $self instvar tcp_
-    $self instvar pkt_
-
-    #puts "timeout!!"
-    $webtraf_ send-message $tcp_ $pkt_
 }
