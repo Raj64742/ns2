@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.102 1998/04/20 23:53:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.103 1998/04/21 02:34:18 kfall Exp $
 
 
 #
@@ -106,6 +106,7 @@ Agent/TCP/Fack set rampdown_ false
 
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
+Agent/TCP set delay_growth_ false
 
 # setting this to 1 implements some changes to reno 
 # proposed by Janey Hoe (other than fixing reno's
@@ -147,7 +148,6 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set dupack_reset_ false
 	Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
 	Agent/TCP/FullTcp set close_on_empty_ false
-	Agent/TCP/FullTcp set delay_growth_ false
 }
 
 Integrator set lastx_ 0.0
