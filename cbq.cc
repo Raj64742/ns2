@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.20 1997/08/10 07:49:33 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.21 1997/08/12 00:32:19 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -163,6 +163,7 @@ protected:
 	CBQClass*	active_[MAXPRIO];	// classes at prio of index
 	CBQClass*	levels_[MAXLEVEL+1];	// LL of classes per level
 	int		maxprio_;		// highest prio# seen
+	int		maxpkt_;		// largest pkt (used by WRR)
 	int		maxlevel_;		// highest level# seen
 	int		toplevel_;		// for top-level LS
 
@@ -192,8 +193,10 @@ public:
 } class_cbqclass;
 
 CBQueue::CBQueue() : last_lender_(NULL), pending_pkt_(NULL), link_(NULL),
-	maxprio_(-1), maxlevel_(-1), toplevel_(MAXLEVEL), eligible_((eligible_type_)NULL)
+	maxprio_(-1), maxpkt_(-1), maxlevel_(-1), toplevel_(MAXLEVEL),
+	eligible_((eligible_type_)NULL)
 {
+	bind("maxpkt_", &maxpkt_);
 	memset(active_, '\0', sizeof(active_));
 	memset(levels_, '\0', sizeof(levels_));
 }
@@ -574,11 +577,10 @@ int CBQueue::command(int argc, const char*const* argv)
 
 class WRR_CBQueue : public CBQueue {
 public:
-	WRR_CBQueue() : maxpkt_(0) {
+	WRR_CBQueue() {
 		memset(M_, '\0', sizeof(M_));
 		memset(alloc_, '\0', sizeof(alloc_));
 		memset(cnt_, '\0', sizeof(cnt_));
-		bind("maxpkt_", &maxpkt_);
 	}
 	void	addallot(int prio, double diff) {
 		alloc_[prio] += diff;
@@ -590,7 +592,6 @@ protected:
 	double	alloc_[MAXPRIO];
 	double	M_[MAXPRIO];
 	int	cnt_[MAXPRIO];		// # classes at prio of index
-	int	maxpkt_;		// max packet size
 	int	command(int argc, const char*const* argv);
 };
 
@@ -738,6 +739,12 @@ WRR_CBQueue::setM()
 		else
 			M_[i] = 0.0;
 
+		if (M_[i] < 0.0) {
+			fprintf(stderr, "M_[i]: %f, cnt_[i]: %d, maxpkt_: %d, alloc_[i]: %f\n",
+				M_[i], cnt_[i], maxpkt_, alloc_[i]);
+			abort();
+		}
+
 	}
 	return;
 }
@@ -745,12 +752,12 @@ WRR_CBQueue::setM()
 /******************** CBQClass definitions **********************/
 
 CBQClass::CBQClass() : cbq_(0), peer_(0), level_peer_(0), lender_(0),
-	q_(0), qmon_(0), allotment_(0.0), maxidle_(0.0), maxrate_(0.0),
+	q_(0), qmon_(0), allotment_(0.0), maxidle_(-1.0), maxrate_(0.0),
 	extradelay_(0.0), last_time_(0.0), undertime_(0.0), avgidle_(0.0),
 	pri_(-1), level_(-1), delayed_(0), bytes_alloc_(0),
 	permit_borrowing_(1)
 {
-	bind("maxidle_", &maxidle_);
+	/* maxidle_ is no longer bound; it is now a method interface */
 	bind("priority_", &pri_);
 	bind("level_", &level_);
 	bind("extradelay_", &extradelay_);
@@ -818,7 +825,10 @@ void CBQClass::update(Packet* p, double now)
 	idle = (fin_time - last_time_) - (pktsize / maxrate_);
 	avgidle = avgidle_;
 	avgidle += (idle - avgidle) / POWEROFTWO;
-	if (avgidle > maxidle_)
+	if (maxidle_ < 0) {
+		fprintf(stderr,
+		    "CBQClass: warning: maxidle_ not configured!\n");
+	} else if (avgidle > maxidle_)
 		avgidle = maxidle_;
 	avgidle_ = avgidle;
 
@@ -972,6 +982,8 @@ int CBQClass::command(int argc, const char*const* argv)
                         q_ = (Queue*) TclObject::lookup(argv[2]);
                         if (q_ != NULL)
                                 return (TCL_OK);
+			tcl.resultf("couldn't find object %s",
+				argv[2]);
                         return (TCL_ERROR);
                 }
                 if (strcmp(argv[1], "qmon") == 0) {
@@ -999,6 +1011,16 @@ int CBQClass::command(int argc, const char*const* argv)
 			newallot(bw);
                         return (TCL_OK);
                 }
+		if (strcmp(argv[1], "maxidle") == 0) {
+			double m = atof(argv[2]);
+			if (m < 0.0) {
+				tcl.resultf("invalid maxidle value %s (must be non-negative)",
+					argv[2]);
+				return (TCL_ERROR);
+			}
+			maxidle_ = m;
+			return (TCL_OK);
+		}
 	}
 	return (Connector::command(argc, argv));
 }
