@@ -1,0 +1,79 @@
+\chapter{UDP Agents}
+\label{sec:udpAgents}
+
+\section{UDP Agents}
+This section describes the operation of the UDP agents in \ns.
+UDP agents are implemented in \code{udp.\{cc, h\}}.  A UDP agent accepts
+data in variable size chunks from an application, and segments the data 
+if needed.
+
+The default segment size (MSS) for UDP agents is 1000 bytes:
+\begin{program}
+Agent/UDP set packetSize_   1000              \; max segment size;
+\end{program}
+This OTcl instvar is bound to the C++ agent variable \code{size_}.  If an 
+application submits more than the MSS, the UDP agent segments the 
+\fcn[]{sendmsg} request.
+
+Applications can access UDP agents via the \fcn[]{sendmsg} function in C++,
+or via the \code{send} or \code{sendmsg} methods in OTcl, as described in
+section \ref{sec:systemcalls}.  
+
+The following is a simple example of how a UDP agent may be used in a program.  
+In the example, the CBR traffic agent is started at time 1.0, at which time
+the traffic agent begins to periodically call the UDP agent \fcn[]{sendmsg}
+function (according to the \ns defaults).
+\begin{program}
+        set ns [new Simulator]
+        set n0 [$ns node]
+        set n1 [$ns node]
+        $ns duplex-link $n0 $n1 5Mb 2ms DropTail
+
+        set udp0 [new Agent/UDP]
+        $ns attach-agent $n0 $udp0
+        set cbr0 [new Application/Traffic/CBR]
+        $cbr0 attach-agent $udp0
+        $udp0 set packetSize_ 536	\; set MSS to 536 bytes;
+
+        set null0 [new Agent/Null]
+        $ns attach-agent $n1 $null0
+        $ns connect $udp0 $null0
+        $ns at 1.0 "$cbr0 start"
+\end{program}
+
+\section{CBR Agents}
+CBR agents are similar to UDP agents with the following two additions:
+\begin{enumerate}
+	\item CBR agents implement a ``send'' timer for generating packet
+sending events periodically, and 
+	\item CBR agents include a packet sequence number.
+\end{enumerate}
+
+There are therefore two ways to generate CBR-like traffic in \ns.  The first
+way is to create a CBR application and hook it to a UDP agent, as follows:
+\begin{program}
+        set n0 [$ns node]
+        set udp0 [new Agent/UDP]
+        $ns attach-agent $n0 $udp0
+        set cbr0 [new Application/Traffic/CBR]
+        $cbr0 attach-agent $udp0
+        $ns at 1.0 "$cbr0 start"
+\end{program}
+The second way is to use the CBR agent with no application:
+\begin{program}
+        set n0 [$ns node]
+        set cbr0 [new Agent/CBR]
+        $ns attach-agent $n0 $cbr0
+        $ns at 1.0 "$cbr0 start"
+\end{program}
+The behavior in \ns of these two examples is identical; however, the trace
+files for these code fragments will be different.  In particular, the 
+packet type will be ``cbr'' in the latter case, rather than ``udp,'' and
+the sequence number for the UDP packets will be ``-1,'' rather than 
+monotonically increasing for the CBR agent.
+
+Historically, the class \code{Agent/CBR} predates the class \code{Agent/UDP}
+in the simulator.  CBR agents were used to define UDP-like agents via the
+class \code{Agent/CBR/UDP}.  This type of UDP agent was used to support 
+traffic generators before the \ns API was developed.
+\endinput
