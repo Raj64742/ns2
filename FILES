@@ -1034,6 +1034,7 @@ tcl/ex/tcp-fs/test1.tcl
 tcl/ex/tcp-fs/thruput.awk
 tcl/ex/tcp-fs/web.tcl
 tcl/ex/tcp-int.tcl
+tcl/ex/tcpapp.tcl
 tcl/ex/tcpecn.tcl
 tcl/ex/tcpsrm.tcl
 tcl/ex/test-drr.tcl
@@ -1313,6 +1314,7 @@ tcl/test/test-all-simple
 tcl/test/test-all-simple-full
 tcl/test/test-all-simultaneous
 tcl/test/test-all-sliding-window
+tcl/test/test-all-snoop
 tcl/test/test-all-source-routing
 tcl/test/test-all-srm
 tcl/test/test-all-tcp
@@ -1870,6 +1872,7 @@ tcl/test/test-output-simultaneous/Heap.Z
 tcl/test/test-output-simultaneous/List.Z
 tcl/test/test-output-sliding-window/sliding-loss.Z
 tcl/test/test-output-sliding-window/sliding-normal.Z
+tcl/test/test-output-snoop/simple.Z
 tcl/test/test-output-source-routing/source_rtg.Z
 tcl/test/test-output-srm/srm-adapt-rep.Z
 tcl/test/test-output-srm/srm-adapt-req.Z
@@ -2184,6 +2187,7 @@ tcl/test/test-suite-simple.tcl
 tcl/test/test-suite-simple-full.tcl
 tcl/test/test-suite-simultaneous.tcl
 tcl/test/test-suite-sliding-window.tcl
+tcl/test/test-suite-snoop.tcl
 tcl/test/test-suite-source-routing.tcl
 tcl/test/test-suite-srm.tcl
 tcl/test/test-suite-tcp-init-win-full.tcl
