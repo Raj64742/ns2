@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.44 1997/07/24 18:14:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.45 1997/07/24 23:07:36 breslau Exp $
 
 
 #
@@ -240,3 +240,5 @@ RandomVariable/HyperExponential set avg_ 1.0
 RandomVariable/HyperExponential set cov_ 4.0
 
 ErrorModel set rate_ 0.0
+
+Source/Telnet set interval_ 1.0

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.4 1997/07/24 21:18:57 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.5 1997/07/24 23:07:36 breslau Exp $
 #
 
 #
@@ -56,7 +56,7 @@ Agent instproc dst-port {} {
 #
 Agent instproc attach-source {s_type} {
 	set source [new Source/$s_type]
-	$source set agent_ $self
+	$source attach $self
 	$self set type_ $s_type
 	return $source
 }

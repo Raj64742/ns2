@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.27 1997/07/24 08:58:36 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.28 1997/07/24 23:07:33 breslau Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -253,6 +253,13 @@ void TcpAgent::output(int seqno, int reason)
 		/* No timer pending.  Schedule one. */
 		set_rtx_timer();
 }
+
+void TcpAgent::advanceby(int delta)
+{
+        curseq_ += delta;
+	send_much(0, 0, maxburst_); 
+}
+
 
 int TcpAgent::command(int argc, const char*const* argv)
 {
