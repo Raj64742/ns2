@@ -558,6 +558,130 @@ Test/slowgrow-acc instproc init {} {
 
 ######################################################33
 
+TestSuite instproc setup4 {} {
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
+    $self setTopo
+
+    set stoptime 60.0
+    #set dumptime 5.0
+    set dumptime 1.0
+    #set stoptime 5.0
+    set stoptime1 [expr $stoptime + 1.0]
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+    Agent/TCP set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d0) 1 ]
+    $tcp1 set window_ 10
+    set ftp1 [$tcp1 attach-app FTP]
+    $ns_ at 0.0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 2 ]
+    $tcp2 set window_ 12
+    set ftp2 [$tcp2 attach-app FTP]
+    $ns_ at 0.1 "$ftp2 start"
+
+    set tcp3 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d1) 3 ]
+    $tcp3 set window_ 15
+    set ftp3 [$tcp3 attach-app FTP]
+    $ns_ at 0.2 "$ftp3 start"
+
+    set tcp4 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d0) 4 ]
+    $tcp4 set window_ 8
+    set ftp4 [$tcp4 attach-app FTP]
+    $ns_ at 0.3 "$ftp4 start"
+
+    set tcp5 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d1) 6 ]
+    $tcp5 set window_ 4
+    set ftp5 [$tcp5 attach-app FTP]
+    $ns_ at 0.4 "$ftp5 start"
+
+    # bad traffic
+    set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 5]
+    set cbr_ [$udp attach-app Traffic/CBR]
+    $cbr_ set rate_ 0.1Mb
+    $cbr_ set random_ 0.001
+
+    set maxAggregates_ 6
+
+    $ns_ at 0.0 "$cbr_ start"
+    $ns_ at 11.0 "$cbr_ set rate_ 0.15Mb"
+    $ns_ at 12.0 "$cbr_ set rate_ 0.2Mb"
+    $ns_ at 13.0 "$cbr_ set rate_ 0.25Mb"
+    $ns_ at 14.0 "$cbr_ set rate_ 0.3Mb"
+    $ns_ at 15.0 "$cbr_ set rate_ 0.35Mb"
+    $ns_ at 16.0 "$cbr_ set rate_ 0.4Mb"
+    $ns_ at 17.0 "$cbr_ set rate_ 0.45Mb"
+    $ns_ at 18.0 "$cbr_ set rate_ 0.5Mb"
+    $ns_ at 19.0 "$cbr_ set rate_ 0.55Mb"
+    $ns_ at 20.0 "$cbr_ set rate_ 0.6Mb"
+    $ns_ at 21.0 "$cbr_ set rate_ 0.65Mb"
+    $ns_ at 22.0 "$cbr_ set rate_ 0.7Mb"
+    $ns_ at 23.0 "$cbr_ set rate_ 0.75Mb"
+    $ns_ at 24.0 "$cbr_ set rate_ 0.8Mb"
+    $ns_ at 25.0 "$cbr_ set rate_ 0.855Mb"
+    $ns_ at 37.0 "$cbr_ set rate_ 0.8Mb"
+    $ns_ at 37.0 "$cbr_ set rate_ 0.75Mb"
+    $ns_ at 38.0 "$cbr_ set rate_ 0.7Mb"
+    $ns_ at 39.0 "$cbr_ set rate_ 0.65Mb"
+    $ns_ at 40.0 "$cbr_ set rate_ 0.6Mb"
+    $ns_ at 41.0 "$cbr_ set rate_ 0.55Mb"
+    $ns_ at 42.0 "$cbr_ set rate_ 0.5Mb"
+    $ns_ at 43.0 "$cbr_ set rate_ 0.45Mb"
+    $ns_ at 44.0 "$cbr_ set rate_ 0.4Mb"
+    $ns_ at 45.0 "$cbr_ set rate_ 0.35Mb"
+    $ns_ at 46.0 "$cbr_ set rate_ 0.3Mb"
+    $ns_ at 47.0 "$cbr_ set rate_ 0.25Mb"
+    $ns_ at 48.0 "$cbr_ set rate_ 0.2Mb"
+    $ns_ at 49.0 "$cbr_ set rate_ 0.15Mb"
+    $ns_ at 50.0 "$cbr_ set rate_ 0.1Mb"
+
+    $self statsDump $dumptime $fmon $packetsize_ 0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime1 "$self cleanupAll $testName_"
+}
+
+#
+# one complete test with CBR flows only, no pushback and no ACC.
+# Slowly-growing bad flow.
+#
+Class Test/tcp -superclass TestSuite
+Test/tcp instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ tcp
+    $self next 0
+}
+Test/tcp instproc run {} {
+    $self instvar ns_ node_ testName_ net_ topo_
+    $self setTopo
+    $self setup4
+    $ns_ run
+}
+
+#
+# one complete test with CBR flows only, no pushback and no ACC.
+# Slowly-growing bad flow, but with local ACC.
+#
+Class Test/tcp-acc -superclass TestSuite
+Test/tcp-acc instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ tcp-acc
+    Queue/RED/Pushback set rate_limiting_ 1
+    Test/tcp-acc instproc run {} [Test/tcp info instbody run]
+    $self next 0
+}
+
+######################################################33
+
 TestSuite instproc setup2 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self instvar maxAggregates_
