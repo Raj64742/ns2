@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.14 1998/07/21 18:08:45 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.15 1998/07/29 21:41:00 yaxu Exp $
 #
 
 #
@@ -381,16 +381,25 @@ Simulator instproc dump-namcolors {} {
 }
 
 Simulator instproc dump-namlans {} {
-	$self instvar lanConfigList_
+	#$self instvar lanConfigList_
 	if ![$self is-started] {
 		return
 	}
-	if [info exists lanConfigList_] {
-		foreach lan $lanConfigList_ {
-			$lan dump-namconfig
-		}
-		unset lanConfigList_
+#
+#	if [info exists lanConfigList_] {
+#		foreach lan $lanConfigList_ {
+#			$lan dump-namconfig
+#		}
+#		unset lanConfigList_
+#	}
+
+	#dump based on the Berkeley LAN model
+
+	$self instvar LanLinks_
+	foreach nn [array names LanLinks_] {
+	    $LanLinks_($nn) dump-namconfig
 	}
+
 }
 
 Simulator instproc dump-namlinks {} {
@@ -499,3 +508,26 @@ Simulator instproc set-animation-rate { rate } {
 	set r [time_parse $rate]
 	$self puts-nam-config "v -t [$self now] set_rate [expr 10*log10($r)] 1"
 }
+
+#Berkeley LAN dump
+
+LanLink instproc dump-namconfig {} {
+        $self instvar nid_ bw_ delay_ nodelist_ ns_
+	
+	$ns_ puts-nam-config \
+	"X -t * -n $nid_ -r $bw_ -D $delay_ -o left"
+
+	set cnt 0
+	set LanOrient(0) up
+	set LanOrient(1) down
+
+	foreach dst $nodelist_ {
+            $ns_ puts-nam-config \
+	    "L -t * -s $nid_ -d [$dst id] -o $LanOrient($cnt)"
+	    incr cnt
+	    set cnt [expr $cnt % 2]
+	}
+
+}
+
+
