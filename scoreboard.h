@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.h,v 1.4 1997/03/29 02:38:57 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.h,v 1.5 1997/03/29 04:44:49 mccanne Exp $
  */
 
 #ifndef ns_scoreboard_h
@@ -40,6 +40,8 @@
 
 #define SBSIZE 1024
 
+#include "tcp.h"
+
 class ScoreBoard {
   public:
 	ScoreBoard() {first_=0; length_=0;}
@@ -48,8 +50,8 @@ class ScoreBoard {
 	int GetNextRetran ();
 	void MarkRetran (int retran_seqno);
 	void MarkRetran (int retran_seqno, int snd_nxt);
-	int UpdateScoreBoard (int last_ack_, Packet *pkt);
-	int CheckSndNxt (Packet *pkt);
+	int UpdateScoreBoard (int last_ack_, hdr_tcp*);
+	int CheckSndNxt (hdr_tcp*);
 	
   protected:
         int first_, length_;

@@ -38,7 +38,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.5 1997/03/29 02:43:11 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.6 1997/03/29 04:44:49 mccanne Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -57,7 +57,7 @@ static char rcsid[] =
 #define SBNI SBN[i%SBSIZE]
 
 // last_ack = TCP last ack
-int ScoreBoard::UpdateScoreBoard (int last_ack, Packet *pkt)
+int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 {
 	int i, sack_index, sack_left, sack_right;
 	int retran_decr = 0;
@@ -78,7 +78,6 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, Packet *pkt)
 		}
 	}	
 
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
 		sack_left = tcph->sa_left()[sack_index];
 		sack_right = tcph->sa_right()[sack_index];
@@ -137,12 +136,11 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, Packet *pkt)
 	}
 	return (retran_decr);
 }
-int ScoreBoard::CheckSndNxt (Packet *pkt)
+int ScoreBoard::CheckSndNxt (hdr_tcp* tcph)
 {
 	int i, sack_index, sack_left, sack_right;
 	int force_timeout = 0;
 
-	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
 		sack_left = tcph->sa_left()[sack_index];
 		sack_right = tcph->sa_right()[sack_index];
