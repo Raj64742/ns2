@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.35 1997/08/25 20:42:15 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.36 1997/08/25 21:48:10 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -199,23 +199,31 @@ double TcpAgent::rtt_timeout()
 /* This has been modified to use the tahoe code. */
 void TcpAgent::rtt_update(double tao)
 {
+	//
+	// tao is the measured RTT sample
+	// t_rtt_ is tao expressed in tcp_tick_ units and rounded
+	//
 	t_rtt_ = int((tao / tcp_tick_) + 0.5);
 	if (t_rtt_ < 1)
 		t_rtt_ = 1;
 
+	//
+	// srtt has 3 bits to the right of the binary point
+	// rttvar has 2
+	//
         if (t_srtt_ != 0) {
 		register short delta;
-		delta = t_rtt_ - (t_srtt_ >> 3);
-		if ((t_srtt_ += delta) <= 0)
+		delta = t_rtt_ - (t_srtt_ >> 3);	// d = (m - a0)
+		if ((t_srtt_ += delta) <= 0)	// a1 = 7/8 a0 + 1/8 m
 			t_srtt_ = 1;
 		if (delta < 0)
 			delta = -delta;
 		delta -= (t_rttvar_ >> 2);
-		if ((t_rttvar_ += delta) <= 0)
+		if ((t_rttvar_ += delta) <= 0)	// var1 = 3/4 var0 + 1/4 |d|
 			t_rttvar_ = 1;
 	} else {
-		t_srtt_ = t_rtt_ << 3;
-		t_rttvar_ = t_rtt_ << 1;
+		t_srtt_ = t_rtt_ << 3;		// srtt = rtt
+		t_rttvar_ = t_rtt_ << 1;	// rttvar = rtt / 2
 	}
 }
 
