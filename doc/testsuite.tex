@@ -43,7 +43,7 @@ tcl script and the output subdirectory. You can run this shell script in quiet
 mode. Below is the example (test-all-wireless-lan):
 
 \begin{program}
-   \# To run in quiet mode:  "./test-all-wireless-lanquiet".
+   \# To run in quiet mode:  "./test-all-wireless-lan quiet".
 
    f="wireless-lan"		\# Specify the name of the module to test.
    file="test-suite-\$f.tcl"	\# The name of the ns script.
@@ -74,7 +74,7 @@ protocol. They are defined as:
 \end{program}
 
 
-Each test case is basically a simulation scenario. In the supper class 
+Each test case is basically a simulation scenario. In the super class 
 TestSuite, you can define some functions, like init and finish to do the work 
 required by each test case, for example setting up the network topology and ns
 trace. The test specific configurations are defined within the corresponding 
