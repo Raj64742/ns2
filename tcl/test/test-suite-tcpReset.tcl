@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.6 2001/12/03 02:44:31 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.7 2002/01/02 01:10:50 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -111,15 +111,17 @@ TestSuite instproc tcpDump { tcpSrc interval } {
 
 Class Test/reset -superclass TestSuite
 Test/reset instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	reset
+	set guide_	"Resetting a TCP connection."
 	$self next
 }
 Test/reset instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink $node_(k1) 1]
@@ -139,15 +141,17 @@ Test/reset instproc run {} {
 
 Class Test/resetDelAck -superclass TestSuite
 Test/resetDelAck instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	resetDelAck
+	set guide_	"Resetting a DelAck TCP connection."
 	$self next
 }
 Test/resetDelAck instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -166,15 +170,18 @@ Test/resetDelAck instproc run {} {
 
 Class Test/resetDelAck1 -superclass TestSuite
 Test/resetDelAck1 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	resetDelAck1
+	set guide_	\
+	"Resetting a DelAck TCP connection, different timing between connections."
 	$self next
 }
 Test/resetDelAck1 instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -193,15 +200,18 @@ Test/resetDelAck1 instproc run {} {
 
 Class Test/reset1 -superclass TestSuite
 Test/reset1 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	reset1
+	set guide_	\
+	"Resetting a TCP connection."
 	$self next
 }
 Test/reset1 instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink $node_(k1) 1]
@@ -221,15 +231,18 @@ Test/reset1 instproc run {} {
 
 Class Test/resetDelAck2 -superclass TestSuite
 Test/resetDelAck2 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	resetDelAck2
+	set guide_	\
+	"Resetting a TCP connection when there is unsent data."
 	$self next
 }
 Test/resetDelAck2 instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -248,15 +261,18 @@ Test/resetDelAck2 instproc run {} {
 
 Class Test/resetDelAck3 -superclass TestSuite
 Test/resetDelAck3 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	resetDelAck3
+	set guide_	\
+	"Resetting a TCP connection when there is unsent data."
 	$self next
 }
 Test/resetDelAck3 instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -275,15 +291,18 @@ Test/resetDelAck3 instproc run {} {
 
 Class Test/resetNewreno -superclass TestSuite
 Test/resetNewreno instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	resetNewreno
+	set guide_	\
+	"NewReno TCP, resetting a TCP connection."
 	$self next
 }
 Test/resetNewreno instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP/Newreno $node_(s1) TCPSink $node_(k1) 1]
@@ -303,15 +322,18 @@ Test/resetNewreno instproc run {} {
 
 Class Test/resetSack1 -superclass TestSuite
 Test/resetSack1 instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	resetSack1
+	set guide_	\
+	"Sack TCP, resetting a TCP connection."
 	$self next
 }
 Test/resetSack1 instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 1]
@@ -331,15 +353,18 @@ Test/resetSack1 instproc run {} {
 
 Class Test/resetReno -superclass TestSuite
 Test/resetReno instproc init topo {
-	$self instvar net_ defNet_ test_
+	$self instvar net_ defNet_ test_ guide_
 	set net_	$topo
 	set defNet_	net6
 	set test_	resetReno
+	set guide_	\
+	"Reno TCP, resetting a TCP connection."
 	$self next
 }
 Test/resetReno instproc run {} {
 	global quiet
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ guide_
+	if {$quiet == "false"} {puts $guide_}
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP/Reno $node_(s1) TCPSink $node_(k1) 1]
