@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.40 2000/07/17 01:01:10 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.41 2000/07/23 00:29:33 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -121,23 +121,22 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			}
 			scb_.UpdateScoreBoard (highest_ack_, tcph);
 			/*
-		 	 * Check for a duplicate ACK
-			 */
-			if (++dupacks_ == NUMDUPACKS) {
-				/*
-				 * Assume we dropped just one packet.
-				 * Retransmit last ack + 1
-				 * and try to resume the sequence.
-				 */
-				dupack_action();
-			} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
-				 /* 
-				  * A more cautious implementation would
-				  * verify that the dupack reports the
-				  * reception of new data...
-				  */
-                       		 send_one();
-                	}
+		 	 * Check for a duplicate ACK.
+			 * Check that the SACK block actually
+			 *  acknowledges new data.
+ 			 */
+ 		        if(scb_.CheckUpdate()) {
+ 			 	if (++dupacks_ == NUMDUPACKS) {
+ 					/*
+ 					 * Assume we dropped just one packet.
+ 					 * Retransmit last ack + 1
+ 					 * and try to resume the sequence.
+ 					 */
+ 				   	dupack_action();
+ 				} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
+ 				         send_one();
+ 				}
+			}
 		}
 		if (dupacks_ == 0)
 			send_much(FALSE, 0, maxburst_);
@@ -169,8 +168,10 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 		} else if (timeout_ == FALSE) {
 			/* got another dup ack */
 			scb_.UpdateScoreBoard (highest_ack_, tcph);
-			if (dupacks_ > 0)
-				dupacks_++;
+ 		        if(scb_.CheckUpdate()) {
+ 				if (dupacks_ > 0)
+ 			        	dupacks_++;
+ 			}
 		}
 		send_much(FALSE, 0, maxburst_);
 	}

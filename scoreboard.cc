@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.12 2000/07/10 01:56:58 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.13 2000/07/23 00:29:33 sfloyd Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -62,6 +62,8 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 {
 	int i, sack_index, sack_left, sack_right;
 	int retran_decr = 0;
+	
+	changed_ = 0;
 
 	//  If there is no scoreboard, create one.
 	if (length_ == 0 && tcph->sa_length()) {
@@ -77,6 +79,7 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 			printf ("Error, scoreboard too large (increase SBSIZE for more space)\n");
 			exit(1);
 		}
+		changed_++;
 	}	
 	
 	//  Advance the left edge of the block.
@@ -95,6 +98,7 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 					SBNI.snd_nxt_ = 0;
 					retran_decr++;
 				}
+				changed_++;
 				if (length_==0) 
 					break;
 			}
@@ -119,6 +123,7 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 					printf ("Error, scoreboard too large (increase SBSIZE for more space)\n");
 					exit(1);
 				}
+				changed_++;
 			}
 		}
 		
@@ -127,6 +132,7 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 			if (SBNI.seq_no_ >= sack_left && SBNI.seq_no_ < sack_right) {
 				if (! SBNI.sack_flag_) {
 					SBNI.sack_flag_ = 1;
+					changed_++;
 				}
 				if (SBNI.retran_) {
 					SBNI.retran_ = 0;

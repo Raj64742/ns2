@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.h,v 1.7 1998/06/27 01:24:45 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.h,v 1.8 2000/07/23 00:29:33 sfloyd Exp $
  */
 
 #ifndef ns_scoreboard_h
@@ -52,10 +52,11 @@ class ScoreBoard {
 	void MarkRetran (int retran_seqno);
 	void MarkRetran (int retran_seqno, int snd_nxt);
 	int UpdateScoreBoard (int last_ack_, hdr_tcp*);
+	int CheckUpdate() {return (changed_);}
 	int CheckSndNxt (hdr_tcp*);
 	
   protected:
-	int first_, length_;
+	int first_, length_, changed_;
 	struct ScoreBoardNode {
 		int seq_no_;		/* Packet number */
 		int ack_flag_;		/* Acked by cumulative ACK */
