@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.3 2001/05/29 18:21:16 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.4 2001/07/18 02:20:50 kfall Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -721,27 +721,27 @@ Test/slowLink instproc run {} {
 
 # This test shows the packets and acknowledgements at the source,
 # for a path with a 9.6Kbps link, and 1500-byte packets.
-Class Test/slowLink1 -superclass TestSuite
-Test/slowLink1 instproc init {} {
-	global plotacks
-	$self instvar net_ test_ 
-	set net_	net8
-	set test_	slowLink1(9.6K-link,1500-byte-pkt)
-        set plotacks true
-        $self next
-}
-
-Test/slowLink1 instproc run {} {
-        $self instvar ns_ node_ testName_ 
-	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
-	Agent/TCP set windowInitOption_ 2
-	Agent/TCP set minrto_ 1
-	set tcp1 [$self make_tcp s1 k1 0 Sack]
-	$tcp1 set packetSize_ 1500
-	$self runall_test $tcp1 30.0 30.0 
-}
+#Class Test/slowLink1 -superclass TestSuite
+#Test/slowLink1 instproc init {} {
+#	global plotacks
+#	$self instvar net_ test_ 
+#	set net_	net8
+#	set test_	slowLink1(9.6K-link,1500-byte-pkt)
+#        set plotacks true
+#        $self next
+#}
+#
+#Test/slowLink1 instproc run {} {
+#        $self instvar ns_ node_ testName_ 
+#	$self setTopo
+#	Agent/TCP set syn_ true
+#	Agent/TCP set delay_growth_ true
+#	Agent/TCP set windowInitOption_ 2
+#	Agent/TCP set minrto_ 1
+#	set tcp1 [$self make_tcp s1 k1 0 Sack]
+#	$tcp1 set packetSize_ 1500
+#	$self runall_test $tcp1 30.0 30.0 
+#}
 
 # This test shows the packets and acknowledgements at the source,
 # for a path with a 9.6Kbps link, and 1500-byte packets.
