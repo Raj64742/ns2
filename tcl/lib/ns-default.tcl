@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.261 2001/08/22 00:07:40 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.262 2001/09/04 23:56:10 sfloyd Exp $
 
 
 #
@@ -197,6 +197,7 @@ Queue/REM set prob_ 0.0
 Queue/REM set curq_ 0.0
 Queue/REM set pmark_ 0.0
 Queue/REM set markpkts_ false
+Queue/REM set qib_ false
 
 Queue/GK set ecnlim_ 0.95
 Queue/GK set mean_pktsize_ 1000

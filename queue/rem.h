@@ -77,9 +77,9 @@ struct remv {
 	TracedDouble v_pl;	/* link price */
 	TracedDouble v_prob;	/* prob. of packet marking. */
 	double v_in;	/* used in computing the input rate */
-				double v_ave;
+	double v_ave;
 	double v_count;
-				double v_pl1;
+	double v_pl1;
 	double v_pl2;
 	double v_in1;
 	double v_in2;
@@ -129,6 +129,8 @@ class REMQueue : public Queue {
 	remv remv_;		/* early-drop variables */
 
 	int markpkts_ ; 
+	int bcount_;
+	int qib_; 
 
 	void print_remp();	// for debugging
 	void print_remv();	// for debugging

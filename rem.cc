@@ -87,6 +87,7 @@ REMQueue::REMQueue() : link_(NULL), tchan_(0), rem_timer_(this)
 	bind("curq_", &curq_);			    // current queue size
 	bind("pmark_", &pmark_);      //number of packets being marked 
 	bind_bool("markpkts_", &markpkts_); /* Whether to mark or drop?  Default is drop */
+	bind_bool("qib_", &qib_); /* queue in bytes? */ 
 
 	q_ = new PacketQueue();			    // underlying queue
 	pq_ = q_;
@@ -122,10 +123,11 @@ void REMQueue::reset()
 	remv_.v_pl2 = 0.0;
 	remv_.v_in1 = 0.0;
 	remv_.v_in2 = 0.0;
-
 	pmark_ = 0.0;
-
-	Queue::reset();
+	bcount_ = 0; 
+	remp_.p_bo = qib_ ? remp_.p_bo*remp_.p_pktsize : remp_.p_bo ; 
+	
+	//Queue::reset();
 	set_update_timer();
 }
 
@@ -152,7 +154,8 @@ void REMQueue::run_updaterule()
 	remv_.v_in1 = remv_.v_in2;
 	remv_.v_in2 = in;
 
-	double nqueued = q_->length(); 
+	double nqueued = qib_ ? bcount_ : q_->length(); 
+
 	double m = remp_.p_updtime*remp_.p_ptc;
 
 	pl = pl + remp_.p_gamma*( f + 0.1*(nqueued-remp_.p_bo) - m );
@@ -177,10 +180,19 @@ void REMQueue::run_updaterule()
 Packet* REMQueue::deque() 
 {
 	Packet *p = q_->deque();
+	hdr_cmn* ch; 
+	if (p != 0) {
+		ch = hdr_cmn::access(p);
+		bcount_ -= ch->size();
+	}
 	if (markpkts_) {
 		double u = Random::uniform();
 		if (p!=0) {
-   		if ( u <= remv_.v_prob ) {
+			double pro = remv_.v_prob;
+			if (qib_) {
+				pro = remv_.v_prob*ch->size()/remp_.p_pktsize; 
+			}
+   		if ( u <= pro ) {
 				hdr_flags* hf = hdr_flags::access(p);
 				if(hf->ect() == 1) { 
 					hf->ce() = 1; 
@@ -189,6 +201,8 @@ Packet* REMQueue::deque()
 			}
 		}
 	}
+	double qlen = qib_ ? bcount_ : q_->length();
+	curq_ = qlen;
 	return (p);
 }
 
@@ -199,26 +213,45 @@ Packet* REMQueue::deque()
 
 void REMQueue::enque(Packet* pkt)
 {
-	++remv_.v_count;
+	hdr_cmn* ch = hdr_cmn::access(pkt);
+	double qlen; 
+	double now = Scheduler::instance().clock();
 
-	double qlen = q_->length();
-	curq_ = qlen;
-	double qlim = qlim_;
+	if (qib_) {
+		remv_.v_count += ch->size();
+	}
+	else {
+		++remv_.v_count;
+	}
+
+	double qlim = qib_ ? (qlim_*remp_.p_pktsize) : qlim_ ;
 
 	q_ -> enque(pkt);
+	bcount_ += ch->size();
+
+	qlen = qib_ ? bcount_ : q_->length();
+
 	if (qlen >= qlim) {
 		q_->remove(pkt);
+		bcount_ -= ch->size();
 		drop(pkt);
 	}
 	else  {
 		if (!markpkts_) {
 			double u = Random::uniform(); 
-			if ( u <= remv_.v_prob ) {
+			double pro = remv_.v_prob;
+			if (qib_) {
+				pro = remv_.v_prob*ch->size()/remp_.p_pktsize; 
+			}
+			if ( u <= pro ) {
 				q_->remove(pkt);
+				bcount_ -= ch->size();
 				drop(pkt);
 			}		    
 		}
 	}
+	qlen = qib_ ? bcount_ : q_->length();
+	curq_ = qlen;
 }
 
 
