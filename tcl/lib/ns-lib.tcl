@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.25 1997/04/24 03:17:19 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.26 1997/04/25 01:59:26 kfall Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -148,8 +148,7 @@ Simulator instproc simplex-link { n1 n2 bw delay type } {
 
 	#XXX yuck
 	if { $type == "RED" } {
-	 	set bw [[$link_($sid:$did) set link_] set bandwidth_]
-		$q set ptc_ [expr $bw / (8. * [$q set mean_pktsize_])]
+		$q link [$link_($sid:$did) set link_]
 	}
 	if [info exists traceAllFile_] {
 		$self trace-queue $n1 $n2 $traceAllFile_
