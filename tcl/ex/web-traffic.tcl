@@ -72,16 +72,28 @@ set numPage 10
 # Session 0 starts from 0.1s, session 1 starts from 0.2s
 $pool set-num-session 2
 
-set interPage [new RandomVariable/Exponential -avg_ 1]
-set pageSize [new RandomVariable/Constant -val_ 1]
-set interObj [new RandomVariable/Exponential -avg_ 0.01]
-set objSize [new RandomVariable/ParetoII -avg_ 10 -shape_ 1.2]
+# XXX Can't initialize instvars using something like:
+#set interPage [new RandomVariable/Exponential -avg_ 1]
+set interPage [new RandomVariable/Exponential] 
+$interPage set avg_ 1
+set pageSize [new RandomVariable/Constant]
+$pageSize set val_ 1
+set interObj [new RandomVariable/Exponential]
+$interObj set avg_ 0.01
+set objSize [new RandomVariable/ParetoII]
+$objSize set avg_ 10
+$objSize set shape_ 1.2
 $pool create-session 0 $numPage 0.1 $interPage $pageSize $interObj $objSize
 
-set interPage [new RandomVariable/Exponential -avg_ 1]
-set pageSize [new RandomVariable/Constant -val_ 1]
-set interObj [new RandomVariable/Exponential -avg_ 0.01]
-set objSize [new RandomVariable/ParetoII -avg_ 10 -shape_ 1.2]
+set interPage [new RandomVariable/Exponential]
+$interPage set avg_ 1
+set pageSize [new RandomVariable/Constant]
+$pageSize set val_ 1
+set interObj [new RandomVariable/Exponential]
+$interObj set avg_ 0.01
+set objSize [new RandomVariable/ParetoII]
+$objSize set avg_ 10
+$objSize set shape_ 1.2
 $pool create-session 1 $numPage 0.2 $interPage $pageSize $interObj $objSize
 
 $ns at 1000.0 "finish"
