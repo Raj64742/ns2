@@ -20,7 +20,7 @@
  * Tcp-vegas with Rate-based pacing by John Heidemann <johnh@isi.edu>
  * and Vikram Visweswaraiah <visweswa@isi.edu>.
  * The original SunOS implementation was by Vikram Visweswaraiah
- * and Ashish Savla <asavla@usc.edu> 
+ * and Ashish Savla <asavla@usc.edu>.
  *
  * Rate-based pacing is an experimental addition to TCP
  * to address the slow-start restart problem.
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.3 1997/06/24 00:18:03 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.4 1997/07/02 00:28:08 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -47,6 +47,13 @@ static char rcsid[] =
 #ifndef MIN
 #define MIN(x, y) ((x)<(y) ? (x) : (y))
 #endif /* ! MIN */
+
+#if 0
+#define RBP_DEBUG_PRINTF(x) printf x
+#else /* ! 0 */
+#define RBP_DEBUG_PRINTF(x)
+#endif /* 0 */
+
 
 class RBPVegasTcpAgent;
 
@@ -100,7 +107,6 @@ RBPVegasTcpAgent::recv(Packet *pkt, Handler *hand)
 {
 	if (rbp_mode_ != RBP_OFF) {
 		// reciept of anything disables rbp
-		// change cwnd_ here?
 		rbp_mode_ = RBP_OFF;
 	};
 	VegasTcpAgent::recv(pkt, hand);
@@ -124,14 +130,50 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 {
 	if (rbp_mode_ == RBP_POSSIBLE && able_to_rbp_send_one()) {
 		// start paced mode
-		rbp_mode_ = RBP_GOING;
-		double rbp_rate = v_actual_ * rbp_scale_;
-		inter_pace_delay_ = 1 / rbp_rate;
-		// prevent sending too much data in RBP mode
-#if 0
-		cwnd() = MIN(cwnd(), rbp_rate * v_rtt_);
-#endif
-		paced_send_one();
+		rbp_mode_ = RBP_GOING; 
+		// Try to follow tcp_output.c here
+		// Calculate the vegas window as its reported rate
+		// times the rtt.
+		double rbwin_vegas = v_actual_ * v_rtt_;
+		RBP_DEBUG_PRINTF(("-----------------\n"));
+		RBP_DEBUG_PRINTF(("rbwin_vegas = %g\nv_actual = %g\nv_rtt =\
+%g\nbase_rtt=%g\n", rbwin_vegas, v_actual_, v_rtt_, v_baseRTT_));
+		// Smooth the vegas window
+		rbwin_vegas *= rbp_scale_;
+		// xxx Need check here; if rbwin_vegas is now less than
+		// mss, then set rbwin_vegas to one mss and stop doing
+		// rate based pacing; such a situation is equivalent
+		// to slow start restart.
+		if ((int(rbwin_vegas + 0.5)) <= 1) {
+			// Rbp not needed; back out.
+			//
+			// rbwin_vegas is now less than
+			// mss, then set rbwin_vegas to one mss and stop doing
+			// rate based pacing; such a situation is equivalent
+			// to slow start restart.
+			rbp_mode_ = RBP_OFF;
+			cwnd() = 1;
+			VegasTcpAgent::send_much(force,reason, maxburst);
+		} else {
+			// rbp needed; start it
+
+			// Conservatively set the congestion window to min of
+			// congestion window and the smoothed rbwin_vegas
+			RBP_DEBUG_PRINTF(("cwnd before check = %g\n", cwnd()));
+			cwnd() = MIN(cwnd(), rbwin_vegas);
+			RBP_DEBUG_PRINTF(("cwnd after check = %g\n", cwnd()));
+			RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
+			// RBP timer calculations must be based on the actual
+			// window which is the min of the receiver's
+			// advertised window and the congestion window.
+			// TcpAgent::window() does this job.
+			// What this means is we expect to send window() pkts
+			// in v_rtt_ time.
+			inter_pace_delay_ = (v_rtt_)/(window() * 1.0);
+			RBP_DEBUG_PRINTF(("window is %d\n", window()));
+			RBP_DEBUG_PRINTF(("ipt = %g\n", inter_pace_delay_));
+			paced_send_one();
+		}
 	} else {
 		VegasTcpAgent::send_much(force,reason, maxburst);
 	};
@@ -141,6 +183,7 @@ void
 RBPVegasTcpAgent::paced_send_one()
 {
 	if (rbp_mode_ == RBP_GOING && able_to_rbp_send_one()) {
+		RBP_DEBUG_PRINTF(("Sending one rbp packet\n"));
 		// send one packet
 		output(t_seqno()++, TCP_REASON_RBP);
 		// schedule next pkt
