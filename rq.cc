@@ -126,13 +126,15 @@ ReassemblyQueue::clear()
  * to the given sequence number
  */
 
-void
+TcpFlag
 ReassemblyQueue::clearto(TcpSeq seq)
 {
+	TcpFlag flag = 0;
 	seginfo *p = head_, *q;
 	while (p) {
 		if (p->endseq_ <= seq) {
 			q = p->next_;
+			flag |= p->pflags_;
 			sremove(p);
 			fremove(p);
 			delete p;
@@ -140,7 +142,7 @@ ReassemblyQueue::clearto(TcpSeq seq)
 		} else
 			break;
 	}
-	return;
+	return flag;
 }
 
 /*
@@ -186,8 +188,8 @@ ReassemblyQueue::dumplist()
 				printf("OOPS: LOOP1\n");
 				abort();
 			}
-			printf("[->%d, %d<-]",
-				p->startseq_, p->endseq_);
+			printf("[->%d, %d<-<0x%x>]",
+				p->startseq_, p->endseq_, p->pflags_);
 			p->rqflags_ |= RQF_MARK;
 			p = p->next_;
 		}
@@ -250,13 +252,23 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 {
 
 	int needmerge = FALSE;
+
+	if (end == start)
+		return tiflags;
+	else if (end < start) {
+		fprintf(stderr, "ReassemblyQueue::add() - end(%d) before start(%d)\n",
+			end, start);
+		abort();
+	}
+
 	if (head_ == NULL) {
 		if (top_ != NULL) {
-			fprintf(stderr, "problem: FIFO empty, LIFO not\n");
+			fprintf(stderr, "ReassemblyQueue::add() - problem: FIFO empty, LIFO not\n");
 			abort();
 		}
 
 		// nobody there, just insert this one
+
 
 		tail_ = head_ = top_ = bottom_ =  new seginfo;
 		head_->prev_ = head_->next_ = head_->snext_ = head_->sprev_ = NULL;
