@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.29 2002/01/01 00:04:53 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.30 2002/05/07 18:28:28 haldar Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -47,7 +47,8 @@ public:
 	PacketQueue() : head_(0), tail_(0), len_(0), bytes_(0) {}
 	virtual int length() const { return (len_); }
 	virtual int byteLength() const { return (bytes_); }
-	virtual void enque(Packet* p) {
+	virtual Packet* enque(Packet* p) { // Returns previous tail
+		Packet* pt = tail_;
 		if (!tail_) head_= tail_= p;
 		else {
 			tail_->next_= p;
@@ -56,6 +57,7 @@ public:
 		tail_->next_= 0;
 		++len_;
 		bytes_ += hdr_cmn::access(p)->size();
+		return pt;
 	}
 	virtual Packet* deque() {
 		if (!head_) return 0;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/semantic-packetqueue.h,v 1.8 2000/09/01 03:04:07 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/semantic-packetqueue.h,v 1.9 2002/05/07 18:28:28 haldar Exp $ (UCB)
  */
 
 #ifndef ns_semantic_packetqueue_h
@@ -111,7 +111,7 @@ class SemanticPacketQueue : public PacketQueue {
 	int random_drop_;	/* pick packet to drop at random */
 	int random_ecn_;	/* pick packet for ECN at random */
 	virtual Packet* deque();
-	void enque(Packet *);
+	Packet* enque(Packet *); // Returns prev tail
 	virtual inline void enque_head(Packet *p) {
 		if (len_ == 0)
 			PacketQueue::enque(p);

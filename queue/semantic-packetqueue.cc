@@ -265,12 +265,12 @@ SemanticPacketQueue::pickPacketToDrop()
 	return (victim);
 }
 				
-void 
+Packet*
 SemanticPacketQueue::enque(Packet *pkt)
 {
 	if (reconsAcks_&&(hdr_cmn::access(pkt)->ptype_==PT_ACK)) {
 		reconsCtrl_->recv(pkt);
-		return;
+		return NULL;
 	}
 	if (hdr_cmn::access(pkt)->ptype_ == PT_ACK)
 		ack_count++;
@@ -281,10 +281,11 @@ SemanticPacketQueue::enque(Packet *pkt)
 	else
 		unmarked_count_++;
 
-	PacketQueue::enque(pkt); /* actually enqueue the packet */
+	Packet* pt = PacketQueue::enque(pkt); /* actually enque the packet */
 
 	if (filteracks_ && (hdr_cmn::access(pkt)->ptype_==PT_ACK))
 		filterAcks(pkt, replace_head_);
+	return pt;
 }
 
 Packet *
