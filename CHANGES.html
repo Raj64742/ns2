@@ -19,6 +19,16 @@ with the most recent changes coming first.
 [PENDING RELEASE DATE]</h3>
 <ul>
 
+<p><li><b>[Sally Floyd]</b>
+Tue Dec 17 09:27:13 PST 2002
+<br>
+Made a change to the TFRC receiver to add robustness in the presence of
+reordering, in conformance with the TFRC specification.
+Added numPkts_ to Agent/TFRCSink, to set the number of non-sequential
+data packets before a missing packet is counted as a loss.
+The default for numPkts_ is set to 3.  
+The previous TFRC code was equivalent to setting numPkts_ to 1.
+
 <p><li><b>[Yuri Pryadkin]</b>
 Mon Dec  2 12:51:52 PST 2002
 <br>
