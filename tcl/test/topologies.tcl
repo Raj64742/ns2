@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.4 1997/10/01 22:30:11 mjh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.5 1997/10/27 22:04:45 kfall Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -99,9 +99,9 @@ Class NodeTopology/4nodes -superclass SkelTopology
 #
 #	   s1
 #	     \ 
-#  8Mb,5ms \   0.8Mb,100ms
+#     8Mb,5ms \   0.8Mb,100ms
 #	        r1 --------- k1
-#  8Mb,5ms /
+#     8Mb,5ms /
 #	     /
 #	   s2
 
@@ -595,7 +595,4 @@ Topology/net3RED-DVm1 instproc init ns {
     $ns rtproto DV
     $self checkConfig $class $ns
 }
-
-
-
 
