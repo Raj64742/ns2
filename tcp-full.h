@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.5 1997/10/13 22:24:41 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.6 1997/10/23 15:03:27 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -92,13 +92,14 @@ class ReassemblyQueue : public TcpAgent {
 		seginfo* prev_;
 		int startseq_;
 		int endseq_;
+		int flags_;
 	};
 
 public:
 	ReassemblyQueue(int& nxt) : head_(NULL), tail_(NULL),
 		rcv_nxt_(nxt) { }
 	int empty() { return (head_ == NULL); }
-	void add(Packet*);
+	int add(Packet*);
 	void clear();
 protected:
 	seginfo* head_;
@@ -113,14 +114,19 @@ class FullTcpAgent : public TcpAgent {
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno); 	// tcp_timers() in real code
 	void advance(int);
+	void advance_bytes(int);
 	int command(int argc, const char*const* argv);
 
  protected:
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int data_on_syn_;   // send data on initial SYN?
+	int slow_start_on_idle_;	// cwnd = 1 on idle?
+	double idle_;	    // idle time
+	int close_on_empty_;	// close conn when buffer empty
 	int tcprexmtthresh_;    // fast retransmit threshold
 	int iss_;       // initial send seq number
+	int irs_;	// initial recv'd # (peer's iss)
 	int dupseg_fix_;    // fix bug with dup segs and dup acks?
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
 	double delack_interval_;
