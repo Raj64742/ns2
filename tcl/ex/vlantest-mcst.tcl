@@ -92,11 +92,15 @@ create-topology
 set mproto DM
 set mrthandle [$ns mrtproto $mproto  {}]
 
-set cbr0 [new Agent/CBR]
+set udp0 [new Agent/UDP]
+$ns attach-agent $node0 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
+
 set rcvr0 [new Agent/Null]
-$ns attach-agent $node0 $cbr0
 $ns attach-agent $nodex $rcvr0
-$cbr0 set dst_ 0x8003
+
+$udp0 set dst_ 0x8003
 $cbr0 set interval_ 0.01
 
 $ns at 0.0 "$cbr0 start"
