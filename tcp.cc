@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.91 1999/09/09 03:22:53 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.92 1999/09/22 02:08:00 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -238,6 +238,21 @@ TcpAgent::set_initial_window()
 }
 
 void
+TcpAgent::reset_qoption()
+{
+	int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
+
+	T_start = now ; 
+	RTT_count = 0 ; 
+	RTT_prev = 0 ; 
+	RTT_goodcount = 1 ; 
+	F_counting = 0 ; 
+	W_timed = -1 ; 
+	F_full = 0 ;
+	Backoffs = 0 ; 
+}
+
+void
 TcpAgent::reset()
 {
 	rtt_init();
@@ -263,25 +278,13 @@ TcpAgent::reset()
 	}
 
 	if (QOption_) {
-
 		int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
-
 		T_last = now ; 
 		T_prev = now ; 
 		W_used = 0 ;
-		
 		if (EnblRTTCtr_) {
-			T_start = now ; 
-			T_full = now ; 
-			RTT_count = 0 ; 
-			RTT_prev = 0 ; 
-			RTT_goodcount = 1 ; 
-			F_counting = 0 ; 
-			W_timed = -1 ; 
-			F_full = 0 ;
-			Backoffs = 0 ; 
+			reset_qoption();
 		}
-
 	}
 }
 
@@ -688,19 +691,33 @@ void TcpAgent::opencwnd()
 void
 TcpAgent::slowdown(int how)
 {
-	int halfwin = int(window() / 2);
+	int win = window();
+	int halfwin = int (window() / 2);
 	if (how & CLOSE_SSTHRESH_HALF)
 		ssthresh_ = halfwin;
-	if (ssthresh_ < 2)
-		ssthresh_ = 2;
+        else if (how & THREE_QUARTER_SSTHRESH)
+		if (ssthresh_ < 3*cwnd_/4)
+			ssthresh_  = (int)(3*cwnd_/4);
 	if (how & CLOSE_CWND_HALF)
 		cwnd_ = halfwin;
+        else if (how & CWND_HALF_WITH_MIN) {
+                cwnd_ = halfwin;
+                if (cwnd_ < 1)
+                        cwnd_ = 1;
+	}
 	else if (how & CLOSE_CWND_RESTART)
 		cwnd_ = int(wnd_restart_);
 	else if (how & CLOSE_CWND_INIT)
 		cwnd_ = int(wnd_init_);
 	else if (how & CLOSE_CWND_ONE)
 		cwnd_ = 1;
+	else if (how & CLOSE_CWND_HALF_WAY) {
+                cwnd_ = win - (win - W_used)/2 ;
+                if (cwnd_ < 1)
+                        cwnd_ = 1;
+	}
+	if (ssthresh_ < 2)
+		ssthresh_ = 2;
 	if (how & (CLOSE_CWND_HALF|CLOSE_CWND_RESTART|CLOSE_CWND_INIT|CLOSE_CWND_ONE))
 		cong_action_ = TRUE;
 
@@ -1140,128 +1157,111 @@ void TcpAgent::closecwnd(int how)
 	count_ = 0;
 }
 
+/*
+ * Check if the sender has been idle or application-limited for more
+ * than an RTO, and if so, reduce the congestion window.
+ */
 void TcpAgent::process_qoption_after_send ()
 {
 	int tcp_now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
-	int win = window ();
-	int rtt = (int(t_srtt_) >> T_SRTT_BITS) ;
 	int rto = (int)(t_rtxcur_/tcp_tick_) ; 
-	double initwin = initial_window() ;
-
 	/*double ct = Scheduler::instance().clock();*/
 
 	if (!EnblRTTCtr_) {
 		if (tcp_now - T_last >= rto) {
-/*
-printf ("nodata: %f %d %d %d %f\n", 
-ct, tcp_now, T_last, rto, (float)cwnd_); 
-*/
+			// The sender has been idle.
+		 	slowdown(THREE_QUARTER_SSTHRESH) ;
 			for (int i = 0 ; i < (tcp_now - T_last)/rto; i ++) {
-				win = window () ; 
-				cwnd_ = win/2 ; 
-				if (cwnd_ < initwin) 
-					cwnd_ = initwin ;
+				slowdown(CWND_HALF_WITH_MIN);
 			}
 			T_prev = tcp_now ;
 			W_used = 0 ;
-/*printf ("after:%f\n", (float)cwnd_);*/
 		}
 		T_last = tcp_now ;
-		win = window () ;
-		if (t_seqno_ == highest_ack_+win) {
+		if (t_seqno_ == highest_ack_+ window()) {
 			T_prev = tcp_now ; 
 			W_used = 0 ; 
 		}
-		else {
-			if (t_seqno_ == curseq_-1) {
-				int tmp = t_seqno_ - highest_ack_ ;
-				if (tmp > W_used)
-					W_used = tmp ;
+		else if (t_seqno_ == curseq_-1) {
+			// The sender has no more data to send.
+			int tmp = t_seqno_ - highest_ack_ ;
+			if (tmp > W_used)
+				W_used = tmp ;
+			if (tcp_now - T_prev >= rto) {
+				// The sender has been application-limited.
+				slowdown(THREE_QUARTER_SSTHRESH);
+				slowdown(CLOSE_CWND_HALF_WAY);
+				T_prev = tcp_now ;
+				W_used = 0 ;
+			}
+		}
+	} else {
+		rtt_counting();
+	}
+}
+
 /*
-printf ("somedata: %f %d %d %d %f %d %d %d\n", 
-ct, tcp_now, T_prev, rto, 
-(float)cwnd_, (int)t_seqno_, (int)(curseq_-1), W_used); 
-*/
-				if (tcp_now - T_prev >= rto) {
-					win = window () ; 
-					cwnd_ = win - (win - W_used)/2 ; 
-					if (cwnd_ < initwin) 
-						cwnd_ = initwin ;
-					T_prev = tcp_now ;
-					W_used = 0 ;
-				}
-/*printf ("after:%f\n", (float)cwnd_);*/
+ * Check if the sender has been idle or application-limited for more
+ * than an RTO, and if so, reduce the congestion window, for a TCP sender
+ * that "counts RTTs" by estimating the number of RTTs that fit into
+ * a single clock tick.
+ */
+void
+TcpAgent::rtt_counting()
+{
+        int tcp_now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
+	int rtt = (int(t_srtt_) >> T_SRTT_BITS) ;
+
+	if (rtt < 1) 
+		rtt = 1 ;
+	if (tcp_now - T_last >= 2*rtt) {
+		// The sender has been idle.
+		int RTTs ; 
+		RTTs = (tcp_now -T_last)*RTT_goodcount/(rtt*2) ; 
+		RTTs = RTTs - Backoffs ; 
+		Backoffs = 0 ; 
+		if (RTTs > 0) {
+			slowdown(THREE_QUARTER_SSTHRESH) ;
+			for (int i = 0 ; i < RTTs ; i ++) {
+				slowdown(CWND_HALF_WITH_MIN);
+				RTT_prev = RTT_count ; 
+				W_used = 0 ;
 			}
 		}
 	}
-	else {
-		if (rtt < 1) 
-			rtt = 1 ;
-		win = window () ; 
-		if (tcp_now - T_full >= 2*rtt) {
-/*
-printf ("Nodata: %f %d %d %d %f %d %d\n", 
-ct, tcp_now, T_full, rtt*2, (float)cwnd_, RTT_goodcount, Backoffs); 
-*/
-			int RTTs ; 
-			RTTs = (tcp_now -T_full)*RTT_goodcount/(rtt*2) ; 
-			RTTs = RTTs - Backoffs ; 
-			Backoffs = 0 ; 
-			T_full = tcp_now ;
-			if (RTTs > 0) {
-				for (int i = 0 ; i < RTTs ; i ++) {
-					win = window () ; 
-					cwnd_ = win/2 ; 
-					if (cwnd_ < initwin) 
-						cwnd_ = initwin ;
-					RTT_prev = RTT_count ; 
-					W_used = 0 ;
-				}
-			}
-/*printf ("After:%f\n", (float)cwnd_);*/
+	T_last = tcp_now ;
+	if (tcp_now - T_start >= 2*rtt) {
+		if ((RTT_count > RTT_goodcount) || (F_full == 1)) {
+			RTT_goodcount = RTT_count ; 
+			if (RTT_goodcount < 1) RTT_goodcount = 1 ; 
 		}
-		if (tcp_now - T_start >= 2*rtt) {
-			if ((RTT_count > RTT_goodcount) || (F_full == 1)) {
-				RTT_goodcount = RTT_count ; 
-				if (RTT_goodcount < 1) RTT_goodcount = 1 ; 
-			}
-			RTT_prev = RTT_prev - RTT_count ;
-			RTT_count = 0 ; 
-			T_start  = tcp_now ;
-			F_full = 0;
+		RTT_prev = RTT_prev - RTT_count ;
+		RTT_count = 0 ; 
+		T_start  = tcp_now ;
+		F_full = 0;
+	}
+	if (t_seqno_ == highest_ack_ + window()) {
+		W_used = 0 ; 
+		F_full = 1 ; 
+		RTT_prev = RTT_count ;
+	}
+	else if (t_seqno_ == curseq_-1) {
+		// The sender has no more data to send.
+		int tmp = t_seqno_ - highest_ack_ ;
+		if (tmp > W_used)
+			W_used = tmp ;
+		if (RTT_count - RTT_prev >= 2) {
+			// The sender has been application-limited.
+			slowdown(THREE_QUARTER_SSTHRESH) ;
+			slowdown(CLOSE_CWND_HALF_WAY);
+			RTT_prev = RTT_count ; 
+			Backoffs ++ ; 
+			W_used = 0;
 		}
-		win = window () ;
-		if (t_seqno_ == highest_ack_+win) {
-			W_used = 0 ; 
-			F_full = 1 ; 
-			T_full = tcp_now ; 
-			RTT_prev = RTT_count ;
-		}
-		else {
-			if (t_seqno_ == curseq_-1) {
-				int tmp = t_seqno_ - highest_ack_ ;
-				if (tmp > W_used)
-					W_used = tmp ;
-				if (RTT_count - RTT_prev >= 2) {
-/*
-printf ("Somedata: %f %d %d %d %f %d %d %d\n", ct, tcp_now, RTT_count,
-RTT_prev, (float)cwnd_, (int)t_seqno_, (int)(curseq_-1), W_used);
-*/
-					win = window () ; 
-					cwnd_ = win - (win-W_used)/2 ; 
-					if (cwnd_ < initwin) 
-						cwnd_ = initwin ;
-					RTT_prev = RTT_count ; 
-					Backoffs ++ ; 
-					W_used = 0;
-/*printf ("After:%f\n", (float)cwnd_);*/
-				}
-			}
-		}
-		if (F_counting == 0) {
-			W_timed = t_seqno_  ;
-			F_counting = 1 ;
-		}
+	}
+	if (F_counting == 0) {
+		W_timed = t_seqno_  ;
+		F_counting = 1 ;
 	}
 }
 

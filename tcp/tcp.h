@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.66 1999/08/24 05:05:42 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.67 1999/09/22 02:07:59 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -92,6 +92,9 @@ struct hdr_tcp {
 #define	CLOSE_CWND_ONE		0x00000010
 #define CLOSE_SSTHRESH_HALVE	0x00000020
 #define CLOSE_CWND_HALVE	0x00000040
+#define THREE_QUARTER_SSTHRESH  0x00000080
+#define CLOSE_CWND_HALF_WAY 	0x00000100
+#define CWND_HALF_WITH_MIN	0x00000200
 
 /*
  * tcp_tick_:
@@ -195,6 +198,8 @@ protected:
 	void newack(Packet*);
 	void tcp_eln(Packet *pkt); /* reaction to ELN (usually wireless) */
 	void finish(); /* called when the connection is terminated */
+	void reset_qoption();	/* for QOption with EnblRTTCtr_ */
+	void rtt_counting();	/* for QOption with EnblRTTCtr_ */
 
 	/* Helper functions. Currently used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }
