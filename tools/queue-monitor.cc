@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.25 2002/09/16 05:35:00 sfloyd Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.26 2002/09/17 03:44:35 sfloyd Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -43,8 +43,6 @@ static const char rcsid[] =
 
 int QueueMonitor::command(int argc, const char*const* argv)
 {
-	int i, topBin, MsPerBin, first, last;
-	double frac;
 	Tcl& tcl = Tcl::instance();
 
 	if (argc == 2) {
@@ -71,22 +69,13 @@ int QueueMonitor::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "printRTTs") == 0) {
 			if (keepRTTstats_) {
-			      	topBin = maxRTT_ * binsPerSec_;
-				MsPerBin = int(1000/binsPerSec_);
-				printf("Distribution of RTTs, %d ms bins\n", MsPerBin);
-			      	for (i = 0; i < topBin; i++) {
-					if (RTTbins_[i] > 0) {
-					   frac = (double)RTTbins_[i]/numRTTs_;
-					   printf("%d to %d ms: fraction %5.3f number %d\n", 
-					   i*MsPerBin, (i+1)*MsPerBin, frac,
-					   RTTbins_[i]); 
-					   }
-				}
-				i = topBin - 1;
-				if (RTTbins_[i] > 0) {
-					printf("The last bin might also contain RTTs > %d ms\n",
-					(i+1)*MsPerBin);
-				}
+				printRTTs();
+			} 
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "printSeqnos") == 0) {
+			if (keepSeqnoStats_) {
+				printSeqnos();
 			} 
 			return (TCL_OK);
 		}
@@ -143,6 +132,49 @@ static class QueueMonitorClass : public TclClass {
 		return (new QueueMonitor());
 	}
 } queue_monitor_class;
+
+void
+QueueMonitor::printRTTs() {
+	int i, topBin, MsPerBin;
+
+	topBin = maxRTT_ * binsPerSec_;
+	MsPerBin = int(1000/binsPerSec_);
+	printf("Distribution of RTTs, %d ms bins\n", MsPerBin);
+	for (i = 0; i < topBin; i++) {
+		if (RTTbins_[i] > 0) {
+		   	printf("%d to %d ms: fraction %5.3f number %d\n", 
+		   	  i*MsPerBin, (i+1)*MsPerBin, 
+			  (double)RTTbins_[i]/numRTTs_,
+		   	  RTTbins_[i]); 
+		}
+	}
+	i = topBin - 1;
+	if (RTTbins_[i] > 0) {
+		printf("The last bin might also contain RTTs >= %d ms.\n",
+		(i+1)*MsPerBin);
+	}
+}
+
+void
+QueueMonitor::printSeqnos() {
+	int i, topBin; 
+
+	topBin = int(maxSeqno_ / SeqnoBinSize_);
+	printf("Distribution of Seqnos, %d seqnos per bins\n", SeqnoBinSize_);
+	for (i = 0; i < topBin; i++) {
+		if (SeqnoBins_[i] > 0) {
+		   	printf("%d to %d : fraction %5.3f number %d\n", 
+		   	  i*SeqnoBinSize_, (i+1)*SeqnoBinSize_ - 1, 
+			  (double)SeqnoBins_[i]/numSeqnos_,
+		   	  SeqnoBins_[i]); 
+		}
+	}
+	i = topBin - 1;
+	if (SeqnoBins_[i] > 0) {
+		printf("The last bin might also contain Seqnos >= %d. \n",
+		(i+1)*SeqnoBinSize_);
+	}
+}
 
 void
 QueueMonitor::printStats() {
@@ -210,6 +242,9 @@ void QueueMonitor::out(Packet* p)
         if (keepRTTstats_) {
 		keepRTTstats(p);
 	}
+        if (keepSeqnoStats_) {
+		keepSeqnoStats(p);
+	}
 	if (channel_)
 		printStats();
 }
@@ -272,11 +307,35 @@ void QueueMonitor::keepRTTstats(Packet *pkt) {
 			}
 		}
 		MsPerBin = int(1000/binsPerSec_);
-		j = (int)floor(rttInMs/MsPerBin);
+		j = (int)(rttInMs/MsPerBin);
 		if (j < 0) j = 0;
 		if (j >= topBin) j = topBin - 1;
 		++ RTTbins_[j];
 		++ numRTTs_;
+	}
+}
+
+//The procedure to keep Seqno (sequence number) statistics.
+void QueueMonitor::keepSeqnoStats(Packet *pkt) {
+        int i, j, topBin, seqno; 
+	hdr_cmn* hdr  = hdr_cmn::access(pkt);
+	packet_t t = hdr->ptype();
+	if (t == PT_TCP || t == PT_HTTP || t == PT_FTP || t == PT_TELNET) {
+		hdr_tcp *tcph = hdr_tcp::access(pkt);
+		seqno = tcph->seqno(); 
+		if (seqno < 0) seqno = 0;
+		topBin = int(maxSeqno_ / SeqnoBinSize_);
+		if (numSeqnos_ == 0) {
+			SeqnoBins_ = (int *)malloc(sizeof(int)*topBin);
+			for (i = 0; i < topBin; i++) {
+				SeqnoBins_[i] = 0;
+			}
+		}
+		j = (int)(seqno/SeqnoBinSize_);
+		if (j < 0) j = 0;
+		if (j >= topBin) j = topBin - 1;
+		++ SeqnoBins_[j];
+		++ numSeqnos_;
 	}
 }
 

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.20 2002/09/16 05:35:00 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.21 2002/09/17 03:44:35 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -51,6 +51,8 @@ public:
 		pdepartures_(0), bdepartures_(0),
 		pdrops_(0), pmarks_(0), bdrops_(0), 
 		keepRTTstats_(0), numRTTs_(0), maxRTT_(1), binsPerSec_(10),
+		keepSeqnoStats_(0), maxSeqno_(1000), SeqnoBinSize_(1), 
+		numSeqnos_(0),
 		//variables for flow rate estimation
 		estimate_rate_(0), k_(0.1), estRate_(0.0), 
 		srcId_(0), dstId_(0), channel_(0),
@@ -70,6 +72,11 @@ public:
                 bind_bool("keepRTTstats_", &keepRTTstats_);
 		bind("maxRTT_", &maxRTT_);
 		bind("binsPerSec_", &binsPerSec_);
+
+		//for keeping sequence number statistics
+                bind_bool("keepSeqnoStats_", &keepSeqnoStats_);
+		bind("maxSeqno_", &maxSeqno_);
+		bind("SeqnoBinSize_", &SeqnoBinSize_);
 
 		//variable binding for flow rate estimation
 		bind_bool("estimate_rate_", &estimate_rate_);
@@ -98,6 +105,8 @@ public:
 	int pdrops() const { return (pdrops_); }
 	int pmarks() const { return (pmarks_); }
 	int bdrops() const { return (bdrops_); }
+	void printRTTs();
+	void printSeqnos();
 	void printStats();
 	virtual void in(Packet*);
 	virtual void out(Packet*);
@@ -132,6 +141,12 @@ protected:
 	int binsPerSec_;		/* number of bins per second */
 	int *RTTbins_;			/* Number of RTTs in each bin */
 
+        int keepSeqnoStats_;		/* boolean - keeping Seqno stats? */
+	int maxSeqno_;			/* Max Seqno to measure */
+	int numSeqnos_;			/* number of Seqno measurements */
+	int SeqnoBinSize_;		/* number of Seqnos per bin */
+	int *SeqnoBins_;		/* Number of Seqnos in each bin */
+
 	int srcId_;
 	int dstId_;
 	Tcl_Channel channel_;
@@ -152,6 +167,7 @@ protected:
 
 	void estimateRate(Packet *p);
 	void keepRTTstats(Packet *p);
+	void keepSeqnoStats(Packet *p);
 };
 
 class SnoopQueue : public Connector {
