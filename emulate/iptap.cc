@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.cc,v 1.1 2001/05/15 21:23:38 alefiyah Exp $ (ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.cc,v 1.2 2002/08/20 00:39:35 alefiyah Exp $ (ISI)";
 #endif
 
 #include "iptap.h"
@@ -190,14 +190,19 @@ IPTapAgent::recvpkt()
     fprintf(stderr,
 	    "IPTapAgent(%s) : received ttl zero.\n",
 	    name());
-    return;
-  }
-
-  /* Discard if duplicate. */
-  if (isDuplicate(ntohs(ipheader->ip_id), ntohs(ipheader->ip_off))) {
     Packet::free(p);
     return;
   }
+
+   /* Removed test for isDuplicate on 08/19/02 
+    * Recommend adding ether dst or adding not ether src instead 
+    * since at high packet rates the test cannot keep up and results 
+    * in losing packets */
+  /* Discard if duplicate. */
+  /* if (isDuplicate(ntohs(ipheader->ip_id), ntohs(ipheader->ip_off))) {
+    Packet::free(p);
+    return;
+    } */ 
   
   datagramlen = ntohs(ipheader->ip_len);
 
@@ -281,9 +286,11 @@ IPTapAgent::sendpkt(Packet* p)
     fprintf(stderr,
 	    "IPTapAgent(%s): sendpkt (%p, %d): %s\n",
 	    name(), p->accessdata(), hc->size(), strerror(errno));
+    Packet::free(p);
     return (-1);
     
   }
+  Packet::free(p);
   TDEBUG3("IPTapAgent(%s): sent packet (sz: %d)\n",
 	  name(), hc->size());
   return 0;
