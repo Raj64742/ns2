@@ -134,11 +134,9 @@ RouteLogic instproc notify {} {
     foreach i [array names rtprotos_] {
 	Agent/rtProto/$i compute-all
     }
-    set ns [Simulator instance]
-    if {[$ns info class] == "MultiSim"} {
-	foreach i [CtrMcastComp info instances] {
-	    $i notify
-	}
+
+    foreach i [CtrMcastComp info instances] {
+	$i notify
     }
 }
 
