@@ -115,29 +115,20 @@ classifiers for n levels of hierarchy defined in the topology.
     }
 \end{program}
 
-At the time of route computation, a call is made to add-hroute instead
-of the conventional add-route used for flat-routing. Add-hroute
-populates classifiers as shown in the otcl method below:
+At the time of route computation, a call is made to add-route.
+add-route populates classifiers as shown in the otcl method below:
 
 \begin{program}
-HierNode instproc add-hroute { dst target } {
-  \$self instvar classifiers_ rtsize_
-  set al [\$self split-addrstr \$dst]
-  set l [llength \$al] 
-  for {set i 1} {\$i <= \$l} {incr i} {
-    set d [lindex \$al [expr \$i-1]]
-    if {\$i == \$l} {
-      \$classifiers_(\$i) install \$d \$target
-      } else {
-      \$classifiers_(\$i) install \$d \$classifiers_([expr \$i + 1])
-      }
-    }
-  # increase the routing table size counter - keeps track of rtg 
-  # table size for each node
-  
-  set rtsize_ [expr \$rtsize_ + 1]
- }
-
+Node instproc add-route { dst target } {
+ 	\$self instvar rtnotif_
+	# Notify every module that is interested about this 
+	# route installation
+	
+	if {\$rtnotif_ != ""} {
+		\$rtnotif_ add-route \$dst \$target
+	}
+	\$self incr-rtgtable-size
+}
 \end{program}
 
 For an example of 3 level of hierarchy, the level 1 classifier demuxes
@@ -216,11 +207,8 @@ domain with 4 clusters, with each cluster consisting of 5 nodes.
 
 Internal procedures:\\
 
-\code{$Hiernode_ add-hroute <dst> <target>}\\
-This procedure is used to add next-hop entries of a destination <dst> for a
-given <target>. Since hier-nodes have multiple classifiers, one for each level
-of hierarchy, add-hroute populates hier-classifiers correctly and should be
-used in place of add-route used for flat-routing.
+\code{$Node add-route <dst> <target>}\\
+This procedure is used to add next-hop entries of a destination <dst> for a given <target>. 
 
 
 \code{$hiernode_ split-addrstr <str>}\\
