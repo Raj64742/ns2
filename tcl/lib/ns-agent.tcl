@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.20 1999/10/05 20:01:47 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.21 2001/03/30 20:15:21 debo Exp $
 #
 
 #
@@ -59,6 +59,17 @@ Agent instproc set args {
 		return
 	}
 	eval $self next $args
+}
+
+# Debo
+
+Agent instproc init {} {
+	$self instvar nodeid_
+}
+
+Agent instproc id {} { 
+	$self instvar nodeid_
+	return $nodeid_ 
 }
 
 Agent instproc port {} {
