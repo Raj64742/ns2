@@ -10,7 +10,7 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#if !defined(sun)
+#if !defined(sun) and !defined(__CYGWIN__)
 #include <err.h>
 #endif
 };
