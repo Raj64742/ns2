@@ -38,7 +38,7 @@ $ns_ at 3.134 "$src_(80) publish"
 
 set src_(90) [new Application/DiffApp/PingSender]
 $ns_ attach-diffapp $node_(90) $src_(90)
-$ns_ at 2.289 "$src_(50) publish"
+$ns_ at 2.289 "$src_(90) publish"
 
 #Diffusion sink application
 set snk_(95) [new Application/DiffApp/PingReceiver]
