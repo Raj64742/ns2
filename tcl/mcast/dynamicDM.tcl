@@ -32,7 +32,7 @@ dynamicDM instproc check-downstream-list { } {
 	set id [$Node set id_]
 
         foreach Anode [$ns all-nodes-list] {
-	    if {$Anode == $Node} continue
+
 	    set oiflist ""
 	    set n1 [$Anode set id_]
 	    foreach node $neighbor {
@@ -48,21 +48,23 @@ dynamicDM instproc check-downstream-list { } {
 	    }
 
 	    #update iif
-	    if [info exists iif_($n1)] {
-		set oldiface $iif_($n1)
-	    }
-	    set upstream [$ns upstream-node $id $n1]	
-	    if { $upstream != ""} {
-		set iilink [$ns RPF-link $n1 [$upstream id] $id]
-		set iif_($n1) [[$iilink set dest_] id]
-	    }
-	    if [info exists oldiface] {
-		foreach pair [$Node getRepBySource $n1] {
-		    set pair [split $pair :]
-		    set group [lindex $pair 0]
-		    set r [lindex $pair 1]
-		    if {$oldiface != $iif_($n1)} {
-			$r change-iface $n1 $group $oldiface $iif_($n1)
+	    if {$Anode != $Node} {
+		if [info exists iif_($n1)] {
+		    set oldiface $iif_($n1)
+		}
+		set upstream [$ns upstream-node $id $n1]	
+		if { $upstream != ""} {
+		    set iilink [$ns RPF-link $n1 [$upstream id] $id]
+		    set iif_($n1) [[$iilink set dest_] id]
+		}
+		if [info exists oldiface] {
+		    foreach pair [$Node getRepBySource $n1] {
+			set pair [split $pair :]
+			set group [lindex $pair 0]
+			set r [lindex $pair 1]
+			if {$oldiface != $iif_($n1)} {
+			    $r change-iface $n1 $group $oldiface $iif_($n1)
+			}
 		    }
 		}
 	    }
