@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.70 1999/11/24 22:20:07 hyunahpa Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.71 2000/01/05 00:00:59 heideman Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -159,10 +159,8 @@ protected:
 	void traceAll();
 	virtual void traceVar(TracedVar* v);
 
-#ifdef TCP_DELAY_BIND
-  virtual void delay_bind_init_all();
-  virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 
 	/*
 	 * State encompassing the round-trip-time estimate.

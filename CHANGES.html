@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.376 1999/12/15 01:04:28 kkumar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.377 2000/01/05 00:00:57 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,14 @@
 
 
 <ul>
+
+       <p>
+  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+       <b>Tue Jan  4 14:17:02 PST 2000</b><br>
+       Delay binding for TCP TraceVar instance variables now works.
+       (Requries an updated tclcl.)
+       Code is under ifdef TCP_DELAY_BIND_ALL.
+       Old TCP_DELAY_BIND ifdef's removed.
 
     <p>
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[kkumar]</A></B>
@@ -39,6 +47,7 @@
 	     landmark.tcl,flood.tcl
 	 Example script in ns-2/tcl/ex/wireless-landmark.tcl
 
+       <p>
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Fri Dec 10 11:58:57 PST 1999</b><br>
        Hyun-ah implemented code to move TCP to delayed binding.

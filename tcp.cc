@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.97 1999/12/10 20:02:43 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.98 2000/01/05 00:00:59 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -77,6 +77,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         off_ip_ = hdr_ip::offset();
         off_tcp_ = hdr_tcp::offset();
 
+#ifdef TCP_DELAY_BIND_ALL
+#else /* ! TCP_DELAY_BIND_ALL */
 	// not delay-bound because delay-bound tracevars aren't yet supported
 	bind("t_seqno_", &t_seqno_);
 	bind("rtt_", &t_rtt_);
@@ -95,61 +97,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         bind("nrexmit_", &nrexmit_);
         bind("nrexmitpack_", &nrexmitpack_);
         bind("nrexmitbytes_", &nrexmitbytes_);
-#ifdef TCP_DELAY_BIND
-#else
-	// Defaults for bound variables should be set in ns-default.tcl.
-	bind("window_", &wnd_);
-	bind("windowInit_", &wnd_init_);
-	bind("windowInitOption_", &wnd_init_option_);
-	bind_bool("syn_", &syn_);
-	bind("windowOption_", &wnd_option_);
-	bind("windowConstant_", &wnd_const_);
-	bind("windowThresh_", &wnd_th_);
-	bind_bool("delay_growth_", &delay_growth_);
-	bind("overhead_", &overhead_);
-	bind("tcpTick_", &tcp_tick_);
-	bind_bool("ecn_", &ecn_);
-	bind_bool("old_ecn_", &old_ecn_);
-        bind("eln_", &eln_);
-        bind("eln_rxmit_thresh_", &eln_rxmit_thresh_);
-	bind("packetSize_", &size_);
-	bind("tcpip_base_hdr_size_", &tcpip_base_hdr_size_);
-	bind_bool("bugFix_", &bug_fix_);
-	bind_bool("slow_start_restart_", &slow_start_restart_);
-	bind_bool("restart_bugfix_", &restart_bugfix_);
-	bind_bool("timestamps_", &ts_option_);
-	bind("maxburst_", &maxburst_);
-	bind("maxcwnd_", &maxcwnd_);
-	bind("maxrto_", &maxrto_);
-	bind("srtt_init_", &srtt_init_);
-	bind("rttvar_init_", &rttvar_init_);
-	bind("rtxcur_init_", &rtxcur_init_);
-	bind("T_SRTT_BITS", &T_SRTT_BITS);
-	bind("T_RTTVAR_BITS", &T_RTTVAR_BITS);
-	bind("rttvar_exp_", &rttvar_exp_); 
-
-	bind("awnd_", &awnd_);
-	bind("decrease_num_", &decrease_num_);
-	bind("increase_num_", &increase_num_); 
-	// bind("off_ip_", &off_ip_);
-	// bind("off_tcp_", &off_tcp_);
-	off_ip_ = hdr_ip::offset();
-	off_tcp_ = hdr_tcp::offset();
-
-	bind_bool("trace_all_oneline_", &trace_all_oneline_);
-	bind_bool("nam_tracevar_", &nam_tracevar_);
-
-	bind("QOption_", &QOption_) ; 
-	bind("EnblRTTCtr_", &EnblRTTCtr_) ; 
-
-	bind("control_increase_", &control_increase_) ; 
-
-	// reset used for dynamically created agent
-	reset();
-#endif
+#endif /* TCP_DELAY_BIND_ALL */
 }
 
-#ifdef TCP_DELAY_BIND
 void
 TcpAgent::delay_bind_init_all()
 {
@@ -195,7 +145,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("EnblRTTCtr_");
         delay_bind_init_one("control_increase_");
 
-#if 0
+#ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
         delay_bind_init_one("t_seqno_");
         delay_bind_init_one("rtt_");
@@ -214,82 +164,79 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("nrexmit_");
         delay_bind_init_one("nrexmitpack_");
         delay_bind_init_one("nrexmitbytes_");
-#endif /* 0 */
+#endif /* TCP_DELAY_BIND_ALL */
 
 	Agent::delay_bind_init_all();
 
         reset();
 }
-#endif
 
-#ifdef TCP_DELAY_BIND
 int
-TcpAgent::delay_bind_dispatch(const char *varName, const char *localName)
+TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
-        DELAY_BIND_DISPATCH(varName, localName, "window_", delay_bind, &wnd_);
-        DELAY_BIND_DISPATCH(varName, localName, "windowInit_", delay_bind, &wnd_init_);
-        DELAY_BIND_DISPATCH(varName, localName, "windowInitOption_", delay_bind, &wnd_init_option_);
-        DELAY_BIND_DISPATCH(varName, localName, "syn_", delay_bind_bool, &syn_);
-        DELAY_BIND_DISPATCH(varName, localName, "windowOption_", delay_bind, &wnd_option_ );
-        DELAY_BIND_DISPATCH(varName, localName, "windowConstant_", delay_bind,  &wnd_const_);
-        DELAY_BIND_DISPATCH(varName, localName, "windowThresh_", delay_bind, &wnd_th_ );
-        DELAY_BIND_DISPATCH(varName, localName, "delay_growth_", delay_bind_bool, &delay_growth_ );
-        DELAY_BIND_DISPATCH(varName, localName, "overhead_", delay_bind, &overhead_);
-        DELAY_BIND_DISPATCH(varName, localName, "tcpTick_", delay_bind, &tcp_tick_);
-        DELAY_BIND_DISPATCH(varName, localName, "ecn_", delay_bind_bool, &ecn_);
-        DELAY_BIND_DISPATCH(varName, localName, "old_ecn_", delay_bind_bool, &old_ecn_ );
-        DELAY_BIND_DISPATCH(varName, localName, "eln_", delay_bind, &eln_ );
-        DELAY_BIND_DISPATCH(varName, localName, "eln_rxmit_thresh_", delay_bind, &eln_rxmit_thresh_ );
-        DELAY_BIND_DISPATCH(varName, localName, "packetSize_", delay_bind, &size_ );
-        DELAY_BIND_DISPATCH(varName, localName, "tcpip_base_hdr_size_", delay_bind, &tcpip_base_hdr_size_);
-        DELAY_BIND_DISPATCH(varName, localName, "bugFix_", delay_bind_bool, &bug_fix_ );
-        DELAY_BIND_DISPATCH(varName, localName, "slow_start_restart_", delay_bind_bool, &slow_start_restart_ );
-        DELAY_BIND_DISPATCH(varName, localName, "restart_bugfix_", delay_bind_bool, &restart_bugfix_ );
-        DELAY_BIND_DISPATCH(varName, localName, "timestamps_", delay_bind_bool, &ts_option_ );
-        DELAY_BIND_DISPATCH(varName, localName, "maxburst_", delay_bind, &maxburst_ );
-        DELAY_BIND_DISPATCH(varName, localName, "maxcwnd_", delay_bind, &maxcwnd_ );
-        DELAY_BIND_DISPATCH(varName, localName, "maxrto_", delay_bind, &maxrto_ );
-        DELAY_BIND_DISPATCH(varName, localName, "srtt_init_", delay_bind, &srtt_init_ );
-        DELAY_BIND_DISPATCH(varName, localName, "rttvar_init_", delay_bind, &rttvar_init_ );
-        DELAY_BIND_DISPATCH(varName, localName, "rtxcur_init_", delay_bind, &rtxcur_init_ );
-        DELAY_BIND_DISPATCH(varName, localName, "T_SRTT_BITS", delay_bind, &T_SRTT_BITS );
-        DELAY_BIND_DISPATCH(varName, localName, "T_RTTVAR_BITS", delay_bind, &T_RTTVAR_BITS );
-        DELAY_BIND_DISPATCH(varName, localName, "rttvar_exp_", delay_bind, &rttvar_exp_ );
-        DELAY_BIND_DISPATCH(varName, localName, "awnd_", delay_bind, &awnd_ );
-        DELAY_BIND_DISPATCH(varName, localName, "decrease_num_", delay_bind, &decrease_num_);
-        DELAY_BIND_DISPATCH(varName, localName, "increase_num_", delay_bind, &increase_num_);
+        if (delay_bind(varName, localName, "window_", &wnd_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "windowInit_", &wnd_init_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "windowInitOption_", &wnd_init_option_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "syn_", &syn_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "windowOption_", &wnd_option_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "windowConstant_",  &wnd_const_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "windowThresh_", &wnd_th_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "delay_growth_", &delay_growth_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "overhead_", &overhead_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "tcpTick_", &tcp_tick_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "ecn_", &ecn_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "old_ecn_", &old_ecn_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "eln_", &eln_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "eln_rxmit_thresh_", &eln_rxmit_thresh_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "packetSize_", &size_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "tcpip_base_hdr_size_", &tcpip_base_hdr_size_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "bugFix_", &bug_fix_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "slow_start_restart_", &slow_start_restart_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "restart_bugfix_", &restart_bugfix_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "timestamps_", &ts_option_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "maxburst_", &maxburst_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "maxcwnd_", &maxcwnd_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "maxrto_", &maxrto_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "srtt_init_", &srtt_init_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "rttvar_init_", &rttvar_init_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "rtxcur_init_", &rtxcur_init_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "T_SRTT_BITS", &T_SRTT_BITS , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "T_RTTVAR_BITS", &T_RTTVAR_BITS , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "rttvar_exp_", &rttvar_exp_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "awnd_", &awnd_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "decrease_num_", &decrease_num_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "increase_num_", &increase_num_, tracer)) return TCL_OK;
 
-        DELAY_BIND_DISPATCH(varName, localName, "trace_all_oneline_", delay_bind_bool, &trace_all_oneline_ );
-        DELAY_BIND_DISPATCH(varName, localName, "nam_tracevar_", delay_bind_bool, &nam_tracevar_ );
-        DELAY_BIND_DISPATCH(varName, localName, "QOption_", delay_bind, &QOption_ );
-        DELAY_BIND_DISPATCH(varName, localName, "EnblRTTCtr_", delay_bind, &EnblRTTCtr_ );
-        DELAY_BIND_DISPATCH(varName, localName, "control_increase_", delay_bind, &control_increase_ );
+        if (delay_bind_bool(varName, localName, "trace_all_oneline_", &trace_all_oneline_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "nam_tracevar_", &nam_tracevar_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "QOption_", &QOption_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "EnblRTTCtr_", &EnblRTTCtr_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "control_increase_", &control_increase_ , tracer)) return TCL_OK;
 
-#if 0
-	// not delay-bound because delay-bound tracevars aren't yet supported
-        DELAY_BIND_DISPATCH(varName, localName, "t_seqno_", delay_bind, &t_seqno_ );
-        DELAY_BIND_DISPATCH(varName, localName, "rtt_", delay_bind, &t_rtt_ );
-        DELAY_BIND_DISPATCH(varName, localName, "srtt_", delay_bind, &t_srtt_ );
-        DELAY_BIND_DISPATCH(varName, localName, "rttvar_", delay_bind, &t_rttvar_ );
-        DELAY_BIND_DISPATCH(varName, localName, "backoff_", delay_bind, &t_backoff_ );
+#ifdef TCP_DELAY_BIND_ALL
+	// not if (delay-bound delay-bound tracevars aren't yet supported
+        if (delay_bind(varName, localName, "t_seqno_", &t_seqno_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "rtt_", &t_rtt_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "srtt_", &t_srtt_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "rttvar_", &t_rttvar_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "backoff_", &t_backoff_ , tracer)) return TCL_OK;
 
-        DELAY_BIND_DISPATCH(varName, localName, "dupacks_", delay_bind, &dupacks_ );
-        DELAY_BIND_DISPATCH(varName, localName, "seqno_", delay_bind, &curseq_ );
-        DELAY_BIND_DISPATCH(varName, localName, "ack_", delay_bind, &highest_ack_ );
-        DELAY_BIND_DISPATCH(varName, localName, "cwnd_", delay_bind, &cwnd_ );
-        DELAY_BIND_DISPATCH(varName, localName, "ssthresh_", delay_bind, &ssthresh_ );
-        DELAY_BIND_DISPATCH(varName, localName, "maxseq_", delay_bind, &maxseq_ );
-        DELAY_BIND_DISPATCH(varName, localName, "ndatapack_", delay_bind, &ndatapack_ );
-        DELAY_BIND_DISPATCH(varName, localName, "ndatabytes_", delay_bind, &ndatabytes_ );
-        DELAY_BIND_DISPATCH(varName, localName, "nackpack_", delay_bind, &nackpack_ );
-        DELAY_BIND_DISPATCH(varName, localName, "nrexmit_", delay_bind, &nrexmit_ );
-        DELAY_BIND_DISPATCH(varName, localName, "nrexmitpack_", delay_bind, &nrexmitpack_ );
-        DELAY_BIND_DISPATCH(varName, localName, "nrexmitbytes_", delay_bind, &nrexmitbytes_ );
-#endif /* 0 */
-
-        return Agent::delay_bind_dispatch(varName, localName);
-}
+        if (delay_bind(varName, localName, "dupacks_", &dupacks_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "seqno_", &curseq_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ack_", &highest_ack_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "cwnd_", &cwnd_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ssthresh_", &ssthresh_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "maxseq_", &maxseq_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ndatapack_", &ndatapack_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ndatabytes_", &ndatabytes_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "nackpack_", &nackpack_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "nrexmit_", &nrexmit_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "nrexmitpack_", &nrexmitpack_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "nrexmitbytes_", &nrexmitbytes_ , tracer)) return TCL_OK;
 #endif
+
+        return Agent::delay_bind_dispatch(varName, localName, tracer);
+}
 
 /* Print out all the traced variables whenever any one is changed */
 void

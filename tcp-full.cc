@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.76 1999/11/24 22:20:10 hyunahpa Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.77 2000/01/05 00:00:58 heideman Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -141,29 +141,8 @@ FullTcpAgent::FullTcpAgent() :
 	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE), 
 	last_state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
 {
-#ifdef TCP_DELAY_BIND
-#else
-        bind("segsperack_", &segs_per_ack_);
-        bind("segsize_", &maxseg_);
-        bind("tcprexmtthresh_", &tcprexmtthresh_);
-        bind("iss_", &iss_);
-        bind_bool("nodelay_", &nodelay_);
-        bind_bool("data_on_syn_",&data_on_syn_);
-        bind_bool("dupseg_fix_", &dupseg_fix_);
-        bind_bool("dupack_reset_", &dupack_reset_);
-        bind_bool("close_on_empty_", &close_on_empty_);
-        bind_time("interval_", &delack_interval_);
-        bind("ts_option_size_", &ts_option_size_);
-        bind_bool("reno_fastrecov_", &reno_fastrecov_);
-        bind_bool("pipectrl_", &pipectrl_);
-        bind_bool("open_cwnd_on_pack_", &open_cwnd_on_pack_);
-        bind_bool("halfclose_", &halfclose_);
-
-        reset();
-#endif
 }
 
-#ifdef TCP_DELAY_BIND
 void
 FullTcpAgent::delay_bind_init_all()
 {
@@ -187,31 +166,28 @@ FullTcpAgent::delay_bind_init_all()
        
       	reset();
 }
-#endif
 
-#ifdef TCP_DELAY_BIND
 int
-FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName)
+FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
-        DELAY_BIND_DISPATCH(varName, localName, "segsperack_", delay_bind, &segs_per_ack_);
-        DELAY_BIND_DISPATCH(varName, localName, "segsize_", delay_bind, &maxseg_);
-        DELAY_BIND_DISPATCH(varName, localName, "tcprexmtthresh_", delay_bind, &tcprexmtthresh_);
-        DELAY_BIND_DISPATCH(varName, localName, "iss_", delay_bind, &iss_);
-        DELAY_BIND_DISPATCH(varName, localName, "nodelay_", delay_bind_bool, &nodelay_);
-        DELAY_BIND_DISPATCH(varName, localName, "data_on_syn_", delay_bind_bool, &data_on_syn_);
-        DELAY_BIND_DISPATCH(varName, localName, "dupseg_fix_", delay_bind_bool, &dupseg_fix_);
-        DELAY_BIND_DISPATCH(varName, localName, "dupack_reset_", delay_bind_bool, &dupack_reset_);
-        DELAY_BIND_DISPATCH(varName, localName, "close_on_empty_", delay_bind_bool, &close_on_empty_);
-        DELAY_BIND_DISPATCH(varName, localName, "interval_", delay_bind_time, &delack_interval_);
-        DELAY_BIND_DISPATCH(varName, localName, "ts_option_size_", delay_bind, &ts_option_size_);
-        DELAY_BIND_DISPATCH(varName, localName, "reno_fastrecov_", delay_bind_bool, &reno_fastrecov_);
-        DELAY_BIND_DISPATCH(varName, localName, "pipectrl_", delay_bind_bool, &pipectrl_);
-        DELAY_BIND_DISPATCH(varName, localName, "open_cwnd_on_pack_", delay_bind_bool, &open_cwnd_on_pack_);
-        DELAY_BIND_DISPATCH(varName, localName, "halfclose_", delay_bind_bool, &halfclose_);
+        if (delay_bind(varName, localName, "segsperack_", &segs_per_ack_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "segsize_", &maxseg_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "tcprexmtthresh_", &tcprexmtthresh_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "iss_", &iss_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "nodelay_", &nodelay_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "data_on_syn_", &data_on_syn_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "dupseg_fix_", &dupseg_fix_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "dupack_reset_", &dupack_reset_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "close_on_empty_", &close_on_empty_, tracer)) return TCL_OK;
+        if (delay_bind_time(varName, localName, "interval_", &delack_interval_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "reno_fastrecov_", &reno_fastrecov_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "pipectrl_", &pipectrl_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "open_cwnd_on_pack_", &open_cwnd_on_pack_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "halfclose_", &halfclose_, tracer)) return TCL_OK;
 
-        return TcpAgent::delay_bind_dispatch(varName, localName);
+        return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
-#endif
 
 /*
  * reset to starting point, don't set state_ here,

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.15 1999/10/13 22:52:53 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.16 2000/01/05 00:00:58 heideman Exp $ (LBL)";
 #endif
 
 #include "object.h"
@@ -64,13 +64,13 @@ NsObject::delay_bind_init_all()
 }
 
 int
-NsObject::delay_bind_dispatch(const char *varName, const char *localName)
+NsObject::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
 #ifdef OFF_HDR
-	DELAY_BIND_DISPATCH(varName, localName, "off_cmn_", delay_bind, &off_cmn_);
-	DELAY_BIND_DISPATCH(varName, localName, "off_flags_", delay_bind, &off_flags_);
+	if (delay_bind(varName, localName, "off_cmn_", &off_cmn_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "off_flags_", &off_flags_, tracer)) return TCL_OK;
 #endif
-	return TclObject::delay_bind_dispatch(varName, localName);
+	return TclObject::delay_bind_dispatch(varName, localName, tracer);
 }
 
 

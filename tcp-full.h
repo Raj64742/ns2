@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.36 1999/11/24 22:20:09 hyunahpa Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.37 2000/01/05 00:00:59 heideman Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -146,10 +146,8 @@ class FullTcpAgent : public TcpAgent {
 
  protected:
 
- #ifdef TCP_DELAY_BIND
 	virtual void delay_bind_init_all();
-	virtual int delay_bind_dispatch(const char *varName, const char *localName);
- #endif
+	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 	int closed_;
 	int ts_option_size_;	// header bytes in a ts option
 	int pipe_;		// estimate of pipe occupancy (for Sack)

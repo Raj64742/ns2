@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.62 1999/10/27 23:12:33 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.63 2000/01/05 00:00:58 heideman Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -91,19 +91,19 @@ Agent::delay_bind_init_all()
 }
 
 int
-Agent::delay_bind_dispatch(const char *varName, const char *localName)
+Agent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
-	DELAY_BIND_DISPATCH(varName, localName, "agent_addr_", delay_bind, (int*)&(here_.addr_));
-	DELAY_BIND_DISPATCH(varName, localName, "agent_port_", delay_bind, (int*)&(here_.port_));
-	DELAY_BIND_DISPATCH(varName, localName, "dst_addr_", delay_bind, (int*)&(dst_.addr_));
-	DELAY_BIND_DISPATCH(varName, localName, "dst_port_", delay_bind, (int*)&(dst_.port_));
-	DELAY_BIND_DISPATCH(varName, localName, "fid_", delay_bind, (int*)&fid_);
-	DELAY_BIND_DISPATCH(varName, localName, "prio_", delay_bind, (int*)&prio_);
-	DELAY_BIND_DISPATCH(varName, localName, "flags_", delay_bind, (int*)&flags_);
-	DELAY_BIND_DISPATCH(varName, localName, "ttl_", delay_bind, &defttl_);
-	DELAY_BIND_DISPATCH(varName, localName, "off_ip_", delay_bind, &off_ip_);
-	DELAY_BIND_DISPATCH(varName, localName, "class_", delay_bind, (int*)&fid_);
-	return Connector::delay_bind_dispatch(varName, localName);
+	if (delay_bind(varName, localName, "agent_addr_", (int*)&(here_.addr_), tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "agent_port_", (int*)&(here_.port_), tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "dst_addr_", (int*)&(dst_.addr_), tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "dst_port_", (int*)&(dst_.port_), tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "fid_", (int*)&fid_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "prio_", (int*)&prio_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "flags_", (int*)&flags_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "ttl_", &defttl_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "off_ip_", &off_ip_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "class_", (int*)&fid_, tracer)) return TCL_OK;
+	return Connector::delay_bind_dispatch(varName, localName, tracer);
 }
 
 
@@ -277,10 +277,15 @@ void Agent::trace(TracedVar* v)
 
 	// XXX hack: how do I know ns has not started yet?
 	// if there's nothing in value, return
-	Tcl::instance().eval("[Simulator instance] is-started");
-	if (Tcl::instance().result()[0] == '0')
-		// Simulator not started, do nothing
-		return;
+	static int started = 0;
+	if (!started) {
+		Tcl::instance().eval("[Simulator instance] is-started");
+		if (Tcl::instance().result()[0] == '0')
+			// Simulator not started, do nothing
+			return;
+		// remember for next time (so we don't always have to call to tcl)
+		started = 1;
+	};
 
 	OldValue *ov = lookupOldValue(v);
 	if (ov != NULL) {

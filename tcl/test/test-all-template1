@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.23 1999/12/20 19:20:42 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.24 2000/01/05 00:01:00 heideman Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -62,6 +62,7 @@ do
 done
 test="$@"
 datafile="temp.rands"
+NS=${NS:-../../ns}
 
 if $alltests
 then
@@ -90,22 +91,22 @@ for t in $tests; do
     # is slow to launch, you may get an incorrect graph
     if $quiet
     then
-        echo ../../ns $file $t QUIET
+        echo $NS $file $t QUIET
 	if (test "$file" = "test-suite-session.tcl") || (test "$file" = "test-suite-mixmode.tcl")
 	then
-	    ../../ns $file $t > temp.rands
+	    $NS $file $t > temp.rands
 	else 
-	    ../../ns $file $t QUIET
+	    $NS $file $t QUIET
 	fi
     else 
 	echo
         echo Running test $t:
-	echo ../../ns $file $t
+	echo $NS $file $t
 	if (test "$file" = "test-suite-session.tcl") || (test "$file" = "test-suite-mixmode.tcl")
 	then
-	    ../../ns $file $t > temp.rands
+	    $NS $file $t > temp.rands
 	else 
-	   ../../ns $file $t 
+	   $NS $file $t 
 	fi
     fi
     if [ -f $datafile ]; then

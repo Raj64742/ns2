@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.38 1999/12/11 01:54:22 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.39 2000/01/05 00:00:59 heideman Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -125,39 +125,39 @@ int Acker::update(int seq, int numBytes)
 
 TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL)
 {
+	/*
+	 * maxSackBlocks_ does wierd tracing things.
+	 * don't make it delay-bound yet.
+	 */
+#if defined(TCP_DELAY_BIND_ALL) && 0
+#else /* ! TCP_DELAY_BIND_ALL */
 	bind("maxSackBlocks_", &max_sack_blocks_); // used only by sack
-#ifdef TCP_DELAY_BIND
-#else       
-	bind("packetSize_", &size_);
-	bind_bool("ts_echo_bugfix_", &ts_echo_bugfix_);
-#endif
+#endif /* TCP_DELAY_BIND_ALL */
 }
 
-#ifdef TCP_DELAY_BIND
 void
 TcpSink::delay_bind_init_all()
 {
         delay_bind_init_one("packetSize_");
         delay_bind_init_one("ts_echo_bugfix_");
-	// delay-bind doesn't yet support tracedvars
-        // delay_bind_init_one("maxSackBlocks_");
+#if defined(TCP_DELAY_BIND_ALL) && 0
+        delay_bind_init_one("maxSackBlocks_");
+#endif /* TCP_DELAY_BIND_ALL */
 
 	Agent::delay_bind_init_all();
 }
-#endif
 
-#ifdef TCP_DELAY_BIND
 int
-TcpSink::delay_bind_dispatch(const char *varName, const char *localName)
+TcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
-        DELAY_BIND_DISPATCH(varName, localName, "packetSize_", delay_bind, &size_);
-	// delay-bind doesn't yet support tracedvars
-        // DELAY_BIND_DISPATCH(varName, localName, "maxSackBlocks_", delay_bind, &max_sack_blocks_);
-        DELAY_BIND_DISPATCH(varName, localName, "ts_echo_bugfix_", delay_bind_bool, &ts_echo_bugfix_);
+        if (delay_bind(varName, localName, "packetSize_", &size_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "ts_echo_bugfix_", &ts_echo_bugfix_, tracer)) return TCL_OK;
+#if defined(TCP_DELAY_BIND_ALL) && 0
+        if (delay_bind(varName, localName, "maxSackBlocks_", &max_sack_blocks_, tracer)) return TCL_OK;
+#endif /* TCP_DELAY_BIND_ALL */
 
-        return Agent::delay_bind_dispatch(varName, localName);
+        return Agent::delay_bind_dispatch(varName, localName, tracer);
 }
-#endif
 
 void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
 {
@@ -415,7 +415,7 @@ void Sacker::configure(TcpSink *sink)
 
 	TracedInt& nblocks = sink->max_sack_blocks_;
 	if (int(nblocks) > NSA) {
-		fprintf(stderr, "warning: TCP header limits number of SACK blocks to %d\n", NSA);
+		fprintf(stderr, "warning(Sacker::configure): TCP header limits number of SACK blocks to %d, not %d\n", NSA, int(nblocks));
 		nblocks = NSA;
 	}
 	sf_ = new SackStack(int(nblocks));
@@ -430,7 +430,7 @@ Sacker::trace(TracedVar *v)
 	TracedInt* ti = (TracedInt*) v;
 
 	if (int(*ti) > NSA) {
-		fprintf(stderr, "warning: TCP header limits number of SACK blocks to %d\n", NSA);
+		fprintf(stderr, "warning(Sacker::trace): TCP header limits number of SACK blocks to %d, not %d\n", NSA, int(*ti));
 		*ti = NSA;
 	}
 
