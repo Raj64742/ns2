@@ -567,6 +567,7 @@ double TfrcSinkAgent::adjust_history (double ts)
 
 
 void TfrcSinkAgent::init_WALI () {
+	int i;
 	if (numsamples < 0)
 		numsamples = DEFAULT_NUMSAMPLES ;	
 	if (smooth_ == 1) {
@@ -580,7 +581,7 @@ void TfrcSinkAgent::init_WALI () {
 	}
 	if (smooth_ == 1) {
 		int mid = int(numsamples/2);
-		for (int i = 0; i < mid; i ++) {
+		for (i = 0; i < mid; i ++) {
 			weights[i] = 1.0;
 		}
 		for (i = mid; i <= numsamples; i ++){
