@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.30 2000/10/12 19:27:11 debo Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.31 2000/10/12 19:33:46 debo Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -437,7 +437,7 @@ VegasTcpAgent::output(int seqno, int reason)
 	/* support ndatabytes_ in output - Lloyd Wood 14 March 2000 */
 	int bytes = hdr_cmn::access(p)->size(); 
 	ndatabytes_ += bytes; 
-	ndatapack_++;
+	ndatapack_++; // Added this - Debojyoti 12th Oct 2000
 	send(p, 0);
 	if (seqno == curseq_ && seqno > maxseq_)
 		idle();  // Tell application I have sent everything so far
