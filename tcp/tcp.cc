@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.65 1998/05/09 00:33:51 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.66 1998/05/11 18:50:54 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -579,52 +579,26 @@ void TcpAgent::opencwnd()
 	return;
 }
 
-/*
- * close down the congestion window
- */
-void TcpAgent::closecwnd(int how)
-{   
-	switch (how) {
-	case 0:
-		/* timeouts */
-		ssthresh_ = int( window() / 2 );
-		if (ssthresh_ < 2)
-			ssthresh_ = 2;
+void
+TcpAgent::slowdown(int how)
+{
+	int halfwin = int(window() / 2);
+	if (how & CLOSE_SSTHRESH_HALF)
+		ssthresh_ = halfwin;
+	if (ssthresh_ < 2)
+		ssthresh_ = 2;
+	if (how & CLOSE_CWND_HALF)
+		cwnd_ = halfwin;
+	else if (how & CLOSE_CWND_RESTART)
 		cwnd_ = int(wnd_restart_);
-		break;
-
-	case 1:
-		/* Reno dup acks, or after a recent congestion indication. */
-		cwnd_ = window()/2;
-		ssthresh_ = int(cwnd_);
-		if (ssthresh_ < 2)
-			ssthresh_ = 2;		
-		break;
-
-	case 2:
-		/* Tahoe dup acks  		
-		 * after a recent congestion indication */
-		cwnd_ = wnd_init_;
-		break;
-
-	case 3:
-		/* Retransmit timeout, but no outstanding data. */ 
+	else if (how & CLOSE_CWND_INIT)
 		cwnd_ = int(wnd_init_);
-		break;
-	case 4:
-		/* Tahoe dup acks */
-		ssthresh_ = int( window() / 2 );
-		if (ssthresh_ < 2)
-			ssthresh_ = 2;
+	else if (how & CLOSE_CWND_ONE)
 		cwnd_ = 1;
-		break;
 
-	default:
-		abort();
-	}
-	fcnt_ = 0.;
-	count_ = 0;
+	fcnt_ = count_ = 0;
 }
+
 
 
 /*
@@ -664,19 +638,20 @@ void TcpAgent::newack(Packet* pkt)
 	awnd_ += wnd_th_ * cwnd_;
 }
 
+
 /*
  * Respond either to a source quench or to a congestion indication bit.
  * This is done at most once a roundtrip time;  after a source quench,
  * another one will not be done until the last packet transmitted before
  * the previous source quench has been ACKed.
  */
-void TcpAgent::quench(int how)
+void TcpAgent::ecn()
 {
 	if (highest_ack_ >= recover_ || 
 	      last_cwnd_action_ == CWND_ACTION_TIMEOUT) {
 		recover_ =  maxseq_;
 		last_cwnd_action_ = CWND_ACTION_ECN;
-		closecwnd(how);
+		slowdown(CLOSE_CWND_HALF|CLOSE_SSTHRESH_HALF);
 	}
 }
 
@@ -741,7 +716,7 @@ TcpAgent::dupack_action()
 			switch (last_cwnd_action_) {
 			case CWND_ACTION_ECN:
 				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				closecwnd(2);
+				slowdown(CLOSE_CWND_INIT);
 				reset_rtx_timer(0,0);
 			}
 			return;
@@ -757,7 +732,7 @@ TcpAgent::dupack_action()
 			switch (last_cwnd_action_) {
 			case CWND_ACTION_ECN:
 				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				closecwnd(2);
+				slowdown(CLOSE_CWND_INIT);
 				reset_rtx_timer(0,0);
 			}
 			return;
@@ -767,7 +742,7 @@ TcpAgent::dupack_action()
 tahoe_action:
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
-	closecwnd(4);		// full slow-start
+	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);
 	reset_rtx_timer(0,0);
 	return;
 }
@@ -790,7 +765,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	++nackpack_;
 	ts_peer_ = tcph->ts();
 	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
-		quench(1);
+		ecn();
 	recv_helper(pkt);
 	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {
@@ -849,10 +824,10 @@ void TcpAgent::timeout(int tno)
 			wnd_init_option_ = 1;
 		/* if there is no outstanding data, don't cut down ssthresh_ */
 		if (highest_ack_ == maxseq_ && restart_bugfix_)
-			closecwnd(3);
+			slowdown(CLOSE_CWND_INIT);
 		else {
 			++nrexmit_;
-			closecwnd(0);
+			slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
 		}
 		/* if there is no outstanding data, don't back off rtx timer */
 		if (highest_ack_ == maxseq_ && restart_bugfix_) {
@@ -915,3 +890,76 @@ void BurstSndTimer::expire(Event*)
 	a_->timeout(TCP_TIMER_BURSTSND);
 }
 
+/*
+ * THE FOLLOWING FUNCTIONS ARE OBSOLETE, but REMAIN HERE
+ * DUE TO OTHER PEOPLE's TCPs THAT MIGHT USE THEM
+ *
+ * These functions are now replaced by ecn() and slowdown(),
+ * respectively.
+ */
+
+/*
+ * Respond either to a source quench or to a congestion indication bit.
+ * This is done at most once a roundtrip time;  after a source quench,
+ * another one will not be done until the last packet transmitted before
+ * the previous source quench has been ACKed.
+ */
+void TcpAgent::quench(int how)
+{
+	if (highest_ack_ >= recover_) {
+		recover_ =  maxseq_;
+		last_cwnd_action_ = CWND_ACTION_ECN;
+		closecwnd(how);
+	}
+}
+
+/*
+ * close down the congestion window
+ */
+void TcpAgent::closecwnd(int how)
+{   
+	static int first_time = 1;
+	if (first_time == 1) {
+		fprintf(stderr, "the TcpAgent::closecwnd() function is now deprecated, please use the function slowdown() instead\n");
+	}
+	switch (how) {
+	case 0:
+		/* timeouts */
+		ssthresh_ = int( window() / 2 );
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;
+		cwnd_ = int(wnd_restart_);
+		break;
+
+	case 1:
+		/* Reno dup acks, or after a recent congestion indication. */
+		cwnd_ = window()/2;
+		ssthresh_ = int(cwnd_);
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;		
+		break;
+
+	case 2:
+		/* Tahoe dup acks  		
+		 * after a recent congestion indication */
+		cwnd_ = wnd_init_;
+		break;
+
+	case 3:
+		/* Retransmit timeout, but no outstanding data. */ 
+		cwnd_ = int(wnd_init_);
+		break;
+	case 4:
+		/* Tahoe dup acks */
+		ssthresh_ = int( window() / 2 );
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;
+		cwnd_ = 1;
+		break;
+
+	default:
+		abort();
+	}
+	fcnt_ = 0.;
+	count_ = 0;
+}
