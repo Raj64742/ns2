@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.1 2001/12/04 00:29:26 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.2 2001/12/04 04:40:54 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -85,6 +85,25 @@ Topology instproc createlinks ns {
     $ns duplex-link-op $node_(r2) $node_(r1) queuePos 0
     $ns duplex-link-op $node_(s3) $node_(r2) orient left-down
     $ns duplex-link-op $node_(s4) $node_(r2) orient left-up
+}
+
+# 
+# Links1 uses 8Mb, 5ms feeders, and a 800Kb 100ms bottleneck.
+# Queue-limit on bottleneck is 6 packets.
+# 
+Class Topology/net0 -superclass Topology
+Topology/net0 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 200ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 11
+    $ns queue-limit $node_(k1) $node_(r1) 11
 }
 
 Class Topology/net2 -superclass Topology
@@ -237,7 +256,7 @@ TestSuite instproc setTopo {} {
         set node_(r2) [$topo_ node? r2]    
         [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout    
     }
-    if {$net_ == "net6"} {
+    if {$net_ == "net6" || $net_ == "net0"} {
         set node_(s1) [$topo_ node? s1]
         set node_(s2) [$topo_ node? s2] 
         set node_(r1) [$topo_ node? r1]
@@ -381,6 +400,46 @@ Test/ecn_secondpktEcn_reno_full instproc run {} {
 	$self drop_pkts {3 5} 
 	$errmodel1 set markecn_ true
 	$ns_ run
+}
+
+# Bug-fix doesn't seem to be working as it should here...
+Class Test/tahoe4 -superclass TestSuite
+Test/tahoe4 instproc init {} {
+        $self instvar net_ test_
+        set net_        net0
+        set test_       tahoe4
+        $self next
+}
+Test/tahoe4 instproc run {} {
+        $self instvar ns_ node_ testName_
+	$self setTopo
+ 
+        set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
+        $tcp1 set window_ 30
+        set tcp2 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s2) TCP/FullTcp/Tahoe $node_(k1) 1]
+        $tcp2 set window_ 30
+ 
+        set ftp1 [$tcp1 attach-app FTP]
+        set ftp2 [$tcp2 attach-app FTP]
+ 
+        $ns_ at 0.0 "$ftp1 start"
+        $ns_ at 0.0 "$ftp2 start"
+ 
+        $self tcpDump $tcp1 5.0
+ 
+        # Trace only the bottleneck link
+        $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+        $ns_ run
+}
+ 
+Class Test/tahoe4-nobugfix -superclass TestSuite
+Test/tahoe4-nobugfix instproc init {} {
+        $self instvar net_ test_
+        set net_        net0
+        set test_       tahoe4-nobugfix
+        Agent/TCP set bugFix_ false
+        Test/tahoe4-nobugfix instproc run {} [Test/tahoe4 info instbody run ]
+        $self next
 }
 
 TestSuite runTest
