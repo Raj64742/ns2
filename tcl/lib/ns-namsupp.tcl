@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu, haoboy@isi.edu
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.5 1997/11/06 22:48:21 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.6 1998/01/27 20:48:22 haoboy Exp $
 #
 
 #
@@ -111,6 +111,22 @@ Node instproc get-attribute { name } {
 Node instproc get-color {} {
 	puts "Warning: Node::get-color is obsolete. Please use Node::get-attribute"
 	return [$self get-attribute "COLOR"]
+}
+
+Node instproc add-mark { name color } {
+	$self instvar id_ markColor_
+	set ns [Simulator instance]
+
+	$ns puts-nam-traceall "m -t [$ns now] -s $id_ -n $name -c $color"
+	set markColor_($name) $color
+}
+
+Node instproc delete-mark { name } {
+	$self instvar id_ markColor_
+	set ns [Simulator instance]
+
+	$ns puts-nam-traceall \
+		"m -t [$ns now] -s $id_ -n $name -c $markColor_($name) -X"
 }
 
 #
