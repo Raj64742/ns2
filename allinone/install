@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.15 2000/11/08 05:21:34 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.16 2000/11/08 05:39:08 haoboy Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -379,15 +379,21 @@ fi
 
 echo "-----------------------------------------------------"
 echo "Please put $CUR_PATH/bin:$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix" 
-echo "into your PATH environment; so that you'll be able to run itm/tclsh/wish/xgraph..."
+echo "into your PATH environment; so that you'll be able to run itm/tclsh/wish/xgraph."
 echo ""
 echo "IMPORTANT NOTICES:"
-echo "(1) You MUST put $CUR_PATH/otcl-$OTCLVER, $CUR_PATH/tcl$TCLVER/unix, "
-echo "$CUR_PATH/tk$TKVER/unix into your LD_LIBRARY_PATH environment variable."
-echo "If it complains about X libraries, add path to your X libraries into LD_LIBRARY_PATH."
 echo ""
-echo "(2) You MUST put $CUR_PATH/tcl$TCLVER/library into your TCL_LIBRARY environmental
-echo "variable. Otherwise ns/nam will complain during startup."
+echo "(1) You MUST put $CUR_PATH/otcl-$OTCLVER, $CUR_PATH/lib, "
+echo "    into your LD_LIBRARY_PATH environment variable."
+echo "    If it complains about X libraries, add path to your X libraries "
+echo "    into LD_LIBRARY_PATH."
+echo "    If you are using csh, you can set it like:"
+echo "		setenv LD_LIBRARY_PATH <paths>"
+echo "    If you are using sh, you can set it like:"
+echo "		export LD_LIBRARY_PATH=<paths>"
+echo ""
+echo "(2) You MUST put $CUR_PATH/tcl$TCLVER/library into your TCL_LIBRARY environmental"
+echo "    variable. Otherwise ns/nam will complain during startup."
 echo ""
 echo "After these steps, you can now run the ns validation suite with"
 echo "cd ns-$NSVER; ./validate"
