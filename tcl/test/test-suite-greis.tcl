@@ -39,7 +39,7 @@ Class Test/example1b -superclass TestSuite
 Class Test/example2 -superclass TestSuite
 Class Test/example3 -superclass TestSuite
 Class Test/example4 -superclass TestSuite
-
+Class Test/ping -superclass TestSuite 
 
 proc usage {} {
     global argv0
@@ -58,7 +58,7 @@ Test/example1 instproc init {} {
     set ns [new Simulator]
 
     #open a file for writing that is used for nam trace data
-    set nf [open ../../temp.rands w]
+    set nf [open temp.rands w]
     $ns namtrace-all $nf
 }
 
@@ -93,7 +93,7 @@ Test/example1a instproc init {} {
     set ns [new Simulator]
 
     #Open the nam trace file
-    set nf [open ../../temp.rands w]
+    set nf [open temp.rands w]
     $ns namtrace-all $nf
 }
 
@@ -105,8 +105,8 @@ Test/example1a instproc finish {} {
 	#Close the trace file
         close $nf
 	#Execute nam on the trace file
-        if {$quiet == "false"} { puts 
-	    "finishing.."
+        if {$quiet == "false"} { 
+	puts "finishing.."
 	}
         exit 0
 }
@@ -137,7 +137,7 @@ Test/example1b instproc init {} {
     set ns [new Simulator]
     
     #Open the nam trace file
-    set nf [open ../../temp.rands w]
+    set nf [open temp.rands w]
     $ns namtrace-all $nf
 }
 
@@ -203,7 +203,7 @@ Test/example2 instproc init {} {
     $ns color 2 Red
 
     #Open the nam trace file
-    set nf [open ../../temp.rands w]
+    set nf [open temp.rands w]
     $ns namtrace-all $nf
 }
 
@@ -291,7 +291,7 @@ Test/example3 instproc init {} {
     $ns rtproto DV
 
     #Open the nam trace file
-    set nf [open ../../temp.rands w]
+    set nf [open temp.rands w]
     $ns namtrace-all $nf
 }
 
@@ -359,7 +359,7 @@ Test/example4 instproc init {} {
     #Create a simulator object
     set ns [new Simulator]
 
-    exec rm -f ../../temp.rands
+    exec rm -f temp.rands
 
     #Open the output files
     set f0 [open out0.tr w]
@@ -376,7 +376,7 @@ Test/example4 instproc finish {} {
     close $f1
     close $f2
 
-    exec cat out0.tr out1.tr out2.tr > ../../temp.rands
+    exec cat out0.tr out1.tr out2.tr > temp.rands
 
     #Call xgraph to display the results
      if {$quiet == "false"} {
@@ -495,6 +495,71 @@ Test/example4 instproc run {} {
     #Run the simulation
     $ns run
 }
+
+Test/ping instproc init {} {
+    $self instvar ns testName nf
+    set testName ping
+
+    #Create a simulator object
+    set ns [new Simulator]
+
+    #Open the nam trace file
+    set nf [open temp.rands w]
+    $ns namtrace-all $nf
+}    
+
+Test/ping instproc finish {} {
+        global quiet
+        $self instvar ns nf
+        $ns flush-trace
+        #Close the trace file
+        close $nf
+        #Execute nam on the trace file
+        if {$quiet == "false"} {
+            puts "finishing.."
+        }
+        exit 0
+}       
+
+Test/ping instproc run {} {
+    $self instvar ns
+    #Create three nodes
+    set n0 [$ns node] 
+    set n1 [$ns node]
+    set n2 [$ns node]
+
+    #Connect the nodes with two links
+    $ns duplex-link $n0 $n1 1Mb 10ms DropTail
+    $ns duplex-link $n1 $n2 1Mb 10ms DropTail
+
+    #Define a 'recv' function for the class 'Agent/Ping'
+    Agent/Ping instproc recv {from rtt} {
+        $self instvar node_
+        puts "node [$node_ id] received ping answer from \
+              $from with round-trip-time $rtt ms."
+    }
+
+    #Create two ping agents and attach them to the nodes n0 and n2
+    set p0 [new Agent/Ping]
+    $ns attach-agent $n0 $p0
+   
+    set p1 [new Agent/Ping]
+    $ns attach-agent $n2 $p1
+
+    #Connect the two agents
+    $ns connect $p0 $p1
+
+    #Schedule events
+    $ns at 0.2 "$p0 send"
+    $ns at 0.4 "$p1 send"
+    $ns at 0.6 "$p0 send"
+    $ns at 0.6 "$p1 send"
+    $ns at 1.0 "$self finish"
+
+    #Run the simulation
+    $ns run  
+}
+
 
 proc runtest {arg} {
     global quiet
