@@ -9,7 +9,7 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#include <err.h>
+/* #include <err.h>*/
 };
 
 #include "setdest.h"
@@ -181,8 +181,10 @@ OpenAndReadHeader(char *in_filename, char *out_filename)
   in_file = fopen(in_filename,"r");
   out_file = fopen(out_filename,"w");
   
-  if (NULL == in_file) err(-1,"can't open inputfile '%s'",in_filename);
-  if (NULL == out_file) err(-1,"can't open outputfile '%s'",out_filename);
+  if (NULL == in_file) 
+	fprintf(stderr, "*** can't open inputfile %s",in_filename);
+  if (NULL == out_file) 
+	fprintf(stderr,"can't open outputfile %s",out_filename);
   
   while (!feof(in_file)) {
 
@@ -261,6 +263,7 @@ ReadInMovementPattern()
   fflush(out_file);  
 }
 
+extern "C" char *optarg;
 int
 main(int argc, char **argv)
 {
@@ -367,11 +370,11 @@ main(int argc, char **argv)
 
 	int of;
 	if ((of = open(".rand_state",O_WRONLY | O_TRUNC | O_CREAT, 0777)) < 0)
-	  err(-1,"open rand state");
+	  fprintf(stderr,"open rand state");
 	for (unsigned int i = 0; i < sizeof(random_state); i++)
 	  random_state[i] = 0xff & (int) (uniform() * 256);
 	if (write(of,random_state, sizeof(random_state)) < 0)
-	  err(-1,"writing rand state");
+	  fprintf(stderr,"writing rand state");
 	close(of);
 }
 

@@ -1,3 +1,4 @@
+
 extern "C" {
 #include <assert.h>
 #include <fcntl.h>
@@ -13,8 +14,10 @@ extern "C" {
 #include <err.h>
 #endif
 };
+#include <rng.h>
 
 #include "setdest.h"
+
 
 // #define		DEBUG
 #define		SANITY_CHECKS
@@ -78,13 +81,14 @@ u_int32_t	*D2 = 0;
 #define INVERSE_M	((double)4.656612875e-10)
 
 char random_state[32];
+RNG *rng;
 
 double
 uniform()
 {
-	count++;
-	return random() * INVERSE_M;
-}
+        count++;
+        return rng->uniform_double() ;
+} 
 
 
 /* ======================================================================
@@ -106,6 +110,10 @@ init()
 	/*
 	 * Initialized the Random Number Generation
 	 */
+	/* 
+	This part of init() is commented out and is replaced by more
+	portable RNG (random number generator class of ns) functions.	
+
 	struct timeval tp;
 	int fd, seed, bytes;
 
@@ -133,13 +141,13 @@ init()
 	  }
 	  close(fd);
 	}
-	
-	if(gettimeofday(&tp, 0) < 0) {
+
+         if(gettimeofday(&tp, 0) < 0) {
 		perror("gettimeofday");
 		exit(1);
 	}
 	seed = (tp.tv_sec  >> 12 ) ^ tp.tv_usec;
-	(void) initstate(seed, random_state, bytes & 0xf8);
+        (void) initstate(seed, random_state, bytes & 0xf8);*/
 
 	/*
 	 * Allocate memory for globals
@@ -214,6 +222,10 @@ main(int argc, char **argv)
 	fprintf(stdout, "#\n# nodes: %d, pause: %.2f, max speed: %.2f  max x = %.2f, max y: %.2f\n#\n",
 		NODES - 1, PAUSE, MAXSPEED, MAXX, MAXY);
 
+	// The more portable solution for random number generation
+	rng = new RNG;
+	rng->set_seed(RNG::HEURISTIC_SEED_SOURCE); 
+
 	init();
 
 	while(TIME <= MAXTIME) {
@@ -270,7 +282,7 @@ main(int argc, char **argv)
 	  exit(-1);
 	  }
 	for (unsigned int i = 0; i < sizeof(random_state); i++)
-	  random_state[i] = 0xff & (int) (uniform() * 256);
+          random_state[i] = 0xff & (int) (uniform() * 256);
 	if (write(of,random_state, sizeof(random_state)) < 0) {
 	  fprintf(stderr, "writing rand state\n");
 	  exit(-1);
@@ -333,8 +345,8 @@ Node::Node()
 void
 Node::RandomPosition()
 {
-	position.X = uniform() * MAXX;
-	position.Y = uniform() * MAXY;
+        position.X = uniform() * MAXX;
+        position.Y = uniform() * MAXY;
 	position.Z = 0.0;
 }
 
@@ -342,8 +354,8 @@ Node::RandomPosition()
 void
 Node::RandomDestination()
 {
-	destination.X = uniform() * MAXX;
-	destination.Y = uniform() * MAXY;
+        destination.X = uniform() * MAXX;
+        destination.Y = uniform() * MAXY;
 	destination.Z = 0.0;
 	assert(destination != position);
 }
@@ -351,7 +363,7 @@ Node::RandomDestination()
 void
 Node::RandomSpeed()
 {
-	speed = uniform() * MAXSPEED;
+        speed = uniform() * MAXSPEED;
 
 	assert(speed != 0.0);
 }
