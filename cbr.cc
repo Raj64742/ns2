@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.20 1998/06/27 16:50:24 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.21 1998/07/07 22:49:34 tomh Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -90,6 +90,41 @@ void CBR_Agent::sendpkt()
 		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
 		rh->seqno() = seqno_;
 		target_->recv(p);
+	} else {
+		finish();
+		// xxx: should we deschedule the timer here? */
+	};
+}
+
+void CBR_Agent::sendmsg(int nbytes, const char* flags)
+{
+	Packet *p;
+	int n;
+
+	if (++seqno_ < maxpkts_) {
+		if (size_)
+			n = nbytes / size_;
+		else
+			printf("Error: CBR_Agent size = 0\n");
+
+		if (nbytes == -1) {
+			start();
+			return;
+		}
+		while (n-- > 0) {
+			p = allocpkt();
+			hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+			rh->seqno() = seqno_;
+			target_->recv(p);
+		}	
+		n = nbytes % size_;
+		if (n > 0) {
+			p = allocpkt();
+			hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+			rh->seqno() = seqno_;
+			target_->recv(p);
+		}
+        	idle();
 	} else {
 		finish();
 		// xxx: should we deschedule the timer here? */
