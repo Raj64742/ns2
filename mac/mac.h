@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.16 1998/01/24 04:09:57 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.17 1998/02/06 04:03:41 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -85,7 +85,7 @@ struct hdr_mac {
 	static int offset_;
 	inline int& offset() { return offset_; }
 
-	inline hdr_mac* set(MacFrameType ft, int sa, int da=-99999) {
+	inline void set(MacFrameType ft, int sa, int da=-99999) {
 		ftype_ = ft;
 		macSA_ = sa;
 		if (da > -999)

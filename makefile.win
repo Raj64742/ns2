@@ -17,27 +17,52 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.6 1997/08/27 03:40:01 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.7 1998/02/06 04:03:42 gnguyen Exp $
 
-
-TOOLS32	= c:\msdev
+MSVCDIR	= c:\msdev
 TOOLS32	= $(MSVCDIR)
 PATH	= $(MSVCDIR);$(PATH);c:\bin
 INCLUDE	= $(MSVCDIR)\include
 
 TARGETOS = BOTH
-!include <win32.mak>
+!include <$(INCLUDE)/win32.mak>
 
 LOCAL_LIB = \usr\local\lib
-LOCAL_SRC = \src
+LOCAL_SRC = ..\
+
+TK_VER  = 42
+TCL_VER = 76
+# uncomment this to use tcl/tk 8
+USE_TCL_80 = 1
+
+# comment this out to build with debug options
+NODEBUG=1
+
+!if "$(USE_TCL_80)" == "1"
+TK_VER = 80
+TCL_VER = 80 
+!endif
+
 TK_DIR	= $(LOCAL_SRC)\tk4.2
 TCL_DIR	= $(LOCAL_SRC)\tcl7.6
+
+
+!if "$(USE_TCL_80)" == "1"
+TCL_SUFFIX = 8.0
+TK_SUFFIX = 8.0
+!else
+TCL_SUFFIX = 7.6
+TK_SUFFIX = 4.2
+!endif
+
+TK_DIR = $(LOCAL_SRC)\tk$(TK_SUFFIX)
+TCL_DIR = $(LOCAL_SRC)\tcl$(TCL_SUFFIX)
 OTCL_DIR = ..\otcl
 TCLCL_DIR = ..\tclcl
 GSM_DIR = ..\gsm
 
-LIB_TK	= -LIBPATH:$(TK_DIR)\win tk42.lib
-LIB_TCL = -LIBPATH:$(TCL_DIR)\win tcl76.lib
+LIB_TK	= -LIBPATH:$(TK_DIR)\win tk$(TK_VER).lib
+LIB_TCL = -LIBPATH:$(TCL_DIR)\win tcl$(TCL_VER).lib
 LIB_OTCL = -LIBPATH:$(OTCL_DIR) otcl.lib
 LIB_TCLCL = $(TCLCL_DIR)\tclcl.lib
 LIB_GSM  = -LIBPATH:$(GSM_DIR)\lib gsm.lib
@@ -50,7 +75,7 @@ rc32	= rc
 link32	= link
 MKDEP	= makedep2
 PERL	= perl
-TCLSH	= tclsh76
+TCLSH	= ..\tcl8.0\win\tclsh80
 AR	= lib -out:
 RANLIB	= @echo
 RM	= erase
@@ -59,8 +84,14 @@ CPP	= $(cc32)
 CC	= $(cc32)
 LINK	= $(link32)
 STATIC	= 
-CCOPT	= -Zi -Gm -Gi -YX -Zm400
-LDFLAGS = -LIBPATH:$(TOOLS32)\lib $(lflags) $(conlibs)
+
+!IFNDEF NODEBUG
+CCOPT	= -Gm -Gi -YX -Zm400
+!ELSE
+CCOPT   = -Ox -Zm400
+!ENDIF
+
+LDFLAGS = -LIBPATH:$(TOOLS32)\lib $(lflags) $(conlibsdll)
 LDOUT	= -out:
 
 INCLUDE_TK = -I$(TK_DIR)\win -I$(TK_DIR)\generic
@@ -86,7 +117,7 @@ LIB =	$(LIB_TCLCL) $(LIB_OTCL) \
 
 
 BFLAGS	= -DWIN32 $(DEFINE) $(INCLUDES)
-CFLAGS	= $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
+CFLAGS	= $(BFLAGS) $(cdebug:Z7=Zi) $(cflags) $(cvarsdll) $(CCOPT)
 
 .SUFFIXES : .cc
 

@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.12 1998/01/06 17:13:11 kannan Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.13 1998/02/06 04:03:42 gnguyen Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -51,7 +51,7 @@ protected:
 	int off_srm_;
 	int off_cmn_;
 
-	virtual int start() {
+	virtual void start() {
 		int new_entry = 0;
 
 		sip_->sender_   /* is itself */ = addr_;
