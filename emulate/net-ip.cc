@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.8 1998/02/28 02:44:07 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.9 1998/03/02 19:16:14 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -113,8 +113,8 @@ public:
 	}
 	int send(u_char*, int);
 	int recv(u_char*, int, sockaddr&);
-	int open(in_addr&, u_int16_t, int);
-	int open(u_int16_t);
+	int open(int, in_addr&, u_int16_t, int); // mode,addr,port,ttl
+	int open(int, u_int16_t); // mode, port
 	int command(int argc, const char*const* argv);
 protected:
 	int msetup(Socket, int ttl);
@@ -151,8 +151,8 @@ IPNetwork::IPNetwork() :
 }
 
 UDPIPNetwork::UDPIPNetwork() :
-        lport_(0), 
-        port_(0),
+        lport_(htons(0)), 
+        port_(htons(0)),
         ttl_(0),  
         noloopback_broken_(0)
 {
@@ -234,9 +234,11 @@ UDPIPNetwork::send(u_char* buf, int len)
 int
 IPNetwork::recv(u_char* buf, int len, sockaddr& sa)
 {
-
-printf("RAW IPNetwork::recv!!!\n");
-abort();
+	if (mode_ == O_WRONLY) {
+		fprintf(stderr, "IPNetwork(%s) recv while in writeonly mode!\n",
+			name());
+		abort();
+	}
 	int fromlen = sizeof(sa);
 	int cc = ::recvfrom(rsock_, (char*)buf, len, 0, &sa, &fromlen);
 	if (cc < 0) {
@@ -331,22 +333,26 @@ int UDPIPNetwork::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
-
+	} else if (argc == 4) {
+		// $obj open <mode> <port>
 		if (strcmp(argv[1], "open") == 0) {
-			u_int16_t port = htons(atoi(argv[2]));
-			if (open(port) < 0)
+			int mode = parsemode(argv[2]);
+			u_int16_t port = htons(atoi(argv[3]));
+			if (open(mode, port) < 0)
 				tcl.result("0");
 			else
 				tcl.result("1");
 			return (TCL_OK);
 		}
-	} else if (argc == 5) {
+	} else if (argc == 6) {
+		// $obj open <mode> <addr> <port> <ttl>
 		if (strcmp(argv[1], "open") == 0) {
 			in_addr addr;
-			addr.s_addr = LookupHostAddr(argv[2]);
-			u_int16_t port = htons(atoi(argv[3]));
-			int ttl = atoi(argv[4]);
-			if (open(addr, port, ttl) < 0)
+			addr.s_addr = LookupHostAddr(argv[3]);
+			u_int16_t port = htons(atoi(argv[4]));
+			int mode = parsemode(argv[2]);
+			int ttl = atoi(argv[5]);
+			if (open(mode, addr, port, ttl) < 0)
 				tcl.result("0");
 			else
 				tcl.result("1");
@@ -432,29 +438,43 @@ IPNetwork::open(int mode)
 
 //
 // open the sending side (open for writing)
+//	port is assumed to be in NETWORK order
 //
 int
-UDPIPNetwork::open(in_addr& addr, u_int16_t port, int ttl)
+UDPIPNetwork::open(int mode, in_addr& addr, u_int16_t port, int ttl)
 {
+	if (mode == O_RDONLY) {
+		fprintf(stderr, "Network(%s): warning: changing read-only mode to read-write\n",
+			name());
+		mode = O_RDWR;
+	}
+	mode_ = mode;
 	ssock_ = openssock(addr, port, ttl);
-	if (ssock_ < 0)
+	if (ssock_ < 0) {
+		mode_ = -1;
 		return (-1);
-
+	}
 	destaddr_ = addr;
-	port_ = port;
+	port_ = port;	// network order
 	ttl_ = ttl;
 
-	/*
-	 * Open the receive-side socket.
-	 */
-	if (add_membership() < 0)
-		return (-1);
+#ifdef notanymore
+/*
+ * Open the receive-side socket.
+ */
+if (add_membership() < 0)
+	return (-1);
+#endif
 
 	last_reset_ = 0;
 	return (0);
 }
 
-int UDPIPNetwork::open(u_int16_t port)
+//
+// open the server side
+//	port is assumed to be in NETWORK order
+//
+int UDPIPNetwork::open(int mode, u_int16_t port)
 {
 	Socket fd;
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -462,13 +482,17 @@ int UDPIPNetwork::open(u_int16_t port)
 		return (-1);
 	}
 	rsock_ = fd;
+	mode_ = mode;	// well, sort of
 
 	localaddr_.s_addr = INADDR_ANY;
-	port_ = port;
+	port_ = port;	// network order
 	ttl_ = 0;
 	struct sockaddr_in saddr;
 	if (bindsock(fd, localaddr_, port, saddr) < 0) {
-		perror("bind");
+		port = ntohs(port);
+		fprintf(stderr, "UDPIPNetwork(%s): open: unable to bind %s [port:%hu]: %s\n",
+			name(), inet_ntoa(localaddr_),
+			port, strerror(errno));
 		return (-1);
 	}
 	last_reset_ = 0;
@@ -500,7 +524,7 @@ IPNetwork::close()
 void
 UDPIPNetwork::drop_membership()
 {
-	::close(rsock_);
+	(void)::close(rsock_);
 	rsock_ = -1;
 }
 
@@ -523,7 +547,13 @@ UDPIPNetwork::add_membership()
 			(void)::close(ssock_);
 		return (-1);
 	}
+	// add_membership() adds READ to mode
+	if (mode_ == O_WRONLY) {
+		fprintf(stderr, "UDPIPNetwork(%s): add_membership: writeonly mode changed to readwrite\n");
+		mode_ = O_RDWR;
+	}
 	localaddr_ = local.sin_addr;
+
 #if defined(sun) && defined(__svr4__)
 	/*
 	 * gethostname on solaris prior to 2.6 always returns 0 for
@@ -602,6 +632,8 @@ void UDPIPNetwork::reset()
 		if (ssock_ >= 0) {
 			(void)::close(ssock_);
 			ssock_ = openssock(destaddr_, port_, ttl_);
+			if (ssock_ < 0)
+				mode_ = -1;
 		}
 	}
 }
@@ -617,7 +649,6 @@ UDPIPNetwork::openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local)
 		exit(1);
 	}
 
-	mode_ = (mode_ == O_WRONLY) ? O_RDWR : mode_;
 	nonblock(fd);
 	int on = 1;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&on,
@@ -646,7 +677,10 @@ UDPIPNetwork::openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local)
 		if (bindsock(fd, addr, port, sin) < 0) {
 			struct in_addr any = { INADDR_ANY };
 			if (bindsock(fd, any, port, sin) < 0) {
-				perror("bind");
+				port = ntohs(port);
+				fprintf(stderr, "UDPIPNetwork(%s): openrsock: unable to bind %s [port:%hu]: %s\n",
+					name(), inet_ntoa(any),
+					port, strerror(errno));
 				exit(1);
 			}
 		}
@@ -675,8 +709,12 @@ UDPIPNetwork::openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local)
 		 * fails, another process probably has the addresses bound so
 		 * just exit.
 		 */
+printf("binding %s\n", inet_ntoa(local.sin_addr));
 		if (bindsock(fd, local.sin_addr, port, sin) < 0) {
-			perror("bind");
+			port = ntohs(port);
+			fprintf(stderr, "UDPIPNetwork(%s): unable to bind %s [port:%hu]: %s\n",
+				name(), inet_ntoa(local.sin_addr),
+				port, strerror(errno));
 			exit(1);
 		}
 		/*
@@ -783,10 +821,8 @@ UDPIPNetwork::openssock(in_addr& addr, u_short port, int ttl)
 	Socket fd = ::socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		perror("socket");
-		exit(1);
+		return (-1);
 	}
-
-	mode_ = (mode_ == O_RDONLY) ? O_RDWR : mode_;
 
 	nonblock(fd);
 
@@ -800,13 +836,18 @@ UDPIPNetwork::openssock(in_addr& addr, u_short port, int ttl)
 	if (IN_CLASSD(ntohl(addr.s_addr))) {
 		int ms = msetup(fd, ttl);
 		if (ms < 0)
-			exit(1);
+			return (-1);
 		noloopback_broken_ = ms;
 	}
 
-	if (sbufsize(fd, 80*1024) < 0) {
-		if (sbufsize(fd, 48*1024) < 0) {
-			perror("set sock buf send size");
+	int firsttry = 80 * 1024;
+	int secondtry = 48 * 1024;
+
+	if (sbufsize(fd, firsttry) < 0) {
+		if (sbufsize(fd, secondtry) < 0) {
+			fprintf(stderr,
+			  "UDPIPNetwork(%s): warning: cannot set send sockbuf size to %d bytes, using default\n",
+				secondtry);
 		}
 	}
 	return (fd);
