@@ -47,7 +47,7 @@ public:
 
 Channel::Channel() : txstop_(0), cwstop_(0), numtx_(0)
 {
-	bind("delay_", &delay_);
+	bind_time("delay_", &delay_);
 }
 
 

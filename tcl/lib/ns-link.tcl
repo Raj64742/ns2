@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.6 1997/04/03 09:19:17 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.7 1997/04/03 22:09:00 padmanab Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -58,11 +58,11 @@ Link instproc link {} {
 
 Class SimpleLink -superclass Link
 
-SimpleLink instproc init { src dst bw delay q } {
+SimpleLink instproc init { src dst bw delay q {lltype "Delay/Link"} } {
 	$self next $src $dst
 	$self instvar link_ queue_ head_ toNode_ ttl_
 	set queue_ $q
-	set link_ [new Delay/Link]
+	set link_ [new $lltype]
 	$link_ set bandwidth_ $bw
 	$link_ set delay_ $delay
 

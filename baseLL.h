@@ -12,6 +12,7 @@ class BaseLL : public LinkDelay {
 public:
 	BaseLL();
 	virtual void recv(Packet* p, Handler* h);
+	virtual void handle(Event*);
 
 protected:
 	int command(int argc, const char*const* argv);

@@ -62,11 +62,11 @@ BaseLL::command(int argc, const char*const* argv)
 			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(srgv[1], "sendtarget") == 0) {
+		if (strcmp(argv[1], "sendtarget") == 0) {
 			sendtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(srgv[1], "recvtarget") == 0) {
+		if (strcmp(argv[1], "recvtarget") == 0) {
 			recvtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
@@ -78,18 +78,20 @@ BaseLL::command(int argc, const char*const* argv)
 void
 BaseLL::recv(Packet* p, Handler* h)
 {
+	Scheduler& s = Scheduler::instance();
 	if (em_ && em_->corrupt(p)) {
 		p->error(1);
 	}
-	p->target_ = sendtarget;  /* peer link layer */
+	p->target(sendtarget_);    /* set target to peer link layer */
 	ifq_->recv(p, h);         /* send it down to the interface queue */
+	s.schedule(h, &intr_, 0);
 }
 
 void
 BaseLL::handle(Event* e)    
 {
 	Scheduler& s = Scheduler::instance();
-	((Packet*)e)->target_ = recvtarget;  /* the classifier on this node */
-	s.schedule(recvtarget, e, 0);
+	((Packet*)e)->target(recvtarget_);  /* the classifier on this node */
+	s.schedule(recvtarget_, e, 0);
 }
 

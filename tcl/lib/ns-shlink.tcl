@@ -33,31 +33,80 @@
 # @(#) $Header: /usr/src/mash/repository/vint/ns-2/tcl/lib/ns-shlink.tcl
 #
 
-Class Link/Shared -superclass Link
+LL/Base set bandwidth_ 10Mb
+LL/Base set delay_ 1ms
+IFQueue/Base set limit_ 10
+Mac/Base set ifs_ 10us
+Mac/Base set bandwidth_ 10Mb
+Mac/Base set delay_ 1ms
+Channel set delay_ 1ms
 
-Link/Shared instproc init { bw delay q mactype nodes } {
-	$self instvar link_
+Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "IFQueue/Base" } { mactype "Mac/Base" } } {
+	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
 
-	set channel [new Channel]
-	foreach src $node {
-		set mac [new Mac/$mactype]
-		$mac channel $channel
-		$mac set bandwidth_ $bw
-		$mac set delay_ $delay
+	if [info exists queueMap_($qtype)] {
+		set qtype $queueMap_($qtype)
+	}
 
-		set ifq [new IFQueue]
-		$ifq mac $mac
+	set numnodes [llength $nodelist]
+	for {set i 0} {$i < $numnodes} {incr i 1} {
+		set src [lindex $nodelist $i] 
+		set sid [$src id]
 
-		foreach dst $node {
-			if {$src != $dst} {
-				set link_ [new MacLink]
-				$link_ set bandwidth_ $bw
-				$link_ set delay_ $delay
-				$link_ ifq $ifq
-				set dl [new BaseLink]
-				dl target [$dst entry]
-				$link_ target $dl
+		set channel_($sid) [new Channel]
+		
+		set mac_($sid) [new $mactype]
+		$mac_($sid) channel $channel_($sid)
+
+		set ifq_($sid) [new $ifqtype]
+		$ifq_($sid) mac $mac_($sid)
+	}
+		
+	for {set i 0} {$i < $numnodes} {incr i 1} {
+		set src [lindex $nodelist $i] 
+		set sid [$src id]
+		for {set j 0} {$j < $numnodes} {incr j 1} {
+			set dst [lindex $nodelist $j]
+			set did [$dst id]
+
+			if { $sid != $did } {
+				set q($src:$dst) [new Queue/$qtype]
+				$q($src:$dst) drop-target $nullAgent_
+				set link_($sid:$did) [new Link/SharedDuplex $src $dst $bw $delay $q($src:$dst) $lltype]
+			}
+		}
+	}
+
+	for {set i 0} {$i < $numnodes} {incr i 1} {
+		set src [lindex $nodelist $i] 
+		set sid [$src id]
+		for {set j 0} {$j < $numnodes} {incr j 1} {
+			set dst [lindex $nodelist $j]
+			set did [$dst id]
+
+			if { $sid != $did } {
+				$link_($sid:$did) setuplinkage $src $ifq_($sid) $link_($did:$sid)
+				$self trace-queue $src $dst $traceAllFile_
 			}
 		}
 	}
 }
+
+			
+
+
+Class Link/SharedDuplex -superclass SimpleLink
+
+Link/SharedDuplex instproc init { src dst bw delay qtype lltype } {
+	$self next $src $dst $bw $delay $qtype $lltype
+}
+
+Link/SharedDuplex instproc setuplinkage { src ifq dstlink } {
+	$self instvar link_
+
+	$link_ ifqueue $ifq
+	$link_ recvtarget [$src entry]
+	$link_ sendtarget [$dstlink link]
+}
+
+

@@ -37,7 +37,7 @@
 
 static class MacClass : public TclClass {
 public:
-	MacClass() : TclClass("Mac/Null") {}
+	MacClass() : TclClass("Mac/Base") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new Mac);
 	}
@@ -46,7 +46,7 @@ public:
 
 Mac::Mac() : LinkDelay(), callback_(0), channel_(0), mh_(*this)
 {
-	bind("ifs_", &ifs_);
+	bind_time("ifs_", &ifs_);
 }
 
 
