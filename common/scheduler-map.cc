@@ -111,7 +111,7 @@ Event* MapScheduler::lookup(scheduler_uid_t uid) // look for event
 
 Event* MapScheduler::deque()
 {
-	EventQueue_t::const_iterator eIT = EventQueue_.begin();
+	EventQueue_t::iterator eIT = EventQueue_.begin();
 	if (eIT == EventQueue_.end()) 
 		return 0;
 
