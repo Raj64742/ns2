@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.35 1998/04/24 17:06:45 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.36 1998/04/28 07:01:00 yaxu Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -268,7 +268,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -278,8 +278,6 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			iph->flowid(),
 			th->uid(),
 			iph->flowid(),
-			// iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
-// 			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
 			src_nodeaddr,
 			src_portaddr,
 			dst_nodeaddr,
@@ -397,14 +395,13 @@ DequeTrace::recv(Packet* p, Handler* h)
 		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
 		int t = th->ptype();
 		const char* name = pt_names[t];
-
 		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
 		char *src_portaddr = Address::instance().print_portaddr(iph->src());
 		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
 		char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
 		
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
 			'h',
 			Scheduler::instance().clock(),
 			src_,
@@ -414,13 +411,11 @@ DequeTrace::recv(Packet* p, Handler* h)
 			iph->flowid(),
 			th->uid(),
 			iph->flowid(),
-			// iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
-// 			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
 			src_nodeaddr,
 			src_portaddr,
 			dst_nodeaddr,
 			dst_portaddr,
-			-1);  // ????
+			-1);
 		namdump();
 		delete [] src_nodeaddr;
 		delete [] src_portaddr;
