@@ -1,7 +1,7 @@
 
 #
 # callback_demo.tcl
-# $Id: callback_demo.tcl,v 1.1 1997/09/03 18:44:10 heideman Exp $
+# $Id: callback_demo.tcl,v 1.2 1997/09/10 16:47:03 heideman Exp $
 #
 # Copyright (c) 1997 University of Southern California.
 # All rights reserved.                                            
@@ -40,7 +40,8 @@ and
 	ns callback_demo.tcl -trace-callback print_dequeue_traces
 which invokes a callback to print traces to stdout.
 
-Look at the functions {print,filter}_trace_record to implement your
+Look at the functions print_traces and print_dequeue_traces
+for examples of how to implement your
 own callbacks.
 }
 	exit 1
