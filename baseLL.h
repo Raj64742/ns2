@@ -39,15 +39,13 @@
 #include "errmodel.h"
 
 struct hdr_ll {
-	int seqno_;          /* sequence number */
-	int ack_;            /* ack number */
+	int seqno_;		// sequence number
+	int ack_;		// ack number
 
-	int& seqno() {
-		return (seqno_);
-	}
-	int& ack() {
-		return (ack_);
+	int& seqno() { return (seqno_);	}
+	int& ack() { return (ack_); }
 };
+
 
 class BaseLL : public LinkDelay {
 public:
@@ -61,13 +59,14 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
-	ErrorModel* em_;	/* error model */
-	Queue* ifq_;		/* interface queue */
-        NsObject* sendtarget_;  /* usually the link layer of the peer */
-	NsObject* recvtarget_;  /* usually the classifier of the same node */
-	int off_ll_;            /* offset of link-layer header */
-	int seqno_;             /* link-layer sequence number */
+	ErrorModel* em_;	// error model
+	Queue* ifq_;		// interface queue
+        NsObject* sendtarget_;  // usually the link layer of the peer
+	NsObject* recvtarget_;  // usually the classifier of the same node
+	int off_ll_;            // offset of link-layer header
+	int seqno_;             // link-layer sequence number
 };
+
 
 static class BaseLLHeaderClass : public PacketHeaderClass {
 public:

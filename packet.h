@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.13 1997/04/09 21:21:08 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.14 1997/04/14 22:43:28 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -52,22 +52,13 @@ public:
 class Packet : public Event {
 private:
 	friend class PacketQueue;
-	int error_;		// error flag
-	Handler* source_;	// source of this packet
-	Handler* target_;	// target of this packet at destination side
 	u_char* bits_;
 	Packet* next_;	// for queues and the free list
 protected:
 	static Packet* free_;
 public:
 	static int hdrlen_;
-	Packet() : error_(0), bits_(0), next_(0) { }
-	inline int error() { return error_; }
-	inline int error(int e) { return error_ |= e; }
-	inline Handler* source() { return source_; }
-	inline Handler* source(Handler* h) { return source_ = h; }
-	inline Handler* target() { return target_; }
-	inline Handler* target(Handler* h) { return target_ = h; }
+	Packet() : bits_(0), next_(0) { }
 	u_char* const bits() { return (bits_); }
 	Packet* copy() const;
         static Packet* alloc();
