@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.42 1998/10/14 20:31:12 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.43 1998/10/14 21:45:43 polly Exp $
 #
 
 Class Node
@@ -564,6 +564,8 @@ VirtualClassifierNode instproc mk-default-classifier {} {
     set address_ $id_
 }
 
+VirtualClassifierNode instproc add-route { dst target } {
+}
 
 Classifier/Virtual instproc find dst {
     $self instvar node_ ns_ routingTable_
@@ -584,9 +586,4 @@ Classifier/Virtual instproc find dst {
 }
 
 Classifier/Virtual instproc install {dst target} {
-#    $self instvar node_
-
-#    if {[$node_ id] != $dst} {
-#	puts "warning: trying to install routes"
-#    }
 }

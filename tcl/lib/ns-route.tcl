@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.19 1998/10/14 20:31:13 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.20 1998/10/14 21:45:43 polly Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -485,27 +485,28 @@ Simulator instproc compute-algo-routes {} {
 	#
 	set i 0
 	set n [Node set nn_]
-	#puts "total = $n"
+	# puts "total = $n"
 	while { $i < $n } {
 		if ![info exists Node_($i)] {
 		    incr i
 		    continue
 		}
 		set n1 $Node_($i)
+		$n1 set rtsize_ 1 
 		set j 0
 		while { $j < $n } {
-			if { $i != $j } {
-				# shortened nexthop to nh, to fit add-route in
-				# a single line
-				set nh [$r lookup $i $j]
-			    puts "$i $j $nh"
-			    if { $nh >= 0 } {
-				$n1 add-route $j [$link_($i:$nh) head]
-				###$n1 incr-rtgtable-size
-				}
-			} 
-			incr j
-
+		    if { $i != $j } {
+			# shortened nexthop to nh, to fit add-route in
+			# a single line
+			set nh [$r lookup $i $j]
+			# puts "$i $j $nh"
+			if { $nh >= 0 } {
+			    $n1 add-route $j [$link_($i:$nh) head]
+			    ###$n1 incr-rtgtable-size
+			}
+		    } 
+		    incr j
+		    
 		}
 		incr i
 	}
