@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.7 1998/05/12 01:57:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.8 1998/05/13 00:28:34 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -383,6 +383,24 @@ Test/ecn_drop1_tahoe instproc run {} {
 	$ns_ run
 }
 
+# ECN preceded by packet loss.
+Class Test/ecn_drop2_tahoe -superclass TestSuite
+Test/ecn_drop2_tahoe instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_drop2_tahoe
+        $self next
+}
+Test/ecn_drop2_tahoe instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Tahoe
+	$self drop_pkt 235
+	$ns_ run
+}
+
 # Packet loss only.
 Class Test/ecn_noecn_tahoe -superclass TestSuite
 Test/ecn_noecn_tahoe instproc init topo {
@@ -470,9 +488,48 @@ Test/ecn_timeout_tahoe instproc run {} {
 	$ns_ run
 }
 
-# Timeout followed by ECN.
-# But redo this without dropping packets 264 and 265, so that we
-#  get a Dup Ack with ECN.
+# Only the timeout.
+Class Test/ecn_timeout2_tahoe -superclass TestSuite
+Test/ecn_timeout2_tahoe instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+	Queue/RED set thresh_ 100
+	Queue/RED set maxthresh_ 100
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout2_tahoe
+        $self next
+}
+Test/ecn_timeout2_tahoe instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Tahoe 1
+	$self drop_pkts {241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
+
+	$ns_ run
+}
+
+# The timeout with the ECN in the middle of dropped packets.
+Class Test/ecn_timeout3_tahoe -superclass TestSuite
+Test/ecn_timeout3_tahoe instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout3_tahoe
+        $self next
+}
+Test/ecn_timeout3_tahoe instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Tahoe 1
+	$self drop_pkts {241 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270} 
+
+	$ns_ run
+}
+
+# ECN followed by a timeout, followed by an ECN representing a
+# new instance of congestion.
 Class Test/ecn_timeout1_tahoe -superclass TestSuite
 Test/ecn_timeout1_tahoe instproc init topo {
         $self instvar net_ defNet_ test_
