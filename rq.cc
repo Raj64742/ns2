@@ -55,13 +55,59 @@
 #include "rq.h"
 
 /*
+ * unlink a seginfo from its FIFO
+ */
+void
+ReassemblyQueue::fremove(seginfo* p)
+{
+	if (p->prev_)
+		p->prev_->next_ = p->next_;
+	else
+		head_ = p->next_;
+	if (p->next_)
+		p->next_->prev_ = p->prev_;
+	else
+		tail_ = p->prev_;
+}
+
+/*
+ * unlink a seginfo from its LIFO
+ */
+void
+ReassemblyQueue::sremove(seginfo* p)
+{
+	if (p->sprev_)
+		p->sprev_->snext_ = p->snext_;
+	else
+		top_ = p->snext_;
+	if (p->snext_)
+		p->snext_->sprev_ = p->sprev_;
+	else
+		bottom_ = p->sprev_;
+}
+
+/*
+ * push a seginfo on the LIFO
+ */
+void
+ReassemblyQueue::push(seginfo *p)
+{
+	p->snext_ = top_;
+	top_ = p;
+	if (p->snext_)
+		p->snext_->sprev_ = p;
+	else
+		bottom_ = p;
+}
+
+/*
  * clear out reassembly queue and stack
  */
 
 void
 ReassemblyQueue::clear()
 {
-	top_ = NULL;	// clear stack
+	top_ = bottom_ = NULL;	// clear stack
 
 	seginfo *p = head_;
 	while (head_) {
@@ -171,7 +217,7 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 
 		// nobody there, just insert this one
 
-		tail_ = head_ = top_ =  new seginfo;
+		tail_ = head_ = top_ = bottom_ =  new seginfo;
 		head_->prev_ = head_->next_ = head_->snext_ = NULL;
 		head_->startseq_ = start;
 		head_->endseq_ = end;
@@ -227,12 +273,11 @@ endfast:
 		n->endseq_ = end;
 		n->pflags_ = tiflags;
 		n->rqflags_ = rqflags;
-		n->snext_ = top_;
 
 		n->prev_ = p;
 		n->next_ = q;
 
-		top_ = n;
+		push(n);
 
 		if (p)
 			p->next_ = n;
@@ -266,40 +311,30 @@ ReassemblyQueue::coalesce(seginfo *p, seginfo *n, seginfo *q)
 	if (p && q && p->endseq_ == n->startseq_ && n->endseq_ == q->startseq_) {
 		// new block fills hole between p and q
 		// delete the new block and the block after, update p
-		p->next_ = q->next_;
-		q->next_->prev_ = p;
+		sremove(n);
+		sremove(n);
+		fremove(q);
+		fremove(q);
 		p->endseq_ = q->endseq_;
-		p->pflags_ |= n->pflags_;
+		flags = (p->pflags_ |= n->pflags_);
 		delete n;
-		if (tail_ == q)
-			tail_ = p;
 		delete q;
 		flags = p->pflags_;
 	} else if (p && (p->endseq_ == n->startseq_)) {
 		// new block joins p, but not q
 		// update p with n's seq data, delete new block
-		// (note: might be at end of list)
+		sremove(n);
+		fremove(n);
 		p->endseq_ = n->endseq_;
-		p->next_ = q;
-		if (q)
-			q->prev_ = p;
-		else
-			tail_ = p;
-		p->pflags_ |= n->pflags_;
-		flags = p->pflags_;
+		flags = (p->pflags_ |= n->pflags_);
 		delete n;
 	} else if (q && (n->endseq_ == q->startseq_)) {
 		// new block joins q, but not p
 		// update q with n's seq data, delete new block
-		// (note: might be at beginning of list)
+		sremove(n);
+		fremove(n);
 		q->startseq_ = n->startseq_;
-		q->prev_ = p;
-		if (p)
-			p->next_ = q;
-		else
-			head_ = q;
-		q->pflags_ |= n->pflags_;
-		flags = q->pflags_;
+		flags = (q->pflags_ |= n->pflags_);
 		delete n;
 	}
 	return (flags);
@@ -316,6 +351,10 @@ main()
 	rq.add(10, 20, 0, 0);
 	rq.dumplist();
 	rq.add(1, 3, 0, 0);
+	rq.dumplist();
+	rq.add(22, 25, 0, 0);
+	rq.dumplist();
+	rq.add(22, 25, 0, 0);
 	rq.dumplist();
 
 	exit(0);
