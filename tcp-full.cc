@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.100 2001/08/21 23:29:02 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.101 2001/08/22 00:05:40 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -197,6 +197,7 @@ FullTcpAgent::delay_bind_init_all()
         delay_bind_init_one("open_cwnd_on_pack_");
         delay_bind_init_one("halfclose_");
         delay_bind_init_one("nopredict_");
+        delay_bind_init_one("spa_thresh_");
 
 	TcpAgent::delay_bind_init_all();
        
@@ -210,6 +211,7 @@ FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, Tc
         if (delay_bind(varName, localName, "segsize_", &maxseg_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "tcprexmtthresh_", &tcprexmtthresh_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "iss_", &iss_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "spa_thresh_", &spa_thresh_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "nodelay_", &nodelay_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "data_on_syn_", &data_on_syn_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "dupseg_fix_", &dupseg_fix_, tracer)) return TCL_OK;
@@ -1183,6 +1185,11 @@ FullTcpAgent::fast_retransmit(int seq)
  * giving the familiar 2-packets-per-ack behavior of TCP.
  * Here, we don't advertise any windows, so we just see if
  * there's at least 'segs_per_ack_' pkts not yet acked
+ *
+ * also, provide for a segs-per-ack "threshold" where
+ * we generate 1-ack-per-seg until enough stuff
+ * (spa_thresh_ bytes) has been received from the other side
+ * This idea came from vj/kmn in BayTcp.  Added 8/21/01.
  */
 
 int
@@ -1190,7 +1197,11 @@ FullTcpAgent::need_send()
 {
 	if (flags_ & TF_ACKNOW)
 		return TRUE;
-	return ((rcv_nxt_ - last_ack_sent_) >= (segs_per_ack_ * maxseg_));
+
+	int spa = (spa_thresh_ > 0 && ((rcv_nxt_ - irs_)  < spa_thresh_)) ?
+		1 : segs_per_ack_;
+		
+	return ((rcv_nxt_ - last_ack_sent_) >= (spa * maxseg_));
 }
 
 /*
