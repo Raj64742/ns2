@@ -491,41 +491,30 @@ Class Test/droppedsyn -superclass TestSuite
 Test/droppedsyn instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_ $topo
-	set defNet_ net0
+	set defNet_ net0-lossy
 	set test_ droppedsyn
 	$self next
 }
 Test/droppedsyn instproc run {} {
 	$self instvar ns_ node_ testName_
 
-	set stopt 6.0	
+	set stopt 50.0	
 
 	# set up connection (do not use "create-connection" method because
 	# we need a handle on the sink object)
 	set src [new Agent/TCP/FullTcp]
 	set sink [new Agent/TCP/FullTcp]
-	set src2 [new Agent/TCP/FullTcp]
-	set sink2 [new Agent/TCP/FullTcp]
 	$ns_ attach-agent $node_(s1) $src
 	$ns_ attach-agent $node_(k1) $sink
-	$ns_ attach-agent $node_(s2) $src2
-	$ns_ attach-agent $node_(k1) $sink2
 	$src set fid_ 1
 	$sink set fid_ 1
-	$src2 set fid_ 2
-	$sink2 set fid_ 2
 	$ns_ connect $src $sink
-	$ns_ connect $src2 $sink2
 
 	# set up TCP-level connections
 	$src set dst_ [$sink set addr_]
-	$src2 set dst_ [$sink2 set addr_]
 	$sink listen
-	$sink2 listen
 	set ftp1 [$src attach-source FTP]
-	set ftp2 [$src2 attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
-	$ns_ at 0.4 "$ftp2 start"
 
 	# set up special params for this test
 	$src set window_ 100
@@ -533,11 +522,6 @@ Test/droppedsyn instproc run {} {
 	$src set windowInit_ 4
 	$src set tcpTick_ 0.500
 	$src set packetSize_ 576
-
-	$src2 set window_ 100
-	$src2 set windowInit_ 10
-	$src2 set tcpTick_ 0.500
-	$src2 set packetSize_ 4192
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
