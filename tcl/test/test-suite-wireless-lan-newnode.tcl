@@ -21,7 +21,7 @@
 # To run all tests: test-all-wireless-lan
 # to run individual test:
 # ns test-suite-wireless-lan-newnode.tcl dsdv
-# ns test-suite-wireless-lan-newnode.tcl tora
+# ns test-suite-wireless-lan-newnode.tcl dsr
 # ns test-suite-wireless-lan.tcl wired-cum-wireless
 # ns test-suite-wireless-lan.tcl wireless-mip
 # ....
@@ -44,9 +44,7 @@ Class Test/dsr -superclass TestSuite
 #Class Test/tora -superclass TestSuite
 #wireless model using TORA
 
-
-
-#Class Test/dsdv-wired-cum-wireless -superclass TestSuite
+Class Test/dsdv-wired-cum-wireless -superclass TestSuite
 # simulation between a wired and a wireless domain through
 # gateways called base-stations.
 
@@ -142,7 +140,8 @@ TestSuite instproc init {} {
 	set ns_         [new Simulator]
     if {[string compare $testName_ "dsdv"] && \
 	    [string compare $testName_ "dsr"]} {
-	     $ns_ set-address-format hierarchical
+#	     $ns_ set-address-format hierarchical
+	     $ns_ node-config -addressType hierarchical
 	     AddrParams set domain_num_ 3
 	     lappend cluster_num 2 1 1
 	     AddrParams set cluster_num_ $cluster_num
@@ -231,64 +230,6 @@ Test/dsdv instproc run {} {
     $ns_ run
 }
 
-#Test/tora instproc init {} {
-#    global opt node_ god_ chan topo
-#    $self instvar ns_ testName_
-#    set testName_       tora
-#    set opt(rp)         tora
-#    set opt(cp)		"../mobility/scene/cbr-3-test" 
-#    set opt(sc)		"../mobility/scene/scen-3-test" 
-#    set opt(nn)		3	      
-#    set opt(stop)       900.0
-#
-#    $self next
-#
-#	#
-#	# Create God
-#	#
-#   
-#	set god_ [create-god $opt(nn)]
-#
-#
-#    $ns_ node-config -adhocRouting TORA \
-#                         -llType $opt(ll) \
-#                         -macType $opt(mac) \
-#                         -ifqType $opt(ifq) \
-#                         -ifqLen $opt(ifqlen) \
-#                         -antType $opt(ant) \
-#                         -propType $opt(prop) \
-#                         -phyType $opt(netif) \
-#                         -agentTrace ON \
-#                         -routerTrace ON \
-#                         -macTrace OFF \
-#                         -movementTrace OFF
-#
-#    
-#    for {set i 0} {$i < $opt(nn) } {incr i} {
-#                set node_($i) [$ns_ node $chan]
-#                $node_($i) random-motion 0              ;# disable random motion
-#                $node_($i) topography $topo
-#
-#
-#    }
-#    puts "Loading connection pattern..."
-#    source $opt(cp)
-#    
-#    puts "Loading scenario file..."
-#    source $opt(sc)
-#    puts "Load complete..."
-#
-#    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; exit"
-#
-#}
-
-#Test/tora instproc run {} {
-#    $self instvar ns_
-#    puts "Starting Simulation..."
-#    $ns_ run
-#}
-#
-
 Test/dsr instproc init {} {
     global opt node_ god_ chan topo
     $self instvar ns_ testName_
@@ -349,6 +290,151 @@ Test/dsr instproc run {} {
     $ns_ run
 }
 
+Test/dsdv-wired-cum-wireless instproc init {} {
+    global opt god_ node_ topo
+    $self instvar ns_ testName_
+    set testName_ dsdv-wired-cum-wireless
+    set opt(rp)            dsdv
+    set opt(sc)            "../mobility/scene/scen-3-test"
+    set opt(cp)            ""
+    set opt(nn)            5
+    set opt(stop)          500.0
+    set num_wired_nodes    2
+    set num_wireless_nodes 3
+
+    $self next
+
+    #setup wired nodes
+    set temp {0.0.0 0.1.0}
+    for {set i 0} {$i < $num_wired_nodes} {incr i} {
+        set W($i) [$ns_ node [lindex $temp $i]]
+    }
+
+    # setup base stations & wireless nodes
+
+    $ns_ node-config -adhocRouting DSDV \
+                         -llType $opt(ll) \
+                         -macType $opt(mac) \
+                         -ifqType $opt(ifq) \
+                         -ifqLen $opt(ifqlen) \
+                         -antType $opt(ant) \
+                         -propType $opt(prop) \
+                         -phyType $opt(netif) \
+                         -channelType $opt(chan) \
+                         -topoInstance $topo \
+		 	 -wiredRouting ON \
+                        -agentTrace ON \
+                         -routerTrace OFF \
+                         -macTrace OFF \
+                         -movementTrace OFF
+
+    set temp {1.0.0 1.0.1 1.0.2 1.0.3}
+
+#    set BS(0) [create-base-station-node [lindex $temp 0]]
+#    set BS(1) [create-base-station-node 2.0.0]
+
+
+
+    set BS(0) [$ns_ node [lindex $temp 0]]
+    set BS(1) [$ns_ node 2.0.0]
+    $BS(0) random-motion 0
+    $BS(1) random-motion 0
+
+    #provide some co-ord (fixed) to base stations
+    $BS(0) set X_ 1.0
+    $BS(0) set Y_ 2.0
+    $BS(0) set Z_ 0.0
+   
+    $BS(1) set X_ 650.0
+    $BS(1) set Y_ 600.0
+    $BS(1) set Z_ 0.0
+
+    # create mobilenode only
+
+    $ns_ node-config -wiredRouting OFF  
+
+    #create some mobilenodes in the same domain as BS_0
+    for {set j 0} {$j < $num_wireless_nodes} {incr j} {
+#        set node_($j) [ $opt(rp)-create-mobile-node $j [lindex $temp \
+#                [expr $j+1]] ]
+
+	set node_($j) [$ns_ node [lindex $temp [expr $j+1]] ]
+
+        $node_($j) base-station [AddrParams set-hieraddr \
+                [$BS(0) node-addr]]
+    }
+
+    puts "Loading connection pattern..."
+    $self create-udp-traffic 0 $node_(0) $W(0) 240.00000000000000
+    $self create-tcp-traffic 0 $W(1) $node_(2) 160.00000000000000
+    $self create-tcp-traffic 1 $node_(0) $W(0) 200.00000000000000
+
+    puts "Loading scenario file..."
+    source $opt(sc)
+    puts "Load complete..."
+
+    #create links between wired and BS nodes
+
+    $ns_ duplex-link $W(0) $W(1) 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $BS(0) 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $BS(1) 5Mb 2ms DropTail
+
+    $ns_ duplex-link-op $W(0) $W(1) orient down
+    $ns_ duplex-link-op $W(1) $BS(0) orient left-down
+    $ns_ duplex-link-op $W(1) $BS(1) orient right-down
+
+    #
+    # Tell all the nodes when the simulation ends
+    #
+    for {set i 0} {$i < $num_wireless_nodes} {incr i} {
+        $ns_ at $opt(stop).000000001 "$node_($i) reset";
+    }
+    $ns_ at $opt(stop).0000010 "$BS(0) reset";
+    $ns_ at $opt(stop).0000010 "$BS(1) reset";
+
+    $ns_ at $opt(stop).20 "puts \"NS EXITING...\" ;"
+    $ns_ at $opt(stop).21 "$self finish-basenode"
+
+}
+
+Test/dsdv-wired-cum-wireless instproc run {} {
+    $self instvar ns_
+    puts "Starting Simulation..."
+    $ns_ run
+}
+
+TestSuite instproc finish-basenode {} {
+	$self instvar ns_
+	global quiet opt
+
+	$ns_ flush-trace
+        
+        set tracefd	[open $opt(tr) r]
+        set tracefd2    [open $opt(tr).w w]
+
+        while { [eof $tracefd] == 0 } {
+
+	    set line [gets $tracefd]
+	    set items [split $line " "]
+	    if { [lindex $items 0] == "M" } {
+		puts $tracefd2 $line
+	    } else {
+		if { [llength $items] > 15} {
+		    puts $tracefd2 $line
+		}
+	    }
+	}
+	
+	close $tracefd
+	close $tracefd2
+
+	exec mv $opt(tr).w $opt(tr)
+	
+	puts "finishing.."
+	exit 0
+	
+
+}
 
 TestSuite instproc finish {} {
 	$self instvar ns_
