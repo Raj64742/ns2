@@ -1,25 +1,22 @@
 #! /usr/sww/bin/tclsh
 
-#set pdrop_opt {-null -null "-null -noflr" -pdrop "-pdrop -noflr" -null -null -pdrop}
-#set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs -fack -fackfs -fackfs}
-
 #set pdrop_opt {-null -null "-recn -rdrop" "-pdrop" "-recn -rdrop -pdrop"}
 #set tcptype_opt {-fack -fackfs -fackfs -fackfs -fackfs}
 
-set pdrop_opt {-null -null "-null -nofrt" "-null -nofrt -noflr" -pdrop "-pdrop -nofrt" "-pdrop -nofrt -noflr"}
-set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs -newrenofs -newrenofs}
-#set tcptype_opt {-fack -fackfs -fackfs -fackfs -fackfs -fackfs -fackfs}
+#set pdrop_opt {-null -null "-null -nofrt" "-null -nofrt -noflr" -pdrop "-pdrop -nofrt" "-pdrop -nofrt -noflr"}
+#set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs -newrenofs -newrenofs}
 
-#set pdrop_opt {-null -null "-recn -rdrop" "-pdrop"}
-#set tcptype_opt {-fack -fackfs -fackfs -fackfs}
+set pdrop_opt {-null -null -pdrop "-pdrop -nofrt" "-pdrop -nofrt -noflr"}
+set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs}
 
 #initial values
 set maxnumconn 4
 set numburstconn 1
-set tcptype reno
+set tcptype newreno
 set burstonly 3
 set bulkCrossTraffic 1
 set burstsize 50
+set firstburstsize 0
 set window 32
 set burstwin 32
 set redwt 0.002
@@ -33,7 +30,8 @@ set opt(nbc) numburstconn
 set opt(tt) tcptype
 set opt(bo) burstonly
 set opt(bulk) bulkCrossTraffic
-set opt(bsz) burstsize
+set opt(bs) burstsize
+set opt(fbs) firstburstsize
 set opt(win) window
 set opt(bwin) burstwin
 set opt(redwt) redwt
@@ -91,7 +89,10 @@ proc BulkWebComputeResults { } {
 			set responseTimeAvg($src) [expr $responseTimeSum($src)/$responseTimeCount($src)]
 		}
 	}
-	set outstr [format "%2s %11s %26s %3d %6s %2d %8s %8s" $iter [lindex $tcptype_opt $j] [lindex $pdrop_opt $j] $qsize $delay $numconn $thruputsum $responseTimeAvg(0)]
+
+	set dropcount [exec gawk -v start=[expr $burstStartTime+$pause] -v end=[expr $burstStartTime+$pause+5] {BEGIN {drops[0] = 0; drops[1] = 0;} {if ($1 == "d" && $2 >= start && $2 <= end) drops[int($9)]++;} END {print drops[0], drops[1]}} out.tr]
+
+	set outstr [format "%2s %11s %26s %3d %6s %2d %8s %8s %10s" $iter [lindex $tcptype_opt $j] [lindex $pdrop_opt $j] $qsize $delay $numconn $thruputsum $responseTimeAvg(0) $dropcount]
 	puts $fid "$outstr"
 	flush $fid
 #	puts "$outstr"
@@ -127,7 +128,10 @@ proc WebOnlyComputeResults { } {
 			set responseTimeAvg($src) [expr $responseTimeSum($src)/$responseTimeCount($src)]
 		}
 	}
-	set outstr [format "%2s %11s %26s %3d %6s 0 %8s %8s" $iter [lindex $tcptype_opt $j] [lindex $pdrop_opt $j] $qsize $delay $responseTimeAvg(0) $responseTimeAvg(1)]
+
+	set dropcount [exec gawk -v start=[expr $burstStartTime+$pause] {BEGIN {drops[0] = 0; drops[1] = 0;} {if ($1 == "d" && $2 >= start) drops[int($9)]++;} END {print drops[0], drops[1]}} out.tr]
+	
+	set outstr [format "%2s %11s %26s %3d %6s 0 %8s %8s %10s" $iter [lindex $tcptype_opt $j] [lindex $pdrop_opt $j] $qsize $delay $responseTimeAvg(0) $responseTimeAvg(1) $dropcount]
 	puts $fid "$outstr"
 	flush $fid
 #	puts "$outstr"
@@ -139,9 +143,9 @@ set fid [open "$tcptype-$maxnumconn-$numburstconn.res" w]
 set errfid [open "err-$tcptype-$maxnumconn-$numburstconn.res" w]
 set cmdfid [open "cmd-$tcptype-$maxnumconn-$numburstconn.res" w]
 
-
-for {set numconn 0} {$numconn <= $maxnumconn} {incr numconn} { 
+#set numconn $maxnumconn
 for {set iter 0} {$iter < 10} {incr iter} {
+for {set numconn 0} {$numconn <= $maxnumconn} {incr numconn} { 
 	set seed [expr int([exec rand 0 1000])]
 #	puts -nonewline $cmdfid "$iter "
 	for {set k 0} {$k < $numburstconn} {incr k} {
@@ -157,13 +161,13 @@ for {set iter 0} {$iter < 10} {incr iter} {
 		if {$bulkCrossTraffic} {
 			append cmd2 " -$tcptype [exec rand $bulkStartTime [expr $bulkStartTime+5]]"
 		} else {
-			append cmd2 " -burst -$tcptype [exec rand $burstStartTime [expr $burstStartTime+1]]"
+			append cmd2 " -burst -$tcptype [exec rand $burstStartTime [expr $burstStartTime+10]]"
 		}
 	}
 #	puts $cmdfid "$cmd2"
 #	flush $cmdfid
-	foreach qsize {15 30 50} {
-		foreach delay {50ms 250ms} {
+	foreach qsize {200} {
+		foreach delay {200ms} {
 			for {set j 0} {$j < [llength $pdrop_opt]} {incr j} {
 				set cmd1 ""
 				if {[lindex $tcptype_opt $j] == "-null"} {
@@ -179,12 +183,8 @@ for {set iter 0} {$iter < 10} {incr iter} {
 				foreach f [glob -nocomplain $dir/{burst*.out}] {
 					exec rm $f
 				}
-				if {$delay == "50ms"} {
-					set window 6
-				} else {
-					set window 30
-				}
-				set cmd "../../../../ns.solaris ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
+#				set cmd "../../../../ns.bsdi ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -fpef -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
+				set cmd "../../../../ns.solaris ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
 				append cmd $cmd1
 				append cmd $cmd2
 				puts -nonewline $cmdfid "$iter "
