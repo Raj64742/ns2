@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.11 1997/10/14 22:53:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.12 1997/10/26 05:56:50 hari Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -86,8 +86,12 @@ for t in $tests; do
 	    else
 		echo Test output differs from reference output
 		cp temp.rands $directory/$t.test
-		echo "Diagnose with: diff $directory/$t.test $directory/$t"
-		echo "Differences due to floating-point formatting are not significant."
+		if (test "$t" != "telnet") then
+		    echo "Diagnose with: diff $directory/$t.test $directory/$t"
+		    echo "Differences due to floating-point formatting are not significant."
+	 	else 
+			echo "    telnet test has random source behavior and is currently not repeatable."
+		fi
 
 	    fi
 	fi
