@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.2 1998/01/09 21:52:43 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.3 1998/01/21 22:38:21 heideman Exp $
 #
 
 #
@@ -311,7 +311,7 @@ TestScale instproc finish {} {
 	$self instvar trace_file_
 
 	# for debugging
-	exec raw2xg -a -m $opts(web-page-size) -q < out.tr >temp.rands
+	exec ../../bin/raw2xg -a -m $opts(web-page-size) -q < out.tr >temp.rands
 	if {!$opts(graph-results)} {
 		exit 0
 	}
@@ -404,6 +404,9 @@ proc main {} {
 	foreach i $argv {
 		switch $i {
 			quiet {
+				set graph 0
+			}
+			QUIET {
 				set graph 0
 			}
 			reno_pacing {

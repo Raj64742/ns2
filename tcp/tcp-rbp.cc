@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.14 1997/10/23 04:24:49 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.15 1998/01/21 22:38:19 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -287,15 +287,22 @@ RBPRenoTcpAgent::recv(Packet *pkt, Handler *hand)
 		hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	        if (tcph->seqno() > last_ack_) {
 			/* reno does not do rate adjustments as Vegas;
-			 *  thus one needs to cap the cwnd value to 3
-			 * (increase cwnd by the amt acked, not by the
-			 * amt paced), which would be 2 + 1, since
-			 * a delayed ack recvr would ack 2 pkts. Not
-			 * having this cap will lead to reno bursting
-			 * after rbp, which is bad. In any case, we pace
-			 * a min. of 2, so sending 3 next time is ok
+			 * normally, one wouldn't do any adjustments to
+			 * cwnd and allow the sliding window to do its job
+			 * But, if cwnd >> amt_paced, then there's a
+			 * bunch of data that can be sent asap, plus the
+			 * two (typically, due to delacks) that get opened
+			 * up due to the first ack. This would lead to
+			 * a burst, defeating the purpose of pacing.
+			 * Ideally, one would want cwnd = amt_paced
+			 * ALWAYS. Since this doesn't necessarily happen,
+			 * `cap' cwnd to the amt paced and THEN let
+			 * sliding windows take over. Note that this
+			 * mechanism will typically result in 3 segs
+			 * being sent out when the first ack is received.
 			 */
-			cwnd_ = tcph->seqno() - last_ack_ + 2;
+			cwnd_ = maxseq_ - last_ack_;
+			RBP_DEBUG_PRINTF(("\ncwnd-after-first-ack=%g\n", (double)cwnd_));
 		};
 
 	};
