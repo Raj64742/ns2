@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.64 2000/09/01 03:04:05 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.65 2000/10/06 18:47:57 johnh Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -272,7 +272,7 @@ void Agent::trace(TracedVar* v)
 	// if there's nothing in value, return
 	static int started = 0;
 	if (!started) {
-		Tcl::instance().eval("[Simulator instance] is-started");
+		Tcl::instance().evalc("[Simulator instance] is-started");
 		if (Tcl::instance().result()[0] == '0')
 			// Simulator not started, do nothing
 			return;

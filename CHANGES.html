@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.424 2000/10/03 02:09:40 kclan Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.425 2000/10/06 18:47:56 johnh Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -35,6 +35,15 @@ create testsuite for realaudio model in ~ns/tcl/test/test-output-realaudio
 </li>
 </ul>
 
+
+<li>
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Fri Oct  6 11:43:29 PDT 2000
+</b></li>
+
+<br>Changes from eval to evalc wherever eval'ing constant strings with
+embedded subcommands (with []).  This construct crashes tcl-8.3 (that
+modifies strings) when used with compilers that don't properly match
+against eval(const char*) (like apparently egcs-2.91.66).
 
 <li>
 <b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Mon Oct&nbsp;

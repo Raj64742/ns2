@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.8 2000/09/14 18:19:25 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.9 2000/10/06 18:47:57 johnh Exp $";
 #endif
 
 extern "C" {
@@ -73,7 +73,7 @@ protected:
 	void recv(Packet* p, Handler* h) {
 		if (!routelogic_) {
 			Tcl &tcl = Tcl::instance();
-			tcl.eval("[Simulator instance] get-routelogic");
+			tcl.evalc("[Simulator instance] get-routelogic");
 			routelogic_= (RouteLogic*) TclObject::lookup(tcl.result());
 			//tcl.evalf("%s info class", tcl.result());
 		}
