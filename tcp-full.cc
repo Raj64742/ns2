@@ -36,6 +36,9 @@
  * Kathie Nichols (nichols@com21.com).  The code below is based primarily
  * on the 4.4BSD TCP implementation. -KF [kfall@ee.lbl.gov]
  *
+ * Kathie Nichols and Van Jacobson have contributed a significant bug fixes,
+ * especially with respect to the the handling of sequence numbers.
+ *
  * Some Warnings:
  *	this version of TCP will not work correctly if the sequence number
  *	goes above 2147483648 due to sequence number wrap
@@ -69,7 +72,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.10 1997/10/13 22:24:41 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.11 1997/10/21 02:44:12 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -96,7 +99,8 @@ public:
  *	segsize: segment size to use when sending
  */
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
-	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
+	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1),
+	idle_(0), irs_(-1)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -106,6 +110,8 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
 	bind_bool("data_on_syn_",&data_on_syn_);
 	bind_bool("dupseg_fix_", &dupseg_fix_);
 	bind_bool("dupack_reset_", &dupack_reset_);
+	bind_bool("slow_start_on_idle_", &slow_start_on_idle_);
+	bind_bool("close_on_empty_", &close_on_empty_);
 	bind("interval_", &delack_interval_);
 
 	reset();
@@ -119,12 +125,16 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
 void
 FullTcpAgent::reset()
 {
-	TcpAgent::reset();
-	highest_ack_ = -1;
+	cancel_timers();	// cancel timers first
+	TcpAgent::reset();	// resets most variables
+	rq_.clear();
+
 	last_ack_sent_ = -1;
 	rcv_nxt_ = -1;
 	flags_ = 0;
-	t_seqno_ = iss_;
+	t_seqno_ = maxseq_ = iss_;
+	irs_ = -1;
+	idle_ = 0.0;
 }
 
 /*
@@ -144,7 +154,8 @@ FullTcpAgent::headersize()
  */
 FullTcpAgent::~FullTcpAgent()
 {
-	rq_.clear();
+	cancel_timers();	// cancel all pending timers
+	rq_.clear();		// free mem in reassembly queue
 }
 
 /*
@@ -167,7 +178,17 @@ FullTcpAgent::advance(int np)
 	if (np >= 0x10000000)
 		np /= maxseg_;
 
-	curseq_ += (np * maxseg_);
+	advance_bytes(np * maxseg_);
+	return;
+}
+
+/*
+ * the byte-oriented interface
+ */
+
+void    
+FullTcpAgent::advance_bytes(int nb)
+{
 
 	//
 	// state-specific operations:
@@ -176,17 +197,22 @@ FullTcpAgent::advance(int np)
 	//	if above ESTABLISHED, we are closing, so don't allow
 	//	if anything else (establishing), do nothing here
 	//
+
 	if (state_ > TCPS_ESTABLISHED) {
 		fprintf(stderr,
 		 "%f: FullTcpAgent::advance(%s): cannot advance while in state %d\n",
 		 now(), name(), state_);
 		return;
-	} else if (state_ == TCPS_CLOSED)
+	} else if (state_ == TCPS_CLOSED) {
+		reset();
+		curseq_ = iss_ + nb;
 		connect();		// initiate new connection
-	else if (state_ == TCPS_ESTABLISHED)
-		send_much(0, REASON_NORMAL, 0);
+	} else if (state_ == TCPS_ESTABLISHED)
+		curseq_ += nb;
 	return;
 }
+
+
 /*
  * flags that are completely dependent on the tcp state
  * (in real TCP, see tcp_fsm.h, the "tcp_outflags" array)
@@ -225,6 +251,7 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
         tcph->flags() = pflags;
         tcph->hlen() = headersize();
         tcph->ts() = now();
+
 	/* Open issue:  should tcph->reason map to pkt->flags_ as in ns-1?? */
         tcph->reason() |= reason;
         th->size() = datalen + headersize();
@@ -245,10 +272,10 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
 /*
  * see if we should send a segment, and if so, send it
  * (may be ACK or data)
- *	'maxseq_' is called 'snd_max' in "real" TCP
- *	and is the largest seq number we've sent
  *
- * maxseg_, largest seq# we've sent (snd_max)
+ * simulator var, desc (name in real TCP)
+ * --------------------------------------
+ * maxseq_, largest seq# we've sent (snd_max)
  * flags_, flags regarding our internal state (t_state)
  * pflags, a local used to build up the tcp header flags (flags)
  * curseq_, is the highest sequence number given to us by "application"
@@ -258,19 +285,54 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
  */
 void FullTcpAgent::output(int seqno, int reason)
 {
-	int datalen = min((curseq_ + iss_) - seqno, maxseg_);
-	int pflags = outflags();
-	int emptying_buffer = ((seqno + datalen) >= (curseq_ + iss_));
 	int is_retransmit = (seqno <= maxseq_);
 	int idle = (highest_ack_ == maxseq_);
+	int buffered_bytes = (curseq_ + iss_) - highest_ack_;
+	int win = window() * maxseg_;
+	int off = seqno - highest_ack_;
+	int datalen = min(buffered_bytes, win) - off;
+	int pflags = outflags();
+	int emptying_buffer = FALSE;
 
-	/* turn off FIN if there's really more to send */
-	if (!emptying_buffer)
-		pflags &= ~TH_FIN;
+#ifdef notyet
+	//
+	// this is an option that causes us to slow-start if we've
+	// been idle for a "long" time, where long means a rto or longer
+	//
 
-	if ((seqno + datalen) > (highest_ack_ + (window() * maxseg_)))
+	if (slow_start_on_idle_ && idle && idle_ >= t_rtxcur_) {
+		closecwnd(3);	// only reduce cwnd, no change to ssthresh
+	}
+#endif
+
+	//
+	// in real TCP datalen (len) could be < 0 if there was window
+	// shrinkage, or if a FIN has been sent and neither ACKd nor
+	// retransmitted.  Only this 2nd case concerns us here...
+	//
+	if (datalen < 0) {
 		datalen = 0;
+	} else if (datalen > maxseg_) {
+		datalen = maxseg_;
+	}
 
+	//
+	// see if sending this packet will empty the send buffer
+	//
+	if ((seqno + datalen) >= (curseq_ + iss_))
+		emptying_buffer = TRUE;
+		
+	if (emptying_buffer) {
+		pflags |= TH_PUSH;
+		if (close_on_empty_) {
+			pflags |= TH_FIN;
+			state_ = TCPS_FIN_WAIT_1;
+		}
+	} else  {
+		/* not emptying buffer, so can't be FIN */
+		pflags &= ~TH_FIN;
+	}
+			
 	/* sender SWS avoidance (Nagle) */
 
 	if (datalen > 0) {
@@ -298,27 +360,40 @@ void FullTcpAgent::output(int seqno, int reason)
 	 * TF_ACKNOW can be set during connection establishment and
 	 * to generate acks for out-of-order data
 	 */
-	if ((flags_ & TF_ACKNOW) || (pflags & TH_SYN))
-		goto send;
-
-	/* if we owe a FIN or are retransmitting a FIN, ok */
-	if ((pflags & TH_FIN) &&
-	    (((flags_ & TF_SENTFIN) == 0) || is_retransmit))
+	// K: K has PUSH here also... is that right?
+	if ((flags_ & TF_ACKNOW) || (pflags & (TH_SYN|TH_FIN)))
 		goto send;
 
 	return;		// no reason to send now
 
 send:
 
-	if (datalen > 0 && emptying_buffer)
-		pflags |= TH_PUSH;
+	/*
+	 * if this is a retransmission of a FIN, pre-adjust the
+	 * sequence number so we don't go above maxseq_
+	 */
+
+	if (pflags & TH_FIN && flags_ & TF_SENTFIN && seqno >= maxseq_)
+		--seqno;
+
+	/*
+	 * SYNs and FINs each use up one sequence number
+	 */
+
+	if (pflags & (TH_SYN|TH_FIN)) {
+		if (pflags & TH_SYN) {
+                        ++t_seqno_;
+		}
+		if (pflags & TH_FIN) {
+                        ++t_seqno_;
+                        flags_ |= TF_SENTFIN;
+		}
+	}
 
 	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
 	last_ack_sent_ = rcv_nxt_;
 	flags_ &= ~(TF_ACKNOW|TF_DELACK);
 
-	if (pflags & TH_FIN)
-		flags_ |= TF_SENTFIN;
 	t_seqno_ += datalen;		// update snd_nxt (t_seqno_)
 	if (t_seqno_ > maxseq_) {
 		maxseq_ = t_seqno_; 	// largest seq# we've sent
@@ -338,9 +413,8 @@ send:
 	 * round-trip time + 2 * round-trip time variance.
 	 * Future values are rtt + 4 * rttvar.
 	 */
-	if (!(rtx_timer_.status() == TIMER_PENDING) && ((seqno + datalen) != highest_ack_)) {
+	if ((rtx_timer_.status() != TIMER_PENDING) && (t_seqno_ > highest_ack_))
 		set_rtx_timer();  // no timer pending, schedule one
-	}
 	return;
 }
 
@@ -350,7 +424,6 @@ send:
  */
 void FullTcpAgent::send_much(int force, int reason, int maxburst)
 {
-
 	/*
 	 * highest_ack is essentially "snd_una" in real TCP
 	 *
@@ -359,22 +432,22 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	 */
 	int win = window() * maxseg_;	// window() in pkts
 	int npackets = 0;
-	int topwin = min(highest_ack_ + win, curseq_ + iss_);
-
+	int topwin = curseq_ + iss_;
+	if (topwin > highest_ack_ + win)
+		topwin = highest_ack_ + win;
 
 	if (!force && (delsnd_timer_.status() == TIMER_PENDING))
-        return;
+		return;
 
 	while (force || (t_seqno_ < topwin)) {
-		if (overhead_ != 0 && !(delsnd_timer_.status() == TIMER_PENDING)) {
+		if (overhead_ != 0 && (delsnd_timer_.status() != TIMER_PENDING)) {
 			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
 		}
-		output(t_seqno_, reason);	// updates seqno for us
+		output(t_seqno_, reason);	// updates t_seqno for us
 		force = 0;
-		npackets++;
 
-		if (maxburst && npackets == maxburst)
+		if (outflags() & TH_SYN || (maxburst && ++npackets >= maxburst))
 			break;
 	}
 	return;
@@ -411,7 +484,7 @@ void FullTcpAgent::newack(Packet* pkt)
 	double tao = now() - tcph->ts();
 	rtt_update(tao);
 
-	if (ackno == maxseq_)
+	if (ackno >= maxseq_)
 		cancel_rtx_timer();
 	else {
 		if (ackno > highest_ack_) {
@@ -425,11 +498,15 @@ void FullTcpAgent::newack(Packet* pkt)
 	// set up the next packet to send
 	if (t_seqno_ < highest_ack_)
 		t_seqno_ = highest_ack_;	// thing to send next
+
+	return;
 }
 
 /*
  * this is the simulated form of the header prediction
- * predicate
+ * predicate.  While not really necessary for a simulation, it
+ * follows the code base more closely and can sometimes help to reveal
+ * odd behavior caused by the implementation structure..
  */
 int FullTcpAgent::predict_ok(Packet* pkt)
 {
@@ -471,6 +548,8 @@ void FullTcpAgent::fast_retransmit(int seq)
 
 int FullTcpAgent::need_send()
 {
+	if (flags_ & TF_ACKNOW)
+		return TRUE;
 	return ((rcv_nxt_ - last_ack_sent_) >= (segs_per_ack_ * maxseg_));
 }
 
@@ -490,11 +569,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int ourfinisacked = 0;
 	int todrop = 0;
 	int dupseg = FALSE;
-
-#ifdef notdef
-	if (trace_)
-		plot();
-#endif
 
 	//
 	// if no delayed-ACK timer is set, set one
@@ -552,33 +626,58 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int tiflags = tcph->flags() ; // tcp flags from packet
 
 	switch (state_) {
+
+        /*
+         * If the segment contains an ACK then it is bad and do reset.
+         * If it does not contain a SYN then it is not interesting; drop it.
+         * Otherwise initialize tp->rcv_nxt, and tp->irs, iss is already
+	 * selected, and send a segment:
+         *     <SEQ=ISS><ACK=RCV_NXT><CTL=SYN,ACK>
+         * Initialize tp->snd_nxt to tp->iss.
+         * Enter SYN_RECEIVED state, and process any other fields of this
+         * segment in this state.
+         */
+
 	case TCPS_LISTEN:	/* awaiting peer's SYN */
+
 		if (tiflags & TH_ACK) {
-			// ACK shouldn't be on here
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): got ACK(%d) while in LISTEN\n",
-				now(), name(), ackno);
-			goto drop;
+			goto dropwithreset;
 		}
 		if ((tiflags & TH_SYN) == 0) {
-			// we're looking for a SYN in return
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): got a non-SYN while in LISTEN\n",
-				now(), name());
+			// K: if a FIN, K sends an ACK first before drop
+			//	but real TCP doesn't appear to do this...
+			//	should we?
 			goto drop;
 		}
+
+		/* must by a SYN at this point */
 		flags_ |= TF_ACKNOW;
 		state_ = TCPS_SYN_RECEIVED;
-		rcv_nxt_ = tcph->seqno();
+		irs_ = tcph->seqno();
+		rcv_nxt_ = tcph->seqno() + 1;
 		t_seqno_ = iss_;
 		goto step6;
+
+        /*
+         * If the state is SYN_SENT:
+         *      if seg contains an ACK, but not for our SYN, drop the input.
+         *      if seg does not contain SYN, then drop it.
+         * Otherwise this is an acceptable SYN segment
+         *      initialize tp->rcv_nxt and tp->irs
+         *      if seg contains ack then advance tp->snd_una
+         *      if SYN has been acked change to ESTABLISHED else SYN_RCVD state
+         *      arrange for segment to be acked (eventually)
+         *      continue processing rest of data/controls, beginning with URG
+         */
+
 	case TCPS_SYN_SENT:	/* we sent SYN, expecting SYN+ACK */
-		if ((tiflags & TH_ACK) && (ackno > maxseq_)) {
+		if ((tiflags & TH_ACK) &&
+			((ackno > maxseq_) || (ackno < iss_))) {
 			// not an ACK for our SYN, discard
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
 			        now(), name(), int(ackno), int(maxseq_));
-			goto drop;
+			goto dropwithreset;
 		}
 		if ((tiflags & TH_SYN) == 0) {
 			// we're looking for a SYN in return
@@ -587,14 +686,25 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			        now(), name(), int(maxseq_));
 			goto drop;
 		}
-		rcv_nxt_ = tcph->seqno();	// initial expected seq#
-		cancel_rtx_timer();	// cancel timer on our 1st SYN
-		flags_ |= TF_ACKNOW;	// ACK peer's SYN
 		if (tiflags & TH_ACK) {
-			// got SYN+ACK (what we're expecting)
-			// set up to ACK peer's SYN+ACK
-			newack(pkt);
+			highest_ack_ = ackno;
+			if (t_seqno_ < highest_ack_)
+				t_seqno_ = highest_ack_;
+		}
+		cancel_rtx_timer();	// cancel timer on our 1st SYN
+		irs_ = tcph->seqno();
+		rcv_nxt_ = tcph->seqno() + 1;	// initial expected seq#
+		flags_ |= TF_ACKNOW;	// ACK peer's SYN
+		if (tiflags & TH_ACK && (highest_ack_ >= iss_)) {
 			state_ = TCPS_ESTABLISHED;
+                        /*
+                         * if we didn't have to retransmit the SYN,
+                         * use its rtt as our initial srtt & rtt var.
+                         */
+			if (t_rtt_) {
+				double tao = now() - tcph->ts();
+				rtt_update(tao);
+			}
 		} else {
 			// simultaneous active opens
 			state_ = TCPS_SYN_RECEIVED;
@@ -616,8 +726,15 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	todrop = rcv_nxt_ - tcph->seqno();  // how much overlap?
 	if (todrop > 0) {
 		// segment is something we've seen (perhaps partially)
-		if (tiflags & TH_SYN)
+		if (tiflags & TH_SYN) {
+#ifdef notdef
+			// K: small change here
+			t_seqno_ = highest_ack_;
+			if ((tiflags & TH_ACK) == 0)
+				goto dropafterack;
+#endif
 			tiflags &= ~TH_SYN;
+		}
 		if (todrop > datalen ||
 		    (todrop == datalen && ((tiflags & TH_FIN) == 0))) {
 			/*
@@ -633,8 +750,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			 * But keep on processing for RST or ACK.
 			 */
 
-			flags_ |= TF_ACKNOW;
 			todrop = datalen;
+			flags_ |= TF_ACKNOW;
 			dupseg = TRUE;
 		}
 		tcph->seqno() += todrop;
@@ -648,6 +765,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		goto drop;
 	}
 
+	// K: added TH_SYN, but it is already known here!
 	if ((tiflags & TH_ACK) == 0) {
 		fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (seq %d)\n",
 			now(), name(), tcph->seqno());
@@ -662,7 +780,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	case TCPS_SYN_RECEIVED:	/* got ACK for our SYN+ACK */
 		if (ackno < highest_ack_ || ackno > maxseq_) {
 			// not in useful range
-			goto drop;
+			goto dropwithreset;
 		}
 		state_ = TCPS_ESTABLISHED;
 		/* fall into ... */
@@ -709,7 +827,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                                  * network.
                                  */
 
-				if (!(rtx_timer_.status() == TIMER_PENDING) ||
+				if ((rtx_timer_.status() != TIMER_PENDING) ||
 				    ackno != highest_ack_) {
 					// not timed, or re-ordered ACK
 					dupacks_ = 0;
@@ -784,13 +902,16 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                  * timer, using current (possibly backed-off) value.
                  */
 		newack(pkt);
-		if (ackno == maxseq_)
-			needoutput = 1;
+		// K: state established and < compare
+		if (state_ == TCPS_ESTABLISHED && ackno < maxseq_)
+			needoutput = TRUE;
+		// K: change here only on 1st data
 		opencwnd();
-		if (ackno >= (curseq_ + iss_))
-			ourfinisacked = 1;
+		// K: added state check in equal but diff way
+		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno >= (curseq_ + iss_)))
+			ourfinisacked = TRUE;
 		else
-			ourfinisacked = 0;
+			ourfinisacked = FALSE;
 		// additional processing when we're in special states
 
 		switch (state_) {
@@ -821,8 +942,23 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                  * enter the closed state and return.
                  */
 		case TCPS_LAST_ACK:	/* passive close */
-			if (ourfinisacked)
+			// K: added state change here
+			if (ourfinisacked) {
+				state_ = TCPS_CLOSED;
+				cancel_timers();
 				goto drop;
+			} else {
+				// should be a FIN we've seen
+				hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+                                fprintf(stderr,
+                                "%f: %d.%d>%d.%d FullTcpAgent::recv(%s) receive
+d non-ACK (state:%d)\n",
+                                        now(),
+                                        iph->src() >> 8, iph->src() & 0xff,
+                                        iph->dst() >> 8, iph->dst() & 0xff,
+                                        name(), state_);
+                        }
+
 
 		/* no case for TIME_WAIT in simulator */
 		} // inner switch
@@ -836,6 +972,7 @@ step6:
 	 */
 
 	if (datalen > 0 || (tiflags & TH_FIN)) {
+		// K: assigns first_data true here
 		// see the "TCP_REASS" macro for this code
 		if (tcph->seqno() == rcv_nxt_ && rq_.empty()) {
 			// got the in-order packet we were looking
@@ -849,21 +986,29 @@ step6:
 			// accept the data here as-is (i.e. don't
 			// require being in ESTABLISHED state)
 			tiflags &= TH_FIN;
+			if (tiflags)
+				++rcv_nxt_;
 			flags_ |= TF_DELACK;
 			rcv_nxt_ += datalen;
 			// give to "application" here
-			if (need_send())
-				send_much(1, REASON_NORMAL, 0);
+			needoutput = need_send();
 		} else {
 			// not the one we want next (or it
 			// is but there's stuff on the reass queue);
 			// do whatever we need to do for out-of-order
 			// segments or hole-fills.  Also,
 			// send an ACK to the other side right now.
-			rq_.add(pkt);
-			flags_ |= TF_ACKNOW;
+			// K: some changes here, figure out
+			tiflags = rq_.add(pkt);
+			if (tiflags & TH_PUSH) {
+				// K: APPLICATION recv
+				needoutput = need_send();
+			} else {
+				flags_ |= TF_ACKNOW;
+			}
 		}
 	} else {
+		// K: this is deleted
 		// pure ack, not a FIN
 		tiflags &= ~TH_FIN;
 	}
@@ -914,12 +1059,18 @@ step6:
 		send_much(1, REASON_NORMAL, 0);
 	else if ((curseq_ + iss_) > highest_ack_)
 		send_much(0, REASON_NORMAL, 0);
+	// K: which state to return to??
 	Packet::free(pkt);
 	return;
 
 dropafterack:
 	flags_ |= TF_ACKNOW;
 	send_much(1, REASON_NORMAL, 0);
+	goto drop;
+
+dropwithreset:
+	sendpacket(ackno, tcph->seqno() + 1, TH_ACK, 0,
+		REASON_NORMAL);
 drop:
    	Packet::free(pkt);
 	return;
@@ -947,7 +1098,7 @@ void FullTcpAgent::connect()
 		int cur = curseq_;
 		curseq_ = iss_;
 		output(iss_, REASON_NORMAL);
-		curseq_ = cur;
+		curseq_ = cur + 1;	// K: think I have to add in the syn here
 		return;
 	}
 	output(iss_, REASON_NORMAL);
@@ -1036,13 +1187,14 @@ void ReassemblyQueue::clear()
  * will update FullTcpAgent::rcv_nxt_ by way of the
  * ReassemblyQueue::rcv_nxt_ integer reference (an alias)
  */
-void ReassemblyQueue::add(Packet* pkt)
+int ReassemblyQueue::add(Packet* pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
 
 	int start = tcph->seqno();
 	int end = start + th->size() - tcph->hlen();
+	int tiflags = tcph->flags();
 	seginfo *q, *p, *n;
 
 	if (head_ == NULL) {
@@ -1052,11 +1204,13 @@ void ReassemblyQueue::add(Packet* pkt)
 		head_->next_ = NULL;
 		head_->startseq_ = start;
 		head_->endseq_ = end;
+		head_->flags_ = tiflags;
 	} else {
 		p = NULL;
 		n = new seginfo;
 		n->startseq_ = start;
 		n->endseq_ = end;
+		n->flags_ = tiflags;
 		if (tail_->endseq_ <= start) {
 			// common case of end of reass queue
 			p = tail_;
@@ -1095,13 +1249,15 @@ endfast:
 	//
 
 	if (head_->startseq_ > rcv_nxt_)
-		return;	// still awaiting a hole-fill
+		return 0;	// still awaiting a hole-fill
 
+	tiflags = 0;
 	p = head_;
 	while (p != NULL) {
 		// update rcv_nxt_ to highest in-seq thing
 		// and delete the entry from the reass queue
 		rcv_nxt_ = p->endseq_;
+		tiflags |= p->flags_;
 		q = p;
 		if (q->prev_)
 			q->prev_->next_ = q->next_;
@@ -1118,8 +1274,7 @@ endfast:
 		p = p->next_;
 		delete q;
 	}
-
-	return;
+	return (tiflags);
 }
 
 /*
@@ -1140,16 +1295,26 @@ endfast:
 
 void FullTcpAgent::timeout(int tno)
 {
+
+	/*
+	 * shouldn't be getting timeouts here
+	 */
+	if (state_ == TCPS_CLOSED || state_ == TCPS_LISTEN) {
+		fprintf(stderr, "%f: (%s) unexpected timeout %d in state %d\n",
+			now(), name(), tno, state_);
+		return;
+	}
  
-	/* retransmit timer */
 	if (tno == TCP_TIMER_RTX) {
+		/* retransmit timer */
+		++nrexmit_;
 		recover_ = maxseq_;
 		recover_cause_ = REASON_TIMEOUT;
 		closecwnd(0);
 		reset_rtx_timer(1);
 		t_seqno_ = highest_ack_;
 		dupacks_ = 0;
-		send_much(0, PF_TIMEOUT);
+		send_much(1, PF_TIMEOUT);
 	} else if (tno == TCP_TIMER_DELSND) {
 		/*
 		 * delayed-send timer, with random overhead
@@ -1172,4 +1337,3 @@ void FullTcpAgent::timeout(int tno)
 void DelAckTimer::expire(Event *) {
         a_->timeout(TCP_TIMER_DELACK);
 }
-
