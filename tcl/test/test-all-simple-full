@@ -31,12 +31,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-simple-full,v 1.1 2001/05/27 19:35:22 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-simple-full,v 1.2 2001/05/27 19:36:48 sfloyd Exp $
 #
 #
 # To run in quiet mode:  "./test-all-red quiet".
 
 file="test-suite-simple-full.tcl"
-directory="test-output-simple"
+directory="test-output-simple-full"
 version="v2"
 ./test-all-template1 $file $directory $version $@
