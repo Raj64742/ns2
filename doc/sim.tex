@@ -54,7 +54,7 @@ of which is implemented using a different data structure:
 a simple linked-list, heap, calendar queue (default), and a special
 type called ``real-time''.  Each of these are described below.
 The scheduler runs by selecting the next earliest event, executing
-it to completion, and returning to execute the next event.
+it to completion, and returning to execute the next event.Unit of time used by scheduler is seconds.
 Presently, the simulator is single-threaded, and only one event
 in execution at any given time.
 If more than one event are scheduled to execute at the same time,
