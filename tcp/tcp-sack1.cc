@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.32 1998/08/06 22:10:02 tomh Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.33 1998/11/30 04:54:38 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -43,6 +43,7 @@ class Sack1TcpAgent : public TcpAgent {
 	Sack1TcpAgent();
 	virtual int window();
 	virtual void recv(Packet *pkt, Handler*);
+	virtual void recv_newack_helper(Packet*);
 	virtual void timeout(int tno);
 	virtual void dupack_action();
 	void plot();
@@ -71,6 +72,16 @@ Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1)
 {
 }
 
+void Sack1TcpAgent::recv_newack_helper(Packet *pkt) {
+	newack(pkt);
+	opencwnd();
+	/* if the connection is done, call finish() */
+	if ((highest_ack_ >= curseq_-1) && !closed_) {
+		closed_ = 1;
+		finish();
+	}
+}
+
 void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
@@ -84,7 +95,8 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 	}
 #endif
 	++nackpack_;
-	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho())
+	int ecnecho = hdr_flags::access(pkt)->ecnecho();
+	if (ecnecho && ecn_)
 		ecn(tcph->seqno());
 	if (!fastrecov_) {
 		/* normal... not fast recovery */
@@ -92,13 +104,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			/*
 			 * regular ACK not in fast recovery... normal
 			 */
-			newack(pkt);
-			/* if the connection is done, call finish() */
-			if ((highest_ack_ >= curseq_-1) && !closed_) {
-				closed_ = 1;
-				finish();
-			}
-			opencwnd();
+			recv_newack_helper(pkt);
 			timeout_ = FALSE;
 			scb_.ClearScoreBoard();
 			if (last_ack_ == 0 && delay_growth_) {
