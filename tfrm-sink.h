@@ -40,8 +40,8 @@
 #include "random.h"
 #include "tfrm.h"
 
-#define MAX_HISTORY_SIZE 1000000
 #define LARGE_DOUBLE 9999999999.99 
+#define SAMLLFLOAT 0.0000001
 
 class TfrmSinkAgent;
 

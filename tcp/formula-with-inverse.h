@@ -11,7 +11,8 @@ double b_to_p(double b, double rtt, double tzero, int psize, int bval)
 		 * if we're within 5% of the correct value from below, this is OK
 		 * for this purpose.
 		 */
-		if ((bres>0.95*b)&&(bres<1.05*b)) return p;
+		if ((bres>0.95*b)&&(bres<1.05*b)) 
+			return p;
 		if (bres>b) {
 			p+=pi;
 		} else {

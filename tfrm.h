@@ -39,6 +39,8 @@
 #include "timer-handler.h"
 #include "random.h"
 
+#define SMALLFLOAT 0.0000001
+
 /* receiver response */ 
 
 #define DECREASE 1

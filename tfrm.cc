@@ -98,30 +98,36 @@ void TfrmAgent::start()
 
 void TfrmAgent::stop()
 {
-	send_timer_.resched(0.0);
+	send_timer_.force_cancel();
 }
 
 void TfrmAgent::nextpkt()
 {
+	double next = -1 ;
+	double xrate = -1 ;
+
 	/* cancel any pending send timer */
 
-	send_timer_.force_cancel () ;
 	sendpkt();
+	
+	/*during slow start and congestion avoidance, we increase rate*/
+	/*slowly - by amount delta per packet */
 
-	if (rate_>0) {
-		
-		/*during slow start and congestion avoidance, we increase rate*/
-		/*slowly - by amount delta per packet */
-
-		if ((rate_change_ == SLOW_START) ||
-				(rate_change_ == CONG_AVOID &&
-				 version_ == 1 && slowincr_ == 3)) {
-			oldrate_ = oldrate_ + delta_ ;
-			send_timer_.resched((size_/(oldrate_))+Random::uniform(overhead_)); 
-		}
-		else {
-			send_timer_.resched(size_/rate_+Random::uniform(overhead_));
-		}
+	if ((rate_change_ == SLOW_START) || 
+			((rate_change_ == CONG_AVOID) &&
+			 (version_ == 1 && slowincr_ == 3))) {
+		oldrate_ = oldrate_ + delta_ ;
+		xrate = oldrate_ ;
+	}
+	else {
+		xrate = rate_ ;
+	}
+	if (xrate > SMALLFLOAT) {
+		next = size_/xrate ; 
+	}
+	next = next + Random::uniform(overhead_);
+	if (next > SMALLFLOAT ) {
+		send_timer_.resched(next); 
 	}
 }
 
@@ -191,14 +197,22 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	}
 	else if ((rate_change_ == SLOW_START) && (flost > 0)) {
 		rate_change_ = OUT_OF_SLOW_START ; 
-		/*
-		printf ("ooss %f %f %f %f\n", now, rate_, oldrate_, maxrate_);
+		printf ("ooss %f\n", now);
 		fflush(stdout);
-		*/
+		if (oldrate_ > 0.5*maxrate_) {
+			rate_ = 0.5*maxrate_ ; 
+			delta_ = 0 ; 
+		}
+		else {
+			rate_ = 0.5*oldrate_ ; 
+			delta_ = 0 ; 
+		}
+		Packet::free(pkt);
+		return ;
 	}
 			
 	double rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
-
+	
 	switch (version_) {
 		case 0:
 			switch (signal) {
@@ -222,7 +236,7 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 			else {
 				decrease_rate (flost, now) ;		
 			}
-	}				
+	}			
 	Packet::free(pkt);
 }
 
@@ -292,13 +306,14 @@ void TfrmAgent::increase_rate (double p, double now)
 			}
 			break ;
 		case 2:
-			if (rate_*(1.0+incrrate_)> rcvrate && version_ == 1)
+			if ( (rate_*(1.0+incrrate_)> rcvrate) && (version_ == 1))
 	  		rate_ = rcvrate;
 			else
 	  		rate_*=1.0+incrrate_;
 			last_change_=now;
 			break ;
 		case 3:
+
 			/* the idea is to increase the rate to rate_*(1+incrrate_) 
 			 * in SampleSizeMult_*srate_*rtt round trip times.
 			 * srate_ = rate_/size_ ;
@@ -340,7 +355,7 @@ void TfrmAgent::decrease_rate (double p, double now)
 			rate_*=0.5;
 			last_change_=now;
 			break ; 
-		case 1: 
+		case 1:
 			if (rcvrate<rate_) {
 				rate_=rcvrate;
 				last_change_=now;
