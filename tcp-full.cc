@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.32 1998/01/27 02:31:58 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.33 1998/04/21 02:36:12 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -106,7 +106,7 @@ public:
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1),
-	last_send_time_(0.0), irs_(-1), delay_growth_(0)
+	last_send_time_(0.0), irs_(-1)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -117,7 +117,6 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	bind_bool("dupseg_fix_", &dupseg_fix_);
 	bind_bool("dupack_reset_", &dupack_reset_);
 	bind_bool("close_on_empty_", &close_on_empty_);
-	bind_bool("delay_growth_", &delay_growth_);
 	bind("interval_", &delack_interval_);
 
 	reset();
@@ -157,7 +156,11 @@ FullTcpAgent::reset()
 int
 FullTcpAgent::headersize()
 {
-	return (TCPIP_BASE_PKTSIZE);
+	if (tcpip_base_hdr_size_ < 1) {
+		fprintf(stderr, "TCP-FULL(%s): warning: tcpip hdr size is only %d bytes\n",
+			name(), tcpip_base_hdr_size_);
+	}
+	return (tcpip_base_hdr_size_);
 }
 
 /*
@@ -684,6 +687,19 @@ FullTcpAgent::idle_restart()
 	return (tao > t_rtxcur_);  // verify this
 }
 
+/*
+ * tcp-full's version of set_initial_window()... over-rides
+ * the one in tcp.cc
+ */
+void
+FullTcpAgent::set_initial_window() {
+	if (delay_growth_)
+		cwnd_ = wnd_init_;
+	else    
+		cwnd_ = initial_window();
+}       
+
+
 
 /*
  * main reception path - 
@@ -838,6 +854,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// SYN+ACK (our SYN was acked)
 			highest_ack_ = ackno;
 			newstate(TCPS_ESTABLISHED);
+			cwnd_ = initial_window();
 
 #ifdef notdef
 /*
@@ -975,6 +992,7 @@ trimthenstep6:
 			goto dropwithreset;
 		}
 		newstate(TCPS_ESTABLISHED);
+		cwnd_ = initial_window();
 		/* fall into ... */
 
         /*
@@ -1633,4 +1651,3 @@ void FullTcpAgent::newstate(int ns)
 void DelAckTimer::expire(Event *) {
         a_->timeout(TCP_TIMER_DELACK);
 }
-
