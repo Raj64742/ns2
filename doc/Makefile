@@ -1,8 +1,8 @@
 #
-# $Id: Makefile,v 1.4 1999/04/07 17:23:00 salehi Exp $
+# $Id: Makefile,v 1.5 1999/04/07 17:41:59 salehi Exp $
 #
 
-LATEX2HTMLDIR=	.
+LATEX2HTMLDIR=	/home/salehi/latex2html
 LATEX2HTML=	$(LATEX2HTMLDIR)/latex2html
 PRE_PROCESS=	./pre-process.pl
 POST_PROCESS=	./post-process.pl
@@ -49,8 +49,7 @@ everything.html: $(FILES)
 	@$(RM) -rf /tmp/everything
 	@mkdir /tmp/everything
 	@$(CP) -r * /tmp/everything
-	@cd /tmp/everything ; $(PRE_PROCESS) ; \
-		$(LATEX2HTML) everything.tex >& /dev/null ; \
+	@cd /tmp/everything ; $(PRE_PROCESS) ; $(LATEX2HTML) everything.tex ; \
 		cd everything ; $(POST_PROCESS) 
 	@$(RM) -rf /tmp/everything/everything/*.org
 	@$(CP) -rf /tmp/everything/everything/* .
