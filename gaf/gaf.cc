@@ -69,7 +69,7 @@ gafjitter (double max, int be_random_)
 }
 
 
-GAFAgent::GAFAgent(nsaddr_t id) : Agent(PT_GAF), beacon_(1), randomflag_(1), timer_(this), stimer_(this), dtimer_(this), maxttl_(5), state_(GAF_FREE),total_exist_cnt_(0)
+GAFAgent::GAFAgent(nsaddr_t id) : Agent(PT_GAF), beacon_(1), randomflag_(1), timer_(this), stimer_(this), dtimer_(this), maxttl_(5), state_(GAF_FREE),leader_settime_(0)
 {
         double x = 0.0, y = 0.0, z = 0.0;
 
@@ -87,70 +87,36 @@ GAFAgent::GAFAgent(nsaddr_t id) : Agent(PT_GAF), beacon_(1), randomflag_(1), tim
 	if (gid_ < 0) {
 	    printf("fatal error: node is outside topography\n");
 	}
-	
-	gn_[0].gid = gid_;
-	gn_[0].head = NULL;
-	
-	/*
-	printf("My neighbor info: (%f %f) %d %d %d %d %d \n",
-	       x,y,gn_[0].gid,gn_[1].gid, gn_[2].gid, gn_[3].gid,
-	       gn_[4].gid);
-	*/
-
-	// start handler to update neighborhood table
-	// a soft table
-	gnhandler_ = new GafNeighborshipHandler(this);
-	gnhandler_->start();
-
-}
-
-void GAFAgent::setGn(double x, double y)
-{
-  	gn_[1].gid = God::instance()->getMyTopGrid(x,y);
-	gn_[2].gid = God::instance()->getMyBottomGrid(x,y);
-	gn_[3].gid = God::instance()->getMyLeftGrid(x,y);
-	gn_[4].gid = God::instance()->getMyRightGrid(x,y);
-
-        gn_[1].head = NULL;
-        gn_[2].head = NULL;
-        gn_[3].head = NULL;
-        gn_[4].head = NULL;     
 }
 
 void GAFAgent::recv(Packet* p, Handler *)
 {
 	hdr_gaf *gafh = hdr_gaf::access(p);
 
-	//int nodeaddr = Address::instance().get_nodeaddr(addr());
-	
 	switch (gafh->type_) {
 
 	case GAF_DISCOVER:
-	  // printf("%d gets discovery msg\n",nodeaddr);
-	  processExistenceMsg(p);
+
+	  if (state_ != GAF_SLEEP)
+	      processDiscoveryMsg(p);
 	  Packet::free(p);
 	  break;
-	case GAF_SELECT:
-	  // printf("%d gets selectiin msg\n", nodeaddr);
-	  processSelectionMsg(p);
-	  Packet::free(p);
-	  break;
+
 	default:
 	  Packet::free(p);
 	  break;
 	}
 }
 
-void GAFAgent::processExistenceMsg(Packet* p)
+void GAFAgent::processDiscoveryMsg(Packet* p)
 {
-	struct ExistenceMsg emsg;
+	struct DiscoveryMsg emsg;
 	u_int32_t dst;
 	unsigned char *w = p->accessdata ();
 	double x = 0.0, y = 0.0, z = 0.0;
-	gaf_neighbor_item *keepHead=NULL;
-	int i;
-	
-	
+	int ttl;
+
+
 	dst = *(w++);
 	dst = dst << 8 | *(w++);
         dst = dst << 8 | *(w++);
@@ -165,330 +131,114 @@ void GAFAgent::processExistenceMsg(Packet* p)
 
 	emsg.nid = dst;
 
-	//printf("Node %d received gid/nid = %d %d \n",nid_,emsg.gid, emsg.nid);
-
-	// first, check if this node has changed its grid
-	((MobileNode *)thisnode)->getLoc(&x, &y, &z);
-        gid_  = God::instance()->getMyGrid(x,y);
-
-	if (gn_[0].gid != gid_) {
-				
-	    // This node has been move out of its previous grid
-	    // we must release all of its neighbor list, however,
-	    // if this node moves to its adjacent grid which will most
-            // probably happen, we can keep the list of this neighbor
-	    
-	    for (i=0; i<MAXQUEUE; i++) {
-		if (gn_[i].gid != gid_) {
-		    releaseGn(&gn_[i]);
-		} else {
-		    keepHead = gn_[i].head;
-		}
-	    }
-	    
-	    // update my grid and adjacent grid
-	    
-	    gn_[0].gid = gid_;
-	    gn_[0].head = keepHead;
-	    
-	    if (MAXQUEUE > 1) setGn(x,y);
-
-	} else {
-	  
-	  // if I am the leader, claim it right away
-	    if (state_ == GAF_LEADER) {
-	        send_selection();
-	    }
-	}
-
-	// Is the emsg from my current adjacent grid ?
-
-	for (i=0; i<MAXQUEUE; i++) {
-            if (gn_[i].gid == emsg.gid) {
-                insertGn(&gn_[i], emsg.nid);
-            } else {
-		// remove the unsync nid
-		releaseGnItem(&gn_[i], emsg.nid);
-	    }
-        }
+	dst = *(w++);
+        dst = dst << 8 | *(w++);
+        dst = dst << 8 | *(w++);
+        dst = dst << 8 | *(w++);
 	
-	// if get enough existence msg, try to start selection
-
-	if (state_ == GAF_FREE && gid_ == emsg.gid) {
-
-	  if (total_exist_cnt_++ > MAX_DISCOVERY) {
-	    //  send_selection();
-	    timeout(GAF_SELECT);
-	  }
-
-	}
-
-
-	// debug
-
-	// printGn();
-
-}
-
-void 
-GAFAgent::processSelectionMsg(Packet* p)
-{
-        struct SelectionMsg smsg;
-        u_int32_t dst;
-        unsigned char *w = p->accessdata ();
-        double x = 0.0, y = 0.0, z = 0.0;
-        gaf_neighbor_item *keepHead=NULL;
-        int i;
-
-        dst = *(w++);
-        dst = dst << 8 | *(w++);
-        dst = dst << 8 | *(w++);
-        dst = dst << 8 | *(w++);
-
-        smsg.gid = dst;
-
-        dst = *(w++);
-        dst = dst << 8 | *(w++);
-        dst = dst << 8 | *(w++);
-        dst = dst << 8 | *(w++);
-
-        smsg.nid = dst;
+	emsg.state = dst;
 
 	dst = *(w++);
         dst = dst << 8 | *(w++);
         dst = dst << 8 | *(w++);
         dst = dst << 8 | *(w++);
-
-	smsg.ttl = dst;	
 	
-	// do I care ? If I am not in this grid, discard
-	// but first, check my grid
+	emsg.ttl = dst;
 	
+	// first, check if this node has changed its grid
 	((MobileNode *)thisnode)->getLoc(&x, &y, &z);
         gid_  = God::instance()->getMyGrid(x,y);
-
-	// If I have changed my grid, modify my gn info first
-	if (gn_[0].gid != gid_) {
-
-            // This node has been move out of its previous grid
-            // we must release all of its neighbor list, however,
-            // if this node moves to its adjacent grid which will most
-            // probably happen, we can keep the list of this neighbor
-
-            for (i=0; i<MAXQUEUE; i++) {
-                if (gn_[i].gid != (int)gid_) {
-                    releaseGn(&gn_[i]);
-                } else {
-                    keepHead = gn_[i].head;
-                }
-            }
-
-            // update my grid and adjacent grid
-            gn_[0].gid = gid_;
-            gn_[0].head = keepHead;
-
-	    if (MAXQUEUE>1) setGn(x,y);
-        }
 	
-	// Then check if this msg is from my grid
-	if (gid_ != smsg.gid) return;
+	// If the msg is not from my grid, ignore it
+	if (gid_ != emsg.gid) return;
 
-	// if I am the leader already, give up by comparing the
-	// the nid. If the incoming guy has a smaller id, give up
-	// to be a leader
 
-	if (state_ == GAF_LEADER) {
-	  if (smsg.nid > nid_) {
-	    // claim again that I am the leader
-	    send_selection();
-	    return;
+	switch (emsg.state) {
+
+	case GAF_LEADER:
+	  // I receives a "whoami" msg from the leader in this grid
+	  // I am supposed to discard if I am in GAF_LEADER
+	  // state too, or put myself into sleep if I am in GAF_FREE
+
+	  if (state_ == GAF_LEADER) return;
+	  if (state_ == GAF_FREE) {
+	    
+	    node_off();
+	    dtimer_.resched(Random::uniform(emsg.ttl/2, emsg.ttl)); 
+
 	  }
+	  break;
+	case GAF_FREE:
+	  if (state_ == GAF_FREE) {
+	      if ((ttl = myttl()) > MIN_LIFETIME) {
+    	         ttl = ttl/2;
+    	      }
+    
+    	      if ( ttl > emsg.ttl) {
+    	          //supress other node
+    	          send_discovery();
+   		  return; 
+    	      } else {
+    	          if (ttl == emsg.ttl && nid_ < emsg.nid) {
+    	              send_discovery();
+    		      return;
+    	          }
+    
+    	          if (ttl < MIN_LIFETIME/2) return;
+    	    
+    	        // Since I did not get the signal from the server,
+    	        // I have to wake up myself earlier
+    printf("Node (%d %d) becomes catnap from %d at %f\n",nid_,gid_,state_,Scheduler::instance().clock());	    
+    	          node_off();
+
+    	          dtimer_.resched(Random::uniform(emsg.ttl/2, emsg.ttl)); 
+	      }    	    
+    	  }
+	  
+	  if (state_ == GAF_LEADER) {
+	      send_discovery();
+	  }
+
+	  break;
+	default:
+	  printf("%d gets wrong discovery msg\n",nid_ );;
+	  break;
 	}
-
-	// Now I am not the leader within this grid, go sleep 
-	// May also check if I need to wait for a while or duplicated
-	// MSG
-	// GOSLEEP (right away ???)
-	
-	// before I go sleep, schedule an event to wake up myself
-	// using the ttl as a clue to decide how long I can sleep.
-
-	dtimer_.resched(Random::uniform(smsg.ttl/2, smsg.ttl));
-
-	// turn off myself
-
-	//printf ("Node %d at grid %d goes sleep between (%f %f)\n",
-	//	nid_, gid_, Scheduler::instance().clock(),
-	//	Scheduler::instance().clock()+smsg.ttl);
-
-	node_off();
 
 }
 
-void GAFAgent::insertGn(gaf_neighbor *gridp, u_int32_t nid)
+double GAFAgent::myttl()
 {
-	gaf_neighbor_item *np, *mp, *sp;
-	np = gridp->head;
+  double ce,maxp;
+  Phy *phyp; 
+  double ttl; 
+  
+  ce = (thisnode->energy_model())->energy();
 
-	// if this node is in the list, just change its ttl.
-	for (; np; np = np->next) {
-                if (np->nid == nid) {
-                        np->ttl = maxttl_;
-                        break;
-                }
-        }
+  phyp = (thisnode->ifhead()).lh_first;
 
-	// otherwise, insert it in order from small to big
-	if (!np) {      // insert this new entry
+  if (phyp) {
+	      maxp = ((WirelessPhy *)phyp)->getPtconsume();
+  } 
 
-		np = gridp->head;
-		mp = new gaf_neighbor_item;
-		mp->nid = nid;
-
-		if (np == NULL) {
-		    gridp->head = mp;
-		    mp->next = NULL;
-
-		} else {
-		    sp = np;
-		    for (; np; np = np->next) {
-		        if (np->nid > mp->nid) break;
-			sp = np;
-		    }
-	
-		    if (np) {
-			if (np == sp) {  // only one element
-			   gridp->head = mp;
-			   mp->next = np; 
-			} else {
-			   sp->next = mp;
-			   mp->next = np;
-			}
-
-		    } else {	// end of the list
-			sp->next = mp;
-			mp->next = NULL;
-		    }
-		}		
-        }
-}
-
-void GAFAgent::releaseGn(gaf_neighbor *gridp)
-{
-	gaf_neighbor_item *np, *mp;
-        np = gridp->head;
-	
-	while(np) {
-
-	    mp = np->next;
-	    delete np;
-	    np = mp;
-	}
-	
-	gridp->head = NULL;
-}
-
-// remove the specific item from Gn list. The reason for this
-// is that when node changes grid, it may lead to some unsynchronized
-// state (the same node may appear in two differt Gn) in the Gn list 
-// for some period of time. Although this condition is not really
-// critical, it is better to keep the state synchronized. 
-
-void GAFAgent::releaseGnItem(gaf_neighbor *gridp, u_int32_t nid)
-{
-	gaf_neighbor_item *np, *mp;
-        mp = gridp->head;
-
-	if (!mp) return;
-	
-	np = mp->next;
-
-	for (; np; np = np->next) {
-	    if (np->nid == nid) {
-		mp->next = np->next;
-		delete np;
-		return;
-	    }
-	    
-	    if (np->nid > nid) return;
-	    mp = np;	
-	}
-
-	np = gridp->head;
-	if (np->nid == nid) {
-	    gridp->head = np->next;
-	    delete np;
-	}	
-
-}
-
-void GAFAgent::scanGn()
-{
-	gaf_neighbor *gridp;
-	gaf_neighbor_item *np, *mp;
-	int i;
-
-	for (i=0; i < MAXQUEUE; i++) {
-	    gridp = &gn_[i];
-	    mp = gridp->head;
-
-	    if (!mp) continue;
-
-	    np = mp->next;
-	    for (; np; np = np->next) {
-                    np->ttl--;
-                    if (np->ttl <= 0){
-                        mp->next = np->next;
-                        delete np;
-                        np = mp;
-                    }
-                    mp = np;
-             }
-	
-	     // process the first element
-             np = gridp->head;
-             np->ttl--;
-             if (np->ttl <= 0) {
-                 gridp->head = np->next;
-                 delete np;
-             }
-	}
-}
-
-void GAFAgent::printGn()
-{
-	gaf_neighbor *gridp;
-        gaf_neighbor_item *np;
-        int i;
-
-	printf("At node %d of grid %d:\n",nid_, gid_);
-
-        for (i=0; i < MAXQUEUE; i++) {
-	    gridp = &gn_[i];
-            np = gridp->head;
-
-	    printf("Grid %d : ",gridp->gid);
-	    
-	    for (; np; np = np->next) {
-		printf("%d -> ",np->nid);
-	    }
-
-	    printf("\n");
-	}
+  ttl = ce/maxp;
+  
+  return ttl;
 
 }
 
 // timeout process for discovery phase
 void GAFAgent::timeout(GafMsgType msgt)
 {
-
-  //  printf("Node %d times out for Msgtype %d at %f\n", nid_, msgt, Scheduler::instance().clock());
+  
+  int ttl;
+//printf ("Node (%d %d) get signal %d at %f\n",nid_, gid_, msgt, Scheduler::instance().clock());
 
     switch (msgt) {
     case GAF_DISCOVER:
 
         if (state_ != GAF_SLEEP) {
-	    send_discovery(-1);
+	    send_discovery();
 	    if (state_ == GAF_LEADER) 
 	        timer_.resched(Random::uniform(MAX_DISCOVERY_TIME-1,MAX_DISCOVERY_TIME));
 	    if (state_ == GAF_FREE)
@@ -498,38 +248,52 @@ void GAFAgent::timeout(GafMsgType msgt)
     break;
 
     case GAF_SELECT:
-        if (state_ == GAF_SLEEP) return;
-
-	if (state_ == GAF_LEADER) {
-	    send_selection();
-	    stimer_.resched(Random::uniform(MIN_SELECT_TIME,MAX_SELECT_TIME));
-	} else {
-	    // I am in GAF_FREE state
-	    // decide if I am the least one in my grid
-	    if (gn_[0].head == NULL || (gn_[0].head)->nid > nid_) {
-	      
-	        
-
-	        // claiming I am the leader of this grid
-	        // set state into GAF_LEADER
-	      
-	        state_ = GAF_LEADER;
-
-	        //printf (" node %d claims to be leader at grid %d at time %f\n",
-		//    nid_, gid_, Scheduler::instance().clock());
-
-	        send_selection();
-	        stimer_.resched(Random::uniform(MIN_SELECT_TIME,MAX_SELECT_TIME));
-
-	        return;
-	    }
-	    // if not the leader, go back to check some time later
-	    stimer_.resched(gafjitter(MAX_SELECT_TIME, 0));	
-
-	}
-	
-	break;
+        switch (state_) {
+          case GAF_FREE:
  
+	    // If my total lifetime is only 60s left
+	    // do not play the game 
+	    //if ((ttl = (int)myttl()) < MIN_LIFETIME) {
+	     // break;
+	    //}
+
+	    if ((ttl = (int)myttl()) > MIN_LIFETIME) {
+	        ttl = (int) ttl/2;
+	    }
+	    
+	    // otherwise, turn myself into GAF_LEADER
+
+	    setGAFstate(GAF_LEADER);
+	
+	    leader_settime_ = ttl + NOW;
+
+	printf("Node (%d %d) becomes a leader at %f\n",nid_,gid_,Scheduler::instance().clock());
+
+	    // schedule myself to wake up after ttl so that
+	    // I know I need to change state by then
+	    // tell every body I am the Leader right away	    
+
+	    send_discovery();
+	    // reschedule a wakeup to change my state back
+	    stimer_.resched(ttl); 
+
+	    break;
+
+	  case GAF_LEADER:
+	    // I just finish my LEADER role, put myself into FREE
+	    // state so that I have chance to go sleep
+	    
+	printf("Node (%d %d) go BACK to FREE from LEADER at %f\n",nid_,gid_,Scheduler::instance().clock());
+	    duty_timeout();
+	    leader_settime_ = 0;
+
+	    break;
+	  case GAF_SLEEP:
+	    break;
+	  default:
+	    break;
+        }
+	break;
     case GAF_DUTY:
         duty_timeout();
         break;
@@ -539,30 +303,10 @@ void GAFAgent::timeout(GafMsgType msgt)
 
 }
 
-/* timeout process for selecting phase
-void GAFAgent::select_timeout(int )
-{
-        if (state_ == GAF_SLEEP) return;
-
-	// decide if I am the least one in my grid
-	if (gn_[0].head == NULL || (gn_[0].head)->nid > nid_) {
-	    // claiming I am the leader of this grid
-	    // set state into GAF_LEADER
-	    state_ = GAF_LEADER;
-	    send_selection();
-	    stimer_.resched(gafjitter(GAF_BROADCAST_JITTER, 0));
-	    return;
-	}
-	// if not the leader, go back to check some time later
-	stimer_.resched(gafjitter(GAF_BROADCAST_JITTER, 0));	
-}
-*/
-
 // adaptive fidelity timeout
 
 void GAFAgent::duty_timeout()
 {
-    int i;
     double x=0.0, y=0.0, z=0.0;
 
     // find where I am
@@ -570,19 +314,9 @@ void GAFAgent::duty_timeout()
     ((MobileNode *)thisnode)->getLoc(&x, &y, &z);
     gid_ = God::instance()->getMyGrid(x,y);
 
-    // clear up my neighbor table
-
-    for (i=0; i < MAXQUEUE; i++) {
-         releaseGn(&gn_[i]);
-    }
 
     // wake up myself
     node_on();
-
-    //printf("Node %d at grid %d wakes up at time %f\n",
-    //	   nid_, gid_, Scheduler::instance().clock());
-
-    // start discovery timeout and select timeout
 
     // schedule the discovery timer randomly
 
@@ -591,7 +325,7 @@ void GAFAgent::duty_timeout()
     // schedule the select phase after enough time
     // of discovery msg exchange
 
-    stimer_.resched(Random::uniform(MIN_SELECT_TIME, MAX_SELECT_TIME));
+    stimer_.resched(Random::uniform(GAF_LEADER_JITTER, GAF_LEADER_JITTER+1));
 
 }
 
@@ -604,16 +338,9 @@ int GAFAgent::command(int argc, const char*const* argv)
 	    timer_.resched(gafjitter(GAF_STARTUP_JITTER, 1));
 	    // schedule the select phase after certain time
 	    // of discovery msg exchange, as fast as possible
-	    stimer_.resched(Random::uniform(GAF_STARTUP_JITTER,GAF_STARTUP_JITTER+1));	
+	    stimer_.resched(Random::uniform(GAF_LEADER_JITTER,GAF_LEADER_JITTER+1));	
 
 	    return (TCL_OK); 
-	  }
-	  if (strcmp (argv[1], "stop-gaf") == 0) {
-		int i;
-		for (i=0; i < MAXQUEUE; i++) {
-            	    releaseGn(&gn_[i]);
-        	}
-		return(TCL_OK);
 	  }
 	      
 	}
@@ -633,13 +360,13 @@ int GAFAgent::command(int argc, const char*const* argv)
 	return (Agent::command(argc, argv));
 }
 
-void GAFAgent::send_discovery(int dst)
+void GAFAgent::send_discovery()
 {
         Packet *p = allocpkt();
 	double x=0.0, y=0.0, z=0.0;
 
 	hdr_gaf *h = hdr_gaf::access(p);
-	hdr_ip *iph = hdr_ip::access(p);
+	//hdr_ip *iph = hdr_ip::access(p);
 
 	h->type_ = GAF_DISCOVER;
 	h->seqno_ = ++seqno_;
@@ -649,47 +376,19 @@ void GAFAgent::send_discovery(int dst)
 	((MobileNode *)thisnode)->getLoc(&x, &y, &z);
 	gid_ = God::instance()->getMyGrid(x,y);
     
-	if (dst != -1) {
-	  iph->daddr() = dst;
-	  iph->dport() = 254;
-	}
-	else {
-	  // if bcast pkt
-	  makeUpExistenceMsg(p);
-	}
-
-	//hdrc->direction() = hdr_cmn::DOWN;
-
-	//ch->num_forwards() = 0; 
+	makeUpDiscoveryMsg(p);
 
 	send(p,0);
 }
 
-// broadcast selecting msg
-
-void GAFAgent::send_selection()
-{
-	Packet *p = allocpkt();
-        hdr_gaf *h = hdr_gaf::access(p);
-	//        hdr_ip *iph = hdr_ip::access(p);
-
-        h->type_ = GAF_SELECT;
-
-        makeSelectionMsg(p);
-
-	send(p,0);
-}
-
-/* 
- * First phase: tell around who I am
- *              w/ info (gid,nid)
- */
 void
-GAFAgent::makeUpExistenceMsg(Packet *p)
+GAFAgent::makeUpDiscoveryMsg(Packet *p)
 {
   hdr_ip *iph = hdr_ip::access(p);
   hdr_cmn *hdrc = hdr_cmn::access(p);
+  u_int32_t ttl;
   unsigned char *walk;
+  
 
   // fill up the header
   hdrc->next_hop_ = IP_BROADCAST;
@@ -701,9 +400,9 @@ GAFAgent::makeUpExistenceMsg(Packet *p)
 
   // fill up the data
 
-  p->allocdata(sizeof(ExistenceMsg));
+  p->allocdata(sizeof(DiscoveryMsg));
   walk = p->accessdata ();
-  hdrc->size_ = sizeof(ExistenceMsg) + IP_HDR_LEN; // Existence Msg + IP
+  hdrc->size_ = sizeof(DiscoveryMsg) + IP_HDR_LEN; // Existence Msg + IP
 
   *(walk++) = gid_ >> 24;
   *(walk++) = (gid_ >> 16) & 0xFF;
@@ -714,67 +413,38 @@ GAFAgent::makeUpExistenceMsg(Packet *p)
   *(walk++) = (nid_ >> 8) & 0xFF;
   *(walk++) = (nid_ >> 0) & 0xFF;
 
-  //printf("Node %d send out Exitence msg gid/nid %d %d\n", nid_, gid_, nid_);
+  // access my state
 
-}
+  *(walk++) = state_ >> 24;
+  *(walk++) = (state_ >> 16) & 0xFF;
+  *(walk++) = (state_ >> 8) & 0xFF;
+  *(walk++) = (state_ >> 0) & 0xFF;  
 
-void
-GAFAgent::makeSelectionMsg(Packet *p)
-{
-  hdr_ip *iph = hdr_ip::access(p);
-  hdr_cmn *hdrc = hdr_cmn::access(p);
-  Phy *phyp;
-  double maxp,ce;
-  unsigned char *walk;
-  u_int32_t ttl;
-
-  // fill up the header
-  hdrc->next_hop_ = IP_BROADCAST;
-  hdrc->addr_type_ = NS_AF_INET;
-  iph->daddr() = IP_BROADCAST << Address::instance().nodeshift();
-  iph->dport() = 254;
-
-  hdrc->direction() = hdr_cmn::DOWN;
-
-  // estimate TTL, XXX change is needed
-  // get Pt_consumer from wireless-phy, assuming only one interface
-  // by default, Pt_consumer is the maxp
-
-  phyp = (thisnode->ifhead()).lh_first;
-  if (phyp) {
-	maxp = ((WirelessPhy *)phyp)->getPtconsume();
-  }
-  
-  // get current energy level 
- 
-  ce = (thisnode->energy_model())->energy();
 
   // ttl tells the receiver that how much longer the sender can
-  // survive
-  ttl = (u_int32_t) ce/maxp;
+  // survive, cut it into half for the purpose of load balance
 
-  // fill up the data
-  p->allocdata(sizeof(SelectionMsg));
-  walk = p->accessdata ();
-  hdrc->size_ = sizeof(SelectionMsg) + IP_HDR_LEN; // Selection Msg + IP
+  if (state_ == GAF_LEADER) {
+      // must send real msg because I am the leader
+	ttl = leader_settime_ - NOW;
+	if (ttl < 0) ttl = 0;
 
-  *(walk++) = gid_ >> 24;
-  *(walk++) = (gid_ >> 16) & 0xFF;
-  *(walk++) = (gid_ >> 8) & 0xFF;
-  *(walk++) = (gid_ >> 0) & 0xFF;
-  *(walk++) = nid_ >> 24;
-  *(walk++) = (nid_ >> 16) & 0xFF;
-  *(walk++) = (nid_ >> 8) & 0xFF;
-  *(walk++) = (nid_ >> 0) & 0xFF;
+  } else {
+
+      if ((ttl = (u_int32_t)myttl()) > MIN_LIFETIME) {
+          ttl = (u_int32_t) ttl/2;
+      }
+
+  }
   *(walk++) = ttl >> 24;
   *(walk++) = (ttl >> 16) & 0xFF;
   *(walk++) = (ttl >> 8) & 0xFF;
   *(walk++) = (ttl >> 0) & 0xFF;
+  
+  //printf("Node %d send out Exitence msg gid/nid %d %d\n", nid_, gid_, nid_);
+
 }
 
-// bring this node ON/OFF by calling node ON/OFF at PHY
-// XXX only consider the first phy, Must be changed for
-// the case of multiple interface
 
 void
 GAFAgent::node_off()
@@ -797,7 +467,7 @@ GAFAgent::node_off()
 	((WirelessPhy *)p)->node_off();
     }
     // change agent state
-    state_ = GAF_SLEEP;
+    setGAFstate(GAF_SLEEP);
 }
 
 void
@@ -820,8 +490,15 @@ GAFAgent::node_on()
         ((WirelessPhy *)p)->node_on();
     }
     
-    total_exist_cnt_ = 0;
-    state_ = GAF_FREE;
+    setGAFstate(GAF_FREE);
+}
+
+void 
+GAFAgent::setGAFstate(GafNodeState gs)
+{
+//   printf("Node (%d %d) changes state from %d to %d at %f\n", nid_, gid_, state_,gs,Scheduler::instance().clock());
+
+   state_ = gs;
 }
 
 GAFPartner::GAFPartner() : Connector(), gafagent_(1),mask_(0xffffffff),
@@ -867,23 +544,6 @@ int GAFPartner::command(int argc, const char*const* argv)
 	  }
 	}
 	return Connector::command(argc, argv); 
-}
-
-// Gaf handler for timely neighborhood infomation update
-
-void GafNeighborshipHandler::start()
-{
-        Scheduler::instance().schedule(this, &intr, GN_UPDATE_INTERVAL);
-}
-
-void GafNeighborshipHandler::handle(Event *)
-{
-        
-
-        Scheduler &s = Scheduler::instance();
-        gaf_->scanGn();
-        s.schedule(this, &intr, GN_UPDATE_INTERVAL);
-	//printf ("Node %d update softtabe at %f\n",gaf_->nodeid(), s.clock());
 }
 
 void GAFDiscoverTimer::expire(Event *) {

@@ -33,7 +33,7 @@
 #include "node.h"
 
 #define MAXQUEUE  1             // 1 = only my grid, 5 = all of my neighbos
-#define GN_UPDATE_INTERVAL 20 	// how often to update neighbor list
+#define GN_UPDATE_INTERVAL 10 	// how often to update neighbor list
 #define GAF_STARTUP_JITTER 1.0	// secs to jitter start of periodic activity
 #define GAF_BROADCAST_JITTER 0.1 // jitter for all broadcast packet
 #define MIN_DISCOVERY_TIME 1    // min interval to send discovery
@@ -42,31 +42,17 @@
 #define MAX_SELECT_TIME 6	// you are the leader b/w, my need
 				// to be set by apps. 
 #define MAX_DISCOVERY   10      // send selection after 10 time try
+#define MIN_LIFETIME    60
+#define GAF_LEADER_JITTER 3
+
 class GAFAgent;
-
-/*
- * data structure for storing neighborhood infomation
- * You may find a similar structure at energy-model.h
- * But it is not good to put such things there.
- */
-
-struct gaf_neighbor_item {
-       u_int32_t nid;        		// node id
-       int       ttl;    		// time-to-live
-       gaf_neighbor_item *next; 	// pointer to next item
-};
-
-struct gaf_neighbor {
-       u_int32_t  gid;   // grid id
-       gaf_neighbor_item *head; 
-};
 
 typedef enum {
   GAF_DISCOVER, GAF_SELECT, GAF_DUTY
 } GafMsgType;
 
 typedef enum {
-	GAF_TRAFFIC, GAF_LEADER, GAF_FREE, GAF_SLEEP
+  GAF_FREE, GAF_LEADER, GAF_SLEEP
 } GafNodeState;
 
 // gaf header
@@ -85,17 +71,6 @@ struct hdr_gaf {
 	}
 };
 
-class GafNeighborshipHandler : public Handler {
-public:
-        GafNeighborshipHandler(GAFAgent *gaf) {
-                gaf_ = gaf;
-        }
-        virtual void start();
-        virtual void handle(Event *e);
-protected:
-        GAFAgent *gaf_;
-        Event  intr;
-};
 
 // GAFTimer is used for discovery phase
 
@@ -136,25 +111,19 @@ public:
 	//void select_timeout(int);
 
 	u_int32_t nodeid() {return nid_;}
-	void scanGn();
+	double myttl();
 		
 protected:
 	int command(int argc, const char*const*argv);
-	void setGn(double,double);
+
 	void node_on();
 	void node_off();
 	void duty_timeout();
-	void send_selection();
-	void makeSelectionMsg(Packet *p);
-	void send_discovery(int dst = -1);
-	void makeUpExistenceMsg(Packet *p);
-	void processSelectionMsg(Packet *p);
-	void processExistenceMsg(Packet *p);
-	void insertGn(gaf_neighbor *gridp, u_int32_t nid);
-	void releaseGn(gaf_neighbor *gridp);
-	void releaseGnItem(gaf_neighbor *gridp, u_int32_t nid);
-	void printGn();
+	void send_discovery();
+	void makeUpDiscoveryMsg(Packet *p);
+	void processDiscoveryMsg(Packet *p);
 	double beacon_; /* beacon period */
+	void setGAFstate(GafNodeState);
 	int randomflag_;
 	GAFDiscoverTimer timer_;
 	GAFSelectTimer stimer_;
@@ -163,13 +132,11 @@ protected:
 	int gid_;	// group id of this node
 	int nid_;	// the node id of this node belongs to.
 	Node *thisnode; // the node object where this agent resides
-	struct gaf_neighbor gn_[5]; // keep neighbor info around me
-	                            // gn_[0] = my grid; 1-4: T,B,L,R
-	GafNeighborshipHandler *gnhandler_;
 	int maxttl_;	// life of a node in the neighbor list
 	
 	GafNodeState	state_;
-	int total_exist_cnt_;
+	int leader_settime_;
+
 };
 
 /* assisting getting broadcast msg */
@@ -191,18 +158,11 @@ protected:
  * data structure for exchanging existence message and selection msg
  */
 
-struct ExistenceMsg {
+struct DiscoveryMsg {
         u_int32_t gid;	// grid id
         u_int32_t nid;  // node id
+        u_int32_t state; // what is my state
+        u_int32_t ttl;  // My time to live
 };
-
-struct SelectionMsg {
-        u_int32_t gid;  // grid id
-        u_int32_t nid;  // node id
-        u_int32_t ttl;  // estimated live life (if keeping from now on
-};
-
-
-
 
 #endif
