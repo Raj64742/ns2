@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.13.2.2 1998/07/16 19:28:20 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.13.2.3 1998/07/24 21:41:38 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -42,13 +42,14 @@ static const char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "classifier.h"
+#include <iostream.h>
 
 class MCastClassifier : public Classifier {
 public:
-	MCastClassifier();
+	MCastClassifier(); 
 	~MCastClassifier();
 protected:
-        const int HASHSIZE= 256;
+        static const int HASHSIZE= 256;
 	struct hashnode {
 		int slot;
 		nsaddr_t src;
@@ -71,8 +72,8 @@ protected:
 	hashnode* ht_[HASHSIZE];
     	hashnode* ht_star_[HASHSIZE]; //for search by group only (not <s,g>)
 
-	hashnode* const lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const;
-	hashnode* const lookup_star(nsaddr_t dst, int iface = -1) const;
+	hashnode* const lookup(nsaddr_t src, nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const;
+	hashnode* const lookup_star(nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const;
     
         void change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface);
         void change_iface(nsaddr_t dst, int oldiface, int newiface);
@@ -117,7 +118,7 @@ void MCastClassifier::clearAll()
 }
 
 MCastClassifier::hashnode* const
-MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const
+MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const
 {
 	int h = hash(src, dst);
 	hashnode* p;
@@ -129,7 +130,7 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const
 }
 
 MCastClassifier::hashnode* const
-MCastClassifier::lookup_star(nsaddr_t dst, int iface = -1) const
+MCastClassifier::lookup_star(nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const
 {
 	int h = hash(0, dst);
 	hashnode* p;
@@ -151,13 +152,16 @@ int MCastClassifier::classify(Packet *const pkt)
 	int iface = h->iface();
 
 	// first lookup (S,G) - entries
+	//	cout << "classifying...";
 	hashnode* p = lookup(src, dst, iface);
 	if (p == 0)
 	        p = lookup_star(dst, iface);
 	if (p == 0) {
+		//		cout << "couldn't classify by iface...";
 		p = lookup(src, dst);
 		if (p==0) p = lookup_star(dst);
 		if (p == 0) {
+			//			cout << "couldn't classify at all\n";
 			/*
 			 * Didn't find an entry.
 			 * Call tcl exactly once to install one.
@@ -165,15 +169,19 @@ int MCastClassifier::classify(Packet *const pkt)
 			 */
 			Tcl::instance().evalf("%s new-group %u %u %d cache-miss", 
 					      name(), src, dst, iface);
-			return (-1);
+			return -1;
 		}
-		if ( (p->iif != -1) && (p->iif != iface) ) {
-			Tcl::instance().evalf("%s new-group %u %u %d wrong-iif", 
-					      name(), src, dst, iface);
-			return (-1);
-		}
+		//		cout << "classified with no iif\n";
+		//		if (p->iif == hdr_cmn::ANY_IFACE) cout << "xxx Classified as any_iface\n";
+
+		if (p->iif == hdr_cmn::ANY_IFACE || iface == hdr_cmn::UNKN_IFACE)
+			return p->slot;
+
+		Tcl::instance().evalf("%s new-group %u %u %d wrong-iif", 
+				      name(), src, dst, iface);
+		return -1;
 	}
-	return (p->slot);
+	return p->slot;
 }
 
 int MCastClassifier::findslot()
@@ -200,14 +208,23 @@ void MCastClassifier::set_hash(hashnode *ht[], nsaddr_t src, nsaddr_t dst, int s
 int MCastClassifier::command(int argc, const char*const* argv)
 {
 	/*
-	 * $classifier set-hash $src $group $slot
+	 * $classifier set-hash $src $group $slot $iif
+	 *      $iif can be:(1) iif
+	 *                  (2) "*" - matches any interface
+	 *                  (3) "?" - interface is unknown (usually this 
+	 *                            means that the packet came from a local
+	 *                            (for this node) agent.
 	 */
 	if (argc == 6) {
 		if (strcmp(argv[1], "set-hash") == 0) {
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int slot = atoi(argv[4]);
-                        int iface = atoi(argv[5]);
+                        int iface = (strcmp(argv[5], "*")==0) ? hdr_cmn::ANY_IFACE 
+				: (strcmp(argv[5], "?")==0) ? hdr_cmn::UNKN_IFACE 
+				: atoi(argv[5]); 
+// 			if (iface == hdr_cmn::ANY_IFACE)
+// 				cout << "installed any_iface entry\n";
 			if (strcmp("*", argv[2]) == 0) {
 			    // install a <*,G> entry
 			    set_hash(ht_star_, 0, dst, slot, iface);
