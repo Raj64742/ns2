@@ -119,7 +119,7 @@ CsmaMac::backoff(Packet* p, double delay)
 	else {
 		callback_->handle(&intr_);
 		drop(p);
-		rtx_ = 1;
+		rtx_ = 0;
 		cw_ = cwmin_;
 	}
 }

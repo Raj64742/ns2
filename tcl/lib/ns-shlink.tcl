@@ -102,7 +102,6 @@ Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } {
 }
 
 			
-
 Class Link/SharedDuplex -superclass SimpleLink
 
 Link/SharedDuplex instproc init { src dst bw delay qtype lltype } {
