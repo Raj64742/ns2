@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.7 2000/08/18 18:34:04 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.8 2002/12/23 19:16:30 difa Exp $
 #
 # Ported from CMU/Monarch's code, nov'98 -Padma.
 
@@ -42,11 +42,12 @@ set opt(prop)		Propagation/TwoRayGround
 set opt(netif)		Phy/WirelessPhy
 #set opt(mac)		Mac/802_11
 set opt(mac)		Mac/802_11
-set opt(ifq)		Queue/DropTail/PriQueue
+#set opt(ifq)		Queue/DropTail/PriQueue	;# for dsdv
+set opt(ifq)		CMUPriQueue	;# for dsr
 set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
 
-set opt(x)		670	;# X dimension of the topography
+set opt(x)		670		;# X dimension of the topography
 set opt(y)		670		;# Y dimension of the topography
 set opt(cp)		"../mobility/scene/cbr-50-10-4-512"
 set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0"
@@ -56,8 +57,8 @@ set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		1000.0		;# simulation time
 set opt(tr)		out.tr		;# trace file
-set opt(rp)             dsr            ;# routing protocol script
-set opt(lm)             "off"           ;# log movement
+set opt(rp)             dsr		;# routing protocol script (dsr or dsdv)
+set opt(lm)             "off"		;# log movement
 
 # ======================================================================
 
