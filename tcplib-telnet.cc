@@ -1,4 +1,4 @@
-/* $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcplib-telnet.cc,v 1.1 1996/12/19 03:22:46 mccanne Exp $ */
+/* $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcplib-telnet.cc,v 1.1.1.1 1996/12/19 03:22:46 mccanne Exp $ */
 
 /* Generate telnet originator interarrivals from tcplib distribution. */
 

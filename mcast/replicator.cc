@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.1.1.1 1996/12/19 03:22:45 mccanne Exp $";
 #endif
 
 #include "classifier.h"

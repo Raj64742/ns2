@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-cbq.tcl,v 1.1 1996/12/19 03:22:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-cbq.tcl,v 1.1.1.1 1996/12/19 03:22:46 mccanne Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
