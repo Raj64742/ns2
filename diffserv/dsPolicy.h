@@ -109,11 +109,10 @@ class Policy : public TclObject {
 
   // Metering and policing methods:
   // Don't know yet why these two lines causing problems on solaris??? Nov 28.
- // virtual void applyMeter(policyTableEntry *policy, Packet *pkt) = 0;
- //virtual int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) = 0;
-
-void applyMeter(policyTableEntry *policy, Packet *pkt) {};
-int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt){};
+  // Have to initialize all the pointers before actually do anything with them!
+  // If not, ok with gcc but not cc!!! Nov 29, xuanc
+  virtual void applyMeter(policyTableEntry *policy, Packet *pkt) = 0;
+  virtual int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) = 0;
 };
 
 // DumbPolicy will do nothing, but is a good example to show how to add 

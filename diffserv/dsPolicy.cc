@@ -48,8 +48,13 @@
 // The definition of class PolicyClassifier.
 //Constructor.
 PolicyClassifier::PolicyClassifier() {
+  int i;
+
   policyTableSize = 0;
   policerTableSize = 0;
+
+  for (i = 0; i < MAX_POLICIES; i++) 
+    policy_pool[i] = NULL;
 }
 
 /*-----------------------------------------------------------------------------
@@ -108,8 +113,7 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
       policyTable[policyTableSize].pir = (double) atof(argv[7]) / 8.0;
     } else if (strcmp(argv[4], "TokenBucket") == 0) {
       if(!policy_pool[TB])
-	(TBPolicy *) policy_pool[TB] = (Policy *) new TBPolicy;
-
+	policy_pool[TB] = (Policy *) new TBPolicy;
       policyTable[policyTableSize].policy_index = TB;   
       policyTable[policyTableSize].policer = tokenBucketPolicer;
       policyTable[policyTableSize].meter = tokenBucketMeter;
@@ -219,8 +223,7 @@ void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
       policerTable[policerTableSize].policy_index = TSW3CM;      
     } else if (strcmp(argv[2], "TokenBucket") == 0) {
       if(!policy_pool[TB])
-	(TBPolicy *) policy_pool[TB] = new TBPolicy;
-
+	policy_pool[TB] = new TBPolicy;
       policerTable[policerTableSize].policer = tokenBucketPolicer;
       policerTable[policerTableSize].policy_index = TB;      
     } else if (strcmp(argv[2], "srTCM") == 0) {
@@ -284,44 +287,13 @@ int PolicyClassifier::mark(Packet *pkt) {
   policy_index = policy->policy_index;
   policer = getPolicerTableEntry(policy_index, codePt);
 
-  if (policy_pool[policy_index])
-    switch (policy_index) {
-    case DUMB:
-      ((DumbPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
-      codePt = ((DumbPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
-      break;
-      case TSW2CM:
-	((TSW2CMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
-	codePt = ((TSW2CMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
-	break;
-      case TSW3CM:
-	((TSW3CMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
-	codePt = ((TSW3CMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
-	break;
-      case TB:
-	((TBPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
-	codePt = ((TBPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
-	break;
-      case SRTCM:
-	((SRTCMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
-	codePt = ((SRTCMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
-	break;
-    case TRTCM:
-      ((TRTCMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
-      codePt = ((TRTCMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
-      break;
-    case FW:
-      ((FWPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
-      codePt = ((FWPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
-      break;
-    default:
-      printf("No applicable policy, ERROR!!!\n");
-      exit(-1);
-    }
-  else {
+  
+  if (policy_pool[policy_index]) {
+    policy_pool[policy_index]->applyMeter(policy, pkt);
+    codePt = policy_pool[policy_index]->applyPolicer(policy, policer, pkt);
+  } else {
     printf("The policy object doesn't exist, ERROR!!!\n");
-    exit(-1);
-    
+    exit(-1);    
   }
   
   iph->prio_ = codePt;
