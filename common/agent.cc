@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.15 1997/06/11 04:46:38 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.16 1997/06/20 02:50:02 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -54,6 +54,7 @@ public:
 } class_agent;
 
 int Agent::uidcnt_;		/* running unique id */
+
 
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
@@ -157,3 +158,6 @@ Packet* Agent::allocpkt(int n) const
 
 	return(p);
 }
+
+
+

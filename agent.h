@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.6 1997/05/22 00:00:59 breslau Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.7 1997/06/20 02:50:01 heideman Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -40,6 +40,8 @@
 #include "packet.h"
 #include "trace.h"
 #include "connector.h"
+#include "agent-timer.h"
+
 
 class Agent : public Connector {
  public:
@@ -74,11 +76,19 @@ int class_;		/* class to place in packet header */
 		}
 	}
 #define NTIMER 3
+	/*
+	 * xxx:  timers done in this manner should go away.
+	 * Use C++-ish agent timers from agent-timer.h instead.
+	 */
 	int pending_[NTIMER];
 	Event timer_[NTIMER];
 
 	static int uidcnt_;
 	int off_ip_;
 };
+
+// Local Variables:
+// mode:c++
+// End:
 
 #endif
