@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.3 1997/10/13 22:25:13 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.4 1997/10/16 00:58:31 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcl.tcl
@@ -38,6 +38,18 @@
 
 source misc.tcl
 source topologies.tcl
+
+TestSuite instproc finish file {
+	global quiet
+        exec ../../bin/getrc -s 2 -d 3 all.tr | \
+          ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+	if {$quiet == "false"} {
+		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+	}
+        ## now use default graphing tool to make a data file
+	## if so desired
+        exit 0
+}
 
 TestSuite instproc printtimers { tcp time} {
 	global quiet
