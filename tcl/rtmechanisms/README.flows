@@ -1,30 +1,31 @@
-RED drop history.
-
 bdflow.tcl - Chernoff version of flow4.tcl
 bdflow_h.tcl - Chernoff version of Flows.tcl
 
-../../ns bdflow.tcl combined 12345
-../../ns flow4.tcl combined 12345 
-#  To run tests of RED drop history
-
-From FlowAll.com:
-
----------------------------------------
+--------------------------------------
 
 Yes: 
-../../ns Flow4.v2.tcl unforced $randomseed
-
-
-No, no output:
 set randomseed=12345
+../../ns Flow4.v2.tcl unforced $randomseed
+../../ns Flow4.v2.tcl unforced1 $randomseed
 ../../ns Flow4.v2.tcl forced $randomseed
+../../ns Flow4.v2.tcl forced1 $randomseed
+../../ns Flow4.v2.tcl combined $randomseed
+# With Drop-Tail: 
+../../ns Flow4.v2.tcl droptail1 $randomseed
+#category forced, plot_dropsinbytes
+
+NO:
+../../ns Flow4.v2.tcl droptail2 $randomseed
+#category forced, plot_dropsinpackets
+
+
+# queue-in-bytes not implemented for drop-tail
+../../ns Flow4.v2.tcl droptail3 $randomseed
+#category forced, queue-in-bytes, plot_dropsinbytes
+../../ns Flow4.v2.tcl droptail4 $randomseed
+#category forced, queue-in-bytes, plot_dropsinpackets
 
 Try this:
 ../../ns bdflow.tcl forced $randomseed
-
-time=250
-FlowMon:: flow list exceeded working buffer
-          recompile ns with larger FlowMon::wrk_[] array
-
 
 
