@@ -17,9 +17,13 @@
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
 
-
+#
+# ****** Note: please keep this test-suite sync'ed with the example scripts 
+#              provided in the tutorial. Thanks.
+#
 # This test suite is for validating all the examples in Marc Greis tutorial
-# http://www.cs.uni-bonn.de/~greis
+# http://www.cs.uni-bonn.de/~greis (now maintained and expanded by VINT group)
+#
 # To run all tests: test-all-greis
 # to run individual test:
 # ns test-suite-greis.tcl example1
