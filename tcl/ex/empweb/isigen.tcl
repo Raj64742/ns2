@@ -29,7 +29,7 @@
 global num_node n verbose num_ftp_client num_nonisi_web_client num_isi_server 
 set verbose 1
 set enableWEB 1
-set enableFTP 1
+set enableFTP 0
 
 source isitopo.tcl
 
@@ -48,17 +48,19 @@ $ns trace-queue $n([expr $num_node - 1]) $n(9) [open www.in w]
 
 set stopTime 3600.1
 
-if {$enableWEB ==  1} {
-	set stopTimeW $stopTime
-} else {
-	set stopTimeW 0
-}
-if {$enableFTP ==  1} {
-	set stopTimeF $stopTime
-} else {
-	set stopTimeF 0
-}
+set stopTimeW $stopTime
+set stopTimeF $stopTime
 
+
+# Number of Sessions
+set numSessionI 3000
+set numSessionO 1500
+
+# Random seed at every run
+global defaultRNG
+$defaultRNG seed 0
+
+if {$enableWEB ==  1} {
 
 #setup Web model
 
@@ -84,13 +86,6 @@ foreach s [$ns set dstW_] {
 }
 
 
-# Number of Sessions
-set numSessionI 3000
-set numSessionO 1500
-
-# Random seed at every run
-global defaultRNG
-$defaultRNG seed 0
 
 # Inter-session Interval
 set WWWinterSessionO [new RandomVariable/Empirical]
@@ -138,6 +133,8 @@ $windowS loadCDF cdf/2pm.dump.www.outbound.wins.cdf
 set windowC [new RandomVariable/Empirical]
 $windowC loadCDF cdf/2pm.dump.www.outbound.winc.cdf
 
+set mtu [new RandomVariable/Empirical]
+$mtu loadCDF cdf/mtu.cdf
 
 set launchTime 0
 for {set i 0} {$i < $numSessionO} {incr i} {
@@ -148,7 +145,7 @@ for {set i 0} {$i < $numSessionO} {incr i} {
 	   $poolWWW create-session  $i  \
 	                $numPage [expr $launchTime + 0.1] \
 			$interPage $pageSize $interObj $objSize \
-                        $reqSize $persistSel $serverSel $windowS $windowC 1
+                        $reqSize $persistSel $serverSel $windowS $windowC $mtu 1
 
 	   set launchTime [expr $launchTime + [$WWWinterSessionO value]]
 	}
@@ -179,6 +176,9 @@ $windowS loadCDF cdf/2pm.dump.www.inbound.wins.cdf
 set windowC [new RandomVariable/Empirical]
 $windowC loadCDF cdf/2pm.dump.www.inbound.winc.cdf
 
+set mtu [new RandomVariable/Empirical]
+$mtu loadCDF cdf/mtu.cdf
+
 set launchTime 0
 for {set i 0} {$i < $numSessionI} {incr i} {
         if {$launchTime <=  $stopTimeW} {
@@ -188,12 +188,16 @@ for {set i 0} {$i < $numSessionI} {incr i} {
 	   $poolWWW create-session [expr $i + $numSessionO] \
 	                $numPage [expr $launchTime + 0.1] \
 			$interPage $pageSize $interObj $objSize \
-                        $reqSize $persistSel $serverSel $windowS $windowC 0
+                        $reqSize $persistSel $serverSel $windowS $windowC $mtu 0
 
 	   set launchTime [expr $launchTime + [$WWWinterSessionI value]]
         }
 }
 
+}
+
+
+if {$enableFTP ==  1} {
 
 # setup FTP model
 
@@ -279,6 +283,7 @@ $windowS loadCDF cdf/2pm.dump.ftp.inbound.wins.cdf
 set windowC [new RandomVariable/Empirical]
 $windowC loadCDF cdf/2pm.dump.ftp.inbound.winc.cdf
 
+
 set launchTime 0
 for {set i 0} {$i < $numSessionI} {incr i} {
         if {$launchTime <=  $stopTimeF} {
@@ -294,6 +299,7 @@ for {set i 0} {$i < $numSessionI} {incr i} {
          }
 }
 
+}
 
 ## Start the simulation
 $ns at $stopTime "finish"
