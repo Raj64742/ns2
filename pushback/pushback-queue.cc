@@ -57,7 +57,7 @@ public:
 
 
 PushbackQueue::PushbackQueue(const char* const pba): pushbackID_(-1), src_(-1), dst_(-1), 
-  qmon_(NULL) {
+  qmon_(NULL), RLDropTrace_(NULL) {
   
   pushback_ = (PushbackAgent *)TclObject::lookup(pba);
   if (pushback_ == NULL) {
@@ -91,15 +91,38 @@ int
 PushbackQueue::command(int argc, const char*const* argv)
 {
   Tcl& tcl = Tcl::instance();
-  if (argc == 3) {
-    if (strcmp(argv[1], "set-monitor") == 0) {
-      qmon_ = (EDQueueMonitor *)TclObject::lookup(argv[2]);
-      if (qmon_ == NULL) {
-	tcl.resultf("Got Invalid Queue Monitor\n");
-	return TCL_ERROR;
-      }
-      return TCL_OK;
-    }
+  if (argc==2) {
+	  if (strcmp(argv[1], "rldrop-trace") == 0) {
+		  if (RLDropTrace_ != NULL) {
+			  tcl.resultf("%s", RLDropTrace_->name());
+		  }
+		  else {
+			  tcl.resultf("0");
+		  }
+		  return (TCL_OK);
+	  }
+	  
+  }
+  else if (argc == 3) {
+	  if (strcmp(argv[1], "set-monitor") == 0) {
+		  qmon_ = (EDQueueMonitor *)TclObject::lookup(argv[2]);
+		  if (qmon_ == NULL) {
+			  tcl.resultf("Got Invalid Queue Monitor\n");
+			  return TCL_ERROR;
+		  }
+		  return TCL_OK;
+	  }
+	  else if (strcmp(argv[1], "rldrop-trace") == 0) {
+		  
+		  RLDropTrace_ = (NsObject *) TclObject::lookup(argv[2]);
+		  if (RLDropTrace_ == NULL) {
+			  if (debug_) printf("Error Attaching Trace\n");
+			  return (TCL_ERROR);
+		  }
+		  if (debug_) 
+			  printf("PBQ: RLDropTrace Set to %s\n", RLDropTrace_->name());
+		  return (TCL_OK);
+	 }
   } else if (argc == 4) {
      if (strcmp(argv[1], "set-src-dst") == 0) {
        src_ = atoi(argv[2]);
@@ -195,11 +218,16 @@ PushbackQueue::enque(Packet *p) {
     dropped = rlsList_->filter(p, lowDemand);
   
   if (dropped) {
-    qmon_->mon_edrop(p);
-    
-    //this is buggy. this drop is not recorded by any other monitor attached to the link.
-    Packet::free(p);
-    return;
+    //first trace the monitored early drop
+	  if (RLDropTrace_!= NULL) 
+	  	  ((Trace *)RLDropTrace_)->recvOnly(p);
+	  	  
+	  qmon_->mon_edrop(p);
+	  
+	  //this is buggy. 
+	  //this drop is not recorded by any other monitor attached to the link.
+	  Packet::free(p);
+	  return;
   }
   
   //estimate rate only for enqued packets (insignificant bw of pushback messages).

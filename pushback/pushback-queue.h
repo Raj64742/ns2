@@ -76,6 +76,7 @@ class PushbackQueue: public REDQueue {
   EDQueueMonitor * qmon_;
   PushbackQueueTimer * timer_;
 
+  NsObject * RLDropTrace_;
 };
 
 class PushbackQueueTimer: public TimerHandler {

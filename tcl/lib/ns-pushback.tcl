@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-pushback.tcl,v 1.4 2000/12/29 05:59:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-pushback.tcl,v 1.5 2001/01/20 20:48:38 ratul Exp $
 
 
 
@@ -109,3 +109,37 @@ Agent/Pushback set last_index_ 0
 Agent/Pushback set intResult_ -1
 Agent/Pushback set enable_pushback_ 1
 Agent/Pushback set verbose_ false
+
+#
+# Added to be able to trace the drops in rate-limiter
+#
+Queue/RED/Pushback instproc attach-traces {src dst file {op ""}} {
+	
+	$self next $src $dst $file $op
+		
+		set ns [Simulator instance]
+		
+#set this up late if you want.
+#	set type [$self mon-trace-type]
+		
+#nam does not understand anything else yet
+#	if {$op == "nam"} {
+#		set type "Drop"
+#	}
+		
+		set type "Drop"
+		set rldrop_trace [$ns create-trace $type $file $src $dst $op]
+		
+		set oldTrace [$self rldrop-trace]
+		if {$oldTrace!=0} {
+		puts "exists"
+			$rldrop_trace target $oldTrace
+			} else {
+#	puts "Does not exist"
+				$rldrop_trace target [$ns set nullAgent_]
+					}
+	
+	$self rldrop-trace $rldrop_trace
+	
+}
+
