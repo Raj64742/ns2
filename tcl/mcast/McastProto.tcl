@@ -80,7 +80,7 @@ McastProtocol instproc leave-group {} {
 
 McastProtocol instproc trace-dynamics { ns f src {op ""} } {
         $self instvar dynT_
-	if {$op == "nam" && [llength $dynT_] > 0} {
+	if {$op == "nam" && [info exists dynT_] > 0} {
 		foreach tr $dynT_ {
 			$tr namattach $f
 		}
