@@ -91,11 +91,14 @@ void
 LL::recv(Packet* p, Handler* h)
 {
 	Scheduler& s = Scheduler::instance();
+	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 	if (h == 0) {		// from MAC classifier
-		s.schedule(recvtarget_, p, delay_);
+		if (llh->error())
+			drop(p);
+		else
+			s.schedule(recvtarget_, p, delay_);
 		return;
 	}
-	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 	llh->seqno() = ++seqno_;
 	llh->error() = 0;
 	((hdr_mac*)p->access(off_mac_))->macDA() = peerLL_->mac()->label();

@@ -34,7 +34,6 @@
 #ifndef ns_errmodel_h
 #define ns_errmodel_h
 
-#include <fstream.h>
 #include "connector.h"
 
 #define EUnames "pkt", "bit", "time"
@@ -47,7 +46,6 @@ public:
 	void recv(Packet*, Handler*);
 	virtual int corrupt(Packet*);
 	double per() { return loss_ / (loss_ + good_); }
-	void dump();
 
 protected:
 	int command(int argc, const char*const* argv);

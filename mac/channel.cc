@@ -111,8 +111,6 @@ Channel::send(Packet* p, double txtime)
 		}
 		drop(p);
 	}
-	else if (((hdr_ll*)p->access(off_ll_)) ->error())
-		drop(p);
 	else {
 		pkt_ = p;
 		trace_ ? trace_->recv(p) : recv(p);
@@ -157,11 +155,6 @@ DuplexChannel::send(Packet* p, double txtime)
 {
 	double now = Scheduler::instance().clock();
 	txstop_ = now + txtime;
-	if (((hdr_ll*)p->access(off_ll_)) ->error())
-		drop(p);
-	else {
-		trace_ ? trace_->recv(p) : recv(p);
-		return 0;
-	}
-	return 1;
+	trace_ ? trace_->recv(p) : recv(p);
+	return 0;
 }
