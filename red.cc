@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.63 2001/07/26 01:51:51 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.64 2001/08/02 03:53:10 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -289,6 +289,20 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 Packet* REDQueue::deque()
 {
 	Packet *p;
+	if (edp_.summarystats && &Scheduler::instance() != NULL) {
+		double now = Scheduler::instance().clock();
+		double oldtime = edv_.v_total_time;
+		double newtime = now - edv_.v_total_time;
+		if (newtime > 0.0) {
+			double oldave = edv_.v_true_ave;
+			double oldtime = edv_.v_total_time;
+			double newtime = now - edv_.v_total_time;
+			int newsize;
+			if (qib_) newsize = bcount_; else newsize = q_->length();
+			edv_.v_true_ave = (oldtime * oldave + newtime * newsize)/now;
+			edv_.v_total_time = now;
+		}
+	}
 	p = q_->deque();
 	if (p != 0) {
 		idle_ = 0;
@@ -772,7 +786,10 @@ void REDQueue::print_edv()
 void REDQueue::print_summarystats()
 {
 	double now = Scheduler::instance().clock();
-	printf("True average queue: %5.3f time: %5.3f\n", edv_.v_true_ave, edv_.v_total_time);
+	printf("True average queue: %5.3f", edv_.v_true_ave);
+	if (qib_) 
+		printf(" (in bytes)");
+        printf(" time: %5.3f\n", edv_.v_total_time);
 }
 
 /************************************************************/
