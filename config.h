@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.15 1998/03/25 20:46:30 amc Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.16 1998/04/07 22:11:31 haldar Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -51,6 +51,7 @@ typedef unsigned char u_char;
 typedef unsigned short u_short;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
+typedef int int32_t;
 #else
 typedef signed char int8_t;
 typedef short int16_t;
@@ -59,10 +60,22 @@ typedef int int32_t;
 typedef unsigned char u_int8_t;
 typedef unsigned short u_int16_t;
 typedef unsigned int u_int32_t;
-#endif
+#endif 
 
-typedef int32_t nsaddr_t;
+typedef int32_t nsaddr_t; 
+typedef int32_t nsmask_t; 
+
 #define	NS_ALIGN	(8)	/* byte alignment for structs (eg packet.cc) */
+
+
+/* some global definitions */
+#define SMALL_LEN      32
+#define MID_LEN        256
+#define BIG_LEN        4096
+#define HUGE_LEN       65536
+#define TRUE           1
+#define FALSE          0
+
 
 #include <stdlib.h>
 #if (defined(__hpux) || defined(_AIX)) && defined(__cplusplus)
@@ -192,10 +205,14 @@ time_t time(time_t *);
 
 #endif /* WIN32 */
 
-//While changing these ensure that values are consistent with tcl/lib/ns-default.tcl
-#define NODEMASK  0xffffff
-#define NODESHIFT 8
-#define PORTMASK  0xff
+
+/***** These values are no longer required to be hardcoded -- mask and shift values are 
+       available from Class Address. *****/
+
+/* While changing these ensure that values are consistent with tcl/lib/ns-default.tcl
+/* #define NODEMASK  0xffffff */
+/* #define NODESHIFT 8 */
+/* #define PORTMASK  0xff */
 
 #endif
 
