@@ -18,12 +18,15 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.18 2001/08/07 21:22:05 kclan Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.19 2001/11/16 22:29:59 buchheim Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
 #include "rtp.h"
 #include "random.h"
+#include "address.h"
+#include "ip.h"
+
 
 static class UdpAgentClass : public TclClass {
 public:
@@ -45,7 +48,7 @@ UdpAgent::UdpAgent(packet_t type) : Agent(type)
 
 // put in timestamp and sequence number, even though UDP doesn't usually 
 // have one.
-void UdpAgent::sendmsg(int nbytes, const char* flags)
+void UdpAgent::sendmsg(int nbytes, AppData* data, const char* flags)
 {
 	Packet *p;
 	int n;
@@ -59,6 +62,13 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 		printf("Error:  sendmsg() for UDP should not be -1\n");
 		return;
 	}	
+
+	// If they are sending data, then it must fit within a single packet.
+	if (data && nbytes > size_) {
+		printf("Error: data greater than maximum UDP packet size\n");
+		return;
+	}
+
 	double local_time = Scheduler::instance().clock();
 	while (n-- > 0) {
 		p = allocpkt();
@@ -71,6 +81,7 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 		// add "beginning of talkspurt" labels (tcl/ex/test-rcvr.tcl)
 		if (flags && (0 ==strcmp(flags, "NEW_BURST")))
 			rh->flags() |= RTP_M;
+		p->setdata(data);
 		target_->recv(p);
 	}
 	n = nbytes % size_;
@@ -85,8 +96,53 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 		// add "beginning of talkspurt" labels (tcl/ex/test-rcvr.tcl)
 		if (flags && (0 == strcmp(flags, "NEW_BURST")))
 			rh->flags() |= RTP_M;
+		p->setdata(data);
 		target_->recv(p);
 	}
 	idle();
 }
+void UdpAgent::recv(Packet* pkt, Handler*)
+{
+	if (app_ ) {
+		// If an application is attached, pass the data to the app
+		hdr_cmn* h = hdr_cmn::access(pkt);
+		app_->process_data(h->size(), pkt->userdata());
+	} else if (pkt->userdata() && pkt->userdata()->type() == PACKET_DATA) {
+		// otherwise if it's just PacketData, pass it to Tcl
+		//
+		// Note that a Tcl procedure Agent/Udp recv {from data}
+		// needs to be defined.  For example,
+		//
+		// Agent/Udp instproc recv {from data} {puts data}
 
+		PacketData* data = (PacketData*)pkt->userdata();
+
+		hdr_ip* iph = hdr_ip::access(pkt);
+                Tcl& tcl = Tcl::instance();
+		tcl.evalf("%s process_data %d {%s}", name(),
+		          iph->src_.addr_ >> Address::instance().NodeShift_[1],
+			  data->data());
+	}
+	Packet::free(pkt);
+}
+
+
+int UdpAgent::command(int argc, const char*const* argv)
+{
+	if (argc == 4) {
+		if (strcmp(argv[1], "send") == 0) {
+			PacketData* data = new PacketData(1 + strlen(argv[3]));
+			strcpy((char*)data->data(), argv[3]);
+			sendmsg(atoi(argv[2]), data);
+			return (TCL_OK);
+		}
+	} else if (argc == 5) {
+		if (strcmp(argv[1], "sendmsg") == 0) {
+			PacketData* data = new PacketData(1 + strlen(argv[3]));
+			strcpy((char*)data->data(), argv[3]);
+			sendmsg(atoi(argv[2]), data, argv[4]);
+			return (TCL_OK);
+		}
+	}
+	return (Agent::command(argc, argv));
+}

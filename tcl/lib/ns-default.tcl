@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.263 2001/10/25 23:40:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.264 2001/11/16 22:29:59 buchheim Exp $
 
 
 #
@@ -633,6 +633,7 @@ Agent/Ping set packetSize_ 64
 
 Agent/UDP set packetSize_ 1000
 Agent/UDP instproc done {} { }
+Agent/UDP instproc process_data {from data} { }
 
 Agent/TCP set seqno_ 0
 Agent/TCP set t_seqno_ 0

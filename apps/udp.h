@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.h,v 1.13 2000/09/01 03:04:08 haoboy Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.h,v 1.14 2001/11/16 22:29:59 buchheim Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h
@@ -33,7 +33,13 @@ class UdpAgent : public Agent {
 public:
 	UdpAgent();
 	UdpAgent(packet_t);
-	virtual void sendmsg(int nbytes, const char *flags = 0);
+	virtual void sendmsg(int nbytes, const char *flags = 0)
+	{
+		sendmsg(nbytes, NULL, flags);
+	}
+	virtual void sendmsg(int nbytes, AppData* data, const char *flags = 0);
+	virtual void recv(Packet* pkt, Handler*);
+	virtual int command(int argc, const char*const* argv);
 protected:
 	int seqno_;
 };
