@@ -66,9 +66,9 @@ proc create-string-topology {numHops BW_list d_list qtype_list qsize_list } {
 
 
 proc set-red-params { qsize } {
-	Queue/RED set thresh_ [expr 0.6 * $qsize]
-	Queue/RED set maxthresh_ [expr 0.8 * $qsize]
-	Queue/RED set q_weight_ 0.001
+	#Queue/RED set thresh_ [expr 0.6 * $qsize]
+	#Queue/RED set maxthresh_ [expr 0.8 * $qsize]
+	#Queue/RED set q_weight_ 0.001
 	Queue/RED set linterm_ 10
 	Queue/RED set bytes_ false ;
 	Queue/RED set queue_in_bytes_ false ;
@@ -238,7 +238,7 @@ set  qSize  [expr round([expr ($BW / 8.0) * 2.0 * $delay * 10 ])]
 puts "queue is $qSize" 
 set  qEffective_RTT [expr  20 * $delay * 0.001]
 
-set-red-params $qSize
+#set-red-params $qSize
 
 set BW2                  [expr $BW / 2.0]
 puts "BW2 = $BW2"

@@ -257,7 +257,6 @@ set PlotTime         0
 #---------- Create the simulation --------------------#
 
 # Create topology
-set-red-params $qSize
 create-topology2 $BW $delay $qType $qSize $nXCPs 0.0
 
 foreach link $all_links {

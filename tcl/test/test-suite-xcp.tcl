@@ -396,6 +396,12 @@ Class Test/xcp-tcp -superclass TestSuite
 Test/xcp-tcp instproc init {} {
 	$self instvar ns_ testName_ qType_ qSize_ BW_ delay_ nXCPs_ \
 	    SimStopTime_ tracedFlows_
+
+	# set RED parameters for TCP queue
+	Queue/RED set maxthresh_ [expr 0.8 * [Queue set limit_]]
+	Queue/RED set thresh_ [expr 0.6 * [Queue set limit_]]
+	Queue/RED set q_weight_ 0.001
+	Queue/RED set linterm_ 10
 	
 	set testName_   xcp-tcp
 	set qType_	XCP
