@@ -6,12 +6,12 @@
 # Dmalloc has been used to measure memory consumption for this 
 # experiment. 
 # With all pkt-headers (default condition in ns) memory consumption
-# is ~140Mb. with total pkts on the fly at around 475*10^3, (using cbr 
+# is ~140MB. with total pkts on the fly at around 60,000, (using cbr 
 # pktsize of 210, linkBW of 1Gb, delay of 100ms),
-# memory per pkt is ~300bytes.
+# memory consmp. ~2KB/pkt.
 # With (unused) pkt headers removed, memory usage is ~30Mb and the 
-# figure for per pkt comes down to ~60bytes
-# which is a considerable gain (more than 80% reduction of memory use).
+# figure for per pkt comes down to ~500bytes
+# which is a considerable gain (about 75% reduction of memory use).
 
 
 # add/remove packet headers as required
