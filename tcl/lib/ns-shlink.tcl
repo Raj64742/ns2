@@ -145,7 +145,6 @@ Link/Duplex instproc trace { ns f } {
 	$link_ recvtarget $recvT_
 }
 
-
 Class Link/SharedDuplex
 Link/SharedDuplex instproc init {nodelist bw delay lltype ifqtype mactype} {
 	$self instvar numnodes_ channel_ mac_ ifq_ drop_
@@ -155,7 +154,7 @@ Link/SharedDuplex instproc init {nodelist bw delay lltype ifqtype mactype} {
 	set numnodes_ [llength $nodelist]
 	for {set i 0} {$i < $numnodes_} {incr i} {
 		set src [lindex $nodelist $i] 
-		# drop_ share by both IFQ and MAC
+		# drop_ shared by both IFQ and MAC
 		set drop_ [new TraceIp/Drop]
 		$drop_ set src [$src id]
 
@@ -164,6 +163,18 @@ Link/SharedDuplex instproc init {nodelist bw delay lltype ifqtype mactype} {
 		$mac_($src) set delay_ $delay
 		$mac_($src) channel $channel_
 		$mac_($src) drop-target $drop_
+		# List of MACs
+		if {$mactype == "Mac/Multihop"} {
+			set l [$src set macList_]
+			lappend l $mac_($src)
+			$src set macList_ $l
+			puts "** $l mac $mac_($src)"
+			puts "In init: Maclist $l"
+			set t [$src set numMacs_]
+			incr t
+			$src set numMacs_ $t
+			puts "numMacs = $t [$src set numMacs_]"
+		}
 
 		set ifq_($src) [new $ifqtype]
 		$ifq_($src) target $mac_($src)
