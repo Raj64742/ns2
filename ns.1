@@ -1221,6 +1221,68 @@ objects of this type also have fields such as \fCpdrops_\fP and
 dropped packets and bytes, including both early and non-early
 drops.
 
+.SH "QUEUEMONITOR/ED/FLOWMON Objects"
+These objects may be used in the place of a conventional
+QueueMonitor object when wishing to collect per-flow counts and
+statistics in addition to the aggregate counts and statistics
+provided by the basic QueueMonitor.
+.IP "\fB$fmon classifier [$cl]"
+insert (read) the specified classifier into (from) the flow monitor object.
+This is used to map incoming packets to which flows they are associated with.
+.IP "\fB$fmon dump"
+Dump the current per-flow counters and statistics to the I/O channel
+specified in a previous \fCattach\fP operation.
+.IP "\fB$fmon flows"
+Return a character string containing the names of all flow objects known
+by this flow monitor.  Each of these objects are of type
+QueueMonitor/ED/Flow.
+.IP "\fB$fmon attach $chan"
+Attach a tcl I/O channel to the flow monitor.
+Flow statistics are written to the channel when the
+\fCdump\fP operation is executed.
+.LP
+.HD
+Configuration Parameters
+.RS
+.IP \fBenable_in_\fP
+Set to true by default, indicates that per-flow arrival state should
+be kept by the flow monitor.
+If set to false, only the aggregate arrival information is kept.
+.IP \fBenable_out_\fP
+Set to true by default, indicates that per-flow departure state should
+be kept by the flow monitor.
+If set to false, only the aggregate departure information is kept.
+.IP \fBenable_drop_\fP
+Set to true by default, indicates that per-flow drop state should
+be kept by the flow monitor.
+If set to false, only the aggregate drop information is kept.
+.IP \fBenable_edrop_\fP
+Set to true by default, indicates that per-flow early drop state should
+be kept by the flow monitor.
+If set to false, only the aggregate early drop information is kept.
+
+.SH "QUEUEMONITOR/ED/FLOW Objects"
+These objects contain per-flow counts and statistics managed by
+a QUEUEMONITOR/ED/FLOWMON object.
+They are generally created in an OTcl callback procedure when a
+flow monitor is given a packet it cannot map on to a known flow.
+Note that the flow monitor's classifier is responsible for mapping
+packets to flows in some arbitrary way.  Thus, depending on the
+type of classifier used, not all of the state variables may
+be relevant (e.g. one may classify packets based only on flow id,
+in which case the source and destination addresses may not be
+significant).
+.LP
+.HD
+State Variables
+.RS
+.IP \fBsrc_\fP
+The source address of packets belonging to this flow.
+.IP \fBdst_\fP
+The destination address of packets belonging to this flow.
+.IP \fBflowid_\fP
+The flow id of packets belonging to this flow.
+
 .SH "UNICAST ROUTING METHODS"
 A dynamic unicast routing protocol
 can be specified to run
