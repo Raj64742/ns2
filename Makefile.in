@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.159 1999/07/07 03:42:45 sfloyd Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.160 1999/07/29 23:50:18 kkumar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -145,11 +145,14 @@ OBJ_CC = \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
 	ns-process.o \
+	sensor-nets/landmark.o mac-simple-wireless.o \
+	sensor-nets/tags.o sensor-nets/sensor-query.o \
+	sensor-nets/flood-agent.o
 	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	webcache/mcache.o tfrm.o tfrm-sink.o
-#mac-csma.o mac-multihop.o\
+	webcache/mcache.o tfrm.o tfrm-sink.o energy-model.o
+	#mac-csma.o mac-multihop.o\
 
 
 # what was here before is now in emulate/
