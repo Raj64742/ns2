@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.203 2000/07/08 14:31:26 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.204 2000/07/10 07:38:22 intanago Exp $
 
 
 #
@@ -40,6 +40,17 @@
 # class into the instance when the object is created
 # (this happens in the Tcl/tcl-object.tcl helper library)
 #
+
+#########################################################
+# Intitialization for directed diffusion : Chalermek
+
+Agent/Diff_Sink set packetSize_ 512
+Agent/Diff_Sink set interval_   0.5
+Agent/Diff_Sink set random_     1
+Agent/Diff_Sink set maxpkts_    10000
+Agent/Diff_Sink set data_type_  0
+
+########################################################
 
 # Increased Floating Point Precision
 set tcl_precision 17

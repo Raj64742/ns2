@@ -33,7 +33,7 @@ set opt(tr)		estudy.tr	;# trace file
 set opt(nam)		temp.rands
 set opt(lm)             "off"           ;# log movement
 set opt(energymodel)    EnergyModel     ;
-set opt(initialenergy)  0.5               ;# Initial energy in Joules
+set opt(initialenergy)  0.455               ;# Initial energy in Joules
 
 # ======================================================================
 # needs to be fixed later

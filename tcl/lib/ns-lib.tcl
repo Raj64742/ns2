@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.191 2000/06/30 19:47:50 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.192 2000/07/10 07:38:22 intanago Exp $
 
 #
 
@@ -201,6 +201,7 @@ Simulator instproc dumper obj {
 #                  -initialEnergy  (in Joules)
 #                  -rxPower        (in W)
 #                  -txPower        (in W)
+#                  -idlePower      (in W)
 #                  -agentTrace  ON
 #                  -routerTrace ON 
 #                  -macTrace OFF 
@@ -237,6 +238,7 @@ Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc txPower  {val} { $self set txPower_  $val }
 Simulator instproc rxPower  {val} { $self set rxPower_  $val }
+Simulator instproc idlePower  {val} { $self set idlePower_  $val }
 Simulator instproc agentTrace  {val} { $self set agentTrace_  $val }
 Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
@@ -287,7 +289,7 @@ Simulator instproc node-config args {
         $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
         $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
         $self instvar channelType_ topoInstance_ propInstance_ chan mobileIP_
-        $self instvar rxPower_ txPower_
+        $self instvar rxPower_ txPower_ idlePower_
 
         if [info exists macTrace_] {
             Simulator set MacTrace_ $macTrace_
@@ -403,7 +405,7 @@ Simulator instproc create-wireless-node { args } {
 
         $self instvar routingAgent_ wiredRouting_
         $self instvar propInstance_ llType_ macType_ ifqType_ ifqlen_ phyType_ chan
-        $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
+        $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  idlePower_
         $self instvar imepflag_ topoInstance_
 	$self instvar namtraceAllFile_
 	$self instvar level1_ level2_
@@ -445,6 +447,27 @@ Simulator instproc create-wireless-node { args } {
 		set ragent [$self create-tora-agent $node]
 
 	    }
+
+	    DIFFUSION/RATE {
+		$node addr $args
+		set ragent [$self create-diffusion-rate-agent $node]
+	    }
+
+	    DIFFUSION/PROB {
+		$node addr $args
+		set ragent [$self create-diffusion-probability-agent $node]
+	    }
+
+	    FLOODING {
+		$node addr $args
+		set ragent [$self create-flooding-agent $node]
+	    }
+
+	    OMNIMCAST {
+		$node addr $args
+		set ragent [$self create-omnimcast-agent $node]
+	    }
+
 	    default {
 		puts "Wrong node routing agent!"
 		exit
@@ -461,6 +484,15 @@ Simulator instproc create-wireless-node { args } {
 
 	if {$routingAgent_ != "DSR"} {
 	     $node attach $ragent 255
+	}
+
+	if {$routingAgent_ == "DIFFUSION/RATE" ||
+            $routingAgent_ == "DIFFUSION/PROB" ||
+            $routingAgent_ == "FLOODING" ||
+            $routingAgent_ == "OMNIMCAST" } {
+	    $ragent port-dmux [$node set dmux_]
+	    $node instvar ll_
+	    $ragent add-ll $ll_(0)
 	}
 
 	# bind routing agent and mip agent if existing
@@ -514,6 +546,10 @@ Simulator instproc create-wireless-node { args } {
 
         if [info exists rxPower_] {
 	    $node setPr $rxPower_
+        }
+
+        if [info exists idlePower_] {
+	    $node setPidle $idlePower_
         }
 
 	$node topography $topoInstance_
@@ -1677,6 +1713,162 @@ Simulator instproc abstract-tcp {} {
     $self set RenoDelAckfsm_ [new FSM/RenoDelAck]
     $self set nullAgent_ [new DropTargetAgent]
 }
+
+
+#### Chalermek: For Diffusion, Flooding, and Omnicient Multicast 
+
+Simulator instproc create-diffusion-rate-agent {node} {
+    set diff [new Agent/Diffusion/RateGradient]
+
+    $node set diffagent_ $diff
+    $node set ragent_ $diff
+
+    $diff on-node $node
+
+    if [info exist opt(enablePos)] {
+	if {$opt(enablePos) == "true"} {
+	    $diff enable-pos
+	} else {
+	    $diff disable-pos
+	}
+    } 
+
+    if [info exist opt(enableNeg)] {
+	if {$opt(enableNeg) == "true"} {
+	    $diff enable-neg
+	} else {
+	    $diff disable-neg
+	}
+    } 
+
+    if [info exist opt(suppression)] {
+	if {$opt(suppression) == "true"} {
+	    $diff enable-suppression
+	} else {
+	    $diff disable-suppression
+	}
+    } 
+
+    if [info exist opt(subTxType)] {
+	$diff set-sub-tx-type $opt(subTxType)
+    } 
+
+    if [info exist opt(orgTxType)] {
+	$diff set-org-tx-type $opt(orgTxType)
+    } 
+
+    if [info exist opt(posType)] {
+	$diff set-pos-type $opt(posType)
+    } 
+
+    if [info exist opt(posNodeType)] {
+	$diff set-pos-node-type $opt(posNodeType)
+    } 
+
+    if [info exist opt(negWinType)] {
+	$diff set-neg-win-type $opt(negWinType)
+    } 
+
+    if [info exist opt(negThrType)] {
+	$diff set-neg-thr-type $opt(negThrType)
+    } 
+
+    if [info exist opt(negMaxType)] {
+	$diff set-neg-max-type $opt(negMaxType)
+    } 
+
+    $self put-in-list $diff
+    $self at 0.0 "$diff start"
+
+    return $diff
+}
+
+
+Simulator instproc create-diffusion-probability-agent {node} {
+    set diff [new Agent/Diffusion/ProbGradient]
+
+    $node set diffagent_ $diff
+    $node set ragent_ $diff
+
+    $diff on-node $node
+
+    if [info exist opt(enablePos)] {
+	if {$opt(enablePos) == "true"} {
+	    $diff enable-pos
+	} else {
+	    $diff disable-pos
+	}
+    } 
+
+    if [info exist opt(enableNeg)] {
+	if {$opt(enableNeg) == "true"} {
+	    $diff enable-neg
+	} else {
+	    $diff disable-neg
+	}
+    } 
+
+
+    $self put-in-list $diff
+    $self at 0.0 "$diff start"
+
+    return $diff
+}
+
+
+Simulator instproc create-flooding-agent {node} {
+    set flood [new Agent/Flooding]
+
+    $node set ragent_ $flood
+
+    $flood on-node $node
+
+    $self put-in-list $flood
+    $self at 0.0 "$flood start"
+
+    return $flood
+}
+
+
+Simulator instproc create-omnimcast-agent {node} {
+    set omni [new Agent/OmniMcast]
+
+    $node set ragent_ $omni
+
+    $omni on-node $node
+
+    $self put-in-list $omni
+    $self at 0.0 "$omni start"
+
+    return $omni
+}
+
+
+
+Simulator instproc put-in-list {agent} {
+    $self instvar lagent
+
+    lappend lagent $agent
+}
+
+
+Simulator instproc terminate-all-agents {} {
+    $self instvar lagent
+
+    foreach i $lagent {
+	$i terminate
+    }
+}
+
+
+Simulator instproc prepare-to-stop {} {
+    $self instvar lagent
+
+    foreach i $lagent {
+	$i stop
+    }
+}
+
 
 
 

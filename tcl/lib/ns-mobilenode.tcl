@@ -440,16 +440,22 @@ Node/MobileNode instproc add-target {agent port } {
 #    [$self set classifier_] defaulttarget $rcvT
 #}
 
-# set receiving power
+# set transmission power
 Node/MobileNode instproc setPt { val } {
     $self instvar netif_
     $netif_(0) setTxPower $val
 }
 
-# set transmission power
+# set receiving power
 Node/MobileNode instproc setPr { val } {
     $self instvar netif_
     $netif_(0) setRxPower $val
+}
+
+# set idle power -- Chalermek
+Node/MobileNode instproc setPidle { val } {
+    $self instvar netif_
+    $netif_(0) setIdlePower $val
 }
 
 #

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.69 2000/02/14 22:24:19 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.70 2000/07/10 07:38:22 intanago Exp $
 #
 
 # for MobileIP
@@ -1261,16 +1261,22 @@ Node instproc install-defaulttarget-NewMIPBS {rcvT} {
 
 
 
-# set receiving power
+# set transmission power
 Node instproc setPt { val } {
     $self instvar netif_
     $netif_(0) setTxPower $val
 }
 
-# set transmission power
+# set receiving power
 Node instproc setPr { val } {
     $self instvar netif_
     $netif_(0) setRxPower $val
+}
+
+# set idle power -- Chalermek
+Node instproc setPidle { val } {
+    $self instvar netif_
+    $netif_(0) setIdlePower $val
 }
 
 Node instproc add-hroute { dst target } {
