@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.62 2004/11/10 03:24:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.63 2005/03/02 20:08:05 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -1103,6 +1103,23 @@ Test/HighLoss instproc run {} {
     $ns_ run
 }
   
+Class Test/HighLossShort -superclass TestSuite
+Test/HighLossShort instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_
+    set net_	net2
+    set test_ HighLossShort	
+    set guide_  \
+    "TFRC competing against a CBR flow, with high loss, ShortIntervals_."
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRCSink set ShortIntervals_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    set stopTime1_ 60
+    Test/HighLossShort instproc run {} [Test/HighLoss info instbody run ]
+    $self next pktTraceFile
+}
+
 # PreciseLoss_ is turned off
 Class Test/HighLossImprecise -superclass TestSuite
 Test/HighLossImprecise instproc init {} {
@@ -1364,6 +1381,68 @@ Test/printLosses instproc run {} {
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_"
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+#
+# This test shows that a few lost packets are not counted as lost
+#   by the losses array.  I think this is for sequential packet losses.
+#
+Class Test/printLossesShort -superclass TestSuite
+Test/printLossesShort instproc init {} {
+    $self instvar net_ test_ guide_
+    set net_	net2
+    set test_	printLossesShort
+    set guide_  \
+    "A TFRC flow with ShortIntervals_, loss intervals from the TFRC receiver."
+    $self next pktTraceFile
+}
+Test/printLossesShort instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 4.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    # set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    set tf1 [new Agent/TFRC]
+    set tf1Dest [new Agent/TFRCSink]
+    $tf1 set fid_ 0
+    $tf1Dest set fid_ 0
+    $ns_ attach-agent $node_(s1) $tf1
+    $ns_ attach-agent $node_(s3) $tf1Dest
+    $tf1Dest set ShortIntervals_ 1
+    $tf1Dest set printLosses_ 1
+    $tf1Dest set printLoss_ 1
+    $ns_ connect $tf1 $tf1Dest
+    #
+    $ns_ at 0.0 "$tf1 start"
+    set tf2 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 1]
+    $ns_ at 0.2 "$tf2 start"
+    $ns_ at 2.0 "$tf2 stop"
+    set tf3 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 2]
+    $ns_ at 2.2 "$tf3 start"
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
