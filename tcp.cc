@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.66 1998/05/11 18:50:54 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.67 1998/05/11 21:13:29 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -692,51 +692,45 @@ TcpAgent::initial_window()
 	}
 }
 
+/*
+ * Dupack-action: what to do on a DUP ACK.  After the initial check
+ * of 'recover' below, this function implements the following truth
+ * table:
+ *
+ *	bugfix	ecn	last-cwnd == ecn	action
+ *
+ *	0	0	0			tahoe_action
+ *	0	0	1			tahoe_action	[nonsense]
+ *	0	1	0			tahoe_action
+ *	0	1	1			1/2 window, return
+ *	1	0	0			nothing
+ *	1	0	1			nothing		[nonsense]
+ *	1	1	0			nothing
+ *	1	1	1			1/2 window, return
+ */
+
 void
 TcpAgent::dupack_action()
 {
-	/*
-	 * The line below, for "bug_fix_" true, avoids
-	 * problems with multiple fast retransmits in one
-	 * window of data. 
-	 */
 	int recovered = (highest_ack_ > recover_);
-	if (recovered) {
-		goto tahoe_action;
-	} else if (!bug_fix_ && (last_cwnd_action_ == CWND_ACTION_DUPACK
-	  	|| last_cwnd_action_ == CWND_ACTION_TIMEOUT)) {
+	if (recovered || (!bug_fix_ && !ecn_)) {
 		goto tahoe_action;
 	}
-	else if (bug_fix_) {
-		/*
-		 * bug_fix_ is true and we are
-		 * in the middle of a previous recovery
-		 */
-		if (ecn_) {
-			switch (last_cwnd_action_) {
-			case CWND_ACTION_ECN:
-				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				slowdown(CLOSE_CWND_INIT);
-				reset_rtx_timer(0,0);
-			}
-			return;
-		}
-		// dupacks during recovery w/bug_fix on do nothing
+
+	if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+		last_cwnd_action_ = CWND_ACTION_DUPACK;
+		slowdown(CLOSE_CWND_INIT);
+		reset_rtx_timer(0,0);
 		return;
-	} else {
+	}
+
+	if (bug_fix_) {
 		/*
-		 * bug_fix_ is false and we are
-		 * in the middle of a previous recovery
+		 * The line below, for "bug_fix_" true, avoids
+		 * problems with multiple fast retransmits in one
+		 * window of data. 
 		 */
-		if (ecn_) {
-			switch (last_cwnd_action_) {
-			case CWND_ACTION_ECN:
-				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				slowdown(CLOSE_CWND_INIT);
-				reset_rtx_timer(0,0);
-			}
-			return;
-		}
+		return;
 	}
 
 tahoe_action:
