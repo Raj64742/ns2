@@ -134,10 +134,10 @@ protected:
 		int psize_;
 
 		/*send rate*/
-    double rate_;										
+    TracedDouble rate_;										
 
 		/* these two allow rate to be changed gradually */
-		double oldrate_ ;									
+		TracedDouble oldrate_ ;									
 		double delta_ ; 
 
 		/* slow start, cong avoid, decrease ... */
@@ -185,7 +185,7 @@ protected:
 		double overhead_ ;
 
 		/* prevents sending at more than 2 times the rcvr receive rate */
-		double maxrate_ ;
+		TracedDouble maxrate_ ;
 
 		/* number of packets sent */
     TracedInt ndatapack_;   

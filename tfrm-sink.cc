@@ -115,15 +115,15 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 	/*if we are in slow start (i.e. (loss_seen_yet ==0)), */
 	/*and if we saw a loss, report it immediately */
 
-	if ((rate_ < SMALLFLOAT) || 
-			(prevrtt < SMALLFLOAT)||
-			(UrgentFlag) ||
-			((pveclast_>1) && (loss_seen_yet ==0) && 
-			  (tfrmh->seqno-pvec_[pveclast_-1] > 1))) {
-		/*
-		printf ("%f %d\n", now, UrgentFlag);
-		fflush(stdout);
-		*/
+	if ( (rate_ < SMALLFLOAT) || 
+			 (prevrtt < SMALLFLOAT)||
+			 (UrgentFlag) ||
+			 ((rtt_ > SMALLFLOAT) && 
+				(now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
+			 ((pveclast_>1) && 
+				(loss_seen_yet ==0) && 
+			  (tfrmh->seqno-pvec_[pveclast_-1] > 1))
+		 ) {
 		nextpkt();
 		if((pveclast_>1) && 
 			 (loss_seen_yet ==0) && 
@@ -141,12 +141,11 @@ void TfrmSinkAgent::nextpkt() {
 	/* send the report */
 	sendpkt();
 
-	/* note time */
-	last_report_sent = now ; 
+	/* schedule next report rtt/NumFeedback_ later */
 
-	/* schedule next report one rtt later */
 	if (rtt_ > 0.0 && NumFeedback_ > 0) 
-		nack_timer_.resched(rtt_/(float)NumFeedback_);
+		nack_timer_.resched(1.5*rtt_/(float)NumFeedback_);
+		/*nack_timer_.resched(rtt_/(float)NumFeedback_);*/
 }
 
 void TfrmSinkAgent::sendpkt()
@@ -301,7 +300,9 @@ void TfrmSinkAgent::sendpkt()
 	else {
 		tfrmch->rate_since_last_report = 1 ; 
 	}
-	
+
+	/* note time */
+	last_report_sent = now ; 
 	send(pkt, 0);
 }
 

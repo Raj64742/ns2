@@ -54,6 +54,9 @@ TfrmAgent::TfrmAgent() : Agent(PT_TFRM), send_timer_(this),
 	bind("bval_", &bval_);
 	bind("overhead_", &overhead_);
 	bind("ssmult_", &ssmult_);
+	bind("oldrate_", &oldrate_);
+	bind("rate_", &rate_);
+	bind("maxrate_", &maxrate_);
 
 }
 
@@ -280,8 +283,6 @@ void TfrmAgent::slowstart ()
 				if ( (oldrate_ > maxrate_) || (rate_ > maxrate_)) {
 					delta_ = 0 ;
 					rate_ = oldrate_ = maxrate_ ; 
-	//				rate_ = oldrate_ = 0.5 * maxrate_ ;
-	//  THINK ABOUT THIS!
 					last_change_ = now ; 
 				}
 				else {
@@ -339,8 +340,11 @@ void TfrmAgent::increase_rate (double p, double now)
 					last_change_=now;
 				}
 				else {
-					if ((oldrate_ > maxrate_)||(rate_ > maxrate_))
+					if ((oldrate_ > maxrate_)||(rate_ > maxrate_)) {
 						delta_ = 0 ;
+						rate_ = oldrate_ = maxrate_ ;
+						last_change_=now;
+					}
 					else {
 						rate_ = maxrate_; 
 						delta_ = (rate_ - oldrate_)/(SampleSizeMult_*rate_*rtt_/size_);
@@ -400,12 +404,12 @@ void TfrmAgent::sendpkt()
 		tfrmh->UrgentFlag=UrgentFlag;
 	
 		ndatapack_++;
-	
-		/*
-		printf ("s %f %d\n",  tfrmh->timestamp, tfrmh->seqno);
+
+/*
+		printf ("%f %f %f %f %f\n",  tfrmh->timestamp, oldrate_, rate_, maxrate_,
+		maxrate_/2.0);
 		fflush(stdout); 
-		*/
-	
+*/
 		send(p, 0);
 	}
 }
