@@ -100,6 +100,9 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("rate_init_option_", &rate_init_option_);
 	bind_bool("slow_increase_", &slow_increase_); 
 	bind_bool("ss_changes_", &ss_changes_);
+	bind_bool("voip_", &voip_);
+	bind("voip_max_pkt_rate_", &voip_max_pkt_rate_);
+	bind("voip_max_rate_", &voip_max_rate_);
 	seqno_ = -1;
 	maxseq_ = 0;
 	datalimited_ = 0;
@@ -249,8 +252,20 @@ void TfrcAgent::nextpkt()
 		else
 			xrate = rate_;
 	}
+	if (voip_) {
+		// enforce max rate for voip_ flows
+		// convert from Kbps to Bps
+		double max_Bps = 1000.0 * voip_max_rate_/8.0;
+		if (xrate > max_Bps) 
+			xrate = max_Bps;
+	}
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate;
+		if (voip_) {
+	  	    	double min_interval = 1.0/voip_max_pkt_rate_;
+		    	if (next < min_interval)
+				next = min_interval;
+		}
 		//
 		// randomize between next*(1 +/- woverhead_) 
 		//
@@ -308,6 +323,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	// double NumFeedback_ = nck->NumFeedback_;
 	double flost = nck->flost; 
 	int losses = nck->losses;
+	int fsize;
 
 	round_id ++ ;
 	UrgentFlag = 0;
@@ -338,7 +354,22 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	update_rtt (ts, now);
 
 	/* .. and estimate of fair rate */
-	rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
+	if (voip_) {
+		// From RFC 3714:
+		// The voip flow gets to send at the same rate as
+		//  a TCP flow with 1460-byte packets.
+		fsize = 1460; 
+	} else {
+		fsize = size_;
+	}
+	rcvrate = p_to_b(flost, rtt_, tzero_, fsize, bval_);
+	// rcvrate is in bytes per second, based on fairness with a    
+	// TCP connection with the same packet size size_.	      
+	if (voip_) {
+		// Subtract the bandwidth used by 40-byte headers.
+		double temp = rcvrate*(size_/(40.0+size_));
+		rcvrate = temp;
+	}
 
 	/* if we get no more feedback for some time, cut rate in half */
 	double t = 2*rtt_ ; 

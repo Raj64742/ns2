@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.338 2004/10/23 01:27:19 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.339 2004/10/25 05:02:08 sfloyd Exp $
 
 
 #
@@ -1046,6 +1046,11 @@ Agent/TFRC set ss_changes_ 1 ;	# Added on 10/21//2004.
 				# Set to 1 for slow-start changes to 
 				#  accomodate higher initial rates.
 				# Default changed on 10/22/2004.
+Agent/TFRC set voip_ 0 ;        # Added on 10/23/2004      
+				# 1 for voip mode.
+Agent/TFRC set voip_max_pkt_rate_ 100 ;  # Max rate in pps, for voip mode.
+Agent/TFRC set voip_max_rate_ 96 ;       # Max rate in Kbps, for voip mode.
+
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000
 Agent/TFRCSink set NumFeedback_ 1 
