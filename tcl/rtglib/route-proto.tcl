@@ -31,9 +31,14 @@
 # This file only contains the methods for dynamic routing
 # Check ../lib/ns-route.tcl for the Simulator routing support
 #
+
+set rtglibRNG [new RNG]
+$rtglibRNG seed 1
+
 Class rtObject
 
 rtObject set unreach_ -1
+rtObject set maxpref_   255
 
 rtObject proc init-all args {
     foreach node $args {
@@ -403,7 +408,7 @@ Agent/rtProto/Direct instproc compute-routes {} {
 	if {$nextHop_($nbr) == "" && [$ifs_($nbr) up?] == "up"} {
 	    set ifstat_($nbr) 1
 	    set nextHop_($nbr) $ifs_($nbr)
-	    set metric_($nbr) 1
+	    set metric_($nbr) [$ifs_($nbr) cost?]
 	    incr rtsChanged_
 	} elseif {$nextHop_($nbr) != "" && [$ifs_($nbr) up?] != "up"} {
 	    set ifstat_($nbr) 0
@@ -427,6 +432,7 @@ Agent/rtProto/DV proc init-all args {
     } else {
 	eval "set nodeslist $args"
     }
+    Agent set-maxttl Agent/rtProto/DV INFINITY
     eval rtObject init-all $nodeslist
     foreach node $nodeslist {
 	set proto($node) [[$node rtObject?] add-proto DV $node]
@@ -445,6 +451,8 @@ Agent/rtProto/DV proc init-all args {
 }
 
 Agent/rtProto/DV instproc init node {
+    global rtglibRNG
+
     $self next $node
     $self instvar ns_ rtObject_ ifsUp_
     $self instvar preference_ rtpref_ nextHop_ nextHopPeer_ metric_ multiPath_
@@ -458,7 +466,7 @@ Agent/rtProto/DV instproc init node {
     }
     set ifsUp_ ""
     set multiPath_ [[$rtObject_ set node_] set multiPath_]
-    set updateTime [uniform 0.0 0.5]
+    set updateTime [$rtglibRNG uniform 0.0 0.5]
     $ns_ at $updateTime "$self send-periodic-update"
 }
 
@@ -468,10 +476,12 @@ Agent/rtProto/DV instproc add-peer {nbr agentAddr} {
 }
 
 Agent/rtProto/DV instproc send-periodic-update {} {
+    global rtglibRNG
+
     $self instvar ns_
     $self send-updates 1	;# Anything but 0
     set updateTime [expr [$ns_ now] + \
-	    ([$class set advertInterval] * [uniform 0.9 1.1])]
+	    ([$class set advertInterval] * [$rtglibRNG uniform 0.9 1.1])]
     $ns_ at $updateTime "$self send-periodic-update"
 }
 

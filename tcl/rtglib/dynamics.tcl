@@ -300,20 +300,26 @@ rtModel instproc trace { ns f {op ""} } {
 Class rtModel/Exponential -superclass rtModel
 
 rtModel/Exponential instproc set-first-event {} {
-    $self instvar startTime_ upInterval_
-    $self set-event [expr $startTime_ + [exponential] * $upInterval_] down
+	global rtglibRNG
+
+	$self instvar startTime_ upInterval_
+	$self set-event [expr $startTime_ + [$rtglibRNG exponential] * $upInterval_] down
 }
 
 rtModel/Exponential instproc up { } {
-    $self next
-    $self instvar upInterval_
-    $self set-event [expr [exponential] * $upInterval_] down
+	global rtglibRNG
+
+	$self next
+	$self instvar upInterval_
+	$self set-event [expr [$rtglibRNG exponential] * $upInterval_] down
 }
 
 rtModel/Exponential instproc down { } {
-    $self next
-    $self instvar downInterval_
-    $self set-event [expr [exponential] * $downInterval_] up
+	global rtglibRNG
+
+	$self next
+	$self instvar downInterval_
+	$self set-event [expr [$rtglibRNG exponential] * $downInterval_] up
 }
 
 #
@@ -323,15 +329,15 @@ rtModel/Exponential instproc down { } {
 Class rtModel/Deterministic -superclass rtModel
 
 rtModel/Deterministic instproc up { } {
-    $self next
-    $self instvar upInterval_
-    $self set-event $upInterval_ down
+	$self next
+	$self instvar upInterval_
+	$self set-event $upInterval_ down
 }
 
 rtModel/Deterministic instproc down { } {
-    $self next
-    $self instvar downInterval_
-    $self set-event $downInterval_ up
+	$self next
+	$self instvar downInterval_
+	$self set-event $downInterval_ up
 }
 
 #
