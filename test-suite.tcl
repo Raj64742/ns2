@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.13 1997/11/04 19:57:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.14 1998/01/23 19:30:50 tecklee Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -144,7 +144,7 @@ TestSuite instproc finish file {
 
 	set f [open temp.rands w]
 	puts $f "TitleText: $file"
-	puts $f "Device: Postscript"
+	puts $f "Device: Postscript"	
     exec perl -ane $perlCode out.tr >@ $f
 	close $f
 	if {$quiet == "false"} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.36 1997/10/23 04:31:13 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.37 1998/01/23 19:30:51 tecklee Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -613,8 +613,13 @@ OldSim instproc init args {
 	# up calling:
 	#	eval class create id ""
 	# so, catch this here... yuck
-
-	proc class args {
+        global tcl_version
+        if {$tcl_version < 8} {
+                set class_name "class"
+        } else {
+                set class_name "::class"
+        }
+	proc $class_name args {
 		set arglen [llength $args]
 		if { $arglen < 2 } {
 			return

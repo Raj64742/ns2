@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.207 1998/01/23 07:56:15 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.208 1998/01/23 19:30:49 tecklee Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -19,6 +19,20 @@
 <hr>
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
 <UL>
+
+  <li><b><a href="http://www.cs.berkeley.edu/~tecklee">[TLT]</a>
+  Fri Jan 23 11:26:01 PST 1998</b>
+        Fixes some problems with otcl namespaces in tcl 8.
+        <ul>
+        <li> proc class defined in ns-compat.tcl not found in global scope.
+        This is because a procedure defined within an otcl instproc (or proc)
+        becomes a procedure in ::otcl and NOT ::. The fix is to define
+        the procedure as proc ::class.
+        <li> info proc SplitObjectCompare not found. The info command finds 
+        only procedures in the *current* namespace. I added a second check 
+        for ::SplitObjectCompare before bailing out. <li> 
+        </ul>
+
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[KF]</A></B>
 	<b>
         Wed Jan 22 23:20:58 PST 1998
