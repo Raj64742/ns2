@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.19 1998/09/11 20:37:55 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.20 1998/09/11 21:19:58 kfall Exp $";
 #endif
 
 
@@ -211,13 +211,17 @@ void RTPAgent::rate_change()
 void RTPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
-	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 	lastpkttime_ = Scheduler::instance().clock();
+	makepkt(p);
+	target_->recv(p, 0);
+}
 
+void RTPAgent::makepkt(Packet* p)
+{
+	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;
 	rh->srcid() = session_->srcid();
-	target_->recv(p, 0);
 }
 
 void RTPTimer::expire(Event */*e*/) {
