@@ -92,7 +92,7 @@ sub change_title {
     $change = 0;
     $filename = "index.html";
     $outFile = "$filename.new";
-    $title = "<i>ns</i> Notes and Documents";
+    $title = "The <i>ns</i> Manual (formerly <i>ns</i> Notes and Documents)";
     $author = "The VINT Project<br>A collaboratoin between researchers at<br>UC Berkeley, LBL, USC/ISI, and Xerox PARC.<br>Kevin Fall, Editor<br>Kannan Varadhan, Editor";
     
     open(FILE, "$filename") || die "Cannot open $filename: $_";
