@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.28 1998/06/27 01:25:04 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.29 1998/08/22 17:17:49 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -105,6 +105,12 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		send_much(0, 0, maxburst_);
 }
 
+int
+RenoTcpAgent::allow_fast_retransmit(int last_cwnd_action_)
+{
+	return (last_cwnd_action_ == CWND_ACTION_DUPACK);
+}
+
 /*
  * Dupack-action: what to do on a DUP ACK.  After the initial check
  * of 'recover' below, this function implements the following truth
@@ -126,8 +132,8 @@ void
 RenoTcpAgent::dupack_action()
 {
 	int recovered = (highest_ack_ > recover_);
-	if (recovered || (!bug_fix_ && !ecn_) ||
-		last_cwnd_action_ == CWND_ACTION_DUPACK) {
+	int allowFastRetransmit = allow_fast_retransmit(last_cwnd_action_);
+        if (recovered || (!bug_fix_ && !ecn_) || allowFastRetransmit) {
 		goto reno_action;
 	}
 
