@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.18 1997/09/10 16:59:53 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.19 1998/06/26 00:10:55 gnguyen Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -52,9 +53,9 @@ LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
 {
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
-        bind("off_ip_", &off_ip_);
-        bind("off_prune_", &off_prune_);
-        bind("off_CtrMcast_", &off_CtrMcast_);
+	bind("off_ip_", &off_ip_);
+	bind("off_prune_", &off_prune_);
+	bind("off_CtrMcast_", &off_CtrMcast_);
 }
 
 int LinkDelay::command(int argc, const char*const* argv)
@@ -66,16 +67,16 @@ int LinkDelay::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 	} else if (argc == 6) {
-                if (strcmp(argv[1], "pktintran") == 0) {
-                        int src = atoi(argv[2]);
-                        int grp = atoi(argv[3]);
-                        int from = atoi(argv[4]);
-                        int to = atoi(argv[5]);
-                        pktintran (src, grp);
-                        Tcl::instance().evalf("%s puttrace %d %d %d %d %d %d %d %d", name(), total_[0], total_[1], total_[2], total_[3], src, grp, from, to);
-                        return TCL_OK;
-                }
-        }
+		if (strcmp(argv[1], "pktintran") == 0) {
+			int src = atoi(argv[2]);
+			int grp = atoi(argv[3]);
+			int from = atoi(argv[4]);
+			int to = atoi(argv[5]);
+			pktintran (src, grp);
+			Tcl::instance().evalf("%s puttrace %d %d %d %d %d %d %d %d", name(), total_[0], total_[1], total_[2], total_[3], src, grp, from, to);
+			return TCL_OK;
+		}
+	}
 
 	return Connector::command(argc, argv);
 }
@@ -132,11 +133,11 @@ void LinkDelay::handle(Event* e)
 
 void LinkDelay::pktintran(int src, int group)
 {
-        int reg = 1;
-        int prune = 30;
-        int graft = 31;
-        int data = 0;
-        for (int i=0; i<4; i++) {
+	int reg = 1;
+	int prune = 30;
+	int graft = 31;
+	int data = 0;
+	for (int i=0; i<4; i++) {
           total_[i] = 0;
         }
 

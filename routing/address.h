@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1993-1997 Regents of the University of California.
  * All rights reserved.
@@ -34,18 +35,16 @@
 #ifndef ns_addr_params
 #define ns_addr_params
 
-
 #include <stdio.h>
 #include <stdlib.h>
-#include "config.h"
 #include <assert.h>
-
+#include "config.h"
 
 
 class Address : public TclObject {
  public:
-        static Address& instance() { return (*instance_); }
-        Address();
+	static Address& instance() { return (*instance_); }
+	Address();
 	~Address();
 	char *print_nodeaddr(int address);
 	char *print_portaddr(int address);

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.10 1997/08/08 02:55:31 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.11 1998/06/26 00:10:54 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_delay_h
@@ -55,7 +56,7 @@ class LinkDelay : public Connector {
 		return (hdr->size() * 8. / bandwidth_);
 	}
 	double bandwidth() const { return bandwidth_; }
-        void pktintran(int src, int group);
+	void pktintran(int src, int group);
  protected:
 	int command(int argc, const char*const* argv);
 	void reset();
@@ -66,10 +67,10 @@ class LinkDelay : public Connector {
 	Event inTransit_;
 	PacketQueue* itq_;
 	Packet* nextPacket_;
-        int off_ip_;
-        int off_prune_;
-        int off_CtrMcast_;
-        int total_[4];
+	int off_ip_;
+	int off_prune_;
+	int off_CtrMcast_;
+	int total_[4];
 
 private:
 	void schedule_next() {

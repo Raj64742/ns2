@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -30,16 +31,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.6 1998/06/20 02:08:46 gnguyen Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.7 1998/06/26 00:10:53 gnguyen Exp $
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "tclcl.h"
 #include "address.h"
 #include "config.h"
-
 
 
 static class AddressClass : public TclClass {
@@ -64,14 +63,13 @@ Address::~Address()
 { 
 	delete [] NodeShift_;
 	delete [] NodeMask_;
-    
 }
 
 
 int Address::command(int argc, const char*const* argv)
 {
 	int i, c, temp=0;
-    
+
 	Tcl& tcl = Tcl::instance();
 	if ((instance_ == 0) || (instance_ != this))
 		instance_ = this;
@@ -144,7 +142,7 @@ char *Address::print_nodeaddr(int address)
 	char temp[SMALL_LEN];
 	char str[SMALL_LEN];
 	char *addrstr;
-  
+
 	str[0] = '\0';
 	for (int i=1; i <= levels_; i++) {
 		a = address >> NodeShift_[i];
@@ -165,7 +163,7 @@ char *Address::print_portaddr(int address)
 	int a;
 	char str[SMALL_LEN];
 	char *addrstr;
-  
+
 	str[0] = '\0';
 	a = address >> PortShift_;
 	a = a & PortMask_;

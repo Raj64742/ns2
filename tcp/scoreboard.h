@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) @ Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.h,v 1.5 1997/03/29 04:44:49 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.h,v 1.6 1998/06/26 00:10:55 gnguyen Exp $
  */
 
 #ifndef ns_scoreboard_h
@@ -54,14 +55,14 @@ class ScoreBoard {
 	int CheckSndNxt (hdr_tcp*);
 	
   protected:
-        int first_, length_;
-        struct ScoreBoardNode {
+	int first_, length_;
+	struct ScoreBoardNode {
 		int seq_no_;		/* Packet number */
 		int ack_flag_;		/* Acked by cumulative ACK */
 		int sack_flag_;		/* Acked by SACK block */
 		int retran_;		/* Packet retransmitted */
-	        int snd_nxt_;		/* snd_nxt at time of retransmission */
-	        int sack_cnt_;          /* number of reports for this hole */
+		int snd_nxt_;		/* snd_nxt at time of retransmission */
+		int sack_cnt_;		/* number of reports for this hole */
 	} SBN[SBSIZE+1];
 };
 

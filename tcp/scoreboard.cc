@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1996 The Regents of the University of California.
  * All rights reserved.
@@ -38,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.8 1998/06/18 01:16:37 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.9 1998/06/26 00:10:56 gnguyen Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -128,8 +129,8 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 					SBNI.sack_flag_ = 1;
 				}
 				if (SBNI.retran_) {
-				  SBNI.retran_ = 0;
-				  retran_decr++;
+					SBNI.retran_ = 0;
+					retran_decr++;
 				}
 			}
 		}
@@ -148,7 +149,7 @@ int ScoreBoard::CheckSndNxt (hdr_tcp* tcph)
 		for (i=SBN[(first_)%SBSIZE].seq_no_; i<sack_right; i++) {
 			//  Check to see if this segment's snd_nxt_ is now covered by the sack block
 			if (SBNI.retran_ && SBNI.snd_nxt_ < sack_right) {
-			        // the packet was lost again
+				// the packet was lost again
 				SBNI.retran_ = 0;
 				SBNI.snd_nxt_ = 0;
 				force_timeout = 1;
@@ -167,17 +168,17 @@ void ScoreBoard::ClearScoreBoard()
  * GetNextRetran() returns "-1" if there is no packet that is
  *   not acked and not sacked and not retransmitted.
  */
-int ScoreBoard::GetNextRetran()	    // Returns sequence number of next pkt...
+int ScoreBoard::GetNextRetran()	// Returns sequence number of next pkt...
 {
 	int i;
 
 	if (length_) {
-	      for (i=SBN[(first_)%SBSIZE].seq_no_; 
-		   i<SBN[(first_)%SBSIZE].seq_no_+length_; i++) {
-		    if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && !SBNI.retran_) {
-			  return (i);
-		    }
-	      }
+		for (i=SBN[(first_)%SBSIZE].seq_no_; 
+		     i<SBN[(first_)%SBSIZE].seq_no_+length_; i++) {
+			if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && !SBNI.retran_) {
+				return (i);
+			}
+		}
 	}
 	return (-1);
 }
