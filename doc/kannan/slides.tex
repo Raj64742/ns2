@@ -1,4 +1,4 @@
-% $Id: slides.tex,v 1.1 1997/11/16 22:50:22 kannan Exp $
+% $Id: slides.tex,v 1.2 1998/04/10 16:07:24 kannan Exp $
 % $Source: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/doc/kannan/slides.tex,v $
 
 \documentclass[landscape]{foils}
@@ -230,7 +230,7 @@ placement\\
 C++ $\iff$ OTcl 
 
 \begin{tabularx}{\linewidth}{rX}
-  class TclCL           & C++ methods to access the OTcl interpreter \\
+  class Tcl           & C++ methods to access the OTcl interpreter \\
   \scriptsize  class TclCommand      & \scriptsize Basic script to
                                 provide limited global
                                 commands to the interpreter \\
@@ -249,7 +249,7 @@ C++ $\iff$ OTcl
 \end{comment}
 
 \foilhead{\indigo C++ Methods to Access OTcl}
-The class TclCL
+The class Tcl
 \begin{list}{--~}{}
 \item Obtain a handle
 \item Invoke OTcl procedures
@@ -264,7 +264,7 @@ The class TclCL
 \item called from
 \end{comment}
 
-\foilhead[-2ex]{\violet class TclCL: C++ Methods to access OTcl}
+\foilhead[-2ex]{\violet class Tcl: C++ Methods to access OTcl}
 \begin{program}
   Tcl& tcl = {\bf{}Tcl::instance}();        \* obtain a handle to the interpreter */
   if (argc == 2) \{                   \* cmd: {\rm{}foo now} */
@@ -573,7 +573,7 @@ not all classes are mirrored exactly
 
 \foilhead{\blue OTcl Linkage Summary}
 \begin{itemize}
-\item Class TclCL
+\item Class Tcl
   \begin{sublist}
   \item primitives to access the interpreter
   \end{sublist}
@@ -627,7 +627,7 @@ Compute the forwarding tables at each node in topology
 \item centralised vs detailed distinction for DV etc.
 \end{comment}
 
-\foilhead{Centralized Unicast Routing}
+\foilhead{\indigo Centralized Unicast Routing}
 Route computation is external to simulation execution
 \begin{itemize}
 \item Supported strategies
@@ -642,7 +642,7 @@ Route computation is external to simulation execution
 \item Algorithm used: Dijkstra's all-pairs spf algorithm
 \end{comment}
 
-\foilhead{Detailed Unicast Routing}
+\foilhead{\indigo Detailed Unicast Routing}
 Route computation is part of simulation execution
 \begin{itemize}
 \item Currently implemented protocols
@@ -1698,83 +1698,4 @@ Node _o8(id 1)
 \begin{comment}
 \item simple topology of two nodes and one link to illustrate
 \end{comment}
-
-\foilhead{\green Credits}
-{\small\renewcommand{\arraystretch}{3}
-\begin{tabularx}{\linewidth}{rX}
-UC Berkeley & Elan Amir, Hari Balakrishnan,
-        Tom Henderson,
-        Steven McCanne,
-        Giao Nguyen,
-        Venkat Padmanabhan, 
-        Teck-Lee-Tung \\
-USC/ISI & Lars Eggert, Deborah Estrin,
-        Mark Handley, John Heidemann, Ahmed Helmy, Polly Huang,
-        Satish Kumar, Reza Rejaie, Puneet Sharma,
-        Kannan Varadhan, Vikram Visweswariah, Haobo Yu \\
-LBL & Kevin Fall, Sally Floyd \\
-Xerox PARC & Sandeep Bajaj, Lee Breslau, Scott Shenker \\
-\end{tabularx}
-}
-\keyword{Credits}
-
-\begin{comment}
-\item foo
-\end{comment}
-
-% \foilhead{\green Credits}
-% {\footnotesize
-% \begin{tabularx}{\linewidth}{p{2in}cX}
-% Elan Amir & UCB & RTP; \ns\ architecture \\
-% Hari Balakrishnan, Giao Nguyen, Venkat Padmanabhan & UCB & LANs and
-% wireless networks; TCP over asymetric networks; \\
-% Sandeep Bajaj, Lee Breslau & PARC & priority dropping and effect on application utility; 
-% interaction of multiple service priorities and application adaptivity;
-% using multicast to support consistency protocols in web caching \\
-% Kevin Fall & LBL &  Router Mechanisms (w. Floyd); emulation and \ns\ architecture \\
-% Sally Floyd & LBL &  Router Mechanisms (w. Fall); web cacheing/RM
-% simulations \\
-% Mark Handley & USC/ISI & nam; visualisation \\
-% Tom Henderson & UCB & satellite networks (MAC, transport issues, multicast) \\
-% Steven McCanne & UCB & \ns\ Architecture; emulation; RLM \\
-% Scott Shenker & PARC & Integrated Services \\
-% Teck-Lee-Tung & UCB & Windows 95 port of \ns; reliable multicast
-%         experiments \\
-% \end{tabularx}
-% 
-% \begin{comment}
-% \item foo
-% \end{comment}
-% 
-% \foilhead[-3ex]{\green Credits}
-% {\footnotesize
-% \begin{tabularx}{\linewidth}{p{2in}cX}
-% Deborah Estrin & USC/ISI & Reliable multicast; scalable protocol design
-% issues \\
-% John Heidemann w. Lars Eggert and Joe Touch & USC/ISI & TCP Control
-%     Block Sharing across multiple concurrent connections \\
-% John Heidemann w. Vikran Visweswariah & USC/ISI &
-% Rate-based pacing for TCP: when restarting an idle TCP connection,
-%     pace packets to avoid bursting or slow-start delay \\
-% Ahmed Helmy & USC/ISI & Systematic Testing of Multi-Party and
-%                 Multicast Routing Protocol Robustness \\
-% 
-% Polly Huang & USC/ISI & Session Level Simulations; Queueing and congestion
-%         approximation models; calibrating error \\
-% Satish Kumar & USC/ISI & Multicast Routing \\
-% Reza Rejaie & USC/ISI & congestion control for real time data streams \\
-% Puneet Sharma & USC/ISI & Scalable Session Messages in SRM:
-%         Distribution of Session Messages in SRM using a self-configured
-%         hierarchy \\
-% Haobo Yu w. Ramesh Govindan & USC/ISI &  exploring other useful design
-% points in the SRM parameter/timer management space,\eg, when you have
-% very large updates with looser repair time requirements \\
-% \end{tabularx}
-% }
-% 
-% \begin{comment}
-%   \item foo
-% \end{comment}
-
-
 \end{document}
