@@ -1,0 +1,324 @@
+\chapter{Nam Trace}
+\label{chap:namtrace}
+
+Nam is a Tcl/Tk based animation tool that is used to visualize the ns
+simulations and real world packet trace data. The first step to use nam is
+to produce a nam trace file. The nam trace file should contain topology
+information like nodes, links, queues, node connectivity etc as well as
+packet trace information. In this chapter we shall describe the nam trace
+format and simple ns commands/APIs that can be used to produce topology 
+configurations and control animation in nam.
+
+\section{Nam Trace format}
+\label{sec:namtraceformat}
+The C++ class Trace used for ns tracing is used for nam tracing as
+well. Description of this class may be found under section
+\ref{sec:tracemoncplus}. The method Trace::format() defines nam 
+format used in nam trace files which are used by nam for
+visualization of ns simulations. Trace class method Trace::format() is
+described in section \ref{sec:traceformat} of chapter \ref{chap:trace}. If
+the macro NAM\_TRACE has been defined (by default it is defined in
+trace.h), then the following code is executed as part of the
+Trace::format() function:
+
+\begin{program}
+#ifdef NAM_TRACE
+        if (namChan_ != 0)
+                sprintf(nwrk_,
+                        "%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d
+-i %d -a %d -x {%s.%s %s.%s %d %s %s}",
+                        tt,
+                        Scheduler::instance().clock(),
+                        s,
+                        d,
+                        name,
+                        th->size(),
+                        iph->flowid(),
+                        th->uid(),
+                        iph->flowid(),
+                        src_nodeaddr,
+                        src_portaddr,
+                        dst_nodeaddr,
+                        dst_portaddr,
+                        seqno,flags,sname);
+#endif  
+\end{program}
+
+Thus we see the nam format may be represented as follows:
+\code{<event-type> -t <time> -s <source> -d <dest> -p <pkt-type> -e <pkt-size> 
+-c <flow-id> -i <unique-id> -a <pkt-attribute> -x <ns-trace info>}\\
+
+The nam trace format can be divided into 6 types, each defining a given
+event or object. Incase of a trace
+describing a packet event the first field signifies the type of
+event/operation taking place in the node and it maybe + (enqueue), -
+(dequeue), r (receive) d (drop) or h (hop).
+\begin{description}
+\item['h'] Hop: The packet started to be transmitted on the link from
+src\_addr to dst\_addr and is forwarded to the next\_hop towards its
+dst\_addr.
+
+\item['r'] Receive: The packet finished transmission and started to be
+received at the destination.
+
+\item['d] Drop: The packet was dropped from queue or link from src\_addr
+to dst\_addr. Drop here doesn't distinguish between dropping from queue or
+link. This is decided by the drop time.  
+
+\item['+'] Enter queue: The packet entered the queue from src\_addr to
+dst\_addr.
+
+\item['-'] Leave queue: The packet left the queue from src\_addr to
+dst\_addr.  
+\end{description}
+
+The other flags have the following meaning:
+\begin{description}
+\item[-t <time>] is the time the event occurred.
+\item[-s <src>] is the originating node.
+\item[-d <dst>] is the destination node.
+\item[-p <pkt-type>] is the descriptive name of the type of packet seen.
+See section \ref{sec:traceptype} for the different types of packets 
+supported in \ns.
+\item[-e <extent>] is the size (in bytes) of the packet.
+\item[-c <conv>] is the conversation id or flow-id of that session.
+\item[-i <id>] is the packet id in the conversation.
+\item[-a <attr>] is the packet attribute, which is currently used as color
+id. 
+\item[-x <src-na.pa> <dst-sa.na> <seq> <flags> <sname>] is taken from
+ns-traces and it gives the source and destination node and port
+addresses, sequence number, flags (if any) and the type of message.
+For example \code{ -x {0.1 -2147483648.0 -1 ------- SRM_SESS} } denotes an
+SRM message being sent from node 0 (port 1).
+\end{description}
+
+In addition to the above nam format for packet events there are nam traces
+that provide information about nam version, hierarchical
+addressing structure, node/link/queue states, node-marks, protocol states,
+color and annotations. These nam trace outputs typically have the
+following letters (or tags) as their first field and they represent the
+following trace types: 
+n(node state), m (node marking), l(link state), q (queue), a 
+(agent/protocol state), f (protocol variables),
+V(nam version), A(hierarchy information), c(nam color) and v(annotations).
+
+\textsc{Node state}\\
+The nam trace format defining node state is:\\
+\code{n -t <time> -a <src-addr> -s <src-id> -S <state> -v <shape> -c 
+<color> -i <l-color> -o <color>}\\
+"n" denotes the node state. Flags "-t" indicates time and "-a" and "-s"
+denotes the node address and id. "-S" gives the node state transition.
+The possible values: UP, DOWN indicates node recovery and
+failure, COLOR indicates node color change, DLABEL indicates addition of
+label to node. If COLOR is given, a following
+-c <color> is expected which gives the new color value. If DLABEL is
+given, a following -l <old-label> -L <new-label> is expected that gives
+the old-label, if any (for backtracing) and current label. Shape gives
+the node shape. Flag `-o'
+is used in backtracing to restore old colors of a node. The line\\
+\code{n -t * -a 4 -s 4 -S UP -v circle -c tan -i tan }\\
+defines a node with address and id of 4 that has the shape of a
+circle, and color of tan and label-color (-i) of tan.
+
+\textsc{Node marking}\\
+Node marks are colored boundaries/markings around nodes. They are created
+by:\\
+\code{m -t <time> -n <mark name> -s <node> -c <color> -h <shape> -o 
+<color>}\\
+and can be deleted by:\\
+\code{m -t <time> -n <mark name> -s <node> -X}\\
+Note that once created, a node mark cannot change its shape. The possible
+choices for shapes are, circle, square, and hexagon. They are defined as 
+lower-case strings exactly as above. A nam trace showing node mark is:\\
+\code{m -t 4 -s 0 -n m1 -c blue -h circle}\\
+indicating node 0 is marked with a blue circle at time 4.0. The name of
+the mark is m1.
+
+
+\textsc{Link/Queue state}\\
+The nam trace for link and queue states are given by:\\
+\code{l -t <time> -s <src> -d <dst> -S <state> -c <color> -o orientation 
+-r <bw> -D <delay>}\\
+\code{q -t <time> -s <src> -d <dst> -a <attr> }\\
+State and color indicates the same attributes as described for node state
+traces. "-o" gives the link orientation (angle between link and
+horizontal). "-r" and "-D" gives the bandwidth (in Mb) and delay (in ms).
+Example of a link trace is:\\
+\code{l -t * -s 0 -d 1 -S UP -r 1500000 -D 0.01 -c black -o right }\\
+For queue trace event, "-a" signifies the queue-position (angle between
+queue line and horizontal). Example queue trace is given as:\\
+\code{q -t * -s 1 -d 0 -a 0.5}\\
+\code{q -t * -s 0 -d 1 -a 0.5 }\\
+
+
+\textsc{Agent tracing}\\
+The protocol state for each node is constructed by the following nam trace
+format:\\
+\code{a -t <time> -n <agent name> -s <src> -d <dst>}\\
+They can be destructed by:\\
+\code{a -t <time> -n <agent name> -s <src> -d <dst> -X}\\
+Example of an agent (protocol:SRM) trace:\\
+\code{a -t 0.00000000000000000 -s 5 -d -2147483648 -n srm(5)}\\
+
+
+\textsc{Variable tracing}\\
+To visualize protocol state variables associated with an agent, we use the
+name `feature'. Currently we allow three types of features: timers,
+lists and simple variables. But only the last one is
+implemented in \ns tracing APIs. Features may be added or modified at any
+time after agent creation using:\\
+\code{f -t <time> -s <src> -d <dst> -a <agent name> -T <type> -n <var
+name> -v <value> -o <prev value>}\\
+<type> is `l' for a list, `v' for a simple variable, `s' for a stopped
+timer, `u' for an up-counting timer, `d' for a down-counting timer.
+-v <value> gives the new value of the variable. Variable values are
+simple ASCII strings obeying the TCL string quoting conventions.
+List values obey the TCL list conventions. Timer values are ASCII
+numeric. -o <prev value> gives the previous value of the variable. This is
+to allow backward play of animation. Example of a simple variable trace is
+given by: \\
+\code{f -t 0.00000000000000000 -s 1 -d -2147483648 -n C1_ -a srm(1) -v
+-T v}\\
+
+Features may be deleted using:\\
+\code{f -t <time> -a <agent name> -n <var name> -o <prev value> -X }\\
+
+
+\textsc{Misc. tracing}
+Other than the trace formats described so far there aresome other
+miscellaneous traces that defines the nam version or hierarchy model or
+provide annotations. They are listed as below:
+ \begin{description}
+\item[Annotation] The generic trace format starts with the tag "v". It is
+used for annotation. The format is:\\ \code{v -t <time> <TCL script
+string>}\\ This trace may include an arbitrary tcl script to be executed
+at a given
+time, as long as the script is in one line (no more than 256 characters).
+The order of flag and the string is important.  Example: \\
+\code{v -t 4 sim_annotation 4 3 node 0 added one mark }\\
+
+\item[Color] Color trace is given by:\\
+\code{c -t <time> -i <color id> -n <color name>}\\
+This trace defines a color. The color name should be one of the names
+listed in color database in X11 (/usr/X11/lib/rgb.txt). After this
+definition, the color can be referenced using its id. 
+
+\item[Version]
+The nam version is given by:\\
+\code{V -t <time> -v <version> -a <attr>}\\
+The line \code{V -t * -v 1.0a5 -a 0 } denotes the nam version being used
+as 1.0a5.
+
+\item[Hierarchy] Hierarchical address information is given by:\\
+\code{A -t <time> -n <levels> -o <address-space size> -c <mcastshift> -a 
+<mcastmask> -h <nth level> -m <mask in nth level> -s <shift in nth
+level>}\\
+This trace gives the details of hierarchy, if hierarchical addressing is
+being used for simulation. <levels> indicate the total number of
+hierarchical tiers, which is 1 for flat addressing, 2 for a 2-level
+hierarchy etc. Address-space size denotes the total number of bits used
+for addressing. For a given level of hierachy, indicated by -h <nth
+level>, the
+address mask and shift values for that level are given by tags -m and -s
+respectively.
+Example of a trace for topology with 3 level hierachy is given by:
+\begin{program}
+A -t * -n 3 -p 0 -o 0xffffffff -c 31 -a 1
+A -t * -h 1 -m 1023 -s 22
+A -t * -h 2 -m 2047 -s 11
+A -t * -h 3 -m 2047 -s 0 
+\end{program}
+\end{description}
+
+The functions that implement the different nam trace formats described
+above may be found in the following files: \ns/trace.cc, 
+\ns/trace.h, \ns/tcl/lib/ns-namsupp.tcl and
+\ns/tcl/lib/ns-nam.tcl.
+
+
+\section{Ns commands for creating and controlling nam animations}
+\label{sec:namcommands}
+
+This section describes different APIs in \ns that may be used to
+manipulate nam animations for objects like nodes, links, queues and
+agents. 
+
+\textsc{Node}\\
+Nodes are created from "n" trace event in trace file. It represents a
+source/destination/router. Nam terminates if there are duplicate
+definitions of the same node. 
+Attributes specific to node are color, shape, label, label-color, position
+of label and adding/deleting mark on the node.
+Nodes may have many shapes like circle (default), square or hexagon, but
+once created the shape of a node cannot be changed during the simulation.
+Nodes have many colors and the node color may be changed during animation. 
+The following node procedures are used to set node attributes:
+
+\begin{program}
+$node color <color>      ;# sets color of node
+$node shape <shape>      ;# sets shape of node
+$node label <label>      ;# sets label on node
+$node label-color <lcolor>  ;# sets color of label
+$node label-at <ldirection> ;# sets position of label
+$node add-mark <name> <color> <shape>   ;# adds a mark to node;
+$node delete-mark <name>    ;# deletes mark from node
+\end{program}
+
+\textsc{Link/Queue}\\
+Links are created between nodes to form a network topology. nam links are
+internally simplex, but it is invisible to the users. The trace event 'l'
+creates two simplex links and other necessary setups, hence it looks
+to users identical to a duplex link. Link may have many colors and it can
+change its color during animation. Queues are constructed in nam
+between two nodes. Unlike link, nam queue is associated to a simplex link.
+The trace event 'q' only creates a queue for a simplex link. In nam,
+queues are visualized as stacked packets. Packets are stacked along a
+line, and the angle between the line and the horizontal line can be
+specified in the trace event 'q'.
+Commands to setup different animation attributes of a link are as
+follows:\\
+
+\code{$ns duplex-link-op <attribute> <value>}\\
+
+The <attribute> may be one of the following: orient, color, queuePos.
+Orient or the link orientation defines the angle between the link and
+horizontal. The optional orientation values may be difined in
+degrees or by text like right (0), right-up (45), right-down (-45), left
+(180), left-up (135), left-down (-135), up (90), down (-90). The queuePos
+or position of queue is defined as the angle of the queue line with
+horizontal. 
+Examples for each attribute are given as following : 
+\begin{program}
+$ns duplex-link-op orient right      ;# orientation is set as right. The order
+                                     ;# in which links are created in nam
+                                     ;# depends on calling order of this function.
+$ns duplex-link-op color "green"
+$ns duplex-link-op queuePos 0.5
+\end{program}
+
+
+\textsc{Agent}\\
+Agents are used to separate protocol states from nodes. They are always
+associated with nodes. An agent has a name, which is a unique identifier
+of the agent. It is shown as a square with its name inside, and a line
+link the square to its associated node. The following are commands that
+support agent tracing:
+\begin{program}
+$ns add-agent-trace <agent> <name> <optional:tracefile>
+$ns delete-agent-trace <agent>
+$ns monitor-agent-trace <agent>
+\end{program}
+
+
+\textsc{Some generic commands}\\
+
+\code{$ns color <color-id>}\\
+The above command defines color index for nam. Once specified, the
+color-id can be used in place of the color name in nam traces.
+
+\code{$ns trace-annotate <annotation>}\\
+An example for the above API would be\\
+\code{$ns at $time "$ns trace-annotate \"Event A happened\""}\\
+This annotation appears in the nam window and is used to control playing of
+nam by events. Demonstration of nam APIs may be found in
+\ns/tcl/ex/nam-example.tcl.

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.10 1999/12/01 21:21:50 haldar Exp $
+# $Id: Makefile,v 1.11 2000/01/14 23:43:57 haldar Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -45,7 +45,8 @@ FILES= \
 	hier-rtg.tex \
 	mobility.tex \
 	newnode.tex \
-	debug.tex
+	debug.tex \
+	namtrace.tex
 
 all: everything.dvi everything.ps everything.html
 
