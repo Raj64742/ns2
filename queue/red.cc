@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.20 1997/07/22 22:21:20 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.21 1997/07/23 03:31:26 kfall Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -209,7 +209,7 @@ Packet* REDQueue::deque()
 	p = deque(q());
 	if (p != 0) {
 		idle_ = 0;
-		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size_;
+		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
 	} else {
 		idle_ = 1;
 		// deque() may invoked by Queue::reset at init
@@ -390,7 +390,7 @@ dropv:
 	/* drop random victim or last one */
 	pkt = pickPacketToDrop();
 	remove(q(), pkt);
-	bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
+	bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
 dropme:
 	if (droptype == DTYPE_UNFORCED && de_drop_ != NULL) {
 		de_drop_->recv(pkt);
