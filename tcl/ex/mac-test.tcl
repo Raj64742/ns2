@@ -18,7 +18,7 @@ if {$argc == 0} {
 	exit 1
 }
 
-regexp {^(.+)\..*$} $argv0 match ext
+# regexp {^(.+)\..*$} $argv0 match ext
 for {set i 0} {$i < $argc} {incr i} {
 	set opt [lindex $argv $i]
 	if {$opt == "-stop"} {
@@ -36,15 +36,14 @@ for {set i 0} {$i < $argc} {incr i} {
 	} elseif {$opt == "-tr"} {
 		set trfile [lindex $argv [incr i]]
 	} elseif {$opt == "-stat"} {
-		set tcpf0 [lindex $argv [incr i]]
+		set tcpfile [lindex $argv [incr i]]
+	} elseif {$opt == "-seed"} {
+		ns-random [lindex $argv [incr i]]
 	} elseif {[string range $opt 0 0] == "-"} {
 		set flags([string range $opt 1 1]) 1
 	}
 }
 
-if [info exist flags(r)] {
-	ns-random 0
-}
 
 set ns [new Simulator]
 set trfd [open $trfile w]
