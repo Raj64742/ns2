@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/wireless-phy.cc,v 1.14 2000/10/18 01:17:50 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/wireless-phy.cc,v 1.15 2001/02/07 10:25:36 yaxu Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -249,7 +249,7 @@ WirelessPhy::sendDown(Packet *p)
 
 		   if (em()->energy() <= 0) {
 			   em()->setenergy(0);
-			   mobilenode()->log_energy(0);
+			   node()->log_energy(0);
 		   }
 
 		} else {
@@ -261,7 +261,7 @@ WirelessPhy::sendDown(Packet *p)
 	/*
 	 *  Stamp the packet with the interface arguments
 	 */
-	p->txinfo_.stamp(mobilenode(), ant_->copy(), Pt_, lambda_);
+	p->txinfo_.stamp(node(), ant_->copy(), Pt_, lambda_);
 
 	// Send the packet
 	channel_->recv(p, this);
@@ -295,7 +295,7 @@ WirelessPhy::sendUp(Packet *p)
 	}
 
 	if(propagation_) {
-		s.stamp(mobilenode(), ant_, 0, lambda_);
+		s.stamp(node(), ant_, 0, lambda_);
 		Pr = propagation_->Pr(&p->txinfo_, &s, this);
 		if (Pr < CSThresh_) {
 			pkt_recvd = 0;
@@ -310,7 +310,7 @@ WirelessPhy::sendUp(Packet *p)
 			hdr->error() = 1;
 #if DEBUG > 3
 			printf("SM %f.9 _%d_ drop pkt from %d low POWER %e/%e\n",
-			       Scheduler::instance().clock(), mobilenode()->index(),
+			       Scheduler::instance().clock(), node()->index(),
 			       p->txinfo_.getNode()->index(),
 			       Pr,RXThresh);
 #endif
@@ -379,11 +379,33 @@ DONE:
 		if (em()->energy() <= 0) {  
 			// saying node died
 			em()->setenergy(0);
-			mobilenode()->log_energy(0);
+			node()->log_energy(0);
 		}
 	}
 	
 	return pkt_recvd;
+}
+
+void
+WirelessPhy::node_on()
+{
+        if (em() == NULL)
+ 	    return;	
+   	if (NOW > update_energy_time_) {
+      	    update_energy_time_ = NOW;
+   	}
+}
+
+void 
+WirelessPhy::node_off()
+{
+	if (em() == NULL)
+            return;
+        if (NOW > update_energy_time_) {
+            em()->DecrIdleEnergy(NOW-update_energy_time_,
+                                P_idle_);
+            update_energy_time_ = NOW;
+	}
 }
 
 void
@@ -408,5 +430,13 @@ void WirelessPhy::UpdateIdleEnergy()
 					P_idle_);
 		  update_energy_time_ = NOW;
 	}
-	idle_timer_.resched(1.0);
+
+	// log node energy
+	if (em()->energy() > 0) {
+		((MobileNode *)node_)->log_energy(1);
+        } else {
+		((MobileNode *)node_)->log_energy(0);   
+        }
+
+	idle_timer_.resched(10.0);
 }

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.38 2000/09/14 18:19:27 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.39 2001/02/07 10:25:37 yaxu Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -593,6 +593,37 @@ Node/MobileNode instproc mip-call {ragent} {
 		$regagent_ ragent $ragent
 	}
 }
+
+Node/MobileNode instproc attach-gafpartner {} {
+
+        $self instvar gafpartner_ address_ ll_ 
+
+        set gafpartner_ [new GAFPartner]
+
+	$gafpartner_ set mask_ [AddrParams NodeMask 1]
+	$gafpartner_ set shift_ [AddrParams NodeShift 1]
+	set nodeaddr [AddrParams addr2id [$self node-addr]]
+	
+	#$gafpartner_ set addr_ [expr ( ~([AddrParams NodeMask 1] << \
+	#		[AddrParams NodeShift 1]) & $nodeaddr )]
+
+	
+	$gafpartner_ set addr_ $nodeaddr
+	$gafpartner_ set port_ 254
+
+	#puts [$gafpartner_ set addr_]
+
+        $gafpartner_ target [$self entry]
+	$ll_(0) up-target $gafpartner_
+}
+
+Node/MobileNode instproc unset-gafpartner {} {
+	$self instvar gafpartner_
+	
+	$gafpartner_ set-gafagent 0
+
+}
+
 
 Class SRNodeNew -superclass Node/MobileNode
 

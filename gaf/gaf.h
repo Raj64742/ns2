@@ -35,7 +35,7 @@
 #define MAXQUEUE  1             // 1 = only my grid, 5 = all of my neighbos
 #define GN_UPDATE_INTERVAL 10 	// how often to update neighbor list
 #define GAF_STARTUP_JITTER 1.0	// secs to jitter start of periodic activity
-#define GAF_BROADCAST_JITTER 0.1 // jitter for all broadcast packet
+#define GAF_NONSTART_JITTER 3.0
 #define MIN_DISCOVERY_TIME 1    // min interval to send discovery
 #define MAX_DISCOVERY_TIME 15   // max interval to send discovery
 #define MIN_SELECT_TIME 5	// start to tell your neighbor that
@@ -44,6 +44,7 @@
 #define MAX_DISCOVERY   10      // send selection after 10 time try
 #define MIN_LIFETIME    60
 #define GAF_LEADER_JITTER 3
+#define MIN_TURNOFFTIME 1
 
 class GAFAgent;
 
@@ -54,6 +55,20 @@ typedef enum {
 typedef enum {
   GAF_FREE, GAF_LEADER, GAF_SLEEP
 } GafNodeState;
+
+/*
+ * data structure for exchanging existence message and selection msg
+ */
+
+struct DiscoveryMsg {
+        u_int32_t gid;	// grid id
+        u_int32_t nid;  // node id
+        u_int32_t state; // what is my state
+        u_int32_t ttl;  // My time to live
+        u_int32_t stime;  // I may stay on this grid for only stime
+
+};
+
 
 // gaf header
 
@@ -115,6 +130,7 @@ public:
 		
 protected:
 	int command(int argc, const char*const*argv);
+	
 
 	void node_on();
 	void node_off();
@@ -122,6 +138,7 @@ protected:
 	void send_discovery();
 	void makeUpDiscoveryMsg(Packet *p);
 	void processDiscoveryMsg(Packet *p);
+	void schedule_wakeup(struct DiscoveryMsg);
 	double beacon_; /* beacon period */
 	void setGAFstate(GafNodeState);
 	int randomflag_;
@@ -136,7 +153,9 @@ protected:
 	
 	GafNodeState	state_;
 	int leader_settime_;
-
+	int adapt_mobility_;  // control the use of 
+	                      // GAF-3: load balance with aggressive sleeping
+	                      // GAF-4:  load 3 + mobility adaption
 };
 
 /* assisting getting broadcast msg */
@@ -154,15 +173,6 @@ protected:
         int shift_;
 };
 
-/*
- * data structure for exchanging existence message and selection msg
- */
 
-struct DiscoveryMsg {
-        u_int32_t gid;	// grid id
-        u_int32_t nid;  // node id
-        u_int32_t state; // what is my state
-        u_int32_t ttl;  // My time to live
-};
 
 #endif

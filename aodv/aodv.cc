@@ -37,7 +37,7 @@
  * and tuned by Samir Das (UTSA) and Mahesh Marina (UTSA). The 
  * work was partially done in Sun Microsystems.
  * 
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/aodv/aodv.cc,v 1.9 2000/09/01 03:04:08 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/aodv/aodv.cc,v 1.10 2001/02/07 10:25:36 yaxu Exp $
  */
 
 #include "aodv/aodv.h"
@@ -46,6 +46,7 @@
 #include "random.h"
 #include "cmu-trace.h"
 #include "energy-model.h"
+//#include "mobilenode.h"
 
 #define max(a,b)        a > b ? a : b
 #define CURRENT_TIME    Scheduler::instance().clock()
@@ -662,6 +663,13 @@ AODV::recv(Packet *p, Handler*)
                 return;
         }
 
+	//simply forward GAF packet. It is a hack!!!
+
+	if (ch->ptype() == PT_GAF) {
+		send(p,0);
+		return;
+	}
+
         /*
          *  Must be a packet I'm originating...
          */
@@ -1126,7 +1134,8 @@ AODV::forward(rt_entry *rt, Packet *p, double delay)
         struct hdr_cmn *ch = HDR_CMN(p);
         struct hdr_ip *ih = HDR_IP(p);
         Neighbor *nb;
-
+	Node *thisnode;
+	
         if(ih->ttl_ == 0) {
 #ifdef DEBUG
         fprintf(stderr, "%s: calling drop()\n", __PRETTY_FUNCTION__);
@@ -1167,6 +1176,12 @@ AODV::forward(rt_entry *rt, Packet *p, double delay)
             ch->next_hop_ = rt->rt_nexthop;
             ch->addr_type() = NS_AF_INET;
 	    ch->direction() = hdr_cmn::DOWN;       //important: change the packet's direction
+
+	    //XXX unicast forwarding, log the time, this is
+	    //absolutely a HACK for GAF
+
+	    //thisnode = Node::get_node_by_address(index);
+	    //((MobileNode *) thisnode)->logrttime(Scheduler::instance().clock());
 
         }
         else { // if it is a broadcast packet
@@ -1367,7 +1382,11 @@ void
 AODV::sendTriggeredReply(nsaddr_t ipdst, nsaddr_t rpdst, u_int32_t rpseq)
 {
 	// 08/28/98 - added this extra check
-	if(ipdst == 0 || ipdst == index) return;
+	// 11/15/00 - do not understand why return when ipdst == 0
+	// a reasonable explanation is when ipdst = BROADCAST, should quit
+	//if(ipdst == 0 || ipdst == index) return;
+
+	if (ipdst == IP_BROADCAST || ipdst == index) return;
 
         Packet *p = Packet::alloc();
         struct hdr_cmn *ch = HDR_CMN(p);

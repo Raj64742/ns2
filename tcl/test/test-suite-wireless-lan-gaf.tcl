@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-gaf.tcl,v 1.1 2001/02/07 08:39:48 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-gaf.tcl,v 1.2 2001/02/07 10:25:37 yaxu Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan-tora
@@ -219,9 +219,9 @@ for {set i 0} {$i < $opt(nn) } {incr i} {
 #    $ns_ at $opt(stop).000000001 "output_energy $i"
  
 }   
-        $ns_ at $opt(stop).00000001 "puts \"NS EXITING...\" ;"
+        $ns_ at $opt(stop).00000001 "puts \"NS EXITING...\" ; $ns_ halt"
 	
-	$ns_ at $opt(stop).00000001 "$self finish-gaf"
+#	$ns_ at $opt(stop).00000001 "$self finish-gaf"
 }
 
 Test/gaf instproc run {} {

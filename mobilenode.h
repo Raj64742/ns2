@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mobilenode.h,v 1.16 2000/08/31 20:11:49 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mobilenode.h,v 1.17 2001/02/07 10:25:35 yaxu Exp $
  *
  */
 
@@ -150,9 +150,11 @@ public:
 	inline double destX() { return destX_; }
 	inline double destY() { return destY_; }
 	inline double radius() { return radius_; }
+	//inline double last_routingtime() { return last_rt_time_;}
 
 	void update_position();
 	void log_energy(int);
+	//void logrttime(double);
 	virtual void idle_energy_patch(float, float);
 
 protected:
@@ -226,6 +228,9 @@ private:
 	 * base_stn for mobilenodes communicating with wired nodes
          */
 	int base_stn_;
+
+
+	//int last_rt_time_;
 };
 
 #endif // ns_mobilenode_h

@@ -36,7 +36,7 @@
  * Requires a radio model such that sendPacket returns true
  * iff the packet is recieved by the destination node.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.22 2000/09/01 03:04:09 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.23 2001/02/07 10:25:36 yaxu Exp $
  */ 
 
 #include <assert.h>
@@ -545,6 +545,18 @@ DSRAgent::recv(Packet* packet, Handler*)
   hdr_sr *srh = hdr_sr::access(packet);
   hdr_ip *iph = hdr_ip::access(packet);
   hdr_cmn *cmh =  hdr_cmn::access(packet);
+
+  // special process for GAF
+  if (cmh->ptype() == PT_GAF) {
+      if (iph->daddr() == IP_BROADCAST) { 
+	  Scheduler::instance().schedule(ll,packet,0);
+	  return;
+      } else {
+	  target_->recv(packet, (Handler*)0);
+	  return;	  
+      }
+  }
+
   
   assert(cmh->size() >= 0);
 
@@ -748,6 +760,7 @@ DSRAgent::handleForwarding(SRPacket &p)
 {
   hdr_sr *srh = hdr_sr::access(p.pkt);
   hdr_cmn *cmh = hdr_cmn::access(p.pkt);
+  Node *thisnode;
 
   trace("SF %.9f _%s_ --- %d [%s -> %s] %s", 
 	Scheduler::instance().clock(), net_id.dump(), cmh->uid(),
@@ -767,6 +780,11 @@ DSRAgent::handleForwarding(SRPacket &p)
       // maybe we should send this packet back as an error...
       return;
     }
+
+  //HACK for GAF, log the time of forwarding packets
+
+  //thisnode = Node::get_node_by_address(net_id.addr);
+  //((MobileNode *) thisnode)->logrttime(Scheduler::instance().clock());
 
   // if there's a source route, maybe we should snoop it too
   if (dsragent_snoop_source_routes)

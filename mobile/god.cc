@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.14 2000/10/18 02:34:46 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.15 2001/02/07 10:25:35 yaxu Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -421,8 +421,7 @@ int *God::NextOIFs(int dt, int srcid, int curid, int *ret_num_oif)
   int *oif_map = SRC_TAB(dt, srcid);
   int count=0;
 
-  int i;
-  for (i=0; i<num_nodes; i++) {
+  for (int i=0; i<num_nodes; i++) {
     if (oif_map[curid*num_nodes +i] == 1)
       count++;
   }
@@ -435,7 +434,7 @@ int *God::NextOIFs(int dt, int srcid, int curid, int *ret_num_oif)
   int *next_oifs = new int[count];
   int j=0;
   
-  for (i=0; i<num_nodes; i++) {
+  for (int i=0; i<num_nodes; i++) {
     if (oif_map[curid*num_nodes +i] == 1) {
       next_oifs[j] = i;
       j++;    
@@ -449,7 +448,9 @@ int *God::NextOIFs(int dt, int srcid, int curid, int *ret_num_oif)
 
 bool God::IsReachable(int i, int j)
 {
-  if (NextHop(i,j) != UNREACHABLE)   
+
+//  if (MIN_HOPS(i,j) < UNREACHABLE && MIN_HOPS(i,j) >= 0) 
+  if (NextHop(i,j) != UNREACHABLE)
      return true;
   else
      return false;
@@ -691,7 +692,112 @@ God::recv(Packet *, Handler *)
         abort();
 }
 
+int
+God::load_grid(int x, int y, int size)
+{
+	maxX =  x;
+	maxY =  y;
+	gridsize_ = size;
+	
+	// how many gridx in X direction
+	gridX = (int)maxX/size;
+	if (gridX * size < maxX) gridX ++;
+	
+	// how many grid in Y direcion
+	gridY = (int)maxY/size;
+	if (gridY * size < maxY) gridY ++;
+
+	printf("Grid info:%d %d %d (%d %d)\n",maxX,maxY,gridsize_,
+	       gridX, gridY);
+
+	return 0;
+}
  
+// return the grid that I am in
+// start from left bottom corner, 
+// from left to right, 0, 1, ...
+
+int
+God::getMyGrid(double x, double y)
+{
+	int xloc, yloc;
+	
+	if (x > maxX || y >maxY) return(-1);
+	
+	xloc = (int) x/gridsize_;
+	yloc = (int) y/gridsize_;
+	
+	return(yloc*gridX+xloc);
+}
+
+int
+God::getMyLeftGrid(double x, double y)
+{
+
+	int xloc, yloc;
+	
+	if (x > maxX || y >maxY) return(-1);
+	
+	xloc = (int) x/gridsize_;
+	yloc = (int) y/gridsize_;
+
+	xloc--;
+	// no left grid
+	if (xloc < 0) return (-2);
+	return(yloc*gridX+xloc);
+}
+
+int
+God::getMyRightGrid(double x, double y)
+{
+
+	int xloc, yloc;
+	
+	if (x > maxX || y >maxY) return(-1);
+	
+	xloc = (int) x/gridsize_;
+	yloc = (int) y/gridsize_;
+
+	xloc++;
+	// no left grid
+	if (xloc > gridX) return (-2);
+	return(yloc*gridX+xloc);
+}
+
+int
+God::getMyTopGrid(double x, double y)
+{
+
+	int xloc, yloc;
+	
+	if (x > maxX || y >maxY) return(-1);
+	
+	xloc = (int) x/gridsize_;
+	yloc = (int) y/gridsize_;
+
+	yloc++;
+	// no top grid
+	if (yloc > gridY) return (-2);
+	return(yloc*gridX+xloc);
+}
+
+int
+God::getMyBottomGrid(double x, double y)
+{
+
+	int xloc, yloc;
+	
+	if (x > maxX || y >maxY) return(-1);
+	
+	xloc = (int) x/gridsize_;
+	yloc = (int) y/gridsize_;
+
+	yloc--;
+	// no top grid
+	if (yloc < 0 ) return (-2);
+	return(yloc*gridX+xloc);
+}
+
 int 
 God::command(int argc, const char* const* argv)
 {
@@ -910,6 +1016,13 @@ God::command(int argc, const char* const* argv)
 
 	}
         else if(argc == 5) {
+
+		/* load for grid-based adaptive fidelity */
+		if (strcmp(argv[1], "load_grid") == 0) {
+			if(load_grid(atoi(argv[2]), atoi(argv[3]), atoi(argv[4])))
+				return TCL_ERROR;
+			return TCL_OK;
+		}
 
                 if (strcasecmp(argv[1], "set-dist") == 0) {
                         int i = atoi(argv[2]);

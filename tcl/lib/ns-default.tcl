@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.230 2001/01/19 03:29:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.231 2001/02/07 10:25:36 yaxu Exp $
 
 
 #
@@ -473,6 +473,14 @@ MIPEncapsulator set shift_ 0
 MIPEncapsulator set mask_ [AddrParams set ALL_BITS_SET]
 MIPEncapsulator set ttl_ 32
 MIPEncapsulator set debug_ false
+
+# GAF
+ 
+GAFPartner set addr_ 0
+GAFPartner set port_ 254
+GAFPartner set shift_ 0
+GAFPartner set mask_ [AddrParams set ALL_BITS_SET]
+GAFPartner set debug_ false                  
  
 # HTTP-related defaults are in ../tcl/webcache/http-agent.tcl
 

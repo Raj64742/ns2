@@ -69,7 +69,7 @@ gafjitter (double max, int be_random_)
 }
 
 
-GAFAgent::GAFAgent(nsaddr_t id) : Agent(PT_GAF), beacon_(1), randomflag_(1), timer_(this), stimer_(this), dtimer_(this), maxttl_(5), state_(GAF_FREE),leader_settime_(0)
+GAFAgent::GAFAgent(nsaddr_t id) : Agent(PT_GAF), beacon_(1), randomflag_(1), timer_(this), stimer_(this), dtimer_(this), maxttl_(5), state_(GAF_FREE),leader_settime_(0),adapt_mobility_(0)
 {
         double x = 0.0, y = 0.0, z = 0.0;
 
@@ -108,6 +108,7 @@ void GAFAgent::recv(Packet* p, Handler *)
 	}
 }
 
+
 void GAFAgent::processDiscoveryMsg(Packet* p)
 {
 	struct DiscoveryMsg emsg;
@@ -145,6 +146,14 @@ void GAFAgent::processDiscoveryMsg(Packet* p)
 	
 	emsg.ttl = dst;
 	
+	dst = *(w++);
+        dst = dst << 8 | *(w++);
+        dst = dst << 8 | *(w++);
+        dst = dst << 8 | *(w++);
+	
+	emsg.stime = dst;
+
+
 	// first, check if this node has changed its grid
 	((MobileNode *)thisnode)->getLoc(&x, &y, &z);
         gid_  = God::instance()->getMyGrid(x,y);
@@ -156,17 +165,46 @@ void GAFAgent::processDiscoveryMsg(Packet* p)
 	switch (emsg.state) {
 
 	case GAF_LEADER:
+
 	  // I receives a "whoami" msg from the leader in this grid
 	  // I am supposed to discard if I am in GAF_LEADER
 	  // state too, or put myself into sleep if I am in GAF_FREE
+	  
+	  switch (state_) {
+	  case GAF_LEADER:
 
-	  if (state_ == GAF_LEADER) return;
-	  if (state_ == GAF_FREE) {
-	    
-	    node_off();
-	    dtimer_.resched(Random::uniform(emsg.ttl/2, emsg.ttl)); 
+	    ttl = leader_settime_ - NOW;
+	    if (ttl < 0) ttl = 0;
+
+    	    if ( ttl > emsg.ttl) {
+    	          //supress the partner
+    	          send_discovery();
+   		  return; 
+    	    
+	    } else {
+    	          if (ttl == emsg.ttl && nid_ < emsg.nid) {
+    	              send_discovery();
+    		      return;
+		  }
+		  // from LEADER to SLEEP, cancel my timer
+		  stimer_.force_cancel();
+		  leader_settime_ = 0;
+
+		  // turn off my self
+		  schedule_wakeup(emsg);
+	    }
+
+	    break;
+	  
+	  case GAF_FREE:
+	    schedule_wakeup(emsg);
+
+	    break;
+	  default:
+	    break;
 
 	  }
+
 	  break;
 	case GAF_FREE:
 	  if (state_ == GAF_FREE) {
@@ -184,14 +222,8 @@ void GAFAgent::processDiscoveryMsg(Packet* p)
     		      return;
     	          }
     
-    	          if (ttl < MIN_LIFETIME/2) return;
-    	    
-    	        // Since I did not get the signal from the server,
-    	        // I have to wake up myself earlier
-    printf("Node (%d %d) becomes catnap from %d at %f\n",nid_,gid_,state_,Scheduler::instance().clock());	    
-    	          node_off();
+		  schedule_wakeup(emsg);
 
-    	          dtimer_.resched(Random::uniform(emsg.ttl/2, emsg.ttl)); 
 	      }    	    
     	  }
 	  
@@ -205,6 +237,25 @@ void GAFAgent::processDiscoveryMsg(Packet* p)
 	  break;
 	}
 
+}
+
+void GAFAgent::schedule_wakeup(struct DiscoveryMsg emsg) {
+
+  int waketime;
+  waketime = emsg.ttl;
+ 
+  // control whether using mobility adaption
+  if (adapt_mobility_ > 0 ) {
+      if (emsg.stime < emsg.ttl) waketime = emsg.stime;
+  }
+
+  // node does not go switch to sleep if the lifetime
+  // it senses is less than MIN_SWITCHTIME
+
+  if (waketime > MIN_TURNOFFTIME ) { 
+     node_off();
+     dtimer_.resched(Random::uniform(waketime/2, waketime)); 
+  }
 }
 
 double GAFAgent::myttl()
@@ -232,62 +283,70 @@ void GAFAgent::timeout(GafMsgType msgt)
 {
   
   int ttl;
+
 //printf ("Node (%d %d) get signal %d at %f\n",nid_, gid_, msgt, Scheduler::instance().clock());
 
     switch (msgt) {
     case GAF_DISCOVER:
 
-        if (state_ != GAF_SLEEP) {
-	    send_discovery();
-	    if (state_ == GAF_LEADER) 
-	        timer_.resched(Random::uniform(MAX_DISCOVERY_TIME-1,MAX_DISCOVERY_TIME));
-	    if (state_ == GAF_FREE)
-	        timer_.resched(Random::uniform(0,MIN_DISCOVERY_TIME));
-        }
+      switch (state_) {
+      case GAF_SLEEP:
+	break;
+       
+      case GAF_FREE:
 
-    break;
+	if ((ttl = (int)myttl()) > MIN_LIFETIME) {
+                ttl = (int) ttl/2;
+        }
+        
+	leader_settime_ = ttl + NOW;  
+
+	// schdule to tell me that I can switch after ttl
+
+	stimer_.resched(ttl); 
+	
+	setGAFstate(GAF_LEADER);
+
+	send_discovery();
+
+	//printf ("Node (%d %d) becomes a leader at %f\n",nid_, gid_, Scheduler::instance().clock());
+
+         timer_.resched(Random::uniform(MAX_DISCOVERY_TIME-1,MAX_DISCOVERY_TIME));
+	
+	// fall through
+         break; 
+
+      case GAF_LEADER:
+
+	send_discovery();
+
+      	timer_.resched(Random::uniform(MAX_DISCOVERY_TIME-1,MAX_DISCOVERY_TIME));
+	break;
+      default:
+	break;
+
+      }
+
+      break;
 
     case GAF_SELECT:
         switch (state_) {
-          case GAF_FREE:
- 
-	    // If my total lifetime is only 60s left
-	    // do not play the game 
-	    //if ((ttl = (int)myttl()) < MIN_LIFETIME) {
-	     // break;
-	    //}
-
-	    if ((ttl = (int)myttl()) > MIN_LIFETIME) {
-	        ttl = (int) ttl/2;
-	    }
-	    
-	    // otherwise, turn myself into GAF_LEADER
-
-	    setGAFstate(GAF_LEADER);
-	
-	    leader_settime_ = ttl + NOW;
-
-	printf("Node (%d %d) becomes a leader at %f\n",nid_,gid_,Scheduler::instance().clock());
-
-	    // schedule myself to wake up after ttl so that
-	    // I know I need to change state by then
-	    // tell every body I am the Leader right away	    
-
-	    send_discovery();
-	    // reschedule a wakeup to change my state back
-	    stimer_.resched(ttl); 
-
-	    break;
 
 	  case GAF_LEADER:
+
 	    // I just finish my LEADER role, put myself into FREE
 	    // state so that I have chance to go sleep
-	    
-	printf("Node (%d %d) go BACK to FREE from LEADER at %f\n",nid_,gid_,Scheduler::instance().clock());
+	    // put myself into FREE does not hurt anything
+
+	    //printf("Node (%d %d) go BACK to FREE from LEADER at %f\n",nid_,gid_,Scheduler::instance().clock());
+
 	    duty_timeout();
+
 	    leader_settime_ = 0;
 
 	    break;
+
+	  case GAF_FREE:
 	  case GAF_SLEEP:
 	    break;
 	  default:
@@ -317,18 +376,18 @@ void GAFAgent::duty_timeout()
 
     // wake up myself
     node_on();
+    
+    // send discovery first to try to find whether
+    // there is a leader around me
+
+    send_discovery();
 
     // schedule the discovery timer randomly
+    // can wait longer to get a chance to be replaced
 
-    timer_.resched(gafjitter(GAF_STARTUP_JITTER, 1));
-
-    // schedule the select phase after enough time
-    // of discovery msg exchange
-
-    stimer_.resched(Random::uniform(GAF_LEADER_JITTER, GAF_LEADER_JITTER+1));
+    timer_.resched(gafjitter(GAF_NONSTART_JITTER, 1));
 
 }
-
 
 int GAFAgent::command(int argc, const char*const* argv)
 {
@@ -338,15 +397,15 @@ int GAFAgent::command(int argc, const char*const* argv)
 	    timer_.resched(gafjitter(GAF_STARTUP_JITTER, 1));
 	    // schedule the select phase after certain time
 	    // of discovery msg exchange, as fast as possible
-	    stimer_.resched(Random::uniform(GAF_LEADER_JITTER,GAF_LEADER_JITTER+1));	
+	    // stimer_.resched(Random::uniform(GAF_LEADER_JITTER,GAF_LEADER_JITTER+1));	
 
 	    return (TCL_OK); 
 	  }
 	      
 	}
 	if (argc == 3) {
-	    if (strcmp(argv[1], "beacon-period") == 0) {
-			beacon_ = atoi(argv[2]);
+	    if (strcmp(argv[1], "adapt-mobility") == 0) {
+			adapt_mobility_ = atoi(argv[2]);
 			//timer_.resched(Random::uniform(0, beacon_));
 			return TCL_OK;
 	    }
@@ -386,9 +445,9 @@ GAFAgent::makeUpDiscoveryMsg(Packet *p)
 {
   hdr_ip *iph = hdr_ip::access(p);
   hdr_cmn *hdrc = hdr_cmn::access(p);
-  u_int32_t ttl;
+  u_int32_t ttl,stime;
   unsigned char *walk;
-  
+  double gridsize, speed;
 
   // fill up the header
   hdrc->next_hop_ = IP_BROADCAST;
@@ -441,6 +500,25 @@ GAFAgent::makeUpDiscoveryMsg(Packet *p)
   *(walk++) = (ttl >> 8) & 0xFF;
   *(walk++) = (ttl >> 0) & 0xFF;
   
+
+  // fill my possible time of leaving this grid
+  
+  
+  speed = ((MobileNode*)thisnode)->speed();
+
+  if (speed == 0) {
+    // make stime big enough
+    stime = 2*ttl;
+  } else {
+    gridsize = God::instance()->getMyGridSize();
+    stime = (u_int32_t) (gridsize/speed);
+  }
+
+  *(walk++) = stime >> 24;
+  *(walk++) = (stime >> 16) & 0xFF;
+  *(walk++) = (stime >> 8) & 0xFF;
+  *(walk++) = (stime >> 0) & 0xFF;
+
   //printf("Node %d send out Exitence msg gid/nid %d %d\n", nid_, gid_, nid_);
 
 }
@@ -451,6 +529,9 @@ GAFAgent::node_off()
 {
     Phy *p;
     EnergyModel *em;
+
+    //printf ("Node (%d %d) goes SLEEP from %d at %f\n",nid_, gid_, state_, Scheduler::instance().clock());
+
 	
     // if I am in the data transfer state, do not turn off
 
@@ -496,7 +577,7 @@ GAFAgent::node_on()
 void 
 GAFAgent::setGAFstate(GafNodeState gs)
 {
-//   printf("Node (%d %d) changes state from %d to %d at %f\n", nid_, gid_, state_,gs,Scheduler::instance().clock());
+  //printf("Node (%d %d) changes state from %d to %d at %f\n", nid_, gid_, state_,gs,Scheduler::instance().clock());
 
    state_ = gs;
 }

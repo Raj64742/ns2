@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.59 2000/09/01 03:04:05 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.60 2001/02/07 10:25:35 yaxu Exp $
  */
 
 #include <packet.h>
@@ -739,6 +739,8 @@ void CMUTrace::format(Packet* p, const char *why)
 			format_rtp(p, offset);
 			break;
 	        case PT_DIFF:
+			break;
+		case PT_GAF:
 			break;
 		default:
 			fprintf(stderr, "%s - invalid packet type (%s).\n",

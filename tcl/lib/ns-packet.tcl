@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.41 2000/11/17 22:10:37 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.42 2001/02/07 10:25:37 yaxu Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -141,6 +141,7 @@ foreach prot {
 	TFRC
 	TFRC_ACK
 	TORA
+	GAF
 	UMP 
 	PUSHBACK
 } {
@@ -237,6 +238,7 @@ PacketHeaderManager instproc allochdr cl {
 #  	{ Ping off_ping_ }
 #  	{ rtProtoLS off_LS_ }
 #  	{ MPLS off_mpls_ }
+#	{ GAF off_gaf_ } 
 #  	{ LDP off_ldp_ }
 #  } {
 #  	create-packet-header [lindex $pair 0] [lindex $pair 1]

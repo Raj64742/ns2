@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mobilenode.cc,v 1.26 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mobilenode.cc,v 1.27 2001/02/07 10:25:35 yaxu Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -129,6 +129,7 @@ MobileNode::MobileNode(void) :
 	position_update_interval_ = POSITION_UPDATE_INTERVAL;
 	position_update_time_ = 0.0;
 	
+
 	LIST_INSERT_HEAD(&nodehead, this, link_);	// node list
 	LIST_INIT(&ifhead_);				// interface list
 	bind("X_", &X_);
@@ -196,7 +197,19 @@ MobileNode::command(int argc, const char*const* argv)
 			tcl.evalf("%s reset-state", str);
 			God::instance()->ComputeRoute();
 		     	return TCL_OK;
+		} else if (strcmp(argv[1], "shutdown") == 0) {
+			// set node state
+			//Phy *p;
+			energy_model()->node_on() = false;
+			
+			//p = ifhead().lh_first;
+			//if (p) ((WirelessPhy *)p)->node_off();
+			return TCL_OK;
+		} else if (strcmp(argv[1], "startup") == 0) {
+			energy_model()->node_on() = true;
+			return TCL_OK;
 		}
+	
 	} else if(argc == 3) {
 		if(strcmp(argv[1], "addif") == 0) {
 			WiredPhy* phyp = (WiredPhy*)TclObject::lookup(argv[2]);
@@ -338,6 +351,12 @@ MobileNode::log_energy(int flag)
 	}
 	log_target_->dump();
 }
+
+//void
+//MobileNode::logrttime(double t)
+//{
+//	last_rt_time_ = (int)t;
+//}
 
 void
 MobileNode::bound_position()

@@ -136,6 +136,10 @@ public:
         static God*     instance() { assert(instance_); return instance_; }
 	int nodes() { return num_nodes; }
 
+        inline void getGrid(double *x, double *y, double *z) {
+		*x = maxX; *y = maxY; *z = gridsize_;
+	}
+
 
   // Added by Chalermek 12/1/99
 
@@ -182,6 +186,20 @@ public:
 
         int *NextOIFs(int dt, int srcid, int curid, int *ret_num_oif);
   
+        // serve for GAF algorithm
+  
+        int load_grid(int,int,int);
+
+        int getMyGrid(double x, double y);
+        int getMyLeftGrid(double x, double y);
+        int getMyRightGrid(double x, double y);
+        int getMyTopGrid(double x, double y);
+        int getMyBottomGrid(double x, double y);
+        
+        inline int getMyGridSize() {
+		return gridsize_;
+	}
+
   // -----------------------
 
 
@@ -203,6 +221,13 @@ private:
         int *next_hop;        // next_hop[i * num_nodes + j] giving
                               //   the next hop of i where i wants to send
                               //	 a packet to j.
+
+        int maxX;          // keeping grid demension info: max X, max Y and 
+        int maxY;          // grid size
+        int gridsize_;
+        int gridX;
+        int gridY;
+
 };
 
 #endif
