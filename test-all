@@ -32,16 +32,17 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.10 1997/10/13 22:24:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.11 1997/10/14 22:53:18 sfloyd Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
 #
-# To run in quiet mode:  "./test-all QUIET".
+# To run in quiet mode:  "./test-all quiet".
 
+file="test-suite.tcl"
+directory="test-output"
 quiet="false"
-tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' \
-  test-suite.tcl`
+tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' $file`
 if [ $# -ge 1 ] 
 then
         flag="$*"
@@ -56,8 +57,8 @@ fi
 # Note that the telnet test includes random source behavior - its output
 # is not currently repeatable from run to run
 
-if [ ! -d test-output ]; then
-	mkdir test-output
+if [ ! -d $directory ]; then
+	mkdir $directory
 fi
 
 echo $tests
@@ -70,22 +71,22 @@ for t in $tests; do
     # Beware that xgraph is run on temp.rands asynchronously, if it
     # is slow to launch, you may get an incorrect graph
     if (test "$quiet" = "true") then
-    	./ns test-suite.tcl $t QUIET
+    	./ns $file $t QUIET
     else 
-	./ns test-suite.tcl $t
+	./ns $file $t
     fi
     if [ -f temp.rands ]; then
-	if [ ! -f test-output/$t ]; then
+	if [ ! -f $directory/$t ]; then
 	    echo saving output for future validation
-	    cp temp.rands test-output/$t
+	    cp temp.rands $directory/$t
 	else
-	    cmp -s temp.rands test-output/$t
+	    cmp -s temp.rands $directory/$t
 	    if [ $? = 0 ]; then
 		echo Test output agrees with reference output
 	    else
 		echo Test output differs from reference output
-		cp temp.rands test-output/$t.test
-		echo "Diagnose with: diff test-output/$t.test test-output/$t"
+		cp temp.rands $directory/$t.test
+		echo "Diagnose with: diff $directory/$t.test $directory/$t"
 		echo "Differences due to floating-point formatting are not significant."
 
 	    fi
