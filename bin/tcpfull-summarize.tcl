@@ -16,7 +16,6 @@ proc scaleseq { fid seqno } {
 	} else {
 		set val [expr $fid * $flowfactor + ($seqno % $seqmod) * $seqscale]
 	}
-puts " seqscale: mapped ($fid,$seqno) -> $val, ffact:$flowfactor, mod:$seqmod, scale:$seqscale"
 	return $val
 }
 
@@ -74,7 +73,6 @@ proc parse_line line {
 		puts stderr "apparently not in extended full-tcp format!"
 		exit 1
 	}
-puts "parse line $line"
 	set field(op) [lindex $sline 0]
 	set field(time) [lindex $sline 1]
 	set field(tsrc) [lindex $sline 2]
@@ -236,8 +234,6 @@ proc getopt {argc argv} {
 getopt $argc $argv
 set base 0
 
-puts " Argv: $argv"
-
 if { [info exists opt(s)] && $opt(s) != "" } {
 	global seqscale base opt argc argv
 	set seqscale $opt(s)
@@ -275,6 +271,5 @@ if { $argc < 2 || $argc > 3 } {
 		set reverse 1
 	}
 }
-puts "doing: seqscale:$seqscale, fact:$flowfactor, mod:$seqmod"
 dofile [lindex $argv [expr $base]] [lindex $argv [expr $base + 1]]
 exit 0
