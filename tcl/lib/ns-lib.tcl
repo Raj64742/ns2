@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.56 1997/10/30 07:13:06 kkumar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.57 1997/10/30 21:29:48 sfloyd Exp $
 #
 
 #
@@ -580,4 +580,46 @@ Simulator instproc getlink { id1 id2 } {
                 return $link_($id1:$id2)
         }
         return -1
+}
+
+Simulator instproc makeflowmon {} {
+
+	set flowmon [new QueueMonitor/ED/Flowmon]
+        set cl [new Classifier/Hash/SrcDestFid 33]
+
+        set pbody {
+                set fdesc [new QueueMonitor/ED/Flow]
+                set slot [$self installNext $fdesc]
+                $self set-hash $hashbucket $src $dst $fid $slot
+        }
+
+        $cl proc unknown-flow { src dst fid hashbucket } $pbody
+	$cl proc no-slot slotnum {
+		#
+		# note: we can wind up here when a packet passes
+		# through either an Out or a Drop Snoop Queue for
+		# a queue that the flow doesn't belong to anymore.
+		# Since there is no longer hash state in the
+		# hash classifier, we get a -1 return value for the
+		# hash classifier's classify() function, and there
+		# is no node at slot_[-1].  What to do about this?
+		# Well, we are talking about flows that have already
+		# been moved and so should rightly have their stats
+		# zero'd anyhow, so for now just ignore this case..
+		# puts "classifier $self, no-slot for slotnum $slotnum"
+	}
+        $flowmon classifier $cl
+        return $flowmon
+}
+
+# attach a flow monitor to a link
+Simulator instproc attach-fmon {lnk fm} {
+    set isnoop [new SnoopQueue/In]
+    set osnoop [new SnoopQueue/Out]
+    set dsnoop [new SnoopQueue/Drop]
+    $lnk attach-monitors $isnoop $osnoop $dsnoop $fm
+    set edsnoop [new SnoopQueue/EDrop]
+    $edsnoop set-monitor $fm
+    [$lnk queue] early-drop-target $edsnoop
+    $edsnoop target [$self set nullAgent_]
 }
