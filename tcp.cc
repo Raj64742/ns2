@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.25 1997/07/21 21:48:46 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.26 1997/07/22 08:58:14 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -139,7 +139,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("maxburst_", &maxburst_);
 	bind("maxcwnd_", &maxcwnd_);
 
-#ifdef notdef_old_tcp_tracing
+#ifdef old_tcp_tracing
 	/*
 	 * for variables that are to be traced, we also bind the functions
 	 * (defined above) to read/write from them
@@ -155,8 +155,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("srtt_", &t_srtt_, (TclObject *)this, t_srttf);
 	bind("rttvar_", &t_rttvar_, (TclObject *)this, t_rttvarf);
 	bind("backoff_", &t_backoff_, (TclObject *)this, t_backofff);
-#endif
-
+#else
 	bind("dupacks_", &dupacks_);
 	bind("seqno_", &curseq_);
 	bind("t_seqno_", &t_seqno_);
@@ -170,6 +169,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("backoff_", &t_backoff_);
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
+#endif
 
 	finish_[0] = 0;
 
@@ -327,7 +327,13 @@ int TcpAgent::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
 			curseq_ = atoi(argv[2]);
-			send_much(0, 0);
+			send_much(0, 0, maxburst_); /* XXXX okay to have maxburst_ ? */
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "advanceby") == 0) {
+			curseq_ += atoi(argv[2]); 
+			closed_ = 0;
+			send_much(0, 0, maxburst_); /* XXXX okay to have maxburst_ ? */
 			return (TCL_OK);
 		}
 		/*
@@ -363,7 +369,13 @@ int TcpAgent::command(int argc, const char*const* argv)
 			t_backoff() = other->t_backoff();
 			return (TCL_OK);
 		}
-		/* a Tcl procedure to be invoked when the connection is done */
+		/* 
+		 * Register a Tcl procedure to be invoked when the connection has no
+		 * unacknowledged data and no new data to send. This corresponds
+		 * to a connection close event as well as a temporary pause while
+		 * waiting for more user data (e.g., a user think-time pause during
+		 * the course of a P-HTTP connection).
+		 */
 		if (strcmp(argv[1], "finish") == 0) {
 			strcpy(finish_, argv[2]);
 			return (TCL_OK);
@@ -383,6 +395,7 @@ int TcpAgent::window()
  */
 void TcpAgent::send_much(int force, int reason, int maxburst)
 {
+	send_idle_helper();
 	int win = window();
 	int npackets = 0;
 
@@ -408,7 +421,7 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 		if (maxburst && npackets == maxburst)
 			break;
 	}
-	/* call helper function (currently used only by TCP asym */
+	/* call helper function */
 	send_helper(maxburst);
 }
 
@@ -421,6 +434,22 @@ void TcpAgent::reset_rtx_timer(int mild)
 {
 	set_rtx_timer();
 	rtt_backoff();
+	if (!mild)
+		t_seqno() = highest_ack() + 1;
+	rtt_active_ = 0;
+}
+
+/*
+ * We got a timeout or too many duplicate acks.  Clear the retransmit timer.  
+ * Resume the sequence one past the last packet acked.  
+ * "mild" is 0 for timeouts and Tahoe dup acks, 1 for Reno dup acks.
+ * "backoff" is 1 if the timer should be backed off, 0 otherwise.
+ */
+void TcpAgent::reset_rtx_timer(int mild, int backoff)
+{
+	set_rtx_timer();
+	if (backoff)
+		rtt_backoff();
 	if (!mild)
 		t_seqno() = highest_ack() + 1;
 	rtt_active_ = 0;
@@ -575,7 +604,7 @@ void TcpAgent::closecwnd(int how)
 
 
 /*
- * Process a packet that acks previously unacknowleges data.
+ * Process a packet that acks previously unacknowleged data.
  */
 void TcpAgent::newack(Packet* pkt)
 {
@@ -665,14 +694,10 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	ts_peer_ = tcph->ts();
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && !disable_ecn_)
 		quench(1);
-	/* grow cwnd and check if the connection is done */ 
 	recv_helper(pkt);
+	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
-		if ((highest_ack() >= curseq_-1) && !closed_) {
-			closed_ = 1;
-			finish();
-		}
 	} else if (tcph->seqno() == last_ack_) {
 		if (++dupacks() == NUMDUPACKS) {
                    /* The line below, for "bug_fix_" true, avoids
@@ -683,11 +708,11 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 				recover_ = maxseq();
 				recover_cause_ = 1;
 				closecwnd(0);
-				reset_rtx_timer(0);
+				reset_rtx_timer(0,0);
 			}
 			else if (ecn_ && recover_cause_ != 1) {
 				closecwnd(2);
-				reset_rtx_timer(0);
+				reset_rtx_timer(0,0);
 			}
 		}
 	}
@@ -716,9 +741,10 @@ void TcpAgent::timeout(int tno)
 		recover_ = maxseq();
 		recover_cause_ = 2;
 		closecwnd(0);
-		reset_rtx_timer(0);
+		reset_rtx_timer(0,1);
 		send_much(0, TCP_REASON_TIMEOUT, maxburst_);
-	} else {
+	} 
+	else {
 		/*
 		 * delayed-send timer, with random overhead
 		 * to avoid phase effects
@@ -734,11 +760,8 @@ void TcpAgent::timeout(int tno)
 void TcpAgent::finish() {
 	char wrk[100];
 
-	if (finish_ != "") 
+	if (finish_ != "") {
 		sprintf(wrk, "%s", finish_);
-	else {
-		/* XXX this is not right */
-		sprintf(wrk, "finish", name());
+		Tcl::instance().eval(wrk);
 	}
-	Tcl::instance().eval(wrk);
 }

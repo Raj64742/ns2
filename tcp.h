@@ -257,7 +257,8 @@ protected:
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	void set_rtx_timer();
 	void reset_rtx_timer(int mild);
-	void newtimer(Packet* pkt);
+	void reset_rtx_timer(int mild, int backoff);
+	virtual void newtimer(Packet* pkt);
 	void opencwnd();
 	void closecwnd(int how);
 	virtual void timeout(int tno);
@@ -267,10 +268,11 @@ protected:
 	void finish(); /* called when the connection is terminated */
 
 	/* Helper functions. Currently used by TCP asym */
-	virtual void output_helper(Packet*) { return; }
-	virtual void send_helper(int) { return; }
-	virtual void recv_helper(Packet*) { return; }
-	virtual void recv_newack_helper(Packet*);
+	virtual void output_helper(Packet* pkt) { return; }
+	virtual void send_helper(int maxburst) { return; }
+	virtual void send_idle_helper() { return; }
+	virtual void recv_helper(Packet* pkt) { return; }
+	virtual void recv_newack_helper(Packet* pkt);
 
 	double overhead_;
 	double wnd_;
@@ -314,7 +316,7 @@ protected:
 	int slow_start_restart_;   /* boolean: re-init cwnd after connection 
 				      goes idle.  On by default.
 				      */
-	char finish_[20];       /* name of Tcl proc to call at finish time */
+	char finish_[100];      /* name of Tcl proc to call at finish time */
 	int closed_;            /* whether this connection has closed */
 private:
 	double last_log_time_; /* the time at which the state variables were logged
