@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.19 1997/09/06 04:39:10 polly Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.20 1997/10/20 21:32:06 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.19 1997/09/06 04:39:10 polly Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.20 1997/10/20 21:32:06 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -95,14 +95,16 @@ int Scheduler::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		if (strcmp(argv[1], "run") == 0) {
 			/* set global to 0 before calling object reset methods */
-			reset();
+			reset();	// sets clock to zero
 			run();
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "now") == 0) {
 			sprintf(tcl.buffer(), "%.17g", clock());
 			tcl.result(tcl.buffer());
-			halted_ = 0;
 			return (TCL_OK);
+		} else if (strcmp(argv[1], "resume") == 0) {
+			halted_ = 0;
+			run();
 		} else if (strcmp(argv[1], "halt") == 0) {
 			halted_ = 1;
 			return (TCL_OK);
