@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.19 1998/01/24 04:09:59 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.20 1998/03/11 04:34:57 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -75,7 +75,7 @@ MacHandlerEoc::handle(Event* e)
 }
 
 
-MacCsma::MacCsma() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
+MacCsma::MacCsma() : txstart_(0), rtx_(0), csense_(1), hEoc_(this)
 {
 	bind_time("ifs_", &ifs_);
 	bind_time("slotTime_", &slotTime_);
@@ -146,11 +146,6 @@ void MacCsma::endofContention(Packet* p)
 }
 
 
-MacCsmaCd::MacCsmaCd()
-{
-}
-
-
 void MacCsmaCd::endofContention(Packet* p)
 {
 	// If there is a collision, backoff
@@ -160,11 +155,6 @@ void MacCsmaCd::endofContention(Packet* p)
 	}
 	else
 		MacCsma::endofContention(p);
-}
-
-
-MacCsmaCa::MacCsmaCa()
-{
 }
 
 
