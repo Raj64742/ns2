@@ -1,22 +1,69 @@
-#! /nfs/filb2/public/bin/perl
-#! /import/bin/perl
+eval 'exec perl -I ./bin -S $0 ${1+"$@"}'		#-*-Perl-*-
+	if 0;
 
 ($progname) = ($0 =~ m!([^/]+)$!);
-$usage = "usage: $progname [-a] [trace files...]\n";
+sub usage {
+    die <<END;
+usage: $progname [options] [trace files...]
 
-sub writeln { print @_, "\n"; }
+options:
+    -a		plot acks
+    -s SCALE    scale TCP sequence numbers by SCALE
+    -m MODULUS  treat TCP sequence numbers as mod MODULUS
+    -g		use gnuplot
+    -q		show queueing delay by connecting lines (only for xgraph)
+#    -l		show packet length
 
-$opt_a = 0;
+Traditional ``wrapping'' ns plots (as called from the test scripts)
+can be generated with -s 0.01 -m 90.
+END
+};
+
+# Default options args
+$opt_a = 0;			# plot ACKS
+$opt_m = 2 ** 31;		# modulus factor
+$opt_s = 1;			# scale factor
+
 require 'getopts.pl';
-&Getopts('a') || die $usage;
+&Getopts('ags:m:ql') || usage;
+($modulus, $scale, $plot_acks) = ($opt_m, $opt_s, $opt_a); # use meaningful
+				# mnemonics for options.
+# calculate offsets.  Do we need this?
+# $offset = int($modulus / 10 + 1) * 10;
+# $offset = 1;
 
-$c = 0;
-@p = @a = @d = @lu = @ld = ();
+# XXXXXX
+# XXX This is going to break because we have to set @INC correctly
+# XXX We need a clean way to set this for all scripts.
+# XXXXXX
+require 'dynamics.pl';
+if (defined($opt_g)) {
+    require 'gnuplot.pl';
+    if (defined($opt_q)) {
+        warn 'ouch';
+        undef $opt_q;
+    }
+} else {
+    require 'xgraph.pl';
+}
+
+$maxY = 0;
+@p = @a = @d = ();		# @p:  list of "$x $y" pairs for data packets
+				# @a:  list of "$x $y" pairs for acks
+				# @d:  .. drops
+%q_time_seg = ();
+
 
 $file = $acks = '';
 
+sub translate_point {
+    my($time, $seq, $flow) = @_;
+    return ($time, $flow + ($seq % $modulus) * $scale);
+}
+
 while (<>) {
     $dfile = $ARGV;
+    next if /rtProto/;
     @F = split;
     /testName/ && do {
 	$file = $F[2];
@@ -24,93 +71,54 @@ while (<>) {
 	next;
     };
     /^[\+-] / && do {
-	if ($F[4] eq 'tcp') {
-	    push(@p, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
-	} elsif ($opt_a && $F[4] eq 'ack') {
-	    push(@a, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
-	    $acks = ', "acks" w dots';
-	}
-	$c = $F[7] if ($c < $F[7]);
+	$maxY = $F[7] if ($maxY < $F[7]);
+	$is_ack = ($F[4] eq 'ack');
+	next if ($is_ack && !$plot_acks);
+
+	($x, $y) = translate_point(@F[1, 10, 7]);
+	if (defined($opt_q)) {	# XXX intense xgraph-ism here
+	    if (/^\+/) {
+		$statement = undef;
+		$q_time_seg{$is_ack,$y} = $x;
+	    };
+	    $statement = "move $q_time_seg{$is_ack,$y} $y\ndraw $x $y\n"
+		if (/^\-/);
+	} else {
+	    $statement = "$x $y\n";
+	};
+	if (defined($statement)) {
+	    if ($is_ack) { 
+		push(@a, $statement);
+	    } else {
+	        push(@p, $statement);
+	    };
+	};
 	next;
     };
     /^d / && do {
-	push(@d, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
+	($x, $y) = translate_point(@F[1, 10, 7]);
+	push(@d, "$x $y\n");
 	next;
     };
-    /link-down/ && do {
-	next if ($F[3] > $F[4]);
-	    
-	push(@ld, $F[1]);
-	$sd{$F[1]} = "$F[3]$F[4]";
-	next;
-    };	
-    /link-up/ && do {
-	next if ($F[3] > $F[4]);
-
-	push(@lu, $F[1]);
-	$su{$F[1]} = "$F[3]$F[4]";
-	next;
-    };
-}
-$c++;
+    /^v / && (parseDynamics(@F), next);
+}	
+$maxY++;
 
 if ($file eq '') {
 	($file) = ($dfile =~ m!([^/]+)$!);
 }
 
-if (defined($ENV{'DISPLAY'})) {
-	writeln('set terminal x11');
+plotPreamble(STDOUT, $file, 'time', ($#p < $[ ? '0:2' : ''), 'packets', '');
+plot(STDOUT, 0, 'packets', 'w points 1 5', @p);
+
+if ($opt_g) {
+    plot(STDOUT, 0, 'acks',    'w dots', @a);
 } else {
-	writeln('set terminal postscript');
-	writeln('set output "', $file, '.ps"');
+    # for xgraphs, insert dummy data sets so we get X's for marks in data-set 4
+    plot(STDOUT, 0, 'acks',	'plot 2', "0 1\n", @a);
 }
-writeln('set title "', $file, '"');
-writeln('set xlabel "time"');
-writeln('set ylabel "packets"');
-writeln('set xrange [0:2]')		if ($#p < $[);
-writeln('set yrange [0:', $c, ']');
 
-open(OUT, '>packets');	print OUT @p;	close(OUT);
-if ($#a > $[) {
-    open(OUT, '>acks');	print OUT @a;	close(OUT);
-}
-open(OUT, '>drops');	print OUT @d;	close(OUT);
-
-$fails = '';
-open(OUT, '>link-fails');
-$s  = $c - 0.1;
-$d1 = $c - 0.2;
-$d2 = $c - 0.22;
-$XX = 0;
-foreach $i (@ld) {
-	writeln('set arrow ', $XX++, $sd{$i}, " from $i, $s to $i, $d1");
-	writeln('set arrow ', $XX++, $sd{$i}, " from $i, $s to $i, $d2");
-	writeln('set label ', $XX++, $sd{$i}, " \"<$sd{$i}>\" at ",
-		$i - 0.11, ", $d2 right");
-	print OUT "$i $c\n";
-	$fails = ', "link-fails" w impulse';
-}
-close(OUT);
-unlink('link-fails') if ($fails eq '');
-
-$recov = '';
-open(OUT, '>link-recovery');
-$s  = $c - 0.3;
-$d1 = $c - 0.1;
-$d2 = $c - 0.12;
-foreach $i (@lu) {
-	writeln('set arrow ', $XX++, $su{$i}, " from $i, $s to $i, $d1");
-	writeln('set arrow ', $XX++, $su{$i}, " from $i, $s to $i, $d2");
-	writeln('set label ', $XX++, $su{$i}, " \"<$su{$i}>\" at ",
-		$i + 0.11, ", $d1 left");
-	print OUT "$i $c\n";
-	$recov = ', "link-recovery" w impulse';
-}
-close(OUT);
-unlink('link-recovery') if ($recov eq '');
-
-writeln('plot "packets" w points 1 5, "drops" w points 1 4',
-	$acks, $fails, $recov);
-writeln('exit');
-
+plot(STDOUT, 0, 'drops',   'w points 1 4', @d);
+plotDynamics(STDOUT, 0, $maxY);
+plotPostamble(STDOUT);
 exit;

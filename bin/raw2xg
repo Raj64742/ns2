@@ -1,6 +1,5 @@
-#! /nfs/filb2/public/bin/perl
-#!/home/johnh/BIN/perl5 
-#! /import/bin/perl
+eval 'exec perl -S $0 ${1+"$@"}'
+	if 0;
 
 ($progname) = ($0 =~ m!([^/]+)$!);
 sub usage {

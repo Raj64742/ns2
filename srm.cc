@@ -161,6 +161,7 @@ void SRMAgent::recv(Packet* p, Handler* h)
                         recv_sess(sh->seqnum(), (int*) p->accessdata());
                         break;
                 }
+		Packet::free(p);
         }
 }
 
@@ -310,7 +311,7 @@ void SRMAgent::recv_sess(int sessCtr, int* data)
 		(void) request(sp, dataCnt);
 		if (sp->ldata_ < dataCnt)
 			sp->ldata_ = dataCnt;
-	}		
+	}
 }
 
 static class ASRMAgentClass : public TclClass {
