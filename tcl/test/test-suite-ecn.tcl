@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.4 1998/05/07 01:53:10 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.5 1998/05/09 00:34:48 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -137,6 +137,13 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
     }
 }       
 
+TestSuite instproc emod {} {
+	$self instvar topo_
+	$topo_ instvar lossylink_
+        set errmodule [$lossylink_ errormodule]
+	return $errmodule
+}
+
 TestSuite instproc setloss {} {
 	$self instvar topo_
 	$topo_ instvar lossylink_
@@ -228,7 +235,7 @@ TestSuite instproc plot_cwnd {} {
         }
 }
 
-TestSuite instproc ecnsetup { tcptype } {
+TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     $self instvar ns_ node_ testName_ net_
 
     set delay 10ms
@@ -240,10 +247,10 @@ TestSuite instproc ecnsetup { tcptype } {
     $redq set setbit_ true
 
     if {$tcptype == "Tahoe"} {
-      set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
+      set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) $tcp1fid]
     } else {
       set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) TCPSink 
-		$node_(s3) 0]
+		$node_(s3) $tcp1fid]
     }
     $tcp1 set window_ 30
     $tcp1 set ecn_ 1
@@ -294,12 +301,36 @@ TestSuite instproc ecn_timeout { tcptype } {
     $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 }
 
+TestSuite instproc second_tcp { tcptype starttime } {
+    $self instvar ns_ node_
+    if {$tcptype == "Tahoe"} {
+      set tcp [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 2]    
+    } else {
+      set tcp [$ns_ create-connection TCP/$tcptype $node_(s1) TCPSink
+                $node_(s3) 2]
+    }
+    $tcp set window_ 30
+    $tcp set ecn_ 1
+    set ftp [$tcp attach-source FTP]
+    $ns_ at $starttime "$ftp start"
+}
+
 # Drop the specified packet.
 TestSuite instproc drop_pkt { number } {
     $self instvar ns_ lossmodel
     set lossmodel [$self setloss]
     $lossmodel set offset_ $number
     $lossmodel set period_ 10000
+}
+
+TestSuite instproc drop_pkts pkts {
+    $self instvar ns_
+    set emod [$self emod]
+    set errmodel1 [new ErrorModel/List]
+    $errmodel1 droplist $pkts
+    $emod insert $errmodel1
+    $emod bind $errmodel1 1
+
 }
 
 #######################################################################
@@ -478,6 +509,48 @@ Test/ecn_noBugfix_tahoe instproc run {} {
         $lossmodel set offset_ 245
 	$lossmodel set burstlen_ 15
         $lossmodel set period_ 10000
+	$ns_ run
+}
+
+# ECN followed by timeout.
+Class Test/ecn_timeout_tahoe -superclass TestSuite
+Test/ecn_timeout_tahoe instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+        set test_	ecn_timeout_tahoe
+        $self next
+}
+
+Test/ecn_timeout_tahoe instproc run {} {
+	$self instvar ns_
+	Agent/TCP set bugFix_ true
+	$self ecnsetup Tahoe 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
+
+	$ns_ run
+}
+
+# Timeout followed by ECN.
+# But redo this without dropping packets 264 and 265, so that we
+#  get a Dup Ack with ECN.
+Class Test/ecn_timeout1_tahoe -superclass TestSuite
+Test/ecn_timeout1_tahoe instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+        set test_	ecn_timeout1_tahoe
+        $self next
+}
+
+Test/ecn_timeout1_tahoe instproc run {} {
+	$self instvar ns_
+	Agent/TCP set bugFix_ true
+	$self ecnsetup Tahoe 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
+	$self second_tcp Tahoe 1.0
 	$ns_ run
 }
 
