@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.50 2001/09/26 23:24:04 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.51 2001/12/03 02:41:16 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -97,6 +97,9 @@
 #define TH_SYN  0x02        /* SYN: starting a connection */
 #define TH_PUSH 0x08        /* PUSH: used here to "deliver" data */
 #define TH_ACK  0x10        /* ACK: ack number is valid */
+#define TH_ECE  0x40        /* ECE: CE echo flag */
+#define TH_CWR  0x80        /* CWR: congestion window reduced */
+
 
 #define PF_TIMEOUT 0x04	    /* protocol defined */
 #define	TCP_PAWS_IDLE	(24 * 24 * 60 * 60)	/* 24 days in secs */

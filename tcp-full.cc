@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.105 2001/09/26 23:24:45 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.106 2001/12/03 02:41:16 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -805,26 +805,29 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 	 *	ect_: I am doing ECN (ecn_ should be T and peer does ECN)
 	 */
 
-	if (ecn_) {
-		if (ect_) {
-			// normal case after ECT true
-			fh->ecnecho() = recent_ce_;
-		} else {
-			// initializing: ect = 0, ecnecho = 1
-			fh->ecnecho() = TRUE;
-		}
-
+	// set ect on data packets (not syn or ack packets)
+	if ( datalen > 0 && ecn_ ){
 		fh->ect() = ect_;	// on after mutual agreement on ECT
 	}
+
+        // fill in CWR and ECE bits which don't actually sit in
+        // the tcp_flags but in hdr_flags
+        if ( pflags & TH_ECE) {
+                fh->ecnecho() = 1;
+        } else {
+                fh->ecnecho() = 0;
+        }
+        if ( pflags & TH_CWR ) {
+                fh->cong_action() = 1;
+        }
 
 	//
 	// although CWR bit is ordinarily associated with ECN,
 	// it utility within the simulator for traces.  Thus, set
 	// it even if we aren't doing ECN
 	//
-
-	fh->cwr() =  cong_action_;
-
+	if ( datalen > 0 )
+	 	fh->cwr() =  cong_action_;
 
 	/* actual size is data length plus header length */
 
@@ -1020,6 +1023,22 @@ send:
 
 	syn = (pflags & TH_SYN) ? 1 : 0;
 	int fin = (pflags & TH_FIN) ? 1 : 0;
+
+        /* setup ECN syn and ECN SYN+ACK packet headers */
+        if (ecn_ && syn && !(pflags & TH_ACK)){
+                pflags |= TH_ECE;
+                pflags |= TH_CWR;
+        }
+        if (ecn_ && syn && (pflags & TH_ACK)){
+                pflags |= TH_ECE;
+                pflags &= ~TH_CWR;
+        }
+  
+        /* set CWR if necessary */
+        if (ecn_ && ect_ && cong_action_) pflags |= TH_CWR;
+  
+        /* set ECE if necessary */
+        if (ecn_ && ect_ && recent_ce_ ) pflags |= TH_ECE;
 
 	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
 
@@ -1560,11 +1579,12 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 		rcv_nxt_ = rcvseqinit(irs_, datalen);
 		flags_ |= TF_ACKNOW;
 
-		// if we are trying to do ECN and our peer can do it,
-		// then we are good to look for ECN's (i.e. set ect_ true)
-		if (ecn_ && fh->ecnecho()) {
+		// check for a ECN-SYN with ECE|CWR
+		if (ecn_ && fh->ecnecho() && fh->cong_action()) {
+
 			ect_ = TRUE;
 		}
+
 
 		if (fid_ == 0) {
 			// XXX: sort of hack... If we do not
@@ -1617,18 +1637,12 @@ cancel_rtx_timer();	// cancel timer on our 1st SYN [does this belong!?]
 		irs_ = tcph->seqno();	// get initial recv'd seq #
 		rcv_nxt_ = rcvseqinit(irs_, datalen);
 
-		/*
-		 * we are seeing either a SYN or SYN+ACK.  For pure SYN,
-		 * ecnecho tells us our peer is ecn-capable.  For SYN+ACK,
-		 * it's acking our SYN, so it already knows we're ecn capable,
-		 * so it can just turn on ect
-		 */
-		if (ecn_ && (fh->ecnecho() || fh->ect()))
-			ect_ = TRUE;
-
 		if (tiflags & TH_ACK) {
 			// SYN+ACK (our SYN was acked)
 			// CHECKME
+                        // Check ECN-SYN+ACK packet
+                        if (ecn_ && fh->ecnecho() && !fh->cong_action())
+                                ect_ = TRUE;
 			highest_ack_ = ackno;
 			cwnd_ = initial_window();
 
@@ -1679,6 +1693,10 @@ if (t_rtt_) {
 			//  causes the segment to be sent].
 			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
 		} else {
+			// Check ECN-SYN packet
+                        if (ecn_ && fh->ecnecho() && fh->cong_action())
+                                ect_ = TRUE;
+
 			// SYN (no ACK) (simultaneous active opens)
 			flags_ |= TF_ACKNOW;
 			cancel_rtx_timer();
@@ -2037,8 +2055,10 @@ process_ACK:
 
 		/*
 		 * if this is an ACK with an ECN indication, handle this
+		 * but not if it is a syn packet
 		 */
 
+		if (fh->ecnecho() && !(tiflags&TH_SYN) )
 		if (fh->ecnecho())
 			ecn(highest_ack_);  // updated by newack(), above
 
