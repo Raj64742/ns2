@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.10 1997/04/09 00:10:05 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.11 1997/04/28 19:31:19 kannan Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -46,7 +46,7 @@ public:
 	}
 } class_delay_link;
 
-LinkDelay::LinkDelay() : dynamic_(0), intq_(0)
+LinkDelay::LinkDelay() : dynamic_(0), itq_(0), nextPacket_(0)
 {
 	Tcl& tcl = Tcl::instance();
 	/*XXX*/
@@ -59,7 +59,7 @@ int LinkDelay::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		if (strcmp(argv[1], "dynamic") == 0) {
 			dynamic_ = 1;
-			intq_ = new InTransitQ(this);
+			itq_ = new PacketQueue();
 			return TCL_OK;
 		}
 	}
@@ -70,12 +70,21 @@ void LinkDelay::recv(Packet* p, Handler* h)
 {
 	double txt = txtime(p);
 	Scheduler& s = Scheduler::instance();
-	if (dynamic_)
-		intq_->hold_in_transit(p);
-	else
+	if (dynamic_) {
+		Event* e = (Event*)p;
+		e->time_ = s.clock() + txt + delay_;
+		itq_->enque(p);
+		schedule_next();
+	} else {
 		s.schedule(target_, p, txt + delay_);
+	}
 	/*XXX only need one intr_ since upstream object should
 	 * block until it's handler is called
+	 *
+	 * This only holds if the link is not dynamic.  If it is, then
+	 * the link itself will hold the packet, and call the upstream
+	 * object at the appropriate time.  This second interrupt is
+	 * called inTransit_, and is invoked through schedule_next()
 	 */
 	s.schedule(h, &intr_, txt);
 }
@@ -87,5 +96,21 @@ void LinkDelay::send(Packet* p, Handler*)
 
 void LinkDelay::reset()
 {
-	intq_->reset();
+	if (nextPacket_) {
+		Scheduler::instance().cancel(&inTransit_);
+		Packet::free(nextPacket_);
+		nextPacket_ = (Packet*) NULL;
+		while (Packet* np = itq_->deque())
+			Packet::free(np);
+	}
+}
+
+void LinkDelay::handle(Event* e)
+{
+	assert(nextPacket_);
+	Event* pe = (Event*) nextPacket_;
+	assert(pe->time_ == e->time_);
+	send(nextPacket_, (Handler*) NULL);
+	nextPacket_ = (Packet*) NULL;
+	schedule_next();
 }

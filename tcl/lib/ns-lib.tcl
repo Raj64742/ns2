@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.26 1997/04/25 01:59:26 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.27 1997/04/28 19:31:26 kannan Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -307,29 +307,26 @@ Simulator proc instance {} {
 	    return $ns
 	}
     }
-    abort "Cannot find instance of simulator"
+    error "Cannot find instance of simulator"
 }
 		
-Simulator proc get-node-by-id id {
-    set ns [Simulator instance]
-    $ns instvar Node_
-    return [$ns set Node_($id)]
+Simulator instproc get-node-by-id id {
+    $self instvar Node_
+    set Node_($id)
 }
 
-Simulator proc all-nodes-list {} {
-    set ns [Simulator instance]
-    $ns instvar Node_
+Simulator instproc all-nodes-list {} {
+    $self instvar Node_
     set nodes ""
-    foreach n [$ns array names Node_] {
+    foreach n [array names Node_] {
 	lappend nodes $Node_($n)
     }
-    return $nodes
+    set nodes
 }
 
-Simulator proc link { n1 n2 } {
-    set ns [Simulator instance]
-    $ns instvar link_
-    return [$ns set link_([$n1 id]:[$n2 id])]
+Simulator instproc link { n1 n2 } {
+    $self instvar link_
+    set link_([$n1 id]:[$n2 id])
 }
 
 # Creates connection. First creates a source agent of type s_type and binds

@@ -100,6 +100,7 @@ Tcl_AppInit(Tcl_Interp *interp)
     if (Tk_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
+
     Tcl_StaticPackage(interp, "Tk", Tk_Init, (Tcl_PackageInitProc *) NULL);
 #ifdef TK_TEST
     if (Tktest_Init(interp) == TCL_ERROR) {
@@ -120,6 +121,11 @@ Tcl_AppInit(Tcl_Interp *interp)
      *
      * where "Mod" is the name of the module.
      */
+#ifdef TCL_DEBUG
+    if (Dbg_Init(interp) == TCL_ERROR) {
+	return TCL_ERROR;
+    }
+#endif /* TCL_DEBUG */
 
     Tcl::init(interp, "ns");
     Tcl::instance().tkmain(Tk_MainWindow(interp));
@@ -145,6 +151,19 @@ Tcl_AppInit(Tcl_Interp *interp)
     Tcl_SetVar(interp, "tcl_rcFileName", "~/.ns.tcl", TCL_GLOBAL_ONLY);
 
     return TCL_OK;
+}
+
+abort()
+{
+	Tcl& tcl = Tcl::instance();
+	tcl.evalc("[Simulator instance] flush-trace");
+#ifdef abort
+#undef abort
+	abort();
+#else
+	exit(1);
+#endif /*abort*/
+	/*NOTREACHED*/
 }
 
 }

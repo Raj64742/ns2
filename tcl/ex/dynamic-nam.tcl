@@ -4,9 +4,10 @@ proc nam_config {net} {
 	$net node 2 square
 
         mklink $net 0 1 1.5Mb 10ms right
-	mklink $net 0 2 5Mb 2ms right-down
-	mklink $net 1 2 5Mb 2ms left-up
+	mklink $net 0 2 5Mb 2ms right-up
+	mklink $net 2 1 5Mb 2ms down-right
 
+        $net color 0 blue
         $net color 1 red
         $net color 2 white
 

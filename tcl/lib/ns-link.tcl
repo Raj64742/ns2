@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.10 1997/04/24 03:24:16 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.11 1997/04/28 19:31:27 kannan Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -98,8 +98,21 @@ SimpleLink instproc trace { ns f } {
 	$deqT_ target [$queue_ target]
 	$queue_ target $deqT_
 
-	$enqT_ target $head_
-	set head_ $enqT_
+        if {$head_ == $queue_} {
+		$enqT_ target $head_
+		set head_ $enqT_
+	} else {
+		for {set c $head_} {[$c target] != $queue_} {set c [$c target]} {
+			#NOTHING#
+		}
+		$enqT_ target $queue_
+		$c target $enqT_
+	}
+
+	$self instvar dynamics_
+	if [info exists dynamics_] {
+		$self trace-dynamics $ns $f
+	}
 }
 #
 # like init-monitor, but allows for specification of more of the items

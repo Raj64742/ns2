@@ -1,0 +1,97 @@
+#! /nfs/filb2/public/bin/perl
+#! /import/bin/perl
+
+
+sub writeln { print @_, "\n"; }
+
+$c = 0;
+@p = @d = @lu = @ld = ();
+
+$file = '';
+
+while (<>) {
+	@F = split;
+	/testName/ && do {
+		$file = $F[2];
+		$file =~ s/_/-/g;
+		next;
+		};
+	/^[\+-] / && do {
+		push(@p, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n")
+				if ($F[4] eq 'tcp' || $F[4] eq 'ack');
+		$c = $F[7] if ($c < $F[7]);
+		next;
+	};
+	/^d / && do {
+		push(@d, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
+		next;
+	};
+	/link-down/ && do {
+		next if ($F[3] > $F[4]);
+
+		push(@ld, $F[1]);
+		$sd{$F[1]} = "$F[3]$F[4]";
+		next;
+	};
+	/link-up/ && do {
+		next if ($F[3] > $F[4]);
+
+		push(@lu, $F[1]);
+		$su{$F[1]} = "$F[3]$F[4]";
+		next;
+	};
+}
+$c++;
+
+if (defined($ENV{'DISPLAY'})) {
+	writeln('set terminal x11');
+} else {
+	writeln('set terminal postscript');
+	writeln('set output "', $file, '.ps"');
+}
+writeln('set title "', $file, '"');
+writeln('set xlabel "time"');
+writeln('set ylabel "packets"');
+writeln('set xrange [0:2]')		if ($#p < $[);
+writeln('set yrange [0:', $c, ']');
+
+open(OUT, '>packets');	print OUT @p;	close(OUT);
+open(OUT, '>drops');	print OUT @d;	close(OUT);
+
+$fails = '';
+open(OUT, '>link-fails');
+$s  = $c - 0.1;
+$d1 = $c - 0.2;
+$d2 = $c - 0.22;
+$XX = 0;
+foreach $i (@ld) {
+	writeln('set arrow ', $XX++, $sd{$i}, " from $i, $s to $i, $d1");
+	writeln('set arrow ', $XX++, $sd{$i}, " from $i, $s to $i, $d2");
+	writeln('set label ', $XX++, $sd{$i}, " \"<$sd{$i}>\" at ",
+		$i - 0.11, ", $d2 right");
+	print OUT "$i $c\n";
+	$fails = ', "link-fails" w impulse';
+}
+close(OUT);
+unlink('link-fails') if ($fails eq '');
+
+$recov = '';
+open(OUT, '>link-recovery');
+$s  = $c - 0.3;
+$d1 = $c - 0.1;
+$d2 = $c - 0.12;
+foreach $i (@lu) {
+	writeln('set arrow ', $XX++, $su{$i}, " from $i, $s to $i, $d1");
+	writeln('set arrow ', $XX++, $su{$i}, " from $i, $s to $i, $d2");
+	writeln('set label ', $XX++, $su{$i}, " \"<$su{$i}>\" at ",
+		$i + 0.11, ", $d1 left");
+	print OUT "$i $c\n";
+	$recov = ', "link-recovery" w impulse';
+}
+close(OUT);
+unlink('link-recovery') if ($recov eq '');
+
+writeln('plot "packets" w points, "drops" w points', $fails, $recov);
+writeln('exit');
+
+exit;

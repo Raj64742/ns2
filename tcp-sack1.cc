@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.8 1997/04/09 23:24:25 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.9 1997/04/28 19:31:21 kannan Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -96,6 +96,8 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
                         opencwnd();
                         timeout_ = FALSE;
 			scb_.ClearScoreBoard();
+		} else if ((int)tcph->seqno() < last_ack_) {
+			/*NOTHING*/
                 } else if (timeout_ == FALSE)  {
                         if (tcph->seqno() != last_ack_) {
                                 fprintf(stderr, "pkt seq %d should be %d\n" ,

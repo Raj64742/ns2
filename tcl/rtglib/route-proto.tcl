@@ -1,8 +1,3 @@
-proc abort msg {
-    puts stderr "ns: $msg"
-    exit 1
-}
-
 Simulator instproc rtproto {proto args} {
     eval [$self get-routelogic] register $proto $args
 }
@@ -30,7 +25,11 @@ SimpleLink instproc cost? {} {
 
 RouteLogic instproc register {proto args} {
     $self instvar rtprotos_
-    eval lappend rtprotos_($proto) $args
+    if [info exists rtprotos_($proto)] {
+        eval lappend rtprotos_($proto) $args
+    } else {
+	set rtprotos_($proto) $args
+    }
 }
 
 RouteLogic proc configure args {
@@ -73,7 +72,7 @@ RouteLogic instproc config-protos args {
 		    set rtprotos_(Session) 1
 		}
 		default {
-		    abort "unknown rtProto argument: [lindex $args 0]"
+		    error "unknown rtProto argument: [lindex $args 0]"
 		}
 	    }
 	}
@@ -81,9 +80,10 @@ RouteLogic instproc config-protos args {
 }
 
 RouteLogic instproc lookup { nodeid destid } {
-    set node [Simulator get-node-by-id $nodeid]
+    set ns [Simulator instance]
+    set node [$ns get-node-by-id $nodeid]
     if { [$node rtObject?] != "" } {
-	set dest [Simulator get-node-by-id $destid]
+	set dest [$ns get-node-by-id $destid]
 	[$node set rtObject_] lookup $dest
     } else {
 	$self cmd lookup $nodeid $destid
@@ -132,11 +132,15 @@ rtObject proc init-all args {
 
 rtObject instproc init node {
     $self next
-    $self instvar nextHop_ rtpref_ metric_ node_ rtVia_ rtProtos_
+    $self instvar ns_ nullAgent_
+    $self instvar nextHop_ rtpref_ metric_ node_ rtVia_ rtProtos_ nullAgent_
+
+    set ns_ [Simulator instance]
+    set nullAgent_ [$ns_ set nullAgent_]
 
     $node rtObject $self
     set node_ $node
-    foreach dest [Simulator all-nodes-list] {
+    foreach dest [$ns_ all-nodes-list] {
 	set nextHop_($dest) ""
 	set rtpref_($dest) [$class set maxpref_]
 	set metric_($dest) [$class set unreach_]
@@ -152,11 +156,9 @@ rtObject instproc init node {
 }
 
 rtObject instproc add-proto {proto node} {
-    $self instvar rtProtos_
+    $self instvar ns_ rtProtos_
     set rtProtos_($proto) [new Agent/rtProto/$proto $node]
-    
-    set ns [Simulator instance]
-    $ns attach-agent $node $rtProtos_($proto)
+    $ns_ attach-agent $node $rtProtos_($proto)
     set rtProtos_($proto)
 }
 
@@ -179,8 +181,7 @@ rtObject instproc compute-proto-routes {} {
 
 rtObject instproc compute-routes { } {
     # rtObject chooses the best route to each destination from all protocols
-    $self instvar rtProtos_ nextHop_ rtpref_ metric_ rtVia_
-
+    $self instvar ns_ node_ rtProtos_ nextHop_ rtpref_ metric_ rtVia_
     set protos ""
     foreach p [array names rtProtos_] {
 	if [$rtProtos_($p) set rtsChanged_] {
@@ -193,16 +194,25 @@ rtObject instproc compute-routes { } {
     }
 
     set changes 0
-    set all-nodes [Simulator all-nodes-list]
+    set all-nodes [$ns_ all-nodes-list]
     foreach dest ${all-nodes} {
+	if {$dest == $node_} continue
 	if {$nextHop_($dest) != ""} {
-	    if {$nextHop_($dest) != [$rtVia_($dest) set nextHop_($dest)]} {
+	    set pnh [$rtVia_($dest) set nextHop_($dest)]
+	    set ppf [$rtVia_($dest) set rtpref_($dest)]
+	    set pmt [$rtVia_($dest) set metric_($dest)]
+	    if {$nextHop_($dest) != $pnh || $metric_($dest) != $pmt ||	\
+		    $rtpref_($dest) != $ppf} {
+		set nextHop_($dest) $pnh
+		set rtPref_($dest)  $ppf
+		set metric_($dest)  $pmt
 		incr changes
 	    }
-	    set nextHop_($dest) [$rtVia_($dest) set nextHop_($dest)]
-	    set metric_($dest) [$rtVia_($dest) set metric_($dest)]
-	    set rtpref_($dest) [$rtVia_($dest) set rtpref_($dest)]
 	}
+    }
+	    
+    foreach dest ${all-nodes} {
+	if {$dest == $node_} continue
 	foreach p $protos {
 	    set pnh [$p set nextHop_($dest)]
 	    set ppf [$p set rtpref_($dest)]
@@ -221,10 +231,14 @@ rtObject instproc compute-routes { } {
 
     # If new routes were found, install the routes, and send updates
     if {$changes > 0} {
-	$self instvar node_ nextHop_
+	$self instvar node_ nextHop_ nullAgent_
 	foreach dest ${all-nodes} {
 	    if { $nextHop_($dest) != "" } {
 		$node_ add-route [$dest id] [$nextHop_($dest) head]
+	    } else {
+		if {[$node_ id] != [$dest id]} {
+		    $node_ add-route [$dest id] $nullAgent_
+		}
 	    }
 	}
 
@@ -232,17 +246,16 @@ rtObject instproc compute-routes { } {
 	    $rtProtos_($proto) send-updates
 	}
     }
-    
-    $self instvar node_
 }
 
 rtObject instproc intf-changed {} {
-    $self instvar rtProtos_ rtVia_ nextHop_
+    $self instvar ns_ node_ rtProtos_ rtVia_ nextHop_ rtpref_ metric_
     foreach p [array names rtProtos_] {
 	$rtProtos_($p) intf-changed
     }
-    foreach dest [Simulator all-nodes-list] {
-	if { $nextHop_($dest) != "" &&				\
+    foreach dest [$ns_ all-nodes-list] {
+	if {$dest == $node_} continue
+	if {$nextHop_($dest) != "" &&	    
 		[$rtVia_($dest) set nextHop_($dest)] != $nextHop_($dest) } {
 	    set nextHop_($dest) ""
 	    set rtpref_($dest) [$class set maxpref_]
@@ -253,25 +266,43 @@ rtObject instproc intf-changed {} {
     $self compute-routes
 }
 
-rtObject instproc dump-routes chan {
-    $self instvar node_ nextHop_ rtpref_ metric_ rtVia_
+proc TclObjectCompare {a b} {
+    set o1 [string range $a 2 end]
+    set o2 [string range $b 2 end]
+    if {$o1 < $o2} {
+	return -1
+    } elseif {$o1 == $o2} {
+	return 0
+    } else {
+	return 1
+    }
+}
 
-    set ns [Simulator instance]
-    if {$ns != ""} {
-	set time [$ns now]
+rtObject instproc dump-routes chan {
+    $self instvar ns_ node_ nextHop_ rtpref_ metric_ rtVia_
+
+    if {$ns_ != ""} {
+	set time [$ns_ now]
     } else {
 	set time 0.0
     }
     puts $chan [concat "Node:\t${node_}([$node_ id])\tat t ="		\
 	    [format "%4.2f" $time]]
-    puts $chan "Dest\tnextHop\tPref\tMetric\tProto"
-    foreach dest [Simulator all-nodes-list] {
+    puts $chan "  Dest\t\t nextHop\tPref\tMetric\tProto"
+    foreach dest [lsort -command TclObjectCompare [$ns_ all-nodes-list]] {
 	if {$nextHop_($dest) != ""} {
 	    set p [split [$rtVia_($dest) info class] /]
 	    set proto [lindex $p [expr [llength $p] - 1]]
-	    puts $chan [concat "${dest}([$dest id])\t"			      \
-		    "$nextHop_($dest)([[$nextHop_($dest) set toNode_] id])\t" \
-		    "$rtpref_($dest)\t$metric_($dest)\t$proto"]
+	    puts $chan [format "%-5s(%d)\t%-5s(%d)\t%3d\t%4d\t %s"	 \
+		    $dest [$dest id]					 \
+		    $nextHop_($dest) [[$nextHop_($dest) set toNode_] id] \
+		    $rtpref_($dest) $metric_($dest) $proto]
+	} elseif {$dest == $node_} {
+	    puts $chan [format "%-5s(%d)\t%-5s(%d)\t%03d\t%4d\t %s"	\
+		    $dest [$dest id] $dest [$dest id] 0 0 "Local"]
+	} else {
+	    puts $chan [format "%-5s(%d)\t%-5s(%s)\t%03d\t%4d\t %s"	\
+		    $dest [$dest id] "" "-" 255 32 "Unknown"]
 	}
     }
 }
@@ -307,7 +338,7 @@ rtPeer instproc init {addr cls} {
     $self next
     $self instvar addr_ metric_ rtpref_
     set addr_ $addr
-    foreach dest [Simulator all-nodes-list] {
+    foreach dest [[Simulator instance] all-nodes-list] {
 	set metric_($dest) [$cls set INFINITY]
 	set rtpref_($dest) [$cls set preference_]
     }
@@ -344,19 +375,21 @@ rtPeer instproc preference? dest {
 Agent/rtProto set preference_ 200		;# global default preference
 
 Agent/rtProto proc init-all args {
-    abort "No initialisation defined"
+    error "No initialisation defined"
 }
 
 Agent/rtProto instproc init node {
     $self next
 
-    $self instvar preference_ node_ ifs_ ifstat_ rtObject_
+    $self instvar ns_ node_ rtObject_ preference_ ifs_ ifstat_
+    set ns_ [Simulator instance]
+
     catch "set preference_ [[$self info class] set preference_]" ret
     if { $ret == "" } {
 	set preference_ [$class set preference_]
     }
     foreach nbr [$node set neighbor_] {
-	set link [Simulator link $node $nbr]
+	set link [$ns_ link $node $nbr]
 	set ifs_($nbr) $link
 	set ifstat_($nbr) [$link up?]
     }
@@ -364,7 +397,7 @@ Agent/rtProto instproc init node {
 }
 
 Agent/rtProto instproc compute-routes {} {
-    abort "No route computation defined"
+    error "No route computation defined"
 }
 
 Agent/rtProto instproc intf-changed {} {
@@ -385,9 +418,9 @@ Agent/rtProto/Direct set preference_ 100
 
 Agent/rtProto/Direct instproc init node {
     $self next $node
-    $self instvar rtpref_ nextHop_ metric_ ifs_
+    $self instvar ns_ rtpref_ nextHop_ metric_ ifs_
 
-    foreach node [Simulator all-nodes-list] {
+    foreach node [$ns_ all-nodes-list] {
 	set rtpref_($node) 255
 	set nextHop_($node) ""
 	set metric_($node) -1
@@ -459,7 +492,7 @@ Agent/rtProto/DV set mid_		  0
 
 Agent/rtProto/DV proc init-all args {
     if { [llength $args] == 0 } {
-	set nodeslist [Simulator all-nodes-list]
+	set nodeslist [[Simulator instance] all-nodes-list]
     } else {
 	eval "set nodeslist $args"
     }
@@ -482,18 +515,17 @@ Agent/rtProto/DV proc init-all args {
 
 Agent/rtProto/DV instproc init node {
     $self next $node
-    $self instvar preference_ rtpref_ nextHop_ nextHopPeer_ metric_
+    $self instvar ns_ preference_ rtpref_ nextHop_ nextHopPeer_ metric_ ns_
 
     set INFINITY [$class set INFINITY]
-    foreach dest [Simulator all-nodes-list] {
+    foreach dest [$ns_ all-nodes-list] {
 	set rtpref_($dest) $preference_
 	set nextHop_($dest) ""
 	set nextHopPeer_($dest) ""
 	set metric_($dest)  $INFINITY
     }
     set updateTime [uniform 0.0 0.5]
-    set ns [Simulator instance]
-    $ns at $updateTime "$self send-periodic-update"
+    $ns_ at $updateTime "$self send-periodic-update"
 }
 
 Agent/rtProto/DV instproc add-peer {nbr agentAddr} {
@@ -502,21 +534,22 @@ Agent/rtProto/DV instproc add-peer {nbr agentAddr} {
 }
 
 Agent/rtProto/DV instproc send-periodic-update {} {
+    $self instvar ns_
     $self send-updates
-    
-    set ns [Simulator instance]
-    set updateTime [expr [$ns now] + \
+    set updateTime [expr [$ns_ now] + \
 	    ([$class set advertInterval] * [uniform 0.9 1.1])]
-    $ns at $updateTime "$self send-periodic-update"
+    $ns_ at $updateTime "$self send-periodic-update"
 }
 
 Agent/rtProto/DV instproc compute-routes {} {
-    $self instvar ifs_ peers_ rtsChanged_ rtpref_ metric_ nextHop_ nextHopPeer_
+    $self instvar ns_ ifs_ rtpref_ metric_ nextHop_ nextHopPeer_
+    $self instvar peers_ rtsChanged_
 
     set INFINITY [$class set INFINITY]
+    set all-nodes [$ns_ all-nodes-list]
     set rtsChanged_ 0
-    foreach nbr [array names peers_] {
-	foreach dest [Simulator all-nodes-list] {
+    foreach dest ${all-nodes} {
+	foreach nbr [array names peers_] {
 	    set ppf [$peers_($nbr) preference? $dest]
 	    set pmt [$peers_($nbr) metric? $dest]
 	    if { $pmt > 0 && $pmt < $INFINITY &&			\
@@ -534,30 +567,25 @@ Agent/rtProto/DV instproc compute-routes {} {
 }
 
 Agent/rtProto/DV instproc intf-changed {} {
-    $self instvar peers_ ifs_ ifstat_ peers_ nextHop_ nextHopPeer_ metric_
+    $self instvar ns_ peers_ ifs_ ifstat_ peers_ nextHop_ nextHopPeer_ metric_
     set INFINITY [$class set INFINITY]
     foreach nbr [array names peers_] {
 	set state [$ifs_($nbr) up?]
 	if {$state != $ifstat_($nbr)} {
-	    switch $ifstat_($nbr) {
-		up {
-		    if ![info exists all-nodes] {
-			set all-nodes [Simulator all-nodes-list]
-		    }
-		    foreach dest ${all-nodes} {
-			$peers_($nbr) metric $dest $INFINITY
-			if {$nextHopPeer_($dest) == $peers_($nbr)} {
-			    set nextHopPeer_($dest) ""
-			    set nextHop_($dest) ""
-			    set metric_($dest) $INFINITY
-			}
-		    }
+	    set ifstat_($nbr) $state
+	    if {$state != "up"} {
+		if ![info exists all-nodes] {
+		    set all-nodes [$ns_ all-nodes-list]
 		}
-		down {
-		    $self send-to-peer $nbr
+		foreach dest ${all-nodes} {
+		    $peers_($nbr) metric $dest $INFINITY
+		    if {$nextHopPeer_($dest) == $peers_($nbr)} {
+			set nextHopPeer_($dest) ""
+			set nextHop_($dest) ""
+			set metric_($dest) $INFINITY
+		    }
 		}
 	    }
-	    set ifstat_($nbr) $state
 	}
     }
 }
@@ -584,8 +612,8 @@ Agent/rtProto/DV instproc send-updates {} {
 }
 
 Agent/rtProto/DV instproc send-to-peer nbr {
-    $self instvar rtObject_ ifs_ peers_
-    foreach dest [Simulator all-nodes-list] {
+    $self instvar ns_ rtObject_ ifs_ peers_
+    foreach dest [$ns_ all-nodes-list] {
 	set nhop [$rtObject_ nextHop? $dest]
 	set metric [$rtObject_ metric? $dest]
 	if {$metric < 0 || $nhop == $ifs_($nbr)} {
@@ -596,27 +624,29 @@ Agent/rtProto/DV instproc send-to-peer nbr {
     }
     set id [$class get-next-mid]
     $class set msg_($id) [array get update]
-    $self send-update [$peers_($nbr) addr?] $id [array size update]
-    set n [$rtObject_ set node_]
-#    puts stderr [concat [format "%4.2f" [[Simulator instance] now]]	\
-	    "${n}([$n id]) send update to ${nbr}([$nbr id])"		\
+#    set n [$rtObject_ set node_]
+#    puts stderr [concat [format "%4.2f" [$ns_ now]]			\
+	    "${n}([$n id]/[$self set addr_]) send update"		\
+	    "to ${nbr}([$nbr id]/[$peers_($nbr) addr?])"		\
 	    "id = $id" "{[$class set msg_($id)]}"]
+    $self send-update [$peers_($nbr) addr?] $id [array size update]
 }
 
 Agent/rtProto/DV instproc recv-update {peerAddr id} {
-    $self instvar peers_ ifs_
+    $self instvar peers_ ifs_ nextHopPeer_ metric_
+    $self instvar rtsChanged_ rtObject_
+
     set INFINITY [$class set INFINITY]
     set msg [$class retrieve-msg $id]
     array set metrics $msg
-    $self instvar rtObject_
-    set n [$rtObject_ set node_]
+#    set n [$rtObject_ set node_]
 #    puts stderr [concat [format "%4.2f" [[Simulator instance] now]]	\
 	    "${n}([$n id]) recv update from peer $peerAddr id = $id {$msg}"]
     foreach nbr [array names peers_] {
 	if {[$peers_($nbr) addr?] == $peerAddr} {
 	    set peer $peers_($nbr)
 	    if { [array size metrics] > [Node set nn_] } {
-		abort "$class::$proc update $peerAddr:$msg:$count is larger than the simulation topology"
+		error "$class::$proc update $peerAddr:$msg:$count is larger than the simulation topology"
 	    }
 	    set metricsChanged 0
 	    foreach dest [array names metrics] {
@@ -626,20 +656,21 @@ Agent/rtProto/DV instproc recv-update {peerAddr id} {
 		}
 		if {$metric != [$peer metric? $dest]} {
 		    $peer metric $dest $metric
+		    if {$nextHopPeer_($dest) == $peer} {
+			set metric_($dest) $metric
+		    }
 		    incr metricsChanged
 		}
 	    }
 	    if $metricsChanged {
 		$self compute-routes
-		$self instvar rtsChanged_ rtObject_
-		if $rtsChanged_ {
-		    $rtObject_ compute-routes
-		}
+		incr rtsChanged_ $metricsChanged
+		$rtObject_ compute-routes
 	    }
 	    return
 	}
     }
-    abort "$class::$proc update $peerAddr:$msg:$count from unknown peer"
+    error "$class::$proc update $peerAddr:$msg:$count from unknown peer"
 }
 
 Agent/rtProto/DV proc compute-all {} {

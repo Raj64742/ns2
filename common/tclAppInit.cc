@@ -85,7 +85,9 @@ Tcl_AppInit(Tcl_Interp *interp)
 	init_misc();
 
 #ifdef TCL_DEBUG
-	Dbg_Init(interp);	/* Always returns TCL_OK */
+	if (Dbg_Init(interp) == TCL_ERROR) {
+		return TCL_ERROR;
+	}
 #endif /* TCL_DEBUG */
 
 #ifdef TCL_TEST
@@ -97,6 +99,19 @@ Tcl_AppInit(Tcl_Interp *interp)
 #endif /* TCL_TEST */
 
     return TCL_OK;
+}
+
+abort()
+{
+	Tcl& tcl = Tcl::instance();
+	tcl.evalc("[Simulator instance] flush-trace");
+#ifdef abort
+#undef abort
+	abort();
+#else
+	exit(1);
+#endif /*abort*/
+	/*NOTREACHED*/
 }
 
 }

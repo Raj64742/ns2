@@ -19,8 +19,13 @@ $ns attach-agent $n1 $null1
 $ns connect $cbr0 $null1
 
 $ns rtmodel Deterministic {} $n0
+[$ns link $n0 $n1] trace-dynamics $ns stdout
 
 proc finish {} {
+	global ns f
+	close $f
+	$ns flush-trace
+
 	puts "converting output to nam format..."
 	exec awk -f ../nam-demo/nstonam.awk out.tr > dynamic-nam.tr 
 	exec rm -f out

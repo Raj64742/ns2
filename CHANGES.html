@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.61 1997/04/25 22:11:54 breslau Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.62 1997/04/28 19:31:18 kannan Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -14,6 +14,99 @@
 <hr>
 <h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</a>
 [PENDING RELEASE DATE]</h3>
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Mon Apr 28 09:08:26 PDT 1997</b><br>
+Moved <code>up?</code> and <code>down?</code> to base <code>Class Link</code>,
+instead of being in the derived <code>Class SimpleLink</code>.
+The procedures work for simple p2p links.  Other types of media
+such as LANs that must provide similar features may have to redefine them
+appropriately.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Mon Apr 28 09:08:26 PDT 1997</b><br>
+Leveraged of the v2 test suites to construct routing test suites.
+The list of mods are:
+	<ol>
+	<li>A new test-suite driver, called ktest-all is in the bin
+	directory.  The invocation
+	<pre>        ktest-all [&lt;suite&gt; [&lt;test&gt; [&lt;topology&gt;]]]</pre>
+		executes:
+	<pre>        ns tcl/test/test-suite-&lt;suite&gt;.tcl &lt;test&gt; &lt;topology&gt;</pre>
+	If no test is specified, it runs all the tests in that suite.
+	If no topology is specified, it runs the specified test against
+	all topologies defined in the topologies file.
+	<li>Any single test-suite file is now in three parts: (1)
+	tcl/test/topologies.tcl contains a library of topologies, and
+	variants for netowrk dynamics.  Currently four topologies are
+	defined. (2) tcl/test/misc.tcl contains the basic housekeeping
+	routines, such as openTrace, finish etc. (3) Individual tests
+	are in tcl/test/test-suite-&lt;suite&gt;.tcl files.
+	<li>The procedure <code>finish</code> in tcl/test/misc.tcl no
+	longer directly invokes xgraph.  Instead, it simply writes out
+	out.tr, closes all trace files, and exists.
+	<li>ktest-all will invoke xgraph if the DISPLAY environment is
+	defined; otherwise, it will save the out.tr file as is in
+	test-output-raw for later comparison; in the latter case, it
+	will also use gnuplot to generate a postscript file that is
+	placed in the ps-files directory.
+	<li>The bin directory also contains raw2xg and raw2gp, two
+	programs to convert trace files into output for xgraph or
+	gnuplot.
+	Convenient ways of invoking either are:
+	<pre>        % raw2xg out.tr | xgraph -bb -tk -nl -m -x time -y packets
+        % raw2gp out.tr &gt; out.gp ; gnuplot
+        load "out.gp"
+        ...other gnuplot commands ...
+	exit
+	% </pre>
+	</ol>
+There will be additional cleanup as I work on the test-suites some more.
+Comments and suggestions are welcome.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Mon Apr 28 09:08:26 PDT 1997</b><br>
+Makefile (and Makefile.in) for <em>ns.dyn</em> does not include tclAppInit.o.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Wed Apr 23 16:50:15 PDT 1997</b><br>
+SACK crashes when it is not in fast recovery mode, and receives
+acks out of order.  For now, we just ignore such acks.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Wed Apr 23 16:50:15 PDT 1997</b><br>
+tcl/ex/simple-*.tcl examples should close output files before further
+processing
+in order to ensure that all data gets properly flushed.<br>
+In addition, added tracing route dynamics events to stdout.<br>
+Files affected: tcl/ex/simple-dyn.tcl, tcl/ex/simple-rtg.tcl,
+tcl/ex/simple-heap.tcl,
+<br>
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Wed Apr 23 16:50:15 PDT 1997</b><br>
+Bugs in rtglib.  delay.cc, delay.h did not calculate packet
+transmission time correctly.<br>
+Routing code had bugs in how routes
+were calculated, and route updates distributed.<br>
+Files affected: delay.cc, delay.h,
+	tcl/rtglib/route-proto.tcl, tcl/rtglib/dynamics.tcl<br>
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Mon Apr 14 12:06:35 PDT 1997</b><br>
+<code>abort()</code>, when called, breaks of the trace abruptly.
+Trap the call with cpp hacks, invoke [[Simulator instance] flush-trace]
+and then abort.<br>
+Files affected: Makefile.in, tclAppInit.cc, tkAppInit.cc
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Thu Apr 10 16:21:25 PDT 1997</b><br>
+Added functions to dump the simulation objects that comprise the
+topology, as an aid to debugging.  Use by specifying
+<pre>        [Simulator instance] gen-map</pre>
+to see the dump on stderr.<br>
+Files affected: tcl/lib/ns-trace.tcl
+
 
 <ul>
 <li><b><a href="mailto:breslau@parc.xerox.com">[LB]</a></b>

@@ -7,7 +7,7 @@ Trace instproc init type {
 Trace instproc format args {
     # The strange puts construction below helps us write formats such as
     # 	$traceObject format {$src_} {$dst_} 
-    # that will then put ths source or destination id in the desired place.
+    # that will then put the source or destination id in the desired place.
 
     $self instvar type_ fp_ src_ dst_
 
@@ -45,4 +45,48 @@ Trace/Drop instproc init {} {
 Class Trace/Generic -superclass Trace
 Trace/Generic instproc init {} {
     $self next "v"
+}
+
+proc gc o {
+    if { $o != "" } {
+	return [$o info class]
+    } else {
+	return "NULL_OBJECT"
+    }
+}
+
+Node instproc tn {} {
+    $self instvar id_
+    return "${self}(id $id_)"
+}
+
+Simulator instproc gen-map {} {
+    $self instvar Node_ link_
+
+    set nn [Node set nn_]
+    for {set i 0} {$i < $nn} {incr i} {
+	set n $Node_($i)
+	set cf  [$n set classifier_]
+	set dm  [$n set dmux_]
+	puts "Node [$n tn], entry ${cf}([gc $cf]), dmux ${dm}([gc $dm])"
+	foreach li [array names link_ [$n id]:*] {
+	    set L [split $li :]
+	    set nbr [[$self get-node-by-id [lindex $L 1]] entry]
+	    set ln $link_($li)
+	    puts "\tLink $ln, fromNode_ [[$ln set fromNode_] tn] -> toNode_ [[$ln set toNode_] tn]"
+	    puts "\tComponents (in order) head first"
+	    for {set c [$ln head]} {$c != $nbr} {set c [$c target]} {
+		puts "\t\t$c\t[gc $c]"
+	    }
+	}
+	# Would be nice to dump agents attached to the dmux here?
+	if {[llength [$n set agents_]] > 0} {
+	    puts ""
+	    puts "\tAgents at node (possibly in order of creation):"
+	    foreach a [$n set agents_] {
+		puts "\t\t$a\t[gc $a]\t\tportID: [$a set portID_]([$a set addr_])"
+	    }
+	}
+	puts "---"
+    }
 }

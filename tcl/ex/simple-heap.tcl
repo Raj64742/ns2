@@ -49,6 +49,10 @@ puts [$cbr0 set interval_]
 $ns at 3.0 "finish"
 
 proc finish {} {
+	global ns f
+	close $f
+	$ns flush-trace
+
 	puts "converting output to nam format..."
 	exec awk -f ../nam-demo/nstonam.awk out.tr > simple-nam.tr 
 	exec rm -f out

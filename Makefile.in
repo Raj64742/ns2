@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.18 1997/04/25 22:11:55 breslau Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.19 1997/04/28 19:31:19 kannan Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -52,7 +52,7 @@ INCLUDE = \
 	@V_INCLUDE_OTCL@ \
 	@V_INCLUDE_X11@
 
-DEFINE = @V_DEFINE@ -DNO_TK
+DEFINE = @V_DEFINE@ -DNO_TK -Dabort=_ABORT
 STATIC = @V_STATIC@
 
 CFLAGS =  $(INCLUDE) $(DEFINE) $(CCOPT)
@@ -124,8 +124,8 @@ ns: $(OBJ) tclAppInit.o
 nsx: $(OBJ) tkAppInit.o $(OBJ_NAM)
 	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) $(OBJ_NAM) tkAppInit.o $(LIB)
 
-ns.dyn: $(OBJ)
-	$(C++) -o $@ $(CFLAGS) $(OBJ) $(LIB)
+ns.dyn: $(OBJ) tclAppInit.o
+	$(C++) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
 
 gen/version.c: VERSION
 	@rm -f $@

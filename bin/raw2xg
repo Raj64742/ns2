@@ -1,0 +1,49 @@
+#! /nfs/filb2/public/bin/perl
+#! /import/bin/perl
+
+
+sub writeln { print @_, "\n"; }
+$c = 0;
+@p = @d = @lu = @ld = ();
+
+$file = '';
+
+while (<>) {
+	@F = split;
+	/testName/ && ($file = $F[2], next);
+	/^[\+-] / && do {
+		push(@p, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n")
+				if ($F[4] eq 'tcp' || $F[4] eq 'ack');
+		$c = $F[7] if ($c < $F[7]);
+		next;
+	};
+	/^d / && do {
+		push(@d, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
+		next;
+	};
+	/link-down/ &&	(push(@ld, $F[1]), next);
+	/link-up/ &&	(push(@lu, $F[1]), next);
+}
+
+writeln('TitleText: ', $file);
+writeln('Device: ', 'Postscript');
+writeln('"packets', @p);
+
+# insert dummy data sets so we get X's for marks in data-set 4
+writeln('"skip-1', "\n", '0 1', "\n");
+writeln('"skip-2', "\n", '0 1', "\n");
+
+#
+# Repeat the first line twice in the drops file because often we have only
+# one drop and xgraph won't print marks for data sets with only one point.
+#
+writeln("\n", '"drops', "\n", @d[0..3], @d);
+
+$c++;
+foreach $i (@ld) {
+	writeln("\n", '"link-down', "\n$i 0", "\n$i $c");
+}
+foreach $i (@lu) {
+	writeln("\n", '"link-up', "\n$i 0", "\n$i $c");
+}
+exit;

@@ -34,17 +34,18 @@
 #ifndef ns_delay_h
 #define ns_delay_h
 
+#include <assert.h>
+
 #include "packet.h"
 #include "queue.h"
 #include "ip.h"
-
-class InTransitQ;
 
 class LinkDelay : public Connector {
  public:
 	LinkDelay();
 	void recv(Packet* p, Handler*);
 	void send(Packet* p, Handler*);
+	void handle(Event* e);
 	inline void drop(Packet* p) { Packet::free(p); }
 	double delay() { return delay_; }
 	inline double txtime(Packet* p) {
@@ -60,52 +61,24 @@ class LinkDelay : public Connector {
 	double delay_;		/* line latency */
 	Event intr_;
 	int dynamic_;		/* indicates whether or not link is ~ */
-	InTransitQ* intq_;
-};
-
-
-class InTransitQ : public PacketQueue , public Handler {
-public:
-	InTransitQ(LinkDelay* ld) : ld_(ld), nextPacket_(0) {}
-
-	void schedule_next() {
-		Packet* np;
-		if (np = deque()) {
-			Scheduler& s = Scheduler::instance();
-			double txt = ld_->txtime(np);
-			if (nextPacket_)	// just got delivered
-				s.schedule(this, &itq_, txt);
-			else
-				s.schedule(this, &itq_, txt + ld_->delay());
-		}
-		nextPacket_ = np;
-	}
-
-	void handle(Event* e) {
-		ld_->send(nextPacket_, (Handler*) NULL);
-		schedule_next();
-	}
-
-	void hold_in_transit(Packet* p) {
-		enque(p);
-		if (! nextPacket_)
-			schedule_next();
-	}
-
-	void reset() {
-		if (nextPacket_) {
-			Scheduler::instance().cancel(&itq_);
-			Packet::free(nextPacket_);
-			nextPacket_ = (Packet*) NULL;
-			while (Packet* np = deque())
-				Packet::free(np);
-		}
-	}
+	Event inTransit_;
+	PacketQueue* itq_;
+	Packet* nextPacket_;
 
 private:
-	LinkDelay* ld_;
-	Packet* nextPacket_;
-	Event itq_;
+	void schedule_next() {
+		if (! nextPacket_) {
+			Scheduler& s = Scheduler::instance();
+
+			if (nextPacket_ = itq_->deque()) { /* ASSIGN */
+				Event* pe = (Packet*) nextPacket_;
+				double delay = pe->time_ - s.clock();
+				assert(delay > 0);
+
+				s.schedule(this, &inTransit_, delay);
+			}
+		}
+	}
 };
 
 #endif
