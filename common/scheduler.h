@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.19 2000/11/06 16:41:54 mehringe Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.20 2000/11/06 18:53:20 mehringe Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -42,11 +42,12 @@
 // Make use of 64 bit integers if available.
 #ifdef HAVE_INT64
 typedef int64_t scheduler_uid_t;
-#define UID_PRINTF_FORMAT "STRTOI64_FMTSTR"
+#define UID_PRINTF_FORMAT STRTOI64_FMTSTR
 #define STRTOUID(S) STRTOI64((S), NULL, 0)
 #else
 typedef int scheduler_uid_t;
 #define UID_PRINTF_FORMAT "%d"
+#define STRTOUID(S) atoi((S))
 #endif
 
 
