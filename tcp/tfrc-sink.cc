@@ -208,13 +208,14 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 		rtvec_[seqno%hsz]=now;	
 		tsvec_[seqno%hsz]=last_timestamp_;	
 		if (hf->ect() == 1 && hf->ce() == 1) {
+			// ECN action
 			lossvec_[seqno%hsz] = ECN_RCVD;
 			if (new_loss(seqno, tsvec_[seqno%hsz])) {
-				// ECN action
 				ecnEvent = 1;
 				lossvec_[seqno%hsz] = ECNLOST;
 				losses_since_last_report++;
-			} else if (algo == WALI) {
+			} 
+			if (algo == WALI) {
                        		++ losses[0];
 			}
 		} else lossvec_[seqno%hsz] = RCVD;
@@ -249,9 +250,9 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 					// This lost packet is marked "NOT_RCVD"
 					// as it does not begin a loss event.
 					lossvec_[i%hsz] = NOT_RCVD; 
-					if (algo == WALI) {
-				    		++ losses[0];
-					}
+				}
+				if (algo == WALI) {
+			    		++ losses[0];
 				}
 				losses_since_last_report++;
 			}
