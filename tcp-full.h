@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.8 1997/11/22 00:44:39 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.9 1997/11/26 21:29:58 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -58,6 +58,8 @@
 #define TCPS_CLOSING            7       /* closed xchd FIN; await FIN ACK */
 #define TCPS_LAST_ACK           8       /* had fin and close; await FIN ACK */
 #define TCPS_FIN_WAIT_2         9       /* have closed, fin is acked */
+
+#define TCPS_HAVERCVDFIN(s)     ((s) == TCPS_CLOSING || (s) == TCPS_CLOSED)
 
 #define TCPIP_BASE_PKTSIZE      40      /* base TCP/IP header in real life */
 /* these are used to mark packets as to why we xmitted them */
