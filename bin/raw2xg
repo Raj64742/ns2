@@ -162,7 +162,6 @@ print "TitleText: $title\n" .
     "XUnitText: time\n" .
     "YUnitText: packets\n";
 
-@sorted_p = sort (@p);
 print "\n\"packets\n", @p;
 
 
