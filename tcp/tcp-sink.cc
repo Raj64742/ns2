@@ -180,6 +180,7 @@ TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL),
 	lastreset_(0.0)
 {
 	bytes_ = 0; 
+	bind("bytes_", &bytes_);
 
 	/*
 	 * maxSackBlocks_ does wierd tracing things.
@@ -364,8 +365,10 @@ void TcpSink::recv(Packet* pkt, Handler*)
 	// update the recv window; figure out how many in-order-bytes
 	// (if any) can be removed from the window and handed to the
 	// application
-	if (numToDeliver)
+	if (numToDeliver) {
+		bytes_ += numToDeliver;
 		recvBytes(numToDeliver);
+	}
 	// send any packets to the application
       	ack(pkt);
 	// ACK the packet
@@ -384,7 +387,8 @@ public:
 DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 {
 	bind_time("interval_", &interval_);
-	bind("bytes_", &bytes_); // useby JOBS
+	// Deleted the line below, since this is bound in TcpSink.
+	// bind("bytes_", &bytes_); // useby JOBS
 }
 
 void DelAckSink::reset() {
