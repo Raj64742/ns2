@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.10 1998/08/14 20:09:35 tomh Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.11 1998/10/22 00:10:45 tomh Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h
@@ -23,6 +23,10 @@
 
 #include "agent.h"
 #include "trafgen.h"
+
+//"rtp timestamp" needs the samplerate
+#define SAMPLERATE 8000
+#define RTP_M 0x0080 // marker for significant events
 
 class UdpAgent : public Agent {
 public:

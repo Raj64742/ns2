@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.7 1998/08/14 20:09:29 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.8 1998/10/22 00:10:43 tomh Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -37,10 +37,7 @@ class EXPOO_Traffic : public TrafficGenerator {
  public:
 	EXPOO_Traffic();
 	virtual double next_interval(int&);
-	//HACK so that udp agent knows interpacket arrival time within a burst
-	inline double interval() {
-	return (interval_);
-	}
+        virtual void timeout();
  protected:
 	void init();
 	double ontime_;   /* average length of burst (sec) */
@@ -103,4 +100,24 @@ double EXPOO_Traffic::next_interval(int& size)
 	size = size_;
 	return(t);
 }
+
+void EXPOO_Traffic::timeout()
+{
+	if (! running_)
+		return;
+
+	/* send a packet */
+	// The test tcl/ex/test-rcvr.tcl relies on the "NEW_BURST" flag being 
+	// set at the start of any exponential burst ("talkspurt").  
+	if (nextPkttime_ != interval_ || nextPkttime_ == -1) 
+		agent_->sendmsg(size_, "NEW_BURST");
+	else 
+		agent_->sendmsg(size_, 0);
+	/* figure out when to send the next one */
+	nextPkttime_ = next_interval(size_);
+	/* schedule it */
+	if (nextPkttime_ > 0)
+		timer_.resched(nextPkttime_);
+}
+
 

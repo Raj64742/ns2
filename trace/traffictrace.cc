@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.8 1998/08/14 20:09:34 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.9 1998/10/22 00:10:44 tomh Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -228,7 +228,10 @@ void TrafficTrace::timeout()
                 return;
 
         /* send a packet */
-        send(size_);
+	// Note:  May need to set "NEW_BURST" flag in sendmsg() for 
+	// signifying a new talkspurt when using vat traces.
+	// (see expoo.cc, tcl/ex/test-rcvr.tcl)
+	agent_->sendmsg(size_);
         /* figure out when to send the next one */
         nextPkttime_ = next_interval(size_);
         /* schedule it */

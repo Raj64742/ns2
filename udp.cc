@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.13 1998/08/27 16:38:57 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.14 1998/10/22 00:10:45 tomh Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -44,7 +44,9 @@ UdpAgent::UdpAgent(int type) : Agent(type)
 	bind("packetSize_", &size_);
 }
 
-void UdpAgent::sendmsg(int nbytes, const char* /*flags*/)
+// put in timestamp and sequence number, even though UDP doesn't usually 
+// have one.
+void UdpAgent::sendmsg(int nbytes, const char* flags)
 {
 	Packet *p;
 	int n;
@@ -58,10 +60,17 @@ void UdpAgent::sendmsg(int nbytes, const char* /*flags*/)
 		printf("Error:  sendmsg() for UDP should not be -1\n");
 		return;
 	}	
+	double local_time =Scheduler::instance().clock();
 	while (n-- > 0) {
 		p = allocpkt();
 		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+		rh->flags() = 0;
 		rh->seqno() = ++seqno_;
+		hdr_cmn::access(p)->timestamp() = 
+		    (u_int32_t)(SAMPLERATE*local_time);
+		// add "beginning of talkspurt" labels (tcl/ex/test-rcvr.tcl)
+		if (flags && (0 ==strcmp(flags, "NEW_BURST")))
+			rh->flags() |= RTP_M;
 		target_->recv(p);
 	}
 	n = nbytes % size_;
@@ -69,7 +78,13 @@ void UdpAgent::sendmsg(int nbytes, const char* /*flags*/)
 		p = allocpkt();
 		hdr_cmn::access(p)->size() = n;
 		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+		rh->flags() = 0;
 		rh->seqno() = ++seqno_;
+		hdr_cmn::access(p)->timestamp() = 
+		    (u_int32_t)(SAMPLERATE*local_time);
+		// add "beginning of talkspurt" labels (tcl/ex/test-rcvr.tcl)
+		if (flags && (0 == strcmp(flags, "NEW_BURST")))
+			rh->flags() |= RTP_M;
 		target_->recv(p);
 	}
 	idle();
