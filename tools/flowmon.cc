@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.5 1997/06/20 01:59:53 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.6 1997/06/24 23:49:25 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -55,6 +55,9 @@ class Flow : public EDQueueMonitor {
 public:
 	Flow() : src_(-1), dst_(-1), fid_(-1), type_(-1) {
 		bind("off_ip_" ,&off_ip_);
+		bind("src_", &src_);
+		bind("dst_", &dst_);
+		bind("flowid_", &fid_);
 	}
 	nsaddr_t src() const { return (src_); }
 	nsaddr_t dst() const { return (dst_); }
