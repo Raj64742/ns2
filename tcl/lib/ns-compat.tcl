@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.32 1997/07/26 00:42:47 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.33 1997/07/30 23:41:24 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -46,18 +46,85 @@ proc ns args {
 	eval ns $args
 }
 
+OldSim instproc default_catch { varName index op } {
+	if { $index == "" } {
+		error "ns-1 compat: default change caught, but not a default! (varName: $varName)"
+		exit 1
+	}
 
-OldSim instproc old_default_abort {varName index op} {
-	upvar $varName var
-	puts "error: ns-2 compatibility library cannot set ns-v1 defaults"
-	puts "\t$varName $index $op"
-	exit 1
+	if { $op == "r" || $op == "u" } {
+		error "ns-1 compat: default change caught a $op operation"
+		exit 1
+	}
+	set vname ${varName}($index)
+	upvar $vname var
+	$self default_assign $varName $index $var
 }
 
-OldSim instproc map_ns_defaults old_var {
-	global $old_var
-	trace variable $old_var rwu "$self old_default_abort"
-	# eventually we'll try to emulate the old variables.
+
+OldSim instproc default_assign {aname index newval} {
+	$self instvar classMap_ queueMap_
+	if { $index == "" } {
+		puts "something funny with default traces"
+		exit 1
+	}
+	set obj [string trimleft $aname ns_]
+	#
+	# special case the link array
+	#
+	if { $obj == "link" } {
+		if { $index == "queue-limit" } {
+			Queue set limit_ $newval
+			return
+		}
+		set ivar "$index\_"
+		if { [lsearch [DelayLink info vars] $ivar] >= 0 } {
+			DelayLink set $ivar $newval
+			return
+		}
+		error "warning: ns-1 compatibility library cannot set link default ${aname}($index)"
+		return
+	}
+
+	#
+	# now everyone else
+	#
+	if ![info exists classMap_($obj)] {
+		if ![info exists queueMap_($obj)] {
+			puts "error: ns-2 compatibility library cannot set ns-v1 default ${aname}($index)"
+			exit 1
+		} else {
+			set ns2obj "Queue/$queueMap_($obj)"
+		}
+	} else {
+		set ns2obj $classMap_($obj)
+	}
+	TclObject instvar varMap_ 
+	if ![info exists varMap_($index)] {
+		puts "error: ns-2 compatibility library cannot map instvar $index in class $ns2obj"
+		exit 1
+	}
+	$ns2obj set $varMap_($index) $newval
+
+}
+
+#
+# see if this array has any elements already set
+# if so, arrange for the value to be set in ns-2
+# also, add a trace hook so that future changes get
+# reflected into ns-2
+#
+OldSim instproc map_ns_defaults old_arr {
+	global $old_arr ; # these were all globals in ns-1
+	TclObject instvar varMap_
+
+	foreach el [array names $old_arr] {
+		set val [expr "$${old_arr}($el)"]
+		$self default_assign $old_arr $el $val
+	}
+
+	# arrange to trace any read/write/unset op
+	trace variable $old_arr rwu "$self default_catch"
 }
 
 OldSim instproc trace_old_defaults {} {
@@ -197,6 +264,7 @@ OldSim instproc init args {
 
 	# Trace
 	TclObject set varMap_(src) src_
+	TclObject set varMap_(show_tcphdr) show_tcphdr_
 
 	# TCP
 	TclObject set varMap_(window) window_
@@ -207,7 +275,6 @@ OldSim instproc init args {
 	TclObject set varMap_(overhead) overhead_
 	TclObject set varMap_(tcp-tick) tcpTick_
 	TclObject set varMap_(ecn) ecn_
-	TclObject set varMap_(packet-size) packetSize_
 	TclObject set varMap_(bug-fix) bugFix_
 	TclObject set varMap_(maxburst) maxburst_
 	TclObject set varMap_(maxcwnd) maxcwnd_
@@ -221,6 +288,9 @@ OldSim instproc init args {
 	TclObject set varMap_(srtt) srtt_
 	TclObject set varMap_(rttvar) rttvar_
 	TclObject set varMap_(backoff) backoff_
+	TclObject set varMap_(v-alpha) v_alpha_
+	TclObject set varMap_(v-beta) v_beta_
+	TclObject set varMap_(v-gamma) v_gamma_
 
 	# Agent/TCP/NewReno
 	TclObject set varMap_(changes) newreno_changes_
@@ -249,6 +319,12 @@ OldSim instproc init args {
 	TclObject set varMap_(doubleq) doubleq_
 	TclObject set varMap_(dqthresh) dqthresh_
 	TclObject set varMap_(subclasses) subclasses_
+	# CBQClass
+	TclObject set varMap_(algorithm) algorithm_
+	TclObject set varMap_(max-pktsize) maxpkt_
+	TclObject set varMap_(priority) priority_
+	TclObject set varMap_(maxidle) maxidle_
+	TclObject set varMap_(extradelay) extradelay_
 
 	# Agent/TCPSinnk, Agent/CBR
 	TclObject set varMap_(packet-size) packetSize_
@@ -256,6 +332,15 @@ OldSim instproc init args {
 
 	# Agent/CBR
 	TclObject set varMap_(random) random_
+
+	# IVS
+	TclObject set varMap_(S) S_
+	TclObject set varMap_(R) R_
+	TclObject set varMap_(state) state_
+	TclObject set varMap_(rttShift) rttShift_
+	TclObject set varMap_(keyShift) keyShift_
+	TclObject set varMap_(key) key_
+	TclObject set varMap_(maxrtt) maxrtt_
 
 	Class traceHelper
 	traceHelper instproc attach f {
@@ -459,15 +544,25 @@ OldSim instproc init args {
 	set classMap_(tcp-reno) Agent/TCP/Reno
 	set classMap_(tcp-vegas) Agent/TCP/Vegas
 	set classMap_(tcp-full) Agent/TCP/FullTcp
+	set classMap_(fulltcp) Agent/TCP/FullTcp
 	set classMap_(tcp-fack) Agent/TCP/Fack
+	set classMap_(facktcp) Agent/TCP/Fack
 	set classMap_(tcp-newreno) Agent/TCP/Newreno
+	set classMap_(tcpnewreno) Agent/TCP/Newreno
 	set classMap_(cbr) Agent/CBR
 	set classMap_(tcp-sink) Agent/TCPSink
 	set classMap_(tcp-sack1) Agent/TCP/Sack1
 	set classMap_(sack1-tcp-sink) Agent/TCPSink/Sack1
 	set classMap_(tcp-sink-da) Agent/TCPSink/DelAck
 	set classMap_(sack1-tcp-sink-da) Agent/TCPSink/Sack1/DelAck
+	set classMap_(sink) Agent/TCPSink
+	set classMap_(delsink) Agent/TCPSink/DelAck
+	set classMap_(sacksink) Agent/TCPSink ; # sacksink becomes TCPSink here
 	set classMap_(loss-monitor) Agent/LossMonitor
+	set classMap_(class) CBQClass
+	set classMap_(ivs) Agent/IVS/Source
+	set classMap_(trace) Trace
+	set classMap_(srm) Agent/SRM
 
 	$self instvar queueMap_
 	set queueMap_(drop-tail) DropTail
@@ -477,6 +572,30 @@ OldSim instproc init args {
 	set queueMap_(wrr-cbq) CBQ/WRR
 
 	$self trace_old_defaults
+
+	#
+	# this is a hack to deal with the unfortunate name
+	# of a CBQ class chosen in ns-1 (i.e. "class").
+	#
+	# the "new" procedure in Tcl/tcl-object.tcl will end
+	# up calling:
+	#	eval class create id ""
+	# so, catch this here... yuck
+
+	proc class args {
+		set arglen [llength $args]
+		if { $arglen < 2 } {
+			return
+		}
+		set op [lindex $args 0]
+		set id [lindex $args 1]
+		if { $op != "create" } {
+			error "ns-v1 compat: malformed class operation: op $op"
+			return
+		}
+		set a [lrange $args 2 [expr $arglen - 1]]
+		CBQClass create $id $a
+	}
 }
 
 #
