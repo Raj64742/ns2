@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.49 2001/02/01 22:56:21 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.50 2001/09/21 19:28:38 alefiyah Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -66,9 +66,8 @@
  * Note: do NOT use these expecting them to be 8 and 32 bits long...
  * use {,u_}int{8,16,32}_t if you care about size.
  */
-typedef unsigned char u_char;
-typedef unsigned int u_int;
-
+#typedef unsigned char u_char;
+#typedef unsigned int u_int;
 typedef int32_t nsaddr_t; 
 typedef int32_t nsmask_t; 
 
