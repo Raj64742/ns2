@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.18 1999/09/10 23:47:38 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.19 1999/10/04 18:45:18 salehi Exp $
 #
 
 #
@@ -44,6 +44,7 @@
 Agent instproc set args {
 	if { [lindex $args 0] == "dst_" } {
 		puts "Warning dst_ is no longer being supported in NS. $args"
+		puts "Use dst_addr_ and dst_port_ instead"
 		$self instvar dst_addr_ dst_port_
 		set addr [lindex $args 1]
 		set baseAddr [Simulator set McastBaseAddr_]
