@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.3 2000/09/01 17:38:56 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.4 2001/05/30 16:57:13 haldar Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
@@ -553,7 +553,9 @@ public:
 
 	bool init(LsNode* nodePtr);
 	void computeRoutes() {
-		routingTablePtr_ = _computeRoutes();
+	        if (routingTablePtr_ != NULL)
+	                delete routingTablePtr_;
+	        routingTablePtr_ = _computeRoutes();
 	}
 	LsEqualPaths* lookup(int destId) {
 		return (routingTablePtr_ == NULL) ? 
