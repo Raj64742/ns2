@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.19 2003/02/06 17:00:18 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.20 2003/08/01 21:56:45 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -66,7 +66,6 @@ PagePool/WebTraf set FLOW_SIZE_TH_ 15
 PagePool/WebTraf set FLOW_SIZE_OPS_ 0
 
 PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk size pobj} {
-    $self instvar req_trace_
     $self instvar timer_
 
     set launch_req 1
@@ -104,7 +103,7 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk size pobj} {
 	$ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $size $pobj $timer_"
 	
 	# Trace web traffic flows (send request: client==>server).
-	if {$req_trace_} {	
+	if {[PagePool/WebTraf set req_trace_]} {	
 	    puts "req + $id $pid $size [$clnt id] [$svr id] [$ns now]"
 	}	
 	
@@ -115,8 +114,6 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk size pobj} {
 }
 
 PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk size pobj timer} {
-    $self instvar req_trace_
-
     # Cancel the connection timer if any
     if {[PagePool/WebTraf set enable_conn_timer_]} {
 	$timer cancel
@@ -141,7 +138,7 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk size pobj timer} 
     if {$delay == 0} {
 	# Trace web traffic flows (recv request: client==>server).
 	# Request has been rejected by server due to its capacity
-	if {$req_trace_} {	
+	if {[PagePool/WebTraf set req_trace_]} {	
 	    puts "req d $id $pid $size [$clnt id] [$svr id] [$ns now]"
 	}
 	# Recycle TCP agents
@@ -151,7 +148,7 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk size pobj timer} 
     } else {
 	# Trace web traffic flows (recv request: client==>server).
 	# Request has been received by server successfully
-	if {$req_trace_} {	
+	if {[PagePool/WebTraf set req_trace_]} {	
 	    puts "req - $id $pid $size [$clnt id] [$svr id] [$ns now]"
 	}
     }
@@ -159,8 +156,6 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk size pobj timer} 
 }
 
 PagePool/WebTraf instproc launch-resp { id pid svr clnt stcp ssnk size pobj} {
-    $self instvar resp_trace_
-
     set flow_th [PagePool/WebTraf set FLOW_SIZE_TH_]
 
     set ns [Simulator instance]
@@ -193,7 +188,7 @@ PagePool/WebTraf instproc launch-resp { id pid svr clnt stcp ssnk size pobj} {
     $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $sent $flow_th [$ns now] [$stcp set fid_] $pobj"
     
     # Trace web traffic flows (send responese: server->client).
-    if {$resp_trace_} {
+    if {[PagePool/WebTraf set resp_trace_]} {
 	puts "resp + $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
     }
     # Send a single packet as a request
@@ -201,12 +196,10 @@ PagePool/WebTraf instproc launch-resp { id pid svr clnt stcp ssnk size pobj} {
 }
 
 PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0} pobj } {
-    $self instvar resp_trace_
-
     set ns [Simulator instance]
     
     # modified to trace web traffic flows (recv responese: server->client).
-    if {$resp_trace_} {
+    if {[PagePool/WebTraf set resp_trace_]} {
 	puts "resp - $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
     }
     
@@ -241,7 +234,7 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	set left [expr $size - $sent]
 	if {$left <= $sent_th} {
 	    # modified to trace web traffic flows (send responese: server->client).
-	    if {$resp_trace_} {
+	    if {[PagePool/WebTraf set resp_trace_]} {
 		puts "resp + $id $pid $left $size [$svr id] [$clnt id] [$ns now]"
 	    }
 	    set sent [expr $sent + $left]
@@ -250,7 +243,7 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	    $self send-message $stcp $left
 	} else {
 	    # modified to trace web traffic flows (send responese: server->client).
-	    if {$resp_trace_} {
+	    if {[PagePool/WebTraf set resp_trace_]} {
 		puts "resp + $id $pid $sent_th $size [$svr id] [$clnt id] [$ns now]"
 	    }
 	    set sent [expr $sent + $sent_th]
