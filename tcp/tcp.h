@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.58 1998/11/05 03:11:58 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.59 1998/11/28 17:43:21 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -268,6 +268,8 @@ protected:
 				   that the sender responded to congestion. */
         int ecn_burst_;		/* True when the previous ACK packet
 				 *  carried ECN-Echo. */
+	int ecn_backoff_;	/* True when retransmit timer should begin
+			  	    to be backed off.  */
         int eln_;               /* Explicit Loss Notification (wireless) */
         int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
         int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */

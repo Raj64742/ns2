@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.82 1998/10/20 23:35:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.83 1998/11/28 17:43:05 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -68,7 +68,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this),
 	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
-	maxseq_(0), cong_action_(0), ecn_burst_(0), 
+	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
 	restart_bugfix_(1), closed_(0), nrexmit_(0)
 	
 {
@@ -520,15 +520,15 @@ void TcpAgent::set_rtx_timer()
 
 /*
  * Set new retransmission timer if not all outstanding
- * data has been acked.  Otherwise, if a timer is still
+ * or available data acked.  Otherwise, if a timer is still
  * outstanding, cancel it.
  */
 void TcpAgent::newtimer(Packet* pkt)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
-	if (t_seqno_ > tcph->seqno())
+	if (t_seqno_ > tcph->seqno()) {
 		set_rtx_timer();
-	else
+	} else
 		cancel_rtx_timer();
 }
 
@@ -668,7 +668,10 @@ void TcpAgent::newack(Packet* pkt)
 			rtt_update(now - tcph->ts_echo());
 
 		if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
-			t_backoff_ = 1;
+			if (!ecn_backoff_)
+				/* Don't end backoff if ECN-Echo with
+			 	* a congestion window of 1 packet */
+				t_backoff_ = 1;
 			rtt_active_ = 0;
 			if (!ts_option_)
 				rtt_update(now - rtt_ts_);
@@ -677,6 +680,7 @@ void TcpAgent::newack(Packet* pkt)
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
 	awnd_ += wnd_th_ * cwnd_;
+	if (last_ack_ == 0) newtimer(pkt);
 }
 
 
@@ -696,6 +700,11 @@ void TcpAgent::ecn(int seqno)
 		recover_ =  maxseq_;
 		last_cwnd_action_ = CWND_ACTION_ECN;
 		slowdown(CLOSE_CWND_HALF|CLOSE_SSTHRESH_HALF);
+		if (cwnd_ <= 1.0) {
+			if (ecn_backoff_) 
+				rtt_backoff();
+			else ecn_backoff_ = 1;
+		} else ecn_backoff_ = 0;
 	}
 }
 
@@ -816,14 +825,18 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 #endif
 	++nackpack_;
 	ts_peer_ = tcph->ts();
-	if (hdr_flags::access(pkt)->ecnecho() && ecn_)
+	int ecnecho = hdr_flags::access(pkt)->ecnecho();
+	if (ecnecho && ecn_)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
-		if (last_ack_ == 0 && delay_growth_) {
-			cwnd_ = initial_window();
+		if (last_ack_ == 0) { 
+			if (delay_growth_ && !ecnecho)
+				cwnd_ = initial_window();
+			else if (ecnecho)
+				cwnd_ = 0;
 		}
 	} else if (tcph->seqno() == last_ack_) {
                 if (hdr_flags::access(pkt)->eln_ && eln_) {
@@ -859,13 +872,12 @@ void TcpAgent::timeout(int tno)
 {
 	/* retransmit timer */
 	if (tno == TCP_TIMER_RTX) {
-		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
+		if (highest_ack_ == maxseq_ && !slow_start_restart_)
 			/*
 			 * TCP option:
 			 * If no outstanding data, then don't do anything.
 			 */
 			return;
-		};
 		recover_ = maxseq_;
 		if (highest_ack_ == -1 && wnd_init_option_ == 2)
 			/* 
