@@ -1,6 +1,6 @@
 /* 
    aodv.cc
-   $Id: aodv.cc,v 1.3 1999/10/13 22:52:57 heideman Exp $
+   $Id: aodv.cc,v 1.4 1999/10/15 09:04:15 yaxu Exp $
  */
 
 /* The AODV code developed by the CMU/MONARCH group was optimized
@@ -57,7 +57,7 @@ redistribute these changes without encumbrance.
 #define max(a,b)        a > b ? a : b
 #define CURRENT_TIME    Scheduler::instance().clock()
 
-// #define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 static int extra_route_reply = 0;
