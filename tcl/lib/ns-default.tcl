@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.257 2001/07/24 20:53:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.258 2001/08/02 03:59:54 sfloyd Exp $
 
 
 #
@@ -87,6 +87,7 @@ Queue/FQ set secsPerByte_ 0
 FQLink set queueManagement_ DropTail
 
 Queue/DropTail set drop_front_ false
+Queue/DropTail set summarystats_ false
 
 Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
 

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.9 1998/06/27 01:23:44 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.10 2001/08/02 03:59:53 sfloyd Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -47,9 +47,24 @@ static class DropTailClass : public TclClass {
 	}
 } class_drop_tail;
 
+void DropTail::reset()
+{
+	if (summarystats) {
+		v_total_time = 0.0;
+		v_true_ave = 0.0;
+	}
+	Queue::reset();
+}
+
 int 
 DropTail::command(int argc, const char*const* argv) {
 
+	if (argc==2) {
+		if (strcmp(argv[1], "printstats") == 0) {
+			print_summarystats();
+			return (TCL_OK);
+		}
+	}
 	if (argc == 3) {
 		if (!strcmp(argv[1], "packetqueue-attach")) {
 			delete q_;
@@ -63,11 +78,22 @@ DropTail::command(int argc, const char*const* argv) {
 	}
 	return Queue::command(argc, argv);
 }
+
 /*
  * drop-tail
  */
 void DropTail::enque(Packet* p)
 {
+	if (summarystats) {
+		double now = Scheduler::instance().clock();
+		double oldave = v_true_ave;
+		double oldtime = v_total_time;
+		double newtime = now - v_total_time;
+		int newsize;
+		newsize = q_->length();
+		v_true_ave = (oldtime * oldave + newtime * newsize)/now;
+		v_total_time = now;
+	}
 	q_->enque(p);
 	if (q_->length() >= qlim_) {
 		if (drop_front_) { /* remove from head of queue */
@@ -82,5 +108,25 @@ void DropTail::enque(Packet* p)
 
 Packet* DropTail::deque()
 {
+        if (summarystats && &Scheduler::instance() != NULL) {
+                double now = Scheduler::instance().clock();
+                double oldtime = v_total_time;
+                double newtime = now - v_total_time;
+                if (newtime > 0.0 && now != 0.0) {
+                        double oldave = v_true_ave;
+                        double oldtime = v_total_time;
+                        double newtime = now - v_total_time;
+                        int newsize;
+                        newsize = q_->length();
+                        v_true_ave = (oldtime * oldave + newtime * newsize)/now;
+                        v_total_time = now;
+                }  
+        }
 	return q_->deque();
+}
+
+void DropTail::print_summarystats()
+{
+	double now = Scheduler::instance().clock();
+	printf("True average queue: %5.3f time: %5.3f\n", v_true_ave, v_total_time);
 }
