@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.163 1999/07/24 04:29:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.164 1999/07/30 00:08:41 sfloyd Exp $
 
 
 #
@@ -172,6 +172,9 @@ Agent/TFRM set SampleSizeMult_ 4
 Agent/TFRM set bval_ 1
 Agent/TFRM set overhead_ 0 
 Agent/TFRM set ssmult_ 2 
+Agent/TFRM set rate_ 0.0 
+Agent/TFRM set oldrate_ 0.0 
+Agent/TFRM set maxrate_ 0.0 
 
 Agent/TFRMSink set packetSize_ 40
 Agent/TFRMSink set SampleSizeMult_ 4
