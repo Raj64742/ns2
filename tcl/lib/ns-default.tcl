@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.239 2001/05/11 19:08:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.240 2001/05/12 21:31:50 sfloyd Exp $
 
 
 #
@@ -615,8 +615,8 @@ Agent/TCP set rtxcur_init_ 6.0
 Agent/TCP set T_SRTT_BITS 3
 Agent/TCP set T_RTTVAR_BITS 2
 Agent/TCP set rttvar_exp_ 2
-Agent/TCP set timerfix_ true		# Variable added on 2001/05/11
-					# Set to "false" to give the old
+Agent/TCP set timerfix_ true ; 		# Variable added on 2001/05/11
+ 					# Set to "false" to give the old 
 					#  behavior. 
 Agent/TCP instproc done {} { }
 Agent/TCP set noFastRetrans_ false
