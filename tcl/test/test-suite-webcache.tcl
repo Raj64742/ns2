@@ -5,13 +5,13 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.12 1999/09/09 03:44:21 salehi Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.13 1999/09/09 20:37:11 salehi Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
-source /home/salehi/programming/ns/32bit/misc.tcl
-source /home/salehi/programming/ns/32bit/topologies.tcl
+source misc.tcl
+source topologies.tcl
 
 #----------------------------------------------------------------------
 # Misc setup
