@@ -13,6 +13,7 @@ RTMechanisms instproc bindboxes {} {
 	$self instvar goodslot_ badslot_
 
         set classifier [$cbqlink_ classifier]
+	#$classifier dump
         set goodslot_ [$classifier installNext $goodclass_]
 	set badslot_ [$classifier installNext $badclass_]
         $classifier set default_ $goodslot_
@@ -98,14 +99,15 @@ RTMechanisms instproc makeflowmon {} {
         set pbody {
 		set ns [$rtm_ set ns_]
 		set okcl [[$rtm_ set okboxfm_] classifier]
+                ## puts "here, okcl: $okcl self: $self"
 		if { $okcl == $self } {
 			# see if this flow moved to the pbox
 			set pboxcl [[$rtm_ set pboxfm_] classifier]
-			set moved [$pboxcl lookup $hashbucket $src $dst $fid]
+			set moved [$pboxcl lookup auto $src $dst $fid]
 		} else {
 			# see if this flow moved to the okbox
 			set okboxcl [[$rtm_ set okboxfm_] classifier]
-			set moved [$okboxcl lookup $hashbucket $src $dst $fid]
+			set moved [$okboxcl lookup auto $src $dst $fid]
 		}
 		if { $moved != "" } {
 			# residual packet belonging to a moved flow
@@ -113,7 +115,7 @@ RTMechanisms instproc makeflowmon {} {
 		}
                 set fdesc [new QueueMonitor/ED/Flow]
                 set slot [$self installNext $fdesc]
-		$rtm_ vprint 2 "(self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in buck: $hashbucket, slot >$slot<"
+		$rtm_ vprint 2 "(self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in buck: ?, slot >$slot<"
                 $self set-hash auto $src $dst $fid $slot
 		$rtm_ vprint 2 "(self: $self) unknown-flow done"
 flush stdout
@@ -151,6 +153,7 @@ RTMechanisms instproc monitor-link {} {
 	$cl proc unknown-flow { src dst fid } {
 		set nflow [new QueueMonitor/ED/Flow]
 		set slot [$self installNext $nflow]
+		## puts "here1"
 		$self set-hash auto $src $dst $fid $slot
 	}
 	$cl proc no-slot slotnum {
