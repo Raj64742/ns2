@@ -115,11 +115,13 @@ Node/MobileNode instproc reset {} {
 
 Node/MobileNode instproc add-target {agent port } {
     
-    global opt
+    #global opt
     $self instvar dmux_ classifier_
     $self instvar imep_
  
+    set ns_ [Simulator instance]
 
+    set newapi [$ns_ imep-support]
     $agent set sport_ $port
     
     if { $port == 255 } {			# non-routing agents
@@ -127,16 +129,21 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    # Send Target
 	    #
-	    set sndT [cmu-trace Send "RTR" $self]
-
+	    
+	    if {$newapi != ""} {
+	        set sndT [$ns_ mobility-trace Send "RTR" $self]
+	    } else {
+		set sndT [cmu-trace Send "RTR" $self]
+	    }
             if { [info exists opt(imep)] && $opt(imep) == "ON" } {
                  $agent target $imep_(0)
                  $imep_(0) sendtarget $sndT
 
 		 # second tracer to see the actual
                  # types of tora packets before imep packs them
-                 if { [info exists opt(debug)] && $opt(debug) == "ON" } {
-                       set sndT2 [cmu-trace Send "TRP" $self]
+                 #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
+		  if {$newapi != ""} {
+                       set sndT2 [$ns_ mobility-trace Send "TRP" $self]
                        $sndT2 target $imep_(0)
                        $agent target $sndT2
                  }
@@ -150,8 +157,12 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    # Recv Target
 	    #
-	    set rcvT [cmu-trace Recv "RTR" $self]
-
+	     
+	    if {$newapi != ""} {
+	         set rcvT [$ns_ mobility-trace Recv "RTR" $self]
+	    } else {
+		 set rcvT [cmu-trace Recv "RTR" $self]
+	    }
             if {[info exists opt(imep)] && $opt(imep) == "ON" } {
             #    puts "Hacked for tora20 runs!! No RTR revc trace"
                 [$self set ll_(0)] up-target $imep_(0)
@@ -159,8 +170,9 @@ Node/MobileNode instproc add-target {agent port } {
 
                 # need a second tracer to see the actual
                 # types of tora packets after imep unpacks them
-                if { [info exists opt(debug)] && $opt(debug) == "ON" } {
-                                set rcvT2 [cmu-trace Recv "TRP" $self]
+                #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
+		if {$newapi != ""} {
+                                set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
                                 $rcvT2 target $agent
                                 [$self set classifier_] defaulttarget $rcvT2
                  }
@@ -194,14 +206,25 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    # Send Target
 	    #
-	    set sndT [cmu-trace Send AGT $self]
+	   
+	    if {$newapi != ""} {
+	        set sndT [$ns_ mobility-trace Send AGT $self]
+	    } else {
+		set sndT [cmu-trace Send AGT $self]
+	    }
+
 	    $sndT target [$self entry]
 	    $agent target $sndT
 		
 	    #
 	    # Recv Target
 	    #
-	    set rcvT [cmu-trace Recv AGT $self]
+	    if {$newapi != ""} {
+	        set rcvT [$ns_ mobility-trace Recv AGT $self]
+	    } else {
+		set rcvT [cmu-trace Recv AGT $self]
+	    }
+
 	    $rcvT target $agent
 	    $dmux_ install $port $rcvT
 		
@@ -242,12 +265,13 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$self instvar netif_ mac_ ifq_ ll_
 	$self instvar imep_
 	
-	global opt
-
 	#global ns_ opt
 	#set MacTrace [Simulator set MacTrace_]
 
 	set ns_ [Simulator instance]
+
+
+	set imepflag [$ns_ imep-support]
 
 	set t $nifs_
 	incr nifs_
@@ -258,11 +282,11 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	set ll_($t)	[new $lltype]		;# link layer
         set ant_($t)    [new $anttype]
 
-        if {[info exists opt(imep)] && $opt(imep) == "ON" } {              ;# IMEP layer
+        if {$imepflag == "ON" } {              ;# IMEP layer
             set imep_($t) [new Agent/IMEP [$self id]]
             set imep $imep_($t)
 
-            set drpT [cmu-trace Drop "RTR" $self]
+            set drpT [$ns_ mobility-trace Drop "RTR" $self]
             $imep drop-target $drpT
 
             $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
@@ -283,8 +307,15 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	#
 	if { $arptable_ == "" } {
             set arptable_ [new ARPTable $self $mac]
-            set drpT [cmu-trace Drop "IFQ" $self]
-            $arptable_ drop-target $drpT
+            # FOR backward compatibility sake, hack only
+	    
+	    if {$imepflag != ""} {
+                set drpT [$ns_ mobility-trace Drop "IFQ" $self]
+	    } else {
+		set drpT [cmu-trace Drop "IFQ" $self]
+	    }
+	    
+	    $arptable_ drop-target $drpT
         }
 
 	#
@@ -295,7 +326,7 @@ Node/MobileNode instproc add-interface { channel pmodel \
 #	$ll up-target [$self entry]
 	$ll down-target $ifq
 
-	if {[info exists opt(imep)] && $opt(imep) == "ON" } {
+	if {$imepflag == "ON" } {
 	    $imep recvtarget [$self entry]
             $imep sendtarget $ll
             $ll up-target $imep
@@ -305,14 +336,17 @@ Node/MobileNode instproc add-interface { channel pmodel \
 
 
 
-
-
 	#
 	# Interface Queue
 	#
 	$ifq target $mac
 	$ifq set qlim_ $qlen
-	set drpT [cmu-trace Drop "IFQ" $self]
+
+	if {$imepflag != ""} {
+	    set drpT [$ns_ mobility-trace Drop "IFQ" $self]
+	} else {
+	    set drpT [cmu-trace Drop "IFQ" $self]
+        }
 	$ifq drop-target $drpT
 
 	#
@@ -345,28 +379,47 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    #
 	    # Trace RTS/CTS/ACK Packets
 	    #
-	    set rcvT [cmu-trace Recv "MAC" $self]
+
+	    if {$imepflag != ""} {
+	        set rcvT [$ns_ mobility-trace Recv "MAC" $self]
+	    } else {
+		set rcvT [cmu-trace Recv "MAC" $self]
+	    }
 	    $mac log-target $rcvT
 
 
 	    #
 	    # Trace Sent Packets
 	    #
-	    set sndT [cmu-trace Send "MAC" $self]
+	    if {$imepflag != ""} {
+	        set sndT [$ns_ mobility-trace Send "MAC" $self]
+	    } else {
+		set sndT [cmu-trace Send "MAC" $self]
+	    }
 	    $sndT target [$mac down-target]
 	    $mac down-target $sndT
 
 	    #
 	    # Trace Received Packets
 	    #
-	    set rcvT [cmu-trace Recv "MAC" $self]
+
+	    if {$imepflag != ""} {
+		set rcvT [$ns_ mobility-trace Recv "MAC" $self]
+	        
+	    } else {
+	        set rcvT [cmu-trace Recv "MAC" $self]
+	    }
 	    $rcvT target [$mac up-target]
 	    $mac up-target $rcvT
 
 	    #
 	    # Trace Dropped Packets
 	    #
-	    set drpT [cmu-trace Drop "MAC" $self]
+	    if {$imepflag != ""} {
+	        set drpT [$ns_ mobility-trace Drop "MAC" $self]
+	    } else {
+		set drpT [cmu-trace Drop "MAC" $self]`
+	    }
 	    $mac drop-target $drpT
 	} else {
 	    $mac log-target [$ns_ set nullAgent_]
@@ -391,14 +444,18 @@ Node/MobileNode instproc nodetrace { tracefd } {
     $T set src_ [$self id]
     $self log-target $T    
 
-    #agent trace
+}
 
+Node/MobileNode instproc agenttrace {tracefd} {
+
+    set ns_ [Simulator instance]
+    
     set ragent [$self set ragent_]
 
     #
     # Drop Target (always on regardless of other tracing)
     #
-    set drpT [cmu-trace Drop "RTR" $self]
+    set drpT [$ns_ mobility-trace Drop "RTR" $self]
     $ragent drop-target $drpT
     
     #
@@ -408,10 +465,147 @@ Node/MobileNode instproc nodetrace { tracefd } {
     $T target [$ns_ set nullAgent_]
     $T attach $tracefd
     $T set src_ [$self id]
+    #$ragent log-target $T
     $ragent tracetarget $T
 
 
 }
+
+Agent/DSRAgent set sport_ 255
+Agent/DSRAgent set dport_ 255
+Agent/DSRAgent set rt_port 255
+
+Class SRNodeNew -superclass Node/MobileNode
+
+SRNodeNew instproc init {args} {
+	#global ns ns_ opt tracefd RouterTrace
+
+	$self instvar dsr_agent_ dmux_ entry_point_ address_
+
+        set ns_ [Simulator instance]
+
+	eval $self next $args	;# parent class constructor
+
+	if {$dmux_ == "" } {
+		set dmux_ [new Classifier/Addr]
+		$dmux_ set mask_ [AddrParams set PortMask_]
+		$dmux_ set shift_ [AddrParams set PortShift_]
+		#
+		# point the node's routing entry to itself
+		# at the port demuxer (if there is one)
+		#
+		#if [Simulator set EnableHierRt_] {
+		    #$self add-hroute $address_ $dmux_
+		#} else {
+		    #$self add-route $address_ $dmux_
+		#}
+	}
+	# puts "making dsragent for node [$self id]"
+	set dsr_agent_ [new Agent/DSRAgent]
+	# setup address (supports hier-address) for dsragent
+
+	$dsr_agent_ addr $address_
+	$dsr_agent_ node $self
+	if [Simulator set mobile_ip_] {
+	    $dsr_agent_ port-dmux [$self set dmux_]
+	}
+	# set up IP address
+	$self addr $address_
+	
+    if { [Simulator set RouterTrace_] == "ON" } {
+	# Recv Target
+	set rcvT [$ns_ mobility-trace Recv "RTR" $self]
+	$rcvT target $dsr_agent_
+	set entry_point_ $rcvT	
+    } else {
+	# Recv Target
+	set entry_point_ $dsr_agent_
+    }
+
+    #
+    # Drop Target (always on regardless of other tracing)
+    #
+    #set drpT [$ns_ mobility-trace Drop "RTR" $self]
+    #$dsr_agent_ drop-target $drpT
+
+    #
+    # Log Target
+    #
+
+    #set tracefd [$ns_ get-ns-traceall]
+    #if {$tracefd != "" } {
+    #     set T [new Trace/Generic]
+    #     $T target [$ns_ set nullAgent_]
+    #     $T attach $tracefd
+    #     $T set src_ [$self id]
+    #     $dsr_agent_ log-target $T
+    #}
+
+
+    $self set ragent_ $dsr_agent_
+
+    $dsr_agent_ target $dmux_
+
+    # packets to the DSR port should be dropped, since we've
+    # already handled them in the DSRAgent at the entry.
+
+    set nullAgent_ [$ns_ set nullAgent_]
+    $dmux_ install [Agent/DSRAgent set rt_port] $nullAgent_
+
+    # SRNodeNews don't use the IP addr classifier.  The DSRAgent should
+    # be the entry point
+    $self instvar classifier_
+    set classifier_ "srnode made illegal use of classifier_"
+    
+    #$ns_ at 0.0 "$node start-dsr"
+    return $self
+}
+
+SRNodeNew instproc start-dsr {} {
+    $self instvar dsr_agent_
+    #global opt;
+
+    $dsr_agent_ startdsr
+    #if {$opt(cc) == "on"} {checkcache $dsr_agent_}
+}
+
+SRNodeNew instproc entry {} {
+        $self instvar entry_point_
+        return $entry_point_
+}
+
+SRNodeNew instproc add-interface {args} {
+
+    set ns_ [Simulator instance]
+
+    eval $self next $args
+
+    $self instvar dsr_agent_ ll_ mac_ ifq_
+
+    $dsr_agent_ mac-addr [$mac_(0) id]
+
+    if { [Simulator set RouterTrace_] == "ON" } {
+	# Send Target
+	set sndT [$ns_ mobility-trace Send "RTR" $self]
+	$sndT target $ll_(0)
+	$dsr_agent_ add-ll $sndT $ifq_(0)
+    } else {
+	# Send Target
+	$dsr_agent_ add-ll $ll_(0) $ifq_(0)
+    }
+    
+    # setup promiscuous tap into mac layer
+    $dsr_agent_ install-tap $mac_(0)
+
+}
+
+SRNodeNew instproc reset args {
+    $self instvar dsr_agent_
+    eval $self next $args
+
+    $dsr_agent_ reset
+}
+
 #
 # Global Defaults - avoids those annoying warnings generated by bind()
 #
@@ -424,5 +618,9 @@ Node/MobileNode set bandwidth_			0	;# not used
 Node/MobileNode set delay_				0	;# not used
 Node/MobileNode set off_prune_			0	;# not used
 Node/MobileNode set off_CtrMcast_			0	;# not used
+
+
+
+
 
 

@@ -245,6 +245,7 @@ proc create-god { nodes } {
 		set god [new God]
 	}
 	$god num_nodes $nodes
+	return $god
 }
 
 God proc instance {} {

@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.5 1999/08/03 04:06:12 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.6 1999/08/28 22:21:27 yaxu Exp $
 #
 # Ported from CMU/Monarch's code, nov'98 -Padma.
 
@@ -56,7 +56,7 @@ set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		1000.0		;# simulation time
 set opt(tr)		out.tr		;# trace file
-set opt(rp)             dsdv            ;# routing protocol script
+set opt(rp)             dsr            ;# routing protocol script
 set opt(lm)             "off"           ;# log movement
 
 # ======================================================================
@@ -222,7 +222,7 @@ $prop topography $topo
 #
 # Create God
 #
-create-god $opt(nn)
+set god_ [create-god $opt(nn)]
 
 
 #

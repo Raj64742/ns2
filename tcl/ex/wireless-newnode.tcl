@@ -168,7 +168,7 @@ $prop topography $topo
 #
 # Create God
 #
-create-god $opt(nn)
+set god_ [create-god $opt(nn)]
 
 #
 #  Create the specified number of nodes $opt(nn) and "attach" them

@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* routecache.cc
-   $Id: routecache.cc,v 1.2 1999/01/04 19:59:11 haldar Exp $
+   $Id: routecache.cc,v 1.3 1999/08/28 22:21:26 yaxu Exp $
 
    handles routes
 */
@@ -110,7 +110,8 @@ RouteCache::command(int argc, const char*const* argv)
       if(obj == 0)
 	return TCL_ERROR;
       
-      if(strcasecmp(argv[1], "log-target") == 0) {
+      if(strcasecmp(argv[1], "log-target") == 0 ||\
+	 strcasecmp(argv[1], "tracetarget") == 0) {
 	logtarget = (Trace*) obj;
 	return TCL_OK;
       }

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.159 1999/08/26 07:05:27 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.160 1999/08/28 22:21:29 yaxu Exp $
 
 #
 
@@ -311,19 +311,65 @@ Simulator instproc node args {
 	return $node
 }
 
+Simulator instproc imep-support {} {
+       $self instvar imepflag_
+
+       if [info exists imepflag_] {
+	   return $imepflag_
+       }
+       
+       return ""
+
+}
 
 Simulator instproc create-wireless-node { args } {
 
         $self instvar routingAgent_
+        $self instvar propType_ llType_ macType_ ifqType_ ifqlen_ phyType_
+        $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
+        $self instvar imepflag_
+
+        set imepflag_ OFF
 
         switch -exact $routingAgent_ {
 	    Agent/DSDV {
-		set node [$self create-dsdv-node $args]
-		return $node
+
+               if {[Simulator set EnableHierRt_]} {
+                    if [Simulator set mobile_ip_] {
+                        set node [new MobileNode/MIPMH $args]
+                    } else {
+                        set node [new Node/MobileNode/BaseStationNode $args]
+                    }
+               } else {
+                    set node [new Node/MobileNode]
+               }
+
+		set ragent [$self create-dsdv-agent $node]
+
 	    }
+
 	    Agent/DSR {
-		set node [$self create-dsr-node $args]
-		return $node
+		      
+		if {[Simulator set EnableHierRt_]} {
+		    if [Simulator set mobile_ip_] {
+			
+			set node [new SRNodeNew/MIPMH $args]
+		    } else {
+			set node [new SRNodeNew $args]
+		    }
+		} else {
+		    set node [new SRNodeNew]
+		    
+		}
+
+		$self at 0.0 "$node start-dsr"
+	    }
+
+	    Agent/TORA {
+		set imepflag_ ON
+		set node [new Node/MobileNode]
+		set ragent [$self create-tora-agent $node]
+
 	    }
 	    default {
 		puts "Wrong node routing agent!"
@@ -331,25 +377,99 @@ Simulator instproc create-wireless-node { args } {
 	    }
 
 	}
+
+	# add main node interface
+
+	$node add-interface $args $propType_ $llType_ $macType_ \
+	       $ifqType_ $ifqlen_ $phyType_ $antType_
+
+	# attach agent
+
+	if {$routingAgent_ != "Agent/DSR"} {
+
+	     $node attach $ragent 255
+	}
+
+	#
+        # This Trace Target is used to log changes in direction
+        # and velocity for the mobile node.
+        #
+	
+	set tracefd [$self get-ns-traceall]
+
+        if {$tracefd != "" } {
+
+	    $node nodetrace $tracefd
+	    $node agenttrace $tracefd
+
+	}
+
+	# node energy model
+
+	if [info exists energyModel_] {
+	     $node addenergymodel [new $energyModel_ $initialEnergy_]
+        }
+
+        if [info exists txPower_] {
+	    $node setPr $txPower_
+        }
+
+        if [info exists rxPower_] {
+	    $node setPr $rxPower_
+        }
+
+	return $node
+
 }
 
-Simulator instproc create-dsdv-node { args } {
+Simulator instproc create-tora-agent { node } {
 
-    $self instvar propType_ llType_ macType_ ifqType_ ifqlen_ phyType_
-    $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_
+        set ragent [new Agent/TORA [$node id]]
 
-    if {[Simulator set EnableHierRt_]} {
-        if [Simulator set mobile_ip_] {
-            set node [new MobileNode/MIPMH $args]
-        } else {
-            set node [new Node/MobileNode/BaseStationNode $args]
-        }
-    } else {
-        set node [new Node/MobileNode]
-    }
+        #delay till after add interface
+#       $node attach $ragent 255
 
-    $node add-interface $args $propType_ $llType_ $macType_ $ifqType_ $ifqlen_ $phyType_ $antType_
+        $ragent if-queue [$node set ifq_(0)]    ;# ifq between LL and MAC
 
+        #
+        # XXX: The routing protocol and the IMEP agents needs handles
+        # to each other.
+        #
+        $ragent imep-agent [$node set imep_(0)]
+        [$node set imep_(0)] rtagent $ragent
+
+   	#
+	# Drop Target (always on regardless of other tracing)
+	#
+	#set drpT [$self mobility-trace Drop "RTR" $node]
+	#$ragent drop-target $drpT
+
+
+        #set tracefd [$self get-ns-traceall]
+
+        #if {$tracefd != "" } {
+
+	    #
+	    # Log Target
+	    #
+	#    set T [new Trace/Generic]
+	#    $T target [$ns_ set nullAgent_]
+	#    $T attach $tracefd
+	#    $T set src_ $id
+	#    $ragent log-target $T
+	#}    
+        #
+        # XXX: let the IMEP agent use the same log target.
+        #
+        [$node set imep_(0)] log-target $T
+
+	$node set ragent_ $ragent
+
+	return $ragent
+
+}
+
+Simulator instproc create-dsdv-agent { node } {
 
     # Create a dsdv routing agent for this node
 
@@ -368,30 +488,21 @@ Simulator instproc create-dsdv-node { args } {
     $node addr $addr
     $node set ragent_ $ragent
 
-    if [info exists energyModel_] {
-	    $node addenergymodel [new $energyModel_ $initialEnergy_]
-    }
-
-    if [info exists txPower_] {
-	    $node setPr $txPower_
-    }
-
-    if [info exists rxPower_] {
-	    $node setPr $rxPower_
-    }
-
-    $node attach $ragent 255
+    #delay till after add interface 
+#   $node attach $ragent 255
 
     $self at 0.0 "$ragent start-dsdv"    ;# start updates
 
-    $node nodetrace [$self get-ns-traceall] 
-    return $node
-
+    return $ragent
 }
 
-Simulator instproc mobility-trace {ttype atype node tracefd} {
+Simulator instproc mobility-trace {ttype atype node} {
+
+        set tracefd [$self get-ns-traceall]
 
         if { $tracefd == "" } {
+	        puts "Warning: You have not defined you tracefile yet!"
+	        puts "Please use trace-all command to define it."
 		return ""
 	}
 
