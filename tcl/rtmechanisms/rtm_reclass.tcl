@@ -249,7 +249,7 @@ Test/one instproc run {} {
 	set rtt 0.06
 	set mtu 1500
 
-	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu]
+	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu true]
 
 	$self instvar goodflowfile_
 	set gfm [$rtm makeflowmon]
