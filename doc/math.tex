@@ -275,6 +275,20 @@ C++ member \code{newPoint} or the OTcl member \code{newpoint}.
 The use of integrals to compute certain types of averages
 (e.g. mean queue lengths) is given in (pp. 429--430, \cite{Jain91:Art}).
 
+\section{\code{ns-random}}
+
+{\bf \code{ns-random} is an obsolete way to generate random numbers. 
+This information is provided only for backward compatibility.}
+
+\code{ns-random} is implemented in \nsf{misc.\{cc,h\}}. 
+When called with no argument, it generates a random number with
+uniform distribution between 0 and \code{MAXINT}.
+When an integer argument is provided, it seeds the random generater
+with the given number.
+A special case is when \code{ns-random 0} is called, it randomly seeds
+the generator based on current time.
+This feature is useful to produce non-deterministic results across
+runs.
 
 \section{Some mathematical-support related objects}
 \label{sec:mathobjects}
@@ -288,7 +302,7 @@ entered and
 lastx\_ and lasty\_ are updated as new elements are added. The first
 sample point defaults to (0,0) that can be changed by changing the values
 of (lastx\_,lasty\_). 
-\code{$integrator newpoint <x> <y>}\\
+\code{$integrator newpoint <x> <y>}\\ %$
 Add the point (x,y) to the sum. Note that it does not make sense for x to
 be less than lastx\_. 
 
