@@ -113,46 +113,8 @@ init()
 	/*
 	 * Initialized the Random Number Generation
 	 */
-	/* 
-	This part of init() is commented out and is replaced by more
-	portable RNG (random number generator class of ns) functions.	
-
-	struct timeval tp;
-	int fd, seed, bytes;
-
-	if((fd = open("/dev/random", O_RDONLY)) < 0) {
-		perror("open");
-		exit(1);
-	}
-	if((bytes = read(fd, random_state, sizeof(random_state))) < 0) {
-		perror("read");
-		exit(1);
-	}
-	close(fd);
-
-	fprintf(stderr, "*** read %d bytes from /dev/random\n", bytes);
-
-	if(bytes != sizeof(random_state)) {
-	  fprintf(stderr,"Not enough randomness. Reading `.rand_state'\n");
-	  if((fd = open(".rand_state", O_RDONLY)) < 0) {
-	    perror("open .rand_state");
-	    exit(1);
-	  }
-	  if((bytes = read(fd, random_state, sizeof(random_state))) < 0) {
-	    perror("reading .rand_state");
-	    exit(1);
-	  }
-	  close(fd);
-	}
-
-         if(gettimeofday(&tp, 0) < 0) {
-		perror("gettimeofday");
-		exit(1);
-	}
-	seed = (tp.tv_sec  >> 12 ) ^ tp.tv_usec;
-        (void) initstate(seed, random_state, bytes & 0xf8);*/
-
-	/*
+"
+	/*"
 	 * Allocate memory for globals
 	 */
 	NodeList = new Node[NODES];
