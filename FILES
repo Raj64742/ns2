@@ -20,8 +20,6 @@ configure.in
 delay.cc
 drop-tail.cc
 example.tcl
-html/CHANGES.html
-html/ns.html
 install-sh
 ivs.cc
 loss-monitor.cc
