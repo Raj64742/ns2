@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.18 1997/11/11 01:41:16 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.19 1997/11/11 03:03:20 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -796,6 +796,7 @@ Test/MIN1 instproc run {} {
 	$self make_fmon $cbqlink_
 	[$cbqlink_ queue] algorithm $cbqalgorithm_
 
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
 	$self openTrace $stopTime CBQ_MIN1
 
 	$ns_ run
@@ -830,6 +831,7 @@ Test/MIN3 instproc run {} {
         $self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
     
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_MIN3
     
         $ns_ run
@@ -859,7 +861,8 @@ Test/MIN4 instproc run {} {
         $self three_cbrs
         $self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
-    
+
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_MIN4
     
         $ns_ run
@@ -895,6 +898,7 @@ Test/MIN6 instproc run {} {
         $self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
     
+   	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_MIN6
     
         $ns_ run
@@ -927,8 +931,10 @@ Test/TwoAO instproc run {} {
         $self create_flat3 0.98 1.0
         $self insert_flat2 $cbqlink_
         $self two_cbrs 190 500 0.001 0.002 0
+	$self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
 
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_TwoAO
     
         $ns_ run
@@ -953,8 +959,10 @@ Test/TwoAO2 instproc run {} {
         $self create_flat3 0.98 0.005
         $self insert_flat2 $cbqlink_
         $self two_cbrs 190 500 0.001 0.002 0 
+	$self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
     
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_TwoAO2
     
         $ns_ run
@@ -978,8 +986,10 @@ Test/TwoAO3 instproc run {} {
         $self create_flat3 0.99 auto
         $self insert_flat2 $cbqlink_
         $self two_cbrs 190 500 0.001 0.002 0 
+	$self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
     
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_TwoAO3
     
         $ns_ run
@@ -1011,8 +1021,10 @@ Test/TwoTL instproc run {} {
         $self create_flat3 1.0 auto
         $self insert_flat2 $cbqlink_
         $self two_cbrs 190 500 0.001 0.002 0 
+	$self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
     
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_TwoTL
     
         $ns_ run
@@ -1043,8 +1055,10 @@ Test/TwoF instproc run {} {
         $self create_flat3 1.0 auto
         $self insert_flat2 $cbqlink_
         $self two_cbrs 190 500 0.001 0.002 0 
+	$self make_fmon $cbqlink_
         [$cbqlink_ queue] algorithm $cbqalgorithm_
     
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
         $self openTrace $stopTime CBQ_TwoF
     
         $ns_ run
