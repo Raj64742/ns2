@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.1 1997/06/20 03:05:47 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.2 1997/06/23 17:03:17 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -46,11 +46,11 @@ static char rcsid[] =
 
 class RBPVegasTcpAgent;
 
-class RBPPaceTimer : public AgentTimerHandler {
+class RBPPaceTimer : public TimerHandler {
 public:
-	RBPPaceTimer(RBPVegasTcpAgent *a) : AgentTimerHandler() { a_ = a; }
-	virtual void handle(Event *e);
+	RBPPaceTimer(RBPVegasTcpAgent *a) : TimerHandler() { a_ = a; }
 protected:
+	virtual void expire(Event *e);
 	RBPVegasTcpAgent *a_;
 };
 
@@ -81,7 +81,7 @@ public:
 } class_rbp;
 
 
-void RBPPaceTimer::handle(Event *e) { a_->paced_send_one(); }
+void RBPPaceTimer::expire(Event *e) { a_->paced_send_one(); }
 
 RBPVegasTcpAgent::RBPVegasTcpAgent() : TcpAgent(),
 	rbp_mode_(RBP_OFF),
