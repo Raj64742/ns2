@@ -227,7 +227,7 @@ void RFC793eduTcpAgent::recv(Packet *pkt, Handler*)
                         return;
                 }
 		// fast retransmission
-		if ( (++dupacks_ == NUMDUPACKS) && add793fastrtx_ ) {
+		if ( (++dupacks_ == numdupacks_) && add793fastrtx_ ) {
 			dupack_action();
 		}
 	}

@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.27 2000/03/23 00:55:33 sfloyd Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.28 2000/08/12 21:45:39 sfloyd Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -153,7 +153,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			cwnd_ = initial_window();
 		}
 		/* check if cwnd has been inflated */
-		if(dupacks_ > NUMDUPACKS &&  cwnd_ > v_newcwnd_) {
+		if(dupacks_ > numdupacks_ &&  cwnd_ > v_newcwnd_) {
 			cwnd_ = v_newcwnd_;
 			// vegas ssthresh is used only during slow-start
 			ssthresh_ = 2;
@@ -300,7 +300,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			--v_worried_;
 			int expired=vegas_expire(pkt);
 			if(expired>=0) {
-				dupacks_ = NUMDUPACKS;
+				dupacks_ = numdupacks_;
 				output(expired, TCP_REASON_DUPACK);
 			} else
 				v_worried_ = 0;
@@ -309,7 +309,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 		/* check if a timeout should happen */
 		++dupacks_; 
 		int expired=vegas_expire(pkt);
-		if (expired>=0 || dupacks_ == NUMDUPACKS) {
+		if (expired>=0 || dupacks_ == numdupacks_) {
 			double sendTime=v_sendtime_[(last_ack_+1) % v_maxwnd_]; 
 			int transmits=v_transmits_[(last_ack_+1) % v_maxwnd_];
        	                /* The line below, for "bug_fix_" true, avoids
@@ -356,9 +356,9 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 					output(last_ack_ + 1, TCP_REASON_DUPACK);
 					 
 				if(transmits==1) 
-					dupacks_ = NUMDUPACKS;
+					dupacks_ = numdupacks_;
                         }
-		} else if (dupacks_ > NUMDUPACKS) 
+		} else if (dupacks_ > numdupacks_) 
 			++cwnd_;
 	}
 	Packet::free(pkt);
@@ -370,7 +370,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 	/*
 	 * Try to send more data
 	 */
-	if (dupacks_ == 0 || dupacks_ > NUMDUPACKS - 1)
+	if (dupacks_ == 0 || dupacks_ > numdupacks_ - 1)
 		send_much(0, 0, maxburst_);
 }
 

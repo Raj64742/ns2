@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.23 2000/01/09 04:54:06 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.24 2000/08/12 21:46:10 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -169,7 +169,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			/* 
 			 * a duplicate ACK
 			 */
-			if (dupacks_ >= NUMDUPACKS) {
+			if (dupacks_ >= numdupacks_) {
 				/*
 				 * Assume we dropped just one packet.
 				 * Retransmit last ack + 1

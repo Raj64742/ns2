@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard-rh.h,v 1.1 2000/07/07 22:02:37 sfloyd Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard-rh.h,v 1.2 2000/08/12 21:46:10 sfloyd Exp $
  */
 
 #ifndef ns_scoreboard_h
@@ -45,7 +45,7 @@
 
 class ScoreBoardRH {
   public:
-	ScoreBoardRH() {first_=0; length_=0; retran_occured_=0;}
+        ScoreBoardRH(int *numdupacks) : numdupacks_(numdupacks) {first_=0; length_=0; retran_occured_=0;}
 	int IsEmpty () {return (length_ == 0);}
 	void ClearScoreBoard (); 
 	int GetNextRetran ();
@@ -65,6 +65,9 @@ class ScoreBoardRH {
 					    in which a retransmission occured  */
 	int retran_sacked_;              /* This variable stores the last adjustment interval
 					    in which a retransmission was sacked  */
+        int *numdupacks_;		 /* I know, it stinks...  But this is numdupacks_ from
+					  * our parent TCP stack. */
+   
 	struct ScoreBoardNode {
 		int seq_no_;		/* Packet number */
 		int ack_flag_;		/* Acked by cumulative ACK */

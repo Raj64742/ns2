@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.42 2000/08/08 02:45:30 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.43 2000/08/12 21:45:39 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -120,14 +120,14 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			 *  acknowledges new data.
  			 */
  		        if(scb_.CheckUpdate()) {
- 			 	if (++dupacks_ == NUMDUPACKS) {
+ 			 	if (++dupacks_ == numdupacks_) {
  					/*
  					 * Assume we dropped just one packet.
  					 * Retransmit last ack + 1
  					 * and try to resume the sequence.
  					 */
  				   	dupack_action();
- 				} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
+ 				} else if (dupacks_ < numdupacks_ && singledup_ ) {
  				         send_one();
  				}
 			}
@@ -198,17 +198,17 @@ Sack1TcpAgent::dupack_action()
 		reset_rtx_timer(1,0);
 		/*
 		 * There are three possibilities: 
-		 * (1) pipe_ = int(cwnd_) - NUMDUPACKS;
-		 * (2) pipe_ = window() - NUMDUPACKS;
-		 * (3) pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+		 * (1) pipe_ = int(cwnd_) - numdupacks_;
+		 * (2) pipe_ = window() - numdupacks_;
+		 * (3) pipe_ = maxseq_ - highest_ack_ - numdupacks_;
 		 * equation (2) takes into account the receiver's
 		 * advertised window, and equation (3) takes into
 		 * accout a data-limited sender.
 		 */
 		if (!singledup_)
-			pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+			pipe_ = maxseq_ - highest_ack_ - numdupacks_;
 		else pipe_ = maxseq_ - highest_ack_ - 1;
-		//pipe_ = int(cwnd_) - NUMDUPACKS;
+		//pipe_ = int(cwnd_) - numdupacks_;
 		fastrecov_ = TRUE;
 		scb_.MarkRetran(highest_ack_+1);
 		output(last_ack_ + 1, TCP_REASON_DUPACK);
@@ -227,10 +227,10 @@ Sack1TcpAgent::dupack_action()
 sack_action:
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
-	pipe_ = int(cwnd_) - NUMDUPACKS;
-	//pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+	pipe_ = int(cwnd_) - numdupacks_;
+	//pipe_ = maxseq_ - highest_ack_ - numdupacks_;
 	//if (!singledup_)
-	// 	pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+	// 	pipe_ = maxseq_ - highest_ack_ - numdupacks_;
 	//else pipe_ = maxseq_ - highest_ack_ - 1;
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
@@ -238,7 +238,7 @@ sack_action:
 	scb_.MarkRetran(highest_ack_+1);
 	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
 	/*
-	 * If dynamically adjusting NUMDUPACKS, record information
+	 * If dynamically adjusting numdupacks_, record information
 	 *  at this point.
 	 */
 	return;
@@ -248,8 +248,8 @@ void Sack1TcpAgent::timeout(int tno)
 {
 	if (tno == TCP_TIMER_RTX) {
 		/*
-		 * IF DSACK and dynamic adjustment of NUMDUPACKS,
-		 *  check whether a smaller value of NUMDUPACKS
+		 * IF DSACK and dynamic adjustment of numdupacks_,
+		 *  check whether a smaller value of numdupacks_
 		 *  would have prevented this retransmit timeout.
 		 * If DSACK and detection of premature retransmit
 		 *  timeouts, then save some info here.

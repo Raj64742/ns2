@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard-rh.cc,v 1.1 2000/07/07 22:02:37 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard-rh.cc,v 1.2 2000/08/12 21:45:39 sfloyd Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -218,7 +218,7 @@ int ScoreBoardRH::GetNextRetran()	// Returns sequence number of next pkt...
 		for (i=SBN[(first_)%SBSIZE].seq_no_; 
 		     i<SBN[(first_)%SBSIZE].seq_no_+length_; i++) {
 			if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && !SBNI.retran_
-			    && (SBNI.sack_cnt_ >= NUMDUPACKS)) {
+			    && (SBNI.sack_cnt_ >= *numdupacks_)) {
 				return (i);
 			}
 		}
@@ -257,7 +257,7 @@ int ScoreBoardRH::GetNewHoles ()
 			new_holes++;
 		}
 #else
-		if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && SBNI.sack_cnt_ == NUMDUPACKS) {
+		if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && SBNI.sack_cnt_ == *numdupacks_) {
 			new_holes++;
 		}
 #endif
@@ -303,7 +303,7 @@ void ScoreBoardRH::TimeoutScoreBoard (int snd_nxt)
 		if (!SBNI.ack_flag_ && !SBNI.sack_flag_) {
 			SBNI.retran_ = 0;
 			SBNI.snd_nxt_ = 0;
-			SBNI.sack_cnt_ = NUMDUPACKS;  // This forces all holes to be retransmitted.
+			SBNI.sack_cnt_ = *numdupacks_;  // This forces all holes to be retransmitted.
 		}
 	}
 
@@ -314,7 +314,7 @@ void ScoreBoardRH::TimeoutScoreBoard (int snd_nxt)
 		SBNI.sack_flag_ = 0;
 		SBNI.retran_ = 0;
 		SBNI.snd_nxt_ = 0;
-		SBNI.sack_cnt_ = NUMDUPACKS;  // This forces it to be retransmitted.
+		SBNI.sack_cnt_ = *numdupacks_;  // This forces it to be retransmitted.
 	}
 }
 

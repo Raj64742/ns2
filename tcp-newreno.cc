@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.40 2000/03/16 03:19:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.41 2000/08/12 21:45:18 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -219,10 +219,10 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			tcp_eln(pkt);
 			return;
 		}
-		if (++dupacks_ == NUMDUPACKS) {
+		if (++dupacks_ == numdupacks_) {
 			dupack_action();
-			dupwnd_ = NUMDUPACKS;
-		} else if (dupacks_ > NUMDUPACKS) {
+			dupwnd_ = numdupacks_;
+		} else if (dupacks_ > numdupacks_) {
 			++dupwnd_;	// fast recovery
 			/* For every two duplicate ACKs we receive (in the
 			 * "fast retransmit phase"), send one entirely new
@@ -230,7 +230,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			 */
 			if (newreno_changes_ > 0 && (dupacks_ % 2) == 1)
 				output (t_seqno_++,0);
-		} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
+		} else if (dupacks_ < numdupacks_ && singledup_ ) {
                         send_one();
                 }
 	}
@@ -250,7 +250,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		 *  window of data on exiting Fast Recovery.
 		 */
 		send_much(0, 0, maxburst_);
-	else if (dupacks_ > NUMDUPACKS - 1 && newreno_changes_ == 0)
+	else if (dupacks_ > numdupacks_ - 1 && newreno_changes_ == 0)
 		send_much(0, 0, 2);
 }
 

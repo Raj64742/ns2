@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack-rh.cc,v 1.1 2000/07/07 22:02:37 sfloyd Exp $ (PSC-SACKRH)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack-rh.cc,v 1.2 2000/08/12 21:46:10 sfloyd Exp $ (PSC-SACKRH)";
 #endif
 
 #include <stdio.h>
@@ -49,7 +49,7 @@ static const char rcsid[] =
 
 class SackRHTcpAgent : public TcpAgent {
  public:
-	SackRHTcpAgent();
+        SackRHTcpAgent();
 	virtual int window();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
@@ -91,7 +91,7 @@ int SackRHTcpAgent::window()
 
 SackRHTcpAgent::SackRHTcpAgent() : fack_(-1), 
 	retran_data_(0), num_dupacks_(0), rh_state_(RH_INCR), rh_id_(0), rh_max_(0),
-	rh_est_hole_state_(0), rh_retran_flag_(0), rh_ecn_flag_(0)
+	rh_est_hole_state_(0), rh_retran_flag_(0), rh_ecn_flag_(0), scb_(&numdupacks_)
 {
 }
 
@@ -127,7 +127,7 @@ void SackRHTcpAgent::recv(Packet *pkt, Handler*)
        	if (!sackpresent && (old_ack == last_ack_)) {
 		num_dupacks_++;
 		if ((rh_est_hole_state_ == RHEH_COUNTING) && 
-		    (num_dupacks_ == NUMDUPACKS)) {
+		    (num_dupacks_ == numdupacks_)) {
 			rh_est_hole_state_ = RHEH_NEW_HOLE;
 		}
 	}
@@ -180,7 +180,7 @@ void SackRHTcpAgent::recv(Packet *pkt, Handler*)
 	    && (last_ack_ > old_ack)) {
 		retran_data_ = 0;
 		num_dupacks_ -= (last_ack_ - old_ack - 1);
-		if (num_dupacks_ >= NUMDUPACKS) {
+		if (num_dupacks_ >= numdupacks_) {
 			rh_est_hole_state_ = RHEH_NEW_HOLE;
 		}
 		else {

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.78 2000/08/10 00:05:52 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.79 2000/08/12 21:45:18 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -103,7 +103,8 @@ struct hdr_tcp {
  * 0.01 for new window algorithms,
  */
 
-#define NUMDUPACKS 3		/* normally 3, sometimes 1 */
+/* #define NUMDUPACKS 3		This is now set in tcl/lib/ns-default.tcl
+ * 				as Agent/Tcp numdupacks_ */
 #define TCP_MAXSEQ 1073741824   /* Number that curseq_ is set to for */
 				/* "infinite send" (2^30)            */
 
@@ -254,6 +255,7 @@ protected:
 	int ts_option_;		/* use RFC1323-like timestamps? */
 	int maxburst_;		/* max # packets can send back-2-back */
 	int maxcwnd_;		/* max # cwnd can ever be */
+        int numdupacks_;	/* dup ACKs before fast retransmit */
 	double maxrto_;		/* max value of an RTO */
 	int old_ecn_;		/* For backwards compatibility with the 
 				 * old ECN implementation, which never

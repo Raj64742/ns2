@@ -242,7 +242,7 @@ CorresHost::clean_segs(int /*size*/, Packet *pkt, IntTcpAgent *sender, int sessi
     }
     /*
      * A pkt is a candidate for retransmission if it is the leftmost one in the
-     * unacked window for the connection AND has at least NUMDUPACKS
+     * unacked window for the connection AND has at least numdupacks_
      * dupacks/later acks AND (at least one dupack OR a later packet also
      * with the threshold number of dup/later acks). A pkt is also a candidate
      * for immediate retransmission if it has partialack_ set, indicating that
@@ -255,7 +255,7 @@ CorresHost::clean_segs(int /*size*/, Packet *pkt, IntTcpAgent *sender, int sessi
 	     * curArray_ only contains segments that are the first oldest
 	     * unacked segments of their connection (i.e., they are at the left
 	     * edge of their window) and have either received a
-	     * partial ack and/or have received at least NUMDUPACKS
+	     * partial ack and/or have received at least cur->numdupacks_
 	     * dupacks/later acks. Thus, segments in curArray_ have a high
 	     * probability (but not certain) of being eligible for 
 	     * retransmission. Using curArray_ avoids having to scan
@@ -391,7 +391,7 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 				dontIncrCwnd_ = 1;
 			} 
 		}
-		if (cur->dupacks_+cur->later_acks_ >= NUMDUPACKS &&
+		if (cur->dupacks_+cur->later_acks_ >= sender->numdupacks_ &&
 		    !cur->thresh_dupacks_) {
 			cur->thresh_dupacks_ = 1;
 			cur->sender_->num_thresh_dupack_segs_++;
@@ -403,7 +403,7 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 		   the num_thresh_dupack_segs_ check */
 		if (!remove_flag &&
 		    cur->seqno_ == cur->sender_->highest_ack_ + 1 &&
-		    (cur->dupacks_ + cur->later_acks_ >= NUMDUPACKS ||
+		    (cur->dupacks_ + cur->later_acks_ >= sender->numdupacks_ ||
 		     cur->partialack_)) {
 			curArray_[rexmtSegCount_] = cur;
 			prevArray_[rexmtSegCount_] = prev;

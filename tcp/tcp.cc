@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.112 2000/08/10 00:05:53 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.113 2000/08/12 21:45:18 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -129,6 +129,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("timestamps_");
         delay_bind_init_one("maxburst_");
         delay_bind_init_one("maxcwnd_");
+	delay_bind_init_one("numdupacks_");
         delay_bind_init_one("maxrto_");
         delay_bind_init_one("srtt_init_");
         delay_bind_init_one("rttvar_init_");
@@ -202,6 +203,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind_bool(varName, localName, "timestamps_", &ts_option_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxburst_", &maxburst_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxcwnd_", &maxcwnd_ , tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "numdupacks_", &numdupacks_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxrto_", &maxrto_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "srtt_init_", &srtt_init_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "rttvar_init_", &rttvar_init_ , tracer)) return TCL_OK;
@@ -1069,7 +1071,7 @@ TcpAgent::initial_window()
  * A first or second duplicate acknowledgement has arrived, and
  * singledup_ is enabled.
  * If the receiver's advertised window permits, and we are exceeding our
- * congestion window by less than NUMDUPACKS, then send a new packet.
+ * congestion window by less than numdupacks_, then send a new packet.
  */
 void
 TcpAgent::send_one()
@@ -1149,9 +1151,9 @@ void TcpAgent::recv(Packet *pkt, Handler*)
                         tcp_eln(pkt);
                         return;
                 }
-		if (++dupacks_ == NUMDUPACKS && !noFastRetrans_) {
+		if (++dupacks_ == numdupacks_ && !noFastRetrans_) {
 			dupack_action();
-		} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
+		} else if (dupacks_ < numdupacks_ && singledup_ ) {
 			send_one();
 		}
 	}
@@ -1474,7 +1476,7 @@ void TcpAgent::process_qoption_after_ack (int seqno)
 			F_counting = 0 ; 
 		}
 		else {
-			if (dupacks_ == NUMDUPACKS)
+			if (dupacks_ == numdupacks_)
 				RTT_count ++ ;
 		}
 	}
