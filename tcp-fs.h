@@ -20,11 +20,12 @@ protected:
 class TcpFsAgent : public virtual TcpAgent {
 public:
 	TcpFsAgent() : t_exact_srtt_(0), t_exact_rttvar_(0), last_recv_time_(0), 
-		fs_startseq_(0), fs_endseq_(0), fs_mode_(0), count_acks_(0),
+		fs_startseq_(0), fs_endseq_(0), fs_mode_(0), count_bytes_acked_(0),
 		reset_timer_(this) 
 	{
 		bind_bool("fast_loss_recov_", &fast_loss_recov_);
 		bind_bool("fast_reset_timer_", &fast_reset_timer_);
+		bind_bool("count_bytes_acked_", &count_bytes_acked_);
 	}
 
 	/* helper functions */
@@ -48,7 +49,7 @@ protected:
 	int fs_mode_;
 	int fast_loss_recov_;
 	int fast_reset_timer_;
-	int count_acks_;
+	int count_bytes_acked_;
 	ResetTimer reset_timer_;
 };
 

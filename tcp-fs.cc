@@ -177,7 +177,7 @@ TcpFsAgent::recv_newack_helper(Packet *pkt)
 	 * If we are counting the actual amount of data acked, ackcount >= 1.
 	 * Otherwise, ackcount=1 just as in standard TCP.
 	 */
-	if (count_acks_)
+	if (count_bytes_acked_)
 		ackcount = tcph->seqno() - last_ack_;
 	else
 		ackcount = 1;

@@ -12,14 +12,14 @@
 /* TCP-FS with NewReno */
 class NewRenoTcpAsymFsAgent : public NewRenoTcpAsymAgent, public NewRenoTcpFsAgent {
 public:
-	NewRenoTcpAsymFsAgent() : NewRenoTcpAsymAgent(), NewRenoTcpFsAgent() {count_acks_= 1;}
+	NewRenoTcpAsymFsAgent() : NewRenoTcpAsymAgent(), NewRenoTcpFsAgent() {count_bytes_acked_= 1;}
 
 	/* helper functions */
 	virtual void output_helper(Packet* pkt) {NewRenoTcpAsymAgent::output_helper(pkt); NewRenoTcpFsAgent::output_helper(pkt);}
 	virtual void recv_helper(Packet* pkt) {NewRenoTcpAsymAgent::recv_helper(pkt); NewRenoTcpFsAgent::recv_helper(pkt);}
 	virtual void send_helper(int maxburst) {NewRenoTcpFsAgent::send_helper(maxburst);}
 	virtual void send_idle_helper() {NewRenoTcpFsAgent::send_idle_helper();}
-	virtual void recv_newack_helper(Packet* pkt) {printf("count_acks_=%d\n", count_acks_); NewRenoTcpFsAgent::recv_newack_helper(pkt); NewRenoTcpAsymAgent::t_exact_srtt_ = NewRenoTcpFsAgent::t_exact_srtt_;}
+	virtual void recv_newack_helper(Packet* pkt) {printf("count_bytes_acked_=%d\n", count_bytes_acked_); NewRenoTcpFsAgent::recv_newack_helper(pkt); NewRenoTcpAsymAgent::t_exact_srtt_ = NewRenoTcpFsAgent::t_exact_srtt_;}
 	virtual void partialnewack_helper(Packet* pkt) {NewRenoTcpFsAgent::partialnewack_helper(pkt);}
 
 	virtual void set_rtx_timer() {NewRenoTcpFsAgent::set_rtx_timer();}
