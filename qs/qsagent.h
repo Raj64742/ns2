@@ -41,6 +41,8 @@
 #include "hdr_qs.h"
 #include "timer-handler.h"
 #include "lib/bsd-list.h"
+#include "queue.h"
+#include "delay.h"
 
 class QSAgent;
 
@@ -63,9 +65,11 @@ public:
 	TclObject * old_classifier_;
 
 	int qs_enabled_;
+	int algorithm_; // QS request processing algorithm
 
 	double state_delay_;
 	double alloc_rate_;
+	double threshold_;
 	int max_rate_;
 	int mss_;
 
@@ -82,6 +86,9 @@ public:
 
 	double aggr_approval_;
 	double prev_int_aggr_;
+
+protected:
+	double process(LinkDelay *link, Queue *queue, double ratereq);
 };
 
 #endif // _QSAGENT_H

@@ -71,9 +71,11 @@ QSAgent::QSAgent():Agent(PT_TCP), old_classifier_(NULL), qs_enabled_(1),
 	bind("old_classifier_", &old_classifier_);
 	bind("state_delay_", &state_delay_);
 	bind("alloc_rate_", &alloc_rate_);
+	bind("threshold_", &threshold_);
 	bind("max_rate_", &max_rate_);
 	bind("mss_", &mss_);
 	bind("rate_function_", &rate_function_);
+	bind("algorithm_", &algorithm_);
 
 	qs_timer_.resched(state_delay_);
   
@@ -113,20 +115,7 @@ void QSAgent::recv(Packet* packet, Handler*)
 			LinkDelay * link = (LinkDelay *) TclObject::lookup(tcl.result());
 
 			if (link != NULL && queue != NULL) {
-				util = queue->utilization();
-				// PS: avail_bw is in units of bytes per sec.
-				avail_bw = link->bandwidth() / 8 * (1 - util);
-				avail_bw -= (prev_int_aggr_ + aggr_approval_);
-				avail_bw *= alloc_rate_;
-
-				double qs_Bps = hdr_qs::rate_to_Bps(qsh->rate());
-#ifdef QS_DEBUG
-				printf("%d: requested = %d (%f KBps), available = %f KBps\n", addr(), qsh->rate(), qs_Bps/1024, avail_bw/1024);
-#endif				
-				app_rate = (avail_bw < qs_Bps) ?
-					(int) avail_bw : qs_Bps;
-				app_rate = (app_rate < (max_rate_ * 1024)) ?
-					app_rate : (max_rate_ * 1024);
+				app_rate = process(link, queue, hdr_qs::rate_to_Bps(qsh->rate()));
 				if (app_rate > 0) {    
 					aggr_approval_ += app_rate; // add approved to current bucket
 					qsh->ttl() -= 1;
@@ -150,6 +139,87 @@ void QSAgent::recv(Packet* packet, Handler*)
 	return;
   
 }
+
+
+double QSAgent::process(LinkDelay *link, Queue *queue, double ratereq)
+{
+	double util, avail_bw, app_rate, util_bw;
+
+	// PS: avail_bw is in units of bytes per sec.
+	if (algorithm_ == 1) {
+		/*
+		 */
+		util = queue->utilization();
+		avail_bw = link->bandwidth() / 8 * (1 - util);
+		avail_bw -= (prev_int_aggr_ + aggr_approval_);
+		avail_bw *= alloc_rate_;
+		app_rate = (avail_bw < ratereq) ? (int) avail_bw : ratereq;
+		app_rate = (app_rate < (max_rate_ * 1024)) ?
+			app_rate : (max_rate_ * 1024);
+		if (app_rate > 0) {
+			// add approved to current bucket
+			aggr_approval_ += app_rate;
+		}
+	} else if (algorithm_ == 2) {
+		/*
+		 * Algorithm 2 checks if the utilized bandwidth is
+		 *  less than some fraction (threshold_) of
+		 *  the total bandwidth.  If so, the approved rate
+		 *  is at most some fraction (alloc_rate_) of the
+		 *  link bandwidth.
+		 */
+		util = queue->utilization();
+		util_bw = link->bandwidth() / 8 * util;
+		util_bw += (prev_int_aggr_ + aggr_approval_);
+		if (util_bw < threshold_ * link->bandwidth() / 8) {
+			app_rate = alloc_rate_ * link->bandwidth() / 8;
+			if (ratereq < app_rate)
+				app_rate = ratereq;
+		} else {
+			app_rate = 0;
+		}
+		aggr_approval_ += app_rate;
+	} else if (algorithm_ == 3) {
+		/*
+		 * Algorithm 3 checks if the utilized bandwidth is
+		 *  less than some fraction (threshold_) of
+		 *  the total bandwidth.  If so, the approved rate
+		 *  is at most the allowed allocated bandwidth minus
+		 *  the utilized bandwidth.
+		 *
+		 * Algorithm 3 used queue->peak_utilization() instead of
+		 *   queue->utilization().  This looks at the peak
+		 *   utilization measures over a sub-interval of a
+		 *   larger interval.
+		 */
+		util = queue->peak_utilization();
+		util_bw = link->bandwidth() / 8 * util;
+		util_bw += (prev_int_aggr_ + aggr_approval_);
+		if (util_bw < threshold_ * link->bandwidth() / 8) {
+			app_rate = alloc_rate_ * link->bandwidth() / 8
+				     - util_bw;
+			if (ratereq < app_rate)
+				app_rate = ratereq;
+			if (app_rate <  0) 
+				app_rate = 0;
+		} else {
+			app_rate = 0;
+		}
+		aggr_approval_ += app_rate;
+	} else if (algorithm_ == 4) {
+		// a broken router: yes to all QS requests
+		app_rate = ratereq;
+	} else {
+		app_rate = 0;
+	}
+
+#ifdef QS_DEBUG
+		printf("%d: requested = %f KBps, available = %f KBps, approved = %f KBps\n", addr(), ratereq/1024, free_bw/1024, app_rate/1024);
+#endif
+
+	return app_rate;
+}
+
 
 void QSTimer::expire(Event *e) {
 	
