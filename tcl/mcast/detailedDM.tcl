@@ -55,7 +55,6 @@ detailedDM instproc get-iif-label { nxthop } {
 
 # helper function
 detailedDM proc getLinkType { link } {
-	global ns
 	if { [$link info class ] == "DummyLink" } {
 		return lan
 	}
@@ -190,7 +189,7 @@ detailedDM instproc notify changes {
 	 	$replicator_($index) disable $oif
 		if ![info exists PruneTimer_($index:[$oif id])] {
 		  set $PruneTimer_($index:[$oif id]) \
-			[new Prune/Iface/Timer $src $grp [$oif id]]
+			[new Prune/Iface/Timer $src $grp [$oif id] $ns]
 		}
 		$PruneTimer_($index:[$oif id]) schedule
 	    }
@@ -230,7 +229,7 @@ detailedDM instproc change-rpf { rep src grp oldrpf newrpf } {
         # invoking this proc means we are on a lan, changed the rpf,
         # but not the iif
         $self instvar Node
-        puts "Change RPF node [$Node id] oldrpf $oldrpf, newrpf $newrpf"
+#	puts "Change RPF node [$Node id] oldrpf $oldrpf, newrpf $newrpf"
         if [$rep is-active] {
                 # prune old rpf, and graft new rpf
                 $self instvar RPF_
@@ -261,7 +260,7 @@ detailedDM instproc change-iif { rep src grp newiif newrpf } {
 	  $rep disable [$Node label2iface $oldiif]
 	  if ![info exists PruneTimer_($src:$grp:$oldiif)] {
 	    set PruneTimer_($src:$grp:$oldiif) \
-		[new Prune/Iface/Timer $self $src $grp $oldiif]
+		[new Prune/Iface/Timer $self $src $grp $oldiif $ns]
 	  }
 	  $PruneTimer_($src:$grp:$oldiif) schedule
 	  # prune off the old nbr
@@ -299,9 +298,11 @@ detailedDM instproc handle-wrong-iif { argslist } {
 	$ns instvar link_
 	set id [$Node id]
 	if { [detailedDM getLinkType $link_($id:$nbr)] == "lan" } {
-	  if $active_($tempif) {
-		# on LANs we send asserts
-		$self send-assert $srcID $group $iface
+	  if [info exists active_($tempif)] {
+		  if $active_($tempif) {
+			  # on LANs we send asserts
+			  $self send-assert $srcID $group $iface
+		  }
 	  }
 	} else {
 		# on p2p links we may send prunes
@@ -321,13 +322,14 @@ detailedDM instproc send-prune { src grp } {
 # called by recv-graft, change-iif, change-rpf, and send-ctrl from 
 # join-group (DM.tcl) 
 detailedDM instproc send-graft { src grp } {
+	$self instvar ns
 	# set the retx timer 
 	$self instvar Node RtxTimer_
 	if { [$Node id] == $src } {
 		return 0
 	}
 	if ![info exists RtxTimer_($src:$grp)] {
-		set RtxTimer_($src:$grp) [new GraftRtx/Timer $self $src $grp]
+		set RtxTimer_($src:$grp) [new GraftRtx/Timer $self $src $grp $ns]
 	}
 	$RtxTimer_($src:$grp) schedule
         set rpf [$self get_rpf $src $grp]
@@ -375,7 +377,7 @@ detailedDM instproc recv-prune { src grp from msg } {
 		$self instvar DelTimer_
 		if ![info exists DelTimer_($src:$grp)] {
 		  set DelTimer_($src:$grp) \
-			[new Deletion/Iface/Timer $self $src $grp $ifaceLabel]
+			[new Deletion/Iface/Timer $self $src $grp $ifaceLabel $ns]
 		}
 		$DelTimer_($src:$grp) schedule
 		return 1
@@ -390,13 +392,13 @@ detailedDM instproc recv-graft { src group from msg } {
 	$self send-unicast graftAck $src $group $from
 
 	set id [$Node id]
-	puts "at [$ns now] node $id, recv-graft, src $src, grp $group from $from"
+#	puts "at [$ns now] node $id, recv-graft, src $src, grp $group from $from"
 
 	if { $from == $id } {
 		return 0
 	}
 	set r [$Node getRep $src $group]
-	puts "active [$r is-active]"
+#	puts "active [$r is-active]"
 	if { $r == "" || ![$r is-active] && $src != $id } {
 		# send a graft upstream
 		$self send-graft $src $group
@@ -551,7 +553,7 @@ detailedDM instproc send-mcast { type src grp rpf oifLabel mesg } {
 }
 
 detailedDM instproc delete_oif { src grp oif } {
-	$self instvar Node DelTimer_ PruneTimer_
+	$self instvar ns Node DelTimer_ PruneTimer_
 	set r [$Node getRep $src $grp]
 	if { $r == "" } {
 		return -1
@@ -568,7 +570,7 @@ detailedDM instproc delete_oif { src grp oif } {
 	}
 	if ![info exists PruneTimer_($src:$grp:$oif)] {
 	  set PruneTimer_($src:$grp:$oif) \
-		[new Prune/Iface/Timer $self $src $grp $oif]
+		[new Prune/Iface/Timer $self $src $grp $oif $ns]
 	}
 	$PruneTimer_($src:$grp:$oif) schedule
 }
@@ -635,11 +637,12 @@ Class GraftRtx/Timer -superclass Timer
 
 GraftRtx/Timer set timeout 0.05
 
-GraftRtx/Timer instproc init { protocol source group } {
-	$self instvar src grp proto
+GraftRtx/Timer instproc init { protocol source group sim} {
+	$self instvar src grp proto ns
 	set src $source 
 	set grp $group
 	set proto $protocol
+	set ns $sim
 }
 
 GraftRtx/Timer instproc schedule {} {
@@ -653,12 +656,13 @@ GraftRtx/Timer instproc timeout {} {
 
 Class Iface/Timer -superclass Timer
 
-Iface/Timer instproc init { protocol source group oiface } {
-	$self instvar proto src grp oif
+Iface/Timer instproc init { protocol source group oiface sim} {
+	$self instvar proto src grp oif ns
 	set proto $protocol
 	set src $source
 	set grp $group
 	set oif $oiface
+	set ns $sim
 }
 
 Iface/Timer instproc schedule {} {
@@ -667,7 +671,7 @@ Iface/Timer instproc schedule {} {
 
 Class Prune/Iface/Timer -superclass Iface/Timer
 
-Prune/Iface/Timer set timeout 1.0
+Prune/Iface/Timer set timeout 0.5
 
 Prune/Iface/Timer instproc timeout {} {
 	$self instvar proto src grp oif
@@ -676,7 +680,7 @@ Prune/Iface/Timer instproc timeout {} {
 
 Class Deletion/Iface/Timer -superclass Iface/Timer
 
-Deletion/Iface/Timer set timeout 0.025
+Deletion/Iface/Timer set timeout 0.1
 
 Deletion/Iface/Timer instproc timeout {} {
 	$self instvar proto src grp oif
