@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.14 1997/11/11 00:41:37 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.15 1997/11/11 00:51:22 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -815,135 +815,70 @@ Test/MIN3 instproc run {} {
         $ns_ run
 }   
 
-proc test_cbqMin3 {} {
-	global s1 s2 s3 s4 r1 k1 
-	set Mbps 1.5
-	set queue 20
-	set stopTime 4.1
-	set CBQalgorithm 2
-	create_graph $stopTime cbq $queue
- 	set link [ns link $r1 $k1]
-
-	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
-		1 0 0.2 $Mbps]
-	set vidClass [ns_create_class1 $topClass $topClass \
-		0.32 auto auto 1 0 0 $Mbps] 
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.65 auto auto 2 0 0 $Mbps]
-
- 	$link insert $topClass
-	$link insert $vidClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$vidClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-	$link bind $vidClass 2
- 	$link bind $audioClass 1
-	$link bind $dataClass 3
-
-	three_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace2 $stopTime test_cbqMin3_ExtraDelay_set
-
-	ns run
-}
-
+#
 # Min1, but with Ancestor-Only link-sharing.
 # 
-proc test_cbqMin4 {} {
-	global s1 s2 s3 s4 r1 k1 
-	set Mbps 1.5
-	set queue 20
-	set stopTime 4.1
-	set CBQalgorithm 0
-	create_graph $stopTime cbq $queue
- 	set link [ns link $r1 $k1]
+Class Test/MIN4 -superclass TestSuite
+Test/MIN4 instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr  
+        set test_ CBQ_MIN4
+        $self next 0
+}   
+    
+Test/MIN4 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_
+        set cbqalgorithm_ ancestor-only
+        set stopTime 4.1
+        set maxbytes 187500
+    
+        $topo_ instvar cbqlink_
+        $self create_flat false 0
+        $self insert_flat $cbqlink_
+        $self three_cbrs
+        $self make_fmon $cbqlink_
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+    
+        $self openTrace $stopTime CBQ_MIN4
+    
+        $ns_ run
+}   
 
-	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
-		1 0 0 $Mbps]
-	set vidClass [ns_create_class1 $topClass $topClass \
-		0.32 auto auto 1 0 0 $Mbps] 
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.65 auto auto 2 0 0 $Mbps]
+#
+# Min5 is deprecated
+#
 
- 	$link insert $topClass
-	$link insert $vidClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$vidClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-	$link bind $vidClass 2
- 	$link bind $audioClass 1
-	$link bind $dataClass 3
-
-	three_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace2 $stopTime test_cbqMin4_MinIdle_set
-
-	ns run
-}
-
-# 
 # 
 #
 # Min6 is like Min4, except extradelay is set to 0.2
 #
-proc test_cbqMin6 {} {
-	global s1 s2 s3 s4 r1 k1 
-	set Mbps 1.5
-	set queue 20
-	set stopTime 4.1
-	set CBQalgorithm 0
-	create_graph $stopTime cbq $queue
- 	set link [ns link $r1 $k1]
-
-	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
-		1 0 0.2 $Mbps]
-	set vidClass [ns_create_class1 $topClass $topClass \
-		0.32 auto auto 1 0 0 $Mbps] 
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.65 auto auto 2 0 0 $Mbps]
-
- 	$link insert $topClass
-	$link insert $vidClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$vidClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-	$link bind $vidClass 2
- 	$link bind $audioClass 1
-	$link bind $dataClass 3
-
-	three_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace2 $stopTime test_cbqMin6_ExtraDelay_set
-
-	ns run
-}
+Class Test/MIN6 -superclass TestSuite
+Test/MIN6 instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_MIN6
+        $self next 0
+}   
+    
+Test/MIN6 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_
+        set cbqalgorithm_ ancestor-only
+        set stopTime 4.1
+        set maxbytes 187500
+    
+        $topo_ instvar cbqlink_
+        $self create_flat false 0.20
+        $self insert_flat $cbqlink_
+        $self three_cbrs
+        $self make_fmon $cbqlink_
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+    
+        $self openTrace $stopTime CBQ_MIN6
+    
+        $ns_ run
+}   
 
 #
 # With Formal link-sharing, the dataClass gets most of the bandwidth.
