@@ -17,7 +17,7 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.2 1998/08/20 01:30:27 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.3 1998/08/25 01:08:21 haoboy Exp $
 
 Http/Server instproc init args {
 	eval $self next $args
@@ -200,16 +200,6 @@ Http/Server instproc set-parent-cache { cache } {
 	# Dummy proc
 }
 
-Http/Server instproc set-tlc { tlc } {
-	$self instvar tlc_
-	set tlc_ $tlc
-}
-
-Http/Server instproc get-tlc { tlc } {
-	$self instvar tlc_
-	return $tlc_
-}
-
 
 #----------------------------------------------------------------------
 # Base Http invalidation server
@@ -282,6 +272,16 @@ Http/Server/Inval/Ucast instproc invalidate { pageid modtime } {
 # it informs the parent cache, which will in turn propagate the update
 # (or invalidation) to the whole cache hierarchy.
 #----------------------------------------------------------------------
+Http/Server/Inval/Yuc instproc set-tlc { tlc } {
+	$self instvar tlc_
+	set tlc_ $tlc
+}
+
+Http/Server/Inval/Yuc instproc get-tlc { tlc } {
+	$self instvar tlc_
+	return $tlc_
+}
+
 Http/Server/Inval/Yuc instproc next-hb {} {
 	Http/Server/Inval/Yuc instvar hb_interval_ 
 	return [expr $hb_interval_ * [uniform 0.9 1.1]]
@@ -419,27 +419,3 @@ Http/Server/Compound instproc gen-age { id } {
 
 Class Http/Server/Inval/MYuc -superclass \
 		{ Http/Server/Inval/Yuc Http/Server/Compound}
-
-
-#----------------------------------------------------------------------
-# Global table maintaining mapping between servers and TLCs
-# 
-# A temporary hack instead of passing TLC address in server's direct 
-# responses and in all subsequent pro formas
-# 
-# XXX Only useful in multiple hierarchy cooperation. It's not required 
-# for the functioning of a single hierarchy
-#
-# XXX Naming convension:
-# All standalone TCL procedures should start with prefix "aux-"
-#----------------------------------------------------------------------
-
-proc aux-add-tlc-map { server tlc } {
-	global TLC_MAP
-	set TLC_MAP($server) $tlc
-}
-
-proc aux-query-tlc-map { server } {
-	global TLC_MAP
-	return $TLC_MAP($server)
-}

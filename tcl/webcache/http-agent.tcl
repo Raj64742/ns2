@@ -17,7 +17,7 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.1 1998/08/18 23:42:02 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.2 1998/08/25 01:08:20 haoboy Exp $
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -277,8 +277,9 @@ Http/Client instproc get-response-IMS { server pageid args } {
 # It should be used in single client, single cache and single server case
 # *ONLY*.
 Http/Client instproc start-session { cache server } {
-	$self instvar reqRanvar_ ns_
+	$self instvar reqRanvar_ ns_ cache_
 
+	set cache_ $cache
 	set pageid $server:[$self gen-reqpageid]
 	$self send-request $cache GET $pageid
 	$ns_ at [expr [$ns_ now] + [$reqRanvar_ value]] \
