@@ -24,6 +24,10 @@
 #  noted when applicable.
 #
 
+#
+# Maintainer: <kannan@isi.edu>.
+#
+
 Class rtQueue
 
 DynamicLink set status_ 1

@@ -24,6 +24,10 @@
 #  noted when applicable.
 #
 
+#
+# Maintainer: <kannan@isi.edu>.
+#
+
 Simulator instproc rtproto {proto args} {
     eval [$self get-routelogic] register $proto $args
 }
