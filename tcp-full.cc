@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.95 2001/08/17 00:51:37 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.96 2001/08/20 21:17:09 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -729,17 +729,6 @@ send:
 	if (cong_action_ && reliable > 0)
 		cong_action_ = FALSE;
 
-#ifdef notdef
-	/*
-	 * SYNs and FINs each use up one sequence number, but
-	 * there's no reason to advance t_seqno_ by one for a FIN
-	 */
-
-	if (!fin && seqno == t_seqno_) {
-		t_seqno_ += reliable;
-	}
-#endif
-
 	// highest: greatest sequence number sent + 1
 	//	and adjusted for SYNs and FINs which use up one number
 
@@ -920,15 +909,6 @@ FullTcpAgent::newack(Packet* pkt)
 
 	register int ackno = tcph->ackno();
 	int progress = (ackno > highest_ack_);
-
-#ifdef notdef
-if (progress) {
-	pipe_ -= (ackno - highest_ack_);
-printf("%f: newack: pipe decr by %d to %d\n", now(), (ackno - highest_ack_), pipe_);
-
-}
-#endif
-
 
 	if (ackno == maxseq_) {
 		cancel_rtx_timer();	// all data ACKd
@@ -1646,14 +1626,6 @@ trimthenstep6:
 				} else if (++dupacks_ == tcprexmtthresh_) {
 					// ACK at highest_ack_ AND meets threshold
 					//trace_event("FAST_RECOVERY");
-#ifdef notdef
-fastrecov_ = TRUE;
-/* re-sync the pipe_ estimate */
-pipe_ = maxseq_ - highest_ack_;
-pipe_ -= (dupacks_ + 1);
-
-pipe_ = int(cwnd_) - dupacks_ - 1;
-#endif
 
 					dupack_action(); // maybe fast rexmt
 					goto drop;
@@ -1662,15 +1634,6 @@ pipe_ = int(cwnd_) - dupacks_ - 1;
 					// ACK at highest_ack_ AND above threshole
 					//trace_event("FAST_RECOVERY");
 					extra_ack();
-#ifdef notdef
-if (reno_fastrecov_) {
-	// we just measure cwnd in
-	// packets, so don't scale by
-	// maxseg_ as real
-	// tcp does
-	cwnd_++;
-}
-#endif
 
 					// send whatever window allows
 					send_much(0, REASON_DUPACK, maxburst_);
@@ -2425,35 +2388,6 @@ SackFullTcpAgent::reset()
 }
 
 
-#ifdef notdef
-/*
- * override FullTcpAgent::recv() method to parse sack info
- * when it arrives.  Then call standard recv() method.
- */
-
-void
-SackFullTcpAgent::recv(Packet* pkt, Handler* h)
-{
-	hdr_tcp* tcph = hdr_tcp::access(pkt);
-	int ackno = tcph->ackno();
-
-/* don't do of this until full TCP sack is fixed completely */
-	if (state_ == TCPS_ESTABLISHED &&
-	    (ackno > iss_ && ackno <= maxseq_)) {
-
-		int slen = tcph->sa_length();
-		int i;  
-	   
-		for (i = 0; i < slen; ++i) {
-			if (sack_max_ < tcph->sa_right(i))
-				sack_max_ = tcph->sa_right(i);
-			sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);  
-		}
-	}
-	FullTcpAgent::recv(pkt, h);
-}
-#endif
-
 int
 SackFullTcpAgent::hdrsize(int nsackblocks)
 {
@@ -2466,22 +2400,6 @@ SackFullTcpAgent::hdrsize(int nsackblocks)
 	return (total);
 }
 
-#ifdef notdef
-void
-SackFullTcpAgent::ack_action(Packet* p)
-{
-	FullTcpAgent::ack_action(p);
-
-	if (!sq_.empty() && sq_.max() <= highest_ack_) {
-		sq_.clear();
-	}
-
-	if (sack_nxt_ < highest_ack_)
-		sack_nxt_ = highest_ack_;
-	pipectrl_ = FALSE;
-}
-#endif
-
 void
 SackFullTcpAgent::dupack_action()
 {
@@ -2489,8 +2407,6 @@ SackFullTcpAgent::dupack_action()
         int recovered = (highest_ack_ > recover_);
 
 	fastrecov_ = TRUE;
-//pipe_ = maxseq_ - highest_ack_ - (dupacks_ + 1)*maxseg_;
-
 	pipe_ = maxseq_ - highest_ack_ - sq_.total();
 
 //printf("%f: SACK DUPACK-ACTION:pipe_:%d, sq-total:%d, bugfix:%d, cwnd:%d, highest_ack:%d, recover_:%d\n",
@@ -2566,16 +2482,6 @@ SackFullTcpAgent::ack_action(Packet* p)
 	dupacks_ = 0;
 }
 
-#ifdef notdef
-void
-SackFullTcpAgent::send_much(int force, int reason, int maxburst)
-{
-	if (fastrecov_)
-		send_holes(force, maxburst);
-	FullTcpAgent::send_much(force, reason, maxburst);
-}
-#endif
-
 //
 // receiver side: if there are things in the reassembly queue,
 // build the appropriate SACK blocks to carry in the SACK
@@ -2594,73 +2500,6 @@ SackFullTcpAgent::build_options(hdr_tcp* tcph)
         }
 	return (total);
 }
-
-#ifdef notdef
-void
-SackFullTcpAgent::send_holes(int force, int maxburst)
-{
-
-
-*******************************************
-
-// for now, don't do anything for SACK
-// as it is broken... will fix this next
-
-int npack = 0;
-int save_tseq = t_seqno_;
-t_seqno_ = sack_nxt_;
-
-if (sq_.empty()) {
-	// no holes, just return
-	return;
-}
-
-int nxtblk[2]; // left, right of 1 sack block
-sq_.sync();    // reset to beginning of sack list
-
-// skip over old blocks
-while (sq_.nextblk(nxtblk)) {
-	if (t_seqno_ <= nxtblk[1])
-		break;
-}
-
-while (force || (pipe_ < window())) {
-force = 0;
-// don't sent off the top
-if (t_seqno_ > recover_ || t_seqno_ >= sack_max_)
-	break;
-
-// skip this one if the receiver has it already
-if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
-	t_seqno_ = nxtblk[1];
-	if (sq_.nextblk(nxtblk))
-		continue;
-	break;	// no more blocks, finish up
-}
-
-// try to send something, check to see if we did
-int save = t_seqno_;
-output(t_seqno_, REASON_SACK);
-if (t_seqno_ == save) {
-	break;
-}
-++pipe_;		// sent something
-
-if ((maxburst && ++npack >= maxburst) ||
-    (outflags() & (TH_SYN|TH_FIN)))
-	break;
-}
-
-sack_nxt_ = t_seqno_;	// update next hole fill
-t_seqno_ = save_tseq;	// restore t_seqno_
-
-*******************************************
-
-
-	return;
-}
-
-#endif /* send_holes */
 
 void
 SackFullTcpAgent::timeout_action()
