@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.327 2003/11/27 23:28:11 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.328 2004/04/19 22:04:26 liyuan Exp $
 
 
 #
@@ -671,6 +671,14 @@ Mac set abstract_ false
 #
 Mac/802_3 set trace_ false
 
+# Turning on/off sleep-wakeup cycles for SMAC
+Mac/SMAC set syncFlag_ 1
+                                                                                                                
+# Nodes synchronize their schedules in SMAC
+Mac/SMAC set selfConfigFlag_ 1
+
+# Default duty cycle in SMAC
+Mac/SMAC set dutyCycle_ 10                                                                                                                
 #
 # Unity gain, omni-directional antennas
 # Set up the antennas to be centered in the node and 1.5 meters above it
