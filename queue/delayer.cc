@@ -77,7 +77,8 @@ void Delayer::try_send() {
 		target_free = 0;
 		pkt_ = NULL;
 	}
-	prev_h_->handle(&e);
+	if (prev_h_)
+		prev_h_->handle(&e);
 }
 
 int Delayer::command(int argc, const char*const* argv) {
