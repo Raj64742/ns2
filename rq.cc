@@ -253,9 +253,12 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 
 	int needmerge = FALSE;
 
+#ifdef notdef
 	if (end == start)
 		return tiflags;
 	else if (end < start) {
+#endif
+	if (end < start) {
 		fprintf(stderr, "ReassemblyQueue::add() - end(%d) before start(%d)\n",
 			end, start);
 		abort();
@@ -312,10 +315,17 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		// not first or last...
 		// look for segments before and after this one
 		for (p = head_, q = p->next_; q; p = q, q = q->next_) {
-			if (p->endseq_ == start || q->startseq_ == end) {
+			if (p->startseq_ <= start && p->endseq_ >= end) {
+				// completely covered by existing segment
+				p->pflags_ |= tiflags;
+				return (p->pflags_);
+			} else if (p->endseq_ == start || q->startseq_ == end) {
+				// new segment abuts an existing segment
 				needmerge = TRUE;
 				break;
 			} else if (p->endseq_ < start && q->startseq_ > end) {
+				// new segment between existing ones, but
+				// doesn't abut
 				break;
 			} else {
 				fprintf(stderr,
