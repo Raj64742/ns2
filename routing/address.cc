@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include "tclcl.h"
 #include "address.h"
+#include "config.h"
 
 
 
@@ -52,25 +53,24 @@ public:
 Address* Address::instance_;
 
 
-Address::Address() : PortShift_(0), PortMask_(0), NodeShift_(0), NodeMask_(0), McastShift_(0), McastMask_(0), levels_(0)
+Address::Address() : PortShift_(0), PortMask_(0), McastShift_(0), McastMask_(0), levels_(0)
 {
-  
+  for (int i = 0; i < 10; i++) {
+    NodeShift_[i] = 0;
+    NodeMask_[i] = 0;
+  }
 }
 
 
-Address::~Address() 
-{
-    delete [] NodeShift_ ;
-    delete [] NodeMask_ ;
-}
+Address::~Address() { }
 
 int Address::command(int argc, const char*const* argv)
 {
     int i, c, temp=0;
     
     Tcl& tcl = Tcl::instance();
-    if (instance_ == 0)
-	instance_ = this;
+    if ((instance_ == 0) || (instance_ != this))
+      instance_ = this;
     if (argc == 4) {
 	if (strcmp(argv[1], "portbits-are") == 0) {
 	    PortShift_ = atoi(argv[2]);
@@ -95,7 +95,7 @@ int Address::command(int argc, const char*const* argv)
 	    }
 	    else 
 		levels_ = temp;
-	    NodeShift_ = new int[levels_];
+	    // NodeShift_ = new int[levels_];
 	    for (i = 3, c = 1; c <= levels_; c++, i+=2) 
 		NodeShift_[c] = atoi(argv[i]);
 	    return (TCL_OK); 
@@ -111,10 +111,48 @@ int Address::command(int argc, const char*const* argv)
 	    }
 	    else 
 		levels_ = temp;
-	    NodeMask_ = new int[levels_];
+	    // NodeMask_ = new int[levels_];
 	    for (i = 3, c = 1; c <= levels_; c++, i+=2) 
 		NodeMask_[c] = atoi(argv[i]);
 	    return (TCL_OK);
 	}
     }
+}
+
+char *Address::print_nodeaddr(int address)
+{
+  int a;
+  char temp[SMALL_LEN];
+  char str[SMALL_LEN];
+  char *addrstr;
+  
+  str[0] = '\0';
+  for (int i=1; i <= levels_; i++) {
+      a = address >> NodeShift_[i];
+      if (levels_ > 1)
+	  a = a & NodeMask_[i];
+      sprintf(temp, "%d.", a);
+      strcat(str, temp);
+  }
+  addrstr = new char[strlen(str)];
+  strcpy(addrstr, str);
+//   printf("Nodeaddr - %s\n",addrstr);
+  return(addrstr);
+}
+
+
+char *Address::print_portaddr(int address)
+{
+  int a;
+  char str[SMALL_LEN];
+  char *addrstr;
+  
+  str[0] = '\0';
+  a = address >> PortShift_;
+  a = a & PortMask_;
+  sprintf(str, "%d", a);
+  addrstr = new char[strlen(str)];
+  strcpy(addrstr, str);
+//   printf("Portaddr - %s\n",addrstr);
+  return(addrstr);
 }
