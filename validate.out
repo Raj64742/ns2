@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Wed May 20 14:51:00 PDT 1998,
+### on pig.ee.lbl.gov, Wed May 27 1998,
 ### with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
@@ -77,12 +77,18 @@ aggregate per-link total_drops 19
 aggregate per-link total_packets 462
 Test output agrees with reference output
 *** ./test-all-tcp
-Tests: ecn timers timersA timers1 timers2 timers3 timers4 timers5 stats1
+Tests: ecn timers timersA timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 stats1
 Running test ecn.
 Test output agrees with reference output
 Running test timers.
 Test output agrees with reference output
 Running test timersA.
+Test output agrees with reference output
+Running test timersA1.
+Test output agrees with reference output
+Running test timersA2.
+Test output agrees with reference output
+Running test timersA3.
 Test output agrees with reference output
 Running test timers1.
 Test output agrees with reference output
