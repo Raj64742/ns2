@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.13 1998/05/27 19:46:43 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.14 1998/06/19 22:20:05 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -95,8 +95,6 @@ protected:
 			return (default_);
 		return (newflow(p));
 	}
-	nsaddr_t mask_;
-	int shift_;
 	int default_;
 	int buckets_;
 	hnode* htab_;
@@ -114,13 +112,11 @@ protected:
 		return (s % buckets_);
 	}
 	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int fid) {
-		return (hn->active && hn->src == src &&
-			hn->dst == ((dst >> shift_) & mask_)
-			&& hn->fid == fid);
+		return (hn->active && hn->dst == mshift(dst) &&
+			hn->src == mshift(src) && hn->fid == fid);
 	}
 	int find_hash(nsaddr_t src, nsaddr_t dst, int fid) {
-		int buck = hash(src, dst, fid);
-		return (buck);
+		return(hash(mshift(src), mshift(dst), fid));
 	}
 };
 
@@ -136,12 +132,11 @@ protected:
 		return (s % buckets_);
 	}
 	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int) {
-		return (hn->active && hn->src == src &&
-			hn->dst == ((dst >> shift_) & mask_));
+		return (hn->active && hn->src == mshift(src) &&
+			hn->dst == mshift(dst));
 	}
 	int find_hash(nsaddr_t src, nsaddr_t dst, int) {
-		int buck = hash(src, dst);
-		return (buck);
+		return(hash(mshift(src), mshift(dst)));
 	}
 };
 
@@ -170,11 +165,10 @@ protected:
 		return (dest % buckets_);
 	}
 	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int) {
-		return (hn->active && 
-			hn->dst == ((dst >> shift_) & mask_));
+		return (hn->active && hn->dst == mshift(dst));
 	}
 	int find_hash(nsaddr_t, nsaddr_t dest, int) {
-		return(hash(dest));
+		return(hash(mshift(dest)));
 	}
 };
 
@@ -267,12 +261,9 @@ HashClassifier::resize(int b)
 	memset(htab_, '\0', sizeof(hnode) * buckets_);
 }
 
-HashClassifier::HashClassifier(int b) : mask_(~0), shift_(0),
-	default_(-1), buckets_(b), htab_(NULL)
+HashClassifier::HashClassifier(int b) : default_(-1), buckets_(b), htab_(NULL)
 { 
-	// shift and mask operations on dest address
-	bind("mask_", (int*)&mask_);
-	bind("shift_", &shift_);
+	// shift + mask picked up from underlying Classifier object
 	bind("default_", &default_);
 	resize(b);
 }
@@ -412,8 +403,8 @@ HashClassifier::insert(int buck, nsaddr_t src, nsaddr_t dst, int fid, int slot)
 		p = &htab_[buck];
 		
 	p->active = 1;
-	p->src = src;
-	p->dst = dst;
+	p->src = mshift(src);
+	p->dst = mshift(dst);
 	p->fid = fid;
 	p->slot = slot;
 }
@@ -433,7 +424,7 @@ HashClassifier::lookup(int buck, nsaddr_t src, nsaddr_t dst, int fid)
 HashClassifier::hnode*
 HashClassifier::lookup(nsaddr_t src, nsaddr_t dst, int fid)
 {
-	int bucknum = find_hash(src, ((dst >> shift_) & mask_), fid);
+	int bucknum = find_hash(src, dst, fid);
 	return (lookup(bucknum, src, dst, fid));
 }
 
