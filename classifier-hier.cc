@@ -28,7 +28,7 @@
 //
 // Hierarchical classifier: a wrapper for hierarchical routing
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hier.cc,v 1.3 2001/02/01 22:59:58 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hier.cc,v 1.4 2001/02/22 19:45:38 haldar Exp $
 
 #include <assert.h>
 #include "classifier-hier.h"
@@ -75,9 +75,10 @@ void HierClassifier::do_install(char* dst, NsObject *target) {
 		
 	RouteLogic::ns_strtok(dst, istr);
 	
-	while(istr[len] > 0)
+	while(istr[len] > 0) {
+		istr[len] = istr[len] - 1;
 		len++;
-	
+	}
 	for (int i=1; i<len; i++) 
 		clsfr_[i-1]->install(istr[i-1], clsfr_[i]);
 	clsfr_[len-1]->install(istr[len-1], target);

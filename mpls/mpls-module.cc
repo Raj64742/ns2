@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/mpls-module.cc,v 1.2 2000/11/14 02:25:46 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/mpls-module.cc,v 1.3 2001/02/22 19:45:40 haldar Exp $
  *
  * MPLS node plugin module
  */
@@ -26,6 +26,7 @@
 #include "node.h"
 #include "mpls/ldp.h"
 #include "mpls/mpls-module.h"
+#include "mpls/classifier-addr-mpls.h"
 
 static class MPLSModuleClass : public TclClass {
 public:
@@ -123,6 +124,47 @@ int MPLSModule::command(int argc, const char*const* argv)
 				tcl.resultf("%s", a->name());
 			return (TCL_OK);
 		}
+		else if (strcmp(argv[1] , "route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->route_notify(this);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "unreg-route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->unreg_route_notify(this);
+			return TCL_OK;
+		}
+		else if (strcmp(argv[1], "attach-classifier") == 0) {
+			classifier_ = (MPLSAddressClassifier*)(TclObject::lookup(argv[2]));
+			if (classifier_ == NULL) {
+				tcl.add_errorf("Wrong object name %s",argv[2]);
+				return TCL_ERROR;
+			}
+			return TCL_OK;
+		}
 	}
 	return RoutingModule::command(argc, argv);
+}
+
+void MPLSModule::add_route(char *dst, NsObject *target) {
+	if (classifier_) 
+		((MPLSAddressClassifier *)classifier_)->do_install(dst, target);
+	if (next_rtm_ != NULL)
+		next_rtm_->add_route(dst, target); 
 }

@@ -18,3 +18,5 @@ puts "time: [clock format [clock seconds] -format %X]"
 
 $ns run
 
+puts "completed simulation"
+puts "time: [clock format [clock seconds] -format %X]"

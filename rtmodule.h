@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.h,v 1.4 2001/02/01 22:56:21 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.h,v 1.5 2001/02/22 19:45:39 haldar Exp $
  *
  * Definition of RoutingModule, base class for all extensions to routing 
  * functionality in a Node. These modules are meant to be "plugin", and 
@@ -36,14 +36,14 @@
 
 class NsObject;
 class Node;
-//class HierClassifier;
 class VirtualClassifier;
 class DestHashClassifier;
 
 
 class RoutingModule : public TclObject {
 public:
-	RoutingModule() : n_(NULL), classifier_(NULL) {}
+	RoutingModule() : next_rtm_(NULL), n_(NULL),  
+		classifier_(NULL) {}
 	/*
 	 * Returns the node to which this module is attached.
 	 */ 
@@ -61,17 +61,16 @@ public:
 	virtual int command(int argc, const char*const* argv);
 	virtual const char* module_name() const { return NULL; }
 
-	/* support for populating rtg table
-	   virtual void add_route(char *dst, NsObject *target) { 
-	   classifier_->do_install(dst,target); }
-	   
-	   virtual void delete_route(char *dst, NsObject *nullagent) {
-	   classifier_->do_install(dst, nullagent); }*/
-
+	/* support for populating rtg table */
+	void route_notify(RoutingModule *rtm);
+	void unreg_route_notify(RoutingModule *rtm);
+	virtual void add_route(char *dst, NsObject *target); 
+	virtual void delete_route(char *dst, NsObject *nullagent);
+	RoutingModule *next_rtm_;
+	
 protected:
 	Node *n_;
 	Classifier *classifier_;
-	
 };
 
 class BaseRoutingModule : public RoutingModule {
@@ -79,6 +78,7 @@ public:
 	BaseRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "Base"; }
 	virtual int command(int argc, const char*const* argv);
+	virtual void add_route(char *dst, NsObject *target);
 };
 
 class McastRoutingModule : public RoutingModule {
@@ -86,6 +86,7 @@ public:
 	McastRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "Mcast"; }
 	virtual int command(int argc, const char*const* argv);
+	virtual void add_route(char *dst, NsObject *target);
 };
 
 class HierRoutingModule : public RoutingModule {
@@ -93,6 +94,7 @@ public:
 	HierRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "Hier"; }
 	virtual int command(int argc, const char*const* argv);
+	virtual void add_route(char *dst, NsObject *target);
 };
 
 class ManualRoutingModule : public RoutingModule {
@@ -108,6 +110,7 @@ public:
 	VcRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "VC"; }
 	virtual int command(int argc, const char*const* argv);
+	virtual void add_route(char *dst, NsObject *target){}
 };
 
 #endif //  ns_rtmodule_h

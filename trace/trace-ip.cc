@@ -37,7 +37,7 @@
 #include "ip.h"
 #include "trace.h"
 #include "mac.h"
-#include "packet.h"
+//#include "packet.h"
 
 
 class TraceIp : public Trace {

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.20 2000/09/14 18:19:25 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.21 2001/02/22 19:45:38 haldar Exp $
  */
 
 #include <stdio.h>
@@ -160,6 +160,14 @@ char *Address::print_nodeaddr(int address)
 	return(addrstr);
 }
 
+int Address::hier_addr(int address, int level) {
+	if (level <= levels_) {
+		return ( (address >> NodeShift_[level]) & NodeMask_[level]);
+	}
+	perror("Address::hier_addr: levels greater than total h_levels_\n");
+	return -1;
+}
+
 char *Address::get_subnetaddr(int address)
 {
 	int a;
@@ -184,7 +192,6 @@ char *Address::get_subnetaddr(int address)
 		return(addrstr);
 	}
 	return NULL;
-	
 }
 
 // returns nodeaddr in integer form (relevant especially for hier-addr)

@@ -59,3 +59,5 @@ HierNode instproc mk-default-classifier {} {
 	$self instvar classifiers_ 
 	$self set classifier_ [new Classifier/Hier]
 }
+
+

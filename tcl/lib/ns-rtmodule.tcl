@@ -26,7 +26,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.3 2001/02/01 22:56:22 haldar Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.4 2001/02/22 19:45:42 haldar Exp $
 #
 # OTcl interface definition for the base routing module. They provide 
 # linkage to Node, hence all derived classes should inherit these interfaces
@@ -92,8 +92,9 @@ RtModule/Base instproc register { node } {
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	# XXX Base should ALWAYS be the first module to be installed.
 	$node install-entry $self $classifier_
+
 	#XXX this should go away when classifier_ becomes a 
-	#XXX a shared object
+	#XXX a bound object across C++/OTcl line
 	$self attach-classifier $classifier_
 }
 
@@ -108,7 +109,6 @@ RtModule/Base instproc register { node } {
 #
 RtModule/Mcast instproc register { node } {
 	$self next $node
-	#debug 1
 	$self instvar classifier_
 
 	# Keep old classifier so we can use RtModule::add-route{}.
@@ -185,7 +185,7 @@ Classifier/Hier instproc install { dst target } {
 	[$self cmd classifier $l] install [lindex $al [expr $l-1]] $target
 }
 
-
+
 #
 # Manual Routing Nodes:
 # like normal nodes, but with a hash classifier.
@@ -201,7 +201,6 @@ RtModule/Manual instproc register { node } {
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	$node install-entry $self $classifier_
 	$self attach-classifier $classifier_
-	
 }
 
 RtModule/Manual instproc add-route {dst_address target} {
@@ -237,7 +236,7 @@ RtModule/Manual instproc add-route-to-adj-node { args } {
 	return [$self add-route $dst $target]
 }
 
-
+
 #
 # Virtual Classifier Nodes:
 # like normal nodes, but with a virtual unicast classifier.
@@ -255,6 +254,7 @@ RtModule/VC instproc register { node } {
 	$classifier_ nodeaddr [$node node-addr]
 	$node install-entry $self $classifier_ 
 	$self attach-classifier $classifier_
+	#$self attach-self $node
 }
 
 RtModule/VC instproc add-route { dst target } {

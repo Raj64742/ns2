@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.37 2000/11/17 22:10:33 ratul Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.38 2001/02/22 19:45:39 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -527,6 +527,26 @@ void RouteLogic::hier_init(void)
 	hconnect_ = new char**[arr_size];
 }
 
+
+int RouteLogic::domain_size(int domain) { 
+	return (C_[domain+1]-1); 
+}
+int RouteLogic::cluster_size(int d, int c) {
+	d += 1;
+	c += 1;
+	return (cluster_size_[INDEX(d, c, Cmax_)]);
+}
+
+int RouteLogic::elements_in_level(int *addr, int level) {
+	if (level == 1)
+		return (domains());
+	else if (level == 2)
+		return (domain_size(addr[0]));
+	else if (level == 3) {
+		return (cluster_size(addr[0], addr[1]));
+	}
+	return (-1);
+}
 
 void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_addr)
 {

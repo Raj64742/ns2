@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.4 2001/02/01 22:56:21 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.5 2001/02/22 19:45:39 haldar Exp $
  */
 
 #include "rtmodule.h"
@@ -73,7 +73,6 @@ public:
 	}
 } class_vc_routing_module;
 
-
 int RoutingModule::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
@@ -107,37 +106,37 @@ int RoutingModule::command(int argc, const char*const* argv)
 			}
 			return TCL_OK;
 		}
-		
 	}
-	else if (argc == 4) {
-		if (strcmp(argv[1], "add_route") == 0) {
-			char dst[SMALL_LEN];
-			strcpy(dst, argv[2]);
-			NsObject* target = (NsObject *)(TclObject::lookup(argv[3]));
-			if (target == NULL) {
-				tcl.add_errorf("Wrong object name %s",argv[3]);
-			}
-			if (classifier_)
-				classifier_->do_install(dst, target);
-			return TCL_OK;
-		}
-	}
-	
 	return TclObject::command(argc, argv);
 }
 
 int BaseRoutingModule::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 4) {
-		if (strcmp(argv[1], "add_route") == 0) {
-			char *dst;
-			strcpy(dst, argv[2]);
-			NsObject* target = (NsObject *)(TclObject::lookup(argv[3]));
-			if (target == NULL) {
-				tcl.add_errorf("Wrong object name %s",argv[3]);
+	if (argc == 3) {
+		if (strcmp(argv[1] , "route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
 			}
-			if (classifier_) 
-				((DestHashClassifier *)classifier_)->do_install(dst, target);
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->route_notify(this);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "unreg-route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->unreg_route_notify(this);
 			return TCL_OK;
 		}
 	}
@@ -146,16 +145,31 @@ int BaseRoutingModule::command(int argc, const char*const* argv) {
 
 int McastRoutingModule::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 4) {
-		if (strcmp(argv[1], "add_route") == 0) {
-			char *dst;
-			strcpy(dst, argv[2]);
-			NsObject* target = (NsObject *)(TclObject::lookup(argv[3]));
-			if (target == NULL) {
-				tcl.add_errorf("Wrong object name %s",argv[3]);
+	if (argc == 3) {
+		if (strcmp(argv[1] , "route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
 			}
-			if (classifier_) 
-				((DestHashClassifier *)classifier_)->do_install(dst, target);
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->route_notify(this);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "unreg-route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->unreg_route_notify(this);
 			return TCL_OK;
 		}
 	}
@@ -164,19 +178,40 @@ int McastRoutingModule::command(int argc, const char*const* argv) {
 
 int HierRoutingModule::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 4) {
-		if (strcmp(argv[1], "add_route") == 0) {
-			char *dst;
-			strcpy(dst, argv[2]);
-			NsObject* target = (NsObject *)(TclObject::lookup(argv[3]));
-			if (target == NULL) {
-				tcl.add_errorf("Wrong object name %s",argv[3]);
-			}
-			if (classifier_) {
-				((HierClassifier *)classifier_)->do_install(dst, target);
-				return TCL_OK;
-			} else 
+	if (argc == 3) {
+		if (strcmp(argv[1], "attach-classifier") == 0) {
+			classifier_ = (HierClassifier*)(TclObject::lookup(argv[2]));
+			if (classifier_ == NULL) {
+				tcl.add_errorf("Wrong object name %s",argv[2]);
 				return TCL_ERROR;
+			}
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->route_notify(this);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "unreg-route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->unreg_route_notify(this);
+			return TCL_OK;
 		}
 	}
 	return (RoutingModule::command(argc, argv));
@@ -185,19 +220,123 @@ int HierRoutingModule::command(int argc, const char*const* argv) {
 
 int ManualRoutingModule::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 4) {
-		if (strcmp(argv[1], "add_route") == 0) {
-			char *dst;
-			strcpy(dst, argv[2]);
-			NsObject* target = (NsObject *)(TclObject::lookup(argv[3]));
-			if (target == NULL) {
-				tcl.add_errorf("Wrong object name %s",argv[3]);
+	if (argc == 3) {
+		if (strcmp(argv[1] , "route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
 			}
-			add_route(dst,target);
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from node_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->route_notify(this);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "unreg-route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->unreg_route_notify(this);
 			return TCL_OK;
 		}
 	}
 	return (RoutingModule::command(argc, argv));
+}
+
+int VcRoutingModule::command(int argc, const char*const* argv) {
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1] , "route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->route_notify(this);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "unreg-route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->unreg_route_notify(this);
+			return TCL_OK;
+		}
+	}
+	return (RoutingModule::command(argc, argv));
+}
+
+void RoutingModule::route_notify(RoutingModule *rtm) {
+	if (next_rtm_ != NULL)
+		next_rtm_->route_notify(rtm);
+	else
+		next_rtm_ = rtm;
+}
+
+void RoutingModule::unreg_route_notify(RoutingModule *rtm) {
+	if (next_rtm_) {
+		if (next_rtm_ == rtm) {
+			//RoutingModule *tmp = next_rtm_;
+			next_rtm_ = next_rtm_->next_rtm_;
+			//free (tmp);
+		}
+		else {
+			next_rtm_->unreg_route_notify(rtm);
+		}
+	}
+}
+
+void RoutingModule::add_route(char *dst, NsObject *target) {
+	classifier_->do_install(dst,target); 
+	if (next_rtm_ != NULL)
+		next_rtm_->add_route(dst, target); 
+}
+
+void RoutingModule::delete_route(char *dst, NsObject *nullagent)
+{
+	classifier_->do_install(dst, nullagent); 
+	if (next_rtm_)
+		next_rtm_->add_route(dst, nullagent); 
+}
+
+
+void BaseRoutingModule::add_route(char *dst, NsObject *target) {
+	if (classifier_) 
+		((DestHashClassifier *)classifier_)->do_install(dst, target);
+	if (next_rtm_ != NULL)
+		next_rtm_->add_route(dst, target); 
+}
+
+void McastRoutingModule::add_route(char *dst, NsObject *target) {
+	if (classifier_) 
+		((DestHashClassifier *)classifier_)->do_install(dst, target);
+	if (next_rtm_ != NULL)
+		next_rtm_->add_route(dst, target); 
+}
+
+void HierRoutingModule::add_route(char *dst, NsObject *target) {
+	if (classifier_) 
+		((HierClassifier *)classifier_)->do_install(dst, target);
+	if (next_rtm_ != NULL)
+		next_rtm_->add_route(dst, target); 
 }
 
 void ManualRoutingModule::add_route(char *dst, NsObject *target) {
@@ -210,17 +349,7 @@ void ManualRoutingModule::add_route(char *dst, NsObject *target) {
 		if (0 > (((DestHashClassifier *)classifier_)->do_set_hash(0, encoded_dst_address, 0, slot))) {
 			fprintf(stderr, "HashClassifier::set_hash() return value less than 0\n"); }
 	}
+	if (next_rtm_ != NULL)
+		next_rtm_->add_route(dst, target); 
 }
-
-int VcRoutingModule::command(int argc, const char*const* argv) {
-	if (argc == 4) {
-		if (strcmp(argv[1], "add_route") == 0) { 
-			return TCL_OK;
-		}
-	}
-	return (RoutingModule::command(argc, argv));
-}
-
-
-
 

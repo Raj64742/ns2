@@ -28,7 +28,7 @@
 # 
 #  Original source contributed by Gaeil Ahn. See below.
 #
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-node.tcl,v 1.3 2000/09/14 18:19:30 haoboy Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-node.tcl,v 1.4 2001/02/22 19:45:44 haldar Exp $
 
 ###########################################################################
 # Copyright (c) 2000 by Gaeil Ahn                                	  #
@@ -57,7 +57,11 @@ RtModule/MPLS instproc register { node } {
         set classifier_ [new Classifier/Addr/MPLS]
         $classifier_ set-node $node $self
 	$node install-entry $self $classifier_ 0
+	$self attach-classifier $classifier_
 }
+
+
+#RtModule/MPLS instproc route-notify { module } { }
 
 # Done common routing module interfaces. Now is our own processing.
 
@@ -488,3 +492,5 @@ RtModule/MPLS instproc lib-dump {} {
         set nodeid [[$self node] id]
         [$self set classifier_] LIBdump $nodeid
 }
+
+

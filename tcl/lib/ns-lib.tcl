@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.217 2000/12/20 10:16:14 alefiyah Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.218 2001/02/22 19:45:42 haldar Exp $
 
 #
 # Word of warning to developers:
@@ -120,7 +120,7 @@ proc delay_parse { spec } {
 # Create the core OTcl class called "Simulator".
 # This is the principal interface to the simulation engine.
 #
-Class Simulator
+#Class Simulator
 
 #
 # XXX Whenever you modify the source list below, please also change the
@@ -205,6 +205,9 @@ Simulator instproc init args {
 	$self use-scheduler Calendar
 	$self set nullAgent_ [new Agent/Null]
 	$self set-address-format def
+	if {[lindex $args 0] == "-multicast"} {
+		$self multicast $args
+	}
 	eval $self next $args
 }
 
@@ -436,6 +439,8 @@ Simulator instproc node args {
 		# for base node
 		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
 			set Node_([$node id]) $node
+			#simulator's nodelist in C++ space
+			$self add-node $node [$node id] 
 		}
 		return $node
 	}
@@ -449,6 +454,9 @@ Simulator instproc node args {
 	set node [eval new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
 	
+	#add to simulator's nodelist in C++ space
+	$self add-node $node [$node id] 
+
 	#set the nodeid in c++ Node - ratul
 	$node nodeid [$node id]
 

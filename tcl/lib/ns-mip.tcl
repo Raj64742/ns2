@@ -27,7 +27,7 @@
 #
 # These notices must be retained in any copies of any part of this software.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.9 2001/02/01 22:56:21 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.10 2001/02/22 19:45:42 haldar Exp $
 
 # XXX It is stupid to have both MIP implementation here and in mobile node. 
 # However, there is no test suite that covers test-suite-mip.tcl, which relies
@@ -37,11 +37,14 @@
 # Broadcast Nodes:
 # accept limited broadcast packets
 #     
-Class Node/Broadcast -superclass Node
+#Class Node/Broadcast -superclass Node
 
 Node/Broadcast instproc init {} {
 	$self next
         $self instvar address_ classifier_ id_ dmux_
+
+	[Simulator instance] add-broadcast-node $self $id_
+	
         set classifier_ [new Classifier/Hash/Dest/Bcast 32]
         $classifier_ set mask_ [AddrParams NodeMask 1]
         $classifier_ set shift_ [AddrParams NodeShift 1]
@@ -54,15 +57,20 @@ Node/Broadcast instproc init {} {
 		
         }
         $classifier_ bcast-receiver $dmux_
+
+	$self attach-classifier $classifier_
 }
+
+Node/Broadcast instproc mk-default-classifier {} { }
+
 
 # XXX The following three instprocs are used to keep this version of MIP
 # work. This is all work-in-progress and everything in this file should 
 # be converted into a routing module and merged with mobile node.
 
-Node/Broadcast instproc sp-add-route { dst target } {
-	[$self set classifier_] install $dst $target
-}
+#Node/Broadcast instproc sp-add-route { dst target } {
+#	[$self set classifier_] install $dst $target
+#}
 
 Node/Broadcast instproc add-route { dst target } {
 	[$self set classifier_] install $dst $target

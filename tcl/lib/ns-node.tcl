@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.86 2001/02/01 22:56:22 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.87 2001/02/22 19:45:42 haldar Exp $
 #
 
 Node set nn_ 0
@@ -71,13 +71,14 @@ Node instproc init args {
 	set ns_ [Simulator instance]
 	set id_ [Node getid]
 	$self nodeid $id_	;# Propagate id_ into c++ space
+
 	if {[llength $args] != 0} {
 		set address_ [lindex $args 0]
 	} else {
 		set address_ $id_
 	}
 	$self cmd addr $address_; # new by tomh
-
+	#$ns_ add-node $self $id_        
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
@@ -243,9 +244,8 @@ Node instproc install-entry { module clsfr {hook ""} } {
 Node instproc route-notify { module } {
 	$self instvar rtnotif_
 	lappend rtnotif_ $module
-	# XXXX either have shared rtnotif_ obj or send in
-	# XXXX variable to C++
-	$self route_notify $module
+	$module route-notify $self
+
 }
 
 Node instproc unreg-route-notify { module } {
@@ -254,25 +254,13 @@ Node instproc unreg-route-notify { module } {
 	if { $pos >= 0 } {
 		set rtnotif_ [lreplace $rtnotif_ $pos $pos]
 	}
-	$self unreg_route_notify $module
-}
-
-# temporary code:goes away once rtg modification is done.
-
-Node instproc sp-add-route {dst target } {
-	$self instvar rtnotif_
-	# Notify every module that is interested about this route installation
-	foreach m $rtnotif_ {
-		[$m set classifier_] set slots_($dst) $target
-		$m add-route $dst $target
-	}
+	$module unreg-route-notify $self
 }
 
 Node instproc add-route { dst target } {
 	$self instvar rtnotif_
 	# Notify every module that is interested about this route installation
 	foreach m $rtnotif_ {
-		#[$m set classifier_] set slots_($dst) $target
 		$m add-route $dst $target
 	}
 	$self incr-rtgtable-size
@@ -393,9 +381,8 @@ Node instproc enable-mcast args {
 	
 }
 
-#----------------------------------------------------------------------
+#--------------------------------------------------------------
 
-
 #
 # Port classifier manipulation
 #

@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.h,v 1.3 2000/09/14 18:19:26 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.h,v 1.4 2001/02/22 19:45:40 haldar Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -138,7 +138,10 @@ public:
 	static int ordered_control_;
 	static int on_demand_;
 
+		
 protected:
+	virtual void install(int slot, NsObject *target);
+	
 	virtual int classify(Packet* p);
 	int MPLSclassify(Packet* p);
     

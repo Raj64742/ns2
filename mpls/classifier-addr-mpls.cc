@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.3 2000/09/14 18:19:25 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.4 2001/02/22 19:45:40 haldar Exp $
 
 // XXX
 //
@@ -430,6 +430,25 @@ hdr_mpls *MPLSAddressClassifier::pop(hdr_mpls *shimhdr)
 	return shimhdr;
 }
 
+void MPLSAddressClassifier::install(int slot, NsObject *target) {
+	Tcl& tcl = Tcl::instance();
+	if ((slot >= 0) && (slot < nslot_) && 
+	    (slot_[slot] != NULL)) {
+		if (strcmp(slot_[slot]->name(), target->name()) != 0)
+			tcl.evalf("%s routing-update %d %.15g",
+				  name(), slot,
+				  Scheduler::instance().clock());
+		else
+			tcl.evalf("%s routing-nochange %d %.15g",
+				  name(), slot,
+				  Scheduler::instance().clock());
+	} else
+		tcl.evalf("%s routing-new %d %.15g",
+			  name(), slot,
+			  Scheduler::instance().clock());
+	Classifier::install(slot,target);
+}
+
 int MPLSAddressClassifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
@@ -545,10 +564,15 @@ int MPLSAddressClassifier::command(int argc, const char*const* argv)
 				tcl.evalf("%s routing-new %s %.15g",
 					  name(), argv[2],
 					  Scheduler::instance().clock());
-			// XXX
 			// Then the control is passed on the the base
 			// address classifier!
-			return AddressClassifier::command(argc, argv);
+			//return AddressClassifier::command(argc, argv);
+			//not a good idea since it would start an infinite loop incase MPLSAddressClassifier::install is defined; 
+			//so call Classifier::install explicitly.
+			
+			NsObject* target = (NsObject*)TclObject::lookup(argv[3]);
+			Classifier::install(slot, target);
+			return (TCL_OK);
 		}
 	} else if (argc == 5) {      
 		if (strcmp(argv[1], "ErLspBinding") == 0) {

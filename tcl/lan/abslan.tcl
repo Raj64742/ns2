@@ -25,7 +25,7 @@
 # is replaced by a simple DropTail queue mechanism. 
 #____________________________________________________________
 
-Class AbsLanNode
+#Class AbsLanNode
 AbsLanNode set address_   ""
 
 AbsLanNode instproc address  {val} { $self set address_  $val }
@@ -46,8 +46,10 @@ AbsLanNode instproc init {ns args} {
 	set cost_ 1
 
 	set id_ [Node getid]
+	$ns_ add-abslan-node $self $id_
+        $self nodeid $id_	;# Propagate id_ into c++ space
 	set Node_($id_) $self
-        set address_ $id_
+        set address_ $id_       ;# won't work for hier rtg!
 	set defRouter_ [new LanRouter $ns $self]
 	if [$ns multicast?] {
 		set switch_ [new Classifier/Hash/Dest 32]

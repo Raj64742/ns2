@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.28 2001/02/01 22:56:22 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.29 2001/02/22 19:45:42 haldar Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -262,6 +262,8 @@ Simulator instproc compute-flat-routes {} {
 		time: [clock format [clock seconds] -format %X]"
 	
 	set r [$self get-routelogic]
+	$self cmd get-routelogic $r  ;# propagate rl in C++
+	
 	foreach ln [array names link_] {
 		set L [split $ln :]
 		set srcID [lindex $L 0]
@@ -281,40 +283,51 @@ Simulator instproc compute-flat-routes {} {
 	#puts "completed route-compute"
 	#puts "and starting to populate classifiers at \
 		time: [clock format [clock seconds] -format %X]"
-
-	#$god populate-classifiers
-	# all of this should go away
+	set n [Node set nn_]
+	
+	# classifier-population part moved to C++: this results in > 50% 
+        # improvement of simulation run time.
+	
+	$self populate-flat-classifiers $n
+	
 
 	# Set up each classifer (aka node) to act as a router.
 	# Point each classifer table to the link object that
 	# in turns points to the right node.
 	#
-	set i 0
-	set n [Node set nn_]
-	while { $i < $n } {
-		if ![info exists Node_($i)] {
-		    incr i
-		    continue
-		}
-		set n1 $Node_($i)
-		set j 0
-		while { $j < $n } {
-		    if { $i != $j } {
+	#set i 0
+	#set n [Node set nn_]
+	#while { $i < $n } {
+	#	if ![info exists Node_($i)] {
+	#	    incr i
+	#	    continue
+	#	}
+	#	set n1 $Node_($i)
+	#	set j 0
+	#	while { $j < $n } {
+	#	    if { $i != $j } {
 			# shortened nexthop to nh, to fit add-route in
 			# a single line
-			#debug 1
-			set nh [$r lookup $i $j]
-			if { $nh >= 0 } {
-			    $n1 sp-add-route $j [$link_($i:$nh) head]
-			}
-		    } 
-		    incr j
-		}
-		incr i
-	}
+	#		set nh [$r lookup $i $j]
+	#		if { $nh >= 0 } {
+	#		    $n1 sp-add-route $j [$link_($i:$nh) head]
+	#		}
+	#	    } 
+	#	    incr j
+	#	}
+	#	incr i
+	#}
+
 	#puts "Completed populating classifiers at \
 		time: [clock format [clock seconds] -format %X]"
 }
+
+Simulator instproc get-link-head { n1 n2 } {
+    $self instvar link_
+    return [$link_($n1:$n2) head]
+}
+
+
 
 #
 # Hierarchical routing support
@@ -365,7 +378,8 @@ Simulator instproc hier-topo {rl} {
 Simulator instproc compute-hier-routes {} {
 	$self instvar Node_ link_
 	set r [$self get-routelogic]
-	#
+        $self cmd get-routelogic $r ;# propagate rl in C++    
+
 	# send hierarchical data :
 	# array of cluster size, #clusters, #domains
 	# assuming 3 levels of hierarchy --> this should be extended to support
@@ -387,57 +401,65 @@ Simulator instproc compute-hier-routes {} {
 			$r hier-reset $srcID $dstID
 		}
 	}
+
 	$r hier-compute
-	#
-	# Set up each classifier (n for n levels of hierarchy) for every node
-	#
+
+	# Set up each classifier (n for n levels of hierarchy) 
+	# for every node
+
+	
+	# classifier-population part moved to C++: this results in > 50% 
+        # improvement of simulation run time. -Padma, 02/01.
 	set n [Node set nn_]
-	#
-	#for each node
-	#
-	for {set i 0} {$i < $n} {incr i} {
-		if ![info exists Node_($i)] {
-			continue
-		}
-		set n1 $Node_($i)
-		set addr [$n1 node-addr]
-		set L [AddrParams split-addrstr $addr]
+	$self populate-hier-classifiers $n
+
+	#$self gen-map
+
+#	for {set i 0} {$i < $n} {incr i} {
+#		if ![info exists Node_($i)] {
+#			continue
+#		}
+#		set n1 $Node_($i)
+#		set addr [$n1 node-addr]
+#		set L [AddrParams split-addrstr $addr]
 		#
 		# for each hierarchy level, populate classifier for that level
 		#
-		for {set k 0} {$k < $level} {incr k} {
-			set csize [AddrParams elements-in-level? $addr $k]
+#		for {set k 0} {$k < $level} {incr k} {
+#			set csize [AddrParams elements-in-level? $addr $k]
 			#
 			# for each element in that level (elements maybe 
 			# nodes or clusters or domains 
 			#
-			if {$k > 0} {
-				set prefix [$r append-addr $k $L]
-			}
-			for {set m 0} {$m < $csize} {incr m} {
-				if { $m == [lindex $L $k]} {
-					continue
-				}
-				if {$k > 0} {
-					set str $prefix
-					append str . $m
-				} else {
-					set str $m
-				}
-				set nh [$r hier-lookup $addr $str]
+#			if {$k > 0} {
+#				set prefix [$r append-addr $k $L]
+#			}
+#			for {set m 0} {$m < $csize} {incr m} {
+#				if { $m == [lindex $L $k]} {
+#					continue
+#				}
+#				if {$k > 0} {
+#					set str $prefix
+#					append str . $m
+#				} else {
+#					set str $m
+#				}
+#				set nh [$r hier-lookup $addr $str]
 				# add entry in clasifier only if hier-lookup 
 				# returns a value. 
-				if {$nh == -1} { 
-					continue
-				}
-				set node [$self get-node-id-by-addr $nh]
-				if { $node >= 0 } {
-					$n1 sp-add-route $str \
-							[$link_($i:$node) head]
-				}
-			}
-		}
-	}
+#				if {$nh == -1} { 
+#					continue
+#				}
+#				set node [$self get-node-id-by-addr $nh]
+#				if { $node >= 0 } {
+#					$n1 sp-add-route $str \
+#							[$link_($i:$node) head]
+#				}
+#			}
+#		}
+#	}
+#}
+
 }
 
 #
@@ -479,7 +501,7 @@ Simulator instproc compute-algo-routes {} {
 			set nh [$r lookup $i $j]
 			# puts "$i $j $nh"
 			if { $nh >= 0 } {
-			    $n1 sp-add-route $j [$link_($i:$nh) head]
+			    $n1 add-route $j [$link_($i:$nh) head]
 			    ###$n1 incr-rtgtable-size
 			}
 		    } 

@@ -36,7 +36,7 @@
  * Bertsekas' book.  Written originally by S. Keshav, 7/18/88
  * (his work covered by identical UC Copyright)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.h,v 1.6 2000/11/17 22:10:33 ratul Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.h,v 1.7 2001/02/22 19:45:39 haldar Exp $
  *
  */
 
@@ -78,6 +78,10 @@ public:
 	virtual int lookup_flat(int sid, int did); //added for pushback - ratul
 	int lookup_hier(char* asrc, char* adst, int&result);
 	static void ns_strtok(char *addr, int *addrstr);
+	inline int elements_in_level (int *addr, int level);
+	inline int domains(){ return (D_-1); }
+	inline int domain_size(int domain);
+	inline int cluster_size(int domain, int cluster);
 protected:
 
 	void check(int);

@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.448 2001/02/19 20:36:04 yuri Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.449 2001/02/22 19:45:38 haldar Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -18,6 +18,16 @@ with the most recent changes coming first.
 ns-2.1b8 release PENDING</h3>
 
 <ul>
+<LI><B>Haldar<B>
+Thu Feb 22 11:10:01 PST 2001
+<BR>
+The following modifications made to the routing code in NS:
+1. In order to increase run-time efficiency, we moved iteration-heavy parts of routing from OTcl to C++. The classifier-population has been moved to C++ which have resulted in run-time efficiency increase of more 50%.
+2. Simulator is now a split object. It manitains a list of node both in OTCl and C++. will try to reduce it down to a single list: routing-modification partII.
+3. Every node now maintains a pointer to the head of routing module chain. so incase of a routing add/update, the info flows from head of the chain to the other modules connected in the chain. same model should be there in Otcl which will replace the routing module list maintained by each node. --to-do-for-partII.
+4. Population of classifiers now done by routing modules entirely in C++.
+5. A new ParentNode class added that acts as parent class for different kinds of nodes like Node, LanNode, AbsLanNode, BroadcastNode etc.
+6. Wireless routing modules to be added in future --PartII. 
 
 <li><b>Yuri</b>
 Mon Feb 19 12:31:47 PST 2001<br>

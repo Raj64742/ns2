@@ -17,7 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.33 2001/02/01 22:56:21 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.34 2001/02/22 19:45:41 haldar Exp $
 
 # LanNode----------------------------------------------------
 #
@@ -27,7 +27,7 @@
 # WARNING: if used with hierarchical routing, one has to assign
 # a hierarchical address to the lan itself.  This maybe confusing.
 #------------------------------------------------------------
-Class LanNode
+#Class LanNode
 LanNode set ifqType_   Queue/DropTail
 LanNode set llType_    LL
 #LanNode set macType_   Mac/Csma/Cd
@@ -61,7 +61,9 @@ LanNode instproc init {ns args} {
 	set cost_ 1
 
 	set id_ [Node getid]
-	set Node_($id_) $self
+        $self nodeid $id_
+        $ns_ add-lannode $self $id_
+        set Node_($id_) $self
 	if [Simulator hier-addr?] {
 		if {$address_ == ""} {
 			error "LanNode: use \"-address\" option \
@@ -70,6 +72,7 @@ LanNode instproc init {ns args} {
 	} else {
 		set address_ $id_
 	}
+	$self addr $address_
 	set defRouter_ [new LanRouter $ns $self]
 	if [$ns multicast?] {
 		set switch_ [new Classifier/Hash/Dest 32]

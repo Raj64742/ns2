@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/mpls-module.h,v 1.1 2000/09/14 18:22:28 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/mpls-module.h,v 1.2 2001/02/22 19:45:40 haldar Exp $
  *
  * Definition of MPLS node plugin module
  */
@@ -32,11 +32,12 @@
 
 class MPLSModule : public RoutingModule {
 public:
-	MPLSModule() : last_inlabel_(0), last_outlabel_(1000) {
+	MPLSModule() : RoutingModule(), last_inlabel_(0), last_outlabel_(1000) {
 		LIST_INIT(&ldplist_);
 	}
 	virtual ~MPLSModule();
 	virtual const char* module_name() const { return "MPLS"; }
+	virtual void add_route(char *dst, NsObject *target);
 	virtual int command(int argc, const char*const* argv);
 protected:
 	// Do we have a LDP agent that peers with <nbr> ?

@@ -28,7 +28,7 @@
 //
 // Hierarchical classifier: a wrapper for hierarchical routing
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.h,v 1.1 2001/02/02 17:18:24 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.h,v 1.2 2001/02/22 19:45:38 haldar Exp $
 
 #include <assert.h>
 #include "classifier.h"
@@ -52,3 +52,4 @@ public:
 private:
 	Classifier **clsfr_;
 };
+
