@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.51 1998/06/27 01:53:40 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.52 1998/06/27 02:01:24 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -224,6 +224,7 @@ FullTcpAgent::~FullTcpAgent()
 {
 	cancel_timers();	// cancel all pending timers
 	rq_.clear();		// free mem in reassembly queue
+	sq_.clear();		// free mem in sack queue
 }
 
 /*
@@ -723,11 +724,6 @@ void FullTcpAgent::newack(Packet* pkt)
 
 	if (ackno == maxseq_) {
 		cancel_rtx_timer();	// all data ACKd
-
-#ifdef notdef
-// Giao added this... I think it is not right
-finish();
-#endif
 	} else if (progress) {
 		set_rtx_timer();
 	}
@@ -886,8 +882,6 @@ FullTcpAgent::set_initial_window() {
 	else    
 		cwnd_ = initial_window();
 }       
-
-
 
 /*
  * main reception path - 
