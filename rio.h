@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.h,v 1.1 2000/06/21 02:41:41 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.h,v 1.2 2000/06/27 05:15:42 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_rio_h
@@ -193,6 +193,8 @@ class RIOQueue : public Queue {
 	int drop_rand_;		/* drop-tail, or drop random? */
 	int ns1_compat_;	/* for ns-1 compatibility, bypass a */
 				/*   small bugfix */
+	int priority_method_;	/* 0 to leave priority field in header, */
+				/*  1 to use flowid as priority.  */
 
 	edp edp_;	/* early-drop params */
 	int doubleq_;	/* for experiments with priority for small packets */

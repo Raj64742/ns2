@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.cc,v 1.1 2000/06/21 02:41:41 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.cc,v 1.2 2000/06/27 05:15:42 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -104,7 +104,8 @@ RIOQueue::RIOQueue() : link_(NULL), bcount_(0), in_len_(0), in_bcount_(0),
 	bind("in_prob1_", &edv_.in_v_prob1);	    // In dropping probability
 	bind("out_prob1_", &edv_.out_v_prob1);	    // Out dropping probability
 	bind("curq_", &curq_);			    // current queue size
-
+	bind("priority_method_", &priority_method_); // method for setting
+						    // priority
 	q_ = new PacketQueue();			    // underlying queue
 	pq_ = q_;
 	reset();
@@ -560,9 +561,15 @@ void RIOQueue::enque(Packet* pkt)
         /* Duplicate the RED algorithm to carry out a separate
          * calculation for Out packets -- Wenjia */
 	hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
+	int off_ip_ = hdr_ip::offset();
+	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 
 	//printf("RIOQueue::enque queue %d queue-length %d priority %d\n", 
 	//       q_, q_->length(), hf->pri_);
+	// $s_agent set fid_ $pktClass
+	if (priority_method_ == 1) {
+		hf->pri_ = iph->flowid();
+	}
         if (hf->pri_) {  /* Regular In packets */
 
 	/*
