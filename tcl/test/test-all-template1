@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.18 1999/02/24 23:26:13 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.19 1999/04/12 23:13:26 haldar Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -109,6 +109,30 @@ for t in $tests; do
 	fi
     fi
     if [ -f $datafile ]; then
+       if (test "$file" = "test-suite-wireless-lan.tcl")
+       then
+           if [ ! -f $directory/$t.gz ]; then
+              echo saving output for future validation
+	    success="unknown"
+	    cp $datafile $datafile.bk; gzip $datafile  
+	    cp $datafile.bk $datafile
+	    mv $datafile.gz $directory/$t.gz
+	   else
+	    cp $directory/$t.gz $directory/$t.temp.gz
+	    gunzip $directory/$t.temp.gz 
+            cmp $directory/$t.temp $datafile
+              if [ $? = 0 ]; then
+		echo Test output agrees with reference output
+		rm $directory/$t.temp
+	      else
+		echo Test output differs from reference output
+		success="false"
+		cp $datafile $directory/$t.test
+		cp $directory/$t.temp $directory/$t
+		echo "Diagnose with: diff $directory/$t.test $directory/$t"
+	      fi
+           fi 
+       else
 	if [ ! -f $directory/$t.Z ]; then
 	    echo saving output for future validation
 	    success="unknown"
@@ -128,7 +152,8 @@ for t in $tests; do
 		echo "Differences due to floating-point formatting are not significant."
 
 	    fi
-	fi
+	 fi
+      fi
     else
 	success="unknown"
     fi
