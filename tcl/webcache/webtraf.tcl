@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.5 2000/11/21 04:26:44 ratul Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.6 2000/11/25 20:28:13 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -52,14 +52,12 @@ PagePool/WebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size } {
 		$ctcp set fid_ $id
 	}
 
-	#modified for web traffic flow trace. 
-	#puts "launch request $id: [$clnt id] -> [$svr id] size $size at [$ns now] cfid [$ctcp set fid_] sfid [$stcp set fid_] "
-	# puts "  client: $ctcp $csnk"
-	# puts "  server: $stcp $ssnk"
-
 	$ctcp proc done {} "$self done-req $id $clnt $svr $ctcp $csnk $stcp $size"
-	$stcp proc done {} "$self done-resp $id $clnt $svr $stcp $ssnk $size [$ns now]"
+	$stcp proc done {} "$self done-resp $id $clnt $svr $stcp $ssnk $size"
 	
+	# modified to trace web traffic flows (send request: client==>server).
+        #puts "req + $id [$clnt id] [$svr id] $size [$ns now]"
+
 	# Send a single packet as a request
 	$ctcp advanceby 1
 }
@@ -67,8 +65,8 @@ PagePool/WebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size } {
 PagePool/WebTraf instproc done-req { id clnt svr ctcp csnk stcp size } {
 	set ns [Simulator instance]
 
-	# modified to trace web traffic flow
-	# puts "done request $id : [$clnt id] -> [$svr id] at [$ns now]"
+	# modified to trace web traffic flows (recv request: client==>server).
+        #puts "req - $id [$clnt id] [$svr id] [$ns now]"
 
 	# Recycle client-side TCP agents
 	$ns detach-agent $clnt $ctcp
@@ -76,16 +74,20 @@ PagePool/WebTraf instproc done-req { id clnt svr ctcp csnk stcp size } {
 	$ctcp reset
 	$csnk reset
 	$self recycle $ctcp $csnk
-#	puts "recycled $ctcp $csnk"
+#	puts "recycled $stcp $ssnk"
+
+	# modified to trace web traffic flows (send responese: server->client).
+        #puts "resp + $id [$svr id] [$clnt id] $size [$ns now]"
+
 	# Advance $size packets
 	$stcp advanceby $size
 }
 
-PagePool/WebTraf instproc done-resp { id clnt svr stcp ssnk size startTime} {
+PagePool/WebTraf instproc done-resp { id clnt svr stcp ssnk size} {
 	set ns [Simulator instance]
 
-	#modified to trace web traffic flow.
-	#puts "done response $id : [$clnt id] -> [$svr id] at [$ns now] size $size duration [expr [$ns now] - $startTime]"
+	# modified to trace web traffic flows (recv responese: server->client).
+        #puts "resp - $id [$svr id] [$clnt id] $size [$ns now]"
 
 	# Recycle server-side TCP agents
 	$ns detach-agent $clnt $ssnk
