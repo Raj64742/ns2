@@ -159,8 +159,8 @@ switch tree-types for a particular group,
 from shared trees to source specific trees or vice-versa, and
 recompute multicast routes.
 \begin{program}
-        $mrthandle set_c_rp \{$node0 $node1\}      \; set the RPs;
-        $mrthandle set_c_bsr \{$node0:0 $node1:1\} \; set the BSR, specified as list of node:priority;
+        $mrthandle set_c_rp $node0 $node1          \; set the RPs;
+        $mrthandle set_c_bsr $node0:0 $node1:1     \; set the BSR, specified as list of node:priority;
 
         $mrthandle get_c_rp $node0 $group          \; get the current RP ???;
         $mrthandle get_c_bsr $node0                \; get the current BSR;

@@ -107,7 +107,7 @@
 \contentsline {subsection}{\numberline {13.5.2}Mac Methods}{86}
 \contentsline {subsection}{\numberline {13.5.3}Mac Class in C++}{86}
 \contentsline {subsection}{\numberline {13.5.4}CSMA-based MAC}{87}
-\contentsline {section}{\numberline {13.6}LL (link-layer) Class}{87}
+\contentsline {section}{\numberline {13.6}LL (link-layer) Class}{88}
 \contentsline {subsection}{\numberline {13.6.1}LL Class in C++}{88}
 \contentsline {subsection}{\numberline {13.6.2}Example: Link Layer configuration}{88}
 \contentsline {section}{\numberline {13.7}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily LanRouter\egroup class}{89}
@@ -187,7 +187,7 @@
 \contentsline {section}{\numberline {19.3}Protocol Specific Configuration Parameters}{147}
 \contentsline {paragraph}{Static Routing}{147}
 \contentsline {paragraph}{Session Routing}{147}
-\contentsline {paragraph}{DV Routing}{147}
+\contentsline {paragraph}{DV Routing}{148}
 \contentsline {section}{\numberline {19.4}Internals and Architecture of Routing}{148}
 \contentsline {subsection}{\numberline {19.4.1}The classes}{148}
 \contentsline {paragraph}{\clsref {RouteLogic}{../ns-2/route-proto.tcl}}{148}
@@ -195,12 +195,12 @@
 \contentsline {paragraph}{The \clsref {rtPeer}{../ns-2/route-proto.tcl}}{150}
 \contentsline {paragraph}{\clsref {Agent/rtProto}{../ns-2/route-proto.tcl}}{150}
 \contentsline {paragraph}{Other Extensions to the Simulator, Node, Link, and Classifier}{151}
-\contentsline {subsection}{\numberline {19.4.2}Interface to Network Dynamics and Multicast}{151}
+\contentsline {subsection}{\numberline {19.4.2}Interface to Network Dynamics and Multicast}{152}
 \contentsline {paragraph}{Actions at the individual nodes}{152}
 \contentsline {paragraph}{Global Actions}{152}
 \contentsline {section}{\numberline {19.5}Protocol Internals}{152}
 \contentsline {paragraph}{Direct Routing}{152}
-\contentsline {paragraph}{Static Routing}{152}
+\contentsline {paragraph}{Static Routing}{153}
 \contentsline {paragraph}{Session Routing}{153}
 \contentsline {paragraph}{DV Routing}{153}
 \contentsline {chapter}{\numberline {20}Multicast Routing}{154}
