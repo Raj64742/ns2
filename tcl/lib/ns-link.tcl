@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.46 2001/03/28 07:16:33 debo Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.47 2001/05/23 16:46:44 haldar Exp $
 #
 
 Class Link
@@ -213,7 +213,22 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	if { [$ns multicast?] } {
 		$self enable-mcast $src $dst
 	}
+        $ns instvar srcRt_
+	if [info exists srcRt_] {
+        	if { $srcRt_ == 1 } {
+            	$self enable-src-rt $src $dst $head_
+        	}
+	}
+
 }
+
+SimpleLink instproc enable-src-rt {src dst head} {
+    $self instvar ttl_
+    $src instvar src_agent_
+    $ttl_ target [$dst entry]
+    $src_agent_ install_slot $head [$dst id]
+}
+
 
 SimpleLink instproc enable-mcast {src dst} {
 	$self instvar iif_ ttl_
