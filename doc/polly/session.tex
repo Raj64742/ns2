@@ -1,50 +1,38 @@
-\documentclass{article}
-
-\usepackage{times}
-\usepackage[T1]{fontenc}
-
-\PassOptionsToPackage{draft}{nsDoc}
-\usepackage{nsDoc}
-
-\begin{document}
-
-\title{\nsTcl\ internals documentation}
-\author{%
-  Kevin Fall \tup{kfall@ee.lbl.gov}\\
-  Polly Huang \tup{huang@isi.edu}\\
-  Kannan Varadhan \tup{kannan@catarina.usc.edu}}
-\date{\today}
-
-% \maketitle
-
-\section{Session-level Packet Distribution}
-\label{sec:session}
+\chapter{Session-level Packet Distribution}
+\label{chap:session}
 
 This section describes the internals of the Session-level Packet Distribution
 implementation in \ns.
 The section is in two parts:
 the first part is an overview of 
-a minimal Session configuration,
+a basic Session configuration,
 and a ``complete'' description of the configuration parameters 
 of a Session.
 The second part describes the architecture, internals, and the code path
 of the Session-level Packet distribution.
 
-\subsection{Configuration}
-\label{sec:session-config}
+Session-level Packet Distribution enables simulations with large-scale 
+topologies.  A 2048 node and 8 connectivity degree topology takes roughly 
+40 MB in memory, 2049-4096 node topology takes about 167 MB, and 4097-
+8194 node topology takes about 671 MB.  However, the queuing delays that
+may occur in routers are ignored.  Therefore, if simulations are involved 
+with high source rate or multiple sources merging at some point resulting
+a high aggregated rate, please avoid using Session-level Packet Distribution.
+
+\section{Configuration}
+
+\subsection{Basic Configuration}
+\label{sec:basic-config}
 
 Each Session (i.e., a multicast tree) must be configured strictly in
 this order:
- 
-1. creating(obtaining) the session source,
-2. assigning the destination address,
-3. creating the session helper, 
-4. attaching to session source, and
-5. the session members joining the group.
+creating(obtaining) the session source,
+assigning the destination address,
+creating the session helper, 
+attaching to session source, and
+the session members joining the group.
 
 
-\subsubsection{Basic Configuration}
-\label{sec:basic-config}
 \begin{program}
         set ns [new SessionSim]          \; preamble initialization;
         set node [$ns node]              \; source and receiver to reside on this node;
@@ -64,8 +52,25 @@ this order:
 
 \end{program}
 
-\subsubsection{Inserting a Loss Module}
+\subsection{Inserting a Loss Module}
 \label{sec:loss-config}
+
+When simulating mechanism robustness(e.g., SRM error recovery mechanism), 
+modules like lossy links are desired to create error senarios.  This 
+subsection is describe how to create a lossy link, meaning inserting 
+a loss module for a 'virtual link' (a link directly connecting source
+and receiver with accumulative bandwidth and delay).
+
+Please note that packets dropped at a particular link in a
+multicast tree will not be received by
+the receivers in the particular downstream subtree.  To
+avoid abnormal behaviors, you will have to find
+all the affected receivers and place your loss modules for them as well.
+We are currently working on solving this error dependency problem.
+In the future, the loss modules for the downstream receivers will be 
+installed automatically when a lossy link is created.
+
+
 \paragraph{Creating a Loss Module}
 Before we can insert a loss module in between a source-receiver pair,
 we have to create the loss module.  Basically,
@@ -113,13 +118,7 @@ corresponding receivers finish joining the group.
         $ns at 0.1 "$sessionhelper insert-loss $loss_module $rcvr" 
 \end{program}
 
-Please note that packets dropped for a particular receiver should also 
-be dropped for its downstream receivers.  We are currently
-working on solving this problem error dependency problem.  Before 
-we complete the implementation, please carefully calculate and 
-place your loss modules.
-
-\subsection{Architecture}
+\section{Architecture}
 \label{sec:session-arch}
 The purpose of Session-level packet distribution is to
 speed up simulations and reduce memory consumption while 
@@ -137,7 +136,7 @@ In short, almost the entire network layer(routing and queuing)
 is abstract out.  Packets in SessionSim do not get routed.  
 They only follow the established Session.
 
-\subsection{Internals}
+\section{Internals}
 In this section, we explain the internals of Session-level Packet 
 Distribution.  The implementation is split into two parts:
 \begin{list}{}{}
@@ -145,7 +144,7 @@ Distribution.  The implementation is split into two parts:
 \item  Packet forwarding activities are executed by C++ methods.  
 \end{list}
 
-\subsubsection{Object Linkage}
+\subsection{Object Linkage}
 \label{sec:session-objlink}
 
 \begin{list}{}{}
@@ -155,18 +154,17 @@ Distribution.  The implementation is split into two parts:
 \end{list}
 
 \paragraph{Nodes and Links}
-\label{sec:session-nodenlink}
 A link only contains the values of
 its bandwidth and delay, and a node contains only its id and port number
 for next agent.
 
 \begin{program}
 SessionSim instproc simplex-link \{ n1 n2 bw delay type \} \{
-    $self instvar link_ delay_
+    $self instvar bw_ delay_
     set sid [$n1 id]
     set did [$n2 id]
 
-    set link_($sid:$did) [expr [string trimright $bw Mb] * 1000000]
+    set bw_($sid:$did) [expr [string trimright $bw Mb] * 1000000]
     set delay_($sid:$did) [expr [string trimright $delay ms] * 0.001]
 \}
 
@@ -181,9 +179,9 @@ SessionNode instproc init \{\} \{
 One replicator is required per source.  While the source is configured,
 a replicator (session helper) need to be attached to the source.  By
 calling \proc[]{create-session}, a replicator is:
-1. created,
-2. attached to the source application
-3. kept in a SessionSim instance variable \code{session_} array with 
+created,
+attached to the source application, and 
+kept in a SessionSim instance variable \code{session_} array with 
 its source and destination addresses as the index.
 
 Note that the destination of source agent must be set before
@@ -197,7 +195,7 @@ SessionSim instproc create-session \{ node agent \} \{
     set dst [$agent set dst_]                    \; get destination address;
     set session_($nid:$dst) [new Classifier/Replicator/Demuxer]  \; creating the replicator;
     $agent target $session_($nid:$dst)           \; attach the replicator to the source;
-    return $session_($nid:$dst)  \; keep the replicator in the SessionSim instance variable session_ array;
+    return $session_($nid:$dst) \; keep the replicator in the SessionSim instance variable session_ array;
 \}
 \end{program}
 
@@ -209,15 +207,19 @@ When a receiver joins a group,
 the \proc[]{join-group} method goes through
 all replicators (session helpers) maintained in \code{session_}.
 If the destination index matches the group address
-the receiver intends to join, then the following actions are performed.
+the receiver are joining, then the following actions are performed.
 
-1. a new slot of the replicator (session helper) is created and assigned to the receiver.
-2. accumulated bandwidth and delay between the source and receiver are obtained by SessionSim instance procedure \proc[]{get-bw} and \proc[]{get-delay}.
-3. a constant random variable is created and assigned with the
+1. A new slot of the replicator (session helper) is created and assigned to the receiver.
+
+2. An accumulated bandwidth and delay between the source and receiver are obtained by SessionSim instance procedure \proc[]{get-bw} and \proc[]{get-delay}.
+
+3. A constant random variable is created and assigned with the
 accumulative delay.
-4. a delay module is created and assigned with the constant random 
+
+4. A delay module is created and assigned with the constant random 
 variable and the accumulative bandwidth.
-5. the delay module in inserted into the replicator slot in
+
+5. The delay module in inserted into the replicator slot in
 front of the receiver.
 
 \begin{program}
@@ -248,7 +250,7 @@ SessionSim instproc join-group \{ agent group \} \{
             $delay_module bandwidth $accu_bw
             $delay_module ranvar $random_variable
 
-            #4. insert the delay module in front of the dest agent
+            #5. insert the delay module in front of the dest agent
             $session_($index) insert-module $delay_module $agent
         \}
     \}
@@ -256,7 +258,8 @@ SessionSim instproc join-group \{ agent group \} \{
 \end{program}
 
 
-\subsubsection{Packet Forwarding}
+\subsection{Packet Forwarding}
+\label{sec:session-pktforward}
 Packet forwarding activities are executed in C++.  A source application 
 generates a packet and forwards to its target which must be a replicator 
 (session helper).  The replicator copies the packet and forwards 
@@ -267,6 +270,8 @@ The delay module will forward the packet with a delay to its target which
 must be a receiver application.
 
 %% PH: not sure this will come out right
+%% PH: make .eps picture but not sure how to import that
+
 \begin{program}
                     / Loss module - Delay module - Receiver 1
 Source - Replicator --------------- Delay module - Receiver 2
@@ -274,7 +279,7 @@ Source - Replicator --------------- Delay module - Receiver 2
 
 \end{program}
 
-\end{document}
+\endinput
 
 ### Local Variables:
 ### mode: latex
