@@ -1576,6 +1576,10 @@ It adapts to network dynamics and functions correctly
 in topologies with LANs 
 (where LANs are created using the multi-link-of-interfaces method -
 see NS COMMANDS).
+In case there are multiple potential forwarders
+for a LAN, the node with the highest id
+is chosen as the forwarder
+(this is done through the Assert mechanism).
 The default values for the
 prune timeout, interface deletion timeout (used for LANs) and
 graft retransmission timeout are
@@ -1627,11 +1631,16 @@ back to a shared tree for a multicast group.
 .IP "\fB$ctrmcastcomp set_c_rp \fInode-list\fP"
 Make all the nodes specified in
 .I node-list
-as candidate RPs.
-All nodes are candidate RPs by default
-and currently the node with the highest node id
+as candidate RPs
+and change the state of
+all the other nodes
+to not be candidate RPs.
+Note that all nodes are candidate RPs by default.
+Currently the node with the highest node id
 serves as the RP for all multicast groups.
-This is likely to change soon.
+This method should be invoked before
+any source starts sending packets to the group
+or any receiver joins the group.
 .IP "\fB$ctrmcastcomp get_rp \fInode group\fP"
 Returns the RP for the group
 as seen by the node
