@@ -26,8 +26,11 @@
 //
 // utilities.cc
 //      Debugging routines.
+//
+// Author:
+//   Mohit Talwar (mohit@catarina.usc.edu)
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.cc,v 1.1 1999/05/14 18:12:22 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.cc,v 1.2 1999/06/09 21:54:11 haoboy Exp $
 
 #include <stdarg.h>
 #include "utilities.h"

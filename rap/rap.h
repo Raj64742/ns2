@@ -27,7 +27,10 @@
 // rap.h 
 //      Header File for the 'RAP Source' Agent Class
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.2 1999/05/21 05:15:10 polly Exp $
+// Author: 
+//   Mohit Talwar (mohit@catarina.usc.edu)
+//
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.3 1999/06/09 21:54:09 haoboy Exp $
 
 #ifndef RAP_H
 #define RAP_H

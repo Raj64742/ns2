@@ -27,7 +27,10 @@
 // utilities.h 
 //      Miscellaneous useful definitions, including debugging routines.
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.2 1999/05/24 04:37:38 haoboy Exp $
+// Author:
+//   Mohit Talwar (mohit@catarina.usc.edu)
+//
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.3 1999/06/09 21:54:12 haoboy Exp $
 
 #ifndef UTILITIES_H
 #define UTILITIES_H

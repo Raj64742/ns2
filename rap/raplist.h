@@ -31,7 +31,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.h,v 1.1 1999/05/14 18:12:22 polly Exp $
+ * Author:
+ *   Mohit Talwar (mohit@catarina.usc.edu)
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.h,v 1.2 1999/06/09 21:54:11 haoboy Exp $
  * 
  * This is taken from UCB Nachos project
  * 
