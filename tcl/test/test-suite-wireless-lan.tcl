@@ -281,13 +281,12 @@ TestSuite instproc finish-dsr {} {
 	close $tracefd2
 
 	exec mv $opt(tr).w $opt(tr)
-	
-	puts "finishing.."
+
+	puts "finish.."
 	exit 0
 	
 
 }
-
 
 Test/dsr instproc run {} {
     $self instvar ns_
@@ -491,9 +490,14 @@ TestSuite instproc finish {} {
         #        puts "running nam..."
         #        exec nam temp.rands.nam &
         #}
+	#puts "finishing.."
+	
 	puts "finishing.."
 	exit 0
 }
+
+
+
 
 TestSuite instproc create-god { nodes } {
 	global tracefd god_

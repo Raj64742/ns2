@@ -129,7 +129,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 #ifdef LOG_POSITION
 		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
 #else
-		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] [energy %f] ",
+		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
 #endif
 		op,
 		Scheduler::instance().clock(),
@@ -149,8 +149,17 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		mh->dh_duration,
 		ETHER_ADDR(mh->dh_da),
 		ETHER_ADDR(mh->dh_sa),
-		GET_ETHER_TYPE(mh->dh_body),
-	        thisnode->energy_model() ? thisnode->energy(): -1); 
+		GET_ETHER_TYPE(mh->dh_body));
+
+	offset = strlen(wrk_);
+
+	if (thisnode) {
+		if (thisnode->energy_model()) {
+			sprintf(wrk_ + offset,
+				"[energy %f] ",
+				thisnode->energy());
+		}
+        }
 }
 
 void
