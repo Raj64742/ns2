@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.2 1997/01/26 22:32:39 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.3 1997/01/26 23:26:29 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -64,7 +64,7 @@ class Trace : public Connector {
  */
 class HopTraceClass : public TclClass {
 public:
-	HopTraceClass() : TclClass("trace/hop") { }
+	HopTraceClass() : TclClass("Trace/Hop") { }
 	TclObject* create(int argc, const char*const* argv) {
 		return (new Trace('h'));
 	}
@@ -72,7 +72,7 @@ public:
 
 class EnqueTraceClass : public TclClass {
 public:
-	EnqueTraceClass() : TclClass("trace/enque") { }
+	EnqueTraceClass() : TclClass("Trace/Enque") { }
 	TclObject* create(int argc, const char*const* argv) {
 		return (new Trace('+'));
 	}
@@ -80,7 +80,7 @@ public:
 
 class DequeTraceClass : public TclClass {
 public:
-	DequeTraceClass() : TclClass("trace/deque") { }
+	DequeTraceClass() : TclClass("Trace/Deque") { }
 	TclObject* create(int argc, const char*const* argv) {
 		return (new Trace('-'));
 	}
@@ -88,7 +88,7 @@ public:
 
 class DropTraceClass : public TclClass {
 public:
-	DropTraceClass() : TclClass("trace/drop") { }
+	DropTraceClass() : TclClass("Trace/Drop") { }
 	TclObject* create(int argc, const char*const* argv) {
 		return (new Trace('d'));
 	}

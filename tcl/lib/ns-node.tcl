@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.1 1996/12/19 03:22:47 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.2 1997/01/26 23:26:35 mccanne Exp $
 #
 
 Class Node
@@ -49,7 +49,7 @@ Node instproc init args {
 	set dmux ""
 	set np 0
 	set id [Node getid]
-	set classifier [new classifier/addr]
+	set classifier [new Classifier/Addr]
 	# set up classifer as a router (i.e., 24 bit of addr and 8 bit port)
 	$classifier set mask 0xffffff
 	$classifier set shift 8
@@ -112,7 +112,7 @@ Node instproc attach agent {
 	# If a port demuxer doesn't exist, create it.
 	#
 	if { $dmux == "" } {
-		set dmux [new classifier/addr]
+		set dmux [new Classifier/Addr]
 		$dmux set mask 0xff
 		$dmux set shift 0
 	}

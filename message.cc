@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.cc,v 1.2 1997/01/26 22:32:28 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.cc,v 1.3 1997/01/26 23:26:20 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -50,7 +50,7 @@ class MessageAgent : public Agent {
 
 static class MessageClass : public TclClass {
 public:
-	MessageClass() : TclClass("agent/message") {}
+	MessageClass() : TclClass("Agent/Message") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new MessageAgent());
 	}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.1 1996/12/19 03:22:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.2 1997/01/26 23:26:30 mccanne Exp $
 #
 
 #
@@ -56,20 +56,20 @@ set f [open out.tr w]
 $ns trace-all $f
 #$ns trace-all stdout
 
-$ns duplex-link $n0 $n1 1.5Mb 10ms drop-tail
-$ns duplex-link $n1 $n2 1.5Mb 10ms drop-tail
-$ns duplex-link $n1 $n3 1.5Mb 10ms drop-tail
+$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
-set cbr0 [new agent/cbr]
+set cbr0 [new Agent/CBR]
 $ns attach-agent $n1 $cbr0
 $cbr0 set dst 0x8001
 
-set cbr1 [new agent/cbr]
+set cbr1 [new Agent/CBR]
 $cbr1 set dst 0x8002
 $cbr1 set cls 1
 $ns attach-agent $n3 $cbr1
 
-set rcvr [new agent/loss-monitor]
+set rcvr [new Agent/LossMonitor]
 $ns attach-agent $n3 $rcvr
 $ns at 1.2 "$n2 join-group $rcvr 0x8002"
 $ns at 1.25 "$n2 leave-group $rcvr 0x8002"
@@ -80,12 +80,12 @@ $ns at 1.0 "$cbr0 start"
 #$ns at 1.001 "$cbr0 stop"
 $ns at 1.1 "$cbr1 start"
 
-#set tcp [new agent/tcp]
-#set sink [new agent/tcp-sink]
+#set tcp [new Agent/TCP]
+#set sink [new Agent/TCPSink]
 #$ns attach-agent $n0 $tcp
 #$ns attach-agent $n3 $sink
 #$ns connect $tcp $sink
-#set ftp [new source/ftp]
+#set ftp [new Source/FTP]
 #$ftp set agent $tcp
 #$ns at 1.2 "$ftp start"
 

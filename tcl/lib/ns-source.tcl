@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.1 1996/12/19 03:22:47 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.2 1997/01/26 23:26:36 mccanne Exp $
 #
 
 Class Source
@@ -46,19 +46,19 @@ Source instproc init {} {
 	#XXX
 	set maxpkts 2147483647
 }
-Class source/ftp -superclass Source
+Class Source/FTP -superclass Source
 
-source/ftp instproc start {} {
+Source/FTP instproc start {} {
 	$self instvar agent maxpkts
 	$agent advance $maxpkts
 }
 
-source/ftp instproc stop {} {
+Source/FTP instproc stop {} {
 	$self instvar agent
 	$agent advance 0
 }
 
-source/ftp instproc attach o {
+Source/FTP instproc attach o {
 	$self instvar agent
 	set agent $o
 }

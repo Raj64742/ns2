@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.2 1996/12/31 22:49:32 elan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.3 1997/01/26 23:26:15 mccanne Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -43,7 +43,7 @@ static char rcsid[] =
 
 static class CBRClass : public TclClass {
 public:
-	CBRClass() : TclClass("agent/cbr") {}
+	CBRClass() : TclClass("Agent/CBR") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new CBR_Agent());
 	}

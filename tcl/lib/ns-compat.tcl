@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.3 1997/01/24 18:44:23 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.4 1997/01/26 23:26:31 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -53,7 +53,7 @@ OldSim instproc init args {
 	#
 	# Catch queue-limit variable which is now "$q limit"
 	#
-	queue/drop-tail instproc set args {
+	Queue/DropTail instproc set args {
 		if { [llength $args] == 2 &&
 			[lindex $args 0] == "queue-limit" } {
 			# this will recursively call ourself
@@ -65,8 +65,11 @@ OldSim instproc init args {
 	#
 	# Support for things like "set ftp [$tcp source ftp]"
 	#
-	agent/tcp instproc source type {
-		set src [new source/$type]
+	Agent/TCP instproc source type {
+		if { $type == "ftp" } {
+			set type FTP
+		}
+		set src [new Source/$type]
 		$src set agent $self
 		return $src
 	}
@@ -105,13 +108,17 @@ OldSim instproc init args {
 		}
 	}
 
-	set classMap(tcp) agent/tcp
-	set classMap(tcp-reno) agent/tcp/reno
-	set classMap(cbr) agent/cbr
-	set classMap(tcp-sink) agent/tcp-sink
-	set classMap(tcp-sink-da) agent/tcp-sink-da
-	set classMap(tcp-sack1) agent/tcp/sack1
-	set classMap(sack1-tcp-sink) agent/sack1-tcp-sink
+	set classMap(tcp) Agent/TCP
+	set classMap(tcp-reno) Agent/TCP/Reno
+	set classMap(cbr) Agent/CBR
+	set classMap(tcp-sink) Agent/TCPSink
+	set classMap(tcp-sink-da) Agent/TCPSink/Delack
+	set classMap(tcp-sack1) Agent/TCP/Sack1
+	set classMap(sack1-tcp-sink) Agent/TCP/Sack1
+
+	$self instvar queueMap_
+	set queueMap_(drop-tail) DropTail
+	set queueMap_(red) RED
 }
 
 OldSim instproc duplex-link-compat { n1 n2 bw delay type } {
@@ -194,6 +201,6 @@ proc ns_create_connection { srcType srcNode sinkType sinkNode pktClass } {
 # backward compat for agent methods that were replaced
 # by OTcl instance variables
 #
-agent instproc connect d {
+Agent instproc connect d {
 	$self set dst $d
 }

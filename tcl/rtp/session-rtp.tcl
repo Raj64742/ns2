@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.2 1997/01/01 00:16:08 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.3 1997/01/26 23:26:37 mccanne Exp $
 #
 
 proc mvar args {
@@ -64,8 +64,8 @@ Session/RTP proc alloc_srcid {} {
 Session/RTP instproc init {} {
 	$self next 
 	mvar dchan_ cchan_
-	set cchan_ [new agent/rtcp]
-	set dchan_ [new agent/cbr/rtp]
+	set cchan_ [new Agent/RTCP]
+	set dchan_ [new Agent/CBR/RTP]
 	$dchan_ set packet-size 1024
 
 	$dchan_ session $self
@@ -284,8 +284,8 @@ RTCPTimer instproc session-bw { b } {
 	$self set inv_bw_ [expr 1. / $b ]
 }
 
-agent/rtcp set interval_ 0.
-agent/rtcp set random_ 0
-agent/rtcp set cls 32
+Agent/RTCP set interval_ 0.
+Agent/RTCP set random_ 0
+Agent/RTCP set cls 32
 
 RTPSource set srcid_ -1

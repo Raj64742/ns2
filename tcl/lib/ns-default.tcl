@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.2 1997/01/24 17:53:02 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.3 1997/01/26 23:26:32 mccanne Exp $
 
 
 #
@@ -41,75 +41,75 @@
 # (this happens in the Tcl/tcl-object.tcl helper library)
 #
 
-trace set src 0
-trace set dst 0
+Trace set src 0
+Trace set dst 0
 
-agent set cls 0
-agent set addr 0
-agent set dst 0
-agent set seqno 0
+Agent set cls 0
+Agent set addr 0
+Agent set dst 0
+Agent set seqno 0
 
-agent/tcp set maxburst 0
-agent/tcp set maxcwnd 0
-agent/tcp set window 20
-agent/tcp set window-init 1
-agent/tcp set window-option 1
-agent/tcp set window-constant 4
-agent/tcp set window-thresh 0.002
-agent/tcp set overhead 0
-agent/tcp set ecn 0
-agent/tcp set packet-size 1000
-agent/tcp set bug-fix true
-agent/tcp set tcp-tick 0.1
+Agent/TCP set maxburst 0
+Agent/TCP set maxcwnd 0
+Agent/TCP set window 20
+Agent/TCP set window-init 1
+Agent/TCP set window-option 1
+Agent/TCP set window-constant 4
+Agent/TCP set window-thresh 0.002
+Agent/TCP set overhead 0
+Agent/TCP set ecn 0
+Agent/TCP set packet-size 1000
+Agent/TCP set bug-fix true
+Agent/TCP set tcp-tick 0.1
 
-agent/tcp set dupacks 0
-agent/tcp set ack 0
-agent/tcp set cwnd 0
-agent/tcp set awnd 0
-agent/tcp set ssthresh 0
-agent/tcp set rtt 0
-agent/tcp set srtt 0
-agent/tcp set rttvar 0
-agent/tcp set backoff 0
+Agent/TCP set dupacks 0
+Agent/TCP set ack 0
+Agent/TCP set cwnd 0
+Agent/TCP set awnd 0
+Agent/TCP set ssthresh 0
+Agent/TCP set rtt 0
+Agent/TCP set srtt 0
+Agent/TCP set rttvar 0
+Agent/TCP set backoff 0
 
-queue set limit 10
+Queue set limit 10
 
-queue/red set bytes false
-queue/red set thresh 5
-queue/red set maxthresh 15
-queue/red set mean_pktsize 500
-queue/red set q_weight 0.002
-queue/red set wait true
-queue/red set linterm 50
-queue/red set setbit false
-queue/red set drop-tail false
-queue/red set doubleq false
-queue/red set dqthresh 50
-queue/red set subclasses 1
+Queue/RED set bytes false
+Queue/RED set thresh 5
+Queue/RED set maxthresh 15
+Queue/RED set mean_pktsize 500
+Queue/RED set q_weight 0.002
+Queue/RED set wait true
+Queue/RED set linterm 50
+Queue/RED set setbit false
+Queue/RED set drop-tail false
+Queue/RED set doubleq false
+Queue/RED set dqthresh 50
+Queue/RED set subclasses 1
 
 # These parameters below are only used for RED queues with RED subclasses.
-queue/red set thresh1 5
-queue/red set maxthresh1 15
-queue/red set mean_pktsize1 500
+Queue/RED set thresh1 5
+Queue/RED set maxthresh1 15
+Queue/RED set mean_pktsize1 500
 
 #XXX other kinds of sinks -> should reparent
-agent/tcp-sink set packet-size 40
+Agent/TCPSink set packet-size 40
 
 #set ns_delsink(interval) 100ms
 #set ns_sacksink(max-sack-blocks) 3
 
-agent/cbr set interval_ 3.75ms
-agent/cbr set random 0
-agent/cbr set packet-size 210
+Agent/CBR set interval_ 3.75ms
+Agent/CBR set random 0
+Agent/CBR set packet-size 210
 
-agent/message set packet-size 180
+Agent/Message set packet-size 180
 
-delay/link set bandwidth 1.5Mb
-delay/link set delay 100ms
+Delay/Link set bandwidth 1.5Mb
+Delay/Link set delay 100ms
 
 #XXX
 #set ns_lossy_uniform(loss_prob) 0.00
 
-classifier/addr set shift 12
-classifier/addr set mask 0xffffffff
+Classifier/Addr set shift 12
+Classifier/Addr set mask 0xffffffff
 

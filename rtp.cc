@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.3 1997/01/26 22:32:35 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.4 1997/01/26 23:26:24 mccanne Exp $";
 #endif
 
 
@@ -60,7 +60,7 @@ protected:
 
 static class RTPAgentClass : public TclClass {
 public:
-	RTPAgentClass() : TclClass("agent/cbr/rtp") {}
+	RTPAgentClass() : TclClass("Agent/CBR/RTP") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new RTPAgent());
 	}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/Attic/ns-mcast.tcl,v 1.2 1997/01/01 00:07:58 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/Attic/ns-mcast.tcl,v 1.3 1997/01/26 23:26:34 mccanne Exp $
 #
 
 #
@@ -57,7 +57,7 @@ MultiNode instproc init sim {
 	$self instvar classifier multiclassifier switch ns prune
 	set ns $sim
 
-	set switch [new classifier/addr]
+	set switch [new Classifier/Addr]
 	#
 	# set up switch to route unicast packet to slot 0 and
 	# multicast packets to slot 1
@@ -68,7 +68,7 @@ MultiNode instproc init sim {
 	#
 	# create a classifier for multicast routing
 	#
-	set multiclassifier [new classifier/mcast/rep]
+	set multiclassifier [new Classifier/Multicast/Replicator]
 	$multiclassifier set node $self
 
 	$switch install 0 $classifier
@@ -80,7 +80,7 @@ MultiNode instproc init sim {
 	# prune/graft messages and dispatches them to the
 	# appropriate replicator object.
 	#
-	set prune [new agent/message/prune]
+	set prune [new Agent/Message/Prune]
 	$self attach $prune
 	$prune set node $self
 }
@@ -201,9 +201,9 @@ MultiNode instproc leave-group { agent group } {
 	}
 }
 
-Class agent/message/prune -superclass agent/message
+Class Agent/Message/Prune -superclass Agent/Message
 
-agent/message/prune instproc handle msg {
+Agent/Message/Prune instproc handle msg {
 	set L [split $msg /]
 	set type [lindex $L 0]
 	set from [lindex $L 1]
@@ -241,7 +241,7 @@ MultiNode instproc new-group { srcID group } {
 
 	#XXX node addr is in upper 24 bits
 #	set srcID [expr $src >> 8]
-	set r [new classifier/replicator/mcast]
+	set r [new Classifier/Replicator/Demuxer]
 	$r set srcID $srcID
 	set replicator($srcID:$group) $r
 
@@ -282,7 +282,7 @@ MultiSim instproc node {} {
 	return $node
 }
 
-Class classifier/mcast/rep -superclass classifier/mcast
+Class Classifier/Multicast/Replicator -superclass Classifier/Multicast
 
 #
 # This method called when a new multicast group/source pair
@@ -292,42 +292,42 @@ Class classifier/mcast/rep -superclass classifier/mcast
 # at a replicator object that sends each packet along
 # the RPF tree.
 #
-classifier/mcast instproc new-group { src group } {
+Classifier/Multicast instproc new-group { src group } {
 	$self instvar node
 
 	$node new-group $src $group
 }
 
-classifier/mcast/rep instproc init args {
+Classifier/Multicast/Replicator instproc init args {
 	$self next
 	$self instvar nrep 
 	set nrep 0
 }
 
-classifier/mcast/rep instproc add-rep { rep src group } {
+Classifier/Multicast/Replicator instproc add-rep { rep src group } {
 	$self instvar nrep
 	$self set-hash $src $group $nrep
 	$self install $nrep $rep
 	incr nrep
 }
 
-Class classifier/replicator/mcast -superclass classifier/replicator
+Class Classifier/Replicator/Demuxer -superclass Classifier/Replicator
 
-classifier/replicator set ignore 0
+Classifier/Replicator set ignore 0
 
-classifier/replicator/mcast instproc init args {
+Classifier/Replicator/Demuxer instproc init args {
 	eval $self next $args
 	$self instvar nslot nactive
 	set nslot 0
 	set nactive 0
 }
 
-classifier/replicator/mcast instproc is-active {} {
+Classifier/Replicator/Demuxer instproc is-active {} {
 	$self instvar nactive
 	return [expr $nactive > 0]
 }
 
-classifier/replicator/mcast instproc insert target {
+Classifier/Replicator/Demuxer instproc insert target {
 	$self instvar nslot nactive active index
 	set n $nslot
 	incr nslot
@@ -337,7 +337,7 @@ classifier/replicator/mcast instproc insert target {
 	set index($target) $n
 }
 
-classifier/replicator/mcast instproc disable target {
+Classifier/Replicator/Demuxer instproc disable target {
 	$self instvar nactive active index
 	if $active($target) {
 		$self clear $index($target)
@@ -346,7 +346,7 @@ classifier/replicator/mcast instproc disable target {
 	}
 }
 
-classifier/replicator/mcast instproc enable target {
+Classifier/Replicator/Demuxer instproc enable target {
 	$self instvar nactive active ignore index
 	if !$active($target) {
 		$self install $index($target) $target
@@ -356,12 +356,12 @@ classifier/replicator/mcast instproc enable target {
 	}
 }
 
-classifier/replicator/mcast instproc exists target {
+Classifier/Replicator/Demuxer instproc exists target {
 	$self instvar active
-	return [info exists arctive($target)]
+	return [info exists active($target)]
 }
 
-classifier/replicator/mcast instproc drop { src dst } {
+Classifier/Replicator/Demuxer instproc drop { src dst } {
 	#
 	# No downstream listeners
 	# Send a prune back toward the source

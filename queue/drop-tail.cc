@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.2 1997/01/26 23:26:19 mccanne Exp $ (LBL)";
 #endif
 
 #include <string.h>
@@ -51,7 +51,7 @@ class DropTail : public Queue {
 
 static class DropTailClass : public TclClass {
 public:
-	DropTailClass() : TclClass("queue/drop-tail") {}
+	DropTailClass() : TclClass("Queue/DropTail") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new DropTail);
 	}

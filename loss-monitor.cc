@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.2 1997/01/26 22:32:27 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.3 1997/01/26 23:26:20 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -55,7 +55,7 @@ protected:
 
 static class LossMonitorClass : public TclClass {
 public:
-	LossMonitorClass() : TclClass("agent/loss-monitor") {}
+	LossMonitorClass() : TclClass("Agent/LossMonitor") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new LossMonitor());
 	}

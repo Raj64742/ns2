@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.2 1997/01/26 22:32:37 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.3 1997/01/26 23:26:28 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -72,7 +72,7 @@ protected:
 
 static class TcpSinkClass : public TclClass {
 public:
-	TcpSinkClass() : TclClass("agent/tcp-sink") {}
+	TcpSinkClass() : TclClass("Agent/TCPSink") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new TcpSink(new Acker));
 	}
@@ -150,7 +150,7 @@ protected:
 
 static class DelSinkClass : public TclClass {
 public:
-	DelSinkClass() : TclClass("agent/tcp-sink-da") {}
+	DelSinkClass() : TclClass("Agent/TCPSink/DelAck") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new DelAckSink(new Acker));
 	}
@@ -268,7 +268,7 @@ protected:
 
 static class Sack1TcpSinkClass : public TclClass {
 public:
-        Sack1TcpSinkClass() : TclClass("agent/sack1-tcp-sink") {}
+        Sack1TcpSinkClass() : TclClass("Agent/TCPSink/Sack1") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new TcpSink(new Sacker));
         }
@@ -276,7 +276,7 @@ public:
 
 static class Sack1DelAckTcpSinkClass : public TclClass {
 public:
-	Sack1DelAckTcpSinkClass() : TclClass("agent/sack1-tcp-sink-da") {}
+	Sack1DelAckTcpSinkClass() : TclClass("Agent/TCPSink/Sack/DelAck") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new DelAckSink(new Sacker));
 	}

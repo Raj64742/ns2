@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.1 1996/12/19 03:22:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.2 1997/01/26 23:26:33 mccanne Exp $
 #
 
 #
@@ -51,8 +51,8 @@ source ../rtp/session-rtp.tcl
 Simulator instproc init args {
 	eval $self next $args
 	$self instvar scheduler nullAgent nn np
-	set scheduler [new scheduler/list]
-	set nullAgent [new agent/null]
+	set scheduler [new Scheduler/List]
+	set nullAgent [new Agent/Null]
 }
 
 #
@@ -89,10 +89,13 @@ Simulator instproc run { } {
 }
 
 Simulator instproc simplex-link { n1 n2 bw delay type } {
-	$self instvar link
+	$self instvar link queueMap_
 	set sid [$n1 id]
 	set did [$n2 id]
-	set q [new queue/$type]
+	if [info exists queueMap_($type)] {
+		set type $queueMap_($type)
+	}
+	set q [new Queue/$type]
 	set link($sid:$did) [new SimpleLink $n1 $n2 $bw $delay $q]
 	$n1 add-neighbor $n2
 }
@@ -121,7 +124,7 @@ Simulator instproc trace-all file {
 
 Simulator instproc create-trace { type file src dst } {
 	$self instvar alltrace
-	set p [new trace/$type]
+	set p [new Trace/$type]
 	$p set src [$src id]
 	$p set dst [$dst id]
 	lappend alltrace $p
@@ -156,7 +159,7 @@ Simulator instproc compute-routes {} {
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
-	set r [new route-logic]
+	set r [new RouteLogic]
 	foreach ln [array names link] {
 		set L [split $ln :]
 		set srcID [lindex $L 0]
@@ -205,7 +208,7 @@ Simulator instproc compute-routes {} {
 #
 # debugging method to dump table (see route.cc for C++ methods)
 #
-route-logic instproc dump nn {
+RouteLogic instproc dump nn {
 	set i 0
 	while { $i < $nn } {
 		set j 0
@@ -217,16 +220,16 @@ route-logic instproc dump nn {
 	}
 }
 
-classifier instproc no-slot slot {
+Classifier instproc no-slot slot {
 	#XXX should say something better for routing problem
 	puts stderr "$self: no target for slot $slot"
 	exit 1
 }
 
-agent instproc port {} {
+Agent instproc port {} {
 	$self instvar portID
 	return $portID
 }
 
-agent/loss-monitor instproc log-loss {} {
+Agent/LossMonitor instproc log-loss {} {
 }

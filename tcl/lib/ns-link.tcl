@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.1 1996/12/19 03:22:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.2 1997/01/26 23:26:33 mccanne Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -57,7 +57,7 @@ SimpleLink instproc init { src dst bw delay q } {
 	$self next $src $dst
 	$self instvar link queue head toNode
 	set queue $q
-	set link [new delay/link]
+	set link [new Delay/Link]
 	$link set bandwidth $bw
 	$link set delay $delay
 
@@ -72,9 +72,9 @@ SimpleLink instproc init { src dst bw delay q } {
 #
 SimpleLink instproc trace { ns f } {
 	$self instvar enqT deqT drpT queue link head fromNode toNode
-	set enqT [$ns create-trace enque $f $fromNode $toNode]
-	set deqT [$ns create-trace deque $f $fromNode $toNode]
-	set drpT [$ns create-trace drop $f $fromNode $toNode]
+	set enqT [$ns create-trace Enque $f $fromNode $toNode]
+	set deqT [$ns create-trace Deque $f $fromNode $toNode]
+	set drpT [$ns create-trace Drop $f $fromNode $toNode]
 	$drpT target [$ns set nullAgent]
 	$enqT target $queue
 	$queue target $deqT
