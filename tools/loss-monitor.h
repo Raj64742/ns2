@@ -32,10 +32,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.17 2000/07/19 20:54:39 haoboy Exp $ (LBL)";
-#endif
+#ifndef ns_loss_monitor_h
+#define ns_loss_monitor_h
 
 #include <tclcl.h>
 
@@ -44,64 +42,20 @@ static const char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "rtp.h"
-#include "loss-monitor.h"
 
-static class LossMonitorClass : public TclClass {
+class LossMonitor : public Agent {
 public:
-	LossMonitorClass() : TclClass("Agent/LossMonitor") {}
-	TclObject* create(int, const char*const*) {
-		return (new LossMonitor());
-	}
-} class_loss_mon;
+	LossMonitor();
+	virtual int command(int argc, const char*const* argv);
+	virtual void recv(Packet* pkt, Handler*);
+protected:
+	int nlost_;
+	int npkts_;
+	int expected_;
+	int bytes_;
+	int seqno_;
+	double last_packet_time_;
+	int off_rtp_;
+};
 
-LossMonitor::LossMonitor() : Agent(PT_NTYPE)
-{
-	bytes_ = 0;
-	nlost_ = 0;
-	npkts_ = 0;
-	expected_ = -1;
-	last_packet_time_ = 0.;
-	seqno_ = 0;
-	bind("nlost_", &nlost_);
-	bind("npkts_", &npkts_);
-	bind("bytes_", &bytes_);
-	bind("lastPktTime_", &last_packet_time_);
-	bind("expected_", &expected_);
-	bind("off_rtp_", &off_rtp_);
-}
-
-void LossMonitor::recv(Packet* pkt, Handler*)
-{
-	hdr_rtp* p = (hdr_rtp*)pkt->access(off_rtp_);
-	seqno_ = p->seqno();
-	bytes_ += ((hdr_cmn*)pkt->access(off_cmn_))->size();
-	++npkts_;
-	/*
-	 * Check for lost packets
-	 */
-	if (expected_ >= 0) {
-		int loss = seqno_ - expected_;
-		if (loss > 0) {
-			nlost_ += loss;
-			Tcl::instance().evalf("%s log-loss", name());
-		}
-	}
-	last_packet_time_ = Scheduler::instance().clock();
-	expected_ = seqno_ + 1;
-	Packet::free(pkt);
-}
-
-/*
- * $proc interval $interval
- * $proc size $size
- */
-int LossMonitor::command(int argc, const char*const* argv)
-{
-	if (argc == 2) {
-		if (strcmp(argv[1], "clear") == 0) {
-			expected_ = -1;
-			return (TCL_OK);
-		}
-	}
-	return (Agent::command(argc, argv));
-}
+#endif // ns_loss_monitor_h

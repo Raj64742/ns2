@@ -34,30 +34,17 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.16 1999/11/20 00:40:10 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.17 2000/07/19 20:54:39 haoboy Exp $ (LBL)";
 #endif
+
+#include <tclcl.h>
 
 #include "agent.h"
 #include "config.h"
-#include "tclcl.h"
 #include "packet.h"
 #include "ip.h"
 #include "rtp.h"
-
-class LossMonitor : public Agent {
- public:
-	LossMonitor();
-	int command(int argc, const char*const* argv);
-	void recv(Packet* pkt, Handler*);
-protected:
-	int nlost_;
-	int npkts_;
-	int expected_;
-	int bytes_;
-	int seqno_;
-	double last_packet_time_;
-	int off_rtp_;
-};
+#include "loss-monitor.h"
 
 static class LossMonitorClass : public TclClass {
 public:
