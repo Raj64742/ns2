@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.335 2004/10/13 02:25:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.336 2004/10/18 19:39:21 sfloyd Exp $
 
 
 #
@@ -832,7 +832,11 @@ Agent/TCP set tcpTick_ 0.01 ;		# default changed on 2002/03/07
 					# to reflect a changing reality.
 Agent/TCP set maxrto_ 100000
 #Agent/TCP set minrto_ 0 ;		# Variable added on 2001/05/10
-Agent/TCP set minrto_ 1 ;		# Default set to 1 on 2001/05/14.
+#Agent/TCP set minrto_ 1 ;              # Default set to 1 on 2001/05/14.
+Agent/TCP set minrto_ 0.2 ;		# Default changed to 200ms on 
+					#  2004/10/14, to match values
+					#  used by many implementations.
+					# Default set to 1 on 2001/05/14.
 					# Set to "0" to give old behavior.
 Agent/TCP set srtt_init_ 0
 Agent/TCP set rttvar_init_ 12
@@ -1019,6 +1023,8 @@ Agent/TFRC set conservative_ 0 ;  # Set to true for a conservative
 				  # response to heavy congestion.
 Agent/TFRC set scmult_ 1.5 ;	# self clocking parameter for conservative_
 Agent/TFRC set ecn_ 0 ;		# Set to 1 for ECN-capable connection.
+Agent/TFRC set minrto_ 0.0 ;	# Minimum RTO, for use in TCP equation.
+				# The default is not to use minrto_.
 Agent/TFRC set SndrType_ 0 ;    # Set to 1 to use data-producing applications
                                 #   such as FTP.
 Agent/TFRC set oldCode_ false ; # Set to 1 to use old code for datalimited
