@@ -1,3 +1,18 @@
+##################################################################
+###
+### to use:
+### ./validate > out ; diff out validate.out
+###
+### "Validate" ran correctly for Sally Floyd with this output,
+### on pig.ee.lbl.gov, Sat Feb 14 1998, with tcl8.0p1, tk8.0p1.
+###
+### "Validate" ran correctly for Sally Floyd with the rev 1.10
+### version of this output,
+### on fun.ee.lbl.gov, after an update Monday evening, Jan 27, PST 1998,
+### including the updated version of TclCl.
+### gcc version 2.7.2.1, tcl7.6, tk4.2, otcl-0.96.
+###
+##################################################################
 *** ./test-all
 tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 Running test tahoe1
