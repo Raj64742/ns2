@@ -1,5 +1,7 @@
 #! /bin/csh
 
+rm -f response/flows* response/tmp* response/dropRate* response/data*
+
 set t1=360
 foreach p ( 0.01 0.02 0.03 )
 	echo "Doing p = $p"

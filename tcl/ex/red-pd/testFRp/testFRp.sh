@@ -1,5 +1,7 @@
 #! /bin/csh
 
+rm -f testFRp/flows* testFRp/tmp* testFRp/dropRate* testFRp/data*
+
 set t1=1000
 foreach p ( 0.01 0.02 0.03 0.04 0.05)
 	echo "Doing drop rate ${p}"

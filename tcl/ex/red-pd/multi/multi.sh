@@ -1,6 +1,7 @@
 #! /bin/csh
 
-rm -f data*
+rm -f data* flows*
+rm -f multi/flows* multi/tmp* multi/dropRate* multi/data*
 
 set t1=500
 foreach ftype ( cbr tcp ) 

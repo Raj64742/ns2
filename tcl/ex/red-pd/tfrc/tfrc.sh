@@ -1,6 +1,8 @@
 #! /bin/csh
 
 rm -f flow* tmp* dropRate* data*
+rm -f tfrc/flows* tfrc/tmp* tfrc/dropRate* tfrc/data*
+
 
 set t1=500
 foreach try ( 1 2 3 4 5 )

@@ -1,6 +1,7 @@
 #! /bin/csh
 
 rm -f tmp.* flows.* data.*
+rm -f PIdent/flows* PIdent/tmp* PIdent/dropRate* PIdent/data*
 
 set t1=500
 foreach ftype ( tcp cbr ) 

@@ -1,5 +1,7 @@
 #! /bin/csh
 
+rm -f web/flows* web/tmp* web/dropRate* web/data*
+
 set t1=1000
 
 ns red-pd.tcl one netWeb Web enable 0 time $t1 > tmp0

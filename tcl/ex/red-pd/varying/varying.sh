@@ -1,5 +1,7 @@
 #! /bin/csh
 
+rm -f varying/flows* varying/tmp* varying/dropRate* varying/data*
+
 ns red-pd.tcl one netMix Varying testUnresp 0 period 1 plotq 0 time 360 verbose 5 > tmp.Off
 mv one.netMix.Varying.1.flows flows.Off
 awk '{if ($4==10) {bw = 8*($6 - old)/1000000; print $2, bw; old=$6}}' flows.Off > bw.Off

@@ -1,6 +1,7 @@
 #! /bin/csh
 
 rm -f dropRate data 
+rm -f allTCP/flows* allTCP/tmp* allTCP/dropRate* allTCP/data*
 
 set t1=500
 foreach rtt ( 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.100 0.110 0.120 0.130 0.140 0.150 0.160 0.170 )

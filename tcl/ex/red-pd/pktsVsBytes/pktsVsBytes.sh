@@ -1,6 +1,7 @@
 #! /bin/csh
 
 rm -f data* flows*
+rm -f pktsVsBytes/flows* pktsVsBytes/tmp* pktsVsBytes/dropRate* pktsVsBytes/data*
 
 set t1=1000
 foreach try ( 1 )
