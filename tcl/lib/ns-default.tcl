@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.127 1998/08/22 17:16:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.128 1998/08/24 16:26:22 sfloyd Exp $
 
 
 #
@@ -120,8 +120,8 @@ Agent/TCP set delay_growth_ false
 # proposed by Janey Hoe (other than fixing reno's
 # unnecessary retransmit timeouts)
 Agent/TCP/Newreno set newreno_changes_ 0
-# setting this to 1 gives a slightly more aggressive
-# retransmission policy in response to partial acks
+# setting this to 1 allows the retransmit timer to expire for
+# a window with many packet drops
 Agent/TCP/Newreno set newreno_changes1_ 0
 
 Agent/TCP/Vegas set v_alpha_ 1
