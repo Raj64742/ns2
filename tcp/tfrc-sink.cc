@@ -391,8 +391,9 @@ void TfrcSinkAgent::print_loss(int sample, double ave_interval)
 
 void TfrcSinkAgent::print_loss_all(int *sample) 
 {
-	printf ("sample 0: %5d 1: %5d 2: %5d 3: %5d 4: %5d\n", 
-		sample[0], sample[1], sample[2], sample[3], sample[4]); 
+	double now = Scheduler::instance().clock();
+	printf ("%f: sample 0: %5d 1: %5d 2: %5d 3: %5d 4: %5d\n", 
+		now, sample[0], sample[1], sample[2], sample[3], sample[4]); 
 }
 
 ////////////////////////////////////////
@@ -415,9 +416,10 @@ double TfrcSinkAgent::est_loss_WALI ()
 	// sample[i] counts the number of packets since the i-th loss event
 	// sample[0] contains the most recent sample.
 	for (i = last_sample; i <= maxseq ; i ++) {
-		sample[0]++; 
+		sample[0]++;
 		if (lossvec_[i%hsz] == LOST) {
 		        //  new loss event
+			double now = Scheduler::instance().clock();
 			sample_count ++;
 			shift_array (sample, numsamples+1, 0); 
 			multiply_array(mult, numsamples+1, mult_factor_);
@@ -436,20 +438,6 @@ double TfrcSinkAgent::est_loss_WALI ()
 	if (sample_count == 1 && false_sample == 0) 
 		// no losses yet
 		return 0; 
-	if (sample_count <= numsamples+1 && false_sample > 0) {
-		// slow start just ended; ds should be 2
-		// the false sample is added to the array.
-		if (printLoss_) {
-			double now = Scheduler::instance().clock(); 
-			printf ("time: %5.3f false_sample: %5d sample %d : %5d\n", 
-			now, false_sample, ds-1, sample[ds-1]);
-		}
-		sample[ds-1] += false_sample;
-		// Should we do this instead?
-		//sample[1] = false_sample;
-		//sample[0] = 0;
-		false_sample = -1 ; 
-	}
 	/* do we need to discount weights? */
 	if (sample_count > 1 && discount && sample[0] > 0) {
 		double ave = weighted_average(1, ds, 1.0, mult, weights, sample);
@@ -561,7 +549,14 @@ double TfrcSinkAgent::adjust_history (double ts)
 	lastloss = ts; 
 	lastloss_round_id = round_id ;
 	p=b_to_p(est_thput()*psize_, rtt_, tzero_, psize_, 1);
-	false_sample = (int)(1/p);
+	false_sample = (int)(1.0/p);
+	sample[1] = false_sample;
+	sample[0] = 0;
+	sample_count++; 
+	if (printLoss_) {
+		print_loss_all (sample);
+	}
+	false_sample = -1 ; 
 	return p;
 }
 
