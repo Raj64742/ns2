@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.3 1998/04/21 17:03:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.4 1998/04/21 23:45:11 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -197,6 +197,7 @@ Test/init2 instproc run {} {
 	set tcp1 [$self make_tcp s1 k1 0 Tahoe] 
 	set tcp2 [$self make_tcp s2 k1 1 Tahoe] 
 	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	$self run_test $tcp1 $tcp2 1.0 1.0 8
 }
 
@@ -216,6 +217,7 @@ Test/init3 instproc run {} {
         set tcp1 [$self make_tcp s1 k1 0 Tahoe] 
         set tcp2 [$self make_tcp s2 k1 1 Tahoe]
 	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	$tcp1 set windowInit_ 6
 	$self run_test $tcp1 $tcp2 1.0 1.0 8
 }
@@ -372,6 +374,7 @@ Test/init10 instproc run {} {
 	set tcp1 [$self make_tcp s1 k1 0 Newreno] 
 	set tcp2 [$self make_tcp s2 k1 1 Newreno] 
 	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	$self run_test $tcp1 $tcp2 1.0 1.0 8
 }
 
@@ -391,6 +394,7 @@ Test/init11 instproc run {} {
         set tcp1 [$self make_tcp s1 k1 0 Newreno] 
         set tcp2 [$self make_tcp s2 k1 1 Newreno]
 	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	$tcp1 set windowInit_ 6
 	$self run_test $tcp1 $tcp2 1.0 1.0 8
 }
@@ -449,6 +453,7 @@ Test/init14 instproc run {} {
 	set tcp1 [$self make_tcp s1 k1 0 Sack] 
 	set tcp2 [$self make_tcp s2 k1 1 Sack] 
 	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	$self run_test $tcp1 $tcp2 1.0 1.0 8
 }
 
@@ -468,6 +473,7 @@ Test/init15 instproc run {} {
         set tcp1 [$self make_tcp s1 k1 0 Sack] 
         set tcp2 [$self make_tcp s2 k1 1 Sack]
 	$tcp1 set syn_ false
+	$tcp1 set delay_growth_ false
 	$tcp1 set windowInit_ 6
 	$self run_test $tcp1 $tcp2 1.0 1.0 8
 }
