@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.304 1999/02/09 00:43:20 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.305 1999/02/18 03:17:26 yuriy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,12 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>  
+
+    <LI> <B><A href="mailto:yuri@isi.edu">[YP]</A></B>
+           <b>Wed Feb 17 19:10:00  PST 1999</b><br>
+	   Added enumeration for packet types instead of sequence of
+           <tt>#defines</tt>.  New class <tt>p_info</tt> binds numeric 
+	   packet types with their string values. <br>
 
     <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
          <b>Mon Feb  8 14:29:43 PST 1999</b><br>
@@ -42,7 +48,7 @@
 	      simultaneous events.  Commented out "use-scheduler"
 	      lines from all test suites which had it so that they all 
 	      use Calendar as default.  Re-generated failing test-outputs.
-	      Validation passed. <br>
+	      <br>
 	      
     <li> <B><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
          <b>Tue Jan 26 10:18:47 PST 1999</b>
