@@ -27,6 +27,11 @@
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.8 1997/07/23 05:06:27 kfall Exp $ (USC/ISI)";
+#endif
+
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
