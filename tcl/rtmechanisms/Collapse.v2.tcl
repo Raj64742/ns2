@@ -1,5 +1,4 @@
 source Setred.v2.tcl
-source flowmon.tcl
 #set packetsize 512
 set packetsize 1500
 
@@ -9,10 +8,10 @@ proc create_flowstats { redlink stoptime } {
     global ns r1 r2 r1fm flowfile
     
     set flowfile data.f
-    set r1fm [makeflowmon]
+    set r1fm [$ns makeflowmon Fid]
     set flowdesc [open $flowfile w]
     $r1fm attach $flowdesc
-    attach-fmon $redlink $r1fm
+    $ns attach-fmon $redlink $r1fm 1
     $ns at $stoptime "$r1fm dump; close $flowdesc"
 }
 
