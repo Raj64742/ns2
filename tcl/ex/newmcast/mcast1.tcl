@@ -44,21 +44,21 @@ $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
-### Start multicast configuration: 4 mproto options
-### CtrMcast : centralized multicast
-### DM       : static DVMRP (can't adapt to link up/down or node up/down)
-### dynamicDM: dynamic DVMRP 
-### pimDM    : PIM dense mode
+### Start multicast configuration: 5 mproto options
+### CtrMcast   : centralized multicast
+### DM         : static DVMRP (can't adapt to link up/down or node up/down)
+### detailedDM : dense mode protocol that adapts to dynamics (recommended)
+### dynamicDM  : dynamic DVMRP 
+### pimDM      : PIM dense mode
 
 ### Uncomment following lines to change default
 #DM set PruneTimeout 0.3               ;# default 0.5 (sec)
 #dynamicDM set ReportRouteTimeout 0.5  ;# default 1 (sec)
 
-set mproto dynamicDM
+set mproto CtrMcast
 set mrthandle [$ns mrtproto $mproto  {}]
 if {$mrthandle != ""} {
-    $mrthandle set_c_rp [list $n2 $n3]
-    $mrthandle set_c_bsr [list $n1:0]
+    $mrthandle set_c_rp [list $n2]
 }
 ### End of multicast configuration
 
@@ -78,17 +78,15 @@ $ns attach-agent $n3 $rcvr3
 $ns at 0.2 "$cbr1 start"
 $ns at 0.3 "$n1 join-group  $rcvr1 0x8003"
 $ns at 0.4 "$n0 join-group  $rcvr0 0x8003"
-if {$mrthandle != ""} {
-    $ns at 0.45 "$mrthandle switch-treetype 0x8003"
-}
+#if {$mrthandle != ""} {
+#    $ns at 0.45 "$mrthandle switch-treetype 0x8003"
+#}
+
 $ns at 0.5 "$n3 join-group  $rcvr3 0x8003"
-$ns at 0.6.5 "$n2 join-group  $rcvr2 0x8003"
+$ns at 0.65 "$n2 join-group  $rcvr2 0x8003"
 
 $ns at 0.7 "$n0 leave-group $rcvr0 0x8003"
 $ns at 0.8 "$n2 leave-group  $rcvr2 0x8003"
-if {$mrthandle != ""} {
-    #$ns at 0.85 "$mrthandle compute-mroutes"
-}
 $ns at 0.9 "$n3 leave-group  $rcvr3 0x8003"
 $ns at 1.0 "$n1 leave-group $rcvr1 0x8003"
 $ns at 1.1 "$n1 join-group $rcvr1 0x8003"
@@ -107,5 +105,6 @@ proc finish {} {
 }
 
 $ns run
+
 
 
