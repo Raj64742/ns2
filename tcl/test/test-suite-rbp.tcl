@@ -1,7 +1,3 @@
-
-#
-# rbp_simulation.tcl
-# $Id: rbp_demo.tcl,v 1.3 1997/12/20 00:41:35 heideman Exp $
 #
 # Copyright (c) 1997 University of Southern California.
 # All rights reserved.                                            
@@ -19,11 +15,19 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.1 1997/12/20 00:41:36 heideman Exp $
+#
+
+#
+# invoked as ns $file $t [QUIET]
+# expected to pop up xgraph output (unless QUIET)
+# and to leave the plot in temp.rands
+#
 
 proc usage {} {
-	puts stderr {usage: ns rbp_demo.tcl [options]
+	puts stderr {usage: ns test-suite-rbp.tcl test [QUIET]
 
-This simulation is maintained by John Heidemann <johnh@isi.edu>
+Test suites for pacing.
 and was written by John Heidemann and Vikram Visweswaraiah <visweswa@isi.edu>.
 It demonstrates rate-based pacing as described in the paper
 ``Improving Restart of Idle TCP Connections'' (submitted for publication),
@@ -32,6 +36,25 @@ when invoked as.
 }
 	exit 1
 }
+
+# these are fakes for test-all
+
+Class Test/reno_pacing
+# expect to see  0/5/8 packets paced
+
+Class Test/vegas_pacing_rate
+# expect to see  0/2/2 packets paced
+
+Class Test/vegas_pacing_cwnd
+# expect to see  0/3/5 packets paced
+
+Class Test/reno_slow_start_restart
+# expect to see slow-start restart every time
+# (one packet sent before the first ack of each phase)
+
+Class Test/reno_no_slow_start_restart
+# expect to see increasing burst of back-to-packets each phase
+# 7 the second phase, 10 the third.
 
 proc default_options {} {
 	global opts opt_wants_arg
@@ -122,9 +145,10 @@ proc default_options {} {
 	}
 }
 
-proc process_args {} {
-	global argc argv opts opt_wants_arg
+proc process_args argv {
+	global opts opt_wants_arg
 
+	set argc [llength $argv]
 	default_options
 	for {set i 0} {$i < $argc} {incr i} {
 		set key [lindex $argv $i]
@@ -143,15 +167,6 @@ proc process_args {} {
 			set opts($key) [expr !opts($key)]
 		}
 	}
-}
-
-proc main {} {
-	global argv
-#	if {[llength $argv] != 1} {
-#		usage
-#	}
-	process_args
-	new TestScale
 }
 
 
@@ -289,6 +304,8 @@ TestScale instproc finish {} {
         global opts
 	$self instvar trace_file_
 
+	# for debugging
+	exec raw2xg -a -m $opts(web-page-size) -q < out.tr >temp.rands
 	if {!$opts(graph-results)} {
 		exit 0
 	}
@@ -298,7 +315,7 @@ TestScale instproc finish {} {
 	} else {
 		set q ""
 	}
-	exec raw2xg -a -m $opts(web-page-size) -q < out.tr | xgraph -t "$opts(server-tcp-method)" &
+	exec xgraph -t "$opts(server-tcp-method)" <temp.rands &
 #	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
 	
 	exit 0
@@ -361,5 +378,49 @@ TestScale instproc init {} {
 }
 
 
+proc main {} {
+	global argv
+
+	#
+	# Icky icky icky.
+	# We slap a test-suite-friendly interface over
+	# the otherwise nice interface provided by
+	# rbp_demo.tcl.
+	#
+	set tcp TCP/Vegas/RBP
+	set graph 1
+	set ssr true
+	set rbp_alg 1
+	foreach i $argv {
+		switch $i {
+			quiet {
+				set graph 0
+			}
+			reno_pacing {
+				set tcp TCP/Reno/RBP
+			}
+			vegas_pacing_rate {
+				set tcp TCP/Vegas/RBP
+				set rbp_alg 1
+			}
+			vegas_pacing_cwnd {
+				set tcp TCP/Vegas/RBP
+				set rbp_alg 2
+			}
+			reno_slow_start_restart {
+				set tcp TCP/Reno
+			}
+			reno_no_slow_start_restart {
+				set tcp TCP/Reno
+				set ssr false
+			}
+		}
+	}
+	process_args "-server-tcp-method $tcp -graph-results $graph -client-count 1 -experiment-trials 3 -server-tcp-slow-start-restart $ssr -rbp-rate-algorithm $rbp_alg"
+	new TestScale
+}
+
 main
+
+
 

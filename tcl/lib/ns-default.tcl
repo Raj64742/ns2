@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.81 1997/12/19 22:20:14 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.82 1997/12/20 00:41:35 heideman Exp $
 
 
 #
@@ -109,13 +109,19 @@ Agent/TCP/Newreno set newreno_changes_ 0
 Agent/TCP/Vegas set v_alpha_ 1
 Agent/TCP/Vegas set v_beta_ 3
 Agent/TCP/Vegas set v_gamma_ 1
+Agent/TCP/Vegas set v_rtt_ 0
 
 Agent/TCP/Vegas/RBP set rbp_scale_ 0.75
 # rbp_rate_algorithm_'s are defined in tcp-rbp.cc.
 # 1=RBP_VEGAS_RATE_ALGORITHM (default),
 # 2=RBP_CWND_ALGORITHM
 Agent/TCP/Vegas/RBP set rbp_rate_algorithm_ 1
+Agent/TCP/Vegas/RBP set rbp_segs_actually_paced_ 0
+Agent/TCP/Vegas/RBP set rbp_inter_pace_delay_ 0
+
 Agent/TCP/Reno/RBP set rbp_scale_ 0.75
+Agent/TCP/Reno/RBP set rbp_segs_actually_paced_ 0
+Agent/TCP/Reno/RBP set rbp_inter_pace_delay_ 0
 # Reno/RBP supports only RBP_CWND_ALGORITHM 
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
 
