@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.4 1999/07/02 17:07:10 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.5 1999/08/04 00:12:06 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -199,7 +199,7 @@ private:
 // Maintains received segments of every layer
 class MediaSegmentList : public DoubleList {
 public:
-	MediaSegmentList() : length_(0), DoubleList() {}
+	MediaSegmentList() : DoubleList(), length_(0) {}
 
 	int length() const { return length_; }
 	void add(const MediaSegment& s);
