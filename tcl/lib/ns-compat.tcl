@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.40 1999/07/16 17:06:27 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.41 1999/07/16 17:45:37 heideman Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -634,9 +634,7 @@ OldSim instproc init args {
 	set classMap_(facktcp) Agent/TCP/Fack
 	set classMap_(tcp-newreno) Agent/TCP/Newreno
 	set classMap_(tcpnewreno) Agent/TCP/Newreno
-#	set classMap_(cbr) Agent/CBR
-# xxx johnh
-	set classMap_(cbr) Application/Traffic/CBR
+	set classMap_(cbr) Agent/CBR
 	set classMap_(tcp-sink) Agent/TCPSink
 	set classMap_(tcp-sack1) Agent/TCP/Sack1
 	set classMap_(sack1-tcp-sink) Agent/TCPSink/Sack1
