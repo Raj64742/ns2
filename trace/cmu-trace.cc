@@ -548,6 +548,32 @@ CMUTrace::format_aodv(Packet *p, int offset)
         }
 }
 
+void
+CMUTrace::nam_format(Packet *p, const char *why, int offset)
+{
+        struct hdr_cmn *ch = HDR_CMN(p);
+	struct hdr_ip *ih = HDR_IP(p);
+	char op = (char) type_;
+	Node* thisnode = Node::get_node_by_address(src_);
+
+	int src = Address::instance().get_nodeaddr(ih->saddr());
+	int dst = Address::instance().get_nodeaddr(ih->daddr());
+
+	if (op == 's') op = 'h' ;
+
+	sprintf(nwrk_ + offset,
+		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -i %d ",
+		op,
+		Scheduler::instance().clock(),
+		src,                           // this node
+		dst,
+		packet_info.name(ch->ptype()),
+		ch->size(),
+		ch->uid());
+
+	offset = strlen(nwrk_);
+
+}
 
 void CMUTrace::format(Packet* p, const char *why)
 {
@@ -558,6 +584,7 @@ void CMUTrace::format(Packet* p, const char *why)
 	 * Log the MAC Header
 	 */
 	format_mac(p, why, offset);
+	nam_format(p, why, offset);
 	offset = strlen(wrk_);
 
 	switch(ch->ptype()) {
@@ -669,6 +696,7 @@ CMUTrace::recv(Packet *p, Handler *h)
 #endif
 	format(p, "---");
 	dump();
+	namdump();
 	if(target_ == 0)
 		Packet::free(p);
 	else

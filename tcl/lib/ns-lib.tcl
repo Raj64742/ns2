@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.178 1999/10/16 00:58:57 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.179 1999/10/24 07:50:47 klan Exp $
 
 #
 
@@ -405,6 +405,8 @@ Simulator instproc create-wireless-node { args } {
         $self instvar propInstance_ llType_ macType_ ifqType_ ifqlen_ phyType_ chan
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
         $self instvar imepflag_ topoInstance_
+	$self instvar namtraceAllFile_
+
 
         set imepflag_ OFF
 
@@ -412,6 +414,7 @@ Simulator instproc create-wireless-node { args } {
 
         set node [$self create-node-instance $args]
         
+	$node get-nam-traceall $namtraceAllFile_
     
         # basestation address setting
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
@@ -988,13 +991,17 @@ Simulator instproc flush-trace {} {
 	}
 }
 
-Simulator instproc namtrace-all file {
+Simulator instproc namtrace-all {file optx opty}  {
 	$self instvar namtraceAllFile_
 	if {$file != ""} {
 		set namtraceAllFile_ $file
 	} else {
 		unset namtraceAllFile_
 	}
+	if { $optx != "" && $opty != "" } {
+	    $self puts-nam-config "W -t * -x $optx -y $opty"
+	}
+
 }
 
 Simulator instproc namtrace-all-wireless {file optx opty} {
@@ -1004,7 +1011,9 @@ Simulator instproc namtrace-all-wireless {file optx opty} {
         } else {
                 unset namtraceAllFile_
         }
-        $self puts-nam-config "W -t * -x $optx -y $opty"
+	if { $optx != "" && $opty != "" } {
+            $self puts-nam-config "W -t * -x $optx -y $opty"
+	}
 }
 
 Simulator instproc nam-end-wireless {stoptime} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.63 1999/10/06 02:48:51 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.64 1999/10/24 07:50:49 klan Exp $
 #
 
 # for MobileIP
@@ -248,6 +248,14 @@ Node instproc add-route { dst target } {
 	$self instvar classifier_
 	$classifier_ install $dst $target
 	$self incr-rtgtable-size
+}
+
+Node instproc get-nam-traceall {args} {
+
+  $self instvar namtraceFile_
+  set file [lindex $args 0]
+  set namtraceFile_ $file
+
 }
 
 
@@ -1174,6 +1182,8 @@ Node instproc agenttrace {tracefd} {
     if {$imepflag == "ON"} {
        [$self set imep_(0)] log-target $T
     }
+
+    $drpT namattach $namtraceFile_
 }
 
 Node instproc nodetrace { tracefd } {

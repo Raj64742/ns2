@@ -222,6 +222,7 @@ Node/MobileNode instproc add-target {agent port } {
     #global opt
     $self instvar dmux_ classifier_
     $self instvar imep_ toraDebug_
+    $self instvar namtraceFile_ 
  
     set ns_ [Simulator instance]
 
@@ -392,6 +393,8 @@ Node/MobileNode instproc add-target {agent port } {
 		set sndT [cmu-trace Send AGT $self]
 	    }
 
+            $sndT namattach $namtraceFile_
+
 	    $sndT target [$self entry]
 	    $agent target $sndT
 		
@@ -403,6 +406,7 @@ Node/MobileNode instproc add-target {agent port } {
 	    } else {
 		set rcvT [cmu-trace Recv AGT $self]
 	    }
+	    $rcvT namattach $namtraceFile_
 
 	    $rcvT target $agent
 	    $dmux_ install $port $rcvT
@@ -447,6 +451,7 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$self instvar arptable_ nifs_
 	$self instvar netif_ mac_ ifq_ ll_
 	$self instvar imep_
+	$self instvar namtraceFile_
 	
 	#global ns_ opt
 	#set MacTrace [Simulator set MacTrace_]
@@ -499,6 +504,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    }
 	    
 	    $arptable_ drop-target $drpT
+
+	    $drpT namattach $namtraceFile_
         }
 
 	#
@@ -531,7 +538,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    set drpT [cmu-trace Drop "IFQ" $self]
         }
 	$ifq drop-target $drpT
-
+        $drpT namattach $namtraceFile_
+ 
 	#
 	# Mac Layer
 	#
@@ -630,7 +638,8 @@ Node/MobileNode instproc nodetrace { tracefd } {
 }
 
 Node/MobileNode instproc agenttrace {tracefd} {
-
+    $self instvar namtraceFile_
+ 
     set ns_ [Simulator instance]
     
     set ragent [$self set ragent_]
@@ -659,6 +668,8 @@ Node/MobileNode instproc agenttrace {tracefd} {
     if {$imepflag == "ON"} {
        [$self set imep_(0)] log-target $T
     }
+
+    $drpT namattach $namtraceFile_
 }
 
 ## method to remove an entry from the hier classifiers
