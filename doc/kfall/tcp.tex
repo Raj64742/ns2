@@ -332,10 +332,10 @@ The TCP header is defined by the {\tt hdr\_tcp} structure
 in the file {\tt tcp.h}.
 The base agent only makes use of the following subset of the fields:
 \begin{program}
-ts_	\*current time packet was sent from source ;
-ts_echo_ \*for ACKs: timestamp field from packet associated with this ACK;
-seqno_ \* sequence number for this data segment or ACK (Note: overloading!);
-reason_ \* set by sender when (re)transmitting to trace reason for send;
+ts_	\* current time packet was sent from source */
+ts_echo_ \* for ACKs: timestamp field from packet associated with this ACK */
+seqno_ \* sequence number for this data segment or ACK (Note: overloading!) */
+reason_ \* set by sender when (re)transmitting to trace reason for send */
 \end{program}
 
 \paragraph{functions for sending data}
