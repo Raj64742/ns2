@@ -11,10 +11,12 @@ protected:
 				   not been acked yet */
 	int maxdelack_;         /* the maximum extent to which acks can be
 				   delayed */
-	int delacklimit_;       /* the dynamically varying limit on the extent
+	int delackfactor_;      /* the dynamically varying limit on the extent
 				   to which acks can be delayed */
+	int delacklim_;         /* limit on the extent of del ack based on the
+				   sender's window */
 	double ts_ecn_;         /* the time when an ECN was received last */
-	double ts_decrease_;    /* the time when delacklimit_ was decreased last */
+	double ts_decrease_;    /* the time when delackfactor_ was decreased last */
 	double highest_ts_echo_;/* the highest timestamp echoed by the peer */
 };	
 
@@ -26,7 +28,7 @@ public:
 	}
 } class_tcpasymsink;
 
-TcpAsymSink::TcpAsymSink(Acker* acker) : delackcount_(0), delacklimit_(1), ts_ecn_(0), ts_decrease_(0), DelAckSink(acker)
+TcpAsymSink::TcpAsymSink(Acker* acker) : delackcount_(0), delackfactor_(1), delacklim_(0), ts_ecn_(0), ts_decrease_(0), DelAckSink(acker)
 {
 	bind("maxdelack_", &maxdelack_);
 	bind("off_tcpasym_", &off_tcpasym_);
@@ -41,7 +43,8 @@ void TcpAsymSink::add_to_ack(Packet* pkt)
 
 void TcpAsymSink::recv(Packet* pkt, Handler* h) 
 {
-	int delacklim = 0;
+	int olddelackfactor = delackfactor_;
+	int olddelacklim = delacklim_; 
 	int max_sender_can_send = 0;
 	hdr_flags *fh = (hdr_flags*)pkt->access(off_flags_); 
 	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
@@ -53,19 +56,19 @@ void TcpAsymSink::recv(Packet* pkt, Handler* h)
 	highest_ts_echo_ = max(highest_ts_echo_, th->ts_echo());
 	/* 
 	 * if we receive an ECN and haven't received one in the past
-	 * round-trip, double delacklimit_ 
+	 * round-trip, double delackfactor_ 
 	 */
 	if (fh->ecn_ && highest_ts_echo_ >= ts_ecn_) {
-		delacklimit_ = min(2*delacklimit_, maxdelack_);
+		delackfactor_ = min(2*delackfactor_, maxdelack_);
 		ts_ecn_ = now;
 	}
 	/*
 	 * else if we haven't received an ECN in the past round trip and
-	 * haven't (linearly) decreased delacklimit_ in the past round
-	 * trip, we decrease delacklimit_ by 1
+	 * haven't (linearly) decreased delackfactor_ in the past round
+	 * trip, we decrease delackfactor_ by 1
 	 */
 	else if (highest_ts_echo_ >= ts_ecn_ && highest_ts_echo_ >= ts_decrease_) {
-		delacklimit_ = max(delacklimit_ - 1, 1);
+		delackfactor_ = max(delackfactor_ - 1, 1);
 		ts_decrease_ = now;
 	}
 
@@ -76,19 +79,20 @@ void TcpAsymSink::recv(Packet* pkt, Handler* h)
          */
         if (th->seqno() == acker_->Seqno()) {
 		max_sender_can_send = (int) min(tha->win()+acker_->Seqno()-tha->highest_ack(), tha->max_left_to_send());
-		delacklim = min(maxdelack_, max_sender_can_send/3); /* XXXX */ 
+		delacklim_ = min(maxdelack_, max_sender_can_send/3); /* XXXX */ 
 	}
 	else
-		delacklim = 0;
+		delacklim_ = 0;
 
-	if (delacklimit_ < delacklim) 
-		delacklim = delacklimit_;
+	if (delackfactor_ < delacklim_) 
+		delacklim_ = delackfactor_;
 
-	if (channel_) {
+	if (channel_ && (olddelackfactor != delackfactor_ || olddelacklim != delacklim_)) {
 		char wrk[500];
 		int n;
 
-		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d delacklimit: %2d lim: %2d\n", now, addr_/256, addr_%256, dst_/256, dst_%256, delacklimit_, delacklim);
+		/* we print src and dst in reverse order to conform to sender side */
+		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d dafactor: %2d dalim: %2d\n", now, dst_/256, dst_%256, addr_/256, addr_%256, delackfactor_, delacklim_);
 		n = strlen(wrk);
 		wrk[n] = '\n';
 		wrk[n+1] = 0;
@@ -97,7 +101,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler* h)
 	}
 		
 	delackcount_++;
-	if (delackcount_ < delacklim) { /* it is not yet time to send an ack */
+	if (delackcount_ < delacklim_) { /* it is not yet time to send an ack */
 		/* set delayed ack timer if it is not already set */
 		if (!pending_[DELAY_TIMER]) {
 			save_ = pkt;
