@@ -979,10 +979,8 @@ DRR objects are a subclass of Queue objects that implement deficit
 round robin scheduling. These objects implement deficit round robin
 scheduling amongst different flows ( A particular flow is one which
 has packets with the same node and port id OR packets which have the
-same node id alone. A command-line argument "setmask" can be used to
-decide what defines a particular flow). Also unlike other multi-queue
-objects, this queue object implements a single shared buffer space for
-its different flows.
+same node id alone). Also unlike other multi-queue objects, this queue
+object implements a single shared buffer space for its different flows.
 .LP
 .HD
 Configuration Parameters \fP
