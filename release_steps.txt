@@ -2,7 +2,9 @@
 Steps in doing an ns release:
 
 
-0. do a {otcl,tclcl} release, if necessary
+0. do a {otcl,tclcl} release, if necessary (update configure to show
+   current versions)
+
 0.1. figure what the new version
 0.2. send out release announcement to ns-developers for approval
     - describe what's new
@@ -17,10 +19,13 @@ Steps in doing an ns release:
         don't add files which are generated)
 2.1.  update CHANGES.html to show when the release happens
     (like the last time it was released)
+2.2  make sure makefile.vc(WINDOWS) is up to date.
 3. "make srctar"
 4. test on new system
     (build, run test scripts)
 5. put the tar in mash's /usr/mash/www/dist (?)
+5. Make a hard link to ~ftp/dist/vint. (For people accessing 
+    things via ftp.)
 5.1. commit all your changes
 5.2. tag the cvs archive
     (cd ~ns; cvs tag NS_2_1B1; )
