@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.32 2000/10/03 03:46:03 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.33 2001/12/03 22:48:44 sfloyd Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -92,6 +92,7 @@ for t in $tests; do
 
     # Beware that xgraph is run asynchronously, and if it
     # is slow to launch, you may get an incorrect graph
+    sleep 1
     if $quiet
     then
 	qflag="QUIET"
