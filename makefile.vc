@@ -1,26 +1,3 @@
-#
-# First cut at makefile.vc hacked from configure-generated Makefile
-# (mccanne)
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.3 1997/08/14 06:59:03 gnguyen Exp $
-#
-
-# change the following lines to reflect local paths
-TOOLS32  = c:\msdev
-cc32 = $(TOOLS32)\bin\cl
-rc32 = $(TOOLS32)\bin\rc
-link32 = $(TOOLS32)\bin\link /libpath:c:\msdev\lib
-CPP = $(cc32)
-CC = $(cc32)
-PERL = c:\ntreskit\perl\perl
-TCLSH = c:\bin\tclsh76.exe
-
-!include <win32.mak>
-
-lflags = $(lflags) /libpath:c:\msdev\lib
-
-link32 = $(TOOLS32)\bin\link /libpath:c:\msdev\lib
-
-
 # Generated automatically from Makefile.in by configure.
 #  Copyright (c) 1994, 1995, 1996
 # 	The Regents of the University of California.  All rights reserved.
@@ -41,73 +18,78 @@ link32 = $(TOOLS32)\bin\link /libpath:c:\msdev\lib
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.3 1997/08/14 06:59:03 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.4 1997/08/14 11:44:47 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
 #
 
-LOCAL_SRC=c:\src
-TK_DIR  =$(LOCAL_SRC)\tk4.2
-TCL_DIR =$(LOCAL_SRC)\tcl7.6
-TCLCL_DIR =..\Tcl
-OTCL_DIR =..\otcl
-GSM_DIR =..\gsm
+# Top level hierarchy
+prefix	= /usr/local
+# Pathname of directory to install the binary
+BINDEST	= /usr/local/bin
+# Pathname of directory to install the man page
+MANDEST	= /usr/local/man
 
-TCL2CPP =$(TCLCL_DIR)\tcl2C++.exe
+CC	= gcc
+CPP	= c++
+CCOPT	= -O2
 
-# insert a makedepend like function here 
-MKDEP = \bin\makedep2 
+STATIC	= 
+DEFINE	= -DNO_TK   -DHAVE_LIBOTCL0_96 -DHAVE_OTCL_H -DHAVE_LIBTK4_2 -DHAVE_TK_H -DHAVE_LIBTCL7_6 -DHAVE_TCL_H 	# -Dabort=_ABORT
 
-INCLUDE_TK = -I$(TK_DIR)/win -I$(TK_DIR)/generic
-INCLUDE_TCL = -I$(TCL_DIR)/win -I$(TCL_DIR)/generic 
-INCLUDE_OTCL = -I$(OTCL_DIR)
-INCLUDE_TCLCL = -I$(TCLCL_DIR)
-INCLUDE_X11 = -I$(TK_DIR)/xlib
-INCLUDE_MISC = -I$(TOOLS32)\include 
+TCL2C	= ../Tcl/tcl2c++
 
-LIB_TK = g:/src/tk4.2/win/tk42.lib
-LIB_TCL = g:/src/tcl7.6//win/tcl76.lib
-LIB_TCLCL = $(TCLCL_DIR)/tclcl.lib
-LIB_OTCL = $(OTCL_DIR)/otcl.lib
-LIB_GSM  = $(GSM_DIR)/lib/gsm.lib
+INCLUDES = \
+	-I. -I../Tcl  \
+	-I/usr/local/include -I/usr/local/include -I/usr/local/include 
 
-LOCAL_SRC=c:\src
-TK_DIR  =$(LOCAL_SRC)\tk4.2
-TCL_DIR =$(LOCAL_SRC)\tcl7.6
-TCLCL_DIR =..\Tcl
-OTCL_DIR =..\otcl
-GSM_DIR =..\gsm
+LIB	= \
+	 ../Tcl/libTcl.a \
+	-L/usr/local/lib -lotcl -L/usr/local/lib -ltk4.2 -L/usr/local/lib -ltcl7.6  \
+	-L/usr/X11R6/lib -lX11 \
+	-lm -ldl 
 
-LIBS = $(LIB_GRABBER) $(LIB_TK) $(LIB_TCL) $(LIB_TCLCL) $(LIB_GSM) \
-	$(LIB_OTCL) $(guilibs) wsock32.lib $(conlibs)
-#winmm.lib
+INSTALL	= /usr/bin/install -c
+MKDEP	= ./mkdep
+RANLIB	= ranlib
 
-# don't want system files to be added when making dependencies
-DEPEND_INCS = \
-	$(INCLUDE_TK) $(INCLUDE_TCL) \
-	$(INCLUDE_OTCL) $(INCLUDE_TCLCL) \
-	$(INCLUDE_X11) $(MD_INC) -I./jpeg -I./p64 -I.
-INCLUDES = $(INCLUDE_MISC) \
-	$(DEPEND_INCS)
 
-DEFINE =  -DUSE_SHM -DHAVE_LIBOTCL0_96 -DHAVE_OTCL_H -DHAVE_LIBTK4_2 -DHAVE_TK_H -DHAVE_LIBTCL7_6 -DHAVE_TCL_H  -DNO_TK -DWIN32
-STATIC = 
+BLANK	= # make a blank space
+AR	= ar rc $(BLANK)
+LINK	= $(CPP)
+LDFLAGS	=
+LDOUT	= -o $(BLANK)
+PERL	= perl
+RM	= rm -f
+TCLSH	= tclsh
 
-CCOPT = /Zi /Gm /Gi /YX
- #/Fp./mash.pch
-BFLAGS = $(DEFINE) $(INCLUDES)
-CFLAGS = $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
-#CFLAGS =  $(INCLUDE) $(DEFINE) $(CCOPT)
+BFLAGS	= $(INCLUDES) $(DEFINE)
+CFLAGS	= $(INCLUDES) $(DEFINE) $(CCOPT)
 
-.SUFFIXES : .cc
+# Explicitly define compilation rules since SunOS 4's make doesn't like gcc.
+# Also, gcc does not remove the .o before forking 'as', which can be a
+# problem if you don't own the file but can write to the directory.
+.SUFFIXES: .cc	# $(.SUFFIXES)
 
-# add -FR$*.sbr if you want browse info
 .cc.o:
-	$(cc32) $(CFLAGS) -Fo$@ -Tp $<
+	@rm -f $@
+	$(CPP) -c $(CFLAGS) -o $@ $*.cc
 
 .c.o:
-	$(cc32) $(CFLAGS) -Fo$@ $<
+	@rm -f $@
+	$(CC) -c $(CFLAGS) -o $@ $*.c
+
+
+GEN_DIR	= gen/
+LIB_DIR	= lib/
+NS	= ns
+NSX	= nsx
+
+
+# WIN32: uncomment the following line to include specific make for VC++
+!include <makefile.win>
+
 
 OBJ_CC = \
 	random.o ranvar.o misc.o timer-handler.o \
@@ -116,12 +98,13 @@ OBJ_CC = \
 	classifier-mcast.o classifier-mpath.o replicator.o \
 	classifier-mac.o \
 	packet.o ip.o route.o connector.o ttl.o \
-	trace.o	trace-ip.o tracegen.o \
+	trace.o trace-ip.o \
 	cbr.o traffictrace.o pareto.o expoo.o telnet.o tcplib-telnet.o \
 	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
-	tcp-vegas.o tcp-rbp.o \
+	tcp-vegas.o tcp-rbp.o tcp-full.o \
 	scoreboard.o tcp-sack1.o tcp-fack.o \
+	tcp-asym.o tcp-asym-sink.o \
 	integrator.o queue-monitor.o flowmon.o loss-monitor.o \
 	queue.o drop-tail.o red.o \
 	semantic-packetqueue.o \
@@ -132,11 +115,15 @@ OBJ_CC = \
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o prune.o srm.o \
 	net.o net-ip.o tap.o \
-	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o \
+	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
+	$(LIB_DIR)dmalloc_support.o \
 	sessionhelper.o delaymodel.o
 
 OBJ_C = \
 	inet.o
+
+OBJ_COMPAT = $(OBJ_GETOPT) win32.o
+#XXX compat/win32x.o compat/tkConsole.o
 
 OBJ_NAM = \
 	nam/animation.o \
@@ -152,16 +139,12 @@ OBJ_NAM = \
 	nam/netview.o \
 	nam/netmodel.o
 
-OBJ_COMPAT = $(OBJ_GETOPT) win32.o 
-#XXX compat/win32x.o compat/tkConsole.o
-
-OBJ_GEN = gen/version.o gen/ns_tcl.o
+OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
 	tclAppInit.cc tkAppInit.cc
 
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
-WINOBJ = $(OBJ:/=\)
 HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
 	tcp-sink.h tcp-fack.h drop-tail.h red.h \
@@ -172,30 +155,24 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
-	gen/* core core.ns core.nsx
+	$(GEN_DIR)* core core.ns core.nsx
 
-ns.exe: $(OBJ) tclAppInit.o
-	$(link32) $(ldebug) $(conlflags) -out:ns.exe tclAppInit.o $(OBJ) $(LIBS)
+$(NS): $(OBJ) tclAppInit.o
+	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
+		tclAppInit.o $(OBJ) $(LIB)
 
-#	$(link32) $(ldebug) $(guilflags) -out:ns.exe tclAppInit.o $(OBJ) $(LIBS)
+$(NSX): $(OBJ) tkAppInit.o $(OBJ_NAM)
+	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
+		tkAppInit.o $(OBJ) $(OBJ_NAM) $(LIB)
 
-nsx: $(OBJ) tkAppInit.o $(OBJ_NAM)
-	$(link) $(ldebug) $(guilflags) -out:$@ tkAppInit.o \
-		$(OBJ) $(OBJ_NAM) $(LIBS)
-
-# XXX doesn't work yet
-#gen/version.c: VERSION
-#	-@erase gen\version.c
-#	$(PERL) -ne "print \" char version[] = \\\" $_ \\\" ;\n\" " < VERSION > gen\version.c
-#
-
-gen/ns_tcl.o: gen/ns_tcl.cc
-	$(cc32) $(CFLAGS) -Fogen\ns_tcl.o /Zm400 -Tp gen\ns_tcl.cc
+ns.dyn: $(OBJ) tclAppInit.o
+	$(LINK) $(LDFLAGS) -o $@ \
+		tclAppInit.o $(OBJ) $(LIB)
 
 PURIFY	= purify -cache-dir=/tmp
-
-ns.pure: $(OBJ) tclAppInit.o
-	$(PURIFY) g++ $(STATIC) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
+ns-pure: $(OBJ) tclAppInit.o
+	$(PURIFY) $(LINK) $(STATIC) $(LDFLAGS) -o $@ \
+		tclAppInit.o $(OBJ) $(LIB)
 
 NS_TCL_LIB = \
 	tcl/lib/ns-compat.tcl \
@@ -234,11 +211,14 @@ NS_TCL_LIB = \
         tcl/pim/pim-vifs.tcl \
 	tcl/session/session.tcl
 
-#XXX doesn't work yet
-#gen\ns_tcl.cc: $(NS_TCL_LIB)
-#	-@erase $@
-#	@set TCLSH=tclsh76
-#	$(PERL) expand.pl tcl/lib/ns-lib.tcl > $@
+$(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
+	$(TCLSH) tcl-expand.tcl tcl/lib/ns-lib.tcl | $(TCL2C) et_ns_lib > $@
+
+$(GEN_DIR)version.c: VERSION
+	$(RM) $@
+	$(PERL) bin/printver.pl "char version_string[] = " < VERSION > $@
+#	cat VERSION | sed 's/.*/char version_string[] = "&";/' > $@
+
 
 install: force
 	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
@@ -247,10 +227,10 @@ install-man: force
 	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
 
 clean:
-	rm -f $(CLEANFILES)
+	$(RM) $(CLEANFILES)
 
 distclean:
-	rm -f $(CLEANFILES) Makefile config.cache config.log config.status \
+	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
 	    gnuc.h os-proto.h
 
 tags:	force

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.2 1997/08/14 09:41:53 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.3 1997/08/14 11:44:48 gnguyen Exp $
 
 
 TOOLS32	= c:\msdev
@@ -34,11 +34,11 @@ OTCL_DIR = ..\otcl
 TCLCL_DIR = ..\tclcl
 GSM_DIR = ..\gsm
 
-LIB_TK	= $(TK_DIR)\win\tk42.lib
-LIB_TCL = $(TCL_DIR)\win\tcl76.lib
-LIB_OTCL = $(OTCL_DIR)\otcl.lib
+LIB_TK	= -LIBPATH:$(TK_DIR)\win tk42.lib
+LIB_TCL = -LIBPATH:$(TCL_DIR)\win tcl76.lib
+LIB_OTCL = -LIBPATH:$(OTCL_DIR) otcl.lib
 LIB_TCLCL = $(TCLCL_DIR)\tclcl.lib
-LIB_GSM  = $(GSM_DIR)\lib\gsm.lib
+LIB_GSM  = -LIBPATH:$(GSM_DIR)\lib gsm.lib
 
 LIBRARY_TK = $(TK_DIR)\library
 LIBRARY_TCL = $(TCL_DIR)\library
@@ -51,7 +51,6 @@ PERL	= perl
 TCLSH	= tclsh76
 AR	= lib -out:
 RANLIB	= echo
-RM	= del
 
 CPP	= $(cc32)
 CC	= $(cc32)
@@ -75,14 +74,13 @@ DEPEND_INCS = \
 	$(INCLUDE_X11) $(MD_INC) -I./jpeg -I./p64 -I.
 INCLUDES = $(INCLUDE_MISC) $(DEPEND_INCS)
 
-LIBS =	$(LIB_TCLCL) $(LIB_OTCL) $(LIB_TK) $(LIB_TCL) \
-	$(guilibs) wsock32.lib $(conlibs) \
-	$(LIB_GRABBER) $(LIB_GSM)
-#winmm.lib
+LIB =	$(LIB_TCLCL) $(LIB_OTCL) \
+	$(LIB_TK) $(LIB_TCL) \
+	$(guilibs)
 
+#	$(LIB_GRABBER) $(LIB_GSM) \
+#	winmm.lib
 
-# LIB =
-TCL2C	= $(TCLCL_DIR)\tcl2c++.exe
 
 BFLAGS	= -DWIN32 $(DEFINE) $(INCLUDES)
 CFLAGS	= $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
@@ -97,8 +95,8 @@ CFLAGS	= $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
 	$(cc32) -c $(CFLAGS) -Fo$@ $<
 
 
-NS_GENDIR	=gen\
-NS_LIBDIR	=lib\
-NS_TCL_LIBDIR	=tcl\lib\
+TCL2C	= $(TCLCL_DIR)\tcl2c++.exe
 NS	= ns.exe
 NSX	= nsx.exe
+GEN_DIR	= gen\\
+LIB_DIR	= lib\\

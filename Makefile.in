@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.61 1997/08/14 09:41:52 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.62 1997/08/14 11:44:46 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -35,7 +35,7 @@ CPP	= @CXX@
 CCOPT	= @V_CCOPT@
 
 STATIC	= @V_STATIC@
-DEFINE	= -DNO_TK -Dabort=_ABORT @V_DEFINE@ @V_DEFINES@
+DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@	# -Dabort=_ABORT
 
 TCL2C	= @V_TCL2CPP@
 
@@ -80,12 +80,13 @@ CFLAGS	= $(INCLUDES) $(DEFINE) $(CCOPT)
 	$(CC) -c $(CFLAGS) -o $@ $*.c
 
 
-# WIN32: use backslash in directories and include makefile.win
-NS_GENDIR	= gen/
-NS_LIBDIR	= lib/
-NS_TCL_LIBDIR	= tcl/lib/
+GEN_DIR	= gen/
+LIB_DIR	= lib/
 NS	= ns
 NSX	= nsx
+
+
+# WIN32: uncomment the following line to include specific make for VC++
 # !include <makefile.win>
 
 
@@ -96,7 +97,7 @@ OBJ_CC = \
 	classifier-mcast.o classifier-mpath.o replicator.o \
 	classifier-mac.o \
 	packet.o ip.o route.o connector.o ttl.o \
-	trace.o	trace-ip.o \
+	trace.o trace-ip.o \
 	cbr.o traffictrace.o pareto.o expoo.o telnet.o tcplib-telnet.o \
 	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
@@ -113,8 +114,8 @@ OBJ_CC = \
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o prune.o srm.o \
 	net.o net-ip.o tap.o \
-	$(NS_LIBDIR)int.Vec.o $(NS_LIBDIR)int.RVec.o \
-	$(NS_LIBDIR)dmalloc_support.o \
+	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
+	$(LIB_DIR)dmalloc_support.o \
 	sessionhelper.o delaymodel.o
 
 OBJ_C = \
@@ -137,7 +138,7 @@ OBJ_NAM = \
 	nam/netview.o \
 	nam/netmodel.o
 
-OBJ_GEN = $(NS_GENDIR)version.o $(NS_GENDIR)ns_tcl.o
+OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
 	tclAppInit.cc tkAppInit.cc
@@ -153,7 +154,7 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
-	$(NS_GENDIR)* core core.ns core.nsx
+	$(GEN_DIR)* core core.ns core.nsx
 
 $(NS): $(OBJ) tclAppInit.o
 	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
@@ -209,11 +210,10 @@ NS_TCL_LIB = \
         tcl/pim/pim-vifs.tcl \
 	tcl/session/session.tcl
 
-$(NS_GENDIR)ns_tcl.cc: $(NS_TCL_LIB)
-	$(TCLSH) tcl-expand.tcl $(NS_TCL_LIBDIR)ns-lib.tcl \
-		| $(TCL2C) et_ns_lib >> $@
+$(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
+	$(TCLSH) tcl-expand.tcl tcl/lib/ns-lib.tcl | $(TCL2C) et_ns_lib > $@
 
-$(NS_GENDIR)version.c: VERSION
+$(GEN_DIR)version.c: VERSION
 	$(RM) $@
 	$(PERL) bin/printver.pl "char version_string[] = " < VERSION > $@
 #	cat VERSION | sed 's/.*/char version_string[] = "&";/' > $@
