@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.36 1997/08/25 21:48:10 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.37 1997/08/26 03:29:27 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -62,7 +62,7 @@ public:
 TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	ts_peer_(0),dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
-	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), 
+	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(0),
 	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this) 
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
@@ -77,6 +77,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("packetSize_", &size_);
 	bind_bool("bugFix_", &bug_fix_);
 	bind_bool("slow_start_restart_", &slow_start_restart_);
+	bind_bool("restart_bugfix_", &restart_bugfix_);
 	bind("maxburst_", &maxburst_);
 	bind("maxcwnd_", &maxcwnd_);
 	bind("maxrto_", &maxrto_);
@@ -111,7 +112,7 @@ TcpAgent::traceAll() {
 	int n;
 
 	curtime = &s ? s.clock() : 0;
-	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, int(maxseq_), int(highest_ack_), int(t_seqno_), double(cwnd_), int(ssthresh_), int(dupacks_), int(t_rtt_)*tcp_tick_, (int(t_srtt_) >> 3)*tcp_tick_, (int(t_rttvar_) >> 2)*tcp_tick_, int(t_backoff_));
+	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, int(maxseq_), int(highest_ack_), int(t_seqno_), double(cwnd_), int(ssthresh_), int(dupacks_), int(t_rtt_)*tcp_tick_, (int(t_srtt_) >> 3)*tcp_tick_, int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_));
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
@@ -130,8 +131,14 @@ TcpAgent::traceVar(TracedVar* v) {
 	int n;
 
 	curtime = &s ? s.clock() : 0;
-	if (!strcmp(v->name(), "cwnd_"))
+	if (!strcmp(v->name(), "cwnd_") || !strcmp(v->name(), "maxrto_"))
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), double(*((TracedDouble*) v)));
+	else if (!strcmp(v->name(), "rtt_"))
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v))*tcp_tick_);
+	else if (!strcmp(v->name(), "srtt_"))
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), (int(*((TracedInt*) v)) >> 3)*tcp_tick_);
+	else if (!strcmp(v->name(), "rttvar_"))
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v))*tcp_tick_/4.0);
 	else
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
 	n = strlen(wrk);
@@ -243,6 +250,7 @@ void TcpAgent::rtt_backoff()
 
 void TcpAgent::output(int seqno, int reason)
 {
+	int force_set_rtx_timer = 0;
 	Packet* p = allocpkt();
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	double now = Scheduler::instance().clock();
@@ -251,6 +259,9 @@ void TcpAgent::output(int seqno, int reason)
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
 
+	/* if no outstanding data, be sure to set rtx timer again */
+	if (highest_ack_== maxseq_)
+		force_set_rtx_timer = 1;
 	/* call helper function to fill in additional fields */
 	output_helper(p);
 
@@ -263,7 +274,7 @@ void TcpAgent::output(int seqno, int reason)
 				rtt_seq_ = seqno;
 		}
 	}
-	if (!(rtx_timer_.status() == TIMER_PENDING))
+	if (!(rtx_timer_.status() == TIMER_PENDING) || force_set_rtx_timer)
 		/* No timer pending.  Schedule one. */
 		set_rtx_timer();
 }
@@ -546,6 +557,10 @@ void TcpAgent::closecwnd(int how)
 		cwnd_ = wnd_init_;
 		break;
 
+	case 3:
+		cwnd_ = int(wnd_init_);
+		break;
+
 	default:
 		abort();
 	}
@@ -677,6 +692,20 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	send_much(0, 0, maxburst_);
 }
 
+/*
+ * Process timeout events other than rtx timeout. Having this as a separate 
+ * function allows derived classes to make alterations/enhancements (e.g.,
+ * response to new types of timeout events).
+ */ 
+void TcpAgent::timeout_nonrtx(int tno) 
+{
+	/*
+	 * delayed-send timer, with random overhead
+	 * to avoid phase effects
+	 */
+	send_much(1, TCP_REASON_TIMEOUT, maxburst_);
+}
+	
 void TcpAgent::timeout(int tno)
 {
 	/* retransmit timer */
@@ -690,16 +719,20 @@ void TcpAgent::timeout(int tno)
 		};
 		recover_ = maxseq_;
 		recover_cause_ = 2;
-		closecwnd(0);
-		reset_rtx_timer(0,1);
+		/* if there is no outstanding data, don't cut down ssthresh_ */
+		if (highest_ack_ == maxseq_ && restart_bugfix_)
+			closecwnd(3);
+		else
+			closecwnd(0);
+		/* if there is no outstanding data, don't back off rtx timer */
+		if (highest_ack_ == maxseq_ && restart_bugfix_)
+			reset_rtx_timer(0,0);
+		else
+			reset_rtx_timer(0,1);
 		send_much(0, TCP_REASON_TIMEOUT, maxburst_);
 	} 
 	else {
-		/*
-		 * delayed-send timer, with random overhead
-		 * to avoid phase effects
-		 */
-		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
+		timeout_nonrtx(tno);
 	}
 }
 
