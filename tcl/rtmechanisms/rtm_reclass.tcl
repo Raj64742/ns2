@@ -193,27 +193,27 @@ TestSuite instproc config { name } {
 #
 TestSuite instproc traffic1 {} {
     $self instvar node_ 
-    $self new_tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50 reno 60000
-    $self new_cbr 18.4 $node_(s1) $node_(s4) 200 0.003 3 0
-    $self new_tcp 65.4 $node_(s1) $node_(s4) 2 4 0 1500 sack 2700
-    $self new_tcp 100.2 $node_(s3) $node_(s1) 8 5 0 1000 reno 0
-    $self new_tcp 122.6 $node_(s5) $node_(s4) 4 6 0 512 sack 4000
-    $self new_tcp 135.0 $node_(s4) $node_(s2) 100 7 0 1000 reno 0
-    $self new_tcp 162.0 $node_(s2) $node_(s6) 100 8 0 1000 sack 3300
-    $self new_tcp 220.0 $node_(s1) $node_(s3) 100 9 0 512 reno 3000
-    $self new_tcp 260.0 $node_(s3) $node_(s2) 100 10 0 512 sack 0
-    $self new_cbr 310.0 $node_(s2) $node_(s4) 190 0.1 11 0 
-    $self new_tcp 320.0 $node_(s1) $node_(s4) 100 12 0 1500 reno 500
-    $self new_tcp 350.0 $node_(s5) $node_(s6) 100 13 0 512 reno 1000
-    $self new_tcp 370.0 $node_(s3) $node_(s2) 100 14 0 1500 sack 0
-    $self new_tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512 reno 0
-    $self new_tcp 420.0 $node_(s5) $node_(s6) 100 16 0 512 reno 0
-    $self new_tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512  reno 0
-    $self new_tcp 22.0 $node_(s2) $node_(s6) 100 18 0 1500 sack 6000
-    $self new_tcp 3.3 $node_(s6) $node_(s2) 100 19 0 500 sack 0
-    $self new_tcp 28.0 $node_(s5) $node_(s4) 100 20 0 500 reno 8000
-    $self new_cbr 80.0 $node_(s4) $node_(s2) 200 0.5 21 0
-    $self new_tcp 1.0  $node_(s1) $node_(s3) 100 25 0 1500 reno 4000
+    $self new_Tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50 reno 60000
+    $self new_Cbr 18.4 $node_(s1) $node_(s4) 200 0.003 3 0
+    $self new_Tcp 65.4 $node_(s1) $node_(s4) 2 4 0 1500 sack 2700
+    $self new_Tcp 100.2 $node_(s3) $node_(s1) 8 5 0 1000 reno 0
+    $self new_Tcp 122.6 $node_(s5) $node_(s4) 4 6 0 512 sack 4000
+    $self new_Tcp 135.0 $node_(s4) $node_(s2) 100 7 0 1000 reno 0
+    $self new_Tcp 162.0 $node_(s2) $node_(s6) 100 8 0 1000 sack 3300
+    $self new_Tcp 220.0 $node_(s1) $node_(s3) 100 9 0 512 reno 3000
+    $self new_Tcp 260.0 $node_(s3) $node_(s2) 100 10 0 512 sack 0
+    $self new_Cbr 310.0 $node_(s2) $node_(s4) 190 0.1 11 0 
+    $self new_Tcp 320.0 $node_(s1) $node_(s4) 100 12 0 1500 reno 500
+    $self new_Tcp 350.0 $node_(s5) $node_(s6) 100 13 0 512 reno 1000
+    $self new_Tcp 370.0 $node_(s3) $node_(s2) 100 14 0 1500 sack 0
+    $self new_Tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512 reno 0
+    $self new_Tcp 420.0 $node_(s5) $node_(s6) 100 16 0 512 reno 0
+    $self new_Tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512  reno 0
+    $self new_Tcp 22.0 $node_(s2) $node_(s6) 100 18 0 1500 sack 6000
+    $self new_Tcp 3.3 $node_(s6) $node_(s2) 100 19 0 500 sack 0
+    $self new_Tcp 28.0 $node_(s5) $node_(s4) 100 20 0 500 reno 8000
+    $self new_Cbr 80.0 $node_(s4) $node_(s2) 200 0.5 21 0
+    $self new_Tcp 1.0  $node_(s1) $node_(s3) 100 25 0 1500 reno 4000
 }
 
 #
@@ -221,41 +221,41 @@ TestSuite instproc traffic1 {} {
 #
 TestSuite instproc traffic2 {} {
     $self instvar node_
-    $self new_tcp 1.0  $node_(s1) $node_(s3) 50 1 0 1500 sack 0
-    $self new_tcp 2.2 $node_(s2) $node_(s4) 50 2 0 1500 sack 0
+    $self new_Tcp 1.0  $node_(s1) $node_(s3) 50 1 0 1500 sack 0
+    $self new_Tcp 2.2 $node_(s2) $node_(s4) 50 2 0 1500 sack 0
     # 66,666 Bps for CBR flow, 187,500 Bps for link.
-#    $self new_cbr 58.4 $node_(s1) $node_(s4) 200 0.003 3 0
-    $self new_cbr 58.4 $node_(s1) $node_(s4) 500 0.003 3 0
-    $self new_tcp 3.4 $node_(s1) $node_(s4) 50 4 0 1500 sack 0
-    $self new_tcp 34.2 $node_(s3) $node_(s1) 50 5 0 1500 sack 0
-    $self new_tcp 35.6 $node_(s5) $node_(s4) 50 6 0 1500 sack 0
-    $self new_tcp 36.0 $node_(s4) $node_(s2) 50 7 0 1500 sack 0
-    $self new_tcp 37.3 $node_(s2) $node_(s6) 50 8 0 1500 sack 0
-    $self new_tcp 38.0 $node_(s1) $node_(s3) 50 9 0 1500 sack 0
-    $self new_tcp 39.5 $node_(s3) $node_(s2) 50 10 0 1500 sack 0
-    $self new_tcp 35.6 $node_(s2) $node_(s6) 50 11 0 1500 sack 0
-    $self new_tcp 30.2 $node_(s1) $node_(s4) 50 12 0 1500 sack 0
-    $self new_tcp 31.3 $node_(s5) $node_(s6) 50 13 0 1500 sack 0
-    $self new_tcp 32.9 $node_(s3) $node_(s2) 50 14 0 1500 sack 0
-    $self new_tcp 33.8 $node_(s2) $node_(s3) 50 15 0 1500 sack 0
-    $self new_tcp 34.0 $node_(s5) $node_(s6) 50 16 0 1500 sack 0
-    $self new_tcp 35.5 $node_(s2) $node_(s4) 50 17 0 1500  sack 0
-    $self new_tcp 36.1 $node_(s1) $node_(s4) 50 18 0 1500 sack 0
-    $self new_tcp 45.6 $node_(s5) $node_(s4) 50 19 0 1500 sack 0
-    $self new_tcp 47.3 $node_(s2) $node_(s6) 50 20 0 1500 sack 0
-#     $self new_tcp 48.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
-#     $self new_tcp 42.6 $node_(s5) $node_(s4) 50 22 0 1500 sack 0
-#     $self new_tcp 43.3 $node_(s2) $node_(s6) 50 23 0 1500 sack 0
-#     $self new_tcp 46.0 $node_(s1) $node_(s4) 50 24 0 1500 sack 0
-#     $self new_tcp 42.6 $node_(s5) $node_(s4) 50 25 0 1500 sack 0
-#     $self new_tcp 43.3 $node_(s2) $node_(s6) 50 26 0 1500 sack 0
-#     $self new_tcp 41.0 $node_(s1) $node_(s4) 50 27 0 1500 sack 0
-#     $self new_tcp 46.6 $node_(s5) $node_(s4) 50 28 0 1500 sack 0
-#     $self new_tcp 48.3 $node_(s2) $node_(s6) 50 29 0 1500 sack 0
-#     $self new_tcp 45.0 $node_(s1) $node_(s4) 50 30 0 1500 sack 0
-#    $self new_cbr 38.4 $node_(s2) $node_(s3) 200 0.006 31 0
-#    $self new_cbr 48.4 $node_(s5) $node_(s6) 200 0.004 32 0
-#    $self new_cbr 28.4 $node_(s2) $node_(s3) 200 0.005 33 0
+#    $self new_Cbr 58.4 $node_(s1) $node_(s4) 200 0.003 3 0
+    $self new_Cbr 58.4 $node_(s1) $node_(s4) 500 0.003 3 0
+    $self new_Tcp 3.4 $node_(s1) $node_(s4) 50 4 0 1500 sack 0
+    $self new_Tcp 34.2 $node_(s3) $node_(s1) 50 5 0 1500 sack 0
+    $self new_Tcp 35.6 $node_(s5) $node_(s4) 50 6 0 1500 sack 0
+    $self new_Tcp 36.0 $node_(s4) $node_(s2) 50 7 0 1500 sack 0
+    $self new_Tcp 37.3 $node_(s2) $node_(s6) 50 8 0 1500 sack 0
+    $self new_Tcp 38.0 $node_(s1) $node_(s3) 50 9 0 1500 sack 0
+    $self new_Tcp 39.5 $node_(s3) $node_(s2) 50 10 0 1500 sack 0
+    $self new_Tcp 35.6 $node_(s2) $node_(s6) 50 11 0 1500 sack 0
+    $self new_Tcp 30.2 $node_(s1) $node_(s4) 50 12 0 1500 sack 0
+    $self new_Tcp 31.3 $node_(s5) $node_(s6) 50 13 0 1500 sack 0
+    $self new_Tcp 32.9 $node_(s3) $node_(s2) 50 14 0 1500 sack 0
+    $self new_Tcp 33.8 $node_(s2) $node_(s3) 50 15 0 1500 sack 0
+    $self new_Tcp 34.0 $node_(s5) $node_(s6) 50 16 0 1500 sack 0
+    $self new_Tcp 35.5 $node_(s2) $node_(s4) 50 17 0 1500  sack 0
+    $self new_Tcp 36.1 $node_(s1) $node_(s4) 50 18 0 1500 sack 0
+    $self new_Tcp 45.6 $node_(s5) $node_(s4) 50 19 0 1500 sack 0
+    $self new_Tcp 47.3 $node_(s2) $node_(s6) 50 20 0 1500 sack 0
+#     $self new_Tcp 48.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
+#     $self new_Tcp 42.6 $node_(s5) $node_(s4) 50 22 0 1500 sack 0
+#     $self new_Tcp 43.3 $node_(s2) $node_(s6) 50 23 0 1500 sack 0
+#     $self new_Tcp 46.0 $node_(s1) $node_(s4) 50 24 0 1500 sack 0
+#     $self new_Tcp 42.6 $node_(s5) $node_(s4) 50 25 0 1500 sack 0
+#     $self new_Tcp 43.3 $node_(s2) $node_(s6) 50 26 0 1500 sack 0
+#     $self new_Tcp 41.0 $node_(s1) $node_(s4) 50 27 0 1500 sack 0
+#     $self new_Tcp 46.6 $node_(s5) $node_(s4) 50 28 0 1500 sack 0
+#     $self new_Tcp 48.3 $node_(s2) $node_(s6) 50 29 0 1500 sack 0
+#     $self new_Tcp 45.0 $node_(s1) $node_(s4) 50 30 0 1500 sack 0
+#    $self new_Cbr 38.4 $node_(s2) $node_(s3) 200 0.006 31 0
+#    $self new_Cbr 48.4 $node_(s5) $node_(s6) 200 0.004 32 0
+#    $self new_Cbr 28.4 $node_(s2) $node_(s3) 200 0.005 33 0
 }
 
 #
@@ -263,8 +263,8 @@ TestSuite instproc traffic2 {} {
 #
 TestSuite instproc traffic3 {} {
     $self instvar node_
-#    $self new_cbr 1.0 $node_(s2) $node_(s4) 1500 0.008 1 0
-    $self new_cbr 1.0 $node_(s2) $node_(s4) 1515 0.008 1 0
+#    $self new_Cbr 1.0 $node_(s2) $node_(s4) 1500 0.008 1 0
+    $self new_Cbr 1.0 $node_(s2) $node_(s4) 1515 0.008 1 0
 }
 
 #
@@ -272,36 +272,36 @@ TestSuite instproc traffic3 {} {
 #
 TestSuite instproc traffic4 {} {
     $self instvar node_
-    $self new_tcp 12.0  $node_(s1) $node_(s3) 50 1 0 1500 sack 0
-    $self new_tcp 5.2 $node_(s2) $node_(s4) 50 2 0 1500 sack 0
-    $self new_cbr 1.4 $node_(s1) $node_(s4) 300 0.003 3 0
-    $self new_tcp 17.4 $node_(s1) $node_(s4) 50 4 0 1500 sack 0
-    $self new_tcp 34.2 $node_(s3) $node_(s1) 50 5 0 1500 sack 0
-    $self new_tcp 35.6 $node_(s5) $node_(s4) 50 6 0 1500 sack 0
-    $self new_tcp 56.0 $node_(s4) $node_(s2) 50 7 0 1500 sack 0
-    $self new_tcp 37.3 $node_(s2) $node_(s6) 50 8 0 1500 sack 0
-    $self new_tcp 78.0 $node_(s1) $node_(s3) 50 9 0 1500 sack 0
-    $self new_tcp 39.5 $node_(s3) $node_(s2) 50 10 0 1500 sack 0
-    $self new_tcp 85.6 $node_(s2) $node_(s6) 50 11 0 1500 sack 0
-    $self new_tcp 30.2 $node_(s1) $node_(s4) 50 12 0 1500 sack 0
-    $self new_tcp 21.3 $node_(s5) $node_(s6) 50 13 0 1500 sack 0
-    $self new_tcp 32.9 $node_(s3) $node_(s2) 50 14 0 1500 sack 0
-    $self new_tcp 23.8 $node_(s2) $node_(s3) 50 15 0 1500 sack 0
-    $self new_tcp 34.0 $node_(s5) $node_(s6) 50 16 0 1500 sack 0
-    $self new_tcp 55.5 $node_(s2) $node_(s4) 50 17 0 1500  sack 0
-    $self new_tcp 36.1 $node_(s1) $node_(s4) 50 18 0 1500 sack 0
-    $self new_tcp 45.6 $node_(s5) $node_(s4) 50 19 0 1500 sack 0
-    $self new_tcp 47.3 $node_(s2) $node_(s6) 50 20 0 1500 sack 0
-    $self new_tcp 68.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
-    $self new_tcp 42.6 $node_(s5) $node_(s4) 50 22 0 1500 sack 0
-    $self new_tcp 43.3 $node_(s2) $node_(s6) 50 23 0 1500 sack 0
-    $self new_tcp 46.0 $node_(s1) $node_(s4) 50 24 0 1500 sack 0
-    $self new_tcp 42.6 $node_(s5) $node_(s4) 50 25 0 1500 sack 0
-    $self new_tcp 43.3 $node_(s2) $node_(s6) 50 26 0 1500 sack 0
-    $self new_tcp 41.0 $node_(s1) $node_(s4) 50 27 0 1500 sack 0
-    $self new_tcp 46.6 $node_(s5) $node_(s4) 50 28 0 1500 sack 0
-    $self new_tcp 48.3 $node_(s2) $node_(s6) 50 29 0 1500 sack 0
-    $self new_tcp 45.0 $node_(s1) $node_(s4) 50 30 0 1500 sack 0
+    $self new_Tcp 12.0  $node_(s1) $node_(s3) 50 1 0 1500 sack 0
+    $self new_Tcp 5.2 $node_(s2) $node_(s4) 50 2 0 1500 sack 0
+    $self new_Cbr 1.4 $node_(s1) $node_(s4) 300 0.003 3 0
+    $self new_Tcp 17.4 $node_(s1) $node_(s4) 50 4 0 1500 sack 0
+    $self new_Tcp 34.2 $node_(s3) $node_(s1) 50 5 0 1500 sack 0
+    $self new_Tcp 35.6 $node_(s5) $node_(s4) 50 6 0 1500 sack 0
+    $self new_Tcp 56.0 $node_(s4) $node_(s2) 50 7 0 1500 sack 0
+    $self new_Tcp 37.3 $node_(s2) $node_(s6) 50 8 0 1500 sack 0
+    $self new_Tcp 78.0 $node_(s1) $node_(s3) 50 9 0 1500 sack 0
+    $self new_Tcp 39.5 $node_(s3) $node_(s2) 50 10 0 1500 sack 0
+    $self new_Tcp 85.6 $node_(s2) $node_(s6) 50 11 0 1500 sack 0
+    $self new_Tcp 30.2 $node_(s1) $node_(s4) 50 12 0 1500 sack 0
+    $self new_Tcp 21.3 $node_(s5) $node_(s6) 50 13 0 1500 sack 0
+    $self new_Tcp 32.9 $node_(s3) $node_(s2) 50 14 0 1500 sack 0
+    $self new_Tcp 23.8 $node_(s2) $node_(s3) 50 15 0 1500 sack 0
+    $self new_Tcp 34.0 $node_(s5) $node_(s6) 50 16 0 1500 sack 0
+    $self new_Tcp 55.5 $node_(s2) $node_(s4) 50 17 0 1500  sack 0
+    $self new_Tcp 36.1 $node_(s1) $node_(s4) 50 18 0 1500 sack 0
+    $self new_Tcp 45.6 $node_(s5) $node_(s4) 50 19 0 1500 sack 0
+    $self new_Tcp 47.3 $node_(s2) $node_(s6) 50 20 0 1500 sack 0
+    $self new_Tcp 68.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
+    $self new_Tcp 42.6 $node_(s5) $node_(s4) 50 22 0 1500 sack 0
+    $self new_Tcp 43.3 $node_(s2) $node_(s6) 50 23 0 1500 sack 0
+    $self new_Tcp 46.0 $node_(s1) $node_(s4) 50 24 0 1500 sack 0
+    $self new_Tcp 42.6 $node_(s5) $node_(s4) 50 25 0 1500 sack 0
+    $self new_Tcp 43.3 $node_(s2) $node_(s6) 50 26 0 1500 sack 0
+    $self new_Tcp 41.0 $node_(s1) $node_(s4) 50 27 0 1500 sack 0
+    $self new_Tcp 46.6 $node_(s5) $node_(s4) 50 28 0 1500 sack 0
+    $self new_Tcp 48.3 $node_(s2) $node_(s6) 50 29 0 1500 sack 0
+    $self new_Tcp 45.0 $node_(s1) $node_(s4) 50 30 0 1500 sack 0
 }
 
 
@@ -311,11 +311,11 @@ TestSuite instproc traffic4 {} {
 #
 TestSuite instproc more_cbrs {} {
     $self instvar node_ 
-    $self new_cbr 105.0 $node_(s2) $node_(s4) 200 0.006 22 50000
-    $self new_cbr 234.0 $node_(s1) $node_(s3) 220 0.01 23 10000
-    $self new_cbr 277.0 $node_(s1) $node_(s3) 180 0.01 24 10000
-    $self new_cbr 283.0 $node_(s1) $node_(s3) 220 0.02 26 5000
-    $self new_cbr 289.0 $node_(s1) $node_(s3) 180 0.02 27 5000
+    $self new_Cbr 105.0 $node_(s2) $node_(s4) 200 0.006 22 50000
+    $self new_Cbr 234.0 $node_(s1) $node_(s3) 220 0.01 23 10000
+    $self new_Cbr 277.0 $node_(s1) $node_(s3) 180 0.01 24 10000
+    $self new_Cbr 283.0 $node_(s1) $node_(s3) 220 0.02 26 5000
+    $self new_Cbr 289.0 $node_(s1) $node_(s3) 180 0.02 27 5000
 }
 
 #-----------------------
