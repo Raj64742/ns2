@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.98 2001/08/21 22:17:48 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.99 2001/08/21 23:01:07 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -346,26 +346,33 @@ FullTcpAgent::advance_bytes(int nb)
 	//	if anything else (establishing), do nothing here
 	//
 
-	if (state_ > TCPS_ESTABLISHED) {
+	switch (state_) {
+
+	case TCPS_CLOSED:
+                reset();
+                curseq_ = iss_ + nb;
+                connect();              // initiate new connection
+		break;
+
+	case TCPS_ESTABLISHED:
+	case TCPS_SYN_SENT:
+                closed_ = 0;
+                if (curseq_ < iss_) 
+                        curseq_ = iss_; 
+                curseq_ += nb;
+		break;
+
+	default:
 	    fprintf(stderr,
 	    "%f: FullTcpAgent::advance(%s): cannot advance while in state %d\n",
 		 now(), name(), state_);
-  	    return;
-	} else if (state_ == TCPS_CLOSED) {
-		reset();
-		curseq_ = iss_ + nb;
-		connect();		// initiate new connection
-	} else if (state_ == TCPS_ESTABLISHED || state_ == TCPS_SYN_SENT) {
-		// allow queued data to accumulate even
-		// in SYN_SENT
-		closed_ = 0;
-		if (curseq_ < iss_)
-			curseq_ = iss_;
-		curseq_ += nb;
-		if (state_ == TCPS_ESTABLISHED)
-			send_much(0, REASON_NORMAL, maxburst_);
+
 	}
-	return;
+
+	if (state_ == TCPS_ESTABLISHED)
+		send_much(0, REASON_NORMAL, maxburst_);
+
+  	return;
 }
 
 /*
@@ -415,11 +422,12 @@ FullTcpAgent::listen()
  * called when user/application performs 'close'
  */
 
-void FullTcpAgent::usrclosed()
+void
+FullTcpAgent::usrclosed()
 {
-//curseq_ = t_seqno_ - 1;	// truncate buffer
-	curseq_ = maxseq_ - 1;
-	infinite_send_ = 0;
+	curseq_ = maxseq_ - 1;	// now, no more data
+	infinite_send_ = 0;	// stop infinite send
+
 	switch (state_) {
 	case TCPS_CLOSED:
 	case TCPS_LISTEN:
@@ -469,7 +477,9 @@ void
 FullTcpAgent::cancel_timers()
 {
 
+	// cancel: rtx, burstsend, delsnd
 	TcpAgent::cancel_timers();      
+	// cancel: delack
 	delack_timer_.force_cancel();
 }
 
@@ -534,8 +544,8 @@ FullTcpAgent::headersize()
 	int total = tcpip_base_hdr_size_;
 	if (total < 1) {
 		fprintf(stderr,
-		    "TCP-FULL(%s): warning: tcpip hdr size is only %d bytes\n",
-			name(), tcpip_base_hdr_size_);
+		    "%f: TCP-FULL(%s): warning: tcpip hdr size is only %d bytes\n",
+			now(), name(), tcpip_base_hdr_size_);
 	}
 
 	if (ts_option_)
@@ -546,6 +556,7 @@ FullTcpAgent::headersize()
 
 /*
  * flags that are completely dependent on the tcp state
+ * these are used for the next outgoing packet in foutput()
  * (in real TCP, see tcp_fsm.h, the "tcp_outflags" array)
  */
 int
@@ -582,40 +593,40 @@ FullTcpAgent::reass(Packet* pkt)
         int end = start + th->size() - tcph->hlen();
         int tiflags = tcph->flags();
 	int fillshole = (start == rcv_nxt_);
-	int rval;
+	int flags;
    
 	// end contains the seq of the last byte of
 	// in the packet plus one
 
 	if (start == end && (tiflags & TH_FIN) == 0) {
-		fprintf(stderr, "%f: FullTcpAgent::reass() -- bad condition - adding non-FIN zero-len seg\n",
-			now());
+		fprintf(stderr, "%f: FullTcpAgent(%s)::reass() -- bad condition - adding non-FIN zero-len seg\n",
+			now(), name());
 		abort();
 	}
 
-	rval = rq_.add(start, end, tiflags, 0);
+	flags = rq_.add(start, end, tiflags, 0);
 
 present:
-	 //
-	 // If we've never received a SYN (unlikely)
-	 // or this is an out of order addition, no reason to coalesce
-	 //
+	//
+	// If we've never received a SYN (unlikely)
+	// or this is an out of order addition, no reason to coalesce
+	//
 
-	 if (TCPS_HAVERCVDSYN(state_) == 0 || !fillshole) {
-	 	return (0);
+	if (TCPS_HAVERCVDSYN(state_) == 0 || !fillshole) {
+	 	return (0x00);
 	}
 	//
-	// If we get some data, no need to present to user yet
+	// If we get some data in SYN_RECVD, no need to present to user yet
 	//
 	if (state_ == TCPS_SYN_RECEIVED && (end > start))
-		return (0);
+		return (0x00);
 
-	// clear out data that has been passed up to rcv_nxt_,
+	// clear out data that has been passed, up to rcv_nxt_,
 	// collects flags
 
-	rval = rq_.cleartonxt();
+	flags |= rq_.cleartonxt();
 
-        return (rval);
+        return (flags);
 }
 
 /*
@@ -664,8 +675,8 @@ FullTcpAgent::pack(Packet *pkt)
 void
 FullTcpAgent::pack_action(Packet*)
 {
-	if (reno_fastrecov_ && fastrecov_ && cwnd_ > ssthresh_) {
-		cwnd_ = ssthresh_; // retract window if inflated
+	if (reno_fastrecov_ && fastrecov_ && cwnd_ > double(ssthresh_)) {
+		cwnd_ = double(ssthresh_); // retract window if inflated
 	}
 	fastrecov_ = FALSE;
 //printf("%f: EXITED FAST RECOVERY\n", now());
@@ -692,7 +703,7 @@ FullTcpAgent::ack_action(Packet* p)
  * in most of the network layer fields for us.
  * So fill in tcp hdr and adjust the packet size.
  *
- * Also, return the size of the tcp header.
+ * Also, set the size of the tcp header.
  */
 void
 FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reason)
@@ -734,13 +745,15 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
                 ndatabytes_ += datalen;
 		last_send_time_ = now();	// time of last data
         }
-        if (reason == REASON_TIMEOUT || reason == REASON_DUPACK) {
+        if (reason == REASON_TIMEOUT || reason == REASON_DUPACK || reason == REASON_SACK) {
                 ++nrexmitpack_;
                 nrexmitbytes_ += datalen;
         }
 
 	last_ack_sent_ = ackno;
 	send(p, 0);
+
+	return;
 }
 
 //
@@ -770,17 +783,19 @@ FullTcpAgent::reset_rtx_timer(int /* mild */)
  * pflags, a local used to build up the tcp header flags (flags)
  * curseq_, is the highest sequence number given to us by "application"
  * highest_ack_, the highest ACK we've seen for our data (snd_una-1)
- * seqno, the next seq# we're going to send (snd_nxt), this will
- *	update t_seqno_ (the last thing we sent)
+ * seqno, the next seq# we're going to send (snd_nxt)
  */
 int
 FullTcpAgent::foutput(int seqno, int reason)
 {
 	// if maxseg_ not set, set it appropriately
+	// Q: how can this happen?
+
 	if (maxseg_ == 0) 
 	   	maxseg_ = size_ - headersize();
 	else
 		size_ =  maxseg_ + headersize();
+
 	int is_retransmit = (seqno < maxseq_);
 	int quiet = (highest_ack_ == maxseq_);
 	int pflags = outflags();
@@ -1147,10 +1162,7 @@ FullTcpAgent::predict_ok(Packet* pkt)
 
 /*
  * fast_retransmit using the given seqno
- *	perform a fast retransmit
- *	kludge t_seqno_ (snd_nxt) so we do the
- *	retransmit then continue from where we were
- *	Also, stash our current location in recover_
+ *	perform fast RTX, set recover_, set last_cwnd_action
  */
 
 int
@@ -1159,11 +1171,9 @@ FullTcpAgent::fast_retransmit(int seq)
 	// we are now going to fast-retransmit and willtrace that event
 	trace_event("FAST_RETX");
 	
-//int onxt = t_seqno_;		// output() changes t_seqno_
-	recover_ = maxseq_;		// keep a copy of highest sent
+	recover_ = maxseq_;	// recovery target
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	return(foutput(seq, REASON_DUPACK));	// send one pkt
-//t_seqno_ = onxt;
 }
 
 /*
@@ -1218,12 +1228,6 @@ FullTcpAgent::set_initial_window()
 {
 	syn_ = TRUE;	// full-tcp always models SYN exchange
 	TcpAgent::set_initial_window();
-#ifdef notdef
-	if (delay_growth_)
-		cwnd_ = wnd_init_;
-	else    
-		cwnd_ = initial_window();
-#endif
 }       
 
 /*
@@ -1241,7 +1245,7 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 
 	int needoutput = FALSE;
 	int ourfinisacked = FALSE;
-	int dupseg = FALSE;
+	int dupseg = FALSE;			// recv'd dup segment
 	int todrop = 0;				// duplicate DATA cnt
 
 	last_state_ = state_;
@@ -1249,8 +1253,16 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
 	int ackno = tcph->ackno();		 // ack # from packet
 	int tiflags = tcph->flags() ; 		 // tcp flags from packet
-	if (state_ == TCPS_CLOSED)
+
+	/*
+	 * Don't expect to see anything while closed
+	 */
+
+	if (state_ == TCPS_CLOSED) {
+		fprintf(stderr, "%f: FullTcp(%s): recv'd pkt in CLOSED state\n",
+			now(), name());
 		goto drop;
+	}
 
         /*
          * Process options if not in LISTEN state,
@@ -1334,8 +1346,6 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 			if (ackno > highest_ack_ && ackno < maxseq_ &&
 			    cwnd_ >= wnd_ && !fastrecov_) {
 				newack(pkt);	// update timers,  highest_ack_
-				/* no adjustment of cwnd here */
-//if (curseq_ >= highest_ack_ || infinite_send_)
 				send_much(0, REASON_NORMAL, maxburst_);
 				Packet::free(pkt);
 				return;
@@ -1750,10 +1760,6 @@ trimthenstep6:
 			// a pure ACK which doesn't advance highest_ack_
 			if (datalen == 0 && (!dupseg_fix_ || !dupseg)) {
 
-//XXXpipe_ -= maxseg_; // ACK indicates pkt cached @ receiver
-//printf("%f: newack: pipe decr by %d to %d\n", now(), maxseg_, pipe_);
-							
-
                                 /*
                                  * If we have outstanding data
                                  * this is a completely
@@ -1837,9 +1843,6 @@ process_ACK:
                  */
 		newack(pkt);	// handle timers, update highest_ack_
 
-//--pipe_;
-
-
 		/*
 		 * if this is a partial ACK, invoke whatever we should
 		 * note that newack() must be called before the action
@@ -1876,6 +1879,7 @@ process_ACK:
 		// if we are delaying initial cwnd growth (probably due to
 		// large initial windows), then only open cwnd if data has
 		// been received
+		// Q: check when this happens
                 /*
                  * When new data is acked, open the congestion window.
                  * If the window gives us less than ssthresh packets
