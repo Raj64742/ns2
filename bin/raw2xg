@@ -1,5 +1,5 @@
-#!/home/johnh/BIN/perl5 
 #! /nfs/filb2/public/bin/perl
+#!/home/johnh/BIN/perl5 
 #! /import/bin/perl
 
 ($progname) = ($0 =~ m!([^/]+)$!);
@@ -13,6 +13,9 @@ options:
     -m MODULUS  treat TCP sequence numbers as mod MODULUS
     -q		show queueing delay by connecting lines
     -l		show packet length
+
+Traditional ``wrapping'' ns plots (as called from the test scripts)
+can be generated with -s 0.01 -m 90.
 END
     exit 1;
 };
