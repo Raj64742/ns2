@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.31 1997/10/26 05:55:43 hari Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.32 1997/11/10 23:22:58 hari Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -283,7 +283,7 @@ protected:
 	int rtt_seq_;		/* first-time seqno sent after retransmits */
 	TracedInt maxseq_;	/* used for Karn algorithm */
 				/* highest seqno sent so far */
-	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
+	int ecn_;		/* Explicit Congestion Notification */
 	double firstsent_;	/* When first packet was sent  --Allman */
 	int off_tcp_;
 	int slow_start_restart_; /* boolean: re-init cwnd after connection 
@@ -300,7 +300,7 @@ protected:
 				   when there was data outstanding */
         TracedInt nrexmitpack_; /* number of retransmited packets */
         TracedInt nrexmitbytes_; /* number of retransmited bytes */
-	int trace_all_oneline_;	/* TCP tracing vars all in one line? */
+	int trace_all_oneline_;	/* TCP tracing vars all in one line or not? */
 };
 
 /* TCP Reno */
