@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.13 1998/08/22 02:41:07 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.14 1998/12/14 22:40:54 heideman Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -196,6 +196,11 @@ RNG::command(int argc, const char*const* argv)
 			int s = atoi(argv[2]);
 			// NEEDSWORK: should be a way to set seed to PRDEF_SEED_SORUCE
 			if (s) {
+				/*
+				 * Next line generates this spurrious warning under gcc on Linux:
+				 * rng.cc:204: warning: decimal integer constant is so large that it is unsigned
+				 * suggestions about how to suppress this are welcome.
+			 	 */
 				if (s <= 0 || (unsigned int)s >= MAXINT) {
 					// MAXINT on freebsd is a ``black hole'' (it says at MAXINT).
 					tcl.resultf("Setting random number seed to known bad value.");
