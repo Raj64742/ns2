@@ -1240,4 +1240,44 @@ node 0 received ping answer from  2 with round-trip-time 42.0 ms.
 node 2 received ping answer from  0 with round-trip-time 42.0 ms.
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-rfc793edu
+Tests: rtt-jacobson rtt-rfc793 seqno-nofastrtx seqno-fastrtx rto-karn rto-nokarn jacobson88-noss jacobson88-ss
+../../ns test-suite-rfc793edu.tcl rtt-jacobson QUIET
+Test output agrees with reference output
+../../ns test-suite-rfc793edu.tcl rtt-rfc793 QUIET
+Test output agrees with reference output
+../../ns test-suite-rfc793edu.tcl seqno-nofastrtx QUIET
+Test output agrees with reference output
+../../ns test-suite-rfc793edu.tcl seqno-fastrtx QUIET
+Test output agrees with reference output
+../../ns test-suite-rfc793edu.tcl rto-karn QUIET
+Test output agrees with reference output
+../../ns test-suite-rfc793edu.tcl rto-nokarn QUIET
+Test output agrees with reference output
+../../ns test-suite-rfc793edu.tcl jacobson88-noss QUIET
+Test output agrees with reference output
+../../ns test-suite-rfc793edu.tcl jacobson88-ss QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-friendly
+Tests: slowStart slowStartTcp impulse impulseMultReport impulseTcp two-friendly OnlyTcp BadParams BadParams2
+../../ns test-suite-friendly.tcl slowStart QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl slowStartTcp QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl impulse QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl impulseMultReport QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl impulseTcp QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl two-friendly QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl OnlyTcp QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl BadParams QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl BadParams2 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
 validate overall report: all tests passed
