@@ -55,7 +55,7 @@ REDPDSim instproc insert-high-dr-flows {} {
 	set high_dr_flow_hist_ [lrange $high_dr_flow_hist_ 1 end]
     }
     
-    $self vprint-nonewline 2 "High DR History: "
+    $self vprint-nonewline 2 "High DR History "
     $self printListOfLists 2 $high_dr_flow_hist_
     
     #unset total_flows
@@ -106,7 +106,7 @@ REDPDSim instproc check-regular {} {
 	#memory 
 	unset flow_count drop_count
     }
-    $self vprint-nonewline 2 "Regular List: "
+    $self vprint-nonewline 2 "Regular List "
     $self printListOfLists 2 $ret_list
     return $ret_list
 }
@@ -296,13 +296,6 @@ REDPDSim instproc do_detect {} {
 
     set last_detect_ $now
 
-#    if { $elapsed < $Mintime_ } {
-#	if { [expr $elapsed+ 0.001] < $Mintime_} {
-#	    puts "ERROR: do_detect: elapsed: $elapsed, min: $Mintime_"
-#	    exit 1
-#	}
-#    }
-    
     # calculate the current drop rate
     set bdrops [expr [$redpdflowmon_ set bdrops_] - [$redpdflowmon_ set mon_ebdrops_]]
     set barrivals [expr [$redpdflowmon_ set barrivals_] - [$redpdflowmon_ set mon_ebdrops_]]
@@ -325,8 +318,8 @@ REDPDSim instproc do_detect {} {
     set regular_list [$self check-regular]
     set avg_drop_count [$self calculateAverage $regular_list 1]
     
-    $self vprint 2 "currDropRate: $currDropRate avgDropRate: $avgDropRate avg_drop_count: $avg_drop_count [llength $regular_list] bdrops: $bdrops barrivals: $barrivals"
-    
+    $self vprint 2 "currDropRate: $currDropRate avgDropRate: $avgDropRate avg_drop_count: $avg_drop_count [llength $regular_list] bdrops: $bdrops barrivals: $barrivals mon_drops: [$redpdflowmon_ set mon_ebdrops_]"
+
     # only for proving identification works 
 	$self instvar testIdentOnly_
 	if {$testIdentOnly_ == 1} {
@@ -431,7 +424,7 @@ REDPDSim instproc do_detect {} {
 			set mon_flow_hist_($fid,hist) [lrange $mon_flow_hist_($fid,hist) 1 end]
 		    }
 		    
-		    $self vprint-nonewline 2 "History of $flow $fid: "
+		    $self vprint-nonewline 2 "History of $flow $fid "
 		    $self printListOfLists 2 $mon_flow_hist_($fid,hist)
 		    
 		    #memory
@@ -483,8 +476,9 @@ REDPDSim instproc calculateB { p } {
     set plusTerm [expr {1 + 9*$p*(1+32*$p*$p)}]
     
     #the newer model
-    #     set time2 [expr {$time1 * $plusTerm}]
-    #     puts "timeAfter: $p $time1 $time2"
+    #set time2 [expr {$time1 * $plusTerm}]
+    #set ns [Simulator instance]
+    #puts "[$ns now] timeAfter: $p $time1 $time2"
     
     set timeAfter $time1
     #    set timeAfter $time2

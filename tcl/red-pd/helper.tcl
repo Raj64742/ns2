@@ -144,14 +144,18 @@ REDPDSim instproc vprint-nonewline args {
 #generic function to print a list of lists 
 #
 REDPDSim instproc printListOfLists {level listOfLists} {
-
-	foreach i $listOfLists {
-		$self vprint-nonewline $level "{ "
-		foreach j $i {
-			$self vprint-nonewline $level -nonewline "$j "
-		}
-		$self vprint-nonewline $level " } "
+    $self instvar verbose_
+    if { $level <= $verbose_ } {
+	$self instvar ns_
+    	foreach i $listOfLists {
+	    puts -nonewline "{ "
+	    foreach j $i {
+		puts -nonewline "$j "
+	    }
+	    puts -nonewline " } "
 	}
 
-	$self vprint $level ""
+	puts ""
+	flush stdout
+    }
 }
