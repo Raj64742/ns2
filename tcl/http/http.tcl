@@ -105,8 +105,8 @@ Http instproc agents {{type source}} {
 }
 
 Http instproc value {rv} {
-	if {"$rv" > 999999999} {
-		return [$rv value]
+	if ![catch "$rv value" val] {
+		return $val
 	}
 	return $rv
 }
