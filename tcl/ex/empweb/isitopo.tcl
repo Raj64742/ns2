@@ -18,7 +18,7 @@
 
 #
 # Maintainer: Kun-chan Lan <kclan@isi.edu>
-# Version Date: $Date: 2001/10/04 22:37:20 $
+# Version Date: $Date: 2001/11/15 23:33:38 $
 #
 #
 # Unbalanced dumbell topology
@@ -37,6 +37,8 @@
 proc my-duplex-link {ns n1 n2 bw delay queue_method queue_length} {
 
        $ns duplex-link $n1 $n2 $bw $delay $queue_method
+       [$n1 get-module "Manual"] add-route-to-adj-node -default $n2
+       [$n2 get-module "Manual"] add-route-to-adj-node -default $n1
        $ns queue-limit $n1 $n2 $queue_length
        $ns queue-limit $n2 $n1 $queue_length
 }
@@ -44,8 +46,10 @@ proc my-duplex-link {ns n1 n2 bw delay queue_method queue_length} {
 proc create_topology {} {
 global ns n verbose num_node other_client lan_server 
 set num_server 40
-set num_client 1200
-set lan_client 200
+#set num_client 1200
+#set lan_client 200
+set num_client 960
+set lan_client 160
 set lan_server 1
 set queue_method RED
 set queue_method DropTail
@@ -56,6 +60,10 @@ set num_node [expr 13 + [expr $num_client + $num_server]]
 
 set delay [new RandomVariable/Empirical]
 $delay loadCDF cdf/2pm.delay.cdf
+set linkDelay [new RandomVariable/Empirical]
+$linkDelay loadCDF cdf/2pm.out.delay.cdf
+set linkbw [new RandomVariable/Empirical]
+$linkbw loadCDF cdf/2pm.dump.www.out.bw.cdf
 
 if {$verbose} { puts "Creating $num_server server, $num_client client dumbell topology..." }
 
@@ -94,6 +102,8 @@ if {$verbose} {puts "done creating server"}
 
 for {set i 0} {$i < $other_client} {incr i} {
     set delay [uniform 10 50]
+#    set delay [$linkDelay value]
+#    set bandwidth [$linkbw value]
     set bandwidth [uniform 0.1 0.9]
     my-duplex-link $ns $n(6) $n([expr $i + $num_server + 8]) [expr $bandwidth * 1000000 ] [expr $delay * 0.001] $queue_method $queue_length
     if {$verbose} {puts "\$ns duplex-link \$n(6) \$n([expr $i + $num_server + 8]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
@@ -106,7 +116,7 @@ for {set i 0} {$i < $lan_client} {incr i} {
     set base [expr $i / 10]
     set delay [uniform 0.5 1.0]
     set bandwidth 10.0
-    $ns duplex-link $n([expr $base + [expr $num_server + $other_client + 8]]) $n([expr [expr $i + $num_server + $other_client] + 12]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method
+    my-duplex-link $ns $n([expr $base + [expr $num_server + $other_client + 8]]) $n([expr [expr $i + $num_server + $other_client] + 12]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method $queue_length
     if {$verbose} {puts "\$ns duplex-link \$n([expr $base + [expr $num_server + $other_client + 8]]) \$n([expr [expr $i + $num_server + $other_client]  + 12]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
 }
 if {$verbose} {puts "done creating isi clients"}

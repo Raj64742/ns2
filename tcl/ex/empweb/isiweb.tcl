@@ -17,10 +17,10 @@
 # An example script that simulates ISI web traffic. 
 #
 # Some attributes:
-# 1. Topology: ~1240 nodes, 1200 web clients, 40 web servers
+# 1. Topology: ~1000 nodes, 960 web clients, 40 web servers
 # 2. Traffic: approximately 1,700,000 paackets, heavy-tailed connection 
 #             sizes, throughout 3600 second simulation time
-# 3. Simulation scale: ~62 MB memory, ~1 hrs running on Red Hat Linux 7.0
+# 3. Simulation scale: ~33 MB memory, ~1 hrs running on Red Hat Linux 7.0
 #              Pentium II Xeon 450 MHz PC with 1GB physical memory
 #
 # Created by Kun-chan Lan (kclang@isi.edu)
@@ -32,6 +32,7 @@ source isitopo.tcl
 # Basic ns setup
 set ns [new Simulator]
 
+$ns rtproto Manual
 
 puts "creating topology"
 create_topology
@@ -73,10 +74,12 @@ set numSessionO 1500
 # Inter-session Interval
 set interSessionO [new RandomVariable/Empirical]
 $interSessionO loadCDF cdf/2pm.out.sess.inter.cdf
-#set interSessionI [new RandomVariable/Empirical]
-#$interSessionI loadCDF cdf/2pm.in.sess.inter.cdf
-set interSessionI [new RandomVariable/Exponential]
-$interSessionI set avg_ 1.7
+set interSessionI [new RandomVariable/Empirical]
+$interSessionI loadCDF cdf/2pm.in.sess.inter.cdf
+#set interSessionO [new RandomVariable/Exponential]
+#$interSessionO set avg_ 13.6
+#set interSessionI [new RandomVariable/Exponential]
+#$interSessionI set avg_ 1.6
 
 ## Number of Pages per Session
 set sessionSizeO [new RandomVariable/Empirical]
@@ -92,30 +95,32 @@ $defaultRNG seed 0
 # Create sessions
 $pool set-num-session [expr $numSessionI + $numSessionO]
 
-set launchTime 0
 puts "creating outbound session"
+
+set interPage [new RandomVariable/Empirical]
+$interPage loadCDF cdf/2pm.out.idle.cdf
+
+set pageSize [new RandomVariable/Constant]
+$pageSize set val_ 1
+set interObj [new RandomVariable/Empirical]
+$interObj loadCDF cdf/objinter.dat.cdf  
+
+set objSize [new RandomVariable/Empirical]
+$objSize loadCDF cdf/2pm.out.pagesize.cdf
+set reqSize [new RandomVariable/Empirical]
+$reqSize loadCDF cdf/2pm.dump.out.req.cdf
+
+set persistSel [new RandomVariable/Empirical]
+$persistSel loadCDF cdf/persist.cdf
+set serverSel [new RandomVariable/Empirical]
+$serverSel loadCDF cdf/outbound.server.cdf
+
+set launchTime 0
 for {set i 0} {$i < $numSessionO} {incr i} {
         if {$launchTime <=  $stopTime} {
 	   set numPage [$sessionSizeO value]
 	   puts "Session Outbound $i has $numPage pages $launchTime"
-           set interPage [new RandomVariable/Empirical]
-           $interPage loadCDF cdf/2pm.out.idle.cdf
 
-           set pageSize [new RandomVariable/Constant]
-           $pageSize set val_ 1
-           set interObj [new RandomVariable/Empirical]
-           $interObj loadCDF cdf/objinter.dat.cdf  
-
-           set objSize [new RandomVariable/Empirical]
-           $objSize loadCDF cdf/2pm.out.pagesize.cdf
-           set reqSize [new RandomVariable/Empirical]
-           $reqSize loadCDF cdf/2pm.dump.out.req.cdf
-
-           set persistSel [new RandomVariable/Empirical]
-           $persistSel loadCDF cdf/persist.cdf
-           set serverSel [new RandomVariable/Empirical]
-           $serverSel loadCDF cdf/outbound.server.cdf
-    
 	   $pool create-session  $i  \
 	                $numPage [expr $launchTime + 0.1] \
 			$interPage $pageSize $interObj $objSize \
@@ -125,29 +130,31 @@ for {set i 0} {$i < $numSessionO} {incr i} {
 	}
 }
 
-set launchTime 0
 puts "creating inbound session"
+
+set interPage [new RandomVariable/Empirical]
+$interPage loadCDF cdf/2pm.in.idle.cdf
+
+set pageSize [new RandomVariable/Constant]
+$pageSize set val_ 1
+set interObj [new RandomVariable/Empirical]
+$interObj loadCDF cdf/objinter.dat.cdf  
+
+set objSize [new RandomVariable/Empirical]
+$objSize loadCDF cdf/2pm.in.pagesize.cdf
+set reqSize [new RandomVariable/Empirical]
+$reqSize loadCDF cdf/2pm.dump.in.req.cdf
+
+set persistSel [new RandomVariable/Empirical]
+$persistSel loadCDF cdf/persist.cdf
+set serverSel [new RandomVariable/Empirical]
+$serverSel loadCDF cdf/inbound.server.cdf
+
+set launchTime 0
 for {set i 0} {$i < $numSessionI} {incr i} {
         if {$launchTime <=  $stopTime} {
 	   set numPage [$sessionSizeI value]
 	   puts "Session Inbound $i has $numPage pages $launchTime"
-           set interPage [new RandomVariable/Empirical]
-           $interPage loadCDF cdf/2pm.in.idle.cdf
-
-           set pageSize [new RandomVariable/Constant]
-           $pageSize set val_ 1
-           set interObj [new RandomVariable/Empirical]
-           $interObj loadCDF cdf/objinter.dat.cdf  
-
-           set objSize [new RandomVariable/Empirical]
-           $objSize loadCDF cdf/2pm.in.pagesize.cdf
-           set reqSize [new RandomVariable/Empirical]
-           $reqSize loadCDF cdf/2pm.dump.in.req.cdf
-
-           set persistSel [new RandomVariable/Empirical]
-           $persistSel loadCDF cdf/persist.cdf
-           set serverSel [new RandomVariable/Empirical]
-           $serverSel loadCDF cdf/inbound.server.cdf
 
 	   $pool create-session [expr $i + $numSessionO] \
 	                $numPage [expr $launchTime + 0.1] \
