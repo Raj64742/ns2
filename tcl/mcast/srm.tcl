@@ -30,7 +30,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.9 1997/10/23 20:53:39 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.10 1997/11/11 20:46:49 kannan Exp $ (USC/ISI)
 #
 
 # THis routine is a temporary hack.  It is likely to dissappear
@@ -674,3 +674,16 @@ SRM/session instproc send-session {} {
 
 SRM/session instproc evTrace args {}	;# because I don't want to trace
 					 # session messages.
+
+Class SRM/session/log-scaled
+SRM/session/log-scaled instproc schedule {} {
+	$self instvar ns_ agent_ sessionDelay_ eventID_
+
+	# What is a reasonable interval to schedule session messages?
+	#set fireTime [expr $sessionDelay_ * [uniform 0.9 1.1]]
+	set fireTime [expr $sessionDelay_ * [uniform 0.9 1.1] * \
+			(1 + log([$agent_ set groupSize_])) ]
+
+	set eventID_ [$ns_ at [expr [$ns_ now] + $fireTime]		\
+			"$self send-session"]
+}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.65 1997/11/06 02:48:23 kkumar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.66 1997/11/11 20:46:47 kannan Exp $
 #
 
 #
@@ -100,16 +100,21 @@ source ../session/session.tcl
 source ns-default.tcl
 
 Simulator instproc init args {
-	eval $self next $args
 	$self create_packetformat
-	$self instvar scheduler_ nullAgent_
-	set scheduler_ [new Scheduler/Calendar]
-	set nullAgent_ [new Agent/Null]
+	$self use-scheduler Calendar
+	$self set nullAgent_ [new Agent/Null]
+	eval $self next $args
 }
 
 Simulator instproc use-scheduler type {
 	$self instvar scheduler_
-	delete $scheduler_
+	if [info exists scheduler_] {
+		if { [$scheduler_ info class] == "Scheduler/$type" } {
+			return
+		} else {
+			delete $scheduler_
+		}
+	}
 	set scheduler_ [new Scheduler/$type]
 	if { $type == "RealTime" } {
 		#
