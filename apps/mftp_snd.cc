@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 #include "config.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "agent.h"
 #include "packet.h"
 #include "ip.h"

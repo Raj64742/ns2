@@ -19,12 +19,12 @@
  */
 #ifndef lint
 static const char  rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/consrcvr.cc,v 1.4 1998/08/22 02:40:59 haoboy Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/consrcvr.cc,v 1.5 1999/10/05 20:54:10 haoboy Exp $";
 #endif
 
 
 #include "agent.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "packet.h"
 #include "rtp.h"
 #include "adaptive-receiver.h"

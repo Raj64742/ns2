@@ -22,7 +22,7 @@
 #include <math.h>
 
 #include "config.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "srm-topo.h"
 #include "scheduler.h"
 

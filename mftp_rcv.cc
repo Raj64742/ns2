@@ -25,7 +25,7 @@
 
 #include <assert.h>
 
-#include "Tcl.h"
+#include "tclcl.h"
 #include "mftp_rcv.h"
 
 #include "ip.h"            // due to declaration of hdr_ip
