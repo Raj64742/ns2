@@ -101,21 +101,37 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	if (numsamples < 0) {
 		// This is the first packet received.
 		numsamples = DEFAULT_NUMSAMPLES ;	
+		if (smooth_ == 1) {
+			numsamples = numsamples + 1;
+		}
 		sample = (int *)malloc((numsamples+1)*sizeof(int));
 		weights = (double *)malloc((numsamples+1)*sizeof(double));
 		mult = (double *)malloc((numsamples+1)*sizeof(double));
 		for (int i = 0 ; i < numsamples+1 ; i ++) {
 			sample[i] = 0 ; 
 		}
-		weights[0] = 1.0;
-		weights[1] = 1.0;
-		weights[2] = 1.0; 
-		weights[3] = 1.0; 
-		weights[4] = 0.8; 
-		weights[5] = 0.6;
-		weights[6] = 0.4;
-		weights[7] = 0.2;
-		weights[8] = 0;
+		if (smooth_ == 1) {
+			weights[0] = 1.0;
+			weights[1] = 1.0;
+			weights[2] = 1.0; 
+			weights[3] = 1.0; 
+			weights[4] = 1.0; 
+			weights[5] = 0.8;
+			weights[6] = 0.6;
+			weights[7] = 0.4;
+			weights[8] = 0.2;
+			weights[9] = 0;
+		} else {
+			weights[0] = 1.0;
+			weights[1] = 1.0;
+			weights[2] = 1.0; 
+			weights[3] = 1.0; 
+			weights[4] = 0.8; 
+			weights[5] = 0.6;
+			weights[6] = 0.4;
+			weights[7] = 0.2;
+			weights[8] = 0;
+		}
 		for (int i = 0; i < numsamples+1; i ++) {
 			mult[i] = 1.0 ; 
 		}
@@ -238,12 +254,18 @@ double TfrcSinkAgent::est_loss ()
 	}
 	last_sample = maxseq+1 ; 
 
-	(sample_count>numsamples+1)?ds=numsamples+1:ds=sample_count ;
+	if (sample_count>numsamples+1)
+		// The array of loss intervals is full.
+		ds=numsamples+1;
+    	else
+		ds=sample_count;
 
 	if (sample_count == 1 && false_sample == 0) 
 		// no losses yet
 		return 0; 
 	if (sample_count <= numsamples+1 && false_sample > 0) {
+		// slow start just ended; ds should be 2
+		// the false sample is added to the array.
 		sample[ds-1] += false_sample;
 		false_sample = 0 ; 
 	}
@@ -290,14 +312,19 @@ double TfrcSinkAgent::weighted_average(int start, int end, double factor, double
 	int i; 
 	double wsum = 0;
 	double answer = 0;
-	if (smooth_ > 0 && start == 0) {
+	if (smooth_ == 1 && start == 0) {
+		if (end == numsamples+1) {
+			// the array is full, but we don't want to uses
+			//  the last loss interval in the array
+			end = end-1;
+		} 
 		// effectively shift the weight arrays 
-		for (i = start ; i < end - 1; i++) 
+		for (i = start ; i < end; i++) 
 			if (i==0)
 				wsum += m[i+1]*w[i+1];
 			else 
 				wsum += factor*m[i+1]*w[i+1];
-		for (i = start ; i < end - 1; i++)  
+		for (i = start ; i < end; i++)  
 			if (i==0)
 			 	answer += m[i+1]*w[i+1]*sample[i]/wsum;
 			else 
