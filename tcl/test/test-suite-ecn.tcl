@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.14 1998/10/05 19:35:15 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.15 1998/10/20 23:37:29 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -251,6 +251,7 @@ Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
     $self setTopo 
 
+    Agent/TCP set old_ecn_ 1
     set stoptime 10.0
     set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
     $redq set setbit_ true
@@ -319,7 +320,9 @@ TestSuite instproc plot_cwnd {} {
 TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     $self instvar ns_ node_ testName_ net_
     $self setTopo
-
+##
+##  Agent/TCP set maxburst_ 4
+##
     set delay 10ms
     $ns_ delay $node_(r1) $node_(r2) $delay
     $ns_ delay $node_(r2) $node_(r1) $delay
@@ -379,7 +382,7 @@ TestSuite instproc drop_pkt { number } {
 }
 
 TestSuite instproc drop_pkts pkts {
-    $self instvar ns_
+    $self instvar ns_ errmodel1
     set emod [$self emod]
     set errmodel1 [new ErrorModel/List]
     $errmodel1 droplist $pkts
@@ -404,6 +407,7 @@ Test/ecn_nodrop_tahoe instproc init {} {
 }
 Test/ecn_nodrop_tahoe instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 
 	$self drop_pkt 10000
 	$ns_ run
@@ -421,6 +425,7 @@ Test/ecn_twoecn_tahoe instproc init {} {
 }
 Test/ecn_twoecn_tahoe instproc run {} {
 	$self instvar ns_ lossmodel
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 
 	$self drop_pkt 243
 	$lossmodel set markecn_ true
@@ -439,6 +444,7 @@ Test/ecn_drop_tahoe instproc init {} {
 }
 Test/ecn_drop_tahoe instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe
 	$self drop_pkt 243
 	$ns_ run
@@ -456,6 +462,7 @@ Test/ecn_drop1_tahoe instproc init {} {
 }
 Test/ecn_drop1_tahoe instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe
 	$self drop_pkt 241
 	$ns_ run
@@ -473,6 +480,7 @@ Test/ecn_drop2_tahoe instproc init {} {
 }
 Test/ecn_drop2_tahoe instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe
 	$self drop_pkt 235
 	$ns_ run
@@ -522,6 +530,7 @@ Test/ecn_burstyEcn_tahoe instproc init {} {
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
+	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_tahoe
 	Test/ecn_burstyEcn_tahoe instproc run {} [Test/ecn_bursty_tahoe info instbody run ]   
         $self next
@@ -614,6 +623,7 @@ Test/ecn_nodrop_reno instproc init {} {
 }
 Test/ecn_nodrop_reno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 
 	$self drop_pkt 10000
 	$ns_ run
@@ -631,6 +641,7 @@ Test/ecn_twoecn_reno instproc init {} {
 }
 Test/ecn_twoecn_reno instproc run {} {
 	$self instvar ns_ lossmodel
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 
 	$self drop_pkt 243
 	$lossmodel set markecn_ true
@@ -649,6 +660,7 @@ Test/ecn_drop_reno instproc init {} {
 }
 Test/ecn_drop_reno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno
 	$self drop_pkt 243
 	$ns_ run
@@ -667,6 +679,7 @@ Test/ecn_drop1_reno instproc init {} {
 }
 Test/ecn_drop1_reno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno
 	$self drop_pkt 241
 	$ns_ run
@@ -767,6 +780,7 @@ Test/ecn_timeout1_reno instproc init {} {
 }
 Test/ecn_timeout1_reno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 1
 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
 	$self second_tcp Tahoe 1.0
@@ -962,6 +976,7 @@ Test/ecn_timeout1_sack instproc init {} {
 }
 Test/ecn_timeout1_sack instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 1
 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
 	$self second_tcp Tahoe 1.0
@@ -1002,6 +1017,7 @@ Test/ecn_nodrop_newreno instproc init {} {
 }
 Test/ecn_nodrop_newreno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 
 	$self drop_pkt 10000
 	$ns_ run
@@ -1019,6 +1035,7 @@ Test/ecn_twoecn_newreno instproc init {} {
 }
 Test/ecn_twoecn_newreno instproc run {} {
 	$self instvar ns_ lossmodel
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 
 	$self drop_pkt 243
 	$lossmodel set markecn_ true
@@ -1037,6 +1054,7 @@ Test/ecn_drop_newreno instproc init {} {
 }
 Test/ecn_drop_newreno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno
 	$self drop_pkt 243
 	$ns_ run
@@ -1055,6 +1073,7 @@ Test/ecn_drop1_newreno instproc init {} {
 }
 Test/ecn_drop1_newreno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno
 	$self drop_pkt 241
 	$ns_ run
@@ -1104,6 +1123,7 @@ Test/ecn_burstyEcn_newreno instproc init {} {
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
+	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_newreno
 	Test/ecn_burstyEcn_newreno instproc run {} [Test/ecn_bursty_newreno info instbody run ]   
         $self next
@@ -1140,7 +1160,9 @@ Test/ecn_timeout1_newreno instproc init {} {
 }
 Test/ecn_timeout1_newreno instproc run {} {
 	$self instvar ns_
+	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 1
+	Agent/TCP set old_ecn_ 1
 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
 	$self second_tcp Tahoe 1.0
 	$ns_ run
@@ -1181,6 +1203,7 @@ Test/ecn1 instproc init {} {
 Test/ecn1 instproc run {} {
         $self instvar ns_ node_ testName_
         $self setTopo
+	Agent/TCP set old_ecn_ 1
 
         # Set up TCP connection 
         set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]

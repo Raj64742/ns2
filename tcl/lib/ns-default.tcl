@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.136 1998/10/15 23:11:40 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.137 1998/10/20 23:34:28 sfloyd Exp $
 
 
 #
@@ -74,6 +74,7 @@ Agent/TCP set windowConstant_ 4
 Agent/TCP set windowThresh_ 0.002
 Agent/TCP set overhead_ 0
 Agent/TCP set ecn_ 0
+Agent/TCP set old_ecn_ 0
 Agent/TCP set packetSize_ 1000
 Agent/TCP set tcpip_base_hdr_size_ 40
 Agent/TCP set bugFix_ true
