@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.6 1998/03/07 02:24:02 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.7 1998/03/13 23:28:56 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -50,7 +50,6 @@ class TapAgent : public Agent, public IOHandler {
 	void dispatch(int);
 	int linknet();
 	int off_tap_;
-	int mode_;
 	Network* net_;
 	int sendpkt(Packet*);
 	void recvpkt();
@@ -64,7 +63,7 @@ static class TapAgentClass : public TclClass {
 	}
 } class_tap_agent;
 
-TapAgent::TapAgent() : Agent(PT_LIVE), net_(NULL), mode_(O_RDWR)
+TapAgent::TapAgent() : Agent(PT_LIVE), net_(NULL)
 {
 	bind("off_tap_", &off_tap_);
 }
