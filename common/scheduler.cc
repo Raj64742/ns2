@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.46 1999/08/20 20:40:15 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.47 1999/08/20 21:03:33 yuriy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.46 1999/08/20 20:40:15 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.47 1999/08/20 21:03:33 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -364,7 +364,7 @@ HeapScheduler::deque()
  *
  * See R.Brown. "Calendar queues: A fast O(1) priority queue implementation 
  *  for the simulation event set problem." 
- *  Comm of ASM, 31(10):1220-1227, Oct 1988
+ *  Comm. of ACM, 31(10):1220-1227, Oct 1988
  */
 
 class CalendarScheduler : public Scheduler {
