@@ -5065,7 +5065,7 @@ fi
 
 echo "$ac_t""$ac_cv_type_socklen_t" 1>&6
 
-if test x"$ac_cv_type_socklen_t" == xyes; then
+if test x"$ac_cv_type_socklen_t" = xyes; then
     cat >> confdefs.h <<\EOF
 #define HAVE_SOCKLEN_T 1
 EOF
