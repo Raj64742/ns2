@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/pareto.cc,v 1.7 2000/10/13 17:05:13 debo Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/pareto.cc,v 1.8 2001/02/11 22:52:32 haoboy Exp $ (Xerox)";
 #endif
  
 #include "random.h"
@@ -89,7 +89,7 @@ int POO_Traffic::command(int argc, const char*const* argv){
         return Application::command(argc,argv);
 }
 
-POO_Traffic::POO_Traffic()
+POO_Traffic::POO_Traffic() : rng_(NULL)
 {
 	bind_time("burst_time_", &ontime_);
 	bind_time("idle_time_", &offtime_);
