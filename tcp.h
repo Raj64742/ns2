@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.29 1997/10/13 22:24:45 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.30 1997/10/23 04:31:13 heideman Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -193,9 +193,12 @@ protected:
 	 * srtt has 3 bits to the right of the binary point, rttvar has 2.
 	 */
 	TracedInt t_seqno_;	/* sequence number */
+#define T_RTT_BITS 0
 	TracedInt t_rtt_;      	/* round trip time */
+#define T_SRTT_BITS 3
 	TracedInt t_srtt_;     	/* smoothed round-trip time */
 	int srtt_init_;		/* initial value for computing t_srtt_ */
+#define T_RTTVAR_BITS 2
 	TracedInt t_rttvar_;   	/* variance in round-trip time */
 	int rttvar_init_;       /* initial value for computing t_rttvar_ */
 	double t_rtxcur_;	/* current retransmit value */
@@ -290,7 +293,6 @@ protected:
 				   timeouts during a connection's idle period.
 				   Setting this boolean fixes this problem.
 				   For now, it is off by default. */ 
-	char finish_[100];      /* name of Tcl proc to call at finish time */
 	int closed_;            /* whether this connection has closed */
         TracedInt ndatapack_;   /* number of data packets sent */
         TracedInt ndatabytes_;  /* number of data bytes sent */

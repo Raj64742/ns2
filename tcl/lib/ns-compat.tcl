@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.35 1997/10/13 22:25:02 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.36 1997/10/23 04:31:13 heideman Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -249,6 +249,7 @@ OldSim instproc init args {
 		$src attach $self
 		return $src
 	}
+	Agent/TCP set restart_bugfix_ false
 	#
 	# support for new variable names
 	# it'd be nice to set up mappings on a per-class

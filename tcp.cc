@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.40 1997/10/23 01:15:30 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.41 1997/10/23 04:31:12 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -62,7 +62,7 @@ public:
 TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	ts_peer_(0),dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
-	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(0),
+	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(1),
 	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this)
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
@@ -107,8 +107,6 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
         bind("nrexmitpack_", &nrexmitpack_);
         bind("nrexmitbytes_", &nrexmitbytes_);
 
-	finish_[0] = 0;
-
 	// reset used for dynamically created agent
 	reset();
 }
@@ -122,7 +120,7 @@ TcpAgent::traceAll() {
 	int n;
 
 	curtime = &s ? s.clock() : 0;
-	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, int(maxseq_), int(highest_ack_), int(t_seqno_), double(cwnd_), int(ssthresh_), int(dupacks_), int(t_rtt_)*tcp_tick_, (int(t_srtt_) >> 3)*tcp_tick_, int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_));
+	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, int(maxseq_), int(highest_ack_), int(t_seqno_), double(cwnd_), int(ssthresh_), int(dupacks_), int(t_rtt_)*tcp_tick_, (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_, int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_));
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
@@ -146,7 +144,7 @@ TcpAgent::traceVar(TracedVar* v) {
 	else if (!strcmp(v->name(), "rtt_"))
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v))*tcp_tick_);
 	else if (!strcmp(v->name(), "srtt_"))
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), (int(*((TracedInt*) v)) >> 3)*tcp_tick_);
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), (int(*((TracedInt*) v)) >> T_SRTT_BITS)*tcp_tick_);
 	else if (!strcmp(v->name(), "rttvar_"))
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v))*tcp_tick_/4.0);
 	else
@@ -191,8 +189,8 @@ void TcpAgent::reset()
 void TcpAgent::rtt_init()
 {
 	t_rtt_ = 0;
-	t_srtt_ = int(srtt_init_ / tcp_tick_) << 3;
-	t_rttvar_ = int(rttvar_init_ / tcp_tick_) << 2;
+	t_srtt_ = int(srtt_init_ / tcp_tick_) << T_SRTT_BITS;
+	t_rttvar_ = int(rttvar_init_ / tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
 	t_backoff_ = 1;
 }
@@ -238,24 +236,24 @@ void TcpAgent::rtt_update(double tao)
 	//
         if (t_srtt_ != 0) {
 		register short delta;
-		delta = t_rtt_ - (t_srtt_ >> 3);	// d = (m - a0)
+		delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);	// d = (m - a0)
 		if ((t_srtt_ += delta) <= 0)	// a1 = 7/8 a0 + 1/8 m
 			t_srtt_ = 1;
 		if (delta < 0)
 			delta = -delta;
-		delta -= (t_rttvar_ >> 2);
+		delta -= (t_rttvar_ >> T_RTTVAR_BITS);
 		if ((t_rttvar_ += delta) <= 0)	// var1 = 3/4 var0 + 1/4 |d|
 			t_rttvar_ = 1;
 	} else {
-		t_srtt_ = t_rtt_ << 3;		// srtt = rtt
-		t_rttvar_ = t_rtt_ << 1;	// rttvar = rtt / 2
+		t_srtt_ = t_rtt_ << T_SRTT_BITS;		// srtt = rtt
+		t_rttvar_ = t_rtt_ << (T_RTTVAR_BITS-1);	// rttvar = rtt / 2
 	}
 	//
 	// Current retransmit value is 
 	//    (unscaled) smoothed round trip estimate
 	//    plus 4 times (unscaled) rttvar. 
 	//
-	t_rtxcur_ = (((t_rttvar_ << 3) + t_srtt_)  >> 3 ) * tcp_tick_;
+	t_rtxcur_ = (((t_rttvar_ << (2 + (T_SRTT_BITS - T_RTTVAR_BITS))) + t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
 }
 
 void TcpAgent::rtt_backoff()
@@ -269,7 +267,7 @@ void TcpAgent::rtt_backoff()
 		 * value, storing it in the mean deviation
 		 * instead.
 		 */
-		t_rttvar_ += (t_srtt_ >> 3);
+		t_rttvar_ += (t_srtt_ >> T_SRTT_BITS);
 		t_srtt_ = 0;
 	}
 }
@@ -290,7 +288,7 @@ void TcpAgent::output(int seqno, int reason)
         int bytes = ((hdr_cmn*)p->access(off_cmn_))->size();
 
 	/* if no outstanding data, be sure to set rtx timer again */
-	if (highest_ack_== maxseq_)
+	if (highest_ack_ == maxseq_)
 		force_set_rtx_timer = 1;
 	/* call helper function to fill in additional fields */
 	output_helper(p);
@@ -319,6 +317,8 @@ void TcpAgent::output(int seqno, int reason)
 void TcpAgent::advanceby(int delta)
 {
         curseq_ += delta;
+	if (delta > 0)
+		closed_ = 0;
 	send_much(0, 0, maxburst_); 
 }
 
@@ -327,14 +327,13 @@ int TcpAgent::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
-			curseq_ = atoi(argv[2]);
-			send_much(0, 0, maxburst_); /* XXXX okay to have maxburst_ ? */
+			int newseq = atoi(argv[2]);
+			if (newseq >= curseq_)   // this is kind of silly but avoids duplicating ::advanceby
+				advanceby(newseq - curseq_);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "advanceby") == 0) {
-			curseq_ += atoi(argv[2]); 
-			closed_ = 0;
-			send_much(0, 0, maxburst_); /* XXXX okay to have maxburst_ ? */
+			advanceby(atoi(argv[2]));
 			return (TCL_OK);
 		}
 		/*
@@ -342,7 +341,7 @@ int TcpAgent::command(int argc, const char*const* argv)
 		 * parameters to emulate http persistent connections.
 		 *
 		 * Another way to do the same thing is to open one tcp
-		 * object and use start/stop/maxpkts_ to control
+		 * object and use start/stop/maxpkts_ or advanceby to control
 		 * how much data is sent in each burst.
 		 * With a single connection, slow_start_restart_
 		 * should be configured as desired.
@@ -368,17 +367,6 @@ int TcpAgent::command(int argc, const char*const* argv)
 			t_srtt_ = other->t_srtt_;
 			t_rttvar_ = other->t_rttvar_;
 			t_backoff_ = other->t_backoff_;
-			return (TCL_OK);
-		}
-		/* 
-		 * Register a Tcl procedure to be invoked when the connection has no
-		 * unacknowledged data and no new data to send. This corresponds
-		 * to a connection close event as well as a temporary pause while
-		 * waiting for more user data (e.g., a user think-time pause during
-		 * the course of a P-HTTP connection).
-		 */
-		if (strcmp(argv[1], "finish") == 0) {
-			strcpy(finish_, argv[2]);
 			return (TCL_OK);
 		}
 	}
@@ -492,7 +480,7 @@ void TcpAgent::opencwnd()
 		case 2:
 			/* These are window increase algorithms
 			 * for experimental purposes only. */
-			f = (t_srtt_ >> 3) * tcp_tick_;
+			f = (t_srtt_ >> T_SRTT_BITS) * tcp_tick_;
 			f *= f;
 			f *= wnd_const_;
 			f += fcnt_;
@@ -526,7 +514,7 @@ void TcpAgent::opencwnd()
                                 fcnt_ = f;
                         break;
 		case 5:
-                        f = (t_srtt_ >> 3) * tcp_tick_;
+                        f = (t_srtt_ >> T_SRTT_BITS) * tcp_tick_;
                         f *= wnd_const_;
                         f += fcnt_;
                         if (f > cwnd_) {
@@ -610,6 +598,7 @@ void TcpAgent::newack(Packet* pkt)
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
 	highest_ack_ = last_ack_;
+
 	if (t_seqno_ < last_ack_ + 1)
 		t_seqno_ = last_ack_ + 1;
 	if (ts_option_)
@@ -780,13 +769,6 @@ void TcpAgent::timeout(int tno)
  * invokes the Tcl finish procedure that was registered with TCP.
  */
 void TcpAgent::finish() {
-	char wrk[100];
-
-	if (finish_[0] != 0) {
-		sprintf(wrk, "%s", finish_);
-		Tcl::instance().eval(wrk);
-	}
-	// john hack (currently for evaluation)
 	Tcl::instance().evalf("%s done", this->name());
 }
 

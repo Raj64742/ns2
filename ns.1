@@ -1607,6 +1607,10 @@ mark each parameter with
 and then send the output to a trace file
 with ``$tcp attach [open trace.tr w]''.
 .LP
+Tcp segments can be sent with the advance and advanaceby commands.
+When all data is sent, the done method will be invoked
+(which can be overridden in OTcl).
+.LP
 .HD
 Configuration Parameters \fP
 .RS

@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.10 1997/10/13 22:24:44 mccanne Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.11 1997/10/23 04:31:11 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -57,6 +57,7 @@ VegasTcpAgent::VegasTcpAgent() : TcpAgent()
 	bind("v_alpha_", &v_alpha_);
 	bind("v_beta_", &v_beta_);
 	bind("v_gamma_", &v_gamma_);
+	bind("v_rtt_", &v_rtt_);
 
 	reset();
 }
