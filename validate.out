@@ -4,7 +4,9 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on fun.ee.lbl.gov, after an update Fri Jan 23 12:15 PST 1998.
+### on fun.ee.lbl.gov, after an update Monday evening, Jan 27, PST 1998,
+### including the updated version of TclCl.
+### gcc version 2.7.2.1, tcl7.6, tk4.2, otcl-0.96.
 ###
 ##################################################################
 *** ./test-all
@@ -94,6 +96,54 @@ total_data_packets_sent: 530 data_bytes_sent: 530000
 packets_resent: 10 bytes_resent: 10000
 ack_packets_received: 496
 retransmit_timeouts: 1
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-full
+Tests: full close twoway twoway1 twoway_bsdcompat oneway_bsdcompat twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedfin smallpkts telnet telnet2 SSR SSR2
+Running test full
+Test output agrees with reference output
+Running test close
+Test output agrees with reference output
+Running test twoway
+Test output agrees with reference output
+Running test twoway1
+Test output agrees with reference output
+Running test twoway_bsdcompat
+Test output agrees with reference output
+Running test oneway_bsdcompat
+Test output agrees with reference output
+Running test twowayrandom
+second TCP starting at time 1
+Test output agrees with reference output
+Running test delack
+Test output agrees with reference output
+Running test iw=4
+Test output agrees with reference output
+Running test droppedsyn
+Test output agrees with reference output
+Running test droppedfirstseg
+Test output agrees with reference output
+Running test droppedsecondseg
+Test output agrees with reference output
+Running test simul-open
+Test output agrees with reference output
+Running test simul-close
+Test output agrees with reference output
+Running test droppednearfin
+Test output agrees with reference output
+Running test droppedlastseg
+Test output agrees with reference output
+Running test droppedfin
+Test output agrees with reference output
+Running test smallpkts
+Test output agrees with reference output
+Running test telnet
+Test output agrees with reference output
+Running test telnet2
+Test output agrees with reference output
+Running test SSR
+Test output agrees with reference output
+Running test SSR2
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red
@@ -383,6 +433,50 @@ class: 0 per-link total_bytes 359000
 class: 1 per-link total_drops 6
 class: 1 per-link total_packets 103
 class: 1 per-link total_bytes 103000
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-vegas-v1
+Tests: one_drop one_14 two_2 two_A two_B
+Running test one_drop
+Calling xgraph.
+Test output agrees with reference output
+Running test one_14
+Calling xgraph.
+Test output agrees with reference output
+Running test two_2
+Calling xgraph.
+Test output agrees with reference output
+Running test two_A
+Calling xgraph.
+Test output agrees with reference output
+Running test two_B
+Calling xgraph.
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-rbp
+Tests: reno_slow_start_restart reno_no_slow_start_restart vegas_slow_start_restart vegas_no_slow_start_restart reno_pacing vegas_pacing_rate vegas_pacing_cwnd
+Running test reno_slow_start_restart
+Test output agrees with reference output
+Running test reno_no_slow_start_restart
+Test output agrees with reference output
+Running test vegas_slow_start_restart
+Test output agrees with reference output
+Running test vegas_no_slow_start_restart
+Test output agrees with reference output
+Running test reno_pacing
+0: cwnd_=7.000000 rtt=3 srtt=24 rbp_segs_actually_paced_=0 rbp_inter_pace_delay_=0
+0: cwnd_=10.000000 rtt=2 srtt=23 rbp_segs_actually_paced_=5 rbp_inter_pace_delay_=0.060000000000000012
+0: cwnd_=13.000000 rtt=2 srtt=23 rbp_segs_actually_paced_=8 rbp_inter_pace_delay_=0.035937500000000004
+Test output agrees with reference output
+Running test vegas_pacing_rate
+0: cwnd_=3.000000 v_rtt_=0.33606399999999859 rbp_segs_actually_paced_=0 rbp_inter_pace_delay_=0
+0: cwnd_=4.000000 v_rtt_=0.22606400000000804 rbp_segs_actually_paced_=2 rbp_inter_pace_delay_=0.15803199999999951
+0: cwnd_=4.000000 v_rtt_=0.22606400000000804 rbp_segs_actually_paced_=2 rbp_inter_pace_delay_=0.11303200000000402
+Test output agrees with reference output
+Running test vegas_pacing_cwnd
+0: cwnd_=3.000000 v_rtt_=0.33606399999999859 rbp_segs_actually_paced_=0 rbp_inter_pace_delay_=0
+0: cwnd_=6.000000 v_rtt_=0.22606400000000804 rbp_segs_actually_paced_=3 rbp_inter_pace_delay_=0.10535466666666633
+0: cwnd_=7.000000 v_rtt_=0.23606399999999894 rbp_segs_actually_paced_=5 rbp_inter_pace_delay_=0.045212800000001607
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
