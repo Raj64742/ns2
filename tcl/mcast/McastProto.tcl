@@ -97,7 +97,7 @@ McastProtocol instproc notify changes {
 	# no-op
 }
 
-#############################################
+###################################################
 Class McastProtoArbiter
 
 #XXX well-known groups (WKG) with local multicast/broadcast
@@ -106,9 +106,14 @@ McastProtoArbiter set WKGMask 0xFFC0
 McastProtoArbiter set WKGMaskLen 6
 
 McastProtoArbiter proc expandaddr {} {
-	# extend the space to 32 bits
-	McastProtoArbiter set WKGMask 0xFFC00000
-	McastProtoArbiter set WKGMaskLen 21
+    # extend the space to 32 bits
+    McastProtoArbiter set WKGMask 0xFFC00000
+    McastProtoArbiter set WKGMaskLen 21
+    
+    # have to expand the individual WKGs
+    PIM set ALL_PIM_ROUTERS \
+	[expr [McastProtoArbiter set WKGMask] + 1]
+    
 }
 
 # initialize with a list of the mcast protocols
