@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.48 2003/12/23 17:36:35 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.49 2005/01/24 18:28:46 haldar Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -192,6 +192,14 @@ Node/MobileNode instproc add-target { agent port } {
 		$agent if-queue [$self set ifq_(0)]   ;# ifq between LL and MAC
 	}
 	
+	#<zheng: add>
+	# Special processing for ZBR
+	#set zbronly [string first "ZBR" [$agent info class]] 
+	#if {$zbronly != -1 } {
+	#	$agent if-queue [$self set ifq_(0)]   ;# ifq between LL and MAC
+	#}
+	#</zheng: add>
+
 	if { $port == [Node set rtagent_port_] } {			
 		# Ad hoc routing agent setup needs special handling
 		$self add-target-rtagent $agent $port
@@ -722,6 +730,37 @@ Node/MobileNode instproc unset-gafpartner {} {
 
 }
 
+# <zheng: add>
+Node/MobileNode instproc sscs args {
+	$self instvar mac_
+	eval $mac_(0) sscs $args
+}
+
+Node/MobileNode instproc NodeClr {arg1} {
+	$self instvar mac_
+	$mac_(0) NodeClr $arg1
+}
+
+Node/MobileNode instproc NodeLabel args {
+	$self instvar mac_
+	eval $mac_(0) NodeLabel $args
+}
+
+Node/MobileNode instproc node-down {} {
+	$self instvar mac_
+	$mac_(0) node-down
+}
+
+Node/MobileNode instproc node-up {} {
+	$self instvar mac_
+	$mac_(0) node-up
+}
+
+Node/MobileNode instproc RNType args {
+	$self instvar ragent_
+	eval $ragent_ RNType $args
+}
+# </zheng: add>
 
 Class SRNodeNew -superclass Node/MobileNode
 

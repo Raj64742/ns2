@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.21 2003/09/23 00:44:07 aditi Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.22 2005/01/24 18:28:47 haldar Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -103,6 +103,13 @@ private:
         int     tracetype;
         MobileNode *node_;
 	int     newtrace_;
+
+	//<zheng: ns 2.27 removed the following part, but we need it to control the broadcast radius>
+        static double  bradius;
+        static double  radius_scaling_factor_;
+        static double  duration_scaling_factor_;
+        static void calculate_broadcast_parameters();
+	//</zheng>
 
         int initialized() { return node_ && 1; }
 	int node_energy();

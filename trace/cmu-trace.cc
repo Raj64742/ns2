@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.78 2003/09/23 00:44:07 aditi Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.79 2005/01/24 18:28:47 haldar Exp $
  */
 
 #include <packet.h>
@@ -54,6 +54,11 @@
 #include <cmu-trace.h>
 #include <mobilenode.h>
 #include <simulator.h>
+//<zheng: add for 802.15.4>
+#include "../wpan/p802_15_4pkt.h"
+#include "../wpan/p802_15_4trace.h"
+#include "../wpan/p802_15_4nam.h"
+//</zheng: add for 802.15.4>
 
 #include "diffusion/diff_header.h" // DIFFUSION -- Chalermek
 
@@ -70,6 +75,12 @@ public:
 	}
 } cmutrace_class;
 
+
+//<zheng: ns 2.27 removed the following part, but we need it to control the broadcast radius>
+double CMUTrace::bradius = 0.0;
+double CMUTrace::radius_scaling_factor_ = 0.0;
+double CMUTrace::duration_scaling_factor_ = 0.0;
+//</zheng>
 
 CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 {
@@ -242,6 +253,18 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_RTS) ? "RTS"  :
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_CTS) ? "CTS"  :
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK"  :
+		  //<zheng: add for 802.15.4>
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Beacon) ? "BCN"  :		//Beacon
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoReq) ? "CM1"  :	//CMD: Association request
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoRsp) ? "CM2"  :	//CMD: Association response
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_DAssNtf) ? "CM3"  :	//CMD: Disassociation notification
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_DataReq) ? "CM4"  :	//CMD: Data request
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_PIDCNtf) ? "CM5"  :	//CMD: PAN ID conflict notification
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_OrphNtf) ? "CM6"  :	//CMD: Orphan notification
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_BconReq) ? "CM7"  :	//CMD: Beacon request
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_CoorRea) ? "CM8"  :	//CMD: Coordinator realignment
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_GTSReq) ? "CM9"  :	//CMD: GTS request
+		  //</zheng: add for 802.15.4>
 		  "UNKN") :
 		 (ch->ptype() == PT_SMAC) ? (
 		  (sh->type == RTS_PKT) ? "RTS" :
@@ -867,6 +890,33 @@ CMUTrace::nam_format(Packet *p, int offset)
 
 
 
+	//<zheng: add for 802.15.4>
+
+	//Actually we only need to handle MAC layer for nam (but should display dropping for other layers)
+	//if (strcmp(tracename,"MAC") != 0)
+	//if ((op != 'D')&&(op != 'd'))
+	//	return;
+
+	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
+	char ptype[11];
+	strcpy(ptype,
+	((ch->ptype() == PT_MAC) ? (
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_RTS) ? "RTS"  :
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_CTS) ? "CTS"  :
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK"  :
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Beacon) ? "BCN"  :		//Beacon
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoReq) ? "CM1"  :	//CMD: Association request
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_AssoRsp) ? "CM2"  :	//CMD: Association response
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_DAssNtf) ? "CM3"  :	//CMD: Disassociation notification
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_DataReq) ? "CM4"  :	//CMD: Data request
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_PIDCNtf) ? "CM5"  :	//CMD: PAN ID conflict notification
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_OrphNtf) ? "CM6"  :	//CMD: Orphan notification
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_BconReq) ? "CM7"  :	//CMD: Beacon request
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_CoorRea) ? "CM8"  :	//CMD: Coordinator realignment
+	  (mh->dh_fc.fc_subtype == MAC_Subtype_Command_GTSReq) ? "CM9"  :	//CMD: GTS request
+	  "UNKN"
+	  ) : packet_info.name(ch->ptype())));
+	//</zheng: add for 802.15.4>
         int dst = Address::instance().get_nodeaddr(ih->daddr());
 
 	nextnode = Node::get_node_by_address(ch->next_hop_);
@@ -924,6 +974,34 @@ CMUTrace::nam_format(Packet *p, int offset)
 			pkt_color = 1;
 		}
 	}
+
+	//<zheng: add for 802.15.4>
+	if (Nam802_15_4::Nam_Status)
+	{
+		ATTRIBUTELINK *attr;
+		int t_src,t_dst;
+		if (ch->ptype() == PT_MAC)
+		{
+			t_src = p802_15_4macSA(p);
+			t_dst = p802_15_4macDA(p);;
+		}
+		else
+		{
+			t_src = HDR_IP(p)->saddr();
+			t_dst = HDR_IP(p)->daddr();
+		}
+		attr = findAttrLink(HDR_CMN(p)->ptype(),t_src,t_dst);
+		if (attr == NULL)
+			attr = findAttrLink(HDR_CMN(p)->ptype());
+		if (attr != NULL)
+			HDR_LRWPAN(p)->attribute = attr->attribute;
+		else
+			HDR_LRWPAN(p)->attribute = 0;
+		if (HDR_LRWPAN(p)->attribute >= 32)
+			pkt_color = HDR_LRWPAN(p)->attribute;
+	}
+	//</zheng: add for 802.15.4>
+
 	// convert to nam format 
 	if (op == 's') op = 'h' ;
 	if (op == 'D') op = 'd' ;
@@ -933,7 +1011,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 		Scheduler::instance().clock(),
 		src_,                           // this node
 		next_hop,
-		packet_info.name(ch->ptype()),
+		ptype,			//<zheng: modify for 802.15.4>packet_info.name(ch->ptype()),
 		ch->size(),
 		pkt_color,   
 		ch->uid(),
@@ -946,7 +1024,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 		Scheduler::instance().clock(),
 		src_,                           // this node
 		next_hop,
-		packet_info.name(ch->ptype()),
+		ptype,			//<zheng: modify for 802.15.4>packet_info.name(ch->ptype()),
 		ch->size(),
 		pkt_color,
 		ch->uid(),
@@ -991,11 +1069,42 @@ CMUTrace::nam_format(Packet *p, int offset)
 		Scheduler::instance().clock(),
 		src_,                           // this node
 		next_hop,
-		packet_info.name(ch->ptype()),
+		ptype,			//<zheng: modify for 802.15.4>packet_info.name(ch->ptype()),
 		ch->size(),
 		pkt_color,
 		ch->uid(),
 		tracename);
+
+//<zheng: ns 2.27 removed the following part, but we need it to control the broadcast radius>
+if (Nam802_15_4::Nam_Status)
+{
+	if ((strcmp(tracename,"AGT") != 0)||(ih->daddr() == IP_BROADCAST))		//<zheng: add: next_hop info not available at agent level>
+											//(doesn't really matter -- seems agent level has no effect on nam)
+	if (next_hop == -1 && op == 'h') {
+		// print extra fields for broadcast packets
+
+		// bradius is calculated assuming 2-ray ground reflectlon
+		// model using default settings of Phy/WirelessPhy and
+		// Antenna/OmniAntenna
+		if (bradius == 0.0) calculate_broadcast_parameters();
+
+		double radius = bradius*radius_scaling_factor_; 
+
+		// duration is calculated based on the radius and
+		// the speed of light (299792458 m/s)
+		double duration = (bradius/299792458.0)*duration_scaling_factor_;
+		//<zheng: add -- the duration in 802.15.4 could be very small and rounded to 0.0>
+		if (Nam802_15_4::Nam_Status)
+		if (duration < 0.000000001)
+			duration = 0.000000001;
+		//</zheng: add>
+		sprintf(pt_->nbuffer() + strlen(pt_->nbuffer()),
+			" -R %.2f -D %.2f",
+			radius,
+			duration);
+	}
+}
+//</zheng>
 
 	offset = strlen(pt_->nbuffer());
 	pt_->namdump();
@@ -1059,9 +1168,12 @@ void CMUTrace::format(Packet* p, const char *why)
 		case PT_PING:
 			break;
 		default:
+		/*<zheng: del -- there are many more new packet types added, like PT_EXP (poisson traffic belongs to this type)>
 			fprintf(stderr, "%s - invalid packet type (%s).\n",
 				__PRETTY_FUNCTION__, packet_info.name(ch->ptype()));
 			exit(1);
+		</zheng: del>*/
+			break;		//zheng: add
 		}
 	}
 }
@@ -1156,3 +1268,45 @@ int CMUTrace::node_energy()
 	if (energy > 0) return 1;
 	return 0;
 }
+
+//<zheng: ns 2.27 removed the following part, but we need it to control the broadcast radius>
+void CMUTrace::calculate_broadcast_parameters() {
+	// Calculate the maximum distance at which a packet can be received
+	// based on the two-ray reflection model using the current default
+	// values for Phy/WirelessPhy and Antenna/OmniAntenna.
+
+	double P_t, P_r, G_t, G_r, h, L;
+	Tcl& tcl = Tcl::instance();
+
+	tcl.evalc("Phy/WirelessPhy set Pt_");
+	P_t = atof(tcl.result());
+	tcl.evalc("Phy/WirelessPhy set RXThresh_");
+	P_r = atof(tcl.result());
+	tcl.evalc("Phy/WirelessPhy set L_");
+	L = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Gt_");
+	G_t = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Gr_");
+	G_r = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Z_");
+	h = atof(tcl.result());
+	bradius = pow(P_t*G_r*G_t*pow(h,4.0)/(P_r*L), 0.25);
+	//<zheng: add for 802.15.4>
+	//the above calculation is not accurate for short distance
+	double PI,freq,lambda,crossover_dist;
+	PI = 3.14159265359;
+	tcl.evalc("Phy/WirelessPhy set freq_");
+	freq = atof(tcl.result());
+	lambda = 3.0e8/freq;
+	crossover_dist = (4 * PI * h * h) / lambda;
+	if (bradius < crossover_dist)	//need re-calculation
+		bradius = pow(P_t * G_r * G_t * pow(lambda, 2.0)/(P_r * L), 0.5)/(4 * PI);
+	//</zheng: add for 802.15.4>
+
+	// Also get the scaling factors
+	tcl.evalc("CMUTrace set radius_scaling_factor_");
+	radius_scaling_factor_ = atof(tcl.result());
+	tcl.evalc("CMUTrace set duration_scaling_factor_");
+	duration_scaling_factor_ = atof(tcl.result());
+}
+//</zheng>
