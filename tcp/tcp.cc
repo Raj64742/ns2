@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.136 2002/09/16 05:28:39 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.137 2002/10/19 22:41:37 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -132,6 +132,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("maxburst_");
         delay_bind_init_one("maxcwnd_");
 	delay_bind_init_one("numdupacks_");
+	delay_bind_init_one("numdupacksFrac_");
         delay_bind_init_one("maxrto_");
 	delay_bind_init_one("minrto_");
         delay_bind_init_one("srtt_init_");
@@ -219,6 +220,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "maxburst_", &maxburst_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxcwnd_", &maxcwnd_ , tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "numdupacks_", &numdupacks_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "numdupacksFrac_", &numdupacksFrac_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxrto_", &maxrto_ , tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "minrto_", &minrto_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "srtt_init_", &srtt_init_ , tracer)) return TCL_OK;
@@ -841,6 +843,19 @@ double TcpAgent::limited_slow_start(double cwnd, double max_ssthresh, double inc
 	if (increment < increment1)
 		increment = increment1;
 	return increment;
+}
+
+/*
+ * For retrieving numdupacks_.
+ */
+int TcpAgent::numdupacks(double cwnd)
+{
+        int cwndfraction = (int) cwnd/numdupacksFrac_;
+	if (numdupacks_ > cwndfraction) {
+	  	return numdupacks_;
+        } else {
+	  	return cwndfraction;
+	}
 }
 
 /*

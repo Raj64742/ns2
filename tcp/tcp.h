@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.99 2002/09/16 05:28:39 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.100 2002/10/19 22:41:37 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -217,6 +217,7 @@ protected:
 	int network_limited();	/* Sending limited by network? */
 	double limited_slow_start(double cwnd, double max_ssthresh, double increment);
 				/* Limited slow-start for high windows */
+	virtual int numdupacks(double cwnd); 	/* for getting numdupacks_ */
 
 	/* Helper functions. Currently used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }
@@ -268,6 +269,8 @@ protected:
 	int maxburst_;		/* max # packets can send back-2-back */
 	int maxcwnd_;		/* max # cwnd can ever be */
         int numdupacks_;	/* dup ACKs before fast retransmit */
+	int numdupacksFrac_;	/* for a larger numdupacks_ with large */
+				/* windows */
 	double maxrto_;		/* max value of an RTO */
 	double minrto_;         /* min value of an RTO */
 	int old_ecn_;		/* For backwards compatibility with the 

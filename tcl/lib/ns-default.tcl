@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.294 2002/09/18 05:41:53 sundarra Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.295 2002/10/19 22:41:36 sfloyd Exp $
 
 
 #
@@ -692,6 +692,7 @@ Agent/TCP set t_seqno_ 0
 Agent/TCP set maxburst_ 0
 Agent/TCP set maxcwnd_ 0
 Agent/TCP set numdupacks_ 3
+Agent/TCP set numdupacksFrac_ 100 ;	# Added 2002/10/18.
 Agent/TCP set window_ 20
 # Agent/TCP set windowInit_ 1
 Agent/TCP set windowInit_ 2 ;		# default changed on 2001/5/26.

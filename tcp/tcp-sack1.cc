@@ -132,14 +132,14 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			 *  acknowledges new data.
  			 */
  		        if(scb_->CheckUpdate()) {
- 			 	if (++dupacks_ == numdupacks_) {
+ 			 	if (++dupacks_ == numdupacks(cwnd_)) {
  					/*
  					 * Assume we dropped just one packet.
  					 * Retransmit last ack + 1
  					 * and try to resume the sequence.
  					 */
  				   	dupack_action();
- 				} else if (dupacks_ < numdupacks_ && singledup_ ) {
+ 				} else if (dupacks_ < numdupacks(cwnd_) && singledup_ ) {
 					send_one();
  				}
 			}
@@ -222,8 +222,8 @@ Sack1TcpAgent::dupack_action()
 		 * advertised window, and equation (3) takes into
 		 * account a data-limited sender.
 		 */
-		pipe_ = maxseq_ - highest_ack_ - numdupacks_;
-		//pipe_ = int(cwnd_) - numdupacks_;
+		pipe_ = maxseq_ - highest_ack_ - numdupacks(cwnd_);
+		//pipe_ = int(cwnd_) - numdupacks(cwnd_);
 		fastrecov_ = TRUE;
 		scb_->MarkRetran(highest_ack_+1);
 		output(last_ack_ + 1, TCP_REASON_DUPACK);
@@ -246,9 +246,9 @@ sack_action:
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	if (oldCode_) {
-	 	pipe_ = int(cwnd_) - numdupacks_;
+	 	pipe_ = int(cwnd_) - numdupacks(cwnd_);
 	} else { 
-                pipe_ = maxseq_ - highest_ack_ - numdupacks_;
+                pipe_ = maxseq_ - highest_ack_ - numdupacks(cwnd_);
 	}
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
