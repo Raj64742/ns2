@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.13 2001/12/03 02:44:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.14 2002/01/02 06:31:13 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -60,6 +60,7 @@ Agent/TCP set delay_growth_ false
 TestSuite instproc finish file {
         global quiet PERL
 	$self instvar cwnd_chan_
+
         exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
           $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp1.rands
         if {$quiet == "false"} {
@@ -121,16 +122,18 @@ TestSuite instproc setTopo {} {
 
 Class Test/tcp -superclass TestSuite
 Test/tcp instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcp
+    set guide_	"Sack TCP."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     $self next
 }
 Test/tcp instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_
+    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_ guide_
+    if {$quiet == "false"} {puts $guide_}
     $self setTopo
     Agent/TCP set window_ 20
     set stopTime  20.0
@@ -168,9 +171,10 @@ Test/tcp instproc run {} {
 
 Class Test/tcpA -superclass TestSuite
 Test/tcpA instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA{increase_0.41,decrease_0.75}
+    set guide_	"Sack TCP, increase_num_ 0.41, decrease_num_ 0.75"
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set increase_num_ 0.41
@@ -181,9 +185,11 @@ Test/tcpA instproc init {} {
 
 Class Test/tcpA_precise -superclass TestSuite
 Test/tcpA_precise instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA_precise{increase_0.41,decrease_0.75}
+    set guide_	\
+    "Sack TCP, increase_num_ 0.41, decrease_num_ 0.75, precisionReduce_ true"
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set increase_num_ 0.41
@@ -195,9 +201,11 @@ Test/tcpA_precise instproc init {} {
 
 Class Test/tcpB -superclass TestSuite
 Test/tcpB instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpB{increase_1.00,decrease_0.875}
+    set guide_	\
+    "Sack TCP, increase_num_ 1.0, decrease_num_ 0.875"
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set increase_num_ 1.0
@@ -242,16 +250,18 @@ TestSuite instproc drop_pkts pkts {
 # First retransmit timeout, ssthresh decreased by half.
 Class Test/ssthresh -superclass TestSuite
 Test/ssthresh instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	ssthresh
+    set guide_	"Retransmit Timeout with Sack TCP."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     $self next
 }
 Test/ssthresh instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_
+    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_ guide_
+    if {$quiet == "false"} {puts $guide_}
     $self setTopo
     $self set_lossylink
     Agent/TCP set window_ 8
@@ -282,9 +292,11 @@ Test/ssthresh instproc run {} {
 
 Class Test/ssthreshA -superclass TestSuite
 Test/ssthreshA instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	ssthreshA
+    set guide_	\
+    "Retransmit Timeout with Sack TCP, increase_num_ 0.41, decrease_num_ 0.75."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set increase_num_ 0.41
@@ -296,16 +308,18 @@ Test/ssthreshA instproc init {} {
 # Second retransmit timeout, ssthresh_second decrease depends on decrease_num_.
 Class Test/ssthresh_second -superclass TestSuite
 Test/ssthresh_second instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	ssthresh_second
+    set guide_	"Two Retransmit Timeouts with Sack TCP."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     $self next
 }
 Test/ssthresh_second instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_
+    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_ guide_
+    if {$quiet == "false"} {puts $guide_}
     $self setTopo
     $self set_lossylink
     Agent/TCP set window_ 8
@@ -336,9 +350,11 @@ Test/ssthresh_second instproc run {} {
 
 Class Test/ssthresh_secondA -superclass TestSuite
 Test/ssthresh_secondA instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	ssthresh_secondA
+    set guide_	"Two Retransmit Timeouts with Sack TCP,
+    increase_num_ 0.41, decrease_num_ 0.75."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set increase_num_ 0.41
@@ -351,9 +367,10 @@ Test/ssthresh_secondA instproc init {} {
 
 Class Test/tcp_tahoe -superclass TestSuite
 Test/tcp_tahoe instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcp_tahoe
+    set guide_	"Tahoe TCP"
     set sender_ TCP
     set receiver_ TCPSink
     Test/tcp_tahoe instproc run {} [Test/tcp info instbody run ]
@@ -361,9 +378,10 @@ Test/tcp_tahoe instproc init {} {
 }
 Class Test/tcpA_tahoe -superclass TestSuite
 Test/tcpA_tahoe instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA_tahoe{increase_0.41,decrease_0.75}
+    set guide_  "Tahoe TCP, increase_num_ 0.41, decrease_num_ 0.75"
     set sender_ TCP
     set receiver_ TCPSink
     Agent/TCP set increase_num_ 0.41
@@ -373,9 +391,11 @@ Test/tcpA_tahoe instproc init {} {
 }
 Class Test/tcpA_precise_tahoe -superclass TestSuite
 Test/tcpA_precise_tahoe instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA_precise_tahoe{increase_0.41,decrease_0.75}
+    set guide_  \
+    "Tahoe TCP, increase_num_ 0.41, decrease_num_ 0.75, precisionReduce_ true"
     set sender_ TCP
     set receiver_ TCPSink
     Agent/TCP set increase_num_ 0.41
@@ -387,9 +407,10 @@ Test/tcpA_precise_tahoe instproc init {} {
 
 Class Test/tcp_reno -superclass TestSuite
 Test/tcp_reno instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcp_reno
+    set guide_  "Reno TCP"
     set sender_ TCP/Reno
     set receiver_ TCPSink
     Test/tcp_reno instproc run {} [Test/tcp info instbody run ]
@@ -397,9 +418,10 @@ Test/tcp_reno instproc init {} {
 }
 Class Test/tcpA_reno -superclass TestSuite
 Test/tcpA_reno instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA_reno{increase_0.41,decrease_0.75}
+    set guide_  "Reno TCP, increase_num_ 0.41, decrease_num_ 0.75"
     set sender_ TCP/Reno
     set receiver_ TCPSink
     Agent/TCP set increase_num_ 0.41
@@ -409,9 +431,11 @@ Test/tcpA_reno instproc init {} {
 }
 Class Test/tcpA_precise_reno -superclass TestSuite
 Test/tcpA_precise_reno instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA_precise_reno{increase_0.41,decrease_0.75}
+    set guide_  \
+    "Reno TCP, increase_num_ 0.41, decrease_num_ 0.75, precisionReduce_ true"
     set sender_ TCP/Reno
     set receiver_ TCPSink
     Agent/TCP set increase_num_ 0.41
@@ -423,9 +447,10 @@ Test/tcpA_precise_reno instproc init {} {
 
 Class Test/tcp_newreno -superclass TestSuite
 Test/tcp_newreno instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcp_newreno
+    set guide_  "NewReno TCP"
     set sender_ TCP/Newreno
     set receiver_ TCPSink
     Test/tcp_newreno instproc run {} [Test/tcp info instbody run ]
@@ -433,9 +458,10 @@ Test/tcp_newreno instproc init {} {
 }
 Class Test/tcpA_newreno -superclass TestSuite
 Test/tcpA_newreno instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA_newreno{increase_0.41,decrease_0.75}
+    set guide_  "NewReno TCP, increase_num_ 0.41, decrease_num_ 0.75"
     set sender_ TCP/Newreno
     set receiver_ TCPSink
     Agent/TCP set increase_num_ 0.41
@@ -445,9 +471,11 @@ Test/tcpA_newreno instproc init {} {
 }
 Class Test/tcpA_precise_newreno -superclass TestSuite
 Test/tcpA_precise_newreno instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	tcpA_precise_newreno{increase_0.41,decrease_0.75}
+    set guide_  \
+    "NewReno TCP, increase_num_ 0.41, decrease_num_ 0.75, precisionReduce_ true"
     set sender_ TCP/Newreno
     set receiver_ TCPSink
     Agent/TCP set increase_num_ 0.41
@@ -463,9 +491,10 @@ Test/tcpA_precise_newreno instproc init {} {
 # IIAD, Inverse Increase Additive Decrease
 Class Test/binomial1 -superclass TestSuite
 Test/binomial1 instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	binomial1{IIAD}
+    set guide_	"TCP with IIAD"
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set decrease_num_ 0.33
@@ -480,9 +509,10 @@ Test/binomial1 instproc init {} {
 # SQRT, Square Root
 Class Test/binomial2 -superclass TestSuite
 Test/binomial2 instproc init {} {
-    $self instvar net_ test_ sender_ receiver_
+    $self instvar net_ test_ sender_ receiver_ guide_
     set net_	net2
     set test_	binomial2{SQRT}
+    set guide_	"TCP with SQRT"
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set decrease_num_ 0.33
@@ -494,7 +524,5 @@ Test/binomial2 instproc init {} {
     $self next
 }
 
-
-
-TestSuite runTest
+TestSuite runTest 
 
