@@ -720,16 +720,16 @@ in ascending order
 on each invocation
 starting from 0x8000
 and ending at 0xFFFF.
-
+.\"
 .IP "\fB$node shape \fIshape\fP"
 Set the shape of the node to "\fIshape\fP". When called before the 
 simulator starts to run, it changes the default shape of 
 the node in the nam trace file. The default shape of a node is """circle"""
-
+.\"
 .IP "\fB$node color \fIcolor\fP"
 Set the color of the node to \fIcolor\fP. It can be called anytime to change 
 the current color of the node in nam trace file, if there is one.
-
+.\"
 .IP "\fB$node get-attribute \fIname\fP"
 Get the specified attribute \fIname\fP of the node. Currently a Node object
 has two attributes: \fICOLOR\fP and \fISHAPE\fP. 
@@ -750,6 +750,7 @@ is an instance of the Simulator or MultiSim object
 that was created to invoke the simulation
 (see TRACE AND MONITORING METHODS section 
 for the output trace format).
+.\"
 .IP "\fB$link trace-callback \fIns cmd\fP"
 Trace all packets on the link with the callback \fIcmd\fP.
 Cmd is invoked for each trace event (enqueue, dequeue, drop)
@@ -758,24 +759,26 @@ with the text that would be logged as parameters.
 A demo of trace callbacks is in 
 the program tcl/ex/callback_demo.tcl
 in the distribution.
-
+.\"
 .IP "\fB$link color \fIcolor\fP"
 Set the color of the Link object. It can be called anytime to change 
 the current color of the link in nam trace file, if there is one.
-
+.\"
 .IP "\fB$link get-attribute \fIname\fP"
 Get the specified attribute \fIname\fP of the Link. Currently a Link object
-has three attributes: \fICOLOR\fP, \fIORIENTATION\fP, and \fIQUEUE_POS\fP. 
-
+has three attributes: \fICOLOR\fP, \fIORIENTATION\fP, and \fIQUEUE_POS\fP.
+.\"
+.LP
 Currently the following two functions should not be directly called. Use
 \fB$ns duplex-link-op\fP instead. Refer to the corresponding section in this 
 man page.
-
+.\"
 .IP "\fB$link orient \fIori\fP"
 Set the orientation of the link to \fIori\fP. When called before the simulator 
 starts to run, it changes the default orientation of the link in nam trace 
 file, if there is one. If orientation is unspecified for any link(s), nam will
 use automatic layout. The default orientation of a Link object is unspecified.
+.\"
 .IP "\fB$link queuePos \fIpos\fP"
 Set the queue position of the link to \fIpos\fP. When called before the 
 simulator starts to run, it changes the default queue placement of the simplex
@@ -2256,7 +2259,7 @@ filehandle.
 is an instance of the Simulator or MultiSim object
 that was created to invoke the simulation.
 
-.IP "\fBcolor \fIid name\fP"
+.IP "\fB$ns color \fIid name\fP"
 Create a color index, which links the number \fIid\fP to the color name 
 \fIname\fP. All colors created \fIbefore\fP the simulator starts to run will 
 be written to nam trace file, if there is any.
@@ -2297,6 +2300,8 @@ Write a nam trace line, which creates a variable trace with name \fIname\fP and
 value \fIvalue\fP, when interpreted by nam. \fItype\fP indicates the type of 
 the variable, e.g., is it a list, array, or a plain variable. Currently only 
 plain variable is supported, for which \fItype\fP = 'v'.
+
+.LP
 
 The following 2 functions should be called \fIafter\fP the simulator starts 
 running. This can be done using \fB$ns at\fP.
