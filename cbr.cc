@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1994-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,13 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.16 1997/12/30 20:46:51 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.17 1998/06/26 02:52:19 gnguyen Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
 #include "rtp.h"
-#include "tclcl.h"
-#include "packet.h"
 #include "random.h"
 
 static class CBRClass : public TclClass {
@@ -86,8 +85,8 @@ void CBR_Agent::timeout(int)
 
 void CBR_Agent::sendpkt()
 {
-        if (++seqno_ < maxpkts_) {
-	        Packet* p = allocpkt();
+	if (++seqno_ < maxpkts_) {
+		Packet* p = allocpkt();
 		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
 		rh->seqno() = seqno_;
 		target_->recv(p);
@@ -104,7 +103,8 @@ void CBR_Agent::sendpkt()
 void CBR_Agent::finish()
 {
 	running_ = 0;
-	Tcl::instance().evalf("%s done", this->name());
+	idle();
+	//	Tcl::instance().evalf("%s done", this->name());
 }
 
 void CBR_Agent::advanceby(int delta)
