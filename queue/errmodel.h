@@ -31,6 +31,8 @@
  * SUCH DAMAGE.
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.8 1997/07/23 02:12:40 kfall Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
