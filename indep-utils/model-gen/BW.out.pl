@@ -89,10 +89,11 @@ while (<>) {
 	$delay=$timea - $timed;
        	if (($c1 ne $client ) || ($s1 ne $server)) {
         	if ( $j gt 0 ) {
-		   @dataq = sort numerically @q;
-		   $m=int($j/2);
-#		   print OUTDELAY "$c1 $s1 $dataq[$m]\n";
-		   print OUTDELAY "$dataq[$m]/2.0\n";
+		   	@dataq = sort numerically @q;
+		   	$m=int($j/2);
+#		   	print OUTDELAY "$c1 $s1 $dataq[$m]\n";
+			$onewayD=$dataq[$m]/2.0;
+                        print OUTDELAY "$onewayD\n";
 		}
 		$#q=0;
 		$q[0]=$delay;
