@@ -131,8 +131,10 @@ CtrMcast instproc leave-group  { group } {
 	    }
 
 	    ### prune off branches
-	    foreach s [$Agent set Slist($group)] {
-		$Agent prune-branch $s $group [$Node id]
+	    if [info exists Slist($group)] {
+		foreach s [$Agent set Slist($group)] {
+		    $Agent prune-branch $s $group [$Node id]
+		}
 	    }
 
 	} else {

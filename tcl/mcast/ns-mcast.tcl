@@ -311,15 +311,17 @@ Node instproc leave-group { agent group } {
 		$r disable $agent
 	    }
     }
-    set k [lsearch -exact $Agents_($group) $agent]
-    if { $k >= 0 } {
-	set Agents_($group) [lreplace $Agents_($group) $k $k]
+    if [info exists Agents_($group)] {
+	set k [lsearch -exact $Agents_($group) $agent]
+	if { $k >= 0 } {
+	    set Agents_($group) [lreplace $Agents_($group) $k $k]
+	}
+	## inform the mcastproto agent
+	$mcastproto_ leave-group $group
+    } else {
+	put stderr "error: leaving a group without joining it"
+	exit 0
     }
-
-    ## inform the mcastproto agent
-
-    $mcastproto_ leave-group $group
-    
 }
 
 Node instproc join-group-source { agent group source } {
@@ -446,7 +448,7 @@ Classifier/Multicast/Replicator instproc add-rep { rep src group iif } {
 Class Classifier/Replicator/Demuxer -superclass Classifier/Replicator
 
 
-Classifier/Replicator set ignore 0
+Classifier/Replicator set ignore_ 0
 
 Classifier/Replicator/Demuxer instproc init args {
 	eval $self next $args
@@ -461,7 +463,7 @@ Classifier/Replicator/Demuxer instproc is-active {} {
 }
 
 Classifier/Replicator/Demuxer instproc insert target {
-	$self instvar nslot_ nactive_ active_ index_
+	$self instvar nslot_ nactive_ active_ index_ ignore_
 
         if [info exists active_($target)] {
                 # treat like enable.. !   
@@ -469,7 +471,7 @@ Classifier/Replicator/Demuxer instproc insert target {
                         $self install $index_($target) $target
                         incr nactive_
                         set active_($target) 1
-                        set ignore 0
+                        set ignore_ 0
                         return 1
                 }
                 return 0
@@ -509,7 +511,8 @@ Classifier/Replicator/Demuxer instproc exists target {
 
 Classifier/Replicator/Demuxer instproc drop { src dst } {
 	set src [expr $src >> 8]
-	$self instvar node_
+	$self instvar node_ ignore_
+        set ignore_ 1
         if [info exists node_] {
 	    [$node_ set mcastproto_] drop $self $src $dst
 	}

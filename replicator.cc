@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.10 1997/08/11 17:42:46 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.11 1997/08/14 21:35:20 polly Exp $";
 #endif
 
 #include "classifier.h"
@@ -65,7 +65,7 @@ public:
 
 Replicator::Replicator() : ignore_(0)
 {
-	bind("ignore", &ignore_);
+	bind("ignore_", &ignore_);
 }
 
 void Replicator::recv(Packet* p, Handler*)
