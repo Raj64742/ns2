@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.513 2002/04/10 20:37:43 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.514 2002/04/13 23:30:26 buchheim Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -15,7 +15,7 @@ with the most recent changes coming first.
 -->
 <hr>
 <h3>
-ns-2.1b9 release PENDING</h3>
+ns-2.1b9 released on Sat Apr 13 16:26:33 PDT 2002</h3>
 
 <ul>
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
@@ -44,7 +44,7 @@ several bug fixes.
 2. Comments added to older version of diffusion examples tcl/ex/{diffusion-rate-run.tcl, diffusion-prob-run.tcl} pointing to th newer diffusion implemented under ~ns/diffusion3 and example scripts available under tcl/ex/diffusion3/.
 
 3. tora bug fixes include removing incoming flag. also replacing
-src() & dst() with saddr() and daddr() resp.
+src() &amp; dst() with saddr() and daddr() resp.
 
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Wed Mar 13 16:44:22 PST 2002
@@ -1531,7 +1531,7 @@ that were in tfrm.cc, as the design becomes more stable.
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Fri Aug 13 17:36:20
 PDT 1999</b></li>
 
-<br>Added a warning to scheduler.cc contributed by Pascal Anelli &lt;Pascal.Anelli@lip6.fr>.
+<br>Added a warning to scheduler.cc contributed by Pascal Anelli &lt;Pascal.Anelli@lip6.fr&gt;.
 <p><li>
 <b><a href="http://www.isi.edu/~haldar">[haldar]</a></b> <b>Fri Aug 13
 17:24:06 PDT 1999</b> Added ifdef's for a stand-alone (without using tclcl
@@ -2542,7 +2542,7 @@ the internet-draft on "Increasing TCP's Initial Window".
 PDT 1998</b></li>
 
 <br>Configure now finds tcl/tk on Debian Linux (patch submitted by Jeffrey
-Austen &lt;jausten@tntech.edu>).
+Austen &lt;jausten@tntech.edu&gt;).
 <p><li>
 <b><a href="mailto:bajaj@parc.xerox.com">[SB]</a></b> Mon Apr 13 10:52:51
 PDT 1998 tcl/lib/ns-random.tcl : Added support to generate a normal distribution.</li>
@@ -2672,7 +2672,7 @@ PST 1998</b></li>
 
 <br>Typo in srm-adaptive.tcl:121, Agent/SRM/Adaptive::recompute-request-params{}
 pointed out by <a href="mailto:woja@media.mit.edu">"Roger \"WOJA\" Kermode"
-&lt;woja@media.mit.edu></a>
+&lt;woja@media.mit.edu&gt;</a>
 <p><li>
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Jan 27 10:47:24
 PST 1998</b></li>
@@ -2841,7 +2841,7 @@ make it easier to configure a simulation with a different kind of addressing.</l
 Added ns at-now functionality in ns-lib.tcl</li>
 
 <p><li>
-Added a code line to fill up ch->timestamp in the function allocpkt in
+Added a code line to fill up ch-&gt;timestamp in the function allocpkt in
 agent.cc</li>
 
 <p><li>
@@ -3114,8 +3114,8 @@ from Tcl).</li>
 <b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b> <b>Thu Oct 23 13:09:11
 PDT 1997</b></li>
 
-<br>SRM fixes, from Christoph Haenle &lt;christoph@starburst.com> and Haobo
-Yu &lt;haoboy@isi.edu>.
+<br>SRM fixes, from Christoph Haenle &lt;christoph@starburst.com&gt; and Haobo
+Yu &lt;haoboy@isi.edu&gt;.
 <p><li>
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Wed Oct 22 21:20:57
 PDT 1997</b></li>
@@ -3929,7 +3929,7 @@ Cleaned up mulicast API(1st pass): tcl/ex/newmcast/mcast[1,2].tcl</li>
 PDT 1997</b></li>
 
 <br>tcp-rbp and friends added. Rate-based pacing is an experimental addition
-to TCP to address the slow-start restart problem. See&nbsp;<http://www.isi.edu/lsam/publications/rate_based_pacing/index.html>for
+to TCP to address the slow-start restart problem. See&nbsp;&lt;http://www.isi.edu/lsam/publications/rate_based_pacing/index.html&gt;for
 details.
 <p><li>
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a> Thu Jun 19 20:00:51
@@ -4138,7 +4138,7 @@ Fixed annoying compiler warnings when used with -Wall in gcc.</li>
 
 <ul>
 <p><li>
-"member initializers for &lt;member1> and &lt;member2> will be re-ordered
+"member initializers for &lt;member1&gt; and &lt;member2&gt; will be re-ordered
 to march declaration order." warnings fixed in packet.h, classifier-hash.cc,
 trace.cc, and queue-monitor.h.</li>
 
@@ -4405,9 +4405,9 @@ list of mods are:
 A new test-suite driver, called ktest-all is in the bin directory. The
 invocation</li>
 
-<pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ktest-all [&lt;suite> [&lt;test> [&lt;topology>]]]</pre>
+<pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ktest-all [&lt;suite&gt; [&lt;test&gt; [&lt;topology&gt;]]]</pre>
 executes:
-<pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ns tcl/test/test-suite-&lt;suite>.tcl &lt;test> &lt;topology></pre>
+<pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ns tcl/test/test-suite-&lt;suite&gt;.tcl &lt;test&gt; &lt;topology&gt;</pre>
 If no test is specified, it runs all the tests in that suite. If no topology
 is specified, it runs the specified test against all topologies defined
 in the topologies file.
@@ -4415,7 +4415,7 @@ in the topologies file.
 Any single test-suite file is now in three parts: (1) tcl/test/topologies.tcl
 contains a library of topologies, and variants for netowrk dynamics. Currently
 four topologies are defined. (2) tcl/test/misc.tcl contains the basic housekeeping
-routines, such as openTrace, finish etc. (3) Individual tests are in tcl/test/test-suite-&lt;suite>.tcl
+routines, such as openTrace, finish etc. (3) Individual tests are in tcl/test/test-suite-&lt;suite&gt;.tcl
 files.</li>
 
 <p><li>
@@ -4435,7 +4435,7 @@ trace files into output for xgraph or gnuplot. Convenient ways of invoking
 either are:</li>
 
 <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; % raw2xg out.tr , xgraph -bb -tk -nl -m -x time -y packets
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; % raw2gp out.tr > out.gp ; gnuplot
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; % raw2gp out.tr &gt; out.gp ; gnuplot
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; load "out.gp"
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ...other gnuplot commands ...
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; exit
@@ -4775,7 +4775,7 @@ be made to fail and recover. The failure and recovery can be controlled
 through distributions.
 <br>Usage:
 <pre>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set ns [new Simulator]
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $ns rtmodel &lt;Distribution> {&lt;up-time> &lt;down-time>} &lt;node1> [&lt;node2>]</pre>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $ns rtmodel &lt;Distribution&gt; {&lt;up-time&gt; &lt;down-time&gt;} &lt;node1&gt; [&lt;node2&gt;]</pre>
 A distribution (Distribution) can be specified either to a single node
 (node1) or to a single link (between node1 and node2). The up-time (down-time)
 is a parameter for the distribution to specify how long the specified node/link
