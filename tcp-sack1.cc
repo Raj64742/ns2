@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.31 1998/06/29 21:55:00 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.32 1998/08/06 22:10:02 tomh Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -93,6 +93,11 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			 * regular ACK not in fast recovery... normal
 			 */
 			newack(pkt);
+			/* if the connection is done, call finish() */
+			if ((highest_ack_ >= curseq_-1) && !closed_) {
+				closed_ = 1;
+				finish();
+			}
 			opencwnd();
 			timeout_ = FALSE;
 			scb_.ClearScoreBoard();
@@ -130,6 +135,11 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			recover_ = 0;
 			fastrecov_ = FALSE;
 			newack(pkt);
+			/* if the connection is done, call finish() */
+			if ((highest_ack_ >= curseq_-1) && !closed_) {
+				closed_ = 1;
+				finish();
+			}
 			timeout_ = FALSE;
 			scb_.ClearScoreBoard();
 
