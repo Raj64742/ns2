@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.191 2000/08/18 18:34:00 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.192 2000/08/18 22:59:53 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -202,11 +202,10 @@ SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) \
 
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
-AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl tcl/lib/ns-stl.tcl validate
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* $(NS).core core core.$(NS) core.$(NSX) core.$(NSE) \
-	ptypes2tcl ptypes2tcl.o $(AUTOCONF_GEN)
+	ptypes2tcl ptypes2tcl.o
 
 SUBDIRS=\
 	indep-utils/cmu-scen-gen/setdest \
@@ -333,9 +332,10 @@ install-recursive: force
 clean:
 	$(RM) $(CLEANFILES)
 
+AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl tcl/lib/ns-stl.tcl validate
 distclean:
 	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
-	    gnuc.h os-proto.h
+	    gnuc.h os-proto.h $(AUTOCONF_GEN)
 
 tags:	force
 	ctags -wtd *.cc *.h webcache/*.cc webcache/*.h dsdv/*.cc dsdv/*.h \
