@@ -408,7 +408,6 @@ Classifier/Replicator/Demuxer instproc drop { src dst {iface -1} } {
 
 Node instproc change-iface { src dst oldiface newiface} {
 	$self instvar multiclassifier_
-	#puts "[$node_ id] change-iface src $src dst $dst old $oldiface new $newiface"
         $multiclassifier_ change-iface $src $dst $oldiface $newiface
 }
 
