@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.27 1999/06/21 22:29:09 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.28 1999/11/19 23:05:30 yaxu Exp $
  */
 
 #ifndef ns_trace_h
@@ -57,7 +57,7 @@ class Trace : public Connector {
 	Tcl_Channel namChan_;
 	char nwrk_ [256];
 #endif
-        char wrk_[256];
+        char wrk_[1024];
         virtual void format(int tt, int s, int d, Packet* p);
         void annotate(const char* s);
 	int show_tcphdr_;  // bool flags; backward compat
