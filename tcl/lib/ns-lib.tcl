@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.147 1999/05/05 19:59:34 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.148 1999/05/06 00:57:53 yaxu Exp $
 
 #
 
@@ -511,6 +511,26 @@ Simulator instproc namtrace-all file {
 	} else {
 		unset namtraceAllFile_
 	}
+}
+
+Simulator instproc namtrace-all-wireless {file optx opty} {
+        $self instvar namtraceAllFile_  
+ 
+
+        if {$file != ""} { 
+                set namtraceAllFile_ $file
+ 
+        } else {
+                unset namtraceAllFile_
+        
+        }       
+        $self puts-nam-config "W -t * -x $optx -y $opty"
+}
+        
+Simulator instproc initial_node_pos {nodep size} {
+        $self puts-nam-config "n -t * -s [$nodep id] \
+        -x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
+        -v circle -c black"
 }
 
 Simulator instproc namtrace-some file {

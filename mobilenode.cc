@@ -159,7 +159,22 @@ MobileNode::command(int argc, const char*const* argv)
 		}		
 	}
 	else if(argc == 3) {
-
+                if(strcmp(argv[1], "radius") == 0) {
+                        radius_ = strtod(argv[2],NULL);
+                        return TCL_OK;
+                }
+                if(strcmp(argv[1], "namattach") == 0) {
+                        Tcl& tcl = Tcl::instance();
+                        int mode;
+                        const char* id = argv[2];
+                        namChan_ = Tcl_GetChannel(tcl.interp(), (char*)id,
+                                                  &mode);
+                        if (namChan_ == 0) {
+                                tcl.resultf("trace: can't attach %s for writing", id);
+                                return (TCL_ERROR);
+                        }
+                        return (TCL_OK);
+                }
 		if(strcmp(argv[1], "random-motion") == 0) {
 			random_motion_ = atoi(argv[2]);
 			return TCL_OK;
