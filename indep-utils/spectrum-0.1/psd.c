@@ -8,7 +8,6 @@ terms of GNU general public license as published by the free software foundation
 
 
 #include "spect.h"
-#include "kiss_fft.h"
 main(int argc,char *argv[])
 {
 
@@ -43,10 +42,11 @@ main(int argc,char *argv[])
 	struct ele *ax;
 
 
-	/* kiss-fft initializations */
+	/* FFTW initializations */
 
-        kiss_fft_cfg cfg=kiss_fft_alloc(1024,0); 
- 
+	fftw_complex *in,*out;
+	fftw_plan p;
+
 	/* To read the data from a file. */
 
 	FILE *fp;  // Input samples 
@@ -96,14 +96,6 @@ main(int argc,char *argv[])
 	int N=0; // Number of samples
 	float tim[3],temp_arr[2]; //Time Stamp
 	int index=0;
-
-	struct s
-	{
-	double re;
-	double im;
-	};
-	
-	
 	
 	
 	
@@ -120,7 +112,8 @@ main(int argc,char *argv[])
 	// To find the sampling frequency
 
 	dif=temp_arr[1]-temp_arr[0];
-	sampling_frequency=1.0/dif;
+        sampling_frequency=1.0/dif;
+//	sampling_frequency=(double)1000;
 	
 	
 	x=(struct ele *)malloc(N*sizeof(struct ele));  //Storage allocation for input samples 
@@ -184,22 +177,24 @@ main(int argc,char *argv[])
 	// The utilization of x is over
 
 
-	/* Now the autocorrelation results are ready so got to call kiss fftw */
+	/* Now the autocorrelation results are ready so got to call fftw */
 
 	NoSamples=2*N-1;
 
+	in=fftw_malloc(NoSamples*sizeof(fftw_complex));
+	out=fftw_malloc(NoSamples*sizeof(fftw_complex));
         j=0;
-	struct s in[NoSamples];
 
 	for(i=0;i<NoSamples;i++)
 		{
-			in[i].re=ax[i].val;
-			in[i].im=0;
+			in[i][j]=ax[i].val;
+			in[i][j+1]=0;
 		}
 
 
-kiss_fft(cfg,in,out);
+	p=fftw_plan_dft_1d(NoSamples,in,out,FFTW_FORWARD,FFTW_ESTIMATE);
 
+	fftw_execute(p);
 
 	abval=(double *)malloc(N*sizeof(double));
 
@@ -207,12 +202,11 @@ kiss_fft(cfg,in,out);
 		for(j=0;j<1;j++)
 		{
 
-        	abval[i]=sqrt((out[i].re*out[i].re)+(out[i].im*out[i].im));
+        	abval[i]=sqrt((out[i][j]*out[i][j])+(out[i][j+1]*out[i][j+1]));
 	        freq=i/(float)NoSamples*sampling_frequency;
 		fprintf(fpsd,"%g %g\n",freq,abval[i]);
 		}
 
-       free(cfg);
        fflush(fpsd);    
 	
        /*To find the Cumulative power spectral density */
@@ -249,7 +243,8 @@ kiss_fft(cfg,in,out);
                      flag=1;
                    }
                 }	
-               fprintf(fcpsd,"%g %g\n",freq,cumpsd[i]);
+              // fprintf(fcpsd,"%g %g\n",freq,cumpsd[i]*cumpsd[N-1]);
+	fprintf(fcpsd,"%g %g\n",freq,cumpsd[i]);
 	}
 
 
@@ -276,6 +271,9 @@ fprintf(statistics,"Sampling frequency : %g\nNumber of Samples : %d\nMean : %g\n
 	free(abval);
 	free(cumpsd);
 
+	fftw_destroy_plan(p);
+	fftw_free(in);
+	fftw_free(out);
 
 	fclose(fp);
 	fclose(fpsd);
