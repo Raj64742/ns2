@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Copyright (c) 1995 The Regents of the University of California.
+# Copyright (c) 2000 The Regents of the University of California.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-plm.tcl,v 1.1 2000/07/19 21:39:38 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-plm.tcl,v 1.2 2000/07/25 05:40:47 haoboy Exp $
 #
-# Contributed by Arnaud Legout at INRIA
+# Contributed by Arnaud Legout at EURECOM
 
 set packetSize 500
 set runtime 80
