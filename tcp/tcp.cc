@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.98 2000/01/05 00:00:59 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.99 2000/01/15 00:15:07 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -694,7 +694,11 @@ void TcpAgent::set_rtx_timer()
 void TcpAgent::newtimer(Packet* pkt)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
-	if (t_seqno_ > tcph->seqno()) 
+	/*
+	 * t_seqno_ is reset (decreased) to highest_ack_ + 1 after a timeout,
+	 *   so we also have to check maxseq_, the highest seqno sent.
+	 */
+	if (t_seqno_ > tcph->seqno() || tcph->seqno() < maxseq_) 
 		set_rtx_timer();
 	else
 		cancel_rtx_timer();
