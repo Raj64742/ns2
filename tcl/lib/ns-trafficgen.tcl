@@ -610,7 +610,7 @@ TrafficGen/ManyTCP instproc trace_stuff {} {
 # xxx
 		$bottle_l_ dump-namconfig
 		$bottle_r_ dump-namconfig
-		[$ns_ nodes-to-link $bottle_l_ $bottle_r_] dump-namconfig
+		[$ns_ link $bottle_l_ $bottle_r_] dump-namconfig
 		$ns_ namtrace-queue $bottle_l_ $bottle_r_ $nam_trace_file_
 		$ns_ namtrace-queue $bottle_r_ $bottle_l_ $nam_trace_file_
 	}
