@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.4 1998/02/28 02:44:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.5 1998/05/23 02:44:40 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -53,6 +53,7 @@ static const char rcsid[] =
 #else
 #include <sys/socket.h>
 #include <sys/uio.h>
+#include <sys/time.h>
 #endif
 #include "net.h"
 
@@ -93,7 +94,8 @@ int Network::command(int argc, const char*const* argv)
 				int rchan = rchannel();
 				unsigned char buf[1024];
 				sockaddr from;		    
-				while (recv(buf, sizeof(buf), from) > 0)
+				double ts;
+				while (recv(buf, sizeof(buf), from, ts) > 0)
 					;
 			}
 			return (TCL_OK);
