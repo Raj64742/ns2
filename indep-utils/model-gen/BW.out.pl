@@ -114,8 +114,9 @@ while (<>) {
         			if ($i gt 3 ) {
 		   			@datan = sort numerically @n;
 				   	$m=int($i/2);
-#					$bw=0.01117/$datan[$m];
-					$bw=0.01117/$datan[$#n];
+#					$bw=0.01168/$datan[$m];
+                                        #take the minimum instead of medium
+					$bw=0.01168/$datan[$#n];
 #					if ( $bw lt 100) {
 #				   		print OUTBW "$c $s  $bw\n";
  				   		print OUTBW "$bw\n";
