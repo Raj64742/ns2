@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.3 1997/05/20 17:49:09 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.4 1997/08/27 19:18:22 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -169,6 +169,41 @@ Test/tahoe4 instproc run {} {
 	# Trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 	$ns_ run
+}
+
+Class Test/tahoe5 -superclass TestSuite
+Test/tahoe5 instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net1
+    set test_	tahoe5
+    $self next
+}
+Test/tahoe5 instproc run {} {
+    $self instvar ns_ node_ testName_
+
+    $ns_ delay $node_(s1) $node_(r1) 3ms
+    $ns_ delay $node_(r1) $node_(s1) 3ms
+
+    set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+    $tcp1 set window_ 50
+    $tcp1 set bugFix_ false
+
+    set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
+    $tcp2 set window_ 50
+    $tcp2 set bugFix_ false
+
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
+
+    $ns_ at 1.0 "$ftp1 start"
+    $ns_ at 1.75 "$ftp2 produce 100"
+
+    $self tcpDump $tcp1 1.0
+
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    $ns_ run
 }
 
 Class Test/no_bug -superclass TestSuite
@@ -470,6 +505,41 @@ Test/reno5 instproc run {} {
 	# Trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ run
+}
+
+Class Test/reno5a -superclass TestSuite
+Test/reno5a instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net1
+    set test_	reno5a
+    $self next
+}
+Test/reno5a instproc run {} {
+    $self instvar ns_ node_ testName_
+
+    $ns_ delay $node_(s1) $node_(r1) 3ms
+    $ns_ delay $node_(r1) $node_(s1) 3ms
+
+    set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
+    $tcp1 set window_ 50
+    $tcp1 set bugFix_ false
+
+    set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 1]
+    $tcp2 set window_ 50
+    $tcp2 set bugFix_ false
+
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
+
+    $ns_ at 1.0 "$ftp1 start"
+    $ns_ at 1.75 "$ftp2 produce 100"
+
+    $self tcpDump $tcp1 1.0
+
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    $ns_ run
 }
 
 Class XTest/telnet -superclass TestSuite
