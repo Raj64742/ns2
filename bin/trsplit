@@ -13,8 +13,7 @@ sub Usage
 	print <<EOF;
 Split ns trace file into files for individual connection
 Usage:  $0 [options] files
-options: -d   delim:  deliminator for spliting the data fields or columns
-	 -c comment:  comment to print at the end along with total throughput
+options: -c comment:  comment to print at the end along with total throughput
 	 -f	:  force new file for each connection
 	 -psize size of packet in bytes
 	 -tt	trace type
@@ -31,37 +30,23 @@ EOF
 
 sub Getopt
 {
-	local($val);
+	local($spec) = @_;
+	local($key);
 	&Usage if ($#ARGV < 0);
 	while ($_ = $ARGV[0], /^-(\w+)/) {
 		shift @ARGV;
-		if (/^-d$/) {
-			$delim = shift @ARGV;
-		}
-		elsif (/^-(pt|fid)$/) {
+		$key = $1;
+		$opt{$key} = (index($spec, "$key:") >= 0) ? shift @ARGV : 1;
+		if (/^-(pt|fid)$/) {
 			# concat to get list of values for a field in the trace
-			$val = shift @ARGV;
-			s/-(\w+)/\$$1/;
-			eval "$_ = $_ . '$val '";
-		}
-		elsif (/^-(tt|psize|ctt|cpt|ctime|csrc|cdst)$/) {
-			$val = shift @ARGV;
-			s/-(\w+)/\$$1/;
-			eval "$_ = '$val'";
-		}
-		elsif (/^-([cf])$/) {
-			$opt{$1} = 1;
-			$force = $opt{'f'};
-		}
-		else {
-			last;
+			$_ = "\$$1";
+			eval "$_ = $_ . '$opt{$key} '";
 		}
 	}
 }
 
 
 # default information on the trace
-$delim = " ";			# deliminator between fields of the trace
 $psize = 1000;			# packet size in bytes
 $tt = '-';			# trace type
 # Column numbers for each field in the trace
@@ -75,25 +60,30 @@ $cseq = 11;
 # the file descriptor number to started with
 $fdcount = 4;
 
-&Getopt;			# get the command line arguments
-
 # Set a couple of defaults if not given at the command line
-$pt = 'tcp'  if !$pt;
-$fid = 0  if !$fid;
-# decrement column number for Perl internal usage
-$ctt--; $ctime--;
-$cpt--; $cfid--; $csrc--; $cdst--; $cseq--;
+&Getopt(":c:psize:tt:ctt:ctime:cpt:cfid:csrc:cdst:cseq:");
+$force = $opt{'f'};
+$fid = 0	if (! $fid);
+$pt = 'tcp'	if (! $pt);
+foreach $key (keys %opt) {
+	if (index("psize:tt", $key) >= 0 || $key =~ /^c(\w+)$/o) {
+		$_ = "\$$key";
+		eval "$_ = $opt{$key}";
+	}
+}
 
+
+shift @ARGV while ($#ARGV >= 0 && (! -r $ARGV[0]));
 
 # process the trace file
 while (<>)
 {
 	chop;
-	@col = split($delim);
-	$count{$col[0]}++;
-	next if ($col[0] ne $tt);
-	next if !grep(/$col[$cpt]/, $pt);
-	next if !grep(/$col[$cfid]/, $fid);
+	@col = ('', split);
+	$count{$col[$ctt]}++;
+	next if ($col[$ctt] ne $tt);
+	next if (index($pt, $col[$cpt]) < 0);
+	next if (index($fid, $col[$cfid]) < 0);
 
 	$src = $col[$csrc];
 	$dst = $col[$cdst];
