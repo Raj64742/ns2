@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.4 1997/06/12 22:53:11 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.5 1997/06/20 01:59:53 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -84,10 +84,10 @@ protected:
 class FlowMon : public EDQueueMonitor {
 public:
 	FlowMon();
-	void in(Packet*);
-	void out(Packet*);
-	void drop(Packet*);
-	void edrop(Packet*);
+	void in(Packet*);	// arrivals
+	void out(Packet*);	// departures
+	void drop(Packet*);	// all drops (incl 
+	void edrop(Packet*);	// "early" drops
 	int command(int argc, const char*const* argv);
 protected:
 	void	dumpflows();
@@ -97,11 +97,21 @@ protected:
 
 	Classifier*	classifier_;
 	Tcl_Channel	channel_;
+
+	int enable_in_;		// enable per-flow arrival state
+	int enable_out_;	// enable per-flow depart state
+	int enable_drop_;	// enable per-flow drop state
+	int enable_edrop_;	// enable per-flow edrop state
 	char	wrk_[256];
 };
 
-FlowMon::FlowMon() : classifier_(NULL), channel_(NULL)
+FlowMon::FlowMon() : classifier_(NULL), channel_(NULL),
+	enable_in_(1), enable_out_(1), enable_drop_(1), enable_edrop_(1)
 {
+	bind_bool("enable_in_", &enable_in_);
+	bind_bool("enable_out_", &enable_out_);
+	bind_bool("enable_drop_", &enable_drop_);
+	bind_bool("enable_edrop_", &enable_edrop_);
 }
 
 void
@@ -109,6 +119,8 @@ FlowMon::in(Packet *p)
 {
 	Flow* desc;
 	EDQueueMonitor::in(p);
+	if (!enable_in_)
+		return;
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
 		desc->setfields(p);
 		desc->in(p);
@@ -119,6 +131,8 @@ FlowMon::out(Packet *p)
 {
 	Flow* desc;
 	EDQueueMonitor::out(p);
+	if (!enable_out_)
+		return;
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
 		desc->setfields(p);
 		desc->out(p);
@@ -130,6 +144,8 @@ FlowMon::drop(Packet *p)
 {
 	Flow* desc;
 	EDQueueMonitor::drop(p);
+	if (!enable_drop_)
+		return;
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
 		desc->setfields(p);
 		desc->drop(p);
@@ -141,6 +157,8 @@ FlowMon::edrop(Packet *p)
 {
 	Flow* desc;
 	EDQueueMonitor::edrop(p);
+	if (!enable_edrop_)
+		return;
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
 		desc->setfields(p);
 		desc->edrop(p);
@@ -163,10 +181,10 @@ char*
 FlowMon::flow_list()
 {
 	register i, j = classifier_->maxslot();
+	const register char* z;
 	Flow* f;
 	register char* p = wrk_;
 	register char* q;
-	const register char* z;
 	q = p + sizeof(wrk_) - 2;
 	*p = '\0';
 	for (i = 0; i <= j; i++) {
