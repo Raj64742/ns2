@@ -45,6 +45,7 @@ bitmap/ff.xbm
 bitmap/play.xbm
 bitmap/rewind.xbm
 bitmap/stop.xbm
+bitops.h
 conf/README
 conf/configure.in.Tcl
 conf/configure.in.TclCL
@@ -84,6 +85,8 @@ classifier-mpath.cc
 classifier-virtual.cc
 classifier.cc
 classifier.h
+codeword.cc
+codeword.h
 config.guess
 config.h
 config.sub
@@ -190,9 +193,14 @@ measuremod.h
 mem-trace.h
 message.cc
 message.h
+mftp.cc
+mftp.h
+mftp_rcv.cc
+mftp_rcv.h
+mftp_snd.cc
+mftp_snd.h
 misc.cc
 ms-adc.cc
-
 nam/animation.cc
 nam/animation.h
 nam/bbox.h
@@ -265,6 +273,7 @@ sa.h
 saack.cc
 salink.cc
 salink.h
+sb.h
 scheduler.cc
 scheduler.h
 scoreboard.cc
