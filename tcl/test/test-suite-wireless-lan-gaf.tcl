@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-gaf.tcl,v 1.2 2001/02/07 10:25:37 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-gaf.tcl,v 1.3 2001/02/28 20:19:21 yaxu Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan-tora
@@ -59,7 +59,7 @@ set opt(sc)             "../mobility/scene/scen-1500x300-60-0-20-2"
 set opt(ifqlen)         50              ;# max packet in ifq
 set opt(nn)             60              ;# number of nodes
 set opt(seed)           0.0
-set opt(stop)           900.0           ;# simulation time
+set opt(stop)           800.0           ;# simulation time
 set opt(tr)             temp.rands          ;# trace file
 set opt(rp)             AODV            ;# routing protocol script
 set opt(lm)             "off"           ;# log movement
@@ -151,7 +151,7 @@ Test/gaf instproc init {} {
 	set opt(cp)		"../mobility/scene/cbr-10-1-10-20" 
 	set opt(sc)		"../mobility/scene/scen-1500x300-60-0-20-2" 
 	set opt(nn)		60      
-	set opt(stop)       900.0
+	set opt(stop)       800.0
 
 	$self next
 
