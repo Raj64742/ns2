@@ -1,9 +1,4 @@
 #
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -35,7 +30,7 @@ Agent/TCP set singledup_ 0
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.10 2001/05/27 02:14:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.11 2001/05/27 03:50:46 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -57,11 +52,9 @@ Agent/TCP set singledup_ 0
 
 # ns-random 0
 
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 
 Class TestSuite
 
@@ -829,7 +822,7 @@ Test/reno4a instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	$self traceQueues $node_(s1) [$self openTrace 2.0 $testName_]
+	$self traceQueues $node_(s1) [$self openTrace 4.0 $testName_]
 	$ns_ run
 }
 
@@ -857,7 +850,7 @@ Test/reno5 instproc run {} {
 	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
-	$ns_ at 1.0 "$ftp2 start"
+	$ns_ at 1.1 "$ftp2 start"
 
 	$self tcpDump $tcp1 1.0
 
