@@ -34,6 +34,7 @@ set n7 [$ns node]
 
 set f [open out-detailedDM2.tr w]
 $ns trace-all $f
+$ns namtrace-all [open out-detailedDM2.nam w]
 
 # 	|4| - |7|
 #     /	      /
@@ -43,12 +44,29 @@ $ns trace-all $f
 #   |	    |
 #  |0|	   |1|
 Simulator set NumberInterfaces_ 1
-$ns multi-link-of-interfaces [list $n5 $n2 $n3 $n6] 1.5Mb 10ms DropTail
+set lan [$ns multi-link-of-interfaces \
+		[list $n5 $n2 $n3 $n6] 1.5Mb 10ms DropTail]
+$ns duplex-link-op $n2 $n6 orient left-up
+$ns duplex-link-op $n2 $n3 orient up
+$ns duplex-link-op $n5 $n6 orient up
+$ns duplex-link-op $n5 $n3 orient right-up
+$ns duplex-link-op $n6 $n3 orient right
+$ns duplex-link-op $n5 $n2 orient right
+
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
+$ns duplex-link-op $n1 $n2 orient up
+
 $ns duplex-link $n4 $n7 1.5Mb 10ms DropTail
+$ns duplex-link-op $n4 $n7 orient left
+
 $ns duplex-link $n7 $n3 1.5Mb 10ms DropTail
+$ns duplex-link-op $n7 $n3 orient down
+
 $ns duplex-link $n5 $n0 1.5Mb 10ms DropTail
+$ns duplex-link-op $n5 $n0 orient down
+
 $ns duplex-link $n4 $n6 1.5Mb 10ms DropTail
+$ns duplex-link-op $n4 $n6 orient down
 
 Prune/Iface/Timer set timeout 0.3
 Deletion/Iface/Timer set timeout 0.1
