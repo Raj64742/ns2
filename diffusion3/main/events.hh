@@ -3,7 +3,7 @@
 // Authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.hh,v 1.7 2002/03/21 19:30:55 haldar Exp $
+// $Id: events.hh,v 1.8 2002/03/21 22:07:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -96,6 +96,9 @@ void timeval_addusecs(struct timeval *tv, int usecs);
 int event_cmp(event *x, event *y);
 
 #ifdef NS_DIFFUSION
+#ifdef RAND_MAX
+#undef RAND_MAX
+#endif
 #define RAND_MAX 2147483647
 #else
 #ifndef RAND_MAX
