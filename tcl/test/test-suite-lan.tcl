@@ -33,7 +33,7 @@ Class TestSuite
 # Routing test using flat routing
 Class Test/lan-routing-flat -superclass TestSuite
 
-# Routing test suing hierarchical routing
+# Routing test using hierarchical routing
 Class Test/lan-routing-hier -superclass TestSuite
 
 # Broadcast test for Classifier/Mac
@@ -55,8 +55,13 @@ TestSuite instproc init {} {
 
 TestSuite instproc finish {} {
 	$self instvar ns_
+	global quiet
+
 	$ns_ flush-trace
-	#puts "finishing.."
+	if { !$quiet } {
+		puts "running nam..."
+		exec nam temp.rands.nam &
+	}
 	exit 0
 }
 
@@ -176,14 +181,20 @@ Test/lan-broadcast instproc run {} {
 
 
 proc runtest {arg} {
+	global quiet
+	set quiet 0
+
 	set b [llength $arg]
 	if {$b == 1} {
 		set test $arg
 	} elseif {$b == 2} {
 		set test [lindex $arg 0]
-	} else {
-		usage
-	}
+		set q [lindex $arg 1]
+		if { $q == "QUIET" } {
+			set quiet 1
+		} else usage
+	} else usage
+
 	switch $test {
 		lan-routing-flat -
 		lan-routing-hier -

@@ -57,12 +57,14 @@ TestSuite instproc init {} {
 }
 
 TestSuite instproc finish { file } {
-	$self instvar ns_
+	$self instvar ns_ 
+	global quiet
 	
 	$ns_ flush-trace
-#	exec awk -f ../nam-demo/nstonam.awk all.tr > [append file \.tr]
-#	puts "running nam ..."
-#	exec nam $file &
+	if { !$quiet } {
+		puts "running nam..."
+		exec nam temp.rands.nam &
+	}
 	exit 0
 }
 
@@ -109,8 +111,9 @@ proc get-subclasses {cls pfx} {
 }
 
 TestSuite proc runTest {} {
-	global argc argv
+	global argc argv quiet
 
+	set quiet 0
 	switch $argc {
 		1 {
 			set test $argv
@@ -124,6 +127,7 @@ TestSuite proc runTest {} {
 			set a [lindex $argv 1]
 			if {$a == "QUIET"} {
 				set topo ""
+				set quiet 1
 			} else {
 				set topo $a
 				isProc? Topology $topo
