@@ -31,11 +31,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/inet.h,v 1.1 1997/05/14 02:47:27 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/inet.h,v 1.2 1997/07/23 02:17:25 kfall Exp $ (LBL)
  */
 
-#ifndef vic_inet_h
-#define vic_inet_h
+#ifndef ns_inet_h
+#define ns_inet_h
 
 #include <sys/types.h>
 #ifdef WIN32
