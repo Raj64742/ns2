@@ -1,10 +1,15 @@
 # All diffusion related procedures go here
 
 
+Simulator instproc add-gear { node } {
+    set gear [new Application/DiffApp/GeoRoutingFilter $node]
+    $self attach-diffapp $node $gear
+    $self at 0.01 "$gear start"
+}
+
 Simulator instproc attach-diffapp { node diffapp } {
     $diffapp dr [$node get-dr]
 }
-
 
 Node instproc get-dr {} {
     $self instvar diffAppAgent_
