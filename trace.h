@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.26 1999/06/21 18:14:04 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.27 1999/06/21 22:29:09 yuriy Exp $
  */
 
 #ifndef ns_trace_h
@@ -70,11 +70,16 @@ class Trace : public Connector {
         void dump();
         inline char* buffer() { return (wrk_); }
 
+	//Default rounding is to 6 digits after decimal
+#define PRECISION 1.0E+6
+	//According to freeBSD /usr/include/float.h 15 is the number of digits 
+	// in a double.  We can specify all of them, because we're rounding to
+	// 6 digits after the decimal and and %g removes trailing zeros.
+#define TIME_FORMAT "%.15g"
 	// annoying way of tackling sprintf rounding platform 
 	// differences :
 	// use round(Scheduler::instance().clock()) instead of 
 	// Scheduler::instance().clock().
-	static const double PRECISION; //keep six digits after the decimal
 	static double round (double x, double precision=PRECISION) {
 		return (double)floor(x*precision + 0.5)/precision;
 	}

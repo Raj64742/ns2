@@ -79,7 +79,7 @@ $ns attach-agent $n5 $rcvr5
 #$ns simplex-connect $encap0 $decap2
 
 ### Start multicast configuration: 
-source ~/vint/ns-main/tcl/mcast/ST.tcl
+source ../../mcast/ST.tcl
 
 ST set RP_(0x8003) $n2
 ST set RP_(0x8004) $n3
@@ -90,19 +90,19 @@ set mrthandle [$ns mrtproto $mproto {}]
 ### End of multicast configuration
 
 
-$ns at 0    "$cbr0 start"
-$ns at 0    "$cbr4 start"
-$ns at 0.05 "$cbr3 start"
-$ns at 0.1  "$n3 join-group   $rcvr3 0x8003"
-$ns at 0.15 "$n4 join-group   $rcvr4 0x8004"
-$ns at 0.2  "$n4 join-group   $rcvr4 0x8003"
-$ns at 0.3  "$n0 join-group   $rcvr0 0x8003"
-$ns at 0.4  "$n3 leave-group  $rcvr3 0x8003"
-$ns at 0.42 "$n0 leave-group  $rcvr0 0x8003"
-$ns at 0.45 "$n5 join-group   $rcvr5 0x8003"
-$ns at 0.5  "$n5 leave-group  $rcvr5 0x8003"
-$ns at 0.52 "$n4 leave-group  $rcvr4 0x8003"
-$ns at 0.55 "finish"
+$ns at 1000    "$cbr0 start"
+$ns at 1000    "$cbr4 start"
+$ns at 1000.05 "$cbr3 start"
+$ns at 1000.1  "$n3 join-group   $rcvr3 0x8003"
+$ns at 1000.15 "$n4 join-group   $rcvr4 0x8004"
+$ns at 1000.2  "$n4 join-group   $rcvr4 0x8003"
+$ns at 1000.3  "$n0 join-group   $rcvr0 0x8003"
+$ns at 1000.4  "$n3 leave-group  $rcvr3 0x8003"
+$ns at 1000.42 "$n0 leave-group  $rcvr0 0x8003"
+$ns at 1000.45 "$n5 join-group   $rcvr5 0x8003"
+$ns at 1000.5  "$n5 leave-group  $rcvr5 0x8003"
+$ns at 1000.52 "$n4 leave-group  $rcvr4 0x8003"
+$ns at 1000.55 "finish"
 
 proc finish {} {
         global ns
