@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.19 2001/09/20 19:05:38 alefiyah Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.20 2002/05/12 21:21:21 difa Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -57,10 +57,10 @@ static const char rcsid[] =
 
 #ifdef __cplusplus
 extern "C" {
-#include <pcap/pcap.h>
+#include <pcap.h>
 }
 #else
-#include <pcap/pcap.h>
+#include <pcap.h>
 #endif
 
 #include "config.h"
