@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.9 1999/03/09 05:20:50 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.10 1999/03/14 21:09:42 haoboy Exp $
 //
 // TcpApp - Transmitting real application data via TCP
 //
@@ -25,7 +25,7 @@
 #ifndef ns_tcpapp_h
 #define ns_tcpapp_h
 
-#include "process.h"
+#include "ns-process.h"
 #include "app.h"
 
 class CBuf { 

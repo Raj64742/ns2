@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.8 1999/03/09 05:20:44 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.9 1999/03/14 21:09:41 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -26,7 +26,7 @@
 #include <tcl.h>
 #include "config.h"
 #include "agent.h"
-#include "process.h"
+#include "ns-process.h"
 #include "app.h"
 
 #include "pagepool.h"

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.148 1999/03/09 03:07:57 yaxu Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.149 1999/03/14 21:09:37 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -144,7 +144,7 @@ OBJ_CC = \
 	dsdv/dsdv.o dsdv/rtable.o \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
-	process.o 
+	ns-process.o 
 #	rap/raplist.o rap/rap.o rap/rapsink.o rap/utilities.o 
 #mac-csma.o mac-multihop.o\
 

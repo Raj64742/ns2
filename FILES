@@ -188,7 +188,6 @@ hackloss.cc
 hb-adc.cc
 heap.h
 indep-utils/cmu-scen-gen/cbrgen.tcl
-indep-utils/cmu-scen-gen/setdest/Makefile
 indep-utils/cmu-scen-gen/setdest/Makefile.in
 indep-utils/cmu-scen-gen/setdest/addrmap-example
 indep-utils/cmu-scen-gen/setdest/calcdest.cc
@@ -315,6 +314,8 @@ node.cc
 node.h
 ns.1
 ns_tclsh.cc
+ns-process.cc
+ns-process.h
 null-estimator.cc
 object.cc
 object.h
@@ -331,8 +332,6 @@ pkt-counter.cc
 pointsample-est.cc
 priqueue.cc
 priqueue.h
-process.cc
-process.h
 propagation.cc
 propagation.h
 ptypes2tcl.cc

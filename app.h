@@ -41,7 +41,7 @@
 #include "tclcl.h"
 #include "packet.h"
 #include "agent.h"
-#include "process.h"
+#include "ns-process.h"
 
 class Agent;
 
