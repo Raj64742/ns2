@@ -130,6 +130,7 @@ public:
 	void update_rtt(double tao, double now); 
 	void increase_rate(double p);
 	void decrease_rate();
+	double initial_rate();
 	void slowstart();
 	void reduce_rate_on_no_feedback();
 	void advanceby(int delta); 
@@ -156,6 +157,7 @@ protected:
 	int oldCode_;		// set to 1 not to use "datalimited_"
 				//   parameter.
 	double last_pkt_time_;	// time the last data packet was sent
+	int maxqueue_;		// max queue from application
 
 	/* "accurate" estimates for formula */
 	double rtt_; /*EWMA version*/
@@ -195,6 +197,14 @@ protected:
 	double minrto_ ;	// for experimental purposes, for a minimum
 				//  RTO value (for use in the TCP-friendly
 				//  equation).
+	double rate_init_;	// Static value for initial rate, in 
+				//   packets per RTT.
+        int rate_init_option_;  /* 1 for using static rate_init_ */
+                                /* 2 for using RFC 3390 */
+	int slow_increase_;	// To use slow increases in the rate during
+				//  slow-start.
+	int ss_changes_;	// To use changes in the slow-start code
+				//  to enable higher initial sending rates.
 
 	/* Responses to heavy congestion. */
 	int conservative_;	// set to 1 for an experimental, conservative 

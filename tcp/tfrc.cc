@@ -96,10 +96,16 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("SndrType_", &SndrType_); 
 	bind("scmult_", &scmult_);
 	bind_bool("oldCode_", &oldCode_);
+	bind("rate_init_", &rate_init_);
+	bind("rate_init_option_", &rate_init_option_);
+	bind_bool("slow_increase_", &slow_increase_); 
+	bind_bool("ss_changes_", &ss_changes_);
 	seqno_ = -1;
 	maxseq_ = 0;
 	datalimited_ = 0;
 	last_pkt_time_ = 0.0;
+	bind("maxqueue_", &maxqueue_);
+	maxqueue_ = MAXSEQ;
 }
 
 /*
@@ -116,9 +122,11 @@ void TfrcAgent::sendmsg(int nbytes, const char* /*flags*/)
         else if (size_ > 0) {
 		int npkts = int(nbytes/size_);
 		npkts += (nbytes%size_ ? 1 : 0);
-		//if (debug_) printf("nbytes: %d size: %d npkts: %d\n",
-		//    nbytes, size_, npkts);
-		advanceby(npkts);
+		// maxqueue was added by Tom Phelan, to control the
+		//   transmit queue from the application.
+		if ((maxseq_ - seqno_) < maxqueue_) {
+			advanceby(npkts);
+		}
 	}
 }
 
@@ -228,13 +236,14 @@ void TfrcAgent::nextpkt()
 			datalimited_ = 1;
 	}
 	
-	// during slow start and congestion avoidance, we increase rate
+	// If slow_increase_ is set, then during slow start, we increase rate
 	// slowly - by amount delta per packet 
-	if ((rate_change_ == SLOW_START) && (oldrate_+SMALLFLOAT< rate_)) {
+	if (slow_increase_ && (!ss_changes_ || round_id > 2) 
+	    && (rate_change_ == SLOW_START) 
+		       && (oldrate_+SMALLFLOAT< rate_)) {
 		oldrate_ = oldrate_ + delta_;
 		xrate = oldrate_;
-	}
-	else {
+	} else {
 		if (ca_) 
 			xrate = rate_ * sqrtrtt_/sqrt(rttcur_);
 		else
@@ -257,14 +266,14 @@ void TfrcAgent::update_rtt (double tao, double now)
 	t_rtt_ = int((now-tao) /tcp_tick_ + 0.5);
 	if (t_rtt_==0) t_rtt_=1;
 	if (t_srtt_ != 0) {
-		register short delta;
-		delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);    
-		if ((t_srtt_ += delta) <= 0)    
+		register short rtt_delta;
+		rtt_delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);    
+		if ((t_srtt_ += rtt_delta) <= 0)    
 			t_srtt_ = 1;
-		if (delta < 0)
-			delta = -delta;
-	  	delta -= (t_rttvar_ >> T_RTTVAR_BITS);
-	  	if ((t_rttvar_ += delta) <= 0)  
+		if (rtt_delta < 0)
+			rtt_delta = -rtt_delta;
+	  	rtt_delta -= (t_rttvar_ >> T_RTTVAR_BITS);
+	  	if ((t_rttvar_ += rtt_delta) <= 0)  
 			t_rttvar_ = 1;
 	} else {
 		t_srtt_ = t_rtt_ << T_SRTT_BITS;		
@@ -272,8 +281,8 @@ void TfrcAgent::update_rtt (double tao, double now)
 	}
 	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) + t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
 	tzero_=t_rtxcur_;
-	if (tzero_ < minrto_) 
- 		tzero_ = minrto_;
+ 	if (tzero_ < minrto_) 
+  		tzero_ = minrto_;
 
 	/* fine grained RTT estimate for use in the equation */
 	if (rtt_ > 0) {
@@ -293,6 +302,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 {
 	double now = Scheduler::instance().clock();
 	hdr_tfrc_ack *nck = hdr_tfrc_ack::access(pkt);
+	//double ts = nck->timestamp_echo;
 	double ts = nck->timestamp_echo + nck->timestamp_offset;
 	double rate_since_last_report = nck->rate_since_last_report;
 	// double NumFeedback_ = nck->NumFeedback_;
@@ -341,7 +351,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 
 	if (first_pkt_rcvd == 0) {
 		first_pkt_rcvd = 1 ; 
-		slowstart ();
+		slowstart();
 		nextpkt();
 	}
 	else {
@@ -351,7 +361,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 				oldrate_ = rate_ = rcvrate;
 			}
 			else {
-				slowstart ();
+				slowstart();
 				nextpkt();
 			}
 		}
@@ -370,50 +380,96 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	Packet::free(pkt);
 }
 
+/*
+ * Used in setting the initial rate.
+ * This is from TcpAgent::initial_wnd().
+ */
+double TfrcAgent::initial_rate()
+{
+        if (rate_init_option_ == 1) {
+		// init_option = 1: static initial rate of rate_init_
+                return (rate_init_);
+        }
+        else if (rate_init_option_ == 2) {
+                // do initial rate according to RFC 3390.
+                if (size_ <= 1095) {
+                        return (4.0);
+                } else if (size_ < 2190) {
+                        return (3.0);
+                } else {
+                        return (2.0);
+                }
+        }
+        // XXX what should we return here???
+        fprintf(stderr, "Wrong number of rate_init_option_ %d\n",
+                rate_init_option_);
+        abort();
+        return (2.0); // XXX make msvc happy.
+}
+
+
+// ss_maxrate_ = 2*rate_since_last_report*size_;
+// rate_: the rate set from the last pass through slowstart()
+// oldrate_: the rate the time before that.
 void TfrcAgent::slowstart () 
 {
 	double now = Scheduler::instance().clock(); 
 
-	if (rate_+SMALLFLOAT< size_/rtt_ ) {
-		/* if this is the first report, change rate to 1 per rtt */
-		/* compute delta so rate increases slowly to new value   */
+	if (rate_+SMALLFLOAT< size_/rtt_) {
+		/* If this is the first report, */
+		/*   change rate to initial rate.*/
+                /* If slow_increase_ is set to true,  */
+		/*   compute delta so rate increases slowly to new value, */
 		oldrate_ = rate_;
-		rate_ = size_/rtt_;
+		if (round_id <= 1) {
+			rate_ =  initial_rate()*size_/rtt_;
+		} else {
+			rate_ = size_/rtt_;
+		}
 		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 		last_change_ = now;
-	} else {
-		/* else multiply the rate by ssmult_, and compute delta, */
-		/*  so that the rate increases slowly to new value       */
-		if (ss_maxrate_ > 0) {
-			if (ssmult_*rate_ < ss_maxrate_ && now - last_change_ > rtt_) {
-				rate_ = ssmult_*rate_; 
-				delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-				last_change_=now;
-			} else {
-				if ( (oldrate_ > ss_maxrate_) || (rate_ > ss_maxrate_)) {
-					if (oldrate_ > ss_maxrate_) {
-						delta_ = 0; 
-						rate_ = oldrate_ = 0.5*ss_maxrate_;
-						last_change_ = now;
-					} else {
-						rate_ = ss_maxrate_; 
-						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-						last_change_ = now; 
-					}
-				} else {
-					if (now - last_change_ > rtt_) {
-						rate_ = ss_maxrate_;
-						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-						last_change_=now;
-					}
-				}
-			}
-		} else {
+	} else if (ss_maxrate_ > 0) {
+		/* Compute delta, so that if slow_increase_ is set,   */
+		/*  the rate increases slowly to its new value.       */
+		if (ssmult_*rate_ < ss_maxrate_ && now - last_change_ > rtt_) {
+			/* Multiply the rate by ssmult_.                 */
+			if (ss_changes_) oldrate_ = rate_;
 			rate_ = ssmult_*rate_; 
 			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 			last_change_=now;
+		} else if (oldrate_ > ss_maxrate_) {
+			// Time to reduce the sending rate,
+			//   to emulate ack-clocking.
+			rate_ = oldrate_ = 0.5*ss_maxrate_;
+			delta_ = 0; 
+			last_change_ = now;
+		} else if ((!ss_changes_ || round_id > 2) 
+			&& rate_ > ss_maxrate_) {
+			// if round_id is 2, then ss_maxrate_ doesn't
+			//   reflect the slow-start sending rate yet.
+			if (ss_changes_) oldrate_ = rate_;
+			rate_ = ss_maxrate_; 
+			delta_ = (rate_ - oldrate_)/ (rate_*rtt_/size_);
+			last_change_ = now; 
+		} else {
+			// rate < ss_maxrate < ssmult_*rate_
+			if (now - last_change_ > rtt_) {
+				if (ss_changes_) oldrate_ = rate_;
+				rate_ = ss_maxrate_;
+				delta_ = (rate_ - oldrate_)/ (rate_*rtt_/size_);
+				last_change_=now;
+			}
 		}
+	} else {
+		// If we get here, ss_maxrate <= 0, so the receive rate is 0.
+		// We should go back to a very small sending rate!!!
+		// Changed by Sally on 10/20/2004.
+		if (ss_changes_) oldrate_ = rate_;
+		if (ss_changes_) rate_ = size_/rtt_; else rate_ = ssmult_*rate_;
+		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+		last_change_=now;
 	}
+	
 }
 
 void TfrcAgent::increase_rate (double p)
@@ -457,6 +513,7 @@ void TfrcAgent::decrease_rate ()
 void TfrcAgent::sendpkt()
 {
 	if (active_) {
+		double now = Scheduler::instance().clock(); 
 		Packet* p = allocpkt();
 		hdr_tfrc *tfrch = hdr_tfrc::access(p);
 		hdr_flags* hf = hdr_flags::access(p);
@@ -472,7 +529,6 @@ void TfrcAgent::sendpkt()
 		tfrch->UrgentFlag=UrgentFlag;
 		tfrch->round_id=round_id;
 		ndatapack_++;
-		double now = Scheduler::instance().clock(); 
 		last_pkt_time_ = now;
 		send(p, 0);
 	}
@@ -501,4 +557,9 @@ void TfrcSendTimer::expire(Event *) {
 
 void TfrcNoFeedbackTimer::expire(Event *) {
 	a_->reduce_rate_on_no_feedback ();
+	// TODO: if the first (SYN) packet was dropped, then don't use
+	//   the larger initial rates from RFC 3390:
+        // if (highest_ack_ == -1 && wnd_init_option_ == 2)
+	//     wnd_init_option_ = 1;
+
 }
