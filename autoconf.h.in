@@ -54,10 +54,18 @@
 #undef HAVE_SNPRINTF
 #undef HAVE_STRTOLL
 #undef HAVE_STRTOQ
+#undef HAVE_ADDR2ASCII
 
 /* headers */
 #undef HAVE_STRING_H
 #undef HAVE_STRINGS_H
 #undef HAVE_ARPA_INET_H
 #undef HAVE_NETINET_IN_H
+#undef HAVE_NET_ETHERNET_H
 
+/* structures */
+#undef HAVE_ETHER_HEADER_STRUCT
+#undef HAVE_ETHER_ADDRESS_STRUCT
+
+/* constants */
+#undef HAVE_SIOCGIFHWADDR
