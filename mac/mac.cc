@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.26.2.2 1998/10/02 18:19:06 kannan Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.26.2.3 1998/10/08 02:34:21 yuriy Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -49,7 +49,7 @@ static class MacHeaderClass : public PacketHeaderClass {
 public:
 	MacHeaderClass() : PacketHeaderClass("PacketHeader/Mac",
 					     sizeof(hdr_mac)) {
-		offset(&hdr_mac::offset_);
+		bind_offset(&hdr_mac::offset_);
 	}
 	void export_offsets() {
 		field_offset("macSA_", OFFSET(hdr_mac, macSA_));
@@ -109,7 +109,7 @@ int Mac::command(int argc, const char*const* argv)
 			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "mcl") == 0) {
+		if (strcmp(argv[1], "classifier") == 0) {
 			tcl.resultf("%s", mcl_->name());
 			return (TCL_OK);
 		}

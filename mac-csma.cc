@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.24 1998/06/27 01:24:04 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.24.2.1 1998/10/08 02:34:16 yuriy Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -151,7 +151,7 @@ void MacCsmaCd::endofContention(Packet* p)
 {
 	// If there is a collision, backoff
 	if (channel_->collision()) {
-		channel_->hold(0);
+		channel_->jam(0);
 		backoff(&hSend_, p);
 	}
 	else

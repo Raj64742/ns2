@@ -28,10 +28,10 @@
 #include "route.h"
 #include "classifier.h"
 
-class lanRouter : public NsObject {
+class LanRouter : public NsObject {
 public:
-	lanRouter() : routelogic_(0), switch_(0), enableHrouting_(false) {};
-	int next_hop(Packet *p);
+	LanRouter() : routelogic_(0), switch_(0), enableHrouting_(false) {};
+	virtual int next_hop(Packet *p);
 protected:
 	int command(int argc, const char*const* argv);
 	void recv(Packet *, Handler * = 0) {} //not used

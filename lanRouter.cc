@@ -28,15 +28,15 @@ static const char rcsid[] =
 #include "address.h"
 #include "ip.h"
 
-static class lanRouterClass : public TclClass {
+static class LanRouterClass : public TclClass {
 public:
-	lanRouterClass() : TclClass("lanRouter") {}
+	LanRouterClass() : TclClass("LanRouter") {}
 	TclObject* create(int, const char*const*) {
-		return (new lanRouter());
+		return (new LanRouter());
 	}
 } class_mac;
 
-int lanRouter::next_hop(Packet *p) {
+int LanRouter::next_hop(Packet *p) {
  	if (switch_ && switch_->classify(p)==1) {
 		return -1;
  	}
@@ -46,15 +46,15 @@ int lanRouter::next_hop(Packet *p) {
 	char* adst= Address::instance().print_nodeaddr(iph->dst());
 	int next_hopIP;
 	if (enableHrouting_) {
-		next_hopIP = routelogic_->lookup_hier(lanaddr_, adst);
+		routelogic_->lookup_hier(lanaddr_, adst, next_hopIP);
 	} else {
-		next_hopIP = routelogic_->lookup_flat(lanaddr_, adst);
+		routelogic_->lookup_flat(lanaddr_, adst, next_hopIP);
 	}
 	delete [] adst;
 
 	return next_hopIP;
 }
-int lanRouter::command(int argc, const char*const* argv)
+int LanRouter::command(int argc, const char*const* argv)
 {
 	// Tcl& tcl = Tcl::instance();
 	if (argc == 3) {

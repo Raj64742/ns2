@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.21.2.1 1998/08/20 22:25:03 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.21.2.2 1998/10/08 02:34:23 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -88,8 +88,8 @@ struct hdr_mac {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_mac* access(Packet* p, int off=-1) {
-		return (hdr_mac*) p->access(off < 0 ? offset_ : off);
+	inline static hdr_mac* access(Packet* p) {
+		return (hdr_mac*) p->access(offset_);
 	}
 
 	inline void set(MacFrameType ft, int sa, int da=-1) {
@@ -130,8 +130,8 @@ public:
 	virtual void resume(Packet* p = 0);
 
 	inline double txtime(Packet* p) {
-		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
-		return (8. * (hdr->size() + hlen_) / bandwidth_);
+		//hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
+		return txtime(hdr_cmn::access(p)->size() + hlen_);
 	}
 	inline double txtime(int bytes) {
 		return (8. * bytes / bandwidth_);

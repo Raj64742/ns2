@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.16.2.1 1998/08/20 22:25:05 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.16.2.2 1998/10/08 02:34:11 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -59,8 +59,8 @@ struct hdr_ll {
 
 	static int offset_;
 	inline int& offset() { return offset_; }
-	static hdr_ll* access(Packet* p, int off=-1) {
-		return (hdr_ll*) p->access(off < 0 ? offset_ : off);
+	static hdr_ll* access(Packet* p) {
+		return (hdr_ll*) p->access(offset_);
 	}
 
 	inline LLFrameType& lltype() { return lltype_; }
@@ -89,7 +89,7 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
-	void handle(Event* e);
+	void handle(Event* e) { recv((Packet*)e, 0); }
 	inline virtual int arp (int ip_addr) { return ip_addr; } 
 	int seqno_;			// link-layer sequence number
 	int ackno_;			// ACK received so far
@@ -98,7 +98,7 @@ protected:
         NsObject* sendtarget_;		// for outgoing packet 
 	NsObject* recvtarget_;		// for incoming packet
 
-        lanRouter* lanrouter_; // for lookups of the next hop
+        LanRouter* lanrouter_; // for lookups of the next hop
 };
 
 #endif

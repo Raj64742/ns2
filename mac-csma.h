@@ -33,14 +33,13 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.h,v 1.15 1998/06/27 01:24:05 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.h,v 1.15.2.1 1998/10/08 02:34:18 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_mac_csma_h
 #define ns_mac_csma_h
 
 #include "mac.h"
-
 
 /*
 // Carrier Sense Multiple Access MAC
@@ -68,7 +67,7 @@ protected:
 	virtual void backoff(Handler* h, Packet* p, double delay=0);
 	double txstart_;	// when the transmission starts
 	double ifs_;		// interframe spacing
-	double slotTime_;	// duration of antenna slot in seconds
+	double slotTime_;	// duration of contention slot in seconds
 	int cw_;		// current contention window
 	int cwmin_;		// minimum contention window for 1st backoff
 	int cwmax_;		// maximum contention window (backoff range)
