@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.14 1997/02/27 04:41:29 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.15 1997/03/07 21:11:14 tomh Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -73,6 +73,14 @@ OldSim instproc init args {
 		$src set agent_ $self
 		return $src
 	}
+	#
+	# Lower 8 bits of dst_ are portID_.  this proc supports backward compat.
+	# for setting the interval for delayed acks
+	#       
+	Agent instproc dst-port {} {
+		$self instvar dst_
+		return [expr $dst_%256]
+	}   
 	#
 	# support for new variable names
 	# it'd be nice to set up mappings on a per-class
