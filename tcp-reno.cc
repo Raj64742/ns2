@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.34 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.35 2001/05/29 23:11:04 haldar Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -176,6 +176,8 @@ RenoTcpAgent::dupack_action()
 	}
 
 reno_action:
+	// we are now going to fast-retransmit and will trace that event
+	trace_event("RENO_FAST_RETX");
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);

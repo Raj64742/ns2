@@ -61,9 +61,9 @@ set redq [[$ns link $node_(r1) $node_(r2)] queue]
 # Use nam trace format for TCP variable trace 
 #Agent/TCP set nam_tracevar_ true
 
-set tcp1 [$ns create-connection TCP/Reno $node_(s1) TCPSink $node_(s3) 0]
+set tcp1 [$ns create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
 $tcp1 set window_ 30
-set tcp2 [$ns create-connection TCP $node_(s4) TCPSink/DelAck $node_(s2) 1]
+set tcp2 [$ns create-connection TCP/Reno $node_(s4) TCPSink $node_(s2) 1]
 #$tcp1 set ecn_ 1
 set ftp1 [$tcp1 attach-app FTP]   
 set ftp2 [$tcp2 attach-app FTP]
@@ -73,8 +73,8 @@ set ftp2 [$tcp2 attach-app FTP]
 #$tcp1 tracevar cwnd_
 
 $ns at 0.0 "$ftp1 start"
-$ns at 2.0 "$ftp2 start"
-$ns at 10.0 "finish"
+$ns at 1.0 "$ftp2 start"
+$ns at 7.0 "finish"
 
 proc finish {} {
         global ns f nf

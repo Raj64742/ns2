@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.49 2001/05/07 04:36:33 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.50 2001/05/29 23:11:04 haldar Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -228,6 +228,9 @@ Sack1TcpAgent::dupack_action()
 	}
 
 sack_action:
+	// we are now going into fast_recovery and will trace that event
+	trace_event("FAST_RECOVERY");
+
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	if (oldCode_) {

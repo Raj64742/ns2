@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.122 2001/05/21 19:27:31 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.123 2001/05/29 23:11:04 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1226,7 +1226,7 @@ void TcpAgent::timeout(int tno)
 	if (tno == TCP_TIMER_RTX) {
 
 		// There has been a timeout - will trace this event
-		trace_event("TCP_TIMEOUT");
+		trace_event("TIMEOUT");
 
 	        if (cwnd_ < 1) cwnd_ = 1;
 		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
@@ -1526,18 +1526,18 @@ void TcpAgent::process_qoption_after_ack (int seqno)
 void TcpAgent::trace_event(char *eventtype)
 {
 	if (et_ == NULL) return;
-	
+	int seqno = t_seqno_;
 	char *wrk = et_->buffer();
 	char *nwrk = et_->nbuffer();
 	if (wrk != 0)
 		sprintf(wrk,
-			"E -t "TIME_FORMAT" -o TCP -e %s -s %d.%d -d %d.%d",
+			"E "TIME_FORMAT" %d %d TCP %s %d %d",
 			et_->round(Scheduler::instance().clock()),   // time
-			eventtype,                    // event type
 			addr(),                       // owner (src) node id
-			port(),                       // owner (src) port id
 			daddr(),                      // dst node id
-			dport()                       // dst port id
+			eventtype,                    // event type
+			fid_,                         // flow-id
+			seqno                         // current seqno
 			);
 	
 	if (nwrk != 0)

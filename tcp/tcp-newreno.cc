@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.43 2000/10/06 05:07:50 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.44 2001/05/29 23:11:03 haldar Exp $ (LBL)";
 #endif
 
 //
@@ -143,6 +143,7 @@ NewRenoTcpAgent::dupack_action()
         }
 
 reno_action:
+	trace_event("NEWRENO_FAST_RETX");
         recover_ = maxseq_;
         last_cwnd_action_ = CWND_ACTION_DUPACK;
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
@@ -219,7 +220,9 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			dupack_action();
 			dupwnd_ = numdupacks_;
 		} else if (dupacks_ > numdupacks_) {
+			trace_event("NEWRENO_FAST_RECOVERY");
 			++dupwnd_;	// fast recovery
+
 			/* For every two duplicate ACKs we receive (in the
 			 * "fast retransmit phase"), send one entirely new
 			 * data packet "to keep the flywheel going".  --Allman
