@@ -247,13 +247,14 @@ proc create-topology {num} {
 	}
 	Queue set limit_ $opt(qsize)
 
+	set s(0) [$ns node]
+	$ns duplex-link $s(0) $node(0) $opt(ibw) $opt(idelay) DropTail
+
 	set lan [$ns make-lan $nodelist $opt(bw) $opt(delay) \
 			LL $opt(ifq) $opt(mac) $opt(chan)]
 	$lan addNode [list $node(0)] $opt(bw) $opt(delay) $opt(ll) $opt(ifq) \
 			$opt(mac)
 
-	set s(0) [$ns node]
-	$ns duplex-link $s(0) $node(0) $opt(ibw) $opt(idelay) DropTail
 }
 
 proc create-source {nsrc} {

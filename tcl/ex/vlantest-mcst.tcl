@@ -1,6 +1,4 @@
 source tcl/lan/vlan.tcl
-source tcl/mcast/DM.tcl
-source tcl/mcast/ns-mcast.tcl
 
 set opt(tr)	out
 set opt(namtr)	"vlantest-mcst.nam"
@@ -58,10 +56,10 @@ proc create-topology {} {
 		lappend nodelist $node($i)
 	}
 
-	set lan [new LanNode $ns -bw $opt(bw) -delay $opt(delay) \
+	set lan [$ns newLan $nodelist $opt(bw) $opt(delay) \
 			-llType $opt(ll) -ifqType $opt(ifq) \
 			-macType $opt(mac) -chanType $opt(chan)]
-	$lan addNode $nodelist 20Mb 2ms
+	#$lan addNode $nodelist $opt(bw) $opt(delay)
 
 	set node0 [$ns node]
 	$ns duplex-link $node0 $node(1) 5Mb 2ms DropTail
@@ -97,13 +95,16 @@ $ns attach-agent $node0 $udp0
 set cbr0 [new Application/Traffic/CBR]
 $cbr0 attach-agent $udp0
 
-set rcvr0 [new Agent/Null]
-$ns attach-agent $nodex $rcvr0
+set rcvrx [new Agent/Null]
+$ns attach-agent $nodex $rcvrx
+set rcvry [new Agent/Null]
+$ns attach-agent $nodey $rcvry
 
 $udp0 set dst_ 0x8003
 $cbr0 set interval_ 0.01
 
-$ns at 0.0 "$cbr0 start"
-$ns at 0.1 "$nodex join-group $rcvr0 0x8003"
+$ns at 0.0 "$nodex join-group $rcvrx 0x8003"
+$ns at 0.0 "$nodey join-group $rcvry 0x8003"
+$ns at 0.1 "$cbr0 start"
 $ns at $opt(stop) "finish"
 $ns run

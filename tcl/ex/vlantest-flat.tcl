@@ -5,10 +5,10 @@ set opt(tr)	out
 set opt(namtr)	"vlantest-flat.nam"
 set opt(seed)	0
 set opt(stop)	.5
-set opt(node)	3
+set opt(node)	4
 
 set opt(qsize)	100
-set opt(bw)	20Mb
+set opt(bw)	10Mb
 set opt(delay)	1ms
 set opt(ll)	LL
 set opt(ifq)	Queue/DropTail
