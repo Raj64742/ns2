@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.13 1998/11/06 02:12:33 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.14 1998/11/30 22:29:13 polly Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -75,7 +75,7 @@ protected:
 	loss_depobj *loss_dependency_;
 	int off_ip_;
 	int ndst_;
-	int rc_;
+	int rc_; //enable reference count
 };
 
 static class SessionHelperClass : public TclClass {
@@ -128,6 +128,7 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 	      }
 	      tmpdst->prev_arrival = tmp_arrival;
 	      if (rc_) {
+		// reference count
 		s.rc_schedule(tmpdst->obj, pkt, tmp_arrival);
 	      } else {
 		Packet* tmppkt = pkt->copy();
