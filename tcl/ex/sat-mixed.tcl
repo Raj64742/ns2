@@ -32,6 +32,8 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-mixed.tcl,v 1.4 2001/11/06 06:20:10 tomh Exp $
+#
 # Example script that mixes geo satellites with some polar satellites:
 # One plane of Iridium-like satellites, one geo satellite, and two terminals 
 # pinging one another on it
@@ -48,7 +50,7 @@ set ns [new Simulator]
 
 HandoffManager/Term set elevation_mask_ 8.2
 HandoffManager/Term set term_handoff_int_ 10
-HandoffManager set handoff_randomization_ "false"
+HandoffManager set handoff_randomization_ false
 
 global opt
 set opt(chan)           Channel/Sat
@@ -60,6 +62,7 @@ set opt(mac)            Mac/Sat
 set opt(ifq)            Queue/DropTail
 set opt(qlim)		50
 set opt(ll)             LL/Sat
+set opt(wiredRouting)   OFF
 
 set opt(alt)		780; # Polar satellite altitude (Iridium)
 set opt(inc)		90; # Orbit inclination w.r.t. equator
@@ -86,7 +89,8 @@ $ns node-config -satNodeType polar \
 		-macType $opt(mac) \
 		-phyType $opt(phy) \
 		-channelType $opt(chan) \
-		-downlinkBW $opt(bw_down)
+		-downlinkBW $opt(bw_down) \
+		-wiredRouting $opt(wiredRouting)
 
 # Create nodes n0 through n10
 set n0 [$ns node]; set n1 [$ns node]; set n2 [$ns node]; set n3 [$ns node] 

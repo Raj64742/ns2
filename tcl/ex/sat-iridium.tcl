@@ -32,6 +32,8 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-iridium.tcl,v 1.4 2001/11/06 06:20:11 tomh Exp $
+#
 # Example of a broadband LEO constellation with orbital configuration 
 # similar to that of Iridium.  The script sets up two terminals (one in 
 # Boston, one at Berkeley) and sends a packet from Berkeley to Boston
@@ -67,9 +69,10 @@ HandoffManager/Term set term_handoff_int_ 10
 HandoffManager/Sat set sat_handoff_int_ 10
 HandoffManager/Sat set latitude_threshold_ 60 
 HandoffManager/Sat set longitude_threshold_ 10 
-HandoffManager set handoff_randomization_ "true"
-SatRouteObject set metric_delay_ "true"
-SatRouteObject set data_driven_computation_ "true"
+HandoffManager set handoff_randomization_ true
+SatRouteObject set metric_delay_ true
+# Set this to false if opt(wiredRouting) == ON below
+SatRouteObject set data_driven_computation_ true
 # "ns-random 0" sets seed heuristically; other integers are deterministic
 ns-random 1
 Agent set ttl_ 32; # Should be > than max diameter in network
@@ -86,6 +89,7 @@ set opt(mac)            Mac/Sat
 set opt(ifq)            Queue/DropTail
 set opt(qlim)           50
 set opt(ll)             LL/Sat
+set opt(wiredRouting) 	OFF
 
 set opt(alt)            780; # Polar satellite altitude (Iridium)
 set opt(inc)            86.4; # Orbit inclination w.r.t. equator
@@ -104,7 +108,8 @@ $ns node-config -satNodeType polar \
 		-macType $opt(mac) \
 		-phyType $opt(phy) \
 		-channelType $opt(chan) \
-		-downlinkBW $opt(bw_down)  
+		-downlinkBW $opt(bw_down) \
+		-wiredRouting $opt(wiredRouting) 
 
 set alt $opt(alt)
 set inc $opt(inc)

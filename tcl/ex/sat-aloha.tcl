@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-aloha.tcl,v 1.4 2001/10/11 14:17:33 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-aloha.tcl,v 1.5 2001/11/06 06:20:11 tomh Exp $
 # 
 # Simple script with a geostationary bent-pipe (repeater) satellite and 
 # one hundred terminals using unslotted (pure) Aloha random access.  The
@@ -86,6 +86,7 @@ set opt(mac)            Mac/Sat/UnslottedAloha
 set opt(ifq)            Queue/DropTail
 set opt(qlim)		50
 set opt(ll)             LL/Sat
+set opt(wiredRouting)   OFF
 
 # XXX This tracing enabling must precede link and node creation 
 set outfile [open out.tr w]
@@ -101,7 +102,8 @@ $ns node-config -satNodeType geo-repeater \
 		-macType $opt(mac) \
 		-phyType $opt(phy) \
 		-channelType $opt(chan) \
-		-downlinkBW $opt(bw_down)
+		-downlinkBW $opt(bw_down) \
+		-wiredRouting $opt(wiredRouting)
 set n1 [$ns node]
 $n1 set-position 0
 
