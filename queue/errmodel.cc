@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.61 1998/10/15 23:34:46 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.62 1998/11/12 10:33:12 ahelmy Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.61 1998/10/15 23:34:46 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.62 1998/11/12 10:33:12 ahelmy Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -717,7 +717,7 @@ int SRMErrorModel::corrupt(Packet* p)
 
 static class MrouteErrorModelClass : public TclClass {
 public:
-	MrouteErrorModelClass() : TclClass("MrouteErrorModel") {}
+	MrouteErrorModelClass() : TclClass("ErrorModel/Trace/Mroute") {}
 	TclObject* create(int, const char*const*) {
 		return (new MrouteErrorModel);
 	}
