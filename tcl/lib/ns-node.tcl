@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38 1998/07/11 00:08:56 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.39 1998/10/07 22:31:30 haldar Exp $
 #
 
 Class Node
@@ -44,12 +44,13 @@ Node proc getid {} {
 Node instproc init args {
 	set args [lreplace $args 0 1]
 	eval $self next $args
-	$self instvar np_ id_ agents_ dmux_ neighbor_
+	$self instvar np_ id_ agents_ dmux_ neighbor_ rtsize_
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
 	set np_ 0
 	set id_ [Node getid]
+        set rtsize_ 0
 	$self mk-default-classifier
 }
 
@@ -98,6 +99,11 @@ Node instproc enable-mcast sim {
 Node instproc add-neighbor p {
 	$self instvar neighbor_
 	lappend neighbor_ $p
+}
+
+Node instproc incr-rtgtable-size {} {
+    $self instvar rtsize_
+    set rtsize_ [expr $rtsize_ + 1]
 }
 
 Node instproc entry {} {
