@@ -38,7 +38,7 @@ Class TestSuite
 Class Test/dsdv -superclass TestSuite
 # wireless model using destination sequence distance vector
 
-#Class Test/dsr -superclass TestSuite
+Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
 
 Class Test/dsdv-wired-cum-wireless -superclass TestSuite
@@ -215,47 +215,47 @@ Test/dsdv instproc run {} {
 }
 
 
-#Test/dsr instproc init {} {
-#    global opt node_ god_
-#    $self instvar ns_ testName_
-#    set testName_       dsr
-#    set opt(rp)         dsr
-#    set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
-#    set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
-#    set opt(nn)         50
-#    set opt(stop)       1000.0
-#
-#    $self next
-#
-#    for {set i 0} {$i < $opt(nn) } {incr i} {
-#        $testName_-create-mobile-node $i
-#    }
-#    puts "Loading connection pattern..."
-#    source $opt(cp)
-#
-#    puts "Loading scenario file..."
-#    source $opt(sc)
-#    puts "Load complete..."
-#
-#    #
-#    # Tell all the nodes when the simulation ends
-#    #
-#    for {set i 0} {$i < $opt(nn) } {incr i} {
-#        $ns_ at $opt(stop).000000001 "$node_($i) reset";
-#    }
-#
-#    $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
-#    #$ns_ halt"
-#    $ns_ at $opt(stop).1 "$self finish"
-#}
-#
-#
-#
-#Test/dsr instproc run {} {
-#    $self instvar ns_
-#    puts "Starting Simulation..."
-#    $ns_ run
-#}
+Test/dsr instproc init {} {
+    global opt node_ god_
+    $self instvar ns_ testName_
+    set testName_       dsr
+    set opt(rp)         dsr
+    set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
+    set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
+    set opt(nn)         50
+    set opt(stop)       1000.0
+
+    $self next
+
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+        $testName_-create-mobile-node $i
+    }
+    puts "Loading connection pattern..."
+    source $opt(cp)
+
+    puts "Loading scenario file..."
+    source $opt(sc)
+    puts "Load complete..."
+
+    #
+    # Tell all the nodes when the simulation ends
+    #
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+        $ns_ at $opt(stop).000000001 "$node_($i) reset";
+    }
+
+    $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
+    #$ns_ halt"
+    $ns_ at $opt(stop).1 "$self finish"
+}
+
+
+
+Test/dsr instproc run {} {
+    $self instvar ns_
+    puts "Starting Simulation..."
+    $ns_ run
+}
 #
 
 Test/dsdv-wired-cum-wireless instproc init {} {

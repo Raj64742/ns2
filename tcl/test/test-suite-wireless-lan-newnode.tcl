@@ -38,7 +38,7 @@ Class TestSuite
 Class Test/dsdv -superclass TestSuite
 # wireless model using destination sequence distance vector
 
-#Class Test/dsr -superclass TestSuite
+Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
 
 #Class Test/tora -superclass TestSuite
@@ -141,7 +141,7 @@ TestSuite instproc init {} {
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
     if {[string compare $testName_ "dsdv"] && \
-	    [string compare $testName_ "tora"]} {
+	    [string compare $testName_ "dsr"]} {
 	     $ns_ set-address-format hierarchical
 	     AddrParams set domain_num_ 3
 	     lappend cluster_num 2 1 1
@@ -161,6 +161,9 @@ TestSuite instproc init {} {
 	puts $tracefd "M 0.0 nn:$opt(nn) x:$opt(x) y:$opt(y) rp:$opt(rp)"
 	puts $tracefd "M 0.0 sc:$opt(sc) cp:$opt(cp) seed:$opt(seed)"
 	puts $tracefd "M 0.0 prop:$opt(prop) ant:$opt(ant)"
+
+	set god_ [create-god $opt(nn)]
+
 }
 
 
@@ -179,7 +182,7 @@ Test/dsdv instproc init {} {
 	#
 	# Create God
 	#
-	set god_ [create-god $opt(nn)]
+#	set god_ [create-god $opt(nn)]
 
 
     $ns_ node-config -adhocRouting DSDV \
@@ -286,64 +289,65 @@ Test/dsdv instproc run {} {
 #}
 #
 
-#Test/dsr instproc init {} {
-#    global opt node_ god_ chan topo
-#    $self instvar ns_ testName_
-#    set testName_       dsr
-#    set opt(rp)         dsr
-#    set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
-#    set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
-#    set opt(nn)         50
-#    set opt(stop)       1000.0
-#
-#    $self next
-#
-#    $ns_ node-config -routingAgent Agent/DSR \
-#                         -llType $opt(ll) \
-#                         -macType $opt(mac) \
-#                         -ifqType $opt(ifq) \
-#                         -ifqlen $opt(ifqlen) \
-#                         -antType $opt(ant) \
-#                         -propType $opt(prop) \
-#                         -phyType $opt(netif) \
-#                         -AgentTrace ON \
-#                         -RouterTrace OFF \
-#                         -MacTrace OFF \
-#                         -MovementTrace OFF
-#
-#
-#    for {set i 0} {$i < $opt(nn) } {incr i} {
-#                set node_($i) [$ns_ node $chan]
-#                $node_($i) random-motion 0              ;# disable random motion
+Test/dsr instproc init {} {
+    global opt node_ god_ chan topo
+    $self instvar ns_ testName_
+    set testName_       dsr
+    set opt(rp)         dsr
+    set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
+    set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
+    set opt(nn)         50
+    set opt(stop)       1000.0
+
+    $self next
+
+    $ns_ node-config -adhocRouting DSR \
+                         -llType $opt(ll) \
+                         -macType $opt(mac) \
+                         -ifqType $opt(ifq) \
+                         -ifqLen $opt(ifqlen) \
+                         -antType $opt(ant) \
+                         -propType $opt(prop) \
+                         -phyType $opt(netif) \
+                         -channelType $opt(chan) \
+                         -topoInstance $topo \
+                         -agentTrace ON \
+                         -routerTrace OFF \
+                         -macTrace OFF \
+                         -movementTrace OFF
+
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+                set node_($i) [$ns_ node]
+                $node_($i) random-motion 0              ;# disable random motion
 #                $node_($i) topography $topo
-#    }
-#    puts "Loading connection pattern..."
-#    source $opt(cp)
-#
-#    puts "Loading scenario file..."
-#    source $opt(sc)
-#    puts "Load complete..."
-#
-#    #
-#    # Tell all the nodes when the simulation ends
-#    #
-#
-#    for {set i 0} {$i < $opt(nn) } {incr i} {
-#	$ns_ at $opt(stop).000000001 "$node_($i) reset";
-#    }
-#
-#    $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
-#    #$ns_ halt"
-#    $ns_ at $opt(stop).1 "$self finish"
-#}
-#
-#
-#
-#Test/dsr instproc run {} {
-#    $self instvar ns_
-#    puts "Starting Simulation..."
-#    $ns_ run
-#}
+    }
+    puts "Loading connection pattern..."
+    source $opt(cp)
+
+    puts "Loading scenario file..."
+    source $opt(sc)
+    puts "Load complete..."
+
+    #
+    # Tell all the nodes when the simulation ends
+    #
+
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+	$ns_ at $opt(stop).000000001 "$node_($i) reset";
+   }
+
+    $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
+    #$ns_ halt"
+    $ns_ at $opt(stop).1 "$self finish"
+}
+
+
+
+Test/dsr instproc run {} {
+    $self instvar ns_
+    puts "Starting Simulation..."
+    $ns_ run
+}
 
 
 TestSuite instproc finish {} {
