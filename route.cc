@@ -38,7 +38,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.12 1998/05/01 18:59:33 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.13 1998/05/07 00:21:38 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -84,6 +84,7 @@ protected:
 	void hier_check(int index);
 	void hier_alloc(int size);
 	void hier_init(void);
+	void ns_strtok(char *addr, int *addrstr);
 	void str2address(const char*const* address, int *src, int *dst);
 	void get_address(char * target, int next_hop, int index, int d, int size, int *src);
 	void hier_insert(int *src, int *dst, int cost);
@@ -126,7 +127,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 			compute_routes();
 			return (TCL_OK);
 		}
-	
+		
 		if (strcmp(argv[1], "hier-compute") == 0) {
 			hier_compute();
 			return (TCL_OK);
@@ -233,7 +234,11 @@ int RouteLogic::command(int argc, const char*const* argv)
 				n;
 			int  src_addr[SMALL_LEN],
 				dst_addr[SMALL_LEN];
-
+			/* initializing src and dst addr */
+			// for (i=0; i < SMALL_LEN; i++){
+// 				src_addr[i] = 0;
+// 				dst_addr[i] = 0;
+// 			}
 			str2address(argv, src_addr, dst_addr);
 			for (i=0; i < HIER_LEVEL; i++)
 				if (src_addr[i]<=0 || dst_addr[i]<=0){
@@ -249,7 +254,11 @@ int RouteLogic::command(int argc, const char*const* argv)
 			int i, n;
 			int  src_addr[SMALL_LEN],
 				dst_addr[SMALL_LEN];
-
+			/* initializing src and dst addr */
+			// for (i=0; i < SMALL_LEN; i++){
+// 				src_addr[i] = 0;
+// 				dst_addr[i] = 0;
+// 			}
 			str2address(argv, src_addr, dst_addr);
 			// assuming node-node addresses (instead of node-cluster or node-domain pair) 
 			// are sent for hier_reset  
@@ -265,7 +274,11 @@ int RouteLogic::command(int argc, const char*const* argv)
 			int i;
 			int  src[SMALL_LEN],
 				dst[SMALL_LEN];
-      
+			/* initializing src and dst addr */
+			// for (i=0; i < SMALL_LEN; i++){
+// 				src_addr[i] = 0;
+// 				dst_addr[i] = 0;
+// 			}
 			if ( hroute_ == 0) {
 				tcl.result("Required Hier_data not sent");
 				return (TCL_ERROR);
@@ -302,12 +315,13 @@ int RouteLogic::command(int argc, const char*const* argv)
 			}
 			int next_hop = 0;
 			/* if node-domain lookup */
-			if ((dst[1] <= 0) && (dst[2] <= 0)) {
+			if (((dst[1] <= 0) && (dst[2] <= 0)) ||
+			    (src[0] != dst[0])){
 				next_hop = hroute_[index][N_D_INDEX(src[2], dst[0], size, C_[d], D_)];
 			}
       
 			/* if node-cluster lookup */
-			else if (dst[2] <= 0) {
+			else if ((dst[2] <= 0) || (src[1] != dst[1])) {
 				next_hop = hroute_[index][N_C_INDEX(src[2], dst[1], size, C_[d], D_)];
 			}
       
@@ -555,54 +569,47 @@ void RouteLogic::hier_init(void)
 	hconnect_ = new (char **)[arr_size];
 }   
 
+
 void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_addr)
 {
-	int  i, n;
-	char tmpstr[SMALL_LEN];
-	char *next,
+	char src[SMALL_LEN];
+	char dst[SMALL_LEN];
+
+	strcpy(src, argv[2]);
+	strcpy(dst, argv[3]);
+
+	ns_strtok(src, src_addr);
+	ns_strtok(dst, dst_addr);
+}
+
+
+void RouteLogic::ns_strtok(char *addr, int *addrstr)
+{
+	int     i;
+	char    tmpstr[SMALL_LEN];
+	char    *next,
 		*index;
-	char **addr;
-
-
-	addr = new char* [2];
-	/* initializing src and dst addr */
-	for (i=0; i < SMALL_LEN; i++){
-		src_addr[i] = 0;
-		dst_addr[i] = 0;
-	}
-  
-	for (i=0, n=2; n<=3; i++,n++){
-		addr[i] = new char [strlen(argv[n])];
-		strcpy(addr[i], argv[n]);
-	}
-
-	for (n=0; n < 2; n++) {
-		i=0;
-		strcpy(tmpstr, addr[n]);
-		next = tmpstr;
-		while(next){
-			index = strstr(next, ".");
-			if (index != NULL){
-				next[index - next] = '\0';
-				if (n == 0)
-					src_addr[i] = atoi(next) + 1;
-				else
-					dst_addr[i] = atoi(next) + 1;
-				next = index + 1;
-				i++;
-			}
-			else {
-				if(n == 0)
-					src_addr[i] = atoi(next) + 1;
-				else
-					dst_addr[i] = atoi(next) + 1;
-				break;
-			}
+	
+	    	
+	
+	i = 0;
+	strcpy(tmpstr, addr);
+	next = tmpstr;
+	while(next){
+		index = strstr(next, ".");
+		if (index != NULL){
+			next[index - next] = '\0';
+			addrstr[i] = atoi(next) + 1;
+			next = index + 1;
+			i++;
+		}
+		else {
+			addrstr[i] = atoi(next) + 1;
+			break;
 		}
 	}
-	delete [] addr;
-    
 }
+
 
 
 void RouteLogic::get_address(char *address, int next_hop, int index, int d, int size, int *src)
