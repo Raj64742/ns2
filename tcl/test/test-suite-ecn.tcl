@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.6 1998/05/11 22:26:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.7 1998/05/12 01:57:46 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -249,6 +249,9 @@ TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     if {$tcptype == "Tahoe"} {
       set tcp1 [$ns_ create-connection TCP $node_(s1) \
 	  TCPSink $node_(s3) $tcp1fid]
+    } elseif {$tcptype == "Sack1"} {
+      set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
+	  TCPSink/Sack1  $node_(s3) $tcp1fid]
     } else {
       set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
 	  TCPSink $node_(s3) $tcp1fid]
@@ -272,6 +275,9 @@ TestSuite instproc second_tcp { tcptype starttime } {
     if {$tcptype == "Tahoe"} {
       set tcp [$ns_ create-connection TCP $node_(s1) \
 	 TCPSink $node_(s3) 2]    
+    } elseif {$tcptype == "Sack1"} { 
+      set tcp [$ns_ create-connection TCP/Sack1 $node_(s1) \
+          TCPSink/Sack1  $node_(s3) 2]
     } else {
       set tcp [$ns_ create-connection TCP/$tcptype $node_(s1) \
 	 TCPSink $node_(s3) 2]
@@ -545,6 +551,7 @@ Test/ecn_drop_reno instproc run {} {
 }
 
 # ECN preceded by packet loss.
+# NO.
 Class Test/ecn_drop1_reno -superclass TestSuite
 Test/ecn_drop1_reno instproc init topo {
         $self instvar net_ defNet_ test_
@@ -671,6 +678,231 @@ Test/ecn_timeout1_reno instproc run {} {
 }
 
 #######################################################################
+# Sack1 Tests #
+#######################################################################
+
+# Plain ECN
+Class Test/ecn_nodrop_sack -superclass TestSuite
+Test/ecn_nodrop_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_nodrop_sack
+        $self next
+}
+Test/ecn_nodrop_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1 
+	$self drop_pkt 10000
+	$ns_ run
+}
+
+# Two ECNs close together
+Class Test/ecn_twoecn_sack -superclass TestSuite
+Test/ecn_twoecn_sack instproc init topo {
+        $self instvar net_ defNet_ test_ 
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_twoecn_sack
+        $self next
+}
+Test/ecn_twoecn_sack instproc run {} {
+	$self instvar ns_ lossmodel
+	$self ecnsetup Sack1 
+	$self drop_pkt 243
+	$lossmodel set markecn_ true
+	$ns_ run
+}
+
+# ECN followed by packet loss.
+Class Test/ecn_drop_sack -superclass TestSuite
+Test/ecn_drop_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+#        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_drop_sack
+        $self next
+}
+Test/ecn_drop_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1
+	$self drop_pkt 243
+	$ns_ run
+}
+
+# ECN preceded by packet loss.
+Class Test/ecn_drop1_sack -superclass TestSuite
+Test/ecn_drop1_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_drop1_sack
+        $self next
+}
+Test/ecn_drop1_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1
+	$self drop_pkt 241
+	$ns_ run
+}
+
+# Packet loss only.
+Class Test/ecn_noecn_sack -superclass TestSuite
+Test/ecn_noecn_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+	Queue/RED set thresh_ 1000
+	Queue/RED set maxthresh_ 1000
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_noecn_sack
+	Test/ecn_noecn_sack instproc run {} [Test/ecn_drop_sack info instbody run ]
+        $self next
+}
+
+# Multiple dup acks with bugFix_
+Class Test/ecn_bursty_sack -superclass TestSuite
+Test/ecn_bursty_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+	Queue/RED set thresh_ 100
+	Queue/RED set maxthresh_ 100
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_bursty_sack
+        $self next
+}
+Test/ecn_bursty_sack instproc run {} {
+	$self instvar ns_
+
+	$self ecnsetup Sack1
+        set lossmodel [$self setloss]
+        $lossmodel set offset_ 245
+	$lossmodel set burstlen_ 15
+        $lossmodel set period_ 10000
+	$ns_ run
+}
+
+# Multiple dup acks following ECN
+Class Test/ecn_burstyEcn_sack -superclass TestSuite
+Test/ecn_burstyEcn_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_burstyEcn_sack
+	Test/ecn_burstyEcn_sack instproc run {} [Test/ecn_bursty_sack info instbody run ]   
+        $self next
+}
+
+# Multiple dup acks without bugFix_
+Class Test/ecn_noBugfix_sack -superclass TestSuite
+Test/ecn_noBugfix_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+	Queue/RED set thresh_ 100 
+	Queue/RED set maxthresh_ 100
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ false
+        set test_	ecn_noBugfix_sack
+	Test/ecn_noBugfix_sack instproc run {} [Test/ecn_bursty_sack info instbody run ]
+
+        $self next
+}
+
+# ECN followed by timeout.
+Class Test/ecn_timeout_sack -superclass TestSuite
+Test/ecn_timeout_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout_sack
+        $self next
+}
+Test/ecn_timeout_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
+
+	$ns_ run
+}
+
+# ECN followed by timeout.
+Class Test/ecn_timeout4_sack -superclass TestSuite
+Test/ecn_timeout4_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+	Queue/RED set thresh_ 100
+	Queue/RED set maxthresh_ 100
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout4_sack
+        $self next
+}
+Test/ecn_timeout4_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
+
+	$ns_ run
+}
+
+# ECN followed by timeout.
+Class Test/ecn_timeout3_sack -superclass TestSuite
+Test/ecn_timeout3_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout3_sack
+        $self next
+}
+Test/ecn_timeout3_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1 1
+	$self drop_pkts {242 244 267 268} 
+
+	$ns_ run
+}
+
+# Timeout followed by ECN.
+# But redo this without dropping packets 264 and 265, so that we
+#  get a Dup Ack with ECN.
+Class Test/ecn_timeout1_sack -superclass TestSuite
+Test/ecn_timeout1_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout1_sack
+        $self next
+}
+Test/ecn_timeout1_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
+	$self second_tcp Sack1 1.0
+	$ns_ run
+}
+
+#################################################################
 
 # 
 # Links1 uses 8Mb, 5ms feeders, and a 800Kb 20ms bottleneck.
