@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.1 1997/01/27 16:17:31 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.2 1997/03/07 20:36:17 mccanne Exp $";
 #endif
 
 #include "connector.h"
@@ -76,5 +76,5 @@ int Connector::command(int argc, const char*const* argv)
 
 void Connector::recv(Packet* p, Handler* h)
 {
-	target_->recv(p, h);
+	send(p, h);
 }
