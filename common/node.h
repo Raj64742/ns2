@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.10 1999/07/29 23:51:33 kkumar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.11 1999/08/07 21:17:59 yaxu Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -49,8 +49,10 @@
 #include "list.h"
 #include "net-interface.h"
 #include "energy-model.h"
+#include "location.h"
 
 class LinkHead;
+
 LIST_HEAD(linklist_head, LinkHead); // declare list head structure 
 /*
  * The interface between a network stack and the higher layers.
@@ -102,6 +104,7 @@ class Node : public TclObject {
 	inline int address() { return address_;}
 	inline double energy() { return energy_model_->energy();}
 	inline EnergyModel *energy_model() { return energy_model_; }
+	inline Location *location() { return location_;}
 
 	int address_;
 
@@ -121,6 +124,8 @@ class Node : public TclObject {
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
 	EnergyModel *energy_model_;
+	Location * location_;
+      	
 };
 
 #ifdef zero
