@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) Xerox Corporation 1997. All rights reserved.
+ *
+ * License is granted to copy, to use, and to make and to use derivative
+ * works for research and evaluation purposes, provided that Xerox is
+ * acknowledged in all documentation pertaining to any such copy or
+ * derivative work. Xerox grants no other licenses expressed or
+ * implied. The Xerox trade name should not be used in any advertising
+ * without its written permission. 
+ *
+ * XEROX CORPORATION MAKES NO REPRESENTATIONS CONCERNING EITHER THE
+ * MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
+ * FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without
+ * express or implied warranty of any kind.
+ *
+ * These notices must be retained in any copies of any part of this
+ * software. 
+ */
+
+#include "adc.h"
+#include <stdlib.h>
+
+ADC::ADC() :bandwidth_(0)
+{
+	bind_bw("bandwidth_",&bandwidth_);
+}
+
+int ADC::command(int argc,const char*const*argv)
+{
+	
+	Tcl& tcl = Tcl::instance();
+	if (argc==2) {
+		if (strcmp(argv[1],"start") ==0) {
+			/* $adc start */
+			est_[1]->start();
+			return (TCL_OK);
+		}
+	} else if (argc==4) {
+		if (strcmp(argv[1],"attach-measmod") == 0) {
+			/* $adc attach-measmod $meas $cl */
+			MeasureMod *meas_mod =  (MeasureMod *)TclObject::lookup(argv[2]);
+			if (meas_mod== 0) {
+				tcl.resultf("no measuremod found");
+				return(TCL_ERROR);
+			}
+			int cl=atoi(argv[3]);
+			est_[cl]->setmeasmod(meas_mod);
+			return(TCL_OK);
+		} else if (strcmp(argv[1],"attach-est") == 0 ) {
+			/* $adc attach-est $est $cl */
+			Estimator *est_mod = (Estimator *)TclObject::lookup(argv[2]);
+			if (est_mod== 0) {
+				tcl.resultf("no estmod found");
+				return(TCL_ERROR);
+			}
+			int cl=atoi(argv[3]);
+			setest(cl,est_mod);
+			return(TCL_OK);
+		}
+	}
+	return (NsObject::command(argc,argv));
+}
+
+

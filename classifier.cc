@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.14 1997/12/23 19:28:51 bajaj Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.15 1998/02/09 21:03:07 bajaj Exp $";
 #endif
 
 #include <stdlib.h>
@@ -119,7 +119,7 @@ int Classifier::getnxt()
  * objects only ever see "packet" events, which come either
  * from an incoming link or a local agent (i.e., packet source).
  */
-void Classifier::recv(Packet* p, Handler*)
+void Classifier::recv(Packet* p, Handler*h)
 {
 	NsObject* node = find(p);
 	if (node == NULL) {
@@ -130,7 +130,7 @@ void Classifier::recv(Packet* p, Handler*)
 		Packet::free(p);
 		return;
 	}
-	node->recv(p);
+	node->recv(p,h);
 }
 
 /*

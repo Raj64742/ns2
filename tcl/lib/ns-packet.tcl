@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.14 1997/12/17 01:16:12 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.15 1998/02/09 21:03:19 bajaj Exp $
 #
 #
 # set up the packet format for the simulation
@@ -59,7 +59,8 @@ foreach pair {
 	        { Tap off_tap_ }
 	        { aSRM off_asrm_ }
 		{ SRM off_srm_ }
-                { SRMEXT off_srm_ext_}} {
+                { SRMEXT off_srm_ext_}
+                { Resv off_resv_}} {
 	set cl PacketHeader/[lindex $pair 0]
 	set var [lindex $pair 1]
 	PacketHeaderManager set vartab_($cl) $var

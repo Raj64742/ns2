@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.10 1997/12/19 22:20:11 bajaj Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.11 1998/02/09 21:03:08 bajaj Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -44,7 +44,7 @@ class Classifier : public NsObject {
  public:
 	Classifier();
 	~Classifier();
-	void recv(Packet*, Handler* h = 0);
+	void recv(Packet* p, Handler* h);
 	int maxslot() const { return maxslot_; }
 	inline NsObject* slot(int slot) {
 		if ((slot >= 0) || (slot < nslot_))

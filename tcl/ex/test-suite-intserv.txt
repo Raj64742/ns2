@@ -1,0 +1,160 @@
+/*
+ * Copyright (c) Xerox Corporation 1997. All rights reserved.
+ *
+ * License is granted to copy, to use, and to make and to use derivative
+ * works for research and evaluation purposes, provided that Xerox is
+ * acknowledged in all documentation pertaining to any such copy or
+ * derivative work. Xerox grants no other licenses expressed or
+ * implied. The Xerox trade name should not be used in any advertising
+ * without its written permission. 
+ *
+ * XEROX CORPORATION MAKES NO REPRESENTATIONS CONCERNING EITHER THE
+ * MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
+ * FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without
+ * express or implied warranty of any kind.
+ *
+ * These notices must be retained in any copies of any part of this
+ * software. 
+ */
+
+The script test-suite-intserv.tcl helps runs various measurement based admission
+control algorithms for controlled-load services in ns. 
+
+A. FUNCTIONALITY :
+------------------
+To support controlled load services, there have been essentially 2
+pieces of functionality added :
+1. End to End signalling mechanism to request a new connection.
+2. Enhanced Link Structure.
+
+
+1.End to End Signalling Mechanism(sa.cc,saack.cc):
+  ------------------------------------------------
+A very simple end-to-end signalling protocol(which uses a 3 way handshake)
+has been implemented to request services. 
+
+The signalling protocol is sender-initiated wherein
+the sender sends a "request message"(PT_REQUEST) with the token bucket
+parameters(r,b).The message  goes all the way to the receiver thru the
+intserv enhanced links. 
+
+The receiver reverses the "request message" as a
+"reply message"(PT_REPLY) to the sender. The sender then resends the
+"reply message" as "confirm message"(PT_CONFIRM) to the receiver. The reply
+message is needed to indicate to the sender about the successful
+establishment of connection, after which it may start transmitting
+data packets. If the reply is a reject, then the source sends the
+"confirm message" and no more packets.
+Since, in the ns framework, the reply message traverses through
+different simple-links than the request message, the confirm message is
+required to indicate to the signal-support boxes(see below) in the links about
+the fate of the connection. This is particularly significant for the
+state of those links which said "yes" to a connection but the
+connection got rejected on a downstream link.
+
+Finally the sender sends a teardown message at the end of the connection.
+
+Consequently there are 4 new packet types added :
+PT_REQUEST
+PT_REPLY
+PT_CONFIRM
+PT_TEARDOWN
+
+In addition, a new header type (hdr-resv) (in resv.h) defines fields
+(for token bucket parameters) for integrated services.
+
+2. Intserv Link :
+---------------
+The SimpleLink structure has been enhanced to look like :
+                      ______________________________________
+                     |         |                |           |
+                     |Admission|            ____|____   ____|____
+       |-------------|Control  |           |         | |         |
+       |             |         |           |Estimator| |Estimator|
+       |             |_________|           |____1____| |____n____|
+       |                                       |       |
+       |                                    ___|___    |
+       |                                   |       |   |         _____ 
+    ___|____     _________     _____     _>|Meas-  |   |        |     |
+   |        |   |         |   |     \   | >|urement|   |        |Delay|
+__>| Signal |__>|Scheduler|__>|Class-\__|  | for   |___|_______>|Link |
+  >| Support|  >|(Queue)  |  >|-ifier/  |  |class 1|   |    |  >|_____| 
+   |________|   |_________|   |_____/   |  |_______|   |    |       
+                                        |   ......     |    |
+                                        |   ......     |    |
+                                        |_> _______    |    |
+                                        | >|       |   |    |            
+                                        |  |Meas-  |   |    |
+                                        |  |urement|___|    |
+                                        |  | for   |________|
+                                        |  |class n|        |
+                                        |  |_______|        |
+                                        |                   |
+                                        |>__________________|
+                                         > Best Effort traffic
+___> indicates packet flow
+   >
+
+
+For supporting controlled load service only, it is assumed that there
+would be only 2 classes of traffic : controlled load and best effort and
+so the above link model simplifies to one where there is only 1
+measurement and 1 estimator box (tcl/ex/ns-intserv.tcl implements the
+above link structure).
+
+
+A detailed description of each of the components is as follows :
+
+Signal-support(salink.cc):
+-------------------------
+The links need to maintain some transient state about flows requesting
+service (specifically the link needs to remember its decision for a
+new flow until it gets the PT_CONFIRM message).
+
+Scheduler(simple-intserv-sched.cc):
+------------------------------
+For controlled load service support, a very simple scheduler queue is
+implemented as a 2 level service priority queue. Also all signalling
+control messages are explicitly prevented from drops.
+
+Classifier:
+----------
+Currently, the classifier is a flow-classifier. It treats all traffic
+with non-zero fid as controlled load traffic and those with zero fid
+as best effort traffic.
+
+
+Measurement, Estimator and Admission Control Objects:
+----------------------------------------------------
+The measurement object is a very simple object that measures per-class
+packets. The Estimator estimates the used bandwidth based on the
+etimation algorithm in play (which could one of TimeWindow,
+PointSample or Exponential Average). The admission control object
+makes an admission control decision based on the load estimate (from
+the estimator) and the admission control algorithm in play (which could
+be one of Measured Sum, Hoeffding bounds, Acceptance region-Tangent at
+Origin or Acceptance region-Tangent at Peak). When a new connection
+request comes to a link, the signal-support module asks the admission
+control for a decision which in turn looks at the current load
+estimate and the new flow parameters.  
+
+
+B.USER-LEVEL API :
+-----------------
+To create a int-serv enabled link, use :
+
+$ns duplex-intserv-link $n1 $n2 <link bw> <propgn delay> <sched type>
+<signal-support type>  <adc type > <est type> <service class 1>
+<service class 1 params>... <service class n) <service class n params>
+
+
+A very simple example of controlled load service class can be found in 
+test-suite-intserv.tcl.
+
+This support can be tested by saying something like:
+% ns tcl/ex/test-suite-intserv.tcl ADC=MS EST=TimeWindow
+utilization_=0.95 SM=5e3
+
+which would run the test-suite for measured sum admission control 
+with a time-window estimator. The remaining command line params above are 
+specific to the measured-sum algorithm.

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.78 1998/01/23 08:15:38 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.79 1998/02/09 21:03:18 bajaj Exp $
 #
 
 #
@@ -74,6 +74,7 @@ source ns-random.tcl
 source ns-route.tcl
 source ns-namsupp.tcl
 source ns-errmodel.tcl
+source ns-intserv.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mlink.tcl
@@ -303,10 +304,13 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	if { $argsz == 1 } {
 		set type $arg
 	} else {
+	    if { [ lindex $arg 0] == "intserv" } {
+		set type [lindex $arg 1]
+	    } else {
 		set type [lindex $arg 0]
 		set larg [lindex $arg 1]
+	    }
 	}
-
 	if [info exists queueMap_($type)] {
 		set type $queueMap_($type)
 	}
@@ -342,7 +346,11 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 		if { $type == "RTM" || $type == "CBQ" || $type == "CBQ/WRR" } {
 			set link_($sid:$did) [new CBQLink $nd1 $nd2 $bw $delay $q $larg]
 		}
-	} else {
+		#XX need to clean this up
+		if { [lindex $arg 0] == "intserv" } {
+		    set link_($sid:$did) [new IntServLink $nd1 $nd2 $bw $delay $q $arg]
+		}
+	    } else {
 		if { $type == "CBQ" || $type == "CBQ/WRR" } {
 			# default classifier for cbq is just Fid type
 			set classifier [new Classifier/Hash/Fid 33]
@@ -417,6 +425,10 @@ Simulator instproc duplex-link { n1 n2 bw delay type } {
 	# automatic layout doesn't require calling Link::orient.
 	$self instvar link_
 	$self register-nam-linkconfig $link_([$n1 id]:[$n2 id])
+}
+
+Simulator instproc duplex-intserv-link { n1 n2 bw pd sched signal adc args } {
+    $self  duplex-link $n1 $n2 $bw $pd "intserv $sched $signal $adc $args"
 }
 
 Simulator instproc duplex-link-op { n1 n2 op args } {
