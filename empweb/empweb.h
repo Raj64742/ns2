@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.2 2001/06/14 07:16:55 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.3 2001/06/14 20:27:55 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -51,11 +51,11 @@ class EmpWebTrafPool;
 
 class EmpWebTrafSession : public TimerHandler {
 public: 
-	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum, int clientId) : 
+	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum) : 
 		rvInterPage_(NULL), rvPageSize_(NULL),
 		rvInterObj_(NULL), rvObjSize_(NULL), 
 		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
-		numOfPersConn_(0), usePers_(0), clientId_(clientId),
+		numOfPersConn_(0), usePers_(0), 
 		maxNumOfPersConn_(connNum),
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
 		id_(id) {}
@@ -72,7 +72,7 @@ public:
 	inline EmpiricalRandomVariable*& serverSel() { return rvServerSel_; }
 
 	void donePage(void* ClntData);
-	void launchReq(void* ClntData, int obj, int size, int reqSize);
+	void launchReq(void* ClntData, int obj, int size, int reqSize, int sid);
 	inline int id() const { return id_; }
 	inline EmpWebTrafPool* mgr() { return mgr_; }
 
@@ -98,7 +98,6 @@ private:
 	Node* src_;		// One Web client (source of request) per session
 	int nPage_, curPage_, donePage_;
 	int id_;
-	int clientId_ ;
 
         //modeling HTTP1.1
 	PersConn** persistConn_; 

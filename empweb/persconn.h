@@ -37,7 +37,9 @@ protected:
 
 class PersConn : public TclObject {
 public: 
-	PersConn() : status_(IDLE), ctcp_(NULL), csnk_(NULL), client_(NULL), server_(NULL) {}
+	PersConn() : status_(IDLE), pendingReqByte_(0), pendingReplyByte_(0), ctcp_(NULL), csnk_(NULL), client_(NULL), server_(NULL) {}
+	inline int getStatus() { return status_ ;}
+	inline void setStatus(int s) { status_ = s ;}
 	inline void setDst(int d) { dst_ = d ;}
 	inline void setSrc(int s) { src_ = s ;}
 	inline int getDst() { return dst_ ;}
@@ -54,7 +56,9 @@ public:
 	inline void setSTcpSink(TcpSink* s) { ssnk_ = s;}
 	inline void setCNode(Node* c) { client_ = c;}
 	inline void setSNode(Node* s) { server_ = s;}
-	inline void setStatus(int status) { status_ = status;}
+
+        int pendingReqByte_ ;
+        int pendingReplyByte_ ;
 
 protected:
 	int status_ ;
