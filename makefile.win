@@ -17,15 +17,22 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.7 1998/02/06 04:03:42 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.8 1998/03/19 22:08:29 gnguyen Exp $
 
 MSVCDIR	= c:\msdev
 TOOLS32	= $(MSVCDIR)
 PATH	= $(MSVCDIR);$(PATH);c:\bin
 INCLUDE	= $(MSVCDIR)\include
 
+# comment this out to build with debug options
+NODEBUG=1
 TARGETOS = BOTH
+
 !include <$(INCLUDE)/win32.mak>
+
+cc32	= cl
+rc32	= rc
+link32	= link
 
 LOCAL_LIB = \usr\local\lib
 LOCAL_SRC = ..\
@@ -34,9 +41,6 @@ TK_VER  = 42
 TCL_VER = 76
 # uncomment this to use tcl/tk 8
 USE_TCL_80 = 1
-
-# comment this out to build with debug options
-NODEBUG=1
 
 !if "$(USE_TCL_80)" == "1"
 TK_VER = 80
@@ -70,20 +74,18 @@ LIB_GSM  = -LIBPATH:$(GSM_DIR)\lib gsm.lib
 LIBRARY_TK = $(TK_DIR)\library
 LIBRARY_TCL = $(TCL_DIR)\library
 
-cc32	= cl
-rc32	= rc
-link32	= link
+
+CC	= $(cc32)
+CPP	= $(cc32)
+LINK	= $(link32)
 MKDEP	= makedep2
-PERL	= perl
-TCLSH	= ..\tcl8.0\win\tclsh80
 AR	= lib -out:
 RANLIB	= @echo
+PERL	= perl
 RM	= erase
+TCLSH	= ..\tcl8.0\win\tclsh80
+TCL2C	= $(TCLCL_DIR)\tcl2c++.exe
 
-CPP	= $(cc32)
-CC	= $(cc32)
-LINK	= $(link32)
-STATIC	= 
 
 !IFNDEF NODEBUG
 CCOPT	= -Gm -Gi -YX -Zm400
@@ -91,8 +93,11 @@ CCOPT	= -Gm -Gi -YX -Zm400
 CCOPT   = -Ox -Zm400
 !ENDIF
 
+STATIC	= 
 LDFLAGS = -LIBPATH:$(TOOLS32)\lib $(lflags) $(conlibsdll)
 LDOUT	= -out:
+
+DEFINE	=
 
 INCLUDE_TK = -I$(TK_DIR)\win -I$(TK_DIR)\generic
 INCLUDE_TCL = -I$(TCL_DIR)\win -I$(TCL_DIR)\generic
@@ -111,26 +116,22 @@ INCLUDES = $(INCLUDE_MISC) $(DEPEND_INCS)
 LIB =	$(LIB_TCLCL) $(LIB_OTCL) \
 	$(LIB_TK) $(LIB_TCL) \
 	$(guilibs)
-
 #	$(LIB_GRABBER) $(LIB_GSM) \
 #	winmm.lib
 
-
-BFLAGS	= -DWIN32 $(DEFINE) $(INCLUDES)
-CFLAGS	= $(BFLAGS) $(cdebug:Z7=Zi) $(cflags) $(cvarsdll) $(CCOPT)
+CFLAGS	= $(cdebug:Z7=Zi) $(cflags) $(cvarsdll) $(CCOPT) $(DEFINE)
 
 .SUFFIXES : .cc
 
 # add -FR$*.sbr if you want browse info
 .cc.o:
-	$(cc32) -c $(CFLAGS) -Fo$@ -Tp $<
+	$(cc32) -c $(CFLAGS) $(INCLUDES) -Fo$@ -Tp $<
 
 .c.o:
-	$(cc32) -c $(CFLAGS) -Fo$@ $<
+	$(cc32) -c $(CFLAGS) $(INCLUDES) -Fo$@ $<
 
 
-TCL2C	= $(TCLCL_DIR)\tcl2c++.exe
-NS	= ns.exe
-NSX	= nsx.exe
 GEN_DIR	= gen\\
 LIB_DIR	= lib\\
+NS	= ns.exe
+NSX	= nsx.exe
