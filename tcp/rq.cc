@@ -93,6 +93,7 @@ void
 ReassemblyQueue::push(seginfo *p)
 {
 	p->snext_ = top_;
+	p->sprev_ = NULL;
 	top_ = p;
 	if (p->snext_)
 		p->snext_->sprev_ = p;
@@ -168,6 +169,13 @@ ReassemblyQueue::dumplist()
 			p = p->next_;
 		}
 		printf("\n");
+		p = tail_;
+		while (p != NULL) {
+			printf("[->%d, %d<-]",
+				p->startseq_, p->endseq_);
+			p = p->prev_;
+		}
+		printf("\n");
 	}
 
 	printf("LIFO: ");
@@ -185,6 +193,13 @@ ReassemblyQueue::dumplist()
 			printf("[->%d, %d<-]",
 				s->startseq_, s->endseq_);
 			s = s->snext_;
+		}
+		printf("\n");
+		s = bottom_;
+		while (s != NULL) {
+			printf("[->%d, %d<-]",
+				s->startseq_, s->endseq_);
+			s = s->sprev_;
 		}
 		printf("\n");
 	}
@@ -209,6 +224,7 @@ ReassemblyQueue::dumplist()
 TcpFlag
 ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 {
+
 	int needmerge = FALSE;
 	if (head_ == NULL) {
 		if (top_ != NULL) {
@@ -219,7 +235,7 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		// nobody there, just insert this one
 
 		tail_ = head_ = top_ = bottom_ =  new seginfo;
-		head_->prev_ = head_->next_ = head_->snext_ = NULL;
+		head_->prev_ = head_->next_ = head_->snext_ = head_->sprev_ = NULL;
 		head_->startseq_ = start;
 		head_->endseq_ = end;
 		head_->pflags_ = tiflags;
@@ -320,6 +336,18 @@ ReassemblyQueue::coalesce(seginfo *p, seginfo *n, seginfo *q)
 {
 	TcpFlag flags = 0;
 
+#ifdef RQDEBUG
+printf("coalesce(%p,%p,%p)\n", p, n, q);
+printf(" [%d,%d],[%d,%d],[%d,%d]\n",
+	p ? p->startseq_ : 0,
+	p ? p->endseq_ : 0,
+	n ? n->startseq_ : 0,
+	n ? n->endseq_ : 0,
+	q ? n->startseq_ : 0,
+	q ? n->endseq_ : 0);
+dumplist();
+#endif
+
 	if (p && q && p->endseq_ == n->startseq_ && n->endseq_ == q->startseq_) {
 		// new block fills hole between p and q
 		// delete the new block and the block after, update p
@@ -357,11 +385,10 @@ ReassemblyQueue::coalesce(seginfo *p, seginfo *n, seginfo *q)
 	//
 	if (p->endseq_ > rcv_nxt_);
 		rcv_nxt_ = p->endseq_;
-
 	return (flags);
 }
 
-#ifdef RQDEBUG
+#ifdef notdef
 main()
 {
 	int rcvnxt;
