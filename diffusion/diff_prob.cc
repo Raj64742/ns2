@@ -596,7 +596,8 @@ void DiffusionProb::ReTxData(Packet *pkt)
   MACprepare(rtxPkt, NODE_ADDR(to_out), NS_AF_INET, 1);
   MACsend(rtxPkt, 0);
 
-  printf("Retransmit (%d,%d)\n",rtx_dfh->sender_id, rtx_dfh->pk_num);
+  printf("Retransmit (%d,%d,%d)\n",(rtx_dfh->sender_id).addr_, 
+	 (rtx_dfh->sender_id).port_, rtx_dfh->pk_num);
 }
 
 

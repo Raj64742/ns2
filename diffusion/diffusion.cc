@@ -359,7 +359,7 @@ void DiffusionAgent::MACprepare(Packet *pkt, nsaddr_t next_hop,
   hdr_ip*  iph = HDR_IP(pkt);
 
   dfh->forward_agent_id = here_; 
-  if (type == NS_AF_ILINK && next_hop == MAC_BROADCAST) {
+  if (type == (int) NS_AF_ILINK && next_hop == (nsaddr_t) MAC_BROADCAST) {
       cmh->xmit_failure_ = 0;
       cmh->next_hop() = MAC_BROADCAST;
       cmh->addr_type() = NS_AF_ILINK;
@@ -398,36 +398,15 @@ void DiffusionAgent::MACprepare(Packet *pkt, nsaddr_t next_hop,
 }
 
 
-void dummy()
-{
-}
-
-
 void DiffusionAgent::MACsend(Packet *pkt, Time delay=0)
 {
   hdr_cmn*  cmh = HDR_CMN(pkt);
   hdr_diff* dfh = HDR_DIFF(pkt);
-  ARPEntry* llinfo;
 
   if (dfh->mess_type == DATA)
     cmh->size() = (God::instance()->data_pkt_size) + 4*(dfh->num_next - 1);
   else
     cmh->size() = 36 + 4*(dfh->num_next -1);
-
-  dummy();
-
-  /*
-
-  if (cmh->addr_type() == NS_AF_INET) {
-    llinfo= arp_table->arplookup(cmh->next_hop());
-    if (llinfo==0) {
-      arp_table->arprequest(THIS_NODE, cmh->next_hop(), (LL *)ll);
-      StickPacketInArpBuffer(pkt);
-      return;
-    }
-  }
-
-  */
 
   Scheduler::instance().schedule(ll, pkt, delay);
 }
