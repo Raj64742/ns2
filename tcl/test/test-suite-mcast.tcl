@@ -201,7 +201,6 @@ Class Topology/net4a -superclass NodeTopology/4nodes
 Topology/net4a instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
@@ -225,7 +224,6 @@ Class Topology/net4b -superclass NodeTopology/4nodes
 Topology/net4b instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
      if {[$class info instprocs config] != ""} {
 	$self config $ns
@@ -263,7 +261,6 @@ Class Topology/net5a -superclass NodeTopology/5nodes
 Topology/net5a instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
@@ -291,7 +288,6 @@ Class Topology/net5b -superclass NodeTopology/5nodes
 Topology/net5b instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
@@ -321,7 +317,6 @@ Class Topology/net5c -superclass NodeTopology/5nodes
 Topology/net5c instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
@@ -354,7 +349,6 @@ Class Topology/net5d -superclass NodeTopology/5nodes
 Topology/net5d instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
@@ -388,7 +382,6 @@ Class Topology/net5e -superclass NodeTopology/5nodes
 Topology/net5e instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail
@@ -430,7 +423,6 @@ Class Topology/net6a -superclass NodeTopology/6nodes
 Topology/net6a instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
     $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
@@ -462,7 +454,6 @@ Class Topology/net6b -superclass NodeTopology/6nodes
 Topology/net6b instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns multi-link-of-interfaces [list $node_(n5) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n4) $node_(n3) 1.5Mb 10ms DropTail
@@ -509,7 +500,6 @@ Class Topology/net8a -superclass NodeTopology/8nodes
 Topology/net8a instproc init ns {
     $self next $ns
     $self instvar node_
-    Simulator set NumberInterfaces_ 1
     $ns multi-link-of-interfaces [list $node_(n2) $node_(n3) $node_(n4) $node_(n5)] 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
     $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail
