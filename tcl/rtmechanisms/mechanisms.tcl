@@ -18,10 +18,10 @@ RTMechanisms instproc tcp_ref_bw { mtu rtt droprate } {
 	if { $rtt == 0 || $droprate == 0 } {
 		return "none"
 	}
-	$self vprint 0 "mtu: $mtu rtt: $rtt droprate: $droprate"
+	$self vprint 9 "mtu: $mtu rtt: $rtt droprate: $droprate"
 	set result [expr 1.22 * $mtu / ($rtt*sqrt($droprate))]
 	set sqrt [expr sqrt($droprate) ]
-	$self vprint 0 "sqrt: $sqrt result $result"
+	$self vprint 9 "sqrt: $sqrt result $result"
 	return [expr 1.22 * $mtu / ($rtt*sqrt($droprate))]
 }
 
@@ -371,7 +371,7 @@ RTMechanisms instproc do_detect {} {
 	# estimate the bw's arrival rate without knowing it directly
 	#	note: in ns-1 maxmetric was a %age, here it is a frac
 	set flow_bw_est [expr $maxmetric * $barrivals / $elapsed]
-	$self vprint 1 "maxmetric $maxmetric barrivals $barrivals elapsed $elapsed"
+	$self vprint 9 "maxmetric $maxmetric barrivals $barrivals elapsed $elapsed"
 	set guideline_bw  [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateG]
 
 	set friendly [$self test_friendly $flow_bw_est $guideline_bw]
@@ -382,6 +382,7 @@ RTMechanisms instproc do_detect {} {
 		$self sched-reward
 	} elseif { $known == "true" && $state_($badflow,reason) == "UNRESPONSIVE" } {
 		# was unresponsive once already
+		$self vprint 1 "WAS unresponsive once already"
 		$self instvar PUFrac_
 		set u [$self test_unresponsive_again \
 		    $badflow $flow_bw_est $droprateG $PUFrac_ $PUFrac_]
@@ -397,6 +398,7 @@ RTMechanisms instproc do_detect {} {
 		set u [$self test_unresponsive_initial \
 		    $badflow $flow_bw_est $droprateG $nxt]
 		if { $u == "fail" } {
+			$self vprint 1 "FIRST TIME unresponsive"
 			$self setstate $badflow "UNRESPONSIVE"
 			    $flow_bw_est $droprateG
 		} elseif { [$self test_high $flow_bw_est $droprateG $elapsed] == "fail" } {
