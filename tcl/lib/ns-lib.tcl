@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.81 1998/02/16 20:39:30 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.82 1998/02/17 22:00:21 haoboy Exp $
 #
 
 #
@@ -72,7 +72,6 @@ source ns-trace.tcl
 source ns-agent.tcl
 source ns-random.tcl
 source ns-route.tcl
-source ns-namsupp.tcl
 source ns-errmodel.tcl
 source ns-intserv.tcl
 source ../rtp/session-rtp.tcl
@@ -102,6 +101,7 @@ source ../mcast/srm.tcl
 source ../mcast/srm-ssm.tcl
 source ../mcast/McastMonitor.tcl
 source ../session/session.tcl
+source ns-namsupp.tcl
 
 source ns-default.tcl
 
@@ -203,6 +203,19 @@ Simulator instproc dump-namcolors {} {
 	}
 }
 
+Simulator instproc dump-namlans {} {
+	$self instvar lanConfigList_
+	if ![$self is-started] {
+		return
+	}
+	if [info exists lanConfigList_] {
+		foreach lan $lanConfigList_ {
+			$lan dump-namconfig
+		}
+		unset lanConfigList_
+	}
+}
+
 Simulator instproc dump-namlinks {} {
 	$self instvar linkConfigList_
 	if ![$self is-started] {
@@ -264,7 +277,8 @@ Simulator instproc run {} {
 	# Node configuration for nam
 	$self dump-namnodes
 
-	# Link configurations for nam
+	# Lan and Link configurations for nam
+	$self dump-namlans
 	$self dump-namlinks 
 
 	# nam queue configurations
@@ -375,6 +389,22 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	if {$trace != ""} {
 		$self namtrace-queue $n1 $n2 $trace
 	}
+}
+
+# 
+# Assumes every lan is a MultiLink. We keep pointers to all lan created 
+# during startup and call MultiLink::dump-namconfig in Simulator::run
+#
+Simulator instproc register-nam-lanconfig mlink {
+	$self instvar lanConfigList_
+
+	if [info exists lanConfigList_] {
+		if {[lsearch $lanConfigList_ $mlink] >= 0} {
+			# This lan is already there
+			return
+		}
+	}
+	lappend lanConfigList_ $mlink
 }
 
 #
@@ -720,10 +750,20 @@ Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type {ori ""} {q_c
 	$self register-nam-linkconfig $link_([$n1 id]:[$n2 id])
 }
 
+Simulator instproc getlink { id1 id2 } {
+        $self instvar link_
+        if [info exists link_($id1:$id2)] {
+                return $link_($id1:$id2)
+        }
+        return -1
+}
+
 Simulator instproc multi-link { nodes bw delay type } {
 	$self instvar link_ 
+
 	# set multiLink [new PhysicalMultiLink $nodes $bw $delay $type]
 	set multiLink [new NonReflectingMultiLink $nodes $bw $delay $type]
+
 	# set up dummy links for unicast routing
 	foreach n $nodes {
 		set q [$multiLink getQueue $n]
@@ -735,17 +775,21 @@ Simulator instproc multi-link { nodes bw delay type } {
 				set dumlink [new DummyLink $n2 $n $q $l]
 				set link_($sid:$did) $dumlink
 				$dumlink setContainingObject $multiLink
+				# set lan trace
 				set trace [$self get-ns-traceall]
-				if {$trace != ""} {
+				if {$trace != "" } {
 					$self trace-queue $n2 $n $trace
 				}
 				set trace [$self get-nam-traceall]
 				if {$trace != ""} {
 					$self namtrace-queue $n2 $n $trace
 				}
+				$self register-nam-linkconfig $dumlink
 			}
 		}
 	}
+
+	return $multiLink
 }
 
 Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
@@ -758,8 +802,11 @@ Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
                 $n addInterface $f
                 lappend ifs $f
         }
+
+	# create lan
         set multiLink [new NonReflectingMultiLink $ifs $bw $delay $type]
-        # set up dummy links for unicast routing
+
+        # set up dummy links for multicast routing
         foreach f $ifs {
                 set n [$f getNode]
                 set q [$multiLink getQueue $n]
@@ -771,27 +818,21 @@ Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
 				set sid [$n2 id]   
 				set dumlink [new DummyLink $f2 $f $q $l $multiLink]
 				set link_($sid:$did) $dumlink
-
+				# set lan trace
 				set trace [$self get-ns-traceall]
 				if {$trace != "" } {
 					$self trace-queue $n2 $n $trace
 				}
 				set trace [$self get-nam-traceall]
 				if {$trace != ""} {
-				   $self namtrace-queue $n2 $n $trace
+					$self namtrace-queue $n2 $n $trace
 				}
+				$self register-nam-linkconfig $dumlink
                         }
                 }
         }
-        return $multiLink
-}
 
-Simulator instproc getlink { id1 id2 } {
-        $self instvar link_
-        if [info exists link_($id1:$id2)] {
-                return $link_($id1:$id2)
-        }
-        return -1
+        return $multiLink
 }
 
 Simulator instproc makeflowmon { cltype { clslots 29 } } {

@@ -25,34 +25,10 @@
 # 
 # ns trace support for nam
 #
-# Author: Haobo Yu, haoboy@isi.edu
+# Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.6 1998/01/27 20:48:22 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.7 1998/02/17 22:00:21 haoboy Exp $
 #
-
-#
-# Changes in other files 
-# ----------------------
-#
-# Functions changed: (i.e., all related to traceAllFile_)
-#
-# tcl/lib/ns-lib.tcl
-#   Simulator::node { {shape "circle"} {color "black"} }
-#   Simulator::duplex-link { n1 n2 bw delay type {ori "right"} {q_clrid 0} }
-#   Simulator::simplex-link
-#   Simulator::duplex-link-of-interfaces
-#   Simulator::multi-link
-#   Simulator::multi-link-of-interfaces
-# tcl/lan/ns-lan.tcl
-#   Simulator::make-lan
-#
-# Functions added
-# 
-# tcl/lib/ns-lib.tcl
-#   Simulator::nnamtrace-all
-#   Simulator::namtrace-queue
-# tcl/lib/ns-link.tcl
-#   SimpleLink::nam-trace
 
 #
 # Support for node tracing
@@ -219,6 +195,77 @@ Link instproc get-color {} {
 	return [$self get-attribute "COLOR"]
 }
 
+
+#
+# Lan
+#
+MultiLink instproc dump-namconfig {} {
+	$self instvar attr_ nodes_ bw_ delay_ id_
+
+	if ![info exists attr_(ORIENT)] {
+		set attr_(ORIENT) "left"
+	}
+
+	set ns [Simulator instance]
+	# X -t * -n <nodes> -r <band width> -D <delay> -o <orientation>
+	$ns puts-nam-traceall \
+		"X -t * -n $id_ -r $bw_ -D $delay_ -o $attr_(ORIENT)"
+	# L -t * -s 10 -d 9 -o <orientation>
+	foreach n $nodes_ {
+		set nid [$n id]
+		if ![info exists attr_($nid)] {
+			set attr_($nid) "down"
+		}
+		$ns puts-nam-traceall \
+			"L -t * -s $id_ -d $nid -o $attr_($nid)"
+	}
+}
+
+# To get lan link orientation, give the node's id
+MultiLink instproc get-attribute { name } {
+	$self instvar attr_
+	if [info exists attr_($name)] {
+		return $attr_($name)
+	} else {
+		return ""
+	}
+}
+
+MultiLink instproc orient {ori} {
+	$self instvar attr_
+	set attr_(ORIENT) $ori
+}
+
+MultiLink instproc nodePos { n pos } {
+	$self instvar attr_
+	set nid [$n id]
+	set attr_($nid) $pos
+}
+
+#
+# Ugly hack to produce a fully connected lan. The bus version of lan 
+# doesn't work for now. :(
+#
+DummyLink instproc dump-namconfig {} {
+	# make a duplex link in nam
+	$self instvar link_ attr_ fromNode_ toNode_
+
+	if ![info exists attr_(COLOR)] {
+		set attr_(COLOR) "black"
+	}
+
+	if ![info exists attr_(ORIENTATION)] {
+		set attr_(ORIENTATION) ""
+	}
+
+	set ns [Simulator instance]
+	set bw [$link_ set bandwidth_]
+	set delay [$link_ set delay_]
+
+	$ns puts-nam-traceall \
+		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(ORIENTATION)"
+}
+
 #
 # Support for agent tracing
 #
@@ -288,7 +335,3 @@ Agent instproc delete-var-trace { name } {
 		unset features_($name)
 	}
 }
-
-
-
-
