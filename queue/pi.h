@@ -57,7 +57,7 @@
 /*
  * Early drop parameters, supplied by user
  */
-struct edp {
+struct edp_pi {
 	/*
 	 * User supplied.
 	 */
@@ -67,18 +67,18 @@ struct edp {
 	double a, b;		 /* parameters to pi controller */
 	double w;				/* sampling frequency (# of times per second) */ 
 	double qref;		/* desired queue size */
-	edp(): mean_pktsize(0), bytes(0), setbit(0), a(0.0), b(0.0), w(0.0), qref(0.0) { }
+	edp_pi(): mean_pktsize(0), bytes(0), setbit(0), a(0.0), b(0.0), w(0.0), qref(0.0) { }
 };
 
 /*
  * Early drop variables, maintained by PI
  */
-struct edv {
+struct edv_pi {
 	TracedDouble v_prob;	/* prob. of packet drop before "count". */
 	int count;		/* # of packets since last drop */
 	int count_bytes;	/* # of bytes since last drop */
 	int qold;
-	edv() : v_prob(0.0), count(0), count_bytes(0), qold(0) { }
+	edv_pi() : v_prob(0.0), count(0), count_bytes(0), qold(0) { }
 };
 
 class LinkDelay;
@@ -124,8 +124,8 @@ class PIQueue : public Queue {
 	TracedInt curq_;	/* current qlen seen by arrivals */
 	void trace(TracedVar*);	/* routine to write trace records */
 
-	edp edp_;	/* early-drop params */
-	edv edv_;		/* early-drop variables */
+	edp_pi edp_;	/* early-drop params */
+	edv_pi edv_;		/* early-drop variables */
 
 	int first_reset_;       /* first time reset() is called */
 

@@ -41,12 +41,12 @@
 
 int hdr_src::offset_;
 
-static class SRHeaderClass : public PacketHeaderClass {
+static class SRCRTHeaderClass : public PacketHeaderClass {
 public:
-  SRHeaderClass() : PacketHeaderClass("PacketHeader/Src_rt",
+  SRCRTHeaderClass() : PacketHeaderClass("PacketHeader/Src_rt",
 				      sizeof(hdr_src)) {
     bind_offset(&hdr_src::offset_);
     
   }
 
-} class_SRhdr;
+} class_SRCRThdr;
