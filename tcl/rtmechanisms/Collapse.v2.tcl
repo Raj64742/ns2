@@ -26,7 +26,7 @@ proc create_flowstats { redlink stoptime } {
 #
 # print: class # arriving_packets # dropped_packets # 
 #
-proc finish_flowstats { infile outfile } {
+proc finish_flowstats { infile outfile cbrs tcps } {
     set awkCode {
 	BEGIN {
 	    arrivals=0;
@@ -54,6 +54,7 @@ proc finish_flowstats { infile outfile } {
 	    printf "class %d arriving_pkts %d dropped_pkts %d\n", prev, arrivals, drops;
 	}
     }
+    puts $outfile "cbrs: $cbrs tcps: $tcps"
     exec awk $awkCode $infile >@ $outfile
 }
 
@@ -205,7 +206,7 @@ puts "cbqlink should be $xlink"
     for {set i $cbrs} {$i < $cbrs + $tcps} {incr i 1} {
        new_tcp 0.0 $s1 $s3 100 $i 1 $packetsize $f $printtime
     }
-    $ns at $stoptime "finish_flowstats $flowfile $f"
+    $ns at $stoptime "finish_flowstats $flowfile $f $cbrs $tcps"
     $ns at $stoptime "finish_ns $f"
     puts seed=[ns-random 0]
     $ns run
