@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.8 1997/07/23 01:06:13 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.9 1997/07/31 18:33:36 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -105,7 +105,7 @@ protected:
 	int enable_out_;	// enable per-flow depart state
 	int enable_drop_;	// enable per-flow drop state
 	int enable_edrop_;	// enable per-flow edrop state
-	char	wrk_[256];
+	char	wrk_[2048];	// big enough to hold flow list
 };
 
 FlowMon::FlowMon() : classifier_(NULL), channel_(NULL),
@@ -196,6 +196,11 @@ FlowMon::flow_list()
 			while (*z && p < q)
 				*p++ = *z++;
 			*p++ = ' ';
+		}
+		if (p >= q) {
+			fprintf(stderr, "FlowMon:: flow list exceeded working buffer\n");
+			fprintf(stderr, "\t  recompile ns with larger FlowMon::wrk_[] array\n");
+			exit (1);
 		}
 	}
 	if (p != wrk_)
