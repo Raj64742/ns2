@@ -6,9 +6,11 @@
 #
 # CBQ
 #
+
 #
-# set up the cbqueue object and link
-# the cbq classes and classifier are added separately
+# set up the CBQ/Queue object, link instvars, and classifier
+# once more complex classifiers are introduced, creating the classifier
+# will probably be done elsewhere
 #
 Class CBQLink -superclass SimpleLink
 CBQLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
@@ -28,9 +30,14 @@ CBQLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 }
 
 #
-# bind $cbqclass id
-#    or
-# bind $cbqclass idstart idend
+#
+# for flow-id based classification, bind c
+# CBQClass to a given flow id # (or range)
+#
+# OTcl usage:
+# 	bind $cbqclass id
+#    		or
+# 	bind $cbqclass idstart idend
 #
 # these use flow id's as id's
 #
@@ -60,17 +67,20 @@ CBQLink instproc bind args {
 # we must create a set of queue monitors around these queues which
 # cbq uses to monitor demand
 #
+# general idea:
+#  pkt--> Classifier --> CBQClass --> snoopin --> qdisc --> snoopout --> CBQ
 #
 CBQLink instproc insert cbqcl {
 	# queue_ refers to the cbq object
-	$self instvar classifier_ queue_ drpT_
+	$self instvar queue_ snoopDrop_
 	set qdisc [$cbqcl qdisc]
 
 	# qdisc can be null for internal classes
 	if { $qdisc != "" } {
 		# create in, out, and drop snoop queues
 		# and attach them to the same monitor
-		# we don't need bytes/pkt integrator or stats here
+		# this is used by CBQ to assess demand
+		# (we don't need bytes/pkt integrator or stats here)
 		set qmon [new QueueMonitor]
 		set in [new SnoopQueue/In]
 		set out [new SnoopQueue/Out]
@@ -86,9 +96,8 @@ CBQLink instproc insert cbqcl {
 		# drop from qdisc -> snoopy dropq
 		# snoopy dropq's target is overall cbq drop target
 		$qdisc drop-target $drop
-		if [info exists drpT_] {
-			$drop target [$drpT_ target]
-			$drpT_ target $drop
+		if [info exists snoopDrop_] {
+			$drop target $snoopDrop_
 		} else {
 			$drop target [ns set nullAgent_]
 		}
@@ -99,14 +108,6 @@ CBQLink instproc insert cbqcl {
 		$out target $queue_
 		# tell this class about its new queue monitor
 		$cbqcl qmon $qmon
-
-		#
-		# this is some ugly compat support, but
-		# has to go here
-		#
-		if { [lsearch [$queue_ info vars] compat_qlim_] >= 0 } {
-			$qdisc set limit_ [$queue_ set compat_qlim_]
-		}
 	}
 
 	# tell cbq about this class
@@ -116,9 +117,6 @@ CBQLink instproc insert cbqcl {
 #
 # procedures on a cbq class
 #
-CBQClass instproc init {} {
-	$self next
-}
 
 CBQClass instproc setparams { parent allot maxidle prio level xdelay } {
 
@@ -132,6 +130,12 @@ CBQClass instproc setparams { parent allot maxidle prio level xdelay } {
 
         return $self
 }
+
+#
+# insert a queue into a CBQ class:
+#	arrange for the queue to initally be blocked
+#	and for it to block when resumed
+#	(provides flow control on the queue)
 
 CBQClass instproc install-queue q {
 	$q set blocked_ true
