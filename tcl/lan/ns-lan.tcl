@@ -137,7 +137,7 @@ Link/LanDuplex instproc trace {ns f} {
 	set drpT_ [$ns create-trace Loss $f $toNode_ $fromNode_]
 	set namtrfd [$ns get-nam-traceall]
 	if {$namtrfd != ""} {
-		$drpT_ attach-nam $namtrfd
+		$drpT_ namattach $namtrfd
 	}
 	$link_ drop-target $drpT_
 }
