@@ -120,7 +120,7 @@ Simulator instproc make-lan {nodelist bw delay \
 			$q($src:$dst) drop-target $nullAgent_
 			set link_($sid:$did) [new Link/LanDuplex \
 				$src $dst $bw $delay $q($src:$dst) $lltype]
-			set drpT_ [$self create-trace Loss $traceAllFile_ $src $dst]
+			set drpT_ [$self create-trace Loss $traceAllFile_ $dst $src]
 			[$link_($sid:$did) link] drop-target $drpT_
 		}
 	}
