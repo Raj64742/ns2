@@ -1,0 +1,192 @@
+%
+% personal commentary:
+%        DRAFT DRAFT DRAFT
+%        - KFALL
+%
+\section{\shdr{Mathematical Support}{random.h}{sec:math}}
+
+The simulator includes a small collection of mathematical
+functions used to implement random variate generation and integration.
+It is anticipated the support for random variates will
+change in the near future.
+
+\subsection{\shdr{Random Numbers}{random.h}{sec:random}}
+
+There is limited support for generating
+random\footnote{Any mention of {\em random} in this context is
+understood to mean {\em pseudo-random}.}
+variates according to a probability distribution.
+The \code{Random} class supports uniformly and exponentially
+distributed random variates.
+It is defined in \code{random.h}:
+\begin{small}
+\begin{verbatim}
+        class Random {
+        public:
+                static void seed(int);
+                static int seed_heuristically();
+                static inline int random() {
+        #if defined(__svr4__) || defined(__SVR4)
+                        return (::lrand48() & 0x7fffffff);
+        #else
+                        return (::random());
+        #endif
+                }
+                static inline double uniform() {
+                        /* random returns numbers in the range [0,2^31-1] */
+        #if defined(__svr4__) || defined(__SVR4)
+                        return (drand48());
+        #else
+                        return ((double)random() / 0x7fffffff);
+        #endif
+                }
+                static inline double uniform(double r) {
+                        return (r * uniform());
+                }
+                static inline double uniform(double a, double b) {
+                        return (a + uniform(b - a));
+                }
+                static inline double exponential() {
+                        return (-log(uniform()));
+                }
+                static inline int integer(int k) {
+                        return (random() % (unsigned)k);
+                }
+        };
+\end{verbatim}
+\end{small}
+The \code{random} method generates random integers in the
+range $[0,2^{31}-1]$.
+It currently uses the built-in UNIX random number generating
+functions to achieve this.
+In particular,
+the \code{random} or \code{lrand48} functions are used, which generate
+integers uniformly
+on the interval $[0,2^{31}-1]$ directly.
+The generation of random floating-point numbers depends on
+the \code{random} method just defined or the built-in \code{drand48}
+function.
+The SysV library function \code{drand48} returns a random floating
+point number, uniformly distributed on the interval $[0.0, 1.0)$
+Additional member functions provide the following random variate
+generation:
+\begin{itemize}
+        \item {\tt uniform(double r)} - generate floating-point number uniformly distributed on $[0,r]$
+        \item {\tt uniform(double a, double b)} - generate floating-point number uniformly distributed on $[a,b]$
+        \item {\tt exponential()} - generate floating-point number exponentially distributed (with parameter 1) on $[0, \infty)$
+        \item {\tt integer(int k)} - generate integer uniformly distributed on $[0, (k-1)]$
+\end{itemize}
+The \code{Random} class can be used to construct randomized algorithms,
+as in this code fragment from RED:
+\begin{small}
+\begin{verbatim}
+        ...
+        // drop probability is computed, pick random number and act
+        double u = Random::uniform();
+        if (u <= edv_.v_prob) {
+                edv_.count = 0;
+                if (edp_.setbit) 
+                        iph->flags() |= IP_ECN; // ip ecn bit
+                else
+                        return (1);
+        }
+        ...
+\end{verbatim}
+\end{small}
+
+The \code{seed} member allows for specification of an initialization
+seed to the underlying random number generator (an integer
+for the \code{srandom} function and a long integer for the
+\code{srand48} function).
+This can be useful to ensure the generation of the same random numbers
+from run to run.
+It is assumed that specification of the same seed will result in the
+same sequence of random numbers.
+To use the \code{Random} class without specifying a seed,
+the \code{seed\_heuristically} member may be used, which
+attempts to pick some sort of non-recurring seed values (resulting
+in different random numbers from run to run).  It is defined
+in \code{random.cc}:
+\begin{small}
+\begin{verbatim}
+        int Random::seed_heuristically()
+        {
+                timeval tv;
+                gettimeofday(&tv, 0);
+                int s = (tv.tv_sec ^ tv.tv_usec) & 0x7fffffff;
+                seed(s);
+                return (s);
+        }
+\end{verbatim}
+\end{small}
+This function just obtains the number of elapsed seconds and microseconds
+since the UNIX {\em epoch} (00:00 GMT, January 1, 1970) and
+takes the low-order 31 bits of the {\sf XOR} of these values as a seed.
+Clearly, this value is likely to be different from run to run.
+
+\subsection{\shdr{Integrals}{integrator.h}{sec:integral}}
+
+To support the approximation of (continuous) integration by (discrete)
+sums, the \code{Integrator} class is defined in \code{integrator.h}:
+\begin{small}
+\begin{verbatim}
+From integrator.h:
+        class Integrator : public TclObject {
+        public:
+                Integrator();
+                void set(double x, double y);
+                void newPoint(double x, double y);
+                int command(int argc, const char*const* argv);
+        protected:
+                double lastx_;
+                double lasty_;
+                double sum_;
+        };
+From integrator.cc:
+        Integrator::Integrator() : lastx_(0.), lasty_(0.), sum_(0.)
+        {
+                bind("lastx_", &lastx_);
+                bind("lasty_", &lasty_);
+                bind("sum_", &sum_);
+        }
+
+        void Integrator::set(double x, double y)
+        {
+                lastx_ = x;
+                lasty_ = y;
+                sum_ = 0.;
+        }
+
+        void Integrator::newPoint(double x, double y)
+        {
+                sum_ += (x - lastx_) * lasty_;
+                lastx_ = x;
+                lasty_ = y;
+        }
+
+        int Integrator::command(int argc, const char*const* argv)
+        {
+                if (argc == 4) {
+                        if (strcmp(argv[1], "newpoint") == 0) {
+                                double x = atof(argv[2]);
+                                double y = atof(argv[3]);
+                                newPoint(x, y);
+                                return (TCL_OK);
+                        }
+                }
+                return (TclObject::command(argc, argv));
+        }
+\end{verbatim}
+\end{small}
+This class provides a base class used by other classes such
+as \code{QueueMonitor} that keep running sums.
+Each new element of the running sum is added by
+the \code{newPoint(x,y)} function.
+After the $k$th execution of \code{newPoint}, the running sum
+is equal to $\sum_{i=1}^{k}y_{i-1}(x_i - x_{i-1})$ where
+$x_0 = y_0 = 0$ unless \code{lastx\_}, \code{lasty\_}, or \code{sum\_}
+are reset via OTcl.
+Note that a new point in the sum can be added either by the
+C++ member \code{newPoint} or the OTcl member \code{newpoint}.
+The use of integrals to compute certain types of averages
+(e.g. mean queue lengths) is given in Jain(1991, pp. 429-430).
