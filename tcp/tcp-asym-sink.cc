@@ -58,7 +58,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.13 1998/08/22 02:41:18 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.14 1998/08/22 19:59:25 padmanab Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -116,12 +116,15 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 	hdr_tcp *th = hdr_tcp::access(pkt);
 	hdr_tcpasym *tha = hdr_tcpasym::access(pkt);
 	double now = Scheduler::instance().clock();
+	int numBytes = hdr_cmn::access(pkt)->size();
 
 
 	acker_->update_ts(th->seqno(),th->ts());
+	acker_->update(th->seqno(), numBytes);
+
 #if 0  // johnh
 	int numToDeliver;
-	int numBytes = hdr_cmn::access(pkt)->size();
+	/* XXX if the #if 0 is removed, delete the call to acker_->update() above */
 	numToDeliver = acker_->update(th->seqno(), numBytes);
 	if (numToDeliver)
 		recvBytes(numToDeliver);
