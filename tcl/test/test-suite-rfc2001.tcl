@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rfc2001.tcl,v 1.2 1998/08/24 17:23:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rfc2001.tcl,v 1.3 1998/08/30 01:42:47 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -209,18 +209,18 @@ Test/reno instproc run {} {
         $self setup Reno {14 26 28}
 }
 
-Class Test/reno_bugfix -superclass TestSuite
-Test/reno_bugfix instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
-	set test_	reno_bugfix
-	$self next
-}
-Test/reno_bugfix instproc run {} {
-	Agent/TCP set bugFix_ true
-        $self setup Reno {14 26 28}
-}
+# Class Test/reno_bugfix -superclass TestSuite
+# Test/reno_bugfix instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	reno_bugfix
+# 	$self next
+# }
+# Test/reno_bugfix instproc run {} {
+# 	Agent/TCP set bugFix_ true
+#         $self setup Reno {14 26 28}
+# }
 
 Class Test/newreno -superclass TestSuite
 Test/newreno instproc init topo {
@@ -235,46 +235,46 @@ Test/newreno instproc run {} {
         $self setup Newreno {14 26 28}
 }
 
-Class Test/newreno_bugfix -superclass TestSuite
-Test/newreno_bugfix instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
-	set test_	newreno_bugfix
-	$self next
-}
-Test/newreno_bugfix instproc run {} {
-	Agent/TCP set bugFix_ true
-        $self setup Newreno {14 26 28}
-}
+# Class Test/newreno_bugfix -superclass TestSuite
+# Test/newreno_bugfix instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno_bugfix
+# 	$self next
+# }
+# Test/newreno_bugfix instproc run {} {
+# 	Agent/TCP set bugFix_ true
+#         $self setup Newreno {14 26 28}
+# }
 
-Class Test/newreno_A -superclass TestSuite
-Test/newreno_A instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
-	set test_	newreno_A
-	$self next
-}
-Test/newreno_A instproc run {} {
-	Agent/TCP set bugFix_ false
-	Agent/TCP/Newreno set newreno_changes1_ 1
-        $self setup Newreno {14 26 28}
-}
+# Class Test/newreno_A -superclass TestSuite
+# Test/newreno_A instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno_A
+# 	$self next
+# }
+# Test/newreno_A instproc run {} {
+# 	Agent/TCP set bugFix_ false
+# 	Agent/TCP/Newreno set newreno_changes1_ 1
+#         $self setup Newreno {14 26 28}
+# }
 
-Class Test/newreno_bugfix_A -superclass TestSuite
-Test/newreno_bugfix_A instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
-	set test_	newreno_bugfix_A
-	$self next
-}
-Test/newreno_bugfix_A instproc run {} {
-	Agent/TCP set bugFix_ true
-	Agent/TCP/Newreno set newreno_changes1_ 1
-        $self setup Newreno {14 26 28}
-}
+# Class Test/newreno_bugfix_A -superclass TestSuite
+# Test/newreno_bugfix_A instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno_bugfix_A
+# 	$self next
+# }
+# Test/newreno_bugfix_A instproc run {} {
+# 	Agent/TCP set bugFix_ true
+# 	Agent/TCP/Newreno set newreno_changes1_ 1
+#         $self setup Newreno {14 26 28}
+# }
 
 ###################################################
 ## Many drops, Reno has a retransmit timeout.
@@ -294,18 +294,18 @@ Test/reno1 instproc run {} {
         $self setup Reno {14 15 16 17 18 19 20 21 25 }
 }
 
-Class Test/reno1_bugfix -superclass TestSuite
-Test/reno1_bugfix instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
-	set test_	reno1_bugfix
-	$self next
-}
-Test/reno1_bugfix instproc run {} {
-	Agent/TCP set bugFix_ true
-        $self setup Reno {14 15 16 17 18 19 20 21 25 }
-}
+# Class Test/reno1_bugfix -superclass TestSuite
+# Test/reno1_bugfix instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	reno1_bugfix
+# 	$self next
+# }
+# Test/reno1_bugfix instproc run {} {
+# 	Agent/TCP set bugFix_ true
+#         $self setup Reno {14 15 16 17 18 19 20 21 25 }
+# }
 
 Class Test/newreno1 -superclass TestSuite
 Test/newreno1 instproc init topo {
@@ -320,18 +320,18 @@ Test/newreno1 instproc run {} {
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 }
 
-Class Test/newreno1_bugfix -superclass TestSuite
-Test/newreno1_bugfix instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
-	set test_	newreno1_bugfix
-	$self next
-}
-Test/newreno1_bugfix instproc run {} {
-	Agent/TCP set bugFix_ true
-        $self setup Newreno {14 15 16 17 18 19 20 21 25 }
-}
+# Class Test/newreno1_bugfix -superclass TestSuite
+# Test/newreno1_bugfix instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno1_bugfix
+# 	$self next
+# }
+# Test/newreno1_bugfix instproc run {} {
+# 	Agent/TCP set bugFix_ true
+#         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
+# }
 
 Class Test/newreno1_A -superclass TestSuite
 Test/newreno1_A instproc init topo {
@@ -347,19 +347,132 @@ Test/newreno1_A instproc run {} {
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 }
 
-Class Test/newreno1_A_bugfix -superclass TestSuite
-Test/newreno1_A_bugfix instproc init topo {
+# Class Test/newreno1_A_bugfix -superclass TestSuite
+# Test/newreno1_A_bugfix instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno1_A_bugfix
+# 	$self next
+# }
+# Test/newreno1_A_bugfix instproc run {} {
+# 	Agent/TCP set bugFix_ true
+# 	Agent/TCP/Newreno set newreno_changes1_ 1
+#         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
+# }
+
+###################################################
+## Multiple fast retransmits.
+###################################################
+
+Class Test/reno2 -superclass TestSuite
+Test/reno2 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net4
-	set test_	newreno1_A_bugfix
+	set test_	reno2
 	$self next
 }
-Test/newreno1_A_bugfix instproc run {} {
+Test/reno2 instproc run {} {
+	Agent/TCP set bugFix_ false
+        $self setup Reno {24 25 26 28 31 35 40 45 46 47 48 }
+}
+
+Class Test/reno2_bugfix -superclass TestSuite
+Test/reno2_bugfix instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	reno2_bugfix
+	$self next
+}
+Test/reno2_bugfix instproc run {} {
+	Agent/TCP set bugFix_ true
+#        $self setup Reno {24 25 26 28 31 35 37 40 43 47 48 }
+        $self setup Reno {24 25 26 28 31 35 40 45 46 47 48 }
+}
+
+Class Test/newreno2_A -superclass TestSuite
+Test/newreno2_A instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	newreno2_A
+	$self next
+}
+Test/newreno2_A instproc run {} {
+	Agent/TCP set bugFix_ false
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+}
+
+Class Test/newreno2_A_bugfix -superclass TestSuite
+Test/newreno2_A_bugfix instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	newreno2_A_bugfix
+	$self next
+}
+Test/newreno2_A_bugfix instproc run {} {
 	Agent/TCP set bugFix_ true
 	Agent/TCP/Newreno set newreno_changes1_ 1
-        $self setup Newreno {14 15 16 17 18 19 20 21 25 }
+	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
 }
+
+# Class Test/newreno3 -superclass TestSuite
+# Test/newreno3 instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno3
+# 	$self next
+# }
+# Test/newreno3 instproc run {} {
+# 	Agent/TCP set bugFix_ false
+# 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+# }
+
+# Class Test/newreno3_bugfix -superclass TestSuite
+# Test/newreno3_bugfix instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno3_bugfix
+# 	$self next
+# }
+# Test/newreno3_bugfix instproc run {} {
+# 	Agent/TCP set bugFix_ true
+# 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+# }
+
+# Class Test/newreno4_A -superclass TestSuite
+# Test/newreno4_A instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno4_A
+# 	$self next
+# }
+# Test/newreno4_A instproc run {} {
+# 	Agent/TCP set bugFix_ false
+# 	Agent/TCP/Newreno set newreno_changes1_ 1
+# 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+# }
+
+# Class Test/newreno4_A_bugfix -superclass TestSuite
+# Test/newreno4_A_bugfix instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net4
+# 	set test_	newreno4_A_bugfix
+# 	$self next
+# }
+# Test/newreno4_A_bugfix instproc run {} {
+# 	Agent/TCP set bugFix_ true
+# 	Agent/TCP/Newreno set newreno_changes1_ 1
+# 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+# }
 
 TestSuite runTest
 
