@@ -135,5 +135,6 @@ int SALink::get_nxt()
 		}
 	printf("Ran out of pending space \n");
 	exit(1);
+	return i;
 }
 

@@ -127,7 +127,7 @@ IntTcpAgent::recv(Packet *pkt, Handler *)
 	if (tcph->seqno() > last_ack_) {
 		amt_data_acked = tcph->seqno() - last_ack_;
 		newack(pkt);
-#ifdef 0
+#if 0
 		if (rxmitPend_) {
 			rxmitPend_ = 0;
 			session_->agent_frcov(this); /* XXX needed ? */

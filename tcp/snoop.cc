@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.12 1998/02/19 18:28:31 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.13 1998/03/19 23:45:46 gnguyen Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -73,10 +73,11 @@ Snoop::Snoop() : NsObject(),
 	bind("lru_", &lru_);
 
 	rxmitHandler_ = new SnoopRxmitHandler(this);
-	
-	for (int i = 0; i < SNOOP_MAXWIND; i++) /* data from wired->wireless */
+
+	int i;
+	for (i = 0; i < SNOOP_MAXWIND; i++) /* data from wired->wireless */
 		pkts_[i] = 0;
-	for (int i = 0; i < SNOOP_WLSEQS; i++) {/* data from wireless->wired */
+	for (i = 0; i < SNOOP_WLSEQS; i++) {/* data from wireless->wired */
 		wlseqs_[i] = (hdr_seq *) malloc(sizeof(hdr_seq));
 		wlseqs_[i]->seq = wlseqs_[i]->num = 0;
 	}
@@ -147,6 +148,7 @@ Snoop::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
+	return NsObject::command(argc, argv);
 }
 
 void LLSnoop::recv(Packet *p, Handler *h)

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.13 1997/12/19 22:20:12 bajaj Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.14 1998/03/19 23:45:44 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -163,7 +163,9 @@ int getgid(void);
 int getpid(void);
 int nice(int);
 int sendmsg(int, struct msghdr*, int);
+#ifndef WIN32
 time_t time(time_t *);
+#endif
         
 #define bzero(dest,count) memset(dest,0,count)
 #define bcopy(src,dest,size) memcpy(dest,src,size)
