@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.2 1998/08/20 01:30:26 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.3 1998/09/30 01:26:18 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -172,13 +172,11 @@ Http/Cache instproc cache-hit { cl type pageid } {
 		}
 		return
 	}
-	# Page valid, send it back to client
-	set pageinfo [$self get-page $pageid]
-	set size [$self get-size $pageid]
-	$self send $cl $size "$cl get-response-$type $self $pageid $pageinfo"
-
 	set server [lindex [split $pageid :] 0]
-	$self evTrace E HIT p $pageid c [$cl id] s [$server id] z $size
+	$self evTrace E HIT p $pageid c [$cl id] s [$server id]
+	# XXX don't send any response here. Classify responses according
+	# to request type.
+	$self answer-request-$type $cl $pageid
 }
 
 # A response may come from: 
@@ -346,7 +344,7 @@ Http/Cache/TTL instproc refetch { cl type pageid } {
 		set server $parent_
 	}
 	$self evTrace E IMS p $pageid c [$cl id] s [$server id] z $size \
-		t [$self get-cachetime $pageid]
+		t [$self get-cachetime $pageid] m [$self get-modtime $pageid]
 	$self send-request $server IMS $pageid $size \
 			modtime [$self get-modtime $pageid]
 	return 0

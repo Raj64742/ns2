@@ -17,7 +17,7 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.2 1998/08/25 01:08:20 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.3 1998/09/30 01:26:17 haoboy Exp $
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -71,10 +71,10 @@ Http instproc getfid {} {
 
 # XXX invalidation message size should be proportional to the number of
 # invalidations inside the message
-Http set INVSize_ 50	;# unicast invalidation
-Http set REQSize_ 100	;# Request
-Http set REFSize_ 100	;# Refetch request
-Http set IMSSize_ 100	;# If-Modified-Since
+Http set INVSize_ 43	;# unicast invalidation
+Http set REQSize_ 43	;# Request
+Http set REFSize_ 50	;# Refetch request
+Http set IMSSize_ 50	;# If-Modified-Since
 Http set JOINSize_ 10	;# Server join/leave
 Http set HBSize_ 1	;# Used by Http/Server/Inval only
 Http set PFSize_ 1	;# Pro forma
@@ -388,7 +388,7 @@ Class Http/Client/Compound -superclass Http/Client
 #     the RCV time, and the STA time, etc. 
 # XXX Allow only *ONE* compound page.
 Http/Client/Compound instproc get-response-GET { server pageid args } {
-	$self instvar pending_ id_ ns_ num_cpage_ max_stale_
+	$self instvar pending_ id_ ns_ num_cpage_ max_stale_ stat_
 
 	if ![info exists pending_($pageid)] {
 		error "Client $id_: Unrequested response page $pageid from server/cache [$server id]"
@@ -429,6 +429,7 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 		set pt [lindex $pending_($origsvr:0) 0]
 		$self evTrace C RCV p $origsvr:0 s [$origsvr id] l \
 				[expr [$ns_ now] - $pt] z $data(size)
+		set stat_(rep-time) [expr $stat_(rep-time) + [$ns_ now] - $pt]
 		# Delete all pending records
 		for {set i 0} {$i < [$pgtr_ set num_pages_]} {incr i} {
 			set pid $origsvr:$i
@@ -440,7 +441,8 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 		if [info exists max_stale_] {
 			$self evTrace C STA p $origsvr:0 s [$origsvr id] \
 				l $max_stale_
-			# 
+			incr stat_(stale-num)
+			set stat_(stale-time) [expr $stat_(stale-time) + $max_stale_]
 			unset max_stale_
 		}
 		$self mark-response $origsvr:0
