@@ -171,13 +171,13 @@ CtrMcast instproc handle-cache-miss { argslist } {
 	}
     }
     if { [$Node id] == $srcID } {
-	if { [$Agent set treetype($group)] == $RPT && $srcID != [$self get_rp $group]} {
+	set RP [$self get_rp $group]
+	if { [$Agent set treetype($group)] == $RPT && $srcID != $RP} {
 	    ### create encapsulation agent
 	    set encapagent [new Agent/CtrMcast/Encap]
 	    $ns attach-agent $Node $encapagent
 
 	    ### find decapsulation agent and connect encap and decap agents
-	    set RP [$self get_rp $group]
 	    set n [$ns set Node_($RP)]
 	    set arbiter [$n getArbiter]
 	    set ctrmcast [$arbiter getType "CtrMcast"]
@@ -246,6 +246,8 @@ CtrMcast instproc get_rp group {
 	}
     } else {
 	[$Agent set ctrrpcomp] compute-rpset
+	set tmp [$self get_rp $group]
+	return $tmp
     }
 }
 
@@ -266,6 +268,11 @@ CtrMcast instproc set_c_bsr { prior } {
 CtrMcast instproc set_c_rp {} {
     $self instvar c_rp
     set c_rp 1
+}
+
+CtrMcast instproc unset_c_rp {} {
+    $self instvar c_rp
+    set c_rp 0
 }
 
 ################# Agent/CtrMcast/Encap ###############
