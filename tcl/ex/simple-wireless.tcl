@@ -29,32 +29,22 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
+# simple-wireless.tcl
 # A simple example for wireless simulation
 
 # ======================================================================
 # Define options
 # ======================================================================
-set val(chan)		Channel/WirelessChannel
-set val(prop)		Propagation/TwoRayGround
-set val(netif)		Phy/WirelessPhy
-set val(mac)		Mac/802_11
-set val(ifq)		Queue/DropTail/PriQueue
-set val(ll)		LL
-set val(ant)            Antenna/OmniAntenna
-set val(ifqlen)		50		;# max packet in ifq
-set val(nn)             2
-set val(rp)             dsdv            ;# routing protocol script
-set val(agent)          Agent/DSDV
-
-# ======================================================================
-# needs to be fixed later
-#set AgentTrace			ON
-#set RouterTrace			ON
-#set MacTrace			OFF
-
-source ../mobility/com.tcl
-
-set-wireless-traces -AgentTrace ON -RouterTrace ON -MacTrace OFF
+set val(chan)           Channel/WirelessChannel    ;# channel type
+set val(prop)           Propagation/TwoRayGround   ;# radio-propagation model
+set val(netif)          Phy/WirelessPhy            ;# network interface type
+set val(mac)            Mac/802_11                 ;# MAC type
+set val(ifq)            Queue/DropTail/PriQueue    ;# interface queue type
+set val(ll)             LL                         ;# link layer type
+set val(ant)            Antenna/OmniAntenna        ;# antenna model
+set val(ifqlen)         50                         ;# max packet in ifq
+set val(nn)             2                          ;# number of mobilenodes
+set val(rp)             DSDV                       ;# routing protocol
 
 # ======================================================================
 # Main Program
@@ -65,65 +55,46 @@ set-wireless-traces -AgentTrace ON -RouterTrace ON -MacTrace OFF
 # Initialize Global Variables
 #
 set ns_		[new Simulator]
-set tracefd	[open simple.tr w]
-set opt(nn)     $val(nn)
+set tracefd     [open simple.tr w]
+$ns_ trace-all $tracefd
 
-# set wireless channel, radio-model and topography objects
-set wchan	[new $val(chan)]
-set wprop	[new $val(prop)]
-set wtopo	[new Topography]
+# set up topography object
+set topo       [new Topography]
 
-$wtopo load_flatgrid 500 500
-
-$wprop topography $wtopo
+$topo load_flatgrid 500 500
 
 #
 # Create God
 #
 create-god $val(nn)
 
-
 #
-# log the mobile nodes movements if desired
-#
-set lm  "off"
-if { $lm == "on" } {
-    log-movement
-}
-#debug 1
-#
-#  Create the specified number of nodes [$val(nn)] and "attach" them
+#  Create the specified number of mobilenodes [$val(nn)] and "attach" them
 #  to the channel. 
-#  Each routing protocol script is expected to have defined a proc
-#  create-mobile-node that builds a mobile node and inserts it into the
-#  array global $node_($i)
 #  Here two nodes are created : node(0) and node(1)
 
-if { [string compare $val(rp) "dsr"] == 0} { 
-	for {set i 0} {$i < $val(nn) } {incr i} {
-		dsr-create-mobile-node $i
-	}
-} elseif { [string compare $val(rp) "dsdv"] == 0} { 
+# configure node
 
-	#global node setting
-
-        $ns_ node-config -routingAgent Agent/DSDV \
+        $ns_ node-config -adhocRouting $val(rp) \
 			 -llType $val(ll) \
 			 -macType $val(mac) \
 			 -ifqType $val(ifq) \
-			 -ifqlen $val(ifqlen) \
+			 -ifqLen $val(ifqlen) \
 			 -antType $val(ant) \
 			 -propType $val(prop) \
-			 -phyType $val(netif)
-			
+			 -phyType $val(netif) \
+			 -channelType $val(chan) \
+			 -topoInstance $topo \
+			 -agentTrace ON \
+			 -routerTrace ON \
+			 -macTrace OFF \
+			 -movementTrace OFF			
 			 
 	for {set i 0} {$i < $val(nn) } {incr i} {
-		set node_($i) [$ns_ node $wchan]	
+		set node_($i) [$ns_ node]	
 		$node_($i) random-motion 0		;# disable random motion
-		$node_($i) topography $wtopo
-	        $node_($i) nodetrace $tracefd
 	}
-}
+
 #
 # Provide initial (X,Y, for now Z=0) co-ordinates for mobilenodes
 #
@@ -162,10 +133,15 @@ $ns_ at 10.0 "$ftp start"
 # Tell nodes when the simulation ends
 #
 for {set i 0} {$i < $val(nn) } {incr i} {
-    $ns_ at 150.000000001 "$node_($i) reset";
+    $ns_ at 150.0 "$node_($i) reset";
 }
-$ns_ at 150.00000001 "puts \"NS EXITING...\" ; $ns_ halt"
-
+$ns_ at 150.0 "stop"
+$ns_ at 150.01 "puts \"NS EXITING...\" ; $ns_ halt"
+proc stop {} {
+    global ns_ tracefd
+    $ns_ flush-trace
+    close $tracefd
+}
 
 puts "Starting Simulation..."
 $ns_ run
