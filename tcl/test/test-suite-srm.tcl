@@ -196,14 +196,10 @@ TestSuite instproc init {} {
 	set ns_ [new SessionSim]
 	$ns_ namtrace-all [open temp.rands w]
     } else {
-	set ns_ [new Simulator]
+	set ns_ [new Simulator -multicast on]
 	$ns_ trace-all [open temp.rands w]
 	#$ns_ namtrace-all [open out.nam w]
-	Simulator set EnableMcast_ 1
-	Simulator set NumberInterfaces_ 1
     }
-    #Simulator set EnableMcast_ 1
-    #Simulator set NumberInterfaces_ 1
     set g_ [Node allocaddr]
     set topo_ [new Topology/$net_ $ns_]
     set nmax [$topo_ totalnodes?]
