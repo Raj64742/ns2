@@ -31,7 +31,13 @@ This chapter consists of two sections and several subsections. The first section
 
 
 
+
+
+
 used to construct the network stack for a mobilenode. The components that are covered briefly are Channel, Network-interface, Radio propagation model, MAC protocols, Interface Queue, Link layer and Address resolution protocol model (ARP). CMU trace suppor
+
+
+
 
 
 
@@ -78,6 +84,9 @@ The original CMU model allows simulation of pure wireless LANs or multihop ad-ho
 
 
 
+
+
+
  discussed in the second section of this chapter.		
 
 
@@ -96,7 +105,8 @@ signals to and from a wireless channel etc. A major difference between
 them, though, is that a \code{MobileNode} is not connected by means of
 \code{Links} to other nodes or mobilenodes. In this section we shall
 describe the internals of \code{MobileNode}, its routing mechanisms, the
-routing protocols dsdv and dsr, creation of network stack allowing channel
+routing protocols dsdv, aodv, tora and dsr, creation of network stack
+allowing channel
 access in \code{MobileNode}, brief description of each stack component,
 trace support and movement/traffic scenario generation for wireless
 simulations. 
@@ -116,7 +126,8 @@ implemented in C++ while plumbing of network components within
 have been implemented in Otcl. The functions and procedures described in
 this subsection can be found in \nsf{mobilenode.\{cc,h\}},
 \nsf{tcl/lib/ns-mobilenode.tcl}, \nsf{tcl/mobility/dsdv.tcl},
-\nsf{tcl/mobility/dsr.tcl}. Example scripts can be found in
+\nsf{tcl/mobility/dsr.tcl}, \nsf{tcl/mobility/tora.tcl}. Example scripts
+can be found in
 \nsf{tcl/ex/wireless-test.tcl} and \nsf{tcl/ex/wireless.tcl}. While the
 first example uses a small topology of 3 nodes, the second example runs
 over a topology of 50 nodes. These scripts can be run simply by typing
@@ -125,16 +136,18 @@ over a topology of 50 nodes. These scripts can be run simply by typing
 $ns tcl/ex/wireless.tcl (or /wireless-test.tcl)
 \end{program}
 
-The two ad-hoc routing protocols that are currently supported are
-Destination Sequence Distance Vector (DSDV) and Dynamic Source Routing
-(DSR). The APIs for creating a mobilenode depends on which routing
-protocol it would be using. Hence the primitive to    
+The four ad-hoc routing protocols that are currently supported are
+Destination Sequence Distance Vector (DSDV), Dynamic Source Routing
+(DSR), Temporally ordered Routing Algorithm (TORA) and Adhoc On-demand
+Distance Vector (AODV). The APIs for creating a mobilenode depends on
+which routing protocol it would be using. Hence the primitive to    
 create a mobilenode is
 
 \begin{program}
 	set mnode [$opt(rp)-create-mobile-node $id] 
 \end{program}
-where \$opt(rp) defines "dsdv" or "dsr" and id is the index for the mobilenode.
+where \$opt(rp) defines "dsdv", "aodv", "tora" or "dsr" and id is the
+index for the mobilenode.
 
 The above procedure creates a mobilenode (split)object, creates a routing
 agent as specified, creates the network stack consisting of a link layer,
@@ -209,9 +222,15 @@ In this method the node-movement-updates are triggered whenever the position of 
 
 
 
+
+
+
  described above that changes the direction and speed of the node.
 
 An example of a movement scenario file using the above APIs, can be found in \nsf{tcl/mobility/scene/scen-670x670-50-600-20-0}. Here 670x670 defines the length and width of the topology with 50 nodes moving at a maximum speed of 20m/s with average pause t
+
+
+
 
 
 
@@ -242,6 +261,9 @@ The second method employs random movement of the node. The primitive to be used 
 $mobilenode start
 \end{program}
 which starts the mobilenode with a random position and have routined updates to change the direction and speed of the node. The destination and speed values are generated in a random fashion. We have not used the second method and leave it to the user to 
+
+
+
 
 
 
@@ -452,7 +474,13 @@ Each component is briefly described here. Hopefully more detailed docuentation f
 
 
 
+
+
+
 . Normally for all outgoing (into the channel) packets, the packets are handed down to the \code{LL} by the Routing Agent. The \code{LL} hands down packets to the interface queue. For all incoming packets (out of the channel), the mac layer hands up packe
+
+
+
 
 
 
@@ -500,7 +528,13 @@ ts to the \code{LL} which is then handed off at the \code{node_entry_} point. Th
 
 
 
+
+
+
 d caches the packet temporarily. For each unknown destination hardware address, there is a buffer for a single packet. Incase additional packets to the same destination is sent to ARP, the earlier buffered packet is dropped. Once the hardware address of a
+
+
+
 
 
 
@@ -560,9 +594,15 @@ physical and virtual carrier sense. The \clsref{Mac802\_11}{../ns-2/mac-802\_11.
 
 
 
+
+
+
 given all packets received by the mac layer, before address filtering is done. See \nsf{mac.\{cc,h\}} for \clsref{Tap} implementation.
 
 \item[{\bf Network Interfaces}] The Network Interphase layer serves as a hardware interface which is used by mobilenode to access the channel. The wireless shared media interface is implemented as \clsref{Phy/WirelessPhy}{../ns-2/wireless-phy.h}. This int
+
+
+
 
 
 
@@ -608,7 +648,13 @@ erface subject to collisions and the radio propagation model receives packets tr
 
 
 
+
+
+
 power, wavelength etc. This meta-data in pkt header is used by the propagation model in receiving network interface to determine if the packet has minimum power to be received and/or captured and/or detected (carrier sense) by the receiving node. The mode
+
+
+
 
 
 
@@ -656,18 +702,21 @@ l approximates the DSSS radio interface (Lucent WaveLan direct-sequence spread-s
 
 
 
+
+
+
 nd.\{cc,h\}} for implementation.
 
-\item[{\bf Antenna}] An omni-directional antenna having unity gain is used by mobilenodes. See \nsf{antenna.\{cc,h\}} for implementation details.
+\item[{\bf Antenna}] An omni-directional antenna having unity gain is
+used by mobilenodes. See \nsf{antenna.\{cc,h\}} for implementation details.
 \end{description}
 
-\subsection{Routing Agent in mobilenode}
+\subsection{Different types of Routing Agents in mobile networking}
 \label{sec:mobilenode-routing}
 
-Currently there are two different ad-hoc routing protocols implemented for
-mobile networking in \ns. We will first briefly discuss DSDV and then DSR.
-Again hopefully we will have some detailed documentation from CMU/Monarch
-group. 
+The four different ad-hoc routing protocols currently implemented
+for mobile networking in \ns are dsdv, dsr, aodv and tora. In this section
+we shall briefly discuss each of them.
 
 \subsubsection{DSDV}
 \label{sec:dsdv}
@@ -680,8 +729,8 @@ he neighbours forces a change in the routing table.
 A packet for which the route to its destination is not known is cached
 while routing queries are sent out. The pkts are cached until
 route-replies are received from the destination. There is a maximum buffer
-size for caching the pkts waiting for routing i   
-nformation beyond which pkts are dropped.
+size for caching the pkts waiting for routing information beyond which
+pkts are dropped. 
 
 All packets destined for the mobilenode are routed directly by the address
 dmux to its port dmux. The port dmux hands the packets to the respective
@@ -727,6 +776,55 @@ packet has already been processed by the routing agent.
 
 See \nsf{dsr} directory and \nsf{tcl/mobility/dsr.tcl} for implementation
 of DSR protocol. 
+
+\subsubsection{TORA}
+\label{sec:tora}
+
+Tora is a distributed routing protocol based on "link reversal" algorithm. 
+At every node a separate copy of TORA is run for every destination. When a
+node needs a route to a given destination it broadcasts a QUERY message
+containing the address of the destination for which it requires  a route.
+This packet travels through the network until it reaches the destination
+or an intermediate node that has a route to the destination node.
+This recepient node node then broadcasts an UPDATE packet listing its
+height wrt the destination. As this node propagates through the network
+each node updates its height to a value greater than the height of the
+neighbour from which it receives the UPDATE. This results in a series of
+directed links from the node that originated the QUERY to the destination
+node. If a node discovers a particular destination to be unreachable it
+sets a local maximum value of height for that destination. Incase the node
+cannot find any neighbour having finite height wrt this destination it
+attempts to find a new route. In case of network partition, the node
+broadcasts a CLEAR message that resets all routing states and removes
+invalid routes from the network.
+
+TORA operates on top of IMEP (Internet MANET Encapsulation Protocol) that
+provides reliable delivery of route-messages and informs the routing
+protocol of any changes of the links to its neighbours. IMEP tries to
+aggregate IMEP and TORA messages into a single packet (called block) in
+order to reduce overhead. For link-status sensing and maintaining a list
+of neighbour nodes, IMEP sends out periodic BEACON messages which is
+answered by each node that hears it by a HELLO reply message.
+See \ns/tora directory and \ns/tcl/mobility/tora.tcl for implementation of
+tora in \ns.
+
+
+\subsubsection{AODV}
+\label{sec:AODV}
+AODV is a combination of both DSR and DSDV protocols. It has the basic
+route-discovery and route-maintenance of DSR and uses the hop-by-hop
+routing, sequence numbers and beacons of DSDV. The node that wants to know
+a route to a given destination generates a ROUTE REQUEST. The route
+request is forwarded by intermediate nodes that also creates a reverse
+route for itself from the destination. When the request reaches a node
+with route to destination it generates a ROUTE REPLY containing the number
+of hops requires to reach destination. All nodes that participates in
+forwarding this reply to the source node creates a forward route to
+destination. This state created from each node from source to destination
+is a hop-by-hop state and not the entire route as is done in source
+routing.
+See \ns/aodv and \ns/tcl/lib/ns-lib.tcl for implementational details
+of aodv.
 
 
 \subsection{Trace Support}
@@ -917,11 +1015,12 @@ destination was a hop away from the src. Additionally TCP format prints
 information about tcp seqno of 1, ackno of 0. See other formats described
 in \nsf/cmu-trace.cc for DSR, UDP/MESSAGE, TCP/ACK and CBR packet types.
 
-Other trace formats are also used by the routing agents (DSDV and DSR) to
-log certain special events like "originating" (adding a SR header to a
-packet) or  "ran off the end of a source route" indicating some sort of
-routing problem with the source route etc. These special event traces may
-be found in \nsf{dsdv/dsdv.cc} for DSDV and \nsf{dsr/dsrgent.cc} for DSR
+Other trace formats are also used by the routing agents (TORA and DSR) to
+log certain special routing events like "originating" (adding a SR header
+to a packet) or  "ran off the end of a source route" indicating some sort
+of routing problem with the source route etc. These special event traces
+begin with "S" for DSR and "T" for Tora and may
+be found in \nsf{tora/tora.cc} for TORA and \nsf{dsr/dsrgent.cc} for DSR
 routing agent.
 
 
@@ -1178,7 +1277,13 @@ As mentioned earlier, the original CMU wireless model allows simulation of wirel
 
 
 
+
+
+
 call this wired-cum-wireless feature. Also SUN's MobileIP (implemented for wired nodes) was integrated into the wireless model allowing mobileIP to run over wireless mobilenodes. The following two subsections describe these two extensions to the wireless 
+
+
+
 
 
 
@@ -1230,9 +1335,15 @@ The mobilenodes described so far mainly supports simulation of multi-hop ad-hoc 
 
 
 
+
+
+
 less nodes? The extensions made to the CMU wireless model allows us to do that.
 
 The main problem facing the wired-cum-wireless scenario was the issue of routing. In ns, routing information is generated based on the connectivity of the topology, i.e how nodes are connected to one another through \code{Links}. Mobilenodes on the other 
+
+
+
 
 
 
@@ -1279,6 +1390,9 @@ So a node called \code{BaseStationNode} is created which plays the role of a gat
 
 
 
+
+
+
 ls on hierarchical routing and internals of \code{HierNode}.} (\code{HierNode}) and a \code{MobileNode}. The basestation node is responsible for delivering packets into and out of the wireless domain. In order to achieve this we need Hierarchical routing.
 
 
@@ -1302,7 +1416,13 @@ ls on hierarchical routing and internals of \code{HierNode}.} (\code{HierNode}) 
 
 
 
+
+
+
  Each wireless domain along with its base-station would have an unique domain address assigned to them. All packets destined to a wireless node would reach the base-station attached to the domain of that wireless node, who would eventually hand the packet
+
+
+
 
 
 
@@ -1356,7 +1476,13 @@ The mobilenodes in wired-cum-wireless scenario are required to support hierarchi
 
 
 
+
+
+
 ot require any address demuxes and thus is not required to support hier routing\footnote{In order to do away with all these different variations of the definition of a node, we are planning to revise the node architecture that would allow a more flexible 
+
+
+
 
 
 
@@ -1404,9 +1530,15 @@ The DSDV agent on having to forward a packet checks to see if the destination is
 
 
 
+
+
+
 packet is forwarded to the next\_hop towards the base-station. Which is then routed towards the wired network by base-station's classifiers.
 
 The DSR agent, on receiving a pkt destined outside its subnet, sends out a route-query for its base-station in case the route to base-station is not known. The data pkt is temporarily cached while it waits to hear route replies from base-station. On getti
+
+
+
 
 
 
@@ -1454,6 +1586,9 @@ The example script for a wired-cum-wireless simulation can be found at \nsf{tcl/
 
 
 
+
+
+
 , \nsf{dsdv/dsdv.\{cc,h\}} and \nsf{dsr/dsragent.\{cc,h\}}.
 
 
@@ -1461,6 +1596,9 @@ The example script for a wired-cum-wireless simulation can be found at \nsf{tcl/
 \label{sec:mobileip}
 
 The wired-cum-wireless extensions for the wireless model paved the path for supporting wireless MobileIP in \ns. Sun Microsystem's (Charlie Perkins etal) MobileIP model was based on ns's wired model (consisting of \code{Node}'s and \code{Link}'s) and thus
+
+
+
 
 
 
@@ -1520,7 +1658,13 @@ The MH nodes are defined as \code{MobileNode/MIPMH} which too have a regagent\_ 
 
 
 
+
+
+
  node. The \code{MobileNode/MIPMH} node is very similar to this except for the fact that it doesnot have any encapsulator or decapsulator. As for the SRNode version of a MH, it doesnot have the hierarchical classifiers and the RA agent forms the entry poi
+
+
+
 
 
 
@@ -1568,6 +1712,9 @@ The \code{MobileNode/MIPBS} node routinely broadcasts beacon or advertisement me
 
 
 
+
+
+
 MH and is used as the COA (care-of-address) of the MH. Thus as the MH moves from its native to foreign domains, its COA changes.
 Upon receiving  reg\_request (as reply to ads) from a mobilehost the base-station checks to see if it is the HA for the MH. If not, it sets up its decapsulator and forwards the reg\_request towards the HA of the MH. 
 Incase the base-station {\em is} the HA for the requesting MH but the COA doesnot match its own, it sets up an encapsulator and sends reg-request-reply back to the COA (address of the FA) who has forwarded the reg\_request to it. so now all packets destin
@@ -1593,7 +1740,13 @@ Incase the base-station {\em is} the HA for the requesting MH but the COA doesno
 
 
 
+
+
+
 ed to the MH reaching the HA would be tunneled through the encapsulator which encapsulates the IP pkthdr with a IPinIP hdr, now destined to the COA instead of MH. The FA's decapsulator recives this packet, removes the encapsulation and sends it to the MH.
+
+
+
 
 
 
