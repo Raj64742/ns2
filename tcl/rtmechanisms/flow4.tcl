@@ -1,5 +1,5 @@
 source Flows.tcl
-source Setred.tcl
+source Setred.v2.tcl
 source flowmon.tcl
 #
 set flowfile fairflow.tr
