@@ -11,12 +11,14 @@ public:
 	}
 } class_decapsulator;
 
-Decapsulator::Decapsulator()  : Agent(PT_ENCAPSULATED) 
+int Decapsulator::off_encap_= 0;
+ 
+Decapsulator::Decapsulator()  : Agent(PT_ENCAPSULATED)
 { 
 	bind("off_encap_", &off_encap_);
 }
 
-Packet* const Decapsulator::decapPacket(Packet* p) 
+Packet* const Decapsulator::decapPacket(Packet* const p) 
 {
 	hdr_cmn* ch= (hdr_cmn*)p->access(hdr_cmn::offset_);
 	if (ch->ptype() == PT_ENCAPSULATED) {
