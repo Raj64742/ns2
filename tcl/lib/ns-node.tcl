@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.10 1997/07/25 19:27:12 kkumar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.11 1997/08/24 18:11:39 hari Exp $
 #
 
 Class Node
@@ -259,4 +259,14 @@ Node instproc get-vif {} {
 }
 
 
+# List of corresponding peer TCP hosts from this node, used in IntTcp
 
+Node instproc addCorresHost {addr cw mtu maxcw wndopt } {
+	$self instvar chaddrs_
+	if {[info exists chaddrs_($addr)]} {
+		return $chaddrs_($addr)
+	} else {
+		set chost [new Agent/Chost $addr $cw $mtu $maxcw $wndopt]
+		set chaddrs_($addr) $chost
+	}
+}
