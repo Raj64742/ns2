@@ -24,10 +24,14 @@
 
 /*
  * Abstract base class to deal with Agent-style timers.
+ * Although it's called agent-timer, these timers
+ * can be used anywhere you want a handler with timer-like
+ * semantics.
  *
- * To define a new, subclass this function and define handle:
  *
- * class MyTimer : private AgentTimerHandler {
+ * To define a new timer, subclass this function and define handle:
+ *
+ * class MyTimer : public AgentTimerHandler {
  * public:
  *	MyTimer(MyAgentClass *a) : AgentTimerHandler() { a_ = a; }
  *	virtual void handle(Event *e);
@@ -43,9 +47,10 @@
  * 	// do the work, then call resched(newdelay) or handled()
  * }
  *
- * Often times MyTimer will be a friend of MyAgentClass.
+ * Often MyTimer will be a friend of MyAgentClass,
+ * or handle() will only call a function of MyAgentClass.
  *
- * See tcp-rbp.{cc,h} for an example.
+ * See tcp-rbp.{cc,h} for a real example.
  */
 class AgentTimerHandler : public Handler {
 public:
@@ -56,7 +61,7 @@ public:
 	void cancel();               // must be pending
 	int pending() { return pending_; };
 
-	virtual void handle(Event *e);  // must be filled in by client
+	virtual void handle(Event *e) = 0;  // must be filled in by client
 		// handle should conclude by calling
 		// either resched() or handled()
 	void handled() { pending_ = 0; }

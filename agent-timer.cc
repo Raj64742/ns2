@@ -46,17 +46,7 @@ AgentTimerHandler::resched(double delay)
 {
 	if (pending_)
 		_cancel();
+	else pending_ = 1;
 	_sched(delay);
 }
 
-void
-AgentTimerHandler::handle(Event *e)
-{
-	/*
-	 * must be overridden
-	 *
-	 * handlers should either call cancel() or resched().
-	 */
-	abort();  // must be overridden
-
-}
