@@ -30,11 +30,10 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.6 1998/08/14 20:14:24 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.7 1998/09/21 06:12:47 sfloyd Exp $
 #
 
-source misc.tcl
-source topologies.tcl
+source misc_simple.tcl
 
 TestSuite instproc finish file {
         global quiet
@@ -48,17 +47,108 @@ TestSuite instproc finish file {
         exit 0
 }
 
+Class Topology
+
+Topology instproc node? num {
+    $self instvar node_
+    return $node_($num)
+}
+
+# 
+# Links1 uses 8Mb, 5ms feeders, and a 800Kb 100ms bottleneck.
+# Queue-limit on bottleneck is 6 packets. 
+# 
+Class Topology/net0 -superclass Topology
+Topology/net0 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 6
+    $ns queue-limit $node_(k1) $node_(r1) 6
+}
+
+# 
+# Links1 uses 10Mb, 5ms feeders, and a 1.5Mb 100ms bottleneck.
+# Queue-limit on bottleneck is 23 packets.
+# 
+
+Class Topology/net1 -superclass Topology
+Topology/net1 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 100ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 23
+    $ns queue-limit $node_(k1) $node_(r1) 23
+}
+
+
+Class Topology/net2 -superclass Topology
+Topology/net2 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 25
+    $ns queue-limit $node_(r2) $node_(r1) 25
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+}
+
+TestSuite instproc setTopo {} {
+    $self instvar node_ net_ ns_ topo_
+
+    set topo_ [new Topology/$net_ $ns_]
+    if {$net_ == "net0" || $net_ == "net1"} {
+        set node_(s1) [$topo_ node? s1]
+        set node_(s2) [$topo_ node? s2]
+        set node_(r1) [$topo_ node? r1]
+        set node_(k1) [$topo_ node? k1]
+        [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
+    }
+    if {$net_ == "net2"} {
+        set node_(s1) [$topo_ node? s1]
+        set node_(s2) [$topo_ node? s2]
+        set node_(s3) [$topo_ node? s3]
+        set node_(s4) [$topo_ node? s4]
+        set node_(r1) [$topo_ node? r1]
+        set node_(r2) [$topo_ node? r2]
+        [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
+    }
+}
+
 # single packet drop
 Class Test/sack1 -superclass TestSuite
-Test/sack1 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sack1 instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sack1
     $self next
 }
 Test/sack1 instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 14
@@ -73,15 +163,15 @@ Test/sack1 instproc run {} {
 }
 
 Class Test/sack1z -superclass TestSuite
-Test/sack1z instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sack1z instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sack1z
     $self next
 }
 Test/sack1z instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
@@ -98,15 +188,15 @@ Test/sack1z instproc run {} {
 
 # three packet drops
 Class Test/sack1a -superclass TestSuite
-Test/sack1a instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sack1a instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sack1a
     $self next
 }
 Test/sack1a instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 20
@@ -122,15 +212,15 @@ Test/sack1a instproc run {} {
 
 # three packet drops
 Class Test/sack1aa -superclass TestSuite
-Test/sack1aa instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sack1aa instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sack1aa
     $self next
 }
 Test/sack1aa instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
@@ -146,15 +236,15 @@ Test/sack1aa instproc run {} {
 }
 
 Class Test/sack1b -superclass TestSuite
-Test/sack1b instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sack1b instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sack1b
     $self next
 }
 Test/sack1b instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 26
     set ftp1 [$tcp1 attach-app FTP]
@@ -168,15 +258,15 @@ Test/sack1b instproc run {} {
 }
 
 Class Test/sack1c -superclass TestSuite
-Test/sack1c instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sack1c instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sack1c
     $self next
 }
 Test/sack1c instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 27
     set ftp1 [$tcp1 attach-app FTP]
@@ -191,15 +281,15 @@ Test/sack1c instproc run {} {
 }
 
 Class Test/sack3 -superclass TestSuite
-Test/sack3 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sack3 instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sack3
     $self next
 }
 Test/sack3 instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
     $ns_ queue-limit $node_(r1) $node_(k1) 8
     $ns_ queue-limit $node_(k1) $node_(r1) 8
 	
@@ -225,15 +315,15 @@ Test/sack3 instproc run {} {
 }
 
 Class Test/sack5 -superclass TestSuite
-Test/sack5 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net1
+Test/sack5 instproc init {} {
+    $self instvar net_ test_
+    set net_	net1
     set test_	sack5
     $self next
 }
 Test/sack5 instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     $ns_ delay $node_(s1) $node_(r1) 3ms
     $ns_ delay $node_(r1) $node_(s1) 3ms
@@ -260,15 +350,15 @@ Test/sack5 instproc run {} {
 }
 
 Class Test/sack5a -superclass TestSuite
-Test/sack5a instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net1
+Test/sack5a instproc init {} {
+    $self instvar net_ test_
+    set net_	net1
     set test_	sack5a
     $self next
 }
 Test/sack5a instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     Agent/TCP set maxburst_ 4
     $ns_ delay $node_(s1) $node_(r1) 3ms
@@ -297,15 +387,15 @@ Test/sack5a instproc run {} {
 
 # shows a long recovery from sack.
 Class Test/sackB2 -superclass TestSuite
-Test/sackB2 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
+Test/sackB2 instproc init {} {
+    $self instvar net_ test_
+    set net_	net0
     set test_	sackB2
     $self next
 }
 Test/sackB2 instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
     $ns_ queue-limit $node_(r1) $node_(k1) 9
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
@@ -329,15 +419,15 @@ Test/sackB2 instproc run {} {
 
 # two packets dropped
 Class Test/sackB4 -superclass TestSuite
-Test/sackB4 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net2
+Test/sackB4 instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
     set test_	sackB4
     $self next
 }
 Test/sackB4 instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
     $ns_ queue-limit $node_(r1) $node_(r2) 29
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
     $tcp1 set window_ 40
@@ -354,15 +444,15 @@ Test/sackB4 instproc run {} {
 
 # two packets dropped
 Class Test/sackB4a -superclass TestSuite
-Test/sackB4a instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net2
+Test/sackB4a instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
     set test_	sackB4a
     $self next
 }
 Test/sackB4a instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
     $ns_ queue-limit $node_(r1) $node_(r2) 29
     Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
@@ -380,15 +470,15 @@ Test/sackB4a instproc run {} {
 
 # delayed ack not implemented yet
 #Class Test/delayedSack -superclass TestSuite
-#Test/delayedSack instproc init topo {
-#    $self instvar net_ defNet_ test_
-#    set net_    $topo
-#    set defNet_	net0
+#Test/delayedSack instproc init {} {
+#    $self instvar net_ test_
+#    set net_    net0
 #    set test_	delayedSack
 #    $self next
 #}
 #Test/delayedSack instproc run {} {
 #     $self instvar ns_ node_ testName_
+#     $self setTopo
 #     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
 #     $tcp1 set window_ 50
 # 
@@ -407,15 +497,15 @@ Test/sackB4a instproc run {} {
 
 ## segregation
 #Class Test/phaseSack -superclass TestSuite
-#Test/phaseSack instproc init topo {
-#    $self instvar net_ defNet_ test_
-#    set net_	$topo
-#    set defNet_	net0
+#Test/phaseSack instproc init {} {
+#    $self instvar net_ test_
+#    set net_	net0
 #    set test_	phaseSack
 #    $self next
 #}
 #Test/phaseSack instproc run {} {
 #    $self instvar ns_ node_ testName_
+#    $self setTopo
 #
 #    $ns_ delay $node_(s2) $node_(r1) 3ms
 #    $ns_ delay $node_(r1) $node_(s2) 3ms
@@ -443,15 +533,15 @@ Test/sackB4a instproc run {} {
 #
 ## random overhead, but segregation remains 
 #Class Test/phaseSack2 -superclass TestSuite
-#Test/phaseSack2 instproc init topo {
-#    $self instvar net_ defNet_ test_
-#    set net_	$topo
-#    set defNet_	net0
+#Test/phaseSack2 instproc init {} {
+#    $self instvar net_ test_
+#    set net_	net0
 #    set test_	phaseSack2
 #    $self next
 #}
 #Test/phaseSack2 instproc run {} {
 #    $self instvar ns_ node_ testName_
+#    $self setTopo
 #
 #    $ns_ delay $node_(s2) $node_(r1) 3ms
 #    $ns_ delay $node_(r1) $node_(s2) 3ms
@@ -481,15 +571,15 @@ Test/sackB4a instproc run {} {
 #
 ## no segregation, because of random overhead
 #Class Test/phaseSack3 -superclass TestSuite
-#Test/phaseSack3 instproc init topo {
-#    $self instvar net_ defNet_ test_
-#    set net_	$topo
-#    set defNet_	net0
+#Test/phaseSack3 instproc init {} {
+#    $self instvar net_ test_
+#    set net_	net0
 #    set test_	phaseSack3
 #    $self next
 #}
 #Test/phaseSack3 instproc run {} {
 #    $self instvar ns_ node_ testName_
+#    $self setTopo
 #
 #    $ns_ delay $node_(s2) $node_(r1) 9.5ms
 #    $ns_ delay $node_(r1) $node_(s2) 9.5ms
@@ -518,15 +608,15 @@ Test/sackB4a instproc run {} {
 #}
 
 #Class Test/timersSack -superclass TestSuite
-#Test/timersSack instproc init topo {
-#    $self instvar net_ defNet_ test_
-#    set net_	$topo
-#    set defNet_	net0
+#Test/timersSack instproc init {} {
+#    $self instvar net_ test_
+#    set net_	net0
 #    set test_	timersSack
 #    $self next
 #}
 #Test/timersSack instproc run {} {
 #     $self instvar ns_ node_ testName_
+#     $self setTopo
 #     $ns_ queue-limit $node_(r1) $node_(k1) 2
 #     $ns_ queue-limit $node_(k1) $node_(r1) 100
 # 
