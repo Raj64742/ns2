@@ -311,7 +311,7 @@ CMUTrace::recv(Packet *p, Handler *h)
          * sending.
          */
         if(tracetype == TR_AGENT && type_ == SEND) {
-                assert(src_ == src);
+                //assert(src_ == src);
                 God::instance()->stampPacket(p);
         }
 #if 0

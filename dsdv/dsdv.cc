@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.11 1999/05/07 19:06:43 yaxu Exp $
+   $Id: dsdv.cc,v 1.12 1999/05/17 22:50:49 yaxu Exp $
 
    */
 
@@ -864,7 +864,7 @@ DSDV_Agent::diff_subnet(int dst)
 			delete [] dstnet;
 		}
 	}
-	assert(dstnet == NULL);
+	//assert(dstnet == NULL);
 	return 0;
 }
 
