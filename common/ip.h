@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.6 1997/08/29 22:05:15 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.7 1998/06/25 23:26:13 gnguyen Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -50,24 +51,18 @@ struct hdr_ip {
 	int		prio_;
 
 	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_ip* access(Packet* p, int off=-1) {
+		return (hdr_ip*) p->access(off < 0 ? offset_ : off);
+	}
 
 	/* per-field member acces functions */
-	nsaddr_t& src() {
-		return (src_);
-	}
-	nsaddr_t& dst() {
-		return (dst_);
-	}
-	int& ttl() {
-		return (ttl_);
-	}
+	nsaddr_t& src() { return (src_); }
+	nsaddr_t& dst() { return (dst_); }
+	int& ttl() { return (ttl_); }
 	/* ipv6 fields */
-	int& flowid() {
-		return (fid_);
-	}
-	int& prio() {
-		return (prio_);
-	}
+	int& flowid() { return (fid_); }
+	int& prio() { return (prio_); }
 };
-  
+
 #endif
