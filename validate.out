@@ -43,25 +43,44 @@ Test output agrees with reference output
 Running test stats
 tcp1/window=30/packetSize=1000/bugFix=1
 tcp2/window=30/packetSize=1000/bugFix=1
-tcp2/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
 tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
-tcp2/time=5/cwnd=2.0000/ssthresh=13/ack=26/rtt=6
+tcp2/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
 tcp1/time=5/cwnd=7.0000/ssthresh=7/ack=96/rtt=3
-tcp2/time=10/cwnd=2.0000/ssthresh=7/ack=87/rtt=6
+tcp2/time=5/cwnd=2.0000/ssthresh=13/ack=26/rtt=6
 tcp1/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=2
-stop-time 10.1
+tcp2/time=10/cwnd=2.0000/ssthresh=7/ack=87/rtt=6
 tcp 0 total_packets_acked 335
 tcp 1 total_packets_acked 87
-Test output agrees with reference output
+stop-time 10.1
+Test output differs from reference output
+Diagnose with: diff test-output/stats.test test-output/stats
+Differences due to floating-point formatting are not significant.
 *** ./test-all-red
-Tests: red1 red1_bytes ecn red2
+Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined
 Running test red1
-Test output agrees with reference output
-Running test red1_bytes
 Test output agrees with reference output
 Running test ecn
 Test output agrees with reference output
 Running test red2
+Test output agrees with reference output
+Running test red_twoway
+Test output agrees with reference output
+Running test red_twowaybytes
+Test output agrees with reference output
+Running test flows_unforced
+awkprocedure: unforcedmakeawk
+writing flow xgraph data to fairflow.xgr...
+running xgraph...
+Test output agrees with reference output
+Running test flows_forced
+awkprocedure: forcedmakeawk
+writing flow xgraph data to fairflow.xgr...
+running xgraph...
+Test output agrees with reference output
+Running test flows_combined
+awkprocedure: allmakeawk
+writing flow xgraph data to fairflow.xgr...
+running xgraph...
 Test output agrees with reference output
 All test output agrees with reference output
 *** ./test-all-sack
