@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.331 2004/06/24 16:31:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.331.2.1 2004/07/20 17:35:33 yuri Exp $
 
 
 #
@@ -904,6 +904,8 @@ Agent/TCP set nam_tracevar_ false
 Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
 
+Agent/TCP/XCP set timestamps_ true
+
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
 # Agent/TCP set delay_growth_ false
@@ -923,6 +925,12 @@ Agent/TCPSink set generateDSacks_ false
 Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
 Agent/TCPSink set bytes_ 0
+
+Agent/XCPSink set packetSize_ 40
+Agent/XCPSink set ts_echo_bugfix_ true
+Agent/XCPSink set bytes_ 0
+Agent/XCPSink set RFC2581_immediate_ack_ true
+Agent/XCPSink set ts_echo_rfc1323_ false
 
 Agent/TCPSink/DelAck set interval_ 100ms
 catch {

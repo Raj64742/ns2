@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1 2004/04/20 16:09:01 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.1 2004/07/20 17:35:34 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -25,62 +25,40 @@ static const char rcsid[] =
 
 #define TRACE 0 // when 0, we don't print any debugging info.
 
-/**********************************************************
- *
- *             cwndShringTimer
- *
- **********************************************************/
-
 void cwndShrinkingTimer::expire(Event*)
 {
-	
 	a_->timeout(TCP_TIMER_DELSND);
 }
 
+int hdr_xcp::offset_;
+static unsigned int next_xcp = 0;
 
-
-/*************************************************************
- *
- *                    CC1 TCP
- *
- * - Any packet that it sends has its cwnd and rtt -> output is
- *  modified to do so
- * - If explicit feedback is provided then it uses it 
- * 
- */
-
-int hdr_cctcp::offset_;
-static unsigned int next_cctcp = 0;
-
-static class CCTCPHeaderClass : public PacketHeaderClass {
+static class XCPHeaderClass : public PacketHeaderClass {
 public:
-        CCTCPHeaderClass() : PacketHeaderClass("PacketHeader/CC1",
-					     sizeof(hdr_cctcp)) {
-		bind_offset(&hdr_cctcp::offset_);
+        XCPHeaderClass() : PacketHeaderClass("PacketHeader/XCP",
+					     sizeof(hdr_xcp)) {
+		bind_offset(&hdr_xcp::offset_);
 	}
-} class_cctcphdr;
+} class_xcphdr;
 
-static class CC1TcpClass : public TclClass {
+static class XcpClass : public TclClass {
 public:
-	CC1TcpClass() : TclClass("Agent/TCP/XCP") {}
+	XcpClass() : TclClass("Agent/TCP/XCP") {}
 	TclObject* create(int, const char*const*) {
-		return (new CC1TcpAgent());
+		return (new XcpAgent());
 	}
-} class_cc1;
+} class_xcp;
 
-CC1TcpAgent::CC1TcpAgent(): RenoTcpAgent(), shrink_cwnd_timer_(this)
+XcpAgent::XcpAgent(): RenoTcpAgent(), shrink_cwnd_timer_(this)
 {
-	tcpId_   = next_cctcp;
-	next_cctcp++;
+	tcpId_   = next_xcp;
+	next_xcp++;
 	init_rtt_vars();
-	price_   = 1;
-	profile_ = 0;
 	type_ = PT_XCP;
 }
 
-//-- output is the standard tcp function except that it fills in the 
-// ccenabled_, cwnd_, rtt_, positive_feedback_ variables in the cctcp header
-void CC1TcpAgent::output(int seqno, int reason)
+// standard tcp output except that it fills in the XCP header
+void XcpAgent::output(int seqno, int reason)
 {
 	int force_set_rtx_timer = 0;
 	Packet* p = allocpkt();
@@ -98,37 +76,27 @@ void CC1TcpAgent::output(int seqno, int reason)
 		cong_action_ = FALSE;
         }
 
-	// Beginning of Dina's Changes
-	hdr_cctcp *cctcph                   = hdr_cctcp::access(p);
-	cctcph->ccenabled_                  = 1;
-	cctcph->cwnd_                       = double(cwnd_/price_);
-	cctcph->rtt_                        = srtt_estimate_;
-	cctcph->cctcpId_                    = tcpId_;
-	cctcph->was_restricted_             = I_was_restricted_;
-	cctcph->price_                      = price_;
-	cctcph->profile_                    = profile_;
-	// Sender bids for a positive feedback only if it will arrive before its transfer ends
-	if (int(seqno)+int(cwnd_) < int(curseq_)){
-		cctcph->positive_feedback_  = -1; 
-		cctcph->restricted_         = 0;
-		cctcph->restricted_by_      = -2;
-	} else {
-		cctcph->positive_feedback_  = 0;
-		cctcph->restricted_         = 1;
-		cctcph->restricted_by_      = -1;
-	} 
-	cctcph->shuffling_feedback_         = -1;  // No shuffling
-	cctcph->negative_feedback_          = -1;  // negative feedback
-
-	// this is helpful in computing the throughput at the end
-	//if ( seqno == 0) {begin_transfer_time_ = Scheduler::instance().clock();}
-	//printf(" %d: %g  OUTPUT Function SRTT %g \n",tcpId_, time_now(), srtt_estimate_);
+	// Beginning of XCP Changes
+	double mss = double(hdr_cmn::access(p)->size());
+	hdr_xcp *xh = hdr_xcp::access(p);
+	xh->xcp_enabled_ = hdr_xcp::XCP_ENABLED;
+	xh->cwnd_ = double(cwnd_);
+	xh->rtt_ = srtt_estimate_;
+	xh->xcpId_ = tcpId_;
 	
-	//printf("%d: srtt_estimate  %g \n", tcpId_, srtt_estimate_);
-	if(channel_){
-		trace_var("throughput", double(cwnd_)/srtt_estimate_);
+#define MAX_THROUGHPUT	1e24
+	if (srtt_estimate_ != 0) {
+		xh->throughput_ = cwnd_ * mss / srtt_estimate_;
+		xh->delta_throughput_ = (MAX_THROUGHPUT-xh->throughput_);
+	} else {
+		xh->throughput_ = .1; //XXX
+		xh->delta_throughput_ = 0;
 	}
-	// End of Dina's Changes
+	
+	if(channel_){
+		trace_var("throughput", xh->throughput_);
+	}
+	// End of XCP Changes
 
 	/* Check if this is the initial SYN packet. */
 	if (seqno == 0) {
@@ -181,94 +149,24 @@ void CC1TcpAgent::output(int seqno, int reason)
  * received ack and is figured out in recv_newack_helper
  * 
  */
-void CC1TcpAgent::opencwnd()
+void XcpAgent::opencwnd()
 {
-	double next_cwnd;
-	//	if (cwnd_ < ssthresh_) {
-	//	/* slow-start (exponential) */
-	//	cwnd_ += 1;
-	//} else {
-		/* linear */
-	//printf(" opencwnd option is %d \n", wnd_option_);
-		switch (wnd_option_) {
-		case 0:
-			if (++count_ >= cwnd_) {
-				count_ = 0;
-				++cwnd_;
-			}
-			printf("Error: in TCP Why do I have wnd_option_ = 0\n");
-			abort();
-			break;
-
-		case 1:
-			/* This is the standard algorithm. */
-			cwnd_ += 1 / cwnd_;
-			break;
-
-		case 2:
-			//----- PCP option 
-			if(TRACE){
-				printf("%d: %g: Explicit Increase option: feedback %g, cwnd %g \n",tcpId_, 
-				       time_now(), current_positive_feedback_, double(((TracedDouble) cwnd_)));
-			}
-			next_cwnd = cwnd_+ current_positive_feedback_;
-			if (next_cwnd < 1) {next_cwnd = 1;}
-			cwnd_ = (next_cwnd < wnd_ ? next_cwnd : wnd_);
-                        break;
-
-		default:
-#ifdef notdef
-			/*XXX*/
-			error("illegal window option %d", wnd_option_);
-#endif
-			abort();
-		}
-		//}
-	// if maxcwnd_ is set (nonzero), make it the cwnd limit
-	if (maxcwnd_ && (int(cwnd_) > maxcwnd_))
-		cwnd_ = maxcwnd_;
+	if (maxcwnd_ && (cwnd_ > double(maxcwnd_)))
+		cwnd_ = double(maxcwnd_);
 
 	return;
 }
 
-void CC1TcpAgent::recv_newack_helper(Packet *pkt) {
-	//hdr_tcp *tcph = hdr_tcp::access(pkt);
+void XcpAgent::recv_newack_helper(Packet *pkt) {
 	newack(pkt);
-	// Dina's changes
-	hdr_cctcp *cctcph = hdr_cctcp::access(pkt);
-	if(cctcph->ccenabled_ != 10){
-		printf("Dina-tcp-new.cc:213, Error received a non-cc-ack \n");
-		abort();
-	} 
+	// XCP changes
+	hdr_xcp *xh = hdr_xcp::access(pkt);
 	if(channel_){
-		trace_var("positive_feedback_", cctcph-> positive_feedback_);
-		trace_var("negative_feedback_", cctcph-> negative_feedback_);
-		trace_var("controlling_hop_", cctcph-> controlling_hop_);
-		trace_var("restricted_by_", cctcph->restricted_by_);
+		trace_var("reverse_feedback_", xh->reverse_feedback_);
+		trace_var("controlling_hop_", xh->controlling_hop_);
 	}
-	if (cctcph->positive_feedback_ != -1 ){
-		// If a router sent some info
-		wnd_option_ = 2; // the CC1 option
-		current_positive_feedback_ = cctcph-> positive_feedback_;
-	} else {
-		wnd_option_ = 1;
-		printf("CC1TcpAgent::recv_newack_helper, and feedback is -1\n");
-	}
-	if (cctcph->negative_feedback_ != -1 ){
-		double old_cwnd = cwnd_;
-		cwnd_ = cwnd_ - cctcph->negative_feedback_;
-		if (cwnd_ < 1) cwnd_ = 1;
-			printf("%d:  DECREASE old_cwnd %g, cwnd %g\n", 
-			       tcpId_, old_cwnd, double(cwnd_));
-	}
-	if (cctcph->restricted_ == 0 || cctcph->restricted_ == 1){
-		I_was_restricted_ = cctcph->restricted_;
-	} else { 
-		printf("TCP%d  %g  Error in Dina-tcp.cc bad restriction %d \n", fid_, time_now(),cctcph->restricted_);
-		abort();
-	}
-	// End of Dina's changes
-
+	cwnd_ += xh->reverse_feedback_ * srtt_estimate_ / size_;
+	// End of XCP changes
 
 	// code below is old TCP
 	//if (!ect_ || !hdr_flags::access(pkt)->ecnecho() ||
@@ -329,22 +227,9 @@ void CC1TcpAgent::recv_newack_helper(Packet *pkt) {
 	}
 }
 
-void CC1TcpAgent::rtt_update(double tao)
+void XcpAgent::rtt_update(double tao)
 {
 	double now = Scheduler::instance().clock();
-	// Dina's changes
-	// rtt estimate in tcp is taylored for computation of rto
-	// which is not what we want. Thus we keep our own estimate of rtt
-	//printf("rtt_update %g\n\n", tao);
-	rtt_estimate_ = tao;
-	if (flag_first_ack_received_){
-		srtt_estimate_ = 0.6 * srtt_estimate_ + 0.4 * rtt_estimate_;
-	} else {
-		srtt_estimate_ = rtt_estimate_;
-		flag_first_ack_received_ = 1;
-	}
-	if (TRACE) {printf("%d:  %g  SRTT %g, RTT %g \n", tcpId_, now, srtt_estimate_, rtt_estimate_);}
-	// End of Dina's Changes
 	if (ts_option_)
 		t_rtt_ = int(tao /tcp_tick_ + 0.5);
 	else {
@@ -374,18 +259,23 @@ void CC1TcpAgent::rtt_update(double tao)
 		t_srtt_ = t_rtt_ << T_SRTT_BITS;		// srtt = rtt
 		t_rttvar_ = t_rtt_ << (T_RTTVAR_BITS-1);	// rttvar = rtt / 2
 	}
-	//
-	// Current retransmit value is 
-	//    (unscaled) smoothed round trip estimate
-	//    plus 2^rttvar_exp_ times (unscaled) rttvar. 
-	//
+
+	// XCP changes
+	srtt_estimate_ = (double)t_srtt_ * tcp_tick_/(1<<T_SRTT_BITS);
+
+	if (TRACE) {
+		printf("%d:  %g  SRTT %g, RTT %g \n", tcpId_, now, srtt_estimate_, tao);
+	}
+	//printf("%d:  %g  SRTT %g, RTT %g \n", tcpId_, now, srtt_estimate_, rtt_estimate_);
+	// End of XCP Changes
+
 	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) +
 		t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
 
 	return;
 }
 
-void CC1TcpAgent::rtt_init()
+void XcpAgent::rtt_init()
 {
 	t_rtt_ = 0;
 	t_srtt_ = int(srtt_init_ / tcp_tick_) << T_SRTT_BITS;
@@ -400,7 +290,7 @@ void CC1TcpAgent::rtt_init()
 	// End of Dina's Changes
 }
 
-void CC1TcpAgent::trace_var(char * var_name, double var)
+void XcpAgent::trace_var(char * var_name, double var)
 {
   char wrk[500];
   if (channel_) {
@@ -414,74 +304,72 @@ void CC1TcpAgent::trace_var(char * var_name, double var)
   return; 
 }
 
-int CC1TcpAgent::command(int argc, const char*const* argv)
-{
-	if (argc == 3) {		
-	  if (strcmp(argv[1], "set-price") == 0) {
-	    price_ = double(atof(argv[2]));
-	    printf("%d:  price_ = %g \n", tcpId_, price_);
-	    if (price_ < 0.0) {
-	      printf("%d:  Error price_ = %g < 0 \n", tcpId_, price_);
-	      abort();
-	    }
-	    return (TCL_OK);
-	  }
-	  else if (strcmp(argv[1], "set-profile") == 0) {
-	    profile_ = double(atof(argv[2]));
-	    printf("%d:  profile_ = %g \n", tcpId_, profile_);
-	    if (profile_ < 0.0) {
-	      printf("%d:  Error profile_ = %g < 0 \n", tcpId_, profile_);
-	      abort();
-	    }
-	    return (TCL_OK);
-	  }
-	}
-	return RenoTcpAgent::command(argc, argv);
-}
-/*************************************************************
- *
- *                    XCPSink
- *
- * The code is very similar to TcpSink. However, I defined a new 
- * class so that i don't change the tcp-sink.cc file.  
- */
-
-
-class CCTcpSink : public Agent {
+class XcpSink : public Agent {
 public:
-	CCTcpSink(Acker*);
+	XcpSink(Acker*);
 	void recv(Packet* pkt, Handler*);
 	void reset();
 	int command(int argc, const char*const* argv);
-	TracedInt& maxsackblocks() { return max_sack_blocks_; }
+// 	TracedInt& maxsackblocks() { return max_sack_blocks_; }
 protected:
 	void ack(Packet*);
 	virtual void add_to_ack(Packet* pkt);
+
+        virtual void delay_bind_init_all();
+        virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
+
 	Acker* acker_;
 	int ts_echo_bugfix_;
-
+        int ts_echo_rfc1323_;   // conforms to rfc1323 for timestamps echo
+                                // Added by Andrei Gurtov
 	friend void Sacker::configure(TcpSink*);
-	TracedInt max_sack_blocks_;	/* used only by sack sinks */
+// 	TracedInt max_sack_blocks_;	/* used only by sack sinks */
 	Packet* save_;		/* place to stash saved packet while delaying */
 				/* used by DelAckSink */
+        int RFC2581_immediate_ack_;     // Used to generate ACKs immediately
+        int bytes_;     // for JOBS
+                                        // for RFC2581-compliant gap-filling.
+        double lastreset_;      /* W.N. used for detecting packets  */
+                                /* from previous incarnations */
 };
-static class CCTcpSinkClass : public TclClass {
+static class XcpSinkClass : public TclClass {
 public:
-	CCTcpSinkClass() : TclClass("Agent/XCPSink") {}
+	XcpSinkClass() : TclClass("Agent/XCPSink") {}
 	TclObject* create(int, const char*const*) {
-		return (new CCTcpSink(new Acker));
+		return (new XcpSink(new Acker));
 	}
-} class_cctcpsink;
+} class_xcpsink;
  
 
-CCTcpSink::CCTcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
-{
-  //bind("packetSize_", &size_);
-  //bind("maxSackBlocks_", &max_sack_blocks_); // used only by sack
-  //bind_bool("ts_echo_bugfix_", &ts_echo_bugfix_);
+XcpSink::XcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL),
+				     lastreset_(0.0)
+{ 
 }
 
-int CCTcpSink::command(int argc, const char*const* argv)
+void
+XcpSink::delay_bind_init_all()
+{
+        delay_bind_init_one("packetSize_");
+        delay_bind_init_one("ts_echo_bugfix_");
+	delay_bind_init_one("ts_echo_rfc1323_");
+	delay_bind_init_one("bytes_"); // For throughput measurements in JOBS
+	delay_bind_init_one("RFC2581_immediate_ack_");
+
+	Agent::delay_bind_init_all();
+}
+
+int
+XcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
+{
+        if (delay_bind(varName, localName, "packetSize_", &size_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "ts_echo_bugfix_", &ts_echo_bugfix_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "ts_echo_rfc1323_", &ts_echo_rfc1323_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "RFC2581_immediate_ack_", &RFC2581_immediate_ack_, tracer)) return TCL_OK;
+
+        return Agent::delay_bind_dispatch(varName, localName, tracer);
+}
+
+int XcpSink::command(int argc, const char*const* argv)
 {
 	if (argc == 2) {
 		if (strcmp(argv[1], "reset") == 0) {
@@ -492,13 +380,15 @@ int CCTcpSink::command(int argc, const char*const* argv)
 	return (Agent::command(argc, argv));
 }
 
-void CCTcpSink::reset() 
+void XcpSink::reset() 
 {
 	acker_->reset();	
 	save_ = NULL;
+	lastreset_ = Scheduler::instance().clock(); /* W.N. - for detecting */
+				/* packets from previous incarnations */
 }
 
-void CCTcpSink::ack(Packet* opkt)
+void XcpSink::ack(Packet* opkt)
 {
 	Packet* npkt = allocpkt();
 	double now = Scheduler::instance().clock();
@@ -541,47 +431,52 @@ void CCTcpSink::ack(Packet* opkt)
 		 // specifications in the internet draft 
 		nf->ecnecho() = 1;
 
-	/* Dina's Changes
-	 * the below code relay the new congestion feedback 
-	 * to the sender
-	 */
-	int off_cctcp_ = hdr_cctcp::offset();
-	hdr_cctcp* occtcp = (hdr_cctcp*)opkt->access(off_cctcp_);
-	hdr_cctcp* ncctcp = (hdr_cctcp*)npkt->access(off_cctcp_);
-	ncctcp->ccenabled_ = 10; // a special value to indicate that it is a cc ack
-       	ncctcp->positive_feedback_  = occtcp->positive_feedback_;
-	ncctcp->negative_feedback_  = occtcp->negative_feedback_;
-	ncctcp->shuffling_feedback_ = occtcp->shuffling_feedback_;
-	ncctcp->controlling_hop_    = occtcp->controlling_hop_;
-	ncctcp->cwnd_               = occtcp->cwnd_;
-	ncctcp->rtt_                = occtcp->rtt_;
-	ncctcp->cctcpId_            = occtcp->cctcpId_;
-	ncctcp->restricted_         = occtcp->restricted_;
-	ncctcp->restricted_by_      = occtcp->restricted_by_;
-	ncctcp->was_restricted_     = occtcp->was_restricted_;
-	ncctcp->price_              = occtcp->price_;
-	ncctcp->profile_            = occtcp->profile_;
-	// End of Dina's Changes
+	// XCP Changes
+	int off_xcp_ = hdr_xcp::offset();
+	hdr_xcp* oxcp = (hdr_xcp*)opkt->access(off_xcp_);
+	hdr_xcp* nxcp = (hdr_xcp*)npkt->access(off_xcp_);
+	nxcp->xcp_enabled_ = hdr_xcp::XCP_ACK; // XXX can it just be disabled?
+       	nxcp->reverse_feedback_ = oxcp->delta_throughput_;
+	// End of XCP Changes
 
-	acker_->append_ack(HDR_CMN(npkt), ntcp, otcp->seqno());
+	acker_->append_ack(hdr_cmn::access(npkt),
+			   ntcp, otcp->seqno());
 	add_to_ack(npkt);
+        // Andrei Gurtov
+        acker_->last_ack_sent_ = ntcp->seqno();
+
 	send(npkt, 0);
 }
 
-void CCTcpSink::add_to_ack(Packet*)
+void XcpSink::add_to_ack(Packet*)
 {
 	return;
 }
 
-void CCTcpSink::recv(Packet* pkt, Handler*)
+void XcpSink::recv(Packet* pkt, Handler*)
 {
 	int numToDeliver;
-	int numBytes = HDR_CMN(pkt)->size();
+	int numBytes = hdr_cmn::access(pkt)->size();
+	// number of bytes in the packet just received
 	hdr_tcp *th = hdr_tcp::access(pkt);
-	acker_->update_ts(th->seqno(),th->ts());
+	/* W.N. Check if packet is from previous incarnation */
+	if (th->ts() < lastreset_) {
+		// Remove packet and do nothing
+		Packet::free(pkt);
+		return;
+	}
+	acker_->update_ts(th->seqno(),th->ts(),ts_echo_rfc1323_);
+	// update the timestamp to echo
+	
       	numToDeliver = acker_->update(th->seqno(), numBytes);
+	// update the recv window; figure out how many in-order-bytes
+	// (if any) can be removed from the window and handed to the
+	// application
 	if (numToDeliver)
 		recvBytes(numToDeliver);
+	// send any packets to the application
       	ack(pkt);
+	// ACK the packet
 	Packet::free(pkt);
+	// remove it from the system
 }

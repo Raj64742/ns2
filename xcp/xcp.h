@@ -3,14 +3,11 @@
 #ifndef NS_XCP
 #define NS_XCP
 
-#include <math.h>
+//#include <math.h>
 #include "packet.h"
 #include "queue.h"
 #include "xcpq.h"
 
-
-static unsigned int next_router = 0;
- 
 #define MAX_QNUM 3
 
 enum {XCPQ=0, TCPQ=1, OTHERQ=2};
