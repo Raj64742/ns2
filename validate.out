@@ -264,22 +264,16 @@ All test output agrees with reference output.
 *** ./test-all-red-v1
 Tests: red1 red1_bytes ecn red2 red_twoway red_twowaybytes flows flows1 flowsAll
 ../../ns test-suite-red-v1a.tcl red1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red1_bytes QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl ecn QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red_twoway QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red_twowaybytes QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl flows QUIET
 WARNING:  This test was not run.
@@ -297,33 +291,28 @@ All test output agrees with reference output.
 *** ./test-all-cbq-v1
 Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
 ../../ns test-suite-cbq-v1a.tcl cbqWRR QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqPRR QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqAO QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTL QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqFor QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
@@ -334,71 +323,58 @@ WARNING:  This test was not run.
 This functionality is not implemented in ns-2.
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax1 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax2 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra1 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra2 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin1 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin3 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin4 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin6 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO2 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO3 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoTL QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoF QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
@@ -406,106 +382,73 @@ All test output agrees with reference output.
 *** ./test-all-sack-v1
 Tests: sack1 sack1a sack1b sack1c sack3 sack4 sack5 sackB2 sackB4 phaseSack phaseSack2 phaseSack3
 ../../ns test-suite-sack-v1a.tcl sack1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack1a QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack1b QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack1c QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack5 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sackB2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sackB4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl phaseSack QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl phaseSack2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl phaseSack3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-v1
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 ../../ns test-suite-v1a.tcl tahoe1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl tahoe2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl tahoe3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl tahoe4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl no_bug QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl bug QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl renoA QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno4a QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno5 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl telnet QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl delayed QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl phase QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl phase1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl phase2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl timers QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl stats QUIET
-warning: using backward compatibility mode
 tcp1:window=30/packet-size=1000/bug-fix=1
 tcp2:window=30/packet-size=1000/bug-fix=1
 tcp1/time=0/cwnd=1.000000/ssthresh=30/ack=-1/rtt=0
@@ -528,23 +471,18 @@ All test output agrees with reference output.
 *** ./test-all-vegas-v1
 Tests: one_drop one_14 two_2 two_A two_B
 ../../ns test-suite-vegas-v1.tcl one_drop QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl one_14 QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl two_2 QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl two_A QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl two_B QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 All test output agrees with reference output.
@@ -867,7 +805,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcast
-Tests: DM1 DM2 DM3 DM4 DM5 CtrMcast1
+Tests: DM1 DM2 DM3 DM4 DM5 CtrMcast1 CtrMcast2
 ../../ns test-suite-mcast.tcl DM1 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM2 QUIET
@@ -879,6 +817,8 @@ Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM5 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl CtrMcast1 QUIET
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl CtrMcast2 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-newreno
