@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.39 1998/05/20 22:01:47 sfloyd Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.40 1998/06/03 00:15:02 yaxu Exp $ (LBL)";
 
 #endif
 
@@ -269,7 +269,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -283,7 +283,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			src_portaddr,
 			dst_nodeaddr,
 			dst_portaddr,
-			seqno);
+			seqno,flags);
 #endif      
 	delete [] src_nodeaddr;
   	delete [] src_portaddr;
@@ -400,9 +400,30 @@ DequeTrace::recv(Packet* p, Handler* h)
 		char *src_portaddr = Address::instance().print_portaddr(iph->src());
 		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
 		char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
+
+		char flags[NUMFLAGS+1];
+		for (int i = 0; i < NUMFLAGS; i++)
+			flags[i] = '-';
+		flags[NUMFLAGS] = 0;
+
+		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+		flags[0] = hf->ecn_ ? 'C' : '-';          // Ecn Echo
+		flags[1] = hf->pri_ ? 'P' : '-'; 
+		flags[2] = '-';
+		flags[3] = hf->cong_action_ ? 'A' : '-';   // Congestion Action
+		flags[4] = hf->ecn_to_echo_ ? 'E' : '-';   // Congestion Experienced
+		flags[5] = hf->fs_ ? 'F' : '-';
+		flags[6] = hf->ecn_capable_ ? 'N' : '-';
+	
+#ifdef notdef
+		flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
+		flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
+		flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
+		flags[5] = 0;
+#endif
 		
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s}",
 			'h',
 			Scheduler::instance().clock(),
 			src_,
@@ -416,7 +437,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 			src_portaddr,
 			dst_nodeaddr,
 			dst_portaddr,
-			-1);
+			-1, flags);
 		namdump();
 		delete [] src_nodeaddr;
 		delete [] src_portaddr;
