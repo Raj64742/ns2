@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.9 1998/09/17 00:06:55 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.10 1998/09/17 00:18:26 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -402,7 +402,7 @@ TFCCAgent::slowdown(int nce)
 	if (srtt_chg_ < 0.0)
 		srtt_chg_ = srtt_;
 	if (running_) {
-		while (--nce)
+		while (nce--)
 			interval_ *= 2.0;
 printf("%s %f SLOWDOWN [srtt: %f], new interval:%f, ppw:%f\n",
 	name(), now(), srtt_, interval_, srtt_ / interval_);
@@ -608,15 +608,18 @@ ETFCCAgent::loss_event(int nlost)
 	needresponse_ = 0;
 	if (nrcv_ > echkint_) {
 		int newcseq = cseq_ - cseq_save_;
-		double cerate = double(newcseq) / nrcv_;
+		if (newcseq > 0) {
+			// this is really a new ce
+			double cerate = double(newcseq) / nrcv_;
 printf("%f %s ECHK: newcseq:%d, cerate: %f, eqn:%f, peerint:%f\n",
 now(), name(), newcseq, cerate, eqn_interval(cerate), peer_interval_);
-		if (peer_interval_ < eqn_interval(cerate)) {
-			// if peer is too fast, tell it to slow down
-			needresponse_ = 1;
+			if (peer_interval_ < eqn_interval(cerate)) {
+				// if peer is too fast, tell it to slow down
+				needresponse_ = 1;
+			}
+			nrcv_ = 0;
+			cseq_save_ = cseq_;
 		}
-		nrcv_ = 0;
-		cseq_save_ = cseq_;
 	}
 }
 
