@@ -11,11 +11,11 @@ Currently the package contains:
   
 - Tcl       Tcl release 8.4.5     (required component)
 - Tk        Tk release 8.4.5     (required component)
-- Otcl      otcl release 1.8    (required component)
-- TclCL     tclcl release 1.15  (required component)
-- Ns        ns release 2.27    (required component)
+- Otcl      otcl release 1.9    (required component)
+- TclCL     tclcl release 1.16  (required component)
+- Ns        ns release 2.28    (required component)
 - TclDebug  tcl-debug relase 1.9  (optional component)
-- Nam       Nam release 1.10       (optional component)
+- Nam       Nam release 1.11       (optional component)
 - Xgraph    xgraph version 12     (optional component)
 - GT-ITM    Georgia Tech Internetwork
             Topology Modeler      (optional component)
@@ -24,7 +24,7 @@ Currently the package contains:
 - CWEB      CWeb version 1.0 (?)  (optional component)
 - ZLib      zlib version 1.1.4    (optional component) 
 
-2. FEATURES IN ns-allinone2.27
+2. FEATURES IN ns-allinone2.28
 -------------------------------
 
 Features in this version include:
