@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.20 1997/12/01 06:16:22 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.21 1997/12/17 19:49:57 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -1002,8 +1002,10 @@ process_ACK:
 		// if we are delaying initial cwnd growth (probably due to
 		// large initial windows), then only open cwnd if data has
 		// been received
-		if (!delay_growth_ || (rcv_nxt_ > 0))
+		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
+		    (tiflags & TH_SYN) == 0) {
 			opencwnd();
+		}
 		// K: added state check in equal but diff way
 		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno > maxseq_)) {
 			ourfinisacked = TRUE;
