@@ -455,6 +455,7 @@ tcl/ex/simple-heap.tcl
 tcl/ex/simple-rtg.tcl
 tcl/ex/simple-rtp.tcl
 tcl/ex/simple-webcache.tcl
+tcl/ex/simple-webcache-trace.tcl
 tcl/ex/simple.tcl
 tcl/ex/snoop/snoop.tcl
 tcl/ex/snoop/util.tcl
@@ -1114,6 +1115,11 @@ tcl/test/test-output-webcache/mottl-PB.Z
 tcl/test/test-output-webcache/mttl-PB.Z
 tcl/test/test-output-webcache/ottl-PB.Z
 tcl/test/test-output-webcache/ttl-PB.Z
+tcl/test/test-output-webcache/Mcast-PBPtr.Z
+tcl/test/test-output-webcache/Mcast-PBUtr.Z
+tcl/test/test-output-webcache/Mcast-PBtr.Z
+tcl/test/test-output-webcache/ottl-PBtr.Z
+tcl/test/test-output-webcache/ttl-PBtr.Z
 tcl/webcache/http-agent.tcl
 tcl/webcache/http-cache.tcl
 tcl/webcache/http-server.tcl
