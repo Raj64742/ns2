@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996-1997 The Regents of the University of California.
+ * Copyright (c) 1996 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,14 @@
  * SUCH DAMAGE.
  */
 
+
+/* 9/96 Pittsburgh Supercomputing Center
+ *      UpdateScoreBoard, CheckSndNxt, MarkRetran modified for fack
+ */
+
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.4 1997/03/29 01:43:03 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.5 1997/03/29 02:43:11 tomh Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -43,8 +48,8 @@ static char rcsid[] =
 #include <math.h>
 
 #include "packet.h"
-#include "tcp.h"
 #include "scoreboard.h"
+#include "tcp.h"
 
 #define ASSERT(x) if (!(x)) {printf ("Assert SB failed\n"); exit(1);}
 #define ASSERT1(x) if (!(x)) {printf ("Assert1 SB (length)\n"); exit(1);}
@@ -52,9 +57,10 @@ static char rcsid[] =
 #define SBNI SBN[i%SBSIZE]
 
 // last_ack = TCP last ack
-void ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
+int ScoreBoard::UpdateScoreBoard (int last_ack, Packet *pkt)
 {
 	int i, sack_index, sack_left, sack_right;
+	int retran_decr = 0;
 
 	//  If there is no scoreboard, create one.
 	if (length_ == 0) {
@@ -63,6 +69,7 @@ void ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 		SBNI.ack_flag_ = 0;
 		SBNI.sack_flag_ = 0;
 		SBNI.retran_ = 0;
+		SBNI.snd_nxt_ = 0;
 		first_ = i%SBSIZE;
 		length_++;
 		if (length_ >= SBSIZE) {
@@ -71,18 +78,20 @@ void ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 		}
 	}	
 
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
 		sack_left = tcph->sa_left()[sack_index];
 		sack_right = tcph->sa_right()[sack_index];
 
 		//  Create new entries off the right side.
-		if (sack_right > SBN[(first_+length_)%SBSIZE].seq_no_) {
+		if (sack_right > SBN[(first_+length_+SBSIZE-1)%SBSIZE].seq_no_) {
 			//  Create new entries
 			for (i = SBN[(first_+length_+SBSIZE-1)%SBSIZE].seq_no_+1; i<sack_right; i++) {
 				SBNI.seq_no_ = i;
 				SBNI.ack_flag_ = 0;
 				SBNI.sack_flag_ = 0;
 				SBNI.retran_ = 0;
+				SBNI.snd_nxt_ = 0;
 				length_++;
 				if (length_ >= SBSIZE) {
 					printf ("Error, scoreboard too large\n");
@@ -102,6 +111,11 @@ void ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 					ASSERT1(length_ >= 0);
 					SBNI.ack_flag_ = 1;
 					SBNI.sack_flag_ = 1;
+					if (SBNI.retran_) {
+						SBNI.retran_ = 0;
+						SBNI.snd_nxt_ = 0;
+						retran_decr++;
+					}
 					if (length_==0) 
 					  break;
 				}
@@ -114,9 +128,36 @@ void ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 				if (! SBNI.sack_flag_) {
 					SBNI.sack_flag_ = 1;
 				}
+				if (SBNI.retran_) {
+				  SBNI.retran_ = 0;
+				  retran_decr++;
+				}
 			}
 		}
 	}
+	return (retran_decr);
+}
+int ScoreBoard::CheckSndNxt (Packet *pkt)
+{
+	int i, sack_index, sack_left, sack_right;
+	int force_timeout = 0;
+
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
+		sack_left = tcph->sa_left()[sack_index];
+		sack_right = tcph->sa_right()[sack_index];
+
+		for (i=SBN[(first_)%SBSIZE].seq_no_; i<sack_right; i++) {
+			//  Check to see if this segment's snd_nxt_ is now covered by the sack block
+			if (SBNI.retran_ && SBNI.snd_nxt_ < sack_right) {
+			        // the packet was lost again
+				SBNI.retran_ = 0;
+				SBNI.snd_nxt_ = 0;
+				force_timeout = 1;
+			}
+		}
+	}
+	return (force_timeout);
 }
 
 void ScoreBoard::ClearScoreBoard()
@@ -132,14 +173,23 @@ int ScoreBoard::GetNextRetran()	    // Returns sequence number of next pkt...
 {
 	int i;
 
-	for (i=SBN[(first_)%SBSIZE].seq_no_; i<SBN[(first_)%SBSIZE].seq_no_+length_; i++) {
-		if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && !SBNI.retran_) {
-			return (i);
-		}
+	if (length_) {
+	      for (i=SBN[(first_)%SBSIZE].seq_no_; 
+		   i<SBN[(first_)%SBSIZE].seq_no_+length_; i++) {
+		    if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && !SBNI.retran_) {
+			  return (i);
+		    }
+	      }
 	}
 	return (-1);
 }
 
+
+void ScoreBoard::MarkRetran (int retran_seqno, int snd_nxt)
+{
+	SBN[retran_seqno%SBSIZE].retran_ = 1;
+	SBN[retran_seqno%SBSIZE].snd_nxt_ = snd_nxt;
+}
 
 void ScoreBoard::MarkRetran (int retran_seqno)
 {
