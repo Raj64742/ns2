@@ -5,11 +5,12 @@
 #define ns_new_mac_h
 
 #include <assert.h>
-#include <new-connector.h>
+#include <bi-connector.h>
 #include <packet.h>
 
 #include <new-ll.h>
 #include <phy.h>
+#include <marshall.h>
 
 class newMac;
 
@@ -20,8 +21,8 @@ class newMac;
 /* ======================================================================
    Defines / Macros used by all MACs.
    ====================================================================== */
-//#define ETHER_ADDR(x)	*((u_int32_t*) (x))
-#define ETHER_ADDR(x)  (u_int32_t)(*(x))
+#define ETHER_ADDR(x)	(GET4BYTE(x))
+
 #define MAC_HDR_LEN	64
 
 #define MAC_BROADCAST	((u_int32_t) 0xffffffff)
@@ -119,7 +120,7 @@ protected:
 class newMac : public BiConnector {
 public:
 	newMac();
-	inline int	        addr() { return index_; }
+	inline u_int32_t        addr() { return index_; }
 	
 	virtual void		recv(Packet* p, Handler* h);
 
