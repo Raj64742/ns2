@@ -53,6 +53,8 @@ DM instproc handle-cache-miss { srcID group iface } {
 
 	set oiflist ""
         foreach nbr [$node_ neighbors] {
+		# peek into other nodes' routing tables to simulate 
+		# child-parent relationship maintained by dvmrp
 		set rpfnbr [$nbr rpf-nbr $srcID]
 		if { $rpfnbr == $node_ } {
 			set link [$ns_ link $node_ $nbr]
@@ -66,7 +68,6 @@ DM instproc handle-cache-miss { srcID group iface } {
 DM instproc drop { replicator src dst iface} {
 	$self instvar node_ ns_
 
-	#XXX move iface to ip_hdr???
         if { $iface < 0 } {
                 # optimization for sender: if no listeners, set the ignore bit, 
 		# so this function isn't called for every packet.
@@ -85,11 +86,12 @@ DM instproc recv-prune { from src group iface} {
 		return 0
 	}
 	set id [$node_ id]
-	set tmpoif [$self link2oif [$ns_ link $id $from]]
+	set tmpoif [$node_ iif2oif $iface]
+
 	if { [$r is-active-target $tmpoif] } {
 		$r disable $tmpoif
 		if ![$r is-active] {
-			if { $src != [$node_ id] } {
+			if { $src != $id } {
 				$self send-ctrl prune $src $group
 			}
 		}
@@ -111,13 +113,12 @@ DM instproc recv-graft { from src group iface} {
                 # propagate the graft
                 $self send-ctrl graft $src $group
         }
-        # restore the flow
-	set tmpoif [$self link2oif [$ns_ link $id $from]]
+	set tmpoif [$node_ iif2oif $iface]
+        $r enable $tmpoif
 	if [info exists PruneTimer_($src:$group:$tmpoif)] {
 		delete $PruneTimer_($src:$group:$tmpoif)
 		unset  PruneTimer_($src:$group:$tmpoif)
 	}
-        $r enable $tmpoif
 }
 
 # send a graft/prune for src/group up to the source or towards $to

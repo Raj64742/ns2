@@ -642,13 +642,14 @@ Node instproc get-all-oifs {} {
 	return [lsort [array names outLink_]]
 }
 
-#Node instproc get-oif { link } {
-#        if { $link != "" } {
-#                return [$self link2oif $link]
-#        } else {
-#                return ""
-#        }
-#}
+Node instproc iif2oif ifid {
+	$self instvar ns_
+	set link [$self iif2link $ifid]
+	# assuming that there have to be a reverse link
+	# that is, all links are duplex.
+	set outlink [$ns_ link $self [$link src]]
+	return [$self link2oif $outlink]
+}
 
 Node instproc add-iif {iflbl link} {
 	# array mapping ifnum -> link

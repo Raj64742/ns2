@@ -25,14 +25,12 @@ Class pimDM -superclass DM
 pimDM set PruneTimeout 0.5
 
 pimDM instproc init { sim node } {
-	set type "pimDM"
 	$self next $sim $node
+	set type "pimDM"
 }
 
 pimDM instproc handle-cache-miss { srcID group iface } {
         $self instvar node_ ns_
-
-	set oiflist ""
 
 	if { $iface >= 0 } {
 		set rpf_nbr [$node_ rpf-nbr $srcID]
@@ -42,19 +40,16 @@ pimDM instproc handle-cache-miss { srcID group iface } {
 		if { $inlink != $rpflink } {
 			set from [$inlink src]
 			$self send-ctrl "prune" $srcID $group [$from id]
-			$node_ add-mfc $srcID $group $iface ""
 			return
 		}
-		set rpfoif [$node_ link2oif [$ns_ link $node_ $rpf_nbr]]
+		set rpfoif [$node_ iif2oif $iface]
 	} else {
 		set rpfoif ""
 	}
-	foreach oif [$node_ get-all-oifs] {
-		if { $rpfoif != $oif } {
-			lappend oiflist $oif
-		}
-	}
-	$node_ add-mfc $srcID $group $iface $oiflist
+	set oiflist [$node_ get-all-oifs]
+	set idx [lsearch $oiflist $rpfoif]
+
+	$node_ add-mfc $srcID $group $iface [lreplace $oiflist $idx $idx]
 }
 
 pimDM instproc handle-wrong-iif { srcID group iface } {
