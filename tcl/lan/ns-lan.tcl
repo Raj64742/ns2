@@ -42,10 +42,6 @@ LL/Snoop set snoopDisable_ 0
 LL/Snoop set srtt_ 100ms
 LL/Snoop set rttvar_ 100ms
 
-ErrorModel set rate_ 0
-ErrorModel set time_ 0
-ErrorModel set errorLen_ 0
-
 # TraceIp trace IP packet headers for LAN components
 TraceIp set src_ -1
 TraceIp set dst_ -1
