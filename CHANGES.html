@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.496 2002/01/02 23:55:03 jahn Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.497 2002/01/03 07:16:54 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -19,6 +19,14 @@ ns-2.1b9 release PENDING</h3>
 
 <ul>
 
+<p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
+Mon Jan  2 2002
+<br>
+Added "queue_in_bytes_" to Queue/DropTail, so that the DropTail
+queue can be in units either of packets or of bytes.  The validation
+test is in "./test-all-simple tahoe1Bytes" in tcl/lib.
+
+<p>
 <p><li><b><a href="mailto:jahn@isi.edu">[Jong-Suk Ahn]</a></b> Tue Jan 2 2002</li>
 
 <br>Expanded the error option of node-config command from errProc to two options such
