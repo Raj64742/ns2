@@ -38,6 +38,9 @@ sub ParseArgv
 	elsif (/^-c$/) {
 	    $comment = shift @ARGV;
 	}
+	elsif (/^-tt/) {
+		$tt = shift @ARGV;
+	}
 	elsif (/^-(psize|tt|pt|ctt|ctime|csrc|cdst|cpt)$/) {
 	    $argv = shift @ARGV;
 	    s/-(\w+)/\$$1/;
