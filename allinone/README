@@ -12,7 +12,7 @@ Currently the package contains:
 - Tcl     Tcl release 8.0p2     (required component)
 - Tk      Tk release 8.0p2      (required component)
 - Otcl    otcl release 1.0a2    (required component)
-- TclCL   tclcl release 1.0b4   (required component)
+- TclCL   tclcl release 1.0b5   (required component)
 - Ns      ns release 2.1b2      (required component)
 - Nam     Nam release 1.0a4     (optional component)
 - Xgraph  xgraph version 12     (optional component)
