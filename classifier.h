@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.28 2001/02/01 22:56:21 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.29 2001/03/06 20:53:41 haldar Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -42,8 +42,7 @@
 class Packet;
 
 class Classifier : public NsObject {
-	//friend class HierClassifier;
- public:
+public:
 	Classifier();
 	virtual ~Classifier();
 
