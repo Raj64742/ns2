@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-cbq-v1-new.tcl,v 1.1 1997/07/26 00:59:07 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-cbq-v1-new.tcl,v 1.2 1997/07/26 01:07:06 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -654,7 +654,10 @@ proc test_cbqMax2 {} {
 	set Mbps 1.5
 	set stopTime 2.1
 	set CBQalgorithm 2
-	set ns_link(queue-limit) 1000
+	# converted into ns-2 format
+	# set ns_link(queue-limit) 1000
+	#
+	Queue set limit_ 1000
 	set queue 1000
 	create_graph $stopTime cbq $queue
 
@@ -699,7 +702,10 @@ proc test_cbqExtra1 {} {
 	set Mbps 1.5
 	set stopTime 2.1
 	set CBQalgorithm 2
-	set ns_link(queue-limit) 1000
+	# converted into ns-2 format
+	# set ns_link(queue-limit) 1000
+	#
+	Queue set limit_ 1000
 	set queue 1000
 	create_graph $stopTime cbq $queue
 
@@ -742,7 +748,10 @@ proc test_cbqExtra2 {} {
 	set Mbps 1.5
 	set stopTime 2.1
 	set CBQalgorithm 2
-	set ns_link(queue-limit) 1000
+	# converted into ns-2 format
+	# set ns_link(queue-limit) 1000
+	#
+	Queue set limit_ 1000
 	set queue 1000
 	create_graph $stopTime cbq $queue
 
