@@ -29,13 +29,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file contributed by Curtis Villamizar < curtis@ans.net >, Feb 1997.
  */
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.3 1997/03/29 01:42:51 mccanne Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.4 1997/04/01 01:45:36 mccanne Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -99,6 +97,9 @@ int FQ::command(int argc, const char*const* argv)
 			fs_[flowID].q_ = (Queue*)TclObject::lookup(argv[3]);
 			if (flowID > maxflow_)
 				maxflow_ = flowID;
+			/*XXX*/
+			if (flowID >= MAXFLOW)
+				abort();
 			return (TCL_OK);
 		}
 	}
@@ -167,7 +168,7 @@ void FQ::recv(Packet* p, Handler* handler)
 	hdr_ip* h = (hdr_ip*)p->access(off_ip_);
 	int flowid = h->flowid();
 	/* shouldn't be called when head-of-line is pending */
-	if (fs_[flowid].hol_ != 0)
+	if (flowid >= MAXFLOW fs_[flowid].hol_ != 0)
 		abort();
 
 	/*
