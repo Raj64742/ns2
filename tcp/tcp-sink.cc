@@ -174,6 +174,8 @@ int Acker::update(int seq, int numBytes)
 TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL),
 	lastreset_(0.0)
 {
+	bytes_ = 0; 
+
 	/*
 	 * maxSackBlocks_ does wierd tracing things.
 	 * don't make it delay-bound yet.
@@ -189,6 +191,7 @@ TcpSink::delay_bind_init_all()
 {
         delay_bind_init_one("packetSize_");
         delay_bind_init_one("ts_echo_bugfix_");
+	delay_bind_init_one("bytes_"); // For throughput measurements in JOBS
         delay_bind_init_one("generateDSacks_"); // used only by sack
 	delay_bind_init_one("qs_enabled_");
 	delay_bind_init_one("RFC2581_immediate_ack_");
@@ -370,6 +373,7 @@ public:
 DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 {
 	bind_time("interval_", &interval_);
+	bind("bytes_", &bytes_); // useby JOBS
 }
 
 void DelAckSink::reset() {
@@ -391,8 +395,11 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 	}
 	acker_->update_ts(th->seqno(),th->ts());
 	numToDeliver = acker_->update(th->seqno(), numBytes);
-	if (numToDeliver)
-		recvBytes(numToDeliver);
+	if (numToDeliver) {
+                bytes_ += numToDeliver; // for JOBS
+                recvBytes(numToDeliver);
+        }
+	
         // If there's no timer and the packet is in sequence, set a timer.
         // Otherwise, send the ack and update the timer.
         if (delay_timer_.status() != TIMER_PENDING &&
