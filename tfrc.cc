@@ -1,5 +1,37 @@
-
-// from aciri, needs copyright notice
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1999  International Computer Science Institute
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by ACIRI, the AT&T 
+ *      Center for Internet Research at ICSI (the International Computer
+ *      Science Institute).
+ * 4. Neither the name of ACIRI nor of ICSI may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ICSI AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL ICSI OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -93,6 +125,8 @@ void TfrcAgent::start()
 	t_srtt_ = int(srtt_init_/tcp_tick_) << T_SRTT_BITS;
 	t_rttvar_ = int(rttvar_init_/tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
+
+	round_id = 0;
 }
 
 void TfrcAgent::stop()
@@ -177,6 +211,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	double NumFeedback_ = nck->NumFeedback_;
 	double rcvrate; 
 
+	round_id ++ ;
 	UrgentFlag = 0;
 
 	/* compute the max rate as two times rcv rate */ 
@@ -225,7 +260,6 @@ printf ("oss: %f %f %f %d %f\n", now, oldrate_, maxrate_, size_, flost);
 	else {
 		decrease_rate (flost);		
 	}
-
 	Packet::free(pkt);
 }
 
@@ -349,6 +383,7 @@ void TfrcAgent::sendpkt()
 		tfrch->rate=oldrate_;
 		tfrch->psize=size_;
 		tfrch->UrgentFlag=UrgentFlag;
+		tfrch->round_id=round_id;
 	
 		ndatapack_++;
 		/*
@@ -366,6 +401,7 @@ void TfrcAgent::reduce_rate_on_no_feedback()
 	delta_ = 0;
 	UrgentFlag = 1;
 	NoFeedbacktimer_.resched(2*rtt_);
+	round_id ++ ;
 	nextpkt();
 }
 

@@ -63,10 +63,10 @@ struct hdr_tfrc {
 	int psize;		  //packet size	
 	int version;		//protocol version being used
 	int UrgentFlag;		//Urgent Flag
+	int round_id ; //round id.
 
 	static int offset_;		// offset for this header
-	inline static int& offset() 
-		{ return offset_; }
+	inline static int& offset() { return offset_; }
 	inline static hdr_tfrc* access(Packet* p) {
 		return (hdr_tfrc*) p->access(offset_);
 	}
@@ -170,4 +170,5 @@ protected:
     	TracedInt ndatapack_;   // number of packets sent
 	int UrgentFlag;		// urget flag
 	int active_;		// have we shut down? 
+	int round_id ; 		// round id
 };

@@ -1,3 +1,38 @@
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1999  International Computer Science Institute
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by ACIRI, the AT&T 
+ *      Center for Internet Research at ICSI (the International Computer
+ *      Science Institute).
+ * 4. Neither the name of ACIRI nor of ICSI may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ICSI AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL ICSI OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -41,6 +76,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	rcvd_since_last_report  = 0;
 	lastloss = 0;
 	false_sample = 0;
+	lastloss_round_id = -1 ;
 }
 
 /*
@@ -49,7 +85,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 {
 	double prevrtt;
-  	hdr_tfrc *tfrch = hdr_tfrc::access(pkt); 
+	hdr_tfrc *tfrch = hdr_tfrc::access(pkt); 
 	double now = Scheduler::instance().clock();
 	int UrgentFlag; 
 	int prevmaxseq = maxseq;
@@ -58,7 +94,8 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	double p = -1;
 
 	UrgentFlag = tfrch->UrgentFlag;
-	
+	round_id = tfrch->round_id ;
+
 	add_packet_to_history (pkt);
 
 	prevrtt=rtt_;
@@ -132,12 +169,15 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 			tsvec_[i] = tfrch->timestamp;
 			rtvec_[i]=now;	
 			RTTvec_[i]=tfrch->rtt;
-			if (tsvec_[i] - lastloss > RTTvec_[i]) {
+			if ( (tsvec_[i]-lastloss > RTTvec_[i]) &&
+			     (round_id > lastloss_round_id)) {
 /*
-printf ("lost: %d %f %f %f %f\n", i, lastloss, tsvec_[i], RTTvec_[i], rate_);
+printf ("lost: %d %f %f %f %f %d %d\n", i, lastloss, tsvec_[i], RTTvec_[i],
+rate_, round_id, lastloss_round_id);
 */
 				lossvec_[i] = LOST;
-				lastloss = tsvec_[i] + 0.5*rtt_;
+				lastloss = tsvec_[i];
+				lastloss_round_id = round_id ;
 			}
 			else {
 				lossvec_[i] = NOLOSS; 
@@ -255,7 +295,8 @@ double TfrcSinkAgent::adjust_history ()
 			lossvec_[i] = NOLOSS; 
 		}
 	}
-	lastloss = tsvec_[maxseq]+0.5*rtt_; 
+	lastloss = tsvec_[maxseq]; 
+	lastloss_round_id = round_id ;
 	p=b_to_p(est_thput()*psize_, rtt_, tzero_, psize_, 1);
 	false_sample = (int)(1/p);
 	return p;

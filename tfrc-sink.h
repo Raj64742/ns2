@@ -117,4 +117,6 @@ protected:
 	double lastloss;
 	int adjust_history_after_ss;
 	int false_sample;
+	int round_id ;
+	int lastloss_round_id ;
 }; 
