@@ -63,7 +63,7 @@ Cdls::command(int argc, const char*const* argv)
 	if (argc == 4) {
 		if (strcmp(argv[1], "error") == 0) {
 			IdPacketQueue* q = getQueue(atoi(argv[2]));
-			q->em_ = (ErrorModel*)TclObject::lookup(argv[3]);
+			q->em() = (ErrorModel*)TclObject::lookup(argv[3]);
 			return (TCL_OK);
 		}
 	}
@@ -92,7 +92,7 @@ Cdls::deque()
 	Packet* p = q->deque();
 	if (p != 0) {
 		qlen_--;
-		if (q->em_ && q->em_->corrupt(p))
+		if (q->em() && q->em()->corrupt(p))
 			((hdr_ll*)p->access(off_ll_))->error() = 1;
 /*
 		Scheduler& s = Scheduler::instance();
@@ -180,6 +180,6 @@ Cdls::selectQueue()
 double
 Cdls::weight(IdPacketQueue* q)
 {
-	double w = 1.0 - (q->em_ ? q->em_->rate() : 0);
+	double w = 1.0 - (q->em() ? q->em()->rate() : 0);
 	return q->length() ? w : 0;
 }

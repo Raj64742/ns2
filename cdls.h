@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.2 1997/07/23 02:07:53 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.3 1997/07/23 02:19:38 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_cdls_h
@@ -51,11 +51,12 @@ public:
 	inline int& id() { return id_; }
 	inline int& loss() { return loss_; }
 	inline int& total() { return total_; }
-	ErrorModel *em_;
+	inline ErrorModel*& em() { return em_; }
 protected:
 	int id_;		// unique identifier for this queue
 	int loss_;
 	int total_;
+	ErrorModel* em_;
 };
 
 

@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.8 1997/07/23 02:12:40 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.9 1997/07/23 02:19:36 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -42,7 +42,8 @@
 #include "ranvar.h"
 
 
-enum ErrorUnit { EU_PKT, EU_BIT, EU_TIME };
+enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME };
+#define EU_NAMES "pkt", "bit", "time"
 #define STR2EU(s) (!strcmp(s,"bit") ? EU_BIT : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
 
 

@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.8 1997/07/22 21:59:53 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.9 1997/07/23 02:19:37 gnguyen Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -52,6 +52,8 @@ public:
 		return (new ErrorModel(eu));
 	}
 } class_errormodel;
+
+static char* eu_names[] = { EU_NAMES };
 
 
 ErrorModel::ErrorModel(ErrorUnit eu) : DropConnector(), eu_(eu), rate_(0)
@@ -70,10 +72,18 @@ ErrorModel::command(int argc, const char*const* argv)
 			ranvar_ = (RandomVariable*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "unit") == 0) {
+			eu_ = STR2EU(argv[2]);
+			return (TCL_OK);
+		}
 	}
 	else if (argc == 2) {
 		if (strcmp(argv[1], "ranvar") == 0) {
 			tcl.resultf("%s", ranvar_->name());
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "unit") == 0) {
+			tcl.resultf("%s", eu_names[eu_]);
 			return (TCL_OK);
 		}
 	}
@@ -110,8 +120,9 @@ ErrorModel::corrupt(Packet* p)
 		return (rv < rate_);
 	case EU_BIT:
 		hdr = (hdr_cmn*) p->access(off_cmn_);
-		double per = 1 - pow((1-rate_), 8. * hdr->size());
-		return (rv < per);
+		return (rv < (1 - pow((1-rate_), 8. * hdr->size())));
+	default:
+		break;
 	}
 	return 0;
 }
