@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.57 1998/07/08 18:56:58 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.58 1998/07/08 23:00:23 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1406,7 +1406,6 @@ trimthenstep6:
 				    ackno != highest_ack_) {
 					// not timed, or re-ordered ACK
 					dupacks_ = 0;
-					fastrecov_ = FALSE;
 				} else if (++dupacks_ == tcprexmtthresh_) {
 
 					fastrecov_ = TRUE;
@@ -1414,8 +1413,9 @@ trimthenstep6:
 					/* re-sync the pipe_ estimate */
 					pipe_ = maxseq_ - highest_ack_;
 					pipe_ /= maxseg_;
-					pipe_ -= dupacks_;
+					pipe_ -= (dupacks_ + 1);
 
+pipe_ = int(cwnd_) - dupacks_ - 1;
 
 					dupack_action(); // maybe fast rexmt
 					goto drop;
@@ -2496,16 +2496,13 @@ full_sack_action:
 	pipectrl_ = TRUE;
 	recover_ = maxseq_;
 	send_much(1, REASON_DUPACK, maxburst_);
-	cwnd_ = ssthresh_ + dupacks_;
         return;
 }
 
 void
 SackFullTcpAgent::pack_action(Packet*)
 {
-	if (reno_fastrecov_ && fastrecov_ && cwnd_ > ssthresh_) {
-		cwnd_ = ssthresh_; // retract window if inflated
-	}
+	--pipe_;
 	if (sack_nxt_ < highest_ack_)
 		sack_nxt_ = highest_ack_;
 }
