@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.1 1999/09/24 23:50:08 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.2 1999/09/26 21:26:11 haoboy Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -96,7 +96,7 @@ public:
 		return server_[n];
 	}
 	void doneSession(int idx) { 
-		assert((idx>=0) && (idx<nSession) && (session_[idx]!=NULL));
+		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}
