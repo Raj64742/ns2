@@ -117,8 +117,15 @@ proc  set-cmd-line-args { list_args } {
 
 # plot a xcp traced var
 proc plot-xcp { TraceName nXCPs  PlotTime what } {
-    exec rm -f  xgraph.tcp
-    set f [open xgraph.tcp w]
+    if {[string compare $what "cwnd_"] == 0} {
+	exec rm -f xgraph_cwnd.tcp
+	set f [open xgraph_cwnd.tcp w]
+	set a cwnd
+    } else {
+	exec rm -f xgraph_seqno.tcp
+	set f [open xgraph_seqno.tcp w]
+	set a seqno
+    }
     puts $f "TitleText: $TraceName"
     puts $f "Device: Postscript"
 
@@ -144,7 +151,7 @@ proc plot-xcp { TraceName nXCPs  PlotTime what } {
 	flush $f
     }
     close $f
-    exec xgraph  -nl -m  -x time -y $what xgraph.tcp &
+    exec xgraph  -nl -m  -x time -y $what xgraph_$a.tcp &
     return 
 }
 
@@ -189,7 +196,7 @@ proc plot-red-queue { TraceName PlotTime traceFile } {
 #set-cmd-line-args "seed qType BW nXCPs delay "
 
 set seed   472904
-set qType  RED/XCP
+set qType  XCP
 set BW     20; # in Mb/s
 set nXCPs  3; # Number of flows
 set delay  10; # in ms
@@ -222,7 +229,7 @@ create-topology2 $BW $delay $qType $qSize $nXCPs 0.0
 foreach link $all_links {
     set queue [$link queue]
     switch $qType {
-	"RED/XCP" {
+	"XCP" {
 		$queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
 	}
 	"DropTail/XCP" {
@@ -260,13 +267,15 @@ foreach i $tracedXCPs {
 foreach queue_name "Bottleneck rBottleneck" {
     set queue [set "$queue_name"]
     switch $qType {
-	"RED/XCP" {
+	"XCP" {
 	    global "ft_red_$queue_name"
 	    set "ft_red_$queue_name" [open ft_red_[set queue_name].tr w]
-	    $queue attach       [set ft_red_$queue_name]
-	    $queue trace curq_
-	    $queue trace ave_
-	    $queue trace prob1_
+
+	    set xcpq [$queue set vq_(0)]
+	    $xcpq attach       [set ft_red_$queue_name]
+	    $xcpq trace curq_
+	    $xcpq trace ave_
+	    $xcpq trace prob1_
 	}
 	"DropTail/XCP" {}
     }
