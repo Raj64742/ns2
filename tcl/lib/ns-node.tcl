@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.6 1997/03/14 01:29:28 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.7 1997/03/16 02:15:59 mccanne Exp $
 #
 
 Class Node
@@ -122,6 +122,30 @@ Node instproc attach agent {
 		$self add-route $id_ $dmux_
 	}
 	$dmux_ install $port $agent
+}
+
+#
+# Detach an agent from a node.
+#
+Node instproc detach { agent nullagent } {
+	$self instvar agents_ dmux_
+	#
+	# remove agent from list
+	#
+	set k [lsearch -exact $agents_ $agent]
+	if { $k >= 0 } {
+		set agents_ [lreplace $agents_ $k $k]
+	}
+
+	#
+	# sanity -- clear out any potential linkage
+	#
+	$agent set node_ ""
+	$agent set addr_ 0
+	$agent target $nullagent
+
+	set port [$agent set portID_]
+	$dmux_ install $port $nullagent
 }
 
 Node instproc agent port {

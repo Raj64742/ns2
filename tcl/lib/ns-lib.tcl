@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.13 1997/03/14 01:29:27 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.14 1997/03/16 02:15:59 mccanne Exp $
 #
 
 #
@@ -188,6 +188,11 @@ Simulator instproc drop-trace { n1 n2 trace } {
 
 Simulator instproc attach-agent { node agent } {
 	$node attach $agent
+}
+
+Simulator instproc detach-agent { node agent } {
+	$self instvar nullAgent_
+	$node detach $agent $nullAgent_
 }
 
 #

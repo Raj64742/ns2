@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.31 1997/03/13 04:58:52 kfall Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.32 1997/03/16 02:15:57 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -12,6 +12,23 @@
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
 <ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+First cut at agent detaching code.  Suggested by
+<a href=http://www-video.eecs.berkeley.edu/~emile/>Emile Sahouria</a>.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Fixed bug pointed out by
+<a href=http://www-video.eecs.berkeley.edu/~emile/>Emile Sahouria</a>
+<a href=http://www.cs.berkeley.edu/~gnguyen>Giao Nguyen</a>,
+and
+<a href=http://www.cs.berkeley.edu/~tomh>Tom Henderson</a>,
+where node port demuxer was created in wrong place.
+Moved this code from compute-routes to Node::attach
+(i.e., should install locate route to port demuxer
+first time the demuxer is created, not when compute-routes
+is run, becase in latter case port demuxer might
+not yet exist).
 
 <li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
 Arrange for dynamic linking to be the default instead of

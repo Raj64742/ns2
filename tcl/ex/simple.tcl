@@ -32,7 +32,7 @@ $ns connect $cbr1 $null1
 $ns at 1.0 "$cbr0 start"
 $ns at 1.1 "$cbr1 start"
 
-set tcp [new Agent/TCPSimple]
+set tcp [new Agent/TCP]
 $tcp set class_ 2
 set sink [new Agent/TCPSink]
 $ns attach-agent $n0 $tcp
@@ -42,12 +42,18 @@ set ftp [new Source/FTP]
 $ftp set agent_ $tcp
 $ns at 1.2 "$ftp start"
 
+$ns at 1.35 "$ns detach-agent $n0 $tcp ; $ns detach-agent $n3 $sink"
+
 puts [$cbr0 set packetSize_]
 puts [$cbr0 set interval_]
 
 $ns at 3.0 "finish"
 
 proc finish {} {
+	global ns f
+	$ns flush-trace
+	close $f
+
 	puts "converting output to nam format..."
 	exec awk -f ../nam-demo/nstonam.awk out.tr > simple-nam.tr 
 	exec rm -f out
