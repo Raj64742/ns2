@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.13 2000/09/28 20:19:06 haoboy Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.14 2000/10/13 17:05:13 debo Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -34,6 +34,8 @@ class RandomVariable : public TclObject {
 	virtual double value() = 0;
 	int command(int argc, const char*const* argv);
 	RandomVariable();
+	// This is added by Debojyoti Dutta 12th Oct 2000
+	int seed(char *);
  protected:
 	RNG* rng_;
 };

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.10 1999/07/01 00:08:18 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.11 2000/10/13 17:05:13 debo Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -38,6 +38,8 @@ class EXPOO_Traffic : public TrafficGenerator {
 	EXPOO_Traffic();
 	virtual double next_interval(int&);
         virtual void timeout();
+	// Added by Debojyoti Dutta October 12th 2000
+	int command(int argc, const char*const* argv);
  protected:
 	void init();
 	double ontime_;   /* average length of burst (sec) */
@@ -60,6 +62,24 @@ static class EXPTrafficClass : public TclClass {
 		return (new EXPOO_Traffic());
 	}
 } class_expoo_traffic;
+
+// Added by Debojyoti Dutta October 12th 2000
+// This is a new command that allows us to use 
+// our own RNG object for random number generation
+// when generating application traffic
+
+int EXPOO_Traffic::command(int argc, const char*const* argv){
+        
+        if(argc==3){
+                if (strcmp(argv[1], "use-rng") == 0) {
+                        burstlen_.seed(argv[2]);
+                        Offtime_.seed(argv[2]);
+                        return (TCL_OK);
+                }
+        }
+        return Application::command(argc,argv);
+}
+
 
 EXPOO_Traffic::EXPOO_Traffic() : burstlen_(0.0), Offtime_(0.0)
 {
@@ -119,5 +139,6 @@ void EXPOO_Traffic::timeout()
 	if (nextPkttime_ > 0)
 		timer_.resched(nextPkttime_);
 }
+
 
 

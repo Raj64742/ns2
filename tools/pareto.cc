@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.6 1999/07/01 00:08:18 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.7 2000/10/13 17:05:13 debo Exp $ (Xerox)";
 #endif
  
 #include "random.h"
@@ -36,7 +36,9 @@ class POO_Traffic : public TrafficGenerator {
 	POO_Traffic();
 	virtual double next_interval(int&);
 	int on()  { return on_ ; }
- protected:
+ 	// Added by Debojyoti Dutta October 12th 2000
+	int command(int argc, const char*const* argv);
+protected:
 	void init();
 	double ontime_;  /* average length of burst (sec) */
 	double offtime_; /* average idle period (sec) */
@@ -52,6 +54,9 @@ class POO_Traffic : public TrafficGenerator {
 		     	   * length of idle period.
 		     	   */
 	int on_;          /* denotes whether in the on or off state */
+
+	// Added by Debojyoti Dutta 13th October 2000
+	RNG * rng_; /* If the user wants to specify his own RNG object */
 };
 
 
@@ -62,6 +67,27 @@ static class POOTrafficClass : public TclClass {
 		return (new POO_Traffic());
 	}
 } class_poo_traffic;
+
+// Added by Debojyoti Dutta October 12th 2000
+// This is a new command that allows us to use 
+// our own RNG object for random number generation
+// when generating application traffic
+
+int POO_Traffic::command(int argc, const char*const* argv){
+        
+	Tcl& tcl = Tcl::instance();
+        if(argc==3){
+                if (strcmp(argv[1], "use-rng") == 0) {
+			rng_ = (RNG*)TclObject::lookup(argv[2]);
+			if (rng_ == 0) {
+				tcl.resultf("no such RNG %s", argv[2]);
+				return(TCL_ERROR);
+			}                        
+			return (TCL_OK);
+                }
+        }
+        return Application::command(argc,argv);
+}
 
 POO_Traffic::POO_Traffic()
 {
@@ -86,17 +112,30 @@ void POO_Traffic::init()
 
 double POO_Traffic::next_interval(int& size)
 {
+
 	double t = interval_;
 
 	on_ = 1;
 	if (rem_ == 0) {
 		/* compute number of packets in next burst */
-		rem_ = int(Random::pareto(p1_, shape_) + .5);
+		if(rng_ == 0){
+			rem_ = int(Random::pareto(p1_, shape_) + .5);
+		}
+		else{
+			// Added by Debojyoti Dutta 13th October 2000
+			rem_ = int(rng_->pareto(p1_, shape_) + .5);
+		}
 		/* make sure we got at least 1 */
 		if (rem_ == 0)
 			rem_ = 1;	
 		/* start of an idle period, compute idle time */
-		t += Random::pareto(p2_, shape_);
+		if(rng_ == 0){
+			t += Random::pareto(p2_, shape_);
+		}
+		else{
+			// Added by Debojyoti Dutta 13th October 2000
+			t += rng_->pareto(p2_, shape_);
+		}
 		on_ = 0;
 	}	
 	rem_--;
@@ -105,3 +144,18 @@ double POO_Traffic::next_interval(int& size)
 	return(t);
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

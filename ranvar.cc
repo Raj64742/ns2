@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.15 1999/10/11 22:32:15 haoboy Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.16 2000/10/13 17:05:13 debo Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -50,6 +50,24 @@ int RandomVariable::command(int argc, const char*const* argv)
 		}
 	}
 	return(TclObject::command(argc, argv));
+}
+
+// Added by Debojyoti Dutta 12 October 2000
+// This allows us to seed a randomvariable with 
+// our own RNG object. This command is called from 
+// expoo.cc and pareto.cc 
+
+int  RandomVariable::seed(char *x){
+        
+        Tcl& tcl = Tcl::instance();
+
+                rng_ = (RNG*)TclObject::lookup(x);
+                if (rng_ == 0) {
+                        tcl.resultf("no such RNG %s", x);
+                        return(TCL_ERROR);
+                }
+                return(TCL_OK);
+
 }
 
 
