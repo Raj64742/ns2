@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.21 1997/04/25 02:15:55 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.22 1997/05/02 02:07:29 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -533,7 +533,16 @@ proc ns_create_class { parent borrow allot maxidle notused prio depth xdelay } {
 		$cl install-queue $q
 	}
 	set depth [expr $depth + 1]
-	$cl setparams $borrow $allot $maxidle $prio $depth $xdelay
+	if { $borrow == "none" } {
+		set borrowok false
+	} elseif { $borrow == $parent } {
+		set borrowok true
+	} else {
+		puts stderr "CBQ: borrowing from non-parent not supported"
+		exit 1
+	}
+
+	$cl setparams $parent $borrowok $allot $maxidle $prio $depth $xdelay
 	return $cl
 }
 
@@ -545,7 +554,15 @@ proc ns_create_class1 { parent borrow allot maxidle notused prio depth xdelay Mb
 
 proc ns_class_params { cl parent borrow allot maxidle notused prio depth xdelay Mb } {
 	set depth [expr $depth + 1]
-	$cl setparams $borrow $allot $maxidle $prio $depth $xdelay
+	if { $borrow == "none" } {
+		set borrowok false
+	} elseif { $borrow == $parent } {
+		set borrowok true
+	} else {
+		puts stderr "CBQ: borrowing from non-parent not supported"
+		exit 1
+	}
+	$cl setparams $parent $borrowok $allot $maxidle $prio $depth $xdelay
 	ns_class_maxIdle $cl $allot $maxidle $prio $Mb
 	return $cl
 }
