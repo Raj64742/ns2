@@ -1724,7 +1724,7 @@ TCL_LIB_PLACES=" \
 
 if test "$TCL_VERS" = "8.0" ; then 
 	V_TCL_LIBRARY_FILES="\$(TCL_80_LIBRARY_FILES)"
-elif test "$TCL_HI_VERS" = "8.0.4" ; then
+elif test "$TCL_VERS" = "8.0.4" ; then
 	V_TCL_LIBRARY_FILES="\$(TCL_80_LIBRARY_FILES)"
 else
 	V_TCL_LIBRARY_FILES="\$(TCL_76_LIBRARY_FILES)"

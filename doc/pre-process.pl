@@ -1,3 +1,4 @@
+#!/local/bin/perl
 # -*-	Mode:Perl; tab-width:8; indent-tabs-mode:t -*- 
 #
 # pre-process.pl
@@ -19,7 +20,6 @@
 # 
 # Contributed by Nader Salehi (USC/ISI), http://www.isi.edu/~salehi
 # 
-#!/local/bin/perl
 
 die "usage: $0 working-directory\n" if ($#ARGV < 0);
 my($working_dir) = $ARGV[0];
