@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.43 2001/05/27 02:14:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.44 2001/07/07 00:52:18 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -229,24 +229,21 @@ TestSuite instproc setTopo {} {
     [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
 }
 
-Class Test/red1 -superclass TestSuite
-Test/red1 instproc init {} {
-    $self instvar net_ test_
-    set net_ net2 
-    set test_ red1
-    $self next
-}
-Test/red1 instproc run {} {
-    $self instvar ns_ node_ testName_ net_
-    $self setTopo
-
+TestSuite instproc mainSim {TCPStyle {window 15} } {
+    $self instvar ns_ node_ testName_ 
     set stoptime 10.0
     
-    set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(s3) 0]
-    $tcp1 set window_ 15
-
-    set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(s3) 1]
-    $tcp2 set window_ 15
+    if {$TCPStyle=="Reno"} {
+	set sourceType TCP/Reno;  
+	set sinkType TCPSink;
+    } elseif {$TCPStyle=="Sack1"} {
+	set sourceType TCP/Sack1;  
+	set sinkType TCPSink/Sack1;
+    }
+    set tcp1 [$ns_ create-connection $sourceType $node_(s1) $sinkType $node_(s3) 0]
+    set tcp2 [$ns_ create-connection $sourceType $node_(s2) $sinkType $node_(s3) 1]
+    $tcp1 set window_ $window
+    $tcp2 set window_ $window
 
     set ftp1 [$tcp1 attach-app FTP]
     set ftp2 [$tcp2 attach-app FTP]
@@ -260,7 +257,19 @@ Test/red1 instproc run {} {
     # trace only the bottleneck link
     #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
     $ns_ at $stoptime "$self cleanupAll $testName_"
+}
 
+Class Test/red1 -superclass TestSuite
+Test/red1 instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ red1
+    $self next
+}
+Test/red1 instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+    $self mainSim Reno
     $ns_ run
 }
 
@@ -864,5 +873,56 @@ Test/gentleBadParams instproc init {} {
     Test/gentleBadParams instproc run {} [Test/ungentle info instbody run ]
     $self next
 }
+
+Class Test/q_weight -superclass TestSuite
+Test/q_weight instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ q_weight
+    $self next
+}
+Test/q_weight instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+    $self mainSim Sack1
+    $ns_ run
+}
+
+Class Test/q_weight_auto -superclass TestSuite
+Test/q_weight_auto instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ q_weight_auto
+    Queue/RED set q_weight_ 0.0
+    Queue/RED set maxthresh_ 0
+    Test/q_weight_auto instproc run {} [Test/q_weight info instbody run ]
+    $self next
+}
+
+# Class Test/q_weight1 -superclass TestSuite
+# Test/q_weight1 instproc init {} {
+#     $self instvar net_ test_
+#     set net_ net2 
+#     set test_ q_weight
+#     $self next
+# }
+# Test/q_weight1 instproc run {} {
+#     $self instvar ns_ node_ testName_ net_
+#     $self setTopo
+#     $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 100Mb duplex"
+#     $self mainSim Sack1 100
+#     $ns_ run
+# }
+# 
+# Class Test/q_weight1_auto -superclass TestSuite
+# Test/q_weight1_auto instproc init {} {
+#     $self instvar net_ test_
+#     set net_ net2 
+#     set test_ q_weight1_auto
+#     Queue/RED set q_weight_ 0.0
+#     Queue/RED set maxthresh_ 0
+#     Test/q_weight1_auto instproc run {} [Test/q_weight1 info instbody run ]
+#     $self next
+# }
 
 TestSuite runTest
