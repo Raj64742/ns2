@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.8 1997/03/08 23:47:38 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.9 1997/03/09 00:05:44 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -196,7 +196,7 @@ int TcpAgent::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
-			curseq_ += atoi(argv[2]);
+			curseq_ = atoi(argv[2]);
 			send(0, 0);
 			return (TCL_OK);
 		}
