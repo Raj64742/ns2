@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.38 2002/08/28 00:51:49 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.39 2002/09/25 20:40:19 johnh Exp $
 #
 
 #
@@ -519,5 +519,8 @@ proc flash_annotate { start duration msg } {
 Simulator instproc set-animation-rate { rate } {
 	# time_parse defined in tcl/rtp/session-rtp.tcl
 	set r [time_parse $rate]
-	$self puts-nam-config "v -t [$self now] set_rate [expr 10*log10($r)] 1"
+	# This old nam api (set_rate) works but is quite obscure,
+	# the new api (set_rate_ext) is simpler.
+	# $self puts-nam-config "v -t [$self now] set_rate [expr 10*log10($r)] 1"
+	$self puts-nam-config "v -t [$self now] set_rate_ext $r 1"
 }
