@@ -134,7 +134,7 @@ Simulator instproc set-address-format {opt args} {
     if {[string compare $opt "def"] == 0} {
 	$self set-address 8 8
     } elseif {[string compare $opt "expanded"] == 0} {
-	$self set-address 22 8
+	$self set-address 23 8
     } elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
 	if [Simulator set EnableMcast_] {
 	    
