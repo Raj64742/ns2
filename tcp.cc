@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.14 1997/05/14 00:20:23 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.15 1997/05/21 00:14:51 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -398,6 +398,8 @@ void TcpAgent::closecwnd(int how)
 	case 0:
 		/* timeouts, Tahoe dup acks */
 		ssthresh_ = int( window() / 2 );
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;
 		/* Old code: ssthresh_ = int(cwnd_ / 2); */
 		cwnd_ = int(wnd_init_);
 		break;
@@ -406,6 +408,8 @@ void TcpAgent::closecwnd(int how)
 		/* Reno dup acks, or after a recent congestion indication. */
 		cwnd_ = window()/2;
 		ssthresh_ = int(cwnd_);
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;
 		break;
 
 	case 2:
