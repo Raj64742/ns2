@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.27 1998/02/27 15:23:02 polly Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.28 1998/04/21 18:24:29 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.27 1998/02/27 15:23:02 polly Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.28 1998/04/21 18:24:29 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -569,15 +569,19 @@ void CalendarScheduler::run()
  * Really should instance the list/calendar/heap discipline
  * inside a RealTimeScheduler or VirtualTimeScheduler
  */
-class RealTimeScheduler : public ListScheduler {
+
+#define	MAXSLOP	0.010	/* 10ms max slop */
+class RealTimeScheduler : public CalendarScheduler {
 public:
 	RealTimeScheduler();
 	virtual void run();
 protected:
 	void sync() { clock_ = tod(); }
+	void dispatch(Event*);
+	int rwait(double);	// sleep
 	double tod();
-	double wait(double then);
-	timeval start_;
+	double slop_;	// allowed drift between real-time and virt time
+	timeval start_;	// starting time of scheduler
 };
 
 static class RealTimeSchedulerClass : public TclClass {
@@ -588,7 +592,7 @@ public:
 	}
 } class_realtime_sched;
 
-RealTimeScheduler::RealTimeScheduler()
+RealTimeScheduler::RealTimeScheduler() : slop_(MAXSLOP)
 {
 	(void) gettimeofday(&start_, 0);
 }
@@ -608,33 +612,91 @@ static void nullTimer(ClientData)
 
 void RealTimeScheduler::run()
 { 
+	Event *p;
+	double now;
+
 	/*XXX*/
 	instance_ = this;
+
 	while (!halted_) {
-		double now = tod();
-		Event* p = queue_;
-		if (p == 0) {
-			Tcl_DoOneEvent(0);
+		//
+		// first handle any "old events"
+		//
+		now = tod();
+		while ((p = dequeue()) != NULL && (p->time_ <= now)) {
+			dispatch(p);
+		}
+
+		//
+		// now handle a "future event", if there is one
+		//
+		if (p != NULL) {
+			int rval = rwait(p->time_);
+			if (rval < 0) {
+				fprintf(stderr, "RTScheduler: wait problem\n");
+			} else if (rval == 0) {
+				// time elapsed, dispatch sim event
+				dispatch(p);
+			} else {
+				//
+				// there was a simulator event which fired, and
+				// may have added something to the queue, which
+				// could cause our event p to not be the next,
+				// so put p back into the event queue and cont
+				//
+				insert(p);
+			}
 			continue;
 		}
-		if (p->time_ > now + 0.001) {
-			Tcl_TimerToken token;
-			// time diff, in millseconds
-			double dmsec = (p->time_ - now) * 1000.;
-			token = Tcl_CreateTimerHandler(int(dmsec),
-						       nullTimer, 0);
-			Tcl_DoOneEvent(0);
-			Tcl_DeleteTimerHandler(token);
-			continue;
+
+		//
+		// no sim events to handle at all, check with tcl
+		//
+		Tcl_DoOneEvent(TCL_DONT_WAIT);
+		if ((clock_ - now) > slop_) {
+			fprintf(stderr,
+			  "RealTimeScheduler: warning: slop %f exceeded limit %f\n",
+			      (clock_ - now), slop_);
 		}
-		queue_ = p->next_;
+	}
+
+	return;	// we reach here only if halted
+}
+
+/*
+ * wait until the specified amount has elapsed, or a tcl event has happened,
+ * whichever comes first.  Return 1 if a tcl event happened, 0 if the
+ * deadline has been reached, or -1 on error (shouldn't happen).
+ */
+
+int
+RealTimeScheduler::rwait(double deadline)
+{
+	while (1) {
+		if (Tcl_DoOneEvent(TCL_DONT_WAIT) == 1)
+			return (1);
+		if (deadline <= tod())
+			return 0;
+	}
+	return -1;
+}
+
+/*
+ * dispatch a single simulator event by setting the system
+ * virtul clock to the event's timeout, and calling its handler
+ * note that the event may have side effects of placing other items
+ * in the scheduling queue
+ */
+
+void RealTimeScheduler::dispatch(Event* p)
+{
 		clock_ = p->time_;
 
-		/* sanity check */
-		if (clock_ > now)
-			abort();
+#ifdef RTDEBUG
+printf("dispatch sim event %d at vtime %f, time: %f\n", p->uid_, clock_,
+tod());
+#endif
 
-		p->uid_ = - p->uid_;
-		p->handler_->handle(p);
-	}
+		p->uid_ = -p->uid_;	// being dispatched
+		p->handler_->handle(p);	// dispatch
 }
