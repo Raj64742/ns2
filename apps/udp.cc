@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.17 2000/09/01 03:04:08 haoboy Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.18 2001/08/07 21:22:05 kclan Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -62,6 +62,7 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 	double local_time = Scheduler::instance().clock();
 	while (n-- > 0) {
 		p = allocpkt();
+		hdr_cmn::access(p)->size() = size_;
 		hdr_rtp* rh = hdr_rtp::access(p);
 		rh->flags() = 0;
 		rh->seqno() = ++seqno_;
