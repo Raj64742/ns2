@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.7 1998/01/31 00:25:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.8 1998/02/04 01:33:51 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -74,10 +74,28 @@ extern "C" {
  *	q: does lookupdev only return devs in the AF_INET addr family?
  *	why does pcap_compile require a netmask? seems odd
  *	would like some way to tell it what buffer to use
+ *	arriving packets have the link layer hdr at the beginning
+ *	not convenient to open bpf read/write
+ *	no real way to know what file (/dev/bpf?) it is using
+ *		would be nice if pcap_lookdev helped out more by
+ *		returning ifnet or ifreq or whatever structure
+ *	pcap_lookupnet makes calls to get our addr, but
+ *		then tosses it anyhow
+ *	interface type codes could be via rfc1573
+ *		see freebsd net/if_types.h
+ *	want a way to set immed mode
+ *	
  */
 
 #define	PNET_PSTATE_INACTIVE	0
 #define	PNET_PSTATE_ACTIVE	1
+
+//
+// PcapNetwork: a "network" (source or possibly sink of packets)
+//	this is a base class only-- the derived classes are:
+//	PcapLiveNetwork [a live net; currently bpf + ethernet]
+//	PcapFileNetwork [packets from a tcpdump-style trace file]
+//
 
 class PcapNetwork : public Network {
 
@@ -88,6 +106,7 @@ public:
 	virtual int command(int argc, const char*const* argv);
 
 	virtual int open(const char*) = 0;
+	virtual int skiphdr() = 0;
 	int recv(u_char *buf, int len, u_int32_t& fromaddr);	// get from net
 	void send(u_char *buf, int len);			// write to net
 	void close();
@@ -113,28 +132,50 @@ protected:
 	unsigned int local_netmask_;	// seems shouldn't be necessary :(
 };
 
+//
+// PcapLiveNetwork: a live network tap
+//
+
+struct NetworkAddress {
+        u_int   len_;
+        u_char  addr_[16];	// enough for IPv6 ip addr
+};
+
 class PcapLiveNetwork : public PcapNetwork {
 public:
-	PcapLiveNetwork() : local_net_(0) {
+	PcapLiveNetwork() : local_net_(0), dlink_type_(-1) {
 		bindvars(); reset();
 	}
+	NetworkAddress& laddr() { return (linkaddr_); }
+	NetworkAddress& naddr() { return (netaddr_); }
 protected:
 	int open();
 	int open(const char*);
 	int command(int argc, const char*const* argv);
+	int skiphdr();
 	const char*	autodevname();
 	void	bindvars();
 
 	int snaplen_;		// # of bytes to grab
 	int promisc_;		// put intf into promisc mode?
 	double timeout_;
+	NetworkAddress	linkaddr_;	// link-layer address
+	NetworkAddress	netaddr_;	// network-layer (IP) address
 
 	unsigned int local_net_;
+	int dlink_type_;		// data link type (see pcap)
+
+private:
+
+	// XXX somewhat specific to bpf
+	pcap_t * pcap_open_live(char *, int slen, int prom, int, char *, int);
+	int bpf_open(pcap_t *p, char *errbuf, int how);
 };
 
 class PcapFileNetwork : public PcapNetwork {
 public:
 	int open(const char*);
+	int skiphdr() { return 0; }	// XXX check me
 protected:
 	int command(int argc, const char*const* argv);
 };
@@ -228,6 +269,7 @@ PcapNetwork::stat_pdrops()
 #define MIN(x, y) ((x)<(y) ? (x) : (y))
 #endif
 
+#include "ether.h"
 /* recv is what others call to grab a packet from the pfilter */
 int
 PcapNetwork::recv(u_char *buf, int len, u_int32_t& fromaddr)
@@ -241,16 +283,24 @@ PcapNetwork::recv(u_char *buf, int len, u_int32_t& fromaddr)
 	const u_char *pkt;
 	pkt = pcap_next(pcap_, &pkthdr_);
 	int n = MIN(pkthdr_.caplen, len);
-	memcpy(buf, pkt, n);
+	// link layer header will be placed at the beginning
+	int s = skiphdr();
+	memcpy(buf, pkt + s, n - s);
+
+Ethernet::ether_print(pkt, n);
 	fromaddr = 0;	// for now
-	return n;
+	return n - s;
 }
 
 void
 PcapNetwork::send(u_char *buf, int len)
 {
-	if (write(pfd_, buf, len) < 0)
+	int n;
+	if ((n = write(pfd_, buf, len)) < 0)
 		perror("write to pcap fd");
+printf("TAP(%s): wrote %d bytes to bpf fd %d\n",
+name(), n, pfd_);
+
 	return;
 }
 
@@ -297,12 +347,15 @@ int PcapNetwork::command(int argc, const char*const* argv)
 // defs for PcapLiveNetwork
 //
 
+#include <fcntl.h>
+
+#include <net/if.h>
 int
 PcapLiveNetwork::open(const char *devname)
 {
 	close();
 	pcap_ = pcap_open_live((char*) devname, snaplen_, promisc_,
-		int(timeout_ * 1000.), errbuf_);
+		int(timeout_ * 1000.), errbuf_, O_RDWR);
 
 	if (pcap_ == NULL) {
 		fprintf(stderr,
@@ -310,8 +363,30 @@ PcapLiveNetwork::open(const char *devname)
 			name(), devname, errbuf_);
 		return -1;
 	}
+	dlink_type_ = pcap_datalink(pcap_);
 	pfd_ = pcap_fileno(pcap_);
 	strncpy(srcname_, devname, sizeof(srcname_)-1);
+	{
+		// use SIOCGIFADDR hook in bpf to get link addr
+		struct ifreq ifr;
+		struct sockaddr *sa = &ifr.ifr_addr;
+		if (ioctl(pfd_, SIOCGIFADDR, &ifr) < 0) {
+			fprintf(stderr,
+			  "pcap/live (%s) SIOCGIFADDR on bpf fd %d\n",
+			  name(), pfd_);
+		}
+		if (dlink_type_ != DLT_EN10MB) {
+			fprintf(stderr,
+				"sorry, only ethernet supported\n");
+			return -1;
+		}
+		linkaddr_.len_ = ETHER_ADDR_LEN;	// for now
+		memcpy(linkaddr_.addr_, sa->sa_data, linkaddr_.len_);
+
+printf("ETHER is:%s\n",
+Ethernet::etheraddr_string(linkaddr_.addr_));
+	}
+
 	state_ = PNET_PSTATE_ACTIVE;
 
 	if (pcap_lookupnet(srcname_, &local_net_, &local_netmask_, errbuf_) < 0) {
@@ -320,7 +395,37 @@ PcapLiveNetwork::open(const char *devname)
 		  name(), errbuf_) ;
 	}
 
+	{
+		int immed = 1;
+		if (ioctl(pfd_, BIOCIMMEDIATE, &immed) < 0) {
+			fprintf(stderr,
+				"warning: pcap/live (%s) couldn't set immed\n",
+				name());
+		}
+	}
 	return 0;
+}
+
+/*
+ * how many bytes of link-hdr to skip before net-layer hdr
+ */
+
+int
+PcapLiveNetwork::skiphdr()
+{
+	switch (dlink_type_) {
+	case DLT_NULL:
+		return 0;
+
+	case DLT_EN10MB:
+		return ETHER_HDR_LEN;
+
+	default:
+		fprintf(stderr,
+		    "Network/Pcap/Live(%s): unknown link type: %d\n",
+			dlink_type_);
+	}
+	return -1;
 }
 
 const char *
@@ -411,4 +516,186 @@ int PcapFileNetwork::command(int argc, const char*const* argv)
 		}
 	}
 	return (PcapNetwork::command(argc, argv));
+}
+
+//
+// XXX: the following routines are unfortunately necessary, 
+//	because libpcap has no obvious was of making the bpf fd
+//	be read-write :(.  The implication here is nasty:
+//		our own version of bpf_open and pcap_open_live
+//		and the later routine requires the struct pcap internal state
+
+/*   
+ * Savefile
+ */  
+struct pcap_sf {
+        FILE *rfile; 
+        int swapped;
+        int version_major;
+        int version_minor;
+        u_char *base;
+};   
+     
+struct pcap_md {
+        struct pcap_stat stat;
+        /*XXX*/ 
+        int use_bpf;
+        u_long  TotPkts;        /* can't oflow for 79 hrs on ether */
+        u_long  TotAccepted;    /* count accepted by filter */
+        u_long  TotDrops;       /* count of dropped packets */
+        long    TotMissed;      /* missed by i/f during this run */
+        long    OrigMissed;     /* missed by i/f before this run */
+#ifdef linux
+        int pad;
+        int skip;
+        char *device;
+#endif
+};   
+
+
+struct pcap {
+        int fd;
+        int snapshot;
+        int linktype;
+        int tzoff;              /* timezone offset */
+        int offset;             /* offset for proper alignment */
+
+        struct pcap_sf sf;
+        struct pcap_md md;
+
+        /*
+         * Read buffer.
+         */
+        int bufsize;
+        u_char *buffer;
+        u_char *bp;
+        int cc;
+
+        /*
+         * Place holder for pcap_next().
+         */
+        u_char *pkt;
+
+        
+        /*
+         * Placeholder for filter code if bpf not in kernel.
+         */
+        struct bpf_program fcode;
+
+        char errbuf[PCAP_ERRBUF_SIZE];
+};
+
+
+#include <net/if.h>
+
+int
+PcapLiveNetwork::bpf_open(pcap_t *p, char *errbuf, int how)
+{
+        int fd;
+        int n = 0;
+        char device[sizeof "/dev/bpf000"];
+
+        /*
+         * Go through all the minors and find one that isn't in use.
+         */
+        do {
+                (void)sprintf(device, "/dev/bpf%d", n++);
+                fd = ::open(device, how, 0);
+        } while (fd < 0 && n < 1000 && errno == EBUSY);
+
+        /*
+         * XXX better message for all minors used
+         */
+        if (fd < 0)
+                sprintf(errbuf, "%s: %s", device, pcap_strerror(errno));
+
+        return (fd);
+}
+
+pcap_t *
+PcapLiveNetwork::pcap_open_live(char *device, int snaplen, int promisc, int to_ms, char *ebuf, int how)
+{
+        int fd;
+        struct ifreq ifr;
+        struct bpf_version bv;
+        u_int v;
+        pcap_t *p;
+
+        p = (pcap_t *)malloc(sizeof(*p));
+        if (p == NULL) {
+                sprintf(ebuf, "malloc: %s", pcap_strerror(errno));
+                return (NULL);
+        }
+        bzero(p, sizeof(*p));
+        fd = bpf_open(p, ebuf, how);
+        if (fd < 0)
+                goto bad;
+
+        p->fd = fd;
+        p->snapshot = snaplen;
+
+        if (ioctl(fd, BIOCVERSION, (caddr_t)&bv) < 0) {
+                sprintf(ebuf, "BIOCVERSION: %s", pcap_strerror(errno));
+                goto bad;
+        }
+        if (bv.bv_major != BPF_MAJOR_VERSION ||
+            bv.bv_minor < BPF_MINOR_VERSION) {
+                sprintf(ebuf, "kernel bpf filter out of date");
+                goto bad;
+        }
+        (void)strncpy(ifr.ifr_name, device, sizeof(ifr.ifr_name));
+        if (ioctl(fd, BIOCSETIF, (caddr_t)&ifr) < 0) {
+                sprintf(ebuf, "%s: %s", device, pcap_strerror(errno));
+                goto bad;
+        }
+        /* Get the data link layer type. */
+        if (ioctl(fd, BIOCGDLT, (caddr_t)&v) < 0) {
+                sprintf(ebuf, "BIOCGDLT: %s", pcap_strerror(errno));
+                goto bad;
+        }
+#if _BSDI_VERSION - 0 >= 199510
+        /* The SLIP and PPP link layer header changed in BSD/OS 2.1 */
+        switch (v) {
+
+        case DLT_SLIP:
+                v = DLT_SLIP_BSDOS;
+                break;
+        case DLT_PPP:
+                v = DLT_PPP_BSDOS;
+                break;
+        }
+#endif  
+        p->linktype = v;
+
+        /* set timeout */
+        if (to_ms != 0) {
+                struct timeval to;
+                to.tv_sec = to_ms / 1000;
+                to.tv_usec = (to_ms * 1000) % 1000000;
+                if (ioctl(p->fd, BIOCSRTIMEOUT, (caddr_t)&to) < 0) {
+                        sprintf(ebuf, "BIOCSRTIMEOUT: %s",
+                                pcap_strerror(errno));
+                        goto bad;
+                }
+        }
+        if (promisc)
+                /* set promiscuous mode, okay if it fails */
+                (void)ioctl(p->fd, BIOCPROMISC, NULL); 
+
+        if (ioctl(fd, BIOCGBLEN, (caddr_t)&v) < 0) {
+                sprintf(ebuf, "BIOCGBLEN: %s", pcap_strerror(errno));
+                goto bad;
+        }   
+        p->bufsize = v;
+        p->buffer = (u_char *)malloc(p->bufsize);
+        if (p->buffer == NULL) {
+                sprintf(ebuf, "malloc: %s", pcap_strerror(errno));
+                goto bad;
+        }       
+
+        return (p);
+ bad:   
+        ::close(fd);
+        free(p);
+        return (NULL);
 }
