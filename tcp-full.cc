@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.21 1997/12/17 19:49:57 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.22 1997/12/17 22:09:24 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -104,7 +104,8 @@ public:
  *	segsize: segment size to use when sending
  */
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
-	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1),
+	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
+	rq_(rcv_nxt_), last_ack_sent_(-1),
 	idle_(0), irs_(-1), delay_growth_(0)
 {
 	bind("segsperack_", &segs_per_ack_);
@@ -339,9 +340,13 @@ void FullTcpAgent::output(int seqno, int reason)
 		
 	if (emptying_buffer) {
 		pflags |= TH_PUSH;
+		//
+		// if close_on_empty set, we are finished
+		// with this connection; close it
+		//
 		if (close_on_empty_) {
 			pflags |= TH_FIN;
-			state_ = TCPS_FIN_WAIT_1;
+			newstate(TCPS_FIN_WAIT_1);
 		}
 	} else  {
 		/* not emptying buffer, so can't be FIN */
@@ -606,6 +611,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int dupseg = FALSE;
 	int todrop = 0;
 
+	last_state_ = state_;
 
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
 	int ackno = tcph->ackno();	// ack # from packet
@@ -692,7 +698,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 
 		/* must by a SYN at this point */
 		flags_ |= TF_ACKNOW;
-		state_ = TCPS_SYN_RECEIVED;
+		newstate(TCPS_SYN_RECEIVED);
 		irs_ = tcph->seqno();
 		rcv_nxt_ = rcvseqinit(irs_, datalen);
 		t_seqno_ = iss_;
@@ -738,7 +744,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		if (tiflags & TH_ACK) {
 			// SYN+ACK (our SYN was acked)
 			highest_ack_ = ackno;
-			state_ = TCPS_ESTABLISHED;
+			newstate(TCPS_ESTABLISHED);
 
 #ifdef notdef
 /*
@@ -774,7 +780,7 @@ if (t_rtt_) {
 			// SYN (no ACK) (simultaneous active opens)
 			flags_ |= TF_ACKNOW;
 			cancel_rtx_timer();
-			state_ = TCPS_SYN_RECEIVED;
+			newstate(TCPS_SYN_RECEIVED);
 			/*
 			 * decrement t_seqno_: we are sending a
 			 * 2nd SYN (this time in the form of a
@@ -868,7 +874,7 @@ trimthenstep6:
 			// not in useful range
 			goto dropwithreset;
 		}
-		state_ = TCPS_ESTABLISHED;
+		newstate(TCPS_ESTABLISHED);
 		/* fall into ... */
 
         /*
@@ -1003,7 +1009,7 @@ process_ACK:
 		// large initial windows), then only open cwnd if data has
 		// been received
 		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
-		    (tiflags & TH_SYN) == 0) {
+			last_state_ == TCPS_ESTABLISHED) {
 			opencwnd();
 		}
 		// K: added state check in equal but diff way
@@ -1022,7 +1028,7 @@ process_ACK:
                  */
 		case TCPS_FIN_WAIT_1:	/* doing active close */
 			if (ourfinisacked)
-				state_ = TCPS_FIN_WAIT_2;
+				newstate(TCPS_FIN_WAIT_2);
 			break;
 
                 /*
@@ -1033,7 +1039,7 @@ process_ACK:
                  */
 		case TCPS_CLOSING:	/* simultaneous active close */;
 			if (ourfinisacked) {
-				state_ = TCPS_CLOSED;
+				newstate(TCPS_CLOSED);
 				cancel_timers();
 			}
 			break;
@@ -1046,7 +1052,7 @@ process_ACK:
 		case TCPS_LAST_ACK:	/* passive close */
 			// K: added state change here
 			if (ourfinisacked) {
-				state_ = TCPS_CLOSED;
+				newstate(TCPS_CLOSED);
 				cancel_timers();
 				goto drop;
 			} else {
@@ -1141,7 +1147,7 @@ step6:
                 case TCPS_SYN_RECEIVED:
                 case TCPS_ESTABLISHED:
 			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
-                        state_ = TCPS_LAST_ACK;
+			newstate(TCPS_LAST_ACK);
                         break;
 
                 /*
@@ -1150,7 +1156,7 @@ step6:
 		 * (simultaneous close)
                  */
                 case TCPS_FIN_WAIT_1:
-                        state_ = TCPS_CLOSING;
+			newstate(TCPS_CLOSING);
                         break;
                 /*
                  * In FIN_WAIT_2 state enter the TIME_WAIT state,
@@ -1161,7 +1167,7 @@ step6:
                  */
                 case TCPS_FIN_WAIT_2:
 			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
-                        state_ = TCPS_CLOSED;
+                        newstate(TCPS_CLOSED);
 			cancel_timers();
                         break;
 		}
@@ -1210,7 +1216,7 @@ void FullTcpAgent::reset_rtx_timer(int /* mild */)
  */
 void FullTcpAgent::connect()
 {
-	state_ = TCPS_SYN_SENT;	// sending a SYN now
+	newstate(TCPS_SYN_SENT);	// sending a SYN now
 
 	if (!data_on_syn_) {
 		// force no data in this segment
@@ -1231,7 +1237,7 @@ void FullTcpAgent::connect()
  */
 void FullTcpAgent::listen()
 {
-	state_ = TCPS_LISTEN;
+	newstate(TCPS_LISTEN);
 	type_ = PT_ACK;	// instead of PT_TCP
 }
 
@@ -1248,11 +1254,11 @@ void FullTcpAgent::usrclosed()
 	case TCPS_LISTEN:
 	case TCPS_SYN_SENT:
 		cancel_timers();
-		state_ = TCPS_CLOSED;
+		newstate(TCPS_CLOSED);
 		break;
 	case TCPS_SYN_RECEIVED:
 	case TCPS_ESTABLISHED:
-		state_ = TCPS_FIN_WAIT_1;
+		newstate(TCPS_FIN_WAIT_1);
 		send_much(1, REASON_NORMAL, 0);
 		break;
 	}

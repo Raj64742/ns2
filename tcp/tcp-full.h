@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.12 1997/12/01 06:17:58 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.13 1997/12/17 22:09:23 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -139,6 +139,7 @@ class FullTcpAgent : public TcpAgent {
 	int predict_ok(Packet*); // predicate for recv-side header prediction
 	void fast_retransmit(int);  // do a fast-retransmit on specified seg
 	inline double now() { return Scheduler::instance().clock(); }
+	void newstate(int ns) { state_ = ns; } // future hook for traces
 
 	void reset_rtx_timer(int);  // adjust the rtx timer
 	void reset();       // reset to a known point
@@ -162,6 +163,7 @@ class FullTcpAgent : public TcpAgent {
 	int maxseg_;        /* MSS */
 	int flags_;     /* controls next output() call */
 	int state_;     /* enumerated type: FSM state */
+	int last_state_; /* FSM state at last pkt recv */
 	int rcv_nxt_;       /* next sequence number expected */
 	ReassemblyQueue rq_;    /* TCP reassembly queue */
 	/*
