@@ -78,6 +78,7 @@ protected:
 	void shift_array(int *a, int sz) ;
 	void shift_array_new(double *a, int sz, double defval) ;
 	void multiply_array(double *a, int sz, double multiplier);
+	void print_loss(int sample, double ave_interval);
 	double weighted_average(int start, int end, double factor, double *m, double *w, int *sample);
 
 	int command(int argc, const char*const* argv);
@@ -112,6 +113,7 @@ protected:
 	double NumFeedback_; 	// how many feedbacks per rtt
 	int rcvd_since_last_report; 	// # of packets rcvd since last report
 	double lastloss; 	// when last loss occured
+	int printLoss_;		// to print estimated loss rates
 
 	// these are for "faking" history after slow start
 	int loss_seen_yet; 	// have we seen the first loss yet?

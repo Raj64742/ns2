@@ -58,6 +58,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("NumSamples_", &numsamples);
 	bind ("discount_", &discount);
 	bind ("domax_", &domax);
+	bind ("printLoss_", &printLoss_);
 
 	rate_ = 0; 
 	rtt_ =  0; 
@@ -271,12 +272,18 @@ double TfrcSinkAgent::est_loss ()
 			ave_interval1 = ave_interval2;
 	}
 	if (ave_interval1 > 0) { 
-//double now = Scheduler::instance().clock();
-//double drops = 1/ave_interval1;
-//printf ("%7.5f %7.5f\n", now, drops);
-//printf ("%7.5f %5d\n", now, sample[0]);
+		if (printLoss_ > 0) 
+			print_loss(sample[0], ave_interval1);
 		return 1/ave_interval1; 
 	} else return 999;     
+}
+
+void TfrcSinkAgent::print_loss(int sample, double ave_interval)
+{
+	double now = Scheduler::instance().clock();
+	double drops = 1/ave_interval;
+	printf ("time: %7.5f current_loss_interval %5d\n", now, sample);
+	printf ("time: %7.5f loss_rate: %7.5f\n", now, drops);
 }
 
 // Calculate the weighted average.
