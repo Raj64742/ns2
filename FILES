@@ -431,6 +431,7 @@ tcl/rtp/session-rtp.tcl
 tcl/rtp/session-scuba.tcl
 tcl/session/scaling-defaults.tcl
 tcl/session/scaling-tree.tcl
+tcl/session/scaling.README
 tcl/session/session.tcl
 tcl/test/100hts.tcl
 tcl/test/README

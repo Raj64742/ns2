@@ -1,0 +1,32 @@
+# Created by Polly Huang, USC/ISI
+# http://www-scf.usc.edu/~bhuang
+# 7/16/98
+
+What's the story about session sim's improvement on memory consumption?
+What's the largest topology ever run?
+
+The bottleneck is been determined to be the routing table, which is
+O(n^2). In addition, the number of routing entries doubles when the number
+of nodes exceeds the allocated number.  Therefore, we see that topologies
+with 512 nodes and 1023 nodes consume roughly the same amount of memory
+in routing table.
+
+The following table lists _approximately_ the memory consumption of
+session sim with various memory conservation solutions.
+
+# nodes in topo		Mem consumption (in MB)
+		session		with delay_bind		with hierarchial
+512-1023	   40		  10			
+1024-2047	  160		  40			  13
+2048-4095	  640		 160			  30
+4096-8191	 2560		 640			 180
+8192-16384	10240		2560			1067
+
+Currently, the set of simulations running with hierarchial routing uses
+different topologies than the set without hierarchial routing does. We're
+looking forward to unify/simplify the user interface to switch between
+flat and hierarchial routing.  Additionally, we will be creating a series
+of topologies that will be used for benchmarking memory consumption.
+
+At this point of time, 7/16/98 11:15 EDT, the largest topology simulated,
+using SessionSim, got 10,000 nodes.
