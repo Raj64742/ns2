@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.32 1998/08/22 17:19:09 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.33 1998/08/24 16:51:17 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -45,7 +45,7 @@ public:
 } class_newreno;
 
 NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), acked_(0),
-  newreno_changes1_(0)
+  newreno_changes1_(0), firstpartial_(0)
 {
 	bind("newreno_changes_", &newreno_changes_);
 	bind("newreno_changes1_", &newreno_changes1_);
@@ -58,7 +58,6 @@ NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), acked_(0),
 void NewRenoTcpAgent::partialnewack(Packet* pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	newtimer(pkt);
 #ifdef notyet
 	if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
 		stp->endtime = (float) realtime();
@@ -75,21 +74,18 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 
 void NewRenoTcpAgent::partialnewack_helper(Packet* pkt)
 {
-	partialnewack(pkt);
-	if (newreno_changes1_) {
-		/* Open the congestion window with each partialnewack. */
-		if (dupwnd_ > 0) {
-			dupwnd_ = 0;
-			t_seqno_ = last_ack_ + 1;
-			cwnd_ = 1.0; 
-		} 
-		opencwnd();
-		send_much(0, 0, maxburst_);
-	} else {
-		/* Just retransmit one packet for every partialnewack. */
-		dupwnd_ = 0;
-		output(last_ack_ + 1, 0);
+	if (!newreno_changes1_ || firstpartial_ == 0) {
+		firstpartial_ = 1;
+		/* For newreno_changes1_, 
+		 * only reset the retransmit timer for the first
+		 * partial ACK, so that, in the worst case, we
+		 * don't have to wait for one packet retransmitted
+		 * per RTT.
+		 */
+		newtimer(pkt);
 	}
+	partialnewack(pkt);
+	output(last_ack_ + 1, 0);
 }
 
 int
@@ -176,10 +172,11 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
+		dupwnd_ = 0;
 		if (tcph->seqno() >= recover_ 
 		    || (last_cwnd_action_ != CWND_ACTION_DUPACK &&
 			tcph->seqno() > last_ack_)) {
-			dupwnd_ = 0;
+			firstpartial_ = 0;
 			recv_newack_helper(pkt);
 			if (last_ack_ == 0 && delay_growth_) {
 				cwnd_ = initial_window();
