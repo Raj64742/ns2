@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.16 1997/07/11 22:12:30 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.17 1997/07/22 09:05:48 padmanab Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -171,9 +171,12 @@ SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
 # of this link.  Return the name of the object that
 # can be queried to determine the average queue size.
 #
-SimpleLink instproc init-monitor ns {
-	$self instvar qMonitor_
+SimpleLink instproc init-monitor { ns qtrace sampleInterval} {
+	$self instvar qMonitor_ ns_ qtrace_ sampleInterval_
 
+	set ns_ $ns
+	set qtrace_ $qtrace
+	set sampleInterval_ $sampleInterval
 	set qMonitor_ [new QueueMonitor]
 
 	$self attach-monitors [new SnoopQueue/In] \
@@ -185,3 +188,51 @@ SimpleLink instproc init-monitor ns {
 	$qMonitor_ set-pkts-integrator $pktsInt_
 	return $qMonitor_
 }
+
+SimpleLink instproc start-tracing { } {
+	$self instvar qMonitor_ ns_ qtrace_ sampleInterval_
+	$self instvar source_ dest_
+	
+	$qMonitor_ trace $qtrace_
+	$qMonitor_ set-src-dst [$source_ id] [$dest_ id]
+} 
+
+SimpleLink instproc queue-sample-timeout { } {
+	$self instvar qMonitor_ ns_ qtrace_ sampleInterval_
+	$self instvar source_ dest_
+	
+	set qavg [$self sample-queue-size]
+	puts $qtrace_ "[$ns_ now] [$source_ id] [$dest_ id] $qavg"
+	$ns_ at [expr [$ns_ now] + $sampleInterval_] "$self queue-sample-timeout"
+}
+
+SimpleLink instproc sample-queue-size { } {
+	$self instvar qMonitor_ ns_ qtrace_ sampleInterval_ lastSample_
+
+	set now [$ns_ now]
+	set qBytesMonitor_ [$qMonitor_ get-bytes-integrator]
+	set qPktsMonitor_ [$qMonitor_ get-pkts-integrator]
+
+	$qBytesMonitor_ newpoint $now [$qBytesMonitor_ set lasty_]
+	set bsum [$qBytesMonitor_ set sum_]
+
+	$qPktsMonitor_ newpoint $now [$qPktsMonitor_ set lasty_]
+	set psum [$qPktsMonitor_ set sum_]
+
+	if ![info exists lastSample_] {
+		set lastSample_ 0
+	}
+	set dur [expr $now - $lastSample_]
+	if { $dur != 0 } {
+		set meanBytesQ [expr $bsum / $dur]
+		set meanPktsQ [expr $psum / $dur]
+	} else {
+		set meanBytesQ 0
+		set meanPktsQ 0
+	}
+	$qBytesMonitor_ set sum_ 0.0
+	$qPktsMonitor_ set sum_ 0.0
+	set lastSample_ $now
+
+	return "$meanBytesQ $meanPktsQ"
+}	
