@@ -45,7 +45,7 @@
  */
 class SRM_Event : public Event {
  public:
-	SRM_Event(int s=0, int t=0, int i=0) : seqno_(s), type_(t), iif_(i) {}
+	SRM_Event(int s=0, int t=0, int i=0) : seqno_(s), iif_(i), type_(t) {}
 	SRM_Event(SRM_Event *e);
 	int seqno() { return seqno_; }
 	int iif() { return iif_; }

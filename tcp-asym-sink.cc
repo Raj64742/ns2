@@ -58,7 +58,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.12 1998/08/19 04:52:07 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.13 1998/08/22 02:41:18 haoboy Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -112,16 +112,16 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 	int olddelackfactor = delackfactor_;
 	int olddelacklim = delacklim_; 
 	int max_sender_can_send = 0;
-	int numToDeliver;
 	hdr_flags *fh = hdr_flags::access(pkt);
 	hdr_tcp *th = hdr_tcp::access(pkt);
 	hdr_tcpasym *tha = hdr_tcpasym::access(pkt);
 	double now = Scheduler::instance().clock();
-	int numBytes = hdr_cmn::access(pkt)->size();
 
 
 	acker_->update_ts(th->seqno(),th->ts());
 #if 0  // johnh
+	int numToDeliver;
+	int numBytes = hdr_cmn::access(pkt)->size();
 	numToDeliver = acker_->update(th->seqno(), numBytes);
 	if (numToDeliver)
 		recvBytes(numToDeliver);
@@ -217,7 +217,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 }
 
 
-void TcpAsymSink::timeout(int tno)
+void TcpAsymSink::timeout(int /*tno*/)
 {
 	/*
 	 * The timer expired so we ACK the last packet seen.

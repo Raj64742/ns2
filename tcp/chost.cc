@@ -40,8 +40,9 @@
 #include "tcp-int.h"
 #include "random.h"
 
-CorresHost::CorresHost() : slink(), TcpFsAgent(), connWithPktBeforeFS_(NULL),
-	dontAdjustOwnd_(0), dontIncrCwnd_(0), lastackTS_(0), rexmtSegCount_(0)
+CorresHost::CorresHost() : slink(), TcpFsAgent(),
+	lastackTS_(0), dontAdjustOwnd_(0), dontIncrCwnd_(0), rexmtSegCount_(0),
+	connWithPktBeforeFS_(NULL)
 {
 	nActive_ = nTimeout_ = nFastRec_ = 0;
 	ownd_ = 0;
@@ -56,14 +57,14 @@ CorresHost::CorresHost() : slink(), TcpFsAgent(), connWithPktBeforeFS_(NULL),
  * Open up the congestion window.
  */
 void 
-CorresHost::opencwnd(int size, IntTcpAgent *sender)
+CorresHost::opencwnd(int /*size*/, IntTcpAgent *sender)
 {
 	if (cwnd_ < ssthresh_) {
 		/* slow-start (exponential) */
 		cwnd_ += 1;
 	} else {
 		/* linear */
-		double f;
+		//double f;
 		if (!proxyopt_) {
 			switch (wnd_option_) {
 			case 0:
@@ -186,7 +187,7 @@ CorresHost::closecwnd(int how, IntTcpAgent *sender)
 }
 
 Segment* 
-CorresHost::add_pkts(int size, int seqno, int sessionSeqno, int daddr, int dport, 
+CorresHost::add_pkts(int /*size*/, int seqno, int sessionSeqno, int daddr, int dport, 
 		     int sport, double ts, IntTcpAgent *sender)
 {
 	class Segment *news;
@@ -217,15 +218,15 @@ CorresHost::adjust_ownd(int size)
 		ownd_ -= min(double(ownd_), size - double(owndCorrection_));
 	owndCorrection_ -= min(double(owndCorrection_),size);
 	if (double(ownd_) < -0.5 || double(owndCorrection_ < -0.5))
-		printf("In adjust_ownd(): ownd_ = %g  owndCorrection_ = %d\n", double(ownd_), double(owndCorrection_));
+		printf("In adjust_ownd(): ownd_ = %g  owndCorrection_ = %g\n", double(ownd_), double(owndCorrection_));
 }
 
 int
-CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSeqno, int amt_data_acked)
+CorresHost::clean_segs(int /*size*/, Packet *pkt, IntTcpAgent *sender, int sessionSeqno, int amt_data_acked)
 { 
     Segment *cur, *prev=NULL, *newseg;
     int i;
-    int rval = -1;
+    //int rval = -1;
 
     /* remove all acked pkts from list */
     int latest_susp_loss = rmv_old_segs(pkt, sender, amt_data_acked);
@@ -284,8 +285,8 @@ CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSe
 				    CWND_ACTION_DUPACK /* XXX 1 */;
 			    dontAdjustOwnd_ = 0;
 		    }
-		    if (newseg = cur->sender_->rxmit_last(TCP_REASON_DUPACK, 
-				  cur->seqno_, cur->sessionSeqno_, cur->ts_)) {
+		    if ((newseg = cur->sender_->rxmit_last(TCP_REASON_DUPACK, 
+			   cur->seqno_, cur->sessionSeqno_, cur->ts_))) {
 			    newseg->rxmitted_ = 1;
 			    adjust_ownd(cur->size_);
 			    if (!dontAdjustOwnd_) {
@@ -419,8 +420,8 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 }
 	
 void
-CorresHost::add_agent(IntTcpAgent *agent, int size, double winMult, 
-		      int winInc, int ssthresh)
+CorresHost::add_agent(IntTcpAgent *agent, int /*size*/, double winMult, 
+		      int winInc, int /*ssthresh*/)
 {
 	if (nActive_ >= MAX_PARALLEL_CONN) {
 		printf("In add_agent(): reached limit of number of parallel conn (%d); returning\n", nActive_);
@@ -437,7 +438,7 @@ CorresHost::add_agent(IntTcpAgent *agent, int size, double winMult,
 }
 
 int
-CorresHost::ok_to_snd(int size)
+CorresHost::ok_to_snd(int /*size*/)
 {
 	if (ownd_ <= -0.5)
 		printf("In ok_to_snd(): ownd_ = %g  owndCorrection_ = %g\n", double(ownd_), double(owndCorrection_));

@@ -126,7 +126,7 @@ SessionBurstSndTimer::expire(Event*)
 }
 
 void
-TcpSessionAgent::reset_rtx_timer(int mild, int backoff)
+TcpSessionAgent::reset_rtx_timer(int /*mild*/, int backoff)
 {
 	if (backoff)
 		rtt_backoff();
@@ -423,7 +423,7 @@ TcpSessionAgent::who_to_snd(int how)
 }
 
 void
-TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason) 
+TcpSessionAgent::send_much(IntTcpAgent */*agent*/, int force, int reason) 
 {
 	int npackets = 0;
 	Islist_iter<Segment> seg_iter(seglist_);
@@ -591,7 +591,7 @@ TcpSessionAgent::traceVar(TracedVar* v)
 		if (!strcmp(v->name(), "ownd_"))
 			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), double(*((TracedDouble*) v)));
 		else if (!strcmp(v->name(), "owndCorr_"))
-			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
+			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
 		n = strlen(wrk);
 		wrk[n] = '\n';
 		wrk[n+1] = 0;

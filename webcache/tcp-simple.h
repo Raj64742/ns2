@@ -18,7 +18,7 @@
 // Simple TCP only preserves: 
 // (1) FullTcp::advance-bytes, 
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.h,v 1.1 1998/08/18 23:42:43 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.h,v 1.2 1998/08/22 02:41:36 haoboy Exp $
 
 #ifndef ns_tcp_simple_h
 #define ns_tcp_simple_h
@@ -34,8 +34,8 @@ public:
 	virtual int command(int argc, const char*const* argv);
 
 	// To make base Tcp happy
-	virtual void timeout(int tno) {} 
-	virtual void timeout_nonrtx(int tno) {}
+	virtual void timeout(int) {} 
+	virtual void timeout_nonrtx(int) {}
 
 protected:
 	int seqno_;

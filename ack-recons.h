@@ -63,9 +63,9 @@ private:
 class AckRecons : public Agent {
 public:
 	AckRecons(nsaddr_t src, nsaddr_t dst) :
-		Agent(PT_TCP),src_(src), dst_(dst),
-		spq_(0), lastAck_(0), lastRealAck_(0), ackPending_(0),
-		ackTemplate_(0) {
+		Agent(PT_TCP), spq_(0), src_(src), dst_(dst),
+		ackTemplate_(0), ackPending_(0), lastAck_(0), 
+		lastRealAck_(0) {
 			bind("lastTime_", &lastTime_);
 			bind("lastAck_", &lastAck_);
 			bind("lastRealTime_", &lastRealTime_);

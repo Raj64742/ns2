@@ -58,15 +58,15 @@ protected:
 	double rate_;
 	int bucket_;
 	NsObject* ctrl_target_;
-	char* callback_;
         TrafficGenerator *trafgen_;
         int rtd_;  /* ready-to-die: waiting for last burst to end */
+	char* callback_;
 
 	SA_Timer sa_timer_;
 	double nextPkttime_;
 	int off_rtp_;
-	int seqno_;
 	int running_;
+	int seqno_;
 	int size_;
 };
 

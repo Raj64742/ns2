@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.10 1998/08/12 23:41:15 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.11 1998/08/22 02:41:14 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -163,8 +163,8 @@ class Snoop : public NsObject {
 	double   rttvar_;	/* linear deviation */
 	double   tailTime_;	/* time at which earliest unack'd pkt sent */
 	int      rxmitStatus_;
-	Event    *toutPending_;	/* # pending timeouts */
 	short    bufhead_;	/* next pkt goes here */
+	Event    *toutPending_;	/* # pending timeouts */
 	short    buftail_;	/* first unack'd pkt */
 	Packet   *pkts_[SNOOP_MAXWIND]; /* ringbuf of cached pkts */
 	

@@ -45,7 +45,7 @@
 
 #ifndef lint
 static const char  rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/vatrcvr.cc,v 1.4 1998/08/21 17:38:05 haoboy Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/vatrcvr.cc,v 1.5 1998/08/22 02:41:30 haoboy Exp $";
 #endif
 
 #ifndef WIN32
@@ -71,8 +71,8 @@ protected:
 	int maxdel_;
 	int block_size_;
 	int lecture_mode_;
-	u_int32_t predicted_drop_;
 	u_int32_t lastrecv_;
+	u_int32_t predicted_drop_;
 	int delvar_;
 	/*XXX*/
 #define MAXSTAT 16
@@ -249,7 +249,6 @@ public:
 
 
 VatRcvr::VatRcvr() : 
-	nstat_(0),
 	hostoffset_(0),
 	var_(INITIAL_OFFSET << (VAR_FILTER - VAR_MULT)),
 	playout_(INITIAL_OFFSET << PLAYO_FILTER),
@@ -257,7 +256,8 @@ VatRcvr::VatRcvr() :
 	block_size_(FRAMESIZE),
 	lecture_mode_(0),
 	lastrecv_(0),
-	predicted_drop_(~0)
+	predicted_drop_(~0),
+	nstat_(0)
 {
 
 	for (int i = 0; i < MAXSTAT; ++i) {

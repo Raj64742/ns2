@@ -200,7 +200,7 @@ void SA_Agent::stoponidle(const char *s)
 
 }
 
-void SA_Timer::expire(Event *e) {
+void SA_Timer::expire(Event */*e*/) {
         a_->timeout(0);
 }
 
@@ -246,7 +246,7 @@ void SA_Agent::sendpkt()
         target_->recv(p);
 }
 
-void SA_Agent::sendmsg(int nbytes, const char* flags)
+void SA_Agent::sendmsg(int nbytes, const char* /*flags*/)
 {
         Packet *p;
         int n;

@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.57 1998/08/14 20:09:28 tomh Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.58 1998/08/22 02:41:01 haoboy Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.57 1998/08/14 20:09:28 tomh Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.58 1998/08/22 02:41:01 haoboy Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -79,7 +79,7 @@ public:
 static char* eu_names[] = { EU_NAMES };
 
 
-ErrorModel::ErrorModel() : unit_(EU_PKT), ranvar_(0), firstTime_(1)
+ErrorModel::ErrorModel() : firstTime_(1), unit_(EU_PKT), ranvar_(0)
 {
 	bind("enable_", &enable_);
 	bind("rate_", &rate_);
@@ -90,7 +90,7 @@ ErrorModel::ErrorModel() : unit_(EU_PKT), ranvar_(0), firstTime_(1)
 int ErrorModel::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-	ErrorModel *em;
+	//ErrorModel *em;
 	if (argc == 3) {
 		if (strcmp(argv[1], "unit") == 0) {
 			unit_ = STR2EU(argv[2]);
@@ -168,7 +168,7 @@ int ErrorModel::corrupt(Packet* p)
 
 double ErrorModel::PktLength(Packet* p)
 {
-	double now;
+	//double now;
 	if (unit_ == EU_PKT)
 		return 1;
 	int byte = hdr_cmn::access(p)->size();
@@ -177,7 +177,7 @@ double ErrorModel::PktLength(Packet* p)
 	return 8.0 * byte / bandwidth_;
 }
 
-int ErrorModel::CorruptPkt(Packet* p) 
+int ErrorModel::CorruptPkt(Packet*) 
 {
 	// if no random var is specified, assume uniform random variable
 	double u = ranvar_ ? ranvar_->value() : Random::uniform();
@@ -192,7 +192,7 @@ int ErrorModel::CorruptByte(Packet* p)
 	return (u < per);
 }
 
-int ErrorModel::CorruptTime(Packet *p)
+int ErrorModel::CorruptTime(Packet *)
 {
 	fprintf(stderr, "Warning:  uniform rate error cannot be time-based\n");
 	return 0;
@@ -495,7 +495,7 @@ ListErrorModel::parse_droplist(int argc, const char *const* argv)
 	while (cnt < argc) {
 		p = argv[cnt];
 		spaces = 0;
-		while (n = nextval(p)) {
+		while ((n = nextval(p))) {
 			if (!isdigit(*p)) {
 				/* problem... */
 				fprintf(stderr, "ListErrorModel(%s): parse_droplist: unknown drop specifier starting at >>>%s\n",
@@ -535,7 +535,7 @@ ListErrorModel::parse_droplist(int argc, const char *const* argv)
 	cnt = 0;
 	while (cnt < argc) {
 		p = argv[cnt];
-		while (n = nextval(p)) {
+		while ((n = nextval(p))) {
 			/*
 			 * this depends on atoi(s) returning the
 			 * value of the first number in s
@@ -651,7 +651,7 @@ SRMErrorModel::SRMErrorModel()
 
 int SRMErrorModel::command(int argc, const char*const* argv)
 {
-	int ac = 0;
+	//int ac = 0;
 	if (strcmp(argv[1], "drop-packet") == 0) {
 		pkt_type_ = atoi(argv[2]);
 		drop_cycle_ = atoi(argv[3]);
@@ -688,7 +688,7 @@ public:
 } class_traceerrormodel;
 
 TraceErrorModel::TraceErrorModel() :
-	good_(123456789), loss_(0)
+	loss_(0), good_(123456789)
 {
 	bind_time("good_", &good_);
 	bind_time("loss_", &loss_);
@@ -709,7 +709,7 @@ int TraceErrorModel::corrupt(Packet* p)
 	return 0;
 }
  
-int TraceErrorModel::match(Packet* p)
+int TraceErrorModel::match(Packet*)
 {
 	return 1;
 }

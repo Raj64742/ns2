@@ -20,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/param-adc.cc,v 1.2 1998/06/27 01:24:19 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/param-adc.cc,v 1.3 1998/08/22 02:41:04 haoboy Exp $";
 #endif
 
 
@@ -54,18 +54,18 @@ Param_ADC::Param_ADC() : resv_rate_(0), oresv_rate_(0)
 	resv_rate_.name("\"Reserved Rate\"");
 }
 
-void Param_ADC::rej_action(int cl,double p,int r)
+void Param_ADC::rej_action(int /*cl*/,double p,int /*r*/)
 {
 	resv_rate_-=p;
 }
 
 
-void Param_ADC::teardown_action(int cl,double p,int r)
+void Param_ADC::teardown_action(int /*cl*/,double p,int /*r*/)
 {
 	resv_rate_-=p;
 }
 
-int Param_ADC::admit_flow(int cl,double r,int b)
+int Param_ADC::admit_flow(int /*cl*/,double r,int /*b*/)
 {
 	if (resv_rate_ + r <= utilization_ * bandwidth_) {
 		resv_rate_ +=r;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.22 1998/06/27 01:24:25 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.23 1998/08/22 02:41:05 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -110,10 +110,10 @@ protected:
 	int qlim_;		/* maximum allowed pkts in queue */
 	int blocked_;		/* blocked now? */
 	int unblock_on_resume_;	/* unblock q on idle? */
+	QueueHandler qh_;
 	PacketQueue *pq_;	/* pointer to actual packet queue 
 				 * (maintained by the individual disciplines
 				 * like DropTail and RED). */
-	QueueHandler qh_;
 };
 
 #endif

@@ -18,7 +18,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timewindow-est.cc,v 1.5 1998/05/08 00:30:35 bajaj Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timewindow-est.cc,v 1.6 1998/08/22 02:41:27 haoboy Exp $";
 #endif
 
 
@@ -33,9 +33,9 @@ public:
 	inline void change_avload(double incr) { avload_ += incr; if (incr >0) scnt=0;}
 protected:
 	void estimate();
+	int scnt;
 	double maxp;//maximum of previous interval
 	int T_;
-	int scnt;
 };
 
 void TimeWindow_Est::estimate() {

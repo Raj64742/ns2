@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.26 1998/08/12 23:41:19 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.27 1998/08/22 02:41:24 haoboy Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -49,7 +49,7 @@ public:
 	}
 } class_tcpsink;
 
-Acker::Acker() : next_(0), maxseen_(0), ts_to_echo_(0), ecn_unacked_(0)
+Acker::Acker() : next_(0), maxseen_(0), ecn_unacked_(0), ts_to_echo_(0)
 {
 	memset(seen_, 0, sizeof(seen_));
 }
@@ -237,7 +237,7 @@ void DelAckSink::timeout(int)
 	Packet::free(pkt);
 }
 
-void DelayTimer::expire(Event *e) {
+void DelayTimer::expire(Event */*e*/) {
 	a_->timeout(0);
 }
 

@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char  rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/consrcvr.cc,v 1.3 1998/08/21 17:38:03 haoboy Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/consrcvr.cc,v 1.4 1998/08/22 02:40:59 haoboy Exp $";
 #endif
 
 
@@ -67,7 +67,7 @@ int ConsRcvr::adapt(Packet *pkt, u_int32_t local_clock)
 	
 	if (((tstamp+offset_) < local_clock) || (offset_ == -1)) {
 		/*increase the offset */
-		if (offset_ < (local_clock-(tstamp+offset_)))
+		if (offset_ < (int)(local_clock-(tstamp+offset_)))
 			offset_ += local_clock -(tstamp+offset_);
 		else
 			offset_ += offset_;

@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.11 1998/06/27 01:24:48 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.12 1998/08/22 02:41:12 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -348,7 +348,7 @@ int SessionHelper::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "delete-dst") == 0) {
 			int tmpaddr = atoi(argv[2]);
-			NsObject *tmpobj = (NsObject*)TclObject::lookup(argv[3]);
+			//NsObject *tmpobj = (NsObject*)TclObject::lookup(argv[3]);
 			printf ("addr = %d\n", tmpaddr);
 			return (TCL_OK);
 		}

@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/acto-adc.cc,v 1.4 1998/06/27 01:23:17 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/acto-adc.cc,v 1.5 1998/08/22 02:40:52 haoboy Exp $";
 #endif
 
 
@@ -64,7 +64,7 @@ int ACTO_ADC::admit_flow(int cl,double r,int b)
 	}
 }
 
-void ACTO_ADC::teardown_action(int cl,double r,int b)
+void ACTO_ADC::teardown_action(int /*cl*/,double /*r*/,int /*b*/)
 {
 	rejected_=0;
 }

@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.3 1998/08/20 01:27:58 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.4 1998/08/22 02:41:34 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -526,9 +526,10 @@ void HttpMInvalCache::add_cache(HttpMInvalCache *c)
 }
 
 HttpMInvalCache::HttpMInvalCache() : 
-	upd_sender_(NULL), num_updater_(0), size_updater_(0),
-	inv_sender_(0), size_sender_(0), num_sender_(0), inv_parent_(NULL),
-	invlist_(0), num_inv_(0), hb_timer_(this, HTTP_HBINTERVAL)
+	hb_timer_(this, HTTP_HBINTERVAL),
+	inv_sender_(0), num_sender_(0), size_sender_(0), 
+	invlist_(0), num_inv_(0), inv_parent_(NULL),
+	upd_sender_(NULL), num_updater_(0), size_updater_(0)
 {
 #ifdef JOHNH_CLASSINSTVAR
 #else /* ! JOHNH_CLASSINSTVAR */
@@ -731,7 +732,7 @@ int HttpMInvalCache::command(int argc, const char*const* argv)
 			HttpHbData *d = new HttpHbData(id_, 1);
 			strcpy(d->rec_pg(0), argv[2]);
 			d->rec_mtime(0) = strtod(argv[3], NULL);
-			int old_inv = num_inv_;
+			//int old_inv = num_inv_;
 			tcl.resultf("%d", recv_inv(d));
 			delete(d);
 			return TCL_OK;
@@ -1043,7 +1044,7 @@ void HttpMInvalCache::timeout(int reason)
 	}
 }
 
-void HttpMInvalCache::recv_pkt(int size, char* data)
+void HttpMInvalCache::recv_pkt(int /*size*/, char* data)
 {
 	HttpData *d = new HttpData(data);
 	switch (d->type()) {
@@ -1150,10 +1151,10 @@ int HttpMInvalCache::recv_inv(HttpHbData *data)
 // Get an invalidation, check invalidation modtimes, then setup 
 // invalidation forwarding entries
 // The input invalidation record list is destroyed.
-void HttpMInvalCache::process_inv(int n, InvalidationRec *ivlist, int cache)
+void HttpMInvalCache::process_inv(int, InvalidationRec *ivlist, int cache)
 {
 	InvalidationRec *p = ivlist, *q, *r;
-	int upd = 0;
+	//int upd = 0;
 	while (p != NULL) {
 		ClientPage* pg = (ClientPage *)pool_->get_page(p->pg());
 

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.20 1998/08/14 20:09:27 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.21 1998/08/22 02:40:55 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -92,7 +92,6 @@ class Agent : public Connector {
 	Packet* allocpkt() const;	// alloc + set up new pkt
 	Packet* allocpkt(int) const;	// same, but w/data buffer
 	void initpkt(Packet*) const;	// set up fields in a pkt
-	Tcl_Channel channel_;
 
 	nsaddr_t addr_;			// address of this agent
 	nsaddr_t dst_;			// destination address for pkt flow
@@ -102,7 +101,6 @@ class Agent : public Connector {
 	int prio_;			// for IPv6 prio field
 	int flags_;			// for experiments (see ip.h)
 	int defttl_;			// default ttl for outgoing pkts
-	Application *app_;		// ptr to application for callback
 
 #ifdef notdef
 	int seqno_;		/* current seqno */
@@ -112,8 +110,12 @@ class Agent : public Connector {
 	static int uidcnt_;
 	int off_ip_;
 
+	Tcl_Channel channel_;
 	char *traceName_;		// name used in agent traces
 	OldValue *oldValueList_; 
+
+	Application *app_;		// ptr to application for callback
+
 	virtual void trace(TracedVar *v);
 	void deleteAgentTrace();
 	void addAgentTrace(const char *name);

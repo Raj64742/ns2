@@ -61,7 +61,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.15 1998/08/19 04:51:51 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.16 1998/08/22 02:41:19 haoboy Exp $ (UCB)";
 #endif
 
 #include "tcp-asym.h"
@@ -213,7 +213,7 @@ TcpAsymAgent::traceAll() {
 
 	TcpAgent::traceAll();
 	curtime = &s ? s.clock() : 0;
-	sprintf(wrk, "time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d exact_srtt %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
+	sprintf(wrk, "time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d exact_srtt %d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
 		(int(t_exact_srtt_)));
 	n = strlen(wrk);
 	wrk[n] = '\n';

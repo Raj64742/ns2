@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.18 1998/08/22 01:01:29 yuriy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.19 1998/08/22 02:41:08 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -169,7 +169,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 				tcl.result("Required Hier_data not sent");
 				return (TCL_ERROR);
 			}
-			int i, n;
+			int i;
 			int src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
 			/* initializing src and dst addr */
 			// for (i=0; i < SMALL_LEN; i++){
@@ -188,7 +188,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 
 		if (strcmp(argv[1], "hier-reset") == 0) {
-			int i, n;
+			int i;
 			int  src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
 			/* initializing src and dst addr */
 			// for (i=0; i < SMALL_LEN; i++){
@@ -792,20 +792,20 @@ void RouteLogic::hier_print_hadj() {
 
 void RouteLogic::hier_compute()
 {
-	int i, j, k;
+	int i, j, k, m, n;
 	for (j=1; j < D_; j++) 
 		for (k=1; k < C_[j]; k++) {
 			i = INDEX(j, k, Cmax_);
 			int s = (cluster_size_[i] + C_[j] + D_);
 			adj_ = new int[(s * s)];
 			memset((char *)adj_, 0, s * s * sizeof(adj_[0]));
-			for (int n=0; n < s; n++)
-				for(int m=0; m < s; m++)
+			for (n=0; n < s; n++)
+				for(m=0; m < s; m++)
 					adj_[INDEX(n, m, s)] = hadj_[i][INDEX(n, m, s)];
 			hier_compute_routes(i, j);
 	
-			for (int n=0; n < s; n++)
-				for(int m=0; m < s; m++)
+			for (n=0; n < s; n++)
+				for(m=0; m < s; m++)
 					hroute_[i][INDEX(n, m, s)] = route_[INDEX(n, m, s)];
 			delete [] adj_;
 		}

@@ -50,7 +50,7 @@
 static class AckReconsControllerClass : public TclClass {
 public:
 	AckReconsControllerClass() : TclClass("AckReconsControllerClass") { }
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new AckReconsController);
 	}
 } class_ackrecons_controller;
@@ -58,7 +58,7 @@ public:
 static class AckReconsClass : public TclClass {
 public:
 	AckReconsClass() : TclClass("Agent/AckReconsClass") { }
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const* argv) {
 		return new AckRecons(atoi(argv[4]), atoi(argv[5]));
 	}
 } class_ackrecons;
@@ -67,7 +67,7 @@ public:
  * Demux a packet to the right ack reconstructor.
  */
 void
-AckReconsController::recv(Packet *p, Handler *h)
+AckReconsController::recv(Packet *p, Handler *)
 {
 	Tcl& tcl = Tcl::instance();
 	hdr_ip *ip = (hdr_ip *)p->access(off_ip_);

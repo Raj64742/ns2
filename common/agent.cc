@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.46 1998/08/20 23:42:08 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.47 1998/08/22 02:40:54 haoboy Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -207,9 +207,11 @@ int Agent::command(int argc, const char*const* argv)
 	if (strcmp(argv[1], "tracevar") == 0) {
 		// wrapper of TclObject's trace command, because some tcl
 		// agents (e.g. srm) uses it.
-		const char *args[4];
+		const char* args[4];
+		char tmp[6];
+		strcpy(tmp, "trace");
 		args[0] = argv[0];
-		args[1] = "trace";
+		args[1] = tmp;
 		args[2] = argv[2];
 		if (argc > 3)
 			args[3] = argv[3];
@@ -244,7 +246,6 @@ void Agent::flushAVar(TracedVar *v)
 void Agent::deleteAgentTrace()
 {
 	char wrk[256];
-	int n;
 
 	// XXX we don't know InstVar outside of Tcl! Is there any
 	// tracedvars hidden in InstVar? If so, shall we have a tclclInt.h?
@@ -417,14 +418,14 @@ void Agent::listen()
  * This function is a placeholder in case applications want to dynamically
  * connect to agents (presently, must be done at configuration time).
  */
-void Agent::connect(nsaddr_t dst)
+void Agent::connect(nsaddr_t /*dst*/)
 {
 /*
 	dst_ = dst;
 */
 }
 
-void Agent::sendmsg(int nbytes, const char *flags)
+void Agent::sendmsg(int /*nbytes*/, const char */*flags*/)
 {
 }
 
@@ -432,7 +433,7 @@ void Agent::sendmsg(int nbytes, const char *flags)
  * This function is a placeholder in case applications want to dynamically
  * connect to agents (presently, must be done at configuration time).
  */
-void Agent::sendto(int nbytes, const char flags[], nsaddr_t dst)
+void Agent::sendto(int /*nbytes*/, const char /*flags*/[], nsaddr_t /*dst*/)
 {
 /*
 	dst_ = dst;

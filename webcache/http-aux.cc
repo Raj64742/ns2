@@ -22,12 +22,12 @@
 #include "http-aux.h"
 #include "http.h"
 
-void PushTimer::expire(Event *e) 
+void PushTimer::expire(Event *) 
 {
 	a_->timeout(HTTP_UPDATE);
 }
 
-void HBTimer::expire(Event *e) 
+void HBTimer::expire(Event *) 
 {
 	a_->timeout(HTTP_INVALIDATION);
 }

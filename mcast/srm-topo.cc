@@ -29,7 +29,7 @@
 #define SRM_DEBUG
 
 
-Topology::Topology(int nn, int src) : src_(src), idx_(nn) 
+Topology::Topology(int nn, int src) : idx_(nn), src_(src)
 {
 	node_ = new Node[nn];
 	for (int i = 0; i < nn; i ++) 
@@ -50,9 +50,9 @@ Topology::~Topology() {
 	delete [] node_;
 }
 
-Topology::command(int argc, const char*const* argv) 
+int Topology::command(int argc, const char*const* argv) 
 {
-	Tcl& tcl = Tcl::instance();
+	//Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1], "flood") == 0) {
 			flood(0, atoi(argv[2]));
@@ -72,7 +72,7 @@ Node* Topology::node(int nn)
 static class LineClass : public TclClass {
 public:
 	LineClass() : TclClass("Topology/Line") {} 
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const* argv) {
 		int nn = atoi(argv[4]);
 		return (new Line(nn, 0));
 	}
@@ -135,7 +135,7 @@ double Line::backoff(int dst)
 
 Interface_List* Line::oif(int node, int iif=SRM_NOIF)
 {
-	int oif;
+	//int oif;
 	Interface_List *ilist = new Interface_List;
 
 	/* If there are no more nodes downstream, return -1 */
@@ -207,7 +207,7 @@ void Line::flood(int start, int seqno)
 static class BTreeClass : public TclClass {
 public:
 	BTreeClass() : TclClass("Topology/BTree") {} 
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const* argv) {
 		int nn = atoi(argv[4]);
 		return (new BTree(nn, 0));
 	}
@@ -249,7 +249,7 @@ double BTree::backoff(int id)
 
 Interface_List* BTree::oif(int node, int iif=SRM_NOIF)
 {
-	int oif;
+	//int oif;
 	Interface_List *ilist = new Interface_List;
 	/* 
 	 * If the packet comes from the source, 
@@ -292,7 +292,7 @@ Interface_List* BTree::oif(int node, int iif=SRM_NOIF)
 static class StarClass : public TclClass {
 public:
 	StarClass() : TclClass("Topology/Star") {} 
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const* argv) {
 		int nn = atoi(argv[4]);
 		return (new Star(nn, 0));
 	}
@@ -331,7 +331,7 @@ void Node::send(SRM_Event *e)
 		for (p=ilist->head_; p; p=p->next_) {
 			nn = p->in_;
 			int t = e->type();
-			int i = id_; 
+			//int i = id_; 
 			int snum = e->seqno();
 			Node *next = topology->node(nn);
 			if (next) {
@@ -355,8 +355,8 @@ void Node::handle(Event* event)
 	SRM_Event *srm_event = (SRM_Event *) event;
 	int type  = srm_event->type();
 	int seqno = srm_event->seqno();
-	int iif   = srm_event->iif();
-	Scheduler& s = Scheduler::instance();
+	//int iif   = srm_event->iif();
+	//Scheduler& s = Scheduler::instance();
 
 	switch (type) {
 	case SRM_DATA :
@@ -490,7 +490,7 @@ void Star::flood(int start, int seqno)
 
 Interface_List* Star::oif(int node, int iif=SRM_NOIF)
 {
-	int oif, i;
+	int i;
 	Interface_List *ilist = new Interface_List;
 
 	/* Make a list with every node except myself */

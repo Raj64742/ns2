@@ -47,7 +47,7 @@ public:
 	long heap_;
 	struct timeval utime_, stime_;
 
-	checkpoint() {
+	void checkpoint() {
 		int i;
 		stack_ = (long)&i;
 
@@ -63,7 +63,7 @@ public:
 		utime_ = ru.ru_utime;
 		stime_ = ru.ru_stime;
 #endif /* WIN32 */
-	};
+	}
 };
 
 
@@ -77,7 +77,7 @@ public:
 	}
 	void diff(char* prompt) {
 		now_.checkpoint();
-		fprintf (stdout, "%s: utime/stime: %d %d \tstack/heap: %d %d\n",
+		fprintf (stdout, "%s: utime/stime: %ld %ld \tstack/heap: %ld %ld\n",
 			 prompt, 
 			 normalize(now_.utime_) - normalize(start_.utime_), 
 			 normalize(now_.stime_) - normalize(start_.stime_), 

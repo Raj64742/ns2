@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.1 1998/08/18 23:42:44 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.2 1998/08/22 02:41:37 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -89,7 +89,7 @@ public:
 } class_tcpcnc_app;
 
 TcpApp::TcpApp(Agent *tcp) : 
-	Application(), curbytes_(0), curdata_(0)
+	Application(), curdata_(0), curbytes_(0)
 {
 	agent_ = tcp;
 	agent_->attachApp(this);

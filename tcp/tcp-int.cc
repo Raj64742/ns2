@@ -82,7 +82,7 @@ public:
 } class_tcp_int;
 
 IntTcpAgent::IntTcpAgent() : TcpAgent(), slink(), 
-	closecwTS_(0), session_(0), count_(0), lastTS_(-1), 
+	session_(0), closecwTS_(0), lastTS_(-1), count_(0), 
 	wt_(1), wndIncSeqno_(0), num_thresh_dupack_segs_(0)
 {
 	bind("rightEdge_", &rightEdge_);
@@ -210,7 +210,7 @@ IntTcpAgent::output(int seqno, int reason)
  * TcpSessionAgent.
  */
 void
-IntTcpAgent::send_much(int force, int reason, int maxburst)
+IntTcpAgent::send_much(int force, int reason, int /*maxburst*/)
 {
 	if (!session_)
 		createTcpSession();
@@ -263,7 +263,7 @@ IntTcpAgent::closecwnd(int how)
 }
 
 Segment *
-IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
+IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double /*ts*/)
 {
 	session_->agent_rcov(this);
 	/* 

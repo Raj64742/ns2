@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.15 1998/07/29 21:41:00 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.16 1998/08/22 02:41:32 haoboy Exp $
 #
 
 #
@@ -529,5 +529,3 @@ LanLink instproc dump-namconfig {} {
 	}
 
 }
-
-

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.17 1998/08/14 20:09:31 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.18 1998/08/22 02:41:09 haoboy Exp $";
 #endif
 
 
@@ -123,7 +123,7 @@ void RTPAgent::stop()
         finish();
 }
 
-void RTPAgent::sendmsg(int nbytes, const char* flags)
+void RTPAgent::sendmsg(int nbytes, const char* /*flags*/)
 {
         Packet *p;
         int n;
@@ -256,7 +256,7 @@ void RTPAgent::sendpkt()
 	target_->recv(p, 0);
 }
 
-void RTPTimer::expire(Event *e) {
+void RTPTimer::expire(Event */*e*/) {
         a_->timeout(0);
 }
 

@@ -74,7 +74,8 @@ void TBF::recv(Packet *p, Handler *)
 		return;
 	}
 
-	double tok=getupdatedtokens();
+	double tok;
+	tok = getupdatedtokens();
 
 	int pktsize = ch->size()<<3;
 	if (tokens_ >=pktsize) {
@@ -112,7 +113,8 @@ void TBF::timeout(int)
 	}
 	
 	Packet *p=q_->deque();
-	double tok=getupdatedtokens();
+	double tok;
+	tok = getupdatedtokens();
 	hdr_cmn *ch=(hdr_cmn *)p->access(off_cmn_);
 	int pktsize = ch->size()<<3;
 
@@ -129,7 +131,7 @@ void TBF::timeout(int)
 	}
 }
 
-void TBF_Timer::expire(Event *e)
+void TBF_Timer::expire(Event */*e*/)
 {
 	tbf_->timeout(0);
 }

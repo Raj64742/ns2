@@ -86,11 +86,11 @@ class CorresHost : public slink, public TcpFsAgent {
 	int ok_to_snd(int size);
 	virtual void add_agent(IntTcpAgent *agent, int size, double winMult,
 		       int winInc, int ssthresh);
-	void del_agent(IntTcpAgent *agent) {nActive_--;};
-	void agent_tout(IntTcpAgent *agent) {nTimeout_++;};
-	void agent_ftout(IntTcpAgent *agent) {nTimeout_--;};
-	void agent_rcov(IntTcpAgent *agent) {nFastRec_++;};
-	void agent_frcov(IntTcpAgent *agent) {nFastRec_--;};
+	void del_agent(IntTcpAgent *) {nActive_--;};
+	void agent_tout(IntTcpAgent *) {nTimeout_++;};
+	void agent_ftout(IntTcpAgent *) {nTimeout_--;};
+	void agent_rcov(IntTcpAgent *) {nFastRec_++;};
+	void agent_frcov(IntTcpAgent *) {nFastRec_--;};
 	void quench(int how);
 
   protected:

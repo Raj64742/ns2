@@ -18,7 +18,7 @@
 
 #include "tcp-fs.h"
 
-void ResetTimer::expire(Event *e) {
+void ResetTimer::expire(Event *) {
 	a_->timeout(TCP_TIMER_RESET);
 }
 
@@ -101,7 +101,7 @@ TcpFsAgent::output_helper(Packet *pkt)
 
 /* update last_output_time_ */
 void
-TcpFsAgent::recv_helper(Packet *pkt) 
+TcpFsAgent::recv_helper(Packet *) 
 {
 	double now = Scheduler::instance().clock();
 	last_recv_time_ = now;
@@ -141,8 +141,11 @@ FackTcpFsAgent::send_helper(int maxburst)
 void
 TcpFsAgent::send_idle_helper() 
 {
-	double now = Scheduler::instance().clock();
-	double idle_time = now - last_recv_time_;
+	// Commented out because they are not used
+	// XXX What processing belong here??? - haoboy
+
+	//double now = Scheduler::instance().clock();
+	//double idle_time = now - last_recv_time_;
 }
 
 /* update srtt estimate */

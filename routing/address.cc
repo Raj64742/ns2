@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.9 1998/06/27 01:23:24 gnguyen Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.10 1998/08/22 02:40:53 haoboy Exp $
  */
 
 #include <stdio.h>
@@ -53,7 +53,7 @@ Address* Address::instance_;
 
 
 Address::Address() : PortShift_(0), PortMask_(0), McastShift_(0), 
-	McastMask_(0), NodeShift_(NULL), NodeMask_(NULL), levels_(0)
+	NodeShift_(NULL), NodeMask_(NULL), McastMask_(0), levels_(0)
 { }
 
 

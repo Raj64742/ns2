@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.21 1998/06/27 01:03:38 gnguyen Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.22 1998/08/22 02:41:24 haoboy Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -86,7 +86,7 @@ VegasTcpAgent::reset()
 void
 VegasTcpAgent::recv_newack_helper(Packet *pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	//hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newack(pkt);
 #if 0
 	// like TcpAgent::recv_newack_helper, but without this

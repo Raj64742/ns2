@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/estimator.cc,v 1.4 1998/06/27 01:23:49 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/estimator.cc,v 1.5 1998/08/22 02:41:01 haoboy Exp $";
 #endif
 
 #include "estimator.h"
@@ -86,7 +86,7 @@ void Estimator::timeout(int)
 	est_timer_.resched(period_);
 }
 
-void Estimator_Timer::expire(Event *e) 
+void Estimator_Timer::expire(Event */*e*/) 
 {
 	est_->timeout(0);
 }

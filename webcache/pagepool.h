@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.1 1998/08/18 23:42:43 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.2 1998/08/22 02:41:36 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -219,6 +219,7 @@ public:
 				 double et, double age) {
 		ClientPage *pg = add_page(name, size, mt, et, age);
 		pg->set_valid_hdr();
+		return pg;
 	}
 	void invalidate_server(int server_id);
 

@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.6 1998/03/07 00:07:26 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.7 1998/08/22 02:41:31 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -22,6 +22,7 @@ ns-random 1
 Simulator set NumberInterfaces_ 1
 Simulator set EnableMcast_ 1
 set ns [new Simulator]
+Node expandaddr
 
 #$ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
@@ -73,12 +74,17 @@ $ns queue-limit $n(0) $n(1) 2	;# q-limit is 1 more than max #packets in q.
 $ns queue-limit $n(1) $n(0) 2
 
 # set routing
-set group 0x8000
+set group [Node allocaddr]
 #XXX do *NOT* use DM here, it won't work with rtmodel!
 #set mh [$ns mrtproto DM {}]
 #$ns at 0.0 "$ns run-mcast"
 set cmc [$ns mrtproto CtrMcast {}]
 $ns at 0.3 "$cmc switch-treetype $group"
+
+Agent instproc tracevar { name } {
+	$self instvar $name
+	$self tracevar $name
+}
 
 # set group members
 set fid  0
@@ -89,11 +95,11 @@ for {set i 0} {$i <= 5} {incr i} {
 	$srm($i) trace $srmStats
 	$ns at 1.0 "$srm($i) start"
 
-	$ns attach-agent $n($i) $srm($i)
-	$ns add-agent-trace $srm($i) srm($i)
-	$ns monitor-agent-trace $srm($i) ;# turn nam monitor on from the start
-	$srm($i) tracevar C1_
-	$srm($i) tracevar C2_
+#	$ns attach-agent $n($i) $srm($i)
+#	$ns add-agent-trace $srm($i) srm($i)
+#	$ns monitor-agent-trace $srm($i) ;# turn nam monitor on from the start
+#	$srm($i) tracevar C1_
+#	$srm($i) tracevar C2_
 }
 
 # set traffic source

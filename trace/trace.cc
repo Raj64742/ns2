@@ -30,13 +30,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.54 1998/08/22 02:41:28 haoboy Exp $ (LBL)
  */
-
-#ifndef lint
-static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.53 1998/08/21 00:42:29 tomh Exp $ (LBL)";
-
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>

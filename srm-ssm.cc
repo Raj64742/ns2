@@ -311,7 +311,7 @@ void SSMSRMAgent::send_loc_sess()
 	printf("sending local session message\n");
 #endif
         int* data = (int*) p->accessdata();
-	int* tmp_data = (int*) p->accessdata();
+	//int* tmp_data = (int*) p->accessdata();
 	*data++ = groupSize_;
 	*data++ = SRM_LOCAL;
 	num_entries = 0;
@@ -449,14 +449,14 @@ void SSMSRMAgent::recv_glb_sess(int sessCtr, int* data, Packet* p)
   int ttl;
 
   hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-  hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+  //hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
   hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
   ttl = seh->ottl() - ih->ttl();
 	
   int sender, dataCnt, rtime, stime,repid;
   int now, sentAt, sentBy;
   int cnt = *data++;
-  int type = *data++;
+  //int type = *data++;
   int i;
 
   // data = data + SESS_CONST;  
@@ -537,14 +537,14 @@ void SSMSRMAgent::recv_loc_sess(int sessCtr, int* data, Packet* p)
   int ttl;
 
   hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-  hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+  //hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
   hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
   ttl = seh->ottl() - ih->ttl();
   
   int sender, dataCnt, rtime, stime,repid;
   int now, sentAt, sentBy;
   int cnt = *data++;
-  int type = *data++;
+  /*int type = * */data++;
   int i;
 
   // data = data + SESS_CONST;  
@@ -610,7 +610,7 @@ void SSMSRMAgent::recv_loc_sess(int sessCtr, int* data, Packet* p)
 // For the global members the repid == addr
 
 
-void SSMSRMAgent::recv_rep_sess(int sessCtr, int* data, Packet* p)
+void SSMSRMAgent::recv_rep_sess(int sessCtr, int* data, Packet*)
 {
   Tcl& tcl = Tcl::instance();
   SRMinfo* sp;
@@ -618,7 +618,7 @@ void SSMSRMAgent::recv_rep_sess(int sessCtr, int* data, Packet* p)
   int sender, dataCnt, rtime, stime,repid;
   int now, sentAt, sentBy;
   int cnt = *data++;
-  int type = *data++;
+  /*int type = **/data++;
   int i;
 
   //data = data + SESS_CONST;  

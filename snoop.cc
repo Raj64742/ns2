@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.18 1998/08/12 23:41:14 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.19 1998/08/22 02:41:13 haoboy Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -66,10 +66,11 @@ public:
 } snoop_class;
 
 Snoop::Snoop() : NsObject(),
-	fstate_(0), wl_state_(SNOOP_WLEMPTY), lastSeen_(-1), lastAck_(-1), 
-	wl_lastSeen_(-1), wl_lastAck_(-1), 
-	expNextAck_(0), expDupacks_(0), bufhead_(0), buftail_(0), 
-	wl_bufhead_(0), wl_buftail_(0), toutPending_(0)
+	fstate_(0), lastSeen_(-1), lastAck_(-1), 
+	expNextAck_(0), expDupacks_(0), bufhead_(0), 
+	toutPending_(0), buftail_(0),
+	wl_state_(SNOOP_WLEMPTY), wl_lastSeen_(-1), wl_lastAck_(-1), 
+	wl_bufhead_(0), wl_buftail_(0)
 {
 	bind("snoopDisable_", &snoopDisable_);
 	bind_time("srtt_", &srtt_);
@@ -129,7 +130,7 @@ Snoop::wlreset()
 int 
 Snoop::command(int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
+	//Tcl& tcl = Tcl::instance();
 
 	if (argc == 3) {
 		if (strcmp(argv[1], "llsnoop") == 0) {
@@ -210,11 +211,11 @@ Snoop::handle(Event *e)
 {
 	Packet *p = (Packet *) e;
 	int type = hdr_cmn::access(p)->ptype();
-	int seq = hdr_tcp::access(p)->seqno();
+	//int seq = hdr_tcp::access(p)->seqno();
 	int prop = SNOOP_PROPAGATE; // by default;  propagate ack or packet
 	Scheduler& s = Scheduler::instance();
 
-	hdr_ll *llh = hdr_ll::access(p);
+	//hdr_ll *llh = hdr_ll::access(p);
 	if (hdr_cmn::access(p)->error()) {
 		parent_->drop(p);	// drop packet if it's been corrupted
 		return;

@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.cc,v 1.7 1998/06/27 01:23:43 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.cc,v 1.8 1998/08/22 02:41:00 haoboy Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -62,10 +62,10 @@ int DelayModel::command(int argc, const char*const* argv)
 	return Connector::command(argc, argv);
 }
 
-void DelayModel::recv(Packet* p, Handler* h)
+void DelayModel::recv(Packet* p, Handler*)
 {
 	double delay = ranvar_->value();
-	static int tmp = 0;
+	//static int tmp = 0;
 
 	double txt = txtime(p);
 	Scheduler& s = Scheduler::instance();

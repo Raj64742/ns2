@@ -66,10 +66,10 @@ class IntTcpAgent : public TcpAgent, public slink {
 	
   protected:
 	class TcpSessionAgent *session_;
-	double lastTS_;
 	int uniqTS_;
 	int rightEdge_;
 	double closecwTS_;
+	double lastTS_;
 	double winMult_;
 	int winInc_;
 	int count_;		/* used in window increment algorithms */

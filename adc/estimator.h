@@ -16,7 +16,7 @@
  *
  * These notices must be retained in any copies of any part of this
  * software.
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/estimator.h,v 1.4 1998/06/27 01:23:50 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/estimator.h,v 1.5 1998/08/22 02:41:02 haoboy Exp $
  */
 
 //Estimator unit estimates average load every period interval of time
@@ -55,17 +55,17 @@ public:
 	inline double &period(){ return period_;}
 	void trace(TracedVar* v);
 protected:
+	MeasureMod *meas_mod_;
 	TracedDouble avload_;
-	TracedDouble measload_;
 	double period_; 
 	virtual void estimate()=0;
-	MeasureMod *meas_mod_;
 	Estimator_Timer est_timer_;
+	TracedDouble measload_;
 	Tcl_Channel tchan_;
 	int src_;
 	int dst_;
-	double oavload_;
 	double omeasload_;
+	double oavload_;
 	char *actype_;
 };
 

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.17 1998/08/12 23:40:58 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.18 1998/08/22 02:40:57 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -164,7 +164,7 @@ protected:
 	int hash(nsaddr_t dest) {
 		return (dest % buckets_);
 	}
-	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int) {
+	int compare(hnode *hn, nsaddr_t /*src*/, nsaddr_t dst, int) {
 		return (hn->active && hn->dst == mshift(dst));
 	}
 	int find_hash(nsaddr_t, nsaddr_t dest, int) {

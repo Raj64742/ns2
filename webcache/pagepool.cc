@@ -21,7 +21,7 @@
 // Trace statistics file format:
 // <URL> <size> {<modification time>}
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.2 1998/08/19 04:16:15 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.3 1998/08/22 02:41:35 haoboy Exp $
 
 #include <stdio.h>
 #include <limits.h>
@@ -97,7 +97,7 @@ TracePagePool::TracePagePool(const char *fn) :
 	Tcl_InitHashTable(idmap_, TCL_ONE_WORD_KEYS);
 
 	ServerPage *pg;
-	while (pg = load_page(fp))
+	while ((pg = load_page(fp)))
 		if (add_page(pg)) {
 			fprintf(stderr, 
 				"TracePagePool: couldn't add page %s\n",
@@ -491,7 +491,7 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 static class ClientPagePoolClass : public TclClass {
 public:
         ClientPagePoolClass() : TclClass("PagePool/Client") {}
-        TclObject* create(int argc, const char*const*argv) {
+        TclObject* create(int, const char*const*) {
 		return (new ClientPagePool());
 	}
 } class_clientpagepool_agent;
@@ -617,7 +617,7 @@ void ClientPagePool::invalidate_server(int sid)
 	Tcl_HashEntry *he;
 	Tcl_HashSearch hs;
 	ClientPage *pg;
-	int i, j;
+	int i;
 
 	for (i = 0, he = Tcl_FirstHashEntry(namemap_, &hs);
 	     he != NULL;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.21 1998/08/11 20:16:17 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.22 1998/08/22 02:40:58 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -223,7 +223,7 @@ time_t time(time_t *);
 /***** These values are no longer required to be hardcoded -- mask and shift values are 
 	available from Class Address. *****/
 
-/* While changing these ensure that values are consistent with tcl/lib/ns-default.tcl
+/* While changing these ensure that values are consistent with tcl/lib/ns-default.tcl */
 /* #define NODEMASK	0xffffff */
 /* #define NODESHIFT	8 */
 /* #define PORTMASK	0xff */

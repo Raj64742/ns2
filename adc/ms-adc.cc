@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/ms-adc.cc,v 1.5 1998/07/22 16:41:22 breslau Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/ms-adc.cc,v 1.6 1998/08/22 02:41:03 haoboy Exp $";
 #endif
 
 //Measured Sum Admission control
@@ -33,7 +33,8 @@ public:
 	void rej_action(int, double,int);
 protected:
 	int admit_flow(int,double,int);
-	inline virtual double get_rate(int cl, double r,int b) { return r ; };
+	inline virtual double get_rate(int /*cl*/, double r,int /*b*/) 
+		{ return r ; };
 	double utilization_;
 };
 

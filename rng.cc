@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.12 1998/06/27 01:24:33 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.13 1998/08/22 02:41:07 haoboy Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -196,7 +196,7 @@ RNG::command(int argc, const char*const* argv)
 			int s = atoi(argv[2]);
 			// NEEDSWORK: should be a way to set seed to PRDEF_SEED_SORUCE
 			if (s) {
-				if (s <= 0 || s >= MAXINT) {
+				if (s <= 0 || (unsigned int)s >= MAXINT) {
 					// MAXINT on freebsd is a ``black hole'' (it says at MAXINT).
 					tcl.resultf("Setting random number seed to known bad value.");
 					return TCL_ERROR;

@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.67 1998/08/14 22:37:16 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.68 1998/08/22 02:41:21 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -134,11 +134,12 @@ public:
  *	segsperack: for delayed ACKs, how many to wait before ACKing
  *	segsize: segment size to use when sending
  */
-FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
-	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
-	rq_(rcv_nxt_), last_ack_sent_(-1), infinite_send_(0),
-	last_send_time_(-1.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE),
-	fastrecov_(FALSE), pipe_(0)
+FullTcpAgent::FullTcpAgent() : 
+	closed_(0), pipe_(0), fastrecov_(FALSE), 
+	last_send_time_(-1.0), infinite_send_(0), irs_(-1), 
+	delack_timer_(this), flags_(0), 
+	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE), 
+	last_state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -1928,7 +1929,7 @@ int FullTcpAgent::command(int argc, const char*const* argv)
  */
 
 ReassemblyQueue::ReassemblyQueue(int& nxt) :
-	head_(NULL), tail_(NULL), rcv_nxt_(nxt) , ptr_(NULL)
+	head_(NULL), tail_(NULL), ptr_(NULL), rcv_nxt_(nxt)
 {
 	bind("off_tcp_", &off_tcp_);
 	bind("off_cmn_", &off_cmn_);
@@ -2399,7 +2400,7 @@ NewRenoFullTcpAgent::ack_action(Packet* p)
  * for Sack, do the following
  */
 
-SackFullTcpAgent::SackFullTcpAgent() : sq_(sack_min_), sack_nxt_(-1)
+SackFullTcpAgent::SackFullTcpAgent() : sack_nxt_(-1), sq_(sack_min_)
 {
 	bind("sack_option_size_", &sack_option_size_);
 	bind("sack_block_size_", &sack_block_size_);

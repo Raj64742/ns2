@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.3 1998/08/20 01:27:57 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.4 1998/08/22 02:41:33 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -129,7 +129,7 @@ protected:
 class LivenessTimer : public TimerHandler {
 public:
 	LivenessTimer(HttpMInvalCache *a, double itv, int nbr) :
-		TimerHandler(), a_(a), interval_(itv), nbr_(nbr) {}
+		TimerHandler(), a_(a), nbr_(nbr), interval_(itv) {}
 	void sched() { TimerHandler::sched(interval_); }
 	void resched() { TimerHandler::resched(interval_); }
 protected:
@@ -370,11 +370,13 @@ public:
 class NeighborCache {
 public:
 	NeighborCache(HttpMInvalCache*c, double t, LivenessTimer *timer) : 
-		cache_(c), down_(0), time_(t), timer_(timer) {}
+		cache_(c), time_(t), down_(0), timer_(timer) {}
 	~NeighborCache();
 
 	double time() { return time_; }
-	double reset_timer(double time) { time_ = time, timer_->resched(); }
+	void reset_timer(double time) { 
+		time_ = time, timer_->resched(); 
+	}
 	int is_down() { return down_; }
 	void down() { down_ = 1; }
 	void up() { down_ = 0; }
@@ -389,7 +391,7 @@ public:
 
 	// Maintaining neighbor cache timeout entries
 	struct ServerEntry {
-		ServerEntry(int sid) : server_(sid), down_(0), next_(NULL) {}
+		ServerEntry(int sid) : server_(sid), next_(NULL), down_(0) {}
 		int server() { return server_; }
 		ServerEntry* next() { return next_; }
 		int is_down() { return down_; }

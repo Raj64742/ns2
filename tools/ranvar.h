@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.8 1998/06/27 01:24:28 gnguyen Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.9 1998/08/22 02:41:06 haoboy Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -138,9 +138,9 @@ protected:
 	double minCDF_;		// min value of the CDF (default to 0)
 	double maxCDF_;		// max value of the CDF (default to 1)
 	int interpolation_;	// how to interpolate data (INTER_DISCRETE...)
-	CDFentry* table_;	// CDF table of (val_, cdf_)
 	int numEntry_;		// number of entries in the CDF table
 	int maxEntry_;		// size of the CDF table (mem allocation)
+	CDFentry* table_;	// CDF table of (val_, cdf_)
 };
 
 #endif

@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.1 1998/08/18 23:42:41 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.2 1998/08/22 02:41:35 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
@@ -97,7 +97,6 @@ void HttpUInvalAgent::process_data(int size, char *data)
 
 int HttpUInvalAgent::command(int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
 	if (strcmp(argv[1], "set-app") == 0) {
 		HttpMInvalCache* c = 
 			(HttpMInvalCache*)TclObject::lookup(argv[2]);

@@ -72,7 +72,7 @@ public:
 	virtual void send_helper(int maxburst);
 	virtual void send_idle_helper();
 	virtual void recv_newack_helper(Packet* pkt);
-	virtual void partialnewack_helper(Packet* pkt) {};
+	virtual void partialnewack_helper(Packet*) {};
 
 	virtual void set_rtx_timer();
 	virtual void cancel_rtx_timer();

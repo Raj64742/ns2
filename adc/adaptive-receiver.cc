@@ -20,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.cc,v 1.2 1998/06/27 01:23:19 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.cc,v 1.3 1998/08/22 02:40:53 haoboy Exp $";
 #endif
 
 #include "agent.h"
@@ -47,7 +47,7 @@ void AdaptiveRcvr::recv(Packet *pkt,Handler*)
 	int delay;
 	int seq_no;
 	hdr_cmn* ch= (hdr_cmn*)pkt->access(off_cmn_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	//hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 	hdr_rtp *rh=(hdr_rtp*) pkt->access(off_rtp_);
 	
 	seq_no= rh->seqno();

@@ -132,6 +132,7 @@ int AllocAddr::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
+	return TclObject::command(argc, argv);
 }
 
 
@@ -168,6 +169,7 @@ bool AllocAddr::check_size(int n)
 	}
 	if (n > size_) 
 		return 0;
+	return 1;
 
 	// this check is no longer needed, as now bits are re-allocated every time
 	// the size changes.

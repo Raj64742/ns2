@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.78 1998/08/19 04:30:24 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.79 1998/08/22 02:41:25 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -62,13 +62,15 @@ public:
 	}
 } class_tcp;
 
-TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
-	rtt_ts_(0.0), ts_peer_(0),dupacks_(0), t_seqno_(0),
-	highest_ack_(0), cwnd_(0),
-	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
-	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(1),
+TcpAgent::TcpAgent() : Agent(PT_TCP), 
+	t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
+	t_backoff_(0), ts_peer_(0), 
 	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this),
-	count_(0), fcnt_(0), nrexmit_(0), cong_action_(0), ecn_burst_(0)
+	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
+	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
+	maxseq_(0), cong_action_(0), ecn_burst_(0), 
+	restart_bugfix_(1), closed_(0), nrexmit_(0)
+	
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
 	bind("window_", &wnd_);
@@ -375,7 +377,7 @@ void TcpAgent::output(int seqno, int reason)
  * If nbytes == -1, this corresponds to infinite send.  We approximate
  * infinite by a very large number (TCP_MAXSEQ).
  */
-void TcpAgent::sendmsg(int nbytes, const char* flags)
+void TcpAgent::sendmsg(int nbytes, const char* /*flags*/)
 {
 	if (nbytes == -1 && curseq_ <= TCP_MAXSEQ)
 		curseq_ = TCP_MAXSEQ; 
@@ -696,7 +698,7 @@ void TcpAgent::ecn(int seqno)
 }
 
 void TcpAgent::recv_newack_helper(Packet *pkt) {
-	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	//hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
 	if (ecn_ && !ecn_burst_ && hdr_flags::access(pkt)->ecnecho())
 		ecn_burst_ = TRUE;
@@ -737,6 +739,10 @@ TcpAgent::initial_window()
 			return (2.0);
 		}
 	}
+	// XXX what should we return here???
+	fprintf(stderr, "Wrong number of wnd_init_option_ %d\n", 
+		wnd_init_option_);
+	abort();
 }
 
 /*
@@ -903,7 +909,7 @@ void TcpAgent::timeout(int tno)
  */
 void TcpAgent::tcp_eln(Packet *pkt)
 {
-        int eln_rxmit;
+        //int eln_rxmit;
         hdr_tcp *tcph = hdr_tcp::access(pkt);
         int ack = tcph->seqno();
 
