@@ -16,6 +16,7 @@ srtt = $26;
 rttvar = $28;
 ownd = $34;
 owndcorr = $36;
+nrexmit = $38;
 
 if (!((saddr, sport, daddr, dport) in starttime)) {
 	starttime[saddr, sport, daddr, dport] = time;
@@ -39,11 +40,11 @@ if ((time >= turnon) && (!((saddr, sport, daddr, dport) in turnontime))) {
 if (time <= turnoff) {
 	turnofftime[saddr, sport, daddr, dport] = time;
 	turnoffhiack[saddr, sport, daddr, dport] = hiack;
+	numrexmit[saddr, sport, daddr, dport] = nrexmit;
 }
 
 endtime[saddr, sport, daddr, dport] = time;
 highest_ack[saddr, sport, daddr, dport] = hiack;
-
 
 
 if (!((saddr, sport, daddr, dport) in cwndfile)) {
@@ -135,8 +136,10 @@ END {
 			}
 		}
  		print ind[i], duration, bw, ss_starttime, ss_bw, sh_bw, on_bw > "thruput";
+		print ind[i], numrexmit[i] > "numrexmit";
  	}
 	close("thruput");
+	close("numrexmit");
 	for (i in ind) {
 		print ind[i] > "index.out"
 			}
