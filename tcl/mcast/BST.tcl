@@ -43,7 +43,7 @@ BST instproc join-group  { group {src "x"} } {
 	BST instvar RP_
 	
 	set r [$node_ getReps "x" $group]
-	
+
 	if {$r == ""} {
 		set iif [$node_ from-node-iface $RP_($group)]
 		$self dbg "********* join: adding <x, $group, $iif>"
@@ -87,7 +87,7 @@ BST instproc handle-wrong-iif { srcID group iface } {
 			# reverse direction: disable where it came from
 			$rep disable $oif
 			if { $node_ != $RP_($group) } {
-				$rep enable [$node_ iif2oif $rpfiif]
+				$rep insert [$node_ iif2oif $rpfiif]
 			}
 		}
 	}
@@ -98,7 +98,7 @@ BST instproc handle-wrong-iif { srcID group iface } {
 BST instproc handle-cache-miss { srcID group iface } {
 	$self instvar node_  ns_ oiflist_
 	BST instvar RP_
-
+	
 	if { [$node_ getReps "x" $group] != "" } {
 		debug 1
 	}
@@ -109,9 +109,18 @@ BST instproc handle-cache-miss { srcID group iface } {
 	} else {
 		set rpfoif ""
 	}
-	puts "rpfoif= $rpfoif"
-	$node_ add-mfc "x" $group $iface $rpfoif
-	$self dbg "********* miss: adding <x, $group, $iface, $rpfoif>"
+	#puts "rpfoif= $rpfoif"
+	if { [lsearch $oiflist_ $rpfoif] < 0 } {
+		set oiflist_ [concat $oiflist_ $rpfoif]
+	}
+	$self dbg "********* miss: adding <x, $group, $iface, $oiflist_>"
+	$node_ add-mfc "x" $group $iface $oiflist_
+
+	if { $iface > 0 } {
+		#disable reverse iface
+		set rep [$node_ getReps "x" $group]
+		$rep disable [$node_ iif2oif $iface]
+	}
 	return 1 ;# classify the packet again.
 }
 
@@ -154,10 +163,15 @@ BST instproc recv-graft { from to group iface } {
 	BST instvar RP_
 	
 	$self dbg "received a graft from: $from, to: $to, if: $iface"
-#	if {[$node_ id]==0} {debug 1}
 	set oif [$node_ iif2oif $iface]
+	set rpfiif [$node_ from-node-iface $RP_($group)]
+	if { $rpfiif != "?" } {
+		set rpfoif [$node_ iif2oif $rpfiif]
+	} else {
+		set rpfoif ""
+	}
 
-	if { $oiflist_ == "" } {
+	if { $oiflist_ == "" || $oiflist_ == $rpfoif } {
 		# propagate
 		$self send-ctrl "graft" $RP_($group) $group
 	}
@@ -165,8 +179,21 @@ BST instproc recv-graft { from to group iface } {
 		lappend oiflist_ $oif
 		if { [$node_ lookup-iface "x" $group] != $iface } {
 			set rep [$node_ getReps "x" $group]
+			if { $rep != "" } {
+				# received graft before any cache misses
+			#	 set rpfiif [$node_ from-node-iface $RP_($group)]
+			#	 if { $rpfiif != "?" } {
+			#		 set rpfoif [$node_ iif2oif $rpfiif]
+			#	 } else {
+			#		 set rpfoif ""
+			#	 }
+			#	 $node_ add-mfc "x" $group $rpfiif $oif
+			#	 $self dbg "********* recv-graft: adding <x, $group, $oif>"
+			#	 set rep [$node_ getReps "x" $group]
+			#
 			$rep insert $oif
 		}
+	}
 	}
 	$self dbg "oiflist: $oiflist_"
 }
