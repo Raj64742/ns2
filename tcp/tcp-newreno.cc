@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.7 1997/05/21 21:42:41 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.8 1997/05/27 23:49:01 tomh Exp $ (LBL)";
 #endif
 
 //
@@ -39,7 +39,7 @@ class NewRenoTcpAgent : public TcpAgent {
  public:
 	NewRenoTcpAgent();
 	virtual int window();
-	virtual void recv(Packet *pkt);
+	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
  protected:
 	u_int dupwnd_;
@@ -98,7 +98,7 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
         }
 }
 
-void NewRenoTcpAgent::recv(Packet *pkt)
+void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
