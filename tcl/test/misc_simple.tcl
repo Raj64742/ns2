@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.5 2001/05/29 22:45:34 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.6 2001/07/03 16:53:59 haldar Exp $
 #
 
 Object instproc exit args {
@@ -57,7 +57,7 @@ TestSuite instproc init { {dotrace 1} } {
 		}
 		## for now, till all tcp-test-suites get converted
 		#$ns_ eventtrace-all
-		if {[regexp {tcp-init-win} $argv0]} {
+		if {[regexp {testReno} $argv0]} {
 			$ns_ eventtrace-all
 		}
 	}
