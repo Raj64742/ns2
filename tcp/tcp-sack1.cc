@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.2 1997/01/24 18:44:23 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -51,7 +51,7 @@ class Sack1TcpAgent : public TcpAgent {
 
 static class Sack1TcpClass : public TclClass {
 public:
-	Sack1TcpClass() : TclClass("agent/tcp-sack1") {}
+	Sack1TcpClass() : TclClass("agent/tcp/sack1") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new Sack1TcpAgent());
 	}

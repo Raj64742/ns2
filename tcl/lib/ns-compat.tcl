@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.2 1997/01/24 17:53:01 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.3 1997/01/24 18:44:23 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -110,6 +110,8 @@ OldSim instproc init args {
 	set classMap(cbr) agent/cbr
 	set classMap(tcp-sink) agent/tcp-sink
 	set classMap(tcp-sink-da) agent/tcp-sink-da
+	set classMap(tcp-sack1) agent/tcp/sack1
+	set classMap(sack1-tcp-sink) agent/sack1-tcp-sink
 }
 
 OldSim instproc duplex-link-compat { n1 n2 bw delay type } {
