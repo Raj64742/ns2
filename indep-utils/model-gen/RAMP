@@ -24,12 +24,14 @@
 # and the underlying topology information including RTT and
 # bottleneck bandwidth. It also outputs a time series of 
 # traffic size (in 1ms block) for further wavelet scaling analysis
-# for detailed explanation of RAMP, please read paper.pdf included
-# in this package
+# for detailed explanation of RAMP, please see 
+# http://www.isi.edu/~kclan/paper/ramp.pdf 
 #
 #             usage:
 #                  ./RAMP [-c] <tcpdump) trace> <threshold> <network prefix>
 #
+#                  [-f]            : generate multiple traffic models
+#                                    based on filter specified in model.conf
 #                  [-c]            : convert trace file from CoralReef to
 #                                    tcpdump format
 #                  <tcpdump trace> : tcpdump trace file generated using
@@ -41,7 +43,7 @@
 #                  <network prefix>: network prefix used to distinguish
 #                                    inbound vs. outbound traffic
 #
-#             example: ./RAMP tracefile 1000 128.9
+#             example: ./RAMP tracefile 1000 128.9.0.0/255.255.0.0
 #
 # Note that current it's only tested on Linux system
 #
@@ -68,11 +70,24 @@ then
    	echo "CoralReef to Tcpdump converter does not exist!!"
 	exit 0
    fi
+elif test $1 = -f
+then
+   if [ -e ./model.conf ] ; then
+        f=$2
+        t=$3
+        p=$4
+        TCPDUMP=./tcpdump
+        filter=yes
+   else
+        echo "model.conf does not exist!!"
+        exit 0
+   fi
 else
 	f=$1
 	t=$2
 	p=$3
-	TCPDUMP=./tcpdump
+#	TCPDUMP=./tcpdump
+	TCPDUMP=/nfs/gren/kclan/nms/tcpdump
 
 fi
 
@@ -95,10 +110,13 @@ date
 echo "***  parsing .ftp  ***"
 $TCPDUMP -nn -tt -r $f port ftp  > $f.ftp1
 
+cat $f.ftp1 | getftpnode.pl
+
 #find the IP address of FTP clients
 cat $f.ftp1 | getFTPclient.pl  > $f.ftp2
 
 cat  $f.tcp | getFTP.pl -r $f.ftp2 > $f.ftp
+
 
 
 
@@ -149,6 +167,14 @@ cat $f.http-srv | io.www.pl -s $p  -w $f.http-srv
 date
 echo "FTP"
 cat $f.ftp | io.pl -s $p  -w $f.ftp
+
+
+if test "$filter" = yes; then
+        cat model.conf | wmodel.pl -r $f.http-srv.inbound -t $t
+        cat model.conf | fmodel.pl -r $f.ftp
+        getftpserver.pl
+        exit 0
+fi
 
 ################################################################
 
@@ -254,8 +280,8 @@ dat2cdf -e 0 -i 0.001 -d 1 -t $f.www.outbound.delay
 
 date
 echo "compute packet size distribution"
-sort -o inbound.pkt.size.sort inbound.pkt.siz
-sort -o outbound.pkt.size.sort outbound.pkt.siz
+sort -o inbound.pkt.size.sort inbound.pkt.size
+sort -o outbound.pkt.size.sort outbound.pkt.size
 awk -f pkt.awk < inbound.pkt.size.sort > $f.www.inbound.pktsize
 awk -f pkt.awk < outbound.pkt.size.sort > $f.www.outbound.pktsize
 dat2cdf -e 0 -i 1 -d 1 -t $f.www.inbound.pktsize

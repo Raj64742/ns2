@@ -55,10 +55,12 @@ while ($dbopts->getopt) {
         };
 };
 
+$fsession=join(".",$fext,"session");
 $farrivef=join(".",$fext,"arrive");
 $sizef=join(".",$fext,"size");
 $filef=join(".",$fext,"fileno");
 
+open(FSESSION,"> $fsession") || die("cannot open $fsession\n");
 open(FFARRIVE,"> $farrivef") || die("cannot open $farrivef\n");
 open(FSIZE,"> $sizef") || die("cannot open $sizef\n");
 open(FFILE,"> $filef") || die("cannot open $filef\n");
@@ -126,10 +128,12 @@ while (<>) {
 	        if (($oldsrc ne "") && ($olddst ne "")) {
 			if ($fileno != 0) {
 #				print FFILE "$oldsrc $olddst $fileno\n";
+                                print FSESSION "$oldtime\n";
 				print FFILE "$fileno\n";
 			}
 		}
 		$fileno=0;
+		$oldtime=$time;
 	}
 
 	$oldsrc=$src;

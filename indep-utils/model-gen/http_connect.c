@@ -110,6 +110,7 @@ void Usage(char *s)
   char sh[25]; /* ASCII source host.port in tcpdump output */
                /* max. hhh.hhh.hhh.hhh.ppppp + EOL */
   char gt[3];  /* ">" symbol in tcpdump output */
+  char lt[3];  /* "<" symbol in tcpdump output */
   char dh[25]; /* ASCII destination host.port in tcpdump output */
                /* max. hhh.hhh.hhh.hhh.ppppp + EOL */
   char fl[5];  /* ASCII TCP flags field in tcpdump output */
@@ -327,8 +328,8 @@ void main (int argc, char* argv[])
 
     /* get line pieces; this works because there are always 8 or more 
        fields separated by white space in tcpdump ASCII-format lines */
-    sscanf (new_line, "%s %s %s %s %s %s %s %s",
-                      &ts, &sh, &gt, &dh, &fl, &p1, &p2, &p3);
+    sscanf (new_line, "%s %s %s %s %s %s %s %s %s",
+                      &ts, &lt, &sh, &gt, &dh, &fl, &p1, &p2, &p3);
 
    /* If any part of the connection tuple (source host.port,destination
       host.port) differs from the current values, there are no more 

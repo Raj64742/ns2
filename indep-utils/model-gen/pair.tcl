@@ -26,13 +26,18 @@
 
 
 
-if { $argc != 1} {
-   	puts "usage: pair.tcl <tcpdump ASCII file> "
+if { $argc != 2} {
+   	puts "usage: pair.tcl <tcpdump ASCII file> <prefix>"
    	exit
 } else {
   	set arg [split $argv " " ]
   	set tfile [lindex $arg 0]
+  	set prefix [lindex $arg 1]
 }
+
+set arg1 [split $prefix "." ]
+set netPrefix [format "%s.%s" [lindex $arg1 0] [lindex $arg1 1]]
+
 
 set prevClnt ""
 set prevSvr ""
@@ -63,7 +68,7 @@ while {[gets $fi line] >= 0} {
    		if { $Client == $prevClnt} {
     			if { $Server == $prevSvr} {
      				if { $ack == "ack"} {
-      					if { $ClientD == "129.1"} {
+      					if { $ClientD == $netPrefix} {
        						if { $seq1 == $prevSeq} {
         						puts "$Client1 $Server1 [expr $time - $prevTime]"
        						}

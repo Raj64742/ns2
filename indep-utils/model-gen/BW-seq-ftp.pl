@@ -66,6 +66,7 @@ $num_ftp=0;
 
 while (<FIN>) {
    ($host,$newline) = split(/[:() \n]/,$_);
+   $newline="";
    $ftpC[$num_ftp]=$host;
    $num_ftp++;
 }
@@ -74,10 +75,11 @@ close(FIN);
 
 
 while (<>) {
-        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
+        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
 
 
 	$sTime=join(".",$time1,$time2);
+	$dummy0="";
 	$dummy1="";
 	$dummy2="";
 	$flag="";
@@ -120,7 +122,8 @@ while (<>) {
         #data packet from server
 	if ($srcp eq $server) {
 		if ( $seqe ne "ack" ) {
-			if ( $size eq 1460 ) {
+#			if ( $size eq 1460 ) {
+			if ( $size >  1400 ) {
 				print OUT "$client $server $seqe $sTime data\n"
 			}	
                 }
@@ -131,7 +134,8 @@ while (<>) {
 			print OUT "$client $server $size $sTime ack\n"
 		}
 		else {
-			if ( $size eq 1460 ) {
+#			if ( $size eq 1460 ) {
+			if ( $size > 1400 ) {
 				print IN "$client $server $sTime $seqe\n";
 			}
                 }

@@ -25,9 +25,13 @@
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
 #
 
+open(FCLIENT,"> ftpCLIENT");
+open(FSERVER,"> ftpSERVER");
 
 $ftp_port=21;
-$num_ftp=0;
+
+$wc=0;
+$ws=0;
 
 
 while (<>)  {
@@ -38,34 +42,57 @@ while (<>)  {
         $dummy1="";
         $dummy2="";
 
-	$time1=0;
-	$time2=0;
+        $time1=0;
+        $time2=0;
 
-	$src=join(".",$ip11,$ip12,$ip13,$ip14);
-	$dst=join(".",$ip21,$ip22,$ip23,$ip24);
+        $src=join(".",$ip11,$ip12,$ip13,$ip14); 
+        $dst=join(".",$ip21,$ip22,$ip23,$ip24);
 
         if ($srcPort eq $ftp_port) {
-	   	$ftpc=$dst;
+                $client=$dst;
+                $server=$src;
         } elsif ($dstPort eq $ftp_port) {
-	   	$ftpc=$src;
-	} else {
-		print "Something is wrong!!\n";
-	}
+                $client=$src;
+                $server=$dst;
+        } else {
+                print "Something is wrong!!\n";
+        }
 
-	$found=0;
-	foreach $j (0 .. $#ftpC) {
-		if ($ftpc eq $ftpC[$j]) {
-	     		$found=1;
-	  	}
-	}
 
-	if ($found eq 0) {
-		$ftpC[$num_ftp]=$ftpc;
-		$num_ftp++;
+      	if ($client ne "") {
+         	$wclient[$wc]=$client;
+         	$wc++;
 	}
-
+       	if ($server ne "") {
+         	$wserver[$ws]=$server;
+         	$ws++;
+	}
 }
 
-foreach $j (0 .. $#ftpC) {
-	print "$ftpC[$j]\n";
+#@clientsort = sort numerically @wclient;
+@clientsort = sort @wclient;
+#@serversort = sort numerically @wserver;
+@serversort = sort @wserver;
+
+$prev="";
+
+foreach $j (0 .. $#clientsort) {
+        if ($clientsort[$j] ne $prev) {
+            	print FCLIENT "$clientsort[$j]\n";	
+	}
+        $prev=$clientsort[$j];
 }
+
+$prev="";
+
+foreach $j (0 .. $#serversort) {
+        if ($serversort[$j] ne $prev) {
+            	print FSERVER "$serversort[$j]\n";	
+	}
+        $prev=$serversort[$j];
+}
+
+close(FCLIENT);
+close(FSERVER);
+
+#sub numerically { $a ne $b; }

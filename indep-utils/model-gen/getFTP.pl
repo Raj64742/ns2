@@ -58,11 +58,12 @@ while ($dbopts->getopt) {
 open(FIN,"< $infile") || die("cannot open $infile\n");
 
 $special_port=1024;
-$ftp_port=21;
+$ftp_port=20;
 $num_ftp=0;
 
 while (<FIN>) {
    ($host,$newline) = split(/[:() \n]/,$_);
+   $newline="";
    $ftpC[$num_ftp]=$host;
    $num_ftp++;
 }
@@ -71,9 +72,10 @@ close(FIN);
 
 
 while (<>) {
-        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$dummy2) = split(/[.:() ]/,$_);
+        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$dummy2) = split(/[.:() ]/,$_);
 
 
+        $dummy0="";
         $dummy1="";
         $dummy2="";
 

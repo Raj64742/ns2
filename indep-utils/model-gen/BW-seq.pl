@@ -58,9 +58,17 @@ while ($dbopts->getopt) {
         };
 };
 
+($ip1,$ip2,$ip3,$ip4,$m1,$m2,$m3,$m4) = split(/[.\/ ]/,$prefix);
+$ip3="";
+$ip4="";
+$m1="";
+$m2="";
+$m3="";
+$m4="";
 
 
-$isiPrefix=join(".",$prefix,$port);
+$isiPrefix=join(".",$ip1,$ip2,$port);
+#$isiPrefix=join(".",$prefix,$port);
 
 open(OUT,"> outbound.seq") || die("cannot open outbound.seq\n");
 open(IN,"> inbound.seq") || die("cannot open inbound.seq\n");
@@ -70,10 +78,11 @@ open(INP,"> inbound.pkt.size") || die("cannot open inbound.pkt.size\n");
 
 
 while (<>) {
-        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
+        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
 
 
 	$sTime=join(".",$time1,$time2);
+	$dummy0="";
 	$dummy1="";
 	$dummy2="";
 	$flag="";
@@ -112,7 +121,8 @@ while (<>) {
 	if ( $prefixc eq $isiPrefix) {
 
 		if ( $seqe ne "ack" ) {
-			if ( $size eq 1460 ) {
+#			if ( $size eq 1460 ) {
+			if ( $size > 1400 ) {
 				print OUT "$client $server $seqe $sTime data\n"
 			}	
                 }
@@ -124,7 +134,8 @@ while (<>) {
         #data packet to ISI
         if ( ($srcPort eq $port) && ($prefixc ne $isiPrefix)) {
 		if ( $seqe ne "ack" ) {
-			if ( $size eq 1460 ) {
+#			if ( $size eq 1460 ) {
+			if ( $size > 1400 ) {
 				print IN "$client $server $sTime $seqe\n";
 			}
                 }

@@ -72,7 +72,7 @@ open(IDLE,"> $idle") || die("cannot open $idle.\n");
 open(REQ,"> $req") || die("cannot open $req.\n");
 open(REQB,"> $reqb") || die("cannot open $reqb.\n");
 open(NUMPAGE,"> $numpage") || die("cannot open $numpage.\n");
-open(OBJCNT,"> $numobj") || die("cannot open $numpobj.\n");
+open(OBJCNT,"> $numobj") || die("cannot open $numobj.\n");
 open(PAGESIZE,"> $pagesize") || die("cannot open $pagesize.\n");
 open(PAGESIZEB,"> $pagesizeb") || die("cannot open $pagesizeb.\n");
 open(OBJSIZE,"> $objsize") || die("cannot open $objsize.\n");
@@ -162,6 +162,7 @@ while (<>) {
 
         $oldClient = $clientIP;
 }
+print OBJINTER "0\n";
 print "done processing http_active output\n";
 
 #print "sort array\n";
@@ -176,6 +177,11 @@ while ($i < $#sessSorted) {
 	$sessInter = $sessSorted[$i1] - $sessSorted[$i];
 	print SESSINTER "$sessInter\n";
 	$i++;
+}
+
+#in case there is only one session
+if ($#sessSorted == 0) {
+	print SESSINTER "0\n";
 }
 
 $old = "";

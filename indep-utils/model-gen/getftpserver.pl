@@ -25,58 +25,29 @@
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
 #
 
-sub usage {
-        print STDERR <<END;
-	usage: $0 [-p Port] 
-	Options:
-	    -p string  specify the port number
+open(FSERVER,"< ftpSERVER");
+open(FNODE,"> fnode.tcl");
+open(FCDF,"> ftp.server.cdf");
 
-END
-        exit 1;
-}
-BEGIN {
-        $dblibdir = "./";
-        push(@INC, $dblibdir);
+$cnt=0;
+while (<FSERVER>) {
+        ($server,$rest)= split(/[\n ]/,$_);
+	$cnt++;
 }
 
-use DbGetopt;
-require "dblib.pl";
-my(@orig_argv) = @ARGV;
-&usage if ($#ARGV < 0);
-my($prog) = &progname;
-my($dbopts) = new DbGetopt("p:?", \@ARGV);
-my($ch);
-while ($dbopts->getopt) {
-        $ch = $dbopts->opt;
-        if ($ch eq 'p') {
-                $port = $dbopts->optarg;
-        } else {
-                &usage;
-        };
-};
+print FNODE "set num_ftp_server $cnt\n";
 
 
-while (<>) {
-        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$seq1,$win,$seq2,$others) = split(/[. ]/,$_);
-
-
-        $dummy0="";
-        $dummy="";
-	$others="";
-
-        $time=join(".",$time1,$time2);
-	$src=join(".",$ip11,$ip12,$ip13,$ip14,$srcPort);
-	$dst=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
-
-	$client=$src;
-	$server=$dst;
-
-        if ($srcPort eq $port) {
-		$client=$dst;
-		$server=$src;
-	}
-
-        if ($flag eq "S") {
-	   print "$client $server $time $seq1 $win $seq2\n";
-	}
+foreach $j (1 .. $cnt) {
+	$k=$j-1;
+	$m=1.0/$cnt*$j;
+	print FCDF "$k $j $m\n"; 
 }
+
+
+
+
+close(FSERVER);
+close(FNODE);
+close(FCDF);
+

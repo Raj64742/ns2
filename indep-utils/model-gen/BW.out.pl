@@ -83,30 +83,37 @@ while (<>) {
 	($client,$server,$timed,$timea,$seq) = split(' ',$_);
 
 	$gap=$seq - $oldq;
+
+	#the gap between two back-to-back packets should be less than 1ms
 	$thresh=$d + 0.001;
 
         #estimate delay between ISI server and remote clients
 	$delay=$timea - $timed;
-       	if (($c1 ne $client ) || ($s1 ne $server)) {
-        	if ( $j gt 0 ) {
-		   	@dataq = sort numerically @q;
-		   	$m=int($j/2);
-#		   	print OUTDELAY "$c1 $s1 $dataq[$m]\n";
-			$onewayD=$dataq[$m]/2.0;
-                        print OUTDELAY "$onewayD\n";
+
+	#extra check: RTT should be at least 1ms
+	if ($delay > 0.001) {
+       		if (($c1 ne $client ) || ($s1 ne $server)) {
+        		if ( $j gt 0 ) {
+		   		@dataq = sort numerically @q;
+		   		$m=int($j/2);
+#		   		print OUTDELAY "$c1 $s1 $dataq[$m]\n";
+				$onewayD=$dataq[$m]/2.0;
+                        	print OUTDELAY "$onewayD\n";
+			}
+			$#q=0;
+			$q[0]=$delay;
+			$j=1;
+		} else {
+			$q[$j]=$delay;
+			$j=$j + 1;
 		}
-		$#q=0;
-		$q[0]=$delay;
-		$j=1;
-	} else {
-		$q[$j]=$delay;
-		$j=$j + 1;
 	}
 	$c1=$client;
 	$s1=$server;
 
         #estimate bottleneck bandwidth between ISI server and remote clients
-        if ( ($gap eq 1460) && ($client eq $oldc) && ($server eq $olds) && ($timed lt $thresh)) {
+#        if ( ($gap eq 1460) && ($client eq $oldc) && ($server eq $olds) && ($timed lt $thresh)) {
+        if ( ($client eq $oldc) && ($server eq $olds) && ($timed lt $thresh)) {
 		$gap1=$timed - $d;
 		$gap2=$timea - $a;
         	if ( $gap2 gt $gap1) {
@@ -117,17 +124,20 @@ while (<>) {
 				   	$m=int($i/2);
 #					$bw=0.01168/$datan[$m];
                                         #take the minimum instead of medium
-					$bw=0.01168/$datan[$#n];
-#					if ( $bw lt 100) {
+#					$bw=0.01168/$datan[$#n];
+					$bw=$datan[$#n];
+					if ( $bw lt 100) {
 #				   		print OUTBW "$c $s  $bw\n";
  				   		print OUTBW "$bw\n";
-#					}
+					}
 				}
 				$#n=0;
-				$n[0]=$gap2;
+#				$n[0]=$gap2;
+				$n[0]=($gap*8)/($gap2*1000000);
 				$i=1;
 			} else {
-				$n[$i]=$gap2;
+#				$n[$i]=$gap2;
+				$n[$i]=($gap*8)/($gap2*1000000);
 				$i=$i + 1;
 			}
 			$c=$client;

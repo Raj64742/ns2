@@ -59,6 +59,36 @@ while ($dbopts->getopt) {
 };
 
 
+($ip1,$ip2,$ip3,$ip4,$m1,$m2,$m3,$m4) = split(/[.\/ ]/,$prefix);
+
+$r1= 255 - $m1;
+$r2= 255 - $m2;
+$r3= 255 - $m3;
+$r4= 255 - $m4;
+
+$ip1h=$ip1+$r1;
+$ip2h=$ip2+$r2;
+$ip3h=$ip3+$r3;
+$ip4h=$ip4+$r4;
+if ($ip1h >  255) {
+   $ip1=0;
+   $ip1h=255;
+}   
+if ($ip2h >  255) {
+   $ip2=0;
+   $ip2h=255;
+}   
+if ($ip3h >  255) {
+   $ip3=0;
+   $ip3h=255;
+}   
+if ($ip4h >  255) {
+   $ip4=0;
+   $ip4h=255;
+}   
+
+
+
 $foutf=join(".",$fext,"outbound");
 $finf=join(".",$fext,"inbound");
 
@@ -67,17 +97,15 @@ open(FIN,"> $finf") || die("cannot open $finf\n");
 
 
 while (<>) {
-        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2) = split(/[.:() ]/,$_);
+        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2) = split(/[.:() ]/,$_);
 
 
-#        $dummy0="";
+        $dummy0="";
         $dummy1="";
         $dummy2="";
 
 	$time1=0;
 	$time2=0;
-	$ip13="";
-	$ip14="";
 	$ip21="";
 	$ip22="";
 	$ip23="";
@@ -85,10 +113,14 @@ while (<>) {
 	$srcPort="";
 	$dstPort="";
 
-	$prefixc=join(".",$ip11,$ip12);
+#	$prefixc=join(".",$ip11,$ip12);
 
-       	#seperate Inbound and Outbound FTP traffic of ISI
-	if ($prefixc eq $prefix) {
+       	#seperate Inbound and Outbound traffic of ISI
+#	if ($prefixc eq $prefix) {
+	if ((($ip11 <= $ip1h) && ($ip11 >= $ip1)) &&
+	    (($ip12 <= $ip2h) && ($ip12 >= $ip2)) &&
+	    (($ip13 <= $ip3h) && ($ip13 >= $ip3)) &&
+	    (($ip14 <= $ip4h) && ($ip14 >= $ip4))) {
 		print FOUT "$_";
 	} else {
 		print FIN "$_";
