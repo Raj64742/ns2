@@ -38,6 +38,7 @@ set opt(cbr)	0
 set opt(ftp)	0
 set opt(http)	-1
 
+# set opt(webModel) ""
 set opt(webModel) $nshome/tcl/http/data
 
 
@@ -111,7 +112,7 @@ proc finish {} {
 proc create-trace {trfile} {
 	if [file exists $trfile] {
 		exec touch $trfile.
-		eval exec rm $trfile [glob $trfile.*]
+		eval exec rm -f $trfile ${trfile}-bw [glob $trfile.*]
 	}
 	return [open $trfile w]
 }
@@ -126,17 +127,18 @@ proc create-topology {} {
 	#  1 to n	nodes on the LAN
 	#  n+1		node outside of the LAN,
 	set num $opt(node)
+	set node(0)  [$ns node]
 	for {set i 1} {$i <= $num} {incr i} {
 		set node($i) [$ns node]
 		lappend nodelist $node($i)
 	}
-	set node(0)  [$ns node]
 	set node($i) [$ns node]
 	$ns duplex-link $node(0) $node($i) 10Mb 50ms DropTail
 
 	set lan [$ns newLan $nodelist $opt(bw) $opt(delay) -llType $opt(ll) \
 			-ifqType $opt(ifq) -macType $opt(mac)]
 	$lan addNode $node(0) $opt(bw) $opt(delay)
+
 	set ifq0 [[$lan netIface $node(0)] set ifq_]
 	$ifq0 set limit_ [expr $opt(node) * [$ifq0 set limit_]]
 }
@@ -183,7 +185,7 @@ proc newWebModel dir {
 	lappend webm -rvThinkTime $rv
 }
 
-proc new_http {i src dst} {
+proc new_http {i server client} {
 	global ns opt http webm
 	set webopt "-srcType $opt(tcp) -snkType $opt(sink)"
 	if {$opt(webModel) != ""} {
@@ -192,7 +194,7 @@ proc new_http {i src dst} {
 		}
 		set webopt "$webopt $webm"
 	}
-	set http($i) [eval new Http $ns $dst $src $webopt]
+	set http($i) [eval new Http $ns $client $server $webopt]
 	$ns at [expr 0 + $i/1000.0] "$http($i) start"
 }
 
