@@ -5,9 +5,10 @@
 UDP agents are implemented in \code{udp.\{cc, h\}}.  A UDP agent accepts
 data in variable size chunks from an application, and segments the data 
 if needed.  UDP packets also contain a monotonically increasing sequence
-number.  Although real UDP packets do not contain sequence numbers, this
-sequence number does not incur any simulated overhead, and may be useful
-for tracefile analysis.
+number and an RTP timestamp.  Although real UDP packets do not contain 
+sequence numbers or timestamps, this sequence number does not incur any 
+simulated overhead, and can be useful for tracefile analysis or for
+simulating UDP-based applications.
 
 The default maximum segment size (MSS) for UDP agents is 1000 byte:
 \begin{program}
