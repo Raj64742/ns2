@@ -30,7 +30,7 @@ public:
 static class NewRenoTcpAsymFsClass : public TclClass {
 public:
 	NewRenoTcpAsymFsClass() : TclClass("Agent/TCP/Newreno/Asym/FS") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new NewRenoTcpAsymFsAgent());
 	}
 } class_newrenotcpasymfs;	

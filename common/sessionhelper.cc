@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.6 1997/11/25 02:28:28 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.7 1998/01/22 08:06:52 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -76,7 +76,7 @@ protected:
 static class SessionHelperClass : public TclClass {
 public:
 	SessionHelperClass() : TclClass("SessionHelper") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new SessionHelper());
 	}
 } class_sessionhelper;

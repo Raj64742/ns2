@@ -24,7 +24,7 @@ void ResetTimer::expire(Event *e) {
 static class TcpFsClass : public TclClass {
 public:
 	TcpFsClass() : TclClass("Agent/TCP/FS") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TcpFsAgent());
 	}
 } class_tcpfs;
@@ -32,7 +32,7 @@ public:
 static class RenoTcpFsClass : public TclClass {
 public:
 	RenoTcpFsClass() : TclClass("Agent/TCP/Reno/FS") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new RenoTcpFsAgent());
 	}
 } class_renotcpfs;	
@@ -40,7 +40,7 @@ public:
 static class NewRenoTcpFsClass : public TclClass {
 public:
 	NewRenoTcpFsClass() : TclClass("Agent/TCP/Newreno/FS") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new NewRenoTcpFsAgent());
 	}
 } class_newrenotcpfs;	
@@ -48,7 +48,7 @@ public:
 static class FackTcpFsClass : public TclClass {
 public:
 	FackTcpFsClass() : TclClass("Agent/TCP/Fack/FS") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new FackTcpFsAgent());
 	}
 } class_facktcpfs;	

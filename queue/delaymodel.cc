@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/delaymodel.cc,v 1.5 1997/10/23 21:52:51 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/delaymodel.cc,v 1.6 1998/01/22 08:06:52 gnguyen Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -31,7 +31,7 @@ static const char rcsid[] =
 static class DelayModelClass : public TclClass {
 public:
 	DelayModelClass() : TclClass("DelayModel") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new DelayModel);
 	}
 } class_delaymodel;
