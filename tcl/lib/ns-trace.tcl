@@ -101,3 +101,11 @@ Simulator instproc gen-map {} {
 	puts "---"
     }
 }
+
+proc trace_annotate { s } {
+	global ns
+	set f [$ns set traceAllFile_]
+	
+	puts $f [format "v %s %s {set sim_annotation {%s}}" [$ns now] eval $s]
+}
+
