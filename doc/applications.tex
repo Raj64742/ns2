@@ -182,10 +182,26 @@ if such methods have been defined.
 Although strictly not a callback to applications, certain Agents have
 implemented a callback from C++ to OTcl-level that has been used by 
 applications such as HTTP simulators.  This callback method, \code{done\{\}},
-is used in TCP agents.  In TCP, \code{done} is called when a TCP sender has 
-received ACKs for all of its data and is now closed.  The \code{done\{\}}
+is used in TCP agents.  In TCP, \code{done\{\}} is called when a TCP sender 
+has received ACKs for all of its data and is now closed; it therefore can
+be used to simulate a blocked TCP connection.  The \code{done\{\}}
 method was primarily used before this API was completed, but may still be
 useful for applications that do not want to use \code{resume()}.
+
+To use \code{done\{\}} for FullTcp, for example, you can try:
+\begin{program}
+        set myagent [new Agent/TCP/FullTcp]
+        $myagent proc done { } {
+            ... code you want ...
+        }
+\end{program}
+If you want all the FullTCP's to have the same code you could also do:
+\begin{program}
+        Agent/TCP/FullTcp instproc done {} {
+            ... code you want ...
+        }
+\end{program}
+By default, \code{done\{\}} does nothing.
 
 \subsection{An example}
 \label{sec:syscallsexample}
