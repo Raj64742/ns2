@@ -1,12 +1,46 @@
+#
+# Copyright (c) @ Regents of the University of California.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. All advertising materials mentioning features or use of this software
+#    must display the following acknowledgement:
+# 	This product includes software developed by the MASH Research
+# 	Group at the University of California Berkeley.
+# 4. Neither the name of the University nor of the Research Group may be
+#    used to endorse or promote products derived from this software without
+#    specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.2 1997/01/01 00:16:08 elan Exp $
+#
+
 proc mvar args {
 	upvar self _s
 	uplevel $_s instvar $args
 }
 
 proc bw_parse { bspec } {
-	if { [scan $bspec "%f%s" b unit] != 2 } {
-		puts stderr "error: bw_parse: can't scan `$bspec'."
-		exit 1
+	if { [scan $bspec "%f%s" b unit] == 1 } {
+		set unit bps
 	}
 	switch $unit {
 	bps  { return $b }
@@ -14,10 +48,17 @@ proc bw_parse { bspec } {
         Mb/s - Mbps { return [expr $b*1000000] }
 	Gb/s - Gbps { return [expr $b*1000000000] }
 	default { 
-		  puts: "error unknown unit `$unit'" 
+		  puts "error: bw_parse: unknown unit `$unit'" 
 		  exit 1
 		}
 	}
+}
+
+Session/RTP set uniq_srcid 0
+Session/RTP proc alloc_srcid {} {
+	set id [Session/RTP set uniq_srcid]
+	Session/RTP set uniq_srcid [expr $id+1]
+	return $id
 }
 
 Session/RTP instproc init {} {
@@ -31,6 +72,13 @@ Session/RTP instproc init {} {
 	$cchan_ session $self
 
 	$self set rtcp_timer_ [new RTCPTimer $self]
+	
+	mvar srcid_ localsrc_
+	set srcid_ [Session/RTP alloc_srcid]
+	set localsrc_ [new RTPSource $srcid_]
+	$self localsrc $localsrc_
+
+	$self set srctab_ $localsrc_
 }
 
 Session/RTP instproc start {} {
@@ -43,18 +91,6 @@ Session/RTP instproc start {} {
 	mvar cchan_ 
 	$cchan_ start 
 }
-
-Session/RTP instproc transmit {} {
-	mvar group_
-	if ![info exists group_] {
-		puts "error: can't transmit before joining group!"
-		exit 1
-	}
-
-	mvar dchan_
-	$dchan_ start 
-}
-
 
 Session/RTP instproc report-interval { i } {
 	mvar cchan_
@@ -75,9 +111,18 @@ Session/RTP instproc attach-to { node } {
 	$self set node_ $node
 }
 
+# Hook to enable easy syncronization with RTCP timeouts.
+Session/RTP instproc rtcp_timeout {} {
+	mvar rtcp_timeout_callback_
+	
+	if [info exists rtcp_timeout_callback_] {
+		eval $rtcp_timeout_callback_
+	}
+}
+
 Session/RTP instproc join-group { g } {
 	set g [expr $g]
-	
+
 	$self set group_ $g
 
 	mvar node_ dchan_ cchan_ 
@@ -92,26 +137,40 @@ Session/RTP instproc join-group { g } {
 }
 
 Session/RTP instproc leave-group { } {
-	mvar group_ node_ cchan_
+	mvar group_ node_ cchan_ dchan_
 	$node_ leave-group $dchan_ $group_
 	$node_ leave-group $cchan_ [expr $group_+1]
 	
 	$self unset group_
 }
 
-Session/RTP instproc tx-bw { bspec } {
-	
+Session/RTP instproc session_bw { bspec } {
 	set b [bw_parse $bspec]
+
+	$self set session_bw_ $b
+    	
+	mvar rtcp_timer_
+	$rtcp_timer_ session-bw $b
+}
+
+Session/RTP instproc transmit { bspec } {
+	set b [bw_parse $bspec]
+
+	#mvar srcid_
+	#global ns
+	#puts "[$ns now] $self $srcid_ transmit $b"
 
 	$self set txBW_ $b
 
-	mvar rtcp_timer_
-	$rtcp_timer_ session-bw $b
-
 	mvar dchan_
-	set ps [$dchan_ set packet-size]
 
+	$dchan_ stop 
+	if { $b == 0 } {
+	    return 
+	}
+	set ps [$dchan_ set packet-size]
 	$dchan_ set interval_ [expr 8.*$ps/$b]
+	$dchan_ start
 }
 
 
@@ -123,6 +182,16 @@ Session/RTP instproc sample-size { cc } {
 Session/RTP instproc adapt-timer { nsrc nrr we_sent } {
 	mvar rtcp_timer_
 	$rtcp_timer_ adapt $nsrc $nrr $we_sent
+}
+
+Session/RTP instproc new-source { srcid } {
+	set src [new RTPSource $srcid]
+	$self enter $src
+
+	mvar srctab_
+	lappend srctab_ $src
+
+	return $src
 }
 
 Class RTCPTimer 
@@ -163,7 +232,7 @@ RTCPTimer instproc init { session } {
         # SRs instead of RRs).
 	
 	mvar min_rtp_time_ avg_size_ inv_bw_
-	set rint [expr $avg_size_ * $inv_bw_]
+	set rint [expr 8*$avg_size_ * $inv_bw_]
 	
 	set t [expr $min_rpt_time_ / 2.]
 
@@ -191,17 +260,18 @@ RTCPTimer instproc adapt { nsrc nrr we_sent } {
 	 # on startup from the session bandwidth.  It is the inverse
 	 # of bandwidth (ie., ms/byte) to avoid a divide below.
 
+	set ibw $inv_bw_
 	if { $nrr > 0 } {
 		if { $we_sent } {
-			set inv_bw_ [expr $inv_bw_ * $inv_sender_bw_fraction_]
+			set ibw [expr $ibw * $inv_sender_bw_fraction_]
 			set nsrc $nrr
 		} else {
-			set inv_bw_ [expr $inv_bw_ * $inv_rcvr_bw_fraction_]
+			set ibw [expr $ibw * $inv_rcvr_bw_fraction_]
 			incr nsrc -$nrr
 		}
 	}
 	
-	set rint [expr $avg_size_ * $nsrc * $inv_bw_]
+	set rint [expr 8*$avg_size_ * $nsrc * $ibw]	
 	if { $rint < $min_rpt_time_ } {
 		set rint $min_rpt_time_
 	}
@@ -214,7 +284,8 @@ RTCPTimer instproc session-bw { b } {
 	$self set inv_bw_ [expr 1. / $b ]
 }
 
-
 agent/rtcp set interval_ 0.
 agent/rtcp set random_ 0
 agent/rtcp set cls 32
+
+RTPSource set srcid_ -1
