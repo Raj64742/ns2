@@ -23,6 +23,7 @@ options:
     -f          plot acks from tcp-full
     -p          don't add the x-graph preface
     -y		fix the y-axis when there are no drops
+    -r		plot arrivals only
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
@@ -32,7 +33,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('acefds:m:n:qplvt:y') || usage;
+&Getopts('acefds:m:n:qrplvt:y') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -49,6 +50,7 @@ $no_padding = defined($opt_c);
 $plot_full = defined($opt_f);
 $no_title = defined($opt_p);
 $last_line = defined($opt_y);
+$plot_arrivals = defined($opt_r);
 
 $file = $acks = '';
 
@@ -70,6 +72,7 @@ while (<>) {
 	$is_cong = ($F[6] =~ /A/);
 	$is_echo = ($F[6] =~ /C/); 
 	next if ($is_ack && !$plot_acks);
+	next if (($F[0] eq "-") && $plot_arrivals);
 
 	if ($plot_full) {
   	    ($x, $y) = translate_point(@F[1, 12, 7]);
