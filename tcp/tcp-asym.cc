@@ -35,21 +35,26 @@
  */
 
 /*
- * tcp-asym includes a set of modifications to several flavors of TCP to enhance
- * performance over asymmetric-bandwidth networks, where the ack channel is
- * constrained. The sender-side modifications in this file are structured as helper 
+ * tcp-asym includes modifications to several flavors of TCP to enhance
+ * performance over asymmetric networks, where the ack channel is
+ * constrained.  Types of asymmetry we have studied and used these mods
+ * include bandwidth asymmetry and latency asymmetry (where  variable 
+ * latencies cause problems to TCP, e.g., in packet radio networks.
+ * The sender-side modifications in this file are structured as helper 
  * functions that are invoked from various points in the TCP code. The main
  * additional functionality is (a) the sender increases its congestion window
  * in proportion to the amount of data acked rather than the number of acks
- * received, (b) it breaks up potentially large bursts into smaller ones when acks 
- * are few and far between, and (c) it copies the ecn_to_echo_ bit from acks into 
- * subsequent data packets, which the sink can then use to do ack congestion control 
- * (tcp-asym-sink.cc). 
+ * received, (b) it breaks up potentially large bursts into smaller ones 
+ * when acks are few and far between by rate-based pacing, and 
+ * (c) it copies the ecn_to_echo_ bit from acks into subsequent data packets, 
+ * using which the sink can perform ack congestion control (tcp-asym-sink.cc). 
+ * The tcp-asym source is usually used in conjunction with a tcp-asym sink, or
+ * with a router/end-host implementing ack filtering (semantic-packetqueue.cc).
  */ 
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.7 1997/08/14 00:04:00 tomh Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.8 1997/10/26 05:51:59 hari Exp $ (UCB)";
 #endif
 
 
@@ -69,11 +74,15 @@ public:
 	virtual void send_helper(int maxburst);
 	virtual void recv_helper(Packet* p);
 	virtual void recv_newack_helper(Packet* pkt);
-
+	virtual void traceAll();
+	virtual void traceVar(TracedVar* v);
 protected:
 	int off_tcpasym_;
 	int ecn_to_echo_;
-	double t_exact_srtt_;
+	TracedDouble t_exact_srtt_;
+/*	TracedDouble avg_win_; */
+	double g_;		/* gain used for exact_srtt_ smoothing */
+	int damp_;
 };
 
 static class TCPAHeaderClass : public PacketHeaderClass {
@@ -92,7 +101,11 @@ public:
 
 TcpAsymAgent::TcpAsymAgent() : TcpAgent(), ecn_to_echo_(0), t_exact_srtt_(0)
 {
+	bind("exact_srtt_", &t_exact_srtt_);
 	bind("off_tcpasym_", &off_tcpasym_);
+	bind("g_", &g_);
+/*	bind("avg_win_", &avg_win_);*/
+	bind("damp_", &damp_);
 }
 
 
@@ -168,7 +181,12 @@ void TcpAsymAgent::send_helper(int maxburst)
 	 * so we do not need an explicit check here.
 	 */
 	if (t_seqno_ <= highest_ack_ + window() && t_seqno_ < curseq_) {
-		burstsnd_timer_.resched(t_exact_srtt_*maxburst/window());
+		double xmit_freq = t_exact_srtt_*maxburst/window();
+/*		double xmit_freq = t_exact_srtt_*maxburst/avg_win_;*/
+
+		if (damp_)
+			xmit_freq /= 2;
+		burstsnd_timer_.resched(xmit_freq);
 	}
 }
 
@@ -186,14 +204,14 @@ void TcpAsymAgent::recv_newack_helper(Packet *pkt)
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	int ackcount = tcph->seqno() - last_ack_;
 	double tao = Scheduler::instance().clock() - tcph->ts_echo();
-	double g = 1/8; /* gain used for smoothing */
 
 	newack(pkt);
 	/* update our fine-grained estimate of the smoothed RTT */
 	if (t_exact_srtt_ != 0) 
-		t_exact_srtt_ = g*tao + (1-g)*t_exact_srtt_;
+		t_exact_srtt_ = g_*tao + (1-g_)*t_exact_srtt_;
 	else
 		t_exact_srtt_ = tao;
+/*	avg_win_ = g_*window() + (1-g_)*avg_win_;*/
 	/* grow cwnd */
 	for (i=0; i<ackcount; i++)
 		opencwnd();
@@ -205,6 +223,49 @@ void TcpAsymAgent::recv_newack_helper(Packet *pkt)
 }	
 
 
+/* Print out if tcp-asym-specific variables have been modified */
+void TcpAsymAgent::traceVar(TracedVar* v) {
+	Scheduler& s = Scheduler::instance();
+	char wrk[500];
 
+	double curtime = &s ? s.clock() : 0;
+	if (!strcmp(v->name(), "exact_srtt_"))
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", 
+			curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
+			v->name(), double(*((TracedDouble*) v)));
+	else if (!strcmp(v->name(), "avg_win_"))
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", 
+			curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
+			v->name(), double(*((TracedDouble*) v)));
+	else
+		return TcpAgent::traceVar(v);
 
+	int n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	if (channel_)
+		(void)Tcl_Write(channel_, wrk, n+1);
+	wrk[n] = 0;
+	return;
+}
 
+/* Print out all the traced variables whenever any one is changed */
+void
+TcpAsymAgent::traceAll() {
+	double curtime;
+	Scheduler& s = Scheduler::instance();
+	char wrk[500];
+	int n;
+
+	TcpAgent::traceAll();
+	curtime = &s ? s.clock() : 0;
+	sprintf(wrk, "time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d exact_srtt %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
+		(int(t_exact_srtt_)));
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	if (channel_)
+		(void)Tcl_Write(channel_, wrk, n+1);
+	wrk[n] = 0;
+	return;
+}

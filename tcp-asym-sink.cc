@@ -35,19 +35,23 @@
  */
 
 /*
- * tcp-asym includes a set of modifications to several flavors of TCP to enhance
- * performance over asymmetric-bandwidth networks, where the ack channel is
- * constrained. The receiver-side code in this file is derived from the regular
+ * tcp-asym includes modifications to several flavors of TCP to enhance
+ * performance over asymmetric networks, where the ack channel is
+ * constrained.  Types of asymmetry we have studied and used these mods
+ * include bandwidth asymmetry and latency asymmetry (where  variable 
+ * latencies cause problems to TCP, e.g., in packet radio networks.
+ * The receiver-side code in this file is derived from the regular
  * TCP sink code. The main additional functionality is that the sink responds
  * to ECN by performing ack congestion control, i.e. it multiplicatively backs
- * off the frequency with which it sends acks (up to a limit). For each subsequent 
- * round-trip period during which it does not receive an ECN, it gradually increases 
- * the frequency of acks (up to a maximum of 1 per data packet(.
+ * off the frequency with which it sends acks (up to a limit). For each 
+ * subsequent round-trip period during which it does not receive an ECN, 
+ * it gradually increases the frequency of acks (up to a maximum of 1 
+ * per data packet).
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.4 1997/08/14 00:04:19 tomh Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.5 1997/10/26 05:52:00 hari Exp $ (UCB)";
 #endif
 
 #include "tcp-sink.h"
@@ -189,6 +193,8 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 			Packet::free(save_);
 			save_ = 0;
 		}
+		hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
+		hf->ecn_capable_ = 1;
 		ack(pkt);
 		delackcount_ = 0;
 		Packet::free(pkt);
