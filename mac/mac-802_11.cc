@@ -280,9 +280,11 @@ Mac802_11::hdr_type(char* hdr, u_int16_t type)
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
 
 	if(type)
-		*((u_int16_t*) dh->dh_body) = type;
+		//*((u_int16_t*) dh->dh_body) = type;
+		STORE2BYTE(&type,(dh->dh_body));
 
-	return *((u_int16_t*) dh->dh_body);
+	//return *((u_int16_t*) dh->dh_body);
+	return GET2BYTE(dh->dh_body);
 }
 
 

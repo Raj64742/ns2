@@ -113,9 +113,9 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 
 	sprintf(wrk_ + offset,
 #ifdef LOG_POSITION
-		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x %x] ",
+		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
 #else
-		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x %x] ",
+		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
 #endif
 		op,
 		Scheduler::instance().clock(),
@@ -131,7 +131,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		packet_info.name(ch->ptype()),
 		ch->size(),
 
-		*((u_int16_t*) &mh->dh_fc),
+		//*((u_int16_t*) &mh->dh_fc),
 		mh->dh_duration,
 		ETHER_ADDR(mh->dh_da),
 		ETHER_ADDR(mh->dh_sa),
