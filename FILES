@@ -345,6 +345,7 @@ tcl/ex/newmcast/mcast3.tcl
 tcl/ex/newmcast/mix-mode1.tcl
 tcl/ex/newmcast/mix-mode2.tcl
 tcl/ex/newmcast/mix-mode3.tcl
+tcl/ex/newmcast/mix-mode4.tcl
 tcl/ex/newmcast/pim-loss.tcl
 tcl/ex/newmcast/pim-no-loss.tcl
 tcl/ex/newmcast/pim-test-suite-1.tcl
@@ -584,6 +585,7 @@ tcl/test/test-all-full
 tcl/test/test-all-intserv
 tcl/test/test-all-manual-routing
 tcl/test/test-all-mcast
+tcl/test/test-all-mixmode
 tcl/test/test-all-lan
 tcl/test/test-all-newreno
 tcl/test/test-all-rbp
@@ -614,6 +616,7 @@ tcl/test/test-output-intserv
 tcl/test/test-output-lan
 tcl/test/test-output-manual-routing
 tcl/test/test-output-mcast
+tcl/test/test-output-mixmode
 tcl/test/test-output-newreno
 tcl/test/test-output-rbp
 tcl/test/test-output-red
@@ -644,6 +647,7 @@ tcl/test/test-suite-intserv.tcl
 tcl/test/test-suite-lan.tcl
 tcl/test/test-suite-manual-routing.tcl
 tcl/test/test-suite-mcast.tcl
+tcl/test/test-suite-mixmode.tcl
 tcl/test/test-suite-newreno.tcl
 tcl/test/test-suite-rbp.tcl
 tcl/test/test-suite-red-v1.tcl
@@ -808,6 +812,16 @@ tcl/test/test-output-mcast/detailedDM4.Z
 tcl/test/test-output-mcast/detailedDM5.Z
 tcl/test/test-output-mcast/detailedDM6.Z
 tcl/test/test-output-mcast/detailedDM7.Z
+tcl/test/test-output-mixmode/Mixmode1.Z
+tcl/test/test-output-mixmode/Mixmode10.Z
+tcl/test/test-output-mixmode/Mixmode2.Z
+tcl/test/test-output-mixmode/Mixmode3.Z
+tcl/test/test-output-mixmode/Mixmode4.Z
+tcl/test/test-output-mixmode/Mixmode5.Z
+tcl/test/test-output-mixmode/Mixmode6.Z
+tcl/test/test-output-mixmode/Mixmode7.Z
+tcl/test/test-output-mixmode/Mixmode8.Z
+tcl/test/test-output-mixmode/Mixmode9.Z
 tcl/test/test-output-newreno/newreno.Z
 tcl/test/test-output-newreno/newreno_B.Z
 tcl/test/test-output-newreno/newreno1.Z

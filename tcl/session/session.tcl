@@ -28,20 +28,20 @@ SessionSim instproc create-session { srcNode srcAgent } {
     return $session_($nid:$dst:$nid)
 }
 
-SessionSim instproc update-loss-dependency { src dst agent group } {
+SessionSim instproc update-loss-dependency { src dst owner agent group } {
     $self instvar session_ routingTable_ loss_
 
     set loss_rcv 1
     set tmp $dst
-    while {$tmp != $src} {
-	set next [$routingTable_ lookup $tmp $src]
+    while {$tmp != $owner} {
+	set next [$routingTable_ lookup $tmp $owner]
 	if {[info exists loss_($next:$tmp)] && $loss_($next:$tmp) != 0} {
 	    if {$loss_rcv} {
 		#puts "update-loss-rcv $loss_($next:$tmp) $next $tmp $agent"
-		set dep_loss [$session_($src:$group:$src) update-loss-rcv $loss_($next:$tmp) $agent]
+		set dep_loss [$session_($src:$group:$owner) update-loss-rcv $loss_($next:$tmp) $agent]
 	    } else {
 		#puts "update-loss-rcv $loss_($next:$tmp) $next $tmp $dep_loss"
-		set dep_loss [$session_($src:$group:$src) update-loss-loss $loss_($next:$tmp) $dep_loss]
+		set dep_loss [$session_($src:$group:$owner) update-loss-loss $loss_($next:$tmp) $dep_loss]
 	    }
 
 	    if {$dep_loss == 0} { 
@@ -53,7 +53,7 @@ SessionSim instproc update-loss-dependency { src dst agent group } {
     }
 
     if [info exists dep_loss] {
-	$session_($src:$group:$src) update-loss-top $dep_loss
+	$session_($src:$group:$owner) update-loss-top $dep_loss
     }
 }
 
@@ -96,11 +96,11 @@ SessionSim instproc join-group { rcvAgent group } {
 		set p [$self create-trace SessDeque $f $src $dst "nam"]
 		$p target $rcvAgent
 		$session_($index) add-dst $accu_bw $delay $ttl $dst $p
-		$self update-loss-dependency $src $dst $p $group
+		$self update-loss-dependency $src $dst $src $p $group
 	    } else {
 		#puts "add-dst $accu_bw $delay $ttl $src $dst"
 		$session_($index) add-dst $accu_bw $delay $ttl $dst $rcvAgent
-		$self update-loss-dependency $src $dst $rcvAgent $group
+		$self update-loss-dependency $src $dst $src $rcvAgent $group
 	    }
 	}
     }
@@ -122,10 +122,12 @@ SessionSim instproc leave-group { rcvAgent group } {
 }
 
 SessionSim instproc insert-loss { lossmodule from to } {
-    $self instvar loss_ bw_
+    $self instvar loss_ bw_ Node_
 
-    if [info exists bw_($from:$to)] {
-	set loss_($from:$to) $lossmodule
+    if {[SessionSim set MixMode_] && [$self detailed-link? [$from id] [$to id]]} {
+	$self lossmodel $lossmodule $from $to
+    } elseif [info exists bw_([$from id]:[$to id])] {
+	set loss_([$from id]:[$to id]) $lossmodule
     }
 }
 
@@ -840,9 +842,11 @@ SessionSim instproc join-intermediate-session { rcvAgent group } {
 	    set tmp $dst
 	    while {$tmp != $src} {
 		set next [$routingTable_ lookup $tmp $src]
+
 		# Conditions to perform session/detailed join
 		if {$session_area} {
 		    if [info exist link_($tmp:$next)] {
+
 			# walking into detailed area from session area
 			set session_area 0
 			if ![info exist session_($src:$grp:$tmp)] {
@@ -852,12 +856,14 @@ SessionSim instproc join-intermediate-session { rcvAgent group } {
 			}
 			if {![info exist dlist_($src:$grp:$tmp)] || [lsearch $dlist_($src:$grp:$tmp) $rcvAgent] < 0 } {
 			    $inter_session add-dst $accu_bw $delay $ttl $dst $rcvAgent
+			    $self update-loss-dependency $src $dst $tmp $rcvAgent $group
 			    lappend dlist_($src:$grp:$tmp) $rcvAgent
 			}
-			$self update-loss-dependency $src $dst $rcvAgent $group
 			$Node_($tmp) join-group $inter_session $group
 			# puts "s->d: $dst, $rcvAgent, [$rcvAgent info class], join session $inter_session which detailed-joined the group $group, $delay, $accu_bw, $ttl"
+
 		    } else {
+
 			# stay in session area, keep track of accumulative
 			# delay, bw, ttl
 			set delay [expr $delay + $delay_($tmp:$next)]
@@ -871,9 +877,11 @@ SessionSim instproc join-intermediate-session { rcvAgent group } {
 		    }
 		} else {
 		    if [info exist link_($tmp:$next)] {
+
 			# stay in detailed area, do nothing
 			# puts "d->d"
 		    } else {
+
 			# walking into session area from detailed area
 			set session_area 1
 			set accu_bw $bw_($tmp:$next)
@@ -898,22 +906,23 @@ SessionSim instproc join-intermediate-session { rcvAgent group } {
 	    # because only this will capture the packet before it 
 	    # reaches the receiver and after it left the sender
 	    set f [$self get-nam-traceall]
+
 	    if {$session_area} {
 		if {$f != ""} { 
 		    set p [$self create-trace SessDeque $f $src $dst "nam"]
 		    $p target $rcvAgent
 		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) $rcvAgent] < 0 } {
 			$session_($index) add-dst $accu_bw $delay $ttl $dst $p
+			$self update-loss-dependency $src $dst $src $p $group
 			lappend dlist_($index) $rcvAgent
 		    }
-		    $self update-loss-dependency $src $dst $p $group
 		} else {
 		    # puts "session area: add-dst $accu_bw $delay $ttl $src $dst $rcvAgent [$rcvAgent info class]"
 		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) $rcvAgent] < 0 } {
 			$session_($index) add-dst $accu_bw $delay $ttl $dst $rcvAgent
+			$self update-loss-dependency $src $dst $src $rcvAgent $group
 			lappend dlist_($index) $rcvAgent
 		    }
-		    $self update-loss-dependency $src $dst $rcvAgent $group
 		}
 	    } else {
 		if {$f != ""} { 
@@ -921,16 +930,16 @@ SessionSim instproc join-intermediate-session { rcvAgent group } {
 		    $p target [$Node_($tmp) entry]
 		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) [$Node_($tmp) entry]] < 0 } {
 			$session_($index) add-dst 0 0 0 $src $p
+			$self update-loss-dependency $src $src $src $p $group
 			lappend dlist_($index) [$Node_($tmp) entry]
 		    }
-		    $self update-loss-dependency $src $src $p $group
 		} else {
 		    # puts "detailed area: add-dst $accu_bw $delay $ttl $src $dst[$Node_($tmp) entry] [[$Node_($tmp) entry] info class]"
 		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) [$Node_($tmp) entry]] < 0 } {
 			$session_($index) add-dst 0 0 0 $src [$Node_($tmp) entry]
+			$self update-loss-dependency $src $src $src [$Node_($tmp) entry] $group
 			lappend dlist_($index) [$Node_($tmp) entry]
 		    }
-		    $self update-loss-dependency $src $src [$Node_($tmp) entry] $group
 		}
 	    }
 	}
