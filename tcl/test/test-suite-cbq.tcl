@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.12 1997/11/10 22:54:14 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.13 1997/11/10 23:53:06 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -122,15 +122,15 @@ TestSuite instproc create_flat2 { } {
 
 	set topclass_ [new CBQClass]
 	# (topclass_ doesn't have a queue)
-	$topclass_ setparams none 0 0.98 auto 8 2 0
+	$topclass_ setparams none false 0.97 1.0 8 2 0
 
 	set audioclass_ [new CBQClass]
 	$self make_queue $audioclass_ $qlim
-	$audioclass_ setparams $topclass_ true 0.03 auto 1 1 0
+	$audioclass_ setparams $topclass_ false 0.30 0.25 1 1 0
 
 	set dataclass_ [new CBQClass]
 	$self make_queue $dataclass_ $qlim
-	$dataclass_ setparams $topclass_ true 0.65 auto 2 1 0
+	$dataclass_ setparams $topclass_ true 0.30 auto 2 1 0
 }
 
 TestSuite instproc insert_flat2 cbqlink {
@@ -603,6 +603,24 @@ Test/FORMAL instproc run {} {
 	$ns_ run
 }
 
+TestSuite instproc finish_max tname {
+	global quiet
+        $self instvar ns_ tchan_ testName_
+        exec ../../bin/getrc -s 2 -d 3 out.tr | \
+          ../../bin/raw2xg -s 0.01 -m 90 -t $tname > temp.rands
+        if {$quiet == "false"} {
+                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+        }
+        ## now use default graphing tool to make a data file
+        ## if so desired
+
+        if { [info exists tchan_] && $quiet == "false" } {
+                $self plotQueue $testName_
+        }
+        $ns_ halt
+}
+
+
 #
 # Figure 11 from the link-sharing paper, but Formal (old) link-sharing.
 # WRR. 
@@ -612,13 +630,14 @@ Test/FORMAL instproc run {} {
 Class Test/MAX1 -superclass TestSuite
 Test/MAX1 instproc init topo { 
         $self instvar net_ defNet_ test_
+	Queue set limit_ 1000
         set net_ $topo
         set defNet_ cbq1-wrr
         set test_ CBQ_MAX1
         $self next 0
 }
 Test/MAX1 instproc run {} {
-        $self instvar cbqalgorithm_ ns_ net_ topo_
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
         set stopTime 2.1
         set maxbytes 187500
         set cbqalgorithm_ formal
@@ -630,9 +649,8 @@ Test/MAX1 instproc run {} {
         [$cbqlink_ queue] algorithm $cbqalgorithm_
 
         ## need to redef finish procedure here somehow
-	TestSuite instproc finish tname { puts "all done $tname" }
-        $self openTrace $stopTime CBQ_MAX1
-
+	TestSuite instproc finish tname { $self finish_max $tname }
+	$self traceQueues $node_(r1) [$self openTrace $stopTime CBQ_MAX1]
         $ns_ run
 }
 
