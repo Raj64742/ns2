@@ -1034,6 +1034,8 @@ satellite nodes (for setting up initial links and channels) are as follows
 \code{$ns_ node-config -channelType <type>}\\
 \code{$ns_ node-config -downlinkBW <value>}\\
 
+(note-- satNodeType geo-repeater only requires specifying the channelType-- all other options are disregarded.  See \code{tcl/ex/sat-repeater.tcl} for an example.)
+
 \code{$ns_ satnode-polar <alt> <inc> <lon> <alpha> <plane> <linkargs> <chan>}\\
 This a simulator wrapper method for creating a polar satellite node. Two
 links, uplink and downlink, are created along with two channels, uplink
