@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.17 2000/07/21 04:56:58 yewei Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.18 2000/09/15 20:46:12 haoboy Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -84,8 +84,8 @@ public:
 	RNG(RNGSources source, int seed = 1) { set_seed(source, seed); };
 
 	void set_seed(RNGSources source, int seed = 1);
-	int seed() { return stream_.seed(); }
-	static RNG* defaultrng() { return (default_); }
+	inline int seed() { return stream_.seed(); }
+	inline static RNG* defaultrng() { return (default_); }
 
 #ifndef stand_alone
 	int command(int argc, const char*const* argv);
@@ -94,7 +94,7 @@ public:
 	inline int uniform_positive_int() {  // range [0, MAXINT]
 		return (int)(stream_.next());
 	}
-	double uniform_double() { // range [0.0, 1.0)
+	inline double uniform_double() { // range [0.0, 1.0)
 		return stream_.next_double();
 	}
 
@@ -119,7 +119,7 @@ public:
         inline double paretoII(double scale, double shape)
                 { return (scale * ((1.0/pow(uniform(), 1.0/shape)) - 1));}
 	double normal(double avg, double std);
-	double lognormal(double avg, double std) 
+	inline double lognormal(double avg, double std) 
                 { return (exp(normal(avg, std))); }
 
 protected:   // need to be public?
