@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.6 1997/12/19 22:20:12 bajaj Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.7 1998/01/05 18:39:51 heideman Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -190,6 +190,7 @@ RNG::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "seed") == 0) {
 		        int s = atoi(argv[2]);
+			// NEEDSWORK: should be a way to set seed to PRDEF_SEED_SORUCE
 			if (s)
 			        set_seed(RAW_SEED_SOURCE, s);
 			else 

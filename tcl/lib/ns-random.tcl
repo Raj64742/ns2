@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.7 1997/12/31 01:28:32 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.8 1998/01/05 18:39:52 heideman Exp $
 #
 
 #Code to generate random numbers here
@@ -72,4 +72,11 @@ RandomVariable instproc test count {
 set defaultRNG [new RNG]
 $defaultRNG seed 1
 $defaultRNG default
+#
+# Because defaultRNG is not a bound variable but is instead
+# just copied into C++, we enforce this.
+# (A long-term solution be to make defaultRNG bound.)
+# --johnh, 30-Dec-97
+#
+trace variable defaultRNG w { abort "cannot update defaultRNG once assigned"; }
 
