@@ -1,5 +1,5 @@
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: hashutils.cc,v 1.5 2002/03/20 22:49:40 haldar Exp $
+// $Id: hashutils.cc,v 1.6 2002/04/02 23:58:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -32,9 +32,10 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * RCS: @(#) $Id: hashutils.cc,v 1.5 2002/03/20 22:49:40 haldar Exp $
+ * RCS: @(#) $Id: hashutils.cc,v 1.6 2002/04/02 23:58:39 haldar Exp $
  */
 
+#ifndef NS_DIFFUSION
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -973,3 +974,4 @@ RebuildTable(register Tcl_HashTable *tablePtr)
     free((char *) oldBuckets);
   }
 }
+#endif
