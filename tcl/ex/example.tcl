@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/example.tcl,v 1.3 1998/07/01 18:05:47 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/example.tcl,v 1.4 1998/08/14 20:34:44 tomh Exp $ (LBL)
 #
 
 #
@@ -51,8 +51,8 @@ set src2 [$ns create-connection TCP $n1 TCPSink $n0 2]
 #
 # Create ftp sources at the each node
 #
-set ftp1 [$src1 attach-source FTP]
-set ftp2 [$src2 attach-source FTP]
+set ftp1 [$src1 attach-app FTP]
+set ftp2 [$src2 attach-app FTP]
 
 #
 # Start up the first ftp at the time 0 and
