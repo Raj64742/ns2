@@ -191,8 +191,6 @@ Topology/net2 instproc init ns {
 	$ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
 	$ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 
-	$cbqlink_ trace $ns $tf	; # trace pkts
-	[$ns link $r2 $r1] trace $ns $af ; # trace acks
 	return $cbqlink_
 }
 
@@ -217,19 +215,25 @@ TestSuite instproc linkDumpFlows { link interval stoptime } {
 }
 
 Class Test/one -superclass TestSuite
-Test/one instproc run {testname seed label} {
-    $self instvar ns_
+Test/one instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo   
+        set defNet_     net2
+        set test_       reclass2
+        $self next
+}
 
-global ns s1 s2 r1 r2 s3 s4 r1fm flowgraphfile bandwidth
-global flowfile graphfile
-   
+Test/one instproc run {} {
+    $self instvar ns_ net_ topo_
+    $topo_ instvar cbqlink_ node_
+    set cbqlink $cbqlink_
+
     # set stoptime 300.0
     set stoptime 100.0
 
 	set rtt 0.06
 	set mtu 512
 
-	set cbqlink [create_topology $tracef $ackf]
 	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu]
 
 	set gfm [$rtm makeflowmon]
