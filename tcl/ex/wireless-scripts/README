@@ -1,8 +1,12 @@
-To run the simulations in the paper "Modeling Wireless Links for
-Transport Protocols",
-"http://www.cs.helsinki.fi/u/gurtov/papers/mtp.html":
+# To run the simulations in the paper "Modeling Wireless Links for
+# Transport Protocols",
+# "http://www.cs.helsinki.fi/u/gurtov/papers/mtp.html":
 
 ./runall.cmd xgraph
+
+# To run the simulations in the supporting tech report:
+
+./runall-tf.cmd xgraph
 
 #################################################################3
 # To update:
@@ -12,11 +16,12 @@ cp $D/mtp.tcl .
 cp $D/web.tcl .
 cp $D/pingplot.cmd .
 cp $D/runall.cmd .
+cp $D/runall-tr.cmd .
 cp $D/timeseq.cmd .
 cp $D/xg2gp.awk .
 cp $D/plot.xgr .
 
-# Update NS in runall.cmd:
+# Update NS in runall.cmd and runall-tr.cmd:
 NS=${NS:-../../../ns}
 
 # Update RAW2XG and GETRC in mtp.tcl:
