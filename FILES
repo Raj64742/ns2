@@ -72,6 +72,9 @@ emulate/inet.c
 emulate/inet.h
 emulate/ether.cc
 emulate/ether.h
+emulate/internet.h
+emulate/internet.cc
+emulate/ping_responder.cc
 emulate/net-ip.cc
 emulate/net-pcap.cc
 emulate/net.cc
