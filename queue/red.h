@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.38 2002/01/01 00:08:54 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.39 2002/01/03 04:33:03 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -97,6 +97,7 @@ struct edp {
 	double targetdelay;     /* adaptive RED: target queue size */
 	double top;		/* adaptive RED: upper bound for max_p */
 	double bottom;		/* adaptive RED: lover bound for max_p */
+	int feng_adaptive;	/* adaptive RED: Use the Feng et al. version */
 			
 	/*
 	 * Computed as a function of user supplied paramters.
@@ -123,6 +124,8 @@ struct edv {
 	int old;		/* 0 when average queue first exceeds thresh */
 	TracedDouble cur_max_p;	//current max_p
 	double lastset;		/* adaptive RED: last time adapted */
+	enum Status {Above, Below, Between}; // for use in Feng's Adaptive RED
+	Status status;
 	edv() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
 		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0), 
 		cur_max_p(1.0) { }
@@ -142,6 +145,8 @@ class REDQueue : public Queue {
 	void reset();
 	void run_estimator(int nqueued, int m);	/* Obsolete */
 	double estimator(int nqueued, int m, double ave, double q_w);
+	void updateMaxP(double new_ave, double now);
+	void updateMaxPFeng(double new_ave);
 	int drop_early(Packet* pkt);
 	double modify_p(double p, int count, int count_bytes, int bytes,
 	   int mean_pktsize, int wait, int size);

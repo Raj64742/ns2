@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.71 2002/01/01 04:26:50 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.72 2002/01/03 04:33:03 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -115,6 +115,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NU
 	bind("alpha_", &edp_.alpha); 	  	    // adaptive red param
 	bind("beta_", &edp_.beta);                  // adaptive red param
 	bind("interval_", &edp_.interval);	    // adaptive red param
+	bind("feng_adaptive_",&edp_.feng_adaptive); // adaptive red variant
 	bind("targetdelay_", &edp_.targetdelay);    // target delay
 	bind("top_", &edp_.top);		    // maximum for max_p	
 	bind("bottom_", &edp_.bottom);		    // minimum for max_p	
@@ -259,6 +260,53 @@ void REDQueue::reset()
 }
 
 /*
+ *  Updating max_p, following code from Feng et al. 
+ *  This is only called for Adaptive RED.
+ *  From "A Self-Configuring RED Gateway", from Feng et al.
+ *  They recommend alpha = 3, and beta = 2.
+ */
+void REDQueue::updateMaxPFeng(double new_ave)
+{
+	if ( edp_.th_min < new_ave && new_ave < edp_.th_max) {
+		edv_.status = edv_.Between;
+	}
+	if (new_ave < edp_.th_min && edv_.status != edv_.Below) {
+		edv_.status = edv_.Below;
+		edv_.cur_max_p = edv_.cur_max_p / edp_.alpha;
+		//double max = edv_.cur_max_p; double param = edp_.alpha;
+		//printf("max: %5.2f alpha: %5.2f\n", max, param);
+	}
+	if (new_ave > edp_.th_max && edv_.status != edv_.Above) {
+		edv_.status = edv_.Above;
+		edv_.cur_max_p = edv_.cur_max_p * edp_.beta;
+		//double max = edv_.cur_max_p; double param = edp_.alpha;
+		//printf("max: %5.2f beta: %5.2f\n", max, param);
+	}
+}
+
+/*
+ *  Updating max_p to keep the average queue size within the target range.
+ *  This is only called for Adaptive RED.
+ */
+void REDQueue::updateMaxP(double new_ave, double now)
+{
+	double part = 0.4*(edp_.th_max - edp_.th_min);
+	// AIMD rule to keep target Q~1/2(th_min+th_max)
+	if ( new_ave < edp_.th_min + part && edv_.cur_max_p > edp_.bottom) {
+		// we increase the average queue size, so decrease max_p
+		edv_.cur_max_p = edv_.cur_max_p * edp_.beta;
+		edv_.lastset = now;
+	} else if (new_ave > edp_.th_max - part && edp_.top > edv_.cur_max_p ) {
+		// we decrease the average queue size, so increase max_p
+		double alpha = edp_.alpha;
+                        if ( alpha > 0.25*edv_.cur_max_p )
+			alpha = 0.25*edv_.cur_max_p;
+		edv_.cur_max_p = edv_.cur_max_p + alpha;
+		edv_.lastset = now;
+	} 
+}
+
+/*
  * Compute the average queue size.
  * Nqueued can be bytes or packets.
  */
@@ -268,7 +316,6 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 
 	new_ave = ave;
 	while (--m >= 1) {
-		old_ave = new_ave;
 		new_ave *= 1.0 - q_w;
 	}
 	old_ave = new_ave;
@@ -276,21 +323,11 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 	new_ave += q_w * nqueued;
 	
 	double now = Scheduler::instance().clock();
-	if (edp_.adaptive == 1 && now > edv_.lastset + edp_.interval ) {
-		double part = 0.4*(edp_.th_max - edp_.th_min);
-		// AIMD rule to keep target Q~1/2(th_min+th_max)
-		if ( new_ave < edp_.th_min + part && edv_.cur_max_p > edp_.bottom) {
-			// we increase the average queue size, so decrease max_p
-			edv_.cur_max_p = edv_.cur_max_p * edp_.beta;
-			edv_.lastset = now;
-		} else if (new_ave > edp_.th_max - part && edp_.top > edv_.cur_max_p ) {
-			// we decrease the average queue size, so increase max_p
-			double alpha = edp_.alpha;
-                        if ( alpha > 0.25*edv_.cur_max_p )
-				alpha = 0.25*edv_.cur_max_p;
-			edv_.cur_max_p = edv_.cur_max_p + alpha;
-			edv_.lastset = now;
-		} 
+	if (edp_.adaptive == 1) {
+		if (edp_.feng_adaptive == 1)
+			updateMaxPFeng(new_ave);
+		else if (now > edv_.lastset + edp_.interval)
+			updateMaxP(new_ave, now);
 	}
 	return new_ave;
 }
