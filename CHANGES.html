@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.33 1997/03/18 23:42:56 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.34 1997/03/21 17:18:16 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -7,17 +7,20 @@
 
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a13.tar.gz>ns-2.0a13</a>
-<i>[PENDING]</i></h3>
-<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
-collaborators and
-<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<i>Fri Mar 21 09:08:05 PST 1997</i></h3>
+<i>Snapshot for alpha testers.</i>
 <ul>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 <i>Tue Mar 18 15:32:01 PST 1997</i><br>
 Integrated
 <a href=http://tns-www.lcs.mit.edu/people/djw/bio.html>
-David Weatherall's</a> calendar queue.
+David Wetherall's</a> calendar queue.
+Use as:
+<pre>
+	set ns [new Simulator]
+	$ns use-scheduler Calendar
+</pre>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 <i>Tue Mar 18 15:32:01 PST 1997</i><br>

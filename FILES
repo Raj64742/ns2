@@ -68,6 +68,7 @@ tcl/ex/mcast-nam.tcl
 tcl/ex/simple-nam.tcl
 tcl/ex/simple.tcl
 tcl/ex/simple-rtp.tcl
+tcl/ex/srm-demo.tcl
 tcl/ex/rtp-nam.tcl
 tcl/ex/test-suite.tcl
 tcl/lib/ns-compat.tcl

@@ -3,9 +3,8 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.2 1997/03/18 23:42:59 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.3 1997/03/21 17:18:18 mccanne Exp $
 #
-source timer.tcl
 
 set ns [new MultiSim]
 
