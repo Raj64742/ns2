@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.78 2004/06/24 16:31:32 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.79 2004/06/25 21:45:57 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -210,8 +210,8 @@ void REDQueue::initialize_params()
 		// Set bottom to at most 1/W, for W the delay-bandwidth 
 		//   product in packets for a connection with this bandwidth,
 		//   1000-byte packets, and 100 ms RTTs.
-		// edp_.ptc:  packets/second   
-		double bottom1 = 1.0/(edp_.ptc*0.1);
+		// So W = 0.1 * link_->bandwidth() / 8000 
+		double bottom1 = 80000.0/link_->bandwidth();
 		if (bottom1 < edp_.bottom) 
 			edp_.bottom = bottom1;
 		//printf("bottom: %9.7f\n", edp_.bottom);
