@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.26 1999/02/13 19:08:30 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.27 1999/02/16 22:59:25 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -79,7 +79,7 @@ typedef int32_t nsmask_t;
 #define STRTOI64 strtoll
 #define STRTOI64_FMTSTR "%lld"
 #ifndef int64_t
-typedef longlong_t int64_t
+typedef longlong_t int64_t;
 #endif
 #endif
 
