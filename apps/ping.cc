@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/ping.cc,v 1.5 2002/11/07 00:18:35 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/ping.cc,v 1.6 2003/09/02 22:07:20 sfloyd Exp $
 
 /*
  * File: Code for a new 'Ping' Agent Class for the ns
@@ -55,7 +55,7 @@ public:
 } class_ping;
 
 
-PingAgent::PingAgent() : Agent(PT_PING)
+PingAgent::PingAgent() : Agent(PT_PING), seq(0), oneway(0)
 {
 	bind("packetSize_", &size_);
 }
@@ -71,6 +71,7 @@ int PingAgent::command(int argc, const char*const* argv)
       // Set the 'ret' field to 0, so the receiving node
       // knows that it has to generate an echo packet
       hdr->ret = 0;
+      hdr->seq = seq++;
       // Store the current time in the 'send_time' field
       hdr->send_time = Scheduler::instance().clock();
       // Send the packet
@@ -91,6 +92,11 @@ int PingAgent::command(int argc, const char*const* argv)
       iph->dport() = iph->sport();
       ph->ret = 0;
       send(pkt, (Handler*) 0);
+      return (TCL_OK);
+    }
+
+    else if (strcmp(argv[1], "oneway") == 0) {
+      oneway=1;
       return (TCL_OK);
     }
   }
@@ -142,6 +148,7 @@ void PingAgent::recv(Packet* pkt, Handler*)
   if (hdr->ret == 0) {
     // Send an 'echo'. First save the old packet's send_time
     double stime = hdr->send_time;
+    int rcv_seq = hdr->seq;
     // Discard the packet
     Packet::free(pkt);
     // Create a new packet
@@ -153,6 +160,9 @@ void PingAgent::recv(Packet* pkt, Handler*)
     hdrret->ret = 1;
     // Set the send_time field to the correct value
     hdrret->send_time = stime;
+    // Added by Andrei Gurtov for one-way delay measurement.
+    hdrret->rcv_time = Scheduler::instance().clock();
+    hdrret->seq = rcv_seq;
     // Send the packet
     send(pktret, 0);
   } else {
@@ -164,7 +174,12 @@ void PingAgent::recv(Packet* pkt, Handler*)
     char out[100];
     // Prepare the output to the Tcl interpreter. Calculate the
     // round trip time
-    sprintf(out, "%s recv %d %3.1f", name(), 
+    if (oneway) //AG
+      	sprintf(out, "%s recv %d %d %3.1f %3.1f", name(), 
+	    hdrip->src_.addr_ >> Address::instance().NodeShift_[1],
+	    hdr->seq, (hdr->rcv_time - hdr->send_time) * 1000,
+	    (Scheduler::instance().clock()-hdr->rcv_time) * 1000);
+    else sprintf(out, "%s recv %d %3.1f", name(), 
 	    hdrip->src_.addr_ >> Address::instance().NodeShift_[1],
 	    (Scheduler::instance().clock()-hdr->send_time) * 1000);
     Tcl& tcl = Tcl::instance();

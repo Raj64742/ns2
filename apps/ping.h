@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/ping.h,v 1.3 2000/09/01 03:04:06 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/ping.h,v 1.4 2003/09/02 22:07:20 sfloyd Exp $
 
 /*
  * File: Header File for a new 'Ping' Agent Class for the ns
@@ -47,6 +47,9 @@
 struct hdr_ping {
 	char ret;
 	double send_time;
+ 	double rcv_time;	// when ping arrived to receiver
+ 	int seq;		// sequence number
+
 
 	// Header access methods
 	static int offset_; // required by PacketHeaderManager
@@ -59,6 +62,8 @@ struct hdr_ping {
 class PingAgent : public Agent {
 public:
 	PingAgent();
+ 	int seq;	// a send sequence number like in real ping
+	int oneway; 	// enable seq number and one-way delay printouts
 	virtual int command(int argc, const char*const* argv);
 	virtual void recv(Packet*, Handler*);
 };
