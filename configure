@@ -3779,7 +3779,7 @@ EOF
 fi
 
 
-for ac_func in bcopy bzero getrusage sbrk snprintf strtoll strtoq
+for ac_func in bcopy bzero getrusage sbrk snprintf
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:3786: checking for $ac_func" >&5
@@ -4118,45 +4118,104 @@ fi
 
 
 
-INT64_T_ALTERNATIVE=none
 
-echo $ac_n "checking for 64-bit long""... $ac_c" 1>&6
-echo "configure:4125: checking for 64-bit long" >&5
-if eval "test \"`echo '$''{'int64_t_HAVE_LONG64'+set}'`\" = set"; then
+INT64_T_ALTERNATIVE=none
+HAVE_SUPPORTING_FUNC=false
+
+echo $ac_n "checking size of long""... $ac_c" 1>&6
+echo "configure:4127: checking size of long" >&5
+if eval "test \"`echo '$''{'ac_cv_sizeof_long'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  
-if test "$cross_compiling" = yes; then
-  int64_t_HAVE_LONG64=cross
+  if test "$cross_compiling" = yes; then
+  ac_cv_sizeof_long=0
 else
   cat > conftest.$ac_ext <<EOF
-#line 4134 "configure"
+#line 4135 "configure"
 #include "confdefs.h"
-
-main() { long x; exit (sizeof(x) >= 8 ? 0 : 1); }
-
+#include <stdio.h>
+main()
+{
+  FILE *f=fopen("conftestval", "w");
+  if (!f) exit(1);
+  fprintf(f, "%d\n", sizeof(long));
+  exit(0);
+}
 EOF
-if { (eval echo configure:4140: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4146: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
-  int64_t_HAVE_LONG64=yes
+  ac_cv_sizeof_long=`cat conftestval`
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -fr conftest*
-  int64_t_HAVE_LONG64=no
+  ac_cv_sizeof_long=0
 fi
 rm -fr conftest*
 fi
 
 fi
+echo "$ac_t""$ac_cv_sizeof_long" 1>&6
+cat >> confdefs.h <<EOF
+#define SIZEOF_LONG $ac_cv_sizeof_long
+EOF
 
-echo "$ac_t""$int64_t_HAVE_LONG64" 1>&6
-if test x"$int64_t_HAVE_LONG64" = x"yes"; then
+
+if test $ac_cv_sizeof_long -ge 8
+then
 	INT64_T_ALTERNATIVE=long
+	echo $ac_n "checking for strtol""... $ac_c" 1>&6
+echo "configure:4169: checking for strtol" >&5
+if eval "test \"`echo '$''{'ac_cv_func_strtol'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 4174 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char strtol(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char strtol();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strtol) || defined (__stub___strtol)
+choke me
+#else
+strtol();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:4197: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_func_strtol=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_strtol=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'strtol`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  :
+else
+  echo "$ac_t""no" 1>&6
+fi
+
 fi
 
 echo $ac_n "checking for __int64_t""... $ac_c" 1>&6
-echo "configure:4160: checking for __int64_t" >&5
+echo "configure:4219: checking for __int64_t" >&5
 if eval "test \"`echo '$''{'int64_t_HAVE___INT64_T'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -4165,13 +4224,13 @@ if test "$cross_compiling" = yes; then
   int64_t_HAVE___INT64_T=cross
 else
   cat > conftest.$ac_ext <<EOF
-#line 4169 "configure"
+#line 4228 "configure"
 #include "confdefs.h"
 
 main() { __int64_t x; exit (sizeof(x) >= 8 ? 0 : 1); }
 
 EOF
-if { (eval echo configure:4175: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4234: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   int64_t_HAVE___INT64_T=yes
 else
@@ -4191,7 +4250,7 @@ if test x"$int64_t_HAVE___INT64_T" = x"yes"; then
 fi
 
 echo $ac_n "checking for long long""... $ac_c" 1>&6
-echo "configure:4195: checking for long long" >&5
+echo "configure:4254: checking for long long" >&5
 if eval "test \"`echo '$''{'int64_t_HAVE_LONG_LONG'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -4200,13 +4259,13 @@ if test "$cross_compiling" = yes; then
   int64_t_HAVE_LONG_LONG=cross
 else
   cat > conftest.$ac_ext <<EOF
-#line 4204 "configure"
+#line 4263 "configure"
 #include "confdefs.h"
 
 main() { long long x; exit (sizeof(x) >= 8 ? 0 : 1); }
 
 EOF
-if { (eval echo configure:4210: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:4269: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   int64_t_HAVE_LONG_LONG=yes
 else
@@ -4228,12 +4287,12 @@ fi
 
 
 echo $ac_n "checking for int64_t""... $ac_c" 1>&6
-echo "configure:4232: checking for int64_t" >&5
+echo "configure:4291: checking for int64_t" >&5
 if eval "test \"`echo '$''{'ac_cv_type_int64_t'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 4237 "configure"
+#line 4296 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #if STDC_HEADERS
@@ -4262,18 +4321,23 @@ fi
 
 
 echo $ac_n "checking which kind of 64-bit int to use""... $ac_c" 1>&6
-echo "configure:4266: checking which kind of 64-bit int to use" >&5
+echo "configure:4325: checking which kind of 64-bit int to use" >&5
 if test $ac_cv_type_int64_t = yes -o "$INT64_T_ALTERNATIVE" != none
 then
-	cat >> confdefs.h <<\EOF
+	if test "$INT64_T_ALTERNATIVE" = long -o "$ac_cv_func_strtoq" = yes -o "$ac_cv_func_strtoll" = yes
+	then
+		cat >> confdefs.h <<\EOF
 #define HAVE_INT64 1
 EOF
 
-	if test $ac_cv_type_int64_t = yes
-	then
-		echo "$ac_t""int64_t" 1>&6
+		if test $ac_cv_type_int64_t = yes
+		then
+			echo "$ac_t""int64_t" 1>&6
+		else
+			echo "$ac_t""$INT64_T_ALTERNATIVE" 1>&6
+		fi
 	else
-		echo "$ac_t""$INT64_T_ALTERNATIVE" 1>&6
+		echo "$ac_t""missing strto 64-bit-type" 1>&6
 	fi
 else
 	echo "$ac_t""none" 1>&6
@@ -4327,7 +4391,7 @@ if test ! -z "$V_NEED_DL" ; then
 		;;
 	*-*-linux*)
 		echo $ac_n "checking for dlopen in -ldl""... $ac_c" 1>&6
-echo "configure:4331: checking for dlopen in -ldl" >&5
+echo "configure:4395: checking for dlopen in -ldl" >&5
 ac_lib_var=`echo dl'_'dlopen | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -4335,7 +4399,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 4339 "configure"
+#line 4403 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -4346,7 +4410,7 @@ int main() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:4350: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:4414: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -4375,7 +4439,7 @@ fi
 			;;
 		*)
 			echo $ac_n "checking for main in -l$V_LIB_DL""... $ac_c" 1>&6
-echo "configure:4379: checking for main in -l$V_LIB_DL" >&5
+echo "configure:4443: checking for main in -l$V_LIB_DL" >&5
 ac_lib_var=`echo $V_LIB_DL'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -4383,14 +4447,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 4387 "configure"
+#line 4451 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:4394: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:4458: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -4500,7 +4564,7 @@ V_TAR_TARGET=$target_os
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:4504: checking for a BSD compatible install" >&5
+echo "configure:4568: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6

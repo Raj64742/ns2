@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.17 1999/09/08 20:56:50 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.18 1999/09/28 04:32:17 heideman Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -46,18 +46,12 @@ static const char rcsid[] =
 
 #include <stdio.h>
 #include "rng.h"
+#include "config.h"  // for gettimeofday
 
 #ifndef MAXINT
-#define	MAXINT	2147483648	// XX [for now]
+#define	MAXINT	2147483647	// XX [for now]
 #endif
 
-#if defined(sun)
-extern "C" {			// XXX Why not include config.h?
-	int atoi(...);
-	//	int gettimeofday(struct timeval*, struct timezone*);
-	int gettimeofday(...); //fix to work on solaris as well
-}
-#endif
 
 /*
  * RNGImplementation
@@ -224,13 +218,7 @@ RNG::command(int argc, const char*const* argv)
 			int s = atoi(argv[2]);
 			// NEEDSWORK: should be a way to set seed to PRDEF_SEED_SORUCE
 			if (s) {
-				/*
-				 * Next line generates this spurrious warning under gcc on Linux:
-				 * rng.cc:204: warning: decimal integer constant is so large that it is unsigned
-				 * suggestions about how to suppress this are welcome.
-			 	 */
 				if (s <= 0 || (unsigned int)s >= MAXINT) {
-					// MAXINT on freebsd is a ``black hole'' (it says at MAXINT).
 					tcl.resultf("Setting random number seed to known bad value.");
 					return TCL_ERROR;
 				};
