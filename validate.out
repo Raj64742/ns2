@@ -1,4 +1,4 @@
-*** test-all
+*** ./test-all
 tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 Running test tahoe1
 Test output agrees with reference output
@@ -47,72 +47,6 @@ tcp0/time=5/cwnd=7.0000/ssthresh=7/ack=96/rtt=3
 tcp0/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=2
 tcp 0 total_packets_acked 335
 Test output agrees with reference output
-*** ./test-all-red
-Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined
-Running test red1
-Test output agrees with reference output
-Running test ecn
-Test output agrees with reference output
-Running test red2
-Test output agrees with reference output
-Running test red_twoway
-Test output agrees with reference output
-Running test red_twowaybytes
-Test output agrees with reference output
-Running test flows_unforced
-awkprocedure: unforcedmakeawk
-writing flow xgraph data to fairflow.xgr...
-running xgraph...
-Test output agrees with reference output
-Running test flows_forced
-awkprocedure: forcedmakeawk
-writing flow xgraph data to fairflow.xgr...
-running xgraph...
-Test output agrees with reference output
-Running test flows_combined
-awkprocedure: allmakeawk
-writing flow xgraph data to fairflow.xgr...
-running xgraph...
-Test output agrees with reference output
-All test output agrees with reference output
-*** ./test-all-sack
-Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a
-Running test sack1
-Test output agrees with reference output
-Running test sack1z
-Test output agrees with reference output
-Running test sack1a
-Test output agrees with reference output
-Running test sack1aa
-Test output agrees with reference output
-Running test sack1b
-Test output agrees with reference output
-Running test sack1c
-Test output agrees with reference output
-Running test sack3
-Test output agrees with reference output
-Running test sack5
-Test output agrees with reference output
-Running test sack5a
-Test output agrees with reference output
-Running test sackB2
-Test output agrees with reference output
-Running test sackB4
-Test output agrees with reference output
-Running test sackB4a
-Test output agrees with reference output
-All test output agrees with reference output
-*** ./test-all-schedule
-Tests: fifo-droptail fifo-red sfq drr
-Running test fifo-droptail
-Test output agrees with reference output
-Running test fifo-red
-Test output agrees with reference output
-Running test sfq
-Test output agrees with reference output
-Running test drr
-Test output agrees with reference output
-All test output agrees with reference output
 *** ./test-all-tcp
 Tests: ecn timers timersA timers1 timers2 timers3 timers4 timers5 stats1
 Running test ecn
@@ -152,7 +86,112 @@ packets_resent: 10 bytes_resent: 10000
 ack_packets_received: 496
 retransmit_timeouts: 1
 Test output agrees with reference output
-All test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-red
+Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined
+Running test red1
+Test output agrees with reference output
+Running test ecn
+Test output agrees with reference output
+Running test red2
+Test output agrees with reference output
+Running test red_twoway
+Test output agrees with reference output
+Running test red_twowaybytes
+Test output agrees with reference output
+Running test flows_unforced
+awkprocedure: unforcedmakeawk
+writing flow xgraph data to fairflow.xgr...
+running xgraph...
+Test output agrees with reference output
+Running test flows_forced
+awkprocedure: forcedmakeawk
+writing flow xgraph data to fairflow.xgr...
+running xgraph...
+Test output agrees with reference output
+Running test flows_combined
+awkprocedure: allmakeawk
+writing flow xgraph data to fairflow.xgr...
+running xgraph...
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-sack
+Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a
+Running test sack1
+Test output agrees with reference output
+Running test sack1z
+Test output agrees with reference output
+Running test sack1a
+Test output agrees with reference output
+Running test sack1aa
+Test output agrees with reference output
+Running test sack1b
+Test output agrees with reference output
+Running test sack1c
+Test output agrees with reference output
+Running test sack3
+Test output agrees with reference output
+Running test sack5
+Test output agrees with reference output
+Running test sack5a
+Test output agrees with reference output
+Running test sackB2
+Test output agrees with reference output
+Running test sackB4
+Test output agrees with reference output
+Running test sackB4a
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-schedule
+Tests: fifo-droptail fifo-red sfq drr
+Running test fifo-droptail
+Test output agrees with reference output
+Running test fifo-red
+Test output agrees with reference output
+Running test sfq
+Test output agrees with reference output
+Running test drr
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-cbq
+Tests: WRR PRR AO TL FORMAL MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF
+Running test WRR
+Test output agrees with reference output
+Running test PRR
+Test output agrees with reference output
+Running test AO
+Test output agrees with reference output
+Running test TL
+Test output agrees with reference output
+Running test FORMAL
+Test output agrees with reference output
+Running test MAX1
+Test output agrees with reference output
+Running test MAX2
+Test output agrees with reference output
+Running test EXTRA1
+Test output agrees with reference output
+Running test EXTRA2
+Test output agrees with reference output
+Running test MIN1
+Test output agrees with reference output
+Running test MIN3
+Test output agrees with reference output
+Running test MIN4
+Test output agrees with reference output
+Running test MIN6
+Test output agrees with reference output
+Running test TwoAO
+Test output agrees with reference output
+Running test TwoAO2
+Test output agrees with reference output
+Running test TwoAO3
+Test output agrees with reference output
+Running test TwoTL
+Test output agrees with reference output
+Running test TwoF
+Test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-red-v1
 Tests: red1 red1_bytes ecn red2 red_twoway red_twowaybytes flows flows1 flowsAll
 Running test red1
@@ -179,7 +218,7 @@ Running test flowsAll
 WARNING:  This test was not run.
 This test is not implemented in backward compatibility mode.
 Test output agrees with reference output
-All test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-cbq-v1
 Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
 Running test cbqWRR
@@ -222,7 +261,7 @@ Running test cbqTwoTL
 Test output agrees with reference output
 Running test cbqTwoF
 Test output agrees with reference output
-All test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-sack-v1
 Tests: sack1 sack1a sack1b sack1c sack3 sack4 sack5 sackB2 sackB4 phaseSack phaseSack2 phaseSack3
 Running test sack1
@@ -249,7 +288,7 @@ Running test phaseSack2
 Test output agrees with reference output
 Running test phaseSack3
 Test output agrees with reference output
-All test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-v1
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 Running test tahoe1
@@ -311,4 +350,5 @@ class: 1 per-link total_drops 6
 class: 1 per-link total_packets 103
 class: 1 per-link total_bytes 103000
 Test output agrees with reference output
-All test output agrees with reference output
+All test output agrees with reference output.
+validate overall report: all tests passed
