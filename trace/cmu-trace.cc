@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.74 2003/07/22 22:54:14 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.75 2003/07/23 23:16:56 haldar Exp $
  */
 
 #include <packet.h>
@@ -166,7 +166,6 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 			energy);				// energy
 
 		offset = strlen(pt_->buffer());
-		//if (ch->ptype() == PT_SMAC) {
 		if (strcmp (mactype, "Mac/SMAC") == 0) {
 			format_smac(p, offset);
 		} else {
@@ -202,7 +201,6 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	    // mac layer extension
 
 	    offset = strlen(pt_->buffer());
-	    //if (ch->ptype() == PT_SMAC) {
 	    if (strcmp(mactype, "Mac/SMAC") == 0) {
 		    format_smac(p, offset);
 	    } else {
@@ -251,7 +249,6 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	
 	offset = strlen(pt_->buffer());
 
-	//if (ch->ptype() == PT_SMAC) {
 	if (strncmp (mactype, "Mac/SMAC", 8) == 0) {
 		format_smac(p, offset);
 	} else {
