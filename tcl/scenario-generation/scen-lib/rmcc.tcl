@@ -179,7 +179,7 @@ ScenLib/RM instproc create_mcast {srcnode switch addgrp time args} {
 	$self instvar mrthandle_ fid_
 	if {$mflag == 0} {
 		set mrthandle_ [$ns mrtproto $opts(routingProto) {}]
-		puts "setting the mcastproto- $opts(routingProto)"
+		#puts "setting the mcastproto- $opts(routingProto)"
 		set mflag 1
 	}
 	set dest [Node allocaddr]
@@ -217,7 +217,7 @@ ScenLib/RM instproc create_mcast {srcnode switch addgrp time args} {
 	$src traffic-source $cbr
 	$src set packetSize_ $opts(pktSize)    ;#so repairs are correct
 	$cbr set fid_ [incr fid_]
-	puts "cbr fid = [$cbr set fid_]"
+	#puts "cbr fid = [$cbr set fid_]"
 	$ns at $time "$src start-source"
 }
 
@@ -308,7 +308,7 @@ ScenLib/RM instproc create_tcp {args} {
 		$tcp($k) set fid_ [incr fid_]
 		$tcp($k) set packetSize_ $opts(pktSize)
 		$ns attach-agent $n($k) $tcp($k)
-		puts "ns attach-agent n($k) tcp (fid \
+		#puts "ns attach-agent n($k) tcp (fid \
 			[$tcp($k) set fid_]"
 		
 		incr i
