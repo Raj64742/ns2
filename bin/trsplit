@@ -1,10 +1,8 @@
 eval 'exec perl -S $0 ${1+"$@"}'
     if 0;
-
 #
 # Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
 #
-
 
 sub Usage
 {
@@ -35,16 +33,14 @@ sub ParseArgv
 	if (/^-d$/) {
 	    $delim = shift @ARGV;
 	}
-	elsif (/^-c$/) {
-	    $comment = shift @ARGV;
+	elsif (/^-pt$/) {
+	    $val = shift @ARGV;
+	    $pt = $pt ? $pt . " $val" : $val;
 	}
-	elsif (/^-tt/) {
-		$tt = shift @ARGV;
-	}
-	elsif (/^-(psize|tt|pt|ctt|ctime|csrc|cdst|cpt)$/) {
-	    $argv = shift @ARGV;
+	elsif (/^-(tt|pt|c|psize|ctt|cpt|ctime|csrc|cdst)$/) {
+	    $val = shift @ARGV;
 	    s/-(\w+)/\$$1/;
-	    eval "$_ = $argv";
+	    eval "$_ = '$val'";
 	}
 	else {
 	    last;
@@ -55,8 +51,7 @@ sub ParseArgv
 
 $delim = " ";
 $psize = 1000;
-$tt = 'r';
-$pt = 'ack';
+$tt = '-';
 $ctt = 1;
 $ctime = 2;
 $csrc = 3;
@@ -65,45 +60,44 @@ $cpt = 5;
 $cseq = 11;
 
 &ParseArgv;
+$pt = 'tcp'  if !$pt;
 $ctt--; $ctime--;
 $cpt--; $csrc--; $cdst--; $cseq--;
-
 
 while (<>)
 {
     chop;
     @col = split(/$delim/);
-
     next if ($col[0] ne $tt);
-    next if ($col[$cpt] ne $pt);
+    next if !grep(/$col[$cpt]/, $pt);
 
     $src = $col[$csrc];
     $dst = $col[$cdst];
-    $time{"$src.$dst"} = $col[$ctime];
-    $seqno{"$src.$dst"} = $col[$cseq];
+    $key = "$col[$cpt].$src.$dst";
+    $time{$key} = $col[$ctime];
+    $seqno{$key} = $col[$cseq];
 
-    if ($comment) {
+    if ($c) {
 	$fid = ($src << 16) + $dst;
 	if (! $opened{$fid}) {
-	    open($fid, ">$ARGV.$pt.$src.$dst");
+	    open($fid, ">$ARGV.$key");
 	    $opened{$fid} = 1;
 	}
 	printf $fid "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
     }
 }
 
-
-@keys_seqno = sort {$a <=> $b} (keys %seqno);
-foreach $key (@keys_seqno) {
+@keys = sort (keys %time);
+foreach $key (@keys) {
     $t = $time{$key};
     $s = $seqno{$key};
     $maxtime = $t  if ($t > $maxtime);
     $maxpkt += $s;
-    printf("%s.%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
-	   $pt, $key, $t, $s, $s/$t, 0.008 * $psize * $s/$t);
+    printf("%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
+	   $key, $t, $s, $s/$t, 0.008 * $psize * $s/$t);
 }
 
-if ($comment) {
-	printf(" %d\t%0.6f\t%s\n",
-	       $#keys_seqno+1, 0.008 * $psize * $maxpkt / $maxtime, $comment);
+if ($maxtime > 0) {
+    printf STDERR " %d\t%0.6f\t%s\n",
+	$#keys+1, 0.008 * $psize * $maxpkt / $maxtime, $c;
 }

@@ -1,24 +1,22 @@
 #!/bin/sh
 # \
-[ -x ns ] && nshome=.
+[ -x ../../ns ] && nshome=../../
 # \
-[ -x ../../ns ] && nshome=../..
-# \
-exec $nshome/ns "$0" "$@"
+exec ${nshome}ns "$0" "$@"
 
+set nshome ""
 if [file executable ../../ns] {
-	set nshome ../..
-} else {
-	set nshome .
+	set nshome ../../
 }
-source $nshome/tcl/lan/ns-mac.tcl
-source $nshome/tcl/lan/ns-lan.tcl
-set env(PATH) "$nshome/bin:$env(PATH)"
+source ${nshome}tcl/lan/ns-mac.tcl
+source ${nshome}tcl/lan/ns-lan.tcl
+set env(PATH) "${nshome}bin:$env(PATH)"
 
 
 set opt(tr)	out
 set opt(stop)	20
 set opt(num)	3
+set opt(seed)	0
 
 set opt(bw)	2Mb
 set opt(delay)	1ms
@@ -42,9 +40,8 @@ if {$argc == 0} {
 
 proc getopt {argc argv} {
 	global opt
-	lappend optlist tr stop num
+	lappend optlist tr stop num seed
 	lappend optlist bw delay ll ifq mac chan tp sink source cbr
-	lappend optlist seed
 
 	for {set i 0} {$i < $argc} {incr i} {
 		set arg [lindex $argv $i]
@@ -80,8 +77,10 @@ proc finish {} {
 	$ns flush-trace
 	close $trfd
 
-	exec perl $nshome/bin/trsplit -tt "r" -pt "ack" -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)" $opt(tr) >> $opt(tr)-bw
-	cat $opt(tr)-bw
+	exec perl ${nshome}bin/trsplit -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt >> $opt(tr)-bw
+	exec cat $opt(tr)-bwt >> $opt(tr)-bw
+	cat $opt(tr)-bwt
+	exec rm $opt(tr)-bwt
 
 	if [info exists opt(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
@@ -158,7 +157,7 @@ proc create-source {num} {
 
 ## MAIN ##
 getopt $argc $argv
-if [info exists opt(seed)] {
+if {$opt(seed) > 0} {
 	ns-random $opt(seed)
 }
 set ns [new Simulator]
