@@ -419,7 +419,6 @@ indep-utils/cmu-scen-gen/setdest/gentracefiles
 indep-utils/cmu-scen-gen/setdest/make-scen.csh
 indep-utils/cmu-scen-gen/setdest/setdest.cc
 indep-utils/cmu-scen-gen/setdest/setdest.h
-indep-utils/shadowing/threshold.cc
 indep-utils/propagation/threshold.cc
 indep-utils/webtrace-conv/Makefile
 indep-utils/webtrace-conv/README
