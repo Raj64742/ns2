@@ -29,7 +29,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.16 2002/05/23 06:42:09 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.17 2002/06/28 22:01:48 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -50,13 +50,16 @@ class EmpWebTrafPool;
 
 class EmpWebTrafSession : public TimerHandler {
 public: 
-	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum, int cl) : 
+	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum, int cl, int ftcp_) : 
 		rvInterPage_(NULL), rvPageSize_(NULL),
 		rvInterObj_(NULL), rvObjSize_(NULL), 
 		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
 		rvServerWin_(NULL), rvClientWin_(NULL),
+		rvMtu_(NULL),
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
-		id_(id), clientIdx_(cl), interPageOption_(1) {}
+		id_(id), clientIdx_(cl), fulltcp_(0), interPageOption_(1) {
+	        fulltcp_ = ftcp_;	
+		}
 	virtual ~EmpWebTrafSession();
 
 	// Queried by individual pages/objects
@@ -71,6 +74,8 @@ public:
 
 	inline EmpiricalRandomVariable*& serverWin() { return rvServerWin_; }
 	inline EmpiricalRandomVariable*& clientWin() { return rvClientWin_; }
+
+	inline EmpiricalRandomVariable*& mtu() { return rvMtu_; }
 
 	void donePage(void* ClntData);
 	void launchReq(void* ClntData, int obj, int size, int reqSize, int sid, int p);
@@ -88,6 +93,7 @@ private:
 	EmpiricalRandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
 	EmpiricalRandomVariable *rvReqSize_, *rvPersistSel_, *rvServerSel_;
 	EmpiricalRandomVariable *rvServerWin_, *rvClientWin_;
+	EmpiricalRandomVariable *rvMtu_;
 	EmpWebTrafPool* mgr_;
 	Node* src_;		// One Web client (source of request) per session
 	int nPage_, curPage_, donePage_;
@@ -95,6 +101,8 @@ private:
 
 
         int clientIdx_;
+
+        int fulltcp_;
 
         int interPageOption_;
 
@@ -128,7 +136,7 @@ public:
 	}
 	void recycleTcp(Agent* a);
 	void recycleSink(Agent* a);
-	TcpAgent* picktcp(int size);
+	TcpAgent* picktcp(int size, int mtu);
 	TcpSink* picksink();
 	inline int nTcp() { return nTcp_; }
 	inline int nSink() { return nSink_; }
@@ -193,6 +201,8 @@ protected:
 	}
 
 	int debug_;
+
+	int fulltcp_;
 };
 
 

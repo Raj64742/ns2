@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.15 2002/05/23 06:42:09 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.16 2002/06/28 22:01:48 kclan Exp $
 
 #include <tclcl.h>
 
@@ -159,12 +159,20 @@ void EmpWebTrafSession::donePage(void* ClntData)
 	}
 	
 
-        if (pg->persistOption_) { //for HTTP1.1 persistent-connection
+	//for HTTP1.1 persistent-connection
+        if (pg->persistOption_) {
+	  	if (!fulltcp_) { 
         	//recycle TCP connection
-		mgr_->recycleTcp(ctcp_);
-		mgr_->recycleTcp(stcp_);
-		mgr_->recycleSink(csnk_);
-		mgr_->recycleSink(ssnk_);
+			mgr_->recycleTcp(ctcp_);
+			mgr_->recycleTcp(stcp_);
+			mgr_->recycleSink(csnk_);
+			mgr_->recycleSink(ssnk_);
+		} else {
+			Tcl::instance().evalf("%s disconnect-full %s %s %s %s",
+			        mgr_->name(),
+				src_->name(), pg->dst()->name(),
+			        ctcp_->name(),  stcp_->name());
+		}
 	}
 
 	delete pg;
@@ -182,10 +190,6 @@ void EmpWebTrafSession::donePage(void* ClntData)
 void EmpWebTrafSession::expire(Event *)
 {
 	// Pick destination for this page
-        // int n = int(ceil(serverSel()->value()));
-        //
-        // if ((clientIdx_ < mgr()->nClientL_) && (n < mgr()->nSrcL_)) 
-        //   n = int(floor(Random::uniform(mgr()->nSrcL_, mgr()->nSrc_)));
 	//temporary hack for isi traffic
 	int n;
         if (clientIdx_ < mgr()->nClientL_) n = 0 ; //ISI server
@@ -194,6 +198,7 @@ void EmpWebTrafSession::expire(Event *)
 
         assert((n >= 0) && (n < mgr()->nSrc_));
         Node* dst = mgr()->server_[n];
+
 
 	// Make sure page size is not 0!
 	EmpWebPage* pg = new EmpWebPage(LASTPAGE_++, this, 
@@ -215,11 +220,24 @@ void EmpWebTrafSession::expire(Event *)
 	    	int winc = int(ceil(clientWin()->value()));
 	 	int window = (wins >= winc) ? wins : winc;
 
+	 	int m = int(ceil(mtu()->value()));
+
 	  	// Choose source and dest TCP agents for both source and destination
-	  	ctcp_ = mgr_->picktcp(window);
-	  	stcp_ = mgr_->picktcp(window);
-	  	csnk_ = mgr_->picksink();
-	  	ssnk_ = mgr_->picksink();
+		if (fulltcp_) {
+	  		ctcp_ = mgr_->picktcp(window,m);
+	  		stcp_ = mgr_->picktcp(window,m);
+
+			Tcl::instance().evalf("%s connect-full %s %s %s %s",
+			        mgr_->name(),
+				src_->name(), pg->dst()->name(),
+			        ctcp_->name(),  stcp_->name());
+
+                } else {
+	  		ctcp_ = mgr_->picktcp(window,m);
+	  		stcp_ = mgr_->picktcp(window,m);
+	  		csnk_ = mgr_->picksink();
+	  		ssnk_ = mgr_->picksink();
+		}
 
 		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp_->name(), stcp_->name());
 
@@ -262,10 +280,15 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 		}
 
 		// use theh same connection
-	  	ctcp = ctcp_;
-	  	stcp = stcp_;
-	  	csnk = csnk_;
-	  	ssnk = ssnk_;
+		if (fulltcp_) {
+	  		ctcp = ctcp_;
+	  		stcp = stcp_;
+		} else {
+	  		ctcp = ctcp_;
+	  		stcp = stcp_;
+	  		csnk = csnk_;
+	  		ssnk = ssnk_;
+		}
 
 
         } else { //for HTTP1.0 non-consistent connection
@@ -279,31 +302,49 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 	    	int winc = int(ceil(clientWin()->value()));
 	 	int window = (wins >= winc) ? wins : winc;
 
+	 	int m = int(ceil(mtu()->value()));
+
 	  	// Choose source and dest TCP agents for both source and destination
-	  	ctcp = mgr_->picktcp(window);
-	  	stcp = mgr_->picktcp(window);
-	  	csnk = mgr_->picksink();
-	  	ssnk = mgr_->picksink();
+
+		if (fulltcp_) {
+	  		ctcp = mgr_->picktcp(window,m);
+	  		stcp = mgr_->picktcp(window,m);
+		} else {
+	  		ctcp = mgr_->picktcp(window,m);
+	  		stcp = mgr_->picktcp(window,m);
+	  		csnk = mgr_->picksink();
+	  		ssnk = mgr_->picksink();
+		}
 
 		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp->name(), stcp->name());
 
 	}
 
 	// Setup new TCP connection and launch request
+	// size and reqSize are in the unit of bytes in fulltcp mode
+	// but in the unit of packet in halftcp mode
+	if (fulltcp_) {
+
+	Tcl::instance().evalf("%s launch-req-full %d %d %s %s %s %s %d %d %d %d",                             mgr_->name(), obj, pg->id(), 
+			      src_->name(), pg->dst()->name(),
+			      ctcp->name(),  
+			      stcp->name(),  
+			      size, reqSize, ClntData,persist);
+
+	} else {
+
 	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d %d %d",                             mgr_->name(), obj, pg->id(), 
 			      src_->name(), pg->dst()->name(),
 			      ctcp->name(), csnk->name(), 
 			      stcp->name(), ssnk->name(), 
 			      size, reqSize, ClntData,
 			      persist);
+	}
 
 
-	// Debug only
-	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
 
 	if (mgr_->isdebug()) {
 	 	printf("size=%d  obj=%d  page=%d  sess=%d  %g src=%d dst=%d\n", size, obj, pg->id(), id_, Scheduler::instance().clock(), src_->address(), pg->dst()->address());
-		printf("** Tcp agents %d, Tcp sinks %d\n", mgr_->nTcp(),mgr_->nSink());
 	}
 }
 
@@ -345,19 +386,22 @@ int EmpWebTrafPool::delay_bind_dispatch(const char *varName,const char *localNam
 }
 
 EmpWebTrafPool::EmpWebTrafPool() : 
-	concurrentSess_(0), nSrc_(0), server_(NULL), session_(NULL), nClient_(0), client_(NULL), nTcp_(0), nSink_(0)
+	concurrentSess_(0), nSrc_(0), server_(NULL), session_(NULL), nClient_(0), client_(NULL), nTcp_(0), nSink_(0), fulltcp_(0)
 {
+        bind("fulltcp_", &fulltcp_);
+
 	LIST_INIT(&tcpPool_);
 	LIST_INIT(&sinkPool_);
 }
 
-TcpAgent* EmpWebTrafPool::picktcp(int win)
+TcpAgent* EmpWebTrafPool::picktcp(int win, int mtu)
 {
+
 
 	TcpAgent* a = (TcpAgent*)detachHead(&tcpPool_);
 	if (a == NULL) {
 		Tcl& tcl = Tcl::instance();
-		tcl.evalf("%s alloc-tcp %d", name(), win);
+		tcl.evalf("%s alloc-tcp %d %d", name(), win, mtu);
 		a = (TcpAgent*)lookup_obj(tcl.result());
 		if (a == NULL) {
 			fprintf(stderr, "Failed to allocate a TCP agent\n");
@@ -386,22 +430,32 @@ TcpSink* EmpWebTrafPool::picksink()
 
 void EmpWebTrafPool::recycleTcp(Agent* a)
 {
-	if (a == NULL) {
-		fprintf(stderr, "Failed to recycle TCP agent\n");
-		abort();
+	if (fulltcp_) {
+		delete a;
+	} else {
+
+		if (a == NULL) {
+			fprintf(stderr, "Failed to recycle TCP agent\n");
+			abort();
+		}
+		nTcp_++;
+		insertAgent(&tcpPool_, a);
 	}
-	nTcp_++;
-	insertAgent(&tcpPool_, a);
 }
 
 void EmpWebTrafPool::recycleSink(Agent* a)
 {
-	if (a == NULL) {
-		fprintf(stderr, "Failed to recycle Sink agent\n");
-		abort();
+	if (fulltcp_) {
+		delete a;
+	} else {
+
+		if (a == NULL) {
+			fprintf(stderr, "Failed to recycle Sink agent\n");
+			abort();
+		}
+		nSink_++;
+		insertAgent(&sinkPool_, a);
 	}
-	nSink_++;
-	insertAgent(&sinkPool_, a);
 }
 
 int EmpWebTrafPool::command(int argc, const char*const* argv)
@@ -488,22 +542,27 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			// Recycle a TCP source/sink pair
 			Agent* tcp = (Agent*)lookup_obj(argv[2]);
 			Agent* snk = (Agent*)lookup_obj(argv[3]);
-			nTcp_++, nSink_++;
 			if ((tcp == NULL) || (snk == NULL))
 				return (TCL_ERROR);
 			// XXX TBA: recycle tcp agents
-			insertAgent(&tcpPool_, tcp);
-			insertAgent(&sinkPool_, snk);
+			if (fulltcp_) {
+				delete tcp;
+				delete snk;
+			} else {
+				nTcp_++, nSink_++;
+				insertAgent(&tcpPool_, tcp);
+				insertAgent(&sinkPool_, snk);
+			}
 			return (TCL_OK);
 		}
-	} else if (argc == 15) {
+	} else if (argc == 16) {
 		if (strcmp(argv[1], "create-session") == 0) {
 			// <obj> create-session <session_index>
 			//   <pages_per_sess> <launch_time>
 			//   <inter_page_rv> <page_size_rv>
 			//   <inter_obj_rv> <obj_size_rv>
 			//   <req_size_rv> <persist_sel_rv> <server_sel_rv>
-			//   <client_win_rv> <server_win_rv> 
+			//   <client_win_rv> <server_win_rv> <mtu_rv>
 			//   <inbound/outbound flag>
 			int n = atoi(argv[2]);
 			if ((n < 0)||(n >= nSession_)||(session_[n] != NULL)) {
@@ -513,7 +572,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			int npg = (int)strtod(argv[3], NULL);
 			double lt = strtod(argv[4], NULL);
 
-			int flip = atoi(argv[14]);
+			int flip = atoi(argv[15]);
 			if ((flip < 0)||(flip > 1)) {
 				fprintf(stderr,"Invalid I/O flag %d\n",flip);
 				return (TCL_ERROR);
@@ -524,11 +583,12 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
                           cl = int(floor(Random::uniform(0, nClientL_)));
 			else
                           cl = int(floor(Random::uniform(nClientL_, nClient_)));
+
                         assert((cl >= 0) && (cl < nClient_));
                         Node* c=client_[cl];
 
 			EmpWebTrafSession* p = 
-				new EmpWebTrafSession(this, c, npg, n, nSrc_, cl);
+				new EmpWebTrafSession(this, c, npg, n, nSrc_, cl,fulltcp_);
 
 			int res = lookup_rv(p->interPage(), argv[5]);
 			res = (res == TCL_OK) ? 
@@ -547,6 +607,8 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 				lookup_rv(p->serverWin(), argv[12]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->clientWin(), argv[13]) : TCL_ERROR;
+			res = (res == TCL_OK) ? 
+				lookup_rv(p->mtu(), argv[14]) : TCL_ERROR;
 			if (res == TCL_ERROR) {
 				delete p;
 				fprintf(stderr, "Invalid random variable\n");
