@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.228 2001/08/03 22:56:47 johnh Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.229 2001/09/20 19:02:52 alefiyah Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -247,7 +247,7 @@ SUBDIRS=\
 	indep-utils/webtrace-conv/nlanr \
 	indep-utils/webtrace-conv/ucb
 
-# BUILD_NSE = @build_nse@
+BUILD_NSE = @build_nse@
 
 all: $(NS) $(BUILD_NSE) all-recursive
 
@@ -266,7 +266,7 @@ Makefile: Makefile.in
 $(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) \
-		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) -lpcap
+		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) 
 
 ns.dyn: $(OBJ) tclAppInit.o
 	$(LINK) $(LDFLAGS) -o $@ \
