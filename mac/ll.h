@@ -36,38 +36,42 @@
 #ifndef ns_ll_h
 #define ns_ll_h
 
-#include "biconnector.h"
+#include "delay.h"
 
-
+class ErrorModel;
 class Mac;
 
 struct hdr_ll {
 	int seqno_;		// sequence number
 	int ack_;		// acknowledgement number
 	int error_;		// error flag
+	double errlen_;		// length of error, negative if error at tail
+	double txtime_;		// transmission time of the packet
 
 	inline int& seqno() { return seqno_; }
 	inline int& ack() { return ack_; }
 	inline int& error() { return error_; }
+	inline double& errlen() { return errlen_; }
+	inline double& txtime() { return txtime_; }
 };
 
 
-class LL : public BiConnector {
+class LL : public LinkDelay {
 public:
 	LL();
 	void recv(Packet* p, Handler* h);
-	inline double delay() { return delay_; }
 	inline Mac* mac() { return mac_; }
 
 protected:
 	int command(int argc, const char*const* argv);
-	double delay_;		// link-layer send and recv overhead
 	int seqno_;		// link-layer sequence number
 	int off_ll_;		// offset of link-layer header
 	int off_mac_;		// offset of MAC header
 	LL* peerLL_;		// link layer of the peer
 	Mac* mac_;		// MAC object
-	Event intr_;		// interrupt event for callback
+        NsObject* sendtarget_;	// where packet is passed down the stack
+	NsObject* recvtarget_;	// where packet is passed up the stack
+	ErrorModel* em_;
 };
 
 #endif

@@ -33,8 +33,9 @@
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  */
 
-#include "ll.h"
+#include "errmodel.h"
 #include "mac.h"
+#include "ll.h"
 
 
 static class LLHeaderClass : public PacketHeaderClass {
@@ -52,9 +53,8 @@ public:
 } class_ll;
 
 
-LL::LL() : BiConnector(), delay_(0), seqno_(0), peerLL_(0), mac_(0)
+LL::LL() : LinkDelay(), seqno_(0), peerLL_(0), mac_(0), em_(0)
 {
-	bind_time("delay_", &delay_);
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
 }
@@ -73,6 +73,18 @@ LL::command(int argc, const char*const* argv)
 			mac_ = (Mac*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "sendtarget") == 0) {
+			sendtarget_ = (NsObject*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "recvtarget") == 0) {
+			recvtarget_ = (NsObject*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "error") == 0) {
+			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
 	}
 
 	else if (argc == 2) {
@@ -84,8 +96,16 @@ LL::command(int argc, const char*const* argv)
 			tcl.resultf("%s", mac_->name());
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "sendtarget") == 0) {
+			tcl.resultf("%s", sendtarget_->name());
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "recvtarget") == 0) {
+			tcl.resultf("%s", recvtarget_->name());
+			return (TCL_OK);
+		}
 	}
-	return BiConnector::command(argc, argv);
+	return LinkDelay::command(argc, argv);
 }
 
 
@@ -95,7 +115,7 @@ LL::recv(Packet* p, Handler* h)
 	Scheduler& s = Scheduler::instance();
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 	if (h == 0) {		// from MAC classifier
-		if (llh->error())
+		if (llh->error() > 0 || (em_ && em_->corrupt(p)))
 			drop(p);
 		else
 			s.schedule(recvtarget_, p, delay_);
@@ -103,6 +123,7 @@ LL::recv(Packet* p, Handler* h)
 	}
 	llh->seqno() = ++seqno_;
 	llh->error() = 0;
+	llh->txtime() = txtime(p);
 	((hdr_mac*)p->access(off_mac_))->macDA() = peerLL_->mac()->label();
 
 	s.schedule(sendtarget_, p, delay_);
