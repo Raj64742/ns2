@@ -120,7 +120,6 @@ CBQLink instproc insert cbqcl {
 
 CBQClass instproc setparams { parent okborrow allot maxidle prio level xdelay } {
 
-puts "setparam: okborrow $okborrow"
         $self allot $allot
 	$self parent $parent
 
