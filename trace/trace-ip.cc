@@ -83,7 +83,7 @@ public:
 void TraceIp::recv(Packet* p, Handler* h)
 {
 	// XXX: convert IP address to node number
-	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+	hdr_ip *iph = hdr_ip::access(p);
 	int src = (src_ >= 0) ? src_ : (iph->src() >> shift_) & mask_;
 	int dst = (iph->dst() >> shift_) & mask_;
 	format(type_, src, dst , p);
@@ -95,7 +95,7 @@ void TraceIp::recv(Packet* p, Handler* h)
 void TraceIpMac::recv(Packet* p, Handler* h)
 {
 	// XXX: convert IP address to node number
-	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+	hdr_ip *iph = hdr_ip::access(p);
 	int src = (src_ >= 0) ? src_ : (iph->src() >> shift_) & mask_;
 	int dst = (iph->dst() >> shift_) & mask_;
 
