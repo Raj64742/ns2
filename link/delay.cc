@@ -33,35 +33,10 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.8 1997/03/29 01:42:49 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.9 1997/03/29 22:58:06 gnguyen Exp $ (LBL)";
 #endif
 
-#include "packet.h"
-#include "queue.h"
-#include "ip.h"
-
-class InTransitQ;
-
-class LinkDelay : public Connector {
- public:
-	LinkDelay();
-	void recv(Packet* p, Handler*);
-	void send(Packet* p, Handler*);
-	double delay() { return delay_; }
-	double txtime(Packet* p) {
-		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
-		return (hdr->size() * 8. / bandwidth_);
-	}
-
- protected:
-	int command(int argc, const char*const* argv);
-	void reset();
-	double bandwidth_;	/* bandwidth of underlying link (bits/sec) */
-	double delay_;		/* line latency */
-	Event intr_;
-	int dynamic_;		/* indicates whether or not link is ~ */
-	InTransitQ* intq_;
-};
+#include "delay.h"
 
 static class LinkDelayClass : public TclClass {
 public:
@@ -70,51 +45,6 @@ public:
 		return (new LinkDelay);
 	}
 } class_delay_link;
-
-class InTransitQ : public PacketQueue , public Handler {
-public:
-	InTransitQ(LinkDelay* ld) : ld_(ld), nextPacket_(0) {}
-
-	void schedule_next() {
-		Packet* np;
-		if (np = deque()) {
-			Scheduler& s = Scheduler::instance();
-			double txt = ld_->txtime(np);
-			if (nextPacket_)	// just got delivered
-				s.schedule(this, &itq_, txt);
-			else
-				s.schedule(this, &itq_, txt + ld_->delay());
-		}
-		nextPacket_ = np;
-	}
-
-	void handle(Event* e) {
-		ld_->send(nextPacket_, (Handler*) NULL);
-		schedule_next();
-	}
-
-	void hold_in_transit(Packet* p) {
-		enque(p);
-		if (! nextPacket_)
-			schedule_next();
-	}
-
-	void reset() {
-		if (nextPacket_) {
-			Scheduler::instance().cancel(&itq_);
-			Packet::free(nextPacket_);
-			nextPacket_ = (Packet*) NULL;
-			while (Packet* np = deque())
-				Packet::free(np);
-		}
-	}
-
-private:
-	LinkDelay* ld_;
-	Packet* nextPacket_;
-	Event itq_;
-};
-
 
 LinkDelay::LinkDelay() : dynamic_(0), intq_(0)
 {
@@ -138,17 +68,16 @@ int LinkDelay::command(int argc, const char*const* argv)
 
 void LinkDelay::recv(Packet* p, Handler* h)
 {
-	hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
-	double txtime = hdr->size() * 8. / bandwidth_;
+	double txt = txtime(p);
 	Scheduler& s = Scheduler::instance();
 	if (dynamic_)
 		intq_->hold_in_transit(p);
 	else
-		s.schedule(target_, p, txtime + delay_);
+		s.schedule(target_, p, txt + delay_);
 	/*XXX only need one intr_ since upstream object should
 	 * block until it's handler is called
 	 */
-	s.schedule(h, &intr_, txtime);
+	s.schedule(h, &intr_, txt);
 }
 
 void LinkDelay::send(Packet* p, Handler*)
