@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.7 1998/03/18 20:05:59 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.8 1998/06/12 18:06:17 kfall Exp $
 #
 
 #
@@ -112,4 +112,21 @@ Agent proc set-maxttl {objectOrClass var} {
 		$objectOrClass set $var [Agent set ttl_]
 	}
 	$objectOrClass set $var
+}
+
+#
+# Full Tcp constructors for other than the baseline Reno
+# implementation
+#
+
+Agent/TCP/FullTcp/Tahoe instproc init {} {
+	$self next
+	$self instvar fastrecov_
+	set fastrecov_ false
+}
+
+Agent/TCP/FullTcp/Newreno instproc init {} {
+	$self next
+	$self instvar deflate_on_pack_
+	set deflate_on_pack_ false
 }
