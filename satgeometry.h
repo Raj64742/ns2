@@ -78,7 +78,7 @@ public:
 	static double get_latitude(coordinate);
 	static double get_longitude(coordinate);
 	static double get_radius(coordinate a) { return a.r; }
-	static double get_altitude(coordinate a);
+	static double get_altitude(coordinate);
 	static double check_elevation(coordinate, coordinate, double);
 	static int check_atmos_margin(coordinate, coordinate);
 

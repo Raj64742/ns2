@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.7 1999/10/26 17:35:12 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.8 1999/11/13 01:58:30 tomh Exp $";
 #endif
 
 #include <stdio.h>
@@ -157,14 +157,14 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
                         SatNode *sn = (SatNode*) n;
 			snadd = sn->address();
                         if (lasth == snadd) {
-                                s_lat = (180/PI)* SatGeometry::get_latitude(sn->position()->coord());
-                                s_lon = (180/PI)* SatGeometry::get_longitude(sn->position()->coord());
+                                s_lat = RAD_TO_DEG(SatGeometry::get_latitude(sn->position()->coord()));
+                                s_lon = RAD_TO_DEG(SatGeometry::get_longitude(sn->position()->coord()));
                                 if (d_lat != -999) 
                                         break; // Have now found both s and d
                         }
                         if (nexth == snadd) {
-                                d_lat = (180/PI)* SatGeometry::get_latitude(sn->position()->coord()); 
-                                d_lon = (180/PI)* SatGeometry::get_longitude(sn->position()->coord());
+                                d_lat = RAD_TO_DEG(SatGeometry::get_latitude(sn->position()->coord())); 
+                                d_lon = RAD_TO_DEG(SatGeometry::get_longitude(sn->position()->coord()));
                                 if (s_lat != -999) 
                                         break; // Have now found both s and d
                         }

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satgeometry.cc,v 1.3 1999/11/12 16:45:01 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satgeometry.cc,v 1.4 1999/11/13 01:58:28 tomh Exp $";
 #endif
 
 #include "satgeometry.h"
@@ -101,6 +101,9 @@ double SatGeometry::get_longitude(coordinate coord_)
         double earth_longitude = fmod((coord_.phi -
            (fmod(NOW + SatPosition::time_advance_,period)/period) * 2*PI), 
 	    2*PI);
+	// Bring earth_longitude to be within (-PI, PI)
+        if (earth_longitude < (-1*PI))
+		earth_longitude = 2*PI + earth_longitude;
         if (earth_longitude > PI)
 		earth_longitude = (-(2*PI - earth_longitude));
 	if (fabs(earth_longitude) < 0.0001)
