@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.3 1999/07/02 00:38:35 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.4 1999/07/02 17:07:10 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -162,7 +162,7 @@ public:
 	// Return the amount of data evicted
 	int evict_tail(int sz) {
 		// Adjust both the size and playout time
-#if 1
+#ifdef MCACHE_DEBUG
 		fprintf(stderr, "evicted (%d, %d) ", end_-sz, end_);
 #endif
 		if (datasize() >= sz) 

@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.5 1999/07/02 00:38:36 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.6 1999/07/02 17:07:11 haoboy Exp $
 
 #include "rap.h"
 
@@ -124,9 +124,9 @@ RapAgent::RapAgent() : Agent(PT_RAP_DATA), ipgTimer_(this), rttTimer_(this),
 // Cancel all our timers before we quit
 RapAgent::~RapAgent()
 {
-	fprintf(stderr, "%g: rap agent %s(%d) stops.\n", 
-		Scheduler::instance().clock(), name(), addr());
-	Tcl::instance().eval("[Simulator instance] flush-trace");
+//  	fprintf(stderr, "%g: rap agent %s(%d) stops.\n", 
+//  		Scheduler::instance().clock(), name(), addr());
+//  	Tcl::instance().eval("[Simulator instance] flush-trace");
 	stop();
 }
 

@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.3 1999/07/02 00:38:33 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.4 1999/07/02 17:07:09 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -97,7 +97,7 @@ void MediaSegmentList::add(const MediaSegment& s)
 			s.start(), s.end());
 		fprintf(stderr, "List contents: ");
 		print();
-#if 1
+#if 0
 		//Tcl::instance().eval("[Test instance] flush-trace");
 		//abort();
 #endif
@@ -943,7 +943,7 @@ bs2: %d\n", bs1, bs2);
 			// RAP should do that in its IpgTimeout()
 			// instead of DecreaseIpg(). See rap.cc.
 			if (layers == num_layer_){
-#if 0
+#if MCACHE_DEBUG
 				if (rate < num_layer_*LAYERBW_)
 					panic("ERROR: rate: %.2f is less than \
 MAX BW for all %d layers!\n", rate, layers);

@@ -843,6 +843,7 @@ tcl/test/test-all-hier-routing
 tcl/test/test-all-intserv
 tcl/test/test-all-lan
 tcl/test/test-all-manual-routing
+tcl/test/test-all-mcache
 tcl/test/test-all-mcast
 tcl/test/test-all-mip
 tcl/test/test-all-mixmode
@@ -1013,6 +1014,16 @@ tcl/test/test-output-lan/lan-routing-flat.Z
 tcl/test/test-output-lan/lan-routing-hier.Z
 tcl/test/test-output-manual-routing
 tcl/test/test-output-manual-routing/one_client.Z
+tcl/test/test-output-mcache
+tcl/test/test-output-mcache/media1.Z
+tcl/test/test-output-mcache/media2.Z
+tcl/test/test-output-mcache/media3.Z
+tcl/test/test-output-mcache/media3a.Z
+tcl/test/test-output-mcache/media4.Z
+tcl/test/test-output-mcache/media4a.Z
+tcl/test/test-output-mcache/media5.Z
+tcl/test/test-output-mcache/media5a.Z
+tcl/test/test-output-mcache/media5b.Z
 tcl/test/test-output-mcast
 tcl/test/test-output-mcast/CtrMcast1.Z
 tcl/test/test-output-mcast/CtrMcast2.Z
@@ -1306,6 +1317,7 @@ tcl/test/test-suite-hier-routing.tcl
 tcl/test/test-suite-intserv.tcl
 tcl/test/test-suite-lan.tcl
 tcl/test/test-suite-manual-routing.tcl
+tcl/test/test-suite-mcache.tcl
 tcl/test/test-suite-mcast.tcl
 tcl/test/test-suite-mip.tcl
 tcl/test/test-suite-mixmode.tcl

@@ -26,7 +26,7 @@
 # Implementation of web cache, client and server which support 
 # multimedia objects.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.1 1999/05/26 01:20:33 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.2 1999/07/02 17:07:14 haoboy Exp $
 
 #
 # Multimedia web client
@@ -106,7 +106,7 @@ server [$server id] with page $pageid"
 	$server media-disconnect $self $pageid
 
 	# DEBUG ONLY
-	puts "Client [$self id] disconnect from server [$server id]"
+#	puts "Client [$self id] disconnect from server [$server id]"
 
 	delete $agent
 	delete $app
@@ -156,13 +156,12 @@ Http/Server/Media instproc alloc-mcon { client pageid dst_agent } {
 	# Associate $app with $client and $pageid
 	$self register-client $app $client $pageid
 
-	# Logging MediaApps, only do it for sender-side media apps
-	set lf [$self log]
-	if {$lf != ""} {
-		$app log $lf
-	}
-
 	# DEBUG ONLY
+	# Logging MediaApps, only do it for sender-side media apps
+#	set lf [$self log]
+#	if {$lf != ""} {
+#		$app log $lf
+#	}
 	#puts "Server [$self id] allocated a connection to client [$client id]\
 # using agent $agent"
 
@@ -175,8 +174,8 @@ Http/Server/Media instproc media-disconnect { client pageid } {
 	$self instvar mmapp_ ns_ node_
 
 	# DEBUG ONLY
-	puts "At [$ns_ now] Server [$self id] disconnected from \
-			client [$client id]"
+#	puts "At [$ns_ now] Server [$self id] disconnected from \
+#			client [$client id]"
 
 	if {![info exists mmapp_($client/$pageid)]} {
 		error "Media server [$self id] disconnect: not connected to \
@@ -264,7 +263,7 @@ Http/Server/Media instproc get-request { client type pageid args } {
 		$client media-disconnect $self $pageid
 		# DEBUG only
 		$self instvar ns_
-puts "At [$ns_ now] server [$self id] stops prefetching $pageid"
+#puts "At [$ns_ now] server [$self id] stops prefetching $pageid"
 	} else {
 		eval $self next $client $type $pageid $args
 	}
@@ -291,7 +290,7 @@ Http/Cache/Media instproc start-prefetch { server pageid } {
 	} else {
 		set pref_($server/$pageid) 1
 	}
-	puts "At [$ns_ now] cache [$self id] starts prefetching to [$server id]"
+#	puts "At [$ns_ now] cache [$self id] starts prefetching to [$server id]"
 	# XXX Do not use QA for prefetching!!
 	Http instvar MEDIA_APP_
 	set oldapp $MEDIA_APP_
@@ -347,10 +346,10 @@ stream $pageid from client [$client id]"
 	$self register-client $app $client $pageid
 
 	# Logging MediaApps, only do it for sender-side media apps
-	set lf [$self log]
-	if {$lf != ""} {
-		$app log $lf
-	}
+#	set lf [$self log]
+#	if {$lf != ""} {
+#		$app log $lf
+#	}
 
 	# Connect two RAP agents and start data transmission
 	$ns_ connect $agent $dst_agent
@@ -367,8 +366,8 @@ Http/Cache/Media instproc media-disconnect { host pageid } {
 		$ns_ detach-agent $node_ $agent
 		$self unregister-client $app $host $pageid
 		# DEBUG ONLY
-		puts "At [$ns_ now] Cache [$self id] disconnect from \
-				client [$host id]"
+#		puts "At [$ns_ now] Cache [$self id] disconnect from \
+#				client [$host id]"
 		delete $agent
 		delete $app
 		unset c_mmapp_($host/$pageid)
@@ -387,8 +386,8 @@ Http/Cache/Media instproc media-disconnect { host pageid } {
 		$host media-disconnect $self $pageid
 
 		# DEBUG ONLY
-		puts "At [$ns_ now] Cache [$self id] disconnect from \
-				server [$host id]"
+#		puts "At [$ns_ now] Cache [$self id] disconnect from \
+#				server [$host id]"
 
 		delete $agent
 		delete $app
@@ -407,7 +406,7 @@ Http/Cache/Media instproc media-disconnect { host pageid } {
 		if {$host == $server} {
 			# If we are disconnected from the server, close 
 			# prefetch
-			puts "At [$ns_ now] cache [$self id] stops prefetching to [$server id]"
+#			puts "At [$ns_ now] cache [$self id] stops prefetching to [$server id]"
 			$self evTrace E STP s [$server id] p $pageid
 			unset pref_($server/$pageid)
 		} else { 
