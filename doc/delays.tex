@@ -105,7 +105,7 @@ it will schedule $E_1$ to possibly unblock the queue at the
 appropriate time.
 However, $E_2$ is scheduled only
 if $p$ is the only packet currently in transit.
-Otherwise, there is atleast one packet in transit on the link that must
+Otherwise, there is at least one packet in transit on the link that must
 be delivered before $p$ at $E_2$.
 Therefore, packet $p$ is held in the object's inTransit queue, \code{itq_}.
 When the packet just before $p$ in transit on the link is delivered

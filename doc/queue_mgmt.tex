@@ -143,7 +143,7 @@ When a Queue receives a packet it calls the subclass
 (i.e. queueing discipline-specific) version of
 the \code{enque} function with the packet.
 If the queue is not blocked, it is allowed to send a packet and
-calls the specific \code{deque} function which determins which
+calls the specific \code{deque} function which determines which
 packet to send, blocks the queue (because a packet is now in transit), and
 sends the packet to the queue's downstream neighbor.
 Note that any future packets received from upstream neighbors

@@ -9,7 +9,7 @@ and the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}.
 We then describe
 \href{configuration mechanisms for specialised routing}{%
         Section}{sec:uni:specroute}
-such as asymetric routing, or equal cost multipath routing
+such as asymmetric routing, or equal cost multipath routing
 The next section describes the
 \href{the configuration mechanisms for individual routing strategies
 and protocols}{Section}{sec:uni:protconfig}.
@@ -114,7 +114,7 @@ alter the class variables for the agent before the agent is created.
 \paragraph{Link Cost Assignment and Control}
 In the currently implemented route protocols,
 the metric of a route to a destination, at a node,
-is the cost to reach the destiantion from that node.
+is the cost to reach the destination from that node.
 It is possible to change the link costs at each of the links.
 The instance procedure
 \fcnref{\proc[]{cost}}{../ns-2/route-proto.tcl}{Simulator::cost}
@@ -139,7 +139,7 @@ The default cost of a link is 1.
 
 It is possible to adjust preference and cost mechanisms to get two
 special types of route configurations: 
-asymetric routing, and multipath routing.
+asymmetric routing, and multipath routing.
 
 \paragraph{Asymetric Routing}
 Asymetric routing occurs when the path from node $n_1$ to node $n_2$
@@ -173,7 +173,7 @@ All other pairs of nodes use symetric paths to reach each other.
 \hfil
 
 Any routing protocol that uses link costs as the metric can observe
-such asymetric routing if the link costs are appropriately configured%
+such asymmetric routing if the link costs are appropriately configured%
 \footnote{Link costs can also be used to favour or disregard
 specific links in order to achieve particular topology configurations.}.
 
@@ -336,7 +336,7 @@ At any node, the rtObject at that node
 tracks each of the protocols operating at that node;
 it computes and installs the nest route to each destination
 available via each of the protocols.
-In the event that the routing tables cahnge, or the topology changes,
+In the event that the routing tables change, or the topology changes,
 the rtObject will alert the protocols to take the appropriate action.
 
 The class defines the procedure
@@ -424,7 +424,7 @@ information.
 \begin{itemize}
 \item
 \fcnref{\proc[]{dump-routes}}{../ns-2/route-proto.tcl}{rtObject::dump-routes}
-takes a output file descriptor as arugment, and writes out the
+takes a output file descriptor as argument, and writes out the
 routing table at that node on that file descriptor.
 
 A typical dump output is:
@@ -518,7 +518,7 @@ The interfaces are idexed by the neighbour handle and stored in the instance
 variable array, \code{ifs_};
 the corresponding status instance variable array is \code{ifstat_}.
 
-Centralised routing protocols such as static and session routing do not
+Centralized routing protocols such as static and session routing do not
 create separate agents per node, and therefore do not access any of these
 instance procedures.
 
@@ -595,7 +595,7 @@ The realisation of multiPath routing is done by using a separate
 Classifier/multiPath.
 For any given destination id $d$, if this node has multiple paths to $d$,
 then the main classifier points to this multipath classifier instead of 
-the link to reach the desitnaion.
+the link to reach the destination.
 Each of the multiple paths identified by the interfaces being used is
 installed in the multipath classifier.
 The multipath classifier will use each of the links installed in it for
@@ -664,7 +664,7 @@ actions to be taken globally for the entire protocol.
 Detailed routing protocols such as the DV implementation
 require actions to be performed by individual protocol agents at the
 affected nodes.
-Centralised routing protocols such as static and session routing fall into
+Centralized routing protocols such as static and session routing fall into
 the latter category exclusively.
 Detailed routing protocols could use such techniques to gather statistics
 related to the operation of the routing protocol;
@@ -714,7 +714,7 @@ the network dynamics models will
 of changes to topology.
 This procedure invokes the procedure \proc[]{compute-all}
 for each of the protocols that were ever installed at any of the nodes.
-Centralised routing protocols such as session routing use this signal to
+Centralized routing protocols such as session routing use this signal to
 recompute the routes to the topology.
 Finally, the \proc[]{RouteLogic::notify} procedure notifies 
 any instances of centralised multicast that are operating at the node.
@@ -732,7 +732,7 @@ This protocol tracks the state of the incident links,
 and maintains routes to immediately adjacent neighbours only.
 As with the other protocols, it maintains instance variable arrays
 of \code{nextHop_}, \code{rtpref_}, and \code{metric_}, indexed by 
-the handle of each of the possible destiantaions in the topology.
+the handle of each of the possible destinations in the topology.
 
 The instance procedure
 \fcnref{\proc[]{compute-routes}}{../ns-2/route-proto.tcl}{Agent/rtProto/Direct::compute-routes}
@@ -745,7 +745,7 @@ No other procedures or instance procedures are defined for this protocol.
 The procedure
 \fcnref{\proc[]{compute-routes}}{../ns-2/ns-lib.tcl}{RouteLogic::compute-routes}
 in the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}
-first creates the adjancency matrix, and then
+first creates the adjacency matrix, and then
 invokes the C++ method, \fcn[]{compute\_routes} of the shadow object.
 Finally, the procedure retrieves the result of the route computation,
 and inserts the appropriate routes at each of the nodes in the topology.
@@ -780,7 +780,7 @@ The
 \fcnref{constructor for the DV agent}{%
         ../ns-2/route-proto.tcl}{Agent/rtProto/DV::init}
 initialises a number of instance variables;
-each agent stores an array, indexed by the destiantion node handle,
+each agent stores an array, indexed by the destination node handle,
 of the preference and metric, the interface (or link) to the next hop,
 and the remote peer incident on the interface,
 for the best route to each destination computed by the agent.

@@ -171,7 +171,7 @@ and recovered at time $3.5124s.$
 \label{sec:nd-internal-arch}
 
 Each model of network dynamics is implemented as a separate class,
-dervied from the base \clsref{rtModel}{../ns-2/dynamics.tcl}.
+derived from the base \clsref{rtModel}{../ns-2/dynamics.tcl}.
 We begin by describing
 \href{the base class rtModel and the derived classes}{Section}{sec:rtmodel}.
 The network dynamics models use an internal queueing structure
@@ -228,7 +228,7 @@ the start of the simulator.
 \fcnref{\proc[]{rtmodel-configure}}{../ns-2/dynamics.tcl}{Simulator::rtmodel-configure}
 just before starting the simulation.
 This instance procedure first acquires an instance of the class rtQueue,
-and then invokes \proc[]{configur} for each route model in its list,
+and then invokes \proc[]{configure} for each route model in its list,
 \code{rtModel_}.
 \begin{list}{}{}
 \item The instance procedure

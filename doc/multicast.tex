@@ -69,7 +69,7 @@ procedures in the class Node.
 The agents use the instance procedures
 \proc[]{join-group} and \proc[]{leave-group}, in
 the class Node to join and leave multicast groups. These procedures
-take two mandatory arguments. The first agrument identifies the
+take two mandatory arguments. The first argument identifies the
 corresponding agent and second argument specifies the group address.
 
 An example of a relatively simple multicast configuration is:
@@ -345,7 +345,7 @@ to the appropriate replicator.
 
 However, if the slot is invalid, or the classifier does not have an
 entry for this \tup{source, group, iif},
-then it will invoke \proc[]{new-group} for the classifer,
+then it will invoke \proc[]{new-group} for the classifier,
 with one of two codes to identify the problem.
 \code{CACHE_MISS} indicates that the classifier did not find any
 \tup{source, group} entries;
@@ -356,7 +356,7 @@ In this situation, this particular data is dropped.
 The classifier \proc[]{new-group} invokes \proc[]{Node::new-group}
 to create the group entries.
 
-\proc[]{add-rep} creates a slot in the classifer
+\proc[]{add-rep} creates a slot in the classifier
 and adds a replicator for \tup{source, group, iif} to that slot.
 
 \paragraph{Class Replicator}
@@ -377,7 +377,7 @@ There are instance procedures to control the elements in each slot:
                         to the next available slot.\\
 \proc[oif]{disable} & disable the slot pointing to the specified oif.\\
 \proc[oif]{enable} &  enable the slot pointing to the specified oif.\\
-\proc[]{is-active} & returns true if the replicator has atleast one active slot.\\
+\proc[]{is-active} & returns true if the replicator has at least one active slot.\\
 \proc[oif]{exists} & returns true if the slot pointing to the specified oif is active.\\
 \proc[source, group, oldiif, newiif]{change-iface} & modified the iif entry for the particular replicator.\\
 \end{alist}
@@ -502,6 +502,3 @@ proc[]{handle-wrong-iif} & This proceudre is only used by PIM dense mode.
 \end{alist}
 
 \endinput
-
-\endinput
-

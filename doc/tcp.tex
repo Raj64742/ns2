@@ -22,7 +22,7 @@ The one-way TCP sending agents currently supported are:
         \item Agent/TCP/NewReno - Reno with a modification
         \item Agent/TCP/Sack1 - TCP with selective repeat (follows RFC2018)
         \item Agent/TCP/Vegas - TCP Vegas
-        \item Agent/TCP/Fack - Reno TCP with ``forward acknowledgement''
+        \item Agent/TCP/Fack - Reno TCP with ``forward acknowledgment''
 \end{itemize}
 The one-way TCP receiving agents currently supported are:
 \begin{itemize}\itemsep0pt
@@ -281,7 +281,7 @@ Out-of-order packets cause immediate ACK generation.
 
 \subsection{Sack TCP Sink}
 
-The selective-acknowledgement TCP sink ({\tt Agent/TCPSink/Sack1}) implements
+The selective-acknowledgment TCP sink ({\tt Agent/TCPSink/Sack1}) implements
 SACK generation modeled after the description of SACK in RFC 2018.
 This object includes a bound variable {\tt maxSackBlocks\_} which gives
 the maximum number of blocks of information in an ACK available for
