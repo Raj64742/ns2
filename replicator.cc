@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.7 1997/06/03 21:33:42 kannan Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.8 1997/07/21 21:17:49 kfall Exp $";
 #endif
 
 #include "classifier.h"
@@ -58,7 +58,7 @@ protected:
 static class ReplicatorClass : public TclClass {
 public:
 	ReplicatorClass() : TclClass("Classifier/Replicator") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Replicator());
 	}
 } class_replicator;

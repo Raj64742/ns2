@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.9 1997/07/03 03:18:06 kfall Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.10 1997/07/21 21:16:46 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -122,11 +122,11 @@ protected:
 		s ^= s >> 8;
 		return (s % buckets_);
 	}
-	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int fid) {
+	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int) {
 		return (hn->active && hn->src == src &&
 			hn->dst == ((dst >> shift_) & mask_));
 	}
-	int find_hash(nsaddr_t src, nsaddr_t dst, int fid) {
+	int find_hash(nsaddr_t src, nsaddr_t dst, int) {
 		int buck = hash(src, dst);
 		return (buck);
 	}
@@ -140,10 +140,10 @@ protected:
 	int hash(int fid) {
 		return (fid % buckets_);
 	}
-	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int fid) {
+	int compare(hnode *hn, nsaddr_t, nsaddr_t, int fid) {
 		return (hn->active && hn->fid == fid);
 	}
-	int find_hash(nsaddr_t src, nsaddr_t dst, int fid) {
+	int find_hash(nsaddr_t, nsaddr_t, int fid) {
 		return(hash(fid));
 	}
 };
