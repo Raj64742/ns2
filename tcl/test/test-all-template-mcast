@@ -4,7 +4,7 @@ file=$1
 directory=$2
 
 version=$3
-if (test "$version" = "v2") then
+if test "$version" = "v2"; then
 	tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' $file`
 else
 	tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' $file`
@@ -14,7 +14,7 @@ quiet="true"
 if [ $# -ge 4 ] 
 then
     flag=$4
-    if (test "$flag" = "QUIET" -o "$flag" = "quiet") then
+    if test "$flag" = "QUIET" -o "$flag" = "quiet"; then
         quiet="true"
     else
         tests=$4
@@ -30,12 +30,12 @@ echo Tests: $tests
 success="true"
 number=0
 for t in $tests; do
-    if (test "$quiet" = "false") then
+    if test "$quiet" = "false"; then
     	echo
     fi
     echo Running test $t
 
-    if (test "$quiet" = "true") then
+    if test "$quiet" = "true"; then
     	../../ns $file $t
     else 
 	../../ns $file $t 
@@ -64,12 +64,12 @@ for t in $tests; do
     else
 	success="unknown"
     fi
-    if (test "$quiet" = "false") then
+    if test "$quiet" = "false"; then
         echo 'next?'
         read answer
     fi
 done
-if (test "$success" = "true") then
+if test "$success" = "true"; then
 	echo All test output agrees with reference output
 fi
 

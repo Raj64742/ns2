@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.34 1997/11/27 05:32:53 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.35 1997/12/08 00:47:20 heideman Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -333,7 +333,7 @@ class NewRenoTcpAgent : public virtual TcpAgent {
 	double ack2_, ack3_, basertt_; /* used if newreno_changes_ == 1 */
 };
 
-/* TCP vegas */
+/* TCP vegas (VegasTcpAgent) */
 class VegasTcpAgent : public virtual TcpAgent {
  public:
 	VegasTcpAgent();
@@ -344,6 +344,7 @@ protected:
 		return(Scheduler::instance().clock() - firstsent_);
 	}
 	virtual void output(int seqno, int reason = 0);
+	virtual void recv_newack_helper(Packet*);
 	int vegas_expire(Packet*); 
 	void reset();
 

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.43 1997/11/06 00:28:12 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.44 1997/12/08 00:47:19 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -786,19 +786,23 @@ void TcpAgent::timeout(int tno)
  * This function is invoked when the connection is done. It in turn
  * invokes the Tcl finish procedure that was registered with TCP.
  */
-void TcpAgent::finish() {
+void TcpAgent::finish()
+{
 	Tcl::instance().evalf("%s done", this->name());
 }
 
-void RtxTimer::expire(Event*) {
+void RtxTimer::expire(Event*)
+{
 	a_->timeout(TCP_TIMER_RTX);
 }
 
-void DelSndTimer::expire(Event*) {
+void DelSndTimer::expire(Event*)
+{
 	a_->timeout(TCP_TIMER_DELSND);
 }
 
-void BurstSndTimer::expire(Event*) {
+void BurstSndTimer::expire(Event*)
+{
 	a_->timeout(TCP_TIMER_BURSTSND);
 }
 

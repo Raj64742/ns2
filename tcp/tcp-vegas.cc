@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.12 1997/10/28 04:08:35 sfloyd Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.13 1997/12/08 00:47:19 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -80,6 +80,24 @@ VegasTcpAgent::reset()
 	v_inc_flag_ = 1;
 
 	TcpAgent::reset();
+}
+
+void
+VegasTcpAgent::recv_newack_helper(Packet *pkt)
+{
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	newack(pkt);
+#if 0
+	// like TcpAgent::recv_newack_helper, but without this
+	if ( !((hdr_flags*)pkt->access(off_flags_))->ecn_ || !ecn_ ) {
+	        opencwnd();
+	}
+#endif
+	/* if the connection is done, call finish() */
+	if ((highest_ack_ >= curseq_-1) && !closed_) {
+		closed_ = 1;
+		finish();
+	}
 }
 
 void
