@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.h,v 1.9 1997/07/25 09:13:44 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.h,v 1.10 1997/12/05 23:30:40 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_csma_h
@@ -74,6 +74,7 @@ protected:
 	int cwmax_;		// maximum contention window (backoff range)
 	int rtx_;		// number of retransmission attempt
 	int rtxLimit_;		// maximum number of retransmission attempt
+	int csense_;		// carrier sense or not
 	Event eEoc_;		// event at the end-of-contention
 	MacHandlerEoc hEoc_;	// handle end-of-contention
 };

@@ -1,7 +1,7 @@
 eval 'exec perl -S $0 ${1+"$@"}'
     if 0;
 
-require 5.003;
+#require 5.003;
 
 #
 # Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
@@ -89,7 +89,7 @@ $cpt--; $cfid--; $csrc--; $cdst--; $cseq--;
 while (<>)
 {
     chop;
-    @col = split(/$delim/);
+    @col = split($delim);
     $count{$col[0]}++;
     next if ($col[0] ne $tt);
     next if !grep(/$col[$cpt]/, $pt);

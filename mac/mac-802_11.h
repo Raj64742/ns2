@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.5 1997/07/23 02:20:18 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.6 1997/12/05 23:30:38 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_802_11_h
@@ -83,10 +83,10 @@ class Mac802_11 : public CsmaCaMac
 {
 public:
 	Mac802_11();
-	void recv(Packet* p, Handler* h);
-	void resume(Packet* p = 0);
-	void sendRts();
-	void sendData();
+	virtual void recv(Packet* p, Handler* h);
+	virtual void resume(Packet* p = 0);
+	virtual void sendRts();
+	virtual void sendData();
 
 protected:
 	int command(int argc, const char*const* argv);
@@ -99,7 +99,7 @@ protected:
 	double lengthNAV(Packet* p);
 
 	MacMode mode_;		// current operating mode
-	int bssid_;		// base station identifier
+	int bssId_;		// base station identifier
 	double sifs_;		// short IFS for RTS, ACK
 	double pifs_;		// PCF IFS
 	double difs_;		// DCF IFS

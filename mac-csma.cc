@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.14 1997/11/06 04:19:28 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.15 1997/12/05 23:30:39 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -69,7 +69,7 @@ public:
 } class_mac_csma_ca;
 
 
-CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), hEoc_(this)
+CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
 {
 	bind_time("delay_", &delay_);
 	bind_time("ifs_", &ifs_);
@@ -77,6 +77,7 @@ CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), hEoc_(this)
 	bind("cwmin_", &cwmin_);
 	bind("cwmax_", &cwmax_);
 	bind("rtxLimit_", &rtxLimit_);
+	bind("csense_", &csense_);
 	cw_ = cwmin_;
 }
 
@@ -111,7 +112,7 @@ CsmaMac::send(Packet* p)
 
 	// if channel is not ready, then wait
 	// else content for the channel
-	if (channel_->txstop() + ifs_ > now)
+	if (csense_ && channel_->txstop() + ifs_ > now)
 		s.schedule(&mhSend_, p, channel_->txstop() + ifs_ - now);
 	else {
 		txstart_ = now;
@@ -171,7 +172,7 @@ CsmaCaMac::send(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 
-	if (channel_->txstop() + ifs_ > now)
+	if (csense_ && channel_->txstop() + ifs_ > now)
 		backoff(&mhSend_, p);
 	else {
 		txstart_ = now;

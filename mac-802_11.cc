@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.8 1997/07/23 02:21:04 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.9 1997/12/05 23:30:38 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -74,7 +74,7 @@ public:
 
 Mac802_11::Mac802_11() : CsmaCaMac(), mode_(MM_RTS_CTS), rtxAck_(0), rtxRts_(0), sender_(-1), pkt_(0), pktTx_(0), mhRts_(this), mhData_(this), mhIdle_(this)
 {
-	bind("bssid_", &bssid_);
+	bind("bssId_", &bssId_);
 	bind_time("sifs_", &sifs_);
 	bind_time("pifs_", &pifs_);
 	bind_time("difs_", &difs_);
