@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.16 1997/08/10 07:49:35 mccanne Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.17 1998/01/13 03:32:27 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -65,9 +65,8 @@ public:
 
 Channel::Channel() : Connector(), txstop_(0), cwstop_(0), numtx_(0), pkt_(0), trace_(0)
 {
+	bind("nodrop_", &nodrop_);
 	bind_time("delay_", &delay_);
-	bind("off_ll_", &off_ll_);
-	bind("off_mac_", &off_mac_);
 }
 
 
@@ -107,13 +106,24 @@ Channel::send(Packet* p, double txtime)
 	double busy = max(txstop_, cwstop_);
 	txstop_ = now + txtime;
 	if (now < busy) {
+		int discard = (! nodrop_);
+		((hdr_cmn*)p->access(off_cmn_))->error() |= EF_COLLISION;
 		if (pkt_ && pkt_->time_ > now) {
-			s.cancel(pkt_);
-			drop(pkt_);
-			pkt_ = 0;
+			hdr_mac* mh = (hdr_mac*)pkt_->access(hdr_mac::offset_);
+			hdr_mac* mh2 = (hdr_mac*)p->access(hdr_mac::offset_);
+			((hdr_cmn*)pkt_->access(off_cmn_))->error() |= EF_COLLISION;
+			if (discard) {
+				s.cancel(pkt_);
+				drop(pkt_);
+				pkt_ = 0;
+			}
+			else if (mh->macDA() == mh2->macDA())
+				discard = 1;
 		}
-		drop(p);
-		return 1;
+		if (discard) {
+			drop(p);
+			return 1;
+		}
 	}
 	pkt_ = p;
 	trace_ ? trace_->recv(p, 0) : recv(p, 0);
