@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.9 1998/07/02 00:07:22 sfloyd Exp $
+# $Id: many_tcp.tcl,v 1.10 1998/07/05 21:24:51 sfloyd Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -77,13 +77,14 @@ set raw_opt_info {
 	# cl_1                                                     cr_1
 	# ...     ---- bottleneck_left ---- bottleneck_right ---   ...
 	# cl_n                                                     cr_n
-	# client-number 0 specifies an unlimited number of nodes
-	# on the left and right
+	#
+	# node-number 0 specifies a new pair of nodes
+	# on the left and right for each new client
+	node-number 0
 	# NEEDSWORK:
 	# The number of agents attached to a node cannot exceed
 	# the port-field length (255 bits).  There is currently
 	# no check or warning message for this.
-	node-number 0
 	#
 	# Currently all data traffic flows left-to-right.
 	# NEEDSWORK: relax this assumption (but Poduri and Nichols
@@ -103,6 +104,8 @@ set raw_opt_info {
 	client-mouse-chance 90
 	client-mouse-packets 10
 	client-elephant-packets 100
+	# For traffic in the reverse direction.
+	client-reverse-chance 10
 	# Pkt size in bytes.
 	# NEEDSWORK:  should check that everything is uniformly
 	# specified (router queues are in packets of 1000B length?).
@@ -126,8 +129,10 @@ set raw_opt_info {
 	# NEEDSWORK: should add HTTP model over TCP.
 	source-tcp-method TCP/Reno
 	sink-ack-method TCPSink/DelAck
-	# Set init-win to 1 for larger initial windows.
-	init-win 0
+	# Set init-win to 1 for initial windows of size 1.
+	# Set init-win to 10 for initial windows of 10 packets.
+	# Set init-win to 0 for initial windows per internet-draft.
+	init-win 1
 
 	#
 	# BOTTLENECK LINK MODEL:
@@ -231,17 +236,11 @@ proc my-duplex-link {ns n1 n2 bw delay queue_method queue_length} {
 	$ns queue-limit $n2 $n1 $queue_length
 }
 
-proc my-duplex-link-set-delay {ns n1 n2 delay} {
-	[$ns nodes-to-link $n1 $n2] set delay_ $delay
-	[$ns nodes-to-link $n2 $n1] set delay_ $delay
-}
-
-
 Main instproc init_network {} {
 	global opts fmon
 	# nodes
 	# build right to left
-	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ ns_ cs_count_ ns_
+	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ ns_ cs_count_ ns_ clients_started_ clients_finished_ 
 
 	#
 	# Figure supported load.
@@ -284,25 +283,18 @@ Main instproc init_network {} {
 
 	# Clients are built dynamically.
 	set cs_count_ 0
+	set clients_started_ 0
+	set clients_finished_ 0
 }
 
 # create a new pair of end nodes
 Main instproc create_client_nodes {node} {
 	global opts 
-	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ sources_lr_ cs_count_ ns_ rng_
+	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ sources_1_ cs_count_ ns_ rng_
 
+	set now [$ns_ now]
 	set cs_l_($node) [$ns_ node]
 	set cs_r_($node) [$ns_ node]
-
-	# bw/delay are bogus for now
-	my-duplex-link $ns_ $cs_l_($node) $bottle_l_ $opts(client-bw) 10ms $opts(client-queue-method) $opts(client-queue-length)
-	my-duplex-link $ns_ $cs_r_($node) $bottle_r_ $opts(client-bw) 10ms $opts(client-queue-method) $opts(client-queue-length)
-
-	# Add routing in all directions
-	$cs_l_($node) add-route-to-adj-node -default $bottle_l_
-	$cs_r_($node) add-route-to-adj-node -default $bottle_r_
-	$bottle_l_ add-route-to-adj-node $cs_l_($node)
-	$bottle_r_ add-route-to-adj-node $cs_r_($node)
 
 	# Set delay.
 	set delay $opts(client-delay)
@@ -312,23 +304,37 @@ Main instproc create_client_nodes {node} {
 	# Now divide the delay into the two haves and set up the network.
 	set ldelay [$rng_ uniform 0 $delay]
 	set rdelay [expr $delay - $ldelay]
-	my-duplex-link-set-delay $ns_ $cs_l_($node) $bottle_l_ $ldelay
-	my-duplex-link-set-delay $ns_ $cs_r_($node) $bottle_r_ $rdelay
+
+	my-duplex-link $ns_ $cs_l_($node) $bottle_l_ $opts(client-bw) $ldelay $opts(client-queue-method) $opts(client-queue-length)
+	my-duplex-link $ns_ $cs_r_($node) $bottle_r_ $opts(client-bw) $rdelay $opts(client-queue-method) $opts(client-queue-length)
+
+	# Add routing in all directions
+	$cs_l_($node) add-route-to-adj-node -default $bottle_l_
+	$cs_r_($node) add-route-to-adj-node -default $bottle_r_
+	$bottle_l_ add-route-to-adj-node $cs_l_($node)
+	$bottle_r_ add-route-to-adj-node $cs_r_($node)
 
 	if {$opts(debug)} {
-		 # puts "t=[$ns_ now]: node pair $node created"
+		 puts "t=[format %.3f $now]: node pair $node created"
+		 puts "delay $delay ldelay $ldelay"
 	}
 }
 
 # return the client index
 Main instproc create_a_client {} {
 	global opts
-	$self instvar cs_l_ cs_r_ sources_lr_ cs_count_ ns_
+	$self instvar cs_l_ cs_r_ sources_1_ cs_count_ ns_ rng_
 
+	# Get the client number for the new client.
+	set now [$ns_ now]
 	set i $cs_count_
-	set node $i
 	incr cs_count_
+	set node $i
+	if {[expr $i % 100] == 0} {
+		puts "t=[format %.3f $now]: client $i created"
+	}
 
+	# Get the source and sink nodes.
 	if {$opts(node-number) > 0} {
 		if {$node < $opts(node-number) } {
 			$self create_client_nodes $node
@@ -338,17 +344,22 @@ Main instproc create_a_client {} {
 	} else {
 		$self create_client_nodes $node
 	}
+	if {$opts(debug)} {
+		puts "t=[format %.3f $now]: client $i uses node pair $node"
+	}
 	
 	# create sources and sinks in both directions
-	# (actually, only left-to-right for now)
-	set sources_lr_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_l_($node) $opts(sink-ack-method) $cs_r_($node) $i]
-#	set sources_rl_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_r_($node) $opts(sink-ack-method) $cs_l_($node) $i]
-	$sources_lr_($i) set maxpkts_ 0
-	$sources_lr_($i) set packetSize_ $opts(client-pkt-size)
-#	$sources_lr_($i) set syn_ 1
+	# (actually, only one source per connection, for now)
+	if {[$rng_ integer 100] < $opts(client-reverse-chance)} {
+		set sources_1_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_r_($node) $opts(sink-ack-method) $cs_l_($node) $i]
+	} else {
+		set sources_1_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_l_($node) $opts(sink-ack-method) $cs_r_($node) $i]
+	}
+	$sources_1_($i) set maxpkts_ 0
+	$sources_1_($i) set packetSize_ $opts(client-pkt-size)
 
 	# Set up a callback when this client ends.
-	$sources_lr_($i) proc done {} "$self finish_a_client $i"
+	$sources_1_($i) proc done {} "$self finish_a_client $i"
 
 	if {$opts(debug)} {
 		# puts "t=[$ns_ now]: client $i created"
@@ -387,7 +398,7 @@ Main instproc create_some_clients {} {
 
 Main instproc start_a_client {} {
 	global opts
-	$self instvar idle_clients_ ns_ sources_lr_ rng_ source_start_ source_size_
+	$self instvar idle_clients_ ns_ sources_1_ rng_ source_start_ source_size_ clients_started_
 
 	set i ""
 	set now [$ns_ now]
@@ -409,20 +420,20 @@ Main instproc start_a_client {} {
 		set len $opts(client-elephant-packets)
 	}
 
-	$sources_lr_($i) advanceby $len
+	$sources_1_($i) advanceby $len
 
 	set source_start_($i) $now
 	set source_size_($i) $len
 	if {$opts(debug)} {
-#		puts "t=[$ns_ now]: client $i started, ldelay=$ldelay, rdelay=$rdelay"
 #		puts "t=[$ns_ now]: client $i started, ldelay=[format %.6f $ldelay], rdelay=[format %.6f $rdelay]"
 		puts "t=[format %.3f $now]: client $i started"
 	}
+	incr clients_started_
 }
 
 Main instproc finish_a_client {i} {
 	global opts
-	$self instvar ns_ idle_clients_ source_start_ source_size_
+	$self instvar ns_ idle_clients_ source_start_ source_size_ clients_finished_
 
 	set now [$ns_ now]
 	if {$opts(debug)} {
@@ -431,6 +442,7 @@ Main instproc finish_a_client {i} {
 	}
 
 	lappend idle_clients_ $i
+	incr clients_finished_
 }
 
 Main instproc schedule_continuing_traffic {} {
@@ -481,8 +493,11 @@ Main instproc open_trace { stop_time } {
 
 Main instproc finish {} {
         global opts fmon
-	$self instvar trace_filename_ ns_
+	$self instvar trace_filename_ ns_ cs_count_ clients_started_ clients_finished_
 
+
+	puts "total clients started: $clients_started_"
+	puts "total clients finished: $clients_finished_"
 	if {$opts(print-drop-rate)} {
 		set drops [$fmon set pdrops_]
 		set pkts [$fmon set parrivals_]
@@ -491,11 +506,6 @@ Main instproc finish {} {
 		puts [format "drop_percentage %7.4f" $droprate]
 	}
         if {$opts(trace-filename) != "none"} {
-		if {$opts(graph-join-queueing)} {
-			set q "-q"
-		} else {
-			set q ""
-		}
 		set title $opts(title)
 		# Make sure that we run in place even without raw2xg in our path
 		# (for the test suites).
@@ -503,12 +513,17 @@ Main instproc finish {} {
 		if [file exists ../../bin/raw2xg] {
 			set raw2xg ../../bin/raw2xg
 		}
-		exec $raw2xg -a $q < $trace_filename_.tr >$trace_filename_.xg
+		if {$opts(graph-results)} {
+			if {$opts(graph-join-queueing)} {
+				exec $raw2xg -a -q < $trace_filename_.tr >$trace_filename_.xg
+				exec xgraph -t $title  < $trace_filename_.xg &
+			} else {
+				exec $raw2xg -a < $trace_filename_.tr >$trace_filename_.xg
+				exec xgraph -tk -nl -m -bb -t $title < $trace_filename_.xg &
+			}
+		}
 		if {$opts(test-suite)} {
 			exec cp $trace_filename_.xg $opts(test-suite-file)
-		}
-		if {$opts(graph-results)} {
-			exec xgraph -t $title  < $trace_filename_.xg &
 		}
 	#	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
 	}
@@ -581,10 +596,19 @@ Main instproc init {av} {
 	if {$opts(gen-map)} {
 		$ns_ gen-map
 	}       
-	if {$opts(init-win)} {
-		Agent/TCP set syn_ true
-		Agent/TCP set delay_growth_ true
+	Agent/TCP set syn_ true
+	Agent/TCP set delay_growth_ true
+	Agent/TCP set windowInit_ 1
+	Agent/TCP set windowInitOption_ 1
+	if {$opts(init-win) == "0"} {
 		Agent/TCP set windowInitOption_ 2
+	} elseif {$opts(init-win) == "10"} {
+		Agent/TCP set windowInitOption_ 1
+		Agent/TCP set windowInit_ 10
+	} elseif {$opts(init-win) == "20"} {
+		Agent/TCP set windowInitOption_ 1
+		Agent/TCP set windowInit_ 20
+		puts "init-win 20"
 	}
 	$ns_ run
 }
