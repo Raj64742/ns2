@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 
 \usepackage{times}
 \usepackage[T1]{fontenc}
@@ -20,20 +20,20 @@
 
 % \maketitle
 
-\section{Agent/SRM}
-\label{sec:agent/srm}
+\chapter{Agent/SRM}
+\label{chap:agent/srm}
 
-This section describes the internals of the SRM implementation in \ns.
-The section is in three parts:
+This chapter describes the internals of the SRM implementation in \ns.
+The chapter is in three parts:
 the first part is an overview of a minimal SRM configuration,
 and a ``complete'' description of the configuration parameters 
 of the base SRM agent.
 The second part describes the architecture, internals, and the code path
 of the base SRM agent.
-The last part of the section is a description of the extensions
+The last part of the chapter is a description of the extensions
 for other types of SRM agents that have been attempted to date.
 
-\subsection{Configuration}
+\section{Configuration}
 \label{sec:srm-config}
 
 Running an SRM simulation requires
@@ -41,7 +41,7 @@ creating and configuring the agent,
 attaching an application-level data source (a traffic generator), and
 starting the agent and the traffic generator.
 
-\subsubsection{Trivial Configuration}
+\subsection{Trivial Configuration}
 
 \paragraph{Creating the Agent}
 \begin{program}
@@ -139,12 +139,12 @@ starts generating session messages.
 The \code{start-source} triggers the traffic generator to start sending
 data.
 
-\subsubsection{Other Configuration Parameters}
+\subsection{Other Configuration Parameters}
 \label{sec:config-param}
 
 In addition to the above parameters,
 the SRM agent supports additional configuration variables.
-Each of the variables described in this subsection is
+Each of the variables described in this section is
 both an OTcl class variable and an OTcl object's instance variable.
 Changing the class variable changes the default value
 for all agents that are created subsequently.
@@ -206,7 +206,7 @@ and session objects.
 The \href{following section}{Section}{sec:architecture}
 describes the implementation of theses objects in greater detail.
 
-\subsubsection{Statistics}
+\subsection{Statistics}
 Each agent tracks two sets of statistics:
 statistics to measure the response to data loss,
 and overall statistics for each request/repair.
@@ -328,14 +328,14 @@ additional information about the agent:
         $srm(i) distance? 257 \; returns the distance to agent at address 257;
 \end{program}
 
-\subsubsection{Tracing}
+\subsection{Tracing}
 Each object writes out trace information that can be used to track the
 progress of the object in its error recovery.
 Each trace entry is of the form:
 \begin{program}
 \tup{prefix} \tup{tag} \tup{type of entry} \tup{values}
 \end{program}
-The prefix is as describe in the previous subsection for statistics.
+The prefix is as describe in the previous section for statistics.
 The tag is {\bf Q} for request objects, {\bf P} for repair objects, and
 {\bf S} for session objects.
 The following types of trace entries and parameters are written by each
@@ -422,7 +422,7 @@ Notice that the trace filoe contains sufficient information and details
 to derive most of the statistics written out in the log file, or
 is stored in the statistics arrays.
 
-\subsection{Architecture and Internals}
+\section{Architecture and Internals}
 \label{sec:architecture}
 
 The SRM agent implementation splits the protocol functions
@@ -453,7 +453,7 @@ the loss recovery mechanisms}{Section}{sec:recovery}.
 Finally, each agent uses one timer based function
 for \href{sending periodic session messages}{Section}{sec:session}.
 
-\subsection{Packet Handling: Processing received messages}
+\section{Packet Handling: Processing received messages}
 \label{sec:reciept}
 
 The
@@ -582,7 +582,7 @@ The first tuple is the information about the local agent%
   It is reasonable to expect that the maintainer of this code will fix
   this problem during one of his numerous intervals of copious spare time.}.
 
-\subsection{Loss Recovery Objects}
+\section{Loss Recovery Objects}
 \label{sec:recovery}
 
 In the last section,
@@ -794,7 +794,7 @@ the object will use the agent's instance procedure
 to determine the number of rounds in a previous loss recovery phase
 for that packet.
 
-\subsection{Session Objects}
+\section{Session Objects}
 \label{sec:session}
 
 Session objects,
@@ -833,7 +833,7 @@ the size of the group.
 The base class that sends messages at fixed intervals
 is the default \code{sessionFunction_} for the agent.
 
-\subsection{Extending the Base Class Agent}
+\section{Extending the Base Class Agent}
 \label{sec:extensions}
 
 In
@@ -843,7 +843,7 @@ get deterministic and probabilistic protocol behaviour.
 In this section, we describe how to derive more complex
 extensions to the protocol for fixed and adaptive timer mechanisms.
 
-\subsubsection{Fixed Timers}
+\subsection{Fixed Timers}
 
 The fixed timer mechanism are done in
 the derived \clsref{Agent/SRM/Fixed}.
@@ -855,7 +855,7 @@ Therefore,
 will set \d1 and \d2 to be proportional to the group size
 before scheduling the repair object.
 
-\subsubsection{Adaptive Timers}
+\subsection{Adaptive Timers}
 
 Agents using adaptive timer mechanisms
 modify their request and repair parameters under three conditions

@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 
 \usepackage{times}
 \usepackage[T1]{fontenc}
@@ -15,8 +15,8 @@
 
 % \maketitle
 
-\section{\ns\ Documentation: Preamble}
-\label{sec:nsDocumentation}
+\chapter{\ns\ Documentation: Preamble}
+\label{chap:nsDocumentation}
 
 \xref{\ns}{http://www-nrg.ee.lbl.gov/ns/}
 \xref{\copyright}{../copyright.html}
@@ -171,7 +171,7 @@ Such intricacies of OTcl programming are outside the
 scope of this document.
 \href{The next section}{Section}{sec:Result}
 describes methods to access the result returned by the interpreter.
-\begin{itemize}
+\begin{itemize}\itemsep0pt
 \item \fcnref{\fcn[char* $s$]{tcl.eval}}{../Tcl/Tcl.cc}{Tcl::eval}
   invokes \fcn[]{Tcl\_GlobalEval} to execute $s$ through the interpreter.
 
@@ -520,7 +520,7 @@ an instance variable.
 time valued variables, integers, and booleans.
 The syntax of how these values can be specified in OTcl is different
 for each variable type.
-\begin{itemize}
+\begin{itemize}\itemsep0pt
 \item Real and Integer valued variables are specified in the ``normal'' form.
         For example,
         \begin{program}
@@ -892,7 +892,7 @@ defined in \nsf{misc.cc};
 \code{init_misc} is invoked by
 \fcnref{\fcn{Tcl\_AppInit}}{../ns-2/ns_tclsh.cc}{::Tcl\_AppInit}
 during startup.
-\begin{itemize}
+\begin{itemize}\itemsep0pt
 \item \clsref{VersionCommand}{../ns-2/misc.cc}
   defines the command \code{ns-version}.
   It takes no argument, and returns the current \ns\ version string.

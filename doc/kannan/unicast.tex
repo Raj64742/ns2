@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 
 \usepackage{times}
 \usepackage[T1]{fontenc}
@@ -17,8 +17,8 @@
   Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor.}
 \date{\today}
 
-\section{Unicast Routing}
-\label{sec:unicast}
+\chapter{Unicast Routing}
+\label{chap:unicast}
 
 This section describes the structure of unicast routing in \ns.
 We begin by describing
@@ -37,7 +37,7 @@ We then continue with our descriptions of
 We conclude with a sketch of how the current mechanism would be
 \href{adapted for dynamic LS routing}{Section}{sec:dynamicLS}.
 
-\subsection{The Interface to the Simulation Operator (The API)}
+\section{The Interface to the Simulation Operator (The API)}
 \label{sec:API}
 
 The user level simulation script requires one command:
@@ -150,7 +150,7 @@ Similarly, the procedure
 returns the cost of traversing the specified unidirectional link.
 The default cost of a link is 1.
 
-\subsubsection{Other Configuration Mechanisms for Specialised Routing}
+\section{Other Configuration Mechanisms for Specialised Routing}
 It is possible to adjust preference and cost mechanisms to get two
 special types of route configurations: 
 asymetric routing, and multipath routing.
@@ -207,7 +207,7 @@ A typical configuration is as shown below:
 \end{program}
 Currently, only DV routing can generate multipath routes.
 
-\subsubsection{Protocol Specific Configuration Parameters}
+\subsection{Protocol Specific Configuration Parameters}
 
 \paragraph{Static Routing}
 The static route computation strategy is
@@ -269,7 +269,7 @@ The value is determined by the class variable of the same name.
 Each agent uses the class variable \code{INFINITY} (set at 32)
 to determine the validity of a route.
 
-\subsection{Internals and Architecture of Routing}
+\section{Internals and Architecture of Routing}
 \label{sec:rtg-internals}
 
 We start with a discussion of the classes associated with
@@ -279,7 +279,7 @@ We conclude with a description of
 the interface netween unicast routing and network dynamics, and
 that between unicast and multicast routing.
 
-\subsubsection{The classes}
+\subsection{The classes}
 There are four main classes,
 the class RouteLogic, the class rtObject, the class rtPeer, and the
 base class Agent/rtProto for all protocols.
@@ -492,7 +492,7 @@ In addition, if the topology is dynamic, and the protocol supports
 route computation to react to changes in the topology,
 then the protocol should define the procedure \proc[]{compute-all}, and
 possibly the instance procedure \proc[]{intf-changed}.
-In this subsection, we will briefly describe the interface for the basic
+In this section, we will briefly describe the interface for the basic
 procedures.
 We will defer the description of \proc[]{compute-all} and
 \proc[]{intf-changed}
@@ -659,7 +659,7 @@ returns a list of \tup{key, value} pairs of all elements installed in the
 classifier.
 \end{list}
 
-\subsubsection{Interface to Network Dynamics and Multicast}
+\subsection{Interface to Network Dynamics and Multicast}
 \label{sec:rtglibAPI}
 This section describes the methods applied in unicast routing to respond
 to changes in the topology.
@@ -728,7 +728,7 @@ recompute the routes to the topology.
 Finally, the \proc[]{RouteLogic::notify} procedure notifies 
 any instances of centralised multicast that are operating at the node.
 
-\subsection{Protocol Internals}
+\section{Protocol Internals}
 \label{sec:protocol-internals}
 
 In this section, we describe any leftover details of each of the routing
