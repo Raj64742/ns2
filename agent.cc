@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.45 1998/08/19 17:22:20 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.46 1998/08/20 23:42:08 tomh Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -186,6 +186,9 @@ int Agent::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "send") == 0) {
 			sendmsg(atoi(argv[2]));
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "set_pkttype") == 0) {
+			set_pkttype(atoi(argv[2]));
 			return (TCL_OK);
 		}
 	}
