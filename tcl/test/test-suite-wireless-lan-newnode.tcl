@@ -20,8 +20,8 @@
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan
 # to run individual test:
-# ns test-suite-wireless-lan.tcl dsdv
-# ns test-suite-wireless-lan.tcl dsr
+# ns test-suite-wireless-lan-newnode.tcl dsdv
+# ns test-suite-wireless-lan-newnode.tcl tora
 # ns test-suite-wireless-lan.tcl wired-cum-wireless
 # ns test-suite-wireless-lan.tcl wireless-mip
 # ....
@@ -40,6 +40,11 @@ Class Test/dsdv -superclass TestSuite
 
 #Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
+
+Class Test/tora -superclass TestSuite
+#wireless model using TORA
+
+
 
 #Class Test/dsdv-wired-cum-wireless -superclass TestSuite
 # simulation between a wired and a wireless domain through
@@ -136,7 +141,7 @@ TestSuite instproc init {} {
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
     if {[string compare $testName_ "dsdv"] && \
-	    [string compare $testName_ "dsr"]} {
+	    [string compare $testName_ "tora"]} {
 	     $ns_ set-address-format hierarchical
 	     AddrParams set domain_num_ 3
 	     lappend cluster_num 2 1 1
@@ -154,10 +159,7 @@ TestSuite instproc init {} {
 	#set opt(rp) $testName_
 	$topo load_flatgrid $opt(x) $opt(y)
 	$prop topography $topo
-	#
-	# Create God
-	#
-	set god_ [create-god $opt(nn)]
+
 	
 	puts $tracefd "M 0.0 nn:$opt(nn) x:$opt(x) y:$opt(y) rp:$opt(rp)"
 	puts $tracefd "M 0.0 sc:$opt(sc) cp:$opt(cp) seed:$opt(seed)"
@@ -177,6 +179,12 @@ Test/dsdv instproc init {} {
     
     $self next
 
+	#
+	# Create God
+	#
+	set god_ [create-god $opt(nn)]
+
+
     $ns_ node-config -routingAgent Agent/DSDV \
                          -llType $opt(ll) \
                          -macType $opt(mac) \
@@ -191,6 +199,7 @@ Test/dsdv instproc init {} {
                          -MovementTrace OFF
 
     
+
     for {set i 0} {$i < $opt(nn) } {incr i} {
                 set node_($i) [$ns_ node $chan]
                 $node_($i) random-motion 0              ;# disable random motion
@@ -222,6 +231,64 @@ Test/dsdv instproc run {} {
     puts "Starting Simulation..."
     $ns_ run
 }
+
+Test/tora instproc init {} {
+    global opt node_ god_ chan topo
+    $self instvar ns_ testName_
+    set testName_       tora
+    set opt(rp)         tora
+    set opt(cp)		"../mobility/scene/cbr-3-test" 
+    set opt(sc)		"../mobility/scene/scen-3-test" 
+    set opt(nn)		3	      
+    set opt(stop)       900.0
+
+    $self next
+
+	#
+	# Create God
+	#
+    
+	set god_ [create-god $opt(nn)]
+
+
+    $ns_ node-config -routingAgent Agent/TORA \
+                         -llType $opt(ll) \
+                         -macType $opt(mac) \
+                         -ifqType $opt(ifq) \
+                         -ifqlen $opt(ifqlen) \
+                         -antType $opt(ant) \
+                         -propType $opt(prop) \
+                         -phyType $opt(netif) \
+                         -AgentTrace ON \
+                         -RouterTrace ON \
+                         -MacTrace OFF \
+                         -MovementTrace OFF
+
+    
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+                set node_($i) [$ns_ node $chan]
+                $node_($i) random-motion 0              ;# disable random motion
+                $node_($i) topography $topo
+
+
+    }
+    puts "Loading connection pattern..."
+    source $opt(cp)
+    
+    puts "Loading scenario file..."
+    source $opt(sc)
+    puts "Load complete..."
+
+    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; exit"
+
+}
+
+Test/tora instproc run {} {
+    $self instvar ns_
+    puts "Starting Simulation..."
+    $ns_ run
+}
+
 
 #Test/dsr instproc init {} {
 #    global opt node_ god_ chan topo
