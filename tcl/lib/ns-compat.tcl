@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.16 1997/03/09 00:10:21 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.17 1997/03/17 23:23:39 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -219,6 +219,7 @@ OldSim instproc init args {
 	set classMap_(tcp-sack1) Agent/TCP/Sack1
 	set classMap_(sack1-tcp-sink) Agent/TCPSink/Sack1
 	set classMap_(tcp-sink-da) Agent/TCPSink/DelAck
+	set classMap_(loss-monitor) Agent/LossMonitor
 
 	$self instvar queueMap_
 	set queueMap_(drop-tail) DropTail
@@ -300,6 +301,17 @@ proc ns_duplex { n1 n2 bw delay type } {
 proc ns_create_connection { srcType srcNode sinkType sinkNode pktClass } {
 	ns create-connection $srcType $srcNode $sinkType \
 		$sinkNode $pktClass
+}
+
+#
+# Create a source/sink CBR pair and return the source agent.
+# 
+proc ns_create_cbr { srcNode sinkNode pktSize interval fid } {
+	set s [ns create-connection cbr $srcNode loss-monitor \
+		$sinkNode $fid]
+	$s set interval_ $interval
+	$s set packetSize_ $pktSize
+	return $s
 }
 
 #

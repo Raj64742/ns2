@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.6 1997/02/27 04:39:20 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.7 1997/03/17 23:23:38 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -41,6 +41,7 @@ static char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "tcp.h"
+#include "rtp.h"
 #include "trace.h"
 #include "queue.h"
 
@@ -146,14 +147,18 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	TraceHeader *th = TraceHeader::access(p->bits());
 	IPHeader *iph = IPHeader::access(p->bits());
 	TCPHeader *tcph = TCPHeader::access(p->bits());
-	const char* name = pt_names[th->ptype()];
+	RTPHeader *rh = RTPHeader::access(p->bits());
+	int t = th->ptype();
+	const char* name = pt_names[t];
 
 	if (name == 0)
 		abort();
 
 	int seqno;
 	/* XXX */
-	if (strncmp(name, "tcp", 3) == 0)
+	if (t == PT_RTP)
+		seqno = rh->seqno();
+	else if (t == PT_TCP || t == PT_ACK)
 		seqno = tcph->seqno();
 	else
 		seqno = -1;
