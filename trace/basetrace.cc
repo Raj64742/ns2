@@ -130,6 +130,9 @@ int BaseTrace::command(int argc, const char*const* argv)
 				Tcl_Flush(namChan_);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "tagged") == 0) {
+			return tagged();
+		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "attach") == 0) {
 			int mode;
@@ -152,6 +155,14 @@ int BaseTrace::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "tagged") == 0) {
+			int tag;
+			if (Tcl_GetBoolean(tcl.interp(),
+					   (char*)argv[2], &tag) == TCL_OK) {
+				tagged(tag);
+				return (TCL_OK);
+			} else return (TCL_ERROR);
 		}
 	}
 	return (TclObject::command(argc, argv));

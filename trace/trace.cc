@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.73 2002/03/21 22:50:34 buchheim Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.74 2002/03/30 20:08:55 buchheim Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -100,6 +100,9 @@ int Trace::command(int argc, const char*const* argv)
 				pt_->flush(namch);
 			return (TCL_OK);
 		}
+                if (strcmp(argv[1], "tagged") == 0) {
+                        return pt_->tagged();
+                }
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "annotate") == 0) {
 			if (pt_->channel() != 0)
@@ -135,6 +138,14 @@ int Trace::command(int argc, const char*const* argv)
 				write_nam_trace(argv[2]);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "tagged") == 0) {
+                        int tag;
+			if (Tcl_GetBoolean(tcl.interp(),
+					   (char*)argv[2], &tag) == TCL_OK) {
+				pt_->tagged(tag);
+				return (TCL_OK);
+			} else return (TCL_ERROR);
+                }
 	}
 	return (Connector::command(argc, argv));
 }

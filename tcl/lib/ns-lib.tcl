@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.242 2002/03/21 23:21:09 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.243 2002/03/30 20:08:54 buchheim Exp $
 
 
 #
@@ -722,6 +722,10 @@ Simulator instproc use-newtrace {} {
 	Simulator set WirelessNewTrace_ 1
 } 
 
+Simulator instproc use-taggedtrace { {tag ON} } {
+	Simulator set TaggedTrace_ $tag
+}
+
 Simulator instproc hier-node haddr {
  	error "hier-nodes should be created with [$ns_ node $haddr]"
 }
@@ -1230,6 +1234,7 @@ Simulator instproc get-color { id } {
 Simulator instproc create-trace { type file src dst {op ""} } {
 	$self instvar alltrace_
 	set p [new Trace/$type]
+	$p tagged [Simulator set TaggedTrace_]
 	if [catch {$p set src_ [$src id]}] {
 		$p set src_ $src
 	}

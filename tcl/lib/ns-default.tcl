@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.282 2002/03/29 05:06:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.283 2002/03/30 20:08:54 buchheim Exp $
 
 
 #
@@ -538,6 +538,9 @@ Simulator set McastAddr_ 0x80000000
 Simulator set AgentTrace_ ON
 Simulator set RouterTrace_ OFF
 Simulator set MacTrace_   OFF
+
+# use tagged traces or positional traces?
+Simulator set TaggedTrace_ OFF
 
 SessionHelper set rc_ 0                      ;# just to eliminate warnings
 SessionHelper set debug_ false
