@@ -67,7 +67,7 @@ proc finish {} {
         exec rm -f out
         #XXX
         puts "running nam..."
-        exec ./nam mcast2-nam &
+        exec nam mcast2-nam &
         exit 0
 }
 
