@@ -43,7 +43,7 @@ proc build_topology { ns } {
 
 }
  
-source ../../ns-2/tcl/mcast/srm-nam.tcl
+source ../mcast/srm-nam.tcl
 
 Simulator set NumberInterfaces_ 1
 set ns [new Simulator]
@@ -129,7 +129,7 @@ proc finish src {
 
         #XXX
         puts "Filtering ..."
-	exec tclsh ../bin/namfilter.tcl out.nam
+	exec tclsh8.0 ../../../nam-1/bin/namfilter.tcl out.nam
 
         puts "running nam..."
         exec nam out.nam &

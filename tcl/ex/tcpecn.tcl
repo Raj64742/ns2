@@ -81,7 +81,7 @@ proc finish {} {
  
         #XXX
         puts "Filtering ..."
-	exec tclsh ../bin/namfilter.tcl out.nam
+	exec tclsh8.0 ../../../nam-1/bin/namfilter.tcl out.nam
 
         puts "running nam..."
         exec nam out.nam &
