@@ -79,8 +79,11 @@ proc printflow f {
 }
 
 proc finish { tf ff } {
+	global ns
 	close $tf
 	close $ff
+	$ns instvar scheduler_
+	$scheduler_ halt
 	puts "simulation complete"
 }
 
@@ -141,7 +144,7 @@ proc sim1 {} {
 	$ns at $start4 "$src4 start"
 	$ns at $pause4 "$src4 stop"
 	$ns at $again4 "$src4 start"
-	$ns at $endsim "finish $gflowf $bflowf; $rtm plot out.tr out.xgr"
+	$ns at $endsim "finish $gflowf $bflowf"
 	$ns run
 }
 sim1
