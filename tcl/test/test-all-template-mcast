@@ -48,7 +48,7 @@ for t in $tests; do
 	    cp $datafile.bk $datafile
 	    mv $datafile.Z $directory/$t.Z
 	else
-	    uncompress -c $directory/$t.Z | cmp -s $datafile -
+	    uncompress -c $directory/$t.Z | cmp -s - $datafile
 	    if [ $? = 0 ]; then
 		echo Test output agrees with reference output
 	    else
@@ -70,7 +70,7 @@ for t in $tests; do
     fi
 done
 if test "$success" = "true"; then
-	echo All test output agrees with reference output
+	echo All test outputs agree with reference outputs
 	exit 0
 else
         echo Some test failed

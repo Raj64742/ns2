@@ -17,6 +17,7 @@ TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	set ns_ [new Simulator]
 	Simulator set EnableMcast_ 1
+	$ns_ use-scheduler List
 
 	$ns_ trace-all [open all.tr w]
 	if {$net_ == ""} {
@@ -542,17 +543,7 @@ Test/DM1 instproc run {} {
 	$cbr1 set dst_ 0x8002
 	$cbr1 set class_ 1
 	$ns_ attach-agent $node_(n3) $cbr1
-	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n2) $rcvr
-	$ns_ at 1.2 "$node_(n2) join-group $rcvr 0x8002"
-	$ns_ at 1.25 "$node_(n2) leave-group $rcvr 0x8002"
-	$ns_ at 1.3 "$node_(n2) join-group $rcvr 0x8002"
-	$ns_ at 1.35 "$node_(n2) join-group $rcvr 0x8001"
-	
-	$ns_ at 1.0 "$cbr0 start"
-	$ns_ at 1.1 "$cbr1 start"
-	
+
 	set tcp [new Agent/TCP]
 	set sink [new Agent/TCPSink]
 	$ns_ attach-agent $node_(n0) $tcp
@@ -560,8 +551,17 @@ Test/DM1 instproc run {} {
 	$ns_ connect $tcp $sink
 	set ftp [new Source/FTP]
 	$ftp set agent_ $tcp
-	$ns_ at 1.2 "$ftp start"
-
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n2) $rcvr
+	$ns_ at 1.2 "$node_(n2) join-group $rcvr 0x8002; $ftp start"
+	$ns_ at 1.25 "$node_(n2) leave-group $rcvr 0x8002"
+	$ns_ at 1.3 "$node_(n2) join-group $rcvr 0x8002"
+	$ns_ at 1.35 "$node_(n2) join-group $rcvr 0x8001"
+	
+	$ns_ at 1.0 "$cbr0 start"
+	$ns_ at 1.1 "$cbr1 start"
+	
 	$ns_ at 1.8 "$self finish 4a-nam"
 	$ns_ run
 }
@@ -961,7 +961,7 @@ Test/detailedDM6 instproc run {} {
 	$ns_ at 1.1 "$node_(n6) join-group $rcvr 0x8002"
 	$ns_ at 1.2 "$node_(n3) leave-group $rcvr 0x8002"
 	
-	### Link between n1 and n3 down at 0.6 up at 1.0
+	### Link between n1 and n3 down at 0.7 up at 1.0
 	$ns_ rtmodel-at 0.7 down $node_(n1) $node_(n3)
 	$ns_ rtmodel-at 1.0 up $node_(n1) $node_(n3)
 	###
