@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.14 2002/03/12 00:40:39 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.15 2002/03/14 04:32:26 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -113,12 +113,13 @@ int WebPage::LASTOBJ_ = 1;
 int WebTrafSession::LASTPAGE_ = 1;
 
 // Constructor
-WebTrafSession::WebTrafSession(WebTrafPool *mgr, Node *src, int np, int id, int tcp) : 
+WebTrafSession::WebTrafSession(WebTrafPool *mgr, Node *src, int np, int id, int ftcp_, int recycle_p) : 
 	rvInterPage_(NULL), rvPageSize_(NULL),
 	rvInterObj_(NULL), rvObjSize_(NULL), 
 	mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
 	id_(id), interPageOption_(1), fulltcp_(0) {
-	fulltcp_ = tcp;
+	fulltcp_ = ftcp_;
+	recycle_page_ = recycle_p;
 }
 
 // XXX Must delete this after all pages are done!!
@@ -133,14 +134,19 @@ WebTrafSession::~WebTrafSession()
 		fprintf(stderr, "WebTrafSession must be idle when deleted.\n");
 		abort();
 	}
-	if (rvInterPage_ != NULL)
-		Tcl::instance().evalf("delete %s", rvInterPage_->name());
-	if (rvPageSize_ != NULL)
-		Tcl::instance().evalf("delete %s", rvPageSize_->name());
-	if (rvInterObj_ != NULL)
-		Tcl::instance().evalf("delete %s", rvInterObj_->name());
-	if (rvObjSize_ != NULL)
-		Tcl::instance().evalf("delete %s", rvObjSize_->name());
+
+	// Recycle the objects of page level attributes if needed
+	// Reuse these objects may save memory for large simulations--xuanc
+	if (recycle_page_) {
+		if (rvInterPage_ != NULL)
+			Tcl::instance().evalf("delete %s", rvInterPage_->name());
+		if (rvPageSize_ != NULL)
+			Tcl::instance().evalf("delete %s", rvPageSize_->name());
+		if (rvInterObj_ != NULL)
+			Tcl::instance().evalf("delete %s", rvInterObj_->name());
+		if (rvObjSize_ != NULL)
+			Tcl::instance().evalf("delete %s", rvObjSize_->name());
+	}
 }
 
 void WebTrafSession::donePage(void* ClntData) 
@@ -281,6 +287,8 @@ WebTrafPool::WebTrafPool() :
 	nTcp_(0), nSink_(0), fulltcp_(0)
 {
 	bind("fulltcp_", &fulltcp_);
+	bind("recycle_page_", &recycle_page_);
+
 	LIST_INIT(&tcpPool_);
 	LIST_INIT(&sinkPool_);
 }
@@ -386,12 +394,19 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			// Recycle a TCP source/sink pair
 			Agent* tcp = (Agent*)lookup_obj(argv[2]);
 			Agent* snk = (Agent*)lookup_obj(argv[3]);
-			nTcp_++, nSink_++;
 			if ((tcp == NULL) || (snk == NULL))
 				return (TCL_ERROR);
+
+			nTcp_++;
 			// XXX TBA: recycle tcp agents
 			insertAgent(&tcpPool_, tcp);
-			insertAgent(&sinkPool_, snk);
+			if (fulltcp_) {
+				nTcp_++;
+				insertAgent(&tcpPool_, snk);
+			} else {
+				nSink_++;
+				insertAgent(&sinkPool_, snk);
+			}
 			return (TCL_OK);
 		}
 	} else if (argc == 9) {
@@ -408,7 +423,7 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			int npg = (int)strtod(argv[3], NULL);
 			double lt = strtod(argv[4], NULL);
 			WebTrafSession* p = 
-				new WebTrafSession(this, picksrc(), npg, n, fulltcp_);
+				new WebTrafSession(this, picksrc(), npg, n, fulltcp_, recycle_page_);
 			int res = lookup_rv(p->interPage(), argv[5]);
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->pageSize(), argv[6]) : TCL_ERROR;
@@ -428,5 +443,3 @@ int WebTrafPool::command(int argc, const char*const* argv)
 	}
 	return PagePool::command(argc, argv);
 }
-
-
