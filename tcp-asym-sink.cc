@@ -51,7 +51,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.6 1997/12/25 21:36:22 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.7 1998/05/02 01:37:15 kfall Exp $ (UCB)";
 #endif
 
 #include "tcp-sink.h"
@@ -120,7 +120,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 	 * round-trip, double delackfactor_ (and consequently halve
 	 * the frequency of acks) subject to a maximum
 	 */
-	if (fh->ecn_ && highest_ts_echo_ >= ts_ecn_) {
+	if (fh->ecnecho() && highest_ts_echo_ >= ts_ecn_) {
 		delackfactor_ = min(2*delackfactor_, maxdelack_);
 		ts_ecn_ = now;
 	}
@@ -195,7 +195,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 			save_ = 0;
 		}
 		hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
-		hf->ecn_capable_ = 1;
+		hf->ect() = 1;
 		ack(pkt);
 		delackcount_ = 0;
 		Packet::free(pkt);
