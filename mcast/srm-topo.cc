@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -316,7 +317,7 @@ void Node::send(SRM_Event *e)
 {
 	/* 
 	 * Copy the packet and send it over to 
-         * all the outbound interfaces 
+	 * all the outbound interfaces 
 	 */
 	int nn;
 	Scheduler& s = Scheduler::instance();

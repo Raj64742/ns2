@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1993-1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.7 1997/12/06 02:26:06 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.8 1998/06/27 01:46:07 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_cbr_h
@@ -57,7 +58,7 @@ class CBR_Agent : public Agent {
  protected:
 	void start();
 	void stop();
-	void finish();   // called when running_ => 0
+	void finish();			// called when running_ => 0
 	virtual void sendpkt();
 	int running_;
 	int random_;
