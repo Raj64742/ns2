@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.2 1999/06/28 23:45:21 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.3 1999/06/29 18:30:28 salehi Exp $";
 #endif
 
 #include <iostream.h>
@@ -58,7 +58,7 @@ protected:
 	int32_t node_id_;
 
 	void insert_upstream_info(int dst);
-	void virtual recv(Packet *p, Handler *h);
+	virtual void recv(Packet *p, Handler *h);
 	void upstream_add(int dst, char *oif2RP, int node_id);
 	upstream_info* upstream_find(int dst);
 };
