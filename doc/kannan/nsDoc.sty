@@ -2,6 +2,19 @@
 \RequirePackage{html}
 \RequirePackage{alltt}
 
+\RequirePackage[dvips]{graphics}    % Alternative for psfig.
+\DeclareGraphicsRule{.eps.gz}{eps}{.bb}{`zcat #1}
+\DeclareGraphicsRule{.ps.gz}{eps}{.bb}{`zcat #1}
+\DeclareGraphicsRule{.epsf.gz}{eps}{.bb}{`zcat #1}
+\DeclareGraphicsExtensions{.eps, .ps, .epsf, .eps.gz, .ps.gz, .epsf.gz}
+\graphicspath{
+  {./}
+  {../}
+  {./figures/}
+  {../figures/}
+  {/home/caldera/kannan/figures/}
+  }
+
 \evensidemargin       -15pt
 \oddsidemargin        -15pt
 \topmargin            -20pt
