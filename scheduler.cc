@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.57 2000/10/20 01:45:24 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.58 2000/10/31 21:38:21 haoboy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.57 2000/10/20 01:45:24 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.58 2000/10/31 21:38:21 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -414,9 +414,7 @@ Heap::heap_insert(heap_key_t key, void* elem)
 		h_maxsize *= 2;
 		h_elems = new Heap::Heap_elem[h_maxsize];
 		memcpy(h_elems, he_old, osize*sizeof(Heap::Heap_elem));
-		//for (i = 0; i < osize; i++)
-		//	h_elems[i] = he_old[i];
-		//delete he_old;
+		delete []he_old;
 	}
 
 	i = h_size++;
