@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.35 2000/10/05 18:41:58 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.36 2001/01/19 03:32:58 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -375,6 +375,17 @@ Test/slowStartFixed instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/slowStartFixed instproc run {} [Test/slowStart info instbody run ]
+    $self next
+}
+
+Class Test/ecn -superclass TestSuite
+Test/ecn instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	ecn
+    Agent/TFRC set ecn_ 1
+    Queue/RED set setbit_ true
+    Test/ecn instproc run {} [Test/slowStart info instbody run ]
     $self next
 }
 
