@@ -174,7 +174,10 @@ PhysicalMultiLink instproc trace { ns f {op ""} } {
 			set oif [$n exitpoint]
 			set enqT_($nid) \
 				[$ns create-trace Enque $f $nid $id_ $op]
-			$enqT_($nid) target [$oif target]
+			set deqT_($nid) \
+				[$ns create-trace Deque $f $nid $id_ $op]
+			$enqT_($nid) target $deqT_($nid)
+			$deqT_($nid) target [$oif target]
 			$oif target $enqT_($nid)
                 }
         }
@@ -185,13 +188,9 @@ PhysicalMultiLink instproc trace { ns f {op ""} } {
 	}
 
 	foreach n $listOfConnects_ {
-		set nid_ [[$n getNode] id]
-		set deqT_($nid) [$ns create-trace Deque $f $nid $id_ $op]
-		$deqT_($nid) target [$queues_($nid) target]
-		$queues_($nid) target $deqT_($nid)
-		
+		set nid [[$n getNode] id]
 		set drpT_($nid) [$ns create-trace Drop $f $nid $id_ $op]
-		$drpT_($nid) target $drophead_($nid)
+		$drpT_($nid) target [$drophead_($nid) target]
 		$drophead_($nid) target $drpT_($nid)
 
 		set rcvT_($nid) [$ns create-trace Recv $f $id_ $nid $op]
@@ -281,10 +280,12 @@ DummyLink instproc getContainingObject { } {
 }
 
 DummyLink instproc trace-unicast { ns f {op ""} } {
-	$self instvar head_ enqT_ containingObj_ fromNode_
+	$self instvar head_ enqT_ containingObj_ fromNode_ deqT_
 	set mid [$containingObj_ id]
 	set enqT_ [$ns create-trace Enque $f $fromNode_ $mid $op]
-        $enqT_ target $head_
+	set deqT_ [$ns create-trace Deque $f $fromNode_ $mid $op]
+        $enqT_ target $deqT_
+	$deqT_ target $head_
 	set head_ $enqT_
 }
 
@@ -298,47 +299,47 @@ DummyLink instproc nam-trace-unicast { ns f } {
 	}
 }
 
-DummyLink instproc trace { ns f {op ""} } {
-        $self instvar queue_ fromNode_ toNode_ enqT_ deqT_ drpT_
-        set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_ $op]
-        set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_ $op]
-        set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_ $op]
-        $drpT_ target [$ns set nullAgent_]
-        $deqT_ target $queue_
-        $queue_ drop-target $drpT_
-        $enqT_ target $deqT_
+#DummyLink instproc trace { ns f {op ""} } {
+#        $self instvar queue_ fromNode_ toNode_ enqT_ deqT_ drpT_
+#        set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_ $op]
+#        set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_ $op]
+#        set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_ $op]
+#        $drpT_ target [$ns set nullAgent_]
+#        $deqT_ target $queue_
+#        $queue_ drop-target $drpT_
+#        $enqT_ target $deqT_
+#
+#        $self instvar rep_ head_
+#        $rep_ disable $queue_
+#        $rep_ insert $enqT_
+#        set head_ $enqT_
+##        $rep_ insert $deqT_
+##        set head_ $deqT_ 
+#}
 
-        $self instvar rep_ head_
-        $rep_ disable $queue_
-        $rep_ insert $enqT_
-        set head_ $enqT_
-#        $rep_ insert $deqT_
-#        set head_ $deqT_ 
-}
-
-DummyLink instproc nam-trace { ns f } {
-        $self instvar queue_ fromNode_ toNode_ deqT_ drpT_ enqT_
-
-	# Use deqT_ as a flag of whether tracing has been initialized
-	if [info exists deqT_] {
-		$deqT_ namattach $f
-		if [info exists drpT_] {
-			$drpT_ namattach $f
-		}
-		if [info exists enqT_] {
-			$enqT_ namattach $f
-		}
-	} else {
-		$self trace $ns $f "nam"
-	}
-}
+#DummyLink instproc nam-trace { ns f } {
+#        $self instvar queue_ fromNode_ toNode_ deqT_ drpT_ enqT_
+#
+#	# Use deqT_ as a flag of whether tracing has been initialized
+#	if [info exists deqT_] {
+#		$deqT_ namattach $f
+#		if [info exists drpT_] {
+#			$drpT_ namattach $f
+#		}
+#		if [info exists enqT_] {
+#			$enqT_ namattach $f
+#		}
+#	} else {
+#		$self trace $ns $f "nam"
+#	}
+#}
 
 DummyLink instproc addloss { lossObject } {
-        $self instvar lossObj
+        $self instvar lossObj deqT_
         set lossObj $lossObject
-        $self instvar rep_ head_
-        $lossObj target $head_
-        $rep_ disable $head_
-        set head_ $lossObj
-        $rep_ insert $head_
+        $self instvar rep_ queue_
+        $lossObj target $queue_
+        $rep_ disable $queue_
+        $deqT_ target $lossObj
+        $rep_ insert $lossObj
 }
