@@ -255,6 +255,7 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 {
 
 	int needmerge = FALSE;
+	int altered = FALSE;
 	int initcnt = 1;	// initial value of cnt_ for new blk
 
 	if (end < start) {
@@ -289,6 +290,7 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		return (tiflags);
 	} else {
 
+again2:
 		seginfo *p = NULL, *q = NULL, *n, *r;
 
 		//
@@ -356,9 +358,11 @@ start, end, p, q,
 				if (n == hint_)
 					hint_ = NULL;
 				delete n;
+				altered = TRUE;
 			} else
 				r = r->next_;
 		}
+
 
 		//
 		// if we completely overlapped everything, the list
@@ -367,6 +371,11 @@ start, end, p, q,
 
 		if (empty())
 			goto endfast;
+
+		if (altered) {
+			altered = FALSE;
+			goto again2;
+		}
 
 		// look for left-side merge
 		// update existing seg's start seq with new start
@@ -466,32 +475,6 @@ endfast:
 		return tiflags;
 	}
 }
-
-int
-ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt)
-{
-	nxtcnt = -1;
-	if (!hint_) {
-again:
-		hint_ = head_;
-	}
-		
-	seginfo* p;
-	for (p = hint_; p; p = p->next_) {
-		if (p->startseq_ > seq)
-			return (-1);
-		if ((p->startseq_ <= seq) && (p->endseq_ >= seq)) {
-			hint_ = p;
-			if (p->next_)
-				nxtcnt = p->next_->cnt_;
-			return (p->endseq_);
-		}
-	}
-	if (hint_ != head_)
-		goto again;
-	return (-1);
-}
-
 /*
  * We need to see if we can coalesce together the
  * blocks in and around the new block
@@ -569,6 +552,45 @@ dumplist();
 	return (flags);
 }
 
+/*
+ * look for the next hole, starting with the given
+ * sequence number.  If this seq number is contained in
+ * a SACK block we have, return the ending sequence number
+ * of the block.  If not, return -1, but 
+ */
+int
+ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt)
+{
+
+	nxtcnt = -1;
+	if (hint_ == NULL) {
+again:
+		hint_ = head_;
+	}
+		
+	seginfo* p;
+	for (p = hint_; p; p = p->next_) {
+		// seq# is prior to SACK block
+		if (p->startseq_ > seq) {
+			nxtcnt = p->cnt_;
+			return (-1);
+		}
+
+		// seq# is covered by SACK block
+		if ((p->startseq_ <= seq) && (p->endseq_ >= seq)) {
+			hint_ = p;
+			if (p->next_)
+				nxtcnt = p->next_->cnt_;
+			return (p->endseq_);
+		}
+	}
+	if (hint_ != head_) {
+		goto again;
+	}
+	return (-1);
+}
+
+
 #ifdef RQDEBUG
 main()
 {
@@ -616,9 +638,17 @@ main()
 	rq.init(1);
 	rq.add(5,10, 0, 0);
 	rq.add(11,20, 0, 0);
-	rq.add(30, 40, 0, 0);	// dup mid
-	rq.add(11,20, 0, 0);
+	rq.add(30, 40, 0, 0);
+	rq.add(11,20, 0, 0);	// dup mid
 	rq.dumplist();	// [(5,10),1], [(11,20),2], [(30,40),1]
+
+	printf("X3\n");
+	rq.add(30,50,0,0);	// dup rt
+	rq.dumplist();	// [(5,10),1], [(11,20),2], [(30,50),2]
+
+	printf("X4\n");
+	rq.add(1,10,0,0);	// dup lt
+	rq.dumplist();	// [(1,10),2], [(11,20),2], [(30,50),2]
 
 	printf("C1:\n");
 	rq.init(1);
@@ -691,6 +721,10 @@ main()
 	rq.add(1, 5, 0, 0);
 	rq.dumplist();	// [(1,5),2], [(10,20),1]
 
+	int x;
+	rq.nexthole(3, x);
+
 	exit(0);
 }
 #endif
+
