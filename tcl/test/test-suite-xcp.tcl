@@ -187,7 +187,7 @@ TestSuite instproc process-parking-lot-data {what name flows PlotTime} {
 			
 		exec awk -v L=$i \
 		    {BEGIN {sum=0.0; f=0;} {sum=sum+$2;f=f+1} \
-			 END {printf("%d %g\n", L+1, sum/f);} } \
+			 END {printf("%d %.2g\n", L+1, sum/f);} } \
 		    "temp.c" >> "temp.out"
 	
 		exec cat temp.out >@ $f
