@@ -26,10 +26,11 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.16 2002/03/15 05:38:01 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.17 2002/03/19 07:10:51 ddutta Exp $
 
 #include "config.h"
 #include <tclcl.h>
+#include <iostream.h>
 
 #include "node.h"
 #include "pagepool.h"
@@ -439,8 +440,26 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			}
 			p->sched(lt);
 			session_[n] = p;
+			
+			// Asim stuff. Added by Debojyoti Dutta
+			// Assumptions exist 
+			//Tcl::instance().evalf("puts \"Here\"");
+			double lambda = (1/(p->interPage())->avg())/(nSrc_*nClient_);
+			double mu = ((p->objSize())->value());
+			//Tcl::instance().evalf("puts \"Here\"");
+			for (int i=0; i<nSrc_; i++){
+				for(int j=0; j<nClient_; j++){
+					// Set up short flows info for asim
+					Tcl::instance().evalf("%s add2asim %d %d %lf %lf", this->name(),server_[i]->nodeid(),client_[j]->nodeid(),lambda, mu);
+				}
+			}
+			//Tcl::instance().evalf("puts \"Here\"");
 			return (TCL_OK);
 		}
 	}
 	return PagePool::command(argc, argv);
 }
+
+
+ 
+ 
