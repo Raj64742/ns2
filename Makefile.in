@@ -168,7 +168,7 @@ OBJ_CC = \
 	tcp/tcp-newreno.o \
 	tcp/tcp-vegas.o tcp/tcp-rbp.o tcp/tcp-full.o tcp/rq.o \
 	baytcp/tcp-full-bay.o baytcp/ftpc.o baytcp/ftps.o \
-	tcp/scoreboard.o tcp/tcp-sack1.o tcp/tcp-fack.o \
+	tcp/scoreboard.o tcp/scoreboard-rq.o tcp/tcp-sack1.o tcp/tcp-fack.o \
 	tcp/tcp-asym.o tcp/tcp-asym-sink.o tcp/tcp-fs.o \
 	tcp/tcp-asym-fs.o tcp/tcp-qs.o \
 	tcp/tcp-int.o tcp/chost.o tcp/tcp-session.o \
