@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.65 1998/08/04 01:28:28 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.66 1998/08/04 03:00:40 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -576,17 +576,6 @@ send:
 
 	syn = (pflags & TH_SYN) ? 1 : 0;
 	int fin = (pflags & TH_FIN) ? 1 : 0;
-	int sentfin = (flags_ & TF_SENTFIN);
-
-	/*
-	 * SYNs and FINs each use up one sequence number, but
-	 * there's no reason to advance t_seqno_ by one for a FIN
-         * If resending a FIN, be sure not to use a new sequence number.
-	 */
-
-//if (fin)
-//printf("%f %s: FIN.. seq:%d, maxseq:%d\n",
-//now(), name(), seqno, int(maxseq_));
 
 	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
 
@@ -610,16 +599,15 @@ send:
 	if (cong_action_ && reliable > 0)
 		cong_action_ = FALSE;
 
-	if ((!fin || !sentfin) && seqno == t_seqno_)
+	/*
+	 * SYNs and FINs each use up one sequence number, but
+	 * there's no reason to advance t_seqno_ by one for a FIN
+	 */
+
+	if (!fin && seqno == t_seqno_) {
 		t_seqno_ += reliable;
+	}
 
-	if (fin)
-		flags_ |= TF_SENTFIN;
-
-#ifdef notdef
-if (!fin && seqno == t_seqno_) || (flags_ & TF_SENTFIN
-	t_seqno_ += reliable;	// update snd_nxt (t_seqno_)
-#endif
 
 	// highest: greatest sequence number sent + 1
 	//	and adjusted for SYNs and FINs which use up one number
@@ -637,6 +625,11 @@ if (!fin && seqno == t_seqno_) || (flags_ & TF_SENTFIN
 			rtt_ts_ = now();	// when set
 		}
 	}
+
+//if (fin)
+//printf("%f %s: sent FIN, seq: %d, maxseq now: %d\n",
+//now(), name(), seqno, int(maxseq_));
+
 	/*
 	 * Set retransmit timer if not currently set,
 	 * and not doing an ack or a keep-alive probe.
@@ -748,6 +741,11 @@ void FullTcpAgent::newack(Packet* pkt)
 	register int ackno = tcph->ackno();
 	int progress = (ackno > highest_ack_);
 
+//if (state_ > TCPS_ESTABLISHED)
+//printf("%f %s: newack: %d, state %d, maxseq:%d\n", now(), name(),
+//ackno, int(state_), int(maxseq_));
+
+
 	if (ackno == maxseq_) {
 		cancel_rtx_timer();	// all data ACKd
 	} else if (progress) {
@@ -765,7 +763,7 @@ void FullTcpAgent::newack(Packet* pkt)
 	// update t_seqno_ here, otherwise we would be doing
 	// go-back-n.
 
-	if (t_seqno_ < highest_ack_ && state_ <= TCPS_ESTABLISHED)
+	if (t_seqno_ < highest_ack_)
 		t_seqno_ = highest_ack_; // seq# to send next
 
         /*
@@ -1506,10 +1504,10 @@ process_ACK:
 			needoutput = TRUE;
 		}
 
-                /*
-                 * If no data (only SYN) was ACK'd,
-                 *    skip rest of ACK processing.
-                 */
+		/*
+		 * If no data (only SYN) was ACK'd,
+		 *    skip rest of ACK processing.
+		 */
 		if (ackno == (highest_ack_ + 1))
 			goto step6;
 
@@ -1545,7 +1543,9 @@ process_ACK:
                  */
 		case TCPS_FIN_WAIT_1:	/* doing active close */
 			if (ourfinisacked) {
+				// got the ACK, now await incoming FIN
 				newstate(TCPS_FIN_WAIT_2);
+				cancel_timers();
 				needoutput = FALSE;
 			}
 			break;
@@ -1834,7 +1834,8 @@ void FullTcpAgent::listen()
 
 void FullTcpAgent::usrclosed()
 {
-	curseq_ = t_seqno_ - 1;	// truncate buffer
+//curseq_ = t_seqno_ - 1;	// truncate buffer
+	curseq_ = maxseq_ - 1;
 	infinite_send_ = 0;
 	switch (state_) {
 	case TCPS_CLOSED:
