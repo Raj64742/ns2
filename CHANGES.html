@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.348 1999/08/12 21:28:27 yaxu Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.349 1999/08/14 00:30:00 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,12 @@
 
 
 <ul>
+	<li><b><a href="http://www.isi.edu/~haldar">[haldar]</a></b>
+	<b>Fri Aug 13 17:24:06 PDT 1999</B>
+	Added ifdef's for a stand-alone (without using tclcl lib) version
+	of rng. Also revised setdest's Makefile allowing to build setdest
+	using this stand-alone version of rng.o
+
 	<li><b><a href="http://www.isi.edu/~yaxu">[yaxu]</a></b>
         <b> Thu Aug 12 16:19:45 PDT 1999 </b>
         Added TORA/IMEP implementation according to CMU's release
@@ -34,7 +40,11 @@
 	     2 examples for tora.
         </ul>
 	
-
+	<li><b><a href="http://www.isi.edu/~haldar">[haldar]</a></b>
+	<b>Wed Aug 11 17:50:35 PDT 1999</b>
+	Changed cmu's node-movement and traffic pattern
+	generation files (setdest.cc and calcdest.cc) to make them more
+	portable.
 
 	<li><b><a href="http://www.isi.edu/~kkumar">[kkumar]</a></b>
 	<b> Thu Jul 29 16:19:45 PDT 1999 </b>
@@ -1340,6 +1350,10 @@ control from Tcl, and derived TCP classes can define their own trace function. <
 Files: tcp.{cc,h}
 	
 	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
+
+
+
+
 
 
 
