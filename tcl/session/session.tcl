@@ -129,12 +129,13 @@ SessionSim instproc join-group { agent group } {
 		    set p [$self create-trace SessDeque $f $src $dst "nam"]
 		    $p target $agent
 		    $session_($index) add-dst $accu_bw $delay $ttl $dst $p
+		    $self update-loss-dependency $src $dst $p $group
 	    } else {
 		    #puts "add-dst $accu_bw $delay $ttl $src $dst"
 		    $session_($index) add-dst $accu_bw $delay $ttl $dst $agent
+		    $self update-loss-dependency $src $dst $agent $group
 	    }
 
-	    $self update-loss-dependency $src $dst $agent $group
 	}
     }
 }
