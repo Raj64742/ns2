@@ -7,10 +7,11 @@
 
 Objects of the class \code{Packet} are the fundamental unit of
 exchange between objects in the simulation.
-The \code{Packet} class provides for only enough information to
+The \code{Packet} class provides enough information to
 link a packet on to a list (i.e. in a \code{PacketQueue} or on a free
-list of packets) and to refer to a buffer containing packet headers
-which are defined on a per-protocol basis.
+list of packets), refer to a buffer containing packet headers
+which are defined on a per-protocol basis, and to refer to a buffer
+of packet data.
 New protocols may define their own packet headers or may extend
 existing headers with additional fields.
 
@@ -182,36 +183,43 @@ time to enable some subset of the compiled-in packet headers.
 
 \subsubsection{\shdr{the Packet class}{packet.h}{sec:packetclass}}
 
-The \code{Packet} class defines the structure of a minimal
-packet type and provides member functions to handle a
+The \code{Packet} class defines the structure of a
+packet and provides member functions to handle a
 free list for objects of this type.
 It is illustrated in Figure~\ref{pic:packet} and
 defined as follows in \code{packet.h}:
 \begin{small}
 \begin{verbatim}
-        class Packet : public Event {
-        private:
-                friend class PacketQueue;
-                u_char* bits_;
-                Packet* next_;  // for queues and the free list
-        protected:
-                static Packet* free_;
-        public:
+	class Packet : public Event {
+	private:
+		friend class PacketQueue;
+		u_char* bits_;  
+		u_char* data_;  // variable size buffer for 'data'
+		u_int datalen_; // length of variable size buffer
+	protected:
+		static Packet* free_;
+	public: 
+		Packet* next_;  // for queues and the free list
 		static int hdrlen_;
-                Packet() : bits_(0), next_(0) { }
-                Packet* copy() const;
-                static Packet* alloc();
-                static void free(Packet*);
-		inline u_char* access(int off) {
-			if (off < 0) abort();
-			return (&bits_[off]);
-		}
-        };
+		Packet() : bits_(0), datalen_(0), next_(0) { }
+		u_char* const bits() { return (bits_); }
+		Packet* copy() const;
+		static Packet* alloc();
+		static Packet* alloc(int);
+		inline void allocdata(int);
+		static void free(Packet*);
+		inline u_char* access(int off) { if (off < 0) abort(); return (&bits_[of
+	f]); }  
+		inline u_char* accessdata() {return data_;}
+	};
+
 \end{verbatim}
 \end{small}
 This class holds a pointer to a generic array of unsigned
 characters (commonly called the ``bag of bits'' or BOB for short)
 where packet header fields are stored.
+It also holds a pointer to packet ``data'' (which is often not used in
+simulations).
 The \code{bits\_} variable contains the address of
 the first byte of the BOB.
 Effectively BOB is (currently implemented as) a concatenation
@@ -231,7 +239,6 @@ Such allocation and deallocation is performed by the
 following code (in \code{packet.h}):
 \begin{small}
 \begin{verbatim}
-        #include "trace.h"
         inline Packet* Packet::alloc()
         {
                 Packet* p = free_;
@@ -245,19 +252,48 @@ following code (in \code{packet.h}):
                 }
                 return (p);
         }
+	/* allocate a packet with an n byte data buffer */
 
-        inline void Packet::free(Packet* p)
-        {
-                p->next_ = free_;
-                free_ = p;
-        }
+	inline Packet* Packet::alloc(int n)
+	{
+		Packet* p = alloc();
+		if (n > 0)
+		       p->allocdata(n);
+		return (p);
+	}
+		
+	/* allocate an n byte data buffer to an existing packet */
+		
+	inline void Packet::allocdata(int n)
+	{       
+		datalen_ = n; 
+		data_ = new u_char[n];
+		if (data_ == 0)
+			abort();
+	 
+	}       
+	inline void Packet::free(Packet* p)
+	{
+		p->next_ = free_;
+		free_ = p;
+		if (p->datalen_) {
+			delete p->data_;
+			p->datalen_ = 0;
+		}
+	}       
+	 
+	inline Packet* Packet::copy() const
+	{               
+		Packet* p = alloc();
+		memcpy(p->bits(), bits_, hdrlen_);  
+		if (datalen_) { 
+			p->datalen_ = datalen_;
+			p->data_ = new u_char[datalen_];
+			memcpy(p->data_, data_, datalen_);
+		}
+		return (p);
+	}
 
-        inline Packet* Packet::copy() const
-        {
-                Packet* p = alloc();
-                memcpy(p->bits(), bits_, hdrsize_);
-                return (p);
-        }
 \end{verbatim}
 \end{small}
 The \code{alloc} method is a support function commonly
@@ -278,32 +314,26 @@ with the exception of the \code{uid} field, which is unique.
 This function is used by \code{Replicator} objects to support
 multicast distribution and LANs.
 
-\subsubsection{\shdr{the hdr\_cmn class}{trace.h}{sec:commonhdr}}
+\subsubsection{\shdr{the hdr\_cmn class}{packet.h}{sec:commonhdr}}
 
 Each packet in the simulator has a ``common''
-header which is defined in \code{trace.h} as follows:
+header which is defined in \code{packet.h} as follows:
 \begin{small}
 \begin{verbatim}
-struct hdr_cmn {
-        double          ts_;    // timestamp: for q-delay measurement
-        int             ptype_; // packet type (see above)
-        int             uid_;   // unique id
-        int             size_;  // simulated packet size
-
-        /* per-field member functions */
-        int& ptype() {
-                return (ptype_);
-        }
-        int& uid() {
-                return (uid_);
-        }
-        int& size() {
-                return (size_);
-        }
-        double& timestamp() {
-                return (ts_);
-        }
-};
+	struct hdr_cmn {
+		double  ts_;            // timestamp: for q-delay measurement
+		int     ptype_;         // packet type (see above)
+		int     uid_;           // unique id 
+		int     size_;          // simulated packet size
+		int     iface_;         // receiving interface (label)
+	 
+		/* per-field member functions */
+		int& ptype() { return (ptype_); }
+		int& uid() { return (uid_); }
+		int& size() { return (size_); }
+		int& iface() { return (iface_); }
+		double& timestamp() { return (ts_); }
+	}; 
 \end{verbatim}
 \end{small}
 This structure primarily defines fields used for tracing
@@ -320,6 +350,9 @@ Note that the actual number of bytes consumed in the simulation
 may not relate to the value of this field.
 Rather, it is used most often in computing the time required for a packet
 to be delivered along a network link.
+The \code{iface\_} field is used by the simulator when performing
+multicast distribution tree computations.
+It is a label indicating (typically) on which link a packet was received.
 
 \subsubsection{\shdr{the PacketHeaderManager class}{packet.cc}{sec:packethdrmgr}}
 
@@ -332,28 +365,47 @@ It is defined in both the C++ and OTcl code:
 From tcl/lib/ns-packet.h:
 
 	PacketHeaderManager set hdrlen_ 0
-	Simulator instproc create_packetformat { } {
-		set pm [new PacketHeaderManager]
-		foreach pair {
+
+	#XXX could potentially get rid of this by searching having a more
+	# uniform offset concept...
+	foreach pair {
 			{ Common off_cmn_ }
+			{ Mac off_mac_ }
+			{ LL off_ll_ }
+			{ Snoop off_snoop_ }
 			{ IP off_ip_ }
 			{ TCP off_tcp_ }
+			{ TCPA off_tcpasym_ }
 			{ Flags off_flags_ }
-			{ RTP off_rtp_ } 
+			{ RTP off_rtp_ }
 			{ Message off_msg_ }
 			{ IVS off_ivs_ }
-			{ rtProtoDV off_DV_ }} {
+			{ rtProtoDV off_DV_ }
+			{ CtrMcast off_CtrMcast_ }
+			{ Prune off_prune_ }
+			{ Tap off_tap_ }
+			{ aSRM off_asrm_ }
+			{ SRM off_srm_ }} {
+		set cl [lindex $pair 0]
+		set var [lindex $pair 1]
+		PacketHeaderManager set vartab_($cl) $var
+	}    
 
-			set cl [lindex $pair 0]
-			set var [lindex $pair 1]
+	Simulator instproc create_packetformat { } {
+		set pm [new PacketHeaderManager]
+		foreach oclass [PacketHeader info subclass] {
+			set L [split $oclass /]
+			set cl [lindex $L 1]
+			set var [PacketHeaderManager set vartab_($cl)]
 			set off [$pm allochdr $cl]
 			TclObject set $var $off
-		}
-	}
+		}       
+		$self set packetManager_ $pm
+	}    
 	PacketHeaderManager instproc allochdr cl {
 		set size [PacketHeader/$cl set hdrlen_]
-
-		$self instvar hdrlen_
+	     
+		$self instvar hdrlen_ 
 		set NS_ALIGN 8
 		# round up to nearest NS_ALIGN bytes
 		set incr [expr ($size + ($NS_ALIGN-1)) & ~($NS_ALIGN-1)]
@@ -373,21 +425,22 @@ From packet.cc:
 		}
 	};
 
-	static class PacketHeaderManagerClass : public TclClass {
-	public:
-		PacketHeaderManagerClass() : TclClass("PacketHeaderManager") {}
-		TclObject* create(int argc, const char*const* argv) {
-			return (new PacketHeaderManager);
-		}
-	} class_packethdr_mgr;
-
 \end{verbatim}
 \end{small}
+The code in \code{ns-packet.tcl} is executed when the
+simulator initializes.
+Thus, the {\tt foreach} statement is executed before the
+simulation begins, and initializes the OTcl class array
+{\tt vartab\_} to contain the mapping between class
+the name and the name of the variable used to contain
+that class's header in a packet (which is initialized later).
+For example, the value of {\tt vartab\_(IP)} is set to
+{\tt off\_ip\_}.
+
 The \code{create\_packetformat} instance procedure is part of the
 basic Simulator class and is called one time during simulator
 configuration.
-It first creates a single \code{PacketHeaderManager} object
-in both OTcl and C++.
+It first creates a single \code{PacketHeaderManager} object.
 The C++ constructor links the OTcl instance
 variable \code{hdrlen\_} (of class \code{PacketHeaderManager})
 to the C++ variable \code{Packet::hdrlen\_} (a static
@@ -397,12 +450,14 @@ zero.
 Note that binding across class types in this fashion is
 unusual.
 
-\label{sec:configupacket}
+\label{sec:configpacket}
 After creating the packet manager, the \code{foreach}
 loop enables each of the packet headers of interest.
-This loop iterates through the list of pairs of the form
+This loop iterates through the list of defined
+packet headers of the form
 $(h_i, o_i)$ where $h_i$ is the name of the  $i$th header
-and $o_i$ is the location of the $h_i$ header in BOB.
+and $o_i$ is the name of the variable containing the
+location of the $h_i$ header in BOB.
 The placement of headers is performed by the \code{allochdr}
 instproc of the \code{PacketHeaderManager} OTcl class.
 The procedure keeps a running variable \code{hdrlen\_} with
