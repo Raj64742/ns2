@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.12 1998/07/28 01:30:40 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.13 1998/08/03 17:48:25 heideman Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -63,8 +63,10 @@ done
 test="$@"
 datafile="temp.rands"
 
-if ! $alltests
+if $alltests
 then
+	:
+else
 	tests=$tlist
 fi
 
@@ -120,12 +122,15 @@ for t in $tests; do
     else
 	success="unknown"
     fi
-    if test "$quiet" = "false"; then
+    if $quiet
+    then
+	:
+    else
         echo 'next?'
         read answer
     fi
 done
-if test "$success" = "true"; then
+if $success; then
 	echo All test output agrees with reference output.
 	exit 0
 else
