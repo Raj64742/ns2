@@ -5,51 +5,63 @@
 # invoke with "tclsh thisfile infile outprefix"
 #
 
-set seqmod 0
+set seqmod 0	; # seq number mod value (0: none)
+set seqscale 1	; # amount to scale seq #s by
+set flowfactor 536; # amount to scale flow # by
 
-proc forward_segment { time seqno } {
+proc scaleseq { fid seqno } {
+	global seqmod seqscale flowfactor
+	if { $seqmod == 0 } {
+		set val [expr $fid * $flowfactor + $seqno * $seqscale]
+	} else {
+		set val [expr $fid * $flowfactor + ($seqno % $seqmod) * $seqscale]
+	}
+puts " seqscale: mapped ($fid,$seqno) -> $val, ffact:$flowfactor, mod:$seqmod, scale:$seqscale"
+	return $val
+}
+
+proc forward_segment { fid time seqno } {
 	global segchan
-	puts $segchan "$time $seqno"
+	puts $segchan "$time [scaleseq $fid $seqno]"
 }
 
-proc forward_emptysegment { time seqno } {
+proc forward_emptysegment { fid time seqno } {
 	global emptysegchan
-	puts $emptysegchan "$time $seqno"
+	puts $emptysegchan "$time [scaleseq $fid $seqno]"
 }
-proc backward_dataful_ack { time ackno } {
+proc backward_dataful_ack { fid time ackno } {
 	global ackchan
-	puts $ackchan "$time $ackno"
+	puts $ackchan "$time [scaleseq $fid $ackno]"
 }
-proc backward_pure_ack { time ackno } {
+proc backward_pure_ack { fid time ackno } {
 	global packchan
-	puts $packchan "$time $ackno"
+	puts $packchan "$time [scaleseq $fid $ackno]"
 }
-proc drop_pkt { time ackno } {
+proc drop_pkt { fid time ackno } {
 	global dropchan
-	puts $dropchan "$time $ackno"
+	puts $dropchan "$time [scaleseq $fid $ackno]"
 }
 
-proc ctrl { time tflags seq } {
+proc ctrl { fid time tflags seq } {
 	global ctrlchan
-	puts $ctrlchan "$time $seq"
+	puts $ctrlchan "$time [scaleseq $fid $seq]"
 }
 
-proc ecnecho_pkt { time ackno } {
+proc ecnecho_pkt { fid time ackno } {
 	global ecnchan
-	puts $ecnchan "$time $ackno"
+	puts $ecnchan "$time [scaleseq $fid $ackno]"
 }
 
-proc cong_act { time seqno } {
+proc cong_act { fid time seqno } {
 	global cactchan
-	puts $cactchan "$time $seqno"
+	puts $cactchan "$time [scaleseq $fid $seqno]"
 }
 
-proc salen { time ackno } {
+proc salen { fid time ackno } {
 	global sachan
-	puts $sachan "$time $ackno"
+	puts $sachan "$time [scaleseq $fid $ackno]"
 }
 
-set synfound 0
 proc parse_line line {
 	global synfound active_opener passive_opener seqmod
 
@@ -62,6 +74,7 @@ proc parse_line line {
 		puts stderr "apparently not in extended full-tcp format!"
 		exit 1
 	}
+puts "parse line $line"
 	set field(op) [lindex $sline 0]
 	set field(time) [lindex $sline 1]
 	set field(tsrc) [lindex $sline 2]
@@ -76,30 +89,23 @@ proc parse_line line {
 	set field(dst) [lindex $sline 9]
 	set field(dstaddr) [lindex [split $field(dst) "."] 0]
 	set field(dstaddr) [lindex [split $field(dst) "."] 1]
-	if { $seqmod != 0 } {
-		set field(seqno) [expr [lindex $sline 10] % $seqmod]
-	} else {
-		set field(seqno) [lindex $sline 10]
-	}
+	set field(seqno) [lindex $sline 10]
 	set field(uid) [lindex $sline 11]
-	if { $seqmod != 0 } {
-		set field(tcpackno) [expr [lindex $sline 12] % $seqmod]
-	} else {
-		set field(tcpackno) [lindex $sline 12]
-	}
+	set field(tcpackno) [lindex $sline 12]
 	set field(tcpflags) [lindex $sline 13]
 	set field(tcphlen) [lindex $sline 14]
 	set field(salen) [lindex $sline 15]
 
-	if { !($synfound) && [expr $field(tcpflags) & 0x02] } {
+	set fid $field(fid)
+	if { ![info exists synfound($fid)] && [expr $field(tcpflags) & 0x02] } {
 		global reverse
-		set synfound 1
+		set synfound($fid) 1
 		if { [info exists reverse] && $reverse } {
-			set active_opener $field(dst)
-			set passive_opener $field(src)
+			set active_opener($fid) $field(dst)
+			set passive_opener($fid) $field(src)
 		} else {
-			set active_opener $field(src)
-			set passive_opener $field(dst)
+			set active_opener($fid) $field(src)
+			set passive_opener($fid) $field(dst)
 		}
 	}
 
@@ -111,58 +117,58 @@ proc parse_line line {
 
 	if { $interesting && [expr $field(tcpflags) & 0x03] } {
 		# either SYN or FIN is on
-		if { $field(src) == $active_opener && \
-		    $field(dst)  == $passive_opener } {
-			ctrl $field(time) $field(tcpflags) \
+		if { $field(src) == $active_opener($fid) && \
+		    $field(dst)  == $passive_opener($fid) } {
+			ctrl $field(fid) $field(time) $field(tcpflags) \
 				[expr $field(seqno) + $field(len) - $field(tcphlen)]
-		} elseif { $field(src) == $passive_opener && \
-		    $field(dst) == $active_opener } {
-			ctrl $field(time) $field(tcpflags) \
+		} elseif { $field(src) == $passive_opener($fid) && \
+		    $field(dst) == $active_opener($fid) } {
+			ctrl $field(fid) $field(time) $field(tcpflags) \
 				$field(tcpackno)
 		}
 	}
 
-	if { $interesting && $field(src) == $active_opener && $field(dst) == $passive_opener } {
+	if { $interesting && $field(src) == $active_opener($fid) && $field(dst) == $passive_opener($fid) } {
 		set topseq [expr $field(seqno) + $field(len) - $field(tcphlen)]
 		if { $field(len) > $field(tcphlen) } {
-			forward_segment $field(time) $topseq
+			forward_segment $field(fid) $field(time) $topseq
 		} else {
-			forward_emptysegment $field(time) $topseq
+			forward_emptysegment $field(fid) $field(time) $topseq
 		}
 		if { [string index $field(pflags) 3] == "A" } {
-			cong_act $field(time) $topseq
+			cong_act $field(fid) $field(time) $topseq
 		}
 		return
 	}
 
 	if { $interesting && $field(len) > $field(tcphlen) &&
-	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
+	    $field(src) == $passive_opener($fid) && $field(dst) == $active_opener($fid) } {
 		# record acks for the forward direction that have data
-		backward_dataful_ack $field(time) $field(tcpackno)
+		backward_dataful_ack $field(fid) $field(time) $field(tcpackno)
 		if { [string index $field(pflags) 0] == "C"  &&
 			[string last N $field(pflags)] >= 0 } {
-			ecnecho_pkt $field(time) $field(tcpackno)
+			ecnecho_pkt $field(fid) $field(time) $field(tcpackno)
 		}
 		return
 	}
 
 	if { $interesting && $field(len) == $field(tcphlen) &&
-	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
+	    $field(src) == $passive_opener($fid) && $field(dst) == $active_opener($fid) } {
 		# record pure acks for the forward direction
-		backward_pure_ack $field(time) $field(tcpackno)
+		backward_pure_ack $field(fid) $field(time) $field(tcpackno)
 		if { [string index $field(pflags) 0] == "C" &&
 			[string last N $field(pflags)] >= 0 } {
-			ecnecho_pkt $field(time) $field(tcpackno)
+			ecnecho_pkt $field(fid) $field(time) $field(tcpackno)
 		}
 		if { $field(salen) > 0 } {
-			salen $field(time) $field(tcpackno)
+			salen $field(fid) $field(time) $field(tcpackno)
 		}
 		return
 	}
 
-	if { $field(op) == "d" && $field(src) == $active_opener &&
-	    $field(dst) == $passive_opener } {
-		drop_pkt $field(time) \
+	if { $field(op) == "d" && $field(src) == $active_opener($fid) &&
+	    $field(dst) == $passive_opener($fid) } {
+		drop_pkt $field(fid) $field(time) \
 			[expr $field(seqno) + $field(len) - $field(tcphlen)]
 		return
 	}
@@ -216,7 +222,7 @@ proc dofile { infile outfile } {
 
 proc getopt {argc argv} { 
         global opt
-        lappend optlist m r
+        lappend optlist s n m r
 
         for {set i 0} {$i < $argc} {incr i} {
                 set arg [lindex $argv $i]
@@ -229,6 +235,22 @@ proc getopt {argc argv} {
 
 getopt $argc $argv
 set base 0
+
+puts " Argv: $argv"
+
+if { [info exists opt(s)] && $opt(s) != "" } {
+	global seqscale base opt argc argv
+	set seqscale $opt(s)
+	incr argc -2
+	incr base 2
+}
+
+if { [info exists opt(n)] && $opt(n) != "" } {
+	global flowfactor base opt argc argv
+	set flowfactor $opt(n)
+	incr argc -2
+	incr base 2
+}
 
 if { [info exists opt(m)] && $opt(m) != "" } {
 	global seqmod base opt argc argv
@@ -245,7 +267,7 @@ if { [info exists opt(r)] && $opt(r) != "" } {
 }
 
 if { $argc < 2 || $argc > 3 } {
-	puts stderr "usage: tclsh \[-m wrapamt\] \[-r\] tcpfull-summarize.tcl tracefile outprefix \[reverse\]"
+	puts stderr "usage: tclsh tcpfull-suumarize.tcl \[-m wrapamt\] \[-r\] \[-n flowfactor\] \[-s seqscale\] tracefile outprefix \[reverse\]"
 	exit 1
 } elseif { $argc == 3 } {
 	if { [lindex $argv [expr $base + 2]] == "reverse" } {
@@ -253,5 +275,6 @@ if { $argc < 2 || $argc > 3 } {
 		set reverse 1
 	}
 }
+puts "doing: seqscale:$seqscale, fact:$flowfactor, mod:$seqmod"
 dofile [lindex $argv [expr $base]] [lindex $argv [expr $base + 1]]
 exit 0
