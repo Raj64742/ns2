@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.51 1998/05/23 00:34:19 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.52 1998/06/18 01:15:32 kfall Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -45,14 +45,7 @@ struct hdr_tcp {
 	                           the peer) */
 	int seqno_;             /* sequence number */
 	int reason_;            /* reason for a retransmit */
-	int sa_start_[NSA+1];   /* selective ack "holes" in packet stream */
-	int sa_end_[NSA+1];     /* For each hole i, sa_start[i] contains the
-	                         * starting packet sequence no., and sa_end[i]  
-	                         * contains the ending packet sequence no. */
-	int sa_left_[NSA+1];
-	int sa_right_[NSA+1];   /* In Jamshid's implementation, this    *
-	                         * pair of variables represents the blocks*
-	                         * not the holes.                         */
+	int sack_area_[NSA+1][2];	/* sack blocks: start, end of block */
 	int sa_length_;         /* Indicate the number of SACKs in this  *
 	                         * packet.  Adds 2+sack_length*8 bytes   */ 
 	int ackno_;             /* ACK number for FullTcp */
@@ -73,17 +66,11 @@ struct hdr_tcp {
 	int& reason() {
 		return (reason_);
 	}
-	int* sa_start() {
-		return (sa_start_);
+	int& sa_left(int n) {
+		return (sack_area_[n][0]);
 	}
-	int* sa_end() {
-		return (sa_end_);
-	}
-	int* sa_left() {
-		return (sa_left_);
-	}
-	int* sa_right() {
-		return (sa_right_);
+	int& sa_right(int n) {
+		return (sack_area_[n][1]);
 	}
 	int& sa_length() {
 		return (sa_length_);
