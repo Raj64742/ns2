@@ -109,7 +109,7 @@ CsmaMac::backoff(Packet* p, double delay)
 	// else drop the packet and resume
 	if (++rtx_ < rtxmax_) {
 		delay += max(channel_->txstop() + ifs_ - now, 0);
-		int slot = Random::integer(cw_) + 1;
+		int slot = Random::integer(cw_);
 		s.schedule(&mh_, p, delay + slotTime_ * slot);
 		cw_ = min(2 * cw_, cwmax_);
 	}
@@ -128,10 +128,9 @@ CsmaMac::endofContention(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
 	channel_->send(p, p->target(), txt);
-	s.schedule(callback_, &intr_,
-		   txt + ifs_ + Random::uniform(delay_));
 	rtx_ = 0;
 	cw_ = cwmin_;
+	s.schedule(callback_, &intr_, txt + ifs_);
 }
 
 
@@ -155,7 +154,7 @@ CsmaCaMac::send(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 
-	if (/*cw_ == cwmin_ ||*/ channel_->txstop() + ifs_ > now)
+	if (channel_->txstop() + ifs_ > now)
 		backoff(p);
 	else {
 		txstart_ = now;
