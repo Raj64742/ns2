@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.31 2001/10/03 10:05:34 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.32 2002/02/20 23:11:10 ddutta Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -143,10 +143,27 @@ Simulator instproc get-routelogic {} {
 Simulator instproc dump-approx-sim-data {} {
 
 	$self instvar routingTable_ Node_ link_
-	if ![info exists routingTable_] {
-	    puts "error: routing table is not computed yet!"
-	    return 0
+    
+#        if ![info exists routingTable_] {
+#	    puts "error: routing table is not computed yet!"
+#	    return 0
+#	}
+
+	set r [$self get-routelogic]	
+	$self cmd get-routelogic $r  ;# propagate rl in C++
+	# populate the route logic 
+	foreach ln [array names link_] {
+		set L [split $ln :]
+		set srcID [lindex $L 0]
+		set dstID [lindex $L 1]
+		if { [$link_($ln) up?] == "up" } {
+			$r insert $srcID $dstID [$link_($ln) cost?]
+		} else {
+			$r reset $srcID $dstID
+		}
 	}
+	# now compute routes
+	$r compute
 
 	puts "# Dumping Approx-Sim Data"  
 
@@ -154,7 +171,14 @@ Simulator instproc dump-approx-sim-data {} {
 	puts "m [Link set nl_] "
         foreach qn [array names link_] {
                 set l $link_($qn)
-                puts "link [expr [$l set id_] + 1] [expr [$l bw] / 8000] [expr [$l bw] / 8000] [$l delay] [$l qsize]"
+	        set q [$l queue]
+	        set t [$q info class]
+	    if {[lindex [split $t "/"] 1] == "DropTail"} {
+                puts "link [expr [$l set id_] + 1] [expr [$l bw] / 8000] [expr [$l bw] / 8000] [$l delay] [$l qsize] $t"
+	    }
+	    if {[lindex [split $t "/"] 1] == "RED"} {
+                puts "link [expr [$l set id_] + 1] [expr [$l bw] / 8000] [expr [$l bw] / 8000] [$l delay] [$l qsize] RED [$q set thresh_] 0 [$q set maxthresh_] [expr 1.0 / [$q set linterm_] ]"
+	    }
         }
 
 	puts ""
@@ -174,7 +198,7 @@ Simulator instproc dump-approx-sim-data {} {
 			incr len
 			# shortened nexthop to nh, to fit add-route in
 			# a single line
-			set nh [$routingTable_ lookup $srcid $dstid]
+			set nh [$r lookup $srcid $dstid]
 			# print the route 
 			append str " " [expr [$link_($srcid:$nh) id] + 1] 
 			set srcid  $nh
