@@ -7,6 +7,8 @@
 
 Delays represent the time required for a packet to
 traverse a link.
+A special form of this object (``dynamic link'')
+also captures the possibility of a link failure.
 The amount of time required for a packet to traverse a link
 is defined to be $s/b + d$ where $s$ is the packet size
 (as recorded in its IP header), $b$ is the speed of the link
@@ -19,13 +21,18 @@ Section\ref{sec:qblock}.
 
 The \code{LinkDelay} class is derived from a
 \code{Connector} base class.
-The following definitions are provided in \code{delay.cc}:
+The following definitions are provided in \code{delay.cc}
+for the \code{DelayLink} object:
 \begin{small}
 \begin{verbatim}
         class LinkDelay : public Connector {
          public:
                 LinkDelay();
                 void recv(Packet* p, Handler*);
+		void send(Packet* p, Handler*);
+		double delay();    /* line latency on this link */
+		double bandwidth(); /* bandwidth on this link */
+		double txtime(Packet* p); /* time to send pkt p on this link */
          protected:
                 double bandwidth_; /* bandwidth of underlying link (bits/sec) */
                 double delay_;     /* line latency */
@@ -40,19 +47,32 @@ It is defined as follows:
 \begin{small}
 \begin{verbatim}
         void LinkDelay::recv(Packet* p, Handler* h)
-        {
-                IPHeader *hdr = IPHeader::access(p->bits());
-                double txtime = hdr->size() * 8. / bandwidth_;
-                Scheduler& s = Scheduler::instance();
-                s.schedule(target_, p, txtime + delay_);
-                /*XXX only need one intr_ since upstream object should
-                 * block until it's handler is called
-                 */
-                s.schedule(h, &intr_, txtime);
-        }
+        {    
+        	double txt = txtime(p);
+        	Scheduler& s = Scheduler::instance();
+        	if (dynamic_) {
+        		Event* e = (Event*)p;
+        		e->time_ = s.clock() + txt + delay_; 
+        		itq_->enque(p);
+        		schedule_next();
+        	} else {
+        		s.schedule(target_, p, txt + delay_);
+        	}       
+        	/*XXX only need one intr_ since upstream object should
+        	 * block until it's handler is called
+        	 *       
+        	 * This only holds if the link is not dynamic.  If it is, then
+        	 * the link itself will hold the packet, and call the upstream
+        	 * object at the appropriate time.  This second interrupt is
+        	 * called inTransit_, and is invoked through schedule_next()
+        	 */      
+        	s.schedule(h, &intr_, txt);
+        }   
+
 \end{verbatim}
 \end{small}
-This method operates by receiving a packet and scheduling two
+For ``non-dynamic'' links,
+this method operates by receiving a packet and scheduling two
 events.
 Assume these two events are called $E_1$ and $E_2$, and that
 event $E_1$ is scheduled to occur before $E_2$.
@@ -70,7 +90,7 @@ link delay.
 
 The \code{Link} class is one of a handful of classes implemented
 entirely in Otcl.  It has a subclass called \code{SimpleLink}
-frequently used in the simulator.
+used frequently in the simulator.
 The OTcl \code{SimpleLink} class uses the C++ \code{LinkDelay} class
 to simulate packet delivery delays as described above.
 The \code{Link} class is defined as follows:
@@ -123,9 +143,10 @@ It is derived from the base Otcl class \code{Link} as follows:
 \begin{small}
 \begin{verbatim}
         Class SimpleLink -superclass Link
-        SimpleLink instproc init { src dst bw delay q } {
+        SimpleLink instproc init { src dst bw delay q { lltype "DelayLink" } } {
                 $self next $src $dst
                 $self instvar link_ queue_ head_ toNode_ ttl_
+                ...
                 set queue_ $q
                 set link_ [new Delay/Link]
                 $link_ set bandwidth_ $bw
@@ -134,8 +155,7 @@ It is derived from the base Otcl class \code{Link} as follows:
                 $queue_ target $link_
                 $link_ target [$toNode_ entry]
 
-                set head_ $queue_
-
+                ...
                 # XXX
                 # put the ttl checker after the delay
                 # so we don't have to worry about accounting
