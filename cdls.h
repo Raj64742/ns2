@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.5 1997/07/26 00:10:42 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.6 1997/07/26 08:07:06 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_cdls_h
@@ -47,15 +47,14 @@
 */
 class IdPacketQueue : public PacketQueue {
 public:
-	IdPacketQueue() : id_(0), loss_(0), total_(0), em_(0) {}
+	IdPacketQueue() : id_(0), total_(0), em_(0) {}
+	Packet* deque();
 	inline int& id() { return id_; }
-	inline int& loss() { return loss_; }
 	inline int& total() { return total_; }
 	inline ErrorModel*& em() { return em_; }
 protected:
 	int id_;		// unique identifier for this queue
-	int loss_;
-	int total_;
+	int total_;		// total number of packets went out
 	ErrorModel* em_;
 };
 
@@ -74,13 +73,13 @@ protected:
 	Packet* deque();
 	IdPacketQueue* getQueue(int id);
 	IdPacketQueue* selectQueue();
-	void enque_weight(Packet*, IdPacketQueue*);
 	double weight(IdPacketQueue*);
 
-	int qlen_;
-	int maxq_;
-	int numq_;
-	IdPacketQueue** q_;
+	int qlen_;		// current queue length
+	int total_;		// total number of packets went out
+	int maxq_;		// current size of q_ table
+	int numq_;		// current number of valid queue in q_ table
+	IdPacketQueue** q_;	// table of queues
 	int off_ll_;
 	int off_mac_;
 };

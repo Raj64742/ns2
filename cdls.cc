@@ -49,7 +49,7 @@ public:
 } class_cdls;
 
 
-Cdls::Cdls() : qlen_(0), maxq_(4), numq_(0)
+Cdls::Cdls() : qlen_(0), total_(0), maxq_(4), numq_(0)
 {
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
@@ -79,7 +79,7 @@ Cdls::enque(Packet* p)
 		return;
 	}
 	qlen_++;
-	enque_weight(p, getQueue(((hdr_mac*)p->access(off_mac_))->macDA()));
+	getQueue(((hdr_mac*)p->access(off_mac_))->macDA())->enque(p);
 }
 
 
@@ -92,6 +92,7 @@ Cdls::deque()
 	Packet* p = q->deque();
 	if (p != 0) {
 		qlen_--;
+		total_++;
 		if (q->em() && q->em()->corrupt(p))
 			((hdr_ll*)p->access(off_ll_))->error() = 1;
 	}
@@ -123,13 +124,6 @@ Cdls::getQueue(int id)
 }
 
 
-void
-Cdls::enque_weight(Packet* p, IdPacketQueue* q)
-{
-	q->enque(p);
-}
-
-
 IdPacketQueue*
 Cdls::selectQueue()
 {
@@ -152,6 +146,22 @@ Cdls::selectQueue()
 double
 Cdls::weight(IdPacketQueue* q)
 {
-	double w = 1.0 - (q->em() ? q->em()->rate() : 0);
-	return q->length() ? w : 0;
+	double w;
+	if (q->length() == 0)
+		return 0;
+	if (q->em()) {
+		// w = 1.0 - q->em()->rate();
+		w = 1.0 / (q->em()->rate() + 1e-9);
+	}
+	else
+		w = (double) total_ / (numq_ * (q->total() + 1));
+	return w;
+}
+
+
+Packet*
+IdPacketQueue::deque()
+{
+	total_++;
+	return PacketQueue::deque();
 }
