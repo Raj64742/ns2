@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.41 1999/10/13 22:52:46 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.42 1999/10/15 22:36:10 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -179,13 +179,11 @@ extern "C" {
 #include <winsock.h>
 #include <time.h>		/* For clock_t */
 
-#ifdef WIN32
 #include <minmax.h>
 #define NOMINMAX
 #undef min
 #undef max
 #undef abs
-#endif
 
 #define MAXHOSTNAMELEN	256
 
@@ -234,10 +232,11 @@ int getgid(void);
 int getpid(void);
 int nice(int);
 int sendmsg(int, struct msghdr*, int);
+/* Why this is here, inside a #ifdef WIN32 ??
 #ifndef WIN32
-time_t time(time_t *);
+	time_t time(time_t *);
 #endif
-
+*/
 #define strncasecmp _strnicmp
 #if defined(__cplusplus)
 }
