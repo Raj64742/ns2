@@ -108,9 +108,9 @@ public:
 	int gensack(int *sacks, int maxsblock);
 
 	void clear();		// clear FIFO, LIFO
-	void clearto(TcpSeq);	// clear FIFO, LIFO up to seq #
-	void cleartonxt() { 	// clear FIFO, LIFO to rcv_nxt_
-	    clearto(rcv_nxt_);
+	TcpFlag clearto(TcpSeq);	// clear FIFO, LIFO up to seq #
+	TcpFlag cleartonxt() { 		// clear FIFO, LIFO to rcv_nxt_
+	    return (clearto(rcv_nxt_));
 	}
 	void dumplist();	// for debugging
 
