@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.42 2001/03/07 18:30:02 jahn Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.43 2001/06/09 03:24:10 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -81,9 +81,11 @@ protected:
 
 	int enable_;		// true if this error module is turned on
 	int markecn_;		// mark ecn instead of dropping on corruption?
+	int delay_pkt_;		// delay packet instead of dropping
 	int firstTime_;		// to not corrupt first packet in byte model
 	ErrorUnit unit_;	// error unit in pkts, bytes, or time
 	double rate_;		// uniform error rate in pkt or byte
+	double delay_;		// time to delay packet
 	double bandwidth_;	// bandwidth of the link
 	RandomVariable *ranvar_;// the underlying random variate generator
 	int FECstrength_;       // indicate how many corrupted bits are corrected
@@ -170,7 +172,6 @@ protected:
 	int dropcnt_;	/* # entries in droplist_ total */
 	int cur_;	/* current index into droplist_ */
 };
-
 
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {

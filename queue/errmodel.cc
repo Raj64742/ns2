@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.69 2001/03/07 18:30:02 jahn Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.70 2001/06/09 03:24:10 sfloyd Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.69 2001/03/07 18:30:02 jahn Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.70 2001/06/09 03:24:10 sfloyd Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -103,8 +103,10 @@ ErrorModel::ErrorModel() : firstTime_(1), unit_(EU_PKT), ranvar_(0), FECstrength
 {
 	bind("enable_", &enable_);
 	bind("rate_", &rate_);
+	bind("delay_", &delay_);
 	bind_bw("bandwidth_", &bandwidth_); // required for EU_TIME
 	bind_bool("markecn_", &markecn_);
+	bind_bool("delay_pkt_", &delay_pkt_);
 }
 
 int ErrorModel::command(int argc, const char*const* argv)
@@ -145,7 +147,7 @@ int ErrorModel::command(int argc, const char*const* argv)
 			tcl.resultf("%d", FECstrength_);
 			return (TCL_OK);
 		} 
-	}
+	} 
 	return Connector::command(argc, argv);
 }
 
@@ -167,17 +169,21 @@ void ErrorModel::recv(Packet* p, Handler* h)
 
 	// XXX When we do ECN, the packet is marked but NOT dropped.
 	// So we don't resume handler here. 
-	if (!markecn_ && (h && ((error && drop_) || !target_))) {
+	if (!markecn_ && !delay_pkt_ && (h && ((error && drop_) || !target_))) {
 		// if we drop or there is no target_, then resume handler
 		double delay = Random::uniform(8.0 * ch->size() / bandwidth_);
 		Scheduler::instance().schedule(h, &intr_, delay);
-	}
+	} 
 	if (error) {
 		ch->error() |= error;
 
 		if (markecn_) {
 			hdr_flags* hf = hdr_flags::access(p);
 			hf->ce() = 1;
+		} else if (delay_pkt_) {
+			// Delay the packet.
+			Scheduler::instance().schedule(target_, p, delay_);
+			return;
 		} else if (drop_) {
 			drop_->recv(p);
 			return;
@@ -185,10 +191,9 @@ void ErrorModel::recv(Packet* p, Handler* h)
 	}
 
 	if (target_) {
-		target_->recv(p, h);
+	       	target_->recv(p, h);
 	}
 }
-
 
 int ErrorModel::corrupt(Packet* p)
 {
@@ -606,6 +611,7 @@ ListErrorModel::command(int argc, const char*const* argv)
 	}
 	return (ErrorModel::command(argc, argv));
 }
+
 int
 ListErrorModel::intcomp(const void *p1, const void *p2)
 {
@@ -636,6 +642,7 @@ ListErrorModel::nextval(const char*& p)
 		++q;
 	return (q-p);
 }
+
 int
 ListErrorModel::parse_droplist(int argc, const char *const* argv)
 {
@@ -739,9 +746,7 @@ printf("sorted list:\n");
 	return dropcnt_;
 }
 
-
 /***** ***/
-
 
 static class SelectErrorModelClass : public TclClass {
 public:

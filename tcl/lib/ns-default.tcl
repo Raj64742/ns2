@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.242 2001/05/27 02:25:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.243 2001/06/09 03:24:10 sfloyd Exp $
 
 
 #
@@ -281,6 +281,8 @@ ErrorModule set debug_ false
 
 ErrorModel set enable_ 1
 ErrorModel set markecn_ false
+ErrorModel set delay_pkt_ false
+ErrorModel set delay_ 0
 ErrorModel set rate_ 0
 ErrorModel set bandwidth_ 2Mb
 ErrorModel set debug_ false
