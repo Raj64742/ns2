@@ -4452,8 +4452,8 @@ fi
 
 
 
-echo $ac_n "checking for sturct ether_header""... $ac_c" 1>&6
-echo "configure:4457: checking for sturct ether_header" >&5
+echo $ac_n "checking for struct ether_header""... $ac_c" 1>&6
+echo "configure:4457: checking for struct ether_header" >&5
 cat > conftest.$ac_ext <<EOF
 #line 4459 "configure"
 #include "confdefs.h"
@@ -4492,8 +4492,8 @@ fi
 rm -f conftest*
  
 
-echo $ac_n "checking for sturct ether_addr""... $ac_c" 1>&6
-echo "configure:4497: checking for sturct ether_addr" >&5
+echo $ac_n "checking for struct ether_addr""... $ac_c" 1>&6
+echo "configure:4497: checking for struct ether_addr" >&5
 cat > conftest.$ac_ext <<EOF
 #line 4499 "configure"
 #include "confdefs.h"
