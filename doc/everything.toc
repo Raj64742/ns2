@@ -312,157 +312,157 @@
 \contentsline {section}{\numberline {26.3}Creating large Hierarchical topologies}{232}
 \contentsline {section}{\numberline {26.4}Hierarchical Routing with SessionSim}{232}
 \contentsline {section}{\numberline {26.5}Commands at a glance}{232}
-\contentsline {part}{V\hspace {1em}Transport}{233}
-\contentsline {chapter}{\numberline {27}UDP Agents}{234}
-\contentsline {section}{\numberline {27.1}UDP Agents}{234}
-\contentsline {section}{\numberline {27.2}Commands at a glance}{235}
-\contentsline {chapter}{\numberline {28}TCP Agents}{236}
-\contentsline {section}{\numberline {28.1}One-Way TCP Senders}{237}
-\contentsline {subsection}{\numberline {28.1.1}The Base TCP Sender (Tahoe TCP)}{237}
-\contentsline {paragraph}{Responses to Congestion}{237}
-\contentsline {paragraph}{Round-Trip Time Estimation and RTO Timeout Selection}{237}
-\contentsline {subsection}{\numberline {28.1.2}Configuration}{237}
-\contentsline {subsection}{\numberline {28.1.3}Simple Configuration}{237}
-\contentsline {paragraph}{Creating the Agent}{237}
-\contentsline {paragraph}{TCP Data Source}{238}
-\contentsline {subsection}{\numberline {28.1.4}Other Configuration Parameters}{238}
-\contentsline {subsection}{\numberline {28.1.5}Other One-Way TCP Senders}{239}
-\contentsline {paragraph}{Reno TCP}{239}
-\contentsline {paragraph}{NewReno TCP}{239}
-\contentsline {paragraph}{Vegas TCP}{239}
-\contentsline {paragraph}{Sack TCP}{239}
-\contentsline {paragraph}{Fack TCP}{239}
-\contentsline {section}{\numberline {28.2}TCP Receivers (sinks)}{239}
-\contentsline {subsection}{\numberline {28.2.1}The Base TCP Sink}{240}
-\contentsline {paragraph}{configuration parameters}{240}
-\contentsline {subsection}{\numberline {28.2.2}Delayed-ACK TCP Sink}{240}
-\contentsline {paragraph}{configuration parameters}{240}
-\contentsline {subsection}{\numberline {28.2.3}Sack TCP Sink}{240}
-\contentsline {paragraph}{configuration parameters}{240}
-\contentsline {section}{\numberline {28.3}Two-Way TCP Agents (FullTcp)}{240}
-\contentsline {subsection}{\numberline {28.3.1}Simple Configuration}{241}
-\contentsline {paragraph}{Creating the Agent}{241}
-\contentsline {paragraph}{Configuration Parameters}{241}
-\contentsline {section}{\numberline {28.4}Architecture and Internals}{242}
-\contentsline {paragraph}{The TCP header}{242}
-\contentsline {paragraph}{Functions for Sending Data}{242}
-\contentsline {paragraph}{Functions for Window Management}{242}
-\contentsline {paragraph}{Functions for Processing ACKs}{242}
-\contentsline {paragraph}{Functions for Managing the Retransmission Timer}{243}
-\contentsline {section}{\numberline {28.5}Tracing TCP Dynamics}{243}
-\contentsline {section}{\numberline {28.6}One-Way Trace TCP Trace Dynamics}{243}
-\contentsline {section}{\numberline {28.7}One-Way Trace TCP Trace Dynamics}{244}
-\contentsline {section}{\numberline {28.8}Commands at a glance}{244}
-\contentsline {chapter}{\numberline {29}Agent/SRM}{245}
-\contentsline {section}{\numberline {29.1}Configuration}{245}
-\contentsline {subsection}{\numberline {29.1.1}Trivial Configuration}{245}
-\contentsline {paragraph}{Creating the Agent}{245}
-\contentsline {paragraph}{Application Data Handling}{246}
-\contentsline {paragraph}{Starting the Agent and Traffic Generator}{246}
-\contentsline {subsection}{\numberline {29.1.2}Other Configuration Parameters}{247}
-\contentsline {subsection}{\numberline {29.1.3}Statistics}{248}
-\contentsline {paragraph}{Data Loss}{248}
-\contentsline {paragraph}{Overall Statistics}{248}
-\contentsline {paragraph}{Miscellaneous Information}{249}
-\contentsline {subsection}{\numberline {29.1.4}Tracing}{249}
-\contentsline {section}{\numberline {29.2}Architecture and Internals}{251}
-\contentsline {section}{\numberline {29.3}Packet Handling: Processing received messages}{251}
-\contentsline {paragraph}{Data Packets}{251}
-\contentsline {paragraph}{Request Packets}{252}
-\contentsline {paragraph}{Repair Packets}{252}
-\contentsline {paragraph}{Session Packets}{252}
-\contentsline {section}{\numberline {29.4}Loss Detection---The Class SRMinfo}{253}
-\contentsline {section}{\numberline {29.5}Loss Recovery Objects}{253}
-\contentsline {paragraph}{Request Mechanisms}{253}
-\contentsline {paragraph}{Repair Mechanisms}{254}
-\contentsline {paragraph}{Mechanisms for Statistics}{255}
-\contentsline {section}{\numberline {29.6}Session Objects}{255}
-\contentsline {section}{\numberline {29.7}Extending the Base Class Agent}{256}
-\contentsline {subsection}{\numberline {29.7.1}Fixed Timers}{256}
-\contentsline {subsection}{\numberline {29.7.2}Adaptive Timers}{256}
-\contentsline {paragraph}{Recompute for Each New Loss Object}{256}
-\contentsline {paragraph}{Sending a Message}{256}
-\contentsline {paragraph}{Advertising the Distance}{256}
-\contentsline {section}{\numberline {29.8}SRM objects}{257}
-\contentsline {section}{\numberline {29.9}Commands at a glance}{258}
-\contentsline {part}{VI\hspace {1em}Application}{260}
-\contentsline {chapter}{\numberline {30}Applications and transport agent API}{261}
-\contentsline {section}{\numberline {30.1}The class Application}{261}
-\contentsline {section}{\numberline {30.2}The transport agent API}{262}
-\contentsline {subsection}{\numberline {30.2.1}Attaching transport agents to nodes}{262}
-\contentsline {subsection}{\numberline {30.2.2}Attaching applications to agents}{263}
-\contentsline {subsection}{\numberline {30.2.3}Using transport agents via system calls}{263}
-\contentsline {subsection}{\numberline {30.2.4}Agent upcalls to applications}{263}
-\contentsline {subsection}{\numberline {30.2.5}An example}{264}
-\contentsline {section}{\numberline {30.3}The class TrafficGenerator}{265}
-\contentsline {paragraph}{Exponential On/Off}{266}
-\contentsline {paragraph}{Pareto On/Off}{266}
-\contentsline {paragraph}{CBR}{267}
-\contentsline {paragraph}{Traffic Trace}{267}
-\contentsline {subsection}{\numberline {30.3.1}An example}{267}
-\contentsline {section}{\numberline {30.4}Simulated applications: Telnet and FTP}{268}
-\contentsline {paragraph}{Application/FTP}{268}
-\contentsline {paragraph}{Application/Telnet}{268}
-\contentsline {section}{\numberline {30.5}Applications objects}{268}
-\contentsline {section}{\numberline {30.6}Commands at a glance}{270}
-\contentsline {chapter}{\numberline {31}Web cache as an application}{271}
-\contentsline {section}{\numberline {31.1}Using application-level data in \emph {ns}}{271}
-\contentsline {subsection}{\numberline {31.1.1}ADU}{271}
-\contentsline {subsection}{\numberline {31.1.2}Passing data between applications}{272}
-\contentsline {subsection}{\numberline {31.1.3}Transmitting user data over UDP}{273}
-\contentsline {subsection}{\numberline {31.1.4}Transmitting user data over TCP}{274}
-\contentsline {subsection}{\numberline {31.1.5}Class hierarchy related to user data handling}{275}
-\contentsline {section}{\numberline {31.2}Overview of web cache classes}{275}
-\contentsline {subsection}{\numberline {31.2.1}Managing HTTP connections}{275}
-\contentsline {paragraph}{OTcl methods}{276}
-\contentsline {paragraph}{Configuration parameter}{276}
-\contentsline {subsection}{\numberline {31.2.2}Managing web pages}{276}
-\contentsline {subsection}{\numberline {31.2.3}Debugging}{277}
-\contentsline {section}{\numberline {31.3}Representing web pages}{277}
-\contentsline {section}{\numberline {31.4}Page pools}{278}
-\contentsline {subsection}{\numberline {31.4.1}PagePool/Math}{278}
-\contentsline {subsection}{\numberline {31.4.2}PagePool/CompMath}{279}
-\contentsline {subsection}{\numberline {31.4.3}PagePool/ProxyTrace}{279}
-\contentsline {subsection}{\numberline {31.4.4}PagePool/Client}{280}
-\contentsline {section}{\numberline {31.5}Web client}{281}
-\contentsline {paragraph}{Creating a client}{281}
-\contentsline {paragraph}{Configuring request generation}{281}
-\contentsline {paragraph}{Starting}{281}
-\contentsline {paragraph}{OTcl interfaces}{281}
-\contentsline {section}{\numberline {31.6}Web server}{282}
-\contentsline {section}{\numberline {31.7}Web cache}{282}
-\contentsline {subsection}{\numberline {31.7.1}Http/Cache}{282}
-\contentsline {paragraph}{Creation and startup}{282}
-\contentsline {paragraph}{OTcl methods}{283}
-\contentsline {section}{\numberline {31.8}Putting together: a simple example}{283}
-\contentsline {section}{\numberline {31.9}Http trace format}{285}
-\contentsline {section}{\numberline {31.10}Commands at a glance}{286}
-\contentsline {part}{VII\hspace {1em}Scale}{288}
-\contentsline {chapter}{\numberline {32}Session-level Packet Distribution}{289}
-\contentsline {section}{\numberline {32.1}Configuration}{289}
-\contentsline {subsection}{\numberline {32.1.1}Basic Configuration}{289}
-\contentsline {subsection}{\numberline {32.1.2}Inserting a Loss Module}{291}
-\contentsline {paragraph}{Creating a Loss Module}{291}
-\contentsline {paragraph}{Inserting a Loss Module}{291}
-\contentsline {section}{\numberline {32.2}Architecture}{291}
-\contentsline {section}{\numberline {32.3}Internals}{292}
-\contentsline {subsection}{\numberline {32.3.1}Object Linkage}{292}
-\contentsline {paragraph}{Nodes and Links}{292}
-\contentsline {paragraph}{Session Helper}{292}
-\contentsline {paragraph}{Delay and Loss Modules}{293}
-\contentsline {subsection}{\numberline {32.3.2}Packet Forwarding}{293}
-\contentsline {section}{\numberline {32.4}Commands at a glance}{294}
-\contentsline {part}{VIII\hspace {1em}Emulation}{295}
-\contentsline {chapter}{\numberline {33}Emulation}{296}
-\contentsline {section}{\numberline {33.1}Introduction}{296}
-\contentsline {section}{\numberline {33.2}Real-Time Scheduler}{297}
-\contentsline {section}{\numberline {33.3}Tap Agents}{297}
-\contentsline {paragraph}{Configuration}{297}
-\contentsline {section}{\numberline {33.4}Network Objects}{298}
-\contentsline {subsection}{\numberline {33.4.1}Pcap/BPF Network Objects}{298}
+\contentsline {part}{V\hspace {1em}Transport}{234}
+\contentsline {chapter}{\numberline {27}UDP Agents}{235}
+\contentsline {section}{\numberline {27.1}UDP Agents}{235}
+\contentsline {section}{\numberline {27.2}Commands at a glance}{236}
+\contentsline {chapter}{\numberline {28}TCP Agents}{237}
+\contentsline {section}{\numberline {28.1}One-Way TCP Senders}{238}
+\contentsline {subsection}{\numberline {28.1.1}The Base TCP Sender (Tahoe TCP)}{238}
+\contentsline {paragraph}{Responses to Congestion}{238}
+\contentsline {paragraph}{Round-Trip Time Estimation and RTO Timeout Selection}{238}
+\contentsline {subsection}{\numberline {28.1.2}Configuration}{238}
+\contentsline {subsection}{\numberline {28.1.3}Simple Configuration}{238}
+\contentsline {paragraph}{Creating the Agent}{238}
+\contentsline {paragraph}{TCP Data Source}{239}
+\contentsline {subsection}{\numberline {28.1.4}Other Configuration Parameters}{239}
+\contentsline {subsection}{\numberline {28.1.5}Other One-Way TCP Senders}{240}
+\contentsline {paragraph}{Reno TCP}{240}
+\contentsline {paragraph}{NewReno TCP}{240}
+\contentsline {paragraph}{Vegas TCP}{240}
+\contentsline {paragraph}{Sack TCP}{240}
+\contentsline {paragraph}{Fack TCP}{240}
+\contentsline {section}{\numberline {28.2}TCP Receivers (sinks)}{240}
+\contentsline {subsection}{\numberline {28.2.1}The Base TCP Sink}{241}
+\contentsline {paragraph}{configuration parameters}{241}
+\contentsline {subsection}{\numberline {28.2.2}Delayed-ACK TCP Sink}{241}
+\contentsline {paragraph}{configuration parameters}{241}
+\contentsline {subsection}{\numberline {28.2.3}Sack TCP Sink}{241}
+\contentsline {paragraph}{configuration parameters}{241}
+\contentsline {section}{\numberline {28.3}Two-Way TCP Agents (FullTcp)}{241}
+\contentsline {subsection}{\numberline {28.3.1}Simple Configuration}{242}
+\contentsline {paragraph}{Creating the Agent}{242}
+\contentsline {paragraph}{Configuration Parameters}{242}
+\contentsline {section}{\numberline {28.4}Architecture and Internals}{243}
+\contentsline {paragraph}{The TCP header}{243}
+\contentsline {paragraph}{Functions for Sending Data}{243}
+\contentsline {paragraph}{Functions for Window Management}{243}
+\contentsline {paragraph}{Functions for Processing ACKs}{243}
+\contentsline {paragraph}{Functions for Managing the Retransmission Timer}{244}
+\contentsline {section}{\numberline {28.5}Tracing TCP Dynamics}{244}
+\contentsline {section}{\numberline {28.6}One-Way Trace TCP Trace Dynamics}{244}
+\contentsline {section}{\numberline {28.7}One-Way Trace TCP Trace Dynamics}{245}
+\contentsline {section}{\numberline {28.8}Commands at a glance}{245}
+\contentsline {chapter}{\numberline {29}Agent/SRM}{246}
+\contentsline {section}{\numberline {29.1}Configuration}{246}
+\contentsline {subsection}{\numberline {29.1.1}Trivial Configuration}{246}
+\contentsline {paragraph}{Creating the Agent}{246}
+\contentsline {paragraph}{Application Data Handling}{247}
+\contentsline {paragraph}{Starting the Agent and Traffic Generator}{247}
+\contentsline {subsection}{\numberline {29.1.2}Other Configuration Parameters}{248}
+\contentsline {subsection}{\numberline {29.1.3}Statistics}{249}
+\contentsline {paragraph}{Data Loss}{249}
+\contentsline {paragraph}{Overall Statistics}{249}
+\contentsline {paragraph}{Miscellaneous Information}{250}
+\contentsline {subsection}{\numberline {29.1.4}Tracing}{250}
+\contentsline {section}{\numberline {29.2}Architecture and Internals}{252}
+\contentsline {section}{\numberline {29.3}Packet Handling: Processing received messages}{252}
+\contentsline {paragraph}{Data Packets}{252}
+\contentsline {paragraph}{Request Packets}{253}
+\contentsline {paragraph}{Repair Packets}{253}
+\contentsline {paragraph}{Session Packets}{253}
+\contentsline {section}{\numberline {29.4}Loss Detection---The Class SRMinfo}{254}
+\contentsline {section}{\numberline {29.5}Loss Recovery Objects}{254}
+\contentsline {paragraph}{Request Mechanisms}{254}
+\contentsline {paragraph}{Repair Mechanisms}{255}
+\contentsline {paragraph}{Mechanisms for Statistics}{256}
+\contentsline {section}{\numberline {29.6}Session Objects}{256}
+\contentsline {section}{\numberline {29.7}Extending the Base Class Agent}{257}
+\contentsline {subsection}{\numberline {29.7.1}Fixed Timers}{257}
+\contentsline {subsection}{\numberline {29.7.2}Adaptive Timers}{257}
+\contentsline {paragraph}{Recompute for Each New Loss Object}{257}
+\contentsline {paragraph}{Sending a Message}{257}
+\contentsline {paragraph}{Advertising the Distance}{257}
+\contentsline {section}{\numberline {29.8}SRM objects}{258}
+\contentsline {section}{\numberline {29.9}Commands at a glance}{259}
+\contentsline {part}{VI\hspace {1em}Application}{261}
+\contentsline {chapter}{\numberline {30}Applications and transport agent API}{262}
+\contentsline {section}{\numberline {30.1}The class Application}{262}
+\contentsline {section}{\numberline {30.2}The transport agent API}{263}
+\contentsline {subsection}{\numberline {30.2.1}Attaching transport agents to nodes}{263}
+\contentsline {subsection}{\numberline {30.2.2}Attaching applications to agents}{264}
+\contentsline {subsection}{\numberline {30.2.3}Using transport agents via system calls}{264}
+\contentsline {subsection}{\numberline {30.2.4}Agent upcalls to applications}{264}
+\contentsline {subsection}{\numberline {30.2.5}An example}{265}
+\contentsline {section}{\numberline {30.3}The class TrafficGenerator}{266}
+\contentsline {paragraph}{Exponential On/Off}{267}
+\contentsline {paragraph}{Pareto On/Off}{267}
+\contentsline {paragraph}{CBR}{268}
+\contentsline {paragraph}{Traffic Trace}{268}
+\contentsline {subsection}{\numberline {30.3.1}An example}{268}
+\contentsline {section}{\numberline {30.4}Simulated applications: Telnet and FTP}{269}
+\contentsline {paragraph}{Application/FTP}{269}
+\contentsline {paragraph}{Application/Telnet}{269}
+\contentsline {section}{\numberline {30.5}Applications objects}{269}
+\contentsline {section}{\numberline {30.6}Commands at a glance}{271}
+\contentsline {chapter}{\numberline {31}Web cache as an application}{272}
+\contentsline {section}{\numberline {31.1}Using application-level data in \emph {ns}}{272}
+\contentsline {subsection}{\numberline {31.1.1}ADU}{272}
+\contentsline {subsection}{\numberline {31.1.2}Passing data between applications}{273}
+\contentsline {subsection}{\numberline {31.1.3}Transmitting user data over UDP}{274}
+\contentsline {subsection}{\numberline {31.1.4}Transmitting user data over TCP}{275}
+\contentsline {subsection}{\numberline {31.1.5}Class hierarchy related to user data handling}{276}
+\contentsline {section}{\numberline {31.2}Overview of web cache classes}{276}
+\contentsline {subsection}{\numberline {31.2.1}Managing HTTP connections}{276}
+\contentsline {paragraph}{OTcl methods}{277}
+\contentsline {paragraph}{Configuration parameter}{277}
+\contentsline {subsection}{\numberline {31.2.2}Managing web pages}{277}
+\contentsline {subsection}{\numberline {31.2.3}Debugging}{278}
+\contentsline {section}{\numberline {31.3}Representing web pages}{278}
+\contentsline {section}{\numberline {31.4}Page pools}{279}
+\contentsline {subsection}{\numberline {31.4.1}PagePool/Math}{279}
+\contentsline {subsection}{\numberline {31.4.2}PagePool/CompMath}{280}
+\contentsline {subsection}{\numberline {31.4.3}PagePool/ProxyTrace}{280}
+\contentsline {subsection}{\numberline {31.4.4}PagePool/Client}{281}
+\contentsline {section}{\numberline {31.5}Web client}{282}
+\contentsline {paragraph}{Creating a client}{282}
+\contentsline {paragraph}{Configuring request generation}{282}
+\contentsline {paragraph}{Starting}{282}
+\contentsline {paragraph}{OTcl interfaces}{282}
+\contentsline {section}{\numberline {31.6}Web server}{283}
+\contentsline {section}{\numberline {31.7}Web cache}{283}
+\contentsline {subsection}{\numberline {31.7.1}Http/Cache}{283}
+\contentsline {paragraph}{Creation and startup}{283}
+\contentsline {paragraph}{OTcl methods}{284}
+\contentsline {section}{\numberline {31.8}Putting together: a simple example}{284}
+\contentsline {section}{\numberline {31.9}Http trace format}{286}
+\contentsline {section}{\numberline {31.10}Commands at a glance}{287}
+\contentsline {part}{VII\hspace {1em}Scale}{289}
+\contentsline {chapter}{\numberline {32}Session-level Packet Distribution}{290}
+\contentsline {section}{\numberline {32.1}Configuration}{290}
+\contentsline {subsection}{\numberline {32.1.1}Basic Configuration}{290}
+\contentsline {subsection}{\numberline {32.1.2}Inserting a Loss Module}{292}
+\contentsline {paragraph}{Creating a Loss Module}{292}
+\contentsline {paragraph}{Inserting a Loss Module}{292}
+\contentsline {section}{\numberline {32.2}Architecture}{292}
+\contentsline {section}{\numberline {32.3}Internals}{293}
+\contentsline {subsection}{\numberline {32.3.1}Object Linkage}{293}
+\contentsline {paragraph}{Nodes and Links}{293}
+\contentsline {paragraph}{Session Helper}{293}
+\contentsline {paragraph}{Delay and Loss Modules}{294}
+\contentsline {subsection}{\numberline {32.3.2}Packet Forwarding}{294}
+\contentsline {section}{\numberline {32.4}Commands at a glance}{295}
+\contentsline {part}{VIII\hspace {1em}Emulation}{296}
+\contentsline {chapter}{\numberline {33}Emulation}{297}
+\contentsline {section}{\numberline {33.1}Introduction}{297}
+\contentsline {section}{\numberline {33.2}Real-Time Scheduler}{298}
+\contentsline {section}{\numberline {33.3}Tap Agents}{298}
 \contentsline {paragraph}{Configuration}{298}
-\contentsline {subsection}{\numberline {33.4.2}IP Network Objects}{299}
+\contentsline {section}{\numberline {33.4}Network Objects}{299}
+\contentsline {subsection}{\numberline {33.4.1}Pcap/BPF Network Objects}{299}
 \contentsline {paragraph}{Configuration}{299}
-\contentsline {subsection}{\numberline {33.4.3}IP/UDP Network Objects}{299}
-\contentsline {section}{\numberline {33.5}An Example}{300}
-\contentsline {section}{\numberline {33.6}Commands at a glance}{301}
+\contentsline {subsection}{\numberline {33.4.2}IP Network Objects}{300}
+\contentsline {paragraph}{Configuration}{300}
+\contentsline {subsection}{\numberline {33.4.3}IP/UDP Network Objects}{300}
+\contentsline {section}{\numberline {33.5}An Example}{301}
+\contentsline {section}{\numberline {33.6}Commands at a glance}{302}
