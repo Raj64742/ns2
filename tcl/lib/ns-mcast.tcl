@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/Attic/ns-mcast.tcl,v 1.1 1996/12/19 03:22:47 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/Attic/ns-mcast.tcl,v 1.2 1997/01/01 00:07:58 elan Exp $
 #
 
 #
@@ -97,6 +97,7 @@ MultiNode instproc send-ctrl { which src group } {
 	} else {
 		$prune set cls 31
 	}
+	#puts "$prune: send $which/$id/$src/$group"
 	$prune send "$which/$id/$src/$group"
 }
 
@@ -114,8 +115,18 @@ MultiNode instproc recv-prune { from src group } {
 }
 
 MultiNode instproc recv-graft { from srcList group } {
-	#puts "RECV-GRAFT from $from src $src group $group"
-	$self instvar outLink replicator id
+	#puts "RECV-GRAFT from $from src $srcList group $group"
+
+	#
+	# Filter out our own graft messages.
+	# This can happen if we joined a group, left it, and then
+	# rejoined it.
+	#
+	$self instvar id
+	if { $from == $id } {
+		return
+	}
+	$self instvar outLink replicator
 	foreach src $srcList {
 		set r $replicator($src:$group)
 		if { ![$r is-active] && $src != $id } {
@@ -233,6 +244,7 @@ MultiNode instproc new-group { srcID group } {
 	set r [new classifier/replicator/mcast]
 	$r set srcID $srcID
 	set replicator($srcID:$group) $r
+
 	lappend repByGroup($group) $r
 	$r set node $self
 	foreach node $neighbor {
@@ -282,6 +294,7 @@ Class classifier/mcast/rep -superclass classifier/mcast
 #
 classifier/mcast instproc new-group { src group } {
 	$self instvar node
+
 	$node new-group $src $group
 }
 
