@@ -481,7 +481,7 @@ Test/three instproc run {} {
 
 TestSuite proc usage {} {
         global argv0
-        puts stderr "usage: ns $argv0 <tests> \[<topologies>\] \[enable|disable\]"
+        puts stderr "usage: ns $argv0 <tests> \[enable|disable\] \[<topologies>\]"
         puts stderr "Valid tests are:\t[$self get-subclasses TestSuite Test/]"
         puts stderr "Valid Topologies are:\t[$self get-subclasses SkelTopology Topology/]"
         exit 1
@@ -525,22 +525,28 @@ TestSuite proc runTest {} {
                         set test [lindex $argv 0]
                         $self isProc? Test $test
 
-                        set topo [lindex $argv 1]
-                        $self isProc? Topology $topo
-                }
-                3 {
-                        set test [lindex $argv 0]
-                        $self isProc? Test $test
-
-                        set topo [lindex $argv 1]
-                        $self isProc? Topology $topo
-
-                        set enable [lindex $argv 2]
+			set enable [lindex $argv 1]
 			if { $enable == "disable" } {
 				set enable false
 			} else {
 				set enable true
 			}
+
+			set topo ""
+                }
+                3 {
+                        set test [lindex $argv 0]
+                        $self isProc? Test $test
+
+                        set enable [lindex $argv 1]
+			if { $enable == "disable" } {
+				set enable false
+			} else {
+				set enable true
+			}
+
+                        set topo [lindex $argv 2]
+                        $self isProc? Topology $topo
 
                 }
                 default {
