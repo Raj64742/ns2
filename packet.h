@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.4 1998/07/24 21:44:19 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.5 1998/07/24 22:46:16 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -39,6 +39,7 @@
 
 #include "config.h"
 #include "scheduler.h"
+#include <iostream.h>
 
 #define PT_TCP          0
 #define PT_TELNET       1
@@ -130,7 +131,6 @@ struct hdr_cmn {
 				 * from packet.h                                             
 				 */                                                          
 	};
-	hdr_cmn() : size_(0), error_(0), iface_(UNKN_IFACE), ref_count_(0) {};
 
 	inline static int& offset() { return offset_; }
 	inline static hdr_cmn* access(Packet* p, int off=-1) {

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.43.2.1 1998/07/15 17:25:20 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.43.2.2 1998/07/24 22:46:17 yuriy Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -451,9 +451,9 @@ Agent::initpkt(Packet* p) const
 	ch->ptype() = type_;
 	ch->size() = size_;
 	ch->timestamp() = Scheduler::instance().clock();
-	ch->iface() = -1;	/* unknown iface */
-	ch->ref_count() = 0;	/* reference count */
-	ch->error() = 0;	/* pkt not corrupt to start with */
+ 	ch->iface() = hdr_cmn::UNKN_IFACE;	/* unknown iface */
+ 	ch->ref_count() = 0;	/* reference count */
+ 	ch->error() = 0;	/* pkt not corrupt to start with */
 
 	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
 	iph->src() = addr_;
