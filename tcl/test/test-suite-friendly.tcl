@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.10 1999/07/24 05:46:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.11 1999/07/27 04:57:33 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
@@ -230,7 +230,7 @@ Test/slowStart instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
-    set interval_ 1.0
+    set interval_ 0.1
     set stopTime 25.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
@@ -276,7 +276,7 @@ Test/slowStartTcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
-    set interval_ 1.0
+    set interval_ 0.1
     set stopTime 25.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
@@ -324,8 +324,56 @@ Test/impulse instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
-    set interval_ 1.0
-    set stopTime 25.0
+    set interval_ 0.1
+    set stopTime 20.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 0]
+    $ns_ at 0.0 "$tf1 start"
+    $ns_ at 20 "$tf1 stop"
+    set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 1]
+    $ns_ at 10.0 "$tf2 start"
+    $ns_ at 12.0 "$tf2 stop"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+    $self tfccDump 2 $tf2 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+# Feedback 4 times per roundtrip time.
+Class Test/impulseMultReport -superclass TestSuite
+Test/impulseMultReport instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	impulseMultReport
+    Agent/TFRM set version 1
+    Agent/TFRM set incrrate_ 1
+    Agent/TFRM set slowincr_ 3
+    Agent/TFRMSink set NumFeedback_ 4
+    $self next
+}
+Test/impulseMultReport instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 20.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
 
@@ -370,8 +418,8 @@ Test/impulseTcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
-    set interval_ 1.0
-    set stopTime 25.0
+    set interval_ 0.1
+    set stopTime 20.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
 
@@ -421,7 +469,7 @@ Test/multIncr instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
-    set interval_ 1.0
+    set interval_ 0.1
     set stopTime 30.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
@@ -458,7 +506,7 @@ Test/OnlyTcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
-    set interval_ 1.0
+    set interval_ 0.1
     set stopTime 30.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
