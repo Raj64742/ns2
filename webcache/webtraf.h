@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.14 2002/07/12 18:29:07 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.15 2002/11/11 19:28:39 xuanc Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -44,6 +44,7 @@
 #include "tcp.h"
 #include "tcp-sink.h"
 #include "pagepool.h"
+#include "webserver.h"
 
 const int WEBTRAF_DEFAULT_OBJ_PER_PAGE = 1;
 
@@ -84,51 +85,14 @@ private:
 	int recycle_page_;
 };
 
-struct job_s {
-	Agent *tcp;
-	int size;
-	job_s *next;
-};
-
-// Data structure for web server
-class WebServer : public TimerHandler{
-public:
-	WebServer(WebTrafPool *);
-	
-	// Server properties
-	Node *node;
-	double rate_;
-	int busy_;
-	double mode_;
-	WebTrafPool * web_pool_;
-
-	// Job queue
-	job_s *head, *tail;
-
-	virtual void expire(Event *e);
-
-	// Job arrival and departure
-	double job_arrival(Agent*, int);
-	double job_departure();
-
-	void schedule_next_job();
-};
-
+class WebServer;
 class WebTrafPool : public PagePool {
 public: 
 	WebTrafPool(); 
 	virtual ~WebTrafPool(); 
 
-	inline Node* picksrc() {
-		int n = int(floor(Random::uniform(0, nClient_)));
-		assert((n >= 0) && (n < nClient_));
-		return client_[n];
-	}
-	inline Node* pickdst() {
-		int n = int(floor(Random::uniform(0, nServer_)));
-		assert((n >= 0) && (n < nServer_));
-		return server_[n].node;
-	}
+	Node* picksrc();
+	Node* pickdst();
 	inline void doneSession(int idx) { 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
 		if (isdebug())
