@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.10 1997/11/06 03:04:41 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.11 1997/11/06 03:13:57 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -136,8 +136,8 @@ TestSuite instproc create_twoagency { } {
 		# For Ancestor-Only link-sharing. 
 		# Maxidle should be smaller for AO link-sharing.
 		$topClass_ setparams none 0 0.97 auto 8 3 0
-		$topAClass_ setparams $topClass 1 0.69 auto 8 2 0
-		$topBClass_ setparams $topClass 1 0.29 auto 8 2 0
+		$topAClass_ setparams $topClass_ 1 0.69 auto 8 2 0
+		$topBClass_ setparams $topClass_ 1 0.29 auto 8 2 0
 	} else if { $cbqalgorithm_ == "top-level" } {
 		# For Top-Level link-sharing?
 		# borrowing from $topAClass_ is occuring before from $topClass
@@ -146,28 +146,29 @@ TestSuite instproc create_twoagency { } {
 		# When $topBClass_ is unsatisfied, there is no borrowing from
 		#  $topClass_ until a packet is sent from the yellow class.
 		$topClass_ setparams none 0 0.97 0.001 8 3 0
-		$topAClass_ setparams $topClass 1 0.69 auto 8 2 0
-		$topBClass_ setparams $topClass 1 0.29 auto 8 2 0
+		$topAClass_ setparams $topClass_ 1 0.69 auto 8 2 0
+		$topBClass_ setparams $topClass_ 1 0.29 auto 8 2 0
 	} else if { $cbqalgorithm_ == "formal" } {
 		# For Formal link-sharing
 		# The allocated bandwidth can be exact for parent classes.
 		$topClass_ setparams none 0 1.0 1.0 8 3 0
-		$topAClass_ setparams $topClass 1 0.7 1.0 8 2 0
-		$topBClass_ setparams $topClass 1 0.3 1.0 8 2 0
+		$topAClass_ setparams $topClass_ 1 0.7 1.0 8 2 0
+		$topBClass_ setparams $topClass_ 1 0.3 1.0 8 2 0
 	}
 
 	$self instvar vidAClass_ vidBClass_ dataAClass_ dataBClass_
 
 	set vidAClass_ [new CBQClass]
-	$vidAClass_ setparams $topAClass 1 0.3 auto 1 1 0
+	$vidAClass_ setparams $topAClass_ 1 0.3 auto 1 1 0
 	set dataAClass_ [new CBQClass]
- 	$dataAClass_ setparams $topAClass 1 0.4 auto 2 1 0
+ 	$dataAClass_ setparams $topAClass_ 1 0.4 auto 2 1 0
  	set vidBClass_ [new CBQClass]
- 	$vidBClass_ setparams $topBClass 1 0.1 auto 1 1 0
+ 	$vidBClass_ setparams $topBClass_ 1 0.1 auto 1 1 0
  	set dataBClass_ [new CBQClass]
- 	$dataBClass_ setparams $topBClass 1 0.2 auto 2 1 0
+ 	$dataBClass_ setparams $topBClass_ 1 0.2 auto 2 1 0
 
 	# (topclass_ doesn't have a queue)
+	$self instvar cbq_qtype_
 	set cbq_qtype_ DropTail
 	$self make_queue $vidAClass_ $qlim
 	$self make_queue $dataAClass_ $qlim
@@ -416,9 +417,6 @@ Test/WRR instproc run {} {
 	$ns_ run
 }
 
-##### I AM HERE
-##### Ah, good.  I was beginning to wonder where you'd gone wandering off to...
-
 Class Test/PRR -superclass TestSuite
 Test/PRR instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -455,20 +453,36 @@ Test/PRR instproc run {} {
 # WRR, Ancestor-Only link-sharing.
 # ~/newr/rm/testA.com
 # 
-TestSuite instproc test_cbqAO {} {
-	global s1 s2 s3 s4 r1 k1 
-	set qlen 20
-	set stopTime 40.1
-	set CBQalgorithm 0
-	create_graph $stopTime wrr-cbq $qlen
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
-	four_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
-	openTrace2 $stopTime test_cbqAO
-
-	ns run
+Class Test/AO -superclass TestSuite
+Test/AO instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ cbq1-wrr
+	set test_ CBQ_AO
+	$self next 0
 }
+TestSuite instproc run {} {
+	$self instvar cbqalgorithm_ ns_ net_ topo_
+	set stopTime 40.1
+	set maxbytes 187500
+	set cbqalgorithm_ ancestor-only
+
+	$topo_ instvar cbqlink_
+	$self create_twoagency
+	$self four_cbrs
+	$self make_fmon $cbqlink_
+	[$cbqlink_ queue] algorithm $cbqalgorithm_
+
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+	$self openTrace $stopTime CBQ_AO
+
+	$self openTrace $stopTime CBQ_AO
+
+	$ns_ run
+}
+
+### I AM HERE
 
 #
 # Figure 13 from the link-sharing paper.
