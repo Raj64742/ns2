@@ -96,6 +96,10 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
+        if (qs_approved_ == 1 && tcph->seqno() > last_ack_)
+                qs_approved_ = 0;
+        if (qs_requested_ == 1)
+                processQuickStart(pkt);
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
@@ -396,6 +400,11 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 				pipe_++;
 				if (QOption_)
 					process_qoption_after_send () ;
+	                        if (qs_approved_ == 1) {
+	                                double delay = (double) t_rtt_ * tcp_tick_ / cwnd_;
+	                                delsnd_timer_.resched(delay);
+	                                return;
+	                        }
 			}
 		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*

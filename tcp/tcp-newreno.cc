@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.46 2001/11/08 19:06:08 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.47 2003/01/25 01:38:41 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -160,6 +160,10 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
+        if (qs_approved_ == 1 && tcph->seqno() > last_ack_)
+                qs_approved_ = 0;
+        if (qs_requested_ == 1)
+                processQuickStart(pkt);
 	if (++acked_ == 1) 
 		basertt_ = Scheduler::instance().clock() - firstsent_;
 
