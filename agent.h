@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.2 1996/12/31 22:46:25 elan Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -62,8 +62,10 @@ class Agent : public Connector {
 	virtual void timeout(int tno);
 	void sched(double delay, int tno);
 	inline void cancel(int tno) {
-		(void)Scheduler::instance().cancel(&timer_[tno]);
-		pending_[tno] = 0;
+		if (pending_[tno] != 0) {
+			pending_[tno] = 0;
+			(void)Scheduler::instance().cancel(&timer_[tno]);
+		}
 	}
 #define NTIMER 3
 	int pending_[NTIMER];
