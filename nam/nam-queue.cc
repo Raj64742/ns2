@@ -33,10 +33,9 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-queue.cc,v 1.2 1997/03/29 05:08:43 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-queue.cc,v 1.3 1997/03/29 06:20:07 mccanne Exp $ (LBL)";
 #endif
 
-#include <osfcn.h>
 #include <math.h>
 
 #include "netview.h"
