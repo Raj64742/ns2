@@ -127,10 +127,12 @@ IntTcpAgent::recv(Packet *pkt, Handler *)
 	if (tcph->seqno() > last_ack_) {
 		amt_data_acked = tcph->seqno() - last_ack_;
 		newack(pkt);
+#ifdef 0
 		if (rxmitPend_) {
 			rxmitPend_ = 0;
 			session_->agent_frcov(this); /* XXX needed ? */
 		}
+#endif
 	} 
 	session_->recv(this, pkt, amt_data_acked);
 }
@@ -249,11 +251,11 @@ IntTcpAgent::closecwnd(int how)
 	session_->closecwnd(how, this);
 }
 
-int
+Segment *
 IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
 {
-	if (seqno == last_ack_ + 1 && (ts >= rxmitPend_ || rxmitPend_ == 0)) {
-		rxmitPend_ = Scheduler::instance().clock();
+/*	if (seqno == last_ack_ + 1 && (ts >= rxmitPend_ || rxmitPend_ == 0)) {
+		rxmitPend_ = Scheduler::instance().clock();*/
 		session_->agent_rcov(this);
 		/* 
 		 * XXX kludge -- IntTcpAgent is not supposed to deal with 
@@ -264,11 +266,10 @@ IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
 		daddr_ = dst_/256;
 		dport_ = dst_%256;
 		sport_ = addr_%256;
-		session_->add_pkts(size_, seqno, sessionSeqno, daddr_, dport_, 
-				   sport_, lastTS_, this);
-		return 1;
-	}
-	return 0;
+		return (session_->add_pkts(size_, seqno, sessionSeqno, daddr_, 
+					   dport_, sport_, lastTS_, this));
+/*	}*/
+	return NULL;
 }
 u_long output_helper_count=0;
 double last_clock=0;
@@ -287,6 +288,9 @@ IntTcpAgent::output_helper(Packet *p)
 
 	lastTS_ = now;
 	tcph->ts() = now;
+	/* if this is a fast start pkt and not a retransmission, mark it */
+	if (session_->fs_pkt() && tcph->seqno() > maxseq_)
+		((hdr_flags*)p->access(off_flags_))->fs_ = 1;
 	return;
 }
 

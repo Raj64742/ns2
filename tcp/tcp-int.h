@@ -40,6 +40,7 @@
 /*class CorresHost;*/
 class CorresHost;
 class TcpSessionAgent;
+class Segment;
 
 class IntTcpAgent : public TcpAgent, public slink {
 	friend class CorresHost;
@@ -53,7 +54,7 @@ class IntTcpAgent : public TcpAgent, public slink {
 	void recv(Packet *pkt, Handler *);
 	void opencwnd();
 	void closecwnd(int how);
-	int rxmit_last(int reason, int seqno, int sessionSeqno, double ts);
+	Segment *rxmit_last(int reason, int seqno, int sessionSeqno, double ts);
 	void output(int seqno, int reason = 0);
 	void output_helper(Packet *p);
 	int data_left_to_send();
