@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.31 2000/03/16 03:19:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.32 2000/08/08 02:44:42 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -49,6 +49,19 @@ int RenoTcpAgent::window()
 	int win = int(cwnd_) + dupwnd_;
 	if (win > int(wnd_))
 		win = int(wnd_);
+	return (win);
+}
+
+double RenoTcpAgent::windowd()
+{
+	//
+	// reno: inflate the window by dupwnd_
+	//	dupwnd_ will be non-zero during fast recovery,
+	//	at which time it contains the number of dup acks
+	//
+	double win = cwnd_ + dupwnd_;
+	if (win > wnd_)
+		win = wnd_;
 	return (win);
 }
 
