@@ -26,7 +26,7 @@
 //
 // ADU and ADU processor
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.cc,v 1.3 1999/08/24 04:16:13 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.cc,v 1.4 2001/11/30 02:45:19 buchheim Exp $
 
 #include "ns-process.h"
 
@@ -55,7 +55,8 @@ int Process::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if (strcmp(argv[1], "target") == 0) {
 		if (argc == 2) {
-			tcl.resultf("%s", target()->name());
+			Process *p = target();
+			tcl.resultf("%s", p ? p->name() : "");
 			return TCL_OK;
 		} else if (argc == 3) { 
 			Process *p = (Process *)TclObject::lookup(argv[2]);
