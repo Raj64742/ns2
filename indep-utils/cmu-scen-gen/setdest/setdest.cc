@@ -68,11 +68,15 @@ extern "C" {
 #define NODE_FORMAT2	"$node_(%d) setdest %.12f %.12f %.12f\n"
 #define NODE_FORMAT3	"$node_(%d) set %c_ %.12f\n"
 
-#define		INFINITY	0x00ffffff
+#define		RTG_INFINITY	0x00ffffff
+#ifndef min
 #define		min(x,y)	((x) < (y) ? (x) : (y))
 #define		max(x,y)	((x) > (y) ? (x) : (y))
+#endif
 #define		ROUND_ERROR	1e-9
+#ifndef PI
 #define 	PI	 	3.1415926	
+#endif
 
 
 static int count = 0;
@@ -906,7 +910,7 @@ ComputeW()
 			if(i == j)
 				W[i*NODES + j] = W[j*NODES + i] = 0;
 			else
-				W[i*NODES + j] = W[j*NODES + i] = m->reachable ? 1 : INFINITY;	
+				W[i*NODES + j] = W[j*NODES + i] = m->reachable ? 1 : RTG_INFINITY;	
 		}
 	}
 }
@@ -930,7 +934,7 @@ floyd_warshall()
 	for(i = 0; i < NODES; i++)
 		for(j = 0; j < NODES; j++) {
 			assert(D2[i*NODES + j] == D2[j*NODES + i]);
-			assert(D2[i*NODES + j] <= INFINITY);
+			assert(D2[i*NODES + j] <= RTG_INFINITY);
 		}
 #endif
 }
@@ -948,7 +952,7 @@ show_diffs()
 		for(j = i + 1; j < NODES; j++) {
 			if(D1[i*NODES + j] != D2[i*NODES + j]) {
 
-				if(D2[i*NODES + j] == INFINITY)
+				if(D2[i*NODES + j] == RTG_INFINITY)
 					DestUnreachableCount++;
 
                                 if(TIME > 0.0) {
