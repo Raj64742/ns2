@@ -30,30 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.14 2003/01/19 03:54:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.15 2003/01/30 23:10:27 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
-
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
 
 Trace set show_tcphdr_ 1
 
@@ -224,21 +207,38 @@ TestSuite instproc setup {tcptype list} {
 ## Three drops, Reno has a retransmit timeout.
 ###################################################
 
+# With Limited Transmit, without bugfix.
 Class Test/reno -superclass TestSuite
 Test/reno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	reno
+	Agent/TCP set singledup_ 1
+	set guide_ "Reno, with Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/reno instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
         $self setup Reno {14 26 28}
 }
 
+# Without Limited Transmit, without bugfix.
+Class Test/reno_noLT -superclass TestSuite
+Test/reno_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	reno_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ "Reno, without Limited Transmit, without bugfix."
+	Test/reno_noLT instproc run {} [Test/reno info instbody run ]
+	$self next pktTraceFile
+}
+
 # Class Test/reno_bugfix -superclass TestSuite
 # Test/reno_bugfix instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	reno_bugfix
 # 	$self next pktTraceFile
@@ -248,21 +248,38 @@ Test/reno instproc run {} {
 #         $self setup Reno {14 26 28}
 # }
 
+# With Limited Transmit
 Class Test/newreno -superclass TestSuite
 Test/newreno instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno
+	Agent/TCP set singledup_ 1
+	set guide_ "NewReno, with Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/newreno instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
         $self setup Newreno {14 26 28}
 }
 
+# Without Limited Transmit
+Class Test/newreno_noLT -superclass TestSuite
+Test/newreno_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ "NewReno, without Limited Transmit, without bugfix."
+	Test/newreno_noLT instproc run {} [Test/newreno info instbody run ]
+	$self next pktTraceFile
+}
+
 # Class Test/newreno_bugfix -superclass TestSuite
 # Test/newreno_bugfix instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	newreno_bugfix
 # 	$self next pktTraceFile
@@ -274,7 +291,7 @@ Test/newreno instproc run {} {
 
 # Class Test/newreno_A -superclass TestSuite
 # Test/newreno_A instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	newreno_A
 # 	$self next pktTraceFile
@@ -287,7 +304,7 @@ Test/newreno instproc run {} {
 
 # Class Test/newreno_bugfix_A -superclass TestSuite
 # Test/newreno_bugfix_A instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	newreno_bugfix_A
 # 	$self next pktTraceFile
@@ -298,19 +315,36 @@ Test/newreno instproc run {} {
 #         $self setup Newreno {14 26 28}
 # }
 
+# With Limited Transmit
 Class Test/newreno_B -superclass TestSuite
 Test/newreno_B instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno_B
+	Agent/TCP set singledup_ 1
+	set guide_ "NewReno, with Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/newreno_B instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP/Newreno set exit_recovery_fix_ 1
         $self setup Newreno {14 26 28}
+}
+
+# Without Limited Transmit
+Class Test/newreno_B_noLT -superclass TestSuite
+Test/newreno_B_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_B_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ "NewReno, without Limited Transmit, without bugfix."
+	Test/newreno_B_noLT instproc run {} [Test/newreno_B info instbody run ]
+	$self next pktTraceFile
 }
 
 ###################################################
@@ -320,19 +354,22 @@ Test/newreno_B instproc run {} {
 
 Class Test/reno1 -superclass TestSuite
 Test/reno1 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	reno1
+	set guide_ "Reno, #1, without Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/reno1 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
         $self setup Reno {14 15 16 17 18 19 20 21 25 }
 }
 
 # Class Test/reno1_bugfix -superclass TestSuite
 # Test/reno1_bugfix instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	reno1_bugfix
 # 	$self next pktTraceFile
@@ -344,146 +381,324 @@ Test/reno1 instproc run {} {
 
 Class Test/newreno1 -superclass TestSuite
 Test/newreno1 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno1
+	Agent/TCP set bugFix_ false
+	set guide_ "NewReno, #1, with Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/newreno1 instproc run {} {
-	Agent/TCP set bugFix_ false
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 }
 
-# Class Test/newreno1_bugfix -superclass TestSuite
-# Test/newreno1_bugfix instproc init {} {
-# 	$self instvar net_ test_
-# 	set net_	net4
-# 	set test_	newreno1_bugfix
-# 	$self next pktTraceFile
-# }
-# Test/newreno1_bugfix instproc run {} {
-# 	Agent/TCP set bugFix_ true
-#         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
-# }
+Class Test/newreno1_BF -superclass TestSuite
+Test/newreno1_BF instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno1_BF
+	Agent/TCP set bugFix_ true
+	set guide_ "NewReno, #1, with Limited Transmit, with bugfix."
+	Test/newreno1_BF instproc run {} [Test/newreno1 info instbody run ]
 
+	$self next pktTraceFile
+}
+
+# With Limited Transmit, without bugfix, with newreno_changes1_
+# 
+# With newreno_changes1_, we don't reset the retransmit timer for 
+#  later partial ACKS, so the retransmit timer is more likely to
+#  expire, leading to more unnecessarily-retransmitted packets.
+#  With this example, we just *happen* to only have an unnecessary 
+#  Fast Retransmit with Limited Transmit, and not without it.
+#  The subsequent Fast Retransmits happen because we are not
+#  using bugfix.
 Class Test/newreno1_A -superclass TestSuite
 Test/newreno1_A instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno1_A
+	Agent/TCP set singledup_ 1
+	Agent/TCP set bugFix_ false
+	set guide_ \
+	"NewReno, #1A, with Limited Transmit, without bugfix.  Bad behavior."
 	$self next pktTraceFile
 }
 Test/newreno1_A instproc run {} {
-	Agent/TCP set bugFix_ false
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP/Newreno set newreno_changes1_ 1
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 }
 
-# Class Test/newreno1_A_bugfix -superclass TestSuite
-# Test/newreno1_A_bugfix instproc init {} {
-# 	$self instvar net_ test_
-# 	set net_	net4
-# 	set test_	newreno1_A_bugfix
-# 	$self next pktTraceFile
-# }
-# Test/newreno1_A_bugfix instproc run {} {
-# 	Agent/TCP set bugFix_ true
-# 	Agent/TCP/Newreno set newreno_changes1_ 1
-#         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
-# }
+# Without Limited Transmit, without bugfix.
+Class Test/newreno1_A_noLT -superclass TestSuite
+Test/newreno1_A_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno1_A_noLT
+	Agent/TCP set singledup_ 0
+	Agent/TCP set bugFix_ false
+	set guide_ "NewReno, #1A, without Limited Transmit, without bugfix."
+	Test/newreno1_A_noLT instproc run {} [Test/newreno1_A info instbody run ]
+	$self next pktTraceFile
+}
+
+# With Limited Transmit, with bugfix.
+Class Test/newreno1_A_BF -superclass TestSuite
+Test/newreno1_A_BF instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       newreno1_A_BF
+        Agent/TCP set singledup_ 1
+        Agent/TCP set bugFix_ true
+        set guide_ \
+        "NewReno, #1A, with Limited Transmit, with bugfix."
+	Test/newreno1_A_BF instproc run {} [Test/newreno1_A info instbody run ]
+        $self next pktTraceFile
+}
 
 Class Test/newreno1_B0 -superclass TestSuite
 Test/newreno1_B0 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno1_B0
+	set guide_ "NewReno, #1B0, with Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/newreno1_B0 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP/Newreno set exit_recovery_fix_ 1
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 }
 
+# With Limited Transmit, without bugfix.
 Class Test/newreno1_B -superclass TestSuite
 Test/newreno1_B instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno1_B
+	Agent/TCP set singledup_ 1
+	Agent/TCP set bugFix_ false
+	set guide_ \
+	"NewReno, #1B, with Limited Transmit, without bugfix.  Bad behavior."
 	$self next pktTraceFile
 }
 Test/newreno1_B instproc run {} {
-	Agent/TCP set bugFix_ false
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP/Newreno set exit_recovery_fix_ 1
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
+}
+
+# With Limited Transmit, with bugfix.
+Class Test/newreno1_B_BF -superclass TestSuite
+Test/newreno1_B_BF instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       newreno1_B_BF
+        Agent/TCP set singledup_ 1
+	Agent/TCP set bugFix_ true
+        set guide_ \
+        "NewReno, #1B, with Limited Transmit, with bugfix." 
+	Test/newreno1_B_BF instproc run {} [Test/newreno1_B info instbody run ]
+        $self next pktTraceFile
+}
+
+# Without Limited Transmit, without bugfix.
+Class Test/newreno1_B_noLT -superclass TestSuite
+Test/newreno1_B_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno1_B_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ "NewReno, #1B, without Limited Transmit, without bugfix."
+	Test/newreno1_B_noLT instproc run {} [Test/reno info instbody run ]
+	$self next pktTraceFile
+}
+
+# With Limited Transmit, without bugfix, with newreno_changes1_
+# With newreno_changes1_
+# With newreno_changes1_, we don't reset the retransmit timer for 
+#  later partial ACKS, so the retransmit timer is more likely to
+#  expire, leading to more unnecessarily-retransmitted packets.
+#  With this example, we have an unnecessary Fast Retransmit both
+#  with and without Limited Transmit, but the behavior is worse
+#  with Limited Transmit.
+Class Test/newreno1A_A -superclass TestSuite
+Test/newreno1A_A instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno1A_A
+	Agent/TCP set singledup_ 1
+	Agent/TCP set bugFix_ false
+	set guide_ \
+	"NewReno, #1A-A, with Limited Transmit, without bugfix.  Bad behavior."
+	$self next pktTraceFile
+}
+Test/newreno1A_A instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
+	Agent/TCP/Newreno set newreno_changes1_ 1
+        $self setup Newreno {24 25 26 27 28 29 31 33 36 }
+}
+
+# With Limited Transmit, with bugfix.
+Class Test/newreno1A_A_BF -superclass TestSuite
+Test/newreno1A_A_BF instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno1A_A_BF
+	Agent/TCP set singledup_ 1
+	Agent/TCP set bugFix_ true
+	set guide_ "NewReno, #1A-A, with Limited Transmit, with bugfix."
+	Test/newreno1A_A_BF instproc run {} [Test/newreno1A_A info instbody run ]
+	$self next pktTraceFile
+}
+
+# Without Limited Transmit, without bugfix.
+Class Test/newreno1A_A_noLT -superclass TestSuite
+Test/newreno1A_A_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno1A_A_noLT
+	Agent/TCP set singledup_ 0
+	Agent/TCP set bugFix_ false
+	set guide_ "NewReno, #1A-A, without Limited Transmit, without bugfix."
+	Test/newreno1A_A_noLT instproc run {} [Test/newreno1A_A info instbody run ]
+	$self next pktTraceFile
 }
 
 ###################################################
 ## Multiple fast retransmits.
 ###################################################
 
+# With Limited Transmit, without bugfix.
 Class Test/reno2 -superclass TestSuite
 Test/reno2 instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	reno2
+	Agent/TCP set singledup_ 1
+	set guide_ "NewReno, with Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/reno2 instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
         $self setup Reno {24 25 26 28 31 35 40 45 46 47 48 }
 }
 
+# Without Limited Transmit, without bugfix.
+Class Test/reno2_noLT -superclass TestSuite
+Test/reno2_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	reno2_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ "NewReno, without Limited Transmit, without bugfix."
+	Test/reno2_noLT instproc run {} [Test/reno2 info instbody run ]
+	$self next pktTraceFile
+}
+
+# With Limited Transmit, with bugfix.
 Class Test/reno2_bugfix -superclass TestSuite
 Test/reno2_bugfix instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	reno2_bugfix
+	Agent/TCP set singledup_ 1
+	set guide_ "NewReno, with Limited Transmit, with bugfix."
 	$self next pktTraceFile
 }
 Test/reno2_bugfix instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ true
-#        $self setup Reno {24 25 26 28 31 35 37 40 43 47 48 }
         $self setup Reno {24 25 26 28 31 35 40 45 46 47 48 }
 }
 
+# Without Limited Transmit, with bugfix.
+Class Test/reno2_bugfix_noLT -superclass TestSuite
+Test/reno2_bugfix_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	reno2_bugfix_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ "NewReno, without Limited Transmit, with bugfix."
+	Test/reno2_bugfix_noLT instproc run {} [Test/reno2_bugfix info instbody run ]
+	$self next pktTraceFile
+}
+
+# With Limited Transmit, without bugfix.
 Class Test/newreno2_A -superclass TestSuite
 Test/newreno2_A instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno2_A
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"NewReno, #2A, with Limited Transmit, without bugfix.  Bad behavior."
 	$self next pktTraceFile
 }
 Test/newreno2_A instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+}
+
+# Without Limited Transmit, without bugfix.
+Class Test/newreno2_A_noLT -superclass TestSuite
+Test/newreno2_A_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno2_A_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ "NewReno, #2A, without Limited Transmit, without bugfix."
+	Test/newreno2_A_noLT instproc run {} [Test/newreno2_A info instbody run ]
+	$self next pktTraceFile
 }
 
 Class Test/newreno2_A_bugfix -superclass TestSuite
 Test/newreno2_A_bugfix instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno2_A_bugfix
+	set guide_ "NewReno, #2A, with Limited Transmit, with bugfix."
 	$self next pktTraceFile
 }
 Test/newreno2_A_bugfix instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ true
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
 }
 
+# With Limited Transmit, without bugfix.
 Class Test/newreno2_B -superclass TestSuite
 Test/newreno2_B instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno2_B
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"NewReno, #2B, with Limited Transmit, without bugfix." 
 	$self next pktTraceFile
 }
 Test/newreno2_B instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ false
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	Agent/TCP/Newreno set partial_window_deflation_ 1
@@ -491,14 +706,30 @@ Test/newreno2_B instproc run {} {
 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
 }
 
+# Without Limited Transmit, without bugfix.
+Class Test/newreno2_B_noLT -superclass TestSuite
+Test/newreno2_B_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno2_B_noLT
+	Agent/TCP set singledup_ 0
+	set guide_ \
+	"NewReno, #2B, without Limited Transmit, without bugfix."
+	Test/newreno2_B_noLT instproc run {} [Test/newreno2_B info instbody run ]
+	$self next pktTraceFile
+}
+
 Class Test/newreno2_B_bugfix -superclass TestSuite
 Test/newreno2_B_bugfix instproc init {} {
-	$self instvar net_ test_
+	$self instvar net_ test_ guide_
 	set net_	net4
 	set test_	newreno2_B_bugfix
+	set guide_ "NewReno, #2B, with Limited Transmit, with bugfix."
 	$self next pktTraceFile
 }
 Test/newreno2_B_bugfix instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set bugFix_ true
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	Agent/TCP/Newreno set partial_window_deflation_ 1
@@ -508,7 +739,7 @@ Test/newreno2_B_bugfix instproc run {} {
 
 # Class Test/newreno3 -superclass TestSuite
 # Test/newreno3 instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	newreno3
 # 	$self next pktTraceFile
@@ -520,7 +751,7 @@ Test/newreno2_B_bugfix instproc run {} {
 
 # Class Test/newreno3_bugfix -superclass TestSuite
 # Test/newreno3_bugfix instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	newreno3_bugfix
 # 	$self next pktTraceFile
@@ -532,7 +763,7 @@ Test/newreno2_B_bugfix instproc run {} {
 
 # Class Test/newreno4_A -superclass TestSuite
 # Test/newreno4_A instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	newreno4_A
 # 	$self next pktTraceFile
@@ -545,7 +776,7 @@ Test/newreno2_B_bugfix instproc run {} {
 
 # Class Test/newreno4_A_bugfix -superclass TestSuite
 # Test/newreno4_A_bugfix instproc init {} {
-# 	$self instvar net_ test_
+# 	$self instvar net_ test_ guide_
 # 	set net_	net4
 # 	set test_	newreno4_A_bugfix
 # 	$self next pktTraceFile
