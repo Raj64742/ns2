@@ -40,10 +40,10 @@ while { $i < $n } {
 
 
 
-Agent/Message instproc handle msg {
-        $self instvar node_
-        puts "@@@@@@@@@node [$node_ id] agent $self rxvd msg $msg. @@@@@@@@"
-}
+#Agent/Message instproc handle msg {
+#        $self instvar node_
+#        puts "@@@@@@@@@node [$node_ id] agent $self rxvd msg $msg. @@@@@@@@"
+#}
 
 set cbr1 [new Agent/CBR]
 $ns attach-agent $n2 $cbr1
@@ -53,13 +53,13 @@ set cbr2 [new Agent/CBR]
 $ns attach-agent $n0 $cbr2
 $cbr2 set dst_ 0x8003
 
-set rcvr0 [new Agent/Message]
+set rcvr0 [new Agent/Null]
 $ns attach-agent $n0 $rcvr0
-set rcvr1 [new Agent/Message]
+set rcvr1 [new Agent/Null]
 $ns attach-agent $n1 $rcvr1
-set rcvr2  [new Agent/Message]
+set rcvr2  [new Agent/Null]
 $ns attach-agent $n2 $rcvr2
-set rcvr3 [new Agent/Message]
+set rcvr3 [new Agent/Null]
 $ns attach-agent $n3 $rcvr3
 
 

@@ -91,6 +91,17 @@ DM instproc recv-prune { from src group } {
 		return 0
 	}
         $r disable [$Node set outLink_([$Node get-oifIndex $from])]
+        #
+        # If there are no remaining active output links
+        # then send a prune upstream.
+        #
+        $r instvar nactive_
+        if {$nactive_ == 0} {
+	    # set src [expr $src >> 8]
+	    if { $src != [$Node id] } {
+		$self send-ctrl prune $src $group
+	    }
+	}
 }
 
 DM instproc recv-graft { from src group } {

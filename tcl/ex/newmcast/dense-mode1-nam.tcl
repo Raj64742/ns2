@@ -15,7 +15,7 @@ proc nam_config {net} {
         $net color 1 red
 	# prune/graft packets
         $net color 30 purple
-        $net color 31 bisque
+        $net color 31 green
 
         # chart utilization from 1 to 2 width 5sec
         # chart avgutilization from 1 to 2 width 5sec
