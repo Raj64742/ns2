@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.225 2001/05/23 16:43:39 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.226 2001/05/27 18:24:14 sfloyd Exp $
 
 
 #
@@ -1464,6 +1464,24 @@ Simulator instproc create-connection-list {s_type source d_type dest pktClass} {
     $self connect $s_agent $d_agent
 
     return [list $s_agent $d_agent]
+}   
+
+# Creates connection. First creates a source agent of type s_type and binds
+# it to source.  Next creates a destination agent of type d_type and binds
+# it to dest.  Finally creates bindings for the source and destination agents,
+# connects them, and  returns the source agent. 
+# The destination agent is set to listen, for full-tcp.
+Simulator instproc create-connection-listen {s_type source d_type dest pktClass} {
+    set s_agent [new Agent/$s_type]
+    set d_agent [new Agent/$d_type]
+    $s_agent set fid_ $pktClass
+    $d_agent set fid_ $pktClass
+    $self attach-agent $source $s_agent
+    $self attach-agent $dest $d_agent
+    $self connect $s_agent $d_agent
+    $d_agent listen
+
+    return $s_agent 
 }   
 
 # This seems to be an obsolete procedure.
