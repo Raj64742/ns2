@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.5 1997/08/14 13:02:43 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.6 1997/08/27 03:40:01 gnguyen Exp $
 
 
 TOOLS32	= c:\msdev
@@ -53,6 +53,7 @@ PERL	= perl
 TCLSH	= tclsh76
 AR	= lib -out:
 RANLIB	= @echo
+RM	= erase
 
 CPP	= $(cc32)
 CC	= $(cc32)
