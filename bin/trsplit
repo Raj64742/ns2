@@ -57,19 +57,22 @@ sub ParseArgv
 $delim = " ";
 $psize = 1000;
 $tt = '-';
+$fid = 0;
+
 $ctt = 1;
 $ctime = 2;
+$cpt = 5;
+$cfid = 8;
 $csrc = 9;
 $cdst = 10;
-$cpt = 5;
 $cseq = 11;
 
 &ParseArgv;
 $pt = 'tcp'  if !$pt;
 $ctt--; $ctime--;
-$cpt--; $csrc--; $cdst--; $cseq--;
+$cpt--; $cfid--; $csrc--; $cdst--; $cseq--;
 
-$fidcount = 4;
+$fdcount = 4;
 
 while (<>)
 {
@@ -77,6 +80,7 @@ while (<>)
     @col = split(/$delim/);
     $count{$col[0]}++;
     next if ($col[0] ne $tt);
+    next if ($col[$cfid] ne $fid);
     next if !grep(/$col[$cpt]/, $pt);
 
     $src = $col[$csrc];
@@ -86,12 +90,12 @@ while (<>)
     $seqno{$key} = $col[$cseq];
 
     if ($opt{f}) {
-	$fid = $opened{$key};
-	if (! $fid) {
-	    $opened{$key} = $fid = $fidcount++;
-	    open($fid, ">$ARGV.$key");
+	$fd = $opened{$key};
+	if (! $fd) {
+	    $opened{$key} = $fd = $fdcount++;
+	    open($fd, ">$ARGV.$key");
 	}
-	printf $fid "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
+	printf $fd "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
     }
 }
 
