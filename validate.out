@@ -4,8 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Sat Feb 14 1998, with tcl8.0p1, tk8.0p1.
-### And again on Mon Apr  6 1998.
+### on pig.ee.lbl.gov, Tue Apr 21 1998, with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
 ### version of this output,
@@ -444,19 +443,10 @@ Test output agrees with reference output
 Running test vegas_no_slow_start_restart.
 Test output agrees with reference output
 Running test reno_pacing.
-0: cwnd_=7.000000 rtt=3 srtt=24 rbp_segs_actually_paced_=0 rbp_inter_pace_delay_=0
-0: cwnd_=10.000000 rtt=2 srtt=23 rbp_segs_actually_paced_=5 rbp_inter_pace_delay_=0.060000000000000012
-0: cwnd_=13.000000 rtt=2 srtt=23 rbp_segs_actually_paced_=8 rbp_inter_pace_delay_=0.035937500000000004
 Test output agrees with reference output
 Running test vegas_pacing_rate.
-0: cwnd_=3.000000 v_rtt_=0.33606399999999859 rbp_segs_actually_paced_=0 rbp_inter_pace_delay_=0
-0: cwnd_=4.000000 v_rtt_=0.22606400000000804 rbp_segs_actually_paced_=2 rbp_inter_pace_delay_=0.15803199999999951
-0: cwnd_=4.000000 v_rtt_=0.22606400000000804 rbp_segs_actually_paced_=2 rbp_inter_pace_delay_=0.11303200000000402
 Test output agrees with reference output
 Running test vegas_pacing_cwnd.
-0: cwnd_=3.000000 v_rtt_=0.33606399999999859 rbp_segs_actually_paced_=0 rbp_inter_pace_delay_=0
-0: cwnd_=6.000000 v_rtt_=0.22606400000000804 rbp_segs_actually_paced_=3 rbp_inter_pace_delay_=0.10535466666666633
-0: cwnd_=7.000000 v_rtt_=0.23606399999999894 rbp_segs_actually_paced_=5 rbp_inter_pace_delay_=0.045212800000001607
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
