@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.h,v 1.2 1997/04/09 21:21:08 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.h,v 1.2.2.1 1997/04/29 06:27:49 padmanab Exp $
  */
 
 #ifndef ns_connector_h
@@ -50,5 +50,6 @@ protected:
 	void recv(Packet*, Handler* callback = 0);
 	inline void send(Packet* p, Handler* h) { target_->recv(p, h); }
 	NsObject* target_;
+        Tcl_Channel channel_;
 };
 #endif
