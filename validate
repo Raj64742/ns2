@@ -37,7 +37,8 @@ failed_list=""
 
 cd tcl/test
 for i in simple tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 \
-  vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing session
+  vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing 
+# session
 do
 	try ./test-all-$i
 done
