@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.113 2003/08/14 04:26:42 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.114 2004/06/07 18:33:35 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -149,6 +149,26 @@ protected:
 	TcpAgent *a_;
 };
 
+/*
+ * Variables for HighSpeed TCP.
+ */
+//int *hs_win_;		// array of cwnd values
+//int *hs_increase_;	// array of increase values
+//double *hs_decrease_;	// array of decrease values
+struct hstcp {
+	double low_p;  // low_p
+	double dec1;	// for computing the decrease parameter
+	double dec2;    // for computing the decrease parameter
+	double p1;	// for computing p
+        double p2;	// for computing p
+	/* The next three parameters are for CPU overhead, for computing */
+	/*   the HighSpeed parameters less frequently.  A better solution */
+ 	/*   might be just to have a look-up array.  */
+	double cwnd_last_;	/* last cwnd for computed parameters */
+        double increase_last_;	/* increase param for cwnd_last_ */
+	hstcp() : low_p(0.0), dec1(0.0), dec2(0.0), p1(0.0), p2(0.0),
+	    cwnd_last_(0.0), increase_last_(0.0) { }
+};
 
 class TcpAgent : public Agent {
 public:
@@ -378,16 +398,11 @@ protected:
 	/* The next parameter is for Limited Slow-Start. */
 	int max_ssthresh_;	/* max value for ssthresh_ */
 
-	/* These three functions are just an easy structuring of the code. */ 
+	/* These two functions are just an easy structuring of the code. */ 
 	double increase_param();  /* get increase parameter for current cwnd */
 	double decrease_param();  /* get decrease parameter for current cwnd */
-	double compute_p();	/* compute p for calculating parameters */
-	/* The next three parameters are for CPU overhead, for computing */
-	/*   the HighSpeed parameters less frequently.  A better solution */
- 	/*   might be just to have a look-up array.  */
-	double cwnd_last_;	/* last cwnd for computed parameters */
-        double increase_last_;	/* increase param for cwnd_last_ */
-	double cwnd_frac_;	/* for determining when to recompute params. */
+	int cwnd_range_;	/* for determining when to recompute params. */
+	hstcp hstcp_;		/* HighSpeed TCP variables */
         /* end of section for experimental high-speed TCP */
 
 	/* for Quick-Start, experimental. */

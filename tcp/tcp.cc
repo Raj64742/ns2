@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.150 2003/08/14 04:26:42 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.151 2004/06/07 18:33:35 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -169,7 +169,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("high_p_");
 	delay_bind_init_one("high_decrease_");
 	delay_bind_init_one("max_ssthresh_");
-	delay_bind_init_one("cwnd_frac_");
+	delay_bind_init_one("cwnd_range_");
 	delay_bind_init_one("timerfix_");
 	delay_bind_init_one("rfc2988_");
 	delay_bind_init_one("singledup_");
@@ -268,7 +268,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind(varName, localName, "high_p_", &high_p_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "high_decrease_", &high_decrease_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "max_ssthresh_", &max_ssthresh_, tracer)) return TCL_OK;
-	if (delay_bind(varName, localName, "cwnd_frac_", &cwnd_frac_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "cwnd_range_", &cwnd_range_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "rfc2988_", &rfc2988_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
@@ -458,10 +458,21 @@ TcpAgent::reset()
 	necnresponses_ = 0;
 	ncwndcuts_ = 0;
 
-        cwnd_last_ = 0.0;
-
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
+	}
+
+	if (wnd_option_ == 8) {
+		// HighSpeed TCP
+		hstcp_.low_p = 1.5/(low_window_*low_window_);
+		double highLowWin = log(high_window_)-log(low_window_);
+		double highLowP = log(high_p_) - log(hstcp_.low_p);
+		hstcp_.dec1 = 
+		   0.5 - log(low_window_) * (high_decrease_ - 0.5)/highLowWin;
+		hstcp_.dec2 = (high_decrease_ - 0.5)/highLowWin;
+        	hstcp_.p1 = 
+		  log(hstcp_.low_p) - log(low_window_) * highLowP/highLowWin;
+		hstcp_.p2 = highLowP/highLowWin;
 	}
 
 	if (QOption_) {
@@ -930,23 +941,15 @@ int TcpAgent::numdupacks(double cwnd)
 }
 
 /*
- * Calculating the packet drop rate p for highspeed TCP.
- */
-double TcpAgent::compute_p()
-{
-	double p;
-	double low_p = 1.5/(low_window_*low_window_);
-	p = exp(linear(log(cwnd_), log(low_window_), log(low_p), log(high_window_), log(high_p_)));
-	return p;
-}
-
-/*
  * Calculating the decrease parameter for highspeed TCP.
  */
 double TcpAgent::decrease_param()
 {
 	double decrease;
-	decrease = linear(log(cwnd_), log(low_window_), 0.5, log(high_window_), high_decrease_);
+	// OLD:
+	// decrease = linear(log(cwnd_), log(low_window_), 0.5, log(high_window_), high_decrease_);
+	// NEW (but equivalent):
+        decrease = hstcp_.dec1 + log(cwnd_) * hstcp_.dec2;  
 	return decrease;
 }
 
@@ -972,20 +975,28 @@ double TcpAgent::increase_param()
        if (cwnd_ <= low_window_) { 
 		answer = 1 / cwnd_;
        		return answer; 
-       } else if (cwnd_ >= cwnd_last_ && cwnd_ < cwnd_frac_ * cwnd_last_ ) {
-		answer = increase_last_ / cwnd_;
-                return answer;
+       } else if (cwnd_ >= hstcp_.cwnd_last_ && 
+	      cwnd_ < hstcp_.cwnd_last_ + cwnd_range_) {
+	      // cwnd_range_ can be set to 0 to be disabled,
+	      //  or can be set from 1 to 100 
+       		answer = hstcp_.increase_last_ / cwnd_;
+              	return answer;
        } else { 
-		p = compute_p();
-		decrease = decrease_param();
-		increase = (cwnd_ * cwnd_ *2.0* decrease * p)/(2.0 - decrease); 
-		//      double max_increase = 157.8;
+		// OLD:
+ 		// p = exp(linear(log(cwnd_), log(low_window_), log(hstcp_.low_p), log(high_window_), log(high_p_)));
+		// NEW, but equivalent:
+        	p = exp(hstcp_.p1 + log(cwnd_) * hstcp_.p2);  
+        	decrease = decrease_param();
+		// OLD:
+		// increase = cwnd_*cwnd_*p *(2.0*decrease)/(2.0 - decrease); 
+		// NEW, but equivalent:
+		increase = cwnd_ * cwnd_ * p /(1/decrease - 0.5);
 		//	if (increase > max_increase) { 
 		//		increase = max_increase;
 		//	} 
 		answer = increase / cwnd_;
-		cwnd_last_ = cwnd_;
-		increase_last_ = increase;
+		hstcp_.cwnd_last_ = cwnd_;
+		hstcp_.increase_last_ = increase;
        		return answer;
 	}       
 }

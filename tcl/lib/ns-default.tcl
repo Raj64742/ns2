@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.329 2004/04/20 16:10:51 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.330 2004/06/07 18:33:34 sfloyd Exp $
 
 
 #
@@ -872,7 +872,8 @@ Agent/TCP set high_window_ 83000
 Agent/TCP set high_p_ 0.0000001
 Agent/TCP set high_decrease_ 0.1
 Agent/TCP set max_ssthresh_ 0
-Agent/TCP set cwnd_frac_ 0.0
+Agent/TCP set cwnd_range_ 0 ;		# cwnd_frac_ deleted on 6/6/04,
+					# replaced by cwnd_range_
 
 # For Quick-Start:
 Agent/TCP set rate_request_ 0
