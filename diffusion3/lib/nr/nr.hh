@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: nr.hh,v 1.10 2004/12/10 22:07:13 johnh Exp $
+// $Id: nr.hh,v 1.11 2005/02/07 20:57:04 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -43,7 +43,8 @@ using namespace std;
 typedef signed int int32_t;
 #endif
 typedef signed short int16_t;
-#if defined (sparc)
+
+#if defined (__SVR4) && defined (__sun)
 typedef char int8_t;
 #else
 // Conflicts with system declaration of int8_t in Solaris
