@@ -32,11 +32,14 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.9 1997/08/27 21:08:29 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.10 1997/09/08 22:02:05 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_template_h
 #define ns_template_h
+
+#include "config.h"
+
 
 inline int min(int a, int b)
 {
