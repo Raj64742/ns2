@@ -1,5 +1,6 @@
 \RequirePackage{ifthen}
 \RequirePackage{html}
+\RequirePackage{alltt}
 
 \evensidemargin       -15pt
 \oddsidemargin        -15pt
@@ -17,10 +18,12 @@
 \newcommand{\nsf}[1]{\textasciitilde\ns/#1}
 \newcommand{\Tclf}[1]{\textasciitilde\emph{Tcl}/#1}
 
-\newcommand{\tup}[1]{$\langle$#1$\rangle$}
-\newcommand{\code}[1]{\texttt{#1}}
-
-\newcommand{\XXX}{\textbf{XXX}}
+\def\tup#1{$\langle$#1$\rangle$}
+\def\ncode{\bgroup\let\ubar=\_\relax%
+          \catcode`\#=11\catcode`\_=11\catcode`\$=11\relax%
+          \def\_{\ubar}\@code}
+\def\@code#1{\ttfamily #1\egroup}
+\def\code#1{\bgroup\ttfamily#1\egroup}
 
 \newcommand{\proc}[2][]{\code{#2}\{#1\}}
 \newcommand{\fcn}[2][void]{\code{#2}(#1)}
@@ -45,16 +48,18 @@
 \def\danger{\d@nger}
 \def\closedanger{\endgraf\endgroup}
 
-\newenvironment{program}{\bgroup%
-  \def\;##1;{\`;\#{\itshape ##1}\\}%
-  \def\*##1*/{\`/*{\itshape ##1}*/\\}%
-  \catcode`\#=11\catcode`\_=11\catcode`\$=11\relax%
-  \ttfamily\tabbing%
-01234567\=01234567\=01234567\=01234567\=01234567\=01234567\=01234567\=\kill%
-\+\kill%
-}{\endtabbing\egroup}
+\def\program{\bgroup%
+  \def\;##1;{\hfil;\#{\rmfamily\itshape ##1}}%
+  \def\*##1*/{\hfil/*{\rmfamily\itshape ##1}*/}%
+  \alltt%
+  \def\bs{\ifmmode\backslash\else\(\backslash\)\fi}%
+}
+\def\endprogram{\endalltt\egroup}
 
-\def\|#1|{\texttt{#1}}
+\def\ie{\textit{i.e.}}
+
+\def\|{\bgroup\catcode`\#=11\catcode`\_=11\catcode`\$=11\catcode`\&=11\relax\@|}
+\def\@|#1|{\ttfamily #1\egroup}
 
 \endinput
 

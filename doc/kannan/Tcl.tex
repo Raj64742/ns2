@@ -2,9 +2,7 @@
 
 %\usepackage{times}
 %\usepackage[T1]{fontenc}
-
 \usepackage{nsDoc}
-
 \begin{document}
 
 \title{\nsTcl\ internals documentation}
@@ -46,16 +44,6 @@ to refer to a particular \tup{file}\ in the
 Similarly, we will use the notation, \nsf{\tup{file}}
 to refer to a particular \tup{file}\ in the \code{ns-2} directory.
 
-\danger
-A final note on notation.
-All of our documentation falls into one of three categories:
-A broad overview of the section,
-details pertinent to complex simulation configurations,
-code samples,
-and finally,
-esoteric details that are not required to program or use the simulator.
-Such esoteric details are flagged with a ``danger bend'' at the top of
-the paragraph, similar to the manner in which this paragraph is marked.
 
 \section{Introduction}
 \ns\ is an object oriented simulator,
@@ -161,9 +149,9 @@ as a static member variable;
 the programmer must obtain a reference to this instance
 to access other methods described in this section.
 The statement required to access this instance is:
-\begin{verbatim}
+\begin{program}
         Tcl& tcl = Tcl::instance();
-\end{verbatim}
+\end{program}
 
 \subsection{Invoking OTcl Procedures}
 \label{sec:Invoke}
@@ -202,7 +190,7 @@ describes methods to access the result returned by the interpreter.
   It uses \code{vsprintf}(3) internally to create the input string.
 \end{itemize}
 As an example, here are some of the ways of using the above methods:
-\begin{verbatim}
+\begin{program}
         Tcl& tcl = Tcl::instance();
         char wrk[128];
         strcpy(wrk, "Simulator set NumberInterfaces_ 1");
@@ -210,10 +198,10 @@ As an example, here are some of the ways of using the above methods:
 
         sprintf(tcl.buffer(), "Agent/SRM set requestFunction_ %s", "Fixed");
         tcl.eval();
-                
+
         tcl.evalc("puts stdout {hello world}");
         tcl.evalf("%s request %d %d", name_, sender, msgid);
-\end{verbatim}
+\end{program}
 
 \subsection{Passing Results to/fro the Interpreter}
 \label{sec:Result}
@@ -233,14 +221,14 @@ Two methods are available to set this variable.
         to format the result using \code{vsprintf}(3),
         pass the result string back to the interpreter.
 \end{list}
-\begin{verbatim}
-        if (strcmp(argv[1], ``now'') == 0) {
+\begin{program}
+        if (strcmp(argv[1], "now") == 0) \{
                 tcl.resultf("%.17g", clock());
                 return TCL_OK;
-        }
+        \}
         tcl.result("Invalid operation specified");
         return TCL_ERROR;
-\end{verbatim}
+\end{program}
 
 Likewise, when a C++ method invokes an OTcl command,
 the interpreter returns the result in \code{tcl\_->result}.
@@ -250,12 +238,12 @@ the interpreter returns the result in \code{tcl\_->result}.
       Note that the result is a string, that must be converted
       into an internal format appropriate to the type of result.
 \end{list}
-\begin{verbatim}
+\begin{program}
         tcl.evalc("Simulator set NumberInterfaces_");
         char* ni = tcl.result();
         if (atoi(ni) != 1)
                 tcl.evalc("Simulator set NumberInterfaces_ 1");
-\end{verbatim}
+\end{program}
         
 \subsection{Error Reporting and Exit}
 \label{sec:ErrorReporting}
@@ -267,11 +255,11 @@ performs the following functions:
 write $s$ to stdout; write \code{tcl\_->result} to stdout;
 exit with error code 1.
 \end{list}
-\begin{verbatim}
+\begin{program}
         tcl.resultf("cmd = %s", cmd);
         tcl.error("invalid command specified");
         /*NOTREACHED*/
-\end{verbatim}
+\end{program}
 
 Note that
 there are minor differences between returning TCL\_ERROR
@@ -329,12 +317,12 @@ and write our own functions.
 \section{Class TclObject}
 \label{sec:TclObject}
 
-\clsref{TclObject}{../Tcl/Tcl.h} is the ``most'' basic class in \ns.
-This class is the base class for most of the other classes
+\clsref{TclObject}{../Tcl/Tcl.h}
+is the base class for most of the other classes
 in the interpreted and compiled hierarchies.
-Every object  in the class TclObject that is created by the user,
-is instantiated within the interpreter;
-and an equivalent shadow object is created in the compiled hierarchy.
+Every object in the class TclObject is created by the user
+from within the interpreter.
+An equivalent shadow object is created in the compiled hierarchy.
 The two objects are closely associated with each other.
 The class TclClass, described in the next section,
 contains the mechanisms that perform this shadowing.
@@ -345,8 +333,8 @@ TclObject, or in a class that is derived from the class TclObject.
 If it is necessary, we will explicitly qualify whether that object is
 an object within the interpreter, or an object within the compiled code.
 In such cases,
-we will use the abbreviations ``interpreted TclObject'', and
-``compiled TclObject'' to refer to TclObjects within the interpreter, 
+we will use the abbreviations ``interpreted object'', and
+``compiled object'' to distinguish the two.
 and within the compiled code respectively.
 
 \paragraph{Differences from \ns~v1}
@@ -367,30 +355,32 @@ are no longer stored as a global link list.
 Instead, they are stored in a hash table in the
 \href{class Tcl}{Section}{sec:HashTables}.
 
-\paragraph{Example showing use of TclObjects}
-As an example, the
-\clsref{Classifier}{../ns-2/classifier.h}
-is a compiled class derived from the class TclObject.
-Here is how a node is put together as a collection of
-Address Classifiers (\clsref{AddressClassifier}{../ns-2/classifier-addr.h})
-\begin{verbatim}
-        set classifier_ [new Classifier/Addr]
-        $classifier_ set mask_ 0xffffff
-        $classifier_ set shift_ 8
-        $classifier_ install $id_ [$dmux_ entry]
-\end{verbatim}
+\paragraph{Example configuration of a TclObject}
+The following example illustrates the configuration of
+an SRM agent (\clsref{Agent/SRM/Adaptive}{../ns-2/srm-adaptive.tcl}).
+\begin{program}
+        set srm [new Agent/SRM/Adaptive]
+        $srm set packetSize_ 1024
+        $srm traffic-source $s0
+\end{program}
+By convention in \ns,
+the class Agent/SRM/Adaptive is a subclass of Agent/SRM,
+is a subclass of Agent, is a subclass of TclObject.
+The corresponding compiled class hierarchy is
+the ASRMAgent, derived from SRMAgent, derived from Agent,
+derived from TclObject respectively.
 The first line of the above example shows how a TclObject is 
 \href{created (or destroyed)}{Section}{sec:Creation};
-the next two lines how the TclObject is configured through
-\href{the bound variables}{Section}{sec:VarBinds};
-and finally, in the last line,
-the interpreted object invokes a C++ method
+the next line configures
+\href{a bound variable}{Section}{sec:VarBinds};
+and finally, the last line illustrates
+the interpreted object invoking a C++ method
 \href{as if they were an instance procedure}{Section}{sec:commands}.
 
 \subsection{Creating and Destroying TclObjects}
 \label{sec:Creation}
 
-The user creates or destroys TclObjects
+When the user creates a new TclObject,
 using the procedures \proc[]{new} and \proc[]{delete};
 these procedures are defined in \Tclf{tcl-object.tcl}.
 They can be used to create and destroy objects in all classes,
@@ -406,37 +396,43 @@ is created.
 
 \paragraph{Creating TclObjects}
 By using \proc[]{new}, the user creates an interpreted TclObject.
-The interpreter will execute the constructor for that object, \proc[]{init},
+the interpreter will execute the constructor for that object, \proc[]{init},
 passing it any arguments provided by the user.
-\ns\ has to simultaneously create the compiled object.
-The shadow object gets created by the 
-base class TclObject's constructor.
-Therefore, when writing a constructor for a class derived from TclObject,
-the programmer must call the parent class constructor first,
-to ensure that the shadow object gets created correctly.
+\ns\ is responsible for automatically  creating the compiled object.
+The shadow object gets created by the base class TclObject's constructor.
+Therefore, the constructor for the new TclObject
+must call the parent class constructor first.
 \proc[]{new} returns a handle to the object, that can then be used
 for further operations upon that object.
+
+The following example illustrates the Agent/SRM/Adaptive constructor:
+\begin{program}
+        Agent/SRM/Adaptive instproc init args \{
+                eval $self next $args
+                $self array set closest_ "requestor 0 repairor 0"
+                $self set eps_    [$class set eps_]
+        \}
+\end{program}
 
 The following sequence of actions are performed by the interpreter
 as part of instantiating a new TclObject.
 For ease of exposition, we describe the steps that are executed
-to create a Classifier/Addr object.
-By convention in \ns, Classifier/Addr is a subclass of Classifier, 
-is a subclass of TclObject.
+to create an Agent/SRM/Adaptive object.
 The steps are:
 \begin{enumerate}
 \item
-  Obtain an unique handle for the new Classifier/Addr object
-  from the TclObject name space.
+  Obtain an unique handle for the new object   from the TclObject name space.
   The handle is returned to the user.
   Most handles in \ns\ have the form \code{\_o\tup{NNN}}, where \tup{NNN}
   is an integer.  This handle is created by
   \fcnref{\proc{getid}}{../Tcl/tcl-object.tcl}{TclObject::getid}.
-\item Execute the constructor for the new Classifier/Addr object.
+\item Execute the constructor for the new object.
   Any user-specified arguments are passed as arguments to the constructor.
   This constructor must invoke the constructor
-  associated with the parent class,
-  \ie, the constructor for the class Classifier.
+  associated with its parent class.
+
+  In our example above, the Agent/SRM/Adaptive calls its parent class
+  in the very first line.  
 
   Note that each constructor,
   in turn invokes its parent class' constructor \textit{ad nauseum}.
@@ -449,57 +445,57 @@ The steps are:
   This allows the shadow objects to be set up,
   and the variable bindings established.
 \item The TclObject constructor invokes the instance procedure
-  \proc[]{create-shadow} for the class Classifier/Addr.
-
-  The shadow object for the Classifier/Addr object is
-  a compiled object in the class AddressClassifier.
+  \proc[]{create-shadow} for the class Agent/SRM/Adaptive.
 \item When the shadow object is created,
   \ns\ calls all of the constructors for the compiled object,
   each of which may establish variable bindings for objects in that class,
-  and other necessary initialisations.
-  In the next section, we will describe how these variable bindings are setup.
+  and perform other necessary initialisations.
   Hence our earlier injunction that it is preferable to invoke the parent
   constructors prior to performing the class initialisations.
 \item After the shadow object is successfully created,
   \fcnref{\fcn{create\_shadow}}{../Tcl/Tcl.cc}{TclClass::create\_shadow}
   \begin{enumerate}
-  \item adds the new object to hash table of TclObjects described earlier.
+  \item adds the new object to hash table of TclObjects
+        \href{described earlier}{Section}{sec:hashTables}.
   \item makes \proc[]{cmd} an instance procedure of the newly created
     interpreted object.
-    The procedure will result in invoking the \fcn[]{command}
-    method of the compiled object.
-    In the next subsection, we describe how the \code{command}
-    method is defined, and how they are invoked.
+    This instance procedure
+    invokes the \fcn[]{command} method of the compiled object.
+    In \href{a later subsection}{Section}{sec:command},
+    we describe how the \code{command} method is defined, and invoked.
   \end{enumerate}
 \end{enumerate}
-Note that all of the above shadowing mechanisms works only when
+Note that all of the above shadowing mechanisms only work when
 the user creates a new TclObject through the interpreter.
-It will not work if the programmer creates a compiled TclObject
-unilaterally.
-Therefore, the programmer is enjoined not to create ``\code{new TclObject}''s
-in the C++ code.
+It will not work if the programmer creates a compiled TclObject unilaterally.
+Therefore, the programmer is enjoined not to use the C++ new method
+to create compiled objects directly.
 
 \paragraph{Deletion of TclObjects}
-Conversely, the \code{delete} operation simply invokes the
-instance procedure \code{delete-shadow}, that in turn invokes
-\fcnref{the equivalent compiled method}{%
-  ../Tcl/Tcl.cc}{TclClass::delete\_shadow}, 
-and then destroys the interpreted object.
-
+The \code{delete} operation
+destroys the interpreted object, and the corresponding shadow object.
 For example,
 \fcnref{\proc[\tup{scheduler}]{use-scheduler}}{%
   ../ns-2/ns-lib.tcl}{Simulator::use-scheduler}
 uses the \code{delete} procedure to remove the default list scheduler,
 and instantiate an alternate scheduler in its place.
-\begin{verbatim}
-        Simulator instproc use-scheduler type {
+\begin{program}
+        Simulator instproc use-scheduler type \{
                 $self instvar scheduler_
 
-                # first delete the existing list scheduler
-                delete scheduler_
+                delete scheduler_ \; first delete the existing list scheduler;
                 set scheduler_ [new Scheduler/$type]
-        }
-\end{verbatim}
+        \}
+\end{program}
+
+As with the constructor, the object destructor must call the destructor
+for the parent class explicitly as the very last statement of the destructor.
+The TclObject destructor
+will invoke the instance procedure \code{delete-shadow},
+that in turn invokes \fcnref{the equivalent compiled method}{%
+  ../Tcl/Tcl.cc}{TclClass::delete\_shadow}
+to destroy the shadow object.
+The interpreter itself will destroy the interpreted object.
 
 \subsection{Variable Bindings}
 \label{sec:VarBinds}
@@ -514,231 +510,257 @@ and the compiled member variable access the same data,
 and changing the value of either variable
 changes the value of the corresponding paired variable to same value.
 
-The programmer can bind variable correspond to five data types:
-Reals (\fcnref{\fcn[]{tcl.bind}}{../Tcl/Tcl.cc}{TclObject::bind}),
-Bandwidth valued variables
-(\fcnref{\fcn[]{tcl.bind\_bw}}{../Tcl/Tcl.cc}{TclObject::bind\_bw}),
-Time valued variables
-(\fcnref{\fcn[]{tcl.bind\_time}}{../Tcl/Tcl.cc}{TclObject::bind\_time}),
-Integers (\fcnref{\fcn[]{tcl.bind}}{../Tcl/Tcl.cc}{TclObject::bind}),
-and finally,
-Booleans (\fcnref{\fcn[]{tcl.bind\_bool}}{../Tcl/Tcl.cc}{TclObject::bind\_bool}).
-All of the functions above takes two arguments,
-the name of an OTcl variable,
-and the address of the corresponding compiled member variable that must
-be linked.
-Typically, these calls are invoked by the constructor of the class that
-needs to make some of its member variables accessible through the interpreter.
-However, this need not always be the case.
-We will discuss such alternate methods
-when we describe \href{the class InstVar}{Section}{sec:InstVar}
-in detail later.
-
+The binding is established by the compiled constructor
+when that object is instantiated;
+it is automatically accessible by the interpreted object as 
+an instance variable.
+\ns\ supports five different data types: reals, bandwidth valued variables, 
+time valued variables, integers, and booleans.
 The syntax of how these values can be specified in OTcl is different
 for each variable type.
 \begin{itemize}
 \item Real and Integer valued variables are specified in the ``normal'' form.
+        For example,
+        \begin{program}
+        $object set realvar 1.2e3
+        $object set intvar  12
+        \end{program}
 \item Bandwidth is specified as a real value, optionally
   suffixed by a `k' or `K' to mean kilo-quantities, or `m' or `M' to
   mean mega-quantities.
   A final optional suffix of `B' indicates that the quantity expressed
   is in Bytes per second.
   The default is bandwidth expressed in bits per second.
+        For example, all of the following are equivalent:
+        \begin{program}
+        $object set bwvar 1.5m
+        $object set bwvar 1.5mb
+        $object set bwvar 1500k
+        $object set bwvar 1500kb
+        $object set bwvar .1875MB
+        $object set bwvar 187.5kB
+        $object set bwvar 1.5e6
+        \end{program}
+
 \item Time is specified as a real value, optionally suffixed by a
   `m' to express time in milli-seconds, `n' to express time in
   nano-seconds, or `p' to express time in pico-seconds.
   The default is time expressed in seconds.
+        For example, all of the following are equivalent:
+        \begin{program}
+        $object set timevar 1500m
+        $object set timevar 1.5
+        $object set timevar 1.5e9n
+        $object set timevar 1500e9p
+        \end{program}
+
 \item Booleans can be expressed either as an integer, or as `T' or `t'
   for true.  Subsequent characters after the first letter are ignored.
   If the value is neither an integer, nor a true value,
   then it is assumed to be false.
+        For example,
+        \begin{program}
+        $object set boolvar t           \; set to true;
+        $object set boolvar true
+        $object set boolvar 1   \; or any non-zero value;
+
+        $object set boolvar false       \; set to false;
+        $object set boolvar junk        
+        $object set boolvar 0
+        \end{program}
+
 \end{itemize}
 
-\danger
-The actual binding is done by instantiating objects in the
-class InstVar.  Each object in the class InstVar binds 
-one compiled member variable to one interpreted member variable.
-Each TclObject stores a list of InstVar objects corresponding
-to each of its member variable that is bound in this fashion.
-The head of this list is stored in its member variable
-\code{instvar\_}.
-\closedanger
+The following example shows the constructor for the ASRMAgent%
+\footnote{Note that this constructor is embellished to illustrate
+        the features of the variable binding mechanism.}.
+\begin{program}
+        ASRMAgent::ASRMAgent() \{
+                bind("pdistance_", &pdistance_);      \* real variable */
+                bind("requestor_", &requestor_);      \* integer variable */
+                bind_time("lastSent_", &lastSessSent_); \* time variable */
+                bind_bw("ctrlLimit_", &ctrlBWLimit_); \* bandwidth variable */
+                bind_bool("running_", &running_);     \* boolean variable */
+        \}
+\end{program}
+Note that all of the functions above take two arguments,
+the name of an OTcl variable,
+and the address of the corresponding compiled member variable
+that is linked.
+While it is often the case that these bindings are established
+by the constructor of the object, 
+it need not always be done in this manner.
+We will discuss such alternate methods
+when we describe \href{the class InstVar}{Section}{sec:InstVar}
+in detail later.
 
-The process of binding also initialises the member variable.
-This initialisation is done by the instance procedure,
-\fcnref{init-instvar}{../Tcl/tcl-object.tcl}{TclObject::init-instvar}.
-It walks up its class hierarchy, finding the first class
-in which the appropriate class variable is defined.
-It then sets the interpreted member variable for that object
-to the value defined by the class variable.
-This process of setting the interpreted member variable then
-also sets the value of the compiled member variable.
-If no member variable is defined, then a warning message is printed
-out by the routine
-\fcnref{warn-instvar}{../Tcl/tcl-object.tcl}{TclObject::warn-instvar},
-and the function returns.
+Each of the variables that is bound is automatically initialised
+with default values when the object is created.
+The default values are specified as interpreted class variables.
+This initialisation is done by the routing \proc[]{init-instvar},
+invoked by methods in the class Instvar,
+\href{described later}{Section}{sec:instVar}.
+\proc[]{init-instvar} checks the class of the interpreted object,
+and all of the parent class of that object, to find the first
+class in which the variable is defined.
+It uses the value of the variable in that class to initialise the object.
 Most of the bind initialisation values are defined in
 \nsf{tcl/lib/ns-default.tcl}.
 
-Here is a contrived example to show how the binding mechanism works.
-Consider an interpreted object in the class LinkDelay/Transit,
-subclass of class LinkDelay, whose corresponding shadow object is in 
-the class TransitLinkDelay, subclass of class LinkDelay.
-Let the TransitLinkDelay constructor bind the variables as shown below:
-\begin{verbatim}
-        TransitLinkDelay::TransitLinkDelay()
-        {
-                bind_bw("bandwidth_", &bandwidth_);
-                bind_time("delay_", &delay_);
-                bind_bool("linkState_", &linkState_);
-                bind_int{"linkID_", &linkID_);
-        }
-\end{verbatim}
-and let us assume that the following class variables are defined,
-\begin{verbatim}
-        Transit/LinkDelay set bandwidth_ 5Mb
-        Transit/LinkDelay set delay_     2ms
-        Transit set linkState_       True
-\end{verbatim}
-Then, a newly instantiated LinkDelay/Transit object will have 
-default initialisations for  \code{bandwidth\_} 5Mb and \code{delay\_} 2ms,
-\code{linkState\_} is set to ``True'' using the parent class' variable;
-however, since no class variable is defined for \code{linkID\_},
-\code{warn-instvar} will print an error message, and
-not initialiset that variable.
-The user can redefine \code{warn-instvar}
-if they wish to take other action in such cases.
+For example, if the following class variables are defined for the ASRMAgent:
+\begin{program}
+        Agent/SRM/Adaptive set pdistance_ 15.0
+        Agent/SRM set pdistance_ 10.0
+        Agent/SRM set lastSent_ 8.345m
+        Agent set ctrlLimit_    1.44M
+        Agent/SRM/Adaptive set running_ f
+\end{program}
+Therefore, every new Agent/SRM/Adaptive object will have
+\code{pdistance\_} set to 15.0;
+\code{lastSent\_} is set to 8.345m
+from the setting of the class variable of the parent class;
+\code{ctrlLimit\_} is set to 1.44M
+using the class variable of the parent class twice removed;
+\code{running} is set to false;
+the instance variable \code{pdistance\_} is not initialised,
+because no class variable
+exists in any of the class hierarchy of the interpreted object.
+In such instance, \proc[]{init-instvar} will invoke 
+\proc[]{warn-instvar}, to print out a warning about such a variable.
+The user can selectively override this procedure
+in their simulation scripts, to elide this warning.
+
+Note that the actual binding
+is done by instantiating objects in the class InstVar.
+Each object in the class InstVar binds 
+one compiled member variable to one interpreted member variable.
+A TclObject stores a list of InstVar objects corresponding
+to each of its member variable that is bound in this fashion.
+The head of this list is stored in its member variable
+\code{instvar\_} of the TclObject.
+
+One last point to consider is that
+\ns\ will guarantee that the actual values
+of the variable, both in the interpreted object and the compiled object,
+will be identical at all times.
+However, if there are methods and other variables
+of the compiled object that track the value of this variable,
+they must be explicitly invoked or changed whenever the
+value of this variable is changed.
+This usually requires additional primitives that the user should invoke.
+One way of providing such primitives in \ns\ is through
+the \fcn[]{command} method described in the next section.
+
 
 \subsection{\code{command} Methods: Definition and Invocation}
 \label{sec:Commands}
 
-One of the instance procedures defined
-when a new TclObject is created is ``\code{cmd}'' .
-This procedure invokes the appropriate \code{command} method 
-specifying the operation that is to be performed by the method.
-These operations method can be invoked in \ns\ in one of two ways:
-implicitly, as if there were an instance procedure
-with the same name as the operation,  or
-explicitly, through the \code{cmd} method.
+For every TclObject that is created, \ns\ establishes
+the instance procedure, \proc[]{cmd},
+as a hook to executing methods through the compiled shadow object.
+The procedure \proc[]{cmd} invokes the method \fcn[]{command}
+of the shadow object automatically, passing the arguments to \proc[]{cmd}
+as an argument vector to the \fcn[]{command} method.
 
-A typical command function is declared as:
+The user can invoke the \proc[]{cmd} method in one of two ways:
+by explicitly invoking the procedure, specifying the desired
+operation as the first argument, or
+implicitly, as if there were an instance procedure of the same name as the
+desired operation.
+Most simulation scripts will use the latter form, hence, we will
+describe that mode of invocation first.
 
-When invoked implicitly, the TclObject instance procedure
-\fcnref{\proc{unknown}}{../Tcl/tcl-object.tcl}{TclObject::unknown}
-is invoked that in turn invokes the \code{cmd} instance procedure
-with the arguments that it was passed.
+Consider the that the distance computation in SRM is done by
+the compiled object; however, it is often used by the interpreted object.
+It is usually invoked as:
+\begin{program}
+        $srmObject distance? \tup{agentAddress}
+\end{program}
+If there is no instance procedure called \code{distance?},
+the interpreter will invoke the instance procedure
+\proc[]{unknown}, defined in the base class TclObject.
+The unknown procedure then invokes
+\begin{program}
+        $srmObject cmd distance? \tup{agentAddress}
+\end{program}
+to execute the operation through the compiled object's
+\fcn[]{command} procedure.
 
-The alternate method of explicitly invoking
-the \code{cmd} instance procedure is useful 
-to overload the command procedure
-with an instance procedure
- with the same name is defined for that object.
-For instance, the \code{class RouteLogic} has an instance procedure called
-\code{lookup} that can perform some types of route lookup.  However,
-for others, it has to invoke an operation to return the necessary information
-through 
-\fcnref{\fcn{RouteLogic::command}}{../ns-2/route.cc}{RouteLogic::command}.
-Its instance procedure is therefore defined as
-\begin{verbatim}
-        RouteLogic instproc lookup {nodeid destid} {
-                set node [Simulator get-node-by-id $nodeid]
-                if {[$node info vars rtObject_] != ""} {
-                        return [[$node rtObject?] lookup $destid]
-                } else {
-                        return [$self cmd lookup $nodeid $destid]
-                }
-        }
-\end{verbatim}
-%$
-We see that, if the lookup procedure cannot find the necessary information
-through appropriately defined objects, then it explicitly
-invokes the \code{lookup} operation defined in \code{RouteLogic::command}.
+Ofcourse, the user could explicitly invoke the operation directly.
+One reason for this might be to overload the operation by using
+an instance procedure of the same name.
+For example,
+\begin{program}
+        Agent/SRM/Adaptive instproc distance? addr \{
+                $self instvar distanceCache_
+                if ![info exists distanceCache_($addr)] \{
+                        set distanceCache_($addr) [{\bfseries $self cmd distance? $addr}]
+                \}
+                set distanceCache_($addr)
+        \}
+\end{program}
 
-Continuing with the RouteLogic example, we now illustrate how a typical
-\code{command} method is defined.
-\begin{verbatim}
-int RouteLogic::command(int argc, const char*const* argv)
-{
-        Tcl& tcl = Tcl::instance();
-        if (argc == 4) {
-                if (strcmp(argv[1], "lookup") == 0) {
-                        if (route_ == 0) {
-                                tcl.result("routes not computed");
-                                return (TCL_ERROR);
-                        }
-                        int src = atoi(argv[2]) + 1;
-                        int dst = atoi(argv[3]) + 1;
-                        if (src >= size_ || dst >= size_) {
-                                tcl.result("node out of range");
-                                return (TCL_ERROR);
-                        }
-                        tcl.resultf("%d", route_[INDEX(src, dst, size_)] - 1);
-                        return (TCL_OK);
-                }
-        }
-        return (TclObject::command(argc, argv));
-}
-\end{verbatim}
+We now illustrate how the \fcn[]{command} method using
+\fcn[]{ASRMAgent::command} as an example.
+\begin{program}
+        int ASRMAgent::command(int argc, const char*const*argv) \{
+                Tcl& tcl = Tcl::instance();
+                if (argc == 3) \{
+                        if (strcmp(argv[1], "distance?") == 0) \{
+                                int sender = atoi(argv[2]);
+                                SRMinfo* sp = get_state(sender);
+                                tcl.tesultf("%f", sp->distance_);
+                                return TCL_OK;
+                        \}
+                \}
+                return (SRMAgent::command(argc, argv));
+        \}
+\end{program}
 We can make the following observations from this piece of code:
 \begin{itemize}
 \item The function is called with two arguments:
-  \subitem The first argument (\code{argc})
-  indicates the number of arguments specified
-  in the command line to the interpreter.
-  \subitem The command line arguments vector (\code{argv}) consists of
-  \subitem --- \code{argv[0]} cntains the name of the method, ``\code{cmd}''.
-  \subitem --- \code{argv[1]} specifies the desired operation.
-  \subitem --- If the user specified any arguments, then they are placed in
+  
+  The first argument (\code{argc}) indicates
+  the number of arguments specified in the command line to the interpreter.
+
+  The command line arguments vector (\code{argv}) consists of
+  
+  --- \code{argv[0]} contains the name of the method, ``\code{cmd}''.
+
+  --- \code{argv[1]} specifies the desired operation.
+
+  --- If the user specified any arguments, then they are placed in
   \code{argv[2\ldots(argc - 1)]}.
-  \subitem Note that the arguments are passed as strings, and must be
-  converted to the appropriate data type.
-\item If the operation is successfully matched, then the result of
-  executing the operation is placed in \code{tcl\_->result}.
-  We described the technique to return this result
-  \hyperref{earlier}{earlier in Section}{}{sec:Result}.
-\item The return code is an integer, indicating success (\code{TCL\_OK}),
-  or failure (\code{TCL\_ERROR}).
+
+  The arguments are passed as strings;
+  they must be converted to the appropriate data type.
+\item If the operation is successfully matched,
+  the match should return the result of the operation
+  using methods \href{described earlier}{Section}{sec:Result}.
+\item \fcn[]{command} itself must return either \code{TCL\_OK} or \code{TCL\_ERROR}
+  to indicate success or failure as its return code.
 \item If the operation is not matched in this method, it must
   invoke its parent's command method, and return the corresponding result.
+
   This permits the user to concieve of operations as having the same
   inheritance properties as instance procedures or compiled methods.
-  \subitem In the event that this \code{command} method 
-  is defined for a class with multiple inheritance, the programmer has the
-  liberty to choose one of two implementations:
-  \subitem 1) Either they can invoke one of the parent's \code{command}
-  method, and return the result of that invocation, or
-  \subitem 2) They can each of the parent's \code{command} methods
-  in some sequence, and return the result of the first invocation that
-  is successful.  If none of them are successful, then they should return
-  an error.
-\end{itemize}
 
-At this point, we define the following five terms:
-procedures, instance procedures, and operations are ``actions'' defined
-within the interpreter; functions and methods are C++ ``actions''
-defined within compiled code.
-\textbf{Procedures} are global or class \code{proc}s
-that can be invoked in a global context by any OTcl code.
-On the other hand, \textbf{instance procedures} are associated with an
-object, and must be executed in a method execution context associated
-with a specific object.  The object is accessible within
-the particular instance procedure through the special variable
-\code{\$self}.
-Similarly,
-C++ \textbf{functions} are functions that can be invoked without 
-reference to an explicit object while \textbf{methods}
-are functions that must be invoked in a specific method context.
-In the latter case, the object is accessible through the
-special variable \code{this}.
-In addition, the term \textbf{instproc-like} refers to
-an operation that is often invoked
-exactly as if it were an instance procedure.
-However, the name of that operation
-does not correspond to any OTcl instance procedure.
-Instead, the instproc-like is defined within
-a \fcn[]{command} method for the compiled object.
-We will describe how operations are created and executed in
-\href{the following sections}{Section}{sec:Commands}.
+  In the event that this \code{command} method 
+  is defined for a class with multiple inheritance,
+  the programmer has the liberty to choose one of two implementations:
+
+  1) Either they can invoke one of the parent's \code{command} method,
+  and return the result of that invocation, or
+
+  2) They can each of the parent's \code{command} methods in some sequence,
+  and return the result of the first invocation that is successful.
+  If none of them are successful, then they should return an error.
+\end{itemize}
+In our document, we call operations executed through the 
+\fcn[]{command} \emph{instproc-like}s.
+This reflects the usage of these operations as if they were
+OTcl instance procedures of an object,
+but can be very subtly different in their realisation and usage.
 
 
 \section{Class TclClass}
@@ -763,95 +785,93 @@ The compiled class hierarchy for \code{RenoTcpAgent} is that
 it derives from \code{TcpAgent}, that in turn derives from \code{Agent},
 that in turn derives (roughly) from \code{TclObject}.
 \code{RenoTcpClass} is defined as
-\begin{verbatim}
-        static class RenoTcpClass: public TclClass {
+\begin{program}
+        static class RenoTcpClass: public TclClass \{
         public:
-                RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
-                TclObject* create(int argc, const char*const* argv) {
+                RenoTcpClass() : TclClass("Agent/TCP/Reno") \{\}
+                TclObject* create(int argc, const char*const* argv) \{
                         return (new RenoTcpAgent());
-                }
-        } class_reno;
-\end{verbatim}
+                \}
+        \} class_reno;
+\end{program}
 We can make the following observations from this definition:
 \begin{enumerate}
-\item We need a localised definition that sets up the appropriate methods.
-  Hence a static definition following the definition of class
-  \code{RenoTcpAgent} is sufficient.
-\item This class is associated with the class \code{RenoTcpAgent}, and 
-  is used to create new agents in that associated class.
 \item The class defines only the constructor, and one additional method,
   to \code{create} instances of the associated TclObject.
+\item \ns\ will execute the \code{RenoTcpClass} constructor
+  for the static variable \code{class\_reno}, when it is first started.
+  This sets up the appropriate methods and the interpreted class hierarchy.
 \item The constructor specifies the interpreted class explicitly as
   \code{Agent/TCP/Reno}.  This also specifies the interpreted class
   hierarchy implicitly.
 
-  The character slash ('/') is considered as a separator.
-  For any given class \code{A/B/C/D}, the class \code{A/B/C/D} is a
-  sub-class of \code{A/B/C}, that is itself a sub-class of \code{A/B},
-  that, in turn, is a sub-class of \code{A}.  \code{A} itself is a
-  sub-class of \code{TclObject}.
+  Recall that the convention in \ns\ is to use
+  the character slash ('/') is a separator.
+  For any given class \code{A/B/C/D},
+  the class \code{A/B/C/D} is a sub-class of \code{A/B/C},
+  that is itself a sub-class of \code{A/B},
+  that, in turn, is a sub-class of \code{A}.
+  \code{A} itself is a sub-class of \code{TclObject}.
 
   In our case above, the TclClass constructor creates three classes,
-  \code{Agent/TCP/Reno} sub-class of \code{Agent/TCP} sub-class of
-  \code{Agent} sub-class of \code{TclObject}.
+  \code{Agent/TCP/Reno} sub-class of \code{Agent/TCP}
+  sub-class of \code{Agent} sub-class of \code{TclObject}.
+\item This class is associated with the class \code{RenoTcpAgent};
+  it creats new objects in this associated class.
 \item The \code{RenoTcpClass::create} method returns TclObjects in the
   class \code{RenoTcpAgent}.
-\item A single object in the class \code{RenoTcpClass} is required in order
-  to activate these methods.
-  This object \code{class\_reno} is declared at compile time.
 \item When the user specifies \code{new Agent/TCP/Reno},
   the routine \code{RenoTcpClass::create} is invoked.
 \item The arguments vector (\code{argv}) consists of
-  \subitem --- \code{argv[0]} contains the name of the object.
-  \subitem --- \code{argv[2\ldots4]} contain \code{\$self}, \code{\$class},
-  and \code{\$proc}.  Since \code{create} is called through the
-  instance procedure \code{create-shadow}, \code{argv[4]} contains
-  \code{create-shadow}.
-  \subitem --- \code{argv[5\ldots]} contain any additional arguments
-  provided by the user.
+
+  --- \code{argv[0]} contains the name of the object.
+
+  --- \code{argv[2\ldots4]} contain
+  \code{\$self}, \code{\$class}, and \code{\$proc}.
+  Since \code{create} is called
+  through the instance procedure \code{create-shadow},
+  \code{argv[4]} contains \code{create-shadow}.
+
+  --- \code{argv[5\ldots]}
+  contain any additional arguments provided by the user.
 \end{enumerate}
-An example of how arguments are specified during object creation is in the
-class \code{Trace}.
-\begin{verbatim}
-        class TraceClass : public TclClass {
+The \clsref{Trace}{../ns-2/trace.cc} illustrates
+argument handling by TclClass methods.
+\begin{program}
+        class TraceClass : public TclClass \{
         public:
-                TraceClass() : TclClass("Trace") { }
-                TclObject* create(int args, const char*const* argv) {
+                TraceClass() : TclClass("Trace") \{\}
+                TclObject* create(int args, const char*const* argv) \{
                         if (args >= 5)
                                 return (new Trace(*argv[4]));
                         else
                                 return NULL;
-                }
-        } trace_class;
-\end{verbatim}
-A new Trace object can be created as
-\begin{verbatim}
+                \}
+        \} trace_class;
+\end{program}
+A new Trace object is created as
+\begin{program}
         new Trace "X"
-\end{verbatim}
-
-\danger
-The mechanism by which the interpreted class hierarchy is constructed is as
-follows:
-\closedanger
+\end{program}
+Finally, the nitty-gritty details of how the 
+interpreted class hierarchy is constructed:
 \begin{enumerate}
-\item The TclClass object, as part of its creation, causes its constructor
-  to be executed.  
-\item This constructor calls the TclClass constructor with the name of this
-  class that must be specified to the interpreter as its argument.
-\item The TclClass constructor only inserts this object into a linked list
-  of the TclClass objects.
+\item The object constructor is executed when \ns\ first starts.
+\item This constructor calls the TclClass constructor
+  with the name of the interpreted class as its argument.
+\item The TclClass constructor stores the name of the class,
+  and inserts this object into a linked list of the TclClass objects.
 \item During initialisation of the simulator,
   \fcnref{\fcn{Tcl\_AppInit}}{../ns-2/ns_tclsh.cc}{::Tcl\_AppInit}
   invokes 
   \fcnref{\fcn{TclClass::bind}}{../Tcl/Tcl.cc}{TclClass::bind}
-\item This method, \code{bind}, registers each object with the interpreter.
-  The procedure,
-  \fcnref{\proc{register}}{../Tcl/tcl-object.tcl}{TclObject::register},
-  is called with the class name.
-  It defines the specified class, as well as any super-classes
-  that should be defined.
-  This then forms the interpreted class hierarchy.
-\item The \code{bind} method then defines instance procedures
+\item For each object in the list of TclClass objects,
+  \fcn[]{bind} invokes 
+  \fcnref{\proc[]{register}}{../Tcl/tcl-object.tcl}{TclObject::register},
+  specifying the name of the interpreted class as its argument.
+\item \proc[]{register} establishes the class hierarchy,
+  creating the classes that are required, and not yet created.
+\item Finally, \fcn[]{bind} defines instance procedures
   \code{create-shadow} and \code{delete-shadow} for this new class.
 \end{enumerate}
 
@@ -874,10 +894,10 @@ during startup.
 \item \clsref{VersionCommand}{../ns-2/misc.cc}
   defines the command \code{ns-version}.
   It takes no argument, and returns the current \ns\ version string.
-\begin{verbatim}
-            % ns-version                # get the current version
+\begin{program}
+            % ns-version                \; get the current version;
             2.0a12
-\end{verbatim}
+\end{program}
 
 \item \clsref{RandomCommand}{../ns-2/misc.cc}
   defines the command \code{ns-random}.
@@ -888,76 +908,80 @@ during startup.
   If this seed value is 0, the command uses a hueristic seed value;
   otherwise, it sets the seed for the random number generator to the
   specified value.
-\begin{verbatim}
-            % ns-random                 # return a random number
+\begin{program}
+            % ns-random                 \; return a random number;
             2078917053
-            % ns-random 0               # set the seed hueristically
+            % ns-random 0               \;set the seed hueristically;
             858190129
-            % ns-random 23786           # set seed to specified value
+            % ns-random 23786           \;set seed to specified value;
             23786
-\end{verbatim}
+\end{program}
 \end{itemize}
 
-We now describe how to define a new command using an example.
-The example will define the command \code{say\_hello}.
-This command will print the string ``hello, world'',
+\emph{Note that, it is generally not advisable to construct
+  top-level commands that are available to the user.}
+We now describe how to define a new command
+using the example \code{class say\_hello}.
+The example defines the command \code{hi},
+to print the string ``hello world'',
 followed by any command line arguments specified by the user.
-Note that, it is generally not advisable to construct
-top-level commands that are available to the user.
+For example,
+\begin{program}
+            % hi this is ns [ns-version]
+            hello world, this is ns 2.0a12
+\end{program}
 \begin{enumerate}
 \item The command must be defined within a class
-  derived from the \code{class TclCommand};
-  the constructor for that class invokes the
+  derived from the \clsref{TclCommand}{../Tcl/Tcl.h}.
+  The class definition is:
+  \begin{program}
+        class say_hello : public TclCommand \{
+        public:
+                say_hello();
+                int command(int argc, const char*const* argv);
+        \};
+  \end{program}
+\item The constructor for the class must invoke the
   \fcnref{TclCommand constructor}{../Tcl/Tcl.cc}{TclCommand::TclCommand}
-  with the argument ``say\_hello''.
-  The TclCommand constructor
-  creates the command that can be invoked by the user.
+  with the command as argument; \ie,
+  \begin{program}
+        say_hello() : TclCommand("hi") \{\}
+  \end{program}
+  The \code{TclCommand} constructor sets up "hi"
+  as a global procedure that invokes
+  \fcnref{\fcn[]{TclCommand::dispatch\_cmd}}{../ns-2/Tcl.cc}{TclCommand::dispatch\_cmd}.
+\item  The method \fcn[]{command} must perform the desired action.
 
-\item  The class defines a command method.
-  This method performs the desired action when the user invokes 
-  ``say\_hello''.
+  The method is passed two arguments.  The first argument, \code{argc},
+  contains the number of actual arguments passed by the user.
 
-  The argument vector (\code{argv}) contains the following:
+  The actual arguments passed by the user are passed as an
+  argument vector (\code{argv}) and contains the following:
   
-  --- \code{argv[0]} contains the name of the command (\code{say\_hello}).
+  --- \code{argv[0]} contains the name of the command (\code{hi}).
 
   --- \code{argv[1\ldots(argc - 1)]} contains additional arguments
   specified on the command line by the user.
 
-  \danger
-  When \code{my\_command} is invoked by the user,
-  the interpreter calls the C++ method
-  \fcnref{\fcn[]{TclCommand::dispatch\_cmd}}{../Tcl/Tcl.cc}{TclCommand::dispatch\_cmd}.
-  This method then, in turn, invokes the appropriate command method,
-  passing it any arguments that were specified by the user.
-  \closedanger
-\end{enumerate}
-\begin{verbatim}
-        #include <streams.h>        // because we are using stream I/O
-
-        class say_hello: public TclCommand {
-        public:
-                say_hello() : TclCommand("say_hello");
-                int command(int argc, const char*const* argv);
-        };
-
-        int say_hello::command(int argc, const char*const* argv)
-        {
+  \fcn[]{command} is invoked by \fcn[]{dispatch\_cmd}.
+\begin{program}
+        #include <streams.h>        \* because we are using stream I/O */
+        
+        int say_hello::command(int argc, const char*const* argv) \{
                 cout << "hello world:";
                 for (int i = 1; i < argc; i++)
                         cout << ' ' << argv[i];
-                cout << '\n';
+                cout << '\bs n';
                 return TCL_OK;
-        }
-\end{verbatim}
-The above code only sets up the framework for establishing this command.
-We still need to activate the code.
-This is done by creating an instance of \code{say\_hello} in \code{init\_misc}
-(defined in \nsf{misc.cc}) as
-\begin{verbatim}
+        \}
+\end{program}
+\item Finally, we require an instance of this class.
+  \code{TclCommand} instances are created in the routine
+  \fcnref{\fcn{init\_misc}}{../ns-2/misc.cc}{::init\_misc}.
+  \begin{program}
         new say_hello;
-\end{verbatim}
-
+  \end{program}
+\end{enumerate}
 Note that there used to be more functions such as \code{ns-at}\ and
 \code{ns-now}\ that were accessible in this manner.
 Most of these functions have been subsumed into existing classes.
@@ -965,15 +989,15 @@ In particular, \code{ns-at}\ and \code{ns-now}\ are accessible
 through the
 \fcnref{scheduler TclObject}{../ns-2/scheduler.cc}{Scheduler::command}.
 These functions are defined in \nsf{tcl/lib/ns-lib.tcl}.
-\begin{verbatim}
-            % set ns [new Simulator]    # get new instance of simulator
+\begin{program}
+            % set ns [new Simulator]    \; get new instance of simulator;
             _o1
-            % $ns now                   # query simulator for current time
+            % $ns now                   \; query simulator for current time;
             0
-            % $ns at ...                # specify at operations for simulator
-            ...
-\end{verbatim}
-
+            % $ns at \ldots             \; specify at operations for simulator;
+            \ldots
+\end{program}
+          
 
 \section{Class EmbeddedTcl}
 \label{sec:EmbeddedTcl}
@@ -1111,3 +1135,101 @@ within the interpreter.
 ### backup-by-copying-when-linked: t
 ### file-precious-flag: nil
 ### End:
+
+#LaTeX2HTML Version 96.1 : dot.latex2html-init
+#
+
+$MAX_SPLIT_DEPTH = 2;                           #$
+$MAX_LINK_DEPTH = 2;                            #$
+$BOTTOM_NAVIGATION = 1;                         #$
+
+#
+# The \LaTeXe\ commands
+#
+
+sub do_cmd_textasciitilde {
+    join('', '\~', $_[0]);                      #$
+}
+
+#
+# Some from the ifthen package
+#
+sub do_cmd_equal {
+    local($_) = @_;                             #$
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($a) = $&;
+    $a =~ s/$1//g;
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($b) = $&;
+    $b =~ s/$1//g;
+
+    join('', ($a eq $b ? 1 : 0), $_);
+}
+
+sub do_cmd_ifthenelse {
+    local($_) = @_;                             #$
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($a) = $&;
+    $a =~ s/<#$1#>//g;
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($then) = $&;
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($else) = $&;
+
+    join('', ($a eq 1 ? $then : $else), $_);
+}
+
+sub do_cmd_tup {
+    local($_) = @_;                             #$
+    local($rest) = $_;
+    $rest =~ s/$next_pair_pr_rx//o;
+    join('', '&lt;', $&, '&gt;', $rest);
+}
+
+sub do_cmd_danger {
+    join('', '<IMG ALIGN=LEFT ALT="DANGER" SRC="../images/dbend.gif">', $_[0]);
+}                                               #$
+
+&ignore_commands (<<_IGNORED_CMDS_);
+closedanger
+font
+manual
+endgroup
+endgraf
+_IGNORED_CMDS_
+
+sub top_navigation_panel {
+    "$CONTENTS $PREVIOUS_GROUP $PREVIOUS $UP $NEXT $NEXT_GROUP $INDEX"; #$
+}
+
+sub bot_navigation_panel {
+'<hr>List of Indices
+<ul>
+<li> <a href=../ns/CClassIndex.html>C++ classes in <em>ns</em></a>
+<li> <a href=../ns/CFuncIndex.html>C++ functions in <em>ns</em></a>
+<li> <a href=../ns/TclClassIndex.html>Tcl classes in <em>ns</em></a>
+<li> <a href=../ns/TclProcIndex.html>Tcl procedures in <em>ns</em></a>
+<li> <a href=../Tcl/CClassIndex.html>C++ classes in <em>ns/Tcl</em></a>
+<li> <a href=../Tcl/CFuncIndex.html>C++ functions in <em>ns/Tcl</em></a>
+<li> <a href=../Tcl/TclClassIndex.html>Tcl classes in <em>ns/Tcl</em></a>
+<li> <a href=../Tcl/TclProcIndex.html>Tcl procedures in <em>ns/Tcl</em></a>
+</ul><P>
+<a href=../ns.html>The main <em>ns</em> page</a>
+';
+}
+
+### Local Variables:
+### mode: perl
+### comment-column: 60
+### backup-by-copying-when-linked: t
+### file-precious-flag: nil
+### End:
+
+1;      # This must be the last line
+
+
