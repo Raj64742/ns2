@@ -21,14 +21,21 @@
  # 
  #
 ###############
+
+# The MultiSim stuff below is only for backward compatibility.
 Class MultiSim -superclass Simulator
 
-MultiSim instproc run-mcast {} {
+MultiSim instproc init args {
+        eval $self next $args
+        Simulator set EnableMcast_ 1
+}
+
+Simulator instproc run-mcast {} {
         $self instvar Node_
         #puts "run mcast... "
         foreach n [array names Node_] {
                 set node $Node_($n)
-#               if { [$node info class] == "MultiNode" } {
+#               if { [$node info class] == "Node" } {
                         $node init-outLink
                         #puts "Node $n init-outLink done"
                         $node start-mcast
@@ -37,7 +44,7 @@ MultiSim instproc run-mcast {} {
         $self next
 }
 
-MultiSim instproc upstream-node { id src } {
+Simulator instproc upstream-node { id src } {
 	$self instvar routingTable_ Node_
         if [info exists routingTable_] {
 		set nbr [$routingTable_ lookup $id $src]
@@ -51,7 +58,7 @@ MultiSim instproc upstream-node { id src } {
 	}
 }
 
-MultiSim instproc RPF-link { src from to } {
+Simulator instproc RPF-link { src from to } {
 	$self instvar routingTable_ link_
 	#
 	# If this link is on the RPF tree, return the link object.
@@ -66,24 +73,17 @@ MultiSim instproc RPF-link { src from to } {
 	return ""
 }
 
-MultiSim instproc node {} {
-	$self instvar Node_
-	set node [new MultiNode $self]
-	set Node_([$node id]) $node
-	return $node
-}
-
-MultiSim instproc getNodeIDs {} {
+Simulator instproc getNodeIDs {} {
         $self instvar Node_
         return [array names Node_]
 }
 
-MultiSim instproc setPIMProto { index proto } {
+Simulator instproc setPIMProto { index proto } {
         $self instvar pimProtos
         set pimProtos($index) $proto
 }
 
-MultiSim instproc getPIMProto { index } {
+Simulator instproc getPIMProto { index } {
         $self instvar pimProtos
         if [info exists pimProtos($index)] {
                 return $pimProtos($index)
@@ -91,10 +91,10 @@ MultiSim instproc getPIMProto { index } {
         return -1
 }
 
-MultiSim instproc mrtproto {mproto nodeList} {
+Simulator instproc mrtproto {mproto nodeList} {
     $self instvar Node_ MrtHandle_
 
-    set MrtHandle_ 0
+    set MrtHandle_ ""
     if {$mproto == "CtrMcast"} {
 	set MrtHandle_ [new CtrMcastComp $self]
 	$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
@@ -123,72 +123,32 @@ MultiSim instproc mrtproto {mproto nodeList} {
 }
 
 ###############
-Class MultiNode -superclass Node
 
-MultiNode set shift_ 15
-MultiNode set addr_ 0x8000
-
-MultiNode proc allocaddr {} {
+Node proc allocaddr {} {
 	# return a unique mcast address
-	set addr [MultiNode set addr_]
-	MultiNode set addr_ [expr $addr + 1]
+	set addr [Simulator set McastAddr_]
+	Simulator set McastAddr_ [expr $addr + 1]
 	return $addr
 }
 
-MultiNode proc expandaddr {} {
+Node proc expandaddr {} {
 	# reset the bit used by mcast/unicast switch to expand
 	# number of nodes that can be used
-	MultiNode set shift_ 30
-	MultiNode set addr_ [expr 1 << 30]
+	Simulator set McastShift_ 30
+	Simulator set McastAddr_ [expr 1 << 30]
 }
 
-MultiNode instproc entry {} {
-	$self instvar switch_
-	return $switch_
-}
-
-MultiNode instproc init sim {
-	eval $self next
-	$self instvar classifier_ multiclassifier_ switch_ ns_ mcastproto_
-	set ns_ $sim
-
-	set switch_ [new Classifier/Addr]
-	#
-	# set up switch to route unicast packet to slot 0 and
-	# multicast packets to slot 1
-	#
-	$switch_ set mask_ 1
-	$switch_ set shift_ [MultiNode set shift_]
-	#
-	# create a classifier for multicast routing
-	#
-	set multiclassifier_ [new Classifier/Multicast/Replicator]
-	$multiclassifier_ set node_ $self
-
-	$switch_ install 0 $classifier_
-	$switch_ install 1 $multiclassifier_
-
-	#
-	# Create a prune agent.  Each multicast routing node
-	# has a private prune agent that sends and receives
-	# prune/graft messages and dispatches them to the
-	# appropriate replicator object.
-	#
-
-        set mcastproto_ [new McastProtoArbiter ""]
-}
-
-MultiNode instproc start-mcast {} {
+Node instproc start-mcast {} {
         $self instvar mcastproto_
         $mcastproto_ start
 }
 
-MultiNode instproc getArbiter {} {
+Node instproc getArbiter {} {
         $self instvar mcastproto_
         return $mcastproto_
 }
 
-MultiNode instproc check-local { group } {
+Node instproc check-local { group } {
         $self instvar Agents_
         if [info exists Agents_($group)] {
                 return [llength $Agents_($group)]
@@ -196,7 +156,7 @@ MultiNode instproc check-local { group } {
         return 0
 }
 
-MultiNode instproc get-oifs {} {
+Node instproc get-oifs {} {
         $self instvar outLink_
         set oiflist ""
         foreach oif [array names outLink_] {
@@ -205,7 +165,7 @@ MultiNode instproc get-oifs {} {
         return $oiflist
 }
 
-MultiNode instproc get-oif { link } {
+Node instproc get-oif { link } {
         $self instvar id_
         set oif ""
         # check if this is a dummy link
@@ -223,7 +183,7 @@ MultiNode instproc get-oif { link } {
         return $oif
 }
 
-MultiNode instproc get-oifIndex { node_id } {
+Node instproc get-oifIndex { node_id } {
         $self instvar ns_ id_
         set link [$ns_ set link_($id_:$node_id)]
         if { [$link info class] == "DummyLink" } {
@@ -232,7 +192,7 @@ MultiNode instproc get-oifIndex { node_id } {
         return [[$link set toNode_] id]
 }
 
-MultiNode instproc RPF-interface { src from to } {
+Node instproc RPF-interface { src from to } {
         $self instvar ns_
         set oifInfo ""  
         set link [$ns_ RPF-link $src $from $to]
@@ -243,7 +203,7 @@ MultiNode instproc RPF-interface { src from to } {
         return $oifInfo
 }
 
-MultiNode instproc ifaceGetNode { iface } {
+Node instproc ifaceGetNode { iface } {
         $self instvar ns_ id_ neighbor_
         foreach node $neighbor_ {
                 set link [$ns_ set link_([$node id]:$id_)]
@@ -254,7 +214,7 @@ MultiNode instproc ifaceGetNode { iface } {
 	return -1
 }
 
-MultiNode instproc init-outLink { } {
+Node instproc init-outLink { } {
         $self instvar outLink_ neighbor_ id_ ns_
         foreach node $neighbor_ {
                 set link [$ns_ set link_($id_:[$node id])]
@@ -264,7 +224,7 @@ MultiNode instproc init-outLink { } {
         }
 }
 
-MultiNode instproc getRepByGroup { group } {
+Node instproc getRepByGroup { group } {
         $self instvar repByGroup_
         if [info exists repByGroup_($group)] {
                 return $repByGroup_($group)   
@@ -272,7 +232,7 @@ MultiNode instproc getRepByGroup { group } {
         return ""
 }
 
-MultiNode instproc getRep { src group } {
+Node instproc getRep { src group } {
 	$self instvar replicator_
 	if [info exists replicator_($src:$group)] {
 		return $replicator_($src:$group)
@@ -280,7 +240,7 @@ MultiNode instproc getRep { src group } {
 	return ""
 }
 
-MultiNode instproc getRepBySource { src } {
+Node instproc getRepBySource { src } {
         $self instvar replicator_
 	  
 	  set replist ""
@@ -293,7 +253,7 @@ MultiNode instproc getRepBySource { src } {
 	  return $replist
 }
 
-MultiNode instproc exists-Rep { src group } {
+Node instproc exists-Rep { src group } {
     $self instvar replicator_
 
     if [info exists replicator_($src:$group)] {
@@ -303,7 +263,7 @@ MultiNode instproc exists-Rep { src group } {
     }
 }
 
-MultiNode instproc join-group { agent group } {
+Node instproc join-group { agent group } {
     # use expr to get rid of possible leading 0x
     set group [expr $group]
     $self instvar Agents_ repByGroup_ agentSlot_ mcastproto_
@@ -331,7 +291,7 @@ MultiNode instproc join-group { agent group } {
     }
 }
 
-MultiNode instproc leave-group { agent group } {
+Node instproc leave-group { agent group } {
     # use expr to get rid of possible leading 0x
     set group [expr $group]
     $self instvar repByGroup_ Agents_ mcastproto_
@@ -354,7 +314,7 @@ MultiNode instproc leave-group { agent group } {
     
 }
 
-MultiNode instproc new-group { src group iface code } {
+Node instproc new-group { src group iface code } {
     $self instvar mcastproto_
 	
     # node addr is in upper 24 bits
@@ -364,7 +324,7 @@ MultiNode instproc new-group { src group iface code } {
     $mcastproto_ upcall [list $code $src $group $iface]
 }
 
-MultiNode instproc add-mfc { src group iif oiflist } {
+Node instproc add-mfc { src group iif oiflist } {
     $self instvar multiclassifier_ \
 	    replicator_ Agents_ repByGroup_ 
 
