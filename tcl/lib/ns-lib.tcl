@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.160 1999/08/28 22:21:29 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.161 1999/08/31 06:46:42 yaxu Exp $
 
 #
 
@@ -243,10 +243,12 @@ Simulator instproc node-config args {
             Simulator set MacTrace_ $macTrace_
 	}
 
+
         if [info exists routerTrace_] {
             Simulator set RouterTrace_ $routerTrace_
 	}
-
+	
+	
         if [info exists agentTrace_] {
             Simulator set AgentTrace_ $agentTrace_
 	}
@@ -329,6 +331,7 @@ Simulator instproc create-wireless-node { args } {
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
         $self instvar imepflag_
 
+
         set imepflag_ OFF
 
         switch -exact $routingAgent_ {
@@ -386,7 +389,6 @@ Simulator instproc create-wireless-node { args } {
 	# attach agent
 
 	if {$routingAgent_ != "Agent/DSR"} {
-
 	     $node attach $ragent 255
 	}
 
@@ -426,17 +428,18 @@ Simulator instproc create-tora-agent { node } {
 
         set ragent [new Agent/TORA [$node id]]
 
-        #delay till after add interface
-#       $node attach $ragent 255
 
-        $ragent if-queue [$node set ifq_(0)]    ;# ifq between LL and MAC
+        #delay till after add interface
+        #       $node attach $ragent 255
+
+        #$ragent if-queue [$node set ifq_(0)]    ;# ifq between LL and MAC
 
         #
         # XXX: The routing protocol and the IMEP agents needs handles
         # to each other.
         #
-        $ragent imep-agent [$node set imep_(0)]
-        [$node set imep_(0)] rtagent $ragent
+        #$ragent imep-agent [$node set imep_(0)]
+        #[$node set imep_(0)] rtagent $ragent
 
    	#
 	# Drop Target (always on regardless of other tracing)
@@ -461,7 +464,7 @@ Simulator instproc create-tora-agent { node } {
         #
         # XXX: let the IMEP agent use the same log target.
         #
-        [$node set imep_(0)] log-target $T
+        #[$node set imep_(0)] log-target $T
 
 	$node set ragent_ $ragent
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.15 1999/08/12 04:19:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.16 1999/08/31 06:46:41 yaxu Exp $
 #
 
 #
@@ -150,3 +150,30 @@ Agent/TCP/FullTcp/Newreno instproc init {} {
 	$self instvar open_cwnd_on_pack_
 	set open_cwnd_on_pack_ false
 }
+
+#Agent instproc init args {
+#        $self next $args
+#}       
+
+#Agent/rtProto instproc init args {
+#        puts "DOWN HERE 2"
+#        $self next $args
+#}       
+#Agent/rtProto/TORA -superclass Agent
+Agent/TORA instproc init args {
+
+         $self next $args
+}       
+
+Agent/TORA set sport_	0
+Agent/TORA set dport_	0
+
+
+
+
+
+
+
+
+
+
