@@ -204,92 +204,86 @@ PostProcess instproc allmakeawk { } {
 
 #--------------------------------------------------------------
 
-PostProcess instproc create_flow_graph { graphtitle graphfile awkprocedure } {
-    global flowfile 
-    
-    exec rm -f $graphfile
-    set outdesc [open $graphfile w]
-    #
-    # this next part is xgraph specific
-    #
-    puts $outdesc "TitleText: $graphtitle"
-    puts $outdesc "Device: Postscript"
-    
-    puts "writing flow xgraph data to $graphfile..."
-    
-    catch {exec sort -n +1 -o $flowfile $flowfile} result
-    exec awk [$awkprocedure] $flowfile >@ $outdesc
-    close $outdesc
+PostProcess instproc create_flow_graph { graphtitle in out awkprocedure } {
+        puts "removing graph file: $out"
+        exec rm -f $out 
+        set outdesc [open $out w] 
+
+        #       
+        # this next part is xgraph specific
+        #       
+        puts $outdesc "TitleText: $graphtitle"
+        puts $outdesc "Device: Postscript"
+        puts "writing flow data to $out ..."
+
+	catch {exec sort -n +1 -o $in $in} result
+	exec awk [$awkprocedure] $in >@ $outdesc
+	close $outdesc
 }
 
 # plot drops vs. arrivals
-PostProcess instproc finish_flow { name } {
-	global flowgraphfile xgraph awkprocedure
-	create_flow_graph $name $flowgraphfile $awkprocedure
+PostProcess instproc finish_flow {} {
+        $self instvar format_
+        $self instvar label_ linkflowfile_ linkgraphfile_
+
+	$self create_flow_graph $label_ $linkflowfile_ $linkgraphfile_ $awkprocedure
 	puts "running xgraph for comparing drops and arrivals..."
-	if { $xgraph == 1 } {
-	    exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $flowgraphfile &
+	if { $format_ == "xgraph" } {
+	    exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $linkgraphfile_ &
 	} 
-	if { $xgraph == 0 } {
-		exec csh diagonal.com $flowgraphfile &
-	}
-	exit 0
+	puts stderr "graph format $format_ unknkown"
 }
 
 # plot drops vs. arrivals, for unforced drops.
 PostProcess instproc plot_dropsinpackets { name flowgraphfile } {
-    global xgraph queuetype
-    create_flow_graph $name $flowgraphfile unforcedmakeawk
+        $self instvar format_
+        $self instvar label_ linkflowfile_ linkgraphfile_
+
+    $self create_flow_graph $label_ $linkflowfile_ $linkgraphfile_ unforcedmakeawk
     puts "running xgraph for comparing drops and arrivals..."
-    if { $xgraph == 1 } {
-	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (in packets).  Queue in $queuetype" $flowgraphfile &
+    if { $format_ == "xgraph" } {
+	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (in packets).  Queue in SETME" $linkgraphfile_ &
     } 
-    if { $xgraph == 0 } {
-	exec csh diagonal.com $flowgraphfile &
-    }
-    exit 0
+    puts stderr "graph format $format_ unknkown"
 }
 
 # plot drops vs. arrivals, for unforced drops.
 PostProcess instproc plot_dropsinpackets1 { name flowgraphfile } {
-	global xgraph queuetype
-	create_flow_graph $name $flowgraphfile unforcedmakeawk1
-	puts "running xgraph for comparing drops and arrivals..."
-	if { $xgraph == 1 } {
-	    exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (in packets).  Queue in $queuetype" $flowgraphfile &
-	} 
-	if { $xgraph == 0 } {
-		exec csh diagonal.com $flowgraphfile &
-	}
-	exit 0
+        $self instvar format_
+        $self instvar label_ linkflowfile_ linkgraphfile_
+
+    $self create_flow_graph $label_ $linkflowfile_ $linkgraphfile_ unforcedmakeawk1 
+    puts "running xgraph for comparing drops and arrivals..."
+    if { $format_ == "xgraph" } {
+	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (in packets).  Queue in SETME" $linkgraphfile_ &
+    } 
+    puts stderr "graph format $format_ unknkown"
 }
 
 # plot drops vs. arrivals, for forced drops.
 PostProcess instproc plot_dropsinbytes { name flowgraphfile } {
-    global xgraph queuetype
-    create_flow_graph $name $flowgraphfile forcedmakeawk
+        $self instvar format_
+        $self instvar label_ linkflowfile_ linkgraphfile_
+
+    $self create_flow_graph $label_ $linkflowfile_ $linkgraphfile_ forcedmakeawk
     puts "running xgraph for comparing drops and arrivals..."
-    if { $xgraph == 1 } {
-	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (in bytes) Queue in $queuetype" $flowgraphfile &
+    if { $format_ == "xgraph" } {
+	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (in packets).  Queue in SETME" $linkgraphfile_ &
     } 
-    if { $xgraph == 0 } {
-	exec csh diagonal.com $flowgraphfile &
-    }
-    exit 0
+    puts stderr "graph format $format_ unknkown"
 }
 
 # plot drops vs. arrivals, for combined metric drops.
 PostProcess instproc plot_dropscombined { name flowgraphfile } {
-    global xgraph 
-    create_flow_graph $name $flowgraphfile allmakeawk
+        $self instvar format_
+        $self instvar label_ linkflowfile_ linkgraphfile_
+
+    $self create_flow_graph $label_ $linkflowfile_ $linkgraphfile_ allmakeawk
     puts "running xgraph for comparing drops and arrivals..."
-    if { $xgraph == 1 } {
-	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (combined metric)" $flowgraphfile &
+    if { $format_ == "xgraph" } {
+	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards (in packets).  Queue in SETME" $linkgraphfile_ &
     } 
-    if { $xgraph == 0 } {
-	exec csh diagonal.com $flowgraphfile &
-    }
-    exit 0
+    puts stderr "graph format $format_ unknkown"
 }
 
 #--------------------------------------------------------------------------
@@ -495,7 +489,7 @@ PostProcess instproc create_frac_graph { graphtitle graphfile } {
 # plot true average of arriving packets that are dropped
 PostProcess instproc plot_dropave { name } {
 	global flowgraphfile fracgraphfile xgraph awkprocedure
-	create_frac_graph $name $fracgraphfile 
+	$self create_frac_graph $name $fracgraphfile 
 	puts "running time xgraph for plotting drop ratios..."
 	if { $xgraph == 1 } {
 	  exec xgraph -bb -tk -m -x "time" -y "Drop_Fraction(%)" $fracgraphfile &
@@ -548,7 +542,7 @@ PostProcess instproc create_friendly_graph { graphtitle graphfile ratiofile band
 PostProcess instproc plot_friendly { name bandwidth } {
 	global friendlygraphfile xgraph ratiofile
 	puts "beginning time xgraph for tcp-friendly bandwidth..."
-	create_friendly_graph $name $friendlygraphfile $ratiofile $bandwidth
+	$self create_friendly_graph $name $friendlygraphfile $ratiofile $bandwidth
 	puts "running time xgraph for tcp-friendly bandwidth..."
 	if { $xgraph == 1 } {
 	  exec xgraph -bb -tk -m -ly 0,200 -x "time" -y "Bandwidth(%)" $friendlygraphfile &
