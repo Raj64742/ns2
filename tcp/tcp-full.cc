@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.102 2001/08/23 00:33:48 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.103 2001/09/05 00:28:38 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -712,6 +712,7 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 {
         Packet* p = allocpkt();
         hdr_tcp *tcph = hdr_tcp::access(p);
+	hdr_flags *fh = hdr_flags::access(p);
 
 	/* build basic header w/options */
 
@@ -723,16 +724,36 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
         tcph->hlen() = tcpip_base_hdr_size_;
 	tcph->hlen() += build_options(tcph);
 
-	/* ECT, ECN, and congestion action */
+	/*
+	 * Explicit Congestion Notification (ECN) related:
+	 * Bits in header:
+	 * 	ECT (EC Capable Transport),
+	 * 	ECNECHO (ECHO of ECN Notification generated at router),
+	 * 	CWR (Congestion Window Reduced from RFC 2481)
+	 * States in TCP:
+	 *	ecn_: I am supposed to do ECN if my peer does
+	 *	ect_: I am doing ECN (ecn_ should be T and peer does ECN)
+	 */
 
-        hdr_flags *fh = hdr_flags::access(p);
-	fh->ect() = ect_;	// on after mutual agreement on ECT
-	if (ecn_ && !ect_)	// initializing; ect = 0, ecnecho = 1
-		fh->ecnecho() = 1;
-	else {
-		fh->ecnecho() = recent_ce_;
+	if (ecn_) {
+		if (ect_) {
+			// normal case after ECT true
+			fh->ecnecho() = recent_ce_;
+		} else {
+			// initializing: ect = 0, ecnecho = 1
+			fh->ecnecho() = TRUE;
+		}
+
+		fh->ect() = ect_;	// on after mutual agreement on ECT
 	}
-	fh->cong_action() =  cong_action_;
+
+	//
+	// although CWR bit is ordinarily associated with ECN,
+	// it utility within the simulator for traces.  Thus, set
+	// it even if we aren't doing ECN
+	//
+
+	fh->cwr() =  cong_action_;
 
 
 	/* actual size is data length plus header length */
@@ -936,7 +957,7 @@ send:
 	 * if we have reacted to congestion recently, the
 	 * slowdown() procedure will have set cong_action_ and
 	 * sendpacket will have copied that to the outgoing pkt
-	 * CACT field. If that packet contains data, then
+	 * CWR field. If that packet contains data, then
 	 * it will be reliably delivered, so we are free to turn off the
 	 * cong_action_ state now  If only a pure ACK, we keep the state
 	 * around until we actually send a segment
@@ -1336,10 +1357,15 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 		// cong_action bit
 		//
 		if (ecn_) {
-			if (fh->ce() && fh->ect())
+			if (fh->ce() && fh->ect()) {
+				// no CWR from peer yet... arrange to
+				// keep sending ECNECHO
 				recent_ce_ = TRUE;
-			else if (fh->cong_action())
+			} else if (fh->cwr()) {
+				// got CWR response from peer.. stop
+				// sending ECNECHO bits
 				recent_ce_ = FALSE;
+			}
 		}
 
 		// Header predication basically looks to see
@@ -1422,9 +1448,13 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 		t_seqno_ = iss_; /* tcp_sendseqinit() macro in real tcp */
 		rcv_nxt_ = rcvseqinit(irs_, datalen);
 		flags_ |= TF_ACKNOW;
+
+		// if we are trying to do ECN and our peer can do it,
+		// then we are good to look for ECN's (i.e. set ect_ true)
 		if (ecn_ && fh->ecnecho()) {
 			ect_ = TRUE;
 		}
+
 		if (fid_ == 0) {
 			// XXX: sort of hack... If we do not
 			// have a special flow ID, pick up that
@@ -1752,7 +1782,7 @@ trimthenstep6:
                 if (ecn_) {
                         if (fh->ce() && fh->ect())
                                 recent_ce_ = TRUE;
-                        else if (fh->cong_action())
+                        else if (fh->cwr())
                                 recent_ce_ = FALSE;
                 }
 
@@ -1954,10 +1984,8 @@ process_ACK:
 			// K: added state change here
 			if (ourfinisacked) {
 				newstate(TCPS_CLOSED);
-#ifdef notdef
-cancel_timers();	// DOES THIS BELONG HERE?, probably (see tcp_cose
-#endif
-				finish();
+				finish(); // cancels timers, erc
+				reset(); // for connection re-use (bug fix from ns-users list)
 				goto drop;
 			} else {
 				// should be a FIN we've seen
