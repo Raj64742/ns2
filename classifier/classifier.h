@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.19 1999/02/04 06:13:21 yaxu Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.20 1999/02/26 21:10:53 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -48,7 +48,7 @@ class Classifier : public NsObject {
 	virtual void recv(Packet* p, Handler* h);
 	int maxslot() const { return maxslot_; }
 	inline NsObject* slot(int slot) {
-		if ((slot >= 0) || (slot < nslot_))
+		if ((slot >= 0) && (slot < nslot_))
 			return slot_[slot];
 		return 0;
 	}
