@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.4 1998/12/16 23:03:21 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.5 1998/12/23 17:40:26 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-schedule.tcl
@@ -38,9 +38,62 @@
 
 set quiet false
 
-source misc.tcl
-source topologies.tcl
+source misc_simple.tcl
 
+Class Topology
+
+Topology instproc node? num {
+	 $self instvar node_
+	 return $node_($num)
+}
+
+Topology instproc makeNet1 { ns scheduler { delay2 20ms } } {
+	$self instvar node_
+    	set node_(s1) [$ns node]
+    	set node_(s2) [$ns node]
+    	set node_(r1) [$ns node]
+    	set node_(k1) [$ns node]
+
+        $ns duplex-link $node_(s1) $node_(r1) 8Mb 2ms DropTail
+        $ns duplex-link $node_(s2) $node_(r1) 8Mb $delay2 DropTail
+        $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms $scheduler
+        $ns queue-limit $node_(r1) $node_(k1) 25 
+        $ns queue-limit $node_(k1) $node_(r1) 25 
+	if {[$class info instprocs config] != ""} {
+	 $self config $ns
+ 	}
+
+}
+
+Class Topology/netSFQ -superclass Topology
+Topology/netSFQ instproc init ns {
+	$self instvar node_
+	$self makeNet1 $ns SFQ 20ms
+}
+
+Class Topology/netFQ -superclass Topology
+Topology/netFQ instproc init ns {
+	$self instvar node_
+	$self makeNet1 $ns FQ 20ms
+}
+
+Class Topology/netDRR -superclass Topology
+Topology/netDRR instproc init ns {
+	$self instvar node_
+	$self makeNet1 $ns DRR 10ms
+}
+
+Class Topology/netRED -superclass Topology
+Topology/netRED instproc init ns {
+	$self instvar node_
+	$self makeNet1 $ns RED 10ms
+}
+
+Class Topology/netDT -superclass Topology
+Topology/netDT instproc init ns {
+	$self instvar node_
+	$self makeNet1 $ns DropTail 10ms
+}
 
 TestSuite instproc finish file {
 	global quiet
@@ -97,149 +150,92 @@ TestSuite instproc runDetailed {} {
         $ns_ run
 }
 
-#
-# Links1 uses 8Mb, 5ms feeders, and a 800Kb 20ms bottleneck.
-# Queue-limit on bottleneck is 25 packets.
-#
-Class Topology/netSFQ -superclass NodeTopology/4nodes
+TestSuite instproc setTopo {} {
+    	$self instvar node_ net_ ns_ topo_
 
-Topology/netSFQ instproc init ns {
-	$self next $ns
-	$self instvar node_
-        $ns duplex-link $node_(s1) $node_(r1) 8Mb 2ms DropTail
-        $ns duplex-link $node_(s2) $node_(r1) 8Mb 20ms DropTail
-        $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms SFQ
-        $ns queue-limit $node_(r1) $node_(k1) 25
-        $ns queue-limit $node_(k1) $node_(r1) 25 
-	if {[$class info instprocs config] != ""} {
-	 $self config $ns
- 	}
+    	set topo_ [new Topology/$net_ $ns_]
+        set node_(s1) [$topo_ node? s1]
+        set node_(s2) [$topo_ node? s2]
+        set node_(r1) [$topo_ node? r1]
+        set node_(k1) [$topo_ node? k1]
+        [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
+} 
 
-}
-
-Class Topology/netFQ -superclass NodeTopology/4nodes
-
-Topology/netFQ instproc init ns {
-	$self next $ns
-	$self instvar node_
-        $ns duplex-link $node_(s1) $node_(r1) 8Mb 2ms DropTail
-        $ns duplex-link $node_(s2) $node_(r1) 8Mb 20ms DropTail
-        $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms FQ
-        $ns queue-limit $node_(r1) $node_(k1) 25
-        $ns queue-limit $node_(k1) $node_(r1) 25
-	if {[$class info instprocs config] != ""} {
-	 $self config $ns
- 	}
-
-}
-
-Class Topology/netDRR -superclass NodeTopology/4nodes
-Topology/netDRR instproc init ns {
-	$self next $ns
-	$self instvar node_
-        $ns duplex-link $node_(s1) $node_(r1) 8Mb 2ms DropTail
-        $ns duplex-link $node_(s2) $node_(r1) 8Mb 10ms DropTail
-        $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms DRR
-        $ns queue-limit $node_(r1) $node_(k1) 25
-        $ns queue-limit $node_(k1) $node_(r1) 25 
-        if {[$class info instprocs config] != ""} {
-         $self config $ns
-        }
-}
-
-Class Topology/netRED -superclass NodeTopology/4nodes
-Topology/netRED instproc init ns {
-	$self next $ns
-	$self instvar node_
-        $ns duplex-link $node_(s1) $node_(r1) 8Mb 2ms DropTail
-        $ns duplex-link $node_(s2) $node_(r1) 8Mb 10ms DropTail
-        $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms RED 
-        $ns queue-limit $node_(r1) $node_(k1) 25
-        $ns queue-limit $node_(k1) $node_(r1) 25 
-        if {[$class info instprocs config] != ""} {
-         $self config $ns
-        }
-}
-
-Class Topology/netDT -superclass NodeTopology/4nodes
-Topology/netDT instproc init ns {
-	$self next $ns
-	$self instvar node_
-        $ns duplex-link $node_(s1) $node_(r1) 8Mb 2ms DropTail
-        $ns duplex-link $node_(s2) $node_(r1) 8Mb 10ms DropTail
-        $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms DropTail
-        $ns queue-limit $node_(r1) $node_(k1) 25
-        $ns queue-limit $node_(k1) $node_(r1) 25 
-        if {[$class info instprocs config] != ""} {
-         $self config $ns
-        }
-}
 
 #######################################################
 
 Class Test/fifo-droptail -superclass TestSuite
-Test/fifo-droptail instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     netDT
+Test/fifo-droptail instproc init {} {
+        $self instvar net_ test_
+        set net_        netDT
         set test_       fifo-droptail
         $self next
 }
-
 Test/fifo-droptail instproc run {} {
 	Agent/TCP set overhead_ 0.01
+	$self setTopo
 	$self runDetailed
 }
 
 Class Test/fifo-red -superclass TestSuite
-Test/fifo-red instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     netRED
+Test/fifo-red instproc init {} {
+        $self instvar net_ test_
+        set net_        netRED
         set test_       fifo-red
         $self next
 }
-
 Test/fifo-red instproc run {} {
+	$self setTopo
 	$self runDetailed
 }
 
 Class Test/sfq -superclass TestSuite
-Test/sfq instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     netSFQ
+Test/sfq instproc init {} {
+        $self instvar net_ test_
+        set net_        netSFQ
         set test_       sfq
         $self next
 }
-
 Test/sfq instproc run {} {
+	$self setTopo
 	$self runDetailed
 }
 
 Class Test/fq -superclass TestSuite
-Test/fq instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     netFQ
+Test/fq instproc init {} {
+        $self instvar net_ test_ 
+        set net_        netFQ
         set test_       fq
         $self next
 }
-
 Test/fq instproc run {} {
+	$self setTopo
+	$self runDetailed
+}
+
+Class Test/fq_small_queue -superclass TestSuite
+Test/fq_small_queue instproc init {} {
+        $self instvar net_ test_
+        set net_        netFQ
+        set test_       fq_small_queue
+        $self next
+}
+Test/fq_small_queue instproc run {} {
+	$self instvar node_
+	$self setTopo 
+	Queue set limit_ 12
 	$self runDetailed
 }
 
 Class Test/drr -superclass TestSuite
-Test/drr instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     netDRR
+Test/drr instproc init {} {
+        $self instvar net_ test_
+        set net_        netDRR
         set test_       drr
         $self next
 }
-
 Test/drr instproc run {} {
+	$self setTopo
 	$self runDetailed
 }
 
