@@ -212,7 +212,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-schedule
-Tests: fifo-droptail fifo-red sfq fq drr
+Tests: fifo-droptail fifo-red sfq fq fq_small_queue drr
 ../../ns test-suite-schedule.tcl fifo-droptail QUIET
 Test output agrees with reference output
 ../../ns test-suite-schedule.tcl fifo-red QUIET
@@ -221,11 +221,13 @@ Test output agrees with reference output
 Test output agrees with reference output
 ../../ns test-suite-schedule.tcl fq QUIET
 Test output agrees with reference output
+../../ns test-suite-schedule.tcl fq_small_queue QUIET
+Test output agrees with reference output
 ../../ns test-suite-schedule.tcl drr QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq
-Tests: WRR PRR AO TL FORMAL MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF
+Tests: WRR PRR AO TL FORMAL MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1
 ../../ns test-suite-cbq.tcl WRR QUIET
 Test output agrees with reference output
 ../../ns test-suite-cbq.tcl PRR QUIET
@@ -261,6 +263,10 @@ Test output agrees with reference output
 ../../ns test-suite-cbq.tcl TwoTL QUIET
 Test output agrees with reference output
 ../../ns test-suite-cbq.tcl TwoF QUIET
+Test output agrees with reference output
+../../ns test-suite-cbq.tcl TwoDynamic QUIET
+Test output agrees with reference output
+../../ns test-suite-cbq.tcl TwoDynamic1 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red-v1
@@ -857,7 +863,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcast
-Tests: DM1 DM2 DM3 DM4 DM5 CtrMcast1 CtrMcast2 ST1
+Tests: DM1 DM2 DM3 DM4 CtrMcast1 CtrMcast2 ST1
 ../../ns test-suite-mcast.tcl DM1 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM2 QUIET
@@ -865,8 +871,6 @@ Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM3 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM4 QUIET
-Test output agrees with reference output
-../../ns test-suite-mcast.tcl DM5 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl CtrMcast1 QUIET
 Test output agrees with reference output
@@ -930,15 +934,6 @@ Test output agrees with reference output
 ../../ns test-suite-session.tcl Session3 QUIET
 Test output agrees with reference output
 ../../ns test-suite-session.tcl Session4 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-lan
-Tests: lan-routing-flat lan-routing-hier lan-broadcast
-../../ns test-suite-lan.tcl lan-routing-flat QUIET
-Test output agrees with reference output
-../../ns test-suite-lan.tcl lan-routing-hier QUIET
-Test output agrees with reference output
-../../ns test-suite-lan.tcl lan-broadcast QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mixmode
