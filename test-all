@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.3 1997/05/28 00:59:16 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.4 1997/05/28 02:08:48 tomh Exp $
 #
 # This script was written and contributed by Matt Mathis (mathis@psc.edu)
 #
@@ -53,7 +53,7 @@ for t in $tests; do
 
     # Beware that xgraph is run on temp.rands asynchronously, if it
     # is slow to launch, you may get an incorrect graph
-    ./ns test-suite-v2.tcl $t
+    ./ns test-suite.tcl $t
     if [ -f temp.rands ]; then
 	if [ ! -f test-output/$t ]; then
 	    echo saving output for future validation
