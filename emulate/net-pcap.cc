@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.13 1998/03/03 03:08:25 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.14 1998/05/23 02:42:01 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -64,6 +64,7 @@ extern "C" {
 #endif
 
 #include "config.h"
+#include "scheduler.h"
 #include "net.h"
 #include "tclcl.h"
 
@@ -87,6 +88,8 @@ extern "C" {
  *	pcap_next masks errors by returning 0 if pcap_dispatch fails
  *	a pcap_t carries it's own internal buffer, and
  *		_dispatch gives pointers into it when invoked [eek]
+ *	when you open pcap using a trace file, pcap_fileno always
+ *		returns -1; not so convenient
  *	
  */
 
@@ -103,14 +106,16 @@ extern "C" {
 class PcapNetwork : public Network {
 
 public:
-	PcapNetwork() : local_netmask_(0), pfd_(-1) { }
+	PcapNetwork() : local_netmask_(0), pfd_(-1), pcnt_(0),
+		t_firstpkt_(0.0) { }
 	int rchannel() { return(pfd_); }
 	int schannel() { return(pfd_); }
 	virtual int command(int argc, const char*const* argv);
 
 	virtual int open(int mode, const char *) = 0;
 	virtual int skiphdr() = 0;
-	int recv(u_char *buf, int len, sockaddr&);		// get from net
+	virtual double gents(pcap_pkthdr*) = 0;		// generate timestamp
+	int recv(u_char *buf, int len, sockaddr&, double&); // get from net
 	int send(u_char *buf, int len);			// write to net
 	void close();
 	void reset();
@@ -119,13 +124,17 @@ public:
 	int stat_pkts();
 	int stat_pdrops();
 
+	double offset_;			// time offset to 1st pkt in a trace
+	double t_firstpkt_;		// ts of 1st pkt recvd
+
 protected:
 	static void phandler(u_char* u, pcap_pkthdr* h, u_char* p);
-	virtual void bindvars();
+	virtual void bindvars() = 0;
 
 	char errbuf_[PCAP_ERRBUF_SIZE];		// place to put err msgs
 	char srcname_[PATH_MAX];		// device or file name
 	int pfd_;				// pcap fd
+	int pcnt_;				// # pkts counted
 	int state_;				// PNET_PSTATE_xxx (above)
 	int optimize_;				// bpf optimizer enable
 	pcap_t* pcap_;				// reference to pcap state
@@ -152,12 +161,16 @@ public:
 	NetworkAddress& laddr() { return (linkaddr_); }
 	NetworkAddress& naddr() { return (netaddr_); }
 protected:
+	double gents(pcap_pkthdr*) {
+		return Scheduler::instance().clock();
+	}
+
 	int open(int mode);
 	int open(int mode, const char*);
 	int command(int argc, const char*const* argv);
 	int skiphdr();
 	const char*	autodevname();
-	void	bindvars();
+	void		bindvars();
 
 	int snaplen_;		// # of bytes to grab
 	int promisc_;		// put intf into promisc mode?
@@ -167,9 +180,7 @@ protected:
 
 	unsigned int local_net_;
 	int dlink_type_;		// data link type (see pcap)
-
 private:
-
 	// XXX somewhat specific to bpf-- this stuff is  a hack until pcap
 	// can be fixed to allow for opening the bpf r/w
 	pcap_t * pcap_open_live(char *, int slen, int prom, int, char *, int);
@@ -181,6 +192,15 @@ public:
 	int open(int mode, const char *);
 	int skiphdr() { return 0; }	// XXX check me
 protected:
+	double gents(pcap_pkthdr* p) {
+		// time stamp of packet is its relative time
+		// in the trace file, plus sim start time, plus offset
+		double pts = p->ts.tv_sec + p->ts.tv_usec * 0.000001;
+		pts -= t_firstpkt_;
+		pts += offset_ + Scheduler::instance().clock();
+		return (pts);
+	}
+	void bindvars();
 	int command(int argc, const char*const* argv);
 };
 
@@ -218,8 +238,8 @@ PcapNetwork::reset()
 	pcap_ = NULL;
 	*errbuf_ = '\0';
 	*srcname_ = '\0';
+	pcnt_ = 0;
 }
-
 
 void
 PcapNetwork::close()
@@ -290,7 +310,7 @@ PcapNetwork::phandler(u_char* userdata, pcap_pkthdr* ph, u_char* pkt)
 }
 
 int
-PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr)
+PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr, double &ts)
 {
 
 	if (state_ != PNET_PSTATE_ACTIVE) {
@@ -304,26 +324,36 @@ PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr)
 	pcap_singleton ps = { 0, 0 };
 	const u_char *pkt;
 	np = pcap_dispatch(pcap_, pktcnt, phandler, (u_char*) &ps);
-	if (np <= 0) {
+	if (np < 0) {
 		fprintf(stderr,
 			"PcapNetwork(%s): recv: pcap_dispatch: %s\n",
 			    name(), pcap_strerror(errno));
 		return (np);
+	} else if (np == 0) {
+		/* we get here on EOF of a Pcap/File Network */
+		return (np);
 	} else if (np != pktcnt) {
 		fprintf(stderr,
-			"PcapNetwork(%s): recv: pcap_dispatch: requested pktcnt (%d) doesn't match actual (%d)\n",
+			"PcapNetwork(%s): warning: recv: pcap_dispatch: requested pktcnt (%d) doesn't match actual (%d)\n",
 			    name(), pktcnt, np);
 	}
 
-	if (ps.hdr == NULL || ps.pkt == NULL) {
+	pcap_pkthdr* ph = ps.hdr;
+
+	if (ph == NULL || ps.pkt == NULL) {
 		fprintf(stderr,
 			"PcapNetwork(%s): recv: pcap_dispatch: no packet present\n",
 			    name());
 		return (-1);
 	}
 
+	if (++pcnt_ == 1) {
+		// mark time stamp of first pkt
+		t_firstpkt_ = ph->ts.tv_sec + ph->ts.tv_usec * 0.000001;
+	}
 
-	int n = MIN(ps.hdr->caplen, len);
+	int n = MIN(ph->caplen, len);
+	ts = gents(ph);	// mark with timestamp
 	// link layer header will be placed at the beginning from pcap
 	int s = skiphdr();	// go to IP header
 	memcpy(buf, ps.pkt + s, n - s);
@@ -482,7 +512,14 @@ PcapLiveNetwork::bindvars()
 	bind("snaplen_", &snaplen_);
 	bind_bool("promisc_", &promisc_);
 	bind_time("timeout_", &timeout_);
+	bind("offset_", &offset_);
 	PcapNetwork::bindvars();
+}
+
+void
+PcapFileNetwork::bindvars()
+{
+	bind("offset_", &offset_);
 }
 
 int
@@ -541,7 +578,11 @@ PcapFileNetwork::open(int mode, const char *filename)
 		return -1;
 	}
 	mode_ = O_RDONLY;	// sorry, that's all for now
-	pfd_ = pcap_fileno(pcap_);
+	//
+	// pcap only ever puts -1 in the pcap_fileno, which
+	// isn't so convenient, so do this instead:
+	// pfd_ = pcap_fileno(pcap_);
+	pfd_ = fileno(pcap_file(pcap_));
 	strncpy(srcname_, filename, sizeof(srcname_)-1);
 	state_ = PNET_PSTATE_ACTIVE;
 	return 0;
@@ -557,7 +598,7 @@ int PcapFileNetwork::command(int argc, const char*const* argv)
 			int mode = parsemode(argv[2]);
 			if (open(mode, argv[3]) < 0)
 				return (TCL_ERROR);
-			tcl.result("1");
+			tcl.resultf("%s", argv[3]);
 			return (TCL_OK);
 		}
 	}
