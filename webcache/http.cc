@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.13 1999/05/26 01:20:12 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.14 1999/07/06 22:57:04 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -350,8 +350,9 @@ int HttpApp::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "evTrace") == 0) { 
 			char buf[1024], *p;
 			if (log_ != 0) {
-				sprintf(buf, "%.17g i %d ", 
-					Scheduler::instance().clock(), id_);
+				sprintf(buf, TIME_FORMAT" i %d ", 
+				  Trace::round(Scheduler::instance().clock()), 
+					id_);
 				p = &(buf[strlen(buf)]);
 				for (int i = 2; i < argc; i++) {
 					strcpy(p, argv[i]);
@@ -372,7 +373,8 @@ int HttpApp::command(int argc, const char*const* argv)
 void HttpApp::log(const char* fmt, ...)
 {
 	char buf[10240], *p;
-	sprintf(buf, "%.17g i %d ", Scheduler::instance().clock(), id_);
+	sprintf(buf, TIME_FORMAT" i %d ", 
+		Trace::round(Scheduler::instance().clock()), id_);
 	p = &(buf[strlen(buf)]);
 	va_list ap;
 	va_start(ap, fmt);

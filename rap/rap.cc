@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.6 1999/07/02 17:07:11 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.7 1999/07/06 22:57:01 haoboy Exp $
 
 #include "rap.h"
 
@@ -173,6 +173,9 @@ void RapAgent::start()
 	if (debugEnable_)
 		logfile_ = DebugEnable(this->addr_ >> 
 				       Address::instance().NodeShift_[1]);
+	else
+		// Should initialize it regardless of whether it'll be used.
+		logfile_ = NULL;
 	Debug(debugEnable_, logfile_, "%.3f: RAP start.\n", 
 	      Scheduler::instance().clock());
 

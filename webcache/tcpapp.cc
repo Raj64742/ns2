@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.10 1999/05/26 01:20:26 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.11 1999/07/06 22:57:05 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -33,9 +33,12 @@ CBuf::CBuf(const AppData *c, int nbytes)
 {
 	nbytes_ = nbytes;
 	size_ = c->size();
-	data_ = new char[size_];
-	assert(data_ != NULL);
-	c->pack(data_);
+	if (size_ > 0) {
+		data_ = new char[size_];
+		assert(data_ != NULL);
+		c->pack(data_);
+	} else 
+		data_ = NULL;
 	next_ = NULL;
 }
 
@@ -265,6 +268,8 @@ int TcpApp::command(int argc, const char*const* argv)
 
 void TcpApp::process_data(int size, char* data) 
 {
+	if (data == NULL)
+		return;
 	// XXX Default behavior:
 	// If there isn't a target, use tcl to evaluate the data
 	if (target())

@@ -26,7 +26,7 @@
 # Implementation of web cache, client and server which support 
 # multimedia objects.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.2 1999/07/02 17:07:14 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.3 1999/07/06 22:57:06 haoboy Exp $
 
 #
 # Multimedia web client
@@ -374,7 +374,7 @@ Http/Cache/Media instproc media-disconnect { host pageid } {
 
 		# Dump status of all pages after serving a client
 		$self instvar pool_
-		foreach p [$pool_ list-pages] {
+		foreach p [lsort [$pool_ list-pages]] {
 			$self dump-page $p
 		}
 

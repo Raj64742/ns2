@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.343 1999/07/02 21:02:03 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.344 1999/07/06 22:57:15 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,28 @@
 
 
 <ul>
+	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
+	<b>Tue Jul  6 15:50:42 PDT 1999</b><br>
+	<ul>
+	<li>rap/rap.cc: initialize logfile_
+	<li>webcache/tcpapp.{cc,h}: do not allocate anything in
+	CBuf::CBuf() when size_ == 0
+	<li>webcache/http.cc: use Trace::round() in log() to reduce
+	time print precisions in log files. 
+	<li>tcl/webcache/http-mcache.tcl: use lsort{} on list produced
+	by PagePool/Client::list-pages{} so that the results can be
+	duplicated across different runs and platforms.
+	<li>tcl/test/test-suite-mcache.tcl: removed tests
+	media[3-5]*; they are not stable across platforms and
+	operating systems because the quality adaptation code relies
+	on comparison of double precision floating points to decide
+	when to add/drop layers. Slight difference in these numbers
+	can cause the output results to be drastically
+	different. Currently these tests can only be duplicated on
+	Intel platforms (FreeBSD and Linux), however they produced
+	different results on Solaris and SunOS. 
+	</ul>
+
 	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 	<b>Fri Jul  2 14:00:01 PDT 1999</b><br>
 	Updated various files to work under win32. The most important one
