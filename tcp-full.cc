@@ -1,4 +1,24 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+
+/*
+ * Copyright (c) Intel Corporation 2001. All rights reserved.
+ *
+ * License is granted to copy, to use, and to make and to use derivative
+ * works for research and evaluation purposes, provided that Intel is
+ * acknowledged in all documentation pertaining to any such copy or 
+ * derivative work. Intel grants no other licenses expressed or
+ * implied. The Intel trade name should not be used in any advertising
+ * without its written permission. 
+ *
+ * INTEL CORPORATION MAKES NO REPRESENTATIONS CONCERNING EITHER THE
+ * MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
+ * FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without 
+ * express or implied warranty of any kind.
+ *
+ * These notices must be retained in any copies of any part of this 
+ * software. 
+ */
+
 /*
  * Copyright (c) 1997, 1998 The Regents of the University of California.
  * All rights reserved.
@@ -33,6 +53,15 @@
  */
 
 /*
+ * Full-TCP : A two-way TCP very similar to the 4.4BSD version of Reno TCP.
+ * This version also includes variants Tahoe, NewReno, and SACK.
+ *
+ * This code below has received a fairly major restructuring (Aug. 2001).
+ * The ReassemblyQueue structure is now removed to a separate module and
+ * entirely re-written.
+ * Also, the SACK functionality has been re-written (almost) entirely.
+ * -KF [kfall@intel.com]
+ *
  * This code below was motivated in part by code contributed by
  * Kathie Nichols (nichols@baynetworks.com).  The code below is based primarily
  * on the 4.4BSD TCP implementation. -KF [kfall@ee.lbl.gov]
@@ -70,18 +99,20 @@
  *	sequence and ack numbers are in byte units
  *
  * Futures:
- *	there are different existing TCPs with respect to how
- *	ack's are handled on connection startup.  Some delay
- *	the ack for the first segment, which can cause connections
- *	to take longer to start up than if we be sure to ack it quickly.
+ *      there are different existing TCPs with respect to how
+ *      ack's are handled on connection startup.  Some delay
+ *      the ack for the first segment, which can cause connections
+ *      to take longer to start up than if we be sure to ack it quickly.
  *
- *	SACK
+ *      some TCPs arrange for immediate ACK generation if the incoming segment
+ *      contains the PUSH bit
+ *
  *
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.96 2001/08/20 21:17:09 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.97 2001/08/20 23:11:56 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -90,11 +121,21 @@ static const char rcsid[] =
 #include "random.h"
 #include "template.h"
 
+#ifndef TRUE
 #define	TRUE 	1
-#define	FALSE 	0
+#endif
 
+#ifndef FALSE
+#define	FALSE 	0
+#endif
+
+#ifndef MIN
 #define	MIN(x,y)	(((x)<(y))?(x):(y))
+#endif
+
+#ifndef MAX
 #define	MAX(x,y)	(((x)>(y))?(x):(y))
+#endif
 
 static class FullTcpClass : public TclClass { 
 public:
@@ -175,6 +216,12 @@ void
 SackFullTcpAgent::delay_bind_init_all()
 {
         delay_bind_init_one("clear_on_timeout_");
+        delay_bind_init_one("sack_rtx_cthresh_");
+        delay_bind_init_one("sack_rtx_bthresh_");
+        delay_bind_init_one("sack_block_size_");
+        delay_bind_init_one("sack_option_size_");
+        delay_bind_init_one("max_sack_blocks_");
+        delay_bind_init_one("sack_rtx_threshmode_");
 	FullTcpAgent::delay_bind_init_all();
 }
 
@@ -182,6 +229,12 @@ int
 SackFullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
         if (delay_bind_bool(varName, localName, "clear_on_timeout_", &clear_on_timeout_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "sack_rtx_cthresh_", &sack_rtx_cthresh_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "sack_rtx_bthresh_", &sack_rtx_bthresh_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "sack_rtx_threshmode_", &sack_rtx_threshmode_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "sack_block_size_", &sack_block_size_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "sack_option_size_", &sack_option_size_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "max_sack_blocks_", &max_sack_blocks_, tracer)) return TCL_OK;
         return FullTcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
 
@@ -781,16 +834,7 @@ send:
 void
 FullTcpAgent::send_much(int force, int reason, int maxburst)
 {
-	// highest_ack is essentially "snd_una" in real TCP
-	// window() is MIN(cwnd,rwnd) in pkts
-	// win will be window() scaled to byte units
-
-	int win = window() * maxseg_;
 	int npackets = 0;	// sent so far
-	int topwin = curseq_; // 1 seq number past the last byte we can send
-
-//	if ((topwin > highest_ack_ + win) || infinite_send_)
-//		topwin = highest_ack_ + win;
 
 //if ((int(t_seqno_)) > 1)
 //printf("%f: send_much(f:%d, win:%d, pipectrl:%d, pipe:%d, t_seqno:%d, topwin:%d, maxseq_:%d\n",
@@ -800,10 +844,6 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 		return;
 
 	while (1) {
-
-//while (force ||
-//      (pipectrl_ ? (pipe_ < win) : (t_seqno_ < topwin))) {
-
 
 		/*
 		 * note that if output decides to not actually send
@@ -2365,9 +2405,14 @@ NewRenoFullTcpAgent::ack_action(Packet* p)
 
 SackFullTcpAgent::SackFullTcpAgent() : sack_min_(-1), sq_(sack_min_), h_seqno_(-1)
 {
+#ifdef notdef
 	bind("sack_option_size_", &sack_option_size_);
 	bind("sack_block_size_", &sack_block_size_);
 	bind("max_sack_blocks_", &max_sack_blocks_);
+	bind("sack_rtx_bthresh_", &sack_rtx_bthresh_);
+	bind("sack_rtx_cthresh_", &sack_rtx_cthresh_);
+	bind("clear_on_timeout_", &clean_on_timeout_);
+#endif
 }
 
 SackFullTcpAgent::~SackFullTcpAgent()
@@ -2576,18 +2621,23 @@ SackFullTcpAgent::nxt_tseq()
 			// count field in the block
 			// after the seq# we are about
 			// to send
+	int fbytes;	// fcnt in bytes
 
 //if (int(t_seqno_) > 1)
-//printf("%f: recovery nxt_tseq called w/t_seqno:%d, seq:%d\n",
-//now(), int(t_seqno_), seq);
+//printf("%f: recovery nxt_tseq called w/t_seqno:%d, seq:%d, mode:%d\n",
+//now(), int(t_seqno_), seq, sack_rtx_threshmode_);
 //sq_.dumplist();
 
-	while ((seq = sq_.nexthole(seq, fcnt)) > 0) {
+	while ((seq = sq_.nexthole(seq, fcnt, fbytes)) > 0) {
 		// if we have a following block
 		// with a large enough count
 		// we should use the seq# we get
 		// from nexthole()
-		if (fcnt >= SACKTHRESH) {
+		if (sack_rtx_threshmode_ == 0 ||
+		    (sack_rtx_threshmode_ == 1 && fcnt >= sack_rtx_cthresh_) ||
+		    (sack_rtx_threshmode_ == 2 && fbytes >= sack_rtx_bthresh_) ||
+		    (sack_rtx_threshmode_ == 3 && (fcnt >= sack_rtx_cthresh_ || fbytes >= sack_rtx_bthresh_)) ||
+		    (sack_rtx_threshmode_ == 4 && (fcnt >= sack_rtx_cthresh_ && fbytes >= sack_rtx_bthresh_))) {
 
 //if (int(t_seqno_) > 1)
 //printf("%f: nxt_tseq<hole> returning %d\n",
