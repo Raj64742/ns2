@@ -3,7 +3,7 @@
 // Authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.hh,v 1.6 2002/03/20 22:49:40 haldar Exp $
+// $Id: events.hh,v 1.7 2002/03/21 19:30:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -56,7 +56,7 @@ public:
     // Empty
     head = NULL;
   };
-  ~EventQueue(){
+  virtual ~EventQueue(){
     // Empty
   };
 

@@ -3,7 +3,7 @@
 // geo-routing.cc : GEAR Filter
 // author         : Yan Yu
 //
-// $Id: geo-routing.cc,v 1.2 2002/03/20 22:49:39 haldar Exp $
+// $Id: geo-routing.cc,v 1.3 2002/03/21 19:30:54 haldar Exp $
 //
 // *********************************************************
 
@@ -20,7 +20,7 @@ public:
 } class_geo_routing_filter;
 
 int GeoRoutingFilter::command(int argc, const char*const* argv) {
-  Tcl & tcl = Tcl::instance();
+
   if (argc == 2) {
     if (strcmp(argv[1], "start") == 0) {
       run();
@@ -52,7 +52,6 @@ int GeoTimerReceive::expire(handle hdl, void *p)
 void GeoTimerReceive::del(void *p)
 {
   TimerType *timer;
-  NRAttrVec *attrs;
   Message *msg;
 
   timer = (TimerType *) p;
@@ -76,7 +75,6 @@ void GeoTimerReceive::del(void *p)
 int GeoRoutingFilter::ProcessTimers(handle hdl, void *p)
 {
   TimerType *timer;
-  NRAttrVec *attrs;
   Message *msg;
   int timeout = 0;
 
@@ -393,7 +391,7 @@ void GeoRoutingFilter::PostProcessMessage(Message *msg, handle h)
 
   case INTEREST:
 
-    if (msg->next_hop != LOCALHOST_ADDR){
+    if (msg->next_hop != (int)LOCALHOST_ADDR){
       // Retrieve packet header from previous stage
       pkt_header = RetrievePacketHeader(msg);
 

@@ -141,91 +141,89 @@ void DiffRoutingAgent::diffTimeout(Event *de) {
 
 
 void DiffRoutingAgent::sendPacket(DiffPacket dp, int len, int dst) {
-  Packet *p;
-  hdr_ip *iph;
-  Message *msg;
+	Packet *p;
+	hdr_ip *iph;
+	Message *msg;
 
-  msg = (Message *)dp;
-  p = createNsPkt(msg, len, dst); 
-  iph = HDR_IP(p);
-  iph->saddr() = addr();
-  iph->sport() = port();  //RT_PORT;
-  iph->daddr() = addr();
-  iph->dport() = dst;
-
-  // schedule for a realistic delay : 0 sec for now
-  (void)Scheduler::instance().schedule(port_dmux(), p, 1);
-  
+	msg = (Message *)dp;
+	p = createNsPkt(msg, len, dst); 
+	iph = HDR_IP(p);
+	iph->saddr() = addr();
+	iph->sport() = port();  //RT_PORT;
+	iph->daddr() = addr();
+	iph->dport() = dst;
+	
+	// schedule for a realistic delay : 0 sec for now
+	(void)Scheduler::instance().schedule(port_dmux(), p, 1);
+	
 }
 
 
 Packet* 
 DiffRoutingAgent::createNsPkt(Message *msg, int len, int dst) {
-  Packet *p;
-  AppData *diffdata;
-  
-  p = allocpkt();
-  diffdata  = new DiffusionData(msg, len);
-  p->setdata(diffdata);
-  return p;
+	Packet *p;
+	AppData *diffdata;
+	
+	p = allocpkt();
+	diffdata  = new DiffusionData(msg, len);
+	p->setdata(diffdata);
+	return p;
 }
 
 void DiffRoutingAgent::recv(Packet *p, Handler *h) {
-  Message *msg;
-  DiffusionData *diffdata;
-
-  diffdata = (DiffusionData *)(p->userdata());
-  msg = diffdata->data();
-
-  agent_->recvMessage(msg);
-
-  //delete msg;
-  Packet::free(p);
+	Message *msg;
+	DiffusionData *diffdata;
+	
+	diffdata = (DiffusionData *)(p->userdata());
+	msg = diffdata->data();
+	
+	agent_->recvMessage(msg);
+	
+	//delete msg;
+	Packet::free(p);
 }
 
 int DiffRoutingAgent::command(int argc, const char*const* argv) {
-  Tcl& tcl =  Tcl::instance();
-  
-  if (argc == 2) {
-    if (strcasecmp(argv[1], "start")==0) {
-    //start();
-      //eq = new DiffusionCoreEQ(this);
-      //eq->eq_new();
-      // Add timers to the eventQueue
-      //eq->eq_addAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
-      //eq->eq_addAfter(FILTER_TIMER, NULL, FILTER_DELAY);
-
-      return TCL_OK;
-    }
-    //if (strcasecmp(argv[1], "stop")==0) {
-    //stop();
-    //return TCL_OK;
-    //}
-  }
-  else if (argc == 3) {
-    if (strcasecmp(argv[1], "addr") == 0) {
-      addr_ = (Address::instance().str2addr(argv[2]));
-      return TCL_OK;
-    }
-    TclObject *obj;
-    if ((obj = TclObject::lookup (argv[2])) == 0) {
-      fprintf(stderr, "_Diffusion Node_%d lookup of %s failed\n", argv[1], argv[2]);
-      return TCL_ERROR;
-    }
-    if (strcasecmp(argv[1], "port-dmux") == 0) {
-      port_dmux_ = (PortClassifier *)obj;
-      return TCL_OK;
-    }
-    if (strcasecmp(argv[1], "add-ll") == 0) {
-      target_ = (LL*)obj;
-      return TCL_OK;
-    }
-    if (strcasecmp(argv[1], "tracetarget") == 0) {
-      tracetarget_ = (Trace *)obj;
-      return TCL_OK;
-    }
-  }
-  return Agent::command(argc, argv);
+	if (argc == 2) {
+		if (strcasecmp(argv[1], "start")==0) {
+			//start();
+			//eq = new DiffusionCoreEQ(this);
+			//eq->eq_new();
+			// Add timers to the eventQueue
+			//eq->eq_addAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
+			//eq->eq_addAfter(FILTER_TIMER, NULL, FILTER_DELAY);
+			
+			return TCL_OK;
+		}
+		//if (strcasecmp(argv[1], "stop")==0) {
+		//stop();
+		//return TCL_OK;
+		//}
+	}
+	else if (argc == 3) {
+		if (strcasecmp(argv[1], "addr") == 0) {
+			addr_ = (Address::instance().str2addr(argv[2]));
+			return TCL_OK;
+		}
+		TclObject *obj;
+		if ((obj = TclObject::lookup (argv[2])) == 0) {
+			fprintf(stderr, "_Diffusion Node_ %s lookup of %s failed\n", argv[1], argv[2]);
+			return TCL_ERROR;
+		}
+		if (strcasecmp(argv[1], "port-dmux") == 0) {
+			port_dmux_ = (PortClassifier *)obj;
+			return TCL_OK;
+		}
+		if (strcasecmp(argv[1], "add-ll") == 0) {
+			target_ = (LL*)obj;
+			return TCL_OK;
+		}
+		if (strcasecmp(argv[1], "tracetarget") == 0) {
+			tracetarget_ = (Trace *)obj;
+			return TCL_OK;
+		}
+	}
+	return Agent::command(argc, argv);
 }
 
 

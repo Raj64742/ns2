@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: iodev.hh,v 1.6 2002/03/20 22:49:41 haldar Exp $
+// $Id: iodev.hh,v 1.7 2002/03/21 19:30:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -33,7 +33,9 @@ using namespace std;
 class DiffusionIO {
 public:
   DiffusionIO();
-
+  virtual ~DiffusionIO() {
+    //Empty
+  };
   void addInFDS(fd_set *fds, int *max);
   int checkInFDS(fd_set *fds);
   virtual DiffPacket recvPacket(int fd) = 0;

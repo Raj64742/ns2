@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_receiver.cc,v 1.3 2002/03/20 22:49:39 haldar Exp $
+// $Id: ping_receiver.cc,v 1.4 2002/03/21 19:30:54 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -32,7 +32,7 @@ public:
 } class_ping_receiver;
 
 int PingReceiverApp::command(int argc, const char*const* argv) {
-  Tcl& tcl = Tcl::instance();
+  
   if (argc == 2) {
     if (strcmp(argv[1], "subscribe") == 0) {
       run();

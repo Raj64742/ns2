@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_sender.cc,v 1.2 2002/03/20 22:49:39 haldar Exp $
+// $Id: ping_sender.cc,v 1.3 2002/03/21 19:30:54 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -59,7 +59,7 @@ void PingSenderApp::send()
 }
 
 int PingSenderApp::command(int argc, const char*const* argv) {
-  Tcl& tcl = Tcl::instance();
+
   if (argc == 2) {
     if (strcmp(argv[1], "publish") == 0) {
       run();
@@ -142,8 +142,6 @@ handle PingSenderApp::setupPublication()
 void PingSenderApp::run()
 {
   struct timeval tmv;
-  int retval;
-  char input;
 #ifdef INTERACTIVE
   fd_set FDS;
 #endif // INTERATIVE

@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: stats.cc,v 1.4 2002/03/20 22:49:41 haldar Exp $
+// $Id: stats.cc,v 1.5 2002/03/21 19:30:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -60,13 +60,13 @@ void DiffusionStats::logIncomingMessage(Message *msg)
   Neighbor_Stats_Entry *neighbor;
 
   // We don't consider messages from local apps/filters
-  if (msg->last_hop == LOCALHOST_ADDR)
+  if (msg->last_hop == (int)LOCALHOST_ADDR)
     return;
 
   num_bytes_recv += (msg->data_len + sizeof(struct hdr_diff));
   num_packets_recv++;
 
-  if (msg->next_hop == BROADCAST_ADDR){
+  if (msg->next_hop == (int)BROADCAST_ADDR){
     num_bcast_packets_recv++;
     num_bcast_bytes_recv += (msg->data_len + sizeof(struct hdr_diff));
   }
@@ -78,7 +78,7 @@ void DiffusionStats::logIncomingMessage(Message *msg)
 
   neighbor = getNeighbor(msg->last_hop);
   neighbor->recv_messages++;
-  if (msg->next_hop == BROADCAST_ADDR)
+  if (msg->next_hop == (int)BROADCAST_ADDR)
     neighbor->recv_bcast_messages++;
 
   switch (msg->msg_type){
@@ -126,7 +126,7 @@ void DiffusionStats::logOutgoingMessage(Message *msg)
   num_bytes_sent += (msg->data_len + sizeof(struct hdr_diff));
   num_packets_sent++;
 
-  if (msg->next_hop == BROADCAST_ADDR){
+  if (msg->next_hop == (int)BROADCAST_ADDR){
     num_bcast_packets_sent++;
     num_bcast_bytes_sent += (msg->data_len + sizeof(struct hdr_diff));
   }
@@ -136,7 +136,7 @@ void DiffusionStats::logOutgoingMessage(Message *msg)
   else
     num_old_messages_sent++;
 
-  if (msg->next_hop != BROADCAST_ADDR){
+  if (msg->next_hop != (int)BROADCAST_ADDR){
     neighbor = getNeighbor(msg->next_hop);
     neighbor->sent_messages++;
   }

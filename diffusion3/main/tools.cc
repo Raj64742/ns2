@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.9 2002/03/20 22:49:41 haldar Exp $
+// $Id: tools.cc,v 1.10 2002/03/21 19:30:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -50,11 +50,12 @@ void InitMainLogger()
 void getTime(struct timeval *tv)
 {
 #ifdef NS_DIFFUSION
-  double time, sec, usec;
+  double time;
+  int sec, usec;
 
   time = Scheduler::instance().clock();
-  sec = (int) (time * 1000000) / 1000000;
-  usec = (int) (time * 1000000) % 1000000;
+  sec = (int)(time * 1000000) / 1000000;
+  usec = (int)(time * 1000000) % 1000000;
   tv->tv_sec = sec;
   tv->tv_usec = usec;
   //  printf("tv->sec = %d, tv->usec = %d\n", tv->tv_sec, tv->tv_usec);

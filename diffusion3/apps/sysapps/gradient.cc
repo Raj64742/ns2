@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: gradient.cc,v 1.7 2002/03/20 22:49:39 haldar Exp $
+// $Id: gradient.cc,v 1.8 2002/03/21 19:30:54 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,7 +36,7 @@ public:
 } class_gradient_filter;
 
 int GradientFilter::command(int argc, const char*const* argv) {
-  Tcl& tcl =  Tcl::instance();
+  
   if (argc == 3) {
     if (strcasecmp(argv[1], "dr") == 0) {
       DiffAppAgent *agent;
@@ -465,9 +465,9 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
 			      bool &reinforced)
 {
   AgentsList::iterator itr;
-  Agents_Entry *ae, *Aentry;
+  Agents_Entry *ae;
   struct timeval tmv;
-  Message *mymsg, *neg_rmsg, *dmsg, *pos_rmsg;
+  Message *mymsg, *neg_rmsg, *pos_rmsg;
   TimerType *dtimer;
   unsigned int key[2];
   Hash_Entry *hEntry;
@@ -535,7 +535,7 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
   }
 
   // Step 2: Source Processing
-  if (msg->last_hop == LOCALHOST_ADDR){
+  if (msg->last_hop == (int)LOCALHOST_ADDR){
     if (tmv.tv_sec >= entry->tv.tv_sec){
       getTime(&(entry->tv));
       entry->tv.tv_sec = entry->tv.tv_sec + EXPLORATORY_MESSAGE_DELAY;
@@ -608,7 +608,7 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
     else{
       // No reinforced path found, send negative
       // reinforcement to last_hop
-      if ((!has_sink) && (msg->last_hop != LOCALHOST_ADDR)){
+      if ((!has_sink) && (msg->last_hop != (int)LOCALHOST_ADDR)){
 	neg_rmsg = new Message(DIFFUSION_VERSION, NEGATIVE_REINFORCEMENT,
 			       0, 0, entry->attrs->size(), pkt_count,
 			       rdm_id, msg->last_hop, LOCALHOST_ADDR);
@@ -689,7 +689,7 @@ void GradientFilter::SetReinforcementFlags(Routing_Entry *entry, int32_t last_ho
   Agents_Entry *ae;
 
   // Do nothing if message is coming from a local source
-  if (last_hop == LOCALHOST_ADDR)
+  if (last_hop == (int)LOCALHOST_ADDR)
     return;
 
   for (itr = entry->data_neighbors.begin();
@@ -784,7 +784,7 @@ void GradientFilter::ProcessOldMessage(Message *msg)
 
     diffPrint(DEBUG_NO_DETAILS, "Received Old Interest !\n");
 
-    if (msg->last_hop == LOCALHOST_ADDR){
+    if (msg->last_hop == (int)LOCALHOST_ADDR){
       // Old interest should not come from local agent
       diffPrint(DEBUG_ALWAYS, "Warning: Old Interest from local agent !\n");
       break;
@@ -879,7 +879,7 @@ void GradientFilter::ProcessNewMessage(Message *msg)
       new_data_type = true;
     }
 
-    if (msg->last_hop == LOCALHOST_ADDR){
+    if (msg->last_hop == (int)LOCALHOST_ADDR){
       // From local agent
       UpdateAgent(entry, msg->source_port);
     }

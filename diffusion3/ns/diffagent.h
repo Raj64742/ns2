@@ -45,6 +45,7 @@ class DiffAppAgent;
 class NsLocal : public DiffusionIO {
 public:
 	NsLocal(DiffAppAgent *agent) { agent_ = agent;}
+	~NsLocal() {};
 	DiffPacket recvPacket(int fd);
 	void sendPacket(DiffPacket p, int len, int dst);
 protected:

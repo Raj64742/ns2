@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.hh,v 1.6 2002/03/20 22:49:40 haldar Exp $
+// $Id: dr.hh,v 1.7 2002/03/21 19:30:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -71,7 +71,7 @@ public:
   void run(bool wait_condition, long max_timeout);
 #endif // NS_DIFFUSION
 
-  ~DiffusionRouting();
+  virtual ~DiffusionRouting();
 
   // NR (publish-subscribe) API functions
 

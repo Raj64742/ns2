@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.cc,v 1.8 2002/03/20 22:49:40 haldar Exp $
+// $Id: diffusion.cc,v 1.9 2002/03/21 19:30:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -274,7 +274,7 @@ void DiffusionCoreAgent::sendMessage(Message *msg)
     myMessage->last_hop = LOCALHOST_ADDR;
 
     // If it's a local message, it has to go to a local agent
-    if (myMessage->next_hop != LOCALHOST_ADDR){
+    if (myMessage->next_hop != (int)LOCALHOST_ADDR){
       diffPrint(DEBUG_ALWAYS, "Error: Message destination is a local agent but next_hop != LOCALHOST_ADDR !\n");
       delete myMessage;
       return;
@@ -306,7 +306,7 @@ void DiffusionCoreAgent::sendMessage(Message *msg)
 
 void DiffusionCoreAgent::forwardMessage(Message *msg, FilterEntry *dst)
 {
-  DeviceList::iterator itr;
+  //DeviceList::iterator itr;
   RedirectMessage *originalHdr;
   NRAttribute *originalAttr;
   Message *myMessage;
@@ -467,7 +467,7 @@ void DiffusionCoreAgent::updateNeighbors(int id)
   NeighborList::iterator itr;
   NeighborEntry *newNeighbor;
 
-  if (id == LOCALHOST_ADDR || id == myId)
+  if (id == (int)LOCALHOST_ADDR || id == myId)
     return;
 
   for (itr = my_neighbors.begin(); itr != my_neighbors.end(); ++itr){
@@ -704,7 +704,7 @@ void DiffusionCoreAgent::processControlMessage(Message *msg)
   bool filter_is_last = false;
 
   // Control messages should not come from other nodes
-  if (msg->last_hop != LOCALHOST_ADDR){
+  if (msg->last_hop != (int)LOCALHOST_ADDR){
     diffPrint(DEBUG_ALWAYS, "Error: Received control message from another node !\n");
     return;
   }
@@ -920,8 +920,6 @@ DiffusionCoreAgent::DiffusionCoreAgent(DiffRoutingAgent *diffrtg)
 DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
-  int opt;
-  int debug_level;
   DiffusionIO *device;
   char *scadds_env;
   long stop_time;
@@ -1047,7 +1045,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
       setSeed(&tv);
       myId = getRand();
     }
-    while(myId == LOCALHOST_ADDR || myId == BROADCAST_ADDR);
+    while(myId == (int)LOCALHOST_ADDR || myId == (int)BROADCAST_ADDR);
   }
 
   // Initialize variables
@@ -1238,8 +1236,8 @@ void DiffusionCoreAgent::recvMessage(Message *msg)
   }
 
   // Address filtering
-  if ((msg->next_hop != BROADCAST_ADDR) &&
-      (msg->next_hop != LOCALHOST_ADDR) &&
+  if ((msg->next_hop != (int)BROADCAST_ADDR) &&
+      (msg->next_hop != (int)LOCALHOST_ADDR) &&
       (msg->next_hop != myId))
     return;
 

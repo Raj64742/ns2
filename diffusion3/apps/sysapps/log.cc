@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: log.cc,v 1.2 2002/03/20 22:49:39 haldar Exp $
+// $Id: log.cc,v 1.3 2002/03/21 19:30:54 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,7 +36,7 @@ public:
 } class_log_filter;
 
 int LogFilter::command(int argc, const char*const* argv) {
-  Tcl& tcl = Tcl::instance();
+
   if (argc == 2) {
     if (strcmp(argv[1], "start") == 0) {
       run();
@@ -74,7 +74,7 @@ void LogFilter::ProcessMessage(Message *msg)
   else
     diffPrint(DEBUG_ALWAYS, "n old ");
 
-  if (msg->last_hop != LOCALHOST_ADDR)
+  if (msg->last_hop != (int)LOCALHOST_ADDR)
     diffPrint(DEBUG_ALWAYS, "%s message from node %d\n", msg_types[msg->msg_type],
 	      msg->last_hop);
   else

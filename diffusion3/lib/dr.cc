@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.7 2002/03/20 22:49:40 haldar Exp $
+// $Id: dr.cc,v 1.8 2002/03/21 19:30:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -982,7 +982,7 @@ void DiffusionRouting::recvMessage(Message *msg)
     return;
 
   // Check destination
-  if (msg->next_hop != LOCALHOST_ADDR)
+  if (msg->next_hop != (int)LOCALHOST_ADDR)
     return;
 
   // Process the incoming message
