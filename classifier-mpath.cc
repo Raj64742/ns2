@@ -22,14 +22,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mpath.cc,v 1.3 1998/06/27 01:23:33 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mpath.cc,v 1.4 1998/11/30 19:08:23 yuriy Exp $ (USC/ISI)";
 #endif
 
 #include "classifier.h"
 
 class MultiPathForwarder : public Classifier {
 public:
-	MultiPathForwarder() : ns_(0), Classifier() {} 
+	MultiPathForwarder() : ns_(0) {} 
 	virtual int classify(Packet* const) {
 		int cl;
 		int fail = ns_;
