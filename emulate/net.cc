@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 1993-1994 The Regents of the University of California.
+ * Copyright (c) 1993-1994, 1998 The Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.1 1998/01/06 01:45:46 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.2 1998/01/31 00:25:58 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -84,184 +84,51 @@ sendmsg(int s, struct msghdr* mh, int flags)
 }
 #endif
 
-Network::Network() :
-	addr_(0),
-	local_(0),
-	lport_(0),
-	port_(0),
-	ttl_(0),
-	rsock_(-1),
-	ssock_(-1),
-	noloopback_broken_(0)
-{
-}
-
-Network::~Network()
-{
-}
-
 int Network::command(int argc, const char*const* argv)
 {
 	if (argc == 2) {
 		Tcl& tcl = Tcl::instance();
 		char* cp = tcl.buffer();
-		if (strcmp(argv[1], "addr") == 0 || 
-		    strcmp(argv[1], "interface") == 0 ||
-		    strcmp(argv[1], "port") == 0 ||
-		    strcmp(argv[1], "ttl") == 0 ||
-		    strcmp(argv[1], "ismulticast") == 0)
-			strcpy(cp, "0");
-		else if (strcmp(argv[1], "flush") == 0) {
+		if (strcmp(argv[1], "flush") == 0) {
+			unsigned char buf[1024];
 			u_int32_t from;		    
-			while (dorecv(wrkbuf_, wrkbuflen_, from, rsock_) > 0)
+			int rchan = rchannel();
+			while (recv(buf, sizeof(buf), from) > 0)
 				;
 		} else
 			return (TclObject::command(argc, argv));
 		tcl.result(cp);
 		return (TCL_OK);
-	} else if (argc == 3) {
 	}
 	return (TclObject::command(argc, argv));
 }
 
-void Network::nonblock(int fd)
+int
+Network::nonblock(int fd)
 {       
 #ifdef WIN32
 	u_long flag = 1;
 	if (ioctlsocket(fd, FIONBIO, &flag) == -1) {
-		fprintf(stderr, "ioctlsocket: FIONBIO: %lu\n", GetLastError());
-		exit(1);
+		fprintf(stderr,
+		    "Network::nonblock(): ioctlsocket: FIONBIO: %lu\n",
+		    GetLastError());
+		return -1;
 	}
 #else
-        int flags = fcntl(fd, F_GETFL, 0);
+        int flags;
+	if ((flags = fcntl(fd, F_GETFL, 0)) < 0) {
+		perror("Network::nonblock(): fcntl");
+		return (-1);
+	}
 #if defined(hpux) || defined(__hpux)
         flags |= O_NONBLOCK;
 #else
         flags |= O_NONBLOCK|O_NDELAY;
 #endif
         if (fcntl(fd, F_SETFL, flags) == -1) {
-                perror("fcntl: F_SETFL");
-                exit(1);
+                perror("Network::nonblock(): fcntl: F_SETFL");
+		return -1;
         }
 #endif
-}
-
-u_char* Network::wrkbuf_;
-int Network::wrkbuflen_;
-
-void Network::expand_wrkbuf(int len)
-{
-	if (wrkbuflen_ == 0)
-		wrkbuf_ = (u_char*)malloc(len);
-	else
-		wrkbuf_ = (u_char*)realloc((u_char*)wrkbuf_, len);
-	wrkbuflen_ = len;
-}
-
-void Network::dosend(u_char* buf, int len, int fd)
-{
-	int cc = ::send(fd, (char*)buf, len, 0);
-	if (cc < 0) {
-		switch (errno) {
-		case ECONNREFUSED:
-			/* no one listening at some site - ignore */
-#if defined(__osf__) || defined(_AIX) || defined(__FreeBSD__)
-			/*
-			 * Due to a bug in kern/uipc_socket.c, on several
-			 * systems, datagram sockets incorrectly persist
-			 * in an error state on receipt of an ICMP
-			 * port-unreachable.  This causes unicast connection
-			 * rendezvous problems, and worse, multicast
-			 * transmission problems because several systems
-			 * incorrectly send port unreachables for 
-			 * multicast destinations.  Our work around
-			 * is to simply close and reopen the socket
-			 * (by calling reset() below).
-			 *
-			 * This bug originated at CSRG in Berkeley
-			 * and was present in the BSD Reno networking
-			 * code release.  It has since been fixed
-			 * in 4.4BSD and OSF-3.x.  It is know to remain
-			 * in AIX-4.1.3.
-			 *
-			 * A fix is to change the following lines from
-			 * kern/uipc_socket.c:
-			 *
-			 *	if (so_serror)
-			 *		snderr(so->so_error);
-			 *
-			 * to:
-			 *
-			 *	if (so->so_error) {
-			 * 		error = so->so_error;
-			 *		so->so_error = 0;
-			 *		splx(s);
-			 *		goto release;
-			 *	}
-			 *
-			 */
-			reset();
-#endif
-			break;
-
-		case ENETUNREACH:
-		case EHOSTUNREACH:
-			/*
-			 * These "errors" are totally meaningless.
-			 * There is some broken host sending
-			 * icmp unreachables for multicast destinations.
-			 * UDP probably aborted the send because of them --
-			 * try exactly once more.  E.g., the send we
-			 * just did cleared the errno for the previous
-			 * icmp unreachable, so we should be able to
-			 * send now.
-			 */
-			(void)::send(ssock_, (char*)buf, len, 0);
-			break;
-
-		default:
-			perror("send");
-			return;
-		}
-	}
-}
-
-void Network::send(u_char* buf, int len)
-{
-	dosend(buf, len, ssock_);
-}
-
-#ifdef notdef
-void Network::send(const pktbuf* pb)
-{
-	/*XXX*/
-	send(pb->dp, pb->len);
-}
-#endif
-
-int Network::dorecv(u_char* buf, int len, u_int32_t& from, int fd)
-{
-	sockaddr_in sfrom;
-	int fromlen = sizeof(sfrom);
-	int cc = ::recvfrom(fd, (char*)buf, len, 0,
-			    (sockaddr*)&sfrom, &fromlen);
-	if (cc < 0) {
-		if (errno != EWOULDBLOCK)
-			perror("recvfrom");
-		return (-1);
-	}
-	from = sfrom.sin_addr.s_addr;
-	if (noloopback_broken_ && from == local_ && sfrom.sin_port == lport_)
-		return (0);
-
-	return (cc);
-}
-
-int Network::recv(u_char* buf, int len, u_int32_t& from)
-{
-	return (dorecv(buf, len, from, rsock_));
-}
-
-void Network::reset()
-{
+	return 0;
 }
