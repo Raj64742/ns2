@@ -39,13 +39,13 @@ echo "(Validation can take 1-30 hours to run.)"
 
 cd tcl/test
 
-for i in simple tcp full monitor red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 \
-vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing \
+for i in simple tcp full monitor red sack schedule cbq red-v1 cbq-v1 sack-v1 \
+v1 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing \
 intserv webcache mcast newreno srm session mixmode algo-routing vc \
 simultaneous lan wireless-lan ecn-ack mip energy wireless-gridkeeper mcache \
 satellite wireless-lan-newnode wireless-lan-aodv WLtutorial aimd greis \
 rfc793edu friendly rfc2581 links wireless-tdma rio testReno \
-wireless-diffusion plm @V_STLVALIDATION@ 
+wireless-diffusion plm linkstate
 do
 	try ./test-all-$i
 done
