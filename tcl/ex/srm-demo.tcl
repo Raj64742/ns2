@@ -25,7 +25,7 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.6 1997/07/25 00:39:19 heideman Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.7 1997/08/08 00:04:56 mccanne Exp $
 #
 
 set ns [new MultiSim]
@@ -74,6 +74,9 @@ makelinks 1.5Mb 10ms {
 makelinks 1.5Mb 50ms {
 	{ 14 12 }
 }
+
+set mproto DM
+set mrthandle [$ns mrtproto $mproto {}]
 
 Class Agent/Message/MC_Acker -superclass Agent/Message
 Agent/Message/MC_Acker set packetSize_ 800
