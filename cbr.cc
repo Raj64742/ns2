@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.9 1997/04/08 00:37:25 bajaj Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.10 1997/07/21 21:29:11 kfall Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -45,19 +45,17 @@ static char rcsid[] =
 static class CBRClass : public TclClass {
 public:
 	CBRClass() : TclClass("Agent/CBR") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new CBR_Agent());
 	}
 } class_cbr;
 
-CBR_Agent::CBR_Agent() : Agent(PT_CBR), random_(0), seqno_(-1)
+CBR_Agent::CBR_Agent() : Agent(PT_CBR), running_(0), random_(0), seqno_(-1)
 {
-	Tcl& tcl = Tcl::instance();
 	bind_time("interval_", &interval_);
 	bind("packetSize_", &size_);
 	bind("random_", &random_);
 	bind("off_rtp_", &off_rtp_);
-	running_ = 0;
 }
 
 void CBR_Agent::start()
@@ -94,8 +92,8 @@ void CBR_Agent::sendpkt()
 }
 
 /*
- * $proc interval $interval
- * $proc size $size
+ * $cbr start
+ * $cbr stop
  */
 int CBR_Agent::command(int argc, const char*const* argv)
 {
