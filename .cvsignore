@@ -18,3 +18,5 @@ out*
 *-bw
 *-tcpstat.*
 temp.rands
+autoconf.h
+ptypes2tcl
