@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.3 1998/06/11 01:04:56 heideman Exp $
+# $Id: many_tcp.tcl,v 1.4 1998/06/29 23:57:37 heideman Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -139,6 +139,10 @@ set raw_opt_info {
 	gen-map 0
 	mem-trace 0
 	debug 1
+	title none
+	# set test-suite to write the graph to opts(test-suite-file)
+	test-suite 0
+	test-suite-file temp.rands
 		   
 	# Random number seed; default is 0, so ns will give a 
 	# diff. one on each invocation.
@@ -184,12 +188,12 @@ Main instproc default_options {} {
 	}
 }
 
-Main instproc process_args {} {
-	global argc argv opts opt_wants_arg
+Main instproc process_args {av} {
+	global opts opt_wants_arg
 
 	$self default_options
-	for {set i 0} {$i < $argc} {incr i} {
-		set key [lindex $argv $i]
+	for {set i 0} {$i < [llength $av]} {incr i} {
+		set key [lindex $av $i]
 		if {$key == "-?" || $key == "--help" || $key == "-help" || $key == "-h"} {
 			usage
 		}
@@ -200,7 +204,7 @@ Main instproc process_args {} {
 		}
 		if {$opt_wants_arg($key)} {
 			incr i
-			set opts($key) [lindex $argv $i]
+			set opts($key) [lindex $av $i]
 		} else {
 			set opts($key) [expr !opts($key)]
 		}
@@ -412,7 +416,7 @@ Main instproc schedule_initial_traffic {} {
 
 Main instproc open_trace { stop_time } {
 	global opts
-	$self instvar ns_ trace_file_ nam_trace_file_
+	$self instvar ns_ trace_file_ nam_trace_file_ trace_filename_
 	set trace_filename_ $opts(trace-filename)
 	exec rm -f "$trace_filename_.tr"
 	set trace_file_ [open "$trace_filename_.tr" w]
@@ -440,8 +444,13 @@ Main instproc finish {} {
 	} else {
 		set q ""
 	}
+	set title $opts(title)
+	exec raw2xg -a $q < $trace_filename_.tr >$trace_filename_.xg
+	if {$opts(test-suite)} {
+		exec cp $trace_filename_.xg $opts(test-suite-file)
+	}
 	if {$opts(graph-results)} {
-		exec raw2xg -a -m $opts(web-page-size) -q < "$trace_filename_.tr" | xgraph -t "$opts(server-tcp-method)" &
+		exec xgraph -t $title  < $trace_filename_.xg &
 	}
 #	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
 
@@ -481,10 +490,10 @@ Main instproc trace_stuff {} {
 	# of how the plumbing happens.
 }
 
-Main instproc init {} {
+Main instproc init {av} {
 	global opts
 
-	$self process_args
+	$self process_args $av
 
 	$self instvar ns_ 
 	set ns_ [new Simulator]
@@ -511,12 +520,9 @@ Main instproc init {} {
 	$ns_ run
 }
 
-Classifier instproc no-slot slot {
-	#XXX should say something better for routing problem
-	puts stderr "$self: no target for slot $slot"
-	debug 1
-	exit 1
+global in_test_suite
+if {![info exists in_test_suite]} {
+	global $argv
+	new Main $argv
 }
-
-new Main
 

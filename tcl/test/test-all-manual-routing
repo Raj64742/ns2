@@ -1,9 +1,7 @@
-#!/bin/sh
+#! /bin/sh
 
 #
-# validate -- run all the test scripts
-#
-# Copyright (c) 1997 University of Southern California.
+# Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
 #                                                                
 # Redistribution and use in source and binary forms are permitted
@@ -18,40 +16,20 @@
 # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-manual-routing,v 1.1 1998/06/29 23:57:40 heideman Exp $
 #
 
-
-
-try () {
-	echo "*** $1"
-	$1 quiet || {
-		any_failed=true
-		failed_list="$failed_list $1"
-	}
-	return $?
-}
-
-
-any_failed=false
-failed_list=""
-try ./test-all
-
-cd tcl/test
-for i in tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 \
-  vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing
-do
-	try ./test-all-$i
-done
-
-if $any_failed
+feature="manual-routing"
+file="test-suite-$feature.tcl"
+directory="test-output-$feature"
+version="v2"
+if [ $# -ge 1 ]
 then
-	echo "validate overall report: some tests failed:"
-	echo "    $failed_list"
-	exit 1
+	flag=$1
+	./test-all-template1 $file $directory $version $flag
 else
-	echo "validate overall report: all tests passed"
-	exit 0
+	./test-all-template1 $file $directory $version
 fi
-
-
-
