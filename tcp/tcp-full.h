@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.16 1998/01/22 06:19:30 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.17 1998/01/27 02:31:58 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -121,6 +121,7 @@ class FullTcpAgent : public TcpAgent {
 	int command(int argc, const char*const* argv);
 
  protected:
+	int closed_;
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int data_on_syn_;   // send data on initial SYN?
@@ -143,6 +144,7 @@ class FullTcpAgent : public TcpAgent {
 	inline double now() { return Scheduler::instance().clock(); }
 	void newstate(int ns); // future hook for traces
 
+	void finish();
 	void reset_rtx_timer(int);  // adjust the rtx timer
 	void reset();       		// reset to a known point
 	void connect();     		// do active open

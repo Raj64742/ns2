@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.31 1998/01/22 05:29:44 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.32 1998/01/27 02:31:58 gnguyen Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -103,7 +103,7 @@ public:
  *	segsperack: for delayed ACKs, how many to wait before ACKing
  *	segsize: segment size to use when sending
  */
-FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
+FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1),
 	last_send_time_(0.0), irs_(-1), delay_growth_(0)
@@ -181,6 +181,7 @@ FullTcpAgent::~FullTcpAgent()
 void
 FullTcpAgent::advanceby(int np)
 {
+	closed_ = 0;
 	// XXX hack:
 	//	because np is in packets and a data source
 	//	may pass a *huge* number as a way to tell us
@@ -531,6 +532,18 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 }
 
 /*
+ * This function is invoked when the connection is done. It in turn
+ * invokes the Tcl finish procedure that was registered with TCP.
+ */
+void FullTcpAgent::finish()
+{
+	if (closed_)
+		return;
+	closed_ = 1;
+	Tcl::instance().evalf("%s done", this->name());
+}
+
+/*
  * Process an ACK
  *	this version of the routine doesn't necessarily
  *	require the ack to be one which advances the ack number
@@ -552,6 +565,7 @@ void FullTcpAgent::newack(Packet* pkt)
 
 	if (ackno == maxseq_) {
 		cancel_rtx_timer();	// all data ACKd
+		finish();
 	} else if (progress) {
 		set_rtx_timer();
 	}
@@ -1410,6 +1424,10 @@ int FullTcpAgent::command(int argc, const char*const* argv)
 	}
 	if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
+			advanceby(atoi(argv[2]));
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "advanceby") == 0) {
 			advanceby(atoi(argv[2]));
 			return (TCL_OK);
 		}
