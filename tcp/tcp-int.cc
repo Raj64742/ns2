@@ -106,6 +106,8 @@ IntTcpAgent::command(int argc, const char*const* argv)
 	}
 	else if (argc == 2) {
 		if (!strcmp(argv[1], "session")) {
+			if (!session_)
+				createTcpSession();
 			tcl.resultf("%s", session_->name());
 			return (TCL_OK);
 		}
