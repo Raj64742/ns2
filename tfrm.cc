@@ -88,6 +88,7 @@ void TfrmAgent::start()
 	last_change_=0.0;
 	rate_change_ = SLOW_START ;
 	maxrate_ = 0; 
+	active_ = 1;
 
 	sendpkt();
 	send_timer_.resched(size_/rate_);
@@ -99,6 +100,7 @@ void TfrmAgent::start()
 
 void TfrmAgent::stop()
 {
+	active_ = 0;
 	send_timer_.force_cancel();
 }
 
@@ -187,6 +189,8 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	/* update the round trip time */
 
 	update_rtt (ts, now) ;
+	if (!active_)
+		return ;
 
 	/* if we get no more feedback for 2 more rtts, cur rate in half */
 	NoFeedbacktimer_.resched(2*rtt_);

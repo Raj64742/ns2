@@ -188,4 +188,6 @@ protected:
 
 		/* number of packets sent */
     TracedInt ndatapack_;   
+	/* active or inactive connection */
+	int active_;
 };
