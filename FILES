@@ -1741,6 +1741,7 @@ tcl/test/test-output-friendly/HighLossTCP.Z
 tcl/test/test-output-friendly/OnlyTcp.Z
 tcl/test/test-output-friendly/TFRC_FTP.Z
 tcl/test/test-output-friendly/delayedTCP.Z 
+tcl/test/test-output-friendly/delayedTCP2.Z
 tcl/test/test-output-friendly/delayedTFRC.Z 
 tcl/test/test-output-friendly/delayedTFRC1.Z 
 tcl/test/test-output-friendly/delayedTFRC2.Z 
