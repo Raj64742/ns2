@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.17 1998/12/16 18:29:35 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.18 1999/02/24 23:26:13 haldar Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -100,7 +100,7 @@ for t in $tests; do
     else 
 	echo
         echo Running test $t:
-	echo ../../ns $file $t.
+	echo ../../ns $file $t
 	if (test "$file" = "test-suite-session.tcl") || (test "$file" = "test-suite-mixmode.tcl")
 	then
 	    ../../ns $file $t > temp.rands
