@@ -223,7 +223,9 @@ TestSuite instproc traffic2 {} {
     $self instvar node_
     $self new_tcp 1.0  $node_(s1) $node_(s3) 50 1 0 1500 sack 0
     $self new_tcp 2.2 $node_(s2) $node_(s4) 50 2 0 1500 sack 0
-    $self new_cbr 58.4 $node_(s1) $node_(s4) 200 0.003 3 0
+    # 66,666 Bps for CBR flow, 187,500 Bps for link.
+#    $self new_cbr 58.4 $node_(s1) $node_(s4) 200 0.003 3 0
+    $self new_cbr 58.4 $node_(s1) $node_(s4) 500 0.003 3 0
     $self new_tcp 3.4 $node_(s1) $node_(s4) 50 4 0 1500 sack 0
     $self new_tcp 34.2 $node_(s3) $node_(s1) 50 5 0 1500 sack 0
     $self new_tcp 35.6 $node_(s5) $node_(s4) 50 6 0 1500 sack 0
@@ -241,7 +243,56 @@ TestSuite instproc traffic2 {} {
     $self new_tcp 36.1 $node_(s1) $node_(s4) 50 18 0 1500 sack 0
     $self new_tcp 45.6 $node_(s5) $node_(s4) 50 19 0 1500 sack 0
     $self new_tcp 47.3 $node_(s2) $node_(s6) 50 20 0 1500 sack 0
-    $self new_tcp 48.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
+#     $self new_tcp 48.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
+#     $self new_tcp 42.6 $node_(s5) $node_(s4) 50 22 0 1500 sack 0
+#     $self new_tcp 43.3 $node_(s2) $node_(s6) 50 23 0 1500 sack 0
+#     $self new_tcp 46.0 $node_(s1) $node_(s4) 50 24 0 1500 sack 0
+#     $self new_tcp 42.6 $node_(s5) $node_(s4) 50 25 0 1500 sack 0
+#     $self new_tcp 43.3 $node_(s2) $node_(s6) 50 26 0 1500 sack 0
+#     $self new_tcp 41.0 $node_(s1) $node_(s4) 50 27 0 1500 sack 0
+#     $self new_tcp 46.6 $node_(s5) $node_(s4) 50 28 0 1500 sack 0
+#     $self new_tcp 48.3 $node_(s2) $node_(s6) 50 29 0 1500 sack 0
+#     $self new_tcp 45.0 $node_(s1) $node_(s4) 50 30 0 1500 sack 0
+#    $self new_cbr 38.4 $node_(s2) $node_(s3) 200 0.006 31 0
+#    $self new_cbr 48.4 $node_(s5) $node_(s6) 200 0.004 32 0
+#    $self new_cbr 28.4 $node_(s2) $node_(s3) 200 0.005 33 0
+}
+
+#
+# For a 1% drop rate.
+#
+TestSuite instproc traffic3 {} {
+    $self instvar node_
+#    $self new_cbr 1.0 $node_(s2) $node_(s4) 1500 0.008 1 0
+    $self new_cbr 1.0 $node_(s2) $node_(s4) 1515 0.008 1 0
+}
+
+#
+# Create traffic.
+#
+TestSuite instproc traffic4 {} {
+    $self instvar node_
+    $self new_tcp 12.0  $node_(s1) $node_(s3) 50 1 0 1500 sack 0
+    $self new_tcp 5.2 $node_(s2) $node_(s4) 50 2 0 1500 sack 0
+    $self new_cbr 1.4 $node_(s1) $node_(s4) 300 0.003 3 0
+    $self new_tcp 17.4 $node_(s1) $node_(s4) 50 4 0 1500 sack 0
+    $self new_tcp 34.2 $node_(s3) $node_(s1) 50 5 0 1500 sack 0
+    $self new_tcp 35.6 $node_(s5) $node_(s4) 50 6 0 1500 sack 0
+    $self new_tcp 56.0 $node_(s4) $node_(s2) 50 7 0 1500 sack 0
+    $self new_tcp 37.3 $node_(s2) $node_(s6) 50 8 0 1500 sack 0
+    $self new_tcp 78.0 $node_(s1) $node_(s3) 50 9 0 1500 sack 0
+    $self new_tcp 39.5 $node_(s3) $node_(s2) 50 10 0 1500 sack 0
+    $self new_tcp 85.6 $node_(s2) $node_(s6) 50 11 0 1500 sack 0
+    $self new_tcp 30.2 $node_(s1) $node_(s4) 50 12 0 1500 sack 0
+    $self new_tcp 21.3 $node_(s5) $node_(s6) 50 13 0 1500 sack 0
+    $self new_tcp 32.9 $node_(s3) $node_(s2) 50 14 0 1500 sack 0
+    $self new_tcp 23.8 $node_(s2) $node_(s3) 50 15 0 1500 sack 0
+    $self new_tcp 34.0 $node_(s5) $node_(s6) 50 16 0 1500 sack 0
+    $self new_tcp 55.5 $node_(s2) $node_(s4) 50 17 0 1500  sack 0
+    $self new_tcp 36.1 $node_(s1) $node_(s4) 50 18 0 1500 sack 0
+    $self new_tcp 45.6 $node_(s5) $node_(s4) 50 19 0 1500 sack 0
+    $self new_tcp 47.3 $node_(s2) $node_(s6) 50 20 0 1500 sack 0
+    $self new_tcp 68.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
     $self new_tcp 42.6 $node_(s5) $node_(s4) 50 22 0 1500 sack 0
     $self new_tcp 43.3 $node_(s2) $node_(s6) 50 23 0 1500 sack 0
     $self new_tcp 46.0 $node_(s1) $node_(s4) 50 24 0 1500 sack 0
@@ -251,10 +302,8 @@ TestSuite instproc traffic2 {} {
     $self new_tcp 46.6 $node_(s5) $node_(s4) 50 28 0 1500 sack 0
     $self new_tcp 48.3 $node_(s2) $node_(s6) 50 29 0 1500 sack 0
     $self new_tcp 45.0 $node_(s1) $node_(s4) 50 30 0 1500 sack 0
-    $self new_cbr 38.4 $node_(s2) $node_(s3) 200 0.006 31 0
-    $self new_cbr 48.4 $node_(s5) $node_(s6) 200 0.004 32 0
-    $self new_cbr 28.4 $node_(s2) $node_(s3) 200 0.005 33 0
 }
+
 
 
 #
@@ -324,11 +373,12 @@ Test/one instproc run {} {
 #--------
 
 Class Test/two -superclass TestSuite
-Test/two instproc init { topo name } {
-        $self instvar net_ defNet_ test_
+Test/two instproc init { topo name enable } {
+        $self instvar net_ defNet_ test_ enable_
         set net_ $topo   
         set defNet_ net2
         set test_ $name
+	set enable_ $enable
         $self next
 	$self config $name
 }
@@ -337,17 +387,16 @@ Test/two instproc init { topo name } {
 # UNFRIENDLY test.
 #
 Test/two instproc run {} {
-    $self instvar ns_ net_ topo_
+    $self instvar ns_ net_ topo_ enable_
     $topo_ instvar cbqlink_ node_ rtt_
     set cbqlink $cbqlink_
 
 #    set stoptime 600.0
     set stoptime 100.0
 
-	set rtt $rtt_
 	set mtu 1500
 
-	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu]
+	set rtm [new RTMechanisms $ns_ $cbqlink $rtt_ $mtu $enable_]
 
 	$self instvar goodflowfile_
 	set gfm [$rtm makeflowmon]
@@ -364,10 +413,63 @@ Test/two instproc run {} {
 	$rtm makeboxes $gfm $bfm 100 1000
 	$rtm bindboxes
 	set L1 [$rtm monitor-link]
-	$self linkDumpFlows $L1 20.0 $stoptime
+	$self linkDumpFlows $L1 1.0 $stoptime
 
-	$self traffic1
-        $self more_cbrs
+	$self traffic2
+#	$self traffic3
+#        $self more_cbrs
+	$ns_ at $stoptime "$self finish"
+
+	ns-random 0
+	$ns_ run
+}
+
+#--------
+
+Class Test/three -superclass TestSuite
+Test/three instproc init { topo name enable } {
+        $self instvar net_ defNet_ test_ enable_
+        set net_ $topo   
+        set defNet_ net2
+        set test_ $name
+	set enable_ $enable
+        $self next
+	$self config $name
+}
+
+#
+# UNFRIENDLY test.
+#
+Test/three instproc run {} {
+    $self instvar ns_ net_ topo_ enable_
+    $topo_ instvar cbqlink_ node_ rtt_
+    set cbqlink $cbqlink_
+
+#    set stoptime 600.0
+    set stoptime 100.0
+
+	set mtu 1500
+
+	set rtm [new RTMechanisms $ns_ $cbqlink $rtt_ $mtu $enable_ ]
+
+	$self instvar goodflowfile_
+	set gfm [$rtm makeflowmon]
+	set gflowf [open $goodflowfile_ w]
+	$gfm set enable_in_ false	; # no per-flow arrival state
+	$gfm set enable_out_ false	; # no per-flow departure state
+	$gfm attach $gflowf
+
+	$self instvar badflowfile_
+	set bfm [$rtm makeflowmon]
+	set bflowf [open $badflowfile_ w]
+	$bfm attach $bflowf
+
+	$rtm makeboxes $gfm $bfm 100 1000
+	$rtm bindboxes
+	set L1 [$rtm monitor-link]
+	$self linkDumpFlows $L1 1.0 $stoptime
+
+	$self traffic4
 	$ns_ at $stoptime "$self finish"
 
 	ns-random 0
