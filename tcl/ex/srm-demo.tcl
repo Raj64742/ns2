@@ -35,7 +35,7 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.8 1997/08/08 00:19:13 kannan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.9 1997/08/11 05:12:36 mccanne Exp $
 #
 
 Simulator set NumberInterfaces_ 1
@@ -313,7 +313,9 @@ proc finish {} {
 	close $f
 
 	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > srm-demo-nam.tr 
+#	exec awk -f ../nam-demo/nstonam.awk out.tr > srm-demo-nam.tr 
+	exec tclsh ../../../nam-1/ns_to_nam.tcl out.tr srm-demo-nam.tcl > srm-demo-nam.tr
+exit 0
 	exec rm -f out
 	#XXX
 	puts "running nam..."

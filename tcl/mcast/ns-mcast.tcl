@@ -203,7 +203,7 @@ Node instproc get-oif { link } {
 Node instproc get-oifIndex { node_id } {
         $self instvar ns_ id_
         # XXX assume link head is iface, for simplicity
-        set link [$ns set link_($id_:$node_id)]
+        set link [$ns_ set link_($id_:$node_id)]
         return [[$link set ifacein_] set intf_label_]
 }
 
