@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.25 1998/01/20 03:03:51 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.26 1998/01/20 03:47:55 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -570,13 +570,10 @@ void FullTcpAgent::newack(Packet* pkt)
 		ts_peer_ = tcph->ts();	// always set (even if ts_option_ == 0)
                 if (ts_option_) {
                         rtt_update(now() - tcph->ts_echo());
-		}
-
-                if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
+		} else if (rtt_active_ && ackno >= rtt_seq_) {
                         t_backoff_ = 1;
-                        rtt_active_ = 0;
-                        if (!ts_option_)
-                                rtt_update(now() - tcph->ts_echo());
+                        rtt_active_ = FALSE;
+			rtt_update(now() - tcph->ts_echo());
                 }
         }
 	return;
