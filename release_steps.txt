@@ -36,7 +36,7 @@ NS RELEASE
     (build, run test scripts)
 4.2. Run the same test on a machine other than those of ISI's or even
      Mash's.
-5. put the tar in mash's /usr/mash/www/dist/vint
+5. put the tar in /nfs/web/isi.edu/htdocs/nsnam/dist
 5. Make a hard link to ~ftp/dist/vint. (For people accessing 
     things via ftp.)
 5.1. commit all your changes

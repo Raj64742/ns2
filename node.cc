@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.30 2001/02/22 19:45:38 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.31 2001/06/06 21:49:26 haldar Exp $
  *
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
@@ -41,9 +41,11 @@
 #include <stdarg.h>
 
 #include "address.h"
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 #include "nix/nixnode.h"
 #endif /* NIXVECTOR */
+#endif
 #include "node.h"
 
 static class LinkHeadClass : public TclClass {
@@ -104,14 +106,17 @@ int NixRoutingUsed = -1;
 Node::Node() : 
 	address_(-1), nodeid_ (-1), namChan_(0),
 	rtnotif_(NULL),
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 	nixnode_(NULL),
 #endif /* NIXVECTOR */
+#endif
 	energy_model_(NULL), location_(NULL)
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);
 	insert(&(Node::nodehead_)); // insert self into static list of nodes
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 	// Mods for Nix-Vector routing
 	if (NixRoutingUsed < 0)	{
@@ -126,6 +131,7 @@ Node::Node() :
 		nixnode_ = new NixNode();
 	}
 #endif /* NIXVECTOR */
+#endif
 	neighbor_list_ = NULL;
 }
 
@@ -139,6 +145,7 @@ Node::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 		// Mods for Nix-Vector Routing
 		if(strcmp(argv[1], "populate-objects") == 0) {
@@ -149,6 +156,7 @@ Node::command(int argc, const char*const* argv)
 		}
 		// End mods for Nix-Vector routing
 #endif /* NIXVECTOR */
+#endif
 		if(strcmp(argv[1], "address?") == 0) {
 			tcl.resultf("%d", address_);
  			return TCL_OK;
@@ -156,6 +164,7 @@ Node::command(int argc, const char*const* argv)
 			
 
 	} else if (argc == 3) {
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 		// Mods for Nix-Vector Routing
 		if (strcmp(argv[1], "get-nix-vector") == 0) {
@@ -165,21 +174,26 @@ Node::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 #endif /* NIXVECTOR */
+#endif
 		if (strcmp(argv[1], "set-neighbor") == 0) {
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 			if (nixnode_) {
 				nixnode_->AddAdj(atol(argv[2]));
 			}
 #endif /* NIXVECTOR */
+#endif
 			return(TCL_OK);
 		}
 		if (strcmp(argv[1], "addr") == 0) {
 			address_ = Address::instance().str2addr(argv[2]);
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 			if (nixnode_) {
 				nixnode_->Id(address_);
 			}
 #endif /* NIXVECTOR */
+#endif
 			return TCL_OK;
 		// End mods for Nix-Vector routing
 		} else if (strcmp(argv[1], "nodeid") == 0) {

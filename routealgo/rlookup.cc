@@ -4,9 +4,12 @@
 // Defines several variations on routing table representations
 // and a method to determine the most memory efficient.
 
-#include <stdio.h>
+#ifdef HAVE_STL
+#ifdef NIXVECTOR
 
-#include "routealgo/rlookup.h"
+#include <stdio.h>
+#include <routealgo/rlookup.h>
+//#include <routealgo/rbitmap.h>
 
 // Static function for RLookup
 // Analyze  a routing table, find best default, and first/last non-default
@@ -197,6 +200,8 @@ void FRLookup::Log( ostream& os)
   os << " " << (int)WhatType();
   os << " " << Default();
 }
+
+class BitMap;
 
 // Bitmap routing methods
 
@@ -507,3 +512,5 @@ size_t   NHLookup::EstimateSize(
   return sizeof(u_long) * r.size();
 }
 
+#endif /* NIXVECTOR */
+#endif /* STL */
