@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.110 1998/05/27 17:17:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.111 1998/05/27 19:46:47 heideman Exp $
 
 
 #
@@ -358,11 +358,12 @@ Node set multiPath_ 0
 AllocAddrBits set DEFADDRSIZE_ 16
 AllocAddrBits set MAXADDRSIZE_ 31                ;# leaving the signed bit
 
-Simulator set EnableHierRt_ 0                    ;# to enable hierarchical routing
+Simulator set node_factory_ Node
 
+Simulator set EnableHierRt_ 0                    ;# is hierarchical routing on?  (to turn it on, call set-hieraddress)
 Simulator set EnableMcast_ 0                     ;# to enable mcast
-
 SessionSim set rc_ 0                             ;# to enable packet reference count
+
 
 ### Default settings for Hierarchical topology
 AddrParams set domain_num_ 1

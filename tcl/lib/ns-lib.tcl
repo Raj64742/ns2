@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.104 1998/05/27 17:15:42 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.105 1998/05/27 19:46:48 heideman Exp $
 
 #
 
@@ -163,11 +163,7 @@ Simulator instproc dumper obj {
 # no shape OR color parameter is given
 Simulator instproc node args {
 	$self instvar Node_
-	if {[Simulator set EnableHierRt_]} {
-		set node [new HierNode $args]
-	} else {
-		set node [new Node]
-	}
+	set node [new [Simulator set node_factory_]]
 	set Node_([$node id]) $node
 	if [Simulator set EnableMcast_] {
 		$node enable-mcast $self
@@ -176,26 +172,9 @@ Simulator instproc node args {
 	return $node
 }
 
-#
-# Hierarchical routing support
-#
 Simulator instproc hier-node haddr {
-	### Simulator variable Node_ kept unchanged
-	$self instvar Node_
-	if {![Simulator set EnableHierRt_]} {
-		error "Hierarchical Routing not enabled"
-	}
-	set hiernode [new HierNode $haddr]
-	set Node_([$hiernode id]) $hiernode
-	if [Simulator set EnableMcast_] {
-		$hiernode hier-enable-mcast $self
-	}
-	$self check-node-num
-	return $hiernode
+ 	error "now create hier-nodes with just [$ns_ node $haddr]"
 }
-# Simulator instproc hier-node haddr 
-# 	error "now create hier-nodes with just [$ns_ node $haddr]"
-# 
 
 Simulator instproc now {} {
 	$self instvar scheduler_
@@ -918,6 +897,12 @@ Classifier instproc dump {} {
 		set iv $slots_($i)
 		puts "\t\tslot $i: $iv"
 	}
+}
+
+Classifier/Hash instproc dump args {
+	eval $self next $args
+	$self instvar default_
+	puts "\t$default_ default"
 }
 
 #

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.7 1998/05/27 17:21:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.8 1998/05/27 19:46:50 heideman Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -107,13 +107,35 @@ Simulator instproc compute-flat-routes {} {
 }
 
 RouteLogic instproc register {proto args} {
-	$self instvar rtprotos_
+	$self instvar rtprotos_ node_rtprotos_ default_node_rtprotos_
 	if [info exists rtprotos_($proto)] {
 		eval lappend rtprotos_($proto) $args
 	} else {
 		set rtprotos_($proto) $args
 	}
+	Agent/rtProto/$proto pre-init-all $args
+# 	# keep node to rtproto mapping
+# 	foreach $n $args <
+# 		set node_rtprotos_($n) $proto
+# 	>
+# 	if <$args == ""> <
+# 		set default_node_rtprotos_ $proto
+# 	>
 }
+
+# # map a node (object) to it's routing protocol
+# RouteLogic instproc node-to-rtproto <node> <
+# 	$self instvar node_rtprotos_ default_node_rtprotos_
+# 	if <[info exists node_rtprotos_]> <
+# 		if <[info exists node_rtprotos_($node)]> <
+# 			return $node_rtprotos_($node)
+# 		>
+# 	>
+# 	if <[info exists default_node_rtprotos_]> <
+# 		return $default_node_rtprotos_
+# 	>
+# 	return Static
+# >
 
 RouteLogic instproc configure {} {
 	$self instvar rtprotos_
@@ -165,7 +187,6 @@ RouteLogic instproc notify {} {
 		}
 	}
 }
-
 
 #
 # routine to create address for hier-route-lookup at each level

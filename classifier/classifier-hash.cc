@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.12 1997/08/08 01:24:33 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.13 1998/05/27 19:46:43 heideman Exp $ (LBL)";
 #endif
 
 //
@@ -52,6 +52,18 @@ static const char rcsid[] =
 
 /* class defs for HashClassifier (base), SrcDest, SrcDestFid HashClassifiers */
 
+/*
+ * A very strange thing about this code:
+ * in hnode, src/dst are stored unencoded
+ * in HashClassifier::lookup(nsaddr_t src, nsaddr_t dst, int fid)
+ * dst is converted from encoded to unencoded.
+ * (Encoded means shifted by the addressing rules.)
+ * This use of both kinds of addresses is somewhat confusing.
+ *
+ * Another thing:  we should really switch to using Tcl hashs
+ * rather than our own.
+ * ---johnh
+ */
 class HashClassifier : public Classifier {
 public:
 	HashClassifier(int nbuckets);
@@ -73,6 +85,7 @@ protected:
 	int newflow(Packet*);
 	void insert(int, nsaddr_t, nsaddr_t, int, int);
 	void reset();
+	void resize(int new_buckets);
 	int classify(Packet *const p) {
 
 		hnode *hn = lookup(p);
@@ -148,6 +161,23 @@ protected:
 	}
 };
 
+class DestHashClassifier : public HashClassifier {
+public:
+	DestHashClassifier(int nb) : HashClassifier(nb) {}
+protected:
+	int command(int argc, const char*const* argv);
+	int hash(nsaddr_t dest) {
+		return (dest % buckets_);
+	}
+	int compare(hnode *hn, nsaddr_t src, nsaddr_t dst, int) {
+		return (hn->active && 
+			hn->dst == ((dst >> shift_) & mask_));
+	}
+	int find_hash(nsaddr_t, nsaddr_t dest, int) {
+		return(hash(dest));
+	}
+};
+
 /**************  TCL linkage ****************/
 static class SrcDestHashClassifierClass : public TclClass {
 public:
@@ -175,6 +205,19 @@ public:
 	}
 } class_hash_fid_classifier;
 
+static class DestHashClassifierClass : public TclClass {
+public:
+	DestHashClassifierClass() : TclClass("Classifier/Hash/Dest") {}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc < 5) {
+			fprintf(stderr, "DestHashClassifier ctor requires buckets arg\n");
+			abort();
+		}
+		int buckets = atoi(argv[4]);
+		return (new DestHashClassifier(buckets));
+	}
+} class_hash_dest_classifier;
+
 static class SrcDestFidHashClassifierClass : public TclClass {
 public:
 	SrcDestFidHashClassifierClass() :
@@ -192,6 +235,38 @@ public:
 
 /****************** HashClassifier Methods ************/
 
+void
+HashClassifier::resize(int b)
+{
+	int i;
+
+	/* can we resize? */
+	if (htab_) {
+		for (i = 0; i < buckets_; i++)
+			if (htab_[i].active) {
+				/*
+				 * Please please please
+				 * switch to Tcl hashes
+				 * rather than writing our own
+				 * more sophticated resizing code.
+				 * ---johnh
+				 */
+				fprintf(stderr, "HashClassifier::resize: attempt to resize HashClassifier with existing buckets.\n");
+				abort();
+			}
+		delete[] htab_;
+		buckets_ = 0;
+	};
+	/* allocate new */
+	buckets_ = b;
+	htab_ = new hnode[buckets_];
+	if (htab_ == NULL) {
+		fprintf(stderr, "HashClassifier::resize: out of memory.\n");
+		abort();
+	};
+	memset(htab_, '\0', sizeof(hnode) * buckets_);
+}
+
 HashClassifier::HashClassifier(int b) : mask_(~0), shift_(0),
 	default_(-1), buckets_(b), htab_(NULL)
 { 
@@ -199,12 +274,7 @@ HashClassifier::HashClassifier(int b) : mask_(~0), shift_(0),
 	bind("mask_", (int*)&mask_);
 	bind("shift_", &shift_);
 	bind("default_", &default_);
-	// number of buckets in hashtable
-	htab_ = new hnode[buckets_];
-	if (htab_ != NULL)
-		memset(htab_, '\0', sizeof(hnode) * buckets_);
-	else
-		fprintf(stderr, "HashClassifier: out of memory\n");
+	resize(b);
 }
 
 HashClassifier::~HashClassifier()
@@ -242,8 +312,9 @@ int HashClassifier::command(int argc, const char*const* argv)
 			else
 				buck = atoi(argv[2]);
 
-//printf("classifier-hash(%s), set-hash [%d/%d/%d] (buck:%d)(slot:%d)[%s]\n",
-//name(), src, dst, fid, buck, slot, slot_[slot]->name());
+			/* printf("classifier-hash(%s), set-hash [%d/%d/%d] (buck:%d)(slot:%d)[%s]\n",
+			       name(), src, dst, fid, buck, slot, slot_[slot]->name());
+			*/
 
 			insert(buck, src, dst, fid, slot);
 			return (TCL_OK);
@@ -285,7 +356,16 @@ int HashClassifier::command(int argc, const char*const* argv)
 			}
 			return (TCL_ERROR);
 		}
-	}
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "resize") == 0) {
+			int b = atoi(argv[2]);
+			if (b < 1)
+				return TCL_ERROR;
+			resize(b);
+			tcl.resultf("");
+			return TCL_OK;
+		};
+	};
         return (Classifier::command(argc, argv));
 }
 
@@ -375,6 +455,11 @@ int SrcDestFidHashClassifier::command(int argc, const char*const* argv)
 }
 
 int FidHashClassifier::command(int argc, const char*const* argv)
+{
+	return (HashClassifier::command(argc, argv));
+}
+
+int DestHashClassifier::command(int argc, const char*const* argv)
 {
 	return (HashClassifier::command(argc, argv));
 }

@@ -199,6 +199,7 @@ Simulator instproc set-hieraddress {hlevel args} {
 	$a set size_ [AllocAddrBits set MAXADDRSIZE_]
 	if ![Simulator set EnableHierRt_] {
 		Simulator set EnableHierRt_ 1
+		Simulator set node_factory_ HierNode
 	}
 	if [Simulator set EnableMcast_] {
 		$a set-mcastbits 1

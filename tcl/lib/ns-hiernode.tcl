@@ -42,6 +42,11 @@ Class HierNode -superclass Node
 
 HierNode instproc init {addr args} {
 	eval $self next $args
+	set address_ $addr
+	# puts "node address= $address_"
+}
+
+HierNode instproc mk-default-classifier {} {
 	$self instvar np_ id_ classifiers_ agents_ dmux_ neighbor_ address_ 
 	# puts "id=$id_"
 	set levels [AddrParams set hlevel_]
@@ -50,8 +55,6 @@ HierNode instproc init {addr args} {
 		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
 		$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
 	}
-	set address_ $addr
-	# puts "node address= $address_"
 }
 
 HierNode instproc entry {} {

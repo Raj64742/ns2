@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/tcl-expand.tcl,v 1.1 1997/08/14 20:20:08 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/tcl-expand.tcl,v 1.2 1998/05/27 19:46:46 heideman Exp $
 #
 
 #
@@ -39,10 +39,12 @@
 #
 
 proc expand_file name {
+	puts "### tcl-expand.tcl: begin expanding $name"
 	set f [open $name r]
 	while 1 {
 		if { [gets $f line] < 0 } {
 			close $f
+			puts "### tcl-expand.tcl: end expanding $name"
 			return
 		}
 		set L [split $line]

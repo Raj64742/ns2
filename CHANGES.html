@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.244 1998/05/24 05:29:50 ahelmy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.245 1998/05/27 19:46:41 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -37,6 +37,21 @@
 		tcl/ex/topo-gen.txt.
 	    </ul>
 
+    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+       <b>Wed May 27 11:46:01 PDT 1998</b><br>
+	 <ul>
+	   <li> "make tcl/lib/TAGS" now generates {o,}tcl tags.
+	   <li> tcl-expand.tcl now includes tags about what the files are
+	   <li> Simulator::node now generates nodes indirectly through
+		Simulator::node_factory_
+	   <li> Node::mk-default-classifier is new node-specific code
+		to create its classifiers
+	   <li> Manual routing is now possible (new Agent/rtProto/Manual, ManualRtNode)
+	   <li> DestHashClassifier exists
+	   <li> Classifiers can now be resized
+	   <li> more error checking added to classifier's installNext
+	 </ul>
+	 
     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Fri May 22 11:17:00 PDT 1998</b><br>
 	 <ul>

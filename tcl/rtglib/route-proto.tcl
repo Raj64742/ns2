@@ -319,8 +319,12 @@ rtPeer instproc preference? dest {
 #
 #Class Agent/rtProto -superclass Agent
 
+Agent/rtProto proc pre-init-all args {
+    # By default, do nothing when a person does $ns rtproto foo.
+}
+
 Agent/rtProto proc init-all args {
-    error "No initialisation defined"
+    error "No initialization defined"
 }
 
 Agent/rtProto instproc init node {
@@ -725,6 +729,19 @@ Agent/rtProto/DV instproc recv-update {peerAddr id} {
 
 Agent/rtProto/DV proc compute-all {} {
     # Because proc methods are not inherited from the parent class.
+}
+
+#
+# Manual routing
+#
+Class Agent/rtProto/Manual -superclass Agent/rtProto
+
+Agent/rtProto/Manual proc pre-init-all args {
+    Simulator set node_factory_ ManualRtNode
+}
+
+Agent/rtProto/Manual proc init-all args {
+    # The user will do all routing.
 }
 
 ### Local Variables:

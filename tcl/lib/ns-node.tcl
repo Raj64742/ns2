@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1996 Regents of the University of California.
+# Copyright (c) 1996-1998 Regents of the University of California.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.33 1998/05/27 17:18:43 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.34 1998/05/27 19:46:49 heideman Exp $
 #
 
 Class Node
@@ -43,20 +43,22 @@ Node proc getid {} {
 
 Node instproc init args {
 	eval $self next $args
-	$self instvar np_ id_ classifier_ agents_ dmux_ neighbor_ address_
+	$self instvar np_ id_ agents_ dmux_ neighbor_
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
 	set np_ 0
 	set id_ [Node getid]
-	if {![Simulator set EnableHierRt_]} {
-		set classifier_ [new Classifier/Addr]
-		# set up classifer as a router (default value 8 bit of addr and 8 bit port)
-		$classifier_ set mask_ [AddrParams set NodeMask_(1)]
-		$classifier_ set shift_ [AddrParams set NodeShift_(1)]
-		set address_ $id_
-	}
-	
+	$self mk-default-classifier
+}
+
+Node instproc mk-default-classifier {} {
+	$self instvar address_ classifier_ id_
+	set classifier_ [new Classifier/Addr]
+	# set up classifer as a router (default value 8 bit of addr and 8 bit port)
+	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
+	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
+	set address_ $id_
 }
 
 Node instproc enable-mcast sim {
@@ -139,7 +141,7 @@ Node instproc alloc-port { nullagent } {
 # bind the agent to the port number.
 #
 Node instproc attach { agent } {
-	$self instvar agents_ classifier_ address_ dmux_
+	$self instvar agents_ address_ dmux_
 	#
 	# assign port number (i.e., this agent receives
 	# traffic addressed to this host and port)
@@ -448,3 +450,63 @@ Node instproc intf-changed { } {
 	}
 }
 
+
+#
+# Manual Routing Nodes:
+# like normal nodes, but with a hash classifier.
+#
+
+Class ManualRtNode -superclass Node
+
+ManualRtNode instproc mk-default-classifier {} {
+	$self instvar address_ classifier_ id_ dmux_
+	# Note the very small hash size---
+	# you're supposed to resize it if you want more.
+	set classifier_ [new Classifier/Hash/Dest 2]
+# commenting out next line is a hack!
+#	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
+	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
+	set address_ $id_
+	#
+	# When an agent is created,
+	# $self add-route $address_ $dmux_ is called
+	# which will do this.
+	#
+}
+
+ManualRtNode instproc add-route {dst_address target} {
+	$self instvar classifier_ 
+	set slot [$classifier_ installNext $target]
+	if {$dst_address == "default"} {
+		$classifier_ set default_ $slot
+	} else {
+		# don't encode the address here, set-hash bypasses that for us
+		# set encoded_dst_address [expr $dst_address << [AddrParams set NodeShift_(1)]]
+		# $classifier_ set-hash auto 0 $encoded_dst_address 0 $slot
+		$classifier_ set-hash auto 0 $dst_address 0 $slot
+	}
+# 	puts "ManualRtNode::add-route: $dst $target, classifier=$classifier_ slot=$slot"
+#	puts "\t*slot=[$classifier_ slot $slot]"
+}
+
+ManualRtNode instproc add-route-to-adj-node args {
+	$self instvar classifier_ address_
+
+	set dst ""
+	if {[lindex $args 0] == "-default"} {
+		set dst default
+		set args [lrange $args 1 end]
+	}
+	if {[llength $args] != 1} {
+		error "ManualRtNode::add-route-to-adj-node [-default] node"
+	}
+	set target_node $args
+	if {$dst == ""} {
+		set dst [$target_node set address_]
+	}
+	set ns [Simulator instance]
+	set link [$ns nodes-to-link $self $target_node]
+	set target [$link set head_]
+	# puts "ManualRtNode::add-route-to-adj-node: in $self for addr $dst to target $target"
+	return [$self add-route $dst $target]
+}
