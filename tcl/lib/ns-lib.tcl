@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.161 1999/08/31 06:46:42 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.162 1999/09/01 21:35:04 yaxu Exp $
 
 #
 
@@ -184,23 +184,22 @@ Simulator instproc dumper obj {
 
 # Define global node configuration
 # $ns_ node-config -addressingType flat/hierarchical/expanded
-#                  -routingAgent   "Agent/DSDV"/"Agent/DSR"
-#                  -nodefactory    "Node"/"Node/MobileNode/DSDV"/...
+#                  -adhocRouting   "Agent/DSDV"/"Agent/DSR"
 #                  -llType
 #                  -macType
 #                  -propType
 #                  -ifqType
-#                  -ifqlen
+#                  -ifqLen
 #                  phyType
 #                  antType
 #                  -energyModel    "EnergyModel"
 #                  -initialEnergy  (in Joules)
-#                  -RxPower        (in W)
-#                  -TxPower        (in W)
-#                  -AgentTrace  ON
-#                  -RouterTrace ON 
-#                  -MacTrace OFF 
-#                  -MovementTrace OFF
+#                  -rxPower        (in W)
+#                  -txPower        (in W)
+#                  -agentTrace  ON
+#                  -routerTrace ON 
+#                  -macTrace OFF 
+#                  -movementTrace OFF
 
 Simulator set routingAgent_ ""
 Simulator set addressType_   ""
@@ -216,23 +215,22 @@ Simulator set nodefactory_ Node
 Simulator set MovementTrace OFF
 
 Simulator instproc addressType  {val} { $self set addressType_  $val }
-Simulator instproc routingAgent  {val} { $self set routingAgent_  $val }
-Simulator instproc nodefactory  {val} { $self set nodefactory_  $val }
+Simulator instproc adhocRouting  {val} { $self set routingAgent_  $val }
 Simulator instproc llType  {val} { $self set llType_  $val }
 Simulator instproc macType  {val} { $self set macType_  $val }
 Simulator instproc propType  {val} { $self set propType_  $val }
 Simulator instproc ifqType  {val} { $self set ifqType_  $val }
-Simulator instproc ifqlen  {val} { $self set ifqlen_  $val }
+Simulator instproc ifqLen  {val} { $self set ifqlen_  $val }
 Simulator instproc phyType  {val} { $self set phyType_  $val }
 Simulator instproc antType  {val} { $self set antType_  $val }
 Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
-Simulator instproc TxPower  {val} { $self set txPower__  $val }
-Simulator instproc RxPower  {val} { $self set rxPower_  $val }
-Simulator instproc AgentTrace  {val} { $self set agentTrace_  $val }
-Simulator instproc RouterTrace  {val} { $self set routerTrace_  $val }
-Simulator instproc MacTrace  {val} { $self set macTrace_  $val }
-Simulator instproc MovementTrace  {val} { $self set movementTrace_  $val }
+Simulator instproc txPower  {val} { $self set txPower__  $val }
+Simulator instproc rxPower  {val} { $self set rxPower_  $val }
+Simulator instproc agentTrace  {val} { $self set agentTrace_  $val }
+Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
+Simulator instproc macTrace  {val} { $self set macTrace_  $val }
+Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 
 Simulator instproc node-config args {
         set args [eval $self init-vars $args]
@@ -261,11 +259,6 @@ Simulator instproc node-config args {
         # not good style, for back-compability ONLY
 
         set propType_ [new $propType_] 
-
-        if [info exists nodefactory_] {
-            Simulator instvar node_factory_
-            set node_factory_ $nodefactory_
-	}
 
 # set address type, hierarchical or expanded
 
@@ -335,7 +328,7 @@ Simulator instproc create-wireless-node { args } {
         set imepflag_ OFF
 
         switch -exact $routingAgent_ {
-	    Agent/DSDV {
+	    DSDV {
 
                if {[Simulator set EnableHierRt_]} {
                     if [Simulator set mobile_ip_] {
@@ -351,7 +344,7 @@ Simulator instproc create-wireless-node { args } {
 
 	    }
 
-	    Agent/DSR {
+	    DSR {
 		      
 		if {[Simulator set EnableHierRt_]} {
 		    if [Simulator set mobile_ip_] {
@@ -368,7 +361,7 @@ Simulator instproc create-wireless-node { args } {
 		$self at 0.0 "$node start-dsr"
 	    }
 
-	    Agent/TORA {
+	    TORA {
 		set imepflag_ ON
 		set node [new Node/MobileNode]
 		set ragent [$self create-tora-agent $node]
@@ -388,7 +381,7 @@ Simulator instproc create-wireless-node { args } {
 
 	# attach agent
 
-	if {$routingAgent_ != "Agent/DSR"} {
+	if {$routingAgent_ != "DSR"} {
 	     $node attach $ragent 255
 	}
 

@@ -185,18 +185,18 @@ Test/dsdv instproc init {} {
 	set god_ [create-god $opt(nn)]
 
 
-    $ns_ node-config -routingAgent Agent/DSDV \
+    $ns_ node-config -adhocRouting DSDV \
                          -llType $opt(ll) \
                          -macType $opt(mac) \
                          -ifqType $opt(ifq) \
-                         -ifqlen $opt(ifqlen) \
+                         -ifqLen $opt(ifqlen) \
                          -antType $opt(ant) \
                          -propType $opt(prop) \
                          -phyType $opt(netif) \
-                         -AgentTrace ON \
-                         -RouterTrace OFF \
-                         -MacTrace OFF \
-                         -MovementTrace OFF
+                         -agentTrace ON \
+                         -routerTrace OFF \
+                         -macTrace OFF \
+                         -movementTrace OFF
 
     
 
@@ -251,18 +251,18 @@ Test/tora instproc init {} {
 	set god_ [create-god $opt(nn)]
 
 
-    $ns_ node-config -routingAgent Agent/TORA \
+    $ns_ node-config -adhocRouting TORA \
                          -llType $opt(ll) \
                          -macType $opt(mac) \
                          -ifqType $opt(ifq) \
-                         -ifqlen $opt(ifqlen) \
+                         -ifqLen $opt(ifqlen) \
                          -antType $opt(ant) \
                          -propType $opt(prop) \
                          -phyType $opt(netif) \
-                         -AgentTrace ON \
-                         -RouterTrace ON \
-                         -MacTrace OFF \
-                         -MovementTrace OFF
+                         -agentTrace ON \
+                         -routerTrace ON \
+                         -macTrace OFF \
+                         -movementTrace OFF
 
     
     for {set i 0} {$i < $opt(nn) } {incr i} {
