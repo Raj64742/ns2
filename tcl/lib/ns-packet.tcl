@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.32 1999/08/17 04:26:57 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.33 1999/09/01 15:58:57 tomh Exp $
 #
 #
 # set up the packet format for the simulation
@@ -49,6 +49,8 @@ foreach cl [PacketHeader info subclass] {
 	PacketHeaderManager set vartab_($cl) ""
 }
 
+# If you need to save some memory, you can disable unneeded packet headers
+# by commenting them out from the list below
 foreach pair {
 	{ Common off_cmn_ }
 	{ Mac off_mac_ }
@@ -101,12 +103,12 @@ Simulator instproc create_packetformat { } {
 	PacketHeaderManager instvar vartab_
 	set pm [new PacketHeaderManager]
 	foreach cl [PacketHeader info subclass] {
-		set off [$pm allochdr [lindex [split $cl /] 1]]
-		if [info exists vartab_($cl)] {
+		if {[info exists vartab_($cl)] && $vartab_($cl) != ""} {
+			set off [$pm allochdr [lindex [split $cl /] 1]]
 			set var [PacketHeaderManager set vartab_($cl)]
 			TclObject set $var $off
+			$cl offset $off
 		}
-		$cl offset $off
 	}
 	$self set packetManager_ $pm
 }
