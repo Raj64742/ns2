@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.9 1998/02/21 03:03:09 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.10 1998/02/28 00:02:06 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -287,8 +287,6 @@ PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr)
 	// link layer header will be placed at the beginning
 	int s = skiphdr();
 	memcpy(buf, pkt + s, n - s);
-
-Ethernet::ether_print(pkt);
 	return n - s;
 }
 
@@ -297,10 +295,6 @@ int
 PcapNetwork::send(u_char *buf, int len)
 {
 	int n;
-
-printf("PcapNetwork(%s): writing %d bytes to bpf fd %d\n",
-name(), n, pfd_);
-Ethernet::ether_print(buf);
 
 	if ((n = write(pfd_, buf, len)) < 0)
 		perror("write to pcap fd");

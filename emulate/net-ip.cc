@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.6 1998/02/23 23:53:09 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.7 1998/02/28 00:01:30 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -251,13 +251,11 @@ IPNetwork::recv(u_char* buf, int len, sockaddr& sa)
 // note also, that it will compute the cksum "for" us... :(
 //
 int
-IPNetwork::send(u_char* buf, int len) {
+IPNetwork::send(u_char* buf, int len)
+{
 	struct ip *ip = (struct ip*) buf;
 	ip->ip_len = ntohs(ip->ip_len);
 	ip->ip_off = ntohs(ip->ip_off);
-
-printf(">>> IPNetwork send(%d, %p, %d, 0)\n", ssock_, buf, len);
-print_ip(buf);
 
 	return (::send(ssock_, (char*)buf, len, 0));
 }
