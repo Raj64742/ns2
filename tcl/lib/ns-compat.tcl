@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.20 1997/03/28 21:25:42 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.21 1997/04/25 02:15:55 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -51,26 +51,50 @@ OldSim instproc init args {
 	puts stderr "warning: using backward compatibility mode"
 	$self instvar classMap_
 	#
-	# Catch queue-limit variable which is now "$q limit"
+	# in CBQ, setting the algorithm_ variable becomes invoking
+	# the algorithm method
 	#
-	Queue/DropTail instproc set args {
-		if { [llength $args] == 2 &&
-			[lindex $args 0] == "queue-limit" } {
-			# this will recursively call ourself
-			$self set limit_ [lindex $args 1]
-			return
+	# also, there really isn't a limit_ for CBQ, as each queue
+	# has its own.
+	#
+	Queue/CBQ instproc set args {
+		$self instvar compat_qlim_
+		if { [lindex $args 0] == "queue-limit" || \
+				[lindex $args 0] == "limit_" } { 
+			if { [llength $args] == 2 } {
+				set val [lindex $args 1]
+				set compat_qlim_ $val
+				return $val
+			}
+			return $compat_qlim_
+		} elseif { [lindex $args 0] == "algorithm_" } {
+			$self algorithm [lindex $args 1]
+			# note: no return here
 		}
 		eval $self next $args
 	}
-	Queue/RED instproc set args {
-		if { [llength $args] == 2 &&
-			[lindex $args 0] == "queue-limit" } {
-			# this will recursively call ourself
-			$self set limit_ [lindex $args 1]
-			return
-		}
-		eval $self next $args
-	}
+        #
+        # Catch queue-limit variable which is now "$q limit"
+        #
+        Queue/DropTail instproc set args {
+                if { [llength $args] == 2 &&
+                        [lindex $args 0] == "queue-limit" } {
+                        # this will recursively call ourself
+                        $self set limit_ [lindex $args 1]
+                        return
+                }
+                eval $self next $args
+        }
+        Queue/RED instproc set args {
+                if { [llength $args] == 2 &&
+                        [lindex $args 0] == "queue-limit" } {
+                        # this will recursively call ourself
+                        $self set limit_ [lindex $args 1]
+                        return
+                }
+                eval $self next $args
+        }
+
 	#
 	# Catch set maxpkts for FTP sources, (needed because Source objects are
 	# not derived from TclObject, and hence can't use varMap method below)
@@ -190,37 +214,175 @@ OldSim instproc init args {
 	# has a bunch of variables (see above).
 	#
 	Class linkHelper
-		# variables that are set on a queue object
-	linkHelper set queuevars_ "bytes concise thresh maxthresh \
-		mean_pktsize q_weight wait linterm setbit drop-tail \
-		doubleq dqthresh time_diff ave_diff queue-limit"
-		# variables that are set on a link object
-	linkHelper set linkvars_ "bandwidth delay"
 	linkHelper instproc init args {
-		$self next
-		$self instvar node1_ node2_ link_
+		$self instvar node1_ node2_ linkref_ queue_
 		set node1_ [lindex $args 0]
 		set node2_ [lindex $args 1]
-		set link_ [$node1_ id]:[$node2_ id]	    
+		set lid [$node1_ id]:[$node2_ id]	    
+		set linkref_ [ns set link_($lid)]
+		set queue_ [$linkref_ queue]
+		# these will be used in support of link stats
+		set sqi [new SnoopQueue/In]
+		set sqo [new SnoopQueue/Out]
+		set sqd [new SnoopQueue/Drop]
+		set dsamples [new Samples]
+		set qmon [new QueueMonitor/Compat]
+		$qmon set-delay-samples $dsamples
+		$linkref_ attach-monitors $sqi $sqo $sqd $qmon
 	}
 	linkHelper instproc trace traceObj {
 		$self instvar node1_ node2_
 		ns trace-queue $node1_ $node2_ [$traceObj set file_]
 	}
-
 	linkHelper instproc set { var val } {
-		$self instvar link_
-		linkHelper instvar queuevars_ linkvars_
-		set var [string trimright $var _]
-		if { [lsearch $queuevars_ $var] > 0 } {
-			set q [[ns set link_($link_)] queue]
-			if { $var == "queue-limit" } { set var "limit" }
-			$q set ${var}_ $val
-		} elseif { [lsearch $linkvars_ $var] > 0 } {
-			set d [[ns set link_($link_)] link]
-			$d set ${var}_ $val
+
+		$self instvar linkref_ queue_
+		set qvars [$queue_ info vars]
+		set linkvars [$linkref_ info vars]
+		set linkdelayvars [[$linkref_ link] info vars]
+		#
+		# adjust the string to have a trailing '_'
+		# because all instvars are constructed that way
+		#
+		if { [string last _ $var] != ( [string length $var] - 1) } {
+			set var ${var}_
+		}
+		if { $var == "queue-limit_" } {
+			set var "limit_"
+		}
+		if { [lsearch $qvars $var] >= 0 } {
+			# set a queue var
+			$queue_ set $var $val
+		} elseif { [lsearch $linkvars $var] >= 0 } {
+			# set a link OTcl var
+			$linkref_ set $var $val
+		} elseif { [lsearch $linkdelayvars $var] >= 0 } {
+			# set a linkdelay object var
+			[$linkref_ link] set $var $val
+		} else {
+			puts stderr "linkHelper warning: couldn't set unknown variable $var"
 		}
 	}
+	#
+	# gross, but works:
+	#
+	# In ns-1 queues were a sublass of link, and this compat
+	# code carries around a 'linkHelper' as the returned object
+	# when you do a [ns link $r1 $r2] or a [ns link $r1 $r2 $qtype]
+	# command.  So, operations on this object could have been
+	# either link ops or queue ops in ns-1.  It is possible to see
+	# whether an Otcl class or object supports certain commands
+	# but it isn't possible to look inside a C++ implemented object
+	# (i.e. into it's cmd function) to see what it supports.  Instead,
+	# arrange to catch the exception generated while trying into a
+	# not-implemented method in a C++ object.
+	#
+	linkHelper instproc try { obj operation argv } {
+		set op [eval list $obj $operation $argv]
+		set ocl [$obj info class]
+		set iprocs [$ocl info instcommands]
+		set oprocs [$obj info commands]
+		# if it's a OTcl-implemented method we see it in info
+		# and thus don't need to catch it
+		if { $operation != "cmd" } {
+			if { [lsearch $iprocs $operation] >= 0 } {
+				return [eval $op]
+			}
+			if { [lsearch $oprocs $operation] >= 0 } {
+				return [eval $op]
+			}
+		}
+		#catch the c++-implemented method in case it's not there
+		#ret will contain error string or return string
+		# value of catch operation will be 1 on error
+		if [catch $op ret] {
+			return -1
+		}
+		return $ret
+	}
+	# so, try to invoke the op on a queue and if that causes
+	# an exception (a missing function hopefully) try it on
+	# the link instead
+	#
+	# we need to override 'TclObject instproc unknown args'
+	# (well, at least we did), because it was coded such that
+	# if a command() function didn't exist, an exit 1 happened
+	#
+	linkHelper instproc unknown { m args } {
+		# method could be in: queue, link, linkdelay
+		# or any of its command procedures
+		# note that if any of those have errors in them
+		# we can get a general error by ending up at the end here
+		$self instvar linkref_ queue_
+		set oldbody [TclObject info instbody unknown]
+		TclObject instproc unknown args {
+			if { [lindex $args 0] == "cmd" } {
+				puts stderr "Can't dispatch $args"
+				exit 1
+			}
+			eval $self cmd $args
+		}
+
+		# try an OTcl queue then the underlying queue object
+		set rval [$self try $queue_ $m $args]
+		if { $rval != -1 } {
+			TclObject instproc unknown args $oldbody
+			return $rval
+		}
+		set rval [$self try $queue_ cmd [list $m $args]]
+		if { $rval != -1 } {
+			TclObject instproc unknown args $oldbody
+			return $rval
+		}
+		set rval [$self try $linkref_ $m $args]
+		if { $rval != -1 } {
+			TclObject instproc unknown args $oldbody
+			return $rval
+		}
+		set rval [$self try $linkref_ cmd [list $m $args]]
+		if { $rval != -1 } {
+			TclObject instproc unknown args $oldbody
+			return $rval
+		}
+		set dlink [$linkref_ link]
+		set rval [$self try $dlink $m $args]
+		if { $rval != -1 } {
+			TclObject instproc unknown args $oldbody
+			return $rval
+		}
+		set rval [$self try $dlink cmd [list $m $args]]
+		if { $rval != -1 } {
+			TclObject instproc unknown args $oldbody
+			return $rval
+		}
+		TclObject instproc unknown args $oldbody
+		puts stderr "Unknown operation $m or subbordinate operation failed"
+		exit 1
+	}
+	linkHelper instproc stat { classid item } {
+		$self instvar linkref_
+		set qmon [$linkref_ set qMonitor_]
+		# note: in ns-1 the packets/bytes stats are counts
+		# of the number of *departures* at a link/queue
+		#
+		if { $item == "packets" } {
+			return [$qmon pkts $classid]
+		} elseif { $item == "bytes" } {
+			return [$qmon bytes $classid]
+		} elseif { $item == "drops"} {
+			return [$qmon drops $classid]
+		} elseif { $item == "mean-qdelay" } {
+			set dsamp [$qmon get-delay-samples]
+			return [$dsamp mean]
+		} else {
+			puts stderr "linkHelper: unknown stat op $item"
+			exit 1
+		}
+	}
+
+	#
+	# end linkHelper
+	#
 
 	set classMap_(tcp) Agent/TCP
 	set classMap_(tcp-reno) Agent/TCP/Reno
@@ -236,11 +398,23 @@ OldSim instproc init args {
 	set queueMap_(drop-tail) DropTail
 	set queueMap_(sfq) SFQ
 	set queueMap_(red) RED
+	set queueMap_(cbq) CBQ
+	set queueMap_(wrr-cbq) CBQ/WRR
+}
+
+#
+# links in ns-1 had support for statistics collection...
+# $link stat packets/bytes/drops
+#
+OldSim instproc simplex-link-compat { n1 n2 bw delay qtype } {
+	set linkhelp [$self link-threeargs $n1 $n2 $qtype]
+	$linkhelp set bandwidth_ $bw
+	$linkhelp set delay_ $delay
 }
 
 OldSim instproc duplex-link-compat { n1 n2 bw delay type } {
-	ns simplex-link $n1 $n2 $bw $delay $type
-	ns simplex-link $n2 $n1 $bw $delay $type
+	ns simplex-link-compat $n1 $n2 $bw $delay $type
+	ns simplex-link-compat $n2 $n1 $bw $delay $type
 }
 
 OldSim instproc get-queues { n1 n2 } {
@@ -283,7 +457,17 @@ OldSim instproc create-connection \
 #
 # return helper object for backward compat of "ns link" command
 #
-OldSim instproc link { n1 n2 } {
+OldSim instproc link args {
+	set nargs [llength $args]
+	set arg0 [lindex $args 0]
+	set arg1 [lindex $args 1]
+	if { $nargs == 2 } {
+		return [$self link-twoargs $arg0 $arg1]
+	} elseif { $nargs == 3 } {
+		return [$self link-threeargs $arg0 $arg1 [lindex $args 2]]
+	}
+}
+OldSim instproc link-twoargs { n1 n2 } {
 	$self instvar LH_
 	if ![info exists LH_($n1:$n2)] {
 		set LH_($n1:$n2) 1
@@ -292,6 +476,11 @@ OldSim instproc link { n1 n2 } {
 	return LH_:$n1:$n2
 }
 
+OldSim instproc link-threeargs { n1 n2 qtype } {
+	# new link with 0 bandwidth and 0 delay
+	$self simplex-link $n1 $n2 0 0 $qtype
+        return [$self link-twoargs $n1 $n2]
+}
 OldSim instproc trace {} {
 	return [new traceHelper]
 }
@@ -301,8 +490,9 @@ OldSim instproc random { seed } {
 }
 
 proc ns_simplex { n1 n2 bw delay type } {
-	puts stderr "ns_simplex: no backward compat"
-	exit 1
+        # this was never used in ns-1
+        puts stderr "ns_simplex: no backward compat"
+        exit 1
 }
 
 proc ns_duplex { n1 n2 bw delay type } {
@@ -329,6 +519,61 @@ proc ns_create_cbr { srcNode sinkNode pktSize interval fid } {
 	return $s
 }
 
+#
+# compat code for CBQ
+#
+proc ns_create_class { parent borrow allot maxidle notused prio depth xdelay } {
+	set cl [new CBQClass]
+	#
+	# major hack: if the prio is 8 (the highest in ns-1) it's
+	# an internal node, hence no queue disc
+	if { $prio < 8 } {
+		set qtype [CBQClass set def_qtype_]
+		set q [new Queue/$qtype]
+		$cl install-queue $q
+	}
+	set depth [expr $depth + 1]
+	$cl setparams $borrow $allot $maxidle $prio $depth $xdelay
+	return $cl
+}
+
+proc ns_create_class1 { parent borrow allot maxidle notused prio depth xdelay Mb } {
+	set cl [ns_create_class $parent $borrow $allot $maxidle $notused $prio $depth $xdelay]
+	ns_class_maxIdle $cl $allot $maxidle $prio $Mb
+	return $cl
+}
+
+proc ns_class_params { cl parent borrow allot maxidle notused prio depth xdelay Mb } {
+	set depth [expr $depth + 1]
+	$cl setparams $borrow $allot $maxidle $prio $depth $xdelay
+	ns_class_maxIdle $cl $allot $maxidle $prio $Mb
+	return $cl
+}
+
+#
+# If $maxIdle is "auto", set maxIdle to Max[t(1/p-1)(1-g^n)/g^n, t(1-g)].
+# For p = allotment, t = packet transmission time, g = weight for EWMA.
+# The parameter t is calculated for a medium-sized 1000-byte packet.
+#
+proc ns_class_maxIdle { cl allot maxIdle priority Mbps } {
+        if { $maxIdle == "auto" } {
+                set g 0.9375
+                set n [expr 8 * $priority]
+                set gTOn [expr pow($g, $n)]
+                set first [expr ((1/$allot) - 1) * (1-$gTOn) / $gTOn ]
+                set second [expr (1 - $g)]
+                set packetsize 1000
+                set t [expr ($packetsize * 8)/($Mbps * 1000000) ]
+                if { $first > $second } {
+                        $cl set maxidle_ [expr $t * $first]
+                } else {
+                        $cl set maxidle_ [expr $t * $second]
+                }
+        } else {
+                $cl set maxidle_ $maxIdle
+        }
+        return $cl
+}
 #
 # backward compat for agent methods that were replaced
 # by OTcl instance variables
