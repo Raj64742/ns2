@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.58 2001/07/03 03:49:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.59 2001/07/06 23:21:17 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -150,6 +150,18 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	
 }
 
+
+/*
+ * If q_weight=0, set it to a reasonable value of 1-exp(-1/C)
+ * This corresponds to choosing q_weight to be of that value for
+ * which the packet time constant -1/ln(1-q_weight) per default RTT 
+ * of 100ms is an order of magnitude more than the link capacity, C.
+ */
+void REDQueue::initialize_q_w()
+{
+	edp_.q_w = 1 - exp(-1/edp_.ptc);
+}
+
 void REDQueue::reset()
 {
 	/*
@@ -175,9 +187,12 @@ void REDQueue::reset()
 	 * accordingly.
 	 */
 	 
-	if (link_)
+	if (link_) {
 		edp_.ptc = link_->bandwidth() /
 			(8. * edp_.mean_pktsize);
+		if (edp_.q_w == 0.0) 
+			initialize_q_w();
+	}
 
 	edv_.v_ave = 0.0;
 	edv_.v_true_ave = 0.0;
@@ -629,7 +644,8 @@ int REDQueue::command(int argc, const char*const* argv)
 			link_ = del;
 			edp_.ptc = link_->bandwidth() /
 				(8. * edp_.mean_pktsize);
-
+			if (edp_.q_w == 0.0)
+                        	initialize_q_w();
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "early-drop-target") == 0) {
