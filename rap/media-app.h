@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.6 1999/08/24 04:16:17 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.7 1999/09/08 20:27:34 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -259,7 +259,7 @@ public:
 	}
 
 	virtual int size() const { return HttpData::size() + sizeof(hdr); }
-	virtual HttpMediaData* copy() { return (new HttpMediaData(*this)); }
+	virtual AppData* copy() { return (new HttpMediaData(*this)); }
 
 	int st() const { return st_; }
 	int et() const { return et_; }
@@ -307,7 +307,7 @@ public:
 		strcpy(name_, r.name());
 	}
 	// We don't need it, but have to declare.
-	virtual MediaRequest* copy() { abort(); return NULL; }
+	virtual AppData* copy() { abort(); return NULL; }
 
 	int request() const { return request_; }
 	int st() const { return st_; }

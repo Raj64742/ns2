@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.67 1999/08/24 04:16:13 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.68 1999/09/08 20:28:44 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -231,7 +231,7 @@ public:
 	unsigned char* data() { return data_; }
 
 	virtual int size() { return datalen_; }
-	virtual PacketData* copy() { return new PacketData(*this); }
+	virtual AppData* copy() { return new PacketData(*this); }
 private:
 	unsigned char* data_;
 	int datalen_;

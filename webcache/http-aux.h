@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.15 1999/08/24 04:16:22 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.16 1999/09/08 20:27:37 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -159,7 +159,7 @@ public:
 	inline int& id() { return id_; }
 	virtual int size() const { return sizeof(HttpData); }
 	virtual int cost() const { return HTTPDATA_COST; }
-	virtual HttpData* copy() { return (new HttpData(*this)); }
+	virtual AppData* copy() { return (new HttpData(*this)); }
 };
 
 
@@ -206,7 +206,7 @@ public:
 	}
 	virtual int cost() const { return cost_; }
 	char* str() const { return str_; }
-	virtual HttpNormalData* copy() {
+	virtual AppData* copy() {
 		return (new HttpNormalData(*this));
 	}
 };
@@ -271,7 +271,7 @@ public:
 		// Minimum size 1 so that TCP will send a packet
 		return (num_inv_ == 0) ? 1 : (num_inv_*HTTPHBDATA_COST); 
 	}
-	virtual HttpHbData* copy() {
+	virtual AppData* copy() {
 		return (new HttpHbData(*this));
 	}
 
@@ -333,7 +333,7 @@ public:
 		return HttpData::size() + 2*sizeof(int)+num_*sizeof(PageRec); 
 	}
 	virtual int cost() const { return pgsize_; }
-	virtual HttpUpdateData* copy() {
+	virtual AppData* copy() {
 		return (new HttpUpdateData(*this));
 	}
 
@@ -387,7 +387,7 @@ public:
 		return HttpData::size() + (num_+1)*sizeof(int);
 	}
 	virtual int cost() const { return num_*HTTPLEAVE_COST; }
-	virtual HttpLeaveData* copy() {
+	virtual AppData* copy() {
 		return (new HttpLeaveData(*this));
 	}
 
