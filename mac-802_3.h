@@ -103,8 +103,8 @@ public:
 
 	void		recv(Packet* p, Handler* h);
 	/*
-	inline int	hdr_dst(char* hdr, u_int32_t dst = 0);
-	inline int	hdr_src(char* hdr, u_int32_t src = 0);
+	inline int	hdr_dst(char* hdr, u_int32_t dst = -2);
+	inline int	hdr_src(char* hdr, u_int32_t src = -2);
 	inline int	hdr_type(char* hdr, u_int16_t type = 0);
 	*/
 	

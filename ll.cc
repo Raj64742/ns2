@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.37 1999/04/22 18:53:38 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.38 1999/04/29 17:43:40 haldar Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -198,11 +198,11 @@ void LL::sendDown(Packet* p)
 			tx = arptable_->arpresolve(dst, p, this);
 			break;
 		}
-		if (varp_) {
-			tx = varp_->arpresolve(dst, p);
-			break;
+		//if (varp_) {
+		//tx = varp_->arpresolve(dst, p);
+		//break;
 			
-		}			
+		//}			
 		/* FALL THROUGH */
 
 	default:

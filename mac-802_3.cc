@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.2 1999/03/13 03:52:52 haoboy Exp $
+   $Id: mac-802_3.cc,v 1.3 1999/04/29 17:43:40 haldar Exp $
    */
 #include <delay.h>
 #include <connector.h>
@@ -127,11 +127,11 @@ MacHandlerRecv::schedule(Packet *p, double t) {
 /* ======================================================================
    Packet Headers Routines
 inline int
-Mac802_3::hdr_dst(char* hdr, u_int32_t dst)
+Mac802_3::hdr_dst(char* hdr, int dst)
 {
 	struct hdr_mac802_3 *mh = (struct hdr_mac802_3*) hdr;
 
-	if(dst)
+	if(dst > -2)
 		//ETHER_ADDR(mh->mh_da) = dst;
 		STORE4BYTE(&dst, (mh->mh_da));
 
@@ -139,11 +139,11 @@ Mac802_3::hdr_dst(char* hdr, u_int32_t dst)
 }
 
 inline int 
-Mac802_3::hdr_src(char* hdr, u_int32_t src)
+Mac802_3::hdr_src(char* hdr, int src)
 {
 	struct hdr_mac802_3 *mh = (struct hdr_mac802_3*) hdr;
 
-	if(src)
+	if(src > -2)
 		//ETHER_ADDR(mh->mh_sa) = src;
 		STORE4BYTE(&src, (mh->mh_da));
 
