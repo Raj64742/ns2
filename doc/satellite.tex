@@ -17,16 +17,16 @@ Iridium and Teledesic.  These satellite models are principally aimed at
 using \ns~to study networking aspects of satellite systems; in particular, 
 MAC, link layer, routing, and transport protocols.  
 
-\paragraph{Notice (caveat emptor)} 
+%\paragraph{Notice (caveat emptor)} 
 
-This code (including perhaps the APIs at OTcl level) is likely to change 
-over the next few months (as of this writing in June 1999) as the \ns~
-developers work on integrating the structure of satellite nodes, 
-wireless nodes, hierarchical nodes, etc.  In particular, we plan on
-modifying the code to support mixed-node topologies (e.g., simulations
-consisting of traditional \ns~nodes and satellite nodes) and running existing 
-unicast and multicast OTcl-based routing protocols.  \nam~~is 
-not currently supported with these extensions.
+%This code (including perhaps the APIs at OTcl level) is likely to change 
+%over the next few months (as of this writing in June 1999) as the \ns~
+%developers work on integrating the structure of satellite nodes, 
+%wireless nodes, hierarchical nodes, etc.  In particular, we plan on
+%modifying the code to support mixed-node topologies (e.g., simulations
+%consisting of traditional \ns~nodes and satellite nodes) and running existing 
+%unicast and multicast OTcl-based routing protocols.  \nam~~is 
+%not currently supported with these extensions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -945,8 +945,10 @@ Following is a list of commands related to satellite networking:
 This a simulator wrapper method for creating a polar satellite node. Two
 links, uplink and downlink, are created along with two channels, uplink
 channel and downlink channel. <alt> is the polar satellite altitude,
-<inc> is orbit inclination w.r.t equator, <lon> is the longitude, <alpha>
-gives the initial position of the satellite, <plane> defines the plane of
+<inc> is orbit inclination w.r.t equator, <lon> is the longitude of 
+ascending node, <alpha>
+gives the initial position of the satellite along this orbit, <plane> 
+defines the plane of
 the polar satellite. <linkargs> is a list of link argument options that
 defines the network interface (like LL, Qtype, Qlim, PHY, MAC etc).
 
@@ -970,8 +972,8 @@ and <lon> defines the latitude and longitude respectively of the terminal.
 
 
 \code{$ns_ satnode <type> <args>}\\
-This is a method that creates a satellite of the type <type> which maybe
-polar, geo or terminal. 
+This is a more primitive method for creating satnodes of type <type>
+which can be polar, geo or terminal. 
 
 
 \code{$satnode add-interface <type> <ll> <qtype> <qlim> <mac_bw> <phy>}\\
