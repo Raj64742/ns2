@@ -18,7 +18,7 @@
 #
 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.1 1998/07/29 00:15:36 breslau Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.2 1998/08/14 20:14:21 tomh Exp $
 #
 
 # 
@@ -164,7 +164,7 @@ TestSuite instproc run {} {
 
 TestSuite instproc create-source {node starttime i} {
 	$self instvar ns_ r_ hvar_
-        set a [new Agent/CBR/UDP/SA]
+        set a [new Agent/SA]
         $ns_ attach-agent $node $a
 
         $a set fid_ $i
@@ -172,11 +172,11 @@ TestSuite instproc create-source {node starttime i} {
         $ns_ connect $a $r_
  
  
-        set exp1 [new Traffic/Expoo]
-        $exp1 set packet-size 125
-        $exp1 set burst-time [expr 20.0/64]
-        $exp1 set idle-time 325ms
-        $exp1 set rate 64k
+        set exp1 [new Application/Traffic/Exponential]
+        $exp1 set packet_size_ 125
+        $exp1 set burst_time_ [expr 20.0/64]
+        $exp1 set idle_time_ 325ms
+        $exp1 set rate_ 64k
  
         #set up (r,b)
         $a set rate_ 64k
@@ -374,7 +374,7 @@ Topology/2Node instproc init ns {
 
 #new Test/$TestName
 
-Agent/CBR/UDP/SA instproc sched-stop { decision } {
+Agent/SA instproc sched-stop { decision } {
         global hold simtime trace_flow
         $self instvar node_ lifetime_
 	set T [TestSuite getinstance]

@@ -39,6 +39,8 @@
 #define ns_app_h
 
 #include <tclcl.h>
+#include "packet.h"
+#include "agent.h"
 
 class Agent;
 

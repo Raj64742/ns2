@@ -26,16 +26,29 @@
 #include "ip.h"
 #include "random.h"
 
-SA_Agent::SA_Agent() 
+#define SAMPLERATE 8000
+
+SA_Agent::SA_Agent() : trafgen_(0), rtd_(0), callback_(0), sa_timer_(this),
+    nextPkttime_(-1), running_(0), seqno_(-1), Agent(PT_UDP)
 {
 	bind ("off_resv_",&off_resv_);
+	bind("off_rtp_", &off_rtp_);
 	bind_bw("rate_",&rate_);
 	bind("bucket_",&bucket_);
+	bind("packetSize_", &size_);
 }
+
+SA_Agent::~SA_Agent()
+{
+        if (callback_) 
+                delete[] callback_;
+
+}
+
 
 static class SA_AgentClass : public TclClass {
 public:
-	SA_AgentClass() : TclClass("Agent/CBR/UDP/SA") {}
+	SA_AgentClass() : TclClass("Agent/SA") {}
 	TclObject* create(int, const char*const*) {
 		return (new SA_Agent());
 	}
@@ -66,8 +79,26 @@ int SA_Agent::command(int argc, const char*const* argv)
 		        stoponidle(argv[2]);
 			return(TCL_OK);
 		}
+                if (strcmp(argv[1], "attach-traffic") == 0) {
+                        trafgen_ =(TrafficGenerator*)TclObject::lookup(argv[2]);
+                        if (trafgen_ == 0) {
+                                tcl.resultf("no such node %s", argv[2]);
+                                return(TCL_ERROR);
+                        }
+                        return(TCL_OK);
+                }
+
 	}
-	return (UDP_Agent::command(argc,argv));
+        if (argc == 2) {
+                if (strcmp(argv[1], "start") == 0) {
+                        start();
+                        return(TCL_OK);
+                } else if (strcmp(argv[1], "stop") == 0) {
+                        stop();
+                        return(TCL_OK);
+                }
+        }
+	return (Agent::command(argc,argv));
 }
 
 
@@ -85,7 +116,7 @@ void SA_Agent::stop()
 {
 	sendteardown();
 	if (running_ != 0) {
-		cbr_timer_.cancel();
+		sa_timer_.cancel();
 		running_ =0;
 	}
 }
@@ -141,7 +172,7 @@ void SA_Agent::recv(Packet *p, Handler *)
 		fflush(stdout);
 		double t = trafgen_->next_interval(size_);
 		running_=1;
-		cbr_timer_.resched(t);
+		sa_timer_.resched(t);
 	}
 	else {
 		//printf("Flow %d rejected @ %f\n",iph->flowid(),Scheduler::instance().clock());
@@ -153,3 +184,94 @@ void SA_Agent::recv(Packet *p, Handler *)
 	Tcl::instance().evalf("%s sched-stop %d",name(),rv->decision());
 }
 
+void SA_Agent::stoponidle(const char *s)
+{
+        callback_ = new char[strlen(s)+1];
+        strcpy(callback_, s);
+
+        if (trafgen_->on()) {
+                // Tcl::instance().evalf("puts \"%s waiting for burst at %f\"", name(), Scheduler::instance().clock());
+                rtd_ = 1;
+        }
+        else {
+                stop();
+                Tcl::instance().evalf("%s %s", name(), callback_);
+        }
+
+}
+
+void SA_Timer::expire(Event *e) {
+        a_->timeout(0);
+}
+
+void SA_Agent::timeout(int)
+{
+        if (running_) {
+                /* send a packet */
+                sendpkt();
+                /* figure out when to send the next one */
+                nextPkttime_ = trafgen_->next_interval(size_);
+                /* schedule it */
+                sa_timer_.resched(nextPkttime_);
+
+                /* hack: if we are waiting for a current burst to end
+                 * before stopping . . .
+                 */
+                if (rtd_) {
+                        if (trafgen_->on() == 0) {
+                                stop();
+                                //Tcl::instance().evalf("puts \"%s burst over at %f\"",
+                                // name(), Scheduler::instance().clock());
+                                Tcl::instance().evalf("%s sched-stop %d", name(), 0);
+                        }
+                }
+        }
+}
+
+void SA_Agent::sendpkt()
+{
+        Packet* p = allocpkt();
+        hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+        rh->seqno() = ++seqno_;
+        rh->flags()=0;
+
+        double local_time=Scheduler::instance().clock();
+        /*put in "rtp timestamps" and begining of talkspurt labels */
+        hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+        ch->timestamp()=(u_int32_t)(SAMPLERATE*local_time);
+        ch->size()=size_;
+        if ((nextPkttime_ != trafgen_->interval()) || (nextPkttime_ == -1))
+                rh->flags() |= RTP_M;
+
+        target_->recv(p);
+}
+
+void SA_Agent::sendmsg(int nbytes, const char* flags)
+{
+        Packet *p;
+        int n;
+
+        if (size_)
+                n = nbytes / size_;
+        else
+                printf("Error: SA_Agent size = 0\n");
+
+        if (nbytes == -1) {
+                start();
+                return;
+        }
+        while (n-- > 0) {
+       		p = allocpkt();
+                hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+                rh->seqno() = seqno_;
+                target_->recv(p);
+        }
+        n = nbytes % size_;
+        if (n > 0) {
+        	p = allocpkt();
+        	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+        	rh->seqno() = seqno_;
+        	target_->recv(p);
+        }
+        idle();
+}

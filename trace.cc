@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.50 1998/08/12 23:41:23 gnguyen Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.51 1998/08/14 20:09:34 tomh Exp $ (LBL)";
 
 #endif
 
@@ -200,7 +200,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	const char* name = pt_names[t];
 
         /* SRM-specific */
-	if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
+	if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0 || strcmp(name,"udp") == 0) {
             if ( sh->type() < 5 && sh->type() > 0 ) {
 	        sname = srm_names[sh->type()];
 	    }
@@ -211,8 +211,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
 	int seqno;
 	/* XXX */
-	/* CBR's now have seqno's too */
-	if (t == PT_RTP || t == PT_CBR)
+	/* UDP's now have seqno's too */
+	if (t == PT_RTP || t == PT_CBR || t == PT_UDP)
 		seqno = rh->seqno();
 	else if (t == PT_TCP || t == PT_ACK)
 		seqno = tcph->seqno();
@@ -437,7 +437,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		int t = th->ptype();
 		const char* name = pt_names[t];
 		
-		if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
+		if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0 || strcmp(name,"udp") == 0) {
 		    if ( sh->type() < 5 && sh->type() > 0  ) {
 		        sname = srm_names[sh->type()];
 		    }

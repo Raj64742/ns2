@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.6 1998/06/27 01:03:32 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.7 1998/08/14 20:09:29 tomh Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -33,9 +33,9 @@ static const char rcsid[] =
  * burst rate and packet size.
  */
 
-class EXPOO_Source : public TrafficGenerator {
+class EXPOO_Traffic : public TrafficGenerator {
  public:
-	EXPOO_Source();
+	EXPOO_Traffic();
 	virtual double next_interval(int&);
 	//HACK so that udp agent knows interpacket arrival time within a burst
 	inline double interval() {
@@ -56,23 +56,23 @@ class EXPOO_Source : public TrafficGenerator {
 };
 
 
-static class EXPClass : public TclClass {
+static class EXPTrafficClass : public TclClass {
  public:
-	EXPClass() : TclClass("Application/Traffic/Exponential") {}
+	EXPTrafficClass() : TclClass("Application/Traffic/Exponential") {}
 	TclObject* create(int, const char*const*) {
-		return (new EXPOO_Source());
+		return (new EXPOO_Traffic());
 	}
-} class_expoo;
+} class_expoo_traffic;
 
-EXPOO_Source::EXPOO_Source() : burstlen_(0.0), Offtime_(0.0)
+EXPOO_Traffic::EXPOO_Traffic() : burstlen_(0.0), Offtime_(0.0)
 {
-	bind_time("burst-time", &ontime_);
-	bind_time("idle-time", Offtime_.avgp());
-	bind_bw("rate", &rate_);
-	bind("packet-size", &size_);
+	bind_time("burst_time_", &ontime_);
+	bind_time("idle_time_", Offtime_.avgp());
+	bind_bw("rate_", &rate_);
+	bind("packet_size_", &size_);
 }
 
-void EXPOO_Source::init()
+void EXPOO_Traffic::init()
 {
         /* compute inter-packet interval during bursts based on
 	 * packet size and burst rate.  then compute average number
@@ -81,9 +81,11 @@ void EXPOO_Source::init()
 	interval_ = (double)(size_ << 3)/(double)rate_;
 	burstlen_.setavg(ontime_/interval_);
 	rem_ = 0;
+	if (agent_)
+		agent_->set_pkttype(PT_EXP);
 }
 
-double EXPOO_Source::next_interval(int& size)
+double EXPOO_Traffic::next_interval(int& size)
 {
 	double t = interval_;
 

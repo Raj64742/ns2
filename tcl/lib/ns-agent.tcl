@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.12 1998/07/08 23:40:28 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.13 1998/08/14 20:11:03 tomh Exp $
 #
 
 #
@@ -53,12 +53,24 @@ Agent instproc dst-port {} {
 
 #
 # Add source of type s_type to agent and return the source
+# Source objects are obsolete; use attach-app instead
 #
 Agent instproc attach-source {s_type} {
 	set source [new Source/$s_type]
 	$source attach $self
 	$self set type_ $s_type
 	return $source
+}
+
+# 
+# Add application of type s_type to agent and return the app
+# Note that s_type must be defined as a packet type in packet.h
+# 
+Agent instproc attach-app {s_type} {
+	set app_ [new Application/$s_type]
+	$app_ attach-agent $self
+	$self set type_ $s_type
+	return $app_
 }
 
 #

@@ -28,17 +28,20 @@
  * random noise in the interval, and packet size.  
  */
 
-class CBR_Source : public TrafficGenerator {
+class CBR_Traffic : public TrafficGenerator {
  public:
-	CBR_Source();
+	CBR_Traffic();
 	virtual double next_interval(int&);
 	//HACK so that udp agent knows interpacket arrival time within a burst
 	inline double interval() { return (interval_); }
  protected:
+	virtual void start();
 	void init();
 	double rate_;     /* send rate during on time (bps) */
 	double interval_; /* packet inter-arrival time during burst (sec) */
 	double random_;
+	int seqno_;
+	int maxpkts_;
 };
 
 
@@ -46,30 +49,44 @@ static class CBRTrafficClass : public TclClass {
  public:
 	CBRTrafficClass() : TclClass("Application/Traffic/CBR") {}
 	TclObject* create(int, const char*const*) {
-		return (new CBR_Source());
+		return (new CBR_Traffic());
 	}
 } class_cbr_traffic;
 
-CBR_Source::CBR_Source() 
+CBR_Traffic::CBR_Traffic() : seqno_(0)
 {
-	bind_bw("rate", &rate_);
+	bind_bw("rate_", &rate_);
 	bind("random_", &random_);
-	bind("packet-size", &size_);
+	bind("packet_size_", &size_);
+	bind("maxpkts_", &maxpkts_);
 }
 
-void CBR_Source::init()
+void CBR_Traffic::init()
 {
-        /* compute inter-packet interval */
+        // compute inter-packet interval 
 	interval_ = (double)(size_ << 3)/(double)rate_;
-	printf("interval %f\n", interval_);
+	if (agent_)
+		agent_->set_pkttype(PT_CBR);
 }
 
-double CBR_Source::next_interval(int& size)
+void CBR_Traffic::start()
 {
+        init();
+        running_ = 1;
+        timeout();
+}
+
+double CBR_Traffic::next_interval(int& size)
+{
+	// Recompute interval in case rate_ or size_ has changes
+	interval_ = (double)(size_ << 3)/(double)rate_;
 	double t = interval_;
 	if (random_)
 		t += interval_ * Random::uniform(-0.5, 0.5);	
 	size = size_;
-	return(t);
+	if (++seqno_ < maxpkts_)
+		return(t);
+	else
+		return(1<<28); // next timeout at infinity
 }
 

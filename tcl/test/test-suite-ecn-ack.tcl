@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.1 1998/05/28 01:25:36 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.2 1998/08/14 20:14:19 tomh Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -129,7 +129,7 @@ TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     }
     $tcp1 set window_ 35
     $tcp1 set ecn_ 1
-    set ftp1 [$tcp1 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
         
     $ns_ at 0.0 "$ftp1 start"
         

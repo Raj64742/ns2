@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.118 1998/07/29 21:47:21 yaxu Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.119 1998/08/14 20:09:36 tomh Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -108,7 +108,7 @@ OBJ_CC = \
         pointsample-est.o salink.o actp-adc.o hb-adc.o expavg-est.o\
 	param-adc.o null-estimator.o \
 	adaptive-receiver.o vatrcvr.o consrcvr.o \
-	agent.o message.o cbr.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
+	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
 	tcp-vegas.o tcp-rbp.o tcp-full.o \
 	scoreboard.o tcp-sack1.o tcp-fack.o \

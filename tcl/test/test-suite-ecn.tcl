@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.11 1998/05/27 23:42:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.12 1998/08/14 20:14:19 tomh Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -187,8 +187,8 @@ Test/ecn instproc run {} {
     $tcp2 set window_ 15
     $tcp2 set ecn_ 1
         
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
         
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -263,7 +263,7 @@ TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     }
     $tcp1 set window_ 30
     $tcp1 set ecn_ 1
-    set ftp1 [$tcp1 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
     $self enable_tracecwnd $ns_ $tcp1
         
     #$self enable_tracequeue $ns_
@@ -289,7 +289,7 @@ TestSuite instproc second_tcp { tcptype starttime } {
     }
     $tcp set window_ 30
     $tcp set ecn_ 1
-    set ftp [$tcp attach-source FTP]
+    set ftp [$tcp attach-app FTP]
     $ns_ at $starttime "$ftp start"
 }
 
@@ -1148,14 +1148,14 @@ Test/ecn1 instproc run {} {
         set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
         $tcp1 set window_ 30
         $tcp1 set ecn_ 1
-        set ftp1 [$tcp1 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.0 "$ftp1 start"
 
         # Set up TCP connection
         set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
         $tcp2 set window_ 20
         $tcp2 set ecn_ 0
-        set ftp2 [$tcp2 attach-source FTP]
+        set ftp2 [$tcp2 attach-app FTP]
         $ns_ at 3.0 "$ftp2 start"
 
         $self tcpDump $tcp1 5.0

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.9 1998/05/23 01:13:37 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.10 1998/08/14 20:14:26 tomh Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -128,14 +128,14 @@ Test/ecn instproc run {} {
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 30
 	$tcp1 set ecn_ 1
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	# Set up TCP connection
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 20
 	$tcp2 set ecn_ 0
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 3.0 "$ftp2 start"
 
 	$self tcpDump $tcp1 5.0
@@ -169,14 +169,14 @@ Test/timers instproc run {} {
 	# Set up TCP connection
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 0]
 	$tcp2 set window_ 3
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 0.09 "$ftp2 start"
 	$ns_ at 1.0 "$self printtimersAll $tcp2 1.0 1.0" 
 
 	# Set up TCP connection
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
 	$tcp1 set window_ 5
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 produce 800"
 	$ns_ at 20.3 "$ftp1 producemore 5"
 	$ns_ at 20.7 "$ftp1 producemore 5" 
@@ -210,14 +210,14 @@ Test/timersA instproc run {} {
 	# Set up TCP connection
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 0]
 	$tcp2 set window_ 3
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 0.07 "$ftp2 start"
 	$ns_ at 0.1 "$self printtimersAll $tcp2 0.1 0.1" 
 
 	# Set up TCP connection
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
 	$tcp1 set window_ 5
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 produce 1600"
 	$ns_ at 25.3 "$ftp1 producemore 5"
 	$ns_ at 25.7 "$ftp1 producemore 5" 
@@ -291,7 +291,7 @@ Test/timers1 instproc run {} {
         set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink/DelAck $node_(r2) 0]
 #        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink/DelAck $node_(r2) 1]
         $tcp1 set window_ 40
-        set ftp1 [$tcp1 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.0 "$ftp1 produce 180"
 	$ns_ at 1.0 "$self printtimersAll $tcp1 1.0 1.0" 
 	$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
@@ -318,7 +318,7 @@ Test/timers2 instproc run {} {
 
         set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink/DelAck $node_(r2) 0]
         $tcp1 set window_ 40
-        set ftp1 [$tcp1 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.0 "$ftp1 produce 180"
 	$ns_ at 1.0 "$self printtimersAll $tcp1 1.0 1.0" 
 	$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
@@ -345,7 +345,7 @@ Test/timers3 instproc run {} {
 
         set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink/DelAck $node_(r2) 0]
         $tcp1 set window_ 40
-        set ftp1 [$tcp1 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.0 "$ftp1 produce 180"
 	$ns_ at 1.0 "$self printtimersAll $tcp1 1.0 1.0" 
 	$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
@@ -372,7 +372,7 @@ Test/timers4 instproc run {} {
 
         set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink/DelAck $node_(r2) 0]
         $tcp1 set window_ 10
-        set ftp1 [$tcp1 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.0 "$ftp1 start"
 	$ns_ at 0.1 "$self printtimersAll $tcp1 0.1 0.1" 
 	$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
@@ -399,7 +399,7 @@ Test/timers5 instproc run {} {
 
         set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink/DelAck $node_(r2) 0]
         $tcp1 set window_ 2
-        set ftp1 [$tcp1 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.0 "$ftp1 start"
 	$ns_ at 0.1 "$self printtimersAll $tcp1 0.1 0.1" 
 	$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
@@ -437,8 +437,8 @@ Test/stats1 instproc run {} {
         $tcp1 set window_ 30
         set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
         $tcp2 set window_ 3
-        set ftp1 [$tcp1 attach-source FTP]
-        set ftp2 [$tcp2 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
+        set ftp2 [$tcp2 attach-app FTP]
  
         $ns_ at 1.0 "$ftp1 start" 
         $ns_ at 1.0 "$ftp2 start"

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.2 1997/10/29 02:27:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.3 1998/08/14 20:14:24 tomh Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-schedule.tcl
@@ -80,14 +80,14 @@ TestSuite instproc runDetailed {} {
 	# Set up TCP connection
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 20
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.1 "$ftp1 start"
 	
 
 	# Set up TCP connection
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 20
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 0.4 "$ftp2 start"
 
         $self tcpDump $tcp1 5.0

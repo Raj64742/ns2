@@ -48,7 +48,10 @@ void TrafficGenerator::start()
 {
 	init();
 	running_ = 1;
-	timeout(); // uses initial packet-size
+	nextPkttime_ = next_interval(size_);
+	timer_.resched(nextPkttime_);
+	// Enable line below if you want to send immediately upon start
+	//timeout(); 
 }
 
 

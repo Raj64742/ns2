@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.19 1998/07/09 21:11:40 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.20 1998/08/14 20:09:27 tomh Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -78,6 +78,7 @@ class Agent : public Connector {
 	virtual void attachApp(Application* app);
 	virtual int& size() { return size_; }
 	inline nsaddr_t& addr() { return addr_; }
+	void set_pkttype(int pkttype) { type_ = pkttype; }
 
  protected:
 	int command(int argc, const char*const* argv);

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.5 1998/04/25 01:34:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.6 1998/08/14 20:14:25 tomh Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -109,9 +109,9 @@ Topology/net7 instproc init ns {
 TestSuite instproc run_test {tcp1 tcp2 tcp3 dumptime runtime window} {
 	$self instvar ns_ node_ testName_
 
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 0.0 "$ftp2 start"
-	set ftp3 [$tcp3 attach-source FTP]
+	set ftp3 [$tcp3 attach-app FTP]
 	$ns_ at 0.0 "$ftp3 start"
 	$self runall_test $tcp1 $dumptime $runtime
 }
@@ -119,7 +119,7 @@ TestSuite instproc run_test {tcp1 tcp2 tcp3 dumptime runtime window} {
 TestSuite instproc runall_test {tcp1 dumptime runtime} {
 	$self instvar ns_ node_ testName_
 
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 $dumptime
@@ -130,11 +130,11 @@ TestSuite instproc runall_test {tcp1 dumptime runtime} {
 TestSuite instproc second_test {tcp1 tcp2} {
 	$self instvar ns_ node_ testName_
 	$tcp1 set window_ 40
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 1.0 "$ftp1 start"
 
 	$tcp2 set window_ 40
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 0.0 "$ftp2 start"
 
 	$self tcpDump $tcp1 5.0

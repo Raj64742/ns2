@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/telnet.cc,v 1.4 1998/07/20 22:38:12 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/telnet.cc,v 1.5 1998/08/14 20:09:33 tomh Exp $
  */
 
 #include "random.h"
@@ -40,40 +40,40 @@
 
 extern double tcplib_telnet_interarrival();
 
-static class TelnetSourceClass : public TclClass {
+static class TelnetAppClass : public TclClass {
  public:
-	TelnetSourceClass() : TclClass("Application/Telnet") {}
+	TelnetAppClass() : TclClass("Application/Telnet") {}
 	TclObject* create(int, const char*const*) {
-		return (new TelnetSource);
+		return (new TelnetApp);
 	}
-} class_source_telnet;
+} class_app_telnet;
 
 
-TelnetSource::TelnetSource() : running_(0), timer_(this)
+TelnetApp::TelnetApp() : running_(0), timer_(this)
 {
 	bind("interval_", &interval_);
 }
 
 
-void TelnetSourceTimer::expire(Event*)
+void TelnetAppTimer::expire(Event*)
 {
         t_->timeout();
 }
 
 
-void TelnetSource::start()
+void TelnetApp::start()
 {
         running_ = 1;
 	double t = next();
 	timer_.sched(t);
 }
 
-void TelnetSource::stop()
+void TelnetApp::stop()
 {
         running_ = 0;
 }
 
-void TelnetSource::timeout()
+void TelnetApp::timeout()
 {
         if (running_) {
 	        /* call the TCP advance method */
@@ -84,7 +84,7 @@ void TelnetSource::timeout()
 	}
 }
 
-double TelnetSource::next()
+double TelnetApp::next()
 {
         if (interval_ == 0)
 	        /* use tcplib */

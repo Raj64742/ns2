@@ -30,11 +30,11 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.18 1998/06/27 01:03:43 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.19 1998/08/14 20:11:05 tomh Exp $
 #
 
 #  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
-#  Source code to ns-compat.tcl
+#  backward compatible code to ns-compat.tcl
 
 #set ns_telnet(interval) 1000ms
 #set ns_bursty(interval) 0
@@ -76,9 +76,209 @@ Application/FTP instproc producemore { pktcnt } {
 # Below are backward compatible components
 #
 
+Class Agent/CBR -superclass Agent/UDP
+Class Agent/CBR/UDP -superclass Agent/UDP
+Class Agent/CBR/RTP -superclass Agent/RTP
+Class Agent/CBR/UDP/SA -superclass Agent/SA
+
+Agent/SA instproc attach-traffic tg {
+	$tg attach-agent $self
+	eval $self cmd attach-traffic $tg
+}
+
+Agent/CBR/UDP instproc attach-traffic tg {
+	$self instvar trafgen_
+	$tg attach-agent $self
+	set trafgen_ $tg
+}
+
+Agent/CBR/UDP instproc done {} { }
+
+Agent/CBR/UDP instproc start {} {
+	$self instvar trafgen_
+	$trafgen_ start
+}
+
+Agent/CBR/UDP instproc stop {} {
+	$self instvar trafgen_
+	$trafgen_ stop
+}
+
+Agent/CBR/UDP instproc advance args {
+	$self instvar trafgen_
+	eval $trafgen_ advance $args
+}
+
+Agent/CBR/UDP instproc advanceby args {
+	$self instvar trafgen_
+	eval $trafgen_ advanceby $args
+}
+
+Agent/CBR instproc init {} {
+	$self next
+	$self instvar trafgen_ interval_ random_ packetSize_ maxpkts_
+	# The following used to be in ns-default.tcl
+	set packetSize_ 210
+	set random_ 0
+	set maxpkts_ 268435456	
+	set interval_ 0.00375
+	set trafgen_ [new Application/Traffic/CBR]
+	$trafgen_ attach-agent $self
+	# Convert packetSize_ and interval_ to trafgen_ rate_
+	$trafgen_ set rate_ [expr $packetSize_ * 8/ $interval_]
+	$trafgen_ set random_ [$self set random_]
+	$trafgen_ set maxpkts_ [$self set maxpkts_]
+	$trafgen_ set packet_size_ [$self set packetSize_]
+	# The line below is needed for backward compat with v1 test scripts 
+	puts "using backward compatible Agent/CBR; use Application/Traffic/CBR instead"
+}
+
+Agent/CBR instproc done {} { }
+
+Agent/CBR instproc start {} {
+	$self instvar trafgen_
+	$trafgen_ start
+}
+
+Agent/CBR instproc stop {} {
+	$self instvar trafgen_
+	$trafgen_ stop
+}
+
+Agent/CBR instproc advance args {
+	$self instvar trafgen_
+	eval $trafgen_ advance $args
+}
+
+Agent/CBR instproc advanceby args {
+	$self instvar trafgen_
+	eval $trafgen_ advanceby $args
+}
+
+# Catches parameter settings for overlying traffic generator object
+Agent/CBR instproc set args {
+	$self instvar interval_ random_ packetSize_ maxpkts_ trafgen_
+	if { [info exists trafgen_] } {
+		if { [lindex $args 0] == "packetSize_" } {
+			if { [llength $args] == 2 } {
+				$trafgen_ set packet_size_ [lindex $args 1]
+				set packetSize_ [lindex $args 1]
+				# Recompute rate 
+				$trafgen_ set rate_ [expr $packetSize_ * 8/ $interval_]
+                        	return 
+                	} elseif { [llength $args] == 1 } {
+				return $packetSize_
+                	}
+		} elseif { [lindex $args 0] == "random_" } {
+			if { [llength $args] == 2 } {
+				$trafgen_ set random_ [lindex $args 1]
+				set random_ [lindex $args 1]
+				return
+                	} elseif { [llength $args] == 1 } {
+				return $random_
+			}
+		} elseif { [lindex $args 0] == "maxpkts_" } {
+			if { [llength $args] == 2 } {
+				$trafgen_ set maxpkts_ [lindex $args 1]
+				set maxpkts_ [lindex $args 1]
+				return
+                	} elseif { [llength $args] == 1 } {
+				return $maxpkts_
+			}
+		} elseif { [lindex $args 0] == "interval_" } {
+			if { [llength $args] == 2 } {
+				set ns_ [Simulator instance]
+				set interval_ [$ns_ delay_parse [lindex $args 1]]
+				# Convert interval_ to rate for trafgen_
+				$trafgen_ set rate_ [expr $packetSize_ * 8/ $interval_]
+				return
+                	} elseif { [llength $args] == 1 } {
+				return $interval_
+			}
+		}
+	}
+	eval $self next $args
+}
+ 
 Class Traffic/Expoo -superclass Application/Traffic/Exponential
 Class Traffic/Pareto -superclass Application/Traffic/Pareto
 Class Traffic/Trace -superclass Application/Traffic/Trace
+
+# These instprocs are needed to map old Traffic/* type variables
+Traffic/Expoo instproc set args {
+	$self instvar packet_size_ burst_time_ idle_time_ rate_ 
+	if { [lindex $args 0] == "packet-size" } {
+		if { [llength $args] == 2 } {
+			$self set packet_size_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $packet_size_
+               	}
+	} elseif { [lindex $args 0] == "burst-time" } {
+		if { [llength $args] == 2 } {
+			$self set burst_time_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $burst_time_
+               	}
+	} elseif { [lindex $args 0] == "idle-time" } {
+		if { [llength $args] == 2 } {
+			$self set idle_time_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $idle_time_
+               	}
+	} elseif { [lindex $args 0] == "rate" } {
+		if { [llength $args] == 2 } {
+			$self set rate_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $rate_
+               	}
+	}
+	eval $self next $args
+}
+
+Traffic/Pareto instproc set args {
+	$self instvar packet_size_ burst_time_ idle_time_ rate_ shape_
+	if { [lindex $args 0] == "packet-size" } {
+		if { [llength $args] == 2 } {
+			$self set packet_size_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $packet_size_
+               	}
+	} elseif { [lindex $args 0] == "burst-time" } {
+		if { [llength $args] == 2 } {
+			$self set burst_time_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $burst_time_
+               	}
+	} elseif { [lindex $args 0] == "idle-time" } {
+		if { [llength $args] == 2 } {
+			$self set idle_time_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $idle_time_
+               	}
+	} elseif { [lindex $args 0] == "rate" } {
+		if { [llength $args] == 2 } {
+			$self set rate_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $rate_
+               	}
+	} elseif { [lindex $args 0] == "shape" } {
+		if { [llength $args] == 2 } {
+			$self set shape_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $shape_
+               	}
+	}
+	eval $self next $args
+}
 
 Class Source/FTP -superclass Application
 Source/FTP set maxpkts_ 268435456

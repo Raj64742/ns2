@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.16 1998/08/13 00:07:07 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.17 1998/08/14 20:09:31 tomh Exp $";
 #endif
 
 
@@ -42,7 +42,6 @@ static const char rcsid[] =
 #include <string.h>
 
 #include "agent.h"
-#include "cbr.h"
 #include "random.h"
 #include "rtp.h"
 
@@ -56,39 +55,108 @@ public:
 	}
 } class_rtphdr;
 
-
-class RTPAgent : public CBR_Agent {
+class RTPAgent;
+ 
+class RTPTimer : public TimerHandler {
 public:
+        RTPTimer(RTPAgent *a) : TimerHandler() { a_ = a; }
+protected:
+        virtual void expire(Event *e);
+        RTPAgent *a_; 
+};      
+
+class RTPAgent : public Agent {
+ public:
 	RTPAgent();
 	virtual void timeout(int);
 	virtual void recv(Packet* p, Handler*);
 	virtual int command(int argc, const char*const* argv);
-protected:
+	void advanceby(int delta);
+	virtual void sendmsg(int nbytes, const char *flags = 0);
+ protected:
 	virtual void sendpkt();
 	void rate_change();
+	void start();
+	void stop();
+	void finish();
 	RTPSession* session_;
 	double lastpkttime_;
 	int seqno_;
+	int running_;
+	int random_;
+	int maxpkts_;
+	double interval_;
+
+	RTPTimer rtp_timer_;
 	int off_rtp_;
 };
 
 static class RTPAgentClass : public TclClass {
 public:
-	RTPAgentClass() : TclClass("Agent/CBR/RTP") {}
+	RTPAgentClass() : TclClass("Agent/RTP") {}
 	TclObject* create(int, const char*const*) {
 		return (new RTPAgent());
 	}
 } class_rtp_agent;
 
-
-RTPAgent::RTPAgent() 
-	: session_(0), lastpkttime_(-1e6)
+RTPAgent::RTPAgent() : Agent(PT_RTP), session_(0), lastpkttime_(-1e6), 
+    running_(0), rtp_timer_(this)
 {
-	type_ = PT_RTP;
 	bind("seqno_", &seqno_);
 	bind("off_rtp_", &off_rtp_);
+	bind_time("interval_", &interval_);
+	bind("packetSize_", &size_);
+	bind("maxpkts_", &maxpkts_);
+	bind("random_", &random_);
 }
 
+void RTPAgent::start()
+{
+        running_ = 1;
+        sendpkt();
+        rtp_timer_.resched(interval_);
+}
+
+void RTPAgent::stop()
+{
+        rtp_timer_.cancel();
+        finish();
+}
+
+void RTPAgent::sendmsg(int nbytes, const char* flags)
+{
+        Packet *p;
+        int n;
+
+        if (++seqno_ < maxpkts_) {
+                if (size_)
+                        n = nbytes / size_;
+                else
+                        printf("Error: RTPAgent size = 0\n");
+
+                if (nbytes == -1) {
+                        start();
+                        return;
+                }
+                while (n-- > 0) {
+                        p = allocpkt();
+                        hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+                        rh->seqno() = seqno_;
+                        target_->recv(p);
+                }
+                n = nbytes % size_;
+                if (n > 0) {
+                        p = allocpkt();
+                        hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+                        rh->seqno() = seqno_;
+                        target_->recv(p);
+                }
+                idle();
+        } else {
+                finish();
+                // xxx: should we deschedule the timer here? */
+        };
+}
 
 void RTPAgent::timeout(int) 
 {
@@ -99,9 +167,27 @@ void RTPAgent::timeout(int)
 		if (random_)
 			/* add some zero-mean white noise */
 			t += interval_ * Random::uniform(-0.5, 0.5);
-		cbr_timer_.resched(t);
+		rtp_timer_.resched(t);
 	}
 }
+
+/*
+ * finish() is called when we must stop (either by request or because
+ * we're out of packets to send.
+ */
+void RTPAgent::finish()
+{
+        running_ = 0;
+        Tcl::instance().evalf("%s done", this->name());
+}
+
+void RTPAgent::advanceby(int delta)
+{
+        maxpkts_ += delta;
+        if (seqno_ < maxpkts_ && !running_)
+                start();
+}               
+
 
 void RTPAgent::recv(Packet* p, Handler*)
 {
@@ -114,14 +200,27 @@ int RTPAgent::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "rate-change") == 0) {
 			rate_change();
 			return (TCL_OK);
-		}
+		} else if (strcmp(argv[1], "start") == 0) {
+                        start();
+                        return (TCL_OK);
+                } else if (strcmp(argv[1], "stop") == 0) {
+                        stop();
+                        return (TCL_OK);
+                }
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "session") == 0) {
 			session_ = (RTPSession*)TclObject::lookup(argv[2]);
 			return (TCL_OK);
-		}
+		} else if (strcmp(argv[1], "advance") == 0) {
+                        int newseq = atoi(argv[2]);
+                        advanceby(newseq - seqno_);
+                        return (TCL_OK); 
+                } else if (strcmp(argv[1], "advanceby") == 0) {
+                        advanceby(atoi(argv[2]));
+                        return (TCL_OK);
+                }       
 	}
-	return (CBR_Agent::command(argc, argv));
+	return (Agent::command(argc, argv));
 }
 
 /* 
@@ -132,16 +231,16 @@ int RTPAgent::command(int argc, const char*const* argv)
  */
 void RTPAgent::rate_change()
 {
-	cbr_timer_.cancel();
+	rtp_timer_.cancel();
 	
 	double t = lastpkttime_ + interval_;
 	
 	double now = Scheduler::instance().clock();
 	if ( t > now)
-		cbr_timer_.resched(t - now);
+		rtp_timer_.resched(t - now);
 	else {
 		sendpkt();
-		cbr_timer_.resched(interval_);
+		rtp_timer_.resched(interval_);
 	}
 }
 
@@ -156,3 +255,8 @@ void RTPAgent::sendpkt()
 	rh->srcid() = session_->srcid();
 	target_->recv(p, 0);
 }
+
+void RTPTimer::expire(Event *e) {
+        a_->timeout(0);
+}
+

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.4 1997/08/27 19:18:22 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.5 1998/08/14 20:14:23 tomh Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -65,7 +65,7 @@ Test/tahoe1 instproc run {} {
 	$tcp1 set window_ 50
 	
 	# Set up FTP source
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
@@ -95,7 +95,7 @@ Test/tahoe2 instproc run {} {
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 14
 	
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 1.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
@@ -124,8 +124,8 @@ Test/tahoe3 instproc run {} {
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 16
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 0.5 "$ftp2 start"
@@ -158,8 +158,8 @@ Test/tahoe4 instproc run {} {
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 30
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 0.0 "$ftp1 start"
 	$ns_ at 0.0 "$ftp2 start"
@@ -193,8 +193,8 @@ Test/tahoe5 instproc run {} {
     $tcp2 set window_ 50
     $tcp2 set bugFix_ false
 
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
 
     $ns_ at 1.0 "$ftp1 start"
     $ns_ at 1.75 "$ftp2 produce 100"
@@ -225,8 +225,8 @@ Test/no_bug instproc run {} {
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 50
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 1.75 "$ftp2 produce 100"
@@ -259,8 +259,8 @@ Test/bug instproc run {} {
 	$tcp2 set window_ 50
 	$tcp2 set bugFix_ false
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 1.75 "$ftp2 produce 100"
@@ -286,7 +286,7 @@ Test/reno1 instproc run {} {
 	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 14
 
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 1.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
@@ -311,7 +311,7 @@ Test/reno instproc run {} {
 	$tcp1 set window_ 28
 	$tcp1 set maxcwnd_ 14
 
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 1.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
@@ -341,11 +341,11 @@ Test/renoA instproc run {} {
 	set tcp3 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 2]
 	$tcp3 set window_ 4
 
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 1.0 "$ftp1 start"
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 	$ns_ at 1.2 "$ftp2 produce 7"
-	set ftp3 [$tcp3 attach-source FTP]
+	set ftp3 [$tcp3 attach-app FTP]
 	$ns_ at 1.2 "$ftp3 produce 7"
 
 	$self tcpDump $tcp1 1.0
@@ -375,8 +375,8 @@ Test/reno2 instproc run {} {
 	set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 20
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 1.0 "$ftp2 start"
@@ -407,8 +407,8 @@ Test/reno3 instproc run {} {
 	set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 16
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 0.5 "$ftp2 start"
@@ -437,7 +437,7 @@ Test/reno4 instproc run {} {
 	$tcp1 set window_ 80
 	$tcp1 set maxcwnd_ 40
 
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
@@ -464,7 +464,7 @@ Test/reno4a instproc run {} {
 	$tcp1 set window_ 40
 	$tcp1 set maxcwnd_ 40
 
-	set ftp1 [$tcp1 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
@@ -494,8 +494,8 @@ Test/reno5 instproc run {} {
 	$tcp2 set window_ 20
 	$tcp2 set bugFix_ false
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 1.0 "$ftp2 start"
@@ -529,8 +529,8 @@ Test/reno5a instproc run {} {
     $tcp2 set window_ 50
     $tcp2 set bugFix_ false
 
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
 
     $ns_ at 1.0 "$ftp1 start"
     $ns_ at 1.75 "$ftp2 produce 100"
@@ -560,10 +560,10 @@ XTest/telnet instproc run {} {
 	set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 1]
 	set tcp3 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 2]
 
-	set telnet1 [$tcp1 attach-source TELNET]; $telnet1 set interval_ 1
-	set telnet2 [$tcp2 attach-source TELNET]; $telnet2 set interval_ 0
+	set telnet1 [$tcp1 attach-app TELNET]; $telnet1 set interval_ 1
+	set telnet2 [$tcp2 attach-app TELNET]; $telnet2 set interval_ 0
 	# Interval 0 designates the tcplib telnet interarrival distribution
-	set telnet3 [$tcp3 attach-source TELNET]; $telnet3 set interval_ 0
+	set telnet3 [$tcp3 attach-app TELNET]; $telnet3 set interval_ 0
 
 	$ns_ at 0.0 "$telnet1 start"
 	$ns_ at 0.0 "$telnet2 start"
@@ -597,7 +597,7 @@ Test/delayed instproc run {} {
 	# lookup up the sink and set it's delay interval
 	[$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
 
-	set ftp1 [$tcp1 attach-source FTP];
+	set ftp1 [$tcp1 attach-app FTP];
 	$ns_ at 1.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
@@ -628,8 +628,8 @@ Test/phase instproc run {} {
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 32 
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 5.0 "$ftp1 start"
 	$ns_ at 1.0 "$ftp2 start"
@@ -662,8 +662,8 @@ Test/phase1 instproc run {} {
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 32 
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 5.0 "$ftp1 start"
 	$ns_ at 1.0 "$ftp2 start"
@@ -698,8 +698,8 @@ Test/phase2 instproc run {} {
 	$tcp2 set window_ 32 
 	$tcp2 set overhead_ 0.01
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 5.0 "$ftp1 start"
 	$ns_ at 1.0 "$ftp2 start"
@@ -734,8 +734,8 @@ Test/timers instproc run {} {
 	# look up the sink and set its delay interval
 	[$node_(k1) agent [$tcp2 dst-port]] set interval_ 100ms
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 1.3225 "$ftp2 start"
@@ -782,8 +782,8 @@ Test/stats instproc run {} {
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 30
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 1.0 "$ftp2 start"
@@ -817,8 +817,8 @@ Test/tahoe_long instproc run {} {
 	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s3) 1]
 	$tcp2 set window_ 16
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 0.5 "$ftp2 start"
@@ -854,8 +854,8 @@ Test/reno_long instproc run {} {
 #	$tcp1 set bugFix_ false
 #	$tcp2 set bugFix_ false
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
 	$ns_ at 0.5 "$ftp2 start"

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.20 1998/01/29 02:26:08 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.21 1998/08/14 20:14:22 tomh Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -167,8 +167,8 @@ Test/red1 instproc run {} {
     set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(s3) 1]
     $tcp2 set window_ 15
 
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
 
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -206,8 +206,8 @@ Test/ecn instproc run {} {
     $tcp2 set window_ 15
     $tcp2 set ecn_ 1
         
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
         
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -246,8 +246,8 @@ Test/red2 instproc run {} {
     set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(s3) 1]
     $tcp2 set window_ 15
 
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
 
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -279,15 +279,15 @@ Test/red_twoway instproc run {} {
     $tcp1 set window_ 15
     set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(s4) 1]
     $tcp2 set window_ 15
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
 
     set tcp3 [$ns_ create-connection TCP/Reno $node_(s3) TCPSink $node_(s1) 2]
     $tcp3 set window_ 15
     set tcp4 [$ns_ create-connection TCP/Reno $node_(s4) TCPSink $node_(s2) 3]
     $tcp4 set window_ 15
-    set ftp3 [$tcp3 attach-source FTP]
-    set telnet1 [$tcp4 attach-source Telnet] ; $telnet1 set interval_ 0
+    set ftp3 [$tcp3 attach-app FTP]
+    set telnet1 [$tcp4 attach-app Telnet] ; $telnet1 set interval_ 0
 
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -324,15 +324,15 @@ Test/red_twowaybytes instproc run {} {
     $tcp1 set window_ 15
     set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(s4) 1]
     $tcp2 set window_ 15
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
 
     set tcp3 [$ns_ create-connection TCP/Reno $node_(s3) TCPSink $node_(s1) 2]
     $tcp3 set window_ 15
     set tcp4 [$ns_ create-connection TCP/Reno $node_(s4) TCPSink $node_(s2) 3]
     $tcp4 set window_ 15
-    set ftp3 [$tcp3 attach-source FTP]
-    set telnet1 [$tcp4 attach-source Telnet] ; $telnet1 set interval_ 0
+    set ftp3 [$tcp3 attach-app FTP]
+    set telnet1 [$tcp4 attach-app Telnet] ; $telnet1 set interval_ 0
 
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -494,7 +494,7 @@ TestSuite instproc new_tcp { startTime source dest window fid verbose size } {
 	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $fid]
 	$tcp set window_ $window
 	if {$size > 0}  {$tcp set packetSize_ $size }
-	set ftp [$tcp attach-source FTP]
+	set ftp [$tcp attach-app FTP]
 	$ns_ at $startTime "$ftp start"
 	if {$verbose == "1"} {
 

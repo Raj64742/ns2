@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.20 1997/11/11 03:15:55 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.21 1998/08/14 20:14:18 tomh Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -398,17 +398,23 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 #
 TestSuite instproc three_cbrs {} {
 	$self instvar ns_ node_
-	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
-	$cbr1 set packetSize_ 190
-	$cbr1 set interval_ 0.001
+	set udp1 [$ns_ create-connection UDP $node_(s1) LossMonitor $node_(r2) 1]
+	set cbr1 [new Application/Traffic/CBR]
+	$cbr1 attach-agent $udp1
+	$cbr1 set packet_size_ 190
+	$cbr1 set rate_ 1.52Mb; # interval of 0.001
 
-	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
-	$cbr2 set packetSize_ 500
-	$cbr2 set interval_ 0.002
+	set udp2 [$ns_ create-connection UDP $node_(s2) LossMonitor $node_(r2) 2]
+	set cbr2 [new Application/Traffic/CBR]
+	$cbr2 attach-agent $udp2
+	$cbr2 set packet_size_ 500
+	$cbr2 set rate_ 2Mb; # interval of 0.002
 
-	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r2) 3]
-	$cbr3 set packetSize_ 1000
-	$cbr3 set interval_ 0.005
+	set udp3 [$ns_ create-connection UDP $node_(s3) LossMonitor $node_(r2) 3]
+	set cbr3 [new Application/Traffic/CBR]
+	$cbr3 attach-agent $udp3
+	$cbr3 set packet_size_ 1000 
+	$cbr3 set rate_ 1.6Mb; # interval of 0.005
 
 	$ns_ at 0.0 "$cbr1 start; $cbr2 start; $cbr3 start"
         $ns_ at 4.0 "$cbr3 stop"
@@ -424,13 +430,17 @@ TestSuite instproc three_cbrs {} {
 #
 TestSuite instproc two_cbrs { ps1 ps2 int1 int2 dostop } {
 	$self instvar ns_ node_
-	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
-	$cbr1 set packetSize_ $ps1
-	$cbr1 set interval_ $int1
+	set udp1 [$ns_ create-connection UDP $node_(s1) LossMonitor $node_(r2) 1]
+	set cbr1 [new Application/Traffic/CBR]
+	$cbr1 attach-agent $udp1
+	$cbr1 set packet_size_ $ps1 
+	$cbr1 set rate_ [expr $ps1 * 8/ [$ns_ delay_parse $int1]]
 
-	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
-	$cbr2 set packetSize_ $ps2
-	$cbr2 set interval_ $int2
+	set udp2 [$ns_ create-connection UDP $node_(s2) LossMonitor $node_(r2) 2]
+	set cbr2 [new Application/Traffic/CBR]
+	$cbr2 attach-agent $udp2
+	$cbr2 set packet_size_ $ps2 
+	$cbr2 set rate_ [expr $ps2 * 8/ [$ns_ delay_parse $int2]]
 
 	$ns_ at 0.0 "$cbr1 start; $cbr2 start"
 	if { $dostop } {
@@ -442,21 +452,29 @@ TestSuite instproc two_cbrs { ps1 ps2 int1 int2 dostop } {
 
 TestSuite instproc four_cbrs {} {
 	$self instvar ns_ node_
-	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
-	$cbr1 set packetSize_ 190
-	$cbr1 set interval_ 0.001
+	set udp1 [$ns_ create-connection UDP $node_(s1) LossMonitor $node_(r2) 1]
+	set cbr1 [new Application/Traffic/CBR]
+	$cbr1 attach-agent $udp1
+	$cbr1 set packet_size_ 190
+	$cbr1 set rate_ 1.52Mb; # interval of 0.001
 
-	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
-	$cbr2 set packetSize_ 1000
-	$cbr2 set interval_ 0.005
+	set udp2 [$ns_ create-connection UDP $node_(s2) LossMonitor $node_(r2) 2]
+	set cbr2 [new Application/Traffic/CBR]
+	$cbr2 attach-agent $udp2
+	$cbr2 set packet_size_ 1000 
+	$cbr2 set rate_ 1.6Mb; # interval of 0.005
 
-	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r2) 3]
-	$cbr3 set packetSize_ 500
-	$cbr3 set interval_ 0.002
+	set udp3 [$ns_ create-connection UDP $node_(s3) LossMonitor $node_(r2) 3]
+	set cbr3 [new Application/Traffic/CBR]
+	$cbr3 attach-agent $udp3
+	$cbr3 set packet_size_ 500
+	$cbr3 set rate_ 2Mb; # interval of 0.002
 
-	set cbr4 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r2) 4]
-	$cbr4 set packetSize_ 1000
-	$cbr4 set interval_ 0.005
+	set udp4 [$ns_ create-connection UDP $node_(s3) LossMonitor $node_(r2) 4]
+	set cbr4 [new Application/Traffic/CBR]
+	$cbr4 attach-agent $udp4
+	$cbr4 set packet_size_ 1000 
+	$cbr4 set rate_ 1.6Mb; # interval of 0.005
 
 	$ns_ at 0.0 "$cbr1 start; $cbr2 start; $cbr3 start; $cbr4 start"
 	$ns_ at 12.0 "$cbr1 stop"

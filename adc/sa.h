@@ -22,24 +22,52 @@
 #define ns_sa_h
 
 #include "resv.h"
+#include "agent.h"
+#include "timer-handler.h"
+#include "trafgen.h"
+#include "rtp.h"
+#include "random.h"
+
+class SA_Agent;
+
+class SA_Timer : public TimerHandler {
+public:
+        SA_Timer(SA_Agent *a) : TimerHandler() { a_ = a; }
+protected:
+        virtual void expire(Event *e);
+        SA_Agent *a_;
+};
 
 
-class SA_Agent : public UDP_Agent {
+class SA_Agent : public Agent {
 public:
 	SA_Agent();
+	~SA_Agent();
 	int command(int, const char*const*);
-	
+	virtual void timeout(int);
+	virtual void sendmsg(int nbytes, const char *flags = 0);
 protected:
 	void start(); 
 	void stop(); 
 	void sendreq();
 	void sendteardown();
 	void recv(Packet *, Handler *);
+        void stoponidle(const char *);
+	virtual void sendpkt();
 	int off_resv_;
 	double rate_;
 	int bucket_;
 	NsObject* ctrl_target_;
 	char* callback_;
+        TrafficGenerator *trafgen_;
+        int rtd_;  /* ready-to-die: waiting for last burst to end */
+
+	SA_Timer sa_timer_;
+	double nextPkttime_;
+	int off_rtp_;
+	int seqno_;
+	int running_;
+	int size_;
 };
 
 

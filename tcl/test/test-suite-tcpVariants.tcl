@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.2 1998/07/09 18:25:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.3 1998/08/14 20:14:27 tomh Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -180,7 +180,7 @@ TestSuite instproc setup {tcptype list} {
           	TCPSink $node_(k1) $fid]
     	}
         $tcp1 set window_ 28
-        set ftp1 [$tcp1 attach-source FTP]
+        set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 1.0 "$ftp1 start"
 
         $self tcpDump $tcp1 5.0

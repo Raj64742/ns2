@@ -129,7 +129,7 @@ Test/full instproc run {} {
 	# set up TCP-level connections
 	$sink listen ; # will figure out who its peer is
 	$src set window_ 100
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]  
@@ -162,7 +162,7 @@ Test/close instproc run {} {
 	# set up TCP-level connections
 	$sink listen
 	$src set window_ 100
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.0 "$ftp1 produce 50"
 	$ns_ at 5.5 "$src close"
 
@@ -198,9 +198,9 @@ Test/twoway instproc run {} {
 	$sink listen
 	$sink set iss_ 2144
 	$src set window_ 100
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
-	set ftp2 [$sink attach-source FTP]
+	set ftp2 [$sink attach-app FTP]
 	$ns_ at $startt "$ftp2 start"
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
@@ -236,9 +236,9 @@ Test/twoway1 instproc run {} {
 	$sink set iss_ 2144
 	$src set window_ 100
 	$sink set window_ 100
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
-	set ftp2 [$sink attach-source FTP]
+	set ftp2 [$sink attach-app FTP]
 	$ns_ at $startt "$ftp2 start"
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
@@ -275,9 +275,9 @@ Test/twoway1 instproc run {} {
 #	$sink set window_ 100
 #	$self bsdcompat $src
 #	$self bsdcompat $sink
-#	set ftp1 [$src attach-source FTP]
+#	set ftp1 [$src attach-app FTP]
 #	$ns_ at 0.0 "$ftp1 start"
-#	set ftp2 [$sink attach-source FTP]
+#	set ftp2 [$sink attach-app FTP]
 #	$ns_ at $startt "$ftp2 start"
 #
 #	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
@@ -314,7 +314,7 @@ Test/twoway1 instproc run {} {
 #	$sink set window_ 100
 #	$self bsdcompat $src
 #	$self bsdcompat $sink
-#	set ftp1 [$src attach-source FTP]
+#	set ftp1 [$src attach-app FTP]
 #	$ns_ at 0.0 "$ftp1 start"
 #
 #	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
@@ -356,9 +356,9 @@ Test/twowayrandom instproc run {} {
 	$sink set iss_ 2144
 	$src set window_ 100
 	$sink set window_ 100
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
-	set ftp2 [$sink attach-source FTP]
+	set ftp2 [$sink attach-app FTP]
 	$ns_ at $startt "$ftp2 start"
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
@@ -392,7 +392,7 @@ Test/delack instproc run {} {
 	$sink listen
 	$src set window_ 100
 	$sink set segsperack_ 2
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	#forward
@@ -428,7 +428,7 @@ Test/iw=4 instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
 	# set up special params for this test
@@ -477,7 +477,7 @@ Test/droppedsyn instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 
 	# set up special params for this test
@@ -525,7 +525,7 @@ Test/droppedfirstseg instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 #	$ns_ at 0.5 "$self printtimersAll $src 0.5 0.5"
 
@@ -574,7 +574,7 @@ Test/droppedsecondseg instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 #	$ns_ at 0.5 "$self printtimersAll $src 0.5 0.5"
 
@@ -622,8 +622,8 @@ Test/simul-open instproc run {} {
 	$ns_ connect $src $sink; # this is bi-directional
 
 	# set up TCP-level connections
-	set ftp1 [$src attach-source FTP]
-	set ftp2 [$sink attach-source FTP]
+	set ftp1 [$src attach-app FTP]
+	set ftp2 [$sink attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start; $ftp2 start"
 
 	# set up special params for this test
@@ -666,8 +666,8 @@ Test/simul-close instproc run {} {
 	$ns_ connect $src $sink; # this is bi-directional
 
 	# set up TCP-level connections
-	set ftp1 [$src attach-source FTP]
-	set ftp2 [$sink attach-source FTP]
+	set ftp1 [$src attach-app FTP]
+	set ftp2 [$sink attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 	$ns_ at 0.9 "$ftp2 start"
 
@@ -724,7 +724,7 @@ Test/droppednearfin instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 	$ns_ at 1.5 "$src close"
 
@@ -774,7 +774,7 @@ Test/droppedlastseg instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 	$ns_ at 1.5 "$src close"
 
@@ -824,7 +824,7 @@ Test/droppedretransmit instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 
 	# set up special params for this test
@@ -873,7 +873,7 @@ Test/droppednearretransmit instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 
 	# set up special params for this test
@@ -922,7 +922,7 @@ Test/droppedfastrexmit instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 
 	# set up special params for this test
@@ -972,7 +972,7 @@ Test/ecn1 instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 
 	# set up special params for this test
@@ -1026,7 +1026,7 @@ Test/ecn2 instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 
 	# set up special params for this test
@@ -1078,7 +1078,7 @@ Test/droppedfin instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.7 "$ftp1 start"
 	$ns_ at 1.5 "$src close"
 
@@ -1118,7 +1118,7 @@ Test/smallpkts instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-source FTP]
+	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.5 "$src advance-bytes 30"
 	$ns_ at 0.75 "$src advance-bytes 300"
 
@@ -1167,7 +1167,7 @@ Test/telnet instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set telnet1 [$src attach-source Telnet]
+	set telnet1 [$src attach-app Telnet]
 	$telnet1 set interval_ 0
 	$ns_ at 0.5 "$telnet1 start"
 
@@ -1215,7 +1215,7 @@ Test/telnet2 instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set telnet1 [$src attach-source Telnet]
+	set telnet1 [$src attach-app Telnet]
 	$telnet1 set interval_ 0
 	$ns_ at 0.5 "$telnet1 start"
 

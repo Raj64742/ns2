@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.7 1998/08/11 20:16:18 heideman Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.8 1998/08/14 20:09:34 tomh Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -84,6 +84,7 @@ class TrafficTrace : public TrafficGenerator {
 	int command(int argc, const char*const* argv);
 	virtual double next_interval(int &);
  protected:
+	void timeout();
 	TraceFile *tfile_;
 	struct tracerec trec_;
 	int ndx_;
@@ -200,7 +201,6 @@ void TrafficTrace::init()
 {
 	if (tfile_) 
 		ndx_ = tfile_->setup();
-
 }
 
 int TrafficTrace::command(int argc, const char*const* argv)
@@ -221,6 +221,20 @@ int TrafficTrace::command(int argc, const char*const* argv)
 	return (TrafficGenerator::command(argc, argv));
 
 }
+
+void TrafficTrace::timeout()
+{
+        if (! running_)
+                return;
+
+        /* send a packet */
+        send(size_);
+        /* figure out when to send the next one */
+        nextPkttime_ = next_interval(size_);
+        /* schedule it */
+        timer_.resched(nextPkttime_);
+}
+
 
 double TrafficTrace::next_interval(int& size)
 {

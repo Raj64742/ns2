@@ -21,8 +21,9 @@
 Queue/SimpleIntServ set qlimit1_ 50
 Queue/SimpleIntServ set qlimit0_ 50
 
-Agent/CBR/UDP/SA set rate_ 0
-Agent/CBR/UDP/SA set bucket_ 0
+Agent/SA set rate_ 0
+Agent/SA set bucket_ 0
+Agent/SA set packetSize_ 210
 
 ADC set backoff_ true
 ADC/MS set backoff_ false

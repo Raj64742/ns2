@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.4 1998/04/15 22:07:38 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.5 1998/08/14 20:14:22 tomh Exp $
 #
 
 #
@@ -240,7 +240,7 @@ TestScale instproc init_connections {} {
 			$tcp_($i) set rbp_rate_algorithm_ $opts(rbp-rate-algorithm)
 		}
 		$tcp_($i) set slow_start_restart_ $opts(server-tcp-slow-start-restart)
-		set ftp_($i) [$tcp_($i) attach-source FTP]
+		set ftp_($i) [$tcp_($i) attach-app FTP]
 		$ftp_($i) set maxpkts_ 0
 		# $ftp_($i) set experiment_matching_tcp_ $tcp_($i)
 		# $tcp_($i) set experiment_matching_ftp_ $ftp_($i)

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/telnet.h,v 1.5 1998/07/20 22:37:55 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/telnet.h,v 1.6 1998/08/14 20:09:33 tomh Exp $
  */
 
 #ifndef ns_telnet_h
@@ -41,20 +41,20 @@
 #include "app.h"
 
 class TcpAgent;
-class TelnetSource;
+class TelnetApp;
 
-class TelnetSourceTimer : public TimerHandler {
+class TelnetAppTimer : public TimerHandler {
  public:
-	TelnetSourceTimer(TelnetSource* t) : TimerHandler(), t_(t) {}
+	TelnetAppTimer(TelnetApp* t) : TimerHandler(), t_(t) {}
 	inline virtual void expire(Event*);
  protected:
-	TelnetSource* t_;
+	TelnetApp* t_;
 };
 
 
-class TelnetSource : public Application {
+class TelnetApp : public Application {
  public:
-	TelnetSource();
+	TelnetApp();
 	void timeout();
  protected:
 	void start();
@@ -63,7 +63,7 @@ class TelnetSource : public Application {
 
 	double interval_;
 	int running_;
-	TelnetSourceTimer timer_;
+	TelnetAppTimer timer_;
 };
 
 #endif

@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.56 1998/08/12 23:41:03 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.57 1998/08/14 20:09:28 tomh Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.56 1998/08/12 23:41:03 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.57 1998/08/14 20:09:28 tomh Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -615,6 +615,9 @@ int SelectErrorModel::corrupt(Packet* p)
 {
 	if (unit_ == EU_PKT) {
 		hdr_cmn *ch = hdr_cmn::access(p);
+		// XXX Backward compatibility for cbr agents
+		if (ch->ptype() == 1 && pkt_type_ == 2)
+			pkt_type_ = 1; // "udp" rather than "cbr"
 		if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ 
 		    == drop_offset_) {
 			//printf ("dropping packet type %d, uid %d\n", 
@@ -663,6 +666,9 @@ int SRMErrorModel::corrupt(Packet* p)
 	if (unit_ == EU_PKT) {
 		hdr_srm *sh = hdr_srm::access(p);
 		hdr_cmn *ch = hdr_cmn::access(p);
+		// XXX Backward compatibility for cbr agents
+		if (ch->ptype()==1 && pkt_type_==2 && sh->type() == SRM_DATA)
+			pkt_type_ = 1; // "udp" rather than "cbr"
 		if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && 
 		    (sh->seqnum() % drop_cycle_ == drop_offset_)) {
 			//printf ("dropping packet type SRM-DATA, seqno %d\n", 

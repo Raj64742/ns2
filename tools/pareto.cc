@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.4 1998/06/27 01:03:33 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.5 1998/08/14 20:09:31 tomh Exp $ (Xerox)";
 #endif
  
 #include "random.h"
@@ -31,9 +31,9 @@ static const char rcsid[] =
  * pareto shape parameter and packet size.
  */
 
-class POO_Source : public TrafficGenerator {
+class POO_Traffic : public TrafficGenerator {
  public:
-	POO_Source();
+	POO_Traffic();
 	virtual double next_interval(int&);
 	int on()  { return on_ ; }
  protected:
@@ -55,24 +55,24 @@ class POO_Source : public TrafficGenerator {
 };
 
 
-static class POOClass : public TclClass {
+static class POOTrafficClass : public TclClass {
  public:
-	POOClass() : TclClass("Application/Traffic/Pareto") {}
+	POOTrafficClass() : TclClass("Application/Traffic/Pareto") {}
  	TclObject* create(int, const char*const*) {
-		return (new POO_Source());
+		return (new POO_Traffic());
 	}
-} class_poo;
+} class_poo_traffic;
 
-POO_Source::POO_Source()
+POO_Traffic::POO_Traffic()
 {
-	bind_time("burst-time", &ontime_);
-	bind_time("idle-time", &offtime_);
-	bind_bw("rate", &rate_);
-	bind("shape", &shape_);
-	bind("packet-size", &size_);
+	bind_time("burst_time_", &ontime_);
+	bind_time("idle_time_", &offtime_);
+	bind_bw("rate_", &rate_);
+	bind("shape_", &shape_);
+	bind("packet_size_", &size_);
 }
 
-void POO_Source::init()
+void POO_Traffic::init()
 {
 	interval_ = (double)(size_ << 3)/(double)rate_;
 	burstlen_ = ontime_/interval_;
@@ -80,9 +80,11 @@ void POO_Source::init()
 	on_ = 0;
 	p1_ = burstlen_ * (shape_ - 1.0)/shape_;
 	p2_ = offtime_ * (shape_ - 1.0)/shape_;
+	if (agent_)
+		agent_->set_pkttype(PT_PARETO);
 }
 
-double POO_Source::next_interval(int& size)
+double POO_Traffic::next_interval(int& size)
 {
 	double t = interval_;
 

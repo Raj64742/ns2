@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.124 1998/08/03 23:29:54 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.125 1998/08/14 20:11:04 tomh Exp $
 
 
 #
@@ -59,6 +59,7 @@ Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
 ##Agent set class_ 0 now is gone
 
 Agent/UDP set packetSize_ 1000
+Agent/UDP instproc done {} { }
 
 Agent/TCP set seqno_ 0
 Agent/TCP set t_seqno_ 0
@@ -240,13 +241,13 @@ catch {
 }
 Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 
-Agent/CBR set interval_ 3.75ms
-Agent/CBR set random_ 0
-Agent/CBR set packetSize_ 210
-Agent/CBR set maxpkts_ 0x10000000
-Agent/CBR instproc done {} { }
+Agent/RTP set seqno_ 0
+Agent/RTP set interval_ 3.75ms
+Agent/RTP set random_ 0
+Agent/RTP set packetSize_ 210
+Agent/RTP set maxpkts_ 0x10000000
+Agent/RTP instproc done {} { }
 
-Agent/CBR/RTP set seqno_ 0
 Agent/RTCP set seqno_ 0
 
 Agent/Message set packetSize_ 180
@@ -319,20 +320,21 @@ QueueMonitor/ED/Flow set flowid_ -1
 
 Agent set class_ 0
 
-Application/Traffic/Exponential set burst-time .5
-Application/Traffic/Exponential set idle-time .5
-Application/Traffic/Exponential set rate 64Kb
-Application/Traffic/Exponential set packet-size 210
+Application/Traffic/Exponential set burst_time_ .5
+Application/Traffic/Exponential set idle_time_ .5
+Application/Traffic/Exponential set rate_ 64Kb
+Application/Traffic/Exponential set packet_size_ 210
 
-Application/Traffic/Pareto set burst-time 500ms
-Application/Traffic/Pareto set idle-time 500ms
-Application/Traffic/Pareto set rate 64Kb
-Application/Traffic/Pareto set packet-size 210
-Application/Traffic/Pareto set shape 1.5
+Application/Traffic/Pareto set burst_time_ 500ms
+Application/Traffic/Pareto set idle_time_ 500ms
+Application/Traffic/Pareto set rate_ 64Kb
+Application/Traffic/Pareto set packet_size_ 210
+Application/Traffic/Pareto set shape_ 1.5
 
-Application/Traffic/CBR set rate 448Kb	;# corresponds to interval of 3.75ms
-Application/Traffic/CBR set packet-size 210
+Application/Traffic/CBR set rate_ 448Kb	;# corresponds to interval of 3.75ms
+Application/Traffic/CBR set packet_size_ 210
 Application/Traffic/CBR set random_ 0
+Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
 
 Agent/Mcast/Prune set packetSize_ 80
 
@@ -351,7 +353,7 @@ RandomVariable/Empirical set maxEntry_ 32
 
 SessionHelper set rc_ 0                      ;# just to eliminate warnings
 
-Source/Telnet set interval_ 1.0
+Application/Telnet set interval_ 1.0
 
 networkinterface set intf_label_ -1
 
