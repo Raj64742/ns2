@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.6 1999/08/20 00:57:00 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.7 1999/08/30 22:21:20 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: TODO list</H1>
 
@@ -19,6 +19,19 @@
 The person who recommends the todo work does not necessarily do them 
 by him/herself.
 <p></i>
+
+<p>
+List of topics:
+introduction,
+code cleanup,
+interfaces,
+queueing,
+full-tcp,
+validation,
+documentation,
+research results,
+release,
+logging
 <hr>
 
 <ul>
@@ -65,7 +78,7 @@ by him/herself.
        Thu Aug  5 15:58:36 PDT 1999)</em>
 
   <p>
-  <li>
+  <li> <strong>code cleanup, interfaces</strong>
        <b>Aligning bound variable names</b>
        Aligning bound variable names in OTcl and C++, where possible
        (change the C++ name, not the OTcl name).
@@ -82,7 +95,7 @@ by him/herself.
 
        <p>
   <li>
-       <b>?</b>
+       <b>queueuing?</b>
        Adding RIO into the main NS distribution.  (The original authors 
        of RIO did many simulations in NS, so I would assume that they
        have an implementation somewhere...)
@@ -171,6 +184,34 @@ functions.  I was looking where I could get most of the functions ( the
 interface) and the ns.1 explanation seemed faster.
        </blockquote>
        <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>Thu Aug 19 17:56:33 PDT 1999)</em>
+
+       <p>
+  <li>
+       <b>release</b>
+       The next release of ns-allinone should move to tcl-8.2.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>Thu Aug 19 20:47:00 PDT 1999)</em>
+
+       <p>
+  <li>
+       <b>logging</b>
+       Trace output is a mess.  There are currently two different formats
+       (wired and wireless), neither of which is easily extnesible.
+       Switching to something like what nam uses seems like a win.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>Fri Aug 27 17:24:44 PDT 1999)</em>
+
+       <p>
+  <li>
+       <b>full-tcp, application APIs</b>
+       We need to compare the ns full-tcp with the south-bay full-tcp
+       in terms of corner cases and APIs (i.e., with the cisco http models).
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>Mon Aug 30 15:17:59 PDT 1999)</em>
+
+       <p>
+  <li>
+       <b>queueing</b>
+       Make sure that all ns constructs (1-way and full-tcp, queueing protocols)
+       have both packet and byte-oriented modes and that they are selected consistently.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>Mon Aug 30 15:20:00 PDT 1999)</em>
 
        
 </ul>
