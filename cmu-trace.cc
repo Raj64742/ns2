@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.55 2000/07/10 07:24:45 intanago Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.56 2000/07/27 01:29:15 haoboy Exp $
  */
 
 #include <packet.h>
@@ -731,9 +731,8 @@ void CMUTrace::format(Packet* p, const char *why)
 	 */
 	format_mac(p, why, offset);
 
-#ifdef NAM_TRACE
 	if (namChan_) nam_format(p, offset);
-#endif
+
 	offset = strlen(wrk_);
 
 	switch(ch->ptype()) {

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.198 2000/07/23 00:27:51 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.199 2000/07/27 01:29:16 haoboy Exp $
 
 #
 
@@ -140,6 +140,9 @@ source ../mobility/com.tcl
 source ../plm/plm.tcl
 source ../plm/plm-ns.tcl
 source ../plm/plm-topo.tcl
+
+# link state routing
+source ns-rtProtoLS.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
@@ -1494,10 +1497,11 @@ Simulator instproc create-tcp-connection {s_type source d_type dest pktClass} {
 
 Classifier instproc no-slot slot {
 	#XXX should say something better for routing problem
-	puts stderr "$self: no target for slot $slot"
+	puts stderr \
+		"tcl/lib/ns-lib.tcl -- Classfier::no-slot{} default handler --"
+	puts stderr "    $self: no target for slot $slot"
 	exit 1
 }
-
 
 #
 # Other classifier methods overload the instproc-likes to track 
@@ -1557,6 +1561,7 @@ Classifier/Hash instproc init nbuck {
 	set shift_ [AddrParams set NodeShift_(1)]
 	set mask_ [AddrParams set NodeMask_(1)]
 }
+
 Simulator instproc makeflowmon { cltype { clslots 29 } } {
 	
 	set flowmon [new QueueMonitor/ED/Flowmon]
@@ -1921,8 +1926,3 @@ Simulator instproc prepare-to-stop {} {
 	$i stop
     }
 }
-
-
-
-
-

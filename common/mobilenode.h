@@ -154,12 +154,9 @@ protected:
         void    random_destination();
         int	set_destination(double x, double y, double speed);
 	  
-#ifdef NAM_TRACE
         Tcl_Channel namChan_;
         char nwrk_ [256];
 	void namdump();
-#endif
-
 
 private:
 	inline int initialized() {

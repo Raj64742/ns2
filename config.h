@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.45 1999/12/20 19:20:36 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.46 2000/07/27 01:29:15 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -73,10 +73,18 @@ typedef int32_t nsaddr_t;
 typedef int32_t nsmask_t; 
 
 // 32-bit addressing support
-typedef struct ns_addr_tag {
+struct ns_addr_t {
 	int32_t addr_;
 	int32_t port_;
-} ns_addr_t;
+	ns_addr_t& operator= (const ns_addr_t& n) {
+		addr_ = n.addr_;
+		port_ = n.port_;
+		return (*this);
+	}
+	int operator== (const ns_addr_t& n) {
+		return ((addr_ == n.addr_) && (port_ == n.port_));
+	}
+};
 
 // 64-bit integer support
 #if defined(SIZEOF_LONG) && SIZEOF_LONG >= 8

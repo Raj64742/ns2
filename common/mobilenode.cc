@@ -111,11 +111,8 @@ PositionHandler::handle(Event*)
    Mobile Node
    ====================================================================== */
 
-MobileNode::MobileNode(void) : Node(), pos_handle(this)
-#ifdef NAM_TRACE
-        , namChan_(0)
-#endif
-
+MobileNode::MobileNode(void) : 
+	Node(), pos_handle(this), namChan_(0)
 {
 	X = 0.0; Y = 0.0; Z = 0.0; speed = 0.0;
 	dX=0.0; dY=0.0; dZ=0.0;
@@ -409,8 +406,6 @@ MobileNode::set_destination(double x, double y, double s)
          gp-> new_moves(this);
   }                     
                
-   
-#ifdef NAM_TRACE                
   if (namChan_ != 0) {
                                 
      sprintf(nwrk_,     
@@ -423,13 +418,10 @@ MobileNode::set_destination(double x, double y, double s)
              );   
      namdump();         
   }
-#endif                  
-
 
   return 0;
 }
 
-#ifdef NAM_TRACE
 void MobileNode::namdump()
 {
         int n = 0;
@@ -448,8 +440,6 @@ void MobileNode::namdump()
                 nwrk_[n] = 0;
         }
 }
-#endif
-
 
 void
 MobileNode::update_position()

@@ -30,13 +30,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.29 2000/07/19 04:41:03 sfloyd Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.30 2000/07/27 01:29:16 haoboy Exp $
  */
 
 #ifndef ns_trace_h
 #define ns_trace_h
-
-#define NAM_TRACE
 
 #define NUMFLAGS 7
 
@@ -46,21 +44,21 @@
 
 
 class Trace : public Connector {
- protected:
-         nsaddr_t src_;
+protected:
+	nsaddr_t src_;
         nsaddr_t dst_;
         Tcl_Channel channel_;
         int callback_;
 
-#ifdef NAM_TRACE
-	Tcl_Channel namChan_;
-	char nwrk_ [256];
-#endif
         char wrk_[1024];
         virtual void format(int tt, int s, int d, Packet* p);
         void annotate(const char* s);
 	int show_tcphdr_;  // bool flags; backward compat
- public:
+
+	Tcl_Channel namChan_;
+	char nwrk_ [256];
+
+public:
 	int type_;
 	Trace(int type);
         ~Trace();
@@ -85,17 +83,14 @@ class Trace : public Connector {
 		return (double)floor(x*precision + 0.5)/precision;
 	}
 
-#ifdef NAM_TRACE
-	virtual void write_nam_trace(const char *s);
-	void namdump();
-#endif
-
 #ifdef OFF_HDR
 	int off_ip_;
 	int off_tcp_;
 	int off_rtp_;
 	int off_srm_;
 #endif
+	virtual void write_nam_trace(const char *s);
+	void namdump();
 };
 
 class DequeTrace : public Trace {

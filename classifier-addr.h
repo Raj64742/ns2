@@ -39,7 +39,7 @@
 
 class AddressClassifier : public Classifier {
 protected:
-	int classify(Packet * p);
+	virtual int classify(Packet * p);
 };
 
 /* addr. classifier that enforces reserved ports */
@@ -47,10 +47,10 @@ class ReserveAddressClassifier : public AddressClassifier {
 public:
 	ReserveAddressClassifier() : AddressClassifier(), reserved_(0) {}
 protected:
-	int classify(Packet *p);
-	void clear(int slot);
-	int getnxt(NsObject *);
-	int command(int argc, const char*const* argv);
+	virtual int classify(Packet *p);
+	virtual void clear(int slot);
+	virtual int getnxt(NsObject *);
+	virtual int command(int argc, const char*const* argv);
 	int reserved_;
 };
 
@@ -60,7 +60,7 @@ public:
 	BcastAddressClassifier() : AddressClassifier(), bcast_recver_(0) {}
 	NsObject *find(Packet *);
 protected:
-	int command(int argc, const char*const* argv);
+	virtual int command(int argc, const char*const* argv);
 	NsObject *bcast_recver_;
 };
 

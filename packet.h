@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.74 2000/07/10 07:24:45 intanago Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.75 2000/07/27 01:29:16 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -121,19 +121,17 @@ enum packet_t {
 	PT_RAP_DATA,
 	PT_RAP_ACK,
 
-	// insert new packet types here
-
 	PT_TFRC,
 	PT_TFRC_ACK,
 	PT_PING,
 
- 	/* Here is Diffusion packets : Chalermek */
+	// Diffusion packets - Chalermek
+	PT_DIFF,
 
- 	PT_DIFF,
+	// LinkState routing update packets
+	PT_RTPROTO_LS,
 
- 	/* -------------------------------- */
-
-
+	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
 
@@ -191,10 +189,10 @@ public:
 		name_[PT_PING]="ping";
 
 	 	/* For diffusion : Chalermek */
- 
  		name_[PT_DIFF] = "diffusion";
- 
- 		/* ------------------------- */
+
+		// Link state routing updates
+		name_[PT_RTPROTO_LS] = "rtProtoLS";
 
 		name_[PT_NTYPE]= "undefined";
 	}

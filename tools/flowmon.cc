@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.18 2000/06/21 05:29:07 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.19 2000/07/27 01:29:16 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -74,7 +74,7 @@ public:
 		fid_ = hdr->flowid();
 		type_ = chdr->ptype();
 	}
-	virtual void tagging(Packet *p) {}
+	virtual void tagging(Packet *) {}
 protected:
 	int		off_ip_;
 	nsaddr_t	src_;

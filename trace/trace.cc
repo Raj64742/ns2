@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.68 2000/07/19 04:41:03 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.69 2000/07/27 01:29:16 haoboy Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -62,10 +62,7 @@ public:
 
 
 Trace::Trace(int type)
-	: Connector(), type_(type), channel_(0), callback_(0)
-#ifdef NAM_TRACE
-	, namChan_(0)
-#endif
+	: Connector(), channel_(0), callback_(0), namChan_(0), type_(type)
 {
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
@@ -95,20 +92,14 @@ int Trace::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		if (strcmp(argv[1], "detach") == 0) {
 			channel_ = 0;
-#ifdef NAM_TRACE
 			namChan_ = 0;
-#endif
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "flush") == 0) {
-#ifdef NAM_TRACE
 			if (channel_ != 0) 
 				Tcl_Flush(channel_);
 			if (namChan_ != 0)
 				Tcl_Flush(namChan_);
-#else
-			Tcl_Flush(channel_);
-#endif
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
@@ -128,7 +119,6 @@ int Trace::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
-#ifdef NAM_TRACE
 		if (strcmp(argv[1], "namattach") == 0) {
 			int mode;
 			const char* id = argv[2];
@@ -145,18 +135,15 @@ int Trace::command(int argc, const char*const* argv)
 				write_nam_trace(argv[2]);
 			return (TCL_OK);
 		}
-#endif
 	}
 	return (Connector::command(argc, argv));
 }
 
-#ifdef NAM_TRACE
 void Trace::write_nam_trace(const char *s)
 {
 	sprintf(nwrk_, "%s", s);
 	namdump();
 }
-#endif
 
 void Trace::annotate(const char* s)
 {
@@ -311,7 +298,6 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			tcph->hlen(),
 			tcph->sa_length());
 	}
-#ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
 			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
@@ -329,7 +315,6 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			dst_nodeaddr,
 			dst_portaddr,
 			seqno,flags,sname);
-#endif      
 	delete [] src_nodeaddr;
   	delete [] src_portaddr;
   	delete [] dst_nodeaddr;
@@ -356,7 +341,6 @@ void Trace::dump()
 	}
 }
 
-#ifdef NAM_TRACE
 void Trace::namdump()
 {
 	int n = 0;
@@ -375,7 +359,6 @@ void Trace::namdump()
 		nwrk_[n] = 0;
 	}
 }
-#endif
 
 void Trace::recv(Packet* p, Handler* h)
 {
@@ -442,7 +425,6 @@ DequeTrace::recv(Packet* p, Handler* h)
 	dump();
 	namdump();
 
-#ifdef NAM_TRACE
 	if (namChan_ != 0) {
 #ifdef OFF_HDR
 		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
@@ -516,7 +498,6 @@ DequeTrace::recv(Packet* p, Handler* h)
 		delete [] dst_nodeaddr;
 		delete [] dst_portaddr;
 	}
-#endif
 
 	/* hack: if trace object not attached to anything free packet */
 	if (target_ == 0)

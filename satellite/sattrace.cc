@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.8 1999/11/13 01:58:30 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.9 2000/07/27 01:29:16 haoboy Exp $";
 #endif
 
 #include <stdio.h>
@@ -225,7 +225,6 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 			d_lat,
 			d_lon);
 	}
-#ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
 			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
@@ -243,7 +242,6 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 			dst_nodeaddr,
 			dst_portaddr,
 			seqno,flags,sname);
-#endif      
 	delete [] src_nodeaddr;
   	delete [] src_portaddr;
   	delete [] dst_nodeaddr;
@@ -280,7 +278,6 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 	dump();
 	namdump();
 
-#ifdef NAM_TRACE
 	if (namChan_ != 0) {
 #ifdef OFF_HDR
 		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
@@ -354,7 +351,6 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 		delete [] dst_nodeaddr;
 		delete [] dst_portaddr;
 	}
-#endif
 
 	/* hack: if trace object not attached to anything free packet */
 	if (target_ == 0)

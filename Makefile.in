@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.188 2000/07/21 04:56:58 yewei Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.189 2000/07/27 01:29:15 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -162,7 +162,8 @@ OBJ_CC = \
 	diffusion/hash_table.o diffusion/routing_table.o diffusion/iflist.o \
 	tfrc.o tfrc-sink.o energy-model.o ping.o tcp-rfc793edu.o \
 	rio.o semantic-rio.o tcp-sack-rh.o scoreboard-rh.o \
-	plm/loss-monitor-plm.o plm/cbr-traffic-PP.o
+	plm/loss-monitor-plm.o plm/cbr-traffic-PP.o \
+	linkstate/ls.o linkstate/rtProtoLS.o
 
 # don't allow comments to follow continuation lines
 
@@ -298,7 +299,8 @@ NS_TCL_LIB = \
 	tcl/webcache/webtraf.tcl \
 	tcl/plm/plm.tcl \
 	tcl/plm/plm-ns.tcl \
-	tcl/plm/plm-topo.tcl
+	tcl/plm/plm-topo.tcl \
+	tcl/lib/ns-rtProtoLS.tcl
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl | $(TCL2C) et_ns_lib > $@

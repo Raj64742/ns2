@@ -1,0 +1,170 @@
+#
+# Copyright (C) 2000 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.1 2000/07/27 01:29:17 haoboy Exp $
+
+# Simple test for Link State routing contributed by 
+# Mingzhou Sun <msun@rainfinity.com> based on Kannan's old equal-cost 
+# multi-path routing test code.
+
+# Simple example of an equal cost multi-path routing through
+# two equal cost routes.  Equal cost paths are achieved by diddling
+# link costs.
+#
+#
+#		$n0       $n3
+#		   \     /   \
+#		    \   /     \
+#		     $n2-------$n4
+#		    /
+#		   /
+#		$n1
+#
+# However, this is not as simple.  Because $n2 is directly connected to $n4,
+# it prefers its ``Direct'' route over multiple equal cost routes learned
+# via DV.  Hence,we raise the preference of Direct routes over DV routes.
+#
+# Furthermore, in this example, link <$n2, $n4> is made dynamic.  This allows
+# us to watch traffic between $n2 and $n4 alternate between taking multiple
+# equi-cost routes, and the only available route.
+
+Class TestSuite
+
+Class Test/eqp -superclass TestSuite
+
+Agent/rtProto/Direct set preference_ 200
+
+Test/eqp instproc init {} {
+	$self instvar ns
+	set ns [new Simulator]
+	Node set multiPath_ 1
+	set n0 [$ns node]
+	set n1 [$ns node]
+	set n2 [$ns node]
+	set n3 [$ns node]
+	set n4 [$ns node]
+	$n0 shape "circle"
+	$n1 shape "circle"
+	$n2 shape "other"
+	$n3 shape "other"
+	$n4 shape "box"
+
+	set f [open temp.rands w]
+	$ns trace-all $f
+
+	$ns color 0 blue
+	$ns color 1 red
+	$ns color 2 white
+
+	$ns duplex-link $n0 $n2 10Mb 2ms DropTail
+	$ns duplex-link $n1 $n2 10Mb 2ms DropTail
+	$ns duplex-link-op $n0 $n2 orient right-down
+	$ns duplex-link-op $n1 $n2 orient right-up
+
+	$ns duplex-link $n2 $n3 1.5Mb 10ms DropTail
+	$ns duplex-link $n3 $n4 1.5Mb 10ms DropTail
+	$ns queue-limit $n2 $n3 5
+	$ns duplex-link-op $n2 $n3 orient right-up
+	$ns duplex-link-op $n3 $n4 orient right-down
+	$ns duplex-link-op $n2 $n3 queuePos 0
+
+	$ns duplex-link $n2 $n4 1.5Mb 10ms DropTail
+	$ns queue-limit $n2 $n4 5
+	$ns duplex-link-op $n2 $n4 orient right
+	
+	$ns duplex-link-op $n2 $n3 queuePos 0
+	$ns duplex-link-op $n2 $n4 queuePos 0
+	
+	[$ns link $n2 $n4] cost 2
+	[$ns link $n4 $n2] cost 2
+
+	[$self build-tcp $n0 $n4 0.7] set class_ 0
+	[$self build-tcp $n1 $n4 0.9] set class_ 1
+
+	$ns rtmodel Deterministic {.25 .25} $n2 $n4
+	[$ns link $n2 $n4] trace-dynamics $ns stdout
+
+	$ns rtproto LS
+}
+
+Test/eqp instproc build-tcp { n0 n1 startTime } {
+	$self instvar ns
+	set tcp [new Agent/TCP]
+	$ns attach-agent $n0 $tcp
+	set snk [new Agent/TCPSink]
+	$ns attach-agent $n1 $snk
+
+	$ns connect $tcp $snk
+
+	set ftp [new Application/FTP]
+	$ftp attach-agent $tcp
+	$ns at $startTime "$ftp start"
+	return $tcp
+}
+
+Test/eqp instproc finish {} {
+	$self instvar ns
+	$ns flush-trace
+	exit 0
+}
+
+Test/eqp instproc run {} {
+	$self instvar ns
+	$ns at 1.2 "$self finish"
+	$ns run
+}
+
+proc usage {} {
+	global argv0
+	puts stderr "usage: ns $argv0 <tests>"
+	puts stderr "Valid tests are:\t[get-subclasses TestSuite Test/]"
+	exit 1
+}
+
+proc isProc? {cls prc} {
+	if [catch "Object info subclass $cls/$prc" r] {
+		global argv0
+		puts stderr "$argv0: no such $cls: $prc"
+		usage
+	}
+}
+
+TestSuite proc runTest {} {
+	global argc argv quiet
+
+	set quiet false
+	switch $argc {
+		1 {
+			set test $argv
+			isProc? Test $test
+		}
+		2 {
+			set test [lindex $argv 0]
+			isProc? Test $test
+			if {[lindex $argv 1] == "QUIET"} {
+				set quiet true
+			} 
+		}
+		default {
+			usage
+		}
+	}
+	set t [new Test/$test]
+	$t run
+}
+
+TestSuite runTest
