@@ -72,7 +72,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.15 1997/11/22 00:44:40 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.16 1997/11/25 00:02:22 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -239,11 +239,6 @@ int FullTcpAgent::outflags()
 
 int FullTcpAgent::rcvseqinit(int seq, int dlen)
 {
-#ifdef notdef
-	if (datalen == 0)
-		return irs_ + 1;
-#endif
-
 	return (seq + dlen + 1);
 }
 
@@ -518,9 +513,16 @@ void FullTcpAgent::newack(Packet* pkt)
 	// advance the ack number if this is for new data
 	if (ackno > highest_ack_)
 		highest_ack_ = ackno;
-	// set up the next packet to send
+
+	// if we have suffered a retransmit timeout, t_seqno_
+	// will have been reset to highest_ ack.  If the
+	// receiver has cached some data above t_seqno_, the
+	// new-ack value could (should) jump forward.  We must
+	// update t_seqno_ here, otherwise we would be doing
+	// go-back-n.
+
 	if (t_seqno_ < highest_ack_)
-		t_seqno_ = highest_ack_;	// thing to send next
+		t_seqno_ = highest_ack_; // seq# to send next
 
 	return;
 }
@@ -614,7 +616,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		if (datalen == 0) {
 			// check for a received pure ACK and that
 			// our own cwnd doesn't limit us
-			if (ackno > highest_ack_ && ackno <= maxseq_
+			if (ackno > highest_ack_ && ackno < maxseq_
 				&& cwnd_ >= wnd_) {
 				newack(pkt);
 				opencwnd();
@@ -731,8 +733,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		if (tiflags & TH_ACK) {
 			// SYN+ACK
 			highest_ack_ = ackno;
-			if (t_seqno_ < highest_ack_)
-				t_seqno_ = highest_ack_;
 			state_ = TCPS_ESTABLISHED;
 			/*
 			 * if we didn't have to retransmit the SYN,
@@ -757,6 +757,13 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			flags_ |= TF_ACKNOW;
 			cancel_rtx_timer();
 			state_ = TCPS_SYN_RECEIVED;
+			/*
+			 * decrement t_seqno_: we are sending a
+			 * 2nd SYN (this time in the form of a
+			 * SYN+ACK, so t_seqno_ will have been
+			 * advanced to 2... reduce this
+			 */
+			t_seqno_--;
 		}
 
 trimthenstep6:
@@ -785,14 +792,6 @@ trimthenstep6:
 			tiflags &= ~TH_SYN;
 			tcph->seqno()++;
 			todrop--;
-
-#ifdef notdef
-			// K: small change here
-			t_seqno_ = highest_ack_;
-			if ((tiflags & TH_ACK) == 0)
-				goto dropafterack;
-#endif
-
 		}
 		//
 		// see Stevens, vol 2, p. 960 for this check;
@@ -847,15 +846,6 @@ trimthenstep6:
 			// not in useful range
 			goto dropwithreset;
 		}
-#ifdef notdef
-/*
- * turn off ACKNOW, as it will generally be set above
- * because we were fooled into believing our peer's ack for
- * our SYN+ACK is actually a duplicate (and needed an ACK)
- */
-flags_ &= ~TF_ACKNOW;
-dupseg = FALSE;
-#endif
 		state_ = TCPS_ESTABLISHED;
 		/* fall into ... */
 
@@ -1139,11 +1129,9 @@ step6:
 
 	if (needoutput || (flags_ & TF_ACKNOW))
 		send_much(1, REASON_NORMAL, 0);
-#ifdef notdef
 	else if ((curseq_ + iss_) > highest_ack_)
 		send_much(0, REASON_NORMAL, 0);
-	// K: which state to return to??
-#endif
+	// K: which state to return to when nothing left?
 	Packet::free(pkt);
 	return;
 
