@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.7 1997/07/21 22:03:05 kfall Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.8 1997/07/23 02:36:45 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -199,7 +199,7 @@ RBPVegasTcpAgent::paced_send_one()
 int
 RBPVegasTcpAgent::able_to_rbp_send_one()
 {
-	return t_seqno() < curseq_ && t_seqno() < highest_ack() + window();
+	return t_seqno() < curseq_ && t_seqno() <= highest_ack() + window();
 }
 
 
@@ -338,5 +338,5 @@ RBPRenoTcpAgent::paced_send_one()
 int
 RBPRenoTcpAgent::able_to_rbp_send_one()
 {
-	return t_seqno() < curseq_ && t_seqno() < highest_ack() + window();
+	return t_seqno() < curseq_ && t_seqno() <= highest_ack() + window();
 }
