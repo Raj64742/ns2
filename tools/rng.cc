@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.24 2002/01/23 21:38:23 buchheim Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.25 2002/01/23 22:50:31 buchheim Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -418,18 +418,33 @@ RNGTest::RNGTest()
 	  for (i = 0; i < 10000; i++) 
 	  r = rng.uniform_positive_int();
 
+#ifdef OLD_RNG
 	  if (r != 1043618065L) {
 		  fprintf (stderr, "r (%lu) != 1043618065L\n", r);
 		  abort();
 	  }
+#else
+	  if (r != 582989707L) {
+		  fprintf (stderr, "r (%lu) != 582989707\n", r);
+		  abort();
+	  }
+#endif /* OLD_RNG */
 	  
 	  for (i = 10000; i < 551246; i++)
 		  r = rng.uniform_positive_int();
 
+#ifdef OLD_RNG
 	  if (r != 1003L) {
 		  fprintf (stderr, "r (%lu) != 1003L\n", r);
 		  abort();
 	  }
+#else
+	  if (r != 1625334359L) {
+		  fprintf (stderr, "r (%lu) != 1625334359L\n", r);
+		  abort();
+	  }
+#endif /* OLD_RNG */
+
 }
 
 void
