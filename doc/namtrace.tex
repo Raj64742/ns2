@@ -243,7 +243,7 @@ id.
 \item[-x <src-na.pa> <dst-sa.na> <seq> <flags> <sname>] is taken from
 ns-traces and it gives the source and destination node and port
 addresses, sequence number, flags (if any) and the type of message.
-For example \code{ -x {0.1 -2147483648.0 -1 ------- SRM_SESS} } denotes an
+For example \code{ -x \{0.1 -2147483648.0 -1 ------- SRM_SESS\} } denotes an
 SRM message being sent from node 0 (port 1).
 \end{description}
 
@@ -658,7 +658,7 @@ follows:
 
 \code{$ns duplex-link-op <attribute> <value>} %$
 
-The <attribute> may be one of the following: orient, color, queuePos.
+The <attribute> may be one of the following: orient, color, queuePos, label.
 Orient or the link orientation defines the angle between the link and
 horizontal. The optional orientation values may be difined in
 degrees or by text like right (0), right-up (45), right-down (-45), left
@@ -672,6 +672,7 @@ $ns duplex-link-op orient right      ;# orientation is set as right. The order
                                      ;# depends on calling order of this function.
 $ns duplex-link-op color "green"
 $ns duplex-link-op queuePos 0.5
+$ns duplex-link-op label "A"
 \end{program} %$
 
 \subsection{Agent and Features}
