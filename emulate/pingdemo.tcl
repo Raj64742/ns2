@@ -7,6 +7,15 @@
 # K Fall, 10/11/98
 # kfall@cs.berkeley.edu
 #
+# Instructions:
+#	1> first compile 'nse', the ns simulator with emulation
+#	2> change the 'myname' var below to the name of some machine
+#		that isn't being used right now
+#	3> run this script (nse pingdemo.tcl)
+#	4> run a 'ping' from some host to the name chosen in step 2
+#	5> ping output should indicate the various functions exercised by
+#		the tests below
+#
 
 Class PingDemo
 
