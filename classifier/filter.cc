@@ -48,7 +48,7 @@ void Filter::recv(Packet* p, Handler* h)
 		if (h) h->handle(p);
 		drop(p);
 		break;
-	case DUPLICATE :
+	case DUPLIC :
 		if (filter_target_)
 			filter_target_->recv(p->copy(), h);
 		/* fallthrough */

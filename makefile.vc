@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.14 1998/09/02 21:26:20 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.15 1998/11/05 00:07:44 yaxu Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -98,7 +98,7 @@ OBJ_CC = \
 	scheduler.o object.o \
 	packet.o ip.o route.o connector.o ttl.o \
 	trace.o trace-ip.o \
-	classifier.o classifier-addr.o classifier-hash.o \
+	classifier.o classifier-addr.o classifier-hash.o classifier-virtual.o \
 	classifier-mcast.o classifier-mpath.o replicator.o \
 	classifier-mac.o \
 	app.o telnet.o tcplib-telnet.o \
@@ -122,7 +122,7 @@ OBJ_CC = \
 	delay.o ll.o snoop.o \
 	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
 	dynalink.o rtProtoDV.o net-interface.o \
-	ctrMcast.o prune.o srm.o \
+	ctrMcast.o mcast_ctrl.o srm.o \
 	sessionhelper.o delaymodel.o srm-ssm.o \
 	srm-topo.o \
 	alloc-address.o address.o \
@@ -130,7 +130,7 @@ OBJ_CC = \
 	$(LIB_DIR)dmalloc_support.o \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
-	lanRouter.o
+	lanRouter.o tfcc.o filter.o
 
 # what was here before is now in emulate/
 OBJ_C =

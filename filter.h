@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/filter.h,v 1.3 1998/10/05 23:46:47 polly Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/filter.h,v 1.4 1998/11/05 00:07:43 yaxu Exp $ (USC/ISI)
  */
 
 #ifndef ns_filter_h
@@ -29,11 +29,12 @@ class Filter : public Connector {
 public:
 	Filter();
 	inline NsObject* filter_target() { return filter_target_; }
+    enum filter_e { DROP, PASS, FILTER, DUPLIC };
 protected:
-	enum filter_e { DROP, PASS, FILTER, DUPLICATE };
+	
 	virtual filter_e filter(Packet* p);
 
-	int command(int argc, const char*const* argv);
+	int command(int argc, const char* const* argv);
 	void recv(Packet*, Handler* h= 0);
 	NsObject* filter_target_; // target for the matching packets
 };
