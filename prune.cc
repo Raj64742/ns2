@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.1 1997/06/28 03:25:59 polly Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.2 1997/07/23 01:00:52 kfall Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -61,21 +61,19 @@ protected:
 static class PruneClass : public TclClass {
 public:
 	PruneClass() : TclClass("Agent/Mcast/Prune") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new PruneAgent());
 	}
 } class_prune;
 
 PruneAgent::PruneAgent() : Agent(PT_GRAFT)
 {
-	Tcl& tcl = Tcl::instance();
 	bind("packetSize_", &size_);
 	bind("off_prune_", &off_prune_);
 }
 
 void PruneAgent::recv(Packet* pkt, Handler*)
 {
-        hdr_ip* ih = (hdr_ip*)pkt->access(off_ip_);
 	hdr_prune* ph = (hdr_prune*)pkt->access(off_prune_);
 	Tcl::instance().evalf("%s handle %s %d %d %d", name(), ph->type(), ph->from(), ph->src(), ph->group());
 	Packet::free(pkt);
