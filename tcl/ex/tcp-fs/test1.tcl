@@ -10,10 +10,16 @@ set ns [new Simulator]
 
 set n(00) [$ns node]
 set n(01) [$ns node]
+set n(02) [$ns node]
+set n(03) [$ns node]
+set n(04) [$ns node]
 set n(1) [$ns node]
 set n(2) [$ns node]
 set n(30) [$ns node]
 set n(31) [$ns node]
+set n(32) [$ns node]
+set n(33) [$ns node]
+set n(34) [$ns node]
 
 set dir "/home/dwight/4c/home/padmanab/run"
 set trace_opened 0
@@ -55,6 +61,8 @@ set seed -1
 set topology "fs"
 set turnontime -1
 set turnofftime -1
+set schedDisp $FINE_ROUND_ROBIN
+set overhead 0
 
 proc finish {ns traceall tcptrace redtrace queuetrace graph connGraphFlag midtime turnontime turnofftime { qtraceflag false } } {
 	upvar $connGraphFlag graphFlag
@@ -173,6 +181,16 @@ while {$count < $argc} {
 			incr count -1
 			continue
 		}
+		'-fixediw' {
+			Agent/TCP/Session set fixedIw_ true
+			incr count -1
+			continue
+		}
+		'-proxy' {
+			Agent/TCP/Session set proxyopt_ true
+			incr count -1
+			continue
+		}
 		'-monitorq' {
 			set monitorq 1
 			incr count -1
@@ -205,6 +223,7 @@ while {$count < $argc} {
 		}
 		'-tk' {
 			set tcpTick [lindex $argv [expr $count-1]]
+			Agent/TCP/Session set tcpTick_ [lindex $argv [expr $count-1]]
 			continue
 		}
 		'-rbw' {
@@ -283,6 +302,20 @@ while {$count < $argc} {
 		}
 		'-topo' {
 			set topology [lindex $argv [expr $count-1]]
+			continue
+		}
+		'-sched' {
+			set sched [lindex $argv [expr $count-1]]
+			switch -exact '$sched' {
+				'frr' {set schedDisp $FINE_ROUND_ROBIN}
+				'crr' {set schedDisp $COARSE_ROUND_ROBIN}
+				'rand' {set schedDisp $RANDOM}
+				'null' {}
+			}
+			continue
+		}
+		'-overhead' {
+			Agent/TCP set overhead_ [lindex $argv [expr $count-1]]
 			continue
 		}
 		default {
@@ -405,10 +438,10 @@ while {$count < $argc} {
 	incr count 1
 	set connGraph 0 
 	set arg [lindex $argv $count]
-	if { $arg == "-graph" } {
-		set connGraph 1
-		incr count 1
-	}
+        if { $arg == "-graph" } {
+                set connGraph 1
+                incr count 1
+        }
 	if {($direction == "up") && ($upwin > 0)} {
 		set win $upwin
 	} elseif {($burstflag == 1) && ($burstwin > 0)} {
@@ -421,7 +454,9 @@ while {$count < $argc} {
 	set sink [createTcpSink $sinktype $sinktrace]
 	set ftp [createFtp $ns $src $tcp $dst $sink]
 	if {$sessionFlag} {
-		setupTcpSession $tcp $count_bytes_acked
+		setupTcpSession $tcp $count_bytes_acked $schedDisp
+#		set d [expr ([$tcp set dst_]/256)*256]
+#		set session [[$tcp set node_] getTcpSession $d]
 	}
 	setupTcpTracing $tcp $tcptrace $sessionFlag
 	setupGraphing $tcp $connGraph connGraphFlag $sessionFlag
@@ -437,6 +472,24 @@ while {$count < $argc} {
 		$tcp proc done {} "burst_finish $ns $ftp $burstsz $pause"
 		$ns at $startTime "$ftp produce $burstsz"
 	}
+	set ok 1
+	while {$ok == 1 && $count < $argc} {
+		set arg [lindex $argv $count]
+		switch -exact '$arg' {
+			'-at' {
+				incr count 1
+				set time [lindex $argv $count]
+				incr count 1
+				set cmd [lindex $argv $count]
+				incr count 1
+				$ns at $time "$tcp $cmd"
+			}
+			default {
+				set ok 0
+			}
+		}
+	}
+
 }
 
 # seed random number generator
@@ -460,9 +513,15 @@ if {$topology == "fs"} {
 	#  n01                         n31
 	$ns duplex-link $n(00) $n(1) 10Mb 1ms DropTail
 	$ns duplex-link $n(01) $n(1) 10Mb 1ms DropTail
+	$ns duplex-link $n(02) $n(1) 10Mb 1ms DropTail
+	$ns duplex-link $n(03) $n(1) 10Mb 1ms DropTail
+	$ns duplex-link $n(04) $n(1) 10Mb 1ms DropTail
 	$ns duplex-link $n(1) $n(2) 1Mb $delay $fgw
 	$ns duplex-link $n(2) $n(30) 10Mb 1ms DropTail
 	$ns duplex-link $n(2) $n(31) 10Mb 1ms DropTail
+	$ns duplex-link $n(2) $n(32) 10Mb 1ms DropTail
+	$ns duplex-link $n(2) $n(33) 10Mb 1ms DropTail
+	$ns duplex-link $n(2) $n(34) 10Mb 1ms DropTail
 
 	# configure forward bottleneck queue
 	configQueue $ns $n(1) $n(2) $fgw $queuetrace $fqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
