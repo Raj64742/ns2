@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1997/10/23 20:53:31 $
+# Version Date: $Date: 1998/09/01 01:47:05 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain-session.tcl,v 1.2 1997/10/23 20:53:31 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain-session.tcl,v 1.3 1998/09/01 01:47:05 tomh Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -79,12 +79,13 @@ for {set i 0} {$i <= 5} {incr i} {
 
 # Attach a data source to srm(1)
 set packetSize 800
-set s [new Agent/CBR]
+set s [new Application/Traffic/CBR]
+$s set packet_size_ $packetSize
 $s set interval_ 0.04
-$s set packetSize_ $packetSize
-$srm(0) traffic-source $s
+$s attach-agent $srm(0)
+$srm(0) set tg_ $s
+$srm(0) set app_fid_ 0
 $srm(0) set packetSize_ $packetSize
-$s set fid_ 0
 $ns at 3.5 "$srm(0) start-source"
 
 #$ns rtmodel-at 3.519 down $n(0) $n(1)	;# this ought to drop exactly one

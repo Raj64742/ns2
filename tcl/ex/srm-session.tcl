@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1997/10/23 20:53:34 $
+# Version Date: $Date: 1998/09/01 01:47:05 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-session.tcl,v 1.2 1997/10/23 20:53:34 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-session.tcl,v 1.3 1998/09/01 01:47:05 tomh Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -62,18 +62,16 @@ foreach i [array names n] {
         $ns create-session $n($i) $srm($i) ;# add this line to add session helpers
 }
 
-# Attach a data source to srm(1)
+# Attach a data source to srm(0)
 set packetSize 210
-set s0 [new Agent/CBR/UDP]
-set exp0 [new Traffic/Expoo]
-$exp0 set packet-size $packetSize
-$exp0 set burst-time 500ms
-$exp0 set idle-time 500ms
-$exp0 set rate 100k
-$s0 set fid_ 0
-$s0 attach-traffic $exp0
-
-$srm(0) traffic-source $s0
+set exp0 [new Application/Traffic/Exponential]
+$exp0 set packet_size_ $packetSize
+$exp0 set burst_time_ 500ms
+$exp0 set idle_time_ 500ms
+$exp0 set rate_ 100k
+$exp0 attach-agent $srm(0)
+$srm(0) set tg_ $exp0
+$srm(0) set app_fid_ 0
 $srm(0) set packetSize_ $packetSize	;# so repairs are correct
 
 $ns at 0.5 "$srm(0) start; $srm(0) start-source"
@@ -103,7 +101,7 @@ proc finish src {
 
 	exit 0
 }
-$ns at 5.0 "finish $s0"
+$ns at 5.0 "finish $exp0"
 
 #$ns gen-map
 $ns run

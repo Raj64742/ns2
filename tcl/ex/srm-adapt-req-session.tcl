@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1997/10/23 20:53:29 $
+# Version Date: $Date: 1998/09/01 01:47:03 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req-session.tcl,v 1.2 1997/10/23 20:53:29 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req-session.tcl,v 1.3 1998/09/01 01:47:03 tomh Exp $ (USC/ISI)
 #
 
 #
@@ -81,11 +81,12 @@ for {set i 1} {$i <= $nmax} {incr i} {
 
 # And, finally, attach a data source to srm(1)
 set packetSize 800
-set s [new Agent/CBR]
-$s set interval_ 0.02
+set s [new Application/Traffic/CBR]
 $s set packetSize_ $packetSize
-$s set fid_ 0
-$srm(1) traffic-source $s
+$s set interval_ 0.02
+$s attach-agent $srm(1)
+$srm(1) set tg_ $s
+$srm(1) set app_fid_ 0
 $srm(1) set packetSize_ $packetSize
 $ns at 3.5 "$srm(1) start-source"
 
