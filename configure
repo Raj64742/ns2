@@ -1952,8 +1952,7 @@ TK_TCL_PLACES="$PWD/../tk$TK_VERS/library \
 		$prefix/lib/tk \
                 $x_includes/tk \
                 $x_includes \
-                /usr/include \
-                /usr/include/tcl"
+                /usr/include"
 TK_H_PLACES_D="$d \
                 $d/generic \
                 $d/../include/tk$TK_VERS \
@@ -1986,7 +1985,8 @@ TK_H_PLACES="$PWD/../tk$TK_VERS/generic \
                 $prefix/include \
                 $x_includes/tk \
                 $x_includes \
-                /usr/include"
+                /usr/include \
+                /usr/include/tcl"
 TK_LIB_PLACES_D="$d \ 
                 $d/lib \
 		$d/unix"
