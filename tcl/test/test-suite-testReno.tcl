@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.4 2000/07/18 05:20:39 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.5 2000/08/06 00:31:39 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno.tcl
@@ -149,6 +149,36 @@ TestSuite instproc setup {tcptype list} {
         $ns_ run
 }
 
+TestSuite instproc setup1 {tcptype list} {
+	global wrap wrap1
+        $self instvar ns_ node_ testName_
+	$self setTopo
+
+        Agent/TCP set bugFix_ false
+	set fid 1
+        # Set up TCP connection
+    	if {$tcptype == "Tahoe"} {
+      		set tcp1 [$ns_ create-connection TCP $node_(s1) \
+          	TCPSink/DelAck $node_(k1) $fid]
+    	} elseif {$tcptype == "Sack1"} {
+      		set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
+          	TCPSink/Sack1/DelAck  $node_(k1) $fid]
+    	} else {
+      		set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
+          	TCPSink/DelAck $node_(k1) $fid]
+    	}
+        $tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 1.0 "$ftp1 start"
+
+        $self tcpDump $tcp1 4.0
+        $self drop_pkts $list
+
+        #$self traceQueues $node_(r1) [$self openTrace 4.01 $testName_]
+	$ns_ at 4.01 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
 # Definition of test-suite tests
 
 ###################################################
@@ -211,6 +241,68 @@ Test/Sack_TCP instproc init {} {
 }
 Test/Sack_TCP instproc run {} {
         $self setup Sack1 {15 18}
+}
+
+###################################################
+## One drop
+###################################################
+
+Class Test/Tahoe_TCP2 -superclass TestSuite
+Test/Tahoe_TCP2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	Tahoe_TCP2
+	$self next
+}
+Test/Tahoe_TCP2 instproc run {} {
+        $self setup1 Tahoe {17}
+}
+
+Class Test/Tahoe_TCP2_without_Fast_Retransmit -superclass TestSuite
+Test/Tahoe_TCP2_without_Fast_Retransmit instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	Tahoe_TCP2_without_Fast_Retransmit
+	Agent/TCP set noFastRetrans_ true
+	$self next
+}
+Test/Tahoe_TCP2_without_Fast_Retransmit instproc run {} {
+        $self setup1 Tahoe {17}
+}
+
+Class Test/Reno_TCP2 -superclass TestSuite
+Test/Reno_TCP2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	Reno_TCP2
+	$self next
+}
+Test/Reno_TCP2 instproc run {} {
+        $self setup1 Reno {17}
+}
+
+Class Test/NewReno_TCP2 -superclass TestSuite
+Test/NewReno_TCP2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	NewReno_TCP2
+	Agent/TCP set noFastRetrans_ false
+	$self next
+}
+Test/NewReno_TCP2 instproc run {} {
+        $self setup1 Newreno {17}
+}
+
+Class Test/Sack_TCP2 -superclass TestSuite
+Test/Sack_TCP2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	Sack_TCP2
+	Agent/TCP set noFastRetrans_ false
+	$self next
+}
+Test/Sack_TCP2 instproc run {} {
+        $self setup1 Sack1 {17}
 }
 
 TestSuite runTest
