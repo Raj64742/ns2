@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.24 1998/08/24 21:46:53 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.25 1999/01/29 05:22:41 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -609,6 +609,7 @@ public:
 	}
 	void	addallot(int prio, double diff) {
 		alloc_[prio] += diff;
+		setM();
 	}
 protected:
 	Packet *deque();
@@ -680,18 +681,36 @@ WRR_CBQueue::deque()
 			// nobody at this prio level
 			continue;
 		}
+                /* 
+                 * The WRR round for this priority level starts at deficit 0.
+                 *  The round ends if some class is found that is ready
+                 *  to send and has positive "bytes_alloc_".
+                 * Status advances to deficit 1 if some class was found  
+                 *  that was able to send except for insufficient
+                 *  "bytes_alloc_".
+                 * If status was deficit 1 at the end of the first round,
+                 *  then status advances to deficit 2.
+                 * Another round of WRR is then begun at deficit 2, looking
+                 *  for a class to send even with insufficient "bytes_alloc_".
+                 */
 		deficit = done = 0;
 		while (!done) {
+                        // look for class at this priority level ok to send
 			do {
+                                // set up "weight" for WRR
 				if (deficit < 2 && cl->bytes_alloc_ <= 0)
 					cl->bytes_alloc_ +=
 						(int)(cl->allotment_ * M_[cl->pri_]);
+                                // anything to send?
 				if (cl->demand()) {
 					if (first == NULL && cl->permit_borrowing_ && cl->lender_ != NULL)
 						first = cl;
 					if (!send_permitted(cl, now)) {
+                                                // not ok to send right now
 						cl->delayed(now);
 					} else {
+                                                // ok to send, if class has
+                                                //  enough "weight" for WRR.
 						int bytes = cl->bytes_alloc_;
 						if (bytes > 0 || deficit > 1) {
 							eligible = cl;
@@ -709,6 +728,7 @@ WRR_CBQueue::deque()
 				done = 1;
 		}
 	}
+        // did not find anyone so let first go
 	if ((eligible == NULL) && first != NULL) {
 		none_found = 1;
 		eligible = first;
@@ -760,7 +780,12 @@ WRR_CBQueue::setM()
 	int i;
 	for (i = 0; i <= maxprio_; i++) {
 		if (alloc_[i] > 0.0)
-			M_[i] = cnt_[i] * maxpkt_ * 1.0 / alloc_[i];
+                        // allocate "cnt_[i] * maxpkt_" bytes to each
+                        //  priority level:
+                        M_[i] = cnt_[i] * maxpkt_ * 1.0 / alloc_[i];
+                        // allocate "alloc_[i] * 2.0 * cnt_[i] * maxpkt_"
+                        //  bytes to each priority level:
+                        //  M_[i] = 2.0 * cnt_[i] * maxpkt_;
 		else
 			M_[i] = 0.0;
 
@@ -942,8 +967,12 @@ CBQClass::ancestor(CBQClass *p)
 void
 CBQClass::newallot(double bw)
 {
+        if (allotment_ < 0)
+                allotment_ = 0;
+        if (bw < 0)
+                bw = 0;
 	maxrate_ = bw * ( cbq_->link()->bandwidth() / 8.0 );
-	double diff = allotment_ - bw;
+	double diff = bw - allotment_;
 	allotment_ = bw;
 	cbq_->addallot(pri_, diff);
 	return;
