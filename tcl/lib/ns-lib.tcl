@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.184 2000/01/09 03:43:22 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.185 2000/01/23 03:25:12 klan Exp $
 
 #
 
@@ -1064,9 +1064,19 @@ Simulator instproc namtrace-all-wireless {file optx opty} {
 }
         
 Simulator instproc initial_node_pos {nodep size} {
+    $self instvar addressType_
+
+    if { [info exists addressType_] && $addressType_ == "hierarchical" } {
+
+        #hierarchical addressing
+        $self puts-nam-config "n -t * -a [$nodep set address_] -s [$nodep id] \
+-x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
+-v circle -c black"
+    } else { #flat addressing
         $self puts-nam-config "n -t * -s [$nodep id] \
 -x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
 -v circle -c black"
+    }
 }
 
 Simulator instproc trace-all file {
