@@ -994,6 +994,115 @@ Test/droppedfastrexmit instproc run {} {
 	$ns_ run
 }
 
+Class Test/ecn1 -superclass TestSuite
+Test/ecn1 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0-lossy
+	set test_ ecn1
+	$self next
+}
+Test/ecn1 instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 10.0	
+
+	$topo_ instvar lossylink_
+	set errmodule [$lossylink_ errormodule]
+	set errmodel [$errmodule errormodels]
+	if { [llength $errmodel] > 1 } {
+		puts "ecn1: confused by >1 err models..abort"
+		exit 1
+	}
+
+	$errmodel set offset_ 10.0
+	$errmodel set period_ 30.0
+	$errmodel set markecn_ true; # mark ecn's, don't drop
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set ftp1 [$src attach-source FTP]
+	$ns_ at 0.7 "$ftp1 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$src set ecn_ true
+	$sink set ecn_ true
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+Class Test/ecn2 -superclass TestSuite
+Test/ecn2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0-lossy
+	set test_ ecn2
+	$self next
+}
+Test/ecn2 instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 10.0	
+
+	$topo_ instvar lossylink_
+	set errmodule [$lossylink_ errormodule]
+	set errmodel [$errmodule errormodels]
+	if { [llength $errmodel] > 1 } {
+		puts "ecn2: confused by >1 err models..abort"
+		exit 1
+	}
+
+	#$errmodel set offset_ 30.0
+	$errmodel set offset_ 130.0
+	$errmodel set period_ 100.0
+	$errmodel set markecn_ true; # mark ecn's, don't drop
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set ftp1 [$src attach-source FTP]
+	$ns_ at 0.7 "$ftp1 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$src set ecn_ true
+	$sink set ecn_ true
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
 Class Test/droppedfin -superclass TestSuite
 Test/droppedfin instproc init topo {
 	$self instvar net_ defNet_ test_
