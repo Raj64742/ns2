@@ -19,6 +19,12 @@
 extern void init_misc(void);
 extern EmbeddedTcl et_ns_lib;
 
+/* MSVC requires this global var declaration to be outside of 'extern "C"' */
+#ifdef MEMDEBUG_SIMULATIONS
+#include "mem-trace.h"
+MemTrace *globalMemTrace;
+#endif
+
 extern "C" {
 
 /*
@@ -72,11 +78,6 @@ main(int argc, char **argv)
  *
  *----------------------------------------------------------------------
  */
-
-#ifdef MEMDEBUG_SIMULATIONS
-       #include "mem-trace.h"
-       MemTrace *globalMemTrace;
-#endif
 
 int
 Tcl_AppInit(Tcl_Interp *interp)
