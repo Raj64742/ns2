@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.463 2001/05/30 23:56:37 alefiyah Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.464 2001/06/04 22:43:43 intanago Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -63,6 +63,11 @@ for the first packet has been received.
 Changed the default for Queue/RED/gentle_ to true, so that
 the dropping probability increases gradually as the average
 queue size exceeds maxthresh.
+
+<LI><B><A HREF="mailto:intanago@isi.edu">[Chalermek Intanagonwiwat]</A></B>
+Fri May 25 02:42:21 PDT 2001
+<BR>Small bug fixes in diffusion. Get rid of a random number that is generated from a pointer. Start() should be virtual.
+
 
 <LI><B><A HREF="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
 Tue May 22 09:58:13 PDT 2001
