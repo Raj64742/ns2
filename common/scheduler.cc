@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.36 1998/07/23 22:57:08 breslau Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.37 1998/07/24 18:57:11 heideman Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.36 1998/07/23 22:57:08 breslau Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.37 1998/07/24 18:57:11 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -94,6 +94,8 @@ Scheduler::run()
 void
 Scheduler::dispatch(Event* p, double t)
 {
+	if (t < clock_)
+		fprintf(stderr, "ns: scheduler going backwards in time from %d to %d.\n", clock_, t);
 	clock_ = t;
 	p->uid_ = -p->uid_;	// being dispatched
 	p->handler_->handle(p);	// dispatch
