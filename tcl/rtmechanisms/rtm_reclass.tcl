@@ -1,22 +1,13 @@
-source mechanisms.tcl
 #
+# Main test file for the router mechanisms simulation
 #
 Class TestSuite
+source mechanisms.tcl
+source sources.tcl
 
-TestSuite instproc config {} {
-	$self instvar flowfile_ graphfile_ penaltyfile_ flowgraphfile_
-
-	set goodflowfile_ gflow.tr
-	set badflowfile_ bflow.tr
-	set flowfile_ ff.tr
-	set graphfile_ reclass.xgr
-	set penaltyfile_ reclassa.tr
-	set flowgraphfile_ ff.xgr
-}
 
 TestSuite instproc init {} {
         $self instvar ns_ defNet_ net_ test_ topo_ node_ testName_
-	$self config
 
         set ns_ [new Simulator]
         if {$net_ == ""} {
@@ -103,31 +94,6 @@ TestSuite instproc finish file {
         exit 0
 }
 
-#
-# Create traffic.
-#
-TestSuite instproc traffic1 {} {
-    $self instvar node_
-    $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-    $self new_tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50
-#    new_cbr 18.4 $s1 $s4) 190 0.00003 3
-    $self new_cbr 18.4 $node_(s1) $node_(s4) 190 0.003 3
-    $self new_tcp 65.4 $node_(s1) $node_(s4) 4 4 0 2000
-    $self new_tcp 100.2 $node_(s3) $node_(s1) 8 5 0 1000
-    $self new_tcp 122.6 $node_(s1 $node_(s4) 4 6 0 512
-    $self new_tcp 135.0 $node_(s4) $node_(s2) 100 7 0 1000
-    $self new_tcp 162.0 $node_(s2) $node_(s3) 100 8 0 1000
-    $self new_tcp 220.0 $node_(s1) $node_(s3) 100 9 0 512
-    $self new_tcp 260.0 $node_(s3) $node_(s2) 100 10 0 512
-    $self new_cbr 310.0 $node_(s2) $node_(s4) 190 0.1 11 
-    $self new_tcp 320.0 $node_(s1) $node_(s4) 100 12 0 512
-    $self new_tcp 350.0 $node_(s1) $node_(s3) 100 13 0 512
-    $self new_tcp 370.0 $node_(s3) $node_(s2) 100 14 0 512
-    $self new_tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512
-    $self new_tcp 420.0 $node_(s2) $node_(s4) 100 16 0 512
-    $self new_tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512
-}
-
 #------------------------------------------------------------------
 # Skeleton topology base class
 Class SkelTopology
@@ -202,16 +168,16 @@ TestSuite instproc linkDumpFlows { link interval stoptime } {
         set f [open $flowfile_ w]
         TestSuite instproc dump1 { file link interval } {
                 global maxclass
-                $ns at [expr [$ns now] + $interval] "$self dump1 $file $link $interval"
+                $ns_ at [expr [$ns_ now] + $interval] "$self dump1 $file $link $interval"
                 for {set i 0} {$i <= $maxclass} {incr i 1} {
                   set bytes [$link stat $i bytes]
                   if {$bytes > 0} {
-                    puts $file "time: [$ns now] class: $i bytes: $bytes $interval"     
+                    puts $file "time: [$ns_ now] class: $i bytes: $bytes $interval"     
                   }
                 }
         }
-        $ns at $interval "$self dump1 $f $link $interval"
-        $ns at $stoptime "close $f"
+        $ns_ at $interval "$self dump1 $f $link $interval"
+        $ns_ at $stoptime "close $f"
 }
 
 Class Test/one -superclass TestSuite
@@ -221,7 +187,46 @@ Test/one instproc init topo {
         set defNet_     net2
         set test_       reclass2
         $self next
+	$self config
 }
+
+Test/one instproc config {} {
+	$self instvar flowfile_ graphfile_ penaltyfile_ flowgraphfile_
+	$self instvar goodflowfile_ badflowfile_
+
+	set goodflowfile_ gflow.tr
+	set badflowfile_ bflow.tr
+	set flowfile_ ff.tr
+	set graphfile_ reclass.xgr
+	set penaltyfile_ reclassa.tr
+	set flowgraphfile_ ff.xgr
+}
+
+#
+# Create traffic.
+#
+Test/one instproc traffic1 {} {
+    $self instvar node_
+    $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
+    $self new_tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50
+#    new_cbr 18.4 $s1 $s4) 190 0.00003 3
+    $self new_cbr 18.4 $node_(s1) $node_(s4) 190 0.003 3
+    $self new_tcp 65.4 $node_(s1) $node_(s4) 4 4 0 2000
+    $self new_tcp 100.2 $node_(s3) $node_(s1) 8 5 0 1000
+    $self new_tcp 122.6 $node_(s1) $node_(s4) 4 6 0 512
+    $self new_tcp 135.0 $node_(s4) $node_(s2) 100 7 0 1000
+    $self new_tcp 162.0 $node_(s2) $node_(s3) 100 8 0 1000
+    $self new_tcp 220.0 $node_(s1) $node_(s3) 100 9 0 512
+    $self new_tcp 260.0 $node_(s3) $node_(s2) 100 10 0 512
+    $self new_cbr 310.0 $node_(s2) $node_(s4) 190 0.1 11 
+    $self new_tcp 320.0 $node_(s1) $node_(s4) 100 12 0 512
+    $self new_tcp 350.0 $node_(s1) $node_(s3) 100 13 0 512
+    $self new_tcp 370.0 $node_(s3) $node_(s2) 100 14 0 512
+    $self new_tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512
+    $self new_tcp 420.0 $node_(s2) $node_(s4) 100 16 0 512
+    $self new_tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512
+}
+
 
 Test/one instproc run {} {
     $self instvar ns_ net_ topo_
@@ -236,12 +241,14 @@ Test/one instproc run {} {
 
 	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu]
 
+	$self instvar goodflowfile_
 	set gfm [$rtm makeflowmon]
 	set gflowf [open $goodflowfile_ w]
 	$gfm set enable_in_ false	; # no per-flow arrival state
 	$gfm set enable_out_ false	; # no per-flow departure state
 	$gfm attach $gflowf
 
+	$self instvar badflowfile_
 	set bfm [$rtm makeflowmon]
 	set bflowf [open $badflowfile_ w]
 	$bfm attach $bflowf
