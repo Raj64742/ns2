@@ -48,7 +48,7 @@ PingDemo instproc init {} {
 	set myaddr [exec host $myname | sed "s/.*address\ //"]
 	set stoptime 200.0
 	set owdelay 1000ms
-	set delay_list 0.5 0.1 0.01 0.001
+	set delay_list {0.5 0.1 0.01 0.001}
 	set next_delay_list ""
 
 	set traceallfile em-all.tr
