@@ -4,6 +4,9 @@
 %        - KFALL
 % RNG section reviewed and revised 11-Sep-98, johnh.
 %
+% RNG section revised 28-Aug-02 by Tim Buchheim to include material
+% from Michelle Weigle which describes the new implementation of RNG
+
 \chapter{Mathematical Support}
 \label{chap:math}
 
@@ -25,142 +28,289 @@ The procedures and functions described in this chapter can be found in
 \section{Random Number Generation}
 \label{sec:random}
 
-The \code{RNG} class contains an implementation of the minimal standard
-multiplicative linear congruential generator of
-Park and Miller~\cite{Park88:Random}.
+The RNG class contains an implementation of the combined multiple
+recursive generator MRG32k3a proposed by L'Ecuyer
+\cite{lecuyer99}. The C++ code was adapted from \cite{lecuyer01}.
+This replaces the previous implementation of \code{RNG}, which used
+the minimal standard multiplicative linear congruential generator of
+Park and Miller~\cite{Park88:Random}.  The newer (MRG32k3a) \code{RNG} is
+used in ns versions 2.1b9 and later.
 
-Multiple instances of the RNG class can be created to allow a
-simulation to draw random numbers from independent random number
-streams.  For instance, a user who wants to generate the same traffic
-(based on some random process) in 2 different simulation experiments
-that compare different dropping algorithms that are themselves based
-on random processes may choose to base the traffic generation on one
-random number stream and the dropping algorithms on another stream.
-However, when using multiple RNG objects in a simulation care should
-be taken to insure that they are seeded in such a way as to guarantee
-that they produce independent, high-quality streams of random numbers.
-We describe approaches to seed the RNG below.
+The MRG32k3a generator provides $1.8$x$10^{19}$ independent
+streams of random numbers, each of which consists of
+$2.3$x$10^{15}$ substreams. Each substream has a period
+(\emph{i.e.}, the number of random numbers before overlap) of
+$7.6$x$10^{22}$. The period of the entire generator is
+$3.1$x$10^{57}$. Figure \ref{streams} provides a graphical idea of
+how the streams and substreams fit together.
+\begin{figure}[h]
+\centering
+\includegraphics[angle=270,width=6 in]{figures/rng-streams.eps}
+\caption{Overall arrangement of streams and substreams.
+\cite{lecuyer01}} \label{streams}
+\end{figure}
 
-Most users will be satisfied with a single instance of the RNG.
-Hence, a default RNG, created at simulator initialization time, is
-provided.
+A default RNG ({\tt defaultRNG}), created at simulator initialization
+time, is provided. If multiple random variables are used in a
+simulation, each random variable should use a separate RNG object.
+When a new RNG object is created, it is automatically seeded to
+the beginning of the next independent stream of random numbers.
+Used in this manner, the implementation allows for a maximum of
+$1.8$x$10^{19}$ random variables.
 
-\paragraph{C++ Support}
-This random number generator is
-implemented by the RNG class, defined in \nsf{rng.h}:
-\begin{program}
-class RNG : public TclObject \{
-        // These are primitive but maybe useful.
-	inline int uniform_positive_int()  // range [0, MAXINT]
+Often, multiple independent replications of a simulation are
+needed (\emph{i.e.}, to perform statistical analysis given
+multiple runs with fixed parameters).  For each replication, a
+different substream should be used to ensure that the random
+number streams are independent. (This process is given as an OTcl
+example later.) This implementation allows for a maximum of
+$2.3$x$10^{15}$ independent replications. Each random variable in
+a single replication can produce up to $7.6$x$10^{22}$ random
+numbers before overlapping.
 
- ...
-	// these are probably what you want to use
-	inline int uniform(int k) 
-	\{ return (uniform_positive_int() % (unsigned)k); \}
-	inline double uniform(double r) 
-	\{ return (r * uniform());\}
-	inline double uniform(double a, double b)
-	\{ return (a + uniform(b - a)); \}
-	inline double exponential()
-	\{ return (-log(uniform())); \}
-	inline double exponential(double r)
-	\{ return (r * exponential());\}
-	// See "Wide-area traffic: the failure of poisson modeling", Vern 
-	// Paxson and Sally Floyd, IEEE/ACM Transaction on Networking, 3(3),
-	// pp. 226-244, June 1995, on characteristics of counting processes 
-	// with Pareto interarrivals.
-	inline double pareto(double scale, double shape) \{ 
-		// When 1 < shape < 2, its mean is scale**shape, its 
-		// variance is infinite.
-		return (scale * (1.0/pow(uniform(), 1.0/shape)));
-	\}
-        inline double paretoII(double scale, double shape) \{ 
-		return (scale * ((1.0/pow(uniform(), 1.0/shape)) - 1));
-	\}
-	double normal(double avg, double std);
-	inline double lognormal(double avg, double std) \{ 
-		return (exp (normal(avg, std))); 
-	\}
-...
-\};
-\end{program}
+{\bf Note:} Only the most common functions are described here. For
+more information, see \cite{lecuyer01} and the source code found
+in {\tt tools/rng.h} and {\tt tools/rng.cc}.  For a comparison of this RNG to
+the more common LCG16807 RNG (and why LCG16807 is not a good RNG), 
+see \cite{lecuyer-wsc}.
+\subsection{Seeding The RNG}
+Due to the nature of the RNG and its implementation, it is not
+necessary to set a seed (the default is 12345).  If you wish to
+change the seed, functions are available. You should only set the
+seed of the default RNG.  Any other RNGs you create are
+automatically seeded such that they produce independent streams.
+The range of valid seeds is 1 to {\tt MAXINT}.
 
-The \code{uniform_positive_int} method generates random integers in the
-range $[0,2^{31}-1]$.
-In particular,
-Additional member functions provide the following random variate
-generation:
+To get non-deterministic behavior, set the seed of the default RNG
+to 0.  This will set the seed based on the current time of day and
+a counter.  {\bf This method should not be used to set seeds for
+independent replications.}  There is no guarantee that the streams
+produced by two random seeds will not overlap.  The only way to
+guarantee that two streams do not overlap is to use the substream
+capability provided by the RNG implementation.
 
-\begin{tabularx}{\linewidth}{rX}
-\fcn[double r]{uniform} & generate a floating-point number
-                          uniformly distributed on $[0,r]$ \\
-\fcn[double a, double b]{uniform} & generate a floating-point number
-                                    uniformly distributed on $[a,b]$ \\
-\fcn[]{exponential} & generate a floating-point number
-                      exponentially distributed (with parameter 1)
-                      on $[0, \infty)$ \\
-\fcn[int k]{integer} & generate an integer
-                       uniformly distributed on $[0, (k-1)]$ \\
-\end{tabularx}
+\subsubsection{Example}
+\begin{verbatim}
+ # Usage: ns rng-test.tcl [replication number]
 
-The \code{Random} class (in random.h) is an older interface to the standard
-random number stream.
+ if {$argc > 1} {
+    puts "Usage: ns rng-test.tcl \[replication number\]"
+    exit
+ }
+ set run 1
+ if {$argc == 1} {
+    set run [lindex $argv 0]
+ }
+ if {$run < 1} {
+    set run 1
+ }
 
-Here's a sample use of RNG modeled on RED.  rng\_ is an instance of class RNG:
-\begin{program}
-        \ldots
-        // {\cf drop probability is computed, pick random number and act}
-        double u = rng_->uniform_double();
-        if (u <= edv_.v_prob) \{
-                edv_.count = 0;
-                if (edp_.setbit) 
-                        iph->flags() |= IP_ECN; \* ip ecn bit */
-                else
-                        return (1);
-        \}
-        \ldots
-\end{program}
+ # seed the default RNG
+ global defaultRNG
+ $defaultRNG seed 9999
 
-\paragraph{Seeding the random number generator}
-When doing simulations often you will either want to get absolutely
-repeatable (deterministic) results or different results each time.
-Each approach requires a different seeding method.
+ # create the RNGs and set them to the correct substream
+ set arrivalRNG [new RNG]
+ set sizeRNG [new RNG]
+ for {set j 1} {$j < $run} {incr j} {
+    $arrivalRNG next-substream
+    $sizeRNG next-substream
+ }
 
-To get deterministic behavior, invoke the \fcn[]{set\_seed} method
-with the first parameter either RAW\_SEED\_SOURCE or
-PREDEF\_SEED\_SOURCE.  With a raw seed, the second parameter specifies
-the numeric seed that will be used (any integer).  The alternative is
-predefined seeds, where the second selects seeds from a table of 64
-known good seeds (which happen to be about 33 million steps apart in
-the default random number generation stream).
-Predefined seeds are know to provide a good random number stream,
-but there are limited numbers of them.
-Raw seeds may
-not provide a statistically good random number stream but are easy to generate.
+ # arrival_ is a exponential random variable describing the time
+ # between consecutive packet arrivals
+ set arrival_ [new RandomVariable/Exponential]
+ $arrival_ set avg_ 5
+ $arrival_ use-rng $arrivalRNG
 
-To get non-deterministic behavior, pick a seed with either 
-RAW\_SEED\_SOURCE or HEURISTIC\_SEED\_SOURCE.
-For raw streams the second argument specifies the stream.
-For heuristic streams the second argument is ignored and a seed is generated
-based on the current time of day and a counter.
-Both have the caveat that they may not provide a
-statistically good random number stream.
-It is very unlikely that any two heuristic seeds will be identical.
+ # size_ is a uniform random variable describing packet sizes
+ set size_ [new RandomVariable/Uniform]
+ $size_ set min_ 100
+ $size_ set max_ 5000
+ $size_ use-rng $sizeRNG
 
-\paragraph{OTcl support}
-The RNG class can be accessed from OTcl.  For example, a new RNG is
-created and seeded with:
+ # print the first 5 arrival times and sizes
+ for {set j 0} {$j < 5} {incr j} {
+    puts [format "%-8.3f  %-4d" [$arrival_ value] \
+            [expr round([$size_ value])]]
+ }
+\end{verbatim}
 
-\begin{program}
-set rng [new RNG]
-$rng seed 0 \; seeds the RNG heuristically;
-$rng seed n \; seeds the RNG with value n;
-$rng seed predef n \; seeds the RNG with predefined seed number n;
-$rng next-random \;  return the next random number;
-$rng uniform a b \; return a number uniformly distributed on [a, b];
-$rng integer k \; return an integer uniformly distributed on [0, (k-1)];
-$rng exponential \; return a number from an exponential distribution with average 1.;
-\end{program}
+\subsubsection{Output}
+
+\begin{verbatim}
+ % ns rng-test.tcl 1
+ 6.358     4783
+ 5.828     1732
+ 1.469     2188
+ 0.732     3076
+ 4.002     626
+
+ % ns rng-test.tcl 5
+ 0.691     1187
+ 0.204     4924
+ 8.849     857
+ 2.111     4505
+ 3.200     1143
+\end{verbatim}
+
+\subsection{OTcl Support}
+
+\subsubsection{Commands}
+
+The following commands on the RNG class can be accessed from OTcl
+and are found in {\tt tools/rng.cc}:
+\begin{description}
+    \item[{\tt seed $n$}] -- seed the RNG to $n$, if $n == 0$, the seed
+    is set according to the current time and a counter
+    \item[{\tt next-random}] -- return the next random number
+    \item[{\tt seed}] -- return the current value of the seed
+    \item[{\tt next-substream}] -- advance to the next substream
+    \item[{\tt reset-start-substream}] -- reset the stream to the beginning
+    of the current substream
+    \item[{\tt normal $avg$ $std$}] -- return a number sampled from a normal
+    distribution with the given average and standard deviation
+    \item[{\tt lognormal $avg$ $std$}] -- return a number sampled from a
+      lognormal distribution with the given average and standard deviation
+\end{description}
+
+The following commands on the RNG class can be accessed from OTcl
+and are found in {\tt tcl/lib/ns-random.tcl}:
+\begin{description}
+    \item[{\tt exponential $mu$}] -- return a number sampled from an
+      exponential distribution with mean $mu$ 
+    \item[{\tt uniform $min$ $max$}] -- return an integer sampled from a
+    uniform distribution on [$min$, $max$]
+    \item[{\tt integer $k$}] -- return an integer sampled from a uniform
+    distribution on [0, $k$-1]
+\end{description}
+
+\subsubsection{Example}
+
+\begin{verbatim}
+ # Usage: ns rng-test2.tcl [replication number]
+
+ if {$argc > 1} {
+    puts "Usage: ns rng-test2.tcl \[replication number\]"
+    exit
+ }
+ set run 1
+ if {$argc == 1} {
+    set run [lindex $argv 0]
+ }
+ if {$run < 1} {
+    set run 1
+ }
+
+ # the default RNG is seeded with 12345
+
+ # create the RNGs and set them to the correct substream
+ set arrivalRNG [new RNG]
+ set sizeRNG [new RNG]
+ for {set j 1} {$j < $run} {incr j} {
+    $arrivalRNG next-substream
+    $sizeRNG next-substream
+ }
+
+ # print the first 5 arrival times and sizes
+ for {set j 0} {$j < 5} {incr j} {
+    puts [format "%-8.3f  %-4d" [$arrivalRNG lognormal 5 0.1] \
+            [expr round([$sizeRNG normal 5000 100])]]
+ }
+\end{verbatim}
+
+\subsubsection{Output}
+
+\begin{verbatim}
+ % ns rng-test2.tcl 1
+ 142.776   5038
+ 174.365   5024
+ 147.160   4984
+ 169.693   4981
+ 187.972   4982
+
+ % ns rng-test2.tcl 5
+ 160.993   4907
+ 119.895   4956
+ 149.468   5131
+ 137.678   4985
+ 158.936   4871
+\end{verbatim}
+
+\subsection{C++ Support}
+
+\subsubsection{Member Functions}
+The random number generator is implemented by the RNG class and is
+defined in {\tt tools/rng.h}.
+
+{\bf Note:} The Random class in {\tt tools/random.h} is an older
+interface to the standard random number stream.
+
+Member functions provide the following operations:
+
+\begin{description}
+    \item[{\tt void set\_seed (long seed)}] -- set the seed of the RNG, if
+    $seed == 0$, the seed is set according to the current time and a
+    counter
+    \item[{\tt long seed (void)}] -- return the current seed
+    \item[{\tt long next (void)}] -- return the next random number as an
+    integer on [0, {\tt MAXINT}]
+    \item[{\tt double next\_double (void)}] -- return the next random number
+    on [0, 1]
+    \item[{\tt void reset\_start\_substream (void)}] -- reset the stream
+    to the beginning of the current substream
+    \item[{\tt void reset\_next\_substream (void)}] -- advance to the next
+    substream
+    \item[{\tt int uniform (int k)}] -- return an integer sampled from a
+      uniform distribution on [0, k-1]
+    \item[{\tt double uniform (double r)}] -- return a number sampled from a
+      uniform distribution on [0, r]
+    \item[{\tt double uniform (double a, double b)}] -- return a number
+      sampled from a uniform distribution on [a, b]
+    \item[{\tt double exponential (void)}] -- return a number sampled from an
+    exponential distribution with mean 1.0
+    \item[{\tt double exponential (double k)}] -- return a number sampled from
+      an exponential distribution with mean k 
+    \item[{\tt double normal (double avg, double std)}] -- return a number
+      sampled from a normal distribution with the given average and standard 
+    deviation
+    \item[{\tt double lognormal (double avg, double std)}] -- return a number
+      sampled from a lognormal distribution with the given average and
+      standard deviation
+\end{description}
+
+\subsubsection{Example}
+
+\begin{verbatim}
+ /* create new RNGs */
+ RNG arrival (23456);
+ RNG size;
+
+ /* set the RNGs to the appropriate substream */
+ for (int i = 1; i < 3; i++) {
+   arrival.reset_next_substream();
+   size.reset_next_substream();
+ }
+
+ /* print the first 5 arrival times and sizes */
+ for (int j = 0; j < 5; j++) {
+   printf ("%-8.3f  %-4d\n", arrival.lognormal(5, 0.1),
+             int(size.normal(500, 10)));
+ }
+\end{verbatim}
+
+\subsubsection{Output}
+\begin{verbatim}
+ 161.826   506
+ 160.591   503
+ 157.145   509
+ 137.715   507
+ 118.573   496
+\end{verbatim}
+
+
+
+
 
 \section{Random Variables}
 \label{sec:ranvar}
