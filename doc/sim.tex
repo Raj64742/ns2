@@ -18,6 +18,9 @@ and configure other aspects of the simulation.
 A subclass of Simulator called \code{OldSim} is used to support
 \ns~v1 backward compatibility.
 
+The procedures and functions described in this chapter can be found in
+\nsf{tcl/lib/ns-lib.tcl}, \nsf{scheduler.\{cc,h\}}, and, \nsf{heap.h}.
+
 \section{Simulator Initialization}
 \label{sec:siminit}
 
@@ -159,7 +162,7 @@ simulator must be able to keep pace with the real-world packet arrival
 rate, and this synchronization is not presently enforced.
 
 \section{Other Methods}
-\label{sec:sched}
+\label{sec:other}
 
 The {\tt Simulator} class provides a number of methods used
 to set up the simulation.

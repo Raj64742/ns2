@@ -14,6 +14,11 @@ of the base SRM agent.
 The last part of the chapter is a description of the extensions
 for other types of SRM agents that have been attempted to date.
 
+The procedures and functions described in this chapter can be found in
+\nsf{tcl/mcast/srm.tcl}, \nsf{tcl/mcast/srm-adaptive.tcl},
+\nsf{tcl/mcast/srm-nam.tcl}, \nsf{tcl/mcast/srm-debug.tcl}, and
+\nsf{srm.\{cc, h\}}.
+
 \section{Configuration}
 \label{sec:srm-config}
 
@@ -562,6 +567,51 @@ The first tuple is the information about the local agent%
   during partition and healing.
   It is reasonable to expect that the maintainer of this code will fix
   this problem during one of his numerous intervals of copious spare time.}.
+
+\section{Loss Detection---The Class SRMinfo}
+\label{sec:srminfo}
+
+A very small encapsulating class, entirely in C++,
+tracks a number of assorted state information.
+Each member of the group, $n_i$,  uses one SRMinfo block for every other
+member of the group.
+
+An SRMinfo object about group member $n_j$ at $n_i$,
+contains information about the session messages
+received by $n_i$ from $n_j$.
+$n_i$ can use this information to compute its distance to $n_j$.
+
+If $n_j$ sends is active in sending data traffic, then
+the SRMinfo object will also contain information about the
+received data, including a bit vector indicating all packets
+received from $n_j$.
+
+The agent keeps a list of SRMinfo objects, one per group member,
+in its member variable, \code{sip_}.
+Its method, \fcn[int sender]{get_state}
+will return the object corresponding to that sender,
+possibly creating that object, if it did not already exist.
+The \clsref{SRMinfo}{../ns-2/srm-state.h} has two methods
+to access and set the bit vector, \ie,
+\begin{alist}
+\fcn[int id]{ifReceived} & indicates whether the particular message
+		from the appropriate sender, with id \code{id}
+		 was received at $n_i$,\\
+\fcn[int id]{setReceived} & to set the bit to indicate that the
+		particular message from the appropriate sender,
+		with id \code{id} was received at $n_i$.
+\end{alist}
+The session message variables to access timing information are public;
+no encapsulating methods are provided.  These are:
+\begin{program}
+	int	lsess_;			  \* # of last session msg received */
+	int	sendTime_;		  \* Time sess. msg. # sent */
+	int	recvTime_;		  \* Time sess. msg. # received */
+	double	distance_;
+
+	/* {\cf Data messages} */
+	int	ldata_;			  \* # of last data msg sent */
+\end{program}
 
 \section{Loss Recovery Objects}
 \label{sec:recovery}

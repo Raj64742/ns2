@@ -6,17 +6,20 @@ We begin by describing
 \href{the interface to the user}{Section}{sec:API},
 through methods in the \clsref{Simulator}{../ns-2/ns-lib.tcl}
 and the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}.
-We then describe the
-\href{static routing}{Section}{sec:static}, which is the default in \ns.
-In our next section, we discuss the interface between 
-\href{unicast routing and network dynamics}{Section}{sec:rtglibAPI},
-and that between
-\href{unicast routing and multicast routing}{Secion}{sec:mcastAPI}.
-We then continue with our descriptions of
-\href{session routing}{Section}{sec:session}, and
-\href{dynamic DV routing}{Section}{sec:dynamicDV}.
-We conclude with a sketch of how the current mechanism would be
-\href{adapted for dynamic LS routing}{Section}{sec:dynamicLS}.
+We then describe
+\href{configuration mechanisms for specialised routing}{%
+	Section}{sec:uni:specroute}
+such as asymetric routing, or equal cost multipath routing
+The next section describes the
+\href{the configuration mechanisms for individual routing strategies
+and protocols}{Section}{sec:uni:protconfig}.
+We conclude with a comprehensive look at 
+\href{the internal architecture}{Section}{sec:internals}
+of routing in \ns.
+
+The procedures and functions described in this chapter can be found in
+\nsf{tcl/lib/ns-route.tcl}, \nsf{tcl/rtglib/route-proto.tcl}, 
+\nsf{tcl/mcast/McastProto.tcl}, and \nsf{rtProtoDV.\{cc, h\}}.
 
 \section{The Interface to the Simulation Operator (The API)}
 \label{sec:API}
@@ -673,10 +676,10 @@ For each of the unicast routing protocols operating at that node,
 \proc[]{rtObject::intf-changed} will invoke 
 each individual protocol's instance procedure,  \proc[]{intf-changed},
 followed by that protocol's \proc[]{compute-routes}.
+
 After each of the protocols has computed its individual routes
 \proc[]{rtObject::intf-changed} invokes \proc[]{rtObject::compute-routes}
 to possibly install new routes.
-
 If new routes were installed in the node,
 \proc[]{rtObject::compute-routes} will invoke
 \proc[]{send-updates} for each of the protocols operating at the node.
@@ -830,9 +833,6 @@ it first checks to determine if the update from differs from the previous
 ones.
 The agent will compute new routes if the update contains new information.
 
-
-I THINK I AM MISSING ONE OR TWO ROUTINES HERE.
-THIS GOT LOST IN THE SHUFFLE, AND WILL COME BACK AT A LATER TIME.
 
 \endinput
 

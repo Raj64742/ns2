@@ -88,321 +88,9 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
 @string{ swtesting = proceedings # "~International Symposium on
 		  Software Testing and Analysis"}
 
-
-@TechReport{Brak94a:TCP,
-  author = 	 "Brakmo, L.S. and O'Malley, S. and Peterson, L.L.",
-  title = 	 "{TCP} Vegas: New Techniques for Congestion Detection
-		  and Avoidance",
-  institution =  "Department of Computer Science, The University of Arizona",
-  year = 	 1994,
-  number =	 "TR 94 04",
-  address =	 "Tucson, AZ 85721",
-  month =	 feb,
-  keyword =	 "Network/Transport"
-}
-
-@InProceedings{Brak96:Experiences,
-  author = 	 "Brakmo, L.S. and Peterson, L.L.",
-  title = 	 "Experiences with Network Simulation",
-  booktitle =	 proceedings # "~ACM SIGMETRICS",
-  year =	 1996,
-  month =	 may
-}
-
-@TechReport{Brya77:Simulation,
-  author = 	 "Bryant, R.E.",
-  title = 	 "Simulation of Packet Communication Architecture
-		  Computer Systems",
-  institution =  "Massachusetts Institute of Technology",
-  year = 	 1977,
-  number =	 "MIT/LCS/TR-188"
-}
-
-@InProceedings{Cace91:Characteristics,
-  author = 	 "C\`aceres, R. and Danzig, P. and Jamin, S. and
-		  Mitzel, D.",
-  title = 	 "Characteristics of Wide-area {TCP/IP} Conversations",
-  pages =	 "101--112",
-  booktitle =	 p-sigcomm,
-  year =	 1991,
-  month =	 sep
-}
-
-@InProceedings{Ches89:XTP,
-  author = 	 "Chesson, G.",
-  title = 	 "{XTP/PE} Design Considerations",
-  booktitle = 	 "Protocols for High-Speed Networks",
-  editor =	 "Rudin, H. and Williamson, R.",
-  year =	 1989,
-  organization = "IFIP",
-  publisher =	 elseiver,
-  pages =	 "27--33"
-}
-
-@Misc{ChriXX:Nachos,
-  author =	 "Christopher, W.A. and Procter, S.J. and Anderson, T.E.",
-  title =	 "The Nachos Instructional Operating System",
-  howpublished = "Nachos is available at
-		  \url{ftp://sprite.berkeley.edu/nachos/}"
-}
-
-@InProceedings{Clar88:Design,
-  author = 	 "Clark, D.D.",
-  title = 	 "The Design Philosophy of the {DARPA} {I}nternet Protocols",
-  booktitle = 	 p-sigcomm,
-  year =	 1988,
-  pages =	 "106--114"
-}
-
-@InProceedings{Clar90:Architectural,
-  author = 	 "Clark, D.D. and Tennenhouse, D.L.",
-  title = 	 "Architectural Considerations for a New Generation of
-                  Protocols",
-  booktitle = 	 p-sigcomm,
-  year =	 1990,
-  pages =	 "200--208",
-}
-
-@InProceedings{Clar92:Supporting,
-  author = 	 "Clark, D.D. and Shenker, S. and Zhang, L.",
-  title = 	 "Supporting Real-time Applications in an Integrated
-		  Services Packet Network: Architecture and Mechanism",
-  pages =	 "14--26",
-  booktitle =	 p-sigcomm,
-  year =	 1992,
-  month =	 aug
-}
+@STRING{rfceds = "USC/Information Sciences Institute"}
 
 
-@TechReport{Danz91:tcplib,
-  author = 	 "Danzig, P. and Jamin, S.",
-  title = 	 "tcp\-lib: A Library of {TCP/IP} Traffic
-		  Characteristics",
-  institution =  "University of Southern California",
-  year = 	 1991,
-  number =	 "CS-SYS-91-01",
-  address =	 "Networks and Distributed Systems Laboratory,
-		  Department of Computer Science",
-  month =	 oct,
-  note =	 "Available at \url{ftp://catarina.usc.edu/pub/jamin/tcplib}"
-}
-
-@Article{Deme90:Analysis,
-  author = 	 "Demers, A. and Keshav, S. and Shenker, S.",
-  title = 	 "Analysis and Simulation of a Fair Queueing Algorithm",
-  journal =	 joi,
-  year =	 1990,
-  volume =	 1,
-  number =	 1,
-  pages =	 "3--26",
-  month =	 jan,
-  summary =	 "bit-wise implementation of weighted fair queueing,
-                  with simulation and analysis.",
-  keyword =	 "Network/intserv"
-}
-
-@Article{Dupu90:NEST,
-  author = 	 "Dupuy, A. and Schwartz, J. and Yemini, Y. and Bacon, D.",
-  title = 	 "{NEST}: A Network Simulation and Prototyping Method",
-  journal =	 cacm,
-  year =	 1990,
-  volume =	 33,
-  number =	 10,
-  pages =	 "64--74",
-  month =	 oct
-}
-
-@TechReport{Fall95:Simulation-Based,
-  author = 	 "Fall, K. and Floyd, S.",
-  title = 	 "Simulation-based Comparisons of {T}ahoe, {R}eno, and
-		  {SACK} {TCP}",
-  institution =  "Lawrence Berkeley Labs",
-  year = 	 1995,
-  month =	 dec,
-  note =	 "Available at \url{ftp://ftp.ee.lbl.gov/papers/sacks.ps.Z}"
-}
-
-@Article{Fall96:Simulation-Based,
-  author = 	 "Fall, K. and Floyd, S.",
-  title = 	 "Simulation-based Comparisons of {T}ahoe, {R}eno, and
-		  {SACK} {TCP}",
-  journal =	 sigcomm-ccr,
-  year =	 1996,
-  volume =	 26,
-  number =	 3,
-  pages =	 "5--21",
-  month =	 jul,
-  summary =	 " A simulation based comparison of SACK in TCP
-                  against Reno and Tahoe flavours in ns.  It shwos
-                  that Reno outperforms Tahoe with 1-packet loss, and
-                  is comparable to SACK.  With 2 packet loss in a
-                  single window, Reno waits for a retransmit timeout
-                  and then goes into slow start.   A variant of Reno
-                  that stays in the fast retransmit phase performs as
-                  well as SACK.  With 3 packet losses in a window,
-                  Reno goes into slow start, while the variant
-                  sputters and then recovers, and SACK goes along
-                  swimmingly. (Hows that for a technical summary? :-)
-                  With multiple packet drops, SACK clearly performs
-                  better than the other protocols.",
-  keyword =	 "Network/real-time"
-}
-
-@InProceedings{Floy95:Reliable,
-  author = 	 "Floyd, S. and Jacobson, V. and Liu, C. and McCanne,
-		  S. and Zhang, L.",
-  title = 	 "A Reliable Multicast Framework for Light-weight
-		  Sessions and Application Level Framing",
-  pages =	 "342--356",
-  booktitle =	 p-sigcomm,
-  year =	 1995,
-  month =	 aug,
-  annote =	 "SRM"
-}
-
-@Misc{Floy95:Simulator,
-  author =	 "Floyd, S.",
-  title =	 "Simulator Tests",
-  howpublished = "\url{ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z}",
-  year =	 1995,
-  month =	 jul
-}
-
-@Misc{Floy96:Ns,
-  author =	 "Floyd, S.",
-  title =	 "Ns Simulator Tests for Class-Based Queueing",
-  howpublished = "\url{ftp://ftp.ee.lbl.gov/papers/cbqsims.ps.Z}",
-  year =	 1996,
-  month =	 feb
-}
-
-@Unpublished{Floy96:Phase,
-  author = 	 "Floyd, S.",
-  title = 	 "Phase Effects in Simulation Studies",
-  note = 	 "Personal Communication",
-  year =	 1997,
-  month =	 aug
-}
-
-@Manual{Heyb89:Netsim,
-  title = 	 "Netsim Manual",
-  author =	 "Heybey, A.",
-  organization = "MIT",
-  year =	 1989,
-  annote =	 "Netsim"
-}
-
-@Article{Hutc91:x-kernel,
-  author = 	 "Hutchinson, N.C. and Peterson, L.L.",
-  title = 	 "The $x$-kernel: An Architecture for Implementing
-		  Network Protocols",
-  journal =	 "ieeese",
-  year =	 1991,
-  volume =	 17,
-  number =	 1,
-  pages =	 "64--76",
-  month =	 jan
-}
-
-@InProceedings{Jaco88:Congestion,
-  author = 	 "Jacobson, V.",
-  title = 	 "Congestion Avoidance and Control",
-  booktitle = 	 p-sigcomm,
-  year =	 1988,
-  month =	 aug,
-  address =	 "Stanford, CA, U.S.A.",
-  pages =	 "314--329"
-}
-
-@TechReport{Kesh88:REAL,
-  author = 	 "Keshav, S.",
-  title = 	 "{REAL}: A Network Simulator",
-  institution =  "University of California, Berkeley",
-  year = 	 1988,
-  number =	 "UCB/CSD 88/472"
-}
-
-@InProceedings{McCa95:Joint,
-  author = 	 "McCanne, S. and Vetterli, M.",
-  title = 	 "Joint Source/Channel Coding for Multicast Packet Video",
-  booktitle =	 proceedings # "~IEEE International Conference on
-		  Image Processing",
-  year =	 1995,
-  address =	 "Washington D.C., U.S.A.",
-  month =	 oct
-}
-
-@Misc{nam,
-  crossref =	 "McCaXX:nam"
-}
-
-@Misc{McCaXX:nam,
-  author =	 "McCanne, S. and Jacobson, V.",
-  title =	 "nam---{N}etwork {AN}imator",
-  howpublished = "Available from the authors"
-}
-
-@Misc{ns,
-  crossref =	 "McCaXX:ns"
-}
-
-@Misc{McCaXX:ns,
-  author =	 "McCanne, S. and Floyd, S.",
-  title =	 "ns---{N}etwork {S}imulator",
-  howpublished = "\url{http://www-mash.cs.berkeley.edu/ns/}"
-}
-
-@Misc{wb,
-  crossref =	 "McCaXX:wb"
-}
-
-@Misc{McCaXX:wb,
-  author =	 "McCanne, S. and Jacobson, V.",
-  title =	 "wb--{W}hite{b}oard",
-  howpublished = "\url{ftp://ftp.ee.lbl.gov/wb.tar.Z}"
-}
-
-@Article{Paxs94:Empirically,
-  author = 	 "Paxson, V.",
-  title = 	 "Empirically-derived Analytic Models of Wide-area
-		  {TCP} Connections",
-  journal =	 ton,
-  year =	 1994,
-  volume =	 2,
-  number =	 4,
-  month =	 aug
-}
-@Article{Paxs95:Wide,
-  author = 	 "Paxson, V. and Floyd, S.",
-  title = 	 "Wide Area Traffic: The Failure of Poisson Modeling",
-  journal =	 ton,
-  year =	 1995,
-  volume =	 3,
-  number =	 3,
-  pages =	 "226-244",
-  month =	 jun
-}
-
-@TechReport{Thom94:Generation,
-  author = 	 "Thomas, M. and Zegura, E.",
-  title = 	 "Generation and Analysis of Random Graphs to Model
-		  Internetworks",
-  institution =  "Georgia Institute of Technology",
-  year = 	 1994,
-  number =	 "GIT-CC-94-46"
-}
-
-@InProceedings{Zegu96:How,
-  author = 	 "Zegura, E.W. and Calvert, K.L. and Bhattacharjee, S.",
-  title = 	 "How to Model an Internetwork",
-  booktitle = 	 p-infocom,
-  volume =	 3,
-  year =	 1996,
-  address =	 "San Francisco, CA, U.S.A.",
-  month =	 mar,
-  pages =	 "594--602",
-  LOC_CAT  =	 "TK5105.5 I48 1996 V.3"
-}
 
 @Article{Alae94:Design,
   author = 	 "Alaettino\u{g}lu, C. and Shankar, A.U. and
@@ -413,6 +101,15 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   volume =	 5,
   pages =	 "17--41"
 }
+
+@InProceedigs{Brak94:TCP,
+  author = 	 "Brakmo, L.S. and O'Malley, S. and Peterson, L.L.",
+  title = 	 "{TCP} Vegas: New Techniques for Congestion Detection
+		  and Avoidance",
+  pages =	 "24--35",
+  booktitle =	 p-sigcomm,
+  year =	 1994,
+  month =	 oct
 
 @Unpublished{Almq91:Ruminations,
   author = 	 "Almquist, P.",
@@ -465,8 +162,71 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   annote =	 "*"
 }
 
+@TechReport{Brak94a:TCP,
+  author = 	 "Brakmo, L.S. and O'Malley, S. and Peterson, L.L.",
+  title = 	 "{TCP} Vegas: New Techniques for Congestion Detection
+		  and Avoidance",
+  institution =  "Department of Computer Science, The University of Arizona",
+  year = 	 1994,
+  number =	 "TR 94 04",
+  address =	 "Tucson, AZ 85721",
+  month =	 feb,
+  keyword =	 "Network/Transport"
+}
+
+@InProceedings{Brak96:Experiences,
+  author = 	 "Brakmo, L.S. and Peterson, L.L.",
+  title = 	 "Experiences with Network Simulation",
+  booktitle =	 proceedings # "~ACM SIGMETRICS",
+  year =	 1996,
+  month =	 may
+}
+
+@Article{Brow88:Calendar,
+  author = 	 "Brown, R.",
+  title = 	 "Calendar Queues: A Fast {O(1)} Priority Queue
+                  Implementation for the Simulation Event Set Problem",
+  journal = 	 cacm,
+  year = 	 1988,
+  volume =	 31,
+  number =	 10,
+  month =	 oct,
+  pages =	 "1220--1227"
+}
+
+@TechReport{Brya77:Simulation,
+  author = 	 "Bryant, R.E.",
+  title = 	 "Simulation of Packet Communication Architecture
+		  Computer Systems",
+  institution =  "Massachusetts Institute of Technology",
+  year = 	 1977,
+  number =	 "MIT/LCS/TR-188"
+}
+
 @InProceedings{CBT,
   crossref =	 "Ball93:Architecture"
+}
+
+@InProceedings{Cace91:Characteristics,
+  author = 	 "C\`aceres, R. and Danzig, P. and Jamin, S. and
+		  Mitzel, D.",
+  title = 	 "Characteristics of Wide-area {TCP/IP} Conversations",
+  pages =	 "101--112",
+  booktitle =	 p-sigcomm,
+  year =	 1991,
+  month =	 sep
+}
+
+
+@InProceedings{Ches89:XTP,
+  author = 	 "Chesson, G.",
+  title = 	 "{XTP/PE} Design Considerations",
+  booktitle = 	 "Protocols for High-Speed Networks",
+  editor =	 "Rudin, H. and Williamson, R.",
+  year =	 1989,
+  organization = "IFIP",
+  publisher =	 elseiver,
+  pages =	 "27--33"
 }
 
 @InProceedings{Chin93:Dynamics,
@@ -478,6 +238,40 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   annote =	 "The paper comparisons the size of the network
 		  failure as a cluster, and its relation to the
 		  distance of its occurrence."
+}
+
+@Misc{ChriXX:Nachos,
+  author =	 "Christopher, W.A. and Procter, S.J. and Anderson, T.E.",
+  title =	 "The Nachos Instructional Operating System",
+  howpublished = "Nachos is available at
+		  \url{ftp://sprite.berkeley.edu/nachos/}"
+}
+
+@InProceedings{Clar88:Design,
+  author = 	 "Clark, D.D.",
+  title = 	 "The Design Philosophy of the {DARPA} {I}nternet Protocols",
+  booktitle = 	 p-sigcomm,
+  year =	 1988,
+  pages =	 "106--114"
+}
+
+@InProceedings{Clar90:Architectural,
+  author = 	 "Clark, D.D. and Tennenhouse, D.L.",
+  title = 	 "Architectural Considerations for a New Generation of
+                  Protocols",
+  booktitle = 	 p-sigcomm,
+  year =	 1990,
+  pages =	 "200--208",
+}
+
+@InProceedings{Clar92:Supporting,
+  author = 	 "Clark, D.D. and Shenker, S. and Zhang, L.",
+  title = 	 "Supporting Real-time Applications in an Integrated
+		  Services Packet Network: Architecture and Mechanism",
+  pages =	 "14--26",
+  booktitle =	 p-sigcomm,
+  year =	 1992,
+  month =	 aug
 }
 
 @Article{Colt89:OSPF,
@@ -501,6 +295,19 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   number =	 12,
   month =	 dec,
   pages =	 "1040-1048"
+}
+
+@TechReport{Danz91:tcplib,
+  author = 	 "Danzig, P. and Jamin, S.",
+  title = 	 "tcp\-lib: A Library of {TCP/IP} Traffic
+		  Characteristics",
+  institution =  "University of Southern California",
+  year = 	 1991,
+  number =	 "CS-SYS-91-01",
+  address =	 "Networks and Distributed Systems Laboratory,
+		  Department of Computer Science",
+  month =	 oct,
+  note =	 "Available at \url{ftp://catarina.usc.edu/pub/jamin/tcplib}"
 }
 
 @Article{Deer90:Multicast,
@@ -547,6 +354,28 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
                   and Sparse Mode, Core-Based-Tree-like multicast for
                   wide area multicast groups",
   keyword =	 "Routing/multicast"
+}
+
+@Article{Deme90:Analysis,
+  author = 	 "Demers, A. and Keshav, S. and Shenker, S.",
+  title = 	 "Analysis and Simulation of a Fair Queueing Algorithm",
+  journal =	 joi,
+  year =	 1990,
+  volume =	 1,
+  number =	 1,
+  pages =	 "3--26",
+  month =	 jan,
+  summary =	 "bit-wise implementation of weighted fair queueing,
+                  with simulation and analysis.",
+  keyword =	 "Network/intserv"
+}
+
+@InProceedings{Math96:Forward,
+  author =	 "Mathis, M. and Mahdavi, J."
+  title =	 "Forward Acknowledgement: Refining {TCP} Congestion Control",
+  booktitle =	 p-sigcomm,
+  year =	 1996,
+  month =	 aug
 }
 
 @Article{Dijk59:Note,
@@ -601,6 +430,17 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
                   of patricia for fixed length keys with AVL balanced trees."
 }
 
+@Article{Dupu90:NEST,
+  author = 	 "Dupuy, A. and Schwartz, J. and Yemini, Y. and Bacon, D.",
+  title = 	 "{NEST}: A Network Simulation and Prototyping Method",
+  journal =	 cacm,
+  year =	 1990,
+  volume =	 33,
+  number =	 10,
+  pages =	 "64--74",
+  month =	 oct
+}
+
 @TechReport{Estr91:Protocol,
   author = 	 "Estrin, D. and Breslau, L. and Zhang, L.",
   title = 	 "Protocol Mechanisms for Adaptive Routing in Global
@@ -609,6 +449,42 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   year = 	 1991,
   number =	 "CS-SYS-91-04",
   month =	 nov
+}
+
+@TechReport{Fall95:Simulation-Based,
+  author = 	 "Fall, K. and Floyd, S.",
+  title = 	 "Simulation-based Comparisons of {T}ahoe, {R}eno, and
+		  {SACK} {TCP}",
+  institution =  "Lawrence Berkeley Labs",
+  year = 	 1995,
+  month =	 dec,
+  note =	 "Available at \url{ftp://ftp.ee.lbl.gov/papers/sacks.ps.Z}"
+}
+
+@Article{Fall96:Simulation-Based,
+  author = 	 "Fall, K. and Floyd, S.",
+  title = 	 "Simulation-based Comparisons of {T}ahoe, {R}eno, and
+		  {SACK} {TCP}",
+  journal =	 sigcomm-ccr,
+  year =	 1996,
+  volume =	 26,
+  number =	 3,
+  pages =	 "5--21",
+  month =	 jul,
+  summary =	 " A simulation based comparison of SACK in TCP
+                  against Reno and Tahoe flavours in ns.  It shwos
+                  that Reno outperforms Tahoe with 1-packet loss, and
+                  is comparable to SACK.  With 2 packet loss in a
+                  single window, Reno waits for a retransmit timeout
+                  and then goes into slow start.   A variant of Reno
+                  that stays in the fast retransmit phase performs as
+                  well as SACK.  With 3 packet losses in a window,
+                  Reno goes into slow start, while the variant
+                  sputters and then recovers, and SACK goes along
+                  swimmingly. (Hows that for a technical summary? :-)
+                  With multiple packet drops, SACK clearly performs
+                  better than the other protocols.",
+  keyword =	 "Network/real-time"
 }
 
 @InProceedings{Floy93:Synchronization,
@@ -627,7 +503,6 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   year = 	 1994,
   month =	 apr
 }
-
 @Article{Floy94:Synchronization,
   author = 	 "Floyd, S. and Jacobson, V.",
   title = 	 "The Synchronization of Periodic Routing Messages",
@@ -638,6 +513,26 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
 		  \cite{Floy93:Synchronization}"
 }
 
+@InProceedings{Floy95:Reliable,
+  author = 	 "Floyd, S. and Jacobson, V. and Liu, C. and McCanne,
+		  S. and Zhang, L.",
+  title = 	 "A Reliable Multicast Framework for Light-weight
+		  Sessions and Application Level Framing",
+  pages =	 "342--356",
+  booktitle =	 p-sigcomm,
+  year =	 1995,
+  month =	 aug,
+  annote =	 "SRM"
+}
+
+@Misc{Floy95:Simulator,
+  author =	 "Floyd, S.",
+  title =	 "Simulator Tests",
+  howpublished = "\url{ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z}",
+  year =	 1995,
+  month =	 jul
+}
+
 @TechReport{Floy95a:Reliable,
   institution =  "Lawrence Berkeley Laboratory",
   year = 	 1995,
@@ -645,6 +540,22 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   address =	 "University of California, Berkeley, CA 94720",
   month =	 nov,
   note =	 "This is an extended version of \cite{Floy95:Reliable}"
+}
+
+@Misc{Floy96:Ns,
+  author =	 "Floyd, S.",
+  title =	 "Ns Simulator Tests for Class-Based Queueing",
+  howpublished = "\url{ftp://ftp.ee.lbl.gov/papers/cbqsims.ps.Z}",
+  year =	 1996,
+  month =	 feb
+}
+
+@Unpublished{Floy96:Phase,
+  author = 	 "Floyd, S.",
+  title = 	 "Phase Effects in Simulation Studies",
+  note = 	 "Personal Communication",
+  year =	 1997,
+  month =	 aug
 }
 
 @Article{Floy97:Reliable,
@@ -683,6 +594,52 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   year =	 1991,
   month =	 oct # "~15",
   summary =	 ""
+}
+
+@Manual{Heyb89:Netsim,
+  title = 	 "Netsim Manual",
+  author =	 "Heybey, A.",
+  organization = "MIT",
+  year =	 1989,
+  annote =	 "Netsim"
+}
+
+@Article{Hutc91:x-kernel,
+  author = 	 "Hutchinson, N.C. and Peterson, L.L.",
+  title = 	 "The $x$-kernel: An Architecture for Implementing
+		  Network Protocols",
+  journal =	 "ieeese",
+  year =	 1991,
+  volume =	 17,
+  number =	 1,
+  pages =	 "64--76",
+  month =	 jan
+}
+
+@InProceedings{Jaco88:Congestion,
+  author = 	 "Jacobson, V.",
+  title = 	 "Congestion Avoidance and Control",
+  booktitle = 	 p-sigcomm,
+  year =	 1988,
+  month =	 aug,
+  address =	 "Stanford, CA, U.S.A.",
+  pages =	 "314--329"
+}
+
+@Book{Jain91:Art,
+  author = 	 "Jain, R.",
+  title = 	 "The Art of Computer Systems Performance Analysis",
+  publisher = 	 "John Wiley and Sons, Inc.",
+  year = 	 1996,
+  number =	 "LOC: QA76.9.E94J32 1991"
+}
+
+@TechReport{Kesh88:REAL,
+  author = 	 "Keshav, S.",
+  title = 	 "{REAL}: A Network Simulator",
+  institution =  "University of California, Berkeley",
+  year = 	 1988,
+  number =	 "UCB/CSD 88/472"
 }
 
 @Article{Klie77:Hierarchical,
@@ -734,6 +691,16 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   location =	 "http://www.merit.edu/ipma/analysis/"
 }
 
+@InProceedings{McCa95:Joint,
+  author = 	 "McCanne, S. and Vetterli, M.",
+  title = 	 "Joint Source/Channel Coding for Multicast Packet Video",
+  booktitle =	 proceedings # "~IEEE International Conference on
+		  Image Processing",
+  year =	 1995,
+  address =	 "Washington D.C., U.S.A.",
+  month =	 oct
+}
+
 @InProceedings{McCa96:Receiver-Driven,
   author = 	 "McCanne, S. and Jacobson, V. and Vetterli, M.",
   title = 	 "Receiver-driven Layered Multicast",
@@ -742,6 +709,24 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   address =	 "Stanford, CA, U.S.A.",
   month =	 aug,
   pages =	 "117--130"
+}
+
+@Misc{McCaXX:nam,
+  author =	 "McCanne, S. and Jacobson, V.",
+  title =	 "nam---{N}etwork {AN}imator",
+  howpublished = "Available from the authors"
+}
+
+@Misc{McCaXX:ns,
+  author =	 "McCanne, S. and Floyd, S.",
+  title =	 "ns---{N}etwork {S}imulator",
+  howpublished = "\url{http://www-mash.cs.berkeley.edu/ns/}"
+}
+
+@Misc{McCaXX:wb,
+  author =	 "McCanne, S. and Jacobson, V.",
+  title =	 "wb--{W}hite{b}oard",
+  howpublished = "\url{ftp://ftp.ee.lbl.gov/wb.tar.Z}"
 }
 
 @Misc{McQu77:Routing,
@@ -767,6 +752,39 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   title = 	 "An Introduction to Routing by Preference",
   note = 	 "Pre-publication copy",
   summary =	 " "
+}
+
+@Article{Park88:Random,
+  author = 	 "Park, S.K. and Miller, R.W.",
+  title = 	 "Random Number Generation: Good Ones are Hard to Find",
+  journal = 	 cacm,
+  year = 	 1988,
+  volume =	 31,
+  number =	 10,
+  month =	 oct,
+  pages =	 "1192--1201"
+}
+
+@Article{Paxs94:Empirically,
+  author = 	 "Paxson, V.",
+  title = 	 "Empirically-derived Analytic Models of Wide-area
+		  {TCP} Connections",
+  journal =	 ton,
+  year =	 1994,
+  volume =	 2,
+  number =	 4,
+  month =	 aug
+}
+
+@Article{Paxs95:Wide,
+  author = 	 "Paxson, V. and Floyd, S.",
+  title = 	 "Wide Area Traffic: The Failure of Poisson Modeling",
+  journal =	 ton,
+  year =	 1995,
+  volume =	 3,
+  number =	 3,
+  pages =	 "226-244",
+  month =	 jun
 }
 
 @Article{Perl85:Hierarchical,
@@ -877,6 +895,15 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
                   Control trffic, Soft State"
 }
 
+@TechReport{Thom94:Generation,
+  author = 	 "Thomas, M. and Zegura, E.",
+  title = 	 "Generation and Analysis of Random Graphs to Model
+		  Internetworks",
+  institution =  "Georgia Institute of Technology",
+  year = 	 1994,
+  number =	 "GIT-CC-94-46"
+}
+
 @TechReport{Wei95:Multicast,
   author = 	 "Wei, L. and Estrin, D.",
   title = 	 "Multicast Routing in Dense and Sparse Modes:
@@ -886,6 +913,48 @@ string{ infocom = "IEEE~" # proceedings # "~INFOCOM"}
   year = 	 1995,
   number =	 "TR 95-613",
   summary =	 "PIMsim documentation"
+}
+
+@InProceedings{Zegu96:How,
+  author = 	 "Zegura, E.W. and Calvert, K.L. and Bhattacharjee, S.",
+  title = 	 "How to Model an Internetwork",
+  booktitle = 	 p-infocom,
+  volume =	 3,
+  year =	 1996,
+  address =	 "San Francisco, CA, U.S.A.",
+  month =	 mar,
+  pages =	 "594--602",
+  LOC_CAT  =	 "TK5105.5 I48 1996 V.3"
+}
+
+@Misc{nam,
+  crossref =	 "McCaXX:nam"
+}
+
+@Misc{ns,
+  crossref =	 "McCaXX:ns"
+}
+
+@Manual{rfc1075,
+  author =	"D. Waitzman and C. Partridge and S.E. Deering.",
+  title =	"{Distance Vector Multicast Routing Protocol}",
+  edition =	"{RFC 1075}",
+  year =	1988,
+  format =	"TXT=54731 bytes",
+  annote =	rfceds
+}
+
+@Manual{rfc2018,
+  title = 	 "{TCP} Selective Acknowledgement Options",
+  author =	 "Mathis, M. and Mahdavi, J. and Floyd, S. and
+                  Romanov, A.",
+  edition =	 "{RFC 2018}",
+  year =	 1996,
+  annote =	 rfceds
+}
+
+@Misc{wb,
+  crossref =	 "McCaXX:wb"
 }
 
 Local Variables:

@@ -6,7 +6,8 @@
 % in the first entry is essential.  The \endinput at end is useful.
 % Other mods are to promote each sub*section one level up.
 %
-\chapter{\shdr{Timers}{timer-handler.h}{chap:timers}}
+\chapter{Timers}
+\label{chap:timers}
 
 Timers may be implemented in C++ or OTcl.  In C++, timers are based on an 
 abstract base class defined in \code{timer-handler.h}.  They are most often 
@@ -14,11 +15,15 @@ used in agents, but the
 framework is general enough to be used by other objects.  The discussion
 below is oriented towards the use of timers in agents.
 
-In OTcl, a simple timer class is defined in \nsf{tcl/ex/timer.tcl}.  
+The procedures and functions described in this chapter can be found in
+\nsf{tcl/XXX/timer.tcl}, and \nsf{timer-handler.\{cc, h\}}.
+
+In OTcl, a simple timer class is defined in \nsf{tcl/XXX/timer.tcl}.  
 Subclasses can be derived to provide a simple mechanism for scheduling events 
 at the OTcl level.
 
-\section{\shdr{C++ abstract base class TimerHandler}{timer-handler.h}{sec:abstractbaseclass}}
+\section{C++ abstract base class TimerHandler}
+\label{sec:abstractbaseclass}
 
 The abstract base class \code{TimerHandler}
 contains the following public member functions:
@@ -37,9 +42,9 @@ The abstract base class \code{TimerHandler}
 contains the following protected members:
 
 \begin{tabularx}{\linewidth}{rlX}
-\fcn[Event* e]{virtual void expire} & \code{= 0} &
+\fcn[Event* e]{virtual void expire} & \code{=0} &
 	 this method must be filled in by the timer client\\
-\fcn[Event* e]{virtual void handle} & \code{= 0} &
+\fcn[Event* e]{virtual void handle} & \code{=0} &
 	 consumes an event\\
 \code{int status\_} & &  keeps track of the current timer status\\
 \code{Event event\_} & & event to be consumed upon timer expiry\\
@@ -61,7 +66,8 @@ Finally, two private inline functions are defined:
 From this code we can see that timers make use of methods of the 
 \code{Scheduler} class.
 
-\subsection{\shdr{Definition of a new timer}{timer-handler.h}{sec:definition}}
+\subsection{Definition of a new timer}
+\label{sec:definition}
 
 To define a new timer, subclass this function and
 define \fcn[]{handle} if needed
@@ -99,15 +105,17 @@ free to establish method bindings if they so desire.
 % in the first paragraph in this chapter?
 % How do I establish bindings?  What type are they?
 
-\subsection{\shdr{Example: Tcp retransmission timer}{tcp.cc}{sec:timerexample}}
+\subsection{Example: Tcp retransmission timer}
+\label{sec:timerexample}
+
 TCP is an example of an agent which requires timers.  There are three timers
 defined in the basic Tahoe TCP agent defined in \code{tcp.cc}:
 \begin{program}
         rtx_timer_;      \*  Retransmission timer */
-        delsnd_timer_;   \*  Delays sending of packets by a small random amount of time,
-                              to avoid phase effects */
-        burstsnd_timer_;   \* Helps TCP to stagger the transmission of a large window
-                               into several smaller bursts */
+        delsnd_timer_;   \*  Delays sending of packets by a small random amount of time, */
+			\* to avoid phase effects */
+        burstsnd_timer_;   \* Helps TCP to stagger the transmission of a large window */
+				\* into several smaller bursts */
 \end{program}
 In \nsf{tcp.h}, three classes are derived from the base class
 \clsref{TimerHandler}{tcp.h}:
@@ -221,7 +229,8 @@ void RtxTimer::expire(Event *e) \{
 
 The various TCP agents contain additional examples of timers.
 
-\section{\shdr{OTcl Timer class}{timer.tcl}{sec:otcltimer}}
+\section{OTcl Timer class}
+\label{sec:otcltimer}
 
 A simple timer class is defined in \nsf{tcl/ex/timer.tcl}.  Subclasses of
 \code{Timer} can be defined as needed.  Unlike the C++ timer API, where a 

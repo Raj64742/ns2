@@ -3,12 +3,16 @@
 %        DRAFT DRAFT DRAFT
 %        - GNGUYEN
 %
-\section{\shdr{Error Model}{errmodel.h}{sec:error_model}}
+\chapter{Error Model}
+\label{chap:error_model}
 
-Error model simulates link-level error or loss by either marking the
+The procedures and functions described in this chapter can be found in
+\nsf{errmodel.\{cc, h\}}.
+
+Error model simulates link-level errors or loss by either marking the
 packet's error flag or dumping the packet to a drop target.  In
 simulations, errors can be generated from a simple model such as the
-packet error rate, or from more complicated statistical and empirical.
+packet error rate, or from more complicated statistical and empirical models.
 To support a wide variety of models, the unit of error can be specified
 in term of packet, bits, or time-based.
 
@@ -16,7 +20,7 @@ The \code{ErrorModel} class is derived from the \code{Connector} base
 class.  As the result, it inherits some methods for hooking up objects
 such as \code{target} and \code{drop-target}.  If the drop target
 exists, it will received corrupted packets from \code{ErrorModel}.
-Otherwise, \code{ErrorModel} just mark the \code{error_} flag of the
+Otherwise, \code{ErrorModel} just marks the \code{error_} flag of the
 packet's common header, thereby, allowing agents to handle the loss.
 The \code{ErrorModel} also defines additional Tcl method \code{unit} to
 specify the unit of error and \code{ranvar} to specify the random
@@ -24,42 +28,39 @@ variable for generating errors.  If not specified, the unit of error
 will be in packets, and the random variable will be uniform distributed
 from 0 to 1.  Below is a simple example of creating an error model with
 the packet error rate of 1 percent (0.01):
-
-\begin{verbatim}
-        # create a loss_module and set its packet error rate to 1 percent
+\begin{program}
+        # {]cf create a loss_module and set its packet error rate to 1 percent}
         set loss_module [new ErrorModel]
         $loss_module set rate_ 0.01
 
-        # optional:  set the unit and random variable
-        $em unit pkt            # error unit: packets (the default)
+        # {\cf optional:  set the unit and random variable}
+        $em unit pkt            \; error unit: packets (the default);
         $em ranvar [new RandomVariable/Uniform]
 
-        # set target for dropped packets
+        # {\cf set target for dropped packets}
         $loss_module drop-target [new Agent/Null]
-\end{verbatim}
+\end{program}
 
 In C++, the \code{ErrorModel} contains both the mechanism and policy for
 dropping packets.  The packet dropping mechanism is handled by the
 \code{recv} method, and packet corrupting policy is handled by the
 \code{corrupt} method.
+\begin{program}
+	enum ErrorUnit \{ EU_PKT=0, EU_BIT, EU_TIME \};
 
-\begin{verbatim}
-enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME };
-
-class ErrorModel : public Connector {
-public:
-        ErrorModel();
-        void recv(Packet*, Handler*);
-        virtual int corrupt(Packet*);
-        inline double rate() { return rate_; }
-protected:
-        int command(int argc, const char*const* argv);
-        ErrorUnit eu_;		// error unit in pkt, bit, or time
-        RandomVariable* ranvar_;
-        double rate_;
-};
-\end{verbatim}
-
+	class ErrorModel : public Connector \{
+	public:
+	       	ErrorModel();
+	        void recv(Packet*, Handler*);
+        	virtual int corrupt(Packet*);
+	        inline double rate() \{ return rate_; \bs{}n}
+	protected:
+        	int command(int argc, const char*const* argv);
+	        ErrorUnit eu_;		\* error unit in pkt, bit, or time */
+	        RandomVariable* ranvar_;
+        	double rate_;
+	\};
+\end{program}
 The \code{ErrorModel} only implements a simple policy based on a single
 error rate, either in packets of bits.  More sophisticated dropping
 policy can be implemented in C++ by deriving from \code{ErrorModel} and

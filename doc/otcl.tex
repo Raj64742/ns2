@@ -55,6 +55,12 @@ Finally, the \href{class InstVar}{Section}{sec:InstVar}
 contains methods to access C++ member variables
 as OTcl instance variables.
 
+The procedures and functions described in this chapter can be found in
+\Tclf{Tcl.\{cc, h\}}, \Tclf{Tcl2.cc}, \Tclf{tcl-object.tcl}, and,
+\Tclf{tracedvar.\{cc, h\}}.
+The file \Tclf{tcl2c++.c} is used in building \ns, and is mentioned
+briefly in this chapter.
+
 \section{Class Tcl}
 \label{sec:Tcl}
 
@@ -277,7 +283,7 @@ These functions are used internally by
 the class TclObject and class TclClass.
 
 \subsection{Other Operations on the Interpreter}
-\label{sec:other}
+\label{sec:otcl:other}
 
 If the above methods are not sufficient,
 then we must acquire the handle to the interpreter,
@@ -436,12 +442,12 @@ The steps are:
   \fcnref{\fcn{create\_shadow}}{../Tcl/Tcl.cc}{TclClass::create\_shadow}
   \begin{enumerate}
   \item adds the new object to hash table of TclObjects
-        \href{described earlier}{Section}{sec:hashTables}.
+        \href{described earlier}{Section}{sec:HashTables}.
   \item makes \proc[]{cmd} an instance procedure of the newly created
     interpreted object.
     This instance procedure
     invokes the \fcn[]{command} method of the compiled object.
-    In \href{a later subsection}{Section}{sec:command},
+    In \href{a later subsection}{Section}{sec:Commands},
     we describe how the \code{command} method is defined, and invoked.
   \end{enumerate}
 \end{enumerate}
@@ -582,7 +588,7 @@ with default values when the object is created.
 The default values are specified as interpreted class variables.
 This initialisation is done by the routing \proc[]{init-instvar},
 invoked by methods in the class Instvar,
-\href{described later}{Section}{sec:Instvar}.
+\href{described later}{Section}{sec:InstVar}.
 \proc[]{init-instvar} checks the class of the interpreted object,
 and all of the parent class of that object, to find the first
 class in which the variable is defined.

@@ -1,15 +1,30 @@
 \def\url#1{\texttt{{\small #1}}}
 \begin{thebibliography}{1}
 
+\bibitem{Alae94:Design}
+C.~Alaettino\u{g}lu, A.U. Shankar, K.~Dussa-Zeiger, and I.~Matta.
+\newblock Design and implementation of {MaRS}: A routing testbed.
+\newblock {\em Internetworking: Research and Experience}, 5:17--41, 1994.
+
 \bibitem{Floy95:Reliable}
 S.~Floyd, V.~Jacobson, C.~Liu, S.~McCanne, and L.~Zhang.
 \newblock A reliable multicast framework for light-weight sessions and
   application level framing.
 \newblock In {\em Proceedings of the~ACM SIGCOMM}, pages 342--356, August 1995.
 
+\bibitem{Heyb89:Netsim}
+A.~Heybey.
+\newblock {\em Netsim Manual}.
+\newblock MIT, 1989.
+
 \bibitem{ns}
 S.~McCanne and S.~Floyd.
 \newblock ns---{N}etwork {S}imulator.
 \newblock \url{http://www-mash.cs.berkeley.edu/ns/}.
+
+\bibitem{Park88:Random}
+S.K. Park and R.W. Miller.
+\newblock Random number generation: Good ones are hard to find.
+\newblock {\em Communications of the ACM}, 31(10):1192--1201, October 1988.
 
 \end{thebibliography}

@@ -11,6 +11,14 @@ functions used to implement random variate generation and integration.
 This area of the simulator is currently undergoing some
 changes.
 
+The procedures and functions described in this chapter can be found in
+\nsf{random.\{cc, h\}},
+\nsf{ranvar.\{cc, h\}},
+\nsf{pareto.\{cc, h\}},
+\nsf{expoo.\{cc, h\}},
+\nsf{tcl/lib/ns-random.cc}, and
+\nsf{integrator.\{cc, h\}}.
+
 \section{Random Number Generation}
 \label{sec:random}
 
@@ -107,19 +115,16 @@ determines how
 the seed is generated and the second is a seed value.  There are 3
 values of this enumerated type used determine the initial seed value:
 
-\begin{itemize}
-
-\item[RAW\_SEED\_SOURCE]:  the value contained in the second parameter is used
-as the seed.
-
-\item [PREDEF\_SEED\_SOURCE]:  the value contained in the second parameter is
-used as the index into an array of predefined seed values.  These
-values have been precomputed and provide independent streams of random
-numbers.  There are currently 64 such seeds.
-
-\item [HEURISTIC\_SEED\_SOURCE]: use a heuristic to generate the seed.
-The second argument is ignored if provided.
-\end{itemize}
+\begin{tabularx}{\linewidth}{rX}
+RAW\_SEED\_SOURCE &  the value contained in the second parameter is used
+			as the seed.\\
+PREDEF\_SEED\_SOURCE &  the value contained in the second parameter is
+	used as the index into an array of predefined seed values.  These
+	values have been precomputed and provide independent streams of random
+	numbers.  There are currently 64 such seeds.\\
+HEURISTIC\_SEED\_SOURCE  & use a heuristic to generate the seed.
+	The second argument is ignored if provided.\\
+\end{tabularx}
 
 The heuristic seeding method
 attempts to pick some sort of non-recurring seed values (resulting

@@ -5,68 +5,102 @@ This section describes the internals of the Session-level Packet Distribution
 implementation in \ns.
 The section is in two parts:
 the first part is an overview of 
-a basic Session configuration,
+\href{Session configuration}{Section}{sec:config},
 and a ``complete'' description of the configuration parameters 
 of a Session.
 The second part describes the architecture, internals, and the code path
 of the Session-level Packet distribution.
 
-Session-level Packet Distribution enables simulations with large-scale 
-topologies.  A 2048 node and 8 connectivity degree topology takes roughly 
-40 MB in memory, 2049-4096 node topology takes about 167 MB, and 4097-
-8194 node topology takes about 671 MB.  However, the queuing delays that
-may occur in routers are ignored.  Therefore, if simulations are involved 
-with high source rate or multiple sources merging at some point resulting
-a high aggregated rate, please avoid using Session-level Packet Distribution.
+The procedures and functions described in this chapter can be found in
+\nsf{tcl/session/session.tcl}.
+
+Session-level Packet Distribution is oriented towards
+performing multicast simulations over large topologies.
+The memory requirements for some topologies using
+session level simulations are:
+
+\begin{tabular}{r @{~~~$approx$~} r@{\,MB}}
+2048 nodes, degree of connectivity = 8 & $\approx$ 40 \\
+2049--4096 nodes & 167 \\
+4097--8194 nodes & 671 \\
+\end{tabular}
+
+Note however, that session level simulations ignore qeueing and
+propagation delays.
+Therefore, the accuracy of
+simulations that use sources with a high data rate,
+or those that use multiple sources that get aggregated at points
+within the network is suspect.
 
 \section{Configuration}
+\label{sec:config}
+
+Configuration of a session level simulation consists of two parts,
+\href{configuration of the session level details themselves}{Section}{%
+	sec:basic-config}
+and 
+\href{adding loss and error models to the session level abstraction
+to model specific behaviours}{Section}{sec:loss-config}.
 
 \subsection{Basic Configuration}
 \label{sec:basic-config}
 
-Each Session (i.e., a multicast tree) must be configured strictly in
+The basic configuration consists of creating and configuring
+a  multicast session.
+Each Session (\ie, a multicast tree) must be configured strictly in
 this order:
-creating(obtaining) the session source,
-assigning the destination address,
-creating the session helper, 
-attaching to session source, and
-the session members joining the group.
-
-
+(1) create and configure the session source,
+(2) create the session helper and attach it to the session source, and
+finally, (3) have the session members join the session.
 \begin{program}
         set ns [new SessionSim]          \; preamble initialization;
-        set node [$ns node]              \; source and receiver to reside on this node;
-        set group [$ns allocaddr]        \; multicast group for this session;
+        set node [$ns node]    
+        set group [$ns allocaddr]
 
-        set src [new Agent/CBR]
-        $src set dst_ $group            \; configure the source;
+        set src [new Agent/CBR]		\; create and configure the source;
+        $src set dst_ $group
         $ns attach-agent $node $src
 
-        $ns create-session $node $src   \; creating the session helper and attaching to the source;
+        $ns create-session $node $src   \; create attach session helper to src;
 
         set rcvr [new Agent/NULL]        \; configure the receiver;
         $ns attach-agent $node $rcvr
         $ns at 0.0 "$node join-group $rcvr $group" \; joining the session;
 
-        $ns at 0.1 "$src start"          \; start the source;
-
+        $ns at 0.1 "$src start"
 \end{program}
+A session level simulation scales by translating the topology
+into a virtual mesh topology.
+The steps involved in doing this are:
+\begin{enumerate}\itemsep0pt
+\item All of the classifiers and replicators are eliminated.
+  Each node only stores instance variables to track its node id, and port ids.
+\item Links do not consist of multiple components.
+  Each link only stores instance variables to track the bandwidth and delay attributes.
+\item The topology, consisting of links is translated into a virtual mesh.
+\end{enumerate}
+Figure~\ref{fig:conversions} shows the difference between a
+multicast tree in a detailed simulation and one in a session level simulation.
+Notice that the translation process results in a session level simulation
+ignoring queueing delays.
+For most simulations, \ns\ already ignores processing delays at all of the nodes.
 
 \subsection{Inserting a Loss Module}
 \label{sec:loss-config}
 
-When simulating mechanism robustness(e.g., SRM error recovery mechanism), 
-modules like lossy links are desired to create error senarios.  This 
-subsection is describe how to create a lossy link, meaning inserting 
-a loss module for a 'virtual link' (a link directly connecting source
-and receiver with accumulative bandwidth and delay).
+When studying a protocol (\eg, SRM error recovery mechanism), 
+it might be useful to study protocol behaviour over lossy links.
+However, since a session level simulation scales by abstracting 
+out the internal topology,
+we need additional mechanisms to insert a loss module appropriately.
+This subsection describes how one can create these loss modules to
+model error scenarios.
 
-Please note that packets dropped at a particular link in a
-multicast tree will not be received by
-the receivers in the particular downstream subtree. We have worked 
-on this dependency problem and now the loss modules for the downstream 
-receivers will be installed automatically when a lossy link is created.
-
+%Please note that packets dropped at a particular link in a
+%multicast tree will not be received by
+%the receivers in the particular downstream subtree. We have worked 
+%on this dependency problem and now the loss modules for the downstream 
+%receivers will be installed automatically when a lossy link is created.
 
 \paragraph{Creating a Loss Module}
 Before we can insert a loss module in between a source-receiver pair,
@@ -76,41 +110,29 @@ The first value is obtained every time when the loss module receives
 a packet from a random variable.  The second value
 is fixed and configured when the loss module is created.
 
-The following code gives an example to create a uniform 
-0.1 loss rate.
-
+The following code gives an example to create a uniform 0.1 loss rate.
 \begin{program}
-        # creating the uniform distribution random variable
+        # {\cf creating the uniform distribution random variable}
         set loss_random_variable [new RandomVariable/Uniform] 
-        # setting the range of random variable
-        $loss_random_variable set min_ 0
+        $loss_random_variable set min_ 0 \; set the range of the random variable;
         $loss_random_variable set max_ 100
 
-        # creating an error module;
-        set loss_module [new ErrorModel]
-        # set target for dropped packets;
-        $loss_module drop-target [new Agent/Null]
-        # setting error rate to 0.1, 10/(100-0);
-        $loss_module set rate_ 10
-        # attaching the random variable to the loss module;
-        $loss_module ranvar $loss_random_variable 
-
+        set loss_module [new ErrorModel] \; create the error model;
+        $loss_module drop-target [new Agent/Null] 
+        $loss_module set rate_ 10 \; set error rate to \(0.1 = 10 / (100 - 0)\);
+        $loss_module ranvar $loss_random_variable \; attach random var. to loss module;
 \end{program}
-
-Several random variable distributions are available.
-%%% Need xref to ranvar pages
-Please refer to tcl/ex/ranvar.tcl.
+\href{A catalogue of the random variable distributions was described earlier}{%
+	Chapter}{chap:math}.
+\href{A more detailed discussion of error models was also described earlier
+in a different chapter}{Chapter}{chap:error_model}.
 
 \paragraph{Inserting a Loss Module}
-
-If it is intended to insert a loss module for a receiver, keep a handle to the 
-loss module when created.  Loss modules can only be inserted after the
-corresponding receivers finish joining the group.
-
+A loss module can only be inserted after the corresponding receiver
+has joined the group.  The example code below illustrates how
+a simulation script can introduce a loss module.
 \begin{program}
-        # keep a handle to the loss module;
-        set sessionhelper [$ns create-session $node $src] 
-        # insert the loss module;
+        set sessionhelper [$ns create-session $node $src] \; keep a handle to the loss module;
         $ns at 0.1 "$sessionhelper insert-depended-loss $loss_module $rcvr" 
 \end{program}
 
@@ -118,23 +140,25 @@ corresponding receivers finish joining the group.
 \label{sec:session-arch}
 The purpose of Session-level packet distribution is to
 speed up simulations and reduce memory consumption while 
-maintaining reasonable accuracy(if no queuing involved).  The first
-bottleneck observed is the memory consumption by heavy-weight
+maintaining reasonable accuracy.
+The first bottleneck observed is the memory consumption by heavy-weight
 links and nodes.  Therefore, in SessionSim (Simulator for Session-level
 packet distribution), we keep only minimal amount of 
 states for links and nodes, and connect the higher level source and 
-receiver applications with appropriate delay and loss modules.  When
-a connection is a multicast group, we attach a replicator 
-to the source application, so the replicator replicates packets
-to all loss or delay modules attached to the receiver applications.
-
-In short, almost the entire network layer(routing and queuing)
-is abstract out.  Packets in SessionSim do not get routed.  
+receiver applications with appropriate delay and loss modules.
+A particular source in a group sends its data packets
+to a replicator that is responsible for replicating the packets
+for all the receivers.
+Intermediate loss and delay modules between this replicator and the receivers
+will guarantee the appropriate end-to-end characteristics.
+To put it another way, a session level simulation
+abstracts out the topology, routing and queueing delays.
+Packets in SessionSim do not get routed.  
 They only follow the established Session.
 
 \section{Internals}
-In this section, we explain the internals of Session-level Packet 
-Distribution.  The implementation is split into two parts:
+This section describes the internals of Session-level Packet Distribution.
+The implementation is split into two parts:
 \begin{list}{}{}
 \item  Linkage of objects to make a Session in OTcl 
 \item  Packet forwarding activities are executed by C++ methods.  
@@ -187,11 +211,11 @@ calling \proc[]{create-session}.
 SessionSim instproc create-session \{ node agent \} \{
     $self instvar session_
 
-    set nid [$node id]                           \; get source address;
-    set dst [$agent set dst_]                    \; get destination address;
-    set session_($nid:$dst) [new Classifier/Replicator/Demuxer]  \; creating the replicator;
-    $agent target $session_($nid:$dst)           \; attach the replicator to the source;
-    return $session_($nid:$dst) \; keep the replicator in the SessionSim instance variable session_ array;
+    set nid [$node id]
+    set dst [$agent set dst_]
+    set session_($nid:$dst) [new Classifier/Replicator/Demuxer]
+    $agent target $session_($nid:$dst) \; attach the replicator to the source;
+    return $session_($nid:$dst) \; keep the replicator in the SessionSim instance variable array \code{session_};
 \}
 \end{program}
 
@@ -264,16 +288,11 @@ If yes, the packet is forwarded to the loss modules drop target.  If not,
 the loss module forwards it to its target which must be a delay module.
 The delay module will forward the packet with a delay to its target which
 must be a receiver application.
-
-%% PH: not sure this will come out right
-%% PH: make .eps picture but not sure how to import that
-
-\begin{program}
-                    / Loss module - Delay module - Receiver 1
-Source - Replicator --------------- Delay module - Receiver 2
-    (Session Helper)\bs Loss module - Delay module - Receiver 3
-
-\end{program}
+\begin{figure}[tb]
+  \centerline{\includegraphics{sessionArch}}
+  \caption{Architectural Realisation of a Session Level Simulation Session}
+  \label{fig:session}
+\end{figure}
 
 \endinput
 
