@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.9 1997/12/05 23:30:38 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.10 1998/01/13 03:30:14 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -72,7 +72,7 @@ public:
 } class_mac_802_11;
 
 
-Mac802_11::Mac802_11() : CsmaCaMac(), mode_(MM_RTS_CTS), rtxAck_(0), rtxRts_(0), sender_(-1), pkt_(0), pktTx_(0), mhRts_(this), mhData_(this), mhIdle_(this)
+Mac802_11::Mac802_11() : MacCsmaCa(), mode_(MM_RTS_CTS), rtxAck_(0), rtxRts_(0), sender_(-1), pkt_(0), pktTx_(0), hRts_(this), hData_(this), hIdle_(this)
 {
 	bind("bssId_", &bssId_);
 	bind_time("sifs_", &sifs_);
@@ -97,7 +97,7 @@ Mac802_11::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-	return CsmaCaMac::command(argc, argv);
+	return MacCsmaCa::command(argc, argv);
 }
 
 
@@ -107,17 +107,17 @@ Mac802_11::recv(Packet* p, Handler* h)
 	if (mode_ == MM_RTS_CTS) {
 		if (h != 0) {
 			callback_ = h;
-			sendRtsCts(p);
+			RtsCts_send(p);
 		}
 		else
-			recvRtsCts(p);
+			RtsCts_recv(p);
 	}
-	else CsmaCaMac::recv(p, h);
+	else MacCsmaCa::recv(p, h);
 }
 
 
 void
-Mac802_11::send(Packet* p, double ifs)
+Mac802_11::transmit(Packet* p, double ifs)
 {
 	Scheduler& s = Scheduler::instance();
 	if (pktTx_ && pktTx_->uid_ > 0) {
@@ -128,14 +128,14 @@ Mac802_11::send(Packet* p, double ifs)
 	ifs_ = ifs;
 	double delay = channel_->txstop() + ifs_ - s.clock();
 	if (delay > 0)
-		s.schedule(&mhSend_, p, delay);
+		s.schedule(&hSend_, p, delay);
 	else
-		CsmaCaMac::send(p);
+		send(p);
 }
 
 
 void
-Mac802_11::sendRtsCts(Packet* p)
+Mac802_11::RtsCts_send(Packet* p)
 {
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
 	mh->macSA() = label_;
@@ -150,7 +150,7 @@ Mac802_11::sendRtsCts(Packet* p)
 
 
 void
-Mac802_11::recvRtsCts(Packet* p)
+Mac802_11::RtsCts_recv(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
@@ -184,7 +184,7 @@ Mac802_11::recvRtsCts(Packet* p)
 				s.cancel(pkt_);
 			Packet::free(pkt_);
 			pkt_ = 0;
-			CsmaCaMac::resume();
+			MacCsmaCa::resume();
 			return;
 		}
 		break;
@@ -199,7 +199,7 @@ void
 Mac802_11::resume(Packet* p)
 {
 	if (mode_ != MM_RTS_CTS) {
-		CsmaCaMac::resume(p);
+		MacCsmaCa::resume(p);
 		return;
 	}
 	if (p != 0) {
@@ -209,7 +209,7 @@ Mac802_11::resume(Packet* p)
 		}
 		drop(pkt_);
 		pkt_ = 0;
-		CsmaCaMac::resume();
+		MacCsmaCa::resume();
 		return;
 	}
 
@@ -227,9 +227,9 @@ Mac802_11::resume(Packet* p)
 		}
 	}
 	else if (state_ == MAC_RTS)
-		backoff(&mhRts_, pkt_, difs_ + txtime(hlen_));
+		backoff(&hRts_, pkt_, difs_ + txtime(hlen_));
 	else if (state_ == MAC_SEND)
-		backoff(&mhData_, pkt_, difs_ + txtime(hlen_));
+		backoff(&hData_, pkt_, difs_ + txtime(hlen_));
 }
 
 
@@ -238,7 +238,7 @@ Mac802_11::backoff(Handler* h, Packet* p, double delay)
 {
 	if (delay == 0)
 		delay = lengthNAV(channel_->pkt());
-	CsmaCaMac::backoff(h, p, delay);
+	MacCsmaCa::backoff(h, p, delay);
 }
 
 
@@ -269,7 +269,7 @@ Mac802_11::sendRts()
 	Scheduler& s = Scheduler::instance();
 	if (pktTx_ || (state_ & ~MAC_RTS) != MAC_IDLE
 	    || channel_->txstop() - s.clock() > 0) {
-		backoff(&mhRts_, pkt_);
+		backoff(&hRts_, pkt_);
 		return;
 	}
 
@@ -283,7 +283,7 @@ Mac802_11::sendRts()
 	((hdr_cmn*)p->access(off_cmn_))->size() = 0;
 	hdr_mac* mh = (hdr_mac*)p->access(off_mac_);
 	mh->ftype() = MF_RTS;
-	send(p, difs_);
+	transmit(p, difs_);
 	state(MAC_RTS);
 }
 
@@ -292,12 +292,12 @@ void
 Mac802_11::sendCts(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	s.schedule(&mhIdle_, &eIdle_, lengthNAV(p));
+	s.schedule(&hIdle_, &eIdle_, lengthNAV(p));
 	hdr_mac* mh = (hdr_mac*)p->access(off_mac_);
 	sender_ = mh->macSA();
 	swap(mh->macSA(), mh->macDA());
 	mh->ftype() = MF_CTS;
-	send(p, sifs_);
+	transmit(p, sifs_);
 	state(MAC_RECV);
 }
 
@@ -314,7 +314,7 @@ Mac802_11::sendData()
 	CHECK_PKT(p);
 	hdr_mac* mh = (hdr_mac*)p->access(off_mac_);
 	mh->ftype() = MF_DATA;
-	send(p, sifs_);
+	transmit(p, sifs_);
 	state(MAC_SEND);
 }
 
@@ -328,7 +328,7 @@ Mac802_11::sendAck(Packet* p)
 	hdr_mac* mh = (hdr_mac*)p->access(off_mac_);
 	swap(mh->macSA(), mh->macDA());
 	mh->ftype() = MF_ACK;
-	send(p, sifs_);
+	transmit(p, sifs_);
 	state((state_ & ~MAC_RECV) | MAC_ACK);
 }
 

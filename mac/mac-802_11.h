@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.6 1997/12/05 23:30:38 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.7 1998/01/13 03:30:13 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_802_11_h
@@ -79,7 +79,7 @@ protected:
 };
 	
 
-class Mac802_11 : public CsmaCaMac
+class Mac802_11 : public MacCsmaCa
 {
 public:
 	Mac802_11();
@@ -90,10 +90,10 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
-	void backoff(Handler* h, Packet* p, double delay = 0);
-	void send(Packet* p, double ifs);
-	void recvRtsCts(Packet* p);
-	void sendRtsCts(Packet* p);
+	virtual void backoff(Handler* h, Packet* p, double delay = 0);
+	void transmit(Packet* p, double ifs);
+	void RtsCts_recv(Packet* p);
+	void RtsCts_send(Packet* p);
 	void sendCts(Packet* p);
 	void sendAck(Packet* p);
 	double lengthNAV(Packet* p);
@@ -110,9 +110,9 @@ protected:
 	int sender_;		// MAC addr for sender of RTS
 	Packet* pkt_;		// copy of the data packet
 	Packet* pktTx_;		// the pkt being scheduled for transmit
-	MacHandlerRts mhRts_;	// handle RTS retransmission
-	MacHandlerData mhData_;	// handle ACK retransmission
-	MacHandlerIdle mhIdle_;	// timeout of the MAC_RECV state
+	MacHandlerRts hRts_;	// handle RTS retransmission
+	MacHandlerData hData_;	// handle ACK retransmission
+	MacHandlerIdle hIdle_;	// timeout of the MAC_RECV state
 	Event eIdle_;		// event for the mhIdle_ handler
 };
 
