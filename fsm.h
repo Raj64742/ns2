@@ -18,7 +18,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.h,v 1.1 1999/05/13 23:59:58 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.h,v 1.2 1999/05/31 20:40:45 heideman Exp $ (LBL)
  */
 
 #include "scheduler.h"
@@ -27,13 +27,26 @@
 #define TIMEOUT 2
 
 class FSMState {
+protected:
+	friend class FSM;
+	void number_all();
+	void print_all(int level);
+	void print_all_stats(int desired_pkts, int pkts = 0,
+			     int rtts = 0, int timeouts = 0, 
+			     int ps = 0, int qs = 0,
+			     int num_states = 0);
+	void reset_all_processed();
+	bool processed() { return print_i_ < 0; }
 public:
+	FSMState() : print_i_(0) {};
 	/* number of packets in this batch of transmission */
 	int batch_size_; 
-	/* time to make transition from previous state to this one */
+	/* time to make transition from previous state to this one
+	* (either RTT or TIMEOUT) */
 	int transition_[17];
 	/* next states if dropping packet #1-16, 0 for none */
 	FSMState* drop_[17];
+	int print_i_;  // printing index (processed if negative)
 };
 
 
@@ -46,7 +59,8 @@ public:
 	static FSM& instance() {
 		return (*instance_);		// general access to scheduler
 	}
-	void print_FSM(FSMState* state);
+	static void print_FSM(FSMState* state);
+	static void print_FSM_stats(FSMState* state, int n);
 protected:
 	FSMState* start_state_;
 	static FSM* instance_;

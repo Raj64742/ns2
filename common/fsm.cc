@@ -18,10 +18,11 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.1 1999/05/13 23:59:57 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.2 1999/05/31 20:40:44 heideman Exp $ (LBL)
  */
 
 #include "fsm.h"
+#include <assert.h>
 
 FSM* FSM::instance_;
 TahoeAckFSM* TahoeAckFSM::instance_;
@@ -29,9 +30,74 @@ RenoAckFSM* RenoAckFSM::instance_;
 TahoeDelAckFSM* TahoeDelAckFSM::instance_;
 RenoDelAckFSM* RenoDelAckFSM::instance_;
 
-void
-FSM::print_FSM(FSMState* state) {
 
+
+void
+FSMState::number_all()
+{
+	if (processed())
+		return;
+	static int next_i = 0;
+	print_i_ = ++next_i;
+	//
+	int i;
+	for (i = 0; i < 17; i++)
+		if (drop_[i])
+			drop_[i]->number_all();
+}
+
+void
+FSMState::reset_all_processed()
+{
+	if (print_i_ == 0)
+		number_all();
+	// requires a full traversal always to work
+	if (!processed())
+		return;
+	print_i_ = -print_i_;
+	int i;
+	for (i = 0; i < 17; i++)
+		if (drop_[i])
+			drop_[i]->reset_all_processed();
+}
+
+void
+FSMState::print_all(int level)
+{
+	if (processed())
+		return;
+
+	const int SPACES_PER_LEVEL = 2;
+	printf("#%-2d %*s %d:\n", print_i_, level * SPACES_PER_LEVEL + 1, " ", batch_size_);
+	int i;
+	for (i = 0; i <= batch_size_; i++) {
+		static char *delay_names[] = {"done", "error", "RTT", "timeout" };
+		assert(transition_[i] >= -1 && transition_[i] <= TIMEOUT);
+		printf("   %*s %d %s -> #%d\n", level * SPACES_PER_LEVEL + 3, " ",
+		       i,
+		       delay_names[transition_[i]+1],
+		       drop_[i] ? drop_[i]->print_i_ : 0);
+		if (drop_[i])
+			drop_[i]->print_all(level + 1);
+	};
+}
+
+void
+FSMState::print_all_stats(int desired_pkts, int pkts,
+			  int rtts,
+			  int timeouts,
+			  int ps,
+			  int qs,
+			  int num_states)
+{
+	// to be completed
+}
+
+
+void
+FSM::print_FSM(FSMState* state)
+{
+#if 0
 	int i;
 
 	if (state != NULL) {
@@ -45,9 +111,18 @@ FSM::print_FSM(FSMState* state) {
 			}
 		}
 	}
+#else /* ! 0 */
+	state->reset_all_processed();
+	state->print_all(0);
+#endif /* 0 */
 }
 
-
+void
+FSM::print_FSM_stats(FSMState* state, int n)
+{
+	state->reset_all_processed();
+	state->print_all_stats(n);
+}
 
 static class TahoeAckFSMClass : public TclClass {
 public:

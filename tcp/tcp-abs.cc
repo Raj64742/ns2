@@ -17,7 +17,7 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-abs.cc,v 1.1 1999/05/13 23:59:58 polly Exp $ (LBL)";
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-abs.cc,v 1.2 1999/05/31 20:40:46 heideman Exp $ (LBL)";
  */
 
 #include "ip.h"
@@ -147,7 +147,23 @@ int AbsTcpAgent::command(int argc, const char*const* argv)
                         advanceby(atoi(argv[2]));
                         return (TCL_OK);
                 }
-	}
+		if(strcmp(argv[1], "print-stats") == 0) {
+			// xxx: works best if invoked on a new fsm
+			// (otherwise you don't get the whole thing).
+			int n = atoi(argv[2]);
+			if (n < 0 || n >= 17)
+				return TCL_ERROR;
+			FSM::print_FSM_stats(current_, n);
+                        return (TCL_OK);
+		};
+	} else if (argc == 2) {
+                if (strcmp(argv[1], "print") == 0) {
+			// xxx: works best if invoked on a new fsm
+			// (otherwise you don't get the whole thing).
+			FSM::print_FSM(current_);
+                        return (TCL_OK);
+		};
+	};
 	return (Agent::command(argc, argv));
 }
 
