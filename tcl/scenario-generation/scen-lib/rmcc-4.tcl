@@ -10,7 +10,11 @@
 #    TCP sender 1                 
 #               ...            TCP receiver N
 #                TCP sender N 
-
+#
+# start N number of rm flows and TCP flows randomly
+# after steady state is attained measure thruput ans compare
+#
+# usage: ns rmcc-4.tcl
 
 source rmcc.tcl
 
