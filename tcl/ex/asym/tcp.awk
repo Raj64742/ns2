@@ -1,3 +1,8 @@
+BEGIN {
+	if (dir == "")
+		dir = ".";
+}	
+
 {
 time = $2;
 saddr = $4;
@@ -12,7 +17,7 @@ rttvar = $28;
 
 if (!((saddr, sport, daddr, dport) in starttime)) {
 	starttime[saddr, sport, daddr, dport] = time;
-	ind[saddr, sport, daddr, dport] = sprintf("(%s,%s)->(%s,%s)", saddr, sport, daddr, dport);
+	ind[saddr, sport, daddr, dport] = sprintf("%s,%s-%s,%s", saddr, sport, daddr, dport);
 }
 if ((cwnd >= 100) && (!((saddr, sport, daddr, dport) in cwndtime))) {
 	cwndtime[saddr, sport, daddr, dport] = time;
@@ -24,28 +29,38 @@ if ((time >= mid) && (!((saddr, sport, daddr, dport) in middletime))) {
 	middlehiack[saddr, sport, daddr, dport] = hiack;
 }
 
+if ((time >= turnon) && (!((saddr, sport, daddr, dport) in turnontime))) {
+	turnontime[saddr, sport, daddr, dport] = time;
+	turnonhiack[saddr, sport, daddr, dport] = hiack;
+}
+
+if (time <= turnoff) {
+	turnofftime[saddr, sport, daddr, dport] = time;
+	turnoffhiack[saddr, sport, daddr, dport] = hiack;
+}
+
 endtime[saddr, sport, daddr, dport] = time;
 highest_ack[saddr, sport, daddr, dport] = hiack;
 
 
 
 if (!((saddr, sport, daddr, dport) in cwndfile)) {
-	cwndfile[saddr, sport, daddr, dport] = sprintf("cwnd-%d,%d-%d,%d.out", saddr, sport, daddr, dport);
+	cwndfile[saddr, sport, daddr, dport] = sprintf("%s/cwnd-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
 	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > cwndfile[saddr,sport,daddr,dport];
 	printf "Device: Postscript\n" > cwndfile[saddr,sport,daddr,dport];
 }
 if (!((saddr, sport, daddr, dport) in ssthreshfile)) {
-	ssthreshfile[saddr, sport, daddr, dport] = sprintf("ssthresh-%d,%d-%d,%d.out", saddr, sport, daddr, dport);
+	ssthreshfile[saddr, sport, daddr, dport] = sprintf("%s/ssthresh-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
 	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > ssthreshfile[saddr,sport,daddr,dport];
 	printf "Device: Postscript\n" > ssthreshfile[saddr,sport,daddr,dport];
 }
 if (!((saddr, sport, daddr, dport) in srttfile)) {
-	srttfile[saddr, sport, daddr, dport] = sprintf("srtt-%d,%d-%d,%d.out", saddr, sport, daddr, dport);
+	srttfile[saddr, sport, daddr, dport] = sprintf("%s/srtt-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
 	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > srttfile[saddr,sport,daddr,dport];
 	printf "Device: Postscript\n" > srttfile[saddr,sport,daddr,dport];
 }
 if (!((saddr, sport, daddr, dport) in rttvarfile)) {
-	rttvarfile[saddr, sport, daddr, dport] = sprintf("rttvar-%d,%d-%d,%d.out", saddr, sport, daddr, dport);
+	rttvarfile[saddr, sport, daddr, dport] = sprintf("%s/rttvar-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
 	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > rttvarfile[saddr,sport,daddr,dport];
 	printf "Device: Postscript\n" > rttvarfile[saddr,sport,daddr,dport];
 }
@@ -69,8 +84,11 @@ END {
 		close(rttvarfile[f]);
 	}
  	for (i in starttime) {
+		if (endtime[i] == starttime[i]) 
+			print starttime[i], endtime[i], highest_ack[i];
  		bw = (highest_ack[i]/(endtime[i] - starttime[i]))*8.0;
-		duration = endtime[i] - starttime[i];
+#		duration = endtime[i] - starttime[i];
+		duration = 15;
 		if (i in cwndtime) {
 			ss_bw = ((highest_ack[i] - cwndhiack[i])/(endtime[i] - cwndtime[i]))*8.0;
 			ss_starttime = cwndtime[i] - starttime[i];
@@ -85,7 +103,17 @@ END {
 		else {
 			sh_bw = -1;
 		}
- 		print ind[i], duration, bw, ss_starttime, ss_bw, sh_bw > "thruput";
+		on_bw = -1;
+		if (i in turnontime) {
+			if (turnontime[i] < turnofftime[i])
+				on_bw = ((turnoffhiack[i] - turnonhiack[i])/(turnofftime[i] - turnontime[i]))*8.0;
+		}
+ 		print ind[i], duration, bw, ss_starttime, ss_bw, sh_bw, on_bw > "thruput";
  	}
 	close("thruput");
+	for (i in ind) {
+		print ind[i] > "index.out"
+			}
+	close("index.out");
+
 }
