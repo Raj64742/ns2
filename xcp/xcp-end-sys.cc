@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1 2004/04/20 16:09:01 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.2 2004/09/28 18:12:44 haldar Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -565,6 +565,8 @@ void CCTcpSink::ack(Packet* opkt)
 
 	acker_->append_ack(HDR_CMN(npkt), ntcp, otcp->seqno());
 	add_to_ack(npkt);
+	// added by Andrei Gurtov
+        acker_->last_ack_sent_ = ntcp->seqno();
 	send(npkt, 0);
 }
 

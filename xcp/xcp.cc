@@ -1,7 +1,42 @@
 
-/* disclaimers go here */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1996-1997 The Regents of the University of California.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ * 	This product includes software developed by the Network Research
+ * 	Group at Lawrence Berkeley National Laboratory.
+ * 4. Neither the name of the University nor of the Laboratory may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
 
 #include "xcp.h"
+
+static unsigned int next_router = 0;
 
 static class XCPClass : public TclClass {
 public:
@@ -39,13 +74,14 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 {
   Tcl& tcl = Tcl::instance();
 
-  // if (argc == 2) {
-  //     if (strcmp(argv[1], "get-xcpq") == 0) {
-  //       tcl.result((&xcpq_)->name());
-  //       return TCL_OK;
-  //     }
-  //   }
-  
+  if (argc == 2) {
+    // this command is specifically for Dina's SIGCOMM experiment 
+    if (strcmp(argv[1], "queue-read-drops") == 0) {
+      tcl.resultf("%g",xcpq_[XCPQ]->totalDrops());
+      return (TCL_OK);
+    } 
+  }
+
   if (argc >= 3) {	
     if (strcmp(argv[1], "set-virQ") == 0) {
       xcpq_ = new XCPQueue*[maxVirQ_]; 
@@ -60,35 +96,43 @@ int XCPWrapQ::command(int argc, const char*const* argv)
       return TCL_OK;
     }
 
-    if (strcmp(argv[1], "set-link-capacity-Kbytes") == 0) {
-      //double link_capacity_Kbytes = strtod(argv[2],0)/2;
+    else if (strcmp(argv[1], "set-link-capacity-Kbytes") == 0) {
       double link_capacity_Kbytes = strtod(argv[2],0);
       
       if (link_capacity_Kbytes < 0.0) 
 	{printf("Error: BW < 0"); abort();};
 
-      for (int n=0; n < MAX_QNUM; n++) {
-	xcpq_[n]->setBW(link_capacity_Kbytes); // divide by 2 for tcp/xcp flow types?????
+      for (int n=0; n < maxVirQ_; n++) {
+	xcpq_[n]->setBW(link_capacity_Kbytes); // divide by 2 for tcp/xcp flow types until dynamic queue weights are implemented
 	xcpq_[n]->limit(limit());
 	xcpq_[n]->config();
       }
       return TCL_OK;
     }
     
-    if (strcmp(argv[1], "attach") == 0) {
-      
+    else if (strcmp(argv[1], "attach") == 0) {
       int mode;
       const char* id = argv[2];
-      queue_trace_file_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
-       
-      if (queue_trace_file_ == 0) {
+      Tcl_Channel queue_trace_file = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+      if (queue_trace_file == 0) {
 	tcl.resultf("queue.cc: trace-drops: can't attach %s for writing", id);
  	return (TCL_ERROR);
       }
-      
-      for (int n=0; n < MAX_QNUM; n++)
-	xcpq_[n]->setChannel(queue_trace_file_);
-      
+      for (int n=0; n < maxVirQ_; n++)
+	xcpq_[n]->setChannel(queue_trace_file);
+      return (TCL_OK);
+    }
+    
+    else if (strcmp(argv[1], "queue-sample-everyrtt") == 0) {
+      double effective_rtt = strtod(argv[2],0);
+      printf(" timer at %f \n",effective_rtt);
+      xcpq_[XCPQ]->rtt_timer_->resched(effective_rtt);
+      return (TCL_OK);
+    }
+    else if (strcmp(argv[1], "num-mice") == 0) {
+      int nm = atoi(argv[2]);
+      for (int n=0; n < maxVirQ_; n++)
+	xcpq_[n]->num_mice = nm;
       return (TCL_OK);
     }
   }
@@ -99,123 +143,11 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 void XCPWrapQ::recv(Packet* p, Handler* h)
 {
   mark(p);
-  total_packet_arrivals_ = total_packet_arrivals_ + 1;
-
-  enque(p);
-  if (!blocked_) {
-    /*
-     * We're not blocked.  Get a packet and send it on.
-     * We perform an extra check because the queue
-     * might drop the packet even if it was
-     * previously empty!  (e.g., RED can do this.)
-     */
-    p = deque();
-    if (p != 0) {
-      blocked_ = 1;
-      deliver_to_target(p);
-    }
-  }
-}
-
-
-void XCPWrapQ::deliver_to_target(Packet* p)
-{
-  output_traffic_ += (8. * hdr_cmn::access(p)->size());
-  target_->recv(p, &qh_);
-}
-
-
-/*
-void XCPWrapQ::everyRTT ()
-{
- char wrk[500];
- double t = Scheduler::instance().clock();
-
-	// Update drops
-	if(trace_drops_ && queue_trace_file_){
-		int n;	
-		sprintf(wrk, "d %g %d", t, drops_);
-		n = strlen(wrk);
-		wrk[n] = '\n'; 
-		wrk[n+1] = 0;
-		(void)Tcl_Write(queue_trace_file_, wrk, n+1);
-		drops_=0;
-	}
-
-	// Update sample the current queue size
-	if(trace_curq_ && queue_trace_file_){
-		sprintf(wrk, "c  %g %d", t,length());
-		int n = strlen(wrk);
-		wrk[n] = '\n'; 
-		wrk[n+1] = 0;
-		(void)Tcl_Write(queue_trace_file_, wrk, n+1);
-	}
-
-	// Update utilization 
-	if((output_link_capacity_ > 0) && queue_trace_file_){
-		utilization_ = output_traffic_ /(output_link_capacity_ * effective_rtt_) ;
-		sprintf(wrk, "u  %g %g", t, utilization_);
-		int n = strlen(wrk);
-		wrk[n] = '\n'; 
-		wrk[n+1] = 0;
-		(void)Tcl_Write(queue_trace_file_, wrk, n+1);
-		output_traffic_ = 0;
-	}
-	rtt_timer_.resched(effective_rtt_);
-}
-*/
-
-/*
-void XCPWrapQ::trace(TracedVar* v)
-{
-  char wrk[500], *p;
-
-  if (((p = strstr(v->name(), "ave")) == NULL) &&
-      ((p = strstr(v->name(), "prob")) == NULL) &&
-      ((p = strstr(v->name(), "curq")) == NULL) &&
-      ((p = strstr(v->name(), "cur_max_p"))==NULL) ) {
-    fprintf(stderr, "RED:unknown trace var %s\n",
-	    v->name());
-    return;
-  }
-
-  if (tchan_) {
-    int n;
-    double t = Scheduler::instance().clock();
-		// XXX: be compatible with nsv1 RED trace entries
-    if (strstr(v->name(), "curq") != NULL) {
-      sprintf(wrk, "Q %g %d", t, int(*((TracedInt*) v)));
-    } else {
-      sprintf(wrk, "%c %g %g", *p, t,
-	      double(*((TracedDouble*) v)));
-    }
-    n = strlen(wrk);
-    wrk[n] = '\n'; 
-    wrk[n+1] = 0;
-    (void)Tcl_Write(tchan_, wrk, n+1);
-  }
-  return; 
-}
-*/
-
-void XCPWrapQ::trace_var(char * var_name, double var)
-{
-  char wrk[500];
-  double now = Scheduler::instance().clock();
-
-  if (queue_trace_file_) {
-    int n;
-    sprintf(wrk, "%s %g %g",var_name, now, var);
-    n = strlen(wrk);
-    wrk[n] = '\n'; 
-    wrk[n+1] = 0;
-    (void)Tcl_Write(queue_trace_file_, wrk, n+1);
-  }
-  return; 
+  Queue::recv(p, h);
 }
 
 void XCPWrapQ::addQueueWeights(int queueNum, int weight) {
-  if (queueNum < MAX_QNUM)
+  if (queueNum < maxVirQ_)
     queueWeight_[queueNum] = weight;
   else {
     fprintf(stderr, "Queue number is out of range.\n");
@@ -288,7 +220,7 @@ void XCPWrapQ::enque(Packet* pkt)
   xcpq_[n]->enque(pkt);
 }
 
-int XCPWrapQ::mark(Packet *p) {
+void XCPWrapQ::mark(Packet *p) {
   
   int codePt;
   hdr_cmn* cmnh = hdr_cmn::access(p);
@@ -296,7 +228,7 @@ int XCPWrapQ::mark(Packet *p) {
   hdr_ip *iph = hdr_ip::access(p);
 
   if ((codePt = iph->prio_) > 0)
-    return codePt;
+    return;
 
   else {
     if (cctcph->ccenabled_ > 0) 
@@ -308,6 +240,5 @@ int XCPWrapQ::mark(Packet *p) {
 	codePt = CP_OTHER;
     
     iph->prio_ = codePt;
-    return codePt;
   }
 }

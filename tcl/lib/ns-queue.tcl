@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.23 2004/04/20 16:10:51 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.24 2004/09/28 18:12:43 haldar Exp $
 #
 
 #
@@ -606,8 +606,8 @@ Queue/XCP instproc create-vqueues {} {
     
     # create virtual queues for xcp/tcp flows
     for {set n 0} {$n < [Queue/XCP set maxVirQ_]} {incr n} {
- 	set vq_($n) [new Queue/RED/XCPQ]
- 	lappend qlist [set vq_($n)]
+   	set vq_($n) [new Queue/RED/XCPQ]
+   	lappend qlist [set vq_($n)]
     }
     
     eval $self set-virQ $qlist

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.31 2002/12/18 03:36:37 sundarra Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.32 2004/09/28 18:12:43 haldar Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -126,6 +126,7 @@ public:
 	virtual void recv(Packet*, Handler*);
 	virtual void updateStats(int queuesize); 
 	void resume();
+	
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }
 	void block() { blocked_ = 1; }
@@ -154,6 +155,8 @@ protected:
 	double last_change_;  /* time at which state changed/utilization measured */
 	double old_util_;     /* current utilization */ 
 	double util_weight_;  /* decay factor for measuring the link utilization */
+	// measuring #drops
+	
 };
 
 #endif

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.27 2003/01/28 23:31:03 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.28 2004/09/28 18:12:43 haldar Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -89,8 +89,9 @@ Queue::~Queue() {
 }
 
 Queue::Queue() : Connector(), blocked_(0), unblock_on_resume_(1), qh_(*this),
-	pq_(0), last_change_(0), /* temporarily NULL */
-	old_util_(0)
+		 pq_(0), 
+		 last_change_(0), /* temporarily NULL */
+		 old_util_(0)
 {
 	bind("limit_", &qlim_);
 	bind("util_weight_", &util_weight_);
@@ -179,3 +180,4 @@ void Queue::reset()
 	while ((p = deque()) != 0)
 		drop(p);
 }
+
