@@ -230,8 +230,9 @@ Link/LanLink instproc trace {ns f} {
 	$channel_ drop-target $drpT_($channel_)
 	$drpT_($channel_) attach $f
 	foreach src $nodelist_ {
+		set sid [$src id]
 		set drpT [set drpT_($src) [new TraceIp/Drop]]
-		$drpT set src_ [$src id]
+		$drpT set src_ $sid
 		$drpT attach $f
 		$ifq_($src) drop-target $drpT
 
@@ -241,6 +242,7 @@ Link/LanLink instproc trace {ns f} {
 		$mac_($src) drop-target $bodT
 
 		set deqT_ [new TraceIp/Deque]
+		$deqT_ set src_ $sid
 		$deqT_ attach $f
 		$deqT_ target [$ifq_($src) target]
 		$ifq_($src) target $deqT_
