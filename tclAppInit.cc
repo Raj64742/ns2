@@ -97,7 +97,10 @@ int fesetprecision(int prec)
   if ( !(prec & ~FE_LDBLPREC) && (prec != FE_INVALIDPREC) )
     {
       cw = (cw & ~FE_LDBLPREC) | (prec & FE_LDBLPREC);
-      asm volatile ("fldcw %0":"=m" (cw));
+      // Bug fix in next line: old "fldcw %0":"=m" is now "fldcw %0"::"m"
+      // from Tom Kelly <ctk21@cam.ac.uk> who apparently has some
+      // clue about gcc asm.
+      asm volatile ("fldcw %0"::"m" (cw));
       return 1;
     }
   else

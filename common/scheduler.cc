@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.63 2001/06/20 02:23:54 xuanc Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.64 2001/08/03 22:56:47 johnh Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.63 2001/06/20 02:23:54 xuanc Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.64 2001/08/03 22:56:47 johnh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -70,9 +70,19 @@ Scheduler::~Scheduler(){
  * The event will be dispatched to the specified handler.
  * We use a relative time to avoid the problem of scheduling
  * something in the past.
+ *
+ * Scheduler::schedule does a fair amount of error checking
+ * because debugging problems when events are triggered
+ * is much harder (because we've lost all context about who did
+ * the scheduling).
  */
 void Scheduler::schedule(Handler* h, Event* e, double delay)
 {
+	// handler should ALWAYS be set... if it's not, it's a bug in the caller
+	if (!h) {
+		printf("Scheduler: attempt to schedule an event with a NULL handler.  Don't DO that.\n");
+		abort();
+	};
 	if (e->uid_ > 0) {
 		printf("Scheduler: Event UID not valid!\n\n");
 		abort();

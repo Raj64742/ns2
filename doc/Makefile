@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.27 2001/01/27 01:42:27 haldar Exp $
+# $Id: Makefile,v 1.28 2001/08/03 22:56:48 johnh Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -62,7 +62,7 @@ html-pre-process:
 	cd $(L2H_WORKING_DIR); 	../pre-process.pl .
 
 html-process:
-	cd $(L2H_WORKING_DIR); $(LATEX2HTML) -show_section_numbers everything.tex
+	cd $(L2H_WORKING_DIR); $(LATEX2HTML) -toc_depth 6 -show_section_numbers everything.tex
 
 html-post-process:
 	cd $(L2H_WORKING_DIR)/everything; ../../post-process.pl .
