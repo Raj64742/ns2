@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.90 1998/01/29 20:08:12 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.91 1998/01/30 22:53:11 kfall Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -120,7 +120,7 @@ OBJ_CC = \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
 
-# what was here is not in emulate/
+# what was here before is now in emulate/
 OBJ_C =
 
 OBJ_COMPAT = $(OBJ_GETOPT) win32.o
@@ -143,7 +143,8 @@ OBJ_NAM = \
 OBJ_EMULATE_CC = \
 	emulate/net-ip.o \
 	emulate/net.o \
-	emulate/tap.o
+	emulate/tap.o \
+	emulate/net-pcap.o
 
 OBJ_EMULATE_C = \
 	emulate/inet.o
@@ -167,7 +168,7 @@ $(NS): $(OBJ) tclAppInit.o
 $(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) \
-		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB)
+		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) -lpcap
 
 $(NSX): $(OBJ) tkAppInit.o $(OBJ_NAM)
 	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
@@ -223,7 +224,8 @@ NS_TCL_LIB = \
         tcl/pim/pim-sender.tcl \
         tcl/pim/pim-vifs.tcl \
 	tcl/session/session.tcl \
-	tcl/lib/ns-route.tcl
+	tcl/lib/ns-route.tcl \
+	tcl/emulate/ns-emulate.tcl
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl | $(TCL2C) et_ns_lib > $@
