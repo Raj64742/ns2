@@ -36,11 +36,14 @@
 # Defaults for link-layer
 LL set bandwidth_ 2Mb
 LL set delay_ 0.5ms
+
+if [TclObject is-class LL/Snoop] {
 LL/Snoop set bandwidth_ 1Mb
 LL/Snoop set delay_ 3ms
 LL/Snoop set snoopDisable_ 0
 LL/Snoop set srtt_ 100ms
 LL/Snoop set rttvar_ 100ms
+}
 
 # TraceIp trace IP packet headers for LAN components
 TraceIp set src_ -1

@@ -58,6 +58,7 @@ Mac/Csma/Cd set slotTime_ 52us
 Mac/Csma/Cd set cwmin_ 1
 
 # IEEE 802.11 MAC settings
+if [TclObject is-class Mac/802_11] {
 Mac/802_11 set hlen_ 20
 Mac/802_11 set delay_ 64us
 Mac/802_11 set ifs_ 16us
@@ -71,8 +72,10 @@ Mac/802_11 set pifs_ 12us
 Mac/802_11 set difs_ 16us
 Mac/802_11 set rtxAckLimit_ 1
 Mac/802_11 set rtxRtsLimit_ 3
+}
 
 # Multihop wireless MAC modeled after Metricom's Ricochet
+if [TclObject is-class Mac/802_11] {
 Mac/Multihop set bandwidth_ 100Kb
 Mac/Multihop set delay_ 10ms
 Mac/Multihop set tx_rx_ 11.125ms
@@ -80,6 +83,7 @@ Mac/Multihop set rx_tx_ 13.25ms
 Mac/Multihop set rx_rx_ 10.5625
 Mac/Multihop set backoffBase_ 20ms
 Mac/Multihop set hlen_ 16
+}
 
 # The MAC classifier (to demux incoming packets to the correct LL object)
 Mac instproc classify-macs {peerinfo} {
