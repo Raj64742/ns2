@@ -1,7 +1,14 @@
 #
 # A test of the emulation facility.  Note that this script
 # must be run through "nse", the version of the simulator with
-# the emulation extensions.
+# the emulation extensions.  It listens on the SAP multicast
+# address for session announcements, forwards them over a
+# link with a large (1000ms) delay, while taking a trace.
+# The effect of the delay should be visible in the trace
+# file.
+#
+# If you run this on a non-multicast-capable LAN it will be
+# highly uninteresting.
 #
 
 set sap_addr 224.2.127.254
@@ -29,14 +36,14 @@ TestEmul instproc maketopo { tfname } {
 	set n0 [$ns_ node]
 	set n1 [$ns_ node]
 
-	#$ns_ duplex-link $n0 $n1 8Mb 5ms DropTail
-	$self dlink $n0 $n1 8Mb 5ms DropTail
+	#$ns_ duplex-link $n0 $n1 8Mb 1000ms DropTail
+	$self dlink $n0 $n1 8Mb 1000ms DropTail
 
 	$ns_ attach-agent $n0 $ta_
 	set na [$ns_ nullagent]
 
 	set tfchan_ [open $tfname w]
-	$ns_ monitor-queue $n0 $n1 $tfchan_
+	[$ns_ link $n0 $n1] trace $ns_ $tfchan_
 	$ns_ attach-agent $n1 $na
 	$ns_ connect $ta_ $na
 }
