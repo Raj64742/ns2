@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.79 1998/02/09 21:03:18 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.80 1998/02/09 21:19:12 haoboy Exp $
 #
 
 #
@@ -499,8 +499,12 @@ Simulator instproc color { id name } {
 Simulator instproc create-trace { type file src dst {op ""} } {
 	$self instvar alltrace_
 	set p [new Trace/$type]
-	$p set src_ [$src id]
-	$p set dst_ [$dst id]
+	if [catch {$p set src_ [$src id]}] {
+		$p set src_ $src
+	}
+	if [catch {$p set dst_ [$dst id]}] {
+		$p set dst_ $dst
+	}
 	lappend alltrace_ $p
 	if {$file != ""} {
 		$p ${op}attach $file		
