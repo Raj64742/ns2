@@ -8,6 +8,13 @@ internet draft "Increasing TCP's Initial Window" can be
 modeled by setting syn_ and delay_growth_ to true, and
 setting windowInitOption_ to 2.
 
+For these parameters, the model implemented in the simulator for
+one-way TCP is as follows:  the sender sends a 40-byte data packet
+(modeling the SYN), the receiver sends an ACK, and the sender then
+sets its initial window to either two, three, or four segments,
+depending on the segment size.  If the first packet (i.e., the SYN)
+is dropped, then the initial window is started at one segment.
+
 Agent/TCP, syn_:
 
 For the default, with "syn_" set to false, TCP does not model the
@@ -37,32 +44,26 @@ more, the initial window is set to two packets.
 
 --------------------------------------
 
-The first tests, init1 to init4, test the initial window options
+The first tests, tahoe1 to tahoe4, test the initial window options
 with Tahoe TCP.  
 
-The top connections in the tests "init1", "init2", and init3" all use
-"syn_" set to true and "windowInitOption_" set to 2, for the initial
-window specified in the internet draft.  All connections with "syn_" set
-to true also have "delay_growth_" set to true.  The packet sizes in these
-three tests are 1000 bytes, 1500 bytes, and 4000 bytes, for initial
-windows of two, three, and four packets respectively.
+The three connections in the tahoe1 test all use "syn_" and
+"delay_growth_" set to true, and "windowInitOption_" set to 2,
+for the initial window specified in the internet draft.
+The packet sizes for these three connections are 1000 bytes, 1500 bytes,
+and 4000 bytes, respectively.
 
-The bottom connections in the tests "init1", "init2", and init3" all
-use "windowInitOption_" set to 1, for the initial window specified in
-"windowInit_".  "Init1" and "init2" use the default initial window of
-one packet;  "init3" uses an initial window of six packets.  For
-"init1", "syn_" is set to true, to model the transmission of a SYN
-packet before the initial window.  For the bottom connections in
-"init2" and init3", "syn_" is set to false.
+The three connections in the tahoe2 test use various combinations
+of fixed initial windows, with "windowInitOption_" set to 1.
+Two of the connections use an initial window of six packets, and
+one uses an initial window of one packet.
+
+The connection in the tahoe3 test shows that with "windowInitOption_"
+set to 2, when the initial (SYN) packet is dropped, the larger initial
+window is not used.
 
 "Init4" shows two connections with 1000-byte packets using the initial
 window specified in the internet draft.  The test shows that after a
 Fast Retransmit, TCP slow-starts from an initial window of one packet.
 
-The tests "init5" through "init8" repeat these tests for Reno TCP.
-"Init8" shows that after a Retransmit Timeout, TCP slow-starts from an
-initial window of one packet.
-
-The tests "init9" through "init12" repeat these tests for NewReno TCP.
-and tests "init13" through "init16" repeat these tests for Sack TCP.
-
+These four tests are then repeated for Reno, NewReno, and SACK TCP.
