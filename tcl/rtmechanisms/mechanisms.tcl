@@ -9,39 +9,30 @@
 # 	procs of the form "do_..."  are run periodically
 #	instvars starting with Capitals are constants
 #
-Class RtMechanisms
+Class RTMechanisms
 
 source rtm_tests.tcl
-
-RTMechanisms instproc init {} {
-	$self instvar Safety_factor_
-	$self instvar Max_cbw_
-	$self instvar Maxallot_
-	$self instvar Mintime_ 0
-	$self instvar Rtt_ 0
-	$self instvar Mtu_ 0
-	$self instvar npenalty_
-
-	set Safety_factor_ 1.2
-	set Max_cbw_ 46750
-	set Maxallot_ 0.98
-	set Mintime_ 0
-	set Rtt_ 0
-	set Mtu_ 0
-	set npenalty_ 0
-	set High_const_ 12000
-}
+source rtm_link.tcl
 
 RTMechanisms instproc tcp_ref_bw { mtu rtt droprate } {
 	set guideline [expr 1.22 * $mtu / ($rtt*sqrt($droprate)) ]
 }
 
 RTMechanisms instproc droprate { arrs drops } {
-	set droprate [expr double($drops) / $arrs]
+	if { $arrs == 0 } {
+		return 0.0
+	}
+	return [expr double($drops) / $arrs]
 }
 
-RTMechanisms isntproc maxmetric flows {
+#
+# mmetric: maxmetric or minmetric in the ok box
+#	op: one of "max" or "min"
+#	flows: list of flows
+#
+RTMechanisms instproc mmetric { op flows } {
 	$self instvar okboxfm_
+
 	set bdrops [$okboxfm_ set bdrops_] ; # total bytes dropped
 	set pdrops [$okboxfm_ set pdrops_] ; # total pkts dropped
 	set ebdrops [$okboxfm_ set ebdrops_] ; # bytes dropped early (unforced)
@@ -49,8 +40,15 @@ RTMechanisms isntproc maxmetric flows {
 	set fpdrops [expr $pdrops - $epdrops] ; # pkts dropped (forced)
 	set fbdrops [expr $bdrops - $ebdrops] ; # bytes dropped (forced)
 
-	set maxmetric -1.0
-	set maxflow "none"
+	if { $op == "max" } {
+		set op ">"
+		set metric -1.0
+	} else if { $op == "min" } {
+		set op "<"
+		set metric 1000000
+	}
+
+	set flow ""
 
 	foreach f $flows {
 		# need to catch for div by zero
@@ -62,12 +60,12 @@ RTMechanisms isntproc maxmetric flows {
 		set unforced_metric [expr [$f set epdrops_] / $epdrops]
 		set metric [expr $forced_frac * $forced_metric + \
 			$unforced_frac * $unforced_metric]
-		if { $metric > $maxmetric } {
-			set maxmetric $metric
-			set maxflow $f
+		if { $metric $op $metric } {
+			set metric $metric
+			set flow $f
 		}
 	}
-	return "$maxflow $maxmetric"
+	return "$flow $metric"
 }
 
 RTMechanisms instproc setstate { flow reason bandwidth droprate } { 
@@ -139,7 +137,7 @@ RTMechanisms instproc print_allot_change { oallot nallot } {
 # ie penalize a flow
 #
 RTMechanisms instproc penalize { badflow guideline_bw } {
-	$self instvar npenalty_ badslot_ badhead_ cbq_
+	$self instvar npenalty_ badslot_ badhead_ cbqlink_
 	$self instvar okboxfm_ pboxfm_
 	$self instvar Max_cbw_
 	$self do_reward
@@ -171,8 +169,7 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 	if { $new_cbw > $Max_cbw_ } {
 		set $new_cbw $Max_cbw_
 	}
-	set cbqlink [$cbq_ link]
-	set bw [[$cbqlink link] set bandwidth_]
+	set bw [[$cbqlink_ link] set bandwidth_]
 	set oallot [$badclass_ set allot_]
 	set cbw [expr $oallot * $bw]
 	set nallot [expr $new_cbw / $bw]
@@ -185,7 +182,7 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 # ie stop penalizing a flow
 #
 RTMechanisms instproc unpenalize goodflow {
-	$self instvar npenalty_ badslot_ badhead_ cbq_
+	$self instvar npenalty_ badslot_ badhead_ cbqlink_
 	$self instvar okboxfm_ pboxfm_
 	$self do_reward
 
@@ -213,7 +210,7 @@ RTMechanisms instproc unpenalize goodflow {
 	# reallocate allotment
 	#
 
-	set bw [expr [[$cbqlink link] set bandwidth_] / 8.0]
+	set bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
 	set oallot [$badclass_ set allot_]
 	set cbw [expr $oallot * $bw]
 	set new_cbw [expr $npenalty_ * $cbw / ($npenalty_ + 1)]
@@ -226,9 +223,9 @@ RTMechanisms instproc unpenalize goodflow {
 # basen on some change in npenalty_
 RTMechanisms instproc checkbw_fair guideline_bw {
 	$self instvar badclass_
-	$self instvar npenalty_ cbq_
+	$self instvar npenalty_ cbqlink_
 	set new_cbw [expr 0.5 * $guideline_bw * $npenalty_]
-	set link_bw [expr [[$cbqlink link] set bandwidth_] / 8.0]
+	set link_bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
 	set old_allot [$badclass_ allot]
 	set class_bw [expr $old_allot * $link_bw]
 	if { $new_cbw < $class_bw } {
@@ -242,9 +239,9 @@ RTMechanisms instproc checkbw_fair guideline_bw {
 # basen on drop rate diffs between good and bad boxes
 RTMechanisms instproc checkbw_droprate { droprateB droprateG } {
 	$self instvar badclass_
-	$self instvar npenalty_ cbq_
+	$self instvar npenalty_ cbqlink_
 	if { $droprateB < 2 * $droprateG } {
-		set link_bw [expr [[$cbqlink link] set bandwidth_] / 8.0]
+		set link_bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
 		set old_allot [$badclass_ allot]
 		set class_bw [expr $old_allot * $link_bw]
 		set new_cbw [expr 0.5 * $class_bw]
@@ -271,12 +268,19 @@ RTMechanisms instproc do_detect {} {
 		exit 1
 	}
 
-	set barrivals [$okmon_ set barrivals_]
-	set ndrops [$okmon_ set pdrops_] ; # drops == (total drops, incl epd)
-	set droprateG [$self droprate $narrivals $ndrops]
-	set M [$self maxmetric [$fm_ flows]]
+	set barrivals [$okboxfm_ set barrivals_]
+	set parrivals [$okboxfm_ set parrivals_]
+	set ndrops [$okboxfm_ set pdrops_] ; # drops == (total drops, incl epd)
+	set droprateG [$self droprate $parrivals $ndrops]
+
+	set M [$self mmetric max [$okboxfm_ flows]]
 	set badflow [lindex $M 0]
 	set maxmetric [lindex $M 1]
+
+	if { $badflow == "" } {
+		# nobody
+		return
+	}
 
 	# estimate the bw's arrival rate without knowing it directly
 	set flow_bw_est [expr $maxmetric * .01 * $barrivals / $elapsed]
@@ -339,19 +343,18 @@ RTMechanisms instproc do_reward {} {
 	$self instvar ns_
 	$self instvar last_reward_
 	$self instvar Mintime_
-	$self instvar pboxfm_
 	$self instvar state_
-	$self instvar pboxfm_
+	$self instvar pboxfm_ okboxfm_
 
 	set now [$ns_ now]
 	set elapsed [expr $now - $last_reward_]
 	if { $elapsed > $Mintime_ / 2 } {
-		set parrivals [$pmon_ set parrivals_]
-		set pdrops [$pmon_ set pdrops_]
-		set barrivals [$pmon_ set barrivals_]
+		set parrivals [$pboxfm_ set parrivals_]
+		set pdrops [$pboxfm_ set pdrops_]
+		set barrivals [$pboxfm_ set barrivals_]
 		set badBps [expr $barrivals / $elapsed]
-		set pgoodarrivals [$okmon_ set parrivals_]
-		set pflows [$self pflows] ; # all penalized flows
+		set pgoodarrivals [$okboxfm_ set parrivals_]
+		set pflows [$pboxfm_ flows] ; # all penalized flows
 		if { $parrivals == 0 } {
 			# nothing!, everybody becomes good
 			foreach f $pflows {
@@ -360,9 +363,13 @@ RTMechanisms instproc do_reward {} {
 			return
 		}
 		set droprateB [$self droprate $pdrops $parrivals]
-		set M [$self minmetric $pflows]
+		set M [$self mmetric min $pflows]
 		set goodflow [lindex $M 0]
 		set goodmetric [lindex $M 1]
+		if { $goodflow == "" } {
+			#none
+			return
+		}
 		set flow_bw_est [expr $goodmetric * .01 * $barrivals / $elapsed]
 		#
 		# if it was unfriendly and is now friendly, reward
@@ -371,7 +378,7 @@ RTMechanisms instproc do_reward {} {
 		#
 		switch $state_($goodflow,reason) {
 			"UNFRIENDLY" {
-				set fr [$self test_friendly  $flow_bw_est \
+				set fr [$self test_friendly $flow_bw_est \
 				    [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
 				if { $fr == "ok" } {
 					$self setstate $goodflow "OK" $flow_bw_est $droprateB
@@ -379,20 +386,29 @@ RTMechanisms instproc do_reward {} {
 				}
 			}
 
-### I AM HERE XXX, need to add tests from reward
 			"UNRESPONSIVE" {
 				$self instvar RUBFrac_
 				$self instvar RUDFrac_
 				set unr [$self test_unresponsive_again $goodflow $RUBFrac_ $RUDFrac_]
 				if { $unr == "ok" } {
+				    set fr [$self test_friendly $flow_bw_est \
+				      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
+				    if { $fr == "ok" } {
+					$self setstate $goodflow "OK" $flow_bw_est $droprateB
 					$self reward $goodflow
+				    }
 				}
 			}
 
 			"HIGH" {
 				set h [$self test_high $goodflow]
 				if { $h == "ok" } {
+				    set fr [$self test_friendly $flow_bw_est \
+				      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
+				    if { $fr == "ok" } {
+					$self setstate $goodflow "OK" $flow_bw_est $droprateB
 					$self reward $goodflow
+				    }
 				}
 			}
 		}
