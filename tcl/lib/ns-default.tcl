@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.240 2001/05/12 21:31:50 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.241 2001/05/17 17:37:31 sfloyd Exp $
 
 
 #
@@ -587,8 +587,8 @@ Agent/TCP set numdupacks_ 3
 Agent/TCP set window_ 20
 Agent/TCP set windowInit_ 1
 Agent/TCP set windowInitOption_ 1
-Agent/TCP set syn_ false
-# Agent/TCP set syn_ true
+# Agent/TCP set syn_ false
+Agent/TCP set syn_ true ;		# default changed on 2001/5/17.
 Agent/TCP set windowOption_ 1
 Agent/TCP set windowConstant_ 4
 Agent/TCP set windowThresh_ 0.002
@@ -607,8 +607,9 @@ Agent/TCP set slow_start_restart_ true
 Agent/TCP set restart_bugfix_ true
 Agent/TCP set tcpTick_ 0.1
 Agent/TCP set maxrto_ 100000
-Agent/TCP set minrto_ 0
-#Agent/TCP set minrto_ 1
+#Agent/TCP set minrto_ 0 ;		# Variable added on 2001/05/10
+Agent/TCP set minrto_ 1 ;		# Default set to 1 on 2001/05/14.
+					# Set to "0" to give old behavior.
 Agent/TCP set srtt_init_ 0
 Agent/TCP set rttvar_init_ 12
 Agent/TCP set rtxcur_init_ 6.0
@@ -656,8 +657,8 @@ Agent/TCP/Fack set rampdown_ false
 
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
-Agent/TCP set delay_growth_ false
-# Agent/TCP set delay_growth_ true
+# Agent/TCP set delay_growth_ false
+Agent/TCP set delay_growth_ true ;		# default changed on 2001/5/17.
 
 Agent/TCP set CoarseTimer_      0
 
