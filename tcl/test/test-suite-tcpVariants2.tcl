@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-tcpVariants2.tcl,v 1.1 1998/06/29 23:44:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-tcpVariants2.tcl,v 1.2 1998/07/09 01:19:05 kfall Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -165,10 +165,9 @@ TestSuite instproc setup {tcptype list} {
 	        # set up TCP-level connections
 	        $sink listen ; # will figure out who its peer is
     	} elseif {$tcptype == "FullTcpSack1"} {
-		Agent/TCP/FullTcp set sack_option_ true
 		set wrap $wrap1
-	        set tcp1 [new Agent/TCP/FullTcp]
-	        set sink [new Agent/TCP/FullTcp]
+	        set tcp1 [new Agent/TCP/FullTcp/Sack]
+	        set sink [new Agent/TCP/FullTcp/Sack]
 	        $ns_ attach-agent $node_(s1) $tcp1
 	        $ns_ attach-agent $node_(k1) $sink
 	        $tcp1 set fid_ $fid
