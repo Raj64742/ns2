@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fq.cc,v 1.5 1997/04/01 07:18:45 mccanne Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fq.cc,v 1.6 1997/04/01 07:19:19 mccanne Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -168,7 +168,7 @@ void FQ::recv(Packet* p, Handler* handler)
 	hdr_ip* h = (hdr_ip*)p->access(off_ip_);
 	int flowid = h->flowid();
 	/* shouldn't be called when head-of-line is pending */
-	if (flowid >= MAXFLOW && fs_[flowid].hol_ != 0)
+	if (flowid >= MAXFLOW || fs_[flowid].hol_ != 0)
 		abort();
 
 	/*
