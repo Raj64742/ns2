@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Copyright (c) 1998 University of Southern California.
+# Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
 #                                                                
 # Redistribution and use in source and binary forms are permitted
@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.15 2000/08/30 00:04:12 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.16 2000/08/31 18:59:23 haoboy Exp $
 
 
 # This test suite is for validating wireless lans 
@@ -30,32 +30,26 @@
 #
 # To view a list of available test to run with this script:
 # ns test-suite-wireless-lan.tcl
-#
-
-# 
-#
 
 Class TestSuite
 
-Class Test/dsdv -superclass TestSuite
 # wireless model using destination sequence distance vector
+Class Test/dsdv -superclass TestSuite
 
-Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
+Class Test/dsr -superclass TestSuite
 
-#Class Test/tora -superclass TestSuite
 #wireless model using TORA
+#Class Test/tora -superclass TestSuite
 
-Class Test/dsdv-wired-cum-wireless -superclass TestSuite
 # simulation between a wired and a wireless domain through
 # gateways called base-stations.
+Class Test/dsdv-wired-cum-wireless -superclass TestSuite
 
-Class Test/dsdv-wireless-mip -superclass TestSuite
 # Wireless Mobile IP model in which a mobilehost roams between 
 # a Home Agent and Foreign Agent. see test-suite-wireless-lan.txt for
 # details
-
-# XXX The dsr version of the tests are not added to test-suite as their outputs are not consistent (events vary, even with the same random seed value) and thus couldnot be validated. -Padma, may 1999.
+Class Test/dsdv-wireless-mip -superclass TestSuite
 
 proc usage {} {
 	global argv0
@@ -63,7 +57,6 @@ proc usage {} {
 	puts "Valid Tests: dsdv dsr"
 	exit 1
 }
-
 
 proc default_options {} {
     global opt
@@ -131,23 +124,20 @@ TestSuite instproc init {} {
 	global node_ god_ 
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
-    if {[string compare $testName_ "dsdv"] && \
-	    [string compare $testName_ "dsr"]} {
-#	     $ns_ set-address-format hierarchical
-	     $ns_ node-config -addressType hierarchical
-	     AddrParams set domain_num_ 3
-	     lappend cluster_num 2 1 1
-	     AddrParams set cluster_num_ $cluster_num
-	     lappend eilastlevel 1 1 4 1
-	     AddrParams set nodes_num_ $eilastlevel
-        }  
-
+	if {[string compare $testName_ "dsdv"] && \
+			[string compare $testName_ "dsr"]} {
+		$ns_ node-config -addressType hierarchical
+		AddrParams set domain_num_ 3
+		lappend cluster_num 2 1 1
+		AddrParams set cluster_num_ $cluster_num
+		lappend eilastlevel 1 1 4 1
+		AddrParams set nodes_num_ $eilastlevel
+	}
 	set topo	[new Topography]
 	set tracefd	[open $opt(tr) w]
 	
 	$ns_ trace-all $tracefd
 
-	#set opt(rp) $testName_
 	$topo load_flatgrid $opt(x) $opt(y)
 	
 	puts $tracefd "M 0.0 nn:$opt(nn) x:$opt(x) y:$opt(y) rp:$opt(rp)"
@@ -155,9 +145,7 @@ TestSuite instproc init {} {
 	puts $tracefd "M 0.0 prop:$opt(prop) ant:$opt(ant)"
 
 	set god_ [create-god $opt(nn)]
-
 }
-
 
 Test/dsdv instproc init {} {
     global opt node_ god_ chan topo
@@ -170,12 +158,6 @@ Test/dsdv instproc init {} {
     set opt(stop)       1000.0
     
     $self next
-
-	#
-	# Create God
-	#
-#	set god_ [create-god $opt(nn)]
-
 
     $ns_ node-config -adhocRouting DSDV \
                          -llType $opt(ll) \
@@ -191,8 +173,6 @@ Test/dsdv instproc init {} {
                          -routerTrace OFF \
                          -macTrace OFF \
                          -movementTrace OFF
-
-    
 
     for {set i 0} {$i < $opt(nn) } {incr i} {
                 set node_($i) [$ns_ node]
@@ -213,7 +193,6 @@ Test/dsdv instproc init {} {
     }
     
     $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;" 
-    #$ns_ halt"
     $ns_ at $opt(stop).1 "$self finish"
 }
 
@@ -269,7 +248,7 @@ Test/dsr instproc init {} {
     }
 
     $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
-    $ns_ at $opt(stop).1 "$self finish-dsr"
+    $ns_ at $opt(stop).1 "$self finish"
 }
 
 Test/dsr instproc run {} {

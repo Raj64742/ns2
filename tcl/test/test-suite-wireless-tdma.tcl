@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1998 University of Southern California.
+# Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
 #                                                                
 # Redistribution and use in source and binary forms are permitted
@@ -15,6 +15,8 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-tdma.tcl,v 1.4 2000/08/31 18:59:23 haoboy Exp $
+
 # This test suite is for validating wireless TDMA mac layer protocol 
 # To run all tests: test-all-wireless-tdma
 # to run individual test:
@@ -23,20 +25,14 @@
 #
 # To view a list of available test to run with this script:
 # ns test-suite-wireless-tdma.tcl
-#
-
-# 
-#
 
 Class TestSuite
 
-Class Test/dsdv -superclass TestSuite
 # wireless model using destination sequence distance vector
+Class Test/dsdv -superclass TestSuite
 
-Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
-
-# XXX The dsr version of the tests are not added to test-suite as their outputs are not consistent (events vary, even with the same random seed value) and thus couldnot be validated. -Padma, may 1999.
+Class Test/dsr -superclass TestSuite
 
 proc usage {} {
 	global argv0
@@ -47,21 +43,21 @@ proc usage {} {
 
 
 proc default_options {} {
-    global opt
-    set opt(chan)	Channel/WirelessChannel
-    set opt(prop)	Propagation/TwoRayGround
-    set opt(netif)	Phy/WirelessPhy
-    set opt(mac)	Mac/Tdma
-    set opt(ifq)	Queue/DropTail/PriQueue
-    set opt(ll)		LL
-    set opt(ant)        Antenna/OmniAntenna
-    set opt(x)		670 ;# X dimension of the topography
-    set opt(y)		670;# Y dimension of the topography
-#    set opt(nn)		50;#use 50 nodes. 
-    set opt(ifqlen)	50	      ;# max packet in ifq
-    set opt(seed)	0.0
-    set opt(tr)		temp.rands    ;# trace file
-    set opt(lm)         "off"          ;# log movement
+	global opt
+	set opt(chan)	Channel/WirelessChannel
+	set opt(prop)	Propagation/TwoRayGround
+	set opt(netif)	Phy/WirelessPhy
+	set opt(mac)	Mac/Tdma
+	set opt(ifq)	Queue/DropTail/PriQueue
+	set opt(ll)	LL
+	set opt(ant)    Antenna/OmniAntenna
+	set opt(x)	670 ;# X dimension of the topography
+	set opt(y)	670;# Y dimension of the topography
+	set opt(ifqlen)	50	      ;# max packet in ifq
+	set opt(seed)	0.0
+	set opt(tr)	temp.rands    ;# trace file
+	set opt(lm)     "off"          ;# log movement
+	set opt(energy) EnergyModel
 }
 
 
@@ -112,28 +108,26 @@ TestSuite instproc init {} {
 	global node_ god_ 
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
-    if {[string compare $testName_ "dsdv"] && \
-	    [string compare $testName_ "dsr"]} {
-	     $ns_ set-address-format hierarchical
-	     AddrParams set domain_num_ 3
-	     lappend cluster_num 2 1 1
-	     AddrParams set cluster_num_ $cluster_num
-	     lappend eilastlevel 1 1 4 1
-	     AddrParams set nodes_num_ $eilastlevel
-        }  
+	if {[string compare $testName_ "dsdv"] && \
+			[string compare $testName_ "dsr"]} {
+		$ns_ set-address-format hierarchical
+		AddrParams set domain_num_ 3
+		lappend cluster_num 2 1 1
+		AddrParams set cluster_num_ $cluster_num
+		lappend eilastlevel 1 1 4 1
+		AddrParams set nodes_num_ $eilastlevel
+        } 
 	set chan	[new $opt(chan)]
 	set prop	[new $opt(prop)]
 	set topo	[new Topography]
 	set tracefd	[open $opt(tr) w]
 
-	#set opt(rp) $testName_
 	$topo load_flatgrid $opt(x) $opt(y)
 	$prop topography $topo
 	#
 	# Create God
 	#
 	$self create-god $opt(nn)
-	
 	#
 	# log the mobile nodes movements if desired
 	#
@@ -177,7 +171,6 @@ Test/dsdv instproc init {} {
     }
     
     $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;" 
-    #$ns_ halt"
     $ns_ at $opt(stop).1 "$self finish"
 }
 
@@ -186,7 +179,6 @@ Test/dsdv instproc run {} {
     puts "Starting Simulation..."
     $ns_ run
 }
-
 
 Test/dsr instproc init {} {
     global opt node_ god_
@@ -218,8 +210,7 @@ Test/dsr instproc init {} {
     }
 
     $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
-    #$ns_ halt"
-    $ns_ at $opt(stop).1 "$self finish-dsr"
+    $ns_ at $opt(stop).1 "$self finish"
 }
 
 TestSuite instproc finish-dsr {} {
