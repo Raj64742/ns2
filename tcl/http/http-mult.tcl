@@ -1,3 +1,45 @@
+#
+# Copyright (c) 1997 Regents of the University of California.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. All advertising materials mentioning features or use of this software
+#    must display the following acknowledgement:
+# 	This product includes software developed by the MASH Research
+# 	Group at the University of California Berkeley.
+# 4. Neither the name of the University nor of the Research Group may be
+#    used to endorse or promote products derived from this software without
+#    specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+# This file contributed by Curtis Villamizar <curtis@ans.net>, May 1997.
+#
+
+#
+# WARNING:  This code uses the compatibility library and so should not
+# be used as an example.  Hopefully at some time in the future it will
+# be updated.
+#
+
+#
 #	Start with the idea of a four node test environment.
 #
 #  cN -------- ispN -------- nsp1 -------- nsp2 -------- sN
@@ -11,6 +53,7 @@
 # bottleneck link nsp1-nsp2.  The bottleneck has a delay of netdelay.
 # There is also a random delay between the bottleneck link and each
 # server in the range of taildelay_lo to taildelay_hi.
+#
 
 proc create_testnet {} {
     global testnet flows background
@@ -20,6 +63,11 @@ proc create_testnet {} {
 
     set testnet(nsp1) [ns node]
     set testnet(nsp2) [ns node]
+    if {$testnet(verbose)} {
+	puts "\ttestnet(nsp1)\t$testnet(nsp1)"
+	puts "\ttestnet(nsp2)\t$testnet(nsp2)"
+    }
+
     set netlink [ns_duplex $testnet(nsp1) $testnet(nsp2) \
 	    $testnet(netspeed) $testnet(netdelay) $testnet(netqtype)]
     if {$testnet(netqtype) == "red"} {
@@ -45,11 +93,17 @@ proc create_testnet {} {
 		[expr ( $testnet(ispdelay) * ( [ns-random] >> 16 ) ) >> 16]]
 	set isp [format "isp%d" $pair]
 	set testnet($isp) [ns node]
+	if {$testnet(verbose) != 0} {
+	    puts "\ttestnet(isp=$isp)\t$testnet($isp)"
+	}
     }
     for {set pair 0} {$pair < $testnet(clickers)} {incr pair} {
 	set client [format "c%d" $pair]
 	set server [format "s%d" $pair]
 	set testnet($server) [ns node]
+	if {$testnet(verbose) != 0} {
+	    puts "\ttestnet(server=$server)\t$testnet($isp)"
+	}
 	set isp [format "isp%d" [expr $pair % $testnet(numisp)]]
 	set dest [format "d%d" $pair]
 	set taildelay [format "%dms" \
@@ -58,6 +112,9 @@ proc create_testnet {} {
 		* ( [ns-random] >> 16 ) ) >> 16 )]]
 	if {$testnet(doproxy) == 0} {
 	    set testnet($client) [ns node]
+	    if {$testnet(verbose) != 0} {
+		puts "\ttestnet(client=$client)\t$testnet($client)"
+	    }
 	    set modemlink \
 		    [ns_duplex $testnet($client) $testnet($isp) \
 		    $testnet(modemspeed) $testnet(modemdelay) \
@@ -87,6 +144,10 @@ proc create_testnet {} {
 	incr ident;
 	set testnet($client) [ns node]
 	set testnet($server) [ns node]
+	if {$testnet(verbose) != 0} {
+	    puts "\ttestnet(client=$client)\t$testnet($client)"
+	    puts "\ttestnet(server=$server)\t$testnet($server)"
+	}
 	set ispdelay [format "%dms" \
 		[expr ( $testnet(ispdelay) * ( [ns-random] >> 16 ) ) >> 16]]
 	set taildelay [format "%dms" \
@@ -95,6 +156,9 @@ proc create_testnet {} {
 		* ( [ns-random] >> 16 ) ) >> 16 )]]
 	if {$testnet(bkgproxy) == 0} {
 	    set testnet($isp) [ns node]
+	    if {$testnet(verbose) != 0} {
+		puts "\ttestnet(isp=$isp)\t$testnet($isp)"
+	    }
 	    set modemlink \
 		    [ns_duplex $testnet($client) $testnet($isp) \
 		    $testnet(modemspeed) $testnet(modemdelay) \
@@ -115,8 +179,11 @@ proc create_testnet {} {
     }
 }
 
-proc trigger { results } {
+proc trigger { xresults } {
     global testnet flows
+
+    # NEEDSWORK:  should we really indirect once down results like this?
+    set results "[lindex $xresults 0]"
 
     set type [lindex $results 0]
     if { $type != "-" && $type != "d" } {
@@ -218,18 +285,19 @@ proc openTrace { stopTime testName } {
 }
 
 proc stopsource { traceFile testName } {
-    global flows
+    global flows testnet
     set flows(startnew) 0
     if {$flows(total_running) == 0} {
 	close $traceFile
 	finish $testName"
+	    # "  hack for emacs fontification
 	exit 0
     } else {
 	if {$testnet(quiet) == 0} {
 	    puts [format "at [ns now] %d flows still running" \
 		    $flows(total_running)]
 	}
-	ns at [expr [ns now] + 1] "stopsource $traceFile $testName"
+	ns at [expr [ns now] + 100] "stopsource $traceFile $testName"
     }
 }
 
@@ -373,8 +441,13 @@ proc setup_http_test {} {
     # trace only the NSP bottleneck link
 
     set traceme [openTrace $testnet(testlimit) test_http]
-    [ns link $testnet(nsp2) $testnet(nsp1)] trace $traceme
-    $traceme callback { trigger }
+    set bottleneck [ns link $testnet(nsp2) $testnet(nsp1)]
+    $bottleneck trace $traceme
+    $bottleneck callback { trigger }
+
+    if {$testnet(gen_map)} {
+	ns gen-map
+    }
 }
 
 proc start_http { base } {
@@ -401,7 +474,7 @@ proc set_globals {} {
     global testnet flows background
 
     set testnet(starttime) 10.0
-    set testnet(netdelay) 35pms
+    set testnet(netdelay) 35ms
     set testnet(modemdelay) 50ms
     set testnet(ispdelay) 25
     set testnet(taildelay_lo) 1
@@ -419,12 +492,14 @@ proc set_globals {} {
     set testnet(clickdelay) 500
     set testnet(testlimit) 500.0
     set testnet(quiet) 0
+    set testnet(verbose) 1
     set testnet(seed) 1
     set testnet(netqtype) drop-tail
     set testnet(modemqtype) drop-tail
     set testnet(doproxy) 0
     set testnet(bkgproxy) 0
     set testnet(numisp) 2
+    set testnet(gen_map) 0
 
     set flows(inlines_started) 0
     set flows(inlines_needed) 3
@@ -446,7 +521,7 @@ proc set_globals {} {
 }
 
 proc process_args {} {
-    global argc argv testnet flows
+    global argc argv testnet flows background
 
     for {set i 0} {$i < $argc} {incr i} {
 	set arg [lindex $argv $i]
@@ -620,6 +695,9 @@ proc process_args {} {
 	    }
 	    x-quiet {
 		set testnet(quiet) 1
+	    }
+	    x-ns-gen-map {
+		set testnet(gen_map) 1
 	    }
 	    default {
 		puts [format "unrecognized argument: %s" [lindex $argv $i]]
