@@ -48,8 +48,7 @@ void TrafficGenerator::start()
 {
 	init();
 	running_ = 1;
-	size_ = agent_->size();
-	timer_.resched(next_interval(size_));
+	timeout(); // uses initial packet-size
 }
 
 
