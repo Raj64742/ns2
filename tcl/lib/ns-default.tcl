@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.334 2004/10/07 17:58:50 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.335 2004/10/13 02:25:51 sfloyd Exp $
 
 
 #
@@ -119,8 +119,8 @@ Queue/XCP set spread_bytes_ 0
 # support only xcp flows; set to 1 when supporting both tcp and xcp flows; temporary fix for allocating link BW between xcp and tcp queues until dynamic queue weights come into effect. This fix should then go away
 Queue/XCP set tcp_xcp_on_ 0  ;
 
-Queue/RED set bytes_ false
-Queue/RED set queue_in_bytes_ false
+Queue/RED set bytes_ true ;		# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ true ;	# default changed on 10/11/2004.
 # Queue/RED set thresh_ 5
 Queue/RED set thresh_ 0
 # Queue/RED/thresh_ was changed on 12/29/01, for automatic configuration.
