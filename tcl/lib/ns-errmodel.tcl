@@ -93,8 +93,6 @@ ErrorModel/Empirical instproc init {fileList {unit "pkt"}} {
 }
 
 
-Class ErrorModel/MultiState -superclass ErrorModel
-
 ErrorModel/MultiState instproc init {states trans transunit nstates start} {
 	# states_ is an array of states (errmodels),
 	# transmatrix_ is the transition state model matrix,
