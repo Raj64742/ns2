@@ -24,9 +24,15 @@
 #
 
 die() {
-      echo "$@" 
-      exit 1
+	echo "$@"  1>&2
+	test ! -z "$blame" && echo "$blame" 1>&2
+	exit 1
 }
+
+warn() {
+	echo "$@"
+}
+
 # Get current path
 CUR_PATH=`pwd`
 
@@ -34,18 +40,20 @@ CUR_PATH=`pwd`
 
 if [ ! -d tclbox ]
 then
-mkdir tclbox
+	mkdir tclbox
 fi
 
 if [ ! -d tkbox ]
 then
-mkdir tkbox
+	mkdir tkbox
 fi
 
 # install and install Tcl8.0.4
 
 cd ./tcl8.0.4/unix
 
+blame='Tcl is not part of the ns project.  Please see www.Scriptics.com
+to see if they have a fix for your platform.'
 ./configure --prefix="$CUR_PATH/tclbox" || die "tcl8.0.4 configuration failed! Exiting ..."
 make || die "tcl8.0.4 make failed! Exiting ..."
 make install || die "tcl8.0.4 installation failed! Exiting ..."
@@ -56,6 +64,8 @@ cd ../../
 
 cd ./tk8.0.4/unix
 
+blame='Tk is not part of the ns project.  Please see www.Scriptics.com
+to see if they have a fix for your platform.'
 ./configure --prefix="$CUR_PATH/tkbox" || die "tk8.0.4 configuration failed! Exiting ..."
 make || die "tk8.0.4 make failed! Exiting ..."
 make install || die "tk8.0.4 installation failed! Exiting ..."
@@ -64,13 +74,15 @@ cd ../../
 
 # do some copy for otcl
 
-cp ./tcl8.0.4/generic/*.h ./tclbox/include/
-cp ./tk8.0.4/generic/*.h ./tkbox/include/
+cp ./tcl8.0.4/generic/*.h ./tclbox/include/ || die "cp failed"
+cp ./tk8.0.4/generic/*.h ./tkbox/include/ || die "cp failed"
 
 # compile and install otcl
 
 cd ./otcl-1.0a4
 
+blame='Please check http://www-mash.cs.berkeley.edu/ns/ns-problems.html
+for common problems and bug fixes.'
 ./configure --with-tcl=../tclbox --with-tk=../tkbox || die "otcl-1.0a4 configuration failed! Exiting ..."
 
 make || die "otcl-1.0a4 make failed! Exiting ..."
@@ -100,10 +112,10 @@ then
     then
 	echo "xgraph has been installed successfully. "
     else 
-	echo "Can not create xgraph; But xgraph is an optional package, continue..."
+	echo "Can not create xgraph; But xgraph is an optional package, continuing..."
     fi
 else
-    echo " Can not create Makefile for xgraph; but xgraph is an optional package, continue ..."
+    echo " Can not create Makefile for xgraph; but xgraph is an optional package, continuing..."
 fi
 
 cd ../
@@ -118,14 +130,15 @@ then
 else
 	echo "Making cweb"
 	touch *.c
-	make all	
+	make all || warn "cweb failed to make, but it's optional"
+	# xxx: other stuff will fail...
 	chmod 755 cweave
 	chmod 755 ctangle
 	cd ..
 	#echo "cd .."
 	if [ ! -d bin ]
 	then
-	mkdir bin
+		mkdir bin
 	fi
 	cd bin
 	ln -s $CUR_PATH/cweb/cweave cweave
@@ -143,21 +156,20 @@ if [ ! -f ./Makefile ]
 	then
 	echo "Unable to create sgb library. This library is used by gt-itm and so for scenario generators. If you already have sgblib (possible if you are on solaris,sunos or freebsd platforms) you may still be able to run gt-itm. so continuing.."
 else
-echo "Making sgb"
-if make tests
-then
-	if [ -f lib*.a ]
+	echo "Making sgb"
+	if make tests
 	then
-	if [ -f ../gt-itm/lib/libgb.a ]
-	then
-	        rm ../gt-itm/lib/libgb.a
-		cp lib*.a ../gt-itm/lib/libgb.a
+		if [ -f lib*.a ]
+		then
+			if [ -f ../gt-itm/lib/libgb.a ]
+			then
+				rm ../gt-itm/lib/libgb.a
+				cp lib*.a ../gt-itm/lib/libgb.a
+			fi
+		fi
+	else
+		echo "Unable to create sgb library, but it's optional, so continuing..."
 	fi
-	fi
-
-else
-    echo "Unable to create sgb library. Continuing.."
-fi
 fi
 
 cd ..
@@ -177,14 +189,14 @@ then
  else
     cd ./gt-itm/src
     if make
-     then
-     echo "gt-itm has been installed successfully."
+    then
+      echo "gt-itm has been installed successfully."
     fi
     
     cd ../sgb2ns
     if make
-     then
-     echo "sgb2ns has been installed successfully."
+    then
+      echo "sgb2ns has been installed successfully."
     fi
    cd ../../
 
@@ -214,13 +226,16 @@ cd ../
 
 cd ./zlib-1.1.3
 
-./configure --exec-prefix=../ --prefix=../ || die "Zlib-1.1.3 configuration failed! Exiting ..."
-
-if make
+if ./configure --exec-prefix=../ --prefix=../
 then
-    echo "Zlib has been installed successfully."
+	if make
+	then
+		echo "Zlib has been installed successfully."
+	else
+		warn "Zlib make failed, but it's optional Continue ..."
+	fi
 else
-    echo "Zlib make failed! Continue ..."
+	warn "Zlib-1.1.3 configuration failed, but it's optional, so continuing ..."
 fi
 
 cd ../
