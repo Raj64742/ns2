@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.155 2004/10/28 01:19:38 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.156 2005/01/06 21:59:57 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -556,10 +556,13 @@ void TcpAgent::rtt_update(double tao)
 	}
 	if (t_rtt_ < 1)
 		t_rtt_ = 1;
-
 	//
-	// srtt has 3 bits to the right of the binary point
-	// rttvar has 2
+	// t_srtt_ has 3 bits to the right of the binary point
+	// t_rttvar_ has 2
+        // Thus "t_srtt_ >> T_SRTT_BITS" is the actual srtt, 
+  	//   and "t_srtt_" is 8*srtt.
+	// Similarly, "t_rttvar_ >> T_RTTVAR_BITS" is the actual rttvar,
+	//   and "t_rttvar_" is 4*rttvar.
 	//
         if (t_srtt_ != 0) {
 		register short delta;
