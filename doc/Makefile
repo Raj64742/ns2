@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.2 1999/03/04 01:06:51 haoboy Exp $
+# $Id: Makefile,v 1.3 1999/03/25 00:20:53 haldar Exp $
 #
 
 LATEX=          latex
@@ -32,8 +32,9 @@ FILES= \
 	udp.tex \
 	undocumented.tex \
 	unicast.tex \
-	webcache.tex
-
+	webcache.tex \
+	address.tex \
+	hier-rtg.tex
 
 all: everything.dvi everything.ps
 
