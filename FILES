@@ -38,6 +38,7 @@ expoo.cc
 flags.h
 fq.cc
 heap.h
+inet.c
 ip.h
 ip.cc
 install-sh
@@ -50,6 +51,9 @@ message.cc
 message.h
 misc.cc
 mkdep
+net.cc
+net.h
+net-ip.cc
 ns.1
 ns_tclsh.cc
 object.cc
@@ -79,6 +83,7 @@ scoreboard.cc
 scoreboard.h
 session-rtp.cc
 sfq.cc
+tap.cc
 tcl-expand.tcl
 tcl/ex/dynamic-nam.tcl
 tcl/ex/fq.tcl
@@ -97,6 +102,7 @@ tcl/ex/srm-demo-nam.tcl
 tcl/ex/rc.tcl
 tcl/ex/rc-nam.tcl
 tcl/ex/rtp-nam.tcl
+tcl/ex/test-emulator.tcl
 tcl/ex/test-suite.tcl
 tcl/ex/tg.tcl
 tcl/ex/tg-nam.tcl
@@ -104,7 +110,6 @@ tcl/lib/ns-compat.tcl
 tcl/lib/ns-default.tcl
 tcl/lib/ns-lib.tcl
 tcl/lib/ns-link.tcl
-tcl/lib/ns-mcast.tcl
 tcl/lib/ns-packet.tcl
 tcl/lib/ns-queue.tcl
 tcl/lib/ns-nam.tcl
