@@ -30,7 +30,6 @@ for {set i 0} {$i < $argc} {incr i} {
 	} elseif {$opt == "-mac"} {
 		set mac Mac/[lindex $argv [incr i]]
 	} elseif {$opt == "-tr"} {
-		regexp {^(.+)\..*$} $argv0 match ext
 		set trfile [lindex $argv [incr i]]
 	} elseif {[string range $opt 0 0] == "-"} {
 		set flags([string range $opt 1 1]) 1

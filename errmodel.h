@@ -38,13 +38,13 @@
 #include <fstream.h>
 #include "connector.h"
 
-#define EuName "pkt", "bit", "time"
-enum ErrorUnit { EuPacket, EuBit, EuTime };
+#define EUnames "pkt", "bit", "time"
+enum ErrorUnit { EUpkt, EUbit, EUtime };
 
 
 class ErrorModel : public Connector {
 public:
-	ErrorModel(ErrorUnit eu=EuPacket);
+	ErrorModel(ErrorUnit eu=EUpkt);
 	void recv(Packet*);
 	virtual int corrupt(Packet*);
 	double per() { return loss_ / (loss_ + good_); }

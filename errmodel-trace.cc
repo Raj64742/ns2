@@ -84,9 +84,9 @@ ErrorModelTrace::corrupt(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	if (errorLen_ <= 0)
 		return 0;
-	if (unit_ == EuPacket)
+	if (unit_ == EUpkt)
 		errorLen_ -= 1;
-	else if (unit_ == EuBit) {
+	else if (unit_ == EUbit) {
 		hdr_cmn *hdr = (hdr_cmn*) p->access(off_cmn_);
 		errorLen_ -= 8. * hdr->size();
 	}
