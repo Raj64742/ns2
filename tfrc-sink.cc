@@ -56,6 +56,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind("InitHistorySize_", &hsz);
 	bind("NumFeedback_", &NumFeedback_);
 	bind ("AdjustHistoryAfterSS_", &adjust_history_after_ss);
+	bind ("NumSamples_", &numsamples);
 
 	rate_ = 0; 
 	rtt_ =  0; 
@@ -75,16 +76,8 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	lastloss_round_id = -1 ;
 	sample_count = 0 ;
 	last_sample = 0;
-	for (int i = 0 ; i < MAXSAMPLES+1 ; i ++) {
-		sample[i] = 0 ; 
-	}
-	weights[0] = 1; 
-	weights[1] = 1; 
-	weights[2] = 1; 
-	weights[3] = 0.8; 
-	weights[4] = 0.6; 
-	weights[5] = 0.4; 
-	weights[6] = 0.2; 
+	sample = NULL ; 
+	weights = NULL ;
 }
 
 /*
@@ -100,6 +93,23 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	total_received_++;
 	rcvd_since_last_report ++;
 	double p = -1;
+
+	if (numsamples < 0) {
+		numsamples = DEFAULT_NUMSAMPLES ;	
+		sample = (int *)malloc((numsamples+1)*sizeof(int));
+		weights = (double *)malloc(numsamples*sizeof(double));
+		for (int i = 0 ; i < numsamples+1 ; i ++) {
+			sample[i] = 0 ; 
+		}
+		weights[0] = 1;
+		weights[1] = 1;
+		weights[2] = 1 ; 
+		weights[3] = 1 ; 
+		weights[4] = 0.8 ; 
+		weights[5] = 0.6 ;
+		weights[6] = 0.4 ;
+		weights[7] = 0.2 ;
+	}
 
 	UrgentFlag = tfrch->UrgentFlag;
 	round_id = tfrch->round_id ;
@@ -128,7 +138,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	if ((rate_ < SMALLFLOAT) || (prevrtt < SMALLFLOAT) || (UrgentFlag) ||
 		  ((rtt_ > SMALLFLOAT) && 
 			 (now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
-		  ((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq > 1)) ) {
+		  ((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq > 1))) {
 		/*
 		 * time to generate a new report
 		 */
@@ -149,7 +159,7 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 	double now = Scheduler::instance().clock();
 	register int i; 
 	register int seqno = tfrch->seqno;
-
+	
 	if (lossvec_ == NULL) {
 		rtvec_=(double *)malloc(sizeof(double)*hsz);
 		lossvec_=(char *)malloc(sizeof(double)*hsz);
@@ -176,7 +186,6 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 			if ((last_timestamp_-lastloss > rtt_) && 
 			    (round_id > lastloss_round_id)) {
 				lossvec_[i%hsz] = LOST;
-/*printf ("===>%d %d\n", round_id, lastloss_round_id); */
 				lastloss = tfrch->timestamp;
 				lastloss_round_id = round_id ;
 			}
@@ -204,9 +213,9 @@ double TfrcSinkAgent::est_loss ()
 		sample[0]++; 
 		if (lossvec_[i%hsz] == LOST) {
 			sample_count ++;
-			if (sample_count >= MAXSAMPLES+1) 
-				sample_count = MAXSAMPLES;
-			shift_array (sample, MAXSAMPLES+1); 
+			if (sample_count >= numsamples+1) 
+				sample_count = numsamples;
+			shift_array (sample, numsamples+1); 
 		}
 	}
 	last_sample = maxseq+1 ; 
@@ -214,7 +223,7 @@ double TfrcSinkAgent::est_loss ()
 	if (sample_count == 0 && false_sample == 0) 
 		return 0; 
 
-	if (sample_count < MAXSAMPLES && false_sample > 0) {
+	if (sample_count < numsamples && false_sample > 0) {
 		/* sample_count++; sample[sample_count] = false_sample;*/
 		sample[sample_count] += false_sample;
 		false_sample = 0 ; 
@@ -226,10 +235,10 @@ double TfrcSinkAgent::est_loss ()
 	for (i = 0; i < sample_count; i ++) 
 		wsum1 += weights[i]; 
 	wsum2 = wsum1; 
-	if (sample_count < MAXSAMPLES)  
+	if (sample_count < numsamples)  
 		wsum1 += weights[i]; 
 	for (i = 0; i <= sample_count; i ++) {
-		if (i != MAXSAMPLES)
+		if (i != numsamples)
 			p1 += weights[i]*sample[i]/wsum1;
 		if (i > 0) 
 			p2 += weights[i-1]*sample[i]/wsum2;
@@ -314,15 +323,11 @@ double TfrcSinkAgent::adjust_history (double ts)
  */
 void TfrcSinkAgent::nextpkt(double p) {
 
-	/*double now = Scheduler::instance().clock();*/
-
-	/* send the report */
 	sendpkt(p);
 
 	/* schedule next report rtt/NumFeedback_ later */
 	if (rtt_ > 0.0 && NumFeedback_ > 0) 
 		nack_timer_.resched(1.5*rtt_/(float)NumFeedback_);
-		/*nack_timer_.resched(rtt_/(float)NumFeedback_);*/
 }
 
 /*
@@ -360,6 +365,56 @@ void TfrcSinkAgent::sendpkt(double p)
 	last_report_sent = now; 
 	rcvd_since_last_report = 0;
 	send(pkt, 0);
+}
+
+int TfrcSinkAgent::command(int argc, const char*const* argv) 
+{
+	if (argc == 3) {
+		if (strcmp(argv[1], "weights") == 0) {
+			/* 
+			 * weights is a string of numbers, seperated by + signs
+			 * the firs number is the total number of weights.
+			 * the rest of them are the actual weights
+			 * this overrides the defaults
+			 */
+			char *w ;
+			w = (char *)calloc(strlen(argv[2])+1, sizeof(char)) ;
+			if (w == NULL) {
+				printf ("error allocating w\n");
+				abort();
+			}
+			strcpy(w, (char *)argv[2]);
+			numsamples = atoi(strtok(w,"+"));
+			sample = (int *)malloc((numsamples+1)*sizeof(int));
+			weights = (double *)malloc(numsamples*sizeof(double));
+			fflush(stdout);
+			if (sample && weights) {
+				int count = 0 ;
+				while (count < numsamples) {
+					sample[count] = 0;
+					char *w;
+					w = strtok(NULL, "+");
+					if (w == NULL)
+						break ; 
+					else {
+						weights[count++] = atof(w);
+					}	
+				}
+				if (count < numsamples) {
+					printf ("error in weights string %s\n", argv[2]);
+					abort();
+				}
+				sample[count] = 0;
+				free(w);
+				return (TCL_OK);
+			}
+			else {
+				printf ("error allocating memory for smaple and weights:2\n");
+				abort();
+			}
+		}
+	}
+	return (Agent::command(argc, argv));
 }
 
 void TfrcNackTimer::expire(Event *) {

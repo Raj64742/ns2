@@ -49,7 +49,7 @@
 #define LOST 2
 #define NOLOSS 3
 
-#define MAXSAMPLES 7
+#define DEFAULT_NUMSAMPLES 8 
 
 class TfrcSinkAgent;
 
@@ -76,6 +76,7 @@ protected:
 	double est_loss();
 	double est_thput(); 
 	void shift_array(int *a, int sz) ;
+	int command(int argc, const char*const* argv);
 
 	TfrcNackTimer nack_timer_;
 
@@ -83,38 +84,31 @@ protected:
 	double rate_;		// sender's reported send rate
 	double rtt_;		// rtt value reported by sender
 	double tzero_;		// timeout value reported by sender
-	double flost_;		// frequency of loss events computed
-				// by the receiver
+	double flost_;		// frequency of loss events computed by the receiver
 
 	// these assist in keep track of incming packets and calculate flost_
 	double last_timestamp_, last_arrival_;
 	int hsz;
 	char *lossvec_;
 	double *rtvec_;
-	int prevpkt_;
-	int maxseq; 
-
-	int total_received_;	// total # of pkts rcvd by rcvr
-
-	int bval_;		// value of B used in the formula
-
-	/* set to 0 until first loss is seen. Used to end slow start */
-	int loss_seen_yet;
-
-	/* time last report was sent */
-	double last_report_sent; 
-
-	/* send feedback these many times per rtt */
-	double NumFeedback_;
-
-	int rcvd_since_last_report;
-	double lastloss;
-	int adjust_history_after_ss;
-	int false_sample;
 	int round_id ;
 	int lastloss_round_id ;
-	int sample[MAXSAMPLES+1];
-	double weights[MAXSAMPLES+1] ;
+	int numsamples ;
+	int *sample;
+	double *weights ;
 	int sample_count ;
-	int last_sample ;
+	int last_sample ;  
+
+	int maxseq; // max seq number seen
+	int total_received_;	// total # of pkts rcvd by rcvr
+	int bval_;		// value of B used in the formula
+	double last_report_sent; // when was last feedback sent
+	double NumFeedback_; // how many feedbacks per rtt
+	int rcvd_since_last_report; // # of pakcets received since last report
+	double lastloss; // when last loss occured
+
+	// these are for "faking" hisotry after slow start
+	int loss_seen_yet; // have we seen the first loss yet?
+	int adjust_history_after_ss; // fake history after slow start? (0/1)
+	int false_sample; // by how much?
 }; 
