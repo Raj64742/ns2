@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.221 2001/03/28 07:16:33 debo Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.222 2001/04/03 00:01:38 ddutta Exp $
 
 #
 # Word of warning to developers:
@@ -1238,7 +1238,7 @@ Simulator instproc cost {n1 n2 c} {
 
 Simulator instproc attach-agent { node agent } {
 	$node attach $agent
-	$agent set nodeid_ [$node id]
+	# $agent set nodeid_ [$node id]
 }
 
 Simulator instproc attach-tbf-agent { node agent tbf } {
@@ -1300,8 +1300,8 @@ Simulator instproc connect {src dst} {
 	# Debo
 
 	global nconn_ conn_
-	set sid [$src id]
-        set did [$dst id]
+	set sid [$src nodeid]
+        set did [$dst nodeid]
 
 	if {[lindex [split [$src info class] "/"] 1] == "TCP"} {
 		set conn_($nconn_) $sid:$did
