@@ -30,12 +30,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.20 2000/02/01 17:47:23 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.21 2000/02/01 20:08:18 sfloyd Exp $
 #
 
 source misc_simple.tcl
-###Agent/TFRC set df_ 0.5
 Agent/TFRC set df_ 0.25
+Agent/TFRC set ca_ 0
 Agent/TFRC set aggr_incr_ 0
 Agent/TFRC set aggr_dec_  1
 Agent/TFRC set smooth_ 0
@@ -235,6 +235,18 @@ Test/slowStartDiscount instproc init {} {
     $self next
 }
 
+Class Test/slowStartDiscountCA -superclass TestSuite
+Test/slowStartDiscountCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	slowStartDiscountCA
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/slowStartDiscountCA instproc run {} [Test/slowStart info instbody run ]
+    $self next
+}
+
 Class Test/smooth -superclass TestSuite
 Test/smooth instproc init {} {
     $self instvar net_ test_
@@ -246,12 +258,37 @@ Test/smooth instproc init {} {
     $self next
 }
 
+Class Test/smoothCA -superclass TestSuite
+Test/smoothCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	smoothCA
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/smoothCA instproc run {} [Test/slowStart info instbody run ]
+    $self next
+}
+
 Class Test/slowStart -superclass TestSuite
 Test/slowStart instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	slowStart
     Agent/TFRCSink set discount_ 0
+    $self next
+}
+
+Class Test/slowStartCA -superclass TestSuite
+Test/slowStartCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	slowStartCA
+    Agent/TFRCSink set discount_ 0
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/slowStartCA instproc run {} [Test/slowStart info instbody run ]
     $self next
 }
 
@@ -348,6 +385,18 @@ Test/impulseDiscount instproc init {} {
     $self next
 }
 
+Class Test/impulseDiscountCA -superclass TestSuite
+Test/impulseDiscountCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	impulseDiscountCA
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/impulseDiscountCA instproc run {} [Test/impulse info instbody run ]
+    $self next
+}
+
 Class Test/impulse -superclass TestSuite
 Test/impulse instproc init {} {
     $self instvar net_ test_
@@ -356,6 +405,19 @@ Test/impulse instproc init {} {
     Agent/TFRCSink set discount_ 0
     $self next
 }
+
+Class Test/impulseCA -superclass TestSuite
+Test/impulseCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	impulseCA
+    Agent/TFRCSink set discount_ 0
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/impulseCA instproc run {} [Test/impulse info instbody run ]
+    $self next
+}
+
 Test/impulse instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
@@ -403,6 +465,21 @@ Test/impulseMultReportDiscount instproc init {} {
     Test/impulseMultReportDiscount instproc run {} [Test/impulseMultReport info instbody run ]
     $self next
 }
+
+# Feedback 4 times per roundtrip time.
+Class Test/impulseMultReportDiscountCA -superclass TestSuite
+Test/impulseMultReportDiscountCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	impulseMultReportDiscountCA
+    Agent/TFRCSink set NumFeedback_ 4
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/impulseMultReportDiscountCA instproc run {} [Test/impulseMultReport info instbody run ]
+    $self next
+}
+
 Class Test/impulseMultReport -superclass TestSuite
 Test/impulseMultReport instproc init {} {
     $self instvar net_ test_
@@ -412,6 +489,20 @@ Test/impulseMultReport instproc init {} {
     Agent/TFRCSink set discount_ 0
     $self next
 }
+
+Class Test/impulseMultReportCA -superclass TestSuite
+Test/impulseMultReportCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	impulseMultReportCA
+    Agent/TFRCSink set NumFeedback_ 4
+    Agent/TFRCSink set discount_ 0
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/impulseMultReportCA instproc run {} [Test/impulseMultReport info instbody run ]
+    $self next
+}
+
 Test/impulseMultReport instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
@@ -500,6 +591,20 @@ Test/two-friendly instproc init {} {
     Agent/TFRCSink set discount_ 0
     $self next
 }
+
+# Two TFRC connections and three TCP connections.
+Class Test/two-friendlyCA -superclass TestSuite
+Test/two-friendlyCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	two-friendlyCA
+    Agent/TFRCSink set discount_ 0
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/two-friendlyCA instproc run {} [Test/two-friendly info instbody run ]
+    $self next
+}
+
 Test/two-friendly instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
@@ -572,8 +677,45 @@ Test/randomized instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	randomized
-    Agent/TFRCSink set overhead_ 1.0
+    Agent/TFRC set overhead_ 1.0
     Test/randomized instproc run {} [Test/slowStart info instbody run]
+    $self next
+}
+
+## Random factor added to sending times
+Class Test/randomizedCA -superclass TestSuite
+Test/randomizedCA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	randomizedCA
+    Agent/TFRC set overhead_ 1.0
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/randomizedCA instproc run {} [Test/slowStart info instbody run]
+    $self next
+}
+
+## Smaller random factor added to sending times
+Class Test/randomized1 -superclass TestSuite
+Test/randomized1 instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	randomized1
+    Agent/TFRC set overhead_ 0.1
+    Test/randomized1 instproc run {} [Test/slowStart info instbody run]
+    $self next
+}
+
+## Smaller random factor added to sending times
+Class Test/randomized1CA -superclass TestSuite
+Test/randomized1CA instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	randomized1CA
+    Agent/TFRC set overhead_ 0.1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Test/randomized1CA instproc run {} [Test/slowStart info instbody run]
     $self next
 }
 
