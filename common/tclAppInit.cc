@@ -18,6 +18,7 @@
 
 extern void init_misc(void);
 extern EmbeddedTcl et_ns_lib;
+extern EmbeddedTcl et_ns_ptypes;
 
 /* MSVC requires this global var declaration to be outside of 'extern "C"' */
 #ifdef MEMDEBUG_SIMULATIONS
@@ -100,6 +101,7 @@ Tcl_AppInit(Tcl_Interp *interp)
 
 	Tcl_SetVar(interp, "tcl_rcFileName", "~/.ns.tcl", TCL_GLOBAL_ONLY);
 	Tcl::init(interp, "ns");
+        et_ns_ptypes.load();
 	et_ns_lib.load();
 	init_misc();
 

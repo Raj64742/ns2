@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.137 1998/11/14 04:23:22 polly Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.138 1998/11/25 22:50:08 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -125,6 +125,7 @@ OBJ_CC = \
 	ctrMcast.o mcast_ctrl.o srm.o \
 	sessionhelper.o delaymodel.o srm-ssm.o \
 	srm-topo.o \
+	mftp.o mftp_snd.o mftp_rcv.o codeword.o \
 	alloc-address.o address.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
@@ -168,7 +169,7 @@ OBJ_EMULATE_CC = \
 OBJ_EMULATE_C = \
 	emulate/inet.o
 
-OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o
+OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o $(GEN_DIR)ptypes.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
 	$(OBJ_EMULATE_C:.o=.c) $(OBJ_EMULATE_CC:.o=.cc) \
@@ -238,6 +239,9 @@ NS_TCL_LIB = \
 	tcl/mcast/srm-ssm.tcl \
 	tcl/mcast/timer.tcl \
 	tcl/mcast/McastMonitor.tcl \
+	tcl/mcast/mftp_snd.tcl \
+	tcl/mcast/mftp_rcv.tcl \
+	tcl/mcast/mftp_rcv_stat.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
         tcl/ctr-mcast/CtrMcastComp.tcl \
         tcl/ctr-mcast/CtrRPComp.tcl \
@@ -267,6 +271,13 @@ $(GEN_DIR)version.c: VERSION
 	$(RM) $@
 	$(TCLSH) bin/string2c.tcl version_string < VERSION > $@
 
+$(GEN_DIR)ptypes.cc: ptypes2tcl packet.h
+	./ptypes2tcl > $@
+
+ptypes2tcl: ptypes2tcl.o
+	$(LINK) $(LDFLAGS) $(LDOUT)$@ ptypes2tcl.o
+
+ptypes2tcl.o: ptypes2tcl.cc packet.h
 
 install: force
 	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
