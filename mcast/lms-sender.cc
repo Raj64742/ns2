@@ -205,7 +205,7 @@ void LmsSender::handle_lms_pkt (Packet* pkt)
 	int st = 0;
 
 	hdr_lms* lh = HDR_LMS(pkt);
-	hdr_ip* iph = HDR_IP(pkt);
+	//hdr_ip* iph = HDR_IP(pkt);
 #ifdef LMS_DEBUG
 int a1, a2;
 #endif
@@ -309,7 +309,7 @@ void LmsSender::send_dmcast (hdr_lms* lh, int seqno, int fid)
 	plh->tp_port_ = lh->tp_port_;
 	plh->tp_iface_ = lh->tp_iface_;
 	packet_t t = ch->ptype();
-        const char* nname = packet_info.name(t);
+        //const char* nname = packet_info.name(t);
 	
 	target_->recv(p);
 }

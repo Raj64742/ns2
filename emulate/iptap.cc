@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.cc,v 1.3 2002/09/23 23:25:05 alefiyah Exp $ (ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.cc,v 1.4 2005/01/25 23:29:12 haldar Exp $ (ISI)";
 #endif
 
 #include "iptap.h"
@@ -131,7 +131,7 @@ void
 IPTapAgent::processpkt(Packet *p, const struct timeval &ts)
 {
   struct ip *ipheader;
-  struct tcphdr *tcpheader;
+  //struct tcphdr *tcpheader;
   unsigned char *buf;
   
   /* Ip header information from the grabbed packet. */
@@ -140,7 +140,7 @@ IPTapAgent::processpkt(Packet *p, const struct timeval &ts)
   unsigned char ttl;
   
   /* TCP header info from the grabbed packet. */
-  unsigned char tcphlen;
+  //unsigned char tcphlen;
   
   /* 
      At this point, all I have to do is to grab the ttl value 
@@ -230,10 +230,10 @@ IPTapAgent::recvpkt()
 int
 IPTapAgent::sendpkt(Packet* p)
 {
-  int byteswritten;
+//  int byteswritten;
   unsigned char *packet;
   unsigned char received_ttl;
-  unsigned short dglen;
+  //unsigned short dglen;
   struct ip *ipheader;
 
   if (net_->mode() != O_RDWR && net_->mode() != O_WRONLY) {

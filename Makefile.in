@@ -68,14 +68,15 @@ INCLUDES = \
 	-I./diffusion3/lib/main -I./diffusion3/lib \
 	-I./diffusion3/lib/nr -I./diffusion3/ns \
 	-I./diffusion3/filter_core -I./asim/ -I./qs \
-	-I./diffserv
+	-I./diffserv \
+	-I./wpan
 
 
 LIB	= \
 	@V_LIBS@ \
 	@V_LIB_X11@ \
 	@V_LIB@ \
-	@LIBS@
+	-lm @LIBS@
 #	-L@libdir@ \
 
 CFLAGS	= $(CCOPT) $(DEFINE)
@@ -295,6 +296,11 @@ OBJ_CC = \
 	mcast/lms-sender.o \
 	queue/delayer.o \
 	xcp/xcpq.o xcp/xcp.o xcp/xcp-end-sys.o \
+	wpan/p802_15_4csmaca.o wpan/p802_15_4fail.o \
+	wpan/p802_15_4hlist.o wpan/p802_15_4mac.o \
+	wpan/p802_15_4nam.o wpan/p802_15_4phy.o \
+	wpan/p802_15_4sscs.o wpan/p802_15_4timer.o \
+	wpan/p802_15_4trace.o wpan/p802_15_4transac.o \
 	@V_STLOBJ@
 
 

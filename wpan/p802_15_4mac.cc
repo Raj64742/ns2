@@ -13,7 +13,7 @@
 // File:  p802_15_4mac.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.1 2005/01/24 18:34:24 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4mac.cc,v 1.2 2005/01/25 23:29:16 haldar Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -559,8 +559,8 @@ void Mac802_15_4::PLME_GET_confirm(PHYenum status,PPIBAenum PIBAttribute,PHY_PIB
 
 void Mac802_15_4::PLME_SET_TRX_STATE_confirm(PHYenum status)
 {
-	hdr_lrwpan *wph;
-	FrameCtrl frmCtrl;
+	//hdr_lrwpan *wph;
+	//FrameCtrl frmCtrl;
 	double delay;
 
 	if (status == p_SUCCESS) status = trx_state_req;
@@ -958,7 +958,7 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 		*/
 		{
 			callback_ = h;
-			if (p802_15_4macDA(p) == MAC_BROADCAST)
+			if (p802_15_4macDA(p) == (nsaddr_t)MAC_BROADCAST)
 				txop = 0;
 			else
 			{
@@ -1159,7 +1159,7 @@ void Mac802_15_4::recv(Packet *p, Handler *h)
 			 || (mpib.macShortAddress == 0xffff)	//not yet joined any PAN
 			 || (!macAssociationPermit))		//association not permitted
 			{
-				Packet:free(p);
+				Packet::free(p);
 				return;
 			}
 		
@@ -2011,7 +2011,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 	hdr_cmn *ch;
 	FrameCtrl frmCtrl;
 	UINT_8 ifs;
-	int i;
+	//int i;
 
 	if (strcmp(frFunc,"csmacaCallBack") == 0)
 	{
@@ -2308,6 +2308,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 			else if ((taskP.mcps_data_request_TxOptions & TxOp_Indirect)	//indirect transmission
 			&& (capability.FFD&&(numberDeviceLink(&deviceLink1) > 0)))	//I am a coordinator
 			{
+				/*
 				//there is contradiction in the draft:
 				//page 156, line 16: (for transaction, i.e., indirect transmission) "all subsequent retransmissions shall be transmitted using CSMA-CA"
 				//page 158, line 14-16:
@@ -2315,28 +2316,28 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 				//	retransmit the data or MAC command frame. Instead, the frame shall remain in the transaction queue of the
 				//	coordinator."
 				//the description on page 158 is more reasonable (though we already proceeded according to page 156)
-				/* now follow page 158
+				// now follow page 158
 				numDataRetry++;
 				if (numDataRetry <= aMaxFrameRetries)
 				{
-					/* no need to check if the packet has been purged -- if purged, then taskFailed() should have set txData = 0
-					wph = HDR_LRWPAN(txData);
-					frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
-					frmCtrl.parse();
-					i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,txData);
-					if (i != 0)	//already purged from pending list
-					{
-						Packet::free(txData);
-						txData = 0;
-						return;
-					}
-					* / -- don't end here, but afte 'else'
-					waitDataAck = false;
-					csmacaResume();
+				//no need to check if the packet has been purged -- if purged, then taskFailed() should have set txData = 0
+				wph = HDR_LRWPAN(txData);
+				frmCtrl.FrmCtrl = wph->MHR_FrmCtrl;
+				frmCtrl.parse();
+				i = updateTransacLinkByPktOrHandle(tr_oper_est,&transacLink1,&transacLink2,txData);
+				if (i != 0)	//already purged from pending list
+				{
+				Packet::free(txData);
+				txData = 0;
+				return;
+				}
+				// -- don't end here, but afte 'else'
+				waitDataAck = false;
+				csmacaResume();
 				}
 				else
 				*/
-					mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY,m_NO_ACK);
+				mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY,m_NO_ACK);
 			}
 			else		//direct transmission: in this case, let mcps_data_request() take care of everything
 				mcps_data_request(0,0,0,0,0,0,0,0,0,taskP.mcps_data_request_TxOptions,false,p_BUSY);	//status can be anything but p_SUCCESS
@@ -2344,7 +2345,7 @@ void Mac802_15_4::dispatch(PHYenum status,const char *frFunc,PHYenum req_state,M
 		else if (txPkt == txBcnCmd2)
 		{
 			if (taskP.taskStatus(TP_mlme_associate_request)
-		 	&& (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),"recvAck") == 0))
+			    && (strcmp(taskP.taskFrFunc(TP_mlme_associate_request),"recvAck") == 0))
 				mlme_associate_request(0,0,0,0,0,taskP.mlme_associate_request_SecurityEnable,false,p_BUSY);	//status can anything but p_SUCCESS
 			else if (taskP.taskStatus(TP_mlme_poll_request)
 		 	&& (strcmp(taskP.taskFrFunc(TP_mlme_poll_request),"recvAck") == 0))
@@ -3230,11 +3231,12 @@ void Mac802_15_4::mlme_orphan_response(IE3ADDR OrphanAddress,UINT_16 ShortAddres
 {
 	hdr_lrwpan* wph;
 	FrameCtrl frmCtrl;
-	UINT_8 step,task;
+	//UINT_8 step;
+	UINT_8 task;
 
 	task = TP_mlme_orphan_response;
 	if (frUpper) checkTaskOverflow(task);
-
+	
 	switch(taskP.taskStep(task))
 	{
 		case 0:
@@ -3284,7 +3286,8 @@ void Mac802_15_4::mlme_orphan_response(IE3ADDR OrphanAddress,UINT_16 ShortAddres
 
 void Mac802_15_4::mlme_reset_request(bool SetDefaultPIB,bool frUpper,PHYenum status)
 {
-	UINT_8 step,task;
+	//UINT_8 step;
+	UINT_8 task;
 
 	task = TP_mlme_reset_request;
 	if (frUpper) checkTaskOverflow(task);
@@ -4631,7 +4634,7 @@ bool Mac802_15_4::canProceedWOcsmaca(Packet *p)
 	//(in the case the node acts as both a coordinator and a device, both the superframes from and to this node should be taken into account)
 	double wtime,t_IFS,t_transacTime,t_CAP,tmpf;
 	FrameCtrl frmCtrl;
-	int type;
+	//int type;
 
 	if ((mpib.macBeaconOrder == 15)&&(macBeaconOrder2 == 15)				
 	&&(macBeaconOrder3 == 15))								
@@ -4852,7 +4855,7 @@ void Mac802_15_4::taskSuccess(char task,bool csmacaRes)
 		{
 			if (Mac802_15_4::callBack == 2)
 			if (ch->xmit_failure_)
-			if (p802_15_4macDA(p) != MAC_BROADCAST)
+				if (p802_15_4macDA(p) != (nsaddr_t)MAC_BROADCAST)
 			{
 				ch->size() -= macHeaderLen(wph->MHR_FrmCtrl);
 				ch->xmit_reason_ = 1;
@@ -5054,7 +5057,7 @@ void Mac802_15_4::constructMPDU(UINT_8 msduLength,Packet *msdu, UINT_16 FrmCtrl,
 {
 	hdr_lrwpan* wph = HDR_LRWPAN(msdu);
 	hdr_cmn* ch = HDR_CMN(msdu);
-	FrameCtrl frmCtrl;
+	//FrameCtrl frmCtrl;
 
 	//fill out fields
 	wph->MHR_FrmCtrl = FrmCtrl;

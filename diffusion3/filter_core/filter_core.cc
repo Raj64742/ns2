@@ -3,7 +3,7 @@
 // authors         : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: filter_core.cc,v 1.2 2004/01/08 23:05:53 haldar Exp $
+// $Id: filter_core.cc,v 1.3 2005/01/25 23:29:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -949,7 +949,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   bool use_io_stats = true;
   int stats_warm_up_time = 0;
 #endif // STATS
-  bool node_id_configured = false;
+  //bool node_id_configured = false;
 
   opterr = 0;
   config_file_ = NULL;

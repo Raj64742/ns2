@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.1 2003/08/21 18:29:15 haldar Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.2 2005/01/25 23:29:13 haldar Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -75,11 +75,11 @@ typedef enum MaxBurstUsage_E
  */
 #undef FALSE
 #undef TRUE
-typedef enum Boolean_E
+typedef enum 
 {
-  FALSE,
-  TRUE
-};
+	FALSE,
+	TRUE
+}Boolean_E;
 
 /* Who controls the data sending, app layer or the transport layer 
  * (as in the case of infinite data)
@@ -92,48 +92,46 @@ typedef enum DataSource_E
 
 /* SCTP chunk types 
  */
-typedef enum SctpChunkType_E
+typedef enum
 {
-  SCTP_CHUNK_DATA,
-  SCTP_CHUNK_INIT,
-  SCTP_CHUNK_INIT_ACK,
-  SCTP_CHUNK_SACK,
-  SCTP_CHUNK_HB,
-  SCTP_CHUNK_HB_ACK,
-  SCTP_CHUNK_ABORT,
-  SCTP_CHUNK_SHUTDOWN,
-  SCTP_CHUNK_SHUTDOWN_ACK,
-  SCTP_CHUNK_ERROR,
-  SCTP_CHUNK_COOKIE_ECHO,
-  SCTP_CHUNK_COOKIE_ACK,
-  SCTP_CHUNK_ECNE,                  // reserved in rfc2960
-  SCTP_CHUNK_CWR,                   // reserved in rfc2960
-  SCTP_CHUNK_SHUTDOWN_COMPLETE,
-
-  /* RFC2960 leaves room for later defined chunks */
-
-  /* for U-SCTP/PR-SCTP
-   */
-  SCTP_CHUNK_FORWARD_TSN,    // should be 192, but this is a simulation! :-)
-
-  /* for timestamp option (sctp-timestamp.cc)
-   */
-  SCTP_CHUNK_TIMESTAMP
-};
+	SCTP_CHUNK_DATA,
+	SCTP_CHUNK_INIT,
+	SCTP_CHUNK_INIT_ACK,
+	SCTP_CHUNK_SACK,
+	SCTP_CHUNK_HB,
+	SCTP_CHUNK_HB_ACK,
+	SCTP_CHUNK_ABORT,
+	SCTP_CHUNK_SHUTDOWN,
+	SCTP_CHUNK_SHUTDOWN_ACK,
+	SCTP_CHUNK_ERROR,
+	SCTP_CHUNK_COOKIE_ECHO,
+	SCTP_CHUNK_COOKIE_ACK,
+	SCTP_CHUNK_ECNE,                  // reserved in rfc2960
+	SCTP_CHUNK_CWR,                   // reserved in rfc2960
+	SCTP_CHUNK_SHUTDOWN_COMPLETE,
+	
+	/* RFC2960 leaves room for later defined chunks */
+	/* for U-SCTP/PR-SCTP
+	 */
+	SCTP_CHUNK_FORWARD_TSN,    // should be 192, but this is a simulation! :-)
+	/* for timestamp option (sctp-timestamp.cc)
+	 */
+	SCTP_CHUNK_TIMESTAMP
+}SctpChunkType_E;
 
 typedef struct AppData_S 
 {
   /* Parameters needed for establishing an association 
    */
-  u_short usNumStreams;     // Number of streams to associate
-  u_short usNumUnreliable;  // first usNumUnreliable streams will be unreliable
-
-  /* Parameters needed for app data messages 
-   */
-  u_short    usStreamId;     // Which stream does this message go on?
-  u_short    usReliability;  // What level of relability does this message have
-  Boolean_E  eUnordered;     // Is this an unordered message?
-  u_int      uiNumBytes;     // Number of databytes in message
+	u_short usNumStreams;     // Number of streams to associate
+	u_short usNumUnreliable;  // first usNumUnreliable streams will be unreliable
+	
+	/* Parameters needed for app data messages 
+	 */
+	u_short    usStreamId;     // Which stream does this message go on?
+	u_short    usReliability;  // What level of relability does this message have
+	Boolean_E  eUnordered;     // Is this an unordered message?
+	u_int      uiNumBytes;     // Number of databytes in message
 };
 
 /* ns specific header fields used for tracing SCTP traffic
@@ -142,39 +140,39 @@ typedef struct AppData_S
  */
 typedef struct SctpTrace_S
 {
-  SctpChunkType_E  eType;
-  u_int            uiTsn;    // (cum ack for sacks, -1 for other control chunks)
-  u_short          usStreamId;     // -1 for control chunks
-  u_short          usStreamSeqNum; // -1 for control chunks
+	SctpChunkType_E  eType;
+	u_int            uiTsn;    // (cum ack for sacks, -1 for other control chunks)
+	u_short          usStreamId;     // -1 for control chunks
+	u_short          usStreamSeqNum; // -1 for control chunks
 };
 
 struct hdr_sctp
 {
-  /* ns required header fields/methods 
-   */
-  static int offset_;	// offset for this header
-  inline static int& offset() { return offset_; }
-  inline static hdr_sctp* access(Packet* p) 
-  {
-    return (hdr_sctp*) p->access(offset_);
-  }
-
-  /* ns specific header fields used for tracing SCTP traffic
-   * (This was done so that the 'trace' module wouldn't have to look into the
-   * payload of SCTP packets)
-   */
-  u_int         uiNumChunks;
-  SctpTrace_S  *spSctpTrace;
-
-  u_int&        NumChunks() { return uiNumChunks; }
-  SctpTrace_S*& SctpTrace() { return spSctpTrace; }
+	/* ns required header fields/methods 
+	 */
+	static int offset_;	// offset for this header
+	inline static int& offset() { return offset_; }
+	inline static hdr_sctp* access(Packet* p) 
+	{
+		return (hdr_sctp*) p->access(offset_);
+	}
+	
+	/* ns specific header fields used for tracing SCTP traffic
+	 * (This was done so that the 'trace' module wouldn't have to look into the
+	 * payload of SCTP packets)
+	 */
+	u_int         uiNumChunks;
+	SctpTrace_S  *spSctpTrace;
+	
+	u_int&        NumChunks() { return uiNumChunks; }
+	SctpTrace_S*& SctpTrace() { return spSctpTrace; }
 };
 
 typedef struct SctpChunkHdr_S
 {
-  u_char  ucType;
-  u_char  ucFlags;
-  u_short usLength;
+	u_char  ucType;
+	u_char  ucFlags;
+	u_short usLength;
 };
 
 /* INIT paramater types
@@ -182,48 +180,48 @@ typedef struct SctpChunkHdr_S
 #define SCTP_INIT_PARAM_UNREL  0xC000
 typedef struct SctpUnrelStreamsParam_S
 {
-  u_short  usType;
-  u_short  usLength;
-
-  /* unreliable stream start-end pairs are appended dynamically
-   */
+	u_short  usType;
+	u_short  usLength;
+	
+	/* unreliable stream start-end pairs are appended dynamically
+	 */
 };
 
 typedef struct SctpUnrelStreamPair_S
 {
-  u_short  usStart;
-  u_short  usEnd;
+	u_short  usStart;
+	u_short  usEnd;
 };
 
 typedef struct SctpInitChunk_S  // this is used for init ack, too 
 {
-  SctpChunkHdr_S  sHdr;
-  u_int           uiInitTag;		 // tag of mine (not used)
-  u_int           uiArwnd; 	         // referred to as a_rwnd in rfc2960
-  u_short         usNumOutboundStreams;	 // referred to as OS in rfc2960
-  u_short         usMaxInboundStreams;   // referred to as MIS in rfc2960
-  u_int           uiInitialTsn;          
-
-  SctpUnrelStreamsParam_S  sUnrelStream;	
+	SctpChunkHdr_S  sHdr;
+	u_int           uiInitTag;		 // tag of mine (not used)
+	u_int           uiArwnd; 	         // referred to as a_rwnd in rfc2960
+	u_short         usNumOutboundStreams;	 // referred to as OS in rfc2960
+	u_short         usMaxInboundStreams;   // referred to as MIS in rfc2960
+	u_int           uiInitialTsn;          
+	
+	SctpUnrelStreamsParam_S  sUnrelStream;	
 };
 typedef SctpInitChunk_S SctpInitAckChunk_S;
 
 typedef struct SctpCookieEchoChunk_S
 {
-  SctpChunkHdr_S  sHdr;
+	SctpChunkHdr_S  sHdr;
 	
-  /* cookie would go here, but we aren't implementing this at the moment */
+	/* cookie would go here, but we aren't implementing this at the moment */
 };
 typedef SctpCookieEchoChunk_S SctpCookieAckChunk_S;
 
 typedef struct SctpDataChunkHdr_S
 {
-  SctpChunkHdr_S  sHdr;
-  u_int           uiTsn;
-  u_short         usStreamId;
-  u_short         usStreamSeqNum;
-  u_int           uiPayloadType;     // not used
-
+	SctpChunkHdr_S  sHdr;
+	u_int           uiTsn;
+	u_short         usStreamId;
+	u_short         usStreamSeqNum;
+	u_int           uiPayloadType;     // not used
+	
   /* user data must be appended dynamically when filling packets */
 };
 
@@ -238,104 +236,104 @@ typedef struct SctpDataChunkHdr_S
  */
 typedef struct SctpSackChunk_S
 {
-  SctpChunkHdr_S  sHdr;
-  u_int           uiCumAck;
-  u_int           uiArwnd;
-  u_short         usNumGapAckBlocks;
-  u_short         usNumDupTsns;
-
+	SctpChunkHdr_S  sHdr;
+	u_int           uiCumAck;
+	u_int           uiArwnd;
+	u_short         usNumGapAckBlocks;
+	u_short         usNumDupTsns;
+	
   /* Gap Ack Blocks and Duplicate TSNs are appended dynamically
    */
 };
 
 typedef struct SctpGapAckBlock_S
 {
-  u_short  usStartOffset;
-  u_short  usEndOffset;
+	u_short  usStartOffset;
+	u_short  usEndOffset;
 };
 
 typedef struct SctpDupTsn_S
 {
-  u_int  uiTsn;
+	u_int  uiTsn;
 };
 
 #define SCTP_CHUNK_FORWARD_TSN_LENGTH  8
 typedef struct SctpForwardTsnChunk_S
 {
-  SctpChunkHdr_S  sHdr;
-  u_int           uiNewCum;
+	SctpChunkHdr_S  sHdr;
+	u_int           uiNewCum;
 };
 
 typedef struct SctpDest_S;
 typedef struct SctpHeartbeatChunk_S
 {
-  SctpChunkHdr_S  sHdr;
-  u_short         usInfoType;      // filled in, but not really used
-  u_short         usInfoLength;    // filled in, but not really used
-  double          dTimestamp;
-  SctpDest_S     *spDest;
-  u_long          ulDummyField;   // only to ensure 2-byte alignment for SPARC
+	SctpChunkHdr_S  sHdr;
+	u_short         usInfoType;      // filled in, but not really used
+	u_short         usInfoLength;    // filled in, but not really used
+	double          dTimestamp;
+	SctpDest_S     *spDest;
+	u_long          ulDummyField;   // only to ensure 2-byte alignment for SPARC
 };
 typedef SctpHeartbeatChunk_S SctpHeartbeatAckChunk_S;
 
 /* SCTP state defines for internal state machine */
 typedef enum SctpState_E
 {
-  SCTP_STATE_UNINITIALIZED,
-  SCTP_STATE_CLOSED,
-  SCTP_STATE_ESTABLISHED,
-  SCTP_STATE_COOKIE_WAIT,
-  SCTP_STATE_COOKIE_ECHOED,
-  SCTP_STATE_SHUTDOWN_SENT,        // not currently used
-  SCTP_STATE_SHUTDOWN_RECEIVED,    // not currently used
-  SCTP_STATE_SHUTDOWN_ACK_SENT,    // not currently used
-  SCTP_STATE_SHUTDOWN_PENDING      // not currently used
+	SCTP_STATE_UNINITIALIZED,
+	SCTP_STATE_CLOSED,
+	SCTP_STATE_ESTABLISHED,
+	SCTP_STATE_COOKIE_WAIT,
+	SCTP_STATE_COOKIE_ECHOED,
+	SCTP_STATE_SHUTDOWN_SENT,        // not currently used
+	SCTP_STATE_SHUTDOWN_RECEIVED,    // not currently used
+	SCTP_STATE_SHUTDOWN_ACK_SENT,    // not currently used
+	SCTP_STATE_SHUTDOWN_PENDING      // not currently used
 };
 
 class SctpAgent;
 
 class T1InitTimer : public TimerHandler 
 {
-public:
-  T1InitTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
+ public:
+	T1InitTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
 	
-protected:
-  virtual void expire(Event *);
-  SctpAgent *opAgent;
+ protected:
+	virtual void expire(Event *);
+	SctpAgent *opAgent;
 };
 
 class T1CookieTimer : public TimerHandler 
 {
 public:
-  T1CookieTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
+	T1CookieTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
 	
-protected:
-  virtual void expire(Event *);
-  SctpAgent *opAgent;
+ protected:
+	virtual void expire(Event *);
+	SctpAgent *opAgent;
 };
 
 class T3RtxTimer : public TimerHandler 
 {
 public:
-  T3RtxTimer(SctpAgent *a, SctpDest_S *d) 
-    : TimerHandler(), opAgent(a) {spDest = d;}
+	T3RtxTimer(SctpAgent *a, SctpDest_S *d) 
+		: TimerHandler(), opAgent(a) {spDest = d;}
 	
-protected:
-  virtual void expire(Event *);
-  SctpAgent  *opAgent;
-  SctpDest_S *spDest;  // destination this timer corresponds to
+ protected:
+	virtual void expire(Event *);
+	SctpAgent  *opAgent;
+	SctpDest_S *spDest;  // destination this timer corresponds to
 };
 
 class CwndDegradeTimer : public TimerHandler 
 {
 public:
-  CwndDegradeTimer(SctpAgent *a, SctpDest_S *d) 
-    : TimerHandler(), opAgent(a) {spDest = d;}
+	CwndDegradeTimer(SctpAgent *a, SctpDest_S *d) 
+		: TimerHandler(), opAgent(a) {spDest = d;}
 	
-protected:
-  virtual void expire(Event *);
-  SctpAgent  *opAgent;
-  SctpDest_S *spDest;  // destination this timer corresponds to
+ protected:
+	virtual void expire(Event *);
+	SctpAgent  *opAgent;
+	SctpDest_S *spDest;  // destination this timer corresponds to
 };
 
 class HeartbeatGenTimer : public TimerHandler 

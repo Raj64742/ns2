@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.7 1999/10/18 22:46:15 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.8 2005/01/25 23:29:12 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -63,7 +63,7 @@ static const char rcsid[] =
 #if defined(__linux__) || defined(WIN32)
 #define MAXPACKETSIZE (1500-28)
 
-static int
+/*static int
 sendmsg(int s, struct msghdr* mh, int flags)
 {
 	u_char wrkbuf[MAXPACKETSIZE];
@@ -83,6 +83,7 @@ sendmsg(int s, struct msghdr* mh, int flags)
 	}
 	return (send(s, (char*)wrkbuf, cp - wrkbuf, flags));
 }
+*/
 #endif
 
 int Network::command(int argc, const char*const* argv)

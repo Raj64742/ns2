@@ -93,7 +93,7 @@ int QSAgent::command(int argc, const char*const* argv)
 void QSAgent::recv(Packet* packet, Handler*)
 {
 	double app_rate;
-	double avail_bw, util;
+	//double avail_bw, util;
 	Classifier * pkt_target;
 	Tcl& tcl = Tcl::instance();
 	char qname[64], lname[64];

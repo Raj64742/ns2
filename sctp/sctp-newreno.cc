@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-newreno.cc,v 1.1 2003/08/21 18:29:14 haldar Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-newreno.cc,v 1.2 2005/01/25 23:29:13 haldar Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -594,21 +594,21 @@ Boolean_E NewRenoSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	   * doesn't do) or this SACK is arriving out of order.
 	   */
 	  if(spCurrNodeData->eGapAcked == TRUE)
-	    {
-	      DBG_PL(ProcessGapAckBlocks, 
-		     "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
-		spCurrNodeData->spChunk->uiTsn DBG_PR;
-	      spCurrNodeData->eGapAcked = FALSE;
-	      spCurrNodeData->spDest->iOutstandingBytes 
-		+= spCurrNodeData->spChunk->sHdr.usLength;
-
+	  {
+		  DBG_PL(ProcessGapAckBlocks, 
+			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
+			  spCurrNodeData->spChunk->uiTsn DBG_PR;
+		  spCurrNodeData->eGapAcked = FALSE;
+		  spCurrNodeData->spDest->iOutstandingBytes 
+			  += spCurrNodeData->spChunk->sHdr.usLength;
+		  
 	      /* section 6.3.2.R4 says that we should restart the T3-rtx
 	       * timer here if it isn't running already. In our
 	       * implementation, it isn't necessary since ProcessSackChunk
 	       * will restart the timer for any destinations which have
 	       * outstanding data and don't have a timer running.
 	       */
-	    }
+	  }
 	}
 
       DBG_PL(ProcessGapAckBlocks, "now incrementing missing reports...") DBG_PR;

@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.79 2005/01/24 18:28:47 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.80 2005/01/25 23:29:16 haldar Exp $
  */
 
 #include <packet.h>
@@ -55,9 +55,9 @@
 #include <mobilenode.h>
 #include <simulator.h>
 //<zheng: add for 802.15.4>
-#include "../wpan/p802_15_4pkt.h"
-#include "../wpan/p802_15_4trace.h"
-#include "../wpan/p802_15_4nam.h"
+#include "wpan/p802_15_4pkt.h"
+#include "wpan/p802_15_4trace.h"
+#include "wpan/p802_15_4nam.h"
 //</zheng: add for 802.15.4>
 
 #include "diffusion/diff_header.h" // DIFFUSION -- Chalermek
@@ -543,11 +543,11 @@ void
 CMUTrace::format_sctp(Packet* p,int offset)
 {
 	struct hdr_cmn *ch = HDR_CMN(p);
-	struct hdr_ip *ih = HDR_IP(p);
 	struct hdr_sctp *sh = HDR_SCTP(p);
+	//struct hdr_ip *ih = HDR_IP(p);
 	char cChunkType;
   
-	for(int i = 0; i < sh->NumChunks(); i++) {
+	for(u_int i = 0; i < sh->NumChunks(); i++) {
 		switch(sh->SctpTrace()[i].eType) {
 		case SCTP_CHUNK_INIT:
 		case SCTP_CHUNK_INIT_ACK:
@@ -1006,32 +1006,32 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if (op == 's') op = 'h' ;
 	if (op == 'D') op = 'd' ;
 	if (op == 'h') {
-	   sprintf(pt_->nbuffer(),
-		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s ",
-		Scheduler::instance().clock(),
-		src_,                           // this node
-		next_hop,
-		ptype,			//<zheng: modify for 802.15.4>packet_info.name(ch->ptype()),
-		ch->size(),
-		pkt_color,   
-		ch->uid(),
-		tracename);
+		sprintf(pt_->nbuffer(),
+			"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s ",
+			Scheduler::instance().clock(),
+			src_,                           // this node
+			next_hop,
+			ptype,			//<zheng: modify for 802.15.4>packet_info.name(ch->ptype()),
+			ch->size(),
+			pkt_color,   
+			ch->uid(),
+			tracename);
 
-	   offset = strlen(pt_->nbuffer());
-	   pt_->namdump();
-	   sprintf(pt_->nbuffer() ,
-		"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s",
-		Scheduler::instance().clock(),
-		src_,                           // this node
-		next_hop,
-		ptype,			//<zheng: modify for 802.15.4>packet_info.name(ch->ptype()),
-		ch->size(),
-		pkt_color,
-		ch->uid(),
-		tracename);
-
-	   offset = strlen(pt_->nbuffer());
-           pt_->namdump();
+		offset = strlen(pt_->nbuffer());
+		pt_->namdump();
+		sprintf(pt_->nbuffer() ,
+			"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s",
+			Scheduler::instance().clock(),
+			src_,                           // this node
+			next_hop,
+			ptype,			//<zheng: modify for 802.15.4>packet_info.name(ch->ptype()),
+			ch->size(),
+			pkt_color,
+			ch->uid(),
+			tracename);
+		
+		offset = strlen(pt_->nbuffer());
+		pt_->namdump();
 	}
 
         // if nodes are too far from each other
@@ -1047,8 +1047,8 @@ CMUTrace::nam_format(Packet *p, int offset)
 
         if (energy != -1) { //energy model being turned on
 	   if (src_ >= MAX_NODE) {
-	       fprintf (stderr, "%: node id must be < %d\n",
-		       __PRETTY_FUNCTION__, MAX_NODE);
+		   fprintf (stderr, "node id must be < %d\n",
+			    MAX_NODE);
 	       exit(0);
 	   }
 	   if (nodeColor[src_] != energyLevel ) { //only dump it when node  
@@ -1078,7 +1078,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 //<zheng: ns 2.27 removed the following part, but we need it to control the broadcast radius>
 if (Nam802_15_4::Nam_Status)
 {
-	if ((strcmp(tracename,"AGT") != 0)||(ih->daddr() == IP_BROADCAST))		//<zheng: add: next_hop info not available at agent level>
+	if ((strcmp(tracename, "AGT") != 0) || ((u_int32_t)(ih->daddr()) == IP_BROADCAST))		//<zheng: add: next_hop info not available at agent level>
 											//(doesn't really matter -- seems agent level has no effect on nam)
 	if (next_hop == -1 && op == 'h') {
 		// print extra fields for broadcast packets

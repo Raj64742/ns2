@@ -86,6 +86,7 @@ int ScoreBoardRQ::UpdateScoreBoard(int last_ack_, hdr_tcp* tcph){
 		rq_.add(tcph->sa_left(i), tcph->sa_right(i), 0); 
 	}
 	changed_ = changed_  || (old_total != rq_.total());
+	return 0;
 	
 	//printf("UpdateScoreBoard dump changed_: %i\n", changed_);
 	//printf("%.4f ", Scheduler::instance().clock());
