@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.15 2003/01/30 23:10:27 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.16 2003/01/31 00:32:23 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -68,6 +68,29 @@ Topology/net4 instproc init ns {
     $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
     $ns queue-limit $node_(r1) $node_(k1) 8
     $ns queue-limit $node_(k1) $node_(r1) 8
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r1) $node_(k1)]
+    set em [new ErrorModule Fid] 
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+}
+
+Class Topology/net4a -superclass Topology
+Topology/net4a instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 80
+    $ns queue-limit $node_(k1) $node_(r1) 80
 
     $self instvar lossylink_
     set lossylink_ [$ns link $node_(r1) $node_(k1)]
@@ -127,10 +150,10 @@ TestSuite instproc drop_pkts pkts {
     $emod bind $errmodel1 1
 }
 
-TestSuite instproc setup {tcptype list} {
+TestSuite instproc setup {tcptype list {settopo 1}} {
 	global wrap wrap1
         $self instvar ns_ node_ testName_
-	$self setTopo
+	if {$settopo == 1} {$self setTopo}
 
 	set fid 1
         # Set up TCP connection
@@ -486,7 +509,7 @@ Test/newreno1_B instproc init {} {
 	Agent/TCP set singledup_ 1
 	Agent/TCP set bugFix_ false
 	set guide_ \
-	"NewReno, #1B, with Limited Transmit, without bugfix.  Bad behavior."
+	"NewReno, #1B, with Limited Transmit, without bugfix."
 	$self next pktTraceFile
 }
 Test/newreno1_B instproc run {} {
@@ -787,5 +810,158 @@ Test/newreno2_B_bugfix instproc run {} {
 # 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
 # }
 
+TestSuite instproc set_lossylink1 {} {
+        $self instvar lossylink1_ ns_ node_ guide_
+        set lossylink1_ [$ns_ link $node_(s1) $node_(r1)]
+        set em [new ErrorModule Fid]
+        #set errmodel [new ErrorModel/Periodic]
+        #$errmodel unit pkt
+        $lossylink1_ errormodule $em
+}
+
+TestSuite instproc emod1 {} {
+        $self instvar lossylink1_
+        set errmodule [$lossylink1_ errormodule]
+        return $errmodule 
+}
+
+TestSuite instproc drop_pkts1 pkts {
+        $self instvar ns_
+        set emod [$self emod1]
+        set errmodel1 [new ErrorModel/List]
+        $errmodel1 droplist $pkts
+        $emod insert $errmodel1
+        $emod bind $errmodel1 1
+}
+
+Class Test/newreno5 -superclass TestSuite
+Test/newreno5 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	newreno5
+	Agent/TCP set bugFix_ true
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"NewReno #5, reordering, with Limited Transmit, with bugfix."
+	$self next pktTraceFile
+}
+Test/newreno5 instproc run {} {
+	global quiet
+	$self instvar guide_ ns_ node_
+	if {$quiet == "false"} {puts $guide_}
+        ErrorModel set delay_pkt_ true
+        ErrorModel set drop_ false
+        ErrorModel set delay_ 0.05
+	$self setTopo
+	$self set_lossylink1
+	$self drop_pkts1 { 25 }
+        $self setup Newreno {100000} 0
+
+}
+
+Class Test/newreno5_noLT -superclass TestSuite
+Test/newreno5_noLT instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	newreno5_noLT
+	Agent/TCP set bugFix_ true
+	Agent/TCP set singledup_ 0
+	set guide_ \
+	"NewReno #5, reordering, without Limited Transmit, with bugfix."
+	Test/newreno5_noLT instproc run {} [Test/newreno5 info instbody run ]
+	$self next pktTraceFile
+}
+
+Class Test/newreno5_noBF -superclass TestSuite
+Test/newreno5_noBF instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	newreno5_noBF
+	Agent/TCP set bugFix_ false
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"NewReno #5, reordering, with Limited Transmit, without bugfix.  Bad."
+	Test/newreno5_noBF instproc run {} [Test/newreno5 info instbody run ]
+	$self next pktTraceFile
+}
+
+Class Test/newreno5_noLT_noBF -superclass TestSuite
+Test/newreno5_noLT_noBF instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	newreno5_noLT_noBF
+	Agent/TCP set bugFix_ false
+	Agent/TCP set singledup_ 0
+	set guide_ \
+	"NewReno #5, reordering, without Limited Transmit, without bugfix."
+	Test/newreno5_noLT_noBF instproc run {} [Test/newreno5 info instbody run ]
+	$self next pktTraceFile
+}
+
+# Class Test/newreno6 -superclass TestSuite
+# Test/newreno6 instproc init {} {
+# 	$self instvar net_ test_ guide_
+# 	set net_	net4a
+# 	set test_	newreno6
+# 	Agent/TCP set bugFix_ true
+# 	Agent/TCP set singledup_ 1
+# 	set guide_ \
+# 	"NewReno #6, reordering, with Limited Transmit, with bugfix."
+# 	$self next pktTraceFile
+# }
+# Test/newreno6 instproc run {} {
+# 	global quiet
+# 	$self instvar guide_ ns_ node_
+# 	if {$quiet == "false"} {puts $guide_}
+#         ErrorModel set delay_pkt_ true
+#         ErrorModel set drop_ false
+#         ErrorModel set delay_ 0.05
+# 	$self setTopo
+# 	$self set_lossylink1
+# 	$self drop_pkts1 { 25 40 50 60 70 80 90 100 110 120 130 140 150
+# 160 170 180 190 200}
+#         $self setup Newreno {100000} 0
+# 
+# }
+# 
+# Class Test/newreno6_noLT -superclass TestSuite
+# Test/newreno6_noLT instproc init {} {
+# 	$self instvar net_ test_ guide_
+# 	set net_	net4a
+# 	set test_	newreno6_noLT
+# 	Agent/TCP set bugFix_ true
+# 	Agent/TCP set singledup_ 0
+# 	set guide_ \
+# 	"NewReno #6, reordering, without Limited Transmit, with bugfix."
+# 	Test/newreno6_noLT instproc run {} [Test/newreno6 info instbody run ]
+# 	$self next pktTraceFile
+# }
+# 
+# Class Test/newreno6_noBF -superclass TestSuite
+# Test/newreno6_noBF instproc init {} {
+# 	$self instvar net_ test_ guide_
+# 	set net_	net4a
+# 	set test_	newreno6_noBF
+# 	Agent/TCP set bugFix_ false
+# 	Agent/TCP set singledup_ 1
+# 	set guide_ \
+# 	"NewReno #6, reordering, with Limited Transmit, without bugfix.  Bad."
+# 	Test/newreno6_noBF instproc run {} [Test/newreno6 info instbody run ]
+# 	$self next pktTraceFile
+# }
+# 
+# Class Test/newreno6_noLT_noBF -superclass TestSuite
+# Test/newreno6_noLT_noBF instproc init {} {
+# 	$self instvar net_ test_ guide_
+# 	set net_	net4a
+# 	set test_	newreno6_noLT_noBF
+# 	Agent/TCP set bugFix_ false
+# 	Agent/TCP set singledup_ 0
+# 	set guide_ \
+# 	"NewReno #6, reordering, without Limited Transmit, without bugfix."
+# 	Test/newreno6_noLT_noBF instproc run {} [Test/newreno6 info instbody run ]
+# 	$self next pktTraceFile
+# }
+# 
 TestSuite runTest
 
