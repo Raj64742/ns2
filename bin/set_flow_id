@@ -1,6 +1,8 @@
 eval 'exec perl $0 -S ${1+"$@"}'	# -*- perl -*-
     if 0;
 
+require 5.003;
+
 #
 # set_flow_id.pl
 # Copyright (C) 1997 by USC/ISI

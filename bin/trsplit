@@ -1,5 +1,8 @@
 eval 'exec perl -S $0 ${1+"$@"}'
     if 0;
+
+require 5.003;
+
 #
 # Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
 #
