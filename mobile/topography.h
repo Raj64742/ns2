@@ -47,12 +47,23 @@ class Topography : public TclObject {
 public:
 	Topography() { maxX = maxY = grid_resolution = 0.0; grid = 0; }
 
+        /* -NEW- */
+	// LISTS
+	static bool sorted;
+	void sortLists(void);
+	void updateNodesLists(class MobileNode *mn, double oldX);
+	double calcHighestAntennaZ(void);
+        MobileNode **getAffectedNodes(MobileNode *mn, double radius, int *numAffectedNodes);
+        int numNodes;
+        /* End -NEW- */
+
 	double	lowerX() { return 0.0; }
 	double	upperX() { return maxX * grid_resolution; }
 	double	lowerY() { return 0.0; }
 	double	upperY() { return maxY * grid_resolution; }
 	double	resol() { return grid_resolution; }
 	double	height(double x, double y);
+
 private:
 	virtual int command(int argc, const char*const* argv);
 	int	load_flatgrid(int x, int y, int res = 1);

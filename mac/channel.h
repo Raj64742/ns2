@@ -34,7 +34,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.25 2002/06/14 00:36:41 yuri Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.26 2003/11/19 00:41:44 haldar Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
@@ -65,6 +65,7 @@ public:
 	TclObject* gridkeeper_;
 	double maxdelay() { return delay_; };
   	int index() {return index_;}
+        
 private:
 	virtual void sendUp(Packet* p, Phy *txif); 
 	void dump(void);
@@ -98,18 +99,21 @@ protected:
 /*====================================================================
   WirelessChannel
 
-  This class is used to represent the physical media to which
-  
+  This class is used to represent the physical media used by mobilenodes
 ====================================================================*/
 
 class WirelessChannel : public Channel{
 
- public:
+public:
 	WirelessChannel(void);
-
- private:
+        inline double gethighestAntennaZ() { return highestAntennaZ_; }
+private:
+	void sendUp(Packet* p, Phy *txif);
 	double get_pdelay(Node* tnode, Node* rnode);
-
+protected:
+	static double distCST_;        
+        static double highestAntennaZ_;
+        void calcHighestAntennaZ(Phy *tifp);
 };
 
 #endif //_channel_h_

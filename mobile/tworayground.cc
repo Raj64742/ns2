@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  */
 /* tworayground.cc
-   $Id: tworayground.cc,v 1.5 2000/10/02 20:23:16 yewei Exp $
+   $Id: tworayground.cc,v 1.6 2003/11/19 00:41:44 haldar Exp $
  */
 
 #include <math.h>
@@ -60,6 +60,26 @@ TwoRayGround::TwoRayGround()
   last_hr = last_ht = 0.0;
   crossover_dist = 0.0;
 }
+
+/* -NEW- */
+   double
+   FrissGetDist(double Pr, double Pt, double Gt, double Gr, double lambda,
+                double L)
+{
+        return sqrt((Pt * Gt * Gr * lambda * lambda) / (L * Pr)) /
+                (4 * PI);
+}
+/* End -NEW- */
+ 
+ 
+/* -NEW- */
+   double
+   TwoRayGetDist(double Pr, double Pt, double Gt, double Gr, double ht, double hr)
+{
+       /* Get quartic root */
+       return sqrt(sqrt(Pt * Gt * Gr * (hr * hr * ht * ht) / Pr));
+}
+/* End -NEW- */
 
 // use Friis at less than crossover distance
 // use two-ray at more than crossover distance

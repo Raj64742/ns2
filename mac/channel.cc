@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.39 2002/07/03 20:45:22 yuri Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.40 2003/11/19 00:41:43 haldar Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -56,7 +56,8 @@ static const char rcsid[] =
 #include "ip.h"
 #include "dsr/hdr_sr.h"
 #include "gridkeeper.h"
-
+/* list-based improvement */ 
+#include "tworayground.h" // For TwoRayGetDist(...) - function
 
 static class ChannelClass : public TclClass {
 public:
@@ -81,6 +82,7 @@ public:
                 return (new WirelessChannel);
         }
 } class_Wireless_channel;
+
 
 
 /* ==================================================================
@@ -135,9 +137,6 @@ int Channel::command(int argc, const char*const* argv)
 
 void Channel::recv(Packet* p, Handler* h)
 {
-//      Scheduler& s = Scheduler::instance();
-// 	hdr_cmn::access(p)->direction() = hdr_cmn::UP;
-// 	s.schedule(target_, p, txstop_ + delay_ - s.clock());
 	sendUp(p, (Phy*)h);
 }
 
@@ -153,35 +152,9 @@ Channel::sendUp(Packet* p, Phy *tifp)
 	Packet *newp;
 	double propdelay = 0.0;
 	struct hdr_cmn *hdr = HDR_CMN(p);
-	
-	hdr->direction() = hdr_cmn::UP;
-	
-        if (GridKeeper::instance()) {
-	    int i;
-	    GridKeeper* gk = GridKeeper::instance();
-	    int size = gk->size_; 
-	    
-	    MobileNode **outlist = new MobileNode *[size];
-	 
-       	    int out_index = gk->get_neighbors((MobileNode*)tnode,
-						         outlist);
-	    for (i=0; i < out_index; i ++) {
-		
-		  newp = p->copy();
-		  rnode = outlist[i];
-		  propdelay = get_pdelay(tnode, rnode);
 
-		  rifp = (rnode->ifhead()).lh_first; 
-		  for(; rifp; rifp = rifp->nextnode()){
-			  if (rifp->channel() == this){
-				 s.schedule(rifp, newp, propdelay); 
-				 break;
-			  }
-		  }
- 	    }
-	    delete [] outlist; 
-	} else {
-	    for( ; rifp; rifp = rifp->nextchnl()) {
+	hdr->direction() = hdr_cmn::UP;
+	for( ; rifp; rifp = rifp->nextchnl()) {
 		rnode = rifp->node();
 		if(rnode == tnode)
 			continue;
@@ -202,10 +175,12 @@ Channel::sendUp(Packet* p, Phy *tifp)
 		 * bit of this packet.
 		 */
 		s.schedule(rifp, newp, propdelay);
-	    }
 	}
+
 	Packet::free(p);
 }
+
+
 
 
 double 
@@ -296,13 +271,121 @@ public:
 		return (new NoDupChannel);
 	}
 } class_nodupchannel;
-/* NoDupChannel------------------------------------------------------------
- */
+
+
 
 // Wireless extensions
 class MobileNode;
 
+double WirelessChannel::highestAntennaZ_ = -1; // i.e., uninitialized
+double WirelessChannel::distCST_ = -1;
+
 WirelessChannel::WirelessChannel(void) : Channel() {}
+
+void
+WirelessChannel::sendUp(Packet* p, Phy *tifp)
+{
+	Scheduler &s = Scheduler::instance();
+	Phy *rifp = ifhead_.lh_first;
+	Node *tnode = tifp->node();
+	Node *rnode = 0;
+	Packet *newp;
+	double propdelay = 0.0;
+	struct hdr_cmn *hdr = HDR_CMN(p);
+
+         /* list-based improvement */
+         if(highestAntennaZ_ == -1) {
+                 fprintf(stderr, "channel.cc:sendUp - Calc highestAntennaZ_ and distCST_\n");
+                 calcHighestAntennaZ(tifp);
+                 fprintf(stderr, "highestAntennaZ_ = %0.1f,  distCST_ = %0.1f\n", highestAntennaZ_, distCST_);
+         }
+	
+	 hdr->direction() = hdr_cmn::UP;
+
+	 // still keep grid-keeper around ??
+	 if (GridKeeper::instance()) {
+	    int i;
+	    GridKeeper* gk = GridKeeper::instance();
+	    int size = gk->size_; 
+	    
+	    MobileNode **outlist = new MobileNode *[size];
+	 
+       	    int out_index = gk->get_neighbors((MobileNode*)tnode,
+						         outlist);
+	    for (i=0; i < out_index; i ++) {
+		
+		  newp = p->copy();
+		  rnode = outlist[i];
+		  propdelay = get_pdelay(tnode, rnode);
+
+		  rifp = (rnode->ifhead()).lh_first; 
+		  for(; rifp; rifp = rifp->nextnode()){
+			  if (rifp->channel() == this){
+				 s.schedule(rifp, newp, propdelay); 
+				 break;
+			  }
+		  }
+ 	    }
+	    delete [] outlist; 
+	 } else {
+	 
+		 MobileNode *mtnode = (MobileNode *) tnode;
+		 MobileNode **affectedNodes;// **aN;
+		 int numAffectedNodes = -1, i;
+		 
+		 if(!Topography::sorted){
+			 mtnode->getTopography()->sortLists();
+		 }
+		 
+		 affectedNodes = mtnode->getTopography()->
+			 getAffectedNodes(mtnode, distCST_ + /* safety */ 5, &numAffectedNodes);
+		 for (i=0; i < numAffectedNodes; i++) {
+			 rnode = affectedNodes[i];
+			 
+			 if(rnode == tnode)
+				 continue;
+			 
+			 newp = p->copy();
+			 
+			 propdelay = get_pdelay(tnode, rnode);
+			 
+			 rifp = (rnode->ifhead()).lh_first;
+			 for(; rifp; rifp = rifp->nextnode()){
+				 s.schedule(rifp, newp, propdelay);
+			 }
+		 }
+		 delete [] affectedNodes;
+	 }
+	 Packet::free(p);
+}
+
+
+
+/* Only to be used with mobile nodes (WirelessPhy).
+ * NS-2 at its current state support only a flat (non 3D) movement of nodes,
+ * so we assume antenna heights do not change for the dureation of
+ * a simulation.
+ * Another assumption - all nodes have the same wireless interface, so that
+ * the maximum distance, corresponding to CST (at max transmission power 
+ * level) stays the same for all nodes.
+ */
+void
+WirelessChannel::calcHighestAntennaZ(Phy *tifp)
+{
+       double highestZ = 0;
+       Phy *n;
+ 
+       for(n = ifhead_.lh_first; n; n = n->nextchnl()) {
+                   if(((WirelessPhy *)n)->getAntennaZ() > highestZ)
+                               highestZ = ((WirelessPhy *)n)->getAntennaZ();
+       }
+ 
+       highestAntennaZ_ = highestZ;
+
+       WirelessPhy *wifp = (WirelessPhy *)tifp;
+       distCST_ = TwoRayGetDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0, highestZ , highestZ);       
+}
+
 	
 double
 WirelessChannel::get_pdelay(Node* tnode, Node* rnode)
@@ -422,5 +505,9 @@ WirelessChannel::get_pdelay(Node* tnode, Node* rnode)
 // 	Scheduler::instance().schedule(h, p, delay_);
 // 	numtx_ = 1;
 // }
+
+
+
+
 
 

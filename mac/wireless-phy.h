@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.11 2002/05/30 00:00:19 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.12 2003/11/19 00:41:44 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  *
@@ -81,6 +81,15 @@ public:
 	//void setnode (MobileNode *node) { node_ = node; }
 	void node_on();
 	void node_off();	
+
+        /* -NEW- */
+        inline double getAntennaZ() { return ant_->getZ(); }
+        inline double getPt() { return Pt_; }
+        inline double getRXThresh() { return RXThresh_; }
+        inline double getCSThresh() { return CSThresh_; }
+        inline double getFreq() { return freq_; }
+        /* End -NEW- */
+
 protected:
 	double Pt_;		// transmitted signal power (W)
 	double Pt_consume_;	// power consumption for transmission (W)

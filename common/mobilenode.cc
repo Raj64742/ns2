@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.31 2003/10/12 21:13:04 xuanc Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.32 2003/11/19 00:41:43 haldar Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -115,6 +115,9 @@ PositionHandler::handle(Event*)
    Mobile Node
    ====================================================================== */
 
+/* list-based improvement */
+MobileNode* MobileNode::xListHead = NULL;
+
 MobileNode::MobileNode(void) : 
 	pos_handle_(this)
 {
@@ -140,6 +143,25 @@ MobileNode::MobileNode(void) :
 	bind("Y_", &Y_);
 	bind("Z_", &Z_);
 	bind("speed_", &speed_);
+	
+	/* list-based improvement */
+	// Coordinates of mobilenodes are not known yet
+	MobileNode* tmp;
+
+	//x-list
+	//Another option here is to use macros from "queue.h" lib
+	if(xListHead == NULL){
+		fprintf(stderr, "INITIALIZE THE LIST xListHead\n");
+		xListHead = this;
+		xListHead->nextX = NULL;
+		xListHead->prevX = NULL;
+	}else{
+		for(tmp = xListHead; tmp->nextX != NULL; tmp = tmp->nextX);
+		tmp->nextX = this;
+		this->prevX = tmp;
+		this->nextX = NULL;		
+	}
+
 }
 
 int
@@ -187,14 +209,14 @@ MobileNode::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "on") == 0) {
 			energy_model()->node_on() = true;
 			tcl.evalf("%s set netif_(0)", name_);
-			const char *str = tcl.result();
+			char *str = tcl.result();
 			tcl.evalf("%s NodeOn", str);
 			God::instance()->ComputeRoute();
 			return TCL_OK;
 		} else if (strcmp(argv[1], "off") == 0) {
 			energy_model()->node_on() = false;
 			tcl.evalf("%s set netif_(0)", name_);
-			const char *str = tcl.result();
+			char *str = tcl.result();
 			tcl.evalf("%s NodeOff", str);
 			tcl.evalf("%s set ragent_", name_);
 			str = tcl.result();
@@ -458,15 +480,20 @@ MobileNode::set_destination(double x, double y, double s)
 	return 0;
 }
 
+
+
 void 
 MobileNode::update_position()
 {
 	double now = Scheduler::instance().clock();
 	double interval = now - position_update_time_;
+	double oldX = X_, oldY = Y_;
 
-	if (interval == 0.0)
-		return;
+	if ((interval == 0.0)&&(position_update_time_!=0))
+		return;         // ^^^ for list-based imprvmnt 
 
+
+	// CHECK, IF THE SPEED IS 0, THEN SKIP, but usually it's not 0
 	X_ += dX_ * (speed_ * interval);
 	Y_ += dY_ * (speed_ * interval);
 
@@ -474,10 +501,14 @@ MobileNode::update_position()
 	  X_ = destX_;		// correct overshoot (slow? XXX)
 	if ((dY_ > 0 && Y_ > destY_) || (dY_ < 0 && Y_ < destY_))
 	  Y_ = destY_;		// correct overshoot (slow? XXX)
+	
+	/* list based improvement */
+	if(oldX != X_)// || oldY != Y_)
+		T_->updateNodesLists(this, oldX);//, oldY);
+	// COMMENTED BY -VAL- // bound_position();
 
-	bound_position();
+	// COMMENTED BY -VAL- // Z_ = T_->height(X_, Y_);
 
-	Z_ = T_->height(X_, Y_);
 #if 0
 	fprintf(stderr, "Node: %d, X: %6.2f, Y: %6.2f, Z: %6.2f, time: %f\n",
 		address_, X_, Y_, Z_, now);

@@ -41,6 +41,15 @@
 #include "dem.h"
 #include "topography.h"
 
+/* -NEW- */
+#include <god.h>
+#include "wireless-phy.h"
+#include <string.h>
+#include <mobilenode.h>
+// For TwoRayGetDist(...) - function
+#include "tworayground.h"
+/* End -NEW- */
+
 static class TopographyClass : public TclClass {
 public:
         TopographyClass() : TclClass("Topography") {}
@@ -122,6 +131,182 @@ Topography::load_demfile(const char *fname)
 
 	return 0;
 }
+
+/* -NEW- */
+MobileNode **
+Topography::getAffectedNodes(MobileNode *mn, double radius,
+                             int *numAffectedNodes)
+{
+	
+	double xmin, xmax, ymin, ymax;
+	int n = 0;
+	MobileNode *tmp, **list, **tmpList;
+ 
+        if(MobileNode::xListHead == NULL){ // yListHead is also null then
+		*numAffectedNodes=-1;
+		//fprintf(stderr, "xListHead is NULL when trying to send!!!\n");
+		return NULL;
+	}
+
+	 xmin = mn->X() - radius;
+	 xmax = mn->X() + radius;
+	 ymin = mn->Y() - radius;
+	 ymax = mn->Y() + radius;
+ 
+ 
+         // First allocate as much as possibly needed
+         tmpList = new MobileNode*[numNodes];
+
+
+	 for(tmp = mn; tmp != NULL && tmp->X() >= xmin; tmp=tmp->prevX)
+		 if(tmp->Y() >= ymin && tmp->Y() <= ymax){
+			 tmpList[n++] = tmp;
+		 }
+	 for(tmp = mn->nextX; tmp != NULL && tmp->X() <= xmax; tmp=tmp->nextX){
+		 if(tmp->Y() >= ymin && tmp->Y() <= ymax){
+			 tmpList[n++] = tmp;
+		 }
+	 }
+
+
+         list = new MobileNode*[n];
+         memcpy(list, tmpList, n * sizeof(MobileNode *));
+         delete [] tmpList;
+         
+	 *numAffectedNodes = n;
+	 return list;
+}
+ 
+
+bool Topography::sorted = false;
+void 
+Topography::sortLists(void){
+  bool flag = true;
+  MobileNode *m, *q;
+  numNodes = God::instance()->nodes();
+ 
+  sorted = true;
+
+  fprintf(stderr, "SORTING LISTS ...");
+  /* Buble sort algorithm */
+  // SORT x-list
+  while(flag) {
+    flag = false;
+    m = MobileNode::xListHead;
+    while (m != NULL){
+	    if(m->nextX != NULL)
+		    if ( m->X() > m->nextX->X() ){
+			    flag = true;
+			    //delete_after m;
+			    q = m->nextX;
+			    m->nextX = q->nextX;
+			    if (q->nextX != NULL)
+				    q->nextX->prevX = m;
+			    
+			    //insert_before m;
+			    q->nextX = m;
+			    q->prevX = m->prevX;
+			    m->prevX = q;
+			    if (q->prevX != NULL)
+				    q->prevX->nextX = q;
+
+			    // adjust Head of List
+			    if(m == MobileNode::xListHead) MobileNode::xListHead = m->prevX;
+		    }
+	    m = m -> nextX;
+    }
+  }
+  
+  fprintf(stderr, "DONE!\n");
+}
+
+void 
+Topography::updateNodesLists(class MobileNode* mn, double oldX)
+{
+	MobileNode* tmp;
+	double X = mn->X();
+	//double Y = mn->Y();
+	bool skipX=false;
+	//bool skipY=false;
+	//int i;
+
+	if(!sorted) {
+		sortLists();
+		return;
+	}
+
+	/* xListHead and yListHead cannot be NULLs here (they are created in MobileNode constructor) */
+	
+	/***  DELETE ***/
+	// deleting mn from x-list
+	if(mn->nextX != NULL) {
+		if(mn->prevX != NULL){
+			if((mn->nextX->X() >= X) && (mn->prevX->X() <= X)) skipX = true; // the node doesn't change its position in the list
+			else{
+				mn->nextX->prevX = mn->prevX;
+				mn->prevX->nextX = mn->nextX;
+			}
+		}
+		else{
+			if(mn->nextX->X() >= X) skipX = true; // skip updating the first element
+			else{
+				mn->nextX->prevX = NULL;
+				MobileNode::xListHead = mn->nextX;
+			}
+		}
+	}
+	else if(mn->prevX !=NULL){
+		if(mn->prevX->X() <= X) skipX = true; // skip updating the last element
+		else mn->prevX->nextX = NULL;
+	}
+
+
+
+	/*** INSERT ***/
+	//inserting mn in x-list
+	if(!skipX){
+		if(X > oldX){			
+			for(tmp = mn; tmp->nextX != NULL && tmp->nextX->X() < X; tmp = tmp->nextX);
+			//fprintf(stdout,"Scanning the element addr %d X=%0.f, next addr %d X=%0.f\n", tmp, tmp->X(), tmp->nextX, tmp->nextX->X());
+			if(tmp->nextX == NULL) { 
+				//fprintf(stdout, "tmp->nextX is NULL\n");
+				tmp->nextX = mn;
+				mn->prevX = tmp;
+				mn->nextX = NULL;
+			} 
+			else{ 
+				//fprintf(stdout, "tmp->nextX is not NULL, tmp->nextX->X()=%0.f\n", tmp->nextX->X());
+				mn->prevX = tmp->nextX->prevX;
+				mn->nextX = tmp->nextX;
+				tmp->nextX->prevX = mn;  	
+				tmp->nextX = mn;
+			} 
+		}
+		else{
+			for(tmp = mn; tmp->prevX != NULL && tmp->prevX->X() > X; tmp = tmp->prevX);
+				//fprintf(stdout,"Scanning the element addr %d X=%0.f, prev addr %d X=%0.f\n", tmp, tmp->X(), tmp->prevX, tmp->prevX->X());
+			if(tmp->prevX == NULL) {
+				//fprintf(stdout, "tmp->prevX is NULL\n");
+				tmp->prevX = mn;
+				mn->nextX = tmp;
+				mn->prevX = NULL;
+				MobileNode::xListHead = mn;
+			} 
+			else{
+				//fprintf(stdout, "tmp->prevX is not NULL, tmp->prevX->X()=%0.f\n", tmp->prevX->X());
+				mn->nextX = tmp->prevX->nextX;
+				mn->prevX = tmp->prevX;
+				tmp->prevX->nextX = mn;  	
+				tmp->prevX = mn;		
+			}
+		}
+	}
+}
+	
+
+/* END -NEW- */
+
+
 
 int
 Topography::command(int argc, const char*const* argv)

@@ -44,6 +44,15 @@
 #include <wireless-phy.h>
 #include <propagation.h>
 
+/* -NEW- */
+double
+FrissGetDist(double Pr, double Pt, double Gt, double Gr, double lambda,
+             double L);
+double
+TwoRayGetDist(double Pr, double Pt, double Gt, double Gr, double ht,
+              double hr);
+/* End -NEW- */
+
 class TwoRayGround : public Propagation {
 public:
   TwoRayGround();
