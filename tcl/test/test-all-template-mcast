@@ -36,7 +36,7 @@ for t in $tests; do
     echo Running test $t
 
     if (test "$quiet" = "true") then
-    	../../ns $file $t QUIET
+    	../../ns $file $t
     else 
 	../../ns $file $t 
     fi
