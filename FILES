@@ -583,6 +583,7 @@ tcl/lib/ns-trafficgen.tcl
 tcl/mcast/DM.tcl
 tcl/mcast/McastMonitor.tcl
 tcl/mcast/McastProto.tcl
+tcl/mcast/ST.tcl
 tcl/mcast/mftp_rcv.tcl
 tcl/mcast/mftp_rcv_stat.tcl
 tcl/mcast/mftp_snd.tcl
@@ -599,6 +600,7 @@ tcl/mobility/dsr.tcl
 tcl/mobility/scene/cbr-50-20-4-512
 tcl/mobility/scene/loopize
 tcl/mobility/scene/scen-670x670-50-600-20-2
+tcl/mobility/timer.tcl
 tcl/nam-demo/nstonam.awk
 tcl/old/ns_default.tcl
 tcl/old/test-suite.tcl
@@ -688,6 +690,7 @@ tcl/test/test-all-ecn-ack
 tcl/test/test-all-friendly
 tcl/test/test-all-full
 tcl/test/test-all-greis
+tcl/test/test-all-hier-routing
 tcl/test/test-all-intserv
 tcl/test/test-all-lan
 tcl/test/test-all-manual-routing
@@ -703,6 +706,7 @@ tcl/test/test-all-sack-v1
 tcl/test/test-all-schedule
 tcl/test/test-all-session
 tcl/test/test-all-simple
+tcl/test/test-all-simultaneous
 tcl/test/test-all-srm
 tcl/test/test-all-tcp
 tcl/test/test-all-tcp-init-win
@@ -712,6 +716,7 @@ tcl/test/test-all-v1
 tcl/test/test-all-vc
 tcl/test/test-all-vegas-v1
 tcl/test/test-all-webcache
+tcl/test/test-all-wireless-lan
 tcl/test/test-alloc-address.tcl
 tcl/test/test-output-algo-routing
 tcl/test/test-output-algo-routing/Algo1.Z
@@ -990,6 +995,10 @@ tcl/test/test-output-simple/tahoe3.Z
 tcl/test/test-output-simple/tahoe4.Z
 tcl/test/test-output-simple/telnet.Z
 tcl/test/test-output-simple/timers.Z
+tcl/test/test-output-simultaneous
+tcl/test/test-output-simultaneous/Calendar.Z
+tcl/test/test-output-simultaneous/Heap.Z
+tcl/test/test-output-simultaneous/List.Z
 tcl/test/test-output-srm
 tcl/test/test-output-tcp
 tcl/test/test-output-tcp-init-win
@@ -1130,6 +1139,9 @@ tcl/test/test-output-webcache/ottl-PB.Z
 tcl/test/test-output-webcache/ottl-PBtr.Z
 tcl/test/test-output-webcache/ttl-PB.Z
 tcl/test/test-output-webcache/ttl-PBtr.Z
+tcl/test/test-output-wireless-lan
+tcl/test/test-output-wireless-lan/dsdv.Z
+tcl/test/test-output-wireless-lan/dsr.Z
 tcl/test/test-sack-v1
 tcl/test/test-suite-algo-routing.tcl
 tcl/test/test-suite-cbq-v1.tcl
@@ -1164,6 +1176,7 @@ tcl/test/test-suite-schedule.tcl
 tcl/test/test-suite-session.tcl
 tcl/test/test-suite-session.txt
 tcl/test/test-suite-simple.tcl
+tcl/test/test-suite-simultaneous.tcl
 tcl/test/test-suite-srm.tcl
 tcl/test/test-suite-tcp-init-win.tcl
 tcl/test/test-suite-tcp-init-win.txt
@@ -1175,8 +1188,11 @@ tcl/test/test-suite-v1a.tcl
 tcl/test/test-suite-vc.tcl
 tcl/test/test-suite-vegas-v1.tcl
 tcl/test/test-suite-webcache.tcl
+tcl/test/test-suite-wireless-lan.tcl
 tcl/test/topologies.tcl
 tcl/test/ts1000.tcl
+tcl/test/webtrace-pglog
+tcl/test/webtrace-reqlog
 tcl/webcache/http-agent.tcl
 tcl/webcache/http-cache.tcl
 tcl/webcache/http-server.tcl
