@@ -570,8 +570,10 @@ if((ih->saddr() == index) && (ch->num_forwards() == 0)) {
   * Add the IP Header
   */
    ch->size() += IP_HDR_LEN;
-   ih->ttl_ = NETWORK_DIAMETER;
- }
+   // Added by Parag Dadhania && John Novatnack to handle broadcasting
+   if ( (u_int32_t)ih->daddr() != IP_BROADCAST)
+     ih->ttl_ = NETWORK_DIAMETER;
+}
  /*
   *  I received a packet that I sent.  Probably
   *  a routing loop.
@@ -592,9 +594,11 @@ else if(ih->saddr() == index) {
      return;
    }
  }
-
- rt_resolve(p);
-
+// Added by Parag Dadhania && John Novatnack to handle broadcasting
+ if ( (u_int32_t)ih->daddr() != IP_BROADCAST)
+   rt_resolve(p);
+ else
+   forward((aodv_rt_entry*) 0, p, NO_DELAY);
 }
 
 
