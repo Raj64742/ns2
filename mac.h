@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.25 1998/09/23 03:13:25 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.26 1998/10/15 23:14:08 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -129,12 +129,11 @@ public:
 	virtual void send(Packet* p);
 	virtual void resume(Packet* p = 0);
 
-	inline double txtime(Packet* p) {
-		//hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
-		return txtime(hdr_cmn::access(p)->size() + hlen_);
-	}
 	inline double txtime(int bytes) {
 		return (8. * bytes / bandwidth_);
+	}
+	inline double txtime(Packet* p) {
+		return 8. * (hlen_ + hdr_cmn::access(p)->size()) / bandwidth_;
 	}
 	inline double bandwidth() const { return bandwidth_; }
 	inline int addr() { return addr_; }

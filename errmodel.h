@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.36 1998/10/14 01:21:35 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.37 1998/10/15 23:14:08 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -106,6 +106,18 @@ protected:
 };
 
 
+/* error model that reads a loss trace (instead of a math/computed model) */
+class TraceErrorModel : public ErrorModel {
+public:
+	TraceErrorModel();
+	virtual int match(Packet* p);
+	virtual int corrupt(Packet* p);
+protected:
+	double loss_;
+	double good_;
+};
+
+
 /*
  * periodic packet drops (drop every nth packet we see)
  * this can be conveniently combined with a flow-based classifier
@@ -123,6 +135,7 @@ protected:
 	double last_time_;
 	double first_time_;
 };
+
 
 /*
  * List error model: specify which packets to drop in tcl
@@ -144,6 +157,7 @@ protected:
 	int cur_;	/* current index into droplist_ */
 };
 
+
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {
 public:
@@ -156,29 +170,6 @@ protected:
 	int drop_offset_;
 };
 
-
-class Classifier;
-
-class ErrorModule : public Connector {
-public:
-	ErrorModule() : classifier_(0) {}
-protected:
-	int command(int, const char*const*);
-	void recv(Packet*, Handler*);
-	Classifier* classifier_;
-};
-
-/* error model that reads a loss trace (instead of a math/computed model) */
-class TraceErrorModel : public ErrorModel {
-public:
-	TraceErrorModel();
-	virtual int match(Packet* p);
-	virtual int corrupt(Packet* p);
-	virtual void recv(Packet* pkt, Handler* h);
-protected:
-	double loss_;
-	double good_;
-};
 
 /* error model for multicast routing,... now inherits from trace.. later
 may make them separate and use pointer/containment.. etc */
@@ -196,5 +187,16 @@ protected:
 			    */
 };
 
+
+class Classifier;
+
+class ErrorModule : public Connector {
+public:
+	ErrorModule() : classifier_(0) {}
+protected:
+	int command(int, const char*const*);
+	void recv(Packet*, Handler*);
+	Classifier* classifier_;
+};
 
 #endif

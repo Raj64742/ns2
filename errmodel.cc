@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.59 1998/10/14 01:21:34 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.60 1998/10/15 23:14:07 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.59 1998/10/14 01:21:34 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.60 1998/10/15 23:14:07 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -75,6 +75,14 @@ public:
 		return (new MultiStateErrorModel);
 	}
 } class_errormodel_multistate;
+
+static class TraceErrorModelClass : public TclClass {
+public:
+	TraceErrorModelClass() : TclClass("ErrorModel/Trace") {}
+	TclObject* create(int, const char*const*) {
+		return (new TraceErrorModel);
+	}
+} class_traceerrormodel;
 
 static char* eu_names[] = { EU_NAMES };
 
@@ -264,7 +272,6 @@ int TwoStateErrorModel::command(int argc, const char*const* argv)
 	return ErrorModel::command(argc, argv);
 }
 
-
 int TwoStateErrorModel::corrupt(Packet* p)
 {
 #define ZERO 0.00000
@@ -318,6 +325,34 @@ int MultiStateErrorModel::corrupt(Packet* p)
 	Tcl& tcl = Tcl::instance();
 	tcl.evalf("%s corrupt", name());
 	return (em_ ? em_->corrupt(p) : atoi(tcl.result()));
+}
+
+
+TraceErrorModel::TraceErrorModel() : loss_(0), good_(123456789)
+{
+	bind("good_", &good_);
+	bind("loss_", &loss_);
+}
+
+/* opening and reading the trace file/info is done in OTcl */
+int TraceErrorModel::corrupt(Packet* p)
+{
+	Tcl& tcl = Tcl::instance();
+	if (! match(p))
+		return 0;
+	if ((good_ <= 0) && (loss_ <= 0)) {
+		tcl.evalf("%s read",name());
+		if (good_ < 0)
+			good_ = 123456789;
+	}
+	if (good_-- > 0)
+		return 0;
+	return (loss_-- > 0);
+}
+
+int TraceErrorModel::match(Packet*)
+{
+	return 1;
 }
 
 
@@ -679,54 +714,6 @@ int SRMErrorModel::corrupt(Packet* p)
 	return 0;
 }
 
-static class TraceErrorModelClass : public TclClass {
-public:
-	TraceErrorModelClass() : TclClass("TraceErrorModel") {}
-	TclObject* create(int, const char*const*) {
-		return (new TraceErrorModel);
-	}
-} class_traceerrormodel;
-
-TraceErrorModel::TraceErrorModel() :
-	loss_(0), good_(123456789)
-{
-	bind_time("good_", &good_);
-	bind_time("loss_", &loss_);
-}
-
-/* opening and reading the trace file/info is done in OTcl */
-int TraceErrorModel::corrupt(Packet* p)
-{
-	Tcl& tcl = Tcl::instance();
-	if ( ! match(p)) return 0;
-	if ( (good_ <= 0) && (loss_ <= 0)) {
-		tcl.evalf("%s read",name());
-		if (good_ < 0) good_ = 123456789; 
-	}
-	if (loss_-- > 0)
-		return 1;
-	good_--;
-	return 0;
-}
- 
-int TraceErrorModel::match(Packet*)
-{
-	return 1;
-}
-
-void TraceErrorModel::recv(Packet* pkt, Handler* h)
-{
-	if (corrupt(pkt)) {
-		/* can send to a loss trace object .. etc */
-		if (drop_) {
-			drop_->recv(pkt);
-			return;
-		}
-		// Packet::free(pkt);
-		// return;
-	}
-	if (target_ ) send(pkt,h);
-}
 
 static class MrouteErrorModelClass : public TclClass {
 public:
