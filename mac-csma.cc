@@ -153,7 +153,7 @@ CsmaCaMac::send(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 
-	if (cw_ == cwmin_ || channel_->txstop() + ifs_ > now)
+	if (channel_->txstop() + ifs_ > now)
 		backoff(p);
 	else {
 		txstart_ = now;

@@ -103,8 +103,8 @@ if [info exists flags(mh)] {
 	set tcp(3) [$ns create-connection TCP/Reno $n(0) TCPSink $n(3) 0]
 	set ftp(3) [$tcp(3) attach-source FTP]
 	$ns at 0 "$ftp(1) start"
-	$ns at 0.02 "$ftp(2) start"
-	$ns at 0.03 "$ftp(3) start"
+	$ns at 0.002 "$ftp(2) start"
+	$ns at 0.003 "$ftp(3) start"
 
 	set cbr(2:3) [$ns create-connection CBR $n(2) Null $n(3) 0]
 	# $ns at 5.1 "$cbr(2:3) start"

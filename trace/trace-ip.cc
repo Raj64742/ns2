@@ -25,9 +25,10 @@ public:
 void TraceIp::recv(Packet* p, Handler* h)
 {
 	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
-	format(type_, (src_ >= 0 ? src_ : iph->src()), iph->dst(), p);
+
+	// XXX: convert IP address to node number
+	format(type_, src_>=0 ? src_ : iph->src()>>8, iph->dst()>>8, p);
 	dump();
-	/* hack: if trace object not attached to anything free packet */
 	if (target_ == 0)
 		Packet::free(p);
 	else

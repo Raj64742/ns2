@@ -59,8 +59,8 @@ ErrorModel set rate_ 0
 ErrorModel set time_ 0
 ErrorModel set errorLen_ 0
 
-TraceIp set src_ 0
-TraceIp set dst_ 0
+TraceIp set src_ -1
+TraceIp set dst_ -1
 TraceIp set callback_ 0
 
 
@@ -156,7 +156,7 @@ Link/SharedDuplex instproc init {nodelist bw delay lltype ifqtype mactype} {
 		set src [lindex $nodelist $i] 
 		# drop_ shared by both IFQ and MAC
 		set drop_ [new TraceIp/Drop]
-		$drop_ set src [$src id]
+		$drop_ set src_ [$src id]
 
 		set mac_($src) [new $mactype]
 		$mac_($src) set bandwidth_ $bw
