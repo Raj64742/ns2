@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.281 1998/09/21 22:56:53 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.282 1998/09/22 18:45:08 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -24,7 +24,7 @@
     <UL>    
 
      <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A></B>
-           <b>Mon Mon Sep 21 13:53:48 PDT 1998</b><br>
+           <b>Mon Sep 21 13:53:48 PDT 1998</b><br>
 	   Added algorithmic routing (API: $ns rtproto Algorithmic): 
 	   a space consumption O(n) routing mechanism, currently 
 	   working with SessionSim only<br>
@@ -845,6 +845,7 @@ control from Tcl, and derived TCP classes can define their own trace function. <
 Files: tcp.{cc,h}
 	
 	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
+
 
 
 
