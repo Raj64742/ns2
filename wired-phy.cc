@@ -105,6 +105,7 @@ int WiredPhy::sendUp(Packet *p)
 	/* check with propagation model for collision, channel 
 	   contention */
 	/* Return one if pkt recv , else return zero.*/
+	return 1;
 }
 
 	

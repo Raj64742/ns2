@@ -299,8 +299,8 @@ newMac802_11::discard(Packet *p, const char* why)
 	switch(mh->dh_fc.fc_type) {
 
 	case MAC_Type_Management:
-		//drop(p, why);
-		drop(p);
+		drop(p, why);
+		//drop(p);
 		return;
 
 	case MAC_Type_Control:
@@ -308,9 +308,8 @@ newMac802_11::discard(Packet *p, const char* why)
 
 		case MAC_Subtype_RTS:
 			if((u_int32_t)ETHER_ADDR(mh->dh_sa) == index_) {
-				//if (*(mh->dh_sa) == (u_char)index_) {
-				//drop(p, why);
-				drop(p);
+			  drop(p, why);
+			  //drop(p);
 				
 				return;
 			}

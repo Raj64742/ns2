@@ -140,7 +140,7 @@ public:
 	virtual inline int	hdr_type(char *hdr, u_int16_t type = 0) = 0;
 	
 private:
-	virtual void		discard(Packet *p, const char* why = 0) {}
+	virtual void		discard(Packet *p, const char* why = 0) = 0;
 	
 protected:
 	virtual int		command(int argc, const char*const* argv);
