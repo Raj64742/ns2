@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.1 1997/06/05 17:58:54 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.2 1997/06/06 18:34:10 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -92,7 +92,8 @@ void
 FlowMon::in(Packet *p)
 {
 	Flow* desc;
-	QueueMonitor::in(p);
+printf("FLOWMON(%s)(in): pkt:0x%p\n", name(), p);
+	EDQueueMonitor::in(p);
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
 		desc->in(p);
 }
@@ -100,7 +101,8 @@ void
 FlowMon::out(Packet *p)
 {
 	Flow* desc;
-	QueueMonitor::out(p);
+printf("FLOWMON(%s)(out): pkt:0x%p\n", name(), p);
+	EDQueueMonitor::out(p);
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
 		desc->out(p);
 }
@@ -109,7 +111,8 @@ void
 FlowMon::drop(Packet *p)
 {
 	Flow* desc;
-	QueueMonitor::drop(p);
+printf("FLOWMON(%s)(drop): pkt:0x%p\n", name(), p);
+	EDQueueMonitor::drop(p);
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
 		desc->drop(p);
 }
@@ -118,7 +121,8 @@ void
 FlowMon::edrop(Packet *p)
 {
 	Flow* desc;
-	QueueMonitor::edrop(p);
+printf("FLOWMON(%s)(edrop): pkt:0x%p\n", name(), p);
+	EDQueueMonitor::edrop(p);
 	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
 		desc->edrop(p);
 }
@@ -212,13 +216,21 @@ FlowMon::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-	return (QueueMonitor::command(argc, argv));
+	return (EDQueueMonitor::command(argc, argv));
 }
 
 static class FlowMonitorClass : public TclClass {
  public:
-	FlowMonitorClass() : TclClass("QueueMonitor/Flow") {}
+	FlowMonitorClass() : TclClass("QueueMonitor/ED/Flowmon") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new FlowMon);
 	}
 } flow_monitor_class;
+
+static class FlowClass : public TclClass {
+ public:
+	FlowClass() : TclClass("QueueMonitor/ED/Flow") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new Flow);
+	}
+} flow_class;
