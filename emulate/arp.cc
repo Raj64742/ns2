@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.7 2000/09/16 01:46:01 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.8 2000/11/09 17:42:23 haoboy Exp $";
 #endif
 
 #include "object.h"
@@ -58,6 +58,13 @@ static const char rcsid[] =
 #include "emulate/net.h"
 #include "emulate/ether.h"
 #include "emulate/internet.h"
+
+// Very very very back hack. Should put this detection in autoconf.
+#ifndef ether_aton
+extern "C" {
+ether_addr* ether_aton(const char *);
+}
+#endif
 
 //
 // arp.cc -- this object may be used within nse as
@@ -343,9 +350,7 @@ ArpAgent::doreq(ether_arp* ea)
 	return;
 }
 
-extern "C" {
-ether_addr* ether_aton();
-}
+
 int
 ArpAgent::command(int argc, const char*const* argv)
 {
