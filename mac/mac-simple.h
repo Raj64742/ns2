@@ -64,6 +64,7 @@ private:
 class MacSimpleTimer: public Handler {
 public:
 	MacSimpleTimer(MacSimple* m) : mac(m) {
+	  busy_ = 0;
 	}
 	virtual void handle(Event *e) = 0;
 	virtual void start(double time);
