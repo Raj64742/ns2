@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.8 1998/05/13 00:28:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.9 1998/05/13 01:21:12 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -528,26 +528,6 @@ Test/ecn_timeout3_tahoe instproc run {} {
 	$ns_ run
 }
 
-# ECN followed by a timeout, followed by an ECN representing a
-# new instance of congestion.
-Class Test/ecn_timeout1_tahoe -superclass TestSuite
-Test/ecn_timeout1_tahoe instproc init topo {
-        $self instvar net_ defNet_ test_
-        Queue/RED set setbit_ true
-        set net_	$topo
-        set defNet_	net2-lossy
-	Agent/TCP set bugFix_ true
-        set test_	ecn_timeout1_tahoe
-        $self next
-}
-Test/ecn_timeout1_tahoe instproc run {} {
-	$self instvar ns_
-	$self ecnsetup Tahoe 1
-	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
-	$self second_tcp Tahoe 1.0
-	$ns_ run
-}
-
 #######################################################################
 # Reno Tests #
 #######################################################################
@@ -713,9 +693,8 @@ Test/ecn_timeout_reno instproc run {} {
 	$ns_ run
 }
 
-# Timeout followed by ECN.
-# But redo this without dropping packets 264 and 265, so that we
-#  get a Dup Ack with ECN.
+# ECN followed by a timeout, followed by an ECN representing a
+# new instance of congestion.
 Class Test/ecn_timeout1_reno -superclass TestSuite
 Test/ecn_timeout1_reno instproc init topo {
         $self instvar net_ defNet_ test_
@@ -729,8 +708,8 @@ Test/ecn_timeout1_reno instproc init topo {
 Test/ecn_timeout1_reno instproc run {} {
 	$self instvar ns_
 	$self ecnsetup Reno 1
-	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
-	$self second_tcp Reno 1.0
+	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
+	$self second_tcp Tahoe 1.0
 	$ns_ run
 }
 
@@ -919,28 +898,8 @@ Test/ecn_timeout4_sack instproc run {} {
 	$ns_ run
 }
 
-# ECN followed by timeout.
-Class Test/ecn_timeout3_sack -superclass TestSuite
-Test/ecn_timeout3_sack instproc init topo {
-        $self instvar net_ defNet_ test_
-        Queue/RED set setbit_ true
-        set net_	$topo
-        set defNet_	net2-lossy
-	Agent/TCP set bugFix_ true
-        set test_	ecn_timeout3_sack
-        $self next
-}
-Test/ecn_timeout3_sack instproc run {} {
-	$self instvar ns_
-	$self ecnsetup Sack1 1
-	$self drop_pkts {242 244 267 268} 
-
-	$ns_ run
-}
-
-# Timeout followed by ECN.
-# But redo this without dropping packets 264 and 265, so that we
-#  get a Dup Ack with ECN.
+# ECN followed by a timeout, followed by an ECN representing a
+# new instance of congestion.
 Class Test/ecn_timeout1_sack -superclass TestSuite
 Test/ecn_timeout1_sack instproc init topo {
         $self instvar net_ defNet_ test_
@@ -954,8 +913,27 @@ Test/ecn_timeout1_sack instproc init topo {
 Test/ecn_timeout1_sack instproc run {} {
 	$self instvar ns_
 	$self ecnsetup Sack1 1
-	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
-	$self second_tcp Sack1 1.0
+	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
+	$self second_tcp Tahoe 1.0
+	$ns_ run
+}
+
+# ECN and packet drops.
+Class Test/ecn_fourdrops_sack -superclass TestSuite
+Test/ecn_fourdrops_sack instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_fourdrops_sack
+        $self next
+}
+Test/ecn_fourdrops_sack instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Sack1 1
+	$self drop_pkts {242 244 267 268} 
+
 	$ns_ run
 }
 
