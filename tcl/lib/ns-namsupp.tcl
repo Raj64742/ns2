@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.27 1999/07/02 21:02:17 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.28 1999/07/08 00:06:48 haoboy Exp $
 #
 
 #
@@ -157,15 +157,8 @@ SimpleLink instproc dump-namconfig {} {
 	set bw [$link_ set bandwidth_]
 	set delay [$link_ set delay_]
 
-        if [$ns is-started] {
-                $ns puts-nam-config \
-                "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S NEW \
--r $bw -D $delay -c $attr_(COLOR) -o $attr_(ORIENTATION)"
-        } else {
-                $ns puts-nam-config \
-                "l -t * -s [$fromNode_ id] -d [$toNode_ id] -S NEW -r $bw \
--D $delay -c $attr_(COLOR) -o $attr_(ORIENTATION)"
-        }
+	$ns puts-nam-config \
+		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -c $attr_(COLOR) -o $attr_(ORIENTATION)"
 }
 
 Link instproc dump-nam-queueconfig {} {
