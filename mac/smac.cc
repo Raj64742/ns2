@@ -1346,7 +1346,7 @@ void SMAC::handleCTS(Packet *p) {
 
 			if(sendDATA()) {
 				state_ = WAIT_ACK;
-#ifndef JORNAL_PAPER
+#ifndef JOURNAL_PAPER
 				if (!syncFlag_)
 					txData_ = 0;
 				else
