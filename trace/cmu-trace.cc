@@ -558,9 +558,52 @@ CMUTrace::nam_format(Packet *p, int offset)
 	int src = Address::instance().get_nodeaddr(ih->saddr());
 	int dst = Address::instance().get_nodeaddr(ih->daddr());
 
-	if (op == 's') op = 'h' ;
+	Node* srcnode = Node::get_node_by_address(src);
+	Node* dstnode = Node::get_node_by_address(dst);
 
-	sprintf(nwrk_ + offset,
+	MobileNode* tmnode = (MobileNode*)srcnode;
+	MobileNode* rmnode = (MobileNode*)dstnode;
+	double distance = 0;
+
+	distance = tmnode->propdelay(rmnode) * 300000000 ;
+
+
+	// convert to nam format 
+	if (op == 's') op = 'h' ;
+	if (op == 'D') op = 'd' ;
+
+	if (op == 'h') {
+	   sprintf(nwrk_ ,
+		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d ",
+		Scheduler::instance().clock(),
+		src,                           // this node
+		dst,
+		packet_info.name(ch->ptype()),
+		ch->size(),
+		ch->uid());
+
+	   offset = strlen(nwrk_);
+	   namdump();
+	   sprintf(nwrk_ ,
+		"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d ",
+		Scheduler::instance().clock(),
+		src,                           // this node
+		dst,
+		packet_info.name(ch->ptype()),
+		ch->size(),
+		ch->uid());
+
+	   offset = strlen(nwrk_);
+           namdump();
+	}
+
+        // if nodes are too far from each other
+	// nam won't show SEND event 'cuz it's
+	// gonna be dropped later anyway
+	// this value 242 is calculated from tworayground.cc
+	if ((op == 'h')  && (distance > 242 )) return ;
+
+	sprintf(nwrk_ ,
 		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d ",
 		op,
 		Scheduler::instance().clock(),
@@ -571,7 +614,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 		ch->uid());
 
 	offset = strlen(nwrk_);
-
+	namdump();
 }
 
 void CMUTrace::format(Packet* p, const char *why)
@@ -698,7 +741,7 @@ CMUTrace::recv(Packet *p, Handler *h)
 #endif
 	format(p, "---");
 	dump();
-	namdump();
+	//namdump();
 	if(target_ == 0)
 		Packet::free(p);
 	else
@@ -729,7 +772,7 @@ CMUTrace::recv(Packet *p, const char* why)
 #endif
 	format(p, why);
 	dump();
-	namdump();
+	//namdump();
 	Packet::free(p);
 }
 
