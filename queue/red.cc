@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.61 2001/07/20 18:40:40 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.62 2001/07/24 20:53:20 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -114,6 +114,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind("alpha_", &edp_.alpha); 	  	    // adaptive red param
 	bind("beta_", &edp_.beta);                  // adaptive red param
 	bind("interval_", &edp_.interval);	    // adaptive red param
+	bind("targetdelay_", &edp_.targetdelay);    // target delay
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
@@ -171,9 +172,11 @@ void REDQueue::initialize_params()
         // printf("th_min: %7.5f th_max: %7.5f\n", edp_.th_min, edp_.th_max);
 	if (edp_.th_min == 0) {
 		edp_.th_min = 5.0;
-		// set th_min to 2.5 ms. of packets
-		if (edp_.th_min < 0.0025*edp_.ptc)
-			edp_.th_min = 0.0025*edp_.ptc;
+		// set th_min to half of targetqueue, if this is greater
+		//  than 5 packets.
+		double targetqueue = edp_.targetdelay * edp_.ptc;
+		if (edp_.th_min < targetqueue / 2.0 )
+			edp_.th_min = targetqueue / 2.0 ;
         }
 	if (edp_.th_max == 0) 
 		edp_.th_max = 3.0 * edp_.th_min;
@@ -266,7 +269,7 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 		} else if (new_ave > edp_.th_max - part && 0.5 > edv_.cur_max_p ) {
 			// we decrease the average queue size, so increase max_p
 			double alpha = edp_.alpha;
-                        if ( alpha < 0.25*edv_.cur_max_p )
+                        if ( alpha > 0.25*edv_.cur_max_p )
 				alpha = 0.25*edv_.cur_max_p;
 			edv_.cur_max_p = edv_.cur_max_p + alpha;
 			edv_.lastset = now;
@@ -391,6 +394,7 @@ REDQueue::drop_early(Packet* pkt)
 		hdr_flags* hf = hdr_flags::access(pickPacketForECN(pkt));
 		if (edp_.setbit && hf->ect() && edv_.v_ave < edp_.th_max) {
 			hf->ce() = 1; 	// mark Congestion Experienced bit
+			// Tell the queue monitor here - call emark(pkt)
 			return (0);	// no drop
 		} else {
 			return (1);	// drop

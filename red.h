@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.30 2001/07/20 18:40:40 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.31 2001/07/24 20:53:21 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -88,6 +88,7 @@ struct edp {
 	double alpha;           /* adaptive RED: additive param for max_p */
 	double beta;            /* adaptive RED: multip param for max_p */
 	double interval;	/* adaptive RED: interval for adaptations */
+	double targetdelay;     /* adaptive RED: target queue size */
 			
 	/*
 	 * Computed as a function of user supplied paramters.
