@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.10 1999/05/26 01:20:15 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.11 1999/08/24 04:16:25 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
@@ -54,20 +54,19 @@ void HttpInvalAgent::recv(Packet *pkt, Handler*)
 	if (app_ == 0) 
 		return;
 	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
-	((HttpApp*)app_)->process_data(ih->size(), (char *)pkt->accessdata());
+	((HttpApp*)app_)->process_data(ih->size(), pkt->userdata());
 	Packet::free(pkt);
 }
 
 // Send a list of invalidation records in user data area
 // realsize: the claimed size
 // datasize: the actual size of user data, used to allocate packet
-void HttpInvalAgent::send(int realsize, const AppData* data)
+void HttpInvalAgent::send(int realsize, AppData* data)
 {
 	Packet *pkt = allocpkt(data->size());
 	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
 	ih->size() = data->size();
-	char *p = (char *)pkt->accessdata();
-	data->pack(p);
+	pkt->setdata(data);
 
 	// Set packet size proportional to the number of invalidations
 	hdr_cmn *ch = (hdr_cmn*) pkt->access(off_cmn_);
@@ -91,7 +90,7 @@ public:
 	}
 } class_httpuinval_agent;
 
-void HttpUInvalAgent::process_data(int size, char* data) 
+void HttpUInvalAgent::process_data(int size, AppData* data) 
 {
 	target_->process_data(size, data);
 }

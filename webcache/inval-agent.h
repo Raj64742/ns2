@@ -17,7 +17,7 @@
 //
 // Definition of Agent/Invalidation
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.9 1999/05/26 01:20:16 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.10 1999/08/24 04:16:25 haoboy Exp $
 
 #ifndef ns_invalagent_h
 #define ns_invalagent_h
@@ -51,7 +51,7 @@ public:
 	HttpInvalAgent();
 
 	virtual void recv(Packet *, Handler *);
-	virtual void send(int realsize, const AppData* data);
+	virtual void send(int realsize, AppData* data);
 
 protected:
 	int off_inv_;
@@ -63,11 +63,11 @@ class HttpUInvalAgent : public TcpApp {
 public:
 	HttpUInvalAgent(Agent *a) : TcpApp(a) {}
 
-	void send(int realsize, const AppData* data) {
+	void send(int realsize, AppData* data) {
 		TcpApp::send(realsize, data);
 	}
-	virtual void process_data(int size, char *data);
-	virtual AppData* get_data(int&, const AppData*) {
+	virtual void process_data(int size, AppData* data);
+	virtual AppData* get_data(int&, AppData*) {
 		abort(); 
 		return NULL;
 	}

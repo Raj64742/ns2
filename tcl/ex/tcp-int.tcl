@@ -1,4 +1,4 @@
-source ../../../ex/asym/util.tcl
+source asym/util.tcl
 
 set ns [new Simulator]
 

@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.6 1999/08/04 21:06:52 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.7 1999/08/24 04:16:26 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -576,7 +576,7 @@ MediaCache::~MediaCache()
 	}
 }
 
-AppData* MediaCache::get_data(int& size, const AppData* req)
+AppData* MediaCache::get_data(int& size, AppData* req)
 {
 	assert(req != NULL);
 	if (req->type() != MEDIA_REQUEST) {
@@ -664,21 +664,21 @@ AppData* MediaCache::get_data(int& size, const AppData* req)
 }
 
 // Add received media segment into page pool
-void MediaCache::process_data(int size, char* data) 
+void MediaCache::process_data(int size, AppData* data) 
 {
-	switch (AppData::type(data)) {
+	switch (data->type()) {
 	case MEDIA_DATA: {
-		HttpMediaData d(data);
+		HttpMediaData* d = (HttpMediaData*)data;
 		// Cache this segment, do replacement if necessary
-		if (mpool()->add_segment(d.page(), d.layer(), 
-					 MediaSegment(d)) == -1) {
-			fprintf(stderr, "MediaCache %s gets a segment for an \
-unknown page %s\n", name(), d.page());
+		if (mpool()->add_segment(d->page(), d->layer(), 
+					 MediaSegment(*d)) == -1) {
+			fprintf(stderr, "MediaCache %s gets a segment for an "
+				"unknown page %s\n", name(), d->page());
 			abort();
 		}
 		// XXX debugging only
 		log("E RSEG p %s l %d s %d e %d z %d\n", 
-		    d.page(), d.layer(), d.st(), d.et(), d.datasize());
+		    d->page(), d->layer(), d->st(), d->et(), d->datasize());
 		break;
 	} 
 	default:
@@ -804,13 +804,13 @@ public:
 } class_httpmediaclient;
 
 // Records the quality of stream received
-void MediaClient::process_data(int size, char* data)
+void MediaClient::process_data(int size, AppData* data)
 {
 	assert(data != NULL);
 
-	switch (AppData::type(data)) {
+	switch (data->type()) {
 	case MEDIA_DATA: {
-		HttpMediaData d(data);
+		HttpMediaData* d = (HttpMediaData*)data;
 		// XXX Don't pass any data to page pool!!
 //   		if (mpool()->add_segment(d.page(), d.layer(), 
 //   					 MediaSegment(d)) == -1) {
@@ -821,7 +821,7 @@ void MediaClient::process_data(int size, char* data)
 		// Note: we store the page only to produce some statistics
 		// later so that we need not do postprocessing of traces.
 		log("C RSEG p %s l %d s %d e %d z %d\n", 
-		    d.page(), d.layer(), d.st(), d.et(), d.datasize());
+		    d->page(), d->layer(), d->st(), d->et(), d->datasize());
 		break;
 	}
 	default:
@@ -935,7 +935,7 @@ MediaSegment MediaServer::get_next_segment(MediaRequest *r)
 }
 
 // Similar to MediaCache::get_data(), but ignore segment availability checking
-AppData* MediaServer::get_data(int& size, const AppData *req)
+AppData* MediaServer::get_data(int& size, AppData *req)
 {
 	assert((req != NULL) && (req->type() == MEDIA_REQUEST));
 	MediaRequest *r = (MediaRequest *)req;
@@ -963,8 +963,9 @@ AppData* MediaServer::get_data(int& size, const AppData *req)
 				p->set_finish();
 		}
 		return p;
-	} else if (r->request() == MEDIAREQ_CHECKSEG)
-		return &(QA::MEDIASEG_AVAIL_);
+	} else if (r->request() == MEDIAREQ_CHECKSEG) 
+		// We don't need to return anything, so just NULL
+		return NULL;
 	else {
 		fprintf(stderr, 
 		       "MediaServer %s gets an unknown MediaRequest type %d\n",

@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:41 $
+# Version Date: $Date: 1999/08/24 04:16:20 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star.tcl,v 1.9 1999/07/02 01:49:41 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star.tcl,v 1.10 1999/08/24 04:16:20 haoboy Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -42,6 +42,7 @@ Simulator set NumberInterfaces_ 1
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
 $ns trace-all [open out.tr w]
+$ns namtrace-all [open out.nam w]
 
 # make the nodes
 set nmax 8
@@ -121,12 +122,12 @@ proc finish src {
     }
     flush $avg_info
     close $avg_info
-    puts "converting output to nam format..."
-    exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
+    #puts "converting output to nam format..."
+    #exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
 
     if [info exists env(DISPLAY)] {
 	puts "running nam..."
-	exec nam $prog-nam &
+	exec nam out.nam &
     } else {
 	exec cat srmStats.tr >@stdout
     }

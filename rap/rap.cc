@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.7 1999/07/06 22:57:01 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.8 1999/08/24 04:16:18 haoboy Exp $
 
 #include "rap.h"
 
@@ -271,7 +271,7 @@ void RapAgent::SendPacket(int nbytes, AppData *data)
 	hdr->flags() = RH_DATA;
 	if (data) {
 		hdr->size() = data->size();
-		data->pack((char *)pkt->accessdata());
+		pkt->setdata(data);
 	} else {
 		hdr->size() = size_;
 	}
@@ -307,8 +307,7 @@ void RapAgent::recv(Packet* pkt, Handler*)
 		SendAck(hdr->seqno());
 		if ((pkt->datalen() > 0) && app_) 
 			// We do have user data, process it
-			app_->process_data(pkt->datalen(), 
-					   (char *)pkt->accessdata());
+			app_->process_data(pkt->datalen(), pkt->userdata());
 		break;
 	case RH_ACK:
 		RecvAck(hdr);
@@ -406,11 +405,10 @@ void RapAgent::IpgTimeout()
 			AppData* data = app_->get_data(nbytes);
 			// Missing data in application. What should we do??
 			// For now, simply schedule the next SendPacket(). 
-			// If the application has nothing to send, it'll stop the 
-			// rap agent later on. 
+			// If the application has nothing to send, it'll stop 
+			// the rap agent later on. 
 			if (data != NULL) {
 				SendPacket(nbytes, data);
-				delete data;
 				dctr_++;
 			}
 		} else {

@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.6 1999/08/04 00:12:05 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.7 1999/08/24 04:16:16 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -440,18 +440,6 @@ MediaApp::MediaApp(const char* page) :
 	bind("segmentSize_", &seg_size_);
 }
 
-void MediaApp::recv(int)
-{
-	fprintf(stderr,"UDP/TCP support for media streams is not supported\n");
-	abort();
-}
-
-void MediaApp::send(int)
-{
-	fprintf(stderr,"UDP/TCP support for media streams is not supported\n");
-	abort();
-}
-
 void MediaApp::start()
 {
  	fprintf(stderr, "MediaApp::start() not supported\n");
@@ -464,7 +452,7 @@ void MediaApp::stop()
 	rap()->stop();
 }
 
-AppData* MediaApp::get_data(int& nbytes, const AppData* req) 
+AppData* MediaApp::get_data(int& nbytes, AppData* req) 
 {
 	AppData *res;
 	if (req == NULL) {
@@ -580,9 +568,6 @@ void QATimer::expire(Event *)
 	resched(a_->UpdateInterval());
 }
 
-AppData QA::MEDIASEG_AVAIL_(MEDIA_REQUEST);
-AppData QA::MEDIASEG_UNAVAIL_(MEDIA_REQUEST);
-
 static class QAClass : public TclClass {
 public:
 	QAClass() : TclClass("Application/MediaApp/QA") {}
@@ -682,7 +667,7 @@ int QA::command(int argc, const char*const* argv)
 
 // When called by RAP, req is NULL. We fill in the next data segment and 
 // return its real size in 'size' and return the app data. 
-AppData* QA::get_data(int& size, const AppData*)
+AppData* QA::get_data(int& size, AppData*)
 {
 	int layers, dropped, i, l, idx, bs1, bs2,scenario, done, cnt;
 	double slope, bufavail, bufneeded, totbufs1, totbufs2, 

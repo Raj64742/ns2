@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.5 1999/08/04 00:12:06 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.6 1999/08/24 04:16:17 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -238,7 +238,7 @@ private:
 	int et_; 			// Segment end time
 	int flags_; 			// flags: end of all data, etc.
 public:
-	struct hdr : HttpData::hdr {
+	struct hdr {
 		char sender_[HTTP_MAXURLLEN];
 		char page_[HTTP_MAXURLLEN];
 		int layer_;
@@ -249,17 +249,18 @@ public:
 public:
 	HttpMediaData(const char* sender, const char* name, int layer, 
 		      int st, int et);
-	HttpMediaData(char *b) : HttpData(b) {
-		layer_ = ((hdr *)b)->layer_;
-		st_ = ((hdr *)b)->st_;
-		et_ = ((hdr *)b)->et_;
-		flags_ = ((hdr *)b)->flags_;
-		strcpy(page_, ((hdr *)b)->page_);
-		strcpy(sender_, ((hdr *)b)->sender_);
+	HttpMediaData(HttpMediaData& d) : HttpData(d) {
+		layer_ = d.layer_;
+		st_ = d.st_;
+		et_ = d.et_;
+		flags_ = d.flags_;
+		strcpy(page_, d.page_);
+		strcpy(sender_, d.sender_);
 	}
 
-	virtual int hdrlen() const { return sizeof(hdr); }
-	virtual int size() const { return hdrlen(); }
+	virtual int size() const { return HttpData::size() + sizeof(hdr); }
+	virtual HttpMediaData* copy() { return (new HttpMediaData(*this)); }
+
 	int st() const { return st_; }
 	int et() const { return et_; }
 	int datasize() const { return et_ - st_; }
@@ -277,16 +278,6 @@ public:
 	void set_last() { flags_ |= MD_LAST; }
 	int is_finished() const { return (flags_ & MD_FINISH); }
 	void set_finish() { flags_ |= MD_FINISH; }
-
-	virtual void pack(char *buf) const { 
-		HttpData::pack(buf);
-		((hdr *)buf)->layer_ = layer_;
-		((hdr *)buf)->st_ = st_;
-		((hdr *)buf)->et_ = et_;
-		((hdr *)buf)->flags_ = flags_;
-		strcpy(((hdr *)buf)->page_, page_);
-		strcpy(((hdr *)buf)->sender_, sender_);
-	}
 };
 
 
@@ -297,7 +288,7 @@ const int MEDIAREQ_SEGAVAIL 	= 3;
 const int MEDIAREQ_SEGUNAVAIL 	= 4;
 
 // It provides a MediaApp two types of requests: check data availability and 
-// request data. It won't be serialized.
+// request data. It won't be sent in a packet so we don't need copy(). 
 class MediaRequest : public AppData {
 private:
 	int request_; 			// Request code
@@ -315,6 +306,8 @@ public:
 		layer_ = r.layer();
 		strcpy(name_, r.name());
 	}
+	// We don't need it, but have to declare.
+	virtual MediaRequest* copy() { abort(); return NULL; }
 
 	int request() const { return request_; }
 	int st() const { return st_; }
@@ -346,31 +339,16 @@ class MediaApp : public Application {
 public:
 	MediaApp(const char* page);
 
-	// Interfaces used by UDP/TCP transports
-	// XXX Not supported right now.
-	virtual void recv(int nbytes);
-	virtual void send(int nbytes);
-
-	// Interfaces used by RAP
-	virtual void send(int nbytes, const AppData* data) {
-		// Ask the underlying agent to send data.
-		agent_->send(nbytes, data);
-	}
-	virtual void recv(int size, char* data) {
-		process_data(size, data);
-	}
-
-	void set_page(const char* pg) { strcpy(page_, pg); }
-	virtual AppData* get_data(int& size, const AppData* req_data = 0);
-	virtual void process_data(int size, char* data) {
+	virtual AppData* get_data(int& size, AppData* req_data = 0);
+	virtual void process_data(int size, AppData* data) {
 		send_data(size, data);
 	}
+	void set_page(const char* pg) { strcpy(page_, pg); }
 
 	void log(const char* fmt, ...);
 	int command(int argc, const char*const* argv);
 
 protected:
-	// We use start() and stop() to 
 	virtual void start();
 	virtual void stop();
 
@@ -406,12 +384,9 @@ public:
 	QA(const char *page);
 	virtual ~QA();
 
-	virtual AppData* get_data(int& size, const AppData* req_data = 0);
+	virtual AppData* get_data(int& size, AppData* req_data = 0);
 	void UpdateState();
 	double UpdateInterval() { return rap()->srtt(); } 
-
-	// Static members used to indicate segment availability
-	static AppData MEDIASEG_AVAIL_, MEDIASEG_UNAVAIL_;
 
 protected:
 	virtual int command(int argc, const char*const* argv);

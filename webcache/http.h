@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.12 1999/08/04 21:04:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.13 1999/08/24 04:16:24 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -43,8 +43,8 @@ public:
 	void log(const char *fmt, ...);
 	int id() const { return id_; }
 
-	virtual void process_data(int size, char* d);
-	virtual AppData* get_data(int&, const AppData*) {
+	virtual void process_data(int size, AppData* d);
+	virtual AppData* get_data(int&, AppData*) {
 		// Do not support it
 		abort();
 		return NULL;
@@ -135,7 +135,7 @@ public:
 	virtual ~HttpMInvalCache();
 
 	virtual int command(int argc, const char*const* argv);
-	virtual void process_data(int size, char* data);
+	virtual void process_data(int size, AppData* data);
 	virtual void timeout(int reason);
 
 	void handle_node_failure(int cid);

@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.14 1999/05/26 01:20:10 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.15 1999/08/24 04:16:22 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -150,85 +150,76 @@ const int HTTPDATA_COST		= 8;
 class HttpData : public AppData {
 private:
 	int id_;	// ID of the sender
-public:
-	// used to extract data from a byte stream
-	struct hdr : AppData::hdr {
-		int id_;
-	};
+
 public:
 	HttpData() : AppData(HTTP_DATA) {}
-	HttpData(AppDataType t, int d) : AppData(t) {
-		id_ = d;
-	}
-	HttpData(char *b) : AppData(b) {
-		hdr* h = (hdr *)b;
-		id_ = h->id_;
-	}
+	HttpData(AppDataType t, int d) : AppData(t) { id_ = d; }
+	HttpData(HttpData& d) : AppData(d) { id_ = d.id_; }
 
 	inline int& id() { return id_; }
-	virtual int size() const { return hdrlen(); }
-	virtual int hdrlen() const { return sizeof(hdr); }
+	virtual int size() const { return sizeof(HttpData); }
 	virtual int cost() const { return HTTPDATA_COST; }
-
-	virtual void pack(char* buf) const {
-		AppData::pack(buf);
-		((hdr*)buf)->id_ = id_;
-	}
+	virtual HttpData* copy() { return (new HttpData(*this)); }
 };
 
 
 
 // HTTP data during normal request and response: containing a tcl command
-//
-// This is a "temporary" object. Its whole purpose is to provide a 
-// consistent data interface for HttpApp. Unlike other Http*Data classes, 
-// it doesn't store anything.
 class HttpNormalData : public HttpData {
 private: 
 	char *str_;
+	int strlen_;
 	int cost_;
-protected:
-	struct hdr : public HttpData::hdr {
-		int cost_;
-	};
 public:
-	HttpNormalData(int id, int cost, char *str) : 
+	// XXX Whoever sends data should allocate memory to store the string.
+	// Whoever receives this object should delete it to free the string.
+	HttpNormalData(int id, int cost, const char *str) : 
 		HttpData(HTTP_NORMAL, id) {
-		str_ = str;
+		if ((str == NULL) || (*str == 0))
+			strlen_ = 0;
+		else
+			strlen_ = strlen(str) + 1;
+		if (strlen_ > 0) {
+			str_ = new char[strlen_];
+			strcpy(str_, str);
+		} else
+			str_ = NULL;
 		cost_ = cost;
 	}
-	HttpNormalData(char *data) : HttpData(data) {
-		cost_ = ((hdr *)data)->cost_;
-		str_ = (char *)(data+sizeof(hdr));
+	HttpNormalData(HttpNormalData& d) : HttpData(d) {
+		cost_ = d.cost_;
+		strlen_ = d.strlen_;
+		if (strlen_ > 0) {
+			str_ = new char[strlen_];
+			strcpy(str_, d.str_);
+		} else
+			str_ = NULL;
 	}
-	// XXX must define one hdrlen() for every derived ADU, if struct hdr
-	// is changed.
-	virtual int hdrlen() const { return sizeof(hdr); }
+	virtual ~HttpNormalData() {
+		if (str_ != NULL)
+			delete []str_;
+	}
+
 	virtual int size() const {
-		return (hdrlen()+strlen(str_)+1);
+		// Intentially use sizeof(int) instead of 2*sizeof(int)
+		return (sizeof(HttpData)+sizeof(int)+strlen_);
 	}
 	virtual int cost() const { return cost_; }
 	char* str() const { return str_; }
-	virtual void pack(char* buf) const {
-		HttpData::pack(buf);
-		((hdr*)buf)->cost_ = cost_;
-		buf += hdrlen();
-		strcpy(buf, str_);
+	virtual HttpNormalData* copy() {
+		return (new HttpNormalData(*this));
 	}
 };
 
 
 
-const int HTTP_MAXURLLEN = 20;
 // XXX assign cost to a constant so as to be more portable
 const int HTTPHBDATA_COST = 32;
+const int HTTP_MAXURLLEN = 20;
 
 // Struct used to pack invalidation records into packets
 class HttpHbData : public HttpData {
 protected:
-	struct hdr : public HttpData::hdr {
-		int num_inv_;
-	};
 	struct InvalRec {
 		char pg_[HTTP_MAXURLLEN];	// Maximum page id length
 		double mtime_;
@@ -242,7 +233,7 @@ protected:
 			updating_ = v->updating();
 		}
 		InvalidationRec* copyto() {
-			return new InvalidationRec(pg_, mtime_, updating_);
+			return (new InvalidationRec(pg_, mtime_, updating_));
 		}
 	};
 
@@ -254,31 +245,34 @@ private:
 public:
 	HttpHbData(int id, int n) : 
 		HttpData(HTTP_INVALIDATION, id), num_inv_(n) {
-		inv_rec_ = new InvalRec[num_inv_];
+		if (num_inv_ > 0)
+			inv_rec_ = new InvalRec[num_inv_];
+		else
+			inv_rec_ = NULL;
 	}
-	HttpHbData(char *data) : HttpData(data) {
-		num_inv_ = ((hdr *)data)->num_inv_;
-		inv_rec_ = new InvalRec[num_inv_];
-		memcpy(inv_rec_, data+sizeof(hdr), num_inv_*sizeof(InvalRec));
+	HttpHbData(HttpHbData& d) : HttpData(d) {
+		num_inv_ = d.num_inv_;
+		if (num_inv_ > 0) {
+			inv_rec_ = new InvalRec[num_inv_];
+			memcpy(inv_rec_, d.inv_rec_,num_inv_*sizeof(InvalRec));
+		} else
+			inv_rec_ = NULL;
 	}
-	virtual ~HttpHbData() {
-		delete []inv_rec_;
+	virtual ~HttpHbData() { 
+		if (inv_rec_ != NULL)
+			delete []inv_rec_; 
 	}
 
-	virtual int hdrlen() const { return sizeof(hdr); }
 	virtual int size() const {
-		return (num_inv_*sizeof(InvalRec) + hdrlen());
+		return HttpData::size() + num_inv_*sizeof(InvalRec);
 	}
 	// XXX byte cost to appear in trace file
 	virtual int cost() const { 
 		// Minimum size 1 so that TCP will send a packet
 		return (num_inv_ == 0) ? 1 : (num_inv_*HTTPHBDATA_COST); 
 	}
-	virtual void pack(char* buf) const {
-		HttpData::pack(buf);
-		((hdr*)buf)->num_inv_ = num_inv_;
-		buf += hdrlen();
-		memcpy(buf, inv_rec_, num_inv_*sizeof(InvalRec));
+	virtual HttpHbData* copy() {
+		return (new HttpHbData(*this));
 	}
 
 	inline int& num_inv() { return num_inv_; }
@@ -294,10 +288,6 @@ public:
 
 class HttpUpdateData : public HttpData {
 protected:
-	struct hdr : public HttpData::hdr {
-		int num_;
-		int pgsize_;	// Sum of page sizes
-	};
 	// Pack page updates to be pushed to caches
 	struct PageRec {
 		char pg_[HTTP_MAXURLLEN];
@@ -320,28 +310,31 @@ public:
 	HttpUpdateData(int id, int n) : HttpData(HTTP_UPDATE, id) {
 		num_ = n;
 		pgsize_ = 0;
-		rec_ = new PageRec[num_];
+		if (num_ > 0)
+			rec_ = new PageRec[num_];
+		else
+			rec_ = NULL;
 	}
-	HttpUpdateData(char *data) : HttpData(data) {
-		num_ = ((hdr*)data)->num_;
-		pgsize_ = ((hdr*)data)->pgsize_;
-		rec_ = new PageRec[num_];
-		memcpy(rec_, data+hdrlen(), num_*sizeof(PageRec));
+	HttpUpdateData(HttpUpdateData& d) : HttpData(d) {
+		num_ = d.num_;
+		pgsize_ = d.pgsize_;
+		if (num_ > 0) {
+			rec_ = new PageRec[num_];
+			memcpy(rec_, d.rec_, num_*sizeof(PageRec));
+		} else
+			rec_ = NULL;
 	}
 	virtual ~HttpUpdateData() {
-		delete []rec_;
+		if (rec_ != NULL)
+			delete []rec_;
 	}
 
-	virtual int hdrlen() const { return sizeof(hdr); }
 	virtual int size() const { 
-		return hdrlen() + num_*sizeof(PageRec); 
+		return HttpData::size() + 2*sizeof(int)+num_*sizeof(PageRec); 
 	}
 	virtual int cost() const { return pgsize_; }
-	virtual void pack(char* buf) const {
-		HttpData::pack(buf);
-		((hdr*)buf)->num_ = num();
-		((hdr*)buf)->pgsize_ = pgsize();
-		memcpy(buf+hdrlen(), rec_, num_*sizeof(PageRec));
+	virtual HttpUpdateData* copy() {
+		return (new HttpUpdateData(*this));
 	}
 
 	inline int num() const { return num_; }
@@ -365,10 +358,6 @@ const int HTTPLEAVE_COST = 4;
 
 // Message: server leave
 class HttpLeaveData : public HttpData {
-protected:
-	struct hdr : public HttpData::hdr {
-		int num_; // number of servers to be invalidated
-	};
 private:
 	int num_;
 	int* rec_; // array of server ids which are out of contact
@@ -376,26 +365,30 @@ private:
 public:
 	HttpLeaveData(int id, int n) : HttpData(HTTP_LEAVE, id) {
 		num_ = n;
-		rec_ = new int[num_];
+		if (num_ > 0)
+			rec_ = new int[num_];
+		else
+			rec_ = NULL;
 	}
-	HttpLeaveData(char *data) : HttpData(data) {
-		num_ = ((hdr*)data)->num_;
-		rec_ = new int[num_];
-		memcpy(rec_, data+hdrlen(), num_*sizeof(int));
+	HttpLeaveData(HttpLeaveData& d) : HttpData(d) {
+		num_ = d.num_;
+		if (num_ > 0) {
+			rec_ = new int[num_];
+			memcpy(rec_, d.rec_, num_*sizeof(int));
+		} else
+			rec_ = NULL;
 	}
-	virtual ~HttpLeaveData() {
-		delete []rec_;
+	virtual ~HttpLeaveData() { 
+		if (rec_ != NULL)
+			delete []rec_; 
 	}
 
-	virtual int hdrlen() const { return sizeof(hdr); }
 	virtual int size() const { 
-		return hdrlen() + num_*sizeof(int);
+		return HttpData::size() + (num_+1)*sizeof(int);
 	}
 	virtual int cost() const { return num_*HTTPLEAVE_COST; }
-	virtual void pack(char* buf) const {
-		HttpData::pack(buf);
-		((hdr*)buf)->num_ = num();
-		memcpy(buf+hdrlen(), rec_, num_*sizeof(int));
+	virtual HttpLeaveData* copy() {
+		return (new HttpLeaveData(*this));
 	}
 
 	inline int num() const { return num_; }

@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.10 1999/05/07 01:02:35 haldar Exp $
+   $Id: dsragent.cc,v 1.11 1999/08/24 04:16:19 haoboy Exp $
 */
 
 #include <assert.h>
@@ -662,7 +662,7 @@ DSRAgent::handlePacketReceipt(SRPacket& p)
   /* Handle a packet destined to us */
 {
   hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
-  hdr_ip *iph = HDR_IP(p.pkt);
+  //hdr_ip *iph = HDR_IP(p.pkt);
   
   if (srh->route_reply())
     { // we got a route_reply piggybacked on a route_request
@@ -1360,9 +1360,9 @@ DSRAgent::acceptRouteReply(SRPacket &p)
     }
   
   /* check to see if this reply is valid or not using god info */
-  int i;
   bool good_reply = true;
 #ifdef USE_GOD_FEEDBACK
+  int i;
   for (i = 0; i < reply_route.length()-1 ; i++) 
     if (God::instance()->hops(reply_route[i].getNSAddr_t(), 
 			      reply_route[i+1].getNSAddr_t()) != 1)

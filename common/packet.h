@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.66 1999/08/17 04:26:54 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.67 1999/08/24 04:16:13 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -45,6 +45,7 @@
 #include "object.h"
 #include "list.h"
 #include "packet-stamp.h"
+#include "ns-process.h"
 #include "dsr/hdr_sr.h"
 
 #define RT_PORT		255	/* port that all route msgs are sent to */
@@ -116,7 +117,7 @@ enum packet_t {
 
 	// insert new packet types here
 
-  PT_TFRC,
+	PT_TFRC,
 	PT_TFRC_ACK,
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -206,14 +207,45 @@ extern p_info packet_info; /* map PT_* to string name */
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
+class PacketData : public AppData {
+public:
+	PacketData(int sz) : AppData(PACKET_DATA) {
+		datalen_ = sz;
+		if (datalen_ > 0)
+			data_ = new unsigned char[datalen_];
+		else
+			data_ = NULL;
+	}
+	PacketData(PacketData& d) : AppData(d) {
+		datalen_ = d.datalen_;
+		if (datalen_ > 0) {
+			data_ = new unsigned char[datalen_];
+			memcpy(data_, d.data_, datalen_);
+		} else
+			data_ = NULL;
+	}
+	virtual ~PacketData() { 
+		if (data_ != NULL) 
+			delete []data_; 
+	}
+	unsigned char* data() { return data_; }
+
+	virtual int size() { return datalen_; }
+	virtual PacketData* copy() { return new PacketData(*this); }
+private:
+	unsigned char* data_;
+	int datalen_;
+};
+
 //Monarch ext
 typedef void (*FailureCallback)(Packet *,void *);
-//
+
 class Packet : public Event {
 private:
 	unsigned char* bits_;	// header bits
-	unsigned char* data_;	// variable size buffer for 'data'
-	unsigned int datalen_;	// length of variable size buffer
+//	unsigned char* data_;	// variable size buffer for 'data'
+//  	unsigned int datalen_;	// length of variable size buffer
+	AppData* data_;		// variable size buffer for 'data'
 	static void init(Packet*);     // initialize pkt hdr 
 	bool fflag_;
 protected:
@@ -222,7 +254,7 @@ public:
 	Packet* next_;		// for queues and the free list
 	static int hdrlen_;
 
-	Packet() : bits_(0), data_(0), datalen_(0), next_(0) { }
+	Packet() : bits_(0), data_(0), next_(0) { }
 	inline unsigned char* const bits() { return (bits_); }
 	inline Packet* copy() const;
 	static inline Packet* alloc();
@@ -234,16 +266,33 @@ public:
 			abort();
 		return (&bits_[off]);
 	}
-	inline unsigned char* accessdata() const { return data_; }
-	inline int datalen() const { return datalen_; }
+	// This is used for backward compatibility, i.e., assuming user data
+	// is PacketData and return its pointer.
+	inline unsigned char* accessdata() const { 
+		if (data_ == 0)
+			return 0;
+		assert(data_->type() == PACKET_DATA);
+		return (((PacketData*)data_)->data()); 
+	}
+	// This is used to access application-specific data, not limited 
+	// to PacketData.
+	inline AppData* userdata() const {
+		return data_;
+	}
+	inline void setdata(AppData* d) { 
+		if (data_ != NULL)
+			delete data_;
+		data_ = d; 
+	}
+	inline int datalen() const { return data_ ? data_->size() : 0; }
 
-	//Monarch extn
+	// Monarch extn
 
 	static void dump_header(Packet *p, int offset, int length);
+
 	// the pkt stamp carries all info about how/where the pkt
         // was sent needed for a receiver to determine if it correctly
         // receives the pkt
-
         PacketStamp	txinfo_;  
 
 	/*
@@ -256,9 +305,7 @@ public:
          */
         u_int8_t        incoming;
 
-
 	//monarch extns end;
-
 };
 
 /* 
@@ -268,13 +315,15 @@ public:
 class iface_literal {
 public:
 	enum iface_constant { 
-		UNKN_IFACE= -1, /* iface value for locally originated packets 
+		UNKN_IFACE= -1, /* 
+				 * iface value for locally originated packets 
 				 */
-		ANY_IFACE= -2   /* hashnode with iif == ANY_IFACE_                           
-				 * matches any pkt iface (imported from TCL);                
-				 * this value should be different from hdr_cmn::UNKN_IFACE   
-				 * from packet.h                                             
-				 */                                                          
+		ANY_IFACE= -2   /* 
+				 * hashnode with iif == ANY_IFACE_   
+				 * matches any pkt iface (imported from TCL);
+				 * this value should be different from 
+				 * hdr_cmn::UNKN_IFACE (packet.h)
+				 */ 
 	};
 	iface_literal(const iface_constant i, const char * const n) : 
 		value_(i), name_(n) {}
@@ -282,7 +331,8 @@ public:
 	inline const char * const name() const { return name_; }
 private:
 	const iface_constant value_;
-	const char * const name_; /* strings used in TCL to access those special values */
+	/* strings used in TCL to access those special values */
+	const char * const name_; 
 };
 
 static const iface_literal UNKN_IFACE(iface_literal::UNKN_IFACE, "?");
@@ -290,7 +340,7 @@ static const iface_literal ANY_IFACE(iface_literal::ANY_IFACE, "*");
 
 
 struct hdr_cmn {
-	packet_t ptype_;		// packet type (see above)
+	packet_t ptype_;	// packet type (see above)
 	int	size_;		// simulated packet size
 	int	uid_;		// unique id
 	int	error_;		// error flag
@@ -325,7 +375,7 @@ struct hdr_cmn {
         // filled in by GOD on first transmission, used for trace analysis
         int num_forwards_;	// how many times this pkt was forwarded
         int opt_num_forwards_;   // optimal #forwards
-// Monarch extn ends;
+	// Monarch extn ends;
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
@@ -378,11 +428,7 @@ inline Packet* Packet::alloc()
 	if (p != 0) {
 		assert(p->fflag_ == FALSE);
 		free_ = p->next_;
-		if (p->datalen_) {
-			delete[] p->data_;
-			p->data_ = 0;
-			p->datalen_ = 0;
-		}
+		assert(p->data_ == 0);
 		p->uid_ = 0;
 		p->time_ = 0;
 	} else {
@@ -402,15 +448,17 @@ inline Packet* Packet::alloc()
 	return (p);
 }
 
-/* allocate an n byte data buffer to an existing packet */
+/* 
+ * Allocate an n byte data buffer to an existing packet 
+ * 
+ * To set application-specific AppData, use Packet::setdata()
+ */
 inline void Packet::allocdata(int n)
 {
-	assert(datalen_ == 0);
-	datalen_ = n;
-	data_ = new unsigned char[n];
+	assert(data_ == 0);
+	data_ = new PacketData(n);
 	if (data_ == 0)
 		abort();
-
 }
 
 /* allocate a packet with an n byte data buffer */
@@ -433,6 +481,11 @@ inline void Packet::free(Packet* p)
 			 * == 0 (newed but never gets into the event queue.
 			 */
 			assert(p->uid_ <= 0);
+			// Delete user data because we won't need it any more.
+			if (p->data_ != 0) {
+				delete p->data_;
+				p->data_ = 0;
+			}
 			init(p);
 			p->next_ = free_;
 			free_ = p;
@@ -447,14 +500,12 @@ inline Packet* Packet::copy() const
 {
 	Packet* p = alloc();
 	memcpy(p->bits(), bits_, hdrlen_);
-	if (datalen_) {
-		p->datalen_ = datalen_;
-		p->data_ = new unsigned char[datalen_];
-		memcpy(p->data_, data_, datalen_);
-	}
+	if (data_) 
+		p->data_ = data_->copy();
 	p->txinfo_.init(&txinfo_);
 	return (p);
 }
+
 inline void
 Packet::dump_header(Packet *p, int offset, int length)
 {

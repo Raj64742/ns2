@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.13 1999/07/16 16:58:06 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.14 1999/08/24 04:16:29 haoboy Exp $
 //
 // TcpApp - Transmitting real application data via TCP
 //
@@ -30,12 +30,12 @@
 
 class CBuf { 
 public:
-	CBuf(const AppData *c, int nbytes);
+	CBuf(AppData *c, int nbytes);
 	~CBuf() {
 		if (data_ != NULL)
-			delete []data_;
+			delete data_;
 	}
-	char* data() { return data_; }
+	AppData* data() { return data_; }
 	int size() { return size_; }
 	int bytes() { return nbytes_; }
 
@@ -46,7 +46,7 @@ public:
 
 protected:
 	friend class CBufList;
-	char *data_;
+	AppData *data_;
 	int size_;
 	int nbytes_; 	// Total length of this transmission
 	CBuf *next_;
@@ -85,12 +85,12 @@ public:
 	~TcpApp();
 
 	virtual void recv(int nbytes);
-	virtual void send(int nbytes, const AppData *data);
+	virtual void send(int nbytes, AppData *data);
 
 	void connect(TcpApp *dst) { dst_ = dst; }
 
-	virtual void process_data(int size, char* data);
-	virtual AppData* get_data(int&, const AppData*) {
+	virtual void process_data(int size, AppData* data);
+	virtual AppData* get_data(int&, AppData*) {
 		// Not supported
 		abort();
 		return NULL;

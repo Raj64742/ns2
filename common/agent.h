@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.25 1999/03/14 21:09:38 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.26 1999/08/24 04:16:12 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -71,9 +71,9 @@ class Agent : public Connector {
 	void send(Packet* p, Handler* h) { target_->recv(p, h); }
 	virtual void timeout(int tno);
 
-	virtual void sendmsg(int sz, const AppData*, const char* flags = 0);
-	virtual void send(int sz, const AppData *data) { sendmsg(sz, data); }
-	virtual void sendto(int sz, const AppData*, const char* flags = 0);
+	virtual void sendmsg(int sz, AppData*, const char* flags = 0);
+	virtual void send(int sz, AppData *data) { sendmsg(sz, data, 0); }
+	virtual void sendto(int sz, AppData*, const char* flags = 0);
 
 	virtual void sendmsg(int nbytes, const char *flags = 0);
 	virtual void send(int nbytes) { sendmsg(nbytes); }

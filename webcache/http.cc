@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.17 1999/08/04 21:04:01 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.18 1999/08/24 04:16:23 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -319,7 +319,7 @@ int HttpApp::command(int argc, const char*const* argv)
 			HttpNormalData *d = 
 				new HttpNormalData(id_, bytes, buf);
 			cnc->send(bytes, d);
-			delete d;
+			// delete d;
 			free(buf);
 			return TCL_OK;
 		
@@ -369,21 +369,20 @@ void HttpApp::log(const char* fmt, ...)
 	Tcl_Write(log_, buf, strlen(buf));
 }
 
-void HttpApp::process_data(int, char* data)
+void HttpApp::process_data(int, AppData* data)
 {
 	if (data == NULL) 
 		return;
 
-	switch (AppData::type(data)) {
+	switch (data->type()) {
 	case HTTP_NORMAL: {
-		HttpNormalData *tmp = new HttpNormalData(data);
+		HttpNormalData *tmp = (HttpNormalData*)data;
 		Tcl::instance().eval(tmp->str());
-		delete tmp;
 		break;
 	}
 	default:
 		fprintf(stderr, "Bad http invalidation data type %d\n", 
-			AppData::type(data));
+			data->type());
 		abort();
 		break;
 	}
@@ -615,7 +614,6 @@ void HttpYucInvalServer::send_heartbeat()
 
 	HttpHbData* d = pack_heartbeat();
 	send_hb_helper(d->cost(), d);
-	delete d;
 }
 
 
@@ -866,7 +864,7 @@ int HttpMInvalCache::command(int argc, const char*const* argv)
 			d->rec_mtime(0) = strtod(argv[3], NULL);
 			//int old_inv = num_inv_;
 			tcl.resultf("%d", recv_inv(d));
-			delete(d);
+			delete d;
 			return TCL_OK;
 		} else if (strcmp(argv[1], "recv-push") == 0) {
 			/* 
@@ -885,7 +883,7 @@ int HttpMInvalCache::command(int argc, const char*const* argv)
 				  d->rec_age(0) = strtod(argv[i+1], NULL);
 			}
 			tcl.resultf("%d", recv_upd(d));
-			delete(d);
+			delete d;
 			return TCL_OK;
 		} else if (strcmp(argv[1], "register-server") == 0) {
 			/*
@@ -1136,7 +1134,6 @@ void HttpMInvalCache::handle_node_failure(int cid)
 	HttpLeaveData* data = new HttpLeaveData(id_, c->num());
 	c->pack_leave(*data);
 	send_leave(data);
-	delete data;
 }
 
 void HttpMInvalCache::recv_leave(HttpLeaveData *d)
@@ -1180,9 +1177,10 @@ void HttpMInvalCache::recv_leave(HttpLeaveData *d)
 		pool_->invalidate_server(d->rec_id(i));
 		Tcl::instance().evalf("%s mark-leave", name_);
 	}
+	// Delete it if it's not sent out 
 	if (j > 0)
 		send_leave(data);
-	delete(data);
+	delete data;
 }
 
 void HttpMInvalCache::send_leave(HttpLeaveData *d)
@@ -1207,32 +1205,29 @@ void HttpMInvalCache::timeout(int reason)
 	}
 }
 
-void HttpMInvalCache::process_data(int size, char* data)
+void HttpMInvalCache::process_data(int size, AppData* data)
 {
 	if (data == NULL)
 		return;
 
-	switch (AppData::type(data)) {
+	switch (data->type()) {
 	case HTTP_INVALIDATION: {
 		// Update timer for the source of the heartbeat
-		HttpHbData *inv = new HttpHbData(data);
+		HttpHbData *inv = (HttpHbData*)data;
 		recv_heartbeat(inv->id());
 		recv_inv(inv);
-		delete inv;
 		break;
 	}
 	case HTTP_UPDATE: {
 		// Replace all updated pages
-		HttpUpdateData *pg = new HttpUpdateData(data);
+		HttpUpdateData *pg = (HttpUpdateData*)data;
 		recv_upd(pg);
-		delete(pg);
 		break;
 	}
 	// JOIN messages are sent via TCP and direct TCL callback.
 	case HTTP_LEAVE: {
-		HttpLeaveData *l = new HttpLeaveData(data);
+		HttpLeaveData *l = (HttpLeaveData*)data;
 		recv_leave(l);
-		delete(l);
 		break;
 	}
 	default:
@@ -1389,9 +1384,9 @@ void HttpMInvalCache::process_inv(int, InvalidationRec *ivlist, int cache)
 void HttpMInvalCache::send_hb_helper(int size, AppData *data)
 {
 	if (inv_parent_ != NULL) 
-		inv_parent_->send(size, data);
+		inv_parent_->send(size, data->copy());
 	for (int i = 0; i < num_sender_; i++)
-		inv_sender_[i]->send(size, data);
+		inv_sender_[i]->send(size, data->copy());
 }
 
 void HttpMInvalCache::send_heartbeat()
@@ -1468,7 +1463,7 @@ HttpUpdateData* HttpMInvalCache::pack_upd(ClientPage* page)
 void HttpMInvalCache::send_upd_helper(int pgsize, AppData* data)
 {
 	for (int i = 0; i < num_updater_; i++)
-		upd_sender_[i]->send(pgsize, data);
+		upd_sender_[i]->send(pgsize, data->copy());
 }
 
 void HttpMInvalCache::send_upd(ClientPage *page)

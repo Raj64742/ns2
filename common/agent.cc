@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.56 1999/04/22 19:32:21 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.57 1999/08/24 04:16:12 haoboy Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -435,17 +435,17 @@ void Agent::connect(nsaddr_t /*dst*/)
  * Place holders for sending application data
  */ 
 
-void Agent::sendmsg(int /*sz*/, const AppData* /*data*/, const char* /*flags*/)
+void Agent::sendmsg(int /*sz*/, AppData* /*data*/, const char* /*flags*/)
 {
 	fprintf(stderr, 
-	"Agent::sendmsg(int, const AppData*, const char*) not implemented\n");
+	"Agent::sendmsg(int, AppData*, const char*) not implemented\n");
 	abort();
 }
 
-void Agent::sendto(int /*sz*/, const AppData* /*data*/, const char* /*flags*/)
+void Agent::sendto(int /*sz*/, AppData* /*data*/, const char* /*flags*/)
 {
 	fprintf(stderr, 
-	"Agent::sendmsg(int, const AppData*, const char*) not implemented\n");
+	"Agent::sendmsg(int, AppData*, const char*) not implemented\n");
 	abort();
 }
 

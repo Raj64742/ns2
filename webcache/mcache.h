@@ -26,7 +26,7 @@
 //
 // Multimedia caches
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.3 1999/08/04 21:04:04 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.4 1999/08/24 04:16:27 haoboy Exp $
 
 #ifndef ns_mcache_h
 #define ns_mcache_h
@@ -237,9 +237,9 @@ public:
 	~MediaCache();
 
 	// Handle app-specific data in C++
-	virtual void process_data(int size, char* data);
+	virtual void process_data(int size, AppData* data);
 	// Handle data request from RAP
-	virtual AppData* get_data(int& size, const AppData* data);
+	virtual AppData* get_data(int& size, AppData* data);
 
 protected:
 	virtual int command(int argc, const char*const* argv);
@@ -264,7 +264,7 @@ protected:
 class MediaClient : public HttpClient {
 public:
 	MediaClient() : HttpClient() {}
-	virtual void process_data(int size, char* data);
+	virtual void process_data(int size, AppData* data);
 	virtual int command(int argc, const char*const* argv);
 private:
 	MClientPagePool* mpool() { return (MClientPagePool *)pool_; }
@@ -279,7 +279,7 @@ class MediaServer : public HttpServer {
 public:
 	MediaServer();
 	~MediaServer();
-	virtual AppData* get_data(int& size, const AppData* d);
+	virtual AppData* get_data(int& size, AppData* d);
 protected:
 	virtual int command(int argc, const char*const* argv);
 	MediaSegment get_next_segment(MediaRequest *r);

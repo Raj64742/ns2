@@ -26,7 +26,7 @@
 //
 // ADU and ADU processor
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.cc,v 1.2 1999/07/02 21:02:06 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.cc,v 1.3 1999/08/24 04:16:13 haoboy Exp $
 
 #include "ns-process.h"
 
@@ -38,12 +38,12 @@ static class ProcessClass : public TclClass {
 	}
 } class_process;
 
-void Process::process_data(int, char*)
+void Process::process_data(int, AppData*)
 {
 	abort();
 }
 
-AppData* Process::get_data(int&, const AppData*)
+AppData* Process::get_data(int&, AppData*)
 {
 	abort();
 	/* NOTREACHED */

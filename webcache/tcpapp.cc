@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.12 1999/07/16 16:58:07 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.13 1999/08/24 04:16:28 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -29,16 +29,14 @@
 
 // Buffer management stuff.
 
-CBuf::CBuf(const AppData *c, int nbytes)
+CBuf::CBuf(AppData *c, int nbytes)
 {
 	nbytes_ = nbytes;
 	size_ = c->size();
-	if (size_ > 0) {
-		data_ = new char[size_];
-		assert(data_ != NULL);
-		c->pack(data_);
-	} else 
-		data_ = NULL;
+  	if (size_ > 0) 
+		data_ = c;
+  	else 
+  		data_ = NULL;
 	next_ = NULL;
 }
 
@@ -81,18 +79,18 @@ CBuf* CBufList::detach()
 // ADU for plain TcpApp, which is by default a string of otcl script
 // XXX Local to this file
 class TcpAppString : public AppData {
+private:
+	int size_;
+	char* str_; 
 public:
 	TcpAppString() : AppData(TCPAPP_STRING), size_(0), str_(NULL) {}
-	TcpAppString(char *b) : AppData(b) {
-		b += hdrlen();
-		if (*b == 0)
-			size_ = NULL, str_ = 0;
-		else {
-			size_ = strlen(b) + 1;
+	TcpAppString(TcpAppString& d) : AppData(d) {
+		size_ = d.size_;
+		if (size_ > 0) {
 			str_ = new char[size_];
-			assert(str_ != NULL);
-			strcpy(str_, b);
-		}
+			strcpy(str_, d.str_);
+		} else
+			str_ = NULL;
 	}
 	virtual ~TcpAppString() { 
 		if (str_ != NULL) 
@@ -100,7 +98,7 @@ public:
 	}
 
 	char* str() { return str_; }
-	virtual int size() const { return hdrlen() + size_; }
+	virtual int size() const { return AppData::size() + size_; }
 
 	// Insert string-contents into the ADU
 	void set_string(const char* s) {
@@ -113,16 +111,9 @@ public:
 			strcpy(str_, s);
 		}
 	}
-
-	virtual void pack(char* buf) const {
-		AppData::pack(buf);
-		buf += hdrlen();
-		strcpy(buf, str_);
+	virtual TcpAppString* copy() {
+		return new TcpAppString(*this);
 	}
-
-protected:
-	int size_;
-	char* str_; 
 };
 
 // TcpApp
@@ -154,7 +145,7 @@ TcpApp::~TcpApp()
 }
 
 // Send with callbacks to transfer application data
-void TcpApp::send(int nbytes, const AppData *cbk)
+void TcpApp::send(int nbytes, AppData *cbk)
 {
 	CBuf *p = new CBuf(cbk, nbytes);
 #ifdef TCPAPP_DEBUG
@@ -198,11 +189,11 @@ void TcpApp::recv(int size)
 			curbytes_ -= curdata_->bytes();
 #ifdef TCPAPP_DEBUG
 			fprintf(stderr, 
-				"[%g] %s gets data size %d(left %d) %s\n", 
+				"[%g] %s gets data size %d(left %d)\n", 
 				Scheduler::instance().clock(), 
 				name(),
-				curdata_->bytes(), curbytes_, 
-				curdata_->data());
+				curdata_->bytes(), curbytes_);
+				//curdata_->data());
 #endif
 			delete curdata_;
 			curdata_ = dst_->rcvr_retrieve_data();
@@ -256,7 +247,6 @@ int TcpApp::command(int argc, const char*const* argv)
 			TcpAppString *tmp = new TcpAppString();
 			tmp->set_string(argv[3]);
 			send(size, tmp);
-			delete tmp;
 		}
 		return (TCL_OK);
 	} else if (strcmp(argv[1], "dst") == 0) {
@@ -266,7 +256,7 @@ int TcpApp::command(int argc, const char*const* argv)
 	return Application::command(argc, argv);
 }
 
-void TcpApp::process_data(int size, char* data) 
+void TcpApp::process_data(int size, AppData* data) 
 {
 	if (data == NULL)
 		return;
@@ -274,9 +264,8 @@ void TcpApp::process_data(int size, char* data)
 	// If there isn't a target, use tcl to evaluate the data
 	if (target())
 		send_data(size, data);
-	else if (AppData::type(data) == TCPAPP_STRING) {
-		TcpAppString *tmp = new TcpAppString(data);
+	else if (data->type() == TCPAPP_STRING) {
+		TcpAppString *tmp = (TcpAppString*)data;
 		Tcl::instance().eval(tmp->str());
-		delete tmp;
 	}
 }

@@ -26,7 +26,7 @@
 //
 // ADU and ADU processor
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ns-process.h,v 1.1 1999/03/15 20:48:50 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ns-process.h,v 1.2 1999/08/24 04:16:15 haoboy Exp $
 
 #ifndef ns_process_h
 #define ns_process_h
@@ -39,6 +39,9 @@
 enum AppDataType {
 	// Illegal type
 	ADU_ILLEGAL,
+
+	// Old packet data ADU
+	PACKET_DATA,
 
 	// HTTP ADUs
 	HTTP_DATA,
@@ -57,6 +60,9 @@ enum AppDataType {
 	MEDIA_DATA,
 	MEDIA_REQUEST,
 
+	// pub/sub ADU
+	PUBSUB,
+
 	// Last ADU
 	ADU_LAST
 };
@@ -66,39 +72,41 @@ enum AppDataType {
 class AppData {
 private:
 	AppDataType type_;  	// ADU type
-public:
-	struct hdr {
-		AppDataType type_;
-	};
+//  	int refcount_; 
+
 public:
 	AppData(AppDataType type) { type_ = type; }
-	AppData(char* b) {
-		assert(b != NULL);
-		type_ = ((hdr *)b)->type_;
-	}
+	AppData(AppData& d) { type_ = d.type_; }
+	virtual ~AppData() {}
 
-	// Attributes
-	virtual int size() const { return hdrlen(); }
-	virtual int hdrlen() const { return sizeof(hdr); }
 	AppDataType type() const { return type_; }
 
-	// Persistence
-	virtual void pack(char* buf) const {
-		assert(buf != NULL);
-		((hdr *)buf)->type_ = type_;
-	}
+	// The following two methods MUST be rewrited for EVERY derived classes
+	virtual int size() const { return sizeof(AppData); }
+	virtual AppData* copy() = 0;
+//  		{
+//  		return new AppData(*this);
+//  	}
+
+//  	int refcount() const { return refcount_; }
+//  	int incr_ref() { return ++refcount_; }
+//  	int decr_ref() { return --refcount_; }
+//  	static void free(AppData *d) {
+//  		if (d->decr_ref() == 0) 
+//  			delete d;
+//  	}
 
 	// Static type checking on a persistent ADU
 	// XXX hacky and dangerous!! Better ideas??
-	static AppDataType type(char* buf) {
-		if (buf == NULL)
-			return ADU_ILLEGAL;
-		AppDataType t = ((hdr *)buf)->type_;
-		if ((t >= ADU_LAST) || (t <= ADU_ILLEGAL))
-			return ADU_ILLEGAL;
-		else
-			return t;
-	}
+//  	static AppDataType type(char* buf) {
+//  		if (buf == NULL)
+//  			return ADU_ILLEGAL;
+//  		AppDataType t = ((hdr *)buf)->type_;
+//  		if ((t >= ADU_LAST) || (t <= ADU_ILLEGAL))
+//  			return ADU_ILLEGAL;
+//  		else
+//  			return t;
+//  	}
 };
 
 // Models any entity that is capable of process an ADU. 
@@ -110,13 +118,13 @@ public:
 	inline Process*& target() { return target_; }
 
 	// Process incoming data
-	virtual void process_data(int size, char* data);
+	virtual void process_data(int size, AppData* data);
 
 	// Request data from the previous application in the chain
-	virtual AppData* get_data(int& size, const AppData* req_data = 0);
+	virtual AppData* get_data(int& size, AppData* req_data = 0);
 
 	// Send data to the next application in the chain
-	virtual void send_data(int size, char* data = 0) {
+	virtual void send_data(int size, AppData* data = 0) {
 		if (target_)
 			target_->process_data(size, data);
 	}
