@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.7 2000/03/16 02:06:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.8 2000/07/07 22:11:17 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -155,6 +155,9 @@ TestSuite instproc setup {tcptype list} {
     	} elseif {$tcptype == "Fack"} {
       		set tcp1 [$ns_ create-connection TCP/Fack $node_(s1) \
           	TCPSink/Sack1  $node_(k1) $fid]
+    	} elseif {$tcptype == "SackRH"} {
+      		set tcp1 [$ns_ create-connection TCP/SackRH $node_(s1) \
+          	TCPSink/Sack1 $node_(k1) $fid]
     	} elseif {$tcptype == "FullTcp"} {
 		set wrap $wrap1
 	        set tcp1 [new Agent/TCP/FullTcp]
@@ -360,6 +363,17 @@ Test/onedrop_fack instproc run {} {
         $self setup Fack {14}
 }
 
+Class Test/onedrop_sackRH -superclass TestSuite
+Test/onedrop_sackRH instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	onedrop_sackRH
+	$self next
+}
+Test/onedrop_sackRH instproc run {} {
+        $self setup SackRH {14}
+}
+
 ###################################################
 ## Two drops
 ###################################################
@@ -461,6 +475,17 @@ Test/twodrops_fack instproc init {} {
 }
 Test/twodrops_fack instproc run {} {
         $self setup Fack {14 28}
+}
+
+Class Test/twodrops_sackRH -superclass TestSuite
+Test/twodrops_sackRH instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	twodrops_sackRH
+	$self next
+}
+Test/twodrops_sackRH instproc run {} {
+        $self setup SackRH {14 28}
 }
 
 ###################################################
@@ -566,6 +591,18 @@ Test/threedrops_fack instproc run {} {
         $self setup Fack {14 26 28}
 }
 
+Class Test/threedrops_sackRH -superclass TestSuite
+Test/threedrops_sackRH instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	threedrops_sackRH
+	$self next
+}
+Test/threedrops_sackRH instproc run {} {
+        $self setup SackRH {14 26 28}
+}
+
+
 ###################################################
 ## Four drops
 ###################################################
@@ -668,7 +705,15 @@ Test/fourdrops_fack instproc init {} {
 Test/fourdrops_fack instproc run {} {
         $self setup Fack {14 24 26 28}
 }
-
+Class Test/fourdrops_sackRH -superclass TestSuite
+Test/fourdrops_sackRH instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	fourdrops_sackRH
+	$self next
+}
+Test/fourdrops_sackRH instproc run {} {
+        $self setup SackRH {14 24 26 28}
+}
 
 TestSuite runTest
-
