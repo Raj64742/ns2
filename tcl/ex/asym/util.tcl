@@ -29,6 +29,7 @@ Agent/TCP/Fack set rampdown 0
 Agent/TCP set timestamps_ true
 Agent/TCP set fast_loss_recov_ true
 Agent/TCP set fast_reset_timer_ true
+Agent/TCP set count_bytes_acked_ true
 Agent/TCP set windowOption_ 0
 
 Agent/TCP/Int set rightEdge_ 0
@@ -45,10 +46,7 @@ Agent/TCP/Session set schedDisp_ $FINE_ROUND_ROBIN
 
 Agent/TCPSink set ts_echo_bugfix_ true
 
-proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag false } { dir "." } } {
-	global env
-	upvar $connGraphFlag graphFlag
-
+proc processtrace { midtime turnontime turnofftime { qtraceflag false } { dir "." } } {
 	exec gawk --lint -v dir=$dir -f ../../../ex/asym/tcp-trace.awk $dir/tcp-raw.tr
 	exec gawk --lint -v dir=$dir -f ../../../ex/asym/seq.awk $dir/out.tr
 	exec gawk --lint -v dir=$dir -v mid=$midtime -v turnon=$turnontime -v turnoff=$turnofftime -f ../../../ex/asym/tcp.awk $dir/tcp.tr
@@ -56,6 +54,12 @@ proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag 
 	if { $qtraceflag } {
 		exec gawk --lint -f ../../../ex/asym/queue.awk $dir/q.tr
 	}
+}
+	
+
+proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag false } { dir "." } } {
+	global env
+	upvar $connGraphFlag graphFlag
 
 	set if [open seq-index.out r]
 	while {[gets $if i] >= 0} {
@@ -112,7 +116,7 @@ proc trace_queue {ns n0 n1 queuetrace} {
 }
 
 
-proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
+proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } { slow_start_restart false} } {
 	set tcp0 [new Agent/$type]
 	$tcp0 set class_ 1
 	$tcp0 set maxburst_ $maxburst
@@ -121,6 +125,7 @@ proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
 	$tcp0 set maxcwnd_ $window
 	$tcp0 set ecn_ 1
 	$tcp0 set g_ 0.125
+	$tcp0 set slow_start_restart_ $slow_start_restart
 	return $tcp0
 } 
 
