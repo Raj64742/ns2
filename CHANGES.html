@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.528 2002/07/09 02:23:32 yuri Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.529 2002/07/10 20:48:26 yuri Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -20,9 +20,19 @@ with the most recent changes coming first.
 <ul>
 <p><li><b>[Yuri Pryadkin]</b>
 Mon Jul  8 19:20:24 PDT 2002<br>
-Experimental (!) changes to the calendar scheduler
-(scheduler.{cc,h}).  Waiting to see how they validate on Solaris;
-after that will add more here.
+Changes to the calendar scheduler (scheduler.{cc,h}):
+  <ul>
+  <li> No limitation on the bucket width (use of `fmod()', which is POSIX). 
+  <li> No round-off error accumulation because a new method for
+       checking year-wraps is used.
+  <li> Different algorithm for calculating bucket width by sampling
+       that deals with butch-enqueues and aims and minimizing the
+       longest bucket queue.
+  <li> A bug fix that was there before and somehow didn't show (?)
+  <li> Double-linked list for events that gives us O(1) performance for
+       event cancellation.  This comes at a price of one more pointer
+       per event.
+  </ul>       
 
 <p><li><b><a href="http://www.isi.edu/~haldar/">[haldar]</a></b>
 Tue Jul  2 14:42:08 PDT 2002
