@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.15 1997/12/05 23:30:39 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.16 1998/01/13 03:29:24 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -44,32 +44,32 @@ static const char rcsid[] =
 #include "mac-csma.h"
 
 
-static class CsmaMacClass : public TclClass {
+static class MacCsmaClass : public TclClass {
 public:
-	CsmaMacClass() : TclClass("Mac/Csma") {}
+	MacCsmaClass() : TclClass("Mac/Csma") {}
 	TclObject* create(int, const char*const*) {
-		return (new CsmaMac);
+		return (new MacCsma);
 	}
 } class_mac_csma;
 
-static class CsmaCdMacClass : public TclClass {
+static class MacCsmaCdClass : public TclClass {
 public:
-	CsmaCdMacClass() : TclClass("Mac/Csma/Cd") {}
+	MacCsmaCdClass() : TclClass("Mac/Csma/Cd") {}
 	TclObject* create(int, const char*const*) {
-		return (new CsmaCdMac);
+		return (new MacCsmaCd);
 	}
 } class_mac_csma_cd;
 
-static class CsmaCaMacClass : public TclClass {
+static class MacCsmaCaClass : public TclClass {
 public:
-	CsmaCaMacClass() : TclClass("Mac/Csma/Ca") {}
+	MacCsmaCaClass() : TclClass("Mac/Csma/Ca") {}
 	TclObject* create(int, const char*const*) {
-		return (new CsmaCaMac);
+		return (new MacCsmaCa);
 	}
 } class_mac_csma_ca;
 
 
-CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
+MacCsma::MacCsma() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
 {
 	bind_time("delay_", &delay_);
 	bind_time("ifs_", &ifs_);
@@ -81,17 +81,17 @@ CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
 	cw_ = cwmin_;
 }
 
-CsmaCdMac::CsmaCdMac() : CsmaMac()
+MacCsmaCd::MacCsmaCd() : MacCsma()
 {
 }
 
-CsmaCaMac::CsmaCaMac() : CsmaMac()
+MacCsmaCa::MacCsmaCa() : MacCsma()
 {
 }
 
 
 void
-CsmaMac::resume(Packet* p)
+MacCsma::resume(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	s.schedule(callback_, &intr_, ifs_ + slotTime_ * cwmin_);
@@ -105,7 +105,7 @@ CsmaMac::resume(Packet* p)
 
 
 void
-CsmaMac::send(Packet* p)
+MacCsma::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
@@ -113,7 +113,7 @@ CsmaMac::send(Packet* p)
 	// if channel is not ready, then wait
 	// else content for the channel
 	if (csense_ && channel_->txstop() + ifs_ > now)
-		s.schedule(&mhSend_, p, channel_->txstop() + ifs_ - now);
+		s.schedule(&hSend_, p, channel_->txstop() + ifs_ - now);
 	else {
 		txstart_ = now;
 		channel_->contention(p, &hEoc_);
@@ -122,7 +122,7 @@ CsmaMac::send(Packet* p)
 
 
 void
-CsmaMac::backoff(Handler* h, Packet* p, double delay)
+MacCsma::backoff(Handler* h, Packet* p, double delay)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
@@ -141,39 +141,39 @@ CsmaMac::backoff(Handler* h, Packet* p, double delay)
 
 
 void
-CsmaMac::endofContention(Packet* p)
+MacCsma::endofContention(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
 	((hdr_mac*) p->access(off_mac_))->txtime() = txt;
 	channel_->send(p, txt);
-	s.schedule(&mh_, &eEoc_, txt);
+	s.schedule(&hRes_, &eEoc_, txt);
 	rtx_ = 0;
 	cw_ = cwmin_;
 }
 
 
 void
-CsmaCdMac::endofContention(Packet* p)
+MacCsmaCd::endofContention(Packet* p)
 {
 	// If there is a collision, backoff
 	if (channel_->collision()) {
 		channel_->hold(0);
-		backoff(&mhSend_, p);
+		backoff(&hSend_, p);
 	}
 	else
-		CsmaMac::endofContention(p);
+		MacCsma::endofContention(p);
 }
 
 
 void
-CsmaCaMac::send(Packet* p)
+MacCsmaCa::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 
 	if (csense_ && channel_->txstop() + ifs_ > now)
-		backoff(&mhSend_, p);
+		backoff(&hSend_, p);
 	else {
 		txstart_ = now;
 		channel_->contention(p, &hEoc_);

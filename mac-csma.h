@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.h,v 1.10 1997/12/05 23:30:40 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.h,v 1.11 1998/01/13 03:29:24 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_csma_h
@@ -45,27 +45,26 @@
 // Carrier Sense Multiple Access MAC
 */
 
-class CsmaMac;
+class MacCsma;
 
 class MacHandlerEoc : public Handler {
 public:
-	MacHandlerEoc(CsmaMac* m) : mac_(m) {}
+	MacHandlerEoc(MacCsma* m) : mac_(m) {}
 	void handle(Event* e);
 protected:
-	CsmaMac* mac_;
+	MacCsma* mac_;
 };
 
 
-class CsmaMac : public Mac {
+class MacCsma : public Mac {
 public:
-	CsmaMac();
-	void send(Packet* p);
-	void resume(Packet* p = 0);
+	MacCsma();
+	virtual void send(Packet* p);
+	virtual void resume(Packet* p = 0);
 	virtual void endofContention(Packet* p);
 
 protected:
 	virtual void backoff(Handler* h, Packet* p, double delay=0);
-	double delay_;		// MAC overhead
 	double txstart_;	// when the transmission starts
 	double ifs_;		// interframe spacing
 	double slotTime_;	// duration of antenna slot in seconds
@@ -80,18 +79,18 @@ protected:
 };
 
 
-class CsmaCdMac : public CsmaMac
+class MacCsmaCd : public MacCsma
 {
 public:
-	CsmaCdMac();
+	MacCsmaCd();
 	void endofContention(Packet*);
 };
 
 
-class CsmaCaMac : public CsmaMac
+class MacCsmaCa : public MacCsma
 {
 public:
-	CsmaCaMac();
+	MacCsmaCa();
 	virtual void send(Packet*);
 };
 
