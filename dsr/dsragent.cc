@@ -328,8 +328,10 @@ send_buf_timer(this), flow_table(), ars_table()
   logtarget = 0;
 
   grat_hold_victim = 0;
-  for (c = 0; c < RTREP_HOLDOFF_SIZE ; c++)
+  for (c = 0; c < RTREP_HOLDOFF_SIZE ; c++) {
+    grat_hold[c].t = 0;
     grat_hold[c].p.reset();
+  }
 
   //bind("off_SR_", &off_sr_);
   //bind("off_ll_", &off_ll_);
