@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/check-diff.pl,v 1.1 2000/09/13 03:10:37 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/check-diff.pl,v 1.2 2000/10/17 18:10:08 haoboy Exp $
 
 use strict;
 use Carp;
@@ -32,6 +32,11 @@ sub convert_line_right {
     $line =~ s/\]/\\\]/g;
     $line =~ s/\*/\\\*/g;
     return $line;
+}
+
+if ($#ARGV != 2) {
+	print "Usage: check-diff.pl <test_out1> <test_out2> left|right\n";
+	exit 0;
 }
 
 my ($buf, $file1, $file2, $ret);
