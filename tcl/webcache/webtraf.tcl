@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.17 2002/07/12 18:29:45 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.18 2003/01/05 18:55:47 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -46,11 +46,17 @@ PagePool/WebTraf set recycle_page_ 1
 # 2. set TCPTYPE_ FullTcp
 PagePool/WebTraf set fulltcp_ 0
 
-# modified to trace web traffic flows (request and response).
-# used to evaluate SFD algorithm.
-PagePool/WebTraf set REQ_TRACE_ 0
-PagePool/WebTraf set RESP_TRACE_ 0
+# Trace web request and response flows
+PagePool/WebTraf set req_trace_ 0
+PagePool/WebTraf set resp_trace_ 0
 
+# Timer for application level control of connection
+PagePool/WebTraf set enable_conn_timer_ 0
+# Default value for end-users' average waiting time
+PagePool/WebTraf set avg_waiting_time_ 30
+
+# options to control traffic based on flow size, 
+# used to evaluate SFD algorithm.
 # The threshold to classify short and long flows (in TCP packets, ie 15KB)
 PagePool/WebTraf set FLOW_SIZE_TH_ 15
 # Option to modify traffic mix:
@@ -59,10 +65,10 @@ PagePool/WebTraf set FLOW_SIZE_TH_ 15
 # 2: Chop long flows to short ones.
 PagePool/WebTraf set FLOW_SIZE_OPS_ 0
 
-# Flag of introducing server processing delay
-PagePool/WebTraf set server_delay_ 0
+PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk size pobj} {
+    $self instvar req_trace_
+    $self instvar timer_
 
-PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size pobj} {
     set launch_req 1
     set flow_th [PagePool/WebTraf set FLOW_SIZE_TH_]
 
@@ -73,10 +79,7 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size 
     if {$launch_req == 1} {
 	set ns [Simulator instance]
 	
-	$ns attach-agent $svr $stcp
-	$ns attach-agent $clnt $ssnk
-	$ns connect $stcp $ssnk
-	
+	# create request connection from client to server
 	$ns attach-agent $clnt $ctcp
 	$ns attach-agent $svr $csnk
 	$ns connect $ctcp $csnk
@@ -84,46 +87,46 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size 
 	# sink needs to listen for fulltcp
 	if {[PagePool/WebTraf set fulltcp_] == 1} {
 	    $csnk listen
-	    $ssnk listen
 	}
 
 	if {[PagePool/WebTraf set FID_ASSIGNING_MODE_] == 0} {
-	    $stcp set fid_ $id
 	    $ctcp set fid_ $id
 
 	    if {[PagePool/WebTraf set fulltcp_] == 1} {
 		$csnk set fid_ $id
-		$ssnk set fid_ $id
 	    }
 	}
 
-	if {[PagePool/WebTraf set FLOW_SIZE_OPS_] == 2 && $size > $flow_th} {
-	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $flow_th $pobj"
-	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $flow_th $flow_th [$ns now] [$stcp set fid_] $pobj"
-	} else {
-	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $size $pobj"
-	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $size $flow_th [$ns now] [$stcp set fid_] $pobj"
-	}
+	set timer_ [$self get-conn-timer $ctcp $csnk $clnt $svr]
 	
-#	$ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size"
-#	$stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
 	
-	# modified to trace web traffic flows (send request: client==>server).
-	if {[PagePool/WebTraf set REQ_TRACE_]} {	
+	# define call-back function for request TCP
+	$ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $size $pobj $timer_"
+	
+	# Trace web traffic flows (send request: client==>server).
+	if {$req_trace_} {	
 	    puts "req + $id $pid $size [$clnt id] [$svr id] [$ns now]"
 	}	
-
+	
 	# Send a single packet as a request
 	$self send-message $ctcp 1
     }
+
 }
 
-PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent pobj} {
-    set ns [Simulator instance]
-    
+PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk size pobj timer} {
+    $self instvar req_trace_
 
-    # modified to trace web traffic flows (recv request: client==>server).
-    if {[PagePool/WebTraf set REQ_TRACE_]} {	
+    # Cancel the connection timer if any
+    if {[PagePool/WebTraf set enable_conn_timer_]} {
+	$timer cancel
+	delete $timer
+    }
+
+    set ns [Simulator instance]
+ 
+    # Trace web traffic flows (recv request: client==>server).
+    if {$req_trace_} {	
 	puts "req - $id $pid $size [$clnt id] [$svr id] [$ns now]"
     }
     
@@ -132,30 +135,63 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent po
     $ns detach-agent $svr $csnk
     $ctcp reset
     $csnk reset
-    $self recycle $ctcp $csnk
-    #	puts "recycled $stcp $ssnk"
-    
-    # modified to trace web traffic flows (send responese: server->client).
-    if {[PagePool/WebTraf set RESP_TRACE_]} {
-	puts "resp + $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
-    }
-    
-    # Delay introduced by the server
-    set sdelay 0 
-    
-    if {[PagePool/WebTraf set server_delay_]} {
-	$self job_arrival [$svr id] $stcp $size
-    } else {
-	# no server delay, send packets right away.
-	$self send-message $stcp $sent
-    }
+    # do NOT recycle tcp & sink, reuse for response connection
+
+    # request has completed successfully, now pass the request to web server
+    # notify web server about the request
+    $self job_arrival $id $clnt $svr $ctcp $csnk $size $pobj
+    #$self launch-resp $id $pid $svr $clnt $ctcp $csnk $size $pobj
 }
 
-PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0} pobj} {
+PagePool/WebTraf instproc launch-resp { id pid svr clnt stcp ssnk size pobj} {
+    $self instvar resp_trace_
+
+    set flow_th [PagePool/WebTraf set FLOW_SIZE_TH_]
+
+    set ns [Simulator instance]
+
+    # create response connection from server to client
+    $ns attach-agent $svr $stcp
+    $ns attach-agent $clnt $ssnk
+    $ns connect $stcp $ssnk
+	
+    # sink needs to listen for fulltcp
+    if {[PagePool/WebTraf set fulltcp_] == 1} {
+	$ssnk listen
+    }
+
+    if {[PagePool/WebTraf set FID_ASSIGNING_MODE_] == 0} {
+	$stcp set fid_ $id
+	
+	if {[PagePool/WebTraf set fulltcp_] == 1} {
+	    $ssnk set fid_ $id
+	}
+    }
+    
+    if {[PagePool/WebTraf set FLOW_SIZE_OPS_] == 2 && $size > $flow_th} {
+	set sent $flow_th
+    } else {
+	set sent $size
+    }
+
+    # define callback function for response tcp
+    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $sent $flow_th [$ns now] [$stcp set fid_] $pobj"
+    
+    # Trace web traffic flows (send responese: server->client).
+    if {$resp_trace_} {
+	puts "resp + $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
+    }
+    # Send a single packet as a request
+    $self send-message $stcp $sent
+}
+
+PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0} pobj } {
+    $self instvar resp_trace_
+
     set ns [Simulator instance]
     
     # modified to trace web traffic flows (recv responese: server->client).
-    if {[PagePool/WebTraf set RESP_TRACE_]} {
+    if {$resp_trace_} {
 	puts "resp - $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
     }
     
@@ -190,7 +226,7 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	set left [expr $size - $sent]
 	if {$left <= $sent_th} {
 	    # modified to trace web traffic flows (send responese: server->client).
-	    if {[PagePool/WebTraf set RESP_TRACE_]} {
+	    if {$resp_trace_} {
 		puts "resp + $id $pid $left $size [$svr id] [$clnt id] [$ns now]"
 	    }
 	    set sent [expr $sent + $left]
@@ -199,7 +235,7 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	    $self send-message $stcp $left
 	} else {
 	    # modified to trace web traffic flows (send responese: server->client).
-	    if {[PagePool/WebTraf set RESP_TRACE_]} {
+	    if {$resp_trace_} {
 		puts "resp + $id $pid $sent_th $size [$svr id] [$clnt id] [$ns now]"
 	    }
 	    set sent [expr $sent + $sent_th]
@@ -208,7 +244,7 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	    $self send-message $stcp $sent_th
 	}
     } else {
-	# Recycle server-side TCP agents
+	# Recycle TCP agents
 	$self recycle $stcp $ssnk	
 	$self doneObj $pobj
     }
@@ -247,7 +283,6 @@ PagePool/WebTraf instproc send-message {tcp num_packet} {
     }
 }
 
-
 # Debo
 
 #PagePool/WebTraf instproc create-session { args } {
@@ -274,3 +309,73 @@ PagePool/WebTraf instproc  add2asim { srcid dstid lambda mu } {
     #puts "setup short flow .. now sflows_ = $sf_"
 
 }
+
+# Set a timer for connection duration
+PagePool/WebTraf instproc get-conn-timer { tcp snk clnt svr } {
+    if {[PagePool/WebTraf set enable_conn_timer_]} {
+	set timer_ [new ConnTimer $self [PagePool/WebTraf set avg_waiting_time_]]
+	$timer_ sched $tcp $snk $clnt $svr
+    } else {
+	set timer_ 0
+    }
+
+    return $timer_
+}
+
+# Timer for Application level retransmission
+Class ConnTimer -superclass Timer
+
+ConnTimer instproc init {webtraf delay} {
+     $self instvar webtraf_ avg_delay_
+
+     $self set webtraf_ $webtraf
+     $self set avg_delay_ $delay
+ 
+     $self next [Simulator instance]
+ }
+ 
+ ConnTimer instproc sched {tcp snk n1 n2} {
+     $self instvar tcp_ snk_ n1_ n2_ avg_delay_
+ 
+     $self set tcp_ $tcp
+     $self set snk_ $snk
+     $self set n1_ $n1
+     $self set n2_ $n2
+ 
+     set waiting_time [new RandomVariable/Exponential]
+     $waiting_time set avg_ $avg_delay_
+     set delay [$waiting_time value]
+     puts "delay: $delay"
+     delete $waiting_time
+
+     $self next $delay
+ }
+ 
+ ConnTimer instproc timeout {} {
+     $self instvar webtraf_
+     $self instvar n1_ n2_ tcp_ snk_
+
+     #puts "timeout!!"
+
+     set v [new RandomVariable/Uniform]
+     set p [$v value]
+     #puts "p: $p"
+     delete $v
+
+     if {$p > 0.5} {
+	 # continue to wait
+	 $self sched $tcp_ $snk_ $n1_ $n2_
+     } else {
+	 # terminate request
+	 set ns [Simulator instance] 
+	 
+	 $ns detach-agent $n1_ $tcp_
+	 $ns detach-agent $n2_ $snk_
+	 $tcp_ reset
+	 $snk_ reset
+	 $webtraf_ recycle $tcp_ $snk_
+	 
+	 delete $self
+     }
+ }
+
