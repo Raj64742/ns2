@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.11 1997/07/22 22:17:07 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.12 1997/07/24 04:45:10 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -73,7 +73,7 @@ MacHandlerSend::handle(Event* e)
 }
 
 
-Mac::Mac() : DropConnector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0), mh_(this), mhSend_(this), macList_(0)
+Mac::Mac() : Connector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0), mh_(this), mhSend_(this), macList_(0)
 {
 	bind("hlen_", &hlen_);
 	bind_bw("bandwidth_", &bandwidth_);
@@ -113,7 +113,7 @@ Mac::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-	return DropConnector::command(argc, argv);
+	return Connector::command(argc, argv);
 }
 
 

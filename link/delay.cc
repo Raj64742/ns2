@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.14 1997/07/23 01:30:09 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.15 1997/07/24 04:45:07 gnguyen Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -46,7 +46,7 @@ public:
 	}
 } class_delay_link;
 
-LinkDelay::LinkDelay() : DropConnector(), dynamic_(0), itq_(0), nextPacket_(0)
+LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
 {
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
@@ -61,7 +61,7 @@ int LinkDelay::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 	}
-	return DropConnector::command(argc, argv);
+	return Connector::command(argc, argv);
 }
 
 void LinkDelay::recv(Packet* p, Handler* h)

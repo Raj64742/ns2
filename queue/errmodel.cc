@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.10 1997/07/23 19:34:32 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.11 1997/07/24 04:45:08 gnguyen Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -56,7 +56,7 @@ public:
 static char* eu_names[] = { EU_NAMES };
 
 
-ErrorModel::ErrorModel(ErrorUnit eu) : DropConnector(), eu_(eu), rate_(0)
+ErrorModel::ErrorModel(ErrorUnit eu) : Connector(), eu_(eu), rate_(0)
 {
 	bind("rate_", &rate_);
 	bind("off_ll_", &off_ll_);
@@ -87,7 +87,7 @@ ErrorModel::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-	return DropConnector::command(argc, argv);
+	return Connector::command(argc, argv);
 }
 
 

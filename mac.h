@@ -32,13 +32,14 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.9 1997/07/23 02:22:07 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.10 1997/07/24 04:45:10 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
 #define ns_mac_h
 
-#include "connector-drop.h"
+#include "connector.h"
+#include "packet.h"
 
 #ifndef ns_pkt_h
 #define bind_offset(fieldName, offset)
@@ -105,7 +106,7 @@ protected:
 };
 
 
-class Mac : public DropConnector {
+class Mac : public Connector {
 public:
 	Mac();
 	virtual void recv(Packet* p, Handler* h);

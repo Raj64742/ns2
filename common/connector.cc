@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.7 1997/07/24 02:51:34 padmanab Exp $ ";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.8 1997/07/24 04:45:06 gnguyen Exp $ ";
 #endif
 
 #include "packet.h"
@@ -62,14 +62,29 @@ int Connector::command(int argc, const char*const* argv)
 				tcl.result(target_->name());
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "drop-target") == 0) {
+			if (drop_ != 0)
+				tcl.resultf("%s", drop_->name());
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "dynamic") == 0) {
 			return TCL_OK;
 		}
-	} else if (argc == 3) {
+	}
+
+	else if (argc == 3) {
 		if (strcmp(argv[1], "target") == 0) {
 			target_ = (NsObject*)TclObject::lookup(argv[2]);
 			if (target_ == 0) {
 				tcl.resultf("no such object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "drop-target") == 0) {
+			drop_ = (NsObject*)TclObject::lookup(argv[2]);
+			if (drop_ == 0) {
+				tcl.resultf("no object %s", argv[2]);
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
@@ -81,4 +96,12 @@ int Connector::command(int argc, const char*const* argv)
 void Connector::recv(Packet* p, Handler* h)
 {
 	send(p, h);
+}
+
+void Connector::drop(Packet* p)
+{
+	if (drop_ != 0)
+		drop_->recv(p);
+	else
+		Packet::free(p);
 }

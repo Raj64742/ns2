@@ -33,13 +33,13 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.11 1997/07/23 02:08:25 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.12 1997/07/24 04:45:04 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
 #define ns_channel_h
 
-#include "connector-drop.h"
+#include "connector.h"
 
 
 class Trace;
@@ -48,7 +48,7 @@ class Trace;
 // Channel:  a shared medium that supports contention and collision
 */
 
-class Channel : public DropConnector {
+class Channel : public Connector {
 public:
 	Channel();
 	void recv(Packet* p, Handler*);

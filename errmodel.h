@@ -32,13 +32,13 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.9 1997/07/23 02:19:36 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.10 1997/07/24 04:45:09 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
 #define ns_errmodel_h
 
-#include "connector-drop.h"
+#include "connector.h"
 #include "ranvar.h"
 
 
@@ -47,7 +47,7 @@ enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME };
 #define STR2EU(s) (!strcmp(s,"bit") ? EU_BIT : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
 
 
-class ErrorModel : public DropConnector {
+class ErrorModel : public Connector {
 public:
 	ErrorModel(ErrorUnit eu=EU_PKT);
 	void recv(Packet*, Handler*);

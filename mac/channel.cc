@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.12 1997/07/22 22:15:29 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.13 1997/07/24 04:45:03 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -62,7 +62,7 @@ public:
 } class_channel_duplex;
 
 
-Channel::Channel() : DropConnector(), txstop_(0), cwstop_(0), numtx_(0), pkt_(0), trace_(0)
+Channel::Channel() : Connector(), txstop_(0), cwstop_(0), numtx_(0), pkt_(0), trace_(0)
 {
 	bind_time("delay_", &delay_);
 	bind("off_ll_", &off_ll_);
@@ -84,7 +84,7 @@ Channel::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-	return DropConnector::command(argc, argv);
+	return Connector::command(argc, argv);
 }
 
 

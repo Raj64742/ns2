@@ -30,13 +30,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.14 1997/07/22 08:21:24 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.15 1997/07/24 04:45:12 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
 #define ns_queue_h
 
-#include "connector-drop.h"
+#include "connector.h"
 #include "packet.h"
 #include "ip.h"
 
@@ -88,7 +88,7 @@ private:
 	Queue& queue_;
 };
 
-class Queue : public DropConnector {
+class Queue : public Connector {
 public:
 	virtual void enque(Packet*) = 0;
 	virtual Packet* deque() = 0;
@@ -97,7 +97,7 @@ public:
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }
 	void block() { blocked_ = 1; }
-	virtual void drop(Packet* p) {DropConnector::drop(p);}
+	virtual void drop(Packet* p) { Connector::drop(p); }
 protected:
 	Queue();
 	void reset();
