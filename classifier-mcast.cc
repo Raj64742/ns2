@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.23 1999/03/13 03:52:44 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.24 1999/06/25 20:13:37 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -106,7 +106,7 @@ MCastClassifier::~MCastClassifier()
 
 void MCastClassifier::clearHash(hashnode* h[], int size) 
 {
-	for (int i = 0; i < HASHSIZE; ++i) {
+	for (int i = 0; i < size; ++i) {
 		hashnode* p = h[i];
 		while (p != 0) {
 			hashnode* n = p->next;
@@ -114,7 +114,7 @@ void MCastClassifier::clearHash(hashnode* h[], int size)
 			p = n;
 		}
 	}
-	memset(h, 0, size * sizeof(hashnode));
+	memset(h, 0, size * sizeof(hashnode*));
 }
 
 void MCastClassifier::clearAll()
