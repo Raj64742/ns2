@@ -32,12 +32,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-all-cbq-v1,v 1.1 1997/05/28 01:39:04 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-all-cbq-v1,v 1.2 1997/05/28 01:51:59 tomh Exp $
 #
 # This script was written and contributed by Matt Mathis (mathis@psc.edu)
 # Modified by Sally Floyd for test-all-cbq, 11/95.
 #
-tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' test-suite-cbq.tcl`
+tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' test-suite-cbq-v1.tcl`
 
 echo $tests
 for t in $tests; do
@@ -46,7 +46,7 @@ for t in $tests; do
 
     # Beware that xgraph is run on temp.rands asynchronously, if it
     # is slow to launch, you may get an incorrect graph
-    ./ns test-suite-cbq.tcl $t
+    ../../ns test-suite-cbq-v1.tcl $t
     echo 'next?'
     read answer
 done
