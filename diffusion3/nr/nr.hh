@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: nr.hh,v 1.1 2001/11/08 17:43:14 haldar Exp $
+// $Id: nr.hh,v 1.2 2001/11/15 21:27:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -29,11 +29,18 @@
 #include <assert.h>
 #include <vector>
 
+#ifdef NS_DIFFUSION
+#include "autoconf.h"
+#endif
+
 using namespace std;
 
 typedef signed int int32_t;
 typedef signed short int16_t;
-typedef signed char int8_t;
+typedef char int8_t;
+// conflicts with system declaration of int8_t in solaris
+//typedef signed char int8_t;
+
 
 #define FAIL -1
 #define OK    0
