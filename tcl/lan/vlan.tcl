@@ -77,6 +77,7 @@ LanNode instproc init {ns args} {
 	$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
 	$channel_ target $mcl_
 }
+
 LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} } {
 	$self instvar ifqType_ llType_ macType_ chanType_ 
 	$self instvar id_ channel_ mcl_ lanIface_
@@ -140,9 +141,11 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 	}
 	set nodelist_ [concat $nodelist_ $nodes]
 }
+
 LanNode instproc assign-mac {ip} {
 	return $ip ;# use ip addresses at MAC layer
 }
+
 LanNode instproc cost c {
 	$self instvar ns_ nodelist_ id_ cost_
 	$ns_ instvar link_
@@ -154,21 +157,28 @@ LanNode instproc cost c {
 		$link_($nid:$id_) cost $vlinkcost
 	}
 }
+
 LanNode instproc cost? {} {
 	$self instvar cost_
 	return $cost_
 }
+
 LanNode instproc rtObject? {} {
 	# NOTHING
 }
+
 LanNode instproc id {} { $self set id_ }
+
 LanNode instproc node-addr {{addr ""}} { 
 	eval $self set address_ $addr
 }
+
 LanNode instproc reset {} {
 	# NOTHING: needed for node processing by ns routing
 }
+
 LanNode instproc is-lan? {} { return 1 }
+
 LanNode instproc dump-namconfig {} {
 	# Redefine this function if want a different lan layout
 	$self instvar ns_ bw_ delay_ nodelist_ id_
@@ -184,28 +194,36 @@ LanNode instproc dump-namconfig {} {
 		set cnt [expr 1 - $cnt]
 	}
 }
+
 LanNode instproc init-outLink {} { 
 	#NOTHING
 }
+
 LanNode instproc start-mcast {} { 
 	# NOTHING
 }
+
 LanNode instproc getArbiter {} {
 	# NOTHING
 }
+
 LanNode instproc attach {agent} {
 	# NOTHING
 }
+
 LanNode instproc add-route {args} {
 	# NOTHING: use defRouter to find routes
 }
+
 LanNode instproc add-hroute {args} {
 	# NOTHING: use defRouter to find routes
 }
+
 LanNode instproc split-addrstr addrstr {
 	set L [split $addrstr .]
 	return $L
 }
+
 
 # LanIface---------------------------------------------------
 #
@@ -237,17 +255,16 @@ LanIface instproc init {node lan args} {
 	set mac_ [new $macType_]
 	set iface_ [new NetworkInterface]
 
+	$ll_ set macDA_ -1	# bcast address if there is no LAN router
 	$ll_ lanrouter [$lan set defRouter_]
-
-	$ifq_ target $ll_
-	$ll_ sendtarget $mac_
 	$ll_ recvtarget $iface_
+	$ll_ sendtarget $ifq_
+	$ifq_ target $mac_
 	$mac_ target $ll_
 
 	$node addInterface $iface_
 	$iface_ target [$node entry]
-	
-	set entry_ $ifq_
+	set entry_ $ll_
 }
 
 LanIface instproc trace {ns f {op ""}} {
@@ -256,7 +273,7 @@ LanIface instproc trace {ns f {op ""}} {
 	set hopT_ [$ns create-trace Hop $f $node_ $lan_ $op]
 	set rcvT_ [$ns create-trace Recv $f $lan_ $node_ $op]
 	$hopT_ target $entry_
-	set entry_ $hopT_ 
+	set entry_ $hopT_
 	$rcvT_ target [$iface_ target]
 	$iface_ target $rcvT_
 }
@@ -274,6 +291,7 @@ LanIface instproc add-receive-filter filter {
 	$filter target [$mac_ target]
 	$mac_ target $filter
 }
+
 
 # Vlink------------------------------------------------------
 #
@@ -325,6 +343,7 @@ Vlink instproc cost? {} {
 	return $cost_
 }
 
+
 # LanRouter--------------------------------------------------
 #
 # "Virtual node lan" needs to know which of the lan nodes is
@@ -341,6 +360,7 @@ LanRouter instproc init {ns lan} {
 	$self lanaddr [$lan node-addr]
 	$self routelogic [$ns get-routelogic]
 }
+
 
 Node instproc is-lan? {} { return 0 }
 
