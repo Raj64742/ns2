@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.41 2003/12/23 17:36:34 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.42 2004/09/08 17:00:53 haldar Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -507,6 +507,8 @@ WirelessChannel::updateNodesList(class MobileNode *mn, double oldX) {
 		if(mn->prevX_->X() <= X) skipX = true; // skip updating the last element
 		else mn->prevX_->nextX_ = NULL;
 	}
+	
+	if ((mn->prevX_ == NULL) && (mn->nextX_ == NULL)) skipX = true; //skip updating if only one element in list
 
 	/*** INSERT ***/
 	//inserting mn in x-list
