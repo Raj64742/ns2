@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.28 2002/10/23 23:20:40 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.29 2003/03/06 19:44:36 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -996,6 +996,7 @@ Test/reno5 instproc init topo {
 	set test_	reno5
 	set guide_	\
 	"Reno TCP, TCP/bugFix_ set to false."
+	Agent/TCP set bugFix_ false
 	$self next
 }
 Test/reno5 instproc run {} {
@@ -1007,10 +1008,8 @@ Test/reno5 instproc run {} {
 
 	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 50
-	$tcp1 set bugFix_ false
 	set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 20
-	$tcp2 set bugFix_ false
 
 	set ftp1 [$tcp1 attach-app FTP]
 	set ftp2 [$tcp2 attach-app FTP]
@@ -1023,6 +1022,20 @@ Test/reno5 instproc run {} {
 	# Trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ run
+}
+
+Class Test/reno5_nobug -superclass TestSuite
+Test/reno5_nobug instproc init topo {
+	$self instvar net_ defNet_ test_ guide_
+	set net_	$topo
+	set defNet_	net0
+	set test_	reno5_nobug
+	set guide_	\
+	"Reno TCP, TCP/bugFix_ set to true."
+	Agent/TCP set bugFix_ true
+	Test/reno5_nobug instproc run {} [Test/reno5 info instbody run ]
+
+	$self next
 }
 
 Class Test/telnet -superclass TestSuite
