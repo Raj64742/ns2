@@ -186,8 +186,19 @@ ErrorModule instproc init { cltype { clslots 29 } } {
 }
 
 ErrorModule instproc insert errmodel {
+	$self instvar models_
 	$errmodel target [$self cmd target]
 	$errmodel drop-target [$self cmd drop-target]
+	if { [info exists models_] } {
+		set models_ [concat $models_ $errmodel]
+	} else {
+		set models_ $errmodel
+	}
+}
+
+ErrorModule instproc errormodels {} {
+	$self instvar models_
+	return $models_
 }
 
 ErrorModule instproc bind args {
