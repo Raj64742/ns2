@@ -1,4 +1,27 @@
 #! /bin/sh
+#
+# Copyright (C) 1998 by USC/ISI
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+
+#
+# Maintainer: Ya Xu <yaxu@isi.edu>
+# Version Date: 1998/07/14 21:54:39 $
+#
+#
 
 die() {
       echo "$@" 
@@ -52,19 +75,19 @@ cd ./otcl
 
 make || die "otcl make failed! Exiting ..."
 
-echo "otcl has been installed successfully !"
+echo "otcl has been installed successfully."
 
 cd ../
 
-# compile and install TclCL
+# compile and install tclcl
 
-cd ./TclCL
+cd ./tclcl
 
-./configure --with-otcl=../otcl --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0 --with-tk-ver=8.0 || die "TclCL configuration failed! Exiting ..."
+./configure --with-otcl=../otcl --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0 --with-tk-ver=8.0 || die "tclcl configuration failed! Exiting ..."
 
-make || die "TclCL make failed! Exiting ..."
+make || die "tclcl make failed! Exiting ..."
 
-echo "TclCL has been installed successfully!"
+echo "tclcl has been installed successfully."
 
 cd ../
 
@@ -75,24 +98,115 @@ if xmkmf
 then
     if make
     then
-	echo "xgraph has been installed successfully! "
+	echo "xgraph has been installed successfully. "
     else 
-	echo "Can not create xgraph! But xgraph is an optional package, continue..."
+	echo "Can not create xgraph; But xgraph is an optional package, continue..."
     fi
 else
-    echo " Can not create Makefile for xgraph !, but xgraph is an optional package, continue ..."
+    echo " Can not create Makefile for xgraph; but xgraph is an optional package, continue ..."
 fi
 
 cd ../
 
+#compile and install cweb and sgblib
+
+cd ./cweb
+
+if [ ! -f ./Makefile ]
+then
+	echo "ns-allinone unable to install cweb for you. Please install it manually. cweb is used by sgb to create sgblibrary needed by scenario-generator. But this will not affect the use of ns as such, so continue.."
+else
+	echo "Making cweb"
+	touch *.c
+	make all	
+	chmod 755 cweave
+	chmod 755 ctangle
+	cd ..
+	#echo "cd .."
+	if [ ! -d bin ]
+	then
+	mkdir bin
+	fi
+	cd bin
+	ln -s $CUR_PATH/cweb/cweave cweave
+	ln -s $CUR_PATH/cweb/ctangle ctangle
+	
+fi
+
+cd ..
+PATH=$CUR_PATH/bin:$PATH
+export PATH
+#echo $PATH
+
+cd ./sgb
+if [ ! -f ./Makefile ]
+	then
+	echo "Unable to create sgb library. This library is used by gt-itm and so for scenario generators. If you already have sgblib (possible if you are on solaris,sunos or freebsd platforms) you may still be able to run gt-itm. so continuing.."
+else
+echo "Making sgb"
+if make tests
+then
+	if [ -f lib*.a ]
+	then
+	if [ -f ../gt-itm/lib/libgb.a ]
+	then
+	        rm ../gt-itm/lib/libgb.a
+		cp lib*.a ../gt-itm/lib/libgb.a
+	fi
+	fi
+
+else
+    echo "Unable to create sgb library. Continuing.."
+fi
+fi
+
+cd ..
+
+# compile and install gt-itm & sgb2ns
+
+## don't need to do this any longer
+##./tclbox/bin/tclsh8.0 ./bin/gtitm.tcl
+
+if [ -f ./gt-itm/lib/libgb.a ]
+then
+ if [ ! -f ./gt-itm/src/Makefile ] 
+    then
+    echo "ns-alline is unable to install gt-itm sgb2ns for you, please install"
+    echo "them manually. You can't run scenario generator without gt-itm"
+    echo "and sgb2ns. But it will not affect you use ns, so continue ..."
+ else
+    cd ./gt-itm/src
+    if make
+     then
+     echo "gt-itm has been installed successfully."
+    fi
+    
+    cd ../sgb2ns
+    if make
+     then
+     echo "sgb2ns has been installed successfully."
+    fi
+   cd ../../
+
+ fi
+else
+    echo "sgb lib not found. gt-itm & sgb2ns could not be installed. Continuing.."
+fi
+
 #compile and install ns
+PATH=$CUR_PATH/tclbox/bin:$CUR_PATH/tkbox/bin:$PATH
+export PATH
+#echo $PATH
+
+# John's hack
+rm ./otcl/libotcl.so
 
 cd ./ns-2
-./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
+./configure --with-otcl=../otcl --with-tclcl=../tclcl --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
 
-make || "Ns make failed! Exiting ..."
+make || die "Ns make failed! Exiting ..."
 
-echo " Ns has been installed successfully!" 
+echo " Ns has been installed successfully." 
 
 cd ../
 
@@ -100,11 +214,14 @@ cd ../
 
 cd ./nam-1
 
-./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Nam configuration failed! Exiting ..."
+./configure --with-otcl=../otcl --with-tclcl=../tclcl --with-tcl=../tclbox --with-tk=../tkbox --with-tcldebug=no --disable-static || die "Nam configuration failed! Exiting ..."
 
-make || die "Nam make failed! Exiting ..."
-
-echo "Nam has been installed successfully!"
+if make
+then 
+    echo "Nam has been installed successfully."
+else
+    echo "Nam make failed! Continue ..."
+fi
 
 cd ../
 
@@ -118,33 +235,61 @@ fi
 cd bin
 
 ln -s $CUR_PATH/ns-2/ns ns
-ln -s $CUR_PATH/nam-1/nam nam
+
+if test -x $CUR_PATH/nam-1/nam
+then
+    ln -s $CUR_PATH/nam-1/nam nam
+else
+    echo "Please compile your nam separately."
+fi
 
 if test -x $CUR_PATH/xgraph/xgraph
 then
     ln -s $CUR_PATH/xgraph/xgraph xgraph
 else
-    echo "Please compiling your xgraph separately!"
+    echo "Please compile your xgraph separately."
 fi
 
-echo "Ns-allinone package has been installed successfully !"
+if test -x $CUR_PATH/gt-itm/bin/sgb2ns
+then 
+    ln -s $CUR_PATH/gt-itm/bin/sgb2ns sgb2ns
+    ln -s $CUR_PATH/gt-itm/bin/sgb2hierns sgb2hierns
+    ln -s $CUR_PATH/gt-itm/bin/sgb2comns sgb2comns
+    ln -s $CUR_PATH/gt-itm/bin/itm itm
+    ln -s $CUR_PATH/gt-itm/bin/sgb2alt sgb2alt
+    ln -s $CUR_PATH/gt-itm/bin/edriver edriver
+else
+    echo "Please compile your gt-itm & sgb2ns separately."
+fi
+
+echo "Ns-allinone package has been installed successfully."
 echo "Here are the installation places:"
 echo "ns:	$CUR_PATH/ns-2/ns"
-echo "nam:	$CUR_PATH/nam-1/nam"
 echo "otcl:	$CUR_PATH/otcl"
-echo "TclCL:	$CUR_PATH/TclCL"
+echo "tclcl:	$CUR_PATH/tclcl"
 echo "tcl8.0:	$CUR_PATH/tclbox"
 echo "tk8.0:	$CUR_PATH/tkbox"
+
+if [ -x $CUR_PATH/nam-1/nam ]
+then
+echo "nam:	$CUR_PATH/nam-1/nam"
+fi
+
 if [ -x $CUR_PATH/xgraph/xgraph ]
 then
 echo "xgraph:	$CUR_PATH/xgraph"
 fi
+if [ -x $CUR_PATH/gt-itm/bin/sgb2ns ] 
+then
+echo "gt-itm:   $CUR_PATH/itm, edriver, sgb2alt, sgb2ns, sgb2comns, sgb2hierns"
+fi
+
 echo ""
 echo "You can delete $CUR_PATH/tcl8.0 and $CUR_PATH/tk8.0 if "
 echo "you want save your disk space"
 
 echo "-----------------------------------------------------"
-echo "Please put $CUR_PATH/bin into your PATH environment!"
+echo "Please put $CUR_PATH/bin into your PATH environment."
 echo "Please put $CUR_PATH/otcl into your LD_LIBRARY_PATH environment!"
 echo ""
 echo "You can run the ns validation suite with"
