@@ -37,7 +37,7 @@
 
 static class IFQueueClass : public TclClass {
 public:
-	IFQueueClass() : TclClass("IFQueue") {}
+	IFQueueClass() : TclClass("IFQueue/Base") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new IFQueue);
 	}
