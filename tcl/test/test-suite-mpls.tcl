@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-30 11:00:37 haoboy>
+# Time-stamp: <2000-08-30 12:06:18 haoboy>
 #
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.2 2000/08/30 18:54:05 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.3 2000/08/30 19:15:06 haoboy Exp $
 
 Class TestSuite
 
@@ -102,6 +102,7 @@ TestSuite instproc record {} {
 
 TestSuite instproc recv-pkts {} {
 	$self instvar totalpkt_
+	flush stdout
 	puts "The Number of Total received packet is $totalpkt_"
 }
 
@@ -168,6 +169,10 @@ TestSuite proc runTest {} {
 }
 
 Class Test/simple -superclass TestSuite
+
+Test/simple instproc recv-pkts {} {
+	# Nothing, since we do not do record{}.
+}
 
 Test/simple instproc init args {
 	eval $self next $args
@@ -274,33 +279,33 @@ Test/simple instproc init args {
 	
 	$ns_ at 2.0 "$Src0 stop"
 
-	$ns_ at 2.0 "$LSR2 pft-dump"
-	$ns_ at 2.0 "$LSR2 erb-dump"
-	$ns_ at 2.0 "$LSR2 lib-dump"
+	$ns_ at 2.1 "$LSR2 pft-dump"
+	$ns_ at 2.1 "$LSR2 erb-dump"
+	$ns_ at 2.1 "$LSR2 lib-dump"
 
-	$ns_ at 2.0 "$LSR3 pft-dump"
-	$ns_ at 2.0 "$LSR3 erb-dump"
-	$ns_ at 2.0 "$LSR3 lib-dump"
+	$ns_ at 2.1 "$LSR3 pft-dump"
+	$ns_ at 2.1 "$LSR3 erb-dump"
+	$ns_ at 2.1 "$LSR3 lib-dump"
 	
-	$ns_ at 2.0 "$LSR4 pft-dump"
-	$ns_ at 2.0 "$LSR4 erb-dump"
-	$ns_ at 2.0 "$LSR4 lib-dump"
+	$ns_ at 2.1 "$LSR4 pft-dump"
+	$ns_ at 2.1 "$LSR4 erb-dump"
+	$ns_ at 2.1 "$LSR4 lib-dump"
 
-	$ns_ at 2.0 "$LSR5 pft-dump"
-	$ns_ at 2.0 "$LSR5 erb-dump"
-	$ns_ at 2.0 "$LSR5 lib-dump"
+	$ns_ at 2.1 "$LSR5 pft-dump"
+	$ns_ at 2.1 "$LSR5 erb-dump"
+	$ns_ at 2.1 "$LSR5 lib-dump"
 
-	$ns_ at 2.0 "$LSR6 pft-dump"
-	$ns_ at 2.0 "$LSR6 erb-dump"
-	$ns_ at 2.0 "$LSR6 lib-dump"
+	$ns_ at 2.1 "$LSR6 pft-dump"
+	$ns_ at 2.1 "$LSR6 erb-dump"
+	$ns_ at 2.1 "$LSR6 lib-dump"
 
-	$ns_ at 2.0 "$LSR7 pft-dump"
-	$ns_ at 2.0 "$LSR7 erb-dump"
-	$ns_ at 2.0 "$LSR7 lib-dump"
+	$ns_ at 2.1 "$LSR7 pft-dump"
+	$ns_ at 2.1 "$LSR7 erb-dump"
+	$ns_ at 2.1 "$LSR7 lib-dump"
 
-	$ns_ at 2.0 "$LSR8 pft-dump"
-	$ns_ at 2.0 "$LSR8 erb-dump"
-	$ns_ at 2.0 "$LSR8 lib-dump"
+	$ns_ at 2.1 "$LSR8 pft-dump"
+	$ns_ at 2.1 "$LSR8 erb-dump"
+	$ns_ at 2.1 "$LSR8 lib-dump"
 }
 
 Class Test/control-driven -superclass TestSuite

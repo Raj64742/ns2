@@ -1,6 +1,6 @@
 // -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
 //
-// Time-stamp: <2000-08-29 11:26:49 haoboy>
+// Time-stamp: <2000-08-30 11:59:11 haoboy>
 //
 // Copyright (c) 2000 by the University of Southern California
 // All rights reserved.
@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.1 2000/08/29 19:28:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.2 2000/08/30 19:15:05 haoboy Exp $
 //
 // XXX
 //
@@ -797,6 +797,7 @@ int MPLSAddressClassifier::PFTlookup(int FEC, int PHB, int &oIface,
 
 void MPLSAddressClassifier::PFTdump(const char *id)
 {
+	fflush(stdout);
 	printf("      --) ___PFT dump___ [node: %s] (--\n", id);
 	printf("---------------------------------------------\n");
 	printf("     FEC       PHB       LIBptr  AltanativePath\n");
@@ -848,6 +849,7 @@ int  MPLSAddressClassifier::ERBlocate(int LSPid, int FEC, int &LIBptr)
 
 void MPLSAddressClassifier::ERBdump(const char *id)
 {
+	fflush(stdout);
 	printf("      --) ___ERB dump___ [node: %s] (--\n", id);
 	printf("---------------------------------------------\n");
 	printf("     FEC       LSPid      LIBptr\n");
@@ -964,6 +966,7 @@ int MPLSAddressClassifier::LIBgetIncoming(int entrynb, int &iIface,
 
 void MPLSAddressClassifier::LIBdump(const char *id)
 {
+	fflush(stdout);
 	printf("    ___LIB dump___ [node: %s]\n", id);
 	printf("---------------------------------------------\n");
 	printf("       #       iIface     iLabel      oIface     oLabel    LIBptr\n");
