@@ -37,7 +37,7 @@ SessionSim instproc join-group { agent group } {
 
 	    #3. set up a constant delay module
 	    set random_variable [new RandomVariable/Constant]
-	    $random_variable set avg_ $delay
+	    $random_variable set val_ $delay
 	    set delay_module [new DelayModel]
 	    $delay_module bandwidth $accu_bw
 	    $delay_module ranvar $random_variable

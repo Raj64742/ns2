@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.141 1997/09/05 20:33:20 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.142 1997/09/06 04:39:03 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,17 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+<LI><A HREF="mailto:huang@isi.edu">[PH]</A> <B>Fri Sep  5 21:21:11 PDT 1997<BR></B>
+<UL>
+<LI> Ported Scalable Session Messages(SRM-SSM) codes from <A HREF="mailto:puneetsh@catarina.usc.edu">Puneet Sharam</A>
+<LI> Also ported selective error models for SRM-SSM test scripts.
+Files changed: errmodel.[cc,h]
+<LI> Added helper functions to trace memory consumption in stack 
+and heap area.  Users need to compile ns with -DMEMDEBUG_SIMULATIONS 
+in Makefine DEFINE field. Example script:tcl/ex/newmcast/cmcast-50.tcl
+Files added: mem-trace.h. Files changed: tclAppInit.cc scheduler.cc ns-lib.tcl
+</UL>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Fri Sep  5 13:25:45 PDT 1997</B><br>
        Converted --with-Tcl to --with-TclCL

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.46 1997/08/27 19:20:36 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.47 1997/09/06 04:39:34 polly Exp $
 #
 
 #
@@ -92,6 +92,7 @@ source ../pim/pim-recvr.tcl
 source ../pim/pim-sender.tcl
 source ../pim/pim-vifs.tcl
 source ../mcast/srm.tcl
+source ../mcast/srm-ssm.tcl
 source ../mcast/McastMonitor.tcl
 source ../session/session.tcl
 
@@ -184,6 +185,13 @@ Simulator instproc halt {} {
 	$self instvar scheduler_
 	$scheduler_ halt
 }
+
+
+Simulator instproc clearMemTrace {} {
+        $self instvar scheduler_
+        $scheduler_ clearMemTrace
+}
+
 
 Simulator set NumberInterfaces_ 0
 

@@ -98,6 +98,7 @@ mac-multihop.cc
 mac-multihop.h
 mac.cc
 mac.h
+mem-trace.h
 message.cc
 message.h
 misc.cc
@@ -173,6 +174,9 @@ sessionhelper.cc
 sfq.cc
 snoop.cc
 snoop.h
+srm-ssm-state.h
+srm-ssm.cc
+srm-ssm.h
 srm-state.h
 srm.cc
 srm.h
@@ -295,6 +299,8 @@ tcl/mcast/srm-adaptive.tcl
 tcl/mcast/srm-debug++.tcl
 tcl/mcast/srm-debug.tcl
 tcl/mcast/srm-nam.tcl
+tcl/mcast/srm-ssm-debug.tcl
+tcl/mcast/srm-ssm.tcl
 tcl/mcast/srm.tcl
 tcl/nam-demo/nstonam.awk
 tcl/old/ns_default.tcl

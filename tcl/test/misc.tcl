@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.3 1997/06/03 21:33:58 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.4 1997/09/06 04:39:39 polly Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -43,9 +43,16 @@
 # ...
 #
 
+
 if [file exists redefines.tcl] {
 	puts "sourcing redefines.tcl in [pwd]"
 	source redefines.tcl
+}
+
+Object instproc exit args {
+      set ns [Simulator instance]
+      catch "$ns clearTimers"
+      eval exit $args
 }
 
 Class TestSuite
@@ -150,6 +157,7 @@ TestSuite instproc finish file {
 #	    puts stderr "output trace is in temp.rands"
 #	}
 #	
+        catch "$self exit 0"
 	exit 0
 }
 

@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/delaymodel.cc,v 1.2 1997/08/11 17:31:00 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/delaymodel.cc,v 1.3 1997/09/06 04:39:06 polly Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -68,6 +68,7 @@ void DelayModel::recv(Packet* p, Handler*)
 
 	double txt = txtime(p);
 	Scheduler& s = Scheduler::instance();
+	//printf ("trans %f, delay %f\n", txt, delay);
 	s.schedule(target_, p, txt + delay);
 }
 

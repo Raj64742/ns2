@@ -22,7 +22,8 @@
  #
 ## testing joins and prunes.. richer 7 node topology
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -42,11 +43,12 @@ $ns trace-all $f
 #  |5|     |2|
 #   |	    |
 #  |0|	   |1|
+Simulator set NumberInterfaces_ 1
 $ns multi-link-of-interfaces [list $n5 $n2 $n3 $n6] 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n1 $n2 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n4 $n3 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n5 $n0 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n4 $n6 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n4 $n3 1.5Mb 10ms DropTail
+$ns duplex-link $n5 $n0 1.5Mb 10ms DropTail
+$ns duplex-link $n4 $n6 1.5Mb 10ms DropTail
 
 set pim0 [new PIM $ns $n0 [list 1 1 0]]
 set pim1 [new PIM $ns $n1 [list 0 1 0]]

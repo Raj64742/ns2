@@ -113,7 +113,7 @@ DM instproc drop { replicator src dst } {
                 # when we get a graft).  This prevents this
                 # drop methood from being called on every packet.
                 #
-		$replicator set ignore 1
+		$replicator set ignore_ 1
         } else {
 	        $self send-ctrl prune $src $dst
         }

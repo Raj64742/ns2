@@ -30,17 +30,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.18 1997/08/10 07:49:53 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.19 1997/09/06 04:39:10 polly Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.18 1997/08/10 07:49:53 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.19 1997/09/06 04:39:10 polly Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include "config.h"
 #include "scheduler.h"
+
+
+#include "ostream.h"
+
+#ifdef MEMDEBUG_SIMULATIONS
+#include "mem-trace.h"
+#endif
 
 Scheduler* Scheduler::instance_;
 int Scheduler::uid_;
@@ -99,6 +106,14 @@ int Scheduler::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "halt") == 0) {
 			halted_ = 1;
 			return (TCL_OK);
+
+                } else if (strcmp(argv[1], "clearMemTrace") == 0) {
+#ifdef MEMDEBUG_SIMULATIONS
+                        extern MemTrace *globalMemTrace;
+                        if (globalMemTrace)
+                                globalMemTrace->diff("Sim.");
+#endif
+                        return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "at") == 0 ||
@@ -199,11 +214,15 @@ void ListScheduler::run()
 	/*XXX*/
 	instance_ = this;
 	while (queue_ != 0 && !halted_) {
+	  //printf("got here, ");
 		Event* p = queue_;
 		queue_ = p->next_;
 		clock_ = p->time_;
+		//printf("clock_ %f, before p->uid_:%d,", clock_, p->uid_);
 		p->uid_ = - p->uid_;
+		//printf("after p->uid_:%d,", p->uid_);
 		p->handler_->handle(p);
+		//printf("queue%d, halted%d\n",queue_, halted_);
 	}
 }
 

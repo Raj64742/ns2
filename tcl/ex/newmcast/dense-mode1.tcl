@@ -31,6 +31,7 @@ set n3 [$ns node]
 set f [open out-dm1.tr w]
 $ns trace-all $f
 
+Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail

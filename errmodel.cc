@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.11 1997/07/24 04:45:08 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.12 1997/09/06 04:39:07 polly Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -124,4 +124,62 @@ ErrorModel::corrupt(Packet* p)
 		break;
 	}
 	return 0;
+}
+
+
+static class SelectErrorModelClass : public TclClass {
+public:
+	SelectErrorModelClass() : TclClass("SelectErrorModel") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new SelectErrorModel);
+	}
+} class_selecterrormodel;
+
+SelectErrorModel::SelectErrorModel(ErrorUnit eu) : eu_(eu)
+{
+  bind("off_cmn_", &off_cmn_);
+}
+
+
+int 
+SelectErrorModel::command(int argc, const char*const* argv)
+{
+        int ac = 0;
+        if (strcmp(argv[1], "drop-packet") == 0) {
+          pkt_type_ = atoi(argv[2]);
+          drop_cycle_ = atoi(argv[3]);
+	  drop_offset_ = atoi(argv[4]);
+          return TCL_OK;
+        }
+        return Connector::command(argc, argv);
+}
+
+
+int
+SelectErrorModel::corrupt(Packet* p)
+{
+  if (eu_ == EU_SPKT) {
+    hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+      printf ("may drop packet type %d, uid %d\n", pkt_type_, ch->uid());
+    if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ == drop_offset_) {
+      printf ("drop packet type %d, uid %d\n", pkt_type_, ch->uid());
+      return 1;
+    }
+  }
+  return 0;
+}
+
+void
+SelectErrorModel::recv(Packet* p, Handler*)
+{
+	if (corrupt(p)) {
+		if (drop_) {
+			drop_->recv(p);
+			return;
+		}
+		Packet::free(p);
+	}
+	if (target_)
+		target_->recv(p);
+	// XXX if no target, assume packet is still used by other object
 }

@@ -44,6 +44,22 @@ public:
 	int	recvTime_;		  /* Time sess. msg. # received */
 	double	distance_;
 	
+        /* Added for ssm, later check if can do for a derived class */
+        /* Can do better with space for these flags */
+        int     lglbsess_;
+        int     llocsess_;
+        int     lrepsess_;
+        int     repid_;
+        int     senderFlag_;
+        int     scopeFlag_;
+#define ACTIVE 1
+#define INACTIVE 0
+        int     activeFlag_;
+#define SELF_DISTANCE   1
+#define REP_DISTANCE    2       
+#define NO_DISTANCE     0
+        int     distanceFlag_;
+
 	/* Data messages */
 	int	ldata_;			  /* # of last data msg sent */
 protected:
@@ -76,7 +92,12 @@ protected:
 public:
 	SRMinfo(int sender) : next_(0), sender_(sender),
 		lsess_(-1), sendTime_(0), recvTime_(0), distance_(1.0),
-		ldata_(-1), received_(0), recvmax_(-1) { }
+		ldata_(-1), received_(0), recvmax_(-1) ,
+                  activeFlag_(ACTIVE), distanceFlag_(NO_DISTANCE) { 
+                    lglbsess_ = -1;
+                    llocsess_ = -1;
+                    lrepsess_ = -1;
+                   }
 	~SRMinfo() { delete[] received_; }
 	
 	char ifReceived(int id) {

@@ -50,28 +50,29 @@ $cbr1 set dst_ 0x8003
 ####  
 $ns create-session $n2 $cbr1 
 
-$ns set rcvr0 [new Agent/LossMonitor]
-$ns attach-agent $n0 [$ns set rcvr0]
-$ns set rcvr1 [new Agent/LossMonitor]
-$ns attach-agent $n1 [$ns set rcvr1]
-$ns set rcvr2  [new Agent/LossMonitor]
-$ns attach-agent $n2 [$ns set rcvr2]
-$ns set rcvr3 [new Agent/LossMonitor]
-$ns attach-agent $n3 [$ns set rcvr3]
+set rcvr0 [new Agent/LossMonitor]
+$ns attach-agent $n0 $rcvr0
+set rcvr1 [new Agent/LossMonitor]
+$ns attach-agent $n1 $rcvr1
+set rcvr2  [new Agent/LossMonitor]
+$ns attach-agent $n2 $rcvr2
+set rcvr3 [new Agent/LossMonitor]
+$ns attach-agent $n3 $rcvr3
 
 $ns at 0.2 "$cbr1 start"
-$ns at 0.3 "$n1 join-group  [$ns set rcvr1] 0x8003"
-$ns at 0.3 "$n0 join-group  [$ns set rcvr0] 0x8003"
-$ns at 0.3 "$n3 join-group  [$ns set rcvr3] 0x8003"
-$ns at 0.3 "$n2 join-group  [$ns set rcvr2] 0x8003"
+$ns at 0.3 "$n1 join-group  $rcvr1 0x8003"
+$ns at 0.3 "$n0 join-group  $rcvr0 0x8003"
+$ns at 0.3 "$n3 join-group  $rcvr3 0x8003"
+$ns at 0.3 "$n2 join-group  $rcvr2 0x8003"
 
 $ns at 1.1 "$ns finish"
 
 SessionSim instproc finish {} {
-    puts "[[$self set rcvr0] set npkts_] [[$self set rcvr0] set nlost_]"
-    puts "[[$self set rcvr1] set npkts_] [[$self set rcvr1] set nlost_]"
-    puts "[[$self set rcvr2] set npkts_] [[$self set rcvr2] set nlost_]"
-    puts "[[$self set rcvr3] set npkts_] [[$self set rcvr3] set nlost_]"
+    global rcvr0 rcvr1 rcvr2 rcvr3
+    puts "[$rcvr0 set npkts_] [$rcvr0 set nlost_]"
+    puts "[$rcvr1 set npkts_] [$rcvr1 set nlost_]"
+    puts "[$rcvr2 set npkts_] [$rcvr2 set nlost_]"
+    puts "[$rcvr3 set npkts_] [$rcvr3 set nlost_]"
     exit 0
 }
 

@@ -58,6 +58,7 @@ $ns queue-limit $n(0) $n(1) 2	;# q-limit is 1 more than max #packets in q.
 $ns queue-limit $n(1) $n(0) 2
 
 set group 0x8000
+
 set mh [$ns mrtproto CtrMcast {}]
 $ns at 0.3 "$mh switch-treetype $group"
 #set mh [$ns mrtproto DM {}]
@@ -115,4 +116,4 @@ proc finish src {
 	exit 0
 }
 $ns at 4.0 "finish $s"
-$ns run
+$ns run 

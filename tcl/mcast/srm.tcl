@@ -173,17 +173,20 @@ Agent/SRM instproc recv {type args} {
 }
 
 Agent/SRM instproc recv-data {sender msgid} {
-	$self instvar pending_
+	$self instvar pending_ nid_
 	if ![info exists pending_($sender:$msgid)] {
 		# This is a very late data of some wierd sort.
 		# How did we get here?
 		error "Oy vey!  How did we get here?"
 	}
 	if {[$pending_($sender:$msgid) set round_] == 1} {
+	    if {$msgid==1 && $nid_!= 1} {
+	    } else {
 		$pending_($sender:$msgid) cancel DATA
 		$pending_($sender:$msgid) evTrace Q DATA
 		delete $pending_($sender:$msgid)
 		unset pending_($sender:$msgid)
+	    }
 	} else {
 		$pending_($sender:$msgid) recv-repair
 	}

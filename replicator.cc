@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.11 1997/08/14 21:35:20 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.12 1997/09/06 04:39:09 polly Exp $";
 #endif
 
 #include "classifier.h"
@@ -72,7 +72,7 @@ void Replicator::recv(Packet* p, Handler*)
 {
 	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
 	if (maxslot_ < 0) {
-		if (!ignore_)
+                if (!ignore_) 
 			Tcl::instance().evalf("%s drop %u %u", name(), 
 				iph->src(), iph->dst());
 		Packet::free(p);

@@ -22,7 +22,8 @@
  #
 ## register test 1 [1 lan]
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]

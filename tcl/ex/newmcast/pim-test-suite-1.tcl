@@ -11,7 +11,8 @@
 #XXX awk -f all-proc.awk $pimpath$pimfile > $pimpath$procTraceFile
 # or exec cd tcl/pim; exec profile.sh; cd ../../
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 for {set i 0 } { $i <= 4 } { incr i } {
         set n$i [$ns node]
@@ -27,10 +28,11 @@ $ns trace-all $f
 lappend traceFileList $file0
 
 set nodes [list $n0 $n1 $n2 $n3]
+Simulator set NumberInterfaces_ 1
 set ml0 [$ns multi-link-of-interfaces $nodes 1.5Mb 10ms DropTail]
 
-$ns duplex-link-of-interfaces $n3 $n4 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n2 $n4 1.5Mb 10ms DropTail
+$ns duplex-link $n3 $n4 1.5Mb 10ms DropTail
+$ns duplex-link $n2 $n4 1.5Mb 10ms DropTail
 
 for {set i 0 } { $i <= 4 } { incr i } {
         eval "set pim$i \[new PIM \$ns \$n$i \[list 1\]\]"

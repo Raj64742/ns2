@@ -50,3 +50,23 @@ proc nam_config {net} {
         # chart utilization from 1 to 2 width 5sec
         # chart avgutilization from 1 to 2 width 5sec
 }
+
+proc link-up {src dst} {
+        global sim_annotation
+        set sim_annotation "link-up $src $dst"
+        ecolor $src $dst green
+}
+
+proc link-down {src dst} {
+        global sim_annotation
+        set sim_annotation "link-down $src $dst"
+        ecolor $src $dst red
+}
+
+proc node-up src {
+        ncolor $src green
+}
+
+proc node-down src {
+        ncolor $src red
+}

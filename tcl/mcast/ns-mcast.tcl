@@ -482,6 +482,7 @@ Classifier/Replicator/Demuxer instproc insert target {
 	incr nactive_
 	$self install $n $target
 	set active_($target) 1
+	set ignore_ 0
 	set index_($target) $n
 }
 

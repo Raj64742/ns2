@@ -72,9 +72,19 @@ main(int argc, char **argv)
  *----------------------------------------------------------------------
  */
 
+#ifdef MEMDEBUG_SIMULATIONS
+       #include "mem-trace.h"
+       MemTrace *globalMemTrace;
+#endif
+
 int
 Tcl_AppInit(Tcl_Interp *interp)
 {
+#ifdef MEMDEBUG_SIMULATIONS
+        extern MemTrace *globalMemTrace;
+        globalMemTrace = new MemTrace;
+#endif
+       
 	if (Tcl_Init(interp) == TCL_ERROR ||
 	    Otcl_Init(interp) == TCL_ERROR)
 		return TCL_ERROR;

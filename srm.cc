@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.10 1997/08/27 19:28:04 kannan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.11 1997/09/06 04:39:14 polly Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -135,9 +135,10 @@ void SRMAgent::recv(Packet* p, Handler* h)
                 sh->type() = SRM_DATA;
                 sh->sender() = addr_;
                 sh->seqnum() = ++dataCtr_;
+		//fprintf(stderr, "source seq #:%d at %7.4f\n", sh->seqnum(),Scheduler::instance().clock());
 		addExtendedHeaders(p);
 		ih->dst() = dst_;
-                target_->recv(p, h);
+		target_->recv(p, h);
         } else {
 
 #if 0
@@ -206,8 +207,10 @@ void SRMAgent::recv_rqst(int requestor, int round, int sender, int msgid)
 		(void) request(sp, msgid);	// request upto msgid
                 sp->ldata_ = msgid;
         } else {
+
                 tcl.evalf("%s recv request %d %d %d %d", name_,
                           requestor, round, sender, msgid);
+
         }
 }
 

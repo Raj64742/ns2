@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.10 1997/07/24 04:45:09 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.11 1997/09/06 04:39:07 polly Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -42,7 +42,7 @@
 #include "ranvar.h"
 
 
-enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME };
+enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME, EU_SPKT };
 #define EU_NAMES "pkt", "bit", "time"
 #define STR2EU(s) (!strcmp(s,"bit") ? EU_BIT : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
 
@@ -60,6 +60,23 @@ protected:
 	RandomVariable* ranvar_;
 	double rate_;
 	int off_ll_;
+};
+
+class SelectErrorModel : public ErrorModel {
+public:
+	SelectErrorModel(ErrorUnit eu=EU_SPKT);
+	void recv(Packet*, Handler*);
+	virtual int corrupt(Packet*);
+	inline double rate() { return rate_; }
+
+protected:
+	int command(int argc, const char*const* argv);
+	ErrorUnit eu_;
+        /* For Selective packet drop */
+	double rate_;
+        int pkt_type_;
+        int drop_cycle_;
+	int drop_offset_;
 };
 
 #endif

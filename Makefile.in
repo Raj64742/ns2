@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.74 1997/08/29 22:06:38 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.75 1997/09/06 04:39:04 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -35,7 +35,7 @@ CPP	= @CXX@
 CCOPT	= @V_CCOPT@
 
 STATIC	= @V_STATIC@
-DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@	# -Dabort=_ABORT
+DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@	# -DMEMDEBUG_SIMULATIONS # -Dabort=_ABORT
 
 TCL2C	= @V_TCL2CPP@
 
@@ -113,7 +113,7 @@ OBJ_CC = \
 	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o prune.o srm.o \
-	sessionhelper.o delaymodel.o \
+	sessionhelper.o delaymodel.o srm-ssm.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
 	net.o net-ip.o tap.o
@@ -151,7 +151,8 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
 	delay.h \
 	snoop.h ll.h mac.h mac-multihop.h mac-csma.h mac-802_11.h \
-	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h
+	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h timers.h \
+	srm-ssm.h srm-ssm-state.h mem-debug.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
 	$(GEN_DIR)* core core.ns core.nsx
@@ -197,6 +198,7 @@ NS_TCL_LIB = \
         tcl/mcast/pimDM.tcl \
 	tcl/mcast/srm.tcl \
 	tcl/mcast/srm-adaptive.tcl \
+	tcl/mcast/srm-ssm.tcl \
 	tcl/mcast/McastMonitor.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
         tcl/ctr-mcast/CtrMcastComp.tcl \

@@ -34,7 +34,8 @@ if {[llength $argv] > 0} {
 
 source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
-
+ns-random 1
+puts "[uniform 0 1]"
 Simulator set NumberInterfaces_ 1
 set ns [new MultiSim]
 $ns trace-all [open out.tr w]
@@ -62,12 +63,15 @@ set fid 0
 for {set i 1} {$i <= $nmax} {incr i} {
 	set srm($i) [new Agent/SRM/$srmSimType]
 	$srm($i) set dst_ $group
+
 	$srm($i) set fid_ [incr fid]
 	$srm($i) log $srmStats
 	$srm($i) trace $srmEvents
 	$ns at 1.0 "$srm($i) start"
 
 	$ns attach-agent $n($i) $srm($i)
+#        $ns create-session $n($i) $srm($i)
+#    puts "[[$srm($i) target] info class]"
 }
 
 # Attach a data source to srm(1)
@@ -84,24 +88,39 @@ $ns rtmodel-at 3.519 down $n(0) $n(1)	;# this ought to drop exactly one
 $ns rtmodel-at 3.521 up   $n(0) $n(1)	;# data packet?
 
 $ns at 4.0 "finish $s"
+proc distDump interval {
+	global ns srm
+	foreach i [array names srm] {
+		set dist [$srm($i) distances?]
+		if {$dist != ""} {
+			puts "[format %7.4f [$ns now]] distances $dist"
+		}
+	}
+	$ns at [expr [$ns now] + $interval] "distDump $interval"
+}
+$ns at 0.0 "distDump 1"
 
 proc finish src {
-	global prog ns env srmStats srmEvents
+	global prog ns env srmStats srmEvents srm nmax
 
 	$src stop
 	$ns flush-trace		;# NB>  Did not really close out.tr...:-)
 	close $srmStats
 	close $srmEvents
+    foreach index [array name srm] {
+	puts ""
+	puts " $index [$srm($index) array get stats_]"
+    }
 
-	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
+#	puts "converting output to nam format..."
+#	exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
 
-	if [info exists env(DISPLAY)] {
-		puts "running nam..."
-		exec nam $prog-nam &
-	} else {
-		exec cat srmStats.tr >@stdout
-	}
+#	if [info exists env(DISPLAY)] {
+#		puts "running nam..."
+#		exec nam $prog-nam &
+#	} else {
+#		exec cat srmStats.tr >@stdout
+#	}
 	exit 0
 }
 

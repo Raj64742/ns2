@@ -96,12 +96,16 @@ $ns rtmodel Deterministic {3.021 0.498 0.002} $n(0) $n(2)
 $ns at 50 "finish $s"
 
 proc finish src {
-	$src stop
+	$src stop 
 
-	global ns srmStats srmEvents
+	global ns srmStats srmEvents srm
 	$ns flush-trace		;# NB>  Did not really close out.tr...:-)
 	close $srmStats
 	close $srmEvents
+        foreach index [array name srm] {
+	    puts ""
+	    puts "$index [$srm($index) array get stats_]"
+	}
 	exit 0
 }
 

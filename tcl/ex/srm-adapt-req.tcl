@@ -36,6 +36,15 @@ if {[llength $argv] > 0} {
 	set srmSimType Adaptive
 }
 
+Simulator instproc lossmodel {lossobj from to} {
+    set link [$self link $from $to]
+    set head [$link head]
+    puts "[[$head target] info class]"
+    $lossobj target [$head target]
+    $head target $lossobj
+    puts "[[$head target] info class]"
+}
+    
 source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 
@@ -91,17 +100,25 @@ $ns at 3.5 "$srm(1) start-source"
 
 # Drop a packet every 0.5 secs. starting at 3.52s.
 # Drops packets from the source so all receivers see the loss.
-$ns rtmodel Deterministic {3.021 0.498 0.002} $n(0) $n(1)
+
+#$ns rtmodel Deterministic {3.021 0.498 0.002} $n(0) $n(1)
+set loss_module [new SpecificErrorModel]
+$loss_module drop-packet 2 1
+$ns lossmodel $loss_module $n(1) $n(0)
 
 $ns at 50 "finish $s"
 
 proc finish src {
 	$src stop
 
-	global ns srmStats srmEvents
+	global ns srmStats srmEvents srm 
 	$ns flush-trace		;# NB>  Did not really close out.tr...:-)
 	close $srmStats
 	close $srmEvents
+        foreach index [array name srm] {
+	    puts ""
+	    puts "$index [$srm($index) array get stats_]"
+	}
 	exit 0
 }
 
