@@ -1,3 +1,9 @@
+#
+# A simple (but not too realistic) rate-based congestion control
+# scheme for Homework 3 in CS268.
+#
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/rc.tcl,v 1.2 1997/03/28 08:52:33 mccanne Exp $
+#
 
 source timer.tcl
 
@@ -18,9 +24,6 @@ proc build_topology { ns which } {
 		$ns duplex-link $n2 $n3 1.5Mb 10ms FQ
 	}
 }
-
-set f [open out.tr w]
-$ns trace-all $f
 
 Class Agent/Message/Sender -superclass {Agent/Message Timer}
 Class Agent/Message/Receiver -superclass Agent/Message
@@ -92,13 +95,6 @@ Agent/Message/Receiver instproc handle msg {
 	}
 }
 
-build_topology $ns FIFO
-
-##
-# send probe
-# rtt estimator... ok
-##
-
 proc build_conn { from to startTime } {
 	global ns
 	set src [new Agent/Message/Sender]
@@ -112,6 +108,11 @@ proc build_conn { from to startTime } {
 	$ns at $startTime "[$src set cbr_] start"
 	return [$src set cbr_]
 }
+
+set f [open out.tr w]
+$ns trace-all $f
+
+build_topology $ns FIFO
 
 set c1 [build_conn $n0 $n3 0.1]
 $c1 set class_ 1

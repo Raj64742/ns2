@@ -1,3 +1,9 @@
+#
+# This file contains a preliminary cut at fair-queueing for ns
+# as well as a number of stubs for Homework 3 in CS268.
+#
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.4 1997/03/28 08:52:33 mccanne Exp $
+#
 
 set ns [new Simulator]
 
@@ -155,11 +161,6 @@ proc build_topology { ns which } {
 	}
 }
 
-set f [open out.tr w]
-$ns trace-all $f
-
-build_topology $ns FQ
-
 proc build_tcp { from to startTime } {
 	global ns
 	set tcp [new Agent/TCP]
@@ -234,6 +235,11 @@ proc finish file {
 	}
 	exit 0
 }
+
+set f [open out.tr w]
+$ns trace-all $f
+
+build_topology $ns FQ
 
 set tcp1 [build_tcp $n0 $n3 0.1]
 $tcp1 set class_ 1
