@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.24 1997/12/18 03:27:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.25 1998/01/20 03:03:51 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -143,6 +143,9 @@ FullTcpAgent::reset()
 	maxseq_ = -1;
 	irs_ = -1;
 	last_send_time_ = 0.0;
+	ts_peer_ = 0.0;
+
+	recent_ = recent_age_ = 0.0;
 }
 
 /*
@@ -270,6 +273,7 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
         tcph->flags() = pflags;
         tcph->hlen() = headersize();
         tcph->ts() = now();
+	tcph->ts_echo() = ts_peer_;
 
 	/* Open issue:  should tcph->reason map to pkt->flags_ as in ns-1?? */
         tcph->reason() |= reason;
@@ -285,10 +289,15 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
                 nrexmitbytes_ += datalen;
         }
 
-//printf("SENDPKT: %f, (%s): ssthresh: %d, seq:%d, len:%d, t_seq:%d\n",
-//now(), name(), int(ssthresh_), seqno, datalen, int(t_seqno_));
 	last_send_time_ = now();
         send(p, 0);
+}
+
+void FullTcpAgent::cancel_timers()
+{
+
+	TcpAgent::cancel_timers();      
+	delack_timer_.force_cancel();
 }
 
 
@@ -454,10 +463,6 @@ send:
 	 * Future values are rtt + 4 * rttvar.
 	 */
 	if ((rtx_timer_.status() != TIMER_PENDING) && (t_seqno_ > highest_ack_)) {
-//printf("%f TCP(%s) set timer for, highest_ack_:%d, t_seqno:%d, seqno:%d\n",
-//now(), name(), int(highest_ack_), int(t_seqno_), seqno);
-
-
 		set_rtx_timer();  // no timer pending, schedule one
 	}
 	return;
@@ -534,10 +539,6 @@ void FullTcpAgent::newack(Packet* pkt)
 	register int ackno = tcph->ackno();
 	int progress = (ackno > highest_ack_);
 
-//printf("%f TCP(%s) NEWACK ack: %d highest_ack_:%d, maxseq_:%d, srtt:%d\n", 
-//now(), name(), ackno, int(highest_ack_), int(maxseq_) , int(t_srtt_));
-
-
 	if (ackno == maxseq_) {
 		cancel_rtx_timer();	// all data ACKd
 	} else if (progress) {
@@ -566,8 +567,10 @@ void FullTcpAgent::newack(Packet* pkt)
          */
         hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
         if (!fh->no_ts_) {
-                if (ts_option_)
+		ts_peer_ = tcph->ts();	// always set (even if ts_option_ == 0)
+                if (ts_option_) {
                         rtt_update(now() - tcph->ts_echo());
+		}
 
                 if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
                         t_backoff_ = 1;
@@ -576,7 +579,6 @@ void FullTcpAgent::newack(Packet* pkt)
                                 rtt_update(now() - tcph->ts_echo());
                 }
         }
-
 	return;
 }
 
@@ -589,14 +591,18 @@ void FullTcpAgent::newack(Packet* pkt)
 int FullTcpAgent::predict_ok(Packet* pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+        hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
 
 	int p1 = (state_ == TCPS_ESTABLISHED);		// ready
 	int p2 = (tcph->flags() == TH_ACK);		// is an ACK
 	int p3 = (tcph->seqno() == rcv_nxt_);		// in-order data
 	int p4 = (t_seqno_ == maxseq_);			// not re-xmit
-	int p5 = (((hdr_flags*)pkt->access(off_flags_))->ecn_ == 0);	// no ECN
+	int p5 = (fh->ecn_ == 0);			// no ECN
 
-	return (p1 && p2 && p3 && p4 && p5);
+		// no timestamp, or no ts in this pkt, or ok ts
+	int p6 = (!ts_option_ || fh->no_ts_ || (tcph->ts() >= recent_));
+
+	return (p1 && p2 && p3 && p4 && p5 && p6);
 }
 
 /*
@@ -674,12 +680,12 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
 	int ackno = tcph->ackno();	// ack # from packet
 	int tiflags = tcph->flags() ; // tcp flags from packet
-//printf("%f: FULLTCP(%s): state: %d, recv-pkt(seq: %d, ack: %d, flags: 0x%x, dlen : %d)\n",       
-//now(), name(), state_, tcph->seqno(), ackno, tcph->flags(), datalen);
-
 
 	if (state_ == TCPS_CLOSED)
 		goto drop;
+
+	if (state_ != TCPS_LISTEN)
+		dooptions(pkt);
 
 	//
 	// if we are using delayed-ACK timers and
@@ -1489,9 +1495,6 @@ endfast:
 void FullTcpAgent::timeout(int tno)
 {
 
-//printf("TIMEOUT(%d): %f, (%s): ssthresh: %d\n",
-//tno, now(), name(), int(ssthresh_));
-
 	/*
 	 * shouldn't be getting timeouts here
 	 */
@@ -1527,6 +1530,25 @@ void FullTcpAgent::timeout(int tno)
 	} else {
 		fprintf(stderr, "%f: (%s) UNKNOWN TIMEOUT %d\n",
 			now(), name(), tno);
+	}
+}
+
+void
+FullTcpAgent::dooptions(Packet* pkt)
+{
+	// interesting options: timestamps (here),
+	//	CC, CCNEW, CCECHO (future work perhaps)
+
+        hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+
+	if (ts_option_ && !fh->no_ts_) {
+		ts_peer_ = tcph->ts();	// most recent tstamp from peer
+		if (tcph->flags() & TH_SYN) {
+			flags_ |= TF_RCVD_TSTMP;
+			recent_ = tcph->ts();
+			recent_age_ = now();
+		}
 	}
 }
 
