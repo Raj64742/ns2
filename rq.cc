@@ -316,9 +316,13 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		// look for segments before and after this one
 		for (p = head_, q = p->next_; q; p = q, q = q->next_) {
 			if (p->startseq_ <= start && p->endseq_ >= end) {
-				// completely covered by existing segment
+				// completely covered by p segment
 				p->pflags_ |= tiflags;
 				return (p->pflags_);
+			} else if (q && q->startseq_ <= start && q->endseq_ >= end) {
+				// completely covered by q segment
+				q->pflags_ |= tiflags;
+				return (q->pflags_);
 			} else if (p->endseq_ == start || q->startseq_ == end) {
 				// new segment abuts an existing segment
 				needmerge = TRUE;
