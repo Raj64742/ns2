@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.7 2000/02/24 02:18:22 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.8 2000/04/12 17:09:19 haoboy Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -48,7 +48,9 @@ public:
 	virtual ~WebPage() {}
 
 	inline void start() {
-		expire();
+		// Call expire() and schedule the next one if needed
+		status_ = TIMER_PENDING;
+		handle(&event_);
 	}
 	inline int id() const { return id_; }
 	Node* dst() { return dst_; }
@@ -64,17 +66,19 @@ private:
 		// once, but we do not actually send out requests. This extra
 		// schedule is only meant to be a hint to wait for the last
 		// request to finish, then we will ask our parent to delete
-		// this page. 
-		if (curObj_ < nObj_) 
+		// this page.
+#if 0
+		fprintf(stderr, "Session %d handling page %d obj %d\n",
+			sess_->id(), id_, curObj_);
+#endif
+		if (curObj_ <= nObj_) {
+			// If this is not the last object, schedule the next 
+			// one. Otherwise stop and tell session to delete me.
 			TimerHandler::handle(e);
-		// If this is not the last object, schedule the next one.
-		// Otherwise stop and tell session to delete me.
-		if (curObj_ > nObj_) 
-			sess_->donePage((void*)this);
-		else {
 			curObj_++;
 			sched(sess_->interObj()->value());
-		}
+		} else
+			sess_->donePage((void*)this);
 	}
 	int id_;
 	WebTrafSession* sess_;
@@ -96,7 +100,10 @@ WebTrafSession::~WebTrafSession()
 			donePage_, curPage_);
 		abort();
 	}
-
+	if (status_ != TIMER_IDLE) {
+		fprintf(stderr, "WebTrafSession must be idle when deleted.\n");
+		abort();
+	}
 	if (rvInterPage_ != NULL)
 		Tcl::instance().evalf("delete %s", rvInterPage_->name());
 	if (rvPageSize_ != NULL)
@@ -109,6 +116,10 @@ WebTrafSession::~WebTrafSession()
 
 void WebTrafSession::donePage(void* ClntData) 
 {
+#if 0
+	fprintf(stderr, "Session %d done page %d\n", id_, 
+		((WebPage*)ClntData)->id());
+#endif
 	delete (WebPage*)ClntData;
 	// If all pages are done, tell my parent to delete myself
 	if (++donePage_ >= nPage_)
@@ -162,9 +173,9 @@ void WebTrafSession::launchReq(void* ClntData, int obj, int size)
 	// Debug only
 	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
 #if 0
-	printf("%d \t %d \t %d \t %d \t %g %d %d\n", size, obj, page, id_,
-		Scheduler::instance().clock(), 
-	       src_->address(), dst->address());
+	printf("%d \t %d \t %d \t %d \t %g %d %d\n", size, obj, pg->id(), id_,
+	       Scheduler::instance().clock(), 
+	       src_->address(), pg->dst()->address());
 	printf("** Tcp agents %d, Tcp sinks %d\n", mgr_->nTcp(),mgr_->nSink());
 #endif
 }

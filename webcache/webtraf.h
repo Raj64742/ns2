@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.4 2000/02/24 02:17:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.5 2000/04/12 17:09:19 haoboy Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -66,6 +66,7 @@ public:
 
 	void donePage(void* ClntData);
 	void launchReq(void* ClntData, int obj, int size);
+	inline int id() const { return id_; }
 
 	static int LASTPAGE_;
 
@@ -97,6 +98,9 @@ public:
 	}
 	inline void doneSession(int idx) { 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
+#if 0
+		fprintf(stderr, "deleted session %d", idx);
+#endif
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}
