@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.14 1998/02/05 21:00:42 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.15 1998/02/17 05:31:58 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -106,7 +106,7 @@ void LL::recv(Packet* p, Handler* h)
 	if (h == 0)		// from MAC classifier
 		recvtarget_ ? recvfrom(p) : drop(p);
 	else			// from higher layer
-		sendtarget_ ? sendto(p, h) : LinkDelay::recv(p, 0);
+		sendtarget_ ? sendto(p, h) : LinkDelay::recv(p, h);
 }
 
 
