@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-flow.cc,v 1.3 1997/03/29 01:42:47 mccanne Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-flow.cc,v 1.4 1997/07/21 21:12:09 kfall Exp $";
 #endif
 
 #include "config.h"
@@ -59,7 +59,7 @@ protected:
 static class FlowClassifierClass : public TclClass {
 public:
 	FlowClassifierClass() : TclClass("Classifier/Flow") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new FlowClassifier());
 	}
 } class_flow_classifier;
