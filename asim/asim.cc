@@ -198,7 +198,7 @@ public:
       tcl.resultf("%lf",get_flow_drop(atoi(argv[2])));
       return (TCL_OK);
     }
-
+	return 0;
   }
   
   double get_link_drop(int x){
@@ -534,7 +534,7 @@ double redFn(double minth, double pmin,
   assert(maxth>=minth);
   assert(pmax>pmin);
 
-  double t;
+  //Double t;
   if(qlength<minth)
     return 0;
   if(qlength>maxth)
@@ -594,7 +594,7 @@ void CalcPerFlowDelays(){
     double d = 0, p = 1 ;
     // Calculate drops and delays
     for(int j=0;j<nAdj[i];j++){
-      d += 2*links[Adj[i][j]].prop; //links[Adj[i][j]].qdelay;
+      d += 2*links[Adj[i][j]].prop + links[Adj[i][j]].qdelay;
       p *= 1-links[Adj[i][j]].drop;
     }
     p = 1-p;
@@ -791,7 +791,7 @@ void Update3(int flag = 0){
       cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
     }
 
-    char x =getchar();
+    //Char x =getchar();
 
     // Recalculate the flows' stats
     UpdateHelper(0);
@@ -827,7 +827,7 @@ void newupdate(int niter){
 
   // 1st init all unscaled tputs and cap
   for (i=0;i<nLinks;i++){
-    links[i].uc = links[i].mu*(1.1);
+    links[i].uc = links[i].mu*(1.05);
     links[i].utput = 0;
   }
 
