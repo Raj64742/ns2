@@ -142,7 +142,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	        // basic trace infomation + basic exenstion
 
 	    sprintf(wrk_ + offset,
-		    "%c -t %.9f -Hs %d -Hd %d -Ni %d -Nx %.2f -Ny %.2f -Nz %.2f -Ne %f -Nl %3s -Nw %s ",
+		    "%c -t %.9f -Hs %d -Hd %d -Ni %d -Nx %.2f -Ny %.2f -Nz %.2f -Ne %f -Nl %3s -Nw %s ] ",
 		    op,                       // event type
 		    Scheduler::instance().clock(),  // time
 		    src_,                           // this node
@@ -160,7 +160,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	    offset = strlen(wrk_);
 
 	    sprintf(wrk_ + offset, 
-		    "-Ma %x -Md %x -Ms %x -Mt %x ",
+		    "-m [ %x %x %x %x ] ",
 		    mh->dh_duration,
 		    ETHER_ADDR(mh->dh_da),
 		    ETHER_ADDR(mh->dh_sa),
@@ -225,7 +225,7 @@ CMUTrace::format_ip(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-		    "-Is %d.%d -Id %d.%d -It %s -Il %d -If %d -Ii %d -Iv %d ",
+		    "-Is %d.%d -Id %d.%d -It %s -Il %d -If %d -Ii %d -Iv %d ] ",
 		    src,                           // packet src
 		    ih->sport(),                   // src port
 		    dst,                           // packet dest
@@ -250,12 +250,12 @@ CMUTrace::format_arp(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-		    "-P arp -Po %s -Pm %d -Ps %d -Pa %d -Pd %d ",
+		    "-p [ arp %s %d/%d %d/%d ] ",
 		    ah->arp_op == ARPOP_REQUEST ?  "REQUEST" : "REPLY",
-		    ah->arp_sha,                        // src mac addr
-		    ah->arp_spa,                        // src
-		    ah->arp_tha,                        // dst mac - what you looking for 
-		    ah->arp_tpa);                       // dst
+		    ah->arp_sha,
+		    ah->arp_spa,
+		    ah->arp_tha,
+		    ah->arp_tpa);
 	} else {
 
 	    sprintf(wrk_ + offset,
@@ -275,23 +275,24 @@ CMUTrace::format_dsr(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset, 
-		"-P dsr -Pn %d -Pq %d -Pi %d -Pp %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
-		    srh->num_addrs(),                   // how many nodes travered
+		"-p [ dsr %d [ %d %d ] [ %d %d %d %d->%d ] [ %d %d %d %d->%d ] ] ",
+		srh->num_addrs(),
 
-		    srh->route_request(),               //is this a route request?
-		    srh->rtreq_seq(),                   //route request sequence number
-		    srh->route_reply(),                 // is the reply below valid?
-		    //    srh->rtreq_seq(),                   
-		    srh->route_reply_len(),             //reply len
+		srh->route_request(),
+		srh->rtreq_seq(),
+
+		srh->route_reply(),
+		srh->rtreq_seq(),
+		srh->route_reply_len(),
 		// the dest of the src route
-		    srh->reply_addrs()[0].addr,         //src of the src route
-		    srh->reply_addrs()[srh->route_reply_len()-1].addr,  // dest of the src route
+		srh->reply_addrs()[0].addr,
+		srh->reply_addrs()[srh->route_reply_len()-1].addr,
 
-		    srh->route_error(),                //are we carrying a route error reply?
-		    srh->num_route_errors(),           // 
-		    srh->down_links()[srh->num_route_errors() - 1].tell_addr, // tell whom
-		    srh->down_links()[srh->num_route_errors() - 1].from_addr,     //link down b/w from
-		    srh->down_links()[srh->num_route_errors() - 1].to_addr);      //and to
+		srh->route_error(),
+		srh->num_route_errors(),
+		srh->down_links()[srh->num_route_errors() - 1].tell_addr,
+		srh->down_links()[srh->num_route_errors() - 1].from_addr,
+		srh->down_links()[srh->num_route_errors() - 1].to_addr);
 
 	   return;
 	}
@@ -331,7 +332,7 @@ CMUTrace::format_tcp(Packet *p, int offset)
 	
 	if( newtrace_ ) {
 	    sprintf(wrk_ + offset,
-		"-P tcp -Ps %d -Pa %d -Pf %d -Po %d ",
+		"-p [ tcp [ %d %d ] %d %d ] ",
 		th->seqno_,
 		th->ackno_,
 		ch->num_forwards(),
@@ -355,7 +356,7 @@ CMUTrace::format_rtp(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-		"-P cbr -Pi %d -Pf %d -Po %d ",
+		"-Pn cbr -Pi %d -Pf %d -Po %d ",
 		rh->seqno_,
 		ch->num_forwards(),
 		ch->opt_num_forwards());
@@ -380,7 +381,7 @@ CMUTrace::format_imep(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-                "-P imep %c %c %c 0x%04x ",
+                "-p [ imep %c %c %c 0x%04x ] ",
                 (im->imep_block_flags & BLOCK_FLAG_ACK) ? 'A' : '-',
                 (im->imep_block_flags & BLOCK_FLAG_HELLO) ? 'H' : '-',
                 (im->imep_block_flags & BLOCK_FLAG_OBJECT) ? 'O' : '-',
@@ -583,7 +584,10 @@ void CMUTrace::format(Packet* p, const char *why)
 	 * Log the MAC Header
 	 */
 	format_mac(p, why, offset);
+
+#ifdef NAM_TRACE
 	nam_format(p, why, offset);
+#endif
 	offset = strlen(wrk_);
 
 	switch(ch->ptype()) {
@@ -726,6 +730,7 @@ CMUTrace::recv(Packet *p, const char* why)
 #endif
 	format(p, why);
 	dump();
+	namdump();
 	Packet::free(p);
 }
 
@@ -744,7 +749,7 @@ CMUTrace::node_energy()
 	} 
 
 	if (energy > 0) return 1;
-	printf("DEBUG: node %d dropping pkts due to energy = 0\n", src_);
+	printf("DEBUG: node $d dropping pkts due to energy = 0\n", src_);
 	return 0;
 
 }
