@@ -314,6 +314,69 @@ SessionSim instproc run args {
 
         return [$scheduler_ run]
 }
+
+# Get multicast tree in session simulator: By assembling individual 
+# (receiver, sender) paths into a SPT.
+# src is a Node.
+SessionSim instproc get-mcast-tree { src grp } {
+	$self instvar treeLinks_ session_
+
+	if [info exists treeLinks_] {
+		unset treeLinks_
+	}
+
+	set sid [$src id] 
+
+	# get member list
+	foreach idx [array names session_] {
+		set pair [split $idx :]
+		if {[lindex $pair 0] == $sid && [lindex $pair 1] == $grp} {
+			set mbrs [$session_($idx) list-mbr]
+			break
+		}
+	}		
+
+	foreach mbr $mbrs {
+		# find path from $mbr to $src
+		set mid [[$mbr set node_] id]
+		if {$sid == $mid} {
+			continue
+		}
+		# get paths for each individual member
+		$self merge-path $sid $mid
+	}
+
+	# generating tree link list
+	foreach lnk [array names treeLinks_] {
+		lappend res $lnk $treeLinks_($lnk)
+	}
+	return $res
+}
+
+# Merge the path from mbr to src
+# src is node id.
+SessionSim instproc merge-path { src mbr } {
+	$self instvar routingTable_ treeLinks_ link_
+
+	# get paths from mbr to src and merge into treeLinks_
+	set tmp $mbr
+	while {$tmp != $src} {
+		set nxt [$routingTable_ lookup $tmp $src]
+		# XXX 
+		# Assume routingTable lookup is always successful, so 
+		#   don't validate existence of link_($tid:$sid)
+		# Always arrange tree links in (parent, child).
+		if ![info exists treeLinks_($nxt:$tmp)] {
+			set treeLinks_($nxt:$tmp) $link_($nxt:$tmp)
+		}
+		if [info exists treeLinks_($tmp:$nxt)] {
+			error "Reverse links in a SPT!"
+		}
+		set tmp $nxt
+	}
+}
+
+
 ############## SessionNode ##############
 Class SessionNode -superclass Node
 SessionNode instproc init {} {
@@ -363,10 +426,4 @@ Agent/LossMonitor instproc show-delay { seqno delay } {
 
     puts "[$node_ id] $seqno $delay"
 }
-
-
-
-
-
-
 
