@@ -149,7 +149,9 @@ set prop	[new $opt(prop)]
 set topo	[new Topography]
 set tracefd	[open $opt(tr) w]
 
-$topo load_flatgrid [expr $opt(x)./100] [expr $opt(y)./100] 100
+#$topo load_flatgrid [expr $opt(x)./100] [expr $opt(y)./100] 100
+$topo load_flatgrid $opt(x) $opt(y)
+
 
 #
 # Create God
