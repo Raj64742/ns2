@@ -41,21 +41,17 @@ protocol on all the nodes in the topology. As an example, the
 following commands illustrate the use of mrtproto command.
 
 \begin{program}
-	set cmc [$ns mrtproto CtrMcast \{\}]	\;# specify centralized multicast for 
-all nodes, cmc is the handle for multicast protocol object
-
-	$ns mrtproto DM $n1 $n2 $n3		\;# specify dense mode multicast for nodes n1, 
-n2 and n3
-
-	$ns mrtproto dynamicDM 			\;#specidy dynamic dense mode
+	set cmc [$ns mrtproto CtrMcast \{\}]	\;# specify centralized multicast for all nodes, cmc is the handle for multicast protocol object;
+	$ns mrtproto DM $n1 $n2 $n3		\;# specify dense mode multicast for nodes n1, n2 and n3;
+	$ns mrtproto dynamicDM 			\;#specidy dynamic dense mode;
 \end{program}
 
 New/unused multicast address can be allocated using the procedure
-\code{allocaddr}. With default configuration ns can provide multicast
+\proc[]{allocaddr}. With default configuration ns can provide multicast
 support for only 128 nodes. This bound on number of nodes is due to
-the addressing scheme. The procedure \code{expandaddr} can be used to
+the addressing scheme. The procedure \proc[]{expandaddr} can be used to
 expand the address space if the number of nodes in simulation is more
-than 128. \code{allocaddr\{\}} and \code{expandaddr\{\}} are class
+than 128. \proc[]{allocaddr\{\}} and \proc[]{expandaddr\{\}} are class
 procedures in the class Node.
 
 
@@ -77,8 +73,7 @@ An example configuration would be:
 	$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail \; create links with interfaces;
 
 	set mproto dynamicDM          \; configure multicast protocol;
-	set mrthandle [$ns mrtproto $mproto  \{\}] \; if an empty list is give, all 
-nodes will contain multicast protocol agents;
+	set mrthandle [$ns mrtproto $mproto  \{\}] \; if an empty list is give, all nodes will contain multicast protocol agents;
 
 	set src [new Agent/CBR]        \; create a source agent at node 0;
 	$ns attach-agent $node0 $src 
@@ -86,8 +81,7 @@ nodes will contain multicast protocol agents;
 
 	set rcvr [new Agent/LossMonitor]  \; create a receiver agent at node 1;
 	$ns attach-agent $node1 $rcvr
-	$ns at 0.3 "$node1 join-group $rcvr $group" \; join the group at simulation 
-time 0.3 (sec);
+	$ns at 0.3 "$node1 join-group $rcvr $group" \; join the group at simulation time 0.3 (sec);
 \end{program}
 
 \subsection{Protocol Specific configuration}
@@ -104,7 +98,7 @@ unicast to the RP.  Note that data packets from the senders are
 unicast to the RP even if there are no receivers for the group.
 
 Note that whenever network dynamics occur or unicast routing changes,
-\code{compute-mroutes} is called instantly.  This instantaneous
+\proc[]{compute-mroutes} is called instantly.  This instantaneous
 re-computation may result in causality violations during the transient
 periods.  Thus, please avoid using centralized multicast if the
 transient behavior is essential to your study.
@@ -196,7 +190,7 @@ class DM.
 	set mrthandle [$ns mrtproto $mproto \{\}]
 \end{program}
 
-\subsection{Multicast Behavior Monitor}
+\subsection{Multicast Behavior Monitor Configuration}
 McastMonitor modules counts amounts of packets in transit periodically
 and prints results to the standard output.  Currently, only prune,
 join, register, and data packets are traced.
@@ -229,8 +223,8 @@ Usually one multicast routing protocol is configured for the entire
 simulations.  Whenever there is a multicast related action in a node, the
 node will acess its multicast protcols through this McastProtoArbiter.
 
-Basic functions include \code{join-group}, \code{leave-group}, and
-\code{upcall}.  When these functions are called, corresponding functions
+Basic functions include \proc[]{join-group}, \proc[]{leave-group}, and
+\proc[]{upcall}.  When these functions are called, corresponding functions
 for all multicast protocols will be called as well.
 
 \paragraph{McastProtocol class}
@@ -241,7 +235,7 @@ These are mostly virtual functions.  Protocol specific actions are defined
 in the inheritting multicast protocols classes.
 
 \paragraph{Simulator class}
-When \code{EnableMcast_} is set, \code{$ns node} will create multicast
+When \code{EnableMcast_} is set, \proc[]{node} will create multicast
 nodes (see the following paragraph).
 
 \paragraph{Node class}
@@ -254,55 +248,55 @@ address, group address, and incoming interface. Replicators will copy
 packets and forward them to all outgoing interfaces. See figure
 illustrating multicast node sturcture.
 
-\code{join-group} upcalls \code{mcastproto_}'s (the McastProtoArbiter)
-\code{join-group}, adds the receiver agents to local \code{Agents_} list,
+\proc[]{join-group} upcalls \code{mcastproto_}'s (the McastProtoArbiter)
+\proc[]{join-group}, adds the receiver agents to local \code{Agents_} list,
 and adds outgoing interfaces to all replicators for the group.
 
-\code{leave-group} reverses the process in \code{join-group}.  It disables
+\proc[]{leave-group} reverses the process in \proc[]{join-group}.  It disables
 outgoing interfaces to the receiver agents for all replicators of the
 group, deletes the receiver agents from the local Agents_ list, and upcall
-\code{leave-group} at McastProtoArbiter.
+\proc[]{leave-group} at McastProtoArbiter.
 
-\code{new-group} is called from multicast classifier when no proper slots
+\proc[]{new-group} is called from multicast classifier when no proper slots
 are found.  This function simply makes an upcall to the McastProtoArbiter,
 \code{mcastproto_}.
 
-\code{add-mfc} does the following: creates a new replicator(if not
+\proc[]{add-mfc} does the following: creates a new replicator(if not
 existing), updates \code{replicator_} and \code{repByGroup_} array lists,
 adds all outgoing interfaces and local agents to the replicator, and calls
-multicast classifier's \code{add-rep} to create a slot for the replicator.
+multicast classifier's \proc[]{add-rep} to create a slot for the replicator.
 
 \paragraph{Classifier class}
 \code{Classifier/Multicast/Replicator} is inherited from
 Classifier/Multicast (See classifier-mcast.cc).  When receiving of a
 packet, it parses the packet header and tries to find a matching
-forwarding slot. If no proper slot is found, it upcalls \code{new-group}
+forwarding slot. If no proper slot is found, it upcalls \proc[]{new-group}
 defined in OTcl so protocol specific actions can be taken to handle the
 situation.
 
-\code{new-group} is called with C++ multicast classifier cannot find a
+\proc[]{new-group} is called with C++ multicast classifier cannot find a
 slot with proper source, group address, and incoming interface.  If simply
 no slot is found, \code{code} is set to CACHE_MISS.  If improper incoming
 interface, \code{code} is set to WRONG_IIF.
 
-\code{add-rep} creates a new slot for a new (S,G,iif) replicator.
+\proc[]{add-rep} creates a new slot for a new (S,G,iif) replicator.
 
 
 \paragraph{Replicator class}
 \code{Classifier/Replicator/Demuxer} is inherited from
 \code{Classifier/Replicator} (See replicator.cc).  When receiving a
 packet, it copies the packet to all its slots (outgoing interfaces). If no
-active slot is found, the C++ replicator upcalls OTcl \code{drop} which
+active slot is found, the C++ replicator upcalls OTcl \proc[]{drop} which
 will trigger protocol specific actions to handle the situation.
 
-\code{insert}, \code{disable}, and \code{enable} help inserting a new
+\proc[]{insert}, \proc[]{disable}, and \proc[]{enable} help inserting a new
 outgoing slot, disable an active slot, and enable a previously disabled
 slot.
 
-\code{change-iface} is to change incoming interface index in the multicast
+\proc[]{change-iface} is to change incoming interface index in the multicast
 classifier for a replicator.
 
-\code{is-active} and \code{exists} are helper functions to check whether
+\proc[]{is-active} and \proc[]{exists} are helper functions to check whether
 there is any active outgoing slot or a particular outgoing slot is active. 
 
 \subsection{Protocol Internals}
@@ -316,11 +310,11 @@ this section.
 \paragraph{CtrMcast}
 \label{CtrMcast}
 \code{CtrMcast} is inherited from \code{McastProtocol}.  One CtrMcast
-agent must be created for a node.  This CtrMcast agent handles multicast
-related commands for its node, e.g., \proc[]{join-group},
-\proc[]{leave-group}, \proc[]{handle-cache-miss},
-\proc[]{handle-wrong-iif}, \proc[]{drop}.  When multicast forwarding
-entries need to be updated, it calls a global, unique CtrMcastComp
+agent needs to be created for a node.  This CtrMcast agent handles multicast
+commands for its node, e.g., \proc[]{join-group}, 
+\proc[]{leave-group}, and \proc[]{handle-cache-miss}.
+When multicast forwarding entries need to be updated, it calls a 
+global, unique CtrMcastComp
 (centralized multicast computation) agent to compute and install the new
 entries.  CtrMcastComp is described in ~\ref{CtrMcastComp}.
 
