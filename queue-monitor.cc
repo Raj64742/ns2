@@ -226,13 +226,13 @@ int QueueMonitorCompat::command(int argc, const char*const* argv)
 	int fid;
 	if (argc == 3) {
 		if (strcmp(argv[1], "bytes") == 0) {
-			tcl.resultf("%u", bytes_[fid]);
+			tcl.resultf("%u", bytes_[fid = atoi(argv[2])]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "pkts") == 0) {
-			tcl.resultf("%u", pkts_[fid]);
+			tcl.resultf("%u", pkts_[fid = atoi(argv[2])]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "drops") == 0) {
-			tcl.resultf("%u", drops_[fid]);
+			tcl.resultf("%u", drops_[fid = atoi(argv[2])]);
 			return TCL_OK;
 		};
 	}
