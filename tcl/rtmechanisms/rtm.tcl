@@ -108,6 +108,8 @@ proc sim1 {} {
 
 	set gfm [$rtm makeflowmon]
 	set gflowf [open gflow.tr w]
+	$gfm set enable_in_ false	; # no per-flow arrival state
+	$gfm set enable_out_ false	; # no per-flow departure state
 	$gfm attach $gflowf
 
 	set bfm [$rtm makeflowmon]
