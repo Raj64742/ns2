@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.12 1997/07/14 08:52:02 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.13 1997/07/21 19:29:37 gnguyen Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -46,10 +46,8 @@ public:
 	}
 } class_delay_link;
 
-LinkDelay::LinkDelay() : dynamic_(0), itq_(0), nextPacket_(0), dropTarget_(0)
+LinkDelay::LinkDelay() : DropConnector(), dynamic_(0), itq_(0), nextPacket_(0)
 {
-	// Tcl& tcl = Tcl::instance();
-	/*XXX*/
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
 }
@@ -63,13 +61,7 @@ int LinkDelay::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 	}
-	if (argc == 3) {
-		if (strcmp(argv[1], "drop-target") == 0) {
-			dropTarget_ = (NsObject*) TclObject::lookup(argv[2]);
-			return TCL_OK;
-		}
-	}
-	return Connector::command(argc, argv);
+	return DropConnector::command(argc, argv);
 }
 
 void LinkDelay::recv(Packet* p, Handler* h)

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.13 1997/06/11 04:58:10 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.14 1997/07/21 19:29:35 gnguyen Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -77,36 +77,12 @@ void QueueHandler::handle(Event*)
 	queue_.resume();
 }
 
-Queue::Queue() : drop_(0), blocked_(0),
-    unblock_on_resume_(1), qh_(*this)
+Queue::Queue() : DropConnector(), blocked_(0), unblock_on_resume_(1), qh_(*this)
 {
 	Tcl& tcl = Tcl::instance();
 	bind("limit_", &qlim_);
 	bind_bool("blocked_", &blocked_);
 	bind_bool("unblock_on_resume_", &unblock_on_resume_);
-}
-
-int Queue::command(int argc, const char*const* argv)
-{
-	Tcl& tcl = Tcl::instance();
-	if (argc == 2) {
-		if (strcmp(argv[1], "drop-target") == 0) {
-			if (drop_ != 0)
-				tcl.resultf("%s", drop_->name());
-			return (TCL_OK);
-		}
-	} else if (argc == 3) {
-		if (strcmp(argv[1], "drop-target") == 0) {
-			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
-			if (p == 0) {
-				tcl.resultf("no object %s", argv[2]);
-				return (TCL_ERROR);
-			}
-			drop_ = p;
-			return (TCL_OK);
-		}
-	}
-	return (Connector::command(argc, argv));
 }
 
 void Queue::recv(Packet* p, Handler*)
@@ -144,13 +120,4 @@ void Queue::reset()
 {
 	while (Packet* p = deque())
 		drop(p);
-}
-
-
-void Queue::drop(Packet* p)
-{
-	if (drop_)
-		drop_->recv(p);
-	else
-		Packet::free(p);
 }

@@ -39,19 +39,15 @@
 #include "packet.h"
 #include "queue.h"
 #include "ip.h"
+#include "connector-drop.h"
 
-class LinkDelay : public Connector {
+
+class LinkDelay : public DropConnector {
  public:
 	LinkDelay();
 	void recv(Packet* p, Handler*);
 	void send(Packet* p, Handler*);
 	void handle(Event* e);
-	inline void drop(Packet* p) {
-		if (dropTarget_)
-			dropTarget_->recv(p, 0);
-		else
-			Packet::free(p);
-	}
 	double delay() { return delay_; }
 	inline double txtime(Packet* p) {
 		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
@@ -71,7 +67,6 @@ class LinkDelay : public Connector {
 	Packet* nextPacket_;
 
 private:
-	NsObject* dropTarget_;
 	void schedule_next() {
 		if (! nextPacket_) {
 			Scheduler& s = Scheduler::instance();
