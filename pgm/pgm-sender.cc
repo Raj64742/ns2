@@ -332,7 +332,7 @@ void PgmSender::trace_event(char *evType, nsaddr_t daddr, double evTime) {
 }
 
 // The application calls this function to send out new ODATA (original DATA).
-void PgmSender::sendmsg(int nbytes, const char *flags = 0)
+void PgmSender::sendmsg(int nbytes, const char *flags /* = 0 */)
 {
   odata_seqno_++;
 

@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.3 2002/05/30 17:44:04 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.4 2002/10/08 07:11:33 difa Exp $
 
 #include "config.h"
 #ifdef HAVE_STL
@@ -644,7 +644,7 @@ bool LsRouting::receiveLSA(int senderId, LsMessage* msgPtr)
 
 
 // -- sendLinkStates --
-bool LsRouting::sendLinkStates(bool buffer = false ) 
+bool LsRouting::sendLinkStates(bool buffer /* = false */) 
 {
 	if (myNodePtr_ == NULL)
 		return false;

@@ -25,7 +25,7 @@
 #
 # Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.7 2002/01/07 18:43:12 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.8 2002/10/08 07:11:32 difa Exp $
 
 # Top level hierarchy
 prefix	= @prefix@
@@ -36,7 +36,8 @@ CCX = @CXX@
 CC = @CC@
 MKDEP	= ../../../conf/mkdep
 
-DEFINE = -Dstand_alone
+# when including files from ns, we need to take care STL_NAMESPACE
+DEFINE = -Dstand_alone -DSTL_NAMESPACE=@STL_NAMESPACE@
 CFLAGS = @V_CCOPT@ 
 LDFLAGS = @V_STATIC@
 LIBS = @V_LIB@ -lm @LIBS@
@@ -49,19 +50,19 @@ install: setdest calcdest
 	$(INSTALL) -m 555 -o bin -g bin calcdest $(DESTDIR)$(BINDEST)
 
 setdest: rng.o setdest.o
-	$(CC) -o setdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
+	$(CCX) -o setdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
 	$(LIBS)
 
 calcdest: rng.o calcdest.o
-	$(CC) -o calcdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
+	$(CCX) -o calcdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
 	$(LIBS)
 
 rng.o:
 	@rm -f $@
-	$(CC) -c $(DEFINE) -I../../.. -o $@ ../../../tools/rng.cc
+	$(CCX) -c $(DEFINE) -I../../.. -o $@ ../../../tools/rng.cc
 
 setbox: setbox.o
-	$(CC) -o setbox $@.o $(LDFLAGS) $(CFLAGS) $(LIBS)
+	$(CCX) -o setbox $@.o $(LDFLAGS) $(CFLAGS) $(LIBS)
 
 clean:
 	@rm -f setdest setbox *.o *.core

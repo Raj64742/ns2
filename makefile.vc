@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.31 2002/04/13 23:34:30 buchheim Exp $ (LBL)
+# @(#) $Header: 2002/10/07 23:57:31
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -81,15 +81,18 @@ CFLAGS	= $(CCOPT) $(DEFINE)
 # Explicitly define compilation rules since SunOS 4's make doesn't like gcc.
 # Also, gcc does not remove the .o before forking 'as', which can be a
 # problem if you don't own the file but can write to the directory.
+# Also, since 3.x, gcc does not allow some C++ keywords, eg namespace,
+# to appear in C code, so we define LANG_CPP and LANG_C for uses in
+# common header files.
 .SUFFIXES: .cc	# $(.SUFFIXES)
 
 .cc.o:
 	@rm -f $@
-	$(CPP) -c $(CFLAGS) $(INCLUDES) -o $@ $*.cc
+	$(CPP) -c $(CFLAGS) -DLANG_CPP $(INCLUDES) -o $@ $*.cc
 
 .c.o:
 	@rm -f $@
-	$(CC) -c $(CFLAGS) $(INCLUDES) -o $@ $*.c
+	$(CC) -c $(CFLAGS) -DLANG_C $(INCLUDES) -o $@ $*.c
 
 
 GEN_DIR	= gen/
@@ -439,11 +442,14 @@ install-recursive: force
 clean:
 	$(RM) $(CLEANFILES)
 
-distclean:
+distclean: distclean-recursive
 	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
 	    gnuc.h os-proto.h $(AUTOCONF_GEN); \
 	$(MV) .configure .configure- ;\
 	echo "Moved .configure to .configure-"
+
+distclean-recursive:
+	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) clean; $(RM) Makefile; ) done
 
 tags:	force
 	ctags -wtd *.cc *.h webcache/*.cc webcache/*.h dsdv/*.cc dsdv/*.h \

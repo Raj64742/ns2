@@ -25,16 +25,17 @@
 #
 # Makefile for NLANR web cache trace processing (http://ircache.nlanr.org).
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/Makefile.in,v 1.4 2000/02/16 18:08:27 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/Makefile.in,v 1.5 2002/10/08 07:11:33 difa Exp $
 
 # Top level hierarchy
 prefix  = @prefix@
 # Pathname of directory to install the binary
 BINDEST = @prefix@/bin
 
+# when including files from ns, we need to take care STL_NAMESPACE
 CC = @CXX@
 INCLUDE = -I. -I../../.. @V_INCLUDES@
-CFLAGS = @V_CCOPT@
+CFLAGS = @V_CCOPT@ -DSTL_NAMESPACE=@STL_NAMESPACE@
 LDFLAGS = @V_STATIC@
 LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
 INSTALL = @INSTALL@
