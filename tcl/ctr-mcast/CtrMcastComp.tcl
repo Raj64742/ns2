@@ -101,9 +101,11 @@ CtrMcastComp instproc compute-branch { src group member } {
 	### set iif : RPF link dest id: interface label
 
 	if {$tmp == $target} {
-	    if {$treetype($group) == $SPT} {
+	    if {$treetype($group) == $SPT || $tmp == $src} {
+		#when the member is also the source
 		set iif -2
 	    } else {
+		#when member is at RP, find iif from RP to source
 		set upstreamtmp [$ns upstream-node $tmp $src]	
 		set iilink [$ns RPF-link $src [$upstreamtmp id] $tmp]
 		set iif [[$iilink set dest_] id]
