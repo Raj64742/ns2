@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.67 1997/11/18 00:53:52 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.68 1997/11/18 22:29:17 hari Exp $
 #
 
 #
@@ -70,7 +70,7 @@ source ns-agent.tcl
 source ns-random.tcl
 source ns-route.tcl
 source ns-namsupp.tcl
-source ns-ber.tcl
+source ns-errmodel.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mlink.tcl
