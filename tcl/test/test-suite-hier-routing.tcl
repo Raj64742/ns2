@@ -60,17 +60,17 @@ TestSuite instproc init {} {
     if {$testName_ == "hier-session"} {
 	set ns_ [new SessionSim]
 	set g_ [Node allocaddr]
-	#$ns_ namtrace-all [open temp.rands w]
+	$ns_ namtrace-all [open temp.rands w]
     } else {
 	set ns_ [new Simulator]
-	#$ns_ trace-all [open temp.rands w]
+	$ns_ trace-all [open temp.rands w]
     }
-    $ns_ trace-all [open temp.rands w]
-	$ns_ set-address-format hierarchical
-	if {$flag_} {
-		Simulator set EnableMcast_ 1
-		Simulator set NumberInterfaces_ 1
-		set g_ [Node allocaddr]
+   # $ns_ trace-all [open temp.rands w]
+    $ns_ set-address-format hierarchical
+    if {$flag_} {
+	Simulator set EnableMcast_ 1
+	Simulator set NumberInterfaces_ 1
+	set g_ [Node allocaddr]
 	}
 	#setup hierarchical topology
 	AddrParams set domain_num_ 2
