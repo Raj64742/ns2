@@ -1,5 +1,42 @@
 #include "agg-spec.h"
 
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1999  International Computer Science Institute
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by ACIRI, the AT&T 
+ *      Center for Internet Research at ICSI (the International Computer
+ *      Science Institute).
+ * 4. Neither the name of ACIRI nor of ICSI may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ICSI AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL ICSI OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/pushback/agg-spec.cc,v 1.2 2000/11/19 01:32:33 ratul Exp $ (ACIRI)
+ */
+
 #include "ip.h"
 #include "ident-tree.h"
 
@@ -27,9 +64,15 @@ AggSpec::member(Packet * pkt) {
   
   hdr_ip * iph = hdr_ip::access(pkt);
   ns_addr_t dst = iph->dst();
+  int fid = iph->flowid();
 
   if (dstON_) {
-    int prefix = getPrefix(dst.addr_);
+    int prefix;
+    if (AGGREGATE_CLASSIFICATION_MODE_FID) 
+      prefix = getPrefix(fid);
+    else 
+      prefix = getPrefix(dst.addr_);
+
     if (prefix == dstPrefix_) {
       return 1;
     }
@@ -93,7 +136,10 @@ int
 AggSpec::getSampleAddress() {
   
   //for now, return the prefix itself
-  return dstPrefix_;
+  if (AGGREGATE_CLASSIFICATION_MODE_FID) 
+    return 1;
+  else 
+    return dstPrefix_;
 }
 
 int 

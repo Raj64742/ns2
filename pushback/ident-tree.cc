@@ -1,3 +1,39 @@
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1999  International Computer Science Institute
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *	This product includes software developed by ACIRI, the AT&T 
+ *      Center for Internet Research at ICSI (the International Computer
+ *      Science Institute).
+ * 4. Neither the name of ACIRI nor of ICSI may be used
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ICSI AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL ICSI OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ */
+
 #include "ident-tree.h"
 #include "rate-limit.h"
 
@@ -259,14 +295,14 @@ IdentStruct::IdentStruct() {
 void
 IdentStruct::reset() {
   dstTree_->reset();
-  srcTree_->reset();
+  //  srcTree_->reset();
   //  dropHash_->reset();
 }
   
 void 
 IdentStruct::traverse() {
   dstTree_->traverse();
-  srcTree_->traverse();
+  //  srcTree_->traverse();
   //  dropHash_->traverse();
 }
 
@@ -274,15 +310,19 @@ void
 IdentStruct::registerDrop(Packet *p) {
    
   hdr_ip * iph = hdr_ip::access(p);
-  ns_addr_t src = iph->src();
+  //  ns_addr_t src = iph->src();
   ns_addr_t dst = iph->dst();
-  // int fid = iph->flowid();
+  int fid = iph->flowid();
   
   hdr_cmn* hdr  = HDR_CMN(p);
   int size = hdr->size();
 
+ if (AGGREGATE_CLASSIFICATION_MODE_FID)
+   dstTree_->registerDrop(fid, size);
+ else 
   dstTree_->registerDrop(dst.addr_, size);
-  srcTree_->registerDrop(src.addr_, size);
+  
+  //  srcTree_->registerDrop(src.addr_, size);
   //  dropHash_->insert(p, size);
 }
 
