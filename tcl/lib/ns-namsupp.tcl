@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.9 1998/03/03 02:01:42 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.10 1998/03/07 00:07:01 haoboy Exp $
 #
 
 #
@@ -340,4 +340,33 @@ Agent instproc delete-var-trace { name } {
 		puts $namTrace_ "f -t [$ns now] -s $addr -d $dst -n $name -a $ntName_ -o $features_($name) -x"
 		unset features_($name)
 	}
+}
+
+#
+# Other animation control support
+# 
+
+Simulator instproc trace-annotate { str } {
+	$self puts-ns-traceall [format \
+		"v %s %s {set sim_annotation {%s}}" [$self now] eval $str]
+	$self puts-nam-traceall "v -t [$self now] sim_annotation [$self now] $str"
+}
+
+proc trace_annotate { str } {
+	set ns [Simulator instance]
+
+	$ns trace-annotate $str
+}
+
+proc flash_annotate { start duration msg } {
+	set ns [Simulator instance]
+	$ns at $start "trace_annotate {$msg}"
+	$ns at [expr $start+$duration] "trace_annotate periodic_message"
+}
+
+# rate's unit is second
+Simulator instproc set-animation-rate { rate } {
+	# time_parse defined in tcl/rtp/session-rtp.tcl
+	set r [time_parse $rate]
+	$self puts-nam-traceall "v -t [$self now] set_rate [expr 10*log10($r)] 1"
 }
