@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.18 1997/08/12 22:22:45 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.19 1997/08/15 23:08:34 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -90,7 +90,6 @@ public:
 
 class Packet : public Event {
 private:
-	friend class PacketQueue;
 	u_char* bits_;
 	u_char* data_;  // variable size buffer for 'data'
 	u_int datalen_; // length of variable size buffer
