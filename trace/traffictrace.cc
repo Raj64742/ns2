@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.13 1999/11/13 23:44:35 heideman Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.14 2002/05/21 02:11:15 ddutta Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -156,7 +156,7 @@ int TraceFile::setup()
 
 		trace_ = new struct tracerec[nrec_];
 
-		if ((fp = fopen(name_, "r")) == NULL) {
+		if ((fp = fopen(name_, "rb")) == NULL) {
 			printf("can't open file %s\n", name_);
 			return -1;
 		}
