@@ -104,13 +104,15 @@ Node proc expandaddr {} {
         # calling set-address-format with expanded option (sets nodeid with 21 bits 
         # & sets aside 1 bit for mcast) and sets portid with 8 bits
 	# if hierarchical address format is set, just expands the McastAddr_
-	if ![Simulator set EnableHierRt_] {
-		set ns [Simulator instance]
-		$ns set-address-format expanded
-	}
-	set mcastshift [AddrParams set McastShift_]
-	Simulator set McastAddr_ [expr 1 << $mcastshift]
-	mrtObject expandaddr
+	#if ![Simulator set EnableHierRt_] {
+	set ns [Simulator instance]
+	$ns set-address-format expanded
+		puts"Backward compatibility: Use $ns set-address-format expanded instead of \"Node expandaddr\";" 
+		
+	#}
+	#set mcastshift [AddrParams set McastShift_]
+	#Simulator set McastAddr_ [expr 1 << $mcastshift]
+	#mrtObject expandaddr
 }
 
 Node instproc start-mcast {} {

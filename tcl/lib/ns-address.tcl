@@ -135,7 +135,7 @@ Simulator instproc set-address-format {opt args} {
 	if {[string compare $opt "def"] == 0} {
 		$self set-address 8 8
 	} elseif {[string compare $opt "expanded"] == 0} {
-		$self set-address 23 8
+		$self expand-address
 	} elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
 		if [$self multicast?] {
 			
@@ -175,20 +175,23 @@ Simulator instproc set-address {node port} {
 	if {[expr $node + $port] > [$a set size_]} {
 		$a set size_ [AllocAddrBits set MAXADDRSIZE_]
 	}
-	
+		
 	# one bit is set aside for mcast as default :: this waste of 1 bit may be avoided, if 
 	# mcast option is enabled before the initialization of Simulator.
-	#     if [$self multicast?] {
 	$a set-mcastbits 1
-	#     }
-
 	set lastbit [expr $node - [$a set mcastsize_]]
 	$a set-idbits 1 $lastbit
 	$a set-portbits $port
-
 }
 
-
+Simulator instproc expand-address {} {
+	if ![Simulator set EnableHierRt_] {
+		$self set-address 23 8
+	}
+	set mcastshift [AddrParams set McastShift_]
+	Simulator set McastAddr_ [expr 1 << $mcastshift]
+	mrtObject expandaddr
+}
 
 
 #sets hierarchical bits
