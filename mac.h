@@ -60,7 +60,6 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
-	double ifs_;		// interframe spacing
 	Channel* channel_;	// channel this MAC is connected to
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandler mh_;		// handle delay send due to busy channel

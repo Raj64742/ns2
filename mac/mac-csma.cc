@@ -72,7 +72,8 @@ MacHandlerEoc::handle(Event* e)
 
 CsmaMac::CsmaMac() : Mac(), attempt_(0), mhEoc_(*this)
 {
-	bind("slotTime_", &slotTime_);
+	bind_time("ifs_", &ifs_);
+	bind_time("slotTime_", &slotTime_);
 	bind("cwmin_", &cwmin_);
 	bind("cwmax_", &cwmax_);
 	bind("maxAttempt_", &maxAttempt_);

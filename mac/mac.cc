@@ -46,7 +46,6 @@ public:
 
 Mac::Mac() : LinkDelay(), callback_(0), channel_(0), mh_(*this)
 {
-	bind_time("ifs_", &ifs_);
 }
 
 

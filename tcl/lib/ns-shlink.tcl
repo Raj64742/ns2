@@ -38,7 +38,7 @@ LL/Base set delay_ 1ms
 
 Mac/Base set bandwidth_ 10Mb
 Mac/Base set delay_ 1ms
-Mac/Base set ifs_ 16us
+
 Mac/Csma set bandwidth_ 10Mb
 Mac/Csma set delay_ 1ms
 Mac/Csma set ifs_ 16us
@@ -47,7 +47,7 @@ Mac/Csma set cwmin_ 1
 Mac/Csma set cwmax_ 256
 Mac/Csma set maxAttempt_ 10
 
-Channel set delay_ 1ms
+Channel set delay_ 16us
 
 
 Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "Queue/DropTail" } { mactype "Mac/Base" } } {

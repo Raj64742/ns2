@@ -57,10 +57,11 @@ public:
 	virtual void endofContention(Packet*);
 
 protected:
+	double ifs_;		// interframe spacing
+	double slotTime_;	// duration of antenna slot in seconds
+	int cw_;		// current contention window
 	int cwmin_;		// minimum contention window for 1st backoff
 	int cwmax_;		// maximum contention window (backoff range)
-	int cw_;		// current contention window
-	double slotTime_;	// duration of antenna slot in seconds
 	int attempt_;		// number of access attempts for 1 frame
 	int maxAttempt_;	// maximum number of attempts
 	MacHandlerEoc mhEoc_;	// handle end-of-contention
