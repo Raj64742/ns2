@@ -15,3 +15,25 @@ if [TclObject is-class Network/Pcap/Live] {
 if [TclObject is-class Agent/Tap] {
 	Agent/Tap set maxpkt_ 1600
 }
+
+if [TclObject is-class ArpAgent] {
+
+	ArpAgent set cachesize_ 10; # entries in arp cache
+	ArpAgent instproc init {} {
+		$self next
+	}
+
+	ArpAgent instproc config {} {
+		$self instvar net_ myether_ myip_
+		set net_ [new Network/Pcap/Live]
+		$net_ open readwrite
+		set myether_ [$net_ linkaddr]
+		set myip_ [$net_ netaddr]
+		$net_ filter "arp and (not ether src $myether_) and \
+			(ether dst $myether_ \
+			or ether dst ff:ff:ff:ff:ff:ff)"
+		$self cmd network $net_
+		$self cmd myether $myether_
+		$self cmd myip $myip_
+	}
+}
