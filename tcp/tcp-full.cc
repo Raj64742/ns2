@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.73 1999/08/17 01:46:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.74 1999/08/17 02:00:11 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -150,7 +150,7 @@ FullTcpAgent::FullTcpAgent() :
 	bind_bool("dupseg_fix_", &dupseg_fix_);
 	bind_bool("dupack_reset_", &dupack_reset_);
 	bind_bool("close_on_empty_", &close_on_empty_);
-	bind("interval_", &delack_interval_);
+	bind_time("interval_", &delack_interval_);
 	bind("ts_option_size_", &ts_option_size_);
 	bind_bool("reno_fastrecov_", &reno_fastrecov_);
 	bind_bool("pipectrl_", &pipectrl_);
