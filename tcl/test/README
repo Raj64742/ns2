@@ -12,6 +12,7 @@ To run the test suites in this directory:
 ./test-all-cbq-v1
 ./test-all-sack-v1
 ./test-all-v1
+./test-all-mcast
 
 OR, just for validation purposes:
 
@@ -23,6 +24,7 @@ OR, just for validation purposes:
 ./test-all-cbq-v1 quiet
 ./test-all-sack-v1 quiet  
 ./test-all-v1 quiet
+./test-all-mcast
 
 ----------------------------
 
