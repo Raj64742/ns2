@@ -40,22 +40,24 @@ LL set macDA_ 0
 
 # Snoop variables
 if [TclObject is-class Snoop] {
-	Snoop set snoopTick_ 0.05
+	Snoop set snoopTick_ 0.1
 	Snoop set snoopDisable_ 0
-	Snoop set srtt_ 100ms
-	Snoop set rttvar_ 0
-	Snoop set g_ 0.25
+	Snoop set srtt_ 0.1
+	Snoop set rttvar_ 0.25
+	Snoop set g_ 0.125
 	Snoop set tailTime_ 0
 	Snoop set rxmitStatus_ 0
+	Snoop set lru_ 0
+	Snoop set maxbufs_ 0
 }
 
 if [TclObject is-class LL/LLSnoop] {
 	LL/LLSnoop set integrate_ 0
 	LL/LLSnoop set delay_ 0ms
-	Snoop set srtt_ 100ms
-	Snoop set rttvar_ 0
-	Snoop set g_ 0.25
-	LL/LLSnoop set snoopTick_ 0.05
+	Snoop set srtt_ 0.1
+	Snoop set rttvar_ 0.25
+	Snoop set g_ 0.125
+	LL/LLSnoop set snoopTick_ 0.1
 }
 
 # Get snoop agent (or else create one automatically
