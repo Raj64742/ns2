@@ -35,7 +35,7 @@ Agent/TCP set singledup_ 0
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #    
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.5 2001/10/11 14:15:57 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.6 2001/11/06 06:17:37 tomh Exp $
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #    
@@ -49,6 +49,7 @@ Agent/TCP set singledup_ 0
 # ns test-suite-satellite.tcl repeater
 # ns test-suite-satellite.tcl aloha
 # ns test-suite-satellite.tcl aloha.collisions
+# ns test-suite-satellite.tcl wired 
 #
 #
 # To view a list of available tests to run with this script:
@@ -151,7 +152,6 @@ set opt(ifq)            Queue/DropTail
 set opt(qlim)           50
 set opt(ll)             LL/Sat
 
-
 # Definition of test-suite tests
 # Simple bent-pipe (repeater) satellite
 # NOTE:  This test is identical to sat-repeater.tcl in ~ns/tcl/ex
@@ -168,6 +168,8 @@ Test/repeater instproc run {} {
 
 	global opt f
 
+	set opt(wiredRouting)   OFF
+
 	# GEO satellite at 95 degrees longitude West
 	$ns_ node-config -satNodeType geo-repeater \
 			-llType $opt(ll) \
@@ -176,7 +178,8 @@ Test/repeater instproc run {} {
 			-macType $opt(mac) \
 			-phyType $opt(phy) \
 			-channelType $opt(chan) \
-			-downlinkBW $opt(bw_down)
+			-downlinkBW $opt(bw_down) \
+			-wiredRouting $opt(wiredRouting)
 
 	set n1 [$ns_ node]
 	$n1 set-position -95
@@ -254,6 +257,7 @@ Test/mixed instproc run {} {
 
 	set opt(alt)            780
 	set opt(inc)            90
+	set opt(wiredRouting)   OFF
 
 	$ns_ node-config -satNodeType polar \
 			 -llType $opt(ll) \
@@ -262,7 +266,8 @@ Test/mixed instproc run {} {
 			 -macType $opt(mac) \
 			 -phyType $opt(phy) \
 			 -channelType $opt(chan) \
-			 -downlinkBW $opt(bw_down)
+			 -downlinkBW $opt(bw_down) \
+			 -wiredRouting $opt(wiredRouting)
 
 	set n0 [$ns_ node]; set n1 [$ns_ node]; set n2 [$ns_ node];
 	set n3 [$ns_ node]; set n4 [$ns_ node]; set n5 [$ns_ node];
@@ -361,6 +366,171 @@ Test/mixed instproc run {} {
 	$ns_ run
 }
 
+# Same as mixed, but with wired-satellite integration
+# NOTE:  This test is identical to sat-wired.tcl in ~ns/tcl/ex
+
+Class Test/wired -superclass TestSuite
+Test/wired instproc init {} {
+	$self instvar test_
+	set test_       wired 
+	$self next
+
+}
+
+Test/wired instproc run {} {
+	$self instvar ns_  
+
+	global opt f
+	
+	# Change some of the options
+	set opt(bw_down)        1.5Mb
+	set opt(bw_up)          1.5Mb
+	set opt(bw_isl)         25Mb
+
+	set opt(alt)            780
+	set opt(inc)            90
+	set opt(wiredRouting) 	ON
+
+	$ns_ node-config -satNodeType polar \
+			 -llType $opt(ll) \
+			 -ifqType $opt(ifq) \
+			 -ifqLen $opt(qlim) \
+			 -macType $opt(mac) \
+			 -phyType $opt(phy) \
+			 -channelType $opt(chan) \
+			 -downlinkBW $opt(bw_down) \
+			 -wiredRouting $opt(wiredRouting)
+
+	set n0 [$ns_ node]; set n1 [$ns_ node]; set n2 [$ns_ node];
+	set n3 [$ns_ node]; set n4 [$ns_ node]; set n5 [$ns_ node];
+	set n6 [$ns_ node]; set n7 [$ns_ node]; set n8 [$ns_ node];
+	set n9 [$ns_ node]; set n10 [$ns_ node]
+
+	set plane 1
+	$n0 set-position $opt(alt) $opt(inc) 0 0 $plane 
+	$n1 set-position $opt(alt) $opt(inc) 0 32.73 $plane 
+	$n2 set-position $opt(alt) $opt(inc) 0 65.45 $plane 
+	$n3 set-position $opt(alt) $opt(inc) 0 98.18 $plane 
+	$n4 set-position $opt(alt) $opt(inc) 0 130.91 $plane 
+	$n5 set-position $opt(alt) $opt(inc) 0 163.64 $plane 
+	$n6 set-position $opt(alt) $opt(inc) 0 196.36 $plane 
+	$n7 set-position $opt(alt) $opt(inc) 0 229.09 $plane 
+	$n8 set-position $opt(alt) $opt(inc) 0 261.82 $plane 
+	$n9 set-position $opt(alt) $opt(inc) 0 294.55 $plane 
+	$n10 set-position $opt(alt) $opt(inc) 0 327.27 $plane 
+
+	# By setting the next_ variable on polar sats; handoffs can be optimized
+	# This step must follow all polar node creation
+	$n0 set_next $n10; $n1 set_next $n0; $n2 set_next $n1; $n3 set_next $n2
+	$n4 set_next $n3; $n5 set_next $n4; $n6 set_next $n5; $n7 set_next $n6
+	$n8 set_next $n7; $n9 set_next $n8; $n10 set_next $n9
+
+	# GEO satellite:  above North America
+	$ns_ node-config -satNodeType geo
+	set n11 [$ns_ node]
+	$n11 set-position -100
+
+	# Terminals
+	$ns_ node-config -satNodeType terminal
+	set n100 [$ns_ node]; set n101 [$ns_ node]
+	$n100 set-position 37.9 -122.3; # Berkeley
+	$n101 set-position 42.3 -71.1; # Boston
+	set n200 [$ns_ node]; set n201 [$ns_ node]
+	$n200 set-position 0 10
+	$n201 set-position 0 -10
+
+	# Add any necessary ISLs or GSLs
+	# GSLs to the geo satellite:
+	$n100 add-gsl geo $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
+	  $opt(phy) [$n11 set downlink_] [$n11 set uplink_]
+	$n101 add-gsl geo $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
+	  $opt(phy) [$n11 set downlink_] [$n11 set uplink_]
+	# Attach n200 and n201 
+	$n200 add-gsl polar $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) $opt(phy) [$n5 set downlink_] [$n5 set uplink_]
+	$n201 add-gsl polar $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) $opt(phy) [$n5 set downlink_] [$n5 set uplink_]
+
+	#ISL
+	$ns_ add-isl intraplane $n0 $n1 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n1 $n2 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n2 $n3 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n3 $n4 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n4 $n5 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n5 $n6 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n6 $n7 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n7 $n8 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n8 $n9 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n9 $n10 $opt(bw_isl) $opt(ifq) $opt(qlim)
+	$ns_ add-isl intraplane $n10 $n0 $opt(bw_isl) $opt(ifq) $opt(qlim)
+
+	# Set up wired nodes
+	# Connect $n300<->$n301<->$n302<->$n100<->$n11<->$n101<->$n303
+	#                    ^               ^
+	#                    |_______________|
+	#
+	# Packets from n303 to n300 should bypass n302 (node #18 in the trace)
+	# (i.e., they should take the following path:  19,13,11,12,17,16)
+	#
+	$ns_ unset satNodeType_
+	set n300 [$ns_ node]; # node 16 in trace
+	set n301 [$ns_ node]; # node 17 in trace
+	set n302 [$ns_ node]; # node 18 in trace
+	set n303 [$ns_ node]; # node 19 in trace
+	$ns_ duplex-link $n300 $n301 5Mb 2ms DropTail; # 16 <-> 17
+	$ns_ duplex-link $n301 $n302 5Mb 2ms DropTail; # 17 <-> 18
+	$ns_ duplex-link $n302 $n100 5Mb 2ms DropTail; # 18 <-> 11
+	$ns_ duplex-link $n303 $n101 5Mb 2ms DropTail; # 19 <-> 13
+	$ns_ duplex-link $n301 $n100 5Mb 2ms DropTail; # 17 <-> 11
+
+
+
+	# Trace all queues
+	$ns_ trace-all-satlinks $f
+
+	# Attach agents
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $n100 $udp0
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	$cbr0 set interval_ 60.01
+
+	set udp1 [new Agent/UDP]
+	$ns_ attach-agent $n200 $udp1
+	$udp1 set class_ 1
+	set cbr1 [new Application/Traffic/CBR]
+	$cbr1 attach-agent $udp1
+	$cbr1 set interval_ 90.5
+
+	set null0 [new Agent/Null]
+	$ns_ attach-agent $n101 $null0
+	set null1 [new Agent/Null]
+	$ns_ attach-agent $n201 $null1
+
+	$ns_ connect $udp0 $null0
+	$ns_ connect $udp1 $null1
+
+	# Set up connection between wired nodes
+	set udp2 [new Agent/UDP]
+	$ns_ attach-agent $n303 $udp2
+	set cbr2 [new Application/Traffic/CBR]
+	$cbr2 attach-agent $udp2
+	$cbr2 set interval_ 300
+	set null2 [new Agent/Null]
+	$ns_ attach-agent $n300 $null2
+
+	$ns_ connect $udp2 $null2
+	$ns_ at 10.0 "$cbr2 start"
+ 
+	set satrouteobject_ [new SatRouteObject]
+	$satrouteobject_ compute_routes
+
+	$ns_ at 1.0 "$cbr0 start"
+	$ns_ at 305.0 "$cbr1 start"
+
+	$ns_ at 9000.0 "$self finish"
+
+	$ns_ run
+}
+
 # Testing unslotted aloha
 # bent-pipe gka geo satellite and a plane of polar satellites
 # NOTE:  This test is similar (fewer sources) to sat-aloha.tcl in ~ns/tcl/ex
@@ -383,6 +553,7 @@ Test/aloha instproc run {} {
 	set opt(bw_up)          2Mb
 	set opt(bw_down)        2Mb
 	set opt(mac)            Mac/Sat/UnslottedAloha 
+	set opt(wiredRouting)   OFF
 
 	$ns_ node-config -satNodeType geo-repeater \
 			-llType $opt(ll) \
@@ -391,7 +562,8 @@ Test/aloha instproc run {} {
 			-macType $opt(mac) \
 			-phyType $opt(phy) \
 			-channelType $opt(chan) \
-			-downlinkBW $opt(bw_down)
+			-downlinkBW $opt(bw_down) \
+			-wiredRouting $opt(wiredRouting)
 
 	# GEO satellite at prime meridian
 	set n1 [$ns_ node]
@@ -455,6 +627,7 @@ Test/aloha.collisions instproc run {} {
 	set opt(bw_up)          2Mb
 	set opt(bw_down)        2Mb
 	set opt(mac)            Mac/Sat/UnslottedAloha 
+	set opt(wiredRouting)   OFF
 
 	$ns_ node-config -satNodeType geo-repeater \
 			-llType $opt(ll) \
@@ -463,7 +636,8 @@ Test/aloha.collisions instproc run {} {
 			-macType $opt(mac) \
 			-phyType $opt(phy) \
 			-channelType $opt(chan) \
-			-downlinkBW $opt(bw_down)
+			-downlinkBW $opt(bw_down) \
+			-wiredRouting $opt(wiredRouting)
 
 	# GEO satellite at prime meridian
 	set n1 [$ns_ node]
