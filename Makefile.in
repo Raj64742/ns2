@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.165 1999/08/12 04:18:57 sfloyd Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.166 1999/08/17 04:30:57 sfloyd Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -154,7 +154,7 @@ OBJ_CC = \
 	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	webcache/mcache.o tfrm.o tfrm-sink.o energy-model.o \
+	webcache/mcache.o tfrc.o tfrc-sink.o energy-model.o \
 	#mac-csma.o mac-multihop.o\
 #	sensor-nets/landmark.o mac-simple-wireless.o \
 #	sensor-nets/tags.o sensor-nets/sensor-query.o \
