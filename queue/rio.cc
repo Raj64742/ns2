@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.4 2000/07/03 06:00:13 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.5 2000/07/03 06:43:24 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -173,51 +173,6 @@ void RIOQueue::reset()
         }     
 	REDQueue::reset();
 }
-
-/*
- * Compute the average queue size and average Out queue size.
- * The code contains two alternate methods for this, the plain EWMA
- * and the Holt-Winters method.
- * out_queued and total_queued can be bytes or packets
- */
-void RIOQueue::run_out_estimator( int out_queued, int total_queued, int
-m)
-{
-        float out_f, out_f_sl, out_f_old;
-        float total_f, total_f_sl, total_f_old ;
-
-        out_f = edv_out_.v_ave;
-        out_f_sl = edv_out_.v_slope;
-
-        total_f = edv_.v_ave;
-        total_f_sl = edv_.v_slope;
-        while (--m >= 1) {
-                out_f_old = out_f;
-                out_f *= 1.0 - edp_.q_w;
-
-                total_f_old = total_f;
-                total_f  *= 1.0 - edp_.q_w;
-        }
-
-        out_f_old = out_f;
-        out_f *= 1.0 - edp_.q_w;
-        out_f += edp_.q_w * out_queued;
-
-        total_f_old = total_f;
-        total_f    *= 1.0 - edp_.q_w;
-        total_f    += edp_.q_w * total_queued;
-        edv_out_.v_ave = out_f;
-        edv_out_.v_slope = out_f_sl;
-
-        edv_.v_ave  = total_f;
-        edv_.v_slope = total_f_sl;
-        //for debug
-        if (debug_)
-                printf("OUT %f %f %f\n", Scheduler::instance().clock(),
-edv_out_
-.v_ave, total_f);
-}
-
 
 /*
  * Return the next packet in the queue for transmission.
@@ -590,14 +545,9 @@ void RIOQueue::enque(Packet* pkt)
            * us knowing, then bcount_ will not be maintained properly!
            */
 
-		// not sure whether this is correct, Yun
-	  //printf("qlen %d\n", q_->length());
-//	  edv_out_.v_ave = REDQueue::estimator(
-//		qib_ ? bcount_ - in_bcount_ : q_->length() - in_len_,
-//		m + 1, edv_out_.v_ave, edp_.q_w);
-          run_out_estimator(qib_ ? bcount_ - in_bcount_ : q_->length() - in_len_,
-                        qib_ ? bcount_ : q_->length(), m + 1);
-
+	  edv_out_.v_ave = REDQueue::estimator(
+		qib_ ? bcount_ - in_bcount_ : q_->length() - in_len_,
+		m + 1, edv_out_.v_ave, edp_.q_w);
 
           /*
            * count and count_bytes keeps a tally of arriving traffic
