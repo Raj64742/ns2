@@ -1033,8 +1033,6 @@ EW::EW() {
 
 //Deconstructor.
 EW::~EW(){
-  struct SWinEntry *p, *q;
-
   for (int i = 0; i < htab_point; i++) {
     freeHTabEntry(htab[i]);
   }
@@ -1177,7 +1175,7 @@ void EW::applyDetector(Packet *pkt) {
   }
 
   // update the existing (or just created) entry in AList
-  assert(p && p->node_id == src_id);
+  assert(p && p->src_id == src_id);
   p->bytes += hdr->size();
 }
 
@@ -1425,7 +1423,6 @@ void EW::ravgSWin(int id) {
   struct SWinEntry *p;
   float sum = 0;
   float t_weight = 0;
-  int i = 0;
 
   //printf("Calculate running average over the sliding window:\n");
   p = htab[id]->swin.head;
@@ -1473,7 +1470,7 @@ void EW::detectChange(int id) {
 
 // Decreas SWin.
 void EW::decSWin(int id) {
-  struct SWinEntry *p;
+  //  struct SWinEntry *p;
 
   // Need some investigation for the min allowed inv and th
   /*  
@@ -1496,7 +1493,7 @@ void EW::decSWin(int id) {
 
 // Increase SWin.
 void EW::incSWin(int id) {
-  struct SWinEntry *p;
+  //struct SWinEntry *p;
   /*
   if(htab[id]->s_inv * 2 <= htab[id]->init_inv) {
     htab[id]->s_inv = htab[id]->s_inv * 2;
