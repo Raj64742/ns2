@@ -208,7 +208,6 @@ tkAppInit.cc
 tcp-newreno.cc
 tcp-reno.cc
 tcp-sack1.cc
-tcp-simple.cc
 tcp-sink.cc
 tcp.cc
 tcp.h
