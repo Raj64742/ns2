@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.21 1997/07/24 02:51:32 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.22 1997/07/24 06:32:57 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -58,7 +58,7 @@ int Agent::uidcnt_;		/* running unique id */
 
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
-	prio_(-1), flags_(0), defttl_(32)
+	prio_(-1), flags_(0), defttl_(32), channel_(0)
 {
 	memset(pending_, 0, sizeof(pending_));
 	// this is really an IP agent, so set up
