@@ -65,7 +65,7 @@ LanNode instproc init {ns args} {
 		set address_ $id_
 	}
 	set defRouter_ [new LanRouter $ns $self]
-	if [Simulator set EnableMcast_] {
+	if [$ns multicast?] {
 		set switch_ [new Classifier/Addr]
 		$switch_ set mask_ [AddrParams set McastMask_]
 		$switch_ set shift_ [AddrParams set McastShift_]

@@ -687,3 +687,29 @@ Simulator instproc color-tree {} {
 		$self duplex-link-op $Node_($sid) $Node_($did) color blue
 	}
 }
+
+Agent/Mcast/Control instproc init { protocol } {
+        $self next
+        $self instvar proto_
+        set proto_ $protocol
+}
+ 
+Agent/Mcast/Control array set messages {}
+Agent/Mcast/Control set mcounter 0
+
+Agent/Mcast/Control instproc send {type from src group args} {
+        set m [Agent/Mcast/Control set mcounter]
+        Agent/Mcast/Control set messages($m) [eval list $from $src $group $args]
+        $self cmd send $type $m
+        Agent/Mcast/Control set mcounter [incr m]
+}
+
+Agent/Mcast/Control instproc recv {type iface m} {
+        eval $self recv2 $type $iface [Agent/Mcast/Control set messages($m)]
+        Agent/Mcast/Control unset messages($m)
+}
+
+Agent/Mcast/Control instproc recv2 {type iface from src group args} {
+        $self instvar proto_
+        eval $proto_ recv-$type $from $src $group $iface $args
+}

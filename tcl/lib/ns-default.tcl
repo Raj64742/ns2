@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.134 1998/10/13 21:40:29 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.135 1998/10/14 01:21:37 yuriy Exp $
 
 
 #
@@ -355,7 +355,7 @@ Application/Traffic/CBR set packet_size_ 210
 Application/Traffic/CBR set random_ 0
 Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
 
-Agent/Mcast/Prune set packetSize_ 80
+Agent/Mcast/Control set packetSize_ 80
 
 RandomVariable/Uniform set min_ 0.0
 RandomVariable/Uniform set max_ 1.0

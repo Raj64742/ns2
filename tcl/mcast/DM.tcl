@@ -44,7 +44,7 @@ DM instproc init { sim node } {
 DM instproc initialize { } {
 	$self instvar Node prune
         # puts "initialize DM-like: creating prune msg agents"
-	set prune [new Agent/Mcast/Prune $self]
+	set prune [new Agent/Mcast/Control $self]
         [$Node getArbiter] addproto $self
 	$Node attach $prune
 }
@@ -124,7 +124,7 @@ DM instproc drop { replicator src dst } {
         }
 }
 
-DM instproc recv-prune { from src group } {
+DM instproc recv-prune { from src group iface} {
         $self instvar Node PruneTimer_ ns
 
 	# puts "_node [$Node id], recv prune from $from, src $src, group $group"
@@ -163,7 +163,7 @@ DM instproc recv-prune { from src group } {
 	}
 }
 
-DM instproc recv-graft { from src group } {
+DM instproc recv-graft { from src group iface} {
         $self instvar Node PruneTimer_ ns
         #puts "_node [Node id], RECV-GRAFT from $from src $src group $group"
 	set id [$Node id]
@@ -204,17 +204,17 @@ DM instproc send-ctrl { which src group } {
         $prune send $which $id $src $group
 }
 
-Agent/Mcast/Prune instproc init { protocol } {
-	$self next
-	$self instvar proto
-	set proto $protocol
-}
+#Agent/Mcast/Control instproc init { protocol } {
+#	$self next
+#	$self instvar proto
+#	set proto $protocol
+#}
  
-Agent/Mcast/Prune instproc handle {type from src group} {
-	$self instvar proto 
-	# puts "_node [[$proto set Node] id], prune agent handle"
-        eval $proto recv-$type $from $src $group 
-}
+#Agent/Mcast/Control instproc handle {type from src group} {
+#	$self instvar proto 
+#	# puts "_node [[$proto set Node] id], prune agent handle"
+#        eval $proto recv-$type $from $src $group 
+#}
 
 #####
 Simulator instproc gettraceAllFile {} {

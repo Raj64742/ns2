@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.37 1998/08/24 17:38:46 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.38 1998/10/14 01:21:35 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -50,31 +50,34 @@
 #define PT_STOP		7
 #define PT_PRUNE	8
 #define PT_GRAFT	9
-#define PT_MESSAGE	10
-#define PT_RTCP		11
-#define PT_RTP		12
-#define PT_RTPROTO_DV	13
-#define PT_CtrMcast_Encap 14
-#define PT_CtrMcast_Decap 15
-#define PT_SRM		16
+#define PT_GRAFTACK     10
+#define PT_JOIN         11
+#define PT_ASSERT       12
+#define PT_MESSAGE	13
+#define PT_RTCP		14
+#define PT_RTP		15
+#define PT_RTPROTO_DV	16
+#define PT_CtrMcast_Encap 17
+#define PT_CtrMcast_Decap 18
+#define PT_SRM		19
 /* simple signalling messages */
-#define PT_REQUEST	17
-#define PT_ACCEPT	18
-#define PT_CONFIRM	19
-#define PT_TEARDOWN	20
-#define	PT_LIVE		21		// packet from live network
-#define PT_REJECT	22
+#define PT_REQUEST	20
+#define PT_ACCEPT	21
+#define PT_CONFIRM	22
+#define PT_TEARDOWN	23
+#define	PT_LIVE		24		// packet from live network
+#define PT_REJECT	25
 
-#define PT_TELNET	23		// not needed: telnet use TCP
-#define PT_FTP		24
-#define PT_PARETO	25
-#define PT_EXP		26
-#define PT_INVAL	27
-#define PT_HTTP		28
-#define PT_NTYPE	29
+#define PT_TELNET	26		// not needed: telnet use TCP
+#define PT_FTP		27
+#define PT_PARETO	28
+#define PT_EXP		29
+#define PT_INVAL	30
+#define PT_HTTP		31
+#define PT_NTYPE	32
 
 #define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
-	"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
+	"start", "stop", "prune", "graft", "graftAck", "join", "assert","message", "rtcp", "rtp", \
 	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
 	"sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject", \
 	"telnet", "ftp", "pareto", "exp", "httpInval", "http"

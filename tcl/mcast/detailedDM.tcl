@@ -30,7 +30,7 @@ detailedDM instproc init { sim node } {
 
 detailedDM instproc initialize { } {
 	$self instvar Node prune
-	set prune [new Agent/Mcast/Prune/detailedDM $self]
+	set prune [new Agent/Mcast/Control/detailedDM $self]
 	[$Node getArbiter] addproto $self
 	set nullagent [[Simulator instance] set nullAgent_]
 	$Node attach $prune
@@ -316,6 +316,7 @@ detailedDM instproc handle-wrong-iif { argslist } {
 detailedDM instproc send-prune { src grp } {
 	set iif [$self get_iif $src $grp]
 	set rpf [$self get_rpf $src $grp]
+	puts "send-mcast prune $src $grp $rpf $iif "
 	$self send-mcast prune $src $grp $rpf $iif ""
 }
 
@@ -346,7 +347,7 @@ detailedDM instproc send-assert { src grp iface } {
 	$self send-mcast assert $src $grp $rpf $iface $mesg
 }
 
-detailedDM instproc recv-prune { src grp from msg } {
+detailedDM instproc recv-prune { from src group msg msg} {
 	$self instvar Node ns
 	set to [lindex $msg 0]
 	# see if the message is destined to me
@@ -387,7 +388,7 @@ detailedDM instproc recv-prune { src grp from msg } {
 	$self delete_oif $src $grp $ifaceLabel
 }
 
-detailedDM instproc recv-graft { src group from msg } {
+detailedDM instproc recv-graft { from src group msg } {
 	$self instvar Node PruneTimer_ ns
 	# send a graft ack
 	$self send-unicast graftAck $src $group $from
@@ -550,7 +551,10 @@ detailedDM instproc send-mcast { type src grp rpf oifLabel mesg } {
 
 	set id [$Node id]
 	set msg "$type/$rpf/$mesg"
-	$prune transmit $msg $id $src $grp
+#	puts "msg= $msg"
+#	$prune transmit $msg $id $src $grp
+	$prune transmit $type $id $src $grp
+
 }
 
 detailedDM instproc delete_oif { src grp oif } {
@@ -690,20 +694,20 @@ Deletion/Iface/Timer instproc timeout {} {
 
 ###################################
 
-Agent/Mcast/Prune instproc transmit { msg id src grp } {
+Agent/Mcast/Control instproc transmit { msg id src grp } {
 	$self send $msg $id $src $grp
 }
 
-Class Agent/Mcast/Prune/detailedDM -superclass Agent/Mcast/Prune
+Class Agent/Mcast/Control/detailedDM -superclass Agent/Mcast/Control
 
-Agent/Mcast/Prune/detailedDM instproc handle { msg from src grp } {
-	$self instvar proto
-	set L [split $msg /]
-	set type [lindex $L 0]
-	set L [lreplace $L 0 0]
-        $proto recv-$type $src $grp $from $L
-}
-
+#Agent/Mcast/Control/detailedDM instproc handle { msg from src grp } {
+#	 $self instvar proto
+#	 set L [split $msg /]
+#	 set type [lindex $L 0]
+#	 set L [lreplace $L 0 0]
+#	 $proto recv-$type $src $grp $from $L
+#}
+#
 
 
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.19 1998/09/14 21:59:17 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.20 1998/10/14 01:21:38 yuriy Exp $
 #
 #
 # set up the packet format for the simulation
@@ -55,7 +55,7 @@ foreach pair {
                 { IVS off_ivs_ }
                 { rtProtoDV off_DV_ }
 	        { CtrMcast off_CtrMcast_ }
-	        { Prune off_prune_ }
+                { mcastCtrl off_mcast_ctrl_ }
 	        { aSRM off_asrm_ }
 		{ SRM off_srm_ }
                 { SRMEXT off_srm_ext_}

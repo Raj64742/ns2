@@ -34,11 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.22 1998/08/12 23:41:02 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.23 1998/10/14 01:21:32 yuriy Exp $ (LBL)";
 #endif
 
 #include "delay.h"
-#include "prune.h"
+#include "mcast_ctrl.h"
 #include "ctrMcast.h"
 
 static class LinkDelayClass : public TclClass {
@@ -147,13 +147,11 @@ void LinkDelay::pktintran(int src, int group)
 		Packet* p = itq_->lookup(len);
 		hdr_ip* iph = hdr_ip::access(p);
 		if (iph->flowid() == prune) {
-			hdr_prune* ph = hdr_prune::access(p);
-			if (ph->src() == src && ph->group() == group) {
+			if (iph->src() == src && iph->dst() == group) {
 				total_[0]++;
 			}
 		} else if (iph->flowid() == graft) {
-			hdr_prune* ph = hdr_prune::access(p);
-			if (ph->src() == src && ph->group() == group) {
+			if (iph->src() == src && iph->dst() == group) {
 				total_[1]++;
 			}
 		} else if (iph->flowid() == reg) {
