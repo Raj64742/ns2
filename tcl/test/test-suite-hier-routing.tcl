@@ -162,7 +162,8 @@ Test/hier-cmcast instproc run {} {
 	}
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $n_(0) $udp0
-	$udp0 set dst_ $g_
+	$udp0 set dst_addr_ $g_
+	$udp0 set dst_port_ 0
 	$udp0 set class_ 2
 	set sender [new Application/Traffic/CBR]
 	$sender attach-agent $udp0
@@ -222,7 +223,8 @@ Test/hier-session instproc run {} {
 	}
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $n_(0) $udp0
-	$udp0 set dst_ $g_
+	$udp0 set dst_addr_ $g_
+	$udp0 set dst_port_ 0
 	set sender [new Application/Traffic/CBR]
 	$sender attach-agent $udp0
 	$ns_ create-session $n_(0) $udp0

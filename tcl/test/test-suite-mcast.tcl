@@ -17,9 +17,6 @@ TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	set ns_ [new Simulator -multicast on]
 	#$ns_ use-scheduler List
-	if {$test_ == "CtrMcast1"} {
-		Node expandaddr
-	}
 	
 	$ns_ trace-all [open temp.rands w]
 	$ns_ namtrace-all [open temp.rands.nam w]
@@ -547,14 +544,16 @@ Test/DM1 instproc run {} {
 	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n1) $udp0
-	$udp0 set dst_ $grp0
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
 	set grp1 [Node allocaddr]
 	set udp1 [new Agent/UDP]
 	$ns_ attach-agent $node_(n3) $udp1
-	$udp1 set dst_ $grp1
+	$udp1 set dst_addr_ $grp1
+	$udp1 set dst_port_ 0
 	$udp1 set class_ 1
 	set cbr1 [new Application/Traffic/CBR]
 	$cbr1 attach-agent $udp1
@@ -596,7 +595,8 @@ Test/DM2 instproc run {} {
 	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ $grp0
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
@@ -640,7 +640,8 @@ Test/DM3 instproc run {} {
 	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ $grp0
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
@@ -683,7 +684,8 @@ Test/DM4 instproc run {} {
 	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ $grp0
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
@@ -730,7 +732,8 @@ Test/DM4 instproc run {} {
 	
 	#set udp0 [new Agent/UDP]
 	#$ns_ attach-agent $node_(n4) $udp0
-	#$udp0 set dst_ 0x8002
+	#$udp0 set dst_addr_ 0x8002
+	#$udp0 set dst_port_ 0
 	#set cbr0 [new Application/Traffic/CBR]
 	#$cbr0 attach-agent $udp0
 	
@@ -773,26 +776,27 @@ Test/CtrMcast1 instproc run {} {
 
 	set mproto CtrMcast
 	set mrthandle [$ns_ mrtproto $mproto  {}]
-	set rp [list $node_(n2)]
-	$mrthandle set_c_rp $rp
+	$mrthandle set_c_rp $node_(n2)
 	
 	set udp1 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp1
 	
 	set grp [Node allocaddr]
 	
-	$udp1 set dst_ $grp
+	$udp1 set dst_addr_ $grp
+	$udp1 set dst_port_ 0
 	$udp1 set class_ 1
-	##$udp1 set dst_ 0x8003
+	##$udp1 set dst_addr_ 0x8003
 	
 	set cbr1 [new Application/Traffic/CBR]
 	$cbr1 attach-agent $udp1
 
 	set udp2 [new Agent/UDP]
 	$ns_ attach-agent $node_(n3) $udp2
-	$udp2 set dst_ $grp
+	$udp2 set dst_addr_ $grp
+	$udp2 set dst_port_ 0
 	$udp2 set class_ 2
-	##$udp2 set dst_ 0x8003
+	##$udp2 set dst_addr_ 0x8003
 	
 	set cbr2 [new Application/Traffic/CBR]
 	$cbr2 attach-agent $udp2
@@ -850,7 +854,8 @@ Test/CtrMcast2 instproc run {} {
 	  set grp0 [Node allocaddr]
 	  set udp0 [new Agent/UDP]
 	  $ns_ attach-agent $node_(n0) $udp0
-	  $udp0 set dst_ $grp0
+	  $udp0 set dst_addr_ $grp0
+	  $udp0 set dst_port_ 0
 	  $udp0 set class_ 1
 	  set cbr0 [new Application/Traffic/CBR]
 	  $cbr0 attach-agent $udp0
@@ -902,7 +907,8 @@ Test/ST1 instproc run {} {
 	set grp3 [Node allocaddr]
 	set udp3 [new Agent/UDP]
 	$ns_ attach-agent $node_(n3) $udp3
-	$udp3 set dst_ $grp3
+	$udp3 set dst_addr_ $grp3
+	$udp3 set dst_port_ 0
 	set cbr3 [new Application/Traffic/CBR]
 	$cbr3 attach-agent $udp3
 

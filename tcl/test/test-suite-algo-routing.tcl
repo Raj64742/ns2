@@ -258,7 +258,7 @@ Test/Algo1 instproc run {} {
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $mrthandle set_c_rp [list $node_(n2)]
+	    $mrthandle set_c_rp $node_(n2)
 	}
 
         if {$mrthandle != ""} {
@@ -267,7 +267,8 @@ Test/Algo1 instproc run {} {
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n1) $udp0
-	$udp0 set dst_ $grp0
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	$udp0 set class_ 1
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
@@ -306,7 +307,7 @@ Test/Algo2 instproc run {} {
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $mrthandle set_c_rp [list $node_(n2)]
+	    $mrthandle set_c_rp $node_(n2)
 	}
 
         if {$mrthandle != ""} {
@@ -315,7 +316,8 @@ Test/Algo2 instproc run {} {
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n4) $udp0
-	$udp0 set dst_ $grp0
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	$udp0 set class_ 1
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
