@@ -845,6 +845,7 @@ tcl/test/route-test.tcl
 tcl/test/sack-v1.tcl
 tcl/test/session-hier-1000.tcl
 tcl/test/test-1000.tcl
+tcl/test/test-all-aimd
 tcl/test/test-all-algo-routing
 tcl/test/test-all-cbq
 tcl/test/test-all-cbq-v1
@@ -882,6 +883,9 @@ tcl/test/test-all-vegas-v1
 tcl/test/test-all-webcache
 tcl/test/test-all-wireless-lan
 tcl/test/test-alloc-address.tcl
+tcl/test/test-output-aimd/tcp.Z
+tcl/test/test-output-aimd/tcpA.Z
+tcl/test/test-output-aimd/tcpB.Z
 tcl/test/test-output-algo-routing
 tcl/test/test-output-algo-routing/Algo1.Z
 tcl/test/test-output-algo-routing/Algo2.Z
@@ -1320,6 +1324,7 @@ tcl/test/test-output-wireless-lan
 tcl/test/test-output-wireless-lan/dsdv.Z
 tcl/test/test-output-wireless-lan/dsr.Z
 tcl/test/test-sack-v1
+tcl/test/test-suite-aimd.tcl
 tcl/test/test-suite-algo-routing.tcl
 tcl/test/test-suite-cbq-v1.tcl
 tcl/test/test-suite-cbq-v1a.tcl
