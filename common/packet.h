@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.41 1998/11/16 20:45:34 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.42 1998/11/26 18:13:04 polly Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -76,13 +76,14 @@
 #define PT_HTTP		31
 /* new encapsulator */
 #define PT_ENCAPSULATED 	32
-#define PT_NTYPE	33
+#define PT_MFTP         33
+#define PT_NTYPE	34
 
 #define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
 	"start", "stop", "prune", "graft", "graftAck", "join", "assert","message", "rtcp", "rtp", \
 	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
 	"sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject", \
-	"telnet", "ftp", "pareto", "exp", "httpInval", "http", "encap"
+	"telnet", "ftp", "pareto", "exp", "httpInval", "http", "encap", "mftp"
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 

@@ -20,7 +20,6 @@ $ns trace-all $f
 set nf [open out-mc2.nam w]
 $ns namtrace-all $nf
 
-Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n0 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
@@ -87,11 +86,10 @@ $ns at 1.6 "finish"
 
 proc finish {} {
         #puts "converting output to nam format..."
-        global ns
+        global ns chan1 chan2
+        close $chan1
+        close $chan2
         $ns flush-trace
-        global rcvr
-        # puts "lost [$rcvr set nlost_] pkt, rcv [$rcvr set npkts_]"
-
         puts "running nam..."
         exec nam out-mc2 &
         exit 0
