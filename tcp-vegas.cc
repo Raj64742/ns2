@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.11 1997/10/23 04:31:11 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.12 1997/10/28 04:08:35 sfloyd Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -101,7 +101,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 
 	if(firstrecv_<0) { // init vegas rtt vars
 		firstrecv_ = currentTime;
-		v_baseRTT_ = v_rtt_ = firstrecv_ - firstsent_;
+		v_baseRTT_ = v_rtt_ = firstrecv_;
 		v_sa_  = v_rtt_ * 8.;
 		v_sd_  = v_rtt_;
 		v_timeout_ = ((v_sa_/4.)+v_sd_)/2.;
