@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.8 1997/04/22 18:32:35 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.9 1997/04/23 01:50:26 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -96,9 +96,9 @@ public:
 
 protected:
 
+	void	newallot(double);		// change an allotment
 	void	update(Packet*, double);	// update when sending pkt
 	void	delayed(double);		// when overlim/can't borrow
-	void	newallot(double);		// change an allotment
 
 	int	satisfied(double);		// satisfied?
 	int 	demand();			// do I have demand?
@@ -457,6 +457,7 @@ CBQueue::insert_class(CBQClass *p)
 	}
 
         p->maxrate_ = p->allotment_ * (link_->bandwidth() / 8.0);
+	addallot(p->pri_, p->allotment_);
 
 	/*
 	 * Add to per-level list
@@ -671,7 +672,6 @@ WRR_CBQueue::insert_class(CBQClass *p)
 {
 	if (CBQueue::insert_class(p) < 0)
 		return (-1);
-	alloc_[p->pri_] += p->allotment_;
 	++cnt_[p->pri_];
 	setM();
 	return (0);
@@ -924,16 +924,21 @@ int CBQClass::command(int argc, const char*const* argv)
                 }
                 if (strcmp(argv[1], "allot") == 0) {
                         double bw = atof(argv[2]);
-                        if (bw < 0)
+                        if (bw < 0.0)
                                 return (TCL_ERROR);
-			// allow a special case where we don't
-			// know about our cbq yet, because it
-			// will be set when insert_class is called
-			// helps the compat code
-			if (cbq_)
-				newallot(bw);
-			else
-				allotment_ = bw;
+			if (allotment_ != 0.0) {
+				tcl.resultf(" class %s already has allotment of %f!",
+					name(), allotment_);
+				return (TCL_ERROR);
+			}
+			allotment_ = bw;
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "newallot") == 0) {
+                        double bw = atof(argv[2]);
+                        if (bw < 0.0)
+                                return (TCL_ERROR);
+			newallot(bw);
                         return (TCL_OK);
                 }
 	}
