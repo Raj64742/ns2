@@ -1,4 +1,4 @@
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/README,v 1.1 1999/02/24 01:19:52 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/README,v 1.2 2002/03/13 00:20:42 haoboy Exp $
 
 1. Traces
 ---------
@@ -28,9 +28,9 @@ nlanr/: NLANR proxy trace, refreshed daily and available at:
 In any of these directories, doing a make will produce an executable 
 'tr-stat'. It assigns a unique integer ID to every client, server, and page
 appeared in the trace, and generates two output files which can be used to 
-drive PagePool/ProxyTrace. Its usage is:
+drive PagePool/ProxyTrace. It reads from standard input. Its usage is:
 
-	tr-stat <MaxReqNum> [<Duration> <StartTime>]
+	tr-stat MaxReqNum [Duration StartTime] < trace_file
 
 	MaxReqNum: the maximum number of requests in a trace file
 	Duration:  the length of the trace to be converted.
