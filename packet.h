@@ -31,9 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
-
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.56 1999/03/07 19:49:59 yaxu Exp $ (LBL)
-
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.57 1999/03/09 05:38:50 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -58,7 +56,6 @@
 #define HDR_IP(p)       ((struct hdr_ip*)(p)->access(hdr_ip::offset_))
 #define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
 #define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
-//
 
 enum packet_t {
 	PT_TCP,
@@ -95,15 +92,21 @@ enum packet_t {
 	PT_EXP,
 	PT_INVAL,
 	PT_HTTP,
+
 	/* new encapsulator */
 	PT_ENCAPSULATED,
 	PT_MFTP,
+
 	/* CMU/Monarch's extnsions */
 	PT_ARP,
 	PT_MAC,
 	PT_TORA,
 	PT_DSR,
 	PT_AODV,
+
+	// RAP packets
+	PT_RAP_DATA,
+	PT_RAP_ACK,
 
 	// insert new packet types here
 
@@ -154,6 +157,11 @@ public:
 		name_[PT_TORA]= "TORA";
 		name_[PT_DSR]= "DSR";
 		name_[PT_AODV]= "AODV";
+
+		name_[PT_RAP_DATA] = "rap_data";
+		name_[PT_RAP_ACK] = "rap_ack";
+
+		name_[PT_NTYPE]= "undefined";
 	}
 	const char* name(packet_t p) const { 
 		if ( p <= PT_NTYPE ) return name_[p];
@@ -376,7 +384,11 @@ inline void Packet::free(Packet* p)
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	if (p->fflag_) {
 		if (ch->ref_count() == 0) {
-		        assert(p->uid_<0);
+			/*
+			 * A packet's uid may be < 0 (out of a event queue), or 
+			 * == 0 (newed but never gets into the event queue.
+			 */
+			assert(p->uid_ <= 0);
 			p->next_ = free_;
 			free_ = p;
 			//init();
@@ -386,10 +398,6 @@ inline void Packet::free(Packet* p)
 		}
 	}
 }
-
-	
-	
-
 
 inline Packet* Packet::copy() const
 {
