@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.17 2000/02/08 23:35:13 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.18 2000/11/06 19:29:44 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -281,7 +281,7 @@ UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from, double& ts)
 	sockaddr_in sfrom;
 	int fromlen = sizeof(sfrom);
 	int cc = ::recvfrom(rsock_, (char*)buf, len, 0,
-			    (sockaddr*)&sfrom, &fromlen);
+			    (sockaddr*)&sfrom, (socklen_t*)&fromlen);
 	NIDEBUG5("UDPIPNetwork(%s): ::recvfrom(%d, buf, %d) returned %d\n",
 		name(), rsock_, len, cc);
 	if (cc < 0) {
@@ -553,7 +553,7 @@ IPNetwork::recv(u_char* buf, int len, sockaddr& sa, double& ts)
 		abort();
 	}
 	int fromlen = sizeof(sa);
-	int cc = ::recvfrom(rsock_, (char*)buf, len, 0, &sa, &fromlen);
+	int cc = ::recvfrom(rsock_, (char*)buf, len, 0, &sa, (socklen_t*)&fromlen);
 	if (cc < 0) {
 		if (errno != EWOULDBLOCK)
 			perror("recvfrom");
