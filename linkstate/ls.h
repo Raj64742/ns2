@@ -34,13 +34,15 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.2 2000/08/18 18:34:03 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.3 2000/09/01 17:38:56 johnh Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
 
 #include <sys/types.h> 
-#include <stl.h>
+#include <list>
+#include <map>
+#include <utility>
 
 #include "timer-handler.h"
 
@@ -97,7 +99,9 @@ public:
 	typedef less<Key> less_key;
 	typedef map<Key, T, less_key> baseMap;
 	LsMap() : baseMap() {}
-  
+
+	// this next typedef of iterator seems extraneous but is required by gcc-2.96
+	typedef map<Key, T, less<Key> >::iterator iterator;
 	typedef pair<iterator, bool> pair_iterator_bool;
 	iterator insert(const Key & key, const T & item) {
 		baseMap::value_type v(key, item);
