@@ -1,3 +1,6 @@
+puts "sourcing tcl/lan/vlan.tcl..."
+source tcl/lan/vlan.tcl
+
 set opt(tr)	out
 set opt(namtr)	"vlantest-flat.nam"
 set opt(seed)	0
@@ -54,10 +57,8 @@ proc create-topology {} {
 		lappend nodelist $node($i)
 	}
 
-	set lan [new LanNode $ns -bw $opt(bw) -delay $opt(delay) \
-			-llType $opt(ll) -ifqType $opt(ifq) \
-			-macType $opt(mac) -chanType $opt(chan)]
-	$lan addNode $nodelist 20Mb 2ms
+	set lan [$ns make-lan $nodelist $opt(bw) \
+			$opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)]
 
 	set node0 [$ns node]
 	$ns duplex-link $node0 $node(1) 20Mb 2ms DropTail
