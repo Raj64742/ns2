@@ -105,15 +105,18 @@ class ReassemblyQueue {
 		TcpSeq	endseq_;	// ending seq + 1
 		TcpFlag	pflags_;	// flags derived from tcp hdr
 		RqFlag	rqflags_;	// book-keeping flags
+		int	cnt_;		// refs to this block
 	};
 
 public:
 	ReassemblyQueue(TcpSeq& rcvnxt) :
-		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt) { };
+		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt), hint_(NULL) { };
 	int empty() { return (head_ == NULL); }
 	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags = 0);
 	int max() { return (tail_ ? (tail_->endseq_) : -1); }
 	int min() { return (head_ ? (head_->startseq_) : -1); }
+	int nexthole(TcpSeq seq, int&);	// find next hole above seq, also
+					// include cnt of following blk
 
 	int gensack(int *sacks, int maxsblock);
 
@@ -131,11 +134,13 @@ protected:
 
 	seginfo* top_;		// top of stack
 	seginfo* bottom_;	// bottom of stack
+	seginfo* hint_;	// hint for nexthole() function
 
-	// rcv_nxt_ is a reference to an externally allocated integer
-	// that will be updated with the highest in-sequence sequence
-	// number added [plus 1].  This is the value ordinarily used
-	// within TCP to set rcv_nxt and thus to set the ACK field
+	// rcv_nxt_ is a reference to an externally allocated TcpSeq
+	// (aka integer)that will be updated with the highest in-sequence sequence
+	// number added [plus 1] by the user.  This is the value ordinarily used
+	// within TCP to set rcv_nxt and thus to set the ACK field.  It is also
+	// used in the SACK sender as sack_min_
 
 	TcpSeq& rcv_nxt_;	// start seq of next expected thing
 	TcpFlag coalesce(seginfo*, seginfo*, seginfo*);
