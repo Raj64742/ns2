@@ -24,6 +24,7 @@
 
 // smac is designed and developed by Wei Ye (SCADDS/ISI)
 // and is re-written for ns by Padma Haldar (CONSER/ISI).
+// Contributors: Yuan Li
 
 // This module implements Sensor-MAC
 //  http://www.isi.edu/scadds/papers/smac_report.pdf
@@ -50,8 +51,9 @@
 //     node periodically listen for a whole period of the SYNCPERIOD
 //  10) Duty cycle is user configurable
 
-
-
+//  New features including adaptive listen
+//   See http://www.isi.edu/~weiye/pub/smac_ton.pdf
+                                                                                                                                                           
 
 #include "smac.h"
 
@@ -73,6 +75,16 @@ int SmacTimer::busy()
 	else
 		return 1;
 }
+
+#ifdef JOURNAL_PAPER
+void SmacUpdateNeighbTimer::expire(Event *e) {
+        a_->handleUpdateNeighbTimer();
+}
+                                                                                                                                                            
+void SmacAdaptiveListenTimer::expire(Event *e) {
+        a_->handleAdaptiveListenTimer();
+}
+#endif
 
 void SmacGeneTimer::expire(Event *e) {
 	a_->handleGeneTimer();
@@ -183,9 +195,12 @@ void SmacCounterTimer::expire(Event *e) {
 }
 
 
-
+#ifdef JOURNAL_PAPER
+SMAC::SMAC() : Mac(), mhUpdateNeighb_(this),mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(this), mhGene_(this), mhCS_(this), mhAdap_(this), syncFlag_(0) {
+        int i;
+#else
 SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(this), mhGene_(this), mhCS_(this), syncFlag_(0) {
-
+#endif
 	state_ = IDLE;
 	radioState_ = RADIO_IDLE;
 	tx_active_ = 0;
@@ -202,6 +217,26 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 	lastRxFrag_ = -3; // since -1, -2 and 0 could be valid pkt uid's
 	//numFrags_ = 0;
 	//succFrags_ = 0;
+
+#ifdef JOURNAL_PAPER
+        numFrags_ = 0;
+        succFrags_ = 0;
+        dataSched_ = 0;
+        syncSched_ = 0;
+                                                                                                                                                            
+        globalSchedule_ = 0; // Do not test global schedule
+        //globalSchedule_ = 1; // Test global schedule
+                                                                                                                                                            
+        updateNeighbList_ = 0;
+                                                                                                                                                            
+        sendSYNCFlag_ = 0;
+                                                                                                                                                            
+        sendAddr = -1;
+        adapSend_ = 0;
+        txRequest_ = 0;
+                                                                                                                                                            
+        adaptiveListen_ = 0;
+#endif
 
 	dataPkt_ = 0;
 	pktRx_ = 0;
@@ -269,6 +304,31 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 	numSync_ = 1;  // perform neighbor discovery, do not go to sleep for the first SYNC period
 	schedListen_ = 1;
 	searchNeighb_ = 1;
+
+#ifdef JOURNAL_PAPER
+        schedState_ = 1;  // this is my first schedule
+	
+	// initialize neighbour table
+        for (i = 0; i < SMAC_MAX_NUM_NEIGHBORS; i++) {
+		neighbList_[i].nodeId = 0;
+		neighbList_[i].schedId = 0;
+		neighbList_[i].active = 0;
+                neighbList_[i].state = 0;
+        }
+                                                                                                                                                            
+        // initialize schedule table
+        for (i = 0; i < SMAC_MAX_NUM_SCHEDULES; i++) {
+                schedTab_[i].numNodes = 0;
+                schedTab_[i].syncNode = 0;
+        }
+                                                                                                                                                            
+                                                                                                                                                            
+        schedTab_[0].numNodes = 1;  // I'm the only one on this schedule
+        schedTab_[0].syncNode = index_;  // I'm the schedule initializer
+        schedTab_[0].txData = 0;
+        schedTab_[0].txSync = 0;
+        schedTab_[0].chkSched = 0;
+#endif
 		
 	Tcl& tcl = Tcl::instance();
 	tcl.evalf("Mac/SMAC set syncFlag_");
@@ -292,16 +352,19 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 //               	dutyCycle_ = SMAC_DUTY_CYCLE;
 	}
 
-
 	if (!syncFlag_)
 		txData_ = 0;
   
 	else {
-  
 		// Calculate sync/data/sleeptime based on duty cycle
 		// all time in ms
 		syncTime_ = difs_ + slotTime_ * SYNC_CW + SEC2CLKTICK(durSyncPkt_) + guardTime_;
+#ifdef JOURNAL_PAPER
+                // added time for overhearing CTS so that can do adaptive listen
+                dataTime_ = difs_ + slotTime_ * DATA_CW + SEC2CLKTICK(durCtrlPkt_) + PROC_DELAY + sifs_ + SEC2CLKTICK(durCtrlPkt_) + guardTime_;
+#else
 		dataTime_ = difs_ + slotTime_ * DATA_CW + SEC2CLKTICK(durCtrlPkt_) + guardTime_;
+#endif
 		listenTime_ = syncTime_ + dataTime_;
 		cycleTime_ = listenTime_ * 100 / dutyCycle_ + 1;
 		sleepTime_ = cycleTime_ - listenTime_;
@@ -332,7 +395,17 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 		//mhGene_.sched(t + cw);
 
 		if ( selfConfigFlag_ == 1) {
-			mhGene_.sched(t);
+#ifdef JOURNAL_PAPER
+                adapTime_ = dataTime_;
+                mhGene_.sched(t);
+                                                                                                                                                            
+                //start setting timer for update neighbor list
+                //printf("SMAC_UPDATE_NEIGHB_PERIOD: ............node %d %d at %.6f\n", index_, SMAC_UPDATE_NEIGHB_PERIOD, Scheduler::instance().clock());
+                mhUpdateNeighb_.sched(SMAC_UPDATE_NEIGHB_PERIOD);
+                //dump();
+#else
+		mhGene_.sched(t);
+#endif
 		}
 	}
 }
@@ -347,10 +420,17 @@ void SMAC::setMySched(Packet *pkt)
 	schedTab_[0].txSync = 1; // need to brdcast my schedule
   
 	if (pkt == 0) { // freely choose my schedule
-
+#ifdef JOURNAL_PAPER
+                //printf("#############################################################\n");
+                //printf(" %d is choosing its own shedule %d \n", index_, index_);
+                //printf("#############################################################\n");
+                schedState_++;
+                mhCounter_[0]->sched(CLKTICK2SEC(listenTime_+index_*10));
+                schedTab_[0].syncNode = index_;
+#else
 		mhCounter_[0]->sched(CLKTICK2SEC(listenTime_));
+#endif
 		mySyncNode_ = index_; // myself
-    
 		currSched_ = 0;
 		//sendSYNC();  
     
@@ -359,12 +439,26 @@ void SMAC::setMySched(Packet *pkt)
 		struct smac_sync_frame *pf = (struct smac_sync_frame *)pkt->access(hdr_mac::offset_);
 
 		mhCounter_[0]->sched(pf->sleepTime);
-
-		mySyncNode_ = pf->srcAddr;
-    
+#ifdef JOURNAL_PAPER
+                mySyncNode_ = pf->syncNode;
+                //printf("#############################################################\n");
+                //printf("%d receives SYNC packet from %d and starts following shedule %d \n", index_, pf->srcAddr, pf->syncNode);
+                //printf("#############################################################\n");
+                schedTab_[0].numNodes++;  // 2 nodes on this schedule now
+                schedTab_[0].syncNode = pf->syncNode;
+                schedState_++;
+                                                                                                                                                            
+                //add node in my neighbor list
+                neighbList_[0].nodeId = pf->srcAddr;
+                neighbList_[0].schedId = 0;
+                neighbList_[0].active = 1;
+                neighbList_[0].state = pf->state;
+#else
+		mySyncNode_ = pf->srcAddr;    
 		//add node in my neighbor list
 		neighbList_[0].nodeId = mySyncNode_;
 		neighbList_[0].schedId = 0;
+#endif
 		numNeighb_ = 1;
 	}
 }
@@ -415,6 +509,29 @@ int SMAC::command(int argc, const char*const* argv)
 
 }
 
+#ifdef JOURNAL_PAPER
+void SMAC::adaptiveListen()
+{
+        // adaptively wake-up at the end of current transmission. Will try to
+        // send only if the buffered packet is unicast. Since my next-hop
+        // neighbor may not be aware of the Tx of my previous-hop neighbor,
+        // broadcast now is unreliable
+        //printf("adaptiveListen set AdaptiveTimer: node %d scheduletime: %f adapTime_: %d time:%.9f \n", index_, mhCounter_[0]->value_, adapTime_, Scheduler::instance().clock());
+        mhAdap_.resched(CLKTICK2SEC(adapTime_)); // set timer to bring me back to sleep
+        adaptiveListen_ = 1;
+        if (state_ == SLEEP) {
+                //printf("adaptiveListen wakeup: node %d scheduletime: %f time:%.9f \n", index_, mhCounter_[0]->value_, Scheduler::instance().clock());
+                wakeup();
+        }
+         else {
+        }
+                                                                                                                                                            
+        if ( schedTab_[0].txData == 1 && sendAddr == UNICAST_ADDR){
+                adapSend_ = 1;
+                checkToSend();
+        }
+}
+#endif
 
 // XXXX smac handler functions
 
@@ -507,7 +624,7 @@ void SMAC::handleRecvTimer() {
   
 	if (ch->error()) {
 		Packet::free(pktRx_);
-		updateNav(CLKTICK2SEC(eifs_));
+		updateNav(CLKTICK2SEC(eifs_)); 
 
 		if (state_ == CR_SENSE) 
 			sleep();
@@ -565,7 +682,12 @@ void SMAC::handleGeneTimer()
 			numRetry_++;
 			// wait until receiver's next wakeup
 			state_ = IDLE;
-      
+#ifdef JOURNAL_PAPER
+			//node tries to go to sleep if it needs to resend
+                	if( mhCounter_[0]->value_ == sleepTime_ )
+                        	sleep();
+#endif
+ 
 			if (!syncFlag_)
 				checkToSend();
       
@@ -612,6 +734,18 @@ void SMAC::handleGeneTimer()
 			// keep sending until use up remaining time
 			sendDATA();
 		}
+
+#ifdef JOURNAL_PAPER
+        } else if (state_ == DATA_SENSE1) {
+                state_ = DATA_SENSE2;
+                mhGene_.resched(timeWaitCtrl_);
+                                                                                                                                                            
+        } else if (state_ == DATA_SENSE2) {
+                state_ = IDLE;
+		//node tries to go to sleep if it does not hear CTS or DATA for others' connection
+                if( mhCounter_[0]->value_ == sleepTime_ )
+                        sleep();
+#endif
 	}
 }
 
@@ -627,11 +761,18 @@ void SMAC::handleNavTimer() {
 		// try to send waiting data, if any
 		checkToSend();
 	} 
+#ifdef JOURNAL_PAPER
+        adaptiveListen();
+#endif
 }
 
 
 int SMAC::checkToSend() {
+#ifdef JOURNAL_PAPER
+        if (txRequest_ == 1 || syncFlag_) {
+#else
 	if (txData_ == 1) {
+#endif
 		assert(dataPkt_);
 		struct hdr_smac *mh = HDR_SMAC(dataPkt_);
     
@@ -652,6 +793,11 @@ int SMAC::checkToSend() {
 				howToSend_ = UNICAST;
       
 			state_ = CR_SENSE;
+
+#ifdef JOURNAL_PAPER
+                        adapSend_ = 0;
+			//printf("adaptiveListen sendData: node %d scheduletime: %f time:%.9f \n", index_, mhCounter_[0]->value_, Scheduler::instance().clock());
+#endif
     
 			// start cstimer
 			double cw = (Random::random() % DATA_CW) * slotTime_sec_;
@@ -687,6 +833,9 @@ void SMAC::handleNeighNavTimer() {
 		if (!syncFlag_)
 			checkToSend();
 	}
+#ifdef JOURNAL_PAPER
+        adaptiveListen();
+#endif
 }
 
 
@@ -718,6 +867,9 @@ void SMAC::handleCsTimer() {
 void SMAC::handleCounterTimer(int id) {
   
 	//printf("MAC:%d,id:%d - time:%.9f\n", index_,id,Scheduler::instance().clock());
+#ifdef JOURNAL_PAPER
+        if (schedTab_[id].numNodes > 0) {
+#endif
 
 	if (mhCounter_[id]->value_ == sleepTime_) { //woken up from sleep
 		// listentime starts now
@@ -739,7 +891,11 @@ void SMAC::handleCounterTimer(int id) {
 			if (schedTab_[id].txSync == 1) {
 				// start carrier sense for sending sync
 				howToSend_ = BCASTSYNC;
+#ifdef JOURNAL_PAPER
+				syncSched_ = id;
+#else
 				currSched_ = id;
+#endif
 				state_ = CR_SENSE;
 				double cw = (Random::random() % SYNC_CW) * slotTime_sec_;
 				mhCS_.sched(CLKTICK2SEC(difs_) + cw);
@@ -771,7 +927,11 @@ void SMAC::handleCounterTimer(int id) {
 				howToSend_ = BCASTDATA;
 			else
 				howToSend_ = UNICAST;
+#ifdef JOURNAL_PAPER
+                        dataSched_ = id;
+#else
 			currSched_ = id;
+#endif
 			state_ = CR_SENSE;
 			// start cstimer
 			double cw = (Random::random() % DATA_CW) * slotTime_sec_;
@@ -785,8 +945,11 @@ void SMAC::handleCounterTimer(int id) {
 		// check if in the middle of recving a pkt
 		if (radioState_ == RADIO_RX)
 			goto sched_3;
-    
+#ifdef JOURNAL_PAPER    
+		if (id == 0 && state_ == IDLE && searchNeighb_ ==0 && adaptiveListen_ ==0 )
+#else
 		if (id == 0 && state_ == IDLE && searchNeighb_ ==0 )
+#endif
 			sleep();
 
 	sched_3:
@@ -807,11 +970,11 @@ void SMAC::handleCounterTimer(int id) {
 
 					if ( numSync_ == 1 ) {
 						searchNeighb_ = 1;	// node will go to neighbor discovery period starting from the next frame
-				//		printf("Start Neighbor Discovery: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+						//printf("Start Neighbor Discovery: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 					}
 					else if ( numSync_ == 0 ) {
 						searchNeighb_  = 0;  // neighbor discovery period lasts exactly one SYNC period
-				//		printf("Ending Neighbor Discovery: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+						//printf("Ending Neighbor Discovery: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 						if ( numNeighb_ == 0 ) {
 							numSync_ = SRCH_CYCLES_SHORT;
 						}
@@ -825,14 +988,34 @@ void SMAC::handleCounterTimer(int id) {
 			}
 		}
 	}
+#ifdef JOURNAL_PAPER
+    }
+#endif
 }
 
-
+#ifdef JOURNAL_PAPER
+void SMAC::handleUpdateNeighbTimer() {
+        //printf("SMAC::handleUpdateNeighbTimer: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+        if (txRequest_ == 0) { // No data waiting to be transmitted
+                txRequest_ = 1; // temporarily disable tx when updating
+                update_myNeighbList();
+        } else {
+                updateNeighbList_ = 1; // set flag to update when tx done
+        }
+}
+                                                                                                                                                            
+void SMAC::handleAdaptiveListenTimer() {
+	//node tries to go to sleep after adaptive listen times out
+        adaptiveListen_ = 0;
+        if (state_ == IDLE && state_ != TX_PKT && mhCounter_[0]->value_ == sleepTime_)
+                sleep();
+}
+#endif
 
 // recv function for mac layer
 
 void SMAC::recv(Packet *p, Handler *h) {
-  
+                                                                                                                                                            
 	struct hdr_cmn *ch = HDR_CMN(p);
 
 	assert(initialized());
@@ -842,7 +1025,7 @@ void SMAC::recv(Packet *p, Handler *h) {
 		sendMsg(p, h);
 		return;
 	}
-  
+
 	// handle incoming pkt
 	// we have just recvd the first bit of a pkt on the network interface  
   
@@ -852,6 +1035,7 @@ void SMAC::recv(Packet *p, Handler *h) {
 		ch->error() = 1;
 		pktRx_ = p;
 		mhRecv_.resched(txtime(p));
+
 		return;
 	}
   
@@ -1006,8 +1190,118 @@ int SMAC::drop_SYNC(Packet *p, const char* why)
 	return 1;
 }
 
+#ifdef JOURNAL_PAPER
+void SMAC::checkMySched()
+{
+        // check if I am the only one on schedTab[0]
+        // if yes, should switch and follow the next available schedule
+        // happens when an old node switches to a new schedule
+        // and when I drop some inactive nodes from neighbor list(updating)
+        int i, schedId;
+        schedId = 0;
+        if (schedTab_[0].numNodes == 1 && numSched_ > 1 && numNeighb_ > 0) {
+                for (i = 1; i < SMAC_MAX_NUM_SCHEDULES; i++) {
+                        if (schedTab_[i].numNodes > 0) {  // switch to next available schedule
+                                //schedTab_[0].counter = schedTab[i].counter;
+                                schedTab_[0].numPeriods = 0;
+                                schedTab_[0].txSync = 1;
+                                schedTab_[0].txData = schedTab_[i].txData;
+                                schedTab_[0].syncNode = schedTab_[i].syncNode;
+                                schedTab_[0].numNodes = schedTab_[i].numNodes + 1;
+                                // delete this schedule
+                                schedTab_[i].numNodes = 0;
+                                numSched_--;
+                                schedId = i;
+                                break;
+                        }
+                }
+                if (schedId > 0){
+                        schedState_++;
+                        // update my neighbor list which relative to this schedId
+                        for (i = 0; i < SMAC_MAX_NUM_NEIGHBORS; i++) {
+                                if (neighbList_[i].state > 0 )
+                                        if (neighbList_[i].schedId == schedId)
+                                                neighbList_[i].schedId = 0;
+                        }
+                }
+        }
+}
+// update_schedTab_neighbList() is executed whenever the transmission is done
+void SMAC::update_schedTab_neighbList()
+{
+        //update schedTab and neighbList if flag is set
+        //we should update the schedTab[].numNodes before we call checkMySched()
+        //to ensure the next available schedule is correct
+        check_schedFlag();
+        if (updateNeighbList_ == 1) {
+                update_neighbList();
+                updateNeighbList_ = 0;
+                schedTab_[0].chkSched = 0;  //we already did checkMySched() in update_neighbList()
+        } else if (schedTab_[0].chkSched == 1) {
+                checkMySched();
+                schedTab_[0].chkSched = 0;
+        }
+}
+                                                                                                                                                            
+//update_myNeighbList() is executed whenever the UpdateNeighb timer timesout
+void SMAC::update_myNeighbList()
+{
+        //we should update the schedTab[].numNodes before we call checkMySched()
+        //to ensure the next available schedule is correct
+        check_schedFlag();
+        update_neighbList();
+        updateNeighbList_ = 0;
+        schedTab_[0].chkSched = 0;  //we already did checkMySched() in update_neighbList()
+        txRequest_ = 0;
+}
+                                                                                                                                                            
+void SMAC::update_neighbList()
+{
+        // update neighbor list,
+        // if the node is not active (moved away or died) for a certain time,
+        // need to drop it from neighbor list
+                                                                                                                                                            
+        //printf("\nupdate_neighbList:node %d at %.6f \n", index_, Scheduler::instance().clock());
+        int i, schedId;
+        //dump();
+        for (i = 0; i < SMAC_MAX_NUM_NEIGHBORS; i++) {
+                if (neighbList_[i].state > 0 ){
+                        if (neighbList_[i].active != 1){ // this node is not active recently
+                                //printf("node %d lost a neighbor of node %d: ............at %.6f\n", index_, neighbList_[i].nodeId, Scheduler::instance().clock());
+                                schedId = neighbList_[i].schedId;
+                                schedTab_[schedId].numNodes--;
+                                if (schedTab_[schedId].numNodes == 0)
+                                        numSched_--;
+                                neighbList_[i].state = 0;
+                                numNeighb_--;
+                        } else
+                                //printf("node %d has a neighbor of node %d: ............at %.6f\n", index_, neighbList_[i].nodeId, Scheduler::instance().clock());
+                        neighbList_[i].active = 0;
+                }
+        }
+        //printf("#####################################################\n");
+                                                                                                                                                            
+        // maybe the inactive nodes were dropped from schedTab[0]
+        // check if I am the only one on schedTab[0]
+        // if yes, I should follow the next available schedule
+        checkMySched();
+        mhUpdateNeighb_.resched(SMAC_UPDATE_NEIGHB_PERIOD);
+}
 
-// mac receiving functions
+void SMAC::check_schedFlag()
+{
+        int i;
+        // decrease the numNodes in the old schedule first
+        for (i = 1; i < SMAC_MAX_NUM_SCHEDULES; i++) {
+                if (schedTab_[i].numNodes > 0 && schedTab_[i].chkSched == 1){
+                        schedTab_[i].chkSched = 0;
+                        schedTab_[i].numNodes--;
+                        if (schedTab_[i].numNodes == 0)
+                                numSched_--;
+                }
+        }
+}
+#endif
 
 void SMAC::handleRTS(Packet *p) {
 	// internal handler for RTS
@@ -1017,7 +1311,9 @@ void SMAC::handleRTS(Packet *p) {
 	if(cf->dstAddr == index_) {
 		if((state_ == IDLE || state_ == CR_SENSE) && nav_ == 0) {
 			recvAddr_ = cf->srcAddr; // remember sender's addr
-
+#ifdef JOURNAL_PAPER
+                        updateNeighNav(cf->duration);
+#endif
 			if(sendCTS(cf->duration)) {
 				state_ = WAIT_DATA;
 				lastRxFrag_ = -3; //reset frag no 
@@ -1029,7 +1325,13 @@ void SMAC::handleRTS(Packet *p) {
 		// so I know how long to sleep
 		if (state_ == CR_SENSE)
 			state_ = IDLE;
+#ifdef JOURNAL_PAPER
+                updateNav(cf->duration);
+                state_ = DATA_SENSE1;
+                mhGene_.sched(timeWaitCtrl_);
+#else
 		updateNav(durCtrlPkt_ + durDataPkt_);
+#endif
 	}
 
 }
@@ -1044,17 +1346,24 @@ void SMAC::handleCTS(Packet *p) {
 
 			if(sendDATA()) {
 				state_ = WAIT_ACK;
-
+#ifndef JORNAL_PAPER
 				if (!syncFlag_)
 					txData_ = 0;
 				else
 					schedTab_[currSched_].txData = 0;
+#endif
 			}
 		}
 	} else { // for others
 		updateNav(cf->duration);
+#ifdef JOURNAL_PAPER
+                if(state_ == DATA_SENSE1 || state_ == DATA_SENSE2) { mhGene_.cancel();}
+                if(state_ == IDLE || state_ == CR_SENSE || state_ == DATA_SENSE1 || state_ == DATA_SENSE2)
+                        sleep();
+#else
 		if(state_ == IDLE || state_ == CR_SENSE)
 			sleep();
+#endif
 	}
 }
 
@@ -1062,7 +1371,7 @@ void SMAC::handleDATA(Packet *p) {
 	// internal handler for DATA packet
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_smac * sh = HDR_SMAC(p);
-  
+ 
 	if((u_int32_t)sh->dstAddr == MAC_BROADCAST) { // brdcast pkt
 		state_ = IDLE;
 		// hand pkt over to higher layer
@@ -1073,6 +1382,16 @@ void SMAC::handleDATA(Packet *p) {
 			// Should track neighbors' NAV, in case tx extended
 			updateNeighNav(sh->duration);
 			sendACK(sh->duration);
+#ifdef JOURNAL_PAPER
+                        if (sh->duration > durCtrlPkt_) { // wait for more frag
+                                rxFragDone(p);   //no frag for now
+                                state_ = WAIT_DATA;
+                        } else {   // no more fragments
+                        	state_ = IDLE;
+                                rxMsgDone(p);
+                        }
+
+#else
       
 			//if (sh->duration > durCtrlPkt_) { // wait for more frag
 			//rxFragDone(p);   no frag for now
@@ -1090,6 +1409,7 @@ void SMAC::handleDATA(Packet *p) {
 				if (!syncFlag_)
 					checkToSend();
 			}
+#endif
 		} else if (state_ == IDLE || state_ == CR_SENSE ) {
 			printf("got data pkt in %d state XXX %d\n", state_, index_);
 			//updateNav(sh->duration + 0.00001);  // incase I have a pkt to send
@@ -1115,15 +1435,20 @@ void SMAC::handleDATA(Packet *p) {
 	} else { // unicast pkt destined to other node
 		updateNav(sh->duration);
 		Packet::free(p);
+#ifdef JOURNAL_PAPER
+                if (state_ == DATA_SENSE2) { mhGene_.cancel();}
+                if (state_ == IDLE || state_ == CR_SENSE || state_ == DATA_SENSE2)
+                        sleep();
+#else
 		if (state_ == IDLE || state_ == CR_SENSE)
 			sleep();
+#endif
 	}
 }
 
 
 
 void SMAC::handleACK(Packet *p) {
-  
 	// internal handler for ack
 	struct smac_control_frame *cf = (smac_control_frame *)p->access(hdr_mac::offset_);
   
@@ -1131,6 +1456,17 @@ void SMAC::handleACK(Packet *p) {
 		if (state_ == WAIT_ACK && cf->srcAddr == sendAddr_) {
 			// cancel ACK timer
 			mhGene_.cancel();
+#ifdef JOURNAL_PAPER
+                        numFrags_--;
+                        succFrags_++;
+                        if (numFrags_ > 0) { //need to send more frags
+                                  state_ = TX_NEXT_FRAG;
+                                  txFragDone();
+                               } else {
+                        state_ = IDLE;
+                        txMsgDone();
+			}
+#else
 			Packet::free(dataPkt_);
 			dataPkt_ = 0;
 			//numFrags_--;
@@ -1151,6 +1487,7 @@ void SMAC::handleACK(Packet *p) {
 			state_ = IDLE;
 			txMsgDone();
 			//}
+#endif
 		}
     
 	} else { // destined to another node
@@ -1162,10 +1499,294 @@ void SMAC::handleACK(Packet *p) {
 	}
 }
 
+#ifdef JOURNAL_PAPER
+void SMAC::handleSYNC(Packet *p) 
+{
+	struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
+        int i, j,nodeId, schedId, flag;
+        struct SchedTable tempSched;
+        int foundNeighb = 0;
+	if (index_ == 5){
+        double t = Scheduler::instance().clock();
+        //printf("Recvd SYNC (not/f) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
+	}
+	if (numSched_ == 0) { // in choose_sched state
+		mhGene_.cancel();
+		setMySched(p);
+		return;
+	}
+      	if (numNeighb_ == 0 && globalSchedule_ == 1) {
+         // follow this schedule if having no other neighbor and if this schedule has smaller ID
+        	if (schedTab_[0].syncNode > sf->syncNode || !sendSYNCFlag_ ) {
+         		setMySched(p);
+         		return;
+        	}
+      	}
+      	else if (numNeighb_ == 0) { // getting first sync pkt
+         // follow this sched as have no other neighbor
+         	setMySched(p);
+
+         	return;
+      	}
+	state_ = IDLE;
+
+      	// check if sender is on my neighbor list
+      	nodeId = SMAC_MAX_NUM_NEIGHBORS;
+      	schedId = SMAC_MAX_NUM_SCHEDULES;
+      	for (i = 0; i < SMAC_MAX_NUM_NEIGHBORS; i++) {
+         	if (neighbList_[i].state > 0 && neighbList_[i].nodeId == sf->srcAddr) {
+            		nodeId = i;
+            		schedId = neighbList_[i].schedId; // a known neighbor
+            		break;
+         	}
+      	}
+      	if (nodeId < SMAC_MAX_NUM_NEIGHBORS) {
+         	if (neighbList_[nodeId].state == sf->state) {
+            		// update the existing schedule
+	    		mhCounter_[schedId]->sched(sf->sleepTime);
+
+            		neighbList_[nodeId].active = 1;
+            		if (globalSchedule_ == 1 && schedTab_[0].syncNode > sf->syncNode ){
+                   		// change state
+                   		schedState_++;
+				//printf("#############################################################\n");
+                		//printf("node %d hears SYNC from node %d and changes schedule from %d to schedule %d : ............at %.6f\n", index_, sf->srcAddr, schedTab_[0].syncNode, sf->syncNode, Scheduler::instance().clock());
+				//printf("#############################################################\n");
+
+                     		tempSched.syncNode = schedTab_[schedId].syncNode;
+                     		tempSched.txSync = schedTab_[schedId].txSync;  // need send sync
+                     		tempSched.txData = schedTab_[schedId].txData;
+                     		tempSched.numPeriods = schedTab_[schedId].numPeriods;
+                     		tempSched.numNodes = schedTab_[schedId].numNodes ; //
+		                tempSched.chkSched = schedTab_[schedId].chkSched;
+
+                   		if (schedTab_[0].numNodes == 1) {
+                     			numSched_--;
+                   		}
+		     		mhCounter_[schedId]->sched(mhCounter_[0]->timeToSleep());
+                     		schedTab_[schedId].syncNode = schedTab_[0].syncNode;
+                     		schedTab_[schedId].txSync = schedTab_[0].txSync;  // need send sync
+                     		schedTab_[schedId].txData = schedTab_[0].txData;
+                     		schedTab_[schedId].numPeriods = schedTab_[0].numPeriods;
+                     		schedTab_[schedId].numNodes = schedTab_[0].numNodes - 1; // I switch schedule
+                     		schedTab_[schedId].chkSched = schedTab_[0].chkSched;
+
+                    		// new schedule is schedule 0 now
+		   		mhCounter_[0]->sched(sf->sleepTime);
+                   		schedTab_[0].syncNode = sf->syncNode;
+                   		schedTab_[0].txSync = 1;  
+                   		schedTab_[0].txData = tempSched.txData;
+                   		schedTab_[0].numPeriods = 0; 
+                   		schedTab_[0].numNodes = tempSched.numNodes + 1; // I are following this sched
+                   		schedTab_[0].chkSched = tempSched.chkSched;
+
+                   		// change all the neighbor who was following shedule 0
+                   		for (j = 0; j < SMAC_MAX_NUM_NEIGHBORS; j++) {
+                       			if (neighbList_[j].schedId == 0) { // found an empty entry
+                         			neighbList_[j].schedId = schedId;
+                       			}
+                       			else if (neighbList_[j].schedId == schedId) { // found an empty entry
+                         			neighbList_[j].schedId = 0;
+                       			}
+                    		}
+                 	}
+            	return;
+         	} else {
+
+                	// decrement number of nodes on old schedule
+
+            		if (schedTab_[schedId].numNodes ==1 && txRequest_ == 1) {
+                		//set flag to decrement numNodes after tx pkt is done
+               			schedTab_[schedId].chkSched = 1;
+            		}
+            		else 
+			{
+               			schedTab_[schedId].numNodes--; 
+               			if (schedTab_[schedId].numNodes == 0){
+                  			numSched_--;
+               			}
+       			}
+
+		}
+	}
+
+      	// now it's either a new node or an old node switching to a new schedule
+      	// it is also possible that a node switches to an existing schedule
+      	// check if its schedule is a known one to me
+      	schedId = SMAC_MAX_NUM_SCHEDULES;
+      	for (i = 0; i < SMAC_MAX_NUM_SCHEDULES; i++) {
+         	if (schedTab_[i].numNodes > 0) {
+	    
+	    		double t = mhCounter_[i]->timeToSleep();
+	    		double st = sf->sleepTime;
+	    		double timeDiff = st - t;
+            		if ( timeDiff > -GUARDTIME && timeDiff < GUARDTIME) {
+				mhCounter_[i]->sched(sf->sleepTime);
+
+               			schedTab_[i].numNodes++; // it will follow this schedule
+               			schedId = i;
+             		 	break;
+            		} 
+         	}
+      	}
+
+      	if (schedId == SMAC_MAX_NUM_SCHEDULES) {  // unknow schedule
+        	flag =1;
+         	// add an entry to the schedule table
+         	if (numSched_ < SMAC_MAX_NUM_SCHEDULES){
+            		for (i = 0; i < SMAC_MAX_NUM_SCHEDULES; i++) {
+              			if (schedTab_[i].numNodes == 0) { // found an empty entry
+                 		// check if I need to switch
+  				if (globalSchedule_ == 1 && schedTab_[0].syncNode > sf->syncNode ){
+        		        	// change state
+                   			schedState_++;
+					//printf("#############################################################\n");
+                			//printf("node %d hears SYNC from node %d and changes schedule from %d to schedule %d : ............at %.6f\n", index_, sf->srcAddr, schedTab_[0].syncNode, sf->syncNode, Scheduler::instance().clock());
+                			//printf("#############################################################\n");
+
+                   			if (schedTab_[0].numNodes >= 2) { // need to move old schedule 0 to schedule i
+		     				mhCounter_[i]->sched(mhCounter_[0]->timeToSleep());
+                     				schedTab_[i].syncNode = schedTab_[0].syncNode;
+                     				schedTab_[i].txSync = schedTab_[0].txSync;  // need send sync
+                     				schedTab_[i].txData = schedTab_[0].txData;
+                     				schedTab_[i].numPeriods = schedTab_[0].numPeriods;
+                     				schedTab_[i].numNodes = schedTab_[0].numNodes - 1; // I switch schedule
+                     				schedTab_[i].chkSched = schedTab_[0].chkSched;
+                     				numSched_++;  // increment number of schedules
+                     				// change all the neighbor who was following shedule 0
+                     				for (j = 0; j < SMAC_MAX_NUM_NEIGHBORS; j++) {
+                       					if (neighbList_[j].schedId == 0) { // found an empty entry
+                         					neighbList_[j].schedId = i;
+                       					}
+                     				}
+                   			}
+                   	 		// new schedule is schedule 0 now
+		   			mhCounter_[0]->sched(sf->sleepTime);
+                   			schedTab_[0].syncNode = sf->syncNode;
+                   			schedTab_[0].txSync = 1;  // need send sync
+                   			schedTab_[0].txData = 0;
+		   			schedTab_[0].numPeriods = 0;
+                   			schedTab_[0].numNodes = 2; // 1st node + I are following this sched
+                   			schedTab_[0].chkSched = 0;
+
+                   			schedId = 0;
+                 		}
+                 		else { // fill new schedule in schedule i
+
+         	   			mhCounter_[i]->sched(sf->sleepTime);
+                   			schedTab_[i].syncNode = sf->syncNode;
+                   			schedTab_[i].txSync = 1;  // need send sync
+                   			schedTab_[i].txData = 0;
+                   			schedTab_[i].numPeriods = 0;
+                   			schedTab_[i].numNodes = 1; // 1st node following this sched
+                   			schedTab_[i].chkSched = 0;
+                   			schedId = i;
+                   			numSched_++;  // increment number of schedules
+                 		}
+                 		break;
+              			}
+            		}
+		}
+	}
+
+      	if (nodeId == SMAC_MAX_NUM_NEIGHBORS) {  // a new node
+         	// didn't find an empty entry in schedule table, just drop the new node
+         	if (schedId == SMAC_MAX_NUM_SCHEDULES) return;
+         	// add it to my neighbor list
+         	if (numNeighb_ < SMAC_MAX_NUM_NEIGHBORS){
+            	for (i = 0; i < SMAC_MAX_NUM_NEIGHBORS; i++) {
+              		if (neighbList_[i].state == 0) { // found an empty entry
+                 		neighbList_[i].state = sf->state;
+                 		neighbList_[i].nodeId = sf->srcAddr;
+                 		neighbList_[i].schedId = schedId;
+                 		neighbList_[i].active = 1;
+                 		numNeighb_++;  // increment number of neighbors
+                 		return;
+              		}
+            	}
+         }
+         // didn't find an empty entry in neighb list, just drop the new node
+	schedTab_[schedId].numNodes--;
+        if (schedTab_[schedId].numNodes == 0)
+        	numSched_--;
+      	} else if (flag == 1) {  // old node switches to a new schedule
+        	// didn't find an empty entry in schedule table, delete the old node
+        	if (schedId == SMAC_MAX_NUM_SCHEDULES) {
+            		neighbList_[nodeId].state = 0;
+            		numNeighb_--;  // decrement number of neighbors
+         	} else {
+            		neighbList_[nodeId].state = sf->state;
+            		neighbList_[nodeId].schedId = schedId;
+            		neighbList_[nodeId].active = 1;
+         	}
+
+         	// maybe the old node switches from schedTab_[0]
+         	// check if I am the only one on schedTab_[0] now
+         	// if yes, I should follow the next available schedule
+         	if (txRequest_ == 0) {
+            		checkMySched();
+         	} else {
+         		// set flag to call checkMySched() when txRequest_ becomes 0
+            		schedTab_[0].chkSched = 1;
+         	}
+      	} else {  // old node switches to old schedule
+            	neighbList_[nodeId].state = sf->state;
+            	neighbList_[nodeId].schedId = schedId;
+            	neighbList_[nodeId].active = 1;
+  		if (globalSchedule_ == 1 && schedTab_[0].syncNode > sf->syncNode ){
+			//printf("#############################################################\n");
+                	//printf("node %d hears SYNC from node %d and changes schedule from %d to schedule %d : ............at %.6f\n", index_, sf->srcAddr, schedTab_[0].syncNode, sf->syncNode, Scheduler::instance().clock());
+                	//printf("#############################################################\n");
+
+                   	// change state
+                   	schedState_++;
+                     	tempSched.syncNode = schedTab_[schedId].syncNode;
+                     	tempSched.txSync = schedTab_[schedId].txSync;  // need send sync
+                     	tempSched.txData = schedTab_[schedId].txData;
+                     	tempSched.numPeriods = schedTab_[schedId].numPeriods;
+                     	tempSched.numNodes = schedTab_[schedId].numNodes ; //
+                     	tempSched.chkSched = schedTab_[schedId].chkSched;
+
+                   	if (schedTab_[0].numNodes == 1) {
+                     		numSched_--;
+                   	}
+		     	mhCounter_[schedId]->sched(mhCounter_[0]->timeToSleep());
+                     	schedTab_[schedId].syncNode = schedTab_[0].syncNode;
+                     	schedTab_[schedId].txSync = schedTab_[0].txSync;  // need send sync
+                     	schedTab_[schedId].txData = schedTab_[0].txData;
+                     	schedTab_[schedId].numPeriods = schedTab_[0].numPeriods;
+                     	schedTab_[schedId].numNodes = schedTab_[0].numNodes - 1; // I switch schedule
+                     	schedTab_[schedId].chkSched = schedTab_[0].chkSched;
+
+                    	/// new schedule is schedule 0 now
+                    	mhCounter_[0]->sched(sf->sleepTime);
+
+                   	schedTab_[0].syncNode = sf->syncNode;
+                   	schedTab_[0].txSync = 1; 
+                   	schedTab_[0].txData = tempSched.txData;
+                   	schedTab_[0].numPeriods = 0;
+                   	schedTab_[0].numNodes = tempSched.numNodes + 1; // I are following this sched
+                   	schedTab_[0].chkSched = tempSched.chkSched;
+
+                  	// change all the neighbor who was following shedule 0
+                   	for (j = 0; j < SMAC_MAX_NUM_NEIGHBORS; j++) {
+                       		if (neighbList_[j].schedId == 0) { // found an empty entry
+                         		neighbList_[j].schedId = schedId;
+                       		}
+                       		else if (neighbList_[j].schedId == schedId) { // found an empty entry
+                         		neighbList_[j].schedId = 0;
+                       		}
+                    	}
+
+         	}
+		return;
+	}
+
+}
+#else
 
 void SMAC::handleSYNC(Packet *p) 
 {
-
 	if ( selfConfigFlag_ == 1) {
 		if(numSched_ == 0) { // in choose_sched state
 			mhGene_.cancel();
@@ -1236,7 +1857,7 @@ void SMAC::handleSYNC(Packet *p)
 	}
 }
 
-
+#endif
 void SMAC::rxMsgDone(Packet *p) {
 	// no more fragments
 	// defragment all pkts and send them up
@@ -1248,13 +1869,25 @@ void SMAC::rxMsgDone(Packet *p) {
 	if (!syncFlag_)
 		// check if any pkt waiting to get tx'ed
 		checkToSend();
+#ifdef JOURNAL_PAPER
+	//node tries to go to sleep after receiving the message
+	//we temperarily disable sleep() here, because in the testcases where ARP messages exist, more than one message need to be transmitted in one round
+        else {
+//                if( mhCounter_[0]->value_ == sleepTime_ ) 
+//                        sleep();
+        }
+#endif
 }
+
+#ifdef JOURNAL_PAPER
+void SMAC::rxFragDone(Packet *p) {
+//  more fragments to come
+}
+#endif
 
 //void SMAC::rxFragDone(Packet *p) {
 // more fragments to come
 //}
-
-
 
 // mac transmission functions
 
@@ -1308,8 +1941,10 @@ int SMAC::startUcast()
 	sendAddr_ = mh->dstAddr;
 	numRetry_ = 0;
 	//succFrags_ = 0;
-	numExtend_ = 0;
-  
+#ifdef JOURNAL_PAPER
+	succFrags_ = 0;
+#endif
+	numExtend_ = 0; 
 	if(sendRTS()) {
 		state_ = WAIT_CTS;
 		return 1;
@@ -1321,7 +1956,15 @@ int SMAC::startUcast()
 
 void  SMAC::txMsgDone() 
 {
+#ifdef JOURNAL_PAPER
+        // update schedTab and neighbList if flags are set when txRequest_=1
+        update_schedTab_neighbList();
+        txRequest_ = 0;
+#endif
 	if (!syncFlag_) {
+#ifdef JOURNAL_PAPER
+                txData_ = 0;
+#endif
 		// check if any data is waiting to get tx'ed
 		if(checkToSend())
 			return;
@@ -1331,16 +1974,23 @@ void  SMAC::txMsgDone()
 			h->handle((Event*) 0);
 		}
 	} else {
+#ifdef JOURNAL_PAPER
+                schedTab_[dataSched_].txData = 0;
+#endif
+
 		if (callback_) { // signal upper layer
 			Handler *h = callback_;
 			callback_ = 0;
 			h->handle((Event*) 0);
 		}
+#ifdef JOURNAL_PAPER
+		//node tries to go to sleep after transmission is done (both unicast and broadcast)
+                if( mhCounter_[0]->value_ == sleepTime_ )
+                        sleep();
+#endif
 	}
   
 }
-
-
 
 // void SMAC::txFragDone() 
 // {
@@ -1348,16 +1998,60 @@ void  SMAC::txMsgDone()
 
 // }
 
+#ifdef JOURNAL_PAPER
+void SMAC::txFragDone()
+{
+   // send next fragment
+        txNextFrag(&dataPkt_);
+}
+                                                                                                                                                            
+bool SMAC::txNextFrag(void* data)
+{
+      // Send subsequent fragments
+                                                                                                                                                            
+        if (state_ != TX_NEXT_FRAG || data == 0) return 0;
+//      dataPkt = (MACHeader*)data;
+      // fill in MAC header fields except duration
+//      dataPkt->type = DATA_PKT;  // data pkt
+//      dataPkt->toAddr = sendAddr;
+//      dataPkt->fromAddr = TOS_LOCAL_ADDRESS;
+//      dataPkt->fragNo = txFragCount;
+//      if (neighbNav >= (SIFS + durDataPkt + timeWaitCtrl)) {
+         // schedule to send this fragment, no need for carrier sense
+//         state = TX_PKT;
+        if(sendDATA()) {
+                state_ = WAIT_ACK;
+                if (!syncFlag_)
+                        txData_ = 0;
+                else
+                        schedTab_[dataSched_].txData = 0;
+                        //schedTab_[currSched_].txData = 0;
+        }
+                                                                                                                                                            
+//      } // else will retry when neighbNav timeout
+        return 1;
+}
+#endif
 
 bool SMAC::sendMsg(Packet *pkt, Handler *h) {
 	struct hdr_smac *mh = HDR_SMAC(pkt);
-  
+#ifdef JOURNAL_PAPER
+        struct hdr_cmn *ch = HDR_CMN(pkt);
+#endif
 	callback_ = h;
 	if ((u_int32_t)mh->dstAddr == MAC_BROADCAST) {
 		return (bcastMsg(pkt));
 	} else {
+#ifdef JOURNAL_PAPER
+                //printf("message length: %d\n",ch->size_);
+                // need upper level support here
+                int fragNum = ch->size_ / SIZEOF_SMAC_DATAPKT ;
+                if (fragNum == 0) fragNum = 1;
+                //printf("message length:%d\n",fragNum);
+                return unicastMsg(fragNum, pkt);     // for now no fragmentation
+#else
 		return (unicastMsg(1, pkt));     // for now no fragmentation
-
+#endif
 		// fragmentation limit is 40 bytes per pkt.
 		// max_msg_size is tentatively 1000 bytes; weiye will confirm this
 	}
@@ -1383,11 +2077,26 @@ bool SMAC::bcastMsg(Packet *p) {
 	//sh->srcAddr = src;
 	//sh->dstAddr = dst;
 	dataPkt_ = p;
-
+#ifdef JOURNAL_PAPER
+        // Don't accept Tx request if I have already accepted a request
+        if (txRequest_ == 0) {
+                txRequest_ = 1;
+        }
+        else {
+                return 0;
+        }
+                                                                                                                                                            
+        for (int i = 0; i < SMAC_MAX_NUM_SCHEDULES; i++) {
+                 if (schedTab_[i].numNodes > 0) {
+                        //printf("txData[%d] = 1: ............node %d at %.6f\n", i, index_, Scheduler::instance().clock());
+                        schedTab_[i].txData = 1;
+         }
+      }
+#else
 	for(int i=0; i < numSched_; i++) {
 		schedTab_[i].txData = 1;
 	}
-
+#endif
 	if (!syncFlag_) {
 		txData_ = 1;
 		// check if can send now
@@ -1425,6 +2134,10 @@ bool SMAC::unicastMsg(int numfrags, Packet *p) {
 		for (int i=0; i < numNeighb_; i++) {
 			if (neighbList_[i].nodeId == dst) {
 				found = 1;
+#ifdef JOURNAL_PAPER
+                                sendAddr = UNICAST_ADDR;
+                                dataSched_ = neighbList_[i].schedId;
+#endif
 				schedTab_[neighbList_[i].schedId].txData = 1;
 				break;
 			}
@@ -1434,7 +2147,16 @@ bool SMAC::unicastMsg(int numfrags, Packet *p) {
 			return 0;  // unknown neighbor
 		}
 	}
-
+#ifdef JOURNAL_PAPER
+        // Don't accept Tx request if I have already accepted a request
+        if (txRequest_ == 0) {
+                txRequest_ = 1;
+        }
+        else {
+                return 0;
+        }
+        numFrags_ = numfrags; 
+#endif
 	sh->type = DATA_PKT;
 	sh->length = SIZEOF_SMAC_DATAPKT;
 	sh->dstAddr = dst;
@@ -1480,9 +2202,13 @@ bool SMAC::sendRTS() {
 
 	// reserved time for CTS + all fragments + all acks
 	//cf->duration = (numFrags_ + 1) * durCtrlPkt_ + numFrags_ * durDataPkt_;
+#ifdef JOURNAL_PAPER
+	cf->duration = (numFrags_ + 1) * durCtrlPkt_ + numFrags_ * durDataPkt_;
+#else
 	cf->duration = (2 * durCtrlPkt_ + durDataPkt_ + 0.001 ); 
+#endif
 	cf->crc = 0;
-  
+ 
 	// send RTS
 	if (chkRadio()) {
 		transmit(p);
@@ -1519,7 +2245,6 @@ bool SMAC::sendCTS(double duration) {
 	// input duration is the duration field from received RTS pkt  
 	cf->duration = duration - durCtrlPkt_ ;  
 	cf->crc = 0;
-  
 	// send CTS
 	if (chkRadio()) {
 		transmit(p);
@@ -1535,8 +2260,11 @@ bool SMAC::sendDATA() {
 	struct hdr_smac * sh = HDR_SMAC(dataPkt_);
   
 	//sh->duration = numFrags_ * durCtrlPkt_ + (numFrags_ - 1) * durDataPkt_;
+#ifdef JOURNAL_PAPER
+	sh->duration = numFrags_ * durCtrlPkt_ + (numFrags_ - 1) * durDataPkt_;
+#else
 	sh->duration =  durCtrlPkt_;
-  
+#endif  
 	// send DATA
 	if (chkRadio()) {
 		transmit(dataPkt_);
@@ -1600,7 +2328,12 @@ bool SMAC::sendSYNC()
   cf->type = SYNC_PKT;
   
   cf->srcAddr = index_;
-  cf->syncNode = mySyncNode_;
+#ifdef JOURNAL_PAPER
+  cf->syncNode = schedTab_[0].syncNode;
+  cf->state = schedState_;
+#else
+ cf->syncNode = mySyncNode_;
+#endif
   // shld change SYNCPKTTIME to match with the configures durSyncPkt_
   cf->sleepTime = mhCounter_[0]->timeToSleep() - CLKTICK2SEC(SYNCPKTTIME);
   if (cf->sleepTime < 0)
@@ -1655,22 +2388,36 @@ void SMAC::sentDATA(Packet *p)
       txMsgDone(); 
     
     } else {
+#ifdef JOURNAL_PAPER
+      schedTab_[dataSched_].txData = 0;
+#else
       schedTab_[currSched_].txData = 0;
+#endif
       numBcast_--;
       if (numBcast_ == 0) {
 	dataPkt_ = 0;
 	Packet::free(p);
-	
+#ifdef JOURNAL_PAPER
+        txRequest_ = 0;
+#endif	
 	// signal upper layer
 	txMsgDone(); 
       }
+#ifdef JOURNAL_PAPER
+	//when broadcast data is done for one schedule, sender needs to sleep
+      	if( mhCounter_[0]->value_ == sleepTime_ )
+        	 sleep();
+#endif
     }
     
   } else {
     
     // unicast is done; track my neighbors' NAV
     // they update NAV and go to sleep after recv first data fragment
-
+#ifdef JOURNAL_PAPER
+    sendAddr = -1;
+    txRequest_ = 0;
+#endif
     updateNeighNav(mh->duration);
       
     //waiting for ACK, set timer for ACK timeout
@@ -1689,8 +2436,13 @@ void SMAC::sentACK(Packet *p)
 
 void SMAC::sentSYNC(Packet *p)
 {
+#ifdef JOURNAL_PAPER
+  schedTab_[syncSched_].txSync = 0;
+  schedTab_[syncSched_].numPeriods = SYNCPERIOD;
+#else
   schedTab_[currSched_].txSync = 0;
   schedTab_[currSched_].numPeriods = SYNCPERIOD;
+#endif
   Packet::free(p);
 
 }
@@ -1700,6 +2452,9 @@ void SMAC::sleep()
   // go to sleep, turn off radio
   state_ = SLEEP;
   radioState_ = RADIO_SLP;
+#ifdef JOURNAL_PAPER
+  //printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+#endif
   // printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 }
 
@@ -1714,8 +2469,10 @@ void SMAC::wakeup()
   // so careful not to change state of radio unless it is really sleeping
   if (radioState_ == RADIO_SLP)
     radioState_ = RADIO_IDLE;
+#ifdef JOURNAL_PAPER
+  //printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+#endif
   // printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
-
 }
 
 void SMAC::updateNav(double d ) {
@@ -1765,3 +2522,16 @@ double SMAC::txtime(Packet *p)
   }
   
 }
+#ifdef JOURNAL_PAPER
+void SMAC::dump(){
+        int i;
+        for (i = 0; i < 5; i++) {
+                                                                                                                                                            
+        printf(" neighbor: %d schedule: %d state: %d active: %d \n", neighbList_[i].nodeId, neighbList_[i].schedId, neighbList_[i].state, neighbList_[i].active);
+        }
+                                                                                                                                                            
+         for (i = 0; i < 4; i++) {
+         printf(" schedule: %d numNodes: %d \n",schedTab_[i].syncNode, schedTab_[i].numNodes);
+         }
+}
+#endif

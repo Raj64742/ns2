@@ -24,6 +24,7 @@
 
 // smac is designed and developed by Wei Ye (SCADDS/ISI)
 // and is ported into ns by Padma Haldar, June'02.
+// Contributors: Yuan Li
 
 // This module implements Sensor-MAC
 //  See http://www.isi.edu/scadds/papers/smac_infocom.pdf for details
@@ -50,10 +51,17 @@
 //     node periodically listen for a whole period of the SYNCPERIOD
 //  10) Duty cycle is user configurable
 
+//  New features including adaptive listen
+//   See http://www.isi.edu/~weiye/pub/smac_ton.pdf
  
 
 #ifndef NS_SMAC
 #define NS_SMAC
+
+//test features described in Journal paper, adaptive listen, etc
+//#ifndef JOURNAL_PAPER
+//#define JOURNAL_PAPER
+//#endif
 
 #include "mac.h"
 #include "mac-802_11.h"
@@ -93,6 +101,18 @@
 #define SMAC_EXTEND_LIMIT 5
 #endif
 
+#ifdef JOURNAL_PAPER
+
+#ifndef SMAC_UPDATE_NEIGHB_PERIOD
+#define SMAC_UPDATE_NEIGHB_PERIOD 50
+#endif
+                                                                                                                                                      
+#ifndef GUARDTIME
+#define GUARDTIME 0.001
+#endif
+
+#endif
+                                                                                                                                                           
 
 /* Internal MAC parameters
  *--------------------------
@@ -149,13 +169,26 @@
 #define WAIT_CTS 3      // sent RTS, waiting for CTS
 #define WAIT_DATA 4     // sent CTS, waiting for DATA
 #define WAIT_ACK 5      // sent DATA, waiting for ACK
+#ifdef JOURNAL_PAPER
+#define TX_NEXT_FRAG 6 // send one fragment, waiting for next from upper layer
+#else
 #define WAIT_NEXTFRAG 6 // send one fragment, waiting for next from upper layer
+#endif
 
+#ifdef JOURNAL_PAPER
+#define DATA_SENSE1 7 // received a RTS destined to another node, keep listening until confirm sender gets a CTS or starts tx data
+#define DATA_SENSE2 8 // received a RTS destined to another node,and did not receive a RTS, keep listening until timeout or receive data
+#define TX_PKT 9 // before sending CTS/DATA/ACK, need to wait for a sifs_ time
+#endif
 
 // how to send the pkt: broadcast or unicast
 #define BCASTSYNC 0
 #define BCASTDATA 1
 #define UNICAST 2
+
+#ifdef JOURNAL_PAPER
+#define UNICAST_ADDR 0
+#endif
 
 // Types of pkt
 #define DATA_PKT 0
@@ -225,6 +258,9 @@ struct smac_sync_frame {
   //int dstAddr;
   int syncNode; 
   double sleepTime;  // my next sleep time from now */
+#ifdef JOURNAL_PAPER
+  int state;  // if node has changed schedule
+#endif
   int crc; 
 }; 
 
@@ -254,11 +290,20 @@ struct SchedTable {
   int txSync;  // flag indicating need to send sync 
   int txData;  // flag indicating need to send data 
   int numPeriods; // count for number of periods 
+#ifdef JOURNAL_PAPER
+  int numNodes;  // number of nodes on this schedule
+  int syncNode;  // the node who initialized this schedule
+  int chkSched; // flag indicating need to check numNodes
+#endif
 }; 
 
 struct NeighbList { 
   int nodeId; 
-  int schedId; 
+  int schedId;
+#ifdef JOURNAL_PAPER
+  int active; //flag indicating the node is active recently
+  int state; // flag indicating the node has changed schedule
+#endif 
 }; 
 
 class SMAC;
@@ -272,6 +317,22 @@ class SmacTimer : public TimerHandler {
  protected:
   SMAC *a_;
 };
+
+#ifdef JOURNAL_PAPER
+// timer for updating neighbors periodically
+class SmacUpdateNeighbTimer : public SmacTimer {
+ public:
+  SmacUpdateNeighbTimer(SMAC *a) : SmacTimer(a) {}
+  void expire(Event *e);
+};
+                                                                                                                                                            
+// timer for putting nodes back to sleep after Adaptive Listen
+class SmacAdaptiveListenTimer : public SmacTimer {
+ public:
+  SmacAdaptiveListenTimer(SMAC *a) : SmacTimer(a) {}
+  void expire(Event *e);
+};
+#endif
 
 // Generic timer used for sync, CTS and ACK timeouts
 class SmacGeneTimer : public SmacTimer {
@@ -359,6 +420,10 @@ class SMAC : public Mac {
   friend class SmacNeighNavTimer;
   friend class SmacCsTimer; 
   friend class SmacCounterTimer;
+#ifdef JOURNAL_PAPER
+  friend class SmacUpdateNeighbTimer;
+  friend class SmacAdaptiveListenTimer;
+#endif
 
  public:
   SMAC(void);
@@ -372,6 +437,10 @@ class SMAC : public Mac {
  protected:
   
   // functions for handling timers
+#ifdef JOURNAL_PAPER
+  void handleUpdateNeighbTimer();
+  void handleAdaptiveListenTimer();
+#endif
   void handleGeneTimer();
   void handleRecvTimer();
   void handleSendTimer();
@@ -397,11 +466,23 @@ class SMAC : public Mac {
   void sleep();
   void wakeup();
 
+#ifdef JOURNAL_PAPER
+  // funtions for update neighbors and schedules
+  void check_schedFlag();
+  void update_schedTab_neighbList();
+  void update_myNeighbList();
+  void update_neighbList();
+  void checkMySched();
+  void dump();
+#endif
+
   // functions for handling incoming packets
   
   void rxMsgDone(Packet* p);
   //void rxFragDone(Packet *p);  no frag for now
-
+#ifdef JOURNAL_PAPER
+  void rxFragDone(Packet *p); 
+#endif
   void handleRTS(Packet *p);
   void handleCTS(Packet *p);
   void handleDATA(Packet *p);
@@ -424,6 +505,15 @@ class SMAC : public Mac {
   
   void txMsgDone();
   // void txFragDone();
+
+#ifdef JOURNAL_PAPER
+  // functions for handling fragmentation
+  bool txNextFrag(void* data);
+  void txFragDone();
+                                                                                                                                                            
+  // functions for handling adaptive listen
+  void adaptiveListen();
+#endif
 
   int startBcast();
   int startUcast();
@@ -495,6 +585,10 @@ class SMAC : public Mac {
   double  neighNav_;      // track neighbors' NAV while I'm sending/receiving
   
   // SMAC Timers
+#ifdef JOURNAL_PAPER
+  SmacUpdateNeighbTimer mhUpdateNeighb_; // timer for updating neighbors periodically
+  SmacAdaptiveListenTimer mhAdap_; // timer for putting nodes back to sleep after adaptive listen
+#endif
   SmacNavTimer	        mhNav_;		// NAV timer medium is free or not
   SmacNeighNavTimer     mhNeighNav_;    // neighbor NAV timer for data timeout
   SmacSendTimer		mhSend_;	// incoming packets
@@ -509,6 +603,10 @@ class SMAC : public Mac {
 
   int numRetry_;	// number of tries for a data pkt
   int numExtend_;      // number of extensions on Tx time when frags are lost
+#ifdef JOURNAL_PAPER
+  int numFrags_;       // number of fragments in this transmission
+  int succFrags_;      // number of successfully transmitted fragments
+#endif
   //int numFrags_;       // number of fragments in this transmission
   //int succFrags_;      // number of successfully transmitted fragments
   int lastRxFrag_;     // keep track of last data fragment recvd to prevent duplicate data
@@ -549,13 +647,28 @@ class SMAC : public Mac {
   double sleepTime_;
   double cycleTime_;
 
-  // neighbor discovery
+#ifdef JOURNAL_PAPER
+  int adapTime_;  // time before getting back to sleep when doing adaptive listen
+  int adaptiveListen_;
+  int adapSend_;
+  int txRequest_;
+  int dataSched_;
+  int syncSched_;
+  int sendAddr;
+                                                                                                                                                            
+  int schedState_; // schedule state: first, second schedule...
+                                                                                                                                                            
+  int globalSchedule_;  // flag indicating if node is in global schedule state
+                                                                                                                                                            
+  int updateNeighbList_; // flag indicating if node needs to update neighbor list
+  char sendSYNCFlag_;    // flag indicating if node has broadcasted SYNC packet or not
+#endif
 
+  // neighbor discovery
   int searchNeighb_;  // flag indicating if node is in neighbot discovery period
   int schedListen_;  // flag indicating if node is in scheduled listen period
   int numSync_;  // used to set/clear searchNeighb flag
   
-
  protected:
   int command(int argc, const char*const* argv);
   virtual int initialized() { 
