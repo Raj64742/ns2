@@ -96,7 +96,7 @@ class Phy : public BiConnector {
 	void setchnl (Channel *chnl) { channel_ = chnl; }
 	virtual void setnode (Node *node) { node_ = node; }
 	virtual Node* node(void) const { return node_; }
-	
+ 	virtual Channel* channel(void) const {return channel_;}	
 	
 	virtual void    dump(void) const;
 

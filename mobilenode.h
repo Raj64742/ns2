@@ -95,8 +95,8 @@ public:
 	inline MobileNode* nextnode() { return link.le_next; }
 
 	void dump(void);
-	
-	//inline MobileNode* base_stn() { return base_stn_; }
+
+	// inline MobileNode* base_stn() { return base_stn_; }
 	inline int base_stn() { return base_stn_;}
 	inline void set_base_stn(int addr) {base_stn_ = addr;}
 
@@ -124,6 +124,10 @@ public:
 	double dY;
 	double dZ;
 
+        /* where are we going? */
+	double destX;
+	double destY;
+
 	void	update_position();
 
 	/*
@@ -131,9 +135,8 @@ public:
  	 */
 
 	MobileNode *	next_;
- 	int		grid_x_, grid_y_;
-	int		dim_x_, dim_y_;	
-	GridKeeper*     gk_;
+	// 	int		grid_x_, grid_y_;
+	//int		dim_x_, dim_y_;	
 	double          radius_;
 
 protected:
@@ -148,6 +151,11 @@ protected:
         void    random_destination();
         int	set_destination(double x, double y, double speed);
 	  
+#ifdef NAM_TRACE
+        Tcl_Channel namChan_;
+        char nwrk_ [256];
+	void namdump();
+#endif
 
 
 private:
@@ -176,9 +184,7 @@ private:
 
 
 
-        /* where are we going? */
-	double destX;
-	double destY;
+
 
 	/*
 	 * The topography over which the mobile node moves.
@@ -190,11 +196,12 @@ private:
 	 */
 	Trace* log_target;
 
-	/* a base_stn for mobilenodes communicating with 
-	 *  wired nodes
-	 */
-	//MobileNode* base_stn_;
+        /* a base_stn for mobilenodes communicating with
+         *  wired nodes
+         */
+        //MobileNode* base_stn_;
 	int base_stn_;
+
 };
 
 
