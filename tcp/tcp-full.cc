@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.83 2000/10/20 12:29:02 polly Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.84 2001/05/27 04:41:28 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1829,8 +1829,12 @@ void
 FullTcpAgent::timeout_action()
 {
 	recover_ = maxseq_;
-	last_cwnd_action_ = CWND_ACTION_TIMEOUT;
-	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+	if (last_cwnd_action_ == CWND_ACTION_ECN) {
+		slowdown(CLOSE_CWND_ONE);
+	} else {
+		slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
+	}
 	reset_rtx_timer(1);
 	t_seqno_ = (highest_ack_ < 0) ? iss_ : int(highest_ack_);
 	fastrecov_ = FALSE;
