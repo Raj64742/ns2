@@ -21,7 +21,19 @@
 // Trace statistics file format:
 // <URL> <size> {<modification time>}
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.5 1998/12/16 21:10:59 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.6 1998/12/17 18:47:21 haoboy Exp $
+
+#include <stdlib.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#ifdef WIN32
+#include <windows.h>
+#include <io.h>
+#else 
+#include <unistd.h>
+#include <sys/file.h>
+#endif
+#include <sys/stat.h>
 
 #include <stdio.h>
 #include <limits.h>
