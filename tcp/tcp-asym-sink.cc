@@ -4,6 +4,7 @@ class TcpAsymSink : public DelAckSink {
 public:
 	TcpAsymSink(Acker*);
 	virtual void recv(Packet* pkt, Handler* h);
+	virtual void timeout(int tno);
 protected:
 	virtual void add_to_ack(Packet* pkt);
 	int off_tcpasym_;
@@ -79,7 +80,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler* h)
          */
         if (th->seqno() == acker_->Seqno()) {
 		max_sender_can_send = (int) min(tha->win()+acker_->Seqno()-tha->highest_ack(), tha->max_left_to_send());
-		delacklim_ = min(maxdelack_, max_sender_can_send/3); /* XXXX */ 
+		delacklim_ = min(maxdelack_, max_sender_can_send/2); /* XXXX */ 
 	}
 	else
 		delacklim_ = 0;
@@ -92,7 +93,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler* h)
 		int n;
 
 		/* we print src and dst in reverse order to conform to sender side */
-		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d dafactor: %2d dalim: %2d\n", now, dst_/256, dst_%256, addr_/256, addr_%256, delackfactor_, delacklim_);
+		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d dafactor: %2d dalim: %2d max_scs: %4d win: %4d\n", now, dst_/256, dst_%256, addr_/256, addr_%256, delackfactor_, delacklim_,max_sender_can_send, tha->win());
 		n = strlen(wrk);
 		wrk[n] = '\n';
 		wrk[n+1] = 0;
@@ -127,5 +128,19 @@ void TcpAsymSink::recv(Packet* pkt, Handler* h)
 		delackcount_ = 0;
 		Packet::free(pkt);
 	}
+}
+
+
+void TcpAsymSink::timeout(int tno)
+{
+	/*
+	 * The timer expired so we ACK the last packet seen.
+	 */
+	Packet* pkt = save_;
+	cancel(tno);
+	delackcount_ = 0;
+	ack(pkt);
+	save_ = 0;
+	Packet::free(pkt);
 }
 

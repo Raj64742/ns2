@@ -24,6 +24,12 @@ protected:
 /*	virtual void output(int seqno, int reason);*/
 };
 
+static class TCPAHeaderClass : public PacketHeaderClass {
+public:
+        TCPAHeaderClass() : PacketHeaderClass("PacketHeader/TCPA",
+					     sizeof(hdr_tcpasym)) {}
+} class_tcpahdr;
+
 static class TcpAsymClass : public TclClass {
 public:
 	TcpAsymClass() : TclClass("Agent/TCP/Asym") {}
@@ -43,9 +49,9 @@ void TcpAsymAgent::output_helper(Packet* p)
 	hdr_tcpasym *tcpha = (hdr_tcpasym*)p->access(off_tcpasym_);
 	hdr_flags *flagsh = (hdr_flags*)p->access(off_flags_);
 
-	tcpha->win() == min(highest_ack()+window(), curseq_) - t_seqno();
+	tcpha->win() = min(highest_ack()+window(), curseq_) - t_seqno();
 	tcpha->highest_ack() = highest_ack();
-	tcpha->max_left_to_send() = curseq_ - highest_ack();
+	tcpha->max_left_to_send() = curseq_ - highest_ack(); /* not needed XXXX */
 
 	flagsh->ecn_ = ecn_to_echo_;
 	ecn_to_echo_ = 0;

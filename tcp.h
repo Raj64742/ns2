@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.8 1997/04/29 06:25:42 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.9 1997/04/30 19:51:55 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -89,13 +89,13 @@ struct hdr_tcp {
 
 struct hdr_tcpasym {
 	int ackcount_;          /* the number of segments this ack represents */
-	double win_;            /* the amount of window remaining */
+	int win_;                /* the amount of window remaining */
 	int highest_ack_;       /* the highest ack seen */
 	int max_left_to_send_;  /* the max. amount of data that remains to be sent */
 	int& ackcount() {
 		return (ackcount_);
 	}
-	double& win() {
+	int& win() {
 		return (win_);
 	}
 	int& highest_ack() {
