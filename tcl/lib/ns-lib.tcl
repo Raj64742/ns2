@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.4 1997/01/27 01:58:09 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.5 1997/01/31 05:11:49 mccanne Exp $
 #
 
 #
@@ -84,7 +84,13 @@ Simulator instproc at args {
 
 Simulator instproc run { } {
 	$self compute-routes
-	$self instvar scheduler_
+	$self instvar scheduler_ Node_
+	#
+	# Reset every node, which resets every agent
+	#
+	foreach nn [array names Node_] {
+		$Node_($nn) reset
+	}
 	return [$scheduler_ run]
 }
 

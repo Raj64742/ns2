@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.3 1997/01/27 01:16:26 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.4 1997/01/31 05:11:49 mccanne Exp $
 #
 
 Class Node
@@ -118,7 +118,14 @@ Node instproc attach agent {
 	}
 	$dmux_ install $port $agent
 
-	#XXX might as well reset agent here.
-	#XXX should happen at run time
-	$agent reset
+}
+
+#
+# reset all agents attached to this node
+#
+Node instproc reset {} {
+	$self instvar agents_
+	foreach a $agents_ {
+		$a reset
+	}
 }

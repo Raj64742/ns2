@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.6 1997/01/28 02:09:06 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.7 1997/01/31 05:11:47 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -141,6 +141,7 @@ OldSim instproc init args {
 
 	# Agent/TCPSinnk, Agent/CBR
 	TclObject set varMap_(packet-size) packetSize_
+	TclObject set varMap_(interval) interval_
 
 	# Agent/CBR
 	TclObject set varMap_(random) random_
@@ -189,6 +190,7 @@ OldSim instproc init args {
 	set classMap_(tcp-sink-da) Agent/TCPSink/Delack
 	set classMap_(tcp-sack1) Agent/TCP/Sack1
 	set classMap_(sack1-tcp-sink) Agent/TCPSink/Sack1
+	set classMap_(tcp-sink-da) Agent/TCPSink/DelAck
 
 	$self instvar queueMap_
 	set queueMap_(drop-tail) DropTail

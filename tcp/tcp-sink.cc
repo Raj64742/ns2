@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.4 1997/01/27 01:16:18 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.5 1997/01/31 05:11:46 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -158,7 +158,7 @@ public:
 
 DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker)
 {
-	bind_time("interval", &interval_);
+	bind_time("interval_", &interval_);
 }
 
 #define DELAY_TIMER 0
@@ -261,6 +261,9 @@ public:
 	Sacker();
 	~Sacker();
 	void build_ack(Packet* newpkt, const Packet *pkt) const;
+	void bind(TclObject* o) {
+		o->bind("maxSackBlocks_", &max_sack_blocks_);
+	}
 protected:
         int max_sack_blocks_;
 	SackStack *sf_;
@@ -270,22 +273,26 @@ static class Sack1TcpSinkClass : public TclClass {
 public:
         Sack1TcpSinkClass() : TclClass("Agent/TCPSink/Sack1") {}
 	TclObject* create(int argc, const char*const* argv) {
-		return (new TcpSink(new Sacker));
+		Sacker* sacker = new Sacker;
+		TcpSink* sink = new TcpSink(sacker);
+		sacker->bind(sink);
+		return (sink);
         }
 } class_sack1tcpsink;
 
 static class Sack1DelAckTcpSinkClass : public TclClass {
 public:
-	Sack1DelAckTcpSinkClass() : TclClass("Agent/TCPSink/Sack/DelAck") {}
+	Sack1DelAckTcpSinkClass() : TclClass("Agent/TCPSink/Sack1/DelAck") {}
 	TclObject* create(int argc, const char*const* argv) {
-		return (new DelAckSink(new Sacker));
+		Sacker* sacker = new Sacker;
+		TcpSink* sink = new DelAckSink(sacker);
+		sacker->bind(sink);
 	}
 } class_sack1delacktcpsink;
 
 Sacker::Sacker()
 {
 	max_sack_blocks_ = 3;
-        bind("maxSackBlocks", &max_sack_blocks_);
 
 	/*XXX what's the point of binding if this can change?*/
 	sf_ = new SackStack(max_sack_blocks_);

@@ -1,7 +1,32 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.8 1997/01/28 03:25:16 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.9 1997/01/31 05:11:44 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
+
+</ul>
+
+<hr>
+<h3><a href=www-mash.cs.berkeley.edu/mash/ns-2.0a9.tar.gz>ns-2.0a9</a>
+<i>Thu Jan 30 21:11:34 PST 1997</i></h3>
+<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+collaborators and
+<a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
+<ul>
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Fixed inconsistent declaration of random() and
+problem with binding of "maxSackBlocks_".
+Reported by 
+<a href=http://www.isi.edu/~wlee/>WeeSan Lee</a>.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Restructured the way agents are reset.  Moved from node
+"attach time" to simulation "run time".  Otherwise, state variables
+that change between attach and run-time aren't inconsistent
+with the reset operation.
+This fix prompted by
+<a href=http://www.cs.berkeley.edu/~tomh>Tom Henderson</a>,
+who noticed that delayed-ACK TCP output was inconsistent
+with that of ns-1.
 
 </ul>
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.5 1997/01/27 01:58:08 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.6 1997/01/31 05:11:48 mccanne Exp $
 
 
 #
@@ -89,6 +89,10 @@ Queue/RED set dqthresh_ 50
 
 #XXX other kinds of sinks -> should reparent
 Agent/TCPSink set packetSize_ 40
+Agent/TCPSink set maxSackBlocks_ 3
+
+Agent/TCPSink/DelAck set interval_ 100ms
+Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 
 Agent/CBR set interval_ 3.75ms
 Agent/CBR set random_ 0
