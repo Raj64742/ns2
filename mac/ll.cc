@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.9 1997/09/08 22:03:22 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.10 1997/11/06 04:15:57 hari Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -81,6 +81,10 @@ LL::command(int argc, const char*const* argv)
 			sendtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "ifq") == 0) {
+			ifq_ = (Queue*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "recvtarget") == 0) {
 			recvtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
@@ -94,6 +98,10 @@ LL::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "mac") == 0) {
 			tcl.resultf("%s", mac_->name());
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "ifq") == 0) {
+			tcl.resultf("%s", ifq_->name());
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "sendtarget") == 0) {

@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.27 1997/10/26 05:36:25 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.28 1997/11/06 04:16:01 hari Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -90,6 +90,7 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 	bind("curq_", &curq_);			    // current queue size
 
 	q_ = new PacketQueue();			    // underlying queue
+	pq_ = q_;
 	reset();
 
 #ifdef notdef
@@ -443,8 +444,10 @@ int REDQueue::command(int argc, const char*const* argv)
 			delete q_;
 			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))
 				return (TCL_ERROR);
-			else
+			else {
+				pq_ = q_;
 				return (TCL_OK);
+			}
 		}
 	}
 	return (Queue::command(argc, argv));

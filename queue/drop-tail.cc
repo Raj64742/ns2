@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.7 1997/10/26 05:36:26 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.8 1997/11/06 04:16:00 hari Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -54,8 +54,10 @@ DropTail::command(int argc, const char*const* argv) {
 			delete q_;
 			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))
 				return (TCL_ERROR);
-			else
+			else {
+				pq_ = q_;
 				return (TCL_OK);
+			}
 		}
 	}
 	return Queue::command(argc, argv);

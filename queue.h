@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.17 1997/07/25 09:13:54 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.18 1997/11/06 04:15:59 hari Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -97,12 +97,18 @@ public:
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }
 	void block() { blocked_ = 1; }
+	int limit() { return qlim_; }
+	int length() { return pq_->length(); }	/* number of pkts currently in
+						 * underlying packet queue */
 protected:
 	Queue();
 	void reset();
 	int qlim_;		/* maximum allowed pkts in queue */
 	int blocked_;		/* blocked now? */
 	int unblock_on_resume_;	/* unblock q on idle? */
+	PacketQueue *pq_;	/* pointer to actual packet queue 
+				 * (maintained by the individual disciplines
+				 * like DropTail and RED). */
 	QueueHandler qh_;
 };
 

@@ -32,7 +32,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.8 1997/09/08 22:03:23 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.9 1997/11/06 04:15:58 hari Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -72,6 +72,7 @@ protected:
 	int off_mac_;		// offset of MAC header
 	LL* peerLL_;		// link layer of the peer
 	Mac* mac_;		// MAC object
+        Queue* ifq_;		/* interface queue */
         NsObject* sendtarget_;	// where packet is passed down the stack
 	NsObject* recvtarget_;	// where packet is passed up the stack
 };
