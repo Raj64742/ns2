@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.15 1997/07/24 04:45:12 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.16 1997/07/24 08:56:15 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -97,7 +97,6 @@ public:
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }
 	void block() { blocked_ = 1; }
-	virtual void drop(Packet* p) { Connector::drop(p); }
 protected:
 	Queue();
 	void reset();
