@@ -31,6 +31,14 @@ public:
     energy_ -= (P_rcv * rcvtime);
   }
 //  virtual void DecrIdleEnergy(double idletime, double P_idle) { }
+  virtual void DecrIdleEnergy(double idletime, double P_idle) { 
+    if (energy_ > 0 ){
+        energy_ -= (P_idle * idletime);
+    } else {
+        energy_ = 0;
+    }
+  }
+
 protected:
   double energy_;
   double level1_;

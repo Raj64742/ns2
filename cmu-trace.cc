@@ -354,6 +354,20 @@ CMUTrace::format_rtp(Packet *p, int offset)
 {
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_rtp *rh = HDR_RTP(p);
+	struct hdr_ip *ih = HDR_IP(p);
+        Node* thisnode = Node::get_node_by_address(src_);
+
+	//hacking, needs to change later, 
+        int dst = Address::instance().get_nodeaddr(ih->daddr());
+	
+	if (dst == src_){
+		// I just received a cbr data packet
+		if (thisnode->powersaving()) {
+		 //thisnode->set_node_sleep(0);
+	           thisnode->set_node_state(INROUTE);
+	       }
+	       
+        }
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
@@ -517,7 +531,7 @@ CMUTrace::format_aodv(Packet *p, int offset)
 		if (newtrace_) {
 
 		    sprintf(wrk_ + offset,
-			"-P aodv -Pc 0x%x -Ph %d -Pd %d -Pds %d -Pl %d -Pc %s ",
+			"-P aodv -Pt 0x%x -Ph %d -Pd %d -Pds %d -Pl %d -Pc %s ",
 			rp->rp_type,
                         rp->rp_hop_count,
                         rp->rp_dst,
@@ -847,7 +861,7 @@ CMUTrace::node_energy()
 	} 
 
 	if (energy > 0) return 1;
-	printf("DEBUG: node %d dropping pkts due to energy = 0\n", src_);
+	//printf("DEBUG: node %d dropping pkts due to energy = 0\n", src_);
 	return 0;
 
 }

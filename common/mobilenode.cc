@@ -164,10 +164,10 @@ MobileNode::command(int argc, const char*const* argv)
 		        log_movement();
 			return TCL_OK;
 		}		
-		//		if(strcmp(argv[1], "log-energy") == 0) {
-		//	log_energy();
-		//	return TCL_OK;
-			//}		
+		if(strcmp(argv[1], "log-energy") == 0) {
+			log_energy(1);
+			return TCL_OK;
+		}		
 	}
 	else if(argc == 3) {
                 if(strcmp(argv[1], "radius") == 0) {
@@ -303,7 +303,24 @@ MobileNode::log_energy(int flag)
 	log_target->dump();
 }
 
+void
+MobileNode::idle_energy_patch(float total, float P_idle)
+{
+       float real_idle = total-(total_sndtime_+total_rcvtime_+total_sleeptime_);
+       //printf("total=%f send=%f rcv=%f, slp=%f\n",total, total_sndtime_,total_rcvtime_,total_sleeptime_);
+       
+       //printf("real_idle=%f\n",real_idle);
+       energy_model_-> DecrIdleEnergy(real_idle, P_idle);
+       
+       //set node energy into zero
 
+       if ((this->energy_model())->energy() < 0) {  
+	  // saying node died
+	      this->energy_model()->setenergy(0);
+	      this->log_energy(0);
+       }
+
+}
 
 
 void

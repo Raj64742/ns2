@@ -164,6 +164,7 @@ WirelessPhy::sendDown(Packet *p)
 		if ((node_->energy_model())->energy() > 0) {
 
 		    double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
+		    node_->add_sndtime(txtime);
 		    (node_->energy_model())->DecrTxEnergy(txtime,Pt_);
 
 		    if ((node_->energy_model())->energy() <= 0) {
@@ -199,6 +200,14 @@ WirelessPhy::sendUp(Packet *p)
   PacketStamp s;
   double Pr;
   int pkt_recvd = 0;
+
+  // if the node is in sleeping mode, drop the packet simply
+
+  if (node_->sleep()) {
+     
+      pkt_recvd = 0;
+      goto DONE;
+  }
 
   // if the energy goes to ZERO, drop the packet simply
   if (node_->energy_model()) {
@@ -269,7 +278,7 @@ DONE:
   if(pkt_recvd 	&& node_->energy_model()) {
 	  double rcvtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
 	  // no way to reach here if the energy level < 0
-	  
+ 	  node_->add_rcvtime(rcvtime);	  
 	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr_);
 
 	  if ((node_->energy_model())->energy() <= 0) {  

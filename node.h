@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.15 2000/01/24 18:03:40 klan Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.16 2000/03/10 00:57:24 yaxu Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -42,6 +42,12 @@
  
 #ifndef __node_h__
 #define __node_h__
+
+#define CHECKFREQ  1
+#define WAITING 0
+#define POWERSAVING_STATE 1
+#define INROUTE 2
+#define MAX_WAITING_TIME 11
 
 #include "connector.h"
 #include "object.h"
@@ -61,6 +67,9 @@ LIST_HEAD(linklist_head, LinkHead); // declare list head structure
  * right now it is a placeholder.  See satlink.h for now.  It is declared in
  * node.h for now since all nodes have a linked list of LinkHeads.
  */
+class AdaptiveFidelityEntity;
+class SoftNeighborHandler;
+
 class Node;
 class NetworkInterface;
 class LinkHead : public Connector {
@@ -109,6 +118,22 @@ class Node : public TclObject {
 	inline double energy_level2() { return energy_model_->level2();}
 	inline EnergyModel *energy_model() { return energy_model_; }
 	inline Location *location() { return location_;}
+	inline int sleep() { return sleep_mode_;}
+	inline int state() { return state_;}
+	inline float state_start_time() {return state_start_time_;}
+	inline float max_inroute_time() {return max_inroute_time_;}
+
+	inline int adaptivefidelity() {return adaptivefidelity_;}
+	inline int powersaving() { return powersavingflag_;}
+	inline int getneighbors() {return neighbor_list.neighbor_cnt_;}
+	
+
+	virtual void set_node_sleep(int);
+	virtual void set_node_state(int);
+       	//virtual void get_node_idletime();
+	virtual void add_rcvtime(float t) {total_rcvtime_ += t;}
+	virtual void add_sndtime(float t) {total_sndtime_ += t;}
+	virtual void idle_energy_patch(float, float);
 
 	int address_;
 
@@ -129,11 +154,82 @@ class Node : public TclObject {
 	inline Node* nextnode() { return entry.le_next; }
 
 	static Node* get_node_by_address(nsaddr_t);
+
+	void add_neighbor(u_int32_t);      // for adaptive fidelity
+	void scan_neighbor();
+	void start_powersaving();
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
 	EnergyModel *energy_model_;
 	Location * location_;
+      	int sleep_mode_;	// = 1: radio is turned off
+	int state_;		// used for AFECA state 
+	float state_start_time_; // starting time of one AFECA state
+	float total_sleeptime_;  // total time of radio in off mode
+       	float total_rcvtime_;	 // total time in receiving data
+	float total_sndtime_;	 // total time in sending data
+	int adaptivefidelity_;   // Is AFECA activated ?
+	int powersavingflag_;    // Is BECA activated ?
+	float last_time_gosleep; // time when radio is turned off
+	float max_inroute_time_; // maximum time that a node can remaining
+				 // active 
+	int maxttl_;		 // how long a node can keep its neighbor
+				 // list. For AFECA only.
+
+	// XXX this structure below can be implemented by ns's LIST
+
+	struct neighbor_list_item {
+		u_int32_t id;        // node id
+		int       ttl;    // time-to-live
+		neighbor_list_item *next; // pointer to next item
+	};
+
+	struct {
+		int neighbor_cnt_;   // how many neighbors in this list
+		neighbor_list_item *head; 
+	} neighbor_list;
+
+	SoftNeighborHandler *snh_;
+       	AdaptiveFidelityEntity *afe_;
+
       	
+};
+
+class AdaptiveFidelityEntity : public Handler {
+
+public:  
+        Node *nid_;
+	virtual void start();
+	virtual void handle(Event *e);
+
+	virtual void adapt_it();
+	inline void set_sleeptime(float t) {sleep_time_ = t;}
+	inline void set_sleepseed(float t) {sleep_seed_ = t;}
+	AdaptiveFidelityEntity (Node *nid) {
+		nid_ = nid;
+	}
+
+
+protected:
+
+	Event intr;
+	float  sleep_time_;
+	float sleep_seed_;
+	float  idle_time_;
+};
+
+class SoftNeighborHandler : public Handler {
+public:
+	virtual void start();
+	virtual void handle(Event *e); 
+	Node *nid_;
+
+	SoftNeighborHandler(Node *nid) {
+		nid_ = nid;
+	}
+protected:
+	Event  intr;
+	
 };
 
 #ifdef zero

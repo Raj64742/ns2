@@ -1086,6 +1086,17 @@ Mac802_11::send(Packet *p, Handler *h)
 {
 	struct hdr_mac802_11* dh = HDR_MAC802_11(p);
 
+	/* 
+	 * drop the packet if the node is in sleep mode
+	 XXX sleep mode can't stop node from sending packets
+	 */
+
+	if ((netif_->node())->sleep()) {
+	    
+	    netif_->node()->set_node_sleep(0);
+	    netif_->node()->set_node_state(INROUTE);
+	}
+
 	callback_ = h;
 	sendDATA(p);
 	sendRTS(ETHER_ADDR(dh->dh_da));
@@ -1194,6 +1205,7 @@ Mac802_11::recv(Packet *p, Handler *h)
 void
 Mac802_11::recv_timer()
 {
+	u_int32_t src; 
 	hdr_cmn *ch = HDR_CMN(pktRx_);
 	hdr_mac802_11 *mh = HDR_MAC802_11(pktRx_);
 	u_int32_t dst = ETHER_ADDR(mh->dh_da);
@@ -1250,6 +1262,17 @@ Mac802_11::recv_timer()
         if (tap_ && type == MAC_Type_Data &&
             MAC_Subtype_Data == subtype ) 
 		tap_->tap(pktRx_);
+	/*
+	 * Adaptive Fidelity Algorithm Support - neighborhood infomation collection
+	 *
+	 * Hacking: Before filter the packet, log the neighbor node
+	 * I can hear the packet, the src is my neighbor
+	 */
+
+	if (netif_->node()->adaptivefidelity()) {
+	     src = ETHER_ADDR(mh->dh_sa);
+	     netif_->node()->add_neighbor(src);
+	}
 
 	/*
 	 * Address Filtering

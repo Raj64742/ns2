@@ -94,6 +94,7 @@ public:
         
 	//inline int index() { return index_; }
 	inline MobileNode* nextnode() { return link.le_next; }
+	virtual void idle_energy_patch(float, float);
 
 	void dump(void);
 

@@ -1,6 +1,6 @@
 /* 
    aodv.cc
-   $Id: aodv.cc,v 1.6 1999/11/04 16:54:28 yaxu Exp $
+   $Id: aodv.cc,v 1.7 2000/03/10 00:57:29 yaxu Exp $
  */
 
 /* The AODV code developed by the CMU/MONARCH group was optimized
@@ -750,6 +750,7 @@ AODV::recvAODV(Packet *p)
 void
 AODV::recvRequest(Packet *p)
 {
+        Node *thisnode;
         struct hdr_ip *ih = HDR_IP(p);
         struct hdr_aodv_request *rq = HDR_AODV_REQUEST(p);
         rt_entry *rt;
@@ -887,6 +888,16 @@ AODV::recvRequest(Packet *p)
                        MY_ROUTE_TIMEOUT,     // Lifetime
                        rq->rq_timestamp);    // timestamp
              Packet::free(p);
+	     
+	     // Sending replying, I am in the route
+	     
+	       thisnode = Node::get_node_by_address(index);
+
+	       if (thisnode->powersaving()) {
+	           thisnode->set_node_sleep(0);
+	           thisnode->set_node_state(INROUTE);
+	       }
+
         }
 
 	// I am not the destination, but I may have a fresh enough route.
@@ -901,6 +912,16 @@ AODV::recvRequest(Packet *p)
                           (u_int32_t) (rt->rt_expire - CURRENT_TIME),
                           rq->rq_timestamp);
                 Packet::free(p);
+	     	   
+	       thisnode = Node::get_node_by_address(index);
+
+	       if (thisnode->powersaving()) {
+		  thisnode->set_node_sleep(0);
+	          thisnode->set_node_state(INROUTE);
+	       }
+		
+
+
         }
         /*
          * Can't reply. So forward the  Route Request
@@ -914,6 +935,13 @@ AODV::recvRequest(Packet *p)
 
              forward((rt_entry*) 0, p, DELAY);
 
+	       thisnode = Node::get_node_by_address(index);
+
+	     if (thisnode->powersaving()) {
+	         thisnode->set_node_sleep(0);
+	         thisnode->set_node_state(WAITING);
+	     }
+
         }
 }
 
@@ -921,6 +949,7 @@ AODV::recvRequest(Packet *p)
 void
 AODV::recvReply(Packet *p)
 {
+        Node *thisnode;
         struct hdr_cmn *ch = HDR_CMN(p);
         struct hdr_ip *ih = HDR_IP(p);
         struct hdr_aodv_reply *rp = HDR_AODV_REPLY(p);
@@ -1031,6 +1060,16 @@ AODV::recvReply(Packet *p)
 #endif
        		     rp->rp_hop_count += 1;
                  forward(rt0, p, NO_DELAY);
+		 
+		
+	          thisnode = Node::get_node_by_address(index);
+
+		  if (thisnode->powersaving()) {
+	               thisnode->set_node_sleep(0);
+	               thisnode->set_node_state(INROUTE);
+	  	  }
+
+
             }
             else {
 			// I don't know how to forward .. drop the reply. 
@@ -1187,6 +1226,7 @@ AODV::forward(rt_entry *rt, Packet *p, double delay)
 void
 AODV::sendRequest(nsaddr_t dst)
 {
+Node *thisnode = Node::get_node_by_address(index);
 // Allocate a RREQ packet 
 Packet *p = Packet::alloc();
 struct hdr_cmn *ch = HDR_CMN(p);
@@ -1220,6 +1260,12 @@ rt_entry *rt = rtable.rt_lookup(dst);
                 ++route_request, index, rt->rt_dst);
 #endif
 
+	// set node into active state and remain it for MAX_RREQ_TIMEOUT
+
+	 if (thisnode->powersaving()) {
+	    thisnode->set_node_sleep(0);
+	    thisnode->set_node_state(WAITING);
+	 }
 
 	// Fill out the RREQ packet 
 
@@ -1271,7 +1317,11 @@ rt_entry *rt = rtable.rt_lookup(dst);
 	rt->rt_req_timeout = 2.0 * (double) ih->ttl_ * PerHopTime(rt); 
 	if (rt->rt_req_cnt > 0)
 		rt->rt_req_timeout *= rt->rt_req_cnt;
+
+	//printf("timeout=%f\n",rt->rt_req_timeout);
 	rt->rt_req_timeout += CURRENT_TIME;
+
+
 
 	// Don't let the timeout to be too large, however .. SRD 6/8/99
 
