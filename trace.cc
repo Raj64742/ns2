@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.42 1998/06/27 01:25:09 gnguyen Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.43 1998/07/01 00:57:38 yaxu Exp $ (LBL)";
 
 #endif
 
@@ -44,6 +44,7 @@ static char rcsid[] =
 #include "ip.h"
 #include "tcp.h"
 #include "rtp.h"
+#include "srm.h"
 #include "flags.h"
 #include "address.h"
 #include "trace.h"
@@ -74,6 +75,7 @@ Trace::Trace(int type)
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
 	bind("off_rtp_", &off_rtp_);
+	bind("off_srm_", &off_srm_);
 }
 
 Trace::~Trace()
@@ -169,6 +171,10 @@ char* pt_names[] = {
 	PT_NAMES
 };
 
+char* srm_names[] = {
+        SRM_NAMES
+};
+
 // this function should retain some backward-compatibility, so that
 // scripts don't break.
 void Trace::format(int tt, int s, int d, Packet* p)
@@ -177,8 +183,20 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
+
+	hdr_srm *sh = (hdr_srm*)p->access(off_srm_); 
+	const char* sname = 0;
+
 	int t = th->ptype();
 	const char* name = pt_names[t];
+	t = sh->type();
+
+        /* SRM-specific */
+	if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
+            if ( t < 5 && t >= 0 ) {
+	        sname = srm_names[t];
+	    }
+	}
 
 	if (name == 0)
 		abort();
@@ -243,7 +261,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			th->uid() /* was p->uid_ */);
 	} else {
 		sprintf(wrk_, 
-			"%c %g %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d %d",
+			"%c %g %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -264,13 +282,12 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			th->uid(), /* was p->uid_ */
 			tcph->ackno(),
 			tcph->flags(),
-			tcph->hlen(),
-			tcph->sa_length());
+			tcph->hlen());
 	}
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s %s}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -284,7 +301,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			src_portaddr,
 			dst_nodeaddr,
 			dst_portaddr,
-			seqno,flags);
+			seqno,flags,sname);
 #endif      
 	delete [] src_nodeaddr;
   	delete [] src_portaddr;
@@ -395,8 +412,19 @@ DequeTrace::recv(Packet* p, Handler* h)
 	if (namChan_ != 0) {
 		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
 		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+		hdr_srm *sh = (hdr_srm*)p->access(off_srm_);
+		const char* sname = 0;   
+
 		int t = th->ptype();
 		const char* name = pt_names[t];
+		t = sh->type();   
+		
+		if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
+		    if ( t < 5 && t >=0  ) {
+		        sname = srm_names[t];
+		    }
+		}   
+
 		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
 		char *src_portaddr = Address::instance().print_portaddr(iph->src());
 		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
@@ -424,7 +452,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 #endif
 		
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s %s}",
 			'h',
 			Scheduler::instance().clock(),
 			src_,
@@ -438,7 +466,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 			src_portaddr,
 			dst_nodeaddr,
 			dst_portaddr,
-			-1, flags);
+			-1, flags, sname);
 		namdump();
 		delete [] src_nodeaddr;
 		delete [] src_portaddr;
