@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.8 1997/07/24 23:52:25 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.9 1997/09/05 00:28:27 heideman Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -147,7 +147,7 @@ TestSuite instproc finish file {
 	puts $f "Device: Postscript"
     exec perl -ane $perlCode out.tr >@ $f
 	close $f
-	if [info exists env(DISPLAY)] {
+	if {[info exists env(DISPLAY)] && ![info exists env(NOXGRAPH)]} {
 	    exec xgraph -display $env(DISPLAY) -bb -tk -nl -m -x time -y packet temp.rands &
 	} else {
 	    puts stderr "output trace is in temp.rands"
