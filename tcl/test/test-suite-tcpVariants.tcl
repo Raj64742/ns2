@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.25 2003/07/29 22:19:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.26 2003/08/27 19:12:19 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -1042,6 +1042,9 @@ Test/multiple2_SA_sack instproc init {} {
 }
 
 # Partial_ack 
+# Because partial_ack is used, there is an unnecessary packet retransmission.
+#  Partial_ack needs to be made smarter, not to retransmit a packet that
+#  has just been sent?
 Class Test/multiple2_partial_ack_sack -superclass TestSuite
 Test/multiple2_partial_ack_sack instproc init {} {
 	$self instvar net_ test_
