@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.56 2000/09/29 23:40:12 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.57 2000/10/20 01:45:24 haoboy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.56 2000/09/29 23:40:12 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.57 2000/10/20 01:45:24 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -98,7 +98,12 @@ Scheduler::run()
 {
 	instance_ = this;
 	Event *p;
-	while ((p = deque()) && !halted_) {
+	/*
+	 * The order is significant: if halted_ is checked later,
+	 * event p could be lost when the simulator resumes.
+	 * Patch by Thomas Kaemer <Thomas.Kaemer@eas.iis.fhg.de>.
+	 */
+	while (!halted_ && (p = deque())) {
 		dispatch(p);
 	}
 }
