@@ -34,8 +34,9 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.25 1999/01/29 05:22:41 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.26 1999/01/29 05:36:35 sfloyd Exp $ (LBL)";
 #endif
+
 
 //
 // new version of cbq using the ns-2 fine-grain
