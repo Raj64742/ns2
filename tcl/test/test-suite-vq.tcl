@@ -42,6 +42,10 @@ Agent/TCP set overhead_ 0.001
 Queue/Vq set buflim_ 0.25
 # The default is being changed to 1
 
+Queue/Vq set queue_in_bytes_ false
+Queue/Vq set gamma_ 0.895
+# The defaults for queue_in_bytes_ and gamma_ are being changed.
+
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
 

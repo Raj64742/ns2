@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.285 2002/04/23 05:07:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.286 2002/04/29 02:49:00 sfloyd Exp $
 
 
 #
@@ -195,11 +195,15 @@ Queue/PI set setbit_ false
 Queue/PI set prob_ 0
 Queue/PI set curq_ 0
 
-Queue/Vq set queue_in_bytes_ false 
+# Queue/Vq set queue_in_bytes_ false
+Queue/Vq set queue_in_bytes_ true
+# Default for queue_in_bytes_ changed to true on 4/28/2002.
 Queue/Vq set markpkts_ false 
 Queue/Vq set ecnlim_ 0.8
 Queue/Vq set buflim_ 1.0 
-Queue/Vq set gamma_ 0.895
+# Queue/Vq set gamma_ 0.895
+Queue/Vq set gamma_ 0.98
+# Default for gamma_ changed to 0.98 on 4/28/2002.
 Queue/Vq set mean_pktsize_ 1000
 Queue/Vq set curq_ 0
 Queue/Vq set drop_front_ 0
