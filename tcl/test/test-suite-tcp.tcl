@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.16 1999/08/19 04:18:02 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.17 1999/08/24 03:23:32 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -584,6 +584,43 @@ Test/quiescent_500ms_coarse instproc init topo {
         $self next
 } 
 
+
+TestSuite instproc run2 tcp0 { 
+        $self instvar ns_ node_ testName_
+	set stoptime 30.0
+
+	set count 25
+	set count1 10
+	set count2 3
+	set count3 100
+
+    	set data0 [$tcp0 attach-app Telnet]
+	$data0 set interval_ 0.01
+	$ns_ at 0 "$data0 start"
+	$ns_ at 1 "$data0 set interval_ 0.03"
+	$ns_ at 2.0 "$data0 set interval_ 0.0005" 
+	$ns_ at 2.05 "$data0 stop"
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+	$ns_ run
+}
+
+Class Test/underutilized_100ms -superclass TestSuite
+Test/underutilized_100ms instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       underutilized_100ms
+	Agent/TCP set QOption_ 0
+        $self next
+} 
+Test/underutilized_100ms instproc run {} {
+        $self instvar ns_ node_ 
+	Agent/TCP set packetSize_ 100 
+	Agent/TCP set window_ 100
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	$self run2 $tcp0
+}
+
 ##############
 
 TestSuite runTest
@@ -593,5 +630,4 @@ TestSuite runTest
 ### tcl-indent-level: 8
 ### tcl-default-application: ns
 ### End:
-
 
