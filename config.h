@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.27 1999/02/16 22:59:25 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.28 1999/08/05 21:23:11 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -55,6 +55,8 @@ typedef unsigned char u_char;
 typedef unsigned short u_short;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
+typedef signed char int8_t;
+typedef short int16_t;
 typedef int int32_t;
 #else
 typedef signed char int8_t;
