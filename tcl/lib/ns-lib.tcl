@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.113 1998/07/15 19:31:31 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.114 1998/07/16 15:58:54 kannan Exp $
 
 #
 
@@ -427,6 +427,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 
 	
 	# construct the queue
+	set qtypeOrig $qtype
 	switch -exact $qtype {
 		ErrorModule {
 			if { [llength $args] > 0 } {
@@ -445,7 +446,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	}
 
 	# Now create the link
-	switch -exact $qtype {
+	switch -exact $qtypeOrig {
 		RTM {
                         set c [lindex $args 1]
                         set link_($sid:$did) [new CBQLink       \
@@ -466,7 +467,8 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
                 intserv {
                         #XX need to clean this up
                         set link_($sid:$did) [new IntServLink   \
-                                        $n1 $n2 $bw $delay $q $qtype $args]
+                                        $n1 $n2 $bw $delay $q	\
+						[concat $qtypeOrig $args]
                 }
                 default {
                         set link_($sid:$did) [new SimpleLink    \
