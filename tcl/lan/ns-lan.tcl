@@ -195,7 +195,7 @@ NetIface instproc trace {ns f} {
 #
 # LanLink:  a LAN abstract
 #
-Class LanLink
+Class LanLink -superclass InitObject
 LanLink set llType_ LL
 LanLink set ifqType_ Queue/DropTail
 LanLink set macType_ Mac/Csma/Cd
