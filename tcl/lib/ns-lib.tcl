@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.106 1998/06/02 23:38:47 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.107 1998/06/24 23:42:24 kfall Exp $
 
 #
 
@@ -910,6 +910,15 @@ Classifier/Hash instproc dump args {
 	eval $self next $args
 	$self instvar default_
 	puts "\t$default_ default"
+}
+
+Classifier/Hash instproc init nbuck {
+	# we need to make sure that port shift/mask values are there
+	# so we set them after they get their default values
+	$self next $nbuck
+	$self instvar shift_ mask_
+	set shift_ [AddrParams set NodeShift_(1)]
+	set mask_ [AddrParams set NodeMask_(1)]
 }
 
 #
