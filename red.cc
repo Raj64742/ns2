@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.66 2001/10/27 00:09:10 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.67 2001/12/06 03:13:54 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -110,6 +110,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
 	bind("q_weight_", &edp_.q_w);		    // for EWMA
 	bind("adaptive_", &edp_.adaptive);          // 1 for adaptive red
+	bind("cautious_", &edp_.cautious);          // 1 for cautious marking
 	bind("alpha_", &edp_.alpha); 	  	    // adaptive red param
 	bind("beta_", &edp_.beta);                  // adaptive red param
 	bind("interval_", &edp_.interval);	    // adaptive red param
@@ -305,7 +306,6 @@ Packet* REDQueue::deque()
 	Packet *p;
 	if (edp_.summarystats && &Scheduler::instance() != NULL) {
 		double now = Scheduler::instance().clock();
-		double oldtime = edv_.v_total_time;
 		double newtime = now - edv_.v_total_time;
 		if (newtime > 0.0) {
 			double oldave = edv_.v_true_ave;
@@ -419,6 +419,19 @@ REDQueue::drop_early(Packet* pkt)
 	  edp_.bytes, edp_.mean_pktsize, edp_.wait, ch->size());
 
 	// drop probability is computed, pick random number and act
+	if (edp_.cautious == 1) {
+		 // Don't drop/mark if the instantaneous queue is much
+		 //  below the average.
+		int qsize = qib_?bcount_:q_->length();
+		// pkts: the number of packets arriving in 50 ms
+		double pkts = edp_.ptc * 0.05;
+		double fraction = pow( (1-edp_.q_w), pkts);
+		// double fraction = 0.9;
+		if ((double) qsize < fraction * edv_.v_ave) {
+			// queue could have been empty for 0.05 seconds
+			return (0);
+		}
+	}
 	double u = Random::uniform();
 	if (u <= edv_.v_prob) {
 		// DROP or MARK
@@ -800,7 +813,7 @@ void REDQueue::print_edv()
 
 void REDQueue::print_summarystats()
 {
-	double now = Scheduler::instance().clock();
+	//double now = Scheduler::instance().clock();
 	printf("True average queue: %5.3f", edv_.v_true_ave);
 	if (qib_) 
 		printf(" (in bytes)");
