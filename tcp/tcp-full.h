@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.21 1998/05/16 00:50:27 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.22 1998/05/16 01:43:56 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -92,7 +92,7 @@ protected:
 	FullTcpAgent *a_;
 };
 
-class ReassemblyQueue : public TcpAgent {
+class ReassemblyQueue : public TclObject {
 	struct seginfo {
 		seginfo* next_;
 		seginfo* prev_;
@@ -102,12 +102,13 @@ class ReassemblyQueue : public TcpAgent {
 	};
 
 public:
-	ReassemblyQueue(int& nxt) : head_(NULL), tail_(NULL),
-		rcv_nxt_(nxt) { }
+	ReassemblyQueue(int& nxt);
 	int empty() { return (head_ == NULL); }
 	int add(Packet*);
 	void clear();
 protected:
+	int off_tcp_;
+	int off_cmn_;
 	seginfo* head_;
 	seginfo* tail_;
 	int& rcv_nxt_;
