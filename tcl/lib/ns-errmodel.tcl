@@ -198,6 +198,30 @@ ErrorModule instproc init { cltype { clslots 29 } } {
 	}
 }
 
+#
+# set a default behavior within the error module.
+# Called as follows
+#	$errormodule default $em
+# where $em is the name of an error model to pass default traffic to.
+# note that if $em is "pass", then default just goes through untouched
+#
+ErrorModule instproc default errmodel {
+	set cl [$self cmd classifier]
+	if { $errmodel == "pass" } {
+		set target [$self cmd target]
+		set pslot [$cl installNext $target]
+		$cl set default_ $pslot
+		return
+	}
+
+	set emslot [$cl findslot $errmodel]
+	if { $emslot == -1 } {
+		puts "ErrorModule: couldn't find classifier entry for error model $errmodel"
+		return
+	}
+	$cl set default_ $emslot
+}
+
 ErrorModule instproc insert errmodel {
 	$self instvar models_
 	$errmodel target [$self cmd target]
