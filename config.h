@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.30 1999/08/20 18:03:15 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.31 1999/09/08 20:56:45 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -96,10 +96,10 @@ typedef longlong_t int64_t;
 #define TRUE		1
 #define FALSE		0
 
-#ifndef bzero
+#ifndef HAVE_BZERO
 #define bzero(dest,count) memset(dest,0,count)
 #endif
-#ifndef bcopy
+#ifndef HAVE_BCOPY
 #define bcopy(src,dest,size) memcpy(dest,src,size)
 #endif
 
@@ -223,9 +223,7 @@ int sendmsg(int, struct msghdr*, int);
 time_t time(time_t *);
 #endif
 
-#define bzero(dest,count) memset(dest,0,count)
-#define bcopy(src,dest,size) memcpy(dest,src,size)
-#define strncasecmp _strnicmp
+ #define strncasecmp _strnicmp
 #if defined(__cplusplus)
 }
 #endif

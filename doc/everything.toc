@@ -1,6 +1,6 @@
 \contentsline {chapter}{\numberline {1}Introduction}{8}
 \contentsline {chapter}{\numberline {2}Undocumented Facilities}{12}
-\contentsline {part}{\uppercase {i}\hspace {1em}Interface to the Interpreter}{13}
+\contentsline {part}{I\hspace {1em}Interface to the Interpreter}{13}
 \contentsline {chapter}{\numberline {3}OTcl Linkage}{14}
 \contentsline {section}{\numberline {3.1}Class Tcl}{14}
 \contentsline {subsection}{\numberline {3.1.1}Obtain a Reference to the class Tcl instance}{15}
@@ -22,7 +22,7 @@
 \contentsline {section}{\numberline {3.4}Class TclCommand}{25}
 \contentsline {section}{\numberline {3.5}Class EmbeddedTcl}{27}
 \contentsline {section}{\numberline {3.6}Class InstVar}{28}
-\contentsline {part}{\uppercase {ii}\hspace {1em}Simulator Basics}{30}
+\contentsline {part}{II\hspace {1em}Simulator Basics}{30}
 \contentsline {chapter}{\numberline {4}The Class Simulator}{31}
 \contentsline {section}{\numberline {4.1}Simulator Initialization}{31}
 \contentsline {section}{\numberline {4.2}Schedulers and Events}{31}
@@ -105,7 +105,7 @@
 \contentsline {subsection}{\numberline {13.5.2}Mac Methods}{86}
 \contentsline {subsection}{\numberline {13.5.3}Mac Class in C++}{86}
 \contentsline {subsection}{\numberline {13.5.4}CSMA-based MAC}{87}
-\contentsline {section}{\numberline {13.6}LL (link-layer) Class}{88}
+\contentsline {section}{\numberline {13.6}LL (link-layer) Class}{87}
 \contentsline {subsection}{\numberline {13.6.1}LL Class in C++}{88}
 \contentsline {subsection}{\numberline {13.6.2}Example: Link Layer configuration}{88}
 \contentsline {section}{\numberline {13.7}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily LanRouter\egroup class}{89}
@@ -154,7 +154,7 @@
 \contentsline {subsection}{\numberline {16.3.1}Use of linked lists}{122}
 \contentsline {subsection}{\numberline {16.3.2}Node structure}{122}
 \contentsline {subsection}{\numberline {16.3.3}Detailed look at satellite links}{123}
-\contentsline {part}{\uppercase {iii}\hspace {1em}Support}{126}
+\contentsline {part}{III\hspace {1em}Support}{126}
 \contentsline {chapter}{\numberline {17}Mathematical Support}{127}
 \contentsline {section}{\numberline {17.1}Random Number Generation}{127}
 \contentsline {paragraph}{C++ Support}{127}
@@ -174,7 +174,7 @@
 \contentsline {subsection}{\numberline {18.7.1}The Flow Monitor}{142}
 \contentsline {subsection}{\numberline {18.7.2}Flow Monitor Trace Format}{142}
 \contentsline {subsection}{\numberline {18.7.3}The Flow Class}{143}
-\contentsline {part}{\uppercase {iv}\hspace {1em}Routing}{144}
+\contentsline {part}{IV\hspace {1em}Routing}{144}
 \contentsline {chapter}{\numberline {19}Unicast Routing}{145}
 \contentsline {section}{\numberline {19.1}The Interface to the Simulation Operator (The API)}{145}
 \contentsline {paragraph}{Preference Assignment and Control}{146}
@@ -243,7 +243,7 @@
 \contentsline {section}{\numberline {22.2}Usage of Hierarchical routing}{171}
 \contentsline {section}{\numberline {22.3}Creating large Hierarchical topologies}{174}
 \contentsline {section}{\numberline {22.4}Hierarchical Routing with SessionSim}{174}
-\contentsline {part}{\uppercase {v}\hspace {1em}Transport}{175}
+\contentsline {part}{V\hspace {1em}Transport}{175}
 \contentsline {chapter}{\numberline {23}UDP Agents}{176}
 \contentsline {section}{\numberline {23.1}UDP Agents}{176}
 \contentsline {chapter}{\numberline {24}TCP Agents}{177}
@@ -312,7 +312,7 @@
 \contentsline {paragraph}{Recompute for Each New Loss Object}{197}
 \contentsline {paragraph}{Sending a Message}{197}
 \contentsline {paragraph}{Advertising the Distance}{197}
-\contentsline {part}{\uppercase {vi}\hspace {1em}Application}{199}
+\contentsline {part}{VI\hspace {1em}Application}{199}
 \contentsline {chapter}{\numberline {26}Applications and transport agent API}{200}
 \contentsline {section}{\numberline {26.1}The class Application}{200}
 \contentsline {section}{\numberline {26.2}The transport agent API}{201}
@@ -361,7 +361,7 @@
 \contentsline {paragraph}{OTcl methods}{220}
 \contentsline {section}{\numberline {27.8}Putting together: a simple example}{220}
 \contentsline {section}{\numberline {27.9}Http trace format}{222}
-\contentsline {part}{\uppercase {vii}\hspace {1em}Scale}{224}
+\contentsline {part}{VII\hspace {1em}Scale}{224}
 \contentsline {chapter}{\numberline {28}Session-level Packet Distribution}{225}
 \contentsline {section}{\numberline {28.1}Configuration}{225}
 \contentsline {subsection}{\numberline {28.1.1}Basic Configuration}{225}
@@ -375,7 +375,7 @@
 \contentsline {paragraph}{Session Helper}{228}
 \contentsline {paragraph}{Delay and Loss Modules}{229}
 \contentsline {subsection}{\numberline {28.3.2}Packet Forwarding}{229}
-\contentsline {part}{\uppercase {viii}\hspace {1em}Emulation}{231}
+\contentsline {part}{VIII\hspace {1em}Emulation}{231}
 \contentsline {chapter}{\numberline {29}Emulation}{232}
 \contentsline {section}{\numberline {29.1}Introduction}{232}
 \contentsline {section}{\numberline {29.2}Real-Time Scheduler}{233}

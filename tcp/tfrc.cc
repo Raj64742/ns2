@@ -1,3 +1,6 @@
+
+// from aciri, needs copyright notice
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <math.h>

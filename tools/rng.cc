@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.16 1999/08/14 00:19:46 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.17 1999/09/08 20:56:50 heideman Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -180,27 +180,27 @@ RNG* RNG::default_ = NULL;
 double
 RNG::normal(double avg, double std)
 {
-  static int parity = 0;
-  static double nextresult;
-  double sam1, sam2, rad;
+	static int parity = 0;
+	static double nextresult;
+	double sam1, sam2, rad;
    
-  if (std == 0) return avg;
-  if (parity == 0) {
-    sam1 = 2*uniform() - 1;
-    sam2 = 2*uniform() - 1;
-    while ((rad = sam1*sam1 + sam2*sam2) >= 1) {
-      sam1 = 2*uniform() - 1;
-      sam2 = 2*uniform() - 1;
-    }
-    rad = sqrt((-2*log(rad))/rad);
-    nextresult = sam2 * rad;
-    parity = 1;
-    return (sam1 * rad * std + avg);
-  }
-  else {
-    parity = 0;
-    return (nextresult * std + avg);
-  }
+	if (std == 0) return avg;
+	if (parity == 0) {
+		sam1 = 2*uniform() - 1;
+		sam2 = 2*uniform() - 1;
+		while ((rad = sam1*sam1 + sam2*sam2) >= 1) {
+			sam1 = 2*uniform() - 1;
+			sam2 = 2*uniform() - 1;
+		}
+		rad = sqrt((-2*log(rad))/rad);
+		nextresult = sam2 * rad;
+		parity = 1;
+		return (sam1 * rad * std + avg);
+	}
+	else {
+		parity = 0;
+		return (nextresult * std + avg);
+	}
 }
 
 #ifndef stand_alone

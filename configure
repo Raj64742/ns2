@@ -2025,6 +2025,17 @@ then
 NS_PACKAGE_tcl_COMPLETE=false
 
 fi
+# absolutize it
+absolutize() {
+    d=`dirname $1`
+    f=`basename $1`
+    ad=`(
+	cd $d
+	pwd
+    )`
+    echo $ad/$f
+}
+V_TCLSH=`absolutize $V_TCLSH`
 PATH=$oldpath
 
 
@@ -2200,7 +2211,7 @@ NS_PACKAGE_tk_COMPLETE=true
 
 
 echo $ac_n "checking for tk.h""... $ac_c" 1>&6
-echo "configure:2204: checking for tk.h" >&5
+echo "configure:2215: checking for tk.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_INCLUDE_TK=FAIL
@@ -2249,7 +2260,7 @@ fi
 
 
 echo $ac_n "checking for libtk$TK_HI_VERS""... $ac_c" 1>&6
-echo "configure:2253: checking for libtk$TK_HI_VERS" >&5
+echo "configure:2264: checking for libtk$TK_HI_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TK=FAIL
@@ -2314,7 +2325,7 @@ fi
 
 
 echo $ac_n "checking for tk.tcl""... $ac_c" 1>&6
-echo "configure:2318: checking for tk.tcl" >&5
+echo "configure:2329: checking for tk.tcl" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_LIBRARY_TK=FAIL
@@ -2430,7 +2441,7 @@ NS_PACKAGE_otcl_COMPLETE=true
 
 
 echo $ac_n "checking for otcl.h""... $ac_c" 1>&6
-echo "configure:2434: checking for otcl.h" >&5
+echo "configure:2445: checking for otcl.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_INCLUDE_OTCL=FAIL
@@ -2479,7 +2490,7 @@ fi
 
 
 echo $ac_n "checking for libotcl$OTCL_VERS""... $ac_c" 1>&6
-echo "configure:2483: checking for libotcl$OTCL_VERS" >&5
+echo "configure:2494: checking for libotcl$OTCL_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_OTCL=FAIL
@@ -2641,7 +2652,7 @@ NS_PACKAGE_TclCL_COMPLETE=true
 
 
 echo $ac_n "checking for tclcl.h""... $ac_c" 1>&6
-echo "configure:2645: checking for tclcl.h" >&5
+echo "configure:2656: checking for tclcl.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_INCLUDE_TclCL=FAIL
@@ -2690,7 +2701,7 @@ fi
 
 
 echo $ac_n "checking for libtclcl$TclCL_VERS""... $ac_c" 1>&6
-echo "configure:2694: checking for libtclcl$TclCL_VERS" >&5
+echo "configure:2705: checking for libtclcl$TclCL_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TclCL=FAIL
@@ -2755,7 +2766,7 @@ fi
 
 
 echo $ac_n "checking for tcl2c++""... $ac_c" 1>&6
-echo "configure:2759: checking for tcl2c++" >&5
+echo "configure:2770: checking for tcl2c++" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_TCL2CPP_DIR=FAIL
@@ -2957,12 +2968,12 @@ xincdirs="\
 echo "checking for X11 header files"
 if test "$x_includes" = NONE ; then
 	cat > conftest.$ac_ext <<EOF
-#line 2961 "configure"
+#line 2972 "configure"
 #include "confdefs.h"
 #include <X11/Intrinsic.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2966: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2977: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2996,7 +3007,7 @@ fi
 echo "checking for X11 library archive"
 if test "$x_libraries" = NONE ; then
 	echo $ac_n "checking for XOpenDisplay in -lX11""... $ac_c" 1>&6
-echo "configure:3000: checking for XOpenDisplay in -lX11" >&5
+echo "configure:3011: checking for XOpenDisplay in -lX11" >&5
 ac_lib_var=`echo X11'_'XOpenDisplay | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3004,7 +3015,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lX11  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3008 "configure"
+#line 3019 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3015,7 +3026,7 @@ int main() {
 XOpenDisplay()
 ; return 0; }
 EOF
-if { (eval echo configure:3019: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3030: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3055,7 +3066,7 @@ V_LIB_X11=-lX11
 if test -n "$V_SHM" ; then
 	if test -z "$x_libraries" ; then
 		echo $ac_n "checking for XShmAttach in -lXext""... $ac_c" 1>&6
-echo "configure:3059: checking for XShmAttach in -lXext" >&5
+echo "configure:3070: checking for XShmAttach in -lXext" >&5
 ac_lib_var=`echo Xext'_'XShmAttach | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3063,7 +3074,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lXext -lX11 $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3067 "configure"
+#line 3078 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3074,7 +3085,7 @@ int main() {
 XShmAttach()
 ; return 0; }
 EOF
-if { (eval echo configure:3078: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3089: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3157,7 +3168,7 @@ NS_PACKAGE_tcldebug_COMPLETE=true
 
 
 echo $ac_n "checking for libtcldbg""... $ac_c" 1>&6
-echo "configure:3161: checking for libtcldbg" >&5
+echo "configure:3172: checking for libtcldbg" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TCLDEBUG=FAIL
@@ -3290,7 +3301,7 @@ DMALLOC_PATH_D="$d $d/lib $d/include"
 
 if test "x$d" = xUNDEF; then
 	echo $ac_n "checking dmalloc""... $ac_c" 1>&6
-echo "configure:3294: checking dmalloc" >&5
+echo "configure:3305: checking dmalloc" >&5
 	echo "$ac_t""not requested with --with-dmalloc" 1>&6
 else
 	
@@ -3299,7 +3310,7 @@ NS_PACKAGE_dmalloc_COMPLETE=true
 
 	
 echo $ac_n "checking for libdmalloc""... $ac_c" 1>&6
-echo "configure:3303: checking for libdmalloc" >&5
+echo "configure:3314: checking for libdmalloc" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_DMALLOC=FAIL
@@ -3364,7 +3375,7 @@ fi
 
 	
 echo $ac_n "checking for dmalloc.h""... $ac_c" 1>&6
-echo "configure:3368: checking for dmalloc.h" >&5
+echo "configure:3379: checking for dmalloc.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_DMALLOC=FAIL
@@ -3413,7 +3424,7 @@ fi
 
 	
 echo $ac_n "checking for return.h""... $ac_c" 1>&6
-echo "configure:3417: checking for return.h" >&5
+echo "configure:3428: checking for return.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_RETURN=FAIL
@@ -3532,7 +3543,7 @@ PERL_OPTIONAL=${PERL_OPTIONAL:-false}
 
 
 echo $ac_n "checking for perl""... $ac_c" 1>&6
-echo "configure:3536: checking for perl" >&5
+echo "configure:3547: checking for perl" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	PERL=FAIL
@@ -3590,7 +3601,7 @@ if test "x$PERL" = "x"
 then
     
 echo $ac_n "checking for perl5""... $ac_c" 1>&6
-echo "configure:3594: checking for perl5" >&5
+echo "configure:3605: checking for perl5" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	PERL=FAIL
@@ -3679,15 +3690,15 @@ EOF
 
 fi
 
-for ac_func in getrusage sbrk strtoq strtoll snprintf
+for ac_func in bcopy bzero getrusage sbrk snprintf strtoll strtoq
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:3686: checking for $ac_func" >&5
+echo "configure:3697: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3691 "configure"
+#line 3702 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -3710,7 +3721,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3714: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3725: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -3779,7 +3790,7 @@ if test ! -z "$V_NEED_DL" ; then
 		;;
 	*-*-linux*)
 		echo $ac_n "checking for dlopen in -ldl""... $ac_c" 1>&6
-echo "configure:3783: checking for dlopen in -ldl" >&5
+echo "configure:3794: checking for dlopen in -ldl" >&5
 ac_lib_var=`echo dl'_'dlopen | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3787,7 +3798,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3791 "configure"
+#line 3802 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3798,7 +3809,7 @@ int main() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:3802: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3813: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3827,7 +3838,7 @@ fi
 			;;
 		*)
 			echo $ac_n "checking for main in -l$V_LIB_DL""... $ac_c" 1>&6
-echo "configure:3831: checking for main in -l$V_LIB_DL" >&5
+echo "configure:3842: checking for main in -l$V_LIB_DL" >&5
 ac_lib_var=`echo $V_LIB_DL'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3835,14 +3846,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3839 "configure"
+#line 3850 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:3846: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3857: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3952,7 +3963,7 @@ V_TAR_TARGET=$target_os
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:3956: checking for a BSD compatible install" >&5
+echo "configure:3967: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6

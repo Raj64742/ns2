@@ -18,7 +18,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.h,v 1.2 1999/05/31 20:40:45 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.h,v 1.3 1999/09/08 20:56:50 heideman Exp $ (LBL)
  */
 
 #include "scheduler.h"
@@ -34,7 +34,8 @@ protected:
 	void print_all_stats(int desired_pkts, int pkts = 0,
 			     int rtts = 0, int timeouts = 0, 
 			     int ps = 0, int qs = 0,
-			     int num_states = 0);
+			     int num_states = 0,
+			     int num_state_names = 0);
 	void reset_all_processed();
 	bool processed() { return print_i_ < 0; }
 public:

@@ -18,7 +18,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.4 1999/07/16 17:45:35 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.5 1999/09/08 20:56:49 heideman Exp $ (LBL)
  */
 
 #include "fsm.h"
@@ -88,7 +88,8 @@ FSMState::print_all_stats(int desired_pkts, int pkts,
 			  int timeouts,
 			  int ps,
 			  int qs,
-			  int num_states)
+			  int num_states,
+			  int num_state_names)
 {
 	// to be completed
 }
