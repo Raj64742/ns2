@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.29 1999/08/09 18:48:48 kfall Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.30 1999/09/02 01:27:08 yaxu Exp $
 #
 
 #
@@ -391,6 +391,7 @@ Simulator instproc init-nam {} {
 	
 	# Traced agents for nam
 	$self dump-namagents
+
 }
 
 #

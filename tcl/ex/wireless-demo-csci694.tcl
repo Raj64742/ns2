@@ -54,7 +54,7 @@ set opt(adhocRouting)   DSDV
 set opt(nn)             3             ;# how many nodes are simulated
 set opt(cp)		"../mobility/scene/cbr-3-test" 
 set opt(sc)		"../mobility/scene/scen-3-test" 
-set opt(stop)		1000.0		;# simulation time
+set opt(stop)		200.0		;# simulation time
 
 # =====================================================================
 # Other default settings
@@ -127,8 +127,8 @@ $ns_ trace-all $tracefd
 $ns_ namtrace-all-wireless $namtrace $opt(x) $opt(y)
 
 # define topology
-
 $wtopo load_flatgrid $opt(x) $opt(y)
+
 $wprop topography $wtopo
 
 #
@@ -139,6 +139,9 @@ set god_ [create-god $opt(nn)]
 #
 # define how node should be created
 #
+
+#global node setting
+
 $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -llType $opt(ll) \
 		 -macType $opt(mac) \
@@ -148,13 +151,12 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
 		 -agentTrace ON \
-                 -routerTrace ON \
-                 -macTrace OFF \
+                 -routerTrace OFF \
+                 -macTrace OFF 
 
 #
 #  Create the specified number of nodes [$opt(nn)] and "attach" them
 #  to the channel. 
-#
 
 for {set i 0} {$i < $opt(nn) } {incr i} {
 	set node_($i) [$ns_ node $wchan]	
@@ -162,25 +164,26 @@ for {set i 0} {$i < $opt(nn) } {incr i} {
 	$node_($i) topography $wtopo
 }
 
+
 # 
 # Define node movement model
 #
-
 puts "Loading connection pattern..."
 source $opt(cp)
 
 # 
 # Define traffic model
 #
-
 puts "Loading scenario file..."
 source $opt(sc)
 
-#enable node trace in nam
+# Define node initial position in nam
 
 for {set i 0} {$i < $opt(nn)} {incr i} {
-    $node_($i) namattach $namtrace
+
     # 20 defines the node size in nam, must adjust it according to your scenario
+    # The function must be called after mobility model is defined
+    
     $ns_ initial_node_pos $node_($i) 20
 }
 
@@ -191,8 +194,15 @@ for {set i 0} {$i < $opt(nn)} {incr i} {
 for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
+# tell nam the simulation stop time
+$ns_ at  $opt(stop)	"$ns_ nam-end-wireless $opt(stop)"
+
 $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
+
 
 puts "Starting Simulation..."
 $ns_ run
+
+
+
 

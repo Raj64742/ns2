@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.162 1999/09/01 21:35:04 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.163 1999/09/02 01:27:07 yaxu Exp $
 
 #
 
@@ -399,7 +399,13 @@ Simulator instproc create-wireless-node { args } {
 
 	}
 
-	# node energy model
+	
+	set namtracefd [$self get-nam-traceall]
+	
+	if {$namtracefd != "" } {
+	    
+	    $node namattach $namtracefd
+	}
 
 	if [info exists energyModel_] {
 	     $node addenergymodel [new $energyModel_ $initialEnergy_]
@@ -821,16 +827,20 @@ Simulator instproc namtrace-all file {
 
 Simulator instproc namtrace-all-wireless {file optx opty} {
         $self instvar namtraceAllFile_
-
-
         if {$file != ""} {
                 set namtraceAllFile_ $file
-
         } else {
                 unset namtraceAllFile_
-
         }
         $self puts-nam-config "W -t * -x $optx -y $opty"
+}
+
+Simulator instproc nam-end-wireless {stoptime} {
+        $self instvar namtraceAllFile_
+
+        if {$namtraceAllFile_ != ""} {
+	    $self puts-nam-config "W -t $stoptime"
+        }
 }
 
 Simulator instproc initial_node_pos {nodep size} {

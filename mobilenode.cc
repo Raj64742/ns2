@@ -223,6 +223,7 @@ MobileNode::command(int argc, const char*const* argv)
                     fprintf(stderr, "%d - %s: calling set_destination()\n",
                             address_, __FUNCTION__);
 #endif
+  
 	      if(set_destination(atof(argv[2]), atof(argv[3]), atof(argv[4])) < 0)
 		return TCL_ERROR;
 	      return TCL_OK;
