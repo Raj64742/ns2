@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.94 2001/08/16 00:43:03 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.95 2001/08/17 00:51:37 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -261,6 +261,7 @@ FullTcpAgent::pack_action(Packet*)
 		cwnd_ = ssthresh_; // retract window if inflated
 	}
 	fastrecov_ = FALSE;
+//printf("%f: EXITED FAST RECOVERY\n", now());
 	dupacks_ = 0;
 }
 
@@ -803,8 +804,8 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 //		topwin = highest_ack_ + win;
 
 //if ((int(t_seqno_)) > 1)
-//printf("%f: send_much(f:%d, win:%d, pipectrl:%d, pipe:%d, t_seqno:%d, topwin:%d\n",
-//now(), force, win, pipectrl_, pipe_, int(t_seqno_), topwin);
+//printf("%f: send_much(f:%d, win:%d, pipectrl:%d, pipe:%d, t_seqno:%d, topwin:%d, maxseq_:%d\n",
+//now(), force, win, pipectrl_, pipe_, int(t_seqno_), topwin, int(maxseq_));
 
 	if (!force && (delsnd_timer_.status() == TIMER_PENDING))
 		return;
@@ -873,8 +874,11 @@ SackFullTcpAgent::send_allowed(int seq)
 
 	// don't overshoot receiver's advertised window
 	int topawin = highest_ack_ + int(wnd_) * maxseg_;
-	if (seq > topawin)
+	if (seq >= topawin) {
+//printf("%f: SEND(%d) NOT ALLOWED DUE TO AWIN:%d, pipe:%d, cwnd:%d\n",
+//now(), seq, topawin, pipe_, int(cwnd_));
 		return FALSE;
+	}
 
 	// don't overshoot cwnd_
 	int cwin = int(cwnd_) * maxseg_;
@@ -917,11 +921,13 @@ FullTcpAgent::newack(Packet* pkt)
 	register int ackno = tcph->ackno();
 	int progress = (ackno > highest_ack_);
 
-	if (progress) {
-		pipe_ -= (ackno - highest_ack_);
-//printf("%f: newack: pipe decr by %d to %d\n", now(), (ackno - highest_ack_), pipe_);
+#ifdef notdef
+if (progress) {
+	pipe_ -= (ackno - highest_ack_);
+printf("%f: newack: pipe decr by %d to %d\n", now(), (ackno - highest_ack_), pipe_);
 
-	}
+}
+#endif
 
 
 	if (ackno == maxseq_) {
@@ -1594,6 +1600,14 @@ trimthenstep6:
 			process_sack(tcph);
 		}
 
+		//
+		// ACK indicates packet left the network
+		//	try not to be fooled by data
+		//
+
+		if (fastrecov_ && (datalen == 0 || ackno > highest_ack_))
+			pipe_ -= maxseg_;
+
 		// look for dup ACKs (dup ack numbers, no data)
 		//
 		// do fast retransmit/recovery if at/past thresh
@@ -1601,9 +1615,8 @@ trimthenstep6:
 			// a pure ACK which doesn't advance highest_ack_
 			if (datalen == 0 && (!dupseg_fix_ || !dupseg)) {
 
-				pipe_ -= maxseg_; // ACK indicates pkt cached @ receiver
+//XXXpipe_ -= maxseg_; // ACK indicates pkt cached @ receiver
 //printf("%f: newack: pipe decr by %d to %d\n", now(), maxseg_, pipe_);
-					          // what if small pkts in use?
 							
 
                                 /*
@@ -1711,6 +1724,9 @@ process_ACK:
 
 		/*
 		 * if this is a partial ACK, invoke whatever we should
+		 * note that newack() must be called before the action
+		 * functions, as some of them depend on side-effects
+		 * of newack()
 		 */
 
 		int partial = pack(pkt);
@@ -2197,6 +2213,11 @@ void FullTcpAgent::timeout(int tno)
 	/*
 	 * shouldn't be getting timeouts here
 	 */
+
+//if (tno == TCP_TIMER_RTX)
+//printf("%f: RTX TIMEOUT: t_seqno:%d\n",
+//now(), int(t_seqno_));
+
 	if (state_ == TCPS_CLOSED || state_ == TCPS_LISTEN) {
 		fprintf(stderr, "%f: (%s) unexpected timeout %d in state %d\n",
 			now(), name(), tno, state_);
@@ -2472,20 +2493,17 @@ SackFullTcpAgent::dupack_action()
 
 	pipe_ = maxseq_ - highest_ack_ - sq_.total();
 
-//printf("%f: DUPACK-ACTION:pipe_:%d, sq-total:%d\n",
-//now(), pipe_, sq_.total());
+//printf("%f: SACK DUPACK-ACTION:pipe_:%d, sq-total:%d, bugfix:%d, cwnd:%d, highest_ack:%d, recover_:%d\n",
+//now(), pipe_, sq_.total(), bug_fix_, int(cwnd_), int(highest_ack_), recover_);
 
-        if (recovered || (!bug_fix_ && !ecn_) ||
-            last_cwnd_action_ == CWND_ACTION_DUPACK) {
+        if (recovered || (!bug_fix_ && !ecn_)) {
                 goto full_sack_action;
         }           
 
         if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
-		pipectrl_ = TRUE;
-                slowdown(CLOSE_CWND_HALF);
+		last_cwnd_action_ = CWND_ACTION_DUPACK;
                 cancel_rtx_timer();
                 rtt_active_ = FALSE;
-		recover_ = maxseq_;
 		send_much(1, REASON_DUPACK, maxburst_);
                 return; 
         }               
@@ -2496,6 +2514,9 @@ SackFullTcpAgent::dupack_action()
                  * problems with multiple fast retransmits in one
                  * window of data.
                  */      
+
+//printf("%f: SACK DUPACK-ACTION BUGFIX RETURN:pipe_:%d, sq-total:%d, bugfix:%d, cwnd:%d\n",
+//now(), pipe_, sq_.total(), bug_fix_, int(cwnd_));
                 return;  
         }
    
@@ -2515,7 +2536,7 @@ full_sack_action:
 //printf("%f: FAST-RTX seq:%d, h_seqno_ is now:%d, pipe:%d, cwnd:%d, recover:%d\n",
 //now(), int(highest_ack_), h_seqno_, pipe_, int(cwnd_), recover_);
 
-send_much(0, REASON_DUPACK, maxburst_);
+	send_much(0, REASON_DUPACK, maxburst_);
 
         return;
 }
@@ -2527,20 +2548,22 @@ SackFullTcpAgent::pack_action(Packet* p)
 		sack_min_ = highest_ack_;
 		sq_.cleartonxt();
 	}
-	FullTcpAgent::pack_action(p);
+	pipe_ -= maxseg_;	// see comment in tcp-sack1.cc
+	if (h_seqno_ < highest_ack_)
+		h_seqno_ = highest_ack_;
 }
 
 void
 SackFullTcpAgent::ack_action(Packet* p)
 {
-//printf("%f: exiting fast recovery, recover:%d\n",
+//printf("%f: EXITING fast recovery, recover:%d\n",
 //now(), recover_);
-	pipectrl_ = FALSE;
-	if (!sq_.empty() && sack_min_ < highest_ack_) {
-		sack_min_ = highest_ack_;
-		sq_.cleartonxt();
-	}
-	FullTcpAgent::ack_action(p);
+	fastrecov_ = pipectrl_ = FALSE;
+        if (!sq_.empty() && sack_min_ < highest_ack_) {
+                sack_min_ = highest_ack_;
+                sq_.cleartonxt();
+        }
+	dupacks_ = 0;
 }
 
 #ifdef notdef
@@ -2693,7 +2716,7 @@ SackFullTcpAgent::process_sack(hdr_tcp* tcph)
 // we may want something other than new data (t_seqno)
 //
 
-#define	SACKTHRESH	3	// XXX: to be a parameter
+#define	SACKTHRESH	1	// XXX: to be a parameter
 
 int
 SackFullTcpAgent::nxt_tseq()
