@@ -169,7 +169,7 @@ proc flowmonDump { fm dump link stop } {
     global ns drop_interval
     if {[$ns now] < $stop} {
    	$dump $link $fm
-	set next [expr [expr double([$ns now])] + $drop_interval]
+	set next [expr [$ns now] + $drop_interval]
 	$ns at $next "flowmonDump $fm $dump $link $stop"
     }
 }
@@ -367,7 +367,7 @@ proc allmakeawk { } {
 		    frac_arrivals = tot_arrivals/$13;
 		}
                 else {frac_arrivals = 0;}
-		if (frac_packets + frac_bytes > 0) {
+		if (frac_arrivals >= 0.1 && frac_packets + frac_bytes > 0) {
 		    unforced_total_part = frac_packets * unforced_total / ( unforced_total + forced_total ) 
 		    forced_total_part = frac_bytes * forced_total / ( unforced_total + forced_total ) 
 		    print 100.0 * frac_arrivals, 100.0 * ( unforced_total_part + forced_total_part )
@@ -393,7 +393,8 @@ proc create_flow_graph { graphtitle graphfile awkprocedure } {
     
     puts "writing flow xgraph data to $graphfile..."
     catch {exec sort -n +1 -o $flowfile $flowfile} result
-    exec awk [$awkprocedure] $flowfile >@ $outdesc
+    puts "awking flow graph data..."
+    catch {exec awk [$awkprocedure] $flowfile >@ $outdesc} result
     close $outdesc
     close $report_sec
     close $report_drop
@@ -460,6 +461,7 @@ proc plot_dropsinbytes { name flowgraphfile } {
 # plot drops vs. arrivals, for combined metric drops.
 proc plot_dropscombined { name flowgraphfile } {
     global xgraph 
+    puts "creating flow graph..."
     create_flow_graph $name $flowgraphfile allmakeawk
     puts "running xgraph for comparing drops and arrivals..."
     if { $xgraph == 1 } {
@@ -758,6 +760,11 @@ proc checkProb {p n} {
   return 0
 }
 
+proc printFlow { f outfile fm } {
+  global ns
+  puts $outfile [list [$ns now] [$f set flowid_] 0 0 [$f set flowid_] [$f set src_] [$f set dst_] [$f set parrivals_] [$f set barrivals_] [$f set epdrops_] [$f set ebdrops_] [$fm set parrivals_] [$fm set barrivals_] [$fm set epdrops_] [$fm set ebdrops_] [$fm set pdrops_] [$fm set bdrops_] [$f set pdrops_] [$f set bdrops_]]
+}
+
 proc flowDump { link fm } {
   global category drop_interval ns flowdesc cur_drops
 
@@ -772,30 +779,39 @@ proc flowDump { link fm } {
     return
   }
 
-  if {[llength [$fm flows]] == 0} {
+  set theflows [$fm flows]
+  if {[llength $theflows] == 0} {
     return
   } else {
-    set fl [lindex [$fm flows] 0]
+    set fl [lindex $theflows 0]
     set max -1
-    foreach f [$fm flows] {
-      if {[eval $drops] > $max} {
-        set max [eval $drops]
+    foreach f $theflows {
+	  set new_drops [eval $drops]
+      if {$new_drops > $max} {
+        set max $new_drops
         set fl $f
       }
     }
-    if {[checkProb [expr [expr double([$fl set barrivals_])] / [expr double([$fm set barrivals_])]] $max] } {
-      $fm dump
-      set cur_drops [$fm set pdrops_]
-      reportDump
-      foreach f [$fm flows] {
+		set total_arr [expr double([$fm set barrivals_])]
+		if {$total_arr > 0} {
+  	set arr [expr [expr double([$fl set barrivals_])] / $total_arr]
+  	if {[checkProb $arr $max]} {
+    	set cur_drops [$fm set pdrops_]
+    	reportDump
+    	foreach f $theflows {
+  			set arr [expr [expr double([$f set barrivals_])] / $total_arr]
+				if {$arr >= 0.1} {
+					printFlow $f $flowdesc $fm
+				}
         $f reset
-      }
-      set drop_interval 2.0
-      $fm reset
-    } else {
-      set drop_interval 1.0
-    }
-  }
+    	}
+    	set drop_interval 2.0
+    	$fm reset
+  	} else {
+    	set drop_interval 1.0
+  	}
+		}
+  } 
 }
 
 proc flowDump1 { link fm } {
