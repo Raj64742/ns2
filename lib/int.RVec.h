@@ -1,4 +1,4 @@
-// This may look like C code, but it is really -*- C++ -*-
+// -*- C++ -*-
 /*-
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.

@@ -121,11 +121,11 @@ Tcl_AppInit(Tcl_Interp *interp)
      *
      * where "Mod" is the name of the module.
      */
-#ifdef TCL_DEBUG
+#ifdef HAVE_LIBTCLDBG
     if (Dbg_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
-#endif /* TCL_DEBUG */
+#endif
 
     Tcl::init(interp, "ns");
     Tcl::instance().tkmain(Tk_MainWindow(interp));

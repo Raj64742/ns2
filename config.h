@@ -30,11 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.5 1997/04/01 21:34:00 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.6 1997/05/28 17:40:11 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
 #define ns_config_h
+
 
 #if defined(sgi) || defined(__bsdi__)
 #include <sys/types.h>

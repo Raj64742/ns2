@@ -84,11 +84,11 @@ Tcl_AppInit(Tcl_Interp *interp)
 	et_ns_lib.load();
 	init_misc();
 
-#ifdef TCL_DEBUG
+#ifdef HAVE_LIBTCLDBG
 	if (Dbg_Init(interp) == TCL_ERROR) {
 		return TCL_ERROR;
 	}
-#endif /* TCL_DEBUG */
+#endif
 
 #ifdef TCL_TEST
     if (Tcltest_Init(interp) == TCL_ERROR) {
