@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.116 2000/09/01 03:04:08 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.117 2000/10/12 19:51:58 debo Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -385,6 +385,16 @@ TcpAgent::reset()
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
 	first_decrease_ = 1;
+
+	/* Now these variables will be reset 
+	   - Debojyoti Dutta 12th Oct'2000 */
+ 
+	ndatapack_ = 0;
+	ndatabytes_ = 0;
+	nackpack_ = 0;
+	nrexmitbytes_ = 0;
+	nrexmit_ = 0;
+	nrexmitpack_ = 0;
 
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
