@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.8 2001/08/23 20:13:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.9 2001/08/24 15:07:01 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -46,8 +46,8 @@ Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
 
-set style raw2xg
-# set style tcpf2xgr
+# set style raw2xg
+set style tcpf2xgr
 
 Trace set show_tcphdr_ 1 ;	# needed for plotting ACK numbers
 
