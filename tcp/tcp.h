@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.42 1998/04/21 02:34:50 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.43 1998/05/04 22:17:15 kfall Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -127,6 +127,12 @@ struct hdr_tcpasym {
 #define TCP_REASON_TIMEOUT	0x01
 #define	TCP_REASON_DUPACK	0x02
 #define	TCP_REASON_RBP		0x03   // used only in tcp-rbp.cc
+
+/* these are reasons we adjusted our congestion window */
+
+#define	CWND_ACTION_DUPACK	1	// dup acks/fast retransmit
+#define	CWND_ACTION_TIMEOUT	2	// retransmission timeout
+#define	CWND_ACTION_ECN		3	// ECN bit [src quench if supported]
 
 /*
  * tcp_tick_:
@@ -278,9 +284,7 @@ protected:
 	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
 	int recover_;		/* highest pkt sent before dup acks, */
 				/*   timeout, or source quench 	*/
-	int recover_cause_;	/* 1 for dup acks */
-				/* 2 for timeout */
-				/* 3 for source quench */
+	int last_cwnd_action_;	/* CWND_ACTION_{TIMEOUT,DUPACK,ECN} */
 	TracedDouble cwnd_;	/* current window */
 	double base_cwnd_;	/* base window (for experimental purposes) */
 	double awnd_;		/* averaged window */
