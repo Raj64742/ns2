@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.11 1997/08/19 01:27:44 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.12 1997/10/31 02:22:41 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -213,25 +213,25 @@ FlowMon::fformat(Flow* f)
 {
 	double now = Scheduler::instance().clock();
 	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
-		now,
-		f->flowid(),	// flowid
-		0,		// category
-		f->ptype(),	// type (from common header)
-		f->flowid(),	// flowid (formerly class)
-		f->src(),
-		f->dst(),
-		f->parrivals(),	// arrivals this flow (pkts)
-		f->barrivals(),	// arrivals this flow (bytes)
-		f->epdrops(),	// early drops this flow (pkts)
-		f->ebdrops(),	// early drops this flow (bytes)
-		parrivals(),	// all arrivals (pkts)
-		barrivals(),	// all arrivals (bytes)
-		epdrops(),	// total early drops (pkts)
-		ebdrops(),	// total early drops (bytes)
-		pdrops(),	// total drops (pkts)
-		bdrops(),	// total drops (bytes)
-		f->pdrops(),	// drops this flow (pkts) [includes edrops]
-		f->bdrops()	// drops this flow (bytes) [includes edrops]
+		now,		// 1: time
+		f->flowid(),	// 2: flowid
+		0,		// 3: category
+		f->ptype(),	// 4: type (from common header)
+		f->flowid(),	// 5: flowid (formerly class)
+		f->src(),	// 6: sender
+		f->dst(),	// 7: receiver
+		f->parrivals(),	// 8: arrivals this flow (pkts)
+		f->barrivals(),	// 9: arrivals this flow (bytes)
+		f->epdrops(),	// 10: early drops this flow (pkts)
+		f->ebdrops(),	// 11: early drops this flow (bytes)
+		parrivals(),	// 12: all arrivals (pkts)
+		barrivals(),	// 13: all arrivals (bytes)
+		epdrops(),	// 14: total early drops (pkts)
+		ebdrops(),	// 15: total early drops (bytes)
+		pdrops(),	// 16: total drops (pkts)
+		bdrops(),	// 17: total drops (bytes)
+		f->pdrops(),	// 18: drops this flow (pkts) [includes edrops]
+		f->bdrops()	// 19: drops this flow (bytes) [includes edrops]
 	);
 };
 
