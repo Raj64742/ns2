@@ -190,6 +190,8 @@ class TRTCMPolicy : public Policy {
 
 struct flow_entry {
   int fid;
+  int src_id;
+  int dst_id;
   double last_update;
   int bytes_sent;
   int count;

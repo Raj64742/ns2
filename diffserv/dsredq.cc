@@ -218,6 +218,7 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
       
       pb = qParam_[prec].edv_.v_prob;
       pa = pb/(1.0 - qParam_[prec].edv_.count*pb);
+
       //now determining whether to drop the packet or not
       u = Random::uniform(0.0, 1.0);
       
