@@ -51,6 +51,7 @@ protected:
 	double lastupdatetime_;
 	PacketQueue *q_;
 	TBF_Timer tbf_timer_;
+	int init_;
 };
 
 #endif

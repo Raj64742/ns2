@@ -29,7 +29,7 @@
 #include "queue.h"
 #include "tbf.h"
 
-TBF::TBF() :tokens_(0),tbf_timer_(this)
+TBF::TBF() :tokens_(0),tbf_timer_(this), init_(1)
 {
 	q_=new PacketQueue();
 	bind_bw("rate_",&rate_);
@@ -46,18 +46,17 @@ TBF::~TBF()
 		for (Packet *p=q_->head();p!=0;p=p->next_) 
 			Packet::free(p);
 	}
+	delete q_;
 }
 
 
 void TBF::recv(Packet *p, Handler *)
 {
-	static int init=1;
-
 	//start with a full bucket
-	if (init) {
+	if (init_) {
 		tokens_=bucket_;
 		lastupdatetime_ = Scheduler::instance().clock();
-		init=0;
+		init_=0;
 	}
 
 	
