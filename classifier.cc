@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.23 1998/08/12 23:41:00 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.24 1998/10/19 19:33:43 tomh Exp $";
 #endif
 
 #include <stdlib.h>
@@ -66,7 +66,7 @@ int Classifier::classify(Packet *const p)
 
 Classifier::~Classifier()
 {
-	delete slot_;
+	delete [] slot_;
 }
 
 void Classifier::alloc(int slot)
