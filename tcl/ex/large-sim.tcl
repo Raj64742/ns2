@@ -2,7 +2,8 @@
 # using t1000 - a 1000 node ts topology
 
 set ns [new Simulator]
-source /nfs/ruby/haldar/conser/ns-2/tcl/ex/t1000.tcl
+###source /nfs/ruby/haldar/conser/ns-2/tcl/ex/t1000.tcl
+source t1000.tcl
 set linkBW 5Mb
 global n ns
 
