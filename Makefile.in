@@ -180,6 +180,7 @@ OBJ_CC = \
 	queue/semantic-packetqueue.o queue/semantic-red.o \
 	tcp/ack-recons.o \
 	queue/sfq.o queue/fq.o queue/drr.o queue/srr.o queue/cbq.o \
+	queue/jobs.o queue/marker.o queue/demarker.o \
 	link/hackloss.o queue/errmodel.o queue/fec.o\
 	link/delay.o tcp/snoop.o \
 	gaf/gaf.o \
@@ -419,6 +420,7 @@ NS_TCL_LIB = \
 	tcl/webcache/http-cache.tcl \
 	tcl/webcache/http-mcache.tcl \
 	tcl/webcache/webtraf.tcl \
+	tcl/webcache/logweb.tcl \
 	tcl/webcache/empweb.tcl \
 	tcl/webcache/empftp.tcl \
 	tcl/plm/plm.tcl \
