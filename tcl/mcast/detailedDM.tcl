@@ -1,57 +1,46 @@
- #
- # tcl/mcast/detailedDM.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Contributed by Ahmed Helmy (USC/ISI), http://www-scf.usc.edu/~ahelmy
- # 
- #
+#
+# tcl/mcast/detailedDM.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Contributed by Ahmed Helmy (USC/ISI), http://www-scf.usc.edu/~ahelmy
+# 
+#
 Class detailedDM -superclass DM
 
 detailedDM instproc init { sim node } {
 	$self next $sim $node
-	$self instvar type
-	set type "detailedDM"
-}
-
-detailedDM instproc initialize { } {
-	$self instvar Node prune
-	set prune [new Agent/Mcast/Control/detailedDM $self]
-	[$Node getArbiter] addproto $self
-	set nullagent [[Simulator instance] set nullAgent_]
-	$Node attach $prune
 }
 
 detailedDM instproc start {} {
 	$self next
-	$self instvar Node prune
-	$prune set dst_ [PIM set ALL_PIM_ROUTERS]
-	$Node join-group $prune [PIM set ALL_PIM_ROUTERS]
+	$self instvar node_ prune_
+	$node_ join-group $prune_ [mrtObject getWellKnownGroup ALL_PIM_ROUTERS]
 }
 
 detailedDM instproc get-iif-label { nxthop } {
-        $self instvar Node ns
-        if { $nxthop == [$Node id] } {
+        $self instvar node_ ns_
+        if { $nxthop == [$node_ id] } {
                 return -1
         }
-	$ns instvar link_
-        set oifInfo [$Node get-oif $link_([$Node id]:$nxthop)]
-        set oif [lindex $oifInfo 1]
-        return [$oif set intf_label_]
+	$ns_ instvar link_
+        set oifInfo [$node_ get-oif $link_([$node_ id]:$nxthop)]
+        set oif [lindex $oifInfo 0]
+        return $oif
 }
 
 # helper function
@@ -62,25 +51,22 @@ detailedDM proc getLinkType { link } {
 	return p2p
 }
 
-detailedDM instproc handle-cache-miss { argslist } {
-        set srcID [lindex $argslist 0]
-        set group [lindex $argslist 1]
-        set iface [lindex $argslist 2]
+detailedDM instproc handle-cache-miss { srcID group iface } {
 
         # get RPF iif
 	set iif [$self get_iif $srcID $group]
 
 	# may check if iif == iface before creating the entry.. !
 
-        $self instvar Node ns
-	set id [$Node id]
+        $self instvar node_ ns_
+	set id [$node_ id]
         set oiflist ""
     
         # include all oifs in the oiflist except the rpf iif
-        set alloifs [$Node get-oifs]
+        set alloifs [$node_ get-oifs]
         foreach oif $alloifs {
-		$Node instvar outLink_
-                if { $iif != [$outLink_($oif) set intf_label_] } {
+		$node_ instvar outLink_
+                if { $iif != $oif } {
                         lappend oiflist $outLink_($oif)
                 }
         }
@@ -89,20 +75,20 @@ detailedDM instproc handle-cache-miss { argslist } {
 	# and we should send a prune. Necessary for LANs
 	
 	if { $iif > -1 } {
-	 set nbr [[$Node ifaceGetNode $iif] id]
-	 $ns instvar link_ 
+	 set nbr [[$node_ ifaceGetNode $iif] id]
+	 $ns_ instvar link_ 
 	 if { [detailedDM getLinkType $link_($id:$nbr)] == "lan" } {
-	  if { $oiflist == "" && ![$Node check-local $group] } {
+	  if { $oiflist == "" && ![$node_ check-local $group] } {
 		$self send-prune $srcID $group
 	  }
 	 }
 	}
-        $Node add-mfc $srcID $group $iif $oiflist
+        $node_ add-mfc $srcID $group $iif $oiflist
 }
 
-detailedDM instproc drop { replicator src grp } {
-        $self instvar Node ns iif_
-	set id [$Node id]
+detailedDM instproc drop { replicator src grp iface} {
+        $self instvar node_ ns_ iif_
+	set id [$node_ id]
         #
         # No downstream listeners 
         # Send a prune back toward the source
@@ -121,8 +107,8 @@ detailedDM instproc drop { replicator src grp } {
 		if { ![info exists iif_($src)] } {
 			return 0
 		}
-		set nbr [[$Node ifaceGetNode $iif_($src)] id]
-		$ns instvar link_
+		set nbr [[$node_ ifaceGetNode $iif_($src)] id]
+		$ns_ instvar link_
 		if { [detailedDM getLinkType $link_($id:$nbr)] == "p2p" } {
 	                $self send-prune $src $grp
 		} else {
@@ -134,11 +120,11 @@ detailedDM instproc drop { replicator src grp } {
 }
 
 detailedDM instproc leave-group { group } {
-	$self instvar Node RtxTimer_
+	$self instvar node_ RtxTimer_
 	# if I have no local members, then prune all negative caches
 	# with oiflist null
-	if ![$Node check-local $group] {
-	  foreach rep [$Node getRepByGroup $group] {
+	if ![$node_ check-local $group] {
+	  foreach rep [$node_ getRepByGroup $group] {
 	  	if ![$rep is-active] {
 			set src [$rep set srcID_] 
 			$self send-prune $src $group
@@ -159,15 +145,15 @@ detailedDM instproc send-ctrl { type src grp } {
 }
 
 detailedDM instproc notify changes {
-	$self instvar Node iif_ ns RPF_
-	$Node instvar replicator_
-	set id [$Node id]
+	$self instvar node_ iif_ ns_ RPF_
+	$node_ instvar replicator_
+	set id [$node_ id]
 
 	# check which links/oifs are down (if any) 
-	foreach node [$Node set neighbor_] {
-		set link [$ns set link_($id:[$node id])]
+	foreach node [$node_ set neighbor_] {
+		set link [$ns_ set link_($id:[$node id])]
 		if { [$link up?] != "up" } {
-			set oifDown [$Node get-oif $link]
+			set oifDown [$node_ get-oif $link]
 			set down_($oifDown) 1
 		}
 	}
@@ -185,21 +171,21 @@ detailedDM instproc notify changes {
 	  # may want to set the prune timer,... but if expired check
 	  # if the links is still down.. so on.. deal with this later XXX
 	  foreach oif [array names down_] {
-	    if { [$rep exists $oif] && [$rep set active_($oif)] } {
-	 	$replicator_($index) disable $oif
-		if ![info exists PruneTimer_($index:[$oif id])] {
-		  set $PruneTimer_($index:[$oif id]) \
-			[new Prune/Iface/Timer $src $grp [$oif id] $ns]
-		}
-		$PruneTimer_($index:[$oif id]) schedule
-	    }
+		  if [$rep is-active-target $oif] {
+			  $replicator_($index) disable $oif
+			  if ![info exists PruneTimer_($index:[$oif id])] {
+				  set $PruneTimer_($index:[$oif id]) \
+						  [new Prune/Iface/Timer $src $grp [$oif id] $ns_]
+			  }
+			  $PruneTimer_($index:[$oif id]) schedule
+		  }
 	  }
 
 	  if ![info exists RPF_($index)] {
 		continue
 	  }
 	  if ![info exists srcDone($src)] {
-		  set nbr [$ns upstream-node $id $src]
+		  set nbr [$ns_ upstream-node $id $src]
 		  set rpf [$nbr id]
 		  set srcDone($src) $rpf
 	  } else {
@@ -228,8 +214,8 @@ detailedDM instproc notify changes {
 detailedDM instproc change-rpf { rep src grp oldrpf newrpf } {
         # invoking this proc means we are on a lan, changed the rpf,
         # but not the iif
-        $self instvar Node
-#	puts "Change RPF node [$Node id] oldrpf $oldrpf, newrpf $newrpf"
+        $self instvar node_
+#	puts "Change RPF node [$node_ id] oldrpf $oldrpf, newrpf $newrpf"
         if [$rep is-active] {
                 # prune old rpf, and graft new rpf
                 $self instvar RPF_
@@ -246,26 +232,26 @@ detailedDM instproc change-rpf { rep src grp oldrpf newrpf } {
 }                
 
 detailedDM instproc change-iif { rep src grp newiif newrpf } {
-	$self instvar iif_ RPF_ Node PruneTimer_ ns
+	$self instvar iif_ RPF_ node_ PruneTimer_ ns_
 	# remove the new iif from the oiflist
-	$rep disable [$Node label2iface $newiif]
+	$rep disable [$node_ label2iface $newiif]
 	# schedule to add the old iif to the oiflist
 	# check if the link is down first
-	$ns instvar link_
-	set id [$Node id]
-	set nbr [[$Node ifaceGetNode $iif_($src)] id]
+	$ns_ instvar link_
+	set id [$node_ id]
+	set nbr [[$node_ ifaceGetNode $iif_($src)] id]
 	set link $link_($id:$nbr)
 	if { [$link up?] == "up" } {
 	  set oldiif $iif_($src)
-	  $rep disable [$Node label2iface $oldiif]
+	  $rep disable [$node_ label2iface $oldiif]
 	  if ![info exists PruneTimer_($src:$grp:$oldiif)] {
 	    set PruneTimer_($src:$grp:$oldiif) \
-		[new Prune/Iface/Timer $self $src $grp $oldiif $ns]
+		[new Prune/Iface/Timer $self $src $grp $oldiif $ns_]
 	  }
 	  $PruneTimer_($src:$grp:$oldiif) schedule
 	  # prune off the old nbr
 	  if [$rep is-active] {
-	    $self send-prune $src $grp
+		  $self send-prune $src $grp
 	  }
 	} 
 
@@ -284,26 +270,21 @@ detailedDM instproc change-iif { rep src grp newiif newrpf } {
 	}
 }
 
-detailedDM instproc handle-wrong-iif { argslist } {
-    $self instvar Node ns iif_
-    set srcID [lindex $argslist 0]
-    set group [lindex $argslist 1]
-    set iface [lindex $argslist 2]
+detailedDM instproc handle-wrong-iif { srcID group iface } {
+	$self instvar node_ ns_ iif_
 
 	# if the iif is in the oiflist, then send Assert
-	set r [$Node getRep $srcID $group]
-	$r instvar active_
-	set tempif [$Node label2iface $iface]
-	set nbr [[$Node ifaceGetNode $iface] id]
-	$ns instvar link_
-	set id [$Node id]
+	set r [$node_ getRep $srcID $group]
+
+	set tempif [$node_ label2iface $iface]
+	set nbr [[$node_ ifaceGetNode $iface] id]
+	$ns_ instvar link_
+	set id [$node_ id]
 	if { [detailedDM getLinkType $link_($id:$nbr)] == "lan" } {
-	  if [info exists active_($tempif)] {
-		  if $active_($tempif) {
-			  # on LANs we send asserts
-			  $self send-assert $srcID $group $iface
-		  }
-	  }
+		if [$r is-active-target $tempif] {
+			# on LANs we send asserts
+			$self send-assert $srcID $group $iface
+		}
 	} else {
 		# on p2p links we may send prunes
 		# need to send prunes to nbr other than rpf..
@@ -323,14 +304,14 @@ detailedDM instproc send-prune { src grp } {
 # called by recv-graft, change-iif, change-rpf, and send-ctrl from 
 # join-group (DM.tcl) 
 detailedDM instproc send-graft { src grp } {
-	$self instvar ns
+	$self instvar ns_
 	# set the retx timer 
-	$self instvar Node RtxTimer_
-	if { [$Node id] == $src } {
+	$self instvar node_ RtxTimer_
+	if { [$node_ id] == $src } {
 		return 0
 	}
 	if ![info exists RtxTimer_($src:$grp)] {
-		set RtxTimer_($src:$grp) [new GraftRtx/Timer $self $src $grp $ns]
+		set RtxTimer_($src:$grp) [new GraftRtx/Timer $self $src $grp $ns_]
 	}
 	$RtxTimer_($src:$grp) schedule
         set rpf [$self get_rpf $src $grp]
@@ -343,44 +324,44 @@ detailedDM instproc send-assert { src grp iface } {
 	set rpf 0
 	#use 0 metric for now
 	set mesg 0
-	$self instvar Node
+	$self instvar node_
 	$self send-mcast assert $src $grp $rpf $iface $mesg
 }
 
 detailedDM instproc recv-prune { from src grp iface msg} {
-	$self instvar Node ns
+	$self instvar node_ ns_
 	set to [lindex $msg 0]
 	# see if the message is destined to me
 	set iif [$self get_iif $src $grp]
-	set id [$Node id]
+	set id [$node_ id]
 #	puts "$id received a prune $src, $grp, $from, MSG:$msg"
-	set ifaceLabel [$Node get-oifIndex $from]
+	set ifaceLabel $iface ;#[$node_ get-oifIndex $from]
 	if { $to != $id } {
-	  # if I have a forwarding entry override by sending a join
-	  set r [$Node getRep $src $grp]
-	  if { $r == "" } {
-		return 0
-	  }
-	  # check if the interface is my iif
-	  if { $iif != $ifaceLabel } {
-		return 0
-	  }
-	  if { [$r is-active] } {
-		  $self send-join $src $grp
-	  }
-	  return 1		
+		# if I have a forwarding entry override by sending a join
+		set r [$node_ getRep $src $grp]
+		if { $r == "" } {
+			return 0
+		}
+		# check if the interface is my iif
+		if { $iif != $ifaceLabel } {
+			return 0
+		}
+		if { [$r is-active] } {
+			$self send-join $src $grp
+		}
+		return 1		
 	}
 	# drop prunes to you on iif
 	if { $iif == $ifaceLabel } {
 		return 0
 	}
-	$ns instvar link_
+	$ns_ instvar link_
 	if { [detailedDM getLinkType $link_($id:$from)] == "lan" } {
 		# if on a lan set the deletion timer
 		$self instvar DelTimer_
 		if ![info exists DelTimer_($src:$grp)] {
 		  set DelTimer_($src:$grp) \
-			[new Deletion/Iface/Timer $self $src $grp $ifaceLabel $ns]
+			[new Deletion/Iface/Timer $self $src $grp $ifaceLabel $ns_]
 		}
 		$DelTimer_($src:$grp) schedule
 		return 1
@@ -390,24 +371,24 @@ detailedDM instproc recv-prune { from src grp iface msg} {
 }
 
 detailedDM instproc recv-graft { from src group iface msg } {
-	$self instvar Node PruneTimer_ ns
+	$self instvar node_ PruneTimer_ ns_
 	# send a graft ack
 	$self send-unicast graftAck $src $group $from
 
-	set id [$Node id]
-#	puts "at [$ns now] node $id, recv-graft, src $src, grp $group from $from"
+	set id [$node_ id]
+#	puts "at [$ns_ now] node $id, recv-graft, src $src, grp $group from $from"
 
 	if { $from == $id } {
 		return 0
 	}
-	set r [$Node getRep $src $group]
+	set r [$node_ getRep $src $group]
 #	puts "active [$r is-active]"
 	if { $r == "" || ![$r is-active] && $src != $id } {
 		# send a graft upstream
 		$self send-graft $src $group
 	}
-	$Node instvar outLink_
-	set oif $outLink_([$Node get-oifIndex $from])
+	$node_ instvar outLink_
+	set oif $outLink_([$node_ get-oifIndex $from])
 	if [info exists DelTimer_($src:$group:$oif)] {
 		$DelTimer_($src:$group:$oif) cancel
 		delete $DelTimer_($src:$group:$oif)
@@ -416,7 +397,7 @@ detailedDM instproc recv-graft { from src group iface msg } {
 
 	# add the oif to the oiflist
 	set iif [$self get_iif $src $group]
-	$Node add-mfc $src $group $iif $oif
+	$node_ add-mfc $src $group $iif $oif
 }
 
 detailedDM instproc send-join { src grp } {
@@ -426,10 +407,10 @@ detailedDM instproc send-join { src grp } {
 }
 
 detailedDM instproc recv-join { from src grp iface msg } {
-        $self instvar Node DelTimer_
+        $self instvar node_ DelTimer_
 	set to [lindex $msg 0]
         # see if the message is destined to me
-        set id [$Node id]
+        set id [$node_ id]
        if { $to != $id } {
 		return 0
 	}
@@ -440,8 +421,8 @@ detailedDM instproc recv-join { from src grp iface msg } {
 		unset DelTimer_($src:$grp)
 	}
 	set iif [$self get_iif $src $grp]
-	set oif [$Node label2iface [$Node get-oifIndex $from]]	
-	$Node add-mfc $src $grp $iif $oif
+	set oif [$node_ label2iface [$node_ get-oifIndex $from]]	
+	$node_ add-mfc $src $grp $iif $oif
 }
 
 detailedDM instproc recv-graftAck { from src grp iface msg } {
@@ -455,30 +436,26 @@ detailedDM instproc recv-graftAck { from src grp iface msg } {
 }
 
 detailedDM instproc recv-assert { from src grp iface msg } {
-	$self instvar Node iif_ RPF_
-	set r [$Node getRep $src $grp]
+	$self instvar node_ iif_ RPF_
+	set r [$node_ getRep $src $grp]
 	if { $r == "" } {
 		return 0
 	}
-	set iif [$Node get-oifIndex $from]
+	set iif [$node_ get-oifIndex $from]
 	if { $iif_($src) == $iif } {
 	  # I am a downstream router, set the rpf
 	  set RPF_($src:$grp) $from
 	  return 1
 	}
 	# I am an upstream router, so check if the cache is active
-	set oifObj [$Node label2iface $iif]
-	if ![$r exists $oifObj] {
-	 	return 0
-	}
-	$r instvar active_
-	if !$active_($oifObj) {
+	set oifObj [$node_ label2iface $iif]
+	if [$r is-active-target $oifObj] {
 		return 0
 	}
 	# I have active cache, so compare metric, and address
 	# a- compare metric... later, TBD
 	# b- compare add
-	set id [$Node id]
+	set id [$node_ id]
 	if { $from > $id } {
 		# I lost the assert, delete oif
 		$self delete_oif $src $grp $iif
@@ -489,11 +466,11 @@ detailedDM instproc recv-assert { from src grp iface msg } {
 }
 
 detailedDM instproc get_iif { src grp } {
-	$self instvar iif_ Node
+	$self instvar iif_ node_
 	if [info exists iif_($src)] {
 		return $iif_($src)
 	}
-	if { $src == [$Node id] } {
+	if { $src == [$node_ id] } {
 		set iif -2
 	} else {
 		set iif [$self get-iif-label [$self get_rpf $src $grp]]
@@ -503,29 +480,29 @@ detailedDM instproc get_iif { src grp } {
 }
 
 detailedDM instproc get_rpf { src grp } {
-	$self instvar RPF_ ns Node
+	$self instvar RPF_ ns_ node_
 	if ![info exists RPF_($src:$grp)] {
-		set nbr [$ns upstream-node [$Node id] $src]
+		set nbr [$ns_ upstream-node [$node_ id] $src]
 		set RPF_($src:$grp) [$nbr id]
 	}
 	return $RPF_($src:$grp)
 }	
 
 detailedDM instproc send-unicast { which src group to } {
-	$self instvar prune ns Node
-	$prune target [$Node entry]
-	$ns instvar Node_
-	set id [$Node id]
+	$self instvar prune_ ns_ node_
+	$prune_ target [$node_ entry]
+	$ns_ instvar Node_
+	set id [$node_ id]
 	set nbr $Node_($to)
-	set prune2 [[[$nbr getArbiter] getType [$self info class]] set prune]
-	$ns connect $prune $prune2
+	set prune_2 [[[$nbr getArbiter] getType [$self info class]] set prune_]
+	$ns_ connect $prune_ $prune_2
 	if { $which == "graft" } {
-		$prune set class_ 31
+		$prune_ set class_ 31
 	} else {
 		# graft-ack
-		$prune set class_ 32
+		$prune_ set class_ 32
 	}
-	$prune transmit $which $id $src $group
+	$prune_ transmit $which $id $src $group
 }
 
 detailedDM instproc send-mcast { type src grp rpf oifLabel mesg } {
@@ -536,11 +513,11 @@ detailedDM instproc send-mcast { type src grp rpf oifLabel mesg } {
 	if { $oifLabel < 0 } {
 		return 0
 	}
-	$self instvar prune Node
-	set oif [$Node label2iface $oifLabel]
-	$prune target $oif
+	$self instvar prune_ node_
+	set oif [$node_ label2iface $oifLabel]
+	$prune_ target $oif
 
-	$prune set dst_ [PIM set ALL_PIM_ROUTERS]
+	$prune_ set dst_ [mrtObject getWellKnownGroup ALL_PIM_ROUTERS]
 	
 	switch $type {
 		prune { set cls 30 }
@@ -548,25 +525,25 @@ detailedDM instproc send-mcast { type src grp rpf oifLabel mesg } {
 		assert { set cls 34 }
 		default { puts "unknown type"; return 0 }
 	}
-	$prune set class_ $cls
+	$prune_ set class_ $cls
 
-	set id [$Node id]
+	set id [$node_ id]
 	set msg "$type/$rpf/$mesg"
 #	puts "msg= $msg"
-	$prune transmit $msg $id $src $grp
-#	$prune transmit $type $id $src $grp
+	$prune_ transmit $msg $id $src $grp
+#	$prune_ transmit $type $id $src $grp
 
 }
 
 detailedDM instproc delete_oif { src grp oif } {
-	$self instvar ns Node DelTimer_ PruneTimer_
-	set r [$Node getRep $src $grp]
+	$self instvar ns_ node_ DelTimer_ PruneTimer_
+	set r [$node_ getRep $src $grp]
 	if { $r == "" } {
 		return -1
 	}
-	set oifObj [$Node label2iface $oif]
+	set oifObj [$node_ label2iface $oif]
 	$r disable $oifObj
-	if { ![$r set nactive_] } {
+	if ![$r is-active] {
 		$self send-prune $src $grp
 	}
 	# destroy deletion timer
@@ -576,27 +553,27 @@ detailedDM instproc delete_oif { src grp oif } {
 	}
 	if ![info exists PruneTimer_($src:$grp:$oif)] {
 	  set PruneTimer_($src:$grp:$oif) \
-		[new Prune/Iface/Timer $self $src $grp $oif $ns]
+		[new Prune/Iface/Timer $self $src $grp $oif $ns_]
 	}
 	$PruneTimer_($src:$grp:$oif) schedule
 }
 
 detailedDM instproc timeoutPrune { oif src grp } {
-	$self instvar Node PruneTimer_ ns
-	set r [$Node getRep $src $grp]
+	$self instvar node_ PruneTimer_ ns_
+	set r [$node_ getRep $src $grp]
 	if { $r == "" } {
 		return -1
 	}
 
 	# check if the oif is up
-	set nbr [[$Node ifaceGetNode $oif] id]
-	set link [$ns set link_([$Node id]:$nbr)]
+	set nbr [[$node_ ifaceGetNode $oif] id]
+	set link [$ns_ set link_([$node_ id]:$nbr)]
 	if { [$link up?] != "up" } {
 		$PruneTimer_($src:$grp:$oif) schedule
 		return 0
 	}
 
-	set oifObj [$Node label2iface $oif]
+	set oifObj [$node_ label2iface $oif]
 	if ![$r is-active] {
 		$self send-graft $src $grp
 	}
@@ -702,16 +679,6 @@ Agent/Mcast/Control instproc transmit { msg id src grp } {
 	$self send $type $id $src $grp $L
 }
 
-Class Agent/Mcast/Control/detailedDM -superclass Agent/Mcast/Control
-
-#Agent/Mcast/Control/detailedDM instproc handle { msg from src grp } {
-#	 $self instvar proto
-#	 set L [split $msg /]
-#	 set type [lindex $L 0]
-#	 set L [lreplace $L 0 0]
-#	 $proto recv-$type $src $grp $from $L
-#}
-#
 
 
 

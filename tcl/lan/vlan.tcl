@@ -117,21 +117,20 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 		$mac classifier $mcl_
 		$mcl_ install [$mac set addr_] $mac
 
-		set lanIface_([$src id]) $nif
-		# not sure if these are used anywhere...
-		$ns_ set interfaces_($src:$self) $nif
-		$ns_ set interfaces_($self:$src) $nif
+		set lanIface_($src) $nif
 
 		$src add-neighbor $self
 
 		set sid [$src id]
-		set link_($sid:$id_) [new Vlink $ns_ $self $sid $id_ $bw 0]
-		set link_($id_:$sid) [new Vlink $ns_ $self $id_ $sid $bw 0]
-		$link_($sid:$id_) set ifacein_ [$nif entry]
-		[$nif entry] set intf_label_ [[$nif exitpoint] set intf_label_]
+		set link_($sid:$id_) [new Vlink $ns_ $self $src  $self $bw 0]
+		set link_($id_:$sid) [new Vlink $ns_ $self $self $src  $bw 0]
+		$link_($sid:$id_) set iif_ [$nif set iface_]
 
 		$link_($sid:$id_) queue [$nif set ifq_]
 		$link_($id_:$sid) queue [$nif set ifq_]
+
+		$link_($sid:$id_) set iif_ [$nif set iface_]
+		$link_($id_:$sid) set iif_ [$nif set iface_]
 
 		$link_($sid:$id_) cost $vlinkcost
 		$link_($id_:$sid) cost $vlinkcost
@@ -214,7 +213,7 @@ LanNode instproc split-addrstr addrstr {
 #
 # node's interface to a LanNode
 #------------------------------------------------------------
-Class LanIface -superclass NetInterface
+Class LanIface 
 LanIface set ifqType_ Queue/DropTail
 LanIface set macType_ Mac/Csma/Cd
 LanIface set llType_  LL
@@ -230,6 +229,7 @@ LanIface instproc init {node lan args} {
 
 	$self instvar llType_ ifqType_ macType_
 	$self instvar node_ lan_ ifq_ mac_ ll_
+	$self instvar iface_
 
 	set node_ $node
 	set lan_ $lan
@@ -237,15 +237,17 @@ LanIface instproc init {node lan args} {
 	set ll_ [new $llType_]
 	set ifq_ [new $ifqType_]
 	set mac_ [new $macType_]
+	set iface_ [new NetworkInterface]
 
 	$ll_ lanrouter [$lan set defRouter_]
 
 	$ifq_ target $ll_
 	$ll_ sendtarget $mac_
-	$ll_ recvtarget [$self set iface]
+	$ll_ recvtarget $iface_
 	$mac_ target $ll_
 
-	$node addInterface $self
+	$node addInterface $iface_
+	$iface_ target [$node entry]
 	
 	$self set entry_ $ifq_
 }
@@ -294,12 +296,14 @@ Vlink instproc init {ns lan src dst b d} {
 	set bw_ $b
 	set delay_ $d
 }
+Vlink instproc src {}	{ $self set src_	}
+Vlink instproc dst {}	{ $self set dst_	}
 Vlink instproc dump-nam-queueconfig {} {
 	#NOTHING
 }
 Vlink instproc head {} {
 	$self instvar lan_ dst_ src_
-	if {$src_ == [$lan_ set id_]} {
+	if {$src_ == $lan_ } {
 		# if this is a link FROM the lan vnode, 
 		# it doesn't matter what we return, because
 		# it's only used by $lan add-route (empty)

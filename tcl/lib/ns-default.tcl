@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.137 1998/10/20 23:34:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.138 1998/10/27 00:50:15 yuriy Exp $
 
 
 #
@@ -379,12 +379,10 @@ SessionHelper set rc_ 0                      ;# just to eliminate warnings
 
 Application/Telnet set interval_ 1.0
 
-networkinterface set intf_label_ -1
 
 #
 # The following are defautls for objects that are not necessarily TclObjects
 #
-Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
 Node set multiPath_ 0
 
 

@@ -39,34 +39,23 @@ CtrMcastComp instproc init sim {
     set Glist ""
     set SPT 1
     set RPT 2
-    set tracefile [$ns gettraceAllFile]
-    if { $tracefile != 0 } {
-	$self trace $ns $tracefile
-    }
-    set tracefile [$ns getnamtraceAllFile]
-    if { $tracefile != 0 } {
-	$self trace $ns $tracefile "nam"
-    }
+        $ns maybeEnableTraceAll $self {}
 }
 
 CtrMcastComp instproc id {} {
     return 0
 }
 
-CtrMcastComp instproc trace-dynamics { ns f {op ""} } {
-        $self instvar dynT_
-	if {$op == "nam" && [info exists dynT_]} {
-		foreach tr $dynT_ {
-			$tr namattach $f
-		}
-	} else {
-		lappend dynT_ [$ns create-trace Generic $f $self $self $op]
-	}
+CtrMcastComp instproc trace { f nop {op ""} } {
+        $self instvar ns dynT_
+        if {$op == "nam" && [info exists dynT_]} {
+                foreach tr $dynT_ {
+                        $tr namattach $f
+                }
+        } else {
+                lappend dynT_ [$ns create-trace Generic $f $self $self $op]
+        }
 }
-
-CtrMcastComp instproc trace { ns f {op ""} } {
-	$self trace-dynamics $ns $f $op
-}  
 
 ##### Main computation functions #####
 CtrMcastComp instproc reset-mroutes {} {
@@ -77,17 +66,14 @@ CtrMcastComp instproc reset-mroutes {} {
     while { $i < $n } {
         set n1 [$ns set Node_($i)]
 	foreach group $Glist {
-	    set tmp [$n1 getRepByGroup $group]
+	    set tmp [$n1 getReps * $group]
 	    if {$tmp != ""} {
-		foreach r $tmp {
-		    $r reset
-		}
-		$n1 unset repByGroup_($group)
+		$n1 clearReps * $group
 	    }
 	    
 	    if [info exists Slist($group)] {
 		foreach tmp $Slist($group) {
-		    if {[$n1 getRep $tmp $group] != ""} {
+		    if {[$n1 getReps $tmp $group] != ""} {
 			$n1 unset replicator_($tmp:$group)
 		    }
 		}
@@ -154,14 +140,14 @@ CtrMcastComp instproc compute-branch { src group member } {
 		set iif -2
 	    } else {
 		#when member is at RP, find iif from RP to source
-		set upstreamtmp [$ns upstream-node $tmp $src]	
+		set upstreamtmp [[$ns get-node-by-id $tmp] rpf-nbr $src]	
 		set iilink [$ns RPF-link $src [$upstreamtmp id] $tmp]
-		set iif [[$iilink set dest_] id]
+		set iif [[$iilink set iif_] label]
 	    }
 	} else {
-	    set upstreamtmp [$ns upstream-node $tmp $target]	
+	    set upstreamtmp [[$ns get-node-by-id $tmp] rpf-nbr $target]
 	    set iilink [$ns RPF-link $target [$upstreamtmp id] $tmp]
-	    set iif [[$iilink set dest_] id]
+	    set iif [[$iilink set iif_] label]
 	}
 
 	### set oif : RPF link
@@ -174,8 +160,8 @@ CtrMcastComp instproc compute-branch { src group member } {
 	}
 
 	set node [$ns set Node_($tmp)]
-	if [$node exists-Rep $src $group] {
-	    set r [$node set replicator_($src:$group)]
+	set r [$node getReps $src $group]
+	if { $r != "" } {
 	    if [$r is-active] {
 		### reach merging point
 		if { $oiflist != "" } {
@@ -194,7 +180,7 @@ CtrMcastComp instproc compute-branch { src group member } {
 	}
 
 	set downstreamtmp $tmp
-	set tmp [[$ns upstream-node $tmp $target] id]
+	set tmp [[[$ns get-node-by-id $tmp] rpf-nbr $target] id]
     }
 }
 
@@ -231,10 +217,10 @@ CtrMcastComp instproc prune-branch { src group member } {
 	}
 
 	set node [$ns set Node_($tmp)]
-	if {![$node exists-Rep $src $group]} {
+	set r [$node getReps $src $group]
+	if { $r == "" } {
 	    return 0
 	}
-	set r [$node set replicator_($src:$group)] 
 	if { $oif != -1 } {
 	    $r disable $oif
 	}
@@ -244,7 +230,7 @@ CtrMcastComp instproc prune-branch { src group member } {
 	}
 
 	set downstreamtmp $tmp
-	set tmp [[$ns upstream-node $tmp $target] id]
+	set tmp [[[$ns get-node-by-id $tmp] rpf-nbr $target] id]
     }
     
 }
@@ -349,22 +335,6 @@ CtrMcastComp instproc notify {} {
     $ctrrpcomp compute-rpset
     $self compute-mroutes
 }
-
-
-###########Classifier/Replicator/Demuxer ###############
-Classifier/Replicator/Demuxer instproc reset {} {
-    $self instvar nslot_ nactive_ active_ index_
-    
-    set i 0
-    while { $i < $nslot_ } {
-	$self clear $i
-	incr i
-    }
-    set nslot_ 0
-    set nactive_ 0
-    unset active_ index_
-}
-
 
 
 

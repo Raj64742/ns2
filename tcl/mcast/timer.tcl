@@ -17,7 +17,7 @@ Timer instproc sched delay {
 	$self instvar ns
 	$self instvar id_
 	$self cancel
-	set id_ [$ns at [expr [$ns now] + $delay] "$self timeout"]
+	set id_ [$ns after $delay "$self timeout"]
 }
 
 Timer instproc destroy {} {

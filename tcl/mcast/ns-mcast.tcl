@@ -1,25 +1,25 @@
- #
- # tcl/mcast/ns-mcast.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- # 
- #
+#
+# tcl/mcast/ns-mcast.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# 
+#
 ###############
 
 # The MultiSim stuff below is only for backward compatibility.
@@ -46,8 +46,7 @@ Simulator instproc run-mcast {} {
         $self instvar Node_
         foreach n [array names Node_] {
                 set node $Node_($n)
-                        $node init-outLink
-                        $node start-mcast
+		$node start-mcast
         }
         $self next
 }
@@ -55,87 +54,39 @@ Simulator instproc run-mcast {} {
 Simulator instproc clear-mcast {} {
         $self instvar Node_
         foreach n [array names Node_] {
-                set node $Node_($n)
-                $node stop-mcast
+                $Node_($n) stop-mcast
         }
-}
-
-Simulator instproc upstream-node { id src } {
-	$self instvar routingTable_ Node_
-        if [info exists routingTable_] {
-		set nbr [$routingTable_ lookup $id $src]
-		if [info exists Node_($nbr)] {
-			return $Node_($nbr)
-		} else {
-			return ""
-		}
-	} else {
-	    return ""
-	}
-}
-
-Simulator instproc RPF-link { src from to } {
-	$self instvar routingTable_ link_
-	#
-	# If this link is on the RPF tree, return the link object.
-	#
-        if [info exists routingTable_] {
-	    set reverse [$routingTable_ lookup $to $src]
-	    if { $reverse == $from } {
-		return $link_($from:$to)
-	    }
-	    return ""
-	}
-	return ""
-}
-
-Simulator instproc getNodeIDs {} { ;#XXX remove
-        $self instvar Node_
-        return [array names Node_]
-}
-
-Simulator instproc setPIMProto { index proto } { ;#XXX remove
-        $self instvar pimProtos
-        set pimProtos($index) $proto
-}
-
-Simulator instproc getPIMProto { index } { ;#XXX remove
-        $self instvar pimProtos
-        if [info exists pimProtos($index)] {
-                return $pimProtos($index)
-        }
-        return -1
 }
 
 Simulator instproc mrtproto {mproto nodeList} {
-    $self instvar Node_ MrtHandle_
-
-    set MrtHandle_ ""
-    if {$mproto == "CtrMcast"} {
-	set MrtHandle_ [new CtrMcastComp $self]
-	$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
-	if {[llength $nodeList] == 0} {
-		foreach n [array names Node_] {
-		    new $mproto $self $Node_($n) 0 [list]
+	$self instvar Node_ MrtHandle_
+	
+	set MrtHandle_ ""
+	if {$mproto == "CtrMcast"} {
+		set MrtHandle_ [new CtrMcastComp $self]
+		$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
+		if {[llength $nodeList] == 0} {
+			foreach n [array names Node_] {
+				new $mproto $self $Node_($n) 0 [list]
+			}
+		} else {
+			foreach node $nodeList {
+				new $mproto $self $node 0 [list]
+			}
 		}
 	} else {
-		foreach node $nodeList {
-		    new $mproto $self $node 0 [list]
+		if {[llength $nodeList] == 0} {
+			foreach n [array names Node_] {
+				new $mproto $self $Node_($n)
+			}
+		} else {
+			foreach node $nodeList {
+				new $mproto $self $node
+			}
 		}
 	}
-    } else {
-        if {[llength $nodeList] == 0} {
-                foreach n [array names Node_] {
-                    new $mproto $self $Node_($n)
-                }
-        } else {
-                foreach node $nodeList {
-                    new $mproto $self $node
-                }
-        }
-    }
-    $self at 0.0 "$self run-mcast"
-    return $MrtHandle_
+	$self at 0.0 "$self run-mcast"
+	return $MrtHandle_
 }
 
 Node proc allocaddr {} {
@@ -160,22 +111,33 @@ Node proc expandaddr {} {
 	}
 	set mcastshift [AddrParams set McastShift_]
 	Simulator set McastAddr_ [expr 1 << $mcastshift]
-	McastProtoArbiter expandaddr
+	mrtObject expandaddr
+}
+
+Node instproc start-mcast {} {
+        $self instvar mrtObject_
+        $mrtObject_ start
+}
+
+Node instproc getArbiter {} {
+        $self instvar mrtObject_
+	if [info exists mrtObject_] {
+	        return $mrtObject_
+	}
+	return ""
 }
 
 Node instproc notify-mcast changes {
-	$self instvar mcastproto_
-
-	# XXX quick hack
-	if [info exists mcastproto_] {
-		$mcastproto_ notify $changes
+	$self instvar mrtObject_
+	if [info exists mrtObject_] {
+		$mrtObject_ notify $changes
 	}
 }
 
 Node instproc stop-mcast {} {
-        $self instvar mcastproto_
+        $self instvar mrtObject_
         $self clear-caches
-        $mcastproto_ stop
+        $mrtObject_ stop
 }
 
 Node instproc clear-caches {} {
@@ -184,29 +146,20 @@ Node instproc clear-caches {} {
         $multiclassifier_ clearAll
 	$multiclassifier_ set nrep_ 0
 
-        if [info exists repByGroup_] {
-                unset repByGroup_
-        }
-        if [info exists Agents_] {
-                unset Agents_
-        }
-        if [info exists replicator_] {
-                unset replicator_
-        }
+	foreach var {repByGroup_ Agents_ replicator_} {
+		$self instvar $var
+		if { [info exists $var] } {
+			unset $var
+		}
+	}
         # XXX watch out for memory leaks
 }
 
-Node instproc start-mcast {} {
-        $self instvar mcastproto_
-        $mcastproto_ start
-}
-
-Node instproc getArbiter {} {
-        $self instvar mcastproto_
-	if [info exists mcastproto_] {
-	        return $mcastproto_
+Node instproc dump-routes args {
+	$self instvar mrtObject_
+	if { [info exists mrtObject_] } {
+		eval $mrtObject_ dump-routes $args
 	}
-	return ""
 }
 
 Node instproc check-local { group } {
@@ -217,156 +170,47 @@ Node instproc check-local { group } {
         return 0
 }
 
-Node instproc get-oifs {} {
-        $self instvar outLink_
-        set oiflist ""
-        foreach oif [array names outLink_] {
-                lappend oiflist $oif
-        }
-        return $oiflist
-}
-
-Node instproc get-oif { link } {
-        set oif ""
-        # XXX assume we are connected to interfaces
-        lappend oif [[$link set ifacein_] set intf_label_]
-        lappend oif [$link set ifacein_]
-        return $oif
-}
-
-Node instproc get-oifIndex { node_id } {
-        $self instvar ns_ id_
-        # XXX assume link head is iface, for simplicity
-        set link [$ns_ set link_($id_:$node_id)]
-        return [[$link set ifacein_] set intf_label_]
-}
-
-Node instproc label2iface { label } {
-        $self instvar outLink_
-        return $outLink_($label)
-}
-
-Node instproc RPF-interface { src from to } {
-        $self instvar ns_
-        set oifInfo ""  
-        set link [$ns_ RPF-link $src $from $to]
-
-        if { $link != "" } {
-                set oifInfo [$self get-oif $link]
-        }
-        return $oifInfo
-}
-
-Node instproc ifaceGetNode { iface } {
-        $self instvar ns_ id_ neighbor_
-        foreach node $neighbor_ {
-                set link [$ns_ set link_([$node id]:$id_)]
-	    if {[[$link set ifaceout_] id] == $iface} {
-		return $node
-	    }
-        }
-	return -1
-}
-
-Node instproc init-outLink { } {
-        $self instvar outLink_ neighbor_ id_ ns_
-        foreach node $neighbor_ {
-                set link [$ns_ set link_($id_:[$node id])]
-                set oifInfo [$self get-oif $link]
-                set index [lindex $oifInfo 0]
-                set outLink_($index) [lindex $oifInfo 1]
-        }
-}
-
-Node instproc getRepByGroup { group } {
-        $self instvar repByGroup_
-        if [info exists repByGroup_($group)] {
-                return $repByGroup_($group)   
-        }
-        return ""
-}
-
-Node instproc getRep { src group } {
-	$self instvar replicator_
-	if [info exists replicator_($src:$group)] {
-		return $replicator_($src:$group)
-	}
-	return ""
-}
-
-Node instproc getRepBySource { src } {
-        $self instvar replicator_
-	  
-	  set replist ""
-	  foreach n [array names replicator_] {
-		set pair [split $n :]
-		if {[lindex $pair 0] == $src} {
-			lappend replist [lindex $pair 1]:$replicator_($n)
-		}
-	  }
-	  return $replist
-}
-
-Node instproc exists-Rep { src group } {
-    $self instvar replicator_
-
-    if [info exists replicator_($src:$group)] {
-        return 1
-    } else {
-        return 0
-    }
+Node instproc new-group { src group iface code } {
+	$self instvar mrtObject_
+	$mrtObject_ upcall $code $src $group $iface
 }
 
 Node instproc join-group { agent group } {
-    # use expr to get rid of possible leading 0x
-    set group [expr $group]
-    $self instvar Agents_ repByGroup_ agentSlot_ mcastproto_
-
-    $mcastproto_ join-group $group
-    lappend Agents_($group) $agent
-    if [info exists repByGroup_($group)] {
-	#
-	# make sure agent is enabled in each replicator
-	# for this group
-	#
-	foreach r $repByGroup_($group) {
-	    $r insert $agent
-	}
-    }
+        $self instvar replicator_ Agents_ mrtObject_
+        set group [expr $group]
+        $mrtObject_ join-group $group
+        lappend Agents_($group) $agent
+        foreach key [array names replicator_ "*:$group"] {
+                #
+                # make sure agent is enabled in each replicator for this group
+                #
+                $replicator_($key) insert $agent
+        }
 }
 
 Node instproc leave-group { agent group } {
-    # use expr to get rid of possible leading 0x
-    set group [expr $group]
-    $self instvar repByGroup_ Agents_ mcastproto_
+        $self instvar replicator_ Agents_ mrtObject_
+        set group [expr $group] ;# use expr to get rid of possible leading 0x
 
-    if [info exists repByGroup_($group)] {
-	    foreach r $repByGroup_($group) {
-		$r disable $agent
-	    }
-    }
-    if [info exists Agents_($group)] {
-	set k [lsearch -exact $Agents_($group) $agent]
-	if { $k >= 0 } {
-	    set Agents_($group) [lreplace $Agents_($group) $k $k]
-	}
-	## inform the mcastproto agent
-	$mcastproto_ leave-group $group
-    } else {
-	puts stderr "error: leaving a group without joining it"
-	exit 0
-    }
+        foreach key [array names replicator_ "*:$group"] {
+                $replicator_($key) disable $agent
+        }
+        if [info exists Agents_($group)] {
+                set k [lsearch -exact $Agents_($group) $agent]
+                if { $k >= 0 } {
+                        set Agents_($group) [lreplace $Agents_($group) $k $k]
+                }
+                $mrtObject_ leave-group $group
+        } else {
+                warn "cannot leave a group without joining it"
+        }
 }
 
 Node instproc join-group-source { agent group source } {
+        $self instvar Agents_ mrtObject_ replicator_
         set group [expr $group]
-        set source [expr $source]
-
-       $self instvar id_
-
-        $self instvar Agents_ mcastproto_ replicator_
         ## send a message for the mcastproto agent to inform the mcast protocols
-        $mcastproto_ join-group-source $group $source
+        $mrtObject_ join-group-source $group $source
         lappend Agents_($source:$group) $agent
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) insert $agent
@@ -374,62 +218,55 @@ Node instproc join-group-source { agent group source } {
 }
 
 Node instproc leave-group-source { agent group source } {
+        $self instvar replicator_ Agents_ mrtObject_
         set group [expr $group]
-        set source [expr $source]
-        $self instvar replicator_ Agents_ mcastproto_
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) disable $agent
         }
-        $mcastproto_ leave-group-source $group $source
-}
-
-Node instproc new-group { src group iface code } {
-    $self instvar mcastproto_
-	
-    $mcastproto_ upcall [list $code $src $group $iface]
+        $mrtObject_ leave-group-source $group $source
 }
 
 Node instproc add-mfc { src group iif oiflist } {
-    $self instvar multiclassifier_ \
-	    replicator_ Agents_ repByGroup_ 
+	$self instvar multiclassifier_ \
+			replicator_ Agents_ repByGroup_ 
 
-    if [info exists replicator_($src:$group)] {
+	if [info exists replicator_($src:$group)] {
+		foreach oif $oiflist {
+			$replicator_($src:$group) insert $oif
+		}
+		return 1
+	}
+
+	set r [new Classifier/Replicator/Demuxer]
+	$r set srcID_ $src
+	$r set grp_ $group
+	set replicator_($src:$group) $r
+
+	lappend repByGroup_($group) $r
+	$r set node_ $self
+
 	foreach oif $oiflist {
-	    $replicator_($src:$group) insert $oif
+		$r insert $oif
 	}
-	return 1
-    }
 
-    set r [new Classifier/Replicator/Demuxer]
-    $r set srcID_ $src
-    $r set grp_ $group
-    set replicator_($src:$group) $r
-
-    lappend repByGroup_($group) $r
-    $r set node_ $self
-
-    foreach oif $oiflist {
-	$r insert $oif
-    }
-
-    #
-    # install each agent that has previously joined this group
-    #
-    if [info exists Agents_($group)] {
-	foreach a $Agents_($group) {
-	    $r insert $a
+	#
+	# install each agent that has previously joined this group
+	#
+	if [info exists Agents_($group)] {
+		foreach a $Agents_($group) {
+			$r insert $a
+		}
 	}
-    }
-    # we also need to check Agents($srcID:$group)
-    if [info exists Agents_($src:$group)] {
-            foreach a $Agents_($src:$group) {
-                    $r insert $a
-            }
-    }
-    #
-    # Install the replicator.  
-    #
-    $multiclassifier_ add-rep $r $src $group $iif
+	# we also need to check Agents($srcID:$group)
+	if [info exists Agents_($src:$group)] {
+		foreach a $Agents_($src:$group) {
+			$r insert $a
+		}
+	}
+	#
+	# Install the replicator.  
+	#
+	$multiclassifier_ add-rep $r $src $group $iif
 }
 
 Node instproc del-mfc { srcID group oiflist } {
@@ -461,9 +298,7 @@ Classifier/Multicast instproc new-group { src group iface code} {
 }
 
 Classifier/Multicast instproc no-slot slot {
-	#XXX should say something better for routing problem
-	#puts stderr "$self: no target for slot $slot"
-	#exit 1
+	# NOTHING
 }
 
 Classifier/Multicast/Replicator instproc init args {
@@ -481,88 +316,105 @@ Classifier/Multicast/Replicator instproc add-rep { rep src group iif } {
 
 ###################### Class Classifier/Replicator/Demuxer ##############
 Class Classifier/Replicator/Demuxer -superclass Classifier/Replicator
-
-
-Classifier/Replicator set ignore_ 0
-
+Classifier/Replicator/Demuxer set ignore_ 0
 Classifier/Replicator/Demuxer instproc init args {
 	eval $self next $args
 	$self instvar nslot_ nactive_
-	set nslot_ 0
 	set nactive_ 0
 }
 
 Classifier/Replicator/Demuxer instproc is-active {} {
 	$self instvar nactive_
-	return [expr $nactive_ > 0]
+	expr $nactive_ > 0
 }
 
 Classifier/Replicator/Demuxer instproc insert target {
-	$self instvar nslot_ nactive_ active_ index_ ignore_
+	$self instvar nactive_ active_ 
 
-        if [info exists active_($target)] {
-                # treat like enable.. !   
-                if !$active_($target) {    
-                        $self install $index_($target) $target
-                        incr nactive_
-                        set active_($target) 1
-                        set ignore_ 0
-                        return 1
-                }
-                return 0
-        }
-
-	set n $nslot_
-	incr nslot_
-	incr nactive_
-	$self install $n $target
-	set active_($target) 1
-	set ignore_ 0
-	set index_($target) $n
+	if ![info exists active_($target)] {
+		set active_($target) -1
+	}
+	if {$active_($target) < 0} {
+		$self enable $target
+	}
 }
 
 Classifier/Replicator/Demuxer instproc disable target {
-	$self instvar nactive_ active_ index_
-	if ![info exists active_($target)] {
-		return 0
-	}
-	if $active_($target) {
-		$self clear $index_($target)
+	$self instvar nactive_ active_
+	if {[info exists active_($target)] && $active_($target) >= 0} {
+		$self clear $active_($target)
+		set active_($target) -1
 		incr nactive_ -1
-		set active_($target) 0
 	}
 }
 
 Classifier/Replicator/Demuxer instproc enable target {
-	$self instvar nactive_ active_ ignore_ index_
-	if !$active_($target) {
-		$self install $index_($target) $target
+	$self instvar nactive_ active_ ignore_
+	if {$active_($target) < 0} {
+		set active_($target) [$self installNext $target]
 		incr nactive_
-		set active_($target) 1
 		set ignore_ 0
 	}
 }
 
 Classifier/Replicator/Demuxer instproc exists target {
 	$self instvar active_
-	return [info exists active_($target)]
+	info exists active_($target)
 }
 
-Classifier/Replicator/Demuxer instproc drop { src dst } {
-	set src [expr $src >> 8]
-	$self instvar node_
-        if [info exists node_] {
-	    [$node_ set mcastproto_] drop $self $src $dst
+Classifier/Replicator/Demuxer instproc is-active-target target {
+	$self instvar active_
+	if { [info exists active_($target)] && $active_($target) >= 0 } {
+		return 1
+	} else {
+		return 0
 	}
-        return 1
 }
+
+Classifier/Replicator/Demuxer instproc drop { src dst {iface -1} } {
+	$self instvar node_
+	[$node_ getArbiter] drop $self [expr $src >> 8] $dst $iface
+}
+
 
 Classifier/Replicator/Demuxer instproc change-iface { src dst oldiface newiface} {
 	$self instvar node_
-        [$node_ set multiclassifier_] change-iface $src $dst $oldiface $newiface
+        [$node_ set multiclassifier_] change-iface $src $dst \
+			$oldiface $newiface
         return 1
 }
 
+Classifier/Replicator/Demuxer instproc reset {} {
+	$self instvar nactive_ active_
+	foreach { target slot } [array get active_] {
+		$self clear $slot
+	}
+	set nactive_ 0
+	unset active_
+}
+
+#
+# XXX
+#
+#
+# XXX These are PIM specific?  Why are they here?
+# 
+Simulator instproc getNodeIDs {} {
+	$self instvar Node_
+	return [array names Node_]
+}
+Simulator instproc setPIMProto { index proto } {
+	$self instvar pimProtos
+	set pimProtos($index) $proto
+}
+
+Simulator instproc getPIMProto { index } {
+	$self instvar pimProtos
+	if [info exists pimProtos($index)] {
+		return $pimProtos($index)
+	}
+	return -1
+}
 
 #----------------------------------------------------------------------
 # Generating multicast distribution trees 
@@ -577,7 +429,7 @@ Node instproc oifGetNode { iface } {
         $self instvar ns_ id_ neighbor_
         foreach node $neighbor_ {
                 set link [$ns_ set link_($id_:[$node id])]
-		if {[$link set ifacein_] == $iface} {
+		if {[$link set iif_] == $iface} {
 			return $node
 		}
         }
@@ -643,7 +495,7 @@ Simulator instproc get-mcast-tree { src grp } {
 		set nodeList [lreplace $nodeList 0 0]
 
 		set slots [$h slots]
-#		puts "$slots"
+		#		puts "$slots"
 		foreach sl $slots {
 			set child [$self find-next-child $parent $sl]
 			if {$child == ""} {
@@ -665,7 +517,7 @@ Simulator instproc get-mcast-tree { src grp } {
 			lappend treeLinks $pid:$cid $link_($pid:$cid)
 			set treeLinks_($pid:$cid) $link_($pid:$cid)
 
-			set iif [[$link_($pid:$cid) set ifaceout_] id]
+			set iif [[$link_($pid:$cid) set iif_] label]
 			if {$iif == -1} {
 				puts "iif == -1"
 			}
@@ -693,23 +545,147 @@ Agent/Mcast/Control instproc init { protocol } {
         $self instvar proto_
         set proto_ $protocol
 }
- 
+
 Agent/Mcast/Control array set messages {}
 Agent/Mcast/Control set mcounter 0
 
 Agent/Mcast/Control instproc send {type from src group args} {
-        set m [Agent/Mcast/Control set mcounter]
-        Agent/Mcast/Control set messages($m) [eval list $from $src $group $args]
-        $self cmd send $type $m
-        Agent/Mcast/Control set mcounter [incr m]
+	Agent/Mcast/Control instvar mcounter messages
+        set messages($mcounter) [eval list $from $src $group $args]
+        $self cmd send $type $mcounter
+	incr mcounter
 }
 
 Agent/Mcast/Control instproc recv {type iface m} {
-        eval $self recv2 $type $iface [Agent/Mcast/Control set messages($m)]
-        Agent/Mcast/Control unset messages($m)
+	Agent/Mcast/Control instvar messages
+	eval $self recv2 $type $iface $messages($m)
+        unset messages($m)
 }
 
 Agent/Mcast/Control instproc recv2 {type iface from src group args} {
         $self instvar proto_
         eval $proto_ recv-$type $from $src $group $iface $args
 }
+
+Node instproc rpf-nbr src {
+	$self instvar ns_ id_
+	if [catch "$src id" srcID] {	
+		set srcID $src
+	}
+	$ns_ get-node-by-id [[$ns_ get-routelogic] lookup $id_ $srcID]
+}
+	
+Node instproc getReps { src group } {
+        $self instvar replicator_
+        set reps ""
+        foreach key [array names replicator_ "$src:$group"] { 
+                lappend reps $replicator_($key)
+        }
+        return [lsort $reps]
+}
+
+Node instproc getReps-raw { src group } {
+        $self array get replicator_ "$src:$group"
+}
+
+Node instproc clearReps { src group } {
+        $self instvar multiclassifier_
+        foreach {key rep} [$self getReps-raw $src $group] {
+                $rep reset
+                delete $rep
+
+                foreach {slot val} [$multiclassifier_ adjacents] {
+                        if { $val == $rep } {
+                                $multiclassifier_ clear $slot
+                        }
+                }
+
+                $self unset replicator_($key)
+        }
+}
+#
+# These routines are being phased out in favour of newer ones defined earlier.
+#
+Simulator instproc RPF-link { src from to } {
+	$self instvar routingTable_ link_
+	#
+	# If this link is on the RPF tree, return the link object.
+	#
+        if [info exists routingTable_] {
+		set reverse [$routingTable_ lookup $to $src]
+		if { $reverse == $from } {
+			if [info exists link_($from:$to)] {
+				return $link_($from:$to)
+			}
+		}
+	}
+	return ""
+}
+
+Node instproc RPF-interface { src from to } {
+        $self instvar ns_
+        set oifInfo ""  
+        set link [$ns_ RPF-link $src $from $to]
+
+        if { $link != "" } {
+                set oifInfo [$self get-oif $link]
+        }
+        return $oifInfo
+}
+
+#-------------------------------------------------------------------------------
+# differences
+#-------------------------------------------------------------------------------
+
+Node instproc add-oif {head link} {
+	$self instvar outLink_
+	set outLink_($head) $link
+}
+
+Node instproc get-all-oifs {} {
+        $self instvar outLink_
+	# return a sorted lists of all "heads"
+	return [lsort [array names outLink_]]
+}
+
+#Node instproc get-oif { link } {
+#        if { $link != "" } {
+#                return [$self link2oif $link]
+#        } else {
+#                return ""
+#        }
+#}
+
+Node instproc add-iif {iflbl link} {
+	# array mapping ifnum -> link
+	$self set inLink_($iflbl) $link
+}
+
+Node instproc iif2link ifid {
+        $self set inLink_($ifid)
+}
+
+Node instproc link2oif link {
+	$link head
+}
+
+# Timers
+Class Timer/Iface -superclass Timer
+
+Timer/Iface instproc init { protocol source group oiface sim} {
+	$self instvar proto src grp oif ns
+	set proto $protocol
+	set src $source
+	set grp $group
+	set oif $oiface
+	set ns $sim
+}
+
+Timer/Iface instproc schedule {} {
+	$self sched [[$self info class] set timeout]
+}
+
+
+
+
+

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.15 1998/01/27 22:07:00 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.16 1998/10/27 00:50:17 yuriy Exp $
 #
 
 #
@@ -66,14 +66,7 @@ CBQLink instproc init { src dst bw delay q cl {lltype "DelayLink"} } {
 
 	$queue_ link $link_ ; # queue_ set by SimpleLink ctor, CBQ needs $link_
         set classifier_ $cl
-	set head_ $classifier_
-
-#       update ifacein_ when CBQ used in mcast envts
-        if { [$src info class] == "DuplexNetInterface" } {
-	    $self instvar ifacein_
-	    $ifacein_ target $head_
-	}
-
+	$head_ target $classifier_
 
 #	set drophead_ [new Connector]
 #	$drophead_ target [[Simulator instance] set nullAgent_]

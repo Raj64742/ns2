@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.16 1998/03/07 04:04:22 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.17 1998/10/27 00:50:18 yuriy Exp $
 #
 
 Trace instproc init type {
@@ -185,4 +185,16 @@ Simulator instproc gen-map {} {
 		}
 		puts "---"
 	}
+}
+
+Simulator instproc maybeEnableTraceAll {obj args} {
+        foreach {file tag} {
+                traceAllFile_           {}
+                namtraceAllFile_        nam
+        } {
+                $self instvar $file
+                if [info exists $file] {
+                        $obj trace [set $file] $args $tag
+                }
+        }
 }

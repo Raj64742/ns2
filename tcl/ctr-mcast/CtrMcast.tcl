@@ -24,7 +24,7 @@
 Class CtrMcast -superclass McastProtocol
 
 CtrMcast instproc init { sim node agent confArgs } {
-    $self next
+    $self next $sim $node
     $self instvar ns Node type Agent
     $self instvar c_rp c_bsr rpset priority
     $self instvar SPT RPT default decapagent
@@ -45,19 +45,8 @@ CtrMcast instproc init { sim node agent confArgs } {
     set c_bsr     1
     set priority  0
 
-    [$Node getArbiter] addproto $self
     set decapagent [new Agent/CtrMcast/Decap]
     $ns attach-agent $Node $decapagent
-
-    set tracefile [$ns gettraceAllFile]
-    if { $tracefile != 0 } {
-	$self trace $ns $tracefile $node
-    }
-
-    set tracefile [$ns getnamtraceAllFile]
-    if { $tracefile != 0 } {
-	$self trace $ns $tracefile $node "nam"
-    }
 
     ### config PIM nodes
     if ![info exists confArgs] { return 0 }
@@ -76,7 +65,7 @@ CtrMcast instproc init { sim node agent confArgs } {
 CtrMcast instproc join-group  { group } {
     $self instvar group_
     set group_ $group
-    $self next
+    $self next $group
     $self instvar Node ns Agent
     $self instvar SPT RPT default
     #puts "_node [$Node id], joining group $group"
@@ -112,7 +101,7 @@ CtrMcast instproc join-group  { group } {
 CtrMcast instproc leave-group  { group } {
     $self instvar group_
     set group_ $group
-    $self next
+    $self next $group
     $self instvar Node ns Agent default
     # puts "_node [$Node id], leaving group $group"
 
@@ -151,17 +140,11 @@ CtrMcast instproc leave-group  { group } {
     }
 }
 
-CtrMcast instproc handle-cache-miss { argslist } {
+CtrMcast instproc handle-cache-miss { srcID group iface } {
     $self instvar ns Agent Node
     $self instvar RPT default
-
-    set srcID [lindex $argslist 0]
-    set group [lindex $argslist 1]
-    set iface [lindex $argslist 2]
     set change 0
             
-    # puts "CtrMcast $self handle-cache-miss $argslist"
-
     if { ![$Agent exists-treetype $group] } {
 	$Agent set treetype($group) $default
 	set tmp [$Agent set Glist]
@@ -212,15 +195,12 @@ CtrMcast instproc handle-cache-miss { argslist } {
     }
 }
 
-CtrMcast instproc drop  { replicator src group } {
+CtrMcast instproc drop  { replicator src group iface} {
     #packets got dropped only due to null oiflist
     #puts "drop"
 }
 
-CtrMcast instproc handle-wrong-iif { argslist } {
-    set srcID [lindex $argslist 0]
-    set group [lindex $argslist 1]
-    set iface [lindex $argslist 2]
+CtrMcast instproc handle-wrong-iif { srcID group iface } {
     puts "warning: $self wrong incoming interface src:$srcID group:$group iface:$iface"
 
 }

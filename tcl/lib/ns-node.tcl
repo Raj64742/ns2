@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.44 1998/10/23 22:11:25 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.45 1998/10/27 00:50:17 yuriy Exp $
 #
 
 Class Node
@@ -82,18 +82,17 @@ Node instproc enable-mcast sim {
 	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
 	[$self set multiclassifier_] set node_ $self
 	
-	[$self set switch_] install 0 $classifier_
-	[$self set switch_] install 1 $multiclassifier_
-	
 	#
 	# Create a prune agent.  Each multicast routing node
 	# has a private prune agent that sends and receives
 	# prune/graft messages and dispatches them to the
 	# appropriate replicator object.
 	#
+	$self set mrtObject_ [new mrtObject $self ""]
+
+	$switch_ install 0 $classifier_
+	$switch_ install 1 $multiclassifier_
 	
-	$self set mcastproto_ [new McastProtoArbiter ""]
-	$mcastproto_ set Node $self
 }
 
 Node instproc add-neighbor p {
@@ -283,7 +282,7 @@ Node instproc reset {} {
 #
 Node instproc neighbors {} {
 	$self instvar neighbor_
-	return $neighbor_
+	return [lsort $neighbor_]
 }
 
 #
@@ -300,7 +299,7 @@ Node instproc attachInterfaces ifs {
 Node instproc addInterface { iface } {
 	$self instvar ifaces_
 	lappend ifaces_ $iface
-	$iface setNode $self 
+#	$iface setNode $self 
 }
 
 Node instproc createInterface { num } {
@@ -540,7 +539,7 @@ ManualRtNode instproc add-route-to-adj-node args {
 	}
 	set ns [Simulator instance]
 	set link [$ns nodes-to-link $self $target_node]
-	set target [$link set head_]
+	set target [$link head]
 	# puts "ManualRtNode::add-route-to-adj-node: in $self for addr $dst to target $target"
 	return [$self add-route $dst $target]
 }

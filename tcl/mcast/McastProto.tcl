@@ -1,219 +1,220 @@
- #
- # tcl/mcast/McastProto.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- # 
- #
+#
+# tcl/mcast/McastProto.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# 
+#
 Class McastProtocol
 
-McastProtocol instproc getType {} {
-        $self instvar type
-        return $type
+McastProtocol instproc init {sim node} {
+	$self next
+	$self instvar ns_ node_ status_ type_ id_
+	set ns_   $sim
+	set node_ $node
+	set status_ "down"
+	set type_   [$self info class]
+	set id_ [$node id]
+
+        [$node_ getArbiter] addproto $self
+	$ns_ maybeEnableTraceAll $self $node_
 }
 
-McastProtocol instproc init {} {
-        $self instvar status
-        set status "down"
-}
+McastProtocol instproc getType {} { $self set type_ }
 
-McastProtocol instproc start {} {
-        $self instvar status
-        set status "up"
-}
+McastProtocol instproc start {}		{ $self set status_ "up"   }
+McastProtocol instproc stop {}		{ $self set status_"down"  }
+McastProtocol instproc getStatus {}	{ $self set status_	   }
 
-McastProtocol instproc stop {} {   
-
-}
-
-McastProtocol instproc getStatus {} {
-        $self instvar status
-        return $status
-}
-
-McastProtocol instproc upcall { argslist } {
-        set code [lindex $argslist 0]
-        set argslist [lreplace $argslist 0 0]
-        switch $code {
-                "CACHE_MISS" { $self handle-cache-miss $argslist }
-                "WRONG_IIF" { $self handle-wrong-iif $argslist }  
-                default { puts "no match for upcall, code is $code" }
-        }
+McastProtocol instproc upcall {code args} {
+	# currently expects to handle cache-miss and wrong-iif
+	eval $self handle-$code $args
 }
  
-McastProtocol instproc handle-wrong-iif { argslist } {
-
+McastProtocol instproc handle-wrong-iif args {
+	# NOTHING
+	return 1
 }
 
-McastProtocol instproc join-group {} {
-        $self instvar dynT_ Node group_
-        if [info exists dynT_] {
-	    foreach tr $dynT_ {
-		$tr annotate "[$Node id] join group $group_"
-	    }
+McastProtocol instproc annotate args {
+	$self instvar dynT_ node_ ns_
+	set s "[$ns_ now] [$node_ id] $args" ;#nam wants uinique first arg???
+	if [info exists dynT_] {
+		foreach tr $dynT_ {
+			$tr annotate $s
+		}
 	}
 }
 
-McastProtocol instproc leave-group {} {
-        $self instvar dynT_ Node group_
-        if [info exists dynT_] {
-	    foreach tr $dynT_ {
-		$tr annotate "[$Node id] leave group $group_"
-	    }
-	}
+McastProtocol instproc join-group arg	{ 
+	$self annotate $proc $arg 
+}
+McastProtocol instproc leave-group arg	{ 
+	$self annotate $proc $arg
 }
 
-McastProtocol instproc trace-dynamics { ns f src {op ""} } {
-        $self instvar dynT_
+McastProtocol instproc trace { f src {op ""} } {
+        $self instvar ns_ dynT_
 	if {$op == "nam" && [info exists dynT_] > 0} {
 		foreach tr $dynT_ {
 			$tr namattach $f
 		}
 	} else {
-		lappend dynT_ [$ns create-trace Generic $f $src $src $op]
+		lappend dynT_ [$ns_ create-trace Generic $f $src $src $op]
 	}
 }
 
-McastProtocol instproc trace { ns f src {op ""} } {
-	$self trace-dynamics $ns $f $src $op
+McastProtocol instproc notify changes {
+	# NOTHING
+}
+McastProtocol instproc dump-routes args {
+	# NOTHING
 }
 
-McastProtocol instproc notify changes {
-	# no-op
+# Find out what interface packets sent from $node will arrive at
+# this node. $node need not be a neighbor. $node can be a node object
+# or node id.
+McastProtocol instproc from-node-iface { node } {
+	$self instvar ns_ node_
+	catch {
+		set node [$ns_ get-node-by-id $node]
+	}
+	set rpfnbr [$node_ rpf-nbr $node]
+	if {![catch { set rpflink [$ns_ link $rpfnbr $node_]}]} {
+		return [$rpflink if-label?]
+	}
+	return "?" ;#unknown iface
 }
+
+McastProtocol instproc rpf-nbr src {
+	$self instvar node_
+	$node_ rpf-nbr $src
+}
+
+
+McastProtocol instproc iface2link ifid {
+	$self instvar node_
+	$node_ if2link $ifid
+}
+
+McastProtocol instproc link2iif link {
+	$self instvar node_
+	if { [$link dst] != $node_ } {
+		# oops...naughty, naughty
+	}
+	$link if-label?
+}
+
+McastProtocol instproc link2oif link {
+	$self instvar node_
+	if { [$link src] != $node_ } {
+		# ooops, naughty, naughty
+	}
+	$node_ link2oif $link
+}
+
 
 ###################################################
-Class McastProtoArbiter
+Class mrtObject
 
 #XXX well-known groups (WKG) with local multicast/broadcast
-# start from 0xFFC0 to 0xFFFF; i.e. the mask is [0xFFC0 >> 6]
-McastProtoArbiter set WKGMask 0xFFC0
-McastProtoArbiter set WKGMaskLen 6
+mrtObject set mask-wkgroups	0xfff0
+mrtObject set wkgroups(Allocd)	[mrtObject set mask-wkgroups]
 
-McastProtoArbiter proc expandaddr {} {
-    # extend the space to 32 bits
-    McastProtoArbiter set WKGMask 0xFFC00000
-    McastProtoArbiter set WKGMaskLen 21
-    
-    # have to expand the individual WKGs
-    PIM set ALL_PIM_ROUTERS \
-	[expr [McastProtoArbiter set WKGMask] + 1]
-    
+mrtObject proc registerWellKnownGroups name {
+	set newGroup [mrtObject set wkgroups(Allocd)]
+	mrtObject set wkgroups(Allocd) [expr $newGroup + 1]
+	mrtObject set wkgroups($name)  $newGroup
+}
+
+mrtObject proc getWellKnownGroup name {
+	assert "\"$name\" != \"Allocd\""
+	mrtObject set wkgroups($name)
+}
+
+mrtObject registerWellKnownGroups ALL_ROUTERS
+mrtObject registerWellKnownGroups ALL_PIM_ROUTERS
+
+mrtObject proc expandaddr {} {
+	# extend the space to 32 bits
+	mrtObject set mask-wkgroups	0x7ffffff0
+
+	foreach {name group} [mrtObject array get wkgroups] {
+		mrtObject set wkgroups($name) [expr $group | 0x7fffffff]
+	}
 }
 
 # initialize with a list of the mcast protocols
-McastProtoArbiter instproc init { protos } {
+mrtObject instproc init { node protos } {
         $self next
-        $self instvar protocols
-        set protocols $protos
+	$self set node_	     $node
+	$self set protocols_ $protos
 }
 
-McastProtoArbiter instproc addproto { proto } {
-        $self instvar protocols
-        lappend protocols $proto
+mrtObject instproc addproto { proto } {
+        $self instvar protocols_
+        lappend protocols_ $proto
 }
 
-McastProtoArbiter instproc getType { protocolType } {
-        $self instvar protocols
-        foreach proto $protocols {
+mrtObject instproc getType { protocolType } {
+        $self instvar protocols_
+        foreach proto $protocols_ {
                 if { [$proto getType] == $protocolType } {
                         return $proto
                 }
         }
-        return -1
+        return ""
 }
 
-McastProtoArbiter instproc start {} {
-        $self instvar protocols
-        foreach proto $protocols {
-                $proto start
-        }
-}
-
-McastProtoArbiter instproc stop {} {   
-        $self instvar protocols
-        foreach proto $protocols {     
-                $proto stop
-        }
-}
-
-McastProtoArbiter instproc notify changes {
-	$self instvar protocols Node
-	foreach proto $protocols {
-		$proto notify $changes
+mrtObject instproc all-mprotos {op args} {
+	$self instvar protocols_
+	foreach proto $protocols_ {
+		eval $proto $op $args
 	}
 }
 
+mrtObject instproc start {}	{ $self all-mprotos start	}
+mrtObject instproc stop {}	{ $self all-mprotoc stop	}
+mrtObject instproc notify changes { $self all-mprotos notify $changes }
+mrtObject instproc dump-mroutes args {
+	eval all-mprotos dump-routes $args
+}
+
 # similar to membership indication by igmp.. 
-McastProtoArbiter instproc join-group { group } {
-        $self instvar protocols
-        foreach proto $protocols {
-                $proto join-group $group
-        }
+mrtObject instproc join-group args {	;# args = < G [, S] >
+	eval $self all-mprotos join-group $args
 }
 
-McastProtoArbiter instproc join-group-source { group source } {
-        $self instvar protocols
-        # puts "Arbiter join group $group source $source"
-        foreach proto $protocols {
-                $proto join-group-source $group $source
-        }
+mrtObject instproc leave-group args {	;# args = < G [, S] >
+	eval $self all-mprotos leave-group $args
 }
 
-McastProtoArbiter instproc leave-group { group } {
-        $self instvar protocols
-        foreach proto $protocols {
-                $proto leave-group $group
-        }
-}
-
-McastProtoArbiter instproc leave-group-source { group source } {
-        $self instvar protocols
-        # puts "Arbiter leave group $group source $source"
-        foreach proto $protocols {
-                $proto leave-group-source $group $source
-        }
-}
-
-McastProtoArbiter instproc upcall { argslist } {
-  set group [lindex $argslist 2]
+mrtObject instproc upcall { code source group iface } {
   # check if the group is local multicast to well-known group
-  if { [expr [expr $group & [McastProtoArbiter set WKGMask]] >> \
-                [McastProtoArbiter set WKGMaskLen]]
-                   == [expr [McastProtoArbiter set WKGMask] >> \
-                        [McastProtoArbiter set WKGMaskLen]] } {
-              
-                $self instvar Node
-                set oiflist ""
-                set src [lindex $argslist 1]
-                $Node add-mfc $src $group -1 $oiflist      
-                return 1
-        }
-        $self instvar protocols
-        foreach proto $protocols {
-              $proto upcall $argslist
-        }
+	set wkgroup [expr [$class set mask-wkgroups]]
+	if { [expr ( $group & $wkgroup ) == $wkgroup] } {
+                $self instvar node_
+		$node_ add-mfc $source $group -1 {}
+        } else {
+		$self all-mprotos upcall $code $source $group $iface
+	}
 }
 
-
-McastProtoArbiter instproc drop { replicator src dst } {
-        $self instvar protocols
-        foreach proto $protocols {
-                $proto drop $replicator $src $dst
-        }
+mrtObject instproc drop { replicator src dst {iface -1} } {
+        $self all-mprotos drop $replicator $src $dst $iface
 }

@@ -18,32 +18,38 @@
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- * 
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.6 1998/06/27 01:24:14 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.7 1998/10/27 00:50:09 yuriy Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
 #include "packet.h"
-#include "trace.h"
 
 class NetworkInterface : public Connector {
 public:
-	NetworkInterface() : intf_label_(-1) {
-		bind("off_cmn_", &off_cmn_);
-		bind("intf_label_", &intf_label_);
-	}
-	NetworkInterface(int32_t lbl) : intf_label_(lbl) {
-		bind("off_cmn_", &off_cmn_);
-		bind("intf_label_", &intf_label_);
-	}
-	int command(int argc, const char*const* argv);
-	void recv(Packet* pkt, Handler* h) {
-		((hdr_cmn*)pkt->access(off_cmn_))->iface() = intf_label_;
-		send(pkt, h);
+	NetworkInterface() : intf_label_(UNKN_IFACE.value()) { /*NOTHING*/ }
+	int command(int argc, const char*const* argv) {
+		if (argc > 1) {
+			if (strcmp(argv[1], "label") == 0) {
+				if (argc == 2) {
+					Tcl::instance().resultf("%d", intf_label_);
+					return TCL_OK;
+				}
+				if (argc == 3) {
+					intf_label_ = atoi(argv[2]);
+					return TCL_OK;
+				}
+			}
+		}
+        	return (Connector::command(argc, argv));
+        }
+	void recv(Packet* p, Handler* h) {
+		hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
+		ch->iface() = intf_label_;
+		send(p, h);
 	}
 protected:
 	int32_t intf_label_;
@@ -51,19 +57,8 @@ protected:
 
 static class NetworkInterfaceClass : public TclClass {
 public:
-	NetworkInterfaceClass() : TclClass("networkinterface") {}
+	NetworkInterfaceClass() : TclClass("NetworkInterface") {}
 	TclObject* create(int, const char*const*) {
 		return (new NetworkInterface);
 	}
 } class_networkinterface;
-
-int NetworkInterface::command(int argc, const char*const* argv)
-{
-	if (argc == 3) {
-		if (strcmp(argv[1], "label") == 0) {
-			intf_label_ = atoi(argv[2]);
-			return (TCL_OK);
-		}
-	}
-	return (Connector::command(argc, argv));
-}
