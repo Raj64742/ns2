@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.23 2002/11/11 19:28:39 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.24 2003/01/05 18:54:43 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -154,8 +154,7 @@ void WebTrafSession::donePage(void* ClntData)
 {
 	WebPage* pg = (WebPage*)ClntData;
 	if (mgr_->isdebug()) 
-		printf("Session %d done page %d\n", id_, 
-		       pg->id());
+		printf("Session %d done page %d\n", id_, pg->id());
 	if (pg->doneObj() != pg->curObj()) {
 		fprintf(stderr, "done objects %d != all objects %d\n",
 			pg->doneObj(), pg->curObj());
@@ -184,7 +183,7 @@ void WebTrafSession::expire(Event *)
 	WebPage* pg = new WebPage(LASTPAGE_++, this, 
 				  (int)ceil(rvPageSize_->value()), dst);
 	if (mgr_->isdebug())
-		printf("Session %d starting page %d, curpage %d \n", 
+		printf("Session %d starting page %d, curpage %d\n", 
 		       id_, LASTPAGE_-1, curPage_);
 	pg->start();
 }
@@ -212,41 +211,10 @@ void WebTrafSession::handle(Event *e)
 }
 
 // Launch a request for a particular object
-void WebTrafSession::launchReq(void* ClntData, int obj, int size)
-{
-	Agent *csnk, *ssnk;
-	WebPage* pg = (WebPage*)ClntData;
-
-	// Choose source and dest TCP agents for both source and destination
-	TcpAgent* ctcp = mgr_->picktcp();
-	TcpAgent* stcp = mgr_->picktcp();
-
-	if (fulltcp_) {
-		csnk = mgr_->picktcp();
-		ssnk = mgr_->picktcp();
-	} else {
-		csnk = mgr_->picksink();
-		ssnk = mgr_->picksink();
-	}
-
-	// Setup TCP connection and done
-	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d", 
-			      mgr_->name(), obj, pg->id(),
-			      src_->name(), pg->dst()->name(),
-			      ctcp->name(), csnk->name(), stcp->name(),
-			      ssnk->name(), size, ClntData);
-
-	// Debug only
-	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
-#if 0
-	printf("%d \t %d \t %d \t %d \t %g %d %d\n", size, obj, pg->id(), id_,
-	       Scheduler::instance().clock(), 
-	       src_->address(), pg->dst()->address());
-	printf("** Tcp agents %d, Tcp sinks %d\n", mgr_->nTcp(),mgr_->nSink());
-#endif
+void WebTrafSession::launchReq(void* ClntData, int obj, int size) {
+	mgr_->launchReq(src_, ClntData, obj, size);
 }
 
-
 static class WebTrafPoolClass : public TclClass {
 public:
         WebTrafPoolClass() : TclClass("PagePool/WebTraf") { 	
@@ -288,15 +256,15 @@ int WebTrafPool::delay_bind_dispatch(const char *varName,const char *localName,
 // By default we use constant request interval and page size
 WebTrafPool::WebTrafPool() : 
 	session_(NULL), nServer_(0), server_(NULL), nClient_(0), client_(NULL),
-	nTcp_(0), nSink_(0), fulltcp_(0), recycle_page_(0), server_delay_(0)
+	nTcp_(0), nSink_(0), fulltcp_(0), recycle_page_(0)
 {
 	bind("fulltcp_", &fulltcp_);
 	bind("recycle_page_", &recycle_page_);
-	bind("server_delay_", &server_delay_);
 	// Debo
 	asimflag_=0;
 	LIST_INIT(&tcpPool_);
 	LIST_INIT(&sinkPool_);
+	dbTcp_a = dbTcp_r = dbTcp_cr = 0;
 }
 
 TcpAgent* WebTrafPool::picktcp()
@@ -312,6 +280,7 @@ TcpAgent* WebTrafPool::picktcp()
 		}
 	} else 
 		nTcp_--;
+	//printf("A# %d\n", dbTcp_a++);
 	return a;
 }
 
@@ -340,11 +309,85 @@ Node* WebTrafPool::picksrc() {
 Node* WebTrafPool::pickdst() {
 	int n = int(floor(Random::uniform(0, nServer_)));
 	assert((n >= 0) && (n < nServer_));
-	return server_[n].node;
+	return(server_[n].get_node());
 }
 
-int WebTrafPool::command(int argc, const char*const* argv)
-{
+// pick end points for a new TCP connection
+void WebTrafPool::pick_ep(TcpAgent** tcp, Agent** snk) {
+	// Choose source
+	*tcp = picktcp();
+
+	// Choose destination
+	if (fulltcp_) {
+		*snk = picktcp();
+	} else {
+		*snk = picksink();
+	}
+}
+
+// Launch a request for a particular object
+void WebTrafPool::launchReq(Node *src_, void* ClntData, int obj, int size) {
+	TcpAgent *ctcp;
+	Agent *csnk;
+
+	// Allocation new TCP connections for both directions
+	pick_ep(&ctcp, &csnk);
+
+	WebPage* pg = (WebPage*)ClntData;
+
+	// Setup TCP connection and done
+	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %d %d", 
+			      name(), obj, pg->id(),
+			      src_->name(), pg->dst()->name(),
+			      ctcp->name(), csnk->name(), size, ClntData);
+
+	// Debug only
+	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
+#if 0
+	printf("%d \t %d \t %d \t %d \t %g %d %d\n", size, obj, pg->id(), id_,
+	       Scheduler::instance().clock(), 
+	       src_->address(), pg->dst()->address());
+	printf("** Tcp agents %d, Tcp sinks %d\n", nTcp(),nSink());
+#endif
+}
+
+// Launch a request for a particular object
+void WebTrafPool::launchResp(int obj_id, Node *svr_, Node *clnt_, Agent *tcp, Agent* snk, int size, void *ClntData) {
+	//TcpAgent *stcp;
+	//Agent *ssnk;
+	// Allocation new TCP connections for both directions
+	//pick_ep(&stcp, &ssnk);
+
+	// Get webpage (client data)
+	WebPage* pg = (WebPage*)ClntData;
+
+	// Setup TCP connection and done
+	Tcl::instance().evalf("%s launch-resp %d %d %s %s %s %s %d %d", 
+			      name(), obj_id, pg->id(),
+			      svr_->name(), clnt_->name(),
+			      tcp->name(), snk->name(), size, ClntData);
+
+	// Debug only
+	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
+#if 0
+	printf("%d \t %d \t %d \t %d \t %g %d %d\n", size, obj, pg->id(), id_,
+	       Scheduler::instance().clock(), 
+	       src_->address(), pg->dst()->address());
+	printf("** Tcp agents %d, Tcp sinks %d\n", nTcp(),nSink());
+#endif
+}
+
+// Given sever's node id, find server
+int WebTrafPool::find_server(int sid) {
+	int n = 0;
+	while (server_[n].get_nid() != sid && n < nServer_) {
+		n++;
+	}
+	
+	return(n);
+}
+	
+int WebTrafPool::command(int argc, const char*const* argv) {
 
 	// Debojyoti Dutta ... for asim
 	if (argc == 2){
@@ -352,15 +395,7 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			asimflag_ = 1;
 			//Tcl::instance().evalf("puts \"Here\"");
 			return (TCL_OK);
-		} else if (strcmp(argv[1], "set-STFS") == 0) {
-			// <obj> set-STFS
-			for (int n = 0; n < nServer_; n++) {
-				server_[n].mode_ = 1;
-
-			}
-			
-			return (TCL_OK);
-		}
+		} 
 	}
 	else if (argc == 3) {
 		if (strcmp(argv[1], "set-num-session") == 0) {
@@ -400,28 +435,21 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			// printf("doneObj for Page id: %d\n", p->id());
 			p->doneObject();
 			return (TCL_OK);
-		} else if (strcmp(argv[1], "set-STFS") == 0) {
-			// <obj> sid set-STFS
-			int sid = atoi(argv[2]);
+		} else if (strcmp(argv[1], "set-server-mode") == 0) {
+			// <obj> set-server-mode <mode>
+			int mode = atoi(argv[2]);
+			for (int n = 0; n < nServer_; n++) {
+				server_[n].set_mode(mode);
 
-			int n = 0;
-			while ((server_[n].node)->nodeid() != sid) {
-				n++;
 			}
 			
-			if ((server_[n].node)->nodeid() != sid) {
-				return (TCL_ERROR);
-			} else {
-				server_[n].mode_ = 1;			
-				return (TCL_OK);
-			}
+			return (TCL_OK);
 		} else if (strcmp(argv[1], "set-server-rate") == 0) {
 			// <obj> set-server-rate <rate> 
 			int rate = atoi(argv[2]);
 
 			for (int n = 0; n < nServer_; n++) {
-				server_[n].rate_ = rate;
-
+				server_[n].set_rate(rate);
 			}
 			
 			return (TCL_OK);
@@ -436,7 +464,7 @@ int WebTrafPool::command(int argc, const char*const* argv)
 				fprintf(stderr, "Wrong server index %d\n", n);
 				return TCL_ERROR;
 			}
-			server_[n].node = s;
+			server_[n].set_node(s);
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "set-client") == 0) {
 			Node* c = (Node*)lookup_obj(argv[3]);
@@ -455,6 +483,7 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			// Recycle a TCP source/sink pair
 			Agent* tcp = (Agent*)lookup_obj(argv[2]);
 			Agent* snk = (Agent*)lookup_obj(argv[3]);
+			
 			if ((tcp == NULL) || (snk == NULL))
 				return (TCL_ERROR);
 			
@@ -468,46 +497,33 @@ int WebTrafPool::command(int argc, const char*const* argv)
 				insertAgent(&tcpPool_, tcp);
 				nSink_++;
 				insertAgent(&sinkPool_, snk);
+				//printf("R# %d\n", dbTcp_r++);
 			}
+
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "set-server-rate") == 0) {
 			// <obj> set_rate <server> <size> 
 			int sid = atoi(argv[2]);
 			int rate = atoi(argv[3]);
 
-			int n = 0;
-			while ((server_[n].node)->nodeid() != sid) {
-				n++;
-			}
-			
-			if ((server_[n].node)->nodeid() != sid) {
+			int n = find_server(sid);
+			if (n >= nServer_) 
 				return (TCL_ERROR);
-			} else {
-				server_[n].rate_ = rate;
-				return (TCL_OK);
-			}
-		} 
-	} else if (argc == 5) {
-		if (strcmp(argv[1], "job_arrival") == 0) {
-			// <obj> job_arrive <server> <size> 
+
+			server_[n].set_rate(rate);
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "set-server-mode") == 0) {
+			// <obj> set-mode <server> <mode>
 			int sid = atoi(argv[2]);
-			Agent* stcp = (Agent*)lookup_obj(argv[3]);
-			int size = atoi(argv[4]);
-			
-			int n = 0;
-			while ((server_[n].node)->nodeid() != sid) {
-				n++;
-			}
-			
-			if ((server_[n].node)->nodeid() != sid) {
+			int mode = atoi(argv[3]);
+
+			int n = find_server(sid);
+			if (n >= nServer_) 
 				return (TCL_ERROR);
-			} else {
-				double delay = server_[n].job_arrival(stcp, size);
-				
-				Tcl::instance().resultf("%f", delay);
-				return (TCL_OK);
-			}
-		}
+
+			server_[n].set_mode(mode);
+			return (TCL_OK);
+		} 
 	} else if (argc == 9) {
 		if (strcmp(argv[1], "create-session") == 0) {
 			// <obj> create-session <session_index>
@@ -548,12 +564,32 @@ int WebTrafPool::command(int argc, const char*const* argv)
 				for (int i=0; i<nServer_; i++){
 					for(int j=0; j<nClient_; j++){
 						// Set up short flows info for asim
-						Tcl::instance().evalf("%s add2asim %d %d %lf %lf", this->name(),(server_[i].node)->nodeid(),client_[j]->nodeid(),lambda, mu);
+						Tcl::instance().evalf("%s add2asim %d %d %lf %lf", this->name(),server_[i].get_nid(),client_[j]->nodeid(),lambda, mu);
 					}
 				}
 				//Tcl::instance().evalf("puts \"Here\""); 
 			}
 			
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "job_arrival") == 0) {
+			//$self job_arrival $id $clnt $svr $tcp $snk $size $pobj
+			int obj_id = atoi(argv[2]);
+			Node* clnt_ = (Node*)lookup_obj(argv[3]);
+			Node* svr_ = (Node*)lookup_obj(argv[4]);
+			// TCP source and sink pair
+			Agent* tcp = (Agent*)lookup_obj(argv[5]);
+			Agent* snk = (Agent*)lookup_obj(argv[6]);
+			int size = atoi(argv[7]);
+			void* data = (void *)atoi(argv[8]);
+
+			int sid = svr_->nodeid();
+			int n = find_server(sid);
+			if (n >= nServer_) 
+				return (TCL_ERROR);
+			
+			double delay = server_[n].job_arrival(obj_id, clnt_, tcp, snk, size, data);
+				
+			Tcl::instance().resultf("%f", delay);
 			return (TCL_OK);
 		}
 	}

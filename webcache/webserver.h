@@ -35,36 +35,68 @@
 
 #include "webtraf.h"
 
+#define NO_DELAY 0
+#define FCFS_DELAY 1
+#define STF_DELAY 2
+
 // Data structure for incoming jobs (requests)
 struct job_s {
-	Agent *tcp;
-	int size;
-	job_s *next;
+  int obj_id;
+  Node *clnt;
+  Agent *tcp;
+  Agent *snk;
+  int size;
+  void *data;
+  job_s *next;
 };
 
 class WebTrafPool;
 
 // Data structure for web server
 class WebServer : public TimerHandler{
-public:
+ public:
 	WebServer(WebTrafPool*);
 	
-	// Server properties
-	Node *node;
-	double rate_;
-	int busy_;
-	double mode_;
+	// Assign node to server
+	void set_node(Node *);
+	// Return server's node
+	Node* get_node();
+	// Return server's node id
+	int get_nid();
+
+	// Set server processing rate
+	void set_rate(double);
+	// Set server function mode
+	void set_mode(int);
+
+	// Handling incoming job
+	double job_arrival(int, Node *, Agent *, Agent *, int, void *);
+
+ private:
+	// The web page pool associated with this server
 	WebTrafPool *web_pool_;
+
+	// The node associated with this server
+	Node *node;
+
+	// Server processing rate KB/s
+	double rate_;
+	
+	// Flag for web server:
+	// 0: there's no server processing delay
+	// 1: server processing delay from FCFS scheduling policy
+	// 2: server processing delay from STF scheduling policy
+	int mode_;
 
 	// Job queue
 	job_s *head, *tail;
 
 	virtual void expire(Event *e);
 
-	// Job arrival and departure
-	double job_arrival(Agent*, int);
 	double job_departure();
-
+	
+	// Flag for server status
+	int busy_;
 	void schedule_next_job();
 };
 #endif //ns_webserver_h

@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.15 2002/11/11 19:28:39 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.16 2003/01/05 18:54:43 xuanc Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -100,8 +100,9 @@ public:
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}
-	TcpAgent* picktcp();
-	TcpSink* picksink();
+
+	void launchReq(Node*, void*, int, int);
+	void launchResp(int, Node*, Node*, Agent*, Agent*, int, void*);
 	inline int nTcp() { return nTcp_; }
 	inline int nSink() { return nSink_; }
 	inline int isdebug() { return debug_; }
@@ -109,8 +110,17 @@ public:
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char*, const char*, TclObject*);
 
+	// pick end points for a new TCP connection
+	void pick_ep(TcpAgent**, Agent**);
+	TcpAgent* picktcp();
+	TcpSink* picksink();
+	// Given sever's node id, find server
+	int find_server(int);
+
 protected:
 	virtual int command(int argc, const char*const* argv);
+
+	
 
 	// Session management: fixed number of sessions, fixed number
 	// of pages per session
@@ -154,6 +164,7 @@ protected:
 		return a;
 	}
 	int nTcp_, nSink_;
+	int dbTcp_a, dbTcp_r, dbTcp_cr;
 	AgentList tcpPool_;	/* TCP agent pool */
 	AgentList sinkPool_;	/* TCP sink pool */
 
@@ -169,8 +180,6 @@ protected:
 	int fulltcp_;
 	// Reuse of page level attributes support
 	int recycle_page_;
-	// support simple server delay
-	int server_delay_;
 };
 
 #endif // ns_webtraf_h

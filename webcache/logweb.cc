@@ -37,6 +37,9 @@ RequestTimer::RequestTimer(LogWebTrafPool* pool) {
 };
 
 void RequestTimer::expire(Event *e) {
+	//if (e) 
+	//	Packet::free((Packet *)e);
+
 	lwp->run();
 }
 
@@ -65,6 +68,7 @@ LogWebTrafPool::LogWebTrafPool() {
 LogWebTrafPool::~LogWebTrafPool() {
 	if (fp)
 		fclose(fp);
+	if (req_timer) delete req_timer;
 }
 
 int LogWebTrafPool::loadLog(const char* filename) {
@@ -139,7 +143,7 @@ int LogWebTrafPool::launchReq(int cid, int sid, int size) {
 			      client->name(), server->name(),
 			      ctcp->name(), csnk->name(), 
 			      stcp->name(), ssnk->name(), 
-			      num_pkt, this);
+			      num_pkt, NULL);
 	return(1);
 }
 
