@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1991-1994 Regents of the University of California.
+ * Copyright (c) 1991-1994, 1998 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.1 1998/01/06 01:46:00 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.2 1998/01/30 23:46:30 kfall Exp $ (LBL)
  */
 
 #ifndef ns_net_h
 #define ns_net_h
 
-#include "inet.h"
 #include "tclcl.h"
 #include "iohandler.h"
 #include "timer.h"
@@ -48,37 +47,13 @@
 #endif
 
 class Network : public TclObject {
-    public:
-	Network();
-	virtual ~Network();
+public:
 	virtual int command(int argc, const char*const* argv);
-	virtual void send(u_char* buf, int len);
-	virtual int recv(u_char* buf, int len, u_int32_t& from);
-	inline int rchannel() const { return (rsock_); }
-	inline int schannel() const { return (ssock_); }
-	inline u_int32_t addr() const { return (addr_); }
-	inline u_int32_t interface() const { return (local_); }
-	inline int port() const { return (port_); }
-	inline int ttl() const { return (ttl_); }
-	inline int noloopback_broken() const { return (noloopback_broken_); }
+	virtual void send(u_char* buf, int len) = 0;
+	virtual int recv(u_char* buf, int len, u_int32_t& from) = 0;
+	virtual int rchannel() = 0;
+	virtual int schannel() = 0;
 	virtual void reset();
-	static void nonblock(int fd);
-    protected:
-	virtual void dosend(u_char* buf, int len, int fd);
-	virtual int dorecv(u_char* buf, int len, u_int32_t& from, int fd);
-
-	u_int32_t addr_;
-	u_int32_t local_;
-	u_short lport_;
-	u_short port_;
-	int ttl_;
-	int rsock_;
-	int ssock_;
-
-	int noloopback_broken_;
-	
-	static u_char* wrkbuf_;
-	static int wrkbuflen_;
-	static void expand_wrkbuf(int len);
+	static int nonblock(int fd);
 };
 #endif
