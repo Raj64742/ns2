@@ -57,7 +57,7 @@ Agent/SRM/Adaptive set done_	0
 Agent/SRM/Adaptive instproc init args {
     if ![$class set done_] {
 	set pm [[Simulator instance] set packetManager_]
-	TclObject set off_asrm_ [$pm allochdr aSRM]
+	TclObject set off_asrm_ [$pm allochdr PacketHeader/aSRM]
 	$class set done_ 1
     }
 
