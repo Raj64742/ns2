@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.1 1999/06/21 18:28:46 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.2 1999/06/23 23:41:58 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -90,7 +90,7 @@ int LinkHandoffMgr::handoff_randomization_ = 0;
 
 LinkHandoffMgr::LinkHandoffMgr()
 {
-	bind("handoff_randomization_", &handoff_randomization_);
+	bind_bool("handoff_randomization_", &handoff_randomization_);
 }
 
 int LinkHandoffMgr::command(int argc, const char*const* argv)

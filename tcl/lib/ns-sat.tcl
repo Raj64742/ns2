@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.1 1999/06/21 18:30:37 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.2 1999/06/23 23:42:00 tomh Exp $
 
 
 # ======================================================================
@@ -51,15 +51,11 @@ Node/SatNode instproc init args {
 	set nifs_	0		;# number of network interfaces
 	# Create a drop trace to log packets for which no route exists
 	set ns_ [Simulator instance]
-	set dropT_ [$ns_ create-trace Sat/Drop [$ns_ set traceAllFile_] $self $self ""]
+	set dropT_ [$ns_ create-trace Sat/Drop [$ns_ set traceAllFile_] \
+	  $self $self ""]
 	$self set_trace $dropT_
 
 
-}
-
-Node/SatNode instproc set_next {node_} {
-	$self instvar pos_
-	$pos_ set_next [$node_ set pos_]
 }
 
 Node/SatNode instproc reset {} {
@@ -68,11 +64,17 @@ Node/SatNode instproc reset {} {
 	set ns [Simulator instance]
 	set now_ [$ns now]
         for {set i 0} {$i < $nifs_} {incr i} {
-	    $phy_tx_($i) reset
-	    $phy_rx_($i) reset
-	    $mac_($i) reset
-	    $ll_($i) reset
-	    $ifq_($i) reset
+		$phy_tx_($i) reset
+		$phy_rx_($i) reset
+		if {[info exists mac_($i)]} {
+			$mac_($i) reset
+		}
+		if {[info exists ll_($i)]} {
+			$ll_($i) reset
+		}
+		if {[info exists ifq_($i)]} {
+			$ifq_($i) reset
+		}
 	}
 	if {$now_ == 0} {
 		if {[info exists hm_]} {
@@ -81,16 +83,9 @@ Node/SatNode instproc reset {} {
 	}
 }
 
-Node/SatNode instproc set_uplink {chan} {
-	$self instvar uplink_
-	set uplink_ [new $chan]
-	$self cmd set_uplink $uplink_
-}
-
-Node/SatNode instproc set_downlink {chan} {
-	$self instvar downlink_
-	set downlink_ [new $chan]
-	$self cmd set_downlink $downlink_
+Node/SatNode instproc set_next {node_} {
+	$self instvar pos_
+	$pos_ set_next [$node_ set pos_]
 }
 
 #
@@ -102,13 +97,9 @@ Node/SatNode instproc add-target {agent port } {
 
 	$self instvar dmux_ 
 	
-#	This CMU enhancement not supported?  (splitting out port from addr)
-#	$agent set sport_ $port
-
 	if { $port == 255 } {			
 		# Set the default target at C++ level.  
 		[$self set classifier_] defaulttarget $agent
-#puts "node id [$self set id_]  classifier [$self set classifier_]"
 		$dmux_ install $port $agent
 	} else {
 		#
@@ -123,21 +114,18 @@ Node/SatNode instproc add-target {agent port } {
 	}
 }
 
-#  Add network stack and attach to the channels 
-Node/SatNode instproc add-gsl {ltype opt_ll opt_ifq opt_qlim opt_mac \
-opt_bw opt_phy opt_inlink opt_outlink} {
-	$self add-interface $ltype $opt_ll $opt_ifq $opt_qlim $opt_mac $opt_bw \
-		$opt_phy 
-	$self attach-to-inlink $opt_inlink
-	$self attach-to-outlink $opt_outlink
-}
+# ======================================================================
+#
+# methods for creating SatNodes
+#
+# ======================================================================
 
 # Wrapper method for making a polar satellite node that first creates a 
 # satnode plus two link interfaces (uplink and downlink) plus two 
 # satellite channels (uplink and downlink)
 # Additional ISLs can be added later
-Simulator instproc satnode-polar {alt theta phi inc plane linkargs chan} {
-        set tmp [$self satnode polar $alt $theta $phi $inc $plane]
+Simulator instproc satnode-polar {alt inc lon alpha plane linkargs chan} {
+        set tmp [$self satnode polar $alt $inc $lon $alpha $plane]
 	$self add-first-links $tmp gsl $linkargs $chan
         return $tmp
 }
@@ -154,9 +142,9 @@ Simulator instproc satnode-geo {lon linkargs chan} {
 # Wrapper method for making a geo satellite repeater node that first creates a 
 # satnode plus two link interfaces (uplink and downlink) plus two 
 # satellite channels (uplink and downlink)
-Simulator instproc satnode-geo-repeater {lon linkargs chan} {
+Simulator instproc satnode-geo-repeater {lon chan} {
         set tmp [$self satnode geo $lon]
-	$self add-first-links $tmp gsl-repeater $linkargs $chan
+	$self add-first-links $tmp gsl-repeater "" $chan
 	return $tmp
 }
 
@@ -165,17 +153,82 @@ Simulator instproc satnode-terminal {lat lon} {
 	$self satnode terminal $lat $lon
 }
 
+Simulator instproc satnode args {
+	$self instvar Node_
+	set node [new Node/SatNode]
+	if {[lindex $args 0] == "polar" || [lindex $args 0] == "Polar"} {
+		set args [lreplace $args 0 0]
+		# Set up position object
+		$node set pos_ [new Position/Sat/Polar $args]
+		$node cmd set_position [$node set pos_]
+		[$node set pos_] setnode $node
+		# Set up handoff manager
+		$node set hm_ [new HandoffManager/Sat]
+		$node cmd set_handoff_mgr [$node set hm_]
+		[$node set hm_] setnode $node
+		$node create-ragent 
+	} elseif {[lindex $args 0] == "geo" || [lindex $args 0] == "Geo"} {  
+		set args [lreplace $args 0 0]
+		$node set pos_ [new Position/Sat/Geo $args]
+		$node cmd set_position [$node set pos_]
+		[$node set pos_] setnode $node
+		$node create-ragent
+	} elseif {[lindex $args 0] == "geo-repeater" || [lindex $args 0] == "Geo-repeater"} {  
+		set args [lreplace $args 0 0]
+		$node set pos_ [new Position/Sat/Geo $args]
+		$node cmd set_position [$node set pos_]
+		[$node set pos_] setnode $node
+	} elseif {[lindex $args 0] == "terminal" || [lindex $args 0] == "Terminal"} {  
+		set args [lreplace $args 0 0]
+		$node set pos_ [new Position/Sat/Term $args]
+		$node cmd set_position [$node set pos_]
+		[$node set pos_] setnode $node
+		$node set hm_ [new HandoffManager/Term]
+		$node cmd set_handoff_mgr [$node set hm_]
+		[$node set hm_] setnode $node
+		$node create-ragent
+	} else {
+		puts "Otcl error; satnode specified incorrectly: $args"
+	}
+	set Node_([$node id]) $node
+	$node set ns_ $self
+        if [$self multicast?] {
+                $node enable-mcast $self
+        }
+	$self check-node-num
+	return $node
+}
+
+# ======================================================================
+#
+# methods for creating satellite links, channels, and error models
+#
+# ======================================================================
+
 # Helper method for creating uplinks and downlinks for a satellite node
 Simulator instproc add-first-links {node_ linktype linkargs chan} {
 	$node_ set_downlink $chan
         $node_ set_uplink $chan
         # Add the interface for these channels and then attach the channels
-        eval $node_ add-interface $linktype $linkargs
+	if {$linktype == "gsl-repeater"} {
+		$node_ add-repeater $chan
+	} else {
+        	eval $node_ add-interface $linktype $linkargs
+	}
         $node_ attach-to-outlink [$node_ set downlink_]
         $node_ attach-to-inlink [$node_ set uplink_]
 }
 
-#
+#  Add network stack and attach to the channels 
+Node/SatNode instproc add-gsl {ltype opt_ll opt_ifq opt_qlim opt_mac \
+opt_bw opt_phy opt_inlink opt_outlink} {
+	$self add-interface $ltype $opt_ll $opt_ifq $opt_qlim $opt_mac $opt_bw \
+		$opt_phy 
+	$self attach-to-inlink $opt_inlink
+	$self attach-to-outlink $opt_outlink
+}
+
+# Add network stacks for ISLs, and create channels for them
 Simulator instproc add-isl {ltype node1 node2 bw qtype qlim} {
 	set opt_ll LL/Sat
 	set opt_mac Mac/Sat
@@ -193,19 +246,30 @@ Simulator instproc add-isl {ltype node1 node2 bw qtype qlim} {
 	}
 }
 
-# Create a network interface (for one uplink and downlink), add routing agent
-# At least one interface must be created before routing agent is added
-Node/SatNode instproc create-ragent { args} {
-	if {$args == "repeater" } {
-		#set ragent [new Agent/SatRoute/Repeater]
-		set ragent [new Agent/SatRoute]
-	} else {
-		set ragent [new Agent/SatRoute]
-	}
-        $self attach $ragent 255; # attaches to default target of classifier  
-        $ragent set myaddr_ [$self set id_]
-	$self set_ragent $ragent; # sets pointer at C++ level
-	$ragent set_node $self; # sets back pointer in ragent to node
+Node/SatNode instproc add-repeater chan { 
+	$self instvar nifs_ phy_tx_ phy_rx_ linkhead_ 
+
+	set t $nifs_
+	incr nifs_
+
+	# linkhead_($t) is a simple connector that provides an API for
+	# accessing elements of the network interface stack
+	set linkhead_($t) [new Connector/LinkHead/Sat]
+	set phy_tx_($t)	[new Phy/Repeater]		;# interface
+	set phy_rx_($t)	[new Phy/Repeater]
+
+	# linkhead maintains a collection of pointers
+	$linkhead_($t) setnode $self
+	$linkhead_($t) setphytx $phy_tx_($t)
+	$linkhead_($t) setphyrx $phy_rx_($t)
+	$linkhead_($t) set_type "gsl-repeater"
+	$linkhead_($t) set type_ "gsl-repeater"
+
+	$phy_rx_($t) up-target $phy_tx_($t)
+	$phy_tx_($t) linkhead $linkhead_($t)
+	$phy_rx_($t) linkhead $linkhead_($t)
+	$phy_tx_($t) node $self		;# Bind node <---> interface
+	$phy_rx_($t) node $self		;# Bind node <---> interface
 }
 
 #
@@ -215,7 +279,7 @@ Node/SatNode instproc create-ragent { args} {
 #
 Node/SatNode instproc add-interface args { 
 
-	$self instvar nifs_ phy_tx_ phy_rx_ mac_ ifq_ ll_ drophead_
+	$self instvar nifs_ phy_tx_ phy_rx_ mac_ ifq_ ll_ drophead_ linkhead_
 
 	global ns_ MacTrace opt
 
@@ -264,6 +328,7 @@ Node/SatNode instproc add-interface args {
 	$self addlinkhead $linkhead; # Add NetworkInterface to node's list
 	$linkhead target $ll; 
 	$linkhead set_type $linktype
+	$linkhead set type_ $linktype
 
 	# 
 	# NetworkInterface
@@ -316,6 +381,18 @@ Node/SatNode instproc add-interface args {
 	return $t
 }
 
+Node/SatNode instproc set_uplink {chan} {
+	$self instvar uplink_
+	set uplink_ [new $chan]
+	$self cmd set_uplink $uplink_
+}
+
+Node/SatNode instproc set_downlink {chan} {
+	$self instvar downlink_
+	set downlink_ [new $chan]
+	$self cmd set_downlink $downlink_
+}
+
 #  Attaches channel to the phy indexed by "index" (by default, the first one)
 Node/SatNode instproc attach-to-outlink {chan {index 0} } {
 	$self instvar phy_tx_ mac_
@@ -332,12 +409,43 @@ Node/SatNode instproc attach-to-inlink { chan {index 0}} {
 
 #  Attaches error model to interface "index" (by default, the first one)
 Node/SatNode instproc interface-errormodel { em { index 0 } } {
-	$self instvar mac_ ll_ em_
+	$self instvar mac_ ll_ em_ linkhead_
 	$mac_($index) up-target $em
 	$em target $ll_($index)
 	$em drop-target [new Agent/Null]; # otherwise, packet is only marked
 	set em_($index) $em
+	$linkhead_($index) seterrmodel $em
 } 
+
+# ======================================================================
+#
+# methods for routing 
+#
+# ======================================================================
+
+# Create a network interface (for one uplink and downlink), add routing agent
+# At least one interface must be created before routing agent is added
+Node/SatNode instproc create-ragent {} {
+	set ragent [new Agent/SatRoute]
+        $self attach $ragent 255; # attaches to default target of classifier  
+        $ragent set myaddr_ [$self set id_]
+	$self set_ragent $ragent; # sets pointer at C++ level
+	$ragent set_node $self; # sets back pointer in ragent to node
+}
+
+# When running all routing in C++, we want a dummy OTcl routing
+#
+Class Agent/rtProto/Dummy -superclass Agent/rtProto
+
+Agent/rtProto/Dummy proc init-all args {
+	# Nothing
+}
+
+# ======================================================================
+#
+# methods for tracing
+#
+# ======================================================================
 
 Simulator instproc trace-all-satlinks {f} {
 	$self instvar Node_
@@ -351,8 +459,11 @@ Simulator instproc trace-all-satlinks {f} {
 
 # All satlinks should have an interface indexed by nifs_
 Node/SatNode instproc trace-all-satlinks {f} {
-	$self instvar nifs_ enqT_ rcvT_
+	$self instvar nifs_ enqT_ rcvT_ linkhead_
 	for {set i 0} {$i < $nifs_} {incr i} {
+		if {[$linkhead_($i) set type_] == "gsl-repeater"} {
+			continue;
+		}
 		if {[info exists enqT_($i)]} {
 			puts "Tracing already exists on node [$self id]"
 		} else {
@@ -414,66 +525,6 @@ Node/SatNode instproc trace-inlink-queue {f {index_ 0} } {
 	
 }
 
-Simulator instproc satnode args {
-	$self instvar Node_
-	set node [new Node/SatNode]
-	if {[lindex $args 0] == "polar" || [lindex $args 0] == "Polar"} {
-		set args [lreplace $args 0 0]
-		# Set up position object
-		$node set pos_ [new Position/Sat/Polar $args]
-		$node cmd set_position [$node set pos_]
-		[$node set pos_] setnode $node
-		# Set up handoff manager
-		$node set hm_ [new HandoffManager/Sat]
-		$node cmd set_handoff_mgr [$node set hm_]
-		[$node set hm_] setnode $node
-		$node create-ragent 
-	} elseif {[lindex $args 0] == "geo" || [lindex $args 0] == "Geo"} {  
-		set args [lreplace $args 0 0]
-		$node set pos_ [new Position/Sat/Geo $args]
-		$node cmd set_position [$node set pos_]
-		[$node set pos_] setnode $node
-		$node create-ragent
-	} elseif {[lindex $args 0] == "geo-repeater" || [lindex $args 0] == "Geo-repeater"} {  
-		set args [lreplace $args 0 0]
-		$node set pos_ [new Position/Sat/Geo $args]
-		$node cmd set_position [$node set pos_]
-		[$node set pos_] setnode $node
-		$node create-ragent repeater
-	} elseif {[lindex $args 0] == "terminal" || [lindex $args 0] == "Terminal"} {  
-		set args [lreplace $args 0 0]
-		$node set pos_ [new Position/Sat/Term $args]
-		$node cmd set_position [$node set pos_]
-		[$node set pos_] setnode $node
-		$node set hm_ [new HandoffManager/Term]
-		$node cmd set_handoff_mgr [$node set hm_]
-		[$node set hm_] setnode $node
-		$node create-ragent
-	} else {
-		puts "Otcl error; satnode specified incorrectly: $args"
-	}
-	set Node_([$node id]) $node
-	$node set ns_ $self
-        if [$self multicast?] {
-                $node enable-mcast $self
-        }
-	$self check-node-num
-	return $node
-}
-
-###########
-# ROUTING MODIFICATIONS
-##########
-
-#
-# When running all routing in C++, we want a dummy OTcl routing
-#
-Class Agent/rtProto/Dummy -superclass Agent/rtProto
-
-Agent/rtProto/Dummy proc init-all args {
-	# Nothing
-}
-
 
 ###########
 # TRACE MODIFICATIONS
@@ -518,18 +569,20 @@ Trace/Sat/Generic instproc init {} {
 }
 
 
-
+# ======================================================================
 #
 # Defaults for bound variables 
 #
-Node/SatNode set dist_routing_ 0; # distributed routing not currently supported
+# ======================================================================
+
+Node/SatNode set dist_routing_ "false"; # distributed routing not yet supported
 Position/Sat set time_advance_ 0; # time offset to start of simulation 
 HandoffManager/Term set elevation_mask_ 0
 HandoffManager/Term set term_handoff_int_ 10
 HandoffManager/Sat set sat_handoff_int_ 10
 HandoffManager/Sat set latitude_threshold_ 70
 HandoffManager/Sat set longitude_threshold_ 0
-HandoffManager set handoff_randomization_ 0
+HandoffManager set handoff_randomization_ "false" 
 SatRouteObject set metric_delay_ "true"
 SatRouteObject set data_driven_computation_ "false"
 

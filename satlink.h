@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.h,v 1.1 1999/06/21 18:28:47 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.h,v 1.2 1999/06/23 23:41:55 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -74,13 +74,6 @@ protected:
 	int command(int argc, const char*const* argv);
 };
 
-class SatMacRepeater : public SatMac {
-public:
-	SatMacRepeater() {}
-	void recv(Packet* p, Handler* h);
-protected:
-};
-
 /*
 class PureAlohaMac : public SatMac {
 public:
@@ -96,11 +89,20 @@ protected:
 
 class SatPhy : public Phy {
  public:
-	SatPhy() : Phy() {}
+	SatPhy() {}
 	void sendDown(Packet *p);
 	int sendUp(Packet *p);
  protected:
 	int command(int argc, const char*const* argv);
+};
+
+class RepeaterPhy : public Phy {
+ public:
+	RepeaterPhy() {}
+	void recv(Packet* p, Handler*);
+	void sendDown(Packet *p);
+	int sendUp(Packet *) { return 0; } 
+ protected:
 };
 
 /*
@@ -122,6 +124,7 @@ friend class SatRouteObject;
 };
 
 class SatNode;
+class ErrorModel;
 /*
  * For now, this is the API used in the satellite networking code (hopefully
  * a more general one will follow).
@@ -137,6 +140,7 @@ public:
 	SatMac* mac() { return mac_; }
 	SatLL* satll() { return satll_; }
 	Queue* queue() { return queue_; }
+	ErrorModel* errmodel() { return errmodel_; }
 	int linkup_;
 	SatNode* node() { return ((SatNode*) node_); }
 	
@@ -147,6 +151,7 @@ protected:
 	SatMac* mac_;
 	SatLL* satll_;
 	Queue* queue_;
+	ErrorModel* errmodel_;
 
 };
 

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.h,v 1.1 1999/06/21 19:08:33 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.h,v 1.2 1999/06/23 23:41:55 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -71,10 +71,10 @@ class SatPosition : public TclObject {
 
 class PolarSatPosition : public SatPosition {
  public:
-	PolarSatPosition(float = 1000, float = 0, float = 0, float = 90, 
+	PolarSatPosition(float = 1000, float = 90, float = 0, float = 0, 
             float = 0);
 	virtual coordinate getCoordinate();
-	void set(float Altitude, float Theta, float Phi, float inclination=90); 
+	void set(float Altitude, float Lon, float Alpha, float inclination=90); 
 	virtual float get_latitude(); 
 	virtual float get_longitude(); 
 	float get_altitude() { return initial_.r; }

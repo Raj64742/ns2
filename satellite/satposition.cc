@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.1 1999/06/21 19:08:34 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.2 1999/06/23 23:41:56 tomh Exp $";
 #endif
 
 #include "satposition.h"
@@ -216,9 +216,9 @@ coordinate TermSatPosition::getCoordinate()
 // class PolarSatPosition
 /////////////////////////////////////////////////////////////////////
 
-PolarSatPosition::PolarSatPosition(float altitude, float Theta, float Phi, 
-    float Inc, float Plane) : next_(0), plane_(0) {
-	set(altitude, Theta, Phi, Inc);
+PolarSatPosition::PolarSatPosition(float altitude, float Inc, float Lon, 
+    float Alpha, float Plane) : next_(0), plane_(0) {
+	set(altitude, Lon, Alpha, Inc);
         if (Plane) {
 		plane_ = int(Plane);
 		if (plane_ > num_planes_)
@@ -234,11 +234,12 @@ PolarSatPosition::PolarSatPosition(float altitude, float Theta, float Phi,
 // coordinates in getCoordinate().
 // Initial satellite position is specified as follows:
 // initial_.theta specifies initial angle with respect to "ascending node"
-// i.e., zero is at equator (ascending)
+// i.e., zero is at equator (ascending)-- this is the $alpha parameter in Otcl
 // initial_.phi specifies East longitude of "ascending node"  
+// -- this is the $lon parameter in OTcl
 // Note that with this system, only theta changes with time
 //
-void PolarSatPosition::set(float Altitude, float Theta, float Phi, float Incl)
+void PolarSatPosition::set(float Altitude, float Lon, float Alpha, float Incl)
 {
 	if (Altitude < 0) {
 		fprintf(stderr, "PolarSatPosition:  altitude out of 
@@ -246,18 +247,21 @@ void PolarSatPosition::set(float Altitude, float Theta, float Phi, float Incl)
 		exit(1);
 	}
 	initial_.r = Altitude + 6378; // Altitude in km above the earth
-	if (Theta < 0 || Theta >= 360) {
-		fprintf(stderr, "PolarSatPosition:  theta out of bounds: %f\n", 
-		    Theta);
+	if (Alpha < 0 || Alpha >= 360) {
+		fprintf(stderr, "PolarSatPosition:  alpha out of bounds: %f\n", 
+		    Alpha);
 		exit(1);
 	}
-	initial_.theta = DEG_TO_RAD(Theta);
-	if (Phi < 0 || Phi >= 360) {
-		fprintf(stderr, "PolarSatPosition:  phi out of bounds: %f\n", 
-		    Phi);
+	initial_.theta = DEG_TO_RAD(Alpha);
+	if (Lon < -180 || Lon > 180) {
+		fprintf(stderr, "PolarSatPosition:  lon out of bounds: %f\n", 
+		    Lon);
 		exit(1);
 	}
-	initial_.phi = DEG_TO_RAD(Phi);
+	if (Lon < 0)
+		initial_.phi = DEG_TO_RAD(360 + Lon);
+	else
+		initial_.phi = DEG_TO_RAD(Lon);
 	if (Incl < 0 || Incl > 180) {
 		// retrograde orbits = (90 < Inclination < 180)
 		fprintf(stderr, "PolarSatPosition:  inclination out of 

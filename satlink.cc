@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.1 1999/06/21 18:28:47 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.2 1999/06/23 23:41:57 tomh Exp $";
 #endif
 
 /*
@@ -52,6 +52,7 @@ static const char rcsid[] =
 #include "sattrace.h"
 #include "satposition.h"
 #include "satnode.h"
+#include "errmodel.h"
 
 /*==========================================================================*/
 /*
@@ -66,7 +67,7 @@ public:
 	}
 } class_sat_link_head;
 
-SatLinkHead::SatLinkHead() : linkup_(1), phy_tx_(0), phy_rx_(0), mac_(0), satll_(0), queue_(0)
+SatLinkHead::SatLinkHead() : linkup_(1), phy_tx_(0), phy_rx_(0), mac_(0), satll_(0), queue_(0), errmodel_(0)
 {
 }
 
@@ -124,6 +125,11 @@ int SatLinkHead::command(int argc, const char*const* argv)
 		} else if(strcmp(argv[1], "setqueue") == 0) {
 			queue_ = (Queue*) TclObject::lookup(argv[2]);
 			if (queue_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		} else if(strcmp(argv[1], "seterrmodel") == 0) {
+			errmodel_ = (ErrorModel*) TclObject::lookup(argv[2]);
+			if (errmodel_ == 0)
 				return TCL_ERROR;
 			return TCL_OK;
 		}
@@ -262,15 +268,6 @@ public:
 	}
 } sat_class_mac;
 
-static class SatMacRepeaterClass : public TclClass {
-public:
-	SatMacRepeaterClass() : TclClass("Mac/Sat/Repeater") {}
-	TclObject* create(int, const char*const*) {
-		return (new SatMacRepeater);
-	}
-} sat_class_mac_repeater;
-
-
 int SatMac::command(int argc, const char*const* argv)
 {
 	if(argc == 2) {
@@ -316,7 +313,8 @@ void SatMac::sendUp(Packet* p)
 		drop(p);
 		return;
 	}
-	// Wait for txtime (to receive whole packet) + delay_
+	// First bit of packet has arrived-- wait for 
+	// (txtime + delay_) before sending up
 	Scheduler::instance().schedule(uptarget_, p, delay_ + mh->txtime());
 }
 
@@ -341,14 +339,6 @@ void SatMac::sendDown(Packet* p)
 	s.schedule(&hRes_, &intr_, txt);
 }
 
-void SatMacRepeater::recv(Packet* p, Handler* h)
-{
-	// dir : 1 = up, -1 = down; 
-	hdr_cmn *ch = HDR_CMN(p);
-	ch->direction_ = -1;
-	downtarget_->recv(p, this);
-}
-
 /*==========================================================================*/
 /*
  * _SatPhy
@@ -367,7 +357,8 @@ void SatPhy::sendDown(Packet *p)
 	if (channel_)
 		channel_->recv(p, this);
 	else {
-		// it is possible for routing to change while a packet
+		// it is possible for routing to change (and a channel to
+		// be disconnected) while a packet
 		// is moving down the stack.  Therefore, just log a drop
 		// if there is no channel
 		if ( ((SatNode*) head()->node())->trace() )
@@ -396,6 +387,40 @@ SatPhy::command(int argc, const char*const* argv) {
 		}
 	}
 	return Phy::command(argc, argv);
+}
+
+static class RepeaterPhyClass: public TclClass {
+public:
+	RepeaterPhyClass() : TclClass("Phy/Repeater") {}
+	TclObject* create(int, const char*const*) {
+		return (new RepeaterPhy);
+	}
+} class_RepeaterPhy;
+
+void RepeaterPhy::recv(Packet* p, Handler*)
+{
+	struct hdr_cmn *hdr = HDR_CMN(p);
+	if (hdr->direction_ == 1) {
+		// change direction and send to uptarget (which is
+		// really a Phy_tx that is also a RepeaterPhy)
+		hdr->direction_ = -1;
+		uptarget_->recv(p, (Handler*) 0);
+	} else {
+		sendDown(p);
+	}
+}
+
+void RepeaterPhy::sendDown(Packet *p)
+{
+	struct hdr_cmn *hdr = HDR_CMN(p);
+	hdr->direction_ =  -1;
+
+	if (channel_)
+		channel_->recv(p, this);
+	else {
+		printf("Error, no channel on repeater\n");
+		exit(1);
+	}
 }
 
 /*==========================================================================*/

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.cc,v 1.1 1999/06/21 18:28:48 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.cc,v 1.2 1999/06/23 23:41:57 tomh Exp $";
 #endif
 
 #include "satnode.h"
@@ -56,7 +56,7 @@ int SatNode::dist_routing_ = 0;
 
 SatNode::SatNode() : ragent_(0), trace_(0), hm_(0)  
 {
-	bind("dist_routing_", &dist_routing_);
+	bind_bool("dist_routing_", &dist_routing_);
 }
 
 int SatNode::command(int argc, const char*const* argv) {     
