@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.9.2.1 1997/04/20 03:26:20 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.9.2.2 1997/04/26 01:00:33 padmanab Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -79,6 +79,8 @@ struct edp {
 	int bytes;		/* true if queue in bytes, false if packets */
 	int wait;		/* true for waiting between dropped packets */
 	int setbit;		/* true to set congestion indication bit */
+	int fracthresh;         /* true if the thresholds are specified as 
+				   fractions of the max. queue length */
 
 	double th_min;		/* minimum threshold of average queue size */
 	double th_max;		/* maximum threshold of average queue size */
@@ -88,6 +90,11 @@ struct edp {
 	 * Computed as a function of user supplied paramters.
 	 */
 	double ptc;		/* packet time constant in packets/second */
+	/* misc. variables */
+	int adjusted_for_fracthresh_; /* whether we have adjust for threshold
+					 expressed as fractions of the queue size */
+	int adjusted_for_bytes_;      /* whether we have adjusted for byte-counting
+					 instead of packet-counting */
 };
 
 /*
@@ -158,11 +165,16 @@ REDQueue::REDQueue()
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);
 	bind_bool("drop-tail_", &drop_tail_);
+	bind_bool("fracthresh_", &edp_.fracthresh);
 
 	bind_bool("doubleq_", &doubleq_);
 	bind("dqthresh_", &dqthresh_);
 
+	edp_.adjusted_for_fracthresh_ = 0;
+	edp_.adjusted_for_bytes_ = 0;
+
 	reset();
+
 #ifdef notdef
 print_edp();
 print_edv();
@@ -171,9 +183,16 @@ print_edv();
 
 void REDQueue::reset()
 {
-	if (edp_.bytes) {
+	if (edp_.fracthresh && !edp_.adjusted_for_fracthresh_) {
+		edp_.th_min *= qlim_;
+		edp_.th_max *= qlim_;
+		edp_.adjusted_for_fracthresh_ = 1;
+	}
+
+	if (edp_.bytes && !edp_.adjusted_for_bytes_) {
 		edp_.th_min *= edp_.mean_pktsize;
 		edp_.th_max *= edp_.mean_pktsize;
+		edp_.adjusted_for_bytes_ = 1;
 	}
 	edv_.v_ave = 0.0;
 	edv_.v_slope = 0.0;
@@ -191,6 +210,7 @@ void REDQueue::reset()
 	Queue::reset();
 
 	bcount_ = 0;
+
 }
 
 /*
@@ -317,6 +337,12 @@ int REDQueue::drop_early(Packet* pkt)
 			p = 1.0;
 		edv_.v_prob = p;
 	}
+	{
+		double now = Scheduler::instance().clock();
+		if (now >= 3.0 && now <= 5.0) 
+			printf("time: %g  v_ave: %f  v_prob: %f  count: %d\n", now, edv_.v_ave, edv_.v_prob, edv_.count);
+	}
+
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
 	if (u <= edv_.v_prob) {
@@ -324,7 +350,7 @@ int REDQueue::drop_early(Packet* pkt)
 		edv_.count_bytes = 0;
 		if (edp_.setbit) {
 			hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
-			hf->ecn_ = 1;
+			hf->ecn_to_echo_ = 1;
 		} else
 			return (1);
 	}
@@ -343,6 +369,7 @@ void REDQueue::enque(Packet* pkt)
 	double now = Scheduler::instance().clock();
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 	int m;
+
         if (idle_) {
 		/* To account for the period when the queue was empty.  */
                 idle_ = 0;
@@ -386,7 +413,7 @@ void REDQueue::enque(Packet* pkt)
 		int metric = edp_.bytes ? bcount_ : q_.length();
 		int limit = edp_.bytes ?
 			(qlim_ * edp_.mean_pktsize) : qlim_;
-		if (metric > qlim_) {
+		if (metric > limit) { /* XXXX changed from qlim_ to limit */  
 			int victim;
 			if (drop_tail_)
 				victim = q_.length() - 1;

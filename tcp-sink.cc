@@ -33,46 +33,10 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.10 1997/03/29 01:43:08 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.10.2.1 1997/04/26 01:00:37 padmanab Exp $ (LBL)";
 #endif
 
-#include <math.h>
-#include "packet.h"
-#include "ip.h"
-#include "tcp.h"
-#include "agent.h"
-#include "flags.h"
-
-/* max window size */
-#define MWS 1024
-#define MWM (MWS-1)
-/* For Tahoe TCP, the "window" parameter, representing the receiver's
- * advertised window, should be less than MWM.  For Reno TCP, the
- * "window" parameter should be less than MWM/2.
- */
-
-class Acker {
-public:
-	Acker();
-	virtual ~Acker() {}
-	void update(int seqno);
-	inline int Seqno() const { return (next_ - 1); }
-	virtual void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
-protected:
-	int next_;		/* next packet expected  */
-	int maxseen_;		/* max packet number seen */
-	int seen_[MWS];		/* array of packets seen  */
-};
-
-class TcpSink : public Agent {
-public:
-	TcpSink(Acker*);
-	void recv(Packet* pkt, Handler*);
-protected:
-	void ack(Packet*);
-	Acker* acker_;
-	int off_tcp_;
-};
+#include "tcp-sink.h"
 
 static class TcpSinkClass : public TclClass {
 public:
@@ -129,11 +93,13 @@ void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
 void TcpSink::ack(Packet* opkt)
 {
 	Packet* npkt = allocpkt();
+	double now = Scheduler::instance().clock();
 
 	hdr_tcp *otcp = (hdr_tcp*)opkt->access(off_tcp_);
 	hdr_tcp *ntcp = (hdr_tcp*)npkt->access(off_tcp_);
 	ntcp->seqno() = acker_->Seqno();
-	ntcp->ts() = otcp->ts();
+	ntcp->ts() = now;
+	ntcp->ts_echo() = otcp->ts();
 
 	hdr_ip* oip = (hdr_ip*)opkt->access(off_ip_);
 	hdr_ip* nip = (hdr_ip*)npkt->access(off_ip_);
@@ -141,11 +107,17 @@ void TcpSink::ack(Packet* opkt)
 
 	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
 	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
-	nf->ecn_ = of->ecn_;
+	nf->ecn_ = of->ecn_to_echo_;
 
 	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
 			   ntcp, otcp->seqno());
+	add_to_ack(npkt);
 	send(npkt, 0);
+}
+
+void TcpSink::add_to_ack(Packet* pkt) 
+{
+	return;
 }
 
 void TcpSink::recv(Packet* pkt, Handler*)
@@ -155,16 +127,6 @@ void TcpSink::recv(Packet* pkt, Handler*)
       	ack(pkt);
 	Packet::free(pkt);
 }
-
-class DelAckSink : public TcpSink {
-public:
-	DelAckSink(Acker* acker);
-	void recv(Packet* pkt, Handler*);
-protected:
-	virtual void timeout(int tno);
-	Packet* save_;		/* place to stash packet while delaying */
-	double interval_;
-};
 
 static class DelSinkClass : public TclClass {
 public:
@@ -179,7 +141,6 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker)
 	bind_time("interval_", &interval_);
 }
 
-#define DELAY_TIMER 0
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {

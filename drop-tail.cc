@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.2.2.2 1997/04/20 19:11:28 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.2.2.3 1997/04/26 01:00:32 padmanab Exp $ (LBL)";
 #endif
 
 #include <string.h>
@@ -65,7 +65,7 @@ public:
 void DropTail::enque(Packet* p)
 {
 	q_.enque(p);
-	if (q_.length() >= qlim_) {
+	if (q_.length() > qlim_) { /* changed >= to > */
 		q_.remove(p);
 		drop(p);
 	}

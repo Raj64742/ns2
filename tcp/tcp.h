@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.4.2.5 1997/04/20 19:30:56 hari Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.4.2.6 1997/04/26 01:00:40 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -42,6 +42,8 @@
 struct hdr_tcp {
 #define NSA 3
         double ts_;             /* time packet generated (at source) */
+	double ts_echo_;        /* the echoed timestamp (originally sent by
+				   the peer */
 	int seqno_;		/* sequence number */
 	int reason_;		/* reason for a retransmit */
         int sa_start_[NSA+1];   /* selective ack "holes" in packet stream */
@@ -58,6 +60,9 @@ struct hdr_tcp {
 	/* per-field member functions */
 	double& ts() {
 		return (ts_);
+	}
+	double& ts_echo() {
+		return (ts_echo_);
 	}
 	int& seqno() {
 		return (seqno_);
@@ -268,6 +273,8 @@ protected:
 	double rtt_timeout();
 	void rtt_update(double tao);
 	void rtt_backoff();
+
+	double ts_peer_;        /* the most recent timestamp the peer sent */
 
 	/*XXX start/stop */
 	void output(int seqno, int reason = 0);

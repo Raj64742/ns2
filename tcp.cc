@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.13.2.3 1997/04/23 01:40:28 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.13.2.4 1997/04/26 01:00:39 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -101,7 +101,7 @@ public:
 	}
 } class_tcp;
 
-TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0), dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), t_backoff_(0), curseq_(0), maxseq_(0)
+TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0), ts_peer_(0), dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), t_backoff_(0), curseq_(0), maxseq_(0)
 {
 /*	InstVarTrace *ivt;*/
 
@@ -227,6 +227,7 @@ void TcpAgent::output(int seqno, int reason)
 	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
 	tcph->ts() = now;
+	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
 	Connector::send(p, 0);
 	if (seqno > maxseq()) {
@@ -477,7 +478,7 @@ void TcpAgent::newack(Packet* pkt)
 		t_backoff() = 1;
 	}
 	/* with timestamp option */
-	double tao = Scheduler::instance().clock() - tcph->ts();
+	double tao = Scheduler::instance().clock() - tcph->ts_echo();
 	rtt_update(tao);
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
@@ -538,6 +539,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		return;
 	}
 #endif
+	ts_peer_ = tcph->ts();
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
 	if (tcph->seqno() > last_ack_) {
@@ -581,12 +583,12 @@ void TcpAgent::timeout(int tno)
 		recover_cause_ = 2;
 		closecwnd(0);
 		reset_rtx_timer(0);
-		send(0, TCP_REASON_TIMEOUT);
+		send(0, TCP_REASON_TIMEOUT, maxburst_);
 	} else {
 		/*
 		 * delayed-send timer, with random overhead
 		 * to avoid phase effects
 		 */
-		send(1, TCP_REASON_TIMEOUT);
+		send(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
 }

@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.6.2.1 1997/04/16 03:21:24 padmanab Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.6.2.2 1997/04/26 01:00:36 padmanab Exp $ (LBL)";
 #endif
 
 //
@@ -104,6 +104,7 @@ void NewRenoTcpAgent::recv(Packet *pkt)
 		exit(1);
 	}
 #endif
+	ts_peer_ = tcph->ts();
 
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
