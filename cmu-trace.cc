@@ -276,7 +276,7 @@ CMUTrace::format_dsr(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset, 
-		"-P dsr -Ph %d -Pq %d -Ps %d -Pp %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
+		"-P dsr -Ph %d -Pq %d -Ps %d -Pp %d -Pn %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
 		    srh->num_addrs(),                   // how many nodes travered
 
 		srh->route_request(),
