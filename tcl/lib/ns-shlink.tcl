@@ -68,7 +68,7 @@ Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } {
 		$mac_($sid) channel $channel_($sid)
 
 		set ifq_($sid) [new $ifqtype]
-		$ifq_($sid) ifq $mac_($sid)
+		$ifq_($sid) target $mac_($sid)
 	}
 		
 	for {set i 0} {$i < $numnodes} {incr i 1} {
