@@ -212,13 +212,13 @@ rtObject instproc intf-changed {} {
 rtObject instproc dump-routes chan {
     $self instvar ns_ node_ nextHop_ rtpref_ metric_ rtVia_
 
-    if {[info proc SplitObjectCompare] == ""} {
-        # XXX: in tcl8 we need to find this in the global namespace
-        if {[info proc ::SplitObjectCompare] == {}} {
-            puts stderr "$class::$proc failed.  Update your TclCL library"
-            return
-        }
-    }
+#    if {[info proc SplitObjectCompare] == ""} {
+#        # XXX: in tcl8 we need to find this in the global namespace
+#        if {[info proc ::SplitObjectCompare] == {}} {
+#            puts stderr "${class}::${proc} failed.  Update your TclCL library"
+#            return
+#        }
+#    }
 
     if {$ns_ != ""} {
 	set time [$ns_ now]

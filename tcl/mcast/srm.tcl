@@ -30,7 +30,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.11 1998/01/06 17:11:37 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.12 1998/07/06 05:30:15 kannan Exp $ (USC/ISI)
 #
 
 # THis routine is a temporary hack.  It is likely to dissappear
@@ -334,6 +334,8 @@ Agent/SRM instproc log file {
 
 #
 #
+# The class definition for the following classes is at the
+# top of this file.
 # Note that the SRM event handlers are not rooted as TclObjects.
 #
 SRM instproc init {ns agent} {
@@ -675,7 +677,7 @@ SRM/session instproc send-session {} {
 SRM/session instproc evTrace args {}	;# because I don't want to trace
 					 # session messages.
 
-Class SRM/session/log-scaled
+Class SRM/session/log-scaled -superclass SRM/session
 SRM/session/log-scaled instproc schedule {} {
 	$self instvar ns_ agent_ sessionDelay_ eventID_
 
