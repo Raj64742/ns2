@@ -123,6 +123,6 @@ Csdp::extract(IdPacketQueue* q)
 double
 Csdp::weight(IdPacketQueue* q)
 {
-	double w = 1.0 - q->loss() / (q->total() + 1);
+	double w = 1.0 - (double) q->loss() / (q->total() + 1);
 	return q->length() ? w : 0;
 }
