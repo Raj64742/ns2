@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.100 2000/01/24 18:46:57 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.101 2000/03/15 22:28:21 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -97,6 +97,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         bind("nrexmit_", &nrexmit_);
         bind("nrexmitpack_", &nrexmitpack_);
         bind("nrexmitbytes_", &nrexmitbytes_);
+	bind("singledup_", &singledup_);
 #endif /* TCP_DELAY_BIND_ALL */
 }
 
@@ -164,6 +165,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("nrexmit_");
         delay_bind_init_one("nrexmitpack_");
         delay_bind_init_one("nrexmitbytes_");
+	delay_bind_init_one("singledup_");
 #endif /* TCP_DELAY_BIND_ALL */
 
 	Agent::delay_bind_init_all();
@@ -233,6 +235,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "nrexmit_", &nrexmit_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "nrexmitpack_", &nrexmitpack_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "nrexmitbytes_", &nrexmitbytes_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
 #endif
 
         return Agent::delay_bind_dispatch(varName, localName, tracer);
@@ -1001,6 +1004,24 @@ TcpAgent::initial_window()
  *	1	1	1			slow-start, return
  */
 
+/* 
+ * A first or second duplicate acknowledgement has arrived, and
+ * singledup_ is enabled.
+ * If the receiver's advertised window permits, send a new packet.
+ */
+void
+TcpAgent::send_one()
+{
+	if (t_seqno_ <= highest_ack_ + wnd_ && t_seqno_ < curseq_) {
+		output(t_seqno_, 0);
+		if (QOption_)
+			process_qoption_after_send () ;
+		t_seqno_ ++ ;
+		// send_helper(); ??
+	}
+	return;
+}
+
 void
 TcpAgent::dupack_action()
 {
@@ -1067,6 +1088,8 @@ void TcpAgent::recv(Packet *pkt, Handler*)
                 }
 		if (++dupacks_ == NUMDUPACKS) {
 			dupack_action();
+		} else if (dupacks_ == 1 && singledup_ ) {
+			send_one();
 		}
 	}
 

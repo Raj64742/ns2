@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.29 1998/08/22 17:17:49 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.30 2000/03/15 22:28:21 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -88,8 +88,9 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 			dupwnd_ = NUMDUPACKS;
 		} else if (dupacks_ > NUMDUPACKS) {
 			++dupwnd_;	// fast recovery
+		} else if (dupacks_ == 1 && singledup_ ) {
+			send_one();
 		}
-
 	}
 	Packet::free(pkt);
 #ifdef notyet

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.72 2000/03/10 18:16:54 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.73 2000/03/15 22:28:20 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -192,6 +192,7 @@ protected:
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	virtual void newtimer(Packet*);
 	virtual void dupack_action();		/* do this on dupacks */
+	virtual void send_one();		/* do this on 1-2 dupacks */
 	void opencwnd();
 	void slowdown(int how);			/* reduce cwnd/ssthresh */
 	void ecn(int seqno);		/* react to quench */
@@ -308,6 +309,7 @@ protected:
 				   text variable trace? */
 	int first_decrease_;	/* First decrease of congestion window.  */
 				/* Used for decrease_num_ != 0.5. */
+        TracedInt singledup_;   /* Send on a single dup ack.  */
 
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);

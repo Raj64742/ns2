@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.36 2000/01/09 03:56:21 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.37 2000/03/15 22:28:21 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -130,7 +130,14 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 				 * and try to resume the sequence.
 				 */
 				dupack_action();
-			}
+			} else if (dupacks_ == 1 && singledup_ ) {
+				 /* To do:
+				  * Add check that this acks new data,
+				  * and send for each dup.
+				  */
+                       		 send_one();
+				 
+                	}
 		}
 		if (dupacks_ == 0)
 			send_much(FALSE, 0, maxburst_);
