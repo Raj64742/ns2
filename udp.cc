@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.15 1999/02/18 02:19:25 yuriy Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.16 2000/05/24 00:22:25 heideman Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -60,7 +60,7 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 		printf("Error:  sendmsg() for UDP should not be -1\n");
 		return;
 	}	
-	double local_time =Scheduler::instance().clock();
+	double local_time = Scheduler::instance().clock();
 	while (n-- > 0) {
 		p = allocpkt();
 		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);

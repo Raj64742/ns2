@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.17 2000/02/25 19:37:28 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.18 2000/05/24 00:22:25 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: TODO list</H1>
 
@@ -60,7 +60,9 @@ test suite for error models
 	<em>(<a href="http://www.isi.edu/~salehi/">[salehi]</a>
 	  Thu Sep 30 15:30:37 PDT 1999)</em>
 	<p>
-	
+
+  <p>
+  <li>
        <b>introduction</b>
        Here's the format:  a boldface set of keywords about what
        part of ns is relevant,
@@ -278,7 +280,120 @@ interface) and the ns.1 explanation seemed faster.
        Create tests suites for the error models.
        <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
        Wed Nov 24 13:20:55 PST 1999)</em>
+
+	    
+       <p>
+  <li>
+       <b>routing</b>
+       Add source routing to ns.
+       Suggested by several people, including ashish.
+       Could possibly start with MPLS contributed code? 
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Mon Dec 20 15:57:11 PST 1999)</em>
        
+       <p>
+  <li>
+       <b>optimization, routing, classifiers</b>
+       An optimization in classifier sizing:
+   When Polly mentioned that Classifiers just double their routing
+   tables when the currently allocated space is exceeded, I thought it
+   was a bug: Classifiers normally are populated when all nodes are
+   created, which means that we know what the routing size will be and
+   can give Classifiers a hint, so we don't need to double.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Tue Dec 21 10:25:56 PST 1999
+)</em>
+
+       <p>
+  <li>
+       <b>topology generation</b>
+       Contributed topology generators to possibly integrate
+       from Graham Phillips &lt;graham@ISI.EDU&gt;:
+       I've written some topology generator programs that the ns
+community is more than welcome to use.  These programs are 
+reasonably mature and I've used them over the past year
+while preparing a sigcomm paper about multicast trees.  
+
+<p>
+      The programs essentially create and manipulate Standford Graph 
+Base topology files, but there are also programs for converting from 
+1) tiers to SGB, and 
+2) ISI's mbone collection format to SGB.
+Obviously the ns community would use the existing SGB to ns 
+converter to create the appropriate ns topologies.
+
+<p>
+The basic idea was to widen the range of real and artificial 
+topologies that might be constructed.  All utilities and 
+documentation are available
+from <a href="http://www-scf.usc.edu/~grahamph/contrib/index.html">http://www-scf.usc.edu/~grahamph/contrib/index.html</a>.
+       <p>
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Tue Dec 21 10:30:47 PST 1999)</em>
+
+       
+       <p>
+  <li>
+       <b>tracing, visualization</b>
+       Need to review MAC-layer tracing, support tracing at multiple levels.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Tue Dec 21 10:50:34 PST 1999)</em>
+
+       <p>
+  <li>
+       <b>binding</b>
+       We need to clean up inconsistent binding of variables
+       (but this is hard to do while keeping backwards compatibility).
+       <pre>
+Date: Fri, 23 Jul 1999 17:37:04 +0100 (BST)
+From: Lloyd Wood <L.Wood@surrey.ac.uk>
+In:
+
+http://www-mash.cs.berkeley.edu/dist/archive/ns-users/9906/0304.html
+http://www-mash.cs.berkeley.edu/dist/archive/ns-users/9906/0313.html
+
+I grumbled about consistent use of bind, so that OTcl and C++ users
+can talk about the same variables and you don't have to go hunting for
+the bind statement to see what maps to what when you're working across
+the divide.
+
+The thing is, once you start going a bit deeper into the ns code,
+however reluctantly, there's a second level of confusion. A search on
+'return ' in headers for member functions returning variables produces
+rather similar results for bind; almost all are obvious and sensibly
+mapped: blah() to blah_, but the odd thing like:
+
+tcp.h:  int& flags() { return (tcp_flags_); }
+rtp.h:  u_int16_t& flags() { return (flags_); }
+
+(or
+ip.h:   int& flowid() { return (fid_); }
+address.h:      inline int portshift() {return PortShift_;}
+address.h:      inline int portmask() {return PortMask_;}
+packet.h:       inline double& timestamp() { return (ts_); }  )
+
+can really throw you for a loop and complicate digging up responsible
+bits of code affected by changes.
+</pre>
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Tue Jan  4 10:55:56 PST 2000)</em>
+
+              
+       <p>
+  <li>
+       <b>routing, scaling</b>
+       Should reimplement algorithm routing solely in C++.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Wed Jan 19 07:42:32 PST 2000)</em>
+       <p>
+
+  <li>
+       <b>mixed-mode, scaling</b>
+       Should check, change code so that packets can stay completely
+       in C++ when being forwarded between regions in mixed-model simulations.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Wed Jan 19 07:46:49 PST 2000)</em>
+
   <p>
   <li> <b>debugging</b> Add a "debug" flag.  
   From email with "Subject: a though to help

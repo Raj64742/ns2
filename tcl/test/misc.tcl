@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.19 1999/01/22 02:37:24 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.20 2000/05/24 00:22:27 heideman Exp $
 #
 
 #source plotting.tcl
@@ -109,9 +109,9 @@ TestSuite instproc finish file {
 #
 #       To reproduce old functionality:
 #	global PERL
-#	$PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-#	  $PERL ../../bin/raw2xg -s 0.01 -m 90 | \
-#	  xgraph -bb -tk -nl -m -x time -y packets
+#	exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+#	  $PERL ../../bin/raw2xg -s 0.01 -m 90 |  \
+#	  xgraph -bb -tk -nl -m -x time -y packets"
 #	
 #       catch "$self exit 0"
 	exit 0

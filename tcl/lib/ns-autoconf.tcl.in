@@ -23,7 +23,7 @@
 proc checkout_executable {exe_var best alternate text} {
 	global $exe_var
 	set $exe_var $best
-	if {![file executable $best]} {
+	if {"$best" = "" || ![file executable $best]} {
 		puts stderr $text
 		set $exe_var $alternate
 	}
@@ -32,7 +32,7 @@ proc checkout_executable {exe_var best alternate text} {
 #
 # Keep track of where the good perl is.
 #
-checkout_executable PERL @PERL@ perl "\
+checkout_executable PERL "@PERL@" perl "\
 	When configured, ns found the right version of perl in\
 	@PERL@
 	but it doesn't seem to be there anymore, so\
@@ -40,7 +40,7 @@ checkout_executable PERL @PERL@ perl "\
 	The wrong version of perl may break the test suites.\
 	Reconfigure and rebuild ns if this is a problem.\
 "
-checkout_executable TCLSH @V_TCLSH@ tclsh "\
+checkout_executable TCLSH "@V_TCLSH@" tclsh "\
 	When configured, ns found the right version of tclsh in\
 	@V_TCLSH@
 	but it doesn't seem to be there anymore, so\

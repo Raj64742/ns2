@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /* fsm.cc
  * Copyright (C) 1999 by USC/ISI
  * All rights reserved.
@@ -18,7 +18,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.6 1999/10/15 00:24:24 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.7 2000/05/24 00:22:25 heideman Exp $ (LBL)
  */
 
 #include "fsm.h"
@@ -137,8 +137,9 @@ FSMState::print_all_stats(int desired_pkts_total,	// # needed
 			  int num_state_names)
 {
 	int i;
-	static FSMState *states[17];
-	static char state_names[17*4]; // xxx: this is just some random big size :-(
+#define LARGER_NUMBER_OF_STATES 31   // was 17
+	static FSMState *states[LARGER_NUMBER_OF_STATES];
+	static char state_names[LARGER_NUMBER_OF_STATES*4]; // xxx: this is just some random big size :-(
 
 	if (pkts >= desired_pkts_total || qs > 5) {
 		// done; print states and probability
