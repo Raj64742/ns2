@@ -33,11 +33,17 @@
  *
  */
 
-/* 
- * WSS: Weight Spread Sequence  
+
+/* it is used to generate the Weight Spread Sequence of SRR 
  * WSS and SRR are named by Dr. W. Qi 
  */
-// Ported by xuanc, 1/20/02
+
+/*
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+*/
 
 class PacketSRR;
 class SRR;
@@ -45,9 +51,9 @@ class SRR;
 int power( int base, int j)
 {
 	int r=1; int i;
-
 	if(j==0) return 1;
-	else{
+	else
+	{
 		for(i=0;i<j;i++)
 		r*=base;
 	}
@@ -55,20 +61,21 @@ int power( int base, int j)
 	return r;
 }
 
-void rawScan(int i, int j, int N, int *p)
+void rawScan( int i, int j, int N, int *p)
 {
 	if(j==N)
 	{
 		*p=N;
 		return;
 	}
+
 	if(i%(int)power(2,j))
 	{
 		*p=j;
-	    	return;
+		return;
 	}
 	else
-	    rawScan(i, j+1, N, p);
+		rawScan(i, j+1, N, p);
 }
 
 class WSS{
@@ -81,7 +88,27 @@ public:
 	unsigned int ptr;
 	int *pwss;  // 
 	void init(int i);
+
+	int get_ptr()
+	{
+	  return ptr;
+	}
+
+	void set_ptr (int val){
+		ptr = val;
+	}
+
+	void inc_ptr ( int order)
+	{
+		ptr += 1;
+		if((int)ptr > ((1<<order)-2))
+		{
+			ptr = 0;
+		}
+	}
+
 	int get(int order);
+
 	void print(); // for debug purpose
 
 };
@@ -97,19 +124,23 @@ void WSS::init(int i){
 		rawScan(j, 1, maxOrder,  (int*)(pwss+j-1));
 }
 
-int WSS::get(int order){  // it should also tells the WSS the order
-  int value;
-  
-  currOrder=order;
-  
-  if(ptr > (unsigned int)((1<<order)-2))
-    ptr=0; // I think it is much better than the following line.
-  //	ptr= ((1<<order) -2);
-  value= *(pwss+ptr);
-  ptr+=1;
-  if(ptr == (unsigned int)((1<<order)-1))
-    ptr=0;
-  return value;
+int WSS::get(int order)  // it should also tells the WSS the order
+{  
+	int value;
+
+	currOrder=order;
+
+	//printf("get wss\n");
+	int tmp = 1 << order;
+	if((int)ptr > (tmp-2))
+	{
+		printf("tmp :%d \n", tmp);
+		printf("error, too large ptr:%d, order:%d\n", (int)ptr, order);
+		exit(0);
+	}
+
+	value= *(pwss+ptr);
+	return value;
 }
 
 void WSS::print(){
@@ -119,3 +150,16 @@ void WSS::print(){
 	printf("\n");
 }
 
+/*
+main(int argc,  char **argv)
+{
+	WSS wss;
+	if(argc!=2)
+	{
+		printf("usage:%s number\n", argv[0]);
+		exit(0);
+	}
+	wss.init(atoi(argv[1]));
+	wss.print();
+}
+*/

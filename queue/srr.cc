@@ -47,7 +47,6 @@
  * for details about SRR, see:  
  * " SRR: An O(1) Time Complexity Scheduler for Flows in Multi-Service Packet Networks", Chuanxiong Guo, sigcomm'01.
  */
-
 // Ported by xuanc, 1/20/02
 
 #include "config.h"   // for string.h
@@ -56,21 +55,24 @@
 #include <math.h>
 #include <assert.h>
 
-#define MAXFLOW 	100 // this version supports up to 1024 flows and queues.
-#define MAXQUEUE 	100 // if you want more, you can change it. 
-#define MAXWSSORDER 	16  // a 16th WSS needs pow(2, 16) space
+#define MAXFLOW 100  // this version supports up to 1024 flows and queues.
+#define MAXQUEUE 100 // if you want more, you can change it. 
+#define MAXWSSORDER 16 // a 16th WSS needs pow(2, 16) space
 
 
+//for debug 
 #ifndef DEBUG_SRR
 //#define DEBUG_SRR
-#endif  //DEBUG_SRR
+#endif // DEBUG_SRR
 
 // this struct is the basic element for the Weight Matrix
-struct wm_node{
+struct wm_node
+{
 	int queueid; // the queue the node belongs to 
 	int weight;  // the weight of the node
 	struct wm_node *next;
 	struct wm_node *prev;
+	struct wm_node *sibling;
 };
 
 #include "wss.h" 
@@ -116,29 +118,30 @@ protected:
 };
 
 class SRR : public Queue {
-	public :
+public :
 	SRR();
 	virtual int command(int argc, const char*const* argv);
 	Packet *deque(void);
 	void enque(Packet *pkt);
 	void clear();
+
 public:
-	int maxqueuenumber_ ; //total number of flows allowed
-	int blimit_;    //total number of bytes allowed across all flows
-	int bytecnt ; //cumulative sum of bytes across all flows
-	int pktcnt ; // cumulative sum of packets across all flows
-	int flwcnt ; //total number of active flows
+	int maxqueuenumber_ ;	//total number of flows allowed
+	int blimit_;			//total number of bytes allowed across all flows
+	int bytecnt;			//cumulative sum of bytes across all flows
+	int pktcnt;				// cumulative sum of packets across all flows
+	int flwcnt;				//total number of active flows
 
-	int last_queueid; // the id of the previously served queue
-	int last_size; // the length of the last send packet
+	int last_queueid;		// the id of the previously served queue
+	int last_size;			// the length of the last send packet
 	
-	PacketSRR srr[MAXFLOW] ; //pointer to the entire srr struct
+	PacketSRR srr[MAXFLOW]; //pointer to the entire srr struct
 
-	int f2q[MAXFLOW];  // flow to queue mapping
-	int private_rate[MAXFLOW]; // bandwidth for each queue
-	int mtu_;          // it is used to mark the quantum adding to 
-			  // each queue
-	int granularity_;  // the min rate that can be allocated to a queue
+	int f2q[MAXFLOW];		// flow to queue mapping
+	int private_rate[MAXFLOW];	// bandwidth for each queue
+	int mtu_;					// it is used to mark the quantum adding to 
+								// each queue
+	int granularity_;			// the min rate that can be allocated to a queue
 	int maxRate;
 	int minRate; 
 
@@ -148,20 +151,24 @@ public:
 	 * wmHead[0] according to the least important weight,
    	 * wmHead[maxColumn] according to the most important weight
 	 */
-	struct wm_node wmHead[MAXWSSORDER];   // each column of WM has a head
-	struct wm_node wmTail[MAXWSSORDER];   // each column of WM has a tail 
-	struct wm_node *pwmCurr;	   // points to the current scanning position
-	int wmEmptyFlag; // 0: WM is not empty, 1:WM is empty
+	struct wm_node wmHead[MAXWSSORDER];		// each column of WM has a head
+	struct wm_node wmTail[MAXWSSORDER];		// each column of WM has a tail 
+	struct wm_node *pwmCurr;				// points to the current scanning position
 
-	int maxColumn;  // the max column number of the WM, so there are total 
-			// maxColumn+1 columns, the column number is numbered from 0 to 
-			// maxColumn from left to right.
-	int currMaxColumn; // the current max number of the column
+	struct wm_node *pRowHead[MAXFLOW];
+	struct wm_node *pRowTail[MAXFLOW];
+
+
+	int wmEmptyFlag;						// 0: WM is not empty, 1:WM is empty
+
+	int maxColumn;		// the max column number of the WM, so there are total 
+						// maxColumn+1 columns, the column number is numbered from 0 to 
+						// maxColumn from left to right.
+	int currMaxColumn;	// the current max number of the column
 	
 	int min_quantum;
 
-	//returns flow with max bytes 
-	inline PacketSRR *getMaxflow () { 
+	inline PacketSRR *getMaxflow () { //returns flow with max bytes 
 		int j,i;
 		PacketSRR *tmp=0;
 		PacketSRR *maxflow=0;
@@ -196,7 +203,6 @@ public:
 	int add_to_WM(int queueid, int weight);
 	int del_from_WM(int queueid, int weight);
 	struct wm_node * getNextNode( ); 
-	struct wm_node * getDiffNode(int queueid);
 };
 
 static class SRRClass : public TclClass {
@@ -210,30 +216,32 @@ public:
 SRR::SRR()
 {	int i;
 
-	maxqueuenumber_=10;
-	blimit_=25000;
-	mtu_=1000; 		//1000 bytes quantum at default setting
-	granularity_=1000; 	//default to 1K bit/s  
+	maxqueuenumber_	= 10;
+	blimit_ = 25000;
+	mtu_= 1000; 		//1000 bytes quantum at default setting
+	granularity_ = 1000; 	//default to 1K bit/s  
 
-	last_queueid=-1; // -1 means that SRR does not have a previous deque operation	
-	last_size=0;
+	last_queueid = -1; // -1 means that SRR does not have a previous deque operation	
+	last_size = 0;
 
-	flwcnt=0;  // init 
-	bytecnt=0;
-	pktcnt=0;
-	min_quantum=1000;
+	flwcnt = 0;  // init 
+	bytecnt = 0;
+	pktcnt = 0;
+	min_quantum = 1000;
 
-	pwmCurr=0; // at first, pwmCurr points to NULL
+	pwmCurr = 0; // at first, pwmCurr points to NULL
 
-	for(i=0;i<MAXFLOW;i++){
-		private_rate[i]=granularity_; //default quantum value for each flow
-		f2q[i]=0; // default queue id for all the flow
-			  // or it will not works right at the default config
+	for(i=0; i<MAXFLOW; i++)
+	{
+		private_rate[i] = granularity_; //default quantum value for each flow
+		f2q[i]=0;		 // default queue id for all the flow
+					 // or it will not works right at the default config
 	}
 
-	maxRate=100000000; //100Mbps
-	minRate=1000; //1kbps	
+	maxRate = 100000000; //100Mbps
+	minRate = 1000; //1kbps	
 
+	// init the WM double queues here too.
 	for(i=0;i<MAXWSSORDER;i++){
 		wmHead[i].prev=NULL;
 		wmHead[i].next=&wmTail[i];
@@ -242,20 +250,27 @@ SRR::SRR()
 		wmHead[i].queueid=wmTail[i].queueid=-1; // 
 		wmHead[i].weight=wmHead[i].weight=i;
 	}
-	wmEmptyFlag=1; 
 
+	for (i=0;i<MAXFLOW; i++)	
+		pRowHead[i]= pRowTail[i] = NULL;
+	
+	wmEmptyFlag=1; // it is empty at first
 	wss.init(MAXWSSORDER); // create the Weight Spread Sequence
 
-	currMaxColumn=-1;
+	currMaxColumn = -1;
 	maxColumn=0;
 	
 	// allow the TCL scripts to change the following values
 	bind("maxqueuenumber_",&maxqueuenumber_);  //it is the max queuenumber set in the TCL script
 	bind("mtu_", &mtu_);      // set the Max Transfer Unit of the output link
-	bind("granularity_", &granularity_); // set the rate allocation granularity of the  all the flows. 
+	bind("granularity_", &granularity_); // set the rate allocation granularity of the 
+				// all the flows. 
 	bind("blimit_",&blimit_);
 }
 
+
+// enque and deque are two interface functions that provided by 
+// NS 
 void SRR::enque(Packet* pkt)
 {
 	PacketSRR *q;
@@ -269,21 +284,19 @@ void SRR::enque(Packet* pkt)
 	flowid= iph->flowid(); 		//get the flowid
 	queueid= f2q[flowid]; 	// get the corresponding queue id
 
-	if(queueid>maxqueuenumber_)
+	if(queueid > maxqueuenumber_)
 	{
 		fprintf(stderr, "queueid too big\n");
 		exit(1);
 	}
 
 #ifdef DEBUG_SRR
-	//printf("   in enque\n"); fflush(0);
+	printf("   in enque\n"); fflush(0);
 #endif
 	
 
 // we drop packets from the longest queue
-/*	
-	if( bytecnt+ ch->size() > blimit_)
-	{
+/*	if( bytecnt+ ch->size() > blimit_){
 
 		drop(pkt);
 		return;
@@ -305,8 +318,9 @@ void SRR::enque(Packet* pkt)
 	q->bcount += ch->size();
 	bytecnt +=ch->size();
 
+
 	if (q->pkts==1)
-		{
+	{
 			//add to the WM
 			// adjust currMaxColumn
 			// if it is a first active flow, put the pwmPtr
@@ -315,8 +329,10 @@ void SRR::enque(Packet* pkt)
 			weight/=granularity_;
 			
 			add_to_WM(queueid, weight);
+			
 			q->deficitCounter=0;
-		}
+	}
+
 }
 
 Packet *SRR::deque(void) 
@@ -327,12 +343,18 @@ Packet *SRR::deque(void)
 	int flowid;
 	int queueid;
 	PacketSRR *pP;
-	
+//	static int dcnt = 0;
+
+//	if(dcnt <20){	
+//	printf(" in dequeue: %lf \n",  Scheduler::instance().clock() ); 
+//	dcnt++;
+//	}
 #ifdef DEBUG_SRR
-//fprintf(stdout, "  in deque\n");
+printf("  in deque\n");
 #endif
 
 	if(last_queueid>=0){
+//printf("last size=%d\n ", last_size);
 			srr[last_queueid].bcount -= last_size;
 			srr[last_queueid].pkts-=1;
 			--pktcnt;
@@ -348,17 +370,24 @@ Packet *SRR::deque(void)
 
 	}	
 
-	assert(pktcnt>=0);
+assert(pktcnt>=0);
 	if (pktcnt==0) {
+	//	fprintf (stderr,"No active flow\n");
 		last_queueid=-1;
 		return(0);
 	}
 
+	if(pwmCurr == NULL){
+		printf("wrong, pwmCurr is NULL\n");
+		exit(0);
+	}
+
+//printf("pktcnt=%d\n", pktcnt);
 
 	while (!pkt) {
 
-		if(pwmCurr->queueid==-1)
-		{ 
+		if(pwmCurr->queueid==-1){ // it should never happen
+
 			fprintf(stderr,"pwmCurr points to head or tail\n"); 
 			fprintf(stderr, "weight:%d", pwmCurr->weight);
 			exit(0);
@@ -373,12 +402,12 @@ Packet *SRR::deque(void)
 	
 		}
 	
-		iph= hdr_ip::access(pkt);
+		iph = hdr_ip::access(pkt);
 
 		flowid=iph->flowid();
 		queueid= f2q[flowid]; // get the corresponding queue id
 
-		assert(queueid== pwmCurr->queueid);
+assert(queueid== pwmCurr->queueid);
 	
 		if (!pP->turn) {
 			pP->deficitCounter+= mtu_; // each queue shares the same quantum!
@@ -393,11 +422,24 @@ Packet *SRR::deque(void)
 			pkt=pP->deque();
 			last_size=ch->size( );
 			
+//			pP->bcount -= ch->size();
+//			--pP->pkts;
+//			--pktcnt;
+//			bytecnt -= ch->size();
+//			if (pP->pkts == 0) {
+//				pP->turn=0;
+//				pP->deficitCounter=0;
 
+				// delete the queue from SRR
+//				del_from_WM(queueid, private_rate[queueid]/granularity_ );
+				//getNextNode();
+//			}
+		
 #ifdef DEBUG_SRR
-	//printf("deque a packet, id=%d, size=%d\n", queueid, last_size);
+printf("deque a packet, id=%d, size=%d\n", queueid, last_size);
 #endif	
 			last_queueid=queueid;
+
 			return pkt;
 		}
 		else {
@@ -427,6 +469,8 @@ void SRR::clear()
 	}
 }
 
+
+// weight is the queues rate/granularity.
 int SRR::add_to_WM(int queueid, int weight)
 {
 	struct wm_node *pNode;
@@ -435,66 +479,121 @@ int SRR::add_to_WM(int queueid, int weight)
 	//int temp=weight;
 	//int flag=0;
 
-	if(weight==0){
+	int old_colno = currMaxColumn;
+
+	if(weight==0)
+	{
 		fprintf(stderr, "add_to_WM: weight should not be zero");
 		exit(1);
 	}
 
-	if(weight>(  (1<<(maxColumn+1))-1)){
+	if(weight > ( (1<<(maxColumn+1))-1) )
+	{
 		fprintf(stderr, "add_to_WM: weight too big");
 		exit(1);
 	} 
 
-	//add to the WM
+	// add to the WM
 	// adjust currMaxColumn
 	// if it is a first active flow, put the pwmPtr
-	for(i=maxColumn; i>=0;i--){
 
-		if (weight & (1<<i) ){  // 
+	
+	for(i=maxColumn; i>=0; i--)
+	{
+
+		if (weight & (1<<i) )
+		{  
+			// 
 			// add to queueid= i; wmHead[queueid], wmTail[queueid]
-		
 			pNode=(struct wm_node*)malloc(sizeof(struct wm_node));
-			if(pNode==NULL){
+
+			if(pNode==NULL)
+			{
 				fprintf(stderr, "no memeory to create WM node");
 				exit(2);
 			}
-			pNode->queueid=queueid;
-			pNode->weight=i;
-			pNode->prev=wmTail[i].prev;
-			pNode->next=&wmTail[i];
-			(wmTail[i].prev)->next=pNode;
-			wmTail[i].prev=pNode;
 
-			if(currMaxColumn<i)
-				currMaxColumn=i; // adjust the current max column number
-			if(wmEmptyFlag==1){
-				wmEmptyFlag=0;
-				if(pwmCurr==0){ // we should let it points to the correct place.
-					pwmCurr=pNode;
-				}
+
+			pNode->queueid = queueid;
+			pNode->weight = i;
+			pNode->sibling = NULL;	
+			
+			if(pRowTail[queueid] == NULL){
+				pRowHead[queueid]= pRowTail[queueid] = pNode;
+			}else{
+				pRowTail[queueid]->sibling = pNode;
+				pRowTail[queueid] = pNode;
 			}
+
+			if( pwmCurr && (pwmCurr->weight == i) ){
+				pNode-> prev =  pwmCurr->prev;
+				pNode-> next =  pwmCurr;
+				(pwmCurr->prev)->next = pNode;
+				pwmCurr->prev = pNode;
+
+			}else {
+
+				pNode->prev = wmTail[i].prev;
+				pNode->next = &wmTail[i];
+				(wmTail[i].prev)->next = pNode;
+				wmTail[i].prev = pNode;
+			}
+
+			if(currMaxColumn < i)
+				currMaxColumn = i; // adjust the current max column number
+			
+			if(wmEmptyFlag == 1)
+			{
+				wmEmptyFlag=0;
+				if(pwmCurr == NULL) // we should let it points to the correct place.
+					pwmCurr=pNode;
+			}
+
 		}
 	}
+	
+	if (  old_colno < currMaxColumn )
+	{
+		if(old_colno >= 0){
+	//	if(old_colno > 0){
+			int pc = wss.get_ptr () + 1;
+			pc = pc << (currMaxColumn - old_colno);
+			wss.set_ptr ( pc -1);
+		//	printf("set_ptr in add_to_wm: ptr:%d\n", pc-1);
+		//	printf("old column no: %d %d\n", old_colno, currMaxColumn);
+		}
+	}
+
+	//printf("in add_to_wm: k:%d, j:%d\n", currMaxColumn, old_colno);	
 	++flwcnt;
 	return 0;
 }
 
-int SRR::del_from_WM(int queueid, int weight){
-	struct wm_node *pNode;
-	int i;
 
-	if(pwmCurr->queueid==queueid){ 
-		// we adjust pwmCurr before we delete the row
-		getDiffNode(queueid);
+//remove the wm_node from the links and free the memory
+int SRR::del_from_WM(int queueid, int weight)
+{
+	struct wm_node *pNode, *pNode2;
+	int i;
+	int wss_term; 
+	int temp; 
+
+
+	if(pwmCurr->queueid==queueid)  // we adjust pwmCurr before we delete the row
+	{ 
+		if (pwmCurr->next != &wmTail[pwmCurr->weight])
+			pwmCurr = pwmCurr->next ;
+		else pwmCurr = NULL;
 	}
 
-	// travel all double links, and delete the node whose id is queueid
-	for(i=0;i<=currMaxColumn;i++){ 
+	/*
+	for(i=0;i<=currMaxColumn;i++) // travel all double links, and delete the node whose id is queueid
+	{ 
 		pNode=wmHead[i].next;
 
 		while(pNode!=&wmTail[i]){
-			if(pNode->queueid==queueid)
-			{
+			if(pNode->queueid==queueid){ //yes, we get one.
+				//remove it from the link, and free the node.
 				(pNode->prev)->next=pNode->next;
 				(pNode->next)->prev=pNode->prev;
 				free(pNode);
@@ -503,17 +602,40 @@ int SRR::del_from_WM(int queueid, int weight){
 			}
 			else
 				pNode=pNode->next;
+
 		}
+		
+	} */
+
+	pNode = pRowHead[queueid];
+	while (pNode){
+		(pNode->prev)->next=pNode->next;
+		(pNode->next)->prev=pNode->prev;
+		
+		pNode2= pNode;
+		pNode = pNode->sibling;
+		free(pNode2);
 	}
 
-	for(i=currMaxColumn;i>=0;i--){
-		if(wmHead[i].next != &wmTail[i]){
+	pRowHead[queueid] = pRowTail[queueid] = NULL;
+
+// we should adjust currMaxColumn, 
+//and if currMaxColumn becomes less, we should also adjust WSS's pointer
+	
+	int old_colno = currMaxColumn;
+
+	for(i=currMaxColumn;i>=0;i--)
+	{
+		if(wmHead[i].next != &wmTail[i])
+		{
 		  currMaxColumn=i;
 		  break;
 		}
 	}
 
-	if(i<0){
+	if(i<0)
+	{
+		// it is empty now.
 #ifdef DEBUG_SRR
 //printf("WM empty\n");
 #endif
@@ -521,69 +643,92 @@ int SRR::del_from_WM(int queueid, int weight){
 		currMaxColumn=-1;
 		pwmCurr=NULL;
 		last_queueid=-1;
+		wss.set_ptr (0); // reset the WSS sequence pointer to 0;
+		goto rr;
+	} else if ( currMaxColumn < old_colno)
+	{
+		int pc = wss.get_ptr () +1;
+		//printf("pc = %d \n", pc);
+		int mul = 1 << (old_colno - currMaxColumn ); 
+		int tmpc = pc / mul;
+		if (pc % mul){
+			tmpc += 1;
+			if (tmpc > ((1<<(currMaxColumn+1) )- 1) )
+				tmpc = 1;
+
+		}
+		wss.set_ptr (tmpc -1);
+		//printf("set_ptr in del_from__wm: ptr:%d\n", tmpc-1);
+		//printf("k:%d j:%d\n", currMaxColumn, old_colno);
 
 	}
+	if (pwmCurr == NULL){
+loop:
+		wss_term=wss.get(currMaxColumn+1);
+		wss.inc_ptr (currMaxColumn+1 );
+		temp = currMaxColumn+1-wss_term;
+		 
+		// try to point pwmCurr to the right place.
+		if( wmHead[temp].next != &wmTail[temp])	
+		{
+			pwmCurr=wmHead[temp].next;	
+
+		}else
+			goto loop;
+	}
+
+rr:
 	--flwcnt;
 	return 0;
 }
 
-struct wm_node *SRR::getNextNode()
-{
+
+/* should be checked:
+ * whether it returns nothing when the WM is empty
+ */
+struct wm_node *SRR::getNextNode(){
   //struct wm_node *pNode;
   int queueid;
   int weight;
   int wss_term;
   int temp;
-  
-  if(bytecnt==0){
-    //	printf("getNextNode, pwmCurr = NULL, wmEmptyFlag=%d\n", wmEmptyFlag);
-    return NULL;
-  }
-  
-  queueid=pwmCurr->queueid;
-  weight= pwmCurr->weight;
-  
-  if(pwmCurr->next != &wmTail[weight]){ // not the tail 
-    pwmCurr=pwmCurr ->next;
-  } else{
-    if (currMaxColumn==-1){
-      fprintf(stderr, "getNextNode, empty WM");
-      exit(0);
-    }
-    
-  again:		wss_term=wss.get(currMaxColumn+1);
-    temp = currMaxColumn+1-wss_term;
-    // wss_term according to currMaxColumn+1-wss_term queue
-    if( wmHead[temp].next != &wmTail[temp])	{
-      pwmCurr=wmHead[temp].next;	
-      
-    }else
-      goto again;
-    
-    
-  }
-  return pwmCurr;
-}
 
-struct wm_node *SRR::getDiffNode(int queueid){
 
-	struct wm_node *ptr;
-
-	if(flwcnt==1){
-		pwmCurr=NULL; 
+	if(bytecnt==0){
+		//	printf("getNextNode, pwmCurr = NULL, wmEmptyFlag=%d\n", wmEmptyFlag);
 		return NULL;
 	}
-		
-	while(1){
 
-tt:		ptr=getNextNode();
-		if(ptr->queueid==queueid)
-			goto tt;
-			
-		break;		
-	}	
-	return pwmCurr;	
+	queueid=pwmCurr->queueid;
+	weight= pwmCurr->weight;
+
+	if(pwmCurr->next != &wmTail[weight]){ // not the tail 
+		pwmCurr=pwmCurr ->next;
+	} else{
+		if (currMaxColumn==-1){
+			fprintf(stderr, "getNextNode, empty WM");
+			exit(0);
+		}
+
+again:
+		wss_term=wss.get(currMaxColumn+1);
+		wss.inc_ptr (currMaxColumn+1 );
+
+		temp = currMaxColumn+1-wss_term;
+		
+		// wss_term according to currMaxColumn+1-wss_term queue
+	 	if( wmHead[temp].next != &wmTail[temp])	{
+			pwmCurr=wmHead[temp].next;	
+
+		}else
+			goto again;
+
+
+	}
+
+	return pwmCurr;
 }
+
 
 int getOrder(int i){
 	int order=0;
@@ -607,15 +752,16 @@ int getOrder(int i){
 int SRR::command(int argc, const char*const* argv)
 {
 
+
 	if (argc==3) {
 
 		if (strcmp(argv[1], "blimit") == 0) {
 			blimit_ = atoi(argv[2]);
 			if (bytecnt > blimit_)
-			{
-				fprintf (stderr,"More packets in buffer than the new limit");
-				exit (1);
-			}
+				{
+					fprintf (stderr,"More packets in buffer than the new limit");
+					exit (1);
+				}
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "maxqueuenumber") == 0) {
@@ -672,8 +818,10 @@ int SRR::command(int argc, const char*const* argv)
 
 			}
 	
-			//the order of max band flow is too big!
-			if(maxColumn>(MAXWSSORDER-1)){ 
+#ifdef DEBUG_SRR
+	printf("maxColumn=%d\n", maxColumn), fflush(0);
+#endif
+			if(maxColumn>(MAXWSSORDER-1)){ //the order of max band flow is too big!
 				fprintf(stderr, "granularity too small or band too big!");	
 				exit(2);
 			}
@@ -701,4 +849,5 @@ int SRR::command(int argc, const char*const* argv)
 	}
 	return (Queue::command(argc, argv));
 }
+
 
