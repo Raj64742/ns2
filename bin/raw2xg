@@ -20,6 +20,7 @@ options:
     -d		plot only drops and ECN marks
     -v          plot events
     -c          leave out empty lists
+    -f          plot acks from tcp-full
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
