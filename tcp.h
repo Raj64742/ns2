@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.4 1997/04/20 19:11:30 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.5 1997/04/20 19:30:56 hari Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -154,7 +154,8 @@ struct hdr_tcpasym {
                                        n = strlen(wrk); \
                                        wrk[n] = '\n'; \
                                        wrk[n+1] = 0; \
-                                       (void)Tcl_Write(channel_, wrk, n+1); \
+				       if (channel_) \
+					       (void)Tcl_Write(channel_, wrk, n+1); \
                                        wrk[n] = 0; \
 			               last_log_time_ = memb_time; \
 			       } \
