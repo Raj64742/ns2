@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.44 1998/08/12 23:40:57 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.45 1998/08/19 17:22:20 heideman Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -65,8 +65,8 @@ int Agent::uidcnt_;		/* running unique id */
 
 
 Agent::Agent(int pkttype) : 
-	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
-	prio_(-1), flags_(0), defttl_(32), channel_(0), traceName_(NULL),
+	size_(0), type_(pkttype), 
+	channel_(0), traceName_(NULL),
 	oldValueList_(NULL), app_(0)
 {
 	off_ip_ = hdr_ip::offset();
