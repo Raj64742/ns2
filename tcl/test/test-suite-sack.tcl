@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.13 2001/09/06 03:44:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.14 2001/09/06 16:58:54 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -50,18 +50,28 @@ Agent/TCP set delay_growth_ false
 
 TestSuite instproc finish file {
         global quiet PERL
+	set wrap 90
         exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+          $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
 	if {$file == "FalsePipe"} {
 	  exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
-	    $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp1.rands
+	    $PERL ../../bin/raw2xg -a -s 0.01 -m $wrap -t $file > temp1.rands
         } else {
 	  exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
-	    $PERL ../../bin/raw2xg -a -c -s 0.01 -m 90 -t $file > temp1.rands
+	    $PERL ../../bin/raw2xg -a -c -s 0.01 -m $wrap -t $file > temp1.rands
 	}
         if {$quiet == "false"} {
+	    if {$file == "FalsePipe"} {
+        	exec  $PERL ../../bin/getrc -e -s 0 -d 2 all.tr | \
+                $PERL ../../bin/raw2xg -c -v -s 0.01 -m $wrap -t $file > temp2.rands
+        	exec  $PERL ../../bin/getrc -e -s 4 -d 3 all.tr | \
+          	$PERL ../../bin/raw2xg -c -a -s 0.01 -m $wrap -t $file > temp3.rands
+                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
+			temp1.rands temp2.rands temp3.rands &
+	    } else {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
 			temp1.rands &
+	    }
         }
         ## now use default graphing tool to make a data file
         ## if so desired
