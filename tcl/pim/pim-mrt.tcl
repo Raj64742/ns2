@@ -25,9 +25,22 @@
 
 Class Ent
 
-Ent instproc init {} {
-	$self instvar next_hop
-	set next_hop -1
+Ent instproc init {} {   
+        $self instvar next_hop flags
+        set next_hop -1
+        set flags 0
+	set map ""
+}
+
+Ent instproc setflags { flgs } {
+        $self instvar flags
+        set flags [expr $flgs | $flags]
+        return $flags
+}
+
+Ent instproc getflags {} {
+        $self instvar flags
+        return $flags   
 }
 
 Ent instproc setNextHop { nxt } {
@@ -38,6 +51,24 @@ Ent instproc setNextHop { nxt } {
 Ent instproc getNextHop {} {
 	$self instvar next_hop
 	return $next_hop
+}
+
+Ent instproc setiif { iface } {
+        $self instvar iif
+        # this is an interface label
+        set iif $iface
+}
+
+Ent instproc getiif {} {
+        $self instvar iif
+        if [info exists iif] {
+                return $iif
+        }
+        return -2
+}
+        
+Ent instproc getType {} {
+        return [$self info class]
 }
 
 Ent instproc add-oif { index oif } {
@@ -51,6 +82,13 @@ Ent instproc del-oif { index oif } {
 	if [info exists oifArray($index)] {
 		unset oifArray($index)
 	}
+}
+
+Ent instproc rem-oif { index oif } {
+        $self instvar oifArray
+        if [info exists oifArray($index)] {
+                unset oifArray($index)
+        }
 }
 
 Ent instproc get-prunelist { } {
@@ -88,6 +126,26 @@ Ent instproc is-in-oiflist { index } {
 	return [info exists oifArray($index)]
 }
 
+Ent instproc setMap { mp } {
+        $self instvar map
+        set map $mp
+}
+
+Ent instproc getMap {} {
+        $self instvar map
+        return $map   
+}
+                
+Ent instproc getRP {} {
+        $self instvar map
+        return [lindex $map 0]
+}       
+
+Ent instproc getHashValue {} {
+        $self instvar map
+        return [lindex $map 1]
+}
+
 ################################## Class WCEnt #######################
 
 Class WCEnt -superclass Ent
@@ -103,21 +161,6 @@ WCEnt instproc get-group {} {
 	return $group
 }
 
-WCEnt instproc setMap mp {
-	$self instvar map
-	set map $mp
-}
-
-WCEnt instproc getMap {} {
-	$self instvar map
-	return $map
-}
-
-WCEnt instproc getRP {} {
-	$self instvar map
-	return [lindex $map 0]	
-}
-
 WCEnt instproc nexthop {} {
 	$self instvar next_hop
 	if $next_hop { return $next_hop }
@@ -129,8 +172,8 @@ WCEnt instproc nexthop {} {
 Class SGEnt -superclass Ent
 
 SGEnt instproc init { src grp } {
+        $self next
 	$self instvar flags source group
-	set flags 0
 	set source $src 
 	set group $grp
 }
@@ -138,16 +181,6 @@ SGEnt instproc init { src grp } {
 SGEnt instproc get-group {} {
 	$self instvar group
 	return $group
-}
-
-SGEnt instproc setRP { rp } {
-	$self instvar RP
-	set RP $rp
-}
-
-SGEnt instproc getRP {} {
-	$self instvar RP
-	return $RP
 }
 
 SGEnt instproc setRegAgent { agent } {
@@ -160,19 +193,9 @@ SGEnt instproc getRegAgent { } {
 	return $RegAgent
 }
 
-SGEnt instproc setflags { flgs } {
-	$self instvar flags
-	set flags [expr $flgs | $flags]	
-}
-
 SGEnt instproc clearflags { flgs } {
 	$self instproc flags
 	set flags [expr ~flgs & flags]
-}
-
-SGEnt instproc getflags {} {
-	$self instvar flags
-	return $flags
 }
 
 ############################## MRT manipulations ######################
@@ -250,13 +273,16 @@ PIM instproc createSG { source group flags } {
 	$self add-entry $source $group
 	if { $flags & [PIM set REG] } {
 		if [info exists MRTArray($group)] {
-		   set RP [$MRTArray($group) getRP]
+                   set map [$MRTArray($group) getMap]
 		   $self send-prune "SG_RP" $source $group
 		} else {
-		   # check for err results.. !!XXX
-		   set RP [lindex [$self getMap $group] 0]
+		   set map [$self getMap $group]
+                   if { $map == "" } {
+                        puts "_node [$Node id] obj $self, err: can't get RP"
+                        return 0
+                   }
 		}
-		# if err.. return.. !
+                set RP [lindex $map 0]
 		# create a register agent
 		set regAgent [new Agent/Message/reg $source $group $RP $self]
 		$Node attach $regAgent
@@ -269,24 +295,25 @@ PIM instproc createSG { source group flags } {
 	set newSG [new SGEnt $source $group]
 	$newSG setflags	$flags
 	if { $flags & [PIM set REG] } { 
-		$newSG setRP $RP 
+                $newSG setMap $map
 		$newSG setRegAgent $regAgent
 	}
 	set MRTArray($source:$group) $newSG
 }
 
 PIM instproc longest_match  { source group } {
-	$self instvar MRTArray
-	if [info exists MRTArray($source:$group)] {
-		return 1
-	}
-	if [info exists MRTArray($group)] {
-		return 1
-	}
-	if [info exists MRTArray([lindex [$self getMap $group] 0])] {
-		return 1
-	}
-	return 0	
+        $self instvar MRTArray
+        if [info exists MRTArray($source:$group)] {
+                return $MRTArray($source:$group)
+        }
+        if [info exists MRTArray($group)] { 
+                return $MRTArray($group)
+        }
+        set RP [lindex [$self getMap $group] 0]
+        if [info exists MRTArray($RP)] {
+                return $MRTArray($RP)
+        }
+        return 0
 }
 
 PIM instproc local_address { id } {
