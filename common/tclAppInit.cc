@@ -27,6 +27,9 @@ MemTrace *globalMemTrace;
 #endif
 
 extern "C" {
+#ifdef HAVE_FENV_H
+#include <fenv.h>
+#endif /* HAVE_FENV_H */
 
 /*
  * The following variable is a special hack that is needed in order for
@@ -132,6 +135,7 @@ setup_floating_point_environment()
 #ifdef HAVE_FESETPRECISION
 	fesetprecision(FE_DBLPREC);
 #endif
+
 #ifdef HAVE_FEENABLEEXCEPT
 	/*
 	 * In general we'd like to catch some serious exceptions (div by zero)
@@ -140,7 +144,21 @@ setup_floating_point_environment()
 	 * This depends on feenableexcept which is (currently) GNU
 	 * specific.
 	 */
-	feenableexcept(FE_DIVBYZERO|FE_INVALID);
+	int trap_exceptions = 0;
+#ifdef FE_DIVBYZERO
+	trap_exceptions |= FE_DIVBYZERO;
+#endif
+#ifdef FE_INVALID
+	trap_exceptions |= FE_INVALID;
+#endif
+#ifdef FE_OVERFLOW
+	trap_exceptions |= FE_OVERFLOW;
+#endif
+//#ifdef FE_UNDERFLOW
+//	trap_exceptions |= FE_UNDERFLOW;
+//#endif
+	
+	feenableexcept(trap_exceptions);
 #endif /* HAVE_FEENABLEEXCEPT */
 }
 

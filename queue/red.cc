@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.76 2003/01/28 19:50:51 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.77 2004/02/25 22:26:17 yuri Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -243,9 +243,18 @@ void REDQueue::reset()
 	edv_.count = 0;
 	edv_.count_bytes = 0;
 	edv_.old = 0;
-	edv_.v_a = 1 / (edp_.th_max - edp_.th_min);
+	double th_diff = (edp_.th_max - edp_.th_min);
+	if (th_diff == 0) { 
+		//XXX this last check was added by a person who knows
+		//nothing of this code just to stop FP div by zero.
+		//Values for thresholds were equal at time 0.  If you
+		//know what should be here, please cleanup and remove
+		//this comment.
+		th_diff = 1.0; 
+	}
+	edv_.v_a = 1.0 / th_diff;
 	edv_.cur_max_p = 1.0 / edp_.max_p_inv;
-	edv_.v_b = - edp_.th_min / (edp_.th_max - edp_.th_min);
+	edv_.v_b = - edp_.th_min / th_diff;
 	edv_.lastset = 0.0;
 	if (edp_.gentle) {
 		edv_.v_c = ( 1.0 - edv_.cur_max_p ) / edp_.th_max;

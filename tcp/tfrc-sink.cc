@@ -682,7 +682,16 @@ double TfrcSinkAgent::est_loss_EWMA () {
 	} else {
 		p1 = 1.0/avg_loss_int ; 
 	}
-	if (loss_int == 0) {
+	if (loss_int == 0 
+	    || avg_loss_int < 0){ //XXX this last check was added by a
+				  //person who knows nothing of this
+				  //code just to stop FP div by zero.
+				  //Values were history=.75,
+				  //avg_loss_int=-1, loss_int=3.  If
+				  //you know what should be here,
+				  //please cleanup and remove this
+				  //comment.
+
 		p2 = p1 ; 
 	} else {
 		p2 = 1.0/(history*avg_loss_int + (1-history)*loss_int) ;

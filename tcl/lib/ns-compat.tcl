@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.46 2000/06/27 00:05:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.47 2004/02/25 22:26:17 yuri Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -702,9 +702,11 @@ OldSim instproc init args {
 # $link stat packets/bytes/drops
 #
 OldSim instproc simplex-link-compat { n1 n2 bw delay qtype } {
-	set linkhelp [$self link-threeargs $n1 $n2 $qtype]
-	$linkhelp set bandwidth_ $bw
-	$linkhelp set delay_ $delay
+	$self simplex-link $n1 $n2 $bw $delay $qtype
+	# need to call 'simplex-link', not '-Nargs' cludges, because
+	# the queue wants to know the delay and bandwidth when it
+	# attaches
+        $self link-twoargs $n1 $n2 ;#maybe this is not needed, whatever...
 }
 
 OldSim instproc duplex-link-compat { n1 n2 bw delay type } {
@@ -786,6 +788,7 @@ OldSim instproc link-threeargs { n1 n2 qtype } {
 	$self simplex-link $n1 $n2 0 0 $qtype
         return [$self link-twoargs $n1 $n2]
 }
+
 OldSim instproc trace {} {
 	return [new traceHelper]
 }

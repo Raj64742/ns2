@@ -30,6 +30,8 @@
  * see autoconf.info(Header Templates) in the autoconf docs.
  */
 
+#undef _GNU_SOURCE
+
 /* what does random(3) return? */
 #define RANDOM_RETURN_TYPE int
 
@@ -58,6 +60,7 @@
 #undef HAVE_STRTOLL
 #undef HAVE_STRTOQ
 #undef HAVE_ADDR2ASCII
+#undef HAVE_FEENABLEEXCEPT
 
 /* headers */
 #undef STDC_HEADERS
@@ -66,6 +69,7 @@
 #undef HAVE_ARPA_INET_H
 #undef HAVE_NETINET_IN_H
 #undef HAVE_NET_ETHERNET_H
+#undef HAVE_FENV_H
 
 /* structures */
 #undef HAVE_ETHER_HEADER_STRUCT

@@ -955,7 +955,7 @@ Running test simul-open:
 Test output agrees with reference output
 Running test simul-close:
 ../../ns test-suite-full.tcl simul-close QUIET
- [0:0.0>3.0] (hlen:40, dlen:0, seq:0, ack:-1, flags:0xa (<PSH,SYN>), salen:0, reason:0x0)
+0.805440: FullTcp(_o87): recv'd pkt in CLOSED state:  [0:0.0>3.0] (hlen:40, dlen:0, seq:0, ack:-1, flags:0xa (<PSH,SYN>), salen:0, reason:0x0)
 Test output agrees with reference output
 Running test droppednearfin:
 ../../ns test-suite-full.tcl droppednearfin QUIET
@@ -1821,46 +1821,37 @@ Running test TFRC_FTP:
 Test output agrees with reference output
 Running test printLosses:
 ../../ns test-suite-friendly.tcl printLosses QUIET
-1.608345: sample 0:     0 1:  1024 2:     0 3:     0 4:     0
-time: 1.83768 loss_rate: 0.00098 
-time: 1.83768 sample 0:    90 loss_rate: 0.00098 
-1.837678: sample 0:    90 1:  1024 2:     0 3:     0 4:     0
-time: 1.84301 loss_rate: 0.00179 
-time: 1.84301 sample 0:     1 loss_rate: 0.00179 
-1.843012: sample 0:     1 1:    91 2:  1024 3:     0 4:     0
-time: 2.07768 loss_rate: 0.00254 
-time: 2.07768 sample 0:     1 loss_rate: 0.00254 
-2.077678: sample 0:     1 1:    64 2:    91 3:  1024 4:     0
-time: 2.31567 loss_rate: 0.00254 
-time: 2.31567 sample 0:    35 loss_rate: 0.00254 
-2.315670: sample 0:    35 1:    64 2:    91 3:  1024 4:     0
-time: 2.42441 loss_rate: 0.00254 
-time: 2.42441 sample 0:    46 loss_rate: 0.00254 
-2.424410: sample 0:    46 1:    64 2:    91 3:  1024 4:     0
-time: 2.50123 loss_rate: 0.00254 
-time: 2.50123 sample 0:    55 loss_rate: 0.00254 
-2.501235: sample 0:    55 1:    64 2:    91 3:  1024 4:     0
-time: 2.56781 loss_rate: 0.00254 
-time: 2.56781 sample 0:    64 loss_rate: 0.00254 
-2.567805: sample 0:    64 1:    64 2:    91 3:  1024 4:     0
-time: 2.63221 loss_rate: 0.00254 
-time: 2.63221 sample 0:    74 loss_rate: 0.00254 
-2.632206: sample 0:    74 1:    64 2:    91 3:  1024 4:     0
-time: 2.69548 loss_rate: 0.00254 
-time: 2.69548 sample 0:    85 loss_rate: 0.00254 
-2.695478: sample 0:    85 1:    64 2:    91 3:  1024 4:     0
-time: 2.75948 loss_rate: 0.00254 
-time: 2.75948 sample 0:    97 loss_rate: 0.00254 
-2.759478: sample 0:    97 1:    64 2:    91 3:  1024 4:     0
-time: 2.82348 loss_rate: 0.00254 
-time: 2.82348 sample 0:   109 loss_rate: 0.00254 
-2.823478: sample 0:   109 1:    64 2:    91 3:  1024 4:     0
-time: 2.88748 loss_rate: 0.00254 
-time: 2.88748 sample 0:   121 loss_rate: 0.00254 
-2.887478: sample 0:   121 1:    64 2:    91 3:  1024 4:     0
-time: 2.93014 loss_rate: 0.00344 
-time: 2.93014 sample 0:     1 loss_rate: 0.00344 
-2.930145: sample 0:     1 1:   129 2:    64 3:    91 4:  1024
+1.769648: sample 0:     0 1:   341 2:     0 3:     0 4:     0
+time: 1.88698 loss_rate: 0.00293 
+time: 1.88698 sample 0:    37 loss_rate: 0.00293 
+1.886981: sample 0:    37 1:   341 2:     0 3:     0 4:     0
+time: 1.91365 loss_rate: 0.00522 
+time: 1.91365 sample 0:     1 loss_rate: 0.00522 
+1.913648: sample 0:     1 1:    42 2:   341 3:     0 4:     0
+time: 2.04165 loss_rate: 0.00522 
+time: 2.04165 sample 0:    25 loss_rate: 0.00522 
+2.041648: sample 0:    25 1:    42 2:   341 3:     0 4:     0
+time: 2.18031 loss_rate: 0.00522 
+time: 2.18031 sample 0:    52 loss_rate: 0.00522 
+2.180315: sample 0:    52 1:    42 2:   341 3:     0 4:     0
+time: 2.21231 loss_rate: 0.00680 
+time: 2.21231 sample 0:     1 loss_rate: 0.00680 
+2.212315: sample 0:     1 1:    58 2:    42 3:   341 4:     0
+time: 2.36249 loss_rate: 0.00680 
+time: 2.36249 sample 0:    21 loss_rate: 0.00680 
+2.362486: sample 0:    21 1:    58 2:    42 3:   341 4:     0
+time: 2.51107 loss_rate: 0.00680 
+time: 2.51107 sample 0:    39 loss_rate: 0.00680 
+2.511069: sample 0:    39 1:    58 2:    42 3:   341 4:     0
+time: 2.65349 loss_rate: 0.00680 
+time: 2.65349 sample 0:    60 loss_rate: 0.00680 
+2.653495: sample 0:    60 1:    58 2:    42 3:   341 4:     0
+time: 2.79281 loss_rate: 0.00680 
+time: 2.79281 sample 0:    81 loss_rate: 0.00680 
+2.792813: sample 0:    81 1:    58 2:    42 3:   341 4:     0
+time: 2.92995 loss_rate: 0.00680 
+time: 2.92995 sample 0:   102 loss_rate: 0.00680 
+2.929955: sample 0:   102 1:    58 2:    42 3:   341 4:     0
 Test output agrees with reference output
 Running test goodTFRC:
 ../../ns test-suite-friendly.tcl goodTFRC QUIET
@@ -2227,12 +2218,15 @@ Running test ecn_smallwin_reno_full:
 Test output agrees with reference output
 Running test ecn_smallwinEcn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_smallwinEcn_reno_full QUIET
+0.578517: FullTcpAgent(_o138):: resetting cwnd from 0.000000 to 1
+1.217728: FullTcpAgent(_o138):: resetting cwnd from 0.000000 to 1
 Test output agrees with reference output
 Running test ecn_secondpkt_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_secondpkt_reno_full QUIET
 Test output agrees with reference output
 Running test ecn_secondpktEcn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_secondpktEcn_reno_full QUIET
+0.455552: FullTcpAgent(_o138):: resetting cwnd from 0.000000 to 1
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-manual-routing
@@ -2281,6 +2275,7 @@ Running test lan-routing-flat-qlimit:
 Test output agrees with reference output
 Running test congested:
 ../../ns test-suite-lan.tcl congested QUIET
+BEB limit exceeded:Dropping packet 626
 Test output agrees with reference output
 Running test lan-routing-hier:
 ../../ns test-suite-lan.tcl lan-routing-hier QUIET
@@ -2914,7 +2909,7 @@ Running test trtcm:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-webcache
-Tests: SimpleTcp TcpApp-2node http1 http1f http2 http2f http3 http3f http4 http4f PagePool cache0-inv cache0f-inv cache0-push cache0f-push cache0-ttl cache0f-ttl cache0-ottl cache0f-ottl TLC1 TLC1f TLC1-dreq Liveness Mcast-PB Mcast-PBP Mcast-PBU Mcast-PBU-MP ttl-PB ottl-PB Mcast-PBtr Mcast-PBPtr Mcast-PBUtr ttl-PBtr ottl-PBtr mmcast-PB mmcast-PBU mttl-PB mottl-PB mcast-dreq
+Tests: SimpleTcp TcpApp-2node http1 http1f http2 http2f http3 http3f http4 http4f PagePool cache0-inv cache0f-inv cache0-push cache0f-push cache0-ttl cache0f-ttl cache0-ottl cache0f-ottl TLC1 TLC1f Liveness Mcast-PB Mcast-PBP Mcast-PBU Mcast-PBU-MP ttl-PB ottl-PB Mcast-PBtr Mcast-PBPtr Mcast-PBUtr ttl-PBtr ottl-PBtr mmcast-PB mmcast-PBU mttl-PB mottl-PB
 Running test SimpleTcp:
 ../../ns test-suite-webcache.tcl SimpleTcp QUIET
 Test output agrees with reference output
@@ -2978,9 +2973,6 @@ Test output agrees with reference output
 Running test TLC1f:
 ../../ns test-suite-webcache.tcl TLC1f QUIET
 Test output agrees with reference output
-Running test TLC1-dreq:
-../../ns test-suite-webcache.tcl TLC1-dreq QUIET
-Test output agrees with reference output
 Running test Liveness:
 ../../ns test-suite-webcache.tcl Liveness QUIET
 Test output agrees with reference output
@@ -3028,9 +3020,6 @@ Running test mttl-PB:
 Test output agrees with reference output
 Running test mottl-PB:
 ../../ns test-suite-webcache.tcl mottl-PB QUIET
-Test output agrees with reference output
-Running test mcast-dreq:
-../../ns test-suite-webcache.tcl mcast-dreq QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcache
@@ -3103,7 +3092,7 @@ Running test mip-adv-multi:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-links
-Tests: links changeDelay changeDelay1 changeDelay2 links1 changeBandwidth dropPacket delayPacket delayPacket1 delaySpike delaySpike1 delaySpikes delaySpikes1 channelAllocDelay channelAllocDelay1
+Tests: links changeDelay changeDelay1 changeDelay2 links1 changeBandwidth dropPacket delayPacket delayPacket1 delaySpike delaySpike1 delaySpikes delaySpikes1 channelAllocDelay channelAllocDelay1 change_queue queue_shrink
 Running test links:
 ../../ns test-suite-links.tcl links QUIET
 Test output agrees with reference output
@@ -3149,6 +3138,12 @@ Test output agrees with reference output
 Running test channelAllocDelay1:
 ../../ns test-suite-links.tcl channelAllocDelay1 QUIET
 Test output agrees with reference output
+Running test change_queue:
+../../ns test-suite-links.tcl change_queue QUIET
+Test output agrees with reference output
+Running test queue_shrink:
+../../ns test-suite-links.tcl queue_shrink QUIET
+Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-plm
 Tests: PLM
@@ -3189,10 +3184,14 @@ All test output agrees with reference output.
 Tests: dsdv dsr
 Running test dsdv:
 ../../ns test-suite-wireless-shadowing.tcl dsdv QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 finishing..
 num_nodes is set 50
@@ -3207,10 +3206,14 @@ All test output agrees with reference output.
 Tests: aodv
 Running test aodv:
 ../../ns test-suite-wireless-lan-aodv.tcl aodv QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 finish..
 num_nodes is set 50
@@ -3220,20 +3223,28 @@ All test output agrees with reference output.
 Tests: dsdv dsr
 Running test dsdv:
 ../../ns test-suite-wireless-tdma.tcl dsdv QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 finishing..
 num_nodes is set 50
 Test output agrees with reference output
 Running test dsr:
 ../../ns test-suite-wireless-tdma.tcl dsr QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 finishing..
 num_nodes is set 50
@@ -3243,10 +3254,13 @@ All test output agrees with reference output.
 Tests: dsdv
 Running test dsdv:
 ../../ns test-suite-wireless-gridkeeper.tcl dsdv QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 NS EXITING...
 finishing..
 num_nodes is set 50
@@ -3258,11 +3272,15 @@ Running test diff-rate-default:
 ../../ns test-suite-wireless-diffusion.tcl diff-rate-default QUIET
 Seeding Random number generator with 1
 
+INITIALIZE THE LIST xListHead
 Loading topology file...
 Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 18.095945
@@ -3271,12 +3289,16 @@ Running test diff-rate-other:
 ../../ns test-suite-wireless-diffusion.tcl diff-rate-other QUIET
 Seeding Random number generator with 1
 
+INITIALIZE THE LIST xListHead
 Loading topology file...
 Load complete...
 Loading node on-off file...
 Load complete...
 Loading traffic file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 10.761029
@@ -3285,11 +3307,15 @@ Running test diff-prob:
 ../../ns test-suite-wireless-diffusion.tcl diff-prob QUIET
 Seeding Random number generator with 1
 
+INITIALIZE THE LIST xListHead
 Loading topology file...
 Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING ...
 num_nodes is set 30
 Test output agrees with reference output
@@ -3297,11 +3323,15 @@ Running test omnimcast:
 ../../ns test-suite-wireless-diffusion.tcl omnimcast QUIET
 Seeding Random number generator with 1
 
+INITIALIZE THE LIST xListHead
 Loading topology file...
 Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 9.326060
@@ -3311,11 +3341,15 @@ Running test flooding:
 ../../ns test-suite-wireless-diffusion.tcl flooding QUIET
 Seeding Random number generator with 1
 
+INITIALIZE THE LIST xListHead
 Loading topology file...
 Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 6.895848
@@ -3328,38 +3362,77 @@ All test output agrees with reference output.
 Tests: dsdv dsr dsdv-wired-cum-wireless dsdv-wireless-mip
 Running test dsdv:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 finishing..
 num_nodes is set 50
 Test output agrees with reference output
 Running test dsr:
 ../../ns test-suite-wireless-lan-newnode.tcl dsr QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 finishing..
 num_nodes is set 50
 Test output agrees with reference output
 Running test dsdv-wired-cum-wireless:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv-wired-cum-wireless QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
 NS EXITING...
 finishing..
 num_nodes is set 5
 Test output agrees with reference output
 Running test dsdv-wireless-mip:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv-wireless-mip QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
 finishing..
 num_nodes is set 3
 Test output agrees with reference output
@@ -3389,21 +3462,49 @@ All test output agrees with reference output.
 Tests: wireless1 wireless2 wireless3
 Running test wireless1:
 ../../ns test-suite-WLtutorial.tcl wireless1 QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 3
 Test output agrees with reference output
 Running test wireless2:
 ../../ns test-suite-WLtutorial.tcl wireless2 QUIET
+INITIALIZE THE LIST xListHead
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 4
 Test output agrees with reference output
 Running test wireless3:
 ../../ns test-suite-WLtutorial.tcl wireless3 QUIET
+INITIALIZE THE LIST xListHead
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
 NS EXITING...
 num_nodes is set 3
 Test output agrees with reference output
@@ -3412,101 +3513,259 @@ All test output agrees with reference output.
 Tests: dsdv dsr aodv
 Running test dsdv:
 ../../ns test-suite-energy.tcl dsdv QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 5
 Test output agrees with reference output
 Running test dsr:
 ../../ns test-suite-energy.tcl dsr QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 5
 Test output agrees with reference output
 Running test aodv:
 ../../ns test-suite-energy.tcl aodv QUIET
+INITIALIZE THE LIST xListHead
 Loading connection pattern...
 Loading scenario file...
 Load complete...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 5
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-diffusion3
-Tests: simple-ping
+Tests: simple-ping 2pp-5n-1s-1r 2pp-10n-4s-1r 2pp-10n-1s-4r push-5n-1s-1r push-10n-1s-4r push-10n-4s-1r 1pp-5n-1s-1r 1pp-10n-4s-1r 1pp-10n-1s-4r gear-2pp-5n-1s-1r gear-2pp-10n-4s-1r gear-push-10n-1s-4r
 Running test simple-ping:
 ../../ns test-suite-diffusion3.tcl simple-ping QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-diffusion3/simple-ping.test test-output-diffusion3/simple-ping
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
-Some test failed.
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 3
+Test output agrees with reference output
+Running test 2pp-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl 2pp-5n-1s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 5
+Test output agrees with reference output
+Running test 2pp-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl 2pp-10n-4s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+Running test 2pp-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl 2pp-10n-1s-4r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+Running test push-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl push-5n-1s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 5
+Test output agrees with reference output
+Running test push-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl push-10n-1s-4r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+Running test push-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl push-10n-4s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+Running test 1pp-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl 1pp-5n-1s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 5
+Test output agrees with reference output
+Running test 1pp-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl 1pp-10n-4s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+Running test 1pp-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl 1pp-10n-1s-4r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+Running test gear-2pp-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl gear-2pp-5n-1s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 5
+Test output agrees with reference output
+Running test gear-2pp-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl gear-2pp-10n-4s-1r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+Running test gear-push-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl gear-push-10n-1s-4r QUIET
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+NS EXITING...
+num_nodes is set 10
+Test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-v1
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 Running test tahoe1:
 ../../ns test-suite-v1a.tcl tahoe1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test tahoe2:
 ../../ns test-suite-v1a.tcl tahoe2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test tahoe3:
 ../../ns test-suite-v1a.tcl tahoe3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test tahoe4:
 ../../ns test-suite-v1a.tcl tahoe4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test no_bug:
 ../../ns test-suite-v1a.tcl no_bug QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test bug:
 ../../ns test-suite-v1a.tcl bug QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test reno1:
 ../../ns test-suite-v1a.tcl reno1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test reno:
 ../../ns test-suite-v1a.tcl reno QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test renoA:
 ../../ns test-suite-v1a.tcl renoA QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test reno2:
 ../../ns test-suite-v1a.tcl reno2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test reno3:
 ../../ns test-suite-v1a.tcl reno3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test reno4:
 ../../ns test-suite-v1a.tcl reno4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test reno4a:
 ../../ns test-suite-v1a.tcl reno4a QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test reno5:
 ../../ns test-suite-v1a.tcl reno5 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test telnet:
 ../../ns test-suite-v1a.tcl telnet QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test delayed:
 ../../ns test-suite-v1a.tcl delayed QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test phase:
 ../../ns test-suite-v1a.tcl phase QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test phase1:
 ../../ns test-suite-v1a.tcl phase1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test phase2:
 ../../ns test-suite-v1a.tcl phase2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test timers:
 ../../ns test-suite-v1a.tcl timers QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test stats:
 ../../ns test-suite-v1a.tcl stats QUIET
+warning: using backward compatibility mode
 tcp1:window=30/packet-size=1000/bug-fix=1
 tcp2:window=30/packet-size=1000/bug-fix=1
 tcp1/time=0/cwnd=1/ssthresh=30/ack=-1/rtt=0
@@ -3530,21 +3789,27 @@ All test output agrees with reference output.
 Tests: red1 red1_bytes ecn red2 red_twoway red_twowaybytes flows flows1 flowsAll
 Running test red1:
 ../../ns test-suite-red-v1a.tcl red1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test red1_bytes:
 ../../ns test-suite-red-v1a.tcl red1_bytes QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test ecn:
 ../../ns test-suite-red-v1a.tcl ecn QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test red2:
 ../../ns test-suite-red-v1a.tcl red2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test red_twoway:
 ../../ns test-suite-red-v1a.tcl red_twoway QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test red_twowaybytes:
 ../../ns test-suite-red-v1a.tcl red_twowaybytes QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test flows:
 ../../ns test-suite-red-v1a.tcl flows QUIET
@@ -3566,18 +3831,23 @@ All test output agrees with reference output.
 Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
 Running test cbqWRR:
 ../../ns test-suite-cbq-v1a.tcl cbqWRR QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqPRR:
 ../../ns test-suite-cbq-v1a.tcl cbqPRR QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqAO:
 ../../ns test-suite-cbq-v1a.tcl cbqAO QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqTL:
 ../../ns test-suite-cbq-v1a.tcl cbqTL QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqFor:
 ../../ns test-suite-cbq-v1a.tcl cbqFor QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqForOld:
 ../../ns test-suite-cbq-v1a.tcl cbqForOld QUIET
@@ -3586,103 +3856,133 @@ This functionality is not implemented in ns-2.
 Test output agrees with reference output
 Running test cbqMax1:
 ../../ns test-suite-cbq-v1a.tcl cbqMax1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqMax2:
 ../../ns test-suite-cbq-v1a.tcl cbqMax2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqExtra1:
 ../../ns test-suite-cbq-v1a.tcl cbqExtra1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqExtra2:
 ../../ns test-suite-cbq-v1a.tcl cbqExtra2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqMin1:
 ../../ns test-suite-cbq-v1a.tcl cbqMin1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqMin3:
 ../../ns test-suite-cbq-v1a.tcl cbqMin3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqMin4:
 ../../ns test-suite-cbq-v1a.tcl cbqMin4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqMin6:
 ../../ns test-suite-cbq-v1a.tcl cbqMin6 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqTwoAO:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqTwoAO2:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqTwoAO3:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqTwoTL:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoTL QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test cbqTwoF:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoF QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack-v1
 Tests: sack1 sack1a sack1b sack1c sack3 sack4 sack5 sackB2 sackB4 phaseSack phaseSack2 phaseSack3
 Running test sack1:
 ../../ns test-suite-sack-v1a.tcl sack1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sack1a:
 ../../ns test-suite-sack-v1a.tcl sack1a QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sack1b:
 ../../ns test-suite-sack-v1a.tcl sack1b QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sack1c:
 ../../ns test-suite-sack-v1a.tcl sack1c QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sack3:
 ../../ns test-suite-sack-v1a.tcl sack3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sack4:
 ../../ns test-suite-sack-v1a.tcl sack4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sack5:
 ../../ns test-suite-sack-v1a.tcl sack5 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sackB2:
 ../../ns test-suite-sack-v1a.tcl sackB2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test sackB4:
 ../../ns test-suite-sack-v1a.tcl sackB4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test phaseSack:
 ../../ns test-suite-sack-v1a.tcl phaseSack QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test phaseSack2:
 ../../ns test-suite-sack-v1a.tcl phaseSack2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 Running test phaseSack3:
 ../../ns test-suite-sack-v1a.tcl phaseSack3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-vegas-v1
 Tests: one_drop one_14 two_2 two_A two_B
 Running test one_drop:
 ../../ns test-suite-vegas-v1.tcl one_drop QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 Running test one_14:
 ../../ns test-suite-vegas-v1.tcl one_14 QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 Running test two_2:
 ../../ns test-suite-vegas-v1.tcl two_2 QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 Running test two_A:
 ../../ns test-suite-vegas-v1.tcl two_A QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 Running test two_B:
 ../../ns test-suite-vegas-v1.tcl two_B QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 All test output agrees with reference output.
@@ -3712,8 +4012,8 @@ ns-add64 bdep 0:                2982684040
 ns-int64todbl bdep:             2982684040.0
 ns-int64todbl bdep + 0:         2982684040.0
 These will give the wrong answer:
-bdep + 0:                       -1312283256
-bdep * 1:                       -1312283256
+bdep + 0:                       2982684040
+bdep * 1:                       2982684040
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tagged-trace
@@ -3724,7 +4024,11 @@ Starting Simulation...
 Test output agrees with reference output
 Running test wireless:
 ../../ns test-suite-tagged-trace.tcl wireless QUIET
+INITIALIZE THE LIST xListHead
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 num_nodes is set 4
 Test output agrees with reference output
 Running test Format-simple:
@@ -3745,8 +4049,13 @@ Running test brdcast1:
 brdcast1
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 2
 Cancelling CS- node 1
@@ -3765,11 +4074,16 @@ Running test brdcast1_sync:
 brdcast1 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 2
 Cancelling CS- node 0
@@ -3789,8 +4103,13 @@ Running test brdcast2:
 brdcast2
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 3
 Cancelling CS- node 1
@@ -3848,11 +4167,16 @@ Running test brdcast2_sync:
 brdcast2 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 NS EXITING...
 num_nodes is set 3
 Cancelling CS- node 0
@@ -3908,8 +4232,13 @@ Running test unicast1:
 unicast1
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 399.0 ms.
 NS EXITING...
 num_nodes is set 2
@@ -3919,11 +4248,16 @@ Running test unicast1_sync:
 unicast1 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 4553.0 ms.
 NS EXITING...
 num_nodes is set 2
@@ -3934,8 +4268,13 @@ Running test unicast2:
 unicast2
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 632.1 ms.
 NS EXITING...
 num_nodes is set 3
@@ -3960,11 +4299,16 @@ Running test unicast2_sync:
 unicast2 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 4400.0 ms.
 NS EXITING...
 num_nodes is set 3
@@ -3994,8 +4338,13 @@ Running test unicast3:
 unicast3
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 440.0 ms.
 NS EXITING...
 num_nodes is set 3
@@ -4013,11 +4362,16 @@ Running test unicast3_sync:
 unicast3 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 10122.0 ms.
 NS EXITING...
 num_nodes is set 3
@@ -4048,8 +4402,13 @@ Running test unicast4:
 unicast4
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 425.0 ms.
 NS EXITING...
 num_nodes is set 3
@@ -4067,11 +4426,16 @@ Running test unicast4_sync:
 unicast4 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 4400.0 ms.
 NS EXITING...
 num_nodes is set 3
@@ -4094,8 +4458,13 @@ Running test unicast5:
 unicast5
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 550.0 ms.
 NS EXITING...
 num_nodes is set 4
@@ -4106,34 +4475,41 @@ Running test unicast5_sync:
 unicast5 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
-node 0 received ping answer from  1 with round-trip-time 5869.0 ms.
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+node 0 received ping answer from  1 with round-trip-time 4405.0 ms.
 node 3 received ping answer from  2 with round-trip-time 11553.0 ms.
 NS EXITING...
 num_nodes is set 4
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
 Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
+Cancelling CS- node 3
+Cancelling CS- node 3
+Cancelling CS- node 3
+Cancelling CS- node 3
 Test output agrees with reference output
 Running test unicast6:
 ../../ns test-suite-smac.tcl unicast6 QUIET
 unicast6
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 476.0 ms.
 NS EXITING...
 num_nodes is set 4
@@ -4143,20 +4519,24 @@ Running test unicast6_sync:
 unicast6 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
-node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+node 0 received ping answer from  1 with round-trip-time 4396.0 ms.
 node 3 received ping answer from  2 with round-trip-time 5907.0 ms.
 NS EXITING...
 num_nodes is set 4
+Cancelling CS- node 0
 Cancelling CS- node 2
-Cancelling CS- node 0
 Cancelling CS- node 3
-Cancelling CS- node 3
-Cancelling CS- node 0
+Cancelling CS- node 2
 Cancelling CS- node 1
 Cancelling CS- node 1
 Test output agrees with reference output
@@ -4165,8 +4545,13 @@ Running test unicast7:
 unicast7
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 492.0 ms.
 node 2 received ping answer from  3 with round-trip-time 939.0 ms.
 NS EXITING...
@@ -4181,20 +4566,24 @@ Running test unicast7_sync:
 unicast7 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
-node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
-node 2 received ping answer from  3 with round-trip-time 5863.0 ms.
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+node 0 received ping answer from  1 with round-trip-time 4396.0 ms.
+node 2 received ping answer from  3 with round-trip-time 7343.0 ms.
 NS EXITING...
 num_nodes is set 4
+Cancelling CS- node 0
 Cancelling CS- node 2
-Cancelling CS- node 0
 Cancelling CS- node 3
-Cancelling CS- node 3
-Cancelling CS- node 0
+Cancelling CS- node 2
 Cancelling CS- node 1
 Cancelling CS- node 1
 Test output agrees with reference output
@@ -4203,8 +4592,13 @@ Running test unicast8:
 unicast8
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 1 received ping answer from  0 with round-trip-time 367.0 ms.
 node 2 received ping answer from  3 with round-trip-time 873.0 ms.
 NS EXITING...
@@ -4218,20 +4612,24 @@ Running test unicast8_sync:
 unicast8 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
-node 1 received ping answer from  0 with round-trip-time 4393.0 ms.
-node 2 received ping answer from  3 with round-trip-time 5863.0 ms.
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
+node 1 received ping answer from  0 with round-trip-time 4396.0 ms.
+node 2 received ping answer from  3 with round-trip-time 7343.0 ms.
 NS EXITING...
 num_nodes is set 4
+Cancelling CS- node 0
 Cancelling CS- node 2
-Cancelling CS- node 0
 Cancelling CS- node 3
-Cancelling CS- node 3
-Cancelling CS- node 0
+Cancelling CS- node 2
 Cancelling CS- node 1
 Cancelling CS- node 1
 Test output agrees with reference output
@@ -4240,8 +4638,13 @@ Running test unicast9:
 unicast9
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 550.0 ms.
 NS EXITING...
 num_nodes is set 4
@@ -4252,11 +4655,16 @@ Running test unicast9_sync:
 unicast9 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
 node 3 received ping answer from  2 with round-trip-time 5863.0 ms.
 NS EXITING...
@@ -4271,8 +4679,13 @@ Running test unicast10:
 unicast10
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 3 received ping answer from  2 with round-trip-time 376.0 ms.
 node 0 received ping answer from  1 with round-trip-time 430.0 ms.
 NS EXITING...
@@ -4283,11 +4696,16 @@ Running test unicast10_sync:
 unicast10 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
 node 3 received ping answer from  2 with round-trip-time 4396.0 ms.
 NS EXITING...
@@ -4300,8 +4718,13 @@ Running test unicast11:
 unicast11
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 2 received ping answer from  0 with round-trip-time 695.0 ms.
 node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
 node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
@@ -4327,46 +4750,57 @@ Running test unicast11_sync:
 unicast11 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 2 received ping answer from  0 with round-trip-time 12991.0 ms.
-node 1 received ping answer from  2 with round-trip-time 14418.0 ms.
-node 0 received ping answer from  1 with round-trip-time 15890.0 ms.
+node 0 received ping answer from  1 with round-trip-time 14418.0 ms.
+node 1 received ping answer from  2 with round-trip-time 15856.0 ms.
 NS EXITING...
 num_nodes is set 3
+Cancelling CS- node 0
 Cancelling CS- node 2
-Cancelling CS- node 0
-Cancelling CS- node 0
+Cancelling CS- node 2
 Cancelling CS- node 1
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 0
 Cancelling CS- node 1
 Cancelling CS- node 2
 Cancelling CS- node 2
-Cancelling CS- node 0
 Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 1
 Cancelling CS- node 0
 Cancelling CS- node 1
 Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 0
+Cancelling CS- node 1
 Cancelling CS- node 2
 Cancelling CS- node 1
-Cancelling CS- node 1
 Cancelling CS- node 2
-Cancelling CS- node 1
+Cancelling CS- node 2
 Test output agrees with reference output
 Running test unicast12:
 ../../ns test-suite-smac.tcl unicast12 QUIET
 unicast12
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 5.0
 Starting Simulation...
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 2 received ping answer from  0 with round-trip-time 695.0 ms.
 node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
 node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
@@ -4392,47 +4826,54 @@ Running test unicast12_sync:
 unicast12 sync
 Seeding Random number generator with 1
 
+warning: Please use -channel as shown in tcl/ex/wireless-mitf.tcl
+INITIALIZE THE LIST xListHead
 100.0
 Starting Simulation...
 
 NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
 
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+SORTING LISTS ...DONE!
 node 2 received ping answer from  0 with round-trip-time 12991.0 ms.
-node 1 received ping answer from  2 with round-trip-time 14418.0 ms.
-node 0 received ping answer from  1 with round-trip-time 15890.0 ms.
+node 0 received ping answer from  1 with round-trip-time 14418.0 ms.
+node 1 received ping answer from  2 with round-trip-time 15856.0 ms.
 NS EXITING...
 num_nodes is set 3
+Cancelling CS- node 0
 Cancelling CS- node 2
-Cancelling CS- node 0
-Cancelling CS- node 0
+Cancelling CS- node 2
 Cancelling CS- node 1
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 0
 Cancelling CS- node 1
 Cancelling CS- node 2
 Cancelling CS- node 2
-Cancelling CS- node 0
 Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 1
 Cancelling CS- node 0
 Cancelling CS- node 1
 Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 0
+Cancelling CS- node 1
 Cancelling CS- node 2
 Cancelling CS- node 1
-Cancelling CS- node 1
 Cancelling CS- node 2
-Cancelling CS- node 1
+Cancelling CS- node 2
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-rng
+Tests: rngtest
+Running test rngtest:
+../../ns test-suite-rng.tcl rngtest QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 These messages are NOT errors and can be ignored:
     warning: using backward compatibility mode
     This test is not implemented in backward compatibility mode
 
-
-validate overall report: some tests failed:
-     ./test-all-diffusion3
-to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME
-Notice that some tests in webcache will fail on freebsd when -O is turned on.
-This is due to some event reordering, which will disappear when -g is turned on.
+validate overall report: all tests passed

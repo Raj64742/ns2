@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  * 
  propagation.cc
- $Id: propagation.cc,v 1.5 2000/10/02 20:22:43 yewei Exp $
+ $Id: propagation.cc,v 1.6 2004/02/25 22:26:16 yuri Exp $
 */
 
 #include <stdio.h>
@@ -98,6 +98,8 @@ Propagation::Friis(double Pt, double Gt, double Gr, double lambda, double L, dou
          *   P = --------------------------
          *       (4 * pi * d)^2 * L
          */
+	if (d == 0.0) //XXX probably better check < MIN_DISTANCE or some such
+		return Pt;
   double M = lambda / (4 * PI * d);
   return (Pt * Gt * Gr * (M * M)) / L;
 }
