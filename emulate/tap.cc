@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.8 1998/05/20 22:40:37 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.9 1998/05/20 22:41:24 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -42,7 +42,7 @@ static const char rcsid[] =
 #include "agent.h"
 
 
-#define TAPDEBUG 1
+//#define TAPDEBUG 1
 #ifdef TAPDEBUG
 #define	TDEBUG(x) { if (TAPDEBUG) fprintf(stderr, (x)); }
 #define	TDEBUG2(x,y) { if (TAPDEBUG) fprintf(stderr, (x), (y)); }
