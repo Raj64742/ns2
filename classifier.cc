@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.24 1998/10/19 19:33:43 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.25 1998/10/19 19:37:34 tomh Exp $";
 #endif
 
 #include <stdlib.h>
@@ -81,7 +81,7 @@ void Classifier::alloc(int slot)
 	memset(slot_, 0, nslot_ * sizeof(NsObject*));
 	for (int i = 0; i < n; ++i)
 		slot_[i] = old[i];
-	delete old;
+	delete [] old;
 }
 
 
