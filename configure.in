@@ -18,6 +18,13 @@ builtin(include, ./conf/configure.in.x11)
 builtin(include, ./conf/configure.in.tcldebug)
 builtin(include, ./conf/configure.in.dmalloc)
 
+PERL_OPTIONAL=true
+builtin(include, ./conf/configure.in.perl)
+if test "x$PERL" = x
+then
+	AC_MSG_WARN([Perl5 not found; test scripts will not run succesfully.])
+fi
+
 #XXX
 if test $ac_cv_prog_gcc = yes ; then
 	V_STATIC="-static"
