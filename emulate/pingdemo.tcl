@@ -95,6 +95,10 @@ PingDemo instproc emsetup {} {
 	$ns simplex-link $node1 $node2 1Mb $owdelay DropTail
 	$ns simplex-link $node2 $node1 1Mb $owdelay DropTail
 
+	$self instvar explink1 explink2; # link to experiment with
+	set explink1 [$ns link $node0 $node2]
+	set explink2 [$ns link $node2 $node1]
+
 	#
 	# attach-agent winds up calling $node attach $agent which does
 	# these things:
@@ -119,13 +123,29 @@ PingDemo instproc emsetup {} {
 	$ns simplex-connect $echoagent $ipa
 }
 
+PingDemo instproc newowdelay delay {
+	$self instvar explink1 explink2 ns owdelay
+	set owdelay $delay
+	set lnk [$explink1 link]
+	puts "[$ns now]: change 1-way delay from [$lnk set delay_] to $delay sec."
+	$lnk set delay_ $delay
+	set lnk [$explink2 link]
+	$lnk set delay_ $delay
+}
+
+
 PingDemo instproc run {} {
 
-	$self instvar ns myaddr owdelay ifname
+	$self instvar ns myaddr owdelay ifname explink
 	$self syssetup
 	$self emsetup
 
 	puts "listening for pings on addr $myaddr, 1-way link delay: $owdelay\n"
+
+	$ns at 10.5 "$self newowdelay 0.5"
+	$ns at 20.5 "$self newowdelay 0.10"
+	$ns at 30.5 "$self newowdelay 0.01"
+	$ns at 40.5 "$self newowdelay 0.001"
 
 	$ns run
 }
