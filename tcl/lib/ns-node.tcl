@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.5 1997/03/05 03:04:20 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.6 1997/03/14 01:29:28 mccanne Exp $
 #
 
 Class Node
@@ -115,10 +115,15 @@ Node instproc attach agent {
 		set dmux_ [new Classifier/Addr]
 		$dmux_ set mask_ 0xff
 		$dmux_ set shift_ 0
+		#
+		# point the node's routing entry to itself
+		# at the port demuxer (if there is one)
+		#
+		$self add-route $id_ $dmux_
 	}
 	$dmux_ install $port $agent
-
 }
+
 Node instproc agent port {
         $self instvar agents_
         foreach a $agents_ {

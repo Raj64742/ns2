@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.12 1997/03/11 00:41:21 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.13 1997/03/14 01:29:27 mccanne Exp $
 #
 
 #
@@ -247,14 +247,6 @@ Simulator instproc compute-routes {} {
 				$n1 add-route $j [$link_($i:$nexthop) head]
 			} 
 			incr j
-		}
-		set dmux [$n1 set dmux_]
-		if { $dmux != "" } {
-			#
-			# point the node's routing entry to itself
-			# at the port demuxer (if there is one)
-			#
-			$n1 add-route $i $dmux
 		}
 		incr i
 	}
