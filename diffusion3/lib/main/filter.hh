@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: filter.hh,v 1.1 2002/05/06 22:38:01 haldar Exp $
+// $Id: filter.hh,v 1.2 2002/05/07 00:24:23 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
