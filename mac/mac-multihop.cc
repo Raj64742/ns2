@@ -96,8 +96,10 @@ MultihopMac::checkInterfaces(int state)
 		return 1;
 	for (p = (MultihopMac *)macList_; p != this && p != NULL; 
 	     p = (MultihopMac *)(p->macList())) {
-		if (p->mode() != MAC_IDLE)
+		if (p->mode() != MAC_IDLE) {
+			cout << "IF BUSY";
 			return 0;
+		}
 	}
 	return 1;
 }
