@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.7 2002/09/23 23:25:05 alefiyah Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.8 2002/10/09 23:57:15 difa Exp $ (LBL)
  */
 
 #ifndef ns_net_h
@@ -64,6 +64,7 @@ public:
 	  fprintf( stderr, "Callback Interface to receiving packets"
 		           " unsupported in class %s\n",
 		   Tcl::instance().result() );
+	  return 0;
 	} // callback called for every packet
 	virtual int rchannel() = 0;
 	virtual int schannel() = 0;

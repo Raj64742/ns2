@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.21 2002/09/23 23:25:05 alefiyah Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.22 2002/10/09 23:57:15 difa Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -409,7 +409,9 @@ PcapNetwork::recv(netpkt_handler callback, void *clientdata)
 	
 	np = pcap_dispatch(pcap_, pktcnt, phandler_callback, (u_char *)&ps);
 
+#ifdef MY_OWN_PCAP	// directly access pcap_t's member
 	assert( pcap_->cc == 0 ); // i.e. we have emptied pcap's buffer
+#endif // MY_OWN_PCAP
 	return np;
 }
 
