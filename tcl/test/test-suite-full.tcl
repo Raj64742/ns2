@@ -1003,4 +1003,96 @@ Test/telnet2 instproc run {} {
 	$ns_ run
 }
 
+#
+# this test exercises the "slow_start_restart_" option
+# with ssr set to false, illustrates the line-rate-bursts which occur
+# after the window has grown large but the app has stopped writes
+#
+Class Test/SSR -superclass TestSuite
+Test/SSR instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ slow-start-restart
+	$self next
+}
+Test/SSR instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 10.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$src set slow_start_restart_ false
+	$sink listen
+	$ns_ at 0.5 "$src advance-bytes 10000"
+	$ns_ at 5.0 "$src advance-bytes 10000"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set slow_start_restart true
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set segsize_ 536
+	$src set packetSize_ 576
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+#
+# same test as SSR, but this time turn slow_start_restart on
+#
+Class Test/SSR2 -superclass TestSuite
+Test/SSR2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ slow-start-restart-fix
+	$self next
+}
+Test/SSR2 instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 10.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$src set slow_start_restart_ true
+	$sink listen
+	$ns_ at 0.5 "$src advance-bytes 10000"
+	$ns_ at 5.0 "$src advance-bytes 10000"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set slow_start_restart true
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set segsize_ 536
+	$src set packetSize_ 576
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
 TestSuite runTest
