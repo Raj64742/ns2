@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.3 1997/06/12 22:53:28 kfall Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.4 1997/07/22 20:50:08 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -42,7 +42,7 @@ static char rcsid[] =
 static class IntegratorClass : public TclClass {
  public:
         IntegratorClass() : TclClass("Integrator") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new Integrator);
         }
 } integrator_class;
@@ -93,7 +93,7 @@ int Integrator::command(int argc, const char*const* argv)
 static class SamplesClass : public TclClass {
  public:
         SamplesClass() : TclClass("Samples") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new Samples);
         }
 } samples_class;
