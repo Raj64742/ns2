@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.17 1999/09/28 03:46:35 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.18 2000/01/13 22:15:48 salehi Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -80,7 +80,7 @@ public:
 	virtual double start() {		// start time
 		return SCHED_START;
 	}
-	inline void reset() { clock_ = SCHED_START; }/*XXX*/
+	virtual void reset();
 protected:
 	void dumpq();	// for debug: remove + print remaining events
 	void dispatch(Event*);	// execute an event

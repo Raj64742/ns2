@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.53 1999/09/24 03:50:17 yaxu Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.54 2000/01/13 22:15:48 salehi Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.53 1999/09/24 03:50:17 yaxu Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.54 2000/01/13 22:15:48 salehi Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -149,6 +149,12 @@ void AtHandler::handle(Event* e)
 	AtEvent* at = (AtEvent*)e;
 	Tcl::instance().eval(at->proc_);
 	delete at;
+}
+
+void
+Scheduler::reset()
+{
+	clock_ = SCHED_START;
 }
 
 int Scheduler::command(int argc, const char*const* argv)
@@ -803,6 +809,7 @@ public:
 	RealTimeScheduler();
 	virtual void run();
 	double start() const { return start_; }
+	virtual void reset();
 protected:
 	void sync() { clock_ = tod(); }
 	int rwait(double);	// sleep
@@ -821,7 +828,6 @@ public:
 
 RealTimeScheduler::RealTimeScheduler() : start_(0.0)
 {
-	start_ = tod();
 	bind("maxslop_", &slop_);
 }
 
@@ -839,6 +845,13 @@ RealTimeScheduler::tod()
 // static void nullTimer(ClientData)
 // {
 // }
+
+void
+RealTimeScheduler::reset()
+{
+	clock_ = SCHED_START;
+	start_ = tod();
+}
 
 void RealTimeScheduler::run()
 { 
