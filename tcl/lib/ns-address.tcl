@@ -423,11 +423,15 @@ AddrParams proc elements-in-level? {nodeaddr level} {
 		return [lindex $cluster_num_ [lindex $L 0]]
 	}
 	if { $level == 3} {
-		set cluster [lindex $cluster_num_ [lindex $L 0]]
-		set funct [expr [lindex $L 0] * $cluster + [lindex $L 1]]
-		return [lindex $nodes_num_ $funct]
-	} 
-	
+		set C 0
+		set index 0
+		while {$C < [lindex $L 0]} {
+			set index [expr $index + [lindex $cluster_num_ $C]]
+			incr C
+		}
+		return [lindex $nodes_num_ [expr $index + [lindex $L 1]]]
+	}
+		
 }
 
 
@@ -436,7 +440,7 @@ AddrParams proc elements-in-level? {nodeaddr level} {
 #
 # Given an node's address, Return the node 
 #
-Simulator instproc get-node address {
+Simulator instproc get-node-by-addr address {
 	$self instvar Node_
 	set n [Node set nn_]
 	for {set q 0} {$q < $n} {incr q} {
@@ -451,7 +455,7 @@ Simulator instproc get-node address {
 #
 # Given an node's address, Return the node-id
 #
-Simulator instproc get-node-id address {
+Simulator instproc get-node-id-by-addr address {
 	$self instvar Node_
 	set n [Node set nn_]
 	for {set q 0} {$q < $n} {incr q} {
