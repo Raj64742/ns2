@@ -141,6 +141,7 @@ void SA_Agent::sendteardown()
 	Packet *p = allocpkt();
 	hdr_cmn* ch= (hdr_cmn*)p->access(off_cmn_);
 	ch->ptype()=PT_TEARDOWN;
+	ch->size()=20;
 	//also put in the r,b parameters for the flow in the packet
 	hdr_resv* rv=(hdr_resv*)p->access(off_resv_);
 	rv->decision() =1;
