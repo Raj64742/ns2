@@ -1,0 +1,303 @@
+*** test-all
+tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
+Running test tahoe1
+Test output agrees with reference output
+Running test tahoe2
+Test output agrees with reference output
+Running test tahoe3
+Test output agrees with reference output
+Running test tahoe4
+Test output agrees with reference output
+Running test no_bug
+Test output agrees with reference output
+Running test bug
+Test output agrees with reference output
+Running test reno1
+Test output agrees with reference output
+Running test reno
+Test output agrees with reference output
+Running test renoA
+Test output agrees with reference output
+Running test reno2
+Test output agrees with reference output
+Running test reno3
+Test output agrees with reference output
+Running test reno4
+Test output agrees with reference output
+Running test reno4a
+Test output agrees with reference output
+Running test reno5
+Test output agrees with reference output
+Running test telnet
+Test output agrees with reference output
+Running test delayed
+Test output agrees with reference output
+Running test phase
+Test output agrees with reference output
+Running test phase1
+Test output agrees with reference output
+Running test phase2
+Test output agrees with reference output
+Running test timers
+Test output agrees with reference output
+Running test stats
+tcp1/window=30/packetSize=1000/bugFix=1
+tcp2/window=30/packetSize=1000/bugFix=1
+tcp2/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+tcp2/time=5/cwnd=2.0000/ssthresh=13/ack=26/rtt=6
+tcp1/time=5/cwnd=7.0000/ssthresh=7/ack=96/rtt=3
+tcp2/time=10/cwnd=2.0000/ssthresh=7/ack=87/rtt=6
+tcp1/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=2
+stop-time 10.1
+tcp 0 total_packets_acked 335
+tcp 1 total_packets_acked 87
+Test output agrees with reference output
+*** ./test-all-red
+Tests: red1 red1_bytes ecn red2
+Running test red1
+Test output agrees with reference output
+Running test red1_bytes
+Test output agrees with reference output
+Running test ecn
+Test output agrees with reference output
+Running test red2
+Test output agrees with reference output
+All test output agrees with reference output
+*** ./test-all-sack
+Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a
+Running test sack1
+Test output agrees with reference output
+Running test sack1z
+Test output agrees with reference output
+Running test sack1a
+Test output agrees with reference output
+Running test sack1aa
+Test output agrees with reference output
+Running test sack1b
+Test output agrees with reference output
+Running test sack1c
+Test output agrees with reference output
+Running test sack3
+Test output agrees with reference output
+Running test sack5
+Test output agrees with reference output
+Running test sack5a
+Test output agrees with reference output
+Running test sackB2
+Test output agrees with reference output
+Running test sackB4
+Test output agrees with reference output
+Running test sackB4a
+Test output agrees with reference output
+All test output agrees with reference output
+*** ./test-all-schedule
+Tests: fifo-droptail fifo-red sfq drr
+Running test fifo-droptail
+Test output agrees with reference output
+Running test fifo-red
+Test output agrees with reference output
+Running test sfq
+Test output agrees with reference output
+Running test drr
+Test output agrees with reference output
+All test output agrees with reference output
+*** ./test-all-tcp
+Tests: ecn timers timersA timers1 timers2 timers3 timers4 timers5 stats1
+Running test ecn
+Test output agrees with reference output
+Running test timers
+Test output agrees with reference output
+Running test timersA
+Test output agrees with reference output
+Running test timers1
+Test output agrees with reference output
+Running test timers2
+Test output agrees with reference output
+Running test timers3
+Test output agrees with reference output
+Running test timers4
+Test output agrees with reference output
+Running test timers5
+Test output agrees with reference output
+Running test stats1
+tcp1/window=30/packetSize=1000/bugFix=1
+tcp2/window=3/packetSize=1000/bugFix=1
+tcp2/time=0/cwnd=1.0000/ssthresh=3/ack=-1/rtt=0
+tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+
+tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
+tcp1/time=10/cwnd=29.4693/ssthresh=7/ack=490/rtt=3
+
+tcp: 2 time: 10.0
+total_data_packets_sent: 42 data_bytes_sent: 42000
+packets_resent: 0 bytes_resent: 0
+ack_packets_received: 39
+retransmit_timeouts: 0
+
+tcp: 1 time: 10.0
+total_data_packets_sent: 530 data_bytes_sent: 530000
+packets_resent: 10 bytes_resent: 10000
+ack_packets_received: 496
+retransmit_timeouts: 1
+Test output agrees with reference output
+All test output agrees with reference output
+*** ./test-all-red-v1
+Tests: red1 red1_bytes ecn red2 red_twoway red_twowaybytes flows flows1 flowsAll
+Running test red1
+Test output agrees with reference output
+Running test red1_bytes
+Test output agrees with reference output
+Running test ecn
+Test output agrees with reference output
+Running test red2
+Test output agrees with reference output
+Running test red_twoway
+Test output agrees with reference output
+Running test red_twowaybytes
+Test output agrees with reference output
+Running test flows
+WARNING:  This test was not run.
+This test is not implemented in backward compatibility mode.
+Test output agrees with reference output
+Running test flows1
+WARNING:  This test was not run.
+This test is not implemented in backward compatibility mode.
+Test output agrees with reference output
+Running test flowsAll
+WARNING:  This test was not run.
+This test is not implemented in backward compatibility mode.
+Test output agrees with reference output
+All test output agrees with reference output
+*** ./test-all-cbq-v1
+Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
+Running test cbqWRR
+Test output agrees with reference output
+Running test cbqPRR
+Test output agrees with reference output
+Running test cbqAO
+Test output agrees with reference output
+Running test cbqTL
+Test output agrees with reference output
+Running test cbqFor
+Test output agrees with reference output
+Running test cbqForOld
+WARNING:  This test was not run.
+This functionality is not implemented in ns-2.
+Test output agrees with reference output
+Running test cbqMax1
+Test output agrees with reference output
+Running test cbqMax2
+Test output agrees with reference output
+Running test cbqExtra1
+Test output agrees with reference output
+Running test cbqExtra2
+Test output agrees with reference output
+Running test cbqMin1
+Test output agrees with reference output
+Running test cbqMin3
+Test output agrees with reference output
+Running test cbqMin4
+Test output agrees with reference output
+Running test cbqMin6
+Test output agrees with reference output
+Running test cbqTwoAO
+Test output agrees with reference output
+Running test cbqTwoAO2
+Test output agrees with reference output
+Running test cbqTwoAO3
+Test output agrees with reference output
+Running test cbqTwoTL
+Test output agrees with reference output
+Running test cbqTwoF
+Test output agrees with reference output
+All test output agrees with reference output
+*** ./test-all-sack-v1
+Tests: sack1 sack1a sack1b sack1c sack3 sack4 sack5 sackB2 sackB4 phaseSack phaseSack2 phaseSack3
+Running test sack1
+Test output agrees with reference output
+Running test sack1a
+Test output agrees with reference output
+Running test sack1b
+Test output agrees with reference output
+Running test sack1c
+Test output agrees with reference output
+Running test sack3
+Test output agrees with reference output
+Running test sack4
+Test output agrees with reference output
+Running test sack5
+Test output agrees with reference output
+Running test sackB2
+Test output agrees with reference output
+Running test sackB4
+Test output agrees with reference output
+Running test phaseSack
+Test output agrees with reference output
+Running test phaseSack2
+Test output agrees with reference output
+Running test phaseSack3
+Test output agrees with reference output
+All test output agrees with reference output
+*** ./test-all-v1
+Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
+Running test tahoe1
+Test output agrees with reference output
+Running test tahoe2
+Test output agrees with reference output
+Running test tahoe3
+Test output agrees with reference output
+Running test tahoe4
+Test output agrees with reference output
+Running test no_bug
+Test output agrees with reference output
+Running test bug
+Test output agrees with reference output
+Running test reno1
+Test output agrees with reference output
+Running test reno
+Test output agrees with reference output
+Running test renoA
+Test output agrees with reference output
+Running test reno2
+Test output agrees with reference output
+Running test reno3
+Test output agrees with reference output
+Running test reno4
+Test output agrees with reference output
+Running test reno4a
+Test output agrees with reference output
+Running test reno5
+Test output agrees with reference output
+Running test telnet
+Test output agrees with reference output
+Running test delayed
+Test output agrees with reference output
+Running test phase
+Test output agrees with reference output
+Running test phase1
+Test output agrees with reference output
+Running test phase2
+Test output agrees with reference output
+Running test timers
+Test output agrees with reference output
+Running test stats
+tcp1:window=30/packet-size=1000/bug-fix=1
+tcp2:window=30/packet-size=1000/bug-fix=1
+tcp1/time=0/cwnd=1.000000/ssthresh=30/ack=-1/rtt=0
+tcp2/time=0/cwnd=1.000000/ssthresh=30/ack=-1/rtt=0
+tcp1/time=5/cwnd=7.000000/ssthresh=7/ack=96/rtt=3
+tcp2/time=5/cwnd=2.000000/ssthresh=13/ack=26/rtt=6
+tcp1/time=10/cwnd=11.495215/ssthresh=10/ack=328/rtt=2
+tcp2/time=10/cwnd=2.000000/ssthresh=7/ack=87/rtt=6
+stop-time 10.1
+tcp 0 total_packets_acked 335
+tcp 1 total_packets_acked 87
+class: 0 per-link total_drops 13
+class: 0 per-link total_packets 359
+class: 0 per-link total_bytes 359000
+class: 1 per-link total_drops 6
+class: 1 per-link total_packets 103
+class: 1 per-link total_bytes 103000
+Test output agrees with reference output
+All test output agrees with reference output
