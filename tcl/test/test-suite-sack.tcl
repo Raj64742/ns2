@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.18 2002/03/08 21:55:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.19 2002/10/19 22:44:21 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -136,7 +136,6 @@ Topology/net1 instproc init ns {
     $ns queue-limit $node_(k1) $node_(r1) 23
 }
 
-
 Class Topology/net2 -superclass Topology
 Topology/net2 instproc init ns {
     $self instvar node_
@@ -176,11 +175,27 @@ Topology/net3 instproc init ns {
     $ns duplex-link $node_(s4) $node_(r2) 100Mb 1ms DropTail
 }
 
+Class Topology/net4 -superclass Topology
+Topology/net4 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 20ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 25
+    $ns queue-limit $node_(k1) $node_(r1) 25
+}
+
 TestSuite instproc setTopo {} {
     $self instvar node_ net_ ns_ topo_
 
     set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net0" || $net_ == "net1"} {
+    if {$net_ == "net0" || $net_ == "net1" || $net_ == "net4"} {
         set node_(s1) [$topo_ node? s1]
         set node_(s2) [$topo_ node? s2]
         set node_(r1) [$topo_ node? r1]
@@ -603,6 +618,43 @@ Test/FalsePipe1 instproc run {} {
 
     $ns_ at 3.0 "$self cleanupAll $testName_"
     $ns_ run
+}
+
+Class Test/sack_dupacks -superclass TestSuite
+Test/sack_dupacks instproc init {} {
+    $self instvar net_ test_
+    set net_	net4
+    set test_	sack_dupacks
+    $self next
+}
+Test/sack_dupacks instproc run {} {
+    $self instvar ns_ node_ testName_
+    $self setTopo
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 200
+    set ftp1 [$tcp1 attach-app FTP]
+    $ns_ at 0.1 "$ftp1 start"
+
+    $self tcpDump $tcp1 1.0
+
+    # trace only the bottleneck link
+    $ns_ at 3.0 "$self cleanupAll $testName_"
+    $ns_ run
+}
+
+#
+# Sack_dupacks1 tests "numdupacksFrac_", for increasing numdupacks
+#   up to a specified fraction of the current congestion window.
+#
+Class Test/sack_dupacks1 -superclass TestSuite
+Test/sack_dupacks1 instproc init {} {
+    $self instvar net_ test_
+    set net_	net4
+    set test_	sack_dupacks1
+    Agent/TCP set numdupacksFrac_ 4
+    Test/sack_dupacks1 instproc run {} [Test/sack_dupacks info instbody run] 
+    $self next
 }
 
 # delayed ack not implemented yet
