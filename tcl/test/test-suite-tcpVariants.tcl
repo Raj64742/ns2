@@ -30,19 +30,53 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.3 1998/08/14 20:14:27 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.4 1998/09/14 03:29:29 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
-source misc.tcl
-source topologies.tcl
+source misc_simple.tcl
 
 Trace set show_tcphdr_ 1
 
 set wrap 90
 set wrap1 [expr 90 * 512 + 40]
+
+Class Topology
+
+Topology instproc node? num {
+    $self instvar node_
+    return $node_($num)
+}
+
+#
+# Links1 uses 8Mb, 5ms feeders, and a 800Kb 10ms bottleneck.
+# Queue-limit on bottleneck is 2 packets.
+#
+Class Topology/net4 -superclass Topology
+Topology/net4 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 8
+    $ns queue-limit $node_(k1) $node_(r1) 8
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r1) $node_(k1)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+}
+
 
 TestSuite instproc finish file {
 	global quiet wrap
@@ -76,31 +110,6 @@ TestSuite instproc printtimersAll { tcp time interval } {
         $ns_ at $newTime "$self printtimersAll $tcp $newTime $interval"
 }
 
-#
-# Links1 uses 8Mb, 5ms feeders, and a 800Kb 10ms bottleneck.
-# Queue-limit on bottleneck is 2 packets.
-#
-Class Topology/net4 -superclass NodeTopology/4nodes
-Topology/net4 instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 8Mb 0ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 8Mb 0ms DropTail
-    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
-    $ns queue-limit $node_(r1) $node_(k1) 8
-    $ns queue-limit $node_(k1) $node_(r1) 8
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-
-    $self instvar lossylink_
-    set lossylink_ [$ns link $node_(r1) $node_(k1)]
-    set em [new ErrorModule Fid] 
-    set errmodel [new ErrorModel/Periodic]
-    $errmodel unit pkt
-    $lossylink_ errormodule $em
-}
-
 
 TestSuite instproc emod {} {
         $self instvar topo_
@@ -118,9 +127,21 @@ TestSuite instproc drop_pkts pkts {
     $emod bind $errmodel1 1
 }
 
+TestSuite instproc setTopo {} {
+    $self instvar node_ net_ ns_ topo_
+
+    set topo_ [new Topology/$net_ $ns_]
+    set node_(s1) [$topo_ node? s1]
+    set node_(s2) [$topo_ node? s2]
+    set node_(r1) [$topo_ node? r1]
+    set node_(k1) [$topo_ node? k1]
+    [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
+}
+
 TestSuite instproc setup {tcptype list} {
 	global wrap wrap1
         $self instvar ns_ node_ testName_
+	$self setTopo
 
         Agent/TCP set bugFix_ false
 	set fid 1
@@ -197,10 +218,9 @@ TestSuite instproc setup {tcptype list} {
 ###################################################
 
 Class Test/onedrop_tahoe -superclass TestSuite
-Test/onedrop_tahoe instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/onedrop_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_tahoe
 	$self next
 }
@@ -209,10 +229,9 @@ Test/onedrop_tahoe instproc run {} {
 }
 
 Class Test/onedrop_tahoe_full -superclass TestSuite
-Test/onedrop_tahoe_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/onedrop_tahoe_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_tahoe_full
 	$self next
 }
@@ -221,10 +240,9 @@ Test/onedrop_tahoe_full instproc run {} {
 }
 
 Class Test/onedrop_reno -superclass TestSuite
-Test/onedrop_reno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/onedrop_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_reno
 	$self next
 }
@@ -233,11 +251,10 @@ Test/onedrop_reno instproc run {} {
 }
 
 Class Test/onedrop_reno_full -superclass TestSuite
-Test/onedrop_reno_full instproc init topo {
+Test/onedrop_reno_full instproc init {} {
 
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_reno_full
 	$self next
 }
@@ -246,10 +263,9 @@ Test/onedrop_reno_full instproc run {} {
 }
 
 Class Test/onedrop_newreno -superclass TestSuite
-Test/onedrop_newreno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/onedrop_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_newreno
 	$self next
 }
@@ -258,10 +274,9 @@ Test/onedrop_newreno instproc run {} {
 }
 
 Class Test/onedrop_newreno_full -superclass TestSuite
-Test/onedrop_newreno_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/onedrop_newreno_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_newreno_full
 	$self next
 }
@@ -270,10 +285,9 @@ Test/onedrop_newreno_full instproc run {} {
 }
 
 Class Test/onedrop_sack -superclass TestSuite
-Test/onedrop_sack instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/onedrop_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_sack
 	$self next
 }
@@ -282,10 +296,9 @@ Test/onedrop_sack instproc run {} {
 }
 
 Class Test/onedrop_sack_full -superclass TestSuite
-Test/onedrop_sack_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/onedrop_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	onedrop_sack_full
 	$self next
 }
@@ -298,10 +311,9 @@ Test/onedrop_sack_full instproc run {} {
 ###################################################
 
 Class Test/twodrops_tahoe -superclass TestSuite
-Test/twodrops_tahoe instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_tahoe
 	$self next
 }
@@ -310,10 +322,9 @@ Test/twodrops_tahoe instproc run {} {
 }
 
 Class Test/twodrops_tahoe_full -superclass TestSuite
-Test/twodrops_tahoe_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_tahoe_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_tahoe_full
 	$self next
 }
@@ -322,10 +333,9 @@ Test/twodrops_tahoe_full instproc run {} {
 }
 
 Class Test/twodrops_reno -superclass TestSuite
-Test/twodrops_reno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_reno
 	$self next
 }
@@ -334,10 +344,9 @@ Test/twodrops_reno instproc run {} {
 }
 
 Class Test/twodrops_reno_full -superclass TestSuite
-Test/twodrops_reno_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_reno_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_reno_full
 	$self next
 }
@@ -346,10 +355,9 @@ Test/twodrops_reno_full instproc run {} {
 }
 
 Class Test/twodrops_newreno -superclass TestSuite
-Test/twodrops_newreno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_newreno
 	$self next
 }
@@ -358,10 +366,9 @@ Test/twodrops_newreno instproc run {} {
 }
 
 Class Test/twodrops_newreno_full -superclass TestSuite
-Test/twodrops_newreno_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_newreno_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_newreno_full
 	$self next
 }
@@ -370,10 +377,9 @@ Test/twodrops_newreno_full instproc run {} {
 }
 
 Class Test/twodrops_sack -superclass TestSuite
-Test/twodrops_sack instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_sack
 	$self next
 }
@@ -382,10 +388,9 @@ Test/twodrops_sack instproc run {} {
 }
 
 Class Test/twodrops_sack_full -superclass TestSuite
-Test/twodrops_sack_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/twodrops_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	twodrops_sack_full
 	$self next
 }
@@ -398,10 +403,9 @@ Test/twodrops_sack_full instproc run {} {
 ###################################################
 
 Class Test/threedrops_tahoe -superclass TestSuite
-Test/threedrops_tahoe instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_tahoe
 	$self next
 }
@@ -410,10 +414,9 @@ Test/threedrops_tahoe instproc run {} {
 }
 
 Class Test/threedrops_tahoe_full -superclass TestSuite
-Test/threedrops_tahoe_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_tahoe_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_tahoe_full
 	$self next
 }
@@ -422,10 +425,9 @@ Test/threedrops_tahoe_full instproc run {} {
 }
 
 Class Test/threedrops_reno -superclass TestSuite
-Test/threedrops_reno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_reno
 	$self next
 }
@@ -434,10 +436,9 @@ Test/threedrops_reno instproc run {} {
 }
 
 Class Test/threedrops_reno_full -superclass TestSuite
-Test/threedrops_reno_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_reno_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_reno_full
 	$self next
 }
@@ -446,10 +447,9 @@ Test/threedrops_reno_full instproc run {} {
 }
 
 Class Test/threedrops_newreno -superclass TestSuite
-Test/threedrops_newreno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_newreno
 	$self next
 }
@@ -458,10 +458,9 @@ Test/threedrops_newreno instproc run {} {
 }
 
 Class Test/threedrops_newreno_full -superclass TestSuite
-Test/threedrops_newreno_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_newreno_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_newreno_full
 	$self next
 }
@@ -470,10 +469,9 @@ Test/threedrops_newreno_full instproc run {} {
 }
 
 Class Test/threedrops_sack -superclass TestSuite
-Test/threedrops_sack instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_sack
 	$self next
 }
@@ -482,10 +480,9 @@ Test/threedrops_sack instproc run {} {
 }
 
 Class Test/threedrops_sack_full -superclass TestSuite
-Test/threedrops_sack_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/threedrops_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	threedrops_sack_full
 	$self next
 }
@@ -498,10 +495,9 @@ Test/threedrops_sack_full instproc run {} {
 ###################################################
 
 Class Test/fourdrops_tahoe -superclass TestSuite
-Test/fourdrops_tahoe instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_tahoe
 	$self next
 }
@@ -510,10 +506,9 @@ Test/fourdrops_tahoe instproc run {} {
 }
 
 Class Test/fourdrops_tahoe_full -superclass TestSuite
-Test/fourdrops_tahoe_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_tahoe_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_tahoe_full
 	$self next
 }
@@ -522,10 +517,9 @@ Test/fourdrops_tahoe_full instproc run {} {
 }
 
 Class Test/fourdrops_reno -superclass TestSuite
-Test/fourdrops_reno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_reno
 	$self next
 }
@@ -534,10 +528,9 @@ Test/fourdrops_reno instproc run {} {
 }
 
 Class Test/fourdrops_reno_full -superclass TestSuite
-Test/fourdrops_reno_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_reno_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_reno_full
 	$self next
 }
@@ -546,10 +539,9 @@ Test/fourdrops_reno_full instproc run {} {
 }
 
 Class Test/fourdrops_newreno -superclass TestSuite
-Test/fourdrops_newreno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_newreno
 	$self next
 }
@@ -558,10 +550,9 @@ Test/fourdrops_newreno instproc run {} {
 }
 
 Class Test/fourdrops_newreno_full -superclass TestSuite
-Test/fourdrops_newreno_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_newreno_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_newreno_full
 	$self next
 }
@@ -570,10 +561,9 @@ Test/fourdrops_newreno_full instproc run {} {
 }
 
 Class Test/fourdrops_sack -superclass TestSuite
-Test/fourdrops_sack instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_sack
 	$self next
 }
@@ -582,10 +572,9 @@ Test/fourdrops_sack instproc run {} {
 }
 
 Class Test/fourdrops_sack_full -superclass TestSuite
-Test/fourdrops_sack_full instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/fourdrops_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	fourdrops_sack_full
 	$self next
 }
