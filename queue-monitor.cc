@@ -37,38 +37,7 @@ static char rcsid[] =
 59:47 hari Exp hari $";
 #endif
 
-#include "integrator.h"
-#include "connector.h"
-#include "packet.h"
-#include "ip.h"
-
-class BytesIntegrator : public Integrator {
- public:
-        BytesIntegrator() : Integrator() {}
-};
-
-class PktsIntegrator : public Integrator {
- public:
-        PktsIntegrator() : Integrator() {}
-};
-
-class QueueMonitor : public TclObject {
- public:
-        QueueMonitor() : size_(0), pkts_(0) {
-                bind("size_", &size_);
-                bind("pkts_", &pkts_);
-		bind("off_cmn_", &off_cmn_);
-        };
-        void in(Packet*);
-        void out(Packet*);
-        int command(int argc, const char*const* argv);
-        BytesIntegrator *bytesInt_;
-        PktsIntegrator  *pktsInt_;
-protected:
-        int size_;
-        int pkts_;
-	int off_cmn_;
-};
+#include "queue-monitor.h"
 
 int QueueMonitor::command(int argc, const char*const* argv) {
         Tcl& tcl = Tcl::instance();
@@ -140,39 +109,6 @@ void QueueMonitor::out(Packet* p)
         bytesInt_->newPoint(now, double(size_));
         pktsInt_->newPoint(now, double(pkts_));
 }
-
-class SnoopQueue : public Connector {
- public:
-        SnoopQueue() : qm_(0) {}
-        int command(int argc, const char*const* argv) {
-                if (argc == 3) {
-                        if (strcmp(argv[1], "set-monitor") == 0) {
-                                qm_ = (QueueMonitor*)
-                                        TclObject::lookup(argv[2]);
-                                return (TCL_OK);
-                        }
-                }
-                return (Connector::command(argc, argv));
-        }
- protected:
-        QueueMonitor* qm_;
-};
-
-class SnoopQueueIn : public SnoopQueue {
- public:
-        void recv(Packet* p, Handler* h) {
-                qm_->in(p);
-                send(p, h);
-        }
-};
-
-class SnoopQueueOut : public SnoopQueue {
- public:
-        void recv(Packet* p, Handler* h) {
-                qm_->out(p);
-                send(p, h);
-        }
-};
 
 static class SnoopQueueInClass : public TclClass {
 public:
