@@ -86,18 +86,20 @@ DM instproc recv-prune { from src group iface} {
 	}
 	set id [$node_ id]
 	set tmpoif [$self link2oif [$ns_ link $id $from]]
-	$r disable $tmpoif
+	if { [$r is-active-target $tmpoif] } {
+		$r disable $tmpoif
+		if ![$r is-active] {
+			if { $src != [$node_ id] } {
+				$self send-ctrl prune $src $group
+			}
+		}
+	}
 	if ![info exists PruneTimer_($src:$group:$tmpoif)] {
 		set PruneTimer_($src:$group:$tmpoif) \
 				[new Timer/Iface/Prune $self $src $group $tmpoif $ns_]
 	}
 	$PruneTimer_($src:$group:$tmpoif) schedule
 
-        if ![$r is-active] {
-		if { $src != [$node_ id] } {
-			$self send-ctrl prune $src $group
-		}
-	}
 }
 
 DM instproc recv-graft { from src group iface} {
