@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.32 1997/07/02 03:09:25 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.33 1997/07/03 03:20:19 kfall Exp $
 
 
 #
@@ -189,6 +189,13 @@ QueueMonitor set pdrops_ 0
 QueueMonitor set bdrops_ 0
 QueueMonitor/ED set epdrops_ 0
 QueueMonitor/ED set ebdrops_ 0
+QueueMonitor/ED/Flowmon set enable_in_ true
+QueueMonitor/ED/Flowmon set enable_out_ true
+QueueMonitor/ED/Flowmon set enable_drop_ true
+QueueMonitor/ED/Flowmon set enable_edrop_ true
+QueueMonitor/ED/Flow set src_ -1
+QueueMonitor/ED/Flow set dst_ -1
+QueueMonitor/ED/Flow set flowid_ -1
 
 Agent set class_ 0
 
