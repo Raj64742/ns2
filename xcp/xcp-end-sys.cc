@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.8 2004/08/16 21:24:36 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.9 2004/08/25 00:05:09 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -56,7 +56,7 @@ XcpAgent::XcpAgent(): RenoTcpAgent(), shrink_cwnd_timer_(this)
 	init_rtt_vars();
 	type_ = PT_XCP;
 
-	last_send_ticks_ = 0;
+	tp_to_start_ticks_ = 0;
 	s_sent_bytes_ = 0;
 	estimated_throughput_ = 0;
 	sent_bytes_ = 0;
@@ -114,35 +114,50 @@ void XcpAgent::output(int seqno, int reason)
 	if (xcp_metered_output_) {
 		double now = Scheduler::instance().clock();
 		long now_ticks = long(now / tcp_tick_);
-		if (last_send_ticks_ == 0) {
-			if (srtt_estimate_ != 0) {
-				last_send_ticks_ = now_ticks;
+		double to_s = srtt_estimate_;
+		if (tp_to_start_ticks_ == 0) {
+			if (to_s != 0) {
+				tp_to_start_ticks_ = now_ticks;
+				do {
+					tp_to_ticks_ = long(to_s / tcp_tick_);
+					to_s *= 2;
+				} while (tp_to_ticks_ < 1);
+				to_s /= 2; // XXX restore (just in case)
+
 				xcp_feedback_ = 0.0;
 				sent_bytes_ = 0;
 			}
 		} else {
-			long delta_ticks = now_ticks - last_send_ticks_;
-			while (delta_ticks >= TP_TO_TICKS) {
+			long delta_ticks = now_ticks - tp_to_start_ticks_;
+			while (delta_ticks >= tp_to_ticks_) {
 				/* each iteration is a "timeout" */
 				if (sent_bytes_ > s_sent_bytes_)
 					s_sent_bytes_ = sent_bytes_;
-				else 
-				{
+				else {
 					s_sent_bytes_ *= (TP_AVG_EXP - 1);
 					s_sent_bytes_ += sent_bytes_;
 					s_sent_bytes_ /= TP_AVG_EXP;
 				}
-				delta_ticks -= TP_TO_TICKS;
+				delta_ticks -= tp_to_ticks_;
 				sent_bytes_ = 0;
+				estimated_throughput_ = (s_sent_bytes_ 
+							 / tcp_tick_ 
+							 / tp_to_ticks_);
 				xcp_feedback_ = 0;
-				last_send_ticks_ = now_ticks;
+				tp_to_start_ticks_ = now_ticks - delta_ticks;
+
+				if (to_s != 0.0) {
+					do {
+						tp_to_ticks_ = long(to_s / tcp_tick_);
+						to_s *= 2;
+					} while (tp_to_ticks_ < 1);
+					to_s /= 2; // XXX for multiple "timeouts"
+				}
 			}
-			estimated_throughput_ = (s_sent_bytes_ 
-						 / tcp_tick_ 
-						 / TP_TO_TICKS);
 		}
 #define MAX_THROUGHPUT	1e24
 		xh->throughput_ = estimated_throughput_;
+		
 		if (srtt_estimate_ != 0)
 			xh->delta_throughput_ = (MAX_THROUGHPUT 
 						 - xh->throughput_);
@@ -159,6 +174,8 @@ void XcpAgent::output(int seqno, int reason)
 		}
 	}
 	if(channel_) {
+		trace_var("estimated_throughput", estimated_throughput_);
+		trace_var("xcp_feedback", xcp_feedback_);
 		trace_var("throughput", xh->throughput_);
 	}
 	// End of XCP Changes
@@ -232,7 +249,7 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 	newack(pkt);
 	// XCP changes
 	hdr_xcp *xh = hdr_xcp::access(pkt);
-	if(channel_){
+	if(channel_) {
 		trace_var("reverse_feedback_", xh->reverse_feedback_);
 		trace_var("controlling_hop_", xh->controlling_hop_);
 	}
@@ -243,6 +260,10 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 	double delta_cwnd = 0;
 	if (xcp_metered_output_) {
 		double bw = estimated_throughput_ + xcp_feedback_;
+
+		if (bw < 0.0)
+			bw = estimated_throughput_;
+
 		/* XXX we add xcp_feedback here, because we change
 		 * snd_cnwd for every received reverse_feedback;
 		 * alternatively, we could keep an old copy of cnwd

@@ -101,7 +101,8 @@ class XcpAgent : public RenoTcpAgent {
 	double xcp_feedback_;
 	long   sent_bytes_;
 	long   s_sent_bytes_;
-	long   last_send_ticks_;
+	long   tp_to_start_ticks_;
+	long   tp_to_ticks_;
 	double estimated_throughput_;
 	cwndShrinkingTimer shrink_cwnd_timer_;
 };
