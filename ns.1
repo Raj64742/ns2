@@ -2205,6 +2205,9 @@ They inherit all of the generic agent functionality.
 Causes the source to start generating packets.
 .IP "\fB$cbr stop\fP"
 Causes the source to stop generating packets.
+.IP "\fB$cbr advanceby n\fP"
+Causes the source to send n more packets at the current rate
+(i.e., increments maxpkts_ and starts sending if necessary).
 .LP
 .HD
 Configuration Parameters 

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.6 1997/08/14 00:05:45 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.7 1997/12/06 02:26:06 heideman Exp $ (LBL)
  */
 
 #ifndef ns_cbr_h
@@ -53,9 +53,11 @@ class CBR_Agent : public Agent {
 	CBR_Agent();
 	int command(int argc, const char*const* argv);
 	virtual void timeout(int);
+	void advanceby(int delta);
  protected:
 	void start();
 	void stop();
+	void finish();   // called when running_ => 0
 	virtual void sendpkt();
 	int running_;
 	int random_;

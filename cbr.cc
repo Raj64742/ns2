@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.13 1997/08/14 00:06:00 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.14 1997/12/06 02:26:05 heideman Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -69,7 +69,7 @@ void CBR_Agent::start()
 void CBR_Agent::stop()
 {
 	cbr_timer_.cancel();
-	running_ = 0;
+	finish();
 }
 
 void CBR_Agent::timeout(int)
@@ -91,18 +91,42 @@ void CBR_Agent::sendpkt()
 		hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
 		rh->seqno() = seqno_;
 		target_->recv(p);
-	}
-	else 
-	        running_ = 0;
+	} else {
+		finish();
+		// xxx: should we deschedule the timer here? */
+	};
 }
 
 /*
- * $cbr start
- * $cbr stop
+ * finish() is called when we must stop (either by request or because
+ * we're out of packets to send.
  */
+void CBR_Agent::finish()
+{
+	running_ = 0;
+	Tcl::instance().evalf("%s done", this->name());
+}
+
+void CBR_Agent::advanceby(int delta)
+{
+	maxpkts_ += delta;
+	if (seqno_ < maxpkts_ && !running_)
+		start();
+}
+
 int CBR_Agent::command(int argc, const char*const* argv)
 {
-	if (argc == 2) {
+	if (argc == 3) {
+		if (strcmp(argv[1], "advance") == 0) {
+			int newseq = atoi(argv[2]);
+			advanceby(newseq - seqno_);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "advanceby") == 0) {
+			advanceby(atoi(argv[2]));
+			return (TCL_OK);
+		}
+	} else if (argc == 2) {
 		if (strcmp(argv[1], "start") == 0) {
 			start();
 			return (TCL_OK);
