@@ -366,7 +366,13 @@ Agent/rtProto/Static proc init-all args {
     # The Simulator knows the entire topology.
     # Hence, the current compute-routes method in the Simulator class is
     # well suited.  We use it as is.
-    [Simulator instance] compute-routes
+
+    # check if hierarchical routing is enabled.
+    if [Simulator set EnableHierRt_] {
+	[Simulator instance] compute-hier-routes
+    } else {
+	[Simulator instance] compute-routes
+    }
 }
 
 #
@@ -375,11 +381,19 @@ Agent/rtProto/Static proc init-all args {
 Class Agent/rtProto/Session -superclass Agent/rtProto
 
 Agent/rtProto/Session proc init-all args {
-    [Simulator instance] compute-routes
+    if [Simulator set EnableHierRt_] {
+	[Simulator instance] compute-hier-routes
+    } else {
+	[Simulator instance] compute-routes
+    }
 }
 
 Agent/rtProto/Session proc compute-all {} {
-    [Simulator instance] compute-routes
+    if [Simulator set EnableHierRt_] {
+	[Simulator instance] compute-hier-routes
+    } else {
+	[Simulator instance] compute-routes
+    }
 }
 
 #
