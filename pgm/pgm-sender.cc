@@ -157,7 +157,7 @@ protected:
 
   void display_packet(Packet *pkt); // For debugging.
 
-  void PgmSender::trace_event(char *evType, double evTime); 
+  void PgmSender::trace_event(char *evType, nsaddr_t daddr, double evTime); 
 
   EventTrace * et_; 	//Trace Object for custom Event Traces
 
@@ -303,19 +303,30 @@ int PgmSender::command(int argc, const char*const* argv)
   return (Agent::command(argc, argv));
 }
 
-void PgmSender::trace_event(char *evType, double evTime) {
+void PgmSender::trace_event(char *evType, nsaddr_t daddr, double evTime) {
 
   if (et_ == NULL) return;
   char *wrk = et_->buffer();
+  char *nwrk = et_->nbuffer();
 
   if (wrk != NULL) {
     sprintf(wrk, "E "TIME_FORMAT" %d %d PGM %s "TIME_FORMAT, 
             et_->round(Scheduler::instance().clock()),   
             addr(),                    
-            addr(),                   
+            daddr,                   
             evType,                  
 			evTime);	
-    et_->dump();
+  if (nwrk != 0)
+    sprintf(nwrk,
+			"E -t "TIME_FORMAT" -o PGM -e %s -s %d.%d -d %d.%d",
+			et_->round(Scheduler::instance().clock()),   // time
+			evType,                    // event type
+			addr(),                       // owner (src) node id
+			port(),                       // owner (src) port id
+			daddr,                      // dst node id
+			0                       // dst port id
+			);
+	et_->trace();
   }
 
 }
@@ -458,7 +469,7 @@ void PgmSender::handle_nak(Packet *pkt)
     ritem->rdata_timer().resched(rdata_delay_);
 
 	//Output Event Trace, Repair will be sent after rdata_delay_
-    trace_event("REPAIR BACKOFF", rdata_delay_);
+    trace_event("REPAIR BACKOFF", rdata_hip->daddr(), rdata_delay_);
 
     if (hc->iface() < 0) {
       // The NAK was sent from a local agent attached to this node. Keep
@@ -590,7 +601,8 @@ void PgmSender::send_rdata(RdataItem *item)
 
   // Send the packet to each of the interfaces.
   NsObject *tgt;
-  Packet *pkt;
+  Packet *pkt, *rDataPkt;
+  hdr_ip *rdata_hip; 
 
   // Used to determine when we need to make additional copies of the packet.
   int flag = 0;
@@ -602,7 +614,9 @@ void PgmSender::send_rdata(RdataItem *item)
       if (!flag) {
 	tgt = iface2link(*iter);
 	tgt->recv(item->rdata_pkt());
-    trace_event("SEND RDATA", 0);
+    rDataPkt = item->rdata_pkt();
+    rdata_hip = HDR_IP(pkt);
+    trace_event("SEND RDATA", rdata_hip->daddr(), 0);
 	flag = 1;
       }
       else {

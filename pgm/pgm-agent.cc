@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2001 University of Southern California.
  * All rights reserved.                                            
@@ -452,15 +451,26 @@ void PgmAgent::trace_event(char *evType, double evTime) {
 
   if (et_ == NULL) return;
   char *wrk = et_->buffer();
+  char *nwrk = et_->nbuffer();
 
   if (wrk != NULL) {
     sprintf(wrk, "E "TIME_FORMAT" %d %d PGM %s "TIME_FORMAT, 
             et_->round(Scheduler::instance().clock()),   
             addr(),                    
-            addr(),                   
+            0,                   
             evType,                  
 			evTime);	
-    et_->dump();
+  if (nwrk != 0)
+    sprintf(nwrk,
+			"E -t "TIME_FORMAT" -o PGM -e %s -s %d.%d -d %d.%d",
+			et_->round(Scheduler::instance().clock()),   // time
+			evType,                    // event type
+			addr(),                       // owner (src) node id
+			port(),                       // owner (src) port id
+			0,                      // dst node id
+			0                       // dst port id
+			);
+	et_->trace();
   }
 
 }
@@ -526,6 +536,7 @@ void PgmAgent::handle_rdata(Packet *pkt)
 
   // Look for the TSI for this RDATA packet.
   hdr_pgm *hp = HDR_PGM(pkt);
+  hdr_ip *hip = HDR_IP(pkt);
 
   StateInfo *state = find_TSI(hp->tsi_);
   if (state == NULL) {
@@ -630,6 +641,7 @@ void PgmAgent::handle_nak(Packet *pkt)
   hdr_pgm *hp = HDR_PGM(pkt);
   hdr_pgm_nak *hpn = HDR_PGM_NAK(pkt);
   hdr_cmn *hc = HDR_CMN(pkt);
+  hdr_ip *hip = HDR_IP(pkt);
 
   // Check to see if there is a state control block for the given TSI.
   StateInfo *state = find_TSI(hp->tsi_);

@@ -321,15 +321,26 @@ void PgmReceiver::trace_event(char *evType, double evTime) {
 
   if (et_ == NULL) return;
   char *wrk = et_->buffer();
+  char *nwrk = et_->nbuffer();
 
   if (wrk != NULL) {
     sprintf(wrk, "E "TIME_FORMAT" %d %d PGM %s "TIME_FORMAT, 
             et_->round(Scheduler::instance().clock()),   
             addr(),                    
-            addr(),                   
+            0,                   
             evType,                  
 			evTime);	
-    et_->dump();
+  if (nwrk != 0)
+    sprintf(nwrk,
+			"E -t "TIME_FORMAT" -o PGM -e %s -s %d.%d -d %d.%d",
+			et_->round(Scheduler::instance().clock()),   // time
+			evType,                    // event type
+			addr(),                       // owner (src) node id
+			port(),                       // owner (src) port id
+			0,                      // dst node id
+			0                       // dst port id
+			);
+	et_->trace();
   }
 
 }
