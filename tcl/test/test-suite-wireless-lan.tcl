@@ -15,7 +15,10 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.19 2000/09/14 18:19:31 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.20 2000/09/14 18:21:41 haoboy Exp $
+
+# THIS TEST IS SUBSUMED BY TEST-SUITE-WIRELESS-LAN-NEWNODE.TCL 
+# - Sep 15, 2000
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan
