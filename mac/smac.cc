@@ -124,29 +124,29 @@ void SmacCounterTimer::sched(double time) {
   // and not the absolute time for a given state (sleep, sync or data). Thus inorder 
   // to schedule for a sleep state, need to schedule with aggregate time CYCLETIME 
   // (sleeptime+synctime+dadatime).
-  // Similarly for sync state, schedule with LISTENTIME (synctime+datattime)
+  // Similarly for sync state, schedule with listenTime_ (synctime+datattime)
   // This is implemented to be in step with the counter used in actual smac.
 
   tts_ = time; // time before it goes to sleep again
   stime_ = Scheduler::instance().clock();
   
-  if (time <= CLKTICK2SEC(CYCLETIME) && time > CLKTICK2SEC(LISTENTIME)) { // in sleep state
-    value_ = SLEEPTIME;
+  if (time <= CLKTICK2SEC(cycleTime_) && time > CLKTICK2SEC(listenTime_)) { // in sleep state
+    value_ = sleepTime_;
     if (status_ == TIMER_IDLE)
-      TimerHandler::sched(time - CLKTICK2SEC(LISTENTIME)); 
+      TimerHandler::sched(time - CLKTICK2SEC(listenTime_)); 
     else
-      TimerHandler::resched(time - CLKTICK2SEC(LISTENTIME)); 
+      TimerHandler::resched(time - CLKTICK2SEC(listenTime_)); 
     
-  } else if ( time <= CLKTICK2SEC(LISTENTIME) && time > CLKTICK2SEC(DATATIME)) { // in sync state
-    value_ = SYNCTIME;
+  } else if ( time <= CLKTICK2SEC(listenTime_) && time > CLKTICK2SEC(dataTime_)) { // in sync state
+    value_ = syncTime_;
     if (status_ == TIMER_IDLE)
-      TimerHandler::sched(time - CLKTICK2SEC(DATATIME)); 
+      TimerHandler::sched(time - CLKTICK2SEC(dataTime_)); 
     else
-      TimerHandler::resched(time - CLKTICK2SEC(DATATIME)); 
+      TimerHandler::resched(time - CLKTICK2SEC(dataTime_)); 
     
   } else { // in data state
-    assert(time <= CLKTICK2SEC(DATATIME));
-    value_ = DATATIME;
+    assert(time <= CLKTICK2SEC(dataTime_));
+    value_ = dataTime_;
     if (status_ == TIMER_IDLE)
       TimerHandler::sched(time); 
     else
@@ -193,13 +193,24 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
   // calculate packet duration. Following equations assume 4b/6b coding.
   // All calculations yield in usec
 
-  //durDataPkt_ = ((SIZEOF_SMAC_DATAPKT) * 12 + 18) / 1.0e4 + CLKTICK2SEC(1);
-  durDataPkt_ = ((SIZEOF_SMAC_DATAPKT) * 12 + 18) / 1.0e4 ;
+  //durSyncPkt_ = ((SIZEOF_SMAC_SYNCPKT) * 12 + 18) / 1.0e4 ;
+
+  durSyncPkt_ =  (PRE_PKT_BYTES + (SIZEOF_SMAC_SYNCPKT * ENCODE_RATIO)) * BYTE_TX_TIME + 1;
+  durSyncPkt_ = CLKTICK2SEC(durSyncPkt_);
+
+  //durDataPkt_ = ((SIZEOF_SMAC_DATAPKT) * 12 + 18) / 1.0e4 ;
+  durDataPkt_ = (PRE_PKT_BYTES + (SIZEOF_SMAC_DATAPKT * ENCODE_RATIO)) * BYTE_TX_TIME + 1;
+  durDataPkt_ = CLKTICK2SEC(durDataPkt_);
+
+  //durCtrlPkt_ = ((SIZEOF_SMAC_CTRLPKT) * 12 + 18) / 1.0e4;
+  durCtrlPkt_ = (PRE_PKT_BYTES + (SIZEOF_SMAC_CTRLPKT * ENCODE_RATIO)) * BYTE_TX_TIME + 1;
+  durCtrlPkt_ = CLKTICK2SEC(durCtrlPkt_);
   
-  //durCtrlPkt_ = ((SIZEOF_SMAC_CTRLPKT) * 12 + 18) / 1.0e4 + CLKTICK2SEC(1);
-  durCtrlPkt_ = ((SIZEOF_SMAC_CTRLPKT) * 12 + 18) / 1.0e4 ;
-  
-  timeWaitCtrl_ = durCtrlPkt_ + CLKTICK2SEC(4) ;    // timeout time
+  // time to wait for CTS or ACK
+  //timeWaitCtrl_ = durCtrlPkt_ + CLKTICK2SEC(4) ;    // timeout time
+  int delay = 2 * PROC_DELAY + SIFS;
+  timeWaitCtrl_ = CLKTICK2SEC(delay) + durCtrlPkt_;    // timeout time
+
   
   numSched_ = 0;
   numNeighb_ = 0;
@@ -214,9 +225,25 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
   
   else {
   
-    for (int i=0; i< MAX_NUM_SCHEDULES; i++) {
+    // Calculate sync/data/sleeptime based on duty cycle
+    // all time in ms
+    syncTime_ = DIFS + SEC2CLKTICK(SLOTTIME) * SYNC_CW + SEC2CLKTICK(durSyncPkt_) + GUARDTIME;
+    dataTime_ = DIFS + SEC2CLKTICK(SLOTTIME) * DATA_CW + SEC2CLKTICK(durCtrlPkt_) + GUARDTIME;
+    listenTime_ = syncTime_ + dataTime_;
+    cycleTime_ = listenTime_ * 100 / SMAC_DUTY_CYCLE + 1;
+    sleepTime_ = cycleTime_ - listenTime_;
+
+
+    for (int i=0; i< SMAC_MAX_NUM_SCHEDULES; i++) {
     mhCounter_[i] = new SmacCounterTimer(this, i);
+    mhCounter_[i]->syncTime_ = syncTime_;
+    mhCounter_[i]->dataTime_ = dataTime_;
+    mhCounter_[i]->listenTime_ = listenTime_;
+    mhCounter_[i]->sleepTime_ = sleepTime_;
+    mhCounter_[i]->cycleTime_ = cycleTime_;
     }
+
+    // printf("syncTime= %d, dataTime= %d, listentime = %d, sleepTime= %d, cycletime= %d\n", syncTime_, dataTime_, listenTime_, sleepTime_, cycleTime_);
 
     // listen for a whole period to choose a schedule first
     // this typically results in each node following its own schedule
@@ -225,11 +252,10 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
     // The foll CW value allows neigh nodes to follow a single schedule
     double w = (Random::random() % (SYNC_CW)) ;
     double cw = w/10.0;
-    double c = CLKTICK2SEC(LISTENTIME) + CLKTICK2SEC(SLEEPTIME);
+    double c = CLKTICK2SEC(listenTime_) + CLKTICK2SEC(sleepTime_);
     double s = SYNCPERIOD + 1;
     double t = c * s ;
     mhGene_.sched(t + cw);
-    //mhGene_.sched((CLKTICK2SEC(LISTENTIME) + CLKTICK2SEC(SLEEPTIME)) * CLKTICK2SEC(SYNCPERIOD + 1) + cw);
   }
 }
 
@@ -244,7 +270,7 @@ void SMAC::setMySched(Packet *pkt)
   
   if (pkt == 0) { // freely choose my schedule
 
-    mhCounter_[0]->sched(CLKTICK2SEC(LISTENTIME));
+    mhCounter_[0]->sched(CLKTICK2SEC(listenTime_));
     mySyncNode_ = index_; // myself
     
     currSched_ = 0;
@@ -408,7 +434,7 @@ void SMAC::handleGeneTimer()
     } 
   }
   if (state_ == WAIT_CTS) {  // CTS timeout
-    if (numRetry_ < RETRY_LIMIT) {
+    if (numRetry_ < SMAC_RETRY_LIMIT) {
       numRetry_++;
       // wait until receiver's next wakeup
       state_ = IDLE;
@@ -429,7 +455,7 @@ void SMAC::handleGeneTimer()
     
   } else if (state_ == WAIT_ACK) { // ack timeout
     
-    if (numExtend_ < EXTEND_LIMIT) { // extend time
+    if (numExtend_ < SMAC_EXTEND_LIMIT) { // extend time
       printf("SMAC %d: no ACK received. Extend Tx time.\n", index_);
       numExtend_++;
       
@@ -501,7 +527,7 @@ int SMAC::checkToSend() {
     
       // start cstimer
       double cw = (Random::random() % DATA_CW) * SLOTTIME;
-      mhCS_.sched(CLKTICK2SEC(DWAIT) + cw);
+      mhCS_.sched(CLKTICK2SEC(DIFS) + cw);
       
       return 1;
     
@@ -565,7 +591,7 @@ void SMAC::handleCounterTimer(int id) {
   
   //printf("MAC:%d,id:%d - time:%.9f\n", index_,id,Scheduler::instance().clock());
 
-  if (mhCounter_[id]->value_ == SLEEPTIME) { //woken up from sleep
+  if (mhCounter_[id]->value_ == sleepTime_) { //woken up from sleep
     // listentime starts now
 
     if (radioState_ != RADIO_SLP && radioState_ != RADIO_IDLE)
@@ -593,9 +619,9 @@ void SMAC::handleCounterTimer(int id) {
     }
     // start to listen now
   sched_1:
-    mhCounter_[id]->sched(CLKTICK2SEC(LISTENTIME));
+    mhCounter_[id]->sched(CLKTICK2SEC(listenTime_));
     
-  } else if (mhCounter_[id]->value_ == SYNCTIME) { //synctime over
+  } else if (mhCounter_[id]->value_ == syncTime_) { //synctime over
       // can start datatime now
     
     if (radioState_ != RADIO_SLP && radioState_ != RADIO_IDLE)
@@ -621,12 +647,12 @@ void SMAC::handleCounterTimer(int id) {
       state_ = CR_SENSE;
       // start cstimer
       double cw = (Random::random() % DATA_CW) * SLOTTIME;
-      mhCS_.sched(CLKTICK2SEC(DWAIT) + cw);
+      mhCS_.sched(CLKTICK2SEC(DIFS) + cw);
     }
   sched_2:
-    mhCounter_[id]->sched(CLKTICK2SEC(DATATIME));
+    mhCounter_[id]->sched(CLKTICK2SEC(dataTime_));
     
-  } else if (mhCounter_[id]->value_ == DATATIME) { //datatime over
+  } else if (mhCounter_[id]->value_ == dataTime_) { //datatime over
 
     // check if in the middle of recving a pkt
     if (radioState_ == RADIO_RX)
@@ -637,7 +663,7 @@ void SMAC::handleCounterTimer(int id) {
 
   sched_3:
     // now time to go to sleep
-    mhCounter_[id]->sched(CLKTICK2SEC(CYCLETIME));
+    mhCounter_[id]->sched(CLKTICK2SEC(cycleTime_));
     
     // check if ready to send out sync 
     if (schedTab_[id].numPeriods > 0) {
@@ -999,7 +1025,7 @@ void SMAC::handleSYNC(Packet *p)
   struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
   int i, j;
   int foundNeighb = 0;
-  int schedId = MAX_NUM_SCHEDULES;
+  int schedId = SMAC_MAX_NUM_SCHEDULES;
   double t = Scheduler::instance().clock();
   //printf("Recvd SYNC (not/f) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
   
@@ -1016,7 +1042,7 @@ void SMAC::handleSYNC(Packet *p)
   }
   if (!foundNeighb) { // unknown node, add it onto neighbor list
     neighbList_[numNeighb_].nodeId = sf->srcAddr;
-    if (schedId < MAX_NUM_SCHEDULES) {
+    if (schedId < SMAC_MAX_NUM_SCHEDULES) {
       // found its synchronizer
       neighbList_[numNeighb_].schedId = schedId;
     } else if (sf->syncNode == index_) { // this node follows my schedule
@@ -1404,9 +1430,10 @@ bool SMAC::sendSYNC()
   
   cf->srcAddr = index_;
   cf->syncNode = mySyncNode_;
+  // shld change SYNCPKTTIME to match with the configures durSyncPkt_
   cf->sleepTime = mhCounter_[0]->timeToSleep() - CLKTICK2SEC(SYNCPKTTIME);
   if (cf->sleepTime < 0)
-    cf->sleepTime += CLKTICK2SEC(CYCLETIME);
+    cf->sleepTime += CLKTICK2SEC(cycleTime_);
   
   // send SYNC
   if (chkRadio()) {

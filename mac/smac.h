@@ -49,39 +49,93 @@
 #include "random.h"
 #include "timer-handler.h"
 
+/* User-adjustable MAC parameters
+ *--------------------------------
+ * The default values can be overriden in Each application's Makefile
+ * SMAC_MAX_NUM_NEIGHB: maximum number of neighbors.
+ * SMAC_MAX_NUM_SCHED: maximum number of different schedules.
+ * SMAC_DUTY_CYCLE: duty cycle in percentage. It controls the length of sleep 
+ *   interval.
+ * SMAC_RETRY_LIMIT: maximum number of RTS retries for sending a single message.
+ * SMAC_EXTEND_LIMIT: maximum number of times to extend Tx time when ACK timeout
+     happens.
+ */
 
-// define number of neighbors and schedules
-#define MAX_NUM_NEIGHBORS 8
-#define MAX_NUM_SCHEDULES 4
+#ifndef SMAC_MAX_NUM_NEIGHBORS
+#define SMAC_MAX_NUM_NEIGHBORS 20
+#endif
 
-// XXX Note everything is in clockticks (5ms) for tinyOS
+#ifndef SMAC_MAX_NUM_SCHEDULES
+#define SMAC_MAX_NUM_SCHEDULES 4
+#endif
+
+#ifndef SMAC_DUTY_CYCLE
+#define SMAC_DUTY_CYCLE 10
+#endif
+
+#ifndef SMAC_RETRY_LIMIT
+#define SMAC_RETRY_LIMIT 5
+#endif
+
+#ifndef SMAC_EXTEND_LIMIT
+#define SMAC_EXTEND_LIMIT 5
+#endif
+
+
+/* Internal MAC parameters
+ *--------------------------
+ * Do NOT change them unless for tuning S-MAC
+ * SLOTTIME: time of each slot in contention window. It should be large
+ *   enough to receive the whole start symbol. Converted to sec
+ * DIFS: DCF interframe space (from 802.11), in ms. It is used at the beginning
+ *   of each contention window. It's the minmum time to wait to start a new 
+ *   transmission.
+ * SIFS: short interframe space (from 802.11), in ms. It is used before sending
+ *   an CTS or ACK packet. It takes care of the processing delay of each pkt.
+ * EIFS: Entended interfrane space (from 802.11) in ms. Used for backing off incase
+ * of a collision.
+ * SYNC_CW: number of slots in the sync contention window, must be 2^n - 1 
+ * DATA_CW: number of slots in the data contention window, must be 2^n - 1
+ * GUARDTIME: guard time at the end of each listen interval, in ms.
+ * SYNC_PERIOD: period to send a sync pkt, in cycles.
+ */
+
+#define SLOTTIME  0.001      // in sec
+#define DIFS 10
+#define SIFS 5
+#define EIFS 50
+#define SYNC_CW 31
+#define DATA_CW 63
+#define GUARDTIME 4
+#define SYNCPERIOD 10
+#define SYNCPKTTIME 3         // an adhoc value used for now later shld converge with durSyncPkt_
+
+/* Physical layer parameters
+ *---------------------------
+ * Based on the parameters from PHY_RADIO and RADIO_CONTROL
+ * CLOCK_RES: clock resolution in ms. 
+ * BANDWIDTH: bandwidth (bit rate) in kbps. Not directly used.
+ * BYTE_TX_TIME: time to transmit a byte, in ms. Derived from bandwidth
+ * PRE_PKT_BYTES: number of extra bytes transmitted before each pkt. It equals
+ *   preamble + start symbol + sync bytes.
+ * ENCODE_RATIO: output/input ratio of the number of bytes of the encoding
+ *  scheme. In Manchester encoding, 1-byte input generates 2-byte output.
+ * PROC_DELAY: processing delay of each packet in physical and MAC layer, in ms
+ */
+
+#define CLOCKRES 1       // clock resolution is 1ms
+#define BANDWIDTH 20      // kbps =>CHANGE BYTE_TX_TIME WHENEVER BANDWIDTH CHANGES
+#define BYTE_TX_TIME 4/10 // 0.4 ms to tx one byte => changes when bandwidth does
+#define PRE_PKT_BYTES 5
+#define ENCODE_RATIO 2   /* Manchester encoding has 2x overhead */
+#define PROC_DELAY 1
+
+
+
+// Note everything is in clockticks (CLOCKRES in ms) for tinyOS
 // so we need to convert that to sec for ns
-#define CLKTICK2SEC(x)  (x * 0.005)
-
-//length of a slottime is equal to a clock tick, i.e 5ms
-#define SLOTTIME  0.005
-
-// Length of one period = SLEEPTIME + SYNCTIME + DATATIME
-// Only SLEEPTIME can be changed for different duty cycles.
-#define SLEEPTIME 324   // duty cycle = (14+22)/(14+22+324) = 10%
-
-// Do not change following parameters unless for tuning S-MAC performance
-// LISTENTIME = SYNCTIME + DATATIME
-//            = (DIFS + SYNC_CW + 4) + (DWAIT + DATA_CW + 5)
-#define SYNCTIME 14
-#define DATATIME 22
-#define LISTENTIME (SYNCTIME + DATATIME)
-#define CYCLETIME (SLEEPTIME + LISTENTIME)
-
-#define SYNCPERIOD 10   // frequency (num of periods) to send a sync pkt
-#define DIFS 3  // DCF interframe space: 3 CW slot here
-#define SYNC_CW 7   // num of slots in sync contention window, 2^n - 1
-#define DWAIT 2 // time to wait before start data contention
-#define DATA_CW 15  // num of slots in data contention window, 2^n - 1
-#define tick5ms 164,1  // initialize clock to 5ms per tick
-#define CLOCKRES 5  // clock resolution is 5ms
-
-#define EIFS 15     // about 5 times DIFS when there is a collision or corrupt pkt
+#define CLKTICK2SEC(x)  ((x) * (CLOCKRES / 1.0e3))
+#define SEC2CLKTICK(x)  ((x) / (CLOCKRES / 1.0e3))
 
 
 // MAC states
@@ -108,34 +162,6 @@
 #define ACK_PKT 3
 #define SYNC_PKT 4
 
-// retry limit: max number of RTS retries for a single message
-// numRetry increments by 1 if sent RTS without receiving CTS
-#define RETRY_LIMIT 5
-// extension limit: max number of times that the sender can
-// extend Tx time, when ACK timout happens
-#define EXTEND_LIMIT 5
-
-/* calculation of the time needed for transmit a packet
-   tx rate: 10Kbps
-1. coding: SEC_DED_BYTE_MAC (clock rate used: 10 ms per tick (tick100ps))
-   Ttx = (18 + numByte * 18) / 10 (ms)
-   where first 18 is for start symbol
-   examples:
-   numByte = 38, Ttx = (18 + 38 * 18) / 10 = 70.2 (ms)
-   If timer is set by tick100ps, it needs at least 8 ticks
-   numByte = 8, Ttx = (18 + 8 * 18) / 10 = 16.2 (ms) (2 ticks)
-   For tx start symbol and the first byte, it only needs 3.6 ms (1 tick)
- 2. coding: 4b/6b (clock rate used: 5 ms per tick (164, 1))
-   Ttx = (18 + numByte * 12) / 10 (ms)
-   where first 18 is for start symbol
-   examples:
-   numByte = 38, Ttx = (18 + 38 * 12) / 10 = 47.4 (ms)
-   If timer is set as 5ms per tick, it needs at least 10 ticks
-   numByte = 9, Ttx = (18 + 9 * 12) / 10 = 12.6 (ms) (3 ticks)
-   For tx start symbol and the first byte, it only needs 3ms (1 tick)
-*/
-
-#define SYNCPKTTIME 3  // this is hardcoded for now
 
 // radio states for performance measurement
 #define RADIO_SLP 0  // radio off
@@ -145,7 +171,7 @@
 
 
 
-/*  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX */
+
 /*  sizeof smac datapkt hdr and smac control and sync packets  */
 /*  have been hardcoded here to mirror the values in TINY_OS implementation */
 /*  The following is the pkt format definitions for tiny_os implementation */
@@ -188,6 +214,7 @@
 #define SIZEOF_SMAC_SYNCPKT 9  
 
 
+// Following are the ns definitions of the smac frames
 //SYNC PKT 
 struct smac_sync_frame { 
   int type; 
@@ -220,39 +247,7 @@ struct hdr_smac {
   int crc;
 };
 
-// Specifications for the SMAC radio (on motes)
-// XXXX Need to define smac phyMIB and macMIB interfaces
-/* #define SMAC_INTERFACE_CWMin 15 */
-/* #define SMAC_INTERFACE_CWMax 15 */
-/* #define SMAC_INTERFACE_SlotTime 0.005   // 5 ms */
-/* #define SMAC_INTERFACE_MaxFragmentNum 25   //tentative,wei ye will confirm */
-/* #define SMAC_INTERFACE_DataRate  1.0e4     // 10kbps */
-/* #define SMAC_INTERFACE_PreambleLength  18  // 18 bits for start symbol */
-
-/* // Specifications for SMAC */
-
-/* // Length of one period = SLEEPTIME + SYNCTIME + DATATIME */
-/* // Only SLEEPTIME can be changed for different duty cycles. */
-/* #define SMAC_SLEEPTIME 324  // duty cycle = (14+22)/(14+22+324) = 10% */
-
-/* #define SMAC_SYNCTIME  14 */
-/* #define SMAC_DATATIME  22   // listentime = synctime + datatime */
-/* #define SMAC_LISTENTIME (SYNCTIME + DATATIME) */
-/* #define SMAC_SYNCPERIOD 10  // frequency (num of periods) to send a sync pkt */
-/* #define SMAC_SYNC_CW 7      // num of slots in sync contention window, 2^n - 1 */
-/* #define SMAC_DATA_CW 15     // num of slots in data contention window, 2^n - 1 */
-/* #define SMAC_DIFS  3        // DCF interframe space: 3 CW slot here */
-/* #define SMAC_DWAIT 2        // time to wait before start data contention */
-
-/* // retry limit: max number of RTS retries for a single message */
-/* // numRetry increments by 1 if sent RTS without receiving CTS */
-/* #define SMAC_RETRY_LIMIT    5 */
-
-/* // extension limit: max number of times that the sender can */
-/* // extend Tx time, when ACK timout happens */
-/* #define SMAC_EXTEND_LIMIT   5 */
-
-
+// Used by smac when in sync mode
 struct SchedTable { 
   int txSync;  // flag indicating need to send sync 
   int txData;  // flag indicating need to send data 
@@ -266,6 +261,7 @@ struct NeighbList {
 
 class SMAC;
 
+// Timers used in smac
 class SmacTimer : public TimerHandler {
  public:
   SmacTimer(SMAC *a) : TimerHandler() {a_ = a; }
@@ -275,12 +271,14 @@ class SmacTimer : public TimerHandler {
   SMAC *a_;
 };
 
+// Generic timer used for sync, CTS and ACK timeouts
 class SmacGeneTimer : public SmacTimer {
  public:
   SmacGeneTimer(SMAC *a) : SmacTimer(a) {}
   void expire(Event *e);
 };
 
+// Receive timer for receiving pkts
 class SmacRecvTimer : public SmacTimer {
  public:
   SmacRecvTimer(SMAC *a) : SmacTimer(a) { stime_ = rtime_ = 0; }
@@ -292,18 +290,22 @@ class SmacRecvTimer : public SmacTimer {
   double rtime_;
 };
 
+// Send timer
 class SmacSendTimer : public SmacTimer {
  public:
   SmacSendTimer(SMAC *a) : SmacTimer(a) {}
   void expire(Event *e);
 };
 
+// Nav- indicating if medium is busy or not
 class SmacNavTimer : public SmacTimer {
  public:
   SmacNavTimer(SMAC *a) : SmacTimer(a) {}
   void expire(Event *e);
 };
 
+// Neighbor nav - if neighbor is busy or not
+// used for data timeout
 class SmacNeighNavTimer : public SmacTimer {
  public:
   SmacNeighNavTimer(SMAC *a) : SmacTimer(a) { stime_ = rtime_ = 0; }
@@ -315,6 +317,7 @@ class SmacNeighNavTimer : public SmacTimer {
   double rtime_;
 };
 
+// carrier sense timer
 class SmacCsTimer : public SmacTimer {
  public:
   SmacCsTimer(SMAC *a) : SmacTimer(a) {}
@@ -322,13 +325,7 @@ class SmacCsTimer : public SmacTimer {
   void checkToCancel();
 };
 
-/* class SmacChkSendTimer : public SmacTimer { */
-/*  public: */
-/*   SmacChkSendTimer(SMAC *a) : SmacTimer(a) {} */
-/*   void expire(Event *e); */
-/* }; */
-
-
+// synchronisation timer, regulates the sleep/wakeup cycles
 class SmacCounterTimer : public SmacTimer { 
  public:  
   friend class SMAC;
@@ -339,10 +336,17 @@ class SmacCounterTimer : public SmacTimer {
  protected:
   int index_;
   int value_;
+  int syncTime_;
+  int dataTime_;
+  int listenTime_;
+  int sleepTime_;
+  int cycleTime_;
   double tts_;
   double stime_;
 }; 
 
+
+// The smac class
 class SMAC : public Mac {
   
   friend class SmacGeneTimer;
@@ -356,7 +360,7 @@ class SMAC : public Mac {
  public:
   SMAC(void);
   ~SMAC() { 
-    for (int i=0; i< MAX_NUM_SCHEDULES; i++) {
+    for (int i=0; i< SMAC_MAX_NUM_SCHEDULES; i++) {
       delete mhCounter_[i];
     }
   }
@@ -393,7 +397,7 @@ class SMAC : public Mac {
 
   // functions for handling outgoing packets
   
-  // function checks for pending data pkt to be tx'ed
+  // check for pending data pkt to be tx'ed
   // when smac is not following SYNC (sleep-wakeup) cycles.
   int checkToSend();               // check if can send, start cs 
 
@@ -431,7 +435,6 @@ class SMAC : public Mac {
   void updateNav(double duration);
   void updateNeighNav(double duration);
 
-
   void mac_log(Packet *p) {
     logtarget_->recv(p, (Handler*) 0);
   }
@@ -462,13 +465,13 @@ class SMAC : public Mac {
   SmacNavTimer	        mhNav_;		// NAV timer medium is free or not
   SmacNeighNavTimer     mhNeighNav_;    // neighbor NAV timer for data timeout
   SmacSendTimer		mhSend_;	// incoming packets
-  SmacRecvTimer         mhRecv_;
+  SmacRecvTimer         mhRecv_;        // outgoing packets
   SmacGeneTimer         mhGene_;        // generic timer used sync/CTS/ACK timeout
   SmacCsTimer           mhCS_;          // carrier sense timer
   
   // array of countertimer, one for each schedule
   // counter tracking node's sleep/awake cycle
-  SmacCounterTimer      *mhCounter_[MAX_NUM_SCHEDULES];  
+  SmacCounterTimer      *mhCounter_[SMAC_MAX_NUM_SCHEDULES];  
 
 
   int numRetry_;	// number of tries for a data pkt
@@ -479,12 +482,13 @@ class SMAC : public Mac {
 
   int howToSend_;		// broadcast or unicast
   
+  double durSyncPkt_;     // duration of sync packet
   double durDataPkt_;     // duration of data packet XXX caveat fixed packet size
   double durCtrlPkt_;     // duration of control packet
   double timeWaitCtrl_;   // set timer to wait for a control packet
   
-  struct SchedTable schedTab_[MAX_NUM_SCHEDULES];   // schedule table
-  struct NeighbList neighbList_[MAX_NUM_NEIGHBORS]; // neighbor list
+  struct SchedTable schedTab_[SMAC_MAX_NUM_SCHEDULES];   // schedule table
+  struct NeighbList neighbList_[SMAC_MAX_NUM_NEIGHBORS]; // neighbor list
 
   int mySyncNode_;                                 // nodeid of my synchronizer
   
@@ -502,6 +506,13 @@ class SMAC : public Mac {
   int txData_ ;
 
   int syncFlag_;  // is set to 1 when SMAC uses sleep-wakeup cycle
+
+  // sleep-wakeup cycle times
+  int syncTime_;
+  int dataTime_;
+  int listenTime_;
+  int sleepTime_;
+  int cycleTime_;
 
  protected:
   int command(int argc, const char*const* argv);
