@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.7 1997/10/29 00:03:15 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.8 1997/10/30 22:03:46 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -132,7 +132,7 @@ Test/ecn instproc run {} {
 	$ns_ at 0.0 "$ftp1 start"
 
 	# Set up TCP connection
-	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 0]
+	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp2 set window_ 20
 	$tcp2 set ecn_ 0
 	set ftp2 [$tcp2 attach-source FTP]
@@ -174,7 +174,7 @@ Test/timers instproc run {} {
 	$ns_ at 1.0 "$self printtimersAll $tcp2 1.0 1.0" 
 
 	# Set up TCP connection
-	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
 	$tcp1 set window_ 5
 	set ftp1 [$tcp1 attach-source FTP]
 	$ns_ at 0.0 "$ftp1 produce 800"
@@ -215,7 +215,7 @@ Test/timersA instproc run {} {
 	$ns_ at 0.1 "$self printtimersAll $tcp2 0.1 0.1" 
 
 	# Set up TCP connection
-	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
 	$tcp1 set window_ 5
 	set ftp1 [$tcp1 attach-source FTP]
 	$ns_ at 0.0 "$ftp1 produce 1600"
@@ -246,7 +246,7 @@ Test/timers1 instproc run {} {
         $ns_ queue-limit $node_(r1) $node_(r2) 29
 
         set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink/DelAck $node_(r2) 0]
-#        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink/DelAck $node_(r2) 0]
+#        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink/DelAck $node_(r2) 1]
         $tcp1 set window_ 40
         set ftp1 [$tcp1 attach-source FTP]
         $ns_ at 0.0 "$ftp1 produce 180"
