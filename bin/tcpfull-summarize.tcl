@@ -4,6 +4,9 @@
 #
 # invoke with "tclsh thisfile infile outprefix"
 #
+
+set seqmod 1
+
 proc forward_segment { time seqno } {
 	global segchan
 	puts $segchan "$time $seqno"
@@ -48,7 +51,7 @@ proc salen { time ackno } {
 
 set synfound 0
 proc parse_line line {
-	global synfound active_opener passive_opener
+	global synfound active_opener passive_opener seqmod
 
 	set okrecs { - + d }
 	if { [lsearch $okrecs [lindex $line 0]] < 0 } {
@@ -73,9 +76,9 @@ proc parse_line line {
 	set field(dst) [lindex $sline 9]
 	set field(dstaddr) [lindex [split $field(dst) "."] 0]
 	set field(dstaddr) [lindex [split $field(dst) "."] 1]
-	set field(seqno) [lindex $sline 10]
+	set field(seqno) [expr [lindex $sline 10] % $seqmod]
 	set field(uid) [lindex $sline 11]
-	set field(tcpackno) [lindex $sline 12]
+	set field(tcpackno) [expr [lindex $sline 12] % $seqmod]
 	set field(tcpflags) [lindex $sline 13]
 	set field(tcphlen) [lindex $sline 14]
 	set field(salen) [lindex $sline 15]
@@ -203,14 +206,45 @@ proc dofile { infile outfile } {
 	close $sachan
 }
 
+proc getopt {argc argv} { 
+        global opt
+        lappend optlist m r
+
+        for {set i 0} {$i < $argc} {incr i} {
+                set arg [lindex $argv $i]
+                if {[string range $arg 0 0] != "-"} continue
+
+                set name [string range $arg 1 end]
+                set opt($name) [lindex $argv [expr $i+1]]
+        }
+}
+
+getopt $argc $argv
+set base 0
+
+if { [info exists opt(m)] && $opt(m) != "" } {
+	global seqmod base opt argc argv
+	set seqmod $opt(m)
+	incr argc -2
+	incr base 2
+}
+
+if { [info exists opt(r)] && $opt(r) != "" } {
+	global reverse base argc argv
+	set reverse 1
+	decr argc
+	incr base
+}
+
 if { $argc < 2 || $argc > 3 } {
-	puts stderr "usage: tclsh tcpfull-summarize.tcl tracefile outprefix [reverse]"
+	puts stderr "usage: tclsh \[-m wrapamt\] \[-r\] tcpfull-summarize.tcl tracefile outprefix \[reverse\]"
 	exit 1
 } elseif { $argc == 3 } {
-	if { [lindex $argv 2] == "reverse" } {
+	if { [lindex $argv [expr $base + 2]] == "reverse" } {
 		global reverse
 		set reverse 1
 	}
 }
-dofile [lindex $argv 0] [lindex $argv 1]
+puts "executing dofile argv: $argv seqmod: $seqmod, base: $base"
+dofile [lindex $argv [expr $base]] [lindex $argv [expr $base + 1]]
 exit 0
