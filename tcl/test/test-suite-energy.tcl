@@ -3,7 +3,6 @@
 # ns test-suite-energy.tcl dsdv
 # ns test-suite-energy.tcl dsr
 # ns test-suite-energy.tcl aodv
-# ns test-suite-energy.tcl tora
 #
 # To view a list of available test to run with this script:
 # ns test-suite-energy.tcl
@@ -86,7 +85,7 @@ Phy/WirelessPhy set L_ 1.0
 proc usage {}  {
         global argv0
 	puts stderr "usage: ns $argv0 <tests> "
-	puts "Valid <tests> : dsdv dsr aodv tora"
+	puts "Valid <tests> : dsdv dsr aodv "
         exit 1
 }
 
@@ -109,7 +108,6 @@ Class TestSuite
 Class Test/dsdv -superclass TestSuite
 Class Test/dsr -superclass TestSuite
 Class Test/aodv -superclass TestSuite
-Class Test/tora -superclass TestSuite
 
 TestSuite instproc init {} {
 global opt
@@ -370,78 +368,6 @@ $ns_ run
 
 
 
-Test/tora instproc init {} {
-   global opt
-   $self instvar ns_ topo
-   set opt(rp)             TORA
-   $self next
-}
-Test/tora instproc run {} {
-   global opt
-   $self instvar ns_ topo
-        $ns_ node-config -adhocRouting $opt(rp) \
-			 -llType $opt(ll) \
-			 -macType $opt(mac) \
-			 -ifqType $opt(ifq) \
-			 -ifqLen $opt(ifqlen) \
-			 -antType $opt(ant) \
-			 -propType $opt(prop) \
-			 -phyType $opt(netif) \
-			 -channelType $opt(chan) \
-			 -topoInstance $topo \
-			 -energyModel $opt(energymodel) \
-			 -macTrace ON \
-			 -rxPower 0.3 \
-			 -txPower 0.6 \
-			 -initialEnergy $opt(initialenergy)
-			 
-	for {set i 0} {$i < $opt(nn) } {incr i} {
-		set node_($i) [$ns_ node]	
-		$node_($i) random-motion 0		;# disable random motion
-	}
-
-#
-# Source the Connection and Movement scripts
-#
-if { $opt(cp) == "" } {
-	puts "*** NOTE: no connection pattern specified."
-        set opt(cp) "none"
-} else {
-	puts "Loading connection pattern..."
-	source $opt(cp)
-}
-
-
-#
-# Tell all the nodes when the simulation ends
-#
-for {set i 0} {$i < $opt(nn) } {incr i} {
-    $ns_ at $opt(stop).000000001 "$node_($i) reset";
-}
-$ns_ at $opt(stop).00000001 "puts \"NS EXITING...\" ; $ns_ halt"
-
-
-if { $opt(sc) == "" } {
-	puts "*** NOTE: no scenario file specified."
-        set opt(sc) "none"
-} else {
-	puts "Loading scenario file..."
-	source $opt(sc)
-	puts "Load complete..."
-}
-
-# Define node initial position in nam
-
-for {set i 0} {$i < $opt(nn)} {incr i} {
-
-    # 20 defines the node size in nam, must adjust it according to your scenario
-    # The function must be called after mobility model is defined
-
-    $ns_ initial_node_pos $node_($i) 20
-}
-
-$ns_ run
-}
 
 proc runtest {arg} {
         global quiet
@@ -461,8 +387,7 @@ proc runtest {arg} {
 	switch $test {
 	        dsdv -
 	        dsr -
-	        aodv -
-		tora {
+		aodv {
                      set t [new Test/$test]
                 }
                 default {
