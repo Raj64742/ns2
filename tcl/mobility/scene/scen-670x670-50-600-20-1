@@ -2,6 +2,7 @@
 ### this scenario file uses node index of 0 instead of 1.
 # nodes: 50, pause: 600.00, max speed: 20.00  max x = 670.00, max y: 670.00
 #
+set god_ [God instance]
 $node_(0) set X_ 252.959383262454
 $node_(0) set Y_ 480.272299375307
 $node_(0) set Z_ 0.000000000000

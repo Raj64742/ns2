@@ -57,6 +57,7 @@
 #
 # Destination Unreachables: 0
 #
+set god_ [God instance]
 $ns_ at 897.702050706359 "$god_ set-dist 17 32 2"
 $ns_ at 897.702050706359 "$god_ set-dist 14 32 1"
 $ns_ at 897.702050706359 "$god_ set-dist 10 32 2"
