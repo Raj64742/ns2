@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.73 1998/05/23 00:34:20 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.74 1998/05/27 20:51:17 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -375,8 +375,10 @@ int TcpAgent::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
 			int newseq = atoi(argv[2]);
-			if (newseq >= curseq_)   // this is kind of silly but avoids duplicating ::advanceby
+			if (newseq > maxseq_)
 				advanceby(newseq - curseq_);
+			else
+				advanceby(maxseq_ - curseq_);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "advanceby") == 0) {
