@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.22 2000/02/06 23:01:17 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.23 2000/03/23 00:02:00 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -80,8 +80,28 @@ Topology/net2 instproc init ns {
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
-#    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 5ms RED
     $ns queue-limit $node_(r1) $node_(r2) 50
+    $ns queue-limit $node_(r2) $node_(r1) 50
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+}
+
+Class Topology/net2a -superclass Topology
+Topology/net2a instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next
+    Queue/RED set gentle_ true
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 0.15Kb 2ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 2
     $ns queue-limit $node_(r2) $node_(r1) 50
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
@@ -91,7 +111,7 @@ TestSuite instproc setTopo {} {
     $self instvar node_ net_ ns_ topo_
 
     set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net2"} {
+    if {$net_ == "net2" || $net_ == "net2a"} {
         set node_(s1) [$topo_ node? s1]
         set node_(s2) [$topo_ node? s2]
         set node_(s3) [$topo_ node? s3]
@@ -716,6 +736,51 @@ Test/randomized1CA instproc init {} {
     Agent/TFRC set ca_ 1
     Test/randomized1CA instproc run {} [Test/slowStart info instbody run]
     $self next
+}
+
+Class Test/slow -superclass TestSuite
+Test/slow instproc init {} {
+    $self instvar net_ test_
+    set net_	net2a
+    set test_	slow
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    $self next
+}
+
+Test/slow instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_
+    $self setTopo
+#    [$ns_ link $node_(r1) $node_(r2)] set bandwidth 0.001Mb
+#    [$ns_ link $node_(r1) $node_(r2)] set queue-limit 5
+    set interval_ 100
+    set stopTime 4000.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $ns_ at 0.0 "$tf1 start"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
 }
 
 # BAD PARAMETERS! - very fast increase
