@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.21 1998/08/25 19:02:09 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.22 1998/08/28 18:54:11 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -47,6 +47,8 @@ static const char rcsid[] =
 #include <tclcl.h>
 #include "config.h"
 #include "route.h"
+#include "address.h"
+#include <iostream.h>
 
 class RouteLogicClass : public TclClass {
 public:
@@ -90,7 +92,6 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 	} 
 	else if (argc > 2) {
-	
 		if (strcmp(argv[1], "insert") == 0) {
 			int src = atoi(argv[2]) + 1;
 			int dst = atoi(argv[3]) + 1;
@@ -318,7 +319,8 @@ int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	if (next_hop > 0) {
 		get_address(target, next_hop, index, d, size, src);
 		tcl.result(target);
-		result = next_hop;
+		result= Address::instance().str2addr(target);
+		cout << "RouteLogic::lookup_hier: " << target << ", int: " << result << endl;;
 	} else {
 		tcl.result("-1");
 		result = -1;

@@ -63,6 +63,7 @@ public:
 	int command(int argc, const char*const* argv);
 	int lookup_flat(char* asrc, char* adst, int&result);
 	int lookup_hier(char* asrc, char* adst, int&result);
+	static void ns_strtok(char *addr, int *addrstr);
 protected:
 
 	void check(int);
@@ -80,7 +81,6 @@ protected:
 	void hier_check(int index);
 	void hier_alloc(int size);
 	void hier_init(void);
-	void ns_strtok(char *addr, int *addrstr);
 	void str2address(const char*const* address, int *src, int *dst);
 	void get_address(char * target, int next_hop, int index, int d, int size, int *src);
 	void hier_insert(int *src, int *dst, int cost);
