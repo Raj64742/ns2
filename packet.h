@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.72 1999/11/23 23:43:31 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.73 2000/05/29 17:48:11 xuanc Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -53,6 +53,7 @@
 #define HDR_ARP(p)      ((struct hdr_arp*)(p)->access(off_arp_))
 #define HDR_MAC(p)      ((struct hdr_mac*)(p)->access(hdr_mac::offset_))
 #define HDR_MAC802_11(p) ((struct hdr_mac802_11*)(p)->access(hdr_mac::offset_))
+#define HDR_MAC_TDMA(p) ((struct hdr_mac_tdma*)(p)->access(hdr_mac::offset_))
 #define HDR_LL(p)       ((struct hdr_ll*)(p)->access(hdr_ll::offset_))
 #define HDR_IP(p)       ((struct hdr_ip*)(p)->access(hdr_ip::offset_))
 #define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
