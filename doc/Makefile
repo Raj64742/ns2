@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.31 2002/03/26 23:07:50 haldar Exp $
+# $Id: Makefile,v 1.32 2003/03/03 23:53:50 buchheim Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -92,7 +92,7 @@ gv: everything.ps $(FILES)
 
 # xxx: doesn't redo bibliography
 clean:
-	rm *.aux *.log *.toc
+	rm -f *.aux *.log *.toc everything.dvi everything.ps everything.pdf
 
 ns-doc-auto:
 	$(MAKE) everything.ps.gz
@@ -100,6 +100,7 @@ ns-doc-auto:
 	$(MAKE) everything.html
 	cp everything.ps.gz  $(WEB_TARGET_DIR)/ns_doc.ps.gz
 	cp everything.pdf $(WEB_TARGET_DIR)/ns_doc.pdf
-	cp $(L2H_WORKING_DIR)/everything/*.{html,css,gif} $(WEB_TARGET_DIR)
+	cp $(L2H_WORKING_DIR)/everything/*.{html,css} $(WEB_TARGET_DIR)
+	cp $(L2H_WORKING_DIR)/everything/*.png $(WEB_TARGET_DIR)
 
 
