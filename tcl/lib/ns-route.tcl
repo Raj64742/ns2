@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.16 1998/10/07 22:30:27 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.17 1998/10/08 19:04:56 polly Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -47,6 +47,107 @@ Simulator instproc get-routelogic {} {
 		set routingTable_ [new RouteLogic]
 	}
 	return $routingTable_
+}
+
+Simulator instproc dump-routelogic-nh {} {
+	$self instvar routingTable_ Node_ link_
+	if ![info exists routingTable_] {
+	    puts "error: routing table is not computed yet!"
+	    return 0
+	}
+
+	puts "Dumping Routing Table: Next Hop Information"
+	set n [Node set nn_]
+	set i 0
+	puts -nonewline "\t"
+	while { $i < $n } {
+	    if ![info exists Node_($i)] {
+		incr i
+		continue
+	    }
+	    puts -nonewline "$i\t"
+	    incr i
+	}
+	set i 0
+	while { $i < $n } {
+		if ![info exists Node_($i)] {
+		    incr i
+		    continue
+		}
+		puts -nonewline "\n$i\t"
+		set n1 $Node_($i)
+		set j 0
+		while { $j < $n } {
+			if { $i != $j } {
+				# shortened nexthop to nh, to fit add-route in
+				# a single line
+				set nh [$routingTable_ lookup $i $j]
+				if { $nh >= 0 } {
+				    puts -nonewline "$nh\t"
+				}
+			} else {
+			    puts -nonewline "--\t"
+			}
+			incr j
+		}
+		incr i
+	}
+	puts ""
+}
+
+Simulator instproc dump-routelogic-distance {} {
+	$self instvar routingTable_ Node_ link_
+	if ![info exists routingTable_] {
+	    puts "error: routing table is not computed yet!"
+	    return 0
+	}
+
+	puts "Dumping Routing Table: Distance Information"
+	set n [Node set nn_]
+	set i 0
+	puts -nonewline "\t"
+	while { $i < $n } {
+	    if ![info exists Node_($i)] {
+		incr i
+		continue
+	    }
+	    puts -nonewline "$i\t"
+	    incr i
+	}
+
+	set i 0
+	while { $i < $n } {
+		if ![info exists Node_($i)] {
+		    incr i
+		    continue
+		}
+		puts -nonewline "\n$i\t"
+		set n1 $Node_($i)
+		set j 0
+		while { $j < $n } {
+			if { $i != $j } {
+				set nh [$routingTable_ lookup $i $j]
+				if { $nh >= 0 } {
+				    set distance 0
+				    set tmpfrom $i
+				    set tmpto $j
+				    while {$tmpfrom != $tmpto} {
+					set tmpnext [$routingTable_ lookup $tmpfrom $tmpto]
+					set distance [expr $distance + [$link_($tmpfrom:$tmpnext) cost?]]
+					set tmpfrom $tmpnext
+				    }
+				    puts -nonewline "$distance\t"
+				} else {
+				    puts -nonewline "--\t"
+				}
+			} else {
+			    puts -nonewline "--\t"
+			}
+			incr j
+		}
+		incr i
+	}
+	puts ""
 }
 
 Simulator instproc compute-routes {} {
@@ -393,17 +494,17 @@ Simulator instproc compute-algo-routes {} {
 		set n1 $Node_($i)
 		set j 0
 		while { $j < $n } {
-			if { $i != $j } {
-				# shortened nexthop to nh, to fit add-route in
-				# a single line
-				set nh [$r lookup $i $j]
-			    puts "$i $j $nh"
-			    if { $nh >= 0 } {
-				$n1 add-route $j [$link_($i:$nh) head]
-				$n1 incr-rtgtable-size
-				}
-			} 
-			incr j
+		    if { $i != $j } {
+			# shortened nexthop to nh, to fit add-route in
+			# a single line
+			set nh [$r lookup $i $j]
+			# puts "$i $j $nh"
+			if { $nh >= 0 } {
+			    $n1 add-route $j [$link_($i:$nh) head]
+			    $n1 incr-rtgtable-size
+			}
+		    } 
+		    incr j
 		}
 		incr i
 	}
