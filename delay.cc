@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.24 1998/11/02 01:03:33 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.25 1998/12/02 22:39:10 gnguyen Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -49,7 +49,7 @@ public:
 	}
 } class_delay_link;
 
-LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0)
+LinkDelay::LinkDelay() : dynamic_(0), itq_(0)
 {
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);

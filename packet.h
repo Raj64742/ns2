@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.42 1998/11/26 18:13:04 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.43 1998/12/02 22:39:12 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -148,6 +148,7 @@ struct hdr_cmn {
 	int	error_;		// error flag
 	double	ts_;		// timestamp: for q-delay measurement
 	int	iface_;		// receiving interface (label)
+	int	direction_;	// direction: 0=none, 1=up, -1=down
 	int	ref_count_;	// free the pkt until count to 0
 
 	static int offset_;	// offset for this header
@@ -163,6 +164,7 @@ struct hdr_cmn {
 	inline int& error() { return error_; }
 	inline double& timestamp() { return (ts_); }
 	inline int& iface() { return (iface_); }
+	inline int& direction() { return (direction_); }
 	inline int& ref_count() { return (ref_count_); }
 };
 

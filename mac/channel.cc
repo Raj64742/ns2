@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.24 1998/08/12 20:33:07 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.25 1998/12/02 22:39:10 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -88,6 +88,7 @@ int Channel::command(int argc, const char*const* argv)
 void Channel::recv(Packet* p, Handler*)
 {
 	Scheduler& s = Scheduler::instance();
+	hdr_cmn::access(p)->direction() = 1;
 	s.schedule(target_, p, txstop_ + delay_ - s.clock());
 }
 

@@ -1,4 +1,3 @@
-
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
@@ -37,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.31 1998/10/15 23:11:36 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.32 1998/12/02 22:39:11 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -113,30 +112,31 @@ int LL::command(int argc, const char*const* argv)
 
 void LL::recv(Packet* p, Handler* h)
 {
-	if (h == 0) {			// from MAC classifier
+	// If direction = 1, then pass it up the stack
+	// Otherwise, set direction to -1 and pass it down the stack
+	if (hdr_cmn::access(p)->direction() == 1) {
 		recvtarget_ ? recvfrom(p) : drop(p);
+		return;
 	}
-	else {
-		hdr_ll::access(p)->lltype() = LL_DATA;
-		sendto(p, h);
-	}
+
+	hdr_cmn::access(p)->direction() = -1;
+	hdr_ll::access(p)->lltype() = LL_DATA;
+	sendto(p, h);
 }
 
 
 void LL::sendto(Packet* p, Handler* h)
 {	
 	int nh = (lanrouter_) ? lanrouter_->next_hop(p) : -1;
-	hdr_mac::access(p)->macDA_= (nh < 0) ? BCAST_ADDR : arp(nh);
+	hdr_mac::access(p)->macDA_= (nh < 0) ? macDA_ : arp(nh);
 	hdr_ll::access(p)->seqno_ = ++seqno_;
 
 	// let mac decide when to take a new packet from the queue.
 	sendtarget_->recv(p, h);
-#ifdef undef_oldlan
 	if (h) {
 		Scheduler& s = Scheduler::instance();
-		s.schedule(h, &intr_, txtime(p));
+		s.schedule(h, &intr_, 0.0000001);
 	}
-#endif
 }
 
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.30 1998/09/04 22:50:12 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.31 1998/12/02 22:39:11 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -125,16 +125,16 @@ int Mac::command(int argc, const char*const* argv)
 void Mac::recv(Packet* p, Handler* h)
 {
 	// if h is NULL, packet comes from the lower layer, ie. MAC classifier
-	if (h == 0) {
+	if (hdr_cmn::access(p)->direction() == 1) {
 		state(MAC_IDLE);
 		Scheduler::instance().schedule(target_, p, delay_);
 		return;
 	}
+
 	callback_ = h;
 	hdr_mac* mh = hdr_mac::access(p);
 	mh->set(MF_DATA, addr_);
 	state(MAC_SEND);
-
 	send(p);
 }
 
