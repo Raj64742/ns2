@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ms-adc.cc,v 1.4 1998/06/27 01:24:13 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ms-adc.cc,v 1.5 1998/07/22 16:41:22 breslau Exp $";
 #endif
 
 //Measured Sum Admission control
@@ -33,6 +33,7 @@ public:
 	void rej_action(int, double,int);
 protected:
 	int admit_flow(int,double,int);
+	inline virtual double get_rate(int cl, double r,int b) { return r ; };
 	double utilization_;
 };
 
@@ -43,16 +44,18 @@ MS_ADC::MS_ADC()
 	strcpy(type_, "MSAC");
 }
 
-void MS_ADC::rej_action(int cl,double p,int r)
+void MS_ADC::rej_action(int cl,double r,int b)
 {
-	est_[cl]->change_avload(-p);
+	double rate = get_rate(cl,r,b);
+	est_[cl]->change_avload(-rate);
 }
 
 
 int MS_ADC::admit_flow(int cl,double r,int b)
 {
-	if (r+est_[cl]->avload() < utilization_* bandwidth_) {
-		est_[cl]->change_avload(r);
+	double rate = get_rate(cl,r,b);
+	if (rate+est_[cl]->avload() < utilization_* bandwidth_) {
+		est_[cl]->change_avload(rate);
 		return 1;
 	}
 	return 0;
@@ -66,3 +69,23 @@ public:
 		return (new MS_ADC());
 	}
 }class_ms_adc;
+
+
+/* a measured sum algorithm that uses peak rather than token rate
+ */
+
+class MSPK_ADC : public MS_ADC {
+public:
+	MSPK_ADC() { };
+protected:
+	inline virtual double get_rate(int cl,double r,int b){
+		return(peak_rate(cl,r,b));};
+};
+
+static class MSPK_ADCClass : public TclClass {
+public:
+	MSPK_ADCClass() : TclClass("ADC/MSPK") {}
+	TclObject* create(int,const char*const*) {
+		return (new MSPK_ADC());
+	}
+} class_mspk_adc;
