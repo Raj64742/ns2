@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.8 1997/06/12 22:52:40 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.9 1997/07/03 03:28:47 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -85,6 +85,7 @@ void Classifier::clear(int slot)
 	}
 }
 
+#include "ip.h"
 
 /*
  * objects only ever see "packet" events, which come either
