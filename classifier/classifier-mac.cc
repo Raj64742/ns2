@@ -33,6 +33,12 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mac.cc,v 1.3 1997/07/21 21:20:26 kfall Exp $ (UCB)";
+#endif
+
+
 #include "config.h"
 #include "packet.h"
 #include "mac.h"
@@ -67,7 +73,7 @@ protected:
 static class MacClassifierClass : public TclClass {
 public:
 	MacClassifierClass() : TclClass("Classifier/Mac") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new MacClassifier());
 	}
 } class_mac_classifier;
@@ -75,7 +81,7 @@ public:
 static class ChannelClassifierClass : public TclClass {
 public:
 	ChannelClassifierClass() : TclClass("Classifier/Channel") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new ChannelClassifier());
 	}
 } class_channel_classifier;
