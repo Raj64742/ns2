@@ -16,6 +16,8 @@ bin/rt
 bin/tcl-expand.tcl
 bin/trsplit
 bin/xgraph.pl
+bin/cplot.tcl
+bin/tcpfull-summarize.tcl
 bitmap/ff.xbm
 bitmap/play.xbm
 bitmap/rewind.xbm
