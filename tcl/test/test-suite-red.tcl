@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.21 1998/08/14 20:14:22 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.22 1998/08/14 22:08:49 tomh Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -505,12 +505,20 @@ TestSuite instproc new_tcp { startTime source dest window fid verbose size } {
 TestSuite instproc new_cbr { startTime source dest pktSize interval fid } {
 
 	$self instvar ns_
-    set cbr [$ns_ create-connection CBR $source LossMonitor $dest $fid]
+    set s_agent [new Agent/UDP]	
+    set d_agent [new Agent/LossMonitor]
+    $s_agent set fid_ $fid 
+    $d_agent set fid_ $fid 
+    set cbr [new Application/Traffic/CBR]
+    $cbr attach-agent $s_agent
+    $ns_ attach-agent $source $s_agent
+    $ns_ attach-agent $dest $d_agent
+    $ns_ connect $s_agent $d_agent
 
     if {$pktSize > 0} {
-	$cbr set packetSize_ $pktSize
+	$cbr set packet_size_ $pktSize
     }
-    $cbr set interval_ $interval
+    $cbr set rate_ [expr 8 * $pktSize / $interval]
     $ns_ at $startTime "$cbr start"
 }
 
