@@ -122,9 +122,9 @@ int GridKeeper::command(int argc, const char*const* argv)
       return (TCL_ERROR);
     }
 
-    grid_ = new (MobileNode **)[dim_x_];
+    grid_ = new MobileNode **[dim_x_];
     for (i = 0; i <= dim_x_; i++) {
-      grid_[i] = new (MobileNode *)[dim_y_];
+      grid_[i] = new MobileNode *[dim_y_];
       bzero((void *)grid_[i], sizeof(MobileNode *)*dim_y_);
     }
     return (TCL_OK);

@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.29 1999/05/06 00:29:08 yaxu Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.30 1999/05/24 04:37:12 haoboy Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -161,7 +161,7 @@ Channel::sendUp(Packet* p, Phy *tifp)
 	    GridKeeper* gk = GridKeeper::instance();
 	    int size = gk->size_; 
 	    
-	    MobileNode **outlist = new (MobileNode *)[size];
+	    MobileNode **outlist = new MobileNode *[size];
 	    //    memset(outlist, 0, size * sizeof(MobileNode *));
 	 
        	    int out_index = gk->get_neighbors((MobileNode*)tnode,
