@@ -41,8 +41,12 @@ source support.tcl
 
 TestSuite instproc finish {file stoptime} {
         global quiet PERL
+	set wrap 90
 	exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-	  $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+	  $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+        exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+          $PERL ../../bin/raw2xg -a -c -p -s 0.01 -m $wrap -t $file >> \
+	  temp.rands
         exec echo $stoptime 0 >> temp.rands 
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
@@ -79,18 +83,18 @@ Topology/net2 instproc init ns {
 
 Class Test/example1 -superclass TestSuite
 Test/example1 instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sender 
+    $self instvar net_ test_ guide_ stopTime1_ 
     set net_	net2
     set test_ example1	
     set guide_  \
-    "Example validation test with packet traces."
-    set sender TFRC
+    "Example validation test with TCP, packet traces."
     set stopTime1_ 10
+    Agent/TCP set window_ 64
     $self next pktTraceFile
 }
 Test/example1 instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ guide_ stopTime1_ sender 
+    $self instvar ns_ node_ testName_ guide_ stopTime1_ 
     if {$quiet == "false"} {puts $guide_}
     $self setTopo
     set stopTime $stopTime1_
@@ -98,6 +102,35 @@ Test/example1 instproc run {} {
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
     set ftp [new Application/FTP]
     $ftp attach-agent $tcp1
+    $ns_ at 0 "$ftp produce 100"
+    $ns_ at 3 "$ftp producemore 1000"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+Class Test/example2 -superclass TestSuite
+Test/example2 instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_ 
+    set net_	net2
+    set test_ example2	
+    set guide_  \
+    "Example validation test with TFRC, packet traces."
+    set stopTime1_ 10
+    Agent/TFRC set SndrType_ 1
+    $self next pktTraceFile
+}
+Test/example2 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ stopTime1_ 
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set stopTime $stopTime1_
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    set ftp [new Application/FTP]
+    $ftp attach-agent $tf1
     $ns_ at 0 "$ftp produce 100"
     $ns_ at 3 "$ftp producemore 1000"
 
