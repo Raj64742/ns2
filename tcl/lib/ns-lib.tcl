@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.58 1997/10/31 02:42:08 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.59 1997/11/03 21:21:39 kfall Exp $
 #
 
 #
@@ -620,5 +620,5 @@ Simulator instproc attach-fmon {lnk fm} {
     set edsnoop [new SnoopQueue/EDrop]
     $edsnoop set-monitor $fm
     [$lnk queue] early-drop-target $edsnoop
-    $edsnoop target [$self set nullAgent_]
+    $edsnoop target $dsnoop
 }
