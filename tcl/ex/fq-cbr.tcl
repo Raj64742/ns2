@@ -2,7 +2,9 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.6 1998/04/20 23:52:46 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.7 1998/08/05 22:47:31 kfall Exp $
+#
+# updated 8/5/98 by kfall to use hash classifier
 #
 
 set ns [new Simulator]
@@ -38,12 +40,12 @@ $ns proc simplex-link { n1 n2 bw delay type } {
 
 }
 
-Class Classifier/Flow/FQ -superclass Classifier/Flow
-
-Classifier/Flow/FQ instproc no-slot flowID {
-	$self instvar fq_
-	$fq_ new-flow $flowID
-}
+Class Classifier/Hash/Fid/FQ -superclass Classifier/Hash/Fid
+     
+Classifier/Hash/Fid/FQ instproc unknown-flow { src dst fid buck } {
+        $self instvar fq_
+        $fq_ new-flow $src $dst $fid
+}    
 
 Class FQLink -superclass Link
 
@@ -58,7 +60,7 @@ FQLink instproc init { src dst bw delay nullAgent } {
 	$link_ set bandwidth_ $bw
 	$link_ set delay_ $delay
 
-	set classifier_ [new Classifier/Flow/FQ]
+	set classifier_ [new Classifier/Hash/Fid/FQ 33]
 	$classifier_ set fq_ $self
 
 	$queue_ target $link_
@@ -88,7 +90,7 @@ Queue set limit_ 10
 FQLink set queueManagement_ RED
 FQLink set queueManagement_ DropTail
 
-FQLink instproc new-flow flowID {
+FQLink instproc new-flow { src dst fid } {
 	$self instvar classifier_ nactive_ queue_ link_ drpT_
 	incr nactive_
 
@@ -101,10 +103,10 @@ FQLink instproc new-flow flowID {
 		$q set ptc_ [expr $bw / (8. * [$q set meanPacketSize_])]
 	}
 	$q drop-target $drpT_
-
-	$classifier_ install $flowID $q
+        set slot [$classifier_ installNext $q]
+        $classifier_ set-hash auto $src $dst $fid $slot
 	$q target $queue_
-	$queue_ install $flowID $q
+	$queue_ install $fid $q
 }
 
 #XXX ask Kannan why this isn't in otcl base class.
