@@ -47,10 +47,13 @@ class Address : public TclObject {
         static Address& instance() { return (*instance_); }
         Address();
 	~Address();
+	char *print_nodeaddr(int address);
+	char *print_portaddr(int address);
 	int PortShift_;
 	int PortMask_;
-	int *NodeShift_;
-	int *NodeMask_;
+	/* for now maximum number of hierarchical levels considered as 10 */
+	int NodeShift_[10];
+	int NodeMask_[10];
 	int McastShift_;
 	int McastMask_;
 	int levels_;
