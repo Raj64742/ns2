@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.106 1997/07/22 09:13:53 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.107 1997/07/24 09:10:07 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,11 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</A>
 [PENDING RELEASE DATE]</H3>
 <ul>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
+<B>Thu Jul 24 02:08:31 PDT 1997</B><BR>
+	<UL>	
+	<LI> tcp.{cc,h}: Got rid of the old-style tracing and replaced it with Giao's TracedVar stuff. It is <i>no longer necessary</i> to use the return-by-reference functions to refer to the traced variables (e.g., cwnd() instead of cwnd_), but this will still work for now.
+	</UL>
 <LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
 <B>Tue Jul 22 02:13:12 PDT 1997</B><BR>
 	<UL>	
