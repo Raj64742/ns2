@@ -30,13 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.11 1999/07/27 04:57:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.12 1999/08/17 04:26:58 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
 
 source misc_simple.tcl
-Agent/TFRM set df_ 0.5 
+Agent/TFRC set df_ 0.5 
 Agent/TCP set window_ 100
 
 TestSuite instproc finish file {
@@ -168,8 +168,8 @@ TestSuite instproc finish_1 testname {
 TestSuite instproc runFriendly {} {
     $self instvar ns_ node_ interval_ dumpfile_
 
-    set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 3]
-    set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 4]
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 3]
+    set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 4]
     $ns_ at 0.0 "$tf1 start"
     $ns_ at 4.0 "$tf2 start"
     $ns_ at 30 "$tf1 stop"
@@ -221,9 +221,6 @@ Test/slowStart instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	slowStart
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 1
-    Agent/TFRM set slowincr_ 3
     $self next
 }
 Test/slowStart instproc run {} {
@@ -241,10 +238,10 @@ Test/slowStart instproc run {} {
         $ns_ trace-all $tracefile
     }
 
-    set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 0]
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
     $ns_ at 20 "$tf1 stop"
-    set tf2 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 1]
+    set tf2 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 1]
     $ns_ at 16 "$tf2 start"
     $ns_ at 25 "$tf2 stop"
 
@@ -267,9 +264,6 @@ Test/slowStartTcp instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	slowStartTcp
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 1
-    Agent/TFRM set slowincr_ 3
     $self next
 }
 Test/slowStartTcp instproc run {} {
@@ -315,9 +309,6 @@ Test/impulse instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	impulse
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 1
-    Agent/TFRM set slowincr_ 3
     $self next
 }
 Test/impulse instproc run {} {
@@ -335,10 +326,10 @@ Test/impulse instproc run {} {
         $ns_ trace-all $tracefile
     }
 
-    set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 0]
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
     $ns_ at 20 "$tf1 stop"
-    set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 1]
+    set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 1]
     $ns_ at 10.0 "$tf2 start"
     $ns_ at 12.0 "$tf2 stop"
 
@@ -362,10 +353,7 @@ Test/impulseMultReport instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	impulseMultReport
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 1
-    Agent/TFRM set slowincr_ 3
-    Agent/TFRMSink set NumFeedback_ 4
+    Agent/TFRCSink set NumFeedback_ 4
     $self next
 }
 Test/impulseMultReport instproc run {} {
@@ -383,10 +371,10 @@ Test/impulseMultReport instproc run {} {
         $ns_ trace-all $tracefile
     }
 
-    set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 0]
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
     $ns_ at 20 "$tf1 stop"
-    set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 1]
+    set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 1]
     $ns_ at 10.0 "$tf2 start"
     $ns_ at 12.0 "$tf2 stop"
 
@@ -409,9 +397,6 @@ Test/impulseTcp instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	impulseTcp
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 1
-    Agent/TFRM set slowincr_ 3
     $self next
 }
 Test/impulseTcp instproc run {} {
@@ -433,7 +418,7 @@ Test/impulseTcp instproc run {} {
     set ftp1 [$tcp1 attach-app FTP]
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at 20 "$ftp1 stop"
-    set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 1]
+    set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 1]
     $ns_ at 10.0 "$tf2 start"
     $ns_ at 12.0 "$tf2 stop"
 
@@ -451,21 +436,15 @@ Test/impulseTcp instproc run {} {
     $ns_ run
 }
 
-# Two TFRM connections and three TCP connections.
-# Version 1: decrease down to equation.
-# Slowincr 3: multiplicative increase.
-# Incrrate 1: double sending rate every congestion epoch.
-Class Test/multIncr -superclass TestSuite
-Test/multIncr instproc init {} {
+# Two TFRC connections and three TCP connections.
+Class Test/two-friendly -superclass TestSuite
+Test/two-friendly instproc init {} {
     $self instvar net_ test_
     set net_	net2
-    set test_	multIncr
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 1
-    Agent/TFRM set slowincr_ 3
+    set test_	two-friendly
     $self next
 }
-Test/multIncr instproc run {} {
+Test/two-friendly instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
@@ -532,19 +511,6 @@ Test/OnlyTcp instproc run {} {
 }
 
 
-# Additive increase.
-# Slowincr 0: additive increase.
-Class Test/addIncr -superclass TestSuite
-Test/addIncr instproc init {} {
-    $self instvar net_ test_
-    set net_	net2
-    set test_	addIncr
-    Agent/TFRM set version_ 1
-    Agent/TFRM set slowincr_ 0
-    Test/addIncr instproc run {} [Test/multIncr info instbody run ]
-    $self next
-}
-
 # BAD PARAMETERS! - small measurement interval
 # SampleSizeMult_: controls interval for measuring packet drop rate
 # MinNumLoss_: controls number of losses required in measurement interval
@@ -553,28 +519,22 @@ Test/BadParams instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	BadParams
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 1
-    Agent/TFRM set slowincr_ 3
-    Agent/TFRM set SampleSizeMult_ 0.5
-    Agent/TFRM set MinNumLoss_ 0
-    Agent/TFRMSink set SampleSizeMult_ 0.5
-    Agent/TFRMSink set MinNumLoss_ 0 
-    Test/BadParams instproc run {} [Test/multIncr info instbody run ]
+    Agent/TFRC set SampleSizeMult_ 0.5
+    Agent/TFRC set MinNumLoss_ 0
+    Agent/TFRCSink set SampleSizeMult_ 0.5
+    Agent/TFRCSink set MinNumLoss_ 0 
+    Test/BadParams instproc run {} [Test/two-friendly info instbody run ]
     $self next
 }
 
-# BAD PARAMETERS! - very aggressive increase
-#  Incrrate_ : controls the increase rate.
+# BAD PARAMETERS! - very slow increase
 Class Test/BadParams2 -superclass TestSuite
 Test/BadParams2 instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	BadParams2
-    Agent/TFRM set version 1
-    Agent/TFRM set incrrate_ 5
-    Agent/TFRM set slowincr_ 3
-    Test/BadParams2 instproc run {} [Test/multIncr info instbody run ]
+    Agent/TFRC set ssmult_ 1.1
+    Test/BadParams2 instproc run {} [Test/two-friendly info instbody run ]
     $self next
 }
 

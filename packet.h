@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.65 1999/08/03 04:06:10 yaxu Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.66 1999/08/17 04:26:54 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -57,8 +57,7 @@
 #define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
 #define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
 #define HDR_SR(p)       ((struct hdr_sr*)(p)->access(hdr_sr::offset_))
-#define HDR_TFRM(p)      ((struct hdr_tfrm*)(p)->access(hdr_tfrm::offset_))
-#define HDR_TFRM(p)      ((struct hdr_tfrm*)(p)->access(hdr_tfrm::offset_))
+#define HDR_TFRC(p)      ((struct hdr_tfrc*)(p)->access(hdr_tfrc::offset_))
 #define HDR_TORA(p)     ((struct hdr_tora*)(p)->access(off_TORA_))
 #define HDR_IMEP(p)     ((struct hdr_imep*)(p)->access(off_IMEP_))
 
@@ -117,8 +116,8 @@ enum packet_t {
 
 	// insert new packet types here
 
-  PT_TFRM,
-	PT_TFRMC,
+  PT_TFRC,
+	PT_TFRC_ACK,
 	PT_NTYPE // This MUST be the LAST one
 };
 
@@ -171,8 +170,8 @@ public:
 		name_[PT_RAP_DATA] = "rap_data";
 		name_[PT_RAP_ACK] = "rap_ack";
 
- 		name_[PT_TFRM]= "tcpFriend";
-		name_[PT_TFRMC]= "tcpFriendCtl";
+ 		name_[PT_TFRC]= "tcpFriend";
+		name_[PT_TFRC_ACK]= "tcpFriendCtl";
 
 		name_[PT_NTYPE]= "undefined";
 	}

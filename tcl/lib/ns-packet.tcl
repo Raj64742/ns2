@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.31 1999/08/12 04:19:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.32 1999/08/17 04:26:57 sfloyd Exp $
 #
 #
 # set up the packet format for the simulation
@@ -81,7 +81,7 @@ foreach pair {
 	{ Encap off_encap_ }
 	{ RAP off_rap_ }
 	{ UMP off_ump_ }
-	{ TFRM off_tfrm_}
+	{ TFRC off_tfrm_}
 } {
 	set cl PacketHeader/[lindex $pair 0]
 	set var [lindex $pair 1]

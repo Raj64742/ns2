@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.166 1999/08/12 04:19:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.167 1999/08/17 04:26:56 sfloyd Exp $
 
 
 #
@@ -156,34 +156,34 @@ Agent/TCP/Asym set g_ 0.125
 Agent/TCP/Reno/Asym set g_ 0.125
 Agent/TCP/Newreno/Asym set g_ 0.125
 
-Agent/TFRM set packetSize_ 1000
-Agent/TFRM set df_ 0.5
-Agent/TFRM set version_ 1
-Agent/TFRM set tcp_tick_ 0.1
-Agent/TFRM set incrrate_ 1
-Agent/TFRM set slowincr_ 3
-Agent/TFRM set ndatapack_ 0
-Agent/TFRM set srtt_init_ 0
-Agent/TFRM set rttvar_init_ 12
-Agent/TFRM set rtxcur_init_ 6.0
-Agent/TFRM set rttvar_exp_ 2
-Agent/TFRM set T_SRTT_BITS 3
-Agent/TFRM set T_RTTVAR_BITS 2
-Agent/TFRM set InitRate_ 1000
-Agent/TFRM set overhead_ 0 
-Agent/TFRM set ssmult_ 2 
-Agent/TFRM set rate_ 0.0 
-Agent/TFRM set oldrate_ 0.0 
-Agent/TFRM set maxrate_ 0.0 
+Agent/TFRC set packetSize_ 1000
+Agent/TFRC set df_ 0.5
+Agent/TFRC set version_ 1
+Agent/TFRC set tcp_tick_ 0.1
+Agent/TFRC set incrrate_ 1
+Agent/TFRC set slowincr_ 3
+Agent/TFRC set ndatapack_ 0
+Agent/TFRC set srtt_init_ 0
+Agent/TFRC set rttvar_init_ 12
+Agent/TFRC set rtxcur_init_ 6.0
+Agent/TFRC set rttvar_exp_ 2
+Agent/TFRC set T_SRTT_BITS 3
+Agent/TFRC set T_RTTVAR_BITS 2
+Agent/TFRC set InitRate_ 1000
+Agent/TFRC set overhead_ 0 
+Agent/TFRC set ssmult_ 2 
+Agent/TFRC set rate_ 0.0 
+Agent/TFRC set oldrate_ 0.0 
+Agent/TFRC set maxrate_ 0.0 
 
-Agent/TFRMSink set packetSize_ 40
-Agent/TFRMSink set SampleSizeMult_ 4
-Agent/TFRMSink set MinNumLoss_ 4
-Agent/TFRMSink set InitHistorySize_ 100000
-Agent/TFRMSink set HysterisisLower_ 0.5
-Agent/TFRMSink set HysterisisUpper_ 0.5
-Agent/TFRMSink set bval_ 1
-Agent/TFRMSink set NumFeedback_ 1 
+Agent/TFRCSink set packetSize_ 40
+Agent/TFRCSink set SampleSizeMult_ 4
+Agent/TFRCSink set MinNumLoss_ 4
+Agent/TFRCSink set InitHistorySize_ 100000
+Agent/TFRCSink set HysterisisLower_ 0.5
+Agent/TFRCSink set HysterisisUpper_ 0.5
+Agent/TFRCSink set bval_ 1
+Agent/TFRCSink set NumFeedback_ 1 
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency

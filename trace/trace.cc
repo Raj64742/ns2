@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.62 1999/07/07 03:42:44 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.63 1999/08/17 04:26:53 sfloyd Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -41,7 +41,7 @@
 #include "tcp.h"
 #include "rtp.h"
 #include "srm.h"
-#include "tfrm.h"
+#include "tfrc.h"
 #include "flags.h"
 #include "address.h"
 #include "trace.h"
@@ -189,7 +189,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 	hdr_srm *sh = (hdr_srm*)p->access(off_srm_); 
         hdr_rap *raph = (hdr_rap*)p->access(off_rap_);
-	hdr_tfrm *tfrmh = (hdr_tfrm*)p->access(off_tfrm_);
+	hdr_tfrc *tfrch = (hdr_tfrc*)p->access(off_tfrc_);
 #else
 	hdr_cmn *th = hdr_cmn::access(p);
 	hdr_ip *iph = hdr_ip::access(p);
@@ -197,7 +197,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_rtp *rh = hdr_rtp::access(p);
 	hdr_srm *sh = hdr_srm::access(p); 
         hdr_rap *raph = hdr_rap::access(p);
-	hdr_tfrm *tfrmh = hdr_tfrm::access(p);
+	hdr_tfrc *tfrch = hdr_tfrc::access(p);
 #endif
 	const char* sname = "null";
 
@@ -225,8 +225,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	else if (t == PT_TCP || t == PT_ACK || t == PT_HTTP || t == PT_FTP ||
 	    t == PT_TELNET)
 		seqno = tcph->seqno();
-	else if (t == PT_TFRM)
-		seqno = tfrmh->seqno;
+	else if (t == PT_TFRC)
+		seqno = tfrch->seqno;
 	else
 		seqno = -1;
         /* 
