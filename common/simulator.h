@@ -31,11 +31,13 @@ class RouteLogic;
 
 class Simulator : public TclObject {
 public:
+	static Simulator& instance() { return (*instance_); }
       Simulator() : nodelist_(NULL), rtobject_(NULL), nn_(0), \
 	size_(0) {}
       ~Simulator() {
 	    delete []nodelist_; 
       }
+	char* macType() { return macType_; }
 	int command(int argc, const char*const* argv);
 	void populate_flat_classifiers();
 	void populate_hier_classifiers();
@@ -51,6 +53,8 @@ private:
 	RouteLogic *rtobject_;
 	int nn_;
 	int size_;
+	char macType_[TINY_LEN];
+	static Simulator* instance_;
 };
 
 #endif /* ns_simulator_h */

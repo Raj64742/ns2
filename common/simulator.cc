@@ -32,9 +32,12 @@ public:
 	}
 } simulator_class;
 
+Simulator* Simulator::instance_;
 
 int Simulator::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();
+	if ((instance_ == 0) || (instance_ != this))
+		instance_ = this;
 	if (argc == 3) {
 		if (strcmp(argv[1], "populate-flat-classifiers") == 0) {
 			nn_ = atoi(argv[2]);
@@ -52,6 +55,10 @@ int Simulator::command(int argc, const char*const* argv) {
 				tcl.add_errorf("Wrong rtobject name %s", argv[2]);
 				return TCL_ERROR;
 			}
+			return TCL_OK;
+		}
+		if (strcmp(argv[1], "mac-type") == 0) {
+			strcpy(macType_, argv[2]);
 			return TCL_OK;
 		}
 	}

@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.73 2003/03/18 23:56:39 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.74 2003/07/22 22:54:14 haldar Exp $
  */
 
 #include <packet.h>
@@ -52,6 +52,7 @@
 #include <aodv/aodv_packet.h> //AODV
 #include <cmu-trace.h>
 #include <mobilenode.h>
+#include <simulator.h>
 
 #include "diffusion/diff_header.h" // DIFFUSION -- Chalermek
 
@@ -107,10 +108,16 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 {
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
-	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);	
-	struct hdr_smac *sh = HDR_SMAC(p);
+	struct hdr_mac802_11 *mh;
+	struct hdr_smac *sh;
+	char mactype[TINY_LEN];
 
-
+	strcpy(mactype, Simulator::instance().macType());
+	if (strcmp (mactype, "Mac/SMAC") == 0)
+		sh = HDR_SMAC(p);
+	else
+		mh = HDR_MAC802_11(p);
+	
 	double x = 0.0, y = 0.0, z = 0.0;
        
 	char op = (char) type_;
@@ -159,7 +166,8 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 			energy);				// energy
 
 		offset = strlen(pt_->buffer());
-		if (ch->ptype() == PT_SMAC) {
+		//if (ch->ptype() == PT_SMAC) {
+		if (strcmp (mactype, "Mac/SMAC") == 0) {
 			format_smac(p, offset);
 		} else {
 			format_mac(p, offset);
@@ -194,7 +202,8 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	    // mac layer extension
 
 	    offset = strlen(pt_->buffer());
-	    if (ch->ptype() == PT_SMAC) {
+	    //if (ch->ptype() == PT_SMAC) {
+	    if (strcmp(mactype, "Mac/SMAC") == 0) {
 		    format_smac(p, offset);
 	    } else {
 		    format_mac(p, offset);
@@ -242,7 +251,8 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	
 	offset = strlen(pt_->buffer());
 
-	if (ch->ptype() == PT_SMAC) {
+	//if (ch->ptype() == PT_SMAC) {
+	if (strncmp (mactype, "Mac/SMAC", 8) == 0) {
 		format_smac(p, offset);
 	} else {
 		format_mac(p, offset);

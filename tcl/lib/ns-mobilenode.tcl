@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.45 2003/05/05 21:43:37 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.46 2003/07/22 22:54:14 haldar Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -364,6 +364,7 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	set ll_($t)	[new $lltype]		;# link layer
         set ant_($t)    [new $anttype]
 
+	$ns mac-type $mactype
 	set inerr_($t) ""
 	if {$inerrproc != ""} {
 		set inerr_($t) [$inerrproc]
