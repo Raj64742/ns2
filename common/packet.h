@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.57 1999/03/09 05:38:50 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.58 1999/03/12 20:39:01 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -177,7 +177,7 @@ public:
 			 );
 	}
 private:
-	static char* name_[PT_NTYPE];
+	static char* name_[PT_NTYPE+1];
 };
 extern p_info packet_info; /* map PT_* to string name */
 //extern char* p_info::name_[];
