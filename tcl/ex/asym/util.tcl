@@ -79,7 +79,17 @@ proc createTcpSource { type tcptrace { maxburst 0 } { tcpTick 0.1 } { window 100
 	$tcp0 set maxburst_ $maxburst
 	$tcp0 set tcpTick_ $tcpTick
 	$tcp0 set window_ $window
-	$tcp0 trace $tcptrace
+	$tcp0 attach $tcptrace
+	$tcp0 trace "t_seqno_" 
+	$tcp0 trace "rtt_" 
+	$tcp0 trace "srtt_" 
+	$tcp0 trace "rttvar_" 
+	$tcp0 trace "backoff_" 
+	$tcp0 trace "dupacks_" 
+	$tcp0 trace "ack_" 
+	$tcp0 trace "cwnd_" 
+	$tcp0 trace "ssthresh_" 
+	$tcp0 trace "maxseq_" 
 	return $tcp0
 } 
 
@@ -89,7 +99,7 @@ proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
 	if {[string first "Asym" $type] != -1} { 
 		$sink0 set maxdelack_ $maxdelack
 	}
-	$sink0 trace $sinktrace
+	$sink0 attach $sinktrace
 	return $sink0
 }
 
@@ -120,7 +130,7 @@ proc configQueue { ns n0 n1 type trace { size -1 } { acksfirst false } { filtera
 	if {[string first "RED" $type] != -1} {
 		configREDQueue $ns $n0 $n1 [$q01 set q_weight_] 1
 	}
-	$q01 trace $trace
+#	$q01 trace $trace
 	$q01 reset
 }
 
