@@ -65,6 +65,10 @@ $isiPrefix=join(".",$prefix,$port);
 open(OUT,"> outbound.seq") || die("cannot open outbound.seq\n");
 open(IN,"> inbound.seq") || die("cannot open inbound.seq\n");
 
+open(OUTP,"> outbound.pkt.size") || die("cannot open outbound.pkt.size\n");
+open(INP,"> inbound.pkt.size") || die("cannot open inbound.pkt.size\n");
+
+
 while (<>) {
         ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
 
@@ -90,6 +94,14 @@ while (<>) {
 	 	$client=join(".",$ip21,$ip22,$ip23,$ip24,$dstPort);
         }
 
+        #capture the packet size distribution
+	if ( $seqe ne "ack" ) {
+		if ( $prefixc eq $isiPrefix) {
+			print OUTP "$client $server $sTime $size\n";
+		} else {
+			print INP "$client $server $sTime $size\n";
+		}
+	}	
 
         #capture 3 types of packaets
 	# 1. data packet to the server
@@ -117,7 +129,9 @@ while (<>) {
 			}
                 }
 	}
-
 }
+
 close(OUT);
 close(IN);
+close(OUTP);
+close(INP);
