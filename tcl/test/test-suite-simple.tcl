@@ -1,8 +1,4 @@
 #
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -34,7 +30,7 @@ Agent/TCP set rfc2988_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.24 2002/03/10 04:53:15 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.25 2002/09/16 05:40:02 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -65,6 +61,11 @@ Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
+set tcpTick_ 0.1
+Agent/TCP set tcpTick_ $tcpTick_ 
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 
 Class TestSuite
 
@@ -462,6 +463,24 @@ Topology/net2 instproc init ns {
     $ns queue-limit $node_(r2) $node_(r1) 25
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net3 -superclass NodeTopology/6nodes
+Topology/net3 instproc init ns {
+    $self next $ns
+
+    $self instvar node_
+    Queue/RED set drop_rand_ true
+    $ns duplex-link $node_(s1) $node_(r1) 100Mb 1ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 100Mb 30ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 10Mb 10ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 25
+    $ns queue-limit $node_(r2) $node_(r1) 25
+    $ns duplex-link $node_(s3) $node_(r2) 100Mb 1ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 100Mb 5ms DropTail
     if {[$class info instprocs config] != ""} {
 	$self config $ns
     }
@@ -1282,8 +1301,13 @@ Test/manyflows instproc run {} {
 }
 
 TestSuite instproc printpkts { label tcp } {
+        global tcpTick_ 
 	puts "tcp $label highest_seqment_acked [$tcp set ack_]"
 	puts "tcp $label data_bytes_sent [$tcp set ndatabytes_]"
+        set numRtts [$tcp set rtt_]
+	set tick $tcpTick_
+        set rtt [expr $numRtts * $tcpTick_]
+	puts "tcp $label most_recent_rtt [format "%5.3f" $rtt]"  
 }
 TestSuite instproc printdrops { fid fmon } {
 	set fcl [$fmon classifier]; # flow classifier
@@ -1303,6 +1327,9 @@ TestSuite instproc printdrops { fid fmon } {
 	# note there is much more date available in $flow and $fmon
 	# that isn't being printed here.
 	#
+}
+TestSuite instproc printrtts { fmon } {
+	$fmon printRTTs
 }
 TestSuite instproc printstop { stoptime } {
 	puts "stop-time $stoptime"
@@ -1564,6 +1591,49 @@ Test/stats2 instproc run {} {
 	set queue1 [$link1 queue]
 	$ns_ at 10.0 "$queue1 printstats"
 
+	# trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+	$ns_ run
+}
+
+Class Test/stats3 -superclass TestSuite
+Test/stats3 instproc init topo {
+	$self instvar net_ defNet_ test_ guide_
+	set net_	$topo
+	set defNet_	net3
+	set test_	stats3
+	QueueMonitor set keepRTTstats_ 1
+	QueueMonitor set maxRTT_ 1
+	QueueMonitor set binsPerSec_ 100
+	Agent/TCP set tcpTick_ 0.01
+	set guide_	"Printing RTT statistics."
+	$self next
+}
+
+Test/stats3 instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_ guide_ 
+	if {$quiet == "false"} {puts $guide_}
+	set stoptime 2.1 
+
+	set slink [$ns_ link $node_(r1) $node_(r2)]; 
+	set fmon [new QueueMonitor]
+	$ns_ attach-fmon $slink $fmon
+
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
+	$tcp0 set window_ 20
+	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s3) 1]
+	$tcp1 set window_ 20
+
+	set ftp0 [$tcp0 attach-app FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp0 start"
+	$ns_ at 0.1 "$ftp1 start"
+
+	set link1 [$ns_ link $node_(r1) $node_(r2)]
+	set queue1 [$link1 queue]
+
+	$ns_ at $stoptime "$self printrtts $fmon"
 	# trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
