@@ -419,6 +419,67 @@ docuentation from CMU shall be available in the future.
   details. 
 \end{description}
 
+\subsection{Different MAC layer protocols for mobile networking}
+\label{sec:mobilenode-routing}
+
+In \ns, two MAC layer protocols are implemented for mobile networks,
+  which are 802.11 and TDMA.
+In this section
+  we briefly discuss each of them.
+
+\subsubsection{802.11 MAC protocol}
+\label{sec:802_11}
+
+See \nsf{mac-802\_11.\{cc,h\}} for implementation details.
+
+\subsubsection{Preamble based TDMA protocol}
+\label{sec:tdma}
+{\bf Note:} this works is still at a preliminary stage,
+  some pratical issues, such as:
+  contention in the preamble phase and 
+  time slot reuse in a multi-hop environment are not considered.
+
+Unlike contention based MAC protocol (802.11, for example), 
+  a TDMA MAC protocol allocates different time slots for nodes to 
+  send and receive packets.
+The supper-set of these time slots is called a TDMA frame.
+
+Currently, \ns supports a single hop, 
+  preamble-based TDMA MAC protocol.
+With this protocl,
+  a TDMA frame contains preamble besides the data transmission slots.
+Within the preamble,
+  every node has a dedicated subslot and
+  uses it to broadcast the destination node id of outgoing packet.
+Other nodes listen in the preamble and record 
+  the time slots to receive packets.
+Like other common TDMA protocols (GSM, for example),
+  each node has a data transmission slot to send packets.
+
+To avoid unnecessary power consumption,
+  each node turns its radio on and off explicitly
+  by invoking node API \code{set_node_sleep()}.
+The radio only needs to be on when:
+  in the pramble phase (takes one slot time) and
+  there is a packet to send and receive.
+
+The preamble is implemented as a central data structure
+  \code{tdma_preamble_},
+  which is accessible to all the nodes.
+At the beginning of a frame,
+  each node writes the destination node id into
+  its subslot in preamble if it has a packet to send.
+Following preamble phase,
+  each node sends packet in its data transmission slot and
+  checks the preamble to determine if 
+  there is a packet to receive in other slots.
+
+The following parameters are user configurable:
+ the wireless link bandwidth \code{bandwith_},  
+  the slot length \code{packet_slot_len_}, 
+  and the number of nodes \code{max_node_num_}.
+See \nsf{mac-tdma.\{cc,h\}} for implementation details.
+
 \subsection{Different types of Routing Agents in mobile networking}
 \label{sec:mobilenode-routing}
 
