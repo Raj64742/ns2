@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.3 1997/10/26 05:49:54 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.4 1997/11/27 05:25:40 padmanab Exp $ (UCB)
  */
 
 #ifndef ns_semantic_packetqueue_h
@@ -74,6 +74,8 @@ class SemanticPacketQueue : public PacketQueue {
 	int isMarked(Packet *p);
 	/* pick out the index'th packet of the right kind (marked/unmarked) */
 	Packet *lookup(int index, int markedFlag);
+	/* pick packet for ECN notification (either marking or dropping) */
+	Packet *pickPacketForECN(Packet *pkt);
 	/* pick a packet to drop when the queue is full */
 	Packet *pickPacketToDrop();
 
@@ -109,6 +111,7 @@ class SemanticPacketQueue : public PacketQueue {
 				   closest to the head */
 	int priority_drop_;     /* drop marked (low priority) packets first */
 	int random_drop_;       /* pick packet to drop at random */
+	int random_ecn_;        /* pick packet for ECN at random */
 	virtual Packet* deque();
 	void enque(Packet *);
 	virtual inline void enque_head(Packet *p) {
