@@ -113,26 +113,21 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 			sample[i] = 0 ; 
 		}
 		if (smooth_ == 1) {
-			weights[0] = 1.0;
-			weights[1] = 1.0;
-			weights[2] = 1.0; 
-			weights[3] = 1.0; 
-			weights[4] = 1.0; 
-			weights[5] = 0.8;
-			weights[6] = 0.6;
-			weights[7] = 0.4;
-			weights[8] = 0.2;
-			weights[9] = 0;
+			int mid = int(numsamples/2); 
+			for (int i = 0; i < mid; i ++) {
+				weights[i] = 1.0;
+			}
+			for (int i = mid; i <= numsamples; i ++){
+			 weights[i] = 1.0 - (i-mid)/(mid + 1.0);
+			}
 		} else {
-			weights[0] = 1.0;
-			weights[1] = 1.0;
-			weights[2] = 1.0; 
-			weights[3] = 1.0; 
-			weights[4] = 0.8; 
-			weights[5] = 0.6;
-			weights[6] = 0.4;
-			weights[7] = 0.2;
-			weights[8] = 0;
+			int mid = int(numsamples/2); 
+			for (int i = 0; i < mid; i ++) {
+				weights[i] = 1.0;
+			}
+			for (int i = mid; i <= numsamples; i ++){
+			 weights[i] = 1.0 - (i+1-mid)/(mid + 1.0);
+			}
 		}
 		for (int i = 0; i < numsamples+1; i ++) {
 			mult[i] = 1.0 ; 
