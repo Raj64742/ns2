@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.336 2004/10/18 19:39:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.337 2004/10/22 04:33:32 sfloyd Exp $
 
 
 #
@@ -47,10 +47,10 @@
 ########################################################
 
 # Debojyoti added this
-
 Simulator set useasim_ 1
 Asim set debug_ false
 
+set MAXSEQ 1073741824
 # Increased Floating Point Precision
 set tcl_precision 17
 
@@ -1030,7 +1030,20 @@ Agent/TFRC set SndrType_ 0 ;    # Set to 1 to use data-producing applications
 Agent/TFRC set oldCode_ false ; # Set to 1 to use old code for datalimited
 				#   applications.
 				# Parameter added on 12/18/02.
-
+Agent/TFRC set maxqueue_ MAXSEQ ;  # queue from application.
+Agent/TFRC set rate_init_ 2 ;		# Added on 10/20/2004
+				# Set to 1 for backward compatibility. 
+				# Default changed on 10/21/2004.
+Agent/TFRC set rate_init_option_ 2 ;	# Added on 10/20/2004
+				# Set to 1 for backward compatibility. 
+				# Set to 2 for RFC 3390 initial rates
+				# Default changed on 10/21/2004.
+Agent/TFRC set slow_increase_ 1 ;	# Added on 10/20//2004
+				# Set to 1 for gradual rate changes.  
+				# This gives backward compatibility.
+Agent/TFRC set ss_changes_ 0 ;	# Added on 10/21//2004. 
+				# Set to 0 for backward compatibility. 
+				# Set to 1 for changes to slow-start. 
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000
 Agent/TFRCSink set NumFeedback_ 1 
@@ -1052,6 +1065,7 @@ Agent/TFRCSink set numPkts_ 1;	# Num non-sequential packets before loss
 				# Default changed to 3 on 12/16/02.
 				# Default changed to 1 on 10/28/03 due
 				#    to a major bug.
+Agent/TFRCSink set bytes_ 0 ;	# For counting bytes received.
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency
