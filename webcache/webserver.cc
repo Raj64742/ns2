@@ -92,6 +92,7 @@ double WebServer::job_arrival(int obj_id, Node *clnt, Agent *tcp, Agent *snk, in
     return 1;
   }
 
+  //printf("%d %d\n", queue_limit_, queue_size_);
   if (!queue_limit_ || queue_size_ < queue_limit_) {
     // Insert the new job to the job queue
     job_s *new_job = new(job_s);
@@ -137,7 +138,7 @@ double WebServer::job_departure() {
       head = tail = NULL;
     
     delete(p);
-    queue_limit_--;
+    queue_size_--;
   }
   
   // Schedule next job
