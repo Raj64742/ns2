@@ -138,8 +138,18 @@ Node proc allocaddr {} {
 Node proc expandaddr {} {
 	# reset the bit used by mcast/unicast switch to expand
 	# number of nodes that can be used
-	Simulator set McastShift_ 30
-	Simulator set McastAddr_ [expr 1 << 30]
+	# Simulator set McastShift_ 30
+        
+        # calling set-address-format with expanded option (sets nodeid with 21 bits 
+        # & sets aside 1 bit for mcast) and sets portid with 8 bits
+
+        set ns [Simulator instance]
+        $ns set-address-format expanded
+	
+	set mcastshift [AddrParams set McastShift]
+	Simulator set McastAddr_ [expr 1 << mcastshift]
+	#Simulator set McastAddr_ [expr 1 << 30]
+
 	McastProtoArbiter expandaddr
 }
 
