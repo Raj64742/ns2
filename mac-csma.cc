@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.12 1997/07/26 07:27:33 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.13 1997/08/21 01:49:00 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -129,7 +129,7 @@ CsmaMac::backoff(Handler* h, Packet* p, double delay)
 	// if retransmission time within limit, do exponential backoff
 	// else drop the packet and resume
 	if (++rtx_ < rtxLimit_) {
-		delay += max(channel_->txstop() + ifs_ - now, 0);
+		delay += max(channel_->txstop() + ifs_ - now, 0.0);
 		int slot = Random::integer(cw_);
 		s.schedule(h, p, delay + slotTime_ * slot);
 		cw_ = min(2 * cw_, cwmax_);
