@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.8 2001/08/17 05:22:31 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.9 2001/11/15 21:58:39 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -42,39 +42,65 @@ PagePool/WebTraf set VERBOSE_ 0
 PagePool/WebTraf set REQ_TRACE_ 0
 PagePool/WebTraf set RESP_TRACE_ 0
 
+# The threshold to classify short and long flows (in TCP packets, ie 15KB)
+PagePool/WebTraf set FLOW_SIZE_TH_ 15
+# Option to modify traffic mix:
+# 0: original settings without change
+# 1: Allow only short flows
+# 2: Chop long flows to short ones.
+PagePool/WebTraf set FLOW_SIZE_OPS_ 0
+
 PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size } {
-    set ns [Simulator instance]
-    
-    $ns attach-agent $svr $stcp
-    $ns attach-agent $clnt $ssnk
-    $ns connect $stcp $ssnk
-	
-    $ns attach-agent $clnt $ctcp
-    $ns attach-agent $svr $csnk
-    $ns connect $ctcp $csnk
-    
-    if {[PagePool/WebTraf set FID_ASSIGNING_MODE_] == 0} {
-	$stcp set fid_ $id
-	$ctcp set fid_ $id
+    set launch_req 1
+    set flow_th [PagePool/WebTraf set FLOW_SIZE_TH_]
+
+    if {[PagePool/WebTraf set FLOW_SIZE_OPS_] == 1 && $size > $flow_th} {
+	set launch_req 0
     }
-    
-    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size"
-    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
+
+    if {$launch_req == 1} {
+	set ns [Simulator instance]
 	
-    # modified to trace web traffic flows (send request: client==>server).
-    if {[PagePool/WebTraf set REQ_TRACE_]} {	
-	puts "req + $id $size $pid [$clnt id] [$svr id] [$ns now]"
-    }	
-    # Send a single packet as a request
-    $ctcp advanceby 1
+	$ns attach-agent $svr $stcp
+	$ns attach-agent $clnt $ssnk
+	$ns connect $stcp $ssnk
+	
+	$ns attach-agent $clnt $ctcp
+	$ns attach-agent $svr $csnk
+	$ns connect $ctcp $csnk
+	
+	if {[PagePool/WebTraf set FID_ASSIGNING_MODE_] == 0} {
+	    $stcp set fid_ $id
+	    $ctcp set fid_ $id
+	}
+
+	# Advance $size packets
+	if {[PagePool/WebTraf set FLOW_SIZE_OPS_] == 2 && $size > $flow_th} {
+	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $flow_th"
+	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $flow_th $flow_th [$ns now] [$stcp set fid_]"
+	} else {
+	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $size"
+	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $size $flow_th [$ns now] [$stcp set fid_]"
+	}
+	
+#	$ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size"
+#	$stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
+	
+	# modified to trace web traffic flows (send request: client==>server).
+	if {[PagePool/WebTraf set REQ_TRACE_]} {	
+	    puts "req + $id $pid $size [$clnt id] [$svr id] [$ns now]"
+	}	
+	# Send a single packet as a request
+	$ctcp advanceby 1
+    }
 }
 
-PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size } {
+PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent } {
     set ns [Simulator instance]
     
     # modified to trace web traffic flows (recv request: client==>server).
     if {[PagePool/WebTraf set REQ_TRACE_]} {	
-        	puts "req - $id $size $pid [$clnt id] [$svr id] [$ns now]"
+	puts "req - $id $pid $size [$clnt id] [$svr id] [$ns now]"
     }
     
     # Recycle client-side TCP agents
@@ -87,31 +113,63 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size } {
     
     # modified to trace web traffic flows (send responese: server->client).
     if {[PagePool/WebTraf set RESP_TRACE_]} {
-	puts "resp + $id $size $pid [$svr id] [$clnt id] [$ns now]"
+	puts "resp + $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
     }
     
     # Advance $size packets
-    $stcp advanceby $size
+    $stcp advanceby $sent
 }
 
-PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size {startTime 0} {fid 0}} {
+PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0}} {
     set ns [Simulator instance]
     
     # modified to trace web traffic flows (recv responese: server->client).
     if {[PagePool/WebTraf set RESP_TRACE_]} {
-	puts "resp - $id $size $pid [$svr id] [$clnt id] [$ns now]"
+	puts "resp - $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
     }
     
     if {[PagePool/WebTraf set VERBOSE_] == 1} {
 	puts "done-resp - $id [$svr id] [$clnt id] $size $startTime [$ns now] $fid"
     }
     
-    # Recycle server-side TCP agents
-    $ns detach-agent $clnt $ssnk
-    $ns detach-agent $svr $stcp
+    # Reset server-side TCP agents
     $stcp reset
     $ssnk reset
-    $self recycle $stcp $ssnk
+    $ns detach-agent $clnt $ssnk
+    $ns detach-agent $svr $stcp
+
+    # if there are some packets left, keeps on sending.
+    if {$sent < $size} {
+	$ns attach-agent $svr $stcp
+	$ns attach-agent $clnt $ssnk
+	$ns connect $stcp $ssnk
+
+	if {[PagePool/WebTraf set FID_ASSIGNING_MODE_] == 0} {
+	    $stcp set fid_ $id
+	}
+
+	set left [expr $size - $sent]
+	if {$left <= $sent_th} {
+	    # modified to trace web traffic flows (send responese: server->client).
+	    if {[PagePool/WebTraf set RESP_TRACE_]} {
+		puts "resp + $id $pid $left $size [$svr id] [$clnt id] [$ns now]"
+	    }
+	    set sent [expr $sent + $left]
+	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $sent $sent_th [$ns now] [$stcp set fid_]"
+	    $stcp advanceby $left
+	} else {
+	    # modified to trace web traffic flows (send responese: server->client).
+	    if {[PagePool/WebTraf set RESP_TRACE_]} {
+		puts "resp + $id $pid $sent_th $size [$svr id] [$clnt id] [$ns now]"
+	    }
+	    set sent [expr $sent + $sent_th]
+	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $sent $sent_th [$ns now] [$stcp set fid_]"
+	    $stcp advanceby $sent_th
+	}
+    } else {
+	# Recycle server-side TCP agents
+	$self recycle $stcp $ssnk	
+    }
 }
 
 # XXX Should allow customizable TCP types. Can be easily done via a 
