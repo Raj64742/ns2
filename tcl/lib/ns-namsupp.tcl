@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.31 1999/09/09 03:34:36 salehi Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.32 1999/10/24 00:15:04 hyunahpa Exp $
 #
 
 #
@@ -61,24 +61,50 @@ Node instproc color { color } {
 		$ns puts-nam-config \
 			[eval list "n -t [$ns now] -s $id_ -S COLOR -c $color -o $attr_(COLOR)"]
 		set attr_(COLOR) $color
+	        set attr_(LCOLOR) $color
 	} else {
 		set attr_(COLOR) $color
+	        set attr_(LCOLOR) $color
 	}
 }
 
-Node instproc label { str } {
+Node instproc label { str} {
 	$self instvar attr_ id_
 
 	set ns [Simulator instance]
 
 	if [info exists attr_(DLABEL)] {
-		$ns puts-nam-config \
-		  "n -t [$ns now] -s $id_ -S DLABEL -l \"$str\" -L $attr_(DLABEL)"
+		$ns puts-nam-config "n -t [$ns now] -s $id_ -S DLABEL -l \"$str\" -L $attr_(DLABEL)"
 	} else {
-		$ns puts-nam-config \
-			"n -t [$ns now] -s $id_ -S DLABEL -l \"$str\" -L \"\""
+		$ns puts-nam-config "n -t [$ns now] -s $id_ -S DLABEL -l \"$str\" -L \"\""
 	}
 	set attr_(DLABEL) \"$str\"
+}
+
+Node instproc label-color { str} {
+        $self instvar attr_ id_
+
+        set ns [Simulator instance]
+
+        if [info exists attr_(DCOLOR)] {
+                $ns puts-nam-config "n -t [$ns now] -s $id_ -S DCOLOR -e \"$str\" -E $attr_(DCOLOR)"
+        } else {
+                $ns puts-nam-config "n -t [$ns now] -s $id_ -S DCOLOR -e \"$str\" -E \"\""
+        }
+        set attr_(DCOLOR) \"$str\"
+}
+
+Node instproc label-at { str } {
+        $self instvar attr_ id_
+
+        set ns [Simulator instance]
+
+        if [info exists attr_(DIRECTION)] {
+                $ns puts-nam-config "n -t [$ns now] -s $id_ -S DIRECTION -p \"$str\" -P $attr_(DIRECTION)"
+        } else {
+                $ns puts-nam-config "n -t [$ns now] -s $id_ -S DIRECTION -p \"$str\" -P \"\""
+        }
+        set attr_(DIRECTION) \"$str\"
 }
 
 Node instproc dump-namconfig {} {
@@ -90,9 +116,13 @@ Node instproc dump-namconfig {} {
 	} 
 	if ![info exists attr_(COLOR)] {
 		set attr_(COLOR) "black"
+	        set attr_(LCOLOR) "black"
 	}
+#	if ![info exists attr_(LCOLOR)] {
+#        set attr_(LCOLOR) "black"
+#	}
 	$ns puts-nam-config \
-		[eval list "n -t * -a $address_ -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR)"]
+		[eval list "n -t * -a $address_ -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR) -i $attr_(LCOLOR)"]
 }
 
 Node instproc change-color { color } {
@@ -225,6 +255,45 @@ Link instproc get-color {} {
 	puts "Warning: Node::get-color is obsolete. Please use Node::get-attribute"
 	return [$self get-attribute "COLOR"]
 }
+
+Link instproc label { label } {
+        $self instvar attr_ fromNode_ toNode_ trace_
+        set ns [Simulator instance]
+        if [info exists attr_(DLABEL)] {
+            $ns puts-nam-config \
+            "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DLABEL -l \"$label\" -L $attr_(DLABEL)"
+        } else {
+            $ns puts-nam-config \
+            "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DLABEL -l \"$label\" -L \"\""
+        }
+        set attr_(DLABEL) \"$label\"
+    }
+
+Link instproc label-color { str } {
+        $self instvar attr_ fromNode_ toNode_ trace_
+        set ns [Simulator instance]
+        if [info exists attr_(DCOLOR)] {
+            $ns puts-nam-config \
+            "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DCOLOR -e \"$str\" -E $attr_(DCOLOR)"
+        } else {
+            $ns puts-nam-config \
+            "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DCOLOR -e \"$str\" -E \"\""
+        }
+        set attr_(DCOLOR) \"$str\"
+    }
+
+Link instproc label-at { str } {
+        $self instvar attr_ fromNode_ toNode_ trace_
+        set ns [Simulator instance]
+        if [info exists attr_(DIRECTION)] {
+            $ns puts-nam-config \
+            "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DIRECTION -p \"$str\" -P $attr_(DIRECTION)"
+        } else {
+            $ns puts-nam-config \
+            "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DIRECTION -p \"$str\" -P \"\""
+        }
+        set attr_(DIRECTION) \"$str\"
+    }
 
 #
 # Support for agent tracing
