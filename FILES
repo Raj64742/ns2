@@ -212,6 +212,8 @@ tcp-sink.cc
 tcp.cc
 tcp.h
 tcplib-telnet.cc
+telnet.h
+telnet.cc
 test-all
 test-all-cbq
 test-all-red

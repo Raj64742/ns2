@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.7 1997/05/28 17:49:23 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.8 1997/07/24 23:52:25 breslau Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -828,43 +828,43 @@ Test/reno5 instproc run {} {
 	$ns_ run
 }
 
-#Class Test/telnet -superclass TestSuite
-#Test/telnet instproc init topo {
-#	$self instvar net_ defNet_ test_
-#	set net_	$topo
-#	set defNet_	net0
-#	set test_	telnet
-#	$self next
-#}
-#Test/telnet instproc run {} {
-#	$self instvar ns_ node_ testName_
-#
-#	$ns_ queue-limit $node_(r1) $node_(k1) 8
-#	$ns_ queue-limit $node_(k1) $node_(r1) 8
-#
-#	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
-#	set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 1]
-#	set tcp3 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 2]
-#
-#	set telnet1 [$tcp1 attach-source TELNET]; $telnet1 set interval_ 1
-#	set telnet2 [$tcp2 attach-source TELNET]; $telnet2 set interval_ 0
-#	# Interval 0 designates the tcplib telnet interarrival distribution
-#	set telnet3 [$tcp3 attach-source TELNET]; $telnet3 set interval_ 0
-#
-#	$ns_ at 0.0 "$telnet1 start"
-#	$ns_ at 0.0 "$telnet2 start"
-#	$ns_ at 0.0 "$telnet3 start"
-#
-#	$self tcpDump $tcp1 5.0
-#
-#	# Trace only the bottleneck link
-#	$self traceQueues $node_(r1) [$self openTrace 50.0 $testName_]
-#
-#	# use a different seed each time
-#	puts seed=[$ns_ random 0]
-#
-#	$ns_ run
-#}
+Class Test/telnet -superclass TestSuite
+Test/telnet instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	telnet
+	$self next
+}
+Test/telnet instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ queue-limit $node_(r1) $node_(k1) 8
+	$ns_ queue-limit $node_(k1) $node_(r1) 8
+
+	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
+	set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 1]
+	set tcp3 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(k1) 2]
+
+	set telnet1 [$tcp1 attach-source Telnet]; $telnet1 set interval_ 1
+	set telnet2 [$tcp2 attach-source Telnet]; $telnet2 set interval_ 0
+	# Interval 0 designates the tcplib telnet interarrival distribution
+	set telnet3 [$tcp3 attach-source Telnet]; $telnet3 set interval_ 0
+
+	$ns_ at 0.0 "$telnet1 start"
+	$ns_ at 0.0 "$telnet2 start"
+	$ns_ at 0.0 "$telnet3 start"
+
+	$self tcpDump $tcp1 5.0
+
+	# Trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace 50.0 $testName_]
+
+	# use a different seed each time
+	#puts seed=[$ns_ random 0]
+
+	$ns_ run
+}
 
 Class Test/delayed -superclass TestSuite
 Test/delayed instproc init topo {
