@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.236 2001/11/29 23:25:32 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.237 2001/12/30 04:51:07 sfloyd Exp $
 
 
 #
@@ -486,7 +486,7 @@ Simulator instproc node args {
 		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
 			# add node to simulator's nodelist in C++ space
 			$self add-node $node [$node id]
-			# Want to keep global state of wiredRouting info 
+			# Want to keep global state of wiredRouting info
 			SatRouteObject set wiredRouting_ true
 		}
 		return $node
@@ -594,7 +594,6 @@ Simulator instproc create-wireless-node args {
 	if {$routingAgent_ != "DSR"} {
 		$node attach $ragent [Node set rtagent_port_]
 	}
-
 	if {$routingAgent_ == "DIFFUSION/RATE" ||
             $routingAgent_ == "DIFFUSION/PROB" ||
             $routingAgent_ == "FLOODING" ||
@@ -1483,6 +1482,21 @@ Simulator instproc create-connection {s_type source d_type dest pktClass} {
 	return $s_agent
 }
 
+# Creates a highspeed connection. Similar to create-connection 
+# above except the sink agent requires additional work -- Sylvia
+Simulator instproc create-highspeed-connection {s_type source d_type dest pktClass} {
+        set s_agent [new Agent/$s_type]
+        set d_agent [new Agent/$d_type]
+        $d_agent resize_buffers
+        $s_agent set fid_ $pktClass
+        $d_agent set fid_ $pktClass
+        $self attach-agent $source $s_agent
+        $self attach-agent $dest $d_agent
+        $self connect $s_agent $d_agent
+
+        return $s_agent
+}
+
 # Creates connection. First creates a source agent of type s_type and binds
 # it to source.  Next creates a destination agent of type d_type and binds
 # it to dest.  Finally creates bindings for the source and destination agents,
@@ -1878,7 +1892,6 @@ Simulator instproc create-diffusion-probability-agent {node} {
 	return $diff
 }
 
-
 # Diffusioncore agent (in diffusion) maps to the wireless routing agent
 # in ns
 Simulator instproc create-core-diffusion-rtg-agent {node} {
@@ -1917,7 +1930,6 @@ Simulator instproc create-omnimcast-agent {node} {
 
 	return $omni
 }
-
 
 # XXX These are very simulation-specific methods, why should they belong here?
 Simulator instproc put-in-list {agent} {
