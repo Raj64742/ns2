@@ -70,7 +70,6 @@ BaseLink::command(int argc, const char*const* argv)
 void
 BaseLink::recv(Packet* p, Handler* h)
 {
-	p->source(h);
 	if (em_ && em_->corrupt(p)) {
 		p->error(1);
 	}
