@@ -31,8 +31,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+#ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.cc,v 1.1 1997/05/14 02:47:28 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.cc,v 1.2 1997/07/23 04:45:36 kfall Exp $ (LBL)";
+#endif
 
 #include <stdlib.h>
 #include <math.h>
