@@ -26,33 +26,22 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.9 1999/09/17 23:17:17 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.10 1999/09/24 23:44:35 haoboy Exp $
 
 #include <stdarg.h>
 
 #include "template.h"
 #include "media-app.h"
+#include "utilities.h"
 
 
 //----------------------------------------------------------------------
 // Classes related to a multimedia object
 //
-// DoubleList
 // MediaSegment
 // MediaSegmentList: segments in a layer
 // MediaPage: a stored multimedia object (stream)
 //----------------------------------------------------------------------
-
-void DoubleList::destroy()
-{
-	DoubleListElem *p = head_, *q;
-	while (p != NULL) {
-		q = p;
-		p = p->next();
-		delete q;
-	}
-	head_ = tail_ = NULL;
-}
 
 MediaSegment::MediaSegment(const HttpMediaData& d) : flags_(0)
 {

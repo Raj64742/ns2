@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.8 1999/09/17 23:17:17 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.9 1999/09/24 23:44:36 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -45,66 +45,7 @@
 #include "app.h"
 #include "webcache/http-aux.h"
 #include "rap/rap.h"
-
-
-class DoubleListElem {
-public:
-	DoubleListElem() : prev_(0), next_(0) {}
-
-	DoubleListElem* next() const { return next_; }
-	DoubleListElem* prev() const { return prev_; }
-
-	virtual void detach() {
-		if (prev_ != 0) prev_->next_ = next_;
-		if (next_ != 0) next_->prev_ = prev_;
-		prev_ = next_ = 0;
-	}
-	// Add new element s before this one
-	virtual void insert(DoubleListElem *s) {
-		s->next_ = this;
-		s->prev_ = prev_;
-		if (prev_ != 0) prev_->next_ = s;
-		prev_ = s;
-	}
-	// Add new element s after this one
-	virtual void append(DoubleListElem *s) {
-		s->next_ = next_;
-		s->prev_ = this;
-		if (next_ != 0) next_->prev_ = s;
-		next_ = s;
-	}
-
-private:
-	DoubleListElem *prev_, *next_;
-};
-
-class DoubleList {
-public:
-	DoubleList() : head_(0), tail_(0) {}
-	virtual void destroy();
-	DoubleListElem* head() { return head_; }
-	DoubleListElem* tail() { return tail_; }
-
-	void detach(DoubleListElem *e) {
-		if (head_ == e)
-			head_ = e->next();
-		if (tail_ == e)
-			tail_ = e->prev();
-		e->detach();
-	}
-	void insert(DoubleListElem *src, DoubleListElem *dst) {
-		dst->insert(src);
-		if (dst == head_)
-			head_ = src;
-	}
-	void append(DoubleListElem *src, DoubleListElem *dst) {
-		dst->append(src);
-		if (dst == tail_)
-			tail_ = src;
-	}
-protected:
-	DoubleListElem *head_, *tail_;
-};
+#include "rap/utilities.h"
 
 
 class HttpMediaData;

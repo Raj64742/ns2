@@ -34,7 +34,7 @@
  * Author:
  *   Mohit Talwar (mohit@catarina.usc.edu)
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.cc,v 1.2 1999/06/09 21:54:10 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.cc,v 1.3 1999/09/24 23:44:39 haoboy Exp $
  * 
  * This is taken from UCB Nachos project
  * 
@@ -190,7 +190,7 @@ void List::Mapcar(VoidFunctionPtr func)
 
 int List::IsEmpty() 
 {
-  if (first is NULL)
+  if (first == NULL)
     return TRUE;
   else
     return FALSE;
@@ -265,7 +265,7 @@ void *List::SortedRemove(float *keyPtr)
     return NULL;
   
   thing = first->item;
-  if (first is last) 
+  if (first == last) 
     {				// List had one item, now has none 
       first = NULL;
       last = NULL;
@@ -351,12 +351,12 @@ void *List::SetRemove(void *key, CompareFunction eq)
 
   assert(curr != NULL);		// Since its present we'd better find it
 
-  if (curr is first)
+  if (curr == first)
     first = curr->next;
   else
     prev->next = curr->next;
   
-  if (curr is last)
+  if (curr == last)
     last = prev;
 
   thing = curr->item;
@@ -405,12 +405,12 @@ void List::Purge(void *key, CompareFunction eq, VoidFunctionPtr destroy)
   for (prev = NULL, curr = first; curr != NULL; ) // Check all items
     if ((*eq)(key, curr->item))
       {
-        if (curr is first)
+        if (curr == first)
           first = curr->next;
         else
           prev->next = curr->next;
 
-	if (curr is last)
+	if (curr == last)
           last = prev;
 
         thing = curr->item;

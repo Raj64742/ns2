@@ -34,7 +34,7 @@
  * Author:
  *   Mohit Talwar (mohit@catarina.usc.edu)
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.h,v 1.2 1999/06/09 21:54:11 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.h,v 1.3 1999/09/24 23:44:41 haoboy Exp $
  * 
  * This is taken from UCB Nachos project
  * 
@@ -50,6 +50,7 @@
 #ifndef RAPLIST_H
 #define RAPLIST_H
 
+typedef void (*VoidFunctionPtr)(int arg); 
 typedef int (*CompareFunction)(void *item, void *key);
  
 // The following class defines a "List element" -- which is

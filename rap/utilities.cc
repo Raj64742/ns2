@@ -30,10 +30,18 @@
 // Author:
 //   Mohit Talwar (mohit@catarina.usc.edu)
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.cc,v 1.2 1999/06/09 21:54:11 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.cc,v 1.3 1999/09/24 23:44:43 haoboy Exp $
 
 #include <stdarg.h>
 #include "utilities.h"
+
+// Constants...
+
+#ifndef NAME_MAX
+// Maximum length of a file name
+// In case that it's not defined in limits.h
+#define NAME_MAX 14
+#endif
 
 //----------------------------------------------------------------------
 // DebugEnable
@@ -68,3 +76,16 @@ void Debug(int debugFlag, FILE *log, char *format, ...)
       fflush(log);
     }
 }
+
+// Data structures
+void DoubleList::destroy()
+{
+	DoubleListElem *p = head_, *q;
+	while (p != NULL) {
+		q = p;
+		p = p->next();
+		delete q;
+	}
+	head_ = tail_ = NULL;
+}
+

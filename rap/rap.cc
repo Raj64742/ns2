@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.9 1999/09/09 04:02:50 salehi Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.10 1999/09/24 23:44:37 haoboy Exp $
 
 #include "rap.h"
 
@@ -532,7 +532,7 @@ void AckLostPacket(int item)
 	prevRecv = ackHdr->prevRecv;
 
 	if (seqno <= lastRecv) {
-		if ((seqno > lastMiss) or (seqno == prevRecv))
+		if ((seqno > lastMiss) || (seqno == prevRecv))
 			entry->status = RAP_PURGED; // Was Received, now purge
 		else if ((lastRecv - seqno) >= 3) {
 			// ~ Packets lost in RAP session
