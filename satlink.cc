@@ -1,0 +1,461 @@
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * Copyright (c) 1999 Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *      This product includes software developed by the MASH Research
+ *      Group at the University of California Berkeley.
+ * 4. Neither the name of the University nor of the Research Group may be
+ *    used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
+ */
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.1 1999/06/21 18:28:47 tomh Exp $";
+#endif
+
+/*
+ * Contains source code for:
+ *	SatLinkHead
+ *  	SatLL
+ * 	SatMac
+ * 	SatPhy
+ * 	SatChannel
+ */
+
+#include "satlink.h"
+#include "sattrace.h"
+#include "satposition.h"
+#include "satnode.h"
+
+/*==========================================================================*/
+/*
+ * _SatLinkHead
+ */
+
+static class SatLinkHeadClass : public TclClass {
+public:
+	SatLinkHeadClass() : TclClass("Connector/LinkHead/Sat") {}
+	TclObject* create(int, const char*const*) {
+		return (new SatLinkHead);
+	}
+} class_sat_link_head;
+
+SatLinkHead::SatLinkHead() : linkup_(1), phy_tx_(0), phy_rx_(0), mac_(0), satll_(0), queue_(0)
+{
+}
+
+int SatLinkHead::command(int argc, const char*const* argv)
+{
+	if (argc == 2) {
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "set_type") == 0) {
+			if (strcmp(argv[2], "geo") == 0) {
+				type_ = LINK_GSL_GEO;
+				return TCL_OK;
+			} else if (strcmp(argv[2], "polar") == 0) {
+				type_ = LINK_GSL_POLAR;
+				return TCL_OK;
+			} else if (strcmp(argv[2], "gsl") == 0) {
+				type_ = LINK_GSL;
+				return TCL_OK;
+			} else if (strcmp(argv[2], "gsl-repeater") == 0) {
+				type_ = LINK_GSL_REPEATER;
+				return TCL_OK;
+			} else if (strcmp(argv[2], "interplane") == 0) {
+				type_ = LINK_ISL_INTERPLANE;
+				return TCL_OK;
+			} else if (strcmp(argv[2], "intraplane") == 0) {
+				type_ = LINK_ISL_INTRAPLANE;
+				return TCL_OK;
+			} else if (strcmp(argv[2], "crossseam") == 0) {
+				type_ = LINK_ISL_CROSSSEAM;
+				return TCL_OK;
+			} else {
+				printf("Unknown link type: %s\n", argv[2]);
+				exit(1);
+			} 
+		}
+		if (strcmp(argv[1], "setll") == 0) {
+			satll_ = (SatLL*) TclObject::lookup(argv[2]);
+			if (satll_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		} else if(strcmp(argv[1], "setphytx") == 0) {
+			phy_tx_ = (SatPhy*) TclObject::lookup(argv[2]);
+			if (phy_tx_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		} else if(strcmp(argv[1], "setphyrx") == 0) {
+			phy_rx_ = (SatPhy*) TclObject::lookup(argv[2]);
+			if (phy_rx_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		} else if(strcmp(argv[1], "setmac") == 0) {
+			mac_ = (SatMac*) TclObject::lookup(argv[2]);
+			if (mac_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		} else if(strcmp(argv[1], "setqueue") == 0) {
+			queue_ = (Queue*) TclObject::lookup(argv[2]);
+			if (queue_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		}
+	}
+	return (LinkHead::command(argc, argv));
+}
+
+/*==========================================================================*/
+/*
+ * _SatLL
+ */
+
+static class SatLLClass : public TclClass {
+public:
+	SatLLClass() : TclClass("LL/Sat") {}
+	TclObject* create(int, const char*const*) {
+		return (new SatLL);
+	}
+} sat_class_ll;
+
+
+void SatLL::recv(Packet* p, Handler* /*h*/)
+{
+	hdr_cmn *ch = HDR_CMN(p);
+	
+	/*
+	 * Sanity Check
+	 */
+	assert(initialized());
+	
+	// If direction = 1, then pass it up the stack
+	// Otherwise, set direction to -1 and pass it down the stack
+	if(ch->direction() == 1) {
+		uptarget_ ? sendUp(p) : drop(p);
+		return;
+	}
+
+	ch->direction() = -1;
+	sendDown(p);
+}
+
+// Encode link layer sequence number, type, and mac address fields
+void SatLL::sendDown(Packet* p)
+{	
+	hdr_cmn *ch = HDR_CMN(p);
+	hdr_ll *llh = HDR_LL(p);
+	char *mh = (char*)p->access(hdr_mac::offset_);
+	int peer_mac_;
+	SatChannel* satchannel_;
+
+	llh->seqno_ = ++seqno_;
+	llh->lltype() = LL_DATA;
+
+	// Set mac src, type, and dst
+	mac_->hdr_src(mh, mac_->addr());
+	mac_->hdr_type(mh, ETHERTYPE_IP); // We'll just use ETHERTYPE_IP
+	
+	nsaddr_t dst = ch->next_hop();
+	// a value of -1 is IP_BROADCAST
+	if (dst < -1) {
+		printf("Error:  next_hop_ field not set by routing agent\n");
+		exit(1);
+	}
+
+	switch(ch->addr_type()) {
+
+	case AF_INET:
+	case AF_NONE:
+		if (IP_BROADCAST == (u_int32_t) dst)
+			{
+			mac_->hdr_dst((char*) HDR_MAC(p), MAC_BROADCAST);
+			break;
+		}
+		/* 
+		 * Here is where arp would normally occur.  In the satellite
+		 * case, we don't arp (for now).  Instead, use destination
+		 * address to find the mac address corresponding to the
+		 * peer connected to this channel.  If someone wants to
+		 * add arp, look at how the wireless code does it.
+		 */ 
+		// Cache latest value used
+		if (dst == arpcachedst_) {
+			mac_->hdr_dst((char*) HDR_MAC(p), arpcache_);
+			break;
+		}
+		// Search for peer's mac address (this is the pseudo-ARP)
+		satchannel_ = (SatChannel*) channel();
+		peer_mac_ = satchannel_->find_peer_mac_addr(dst);
+		if (peer_mac_ < 0 ) {
+			printf("Error:  couldn't find dest mac on channel ");
+			printf("NOW %f\n", NOW);
+			exit(1);
+		} else {
+			mac_->hdr_dst((char*) HDR_MAC(p), peer_mac_);
+			arpcachedst_ = dst;
+			arpcache_ = peer_mac_;
+			break;
+		} 
+
+	default:
+		printf("Error:  addr_type not set to AF_INET or AF_NONE\n");
+		exit(1);
+	}
+	
+	// let mac decide when to take a new packet from the queue.
+	Scheduler& s = Scheduler::instance();
+	s.schedule(downtarget_, p, delay_);
+}
+
+void SatLL::sendUp(Packet* p)
+{
+	Scheduler& s = Scheduler::instance();
+	if (hdr_cmn::access(p)->error() > 0)
+		drop(p);
+	else
+		s.schedule(uptarget_, p, delay_);
+}
+
+// Helper function 
+Channel* SatLL::channel()
+{
+	Phy* phy_ = (Phy*) mac_->downtarget();
+	return phy_->channel();
+}
+
+/*==========================================================================*/
+/*
+ * _SatMac
+ */
+
+static class SatMacClass : public TclClass {
+public:
+	SatMacClass() : TclClass("Mac/Sat") {}
+	TclObject* create(int, const char*const*) {
+		return (new SatMac);
+	}
+} sat_class_mac;
+
+static class SatMacRepeaterClass : public TclClass {
+public:
+	SatMacRepeaterClass() : TclClass("Mac/Sat/Repeater") {}
+	TclObject* create(int, const char*const*) {
+		return (new SatMacRepeater);
+	}
+} sat_class_mac_repeater;
+
+
+int SatMac::command(int argc, const char*const* argv)
+{
+	if(argc == 2) {
+	}
+	else if (argc == 3) {
+		TclObject *obj;
+		if( (obj = TclObject::lookup(argv[2])) == 0) {
+			fprintf(stderr, "%s lookup failed\n", argv[1]);
+			return TCL_ERROR;                
+		}
+		if (strcmp(argv[1], "channel") == 0) {
+			//channel_ = (Channel*) obj;
+			return (TCL_OK);
+		}
+	}
+	
+	return Mac::command(argc, argv);
+}
+
+
+void SatMac::recv(Packet* p, Handler* h)
+{
+	// dir : 1 = up, -1 = down; 
+	if (hdr_cmn::access(p)->direction() == 1) {
+		sendUp(p);
+		return;
+	}
+
+	callback_ = h;
+	hdr_mac* mh = HDR_MAC(p);
+	mh->set(MF_DATA, index_);
+	state(MAC_SEND);
+	sendDown(p);
+}
+
+void SatMac::sendUp(Packet* p) 
+{
+	hdr_mac* mh = HDR_MAC(p);
+	int dst = this->hdr_dst((char*)mh); // mac destination address
+	
+	state(MAC_IDLE);
+	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_)) {
+		drop(p);
+		return;
+	}
+	// Wait for txtime (to receive whole packet) + delay_
+	Scheduler::instance().schedule(uptarget_, p, delay_ + mh->txtime());
+}
+
+
+
+void SatMac::sendDown(Packet* p)
+{
+	Scheduler& s = Scheduler::instance();
+	double txt = 0.0001;
+	// LINK_HDRSIZE is defined in satlink.h.  This is the size of header
+	// information for all layers below IP.  Alternatively, one could
+	// derive this information dynamically from packet headers. 
+	int packetsize_ = HDR_CMN(p)->size() + LINK_HDRSIZE;
+	if (bandwidth_ != 0)
+		txt = txtime(packetsize_);
+	// For convenience, we encode the transmit time in the Mac header
+	// The packet will be held (for collision detection) for txtime 
+	// at the receiving mac.
+        HDR_MAC(p)->txtime() = txt;
+	downtarget_->recv(p, this);
+	// Callback for when this packet's transmission will be done
+	s.schedule(&hRes_, &intr_, txt);
+}
+
+void SatMacRepeater::recv(Packet* p, Handler* h)
+{
+	// dir : 1 = up, -1 = down; 
+	hdr_cmn *ch = HDR_CMN(p);
+	ch->direction_ = -1;
+	downtarget_->recv(p, this);
+}
+
+/*==========================================================================*/
+/*
+ * _SatPhy
+ */
+
+static class SatPhyClass: public TclClass {
+public:
+	SatPhyClass() : TclClass("Phy/Sat") {}
+	TclObject* create(int, const char*const*) {
+		return (new SatPhy);
+	}
+} class_SatPhy;
+
+void SatPhy::sendDown(Packet *p)
+{
+	if (channel_)
+		channel_->recv(p, this);
+	else {
+		// it is possible for routing to change while a packet
+		// is moving down the stack.  Therefore, just log a drop
+		// if there is no channel
+		if ( ((SatNode*) head()->node())->trace() )
+			((SatNode*) head()->node())->trace()->traceonly(p);
+		Packet::free(p);
+	}
+}
+
+// Note that this doesn't do that much right now.  If you want to incorporate
+// an error model, you could insert a "propagation" object like in the
+// wireless case.
+int SatPhy::sendUp(Packet *p)
+{
+	return TRUE;
+}
+
+int
+SatPhy::command(int argc, const char*const* argv) {
+	if (argc == 2) {
+	} else if (argc == 3) {
+		TclObject *obj;
+
+		if( (obj = TclObject::lookup(argv[2])) == 0) {
+			fprintf(stderr, "%s lookup failed\n", argv[1]);
+			return TCL_ERROR;
+		}
+	}
+	return Phy::command(argc, argv);
+}
+
+/*==========================================================================*/
+/*
+ * _SatChannel
+ */
+
+static class SatChannelClass : public TclClass {
+public:
+	SatChannelClass() : TclClass("Channel/Sat") {}
+	TclObject* create(int, const char*const*) {
+		return (new SatChannel);
+	}
+} class_Sat_channel;
+
+SatChannel::SatChannel(void) : Channel() {
+}
+
+double
+SatChannel::get_pdelay(Node* tnode, Node* rnode)
+{
+	SatNode* tmnode = (SatNode*)tnode;
+	SatNode* rmnode = (SatNode*)rnode;
+	double propdelay = tmnode->position()->propdelay(rmnode->position());
+	return propdelay;
+}
+
+// This is a helper function that attaches a SatChannel to a Phy
+void SatChannel::add_interface(Phy* phy_)
+{
+	phy_->setchnl(this); // Attach phy to this channel
+	phy_->insertchnl(&ifhead_); // Add phy_ to list of phys on the channel
+}
+
+// Remove a phy from a channel
+void SatChannel::remove_interface(Phy* phy_)
+{
+	phy_->setchnl(NULL); // Set phy_'s channel pointer to NULL
+	phy_->removechnl(); // Remove phy_ to list of phys on the channel
+}
+
+// Search for destination mac address on this channel.  Look through list
+// of phys on the channel.  If the channel connects to a geo repeater, look
+// for the destination on the corresponding downlink channel.  
+int SatChannel::find_peer_mac_addr(int dst)
+{
+	Phy *n;
+	Channel* chan_;
+	chan_ = this;
+	n = ifhead_.lh_first; 
+	if (n->head()->type() == LINK_GSL_REPEATER) {
+		SatLinkHead* slh = (SatLinkHead*) n->head();
+		chan_ = slh->phy_tx()->channel();
+	}
+	for(n = chan_->ifhead_.lh_first; n; n = n->nextchnl() ) {
+		if (n->node()->address() == dst) {
+			return (((SatMac*) n->uptarget())->addr());
+		}
+	}
+	return -1;
+}
+
+

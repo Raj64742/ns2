@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.53 1999/04/22 18:53:59 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.54 1999/06/21 18:31:39 tomh Exp $
 #
 
 # for MobileIP
@@ -51,7 +51,7 @@ Node proc getid {} {
 
 Node instproc init args {
 	eval $self next $args
-	$self instvar np_ id_ agents_ dmux_ neighbor_ rtsize_
+	$self instvar np_ id_ agents_ dmux_ neighbor_ rtsize_ address_
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
@@ -59,6 +59,7 @@ Node instproc init args {
 	set id_ [Node getid]
         set rtsize_ 0
 	$self mk-default-classifier
+	$self cmd addr $address_; # new by tomh
 }
 
 
