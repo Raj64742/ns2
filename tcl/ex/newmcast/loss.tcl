@@ -1,12 +1,12 @@
 # the following complements the TraceErrorModel class in C++
-MrouteErrorModel instproc lossFile { fname } {
+ErrorModel/Trace/Mroute instproc lossFile { fname } {
 	$self instvar filename fhandle
 	set filename $fname
 	set fhandle [open $filename r]
 	$self read
 }
 
-MrouteErrorModel instproc read { } {
+ErrorModel/Trace/Mroute instproc read { } {
 	$self instvar fhandle good_ loss_
 	if { [set line [gets $fhandle]] != -1 && $line != "" } {
 		set loss_ [lindex $line 0]
@@ -38,7 +38,7 @@ LossMgr instproc lossylan { mlink } {
 		if { $sid != $did } {
 		    set link [$ns getlink $sid $did]
 
-		    set loss($sid:$did) [new MrouteErrorModel]
+		    set loss($sid:$did) [new ErrorModel/Trace/Mroute]
 # see ns-mlink.tcl DummyLink addloss
 		    $link addloss $loss($sid:$did)
 
