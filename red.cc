@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.3 1997/01/27 01:16:17 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.4 1997/01/27 01:58:07 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -147,6 +147,7 @@ REDQueue::REDQueue()
 	bind("thresh_", &edp_.th_min);
 	bind("maxthresh_", &edp_.th_max);
 	bind("meanPacketSize_", &edp_.mean_pktsize);
+	bind("ptc_", &edp_.ptc);
 	bind("queueWeight_", &edp_.q_w);
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
@@ -156,19 +157,12 @@ REDQueue::REDQueue()
 	bind_bool("doubleq_", &doubleq_);
 	bind("dqthresh_", &dqthresh_);
 
+
 	reset();
 }
 
 void REDQueue::reset()
 {
-#ifdef notdef
-Link::reset();
-	/*
-	 * Packet time constant -- units are pkts/sec.
-	 */
-	edp_.ptc = ( bandwidth_ / ( 8. * edp_.mean_pktsize ));
-#endif
-
 	edv_.v_ave = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
