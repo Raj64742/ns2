@@ -1700,7 +1700,7 @@ void SMAC::sleep()
   // go to sleep, turn off radio
   state_ = SLEEP;
   radioState_ = RADIO_SLP;
-  printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+  // printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 }
 
 void SMAC::wakeup()
@@ -1714,7 +1714,7 @@ void SMAC::wakeup()
   // so careful not to change state of radio unless it is really sleeping
   if (radioState_ == RADIO_SLP)
     radioState_ = RADIO_IDLE;
-  printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+  // printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 
 }
 
