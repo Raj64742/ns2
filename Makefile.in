@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.91 1998/01/30 22:53:11 kfall Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.92 1998/01/31 04:58:07 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -232,7 +232,7 @@ $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 
 $(GEN_DIR)version.c: VERSION
 	$(RM) $@
-	$(TCLSH) bin/printver.tcl < VERSION > $@
+	$(TCLSH) bin/string2c.tcl version_string < VERSION > $@
 
 
 install: force
