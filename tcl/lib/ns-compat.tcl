@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.12 1997/02/26 00:48:31 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.13 1997/02/27 00:10:38 tomh Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -57,7 +57,7 @@ OldSim instproc init args {
 		if { [llength $args] == 2 &&
 			[lindex $args 0] == "queue-limit" } {
 			# this will recursively call ourself
-			$self set limit [lindex $args 1]
+			$self set limit_ [lindex $args 1]
 			return
 		}
 		eval $self next $args
