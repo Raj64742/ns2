@@ -139,8 +139,12 @@ HttpSession instproc doneOnePage {} {
     if {$donePage_ == $numPage_} {    
 	delete $interPage_ 
 	delete $pageSize_
-	delete $interObject_
-	delete $objectSize_
+	if {[info exist interObject_]} {
+	    delete $interObject_
+	}
+	if {[info exist objectSize_]} {
+	    delete $objectSize_
+	}
 	delete $self
     }
 }

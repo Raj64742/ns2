@@ -1,5 +1,6 @@
 Class SessionSim -superclass Simulator
 SessionSim set MixMode_ 0
+SessionSim set rc_ 0
 
 ### Create a session helper that associates with the src agent ###
 SessionSim instproc create-session { srcNode srcAgent } {
@@ -9,7 +10,7 @@ SessionSim instproc create-session { srcNode srcAgent } {
     set dst [$srcAgent set dst_addr_]
     set session_($nid:$dst:$nid) [new SessionHelper]
     $session_($nid:$dst:$nid) set-node $nid
-    if [SessionSim set rc_] {
+    if {[SessionSim set rc_]} {
 	$session_($nid:$dst:$nid) set rc_ 1
     }
 	
@@ -564,7 +565,7 @@ SessionSim instproc run args {
 		$sessionNode_($nn) reset
 	}
 
-	if [SessionSim set MixMode_] {
+	if {[SessionSim set MixMode_]} {
 	    foreach nn [array names Node_] {
 		$Node_($nn) reset
 	    }
@@ -704,7 +705,7 @@ SessionNode instproc attach agent {
 
 SessionNode instproc join-group { rcvAgent group } {
     set group [expr $group]
-    if [SessionSim set MixMode_] {
+    if {[SessionSim set MixMode_]} {
 	[Simulator instance] join-intermediate-session $rcvAgent $group
     } else {
 	[Simulator instance] join-group $rcvAgent $group
@@ -759,7 +760,7 @@ SessionSim instproc create-intermediate-session { src group nid } {
     set session_($src:$group:$nid) [new SessionHelper]
     $session_($src:$group:$nid) set-node $nid
 	
-    if [SessionSim set rc_] {
+    if {[SessionSim set rc_]} {
 	$session_($src:$group:$nid) set rc_ 1
     }
 
