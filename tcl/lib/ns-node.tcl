@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.40 1998/10/12 19:46:39 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.41 1998/10/13 21:40:31 yuriy Exp $
 #
 
 Class Node
@@ -108,10 +108,11 @@ Node instproc incr-rtgtable-size {} {
 }
 
 Node instproc entry {} {
-    if [info exists router_supp_] {
-	return $router_supp_
-    }
-	if [Simulator set EnableMcast_] {
+	if [info exists router_supp_] {
+		return $router_supp_
+	}
+	$self instvar ns_
+	if [$ns_ multicast?] {
 		$self instvar switch_
 		return $switch_
 	}
@@ -474,8 +475,8 @@ Node instproc intf-changed { } {
 #     }
 
 # Node instproc attach-PgmNEAgent {} {
-#     $self instvar switch_ router_supp_
-#     # if![Simulator set EnableMcast_] {
+#     $self instvar switch_ router_supp_ ns_
+#     # if![$ns_ multicast?] {
 #     # error "Error :Attaching PGM without Mcast option!"
 #     # 	}
 #     set router_supp_ [new Agent/NE/Pgm $switch_]

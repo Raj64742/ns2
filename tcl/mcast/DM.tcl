@@ -72,14 +72,15 @@ DM instproc leave-group { group } {
 }
 
 DM instproc handle-cache-miss { argslist } {
+	# puts "[[$self set Node] id] handle cache miss $argslist"
         set srcID [lindex $argslist 0]
         set group [lindex $argslist 1]
         set iface [lindex $argslist 2]
 
-        # puts "$self handel-cache-miss $srcID $group $iface"
         $self instvar Node 
 
 	set neighbor [$Node set neighbor_]
+
         # init a list of lan indexes
         set indexList ""
 	set oiflist ""

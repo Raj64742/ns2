@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.122 1998/09/13 23:35:27 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.123 1998/10/13 21:40:30 yuriy Exp $
 
 #
 
@@ -167,9 +167,18 @@ Simulator instproc dumper obj {
 # no shape OR color parameter is given
 Simulator instproc node args {
 	$self instvar Node_
+        if { [Simulator info vars EnableMcast_] != "" } {
+                warn "Flag variable Simulator::EnableMcast_ discontinued.\n\t\
+                      Use multicast methods as:\n\t\t\
+                        % set ns \[new Simulator -multicast on]\n\t\t\
+                        % \$ns multicast"
+                $self multicast
+                Simulator unset EnableMcast_
+        }
 	set node [new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
-	if [Simulator set EnableMcast_] {
+	$node set ns_ $self
+	if [$self multicast?] {
 		$node enable-mcast $self
 	}
 	$self check-node-num

@@ -138,7 +138,7 @@ Simulator instproc set-address-format {opt args} {
 	} elseif {[string compare $opt "expanded"] == 0} {
 		$self set-address 23 8
 	} elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
-		if [Simulator set EnableMcast_] {
+		if [$self multicast?] {
 			
 			$self set-hieraddress 3 6 8 8
 		} else {
@@ -179,7 +179,7 @@ Simulator instproc set-address {node port} {
 	
 	# one bit is set aside for mcast as default :: this waste of 1 bit may be avoided, if 
 	# mcast option is enabled before the initialization of Simulator.
-	#     if [Simulator set EnableMcast_] {
+	#     if [$self multicast?] {
 	$a set-mcastbits 1
 	#     }
 
@@ -203,7 +203,7 @@ Simulator instproc set-hieraddress {hlevel args} {
 	Simulator set EnableHierRt_ 1
 	Simulator set node_factory_ HierNode
 	}
-	if [Simulator set EnableMcast_] {
+	if [$self multicast?] {
 		$a set-mcastbits 1
 	}
 	eval $a set-idbits $hlevel $args

@@ -27,7 +27,19 @@ Class MultiSim -superclass Simulator
 
 MultiSim instproc init args {
         eval $self next $args
-        Simulator set EnableMcast_ 1
+        $self multicast on
+}
+
+Simulator instproc multicast args {
+        $self set multiSim_ 1
+}
+
+Simulator instproc multicast? {} {
+        $self instvar multiSim_
+        if { ![info exists multiSim_] } {
+                set multiSim_ 0
+        }
+        set multiSim_
 }
 
 Simulator instproc run-mcast {} {
@@ -77,17 +89,17 @@ Simulator instproc RPF-link { src from to } {
 	return ""
 }
 
-Simulator instproc getNodeIDs {} {
+Simulator instproc getNodeIDs {} { ;#XXX remove
         $self instvar Node_
         return [array names Node_]
 }
 
-Simulator instproc setPIMProto { index proto } {
+Simulator instproc setPIMProto { index proto } { ;#XXX remove
         $self instvar pimProtos
         set pimProtos($index) $proto
 }
 
-Simulator instproc getPIMProto { index } {
+Simulator instproc getPIMProto { index } { ;#XXX remove
         $self instvar pimProtos
         if [info exists pimProtos($index)] {
                 return $pimProtos($index)

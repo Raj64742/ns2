@@ -60,7 +60,8 @@ HierNode instproc mk-default-classifier {} {
 }
 
 HierNode instproc entry {} {
-	if [Simulator set EnableMcast_] {
+	$self instvar ns_
+	if [$ns_ multicast?] {
 		$self instvar switch_
 		return $switch_
 	}
