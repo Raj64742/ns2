@@ -46,10 +46,10 @@
 /* packet status */
 #define UNKNOWN 0
 #define RCVD 1
-#define LOST 2
-#define NOLOSS 3
-#define ECNLOST 4
-#define ECNNOLOSS 5
+#define LOST 2		// Lost, and beginning of a new loss event
+#define NOT_RCVD 3	// Lost, but not the beginning of a new loss event
+#define ECNLOST 4	// ECN, and beginning of a new loss event
+#define ECN_RCVD 5	// Received with ECN. 
 
 #define DEFAULT_NUMSAMPLES  8
 
@@ -84,6 +84,7 @@ protected:
 	int command(int argc, const char*const* argv);
 	void print_loss(int sample, double ave_interval);
 	void print_loss_all(int *sample);
+	int new_loss(int i, double tstamp);
 
 	// algo specific
 	double est_loss_WALI();
@@ -117,33 +118,35 @@ protected:
 	int losses_since_last_report;	// # of losses since last report
 	int printLoss_;		// to print estimated loss rates
 	int maxseq; 		// max seq number seen
+	int PreciseLoss_;       // to estimate loss events more precisely
 
 	// these assist in keep track of incming packets and calculate flost_
-	double last_timestamp_, last_arrival_;
-	int hsz;
-	char *lossvec_;
-	double *rtvec_;
-	double *tsvec_;
-	int lastloss_round_id ;
-	int round_id ;
+	double last_timestamp_; // timestamp of last new, in-order pkt arrival.
+	double last_arrival_;   // time of last new, in-order pkt arrival.
+	int hsz;		// InitHistorySize_, number of pkts in history
+	char *lossvec_;		// array with packet history
+	double *rtvec_;		// array with time of packet arrival
+	double *tsvec_;		// array with timestamp of packet
+	int lastloss_round_id ; // round_id for start of loss event
+	int round_id ;		// round_id of last new, in-order packet
 	double lastloss; 	// when last loss occured
 
 	// WALI specific
 	int numsamples ;
-	int *sample;
-	double *weights ;
-	double *mult ;
+	int *sample;		// array with size of loss interval
+	double *weights ;	// weight for loss interval
+	double *mult ;		// discount factor for loss interval
 	double mult_factor_;	// most recent multiple of mult array
-	int sample_count ;
-	int last_sample ;  
-	int init_WALI_flag;
+	int sample_count ;	// number of loss intervals
+	int last_sample ;  	// loss event rate estimated to here
+	int init_WALI_flag;	// sample arrays initialized
 
 	// these are for "faking" history after slow start
 	int loss_seen_yet; 	// have we seen the first loss yet?
 	int adjust_history_after_ss; // fake history after slow start? (0/1)
 	int false_sample; 	// by how much?
 	
-	int algo;	// algo for loss estimation 
+	int algo;		// algo for loss estimation 
 	int discount ;		// emphasize most recent loss interval
 				//  when it is very large
 

@@ -58,6 +58,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("AdjustHistoryAfterSS_", &adjust_history_after_ss);
 	bind ("printLoss_", &printLoss_);
 	bind ("algo_", &algo); // algo for loss estimation
+	bind ("PreciseLoss_", &PreciseLoss_);
 
 	// for WALI ONLY
 	bind ("NumSamples_", &numsamples);
@@ -110,6 +111,27 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 }
 
 /*
+ * This is a new loss event if it is at least an RTT after the last one.
+ * If PreciseLoss_ is set, the new_loss also checks that there is a
+ *     new round_id.
+ * The sender updates the round_id when it receives a new report from
+ *   the receiver, and when it reduces its rate after no feedback.
+ * Sometimes the rtt estimates can be less than the actual RTT, and
+ *   the round_id will catch this.  This can be useful if the actual
+ *   RTT increases dramatically.
+ */
+int TfrcSinkAgent::new_loss(int i, double tstamp)
+{
+	if ((tsvec_[i%hsz]-lastloss > rtt_) 
+	     && (PreciseLoss_ == 0 || (round_id > lastloss_round_id))) {
+		UrgentFlag = 1 ;
+		lastloss = tstamp;
+		lastloss_round_id = round_id ;
+		return TRUE;
+	} else return FALSE;
+}
+
+/*
  * Receive new data packet.  If appropriate, generate a new report.
  */
 void TfrcSinkAgent::recv(Packet *pkt, Handler *)
@@ -123,6 +145,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	rcvd_since_last_report ++;
 
 	if (maxseq < 0) {
+		// This is the first data packet.
 		maxseq = tfrch->seqno - 1 ;
 		rtvec_=(double *)malloc(sizeof(double)*hsz);
 		tsvec_=(double *)malloc(sizeof(double)*hsz);
@@ -133,11 +156,6 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 				lossvec_[i] = UNKNOWN;
 				rtvec_[i] = -1; 
 				tsvec_[i] = -1; 
-			}
-			for (i = 0; i <= maxseq ; i++) {
-				lossvec_[i] = NOLOSS ; 
-				rtvec_[i] = now ;
-				tsvec_[i] = last_timestamp_ ;
 			}
 		}
 		else {
@@ -159,45 +177,37 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 		last_timestamp_=tfrch->timestamp;
 		rtvec_[seqno%hsz]=now;	
 		tsvec_[seqno%hsz]=last_timestamp_;	
-		lossvec_[seqno%hsz] = RCVD;
-		int i = maxseq+1 ;
+		if (hf->ect() == 1 && hf->ce() == 1) 
+			lossvec_[seqno%hsz] = ECN_RCVD;
+		else lossvec_[seqno%hsz] = RCVD;
 		double delta = (tsvec_[seqno%hsz]-tsvec_[maxseq%hsz])/(seqno-maxseq) ; 
 		double tstamp = tsvec_[maxseq%hsz]+delta ;
+		// Now decide with losses begin new loss events.
+		int i = maxseq+1 ;
 		if (i < seqno) {
 			while(i < seqno) {
 				rtvec_[i%hsz]=now;	
 				tsvec_[i%hsz]=tstamp;	
-				if ((tsvec_[i%hsz]-lastloss > rtt_) && 
-				    (round_id > lastloss_round_id)) {
-					// Lost packets are marked as "LOST"
-					// at most once per RTT.
+				if (new_loss(i, tstamp)) {
 					lossvec_[i%hsz] = LOST;
-					UrgentFlag = 1 ;
-					lastloss = tstamp;
-					lastloss_round_id = round_id ;
-				}
-				else {
-					// This lost packet is marked "NOLOSS"
-					// because it does not begin a loss event.
-					lossvec_[i%hsz] = NOLOSS; 
+				} else {
+					// This lost packet is marked "NOT_RCVD"
+					// as it does not begin a loss event.
+					lossvec_[i%hsz] = NOT_RCVD; 
 				}
 				i++;
 				losses_since_last_report++;
 				tstamp = tstamp+delta;
 			}
 		}
-		if (hf->ect() == 1 && hf->ce() == 1) {
-			if ((tsvec_[i%hsz]-lastloss > rtt_) && 
-			    (round_id > lastloss_round_id)) {
+		if (lossvec_[seqno%hsz] == ECN_RCVD) {
+			if (new_loss(i, tstamp)) {
 				// ECN action
 				ecn = 1;
 				lossvec_[seqno%hsz] = ECNLOST;
-				UrgentFlag = 1 ;
-				lastloss = tstamp;
-				lastloss_round_id = round_id ;
 				losses_since_last_report++;
 				tstamp = tstamp+delta;
-			} else lossvec_[seqno%hsz] = ECNNOLOSS;
+			} 
 		}
 		int x = maxseq ; 
 		maxseq = tfrch->seqno ;
@@ -213,7 +223,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 
 		}
 		if ((rtt_ > SMALLFLOAT) && 
-				(now - last_report_sent >= rtt_/NumFeedback_)) {
+			(now - last_report_sent >= rtt_/NumFeedback_)) {
 			UrgentFlag = 1 ;
 		}
 		if (UrgentFlag) {
@@ -285,10 +295,6 @@ double TfrcSinkAgent::est_thput ()
 	}
 	return thput ;
 }
-
-/*
- * We just received our first loss, and need to adjust our history.
- */
 
 /*
  * Schedule sending this report, and set timer for the next one.
@@ -564,13 +570,16 @@ void TfrcSinkAgent::multiply_array(double *a, int sz, double multiplier) {
 	}
 }
 
+/*
+ * We just received our first loss, and need to adjust our history.
+ */
 double TfrcSinkAgent::adjust_history (double ts)
 {
 	int i;
 	double p;
 	for (i = maxseq; i >= 0 ; i --) {
 		if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST ) {
-			lossvec_[i%hsz] = NOLOSS; 
+			lossvec_[i%hsz] = NOT_RCVD; 
 		}
 	}
 	lastloss = ts; 
@@ -588,6 +597,9 @@ double TfrcSinkAgent::adjust_history (double ts)
 }
 
 
+/*
+ * Initialize data structures for weights.
+ */
 void TfrcSinkAgent::init_WALI () {
 	int i;
 	if (numsamples < 0)
