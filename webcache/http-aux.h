@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.4 1998/08/22 02:41:33 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.5 1998/08/25 19:48:28 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -157,7 +157,7 @@ class HttpData {
 private:
 	int type_;	// Packet type
 	int id_;	// ID of the sender
-protected:
+public:
 	// used to extract data from a byte stream
 	struct hdr {
 		int type_;
