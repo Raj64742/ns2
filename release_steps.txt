@@ -46,6 +46,8 @@ NS RELEASE
 5. put the tar in /nfs/web/isi.edu/htdocs/nsnam/dist
 5. Make a hard link to ~ftp/dist/vint. (For people accessing 
     things via ftp.)
+5. Put binaries for platforms supported under 
+   /nfs/web/isi.edu/htdocs/nsnam/dist/binary
 5.1. commit all your changes
 5.2. tag the cvs archive
     (cd ~ns; cvs tag NS_2_1B6; )

@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.21 2004/12/10 22:07:13 johnh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.22 2005/02/03 20:15:00 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -442,4 +442,14 @@ void WirelessPhy::UpdateIdleEnergy()
         }
 
 	idle_timer_.resched(10.0);
+}
+
+double WirelessPhy::getDist(double Pr, double Pt, double Gt, double Gr,
+			    double hr, double ht, double L, double lambda)
+{
+	if (propagation_) {
+		return propagation_->getDist(Pr, Pt, Gt, Gr, hr, ht, L,
+					     lambda);
+	}
+	return 0;
 }

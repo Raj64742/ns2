@@ -36,6 +36,11 @@ class ShadowingVis : public Propagation {
 public:
 	ShadowingVis();
 	virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp);
+	virtual double getDist(double Pr, double Pt, double Gt, double Gr,
+			       double hr, double ht, double L, double lambda) {
+		return DBL_MAX;
+	}
+	
 	virtual int command(int argc, const char*const* argv);
 	
 	// bitmap handling

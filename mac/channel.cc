@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.44 2005/01/13 18:33:48 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.45 2005/02/03 20:15:00 haldar Exp $ (UCB)";
 #endif
 
 // Time interval for updating a position of a node in the X-List
@@ -325,9 +325,9 @@ WirelessChannel::sendUp(Packet* p, Phy *tifp)
 
          /* list-based improvement */
          if(highestAntennaZ_ == -1) {
-                 fprintf(stderr, "channel.cc:sendUp - Calc highestAntennaZ_ and distCST_\n");
+                 fprintf(stdout, "channel.cc:sendUp - Calc highestAntennaZ_ and distCST_\n");
                  calcHighestAntennaZ(tifp);
-                 fprintf(stderr, "highestAntennaZ_ = %0.1f,  distCST_ = %0.1f\n", highestAntennaZ_, distCST_);
+                 fprintf(stdout, "highestAntennaZ_ = %0.1f,  distCST_ = %0.1f\n", highestAntennaZ_, distCST_);
          }
 	
 	 hdr->direction() = hdr_cmn::UP;
@@ -629,7 +629,9 @@ WirelessChannel::calcHighestAntennaZ(Phy *tifp)
        highestAntennaZ_ = highestZ;
 
        WirelessPhy *wifp = (WirelessPhy *)tifp;
-       distCST_ = TwoRayGetDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0, highestZ , highestZ);       
+       distCST_ = wifp->getDist(wifp->getCSThresh(), wifp->getPt(), 1.0, 1.0,
+				highestZ , highestZ, wifp->getL(),
+				wifp->getLambda());       
 }
 
 	

@@ -30,12 +30,17 @@
 #include <wireless-phy.h>
 #include <propagation.h>
 #include <rng.h>
+#include <float.h>
 
 class Shadowing : public Propagation {
 public:
 	Shadowing();
 	~Shadowing();
 	virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp);
+	virtual double getDist(double Pr, double Pt, double Gt, double Gr,
+			       double hr, double ht, double L, double lambda) {
+		return DBL_MAX;
+	}
 	virtual int command(int argc, const char*const* argv);
 
 protected:

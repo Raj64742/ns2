@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  * 
  propagation.cc
- $Id: propagation.cc,v 1.6 2004/02/25 22:26:16 yuri Exp $
+ $Id: propagation.cc,v 1.7 2005/02/03 20:15:00 haldar Exp $
 */
 
 #include <stdio.h>
@@ -86,6 +86,16 @@ Propagation::Pr(PacketStamp *, PacketStamp *, WirelessPhy *)
 		name);
 	abort();
 	return 0; // Make msvc happy
+}
+
+double
+Propagation::getDist(double Pr, double Pt, double Gt, double Gr, double hr,
+		     double ht, double L, double lambda)
+{
+	fprintf(stderr,
+		"Propagtion model %s not implemented for generic use\n", name);
+	abort();
+	return 0;
 }
 
 double
@@ -145,6 +155,15 @@ double FreeSpace::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 
 	// calculate receiving power at distance
 	double Pr = Friis(t->getTxPr(), Gt, Gr, lambda, L, d);
+	printf("%lf: d: %lf, Pr: %e\n", Scheduler::instance().clock(), d, Pr);
 
 	return Pr;
 }
+
+double
+FreeSpace::getDist(double Pr, double Pt, double Gt, double Gr, double hr, double ht, double L, double lambda)
+{
+        return sqrt((Pt * Gt * Gr * lambda * lambda) / (L * Pr)) /
+                (4 * PI);
+}
+

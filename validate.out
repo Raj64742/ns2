@@ -3308,6 +3308,8 @@ Starting Simulation...
 NS EXITING...
 finishing..
 num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0
 Test output agrees with reference output
 Running test dsr:
 ../../ns test-suite-wireless-shadowing.tcl dsr QUIET
@@ -3326,6 +3328,8 @@ Starting Simulation...
 NS EXITING...
 finish..
 num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-tdma
@@ -3339,6 +3343,8 @@ Starting Simulation...
 NS EXITING...
 finishing..
 num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test dsr:
 ../../ns test-suite-wireless-tdma.tcl dsr QUIET
@@ -3349,6 +3355,8 @@ Starting Simulation...
 NS EXITING...
 finishing..
 num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-gridkeeper
@@ -3362,6 +3370,8 @@ Starting Simulation...
 NS EXITING...
 finishing..
 num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-diffusion
@@ -3377,6 +3387,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Network parition !! Exiting... at time 18.095945
 Test output agrees with reference output
 Running test diff-rate-other:
@@ -3391,6 +3403,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Network parition !! Exiting... at time 10.761029
 Test output agrees with reference output
 Running test diff-prob:
@@ -3404,6 +3418,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test omnimcast:
 ../../ns test-suite-wireless-diffusion.tcl omnimcast QUIET
@@ -3416,6 +3432,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Network parition !! Exiting... at time 9.326060
 Network parition !! Exiting... at time 9.326060
 Test output agrees with reference output
@@ -3430,6 +3448,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Network parition !! Exiting... at time 6.895848
 Network parition !! Exiting... at time 6.895848
 Network parition !! Exiting... at time 6.895848
@@ -3447,6 +3467,8 @@ Starting Simulation...
 NS EXITING...
 finishing..
 num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test dsr:
 ../../ns test-suite-wireless-lan-newnode.tcl dsr QUIET
@@ -3457,6 +3479,8 @@ Starting Simulation...
 NS EXITING...
 finishing..
 num_nodes is set 50
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test dsdv-wired-cum-wireless:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv-wired-cum-wireless QUIET
@@ -3467,6 +3491,8 @@ Starting Simulation...
 NS EXITING...
 finishing..
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test dsdv-wireless-mip:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv-wireless-mip QUIET
@@ -3474,6 +3500,8 @@ Loading connection pattern...
 Starting Simulation...
 finishing..
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-satellite
@@ -3506,18 +3534,24 @@ Loading scenario file...
 Starting Simulation...
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test wireless2:
 ../../ns test-suite-WLtutorial.tcl wireless2 QUIET
 Starting Simulation...
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test wireless3:
 ../../ns test-suite-WLtutorial.tcl wireless3 QUIET
 Starting Simulation...
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-energy
@@ -3529,6 +3563,8 @@ Loading scenario file...
 Load complete...
 NS EXITING...
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test dsr:
 ../../ns test-suite-energy.tcl dsr QUIET
@@ -3537,6 +3573,8 @@ Loading scenario file...
 Load complete...
 NS EXITING...
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test aodv:
 ../../ns test-suite-energy.tcl aodv QUIET
@@ -3545,6 +3583,8 @@ Loading scenario file...
 Load complete...
 NS EXITING...
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-diffusion3
@@ -3553,66 +3593,92 @@ Running test simple-ping:
 ../../ns test-suite-diffusion3.tcl simple-ping QUIET
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test 2pp-5n-1s-1r:
 ../../ns test-suite-diffusion3.tcl 2pp-5n-1s-1r QUIET
 NS EXITING...
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test 2pp-10n-4s-1r:
 ../../ns test-suite-diffusion3.tcl 2pp-10n-4s-1r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test 2pp-10n-1s-4r:
 ../../ns test-suite-diffusion3.tcl 2pp-10n-1s-4r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test push-5n-1s-1r:
 ../../ns test-suite-diffusion3.tcl push-5n-1s-1r QUIET
 NS EXITING...
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test push-10n-1s-4r:
 ../../ns test-suite-diffusion3.tcl push-10n-1s-4r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test push-10n-4s-1r:
 ../../ns test-suite-diffusion3.tcl push-10n-4s-1r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test 1pp-5n-1s-1r:
 ../../ns test-suite-diffusion3.tcl 1pp-5n-1s-1r QUIET
 NS EXITING...
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test 1pp-10n-4s-1r:
 ../../ns test-suite-diffusion3.tcl 1pp-10n-4s-1r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test 1pp-10n-1s-4r:
 ../../ns test-suite-diffusion3.tcl 1pp-10n-1s-4r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test gear-2pp-5n-1s-1r:
 ../../ns test-suite-diffusion3.tcl gear-2pp-5n-1s-1r QUIET
 NS EXITING...
 num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test gear-2pp-10n-4s-1r:
 ../../ns test-suite-diffusion3.tcl gear-2pp-10n-4s-1r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test gear-push-10n-1s-4r:
 ../../ns test-suite-diffusion3.tcl gear-push-10n-1s-4r QUIET
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-source-routing
@@ -3655,6 +3721,8 @@ Running test wireless:
 ../../ns test-suite-tagged-trace.tcl wireless QUIET
 Starting Simulation...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test Format-simple:
 ../../ns test-suite-tagged-trace.tcl Format-simple QUIET
@@ -3678,6 +3746,8 @@ Seeding Random number generator with 1
 Starting Simulation...
 NS EXITING...
 num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 1
 Recvd brdcast pkt
 Recv BRDCAST Ping REQ : at 1.0 from 0.0
@@ -3701,6 +3771,8 @@ NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr ap
 
 NS EXITING...
 num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 0
 Recvd brdcast pkt
@@ -3722,6 +3794,8 @@ Seeding Random number generator with 1
 Starting Simulation...
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 1
 Cancelling CS- node 2
 Recvd brdcast pkt
@@ -3784,6 +3858,8 @@ NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr ap
 
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -3842,6 +3918,8 @@ Starting Simulation...
 node 0 received ping answer from  1 with round-trip-time 399.0 ms.
 NS EXITING...
 num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test unicast1_sync:
 ../../ns test-suite-smac.tcl unicast1_sync QUIET
@@ -3856,6 +3934,8 @@ NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr ap
 node 0 received ping answer from  1 with round-trip-time 4615.2 ms.
 NS EXITING...
 num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Test output agrees with reference output
 Running test unicast2:
@@ -3868,6 +3948,8 @@ Starting Simulation...
 node 0 received ping answer from  1 with round-trip-time 632.1 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Recvd brdcast pkt
 Recv BRDCAST Ping REQ : at 1.0 from 2.0
@@ -3897,6 +3979,8 @@ NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr ap
 node 0 received ping answer from  1 with round-trip-time 4462.2 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -3928,6 +4012,8 @@ Starting Simulation...
 node 0 received ping answer from  1 with round-trip-time 425.0 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 2
 Recvd brdcast pkt
 Recv BRDCAST Ping REQ : at 0.0 from 2.0
@@ -3949,6 +4035,8 @@ NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr ap
 node 0 received ping answer from  1 with round-trip-time 10192.2 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 0
@@ -3981,6 +4069,8 @@ Starting Simulation...
 node 0 received ping answer from  1 with round-trip-time 425.0 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 2
 Cancelling CS- node 2
 Recvd brdcast pkt
@@ -4003,6 +4093,8 @@ NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr ap
 node 0 received ping answer from  1 with round-trip-time 4462.2 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4027,6 +4119,8 @@ Starting Simulation...
 node 0 received ping answer from  1 with round-trip-time 550.0 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 3
 Test output agrees with reference output
 Running test unicast5_sync:
@@ -4043,6 +4137,8 @@ node 0 received ping answer from  1 with round-trip-time 4467.2 ms.
 node 3 received ping answer from  2 with round-trip-time 11625.2 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4062,6 +4158,8 @@ Starting Simulation...
 node 0 received ping answer from  1 with round-trip-time 476.0 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test unicast6_sync:
 ../../ns test-suite-smac.tcl unicast6_sync QUIET
@@ -4077,6 +4175,8 @@ node 0 received ping answer from  1 with round-trip-time 4458.2 ms.
 node 3 received ping answer from  2 with round-trip-time 5999.2 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 3
@@ -4095,6 +4195,8 @@ node 0 received ping answer from  1 with round-trip-time 492.0 ms.
 node 2 received ping answer from  3 with round-trip-time 939.0 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 2
 Cancelling CS- node 2
 Cancelling CS- node 1
@@ -4114,6 +4216,8 @@ node 0 received ping answer from  1 with round-trip-time 4458.2 ms.
 node 2 received ping answer from  3 with round-trip-time 7437.2 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 3
@@ -4132,6 +4236,8 @@ node 1 received ping answer from  0 with round-trip-time 367.0 ms.
 node 2 received ping answer from  3 with round-trip-time 873.0 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 2
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4150,6 +4256,8 @@ node 1 received ping answer from  0 with round-trip-time 4458.2 ms.
 node 2 received ping answer from  3 with round-trip-time 7437.2 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 3
@@ -4167,6 +4275,8 @@ Starting Simulation...
 node 0 received ping answer from  1 with round-trip-time 550.0 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 3
 Test output agrees with reference output
 Running test unicast9_sync:
@@ -4183,6 +4293,8 @@ node 0 received ping answer from  1 with round-trip-time 4455.2 ms.
 node 3 received ping answer from  2 with round-trip-time 5955.2 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4199,6 +4311,8 @@ node 3 received ping answer from  2 with round-trip-time 376.0 ms.
 node 0 received ping answer from  1 with round-trip-time 430.0 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 Running test unicast10_sync:
 ../../ns test-suite-smac.tcl unicast10_sync QUIET
@@ -4214,6 +4328,8 @@ node 0 received ping answer from  1 with round-trip-time 4455.2 ms.
 node 3 received ping answer from  2 with round-trip-time 4458.2 ms.
 NS EXITING...
 num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Test output agrees with reference output
@@ -4229,6 +4345,8 @@ node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
 node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 1
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4259,6 +4377,8 @@ node 0 received ping answer from  1 with round-trip-time 14494.2 ms.
 node 1 received ping answer from  2 with round-trip-time 15934.2 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4295,6 +4415,8 @@ node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
 node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 1
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4325,6 +4447,8 @@ node 0 received ping answer from  1 with round-trip-time 14494.2 ms.
 node 1 received ping answer from  2 with round-trip-time 15934.2 ms.
 NS EXITING...
 num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 0
 Cancelling CS- node 2
 Cancelling CS- node 2
@@ -4362,6 +4486,8 @@ NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr ap
 
 NS EXITING...
 num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Cancelling CS- node 1
 Cancelling CS- node 3
 Cancelling CS- node 0
@@ -4421,6 +4547,159 @@ Running test xcp-tcp:
 Test output agrees with reference output
 Running test parking-lot-topo:
 ../../ns test-suite-xcp.tcl parking-lot-topo QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-wpan
+Tests: wpan
+Running test wpan:
+../../ns test-suite-wpan.tcl wpan QUIET
+num_nodes is set 21
+--- startPANCoord [0] ---
+[0.000000](node 0) performing active channel scan
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 32.2
+--- startDevice [1] ---
+[0.300000](node 1) performing active channel scan ...
+[0.420800](node 0) begin to transmit beacons
+[0.421568](node 0) successfully started a new PAN (beacon enabled) [channel:11] [PAN_ID:0]
+[1.087840](node 1) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+--- startDevice [9] ---
+[1.300000](node 9) performing active channel scan ...
+[1.586368](node 1) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[1.586368](node 1) begin to synchronize with the coordinator
+--- startDevice [13] ---
+[1.700000](node 13) performing active channel scan ...
+[2.088800](node 9) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+--- startDevice [19] ---
+[2.300000](node 19) performing active channel scan ...
+[2.488800](node 13) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+[2.587648](node 9) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[2.587648](node 9) begin to synchronize with the coordinator
+[3.089760](node 19) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+--- startDevice [2] ---
+[3.300000](node 2) performing active channel scan ...
+<!>[3.477024](node 13) association failed -> NO_DATA (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+--- startDevice [7] ---
+[3.500000](node 7) performing active channel scan ...
+[3.587648](node 19) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[3.587648](node 19) begin to synchronize with the coordinator
+--- startDevice [11] ---
+[3.600000](node 11) performing active channel scan ...
+--- startDevice [16] ---
+[3.800000](node 16) performing active channel scan ...
+[4.089440](node 2) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:1] ... 
+[4.290400](node 7) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+--- startDevice [3] ---
+[4.300000](node 3) performing active channel scan ...
+[4.389440](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+--- startDevice [13] ---
+[4.477024](node 13) performing active channel scan ...
+--- startDevice [6] ---
+[4.500000](node 6) performing active channel scan ...
+[4.588608](node 2) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:1]
+[4.588608](node 2) begin to transmit beacons
+[4.589376](node 2) beacon transmission successful [channel:11] [PAN_ID:0]
+[4.589760](node 16) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:19] ... 
+[4.789248](node 7) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+[4.789248](node 7) begin to transmit beacons
+[4.790016](node 7) beacon transmission successful [channel:11] [PAN_ID:0]
+--- startDevice [12] ---
+[4.800000](node 12) performing active channel scan ...
+<!>[5.088480](node 3) no coordinator found for association.
+[5.089088](node 16) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:19]
+[5.089088](node 16) begin to transmit beacons
+[5.089856](node 16) beacon transmission successful [channel:11] [PAN_ID:0]
+--- startDevice [17] ---
+[5.100000](node 17) performing active channel scan ...
+[5.268064](node 13) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:0] ... 
+<!>[5.290080](node 6) no coordinator found for association.
+<!>[5.376544](node 11) association failed -> NO_DATA (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+<!>[5.589760](node 12) no coordinator found for association.
+--- startDevice [20] ---
+[5.600000](node 20) performing active channel scan ...
+--- startDevice [5] ---
+[5.800000](node 5) performing active channel scan ...
+[5.837248](node 13) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:0]
+[5.837248](node 13) begin to synchronize with the coordinator
+[5.889760](node 17) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:16] ... 
+--- startDevice [10] ---
+[6.000000](node 10) performing active channel scan ...
+--- startDevice [3] ---
+[6.088480](node 3) performing active channel scan ...
+--- startDevice [6] ---
+[6.290080](node 6) performing active channel scan ...
+--- startDevice [14] ---
+[6.300000](node 14) performing active channel scan ...
+--- startDevice [11] ---
+[6.376544](node 11) performing active channel scan ...
+[6.388160](node 20) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:19] ... 
+[6.389056](node 17) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:16]
+[6.389056](node 17) begin to synchronize with the coordinator
+--- startDevice [12] ---
+[6.589760](node 12) performing active channel scan ...
+[6.589760](node 5) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:1] ... 
+[6.791040](node 10) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+--- startDevice [18] ---
+[6.800000](node 18) performing active channel scan ...
+[6.876960](node 3) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:2] ... 
+[6.887488](node 20) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:19]
+--- startDevice [4] ---
+[7.000000](node 4) performing active channel scan ...
+[7.080160](node 6) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:7] ... 
+[7.088480](node 14) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:13] ... 
+[7.088768](node 5) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:1]
+[7.165984](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:13] ... 
+[7.289728](node 10) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+--- startDevice [8] ---
+[7.300000](node 8) performing active channel scan ...
+[7.374336](node 3) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:2]
+[7.374336](node 3) begin to synchronize with the coordinator
+<!>[7.381120](node 12) no coordinator found for association.
+[7.578176](node 6) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:7]
+[7.578176](node 6) begin to synchronize with the coordinator
+[7.586368](node 14) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:13]
+[7.590720](node 18) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:16] ... 
+--- startDevice [15] ---
+[7.700000](node 15) performing active channel scan ...
+[7.789120](node 4) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:2] ... 
+[8.089216](node 18) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:16]
+[8.089216](node 18) begin to synchronize with the coordinator
+[8.089760](node 8) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:10] ... 
+<!>[8.209504](node 11) association failed -> NO_DATA (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:13]
+[8.287936](node 4) association successful (beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:2]
+[8.287936](node 4) begin to synchronize with the coordinator
+--- startDevice [12] ---
+[8.381120](node 12) performing active channel scan ...
+[8.489120](node 15) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:14] ... 
+[8.587776](node 8) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:10]
+[8.987776](node 15) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:14]
+[9.169920](node 12) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:10] ... 
+--- startDevice [11] ---
+[9.209504](node 11) performing active channel scan ...
+[9.667936](node 12) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:10]
+<!>[10.000224](node 11) no coordinator found for association.
+[10.319616](node 7) beacon transmission successful [channel:11] [PAN_ID:0]
+[10.364736](node 2) beacon transmission successful [channel:11] [PAN_ID:0]
+[10.373696](node 16) beacon transmission stopped [channel:11] [PAN_ID:0]
+[10.374848](node 0) beacon transmission stopped [channel:11] [PAN_ID:0]
+--- startDevice [11] ---
+[11.000224](node 11) performing active channel scan ...
+[11.789664](node 11) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:9] ... 
+[12.292672](node 11) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:9]
+[12.292672](node 11) begin to transmit beacons
+[12.293440](node 11) beacon transmission successful [channel:11] [PAN_ID:0]
+[15.033408](node 4) synchronization loss
+[15.033408](node 3) synchronization loss
+[16.517184](node 3) coordinator relocation failed --> try to reassociate ...
+--- startDevice [3] ---
+[16.517184](node 3) performing active channel scan ...
+[16.517952](node 4) coordinator relocation failed --> try to reassociate ...
+--- startDevice [4] ---
+[16.517952](node 4) performing active channel scan ...
+[17.305984](node 3) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:20] ... 
+[17.306752](node 4) sending association request to [channel:11] [PAN_ID:0] [CoordAddr:5] ... 
+[17.802720](node 3) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:20]
+[17.805088](node 4) association successful (non-beacon enabled) [channel:11] [PAN_ID:0] [CoordAddr:5]
 Test output agrees with reference output
 All test output agrees with reference output.
 These messages are NOT errors and can be ignored:

@@ -76,6 +76,11 @@ public:
   virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *);
   virtual int command(int argc, const char*const* argv);
 
+  // get interference distance
+  virtual double getDist(double Pr, double Pt, double Gt, double Gr,
+			 double hr, double ht, double L, double lambda);
+
+
   // Friis free space equation, likely to be used by other propagation models.
   double Friis(double Pt, double Gt, double Gr, double lambda, double L, double d);
   	// Pt -- transmitted signal power
@@ -97,6 +102,8 @@ class FreeSpace : public Propagation {
 public:
 //	FreeSpace();
 	virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp);
+	virtual double getDist(double Pr, double Pt, double Gt, double Gr,
+			       double ht, double hr, double L, double lambda);
 };
 
 #endif /* __propagation_h__ */

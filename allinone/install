@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.28 2005/02/01 18:04:45 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.29 2005/02/03 20:15:00 haldar Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -517,6 +517,10 @@ echo "* Build ns-$NSVER"
 echo "============================================================"
 
 cd ./ns-$NSVER
+if [ -f Makefile ] ; then 
+	make distclean
+fi
+
 if  [ "${test_cygwin}" = "true" ]; then
         ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include || die "Ns configuration failed! Exiting ...";
 else

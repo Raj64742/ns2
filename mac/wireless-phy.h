@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.12 2003/11/19 00:41:44 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.13 2005/02/03 20:15:00 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  *
@@ -74,6 +74,9 @@ public:
 	inline double getLambda() const {return lambda_;}
 	inline Node* node(void) const { return node_; }
 	inline double getPtconsume() { return Pt_consume_; }
+
+	double getDist(double Pr, double Pt, double Gt, double Gr, double hr,
+		       double ht, double L, double lambda);
   
 	virtual int command(int argc, const char*const* argv);
 	virtual void dump(void) const;
