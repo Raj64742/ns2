@@ -1,48 +1,70 @@
 (Validation can take 1-30 hours to run.)
 *** ./test-all-simple
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats stats1
+Running test tahoe1:
 ../../ns test-suite-simple.tcl tahoe1 QUIET
 Test output agrees with reference output
+Running test tahoe2:
 ../../ns test-suite-simple.tcl tahoe2 QUIET
 Test output agrees with reference output
+Running test tahoe3:
 ../../ns test-suite-simple.tcl tahoe3 QUIET
 Test output agrees with reference output
+Running test tahoe4:
 ../../ns test-suite-simple.tcl tahoe4 QUIET
 Test output agrees with reference output
+Running test no_bug:
 ../../ns test-suite-simple.tcl no_bug QUIET
 Test output agrees with reference output
+Running test bug:
 ../../ns test-suite-simple.tcl bug QUIET
 Test output agrees with reference output
+Running test reno1:
 ../../ns test-suite-simple.tcl reno1 QUIET
 Test output agrees with reference output
+Running test reno:
 ../../ns test-suite-simple.tcl reno QUIET
 Test output agrees with reference output
+Running test renoA:
 ../../ns test-suite-simple.tcl renoA QUIET
 Test output agrees with reference output
+Running test reno2:
 ../../ns test-suite-simple.tcl reno2 QUIET
 Test output agrees with reference output
+Running test reno3:
 ../../ns test-suite-simple.tcl reno3 QUIET
 Test output agrees with reference output
+Running test reno4:
 ../../ns test-suite-simple.tcl reno4 QUIET
 Test output agrees with reference output
+Running test reno4a:
 ../../ns test-suite-simple.tcl reno4a QUIET
 Test output agrees with reference output
+Running test reno5:
 ../../ns test-suite-simple.tcl reno5 QUIET
 Test output agrees with reference output
+Running test telnet:
 ../../ns test-suite-simple.tcl telnet QUIET
 Test output agrees with reference output
+Running test delayed:
 ../../ns test-suite-simple.tcl delayed QUIET
 Test output agrees with reference output
+Running test phase:
 ../../ns test-suite-simple.tcl phase QUIET
 Test output agrees with reference output
+Running test phase1:
 ../../ns test-suite-simple.tcl phase1 QUIET
 Test output agrees with reference output
+Running test phase2:
 ../../ns test-suite-simple.tcl phase2 QUIET
 Test output agrees with reference output
+Running test timers:
 ../../ns test-suite-simple.tcl timers QUIET
 Test output agrees with reference output
+Running test manyflows:
 ../../ns test-suite-simple.tcl manyflows QUIET
 Test output agrees with reference output
+Running test stats:
 ../../ns test-suite-simple.tcl stats QUIET
 tcp0/window=30/packetSize=1000/bugFix=1
 tcp1/window=30/packetSize=1000/bugFix=1
@@ -63,6 +85,7 @@ fid: 1 per-link total_bytes 103000
 aggregate per-link total_drops 19
 aggregate per-link total_packets 462
 Test output agrees with reference output
+Running test stats1:
 ../../ns test-suite-simple.tcl stats1 QUIET
 TCP packetSize 100
 ftp 0 segments_produced 10 (using `FTP produce pktcnt')
@@ -81,28 +104,40 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcp
 Tests: ecn timers timersA timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 stats1 quiescent_100ms quiescentB quiescentB_qoption underutilized_100ms underutilized_100ms_control underutilized_100ms_control_Q underutilized_100ms_Q underutilized_100ms_control_Reno underutilized_100ms_control_Newreno underutilized_100ms_control_Sack quiescent_100ms_fine quiescent_100ms_coarse quiescent_1ms_fine quiescent_1ms_coarse quiescent_500ms_fine quiescent_500ms_coarse
+Running test ecn:
 ../../ns test-suite-tcp.tcl ecn QUIET
 Test output agrees with reference output
+Running test timers:
 ../../ns test-suite-tcp.tcl timers QUIET
 Test output agrees with reference output
+Running test timersA:
 ../../ns test-suite-tcp.tcl timersA QUIET
 Test output agrees with reference output
+Running test timersA1:
 ../../ns test-suite-tcp.tcl timersA1 QUIET
 Test output agrees with reference output
+Running test timersA2:
 ../../ns test-suite-tcp.tcl timersA2 QUIET
 Test output agrees with reference output
+Running test timersA3:
 ../../ns test-suite-tcp.tcl timersA3 QUIET
 Test output agrees with reference output
+Running test timers1:
 ../../ns test-suite-tcp.tcl timers1 QUIET
 Test output agrees with reference output
+Running test timers2:
 ../../ns test-suite-tcp.tcl timers2 QUIET
 Test output agrees with reference output
+Running test timers3:
 ../../ns test-suite-tcp.tcl timers3 QUIET
 Test output agrees with reference output
+Running test timers4:
 ../../ns test-suite-tcp.tcl timers4 QUIET
 Test output agrees with reference output
+Running test timers5:
 ../../ns test-suite-tcp.tcl timers5 QUIET
 Test output agrees with reference output
+Running test stats1:
 ../../ns test-suite-tcp.tcl stats1 QUIET
 tcp1/window=30/packetSize=1000/bugFix=1
 tcp2/window=3/packetSize=1000/bugFix=1
@@ -124,251 +159,365 @@ retransmit_timeouts: 0
 tcp1/time=10/cwnd=29.4693/ssthresh=7/ack=490/rtt=3
 tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
 Test output agrees with reference output
+Running test quiescent_100ms:
 ../../ns test-suite-tcp.tcl quiescent_100ms QUIET
 Test output agrees with reference output
+Running test quiescentB:
 ../../ns test-suite-tcp.tcl quiescentB QUIET
 Test output agrees with reference output
+Running test quiescentB_qoption:
 ../../ns test-suite-tcp.tcl quiescentB_qoption QUIET
 Test output agrees with reference output
+Running test underutilized_100ms:
 ../../ns test-suite-tcp.tcl underutilized_100ms QUIET
 Test output agrees with reference output
+Running test underutilized_100ms_control:
 ../../ns test-suite-tcp.tcl underutilized_100ms_control QUIET
 Test output agrees with reference output
+Running test underutilized_100ms_control_Q:
 ../../ns test-suite-tcp.tcl underutilized_100ms_control_Q QUIET
 Test output agrees with reference output
+Running test underutilized_100ms_Q:
 ../../ns test-suite-tcp.tcl underutilized_100ms_Q QUIET
 Test output agrees with reference output
+Running test underutilized_100ms_control_Reno:
 ../../ns test-suite-tcp.tcl underutilized_100ms_control_Reno QUIET
 Test output agrees with reference output
+Running test underutilized_100ms_control_Newreno:
 ../../ns test-suite-tcp.tcl underutilized_100ms_control_Newreno QUIET
 Test output agrees with reference output
+Running test underutilized_100ms_control_Sack:
 ../../ns test-suite-tcp.tcl underutilized_100ms_control_Sack QUIET
 Test output agrees with reference output
+Running test quiescent_100ms_fine:
 ../../ns test-suite-tcp.tcl quiescent_100ms_fine QUIET
 Test output agrees with reference output
+Running test quiescent_100ms_coarse:
 ../../ns test-suite-tcp.tcl quiescent_100ms_coarse QUIET
 Test output agrees with reference output
+Running test quiescent_1ms_fine:
 ../../ns test-suite-tcp.tcl quiescent_1ms_fine QUIET
 Test output agrees with reference output
+Running test quiescent_1ms_coarse:
 ../../ns test-suite-tcp.tcl quiescent_1ms_coarse QUIET
 Test output agrees with reference output
+Running test quiescent_500ms_fine:
 ../../ns test-suite-tcp.tcl quiescent_500ms_fine QUIET
 Test output agrees with reference output
+Running test quiescent_500ms_coarse:
 ../../ns test-suite-tcp.tcl quiescent_500ms_coarse QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-full
 Tests: full close twoway twoway1 twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedretransmit droppednearretransmit droppedfastrexmit ecn1 ecn2 droppedfin smallpkts telnet telnet2 SSR SSR2 tsopt winlimited
+Running test full:
 ../../ns test-suite-full.tcl full QUIET
 Test output agrees with reference output
+Running test close:
 ../../ns test-suite-full.tcl close QUIET
 Test output agrees with reference output
+Running test twoway:
 ../../ns test-suite-full.tcl twoway QUIET
 Test output agrees with reference output
+Running test twoway1:
 ../../ns test-suite-full.tcl twoway1 QUIET
 Test output agrees with reference output
+Running test twowayrandom:
 ../../ns test-suite-full.tcl twowayrandom QUIET
 second TCP starting at time 1
 Test output agrees with reference output
+Running test delack:
 ../../ns test-suite-full.tcl delack QUIET
 Test output agrees with reference output
+Running test iw=4:
 ../../ns test-suite-full.tcl iw=4 QUIET
 Test output agrees with reference output
+Running test droppedsyn:
 ../../ns test-suite-full.tcl droppedsyn QUIET
 Test output agrees with reference output
+Running test droppedfirstseg:
 ../../ns test-suite-full.tcl droppedfirstseg QUIET
 Test output agrees with reference output
+Running test droppedsecondseg:
 ../../ns test-suite-full.tcl droppedsecondseg QUIET
 Test output agrees with reference output
+Running test simul-open:
 ../../ns test-suite-full.tcl simul-open QUIET
 Test output agrees with reference output
+Running test simul-close:
 ../../ns test-suite-full.tcl simul-close QUIET
 Test output agrees with reference output
+Running test droppednearfin:
 ../../ns test-suite-full.tcl droppednearfin QUIET
 Test output agrees with reference output
+Running test droppedlastseg:
 ../../ns test-suite-full.tcl droppedlastseg QUIET
 Test output agrees with reference output
+Running test droppedretransmit:
 ../../ns test-suite-full.tcl droppedretransmit QUIET
 Test output agrees with reference output
+Running test droppednearretransmit:
 ../../ns test-suite-full.tcl droppednearretransmit QUIET
 Test output agrees with reference output
+Running test droppedfastrexmit:
 ../../ns test-suite-full.tcl droppedfastrexmit QUIET
 Test output agrees with reference output
+Running test ecn1:
 ../../ns test-suite-full.tcl ecn1 QUIET
 Test output agrees with reference output
+Running test ecn2:
 ../../ns test-suite-full.tcl ecn2 QUIET
 Test output agrees with reference output
+Running test droppedfin:
 ../../ns test-suite-full.tcl droppedfin QUIET
 Test output agrees with reference output
+Running test smallpkts:
 ../../ns test-suite-full.tcl smallpkts QUIET
 Test output agrees with reference output
+Running test telnet:
 ../../ns test-suite-full.tcl telnet QUIET
 Test output agrees with reference output
+Running test telnet2:
 ../../ns test-suite-full.tcl telnet2 QUIET
 Test output agrees with reference output
+Running test SSR:
 ../../ns test-suite-full.tcl SSR QUIET
 Test output agrees with reference output
+Running test SSR2:
 ../../ns test-suite-full.tcl SSR2 QUIET
 Test output agrees with reference output
+Running test tsopt:
 ../../ns test-suite-full.tcl tsopt QUIET
 Test output agrees with reference output
+Running test winlimited:
 ../../ns test-suite-full.tcl winlimited QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-monitor
 Tests: tcp tcp-monitor
+Running test tcp:
 ../../ns test-suite-monitor.tcl tcp QUIET
 Test output agrees with reference output
+Running test tcp-monitor:
 ../../ns test-suite-monitor.tcl tcp-monitor QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red
 Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle gentleEcn ungentleBadParams gentleBadParams
+Running test red1:
 ../../ns test-suite-red.tcl red1 QUIET
 Test output agrees with reference output
+Running test ecn:
 ../../ns test-suite-red.tcl ecn QUIET
 Test output agrees with reference output
+Running test red2:
 ../../ns test-suite-red.tcl red2 QUIET
 Test output agrees with reference output
+Running test red_twoway:
 ../../ns test-suite-red.tcl red_twoway QUIET
 Test output agrees with reference output
+Running test red_twowaybytes:
 ../../ns test-suite-red.tcl red_twowaybytes QUIET
 Test output agrees with reference output
+Running test flows_unforced:
 ../../ns test-suite-red.tcl flows_unforced QUIET
 Test output agrees with reference output
+Running test flows_forced:
 ../../ns test-suite-red.tcl flows_forced QUIET
 Test output agrees with reference output
+Running test flows_combined:
 ../../ns test-suite-red.tcl flows_combined QUIET
 Test output agrees with reference output
+Running test ungentle:
 ../../ns test-suite-red.tcl ungentle QUIET
-total_drops 438 total_packets 7588
+total_drops 395 total_packets 7723
 Test output agrees with reference output
+Running test gentle:
 ../../ns test-suite-red.tcl gentle QUIET
-total_drops 370 total_packets 7734
+total_drops 364 total_packets 7805
 Test output agrees with reference output
+Running test gentleEcn:
 ../../ns test-suite-red.tcl gentleEcn QUIET
 total_drops 201 total_packets 7809
 Test output agrees with reference output
+Running test ungentleBadParams:
 ../../ns test-suite-red.tcl ungentleBadParams QUIET
 total_drops 677 total_packets 6401
 Test output agrees with reference output
+Running test gentleBadParams:
 ../../ns test-suite-red.tcl gentleBadParams QUIET
-total_drops 463 total_packets 7041
+total_drops 442 total_packets 7481
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack
 Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a
+Running test sack1:
 ../../ns test-suite-sack.tcl sack1 QUIET
 Test output agrees with reference output
+Running test sack1z:
 ../../ns test-suite-sack.tcl sack1z QUIET
 Test output agrees with reference output
+Running test sack1a:
 ../../ns test-suite-sack.tcl sack1a QUIET
 Test output agrees with reference output
+Running test sack1aa:
 ../../ns test-suite-sack.tcl sack1aa QUIET
 Test output agrees with reference output
+Running test sack1b:
 ../../ns test-suite-sack.tcl sack1b QUIET
 Test output agrees with reference output
+Running test sack1c:
 ../../ns test-suite-sack.tcl sack1c QUIET
 Test output agrees with reference output
+Running test sack3:
 ../../ns test-suite-sack.tcl sack3 QUIET
 Test output agrees with reference output
+Running test sack5:
 ../../ns test-suite-sack.tcl sack5 QUIET
 Test output agrees with reference output
+Running test sack5a:
 ../../ns test-suite-sack.tcl sack5a QUIET
 Test output agrees with reference output
+Running test sackB2:
 ../../ns test-suite-sack.tcl sackB2 QUIET
 Test output agrees with reference output
+Running test sackB4:
 ../../ns test-suite-sack.tcl sackB4 QUIET
 Test output agrees with reference output
+Running test sackB4a:
 ../../ns test-suite-sack.tcl sackB4a QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-schedule
 Tests: fifo-droptail fifo-red sfq fq fq_small_queue drr
+Running test fifo-droptail:
 ../../ns test-suite-schedule.tcl fifo-droptail QUIET
 Test output agrees with reference output
+Running test fifo-red:
 ../../ns test-suite-schedule.tcl fifo-red QUIET
 Test output agrees with reference output
+Running test sfq:
 ../../ns test-suite-schedule.tcl sfq QUIET
 Test output agrees with reference output
+Running test fq:
 ../../ns test-suite-schedule.tcl fq QUIET
 Test output agrees with reference output
+Running test fq_small_queue:
 ../../ns test-suite-schedule.tcl fq_small_queue QUIET
 Test output agrees with reference output
+Running test drr:
 ../../ns test-suite-schedule.tcl drr QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq
 Tests: WRR PRR AO TL FORMAL FORMAL_TCP MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1 TwoDynamic1WRR TwoWRR
+Running test WRR:
 ../../ns test-suite-cbq.tcl WRR QUIET
 Test output agrees with reference output
+Running test PRR:
 ../../ns test-suite-cbq.tcl PRR QUIET
 Test output agrees with reference output
+Running test AO:
 ../../ns test-suite-cbq.tcl AO QUIET
 Test output agrees with reference output
+Running test TL:
 ../../ns test-suite-cbq.tcl TL QUIET
 Test output agrees with reference output
+Running test FORMAL:
 ../../ns test-suite-cbq.tcl FORMAL QUIET
 Test output agrees with reference output
+Running test FORMAL_TCP:
 ../../ns test-suite-cbq.tcl FORMAL_TCP QUIET
 Test output agrees with reference output
+Running test MAX1:
 ../../ns test-suite-cbq.tcl MAX1 QUIET
 Test output agrees with reference output
+Running test MAX2:
 ../../ns test-suite-cbq.tcl MAX2 QUIET
 Test output agrees with reference output
+Running test EXTRA1:
 ../../ns test-suite-cbq.tcl EXTRA1 QUIET
 Test output agrees with reference output
+Running test EXTRA2:
 ../../ns test-suite-cbq.tcl EXTRA2 QUIET
 Test output agrees with reference output
+Running test MIN1:
 ../../ns test-suite-cbq.tcl MIN1 QUIET
 Test output agrees with reference output
+Running test MIN3:
 ../../ns test-suite-cbq.tcl MIN3 QUIET
 Test output agrees with reference output
+Running test MIN4:
 ../../ns test-suite-cbq.tcl MIN4 QUIET
 Test output agrees with reference output
+Running test MIN6:
 ../../ns test-suite-cbq.tcl MIN6 QUIET
 Test output agrees with reference output
+Running test TwoAO:
 ../../ns test-suite-cbq.tcl TwoAO QUIET
 Test output agrees with reference output
+Running test TwoAO2:
 ../../ns test-suite-cbq.tcl TwoAO2 QUIET
 Test output agrees with reference output
+Running test TwoAO3:
 ../../ns test-suite-cbq.tcl TwoAO3 QUIET
 Test output agrees with reference output
+Running test TwoTL:
 ../../ns test-suite-cbq.tcl TwoTL QUIET
 Test output agrees with reference output
+Running test TwoF:
 ../../ns test-suite-cbq.tcl TwoF QUIET
 Test output agrees with reference output
+Running test TwoDynamic:
 ../../ns test-suite-cbq.tcl TwoDynamic QUIET
 Test output agrees with reference output
+Running test TwoDynamic1:
 ../../ns test-suite-cbq.tcl TwoDynamic1 QUIET
 Test output agrees with reference output
+Running test TwoDynamic1WRR:
 ../../ns test-suite-cbq.tcl TwoDynamic1WRR QUIET
 Test output agrees with reference output
+Running test TwoWRR:
 ../../ns test-suite-cbq.tcl TwoWRR QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red-v1
 Tests: red1 red1_bytes ecn red2 red_twoway red_twowaybytes flows flows1 flowsAll
+Running test red1:
 ../../ns test-suite-red-v1a.tcl red1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test red1_bytes:
 ../../ns test-suite-red-v1a.tcl red1_bytes QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test ecn:
 ../../ns test-suite-red-v1a.tcl ecn QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test red2:
 ../../ns test-suite-red-v1a.tcl red2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test red_twoway:
 ../../ns test-suite-red-v1a.tcl red_twoway QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test red_twowaybytes:
 ../../ns test-suite-red-v1a.tcl red_twowaybytes QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test flows:
 ../../ns test-suite-red-v1a.tcl flows QUIET
 WARNING:  This test was not run.
 This test is not implemented in backward compatibility mode.
 Test output agrees with reference output
+Running test flows1:
 ../../ns test-suite-red-v1a.tcl flows1 QUIET
 WARNING:  This test was not run.
 This test is not implemented in backward compatibility mode.
 Test output agrees with reference output
+Running test flowsAll:
 ../../ns test-suite-red-v1a.tcl flowsAll QUIET
 WARNING:  This test was not run.
 This test is not implemented in backward compatibility mode.
@@ -376,117 +525,220 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq-v1
 Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
+Running test cbqWRR:
 ../../ns test-suite-cbq-v1a.tcl cbqWRR QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqPRR:
 ../../ns test-suite-cbq-v1a.tcl cbqPRR QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqAO:
 ../../ns test-suite-cbq-v1a.tcl cbqAO QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqTL:
 ../../ns test-suite-cbq-v1a.tcl cbqTL QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqFor:
 ../../ns test-suite-cbq-v1a.tcl cbqFor QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqForOld:
 ../../ns test-suite-cbq-v1a.tcl cbqForOld QUIET
 WARNING:  This test was not run.
 This functionality is not implemented in ns-2.
 Test output agrees with reference output
+Running test cbqMax1:
 ../../ns test-suite-cbq-v1a.tcl cbqMax1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqMax2:
 ../../ns test-suite-cbq-v1a.tcl cbqMax2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqExtra1:
 ../../ns test-suite-cbq-v1a.tcl cbqExtra1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqExtra2:
 ../../ns test-suite-cbq-v1a.tcl cbqExtra2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqMin1:
 ../../ns test-suite-cbq-v1a.tcl cbqMin1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqMin3:
 ../../ns test-suite-cbq-v1a.tcl cbqMin3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqMin4:
 ../../ns test-suite-cbq-v1a.tcl cbqMin4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqMin6:
 ../../ns test-suite-cbq-v1a.tcl cbqMin6 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqTwoAO:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqTwoAO2:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqTwoAO3:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqTwoTL:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoTL QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test cbqTwoF:
 ../../ns test-suite-cbq-v1a.tcl cbqTwoF QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack-v1
 Tests: sack1 sack1a sack1b sack1c sack3 sack4 sack5 sackB2 sackB4 phaseSack phaseSack2 phaseSack3
+Running test sack1:
 ../../ns test-suite-sack-v1a.tcl sack1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sack1a:
 ../../ns test-suite-sack-v1a.tcl sack1a QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sack1b:
 ../../ns test-suite-sack-v1a.tcl sack1b QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sack1c:
 ../../ns test-suite-sack-v1a.tcl sack1c QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sack3:
 ../../ns test-suite-sack-v1a.tcl sack3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sack4:
 ../../ns test-suite-sack-v1a.tcl sack4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sack5:
 ../../ns test-suite-sack-v1a.tcl sack5 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sackB2:
 ../../ns test-suite-sack-v1a.tcl sackB2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test sackB4:
 ../../ns test-suite-sack-v1a.tcl sackB4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test phaseSack:
 ../../ns test-suite-sack-v1a.tcl phaseSack QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test phaseSack2:
 ../../ns test-suite-sack-v1a.tcl phaseSack2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test phaseSack3:
 ../../ns test-suite-sack-v1a.tcl phaseSack3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-v1
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
+Running test tahoe1:
 ../../ns test-suite-v1a.tcl tahoe1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test tahoe2:
 ../../ns test-suite-v1a.tcl tahoe2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test tahoe3:
 ../../ns test-suite-v1a.tcl tahoe3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test tahoe4:
 ../../ns test-suite-v1a.tcl tahoe4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test no_bug:
 ../../ns test-suite-v1a.tcl no_bug QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test bug:
 ../../ns test-suite-v1a.tcl bug QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test reno1:
 ../../ns test-suite-v1a.tcl reno1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test reno:
 ../../ns test-suite-v1a.tcl reno QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test renoA:
 ../../ns test-suite-v1a.tcl renoA QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test reno2:
 ../../ns test-suite-v1a.tcl reno2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test reno3:
 ../../ns test-suite-v1a.tcl reno3 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test reno4:
 ../../ns test-suite-v1a.tcl reno4 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test reno4a:
 ../../ns test-suite-v1a.tcl reno4a QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test reno5:
 ../../ns test-suite-v1a.tcl reno5 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test telnet:
 ../../ns test-suite-v1a.tcl telnet QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test delayed:
 ../../ns test-suite-v1a.tcl delayed QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test phase:
 ../../ns test-suite-v1a.tcl phase QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test phase1:
 ../../ns test-suite-v1a.tcl phase1 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test phase2:
 ../../ns test-suite-v1a.tcl phase2 QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test timers:
 ../../ns test-suite-v1a.tcl timers QUIET
+warning: using backward compatibility mode
 Test output agrees with reference output
+Running test stats:
 ../../ns test-suite-v1a.tcl stats QUIET
+warning: using backward compatibility mode
 tcp1:window=30/packet-size=1000/bug-fix=1
 tcp2:window=30/packet-size=1000/bug-fix=1
 tcp1/time=0/cwnd=1/ssthresh=30/ack=-1/rtt=0
@@ -508,344 +760,509 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-vegas-v1
 Tests: one_drop one_14 two_2 two_A two_B
+Running test one_drop:
 ../../ns test-suite-vegas-v1.tcl one_drop QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
+Running test one_14:
 ../../ns test-suite-vegas-v1.tcl one_14 QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
+Running test two_2:
 ../../ns test-suite-vegas-v1.tcl two_2 QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
+Running test two_A:
 ../../ns test-suite-vegas-v1.tcl two_A QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
+Running test two_B:
 ../../ns test-suite-vegas-v1.tcl two_B QUIET
+warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rbp
 Tests: reno_slow_start_restart reno_no_slow_start_restart vegas_slow_start_restart vegas_no_slow_start_restart reno_pacing vegas_pacing_rate vegas_pacing_cwnd
+Running test reno_slow_start_restart:
 ../../ns test-suite-rbp.tcl reno_slow_start_restart QUIET
 Test output agrees with reference output
+Running test reno_no_slow_start_restart:
 ../../ns test-suite-rbp.tcl reno_no_slow_start_restart QUIET
 Test output agrees with reference output
+Running test vegas_slow_start_restart:
 ../../ns test-suite-rbp.tcl vegas_slow_start_restart QUIET
 Test output agrees with reference output
+Running test vegas_no_slow_start_restart:
 ../../ns test-suite-rbp.tcl vegas_no_slow_start_restart QUIET
 Test output agrees with reference output
+Running test reno_pacing:
 ../../ns test-suite-rbp.tcl reno_pacing QUIET
 Test output agrees with reference output
+Running test vegas_pacing_rate:
 ../../ns test-suite-rbp.tcl vegas_pacing_rate QUIET
 Test output agrees with reference output
+Running test vegas_pacing_cwnd:
 ../../ns test-suite-rbp.tcl vegas_pacing_cwnd QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcp-init-win
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 reno1 reno2 reno3 reno4 newreno1 newreno2 newreno3 newreno4 sack1 sack2 sack3 sack4
+Running test tahoe1:
 ../../ns test-suite-tcp-init-win.tcl tahoe1 QUIET
 Test output agrees with reference output
+Running test tahoe2:
 ../../ns test-suite-tcp-init-win.tcl tahoe2 QUIET
 Test output agrees with reference output
+Running test tahoe3:
 ../../ns test-suite-tcp-init-win.tcl tahoe3 QUIET
 Test output agrees with reference output
+Running test tahoe4:
 ../../ns test-suite-tcp-init-win.tcl tahoe4 QUIET
 Test output agrees with reference output
+Running test reno1:
 ../../ns test-suite-tcp-init-win.tcl reno1 QUIET
 Test output agrees with reference output
+Running test reno2:
 ../../ns test-suite-tcp-init-win.tcl reno2 QUIET
 Test output agrees with reference output
+Running test reno3:
 ../../ns test-suite-tcp-init-win.tcl reno3 QUIET
 Test output agrees with reference output
+Running test reno4:
 ../../ns test-suite-tcp-init-win.tcl reno4 QUIET
 Test output agrees with reference output
+Running test newreno1:
 ../../ns test-suite-tcp-init-win.tcl newreno1 QUIET
 Test output agrees with reference output
+Running test newreno2:
 ../../ns test-suite-tcp-init-win.tcl newreno2 QUIET
 Test output agrees with reference output
+Running test newreno3:
 ../../ns test-suite-tcp-init-win.tcl newreno3 QUIET
 Test output agrees with reference output
+Running test newreno4:
 ../../ns test-suite-tcp-init-win.tcl newreno4 QUIET
 Test output agrees with reference output
+Running test sack1:
 ../../ns test-suite-tcp-init-win.tcl sack1 QUIET
 Test output agrees with reference output
+Running test sack2:
 ../../ns test-suite-tcp-init-win.tcl sack2 QUIET
 Test output agrees with reference output
+Running test sack3:
 ../../ns test-suite-tcp-init-win.tcl sack3 QUIET
 Test output agrees with reference output
+Running test sack4:
 ../../ns test-suite-tcp-init-win.tcl sack4 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcpVariants
 Tests: onedrop_tahoe onedrop_SA_tahoe onedrop_tahoe_full onedrop_reno onedrop_SA_reno onedrop_reno_full onedrop_newreno onedrop_SA_newreno onedrop_newreno_full onedrop_sack onedrop_SA_sack onedrop_sack_full onedrop_fack onedrop_sackRH twodrops_tahoe twodrops_tahoe_full twodrops_reno twodrops_reno_full twodrops_newreno twodrops_newreno_full twodrops_sack twodrops_sack_full twodrops_fack twodrops_sackRH threedrops_tahoe threedrops_tahoe_full threedrops_reno threedrops_reno_full threedrops_newreno threedrops_newreno_full threedrops_sack threedrops_sack_full threedrops_fack threedrops_sackRH fourdrops_tahoe fourdrops_tahoe_full fourdrops_reno fourdrops_reno_full fourdrops_newreno fourdrops_newreno_full fourdrops_sack fourdrops_sack_full fourdrops_fack fourdrops_sackRH
+Running test onedrop_tahoe:
 ../../ns test-suite-tcpVariants.tcl onedrop_tahoe QUIET
 Test output agrees with reference output
+Running test onedrop_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_tahoe QUIET
 Test output agrees with reference output
+Running test onedrop_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_tahoe_full QUIET
 Test output agrees with reference output
+Running test onedrop_reno:
 ../../ns test-suite-tcpVariants.tcl onedrop_reno QUIET
 Test output agrees with reference output
+Running test onedrop_SA_reno:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_reno QUIET
 Test output agrees with reference output
+Running test onedrop_reno_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_reno_full QUIET
 Test output agrees with reference output
+Running test onedrop_newreno:
 ../../ns test-suite-tcpVariants.tcl onedrop_newreno QUIET
 Test output agrees with reference output
+Running test onedrop_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_newreno QUIET
 Test output agrees with reference output
+Running test onedrop_newreno_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_newreno_full QUIET
 Test output agrees with reference output
+Running test onedrop_sack:
 ../../ns test-suite-tcpVariants.tcl onedrop_sack QUIET
 Test output agrees with reference output
+Running test onedrop_SA_sack:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_sack QUIET
 Test output agrees with reference output
+Running test onedrop_sack_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_sack_full QUIET
 Test output agrees with reference output
+Running test onedrop_fack:
 ../../ns test-suite-tcpVariants.tcl onedrop_fack QUIET
 Test output agrees with reference output
+Running test onedrop_sackRH:
 ../../ns test-suite-tcpVariants.tcl onedrop_sackRH QUIET
 Test output agrees with reference output
+Running test twodrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl twodrops_tahoe QUIET
 Test output agrees with reference output
+Running test twodrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_tahoe_full QUIET
 Test output agrees with reference output
+Running test twodrops_reno:
 ../../ns test-suite-tcpVariants.tcl twodrops_reno QUIET
 Test output agrees with reference output
+Running test twodrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_reno_full QUIET
 Test output agrees with reference output
+Running test twodrops_newreno:
 ../../ns test-suite-tcpVariants.tcl twodrops_newreno QUIET
 Test output agrees with reference output
+Running test twodrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_newreno_full QUIET
 Test output agrees with reference output
+Running test twodrops_sack:
 ../../ns test-suite-tcpVariants.tcl twodrops_sack QUIET
 Test output agrees with reference output
+Running test twodrops_sack_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_sack_full QUIET
 Test output agrees with reference output
+Running test twodrops_fack:
 ../../ns test-suite-tcpVariants.tcl twodrops_fack QUIET
 Test output agrees with reference output
+Running test twodrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl twodrops_sackRH QUIET
 Test output agrees with reference output
+Running test threedrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl threedrops_tahoe QUIET
 Test output agrees with reference output
+Running test threedrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_tahoe_full QUIET
 Test output agrees with reference output
+Running test threedrops_reno:
 ../../ns test-suite-tcpVariants.tcl threedrops_reno QUIET
 Test output agrees with reference output
+Running test threedrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_reno_full QUIET
 Test output agrees with reference output
+Running test threedrops_newreno:
 ../../ns test-suite-tcpVariants.tcl threedrops_newreno QUIET
 Test output agrees with reference output
+Running test threedrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_newreno_full QUIET
 Test output agrees with reference output
+Running test threedrops_sack:
 ../../ns test-suite-tcpVariants.tcl threedrops_sack QUIET
 Test output agrees with reference output
+Running test threedrops_sack_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_sack_full QUIET
 Test output agrees with reference output
+Running test threedrops_fack:
 ../../ns test-suite-tcpVariants.tcl threedrops_fack QUIET
 Test output agrees with reference output
+Running test threedrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl threedrops_sackRH QUIET
 Test output agrees with reference output
+Running test fourdrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe QUIET
 Test output agrees with reference output
+Running test fourdrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe_full QUIET
 Test output agrees with reference output
+Running test fourdrops_reno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_reno QUIET
 Test output agrees with reference output
+Running test fourdrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_reno_full QUIET
 Test output agrees with reference output
+Running test fourdrops_newreno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_newreno QUIET
 Test output agrees with reference output
+Running test fourdrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_newreno_full QUIET
 Test output agrees with reference output
+Running test fourdrops_sack:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sack QUIET
 Test output agrees with reference output
+Running test fourdrops_sack_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sack_full QUIET
 Test output agrees with reference output
+Running test fourdrops_fack:
 ../../ns test-suite-tcpVariants.tcl fourdrops_fack QUIET
 Test output agrees with reference output
+Running test fourdrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sackRH QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn
 Tests: ecn ecn_nodrop_tahoe ecn_twoecn_tahoe ecn_drop_tahoe ecn_drop1_tahoe ecn_drop2_tahoe ecn_noecn_tahoe ecn_bursty_tahoe ecn_burstyEcn_tahoe ecn_noBugfix_tahoe ecn_timeout_tahoe ecn_timeout2_tahoe ecn_timeout3_tahoe ecn_smallwin_tahoe ecn_smallwinEcn_tahoe ecn_smallwin1Ecn_tahoe ecn_smallwin2Ecn_tahoe ecn_smallwin3Ecn_tahoe ecn_secondpkt_tahoe ecn_secondpktEcn_tahoe ecn_secondpkt1Ecn_tahoe ecn_nodrop_tahoe_delack ecn_twoecn_tahoe_delack ecn_drop_tahoe_delack ecn_drop1_tahoe_delack ecn_smallwinEcn_tahoe_delack ecn_nodrop_reno ecn_twoecn_reno ecn_drop_reno ecn_drop1_reno ecn_noecn_reno ecn_bursty_reno ecn_burstyEcn_reno ecn_noBugfix_reno ecn_timeout_reno ecn_timeout1_reno ecn_smallwin_reno ecn_smallwinEcn_reno ecn_smallwin1Ecn_reno ecn_secondpkt_reno ecn_secondpktEcn_reno ecn_nodrop_reno_delack ecn_twoecn_reno_delack ecn_drop_reno_delack ecn_drop1_reno_delack ecn_smallwinEcn_reno_delack ecn_nodrop_sack ecn_twoecn_sack ecn_drop_sack ecn_drop1_sack ecn_noecn_sack ecn_bursty_sack ecn_burstyEcn_sack ecn_burstyEcn1_sack ecn_noBugfix_sack ecn_timeout_sack ecn_timeout1_sack ecn_fourdrops_sack ecn_smallwin_sack ecn_smallwinEcn_sack ecn_smallwin1Ecn_sack ecn_secondpkt_sack ecn_secondpktEcn_sack ecn_nodrop_sack_delack ecn_twoecn_sack_delack ecn_drop_sack_delack ecn_drop1_sack_delack ecn_smallwinEcn_sack_delack ecn_nodrop_newreno ecn_twoecn_newreno ecn_drop_newreno ecn_drop1_newreno ecn_noecn_newreno ecn_bursty_newreno ecn_burstyEcn_newreno ecn_timeout_newreno ecn_timeout1_newreno ecn_smallwin_newreno ecn_smallwinEcn_newreno ecn_secondpkt_newreno ecn_secondpktEcn_newreno ecn_nodrop_newreno_delack ecn_twoecn_newreno_delack ecn_drop_newreno_delack ecn_drop1_newreno_delack ecn_smallwinEcn_newreno_delack ecn1
+Running test ecn:
 ../../ns test-suite-ecn.tcl ecn QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_tahoe:
 ../../ns test-suite-ecn.tcl ecn_nodrop_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_twoecn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_drop_tahoe:
 ../../ns test-suite-ecn.tcl ecn_drop_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_drop1_tahoe:
 ../../ns test-suite-ecn.tcl ecn_drop1_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_drop2_tahoe:
 ../../ns test-suite-ecn.tcl ecn_drop2_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_noecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_noecn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_bursty_tahoe:
 ../../ns test-suite-ecn.tcl ecn_bursty_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_burstyEcn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_noBugfix_tahoe:
 ../../ns test-suite-ecn.tcl ecn_noBugfix_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_timeout_tahoe:
 ../../ns test-suite-ecn.tcl ecn_timeout_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_timeout2_tahoe:
 ../../ns test-suite-ecn.tcl ecn_timeout2_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_timeout3_tahoe:
 ../../ns test-suite-ecn.tcl ecn_timeout3_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_smallwin_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_smallwin1Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin1Ecn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_smallwin2Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin2Ecn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_smallwin3Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin3Ecn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_secondpkt_tahoe:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_secondpktEcn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_secondpkt1Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_secondpkt1Ecn_tahoe QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_tahoe_delack QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_tahoe_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_tahoe_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop1_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_tahoe_delack QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_tahoe_delack QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_reno:
 ../../ns test-suite-ecn.tcl ecn_nodrop_reno QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_reno:
 ../../ns test-suite-ecn.tcl ecn_twoecn_reno QUIET
 Test output agrees with reference output
+Running test ecn_drop_reno:
 ../../ns test-suite-ecn.tcl ecn_drop_reno QUIET
 Test output agrees with reference output
+Running test ecn_drop1_reno:
 ../../ns test-suite-ecn.tcl ecn_drop1_reno QUIET
 Test output agrees with reference output
+Running test ecn_noecn_reno:
 ../../ns test-suite-ecn.tcl ecn_noecn_reno QUIET
 Test output agrees with reference output
+Running test ecn_bursty_reno:
 ../../ns test-suite-ecn.tcl ecn_bursty_reno QUIET
 Test output agrees with reference output
+Running test ecn_burstyEcn_reno:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_reno QUIET
 Test output agrees with reference output
+Running test ecn_noBugfix_reno:
 ../../ns test-suite-ecn.tcl ecn_noBugfix_reno QUIET
 Test output agrees with reference output
+Running test ecn_timeout_reno:
 ../../ns test-suite-ecn.tcl ecn_timeout_reno QUIET
 Test output agrees with reference output
+Running test ecn_timeout1_reno:
 ../../ns test-suite-ecn.tcl ecn_timeout1_reno QUIET
 Test output agrees with reference output
+Running test ecn_smallwin_reno:
 ../../ns test-suite-ecn.tcl ecn_smallwin_reno QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_reno:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_reno QUIET
 Test output agrees with reference output
+Running test ecn_smallwin1Ecn_reno:
 ../../ns test-suite-ecn.tcl ecn_smallwin1Ecn_reno QUIET
 Test output agrees with reference output
+Running test ecn_secondpkt_reno:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_reno QUIET
 Test output agrees with reference output
+Running test ecn_secondpktEcn_reno:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_reno QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_reno_delack QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_reno_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_reno_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop1_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_reno_delack QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_reno_delack QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_sack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_sack QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_sack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_sack QUIET
 Test output agrees with reference output
+Running test ecn_drop_sack:
 ../../ns test-suite-ecn.tcl ecn_drop_sack QUIET
 Test output agrees with reference output
+Running test ecn_drop1_sack:
 ../../ns test-suite-ecn.tcl ecn_drop1_sack QUIET
 Test output agrees with reference output
+Running test ecn_noecn_sack:
 ../../ns test-suite-ecn.tcl ecn_noecn_sack QUIET
 Test output agrees with reference output
+Running test ecn_bursty_sack:
 ../../ns test-suite-ecn.tcl ecn_bursty_sack QUIET
 Test output agrees with reference output
+Running test ecn_burstyEcn_sack:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_sack QUIET
 Test output agrees with reference output
+Running test ecn_burstyEcn1_sack:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn1_sack QUIET
 Test output agrees with reference output
+Running test ecn_noBugfix_sack:
 ../../ns test-suite-ecn.tcl ecn_noBugfix_sack QUIET
 Test output agrees with reference output
+Running test ecn_timeout_sack:
 ../../ns test-suite-ecn.tcl ecn_timeout_sack QUIET
 Test output agrees with reference output
+Running test ecn_timeout1_sack:
 ../../ns test-suite-ecn.tcl ecn_timeout1_sack QUIET
 Test output agrees with reference output
+Running test ecn_fourdrops_sack:
 ../../ns test-suite-ecn.tcl ecn_fourdrops_sack QUIET
 Test output agrees with reference output
+Running test ecn_smallwin_sack:
 ../../ns test-suite-ecn.tcl ecn_smallwin_sack QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_sack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_sack QUIET
 Test output agrees with reference output
+Running test ecn_smallwin1Ecn_sack:
 ../../ns test-suite-ecn.tcl ecn_smallwin1Ecn_sack QUIET
 Test output agrees with reference output
+Running test ecn_secondpkt_sack:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_sack QUIET
 Test output agrees with reference output
+Running test ecn_secondpktEcn_sack:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_sack QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_sack_delack QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_sack_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_sack_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop1_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_sack_delack QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_sack_delack QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_newreno:
 ../../ns test-suite-ecn.tcl ecn_nodrop_newreno QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_newreno:
 ../../ns test-suite-ecn.tcl ecn_twoecn_newreno QUIET
 Test output agrees with reference output
+Running test ecn_drop_newreno:
 ../../ns test-suite-ecn.tcl ecn_drop_newreno QUIET
 Test output agrees with reference output
+Running test ecn_drop1_newreno:
 ../../ns test-suite-ecn.tcl ecn_drop1_newreno QUIET
 Test output agrees with reference output
+Running test ecn_noecn_newreno:
 ../../ns test-suite-ecn.tcl ecn_noecn_newreno QUIET
 Test output agrees with reference output
+Running test ecn_bursty_newreno:
 ../../ns test-suite-ecn.tcl ecn_bursty_newreno QUIET
 Test output agrees with reference output
+Running test ecn_burstyEcn_newreno:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_newreno QUIET
 Test output agrees with reference output
+Running test ecn_timeout_newreno:
 ../../ns test-suite-ecn.tcl ecn_timeout_newreno QUIET
 Test output agrees with reference output
+Running test ecn_timeout1_newreno:
 ../../ns test-suite-ecn.tcl ecn_timeout1_newreno QUIET
 Test output agrees with reference output
+Running test ecn_smallwin_newreno:
 ../../ns test-suite-ecn.tcl ecn_smallwin_newreno QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_newreno:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_newreno QUIET
 Test output agrees with reference output
+Running test ecn_secondpkt_newreno:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_newreno QUIET
 Test output agrees with reference output
+Running test ecn_secondpktEcn_newreno:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_newreno QUIET
 Test output agrees with reference output
+Running test ecn_nodrop_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_newreno_delack QUIET
 Test output agrees with reference output
+Running test ecn_twoecn_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_newreno_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_newreno_delack QUIET
 Test output agrees with reference output
+Running test ecn_drop1_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_newreno_delack QUIET
 Test output agrees with reference output
+Running test ecn_smallwinEcn_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_newreno_delack QUIET
 Test output agrees with reference output
+Running test ecn1:
 ../../ns test-suite-ecn.tcl ecn1 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-manual-routing
 Tests: one_client
+Running test one_client:
 ../../ns test-suite-manual-routing.tcl one_client QUIET
 maximum clients per second: 114.218
 optimal bw queue size: 226.69422743055557
@@ -859,241 +1276,351 @@ total clients finished: 1
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-hier-routing
-Tests: hier-simple hier-cmcast hier-session
+Tests: hier-simple hier-cmcast hier-session hier-simple-bc hier-cmcast-bc hier-session-bc
+Running test hier-simple:
 ../../ns test-suite-hier-routing.tcl hier-simple QUIET
 Test output agrees with reference output
+Running test hier-cmcast:
 ../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
 Test output agrees with reference output
+Running test hier-session:
 ../../ns test-suite-hier-routing.tcl hier-session QUIET
+Test output agrees with reference output
+Running test hier-simple-bc:
+../../ns test-suite-hier-routing.tcl hier-simple-bc QUIET
+testing backward compatibility of hierarchical routing
+Test output agrees with reference output
+Running test hier-cmcast-bc:
+../../ns test-suite-hier-routing.tcl hier-cmcast-bc QUIET
+testing backward compatibility of hierarchical routing
+Test output agrees with reference output
+Running test hier-session-bc:
+../../ns test-suite-hier-routing.tcl hier-session-bc QUIET
+testing backward compatibility of hierarchical routing
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-intserv
 Tests: MS HB ACTP ACTO Param
+Running test MS:
 ../../ns test-suite-intserv.tcl MS QUIET
 Test output agrees with reference output
+Running test HB:
 ../../ns test-suite-intserv.tcl HB QUIET
 Test output agrees with reference output
+Running test ACTP:
 ../../ns test-suite-intserv.tcl ACTP QUIET
 Test output agrees with reference output
+Running test ACTO:
 ../../ns test-suite-intserv.tcl ACTO QUIET
 Test output agrees with reference output
+Running test Param:
 ../../ns test-suite-intserv.tcl Param QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-webcache
 Tests: SimpleTcp TcpApp-2node http1 http1f http2 http2f http3 http3f http4 http4f PagePool cache0-inv cache0f-inv cache0-push cache0f-push cache0-ttl cache0f-ttl cache0-ottl cache0f-ottl TLC1 TLC1f TLC1-dreq Liveness Mcast-PB Mcast-PBP Mcast-PBU Mcast-PBU-MP ttl-PB ottl-PB Mcast-PBtr Mcast-PBPtr Mcast-PBUtr ttl-PBtr ottl-PBtr mmcast-PB mmcast-PBU mttl-PB mottl-PB mcast-dreq
+Running test SimpleTcp:
 ../../ns test-suite-webcache.tcl SimpleTcp QUIET
 Test output agrees with reference output
+Running test TcpApp-2node:
 ../../ns test-suite-webcache.tcl TcpApp-2node QUIET
 Test output agrees with reference output
+Running test http1:
 ../../ns test-suite-webcache.tcl http1 QUIET
 Test output agrees with reference output
+Running test http1f:
 ../../ns test-suite-webcache.tcl http1f QUIET
 Test output agrees with reference output
+Running test http2:
 ../../ns test-suite-webcache.tcl http2 QUIET
 Test output agrees with reference output
+Running test http2f:
 ../../ns test-suite-webcache.tcl http2f QUIET
 Test output agrees with reference output
+Running test http3:
 ../../ns test-suite-webcache.tcl http3 QUIET
 Test output agrees with reference output
+Running test http3f:
 ../../ns test-suite-webcache.tcl http3f QUIET
 Test output agrees with reference output
+Running test http4:
 ../../ns test-suite-webcache.tcl http4 QUIET
 Test output agrees with reference output
+Running test http4f:
 ../../ns test-suite-webcache.tcl http4f QUIET
 Test output agrees with reference output
+Running test PagePool:
 ../../ns test-suite-webcache.tcl PagePool QUIET
 Test output agrees with reference output
+Running test cache0-inv:
 ../../ns test-suite-webcache.tcl cache0-inv QUIET
 Test output agrees with reference output
+Running test cache0f-inv:
 ../../ns test-suite-webcache.tcl cache0f-inv QUIET
 Test output agrees with reference output
+Running test cache0-push:
 ../../ns test-suite-webcache.tcl cache0-push QUIET
 Test output agrees with reference output
+Running test cache0f-push:
 ../../ns test-suite-webcache.tcl cache0f-push QUIET
 Test output agrees with reference output
+Running test cache0-ttl:
 ../../ns test-suite-webcache.tcl cache0-ttl QUIET
 Test output agrees with reference output
+Running test cache0f-ttl:
 ../../ns test-suite-webcache.tcl cache0f-ttl QUIET
 Test output agrees with reference output
+Running test cache0-ottl:
 ../../ns test-suite-webcache.tcl cache0-ottl QUIET
 Test output agrees with reference output
+Running test cache0f-ottl:
 ../../ns test-suite-webcache.tcl cache0f-ottl QUIET
 Test output agrees with reference output
+Running test TLC1:
 ../../ns test-suite-webcache.tcl TLC1 QUIET
 Test output agrees with reference output
+Running test TLC1f:
 ../../ns test-suite-webcache.tcl TLC1f QUIET
 Test output agrees with reference output
+Running test TLC1-dreq:
 ../../ns test-suite-webcache.tcl TLC1-dreq QUIET
 Test output agrees with reference output
+Running test Liveness:
 ../../ns test-suite-webcache.tcl Liveness QUIET
 Test output agrees with reference output
+Running test Mcast-PB:
 ../../ns test-suite-webcache.tcl Mcast-PB QUIET
 Test output agrees with reference output
+Running test Mcast-PBP:
 ../../ns test-suite-webcache.tcl Mcast-PBP QUIET
 Test output agrees with reference output
+Running test Mcast-PBU:
 ../../ns test-suite-webcache.tcl Mcast-PBU QUIET
 Test output agrees with reference output
+Running test Mcast-PBU-MP:
 ../../ns test-suite-webcache.tcl Mcast-PBU-MP QUIET
 Test output agrees with reference output
+Running test ttl-PB:
 ../../ns test-suite-webcache.tcl ttl-PB QUIET
 Test output agrees with reference output
+Running test ottl-PB:
 ../../ns test-suite-webcache.tcl ottl-PB QUIET
 Test output agrees with reference output
+Running test Mcast-PBtr:
 ../../ns test-suite-webcache.tcl Mcast-PBtr QUIET
 Test output agrees with reference output
+Running test Mcast-PBPtr:
 ../../ns test-suite-webcache.tcl Mcast-PBPtr QUIET
 Test output agrees with reference output
+Running test Mcast-PBUtr:
 ../../ns test-suite-webcache.tcl Mcast-PBUtr QUIET
 Test output agrees with reference output
+Running test ttl-PBtr:
 ../../ns test-suite-webcache.tcl ttl-PBtr QUIET
 Test output agrees with reference output
+Running test ottl-PBtr:
 ../../ns test-suite-webcache.tcl ottl-PBtr QUIET
 Test output agrees with reference output
+Running test mmcast-PB:
 ../../ns test-suite-webcache.tcl mmcast-PB QUIET
 Test output agrees with reference output
+Running test mmcast-PBU:
 ../../ns test-suite-webcache.tcl mmcast-PBU QUIET
 Test output agrees with reference output
+Running test mttl-PB:
 ../../ns test-suite-webcache.tcl mttl-PB QUIET
 Test output agrees with reference output
+Running test mottl-PB:
 ../../ns test-suite-webcache.tcl mottl-PB QUIET
 Test output agrees with reference output
+Running test mcast-dreq:
 ../../ns test-suite-webcache.tcl mcast-dreq QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcast
 Tests: DM1 DM2 DM3 DM4 CtrMcast1 CtrMcast2 ST1
+Running test DM1:
 ../../ns test-suite-mcast.tcl DM1 QUIET
 Test output agrees with reference output
+Running test DM2:
 ../../ns test-suite-mcast.tcl DM2 QUIET
 Test output agrees with reference output
+Running test DM3:
 ../../ns test-suite-mcast.tcl DM3 QUIET
 Test output agrees with reference output
+Running test DM4:
 ../../ns test-suite-mcast.tcl DM4 QUIET
 Test output agrees with reference output
+Running test CtrMcast1:
 ../../ns test-suite-mcast.tcl CtrMcast1 QUIET
 Test output agrees with reference output
+Running test CtrMcast2:
 ../../ns test-suite-mcast.tcl CtrMcast2 QUIET
 Test output agrees with reference output
+Running test ST1:
 ../../ns test-suite-mcast.tcl ST1 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-newreno
 Tests: reno newreno newreno_B reno1 newreno1 newreno1_A newreno1_B0 newreno1_B reno2 reno2_bugfix newreno2_A newreno2_A_bugfix newreno2_B newreno2_B_bugfix
+Running test reno:
 ../../ns test-suite-newreno.tcl reno QUIET
 Test output agrees with reference output
+Running test newreno:
 ../../ns test-suite-newreno.tcl newreno QUIET
 Test output agrees with reference output
+Running test newreno_B:
 ../../ns test-suite-newreno.tcl newreno_B QUIET
 Test output agrees with reference output
+Running test reno1:
 ../../ns test-suite-newreno.tcl reno1 QUIET
 Test output agrees with reference output
+Running test newreno1:
 ../../ns test-suite-newreno.tcl newreno1 QUIET
 Test output agrees with reference output
+Running test newreno1_A:
 ../../ns test-suite-newreno.tcl newreno1_A QUIET
 Test output agrees with reference output
+Running test newreno1_B0:
 ../../ns test-suite-newreno.tcl newreno1_B0 QUIET
 Test output agrees with reference output
+Running test newreno1_B:
 ../../ns test-suite-newreno.tcl newreno1_B QUIET
 Test output agrees with reference output
+Running test reno2:
 ../../ns test-suite-newreno.tcl reno2 QUIET
 Test output agrees with reference output
+Running test reno2_bugfix:
 ../../ns test-suite-newreno.tcl reno2_bugfix QUIET
 Test output agrees with reference output
+Running test newreno2_A:
 ../../ns test-suite-newreno.tcl newreno2_A QUIET
 Test output agrees with reference output
+Running test newreno2_A_bugfix:
 ../../ns test-suite-newreno.tcl newreno2_A_bugfix QUIET
 Test output agrees with reference output
+Running test newreno2_B:
 ../../ns test-suite-newreno.tcl newreno2_B QUIET
 Test output agrees with reference output
+Running test newreno2_B_bugfix:
 ../../ns test-suite-newreno.tcl newreno2_B_bugfix QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-srm
 Tests: srm-chain srm-star srm-adapt-rep srm-adapt-req
+Running test srm-chain:
 ../../ns test-suite-srm.tcl srm-chain QUIET
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
+Running test srm-star:
 ../../ns test-suite-srm.tcl srm-star QUIET
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
+Running test srm-adapt-rep:
 ../../ns test-suite-srm.tcl srm-adapt-rep QUIET
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
+Running test srm-adapt-req:
 ../../ns test-suite-srm.tcl srm-adapt-req QUIET
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-session
 Tests: Session1 Session2 Session3 Session4
+Running test Session1:
 ../../ns test-suite-session.tcl Session1 QUIET
 Test output agrees with reference output
+Running test Session2:
 ../../ns test-suite-session.tcl Session2 QUIET
 Test output agrees with reference output
+Running test Session3:
 ../../ns test-suite-session.tcl Session3 QUIET
 Test output agrees with reference output
+Running test Session4:
 ../../ns test-suite-session.tcl Session4 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mixmode
 Tests: Mixmode1 Mixmode2 Mixmode3 Mixmode4 Mixmode5 Mixmode6 Mixmode7 Mixmode8 Mixmode9 Mixmode10
+Running test Mixmode1:
 ../../ns test-suite-mixmode.tcl Mixmode1 QUIET
 Test output agrees with reference output
+Running test Mixmode2:
 ../../ns test-suite-mixmode.tcl Mixmode2 QUIET
 Test output agrees with reference output
+Running test Mixmode3:
 ../../ns test-suite-mixmode.tcl Mixmode3 QUIET
 Test output agrees with reference output
+Running test Mixmode4:
 ../../ns test-suite-mixmode.tcl Mixmode4 QUIET
 Test output agrees with reference output
+Running test Mixmode5:
 ../../ns test-suite-mixmode.tcl Mixmode5 QUIET
 Test output agrees with reference output
+Running test Mixmode6:
 ../../ns test-suite-mixmode.tcl Mixmode6 QUIET
 Test output agrees with reference output
+Running test Mixmode7:
 ../../ns test-suite-mixmode.tcl Mixmode7 QUIET
 Test output agrees with reference output
+Running test Mixmode8:
 ../../ns test-suite-mixmode.tcl Mixmode8 QUIET
 Test output agrees with reference output
+Running test Mixmode9:
 ../../ns test-suite-mixmode.tcl Mixmode9 QUIET
 Test output agrees with reference output
+Running test Mixmode10:
 ../../ns test-suite-mixmode.tcl Mixmode10 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-algo-routing
 Tests: Algo1 Algo2
+Running test Algo1:
 ../../ns test-suite-algo-routing.tcl Algo1 QUIET
 Test output agrees with reference output
+Running test Algo2:
 ../../ns test-suite-algo-routing.tcl Algo2 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-vc
 Tests: VC1 VC2 VC3
+Running test VC1:
 ../../ns test-suite-vc.tcl VC1 QUIET
 Test output agrees with reference output
+Running test VC2:
 ../../ns test-suite-vc.tcl VC2 QUIET
 Test output agrees with reference output
+Running test VC3:
 ../../ns test-suite-vc.tcl VC3 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-simultaneous
 Tests: List Calendar Heap
+Running test List:
 ../../ns test-suite-simultaneous.tcl List QUIET
 Test output agrees with reference output
+Running test Calendar:
 ../../ns test-suite-simultaneous.tcl Calendar QUIET
 Test output agrees with reference output
+Running test Heap:
 ../../ns test-suite-simultaneous.tcl Heap QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-lan
 Tests: lan-routing-flat lan-routing-hier lan-broadcast
+Running test lan-routing-flat:
 ../../ns test-suite-lan.tcl lan-routing-flat QUIET
 Test output agrees with reference output
+Running test lan-routing-hier:
 ../../ns test-suite-lan.tcl lan-routing-hier QUIET
 Test output agrees with reference output
+Running test lan-broadcast:
 ../../ns test-suite-lan.tcl lan-broadcast QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-lan
 Tests: dsdv dsr dsdv-wired-cum-wireless dsdv-wireless-mip
+Running test dsdv:
 ../../ns test-suite-wireless-lan.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1103,6 +1630,7 @@ NS EXITING...
 finishing..
 num_nodes is set 50
 Test output agrees with reference output
+Running test dsr:
 ../../ns test-suite-wireless-lan.tcl dsr QUIET
 creating mobile nodes
 Loading connection pattern...
@@ -1113,6 +1641,7 @@ NS EXITING...
 finish..
 num_nodes is set 50
 Test output agrees with reference output
+Running test dsdv-wired-cum-wireless:
 ../../ns test-suite-wireless-lan.tcl dsdv-wired-cum-wireless QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1122,29 +1651,57 @@ NS EXITING...
 finishing..
 num_nodes is set 5
 Test output agrees with reference output
+Running test dsdv-wireless-mip:
 ../../ns test-suite-wireless-lan.tcl dsdv-wireless-mip QUIET
 Loading connection pattern...
 Starting Simulation...
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
 finishing..
 num_nodes is set 3
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn-ack
 Tests: ecn_ack
+Running test ecn_ack:
 ../../ns test-suite-ecn-ack.tcl ecn_ack QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mip
 Tests: mip-adv-one mip-adv-zero mip-adv-multi
+Running test mip-adv-one:
 ../../ns test-suite-mip.tcl mip-adv-one QUIET
 Test output agrees with reference output
+Running test mip-adv-zero:
 ../../ns test-suite-mip.tcl mip-adv-zero QUIET
 Test output agrees with reference output
+Running test mip-adv-multi:
 ../../ns test-suite-mip.tcl mip-adv-multi QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-energy
 Tests: dsdv dsr aodv
+Running test dsdv:
 ../../ns test-suite-energy.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1152,6 +1709,7 @@ Load complete...
 NS EXITING...
 num_nodes is set 5
 Test output agrees with reference output
+Running test dsr:
 ../../ns test-suite-energy.tcl dsr QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1159,6 +1717,7 @@ Load complete...
 NS EXITING...
 num_nodes is set 5
 Test output agrees with reference output
+Running test aodv:
 ../../ns test-suite-energy.tcl aodv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1169,6 +1728,7 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-gridkeeper
 Tests: dsdv
+Running test dsdv:
 ../../ns test-suite-wireless-gridkeeper.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1181,36 +1741,49 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcache
 Tests: media1 media2 media3 media3a media4 media4a media5 media5a media5b
+Running test media1:
 ../../ns test-suite-mcache.tcl media1 QUIET
 Test output agrees with reference output
+Running test media2:
 ../../ns test-suite-mcache.tcl media2 QUIET
 Test output agrees with reference output
+Running test media3:
 ../../ns test-suite-mcache.tcl media3 QUIET
 Test output agrees with reference output
+Running test media3a:
 ../../ns test-suite-mcache.tcl media3a QUIET
 Test output agrees with reference output
+Running test media4:
 ../../ns test-suite-mcache.tcl media4 QUIET
 Test output agrees with reference output
+Running test media4a:
 ../../ns test-suite-mcache.tcl media4a QUIET
 Test output agrees with reference output
+Running test media5:
 ../../ns test-suite-mcache.tcl media5 QUIET
 Test output agrees with reference output
+Running test media5a:
 ../../ns test-suite-mcache.tcl media5a QUIET
 Test output agrees with reference output
+Running test media5b:
 ../../ns test-suite-mcache.tcl media5b QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-satellite
 Tests: repeater mixed aloha
+Running test repeater:
 ../../ns test-suite-satellite.tcl repeater QUIET
 Test output agrees with reference output
+Running test mixed:
 ../../ns test-suite-satellite.tcl mixed QUIET
 Test output agrees with reference output
+Running test aloha:
 ../../ns test-suite-satellite.tcl aloha QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-lan-newnode
 Tests: dsdv dsr dsdv-wired-cum-wireless dsdv-wireless-mip
+Running test dsdv:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1220,6 +1793,7 @@ NS EXITING...
 finishing..
 num_nodes is set 50
 Test output agrees with reference output
+Running test dsr:
 ../../ns test-suite-wireless-lan-newnode.tcl dsr QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1229,7 +1803,9 @@ NS EXITING...
 finishing..
 num_nodes is set 50
 Test output agrees with reference output
+Running test dsdv-wired-cum-wireless:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv-wired-cum-wireless QUIET
+warning: Both propType and propInstance are set.
 Loading connection pattern...
 Loading scenario file...
 Load complete...
@@ -1238,15 +1814,40 @@ NS EXITING...
 finishing..
 num_nodes is set 5
 Test output agrees with reference output
+Running test dsdv-wireless-mip:
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv-wireless-mip QUIET
+warning: Both propType and propInstance are set.
 Loading connection pattern...
 Starting Simulation...
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
+warning: Route to base_stn not known: dropping pkt
 finishing..
 num_nodes is set 3
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-lan-aodv
 Tests: aodv
+Running test aodv:
 ../../ns test-suite-wireless-lan-aodv.tcl aodv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1259,6 +1860,7 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-WLtutorial
 Tests: wireless1 wireless2 wireless3
+Running test wireless1:
 ../../ns test-suite-WLtutorial.tcl wireless1 QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1266,12 +1868,16 @@ Starting Simulation...
 NS EXITING...
 num_nodes is set 3
 Test output agrees with reference output
+Running test wireless2:
 ../../ns test-suite-WLtutorial.tcl wireless2 QUIET
+warning: Both propType and propInstance are set.
 Starting Simulation...
 NS EXITING...
 num_nodes is set 3
 Test output agrees with reference output
+Running test wireless3:
 ../../ns test-suite-WLtutorial.tcl wireless3 QUIET
+warning: Both propType and propInstance are set.
 Starting Simulation...
 NS EXITING...
 num_nodes is set 1
@@ -1279,59 +1885,85 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-aimd
 Tests: tcp tcpA tcpA_precise tcpB ssthresh ssthreshA ssthresh_second ssthresh_secondA tcp_tahoe tcpA_tahoe tcpA_precise_tahoe tcp_reno tcpA_reno tcpA_precise_reno tcp_newreno tcpA_newreno tcpA_precise_newreno binomial1 binomial2
+Running test tcp:
 ../../ns test-suite-aimd.tcl tcp QUIET
 Test output agrees with reference output
+Running test tcpA:
 ../../ns test-suite-aimd.tcl tcpA QUIET
 Test output agrees with reference output
+Running test tcpA_precise:
 ../../ns test-suite-aimd.tcl tcpA_precise QUIET
 Test output agrees with reference output
+Running test tcpB:
 ../../ns test-suite-aimd.tcl tcpB QUIET
 Test output agrees with reference output
+Running test ssthresh:
 ../../ns test-suite-aimd.tcl ssthresh QUIET
 Test output agrees with reference output
+Running test ssthreshA:
 ../../ns test-suite-aimd.tcl ssthreshA QUIET
 Test output agrees with reference output
+Running test ssthresh_second:
 ../../ns test-suite-aimd.tcl ssthresh_second QUIET
 Test output agrees with reference output
+Running test ssthresh_secondA:
 ../../ns test-suite-aimd.tcl ssthresh_secondA QUIET
 Test output agrees with reference output
+Running test tcp_tahoe:
 ../../ns test-suite-aimd.tcl tcp_tahoe QUIET
 Test output agrees with reference output
+Running test tcpA_tahoe:
 ../../ns test-suite-aimd.tcl tcpA_tahoe QUIET
 Test output agrees with reference output
+Running test tcpA_precise_tahoe:
 ../../ns test-suite-aimd.tcl tcpA_precise_tahoe QUIET
 Test output agrees with reference output
+Running test tcp_reno:
 ../../ns test-suite-aimd.tcl tcp_reno QUIET
 Test output agrees with reference output
+Running test tcpA_reno:
 ../../ns test-suite-aimd.tcl tcpA_reno QUIET
 Test output agrees with reference output
+Running test tcpA_precise_reno:
 ../../ns test-suite-aimd.tcl tcpA_precise_reno QUIET
 Test output agrees with reference output
+Running test tcp_newreno:
 ../../ns test-suite-aimd.tcl tcp_newreno QUIET
 Test output agrees with reference output
+Running test tcpA_newreno:
 ../../ns test-suite-aimd.tcl tcpA_newreno QUIET
 Test output agrees with reference output
+Running test tcpA_precise_newreno:
 ../../ns test-suite-aimd.tcl tcpA_precise_newreno QUIET
 Test output agrees with reference output
+Running test binomial1:
 ../../ns test-suite-aimd.tcl binomial1 QUIET
 Test output agrees with reference output
+Running test binomial2:
 ../../ns test-suite-aimd.tcl binomial2 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-greis
 Tests: example1 example1a example1b example2 example3 example4 ping
+Running test example1:
 ../../ns test-suite-greis.tcl example1 QUIET
 Test output agrees with reference output
+Running test example1a:
 ../../ns test-suite-greis.tcl example1a QUIET
 Test output agrees with reference output
+Running test example1b:
 ../../ns test-suite-greis.tcl example1b QUIET
 Test output agrees with reference output
+Running test example2:
 ../../ns test-suite-greis.tcl example2 QUIET
 Test output agrees with reference output
+Running test example3:
 ../../ns test-suite-greis.tcl example3 QUIET
 Test output agrees with reference output
+Running test example4:
 ../../ns test-suite-greis.tcl example4 QUIET
 Test output agrees with reference output
+Running test ping:
 ../../ns test-suite-greis.tcl ping QUIET
 node 0 received ping answer from  2 with round-trip-time 42.0 ms.
 node 2 received ping answer from  0 with round-trip-time 42.0 ms.
@@ -1341,87 +1973,127 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rfc793edu
 Tests: rtt-jacobson rtt-rfc793 seqno-nofastrtx seqno-fastrtx rto-karn rto-nokarn jacobson88-noss jacobson88-ss
+Running test rtt-jacobson:
 ../../ns test-suite-rfc793edu.tcl rtt-jacobson QUIET
 Test output agrees with reference output
+Running test rtt-rfc793:
 ../../ns test-suite-rfc793edu.tcl rtt-rfc793 QUIET
 Test output agrees with reference output
+Running test seqno-nofastrtx:
 ../../ns test-suite-rfc793edu.tcl seqno-nofastrtx QUIET
 Test output agrees with reference output
+Running test seqno-fastrtx:
 ../../ns test-suite-rfc793edu.tcl seqno-fastrtx QUIET
 Test output agrees with reference output
+Running test rto-karn:
 ../../ns test-suite-rfc793edu.tcl rto-karn QUIET
 Test output agrees with reference output
+Running test rto-nokarn:
 ../../ns test-suite-rfc793edu.tcl rto-nokarn QUIET
 Test output agrees with reference output
+Running test jacobson88-noss:
 ../../ns test-suite-rfc793edu.tcl jacobson88-noss QUIET
 Test output agrees with reference output
+Running test jacobson88-ss:
 ../../ns test-suite-rfc793edu.tcl jacobson88-ss QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-friendly
 Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossConservative HighLossTCP printLosses
+Running test slowStartDiscount:
 ../../ns test-suite-friendly.tcl slowStartDiscount QUIET
 Test output agrees with reference output
+Running test slowStartDiscountCA:
 ../../ns test-suite-friendly.tcl slowStartDiscountCA QUIET
 Test output agrees with reference output
+Running test smooth:
 ../../ns test-suite-friendly.tcl smooth QUIET
 Test output agrees with reference output
+Running test smoothCA:
 ../../ns test-suite-friendly.tcl smoothCA QUIET
 Test output agrees with reference output
+Running test slowStart:
 ../../ns test-suite-friendly.tcl slowStart QUIET
 Test output agrees with reference output
+Running test slowStartCA:
 ../../ns test-suite-friendly.tcl slowStartCA QUIET
 Test output agrees with reference output
+Running test slowStartEWMA:
 ../../ns test-suite-friendly.tcl slowStartEWMA QUIET
 Test output agrees with reference output
+Running test slowStartFixed:
 ../../ns test-suite-friendly.tcl slowStartFixed QUIET
 Test output agrees with reference output
+Running test slowStartTcp:
 ../../ns test-suite-friendly.tcl slowStartTcp QUIET
 Test output agrees with reference output
+Running test impulseDiscount:
 ../../ns test-suite-friendly.tcl impulseDiscount QUIET
 Test output agrees with reference output
+Running test impulseDiscountCA:
 ../../ns test-suite-friendly.tcl impulseDiscountCA QUIET
 Test output agrees with reference output
+Running test impulse:
 ../../ns test-suite-friendly.tcl impulse QUIET
 Test output agrees with reference output
+Running test impulseCA:
 ../../ns test-suite-friendly.tcl impulseCA QUIET
 Test output agrees with reference output
+Running test impulseMultReportDiscount:
 ../../ns test-suite-friendly.tcl impulseMultReportDiscount QUIET
 Test output agrees with reference output
+Running test impulseMultReportDiscountCA:
 ../../ns test-suite-friendly.tcl impulseMultReportDiscountCA QUIET
 Test output agrees with reference output
+Running test impulseMultReport:
 ../../ns test-suite-friendly.tcl impulseMultReport QUIET
 Test output agrees with reference output
+Running test impulseMultReportCA:
 ../../ns test-suite-friendly.tcl impulseMultReportCA QUIET
 Test output agrees with reference output
+Running test impulseTcp:
 ../../ns test-suite-friendly.tcl impulseTcp QUIET
 Test output agrees with reference output
+Running test two-friendly:
 ../../ns test-suite-friendly.tcl two-friendly QUIET
 Test output agrees with reference output
+Running test two-friendlyCA:
 ../../ns test-suite-friendly.tcl two-friendlyCA QUIET
 Test output agrees with reference output
+Running test OnlyTcp:
 ../../ns test-suite-friendly.tcl OnlyTcp QUIET
 Test output agrees with reference output
+Running test randomized:
 ../../ns test-suite-friendly.tcl randomized QUIET
 Test output agrees with reference output
+Running test randomizedCA:
 ../../ns test-suite-friendly.tcl randomizedCA QUIET
 Test output agrees with reference output
+Running test randomized1:
 ../../ns test-suite-friendly.tcl randomized1 QUIET
 Test output agrees with reference output
+Running test randomized1CA:
 ../../ns test-suite-friendly.tcl randomized1CA QUIET
 Test output agrees with reference output
+Running test slow:
 ../../ns test-suite-friendly.tcl slow QUIET
 Test output agrees with reference output
+Running test twoDrops:
 ../../ns test-suite-friendly.tcl twoDrops QUIET
 Test output agrees with reference output
+Running test manyDrops:
 ../../ns test-suite-friendly.tcl manyDrops QUIET
 Test output agrees with reference output
+Running test HighLoss:
 ../../ns test-suite-friendly.tcl HighLoss QUIET
 Test output agrees with reference output
+Running test HighLossConservative:
 ../../ns test-suite-friendly.tcl HighLossConservative QUIET
 Test output agrees with reference output
+Running test HighLossTCP:
 ../../ns test-suite-friendly.tcl HighLossTCP QUIET
 Test output agrees with reference output
+Running test printLosses:
 ../../ns test-suite-friendly.tcl printLosses QUIET
 1.613678: sample 0:     0 1:  1024 2:     0 3:     0 4:     0
 time: 1.84301 sample 0:    92 loss_rate: 0.00098 
@@ -1456,36 +2128,49 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rfc2581
 Tests: immediateAck noImmediateAck immediateAckReno noImmediateAckReno immediateAckNewReno noImmediateAckNewReno immediateAckSack noImmediateAckSack
+Running test immediateAck:
 ../../ns test-suite-rfc2581.tcl immediateAck QUIET
 Test output agrees with reference output
+Running test noImmediateAck:
 ../../ns test-suite-rfc2581.tcl noImmediateAck QUIET
 Test output agrees with reference output
+Running test immediateAckReno:
 ../../ns test-suite-rfc2581.tcl immediateAckReno QUIET
 Test output agrees with reference output
+Running test noImmediateAckReno:
 ../../ns test-suite-rfc2581.tcl noImmediateAckReno QUIET
 Test output agrees with reference output
+Running test immediateAckNewReno:
 ../../ns test-suite-rfc2581.tcl immediateAckNewReno QUIET
 Test output agrees with reference output
+Running test noImmediateAckNewReno:
 ../../ns test-suite-rfc2581.tcl noImmediateAckNewReno QUIET
 Test output agrees with reference output
+Running test immediateAckSack:
 ../../ns test-suite-rfc2581.tcl immediateAckSack QUIET
 Test output agrees with reference output
+Running test noImmediateAckSack:
 ../../ns test-suite-rfc2581.tcl noImmediateAckSack QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-links
 Tests: links changeDelay links1 changeBandwidth
+Running test links:
 ../../ns test-suite-links.tcl links QUIET
 Test output agrees with reference output
+Running test changeDelay:
 ../../ns test-suite-links.tcl changeDelay QUIET
 Test output agrees with reference output
+Running test links1:
 ../../ns test-suite-links.tcl links1 QUIET
 Test output agrees with reference output
+Running test changeBandwidth:
 ../../ns test-suite-links.tcl changeBandwidth QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-tdma
 Tests: dsdv dsr
+Running test dsdv:
 ../../ns test-suite-wireless-tdma.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1495,6 +2180,7 @@ NS EXITING...
 finishing..
 num_nodes is set 50
 Test output agrees with reference output
+Running test dsr:
 ../../ns test-suite-wireless-tdma.tcl dsr QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1507,42 +2193,58 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rio
 Tests: strict proportional gentle notGentle tagging
+Running test strict:
 ../../ns test-suite-rio.tcl strict QUIET
 Test output agrees with reference output
+Running test proportional:
 ../../ns test-suite-rio.tcl proportional QUIET
 Test output agrees with reference output
+Running test gentle:
 ../../ns test-suite-rio.tcl gentle QUIET
 Test output agrees with reference output
+Running test notGentle:
 ../../ns test-suite-rio.tcl notGentle QUIET
 Test output agrees with reference output
+Running test tagging:
 ../../ns test-suite-rio.tcl tagging QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-testReno
 Tests: Tahoe_TCP Tahoe_TCP_without_Fast_Retransmit Reno_TCP NewReno_TCP Sack_TCP Tahoe_TCP2 Tahoe_TCP2_without_Fast_Retransmit Reno_TCP2 NewReno_TCP2 Sack_TCP2
+Running test Tahoe_TCP:
 ../../ns test-suite-testReno.tcl Tahoe_TCP QUIET
 Test output agrees with reference output
+Running test Tahoe_TCP_without_Fast_Retransmit:
 ../../ns test-suite-testReno.tcl Tahoe_TCP_without_Fast_Retransmit QUIET
 Test output agrees with reference output
+Running test Reno_TCP:
 ../../ns test-suite-testReno.tcl Reno_TCP QUIET
 Test output agrees with reference output
+Running test NewReno_TCP:
 ../../ns test-suite-testReno.tcl NewReno_TCP QUIET
 Test output agrees with reference output
+Running test Sack_TCP:
 ../../ns test-suite-testReno.tcl Sack_TCP QUIET
 Test output agrees with reference output
+Running test Tahoe_TCP2:
 ../../ns test-suite-testReno.tcl Tahoe_TCP2 QUIET
 Test output agrees with reference output
+Running test Tahoe_TCP2_without_Fast_Retransmit:
 ../../ns test-suite-testReno.tcl Tahoe_TCP2_without_Fast_Retransmit QUIET
 Test output agrees with reference output
+Running test Reno_TCP2:
 ../../ns test-suite-testReno.tcl Reno_TCP2 QUIET
 Test output agrees with reference output
+Running test NewReno_TCP2:
 ../../ns test-suite-testReno.tcl NewReno_TCP2 QUIET
 Test output agrees with reference output
+Running test Sack_TCP2:
 ../../ns test-suite-testReno.tcl Sack_TCP2 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-diffusion
 Tests: diff-rate-default diff-rate-other diff-prob omnimcast flooding
+Running test diff-rate-default:
 ../../ns test-suite-wireless-diffusion.tcl diff-rate-default QUIET
 Seeding Random number generator with 1
 
@@ -1551,6 +2253,7 @@ Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
+NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 20.463377
 Network parition !! Exiting... at time 20.463377
@@ -2021,6 +2724,7 @@ SINK 21 : TYPE 0 : terminates (send 0, recv 123, cum_delay 0.451102)
 SINK 23 : TYPE 0 : terminates (send 0, recv 120, cum_delay 1.334576)
 God: data type 0 nondupplicate 126
 Test output agrees with reference output
+Running test diff-rate-other:
 ../../ns test-suite-wireless-diffusion.tcl diff-rate-other QUIET
 Seeding Random number generator with 1
 
@@ -2030,6 +2734,7 @@ Loading node on-off file...
 Load complete...
 Loading traffic file...
 Load complete...
+NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 13.606713
 Network parition !! Exiting... at time 13.606713
@@ -2424,6 +3129,7 @@ SINK 21 : TYPE 0 : terminates (send 0, recv 209, cum_delay 2.629872)
 SINK 23 : TYPE 0 : terminates (send 0, recv 82, cum_delay 1.252459)
 God: data type 0 nondupplicate 238
 Test output agrees with reference output
+Running test diff-prob:
 ../../ns test-suite-wireless-diffusion.tcl diff-prob QUIET
 Seeding Random number generator with 1
 
@@ -2432,11 +3138,233 @@ Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
-ns: _o3 finish; puts "NS EXITING..." ; _o4 halt: _o3: unable to dispatch method finish
-    while executing
-"_o3 finish"
+NS EXITING ...
 num_nodes is set 30
+Diffusion node 0 : terminates (overhead 5)
+node 0: remaining energy 0.215646, initial energy 1.100000
+Node 0 neg bcast send 0, neg bcast rcv 0
+DF node 0 has oif 5 (0.666667,2) send data 0 recv neg 0 pos 0
+DF node 0 has oif 23 (0.333333,2) send data 0 recv neg 0 pos 0
+Diffusion node 1 : terminates (overhead 5)
+node 1: remaining energy 0.199604, initial energy 1.100000
+Node 1 neg bcast send 0, neg bcast rcv 0
+DF node 1 has oif 18 (0.666667,2) send data 0 recv neg 0 pos 0
+DF node 1 has oif 9 (0.333333,2) send data 0 recv neg 0 pos 0
+Diffusion node 2 : terminates (overhead 7)
+node 2: remaining energy 0.085526, initial energy 1.100000
+Node 2 neg bcast send 0, neg bcast rcv 0
+DF node 2 has oif 3 (0.571429,3) send data 0 recv neg 0 pos 0
+DF node 2 has oif 13 (0.285714,3) send data 2 recv neg 0 pos 0
+DF node 2 has oif 15 (0.142857,3) send data 1 recv neg 0 pos 0
+Diffusion node 2 has iif for 7
+Diffusion node 3 : terminates (overhead 14)
+node 3: remaining energy 0.079037, initial energy 1.100000
+Node 3 neg bcast send 0, neg bcast rcv 0
+Diffusion node 3 has iif for 20
+Diffusion node 3 has iif for 15
+Diffusion node 3 has iif for 13
+Diffusion node 3 has iif for 12
+Diffusion node 3 has iif for 24
+Diffusion node 3 has iif for 19
+Diffusion node 4 : terminates (overhead 9)
+node 4: remaining energy 0.075441, initial energy 1.100000
+Node 4 neg bcast send 0, neg bcast rcv 0
+DF node 4 has oif 3 (0.500978,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 13 (0.250489,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 24 (0.125245,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 2 (0.062622,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 19 (0.031311,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 12 (0.015656,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 25 (0.007828,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 14 (0.003914,9) send data 0 recv neg 0 pos 0
+DF node 4 has oif 20 (0.001957,9) send data 0 recv neg 0 pos 0
+Diffusion node 5 : terminates (overhead 5)
+node 5: remaining energy 0.136972, initial energy 1.100000
+Node 5 neg bcast send 0, neg bcast rcv 0
+DF node 5 has oif 16 (0.571429,3) send data 0 recv neg 0 pos 0
+DF node 5 has oif 17 (0.285714,3) send data 0 recv neg 0 pos 0
+DF node 5 has oif 10 (0.142857,3) send data 0 recv neg 0 pos 0
+Diffusion node 6 : terminates (overhead 5)
+node 6: remaining energy 0.136797, initial energy 1.100000
+Node 6 neg bcast send 0, neg bcast rcv 0
+DF node 6 has oif 11 (0.666667,2) send data 0 recv neg 0 pos 0
+DF node 6 has oif 21 (0.333333,2) send data 0 recv neg 0 pos 0
+Diffusion node 7 : terminates (overhead 0)
+node 7: remaining energy 0.067697, initial energy 1.100000
+Node 7 neg bcast send 0, neg bcast rcv 0
+DF node 7 has oif 4 (0.000983,9) send data 0 recv neg 0 pos 0
+DF node 7 has oif 26 (0.001967,9) send data 0 recv neg 0 pos 0
+DF node 7 has oif 20 (0.003934,9) send data 1 recv neg 0 pos 0
+DF node 7 has oif 14 (0.007867,9) send data 0 recv neg 0 pos 0
+DF node 7 has oif 25 (0.015734,9) send data 1 recv neg 0 pos 0
+DF node 7 has oif 12 (0.031468,9) send data 1 recv neg 0 pos 0
+DF node 7 has oif 19 (0.062937,9) send data 1 recv neg 0 pos 0
+DF node 7 has oif 2 (0.125874,9) send data 3 recv neg 0 pos 0
+DF node 7 has oif 24 (0.749235,9) send data 11 recv neg 0 pos 0
+Diffusion node 8 : terminates (overhead 5)
+node 8: remaining energy 0.098211, initial energy 1.100000
+Node 8 neg bcast send 0, neg bcast rcv 0
+DF node 8 has oif 4 (0.571429,3) send data 0 recv neg 0 pos 0
+DF node 8 has oif 21 (0.285714,3) send data 0 recv neg 0 pos 0
+DF node 8 has oif 6 (0.142857,3) send data 0 recv neg 0 pos 0
+Diffusion node 9 : terminates (overhead 5)
+node 9: remaining energy 0.192658, initial energy 1.100000
+Node 9 neg bcast send 0, neg bcast rcv 0
+DF node 9 has oif 6 (0.666667,2) send data 0 recv neg 0 pos 0
+DF node 9 has oif 18 (0.333333,2) send data 0 recv neg 0 pos 0
+Diffusion node 10 : terminates (overhead 5)
+node 10: remaining energy 0.095881, initial energy 1.100000
+Node 10 neg bcast send 0, neg bcast rcv 0
+DF node 10 has oif 16 (0.666667,2) send data 0 recv neg 0 pos 0
+DF node 10 has oif 17 (0.333333,2) send data 0 recv neg 0 pos 0
+Diffusion node 11 : terminates (overhead 5)
+node 11: remaining energy 0.136912, initial energy 1.100000
+Node 11 neg bcast send 0, neg bcast rcv 0
+DF node 11 has oif 25 (1.000000,1) send data 0 recv neg 0 pos 0
+Diffusion node 12 : terminates (overhead 5)
+node 12: remaining energy 0.090615, initial energy 1.100000
+Node 12 neg bcast send 0, neg bcast rcv 0
+DF node 12 has oif 3 (0.516129,5) send data 1 recv neg 0 pos 0
+DF node 12 has oif 13 (0.258065,5) send data 1 recv neg 0 pos 0
+DF node 12 has oif 24 (0.129032,5) send data 0 recv neg 0 pos 0
+DF node 12 has oif 2 (0.064516,5) send data 0 recv neg 0 pos 0
+DF node 12 has oif 19 (0.032258,5) send data 0 recv neg 0 pos 0
+Diffusion node 12 has iif for 25
+Diffusion node 12 has iif for 7
+Diffusion node 13 : terminates (overhead 5)
+node 13: remaining energy 0.087653, initial energy 1.100000
+Node 13 neg bcast send 0, neg bcast rcv 0
+DF node 13 has oif 3 (1.000000,1) send data 4 recv neg 0 pos 0
+Diffusion node 13 has iif for 12
+Diffusion node 13 has iif for 2
+Diffusion node 13 has iif for 24
+Diffusion node 14 : terminates (overhead 5)
+node 14: remaining energy 0.091914, initial energy 1.100000
+Node 14 neg bcast send 0, neg bcast rcv 0
+DF node 14 has oif 3 (0.500978,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 13 (0.250489,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 15 (0.125245,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 24 (0.062622,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 2 (0.031311,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 16 (0.015656,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 27 (0.007828,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 19 (0.003914,9) send data 0 recv neg 0 pos 0
+DF node 14 has oif 12 (0.001957,9) send data 0 recv neg 0 pos 0
+Diffusion node 15 : terminates (overhead 5)
+node 15: remaining energy 0.094283, initial energy 1.100000
+Node 15 neg bcast send 0, neg bcast rcv 0
+DF node 15 has oif 3 (1.000000,1) send data 1 recv neg 0 pos 0
+Diffusion node 15 has iif for 2
+Diffusion node 16 : terminates (overhead 5)
+node 16: remaining energy 0.089606, initial energy 1.100000
+Node 16 neg bcast send 0, neg bcast rcv 0
+DF node 16 has oif 3 (0.571429,3) send data 0 recv neg 0 pos 0
+DF node 16 has oif 13 (0.285714,3) send data 0 recv neg 0 pos 0
+DF node 16 has oif 2 (0.142857,3) send data 0 recv neg 0 pos 0
+Diffusion node 17 : terminates (overhead 5)
+node 17: remaining energy 0.089769, initial energy 1.100000
+Node 17 neg bcast send 0, neg bcast rcv 0
+DF node 17 has oif 3 (0.533333,4) send data 0 recv neg 0 pos 0
+DF node 17 has oif 13 (0.266667,4) send data 0 recv neg 0 pos 0
+DF node 17 has oif 16 (0.133333,4) send data 0 recv neg 0 pos 0
+DF node 17 has oif 19 (0.066667,4) send data 0 recv neg 0 pos 0
+Diffusion node 18 : terminates (overhead 5)
+node 18: remaining energy 0.122916, initial energy 1.100000
+Node 18 neg bcast send 0, neg bcast rcv 0
+DF node 18 has oif 21 (0.571429,3) send data 0 recv neg 0 pos 0
+DF node 18 has oif 6 (0.285714,3) send data 0 recv neg 0 pos 0
+DF node 18 has oif 8 (0.142857,3) send data 0 recv neg 0 pos 0
+Diffusion node 19 : terminates (overhead 7)
+node 19: remaining energy 0.083403, initial energy 1.100000
+Node 19 neg bcast send 0, neg bcast rcv 0
+DF node 19 has oif 3 (0.507937,6) send data 1 recv neg 0 pos 0
+DF node 19 has oif 13 (0.253968,6) send data 0 recv neg 0 pos 0
+DF node 19 has oif 15 (0.126984,6) send data 0 recv neg 0 pos 0
+DF node 19 has oif 24 (0.063492,6) send data 0 recv neg 0 pos 0
+DF node 19 has oif 2 (0.031746,6) send data 0 recv neg 0 pos 0
+DF node 19 has oif 16 (0.015873,6) send data 0 recv neg 0 pos 0
+Diffusion node 19 has iif for 7
+Diffusion node 20 : terminates (overhead 5)
+node 20: remaining energy 0.088214, initial energy 1.100000
+Node 20 neg bcast send 0, neg bcast rcv 0
+DF node 20 has oif 3 (0.500978,9) send data 1 recv neg 0 pos 0
+DF node 20 has oif 13 (0.250489,9) send data 0 recv neg 0 pos 0
+DF node 20 has oif 24 (0.125245,9) send data 0 recv neg 0 pos 0
+DF node 20 has oif 2 (0.062622,9) send data 0 recv neg 0 pos 0
+DF node 20 has oif 16 (0.031311,9) send data 0 recv neg 0 pos 0
+DF node 20 has oif 19 (0.015656,9) send data 0 recv neg 0 pos 0
+DF node 20 has oif 12 (0.007828,9) send data 0 recv neg 0 pos 0
+DF node 20 has oif 25 (0.003914,9) send data 0 recv neg 0 pos 0
+DF node 20 has oif 14 (0.001957,9) send data 0 recv neg 0 pos 0
+Diffusion node 20 has iif for 7
+Diffusion node 21 : terminates (overhead 5)
+node 21: remaining energy 0.098845, initial energy 1.100000
+Node 21 neg bcast send 0, neg bcast rcv 0
+DF node 21 has oif 11 (1.000000,1) send data 0 recv neg 0 pos 0
+Diffusion node 22 : terminates (overhead 5)
+node 22: remaining energy 0.175539, initial energy 1.100000
+Node 22 neg bcast send 0, neg bcast rcv 0
+DF node 22 has oif 18 (0.571429,3) send data 0 recv neg 0 pos 0
+DF node 22 has oif 9 (0.285714,3) send data 0 recv neg 0 pos 0
+DF node 22 has oif 1 (0.142857,3) send data 0 recv neg 0 pos 0
+Diffusion node 23 : terminates (overhead 5)
+node 23: remaining energy 0.215646, initial energy 1.100000
+Node 23 neg bcast send 0, neg bcast rcv 0
+DF node 23 has oif 5 (1.000000,1) send data 0 recv neg 0 pos 0
+Diffusion node 24 : terminates (overhead 6)
+node 24: remaining energy 0.087526, initial energy 1.100000
+Node 24 neg bcast send 0, neg bcast rcv 0
+DF node 24 has oif 3 (0.832496,2) send data 10 recv neg 0 pos 0
+DF node 24 has oif 13 (0.167504,2) send data 1 recv neg 0 pos 0
+Diffusion node 24 has iif for 7
+Diffusion node 25 : terminates (overhead 5)
+node 25: remaining energy 0.088395, initial energy 1.100000
+Node 25 neg bcast send 0, neg bcast rcv 0
+DF node 25 has oif 24 (0.666667,2) send data 0 recv neg 0 pos 0
+DF node 25 has oif 12 (0.333333,2) send data 1 recv neg 0 pos 0
+Diffusion node 25 has iif for 7
+Diffusion node 26 : terminates (overhead 5)
+node 26: remaining energy 0.089630, initial energy 1.100000
+Node 26 neg bcast send 0, neg bcast rcv 0
+DF node 26 has oif 3 (0.500244,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 13 (0.250122,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 15 (0.125061,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 24 (0.062531,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 2 (0.031265,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 16 (0.015633,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 27 (0.007816,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 19 (0.003908,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 12 (0.001954,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 14 (0.000977,11) send data 0 recv neg 0 pos 0
+DF node 26 has oif 20 (0.000489,11) send data 0 recv neg 0 pos 0
+Diffusion node 27 : terminates (overhead 5)
+node 27: remaining energy 0.094830, initial energy 1.100000
+Node 27 neg bcast send 0, neg bcast rcv 0
+DF node 27 has oif 3 (0.533333,4) send data 0 recv neg 0 pos 0
+DF node 27 has oif 15 (0.266667,4) send data 0 recv neg 0 pos 0
+DF node 27 has oif 2 (0.133333,4) send data 0 recv neg 0 pos 0
+DF node 27 has oif 16 (0.066667,4) send data 0 recv neg 0 pos 0
+Diffusion node 28 : terminates (overhead 7)
+node 28: remaining energy 0.090090, initial energy 1.100000
+Node 28 neg bcast send 0, neg bcast rcv 0
+DF node 28 has oif 3 (0.503937,7) send data 0 recv neg 0 pos 0
+DF node 28 has oif 15 (0.251969,7) send data 0 recv neg 0 pos 0
+DF node 28 has oif 2 (0.125984,7) send data 0 recv neg 0 pos 0
+DF node 28 has oif 27 (0.062992,7) send data 0 recv neg 0 pos 0
+DF node 28 has oif 19 (0.031496,7) send data 0 recv neg 0 pos 0
+DF node 28 has oif 14 (0.015748,7) send data 0 recv neg 0 pos 0
+DF node 28 has oif 26 (0.007874,7) send data 0 recv neg 0 pos 0
+Diffusion node 29 : terminates (overhead 5)
+node 29: remaining energy 0.097016, initial energy 1.100000
+Node 29 neg bcast send 0, neg bcast rcv 0
+DF node 29 has oif 8 (0.571429,3) send data 0 recv neg 0 pos 0
+DF node 29 has oif 18 (0.285714,3) send data 0 recv neg 0 pos 0
+DF node 29 has oif 22 (0.142857,3) send data 0 recv neg 0 pos 0
+SINK 7 : TYPE 0 : terminates (send 131, recv 0, cum_delay 0.000000)
+SINK 3 : TYPE 0 : terminates (send 0, recv 131, cum_delay 0.395789)
+God: data type 0 nondupplicate 131
 Test output agrees with reference output
+Running test omnimcast:
 ../../ns test-suite-wireless-diffusion.tcl omnimcast QUIET
 Seeding Random number generator with 1
 
@@ -2445,6 +3373,7 @@ Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
+NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 13.782095
 node 0: remaining energy 0.446892, initial energy 1.100000
@@ -2485,6 +3414,7 @@ SINK 21 : TYPE 0 : terminates (send 0, recv 86, cum_delay 0.642341)
 SINK 23 : TYPE 0 : terminates (send 0, recv 84, cum_delay 0.813976)
 God: data type 0 nondupplicate 90
 Test output agrees with reference output
+Running test flooding:
 ../../ns test-suite-wireless-diffusion.tcl flooding QUIET
 Seeding Random number generator with 1
 
@@ -2493,6 +3423,7 @@ Load complete...
 *** NOTE: no node-on-off file specified.
 Loading traffic file...
 Load complete...
+NS EXITING ...
 num_nodes is set 30
 Network parition !! Exiting... at time 10.651152
 Network parition !! Exiting... at time 10.651152
@@ -2539,58 +3470,16 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-plm
 Tests: PLM
+Running test PLM:
 ../../ns test-suite-plm.tcl PLM QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-linkstate
 Tests: eqp
+Running test eqp:
 ../../ns test-suite-linkstate.tcl eqp QUIET
-At 0.010537246517963046 node 2:  Agent/rtProto/LS route-changed
-At 0.010537246517963046 node 3:  Agent/rtProto/LS route-changed
-At 0.012617246517963046 node 0:  Agent/rtProto/LS route-changed
-At 0.012617246517963046 node 1:  Agent/rtProto/LS route-changed
-At 0.067848894071583121 node 2:  Agent/rtProto/LS route-changed
-At 0.06992889407158312 node 1:  Agent/rtProto/LS route-changed
-At 0.07838222740491646 node 4:  Agent/rtProto/LS route-changed
-At 0.07838222740491646 node 3:  Agent/rtProto/LS route-changed
-At 0.23140506596172464 node 0:  Agent/rtProto/LS route-changed
-At 0.23140506596172464 node 1:  Agent/rtProto/LS route-changed
-At 0.23985839929505798 node 4:  Agent/rtProto/LS route-changed
-At 0.23985839929505798 node 3:  Agent/rtProto/LS route-changed
-At 0.27691695203941796 node 4:  Agent/rtProto/LS route-changed
-At 0.27691695203941796 node 2:  Agent/rtProto/LS route-changed
-At 0.27899695203941799 node 0:  Agent/rtProto/LS route-changed
-At 0.27899695203941799 node 1:  Agent/rtProto/LS route-changed
-At 0.37988266109751662 node 2:  Agent/rtProto/LS route-changed
-At 0.38196266109751664 node 0:  Agent/rtProto/LS route-changed
-At 0.39094932776418329 node 3:  Agent/rtProto/LS route-changed
-At 0.40094932776418329 node 4:  Agent/rtProto/LS route-changed
 v 0.75 link-down 2 4
-At 0.75 node 4:  Agent/rtProto/LS route-changed
-Node 4: Agent/rtProto/LS compute-routes
-At 0.75 node 2:  Agent/rtProto/LS route-changed
-Node 2: Agent/rtProto/LS compute-routes
-At 0.75207999999999997 node 0:  Agent/rtProto/LS route-changed
-At 0.75207999999999997 node 1:  Agent/rtProto/LS route-changed
-At 0.76053333333333328 node 3:  Agent/rtProto/LS route-changed
-At 0.76053333333333328 node 3:  Agent/rtProto/LS route-changed
-At 0.77106666666666657 node 2:  Agent/rtProto/LS route-changed
-At 0.77117333333333327 node 4:  Agent/rtProto/LS route-changed
-At 0.77314666666666654 node 0:  Agent/rtProto/LS route-changed
-At 0.77314666666666654 node 1:  Agent/rtProto/LS route-changed
 v 1 link-up 2 4
-At 1 node 4:  Agent/rtProto/LS route-changed
-Node 4: Agent/rtProto/LS compute-routes
-At 1 node 2:  Agent/rtProto/LS route-changed
-Node 2: Agent/rtProto/LS compute-routes
-At 1.0020800000000001 node 0:  Agent/rtProto/LS route-changed
-At 1.0020800000000001 node 1:  Agent/rtProto/LS route-changed
-At 1.0105333333333333 node 2:  Agent/rtProto/LS route-changed
-At 1.0105333333333333 node 3:  Agent/rtProto/LS route-changed
-At 1.0105333333333333 node 4:  Agent/rtProto/LS route-changed
-At 1.0126133333333334 node 0:  Agent/rtProto/LS route-changed
-At 1.0126133333333334 node 1:  Agent/rtProto/LS route-changed
-At 1.0210666666666666 node 3:  Agent/rtProto/LS route-changed
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
