@@ -20,10 +20,11 @@ ENDUSAGE
 
 $usage = "usage: $progname [-b] [-o outfile] -s node1 [-d node2] [-f flowid] [trace files...]\n";
 
+$opt_s = -1;
 $opt_b = 0;
 $opt_f = -1;
 require 'getopts.pl';
-(&Getopts('bo:s:d:f:') && $opt_s) || usage;
+(&Getopts('bo:s:d:f:') && $opt_s != -1) || usage;
 
 open(STDOUT, ">$opt_o") if ($opt_o);
 while (<>) {
