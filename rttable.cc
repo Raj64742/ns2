@@ -58,7 +58,7 @@ rt_entry::rt_entry()
         rt_seqno = 0;
         rt_nexthop = 0;
         rt_expire = 0.0;
-        rt_hops = INFINITY;
+        rt_hops = INFINITY2;
         rt_flags = RTF_DOWN;
 
         rt_errors = 0;
