@@ -5,8 +5,14 @@
 \RequirePackage{tabularx}
 \renewcommand{\arraystretch}{1.2}
 
-\RequirePackage{graphics}
-
+\RequirePackage[dvips]{graphics}
+\DeclareGraphicsExtensions{.eps, .ps, .epsf}
+\graphicspath{
+  {./}
+  {./sl-figures/}
+  {../sl-figures/}
+  {./figures/}
+  }
 \RequirePackage{pstricks,pst-node}
 
 \ifx\@noresizetrue\undefined
