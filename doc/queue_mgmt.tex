@@ -401,8 +401,7 @@ weighted round-robin scheduler.
 CBQClass objects implement the traffic classes associated with CBQ
 objects. 
 
-\code{$cbqclass setparams <parent> <okborrow> <allot> <maxidle> <prio>
-<level>}\\
+\code{$cbqclass setparams <parent> <okborrow> <allot> <maxidle> <prio> <level>}\\
 Sets several of the configuration parameters for the CBQ traffic class
 (see below). 
 
@@ -609,8 +608,7 @@ passed, it uses \code{traceAllFile_} to write the events.
 Similar to trace-queue above, this sets up nam-tracing in the queue.
 
 
-\code{$ns_ monitor-queue <n1> <n2> <optional:qtrace> 
-<optional:sampleinterval>}\\
+\code{$ns_ monitor-queue <n1> <n2> <optional:qtrace> <optional:sampleinterval>}\\
 This command inserts objects that allows us to monitor the queue size. This
 returns a handle to the object that may be queried to determine the average
 queue size. The default value for sampleinterval is 0.1.

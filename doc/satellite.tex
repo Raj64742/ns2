@@ -949,8 +949,7 @@ any other link interfaces other than repeater interfaces.
 
 Following is a list of commands related to satellite networking:
 \begin{flushleft}
-\code{$ns_ satnode-polar <alt> <inc> <lon> <alpha> <plane> <linkargs>
-<chan>}\\
+\code{$ns_ satnode-polar <alt> <inc> <lon> <alpha> <plane> <linkargs> <chan>}\\
 This a simulator wrapper method for creating a polar satellite node. Two
 links, uplink and downlink, are created along with two channels, uplink
 channel and downlink channel. <alt> is the polar satellite altitude,
@@ -997,8 +996,7 @@ The link type (inter, intra or cross-seam), BW of the link, the queue-type
 and queue-limit are all specified.
 
 
-\code{$satnode add-gsl <ltype> <opt_ll> <opt_ifq> <opt_qlim> <opt_mac> 
-<opt_bw> <opt_phy> <opt_inlink> <opt_outlink>}\\
+\code{$satnode add-gsl <ltype> <opt_ll> <opt_ifq> <opt_qlim> <opt_mac> <opt_bw> <opt_phy> <opt_inlink> <opt_outlink>}\\
 This method creates a GSL (ground to satellite link). First a network
 stack is created that is defined by LL, IfQ, Qlim, MAC, BW and PHY layers.
 Next the node is attached to the channel inlink and outlink.

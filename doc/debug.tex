@@ -150,8 +150,8 @@ described above).
 
 On some platforms you may need to link things statically to get dmalloc to
 work. On Solaris this is done by linking with these options:
-\code{"-Xlinker -B -Xlinker -static {libraries} -Xlinker -B -Xlinker
--dynamic -ldl -lX11 -lXext"}. (You'll need to change Makefile. Thanks to
+\code{"-Xlinker -B -Xlinker -static {libraries} -Xlinker -B -Xlinker -dynamic -ldl -lX11 -lXext"}.
+(You'll need to change Makefile. Thanks to
 Haobo Yu and Doug Smith for working this out.) 
 
 We can interpret a sample summary produced from this process on
@@ -196,9 +196,11 @@ memory. Saving is about 40+ Byte/variable.
 
 \item[Avoid unnecessary variables :]
 If an object will not be referred to later on, avoid naming the object.
-E.g. \code{set cmcast(1) [new CtrMcast $ns $n(1) $ctrmcastcomp [list 1
-1]]} would be better if replaced by \code{new CtrMcast $ns $n(1) 
-$ctrmcastcomp [list 1 1]}. Saving is about 80 Byte/variable. 
+E.g.
+\code{set cmcast(1) [new CtrMcast $ns $n(1) $ctrmcastcomp [list 1 1]]}
+would be better if replaced by
+\code{new CtrMcast $ns $n(1) $ctrmcastcomp [list 1 1]}.
+Saving is about 80 Byte/variable. 
 
 \item[Run on top of FreeBSD :]
 malloc() overhead on FreeBSD is less than on some other systems. We will

@@ -111,8 +111,7 @@ V (nam version), A (hierarchy information), c (nam color) and v
 \subsection{Node state}
 
 The nam trace format defining node state is:\\
-\code{n -t <time> -a <src-addr> -s <src-id> -S <state> -v <shape> -c 
-<color> -i <l-color> -o <color>}\\
+\code{n -t <time> -a <src-addr> -s <src-id> -S <state> -v <shape> -c <color> -i <l-color> -o <color>}\\
 "n" denotes the node state. Flags "-t" indicates time and "-a" and "-s"
 denotes the node address and id. "-S" gives the node state transition.
 The possible values: 
@@ -286,9 +285,7 @@ V -t <time> -v <version> -a <attr>
 
 \item[Hierarchy] Hierarchical address information is defined by:
 
-  \code{A -t <time> -n <levels> -o <address-space size> -c <mcastshift> -a 
-    <mcastmask> -h <nth level> -m <mask in nth level> -s <shift in nth
-    level>}
+  \code{A -t <time> -n <levels> -o <address-space size> -c <mcastshift> -a <mcastmask> -h <nth level> -m <mask in nth level> -s <shift in nth level>}
   
   This trace gives the details of hierarchy, if hierarchical
   addressing is being used for simulation. 

@@ -93,8 +93,9 @@ to insert an error module into three different places.
     as a parameter, it inserts the error module into the simple link,
     right after the queue module, and set the drop-target of the error
     model to be the drop trace object of the simple link. Note that
-    this requires the following configuration order: \code{\$ns
-    namtrace-all} followed by link configurations, followed by error
+    this requires the following configuration order:
+	\code{\$ns namtrace-all}
+  followed by link configurations, followed by error
     model insertion. When no argument is given, it returns the current
     error model in the link, if there's any. This method is defined in
     \ns/tcl/lib/ns-link.tcl \\
@@ -182,12 +183,15 @@ Here is a simple example script to create a multi-state error model:
 
 The following is a list of error-model related commands commonly used in
 simulation scripts:
-\begin{flushleft}
-\code{set em [new ErrorModel]\\
-$em unit pkt\\
-$em set rate_ 0.02\\
-$em ranvar [new RandomVariable/Uniform]\\
-$em drop-target [new Agent/Null]}\\
+
+\begin{program}
+set em [new ErrorModel]
+$em unit pkt
+$em set rate_ 0.02
+$em ranvar [new RandomVariable/Uniform]
+$em drop-target [new Agent/Null]
+\end{program}
+
 This is a simple example of how to create and configure an error model.
 The commands to place the error-model in a simple link will be shown next.
 

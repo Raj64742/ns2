@@ -1034,7 +1034,7 @@ For example, the start of the constructor for the
 SRM objects are a subclass of agent objects that implement the SRM
 reliable multicast transport protocol. They inherit all of the generic
 agent functionalities. The methods for this object is described in the
-next section \ref{srmcommand}. Configuration parameters for this object
+next section \ref{sec:srmcommand}. Configuration parameters for this object
 are:
 \begin{description}
 \item[packetSize\_] The data packet size that will be used for repair
@@ -1135,27 +1135,32 @@ for details about these extensions.
 This attaches the srm agent instance to the given <node>.
 
 
-\code{set grp [Node allocaddr] \\
-$srm set dst_ $grp} \\
+\begin{program}
+set grp [Node allocaddr]
+$srm set dst_ $grp
+\end{program}
 This assigns the srm agent to a multicast group represented by the mcast
 address <grp>.
 
 
 Configuration parameters for srm agent may be set as follows:\\
-\code{$srm set fid_ <flow-id>\\
-$srm set tg_ <traffic-generator-instance>\\
-.. etc}\\
+\begin{program}
+$srm set fid_ <flow-id>
+$srm set tg_ <traffic-generator-instance>
+.. etc
+\end{program}
 For all possible parameters and their default values please lookup \ns/tcl/mcast/srm.tcl
 and \ns/tcl/mcast/srm-adaptive.tcl.
 
 
-\code{set exp [new Application/Traffic/Exponential]\\
-$exp attach-agent $srm}\\
+\begin{program}
+set exp [new Application/Traffic/Exponential]
+$exp attach-agent $srm
+\end{program}
 This command attaches a traffic generator (an exponential one in this example),
 to the srm agent.
 
-\code{$srm start\\
-$exp start}\\
+\code{$srm start; $exp start}\\
 These commands start the srm agent and traffic generator. Note that the srm
 agent and traffic generator have to be started separately. Alternatively, the
 traffic generator may be started through the agent as follows:\\

@@ -654,8 +654,7 @@ following major C++ methods:
 \begin{itemize}
 \item \code{get_page(const char* name)} - Returns a pointer to the
   page with the given name. 
-\item \code{add_page(const char *name, int size, double mt,
-    double et, double age)} - Add a page with given size, last modification
+\item \code{add_page(const char *name, int size, double mt, double et, double age)} - Add a page with given size, last modification
     time (mt), cache entry time (et), and page lifetime (age). 
 \item \code{remove_page(const char* name)} - Remove a page from cache.
 \end{itemize}
@@ -1061,15 +1060,17 @@ See section \ref{sec:webcache-pagepool} for details on Otcl interface for
 each type of Pagepool.
 
 
-\code{$server set-page-generator <pgp>\\
-$server log <handle-to-log-file>}\\
+\code{$server set-page-generator <pgp>}\\
+\code{$server log <handle-to-log-file>}\\
 The above commands consist of server configuration. First the server is
 attached to a central page pool <pgp>. Next it is attached to a log file.
 
 
-\code{$client set-page-generator <pgp>\\
-$client set-interval-generator <ranvar> \\
-$client log <handle-to-log-file>}\\
+\begin{program}
+client set-page-generator <pgp>
+$client set-interval-generator <ranvar> 
+$client log <handle-to-log-file>
+\end{program}
 These consist configuration of the Http client. It is attached to a central
 page pool <pgp>. Next a random variable <ranvar> is attached to the client
 that is used by it (client) to generate intervals between two consecutive
@@ -1081,8 +1082,8 @@ This is part of cache configuration that allows the cache to log its
 events in a log-file. 
 
 
-\code{$client connect <cache>\\
-$cache connect <server>}\\
+\code{$client connect <cache>}\\
+\code{$cache connect <server>}\\
 Once the client, cache, and server are configured, they need to be
 connected as shown in above commands.
 

@@ -60,8 +60,10 @@ This is a common command used to attach any <agent> to a given <node>.
 This a class Application/Traffic/<traffictype> method which connects the
 traffic generator to the given <agent>. For example, if we want to setup
 a CBR traffic flow for the udp agent, udp1, we given the following commands\\
-\code{set cbr1 [new Application/Traffic/CBR]\\
-$cbr1 attach-agent $udp1}
+\begin{program}
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
+\end{program}
 
 
 \code{$ns_ connect <src-agent> <dst-agent>}\\
@@ -69,12 +71,14 @@ This command sets up an end-to-end connection between two agents (at the
 transport layer).
 
 
-\code{$udp set packetSize_ <pktsize>\\
-$udp set dst_addr_ <address>\\
-$udp set dst_port_ <portnum>\\
-$udp set class_ <class-type>\\
-$udp set ttl_ <time-to-live>\\
-..... etc }
+\begin{program}
+$udp set packetSize_ <pktsize>
+$udp set dst_addr_ <address>
+$udp set dst_port_ <portnum>
+$udp set class_ <class-type>
+$udp set ttl_ <time-to-live>
+..... etc
+\end{program}
 
 The above are different parameter values that may be set as shown above
 for udp agents. The default values can be found in 

@@ -594,20 +594,23 @@ packet in bytes.
 Following are some transport agent and application related commands
 commonly used in simulation scripts:
 \begin{flushleft}
-\code{set tcp1 [new Agent/TCP]\\
-$ns_ attach-agent $node_(src) $tcp1\\
-set sink1 [new Agent/TCPSink]\\
-$ns_ attach-agent $node_(snk) $sink1\\
-$ns_ connect $tcp1 $sink1}\\
+\begin{program}
+set tcp1 [new Agent/TCP]
+$ns_ attach-agent $node_(src) $tcp1
+set sink1 [new Agent/TCPSink]
+$ns_ attach-agent $node_(snk) $sink1
+$ns_ connect $tcp1 $sink1
+\end{program}
 This creates a source tcp agent and a destination sink agent. Both the transport
 agents are attached to their resoective nodes. Finally an end-to-end connection
 is setup between the src and sink.
 
 
-\code{set ftp1 [new Application/FTP]\\
-$ftp1 attach-agent $agent}\\
-or\\
-\code{set ftp1 [$agent attach-app FTP]}\\
+\begin{program}
+set ftp1 [new Application/FTP]
+$ftp1 attach-agent $agent
+or
+\code{set ftp1 [$agent attach-app FTP]}
 Both the above commands achieve the same. An application (ftp in this example)
 is created and attached to the source agent. An application can be of two
 types, a traffic generator or a simulated application.

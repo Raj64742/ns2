@@ -1,4 +1,4 @@
-#!/local/bin/perl
+#!/usr/bin/perl -w
 # -*-	Mode:Perl; tab-width:8; indent-tabs-mode:t -*- 
 #
 # pre-process.pl
@@ -22,14 +22,91 @@
 # 
 
 die "usage: $0 working-directory\n" if ($#ARGV < 0);
-my($working_dir) = $ARGV[0];
-chdir($working_dir) || die "cannot chdir $working_dir\n";
 
-@FILES = `ls *.tex`;
+use IO::Handle;
+STDOUT->autoflush(1);
 
-foreach $filename (@FILES) {
-    chop $filename;
-    &pre_process_file($filename);
+foreach (@ARGV) {
+    if (-d $_) {
+	do_dir($_);
+    } elsif (-f $_) {
+	&pre_process_file($_);
+    };
+};
+
+exit 0;
+
+sub do_dir {
+    my($dir) = @_;
+    my($here) = `pwd`; chomp $here;
+    chdir ($dir) || die  "cannot chdir $dir\n";
+    foreach (<*.tex>) {
+	&pre_process_file($_);
+    };
+    chdir($here);
+};
+
+
+
+sub rewrite_code_line {
+    my($s) = @_;
+    my($qchars) = '{}';
+    die "need two quote chars\n" if (length($qchars) != 2);
+
+    my($dummy1, $qL, $dummy2, $qR) = split(/(.)/, $qchars);
+    my(@in) = split(/([\\$qchars])/, $s);
+    my(@out) = ();
+
+    my($in_code) = 0;
+    my($level, $i);
+    push(@out, '');
+    for ($level = $i = 0; $i <= $#in; $i++) {
+	if ($in[$i] eq '') {
+	    # do nothing for nothing
+	} elsif ($in[$i] eq "\\") {
+	    $out[$#out] .= $in[$i] . $in[$i+1];
+	    $i++;  # skip quoted piece
+	} elsif ($in[$i] eq $qL) {
+	    if ($level == 0) {
+		if ($out[$#out] =~ s/\\code$//) {
+		    die "$0: nested in-codes on line:\n\t$s\n" if ($in_code);
+		    $in_code = 1;
+		    push(@out, '{\tt ');
+		} else {
+		    $out[$#out] .= $in[$i];
+		    $in_code = 0;
+		};
+	    } else {
+	        $out[$#out] .= $in[$i];
+	    };
+	    $level++;
+	} elsif($in[$i] eq $qR) {
+	    $out[$#out] .= $in[$i];
+	    $level--;
+	    # die "$0: extra right-quotes on line:\n\t$s\n" if ($level < 0);
+	    if ($level == 0 && $in_code) {
+		$out[$#out] = &code_innards_rewrite($out[$#out]);
+		push(@out, '');
+		$in_code = 0;
+	    };
+	} else {
+	    $out[$#out] .= $in[$i];
+	};
+    };
+
+    die "$0: unterminated \\code{} on line:\n\t$s\n" if ($in_code);
+
+    return join('', @out);
+}
+
+sub code_innards_rewrite {
+    my($c) = @_;
+    # slashes for these things are optional in code
+    # first get rid of extra slashes
+    $c =~ s/(\\[_<>&\$])/$1/g;
+    # now put them back everywhere consistently
+    $c =~ s/([_<>&\$])/\\$1/g;
+    return $c;
 }
 
 
@@ -38,6 +115,7 @@ sub pre_process_file
     local($filename) = @_;
     $program_env = 0;
     $change = 0;
+    print "$filename: ";
     open(FILE, "$filename") || die "Cannot open $filename: $_";
     $outFile = "$filename.new";
     open(OUTFILE, ">$outFile") || die "Cannot create temp file $_";
@@ -46,7 +124,7 @@ sub pre_process_file
 	    $program_env = 1;
 	    $change = 1;
 	    s/$1/verbatim/g;
-	}			# if
+	};
 	if ($program_env == 1) {
 	    s/\\;/\#/g;
 	    s/{\s*\\cf\s*(\#?.*)}/$1/g;
@@ -54,22 +132,28 @@ sub pre_process_file
 	    s/\\\*(.*)\*\//\/\*$1\//g;
 	    if (/\\end\s*{(program)}/) {
 		$program_env = 0;
-		s/$1/verbatim/g;p
-	    }			# if
-	}			# if
-	s/\\code{([^\$}]*)}/{\\ss $1}/g && ($change = 1);
-	s/\\code{\s*\$([^}]*)}/{\\em $1}/g && ($change = 1);
-	s/\\code{[^\w]*([^\$]*)([^}]*)}/{\\ss $1 $2}/g && s/\$/\\\$/g && ($change = 1);
+		s/$1/verbatim/g;
+	    };
+	};
+	# Code is tricky because we have trouble matching paired {}'s
+	if (/\\code\{/) {
+	    $_ = rewrite_code_line($_);
+	};
+	# nader's old code handling:
+#	s/\\code{([^\$}]*)}/{\\ss $1}/g && ($change = 1);
+#	s/\\code{\s*\$([^}]*)}/{\\em $1}/g && ($change = 1);
+#	s/\\code{[^\w]*([^\$]*)([^}]*)}/{\\ss $1 $2}/g && s/\$/\\\$/g && ($change = 1);
 #	s/\\proc\[\]{([^}]*)}/{\\ss $1 }/g && ($change = 1);
 	print OUTFILE unless (/^%/);
-    }				# while
+    };
     close(OUTFILE);
     close(FILE);
     if ($change == 1) {
-	print "$filename has been altered!\n";
+	print " ALTERED\n";
 	rename($filename, "$filename.org");
 	rename($outFile, $filename);
     } else {
+        print " unchanged\n";
 	unlink($outFile);
-    }				# else
+    };
 }

@@ -186,7 +186,6 @@ for an example of sessionsim over hier rtg.
 
 
 \section{Commands at a glance}
-\label{sec:dynamicscommand}
 
 Following is a list of hierarchical routing/addressing related commands
 used in simulation scripts:
@@ -199,15 +198,16 @@ This creates a default topology of 3 levels of hierarchy, assigning 8 bits
 to each level.
 
 
-\code{$ns_ set-address-format hierarchical <nlevels> <#bits in level1>..
-..<#bits in level n>}\\
+\code{$ns_ set-address-format hierarchical <nlevels> <#bits in level1>....<#bits in level n>}\\
 This command creates a hierarchy of <nlevels> and assigns the bits in each level
 as specified in the arguments.
 
 
-\code{AddrParams set domain_num_ <n_domains>
+\begin{program}
+AddrParams set domain_num_ <n_domains>
 AddrParams set cluster_num_ <n_clusters>
-AddrParams set nodes_num_ <n_nodes>}\\
+AddrParams set nodes_num_ <n_nodes>
+\end{program}
 The above APIs are used to specify the hierarchical topology, i.e the number of
 domains, clusters and nodes present in the topology. Default values used by
 AddrParams (i.e if nothing is specified) provide a topology with a single

@@ -280,8 +280,7 @@ Insert objects that allow us to monitor the queue size of this link.
 Return the name of the object that can be queried to determine the average
 queue size.
 
-\code{$simplelink attach-monitors <insnoop> <outsnoop> <dropsnoop>
-<qmon>}\\
+\code{$simplelink attach-monitors <insnoop> <outsnoop> <dropsnoop> <qmon>}\\
 This is similar to init-monitor, but allows for specification of more of
 the items.
 
@@ -343,8 +342,7 @@ to node2 and the other from node2 to node1. The syntax for duplex-link is
 same as that of simplex-link described above.
 
 
-\code{$ns_ duplex-intserv-link <n1> <n2> <bw> <dly> <sched> <signal>
-<adc> <args>}\\
+\code{$ns_ duplex-intserv-link <n1> <n2> <bw> <dly> <sched> <signal> <adc> <args>}\\
 This creates a duplex-link between n1 and n2 with queue type of intserv, with
 specified BW and delay. This type of queue implements a scheduler with two
 level services priority. The type of intserv queue is given by <sched>, with
@@ -434,8 +432,8 @@ dynamics is not enabled.
 
 \code{$link all-connectors op}\\ 
 This command applies the specified operation <op> to all connectors in the
-link.  Like, \code{$link all-connectors reset} or \code{$link
-all-connectors isDynamic}. 
+link.  Like, \code{$link all-connectors reset} or
+\code{$link all-connectors isDynamic}. 
 
 
 \code{$link install-error <errmodel>}\\
