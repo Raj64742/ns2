@@ -30,19 +30,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.3 1998/10/05 19:29:39 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.4 1998/10/05 19:34:09 sfloyd Exp $
 #
-# This test suite reproduces most of the tests from the following note:
-# Floyd, S., 
-# Ns Simulator Tests for Random Early Detection (RED), October 1996.
-# URL ftp://ftp.ee.lbl.gov/papers/redsims.ps.Z.
-#
-# To run all tests: test-all-red
+# To run all tests: test-all-ecn-ack
 
 set dir [pwd]
 catch "cd tcl/test"
-#source misc.tcl
-#source topologies.tcl
 source misc_simple.tcl
 catch "cd $dir"
 
