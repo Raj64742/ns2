@@ -174,7 +174,7 @@ LoggingDataStruct::~LoggingDataStruct() {
 
 LoggingDataStructNode::LoggingDataStructNode(int id, LoggingDataStructNode * next) {
   
-  printf("LGDSN: Setting up node for %d\n", id);
+  //printf("LGDSN: Setting up node for %d\n", id);
   nid_ = id;
   rateEstimator_ = new RateEstimator();
 

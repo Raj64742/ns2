@@ -73,7 +73,7 @@ PushbackQueue::PushbackQueue(const char* const pba): pushbackID_(-1), src_(-1), 
 
   rateEstimator_=new RateEstimator();
   rlsList_ = new RateLimitSessionList();
-  printf("pushback queue instantiated %d\n",pushback_->last_index_);
+  if (verbose_) printf("pushback queue instantiated %d\n",pushback_->last_index_);
   
 }
 
