@@ -167,12 +167,14 @@ TestSuite instproc linkDumpFlows { link interval stoptime } {
 	$self instvar ns_ flowfile_
         set f [open $flowfile_ w]
         TestSuite instproc dump1 { file link interval } {
-                global maxclass
-                $ns_ at [expr [$ns_ now] + $interval] "$self dump1 $file $link $interval"
-                for {set i 0} {$i <= $maxclass} {incr i 1} {
-                  set bytes [$link stat $i bytes]
+		$self instvar ns_ maxfid_
+                $ns_ at [expr [$ns_ now] + $interval] \
+			"$self dump1 $file $link $interval"
+                for {set i 0} {$i <= $maxfid_} {incr i 1} {
+  set bytes [$link stat $i bytes] ; # NOT IN NS2!!
                   if {$bytes > 0} {
-                    puts $file "time: [$ns_ now] class: $i bytes: $bytes $interval"     
+                  	puts $file \
+			    "time: [$ns_ now] class: $i bytes: $bytes $interval"     
                   }
                 }
         }
@@ -206,7 +208,7 @@ Test/one instproc config {} {
 # Create traffic.
 #
 Test/one instproc traffic1 {} {
-    $self instvar node_
+    $self instvar node_ maxfid_
     $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
     $self new_tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50
 #    new_cbr 18.4 $s1 $s4) 190 0.00003 3
@@ -225,6 +227,7 @@ Test/one instproc traffic1 {} {
     $self new_tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512
     $self new_tcp 420.0 $node_(s2) $node_(s4) 100 16 0 512
     $self new_tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512
+    set maxfid_ 17
 }
 
 
@@ -260,11 +263,9 @@ Test/one instproc run {} {
 	$self linkDumpFlows $L1 1.0 $stoptime
 
 	$self traffic1
-
-	$ns_ at $stoptime "plot_bytes NAME $flowfile $graphfile $bandwidth"
 	$ns_ at $stoptime "$self finish"
 
-	ns-random $seed
+	ns-random 0
 	$ns_ run
 }
 
