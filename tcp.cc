@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.13.2.5 1997/04/27 06:19:52 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.13.2.6 1997/04/29 06:25:40 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -231,6 +231,10 @@ void TcpAgent::output(int seqno, int reason)
 	tcph->ts() = now;
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
+
+	/* call helper function to fill in additional fields */
+	output_helper(p);
+
 	Connector::send(p, 0);
 	if (seqno > maxseq()) {
 		maxseq() = seqno;
@@ -294,6 +298,8 @@ void TcpAgent::send(int force, int reason, int maxburst)
 
 	if (!force && pending_[TCP_TIMER_DELSND])
 		return;
+	if (pending_[TCP_TIMER_BURSTSND])
+		return;
 	while (t_seqno() <= highest_ack() + win && t_seqno() < curseq_) {
 		if (overhead_ == 0 || force) {
 			output(t_seqno()++, reason);
@@ -308,6 +314,8 @@ void TcpAgent::send(int force, int reason, int maxburst)
 		if (maxburst && npackets == maxburst)
 			break;
 	}
+	/* call helper function */
+	send_helper(maxburst);
 }
 
 /*
@@ -530,6 +538,15 @@ void TcpAgent::quench(int how)
 	}
 }
 
+void TcpAgent::recv_newack_helper(Packet *pkt) {
+	newack(pkt);
+	opencwnd();
+	if ((highest_ack() >= curseq_-1) && !closed_) {
+		closed_ = 1;
+		finish();
+	}
+}
+
 /*
  * main reception path - should only see acks, otherwise the
  * network connections are misconfigured
@@ -549,13 +566,13 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	ts_peer_ = tcph->ts();
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
+	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
-		newack(pkt);
+		recv_newack_helper(pkt);
 		if ((highest_ack() >= curseq_-1) && !closed_) {
 			closed_ = 1;
 			finish();
 		}
-		opencwnd();
 	} else if (tcph->seqno() == last_ack_) {
 		if (++dupacks() == NUMDUPACKS) {
                    /* The line below, for "bug_fix_" true, avoids

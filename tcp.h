@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.7 1997/04/27 06:19:53 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.8 1997/04/29 06:25:42 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -125,6 +125,7 @@ struct hdr_tcpasym {
 
 #define TCP_TIMER_RTX		0
 #define TCP_TIMER_DELSND	1
+#define TCP_TIMER_BURSTSND 2
 
 
 /* Macro to log the *specified* member whenever its value changes */
@@ -155,7 +156,7 @@ struct hdr_tcpasym {
 			       cur_time = 0; \
 		       if (memb != old_memb && cur_time > memb_time) { \
                                if (memb_time > last_log_time_) { \
-                                       sprintf(wrk,"time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", memb_time, addr_/256, addr_%256, dst_/256, dst_%256, maxseq_, highest_ack_, t_seqno_, cwnd_, ssthresh_, dupacks_, t_rtt_*tcp_tick_, (t_srtt_ >> 3)*tcp_tick_, (t_rttvar_ >> 2)*tcp_tick_, t_backoff_); \
+                                       sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", memb_time, addr_/256, addr_%256, dst_/256, dst_%256, maxseq_, highest_ack_, t_seqno_, cwnd_, ssthresh_, dupacks_, t_rtt_*tcp_tick_, (t_srtt_ >> 3)*tcp_tick_, (t_rttvar_ >> 2)*tcp_tick_, t_backoff_); \
                                        n = strlen(wrk); \
                                        wrk[n] = '\n'; \
                                        wrk[n+1] = 0; \
@@ -290,6 +291,12 @@ protected:
 	void quench(int how);
 	void finish(); /* called when the connection is terminated */
 
+	/* helper functions */
+	virtual void output_helper(Packet* p) { return; }
+	virtual void send_helper(int maxburst) { return; }
+	virtual void recv_helper(Packet* p) { return;}
+	virtual void recv_newack_helper(Packet* pkt);
+
 	double overhead_;
 	double wnd_;
 	double wnd_const_;
@@ -358,5 +365,46 @@ private:
 	int old_t_backoff_;
 	double t_backoff_time_;
 };
+
+/* TCP Reno */
+class RenoTcpAgent : public virtual TcpAgent {
+ public:
+	RenoTcpAgent();
+	virtual int window();
+	virtual void recv(Packet *pkt, Handler*);
+	virtual void timeout(int tno);
+ protected:
+	u_int dupwnd_;
+};
+
+static class RenoTcpClass : public TclClass {
+public:
+	RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new RenoTcpAgent());
+	}
+} class_reno;
+
+
+/* TCP New Reno */
+class NewRenoTcpAgent : public virtual TcpAgent {
+ public:
+	NewRenoTcpAgent();
+	virtual int window();
+	virtual void recv(Packet *pkt);
+	virtual void timeout(int tno);
+ protected:
+	u_int dupwnd_;
+	void partialnewack(Packet *pkt);
+};
+
+static class NewRenoTcpClass : public TclClass {
+public:
+	NewRenoTcpClass() : TclClass("Agent/TCP/Newreno") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new NewRenoTcpAgent());
+	}
+} matcher_reno;
+
 
 #endif

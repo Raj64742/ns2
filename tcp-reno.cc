@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.8.2.3 1997/04/27 06:19:51 padmanab Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.8.2.4 1997/04/29 06:25:39 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -27,24 +27,6 @@ static char rcsid[] =
 #include "ip.h"
 #include "tcp.h"
 #include "flags.h"
-
-class RenoTcpAgent : public TcpAgent {
- public:
-	RenoTcpAgent();
-	virtual int window();
-	virtual void recv(Packet *pkt, Handler*);
-	virtual void timeout(int tno);
- protected:
-	u_int dupwnd_;
-};
-
-static class RenoTcpClass : public TclClass {
-public:
-	RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new RenoTcpAgent());
-	}
-} class_reno;
 
 int RenoTcpAgent::window()
 {
@@ -78,14 +60,10 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
+	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
 		dupwnd_ = 0;
-		newack(pkt);
-		if ((highest_ack() >= curseq_-1) && !closed_) {
-			closed_ = 1;
-			finish();
-		}
-                opencwnd();
+		recv_newack_helper(pkt);
    	} else if (tcph->seqno() == last_ack_)  {
 		if (++dupacks() == NUMDUPACKS) {
 			/*
@@ -131,6 +109,6 @@ void RenoTcpAgent::timeout(int tno)
 		if (bug_fix_) recover_ = maxseq();
 		TcpAgent::timeout(tno);
 	} else {
-		send(1, TCP_REASON_TIMEOUT);
+		send(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
 }
