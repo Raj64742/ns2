@@ -1,9 +1,0 @@
-'ns mcast1.tcl' demonstrates CtrMcast in ns. In CtrMcast, a
-centralized computation agent is used to build the mulitcast
-distribution trees.
-'ns mcast2.tcl' demonstrates the use of dynamicDM. This is a dense
-mode protocol that adapts to network dynamics (based on DVMRP). (Note
-that the 'detailedDM' protocol is the recommended dense mode protocol
-for use in ns)
-'ns mcast3.tcl' demonstrates the use of DM. DM is a basic dense mode
-protocol based on DVMRP that does not adapt to network dynamics.
