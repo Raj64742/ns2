@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.11 1998/03/30 21:45:40 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.12 1998/04/17 22:45:09 haldar Exp $
 #
 
 #
@@ -57,7 +57,7 @@ Node instproc color { color } {
 }
 
 Node instproc dump-namconfig {} {
-	$self instvar attr_ id_
+	$self instvar attr_ id_ address_
 	set ns [Simulator instance]
 
 	if ![info exists attr_(SHAPE)] {
@@ -67,7 +67,7 @@ Node instproc dump-namconfig {} {
 		set attr_(COLOR) "black"
 	}
 	$ns puts-nam-config \
-		[eval list "n -t * -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR)"]
+		[eval list "n -t * -a $address_ -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR)"]
 }
 
 Node instproc change-color { color } {
