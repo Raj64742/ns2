@@ -18,10 +18,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/realaudio/realaudio.cc,v 1.2 2000/10/11 19:19:34 kclan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/realaudio/realaudio.cc,v 1.3 2000/10/18 01:19:41 haoboy Exp $ (USC/ISI)";
 #endif
- 
+
+#ifndef WIN32 
 #include <sys/time.h>
+#endif
 #include "random.h"
 #include "trafgen.h"
 #include "ranvar.h"
@@ -84,7 +86,6 @@ void RA_Traffic::init()
 //      int res1 = Ontime_.loadCDF("ontimecdf");
         timeval tv;
 	gettimeofday(&tv, 0);
-	srand48(tv.tv_sec) ;
 
 	interval_ = ontime_ ;
 	burstlen_ = (double) ( rate_ * (ontime_ + offtime_))/ (double)(size_ << 3);
@@ -97,7 +98,6 @@ double RA_Traffic::next_interval(int& size)
 {
 //	double t = Ontime_.value() ;
 	double o = value() ; //off-time is taken from CDF
-//      double ran = drand48();
 
 	double t = ontime_ ; //fixed on-time
 //	double o = offtime_ ;

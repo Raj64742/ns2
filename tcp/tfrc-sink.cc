@@ -583,19 +583,19 @@ void TfrcSinkAgent::init_WALI () {
 		for (int i = 0; i < mid; i ++) {
 			weights[i] = 1.0;
 		}
-		for (int i = mid; i <= numsamples; i ++){
+		for (i = mid; i <= numsamples; i ++){
 			weights[i] = 1.0 - (i-mid)/(mid + 1.0);
 		}
 	} else {
 		int mid = int(numsamples/2);
-		for (int i = 0; i < mid; i ++) {
+		for (i = 0; i < mid; i ++) {
 			weights[i] = 1.0;
 		}
-		for (int i = mid; i <= numsamples; i ++){
+		for (i = mid; i <= numsamples; i ++){
 			weights[i] = 1.0 - (i+1-mid)/(mid + 1.0);
 		}
 	}
-	for (int i = 0; i < numsamples+1; i ++) {
+	for (i = 0; i < numsamples+1; i ++) {
 		mult[i] = 1.0 ; 
 	}
 	init_WALI_flag = 1;  /* initialization done */

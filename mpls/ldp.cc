@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.3 2000/09/14 18:19:26 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.4 2000/10/18 01:19:41 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -44,9 +44,9 @@
 *                                                          *
 ***********************************************************/
 
+#include <iostream.h>
 
 #include "ldp.h"
-#include <iostream.h>
 
 int hdr_ldp::offset_;
 
@@ -134,7 +134,7 @@ void LDPAgent::PKTinit(hdr_ldp *hdrldp, int msgtype,
 
 	len = strlen(er);
 	hdrldp->er = (char *) malloc(len+1);
-	for (int i=0; i<len; i++) { 
+	for (i=0; i<len; i++) { 
 		if ( *(er+i) == ' ' )
 			*(hdrldp->er+i) = '_';
 		else
