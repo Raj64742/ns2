@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.53 2000/05/11 23:43:17 klan Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.54 2000/05/24 19:00:07 kclan Exp $
  */
 
 #include <packet.h>
@@ -94,7 +94,7 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 
 	newtrace_ = 0;
 
-	for (int i=0 ; i < MAX_NODE ; i++) nodeColor[i] = 3  ;
+	for (int i=0 ; i < MAX_NODE ; i++) nodeColor[i] = 3 ;
 
         node_ = 0;
 	off_mac_ = hdr_mac::offset_;
