@@ -1,6 +1,6 @@
 source FlowsA.v2.tcl
 source Setred.v2.tcl
-source Sources.tcl
+source Sources-Alt.tcl
 #
 set flowfile fairflow.tr
 set flowgraphfile fairflow.xgr
