@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.247 2001/06/16 01:18:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.248 2001/06/16 17:46:50 sfloyd Exp $
 
 
 #
@@ -767,6 +767,7 @@ Agent/TFRC set maxHeavyRounds_ 1; # Number of rounds for sending rate allowed
 				  #  to be greater than twice receiving rate.
 Agent/TFRC set conservative_ 0 ;  # Set to true for a conservative 
 				  # response to heavy congestion.
+Agent/TFRC set scmult_ 1.5 ;	# self clocking parameter for conservative_
 Agent/TFRC set ecn_ 0 ;		# Set to 1 for ECN-capable connection.
 Agent/TFRC set SndrType_ 0 ;    # Set to 1 to use data-producing applications
                                 #   such as FTP.

@@ -92,6 +92,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind_bool("ecn_", &ecn_);
 	bind("maxHeavyRounds_", &maxHeavyRounds_);
 	bind("SndrType_", &SndrType_); 
+	bind("scmult_", &scmult_);
 	seqno_ = -1;
 	maxseq_ = 0;
 }
@@ -275,7 +276,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 				maxrate_ = rate_since_last_report*size_;
 			} else { 
 				/* there was no loss in the most recent RTT */
-				maxrate_ = 1.5*rate_since_last_report*size_;
+				maxrate_ = scmult_*rate_since_last_report*size_;
 			}
 		} else 
 			maxrate_ = 2*rate_since_last_report*size_;

@@ -187,6 +187,7 @@ protected:
 	/* Responses to heavy congestion. */
 	int conservative_;	// set to 1 for an experimental, conservative 
 				//   response to heavy congestion
+	double scmult_;         // self clocking parameter for conservative_
 	int heavyrounds_;	// the number of RTTs so far when the
 				//  sending rate > 2 * receiving rate
 	int maxHeavyRounds_;	// the number of allowed rounds for
