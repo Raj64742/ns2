@@ -459,9 +459,11 @@ The next field is the packet's size, as encoded in its IP header.
 The next field contains the flags, which not used in this example.
 The flags are defined in the flags[] array in trace.cc. 
 Four of the flags are used for ECN:
-``C'' for Ecn and ``N'' for Ecn-Capable in the IP header, and 
-``A'' for Congestion Action, and ``E'' for Congestion Experienced in the TCP
-header.
+``E'' for Congestion Experienced (CE) and ``N'' for 
+ECN-Capable-Transport (ECT) indications
+in the IP header, and 
+``C'' for ECN-Echo and ``A'' for Congestion Window Reduced (CWR) 
+in the TCP header.
 For the other flags, ``P'' is for priority, and ``F'' is for TCP Fast Start.
 
 The next field gives the IP {\em flow identifier} field as defined
