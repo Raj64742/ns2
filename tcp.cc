@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.34 1997/08/13 23:59:41 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.35 1997/08/25 20:42:15 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -179,7 +179,7 @@ void TcpAgent::rtt_init()
 /* This has been modified to use the tahoe code. */
 double TcpAgent::rtt_timeout()
 {
-	double timeout = ((t_srtt_ >> 3) + t_rttvar_) * tcp_tick_ ;
+	double timeout = ((t_srtt_ >> 3) + t_rttvar_ + 1) * tcp_tick_ ;
         timeout *= t_backoff_;
 
 	if (timeout > maxrto_)
