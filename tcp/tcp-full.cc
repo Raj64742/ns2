@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.112 2002/06/28 21:55:56 kclan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.113 2002/07/24 04:34:18 tomh Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1075,6 +1075,19 @@ send:
         /* set ECE if necessary */
         if (ecn_ && ect_ && recent_ce_ ) pflags |= TH_ECE;
 
+        /* 
+         * Tack on the FIN flag to the data segment if close_on_empty_
+         * was previously set-- avoids sending a separate FIN
+         */ 
+        if (flags_ & TF_NEEDCLOSE) {
+                flags_ &= ~TF_NEEDCLOSE;
+                if (state_ <= TCPS_ESTABLISHED && state_ != TCPS_CLOSED)
+                {
+                    pflags |=TH_FIN;
+                    fin = 1;  /* FIN consumes sequence number */
+                    newstate(TCPS_FIN_WAIT_1);
+                }
+        }
 	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
 
         /*      
@@ -1123,12 +1136,6 @@ send:
 	 */
 	if (rtx_timer_.status() != TIMER_PENDING && reliable) {
 		set_rtx_timer();  // no timer pending, schedule one
-	}
-
-	if (flags_ & TF_NEEDCLOSE) {
-		flags_ &= ~TF_NEEDCLOSE;
-		if (state_ <= TCPS_ESTABLISHED && state_ != TCPS_CLOSED)
-			usrclosed();
 	}
 
 	return (reliable);
