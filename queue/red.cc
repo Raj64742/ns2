@@ -53,6 +53,11 @@
  *   packets.
  */
 
+#ifndef lint
+static char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.13 1997/06/12 22:58:00 kfall Exp $ (LBL)";
+#endif
+
 #include "red.h"
 
 static class REDClass : public TclClass {
@@ -63,7 +68,7 @@ public:
 	}
 } class_red;
 
-REDQueue::REDQueue() : link_(NULL), bcount_(0), idle_(1)
+REDQueue::REDQueue() : link_(NULL), bcount_(0), idle_(1), de_drop_(NULL)
 {
 	memset(&edp_, '\0', sizeof(edp_));
 	memset(&edv_, '\0', sizeof(edv_));
@@ -316,7 +321,10 @@ void REDQueue::enque(Packet* pkt)
 			 * Drop each packet with probability edv.v_prob.
 			 */
 			if (drop_early(pkt)) {
-				drop(pkt);	// shouldn't this be here??-K
+				if (de_drop_ != NULL)
+					de_drop_->recv(pkt);
+				else
+					drop(pkt);
 				pkt = 0;
 			}
 		}
@@ -362,22 +370,36 @@ int REDQueue::command(int argc, const char*const* argv)
 			reset();
 			return (TCL_OK);
 		}
-	}
-	if (strcmp(argv[1], "link") == 0) {
-		LinkDelay* del = (LinkDelay*)TclObject::lookup(argv[2]);
-		if (del == 0) {
-			tcl.resultf("RED: no LinkDelay object %s",
-				argv[2]);
-			return(TCL_ERROR);
+                if (strcmp(argv[1], "early-drop-target") == 0) {
+                        if (de_drop_ != NULL)
+                                tcl.resultf("%s", de_drop_->name());
+                        return (TCL_OK);
+                }
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "link") == 0) {
+			LinkDelay* del = (LinkDelay*)TclObject::lookup(argv[2]);
+			if (del == 0) {
+				tcl.resultf("RED: no LinkDelay object %s",
+					argv[2]);
+				return(TCL_ERROR);
+			}
+			// set ptc now
+			link_ = del;
+			edp_.ptc = link_->bandwidth() /
+			    (8. * edp_.mean_pktsize);
+
+			return (TCL_OK);
 		}
-		// set ptc now
-		link_ = del;
-		edp_.ptc = link_->bandwidth() /
-		    (8. * edp_.mean_pktsize);
-
-		return (TCL_OK);
+                if (strcmp(argv[1], "early-drop-target") == 0) {
+                        NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
+                        if (p == 0) {
+                                tcl.resultf("no object %s", argv[2]);
+                                return (TCL_ERROR);
+                        }
+                        de_drop_ = p;
+                        return (TCL_OK);
+                }
 	}
-
 	return (Queue::command(argc, argv));
 }
 /* for debugging help */
