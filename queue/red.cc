@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.43 1999/09/28 03:46:33 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.44 1999/11/20 05:08:46 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -359,6 +359,8 @@ void REDQueue::enque(Packet* pkt)
 
 	int m = 0;
 	if (idle_) {
+		// A packet that arrives to an idle queue will never
+		//  be dropped.
 		double now = Scheduler::instance().clock();
 		/* To account for the period when the queue was empty. */
 		idle_ = 0;
