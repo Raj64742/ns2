@@ -30,7 +30,7 @@ Steps in doing an ns release:
     things via ftp.)
 5.1. commit all your changes
 5.2. tag the cvs archive
-    (cd ~ns; cvs tag NS_2_1B1; )
+    (cd ~ns; cvs tag NS_2_1B6; )
 6. update the web pages
 7. send out the release announcement (ns-users, ns-announce)
    (also send to end2end if it's a non-{alpha,beta} release)

@@ -15,7 +15,7 @@ if [info exists env(nshome)] {
 	exit 1
 }
 set env(PATH) "$nshome/bin:$env(PATH)"
-source $nshome/tcl/lan/ns-lan.tcl
+#source $nshome/tcl/lan/ns-lan.tcl
 source $nshome/tcl/http/http.tcl
 
 set opt(trsplit) "-"

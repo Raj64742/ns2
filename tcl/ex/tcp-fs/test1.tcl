@@ -1,4 +1,4 @@
-source ../../../lan/ns-lan.tcl
+#source ../../../lan/ns-lan.tcl
 source ../../../ex/asym/util.tcl
 source ../../../ex/tcp-fs/web.tcl
 

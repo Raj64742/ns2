@@ -1,5 +1,5 @@
 #!../../../../ns
-source ../../../lan/ns-lan.tcl
+#source ../../../lan/ns-lan.tcl
 source ../../../ex/asym/util.tcl
 
 # set up simulation
