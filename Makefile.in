@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.69 1997/08/22 05:37:51 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.70 1997/08/26 03:50:32 padmanab Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -103,10 +103,10 @@ OBJ_CC = \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
 	tcp-vegas.o tcp-rbp.o tcp-full.o \
 	scoreboard.o tcp-sack1.o tcp-fack.o \
-	tcp-asym.o tcp-asym-sink.o \
+	tcp-asym.o tcp-asym-sink.o tcp-fs.o \
 	integrator.o queue-monitor.o flowmon.o loss-monitor.o \
 	queue.o drop-tail.o red.o \
-	semantic-packetqueue.o \
+	semantic-packetqueue.o semantic-red.o \
 	sfq.o fq.o drr.o cbq.o \
 	hackloss.o errmodel.o \
 	delay.o ll.o snoop.o \
