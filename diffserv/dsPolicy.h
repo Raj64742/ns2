@@ -192,6 +192,7 @@ struct flow_entry {
   int fid;
   double last_update;
   int bytes_sent;
+  int count;
   struct flow_entry *next;
 };
 
