@@ -1,4 +1,3 @@
-
 #ifndef _NET_ETHERNET_H_
 #define _NET_ETHERNET_H_
 
@@ -26,6 +25,12 @@ struct	ether_header {
 struct	ether_addr {
 	u_char octet[ETHER_ADDR_LEN];
 };
+
+#endif
+
+#ifndef _NS_ETHERNET_H_
+#define _NS_ETHERNET_H_
+
 
 class Ethernet {
 public: 
