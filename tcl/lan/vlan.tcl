@@ -401,6 +401,11 @@ Simulator instproc make-lan {nodelist bw delay \
 		{macType Mac} \
 		{chanType Channel} \
 		{phyType Phy/WiredPhy}} {
+	if {[string compare $macType "Mac/Csma/Cd"] == 0} {
+	    puts "Warning: Mac/Csma/Cd is out of date"
+	    puts "Warning: Please use Mac/802_3 to replace Mac/Csma/Cd"
+	    set macType "Mac/802_3"
+	}
 	set lan [new LanNode $self \
 			-bw $bw \
 			-delay $delay \
@@ -411,6 +416,7 @@ Simulator instproc make-lan {nodelist bw delay \
 			-phyType $phyType]
 	$lan addNode $nodelist $bw $delay $llType $ifqType $macType \
 			$phyType
+	
 	return $lan
 }
 
