@@ -27,7 +27,7 @@ Steps in doing an ns release:
 3.2 "make srctar"
 4. test on new system
     (build, run test scripts)
-5. put the tar in mash's /usr/mash/www/dist (?)
+5. put the tar in mash's /usr/mash/www/dist/vint
 5. Make a hard link to ~ftp/dist/vint. (For people accessing 
     things via ftp.)
 5.1. commit all your changes
