@@ -44,6 +44,15 @@ public:
 } class_channel;
 
 
+static class DuplexChannelClass : public TclClass {
+public:
+	DuplexChannelClass() : TclClass("Channel/Duplex") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new DuplexChannel);
+	}
+} class_channel_duplex;
+
+
 Channel::Channel() : BiConnector(), txstop_(0), cwstop_(0), numtx_(0)
 {
 	bind_time("delay_", &delay_);
@@ -110,4 +119,35 @@ Channel::hold(double txtime)
 	}
 	txstop_ = now + txtime;
 	return (now < cwstop_);
+}
+
+
+void
+DuplexChannel::content(Packet* p, Handler* h)
+{
+	Scheduler& s = Scheduler::instance();
+	s.schedule(h, p, delay_);
+}
+
+
+int
+DuplexChannel::send(Packet* p, Handler* target, double txtime, double txstart)
+{
+	Scheduler& s = Scheduler::instance();
+
+	if (p->error())
+		drop(p);
+	else {
+		pkt_ = p;
+		s.schedule(target, p, txstop_ + delay_ - txstart);
+		return 0;
+	}
+	return 1;
+}
+
+
+int
+DuplexChannel::hold(double txtime)
+{
+	return 0;
 }

@@ -59,4 +59,13 @@ protected:
 	Packet* pkt_;		// packet current transmitted on the channel
 };
 
+
+class DuplexChannel : public Channel {
+public:
+	DuplexChannel() : Channel() {}
+	int send(Packet* p, Handler* target, double txtime, double txstart=0);
+	void content(Packet*, Handler*); // content for the channel
+	int hold(double txtime);
+};
+	
 #endif
