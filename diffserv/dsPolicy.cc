@@ -537,8 +537,6 @@ void TSW3CMPolicy::printPolicerTable()
     Prints the policerTable, one entry per line.
 -----------------------------------------------------------------------------*/
 void TSW3CMPolicy::printPolicerTable() {
-  bool threeColor;
-  
   printf("Policer Table:\n");
   for (int i = 0; i < policerTableSize; i++) {
     printf("TSW3CM ");
@@ -814,8 +812,6 @@ void SRTCMPolicy::printPolicerTable()
     Prints the policerTable, one entry per line.
 ------------------------------------------------------------------------------*/
 void SRTCMPolicy::printPolicerTable() {
-  bool threeColor;
-  
   printf("Policer Table:\n");
   for (int i = 0; i < policerTableSize; i++) {
     printf("srTCM ");
@@ -966,8 +962,6 @@ void TRTCMPolicy::printPolicerTable()
     Prints the policerTable, one entry per line.
 -----------------------------------------------------------------------------*/
 void TRTCMPolicy::printPolicerTable() {
-  bool threeColor;
-  
   printf("Policer Table:\n");
   for (int i = 0; i < policerTableSize; i++) {
     printf("trTCM ");
@@ -1141,7 +1135,7 @@ int FWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *
   if (!p) {
     printf ("MISS: no flow %d in the table\n", iph->flowid());
     printFlowTable();
-  };
+};
 
   return(initialCodePt);
 }
@@ -1156,8 +1150,7 @@ void FWPolicy::printFlowTable() {
 
   p = flow_table.head;
   while (p) {
-    printf("flow id: %d, bytesSent: %d, last_update: %f\n", \
-	   p->fid, p->bytes_sent, p->last_update);
+    printf("flow id: %d, bytesSent: %d, last_update: %f\n", p->fid, p->bytes_sent, p->last_update);
     p = p-> next;
   }
   p = NULL;
@@ -1174,7 +1167,7 @@ void FWPolicy::printPolicyTable() {
     printf("Flow (%d to %d): FW policer, ",
 	   policyTable[i].sourceNode,policyTable[i].destNode);
       printf("initial code point %d, TH %d bytes.\n",
-	     policyTable[i].codePt, policyTable[i].cir);
+	     policyTable[i].codePt, (int)policyTable[i].cir);
   }
   printf("\n");
 }
@@ -1185,8 +1178,6 @@ void FWPolicy::printPolicerTable()
     Prints the policerTable, one entry per line.
 -----------------------------------------------------------------------------*/
 void FWPolicy::printPolicerTable() {
-  bool threeColor;
-  
   printf("Policer Table:\n");
   for (int i = 0; i < policerTableSize; i++) {
     printf("FW ");
