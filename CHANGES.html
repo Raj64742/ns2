@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.47 1997/03/28 21:39:00 kfall Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.48 1997/03/28 22:32:38 tomh Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -10,7 +10,7 @@
 </ul>
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz>ns-2.0a17</a>
-[PENDING RELESAE DATE]</h3>
+[PENDING RELEASE DATE]</h3>
 <ul>
 
 <li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
@@ -22,6 +22,13 @@ when the simulator begins all queues have a "reset" method
 called (previously, only nodes and agents had this done to them, but RED
 and probably some other queue types need to be reset to compute
 functions of their Otcl-linked variables before the sim starts).
+
+<li><b><a href=http://www.cs.berkeley.edu/~tomh>[TH]</a></b>
+<b>Fri Mar 28 12:50:02 PST 1997</b><br>
+Added test-suite-v2.tcl to the repository (port of "test-suite.tcl").  Added
+two new instprocs to ns-lib.tcl which help to set up tcp connections.  Moved
+the "Agent instproc dst-port" from ns-compat.tcl to ns-lib.tcl since it can
+also be used in ns-2.
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 <b>Fri Mar 28 12:23:58 PST 1997</b><br>
