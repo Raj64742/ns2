@@ -39,11 +39,17 @@ static const char rcsid[] =
 
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/ip.h>
-#include <sys/ip_icmp.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/ip_icmp.h>
+#include <arpa/inet.h>
 
 extern short in_cksum(u_short*, int);
+
+#include "agent.h"
+#include "scheduler.h"
 
 //
 // ping_responder.cc -- this agent may be inserted into nse as
@@ -51,19 +57,23 @@ extern short in_cksum(u_short*, int);
 // used to test emultation mode, mostly
 // 
 
-static class PingResponderClass : public TclClass { 
-public:
-        PingResponderClass() : TclClass("Agent/PingResponder") {}
-        TclObject* create(int , const char*const*) {
-                return (new PingResponderAgent());
-        } 
-} class_pingresponder;
-
 class PingResponder : public Agent {
 public:
 	PingResponder() : Agent(PT_LIVE) { }
 	void recv(Packet*, Handler*);
+protected:
+	icmp* validate(int, ip*);
+	void reflect(ip*);
 };
+
+static class PingResponderClass : public TclClass { 
+public:
+        PingResponderClass() : TclClass("Agent/PingResponder") {}
+        TclObject* create(int , const char*const*) {
+                return (new PingResponder());
+        } 
+} class_pingresponder;
+
 
 void
 PingResponder::recv(Packet* pkt, Handler*)
@@ -73,7 +83,7 @@ PingResponder::recv(Packet* pkt, Handler*)
 	u_char* payload = pkt->accessdata();
 
 	if (payload == NULL) {
-		fprint(stderr, "%f: PingResponder(%s): recv NULL data area\n",
+		fprintf(stderr, "%f: PingResponder(%s): recv NULL data area\n",
 			Scheduler::instance().clock(), name());
 		Packet::free(pkt);
 		return;
@@ -109,17 +119,17 @@ PingResponder::recv(Packet* pkt, Handler*)
  */
 
 icmp*
-validate(int sz, ip* iph)
+PingResponder::validate(int sz, ip* iph)
 {
 	if (sz < 20) {
-		fprint(stderr, "%f: PingResponder(%s): sim pkt too small for base IP header(%d)\n",
+		fprintf(stderr, "%f: PingResponder(%s): sim pkt too small for base IP header(%d)\n",
 			Scheduler::instance().clock(), name(), sz);
 		return (NULL);
 	}
 
 	int ipver = (*((char*)iph) & 0xf0) >> 4;
 	if (ipver != 4) {
-		fprint(stderr, "%f: PingResponder(%s): IP bad ver (%d)\n",
+		fprintf(stderr, "%f: PingResponder(%s): IP bad ver (%d)\n",
 			Scheduler::instance().clock(), name(), ipver);
 		return (NULL);
 	}
@@ -127,75 +137,76 @@ validate(int sz, ip* iph)
 	int iplen = ntohs(iph->ip_len);
 	int iphlen = (*((char*)iph) & 0x0f) << 2;
 	if (iplen < (iphlen + 8)) {
-		fprint(stderr, "%f: PingResponder(%s): IP dgram not long enough (len: %d)\n",
+		fprintf(stderr, "%f: PingResponder(%s): IP dgram not long enough (len: %d)\n",
 			Scheduler::instance().clock(), name(), iplen);
 		return (NULL);
 	}
 
 	if (sz < iplen) {
-		fprint(stderr, "%f: PingResponder(%s): IP dgram not long enough (len: %d)\n",
+		fprintf(stderr, "%f: PingResponder(%s): IP dgram not long enough (len: %d)\n",
 			Scheduler::instance().clock(), name(), iplen);
 		return (NULL);
 	}
 
 	if (iphlen != 20) {
-		fprint(stderr, "%f: PingResponder(%s): IP bad hlen (%d)\n",
+		fprintf(stderr, "%f: PingResponder(%s): IP bad hlen (%d)\n",
 			Scheduler::instance().clock(), name(), iphlen);
 		return (NULL);
 	}
 
-	if (in_cksum(iph, iphlen)) {
-		fprint(stderr, "%f: PingResponder(%s): IP bad cksum\n",
+	if (in_cksum((u_short*) iph, iphlen)) {
+		fprintf(stderr, "%f: PingResponder(%s): IP bad cksum\n",
 			Scheduler::instance().clock(), name());
 		return (NULL);
 	}
 
 	if (iph->ip_p != IPPROTO_ICMP) {
-		fprint(stderr, "%f: PingResponder(%s): not ICMP (proto: %d)\n",
+		fprintf(stderr, "%f: PingResponder(%s): not ICMP (proto: %d)\n",
 			Scheduler::instance().clock(), name(), iph->ip_p);
 		return (NULL);
 	}
 
 
 	if (iph->ip_off != 0) {
-		fprint(stderr, "%f: PingResponder(%s): fragment! (off: 0x%x)\n",
+		fprintf(stderr, "%f: PingResponder(%s): fragment! (off: 0x%x)\n",
 			Scheduler::instance().clock(), name(), ntohs(iph->ip_off));
 		return (NULL);
 	}
 
 	if (iph->ip_src.s_addr == 0xffffffff || iph->ip_src.s_addr == 0) {
-		fprint(stderr, "%f: PingResponder(%s): bad src addr (%s)\n",
+		fprintf(stderr, "%f: PingResponder(%s): bad src addr (%s)\n",
 			Scheduler::instance().clock(), name(),
 			inet_ntoa(iph->ip_src));
 		return (NULL);
 	}
 
 	if (IN_MULTICAST(ntohl(iph->ip_src.s_addr))) {
-		fprint(stderr, "%f: PingResponder(%s): mcast src addr (%s)\n",
+		fprintf(stderr, "%f: PingResponder(%s): mcast src addr (%s)\n",
 			Scheduler::instance().clock(), name(),
 			inet_ntoa(iph->ip_src));
 		return (NULL);
 	}
 	icmp* icp = (icmp*) (iph + 1);
-	if (in_cksum(icmp, iplen - iphlen)) {
-		fprint(stderr, "%f: PingResponder(%s): bad ICMP cksum\n",
+	if (in_cksum((u_short*) icp, iplen - iphlen) != 0) {
+		fprintf(stderr,
+			"%f: PingResponder(%s): bad ICMP cksum\n",
 			Scheduler::instance().clock(), name());
 		return (NULL);
 	}
-	if (icp->icmp_type != ICMP_ECHOREQUEST) {
-		fprint(stderr, "%f: PingResponder(%s): not echo request (%d)\n",
+	if (icp->icmp_type != ICMP_ECHO) {
+		fprintf(stderr, "%f: PingResponder(%s): not echo request (%d)\n",
 			Scheduler::instance().clock(), name(),
 			icp->icmp_type);
 		return (NULL);
 	}
 
 	if (icp->icmp_code != 0) {
-		fprint(stderr, "%f: PingResponder(%s): bad code (%d)\n",
+		fprintf(stderr, "%f: PingResponder(%s): bad code (%d)\n",
 			Scheduler::instance().clock(), name(),
 			icp->icmp_code);
 		return (NULL);
 	}
-	return ((icmp*)(iph + 1));
+	return (icp);
 }
 
 /*
@@ -204,7 +215,7 @@ validate(int sz, ip* iph)
 void
 PingResponder::reflect(ip* iph)
 {
-	in_addr daddr = iph->ip_dst.s_addr;
+	in_addr daddr = iph->ip_dst;
 	int iplen = ntohs(iph->ip_len);
 	int iphlen = (*((char*)iph) & 0x0f) << 2;
 
@@ -212,10 +223,10 @@ PingResponder::reflect(ip* iph)
 	iph->ip_dst = iph->ip_src;
 	iph->ip_src = daddr;
 	iph->ip_sum = 0;
-	iph->ip_sum = in_cksum(iph, iphlen);
+	iph->ip_sum = in_cksum((u_short*) iph, iphlen);
 
 	/* recompute the icmp cksum */
-	icp* icmph = (icmp*)(iph + 1);	// just pass standard IP header
+	icmp* icp = (icmp*)(iph + 1);	// just pass standard IP header
 	icp->icmp_cksum = 0;
-	icp->icmp_cksum = in_cksum(icp, iplen - iphlen);
+	icp->icmp_cksum = in_cksum((u_short*)icp, iplen - iphlen);
 }
