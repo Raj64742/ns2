@@ -37,7 +37,7 @@ McastProtocol instproc init {sim node} {
 McastProtocol instproc getType {} { $self set type_ }
 
 McastProtocol instproc start {}		{ $self set status_ "up"   }
-McastProtocol instproc stop {}		{ $self set status_"down"  }
+McastProtocol instproc stop {}		{ $self set status_ "down" }
 McastProtocol instproc getStatus {}	{ $self set status_	   }
 
 McastProtocol instproc upcall {code args} {
