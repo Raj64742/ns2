@@ -234,3 +234,30 @@ http://www-mash.cs.berkeley.edu/ns/tutorial/index.html .
 Validation test script for new node API can be found in
 \ns/tcl/test/test-suite-wireless-lan-newnode.tcl 
 
+
+\section{Commands at a glance}
+\label{sec:newnodecommand}
+
+Following is a list of new node APIs that are commonly used in simulation
+scripts:
+
+\begin{flushleft}
+\code{$ns_ node-config -<config-parameter> <optional-val>}\\
+This command is used to configure nodes. The different config-parameters
+are addressingType, different type of the network stack components,
+whether tracing will be turned on or not, mobileIP flag is truned or not,
+energy model is being used or not etc. An option -reset maybe used to set
+the node configuration to its default state. The default setting of 
+node-config, i.e if no values are specified, creates a simple node (base
+class Node) with flat addressing/routing. For the syntax details see
+section \ref{sec:nodeconfig} of this chapter.  
+
+
+\code{$ns_ node <optional:node-address>}\\
+This command creates a node of the type configured by the command
+\code{$ns_ node-configure} described above. This returns a handle to the
+node thus created. The optional argument <node-address> is passed only
+incase of creating hierarchical nodes. A node-address is normally a
+string denoting the hierarchical address of the node, viz."3.1.1".
+
+\end{flushleft}

@@ -678,84 +678,66 @@ Simulated applications may be implemented on top of protocol agents.  Chapter
 \ref{chap:applications} describes the API used by applications to  access the 
 services provided by the protocol agent.
 
-\section{
-Commands at a glance}
+\section{Commands at a glance}
 \label{sec:agentscommand}
 
 Following are the agent related commands used in simulation scripts:
-
-\begin{program}
-ns_ attach-agent <node> <agent>
-\end{program}
+\begin{flushleft}
+\code{ns_ attach-agent <node> <agent>}\\
 This command attaches the <agent> to the <node>. We assume here that the
 <agent> has already been created. An agent is typically created by
-set agent [new Agent/AgentType]
-where Agent/AgentType defines the class definiton of the specified agent type.
+\code{set agent [new Agent/AgentType]}
+where Agent/AgentType defines the class definiton of the specified agent
+type.
 
 
-\begin{program}
-$agent port
-\end{program}
+\code{$agent port}\\
 This returns the port number to which the agent is attached.
 
 
-\begin{program}
-$agent dst-port
-\end{program}
+\code{$agent dst-port}\\
 This returns the port number of the destination.
 When any connection is setup between 2 nodes, each agent stores the 
 destination port in its instance variable called \code{dst_port_}.
 
 
-\begin{program}
-$agent attach-app <s_type>
-\end{program}
+\code{$agent attach-app <s_type>}\\
 This commands attaches an application of type \code{<s_type>} to the agent.
 A handle to the application object is returned. Also note that the application
 type must be defined as a packet type in packet.h.
 
 
-\begin{program}
-$agent attach-source <s_type>
-\end{program}
+\code{$agent attach-source <s_type>}\\
 This used to be the procedure to attach source of type \code{<s_type>} to
 the agent. But this is obsolete now. Use attach-app (described above)
 instead.
 
 
-\begin{program}
-$agent attach-tbf <tbf>
-\end{program}
+\code{$agent attach-tbf <tbf>}\\
 Attaches a token bucket filter (tbf) to the agent.
 
 
-\begin{program}
-$ns_ connect <src> <dst>
-\end{program}
+\code{$ns_ connect <src> <dst>}\\
 Sets up a connection between the src and dst agents. 
 
 
-\begin{program}
-$ns_ create-connection <srctype> <src> <dsttype> <dst> <pktclass>
-\end{program}
+\code{$ns_ create-connection <srctype> <src> <dsttype> <dst> <pktclass>}\\
 This sets up a complete connection between two agents. First creates a source
 of type <srctype> and binds it to <src>. Then creates a destination of type
 <dsttype> and binds it to <dst>. Finally connects the src and dst agents and
 returns a handle to the source agent.
 
 
-\begin{program}
-$ns_ create-connection-list <srctype> <src> <dsttype> <dst> <pktclass>
-\end{program}
+\code{$ns_ create-connection-list <srctype> <src> <dsttype> <dst>
+<pktclass>}\\
 This command is exactly similar to create-connection described above. But
 instead of returning only the source-agent, this returns a list of source and
-destination agent.
+destination agents.
 
 
 Internal procedures:
-\begin{program}
-$ns_ simplex-connect <src> <dst>
-\end{program}
+
+\code{$ns_ simplex-connect <src> <dst>}\\
 This is an internal method that actually sets up an unidirectional connection
 between the <src> agent and <dst> agent. It simply sets the destination address
 and destination port of the <src> as <dst>'s agent-address and agent-port.
@@ -763,25 +745,23 @@ The "connect" described above calls this method twice to set up a bi-directional
 connection between the src and dst.
 
 
-\begin{program}
-$agent set <args>
-\end{program}
+\code{$agent set <args>}\\
 This is an internal procedure used to inform users of the backward compatibility
 issues resulting from the upgrade to 32-bit addressing space currently used
 in \ns.
 
-\begin{program}
-$agent attach-trace <file>
-\end{program}
-This attaches the <file> to the agent to allow nam-tracing of the
-agent events.
+\code{$agent attach-trace <file>}\\
+This attaches the <file> to the agent to allow nam-tracing of the agent
+events.
 
 
 In addition to the agent related procedures described here, there are additional
 methods that support different type of agents like Agent/Null, Agent/TCP,
 Agent/CBR, Agent/TORA, Agent/mcast etc. These additional methods along with the
-procedures described here can be found in \ns/tcl/lib/{ns-agent.tcl, ns-lib.tcl,
-ns-mip.tcl, ns-mobilenode.tcl, ns-namsupp.tcl, ns-queue.tcl, ns-route.tcl,
-ns-sat.tcl, ns-source.tcl}. 
+procedures described here can be found in \ns/tcl/lib/(ns-agent.tcl,
+ns-lib.tcl, ns-mip.tcl, ns-mobilenode.tcl, ns-namsupp.tcl, ns-queue.tcl,
+ns-route.tcl, ns-sat.tcl, ns-source.tcl).
+
+\end{flushleft} 
 
 \endinput

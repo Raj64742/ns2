@@ -275,6 +275,61 @@ C++ member \code{newPoint} or the OTcl member \code{newpoint}.
 The use of integrals to compute certain types of averages
 (e.g. mean queue lengths) is given in (pp. 429--430, \cite{Jain91:Art}).
 
+
+
+\section{Commands at a glance}
+\label{sec:mathcommand}
+
+Following is a list of mathematical support related commands commonly used
+in simulation scripts:
+\begin{flushleft}
+\code{set rng [new RNG]}\\
+This creates a new random number generator.
+
+
+\code{$rng seed <0 or n>}\\
+This command seeds the RNG. If 0 is specified, the RNG is seeded
+heuristically. Otherwise the RNG is seeded with the value <n>.
+
+
+\code{$rng next-random}\\
+This returns the next random number from RNG.
+
+
+\code{$rng uniform <a> <b>}\\
+This returns a number uniformly distributed on <a> and <b>.
+
+
+\code{$rng integer <k>}\\
+This returns an integer uniformly distributed on 0 and k-1.
+
+
+\code{$rng exponential}\\
+This returns a number that has exponential distribution with average 1.
+
+
+\code{set rv [new Randomvariable/<type of random-variable>]}\\
+This creates an instance of a random variable object that generates random 
+variables with specific distribution. The different types of random 
+variables derived from the base class are:\\
+RandomVariable/Uniform, RandomVariable/Exponential, RandomVariable/Pareto,
+RandomVariable/Constant, RandomVariable/HyperExponential.
+Each of these distribution types are parameterized with values of
+appropriate parameters. For details see section \ref{sec:ranvar} of this
+chapter.
+
+
+\code{$rv use-rng <rng>}\\
+This method is used to associated a random variable object with a
+non-default RNG. Otherwise by default, the random variable object is
+associated with the default random number generator.
+
+
+\end{flushleft}
+
+
+
+
 % LocalWords:  ranvar pareto expoo tcl lib ns cc integrator RNG rng TclObject
 % LocalWords:  enum RNGSources PREDEF int MAXINT rX edv prob edp setbit iph ECN
 % LocalWords:  ip ecn eed OURCE OTcl RandomVariable argc const argv min avg val

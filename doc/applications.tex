@@ -477,16 +477,16 @@ is setup between the src and sink.
 
 \code{set ftp1 [new Application/FTP]\\
 $ftp1 attach-agent $agent}\\
-or
+or\\
 \code{set ftp1 [$agent attach-app FTP]}\\
 Both the above commands achieve the same. An application (ftp in this example)
 is created and attached to the source agent. An application can be of two
 types, a traffic generator or a simulated application.
-Types of Traffic generators currently present are: \\
+Types of Traffic generators currently present are: 
 Application/Traffic/Exponential, Application/Traffic/Pareto,
 Application/Traffic/CBR, and Application/Traffic/Trace. See section \ref{sec:trafgenclass}
-for details.\\
-Types of simulated applications currently implemented are:\\
+for details.
+Types of simulated applications currently implemented are:
 Application/FTP and Application/Telnet. See  section \ref{sec:simapps} for
 details.
 

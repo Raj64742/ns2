@@ -507,20 +507,16 @@ unaligned accesses result in an abnormal program termination.}.
 \label{sec:pktcommand}
 
 Following is a list of packet-header related procedures:
-
-\begin{program}
-$ns_ create_packetformat
-\end{program}
+\begin{flushleft}
+\code{$ns_ create_packetformat}\\
 This is an internal simulator procedure and is called once during the simulator
 configuration to setup a packetHeaderManager object.
 
 
-\begin{program}
-$pktHdrManager allochdr 
-\end{program}
+\code{$pktHdrManager allochdr}\\
 This is another internal procedure of Class PacketHeaderManager that keeps track
 of a variable called \code{hdrlen_} as new packet-headers are enabled. It also
 allows 8-byte allignment for any newly-enabled pkt header.
 
-
+\end{flushleft}
 \endinput
