@@ -44,7 +44,7 @@ TBF::~TBF()
 		tbf_timer_.cancel();
 		//Free up the packetqueue
 		for (Packet *p=q_->head();p!=0;p=p->next_) 
-			delete p;
+			Packet::free(p);
 	}
 }
 
