@@ -12,10 +12,9 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- * 	This product includes software developed by the Network Research
- * 	Group at Lawrence Berkeley National Laboratory and the Daedalus 
- *      Research Group and the University of California, Berkeley.
- * 4. Neither the name of the University nor of the Laboratory may be used
+ * 	This product includes software developed by the Daedalus 
+ *      Research Group at the University of California, Berkeley.
+ * 4. Neither the name of the University nor of the Research Group may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
  * 
@@ -31,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.1 1997/07/25 09:23:19 padmanab Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/semantic-packetqueue.h,v 1.2 1997/08/28 18:31:21 hari Exp $ (UCB)
  */
 
 #ifndef ns_semantic_packetqueue_h
@@ -65,7 +64,7 @@ class SemanticPacketQueue : public PacketQueue {
 
 	/* check whether packet is marked */
 	int isMarked(Packet *p);
-	/* pick out the index'th packet of the appropriate kind (marked/unmarked) */
+	/* pick out the index'th packet of the right kind (marked/unmarked) */
 	Packet *lookup(int index, int markedFlag);
 	/* pick a packet to drop when the queue is full */
 	Packet *pickPacketToDrop();
@@ -91,13 +90,16 @@ class SemanticPacketQueue : public PacketQueue {
         int off_ip_;
         int off_tcp_;
 
-	/* These indicator variables are bound in derived objects */
+	/* 
+	 * These indicator variables are bound in derived objects and
+	 * define queueing/scheduling polcies.
+	 */
 	int acksfirst_;         /* deque TCP acks before any other data */
-	int filteracks_;        /* purge queue of old acks when new ack is enqued */
-	int replace_head_;      /* whether new ack should take the place of old ack
+	int filteracks_;        /* purge old acks when new one arrives */
+	int replace_head_;      /* new ack should take the place of old ack
 				   closest to the head */
 	int priority_drop_;     /* drop marked (low priority) packets first */
-	int random_drop_;       /* pick packet to drop at random rather than from the tail */
+	int random_drop_;       /* pick packet to drop at random */
 	virtual Packet* deque();
 	virtual void enque(Packet *);
 	virtual void remove(Packet *);

@@ -104,44 +104,38 @@ SemanticPacketQueue::compareFlows(hdr_ip *ip1, hdr_ip *ip2)
  * Purge the queue of acks that are older (i.e., have a smaller sequence 
  * number) than the most recent ack. If replace_head is set, the most recent
  * ack (pointed to by pkt) takes the place of the oldest ack that is purged. 
- * Otherwise, it remains at the tail of the queue.
+ * Otherwise, it remains at the tail of the queue.  pkt must be an ACK -- this
+ * is checked by the caller.
  */
 void
 SemanticPacketQueue::filterAcks(Packet *pkt, int replace_head) 
 {
 	int done_replacement = 0;
 
-	/* first check for ack */
-	if (!(((hdr_cmn*)pkt->access(off_cmn_))->ptype_ == PT_ACK))
-		return;
-
 	Packet *p, *pp, *new_p;
 	hdr_tcp *tcph = (hdr_tcp*) pkt->access(off_tcp_);
 	int &ack = tcph->seqno();
 
 	hdr_ip *iph = (hdr_ip*) pkt->access(off_ip_);
-	for (p = head(), pp = NULL; p != 0; ) {
+	for (p = head(), pp = p; p != 0; ) {
 		/* 
-		 * check if the packet in the queue belongs to the same connection as
-		 * the most recent ack
+		 * Check if packet in the queue belongs to the 
+		 * same connection as the most recent ack
 		 */
 		if (compareFlows((hdr_ip*) p->access(off_ip_), iph)) {
-			/* check if it is an ack */
-			if (((hdr_cmn*)p->access(off_cmn_))->ptype_ == PT_ACK) {
+			/* check if queued packet is an ack */
+			if (((hdr_cmn*)p->access(off_cmn_))->ptype_==PT_ACK) {
 				hdr_tcp *th = (hdr_tcp*) p->access(off_tcp_);
-				/*
-				 * check if the ack packet in the queue is older than
-				 * the most recent ack
-				 */
+				/* is this ack older than the current one? */
 				if ((th->seqno() < ack) ||
 				    (replace_head && th->seqno() == ack)) { 
 					/* 
-					 * if we haven't yet replaced the ack closest
-					 * to the head with the most recent ack, do
-					 * so now
+					 * If we haven't yet replaced the ack 
+					 * closest to the head with the most 
+					 * recent ack, do so now.
 					 */
-					if (replace_head && !done_replacement && 
-					    pkt != p) {
+					if (replace_head && pkt != p &&
+					    !done_replacement) {
 						PacketQueue::remove(pkt);
 						pkt->next_ = p;
 						if (pp)
@@ -149,28 +143,26 @@ SemanticPacketQueue::filterAcks(Packet *pkt, int replace_head)
 						pp = pkt;
 						done_replacement = 1;
 						continue;
-					}
-					else if (done_replacement || pkt != p) {
+					} else if (done_replacement||pkt != p){
 						new_p = p->next_;
 						/* 
-						 * If p is in scheduler queue, cancel 
-						 * the event. Also, print out a warning
-						 * because this should never happen.
+						 * If p is in scheduler queue,
+						 * cancel the event. Also, 
+						 * print out a warning because
+						 * this should never happen.
 						 */
-						if (Scheduler::instance().lookup(p->uid_)) {
-							Scheduler::instance().cancel(p);
-							fprintf(stderr,"Warning: In filterAcks(): packet being dropped from queue is in scheduler queue\n");
+						Scheduler &s = Scheduler::instance();
+						if (s.lookup(p->uid_)) {
+							s.cancel(p);
+							fprintf(stderr, "Warning: In filterAcks(): packet being dropped from queue is in scheduler queue\n");
 						}
 						PacketQueue::remove(p, pp);
-						ack_count--;
-						if (isMarked(p))
-							marked_count_--;
-						else
-							unmarked_count_--;
-						if (ack_count == 0)
-							fprintf(stderr,"Error: Removed all acks, p=%p head=%p\n", p, head());
-						free(p); /* XXXX should do drop, but we
-							    don't have access to q here */
+						if (ack_count <= 0)
+							fprintf(stderr,
+								"oops! ackcount %d\n", ack_count);
+						Packet::free(p); /* XXXX should drop, 
+							    but we don't have
+							    access to q here */
 						p = new_p;
 						continue;
 					}
@@ -256,9 +248,8 @@ SemanticPacketQueue::enque(Packet *pkt)
 		marked_count_++;
 	else
 		unmarked_count_++;
-	if ((((hdr_cmn*)pkt->access(off_cmn_))->ptype_ == PT_ACK) && filteracks_) {
+	if (filteracks_ && (((hdr_cmn*)pkt->access(off_cmn_))->ptype_==PT_ACK))
 		filterAcks(pkt, replace_head_);
-	}
 }
 
 Packet *
