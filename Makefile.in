@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.194 2000/08/29 19:28:01 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.195 2000/08/29 19:44:16 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -338,7 +338,7 @@ install-recursive: force
 clean:
 	$(RM) $(CLEANFILES)
 
-AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl tcl/lib/ns-stl.tcl validate
+AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl tcl/lib/ns-stl.tcl 
 distclean:
 	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
 	    gnuc.h os-proto.h $(AUTOCONF_GEN)
