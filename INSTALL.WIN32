@@ -1,0 +1,48 @@
+Neither ns-2 nor nam-1 is developed on (nor for) the win32 platform. We can
+only guarantee that they compile on windows, but not their correct functioning.
+If you have anything to contribute in this respect, we would like to hear from you.
+
+Before you build, notice that you can get nam and ns binaries for windows at
+http://www.isi.edu/nsnam/dist/binary/. If you only want to do tcl scripting in
+ns, they were probably what you want.
+
+Procedures to compile on windows. For more information, whose details about ns 
+might be obsolete but others apply, see http://www.isi.edu/nsnam/ns/ns-win32-build.html
+
+- Make sure your msvc works (and your environment variables are setup correctly)
+
+- Get Cygwin and perl
+
+- Tcl8.3.2
+  - go into win, do nmake -f makefile.vc
+  - result binaries/libraries should be in win/Release
+  - you can also import makefile.vc into you ide and go from there
+
+- Tk8.3.2
+  - pretty much the same as tcl8.3.2
+
+- otcl
+  - correct the paths to your vc, tcl, and tk in makefile.vc, then do 
+  nmake -f makefile.vc
+
+- tclcl
+  - correct the paths to your vc, tcl, tk, and otcl in conf/makefile.win
+  (do NOT touch makefile.vc), then do nmake -f makefile.vc
+
+- ns-2
+  - same as tclcl, except you need to correct paths to tclcl and tclsh as well.
+  - about validate, see http://www.isi.edu/nsnam/ns/ns-win32-build.html for 
+  detail. Notice that many test suites will fail on windows platform, and you 
+  are on your own to make sure the simulator works for your purpose.
+
+- nam-1
+  - IMPORTANT: nam-1 will NOT work when compiled with tcl8.3.2 and tk8.3.2. It 
+  requires that a STATIC build of tcl/tk, which the current release does not 
+  support. To solve the problem, you can download a patched tcl/tk 8.0.2 that
+  can be compiled into static libraries (i.e., not DLLs) from this pointer:
+  http://www.isi.edu/nsnam/dist/tcltk/tcl80p2-win32-static.zip
+  and
+  http://www.isi.edu/nsnam/dist/tcltk/tk80p2-win32-static.zip
+  Then you should uncomment the STATIC_LIB macro in ~nam/conf/makefile.win, 
+  and correct other paths to your vc, otcl, tclcl, tclsh, then compile.
+
