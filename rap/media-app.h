@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.9 1999/09/24 23:44:36 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.10 1999/10/06 21:25:35 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -128,8 +128,11 @@ public:
 	int is_empty() const { return end_ == start_; }
 
 	// Whether this is the last segment of the available data
-	int is_last() const { return flags_ == 1; }
-	void set_last() { flags_ = 1; }
+	enum { MS_LAST = 1, MS_PREF = 2 };
+	int is_last() const { return (flags_ & MS_LAST); }
+	void set_last() { flags_ |= MS_LAST; }
+	int is_pref() const { return (flags_ & MS_PREF); }
+	void set_pref() { flags_ |= MS_PREF; }
 
 private: 
 	int start_;
@@ -149,12 +152,13 @@ public:
 	int evict_tail(int size);
 	int evict_head(int size);
 	int evict_head_offset(int offset);
+	int overlap_size(const MediaSegment& s) const;
 	MediaSegmentList check_holes(const MediaSegment& s);
 
 	char* dump2buf();
 	virtual void destroy() {
-		length_ = 0;
 		DoubleList::destroy();
+		length_ = 0;
 	}
 
 	// Debug only
@@ -178,6 +182,7 @@ private:
 	int st_;			// Segment start time
 	int et_; 			// Segment end time
 	int flags_; 			// flags: end of all data, etc.
+	Application* conid_;		// Connection ID. Used for statistics
 public:
 	struct hdr {
 		char sender_[HTTP_MAXURLLEN];
@@ -209,16 +214,25 @@ public:
 	const char* page() const { return page_; }
 	const char* sender() const { return sender_; }
 
+	Application* conid() { return conid_; }
+	void set_conid(Application* c) { conid_ = c; }
+
 	// flags
 	// MD_LAST: last segment of this layre
 	// MD_FINISH: completed the entire stream
-	enum {MD_LAST = 1, MD_FINISH = 2}; 
+	enum {
+		MD_LAST = 1, 
+		MD_FINISH = 2,
+		MD_PREFETCH = 4
+	}; 
 
 	// Whether this is the last data segment of the layer
 	int is_last() const { return (flags_ & MD_LAST); }
 	void set_last() { flags_ |= MD_LAST; }
 	int is_finished() const { return (flags_ & MD_FINISH); }
 	void set_finish() { flags_ |= MD_FINISH; }
+	int is_pref() const { return (flags_ & MD_PREFETCH); }
+	void set_pref() { flags_ |= MD_PREFETCH; }
 };
 
 
@@ -319,6 +333,8 @@ protected:
 	virtual void expire(Event *e);
 	QA *a_;
 };
+
+const double QA_EPSILON = 1e-6;
 
 class QA : public MediaApp { 
 public:

@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.4 1999/09/20 17:42:46 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.5 1999/10/06 21:25:38 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -829,9 +829,9 @@ Test/media2 instproc start-requests {} {
 
 
 # Simple test of QA, one server, one client, 56Kb bottleneck link
-Class Test-media3 -superclass Test-mcache
+Class Test/media3 -superclass Test-mcache
 
-Test-media3 instproc init {} {
+Test/media3 instproc init {} {
 	$self set-defnet 3node
 
 	global opts
@@ -849,12 +849,12 @@ Test-media3 instproc init {} {
 	Http set MEDIA_APP_ MediaApp/QA
 }
 
-Test-media3 instproc set-connections {} {
+Test/media3 instproc set-connections {} {
 	$self instvar client_ server_ cache_
 	$client_(0) connect $server_(0)
 }
 
-Test-media3 instproc start-requests {} {
+Test/media3 instproc start-requests {} {
 	$self instvar client_ server_ ns_
 	$client_(0) set-cache $server_(0)
 	$client_(0) send-request $server_(0) GET $server_(0):0 
@@ -862,9 +862,9 @@ Test-media3 instproc start-requests {} {
 
 # Same as above, but 10Mb bottleneck link (basically high enough to hold
 # all 8 layers)
-Class Test-media3a -superclass Test-media3
+Class Test/media3a -superclass Test/media3
 
-Test-media3a instproc init {} {
+Test/media3a instproc init {} {
 	$self set-defnet 2node
 	$self next
 }
@@ -872,9 +872,9 @@ Test-media3a instproc init {} {
 
 # One server, one cache and one client. 
 # 56Kb bottleneck link between client and cache.
-Class Test-media4 -superclass Test-mcache
+Class Test/media4 -superclass Test-mcache
 
-Test-media4 instproc init {} {
+Test/media4 instproc init {} {
 	$self set-defnet cache0
 
 	global opts
@@ -894,13 +894,13 @@ Test-media4 instproc init {} {
 	Http set MEDIA_APP_ MediaApp/QA
 }
 
-Test-media4 instproc set-connections {} {
+Test/media4 instproc set-connections {} {
 	$self instvar client_ server_ cache_
 	$client_(0) connect $cache_(0)
 	$cache_(0) connect $server_(0)
 }
 
-Test-media4 instproc start-requests {} {
+Test/media4 instproc start-requests {} {
 	$self instvar client_ cache_ server_ ns_
 	$client_(0) set-cache $cache_(0)
 
@@ -917,9 +917,9 @@ $server_(0):0"
 }
 
 # Same as media4, but with 56Kb bottleneck link between server and cache.
-Class Test-media4a -superclass Test-media4
+Class Test/media4a -superclass Test/media4
 
-Test-media4a instproc init {} {
+Test/media4a instproc init {} {
 	$self set-defnet cache1
 	$self next
 }
@@ -930,9 +930,9 @@ Test-media4a instproc init {} {
 # client1-cache is 56Kb, cache-server is the same as in media5, 56Kb.
 #
 # We distribute 95% of the requests to the low-bw client 1
-Class Test-media5 -superclass Test-mcache
+Class Test/media5 -superclass Test-mcache
 
-Test-media5 instproc init {} {
+Test/media5 instproc init {} {
 	$self set-defnet 4node-h
 
 	global opts
@@ -952,7 +952,7 @@ Test-media5 instproc init {} {
 	Http set MEDIA_APP_ MediaApp/QA
 }
 
-Test-media5 instproc set-pagepool {} {
+Test/media5 instproc set-pagepool {} {
 	$self next
 
 	# Set sizes of the pages
@@ -977,7 +977,7 @@ Test-media5 instproc set-pagepool {} {
 	delete $rv
 }
 
-Test-media5 instproc set-connections {} {
+Test/media5 instproc set-connections {} {
 	$self instvar client_ server_ cache_ totalSize_
 
 	# Set cache size to be 
@@ -994,7 +994,7 @@ Test-media5 instproc set-connections {} {
 	$cache_(0) connect $server_(0)
 }
 
-Test-media5 instproc start-requests {} {
+Test/media5 instproc start-requests {} {
 	$self instvar client_ cache_ server_ ns_ log_
 
 	# Client setting parent caches
@@ -1060,7 +1060,7 @@ Test-media5 instproc start-requests {} {
 }
 
 # Get the first request from reqlist_
-Test-media5 instproc next-request {} {
+Test/media5 instproc next-request {} {
 	$self instvar server_ cache_ client_ reqlist_ ns_
 	set cid [lindex $reqlist_ 0]
 	set pagenum [lindex $reqlist_ 1]
@@ -1077,7 +1077,7 @@ Test-media5 instproc next-request {} {
 
 # Use a random number and the upper bound of the random number to 
 # decide whether the request goes to client 0 or 1
-Test-media5 instproc req2client { pagenum ran max } {
+Test/media5 instproc req2client { pagenum ran max } {
 	# Most requests go to the low-bw client
 	set thresh [expr $max * 0.95]
 	if {$ran > $thresh} {
@@ -1088,9 +1088,9 @@ Test-media5 instproc req2client { pagenum ran max } {
 }
 
 # 95% requests go to the high-bw client
-Class Test-media5a -superclass Test-media5 
+Class Test/media5a -superclass Test/media5 
 
-Test-media5a instproc req2client { pagenum ran max } {
+Test/media5a instproc req2client { pagenum ran max } {
 	# Distribute 95% requests of all pages to the high-bw client, 
 	# and 5% to the low-bw client
 	set thresh [expr $max*0.05]
@@ -1102,9 +1102,9 @@ Test-media5a instproc req2client { pagenum ran max } {
 }
 
 # 50:50 distribution among 2 clients
-Class Test-media5b -superclass Test-media5
+Class Test/media5b -superclass Test/media5
 
-Test-media5b instproc req2client { pagenum ran max } {
+Test/media5b instproc req2client { pagenum ran max } {
 	# Uniformly distribute requests of all pages
 	set thresh [expr $max*0.5]
 	if {$ran > $thresh} {

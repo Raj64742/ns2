@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.8 1999/09/23 20:46:38 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.9 1999/10/06 21:25:31 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -47,12 +47,17 @@ MediaPage::MediaPage(const char *n, int s, double mt, double et,
 
 MediaPage::~MediaPage()
 {
-	for (int i = 0; i < num_layer_; i++) {
+	int i; 
+	for (i = 0; i < num_layer_; i++) {
+		// Delete hit count list
+		//
 		// XXX This does not reset the head_ and tail_ correctly!! 
 		// Must correct these !!!!
 		// hc_[i]->detach();
 		assert((hc_[i]->prev() == NULL) && (hc_[i]->next() == NULL));
 		delete hc_[i];
+		// Delete media segment list
+		layer_[i].destroy();
 	}
 }
 
@@ -119,6 +124,7 @@ int MediaPage::evict_tail_segment(int layer, int size)
 #endif
 	return sz;
 }
+
 
 
 //----------------------------------------------------------------------
@@ -570,7 +576,12 @@ MediaCache::MediaCache() : HttpCache()
 
 MediaCache::~MediaCache()
 {
+	Tcl_HashEntry *he;
+	Tcl_HashSearch hs;
 	if (cmap_) {
+		for (he = Tcl_FirstHashEntry(cmap_, &hs);  he != NULL;
+		     he = Tcl_NextHashEntry(&hs))
+			delete (RegInfo*)Tcl_GetHashValue(he);
 		Tcl_DeleteHashTable(cmap_);
 		delete cmap_;
 	}
@@ -585,6 +596,13 @@ AppData* MediaCache::get_data(int& size, AppData* req)
 
 	MediaRequest *r = (MediaRequest *)req;
 
+	// Get statistics block for the requestor
+	Tcl_HashEntry *he = 
+		Tcl_FindHashEntry(cmap_, (const char *)(r->app()));
+	assert(he != NULL);
+	RegInfo *ri = (RegInfo *)Tcl_GetHashValue(he);
+
+	// Process request
 	if (r->request() == MEDIAREQ_GETSEG) {
 		// Get a new data segment
 		MediaPage* pg = (MediaPage*)pool_->get_page(r->name());
@@ -610,24 +628,29 @@ AppData* MediaCache::get_data(int& size, AppData* req)
 		// return a NULL segment because the requested one
 		// is not available. Don't set the 'LAST' flag in this 
 		// case.
-// 		if (!pg->is_locked() && s2.is_last()) {
 		if (s2.is_last()) {
 			p->set_last();
 			if (!pg->is_locked() && (s2.datasize() == 0) && 
 			    (r->layer() == 0)) 
 				p->set_finish();
 		}
+
+		//----------------------------------------
+		// Update statistics of this connection
+		//----------------------------------------
 		// Update the highest layer that this client has requested
-		Tcl_HashEntry *he = 
-			Tcl_FindHashEntry(cmap_, (const char *)(r->app()));
-		assert(he != NULL);
-		RegInfo *ri = (RegInfo *)Tcl_GetHashValue(he);
 		if (ri->hl_ < r->layer())
 			ri->hl_ = r->layer();
+		if (size > 0) {
+			// Update total delivered bytes
+			ri->db_[r->layer()] += size;
+			// Update prefetched bytes that've been delivered
+			ri->eb_[r->layer()] += ri->pref_size(r->layer(), s2);
+		}
 		return p;
 	} else if (r->request() == MEDIAREQ_CHECKSEG) {
 		// Check the availability of a new data segment
-		// And do refetch if this is not available
+		// And refetch if it is not available
 		MediaPage* pg = (MediaPage*)pool_->get_page(r->name());
 		assert(pg != NULL);
 		if (pg->is_locked()) 
@@ -640,8 +663,9 @@ AppData* MediaCache::get_data(int& size, AppData* req)
 			return NULL;
 		// Otherwise do prefetching on these "holes"
 		char *buf = ul.dump2buf();
-		Tcl::instance().evalf("%s pref-segment %s %d %s", 
-				      name(), r->name(), r->layer(), buf);
+		Tcl::instance().evalf("%s pref-segment %s %s %d %s", name(), 
+				      r->app()->name(), r->name(), 
+				      r->layer(), buf);
 		log("E PREF p %s l %d %s\n", r->name(), r->layer(), buf);
 		delete []buf;
 		ul.destroy();
@@ -676,9 +700,28 @@ void MediaCache::process_data(int size, AppData* data)
 				"unknown page %s\n", name(), d->page());
 			abort();
 		}
+		if (d->is_pref()) {
+			// Update total prefetched bytes
+			Tcl_HashEntry *he = Tcl_FindHashEntry(cmap_, 
+						(const char*)(d->conid()));
+			// Client-cache-server disconnection procedure:
+			// (1) client disconnects from cache, then
+			// (2) cache disconnects from server and shuts down 
+			//     prefetching channel. 
+			// Therefore, after client disconnects, the cache 
+			// may still receive a few prefetched segments. 
+			// Ignore those because we no longer keep statistics
+			// about the torn-down connection.
+			if (he != NULL) {
+				RegInfo *ri = (RegInfo *)Tcl_GetHashValue(he);
+				ri->add_pref(d->layer(), MediaSegment(*d));
+				ri->pb_[d->layer()] += d->datasize();
+			}
+		}
 		// XXX debugging only
-		log("E RSEG p %s l %d s %d e %d z %d\n", 
-		    d->page(), d->layer(), d->st(), d->et(), d->datasize());
+		log("E RSEG p %s l %d s %d e %d z %d f %d\n", 
+		    d->page(), d->layer(), d->st(), d->et(), d->datasize(),
+		    d->is_pref());
 		break;
 	} 
 	default:
@@ -771,6 +814,11 @@ int MediaCache::command(int argc, const char*const* argv)
 			printf("Cache %d hit counts: \n", id_);
 			mpool()->dump_hclist();
 #endif
+			// Dump per-connection statistics
+			for (int i = 0; i <= ri->hl_; i++)
+				log("E STAT p %s l %d d %d e %d p %d\n",
+				    ri->name_, i, ri->db_[i], ri->eb_[i], 
+				    ri->pb_[i]);
 			delete ri;
 			Tcl_DeleteHashEntry(he);
 
@@ -861,7 +909,6 @@ public:
 MediaServer::MediaServer() : HttpServer() 
 {
 	pref_ = new Tcl_HashTable;
-	// Map <App,PageID> to PartialMediaPage
 	Tcl_InitHashTable(pref_, 2);
 	cmap_ = new Tcl_HashTable;
 	Tcl_InitHashTable(cmap_, TCL_ONE_WORD_KEYS);
@@ -869,11 +916,22 @@ MediaServer::MediaServer() : HttpServer()
 
 MediaServer::~MediaServer() 
 {
+	Tcl_HashEntry *he;
+	Tcl_HashSearch hs;
 	if (pref_ != NULL) {
+		for (he = Tcl_FirstHashEntry(pref_, &hs);  he != NULL;
+		     he = Tcl_NextHashEntry(&hs)) {
+			PrefInfo *pi = (PrefInfo*)Tcl_GetHashValue(he);
+			pi->sl_->destroy();
+			delete pi->sl_;
+		}
 		Tcl_DeleteHashTable(pref_);
 		delete pref_;
 	}
 	if (cmap_ != NULL) {
+		for (he = Tcl_FirstHashEntry(cmap_, &hs);  he != NULL;
+		     he = Tcl_NextHashEntry(&hs))
+			delete (RegInfo*)Tcl_GetHashValue(he);
 		Tcl_DeleteHashTable(cmap_);
 		delete cmap_;
 	}
@@ -887,28 +945,19 @@ MediaSegment MediaServer::get_next_segment(MediaRequest *r)
 
 	// XXX Extremely hacky way to map media app names to 
 	// HTTP connections. Should maintain another hash table for this.
-	Tcl_HashEntry *he = Tcl_FindHashEntry(cmap_, (const char *)(r->app()));
-	if (he == NULL) {
-		fprintf(stderr, "Unknown connection!\n");
-		abort();
-	} 
-	RegInfo *ri = (RegInfo *)Tcl_GetHashValue(he);
+	RegInfo *ri = get_reginfo(r->app());
 	assert(ri != NULL);
-	PageID id;
-	ClientPage::split_name(r->name(), id);
-	int tmp[2];
-	tmp[0] = (int)(ri->client_);
-	tmp[1] = id.id_;
-	he = Tcl_FindHashEntry(pref_, (const char *)tmp);
-	if (he == NULL) {
-		// We are not on the prefetching list
+	PrefInfo* pi = get_prefinfo(r->name(), ri->client_);
+
+	// We are not on the prefetching list, send a normal data segment
+	if (pi == NULL) {
 		MediaSegment s1(r->st(), r->et());
 		return pg->next_overlap(r->layer(), s1);
 	}
 
 	// Send a segment from the prefetching list. Only use the data size
 	// included in the request.
-	MediaSegmentList *p = (MediaSegmentList *)Tcl_GetHashValue(he);
+	MediaSegmentList *p = pi->sl_;
 	// Find one available segment in prefetching list if there is none
 	// in the given layer
 	int l = r->layer(), i = 0;
@@ -931,6 +980,8 @@ MediaSegment MediaServer::get_next_segment(MediaRequest *r)
 		//assert(res.datasize() == r->datasize());
 		p[r->layer()].evict_head(r->datasize());
 	}
+	// Set the prefetching flag of this segment
+	res.set_pref();
 	return res;
 }
 
@@ -961,6 +1012,13 @@ AppData* MediaServer::get_data(int& size, AppData *req)
 			// segment of the base layer and are requested again.
 			if ((s2.datasize() == 0) && (r->layer() == 0))
 				p->set_finish();
+		}
+		if (s2.is_pref()) {
+			// Add connection id into returned data
+			RegInfo *ri = get_reginfo(r->app());
+			PrefInfo *pi = get_prefinfo(r->name(), ri->client_);
+			p->set_conid(pi->conid_);
+			p->set_pref();
 		}
 		return p;
 	} else if (r->request() == MEDIAREQ_CHECKSEG) 
@@ -1005,12 +1063,14 @@ int MediaServer::command(int argc, const char*const* argv)
 				  "Server %d cannot stop prefetching!\n", id_);
 				return TCL_ERROR;
 			}
-			MediaSegmentList *p = 
-				(MediaSegmentList *)Tcl_GetHashValue(he);
+			PrefInfo *pi = (PrefInfo*)Tcl_GetHashValue(he);
+			assert(pi != NULL);
+			MediaSegmentList *p = pi->sl_;
 			assert(p != NULL);
 			for (int i = 0; i < MAX_LAYER; i++)
 				p[i].destroy();
 			delete []p;
+			delete pi;
 			Tcl_DeleteHashEntry(he);
 			return (TCL_OK);
 		}
@@ -1027,11 +1087,15 @@ int MediaServer::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "register-prefetch") == 0) {
 			/*
 			 * <server> register-prefetch <client> <pagenum> 
-			 * 	<layer> {<segments>}
+			 * 	<conid> <layer> {<segments>}
 			 * Registers a list of segments to be prefetched by 
 			 * <client>, where each <segment> is a pair of 
 			 * (start, end). <pagenum> should be pageid without 
-			 * preceding [server:] prefix
+			 * preceding [server:] prefix.
+			 * 
+			 * <conid> is the OTcl name of the original client 
+			 * who requested the page. This is used for the cache
+			 * to get statistics about a particular connection.
 			 * 
 			 * <client> is the requestor of the stream.
 			 */
@@ -1041,29 +1105,41 @@ int MediaServer::command(int argc, const char*const* argv)
 			int tmp[2];
 			tmp[0] = (int)a;
 			tmp[1] = (int)atoi(argv[3]);
+			// Map <cache_ptr><pageNUM> to a pref entry
 			Tcl_HashEntry *he = Tcl_CreateHashEntry(pref_, 
 					(const char*)tmp, &newEntry);
 			if (he == NULL) {
 				fprintf(stderr, "Cannot create entry.\n");
 				return TCL_ERROR;
 			}
+			PrefInfo *pi;
 			MediaSegmentList *p;
-			int layer = atoi(argv[4]);
-			if (!newEntry)
-				p = (MediaSegmentList*)Tcl_GetHashValue(he);
-			else {
-				p = new MediaSegmentList[10];
-				Tcl_SetHashValue(he, (ClientData)p);
+			if (!newEntry) {
+				pi = (PrefInfo *)Tcl_GetHashValue(he);
+				p = pi->sl_;
+				TclObject *a = tcl.lookup(argv[4]);
+				// We may still get a PREFSEG request after 
+				// the cache disconnected the client, i.e., 
+				// pi->conid_ is no longer valid. 
+				assert((a == NULL) || 
+				       ((a != NULL) && (pi->conid_ == a)));
+			} else {
+				pi = new PrefInfo;
+				p = new MediaSegmentList[MAX_LAYER];
+				pi->sl_ = p;
+				pi->conid_ = (Application*)tcl.lookup(argv[4]);
+				Tcl_SetHashValue(he, (ClientData)pi);
 			}
-			assert(p != NULL);
+			assert((pi != NULL) && (p != NULL));
 
 			// Preempt all old requests because they 
 			// cannot reach the cache "in time"
+			int layer = atoi(argv[5]);
 			p[layer].destroy();
 
 			// Add segments into prefetching list
-			assert(argc % 2 == 1);
-			for (int i = 5; i < argc; i+=2)
+			assert(argc % 2 == 0);
+			for (int i = 6; i < argc; i+=2)
 				p[layer].add(MediaSegment(atoi(argv[i]), 
 							  atoi(argv[i+1])));
 			return TCL_OK;

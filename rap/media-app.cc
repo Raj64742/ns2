@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.10 1999/09/24 23:44:35 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.11 1999/10/06 21:25:34 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -49,6 +49,8 @@ MediaSegment::MediaSegment(const HttpMediaData& d) : flags_(0)
 	end_ = d.et();
 	if (d.is_last())
 		set_last();
+	if (d.is_pref())
+		set_pref();
 }
 
 void MediaSegmentList::add(const MediaSegment& s) 
@@ -333,6 +335,33 @@ MediaSegmentList MediaSegmentList::check_holes(const MediaSegment& s)
 	return res;
 }
 
+// Return the portion in s that is overlap with any segments in this list
+// Sort of complementary to check_holes(), but it does not return a list, 
+// hence smaller overhead. 
+int MediaSegmentList::overlap_size(const MediaSegment& s) const
+{
+	int res = 0;
+	MediaSegment* tmp = (MediaSegment *)head_;
+	while ((tmp != NULL) && (tmp->before(s)))
+		tmp = tmp->next();
+	// If all segments are before s, there's no overlap
+	if (tmp == NULL)
+		return 0;
+	// If s is within *tmp, entire s overlaps with the list
+	if (s.in(*tmp))
+		return s.datasize();
+	// Otherwise adds all overlapping parts together.
+	int soff, eoff;
+	soff = s.start();
+	eoff = s.end();
+	while ((tmp != NULL) && (tmp->overlap(s))) {
+		res += min(eoff, tmp->end()) - max(soff, tmp->start());
+		soff = tmp->end();
+		tmp = tmp->next();
+	}
+	return res;
+}
+
 // Debug only
 void MediaSegmentList::print() 
 {
@@ -371,12 +400,7 @@ char* MediaSegmentList::dump2buf()
 	while (p != NULL) {
 		// XXX snprintf() should either be in libc or implemented
 		// by TclCL (see Tcl2.cc there).
-#if (defined(NEED_SUNOS_PROTOS) || defined(WIN32))
-		sprintf(b, "{%d %d} ", p->start(), p->end());
-		i = strlen(b);
-#else
 		i = snprintf(b, sz, "{%d %d} ", p->start(), p->end());
-#endif
 		sz -= i;
 		// Boundary check: if less than 50 bytes, allocate new buf
 		if (sz < 50) {
@@ -536,7 +560,6 @@ void MediaApp::log(const char* fmt, ...)
 {
 	char buf[1024], *p;
 	char *src = Address::instance().print_nodeaddr(rap()->addr());
-	//src[strlen(src)-1] = 0; // Get rid of the last '.'
 	sprintf(buf, "%.17g i %s ", Scheduler::instance().clock(), src);
 	delete []src;
 	p = &(buf[strlen(buf)]);
@@ -965,10 +988,10 @@ MAX BW for all %d layers!\n", rate, layers);
 				sending_[layers] = 0;
 				// However, do prefetching in case we'll add 
 				// it again later
-				int st = (int)((data_[layers].start()+
+				int st = (int)floor((data_[layers].start()+
 						pref_srtt_*LAYERBW_)
 					       /seg_size_+0.5)*seg_size_;
-				int et = (int)((data_[layers].end()+
+				int et = (int)floor((data_[layers].end()+
 						pref_srtt_*LAYERBW_)
 					       /seg_size_+0.5)*seg_size_;
 				if (et > pref_[layers]) {
@@ -1155,6 +1178,9 @@ scen: %d, totbufs1: %.2f, totbufs2: %.2f, totbufavail: %.2f\n",
 
 			for(l=0; l<layers; l++){
 				tosend[l] = srtt*LAYERBW_ - FinalDrainArray[l];
+				// Correct for numerical error
+				if (fabs(tosend[l]) < QA_EPSILON)
+					tosend[l] = 0.0;
 			}
 
 			/* 
@@ -1167,14 +1193,17 @@ scen: %d, totbufs1: %.2f, totbufs2: %.2f, totbufavail: %.2f\n",
 			if ((bufToDrain <= 0) || 
 			    AllZero(FinalDrainArray, layers) ||
 			    AllZero(tosend, layers)) {
-				fprintf(stderr, 
-			"# Error: bufToDrain: %.2f, %d layers, srtt: %.2f\n", 
-					bufToDrain, layers, srtt);
+				debug("# Error: bufToDrain: %.2f, %d layers, "
+				      "srtt: %.2f\n", 
+				      bufToDrain, layers, srtt);
 				for (l=0; l<layers; l++)
-					fprintf(stderr, 
-			"# FinalDrainArray[%d]: %.2f, tosend[%d]: %.2f\n",
-					l, FinalDrainArray[l], l, tosend[l]);
+					debug("# FinalDrainArray[%d]: %.2f, "
+					      "tosend[%d]: %.2f\n", l, 
+					      FinalDrainArray[l],l, tosend[l]);
+				/*
+				Tcl::instance().eval("[Test instance] flush-trace");
 				abort();
+				*/
 			}
 			/*******/
 		}
@@ -1552,7 +1581,7 @@ reach here, extra: %.2f, bufs2: %.2f, bufs1: %.2f, L%d\n",
 // based on its old value and return value for DrainArr.
 //
 // FinalDrainArray: output
-// FinalBuffer: output, expected buf state at ethe end of the interval
+// FinalBuffer: output, expected buf state at the end of the interval
 void QA::DrainPacket(double bufToDrain, double* FinalDrainArray, int layers,
 		     double rate, double srtt, double* FinalBuffer)
 {
@@ -1666,10 +1695,10 @@ is playing with %.2f buf but layer %d ran dry with %.2f buf\n",
 			// data_[i].set_start(-1); // drop layer i
 		} else {
 			// Prefetch for this layer. Round to whole segment
-			int st = (int)((poffset_+pref_srtt_*LAYERBW_)
-				       /seg_size_+0.5)*seg_size_;
-			int et = (int)((poffset_+(pref_srtt_+interval)*
-					LAYERBW_)/seg_size_+0.5)*seg_size_;
+			int st = (int)floor((poffset_+pref_srtt_*LAYERBW_)
+					    /seg_size_+0.5)*seg_size_;
+			int et = (int)floor((poffset_+(pref_srtt_+interval)*
+					   LAYERBW_)/seg_size_+0.5)*seg_size_;
 			if (et > pref_[i]) {
 				pref_[i] = et;
 				MediaSegment s(st, et);

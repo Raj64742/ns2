@@ -26,7 +26,7 @@
 //
 // Multimedia caches
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.4 1999/08/24 04:16:27 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.5 1999/10/06 21:25:32 haoboy Exp $
 
 #ifndef ns_mcache_h
 #define ns_mcache_h
@@ -248,13 +248,40 @@ protected:
 	// MediaApp* mapp_; // An array of incoming/outgoing RAP agents
 	MClientPagePool* mpool() { return (MClientPagePool *)pool_; }
 
+	// Information and statistics related to clients
 	struct RegInfo {
-		RegInfo() : client_(NULL), hl_(-1) {}
+		RegInfo() : client_(NULL), hl_(-1) {
+			memset(pb_, 0, sizeof(unsigned int)*MAX_LAYER);
+			memset(db_, 0, sizeof(unsigned int)*MAX_LAYER);
+			memset(eb_, 0, sizeof(unsigned int)*MAX_LAYER);
+		}
+		~RegInfo() {
+			for (int i = 0; i < MAX_LAYER; i++)
+				pref_[i].destroy();
+		}
+
 		char name_[20];
 		HttpApp* client_;
-		int hl_; 		// Highest layer this client has asked
+		int hl_;		// Highest layer this client has asked
+		// Prefetched bytes
+		unsigned int pb_[MAX_LAYER]; 
+		// Prefetched bytes that were delivered
+		unsigned int eb_[MAX_LAYER];
+		// Total delivered bytes
+		unsigned int db_[MAX_LAYER];
+		MediaSegmentList pref_[MAX_LAYER];
+
+		// Return the number of prefetched bytes in the given segment
+		void add_pref(int layer, const MediaSegment& s) {
+			assert((layer >= 0) && (layer < MAX_LAYER));
+			pref_[layer].add(s);
+		}
+		int pref_size(int layer, const MediaSegment &s) const { 
+			assert((layer >= 0) && (layer < MAX_LAYER));
+			return pref_[layer].overlap_size(s);
+		}
 	};
-	Tcl_HashTable *cmap_; // client map
+	Tcl_HashTable *cmap_;	// client map
 };
 
 
@@ -290,7 +317,34 @@ protected:
 		char name_[20];
 		HttpApp* client_;
 	};
+	struct PrefInfo {
+		Application* conid_;
+		MediaSegmentList* sl_;
+	};
 	Tcl_HashTable *cmap_; // Mapping MediaApps to clients
+
+	// Helper functions
+	PrefInfo* get_prefinfo(const char* pgname, HttpApp* client) {
+		PageID id;
+		ClientPage::split_name(pgname, id);
+		int tmp[2];
+		tmp[0] = (int)(client);
+		tmp[1] = id.id_;
+		Tcl_HashEntry* he = 
+			Tcl_FindHashEntry(pref_, (const char*)tmp);
+		if (he == NULL) 
+			return NULL;
+		return (PrefInfo*)Tcl_GetHashValue(he);
+	}
+	RegInfo* get_reginfo(Application* app) {
+		Tcl_HashEntry *he = 
+			Tcl_FindHashEntry(cmap_, (const char *)app);
+		if (he == NULL) {
+			fprintf(stderr, "Unknown connection!\n");
+			abort();
+		} 
+		return (RegInfo *)Tcl_GetHashValue(he);
+	}
 };
 
 

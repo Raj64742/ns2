@@ -26,7 +26,7 @@
 # Implementation of web cache, client and server which support 
 # multimedia objects.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.3 1999/07/06 22:57:06 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.4 1999/10/06 21:25:36 haoboy Exp $
 
 #
 # Multimedia web client
@@ -139,6 +139,11 @@ Http/Server/Media instproc create-pagepool {} {
 	return $pool
 }
 
+Http/Server/Media instproc medialog-on {} {
+	$self instvar MediaLog_
+	set MediaLog_ 1
+}
+
 # Allocate a media connection
 Http/Server/Media instproc alloc-mcon { client pageid dst_agent } {
 	$self instvar ns_ node_ mmapp_ 
@@ -158,10 +163,13 @@ Http/Server/Media instproc alloc-mcon { client pageid dst_agent } {
 
 	# DEBUG ONLY
 	# Logging MediaApps, only do it for sender-side media apps
-#	set lf [$self log]
-#	if {$lf != ""} {
-#		$app log $lf
-#	}
+	$self instvar MediaLog_
+	if [info exists MediaLog_] {
+		set lf [$self log]
+		if {$lf != ""} {
+			$app log $lf
+		}
+	}
 	#puts "Server [$self id] allocated a connection to client [$client id]\
 # using agent $agent"
 
@@ -249,9 +257,11 @@ Http/Server/Media instproc get-request { client type pageid args } {
 		# Records this client as doing prefetching. 
 		# FAKE a connection to the client without prior negotiation
 		set pagenum [lindex [split $pageid :] 1]
-		set layer [lindex $args 0]
-		set seglist [lrange $args 1 end]
-		eval $self register-prefetch $client $pagenum $layer $seglist
+		set conid [lindex $args 0]
+		set layer [lindex $args 1]
+		set seglist [lrange $args 2 end]
+		eval $self register-prefetch $client $pagenum $conid \
+				$layer $seglist
 		$client start-prefetch $self $pageid
 		$self evTrace S PREF p $pageid l $layer [join $seglist]
 		# DEBUG only
@@ -346,14 +356,23 @@ stream $pageid from client [$client id]"
 	$self register-client $app $client $pageid
 
 	# Logging MediaApps, only do it for sender-side media apps
-#	set lf [$self log]
-#	if {$lf != ""} {
-#		$app log $lf
-#	}
+	$self instvar MediaLog_
+	if [info exists MediaLog_] {
+		set lf [$self log]
+		if {$lf != ""} {
+			$app log $lf
+		}
+	}
 
 	# Connect two RAP agents and start data transmission
 	$ns_ connect $agent $dst_agent
 	$agent start
+}
+
+# Turn on logging of media application
+Http/Cache/Media instproc medialog-on {} {
+	$self instvar MediaLog_
+	set MediaLog_ 1
 }
 
 Http/Cache/Media instproc media-disconnect { host pageid } {
@@ -463,11 +482,11 @@ Http/Cache/Media instproc answer-request-GET { cl pageid args } {
 
 # $args is a list of segments, each of which is a list of 
 # two elements: {start end}
-Http/Cache/Media instproc pref-segment {pageid layer args} {
+Http/Cache/Media instproc pref-segment {conid pageid layer args} {
 	# XXX directly send a request to the SERVER. Assuming that 
 	# we are not going through another cache. 
 	set server [lindex [split $pageid :] 0]
 	set size [$self get-reqsize]
 	$self send $server $size "$server get-request $self PREFSEG \
-		$pageid $layer [join $args]"
+		$pageid $conid $layer [join $args]"
 }
