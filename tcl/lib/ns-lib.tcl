@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.167 1999/09/15 22:23:36 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.168 1999/09/16 03:51:04 yaxu Exp $
 
 #
 
@@ -357,7 +357,6 @@ Simulator instproc create-wireless-node { args } {
 
 	    TORA {
 		set imepflag_ ON
-#		set node [new Node/MobileNode]
 		set ragent [$self create-tora-agent $node]
 
 	    }

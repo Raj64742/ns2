@@ -514,7 +514,7 @@ SRNodeNew instproc init {args} {
 	eval $self next $args	;# parent class constructor
 
 	if {$dmux_ == "" } {
-		set dmux_ [new Classifier/Addr]
+		set dmux_ [new Classifier/Port]
 		$dmux_ set mask_ [AddrParams set PortMask_]
 		$dmux_ set shift_ [AddrParams set PortShift_]
 		#
