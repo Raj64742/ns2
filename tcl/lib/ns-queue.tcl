@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.26 2005/01/13 18:33:50 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.27 2005/01/19 00:20:57 haldar Exp $
 #
 
 #
@@ -608,6 +608,16 @@ Queue/XCP instproc create-vqueues {} {
 	$self set-xcpQ [set vq_(0) [new Queue/DropTail/XCPQ]]
 	$self set-tcpQ [set vq_(1) [new Queue/RED]]
 	$self set-otherQ [set vq_(2) [new Queue/RED]]
+	
+	
+}
+
+Queue/XCP instproc link {del} {
+	$self instvar vq_ 
+
+	# XXX yuck
+	$vq_(1) link $del              ;#link info to RED queue
+	$vq_(2) link $del              ;#link info to RED queue
 }
 
 Queue/XCP instproc queue-limit { limit } {
