@@ -29,7 +29,7 @@ When a new simulation object is created in tcl,
 performs the following operations:
 \begin{itemize}
         \item initialize the packet format (calls {\tt create\_packetformat})
-        \item create a scheduler (defaults to a simple linked-list scheduler)
+        \item create a scheduler (defaults to a calendar scheduler)
         \item create a ``null agent'' (a discard sink used in various places)
 \end{itemize}
 The packet format initialization sets up field offsets within packets
@@ -58,8 +58,11 @@ it to completion, and returning to execute the next event.
 Presently, the simulator is single-threaded, and only one event
 in execution at any given time.
 If more than one event are scheduled to execute at the same time,
-they are first ordered (in some scheduler-dependent way) and executed
-serially.
+their execution is performed on the first scheduled -- first
+dispatched manner.  Simultaneous events are not re-ordered anymore by
+schedulers (as it was in earlier versions) and all schedulers should
+yeild the same order of dispatching given the same input.
+ 
 No partial execution of events or pre-emption is supported.
 
 An {\em event} generally comprises a ``firing time'' and a handler function.
