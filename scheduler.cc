@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.4 1997/03/18 23:42:58 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.5 1997/05/14 00:42:13 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -466,3 +466,72 @@ void CalendarScheduler::run()
 		p->handler_->handle(p);
 }
 
+#include <sys/time.h>
+
+/*
+ * Really should instance the list/calendar/heap discipline
+ * inside a RealTimeScheduler or VirtualTimeScheduler
+ */
+class RealTimeScheduler : public ListScheduler {
+public:
+	RealTimeScheduler();
+	virtual void run();
+protected:
+	double tod();
+	double wait(double then);
+	timeval start_;
+};
+
+static class RealTimeSchedulerClass : public TclClass {
+public:
+	RealTimeSchedulerClass() : TclClass("Scheduler/RealTime") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new RealTimeScheduler);
+	}
+} class_realtime_sched;
+
+RealTimeScheduler::RealTimeScheduler()
+{
+	gettimeofday(&start_, 0);
+}
+
+double RealTimeScheduler::tod()
+{
+	timeval tv;
+	gettimeofday(&tv, 0);
+	double s = tv.tv_sec - start_.tv_sec;
+	s += 1e-6 * (tv.tv_usec - start_.tv_usec);
+	return (s);
+}
+
+double RealTimeScheduler::wait(double then)
+{
+	for (;;) {
+		double now = tod();
+		double delay = then - now;
+		/* return if less than 500us (slop) */
+		if (delay < 0.0005)
+			return (now);
+		timeval tv;
+		int s = int(delay);
+		tv.tv_sec = s;
+		tv.tv_usec = int(1e6 * (delay - s));
+		select(0, 0, 0, 0, &tv);
+	}
+}
+
+void RealTimeScheduler::run()
+{ 
+	/*XXX*/
+	instance_ = this;
+	double now = tod();
+	while (queue_ != 0) {
+		Event* p = queue_;
+		queue_ = p->next_;
+		clock_ = p->time_;
+		if (clock_ > now)
+			now = wait(clock_);
+
+		p->handler_->handle(p);
+	}
+}
