@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.13 1997/11/10 23:53:06 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.14 1997/11/11 00:41:37 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -71,7 +71,7 @@ TestSuite instproc make_fmon cbqlink {
 #		dataClass	(65%), pri 2
 #
 
-TestSuite instproc create_flat { } {
+TestSuite instproc create_flat { audborrowok audxdelay} {
 	$self instvar topclass_ vidclass_ audioclass_ dataclass_
 	$self instvar cbq_qtype_
 
@@ -88,7 +88,7 @@ TestSuite instproc create_flat { } {
 
 	set audioclass_ [new CBQClass]
 	$self make_queue $audioclass_ $qlim
-	$audioclass_ setparams $topclass_ true 0.03 auto 1 1 0
+	$audioclass_ setparams $topclass_ $audborrowok 0.03 auto 1 1 $audxdelay
 
 	set dataclass_ [new CBQClass]
 	$self make_queue $dataclass_ $qlim
@@ -113,7 +113,7 @@ TestSuite instproc insert_flat cbqlink {
 	$cbqlink bind $dataclass_ 3; # fid 3
 }
 
-TestSuite instproc create_flat2 { } {
+TestSuite instproc create_flat2 { audmaxidle audxdelay } {
 	$self instvar topclass_ audioclass_ dataclass_
 	$self instvar cbq_qtype_
 
@@ -126,7 +126,7 @@ TestSuite instproc create_flat2 { } {
 
 	set audioclass_ [new CBQClass]
 	$self make_queue $audioclass_ $qlim
-	$audioclass_ setparams $topclass_ false 0.30 0.25 1 1 0
+	$audioclass_ setparams $topclass_ false 0.30 $audmaxidle 1 1 $audxdelay
 
 	set dataclass_ [new CBQClass]
 	$self make_queue $dataclass_ $qlim
@@ -256,8 +256,12 @@ TestSuite instproc finish testname {
 		}
 	}
 
-	close $tmpschan_
-	close $tmpqchan_
+	if { [info exists tmpschan_] } {
+		close $tmpschan_
+	}
+	if { [info exists tmpqchan_] } {
+		close $tmpqchan_
+	}
 
 	set f [open $graphfile w]
 	puts $f "TitleText: $testname"
@@ -393,20 +397,22 @@ TestSuite instproc three_cbrs {} {
 #
 # Create two CBR connections.
 #
-TestSuite instproc two_cbrs {} {
+TestSuite instproc two_cbrs { int1 int2 dostop } {
 	$self instvar ns_ node_
 	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
 	$cbr1 set packetSize_ 1000
-	$cbr1 set interval_ 0.001
+	$cbr1 set interval_ $int1
 
 	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
 	$cbr2 set packetSize_ 1000
-	$cbr2 set interval_ 0.01
+	$cbr2 set interval_ $int2
 
 	$ns_ at 0.0 "$cbr1 start; $cbr2 start"
-	$ns_ at 0.002 "$cbr1 stop"
-	$ns_ at 1.0 "$cbr1 start"
-	$ns_ at 1.08 "$cbr1 stop"
+	if { $dostop } {
+		$ns_ at 0.002 "$cbr1 stop"
+		$ns_ at 1.0 "$cbr1 start"
+		$ns_ at 1.08 "$cbr1 stop"
+	}
 }
 
 TestSuite instproc four_cbrs {} {
@@ -440,6 +446,11 @@ TestSuite instproc four_cbrs {} {
 	$ns_ at 32.0 "$cbr4 start"
 }
 
+#
+# Figure 10 from the link-sharing paper. 
+# ~/newr/rm/testB.com
+# 
+
 Class Test/WRR -superclass TestSuite
 Test/WRR instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -449,10 +460,6 @@ Test/WRR instproc init topo {
 	$self next 0
 }
 
-#
-# Figure 10 from the link-sharing paper. 
-# ~/newr/rm/testB.com
-# 
 Test/WRR instproc run {} {
 	$self instvar cbqalgorithm_ ns_ net_ topo_
 	set cbqalgorithm_ top-level
@@ -460,7 +467,7 @@ Test/WRR instproc run {} {
 	set maxbytes 187500
 
 	$topo_ instvar cbqlink_
-	$self create_flat
+	$self create_flat true 0
 	$self insert_flat $cbqlink_
 	$self three_cbrs
 	$self make_fmon $cbqlink_
@@ -491,7 +498,7 @@ Test/PRR instproc run {} {
 	set maxbytes 187500
 
 	$topo_ instvar cbqlink_
-	$self create_flat
+	$self create_flat true 0
 	$self insert_flat $cbqlink_
 	$self three_cbrs
 	$self make_fmon $cbqlink_
@@ -627,6 +634,11 @@ TestSuite instproc finish_max tname {
 # ~/newr/rm/testA.com DELETED
 #
 
+# 
+# To send five back-to-back packets for $audClass,
+#   maxidle should be 0.004 seconds
+# To send 50 back-to-back packets, maxidle should be 0.25 seconds
+
 Class Test/MAX1 -superclass TestSuite
 Test/MAX1 instproc init topo { 
         $self instvar net_ defNet_ test_
@@ -643,249 +655,166 @@ Test/MAX1 instproc run {} {
         set cbqalgorithm_ formal
  
         $topo_ instvar cbqlink_
-        $self create_flat2
+        $self create_flat2 0.25 0
         $self insert_flat2 $cbqlink_
-        $self two_cbrs
+        $self two_cbrs 0.001 0.01 1
         [$cbqlink_ queue] algorithm $cbqalgorithm_
 
-        ## need to redef finish procedure here somehow
 	TestSuite instproc finish tname { $self finish_max $tname }
 	$self traceQueues $node_(r1) [$self openTrace $stopTime CBQ_MAX1]
         $ns_ run
 }
 
-#
-# To send five back-to-back packets for $audClass, 
-#   maxidle should be 0.004 seconds
-# To send 50 back-to-back packets, maxidle should be 0.25 seconds
-proc test_cbqMax1 {} {
-	global s1 s2 s3 s4 r1 k1 ns_link
-	set Mbps 1.5
-	set stopTime 2.1
-	set CBQalgorithm 2
-	set ns_link(queue-limit) 1000
-	set queue 1000
-	create_graph $stopTime cbq $queue
-
-	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
-        set audClass [ns_create_class1 $topClass none 0.3 0.25 auto 1 0 0 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto 2 \
-		0 0 $Mbps]
-
-	$link insert $topClass
-        $link insert $audClass
-	$link insert $dataClass
-
-	set qdisc [$audClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-        $link bind $audClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 1000 0.001 1]
-        set cbr1 [ns_create_cbr $s2 $k1 1000 0.01 2]
-
-	ns at 0.0 "$cbr0 start"
-	ns at 0.002 "$cbr0 stop"
-	ns at 1.0 "$cbr0 start"
-	ns at 1.08 "$cbr0 stop"
-	ns at 0.0 "$cbr1 start"
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	[ns link $r1 $k1] trace [openTrace3 $stopTime test_Max1,_25_pkts]
-
-	ns run
+Class Test/MAX2 -superclass TestSuite
+Test/MAX2 instproc init topo { 
+        $self instvar net_ defNet_ test_
+	Queue set limit_ 1000
+        set net_ $topo
+        set defNet_ cbq1-wrr
+        set test_ CBQ_MAX2
+        $self next 0
 }
+Test/MAX2 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 2.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+ 
+        $topo_ instvar cbqlink_
+        $self create_flat2 0.004 0
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 0.001 0.01 1
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
 
-#
-# To send five back-to-back packets for $audClass, 
-#   maxidle should be 0.004 seconds
-# To send 50 back-to-back packets, maxidle should be 0.25 seconds
-proc test_cbqMax2 {} {
-	global s1 s2 s3 s4 r1 k1 ns_link
-	set Mbps 1.5
-	set stopTime 2.1
-	set CBQalgorithm 2
-	set ns_link(queue-limit) 1000
-	set queue 1000
-	create_graph $stopTime cbq $queue
-
-	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
-	set audClass [ns_create_class1 $topClass none 0.3 0.004 auto 1 0 0 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto \
-		2 0 0 $Mbps]
-
-	$link insert $topClass
-        $link insert $audClass
-	$link insert $dataClass
-
-	set qdisc [$audClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-        $link bind $audClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 1000 0.001 1]
-        set cbr1 [ns_create_cbr $s2 $k1 1000 0.01 2]
-
-	ns at 0.0 "$cbr0 start"
-	ns at 0.002 "$cbr0 stop"
-	ns at 1.0 "$cbr0 start"
-	ns at 1.08 "$cbr0 stop"
-	ns at 0.0 "$cbr1 start"
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	[ns link $r1 $k1] trace [openTrace3 $stopTime test_Max2,_5_pkts]
-
-	ns run
+	TestSuite instproc finish tname { $self finish_max $tname }
+	$self traceQueues $node_(r1) [$self openTrace $stopTime CBQ_MAX2]
+        $ns_ run
 }
 
 #
 # Set "extradelay" to 0.024 seconds for a steady-state burst of 2 
 #
-proc test_cbqExtra1 {} {
-	global s1 s2 s3 s4 r1 k1 ns_link
-	set Mbps 1.5
-	set stopTime 2.1
-	set CBQalgorithm 2
-	set ns_link(queue-limit) 1000
-	set queue 1000
-	create_graph $stopTime cbq $queue
-
-	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
-        set audClass [ns_create_class1 $topClass none 0.3 auto auto \
-		1 0 0.024 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto \
-		2 0 0 $Mbps]
-
-	$link insert $topClass
-        $link insert $audClass
-	$link insert $dataClass
-
-	set qdisc [$audClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-        $link bind $audClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 1000 0.015 1]
-        set cbr1 [ns_create_cbr $s2 $k1 1000 0.01 2]
-
-	ns at 0.0 "$cbr0 start"
-	ns at 0.0 "$cbr1 start"
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	[ns link $r1 $k1] trace [openTrace3 $stopTime test_Extra1_burst_2]
-
-	ns run
+Class Test/EXTRA1 -superclass TestSuite
+Test/EXTRA1 instproc init topo { 
+        $self instvar net_ defNet_ test_
+        Queue set limit_ 1000
+        set net_ $topo
+        set defNet_ cbq1-wrr
+        set test_ CBQ_EXTRA1
+        $self next 0
 }
+Test/EXTRA1 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 2.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+        
+        $topo_ instvar cbqlink_ 
+        $self create_flat2 auto 0.024
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 0.015 0.01 0
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+
+        TestSuite instproc finish tname { $self finish_max $tname }
+        $self traceQueues $node_(r1) [$self openTrace $stopTime CBQ_EXTRA1]
+        $ns_ run
+}
+
 
 #
 # Set "extradelay" to 0.12 seconds for a steady-state burst of 8 
 #
-proc test_cbqExtra2 {} {
-	global s1 s2 s3 s4 r1 k1 ns_link
-	set Mbps 1.5
-	set stopTime 2.1
-	set CBQalgorithm 2
-	set ns_link(queue-limit) 1000
-	set queue 1000
-	create_graph $stopTime cbq $queue
 
-	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
-        set audClass [ns_create_class1 $topClass none 0.3 auto auto \
-		1 0 0.12 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto \
-		2 0 0 $Mbps]
+Class Test/EXTRA2 -superclass TestSuite
+Test/EXTRA2 instproc init topo { 
+        $self instvar net_ defNet_ test_
+        Queue set limit_ 1000
+        set net_ $topo
+        set defNet_ cbq1-wrr
+        set test_ CBQ_EXTRA2
+        $self next 0
+}
+Test/EXTRA2 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 2.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+        
+        $topo_ instvar cbqlink_ 
+        $self create_flat2 auto 0.012
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 0.015 0.01 0
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
 
-	$link insert $topClass
-        $link insert $audClass
-	$link insert $dataClass
-
-	set qdisc [$audClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-        $link bind $audClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 1000 0.015 1]
-        set cbr1 [ns_create_cbr $s2 $k1 1000 0.01 2]
-
-	ns at 0.0 "$cbr0 start"
-	ns at 0.0 "$cbr1 start"
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	[ns link $r1 $k1] trace [openTrace3 $stopTime test_Extra2_burst_8]
-
-	ns run
+        TestSuite instproc finish tname { $self finish_max $tname }
+        $self traceQueues $node_(r1) [$self openTrace $stopTime CBQ_EXTRA2]
+        $ns_ run
 }
 
 # With Packet-by-Packet Round-robin, it is necessary either to
 # set a positive value for extradelay, or a negative value for minidle
 #
-proc test_cbqMin1 {} {
-	global s1 s2 s3 s4 r1 k1 
-	set queue 20
-	set Mbps 1.5
+Class Test/MIN1 -superclass TestSuite
+Test/MIN1 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ cbq1-prr
+	set test_ CBQ_MIN1
+	$self next 0
+}
+
+Test/MIN1 instproc run {} {
+	$self instvar cbqalgorithm_ ns_ net_ topo_
+	set cbqalgorithm_ formal
 	set stopTime 4.1
-	set CBQalgorithm 2
-	create_graph $stopTime cbq $queue
- 	set link [ns link $r1 $k1]
+	set maxbytes 187500
 
-	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
-		1 0 0 $Mbps]
-	set vidClass [ns_create_class1 $topClass $topClass \
-		0.32 auto auto 1 0 0 $Mbps] 
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.65 auto auto 2 0 0 $Mbps]
+	$topo_ instvar cbqlink_
+	$self create_flat false 0
+	$self insert_flat $cbqlink_
+	$self three_cbrs
+	$self make_fmon $cbqlink_
+	[$cbqlink_ queue] algorithm $cbqalgorithm_
 
- 	$link insert $topClass
-	$link insert $vidClass
- 	$link insert $audioClass
-        $link insert $dataClass
+	$self openTrace $stopTime CBQ_MIN1
 
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$vidClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
-	$link bind $vidClass 2
- 	$link bind $audioClass 1
-	$link bind $dataClass 3
-
-	three_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	#[ns link $r1 $k1] trace [openTrace3 $stopTime test_Min1]
-	openTrace2 $stopTime test_cbqMin1_MinIdle_set
-
-	ns run
+	$ns_ run
 }
 
 #
-# deleted Min2, which was identical to Min1 except for
-# a different value of minidle (which is no longer used)
+# Min2 is deprecated
 #
-
 
 #
 # Min3 is like Min1, except extradelay is set to 0.2
 #
+Class Test/MIN3 -superclass TestSuite
+Test/MIN3 instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_MIN3
+        $self next 0
+}   
+
+Test/MIN3 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_
+        set cbqalgorithm_ formal
+        set stopTime 4.1
+        set maxbytes 187500
+    
+        $topo_ instvar cbqlink_
+        $self create_flat false 0.20
+        $self insert_flat $cbqlink_
+        $self three_cbrs
+        $self make_fmon $cbqlink_
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+    
+        $self openTrace $stopTime CBQ_MIN3
+    
+        $ns_ run
+}   
+
 proc test_cbqMin3 {} {
 	global s1 s2 s3 s4 r1 k1 
 	set Mbps 1.5
@@ -969,11 +898,6 @@ proc test_cbqMin4 {} {
 
 	ns run
 }
-
-# 
-# deleted Min5, which was identical to Min4 except for
-# a different value of minidle (which is no longer used)
-# 
 
 # 
 # 
