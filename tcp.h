@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.54 1998/08/12 23:41:23 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.55 1998/08/22 17:15:18 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -297,6 +297,7 @@ class RenoTcpAgent : public virtual TcpAgent {
 	virtual void timeout(int tno);
 	virtual void dupack_action();
  protected:
+	int allow_fast_retransmit(int last_cwnd_action_);
 	unsigned int dupwnd_;
 };
 
@@ -306,12 +307,16 @@ class NewRenoTcpAgent : public virtual RenoTcpAgent {
 	NewRenoTcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void partialnewack_helper(Packet* pkt);
+	virtual void dupack_action();
  protected:
 	int newreno_changes_;	/* 0 for fixing unnecessary fast retransmits */
 				/* 1 for additional code from Allman, */
 				/* to implement other algorithms from */
 				/* Hoe's paper */
+	int newreno_changes1_;  /* 1 for more aggressive retransmissions */
+				/* in response to partial acks */
 	void partialnewack(Packet *pkt);
+	int allow_fast_retransmit(int last_cwnd_action_);
 	int acked_, new_ssthresh_;  /* used if newreno_changes_ == 1 */
 	double ack2_, ack3_, basertt_; /* used if newreno_changes_ == 1 */
 };
