@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.22 1997/05/02 02:07:29 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.23 1997/05/14 00:21:10 heideman Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -203,6 +203,10 @@ OldSim instproc init args {
 		$self instvar file_
 		set file_ $f
 	}
+ 	traceHelper instproc callback p {
+ 		$self instvar callback_
+ 		set callback_ $p
+ 	}
 
 	#
 	# linkHelper
