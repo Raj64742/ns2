@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.20 1998/06/03 03:26:47 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.21 1998/06/25 23:46:21 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -104,8 +104,8 @@ int Channel::send(Packet* p, double txtime)
 		int discard = (! nodrop_);
 		((hdr_cmn*)p->access(off_cmn_))->error() |= EF_COLLISION;
 		if (pkt_ && pkt_->time_ > now) {
-			hdr_mac* mh = hdr_mac::get(pkt_);
-			hdr_mac* mh2 = hdr_mac::get(p);
+			hdr_mac* mh = hdr_mac::access(pkt_);
+			hdr_mac* mh2 = hdr_mac::access(p);
 			((hdr_cmn*)pkt_->access(off_cmn_))->error() |= EF_COLLISION;
 			if (discard) {
 				s.cancel(pkt_);

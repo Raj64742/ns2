@@ -99,7 +99,7 @@ void TraceIpMac::recv(Packet* p, Handler* h)
 	int src = (src_ >= 0) ? src_ : (iph->src() >> shift_) & mask_;
 	int dst = (iph->dst() >> shift_) & mask_;
 
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	if (mh->ftype() == MF_ACK || mh->ftype() == MF_CTS)
 		format(type_, dst, src , p);
 	else

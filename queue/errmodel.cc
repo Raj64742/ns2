@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.50 1998/06/15 17:43:21 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.51 1998/06/25 23:46:23 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.50 1998/06/15 17:43:21 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.51 1998/06/25 23:46:23 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -217,7 +217,7 @@ int ErrorModel::CorruptTime(Packet *p)
 	Scheduler &s = Scheduler::instance();
 	double now = s.clock(), rv;
 	int numerrs = 0;
-	double start = now - hdr_mac::get(p)->txtime();
+	double start = now - hdr_mac::access(p)->txtime();
 
 	while (remainLen_ < start) {
 		rv = ranvar_ ? ranvar_->value() : Random::uniform(rate_);
