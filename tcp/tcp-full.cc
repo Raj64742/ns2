@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.18 1997/11/26 22:28:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.19 1997/11/26 23:31:12 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -473,7 +473,8 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 		output(t_seqno_, reason);	// updates t_seqno for us
 		force = 0;
 
-		if (outflags() & TH_SYN || (maxburst && ++npackets >= maxburst))
+		if ((outflags() & (TH_SYN|TH_FIN)) ||
+		    (maxburst && ++npackets >= maxburst))
 			break;
 	}
 	return;
@@ -1050,8 +1051,7 @@ process_ACK:
 				// should be a FIN we've seen
 				hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
                                 fprintf(stderr,
-                                "%f: %d.%d>%d.%d FullTcpAgent::recv(%s) receive
-d non-ACK (state:%d)\n",
+                                "%f: %d.%d>%d.%d FullTcpAgent::recv(%s) received non-ACK (state:%d)\n",
                                         now(),
                                         iph->src() >> 8, iph->src() & 0xff,
                                         iph->dst() >> 8, iph->dst() & 0xff,
@@ -1060,7 +1060,7 @@ d non-ACK (state:%d)\n",
 			break;
 
 		/* no case for TIME_WAIT in simulator */
-		} // inner switch
+		}  // inner switch
 	} // outer switch
 
 step6:
