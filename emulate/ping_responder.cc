@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ping_responder.cc,v 1.5 1998/05/27 23:14:45 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ping_responder.cc,v 1.6 1998/05/27 23:18:17 kfall Exp $";
 #endif
 
 #include <stdio.h>
@@ -113,11 +113,6 @@ PingResponder::recv(Packet* pkt, Handler*)
 
 	Agent::initpkt(pkt);
 	ch->size() = psize; // will have been overwrittin by initpkt
-
-printf("OK, should be done\n");
-if (target_ == this) {
-printf("EEK... myself!\n");
-}
 
 	target_->recv(pkt);
 	return;
