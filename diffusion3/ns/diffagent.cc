@@ -43,11 +43,11 @@ public:
 } class_diffusion_app_agent;
 
 
-void NsLocal::SendPacket(Message *msg, int len, int dst) {
-  agent_->sendPacket(msg, len, dst);
+void NsLocal::sendPacket(DiffPacket p, int len, int dst) {
+  agent_->sendPacket(p, len, dst);
 }
 
-DiffPacket NsLocal::RecvPacket(int fd) {
+DiffPacket NsLocal::recvPacket(int fd) {
   DiffPacket p;
   fprintf(stderr, "This function should not get called; call DiffAppAgent::recv(Packet *, Handler *) instead\n\n");
   exit(1);
@@ -163,11 +163,12 @@ Packet* DiffAppAgent::createNsPkt(Message *msg, int len) {
 }
 
 
-void DiffAppAgent::sendPacket(Message *msg, int len, int dst) {
+void DiffAppAgent::sendPacket(DiffPacket dp, int len, int dst) {
   Packet *p;
   hdr_ip *iph;
-  //struct hdr_diff *dfh = HDR_DIFF(pkt);
+  Message *msg;
 
+  msg = (Message *)dp;
   p = createNsPkt(msg, len); 
   iph = HDR_IP(p);
   iph->saddr() = addr();

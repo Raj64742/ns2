@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.cc,v 1.6 2002/02/25 20:23:53 haldar Exp $
+// $Id: diffusion.cc,v 1.7 2002/03/12 01:23:36 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -338,7 +338,7 @@ void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, int dst_agent_id)
   len = len + sizeof(struct hdr_diff);
 
   for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-    (*itr)->SendPacket(myMsg, len, dst_agent_id);
+    (*itr)->sendPacket((DiffPacket)myMsg, len, dst_agent_id);
   }
 }
 
@@ -388,7 +388,7 @@ void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
   dst = myMsg->next_hop;
   
   for (itr = out_devices.begin(); itr != out_devices.end(); ++itr){
-    (*itr)->SendPacket(myMsg, len, dst);
+    (*itr)->sendPacket((DiffPacket)myMsg, len, dst);
   }
 }
 #else
@@ -428,7 +428,7 @@ void DiffusionCoreAgent::sendPacketToLibrary(DiffPacket pkt, int len, int dst)
   DeviceList::iterator itr;
 
   for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-    (*itr)->SendPacket(pkt, len, dst);
+    (*itr)->sendPacket(pkt, len, dst);
   }
 }
 
@@ -927,7 +927,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
     // Generate random ID
     do{
       getTime(&tv);
-      getSeed(&tv);
+      setSeed(&tv);
       myId = getRand();
 
     }
@@ -1039,7 +1039,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 #endif
 
   getTime(&tv);
-  getSeed(&tv);
+  setSeed(&tv);
   pkt_count = getRand();
   rdm_id = getRand();
 
@@ -1170,7 +1170,7 @@ void DiffusionCoreAgent::dvi_send(char *pkt, int length)
   dst = ntohl(NEXT_HOP(dfh));
 
   for (itr = out_devices.begin(); itr != out_devices.end(); ++itr){
-    (*itr)->SendPacket((DiffPacket) pkt, length, dst);
+    (*itr)->sendPacket((DiffPacket) pkt, length, dst);
   }
 }
 

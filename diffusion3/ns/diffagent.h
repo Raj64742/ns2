@@ -45,9 +45,8 @@ class DiffAppAgent;
 class NsLocal : public DiffusionIO {
 public:
 	NsLocal(DiffAppAgent *agent) { agent_ = agent;}
-	DiffPacket RecvPacket(int fd);
-	void SendPacket(DiffPacket p, int len, int dst) {}
-	void SendPacket(Message* msg, int len, int dst); 
+	DiffPacket recvPacket(int fd);
+	void sendPacket(DiffPacket p, int len, int dst);
 protected:
 	DiffAppAgent *agent_;
 };
@@ -87,7 +86,7 @@ public:
 	
 	Packet* createNsPkt(Message *msg, int len);	
 	void recv(Packet*, Handler*);
-	void sendPacket(Message *msg, int len, int dst);
+	void sendPacket(DiffPacket msg, int len, int dst);
 	
 	NR *dr() {return dr_; }
   

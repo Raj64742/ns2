@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
 
-// $Id: gradient.cc,v 1.5 2001/12/13 22:29:11 haldar Exp $
+// $Id: gradient.cc,v 1.6 2002/03/12 01:23:36 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -1152,7 +1152,7 @@ GradientFilter::GradientFilter(int argc, char **argv)
   struct timeval tv;
 
   getTime(&tv);
-  getSeed(&tv);
+  setSeed(&tv);
   pkt_count = getRand();
   rdm_id = getRand();
 

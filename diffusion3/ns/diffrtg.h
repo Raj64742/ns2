@@ -52,8 +52,8 @@ extern DiffPacket DupPacket(DiffPacket pkt);
 class LocalApp : public DiffusionIO {
 public:
 	LocalApp(DiffRoutingAgent *agent) { agent_ = agent;}
-	DiffPacket RecvPacket(int fd);
-	void SendPacket(Message *msg, int len, int dst); 
+	DiffPacket recvPacket(int fd);
+	void sendPacket(DiffPacket p, int len, int dst); 
 protected:
 	DiffRoutingAgent *agent_;
 };
@@ -61,8 +61,8 @@ protected:
 class LinkLayerAbs : public DiffusionIO {
 public:
 	LinkLayerAbs(DiffRoutingAgent *agent) { agent_ = agent;}
-	DiffPacket RecvPacket(int fd);
-	void SendPacket(Message *msg, int len, int dst); 
+	DiffPacket recvPacket(int fd);
+	void sendPacket(DiffPacket p, int len, int dst); 
 protected:
 	DiffRoutingAgent *agent_;
 };
@@ -105,7 +105,7 @@ public:
 	
 	Packet* createNsPkt(Message *msg, int len, int dst);  
 	void recv(Packet*, Handler*);
-	void sendPacket(Message *msg, int len, int dst);
+	void sendPacket(DiffPacket p, int len, int dst);
   
 	DiffusionCoreAgent *getagent() { return agent_; }
 	

@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.hh,v 1.3 2001/12/11 23:21:45 haldar Exp $
+// $Id: tools.hh,v 1.4 2002/03/12 01:23:36 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -47,7 +47,7 @@ extern char *application_id;
 void InitMainLogger();
 #endif // BBN_LOGGER
 
-void getSeed(struct timeval *tv);
+void setSeed(struct timeval *tv);
 void getTime(struct timeval *tv);
 int getRand();
 void diffPrint(int msg_level, const char *fmt, ...);

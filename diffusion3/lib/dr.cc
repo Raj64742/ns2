@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.5 2002/02/25 20:23:53 haldar Exp $
+// $Id: dr.cc,v 1.6 2002/03/12 01:23:36 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -101,7 +101,7 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
   // Initialize basic stuff
   next_handle = 1;
   getTime(&tv);
-  getSeed(&tv);
+  setSeed(&tv);
   pkt_count = getRand();
   rdm_id = getRand();
   agent_id = 0;
@@ -839,7 +839,7 @@ void DiffusionRouting::sendMessageToDiffusion(Message *msg)
   len = len + sizeof(struct hdr_diff);
 
   for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-    (*itr)->SendPacket(myMsg, len, diffusion_port);
+    (*itr)->sendPacket((DiffPacket)myMsg, len, diffusion_port);
   }
 }
 
@@ -880,7 +880,7 @@ void DiffusionRouting::sendPacketToDiffusion(DiffPacket pkt, int len, int dst)
   DeviceList::iterator itr;
 
   for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-    (*itr)->SendPacket(pkt, len, dst);
+    (*itr)->sendPacket(pkt, len, dst);
   }
 }
 

@@ -46,12 +46,12 @@ public:
 } class_diffusion_routing_agent;
 
 
-void LocalApp::SendPacket(Message *msg, int len, int dst) {
+void LocalApp::sendPacket(DiffPacket msg, int len, int dst) {
   agent_->sendPacket(msg, len, dst); 
 }
 
 
-DiffPacket LocalApp::RecvPacket(int fd) {
+DiffPacket LocalApp::recvPacket(int fd) {
   DiffPacket p;
   
   fprintf(stderr, "This function should not get called; call DiffRoutingAgent::recv(Packet *, Handler *) instead\n\n");
@@ -60,11 +60,13 @@ DiffPacket LocalApp::RecvPacket(int fd) {
 }
 
 
-void LinkLayerAbs::SendPacket(Message *msg, int len, int dst) {
+void LinkLayerAbs::sendPacket(DiffPacket dp, int len, int dst) {
   Packet *p;
   Handler *h;
   hdr_ip *iph;
+  Message *msg;
   
+  msg = (Message *)dp;
   p = agent_->createNsPkt(msg, len, dst); 
   iph = HDR_IP(p);
   iph->saddr() = agent_->addr();
@@ -76,7 +78,7 @@ void LinkLayerAbs::SendPacket(Message *msg, int len, int dst) {
 }
 
 
-DiffPacket LinkLayerAbs::RecvPacket(int fd) {
+DiffPacket LinkLayerAbs::recvPacket(int fd) {
   DiffPacket p;
   
   fprintf(stderr, "This function should not get called; call DiffRoutingAgent::recv(Packet *, Handler *) instead\n\n");
@@ -138,11 +140,12 @@ void DiffRoutingAgent::diffTimeout(Event *de) {
 }
 
 
-void DiffRoutingAgent::sendPacket(Message *msg, int len, int dst) {
+void DiffRoutingAgent::sendPacket(DiffPacket dp, int len, int dst) {
   Packet *p;
-  // Handler *h;
   hdr_ip *iph;
+  Message *msg;
 
+  msg = (Message *)dp;
   p = createNsPkt(msg, len, dst); 
   iph = HDR_IP(p);
   iph->saddr() = addr();
