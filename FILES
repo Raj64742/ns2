@@ -459,6 +459,7 @@ tcl/test/test-output-tcp/timers5.Z
 tcl/test/test-output-tcp/timersA.Z
 tcl/test/test-output-mcast/CtrMcast1.Z
 tcl/test/test-sack-v1
+tcl/test/test-suite-cbq.tcl
 tcl/test/test-suite-cbq-v1.tcl
 tcl/test/test-suite-cbq-v1a.tcl
 tcl/test/test-suite-full.tcl
