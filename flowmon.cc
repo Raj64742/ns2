@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.10 1997/08/11 20:49:03 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.11 1997/08/19 01:27:44 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -216,7 +216,7 @@ FlowMon::fformat(Flow* f)
 		now,
 		f->flowid(),	// flowid
 		0,		// category
-		f->ptype(),	// type (from trace header)
+		f->ptype(),	// type (from common header)
 		f->flowid(),	// flowid (formerly class)
 		f->src(),
 		f->dst(),
