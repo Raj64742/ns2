@@ -1127,8 +1127,15 @@ time
 
 .SH "QUEUEMONITOR Objects"
 QueueMonitor Objects are used to monitor
-queue statistics like average queue size etc.
+a set of packet and byte arrival, departure and drop
+counters.
+It also includes support for aggregate statistics such
+as average queue size, etc.
 [see TRACE AND MONITORING METHODS].
+.IP \fB$queuemonitor reset\fP
+reset all the cumulative counters described below
+(arrivals, departures, and drops) to zero.
+Also, reset the integrators and delay sampler, if defined.
 .IP "\fB$queuemonitor set-delay-samples \fIdelaySamp_\fP"
 Set up the Samples object
 .I delaySamp_
@@ -1165,9 +1172,9 @@ Running total of packets that have arrived.
 .IP \fIbarrivals_\fP
 Running total of bytes contained in packets that have arrived.
 .IP \fIpdepartures_\fP
-Running total of packets that have departed.
+Running total of packets that have departed (not dropped).
 .IP \fIbdepartures_\fP
-Running total of bytes contained in packets that have departed.
+Running total of bytes contained in packets that have departed (not dropped).
 .IP \fIpdrops_\fP
 Total number of packets dropped.
 .IP \fIbdrops_\fP
@@ -1187,6 +1194,32 @@ The
 variable of this object has the running sum (integral)
 of the queue size in packets.
 .RE
+
+.SH "QUEUEMONITOR/ED Objects"
+This derived object is capable of differentiating regular
+packet drops
+from \fIearly\fP drops.  Some queues distinguish regular
+drops (e.g. drops due to buffer exhaustion) from other
+drops (e.g. random drops in RED queues).
+Under some circumstances, it is useful to distinguish these
+two types of drops.
+.LP
+.HD
+State Variables
+.LP
+.RS
+.IP \fIepdrops_\fP
+The number of packets that have been dropped ``early''.
+.IP \fIebdrops_\fP
+The number of bytes comprising packets that have been
+dropped ``early''
+.RE
+.LP
+\fBNote:\fP because this class is a subclass of QueueMonitor,
+objects of this type also have fields such as \fCpdrops_\fP and
+\fCbdrops_\fP.  These fields describe the \fItotal\fP number of
+dropped packets and bytes, including both early and non-early
+drops.
 
 .SH "UNICAST ROUTING METHODS"
 A dynamic unicast routing protocol
