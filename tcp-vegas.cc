@@ -28,7 +28,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.2 1997/06/18 04:59:16 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.3 1997/06/19 19:20:05 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -80,11 +80,17 @@ VegasTcpAgent::reset()
 /*
  * xxx: johnh: it's not clear that this is the right def
  * but it's what was done in ns-1
+ *
+ * Also, this function should just appear by inheritance,
+ * but if it's not defined gcc-2.7.2.1 gives me errors at link time:
+ * /home/johnh/WORKING/VINT/ns-2/tcp-vegas.cc:54: undefined reference to `VegasTcpAgent::Handler virtual table'
+ * /home/johnh/WORKING/VINT/ns-2/tcp-vegas.cc:54: undefined reference to `VegasTcpAgent::TcpAgent virtual table'
+ * ...
  */
 int
 VegasTcpAgent::window()
 {
-	return (int(cwnd() < wnd_ ? cwnd() : wnd_));
+	return TcpAgent::window();
 }
 
 void
@@ -151,14 +157,14 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 				if(rtt<v_baseRTT_ || rttLen<=1)
 					v_baseRTT_ = rtt;
 
-				double actual, expect;   // in pkt/sec
+				double expect;   // in pkt/sec
 				// actual = (# in transit)/(current rtt) 
-				actual = double(rttLen)/rtt;
+				v_actual_ = double(rttLen)/rtt;
 				// expect = (current window size)/baseRTT
 				expect = double(t_seqno()-last_ack_)/v_baseRTT_;
 
 				// calc actual and expect thruput diff, delta
-				int delta=int((expect-actual)*v_baseRTT_+0.5);
+				int delta=int((expect-v_actual_)*v_baseRTT_+0.5);
 				if(cwnd() < ssthresh()) { // slow-start
 					// adj cwnd every other rtt
 					v_inc_flag_ = !v_inc_flag_;

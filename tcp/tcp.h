@@ -114,6 +114,7 @@ struct hdr_tcpasym {
 /* these are used to mark packets as to why we xmitted them */
 #define TCP_REASON_TIMEOUT	0x01
 #define	TCP_REASON_DUPACK	0x02
+#define	TCP_REASON_RBP		0x03   // used only in tcp-rbp.cc
 
 /*
  * tcp_tick_:
@@ -127,7 +128,7 @@ struct hdr_tcpasym {
 
 #define TCP_TIMER_RTX		0
 #define TCP_TIMER_DELSND	1
-#define TCP_TIMER_BURSTSND 2
+#define TCP_TIMER_BURSTSND	2
 
 
 /*
@@ -403,6 +404,8 @@ protected:
 
 	double v_incr_;		// amount cwnd is increased in the next rtt
 	int    v_inc_flag_;	// if cwnd is allowed to incr for this rtt
+
+	double v_actual_;	// actual send rate (pkt/s; needed for tcp-rbp)
 };
 
 // Local Variables:
