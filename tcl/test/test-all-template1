@@ -31,36 +31,43 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.7 1998/02/07 06:08:14 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.8 1998/07/01 16:50:16 heideman Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
 #
 
-file=$1
-directory=$2
+file=$1; shift
+directory=$1; shift
 
-version=$3
+version=$1; shift
 if test "$version" = "v2"; then
 	tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' $file`
 else
 	tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' $file`
 fi
 
-quiet="false"
-if [ $# -ge 4 ] 
-then
-    flag=$4
-    if test "$flag" = "QUIET" -o "$flag" = "quiet"; then
-        quiet="true"
-    else
-        tests=$4
-    fi
-fi
+quiet=false
+new=false
+while test $# -gt 1
+do
+	case $1 in
+	quiet|QUIET) quiet=true; shift;;
+	new|NEW) new=true; shift;;
+	*) break;;
+	esac
+done
+test="$@"
 datafile="temp.rands"
 
 if [ ! -d $directory ]; then
-    mkdir $directory
+	if $new
+	then
+		mkdir $directory
+	else
+		echo "no saved test output.  do cvs update -d"
+		exit 1
+	fi
 fi
 
 echo Tests: $tests
