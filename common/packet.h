@@ -31,8 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
-
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.46 1998/12/21 21:42:22 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.47 1998/12/21 22:17:15 haldar Exp $ (LBL)
 
  */
 
@@ -51,9 +50,8 @@
 #define RT_PORT		255	/* port that all route msgs are sent to */
 #define HDR_CMN(p)      ((struct hdr_cmn*)(p)->access(hdr_cmn::offset_))
 #define HDR_ARP(p)      ((struct hdr_arp*)(p)->access(off_arp_))
-#define HDR_MAC(p)      ((struct hdr_mac*)(p)->access(hdr_mac::offset_))
-#define HDR_MAC802_11(p) ((struct hdr_mac802_11*)(p)->access(hdr_mac::offset_))
-#define HDR_LL(p)       ((struct hdr_ll*)(p)->access(hdr_ll::offset_))
+#define HDR_MAC(p)      ((struct hdr_mac802_11*)(p)->access(newhdr_mac::offset_))
+#define HDR_LL(p)       ((struct newhdr_ll*)(p)->access(newhdr_ll::offset_))
 #define HDR_IP(p)       ((struct hdr_ip*)(p)->access(hdr_ip::offset_))
 #define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
 #define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
@@ -132,8 +130,9 @@ extern char* packet_names[]; /* map PT_* to string name */
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
 //Monarch ext
-typedef void (*FailureCallback)(Packet *,void *);
+	 typedef void (*FailureCallback)(Packet *,void *);
 //
+
 class Packet : public Event {
 private:
 	unsigned char* bits_;	// header bits
@@ -366,9 +365,9 @@ inline Packet* Packet::copy() const
 		p->data_ = new unsigned char[datalen_];
 		memcpy(p->data_, data_, datalen_);
 	}
-	#ifdef NS_MOBILE
+#ifdef NS_MOBILE
 	p->txinfo.init(&txinfo);
-	#endif
+#endif
 	return (p);
 }
 
