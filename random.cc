@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.16 1999/03/13 03:53:01 haoboy Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.17 1999/09/10 22:27:12 heideman Exp $ (LBL)";
  */
 
 #ifndef WIN32
@@ -39,13 +39,11 @@
 #include <sys/time.h>
 #include "random.h"
 
-#ifndef linux
-long
+RANDOM_RETURN_TYPE
 random()
 {
 	printf("random() called in ns.\nRandom is not portable, please use Random::uniform() instead.\n");
 	abort();
 }
-#endif
 
 #endif /* !WIN32 */
