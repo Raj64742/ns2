@@ -13,13 +13,14 @@ This area of the simulator is currently undergoing some
 changes.
 
 The procedures and functions described in this chapter can be found in
-\nsf{rng.\{cc, h\}},
-\nsf{random.\{cc, h\}},
-\nsf{ranvar.\{cc, h\}},
-\nsf{pareto.\{cc, h\}},
-\nsf{expoo.\{cc, h\}},
-\nsf{tcl/lib/ns-random.cc}, and
-\nsf{integrator.\{cc, h\}}.
+\nsf{tools/rng.\{cc, h\}},
+\nsf{tools/random.\{cc, h\}},
+\nsf{tools/ranvar.\{cc, h\}},
+\nsf{tools/pareto.\{cc, h\}},
+\nsf{tools/expoo.\{cc, h\}},
+\nsf{tools/integrator.\{cc, h\}}, and
+\nsf{tcl/lib/ns-random.tcl}.
+
 
 \section{Random Number Generation}
 \label{sec:random}
@@ -49,29 +50,38 @@ This random number generator is
 implemented by the RNG class, defined in \nsf{rng.h}:
 \begin{program}
 class RNG : public TclObject \{
-enum RNGSources \{ RAW_SEED_SOURCE, PREDEF_SEED_SOURCE, HEURISTIC_SEED_SOURCE \};
-        ...
         // These are primitive but maybe useful.
-        inline int uniform_positive_int() \{  // range [0, MAXINT]
-                return (int)(stream_.next());
-        \}
-        inline double uniform_double() \{ // range [0.0, 1.0)
-                return stream_.next_double();
-        \}
+	inline int uniform_positive_int()  // range [0, MAXINT]
 
-        inline int uniform(int k)
-                \{ return (uniform_positive_int() % (unsigned)k); \}
-        inline double uniform(double r) 
-                \{ return (r * uniform_double());\}
-        inline double uniform(double a, double b)
-                \{ return (a + uniform(b - a)); \}
-        inline double exponential()
-                \{ return (-log(uniform_double())); \}
-        inline double exponential(double r)
-                \{ return (r * exponential());\}
-        inline double pareto(double scale, double shape)
-                \{ return (scale * (1.0/pow(uniform_double(), 1.0/shape)));\}
-        ...
+ ...
+	// these are probably what you want to use
+	inline int uniform(int k) 
+	\{ return (uniform_positive_int() % (unsigned)k); \}
+	inline double uniform(double r) 
+	\{ return (r * uniform());\}
+	inline double uniform(double a, double b)
+	\{ return (a + uniform(b - a)); \}
+	inline double exponential()
+	\{ return (-log(uniform())); \}
+	inline double exponential(double r)
+	\{ return (r * exponential());\}
+	// See "Wide-area traffic: the failure of poisson modeling", Vern 
+	// Paxson and Sally Floyd, IEEE/ACM Transaction on Networking, 3(3),
+	// pp. 226-244, June 1995, on characteristics of counting processes 
+	// with Pareto interarrivals.
+	inline double pareto(double scale, double shape) \{ 
+		// When 1 < shape < 2, its mean is scale**shape, its 
+		// variance is infinite.
+		return (scale * (1.0/pow(uniform(), 1.0/shape)));
+	\}
+        inline double paretoII(double scale, double shape) \{ 
+		return (scale * ((1.0/pow(uniform(), 1.0/shape)) - 1));
+	\}
+	double normal(double avg, double std);
+	inline double lognormal(double avg, double std) \{ 
+		return (exp (normal(avg, std))); 
+	\}
+...
 \};
 \end{program}
 
@@ -179,11 +189,14 @@ from the distribution.
 The currently defined distributions, and their associated parameters are:
 
 \begin{tabular}{rl}
-\clsref{UniformRandomVariable}{../ns-2/ranvar.h} & \code{min_}, \code{max_} \\
-\clsref{ExponentialRandomVariable}{../ns-2/expoo.h} & \code{avg_} \\
-\clsref{ParetoRandomVariable}{../ns-2/pareto.h} & \code{avg_}, \code{shape_}\\
-\clsref{ConstantRandomVariable} & \code{val_}\\
-\clsref{HyperExponentialRandomVariable}{../ns-2/ranvar.h} & \code{avg_}, \code{cov_}\\
+\clsref{UniformRandomVariable}{tools/ranvar.h} & \code{min_}, \code{max_} \\
+\clsref{ExponentialRandomVariable}{tools/ranvar.h} & \code{avg_} \\
+\clsref{ParetoRandomVariable}{tools/ranvar.h} & \code{avg_}, \code{shape_}\\
+\clsref{ParetoIIRandomVariable}{tools/ranvar.h} & \code{avg_}, \code{shape_}\\
+\clsref{ConstantRandomVariable}{tools/ranvar.h} & \code{val_}\\
+\clsref{HyperExponentialRandomVariable}{tools/ranvar.h} & \code{avg_}, \code{cov_}\\
+\clsref{NormalRandomVariable}{tools/ranvar.h} & \code{avg_}, \code{std_}\\
+\clsref{LogNormalRandomVariable}{tools/ranvar.h} & \code{avg_}, \code{std_}\\
 \end{tabular}
 
 The RandomVariable class is available in OTcl.  For instance, to
