@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.43 2000/08/12 21:45:39 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.44 2000/08/20 04:25:36 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -203,7 +203,7 @@ Sack1TcpAgent::dupack_action()
 		 * (3) pipe_ = maxseq_ - highest_ack_ - numdupacks_;
 		 * equation (2) takes into account the receiver's
 		 * advertised window, and equation (3) takes into
-		 * accout a data-limited sender.
+		 * account a data-limited sender.
 		 */
 		if (!singledup_)
 			pipe_ = maxseq_ - highest_ack_ - numdupacks_;
@@ -227,11 +227,13 @@ Sack1TcpAgent::dupack_action()
 sack_action:
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
-	pipe_ = int(cwnd_) - numdupacks_;
-	//pipe_ = maxseq_ - highest_ack_ - numdupacks_;
-	//if (!singledup_)
-	// 	pipe_ = maxseq_ - highest_ack_ - numdupacks_;
-	//else pipe_ = maxseq_ - highest_ack_ - 1;
+	if (oldCode_) {
+	 	pipe_ = int(cwnd_) - numdupacks_;
+	} else { 
+		if (!singledup_)
+	 		pipe_ = maxseq_ - highest_ack_ - numdupacks_;
+		else pipe_ = maxseq_ - highest_ack_ - 1;
+	}
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
 	fastrecov_ = TRUE;
