@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.442 2000/12/14 05:15:31 xuanc Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.443 2000/12/19 22:57:07 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -20,9 +20,19 @@ ns-2.1b8 release PENDING</h3>
 <ul>
 
 <li>
-<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a><b>
-Wed Dec 13 21:08:35 PST 2000
-</b></li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a>
+Tue Dec 19 14:48:32 PST 2000</b></li>
+<br>
+Added DelAckSink::reset() to TCP sinks, to prevent a core dump when a TCP 
+connection is reset but the delay timer for delayed acks does not get reset 
+also.
+Bug report and fix from Joseph Ishac.  Validation test in
+"test-all-tcpReset".
+
+<li>
+<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a></b>
+<b> Wed Dec 13 21:08:35 PST 2000</b>
+</li>
 <br>Added patch from <a href="mailto:ehw@lanl.gov">Eric Weigle</a> for
 TCP vegas. 
 
