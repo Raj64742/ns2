@@ -1369,8 +1369,48 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
+echo $ac_n "checking for dcgettext in -lintl""... $ac_c" 1>&6
+echo "configure:1374: checking for dcgettext in -lintl" >&5
+ac_lib_var=`echo intl'_'dcgettext | sed 'y%./+-%__p_%'`
+if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  ac_save_LIBS="$LIBS"
+LIBS="-lintl  $LIBS"
+cat > conftest.$ac_ext <<EOF
+#line 1382 "configure"
+#include "confdefs.h"
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char dcgettext();
+
+int main() {
+dcgettext()
+; return 0; }
+EOF
+if { (eval echo configure:1393: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=no"
+fi
+rm -f conftest*
+LIBS="$ac_save_LIBS"
+
+fi
+if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  V_LIB="$V_LIB -lintl"
+else
+  echo "$ac_t""no" 1>&6
+fi
+
 echo $ac_n "checking for getnodebyname in -ldnet_stub""... $ac_c" 1>&6
-echo "configure:1374: checking for getnodebyname in -ldnet_stub" >&5
+echo "configure:1414: checking for getnodebyname in -ldnet_stub" >&5
 ac_lib_var=`echo dnet_stub'_'getnodebyname | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1378,7 +1418,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldnet_stub  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1382 "configure"
+#line 1422 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1389,7 +1429,7 @@ int main() {
 getnodebyname()
 ; return 0; }
 EOF
-if { (eval echo configure:1393: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1433: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1535,20 +1575,25 @@ if test "${with_tcl_ver+set}" = set; then
   withval="$with_tcl_ver"
   TCL_VERS=$withval
 else
-  TCL_VERS=8.0
+  TCL_VERS=8.0.4
 fi
 
 
 TCL_ALT_VERS=`echo $TCL_VERS | sed 's/\.//'`
+
+
+TCL_HI_VERS=`echo $TCL_VERS | sed "s/\([^\.]*\)\.\([^\.]*\).*/\1.\2/"`
 
 TCL_OLD_VERS=7.6
 TCL_OLD_ALT_VERS=`echo $TCL_OLD_VERS | sed 's/\.//'`
 
 TCL_TCL_PLACES_D="$d \
 		$d/lib/tcl$TCL_VERS \
+		$d/lib/tcl$TCL_HI_VERS \
 		$d/lib/tcl$TCL_ALT_VERS \
 		$d/lib/tcl \
 		$d/../lib/tcl$TCL_VERS \
+		$d/../lib/tcl$TCL_HI_VERS \
 		$d/../lib/tcl$TCL_ALT_VERS \
 		$d/lib/tcl$TCL_OLD_VERS \
 		$d/lib/tcl$TCL_OLD_ALT_VERS \
@@ -1558,11 +1603,14 @@ TCL_TCL_PLACES_D="$d \
 		$d/library \
 		"
 TCL_TCL_PLACES="../tcl$TCL_VERS/library \
+                ../tcl$TCL_HI_VERS/library \
                 ../tcl$TCL_ALT_VERS/library \
 		/usr/lib/tcl$TCL_VERS \
+		/usr/lib/tcl$TCL_HI_VERS \
 		/usr/lib/tcl$TCL_ALT_VERS \
 		/usr/lib/tcl \
 		/lib/tcl$TCL_VERS \
+		/lib/tcl$TCL_HI_VERS \
 		/lib/tcl$TCL_ALT_VERS \
 		/usr/lib/tcl$TCL_OLD_VERS \
 		/usr/lib/tcl$TCL_OLD_ALT_VERS \
@@ -1570,10 +1618,13 @@ TCL_TCL_PLACES="../tcl$TCL_VERS/library \
 		/lib/tcl$TCL_OLD_ALT_VERS \
 		/usr/lib \
                 /usr/src/local/tcl$TCL_VERS/library \
+                /usr/src/local/tcl$TCL_HI_VERS/library \
                 /usr/src/local/tcl$TCL_ALT_VERS/library \
                 /usr/local/lib/tcl$TCL_VERS \
+                /usr/local/lib/tcl$TCL_HI_VERS \
                 /usr/local/lib/tcl$TCL_ALT_VERS \
                 /usr/local/include/tcl$TCL_VERS \
+                /usr/local/include/tcl$TCL_HI_VERS \
                 /usr/local/include/tcl$TCL_ALT_VERS \
 		../tcl$TCL_OLD_VERS/library \
                 ../tcl$TCL_OLD_ALT_VERS/library \
@@ -1593,24 +1644,31 @@ TCL_TCL_PLACES="../tcl$TCL_VERS/library \
 TCL_H_PLACES_D="$d/generic \
 		$d/unix \
 		$d/include/tcl$TCL_VERS \
+		$d/include/tcl$TCL_HI_VERS \
 		$d/include/tcl$TCL_ALT_VERS \
 		$d/include \
 		"
 TCL_H_PLACES="../tcl$TCL_VERS/generic \
+		../tcl$TCL_HI_VERS/generic \
 		../tcl$TCL_ALT_VERS/generic \
 		/usr/src/local/tcl$TCL_VERS/generic \
+		/usr/src/local/tcl$TCL_HI_VERS/generic \
 		/usr/src/local/tcl$TCL_ALT_VERS/generic \
 		../tcl$TCL_VERS/unix \
 		../tcl$TCL_ALT_VERS/unix \
 		/usr/src/local/tcl$TCL_VERS/unix \
+		/usr/src/local/tcl$TCL_HI_VERS/unix \
 		/usr/src/local/tcl$TCL_ALT_VERS/unix \
 		/usr/contrib/include \
 		/usr/local/lib/tcl$TCL_VERS \
+		/usr/local/lib/tcl$TCL_HI_VERS \
 		/usr/local/lib/tcl$TCL_ALT_VERS \
 		/usr/local/include/tcl$TCL_VERS \
+		/usr/local/include/tcl$TCL_HI_VERS \
 		/usr/local/include/tcl$TCL_ALT_VERS \
 		/usr/local/include \
 		/import/tcl/include/tcl$TCL_VERS \
+		/import/tcl/include/tcl$TCL_HI_VERS \
 		/import/tcl/include/tcl$TCL_ALT_VERS \
 		../tcl$TCL_OLD_VERS/generic \
 		../tcl$TCL_OLD_ALT_VERS/generic \
@@ -1636,13 +1694,17 @@ TCL_LIB_PLACES_D="$d \
 		$d/unix"
 TCL_LIB_PLACES=" \
 		../tcl$TCL_VERS/unix \
+		../tcl$TCL_HI_VERS/unix \
                 ../tcl$TCL_ALT_VERS/unix \
                 /usr/src/local/tcl$TCL_VERS/unix \
+                /usr/src/local/tcl$TCL_HI_VERS/unix \
                 /usr/src/local/tcl$TCL_ALT_VERS/unix \
                 /usr/contrib/lib \
                 /usr/local/lib/tcl$TCL_VERS \
+                /usr/local/lib/tcl$TCL_HI_VERS \
                 /usr/local/lib/tcl$TCL_ALT_VERS \
 		/usr/lib/tcl$TCL_VERS \
+		/usr/lib/tcl$TCL_HI_VERS \
 		/usr/lib/tcl$TCL_ALT_VERS \
 		../tcl$TCL_OLD_VERS/unix \
                 ../tcl$TCL_OLD_ALT_VERS/unix \
@@ -1662,6 +1724,8 @@ TCL_LIB_PLACES=" \
 
 if test "$TCL_VERS" = "8.0" ; then 
 	V_TCL_LIBRARY_FILES="\$(TCL_80_LIBRARY_FILES)"
+elif test "$TCL_HI_VERS" = "8.0.4" ; then
+	V_TCL_LIBRARY_FILES="\$(TCL_80_LIBRARY_FILES)"
 else
 	V_TCL_LIBRARY_FILES="\$(TCL_76_LIBRARY_FILES)"
 fi
@@ -1674,7 +1738,7 @@ NS_PACKAGE_tcl_COMPLETE=true
 
 
 echo $ac_n "checking for tcl.h""... $ac_c" 1>&6
-echo "configure:1678: checking for tcl.h" >&5
+echo "configure:1742: checking for tcl.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_INCLUDE_TCL=FAIL
@@ -1722,8 +1786,8 @@ EOF
 fi
 
 
-echo $ac_n "checking for libtcl$TCL_VERS""... $ac_c" 1>&6
-echo "configure:1727: checking for libtcl$TCL_VERS" >&5
+echo $ac_n "checking for libtcl$TCL_HI_VERS""... $ac_c" 1>&6
+echo "configure:1791: checking for libtcl$TCL_HI_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TCL=FAIL
@@ -1742,7 +1806,7 @@ else
 	fi
 
 	V_LIB_TCL=""
-		full_lib_name="tcl$TCL_VERS"
+		full_lib_name="tcl$TCL_HI_VERS"
 		simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
 		other_simple_lib_name=`echo $full_lib_name | sed -e 's/\./_/'`
 		simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
@@ -1770,7 +1834,7 @@ NS_PACKAGE_tcl_COMPLETE=false
 			V_LIB_TCL="-R$dir $V_LIB_TCL"
 		fi
 
-				ac_tr_lib=HAVE_LIB`echo tcl$TCL_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+				ac_tr_lib=HAVE_LIB`echo tcl$TCL_HI_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
 		    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
 				cat >> confdefs.h <<EOF
 #define $ac_tr_lib 1
@@ -1788,7 +1852,7 @@ fi
 
 
 echo $ac_n "checking for init.tcl""... $ac_c" 1>&6
-echo "configure:1792: checking for init.tcl" >&5
+echo "configure:1856: checking for init.tcl" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_LIBRARY_TCL=FAIL
@@ -1839,7 +1903,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1843: checking for $ac_word" >&5
+echo "configure:1907: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_V_TCLSH'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1918,11 +1982,14 @@ if test "${with_tk_ver+set}" = set; then
   withval="$with_tk_ver"
   TK_VERS=$withval
 else
-  TK_VERS=8.0
+  TK_VERS=8.0.4
 fi
 
 
 TK_ALT_VERS=`echo $TK_VERS | sed 's/\.//'`
+
+
+TK_HI_VERS=`echo $TCL_VERS | sed "s/\([^\.]*\)\.\([^\.]*\).*/\1.\2/"`
 
 TK_OLD_VERS=4.2
 TK_OLD_ALT_VERS=`echo $TK_OLD_VERS | sed 's/\.//'`
@@ -1930,10 +1997,12 @@ TK_OLD_ALT_VERS=`echo $TK_OLD_VERS | sed 's/\.//'`
 TK_TCL_PLACES_D="$d \
                 $d/lib/tk$TK_VERS \
                 $d/lib/tk$TK_ALT_VERS \
+		$d/lib/tk$TK_HI_VERS \
                 $d/library \
                 $d/lib/tk \
                 $d/../lib/tk$TK_VERS \
                 $d/../lib/tk$TK_ALT_VERS \
+                $d/../lib/tk$TK_HI_VERS \
                 $d/../lib/tk \
                 $d/lib/tk$TK_OLD_VERS \
                 $d/lib/tk$TK_OLD_ALT_VERS \
@@ -1944,17 +2013,22 @@ TK_TCL_PLACES_D="$d \
                 $d/library"
 TK_TCL_PLACES="$PWD/../tk$TK_VERS/library \
                 $PWD/../tk$TK_ALT_VERS/library \
+                $PWD/../tk$TK_HI_VERS/library \
 		$PWD/../tk/library \
                 /usr/src/local/tk$TK_VERS/library \
                 /usr/src/local/tk$TK_ALT_VERS/library \
+                /usr/src/local/tk$TK_HI_VERS/library \
                 /usr/contrib/include \
                 /usr/local/lib/tk$TK_VERS \
                 /usr/local/lib/tk$TK_ALT_VERS \
+                /usr/local/lib/tk$TK_HI_VERS \
                 /usr/local/include/tk$TK_VERS \
                 /usr/local/include/tk$TK_ALT_VERS \
+                /usr/local/include/tk$TK_HI_VERS \
                 /usr/local/include \ 
                 /usr/lib/tk$TK_VERS \
                 /usr/lib/tk$TK_ALT_VERS \
+                /usr/lib/tk$TK_HI_VERS \
 		$PWD/../tk$TK_OLD_VERS/library \
                 $PWD/../tk$TK_OLD_ALT_VERS/library \
                 /usr/src/local/tk$TK_OLD_VERS/library \
@@ -1973,22 +2047,29 @@ TK_TCL_PLACES="$PWD/../tk$TK_VERS/library \
 TK_H_PLACES_D="$d \
                 $d/generic \
                 $d/../include/tk$TK_VERS \
+                $d/../include/tk$TK_HI_VERS \
                 $d/../include/tk$TK_OLD_VERS \
 		$d/include/tk$TK_VERS \
+		$d/include/tk$TK_HI_VERS \
 		$d/include/tk$TK_OLD_VERS \
                 $d/include"
 TK_H_PLACES="$PWD/../tk$TK_VERS/generic \
                 $PWD/../tk$TK_ALT_VERS/generic \
+                $PWD/../tk$TK_HI_VERS/generic \
 		/usr/src/local/tk$TK_VERS/generic \
                 /usr/src/local/tk$TK_ALT_VERS/generic \
+                /usr/src/local/tk$TK_HI_VERS/generic \
                 /usr/contrib/include \
                 /usr/local/lib/tk$TK_VERS \
                 /usr/local/lib/tk$TK_ALT_VERS \
+                /usr/local/lib/tk$TK_HI_VERS \
                 /usr/local/include/tk$TK_VERS \
                 /usr/local/include/tk$TK_ALT_VERS \
+                /usr/local/include/tk$TK_HI_VERS \
                 /usr/local/include \
                 /import/tk/include/tk$TK_VERS \
                 /import/tk/include/tk$TK_ALT_VERS \
+                /import/tk/include/tk$TK_HI_VERS \
 		$PWD/../tk$TK_OLD_VERS/generic \
                 $PWD/../tk$TK_OLD_ALT_VERS/generic \
 		/usr/src/local/tk$TK_OLD_VERS/generic \
@@ -2009,11 +2090,14 @@ TK_LIB_PLACES_D="$d \
 		$d/unix"
 TK_LIB_PLACES="$PWD/../tk$TK_VERS/unix \
                 $PWD/../tk$TK_ALT_VERS/unix \
+                $PWD/../tk$TK_HI_VERS/unix \
                 /usr/src/local/tk$TK_VERS/unix \
                 /usr/src/local/tk$TK_ALT_VERS/unix \
+                /usr/src/local/tk$TK_HI_VERS/unix \
                 /usr/contrib/lib \
                 /usr/local/lib/tk$TK_VERS \
                 /usr/local/lib/tk$TK_ALT_VERS \
+                /usr/local/lib/tk$TK_HI_VERS \
 		$PWD/../tk$TK_OLD_VERS/unix \
                 $PWD/../tk$TK_OLD_ALT_VERS/unix \
                 /usr/src/local/tk$TK_OLD_VERS/unix \
@@ -2032,7 +2116,7 @@ NS_PACKAGE_tk_COMPLETE=true
 
 
 echo $ac_n "checking for tk.h""... $ac_c" 1>&6
-echo "configure:2036: checking for tk.h" >&5
+echo "configure:2120: checking for tk.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_INCLUDE_TK=FAIL
@@ -2080,8 +2164,8 @@ EOF
 fi
 
 
-echo $ac_n "checking for libtk$TK_VERS""... $ac_c" 1>&6
-echo "configure:2085: checking for libtk$TK_VERS" >&5
+echo $ac_n "checking for libtk$TK_HI_VERS""... $ac_c" 1>&6
+echo "configure:2169: checking for libtk$TK_HI_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TK=FAIL
@@ -2100,7 +2184,7 @@ else
 	fi
 
 	V_LIB_TK=""
-		full_lib_name="tk$TK_VERS"
+		full_lib_name="tk$TK_HI_VERS"
 		simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
 		other_simple_lib_name=`echo $full_lib_name | sed -e 's/\./_/'`
 		simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
@@ -2128,7 +2212,7 @@ NS_PACKAGE_tk_COMPLETE=false
 			V_LIB_TK="-R$dir $V_LIB_TK"
 		fi
 
-				ac_tr_lib=HAVE_LIB`echo tk$TK_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+				ac_tr_lib=HAVE_LIB`echo tk$TK_HI_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
 		    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
 				cat >> confdefs.h <<EOF
 #define $ac_tr_lib 1
@@ -2146,7 +2230,7 @@ fi
 
 
 echo $ac_n "checking for tk.tcl""... $ac_c" 1>&6
-echo "configure:2150: checking for tk.tcl" >&5
+echo "configure:2234: checking for tk.tcl" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_LIBRARY_TK=FAIL
@@ -2234,7 +2318,7 @@ else
 fi
 
 
-OTCL_VERS=1.0a3
+OTCL_VERS=1.0a4
 OTCL_ALT_VERS=1.0
 
 OTCL_H_PLACES_D="$d \
@@ -2271,7 +2355,7 @@ NS_PACKAGE_otcl_COMPLETE=true
 
 
 echo $ac_n "checking for otcl.h""... $ac_c" 1>&6
-echo "configure:2275: checking for otcl.h" >&5
+echo "configure:2359: checking for otcl.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_INCLUDE_OTCL=FAIL
@@ -2320,7 +2404,7 @@ fi
 
 
 echo $ac_n "checking for libotcl$OTCL_VERS""... $ac_c" 1>&6
-echo "configure:2324: checking for libotcl$OTCL_VERS" >&5
+echo "configure:2408: checking for libotcl$OTCL_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_OTCL=FAIL
@@ -2482,7 +2566,7 @@ NS_PACKAGE_TclCL_COMPLETE=true
 
 
 echo $ac_n "checking for tclcl.h""... $ac_c" 1>&6
-echo "configure:2486: checking for tclcl.h" >&5
+echo "configure:2570: checking for tclcl.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_INCLUDE_TclCL=FAIL
@@ -2531,7 +2615,7 @@ fi
 
 
 echo $ac_n "checking for libtclcl$TclCL_VERS""... $ac_c" 1>&6
-echo "configure:2535: checking for libtclcl$TclCL_VERS" >&5
+echo "configure:2619: checking for libtclcl$TclCL_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TclCL=FAIL
@@ -2596,7 +2680,7 @@ fi
 
 
 echo $ac_n "checking for tcl2c++""... $ac_c" 1>&6
-echo "configure:2600: checking for tcl2c++" >&5
+echo "configure:2684: checking for tcl2c++" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_TCL2CPP_DIR=FAIL
@@ -2797,12 +2881,12 @@ xincdirs="\
 echo "checking for X11 header files"
 if test "$x_includes" = NONE ; then
 	cat > conftest.$ac_ext <<EOF
-#line 2801 "configure"
+#line 2885 "configure"
 #include "confdefs.h"
 #include <X11/Intrinsic.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2806: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2890: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2836,7 +2920,7 @@ fi
 echo "checking for X11 library archive"
 if test "$x_libraries" = NONE ; then
 	echo $ac_n "checking for XOpenDisplay in -lX11""... $ac_c" 1>&6
-echo "configure:2840: checking for XOpenDisplay in -lX11" >&5
+echo "configure:2924: checking for XOpenDisplay in -lX11" >&5
 ac_lib_var=`echo X11'_'XOpenDisplay | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2844,7 +2928,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lX11  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2848 "configure"
+#line 2932 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2855,7 +2939,7 @@ int main() {
 XOpenDisplay()
 ; return 0; }
 EOF
-if { (eval echo configure:2859: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:2943: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2895,7 +2979,7 @@ V_LIB_X11=-lX11
 if test -n "$V_SHM" ; then
 	if test -z "$x_libraries" ; then
 		echo $ac_n "checking for XShmAttach in -lXext""... $ac_c" 1>&6
-echo "configure:2899: checking for XShmAttach in -lXext" >&5
+echo "configure:2983: checking for XShmAttach in -lXext" >&5
 ac_lib_var=`echo Xext'_'XShmAttach | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2903,7 +2987,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lXext -lX11 $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2907 "configure"
+#line 2991 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2914,7 +2998,7 @@ int main() {
 XShmAttach()
 ; return 0; }
 EOF
-if { (eval echo configure:2918: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3002: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2997,7 +3081,7 @@ NS_PACKAGE_tcldebug_COMPLETE=true
 
 
 echo $ac_n "checking for libtcldbg""... $ac_c" 1>&6
-echo "configure:3001: checking for libtcldbg" >&5
+echo "configure:3085: checking for libtcldbg" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TCLDEBUG=FAIL
@@ -3130,7 +3214,7 @@ DMALLOC_PATH_D="$d $d/lib $d/include"
 
 if test "x$d" = xUNDEF; then
 	echo $ac_n "checking dmalloc""... $ac_c" 1>&6
-echo "configure:3134: checking dmalloc" >&5
+echo "configure:3218: checking dmalloc" >&5
 	echo "$ac_t""not requested with --with-dmalloc" 1>&6
 else
 	
@@ -3139,7 +3223,7 @@ NS_PACKAGE_dmalloc_COMPLETE=true
 
 	
 echo $ac_n "checking for libdmalloc""... $ac_c" 1>&6
-echo "configure:3143: checking for libdmalloc" >&5
+echo "configure:3227: checking for libdmalloc" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_DMALLOC=FAIL
@@ -3204,7 +3288,7 @@ fi
 
 	
 echo $ac_n "checking for dmalloc.h""... $ac_c" 1>&6
-echo "configure:3208: checking for dmalloc.h" >&5
+echo "configure:3292: checking for dmalloc.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_DMALLOC=FAIL
@@ -3253,7 +3337,7 @@ fi
 
 	
 echo $ac_n "checking for return.h""... $ac_c" 1>&6
-echo "configure:3257: checking for return.h" >&5
+echo "configure:3341: checking for return.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_RETURN=FAIL
@@ -3372,7 +3456,7 @@ PERL_OPTIONAL=${PERL_OPTIONAL:-false}
 
 
 echo $ac_n "checking for perl""... $ac_c" 1>&6
-echo "configure:3376: checking for perl" >&5
+echo "configure:3460: checking for perl" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	PERL=FAIL
@@ -3430,7 +3514,7 @@ if test "x$PERL" = "x"
 then
     
 echo $ac_n "checking for perl5""... $ac_c" 1>&6
-echo "configure:3434: checking for perl5" >&5
+echo "configure:3518: checking for perl5" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	PERL=FAIL
@@ -3522,12 +3606,12 @@ fi
 for ac_func in getrusage sbrk strtoq strtoll
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:3526: checking for $ac_func" >&5
+echo "configure:3610: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3531 "configure"
+#line 3615 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -3550,7 +3634,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:3554: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3638: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -3619,7 +3703,7 @@ if test ! -z "$V_NEED_DL" ; then
 		;;
 	*-*-linux*)
 		echo $ac_n "checking for dlopen in -ldl""... $ac_c" 1>&6
-echo "configure:3623: checking for dlopen in -ldl" >&5
+echo "configure:3707: checking for dlopen in -ldl" >&5
 ac_lib_var=`echo dl'_'dlopen | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3627,7 +3711,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3631 "configure"
+#line 3715 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3638,7 +3722,7 @@ int main() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:3642: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3726: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3667,7 +3751,7 @@ fi
 			;;
 		*)
 			echo $ac_n "checking for main in -l$V_LIB_DL""... $ac_c" 1>&6
-echo "configure:3671: checking for main in -l$V_LIB_DL" >&5
+echo "configure:3755: checking for main in -l$V_LIB_DL" >&5
 ac_lib_var=`echo $V_LIB_DL'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3675,14 +3759,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3679 "configure"
+#line 3763 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:3686: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3770: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3791,7 +3875,7 @@ V_TAR_TARGET=$target_os
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:3795: checking for a BSD compatible install" >&5
+echo "configure:3879: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3956,7 +4040,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "Makefile tcl/lib/ns-autoconf.tcl" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "Makefile tcl/lib/ns-autoconf.tcl indep-utils/webtrace-conv/ucb/Makefile indep-utils/webtrace-conv/dec/Makefile indep-utils/webtrace-conv/nlanr/Makefile indep-utils/webtrace-conv/epa/Makefile indep-utils/cmu-scen-gen/setdest/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -4079,7 +4163,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"Makefile tcl/lib/ns-autoconf.tcl"}
+CONFIG_FILES=\${CONFIG_FILES-"Makefile tcl/lib/ns-autoconf.tcl indep-utils/webtrace-conv/ucb/Makefile indep-utils/webtrace-conv/dec/Makefile indep-utils/webtrace-conv/nlanr/Makefile indep-utils/webtrace-conv/epa/Makefile indep-utils/cmu-scen-gen/setdest/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
