@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satgeometry.cc,v 1.4 1999/11/13 01:58:28 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satgeometry.cc,v 1.5 1999/12/20 03:03:25 tomh Exp $";
 #endif
 
 #include "satgeometry.h"
@@ -141,20 +141,22 @@ double SatGeometry::check_elevation(coordinate satellite,
 // form a right triangle.  If the length of this perpendicular is less than
 // EARTH_RADIUS + ATMOS_MARGIN, the link cannot be established.
 //
-int SatGeometry::check_atmos_margin(coordinate first, coordinate second)
+int SatGeometry::are_satellites_mutually_visible(coordinate first, coordinate second)
 {
 	// if we drop a perpendicular from the ISL to the Earth's surface,
 	// we have a right triangle.  The atmospheric margin is the minimum
 	// ISL grazing altitude.
-	double a, c, max_distance;
-	double altitude = get_altitude(first);
+	double c, d, min_radius, grazing_radius;
+	double radius = get_radius(first); // could just use first.r here.
 	double distance_ = distance(first, second);
-	c = altitude * altitude;
-	a = (EARTH_RADIUS + ATMOS_MARGIN) * (EARTH_RADIUS + ATMOS_MARGIN);
-	max_distance = sqrt(c - a);
-	if (distance_/2 >= max_distance)
+	c = radius * radius;
+	d = (distance_/2) * (distance_/2);
+	grazing_radius = (EARTH_RADIUS + ATMOS_MARGIN);
+	min_radius = sqrt(c - d);
+	if (min_radius >= grazing_radius) {
 		return TRUE;
-	else
+	} else {
 		return FALSE;
+	}
 }
 

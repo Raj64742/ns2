@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.6 1999/10/26 17:35:07 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.7 1999/12/20 03:03:26 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -258,7 +258,8 @@ int TermLinkHandoffMgr::handoff()
 				if (nextpos_) {
 					sat_coord = nextpos_->coord();
 					found_elev_ = SatGeometry::check_elevation(sat_coord, earth_coord, mask_);
-					peer_ = (SatNode*) nextpos_->node();
+					if (found_elev_)
+						peer_ = (SatNode*) nextpos_->node();
 				}
 			}
 			// Next, check all remaining satellites if not found
@@ -429,8 +430,7 @@ int SatLinkHandoffMgr::handoff()
 			link_down_flag_ = TRUE;
 		// Check to see if link grazes atmosphere at an altitude
 		// below the atmospheric margin
-		link_down_flag_ |= SatGeometry::check_atmos_margin(peer_coord_,
-		    local_coord_);
+		link_down_flag_ |= !(SatGeometry::are_satellites_mutually_visible(peer_coord_, local_coord_));
 		// Evaluate whether a change in link status is needed
 		if ((slhp->linkup_ || peer_slhp->linkup_) && link_down_flag_) {
 			slhp->linkup_ = FALSE;
@@ -461,8 +461,7 @@ int SatLinkHandoffMgr::handoff()
 		peer_latitude_ = SatGeometry::get_latitude(peer_coord_);
 		if (fabs(peer_latitude_) > lat_threshold_)
 			link_down_flag_ = TRUE;
-		link_down_flag_ |= SatGeometry::check_atmos_margin(peer_coord_,
-		    local_coord_);
+		link_down_flag_ |= !(SatGeometry::are_satellites_mutually_visible(peer_coord_, local_coord_));
 		if (slhp->linkup_ && link_down_flag_) {
 			// Take links down if either satellite at high latitude
 			slhp->linkup_ = FALSE;

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.7 1999/10/19 05:07:55 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.8 1999/12/20 03:03:26 tomh Exp $";
 #endif
 
 #include "satroute.h"
@@ -484,5 +484,3 @@ void SatRouteObject::node_compute_routes(int node)
         delete[] hopcnt;
         delete[] parent;
 }
-
-
