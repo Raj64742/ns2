@@ -653,11 +653,9 @@ Simulator instproc get-mcast-tree { src grp } {
 			lappend treeLinks $pid:$cid $link_($pid:$cid)
 			set treeLinks_($pid:$cid) $link_($pid:$cid)
 
-#			debug 1
 			set iif [[$link_($pid:$cid) set ifaceout_] id]
 			if {$iif == -1} {
 				puts "iif == -1"
-				debug 1
 			}
 			lappend repList [$child getRepByIIF $src $grp $iif]
 		}
