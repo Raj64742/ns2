@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.36 1997/07/14 08:52:18 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.37 1997/07/14 21:42:20 tomh Exp $
 
 
 #
@@ -44,6 +44,7 @@
 Trace set src_ -1
 Trace set dst_ -1
 Trace set callback_ 0
+Trace set show_tcphdr_ 0
 
 Agent set fid_ 0
 Agent set prio_ 0
@@ -65,6 +66,7 @@ Agent/TCP set windowConstant_ 4
 Agent/TCP set windowThresh_ 0.002
 Agent/TCP set overhead_ 0
 Agent/TCP set ecn_ 0
+Agent/TCP set disable_ecn_ 0
 Agent/TCP set packetSize_ 1000
 Agent/TCP set bugFix_ true
 Agent/TCP set slow_start_restart_ true
@@ -97,6 +99,16 @@ Agent/TCP/Vegas/RBP set rbp_rate_algorithm_ 1
 Agent/TCP/Reno/RBP set rbp_scale_ 0.75
 # Reno/RBP supports only RBP_CWND_ALGORITHM 
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
+
+Agent/TCP/FullTcp set segsperack_ 1
+Agent/TCP/FullTcp set segsize_ 536
+Agent/TCP/FullTcp set tcprexmtthresh_ 3
+Agent/TCP/FullTcp set iss_ 0
+Agent/TCP/FullTcp set nodelay_ false
+Agent/TCP/FullTcp set data_on_syn_ false
+Agent/TCP/FullTcp set dupseg_fix_ true 
+Agent/TCP/FullTcp set dupack_reset_ false
+Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
 
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0
