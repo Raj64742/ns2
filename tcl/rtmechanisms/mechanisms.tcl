@@ -472,7 +472,13 @@ RTMechanisms instproc do_reward {} {
 	set reward_pending_ false
 	set now [$ns_ now]
 	$self vprint 2 "DO_REWARD starting at $now, last: $last_reward_"
+### Is this wrong? - question from Ion Stoica.
+### When is $last_reward_ set when a flow is first penalized?
+### What if the "penalize" and "reward" cycles are not in sync?
+### So that "$now - $last_reward_" is long, but that flow has
+### not been categorized in this box for that period of time?
 	set elapsed [expr $now - $last_reward_]
+
 	set last_reward_ $now
 
 	if { $npenalty_ == 0 } {
