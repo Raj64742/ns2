@@ -1,7 +1,10 @@
-# NS tcl script template - usable for snapshot 18-09-00
+# NS tcl script template - tested on snapshot 18-09-00
 #
+# Jan-Rutger Schrader, KPN Research, the Netherlands
+# j.h.r.schrader@kpn.com
+# version 0.3
 # contributed by Schrader, J.H.R. <J.H.R.Schrader@kpn.com>
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/MPLS-sim-template.txt,v 1.2 2000/09/22 16:37:06 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/MPLS-sim-template.txt,v 1.3 2000/09/29 19:37:43 haoboy Exp $
 
 #
 # Create simulator object
@@ -24,7 +27,6 @@ proc finish {} {
 	close $nf
 	close $f0
         exec nam mpls.nam &
-        exec xgraph mpls.tr -geometry 800x400 &
 	exit 0
 }
 
@@ -34,17 +36,17 @@ proc finish {} {
 $ns rtproto DV
 
 #
-# define nodes and LSRs (in case of a LSR, the [$ns node]
-# command has to be preceded by node_config -MPLS ON
-# and succeeded by node_config -MPLS OFF
+# define nodes and MPLS LSRs (in case of a LSR, the [$ns node]
+# command has to be preceded by node-config -MPLS ON
+# and succeeded by node-config -MPLS OFF
 #
 set node0   [$ns node]
-node_config -MPLS ON
+node-config -MPLS ON
 set LSR1   [$ns node]
 		:
 		:
 set LSR11  [$ns node]
-node_config -MPLS OFF
+node-config -MPLS OFF
 set node12  [$ns node]
 
 #
@@ -71,9 +73,10 @@ $ns duplex-link-op $LSR11 $node12 orient right
 
 #
 # The default value of a link cost (1) can be adjusted  
+# Notice that the procedure sets the cost along one direction only!  
 #
-[$ns link $LSR4 $LSR5] cost 5
-[$ns link $LSR4 $LSR1] cost 2
+$ns cost $LSR4 $LSR5 3
+$ns cost $LSR5 $LSR4 3 
 
 #
 # Install/configure LDP agents on all MPLS nodes,
@@ -249,9 +252,7 @@ $ns at 0.1   "$src0 start"
 # Example of defining protection paths according to Haskin's model
 #
 $ns at 0.1 "[$LSR4 get-module MPLS] make-explicit-route 11  1_2_3_10_11  1000  -1"
-$ns at 0.2 "[$LSR11 get-module MPLS] make-explicit-route 
-11 11_10_9_8_7_4_1000 1005 -1"
-
+$ns at 0.2 "[$LSR11 get-module MPLS] make-explicit-route 11 11_10_9_8_7_4_1000 1005 -1"
 #
 # Reroute option used to simulate Haskin's model
 #
