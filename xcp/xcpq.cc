@@ -149,8 +149,10 @@ void XCPQueue::do_before_packet_departure(Packet* p)
     
 	if (xh->xcp_enabled_ != hdr_xcp::XCP_ENABLED)
 		return;
-	if (xh->rtt_ == 0.0)
+	if (xh->rtt_ == 0.0) {
+		xh->delta_throughput_ = 0;
 		return;
+	}
 	if (xh->throughput_ == 0.0)
 		xh->throughput_ = .1; // XXX 1bps is small enough
 

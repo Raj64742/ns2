@@ -53,6 +53,9 @@ struct hdr_xcp {
  * This code is to be written later!
  */
 
+#define TP_TO_S		(srtt_estimate_*2 + tcp_tick_)	// used for xcp_metered_output_ == true
+#define TP_AVG_EXP	4	// used for xcp_metered_output_ == true
+
 class XcpAgent;
   
 class cwndShrinkingTimer : public TimerHandler {
@@ -63,7 +66,7 @@ protected:
         XcpAgent *a_;
 };
 
-class XcpAgent : public virtual RenoTcpAgent {
+class XcpAgent : public RenoTcpAgent {
  public:
 	XcpAgent();
  protected:
@@ -74,10 +77,14 @@ class XcpAgent : public virtual RenoTcpAgent {
 		flag_first_ack_received_ = 0.0;
 		srtt_estimate_           = 0.0;
 	}
+        virtual void delay_bind_init_all();
+        virtual int delay_bind_dispatch(const char *varName, 
+					const char *localName, 
+					TclObject *tracer);
 
-	virtual void output(int seqno, int reason = 0); // modified so that the packet says cwnd and rtt
-	virtual void recv_newack_helper(Packet*); // updates congestion info based on info in the ack
-	virtual void opencwnd(); // compute the next window based on info extracted from the last ack
+	virtual void output(int seqno, int reason = 0);
+	virtual void recv_newack_helper(Packet *); 
+	virtual void opencwnd(); 
 	virtual void rtt_init(); // called in reset()
 	virtual void rtt_update(double tao);
 
@@ -87,6 +94,12 @@ class XcpAgent : public virtual RenoTcpAgent {
 	double srtt_estimate_;
 	double flag_first_ack_received_;
 
+	// these are used if xcp_metered_output_ is true
+	int    xcp_metered_output_;
+	double xcp_feedback_;
+	long   sent_bytes_;
+	long   s_sent_bytes_;
+	long   last_send_ticks_;
 	cwndShrinkingTimer shrink_cwnd_timer_;
 };
 

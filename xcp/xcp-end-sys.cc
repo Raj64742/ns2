@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.3 2004/07/30 22:52:19 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.4 2004/08/04 22:25:18 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -41,9 +41,9 @@ public:
 	}
 } class_xcphdr;
 
-static class XcpClass : public TclClass {
+static class XcpRenoTcpClass : public TclClass {
 public:
-	XcpClass() : TclClass("Agent/TCP/XCP") {}
+	XcpRenoTcpClass() : TclClass("Agent/TCP/Reno/XCP") {}
 	TclObject* create(int, const char*const*) {
 		return (new XcpAgent());
 	}
@@ -55,7 +55,34 @@ XcpAgent::XcpAgent(): RenoTcpAgent(), shrink_cwnd_timer_(this)
 	next_xcp++;
 	init_rtt_vars();
 	type_ = PT_XCP;
+
+	last_send_ticks_ = 0;
+	s_sent_bytes_ = 0;
+	sent_bytes_ = 0;
+	xcp_feedback_ = 0;
 }
+
+void
+XcpAgent::delay_bind_init_all()
+{
+        delay_bind_init_one("xcp_metered_output_");
+
+	RenoTcpAgent::delay_bind_init_all();
+}
+
+int
+XcpAgent::delay_bind_dispatch(const char *varName, 
+			      const char *localName, 
+			      TclObject *tracer)
+{
+        if (delay_bind(varName, localName, 
+		       "xcp_metered_output_", &xcp_metered_output_, 
+		       tracer))
+		return TCL_OK;
+	
+        return RenoTcpAgent::delay_bind_dispatch(varName, localName, tracer);
+}
+		
 
 // standard tcp output except that it fills in the XCP header
 void XcpAgent::output(int seqno, int reason)
@@ -83,15 +110,52 @@ void XcpAgent::output(int seqno, int reason)
 	xh->rtt_ = srtt_estimate_;
 	xh->xcpId_ = tcpId_;
 	
-#define MAX_THROUGHPUT	1e24
-	if (srtt_estimate_ != 0) {
-		xh->throughput_ = window() * size_ / srtt_estimate_;
-		xh->delta_throughput_ = (MAX_THROUGHPUT-xh->throughput_);
-	} else {
-		xh->throughput_ = .1; //XXX
-		xh->delta_throughput_ = 0;
+	double estimated_throughput = 0;
+	if (xcp_metered_output_) {
+		double now = Scheduler::instance().clock();
+		long now_ticks = long(now / tcp_tick_);
+		if (last_send_ticks_ == 0) {
+			last_send_ticks_ = now_ticks;
+			xcp_feedback_ = 0.0;
+		} else {
+			double delta_s = (double(now_ticks 
+						 - last_send_ticks_)
+					  * tcp_tick_);
+			while (delta_s >= TP_TO_S) {
+				/* each iteration is a "timeout" */
+				if (sent_bytes_ > s_sent_bytes_)
+					s_sent_bytes_ = sent_bytes_;
+				else {
+					s_sent_bytes_ *= (TP_AVG_EXP - 1);
+					s_sent_bytes_ += sent_bytes_;
+					s_sent_bytes_ /= TP_AVG_EXP;
+				}
+				delta_s -= TP_TO_S;
+				sent_bytes_ = 0;
+				xcp_feedback_ = 0;
+				last_send_ticks_ = now_ticks;
+			}
+			estimated_throughput = s_sent_bytes_ / TP_TO_S;
+		}
 	}
-	
+#define MAX_THROUGHPUT	1e24
+	if (xcp_metered_output_) {
+		xh->throughput_ = estimated_throughput;
+		if (srtt_estimate_ != 0)
+			xh->delta_throughput_ = (MAX_THROUGHPUT 
+						 - xh->throughput_);
+		else
+			xh->delta_throughput_ = 0;
+	} else {
+		if (srtt_estimate_ != 0) {
+			xh->throughput_ = window() * size_ / srtt_estimate_;
+			xh->delta_throughput_ = (MAX_THROUGHPUT 
+						 - xh->throughput_);
+		} else {
+			xh->throughput_ = .1; //XXX
+			xh->delta_throughput_ = 0;
+		}
+	}
 	if(channel_){
 		trace_var("throughput", xh->throughput_);
 	}
@@ -119,6 +183,12 @@ void XcpAgent::output(int seqno, int reason)
         ++ndatapack_;
         ndatabytes_ += bytes;
 	send(p, 0);
+
+	// XCP Changes
+	if (xcp_metered_output_)
+		sent_bytes_ += bytes;
+	// End of XCP Changes
+
 	if (seqno == curseq_ && seqno > maxseq_)
 		idle();  // Tell application I have sent everything so far
 	if (seqno > maxseq_) {
@@ -164,13 +234,19 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 		trace_var("reverse_feedback_", xh->reverse_feedback_);
 		trace_var("controlling_hop_", xh->controlling_hop_);
 	}
-	double delta_cwnd =  xh->reverse_feedback_ * srtt_estimate_ / size_;
+	if (xcp_metered_output_) {
+		xcp_feedback_ += xh->reverse_feedback_;
+	}
+	double delta_cwnd = (xh->reverse_feedback_ 
+			     * srtt_estimate_ 
+			     / size_);
 	//double delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
-	double newcwnd = cwnd_ + delta_cwnd;
+	double newcwnd = (cwnd_ + delta_cwnd);
+
 	if (newcwnd < 1.0)
 		newcwnd = 1.0;
-        if (maxcwnd_ && (newcwnd > double(maxcwnd_)))
-                newcwnd = double(maxcwnd_);
+	if (maxcwnd_ && (newcwnd > double(maxcwnd_)))
+		newcwnd = double(maxcwnd_);
 	cwnd_ = newcwnd;
 	// End of XCP changes
 
@@ -301,17 +377,12 @@ void XcpAgent::rtt_update(double tao)
 
 void XcpAgent::rtt_init()
 {
-	t_rtt_ = 0;
-	t_srtt_ = int(srtt_init_ / tcp_tick_) << T_SRTT_BITS;
-	t_rttvar_ = int(rttvar_init_ / tcp_tick_) << T_RTTVAR_BITS;
-	t_rtxcur_ = rtxcur_init_;
-	t_backoff_ = 1;
-
-	// Dina's Change 
+	TcpAgent::rtt_init();
+	// XCP Changes 
 	init_rtt_vars();
 	rtt_active_ = 0;
 	rtt_seq_ = -1;
-	// End of Dina's Changes
+	// End of XCP Changes
 }
 
 void XcpAgent::trace_var(char * var_name, double var)
@@ -340,8 +411,9 @@ protected:
 	virtual void add_to_ack(Packet* pkt);
 
         virtual void delay_bind_init_all();
-        virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
-
+        virtual int delay_bind_dispatch(const char *varName, 
+					const char *localName, 
+					TclObject *tracer);
 	Acker* acker_;
 	int ts_echo_bugfix_;
         int ts_echo_rfc1323_;   // conforms to rfc1323 for timestamps echo
@@ -383,12 +455,26 @@ XcpSink::delay_bind_init_all()
 }
 
 int
-XcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
+XcpSink::delay_bind_dispatch(const char *varName, 
+			     const char *localName, 
+			     TclObject *tracer)
 {
-        if (delay_bind(varName, localName, "packetSize_", &size_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "ts_echo_bugfix_", &ts_echo_bugfix_, tracer)) return TCL_OK;
-	if (delay_bind_bool(varName, localName, "ts_echo_rfc1323_", &ts_echo_rfc1323_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "RFC2581_immediate_ack_", &RFC2581_immediate_ack_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, 
+		       "packetSize_", &size_, 
+		       tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, 
+			    "ts_echo_bugfix_", &ts_echo_bugfix_, 
+			    tracer)) 
+		return TCL_OK;
+	if (delay_bind_bool(varName, localName, 
+			    "ts_echo_rfc1323_", &ts_echo_rfc1323_,
+			    tracer)) 
+		return TCL_OK;
+        if (delay_bind_bool(varName, localName, 
+			    "RFC2581_immediate_ack_", &RFC2581_immediate_ack_,
+			    tracer)) 
+		return TCL_OK;
 
         return Agent::delay_bind_dispatch(varName, localName, tracer);
 }

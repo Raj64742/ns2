@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.331.2.1 2004/07/20 17:35:33 yuri Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.331.2.2 2004/08/04 22:25:19 yuri Exp $
 
 
 #
@@ -904,7 +904,9 @@ Agent/TCP set nam_tracevar_ false
 Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
 
-Agent/TCP/XCP set timestamps_ true
+Agent/TCP/Reno/XCP set timestamps_ true
+Agent/TCP/Reno/XCP set xcp_metered_output_ 1
+Agent/TCP/Reno/XCP set tcpTick_	0.01
 
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
