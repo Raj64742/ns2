@@ -10,8 +10,11 @@ Agent/TCP, syn_:
 For the default, with "syn_" set to false, TCP does not model the
 initial SYN/ACK exchange.  With "syn_" set to true, TCP
 does model the initial SYN/ACK exchange, in the following sense:
-a single packet is sent, and ack is received, and then the initial
-window is sent to its specified value.
+a single packet of size synSize_ (40 bytes) is sent, an ack is received, 
+and then the initial window is sent to its specified value.
+Currently, the model in the simulator does not include the sender
+sending a separate ACK packet to acknowledge the SYN/ACK from the
+receiver.
 
 Agent/TCP, windowInitOption_:
 
@@ -30,3 +33,29 @@ more, the initial window is set to two packets.
 
 The first tests, init1 to init4, test the initial window options
 with Tahoe TCP.  
+
+The top connections in the tests "init1", "init2", and init3" all use
+"syn_" set to true and "windowInitOption_" set to 2, for the initial
+window specified in the internet draft.  The packet sizes in these
+three tests are 1000 bytes, 1500 bytes, and 4000 bytes, for initial
+windows of two, three, and four packets respectively.
+
+The bottom connections in the tests "init1", "init2", and init3" all
+use "windowInitOption_" set to 1, for the initial window specified in
+"windowInit_".  "Init1" and "init2" use the default initial window of
+one packet;  "init3" uses an initial window of six packets.  For
+"init1", "syn_" is set to true, to model the transmission of a SYN
+packet before the initial window.  For the bottom connections in
+"init2" and init3", "syn_" is set to false.
+
+"Init4" shows two connections with 1000-byte packets using the initial
+window specified in the internet draft.  The test shows that after a
+Fast Retransmit, TCP slow-starts from an initial window of one packet.
+
+The tests "init5" through "init8" repeat these tests for Reno TCP.
+"Init8" shows that after a Retransmit Timeout, TCP slow-starts from an
+initial window of one packet.
+
+The tests "init9" through "init12" repeat these tests for NewReno TCP.
+and tests "init13" through "init16" repeat these tests for Sack TCP.
+
