@@ -73,10 +73,10 @@ TestSuite instproc finish testname {
 			# don't do that it's tough to get gnuplot to
 			# display our graph and hang around for more user input
 			exec tclsh ../../bin/cplot.tcl $outtype $testname.forw \
-			  $fname.p "segments" \
-			  $fname.acks "acks w/data" \
-			  $fname.packs "pure acks" $fname.d "drops" \
-			  $fname.es "zero-len segments" \
+			  $fname.p "segments sent" \
+			  $fname.acks "acks w/data rcvd" \
+			  $fname.packs "pure acks rcvd" $fname.d "drops" \
+			  $fname.es "zero-len segments sent" \
 			  $fname.ctrl "SYN or FIN" > .gnuplot
 			exec xterm -T "Gnuplot: $testname" -e gnuplot &
 			exec sleep 1
@@ -84,24 +84,24 @@ TestSuite instproc finish testname {
 		} else {
 	  
 			exec tclsh ../../bin/cplot.tcl $outtype $testname.forw \
-			  $fname.p "segments" \
-			  $fname.acks "acks w/data" \
-			  $fname.packs "pure acks" $fname.d "drops" \
-			  $fname.es "zero-len segments" \
+			  $fname.p "segments sent" \
+			  $fname.acks "acks w/data rcvd" \
+			  $fname.packs "pure acks rcvd" $fname.d "drops" \
+			  $fname.es "zero-len segments sent" \
 			  $fname.ctrl "SYN or FIN" | $outtype &
 
 			exec tclsh ../../bin/cplot.tcl $outtype $testname.rev \
-			  $fname.r.p "segments" \
-			  $fname.r.acks "acks w/data" \
-			  $fname.r.packs "pure acks" $fname.r.d "drops" \
-			  $fname.r.es "zero-len segments" \
+			  $fname.r.p "segments sent" \
+			  $fname.r.acks "acks w/data rcvd" \
+			  $fname.r.packs "pure acks rcvd" $fname.r.d "drops" \
+			  $fname.r.es "zero-len segments sent" \
 			  $fname.r.ctrl "SYN or FIN" | $outtype &
 		}
 		exec sleep 1
-#		exec rm -f \
-#			$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es
-#		exec rm -f \
-#			$fname.r.p $fname.r.acks $fname.r.packs $fname.r.d $fname.r.ctrl $fname.r.es
+		exec rm -f \
+		$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es
+		exec rm -f \
+		$fname.r.p $fname.r.acks $fname.r.packs $fname.r.d $fname.r.ctrl $fname.r.es
 	} else {
 		puts "output files are $fname.{p,packs,acks,d,ctrl,es}"
 		puts "  and $fname.r.{p,packs,acks,d,ctrl,es}"
