@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.18 2003/02/12 04:20:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.19 2003/03/17 18:42:22 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -106,11 +106,17 @@ TestSuite instproc finish file {
         exec $PERL ../../bin/set_flow_id -s all.tr | \
           $PERL ../../bin/getrc -s 2 -d 3 | \
           $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+        # exec $PERL ../../bin/set_flow_id -d all.tr | \
+        #  $PERL ../../bin/getrc -s 3 -d 2 | \
+        #  $PERL ../../bin/raw2xg -a -s 0.01 -m $wrap -t $file > temp1.rands
 	if {$quiet == "false"} {
+	#	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
+	#	temp1.rands &
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
         ## now use default graphing tool to make a data file
 	## if so desired
+	# exec csh gnuplotC1.com temp.rands temp1.rands $file
         exit 0
 }
 
@@ -933,6 +939,32 @@ Test/newreno5 instproc run {} {
 
 }
 
+#
+#
+Class Test/sack5 -superclass TestSuite
+Test/sack5 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	sack5
+	Agent/TCP set bugFix_ true
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"Sack #5, reordering, with Limited Transmit, with bugfix."
+	$self next pktTraceFile
+}
+Test/sack5 instproc run {} {
+	global quiet
+	$self instvar guide_ ns_ node_
+	if {$quiet == "false"} {puts $guide_}
+        ErrorModel set delay_pkt_ true
+        ErrorModel set drop_ false
+        ErrorModel set delay_ 0.05
+	$self setTopo
+	$self set_lossylink1
+	$self drop_pkts1 { 25 }
+        $self setup Sack1 {100000} 0
+}
+
 Class Test/newreno5_LC -superclass TestSuite
 Test/newreno5_LC instproc init {} {
 	$self instvar net_ test_ guide_
@@ -1017,6 +1049,118 @@ Test/newreno5_noLT_noBF instproc init {} {
 	Test/newreno5_noLT_noBF instproc run {} [Test/newreno5 info instbody run ]
 	$self next pktTraceFile
 }
+
+#########################
+# Now Reno tests:
+#########################
+
+#
+# With Reno, there an a single unnecessary Fast Retransmit, but
+#  NO unnecessary retransmission of a window of data.
+#
+Class Test/reno5 -superclass TestSuite
+Test/reno5 instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	reno5
+	Agent/TCP set bugFix_ true
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"Reno #5, reordering, with Limited Transmit, with bugfix."
+	$self next pktTraceFile
+}
+Test/reno5 instproc run {} {
+	global quiet
+	$self instvar guide_ ns_ node_
+	if {$quiet == "false"} {puts $guide_}
+        ErrorModel set delay_pkt_ true
+        ErrorModel set drop_ false
+        ErrorModel set delay_ 0.05
+	$self setTopo
+	$self set_lossylink1
+	$self drop_pkts1 { 25 }
+        $self setup Reno {100000} 0
+}
+
+#
+# With Reno:
+# With Limited Transmit but without bugfix, with reordering there
+#  is only one unnecessary Fast Retransmit. 
+#
+Class Test/reno5_noBF -superclass TestSuite
+Test/reno5_noBF instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	reno5_noBF
+	Agent/TCP set bugFix_ false
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"Reno #5, reordering, with Limited Transmit, without bugfix."  
+	Test/reno5_noBF instproc run {} [Test/reno5 info instbody run ]
+	$self next pktTraceFile
+}
+
+#
+# Reno:
+# Only one unnecessary retransmit
+#
+Class Test/reno5_noLT_noBF -superclass TestSuite
+Test/reno5_noLT_noBF instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	reno5_noLT_noBF
+	Agent/TCP set bugFix_ false
+	Agent/TCP set singledup_ 0
+	set guide_ \
+	"Reno #5, reordering, without Limited Transmit, without bugfix."
+	Test/reno5_noLT_noBF instproc run {} [Test/reno5 info instbody run ]
+	$self next pktTraceFile
+}
+
+#
+# With multiple reordering events, Reno reduces the congestion
+#   window more times than necessary.
+#
+Class Test/reno5a -superclass TestSuite
+Test/reno5a instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	reno5a
+	Agent/TCP set bugFix_ true
+	Agent/TCP set singledup_ 1
+	set guide_ \
+	"Reno #5, reordering, with Limited Transmit, with bugfix."
+	$self next pktTraceFile
+}
+Test/reno5a instproc run {} {
+	global quiet
+	$self instvar guide_ ns_ node_
+	if {$quiet == "false"} {puts $guide_}
+        ErrorModel set delay_pkt_ true
+        ErrorModel set drop_ false
+        ErrorModel set delay_ 0.05
+	$self setTopo
+	$self set_lossylink1
+	$self drop_pkts1 { 25 31 35 40 }
+        $self setup Reno {100000} 0
+}
+
+#
+# Reno:
+#
+Class Test/reno5a_noLT_noBF -superclass TestSuite
+Test/reno5a_noLT_noBF instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4a
+	set test_	reno5a_noLT_noBF
+	Agent/TCP set bugFix_ false
+	Agent/TCP set singledup_ 0
+	set guide_ \
+	"Reno #5a, reordering, without Limited Transmit, without bugfix."
+	Test/reno5a_noLT_noBF instproc run {} [Test/reno5a info instbody run ]
+	$self next pktTraceFile
+}
+
 
 TestSuite runTest
 
