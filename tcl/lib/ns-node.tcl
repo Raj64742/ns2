@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.22 1998/01/01 04:32:52 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.23 1998/02/25 06:25:21 kannan Exp $
 #
 
 Class Node
@@ -396,7 +396,7 @@ Node instproc delete-routes {id ifs nullagent} {
         }
         foreach {slot link} [$mpathClsfr_($id) adjacents] {
             if [info exists nonLink($link)] {
-                $mpathClsfs_($id) clear $slot
+                $mpathClsfr_($id) clear $slot
 		incr routes_($id) -1
 	    }
 	}
