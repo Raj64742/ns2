@@ -51,16 +51,16 @@ this order:
         set group [$ns allocaddr]        \; multicast group for this session;
 
         set src [new Agent/CBR]
-        $src  set dst_ $group            \; configure the source;
+        $src set dst_ $group            \; configure the source;
         $ns attach-agent $node $src
 
-        $ns create-session $node $src \; creating the session helper and attaching to the source;
+        $ns create-session $node $src   \; creating the session helper and attaching to the source;
 
-	set rcvr [new Agent/NULL]        \; configure the receiver;
-	$ns attach-agent $node $rcvr
-	$ns at 0.0 "$node join-group $rcvr $group" \; joining the session;
+        set rcvr [new Agent/NULL]        \; configure the receiver;
+        $ns attach-agent $node $rcvr
+        $ns at 0.0 "$node join-group $rcvr $group" \; joining the session;
 
-	$ns at 0.1 "$src start"          \; start the source;
+        $ns at 0.1 "$src start"          \; start the source;
 
 \end{program}
 
@@ -78,14 +78,21 @@ The following code gives an example to create a uniform
 0.1 loss rate.
 
 \begin{program}
-set loss_random_variable [new RandomVariable/Uniform] \; creating a uniform distribution random variable;
-$loss_random_variable set min_ 0
-$loss_random_variable set max_ 100
+        # creating the uniform distribution random variable
+        set loss_random_variable [new RandomVariable/Uniform] 
+        # setting the range of random variable
+        $loss_random_variable set min_ 0
+        $loss_random_variable set max_ 100
 
-set loss_module [new ErrorModel]                    \; creating an error module;
-$loss_module drop-target [new Agent/Null]           \; set target for dropped packets;
-$loss_module set rate_ 10             \; set error rate to 0.1, 1/(10-0);
-$loss_module ranvar $loss_random_variable \; attaching the random variable to the loss module;
+        # creating an error module;
+        set loss_module [new ErrorModel]
+        # set target for dropped packets;
+        $loss_module drop-target [new Agent/Null]
+        # setting error rate to 0.1, 10/(100-0);
+        $loss_module set rate_ 10
+        # attaching the random variable to the loss module;
+        $loss_module ranvar $loss_random_variable 
+
 \end{program}
 
 Several random variable distributions are available.
@@ -100,8 +107,10 @@ loss module when created.  Loss modules can only be inserted after the
 corresponding receivers finish joining the group.
 
 \begin{program}
-set sessionhelper [$ns create-session $node $src] \; keep a handle to the loss module;
-$ns at 0.1 "$sessionhelper insert-loss $loss_module $rcvr" \; insert the loss module;
+        # keep a handle to the loss module;
+        set sessionhelper [$ns create-session $node $src] 
+        # insert the loss module;
+        $ns at 0.1 "$sessionhelper insert-loss $loss_module $rcvr" 
 \end{program}
 
 Please note that packets dropped for a particular receiver should also 
@@ -188,7 +197,7 @@ SessionSim instproc create-session \{ node agent \} \{
     set dst [$agent set dst_]                    \; get destination address;
     set session_($nid:$dst) [new Classifier/Replicator/Demuxer]  \; creating the replicator;
     $agent target $session_($nid:$dst)           \; attach the replicator to the source;
-    return $session_($nid:$dst)                  \; keep the replicator in the SessionSim instance variable session_ array;
+    return $session_($nid:$dst)  \; keep the replicator in the SessionSim instance variable session_ array;
 \}
 \end{program}
 
@@ -216,33 +225,32 @@ SessionSim instproc join-group \{ agent group \} \{
     $self instvar session_
 
     foreach index [array names session_] \{
-	set pair [split $index :]
-	if \{[lindex $pair 1] == $group\} \{
-	    # Note: must insert the chain of loss, delay, 
-	    # and destination agent in this order:
+        set pair [split $index :]
+        if \{[lindex $pair 1] == $group\} \{
+            # Note: must insert the chain of loss, delay, 
+            # and destination agent in this order:
 
-	    #1. insert destination agent into session replicator
-	    $session_($index) insert $agent
+            #1. insert destination agent into session replicator
+            $session_($index) insert $agent
 
+            #2. find accumulative bandwidth and delay
+            set src [lindex $pair 0]
+            set dst [[$agent set node_] id]
+            set accu_bw [$self get-bw $dst $src]
+            set delay [$self get-delay $dst $src]
 
-	    #2. find accumulative bandwidth and delay
-	    set src [lindex $pair 0]
-	    set dst [[$agent set node_] id]
-	    set accu_bw [$self get-bw $dst $src]
-	    set delay [$self get-delay $dst $src]
+            #3. set up a constant delay random variable
+            set random_variable [new RandomVariable/Constant]
+            $random_variable set avg_ $delay
 
-	    #3. set up a constant delay random variable
-	    set random_variable [new RandomVariable/Constant]
-	    $random_variable set avg_ $delay
+            #4. set up the delay module
+            set delay_module [new DelayModel]
+            $delay_module bandwidth $accu_bw
+            $delay_module ranvar $random_variable
 
-	    #4. set up the delay module
-	    set delay_module [new DelayModel]
-	    $delay_module bandwidth $accu_bw
-    	    $delay_module ranvar $random_variable
-
-	    #4. insert the delay module in front of the dest agent
-	    $session_($index) insert-module $delay_module $agent
-	\}
+            #4. insert the delay module in front of the dest agent
+            $session_($index) insert-module $delay_module $agent
+        \}
     \}
 \}
 \end{program}
