@@ -272,11 +272,12 @@ TestSuite instproc more_cbrs {} {
 #-----------------------
 
 Class Test/one -superclass TestSuite
-Test/one instproc init { topo name } {
-        $self instvar net_ defNet_ test_
+Test/one instproc init { topo name enable } {
+        $self instvar net_ defNet_ test_ enable_
         set net_ $topo   
         set defNet_ net2
         set test_ $name
+	set enable_ $enable
         $self next
 	$self config $name
 }
@@ -285,17 +286,16 @@ Test/one instproc init { topo name } {
 # For test in Figure 11 of the paper.
 #
 Test/one instproc run {} {
-    $self instvar ns_ net_ topo_
+    $self instvar ns_ net_ topo_ enable_
     $topo_ instvar cbqlink_ node_ rtt_
     set cbqlink $cbqlink_
 
     set stoptime 600.0
 #    set stoptime 100.0
 
-	set rtt $rtt_
 	set mtu 1500
 
-	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu true]
+	set rtm [new RTMechanisms $ns_ $cbqlink $rtt_ $mtu $enable_]
 
 	$self instvar goodflowfile_
 	set gfm [$rtm makeflowmon]
@@ -379,7 +379,7 @@ Test/two instproc run {} {
 
 TestSuite proc usage {} {
         global argv0
-        puts stderr "usage: ns $argv0 <tests> \[<topologies>\]"
+        puts stderr "usage: ns $argv0 <tests> \[<topologies>\] \[enable|disable\]"
         puts stderr "Valid tests are:\t[$self get-subclasses TestSuite Test/]"
         puts stderr "Valid Topologies are:\t[$self get-subclasses SkelTopology Topology/]"
         exit 1
@@ -411,6 +411,7 @@ TestSuite proc get-subclasses {cls pfx} {
 
 TestSuite proc runTest {} {
 	global argc argv
+	set enable true
         switch $argc {
                 1 {
                         set test $argv
@@ -425,11 +426,26 @@ TestSuite proc runTest {} {
                         set topo [lindex $argv 1]
                         $self isProc? Topology $topo
                 }
+                3 {
+                        set test [lindex $argv 0]
+                        $self isProc? Test $test
+
+                        set topo [lindex $argv 1]
+                        $self isProc? Topology $topo
+
+                        set enable [lindex $argv 2]
+			if { $enable == "disable" } {
+				set enable false
+			} else {
+				set enable true
+			}
+
+                }
                 default {
                         $self usage
                 }
         }
-        set t [new Test/$test $topo $test ]
+        set t [new Test/$test $topo $test $enable]
         $t run
 }
 
