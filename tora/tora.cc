@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code*/
 /*
   tora.cc
-  $Id: tora.cc,v 1.5 1999/08/12 21:12:23 yaxu Exp $
+  $Id: tora.cc,v 1.6 1999/08/31 06:49:32 yaxu Exp $
   */
 
 #include <agent.h>
@@ -70,7 +70,7 @@ public:
 
 static class toraAgentclass : public TclClass {
 public:
-	toraAgentclass() : TclClass("Agent/rtProto/TORA") {}
+	toraAgentclass() : TclClass("Agent/TORA") {}
 	TclObject* create(int argc, const char*const* argv) {
 		assert(argc == 5);
 		return (new toraAgent((nsaddr_t) atoi(argv[4])));
@@ -116,7 +116,7 @@ toraAgent::command(int argc, const char*const* argv)
 	}
 	else if(argc == 3) {
 
-		if(strcmp(argv[1], "log-target") == 0) {
+		if(strcmp(argv[1], "log-target") == 0 || strcmp(argv[1], "tracetarget") == 0 ) {
 			logtarget = (Trace*) TclObject::lookup(argv[2]);
 			if(logtarget == 0)
 				return TCL_ERROR;

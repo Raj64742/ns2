@@ -36,7 +36,7 @@
 
 /*
   imep.cc
-  $Id: imep.cc,v 1.5 1999/08/11 22:43:19 yaxu Exp $
+  $Id: imep.cc,v 1.6 1999/08/31 06:49:28 yaxu Exp $
   */
 
 #include <packet.h>
@@ -691,7 +691,6 @@ imepAgent::recv_incoming(Packet *p)
 	// ACK confirms bidirectional status. -josh
 	// hasn't actually be done. seems unlikely to be of help, and is
 	// fairly hard to do. -dam 8/19/98
-
        	assert(ch->ptype() == PT_IMEP);
 	assert(im->imep_version == IMEP_VERSION);
 

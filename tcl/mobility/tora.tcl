@@ -15,10 +15,12 @@ Agent instproc init args {
         $self next $args
 }       
 Agent/rtProto instproc init args {
+        puts "DOWN HERE 2"
         $self next $args
 }       
 Agent/rtProto/TORA instproc init args {
-        $self next $args
+       puts "DOWN HERE" 
+       $self next $args
 }       
 
 Agent/rtProto/TORA set sport_	0
@@ -117,4 +119,9 @@ proc create-mobile-node { id } {
 		$ns_ at 0.0 "$node_($id) start"
 	}
 }
+
+
+
+
+
 

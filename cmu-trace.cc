@@ -68,6 +68,9 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
         if(strcmp(tracename, "RTR") == 0) {
                 tracetype = TR_ROUTER;
         }
+	else if(strcmp(tracename, "TRP") == 0) {
+                tracetype = TR_ROUTER;
+        }
         else if(strcmp(tracename, "MAC") == 0) {
                 tracetype = TR_MAC;
         }

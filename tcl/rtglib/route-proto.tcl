@@ -329,7 +329,7 @@ Agent/rtProto proc init-all args {
 
 Agent/rtProto instproc init node {
     $self next
-
+    
     $self instvar ns_ node_ rtObject_ preference_ ifs_ ifstat_
     set ns_ [Simulator instance]
 
