@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.29 2003/03/06 19:44:36 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.30 2003/04/01 23:04:35 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1349,6 +1349,33 @@ TestSuite instproc printall { fmon } {
 	puts "aggregate per-link total_marks [$fmon set pmarks_]"
 	puts "aggregate per-link total_packets [$fmon set pdepartures_]"
 }
+TestSuite instproc printPeakRates { fmon time } {
+        $self instvar pastbytes
+        set allflows [$fmon flows]
+        foreach f $allflows {
+                set fid [$f set flowid_]
+		#set src [$f set src_]
+		#set dst [$f set dst_]
+                set bytes [$f set bdepartures_]
+                if [info exists pastbytes($f)] {
+                        set newbytes [expr $bytes - $pastbytes($f)]
+                }  else {
+                        set newbytes $bytes 
+                }
+                if {$newbytes > 0} {
+			#src: $src d st: $dst
+                        puts "time: [format "%3.2f" $time] fid: $fid new_bytes $newbytes"
+                        set pastbytes($f) $bytes
+                }
+        }
+}
+TestSuite instproc printPeakRate { fmon time interval } {
+        $self instvar ns_
+        set newTime [expr [$ns_ now] + $interval]
+        $ns_ at $time "$self printPeakRates $fmon $time"
+        $ns_ at $newTime "$self printPeakRate $fmon $newTime $interval"
+}
+
 
 Class Test/stats -superclass TestSuite
 Test/stats instproc init topo {
@@ -1663,6 +1690,51 @@ Test/stats3 instproc run {} {
 	## awk -f seqnos.awk out > data   
         ## xgraph -bb -tk -x seqno_bin -y frac_of_pkts data &
 	#
+	# trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+	$ns_ run
+}
+
+Class Test/stats4 -superclass TestSuite
+Test/stats4 instproc init topo {
+	$self instvar net_ defNet_ test_ guide_
+	set net_	$topo
+	set defNet_	net3
+	set test_	stats4
+	Agent/TCP set tcpTick_ 0.01
+	set guide_	"Printing peak rate statistics."
+	$self next
+}
+
+Test/stats4 instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_ guide_ 
+	if {$quiet == "false"} {puts $guide_}
+	set stoptime 1.1 
+	set PeakRateInterval 0.1
+
+	set slink [$ns_ link $node_(r1) $node_(r2)]; 
+	#set fmon [$ns_ makeflowmon SrcDestFid]
+	set fmon [$ns_ makeflowmon Fid]
+	set outfile stdout
+	$fmon traceDist $outfile
+	$ns_ attach-fmon $slink $fmon
+
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
+	$tcp0 set window_ 10
+	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s3) 1]
+	$tcp1 set window_ 10
+
+	set ftp0 [$tcp0 attach-app FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp0 start"
+	$ns_ at 0.1 "$ftp1 start"
+
+	set link1 [$ns_ link $node_(r1) $node_(r2)]
+	set queue1 [$link1 queue]
+
+	$ns_ at 0.5 "$self printPeakRate $fmon 0.5 $PeakRateInterval"
+
 	# trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
