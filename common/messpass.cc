@@ -1,6 +1,6 @@
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/messpass.cc,v 1.2 2003/04/17 01:53:50 buchheim Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/messpass.cc,v 1.3 2003/11/27 23:27:19 xuanc Exp $";
 #endif
 
 #include "messpass.h"
@@ -91,7 +91,6 @@ void MessagePassingAgent::sendto(int nbytes, AppData *data, const char* flags, n
 
 void MessagePassingAgent::recv(Packet* pkt, Handler*)
 {
-
 	if (app_ ) {
 		// If an application is attached, pass the data to the app
 		hdr_cmn* h = hdr_cmn::access(pkt);
