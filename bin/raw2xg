@@ -50,7 +50,9 @@ $file = $acks = '';
 
 sub translate_point {
     my($time, $seq, $flow) = @_;
-    return ($time, $flow * $flow_factor + ($seq % $modulus) * $scale);
+    $plotted = $flow * $flow_factor + ($seq % $modulus) * $scale;
+    $plotted =~ s/\.e/e/g; # to ensure Cygwin compatibility, 
+    return ($time, $plotted); 
 }
 
 while (<>) {
