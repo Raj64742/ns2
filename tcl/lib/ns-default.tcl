@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.120 1998/07/08 19:14:06 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.121 1998/07/08 21:12:56 kfall Exp $
 
 
 #
@@ -154,14 +154,17 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set dupseg_fix_ true ; # no rexmt w/dup segs from peer
 	Agent/TCP/FullTcp set dupack_reset_ false; # exit recov on ack < highest
 	Agent/TCP/FullTcp set interval_ 0.1 ; # delayed ACK interval 100ms 
-	Agent/TCP/FullTcp set close_on_empty_ false
+	Agent/TCP/FullTcp set close_on_empty_ false; # close conn if sent all
 	Agent/TCP/FullTcp set ts_option_size_ 10; # in bytes
 	Agent/TCP/FullTcp set reno_fastrecov_ true; # fast recov true by default
-	Agent/TCP/FullTcp set sack_option_ false; # don't use sacks
-	Agent/TCP/FullTcp set sack_block_size_ 8; # bytes in a SACK block
-	Agent/TCP/FullTcp set sack_option_size_ 2; # bytes in an empty SACK opt
-	Agent/TCP/FullTcp set max_sack_blocks_ 3; # max # of blks to ever send
+	Agent/TCP/FullTcp set pipectrl_ false; # use "pipe" ctrl
+
 	Agent/TCP/FullTcp/Newreno set recov_maxburst_ 2; # max burst dur recov
+
+	Agent/TCP/FullTcp/Sack set sack_option_ false; # don't use sacks
+	Agent/TCP/FullTcp/Sack set sack_block_size_ 8; # bytes in a SACK block
+	Agent/TCP/FullTcp/Sack set sack_option_size_ 2; # bytes in opt hdr
+	Agent/TCP/FullTcp/Sack set max_sack_blocks_ 3; # max # of sack blks
 }
 
 Integrator set lastx_ 0.0
