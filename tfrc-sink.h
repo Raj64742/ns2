@@ -51,15 +51,21 @@
 
 #define DEFAULT_NUMSAMPLES 8 
 
+#define WALI 1
+#define EWMA 2 
+#define RBPH 3
+#define EBPH 4 
+
 class TfrcSinkAgent;
 
 class TfrcNackTimer : public TimerHandler {
 public:
-  	TfrcNackTimer(TfrcSinkAgent *a) : TimerHandler() 
-		{ a_ = a; }
-  	virtual void expire(Event *e);
+	TfrcNackTimer(TfrcSinkAgent *a) : TimerHandler() { 
+		a_ = a; 
+	}
+	virtual void expire(Event *e);
 protected:
-  	TfrcSinkAgent *a_;
+	TfrcSinkAgent *a_;
 };
 
 class TfrcSinkAgent : public Agent {
@@ -70,18 +76,27 @@ public:
 protected:
 	void sendpkt(double);
 	void nextpkt(double);
-	void increase_pvec(int);
-	void add_packet_to_history(Packet *);
 	double adjust_history(double);
 	double est_loss();
 	double est_thput(); 
+	int command(int argc, const char*const* argv);
+	void print_loss(int sample, double ave_interval);
+
+	// algo specific
+	double est_loss_WALI();
 	void shift_array(int *a, int sz, int defval) ;
 	void shift_array(double *a, int sz, double defval) ;
 	void multiply_array(double *a, int sz, double multiplier);
-	void print_loss(int sample, double ave_interval);
+	void init_WALI();
 	double weighted_average(int start, int end, double factor, double *m, double *w, int *sample);
 
-	int command(int argc, const char*const* argv);
+	double est_loss_EWMA () ;
+	
+	double est_loss_RBPH () ;
+
+	double est_loss_EBPH() ;
+
+	//comman variables
 
 	TfrcNackTimer nack_timer_;
 
@@ -89,7 +104,15 @@ protected:
 	double rtt_;		// rtt value reported by sender
 	double tzero_;		// timeout value reported by sender
 	int smooth_;		// for the smoother method for incorporating
-				//  incorporating new loss intervals
+					//  incorporating new loss intervals
+	int UrgentFlag ;	// send loss report immediately
+	int total_received_;	// total # of pkts rcvd by rcvr
+	int bval_;		// value of B used in the formula
+	double last_report_sent; 	// when was last feedback sent
+	double NumFeedback_; 	// how many feedbacks per rtt
+	int rcvd_since_last_report; 	// # of packets rcvd since last report
+	int printLoss_;		// to print estimated loss rates
+	int maxseq; 		// max seq number seen
 
 	// these assist in keep track of incming packets and calculate flost_
 	double last_timestamp_, last_arrival_;
@@ -97,8 +120,11 @@ protected:
 	char *lossvec_;
 	double *rtvec_;
 	double *tsvec_;
-	int round_id ;
 	int lastloss_round_id ;
+	int round_id ;
+	double lastloss; 	// when last loss occured
+
+	// WALI specific
 	int numsamples ;
 	int *sample;
 	double *weights ;
@@ -106,21 +132,23 @@ protected:
 	double mult_factor_;	// most recent multiple of mult array
 	int sample_count ;
 	int last_sample ;  
-	int UrgentFlag ;	// send loss report immediately
-	int maxseq; 		// max seq number seen
-	int total_received_;	// total # of pkts rcvd by rcvr
-	int bval_;		// value of B used in the formula
-	double last_report_sent; 	// when was last feedback sent
-	double NumFeedback_; 	// how many feedbacks per rtt
-	int rcvd_since_last_report; 	// # of packets rcvd since last report
-	double lastloss; 	// when last loss occured
-	int printLoss_;		// to print estimated loss rates
 
 	// these are for "faking" history after slow start
 	int loss_seen_yet; 	// have we seen the first loss yet?
 	int adjust_history_after_ss; // fake history after slow start? (0/1)
 	int false_sample; 	// by how much?
-
+	
+	int algo;	// algo for loss estimation 
 	int discount ;		// emphasize most recent loss interval
 				//  when it is very large
+
+	// EWMA
+	double history ;
+	double avg_loss_int ; 
+	int loss_int ; 
+	
+	// RBPH, EBPH
+	double sendrate ;
+	int minlc ; 
+
 }; 
