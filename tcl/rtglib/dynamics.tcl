@@ -205,7 +205,7 @@ rtModel instproc set-parms args {
 	    set off [lindex $args 0]
 	    set up  [lindex $args 1]
 	    set dn  [lindex $args 2]
-	    set fin [lindes $args 3]
+	    set fin [lindex $args 3]
 	}
 	3 {
 	    set off [lindex $args 0]
