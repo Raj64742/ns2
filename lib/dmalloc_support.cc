@@ -1,4 +1,3 @@
-
 /*
  * dmalloc_support.cc
  * Copyright (C) 1997 by USC/ISI
@@ -17,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.2 1997/07/25 20:47:12 heideman Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.3 1999/09/18 00:51:17 haoboy Exp $ (USC/ISI)
  */
 
 
@@ -26,6 +25,66 @@
  */
 
 #ifdef HAVE_LIBDMALLOC
+
+/* 
+ * NOTE: If dmalloc does not work for you (e.g., it hangs), make sure that
+ * you are using dmalloc 4.2.0 or above. If you are using lower versions, 
+ * change the following to:
+ * 
+ * #define DMALLOC_MAJOR_VERSION 3
+ */ 
+#define DMALLOC_MAJOR_VERSION 4
+
+#if DMALLOC_MAJOR_VERSION > 3
+
+/* 
+ * This portion copied from ~dmalloc/dmalloc.cc 
+ * Copyright 1999 by Gray Watson
+ */
+extern "C" {
+#include <stdlib.h>
+
+#define DMALLOC_DISABLE
+
+#include "dmalloc.h"
+#include "return.h"
+}
+
+/*
+ * An overload function for the C++ new.
+ */
+void *
+operator new[](size_t size)
+{
+	char	*file;
+	GET_RET_ADDR(file);
+	return _malloc_leap(file, 0, size);
+}
+
+/*
+ * An overload function for the C++ delete.
+ */
+void
+operator delete(void *pnt)
+{
+	char	*file;
+	GET_RET_ADDR(file);
+	_free_leap(file, 0, pnt);
+}
+
+/*
+ * An overload function for the C++ delete[].  Thanks to Jens Krinke
+ * <j.krinke@gmx.de>
+ */
+void
+operator delete[](void *pnt)
+{
+	char	*file;
+	GET_RET_ADDR(file);
+	_free_leap(file, 0, pnt);
+}
+
+#else /* DMALLOC_MAJOR_VERSION == 3 */
 
 extern "C" {
 #include <stdlib.h>
@@ -55,5 +114,7 @@ operator delete(void * cp)
 	SET_RET_ADDR(_dmalloc_file, _dmalloc_line);
 	_free_leap(_dmalloc_file, _dmalloc_line, cp);
 }
+
+#endif /* DMALLOC_VERSION */
 
 #endif /* HAVE_LIBDMALLOC */
