@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.17 1997/03/17 23:23:39 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.18 1997/03/27 22:30:20 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -283,6 +283,10 @@ OldSim instproc link { n1 n2 } {
 
 OldSim instproc trace {} {
 	return [new traceHelper]
+}
+
+OldSim instproc random { seed } {
+	return [ns-random $seed]
 }
 
 proc ns_simplex { n1 n2 bw delay type } {
