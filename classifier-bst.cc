@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.11 2000/08/18 18:34:01 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.12 2000/09/05 18:17:18 haoboy Exp $";
 #endif
 
 #include <assert.h>
@@ -35,8 +35,6 @@ static const char rcsid[] =
 #include "address.h"
 #include "trace.h"
 #include "ump.h"
-
-int hdr_ump::offset_;
 
 struct upstream_info {
 	int dst;
