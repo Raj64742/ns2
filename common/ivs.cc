@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.13 1998/08/14 20:09:30 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.14 1998/11/30 05:36:48 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -157,8 +157,8 @@ public:
 	}
 } class_ivs_receiver;
 
-IvsSource::IvsSource() : S_(0), R_(0), state_(ST_U),
-	rttShift_(0), keyShift_(0), key_(0), maxrtt_(0), Agent(PT_MESSAGE)
+IvsSource::IvsSource() : Agent(PT_MESSAGE), S_(0), R_(0), state_(ST_U),
+	rttShift_(0), keyShift_(0), key_(0), maxrtt_(0)
 {
 	bind("S_", &S_);
 	bind("R_", &R_);

@@ -15,7 +15,7 @@ char *
 lcase(char *s) {
 	static char charbuf[512];
 	char* to = charbuf;
-	while (*to++ = tolower(*s++))
+	while ((*to++ = tolower(*s++)))
 		/* NOTHING */;
 	*to = '\0';
 	return charbuf;
