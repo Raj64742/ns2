@@ -67,6 +67,7 @@ struct edp {
 	double a, b;		 /* parameters to pi controller */
 	double w;				/* sampling frequency (# of times per second) */ 
 	double qref;		/* desired queue size */
+	edp(): mean_pktsize(0), bytes(0), setbit(0), a(0.0), b(0.0), w(0.0), qref(0.0) { }
 };
 
 /*
@@ -77,7 +78,7 @@ struct edv {
 	int count;		/* # of packets since last drop */
 	int count_bytes;	/* # of bytes since last drop */
 	int qold;
-	edv() : v_prob(0.0), count(0), count_bytes(0) { }
+	edv() : v_prob(0.0), count(0), count_bytes(0), qold(0) { }
 };
 
 class LinkDelay;
@@ -109,7 +110,7 @@ class PIQueue : public Queue {
 
 	LinkDelay* link_;	/* outgoing link */
 	int fifo_;		/* fifo queue? */
-  PacketQueue *q_; 	/* underlying (usually) FIFO queue */
+	PacketQueue *q_; 	/* underlying (usually) FIFO queue */
 		
 	int qib_;	/* bool: queue measured in bytes? */
 	NsObject* de_drop_;	/* drop_early target */

@@ -63,8 +63,9 @@ public:
 } class_pi;
 
 
-PIQueue::PIQueue(const char * trace) : CalcTimer(this), link_(NULL), 
-  de_drop_(NULL), EDTrace(NULL), tchan_(0), first_reset_(1)
+PIQueue::PIQueue(const char * trace) : CalcTimer(this), link_(NULL), q_(NULL),
+	qib_(0), de_drop_(NULL), EDTrace(NULL), tchan_(0), curq_(0),
+	edp_(), edv_(), first_reset_(1)
 {
 	if (strlen(trace) >=20) {
 		printf("trace type too long - allocate more space to traceType in pi.h and recompile\n");
