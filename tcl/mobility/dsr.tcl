@@ -1,5 +1,5 @@
 # dsr.tcl
-# $Id: dsr.tcl,v 1.1 1998/12/08 19:19:51 haldar Exp $
+# $Id: dsr.tcl,v 1.2 1998/12/12 00:36:04 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -37,13 +37,27 @@ Class SRNode -superclass Node/MobileNode
 
 SRNode instproc init {args} {
     global opt ns_ tracefd RouterTrace
-    $self instvar dsr_agent_ dmux_ entry_point_
+    $self instvar dsr_agent_ dmux_ entry_point_ address_
 
-    eval $self next $args	;# parent class constructor
-
-    # puts "making dsragent for node [$self id]"
-    set dsr_agent_ [new Agent/DSRAgent]
-    $dsr_agent_ ip-addr [$self id]
+	eval $self next $args	;# parent class constructor
+	
+	if {$dmux_ == "" } {
+		set dmux_ [new Classifier/Addr]
+		$dmux_ set mask_ [AddrParams set PortMask_]
+		$dmux_ set shift_ [AddrParams set PortShift_]
+		#
+		# point the node's routing entry to itself
+		# at the port demuxer (if there is one)
+		#
+		if [Simulator set EnableHierRt_] {
+			$self add-hroute $address_ $dmux_
+		} else {
+			$self add-route $address_ $dmux_
+		}
+	}
+	# puts "making dsragent for node [$self id]"
+	set dsr_agent_ [new Agent/DSRAgent]
+	$dsr_agent_ ip-addr [$self id]
 
     if { $RouterTrace == "ON" } {
 	# Recv Target
@@ -160,4 +174,6 @@ proc dsr-create-mobile-node { id } {
 
         $ns_ at 0.0 "$node start-dsr"
 }
+
+
 

@@ -54,7 +54,7 @@
          *       Interface can distinguish between incoming and         \
          *       outgoing packets.                                      \
          */                                                             \
-										uptarget_->recv(p, this);                                     \
+										downtarget_->recv(p, this);                                     \
                                                                         \
         mhSend_.start(t);                                                \
                                                                         \
@@ -234,10 +234,10 @@ newMac802_11::hdr_src(char* hdr, u_int32_t src)
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
 
 	if(src)
-		//(u_int32_t)ETHER_ADDR(dh->dh_sa) = src; 
+		//ETHER_ADDR(dh->dh_sa) = src; 
 		STORE4BYTE(&src, (dh->dh_sa));
 
-	return (u_int32_t)ETHER_ADDR(dh->dh_sa);
+	return ETHER_ADDR(dh->dh_sa);
 	//return *(dh->dh_sa);
 }
 
@@ -955,6 +955,7 @@ newMac802_11::RetransmitDATA()
 	 *  Broadcast packets don't get ACKed and therefore
 	 *  are never retransmitted.
 	 */
+	u_int32_t i = ETHER_ADDR(mh->dh_da);
 	if((u_int32_t)ETHER_ADDR(mh->dh_da) == MAC_BROADCAST) {
 		Packet::free(pktTx_); pktTx_ = 0;
 
@@ -1384,7 +1385,7 @@ newMac802_11::recvDATA(Packet *p)
 	 *  for this processing delay.
 	 */
 	//p->incoming = 1;
-	downtarget_->recv(p, (Handler*) 0);
+	uptarget_->recv(p, (Handler*) 0);
 }
 
 
