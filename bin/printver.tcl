@@ -1,4 +1,4 @@
-# if given at least 1 argument, the first one is the string to be printed
+# get the version from stdin and print it out in C form
 
 gets stdin version
 puts "char version_string\[\] = \"$version\";"
