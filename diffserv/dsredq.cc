@@ -222,7 +222,11 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
       u = Random::uniform(0.0, 1.0);
       
       //drop it
-      if (u <= pa) {	
+      if (u <= pa) {
+	// When average queue length is between min. threshold and max. threshold 
+	// and the packet is dropped, the value of edv_.count should be set to 0.
+	// by Janusz Gozdecki <gozdecki@kt.agh.edu.pl>, 7/13/2002
+	qParam_[prec].edv_.count = 0; 
 	if (ecn) {
 	  // set idle_ to 0
 	  updateIdleFlag(prec); 
@@ -239,9 +243,14 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
       }
       return PKT_DROPPED;
     }
+  } else {
+    // When average queue length is between min. threshold and max. threshold 
+    // and the packet is not dropped the value of edv_.count should be unchanged
+    // rather than -1 (which causes a significant impact on the number of early packet drops).
+    // by Janusz Gozdecki <gozdecki@kt.agh.edu.pl>, 7/13/2002
+    qParam_[prec].edv_.count = -1;
   }
-  qParam_[prec].edv_.count = -1;
-  
+
   // if ecn is on, then the packet has already been enqueued
   if(ecn) { 
     // set idle_ to 0
