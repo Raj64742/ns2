@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.161 1997/10/17 18:54:46 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.162 1997/10/18 21:51:40 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,16 @@
 [release pending]</H3>
 
 <UL>
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
+      Sat Oct 18 14:39:35 PDT 1997<br>
+      <UL>
+      <LI>Made a bugfix so that maxburst now works correctly with
+      SACK1 TCP.
+      <LI>Automatic validation tests in tcl/test now include
+      the following:  test-all-red, test-all-sack, test-all-schedule,
+      test-all-tcp, test-all-red-v1, test-all-cbq-v1, test-all-sack-v1,
+      and test-all-v1.
+      </UL>
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[KF]</A></B>
       Fri Oct 17 11:29:10 PDT 1997<br>
       First cut at changing the fullTCP test suite over to the
