@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.4 1999/09/09 03:22:45 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.5 1999/10/13 22:52:55 heideman Exp $";
 #endif
 
 #include "satroute.h"
@@ -137,7 +137,7 @@ void SatRouteAgent::forwardPacket(Packet * p)
 		printf("Error:  trying to forward a packet destined to self: %d\n", myaddr_); 
 		Packet::free(p);
 	}
-	hdrc->addr_type_ = AF_INET;
+	hdrc->addr_type_ = NS_AF_INET;
 	hdrc->last_hop_ = myaddr_; // for tracing purposes 
 	if (SatRouteObject::instance().data_driven_computation())
 		SatRouteObject::instance().recompute_node(myaddr_);

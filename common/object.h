@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.11 1999/06/21 18:14:01 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.12 1999/10/13 22:52:53 heideman Exp $ (LBL)
  */
 
 #ifndef ns_object_h
@@ -52,10 +52,8 @@ class NsObject : public TclObject, public Handler {
 	// pkt is handed off (eg droptargets)
 	virtual void recv(Packet* p, const char* s);
 	virtual int command(int argc, const char*const* argv);
-#ifdef TCLCL_CLASSINSTVAR
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif /* TCLCL_CLASSINSTVAR */
  protected:
 	virtual void reset();
 	void handle(Event*);

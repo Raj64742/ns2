@@ -1045,7 +1045,7 @@ LandmarkAgent::periodic_callback(Event *e, int level)
 	    new_iph->dst() = (lmnode->id_ << 8) | ROUTER_PORT;
 	    new_iph->dport() = ROUTER_PORT;
 	    new_cmh->next_hop() = lmnode->next_hop_;
-	    new_cmh->addr_type() = AF_INET;
+	    new_cmh->addr_type() = NS_AF_INET;
 	    if(cur_pcl->level_)
 	      new_cmh->size() = new_cmh->size() - 4 * (cur_pcl->num_potl_children_ - 1);
 	    (*walk) = (UNICAST_ADVERT_CHILD) & 0xFF;
@@ -1071,7 +1071,7 @@ LandmarkAgent::periodic_callback(Event *e, int level)
 	  iph->dst() = ((cur_pcl->parent_)->id_ << 8) | ROUTER_PORT;
 	  iph->dport() = ROUTER_PORT;
 	  cmh->next_hop() = (cur_pcl->parent_)->next_hop_;
-	  cmh->addr_type() = AF_INET;
+	  cmh->addr_type() = NS_AF_INET;
 	  cmh->size() = cmh->size() - 4 * (cur_pcl->num_potl_children_);
 	  
 	  (*walk) = (UNICAST_ADVERT_PARENT) & 0xFF;
@@ -1128,7 +1128,7 @@ LandmarkAgent::makeUpdate(ParentChildrenList *pcl, int pkt_type, int action)
 
 
   hdrc->next_hop_ = IP_BROADCAST; // need to broadcast packet
-  hdrc->addr_type_ = AF_INET;
+  hdrc->addr_type_ = NS_AF_INET;
   iph->dst() = IP_BROADCAST;  // packet needs to be broadcast
   iph->dport() = ROUTER_PORT;
   iph->ttl_ = radius(pcl->level_);
@@ -2150,7 +2150,7 @@ LandmarkAgent::ForwardPacket(Packet *p)
 	iph->dst_ = (dst_ptr->dst_node_ << 8) | ROUTER_PORT;
 	iph->dport_ = ROUTER_PORT;
 	cmh->next_hop_ = dst_ptr->dst_next_hop_;
-	cmh->addr_type_ = AF_INET;
+	cmh->addr_type_ = NS_AF_INET;
 	// Copy next hop variable to this variable temporarily
 	// Copy it back into packet before sending the packet
 	int tmp_next_hop_level = dst_ptr->next_hop_level_;
@@ -2177,7 +2177,7 @@ LandmarkAgent::ForwardPacket(Packet *p)
 	  new_iph->dst_ = (dst_ptr->dst_node_ << 8) | ROUTER_PORT;
 	  new_iph->dport_ = ROUTER_PORT;
 	  new_cmh->next_hop_ = dst_ptr->dst_next_hop_;
-	  new_cmh->addr_type_ = AF_INET;
+	  new_cmh->addr_type_ = NS_AF_INET;
 
 	  if((new_iph->dst_ >> 8) == myaddr_)
 	    ForwardPacket(newp);

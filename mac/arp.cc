@@ -35,7 +35,7 @@
 
    /* arp.cc
    basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.6 1999/09/09 03:22:29 salehi Exp $
+   $Id: arp.cc,v 1.7 1999/10/13 22:52:45 heideman Exp $
 
    Note: code in this file violates the convention that addresses of
    type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
@@ -291,9 +291,9 @@ ARPTable::arpinput(Packet *p, LL *ll)
 		// Future work: separate port-id from IP address ??
 		int dst = Address::instance().get_nodeaddr(ih->daddr());
 		
-		if((ch->addr_type() == AF_NONE &&
+		if((ch->addr_type() == NS_AF_NONE &&
                     dst == ah->arp_spa) ||
-                   (AF_INET == ch->addr_type() &&
+                   (NS_AF_INET == ch->addr_type() &&
                     ch->next_hop() == ah->arp_spa)) {
 #ifdef DEBUG
 			fprintf(stderr, "\tsending HELD packet.\n");

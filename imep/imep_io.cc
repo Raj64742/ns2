@@ -35,7 +35,7 @@
 
 /*
   imep_io.cc
-  $Id: imep_io.cc,v 1.3 1999/09/09 04:02:46 salehi Exp $
+  $Id: imep_io.cc,v 1.4 1999/10/13 22:53:06 heideman Exp $
 
   marshall IMEP packets 
 */
@@ -60,7 +60,7 @@ imepAgent::sendBeacon()
 	ch->size() = BEACON_HDR_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->addr_type() = AF_NONE;
+	ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = ipaddr;
 	ch->uid() = uidcnt_++;
 
@@ -91,7 +91,7 @@ imepAgent::sendHello(nsaddr_t index)
 	ch->size() = HELLO_HDR_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->addr_type() = AF_NONE;
+	ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = ipaddr;
 	ch->uid() = uidcnt_++;
 
@@ -135,7 +135,7 @@ imepAgent::sendAck(nsaddr_t index, u_int32_t seqno)
 	ch->size() = ACK_HDR_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->addr_type() = AF_NONE;
+	ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = ipaddr;
 	ch->uid() = uidcnt_++;
 

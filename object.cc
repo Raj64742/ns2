@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.14 1998/12/08 23:43:07 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.15 1999/10/13 22:52:53 heideman Exp $ (LBL)";
 #endif
 
 #include "object.h"
@@ -48,19 +48,12 @@ NsObject::~NsObject()
 NsObject::NsObject()
 {
 #ifdef OFF_HDR
-#ifdef TCLCL_CLASSINSTVAR
-#else /* ! TCLCL_CLASSINSTVAR */
-	bind("off_cmn_", &off_cmn_);
-	bind("off_flags_", &off_flags_);
-#endif /* TCLCL_CLASSINSTVAR */
-
 #else
 	off_cmn_ = hdr_cmn::offset();
 	off_flags_ = hdr_flags::offset();
 #endif
 }
 
-#ifdef TCLCL_CLASSINSTVAR
 void
 NsObject::delay_bind_init_all()
 {
@@ -80,7 +73,6 @@ NsObject::delay_bind_dispatch(const char *varName, const char *localName)
 	return TclObject::delay_bind_dispatch(varName, localName);
 }
 
-#endif /* TCLCL_CLASSINSTVAR */
 
 
 void NsObject::reset()

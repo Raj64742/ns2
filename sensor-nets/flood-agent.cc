@@ -317,7 +317,7 @@ FloodAgent::recv(Packet *p, Handler *)
       iph->dst_ = (iph->src_ << 8) | QUERY_PORT;
       iph->dport_ = QUERY_PORT;
       cmh->next_hop_ = last_hop_id;
-      cmh->addr_type_ = AF_INET;
+      cmh->addr_type_ = NS_AF_INET;
       // Add 50 bytes to response 
       cmh->size() += 50;
 
@@ -340,7 +340,7 @@ FloodAgent::recv(Packet *p, Handler *)
       }
 
       cmh->next_hop_ = IP_BROADCAST; // need to broadcast packet
-      cmh->addr_type_ = AF_INET;
+      cmh->addr_type_ = NS_AF_INET;
       iph->dst_ = IP_BROADCAST;  // packet needs to be broadcast
       iph->dport_ = ROUTER_PORT;
 

@@ -202,7 +202,7 @@ MIPBSAgent::sendOutBCastPkt(Packet *p)
   hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
   hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   hdrc->next_hop_ = IP_BROADCAST;
-  hdrc->addr_type_ = AF_INET;
+  hdrc->addr_type_ = NS_AF_INET;
   iph->daddr() = IP_BROADCAST;
   iph->dport() = 0;
 }
@@ -414,7 +414,7 @@ void MIPMHAgent::sendOutBCastPkt(Packet *p)
   hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
   hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   hdrc->next_hop_ = IP_BROADCAST;
-  hdrc->addr_type_ = AF_INET;
+  hdrc->addr_type_ = NS_AF_INET;
   iph->daddr() = IP_BROADCAST;
   iph->dport() = 0;
 }

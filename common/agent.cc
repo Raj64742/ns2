@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.59 1999/09/24 17:04:26 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.60 1999/10/13 22:52:43 heideman Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -70,34 +70,8 @@ Agent::Agent(packet_t pkttype) :
 	oldValueList_(NULL), app_(0)
 {
 	off_ip_ = hdr_ip::offset();
-#if defined(TCLCL_CLASSINSTVAR)
-#else /* ! TCLCL_CLASSINSTVAR */
-	/*
-	 * the following is a workaround to allow
-	 * older scripts that use "class_" instead of
-	 * flowid to work -K
-	 */
-	bind("class_", (int*)&fid_);
-
-//	memset(pending_, 0, sizeof(pending_));
-	// this is really an IP agent, so set up
-	// for generating the appropriate IP fields...
-	bind("agent_addr_", (int*)&(here_.addr_));
-	bind("agent_port_", (int*)&(here_.port_));
-	bind("dst_addr_", (int*)&(dst_.addr_));
-	bind("dst_port_", (int*)&(dst_.port_));
-	bind("fid_", (int*)&fid_);
-	bind("prio_", (int*)&prio_);
-	bind("flags_", (int*)&flags_);
-	bind("ttl_", &defttl_);
-
-#ifdef OFF_HDR
-	bind("off_ip_", &off_ip_);
-#endif
-#endif /* TCLCL_CLASSINSTVAR */
 }
 
-#if defined(TCLCL_CLASSINSTVAR)
 void
 Agent::delay_bind_init_all()
 {
@@ -131,7 +105,6 @@ Agent::delay_bind_dispatch(const char *varName, const char *localName)
 	DELAY_BIND_DISPATCH(varName, localName, "class_", delay_bind, (int*)&fid_);
 	return Connector::delay_bind_dispatch(varName, localName);
 }
-#endif /* TCLCL_CLASSINSTVAR */
 
 
 Agent::~Agent()

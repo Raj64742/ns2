@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.40 1999/09/29 17:01:58 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.41 1999/10/13 22:52:46 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -109,20 +109,27 @@ typedef struct ns_addr_tag {
 #endif
 
 #include <stdlib.h>
-#if (defined(__hpux) || defined(_AIX)) && defined(__cplusplus)
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#include <time.h>		/* For clock_t */
-extern "C" {
+#endif /* HAVE_UNISTD_H */
+
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif /* HAVE_TIME_H */
+
+#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif /* HAVE_ARPA_INET_H */
+
+#if (defined(__hpux) || defined(_AIX)) && defined(__cplusplus)
+/* these definitions are perhaps vestigal */
+extern "C" {
 int strcasecmp(const char *, const char *);
 clock_t clock(void);
 #if !defined(__hpux)
 int gethostid(void);
 #endif
-#if !defined(_AIX41) && !defined(sun) && !defined(__hpux)
-void srandom(int);
-#endif
-long random(void);
 time_t time(time_t *);
 char *ctime(const time_t *);
 }
@@ -157,12 +164,14 @@ void abort();
 
 #if defined(NEED_SUNOS_PROTOS) || defined(solaris)
 extern "C" {
-	#if defined(NEED_SUNOS_PROTOS)
+#if defined(NEED_SUNOS_PROTOS)
 	caddr_t sbrk(int incr);
-	#endif
+#endif
 	int getrusage(int who, struct rusage* rusage);
 }
 #endif
+
+
 
 #ifdef WIN32
 
@@ -215,8 +224,9 @@ extern "C" {
 int uname(struct utsname *); 
 int getopt(int, char * const *, const char *);
 int strcasecmp(const char *, const char *);
-#define srandom srand
-#define random rand
+/* these shouldn't be used/needed, even on windows */
+/* #define srandom srand */
+/* #define random rand */
 int gettimeofday(struct timeval *p, struct timezone *z);
 int gethostid(void);
 int getuid(void);

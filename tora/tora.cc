@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code*/
 /*
   tora.cc
-  $Id: tora.cc,v 1.9 1999/09/15 22:23:42 yaxu Exp $
+  $Id: tora.cc,v 1.10 1999/10/13 22:53:10 heideman Exp $
   */
 
 #include <agent.h>
@@ -205,7 +205,7 @@ toraAgent::forward(Packet *p, nsaddr_t nexthop, Time delay)
 #endif
         ch->next_hop() = nexthop;
         ch->prev_hop_ = ipaddr();
-        ch->addr_type() = AF_INET;
+        ch->addr_type() = NS_AF_INET;
 
 	// change the packet direction to DOWN
 	ch->direction() = -1;

@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.17 1999/09/09 18:44:26 yaxu Exp $
+   $Id: dsdv.cc,v 1.18 1999/10/13 22:53:01 heideman Exp $
 
    */
 
@@ -354,14 +354,14 @@ DSDV_Agent::lost_link (Packet *p)
 
   //DEBUG
   //printf("(%d)..Lost link..\n",myaddr_);
-  if (verbose_ && hdrc->addr_type_ == AF_INET)
+  if (verbose_ && hdrc->addr_type_ == NS_AF_INET)
     trace ("VLL %.8f %d->%d lost at %d",
   Scheduler::instance ().clock (),
 	   ((hdr_ip *) p->access (off_ip_))->saddr(),
 	   ((hdr_ip *) p->access (off_ip_))->daddr(),
 	   myaddr_);
 
-  if (!use_mac_ || !prte || hdrc->addr_type_ != AF_INET)
+  if (!use_mac_ || !prte || hdrc->addr_type_ != NS_AF_INET)
     return;
 
   if (verbose_)
@@ -448,7 +448,7 @@ DSDV_Agent::makeUpdate(int& periodic)
 
   // The packet we send wants to be broadcast
   hdrc->next_hop_ = IP_BROADCAST;
-  hdrc->addr_type_ = AF_INET;
+  hdrc->addr_type_ = NS_AF_INET;
   iph->daddr() = IP_BROADCAST << Address::instance().nodeshift();
   iph->dport() = ROUTER_PORT;
 
@@ -971,7 +971,7 @@ DSDV_Agent::forwardPacket (Packet * p)
 
 
  send:
-  hdrc->addr_type_ = AF_INET;
+  hdrc->addr_type_ = NS_AF_INET;
   hdrc->xmit_failure_ = mac_callback;
   hdrc->xmit_failure_data_ = this;
   if (prte->metric > 1)
@@ -997,7 +997,7 @@ DSDV_Agent::sendOutBCastPkt(Packet *p)
   //hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
   //hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   //hdrc->next_hop_ = IP_BROADCAST;
-  //hdrc->addr_type_ = AF_INET;
+  //hdrc->addr_type_ = NS_AF_INET;
   //iph->dst() = IP_BROADCAST << Address::instance().nodeshift();
   //iph->dport() = 0;
   // send out bcast pkt with jitter to avoid sync

@@ -36,7 +36,7 @@
 
 /*
   imep.cc
-  $Id: imep.cc,v 1.7 1999/09/09 04:02:45 salehi Exp $
+  $Id: imep.cc,v 1.8 1999/10/13 22:53:05 heideman Exp $
   */
 
 #include <packet.h>
@@ -408,7 +408,7 @@ MAKE_PACKET:
 	ch->size() = BEACON_HDR_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->addr_type() = AF_NONE;
+	ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = ipaddr;
 
 	ih->saddr() = ipaddr;

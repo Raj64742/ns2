@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.68 1999/09/08 20:28:44 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.69 1999/10/13 22:52:54 heideman Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -338,6 +338,12 @@ private:
 static const iface_literal UNKN_IFACE(iface_literal::UNKN_IFACE, "?");
 static const iface_literal ANY_IFACE(iface_literal::ANY_IFACE, "*");
 
+/*
+ * Note that NS_AF_* doesn't necessarily correspond with
+ * the constants used in your system (because many
+ * systems don't have NONE or ILINK).
+ */
+enum ns_af_enum { NS_AF_NONE, NS_AF_ILINK, NS_AF_INET };
 
 struct hdr_cmn {
 	packet_t ptype_;	// packet type (see above)
@@ -354,9 +360,6 @@ struct hdr_cmn {
 	nsaddr_t next_hop_;	// next hop for this packet
 	int      addr_type_;    // type of next_hop_ addr
 	nsaddr_t last_hop_;     // for tracing on multi-user channels
-#define AF_NONE 0
-#define AF_ILINK 1
-#define AF_INET 2
 
         // called if pkt can't obtain media or isn't ack'd. not called if
         // droped by a queue

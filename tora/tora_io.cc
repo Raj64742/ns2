@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code*/
 
 /*
-  $Id: tora_io.cc,v 1.3 1999/09/09 04:02:53 salehi Exp $
+  $Id: tora_io.cc,v 1.4 1999/10/13 22:53:11 heideman Exp $
   
   marshall TORA packets 
   */
@@ -58,7 +58,7 @@ toraAgent::sendQRY(nsaddr_t id)
 	ch->size() = QRY_HDR_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->addr_type() = AF_NONE;
+	ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = ipaddr();
 
 	ih->saddr() = ipaddr();
@@ -94,7 +94,7 @@ toraAgent::sendUPD(nsaddr_t id)
 	ch->size() = UPD_HDR_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->addr_type() = AF_NONE;
+	ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = ipaddr();
 
 	ih->saddr() = ipaddr();
@@ -128,7 +128,7 @@ toraAgent::sendCLR(nsaddr_t id, double tau, nsaddr_t oid)
 	ch->size() = CLR_HDR_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->addr_type() = AF_NONE;
+	ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = ipaddr();
 
 	ih->saddr() = ipaddr();

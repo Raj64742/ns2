@@ -1,6 +1,6 @@
 /* 
    aodv.cc
-   $Id: aodv.cc,v 1.2 1999/10/05 20:04:12 yaxu Exp $
+   $Id: aodv.cc,v 1.3 1999/10/13 22:52:57 heideman Exp $
  */
 
 /* The AODV code developed by the CMU/MONARCH group was optimized
@@ -1149,13 +1149,13 @@ AODV::forward(rt_entry *rt, Packet *p, double delay)
 
             ch->prev_hop_ = index;
             ch->next_hop_ = rt->rt_nexthop;
-            ch->addr_type() = AF_INET;
+            ch->addr_type() = NS_AF_INET;
         }
         else { // if it is a broadcast packet
             assert(ch->ptype() == PT_AODV);
             //assert(ih->dst_ == (nsaddr_t) IP_BROADCAST);
 	    assert(ih->daddr() == (nsaddr_t) IP_BROADCAST);
-            ch->addr_type() = AF_NONE;
+            ch->addr_type() = NS_AF_NONE;
         }
 
 	//if (ih->dst_ == (nsaddr_t) IP_BROADCAST) {
@@ -1223,7 +1223,7 @@ rt_entry *rt = rtable.rt_lookup(dst);
     ch->size() = IP_HDR_LEN + sizeof(*rq);
     ch->iface() = -2;
     ch->error() = 0;
-    ch->addr_type() = AF_NONE;
+    ch->addr_type() = NS_AF_NONE;
     ch->prev_hop_ = index;          // AODV hack
 
     /*
@@ -1317,7 +1317,7 @@ rt_entry *rt = rtable.rt_lookup(ipdst);
     ch->size() = IP_HDR_LEN + sizeof(*rp);
     ch->iface() = -2;
     ch->error() = 0;
-    ch->addr_type() = AF_INET;
+    ch->addr_type() = NS_AF_INET;
     ch->next_hop_ = rt->rt_nexthop;
     ch->prev_hop_ = index;          // AODV hack
     /*
@@ -1362,7 +1362,7 @@ AODV::sendTriggeredReply(nsaddr_t ipdst, nsaddr_t rpdst, u_int32_t rpseq)
         ch->size() = IP_HDR_LEN + sizeof(*rp);
         ch->iface() = -2;
         ch->error() = 0;
-        ch->addr_type() = AF_NONE;
+        ch->addr_type() = NS_AF_NONE;
         ch->next_hop_ = 0;
         ch->prev_hop_ = index;          // AODV hack
 	/*
@@ -1406,7 +1406,7 @@ struct hdr_aodv_reply *rp = HDR_AODV_REPLY(p);
     ch->size() = IP_HDR_LEN + sizeof(*rp);
     ch->iface() = -2;
     ch->error() = 0;
-    ch->addr_type() = AF_NONE;
+    ch->addr_type() = NS_AF_NONE;
     ch->next_hop_ = 0;
     ch->prev_hop_ = index;          // AODV hack
 
@@ -1443,7 +1443,7 @@ AODV::sendHello()
         ch->size() = IP_HDR_LEN + sizeof(*rh);
         ch->iface() = -2;
         ch->error() = 0;
-        ch->addr_type() = AF_NONE;
+        ch->addr_type() = NS_AF_NONE;
         ch->prev_hop_ = index;          // AODV hack
 	/*
         ih->src_ = index;

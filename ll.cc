@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.42 1999/09/29 18:45:21 yaxu Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.43 1999/10/13 22:52:50 heideman Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -183,15 +183,15 @@ void LL::sendDown(Packet* p)
 	
 	switch(ch->addr_type()) {
 
-	case AF_ILINK:
+	case NS_AF_ILINK:
 		mac_->hdr_dst((char*) HDR_MAC(p), ch->next_hop());
 		break;
 
-	case AF_INET:
+	case NS_AF_INET:
 		dst = ch->next_hop();
 		/* FALL THROUGH */
 		
-	case AF_NONE:
+	case NS_AF_NONE:
 		
 		if (IP_BROADCAST == (u_int32_t) dst)
 		{

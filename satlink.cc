@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.5 1999/07/22 19:14:50 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.6 1999/10/13 22:52:55 heideman Exp $";
 #endif
 
 /*
@@ -196,8 +196,8 @@ void SatLL::sendDown(Packet* p)
 
 	switch(ch->addr_type()) {
 
-	case AF_INET:
-	case AF_NONE:
+	case NS_AF_INET:
+	case NS_AF_NONE:
 		if (IP_BROADCAST == (u_int32_t) dst)
 			{
 			mac_->hdr_dst((char*) HDR_MAC(p), MAC_BROADCAST);
@@ -230,7 +230,7 @@ void SatLL::sendDown(Packet* p)
 		} 
 
 	default:
-		printf("Error:  addr_type not set to AF_INET or AF_NONE\n");
+		printf("Error:  addr_type not set to NS_AF_INET or NS_AF_NONE\n");
 		exit(1);
 	}
 	

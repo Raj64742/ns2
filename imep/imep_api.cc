@@ -35,7 +35,7 @@
 
 /* 
    imep_api.cc
-   $Id: imep_api.cc,v 1.2 1999/08/12 21:17:16 yaxu Exp $
+   $Id: imep_api.cc,v 1.3 1999/10/13 22:53:06 heideman Exp $
    */
 
 #include <imep/imep.h>
@@ -173,7 +173,7 @@ imepAgent::imepPacketUndeliverable(Packet *p)
 	struct hdr_cmn *cmh = HDR_CMN(p);
 	struct hdr_ip *ip = HDR_IP(p);
 
-	if (AF_INET == cmh->addr_type())
+	if (NS_AF_INET == cmh->addr_type())
 	  imepSetLinkDownStatus(cmh->next_hop());
 
 	if (verbose) trace("T %.9f _%d_ undeliverable pkt to %d",

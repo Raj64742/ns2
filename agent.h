@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.27 1999/09/09 03:25:20 salehi Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.28 1999/10/13 22:52:44 heideman Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -91,10 +91,8 @@ class Agent : public Connector {
 
  protected:
 	int command(int argc, const char*const* argv);
-#if defined(TCLCL_CLASSINSTVAR)
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif /* TCLCL_CLASSINSTVAR */
 
 	virtual void recvBytes(int bytes);
 	virtual void idle();

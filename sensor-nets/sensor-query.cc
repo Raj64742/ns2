@@ -152,7 +152,7 @@ SensorQueryAgent::generate_query(int p1, int p2, int p3)
 
   // Need to ask our routing module to direct the packet
   hdrc->next_hop_ = myaddr_;
-  hdrc->addr_type_ = AF_INET;
+  hdrc->addr_type_ = NS_AF_INET;
   iph->dst_ = (myaddr_ << 8) | (ROUTER_PORT);
   iph->dport_ = ROUTER_PORT;
   iph->ttl_ = 300;   // since only 300 ids in source route in packet

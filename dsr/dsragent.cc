@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.17 1999/10/04 18:00:00 haldar Exp $
+   $Id: dsragent.cc,v 1.18 1999/10/13 22:53:03 heideman Exp $
 */
 
 #include <assert.h>
@@ -370,10 +370,10 @@ DSRAgent::testinit()
     {
       printf("adding route to 1\n");
       hsr.init();
-      hsr.append_addr( 1, AF_INET );
-      hsr.append_addr( 2, AF_INET );
-      hsr.append_addr( 3, AF_INET );
-      hsr.append_addr( 4, AF_INET );
+      hsr.append_addr( 1, NS_AF_INET );
+      hsr.append_addr( 2, NS_AF_INET );
+      hsr.append_addr( 3, NS_AF_INET );
+      hsr.append_addr( 4, NS_AF_INET );
       
       route_cache->addRoute(Path(hsr.addrs, hsr.num_addrs()), 0.0, ID(1,::IP));
     }
@@ -382,9 +382,9 @@ DSRAgent::testinit()
     {
       printf("adding route to 3\n");
       hsr.init();
-      hsr.append_addr( 3, AF_INET );
-      hsr.append_addr( 2, AF_INET );
-      hsr.append_addr( 1, AF_INET );
+      hsr.append_addr( 3, NS_AF_INET );
+      hsr.append_addr( 2, NS_AF_INET );
+      hsr.append_addr( 1, NS_AF_INET );
       
       route_cache->addRoute(Path(hsr.addrs, hsr.num_addrs()), 0.0, ID(3,::IP));
     }
@@ -1052,7 +1052,7 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
     { // broadcast forward
       cmnh->xmit_failure_ = 0;
       cmnh->next_hop() = MAC_BROADCAST;
-      cmnh->addr_type() = AF_ILINK;
+      cmnh->addr_type() = NS_AF_ILINK;
     }
   else
     { // forward according to source route
@@ -1203,7 +1203,7 @@ DSRAgent::sendOutRtReq(SRPacket &p, int max_prop)
       assert(srh->num_route_errors() < MAX_ROUTE_ERRORS);
       srh->route_error() = 1;
       link_down *deadlink = &(srh->down_links()[srh->num_route_errors()]);
-      deadlink->addr_type = AF_INET;
+      deadlink->addr_type = NS_AF_INET;
       deadlink->from_addr = err_from.getNSAddr_t();
       deadlink->to_addr = err_to.getNSAddr_t();
       deadlink->tell_addr = GRAT_ROUTE_ERROR;
@@ -1479,11 +1479,11 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
   assert(srh->num_route_errors() > 0);
   for (int c = 0 ; c < srh->num_route_errors() ; c++)
     {
-      assert(srh->down_links()[c].addr_type == AF_INET);
+      assert(srh->down_links()[c].addr_type == NS_AF_INET);
       route_cache->noticeDeadLink(ID(srh->down_links()[c].from_addr,::IP),
 				 ID(srh->down_links()[c].to_addr,::IP),
 				 Scheduler::instance().clock());
-      // I'll assume everything's of type AF_INET for the printout... XXX
+      // I'll assume everything's of type NS_AF_INET for the printout... XXX
       if (verbose_srr)
         trace("SRR %.9f _%s_ dead-link tell %d  %d -> %d",
               Scheduler::instance().clock(), net_id.dump(),
