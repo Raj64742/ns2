@@ -640,56 +640,129 @@ Test/demo-acc instproc init {} {
 
 ######################################################33
 
-TestSuite instproc setup4 {} {
-    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
-    $self instvar maxAggregates_
-
-    set stoptime 60.0
-    #set dumptime 5.0
-    set dumptime 1.0
-    #set stoptime 5.0
-    set stoptime1 [expr $stoptime + 1.0]
-    set packetsize_ 200
-    Application/Traffic/CBR set random_ 0
-    Application/Traffic/CBR set packetSize_ $packetsize_
-    Agent/TCP set packetSize_ $packetsize_
-
-    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
-    set fmon [$ns_ makeflowmon Fid]
-    $ns_ attach-fmon $slink $fmon
-
+TestSuite instproc manytcps {starttime} {
+    $self instvar ns_ node_
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d0) 1 ]
     $tcp1 set window_ 10
     set ftp1 [$tcp1 attach-app FTP]
-    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at $starttime.0 "$ftp1 start"
 
     set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 2 ]
     $tcp2 set window_ 12
     set ftp2 [$tcp2 attach-app FTP]
-    $ns_ at 0.1 "$ftp2 start"
+    $ns_ at $starttime.1 "$ftp2 start"
 
     set tcp3 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d1) 3 ]
     $tcp3 set window_ 15
     set ftp3 [$tcp3 attach-app FTP]
-    $ns_ at 0.2 "$ftp3 start"
+    $ns_ at $starttime.2 "$ftp3 start"
 
     set tcp4 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d0) 4 ]
     $tcp4 set window_ 8
     set ftp4 [$tcp4 attach-app FTP]
-    $ns_ at 0.3 "$ftp4 start"
+    $ns_ at $starttime.3 "$ftp4 start"
 
-    set tcp5 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d1) 6 ]
+    set tcp5 [$ns_ create-connection TCP/Sack1 $node_(s0) TCPSink/Sack1 $node_(d1) 5 ]
     $tcp5 set window_ 4
     set ftp5 [$tcp5 attach-app FTP]
-    $ns_ at 0.4 "$ftp5 start"
+    $ns_ at $starttime.4 "$ftp5 start"
+}
 
+TestSuite instproc badtcps {} {
+    $self instvar ns_ node_
+    Agent/TCP set window_ 100
     # bad traffic
-    set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 5]
-    set cbr_ [$udp attach-app Traffic/CBR]
-    $cbr_ set rate_ 0.1Mb
-    $cbr_ set random_ 0.001
 
-    set maxAggregates_ 6
+    set tcp [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp set window_ 1000
+    set ftp [$tcp attach-app FTP]
+    $ns_ at 11.0 "$ftp start"
+    $ns_ at 50.0 "$ftp stop"
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp1 set window_ 1000
+    set ftp1 [$tcp attach-app FTP]
+    $ns_ at 12.0 "$ftp1 start"
+    $ns_ at 49.0 "$ftp1 stop"
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp2 set window_ 1000
+    set ftp2 [$tcp attach-app FTP]
+    $ns_ at 13.0 "$ftp2 start"
+    $ns_ at 48.0 "$ftp2 stop"
+
+    set tcp3 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp3 set window_ 1000
+    set ftp3 [$tcp attach-app FTP]
+    $ns_ at 14.0 "$ftp3 start"
+    $ns_ at 47.0 "$ftp3 stop"
+
+    set tcp4 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp4 set window_ 1000
+    set ftp4 [$tcp attach-app FTP]
+    $ns_ at 15.0 "$ftp4 start"
+    $ns_ at 46.0 "$ftp4 stop"
+
+    set tcp [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    set ftp [$tcp attach-app FTP]
+    $ns_ at 16.0 "$ftp start"
+    $ns_ at 45.0 "$ftp stop"
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    set ftp1 [$tcp attach-app FTP]
+    $ns_ at 17.0 "$ftp1 start"
+    $ns_ at 44.0 "$ftp1 stop"
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    set ftp2 [$tcp attach-app FTP]
+    $ns_ at 18.0 "$ftp2 start"
+    $ns_ at 43.0 "$ftp2 stop"
+
+    set tcp3 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    set ftp3 [$tcp attach-app FTP]
+    $ns_ at 19.0 "$ftp3 start"
+    $ns_ at 42.0 "$ftp3 stop"
+
+    set tcp4 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    set ftp4 [$tcp attach-app FTP]
+    $ns_ at 20.0 "$ftp4 start"
+    $ns_ at 41.0 "$ftp4 stop"
+
+    set tcp [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp set window_ 1000
+    set ftp [$tcp attach-app FTP]
+    $ns_ at 21.0 "$ftp start"
+    $ns_ at 40.0 "$ftp stop"
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp1 set window_ 1000
+    set ftp1 [$tcp attach-app FTP]
+    $ns_ at 22.0 "$ftp1 start"
+    $ns_ at 39.0 "$ftp1 stop"
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp2 set window_ 1000
+    set ftp2 [$tcp attach-app FTP]
+    $ns_ at 23.0 "$ftp2 start"
+    $ns_ at 38.0 "$ftp2 stop"
+
+    set tcp3 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp3 set window_ 1000
+    set ftp3 [$tcp attach-app FTP]
+    $ns_ at 24.0 "$ftp3 start"
+    $ns_ at 37.0 "$ftp3 stop"
+
+    set tcp4 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(d0) 5 ]
+    $tcp4 set window_ 1000
+    set ftp4 [$tcp attach-app FTP]
+    $ns_ at 25.0 "$ftp4 start"
+    $ns_ at 36.0 "$ftp4 stop"
+
+}
+
+TestSuite instproc badcbr {} {
+    $self instvar ns_ node_
+
 
     $ns_ at 0.0 "$cbr_ start"
     $ns_ at 11.0 "$cbr_ set rate_ 0.15Mb"
@@ -722,6 +795,29 @@ TestSuite instproc setup4 {} {
     $ns_ at 48.0 "$cbr_ set rate_ 0.2Mb"
     $ns_ at 49.0 "$cbr_ set rate_ 0.15Mb"
     $ns_ at 50.0 "$cbr_ set rate_ 0.1Mb"
+}
+
+TestSuite instproc setup4 {} {
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
+
+    set stoptime 60.0
+    #set dumptime 5.0
+    set dumptime 1.0
+    #set stoptime 5.0
+    set stoptime1 [expr $stoptime + 1.0]
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+    Agent/TCP set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    $self manytcps 0
+    set maxAggregates_ 6
+    $self badcbr
 
     $self statsDump $dumptime $fmon $packetsize_ 0
     # trace only the bottleneck link
@@ -730,8 +826,7 @@ TestSuite instproc setup4 {} {
 }
 
 #
-# one complete test with CBR flows only, no pushback and no ACC.
-# Slowly-growing bad flow.
+# No pushback and no ACC.
 #
 Class Test/tcp -superclass TestSuite
 Test/tcp instproc init {} {
@@ -748,8 +843,8 @@ Test/tcp instproc run {} {
 }
 
 #
-# one complete test with CBR flows only, no pushback and no ACC.
-# Slowly-growing bad flow, but with local ACC.
+# one complete test with a slowly-growing CBR flow competing against TCP flows.
+# No pushback, but with local ACC.
 #
 Class Test/tcp-acc -superclass TestSuite
 Test/tcp-acc instproc init {} {
@@ -758,6 +853,146 @@ Test/tcp-acc instproc init {} {
     set test_ tcp-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/tcp-acc instproc run {} [Test/tcp info instbody run]
+    $self next 0
+}
+
+TestSuite instproc setup4a {} {
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
+
+    set stoptime 60.0
+    #set dumptime 5.0
+    set dumptime 1.0
+    #set stoptime 5.0
+    set stoptime1 [expr $stoptime + 1.0]
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+    Agent/TCP set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    $self manytcps 0
+    $self manytcps 1
+    $self manytcps 2
+    $self manytcps 3
+    $self manytcps 4
+    $self manytcps 5
+
+    set maxAggregates_ 6
+    $self badcbr
+
+    $self statsDump $dumptime $fmon $packetsize_ 0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime1 "$self cleanupAll $testName_"
+}
+
+#
+# No pushback and no ACC.
+#
+Class Test/tcp1 -superclass TestSuite
+Test/tcp1 instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ tcp1
+    $self next 0
+}
+Test/tcp1 instproc run {} {
+    $self instvar ns_ node_ testName_ net_ topo_
+    $self setTopo
+    $self setup4a
+    $ns_ run
+}
+
+#
+# one complete test with a slowly-growing CBR flow competing against TCP flows.
+# No pushback, but with local ACC.
+#
+Class Test/tcp1-acc -superclass TestSuite
+Test/tcp1-acc instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ tcp1-acc
+    Queue/RED/Pushback set rate_limiting_ 1
+    Test/tcp1-acc instproc run {} [Test/tcp1 info instbody run]
+    $self next 0
+}
+
+TestSuite instproc setup4b {} {
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
+
+    set stoptime 60.0
+    #set dumptime 5.0
+    set dumptime 1.0
+    #set stoptime 5.0
+    set stoptime1 [expr $stoptime + 1.0]
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+    Agent/TCP set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    $self manytcps 0
+    $self manytcps 1
+    $self manytcps 2
+    $self manytcps 3
+    $self manytcps 4
+    $self manytcps 5
+
+    set maxAggregates_ 6
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+    $self badtcps
+
+    $self statsDump $dumptime $fmon $packetsize_ 0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime1 "$self cleanupAll $testName_"
+}
+
+#
+# No pushback and no ACC.
+#
+Class Test/tcp2 -superclass TestSuite
+Test/tcp2 instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ tcp2
+    $self next 0
+}
+Test/tcp2 instproc run {} {
+    $self instvar ns_ node_ testName_ net_ topo_
+    $self setTopo
+    $self setup4b
+    $ns_ run
+}
+
+#
+# one complete test with a slowly-growing CBR flow competing against TCP flows.
+# No pushback, but with local ACC.
+#
+Class Test/tcp2-acc -superclass TestSuite
+Test/tcp2-acc instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ tcp2-acc
+    Queue/RED/Pushback set rate_limiting_ 1
+    Test/tcp2-acc instproc run {} [Test/tcp2 info instbody run]
     $self next 0
 }
 
