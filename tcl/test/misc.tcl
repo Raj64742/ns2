@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.5 1997/09/11 00:46:53 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.6 1997/10/01 22:29:40 mjh Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -62,6 +62,7 @@ TestSuite instproc init {} {
 	    set ns_ [new Simulator]
 	}
 	$ns_ trace-all [open all.tr w]
+	$ns_ namtrace-all [open all.nam w]
 	if {$net_ == ""} {
 		set net_ $defNet_
 	}
