@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.13 1997/05/02 02:32:55 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.14 1997/05/02 03:16:37 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -278,7 +278,7 @@ CBQueue::toplevel_arrival(CBQClass *cl, double now)
 	if (toplevel_ > 1) {
 		if (cl->undertime_ < now)
 			toplevel_ = 1;
-		else if (toplevel_ > 2 && cl->lender_ != NULL) {
+		else if (toplevel_ > 2 && cl->permit_borrowing_ && cl->lender_ != NULL) {
 			if (cl->lender_->undertime_ < now)
 				toplevel_ = 2;
 		}
@@ -328,7 +328,7 @@ CBQueue::deque()
 		do {
 			// anything to send?
 			if (cl->demand()) {
-				if (first == NULL && cl->lender_ != NULL)
+				if (first == NULL && cl->permit_borrowing_ && cl->lender_ != NULL)
 					first = cl;
 				if (send_permitted(cl, now)) {
 					// ok to send
@@ -399,7 +399,7 @@ int CBQueue::send_permitted(CBQClass* cl, double now)
 CBQClass*
 CBQueue::find_lender(CBQClass* cl, double now)
 {
-	if ((cl = cl->lender_) == NULL)
+	if ((!cl->permit_borrowing_) || ((cl = cl->lender_) == NULL))
 		return (NULL);		// no ancestor to borrow from
 
 	while (cl != NULL) {
@@ -659,7 +659,7 @@ WRR_CBQueue::deque()
 					cl->bytes_alloc_ +=
 					  (int)(cl->allotment_ * M_[cl->pri_]);
 				if (cl->demand()) {
-					if (first == NULL && cl->lender_ != NULL)
+					if (first == NULL && cl->permit_borrowing_ && cl->lender_ != NULL)
 						first = cl;
 					if (!send_permitted(cl, now)) {
 						cl->delayed(now);
@@ -892,7 +892,7 @@ void CBQClass::delayed(double now)
 int
 CBQClass::ancestor(CBQClass *p)
 {
-	if (p->lender_ == NULL)
+	if (!p->permit_borrowing_ ||  p->lender_ == NULL)
 		return (0);
 	else if (p->lender_ == this)
 		return (1);
@@ -954,8 +954,7 @@ int CBQClass::command(int argc, const char*const* argv)
 		}
 	} else if (argc == 3) {
 		// for now these are the same
-                if ((strcmp(argv[1], "parent") == 0) ||
-		    (strcmp(argv[1], "borrow") == 0)) {
+                if ((strcmp(argv[1], "parent") == 0)) {
 
 			if (strcmp(argv[2], "none") == 0) {
 				lender_ = NULL;
