@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.21 1999/09/22 02:12:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.22 1999/09/23 05:28:52 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -49,8 +49,8 @@ TestSuite instproc finish file {
 	}
         ## now use default graphing tool to make a data file
 	## if so desired
-	# regsub \\(.+\\) $file {} filename
-	# exec csh gnuplotA.com temp.rands $filename
+	## regsub \\(.+\\) $file {} filename
+	## exec csh gnuplotA.com temp.rands $filename
         exit 0
 }
 
@@ -482,34 +482,16 @@ TestSuite instproc drop_pkts pkts {
 	$emod bind $errmodel1 1
 } 
 
-TestSuite instproc run1 tcp0 {
+TestSuite instproc run1 { tcp0 {stoptime 30.1}} {
         $self instvar ns_ node_ testName_
-	set stoptime 30.1
 
 	set count 100 
 	set count1 3
 
     	set ftp0 [$tcp0 attach-app FTP]
     	$ns_ at 0.0  "$ftp0 produce $count" 
-	$ns_ at 2.0  "$ftp0 producemore $count"  
-	$ns_ at 2.1  "$ftp0 producemore $count1"
-	$ns_ at 2.2  "$ftp0 producemore $count1"
-	$ns_ at 2.3  "$ftp0 producemore $count1"
-	$ns_ at 2.4  "$ftp0 producemore $count1"
-	$ns_ at 2.5  "$ftp0 producemore $count1"
-	$ns_ at 2.6  "$ftp0 producemore $count1"
-	$ns_ at 2.7  "$ftp0 producemore $count1"
-	$ns_ at 2.8  "$ftp0 producemore $count1"
-	$ns_ at 2.9  "$ftp0 producemore $count1"
-	$ns_ at 3.0  "$ftp0 producemore $count1" 
-	$ns_ at 3.1  "$ftp0 producemore $count1" 
-	$ns_ at 3.2  "$ftp0 producemore $count1" 
-	$ns_ at 3.3  "$ftp0 producemore $count1" 
-	$ns_ at 3.4  "$ftp0 producemore $count1" 
-	$ns_ at 3.5  "$ftp0 producemore $count"
-	$ns_ at 3.9  "$ftp0 producemore $count"
-	$ns_ at 4.6  "$ftp0 producemore $count"
-	$ns_ at 5.9  "$ftp0 producemore $count"
+	$ns_ at 2.4  "$ftp0 producemore $count"  
+	$ns_ at 2.5  "$ftp0 producemore $count"
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
 }
@@ -547,7 +529,7 @@ Test/quiescentB instproc run {} {
 	Agent/TCP set window_ 25
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
 	$self drop_pkts {2}
-	$self run1 $tcp0
+	$self run1 $tcp0 3.0
 }
 
 Class Test/quiescentB_qoption -superclass TestSuite
@@ -566,25 +548,23 @@ Test/quiescentB_qoption instproc run {} {
 	Agent/TCP set window_ 25
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
 	$self drop_pkts {2}
-	$self run1 $tcp0
+	$self run1 $tcp0 3.0
 }
 
 
-TestSuite instproc run2 tcp0 { 
+TestSuite instproc run2 { tcp0 {stoptime 3.0}} { 
         $self instvar ns_ node_ testName_
-	set stoptime 30.0
-
 	set count 25
 	set count1 10
 	set count2 3
 	set count3 100
 
     	set data0 [$tcp0 attach-app Telnet]
-	$data0 set interval_ 0.01
+	$data0 set interval_ 0.0005
 	$ns_ at 0 "$data0 start"
-	$ns_ at 1 "$data0 set interval_ 0.03"
-	$ns_ at 2.0 "$data0 set interval_ 0.0005" 
-	$ns_ at 2.05 "$data0 stop"
+	$ns_ at 0.045 "$data0 set interval_ 0.01"
+	$ns_ at 2.2 "$data0 set interval_ 0.0005" 
+	$ns_ at 2.5 "$data0 stop"
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
 }
@@ -615,6 +595,30 @@ Test/underutilized_100ms_control instproc init topo {
         Agent/TCP set QOption_ 0
         Agent/TCP set control_increase_ 1
         Test/underutilized_100ms_control instproc run {{sender TCP} {receiver TCPSink}} [Test/underutilized_100ms info instbody run ]
+        $self next
+}
+
+Class Test/underutilized_100ms_control_Q -superclass TestSuite
+Test/underutilized_100ms_control_Q instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       underutilized_100ms_control_Q
+        Agent/TCP set QOption_ 1
+        Agent/TCP set control_increase_ 1
+        Test/underutilized_100ms_control_Q instproc run {{sender TCP} {receiver TCPSink}} [Test/underutilized_100ms info instbody run ]
+        $self next
+}
+
+Class Test/underutilized_100ms_Q -superclass TestSuite
+Test/underutilized_100ms_Q instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       underutilized_100ms_Q
+        Agent/TCP set QOption_ 1
+        Agent/TCP set control_increase_ 0
+        Test/underutilized_100ms_Q instproc run {{sender TCP} {receiver TCPSink}} [Test/underutilized_100ms info instbody run ]
         $self next
 }
 
