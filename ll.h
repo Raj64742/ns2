@@ -31,6 +31,8 @@
  * SUCH DAMAGE.
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.4 1997/07/23 02:19:30 kfall Exp $ (UCB)
  */
 
 #ifndef ns_ll_h

@@ -31,6 +31,8 @@
  * SUCH DAMAGE.
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.5 1997/07/23 02:20:18 kfall Exp $ (UCB)
  */
 
 #ifndef ns_mac_802_11_h
