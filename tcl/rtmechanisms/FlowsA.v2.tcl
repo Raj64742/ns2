@@ -5,7 +5,7 @@ source bound.tcl
 # Set xgraph to 3 to not make graphs at all.
 ###set xgraph 1
 ###set xgraph 2
-set xgraph 3
+set xgraph 1
 set flowgraphfile fairflow.xgr
 set timegraphfile fairflow1.xgr
 set fracgraphfile fairflow2.xgr
