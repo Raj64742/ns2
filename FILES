@@ -902,6 +902,7 @@ tcl/test/test-all-newreno
 tcl/test/test-all-rbp
 tcl/test/test-all-red
 tcl/test/test-all-red-v1
+tcl/test/test-all-rfc2581
 tcl/test/test-all-rfc793edu
 tcl/test/test-all-sack
 tcl/test/test-all-sack-v1
@@ -1171,6 +1172,15 @@ tcl/test/test-output-red/red1.Z
 tcl/test/test-output-red/red2.Z
 tcl/test/test-output-red/red_twoway.Z
 tcl/test/test-output-red/red_twowaybytes.Z
+tcl/test/test-output-rfc2581
+tcl/test/test-output-rfc2581/immediateAck.Z
+tcl/test/test-output-rfc2581/immediateAckNewReno.Z
+tcl/test/test-output-rfc2581/immediateAckReno.Z
+tcl/test/test-output-rfc2581/immediateAckSack.Z
+tcl/test/test-output-rfc2581/noImmediateAck.Z
+tcl/test/test-output-rfc2581/noImmediateAckNewReno.Z
+tcl/test/test-output-rfc2581/noImmediateAckReno.Z
+tcl/test/test-output-rfc2581/noImmediateAckSack.Z
 tcl/test/test-output-rfc793edu
 tcl/test/test-output-rfc793edu/jacobson88-noss.Z
 tcl/test/test-output-rfc793edu/jacobson88-ss.Z

@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.389 2000/04/14 18:28:19 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.390 2000/04/15 04:08:53 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,15 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/vint/ns-src-2.1b7.tar.gz">
 	Release of ns-2.1b7</a> [PENDING]</h3>
 <ul>
+	<p>
+	<LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
+	<b>Fri Apr 14 21:01:25 PDT 2000</b><br>
+	Added RFC2581_immediate_ack_ for TCP Delayed-Ack sinks, 
+	to generate ACKs immediately for data that fills a gap in 
+	the sequence space.  This gives RFC2581-compliance for delayed
+	ack receivers.  Bug report from Changhee Joo, with fix 
+	from Changhee Joo and Lloyd Wood.
+
 	<p>
 	<LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
 	<b>Mon Apr 10 16:55:44 PDT 2000</b><br>
