@@ -2005,6 +2005,8 @@ tcl/test/test-output-sack/sack5a.Z
 tcl/test/test-output-sack/sackB2.Z
 tcl/test/test-output-sack/sackB4.Z
 tcl/test/test-output-sack/sackB4a.Z
+tcl/test/test-output-sack/sack_dupacks.Z
+tcl/test/test-output-sack/sack_dupacks1.Z
 tcl/test/test-output-sack-v1/phaseSack.Z
 tcl/test/test-output-sack-v1/phaseSack2.Z
 tcl/test/test-output-sack-v1/phaseSack3.Z
