@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.11 1998/08/21 18:05:57 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.12 1998/08/25 19:02:10 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -36,7 +36,7 @@ BLANK	= # make a blank space.  DO NOT add anything to this line
 CC	= @CC@
 CPP	= @CXX@
 LINK	= $(CPP)
-MKDEP	= ./mkdep
+MKDEP	= ./conf/mkdep
 TCLSH	= @V_TCLSH@
 TCL2C	= @V_TCL2CPP@
 AR	= ar rc $(BLANK)
@@ -54,11 +54,11 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@
+DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@ 
 
 INCLUDES = \
-	-I. @V_INCLUDES@ \
-	@V_INCLUDE_X11@
+	-I. @V_INCLUDE_X11@ \
+	@V_INCLUDES@
 
 LIB	= \
 	@V_LIBS@ \
@@ -98,13 +98,16 @@ OBJ_CC = \
 	scheduler.o object.o \
 	packet.o ip.o route.o connector.o ttl.o \
 	trace.o trace-ip.o \
-	classifier.o classifier-addr.o classifier-flow.o classifier-hash.o \
+	classifier.o classifier-addr.o classifier-hash.o \
 	classifier-mcast.o classifier-mpath.o replicator.o \
 	classifier-mac.o \
-	cbr.o traffictrace.o pareto.o expoo.o telnet.o tcplib-telnet.o \
+	app.o telnet.o tcplib-telnet.o \
+	trafgen.o traffictrace.o pareto.o expoo.o cbr_traffic.o \
 	tbf.o resv.o sa.o saack.o \
 	measuremod.o estimator.o adc.o ms-adc.o timewindow-est.o acto-adc.o \
         pointsample-est.o salink.o actp-adc.o hb-adc.o expavg-est.o\
+	param-adc.o null-estimator.o \
+	adaptive-receiver.o vatrcvr.o consrcvr.o \
 	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
 	tcp-vegas.o tcp-rbp.o tcp-full.o \
@@ -122,8 +125,12 @@ OBJ_CC = \
 	ctrMcast.o prune.o srm.o \
 	sessionhelper.o delaymodel.o srm-ssm.o \
 	srm-topo.o \
+	alloc-address.o address.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
+	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
+	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
+	lanRouter.o
 
 # what was here before is now in emulate/
 OBJ_C =
@@ -149,8 +156,13 @@ OBJ_EMULATE_CC = \
 	emulate/net-ip.o \
 	emulate/net.o \
 	emulate/tap.o \
+	emulate/ether.o \
 	emulate/net-pcap.o \
-	emulate/ether.o
+	emulate/internet.o \
+	emulate/ping_responder.o \
+	emulate/arp.o \
+	emulate/icmp.o \
+	emulate/nat.o
 
 OBJ_EMULATE_C = \
 	emulate/inet.o
@@ -167,9 +179,14 @@ CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE)
 
-$(NS): $(OBJ) tclAppInit.o
+$(NS): $(OBJ) tclAppInit.o Makefile
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) $(LIB)
+
+Makefile: Makefile.in
+	@echo "Makefile.in is newer than Makefile."
+	@echo "You need to re-run configure."
+	false
 
 $(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
@@ -196,6 +213,7 @@ NS_TCL_LIB = \
 	tcl/lib/ns-lib.tcl \
 	tcl/lib/ns-link.tcl \
 	tcl/lib/ns-node.tcl \
+	tcl/lib/ns-hiernode.tcl \
 	tcl/lib/ns-packet.tcl \
 	tcl/lib/ns-queue.tcl \
 	tcl/lib/ns-source.tcl \
@@ -204,6 +222,7 @@ NS_TCL_LIB = \
 	tcl/lib/ns-agent.tcl \
 	tcl/lib/ns-random.tcl \
 	tcl/lib/ns-namsupp.tcl \
+	tcl/lib/ns-address.tcl \
 	tcl/lib/ns-intserv.tcl \
 	tcl/rtp/session-rtp.tcl \
 	tcl/rtglib/dynamics.tcl \
@@ -230,12 +249,17 @@ NS_TCL_LIB = \
         tcl/pim/pim-recvr.tcl \
         tcl/pim/pim-sender.tcl \
         tcl/pim/pim-vifs.tcl \
-	tcl/rlm/rlm-cmn.tcl \
-	tcl/rlm/rlm-thesis.tcl \
-	tcl/rlm/misc.tcl \
+	tcl/rlm/rlm.tcl \
+	tcl/rlm/rlm-ns.tcl \
 	tcl/session/session.tcl \
 	tcl/lib/ns-route.tcl \
-	tcl/emulate/ns-emulate.tcl
+	tcl/emulate/ns-emulate.tcl \
+	tcl/lan/ns-lan.tcl \
+	tcl/lan/ns-ll.tcl \
+	tcl/lan/ns-mac.tcl \
+	tcl/webcache/http-agent.tcl \
+	tcl/webcache/http-server.tcl \
+	tcl/webcache/http-cache.tcl 
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl | $(TCL2C) et_ns_lib > $@
@@ -264,6 +288,14 @@ tags:	force
 TAGS:	force
 	etags *.cc *.h ../Tcl/*.cc ../Tcl/*.h
 
+tcl/lib/TAGS:	force
+	( \
+		cd tcl/lib; \
+		$(TCLSH) ../../bin/tcl-expand.tcl ns-lib.tcl | grep '^### tcl-expand.tcl: begin' | awk '{print $$5}' >.tcl_files; \
+		etags --lang=none -r '/^[ \t]*proc[ \t]+\([^ \t]+\)/\1/' `cat .tcl_files`; \
+		etags --append --lang=none -r '/^\([A-Z][^ \t]+\)[ \t]+\(instproc\|proc\)[ \t]+\([^ \t]+\)[ \t]+/\1::\3/' `cat .tcl_files`; \
+	)
+
 depend: $(SRC)
 	$(MKDEP) $(CFLAGS) $(INCLUDES) $(SRC)
 
@@ -284,6 +316,9 @@ srctar:
 	     rm ../$$name; chmod 444 $$tar
 
 force:
+
+test:	force
+	./validate
 
 # Create makefile.vc for Win32 development by replacing:
 # "# !include ..." 	-> 	"!include ..."

@@ -21,11 +21,11 @@
 
 #include "config.h"
 #include <stdio.h>
-#include <sys/time.h>
 #ifndef WIN32
 #include <sys/resource.h>
-#endif /* WIN32 */
+#include <sys/time.h>
 #include <unistd.h>
+#endif /* WIN32 */
 
 /* hpux patch from Ketil Danielsen <Ketil.Danielsen@hiMolde.no> */
 #ifdef hpux

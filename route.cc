@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.20 1998/08/25 01:53:26 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.21 1998/08/25 19:02:09 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -497,7 +497,7 @@ void RouteLogic::hier_alloc(int i)
 	hsize_[i] *= hsize_[i];
 	hadj_[i] = new int[hsize_[i]];
 	hroute_[i] = new int[hsize_[i]];
-	hconnect_[i] = new (char*)[(Cmax_ + D_) * (cluster_size_[i]+1)];
+	hconnect_[i] = new char*[(Cmax_ + D_) * (cluster_size_[i]+1)];
 	for (int n = 0; n < hsize_[i]; n++){
 		hadj_[i][n] = INFINITY;
 		hroute_[i][n] = INFINITY;
@@ -525,9 +525,9 @@ void RouteLogic::hier_init(void)
 	hsize_ = new int[arr_size];
 	for (i = 0; i < arr_size; i++)
 		hsize_[i] = 0;
-	hadj_ = new (int *)[arr_size];
-	hroute_ = new (int *)[arr_size];
-	hconnect_ = new (char **)[arr_size];
+	hadj_ = new int*[arr_size];
+	hroute_ = new int*[arr_size];
+	hconnect_ = new char**[arr_size];
 }
 
 
