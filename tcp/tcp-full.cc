@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.84 2001/05/27 04:41:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.85 2001/05/27 20:34:53 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -715,7 +715,7 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	while (force ||
 	      (pipectrl_ ? (pipe_ < window()) : (t_seqno_ < topwin))) {
 
-		if (overhead_ != 0 &&
+		if (!force && overhead_ != 0 &&
 		    (delsnd_timer_.status() != TIMER_PENDING)) {
 			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
