@@ -21,12 +21,14 @@ Steps in doing an ns release:
         don't add files which are generated)
 2.1.  update CHANGES.html to show when the release happens
     (like the last time it was released)
-2.2  make sure makefile.vc(WINDOWS) is up to date.
-3.1 Update FILES; Remove files that are no longer needed and add the
+2.2. make sure makefile.vc(WINDOWS) is up to date.
+3.1. Update FILES; Remove files that are no longer needed and add the
     new ones
-3.2 "make srctar"
-4. test on new system
+3.2."make srctar"
+4.1. test on new system
     (build, run test scripts)
+4.2. Run the same test on a machine other than those of ISI's or even
+     Mash's.
 5. put the tar in mash's /usr/mash/www/dist/vint
 5. Make a hard link to ~ftp/dist/vint. (For people accessing 
     things via ftp.)
