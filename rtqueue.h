@@ -1,9 +1,9 @@
 /* -*- c++ -*-
-   $Id: rtqueue.h,v 1.3 1999/09/30 20:30:04 yaxu Exp $
+   $Id: rtqueue.h,v 1.4 2001/08/15 18:35:00 kclan Exp $
 */
 
 #ifndef __ifqueue_h__
-#define __ifqueue_h_
+#define __ifqueue_h__
 
 #include <packet.h>
 #include <agent.h>

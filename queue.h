@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.26 1999/02/19 23:03:18 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.27 2001/08/15 18:35:00 kclan Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -85,6 +85,7 @@ public:
 	}
         void resetIterator() {iter = head_;}
         Packet* getNext() { 
+	        if (!iter) return 0;
 		Packet *tmp = iter; iter = iter->next_;
 		return tmp;
 	}
