@@ -94,6 +94,7 @@ private:
 	char	tracename[MAX_ID_LEN + 1];
         int     tracetype;
         MobileNode *node_;
+	int     newtrace_;
 
         int initialized() { return node_ && 1; }
 
