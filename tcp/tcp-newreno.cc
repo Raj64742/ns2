@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.52 2003/08/14 04:26:42 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.53 2003/09/23 02:48:36 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -148,7 +148,7 @@ NewRenoTcpAgent::dupack_action()
         if (bug_fix_) {
 		if (bugfix_ts_ && tss[highest_ack_ % tss_size_] == ts_echo_)
 			goto reno_action;
-		else if (bugfix_ack_ && highest_ack_ - prev_highest_ack_ <= numdupacks_)
+		else if (bugfix_ack_ && cwnd_ > 1 && highest_ack_ - prev_highest_ack_ <= numdupacks_)
 			goto reno_action;
 		else
                 /*
