@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.39 1998/04/08 20:09:40 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.40 1998/04/11 01:23:18 ahelmy Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.39 1998/04/08 20:09:40 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.40 1998/04/11 01:23:18 ahelmy Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -448,6 +448,95 @@ int SRMErrorModel::corrupt(Packet* p)
 		}
 	}
 	return 0;
+}
+
+static class TraceErrorModelClass : public TclClass {
+public:   
+        TraceErrorModelClass() : TclClass("TraceErrorModel") {}
+        TclObject* create(int, const char*const*) {
+                return (new TraceErrorModel);
+        }
+} class_traceerrormodel;
+
+TraceErrorModel::TraceErrorModel() :
+        good_(123456789), loss_(0), ErrorModel()   
+{
+        bind_time("good_", &good_);
+        bind_time("loss_", &loss_);
+}
+
+/* opening and reading the trace file/info is done in OTcl */
+int TraceErrorModel::corrupt(Packet* p)
+{
+        Tcl& tcl = Tcl::instance();
+        if ( ! match(p)) return 0;
+        if ( (good_ <= 0) && (loss_ <= 0)) {
+                tcl.evalf("%s read",name());
+                if (good_ < 0) good_ = 123456789; 
+        }
+        if (loss_-- > 0)
+                return 1;
+        good_--;
+        return 0;
+}
+ 
+int TraceErrorModel::match(Packet* p)
+{
+        return 1;
+}
+                
+void TraceErrorModel::recv(Packet* pkt, Handler* h)
+{
+        if (corrupt(pkt)) {
+                /* can send to a loss trace object .. etc */
+                if (drop_) {
+                        drop_->recv(pkt);
+                        return;
+                }
+                // Packet::free(pkt);
+                // return;
+        }
+        if (target_ ) send(pkt,h);
+}
+        
+static class MrouteErrorModelClass : public TclClass {
+public:
+        MrouteErrorModelClass() : TclClass("MrouteErrorModel") {}
+        TclObject* create(int, const char*const*) {
+                return (new MrouteErrorModel);
+        }
+} class_mrouteerrormodel;
+ 
+MrouteErrorModel::MrouteErrorModel() : TraceErrorModel()
+{
+        bind("off_prune_", &off_prune_);
+}
+
+int MrouteErrorModel::command(int argc, const char*const* argv)
+{
+        if (argc == 3) {
+                if (strcmp(argv[1], "drop-packet") == 0) {
+                        const char* s = argv[2];
+                        int n = strlen(s);  
+                        if (n >= this->maxtype()) {
+                                // tcl.result("message type too big");
+                                return (TCL_ERROR);
+                        }
+                        strcpy(msg_type,s);
+                        return(TCL_OK);
+                }
+        }
+        return TraceErrorModel::command(argc, argv);
+}
+        
+int MrouteErrorModel::match(Packet* p)
+{               
+        hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+        int indx = strcspn(ph->type(),"/");
+        if (!strncmp(ph->type(),msg_type,indx)) {
+                return 1;
+        }
+        return 0;
 }
 
 
