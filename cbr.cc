@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.12 1997/08/10 07:49:34 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.13 1997/08/14 00:06:00 tomh Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -50,7 +50,7 @@ public:
 	}
 } class_cbr;
 
-CBR_Agent::CBR_Agent() : Agent(PT_CBR), running_(0), random_(0), seqno_(-1)
+CBR_Agent::CBR_Agent() : Agent(PT_CBR), running_(0), random_(0), seqno_(-1), cbr_timer_(this)
 {
 	bind_time("interval_", &interval_);
 	bind("packetSize_", &size_);
@@ -63,12 +63,12 @@ void CBR_Agent::start()
 {
 	running_ = 1;
 	sendpkt();
-	sched(interval_, 0);
+	cbr_timer_.resched(interval_);
 }
 
 void CBR_Agent::stop()
 {
-	cancel(0);
+	cbr_timer_.cancel();
 	running_ = 0;
 }
 
@@ -80,7 +80,7 @@ void CBR_Agent::timeout(int)
 		if (random_)
 			/* add some zero-mean white noise */
 			t += interval_ * Random::uniform(-0.5, 0.5);
-		sched(t, 0);
+		cbr_timer_.resched(t);
 	}
 }
 
@@ -113,4 +113,8 @@ int CBR_Agent::command(int argc, const char*const* argv)
 		}
 	}
 	return (Agent::command(argc, argv));
+}
+
+void CBR_Timer::expire(Event *e) {
+	a_->timeout(0);
 }

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.9 1997/07/25 21:43:48 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.10 1997/08/14 00:04:47 tomh Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -266,7 +266,7 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
     int win = window();
 	int xmit_seqno;
 
-	if (!force && pending_[TCP_TIMER_DELSND])
+	if (!force && delsnd_timer_.status() == TIMER_PENDING)
 		return;
 
 	found = 1;
@@ -309,11 +309,11 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 				}
 				npacket++;
 			}
-		} else if (!pending_[TCP_TIMER_DELSND]) {
+		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*
 			 * Set a delayed send timeout.
 			 */
-			sched(Random::uniform(overhead_), TCP_TIMER_DELSND);
+			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
 		}
 		if (maxburst && npacket == maxburst)

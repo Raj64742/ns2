@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.5 1997/07/29 21:53:08 breslau Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.6 1997/08/14 00:05:45 tomh Exp $ (LBL)
  */
 
 #ifndef ns_cbr_h
@@ -38,12 +38,22 @@
 
 #include "agent.h"
 
+class CBR_Agent;
+
+class CBR_Timer : public TimerHandler {
+public:
+	CBR_Timer(CBR_Agent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	CBR_Agent *a_;
+};
+
 class CBR_Agent : public Agent {
  public:
 	CBR_Agent();
 	int command(int argc, const char*const* argv);
- protected:
 	virtual void timeout(int);
+ protected:
 	void start();
 	void stop();
 	virtual void sendpkt();
@@ -52,6 +62,8 @@ class CBR_Agent : public Agent {
 	int maxpkts_;
 	double interval_;
 	int seqno_;
+	
+	CBR_Timer cbr_timer_;
 
 	int off_rtp_;
 };
