@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.42 1997/07/23 03:42:10 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.43 1997/07/24 09:00:32 padmanab Exp $
 
 
 #
@@ -82,6 +82,7 @@ Agent/TCP set rtt_ 0
 Agent/TCP set srtt_ 0
 Agent/TCP set rttvar_ 0
 Agent/TCP set backoff_ 0
+Agent/TCP set maxseq_ 0
 
 # setting this to 1 implements some changes to reno 
 # proposed by Janey Hoe (other than fixing reno's
