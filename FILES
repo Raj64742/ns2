@@ -457,6 +457,7 @@ tcl/test/test-all-full
 tcl/test/test-all-intserv
 tcl/test/test-all-manual-routing
 tcl/test/test-all-mcast
+tcl/test/test-all-newreno
 tcl/test/test-all-rbp
 tcl/test/test-all-red
 tcl/test/test-all-red-v1
@@ -482,6 +483,7 @@ tcl/test/test-output-ecn-ack
 tcl/test/test-output-full
 tcl/test/test-output-manual-routing
 tcl/test/test-output-mcast
+tcl/test/test-output-newreno
 tcl/test/test-output-rbp
 tcl/test/test-output-red
 tcl/test/test-output-red-v1
@@ -506,11 +508,13 @@ tcl/test/test-suite-full.tcl
 tcl/test/test-suite-intserv.tcl
 tcl/test/test-suite-manual-routing.tcl
 tcl/test/test-suite-mcast.tcl
+tcl/test/test-suite-newreno.tcl
 tcl/test/test-suite-rbp.tcl
 tcl/test/test-suite-red-v1.tcl
 tcl/test/test-suite-red-v1a.tcl
 tcl/test/test-suite-red.tcl
 tcl/test/test-suite-red.txt
+tcl/test/test-suite-rfc2001.tcl
 tcl/test/test-suite-routed.tcl
 tcl/test/test-suite-sack-v1.tcl
 tcl/test/test-suite-sack-v1a.tcl
@@ -660,6 +664,15 @@ tcl/test/test-output-mcast/detailedDM4.Z
 tcl/test/test-output-mcast/detailedDM5.Z
 tcl/test/test-output-mcast/detailedDM6.Z
 tcl/test/test-output-mcast/detailedDM7.Z
+tcl/test/test-output-newreno/newreno.Z
+tcl/test/test-output-newreno/newreno1.Z
+tcl/test/test-output-newreno/newreno1_A.Z
+tcl/test/test-output-newreno/newreno2_A.Z
+tcl/test/test-output-newreno/newreno2_A_bugfix.Z
+tcl/test/test-output-newreno/reno.Z
+tcl/test/test-output-newreno/reno1.Z
+tcl/test/test-output-newreno/reno2.Z
+tcl/test/test-output-newreno/reno2_bugfix.Z
 tcl/test/test-output-rbp/reno_no_slow_start_restart.Z
 tcl/test/test-output-rbp/reno_pacing.Z
 tcl/test/test-output-rbp/reno_slow_start_restart.Z
