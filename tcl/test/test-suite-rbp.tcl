@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.6 1998/08/14 21:44:52 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.7 1999/12/20 19:20:41 haoboy Exp $
 #
 
 #
@@ -303,11 +303,11 @@ TestScale instproc open_trace { stopTime testName } {
 # with -a -q, use just -a.
 
 TestScale instproc finish {} {
-        global opts
+        global opts PERL
 	$self instvar trace_file_
 
 	# for debugging
-	exec ../../bin/raw2xg -a -m $opts(web-page-size) -q < out.tr >temp.rands
+	exec $PERL ../../bin/raw2xg -a -m $opts(web-page-size) -q < out.tr >temp.rands
 	if {!$opts(graph-results)} {
 		exit 0
 	}

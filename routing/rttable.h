@@ -148,7 +148,7 @@ class rttable {
         void            rt_delete(nsaddr_t id);
         rt_entry*       rt_add(nsaddr_t id);
  private:
-        LIST_HEAD(, rt_entry) rthead;
+        LIST_HEAD(ncache, rt_entry) rthead;
 };
 
 #endif /* __rtable_h__ */

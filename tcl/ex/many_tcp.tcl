@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.16 1998/10/28 19:16:53 yuriy Exp $
+# $Id: many_tcp.tcl,v 1.17 1999/12/20 19:20:43 haoboy Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -508,9 +508,8 @@ Main instproc open_trace { stop_time } {
 # with -a -q, use just -a.
 
 Main instproc finish {} {
-        global opts fmon
+        global opts fmon PERL
 	$self instvar trace_filename_ ns_ cs_count_ clients_started_ clients_finished_
-
 
 	puts "total clients started: $clients_started_"
 	puts "total clients finished: $clients_finished_"
@@ -539,7 +538,7 @@ Main instproc finish {} {
 		}
 		# always run raw2xg because maybe we need the output
 		set cmd "$raw2xg -a $raw2xg_opts -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg"
-		eval "exec $cmd"
+		eval "exec $PERL $cmd"
 		if {$opts(graph-results)} {
 			if {$opts(graph-join-queueing)} {
 				exec xgraph -t $title  < $trace_filename_.xg &

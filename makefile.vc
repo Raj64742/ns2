@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.24 1999/09/24 23:59:57 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.25 1999/12/20 19:20:37 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -54,7 +54,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@
+DEFINE	= -DTCP_DELAY_BIND -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -80,7 +80,7 @@ CFLAGS	= $(CCOPT) $(DEFINE)
 
 .c.o:
 	@rm -f $@
-	$(CC) -c $(CFLAGS) $(DEFINE) $(INCLUDES) -o $@ $*.c
+	$(CC) -c $(CFLAGS) $(INCLUDES) -o $@ $*.c
 
 
 GEN_DIR	= gen/
@@ -143,7 +143,7 @@ OBJ_CC = \
 	phy.o wired-phy.o wireless-phy.o \
 	mac-timers.o cmu-trace.o varp.o \
 	dsdv/dsdv.o dsdv/rtable.o \
-	rtqueue.o \
+	rtqueue.o rttable.o \
 	imep/imep.o imep/dest_queue.o imep/imep_api.o \
 	imep/imep_rt.o imep/rxmit_queue.o imep/imep_timers.o \
 	imep/imep_util.o imep/imep_io.o \
@@ -151,11 +151,13 @@ OBJ_CC = \
 	tora/tora_logs.o tora/tora_neighbor.o \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
+	aodv/aodv_logs.o aodv/aodv.o \
 	ns-process.o \
-	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
+	satgeometry.o sathandoff.o satlink.o satnode.o \
+	satposition.o satroute.o sattrace.o \
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	tfrc.o tfrc-sink.o energy-model.o
+	tfrc.o tfrc-sink.o energy-model.o ping.o tcp-rfc793edu.o
 
 # don't allow comments to follow continuation lines
 
@@ -197,6 +199,18 @@ CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
 	ptypes2tcl.exe ptypes2tcl.o
+
+SUBDIRS=\
+	indep-utils/cmu-scen-gen/setdest \
+	indep-utils/webtrace-conv/dec \
+	indep-utils/webtrace-conv/epa \
+	indep-utils/webtrace-conv/nlanr \
+	indep-utils/webtrace-conv/ucb
+
+all: $(NS) # all-recursive
+
+all-recursive:
+	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) all; ) done
 
 $(NS): $(OBJ) tclAppInit.o
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
@@ -289,11 +303,16 @@ ptypes2tcl.exe: ptypes2tcl.o
 
 ptypes2tcl.o: ptypes2tcl.cc packet.h
 
-install: force
+install: force install-ns install-man install-recursive
+
+install-ns: force
 	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
 
 install-man: force
 	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
+
+install-recursive: force
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) install; done
 
 clean:
 	$(RM) $(CLEANFILES)

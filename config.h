@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.44 1999/11/20 00:40:08 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.45 1999/12/20 19:20:36 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -48,7 +48,11 @@
 #endif
 
 /* get autoconf magic */
+#ifdef WIN32
+#include "autoconf-win32.h"
+#else
 #include "autoconf.h"
+#endif
 
 /* after autoconf (and HAVE_INT64) we can pick up tclcl.h */
 #ifndef stand_alone

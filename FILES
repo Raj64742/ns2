@@ -29,6 +29,7 @@ app.cc
 app.h
 arp.cc
 arp.h
+autoconf-win32.h
 bi-connector.cc
 bi-connector.h
 bin/cplot.tcl

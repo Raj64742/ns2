@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.10 1999/11/18 23:14:33 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.11 1999/12/20 19:20:40 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -434,6 +434,8 @@ int MClientPagePool::cache_replace(ClientPage *pg, int size)
 		fprintf(stderr, "Corrupted replacement style.\n");
 		abort();
 	}
+	// To make msvc happy
+	return -1;
 }
 
 int MClientPagePool::repl_atomic(ClientPage*, int size)
