@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.12 1997/10/19 03:31:22 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.13 1997/10/20 23:07:56 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -145,10 +145,10 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 			// Try to follow tcp_output.c here
 			// Calculate the vegas window as its reported rate
 			// times the rtt.
-			rbwin_vegas = v_actual_ * v_srtt_;
+			rbwin_vegas = v_actual_ * v_rtt_;
 			RBP_DEBUG_PRINTF(("-----------------\n"));
 			RBP_DEBUG_PRINTF(("rbwin_vegas = %g\nv_actual = %g\nv_rtt =%g\nbase_rtt=%g\n",
-					  rbwin_vegas, v_actual_, v_srtt_, v_baseRTT_));
+					  rbwin_vegas, v_actual_, v_rtt_, v_baseRTT_));
 			// Smooth the vegas window
 			rbwin_vegas *= rbp_scale_;
 			break;
@@ -176,8 +176,8 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 		// advertised window and the congestion window.
 		// TcpAgent::window() does this job.
 		// What this means is we expect to send window() pkts
-		// in v_srtt_ time.
-		inter_pace_delay_ = (v_srtt_)/(window() * 1.0);
+		// in v_rtt_ time.
+		inter_pace_delay_ = (v_rtt_)/(window() * 1.0);
 		RBP_DEBUG_PRINTF(("window is %d\n", window()));
 		RBP_DEBUG_PRINTF(("ipt = %g\n", inter_pace_delay_));
 		paced_send_one();
