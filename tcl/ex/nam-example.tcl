@@ -1,8 +1,31 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.4 1998/02/24 02:25:57 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.5 1998/03/03 02:01:43 haoboy Exp $
 #
+
+Simulator instproc dump-namagents {} {
+	$self instvar tracedAgents_ monitoredAgents_
+
+	puts "dump nam agents"
+	if ![$self is-started] {
+		return
+	}
+	if [info exists tracedAgents_] {
+		foreach id [array names tracedAgents_] {
+			puts "tra: $tracedAgents_($id)"
+			$tracedAgents_($id) add-agent-trace $id
+		}
+		unset tracedAgents_
+	}
+	if [info exists monitoredAgents_] {
+		puts "ma: $monitoredAgents_"
+		foreach a $monitoredAgents_ {
+			$a show-monitor
+		}
+		unset monitoredAgents_
+	}
+}
 
 if [string match {*.tcl} $argv0] {
 	set prog [string range $argv0 0 [expr [string length $argv0] - 5]]
@@ -20,9 +43,10 @@ if {[llength $argv] > 0} {
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 ns-random 1
 Simulator set NumberInterfaces_ 1
-set ns [new MultiSim]
+Simulator set EnableMcast_ 1
+set ns [new Simulator]
 
-$ns trace-all [open out.tr w]
+#$ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
 set srmStats [open srm-stats.tr w]
 
@@ -90,6 +114,7 @@ for {set i 0} {$i <= 5} {incr i} {
 
 	$ns attach-agent $n($i) $srm($i)
 	$ns add-agent-trace $srm($i) srm($i)
+	$ns monitor-agent-trace $srm($i) ;# turn nam monitor on from the start
 	$srm($i) tracevar C1_
 	$srm($i) tracevar C2_
 }

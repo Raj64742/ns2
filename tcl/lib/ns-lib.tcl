@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.83 1998/02/20 20:46:45 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.84 1998/03/03 02:01:42 haoboy Exp $
 #
 
 #
@@ -183,7 +183,7 @@ Simulator instproc cancel args {
 }
 
 Simulator instproc dump-namagents {} {
-	$self instvar tracedAgents_
+	$self instvar tracedAgents_ monitoredAgents_
 
 	if ![$self is-started] {
 		return
@@ -193,6 +193,12 @@ Simulator instproc dump-namagents {} {
 			$tracedAgents_($id) add-agent-trace $id
 		}
 		unset tracedAgents_
+	}
+	if [info exists monitoredAgents_] {
+		foreach a $monitoredAgents_ {
+			$a show-monitor
+		}
+		unset monitoredAgents_
 	}
 }
 
@@ -281,8 +287,8 @@ Simulator instproc run {} {
 	$self dump-namnodes
 
 	# Lan and Link configurations for nam
-	$self dump-namlans
 	$self dump-namlinks 
+	$self dump-namlans
 
 	# nam queue configurations
 	$self dump-namqueues
@@ -527,6 +533,11 @@ Simulator instproc puts-nam-traceall { str } {
 Simulator instproc color { id name } {
 	$self instvar color_
 	set color_($id) $name
+}
+
+Simulator instproc get-color { id } {
+	$self instvar color_
+	return $color_($id)
 }
 
 # you can pass in {} as a null file
@@ -795,6 +806,50 @@ Simulator instproc multi-link { nodes bw delay type } {
 	return $multiLink
 }
 
+#Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
+#        $self instvar link_ 
+#        
+#        # create the interfaces
+#        set ifs ""
+#        foreach n $nodes {
+#                set f [new DuplexNetInterface]
+#                $n addInterface $f
+#                lappend ifs $f
+#        }
+#
+#	# create lan
+#        set multiLink [new NonReflectingMultiLink $ifs $bw $delay $type]
+#
+#        # set up dummy links for multicast routing
+#        foreach f $ifs {
+#                set n [$f getNode]
+#                set q [$multiLink getQueue $n]
+#                set l [$multiLink getDelay $n]  
+#                set did [$n id]
+#                foreach f2 $ifs {
+#                        set n2 [$f2 getNode]
+#                        if { [$n2 id] != $did } {
+#				set sid [$n2 id]   
+#				set dumlink [new DummyLink $f2 $f $q $l $multiLink]
+#				set link_($sid:$did) $dumlink
+#				# set lan trace
+#				set trace [$self get-ns-traceall]
+#				if {$trace != "" } {
+#					$self trace-queue $n2 $n $trace
+#				}
+#				set trace [$self get-nam-traceall]
+#				if {$trace != ""} {
+#					$self namtrace-queue $n2 $n $trace
+#				}
+#				$self register-nam-linkconfig $dumlink
+#                        }
+#                }
+#        }
+#
+#        return $multiLink
+#}
+
+# XXX Hack to use nam lan traces. Does not work with trace-all
 Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
         $self instvar link_ 
         
@@ -821,20 +876,21 @@ Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
 				set sid [$n2 id]   
 				set dumlink [new DummyLink $f2 $f $q $l $multiLink]
 				set link_($sid:$did) $dumlink
-				# set lan trace
-				set trace [$self get-ns-traceall]
-				if {$trace != "" } {
-					$self trace-queue $n2 $n $trace
-				}
-				set trace [$self get-nam-traceall]
-				if {$trace != ""} {
-					$self namtrace-queue $n2 $n $trace
-				}
-				$self register-nam-linkconfig $dumlink
                         }
                 }
         }
 
+	# set lan trace
+	set trace [$self get-ns-traceall]
+	if {$trace != "" } {
+		$multiLink trace $self $trace
+	}
+	set trace [$self get-nam-traceall]
+	if {$trace != ""} {
+		$multiLink nam-trace $self $trace
+	}
+	$self register-nam-lanconfig $multiLink
+				
         return $multiLink
 }
 

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.34 1998/02/16 20:37:42 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.35 1998/03/03 02:01:40 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -121,6 +121,11 @@ int Agent::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		deleteAgentTrace();
 		return (TCL_OK);
+	} else if (strcmp(argv[1], "show-monitor") == 0) {
+		if ((traceName_ == 0) || (channel_ == 0))
+			return (TCL_OK);
+		monitorAgentTrace();
+		return (TCL_OK);
 	} else if (strcmp(argv[1], "tracevar") == 0) {
 		// wrapper of TclObject's trace command, because some tcl
 		// agents (e.g. srm) uses it.
@@ -145,7 +150,7 @@ void Agent::flushAVar(TracedVar *v)
 	if (strcmp(value, "") == 0) 
 		// no value, because no writes has occurred to this var
 		return;
-	sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -o %s -T v -x",
+	sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -o %s -T v -x",
 		Scheduler::instance().clock(),
 		addr_ >> NODESHIFT,
 		dst_ >> NODESHIFT,
@@ -171,7 +176,7 @@ void Agent::deleteAgentTrace()
 
 	// we need to flush all var values to trace file, 
 	// so nam can do backtracing
-	sprintf(wrk, "a -t %-8.5f -s %d -d %d -n %s -x",
+	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s -x",
 		Scheduler::instance().clock(),
 		addr_ >> NODESHIFT,
 		dst_ >> NODESHIFT,
@@ -222,7 +227,7 @@ void Agent::trace(TracedVar* v)
 
 	OldValue *ov = lookupOldValue(v);
 	if (ov != NULL) {
-		sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
+		sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
 			Scheduler::instance().clock(),
 			addr_ >> NODESHIFT,
 			dst_ >> NODESHIFT,
@@ -235,7 +240,7 @@ void Agent::trace(TracedVar* v)
 			min(strlen(value)+1, TRACEVAR_MAXVALUELENGTH));
 	} else {
 		// if there is value, insert it into old value list
-		sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -v %s -T v",
+		sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -v %s -T v",
 			Scheduler::instance().clock(),
 			addr_ >> NODESHIFT,
 			dst_ >> NODESHIFT,
@@ -250,6 +255,24 @@ void Agent::trace(TracedVar* v)
 	(void)Tcl_Write(channel_, wrk, n+1);
 }
 
+void Agent::monitorAgentTrace()
+{
+	char wrk[256];
+	int n;
+	double curTime = (&Scheduler::instance() == NULL ? 0 : 
+			  Scheduler::instance().clock());
+	
+	sprintf(wrk, "v -t %.17f monitor_agent %d %s",
+		curTime,
+		addr_ >> NODESHIFT,
+		traceName_);
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	if (channel_)
+		(void)Tcl_Write(channel_, wrk, n+1);
+}
+
 void Agent::addAgentTrace(const char *name)
 {
 	char wrk[256];
@@ -257,7 +280,7 @@ void Agent::addAgentTrace(const char *name)
 	double curTime = (&Scheduler::instance() == NULL ? 0 : 
 			  Scheduler::instance().clock());
 	
-	sprintf(wrk, "a -t %-8.5f -s %d -d %d -n %s",
+	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s",
 		curTime,
 		addr_ >> NODESHIFT,
 		dst_ >> NODESHIFT,

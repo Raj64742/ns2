@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.8 1998/02/24 02:25:57 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.9 1998/03/03 02:01:42 haoboy Exp $
 #
 
 #
@@ -280,6 +280,11 @@ Simulator instproc add-agent-trace { agent name } {
 
 Simulator instproc delete-agent-trace { agent } {
 	$agent delete-agent-trace
+}
+
+Simulator instproc monitor-agent-trace { agent } {
+	$self instvar monitoredAgents_
+	lappend monitoredAgents_ $agent
 }
 
 #

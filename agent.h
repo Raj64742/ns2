@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.14 1997/09/12 01:31:22 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.15 1998/03/03 02:01:41 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -94,6 +94,7 @@ int class_;		/* class to place in packet header */
 	virtual void trace(TracedVar *v);
 	void deleteAgentTrace();
 	void addAgentTrace(const char *name);
+	void monitorAgentTrace();
 	OldValue* lookupOldValue(TracedVar *v);
 	void insertOldValue(TracedVar *v, const char *value);
  private:
