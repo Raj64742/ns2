@@ -140,9 +140,13 @@ protected:
 				//  rate at which the receiver is _receving_ 
 
 	/* "accurate" estimates for formula */
-	double rtt_;
+	double rtt_; /*EWMA version*/
+	double rttcur_; /*Instantaneous version*/
 	double rttvar_;
 	double tzero_;
+	double sqrtrtt_; /*The mean of the sqrt of the RTT*/
+
+	int ca_; //Enable Sqrt(RTT) based congestion avoidance mode
 
 	/* TCP variables for tracking RTT */
 	int t_srtt_; 

@@ -87,6 +87,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("bval_", &bval_);
 	bind("aggr_incr_", &aggr_incr_);
 	bind("aggr_dec_", &aggr_dec_);
+	bind("ca_", &ca_);
 }
 
 
@@ -114,6 +115,8 @@ void TfrcAgent::start()
 	rate_change_ = SLOW_START;
 	UrgentFlag = 1;
 	rtt_=0;	 
+        sqrtrtt_=1;
+        rttcur_=1;
 	tzero_ = 0;
 	last_change_=0;
 	maxrate_ = 0; 
@@ -149,7 +152,11 @@ void TfrcAgent::nextpkt()
 		xrate = oldrate_;
 	}
 	else {
-		xrate = rate_;
+		if (ca_) {
+			xrate = rate_ * sqrtrtt_/sqrt(rttcur_);
+		} else {
+			xrate = rate_;
+		}
 	}
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate; 
@@ -187,9 +194,12 @@ void TfrcAgent::update_rtt (double tao, double now)
 	/* fine grained RTT estimate for use in the equation */
 	if (rtt_ > 0) {
 		rtt_ = df_*rtt_ + ((1-df_)*(now - tao));
+		sqrtrtt_ = df_*sqrtrtt_ + ((1-df_)*sqrt(now - tao));
 	} else {
 		rtt_ = now - tao;
+		sqrtrtt_ = sqrt(now - tao);
 	}
+	rttcur_ = now - tao;
 }
 
 /*
@@ -326,6 +336,7 @@ void TfrcAgent::increase_rate (double p)
         mult = (now-last_change_)/rtt_ ;
         if (mult > 2)
                 mult = 2 ;
+#ifdef OLDWAY
         newrate = rate_ + (size_/rtt_)*mult ; 
         // Calculate the new sending rate for a limited increase.
         newrate1 = (rate_ + rcvrate)/2;
@@ -337,6 +348,9 @@ void TfrcAgent::increase_rate (double p)
                 // Increase the sending rate by at most one pkt/RTT.
                 rate_ = newrate;
         }
+#else
+	rate_ = rate_ + (size_/rtt_)*mult ;
+#endif
 	if (maxrate_ > maximumrate) {
 		maximumrate = maxrate_;
 	}
