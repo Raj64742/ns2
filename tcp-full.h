@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.22 1998/05/16 01:43:56 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.23 1998/06/12 18:05:04 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -129,6 +129,8 @@ class FullTcpAgent : public TcpAgent {
 	int ts_option_size_;	// header bytes in a ts option
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
+	int fastrecov_;	    // fast recovery on?
+	int deflate_on_pack_;	// deflate on partial acks (reno:yes)
 	int data_on_syn_;   // send data on initial SYN?
 	double last_send_time_;	// time of last send
 	int close_on_empty_;	// close conn when buffer empty
@@ -150,7 +152,8 @@ class FullTcpAgent : public TcpAgent {
 
 	void finish();
 	void reset_rtx_timer(int);  // adjust the rtx timer
-	void dupack_action();		// what to do on dup acks
+	virtual void dupack_action();	// what to do on dup acks
+	virtual void pack_action() { }  // action on partial acks
 	void reset();       		// reset to a known point
 	void connect();     		// do active open
 	void listen();      		// do passive open
@@ -160,9 +163,13 @@ class FullTcpAgent : public TcpAgent {
 	void send_much(int force, int reason, int maxburst = 0);
 	void sendpacket(int seq, int ack, int flags, int dlen, int why);
 	void newack(Packet* pkt);	// process an ACK
+	int pack(Packet* pkt);		// is this a partial ack?
 	void dooptions(Packet*);	// process option(s)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
 	void cancel_timers();		// cancel all timers
+	virtual int in_recovery() {	// in fast recovery?
+		return (dupacks_ >= tcprexmtthresh_);
+	}
 
 	/*
 	* the following are part of a tcpcb in "real" RFC793 TCP
@@ -187,6 +194,19 @@ class FullTcpAgent : public TcpAgent {
 	 * by TcpAgent::reset()
 	 */
 	void set_initial_window();
+};
+
+class NewRenoFullTcpAgent : public FullTcpAgent {
+protected:
+	void pack_action() {
+		fast_retransmit(highest_ack_);
+	}
+	int	in_recovery();
+};
+
+class TahoeFullTcpAgent : public FullTcpAgent {
+protected:
+	void	dupack_action();
 };
 
 #endif
