@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.69 2003/02/01 04:21:05 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.70 2003/02/13 03:10:52 buchheim Exp $
  */
 
 #include <packet.h>
@@ -68,6 +68,33 @@ public:
 } cmutrace_class;
 
 
+
+double calculate_broadcast_radius() {
+	// Calculate the maximum distance at which a packet can be received
+	// based on the two-ray reflection model using the current default
+	// values for Phy/WirelessPhy and Antenna/OmniAntenna.
+	// This is currently called when the trace object is created.
+
+	double P_t, P_r, G_t, G_r, h, L;
+	Tcl& tcl = Tcl::instance();
+	tcl.evalc("Phy/WirelessPhy set Pt_");
+	P_t = atof(tcl.result());
+	tcl.evalc("Phy/WirelessPhy set RXThresh_");
+	P_r = atof(tcl.result());
+	tcl.evalc("Phy/WirelessPhy set L_");
+	L = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Gt_");
+	G_t = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Gr_");
+	G_r = atof(tcl.result());
+	tcl.evalc("Antenna/OmniAntenna set Z_");
+	h = atof(tcl.result());
+	
+	return pow(P_t*G_r*G_t*pow(h,4.0)/(P_r*L), 0.25);
+}
+
+
+
 CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 {
 	bzero(tracename, sizeof(tracename));
@@ -99,6 +126,8 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 	for (int i=0 ; i < MAX_NODE ; i++) 
 		nodeColor[i] = 3 ;
         node_ = 0;
+
+	bradius = calculate_broadcast_radius();
 
 	bind("radius_scaling_factor_",&radius_scaling_factor_);
 	bind("duration_scaling_factor_",&duration_scaling_factor_);
@@ -849,14 +878,14 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if (next_hop == -1 && op == 'h') {
 		// print extra fields for broadcast packets
 
-		// radius is calculated assuming 2-ray ground reflectlon
+		// bradius is calculated assuming 2-ray ground reflectlon
 		// model using default settings of Phy/WirelessPhy and
 		// Antenna/OmniAntenna
-		double radius = 250.0*radius_scaling_factor_; 
+		double radius = bradius*radius_scaling_factor_; 
 
-		// duration is calculated based on above radius and
-		// the speed of light
-		double duration = 0.0008333333333*duration_scaling_factor_;
+		// duration is calculated based on the radius and
+		// the speed of light (299792458 m/s)
+		double duration = (bradius/299792458.0)*duration_scaling_factor_;
 
 
 		sprintf(pt_->nbuffer() + strlen(pt_->nbuffer()),

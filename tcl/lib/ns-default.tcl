@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.309 2003/02/12 04:16:09 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.310 2003/02/13 03:11:00 buchheim Exp $
 
 
 #
@@ -65,7 +65,7 @@ Trace set debug_ false
 
 CMUTrace set debug_ false
 CMUTrace set radius_scaling_factor_ 1.0
-CMUTrace set duration_scaling_factor_ 30.0
+CMUTrace set duration_scaling_factor_ 3.0e4
 
 Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
 
