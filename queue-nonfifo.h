@@ -41,16 +41,8 @@ class NonFifoPacketQueue : public PacketQueue {
   public:
 	NonFifoPacketQueue() : ack_count(0), data_count(0), 
 		acks_to_send(0) {}
-	/* interleave between TCP acks and others while dequeuing */
-	Packet* deque_interleave(int off_cmn);
 	/* deque TCP acks before any other type of packet */
 	Packet* deque_acksfirst(int off_cmn);
-	/* 
-	 * If a packet needs to be removed because the queue is full, 
-	 * pick the TCP ack closest to the head. Otherwise, drop the 
-	 * specified pkt (target).
-	 */
-	Packet* remove_ackfromfront(Packet* target, int off_cmn);
 	/* determine whether two packets belong to the same connection */
 	int compareFlows(hdr_ip *ip1, hdr_ip *ip2);
 	/*
@@ -72,22 +64,15 @@ class NonFifoPacketQueue : public PacketQueue {
         int ack_count;        /* number of TCP acks in the queue */
 	int data_count;       /* number of non-ack packets in the queue */
 	int acks_to_send;     /* number of acks to send in current schedule */
-};
 
-class QueueHelper {
-  public:
-	QueueHelper() {}
-  protected:
 	/* These indicator variables are bound in derived objects */
-	int interleave_;	/* interleave TCP acks and other data */
 	int acksfirst_;         /* deque TCP acks before any other data */
-	int ackfromfront_;      /* try and drop ack from front of the queue */
 	int filteracks_;        /* purge queue of old acks when new ack is enqued */
 	int replace_head_;      /* whether new ack should take the place of old ack
 				   closest to the head */
-	virtual Packet* deque(NonFifoPacketQueue *, int);
-	virtual void enque(NonFifoPacketQueue *, Packet *, int, int, int);
-	virtual void remove(NonFifoPacketQueue *, Packet *, int);
+	virtual Packet* deque(int);
+	virtual void enque(Packet *, int, int, int);
+	virtual void remove(Packet *, int);
 };
 
 #endif

@@ -36,18 +36,18 @@
 /*
  * A bounded, drop-tail queue with special enque & deque functions.
  */
-class NonFifoDropTail : public DropTail, QueueHelper {
+class NonFifoDropTail : public DropTail {
  public:
 	NonFifoDropTail();
 	PacketQueue *q() { return nfq_; }
  protected:
 	NonFifoPacketQueue *nfq_;
 	void enque(PacketQueue *q, Packet *p) {
-		QueueHelper::enque((NonFifoPacketQueue *)q, p, off_cmn_,off_tcp_,off_ip_); }
+		((NonFifoPacketQueue *)q)->enque(p, off_cmn_,off_tcp_,off_ip_); }
 	Packet* deque(PacketQueue *q) { 
-		return QueueHelper::deque((NonFifoPacketQueue *)q, off_cmn_); }
+		return ((NonFifoPacketQueue *)q)->deque(off_cmn_); }
 	void remove(PacketQueue *q, Packet *p) {
-		QueueHelper::remove((NonFifoPacketQueue *)q, p, off_cmn_); }
+		((NonFifoPacketQueue *)q)->remove(p, off_cmn_); }
  private:
         int off_ip_;
         int off_tcp_;
@@ -66,10 +66,8 @@ NonFifoDropTail::NonFifoDropTail()
         bind("off_ip_", &off_ip_);
         bind("off_tcp_", &off_tcp_);
 
-	bind_bool("interleave_", &interleave_);
-	bind_bool("acksfirst_", &acksfirst_);
-	bind_bool("ackfromfront_", &ackfromfront_);
-	bind_bool("filteracks_", &filteracks_);
-	bind_bool("replace_head_", &replace_head_);
 	nfq_ = new NonFifoPacketQueue;
+	bind_bool("acksfirst_", &((NonFifoPacketQueue *)q())->acksfirst_);
+	bind_bool("filteracks_", &((NonFifoPacketQueue *)q())->filteracks_);
+	bind_bool("replace_head_", &((NonFifoPacketQueue *)q())->replace_head_);
 }

@@ -36,37 +36,10 @@
 #include "tcp.h"
 
 /* 
- * If a packet needs to be removed because the queue is full, pick the TCP
- * ack closest to the head. Otherwise, drop the specified pkt (target).
- */
-Packet* NonFifoPacketQueue::remove_ackfromfront(Packet* target, int off_cmn)
-{
-	Packet* p = head_;
-	Packet* pp = NULL;
-	int type;
-
-	if (ack_count > 0) {
-		while (p) {
-			type = ((hdr_cmn*)p->access(off_cmn))->ptype_;
-			if (type == PT_ACK)
-				break;
-			pp = p;
-			p = p->next_;
-		}
-		if (!p) 
-			fprintf(stderr, "In remove_ackfromfront(): ack_count: %d but no acks in queue\n", ack_count);
-		PacketQueue::remove(p, pp);
-		return p;
-	} else {
-		PacketQueue::remove(target);
-		return target;
-	}
-}
-
-/* 
  * Deque TCP acks before any other type of packet.
  */
-Packet* NonFifoPacketQueue::deque_acksfirst(int off_cmn) {
+Packet* 
+NonFifoPacketQueue::deque_acksfirst(int off_cmn) {
 	Packet* p = head_;
 	Packet* pp = NULL;
 	int type;
@@ -83,57 +56,9 @@ Packet* NonFifoPacketQueue::deque_acksfirst(int off_cmn) {
 			fprintf(stderr, "In deque_acksfirst(): ack_count: %d but no acks in queue, length = %d\n", ack_count, length());
 		PacketQueue::remove(p, pp);
 	} else {
-		p = deque();
+		p = PacketQueue::deque();
 	}
 	return p;
-}
-
-/* 
- * Interleave between TCP acks and others (data) while dequeuing.
- */
-Packet* NonFifoPacketQueue::deque_interleave(int off_cmn) {
-	Packet *ack_p, *ack_pp, *data_p, *data_pp;
-	Packet* p = head_;
-	Packet* pp = NULL;
-	int type;
-	
-	/* 
-	 * First find the leading data & ack pkts and the
-	 * packets just ahead of them in the queue
-	 */
-	ack_p = NULL;
-	data_p = NULL;
-	while (p) {
-		type = ((hdr_cmn*)p->access(off_cmn))->ptype_;
-		if (!ack_p && type == PT_ACK) {
-			ack_p = p;
-			ack_pp = pp;
-		} else if (!data_p && type != PT_ACK) {
-			data_p = p;
-			data_pp = pp;
-		}
-		if (ack_p && data_p)
-			break;
-		pp = p;
-		p = p->next_;
-	}
-	if ((acks_to_send || !data_p) && ack_p) {
-		p = ack_p;
-		pp = ack_pp;
-		if (ack_p && acks_to_send)
-			acks_to_send--;
-	} else {
-		p = data_p;
-		pp = data_pp;
-		if (data_count) {
-			acks_to_send = ack_count/data_count;
-			if (ack_count%data_count)
-				acks_to_send++;
-		} else if (ack_count)
-			acks_to_send = 1;
-	}
-	PacketQueue::remove(p, pp); 
-	return (p);
 }
 
 int
@@ -211,47 +136,45 @@ NonFifoPacketQueue::filterAcks(Packet *pkt, int replace_head, int off_cmn, int o
 }
 	  
 void 
-QueueHelper::enque(NonFifoPacketQueue *npq, Packet *pkt, int off_cmn, int off_tcp, int off_ip)
+NonFifoPacketQueue::enque(Packet *pkt, int off_cmn, int off_tcp, int off_ip)
 {
-	npq->enque(pkt);
+	PacketQueue::enque(pkt);
 	if (((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK)
-		npq->ack_count++;
+		ack_count++;
 	else
-		npq->data_count++;
+		data_count++;
 	if ((((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK) && filteracks_) {
-		npq->filterAcks(pkt, replace_head_, off_cmn, off_tcp, off_ip);
+		filterAcks(pkt, replace_head_, off_cmn, off_tcp, off_ip);
 	}
 }
 
 Packet *
-QueueHelper::deque(NonFifoPacketQueue *npq, int off_cmn)
+NonFifoPacketQueue::deque(int off_cmn)
 {
 	Packet *pkt;
 
-	if (interleave_) 
-                pkt = npq->deque_interleave(off_cmn);
-	else if (acksfirst_)
-		pkt = npq->deque_acksfirst(off_cmn);
+	if (acksfirst_)
+		pkt = deque_acksfirst(off_cmn);
 	else
-		pkt = npq->deque();
+		pkt = PacketQueue::deque();
 	
 	if (pkt) {
 		if (((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK)
-			npq->ack_count--;
+			ack_count--;
 		else
-			npq->data_count--;
+			data_count--;
 	}
 	return pkt;
 }
 
 void 
-QueueHelper::remove(NonFifoPacketQueue *npq, Packet *pkt, int off_cmn)
+NonFifoPacketQueue::remove(Packet *pkt, int off_cmn)
 {
-	((PacketQueue *)npq)->remove(pkt);
+	PacketQueue::remove(pkt);
 	if (pkt) {
 		if (((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK)
-			npq->ack_count--;
+			ack_count--;
 		else
-			npq->data_count--;
+			data_count--;
 	}
 }
