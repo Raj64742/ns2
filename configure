@@ -3518,7 +3518,7 @@ fi
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
-  V_CCOPT="-g"
+  V_CCOPT="-g -Wall"
 else
   V_CCOPT="-O2"
 fi
