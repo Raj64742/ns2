@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.23 2000/11/17 22:10:33 ratul Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.24 2002/03/10 04:43:31 sfloyd Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -167,9 +167,12 @@ void QueueMonitor::in(Packet* p)
 void QueueMonitor::out(Packet* p)
 {
 	hdr_cmn* hdr = hdr_cmn::access(p);
+	hdr_flags* pf = hdr_flags::access(p);
 	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
+	if (pf->ce() && pf->ect()) 
+		pmarks_++;
 	size_ -= pktsz;
 	pkts_--;
 	bdepartures_ += pktsz;

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.279 2002/03/08 21:57:16 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.280 2002/03/10 04:43:31 sfloyd Exp $
 
 
 #
@@ -259,6 +259,7 @@ QueueMonitor set barrivals_ 0
 QueueMonitor set pdepartures_ 0
 QueueMonitor set bdepartures_ 0
 QueueMonitor set pdrops_ 0
+QueueMonitor set pmarks_ 0
 QueueMonitor set bdrops_ 0
 
 #added for online rate monitoring - ratul

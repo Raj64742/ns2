@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.18 2000/11/17 22:10:33 ratul Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.19 2002/03/10 04:43:31 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -41,6 +41,7 @@
 #include "integrator.h"
 #include "connector.h"
 #include "packet.h"
+#include "flags.h"
 
 class QueueMonitor : public TclObject {
 public: 
@@ -48,7 +49,7 @@ public:
 		size_(0), pkts_(0),
 		parrivals_(0), barrivals_(0),
 		pdepartures_(0), bdepartures_(0),
-		pdrops_(0), bdrops_(0),
+		pdrops_(0), pmarks_(0), bdrops_(0), 
 		srcId_(0), dstId_(0), channel_(0),
 		//variables for flow rate estimation
 		estimate_rate_(0), k_(0.1), estRate_(0.0), temp_size_(0) {
@@ -60,6 +61,7 @@ public:
 		bind("pdepartures_", &pdepartures_);
 		bind("bdepartures_", &bdepartures_);
 		bind("pdrops_", &pdrops_);
+		bind("pmarks_", &pmarks_);
 		bind("bdrops_", &bdrops_);
 
 		//variable binding for flow rate estimation
@@ -87,6 +89,7 @@ public:
 	int bdepartures() const { return (bdepartures_); }
 #endif
 	int pdrops() const { return (pdrops_); }
+	int pmarks() const { return (pmarks_); }
 	int bdrops() const { return (bdrops_); }
 	void printStats();
 	virtual void in(Packet*);
@@ -113,6 +116,7 @@ protected:
 	int bdepartures_;
 #endif
 	int pdrops_;
+	int pmarks_;
 	int bdrops_;
 	int srcId_;
 	int dstId_;
