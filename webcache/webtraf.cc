@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.6 2000/02/24 02:17:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.7 2000/02/24 02:18:22 haoboy Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -123,7 +123,7 @@ void WebTrafSession::expire(Event *)
 	// Make sure page size is not 0!
 	WebPage* pg = new WebPage(LASTPAGE_++, this, 
 				  (int)ceil(rvPageSize_->value()), dst);
-#if 1
+#if 0
 	printf("Session %d starting page %d, curpage %d \n", 
 	       id_, LASTPAGE_-1, curPage_);
 #endif
