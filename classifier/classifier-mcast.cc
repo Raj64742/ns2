@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.8 1997/06/26 01:48:03 polly Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.9 1997/07/21 21:14:35 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -73,7 +73,7 @@ protected:
 static class MCastClassifierClass : public TclClass {
 public:
 	MCastClassifierClass() : TclClass("Classifier/Multicast") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new MCastClassifier());
 	}
 } class_mcast_classifier;
@@ -190,7 +190,7 @@ MCastClassifier::hashnode*
 MCastClassifier::lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const
 {
 	int h = hash(src, dst);
-	const hashnode* p;
+	hashnode* p;
 	for (p = ht_[h]; p != 0; p = p->next) {
 		if (p->src == src && p->dst == dst && p->iif == iface)
 			break;
