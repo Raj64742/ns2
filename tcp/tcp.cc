@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.118 2001/04/23 03:28:16 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.119 2001/05/10 00:43:50 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -128,6 +128,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("maxcwnd_");
 	delay_bind_init_one("numdupacks_");
         delay_bind_init_one("maxrto_");
+	delay_bind_init_one("minrto_");
         delay_bind_init_one("srtt_init_");
         delay_bind_init_one("rttvar_init_");
         delay_bind_init_one("rtxcur_init_");
@@ -203,6 +204,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "maxcwnd_", &maxcwnd_ , tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "numdupacks_", &numdupacks_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxrto_", &maxrto_ , tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "minrto_", &minrto_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "srtt_init_", &srtt_init_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "rttvar_init_", &rttvar_init_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "rtxcur_init_", &rtxcur_init_ , tracer)) return TCL_OK;
@@ -289,7 +291,11 @@ TcpAgent::traceVar(TracedVar* v)
 	int n;
 
 	curtime = &s ? s.clock() : 0;
-	if (!strcmp(v->name(), "cwnd_") || !strcmp(v->name(), "maxrto_"))
+	if (!strcmp(v->name(), "cwnd_") || !strcmp(v->name(), "maxrto_")) 
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
+			curtime, addr(), port(), daddr(), dport(),
+			v->name(), double(*((TracedDouble*) v))); 
+	else if (!strcmp(v->name(), "minrto_")) 
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
 			curtime, addr(), port(), daddr(), dport(),
 			v->name(), double(*((TracedDouble*) v))); 
@@ -431,6 +437,8 @@ double TcpAgent::rtt_timeout()
 
 	if (timeout > maxrto_)
 		timeout = maxrto_;
+	if (timeout < minrto_)
+		timeout = minrto_;
 
         if (timeout < 2 * tcp_tick_) {
 		if (timeout < 0) {

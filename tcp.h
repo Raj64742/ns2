@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.85 2001/03/15 02:39:54 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.86 2001/05/10 00:43:50 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -257,6 +257,7 @@ protected:
 	int maxcwnd_;		/* max # cwnd can ever be */
         int numdupacks_;	/* dup ACKs before fast retransmit */
 	double maxrto_;		/* max value of an RTO */
+	double minrto_;         /* min value of an RTO */
 	int old_ecn_;		/* For backwards compatibility with the 
 				 * old ECN implementation, which never
 				 * reduced the congestion window below
