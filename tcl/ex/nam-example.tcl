@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.12 1999/02/16 20:07:17 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.13 1999/03/11 00:50:08 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -19,7 +19,7 @@ if {[llength $argv] > 0} {
 #source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 ns-random 1
-Simulator set NumberInterfaces_ 1
+#Simulator set NumberInterfaces_ 1
 # Simulator set EnableMcast_ 1
 set ns [new Simulator -multicast on]
 Node expandaddr
@@ -66,9 +66,9 @@ $ns duplex-link-op $n(1) $n(2) orient right
 $ns duplex-link $n(2) $n(3) 1.5Mb 10ms DropTail
 $ns duplex-link-op $n(2) $n(3) orient right
 $ns duplex-link $n(3) $n(4) 1.5Mb 10ms DropTail
-$ns duplex-link-op $n(3) $n(4) orient right-up
+$ns duplex-link-op $n(3) $n(4) orient 60deg
 $ns duplex-link $n(3) $n(5) 1.5Mb 10ms DropTail
-$ns duplex-link-op $n(3) $n(5) orient right-down
+$ns duplex-link-op $n(3) $n(5) orient 300deg
 
 $ns duplex-link-op $n(3) $n(4) color "green"
 
@@ -158,7 +158,7 @@ proc finish {} {
     }
 
     puts "running nam..."
-#    exec nam -f dynamic-nam.conf out.nam &
+    exec nam -f dynamic-nam.conf out.nam &
     exit 0
 }
 
