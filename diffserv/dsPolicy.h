@@ -50,10 +50,7 @@ struct policyTableEntry {
 };
 	
 
-/*------------------------------------------------------------------------------
-struct policerTableEntry
-    This struct specifies the elements of a policer table entry.
-------------------------------------------------------------------------------*/
+//    This struct specifies the elements of a policer table entry.
 struct policerTableEntry {
 	policerType policer;
 	int initialCodePt;
@@ -61,6 +58,36 @@ struct policerTableEntry {
 	int downgrade2;
 };
 
+class Policy;
+
+// Class PolicyClassifier: keep the policy and polier tables.
+class PolicyClassifier : public TclObject {
+ public:
+  PolicyClassifier();
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
+  void updatePolicyRTT(int argc, const char*const* argv);
+  double getCBucket(const char*const* argv);
+  int mark(Packet *pkt);
+
+  // prints the policy tables
+  void printPolicyTable();		
+  void printPolicerTable();
+
+ protected:
+  Policy *policy;
+
+  // policy table and its pointer
+  //policyTableEntry policyTable[MAX_POLICIES];
+  int policyTableSize;
+  // policer table and its pointer
+  //policerTableEntry policerTable[MAX_CP];  
+  int policerTableSize;	
+
+  //policyTableEntry* getPolicyTableEntry(nsaddr_t source, nsaddr_t dest);
+};
+
+// Below are actual policy classes.
 class Policy : public TclObject {
  public:
   Policy();
@@ -218,4 +245,3 @@ class FWPolicy : public Policy {
 };
 
 #endif
-

@@ -21,10 +21,17 @@
 /* 
  *  Integrated into ns main distribution and reorganized by 
  *  Xuan Chen (xuanc@isi.edu). The main changes are:
- *  1. Created a general supper class Policy so that new policy can be added
- *     by just deriving from the supper class.
- *  2. Created a certain format for people who is trying to add their own
- *     new policies.
+ *  1. Defined two seperated classes, PolicyClassifier and Policy, to handle 
+ *     the work done by class Policy before.
+ *     Class PolicyClassifier now only keeps states for each flow and pointers
+ *     to certain policies. 
+ *     The policies perform the diffserv related jobs as described
+ *     below. (eg, traffic metering and packet marking.)
+ *     class Policy functions like the class Classifer.
+ *
+ *  2. Created a general supper class Policy so that new policy can be added
+ *     by just creating a subclass of Policy. Examples are given (eg, 
+ *     DumbPolicy) to help people trying to add their own new policies.
  *
  */
 
@@ -32,6 +39,119 @@
 #include "packet.h"
 #include "tcp.h"
 #include "random.h"
+
+// The definition of class PolicyClassifier.
+//Constructor.
+PolicyClassifier::PolicyClassifier() {
+  policy = NULL;
+  policyTableSize = 0;
+  policerTableSize = 0;
+}
+
+// Create the policy object and pass the parameters.
+void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
+  // Decide which policy the edge router wants, should create the policy object
+  // for the first time.
+
+  if (!policy) {
+    if (strcmp(argv[4], "Dumb") == 0)
+      policy = new DumbPolicy;
+    else if (strcmp(argv[4], "TSW2CM") == 0)
+      policy = new TSW2CMPolicy;
+    else if (strcmp(argv[4], "TSW3CM") == 0)
+      policy = new TSW3CMPolicy;
+    else if (strcmp(argv[4], "TokenBucket") == 0)
+      policy = new TBPolicy;
+    else if (strcmp(argv[4], "srTCM") == 0)
+      policy = new SRTCMPolicy;
+    else if (strcmp(argv[4], "trTCM") == 0)
+      policy = new TRTCMPolicy;
+    else if (strcmp(argv[4], "FW") == 0)
+      policy = new FWPolicy;
+    else {
+      printf("No applicable policy specified, exit!!!\n");
+      exit(-1);
+    }
+  };
+  
+  policy->addPolicyEntry(argc, argv);
+}
+
+// Add policer entry and pass the parameters to the policy object. 
+void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
+  // Decide what kind of policy edge router wants.
+  // should create a policy object for the first time.
+  if (!policy) {
+    if (strcmp(argv[2], "Dumb") == 0)
+      policy = new DumbPolicy;
+    else if (strcmp(argv[2], "TSW2CM") == 0)
+      policy = new TSW2CMPolicy;
+    else if (strcmp(argv[2], "TSW3CM") == 0)
+      policy = new TSW3CMPolicy;
+    else if (strcmp(argv[2], "TokenBucket") == 0)
+      policy = new TBPolicy;
+    else if (strcmp(argv[2], "srTCM") == 0)
+      policy = new SRTCMPolicy;
+    else if (strcmp(argv[2], "trTCM") == 0)
+      policy = new TRTCMPolicy;
+    else if (strcmp(argv[2], "FW") == 0)
+      policy = new FWPolicy;
+    else {
+      printf("No applicable policy specified, exit!!!\n");
+      exit(-1);
+    }
+  };
+  
+  policy->addPolicerEntry(argc, argv);
+  
+}
+
+// Let the policy to do the actual work
+int PolicyClassifier::mark(Packet *pkt) {
+  if (policy)
+    return policy->mark(pkt);
+  else {
+    printf("No policy object, exit!!!\n");
+    exit(-1);
+  }    
+};
+
+void PolicyClassifier::updatePolicyRTT(int argc, const char*const* argv) {
+  if (policy)
+    policy->updatePolicyRTT(argc, argv);
+  else {
+    printf("No policy object, exit!!!\n");
+    exit(-1);
+  }    
+}
+
+double PolicyClassifier::getCBucket(const char*const* argv) {
+  if (policy)
+    return policy->getCBucket(argv);
+  else {
+    printf("No policy object, exit!!!\n");
+    exit(-1);
+  }    
+}
+
+void PolicyClassifier::printPolicyTable() {
+  if (policy)
+    policy->printPolicyTable();
+  else {
+    printf("No policy object, exit!!!\n");
+    exit(-1);
+  }   
+}
+
+void PolicyClassifier::printPolicerTable() {
+  if (policy)
+    policy->printPolicerTable();
+  else {
+    printf("No policy object, exit!!!\n");
+    exit(-1);
+  }   
+}
+
 
 // The definition about the methods in the supper class Policy.
 //Constructor.
