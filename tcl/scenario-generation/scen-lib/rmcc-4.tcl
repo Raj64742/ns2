@@ -29,34 +29,37 @@ proc get_rand_time {first last number} {
 }
 
 
-ScenLib/RM instproc random_start_rm {} {
+ScenLib/RM instproc random_start_rm {start stop} {
 	global ns n num
 	#create mcast trees
-	set i $num
-	set t [expr $num * 2]
+	set i [expr $num*2]
+	set t [expr $num * 3]
 	while {$i < $t} {
 		lappend R $i
 		incr i
 	}
 	for {set i 0} {$i < $num} {incr i} {
-		set time [get_rand_time 0 10 1]
+		set time [get_rand_time $start $stop 1]
 		set st [expr $time - 1]
 		if {$st < 0} { set st 0}
 		set sw [expr $st - 0.7]
 		if {$sw < 0} { set sw 0}
-		puts "time = $time"
+		#puts "time = $time"
 		eval $self create_mcast $i $sw $st $time $R
+		#puts "mcast $i to $R"
 	}
 }
 
-ScenLib/RM instproc random_start_tcp {} {
+ScenLib/RM instproc random_start_tcp {start stop} {
 	global ns n num
-	set i 0
-	set j $num
-	while {$i < $num || $j < [expr 2 * $num]} {
-		set time [get_rand_time 0 10 1]
+    set start [expr $num*2]
+    set end [expr $num*4]
+	set i $num
+	set j [expr $num*3]
+	while {$i < $start || $j < $end} {
+		set time [get_rand_time $start $stop 1]
 		$self create_tcp $i $j $time
-		puts "$self create_tcp $i $j $time"
+	    #puts "$self create_tcp $i $j $time"
 		incr i
 		incr j
 	}
@@ -93,13 +96,13 @@ ScenLib/RM instproc make_topo3 {} {
 	
 
 	#now create client nodes on left of bottleneck
-	for {set i 0} {$i < $num} {incr i} {
+	for {set i 0} {$i < [expr $num*2]} {incr i} {
 		set n($i) [$ns node]
 		$ns duplex-link $n($i) $n(l) 10Mb 5ms DropTail
 	}
 
 	# do same for right of B/N link
-	for {set i $num} {$i < [expr $num * 2]} {incr i} {
+	for {set i [expr $num*2]} {$i < [expr $num * 4]} {incr i} {
 		set n($i) [$ns node] 
 		$ns duplex-link $n(r) $n($i) [expr $num * 5]Mb \
 				5ms DropTail
@@ -110,8 +113,8 @@ ScenLib/RM instproc make_topo3 {} {
 ScenLib/RM instproc add_flowmon { time } {
 	global num n t
 	#make sure the flow monitors are dumped at the right time
-	$self make_flowmon $time $n(r) $n($num) flowStats_1_$num.$t \
-			$n(r) $n([expr $num + 1]) \
+	$self make_flowmon $time $n(r) $n([expr $num*2]) flowStats_1_$num.$t \
+			$n(r) $n([expr $num * 3]) \
 			flowStats_1_[expr $num + 1].$t \
 			
 }
@@ -120,15 +123,17 @@ ScenLib/RM instproc add_flowmon { time } {
 
 	
 proc run {} {
-	global ns tcp_model
+	global ns n num
 	set test_scen [new ScenLib/RM]
 	$test_scen make_topo3
-	$test_scen random_start_tcp
-	#$ns at 0.0 "$tcp_model start"
-	$test_scen random_start_rm
+    #random start tcp and rm connections between 0 and 10s.
+	$test_scen random_start_tcp 0.0 10.0
+	$test_scen random_start_rm 0.0 10.0
 	$test_scen add_flowmon 30.0
-	$ns at 30.0 "finish"
-	$ns run
+    $test_scen dump_flowmon $n(r) $n([expr $num*2]) 60.0 ;# rm flow
+    $test_scen dump_flowmon $n(r) $n([expr $num*3]) 60.0 ;#tcp flow
+    $ns at 60.0 "finish"
+    $ns run
 }
 
 global argv prog opts t mflag
