@@ -29,19 +29,10 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.7 1997/10/13 22:25:10 mccanne Exp $
-#
-#
-# This test suite reproduces most of the tests from the following note:
-# Floyd, S., Simulator Tests. July 1995.  
-# URL ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z.
-#
-# To run individual tests:
-# ns test-suite.tcl tahoe1
-# ns test-suite.tcl tahoe2
-# ...
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.8 1997/10/14 23:07:39 sfloyd Exp $
 #
 
+#source plotting.tcl
 
 if [file exists redefines.tcl] {
 	puts "sourcing redefines.tcl in [pwd]"
@@ -108,9 +99,11 @@ TestSuite instproc finish file {
 #       To reproduce old functionality:
 #	../../bin/getrc -s 2 -d 3 all.tr | \
 #	  ../../bin/raw2xg -s 0.01 -m 90 | \
-#	  $xgraph -bb -tk -nl -m -x time -y packets
+#	  xgraph -bb -tk -nl -m -x time -y packets
 #	
-        catch "$self exit 0"
+#       catch "$self exit 0"
+	exec ../../bin/getrc -s 2 -d 3 all.tr | \
+	  ../../bin/raw2xg -s 0.01 -m 90 -t $file | compress > temp.rands.Z
 	exit 0
 }
 
