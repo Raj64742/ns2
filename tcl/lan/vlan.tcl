@@ -94,7 +94,7 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 		$mac set addr_ $macAddr
 
 		$mac channel $channel_
-		$mac mcl $mcl_
+		$mac classifier $mcl_
 		$mcl_ install [$mac set addr_] $mac
 
 		set lanIface_([$src id]) $nif
