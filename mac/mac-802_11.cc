@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.43 2003/09/30 18:42:06 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.44 2003/10/02 03:23:02 ddutta Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -641,7 +641,7 @@ Mac802_11::discard(Packet *p, const char* why)
 			   (u_int32_t)ETHER_ADDR(mh->dh_sa) == \
 			   (u_int32_t)index_ ||
 			   (u_int32_t)ETHER_ADDR(mh->dh_da) == MAC_BROADCAST) {
-				drop(p);
+				drop(p,why);
 				return;
 			*/
 			if((u_int32_t)ETHER_ADDR(mh->dh_ra) == \
@@ -649,7 +649,7 @@ Mac802_11::discard(Packet *p, const char* why)
                           (u_int32_t)ETHER_ADDR(mh->dh_ta) == \
                            (u_int32_t)index_ ||
                           (u_int32_t)ETHER_ADDR(mh->dh_ra) == MAC_BROADCAST) {
-                                drop(p);
+                                drop(p,why);
                                 return;
 			}
 			break;
