@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.42 1997/08/08 02:55:33 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.43 1997/08/10 08:48:33 ahelmy Exp $
 #
 
 #
@@ -515,31 +515,40 @@ Simulator instproc multi-link { nodes bw delay type } {
 
 Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
         $self instvar link_ traceAllFile_
-        
+                                
         # create the interfaces
         set ifs ""
         foreach n $nodes {
                 set f [new DuplexNetInterface]
                 $n addInterface $f
-                lappend ifs $f
+              lappend ifs $f   
         }
-        # set multiLink [new PhysicalMultiLink $ifs $bw $delay $type]
         set multiLink [new NonReflectingMultiLink $ifs $bw $delay $type]
         # set up dummy links for unicast routing
-        foreach n $nodes {
+        foreach f $ifs {
+                set n [$f getNode]
                 set q [$multiLink getQueue $n]
-                set l [$multiLink getDelay $n]  
-                set did [$n id]
-                foreach n2 $nodes {
+                set l [$multiLink getDelay $n]
+                set did [$n id] 
+                foreach f2 $ifs {
+                        set n2 [$f2 getNode]
                         if { [$n2 id] != $did } {
-                                set sid [$n2 id]
-                                set dumlink [new DummyLink $n2 $n $q $l]
-                                set link_($sid:$did) $dumlink
-                                $dumlink setContainingObject $multiLink
-                                if [info exists traceAllFile_] {
-                                        $self trace-queue $n2 $n $traceAllFile_
-                                }
+                           set sid [$n2 id]   
+                           set dumlink [new DummyLink $f2 $f $q $l $multiLink]
+                           set link_($sid:$did) $dumlink
+                           if [info exists traceAllFile_] {
+                                     $self trace-queue $n2 $n $traceAllFile_
+                           }
                         }
-                } 
+                }
         }
+        return $multiLink
+}
+
+Simulator instproc getlink { id1 id2 } {
+        $self instvar link_
+        if [info exists link_($id1:$id2)] {
+                return $link_($id1:$id2)
+        }
+        return -1
 }
