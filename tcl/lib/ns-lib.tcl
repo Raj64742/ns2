@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.9 1997/02/27 04:41:31 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.10 1997/03/04 22:39:04 tomh Exp $
 #
 
 #
@@ -182,6 +182,19 @@ Simulator instproc drop-trace { n1 n2 trace } {
 
 Simulator instproc attach-agent { node agent } {
 	$node attach $agent
+}
+
+#
+#   Helper proc for setting delay on an existing link
+#
+Simulator instproc delay { n1 n2 delay } {
+    $self instvar link_
+    set sid [$n1 id]
+    set did [$n2 id]
+    if [info exists link_($sid:$did)] {
+        set d [$link_($sid:$did) link]
+        $d set delay_ $delay
+    }
 }
 
 #XXX need to check that agents are attached to nodes already
