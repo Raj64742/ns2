@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.17 1997/11/25 02:28:29 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.18 1997/12/19 22:20:16 bajaj Exp $
 #
 
 Class Node
@@ -51,8 +51,8 @@ Node instproc init args {
 	set id_ [Node getid]
 	set classifier_ [new Classifier/Addr]
 	# set up classifer as a router (i.e., 24 bit of addr and 8 bit port)
-	$classifier_ set mask_ 0xffffff
-	$classifier_ set shift_ 8
+    $classifier_ set mask_ [Simulator set NodeMask_]
+    $classifier_ set shift_ [Simulator set NodeShift_]
 }
 
 Node instproc enable-mcast sim {
@@ -112,10 +112,16 @@ Node instproc id {} {
 }
 
 Node instproc alloc-port {} {
-	$self instvar np_
-	set p $np_
-	incr np_
-	return $p
+    $self instvar dmux_ np_
+    set p [$dmux_ alloc-port]
+    if { $np_ < $p } {
+	set np_ $p
+    }
+    if {$np_ > [$dmux_ set mask_] } {
+	puts stderr "No of ports($np_) attached to $self node is greater than allowed"
+    }
+
+    return $p
 }
 
 #
@@ -129,8 +135,7 @@ Node instproc attach agent {
 	# traffic addressed to this host and port)
 	#
 	lappend agents_ $agent
-	set port [$self alloc-port]
-	$agent set portID_ $port
+	
 
 	#
 	# Attach agents to this node (i.e., the classifier inside).
@@ -142,14 +147,14 @@ Node instproc attach agent {
 	#
 	$agent target [$self entry]
 	$agent set node_ $self
-	$agent set addr_ [expr $id_ << 8 | $port]
+    
 
 	#
 	# If a port demuxer doesn't exist, create it.
 	#
 	if { $dmux_ == "" } {
 		set dmux_ [new Classifier/Addr]
-		$dmux_ set mask_ 0xff
+	    $dmux_ set mask_ [Simulator set PortMask_]
 		$dmux_ set shift_ 0
 		#
 		# point the node's routing entry to itself
@@ -157,8 +162,11 @@ Node instproc attach agent {
 		#
 		$self add-route $id_ $dmux_
 	}
-	$dmux_ install $port $agent
+    set port [$self alloc-port]
+    $agent set portID_ $port
+    $agent set addr_ [expr $id_ << [Simulator set NodeShift_] | $port]
 
+	$dmux_ install $port $agent
 	#
 	# add trace into attached agent
 	#
@@ -194,7 +202,7 @@ Node instproc detach { agent nullagent } {
 	$agent target $nullagent
 
 	set port [$agent set portID_]
-	$dmux_ install $port $nullagent
+	$dmux_ clear $port
 }
 
 Node instproc agent port {

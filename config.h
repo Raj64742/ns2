@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.12 1997/08/27 21:08:27 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.13 1997/12/19 22:20:12 bajaj Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -183,6 +183,11 @@ time_t time(time_t *);
 #define M_PI		3.14159265358979323846
 
 #endif /* WIN32 */
+
+//While changing these ensure that values are consistent with tcl/lib/ns-default.tcl
+#define NODEMASK  0xffffff
+#define NODESHIFT 8
+#define PORTMASK  0xff
 
 #endif
 

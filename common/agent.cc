@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.31 1997/10/30 18:48:37 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.32 1997/12/19 22:20:10 bajaj Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -146,8 +146,8 @@ void Agent::flushAVar(TracedVar *v)
 		return;
 	sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -o %s -T v -x",
 		Scheduler::instance().clock(),
-		addr_ >> 8,
-		dst_ >> 8,
+		addr_ >> NODESHIFT,
+		dst_ >> NODESHIFT,
 		v->name(),
 		traceName_,
 		value);
@@ -172,8 +172,8 @@ void Agent::deleteAgentTrace()
 	// so nam can do backtracing
 	sprintf(wrk, "a -t %-8.5f -s %d -d %d -n %s -x",
 		Scheduler::instance().clock(),
-		addr_ >> 8,
-		dst_ >> 8,
+		addr_ >> NODESHIFT,
+		dst_ >> NODESHIFT,
 		traceName_);
 	if (traceName_ != NULL)
 		delete[] traceName_;
@@ -223,8 +223,8 @@ void Agent::trace(TracedVar* v)
 	if (ov != NULL) {
 		sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
 			Scheduler::instance().clock(),
-			addr_ >> 8,
-			dst_ >> 8,
+			addr_ >> NODESHIFT,
+			dst_ >> NODESHIFT,
 			v->name(),
 			traceName_,
 			value,
@@ -236,8 +236,8 @@ void Agent::trace(TracedVar* v)
 		// if there is value, insert it into old value list
 		sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -v %s -T v",
 			Scheduler::instance().clock(),
-			addr_ >> 8,
-			dst_ >> 8,
+			addr_ >> NODESHIFT,
+			dst_ >> NODESHIFT,
 			v->name(),
 			traceName_,
 			value);
@@ -258,8 +258,8 @@ void Agent::addAgentTrace(const char *name)
 	
 	sprintf(wrk, "a -t %-8.5f -s %d -d %d -n %s",
 		curTime,
-		addr_ >> 8,
-		dst_ >> 8,
+		addr_ >> NODESHIFT,
+		dst_ >> NODESHIFT,
 		name);
 	n = strlen(wrk);
 	wrk[n] = '\n';
@@ -296,6 +296,7 @@ Packet* Agent::allocpkt() const
 	ch->uid() = uidcnt_++;
 	ch->ptype() = type_;
 	ch->size() = size_;
+	ch->timestamp() = Scheduler::instance().clock();
 	ch->iface() = -2;	/* XXX arbitrary */
 	ch->error() = 0;	/* not corrupt to start with */
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.80 1997/12/18 23:23:49 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.81 1997/12/19 22:20:14 bajaj Exp $
 
 
 #
@@ -115,11 +115,7 @@ Agent/TCP/Vegas/RBP set rbp_scale_ 0.75
 # 1=RBP_VEGAS_RATE_ALGORITHM (default),
 # 2=RBP_CWND_ALGORITHM
 Agent/TCP/Vegas/RBP set rbp_rate_algorithm_ 1
-Agent/TCP/Vegas/RBP set rbp_segs_actually_paced_ 0
-Agent/TCP/Vegas/RBP set rbp_inter_pace_delay_ 0
 Agent/TCP/Reno/RBP set rbp_scale_ 0.75
-# Agent/TCP/Reno/RBP set rbp_segs_actually_paced_ 0
-Agent/TCP/Reno/RBP set rbp_inter_pace_delay_ 0
 # Reno/RBP supports only RBP_CWND_ALGORITHM 
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
 
@@ -138,7 +134,6 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
 	Agent/TCP/FullTcp set close_on_empty_ false
 	Agent/TCP/FullTcp set delay_growth_ false
-	Agent/TCP/FullTcp set slow_start_restart_ false
 }
 
 Integrator set lastx_ 0.0
@@ -216,7 +211,6 @@ Agent/CBR set interval_ 3.75ms
 Agent/CBR set random_ 0
 Agent/CBR set packetSize_ 210
 Agent/CBR set maxpkts_ 0x10000000
-Agent/CBR instproc done {} { }
 
 Agent/CBR/RTP set seqno_ 0
 Agent/RTCP set seqno_ 0
@@ -247,15 +241,10 @@ Agent/LossMonitor set bytes_ 0
 Agent/LossMonitor set lastPktTime_ 0
 Agent/LossMonitor set expected_ 0
 
-ErrorModel set errPkt_ 0
 ErrorModel set errByte_ 0
 ErrorModel set errTime_ 0
-ErrorModel set onlink_ 0
-ErrorModel set enable_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
-SRMErrorModel set errByte_ 0
-SRMErrorModel set errTime_ 0
 
 QueueMonitor set size_ 0
 QueueMonitor set pkts_ 0
@@ -314,6 +303,12 @@ Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
 Node set multiPath_ 0
 
 Simulator set EnableMcast_ 0                    ;# to enable mcast
+# Defaults for unicast addresses
+# While changing these, ensure that the values are consistent in config.h
+Simulator set NodeMask_ 0xffffff
+Simulator set NodeShift_ 8
+Simulator set PortMask_ 0xff
+
 # Defaults for multicast addresses
 Simulator set McastShift_ 15
 Simulator set McastAddr_ 0x8000

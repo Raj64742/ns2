@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.23 1997/11/17 23:24:14 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.24 1997/12/19 22:20:13 bajaj Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -227,8 +227,8 @@ flags[5] = 0;
 			th->size(),
 			flags,
 			iph->flowid() /* was p->class_ */,
-			iph->src() >> 8, iph->src() & 0xff,	// XXX
-			iph->dst() >> 8, iph->dst() & 0xff,	// XXX
+			iph->src() >> NODESHIFT, iph->src() & PORTMASK,	// XXX
+			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK,	// XXX
 			seqno,
 			th->uid() /* was p->uid_ */);
 	} else {
@@ -241,8 +241,8 @@ flags[5] = 0;
 			th->size(),
 			flags,
 			iph->flowid() /* was p->class_ */,
-			iph->src() >> 8, iph->src() & 0xff,	// XXX
-			iph->dst() >> 8, iph->dst() & 0xff,	// XXX
+			iph->src() >> NODESHIFT, iph->src() & PORTMASK,	// XXX
+			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK,	// XXX
 			seqno,
 			th->uid(), /* was p->uid_ */
 			tcph->ackno(),

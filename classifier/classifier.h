@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.9 1997/08/22 23:29:21 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.10 1997/12/19 22:20:11 bajaj Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -57,6 +57,7 @@ class Classifier : public NsObject {
  protected:
 	void install(int slot, NsObject*);
 	void clear(int slot);
+	int getnxt();
 	virtual int command(int argc, const char*const* argv);
 	void alloc(int);
 	NsObject** slot_;	/* table that maps slot number to a NsObject */

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.12 1997/08/22 23:29:20 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.13 1997/12/19 22:20:11 bajaj Exp $";
 #endif
 
 #include <stdlib.h>
@@ -104,6 +104,16 @@ void Classifier::clear(int slot)
 	}
 }
 
+int Classifier::getnxt()
+{
+  int i;
+  for (i=0; i < nslot_; i++)
+    if (slot_[i]==0)
+      return i;
+  i=nslot_;
+  alloc(nslot_);
+  return i;
+}
 
 /*
  * objects only ever see "packet" events, which come either
@@ -147,7 +157,17 @@ NsObject* Classifier::find(Packet* p)
 int Classifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 3) {
+	if (argc == 2) {
+	  /*
+	   * $classifier alloc-port
+	   */
+	  if (strcmp(argv[1],"alloc-port") == 0) {
+	    int slot;
+	    slot=getnxt();
+	    tcl.resultf("%u",slot);
+	    return(TCL_OK);
+	  }
+	} else 	if (argc == 3) {
 		/*
 		 * $classifier clear $slot
 		 */

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.72 1997/12/17 21:25:04 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.73 1997/12/19 22:20:15 bajaj Exp $
 #
 
 #
@@ -162,6 +162,11 @@ Simulator instproc now {} {
 Simulator instproc at args {
 	$self instvar scheduler_
 	return [eval $scheduler_ at $args]
+}
+
+Simulator instproc at-now args {
+	$self instvar scheduler_
+	return [eval $scheduler_ at-now $args]
 }
 
 Simulator instproc cancel args {
@@ -553,8 +558,8 @@ Simulator instproc connect { src dst } {
 	#
 	set srcNode [$src set node_]
 	set dstNode [$dst set node_]
-	$src set dst_ [expr [$dstNode id] << 8 | [$dst port]]
-	$dst set dst_ [expr [$srcNode id] << 8 | [$src port]]
+	$src set dst_ [expr [$dstNode id] << [Simulator set NodeShift_]  | [$dst port]]
+	$dst set dst_ [expr [$srcNode id] << [Simulator set NodeShift_] | [$src port]]
 	return $src
 }
 

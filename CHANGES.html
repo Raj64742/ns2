@@ -2,11 +2,12 @@
 <HTML>
 <HEAD>
    <TITLE>ns Change Log</TITLE>
+<!-- Changed by: Sandeep Bajaj, 19-Dec-1997 -->
    <META NAME="GENERATOR" CONTENT="Mozilla/3.01Gold (X11; U; SunOS 4.1.3_U1 sun4m) [Netscape]">
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.191 1997/12/16 03:35:12 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.192 1997/12/19 22:20:09 bajaj Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -18,6 +19,22 @@
 <hr>
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
 <UL>
+<LI><B><A HREF="mailto:bajaj@parc.xerox.com>[SB]</A></B>
+<B>Fri Dec 19 12:09:25 PST 1997</B><BR>
+</LI>
+<UL>
+<li>Changed ns-node.tcl and classifier.cc so that the classifier
+slot-table can be reused  
+<li>Added default shift/mask in tcl/lib/ns-default.tcl and config.h
+which would make it easier to configure a simulation with a different
+kind of addressing.
+<li>Added ns at-now functionality  in ns-lib.tcl
+<li>Added a code line to fill up ch->timestamp in the function
+allocpkt in agent.cc
+<li>Changed declaration of gettimeofday in rng.cc to make it work on Solaris
+<li>Added warning messages in timer-handler.cc before abort() in
+functions cancel and sched 
+</UL>
 
 <LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B>
 <B>Sun Aug 10 15:11:27 PDT 1997</B><BR>
@@ -33,7 +50,7 @@ but in the meantime you can run it manually as follows:
 <li> Fixed up some of the formatting in this change history.
 </UL>
 
-<LI><B><A HREF=http://www.cs.berkeley.edu/~elan>[EA]</A>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~elan">[EA]</A>
 Fri Nov 28 19:13:31 PST 1997
 </b>
 <br>
@@ -69,7 +86,7 @@ the string "RED" in $type. This is to accomodate derived classes of REDQueue
 such as SemanticREDQueue.
 </UL>
 
-  <LI><B><A HREF=http://www.cs.berkeley.edu/~hari>[hari]</A></B>
+  <LI><B><A HREF="http://www.cs.berkeley.edu/~hari">[hari]</A></B>
        <b>Tue Nov 18 17:22:12 PST 1997</b> <br>
 	<ul>
      <LI>  Multi-state error models and restructuring of OTcl support
@@ -93,7 +110,7 @@ such as SemanticREDQueue.
        validate now runs only v2 tests.
        There's a new script validate-v1 to run v1 tests.
      </LI>
-  <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A></B>
+  <LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
 	<b>Tue Nov 11 12:40:44 PST 1997</b>
 	<br>
 	Minor updates:
@@ -123,7 +140,7 @@ such as SemanticREDQueue.
        configure --with-tcl-ver=7.6 and --with-tk-ver=4.2
        (or --with-tcl=/full/path/to/tcl7.6 etc.).
 
-  <LI><B><A HREF=http://www.cs.berkeley.edu/~hari>[hari]</A></B>
+  <LI><B><A HREF="http://www.cs.berkeley.edu/~hari">[hari]</A></B>
        <b>Wed Nov  5 20:44:32 PST 1997</b> <br>
 	<ul>
      <LI>  Massive changes to error model structures and error generation to make 
@@ -233,7 +250,7 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
        </ul>
      </LI>
 
-  <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A></B>
+  <LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
 	<b>Thu Oct 23 13:09:11 PDT 1997</b>
 	<br>
 	SRM fixes, from Christoph Haenle &lt;christoph@starburst.com&gt; and
@@ -267,7 +284,7 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
        New rbp_demo.tcl.
      </LI>
 
-  <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A></B>
+  <LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
 	<b>Wed Oct 22 13:58:15 PDT 1997</b><br>
 	Minor cleanup following the crash.
 
@@ -418,7 +435,7 @@ Sep 10, 1997</H3>
        2.0 release.
      </LI>
 
-  <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A> Tue Sep  9 23:48:19 PDT 1997</B><BR>
+  <LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A> Tue Sep  9 23:48:19 PDT 1997</B><BR>
 	Moved drophead_ to the base simplelink class.
 	Added $link ttl-drop-trace, linkfail-drop-trace, and transit-drop-trace.
 	usage is as:
@@ -438,7 +455,7 @@ receiving a partial new ack. Files affected are tcp-newreno.cc, tcp-fs.cc and
 tcp.h.
 
 
-  <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A> Tue Sep  9 23:48:19 PDT 1997</B><BR>
+  <LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A> Tue Sep  9 23:48:19 PDT 1997</B><BR>
 	Minor updates to rtglib, moved things into rightful places.
 	cleanedup the binaries.
 	</LI>
