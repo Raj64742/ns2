@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.80 2000/08/13 05:50:29 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.81 2000/08/20 00:24:35 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -318,6 +318,8 @@ protected:
 				/* Used for decrease_num_ != 0.5. */
         TracedInt singledup_;   /* Send on a single dup ack.  */
 	int noFastRetrans_;	/* No Fast Retransmit option.  */
+	int oldCode_;		/* Use old code. */
+
 
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);
