@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/template.h,v 1.5 1997/08/12 21:17:58 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/template.h,v 1.6 1997/08/12 22:20:48 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_template_h
