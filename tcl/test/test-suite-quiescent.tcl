@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.1 2002/12/19 02:34:45 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.2 2002/12/23 02:44:28 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -43,8 +43,8 @@ Agent/TFRC set SndrType_ 1
 
 TestSuite instproc finish {file stoptime} {
         global quiet PERL
-        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+	exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+	  $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
         exec echo $stoptime 0 >> temp.rands 
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
@@ -182,6 +182,108 @@ Test/tcp_onoff instproc init {} {
     Agent/TFRC set SndrType_ 1
     set stopTime1_ 10
     Test/tcp_onoff instproc run {} [Test/tfrc_onoff info instbody run ]
+    $self next
+}
+
+Class Test/tfrc_telnet -superclass TestSuite
+Test/tfrc_telnet instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    set net_	net2
+    set test_ tfrc_telnet	
+    set guide_  \
+    "TFRC with a Telnet data source, telnet data rate increased at time 4."
+    set sndr_ TFRC
+    set rcvr_ TFRCSink
+    Agent/TFRC set oldCode_ false
+    Agent/TFRC set SndrType_ 1
+    set stopTime1_ 10
+    $self next
+}
+Test/tfrc_telnet instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ stopTime1_ sndr_ rcvr_
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set stopTime $stopTime1_
+
+    set tf1 [$ns_ create-connection $sndr_ $node_(s1) $rcvr_ $node_(s3) 0]
+    set telnet1 [new Source/Telnet]
+    $telnet1 attach-agent $tf1
+    $tf1 set type_ Telnet
+    $telnet1 set interval_ 0.01
+    $ns_ at 0.0 "$telnet1 start"
+    $ns_ at 4.0 "$telnet1 set interval_ 0.001"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/tcp_telnet -superclass TestSuite
+Test/tcp_telnet instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    set net_	net2
+    set test_ tcp_telnet	
+    set guide_  \
+    "TCP with a Telnet data source, telnet data rate increased at time 4."
+    set sndr_ TCP/Sack1
+    set rcvr_ TCPSink/Sack1
+    Agent/TFRC set oldCode_ false
+    Agent/TFRC set SndrType_ 1
+    set stopTime1_ 10
+    Test/tcp_telnet instproc run {} [Test/tfrc_telnet info instbody run ]
+    $self next
+}
+
+Class Test/tfrc_cbr -superclass TestSuite
+Test/tfrc_cbr instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    set net_	net2
+    set test_ tfrc_cbr	
+    set guide_  \
+    "TFRC with a CBR data source, CBR data rate increased at time 4."
+    set sndr_ TFRC
+    set rcvr_ TFRCSink
+    Agent/TFRC set oldCode_ false
+    Agent/TFRC set SndrType_ 1
+    set stopTime1_ 10
+    $self next
+}
+Test/tfrc_cbr instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ stopTime1_ sndr_ rcvr_
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set stopTime $stopTime1_
+
+    set tf1 [$ns_ create-connection $sndr_ $node_(s1) $rcvr_ $node_(s3) 0]
+    set cbr1 [new Application/Traffic/CBR]
+    $cbr1 attach-agent $tf1
+    $tf1 set type_ CBR
+    $cbr1 set interval_ 0.01
+    $ns_ at 0.01 "$cbr1 start"
+    $ns_ at 4.0 "$cbr1 set interval_ 0.001"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/tcp_cbr -superclass TestSuite
+Test/tcp_cbr instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    set net_	net2
+    set test_ tcp_cbr	
+    set guide_  \
+    "TCP with a CBR data source, CBR data rate increased at time 4."
+    set sndr_ TCP/Sack1
+    set rcvr_ TCPSink/Sack1
+    Agent/TFRC set oldCode_ false
+    Agent/TFRC set SndrType_ 1
+    set stopTime1_ 10
+    Test/tcp_cbr instproc run {} [Test/tfrc_cbr info instbody run ]
     $self next
 }
 
