@@ -21,6 +21,7 @@ options:
     -v          plot events
     -c          leave out empty lists
     -f          plot acks from tcp-full
+    -p          don't add the x-graph preface
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
@@ -30,7 +31,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('acefds:m:n:qlvt:') || usage;
+&Getopts('acefds:m:n:qplvt:') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -45,6 +46,7 @@ $plot_drops = defined($opt_d);
 $plot_event = defined($opt_v);
 $no_padding = defined($opt_c);
 $plot_full = defined($opt_f);
+$no_title = defined($opt_p);
 
 $file = $acks = '';
 
@@ -61,7 +63,7 @@ while (<>) {
     /testName/ && ($file = $F[2], next);
     /^[\+-] / && do {
 	$c = $F[7] if ($c < $F[7]);
-	$is_ack = ($F[4] eq 'ack');
+	$is_ack = ($F[4] eq 'ack' || $F[4] eq 'tcpFriendCtl');
 	$is_ecn = ($F[6] =~ /E/);
 	$is_cong = ($F[6] =~ /A/);
 	$is_echo = ($F[6] =~ /C/); 
@@ -153,16 +155,18 @@ if ($file eq '') {
 	($file) = ($dfile =~ m!([^/]+)$!);
 }
 
-$title  = defined($opt_t) ? $opt_t : $file;
-print "TitleText: $title\n" .
-    "Device: Postscript\n" .
-    "BoundBox: true\n" .
-    "Ticks: true\n" .
-    (defined($opt_q) ? "" : "NoLines: true\n") .
-
-    "Markers: true\n" .
-    "XUnitText: time\n" .
-    "YUnitText: packets\n";
+if (!$no_title) {
+    $title  = defined($opt_t) ? $opt_t : $file;
+    print "TitleText: $title\n" .
+        "Device: Postscript\n" .
+        "BoundBox: true\n" .
+        "Ticks: true\n" .
+        (defined($opt_q) ? "" : "NoLines: true\n") .
+    
+        "Markers: true\n" .
+        "XUnitText: time\n" .
+        "YUnitText: packets\n";
+}
 
 print "\n\"packets\n", @p;
 
