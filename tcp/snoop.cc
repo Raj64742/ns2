@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.4 1997/07/23 04:23:20 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.5 1997/07/23 05:05:08 kfall Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -83,7 +83,7 @@ Snoop::recv(Packet* p, Handler* h)
 		handle((Event *) p);
 		return;
 	}
-	int type = ((hdr_cmn*)p->access(off_cmn_))->ptype_;
+	int type = ((hdr_cmn*)p->access(off_cmn_))->ptype();
         /* Put packet (if not ack) in cache after checking, and send it on */
 	if (type == PT_TCP)
 		snoop_data_(p);
@@ -103,7 +103,7 @@ void
 Snoop::handle(Event *e)
 {
 	Packet *p = (Packet *) e;
-	int type = ((hdr_cmn*) p->access(off_cmn_))->ptype_;
+	int type = ((hdr_cmn*) p->access(off_cmn_))->ptype();
 	int prop = SNOOP_PROPAGATE; // by default. propagate ack or packet
 	Scheduler& s = Scheduler::instance();
 
@@ -413,7 +413,7 @@ SnoopRxmitHandler::handle(Event *)
 	if (p == 0)
 		return;
 	hdr_snoop *sh = (hdr_snoop *) p->access(snoop_->off_snoop_);
-	if (sh->seqno_ != snoop_->lastAck_ + 1)
+	if (sh->seqno() != snoop_->lastAck_ + 1)
 		return;
 	if ((snoop_->bufhead_ != snoop_->buftail_) || 
 	    (snoop_->fstate_ & SNOOP_FULL)) {
