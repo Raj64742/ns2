@@ -69,7 +69,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.2 1997/07/21 22:07:13 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.3 1997/07/25 05:26:01 padmanab Exp $ (LBL)";
 #endif
 
 #include "Tcl.h"
@@ -123,7 +123,7 @@ FullTcpAgent::reset()
 	rcv_nxt_ = -1;
 	flags_ = 0;
 	TcpAgent::reset();
-	t_seqno() = iss_;
+	t_seqno_ = iss_;
 }
 
 /*
@@ -230,14 +230,14 @@ void FullTcpAgent::output(int seqno, int reason)
 	int datalen = min((curseq_ + iss_) - seqno, maxseg_);
 	int pflags = outflags();
 	int emptying_buffer = ((seqno + datalen) >= (curseq_ + iss_));
-	int is_retransmit = (seqno <= maxseq());
-	int idle = (highest_ack() == maxseq());
+	int is_retransmit = (seqno <= maxseq_);
+	int idle = (highest_ack_ == maxseq_);
 
 	/* turn off FIN if there's really more to send */
 	if (!emptying_buffer)
 		pflags &= ~TH_FIN;
 
-	if ((seqno + datalen) > (highest_ack() + (window() * maxseg_)))
+	if ((seqno + datalen) > (highest_ack_ + (window() * maxseg_)))
 		datalen = 0;
 
 	/* sender SWS avoidance (Nagle) */
@@ -307,9 +307,9 @@ send:
 
 	if (pflags & TH_FIN)
 		flags_ |= TF_SENTFIN;
-	t_seqno() += datalen;		// update snd_nxt (t_seqno_)
-	if (t_seqno() > maxseq()) {
-		maxseq() = t_seqno(); 	// largest seq# we've sent
+	t_seqno_ += datalen;		// update snd_nxt (t_seqno_)
+	if (t_seqno_ > maxseq_) {
+		maxseq_ = t_seqno_; 	// largest seq# we've sent
 		/*
 		 * Time this transmission if not a retransmission and
 		 * not currently timing anything.
@@ -326,7 +326,7 @@ send:
 	 * round-trip time + 2 * round-trip time variance.
 	 * Future values are rtt + 4 * rttvar.
 	 */
-	if (!pending_[TCP_TIMER_RTX] && ((seqno + datalen) != highest_ack())) {
+	if (!pending_[TCP_TIMER_RTX] && ((seqno + datalen) != highest_ack_)) {
 		set_rtx_timer();  // no timer pending, schedule one
 	}
 	return;
@@ -347,18 +347,18 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	 */
 	int win = window() * maxseg_;	// window() in pkts
 	int npackets = 0;
-	int topwin = min(highest_ack() + win, curseq_ + iss_);
+	int topwin = min(highest_ack_ + win, curseq_ + iss_);
 
 
 	if (!force && pending_[TCP_TIMER_DELSND])
         return;
 
-	while (force || (t_seqno() < topwin)) {
+	while (force || (t_seqno_ < topwin)) {
 		if (overhead_ != 0 && !pending_[TCP_TIMER_DELSND]) {
 			sched(Random::uniform(overhead_), TCP_TIMER_DELSND);
 			return;
 		}
-		output(t_seqno(), reason);	// updates seqno for us
+		output(t_seqno_, reason);	// updates seqno for us
 		force = 0;
 		npackets++;
 
@@ -400,27 +400,27 @@ void FullTcpAgent::newack(Packet* pkt)
 	if (rtt_active_ && ackno >= rtt_seq_) {
 		/* got a rtt sample */
 		rtt_active_ = FALSE;	// no longer timing
-		t_backoff() = 1;		// stop exp backoff
+		t_backoff_ = 1;		// stop exp backoff
 	}
 
 	/* always with timestamp option */
 	double tao = now - tcph->ts();
 	rtt_update(tao);
 
-	if (ackno == maxseq())
+	if (ackno == maxseq_)
 		cancel_rtx_timeout();
 	else {
-		if (ackno > highest_ack()) {
+		if (ackno > highest_ack_) {
 			set_rtx_timer();
 		}
 	}
 
 	// advance the ack number if this is for new data
-	if (ackno > highest_ack())
-		highest_ack() = ackno;
+	if (ackno > highest_ack_)
+		highest_ack_ = ackno;
 	// set up the next packet to send
-	if (t_seqno() < highest_ack())
-		t_seqno() = highest_ack();	// thing to send next
+	if (t_seqno_ < highest_ack_)
+		t_seqno_ = highest_ack_;	// thing to send next
 }
 
 /*
@@ -434,7 +434,7 @@ int FullTcpAgent::predict_ok(Packet* pkt)
 	int p1 = (state_ == TCPS_ESTABLISHED);		// ready
 	int p2 = (tcph->flags() == TH_ACK);		// is an ACK
 	int p3 = (tcph->seqno() == rcv_nxt_);		// in-order data
-	int p4 = (t_seqno() == maxseq());			// not re-xmit
+	int p4 = (t_seqno_ == maxseq_);			// not re-xmit
 	int p5 = (((hdr_flags*)pkt->access(off_flags_))->ecn_ == 0);	// no ECN
 
 	return (p1 && p2 && p3 && p4 && p5);
@@ -449,11 +449,11 @@ int FullTcpAgent::predict_ok(Packet* pkt)
 
 void FullTcpAgent::fast_retransmit(int seq)
 {
-	int onxt = t_seqno();		// output() changes t_seqno_
-	recover_ = maxseq();		// keep a copy of highest sent
+	int onxt = t_seqno_;		// output() changes t_seqno_
+	recover_ = maxseq_;		// keep a copy of highest sent
 	recover_cause_ = REASON_DUPACK;	// why we started this recovery period
 	output(seq, REASON_DUPACK);	// send one pkt
-	t_seqno() = onxt;
+	t_seqno_ = onxt;
 }
 
 /*
@@ -489,12 +489,12 @@ void FullTcpAgent::timeout(int tno)
 
         /* retransmit timer */
         if (tno == TCP_TIMER_RTX) {
-		recover_ = maxseq();
+		recover_ = maxseq_;
 		recover_cause_ = REASON_TIMEOUT;
                 closecwnd(0);
                 reset_rtx_timer(1);
-		t_seqno() = highest_ack();
-		dupacks() = 0;
+		t_seqno_ = highest_ack_;
+		dupacks_ = 0;
                 send_much(0, PF_TIMEOUT);
         } else if (tno == TCP_TIMER_DELSND) {
                 /*
@@ -559,18 +559,18 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		if (datalen == 0) {
 			// check for a received pure ACK and that
 			// our own cwnd doesn't limit us
-			if (ackno > highest_ack() && ackno <= maxseq()
-				&& cwnd() >= wnd_) {
+			if (ackno > highest_ack_ && ackno <= maxseq_
+				&& cwnd_ >= wnd_) {
 				newack(pkt);
 				opencwnd();
-				if ((curseq_ + iss_) > highest_ack()) {
+				if ((curseq_ + iss_) > highest_ack_) {
 					/* more to send */
 					send_much(0, REASON_NORMAL, 0);
 				}
 				Packet::free(pkt);
 				return;
 			}
-		} else if (ackno == highest_ack() && rq_.empty()) {
+		} else if (ackno == highest_ack_ && rq_.empty()) {
 			// check for pure incoming segment
 			// the next data segment we're awaiting, and
 			// that there's nothing sitting in the reassem-
@@ -616,15 +616,15 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		flags_ |= TF_ACKNOW;
 		state_ = TCPS_SYN_RECEIVED;
 		rcv_nxt_ = tcph->seqno();
-		t_seqno() = iss_;
+		t_seqno_ = iss_;
 		goto step6;
 	case TCPS_SYN_SENT:	/* we sent SYN, expecting SYN+ACK */
-		if ((tiflags & TH_ACK) && (ackno > maxseq())) {
+		if ((tiflags & TH_ACK) && (ackno > maxseq_)) {
 			double now = Scheduler::instance().clock();
 			// not an ACK for our SYN, discard
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
-			        now, name(), ackno, maxseq());
+			        now, name(), ackno, maxseq_);
 			goto drop;
 		}
 		if ((tiflags & TH_SYN) == 0) {
@@ -632,7 +632,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// we're looking for a SYN in return
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN(%d)\n",
-			        now, name(), maxseq());
+			        now, name(), maxseq_);
 			goto drop;
 		}
 		rcv_nxt_ = tcph->seqno();	// initial expected seq#
@@ -710,7 +710,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 
 	switch (state_) {
 	case TCPS_SYN_RECEIVED:	/* got ACK for our SYN+ACK */
-		if (ackno < highest_ack() || ackno > maxseq()) {
+		if (ackno < highest_ack_ || ackno > maxseq_) {
 			// not in useful range
 			goto drop;
 		}
@@ -737,7 +737,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		// look for dup ACKs (dup ack numbers, no data)
 		//
 		// do fast retransmit/recovery if at/past thresh
-		if (ackno <= highest_ack()) {
+		if (ackno <= highest_ack_) {
 			// an ACK which doesn't advance highest_ack_
 			if (datalen == 0 && (!dupseg_fix_ || !dupseg)) {
                                 /*
@@ -760,13 +760,13 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                                  */
 
 				if (!pending_[TCP_TIMER_RTX] ||
-				    ackno != highest_ack()) {
+				    ackno != highest_ack_) {
 					// not timed, or re-ordered ACK
-					dupacks() = 0;
-				} else if (++dupacks() == tcprexmtthresh_) {
+					dupacks_ = 0;
+				} else if (++dupacks_ == tcprexmtthresh_) {
 					// possibly trigger fast retransmit
 					if (!bug_fix_ ||
-					   (highest_ack() > recover_) ||
+					   (highest_ack_ > recover_) ||
 					   (recover_cause_ != REASON_TIMEOUT)) {
 						closecwnd(1);
 						cancel_rtx_timeout();
@@ -775,14 +775,14 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 						// we measure cwnd in packets,
 						// so don't scale by maxseg_
 						// as real TCP does
-						cwnd() = ssthresh() + dupacks();
+						cwnd_ = ssthresh_ + dupacks_;
 					}
 					goto drop;
-				} else if (dupacks() > tcprexmtthresh_) {
+				} else if (dupacks_ > tcprexmtthresh_) {
 					// we just measure cwnd in packets,
 					// so don't scale by maxset_ as real
 					// tcp does
-					cwnd()++;	// fast recovery
+					cwnd_++;	// fast recovery
 					send_much(0, REASON_NORMAL, 0);
 					goto drop;
 				}
@@ -790,7 +790,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 				// non-zero length segment
 				// (or window changed in real TCP).
 				if (dupack_reset_)
-					dupacks() = 0;
+					dupacks_ = 0;
 			}
 			break;	/* take us to "step6" */
 		}
@@ -805,19 +805,19 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                  * for the other side's cached packets, retract it.
                  */
 
-		if (dupacks() > tcprexmtthresh_ && cwnd() > ssthresh()) {
+		if (dupacks_ > tcprexmtthresh_ && cwnd_ > ssthresh_) {
 			// this is where we can get frozen due
 			// to multiple drops in the same window of
 			// data
-			cwnd() = ssthresh();
+			cwnd_ = ssthresh_;
 		}
-		dupacks() = 0;
-		if (ackno > maxseq()) {
+		dupacks_ = 0;
+		if (ackno > maxseq_) {
 			double now = Scheduler::instance().clock();
 			// ack more than we sent(!?)
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s) too-big ACK (ack: %d, maxseq:%d)\n",
-				now, name(), ackno, maxseq());
+				now, name(), ackno, maxseq_);
 			goto dropafterack;
 		}
 
@@ -835,7 +835,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                  * timer, using current (possibly backed-off) value.
                  */
 		newack(pkt);
-		if (ackno == maxseq())
+		if (ackno == maxseq_)
 			needoutput = 1;
 		opencwnd();
 		if (ackno >= (curseq_ + iss_))
@@ -963,7 +963,7 @@ dodata:
 
 	if (needoutput || (flags_ & TF_ACKNOW))
 		send_much(1, REASON_NORMAL, 0);
-	else if ((curseq_ + iss_) > highest_ack())
+	else if ((curseq_ + iss_) > highest_ack_)
 		send_much(0, REASON_NORMAL, 0);
 	Packet::free(pkt);
 	return;

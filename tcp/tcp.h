@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.19 1997/07/24 23:07:34 breslau Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.20 1997/07/25 05:26:06 padmanab Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -163,37 +163,6 @@ protected:
 	print_if_needed(double memb_time);
 	void traceAll();
 	void traceVar(TracedVar* v);
-
-	TracedInt& t_seqno() {
-		return (t_seqno_);
-	}
-	TracedInt& t_rtt() {
-		return (t_rtt_);
-	}
-	TracedInt& t_srtt() {
-		return (t_srtt_);
-	}
-	TracedInt& t_rttvar() {
-		return (t_rttvar_);
-	}
-	TracedInt& t_backoff() {
-		return (t_backoff_);
-	}
-	TracedInt& dupacks() {
-		return (dupacks_);
-	}
-	TracedInt& highest_ack() {
-		return (highest_ack_);
-	}
-	TracedDouble& cwnd() {
-		return (cwnd_);
-	}
-	TracedInt& ssthresh() {
-		return (ssthresh_);
-	}
-	TracedInt& maxseq() {
-		return (maxseq_);
-	}
 
 	/*
 	 * State encompassing the round-trip-time estimate.

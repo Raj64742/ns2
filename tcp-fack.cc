@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.5 1997/07/23 05:11:50 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.6 1997/07/25 05:26:00 padmanab Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -41,7 +41,7 @@ static const char rcsid[] =
 /*
  * NOTE: To enable tracing of a certain subset of member variables of
  * TcpAgent, all references (read or write) to them in C++ are made via
- * the member functions defined in tcp.h. For example, cwnd() is used
+ * the member functions defined in tcp.h. For example, cwnd_ is used
  * instead of cwnd_.
  */
 
@@ -64,7 +64,7 @@ FackTcpAgent::FackTcpAgent() : rampdown_(0), ss_div4_(0), retran_data_(0), fack_
 int FackTcpAgent::window() 
 {
 	int win;
-	win = int((cwnd() < wnd_ ? cwnd() : wnd_) + wintrim_);
+	win = int((cwnd_ < wnd_ ? cwnd_ : wnd_) + wintrim_);
 	return (win);
 }
 
@@ -76,22 +76,22 @@ void FackTcpAgent::oldack(Packet* pkt)
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 
     last_ack_ = tcph->seqno();
-    highest_ack() = last_ack_;
-    if (t_seqno() < last_ack_ + 1)
-        t_seqno() = last_ack_ + 1;
+    highest_ack_ = last_ack_;
+    if (t_seqno_ < last_ack_ + 1)
+        t_seqno_ = last_ack_ + 1;
     newtimer(pkt);      
     if (rtt_active_ && tcph->seqno() >= rtt_seq_) { 
         rtt_active_ = 0;
-        t_backoff() = 1;  
+        t_backoff_ = 1;  
     }       
     /* with timestamp option */
     double tao = Scheduler::instance().clock() - tcph->ts_echo();
     rtt_update(tao);
     /* update average window */
     awnd_ *= 1.0 - wnd_th_;
-    awnd_ += wnd_th_ * cwnd();
+    awnd_ += wnd_th_ * cwnd_;
     /* if the connection is done, call finish() */
-    if ((highest_ack() >= curseq_-1) && !closed_) {
+    if ((highest_ack_ >= curseq_-1) && !closed_) {
 	    closed_ = 1;
 	    finish();
     }
@@ -115,7 +115,7 @@ void FackTcpAgent::recv_newack_helper(Packet *pkt) {
 	newack(pkt);
 	opencwnd();
 	/* if the connection is done, call finish() */
-	if ((highest_ack() >= curseq_-1) && !closed_) {
+	if ((highest_ack_ >= curseq_-1) && !closed_) {
 		closed_ = 1;
 		finish();
 	}
@@ -155,37 +155,37 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			// Do nothing; ack may have been misordered   
 
 		} else {  
-			retran_data_ -= scb_.UpdateScoreBoard (highest_ack(), tcph);
+			retran_data_ -= scb_.UpdateScoreBoard (highest_ack_, tcph);
 			oldack(pkt);
 			ms = maxsack(pkt);
 			if (ms > fack_)
 				fack_ = ms;
-			if (fack_ >= t_seqno())
-				t_seqno() = fack_ + 1;
-			dupacks() = (fack_ - last_ack_) - 1;
+			if (fack_ >= t_seqno_)
+				t_seqno_ = fack_ + 1;
+			dupacks_ = (fack_ - last_ack_) - 1;
 			/* 
 			 * a duplicate ACK
 			 */
-			if (dupacks() >= NUMDUPACKS) {
+			if (dupacks_ >= NUMDUPACKS) {
 				/*
 				 * Assume we dropped just one packet.
 				 * Retransmit last ack + 1
 				 * and try to resume the sequence.
 				 */
-				recover_ = t_seqno();
+				recover_ = t_seqno_;
 				recover_cause_ = RECOVER_DUPACK;
 				closecwnd(1);
 				if (rampdown_) {
-					wintrim_ = (t_seqno() - fack_ - 1) * wintrimmult_;
+					wintrim_ = (t_seqno_ - fack_ - 1) * wintrimmult_;
 				}
 				reset_rtx_timer(1,0);
 				fastrecov_ = TRUE;
-				scb_.MarkRetran (last_ack_+1, t_seqno());
+				scb_.MarkRetran (last_ack_+1, t_seqno_);
 				retran_data_++;
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
 			}
 		}
-		if (dupacks() == 0)
+		if (dupacks_ == 0)
 			send_much(FALSE, 0, maxburst_);
 	} else {
 		// we are in fast recovery
@@ -200,10 +200,10 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			fack_ = ms;
 		}		
 		
-		if (fack_ >= t_seqno())
-			t_seqno() = fack_ + 1;   
+		if (fack_ >= t_seqno_)
+			t_seqno_ = fack_ + 1;   
 
-		retran_data_ -= scb_.UpdateScoreBoard (highest_ack(), tcph);
+		retran_data_ -= scb_.UpdateScoreBoard (highest_ack_, tcph);
 	
 		// If the retransmission was lost again, timeout_ forced to TRUE
 		// if timeout_ TRUE, this shuts off send()
@@ -222,7 +222,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			scb_.ClearScoreBoard();
 			retran_data_ = 0;
 			wintrim_ = 0;
-			dupacks() = 0;
+			dupacks_ = 0;
 		}
 		send_much(FALSE, 0, maxburst_);
 	}
@@ -246,11 +246,11 @@ void FackTcpAgent::timeout(int tno)
 		};
 		// Do not clear fastrecov_ or alter recover_ variable
 		timeout_ = FALSE;
-		if (highest_ack() > last_ack_)
-			last_ack_ = highest_ack();
+		if (highest_ack_ > last_ack_)
+			last_ack_ = highest_ack_;
 #ifdef DEBUGSACK1A
 		printf ("timeout. highest_ack: %d seqno: %d\n", 
-		  highest_ack(), t_seqno());
+		  highest_ack_, t_seqno_);
 #endif
 		retran_data_ = 0;
 		recover_cause_ = RECOVER_TIMEOUT;
@@ -258,7 +258,7 @@ void FackTcpAgent::timeout(int tno)
 		scb_.ClearScoreBoard();
 		reset_rtx_timer(TCP_REASON_TIMEOUT,1);
 		fack_ = last_ack_;
-		t_seqno() = last_ack_ + 1;  
+		t_seqno_ = last_ack_ + 1;  
 		send_much(0, TCP_REASON_TIMEOUT);
 	} else {
 		TcpAgent::timeout(tno);
@@ -280,13 +280,13 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
     /*
      * as long as the pipe is open and there is app data to send...
      */
-	while (( t_seqno() <= fack_ + win - retran_data_) && (!timeout_)) {
+	while (( t_seqno_ <= fack_ + win - retran_data_) && (!timeout_)) {
     	if (overhead_ == 0 || force) {
 			found = 0;
 			xmit_seqno = scb_.GetNextRetran ();
 #ifdef DEBUGSACK1A
             printf("highest_ack: %d xmit_seqno: %d timeout: %d seqno: %d fack: % d win: %d retran_data: %d\n",
-            highest_ack(), xmit_seqno, timeout_, t_seqno(), fack_, win, retran_data_);
+            highest_ack_, xmit_seqno, timeout_, t_seqno_, fack_, win, retran_data_);
 #endif
 
 			if (xmit_seqno == -1) {  // no retransmissions to send
@@ -294,25 +294,25 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 				 * if there is no more application data to send,
 				 * do nothing
 				 */
-				if (t_seqno() >= curseq_) 
+				if (t_seqno_ >= curseq_) 
 					return;
 				found = 1;
-				xmit_seqno = t_seqno()++;
+				xmit_seqno = t_seqno_++;
 #ifdef DEBUGSACK1A
 				printf("sending %d fastrecovery: %d win %d\n",
 		  		xmit_seqno, fastrecov_, win);
 #endif
 			} else {
 				found = 1;
-				scb_.MarkRetran (xmit_seqno, t_seqno());
+				scb_.MarkRetran (xmit_seqno, t_seqno_);
 				retran_data_++;
 				win = window();
 			}
 		    if (found) {
 				output(xmit_seqno, reason);
-				if (t_seqno() <= xmit_seqno) {
+				if (t_seqno_ <= xmit_seqno) {
 					printf("Hit a strange case 2.\n");
-					t_seqno() = xmit_seqno + 1;
+					t_seqno_ = xmit_seqno + 1;
 				}
 				npacket++;
 			}
@@ -333,8 +333,8 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 void FackTcpAgent::closecwnd(int how)
 {  
     if (how == 1) {
-        if ((ss_div4_ == 1) && (cwnd() <= ssthresh() + .5)) {
-            cwnd() /= 2;
+        if ((ss_div4_ == 1) && (cwnd_ <= ssthresh_ + .5)) {
+            cwnd_ /= 2;
             wintrimmult_ = .75;
         } else {
             wintrimmult_ = .5;
@@ -352,8 +352,8 @@ void FackTcpAgent::opencwnd()
 	TcpAgent::opencwnd();
 
     // if maxcwnd_ is set (nonzero), make it the cwnd limit
-    if (maxcwnd_ && (int (cwnd()) > maxcwnd_))
-      cwnd() = maxcwnd_;
+    if (maxcwnd_ && (int (cwnd_) > maxcwnd_))
+      cwnd_ = maxcwnd_;
 }
 
 
@@ -362,14 +362,14 @@ void FackTcpAgent::plot()
 #ifdef notyet
 	double t = Scheduler::instance().clock();
 	sprintf(trace_->buffer(), "t %g %d rtt %g\n", 
-		t, class_, t_rtt() * tcp_tick_);
+		t, class_, t_rtt_ * tcp_tick_);
 	trace_->dump();
 	sprintf(trace_->buffer(), "t %g %d dev %g\n", 
-		t, class_, t_rttvar() * tcp_tick_);
+		t, class_, t_rttvar_ * tcp_tick_);
 	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d win %f\n", t, class_, cwnd());
+	sprintf(trace_->buffer(), "t %g %d win %f\n", t, class_, cwnd_);
 	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d bck %d\n", t, class_, t_backoff());
+	sprintf(trace_->buffer(), "t %g %d bck %d\n", t, class_, t_backoff_);
 	trace_->dump();
 #endif
 }

@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.6 1997/07/21 22:01:15 kfall Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.7 1997/07/25 05:26:05 padmanab Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -105,10 +105,10 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 		quench(1);
 	if (tcph->seqno() > last_ack_) {
 		/* check if cwnd has been inflated */
-		if(dupacks() > NUMDUPACKS &&  cwnd() > v_newcwnd_) {
-			cwnd() = v_newcwnd_;
+		if(dupacks_ > NUMDUPACKS &&  cwnd_ > v_newcwnd_) {
+			cwnd_ = v_newcwnd_;
 			// vegas ssthresh is used only during slow-start
-			ssthresh() = 2;
+			ssthresh_ = 2;
 		}
 		int oldack = last_ack_;
 		newack(pkt);
@@ -129,7 +129,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			v_cntRTT_ = 0;
 
 			// calc # of packets in transit
-			int rttLen = t_seqno() - v_begseq_;
+			int rttLen = t_seqno_ - v_begseq_;
 
 			/*
 			 * decide should we incr/decr cwnd_ by how much
@@ -145,11 +145,11 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 				// actual = (# in transit)/(current rtt) 
 				v_actual_ = double(rttLen)/rtt;
 				// expect = (current window size)/baseRTT
-				expect = double(t_seqno()-last_ack_)/v_baseRTT_;
+				expect = double(t_seqno_-last_ack_)/v_baseRTT_;
 
 				// calc actual and expect thruput diff, delta
 				int delta=int((expect-v_actual_)*v_baseRTT_+0.5);
-				if(cwnd() < ssthresh()) { // slow-start
+				if(cwnd_ < ssthresh_) { // slow-start
 					// adj cwnd every other rtt
 					v_inc_flag_ = !v_inc_flag_;
 					if(!v_inc_flag_)
@@ -158,10 +158,10 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 					    if(delta > v_gamma_) {
 						// slow-down a bit to ensure
 						// the net is not so congested
-						ssthresh() = 2;
-						cwnd()-=(cwnd()/8);
-						if(cwnd()<2)
-							cwnd() = 2.;
+						ssthresh_ = 2;
+						cwnd_-=(cwnd_/8);
+						if(cwnd_<2)
+							cwnd_ = 2.;
 						v_incr_ = 0;
 					    } else 
 						v_incr_ = 1;
@@ -173,8 +173,8 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 						 * back to prev. rtt's cwnd
 						 * and dont incr in the nxt rtt
 						 */
-						--cwnd();
-						if(cwnd()<2) cwnd() = 2;
+						--cwnd_;
+						if(cwnd_<2) cwnd_ = 2;
 						v_incr_ = 0;
 					} else if(delta<v_alpha_)
 						// delta<alpha, faster....
@@ -185,7 +185,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			} // end of if(rtt > 0)
 
 			// tag the next packet 
-			v_begseq_ = t_seqno(); 
+			v_begseq_ = t_seqno_; 
 			v_begtime_ = currentTime;
 		} // end of once per-rtt section
 
@@ -193,14 +193,14 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 		 * need to check if we surpass ssthresh during slow-start
 		 * before the rtt is over.
 		 */		
-		if(v_incr_ == 1 && cwnd() >= ssthresh())
+		if(v_incr_ == 1 && cwnd_ >= ssthresh_)
 			v_incr_ = 0;
 		
 		/*
 		 * incr cwnd unless we havent been able to keep up with it
 		 */
-		if(v_incr_>0 && (cwnd()-(t_seqno()-last_ack_))<=2)
-			cwnd() = cwnd()+v_incr_;	
+		if(v_incr_>0 && (cwnd_-(t_seqno_-last_ack_))<=2)
+			cwnd_ = cwnd_+v_incr_;	
 
 		/*
 		 * See if we need to update the fine grained timeout value,
@@ -250,29 +250,29 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			--v_worried_;
 			int expired=vegas_expire(pkt);
 			if(expired>=0) {
-				dupacks() = NUMDUPACKS;
+				dupacks_ = NUMDUPACKS;
 				output(expired, TCP_REASON_DUPACK);
 			} else
 				v_worried_ = 0;
 		}
    	} else if (tcph->seqno() == last_ack_)  {
 		/* check if a timeout should happen */
-		++dupacks(); 
+		++dupacks_; 
 		int expired=vegas_expire(pkt);
-		if (expired>=0 || dupacks() == NUMDUPACKS) {
+		if (expired>=0 || dupacks_ == NUMDUPACKS) {
 			double sendTime=v_sendtime_[(last_ack_+1) % v_maxwnd_]; 
 			int transmits=v_transmits_[(last_ack_+1) % v_maxwnd_];
        	                /* The line below, for "bug_fix_" true, avoids
                         * problems with multiple fast retransmits after
 			* a retransmit timeout.
                         */
-			if ( !bug_fix_ || (highest_ack() > recover_) || \
+			if ( !bug_fix_ || (highest_ack_ > recover_) || \
 			    ( recover_cause_ != 2)) {
 				int win = window();
 				recover_cause_ = 1;
-				recover_ = maxseq();
+				recover_ = maxseq_;
 				/* check for timeout after recv a new ack */
-				v_worried_ = MIN(2, t_seqno() - last_ack_ );
+				v_worried_ = MIN(2, t_seqno_ - last_ack_ );
 		
 				/* v_rto expon. backoff */
 				if(transmits > 1) 
@@ -294,7 +294,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 					// record cwnd_
 					v_newcwnd_ = double(win);
 					// inflate cwnd_
-					cwnd() = v_newcwnd_ + dupacks();
+					cwnd_ = v_newcwnd_ + dupacks_;
 					t_cwnd_changed_ = currentTime;
 				} 
 
@@ -306,10 +306,10 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 					output(last_ack_ + 1, TCP_REASON_DUPACK);
 					 
 				if(transmits==1) 
-					dupacks() = NUMDUPACKS;
+					dupacks_ = NUMDUPACKS;
                         }
-		} else if (dupacks() > NUMDUPACKS) 
-			++cwnd();
+		} else if (dupacks_ > NUMDUPACKS) 
+			++cwnd_;
 	}
 	Packet::free(pkt);
 #if 0
@@ -320,7 +320,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 	/*
 	 * Try to send more data
 	 */
-	if (dupacks() == 0 || dupacks() > NUMDUPACKS - 1)
+	if (dupacks_ == 0 || dupacks_ > NUMDUPACKS - 1)
 		send_much(0, 0, maxburst_);
 }
 

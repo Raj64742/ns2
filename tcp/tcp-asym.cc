@@ -49,7 +49,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.5 1997/07/22 08:32:46 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.6 1997/07/25 05:25:59 padmanab Exp $ (UCB)";
 #endif
 
 
@@ -63,7 +63,6 @@ static const char rcsid[] =
 class TcpAsymAgent : public virtual TcpAgent {
 public:
 	TcpAsymAgent();
-	inline double& t_exact_srtt() { return t_exact_srtt_;}
 
 	/* helper functions */
 	virtual void output_helper(Packet* p);
@@ -151,9 +150,9 @@ void TcpAsymAgent::output_helper(Packet* p)
 	hdr_tcpasym *tcpha = (hdr_tcpasym*)p->access(off_tcpasym_);
 	hdr_flags *flagsh = (hdr_flags*)p->access(off_flags_);
 
-	tcpha->win() = min(highest_ack()+window(), curseq_) - t_seqno();
-	tcpha->highest_ack() = highest_ack();
-	tcpha->max_left_to_send() = curseq_ - highest_ack(); /* XXXX not needed? */
+	tcpha->win() = min(highest_ack_+window(), curseq_) - t_seqno_;
+	tcpha->highest_ack() = highest_ack_;
+	tcpha->max_left_to_send() = curseq_ - highest_ack_; /* XXXX not needed? */
 
 	flagsh->ecn_ = ecn_to_echo_;
 	ecn_to_echo_ = 0;
@@ -168,8 +167,8 @@ void TcpAsymAgent::send_helper(int maxburst)
 	 * we wouldn't get here if TCP_TIMER_BURSTSEND were pending,
 	 * so we do not need an explicit check here.
 	 */
-	if (t_seqno() <= highest_ack() + window() && t_seqno() < curseq_) {
-		sched(t_exact_srtt()*maxburst/window(), TCP_TIMER_BURSTSND);
+	if (t_seqno_ <= highest_ack_ + window() && t_seqno_ < curseq_) {
+		sched(t_exact_srtt_*maxburst/window(), TCP_TIMER_BURSTSND);
 	}
 }
 
@@ -191,15 +190,15 @@ void TcpAsymAgent::recv_newack_helper(Packet *pkt)
 
 	newack(pkt);
 	/* update our fine-grained estimate of the smoothed RTT */
-	if (t_exact_srtt() != 0) 
-		t_exact_srtt() = g*tao + (1-g)*t_exact_srtt();
+	if (t_exact_srtt_ != 0) 
+		t_exact_srtt_ = g*tao + (1-g)*t_exact_srtt_;
 	else
-		t_exact_srtt() = tao;
+		t_exact_srtt_ = tao;
 	/* grow cwnd */
 	for (i=0; i<ackcount; i++)
 		opencwnd();
 	/* if the connection is done, call finish() */
-	if ((highest_ack() >= curseq_-1) && !closed_) {
+	if ((highest_ack_ >= curseq_-1) && !closed_) {
 		closed_ = 1;
 		finish();
 	}

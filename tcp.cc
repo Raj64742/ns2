@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.28 1997/07/24 23:07:33 breslau Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.29 1997/07/25 05:26:06 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -144,21 +144,22 @@ TcpAgent::traceVar(TracedVar* v) {
 
 void
 TcpAgent::trace(TracedVar* v) {
-	traceVar(v);
+/*	traceVar(v);*/
+	traceAll();
 }
 
 void TcpAgent::reset()
 {
 	rtt_init();
 	/*XXX lookup variables */
-	dupacks() = 0;
+	dupacks_ = 0;
 	curseq_ = 0;
-	cwnd() = wnd_init_;
-	t_seqno() = 0;
-	maxseq() = -1;
+	cwnd_ = wnd_init_;
+	t_seqno_ = 0;
+	maxseq_ = -1;
 	last_ack_ = -1;
-	highest_ack() = -1;
-	ssthresh() = int(wnd_);
+	highest_ack_ = -1;
+	ssthresh_ = int(wnd_);
 	awnd_ = wnd_init_ / 2.0;
 	recover_ = 0;
 	recover_cause_ = 0;
@@ -169,17 +170,17 @@ void TcpAgent::reset()
  */
 void TcpAgent::rtt_init()
 {
-	t_rtt() = t_srtt() = 0;
+	t_rtt_ = t_srtt_ = 0;
 	/* the setting of t_rttvar depends on the value for tcp_tick_ */
-	t_rttvar() = int(3. / tcp_tick_);
-	t_backoff() = 1;
+	t_rttvar_ = int(3. / tcp_tick_);
+	t_backoff_ = 1;
 }
 
 /* This has been modified to use the tahoe code. */
 double TcpAgent::rtt_timeout()
 {
-	double timeout = ((t_srtt() >> 3) + t_rttvar()) * tcp_tick_ ;
-        timeout *= t_backoff();
+	double timeout = ((t_srtt_ >> 3) + t_rttvar_) * tcp_tick_ ;
+        timeout *= t_backoff_;
 
 	/* XXX preclude overflow */
 	if (timeout > 2000 || timeout < -2000)
@@ -193,38 +194,38 @@ double TcpAgent::rtt_timeout()
 /* This has been modified to use the tahoe code. */
 void TcpAgent::rtt_update(double tao)
 {
-	t_rtt() = int((tao / tcp_tick_) + 0.5);
-	if (t_rtt() < 1)
-		t_rtt() = 1;
+	t_rtt_ = int((tao / tcp_tick_) + 0.5);
+	if (t_rtt_ < 1)
+		t_rtt_ = 1;
 
-        if (t_srtt() != 0) {
+        if (t_srtt_ != 0) {
 		register short delta;
-		delta = t_rtt() - (t_srtt() >> 3);
-		if ((t_srtt() += delta) <= 0)
-			t_srtt() = 1;
+		delta = t_rtt_ - (t_srtt_ >> 3);
+		if ((t_srtt_ += delta) <= 0)
+			t_srtt_ = 1;
 		if (delta < 0)
 			delta = -delta;
-		delta -= (t_rttvar() >> 2);
-		if ((t_rttvar() += delta) <= 0)
-			t_rttvar() = 1;
+		delta -= (t_rttvar_ >> 2);
+		if ((t_rttvar_ += delta) <= 0)
+			t_rttvar_ = 1;
 	} else {
-		t_srtt() = t_rtt() << 3;
-		t_rttvar() = t_rtt() << 1;
+		t_srtt_ = t_rtt_ << 3;
+		t_rttvar_ = t_rtt_ << 1;
 	}
 }
 
 void TcpAgent::rtt_backoff()
 {
-	if (t_backoff() < 64)
-		t_backoff() <<= 1;
+	if (t_backoff_ < 64)
+		t_backoff_ <<= 1;
 
-	if (t_backoff() > 8)
+	if (t_backoff_ > 8)
 		/*
 		 * If backed off this far, clobber the srtt
 		 * value, storing it in the mean deviation
 		 * instead.
 		 */
-		t_srtt() = 0;
+		t_srtt_ = 0;
 }
 
 void TcpAgent::output(int seqno, int reason)
@@ -241,8 +242,8 @@ void TcpAgent::output(int seqno, int reason)
 	output_helper(p);
 
 	send(p, 0);
-	if (seqno > maxseq()) {
-		maxseq() = seqno;
+	if (seqno > maxseq_) {
+		maxseq_ = seqno;
 		if (!rtt_active_) {
 			rtt_active_ = 1;
 			if (seqno > rtt_seq_)
@@ -299,13 +300,13 @@ int TcpAgent::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "persist") == 0) {
 			TcpAgent *other
 			  = (TcpAgent*)TclObject::lookup(argv[2]);
-			cwnd() = other->cwnd();
+			cwnd_ = other->cwnd_;
 			awnd_ = other->awnd_;
-			ssthresh() = other->ssthresh();
-			t_rtt() = other->t_rtt();
-			t_srtt() = other->t_srtt();
-			t_rttvar() = other->t_rttvar();
-			t_backoff() = other->t_backoff();
+			ssthresh_ = other->ssthresh_;
+			t_rtt_ = other->t_rtt_;
+			t_srtt_ = other->t_srtt_;
+			t_rttvar_ = other->t_rttvar_;
+			t_backoff_ = other->t_backoff_;
 			return (TCL_OK);
 		}
 		/* 
@@ -325,7 +326,7 @@ int TcpAgent::command(int argc, const char*const* argv)
 
 int TcpAgent::window()
 {
-	return (int(cwnd() < wnd_ ? cwnd() : wnd_));
+	return (int(cwnd_ < wnd_ ? cwnd_ : wnd_));
 }
 
 /*
@@ -341,14 +342,14 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 	if (!force && pending_[TCP_TIMER_DELSND])
 		return;
 	/* Save time when first packet was sent, for newreno  --Allman */
-	if (t_seqno() == 0)
+	if (t_seqno_ == 0)
 		firstsent_ = Scheduler::instance().clock();
 
 	if (pending_[TCP_TIMER_BURSTSND])
 		return;
-	while (t_seqno() <= highest_ack() + win && t_seqno() < curseq_) {
+	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
 		if (overhead_ == 0 || force) {
-			output(t_seqno()++, reason);
+			output(t_seqno_++, reason);
 			npackets++;
 		} else if (!pending_[TCP_TIMER_DELSND]) {
 			/*
@@ -374,7 +375,7 @@ void TcpAgent::reset_rtx_timer(int mild)
 	set_rtx_timer();
 	rtt_backoff();
 	if (!mild)
-		t_seqno() = highest_ack() + 1;
+		t_seqno_ = highest_ack_ + 1;
 	rtt_active_ = 0;
 }
 
@@ -390,7 +391,7 @@ void TcpAgent::reset_rtx_timer(int mild, int backoff)
 	if (backoff)
 		rtt_backoff();
 	if (!mild)
-		t_seqno() = highest_ack() + 1;
+		t_seqno_ = highest_ack_ + 1;
 	rtt_active_ = 0;
 }
 
@@ -413,7 +414,7 @@ void TcpAgent::set_rtx_timer()
 void TcpAgent::newtimer(Packet* pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-        if (t_seqno() > tcph->seqno())
+        if (t_seqno_ > tcph->seqno())
 		set_rtx_timer();
         else if (pending_[TCP_TIMER_RTX])
                 cancel(TCP_TIMER_RTX);
@@ -424,35 +425,35 @@ void TcpAgent::newtimer(Packet* pkt)
  */
 void TcpAgent::opencwnd()
 {
-	if (cwnd() < ssthresh()) {
+	if (cwnd_ < ssthresh_) {
 		/* slow-start (exponential) */
-		cwnd() += 1;
+		cwnd_ += 1;
 	} else {
 		/* linear */
 		double f;
 		switch (wnd_option_) {
 		case 0:
-			if (++count_ >= cwnd()) {
+			if (++count_ >= cwnd_) {
 				count_ = 0;
-				++cwnd();
+				++cwnd_;
 			}
 			break;
 
 		case 1:
 			/* This is the standard algorithm. */
-			cwnd() += 1 / cwnd();
+			cwnd_ += 1 / cwnd_;
 			break;
 
 		case 2:
 			/* These are window increase algorithms
 			 * for experimental purposes only. */
-			f = (t_srtt() >> 3) * tcp_tick_;
+			f = (t_srtt_ >> 3) * tcp_tick_;
 			f *= f;
 			f *= wnd_const_;
 			f += fcnt_;
-			if (f > cwnd()) {
+			if (f > cwnd_) {
 				fcnt_ = 0;
-				++cwnd();
+				++cwnd_;
 			} else
 				fcnt_ = f;
 			break;
@@ -462,9 +463,9 @@ void TcpAgent::opencwnd()
 			f *= f;
 			f *= wnd_const_;
 			f += fcnt_;
-			if (f > cwnd()) {
+			if (f > cwnd_) {
 				fcnt_ = 0;
-				++cwnd();
+				++cwnd_;
 			} else
 				fcnt_ = f;
 			break;
@@ -473,19 +474,19 @@ void TcpAgent::opencwnd()
                         f = awnd_;
                         f *= wnd_const_;
                         f += fcnt_;
-                        if (f > cwnd()) {
+                        if (f > cwnd_) {
                                 fcnt_ = 0;
-                                ++cwnd();
+                                ++cwnd_;
                         } else
                                 fcnt_ = f;
                         break;
 		case 5:
-                        f = (t_srtt() >> 3) * tcp_tick_;
+                        f = (t_srtt_ >> 3) * tcp_tick_;
                         f *= wnd_const_;
                         f += fcnt_;
-                        if (f > cwnd()) {
+                        if (f > cwnd_) {
                                 fcnt_ = 0;
-                                ++cwnd();
+                                ++cwnd_;
                         } else
                                 fcnt_ = f;
                         break;
@@ -499,8 +500,8 @@ void TcpAgent::opencwnd()
 		}
 	}
 	// if maxcwnd_ is set (nonzero), make it the cwnd limit
-	if (maxcwnd_ && (int(cwnd()) > maxcwnd_))
-		cwnd() = maxcwnd_;
+	if (maxcwnd_ && (int(cwnd_) > maxcwnd_))
+		cwnd_ = maxcwnd_;
 
 	return;
 }
@@ -513,25 +514,25 @@ void TcpAgent::closecwnd(int how)
 	switch (how) {
 	case 0:
 		/* timeouts, Tahoe dup acks */
-		ssthresh() = int( window() / 2 );
-		if (ssthresh() < 2)
-			ssthresh() = 2;
+		ssthresh_ = int( window() / 2 );
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;
 		/* Old code: ssthresh_ = int(cwnd_ / 2); */
-		cwnd() = int(wnd_init_);
+		cwnd_ = int(wnd_init_);
 		break;
 
 	case 1:
 		/* Reno dup acks, or after a recent congestion indication. */
-		cwnd() = window()/2;
-		ssthresh() = int(cwnd());
-		if (ssthresh() < 2)
-			ssthresh() = 2;		
+		cwnd_ = window()/2;
+		ssthresh_ = int(cwnd_);
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;		
 		break;
 
 	case 2:
 		/* Tahoe dup acks  		*
 		 * after a recent congestion indication */
-		cwnd() = wnd_init_;
+		cwnd_ = wnd_init_;
 		break;
 
 	default:
@@ -549,34 +550,34 @@ void TcpAgent::newack(Packet* pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newtimer(pkt);
-	dupacks() = 0;
+	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
-	highest_ack() = last_ack_;
-	if (t_seqno() < last_ack_ + 1)
-		t_seqno() = last_ack_ + 1;
+	highest_ack_ = last_ack_;
+	if (t_seqno_ < last_ack_ + 1)
+		t_seqno_ = last_ack_ + 1;
 	if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
 		rtt_active_ = 0;
-		t_backoff() = 1;
+		t_backoff_ = 1;
 	}
 	/* with timestamp option */
 	double tao = Scheduler::instance().clock() - tcph->ts_echo();
 	rtt_update(tao);
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
-	awnd_ += wnd_th_ * cwnd();
+	awnd_ += wnd_th_ * cwnd_;
 }
 
 void TcpAgent::plot()
 {
 #ifdef notyet
 	double t = Scheduler::instance().clock();
-	sprintf(trace_->buffer(), "t %g %d rtt %g\n", t, class_, t_rtt() * tcp_tick_);
+	sprintf(trace_->buffer(), "t %g %d rtt %g\n", t, class_, t_rtt_ * tcp_tick_);
 	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d dev %g\n", t, class_, t_rttvar() * tcp_tick_);
+	sprintf(trace_->buffer(), "t %g %d dev %g\n", t, class_, t_rttvar_ * tcp_tick_);
 	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d win %f\n", t, class_, cwnd());
+	sprintf(trace_->buffer(), "t %g %d win %f\n", t, class_, cwnd_);
 	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d bck %d\n", t, class_, t_backoff());
+	sprintf(trace_->buffer(), "t %g %d bck %d\n", t, class_, t_backoff_);
 	trace_->dump();
 #endif
 }
@@ -589,15 +590,15 @@ void TcpAgent::plot()
  */
 void TcpAgent::quench(int how)
 {
-	if (highest_ack() >= recover_) {
-		recover_ = t_seqno() - 1;
+	if (highest_ack_ >= recover_) {
+		recover_ = t_seqno_ - 1;
 		recover_cause_ = 3;
 		closecwnd(how);
 #ifdef notdef
 		if (trace_) {
 			double now = Scheduler::instance().clock();
 			sprintf(trace_->buffer(),
-				"%g pkt %d\n", now, t_seqno() - 1);
+				"%g pkt %d\n", now, t_seqno_ - 1);
 			trace_->dump();
 		}
 #endif
@@ -608,7 +609,7 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 	newack(pkt);
 	opencwnd();
 	/* if the connection is done, call finish() */
-	if ((highest_ack() >= curseq_-1) && !closed_) {
+	if ((highest_ack_ >= curseq_-1) && !closed_) {
 		closed_ = 1;
 		finish();
 	}
@@ -638,13 +639,13 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
 	} else if (tcph->seqno() == last_ack_) {
-		if (++dupacks() == NUMDUPACKS) {
+		if (++dupacks_ == NUMDUPACKS) {
                    /* The line below, for "bug_fix_" true, avoids
 		    * problems with multiple fast retransmits in one
 		    * window of data. 
 		    */
-		   	if (!bug_fix_ || highest_ack() > recover_) {
-				recover_ = maxseq();
+		   	if (!bug_fix_ || highest_ack_ > recover_) {
+				recover_ = maxseq_;
 				recover_cause_ = 1;
 				closecwnd(0);
 				reset_rtx_timer(0,0);
@@ -677,7 +678,7 @@ void TcpAgent::timeout(int tno)
 			 */
 			return;
 		};
-		recover_ = maxseq();
+		recover_ = maxseq_;
 		recover_cause_ = 2;
 		closecwnd(0);
 		reset_rtx_timer(0,1);
