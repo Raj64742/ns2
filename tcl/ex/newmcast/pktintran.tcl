@@ -1,6 +1,3 @@
-source /a/home/catarina6/huang/research/vint/ns-2/tcl/lib/ns-default.tcl
-source /a/home/catarina6/huang/research/vint/ns-2/tcl/ctr-mcast/CtrMcast.tcl
-source /a/home/catarina6/huang/research/vint/ns-2/tcl/ctr-mcast/CtrMcastComp.tcl
 set ns [new Simulator]
 $ns multicast
 
@@ -69,9 +66,21 @@ $ns at 0.8 "$n3 join-group $rcvr3 0x8002"
 $ns rtmodel-at 1.0 down $n0 $n1
 $ns rtmodel-at 1.2 up $n0 $n1
 ####
-set mmonitor [$ns McastMonitor]
-$ns at 0.0 "$mmonitor trace-topo 0 [expr 0x8002]"
+set mmonitor1 [new McastMonitor]
+set chan1 [open udp.tr w]
+$mmonitor1 attach $chan1
+$mmonitor1 trace-topo
+$mmonitor1 filter Common ptype_ 2
+$ns at 0.1 "$mmonitor1 print-trace"
 
+set mmonitor2 [new McastMonitor]
+set chan2 [open encap.tr w]
+$mmonitor2 attach $chan2
+$mmonitor2 trace-topo
+$mmonitor2 filter Common ptype_ 32
+$ns at 0.1 "$mmonitor2 print-trace"
+
+####
 $ns at 0.1 "$cbr0 start"
  
 $ns at 1.6 "finish"

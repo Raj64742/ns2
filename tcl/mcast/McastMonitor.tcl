@@ -1,91 +1,147 @@
 Class McastMonitor
 
-McastMonitor instproc init sim {
+McastMonitor instproc init {} {
     $self instvar period_ ns_
-    set ns_ $sim
+
+    set ns_ [Simulator instance]
     set period_ 0.03
 }
 
-McastMonitor instproc trace-topo {source group} {
-    $self instvar ns_ period_ links_
+McastMonitor instproc trace-topo {} {
+    $self instvar ns_ period_
 
-    if ![info exists links_($source:$group)] {
-	set links_($source:$group) [$ns_ all-links-list]
-    }
-    $self trace-links $source $group
-    $self print-trace $source $group
-    $ns_ at [expr [$ns_ now] + $period_] "$self trace-topo $source $group"
+    $self trace-links [$ns_ all-links-list]
 }
 
-McastMonitor instproc trace-tree {source group args} {
-    $self instvar ns_ links_ period_
+McastMonitor instproc trace-links links {
+    $self instvar pktmon_
 
-    if ![info exists links_($source:$group)] {
-	set links_($source:$group) ""
-	foreach member [lindex $args 0] {
-	    set tmpupstream -1
-	    set tmp $member
-	    while {$tmpupstream != $source} {
-		set tmpupstream [[$ns_ upstream-node $tmp $source] id]
-		set tmplink [$ns_ RPF-link $source $tmpupstream $tmp]
-		# XXX need to add the other direction
-		if {[lsearch $links_($source:$group) $tmplink] >= 0} {
-		    break
-		}
-		lappend links_($source:$group) $tmplink
-		set tmpfrom [[$tmplink set fromNode_] id]
-		set tmpto [[$tmplink set toNode_] id]
-		lappend links_($source:$group) [$ns_ set link_($tmpto:$tmpfrom)]
-		set tmp $tmpupstream
-	    }
+    foreach l $links {
+	set pktmon_($l) [new PktInTranMonitor]
+	$pktmon_($l) attach-link $l
+	$l add-pktmon $pktmon_($l)
+    }
+}
+
+McastMonitor instproc filter {header field value} {
+    $self instvar pktmon_
+
+    foreach index [array name pktmon_] {
+	$pktmon_($index) filter $header $field $value
+    }
+}
+
+McastMonitor instproc pktintran {} {
+    $self instvar ns_ pktmon_
+
+    set total 0
+    foreach index [array name pktmon_] {
+	if {[$index up?] == "up"} {
+	    incr total [$pktmon_($index) pktintran]
 	}
     }
-    $self trace-links $source $group
-    $self print-trace $source $group
-    $ns_ at [expr [$ns_ now] + $period_] "$self trace-tree $source $group [lindex $args 0]"
-
+    return $total
 }
 
-McastMonitor instproc trace-links {source group} {
-    $self instvar ns_ links_
+McastMonitor instproc print-trace {} {
+    $self instvar ns_ period_ file_
 
-    foreach l $links_($source:$group) {
-	set delayobj [$l set link_]
-	set from [[$l set fromNode_] id]
-	set to [[$l set toNode_] id]
-	$delayobj pktintran $source $group $from $to
+    if [info exists file_] {
+	puts $file_ "[$ns_ now] [$self pktintran]"
+    } else {
+	puts "[$ns_ now] [$self pktintran]"
+    }
+    $ns_ at [expr [$ns_ now] + $period_] "$self print-trace"
+}
+
+McastMonitor instproc attach file {
+    $self instvar file_
+    set file_ $file
+}
+
+###############
+###############################Pkt In Transit Monitor###################
+### constructed by
+### front filter and front counter: keep track of #pkts passed into link
+### rear filter and rear counter: keep track of #pkts passed out of link
+### front count - rear count = #pkt in transit
+###
+
+Class PktInTranMonitor
+
+PktInTranMonitor instproc init {} {
+    $self instvar period_ ns_ front_counter_ rear_counter_ front_filter_ rear_filter_ 
+    set ns_ [Simulator instance]
+    set period_ 0.03
+    set front_counter_ [new PktCounter]
+    $front_counter_ set pktInTranMonitor_ $self
+    set front_filter_ [new Filter/MultiField]
+    $front_filter_ filter-target $front_counter_
+
+
+    set rear_counter_ [new PktCounter]
+    $rear_counter_ set pktInTranMonitor_ $self
+    set rear_filter_ [new Filter/MultiField]
+    $rear_filter_ filter-target $rear_counter_
+}
+
+PktInTranMonitor instproc reset {} {
+    $self instvar front_counter_ rear_counter_  ns_ next_
+    $front_counter_ reset
+    $rear_counter_ reset
+    if {[info exist next_] && $next_ != 0} {
+	$next_ reset
     }
 }
 
-McastMonitor instproc print-trace {source group} {
-    $self instvar ns_ prune_ graft_ register_ data_ period_ links_
-    set prune 0
-    set graft 0
-    set register 0
-    set data 0
+PktInTranMonitor instproc filter {header field value} {
+    $self instvar front_filter_ rear_filter_
+    $front_filter_ filter-field [PktHdr_offset PacketHeader/$header $field] $value
+    $rear_filter_ filter-field [PktHdr_offset PacketHeader/$header $field] $value
+}
+
+PktInTranMonitor instproc attach-link link {
+    $self instvar front_filter_ rear_filter_ front_counter_ rear_counter_
     
-    foreach l $links_($source:$group) {
-	set from [[$l set fromNode_] id]
-	set to [[$l set toNode_] id]
-	incr prune $prune_($source:$group:$from:$to)
-	incr graft $graft_($source:$group:$from:$to)
-	incr register $register_($source:$group:$from:$to)
-	incr data $data_($source:$group:$from:$to)
+    set tmp [$link head]
+    while {[$tmp target] != [$link link]} {
+        set tmp [$tmp target]
     }
-    puts "[$ns_ now] $prune $graft $register $data $source $group"
-}
-	
 
-Simulator instproc McastMonitor {} {
-    $self instvar mcastmonitor_ link_
+    $tmp target $front_filter_
+    $front_filter_ target [$link link]
+    $front_counter_ target [$link link]
 
-    set mcastmonitor_ [new McastMonitor $self]
-    foreach l [array names link_] {
-	$link_($l) dynamic
-    }
-    return $mcastmonitor_
+    $rear_filter_ target [[$link link] target]
+    $rear_counter_ target [[$link link] target]
+    [$link link] target $rear_filter_
 }
 
+PktInTranMonitor instproc attach file {
+    $self instvar file_
+    set file_ $file
+}
+
+PktInTranMonitor instproc pktintran {} {
+    $self instvar front_counter_ rear_counter_ 
+    return [expr [$front_counter_ value] - [$rear_counter_ value]]
+}
+
+PktInTranMonitor instproc output {} {
+    $self instvar front_counter_ rear_counter_ ns_ file_ 
+
+    puts $file_ "[$ns_ now] [expr [$front_counter_ value] - [$rear_counter_ value]]"
+}
+
+    
+PktInTranMonitor instproc periodical-output {} {
+    $self instvar period_ ns_
+
+    $self output
+    $ns_ at [expr [$ns_ now] + $period_] "$self periodical-output"
+}
+
+################
 Simulator instproc all-links-list {} {
     $self instvar link_
     set links ""
@@ -95,16 +151,14 @@ Simulator instproc all-links-list {} {
     set links
 }
 
-DelayLink instproc puttrace {prune graft register data source group from to} {
-    $self instvar ns_
+Link instproc add-pktmon pktmon {
+    $self instvar pktmon_
 
-    set ns_ [Simulator instance]
-    set mmonitor [$ns_ set mcastmonitor_]
-    
-    $mmonitor instvar prune_ graft_ register_ data_
-    set prune_($source:$group:$from:$to) $prune
-    set graft_($source:$group:$from:$to) $graft
-    set register_($source:$group:$from:$to) $register
-    set data_($source:$group:$from:$to) $data
+    if [info exists pktmon_] {
+	$pktmon set next_ $pktmon_
+    } else {
+	$pktmon set next_ 0
+    }
+    set pktmon_ $pktmon
 }
-
+	

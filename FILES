@@ -234,6 +234,7 @@ packet.cc
 packet.h
 param-adc.cc
 pareto.cc
+pkt-counter.cc
 pointsample-est.cc
 queue-monitor.cc
 queue-monitor.h
