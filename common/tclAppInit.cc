@@ -62,7 +62,7 @@ main(int argc, char **argv)
 }
 
 
-#if defined(linux) && defined(i386)
+#if defined(linux) && defined(i386) && (defined(HAVE_FESETPRECISION) || defined(__GNUC__))
 #ifndef HAVE_FESETPRECISION
 /*
  * From:
@@ -90,17 +90,14 @@ main(int argc, char **argv)
   floating point precision macro.
   Returns 1 if precision set, 0 otherwise.
   */
-int fesetprecision(int prec)
+static inline int fesetprecision(int prec)
 {
-  unsigned short cw;
-  asm volatile ("fnstcw %0":"=m" (cw));
   if ( !(prec & ~FE_LDBLPREC) && (prec != FE_INVALIDPREC) )
     {
+      unsigned short cw;
+      asm ("fnstcw %0":"=m" (cw));
       cw = (cw & ~FE_LDBLPREC) | (prec & FE_LDBLPREC);
-      // Bug fix in next line: old "fldcw %0":"=m" is now "fldcw %0"::"m"
-      // from Tom Kelly <ctk21@cam.ac.uk> who apparently has some
-      // clue about gcc asm.
-      asm volatile ("fldcw %0"::"m" (cw));
+      asm volatile ("fldcw %0" : /* Don't push these colons together */ : "m" (cw));
       return 1;
     }
   else
@@ -119,11 +116,15 @@ int fesetprecision(int prec)
  * This function is derived from wmexcep
  *
  */
-void
+static inline void
 fix_i386_linux_floats()
 {
 	fesetprecision(FE_DBLPREC);
 }
+#else
+static inline void
+fix_i386_linux_floats()
+{}
 #endif
 
 
@@ -154,9 +155,7 @@ Tcl_AppInit(Tcl_Interp *interp)
         globalMemTrace = new MemTrace;
 #endif
 
-#if defined(linux) && defined(i386)
 	fix_i386_linux_floats();
-#endif
        
 	if (Tcl_Init(interp) == TCL_ERROR ||
 	    Otcl_Init(interp) == TCL_ERROR)
