@@ -892,6 +892,7 @@ tcl/test/test-all-greis
 tcl/test/test-all-hier-routing
 tcl/test/test-all-intserv
 tcl/test/test-all-lan
+tcl/test/test-all-links
 tcl/test/test-all-manual-routing
 tcl/test/test-all-mcache
 tcl/test/test-all-mcast
@@ -1123,6 +1124,11 @@ tcl/test/test-output-lan
 tcl/test/test-output-lan/lan-broadcast.Z
 tcl/test/test-output-lan/lan-routing-flat.Z
 tcl/test/test-output-lan/lan-routing-hier.Z
+tcl/test/test-output-links
+tcl/test/test-output-links/links.Z
+tcl/test/test-output-links/links1.Z
+tcl/test/test-output-links/changeDelay.Z
+tcl/test/test-output-links/changeBandwidth.Z
 tcl/test/test-output-manual-routing
 tcl/test/test-output-manual-routing/one_client.Z
 tcl/test/test-output-mcache
@@ -1457,6 +1463,7 @@ tcl/test/test-suite-greis.tcl
 tcl/test/test-suite-hier-routing.tcl
 tcl/test/test-suite-intserv.tcl
 tcl/test/test-suite-lan.tcl
+tcl/test/test-suite-links.tcl
 tcl/test/test-suite-manual-routing.tcl
 tcl/test/test-suite-mcache.tcl
 tcl/test/test-suite-mcast.tcl
