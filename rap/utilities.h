@@ -30,7 +30,7 @@
 // Author:
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.3 1999/06/09 21:54:12 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.4 1999/06/15 20:06:48 salehi Exp $
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
@@ -40,11 +40,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#ifndef WIN32
-#include <strings.h>
-#else
 #include <memory.h>
-#endif
 
 // Constants...
 
