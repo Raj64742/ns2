@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.10 1998/09/17 00:18:26 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.11 1998/09/17 00:48:25 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -92,7 +92,8 @@ public:
 
 class TFCCAgent : public RTPAgent {
 public:
-	TFCCAgent() : srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
+	TFCCAgent() : srtt_(-1.0), srtt_chg_(-1.0),
+	rttvar_(-1.0), peer_rtt_est_(-1.0),
 	peer_interval_(-1.0), last_ts_(-1.0), last_loss_time_(-1.0),
 	last_rtime_(-1.0), expected_(0), nrcv_(0), nlost_(0), plost_(0),
 	cseq_(0), highest_cseq_seen_(-1),
