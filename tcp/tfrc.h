@@ -82,8 +82,9 @@ struct hdr_tfrc_ack {
 	double timestamp_echo;		//timestamp from the last data packet
 	double flost;		//frequnecy of loss indications
 	double rate_since_last_report;	//what it says ...
-	double NumFeedback_;	// number of times feedback is to be sent per RTT
+	double NumFeedback_;	//number of times/RTT feedback is to be sent 
 	static int offset_;		 // offset for this header
+	int losses;		// number of losses in last RTT
 
 	inline static int& offset() { 
 		return offset_; 
@@ -142,6 +143,8 @@ protected:
 	double maxrate_;	// prevents sending at more than 2 times the 
 				//  rate at which the receiver is _receving_ 
  	int printStatus_;	// to print status reports
+	int conservative_;	// set to 1 for a conservative response to
+				//  heavy congestion
 
 	/* "accurate" estimates for formula */
 	double rtt_; /*EWMA version*/

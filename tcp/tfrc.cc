@@ -86,9 +86,9 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("ssmult_", &ssmult_);
 	bind("bval_", &bval_);
 	bind("ca_", &ca_);
-	bind("printStatus_", &printStatus_);
+	bind_bool("printStatus_", &printStatus_);
+	bind_bool("conservative_", &conservative_);
 }
-
 
 int TfrcAgent::command(int argc, const char*const* argv)
 {
@@ -217,15 +217,23 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	double rate_since_last_report = nck->rate_since_last_report;
 	double NumFeedback_ = nck->NumFeedback_;
 	double flost = nck->flost; 
+	int losses = nck->losses;
 
 	round_id ++ ;
 	UrgentFlag = 0;
 
-	/* compute the max rate as two times rcv rate */ 
-	if (rate_since_last_report > 0) 
-		maxrate_ = 2*rate_since_last_report*size_;
-	else 
+	if (rate_since_last_report > 0) {
+		if (conservative_ && losses > 2) {
+			if (debug_) printf("time: %5.2f losses: %d rate %5.2f\n", 
+				now, losses, rate_since_last_report);
+			maxrate_ = rate_since_last_report*size_;
+		}
+		else 
+		/* compute the max rate as two times rcv rate */ 
+			maxrate_ = 2*rate_since_last_report*size_;
+	} else 
 		maxrate_ = 0; 
+
 		
 	/* update the round trip time */
 	update_rtt (ts, now);
@@ -339,6 +347,12 @@ void TfrcAgent::decrease_rate ()
 {
 	double now = Scheduler::instance().clock(); 
 	rate_ = rcvrate;
+
+	if (conservative_) {
+		double maximumrate = (maxrate_>size_/rtt_)?maxrate_:size_/rtt_ ;
+		rate_ = (rate_ > maximumrate)?maximumrate:rate_ ;
+	}
+
 	rate_change_ = RATE_DECREASE;
 	last_change_ = now;
 }

@@ -77,6 +77,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 
 	maxseq = -1;
 	rcvd_since_last_report  = 0;
+	losses_since_last_report = 0;
 	loss_seen_yet = 0;
 	lastloss = 0;
 	lastloss_round_id = -1 ;
@@ -180,6 +181,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 					lossvec_[i%hsz] = NOLOSS; 
 				}
 				i++;
+				losses_since_last_report++;
 				tstamp = tstamp+delta;
 			}
 		}
@@ -316,8 +318,10 @@ void TfrcSinkAgent::sendpkt(double p)
 		else
 			tfrc_ackh->flost = p;
 		tfrc_ackh->rate_since_last_report = est_thput ();
+		tfrc_ackh->losses = losses_since_last_report;
 		last_report_sent = now; 
 		rcvd_since_last_report = 0;
+		losses_since_last_report = 0;
 		send(pkt, 0);
 	}
 }

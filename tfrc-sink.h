@@ -112,6 +112,7 @@ protected:
 	double last_report_sent; 	// when was last feedback sent
 	double NumFeedback_; 	// how many feedbacks per rtt
 	int rcvd_since_last_report; 	// # of packets rcvd since last report
+	int losses_since_last_report;	// # of losses since last report
 	int printLoss_;		// to print estimated loss rates
 	int maxseq; 		// max seq number seen
 
