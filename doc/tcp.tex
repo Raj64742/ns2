@@ -377,6 +377,24 @@ Agent/TCP/FullTcp set dupack_reset_ false \; reset dupACK ctr on !0 len data seg
 Agent/TCP/FullTcp set interval_ 0.1 \; as in TCP above, (100ms is non-std);
 \end{program}
 
+
+\subsection{BayFullTcp}
+\label{sec:bayfulltcp}
+
+A different implementation of two-way TCP has been ported into ns from Kathy Nicholes/Van Jacobson's group. It is called BayFullTcp. The basic difference between BayFullTcp and FullTcp (the two-way tcp version already present in ns) are as follows:
+\begin{itemize}
+\item BayTcp supports a client-server application model while FullTcp makes no assumption about its application layer.
+\item The tcp-application interface is different for both;
+\item BayTcp supports partial ack (FullTcp doesn't).
+\item FullTcp supports different flavors of tcp (tahoe, reno etc) which is not the case for baytcp.
+\item Both implementations have different set of API's .
+\end{itemize}
+There might be other finer differences between the two as well.
+One of our future plans is to redefine the APIs to allow fulltcp to use
+baytcp's client-server model.
+
+
+
 \section{Architecture and Internals}
 \label{sec:tcparchitecture}
 
