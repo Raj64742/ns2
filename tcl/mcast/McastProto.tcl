@@ -211,48 +211,6 @@ McastProtocol instproc dump-routes {chan {grp ""} {src ""}} {
 	}
 }
 
-# Find out what interface packets sent from $node will arrive at
-# this node. $node need not be a neighbor. $node can be a node object
-# or node id.
-McastProtocol instproc from-node-iface { node } {
-	$self instvar ns_ node_
-	catch {
-		set node [$ns_ get-node-by-id $node]
-	}
-	set rpfnbr [$node_ rpf-nbr $node]
-	if {![catch { set rpflink [$ns_ link $rpfnbr $node_]}]} {
-		return [$rpflink if-label?]
-	}
-	return "?" ;#unknown iface
-}
-
-#McastProtocol instproc rpf-nbr src {
-#	 $self instvar node_
-#	 $node_ rpf-nbr $src
-#}
-#
-#
-#McastProtocol instproc iface2link ifid {
-#	 $self instvar node_
-#	 $node_ iif2link $ifid
-#}
-#
-#McastProtocol instproc link2iif link {
-#	 $self instvar node_
-#	 if { [$link dst] != $node_ } {
-#		 return ""
-#	 }
-#	 $link if-label?
-#}
-#
-#McastProtocol instproc link2oif link {
-#	 $self instvar node_
-#	 if { [$link src] != $node_ } {
-#		 # ooops, naughty, naughty
-#	 }
-#	 $node_ link2oif $link
-#}
-#
 
 ###################################################
 Class mrtObject

@@ -494,7 +494,7 @@ The global class variable, \code{ifacenum\_}, specifies the next
 available \code{ifid} number.
 
 \paragraph{Class Multicast Classifier}
-\code{Classifier/Multicast} maintains a \em{multicast forwarding
+\code{Classifier/Multicast} maintains a \emph{multicast forwarding
 cache}.  There is one multicast classifier per node. The node stores a
 reference to this classifier in its instance variable
 \code{multiclassifier\_}. When this classifier receives a packet, it
@@ -520,7 +520,7 @@ two codes to identify the problem:
 These upcalls to TCL give it a chance to correct the situation:
 install an appropriate MFC--entry (for \code{cache-miss}) or change
 the incoming interface for the existing MFC--entry (for
-\code{wrong-iif}).  The \em{return value} of the upcall determines
+\code{wrong-iif}).  The \emph{return value} of the upcall determines
 what classifier will do with the packet.  If the return value is
 ``1'', it will assume that TCL upcall has appropriately modified MFC
 will try to classify packet (lookup MFC) for the second time.  If the

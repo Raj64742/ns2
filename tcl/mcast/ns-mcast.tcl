@@ -506,39 +506,6 @@ Node instproc clearReps { src group } {
                 $self unset replicator_($key)
         }
 }
-#
-# These routines are being phased out in favour of newer ones defined earlier.
-#
-Simulator instproc RPF-link { src from to } {
-	$self instvar routingTable_ link_
-	#
-	# If this link is on the RPF tree, return the link object.
-	#
-        if [info exists routingTable_] {
-		set reverse [$routingTable_ lookup $to $src]
-		if { $reverse == $from } {
-			if [info exists link_($from:$to)] {
-				return $link_($from:$to)
-			}
-		}
-	}
-	return ""
-}
-
-#Node instproc RPF-interface { src from to } {
-#        $self instvar ns_
-#        set oifInfo ""  
-#        set link [$ns_ RPF-link $src $from $to]
-#
-#        if { $link != "" } {
-#                set oifInfo [$self get-oif $link]
-#        }
-#        return $oifInfo
-#}
-
-#-------------------------------------------------------------------------------
-# differences
-#-------------------------------------------------------------------------------
 
 Node instproc add-oif {head link} {
 	$self instvar outLink_
@@ -587,7 +554,18 @@ Node instproc oif2link oif {
 	$oif set link_
 }
 
-
-
-
-
+# Find out what interface packets sent from $node will arrive at
+# this node. $node need not be a neighbor. $node can be a node object
+# or node id.
+Node instproc from-node-iface { node } {
+	$self instvar ns_
+	catch {
+		set node [$ns_ get-node-by-id $node]
+	}
+	set rpfnbr [$self rpf-nbr $node]
+	set rpflink [$ns_ link $rpfnbr $self]
+	if { $rpflink != "" } {
+		return [$rpflink if-label?]
+	}
+	return "?" ;#unknown iface
+}

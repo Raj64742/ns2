@@ -98,7 +98,7 @@ ST instproc join-group  { group {src "x"} } {
 
 	set r [$node_ getReps "x" $group]
 	if {$r == ""} {
-		set iif [$self from-node-iface $RP_($group)]
+		set iif [$node_ from-node-iface $RP_($group)]
 		$self dbg "********* join: adding <x, $group, $iif>"
 		$node_ add-mfc "x" $group $iif ""
 		set r [$node_ getReps "x" $group]
