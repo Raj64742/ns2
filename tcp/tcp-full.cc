@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.107 2002/03/08 17:30:51 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.108 2002/03/09 17:25:19 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2076,6 +2076,8 @@ process_ACK:
 
 		if (fh->ecnecho() && !(tiflags&TH_SYN) )
 		if (fh->ecnecho()) {
+			// Note from Sally: In one-way TCP,
+			// ecn() is called before newack()...
 			ecn(highest_ack_);  // updated by newack(), above
 			// "set_rtx_timer();" from T. Kelly.
 			if (cwnd_ < 1)
@@ -2107,6 +2109,7 @@ process_ACK:
 		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
 		    last_state_ == TCPS_ESTABLISHED) {
 			if (!partial || open_cwnd_on_pack_)
+			  if (!ect_ || !hdr_flags::access(pkt)->ecnecho())
 				opencwnd();
 		}
 
