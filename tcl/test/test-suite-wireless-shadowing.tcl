@@ -197,7 +197,7 @@ Test/dsr instproc init {} {
 
     $self next
 
-    $ns_ node-config -adhocRouting DSDV \
+    $ns_ node-config -adhocRouting $opt(rp) \
                          -llType $opt(ll) \
                          -macType $opt(mac) \
                          -ifqType $opt(ifq) \
