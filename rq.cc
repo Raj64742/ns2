@@ -136,8 +136,8 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 	int cnt = maxsblock;
 
 	while (p && maxsblock) {
-		*sacks++ = top_->startseq_;
-		*sacks++ = top_->endseq_;
+		*sacks++ = p->startseq_;
+		*sacks++ = p->endseq_;
 		--maxsblock;
 		p = p->snext_;
 	}
@@ -346,6 +346,11 @@ main()
 	int rcvnxt;
 	ReassemblyQueue rq(rcvnxt);
 
+	static int blockstore[64];
+	int *blocks = blockstore;
+	int nblocks = 5;
+	int i;
+
 	rq.add(5, 10, 0, 0);
 	rq.dumplist();
 	rq.add(10, 20, 0, 0);
@@ -354,8 +359,14 @@ main()
 	rq.dumplist();
 	rq.add(22, 25, 0, 0);
 	rq.dumplist();
-	rq.add(22, 25, 0, 0);
-	rq.dumplist();
+
+	rq.gensack(blocks, nblocks);
+	for (i = 0; i < nblocks; i++) {
+		printf(">%d, %d<, ", blocks[0], blocks[1]);
+		++blocks;
+		++blocks;
+	}
+	printf("\n");
 
 	exit(0);
 }
