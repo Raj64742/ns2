@@ -54,7 +54,8 @@
 // maximum no of queues on the node
 #define MAX_QUEUES 10
 
-#define MIN_TIME_TO_FREE 10
+#define MIN_TIME_TO_FREE 20
+#define PRIMARY_WAITING_ZONE 10
 #define RATE_LIMIT_TIME_DEFAULT 30    //in seconds
 #define DEFAULT_BUCKET_DEPTH  5000           //in bytes
 

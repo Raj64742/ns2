@@ -145,6 +145,7 @@ void
 PacketTypeLog::expire(Event * e) {
 
   //printf("PTTimer Expiry at %g\n", Scheduler::instance().clock());
+
   if (!count_) {
     resched(PACKET_TYPE_TIMER);
     return;

@@ -170,15 +170,17 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
     RateLimitSession * rls1 = 
       queue_list_[qid].pbq_->rlsList_->containsLocalAggSpec(aggSpec, node_->nodeid());
     if (rls1 != NULL) {
-      sprintf(prnMsg, "got subset aggregate. agg = ");
+      sprintf(prnMsg, "got subset aggregate. Lowerbound = %g. agg = ", aggReturn->limit_);
       printMsg(prnMsg,0);
       aggSpec->print(); fflush(stdout);
       delete(aggSpec);
       //this could keep the lowerbound unnecessarily down.
       //but don't be sympathetic with aggregates, which have been identified again.
-      if (rls1->lowerBound_ < aggReturn->limit_) {
+      if (aggReturn->limit_ < rls1->lowerBound_) {
 	rls1->lowerBound_ = aggReturn->limit_;
       }
+      //set the last misbehavior signal.
+      rls1->refreshed();
       continue;
     }
     
@@ -473,7 +475,16 @@ PushbackAgent::pushbackRefresh(int qid) {
 	  double sendRate = listItem->getArrivalRateForStatus();
 	  double oldLimit = listItem->rlStrategy_->target_rate_;
 	  double maxR = sendRate>oldLimit? sendRate: oldLimit;
-	  listItem->setLimit(2*maxR);
+	  if (now - listItem->refreshTime_ <= PRIMARY_WAITING_ZONE) {
+	     sprintf(prnMsg,"Waiting Zone 1: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
+	     printMsg(prnMsg,0);
+	  listItem->setLimit(maxR);
+	  }
+	  else {
+	     sprintf(prnMsg,"Waiting Zone 2: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
+	     printMsg(prnMsg,0);
+	     listItem->setLimit(1.5*maxR);
+	  } 
 	  if (listItem->pushbackON_) 
 	    refreshUpstreamLimits(listItem);
 	}
@@ -692,7 +703,15 @@ PushbackAgent::refreshUpstreamLimits(RateLimitSession * rls) {
   int count = rls->logData_->count_;
   double fairShare = totalRate/count;
   int done = count;
-    
+  double arrRate = rls->getArrivalRateForStatus();
+  sprintf(prnMsg, "Sending refresh messages to %d nodes. Limit = %g arrRate = %g\n", count, totalRate, arrRate);
+  printMsg(prnMsg,0); 
+  
+  int excess = 0;
+  if (totalRate > arrRate) {
+	  excess = 1;
+  }
+
   //max-min allocation of limit.
   while (done != 0) {
     LoggingDataStructNode * lgdsNode = rls->logData_->first_;
@@ -708,10 +727,16 @@ PushbackAgent::refreshUpstreamLimits(RateLimitSession * rls) {
 					   rls->localID_, aggSpec, INFINITE_LIMIT);
 	  lgdsNode->sentRefresh(INFINITE_LIMIT);
 	}
-	else {
+	else if (!excess) {
 	  msg = new PushbackRefreshMessage(node_->nodeid(), lgdsNode->nid_, rls->localQID_, 
 					   rls->localID_, aggSpec, rate);
 	  lgdsNode->sentRefresh(rate);
+	}
+	else {
+	  msg = new PushbackRefreshMessage(node_->nodeid(), lgdsNode->nid_, rls->localQID_, 
+					   rls->localID_, aggSpec, fairShare);
+	  lgdsNode->sentRefresh(fairShare);
+	  rate = fairShare;
 	}
 	sendMsg(msg);
 	countThisRound++;
@@ -795,7 +820,7 @@ PushbackAgent::sendMsg(PushbackMessage * msg) {
   hdr_push->msg_ = msg;
     
   sprintf(prnMsg, " sent %s message to %d.%d\n", PushbackMessage::type(msg), dst_.addr_, dst_.port_);
-  printMsg(prnMsg,0);
+  printMsg(prnMsg,4);
   send(pkt,0);
 }
 
@@ -852,7 +877,7 @@ void
 PushbackTimer::insert(PushbackEvent * event) {
 
   sprintf(agent_->prnMsg,"%s timer set\n", PushbackEvent::type(event));
-  agent_->printMsg(agent_->prnMsg,0);
+  agent_->printMsg(agent_->prnMsg,4);
   if (firstEvent_ == NULL) {
     firstEvent_ = event;
     schedule();
@@ -942,7 +967,7 @@ PushbackTimer::cancelStatus(RateLimitSession * rls) {
   PushbackEvent * current = firstEvent_->next_;
   
   while (current!=NULL) {
-    if (current->eventID_ == PUSHBACK_STATUS_EVENT && firstEvent_->rls_==rls) {
+    if (current->eventID_ == PUSHBACK_STATUS_EVENT && current->rls_==rls) {
       previous->next_=current->next_;
       delete(current);
       return;

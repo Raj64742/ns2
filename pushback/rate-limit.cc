@@ -360,7 +360,7 @@ RateLimitSession::setLimit(double limit) {
 }
  
 double
-RateLimitSession::getArrivalRateForStatus() {
+RateLimitSession::getArrivalRateForStatus()  {
 
   // for a leaf PBA, this is the rate seen at the rlStrategy_;
   // for non-leaf PBAs it is the sum of the rates reported by upstream PBAs 

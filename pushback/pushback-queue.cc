@@ -121,28 +121,35 @@ PushbackQueue::timeout(int from) {
   int barrivals = qmon_->barrivals() - qmon_->mon_ebdrops();
   int bdrops = qmon_->bdrops() - qmon_->mon_ebdrops();
   int bdeps = qmon_->bdepartures();
-  Tcl& tcl = Tcl::instance();
-  if (verbose_) {
-    printf("PBQ:(%d:%d) (%g) arrs = %d  drops = %d deps = %d mon_drops = %d\n", 
-	 src_, dst_, Scheduler::instance().clock(), 
-	 barrivals*8, bdrops*8, bdeps*8, qmon_->mon_ebdrops()*8 );
-    fflush(stdout);
-  }
-  tcl.evalf("%s reset",qmon_->name());
-  
+
   // an alternate way of calculating this is using the arrivals and drops from above, 
   // but the below is more accurate as RED avg queue takes time to come down and
   // hence drop rate goes down much slower.
-  double dropRate= getDropRate();
+  double dropRate1= getDropRate();
+  double dropRate2= ((double)bdrops/barrivals);
+
+  if (dropRate1 > 0 || dropRate2 > 0) {
+	  if (verbose_) 
+		  printf("PBQ:(%d:%d) (%g) arrs %d  drops %d deps %d mdrops %d dr %g %g\n", 
+			 src_, dst_, Scheduler::instance().clock(), 
+			 barrivals*8, bdrops*8, bdeps*8, qmon_->mon_ebdrops()*8, dropRate1, dropRate2);
+	  fflush(stdout);
+  }
+  Tcl& tcl = Tcl::instance();
+  tcl.evalf("%s reset",qmon_->name());
   
-  if (rate_limiting_ && dropRate >= SUSTAINED_CONGESTION_DROPRATE) {
-    if (verbose_) {
-      printf("PBQ:(%d:%d) (%g) Arr: %d (%g) Drops: %d (%g) BW: %g\n", src_, dst_, 
-	   Scheduler::instance().clock(), barrivals, rateEstimator_->estRate_, 
-	   bdrops, dropRate, link_->bandwidth());
-      fflush(stdout);
-    }
-    
+
+  if (rate_limiting_ && 
+      dropRate1 >= SUSTAINED_CONGESTION_DROPRATE && 
+      dropRate2 >= SUSTAINED_CONGESTION_DROPRATE/2) {
+	  if (verbose_) {
+		  printf("PBQ:(%d:%d) (%g) Arr: %d (%g) Drops: %d (%g %g) BW: %g\n", 
+			 src_, dst_, Scheduler::instance().clock(), 
+			 barrivals, rateEstimator_->estRate_, 
+			 bdrops, dropRate1, dropRate2, link_->bandwidth());
+		  fflush(stdout);
+	  }
+	  
     //this function call would 
     //  1) start a rate limiting session, 
     //  2) insert it in the queues rate limiting session list.
@@ -165,9 +172,9 @@ PushbackQueue::enque(Packet *p) {
     printf("In queue enque with ptype %d %d\n", hdr->ptype(), PT_PUSHBACK);
 
   if (hdr->ptype_ == PT_PUSHBACK) {
-    if (verbose_) printf("PBQ:(%d:%d). Got a pushback packet.\n",src_, dst_);
-    q_->enqueHead(p);
-    return;
+	  if (verbose_) printf("PBQ:(%d:%d). Got a pushback packet.\n",src_, dst_);
+	  q_->enqueHead(p);
+	  return;
   }
 
   int dropped = 0;
