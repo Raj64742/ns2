@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.12 1998/05/19 02:31:45 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.13 1998/05/21 00:03:09 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -64,6 +64,22 @@ typedef int Socket;
 #include "net.h"
 #include "inet.h"
 #include "tclcl.h"
+
+//#define	NIPDEBUG	1
+#ifdef NIPDEBUG
+#define NIDEBUG(x) { if (NIPDEBUG) fprintf(stderr, (x)); }
+#define NIDEBUG2(x,y) { if (NIPDEBUG) fprintf(stderr, (x), (y)); }
+#define NIDEBUG3(x,y,z) { if (NIPDEBUG) fprintf(stderr, (x), (y), (z)); }
+#define NIDEBUG4(w,x,y,z) { if (NIPDEBUG) fprintf(stderr, (w), (x), (y), (z)); }
+#define NIDEBUG5(v,w,x,y,z) { if (NIPDEBUG) fprintf(stderr, (v), (w), (x), (y), (z)); }
+#else
+#define NIDEBUG(x) { }
+#define NIDEBUG2(x,y) { }
+#define NIDEBUG3(x,y,z) { }
+#define NIDEBUG4(w,x,y,z) { }
+#define NIDEBUG5(v,w,x,y,z) { }
+#endif
+
 
 /*
  * Net-ip.cc: this file defines the IP and IP/UDP network
@@ -132,6 +148,7 @@ public:
 
 	int command(int argc, const char*const* argv);
 	void reconfigure();
+	void add_membership(Socket, in_addr&, u_int16_t); // udp version
 protected:
 	int bind(in_addr&, u_int16_t port);	// bind to addr/port, mcast ok
 	int connect(in_addr& remoteaddr, u_int16_t port);	// connect()
@@ -164,12 +181,14 @@ IPNetwork::IPNetwork() :
 {
 	localaddr_.s_addr = 0L;
 	destaddr_.s_addr = 0L;
+	NIDEBUG("IPNetwork: ctor\n");
 }
 
 UDPIPNetwork::UDPIPNetwork() :
         lport_(htons(0)), 
         port_(htons(0))
 {
+	NIDEBUG("UDPIPNetwork: ctor\n");
 }
 
 /*
@@ -182,6 +201,9 @@ int
 UDPIPNetwork::send(u_char* buf, int len)
 {
 	int cc = ::send(schannel(), (char*)buf, len, 0);
+	NIDEBUG5("UDPIPNetwork(%s): ::send(%d, buf, %d) returned %d\n",
+		name(), schannel(), len, cc);
+
 	if (cc < 0) {
 		switch (errno) {
 		case ECONNREFUSED:
@@ -257,6 +279,8 @@ UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from)
 	int fromlen = sizeof(sfrom);
 	int cc = ::recvfrom(rsock_, (char*)buf, len, 0,
 			    (sockaddr*)&sfrom, &fromlen);
+	NIDEBUG5("UDPIPNetwork(%s): ::recvfrom(%d, buf, %d) returned %d\n",
+		name(), rsock_, len, cc);
 	if (cc < 0) {
 		if (errno != EWOULDBLOCK) {
 			fprintf(stderr,
@@ -277,6 +301,7 @@ UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from)
 	if (!loop_ && noloopback_broken_ &&
 	    sfrom.sin_addr.s_addr == localaddr_.s_addr &&
 	    sfrom.sin_port == lport_) {
+	NIDEBUG2("UDPIPNetwork(%s): filtered out our own pkt\n", name());
 		return (0);	// empty
 	}
 
@@ -298,7 +323,7 @@ UDPIPNetwork::open(int mode)
 		if (::setsockopt(rsock_, SOL_SOCKET, SO_REUSEADDR, (char *)&on,
 				sizeof(on)) < 0) {
 			fprintf(stderr,
-	"UDPIPNetwork(%s): openrsock: warning: unable set REUSEADDR: %s\n",
+	"UDPIPNetwork(%s): open: warning: unable set REUSEADDR: %s\n",
 				name(), strerror(errno));
 		}
 #ifdef SO_REUSEPORT
@@ -306,7 +331,7 @@ UDPIPNetwork::open(int mode)
 		if (::setsockopt(rsock_, SOL_SOCKET, SO_REUSEPORT, (char *)&on,
 			       sizeof(on)) < 0) {
 			fprintf(stderr,
-	"UDPIPNetwork(%s): openrsock: warning: unable set REUSEPORT: %s\n",
+	"UDPIPNetwork(%s): open: warning: unable set REUSEPORT: %s\n",
 				name(), strerror(errno));
 		}
 #endif
@@ -342,7 +367,39 @@ UDPIPNetwork::open(int mode)
 
 	}
 	mode_ = mode;
+	NIDEBUG5("UDPIPNetwork(%s): opened network w/mode %d, ssock:%d, rsock:%d\n",
+		name(), mode_, rsock_, ssock_);
 	return (0);
+}
+
+//
+// IP/UDP version of add_membership: try binding
+//
+
+void
+UDPIPNetwork::add_membership(Socket sock, in_addr& addr, u_int16_t port)
+{
+	int failure = 0;
+	sockaddr_in sin;
+	if (bindsock(sock, addr, port, sin) < 0)
+		failure = 1;
+	if (failure) {
+		in_addr addr2 = addr;
+		addr2.s_addr = INADDR_ANY;
+		if (bindsock(sock, addr2, port, sin) < 0)
+			failure = 1;
+		else
+			failure = 0;
+	}
+
+	if (IPNetwork::add_membership(sock, addr) < 0)
+		failure = 1;
+
+	if (failure) {
+		fprintf(stderr,
+		"UDPIPNetwork(%s): add_membership: failed bind on mcast addr %s and INADDR_ANY\n",
+			name(), inet_ntoa(addr));
+	}
 }
 
 //
@@ -351,6 +408,8 @@ UDPIPNetwork::open(int mode)
 int
 UDPIPNetwork::bind(in_addr& addr, u_int16_t port)
 {
+	NIDEBUG4("UDPIPNetwork(%s): attempt to bind to addr %s, port %d [net order]\n",
+		name(), inet_ntoa(addr), ntohs(port));
 	if (rsock_ < 0) {
 		fprintf(stderr,
 		"UDPIPNetwork(%s): bind/listen called before net is open\n",
@@ -365,10 +424,12 @@ UDPIPNetwork::bind(in_addr& addr, u_int16_t port)
 	}
 #ifdef IP_ADD_MEMBERSHIP
         if (IN_CLASSD(ntohl(addr.s_addr))) {
-                (void)add_membership(rsock_, addr);
+		// MULTICAST case, call UDPIP vers of add_membership
+                add_membership(rsock_, addr, port);
         } else
 #endif
         {
+		// UNICAST case
                 sockaddr_in sin;
                 if (bindsock(rsock_, addr, port, sin) < 0) {
                         port = ntohs(port);
@@ -660,6 +721,8 @@ IPNetwork::open(int mode)
 	}
 	rsock_ = ssock_ = fd;
 	mode_ = mode;
+	NIDEBUG5("IPNetwork(%s): opened with mode %d, rsock_:%d, ssock_:%d\n",
+		name(), mode_, rsock_, ssock_);
 	return 0;
 }
 
@@ -691,6 +754,7 @@ IPNetwork::add_membership(Socket fd, in_addr& addr)
 
 #if defined(IP_ADD_MEMBERSHIP)
 	if (IN_CLASSD(ntohl(addr.s_addr))) {
+#ifdef notdef
 		/*
 		 * Try to bind the multicast address as the socket
 		 * dest address.  On many systems this won't work
@@ -711,6 +775,7 @@ IPNetwork::add_membership(Socket fd, in_addr& addr)
 				return (-1);
 			}
 		}
+#endif
 		/* 
 		 * XXX This is bogus multicast setup that really
 		 * shouldn't have to be done (group membership should be
@@ -729,12 +794,16 @@ IPNetwork::add_membership(Socket fd, in_addr& addr)
 				name(), inet_ntoa(addr), strerror(errno));
 			return (-1);
 		}
+		NIDEBUG3("IPNetwork(%s): add_membership for grp %s done\n",
+			name(), inet_ntoa(addr));
 		return (0);
 	}
 #else
 	fprintf(stderr, "IPNetwork(%s): add_membership: host does not support IP multicast\n",
 		name());
 #endif
+	NIDEBUG3("IPNetwork(%s): add_membership for grp %s failed\n",
+		name(), inet_ntoa(addr));
 	return (-1);
 }
 
@@ -758,12 +827,16 @@ IPNetwork::drop_membership(Socket fd, in_addr& addr)
 				name(), inet_ntoa(addr), strerror(errno));
 			return (-1);
 		}
+		NIDEBUG3("IPNetwork(%s): drop_membership for grp %s done\n",
+			name(), inet_ntoa(addr));
 		return (0);
 	}
 #else
 	fprintf(stderr, "IPNetwork(%s): drop_membership: host does not support IP multicast\n",
 		name());
 #endif
+	NIDEBUG3("IPNetwork(%s): drop_membership for grp %s failed\n",
+		name(), inet_ntoa(addr));
 	return (-1);
 }
 
@@ -832,6 +905,7 @@ IPNetwork::reset(int restart)
 {
 	time_t t = time(0);
 	int d = int(t - last_reset_);
+	NIDEBUG2("IPNetwork(%s): reset\n", name());
 	if (d > 3) {	// Steve: why?
 		last_reset_ = t;
 		if (ssock_ >= 0)
