@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.11 1998/05/19 02:29:54 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.12 1998/05/19 02:31:45 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -114,6 +114,7 @@ protected:
 	Socket ssock_;			// socket to send on
         int noloopback_broken_;		// couldn't turn (off) mcast loopback
 	int loop_;			// do we want loopbacks?
+					// (system usually assumes yes)
 
 	void reset(int reconfigure);			// reset + reconfig?
 	virtual int open(int mode);	// open sockets/endpoints
@@ -158,7 +159,8 @@ IPNetwork::IPNetwork() :
         rsock_(-1), 
         ssock_(-1),
 	mttl_(0),
-        noloopback_broken_(0)
+        noloopback_broken_(0),
+	loop_(1)
 {
 	localaddr_.s_addr = 0L;
 	destaddr_.s_addr = 0L;
