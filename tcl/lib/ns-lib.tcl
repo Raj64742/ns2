@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.108 1998/07/06 06:25:20 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.109 1998/07/06 19:31:30 kannan Exp $
 
 #
 
@@ -407,8 +407,8 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	set sid [$n1 id]
 	set did [$n2 id]
 	
-	if [info exists queueMap_($type)] {
-		set type $queueMap_($type)
+	if [info exists queueMap_($qtype)] {
+		set type $queueMap_($qtype)
 	}
 	if [$class set NumberInterfaces_] {
 		$self instvar interfaces_
@@ -476,7 +476,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	$n1 add-neighbor $n2
 	
 	#XXX yuck
-	if {[string first "RED" $type] != -1} {
+	if {[string first "RED" $qtype] != -1} {
 		$q link [$link_($sid:$did) set link_]
 	}
 	
