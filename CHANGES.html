@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.390 2000/04/15 04:08:53 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.391 2000/05/12 23:30:03 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,15 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/vint/ns-src-2.1b7.tar.gz">
 	Release of ns-2.1b7</a> [PENDING]</h3>
 <ul>
+	<p>
+	<LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
+	<b>Fri May 12 16:26:02 PDT 2000</b><br>
+	Added bug fix for the initial slow-start in TFRC, and changed
+	the default value for Agent/TFRC/InitRate_ for greater
+	compatibility with TCP.  Also added two new validation
+	tests, manyDrops and twoDrops, to test-all-friendly
+	to validate the bug fix.  Fix from Jitendra Padhye.
+
 	<p>
 	<LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
 	<b>Fri Apr 14 21:01:25 PDT 2000</b><br>
