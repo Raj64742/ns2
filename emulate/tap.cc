@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997 The Regents of the University of California.
+ * Copyright (c) 1997, 1998 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.7 1998/03/13 23:28:56 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.8 1998/05/20 22:40:37 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -41,16 +41,30 @@ static const char rcsid[] =
 #include "packet.h"
 #include "agent.h"
 
+
+#define TAPDEBUG 1
+#ifdef TAPDEBUG
+#define	TDEBUG(x) { if (TAPDEBUG) fprintf(stderr, (x)); }
+#define	TDEBUG2(x,y) { if (TAPDEBUG) fprintf(stderr, (x), (y)); }
+#define	TDEBUG3(x,y,z) { if (TAPDEBUG) fprintf(stderr, (x), (y), (z)); }
+#else
+#define	TDEBUG(x) { }
+#define	TDEBUG2(x,y) { }
+#define	TDEBUG3(x,y,z) { }
+#endif
+
+#include <errno.h>
+
 class TapAgent : public Agent, public IOHandler {
- public:
+public:
         TapAgent();
 	int command(int, const char*const*);
-	void recv(Packet* p, Handler*);
- protected:
-	void dispatch(int);
-	int linknet();
-	int off_tap_;
-	Network* net_;
+	void recv(Packet* p, Handler*);	// sim->live net
+protected:
+	int maxpkt_;		// max size allocated to recv a pkt
+	void dispatch(int);	// invoked via scheduler on I/O event
+	int linknet();		// establish I/O handler
+	Network* net_;		// live network object
 	int sendpkt(Packet*);
 	void recvpkt();
 };
@@ -65,7 +79,7 @@ static class TapAgentClass : public TclClass {
 
 TapAgent::TapAgent() : Agent(PT_LIVE), net_(NULL)
 {
-	bind("off_tap_", &off_tap_);
+	bind("maxpkt_", &maxpkt_);
 }
 
 //
@@ -88,6 +102,8 @@ TapAgent::linknet()
 			return (TCL_ERROR);
 		}
 		link(rchan, TCL_READABLE);
+		TDEBUG3("TapAgent(%s): linked sock %d as READABLE\n",
+			name(), rchan);
 	} else if (mode != O_WRONLY) {
 		if (mode == -1) {
 			fprintf(stderr,
@@ -112,15 +128,11 @@ TapAgent::linknet()
 			return (TCL_ERROR);
 		}
 	}
-	if (off_tap_ == 0) { 
-		fprintf(stderr, "TapAgent(%s): warning: off_tap == 0: ",
-		    name());
-		fprintf(stderr, "is RealTime scheduler on?\n");
-	}
 	return (TCL_OK);
 }
 
-int TapAgent::command(int argc, const char*const* argv)
+int
+TapAgent::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 
@@ -147,24 +159,12 @@ int TapAgent::command(int argc, const char*const* argv)
 	return (Agent::command(argc, argv));
 }
 
-struct hdr_tap {
-	/*XXX*/
-	u_char buf[1600];
-};
-
-class TapHeaderClass : public PacketHeaderClass {
-public:
-        TapHeaderClass() : PacketHeaderClass("PacketHeader/Tap",
-					     sizeof(hdr_tap)) {}
-} class_taphdr;
-
 /*
  * Receive a packet off the network and inject into the simulation.
  */
-void TapAgent::recvpkt()
+void
+TapAgent::recvpkt()
 {
-
-	sockaddr addr;
 
 	if (net_->mode() != O_RDWR && net_->mode() != O_RDONLY) {
 		fprintf(stderr,
@@ -173,11 +173,20 @@ void TapAgent::recvpkt()
 		return;
 	}
 
+	if (maxpkt_ <= 0) {
+		fprintf(stderr,
+		  "TapAgent(%s): recvpkt: maxpkt_ value too low (%d)\n",
+		  name(), maxpkt_);
+		return;
+	}
 
+	// allocate packet and a data payload
 	Packet* p = allocpkt();
-	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
+	p->allocdata(maxpkt_);
 
-	int cc = net_->recv(ht->buf, sizeof(ht->buf), addr);
+	// fill up payload
+	sockaddr addr;	// not really used (yet)
+	int cc = net_->recv(p->accessdata(), maxpkt_, addr);
 	if (cc <= 0) {
 		if (cc < 0) {
 			perror("recv");
@@ -185,13 +194,17 @@ void TapAgent::recvpkt()
 		return;
 	}
 
+	TDEBUG3("Tap(%s): recv pkt, cc:%d\n", name(), cc);
+
+	// inject into simulator
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	ch->size() = cc;
 	target_->recv(p);
 	return;
 }
 
-void TapAgent::dispatch(int)
+void
+TapAgent::dispatch(int)
 {
 	/*
 	 * Just process one packet.  We could put a loop here
@@ -200,7 +213,6 @@ void TapAgent::dispatch(int)
 	 * other events to get a chance to slip in...
 	 */
 	Scheduler::instance().sync();	// sim clock gets set to now
-
 	recvpkt();
 }
 
@@ -210,8 +222,10 @@ void TapAgent::dispatch(int)
  * to drop target
  */
 
-void TapAgent::recv(Packet* p, Handler*)
+void
+TapAgent::recv(Packet* p, Handler*)
 {
+	// recv from sim, inject into live
 	if (sendpkt(p) == 0)
 		Packet::free(p);
 
@@ -223,20 +237,28 @@ TapAgent::sendpkt(Packet* p)
 {
 	if (net_->mode() != O_RDWR && net_->mode() != O_WRONLY) {
 		fprintf(stderr,
-		    "TapAgent(%s): recvpkt called while in write-only mode!\n",
+		    "TapAgent(%s): sendpkt called while in read-only mode!\n",
 		    name());
-		return -1;
+		return (-1);
 	}
 
 	// send packet into the live network
-	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
 	hdr_cmn* hc = (hdr_cmn*)p->access(off_cmn_);
 	if (net_ == NULL) {
+		fprintf(stderr,
+	         "TapAgent(%s): sendpkt attempted with NULL net: %s\n",
+		 name());
 		drop(p);
-		return -1;
+		return (-1);
 	}
-	if (net_->send(ht->buf, hc->size()) < 0) {
-		perror("send");
+	if (net_->send(p->accessdata(), hc->size()) < 0) {
+		fprintf(stderr,
+		    "TapAgent(%s): sendpkt: %s\n",
+		    name(), strerror(errno));
+		return (-1);
+			
 	}
+	TDEBUG3("TapAgent(%s): sent packet (sz: %d)\n",
+		name(), hc->size());
 	return 0;
 }
