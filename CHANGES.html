@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.69 1997/05/22 00:07:18 breslau Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.70 1997/05/22 01:59:21 tomh Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -16,6 +16,14 @@
 [PENDING RELEASE DATE]</h3>
 
 <ul>
+<li><b><a href="mailto:tomh@cs.berkeley.edu">[TH]</a></b>
+<b>Wed May 21 18:57:00 PDT 1997</b><br>
+Ported bug fixes from ns-1 for tcp.cc, tcp-newreno.cc, tcp-reno.cc.  This
+also affected ns-default.tcl <br>
+Added reset functions to Acker and TcpSink in tcp-sink.cc so that tcp sinks
+can be reset and reused in a simulation (Sack sinks also are covered)
+<br>
+
 <li><b><a href="mailto:breslau@parc.xerox.com">[LB]</a></b>
 <b>Wed May 21 17:02:52 PDT 1997</b><br>
 Added variable length portion to Packet class to handle non-fixed
