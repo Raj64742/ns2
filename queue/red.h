@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.31 2001/07/24 20:53:21 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.32 2001/07/26 01:51:51 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -79,7 +79,9 @@ struct edp {
 				 * when ave queue exceeds maxthresh. */
 	int summarystats;	/* true to print true average queue size */
 	double th_min;		/* minimum threshold of average queue size */
+	double th_min_pkts;	/* always maintained in packets */
 	double th_max;		/* maximum threshold of average queue size */
+	double th_max_pkts;     /* always maintained in packets */
 	double max_p_inv;       /* 1/max_p, for max_p = maximum prob.  */
 	                        /* adaptive RED: the initial max_p_inv     */	
 	double q_w;		/* queue weight given to cur q size sample */

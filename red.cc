@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.62 2001/07/24 20:53:20 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.63 2001/07/26 01:51:51 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -93,8 +93,7 @@ REDQueue::REDQueue() {
 /*
  * modified to enable instantiation with special Trace objects - ratul
  */
-REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL), EDTrace(NULL),
-	tchan_(0), idle_(1), first_reset_(1)
+REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL), EDTrace(NULL), tchan_(0), idle_(1)
 {
 	//	printf("Making trace type %s\n", trace);
 	if (strlen(trace) >=20) {
@@ -106,8 +105,8 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
 	//	_RENAMED("queue-in-bytes_", "queue_in_bytes_");
 
-	bind("thresh_", &edp_.th_min);		    // minthresh
-	bind("maxthresh_", &edp_.th_max);	    // maxthresh
+	bind("thresh_", &edp_.th_min_pkts);		    // minthresh
+	bind("maxthresh_", &edp_.th_max_pkts);	    // maxthresh
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
 	bind("q_weight_", &edp_.q_w);		    // for EWMA
 	bind("adaptive_", &edp_.adaptive);          // 1 for adaptive red
@@ -141,9 +140,10 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind("curq_", &curq_);			    // current queue size
 	bind("cur_max_p_", &edv_.cur_max_p);        // current max_p
 	
+
 	q_ = new PacketQueue();			    // underlying queue
 	pq_ = q_;
-	reset();
+	//reset();
 #ifdef notdef
 	print_edp();
 	print_edv();
@@ -169,24 +169,25 @@ void REDQueue::initialize_params()
 	if (edp_.q_w == 0.0)
 		edp_.q_w = 1.0 - exp(-1.0/edp_.ptc);
 	// printf("ptc: %7.5f bandwidth: %5.3f pktsize: %d\n", edp_.ptc, link_->bandwidth(), edp_.mean_pktsize);
-        // printf("th_min: %7.5f th_max: %7.5f\n", edp_.th_min, edp_.th_max);
-	if (edp_.th_min == 0) {
-		edp_.th_min = 5.0;
-		// set th_min to half of targetqueue, if this is greater
+        // printf("th_min_pkts: %7.5f th_max_pkts: %7.5f\n", edp_.th_min_pkts, edp_.th_max);
+	if (edp_.th_min_pkts == 0) {
+		edp_.th_min_pkts = 5.0;
+		// set th_min_pkts to half of targetqueue, if this is greater
 		//  than 5 packets.
 		double targetqueue = edp_.targetdelay * edp_.ptc;
-		if (edp_.th_min < targetqueue / 2.0 )
-			edp_.th_min = targetqueue / 2.0 ;
+		if (edp_.th_min_pkts < targetqueue / 2.0 )
+			edp_.th_min_pkts = targetqueue / 2.0 ;
         }
-	if (edp_.th_max == 0) 
-		edp_.th_max = 3.0 * edp_.th_min;
-        //printf("th_min: %7.5f th_max: %7.5f\n", edp_.th_min, edp_.th_max);
+	if (edp_.th_max_pkts == 0) 
+		edp_.th_max_pkts = 3.0 * edp_.th_min_pkts;
+        //printf("th_min_pkts: %7.5f th_max_pkts: %7.5f\n", edp_.th_min_pkts, edp_.th_max);
 	//printf("q_w: %7.5f\n", edp_.q_w);
 }
 
 void REDQueue::reset()
 {
 	
+        //printf("3: th_min_pkts: %5.2f\n", edp_.th_min_pkts); 
 	/*
 	 * Compute the "packet time constant" if we know the
 	 * link bandwidth.  The ptc is the max number of (avg sized)
@@ -198,17 +199,21 @@ void REDQueue::reset()
 		edp_.ptc = link_->bandwidth() / (8. * edp_.mean_pktsize);
 		initialize_params();
 	}
-	if (edp_.th_max == 0) 
-		edp_.th_max = 3.0 * edp_.th_min;
+	if (edp_.th_max_pkts == 0) 
+		edp_.th_max_pkts = 3.0 * edp_.th_min_pkts;
 	/*
 	 * If queue is measured in bytes, scale min/max thresh
 	 * by the size of an average packet (which is specified by user).
 	 */
-        if (qib_ && first_reset_ == 1) {
-                edp_.th_min *= edp_.mean_pktsize;  
-                edp_.th_max *= edp_.mean_pktsize;
-                first_reset_ = 0;
-        }
+        if (qib_) {
+		//printf("1: th_min in pkts: %5.2f mean_pktsize: %d \n", edp_.th_min_pkts, edp_.mean_pktsize); 
+                edp_.th_min = edp_.th_min_pkts * edp_.mean_pktsize;  
+                edp_.th_max = edp_.th_max_pkts * edp_.mean_pktsize;
+		//printf("2: th_min in bytes (if qib): %5.2f mean_pktsize: %d \n", edp_.th_min, edp_.mean_pktsize); 
+        } else {
+		edp_.th_min = edp_.th_min_pkts;
+		edp_.th_max = edp_.th_max_pkts;
+	}
 	 
 	edv_.v_ave = 0.0;
 	edv_.v_true_ave = 0.0;
@@ -664,8 +669,9 @@ int REDQueue::command(int argc, const char*const* argv)
 			link_ = del;
 			edp_.ptc = link_->bandwidth() /
 				(8. * edp_.mean_pktsize);
-			if (edp_.q_w == 0.0 || edp_.th_min == 0 ||
-					edp_.th_max == 0)
+			if (
+			  (edp_.q_w == 0.0 || edp_.th_min_pkts == 0 ||
+					edp_.th_max_pkts == 0))
                         	initialize_params();
 			return (TCL_OK);
 		}
