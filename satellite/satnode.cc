@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.6 1999/11/13 01:58:29 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.7 2000/06/21 17:44:10 tomh Exp $";
 #endif
 
 #include "satnode.h"
@@ -149,44 +149,58 @@ void SatNode::dumpSats()
 {
 	SatNode *snodep, *peer_snodep;
 	SatPosition *sposp, *peer_sposp;
+	PolarSatPosition *polar_sposp;
 	SatLinkHead *slhp;
+	int linktype;
 
-        printf("Dumping satellites at time %.2f\n", NOW);
+        printf("\nDumping satellites at time %.2f\n\n", NOW);
         for (snodep= (SatNode*) Node::nodehead_.lh_first; snodep; 
 		snodep = (SatNode*) snodep->nextnode()) {
 		// XXX Need check to see if node is a SatNode
 		sposp = snodep->position();
-                printf("%d\t%.2f\t%.2f\n", snodep->address(), 
+                printf("%d\t%.2f\t%.2f", snodep->address(), 
 		    RAD_TO_DEG(SatGeometry::get_latitude(sposp->coord())), 
 		    RAD_TO_DEG(SatGeometry::get_longitude(sposp->coord())));
+		// If SatNode is polar, append plane information
+		if (sposp->type()==POSITION_SAT_POLAR) {
+			polar_sposp = (PolarSatPosition*) snodep->position();
+			printf ("\t%d", polar_sposp->plane());
+		} else if (sposp->type()==POSITION_SAT_GEO) {
+			printf ("\tGEO");
+		} else if (sposp->type()==POSITION_SAT_TERM) {
+			printf ("\tTERM");
+		}
+		printf("\n");
 	}
         printf("\n");
         // Dump satellite links
         // There is a static list of address classifiers //QQQ
         printf("Links:\n");
-        for (snodep= (SatNode*) Node::nodehead_.lh_first; snodep; 
+        for (snodep = (SatNode*) Node::nodehead_.lh_first; snodep; 
 		snodep = (SatNode*) snodep->nextnode()) {
 		// XXX Not all links necessarily satlinks
 		for (slhp = (SatLinkHead*) snodep->linklisthead_.lh_first; 
 		    slhp; slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
-                	if (slhp->type() != LINK_ISL_CROSSSEAM && 
-			    slhp->type() != LINK_ISL_INTERPLANE &&
-			    slhp->type() != LINK_ISL_INTRAPLANE)
+			linktype = slhp->type();
+                	if (linktype == LINK_GENERIC)
                 	        continue;
-                        if (!slhp->linkup_) 
-                                continue;
-                        // Link is up.  Print out source lat point and dest
-                        // lat point.
+			if (!slhp->linkup_)
+				continue;
+                        // Link is up.
+			// Print out source and dest coordinates.
 			sposp = snodep->position();
 			peer_snodep = hm_->get_peer(slhp);
 			if (peer_snodep == 0)
 				continue; // this link interface is not attached
+			// need something in here for txs.
 			peer_sposp = peer_snodep->position();
-                        printf("%.2f\t%.2f\t%.2f\t%.2f\n", 
+                        printf("%.2f\t%.2f\t%.2f\t%.2f\t%d\n", 
 			 RAD_TO_DEG(SatGeometry::get_latitude(sposp->coord())),
 			 RAD_TO_DEG(SatGeometry::get_longitude(sposp->coord())),
 			 RAD_TO_DEG(SatGeometry::get_latitude(peer_sposp->coord())), 
-			 RAD_TO_DEG(SatGeometry::get_longitude(peer_sposp->coord())));
+			 RAD_TO_DEG(SatGeometry::get_longitude(peer_sposp->coord())),
+			 linktype);
 		}
 	}
+	printf("\nDumped satellites at time %.2f\n\n", NOW);
 }

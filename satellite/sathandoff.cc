@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.7 1999/12/20 03:03:26 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.8 2000/06/21 17:44:10 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -168,8 +168,12 @@ SatNode* LinkHandoffMgr::get_peer(SatLinkHead* slhp)
 		return 0; // Link is not currently connected
 	remote_phy_ = schan_->ifhead_.lh_first; 
 	if (remote_phy_ == 0) {
-		printf("Error:  node %d's tx phy ", slhp->node()->address());
-		printf("connected to channel with no receivers\n");
+		// this is not an error as far as satellite GSL endpoints
+		// appear to be concerned.
+		// Commented out for drawing GSL links in dumpSats()
+		// in satnode.cc
+		// printf("Error:  node %d's tx phy ", slhp->node()->address());
+		// printf("connected to channel with no receivers\n");
 		return 0;
 	}
 	if (remote_phy_->nextchnl()) {

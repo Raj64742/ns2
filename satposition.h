@@ -31,10 +31,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.7 1999/10/26 17:35:10 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.8 2000/06/21 17:44:10 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
- */
+ * Modified to use period_ and offer isascending(), Lloyd Wood, March 2000. */
 
 #ifndef __satposition_h__
 #define __satposition_h__
@@ -57,6 +57,7 @@ class SatPosition : public TclObject {
  public:
 	SatPosition();
 	int type() { return type_; }
+	double period() { return period_; }
 	Node* node() { return node_; }
 	virtual coordinate coord() = 0; 
 
@@ -65,6 +66,7 @@ class SatPosition : public TclObject {
  protected:
         int command(int argc, const char*const* argv);
 	coordinate initial_;
+	double period_;
 	int type_;
 	Node* node_;
 };
@@ -75,6 +77,7 @@ class PolarSatPosition : public SatPosition {
             double = 0);
 	virtual coordinate coord();
 	void set(double Altitude, double Lon, double Alpha, double inclination=90); 
+	bool isascending();
 	PolarSatPosition* next() { return next_; }
 	int plane() { return plane_; }
 

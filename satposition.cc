@@ -32,11 +32,11 @@
  * SUCH DAMAGE.
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
- */
+ * Modified to use period_ and offer isascending(), Lloyd Wood, March 2000. */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.7 1999/10/26 17:35:10 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.8 2000/06/21 17:44:10 tomh Exp $";
 #endif
 
 #include "satposition.h"
@@ -122,7 +122,8 @@ int SatPosition::command(int argc, const char*const* argv) {
 // Specify initial coordinates.  Default coordinates place the terminal
 // on the Earth's surface at 0 deg lat, 0 deg long.
 TermSatPosition::TermSatPosition(double Theta, double Phi)  {
-	initial_.r = EARTH_RADIUS;  	
+	initial_.r = EARTH_RADIUS;
+	period_ = EARTH_PERIOD; // seconds
 	set(Theta, Phi);
 	type_ = POSITION_SAT_TERM;
 }
@@ -152,12 +153,11 @@ void TermSatPosition::set(double latitude, double longitude)
 coordinate TermSatPosition::coord()
 {
 	coordinate current;
-	double period = EARTH_PERIOD; // seconds
 
 	current.r = initial_.r;
 	current.theta = initial_.theta;
 	current.phi = fmod((initial_.phi + 
-	    (fmod(NOW + time_advance_,period)/period) * 2*PI), 2*PI);
+	    (fmod(NOW + time_advance_,period_)/period_) * 2*PI), 2*PI);
 
 #ifdef POINT_TEST
 	current = initial_; // debug option to stop earth's rotation
@@ -220,7 +220,11 @@ void PolarSatPosition::set(double Altitude, double Lon, double Alpha, double Inc
 		exit(1);
 	}
 	inclination_ = DEG_TO_RAD(Incl);
+	// XXX: can't use "num = pow(initial_.r,3)" here because of linux lib
+	double num = initial_.r * initial_.r * initial_.r;
+	period_ = 2 * PI * sqrt(num/MU); // seconds
 }
+
 
 //
 // The initial coordinate has the following properties:
@@ -235,11 +239,8 @@ coordinate PolarSatPosition::coord()
 {
 	coordinate current;
 	double partial;  // fraction of orbit period completed
-	// XXX: can't use "num = pow(initial_.r,3)" here because of linux lib
-	double num = initial_.r * initial_.r * initial_.r;
-	double period = 2 * PI * sqrt(num/MU); // seconds
 	partial = 
-	    (fmod(NOW + time_advance_, period)/period) * 2*PI; //rad
+	    (fmod(NOW + time_advance_, period_)/period_) * 2*PI; //rad
 	double theta_cur, phi_cur, theta_new, phi_new;
 
 	// Compute current orbit-centric coordinates:
@@ -274,6 +275,23 @@ coordinate PolarSatPosition::coord()
 	return current;
 }
 
+
+//
+// added by Lloyd Wood, 27 March 2000.
+// allows us to distinguish between satellites that are ascending (heading north)
+// and descending (heading south).
+//
+bool PolarSatPosition::isascending()
+{	
+	double partial = (fmod(NOW + time_advance_, period_)/period_) * 2*PI; //rad
+	double theta_cur = fmod(initial_.theta + partial, 2*PI);
+	if ((theta_cur > PI/2)&&(theta_cur < 3*PI/2)) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
 int PolarSatPosition::command(int argc, const char*const* argv) {     
 	Tcl& tcl = Tcl::instance();
         if (argc == 2) {
@@ -301,6 +319,7 @@ GeoSatPosition::GeoSatPosition(double longitude)
 	initial_.theta = PI/2;
 	set(longitude);
 	type_ = POSITION_SAT_GEO;
+	period_ = EARTH_PERIOD;
 }
 
 coordinate GeoSatPosition::coord()
@@ -309,7 +328,7 @@ coordinate GeoSatPosition::coord()
 	current.r = initial_.r;
 	current.theta = initial_.theta;
 	double fractional = 
-	    (fmod(NOW + time_advance_, EARTH_PERIOD)/EARTH_PERIOD) *2*PI; // rad
+	    (fmod(NOW + time_advance_, period_)/period_) *2*PI; // rad
 	current.phi = fmod(initial_.phi + fractional, 2*PI);
 	return current;
 }
