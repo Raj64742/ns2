@@ -21,7 +21,6 @@
  */
 
 #include "codeword.h"
-#include "sb.h"
 
 #include <assert.h>
 #include <stdlib.h>  // due to definition of NULL
