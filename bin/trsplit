@@ -15,7 +15,8 @@ options: -d   delim:  deliminator for spliting the data fields or columns
 	 -f	:  force new file for each connection
 	 -psize size of packet in bytes
 	 -tt	trace type
-	 -pt	packet type
+	 -pt	packet type (multiple)
+	 -fid   flow id (multiple)
 	 -ctt	trace type column
 	 -cpt	packet type column
 	 -ctime	time column
