@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.14 1999/09/09 17:50:06 yaxu Exp $
+   $Id: dsragent.cc,v 1.15 1999/09/16 21:58:37 yaxu Exp $
 */
 
 #include <assert.h>
@@ -170,11 +170,18 @@ Our strategy is as follows:
 /*===========================================================================
   SendBuf management and helpers
 ---------------------------------------------------------------------------*/
+//void
+//SendBufferTimer::expire(Event *e) 
+//{ 
+//  a_->sendBufferCheck(); 
+//  resched(BUFFER_CHECK + BUFFER_CHECK * (double) ((int) e>>5 & 0xff) / 256.0);
+//}
+
 void
 SendBufferTimer::expire(Event *e) 
 { 
   a_->sendBufferCheck(); 
-  resched(BUFFER_CHECK + BUFFER_CHECK * (double) ((int) e>>5 & 0xff) / 256.0);
+  resched(BUFFER_CHECK + BUFFER_CHECK * Random::uniform(1.0));
 }
 
 void
