@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.17 1998/10/08 19:04:56 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.18 1998/10/12 19:53:02 haldar Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -205,7 +205,7 @@ Simulator instproc compute-flat-routes {} {
 				set nh [$r lookup $i $j]
 			    if { $nh >= 0 } {
 				$n1 add-route $j [$link_($i:$nh) head]
-				$n1 incr-rtgtable-size
+				###$n1 incr-rtgtable-size
 				}
 			} 
 			incr j
@@ -430,7 +430,7 @@ Simulator instproc compute-hier-routes {} {
 						set node [$self get-node-id-by-addr $nh]
 						if { $node >= 0 } {
 			$n1 add-hroute $str [$link_($i:$node) head]
-	                $n1 incr-rtgtable-size
+	                ###$n1 incr-rtgtable-size
 						    
 						}
 					}
@@ -494,17 +494,18 @@ Simulator instproc compute-algo-routes {} {
 		set n1 $Node_($i)
 		set j 0
 		while { $j < $n } {
-		    if { $i != $j } {
-			# shortened nexthop to nh, to fit add-route in
-			# a single line
-			set nh [$r lookup $i $j]
-			# puts "$i $j $nh"
-			if { $nh >= 0 } {
-			    $n1 add-route $j [$link_($i:$nh) head]
-			    $n1 incr-rtgtable-size
-			}
-		    } 
-		    incr j
+			if { $i != $j } {
+				# shortened nexthop to nh, to fit add-route in
+				# a single line
+				set nh [$r lookup $i $j]
+			    puts "$i $j $nh"
+			    if { $nh >= 0 } {
+				$n1 add-route $j [$link_($i:$nh) head]
+				###$n1 incr-rtgtable-size
+				}
+			} 
+			incr j
+
 		}
 		incr i
 	}
