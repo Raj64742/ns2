@@ -1462,6 +1462,7 @@ tcl/test/test-all-oddBehaviors
 tcl/test/test-all-pi
 tcl/test/test-all-plm
 tcl/test/test-all-pushback
+tcl/test/test-all-quiescent
 tcl/test/test-all-rap
 tcl/test/test-all-rbp
 tcl/test/test-all-realaudio
@@ -1929,6 +1930,13 @@ tcl/test/test-output-pushback/tcp1-acc.Z
 tcl/test/test-output-pushback/tcp1.Z
 tcl/test/test-output-pushback/tcp2-acc.Z
 tcl/test/test-output-pushback/tcp2.Z
+tcl/test/test-output-quiescent/tcp_onoff.Z
+tcl/test/test-output-quiescent/tfrc_onoff.Z
+tcl/test/test-output-quiescent/tfrc_onoff_oldcode.Z 
+tcl/test/test-output-quiescent/tcp_cbr.Z 
+tcl/test/test-output-quiescent/tcp_telnet.Z 
+tcl/test/test-output-quiescent/tfrc_cbr.Z 
+tcl/test/test-output-quiescent/tfrc_telnet.Z
 tcl/test/test-output-rap/diff_decrease_rap.Z
 tcl/test/test-output-rap/diff_increase_rap.Z
 tcl/test/test-output-rap/fourdrops_rap.Z
@@ -2420,6 +2428,7 @@ tcl/test/test-suite-pi.tcl
 tcl/test/test-suite-plm.tcl
 tcl/test/test-suite-pushback.tcl
 tcl/test/test-suite-rap.tcl
+tcl/test/test-suite-quiescent.tcl
 tcl/test/test-suite-rbp.tcl
 tcl/test/test-suite-realaudio.tcl
 tcl/test/test-suite-red-pd.tcl
