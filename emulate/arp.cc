@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.4 1998/09/09 23:59:38 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.5 1998/09/10 02:23:00 kfall Exp $";
 #endif
 
 #include "object.h"
@@ -183,6 +183,8 @@ ArpAgent::insert(in_addr& target, ether_addr& eaddr, char code)
 	ae->ip = target;
 	ae->ether = eaddr;
 	ae->code = code;
+//printf("INSERTED inet %s, ether %s\n",
+//inet_ntoa(target), Ethernet::etheraddr_string((u_char*)&eaddr));
 	return;
 }
 		
@@ -211,6 +213,12 @@ ArpAgent::sendreq(in_addr& target)
 	return (0);
 }
 
+/*
+ * resp: who to send response to
+ * tip: the IP address we are responding for
+ * tea: the ether address we want to advertise with tip
+ */
+
 int
 ArpAgent::sendresp(ether_addr& dest, in_addr& tip, ether_addr& tea)
 {
@@ -232,8 +240,12 @@ ArpAgent::sendresp(ether_addr& dest, in_addr& tip, ether_addr& tea)
 	*ea = ea_template_;	/* set ether/IP arp pkt */
 	ea->ea_hdr.ar_op = htons(ARPOP_REPLY);
 
-	memcpy(ea->arp_tpa, &tip, sizeof(in_addr));
-	memcpy(ea->arp_tha, &tea, ETHER_ADDR_LEN);
+	// make it look like a regular arp reply
+	memcpy(ea->arp_tpa, ea->arp_spa, sizeof(in_addr));
+	memcpy(ea->arp_tha, ea->arp_sha, sizeof(in_addr));
+
+	memcpy(ea->arp_sha, &tea, ETHER_ADDR_LEN);
+	memcpy(ea->arp_spa, &tip, ETHER_ADDR_LEN);
 
 	if (net_->send(buf, pktsz) < 0) {
                 fprintf(stderr,
@@ -266,6 +278,8 @@ ArpAgent::dispatch(int)
 	}
 	ether_arp* ea = (ether_arp*) rcv_buf_;
 	int op = ntohs(ea->ea_hdr.ar_op);
+
+
 	switch (op) {
 	case ARPOP_REPLY:
 		doreply(ea);
@@ -312,8 +326,11 @@ ArpAgent::doreq(ether_arp* ea)
 	memcpy(&t, ea->arp_tpa, 4);	// requested IP addr
 
 	acache_entry *ae;
-	if ((ae = find(t)) == NULL)
+	if ((ae = find(t)) == NULL) {
+//printf("doreq: didn't find mapping for IP addr %s\n",
+//inet_ntoa(t));
 		return;
+	}
 
 	if (ae->code == 'P') {
 		// return answer to the sender's hardware addr
@@ -331,7 +348,15 @@ int
 ArpAgent::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 3) {
+	if (argc == 2) {
+                if (strcmp(argv[1], "network") == 0) { 
+			if (net_ == NULL)
+				tcl.result("");
+			else
+				tcl.result(net_->name());
+			return (TCL_OK);
+		}
+	} else if (argc == 3) {
                 if (strcmp(argv[1], "network") == 0) { 
                         net_ = (Network *)TclObject::lookup(argv[2]);
                         if (net_ != 0) { 
