@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.16 1998/05/06 18:15:42 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.17 1998/05/07 01:46:58 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1090,6 +1090,10 @@ Test/stats instproc printdrops { fid fmon } {
 Test/stats instproc printstop { stoptime } {
 	puts "stop-time $stoptime"
 }
+Test/stats instproc printall { fmon } {
+ 	puts "aggregate per-link total_drops [$fmon set pdrops_]"
+	puts "aggregate per-link total_packets [$fmon set pdepartures_]"
+}
 Test/stats instproc run {} {
 	$self instvar ns_ node_ testName_ 
 
@@ -1121,8 +1125,8 @@ Test/stats instproc run {} {
 	set almosttime [expr $stoptime - 0.001]
 	$ns_ at $almosttime "$self printpkts 0 $tcp0"
 	$ns_ at $almosttime "$self printpkts 1 $tcp1"
-	$ns_ at $stoptime "$self printdrops 0 $fmon"
-	$ns_ at $stoptime "$self printdrops 1 $fmon"
+	$ns_ at $stoptime "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
+	$ns_ at $stoptime "$self printall $fmon"
 
 	# trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
