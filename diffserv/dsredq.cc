@@ -313,6 +313,3 @@ void redQueue::setMPS(int mps) {
 	for (int i = 0; i < numPrec; i++)
 		qParam_[i].edp_.mean_pktsize = mps;
 }
-
-
-

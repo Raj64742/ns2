@@ -40,6 +40,7 @@ enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, 
 
 
 class Policy;
+class TBPolicy;
 
 //struct policyTableEntry
 struct policyTableEntry {
@@ -83,12 +84,12 @@ class PolicyClassifier : public TclObject {
   // prints the policy tables
   void printPolicyTable();		
   void printPolicerTable();
-
- protected:
+  
+protected:
   // The table keeps pointers to the real policy
   // Added to support multiple policy per interface.
   Policy *policy_pool[MAX_POLICIES];
-  
+
   // policy table and its pointer
   policyTableEntry policyTable[MAX_POLICIES];
   int policyTableSize;
@@ -107,8 +108,12 @@ class Policy : public TclObject {
   Policy(){};
 
   // Metering and policing methods:
-  virtual void applyMeter(policyTableEntry *policy, Packet *pkt) = 0;
-  virtual int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) = 0;
+  // Don't know yet why these two lines causing problems on solaris??? Nov 28.
+ // virtual void applyMeter(policyTableEntry *policy, Packet *pkt) = 0;
+ //virtual int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) = 0;
+
+void applyMeter(policyTableEntry *policy, Packet *pkt) {};
+int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt){};
 };
 
 // DumbPolicy will do nothing, but is a good example to show how to add 
@@ -182,15 +187,15 @@ struct flow_list {
 };
 
 class FWPolicy : public Policy {
- public:
-  FWPolicy();
-  ~FWPolicy();
+public:
+FWPolicy();
+~FWPolicy();
 
-  // Metering and policing methods:
-  void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
+// Metering and policing methods:
+void applyMeter(policyTableEntry *policy, Packet *pkt);
+int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 
-  void printFlowTable();
+void printFlowTable();
 
  protected:
   // The table to keep the flow states.

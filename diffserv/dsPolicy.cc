@@ -108,7 +108,8 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
       policyTable[policyTableSize].pir = (double) atof(argv[7]) / 8.0;
     } else if (strcmp(argv[4], "TokenBucket") == 0) {
       if(!policy_pool[TB])
-	policy_pool[TB] = new TBPolicy;
+	(TBPolicy *) policy_pool[TB] = (Policy *) new TBPolicy;
+
       policyTable[policyTableSize].policy_index = TB;   
       policyTable[policyTableSize].policer = tokenBucketPolicer;
       policyTable[policyTableSize].meter = tokenBucketMeter;
@@ -197,6 +198,7 @@ Post: Adds an entry to policerTable according to the arguments in argv.  No
 void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
   int cur_policy;
 
+
   if (policerTableSize == MAX_CP)
     printf("ERROR: Policer Table size limit exceeded.\n");
   else {
@@ -217,7 +219,8 @@ void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
       policerTable[policerTableSize].policy_index = TSW3CM;      
     } else if (strcmp(argv[2], "TokenBucket") == 0) {
       if(!policy_pool[TB])
-	policy_pool[TB] = new TBPolicy;
+	(TBPolicy *) policy_pool[TB] = new TBPolicy;
+
       policerTable[policerTableSize].policer = tokenBucketPolicer;
       policerTable[policerTableSize].policy_index = TB;      
     } else if (strcmp(argv[2], "srTCM") == 0) {
@@ -254,9 +257,9 @@ policerTableEntry* PolicyClassifier::getPolicerTableEntry(int policy_index, int 
     if ((policerTable[i].policy_index == policy_index) &&
 	(policerTable[i].initialCodePt == oldCodePt))
       return(&policerTable[i]);
-  
+
   printf("ERROR: No Policer Table entry found for initial code point %d.\n", oldCodePt);
-  printPolicerTable();
+  //printPolicerTable();
   return(NULL);
 }
 
@@ -280,14 +283,45 @@ int PolicyClassifier::mark(Packet *pkt) {
   codePt = policy->codePt;
   policy_index = policy->policy_index;
   policer = getPolicerTableEntry(policy_index, codePt);
-  
-  // Get the policy object directly.
-  if (policy_pool[policy_index]) {
-    policy_pool[policy_index]->applyMeter(policy, pkt);
-    codePt = policy_pool[policy_index]->applyPolicer(policy, policer, pkt);
-  } else {
+
+  if (policy_pool[policy_index])
+    switch (policy_index) {
+    case DUMB:
+      ((DumbPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
+      codePt = ((DumbPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
+      break;
+      case TSW2CM:
+	((TSW2CMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
+	codePt = ((TSW2CMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
+	break;
+      case TSW3CM:
+	((TSW3CMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
+	codePt = ((TSW3CMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
+	break;
+      case TB:
+	((TBPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
+	codePt = ((TBPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
+	break;
+      case SRTCM:
+	((SRTCMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
+	codePt = ((SRTCMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
+	break;
+    case TRTCM:
+      ((TRTCMPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
+      codePt = ((TRTCMPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
+      break;
+    case FW:
+      ((FWPolicy *)policy_pool[policy_index])->applyMeter(policy, pkt);
+      codePt = ((FWPolicy *)policy_pool[policy_index])->applyPolicer(policy, policer, pkt);
+      break;
+    default:
+      printf("No applicable policy, ERROR!!!\n");
+      exit(-1);
+    }
+  else {
     printf("The policy object doesn't exist, ERROR!!!\n");
     exit(-1);
+    
   }
   
   iph->prio_ = codePt;
@@ -490,7 +524,6 @@ void TSW2CMPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
   now = Scheduler::instance().clock();
   policy->avgRate = newBytes / (now - policy->arrivalTime + policy->winLen);
   policy->arrivalTime = now;
-  
 }
 
 /*-----------------------------------------------------------------------------
@@ -526,15 +559,14 @@ Note: See the paper "Explicit Allocation of Best effor Delivery Service" (David
   Clark and Wenjia Fang), Section 3.3, for a description of the TSW Tagger.
 -----------------------------------------------------------------------------*/
 void TSW3CMPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
-	double now, bytesInTSW, newBytes;
-	hdr_cmn* hdr = hdr_cmn::access(pkt);
-
-	bytesInTSW = policy->avgRate * policy->winLen;
-	newBytes = bytesInTSW + (double) hdr->size();
-	now = Scheduler::instance().clock();
-	policy->avgRate = newBytes / (now - policy->arrivalTime + policy->winLen);
-	policy->arrivalTime = now;
-	
+  double now, bytesInTSW, newBytes;
+  hdr_cmn* hdr = hdr_cmn::access(pkt);
+  
+  bytesInTSW = policy->avgRate * policy->winLen;
+  newBytes = bytesInTSW + (double) hdr->size();
+  now = Scheduler::instance().clock();
+  policy->avgRate = newBytes / (now - policy->arrivalTime + policy->winLen);
+  policy->arrivalTime = now;
 }
 
 /*-----------------------------------------------------------------------------
@@ -581,12 +613,12 @@ Post: Increments policy's Token Bucket state variable cBucket according to the
 void TBPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
   double now = Scheduler::instance().clock();
   double tokenBytes;
-  
+
   tokenBytes = (double) policy->cir * (now - policy->arrivalTime);
   if (policy->cBucket + tokenBytes <= policy->cbs)
-    policy->cBucket += tokenBytes;
+   policy->cBucket += tokenBytes;
   else
-    policy->cBucket = policy->cbs;
+   policy->cBucket = policy->cbs;
   policy->arrivalTime = now;
 }
 
@@ -604,8 +636,9 @@ Uses: Method downgradeOne().
 -----------------------------------------------------------------------------*/
 int TBPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet* pkt) {
   hdr_cmn* hdr = hdr_cmn::access(pkt);
+
   double size = (double) hdr->size();
-  
+
   if ((policy->cBucket - size) >= 0) {
     policy->cBucket -= size;
     return(policer->initialCodePt);
