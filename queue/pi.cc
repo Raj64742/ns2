@@ -63,8 +63,8 @@ public:
 } class_pi;
 
 
-PIQueue::PIQueue(const char * trace) : link_(NULL), 
-  de_drop_(NULL), EDTrace(NULL), tchan_(0), first_reset_(1), CalcTimer(this)
+PIQueue::PIQueue(const char * trace) : CalcTimer(this), link_(NULL), 
+  de_drop_(NULL), EDTrace(NULL), tchan_(0), first_reset_(1)
 {
 	if (strlen(trace) >=20) {
 		printf("trace type too long - allocate more space to traceType in pi.h and recompile\n");
@@ -89,7 +89,7 @@ PIQueue::PIQueue(const char * trace) : link_(NULL),
 
 void PIQueue::reset()
 {
-	double now = Scheduler::instance().clock();
+	//double now = Scheduler::instance().clock();
 	/*
 	if (qib_ && first_reset_ == 1) {
 		edp_.qref = edp_.qref*edp_.mean_pktsize;
@@ -107,7 +107,7 @@ void PIQueue::reset()
 
 void PIQueue::enque(Packet* pkt)
 {
-	double now = Scheduler::instance().clock();
+	//double now = Scheduler::instance().clock();
 	hdr_cmn* ch = hdr_cmn::access(pkt);
 	++edv_.count;
 	edv_.count_bytes += ch->size();
@@ -159,7 +159,7 @@ void PIQueue::enque(Packet* pkt)
 
 double PIQueue::calculate_p()
 {
-	double now = Scheduler::instance().clock();
+	//double now = Scheduler::instance().clock();
 	double p;
 	int qlen = qib_ ? q_->byteLength() : q_->length();
 	
@@ -184,7 +184,7 @@ double PIQueue::calculate_p()
 
 int PIQueue::drop_early(Packet* pkt, int qlen)
 {
-	double now = Scheduler::instance().clock();
+	//double now = Scheduler::instance().clock();
 	hdr_cmn* ch = hdr_cmn::access(pkt);
 	double p = edv_.v_prob; 
 
