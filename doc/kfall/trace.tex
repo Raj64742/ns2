@@ -7,25 +7,32 @@
 
 There are a number of ways of collecting output or
 trace data on a simulation.
-Generally all data is stored in a file to be analyzed
-after completion of a simulation.
+Generally, trace data is either displayed directly during execution
+of the simulation, or (more commonly) stored in a file to be
+post-processed and analyzed.
+There are two primary but distinct types of monitoring capabilities
+currently supported by the simulator.
+The first, called {\em traces}, record each individual packet
+as it arrives, departs, or is dropped at a link or queue.
 Trace objects are configured into a simulation as nodes in the
 network topology, usually with a Tcl ``Channel'' object
 hooked to them, representing the destination of collected data
 (typically a trace file in the current directory).
-There are really two parts to the tracing support: individual
-packet traces and derived statistics.
+The other types of objects, called {\em monitors}, record counts
+of various interesting quantities such as packet and byte arrivals,
+departures, etc.
 
-To support packet traces, there is a special trace header
-included in each packet (this format is defined in \code{trace.h}).
-It presently includes a unique identifier on each packet and a
-packet type field (set by agents when they generate packets).
-This packet type field is not currently otherwise used by the simulator.
-This trace facility has been inherited from an earlier version of the
-simulator and produces output traces compatible with \code{ns} version 1.
+To support traces, there is a special {\em common} header
+included in each packet (this format is defined in \code{packet.h}
+as {\tt hdr\_cmn}).
+It presently includes a unique identifier on each packet, a
+packet type field (set by agents when they generate packets),
+a packet size field (in bytes, used to determine the transmission
+time for packets), and an interface label (used for computing
+multicast distribution trees).
 
-To support the collection of aggregated statistics, a separate
-set of objects is created and inserted into the network topology
+Monitors are supported by a separate
+set of objects that are created and inserted into the network topology
 around queues.
 They provide a place where
 arrival statistics and times are gathered and make
@@ -39,17 +46,26 @@ classes visible in OTcl but implemented in C++, combined
 with a set of Tcl helper procedures and classes defined in the ns library.
 
 \subsubsection{\shdr{OTcl trace classes}{ns-lib.tcl}{sec:traceclass}}
-The following OTcl classes are supported by underlying C++
-classes defined in \code{trace.cc}:
+All following OTcl classes are supported by underlying C++
+classes defined in \code{trace.cc}.
+Objects of the following types are inserted directly in-line in the
+network topology:
 \begin{quote}
 \begin{itemize}
 	\item [Trace/Hop] - trace a ``hop'' (XXX what does this mean exactly; it is not really used XXX)
-	\item [Trace/Enque] - packet arrival at a queue
-	\item [Trace/Deque] - packet departure at a queue
-	\item [Trace/Drop] - packet drop at a queue (delivered to drop-target)
+	\item [Trace/Enque] - a packet arrival (usually at a queue)
+	\item [Trace/Deque] - a packet departure (usually at a queue)
+	\item [Trace/Drop] - packet drop (packet delivered to drop-target)
 	\item [SnoopQueue/In] - on input, collect a time/size sample (pass packet on)
 	\item [SnoopQueue/Out] - on output, collect a time/size sample (pass packet on)
 	\item [SnoopQueue/Drop] - on drop, collect a time/size sample (pass packet on)
+\end{itemize}
+\end{quote}
+Objects of the following types are added in the simulation and a referenced
+by the objects listed above.  They are used to aggregate statistics collected
+by the SnoopQueue objects:
+\begin{quote}
+\begin{itemize}
 	\item [QueueMonitor] - receive and aggregate collected samples from snoopers
 	\item [QueueMonitor/ED] - queue-monitor capable of distinguishing between ``early'' and standard packet drops
 	\item [QueueMonitor/ED/Flowmon] - per-flow statistics monitor (manager)
@@ -62,69 +78,33 @@ classes defined in \code{trace.cc}:
 The following helper functions may be used within simulation
 scripts to help in attaching trace elements (see \code{ns-lib.tcl}):
 \begin{small}
-\begin{verbatim}
-NOT USED?  Steve uses for debugging..
-        #
-        # A simple method to wrap any object around
-        # a trace object that dumps to stdout
-        #
-        Simulator instproc dumper obj {
-                set t [$self alloc-trace hop stdout]
-                $t target $obj
-                return $t
-        }
-NOT USED?
-        Simulator instproc flush-trace {} {
-                $self instvar alltrace_
-                if [info exists alltrace_] {
-                        foreach trace $alltrace_ {
-                                $trace flush
-                        }
-                }
-        }
-NOT USED?
-        Simulator instproc trace-all file {
-                $self instvar traceAllFile_
-                set traceAllFile_ $file
-        }
-
-        Simulator instproc create-trace { type file src dst } {
-                $self instvar alltrace_
-                set p [new Trace/$type]
-                $p set src_ [$src id]
-                $p set dst_ [$dst id]
-                lappend alltrace_ $p
-                $p attach $file
-                return $p
-        }
-
-        Simulator instproc trace-queue { n1 n2 file } {
-                $self instvar link_
-                $link_([$n1 id]:[$n2 id]) trace $self $file
-        }
-        #
-        # arrange for queue length of link between nodes n1 and n2
-        # to be tracked and return object that can be queried
-        # to learn average q size etc.  XXX this API still rough
-        #
-        Simulator instproc monitor-queue { n1 n2 } {
-                $self instvar link_
-                return [$link_([$n1 id]:[$n2 id]) init-monitor $self]
-        }
-
-        Simulator instproc drop-trace { n1 n2 trace } {
-                $self instvar link_
-                [$link_([$n1 id]:[$n2 id]) queue] drop-target $trace
-        }
-\end{verbatim}
+\begin{itemize}
+\item[Simulator instproc flush-trace \{\}] - flush buffers for all
+trace objects in simulation
+\item[Simulator instproc create-trace \{ type file src dst \}] - create a
+trace object of type {\em type} betweek the given src and dest nodes.
+If {\em file} is non-null, it is interpreted as a Tcl channel and is
+attached to the newly-created trace object.
+\item[Simulator instproc trace-queue \{ n1 n2 file \}] - arrange for
+tracing on the link between nodes {\em n1} and {\em n2}.  This function
+calls create-trace, so the same rules apply with respect to the {\em file}
+argument.
+\item[DOES TRACE-ALL REALLY BELONG HERE] - XXXX
+\item[Simulator instproc monitor-queue \{ n1 n2 \}] - this function
+calls the {\tt init-monitor} function on the link between nodes {\em n1}
+and {\em n2}.
+\item[Simulator instproc drop-trace \{ n1 n2 trace \}] - the given {\em trace}
+object is made the drop-target of the queue associated with the link
+between nodes {\em n1} and {\em n2}.
+\end{itemize}
 \end{small}
-XXX this is confusing XXXX
 The \code{create-trace} procedure is used to create a new \code{Trace}
-object of the appropriate kind and attach an I/O channel to it
+object of the appropriate kind and attach an Tcl I/O channel to it
 (typically a file handle).
-The \code{src\_} and \code{dst\_} fields are bound to underlying C++
-variables so that trace output can include the node addresses between
-which the tracing is taking place.
+The \code{src\_} and \code{dst\_} fields are are used by the underlying C++
+object for producing the trace output file so that trace output
+can include the node addresses defining the endpoints of the link which
+is being traced.
 Note that they are not used for {\em matching}.  Specifically, these
 values in no way relate to the packet header \code{src} and \code{dst}
 fields, which are also displayed when tracing.
@@ -134,10 +114,6 @@ class below (\ref{sec:traceclass}).
 The \code{trace-queue} function enables
 \code{Enque}, \code{Deque}, and \code{Drop} tracing on the link
 between nodes \code{n1} and \code{n2}.
-The reference \verb!$link_([$n1 id]:[$n2 id])! inspects the master
-table of links stored in the associative array \code{link\_} and provides
-a reference to the link connecting the nodes with the IDs associated
-with \code{n1} and \code{n2}.
 The Link \code{trace} procedure is described below (\ref{sec:libexam}).
 
 The \code{monitor-queue} function is constructed similarly to
@@ -155,32 +131,45 @@ the queue.
 
 The \code{Simulator} procedures described above require the \code{trace}
 and \code{init-monitor} methods associated with the OTcl \code{Link} class.
-At the moment, only one subclass of link is defined, namely
-\code{SimpleLink}.  Thus, the \code{trace} and \code{init-monitor}
+Several subclasses of link are defined, the most common of which
+is called \code{SimpleLink}.  Thus, the \code{trace} and \code{init-monitor}
 methods are actually part of the \code{SimpleLink} class rather than
 the \code{Link} base class.
 The \code{trace} function is defined as follows (in \code{ns-link.tcl}):
 \begin{small}
 \begin{verbatim}
-        #
-        # Build trace objects for this link and
-        # update the object linkage
-        #
-        SimpleLink instproc trace { ns f } {
-                $self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
-                set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
-                set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
-                set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
+#
+# Build trace objects for this link and
+# update the object linkage
+#
+SimpleLink instproc trace { ns f } {
+        $self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
+        set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
+        set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
+        set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
 
-                $drpT_ target [$queue_ drop-target]
-                $queue_ drop-target $drpT_
+        $drpT_ target [$queue_ drop-target]
+        $queue_ drop-target $drpT_
 
-                $deqT_ target [$queue_ target]
-                $queue_ target $deqT_
+        $deqT_ target [$queue_ target]
+        $queue_ target $deqT_
 
-                $enqT_ target $head_
-                set head_ $enqT_
+        if { [$head_ info class] == "networkinterface" } {
+            $enqT_ target [$head_ target]
+            $head_ target $enqT_
+            # puts "head is i/f"
+        } else {
+            $enqT_ target $head_
+            set head_ $enqT_
+            # puts "head is not i/f"
         }
+
+        $self instvar dynamics_
+        if [info exists dynamics_] {
+                $self trace-dynamics $ns $f
+        }
+}
+
 \end{verbatim}
 \end{small}
 
@@ -194,50 +183,79 @@ and inserting the \code{Enque} object before the queue, the
 between the queue and its previous drop target.
 Note that all trace output is directed to the same I/O handle.
 
-The \code{init-monitor} function is used to create a set of
+This function also performs two additional tasks.
+It checks to see if a link contains a network interface,
+and if so, leaves it as the first object in the chain of objects
+in the link, but otherwise inserts the \code{Enque} object as
+the first one.
+The second additional task check to see if link dynamics
+(see \ref{linkdynamics}) are enabled for links in the simulation
+and if so, enables tracing of the link's up/down status.
+
+The following functions, \code{init-monitor} and
+\code{attach-monitor}, are used to create a set of
 objects used to monitor queue sizes of a queue associated
 with a link.
-It is defined as follows:
+They are defined as follows:
 \begin{small}
 \begin{verbatim}
-        #
-        # Insert objects that allow us to monitor the queue size
-        # of this link.  Return the name of the object that
-        # can be queried to determine the average queue size.
-        #
-        SimpleLink instproc init-monitor ns {
-                $self instvar drpT_ queue_ head_ \
-                        snoopIn_ snoopOut_ snoopDrop_ qMonitor_
+	#
+	# like init-monitor, but allows for specification of more of the items
+	# attach-monitors $insnoop $inqm $outsnoop $outqm $dropsnoop $dropqm
+	#
+	SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
+		$self instvar drpT_ queue_ head_ snoopIn_ snoopOut_ snoopDrop_
+		$self instvar qMonitor_
 
-                set snoopIn_ [new SnoopQueue/In]
-                set snoopOut_ [new SnoopQueue/Out]
-                set snoopDrop_ [new SnoopQueue/Out]
+		set snoopIn_ $insnoop
+		set snoopOut_ $outsnoop
+		set snoopDrop_ $dropsnoop
 
-                $snoopIn_ target $head_
-                set head_ $snoopIn_
+		$snoopIn_ target $head_
+		set head_ $snoopIn_
 
-                $snoopOut_ target [$queue_ target]
-                $queue_ target $snoopOut_
+		$snoopOut_ target [$queue_ target]
+		$queue_ target $snoopOut_
 
-                if [info exists drpT_] {
-                        $snoopDrop_ target [$drpT_ target]
-                        $drpT_ target $snoopDrop_
-                } else {
-                        $snoopDrop_ target [$ns set nullAgent_]
-                }
-                $queue_ drop-target $snoopDrop_
+		if [info exists drpT_] {
+			$snoopDrop_ target [$drpT_ target]
+			$drpT_ target $snoopDrop_
+			$queue_ drop-target $drpT_
+		} else {
+			$snoopDrop_ target [[Simulator instance] set nullAgent_]
+			$queue_ drop-target $snoopDrop_
+		}
 
-                set qMonitor_ [new QueueMonitor]
-                $snoopIn_ set-monitor $qMonitor_
-                $snoopOut_ set-monitor $qMonitor_
-                $snoopDrop_ set-monitor $qMonitor_
+		$snoopIn_ set-monitor $qmon
+		$snoopOut_ set-monitor $qmon
+		$snoopDrop_ set-monitor $qmon
+		set qMonitor_ $qmon
+	}
+	# Insert objects that allow us to monitor the queue size
+	# of this link.  Return the name of the object that
+	# can be queried to determine the average queue size.
+	#
+	SimpleLink instproc init-monitor { ns qtrace sampleInterval} {
+		$self instvar qMonitor_ ns_ qtrace_ sampleInterval_
 
-                return $qMonitor_
-        }
+		set ns_ $ns
+		set qtrace_ $qtrace
+		set sampleInterval_ $sampleInterval
+		set qMonitor_ [new QueueMonitor]
+
+		$self attach-monitors [new SnoopQueue/In] \
+			[new SnoopQueue/Out] [new SnoopQueue/Drop] $qMonitor_
+
+		set bytesInt_ [new Integrator]
+		$qMonitor_ set-bytes-integrator $bytesInt_
+		set pktsInt_ [new Integrator]
+		$qMonitor_ set-pkts-integrator $pktsInt_
+		return $qMonitor_
+	}
 \end{verbatim}
 \end{small}
 
-This function establishes queue monitoring on the \code{SimpleLink} object
+These functions establish queue monitoring on the \code{SimpleLink} object
 in the simulator \code{ns}.
 Queue monitoring is implemented by constructing three \code{SnoopQueue}
 objects and one \code{QueueMonitor} object.
@@ -281,6 +299,8 @@ The overall class is defined as follows in \code{trace.cc}:
                 int callback_;
                 char wrk_[256];
                 void format(int tt, int s, int d, Packet* p);
+                void annotate(const char* s);
+                int show_tcphdr_;  // bool flags; backward compat
          public:
                 Trace(int type);
                 ~Trace();
@@ -326,44 +346,67 @@ post-processing scripts continue to operate.
 The important pieces of its implementation are as follows:
 \begin{small}
 \begin{verbatim}
-        char* pt_names[] = {
-                PT_NAMES
-        };
+	// this function should retain some backward-compatibility, so that
+	// scripts don't break.
+	void Trace::format(int tt, int s, int d, Packet* p)
+	{
+		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
+		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+		hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+		hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
+		int t = th->ptype();
+		const char* name = pt_names[t];
 
-        // this function should retain some backward-compatibility, so that
-        // scripts don't break.
-        void Trace::format(int tt, int s, int d, Packet* p)
-        {
-                TraceHeader *th = TraceHeader::access(p->bits());
-                IPHeader *iph = IPHeader::access(p->bits());
-                TCPHeader *tcph = TCPHeader::access(p->bits());
-                const char* name = pt_names[th->ptype()];
-                int seqno;
-                /* XXX */
-                if (strncmp(name, "tcp", 3) == 0)
-                        seqno = tcph->seqno();
-                else
-                        seqno = -1;
+		if (name == 0)
+			abort();
+
+		int seqno;
+		/* XXX */
+			/* CBR's now have seqno's too */
+		if (t == PT_RTP || t == PT_CBR)
+			seqno = rh->seqno();
+		else if (t == PT_TCP || t == PT_ACK)
+			seqno = tcph->seqno();
+		else
+			seqno = -1;
+
+                ....
 
 
-                char flags[5];
-                flags[0] = flags[1] = flags[2] = flags[3] = '-';
-                flags[4] = 0;
-                flags[0] = (iph->flags() & IP_ECN) ? 'C' : '-';
-                sprintf(wrk_, "%c %g %d %d %s %d %s %d %d %d %d %d",
-                        tt,
-                        Scheduler::instance().clock(),
-                        s,
-                        d,
-                        name,
-                        iph->size(),
-                        flags,
-                        iph->flowid() /* was p->class_ */,
-                        iph->src(),
-                        iph->dst(),
-                        seqno,
-                        th->uid() /* was p->uid_ */);
-        }
+		if (!show_tcphdr_) {
+			sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
+				tt,
+				Scheduler::instance().clock(),
+				s,
+				d,
+				name,
+				th->size(),
+				flags,
+				iph->flowid() /* was p->class_ */,
+				iph->src() >> 8, iph->src() & 0xff,     // XXX
+				iph->dst() >> 8, iph->dst() & 0xff,     // XXX
+				seqno,
+				th->uid() /* was p->uid_ */);
+		} else {
+			sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x
+	 %d",
+				tt,
+				Scheduler::instance().clock(),
+				s,
+				d,
+				name,
+				th->size(),
+				flags,
+				iph->flowid() /* was p->class_ */,
+				iph->src() >> 8, iph->src() & 0xff,     // XXX
+				iph->dst() >> 8, iph->dst() & 0xff,     // XXX
+				seqno,
+				th->uid(), /* was p->uid_ */
+				tcph->ackno(),
+				tcph->flags(),
+				tcph->hlen());
+		}
+
 \end{verbatim}
 \end{small}
 This function is somewhat unelegant, primarily due to the desire
@@ -374,7 +417,12 @@ along with various packet header fields including,
 type of packet (as a name), size, flags (symbolically),
 flow identifier, source and destination packet header fields,
 sequence number (if present), and unique identifier.
-Thus, a fragment of a trace file might appear as follows:
+The {\tt show\_tcphdr\_} variable indicates whether the trace
+output should append tcp header information (ack number, flags, header length)
+at the end of each output line.  This is especially useful for simulations
+using FullTCP agents (\ref{fulltcp}).
+An example of a trace file (without the tcp header fields) migh
+appear as follows: 
 \begin{small}
 \begin{verbatim}
         + 1.45176 2 3 tcp 1000 ---- 1 256 769 27 48
@@ -435,26 +483,32 @@ definition passed to the \code{Agent} constructor.
 See Section~\ref{sec:agentmethodsotcl} for more details.
 The currently-supported definitions, their values, and their
 associated symblic names are as follows
-(defined in \code{trace.h}):
+(defined in \code{packet.h}):
 \begin{small}
 \begin{verbatim}
-        #define PT_TCP          0
-        #define PT_TELNET       1
-        #define PT_CBR          2
-        #define PT_AUDIO        3
-        #define PT_VIDEO        4
-        #define PT_ACK          5
-        #define PT_START        6
-        #define PT_STOP         7
-        #define PT_PRUNE        8
-        #define PT_GRAFT        9
-        #define PT_MESSAGE      10
-        #define PT_RTCP         11
-        #define PT_RTP          12
-        #define PT_NTYPE        13
+	#define PT_TCP          0
+	#define PT_TELNET       1
+	#define PT_CBR          2
+	#define PT_AUDIO        3
+	#define PT_VIDEO        4
+	#define PT_ACK          5
+	#define PT_START        6
+	#define PT_STOP         7
+	#define PT_PRUNE        8
+	#define PT_GRAFT        9
+	#define PT_MESSAGE      10
+	#define PT_RTCP         11
+	#define PT_RTP          12
+	#define PT_RTPROTO_DV   13
+	#define PT_CtrMcast_Encap 14
+	#define PT_CtrMcast_Decap 15
+	#define PT_SRM          16
+	#define PT_NTYPE        17
 
-        #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
-                "start", "stop", "prune", "graft", "message", "rtcp", "rtp"
+	#define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
+		"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
+		"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM"
+
 \end{verbatim}
 \end{small}
 The definition of \code{PT\_NAMES} is used to initialize the
@@ -472,87 +526,95 @@ them downstream.
 A \code{QueueMonitor} is defined as follows (\code{queue-monitor.cc}):
 \begin{small}
 \begin{verbatim}
-        class QueueMonitor : public Integrator {
-         public:
-                QueueMonitor() : size_(0) {
-                        bind("size_", &size_);
-                }
-                void in(Packet*);
-                void out(Packet*);
-                //      int command(int argc, const char*const* argv);
-        protected:
-                int size_;
-        };
-        void QueueMonitor::in(Packet* p)
-        {
-                IPHeader *iph = IPHeader::access(p->bits());
-                size_ += iph->size();
-                double now = Scheduler::instance().clock();
-                newPoint(now, double(size_));
-        }
+	class QueueMonitor : public TclObject {
+	 public: 
+		QueueMonitor() : bytesInt_(NULL), pktsInt_(NULL), delaySamp_(NULL),
+		  size_(0), pkts_(0),
+		  parrivals_(0), barrivals_(0),
+		  pdepartures_(0), bdepartures_(0),
+		  pdrops_(0), bdrops_(0),
+		  srcId_(0), dstId_(0), channel_(0) {
 
-        void QueueMonitor::out(Packet* p)
-        {
-                IPHeader *iph = IPHeader::access(p->bits());
-                size_ -= iph->size();
-                double now = Scheduler::instance().clock();
-                newPoint(now, double(size_));
-        }
+			bind("size_", &size_);
+			bind("pkts_", &pkts_);
+			bind("parrivals_", &parrivals_);
+			bind("barrivals_", &barrivals_);
+			bind("pdepartures_", &pdepartures_);
+			bind("bdepartures_", &bdepartures_);
+			bind("pdrops_", &pdrops_);
+			bind("bdrops_", &bdrops_);
+			bind("off_cmn_", &off_cmn_);
+		};
+
+		int size() const { return (size_); }
+		int pkts() const { return (pkts_); }
+		int parrivals() const { return (parrivals_); }
+		int barrivals() const { return (barrivals_); }
+		int pdepartures() const { return (pdepartures_); }
+		int bdepartures() const { return (bdepartures_); }
+		int pdrops() const { return (pdrops_); }
+		int bdrops() const { return (bdrops_); }
+		void printStats();
+		virtual void in(Packet*);
+		virtual void out(Packet*);
+		virtual void drop(Packet*);
+		virtual void edrop(Packet*) { abort(); }; // not here
+		virtual int command(int argc, const char*const* argv);
+                .....
+
+	// packet arrival to a queue
+	void QueueMonitor::in(Packet* p)
+	{
+		hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+		double now = Scheduler::instance().clock();
+		int pktsz = hdr->size();
+
+		barrivals_ += pktsz;
+		parrivals_++;
+		size_ += pktsz;
+		pkts_++;
+		if (bytesInt_)
+			bytesInt_->newPoint(now, double(size_));
+		if (pktsInt_)
+			pktsInt_->newPoint(now, double(pkts_));
+		if (delaySamp_)
+			hdr->timestamp() = now;
+		if (channel_)
+			printStats();
+	}
+
+        ... in, out, drop are all defined similarly ...
 \end{verbatim}
 \end{small}
-The \code{QueueMonitor} class is derived from \code{Integrator}, which
-is defined in Section\ref{sec:mathinteg}.
+The \code{QueueMonitor} class accumulates statistics including
+counts of drops, arrivals, and departures in both byte and packet
+units.
+It also records the current queue size in packets and bytes.
+It may optionally refer to additional objects to keep an integral
+of the queue size over time using
+\code{Integrator} objects, which are defined in Section\ref{sec:mathinteg}.
 The \code{Integrator} class provides a simple implementation of
 integral approximation by discrete sums.
-In this case, a \code{QueueMonitor} computes the approximate integral of the
+
+All bound variables beginning with {\bf p} refer to packet counts, and
+all variables beginning with {\bf b} refer to byte counts.
+The variable {\tt size\_} records the instantaneous queue size in bytes,
+and the variable {\tt pkts\_} records the same value in packets.
+When a \code{QueueMonitor} is configured to include the integral
+functions (on bytes or packets or both), it
+computes the approximate integral of the
 queue size (in bytes)
 with respect to time over the interval $[t_0, now]$, where
 $t_0$ is either the start of the simulation or the last time the
 \code{sum\_} field of the underlying \code{Integrator} class was reset.
-In addition, the instantaneous queue size is recorded and made available
-to OTcl in the \code{size\_} member variable.
 
 The \code{QueueMonitor} class is not derived from \code{Connector}, and
 is not linked directly into the network topology.
 Rather, objects of the \code{SnoopQueue} class (or its derived classes)
-are used instead.
-They are defined as follows (in \code{queue-monitor.cc}):
-\begin{small}
-\begin{verbatim}
-        class SnoopQueue : public Connector {
-         public:
-                SnoopQueue() : qm_(0) {}
-                int command(int argc, const char*const* argv) {
-                        if (argc == 3) {
-                                if (strcmp(argv[1], "set-monitor") == 0) {
-                                        qm_ = (QueueMonitor*)
-                                                TclObject::lookup(argv[2]);
-                                        return (TCL_OK);
-                                }
-                        }
-                        return (Connector::command(argc, argv));
-                }
-         protected:
-                QueueMonitor* qm_;
-        };
-
-        class SnoopQueueIn : public SnoopQueue {
-         public:
-                void recv(Packet* p, Handler* h) {
-                        qm_->in(p);
-                        send(p, h); /* Connector::send() */
-                }
-        };
-
-        class SnoopQueueOut : public SnoopQueue {
-         public:
-                void recv(Packet* p, Handler* h) {
-                        qm_->out(p);
-                        send(p, h); /* Connector::send() */
-                }
-        };
-\end{verbatim}
-\end{small}
+are inserted into the network topology, and these objects contain references
+to an associated queue monitor.
+Ordinarily, multiple \code{SnoopQueue} objects will refer to the same
+queue monitor.
 Objects constructed out of these classes are linked in the simulation
 topology as described above and call \code{QueueManager}
 \code{out} or \code{in} procedures,
