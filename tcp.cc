@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.56 1998/04/21 23:39:54 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.57 1998/04/22 21:35:05 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -78,7 +78,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind_bool("delay_growth_", &delay_growth_);
 	bind("overhead_", &overhead_);
 	bind("tcpTick_", &tcp_tick_);
-	bind("ecn_", &ecn_);
+	bind_bool("ecn_", &ecn_);
         bind("eln_", &eln_);
         bind("eln_rxmit_thresh_", &eln_rxmit_thresh_);
 	bind("packetSize_", &size_);
