@@ -29,7 +29,6 @@
 
 global num_node n verbose
 set verbose 0
-source webtraf.tcl
 source varybell.tcl
 
 # Basic ns setup

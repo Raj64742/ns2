@@ -19,7 +19,6 @@
 # See large-scale-web-traffic.tcl for a large-scale web traffic simulation.
 
 # Initial setup
-source webtraf.tcl
 source dumbbell.tcl
 global num_node n
 

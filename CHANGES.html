@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.360 1999/09/24 17:04:24 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.361 1999/09/24 23:55:54 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,18 @@
 
 
 <ul>
+  <p>
+  <li><B><a href="http://www.isi.edu/~haoboy/">[haoboy]</a>/b>
+        <b>Fri Sep 24 16:51:04 PDT 1999</b><br>
+	<ul>
+	<li> Added new self-similar web traffic module based on Polly's http-mod.tcl.
+	    It eliminates memory leak (undeleted RandomVariable), and slightly saves
+	    runtime.  
+	<li> Updated old example files of web traffic in tcl/ex.
+	<li> Examples of piping nam traces directly from ns to nam (nam-example.tcl).
+	<li> Rearranged header files in rap/. Removed macros 'is', 'or', 'and'. 
+	</ul>
+
   <p>
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Fri Sep 24 10:03:08 PDT 1999</b><br>

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.169 1999/09/16 23:16:09 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.170 1999/09/24 23:55:53 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -130,6 +130,7 @@ OBJ_CC = \
 	$(LIB_DIR)dmalloc_support.o \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
+	webcache/mcache.o webcache/webtraf.o \
 	lanRouter.o filter.o pkt-counter.o \
 	Decapsulator.o Encapsulator.o \
 	channel.o mac.o ll.o \
@@ -154,7 +155,7 @@ OBJ_CC = \
 	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	webcache/mcache.o tfrc.o tfrc-sink.o energy-model.o
+	tfrc.o tfrc-sink.o energy-model.o
 
 # don't allow comments to follow continuation lines
 
@@ -274,7 +275,8 @@ NS_TCL_LIB = \
 	tcl/webcache/http-agent.tcl \
 	tcl/webcache/http-server.tcl \
 	tcl/webcache/http-cache.tcl \
-	tcl/webcache/http-mcache.tcl
+	tcl/webcache/http-mcache.tcl \
+	tcl/webcache/webtraf.tcl
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl | $(TCL2C) et_ns_lib > $@
