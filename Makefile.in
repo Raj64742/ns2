@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.88 1998/01/27 00:45:26 suchi Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.89 1998/01/29 00:08:46 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -61,7 +61,7 @@ LDFLAGS	=
 LDOUT	= -o $(BLANK)
 PERL	= perl
 RM	= rm -f
-TCLSH	= tclsh
+TCLSH	= @V_TCLSH@
 
 BFLAGS	= $(INCLUDES) $(DEFINE)
 CFLAGS	= $(INCLUDES) $(DEFINE) $(CCOPT)
