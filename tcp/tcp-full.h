@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.17 1998/01/27 02:31:58 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.18 1998/04/21 02:36:39 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -132,7 +132,6 @@ class FullTcpAgent : public TcpAgent {
 	int irs_;	// initial recv'd # (peer's iss)
 	int dupseg_fix_;    // fix bug with dup segs and dup acks?
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
-	int delay_growth_;  // delay opening cwnd until 1st data recv'd
 	double delack_interval_;
 
 	int headersize();   // a tcp header
@@ -174,6 +173,12 @@ class FullTcpAgent : public TcpAgent {
 	int last_ack_sent_; /* ackno field from last segment we sent */
 	double recent_;		// ts on SYN written by peer
 	double recent_age_;	// my time when recent_ was set
+
+	/*
+	 * setting iw, specific to tcp-full, called
+	 * by TcpAgent::reset()
+	 */
+	void set_initial_window();
 };
 
 #endif
