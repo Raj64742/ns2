@@ -27,7 +27,7 @@
 
 #include "flowstruct.h"
 
-FlowTable::FlowTable(int size_ = FLOW_TABLE_SIZE) : DRTab(size_) {
+FlowTable::FlowTable(int size_) : DRTab(size_) {
 	assert (size_ > 0);
 	size = 0;
 	maxSize = size_;
@@ -167,7 +167,7 @@ bool FlowTable::defaultFlow(nsaddr_t source, nsaddr_t destination,
 	return DRTab.find(source, destination, flow);
 }
 
-DRTable::DRTable(int size_=FLOW_TABLE_SIZE) {
+DRTable::DRTable(int size_) {
 	assert (size_ > 0);
 	size = 0;
 	maxSize = size_;
@@ -233,7 +233,7 @@ void DRTable::flush(nsaddr_t src, nsaddr_t dst) {
 	assert(0);
 }
 
-ARSTable::ARSTable(int size_ = ARS_TABLE_SIZE) {
+ARSTable::ARSTable(int size_) {
 	size = size_;
 	victim = 0;
 	table = new ARSTabEnt[size_];
