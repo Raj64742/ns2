@@ -38,7 +38,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.13 1998/05/07 00:21:38 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.14 1998/05/27 17:14:22 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -95,8 +95,7 @@ protected:
 	/* Debugging print functions */
 	void hier_print_hadj();
 	void hier_print_route();
-	/* for ref : void send-hier-data(int *clus_size, int cluster_num, int domain_num);*/
-
+	
 	int   **hadj_;
 	int   **hroute_;
 	int   *hsize_;
@@ -330,7 +329,12 @@ int RouteLogic::command(int argc, const char*const* argv)
 				next_hop = hroute_[index][N_N_INDEX(src[2], dst[2], size, C_[d], D_)];	
 			}
 			char target[SMALL_LEN];
-			get_address(target, next_hop, index, d, size, src);
+			if (next_hop > 0) {
+				get_address(target, next_hop, index, d, size, src);
+			} else {
+				strcpy(target, "-1");
+			}
+			
 			tcl.resultf("%s",target);	   
 			return (TCL_OK);
 		}
