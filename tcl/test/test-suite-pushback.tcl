@@ -763,6 +763,10 @@ TestSuite instproc badtcps {} {
 TestSuite instproc badcbr {} {
     $self instvar ns_ node_
 
+    set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 5]
+    set cbr_ [$udp attach-app Traffic/CBR]
+    $cbr_ set rate_ 0.1Mb
+    $cbr_ set random_ 0.001
 
     $ns_ at 0.0 "$cbr_ start"
     $ns_ at 11.0 "$cbr_ set rate_ 0.15Mb"
