@@ -259,6 +259,7 @@ void SRMAgent::recv_sess(int sessCtr, int* data)
         int sender, dataCnt, rtime, stime;
         int now, sentAt, sentBy;
 	int cnt = *data++;
+	int i;
 
 	/* The first block contains the sender's own state */
 	GET_SESSION_INFO;
@@ -276,13 +277,14 @@ void SRMAgent::recv_sess(int sessCtr, int* data)
 	sp->lsess_ = sessCtr;
 	sp->recvTime_ = now;
 	sp->sendTime_ = stime;
-	for (int i = sp->ldata_ + 1; i <= dataCnt; i++)
+
+	for (i = sp->ldata_ + 1; i <= dataCnt; i++)
 		if (! sp->ifReceived(i))
 			tcl.evalf("%s request %d %d", name_, sender, i);
 	if (sp->ldata_ < dataCnt)
 		sp->ldata_ = dataCnt;
 	
-	for (int i = 1; i < cnt; i++) {
+	for (i = 1; i < cnt; i++) {
 		GET_SESSION_INFO;
 		if (sender == addr_ && now) {
 			//
