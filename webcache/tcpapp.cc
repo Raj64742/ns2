@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.11 1999/07/06 22:57:05 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.12 1999/07/16 16:58:07 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -170,7 +170,7 @@ void TcpApp::recv(int size)
 	// If it's the start of a new transmission, grab info from dest, 
 	// and execute callback
 	if (curdata_ == 0)
-		curdata_ = dst_->get_data();
+		curdata_ = dst_->rcvr_retrieve_data();
 	if (curdata_ == 0) {
 		fprintf(stderr, "[%g] %s receives a packet but no callback!\n",
 			Scheduler::instance().clock(), name_);
@@ -205,7 +205,7 @@ void TcpApp::recv(int size)
 				curdata_->data());
 #endif
 			delete curdata_;
-			curdata_ = dst_->get_data();
+			curdata_ = dst_->rcvr_retrieve_data();
 			if (curdata_ != 0)
 				continue;
 			if ((curdata_ == 0) && (curbytes_ > 0)) {

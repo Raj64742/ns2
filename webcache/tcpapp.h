@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.12 1999/07/06 22:57:05 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.13 1999/07/16 16:58:06 haoboy Exp $
 //
 // TcpApp - Transmitting real application data via TCP
 //
@@ -101,7 +101,7 @@ public:
 
 protected:
 	virtual int command(int argc, const char*const* argv);
-	CBuf* get_data() { return cbuf_.detach(); }
+	CBuf* rcvr_retrieve_data() { return cbuf_.detach(); }
 
 	// We don't have start/stop
 	virtual void start() { abort(); } 
