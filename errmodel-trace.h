@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,21 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ns_baseLL_h
-#define ns_baseLL_h
+#ifndef ns_errmodel_trace_h
+#define ns_errmodel_trace_h
 
-#include "delay.h"
 #include "errmodel.h"
 
-struct hdr_ll {
-	int seqno_;		// sequence number
-	int ack_;		// acknowledgement number
 
-	int& seqno() {
-		return (seqno_);
-	}
-	int& ack() {
-		return (ack_);
-	}
-};
-
-class BaseLL : public LinkDelay {
+class ErrorModelTrace : public ErrorModel {
 public:
-	BaseLL();
-	virtual void recv(Packet* p, Handler* h);
-	virtual void handle(Event*);
-	inline ErrorModel* em() { return em_; }
-	inline Queue* ifq() { return ifq_; }
-	inline NsObject* sendtarget() { return sendtarget_; }
-	inline NsObject* recvtarget() { return recvtarget_; }
+	ErrorModelTrace() : ErrorModel() {}
+	virtual int command(int argc, const char*const* argv);
+	virtual int corrupt(Packet*);
+	int read(const char *filename);
 
 protected:
-	int command(int argc, const char*const* argv);
-	ErrorModel* em_;	// error model
-	Queue* ifq_;		// interface queue
-        NsObject* sendtarget_;	// usually the link layer of the peer
-	NsObject* recvtarget_;	// usually the classifier of the same node
-	int off_ll_;		// offset of link-layer header
-	int seqno_;		// link-layer sequence number
+	ifstream ifs_;
 };
-
-static class BaseLLHeaderClass : public PacketHeaderClass {
-public:
-	BaseLLHeaderClass() : PacketHeaderClass("PacketHeader/LL", sizeof(hdr_ll)) {}
-} class_llhdr;
 
 #endif

@@ -32,47 +32,32 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ns_baseLL_h
-#define ns_baseLL_h
+#ifndef ns_ll_block_h
+#define ns_ll_block_h
 
-#include "delay.h"
-#include "errmodel.h"
+#include "baseLL.h"
 
-struct hdr_ll {
-	int seqno_;		// sequence number
-	int ack_;		// acknowledgement number
 
-	int& seqno() {
-		return (seqno_);
-	}
-	int& ack() {
-		return (ack_);
-	}
-};
+class BlockingLL;
 
-class BaseLL : public LinkDelay {
+class LLHandlerRs : public Handler {
 public:
-	BaseLL();
-	virtual void recv(Packet* p, Handler* h);
-	virtual void handle(Event*);
-	inline ErrorModel* em() { return em_; }
-	inline Queue* ifq() { return ifq_; }
-	inline NsObject* sendtarget() { return sendtarget_; }
-	inline NsObject* recvtarget() { return recvtarget_; }
-
+	LLHandlerRs(BlockingLL& ll) : ll_(ll) {}
+	void handle(Event* e);
 protected:
-	int command(int argc, const char*const* argv);
-	ErrorModel* em_;	// error model
-	Queue* ifq_;		// interface queue
-        NsObject* sendtarget_;	// usually the link layer of the peer
-	NsObject* recvtarget_;	// usually the classifier of the same node
-	int off_ll_;		// offset of link-layer header
-	int seqno_;		// link-layer sequence number
+	BlockingLL& ll_;
 };
 
-static class BaseLLHeaderClass : public PacketHeaderClass {
+
+class BlockingLL : public BaseLL {
 public:
-	BaseLLHeaderClass() : PacketHeaderClass("PacketHeader/LL", sizeof(hdr_ll)) {}
-} class_llhdr;
+	BlockingLL();
+	virtual void recv(Packet* p, Handler* h);
+	virtual void resume() { callback_->handle(&intr_); }
+	inline Handler* callback() { return callback_; }
+protected:
+	Handler* callback_;
+	LLHandlerRs hRs_;
+};
 
 #endif

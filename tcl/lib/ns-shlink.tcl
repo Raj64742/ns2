@@ -60,15 +60,13 @@ Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } {
 	}
 
 	set numnodes [llength $nodelist]
-	puts $numnodes
+	set channel_ [new Channel]
 	for {set i 0} {$i < $numnodes} {incr i 1} {
 		set src [lindex $nodelist $i] 
 		set sid [$src id]
 
-		set channel_($sid) [new Channel]
-
 		set mac_($sid) [new $mactype]
-		$mac_($sid) channel $channel_($sid)
+		$mac_($sid) channel $channel_
 		$mac_($sid) set bandwidth_ $bw
 		$mac_($sid) set delay_ $delay
 
@@ -113,7 +111,6 @@ Class Link/SharedDuplex -superclass SimpleLink
 
 Link/SharedDuplex instproc init { src dst bw delay qtype lltype } {
 	$self next $src $dst $bw $delay $qtype $lltype
-	puts "In init: $bw $delay"
 }
 
 Link/SharedDuplex instproc setuplinkage { src ifq dstlink } {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,47 +32,63 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ns_baseLL_h
-#define ns_baseLL_h
+#include <iostream.h>
+#include <stdlib.h>
+#include "random.h"
+#include "errmodel-trace.h"
 
-#include "delay.h"
-#include "errmodel.h"
 
-struct hdr_ll {
-	int seqno_;		// sequence number
-	int ack_;		// acknowledgement number
-
-	int& seqno() {
-		return (seqno_);
-	}
-	int& ack() {
-		return (ack_);
-	}
-};
-
-class BaseLL : public LinkDelay {
+static class ErrorModelTraceClass : public TclClass {
 public:
-	BaseLL();
-	virtual void recv(Packet* p, Handler* h);
-	virtual void handle(Event*);
-	inline ErrorModel* em() { return em_; }
-	inline Queue* ifq() { return ifq_; }
-	inline NsObject* sendtarget() { return sendtarget_; }
-	inline NsObject* recvtarget() { return recvtarget_; }
+	ErrorModelTraceClass() : TclClass("ErrorModel/Trace") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new ErrorModelTrace);
+	}
+} class_errormodel_trace;
 
-protected:
-	int command(int argc, const char*const* argv);
-	ErrorModel* em_;	// error model
-	Queue* ifq_;		// interface queue
-        NsObject* sendtarget_;	// usually the link layer of the peer
-	NsObject* recvtarget_;	// usually the classifier of the same node
-	int off_ll_;		// offset of link-layer header
-	int seqno_;		// link-layer sequence number
-};
 
-static class BaseLLHeaderClass : public PacketHeaderClass {
-public:
-	BaseLLHeaderClass() : PacketHeaderClass("PacketHeader/LL", sizeof(hdr_ll)) {}
-} class_llhdr;
+int
+ErrorModelTrace::command(int argc, const char*const* argv)
+{
+	int ac = 0;
 
-#endif
+	if (!strcmp(argv[ac+1], "read")) {
+		read(argv[ac+2]);
+		return (TCL_OK);
+	}
+	return ErrorModel::command(argc, argv);
+}
+
+
+int
+ErrorModelTrace::read(const char *filename)
+{
+	char buf[256];
+	ifs_.open(filename);
+	if (! ifs_) {
+		cerr << "cannot open input file" << filename << "\n";
+		return 0;
+	}
+
+	ifs_ >> time_ >> loss_ >> good_;
+	ifs_.get(buf, 256, '\n');
+	dump();
+	return 0;
+}
+
+
+int
+ErrorModelTrace::corrupt(Packet* pkt)
+{
+	char buf[256];
+	if (--good_ > 0)
+		return 0;
+	if (loss_-- > 0)
+		return 1;
+	ifs_ >> time_ >> loss_ >> good_;
+	ifs_.get(buf, 256, '\n');
+	if (good_ > 0)
+		dump();
+	else good_ = 123456789;
+	return 0;
+}

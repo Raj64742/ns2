@@ -78,7 +78,7 @@ Channel::send(Packet* p, Handler* target, double txtime, double txstart)
 		drop(p);
 		return 1;
 	}
-	s.schedule(target, p, txstop_ - s.clock());
+	s.schedule(target, p, txstop_ - now);
 	return 0;
 }
 

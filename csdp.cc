@@ -32,47 +32,82 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ns_baseLL_h
-#define ns_baseLL_h
+#include "random.h"
+#include "ll-block.h"
+#include "csdp.h"
 
-#include "delay.h"
-#include "errmodel.h"
 
-struct hdr_ll {
-	int seqno_;		// sequence number
-	int ack_;		// acknowledgement number
-
-	int& seqno() {
-		return (seqno_);
-	}
-	int& ack() {
-		return (ack_);
-	}
-};
-
-class BaseLL : public LinkDelay {
+static class CsdpClass : public TclClass {
 public:
-	BaseLL();
-	virtual void recv(Packet* p, Handler* h);
-	virtual void handle(Event*);
-	inline ErrorModel* em() { return em_; }
-	inline Queue* ifq() { return ifq_; }
-	inline NsObject* sendtarget() { return sendtarget_; }
-	inline NsObject* recvtarget() { return recvtarget_; }
+	CsdpClass() : TclClass("Queue/CSDP") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new Csdp);
+	}
+} class_csdp;
 
-protected:
-	int command(int argc, const char*const* argv);
-	ErrorModel* em_;	// error model
-	Queue* ifq_;		// interface queue
-        NsObject* sendtarget_;	// usually the link layer of the peer
-	NsObject* recvtarget_;	// usually the classifier of the same node
-	int off_ll_;		// offset of link-layer header
-	int seqno_;		// link-layer sequence number
-};
 
-static class BaseLLHeaderClass : public PacketHeaderClass {
-public:
-	BaseLLHeaderClass() : PacketHeaderClass("PacketHeader/LL", sizeof(hdr_ll)) {}
-} class_llhdr;
+Csdp::Csdp() : qsize_(16), qlen_(0)
+{
+	q_ = new Packet*[qsize_];
+}
 
-#endif
+
+void
+Csdp::recv(Packet* p, Handler*)
+{
+	enque(p);
+	if (!blocked_) {
+		blocked_ = 1;
+		p = deque();
+		if (p != 0)
+			target_->recv(p, &qh_);
+		else
+			blocked_ = 0;
+	}
+}
+
+
+void
+Csdp::enque(Packet* p)
+{
+	if (++qlen_ >= qsize_) {
+		qsize_ *= 2;
+		realloc(q_, qsize_);
+	}
+	for (int i=0;  i < qsize_;  i++) {
+		if (q_[i] == 0) {
+			q_[i] = p;
+			break;
+		}
+	}
+}
+
+
+Packet*
+Csdp::deque()
+{
+	Scheduler& s = Scheduler::instance();
+	Packet* p;
+	double bestscore = -1000000;
+	int bestindex;
+	for (int i=0;  i < qlen_;  i++) {
+		if (score(q_[i]) > bestscore)
+			bestindex = i;
+	}
+	p = q_[bestindex];
+	q_[bestindex] = NULL;
+	qlen_--;
+	((BlockingLL*)p->source()) ->resume();
+	return p;
+}
+
+
+double
+Csdp::score(Packet* p)
+{
+	BlockingLL* ll = (BlockingLL*) p->source();
+	if (ll->em())
+		return (- ll->em()->rate());
+	else
+		return 0;
+}
