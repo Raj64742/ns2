@@ -56,7 +56,7 @@
 #define LOWER_BOUND_MODE 1
 
 //maximum number of rate-limiting sessions that a congested router can start.
-#define MAX_SESSIONS 6
+#define MAX_SESSIONS 3
 
 //0 for No Mergers of aggregate prefixes
 //1 for Mergers

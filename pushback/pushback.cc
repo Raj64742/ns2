@@ -466,6 +466,26 @@ PushbackAgent::pushbackRefresh(int qid) {
 	  printMsg(prnMsg,0);
   }
 
+  double now = Scheduler::instance().clock();
+  
+  //check if some sessions need to be discarded because of rate-limiting too many sessions
+  RateLimitSession * listItem1 = pbq->rlsList_->first_;
+  while (noSessions > MAX_SESSIONS && listItem1 != NULL) {
+      int rank = pbq->rlsList_->rankRate(node_->nodeid(), listItem1->getArrivalRateForStatus());
+      if (listItem1->origin_ == node_->nodeid() && 
+	  rank >= MAX_SESSIONS && (now - listItem1->startTime_) >= EARLIEST_TIME_TO_FREE) {
+	  sprintf(prnMsg,"Releasing because of too many being rate-limited\n");
+	  printMsg(prnMsg,0);
+	  if (LOWER_BOUND_MODE == 1 && 
+	      queue_list_[qid].idTree_->lowerBound_ < listItem1->getArrivalRateForStatus()) {
+	      queue_list_[qid].idTree_->lowerBound_ = listItem1->getArrivalRateForStatus();
+	  }
+	  pushbackCancel(listItem1);
+	  noSessions--;
+      }
+      listItem1 = listItem1->next_;
+  }
+  
   double linkBW = pbq->getBW();
   double arrRate = pbq->getRate();
   double targetRate = linkBW/(1 - TARGET_DROPRATE);
@@ -514,7 +534,6 @@ PushbackAgent::pushbackRefresh(int qid) {
 	  lowerBound);
   printMsg(prnMsg,0);
 
-  double now = Scheduler::instance().clock();
   //send refresh message for all sessions with arrival rate > requiredLimit;
   listItem = pbq->rlsList_->first_;
   while (listItem != NULL) {
@@ -526,17 +545,7 @@ PushbackAgent::pushbackRefresh(int qid) {
 	    listItem = listItem->next_;
 	    continue;
 	}
-
-	//check if some sessions need to be discarded because of rate-limiting too many sessions
-	int rank = pbq->rlsList_->rankRate(node_->nodeid(), listItem->getArrivalRateForStatus());
-	if (rank >= MAX_SESSIONS && (now - listItem->startTime_) >= EARLIEST_TIME_TO_FREE) {
-	    sprintf(prnMsg,"Releasing because of too many being rate-limited\n");
-	    printMsg(prnMsg,0);
-	    pushbackCancel(listItem);
-	    listItem = listItem->next_;
-	    continue;
-	}
-
+	
 	//Sessions sending less than the limit.
 	if (listItem->getArrivalRateForStatus() < requiredLimit) {
 	    //if it has been sending less for "some" time.
