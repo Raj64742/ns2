@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.5 2001/06/28 06:22:54 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.6 2001/10/04 23:06:25 kclan Exp $
 
 PagePool/EmpWebTraf set debug_ false
 PagePool/EmpWebTraf set TCPTYPE_ Reno
@@ -57,7 +57,8 @@ PagePool/EmpWebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size r
 	$stcp proc done {} "$self done-resp $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
 	
 	# modified to trace web traffic flows (send request: client==>server).
-        puts "req + obj:$id clnt:[$clnt id] svr:[$svr id] $size [$ns now]"
+        #puts "req + obj:$id clnt:[$clnt id] svr:[$svr id] $size [$ns now]"
+        puts "req clnt [$clnt id] svr [$svr id] [$ns now] obj $id $reqSize $size"
 
 	# Send request packets based on empirical distribution
 	$ctcp advanceby $reqSize
