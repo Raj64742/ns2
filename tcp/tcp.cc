@@ -134,6 +134,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("maxburst_", &maxburst_);
 	bind("maxcwnd_", &maxcwnd_);
 
+#ifdef notdef
 	/*
 	 * for variables that are to be traced, we also bind the functions
 	 * (defined above) to read/write from them
@@ -152,6 +153,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
+#endif
 
 	finish_[0] = 0;
 
