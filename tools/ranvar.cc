@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.6 1998/01/25 23:55:53 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.7 1998/02/17 03:52:11 gnguyen Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -255,7 +255,7 @@ int EmpiricalRandomVariable::loadCDF(const char* filename)
 		table_ = new CDFentry[maxEntry_];
 	for (numEntry_=0;  fgets(line, 256, fp);  numEntry_++) {
 		if (numEntry_ >= maxEntry_) {	// resize the CDF table
-			maxEntry_ <<= 1;	// double
+			maxEntry_ *= 2;
 			e = new CDFentry[maxEntry_];
 			for (int i=numEntry_-1; i >= 0; i--)
 				e[i] = table_[i];
@@ -270,16 +270,14 @@ int EmpiricalRandomVariable::loadCDF(const char* filename)
 
 double EmpiricalRandomVariable::value()
 {
-	if (numEntry_ <= 0) {
+	if (numEntry_ <= 0)
 		return 0;
-	}
 	double u = rng_->uniform(minCDF_, maxCDF_);
 	int mid = lookup(u);
-	if (interpolation_ && (u > table_[mid-1].cdf_ && u < table_[mid].cdf_))
+	if (mid && interpolation_ && u < table_[mid].cdf_)
 		return interpolate(u, table_[mid-1].cdf_, table_[mid-1].val_,
 				   table_[mid].cdf_, table_[mid].val_);
-	else
-		return table_[mid].val_;
+	return table_[mid].val_;
 }
 
 double EmpiricalRandomVariable::interpolate(double x, double x1, double y1, double x2, double y2)
@@ -292,6 +290,7 @@ double EmpiricalRandomVariable::interpolate(double x, double x1, double y1, doub
 
 int EmpiricalRandomVariable::lookup(double u)
 {
+	// always return an index whose value is >= u
 	int lower, upper, mid;
 	if (u < table_[0].cdf_)
 		return 0;
