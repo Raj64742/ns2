@@ -81,7 +81,7 @@ number and ACK number computations entirely in packet units,
 there is no SYN/FIN connection establishment/teardown, and no
 data is ever transferred (e.g. no checksums or urgent data).
 
-\subsubsection{\shdr{tahoe TCP}{tcp.cc}{sec:tahoetcp}}
+\subsubsection{\shdr{the base TCP sender (Tahoe TCP)}{tcp.cc}{sec:tahoetcp}}
 
 The ``Tahoe'' TCP agent \code{Agent/TCP} performs congestion
 control and round-trip-time estimation
@@ -124,7 +124,7 @@ For subsequent samples, the values are updated as follows:
 \[ srtt = \frac{7}{8} \times srtt + \frac{1}{8} \times sample \]
 \[ rttvar = \frac{3}{4} \times rttvar + \frac{1}{4} \times |sample-srtt| \]
 
-\subsection{Configuration}
+\subsubsection{Configuration}
 \label{sec:tcp-config}
 
 Running an TCP simulation requires
@@ -227,7 +227,7 @@ Generally, those TCPs with larger packet sizes, bigger windows, and
 smaller round trip times (a result of the topology and congestion) are
 more agressive in acquiring network bandwidth.
 
-\subsubsection{other TCP agents}
+\subsubsection{other one-way TCP senders}
 
 \paragraph{Reno TCP}
 The Reno TCP agent is very similar to the Tahoe TCP agent,
@@ -263,6 +263,59 @@ with Matt Mathis and Jamshid Mahdavi.
 \paragraph{Fack TCP}
 This agent implements ``forward ACK'' TCP, a modification of Sack
 TCP described in \cite{matt-jamshid}.
+
+\subsection{TCP Receivers (sinks)}
+
+The TCP senders described above represent one-way data senders.
+They must peer with a ``TCP sink'' object.
+
+\subsubsection{the base TCP sink}
+
+The base TCP sink object ({\tt Agent/TCPSink})
+is responsible for returning ACKs to
+a peer TCP source object.
+It generates one ACK per packet received.
+The size of the ACKs may be configured.
+The creation and configuration of the TCP sink object
+is generally performed automatically by a library
+call (see {\tt create-connection} above).
+
+\paragraph{configuration parameters}
+\begin{program}
+Agent/TCPSink set packetSize_ 40
+\end{program}
+
+\subsubsection{delayed-ACK TCP sink}
+
+A delayed-ACK sink object ({\tt Agent/Agent/TCPSink/DelAck}) is available
+for simulating a TCP receiver that ACKs less than once per packet received.
+This object contains a bound variable {\tt interval\_} which gives the
+number of seconds to wait between ACKs.
+The delayed ACK sink implements an agressive ACK policy whereby
+only ACKs for in-order packets are delayed.
+Out-of-order packets cause immediate ACK generation.
+
+\paragraph{configuration parameters}
+\begin{program}
+Agent/TCPSink/DelAck set interval_ 100ms
+\end{program}
+
+\subsubsection{Sack TCP Sink}
+
+The selective-acknowledgement TCP sink ({\tt Agent/TCPSink/Sack1}) implements
+SACK generation modeled after the description of SACK in RFC 2018.
+This object includes a bound variable {\tt maxSackBlocks\_} which gives
+the maximum number of blocks of information in an ACK available for
+holding SACK information.
+The default value for this variable is 3, in accordance with the expected
+use of SACK with RTTM (see RFC 2018, section 3).
+Delayed and selective ACKs together are implemented by
+an object of type {\tt Agent/TCPSink/Sack1/DelAck}.
+
+\paragraph{configuration parameters}
+\begin{program}
+Agent/TCPSink set maxSackBlocks_ 3
+\end{program}
 
 \subsection{Architecture and Internals}
 \label{sec:architecture}
