@@ -88,77 +88,77 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
 		quench(1);
-        if (!fastrecov_) {
-                /* normal... not fast recovery */
-                if ((int)tcph->seqno() > last_ack_) {
-                        /*
-                         * regular ACK not in fast recovery... normal
-                         */
-                        newack(pkt);
-                        opencwnd();
-                        timeout_ = FALSE;
+	if (!fastrecov_) {
+		/* normal... not fast recovery */
+		if ((int)tcph->seqno() > last_ack_) {
+			/*
+			 * regular ACK not in fast recovery... normal
+			 */
+			newack(pkt);
+			opencwnd();
+			timeout_ = FALSE;
 			scb_.ClearScoreBoard();
 		} else if ((int)tcph->seqno() < last_ack_) {
 			/*NOTHING*/
-                } else if (timeout_ == FALSE)  {
-                        if (tcph->seqno() != last_ack_) {
-                                fprintf(stderr, "pkt seq %d should be %d\n" ,
-                                        tcph->seqno(), last_ack_);
-                                abort();
-                        }
+		} else if (timeout_ == FALSE)  {
+			if (tcph->seqno() != last_ack_) {
+				fprintf(stderr, "pkt seq %d should be %d\n" ,
+					tcph->seqno(), last_ack_);
+				abort();
+			}
 			scb_.UpdateScoreBoard (last_ack_, tcph);
-                        /*
-                         * a duplicate ACK
-                         */
-                        if (++dupacks() == NUMDUPACKS) {
-                                /*
-                                 * Assume we dropped just one packet.
-                                 * Retransmit last ack + 1
-                                 * and try to resume the sequence.
-                                 */
-                                if ((highest_ack() > recover_) ||
-                                    (recover_cause_ != RECOVER_TIMEOUT)) {
-                                        recover_cause_ = RECOVER_DUPACK;
-                                        recover_ = maxseq();
-                                        pipe_ = int(cwnd()) - NUMDUPACKS;
-                                        closecwnd(1);
-                                        reset_rtx_timer(1);
+			/*
+		 	 * Check for a duplicate ACK
+			 */
+			if (++dupacks() == NUMDUPACKS) {
+				/*
+				 * Assume we dropped just one packet.
+				 * Retransmit last ack + 1
+				 * and try to resume the sequence.
+				 */
+				if ((highest_ack() > recover_) ||
+					(recover_cause_ != RECOVER_TIMEOUT)) {
+					recover_cause_ = RECOVER_DUPACK;
+					recover_ = maxseq();
+					pipe_ = int(cwnd()) - NUMDUPACKS;
+					closecwnd(1);
+					reset_rtx_timer(1);
 					fastrecov_ = TRUE;
 					scb_.MarkRetran (last_ack_+1);
-                                        output(last_ack_ + 1, TCP_REASON_DUPACK);
-                                }
-                        }
-                }
-                if (dupacks() == 0)
-                        send_much(FALSE, 0, 0);
-        } else {
-                /* we are in fast recovery */
-                --pipe_;
-                if ((int)tcph->seqno() >= recover_) {
-                        /* ACK indicates fast recovery is over */
+					output(last_ack_ + 1, TCP_REASON_DUPACK);
+				}
+			}
+		}
+		if (dupacks() == 0)
+			send_much(FALSE, 0, 0);
+	} else {
+		/* we are in fast recovery */
+		--pipe_;
+		if ((int)tcph->seqno() >= recover_) {
+			/* ACK indicates fast recovery is over */
 			recover_ = 0;
 			fastrecov_ = FALSE;
-                        newack(pkt);
-                        timeout_ = FALSE;
+			newack(pkt);
+			timeout_ = FALSE;
 			scb_.ClearScoreBoard();
 
-                        /* New window: W/2 - K or W/2? */
-                } else if ((int)tcph->seqno() > highest_ack()) {
-                        /* Not out of fast recovery yet.
-                         * Update highest_ack_, but not last_ack_. */
+			/* New window: W/2 - K or W/2? */
+		} else if ((int)tcph->seqno() > highest_ack()) {
+			/* Not out of fast recovery yet.
+			 * Update highest_ack_, but not last_ack_. */
 			--pipe_;
-                        highest_ack() = (int)tcph->seqno();
-		 	scb_.UpdateScoreBoard (highest_ack(), tcph);
-                        t_backoff() = 1;
-                        newtimer(pkt);
-                } else if (timeout_ == FALSE) {
-                        /* got another dup ack */
+			highest_ack() = (int)tcph->seqno();
+			scb_.UpdateScoreBoard (highest_ack(), tcph);
+			t_backoff() = 1;
+			newtimer(pkt);
+		} else if (timeout_ == FALSE) {
+			/* got another dup ack */
 			scb_.UpdateScoreBoard (last_ack_, tcph);
-                        if (dupacks() > 0)
-                                dupacks()++;
-                }
-                send_much(FALSE, 0, 0);
-        }
+			if (dupacks() > 0)
+				dupacks()++;
+		}
+		send_much(FALSE, 0, 0);
+	}
 
 	Packet::free(pkt);
 #ifdef notyet
@@ -187,64 +187,62 @@ void Sack1TcpAgent::timeout(int tno)
 
 void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 {
-        register int pktno, found, nextpktno, npacket = 0;
-        int win = window();
+	register int pktno, found, nextpktno, npacket = 0;
+	int win = window();
 	int xmit_seqno;
 
-        found = 1;
-		if (!force && pending_[TCP_TIMER_DELSND])
-			return;
-        /*
-         * as long as the pipe is open and there is app data to send...
-         */
-        while (((!fastrecov_  && (t_seqno() <= last_ack_ + win)) ||
-            (fastrecov_ && (pipe_ < int(cwnd())))) 
-		&& t_seqno() < curseq_ && found) {
+	found = 1;
+	if (!force && pending_[TCP_TIMER_DELSND])
+		return;
+	/*
+	 * as long as the pipe is open and there is app data to send...
+	 */
+	while (((!fastrecov_  && (t_seqno() <= last_ack_ + win)) ||
+			(fastrecov_ && (pipe_ < int(cwnd())))) 
+			&& t_seqno() < curseq_ && found) {
 
-                if (overhead_ == 0 || force) {
-                        found = 0;
-
+		if (overhead_ == 0 || force) {
+			found = 0;
 			xmit_seqno = scb_.GetNextRetran ();
+
 #ifdef DEBUGSACK1A
 			printf("highest_ack: %d xmit_seqno: %d\n", 
 			highest_ack(), xmit_seqno);
 #endif
 			if (xmit_seqno == -1) { 
-			    if ((!fastrecov_ && t_seqno()<=highest_ack()+win)||
-			     (fastrecov_ && t_seqno()<=last_ack_+int(2*wnd_))){ 
-				found = 1;
-				xmit_seqno = t_seqno()++;
+				if ((!fastrecov_ && t_seqno()<=highest_ack()+win)||
+					(fastrecov_ && t_seqno()<=last_ack_+int(2*wnd_))) { 
+					found = 1;
+					xmit_seqno = t_seqno()++;
 #ifdef DEBUGSACK1A
-				printf("sending %d fastrecovery: %d win %d\n",
-				  xmit_seqno, fastrecov_, win);
+					printf("sending %d fastrecovery: %d win %d\n",
+						xmit_seqno, fastrecov_, win);
 #endif
-			    }
-			}
-			else if (recover_>0 &&
-				xmit_seqno<=last_ack_+int(2*wnd_)) {
+		    	}
+			} else if (recover_>0 && xmit_seqno<=last_ack_+int(2*wnd_)) {
 				found = 1;
 				scb_.MarkRetran (xmit_seqno);
 				win = window();
 			}
 			if (found) {
-                        	output(xmit_seqno, reason);
-                                if (t_seqno() <= xmit_seqno)
-                                        t_seqno() = xmit_seqno + 1;
+				output(xmit_seqno, reason);
+				if (t_seqno() <= xmit_seqno)
+					t_seqno() = xmit_seqno + 1;
 				npacket++;
 				pipe_++;
 			}
-                } else if (!pending_[TCP_TIMER_DELSND]) {
-                        /*
-                         * Set a delayed send timeout.
+		} else if (!pending_[TCP_TIMER_DELSND]) {
+			/*
+			 * Set a delayed send timeout.
 			 * This is only for the simulator,to add some
 			 *   randomization if speficied.
-                         */
-                        sched(Random::uniform(overhead_), TCP_TIMER_DELSND);
-                        return;
-                }
-                if (maxburst && npacket == maxburst)
-                        break;
-        } /* while */
+			 */
+			sched(Random::uniform(overhead_), TCP_TIMER_DELSND);
+			return;
+		}
+		if (maxburst && npacket == maxburst)
+			break;
+	} /* while */
 }
 
 void Sack1TcpAgent::plot()
