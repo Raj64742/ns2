@@ -29,7 +29,12 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.3 1997/07/23 02:51:35 kfall Exp $ (UCB)
  */
+
+#ifndef ns_snoop_h
+#define ns_snoop_h
 
 #include "scheduler.h"
 #include "packet.h"
@@ -144,3 +149,5 @@ class SnoopPersistHandler : public Handler {
   protected:
 	Snoop *snoop_;
 };
+
+#endif
