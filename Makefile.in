@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.153 1999/05/05 19:59:19 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.154 1999/05/06 00:26:11 yaxu Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -136,6 +136,7 @@ OBJ_CC = \
 	mac-802_11.o \
 	mac-802_3.o \
 	mip.o mip-reg.o \
+	gridkeeper.o \
 	propagation.o tworayground.o antenna.o omni-antenna.o \
 	bi-connector.o node.o mobilenode.o \
 	arp.o god.o dem.o topography.o modulation.o priqueue.o \
@@ -246,9 +247,9 @@ NS_TCL_LIB = \
 	tcl/lib/ns-address.tcl \
 	tcl/lib/ns-intserv.tcl \
 	tcl/lib/ns-autoconf.tcl \
+	tcl/lib/ns-wireless-mip.tcl \
 	tcl/rtp/session-rtp.tcl \
 	tcl/lib/ns-mip.tcl \
-	tcl/lib/ns-wireless-mip.tcl \
 	tcl/mobility/dsdv.tcl \
 	tcl/mobility/dsr.tcl \
 	tcl/mobility/com.tcl \
