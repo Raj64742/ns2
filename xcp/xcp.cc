@@ -1,4 +1,3 @@
-
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1996-1997 The Regents of the University of California.
@@ -40,205 +39,212 @@ static unsigned int next_router = 0;
 
 static class XCPClass : public TclClass {
 public:
-  XCPClass() : TclClass("Queue/XCP") {}
-  TclObject* create(int, const char*const*) {
-    return (new XCPWrapQ);
-  }
+	XCPClass() : TclClass("Queue/XCP") {}
+	TclObject* create(int, const char*const*) {
+		return (new XCPWrapQ);
+	}
 } class_xcp_queue;
 
 XCPWrapQ::XCPWrapQ():xcpq_(NULL)
 {
-  bind("maxVirQ_", &maxVirQ_);
-  routerId_ = next_router++;
+	bind("maxVirQ_", &maxVirQ_);
+	bind("spread_bytes_", &spread_bytes_);
+	routerId_ = next_router++;
 }
  
 void XCPWrapQ::setVirtualQueues() {
 
-  for (int n=0; n < maxVirQ_; n++) {
-    xcpq_[n]->routerId(this,routerId_); 
-    wrrTemp_[n] = 0;
-  }
+	for (int n=0; n < maxVirQ_; n++) {
+		xcpq_[n]->routerId(this,routerId_); 
+		wrrTemp_[n] = 0;
+	}
   
-  qToDq_ = 0;
-  queueWeight_[XCPQ] = 0.5;
-  queueWeight_[TCPQ] = 0.5;
-  queueWeight_[OTHERQ] = 0;
+	qToDq_ = 0;
+	queueWeight_[XCPQ] = 0.5;
+	queueWeight_[TCPQ] = 0.5;
+	queueWeight_[OTHERQ] = 0;
   
-  // setup timers for xcp queue only
-  xcpq_[XCPQ]->setupTimer();
-  
+	// setup timers for xcp queue only
+	xcpq_[XCPQ]->setupTimers();
+	xcpq_[XCPQ]->spread_bytes(spread_bytes_);
+
 }
 
 
 int XCPWrapQ::command(int argc, const char*const* argv)
 {
-  Tcl& tcl = Tcl::instance();
+	Tcl& tcl = Tcl::instance();
 
-  if (argc == 2) {
-    // this command is specifically for Dina's SIGCOMM experiment 
-    if (strcmp(argv[1], "queue-read-drops") == 0) {
-      tcl.resultf("%g",xcpq_[XCPQ]->totalDrops());
-      return (TCL_OK);
-    } 
-  }
-
-  if (argc >= 3) {	
-    if (strcmp(argv[1], "set-virQ") == 0) {
-      xcpq_ = new XCPQueue*[maxVirQ_]; 
-      for (int n=0,c=2; n < maxVirQ_; n++) {
-	xcpq_[n] = (XCPQueue *)(TclObject::lookup(argv[c++]));
-	if (xcpq_[n] == NULL) {
-	  tcl.add_errorf("Wrong xcp virtual queues %s\n",argv[c-1]);
-	  return TCL_ERROR;
+	if (argc == 2) {
+		// for Dina's parking-lot experiment data
+		if (strcmp(argv[1], "queue-read-drops") == 0) {
+			tcl.resultf("%g",xcpq_[XCPQ]->totalDrops());
+			return (TCL_OK);
+		} 
 	}
-      }
-      setVirtualQueues();
-      return TCL_OK;
-    }
 
-    else if (strcmp(argv[1], "set-link-capacity-Kbytes") == 0) {
-      double link_capacity_Kbytes = strtod(argv[2],0);
-      
-      if (link_capacity_Kbytes < 0.0) 
-	{printf("Error: BW < 0"); abort();};
+	if (argc >= 3) {	
+		if (strcmp(argv[1], "set-virQ") == 0) {
+			xcpq_ = new XCPQueue*[maxVirQ_]; 
+			for (int n=0,c=2; n < maxVirQ_; n++) {
+				xcpq_[n] = (XCPQueue *)(TclObject::lookup(argv[c++]));
+				if (xcpq_[n] == NULL) {
+					tcl.add_errorf("Wrong xcp virtual queues %s\n",argv[c-1]);
+					return TCL_ERROR;
+				}
+			}
+			setVirtualQueues();
+			return TCL_OK;
+		}
 
-      for (int n=0; n < maxVirQ_; n++) {
-	xcpq_[n]->setBW(link_capacity_Kbytes); // divide by 2 for tcp/xcp flow types until dynamic queue weights are implemented
-	xcpq_[n]->limit(limit());
-	xcpq_[n]->config();
-      }
-      return TCL_OK;
-    }
+		else if (strcmp(argv[1], "set-link-capacity") == 0) {
+			double link_capacity_bitps = strtod(argv[2], 0);
+			if (link_capacity_bitps < 0.0) {
+				printf("Error: BW < 0"); 
+				exit(1);
+			}
+	    
+			for (int n=0; n < maxVirQ_; n++) {
+				xcpq_[n]->setBW(link_capacity_bitps/8.0); // XXX divide by 2 for
+				// tcp/xcp flow types?????
+				xcpq_[n]->limit(limit());
+				xcpq_[n]->config();
+			}
+			return TCL_OK;
+		}
     
-    else if (strcmp(argv[1], "attach") == 0) {
-      int mode;
-      const char* id = argv[2];
-      Tcl_Channel queue_trace_file = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
-      if (queue_trace_file == 0) {
-	tcl.resultf("queue.cc: trace-drops: can't attach %s for writing", id);
- 	return (TCL_ERROR);
-      }
-      for (int n=0; n < maxVirQ_; n++)
-	xcpq_[n]->setChannel(queue_trace_file);
-      return (TCL_OK);
-    }
+		else if (strcmp(argv[1], "attach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			Tcl_Channel queue_trace_file = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+			if (queue_trace_file == 0) {
+				tcl.resultf("queue.cc: trace-drops: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			for (int n=0; n < maxVirQ_; n++)
+				xcpq_[n]->setChannel(queue_trace_file);
+			return (TCL_OK);
+		}
     
-    else if (strcmp(argv[1], "queue-sample-everyrtt") == 0) {
-      double effective_rtt = strtod(argv[2],0);
-      printf(" timer at %f \n",effective_rtt);
-      xcpq_[XCPQ]->rtt_timer_->resched(effective_rtt);
-      return (TCL_OK);
-    }
-    else if (strcmp(argv[1], "num-mice") == 0) {
-      int nm = atoi(argv[2]);
-      for (int n=0; n < maxVirQ_; n++)
-	xcpq_[n]->num_mice = nm;
-      return (TCL_OK);
-    }
-  }
-  return (Queue::command(argc, argv));
+		else if (strcmp(argv[1], "queue-sample-everyrtt") == 0) {
+			double e_rtt = strtod(argv[2],0);
+			printf(" timer at %f \n",e_rtt);
+			xcpq_[XCPQ]->setEffectiveRtt(e_rtt);
+			return (TCL_OK);
+		}
+    
+		else if (strcmp(argv[1], "num-mice") == 0) {
+			int nm = atoi(argv[2]);
+			for (int n=0; n < maxVirQ_; n++)
+				xcpq_[n]->setNumMice(nm);
+			return (TCL_OK);
+		}
+	}
+	return (Queue::command(argc, argv));
 }
 
 
 void XCPWrapQ::recv(Packet* p, Handler* h)
 {
-  mark(p);
-  Queue::recv(p, h);
+	mark(p);
+	Queue::recv(p, h);
 }
 
 void XCPWrapQ::addQueueWeights(int queueNum, int weight) {
-  if (queueNum < maxVirQ_)
-    queueWeight_[queueNum] = weight;
-  else {
-    fprintf(stderr, "Queue number is out of range.\n");
-  }
+	if (queueNum < maxVirQ_)
+		queueWeight_[queueNum] = weight;
+	else {
+		fprintf(stderr, "Queue number is out of range.\n");
+	}
 }
 
 int XCPWrapQ::queueToDeque()
 {
-  int i = 0;
+	int i = 0;
   
-  if (wrrTemp_[qToDq_] <= 0) {
-    qToDq_ = ((qToDq_ + 1) % maxVirQ_);
-    wrrTemp_[qToDq_] = queueWeight_[qToDq_] - 1;
-  } else {
-    wrrTemp_[qToDq_] = wrrTemp_[qToDq_] -1;
-  }
-  while ((i < maxVirQ_) && (xcpq_[qToDq_]->length() == 0)) {
-    wrrTemp_[qToDq_] = 0;
-    qToDq_ = ((qToDq_ + 1) % maxVirQ_);
-    wrrTemp_[qToDq_] = queueWeight_[qToDq_] - 1;
-    i++;
-  }
-  return (qToDq_);
+	if (wrrTemp_[qToDq_] <= 0) {
+		qToDq_ = ((qToDq_ + 1) % maxVirQ_);
+		wrrTemp_[qToDq_] = queueWeight_[qToDq_] - 1;
+	} else {
+		wrrTemp_[qToDq_] = wrrTemp_[qToDq_] -1;
+	}
+	while ((i < maxVirQ_) && (xcpq_[qToDq_]->length() == 0)) {
+		wrrTemp_[qToDq_] = 0;
+		qToDq_ = ((qToDq_ + 1) % maxVirQ_);
+		wrrTemp_[qToDq_] = queueWeight_[qToDq_] - 1;
+		i++;
+	}
+	return (qToDq_);
 }
 
 int XCPWrapQ::queueToEnque(int cp)
 {
-  int n;
-  switch (cp) {
-  case CP_XCP:
-    return (n = XCPQ);
+	int n;
+	switch (cp) {
+	case CP_XCP:
+		return (n = XCPQ);
     
-  case CP_TCP:
-    return (n = TCPQ);
+	case CP_TCP:
+		return (n = TCPQ);
     
-  case CP_OTHER:
-    return (n = OTHERQ);
+	case CP_OTHER:
+		return (n = OTHERQ);
 
-  default:
-    fprintf(stderr, "Unknown codepoint %d\n", cp);
-    exit(1);
-  }
+	default:
+		fprintf(stderr, "Unknown codepoint %d\n", cp);
+		exit(1);
+	}
 }
 
 
 // Extracts the code point marking from packet header.
 int XCPWrapQ::getCodePt(Packet *p) {
 
-  hdr_ip* iph = hdr_ip::access(p);
-  return(iph->prio());
+	hdr_ip* iph = hdr_ip::access(p);
+	return(iph->prio());
 }
 
 Packet* XCPWrapQ::deque()
 {
-  Packet *p = NULL;
-  int n = queueToDeque();
-  // Deque a packet from the underlying queue:
-  p = xcpq_[n]->deque();
-  return(p);
+	Packet *p = NULL;
+	int n = queueToDeque();
+	
+// Deque a packet from the underlying queue:
+	p = xcpq_[n]->deque();
+	return(p);
 }
 
 
 void XCPWrapQ::enque(Packet* pkt)
 {
-  int codePt;
+	int codePt;
   
-  codePt = getCodePt(pkt);
-  int n = queueToEnque(codePt);
+	codePt = getCodePt(pkt);
+	int n = queueToEnque(codePt);
   
-  xcpq_[n]->enque(pkt);
+	xcpq_[n]->enque(pkt);
 }
+
 
 void XCPWrapQ::mark(Packet *p) {
   
-  int codePt;
-  hdr_cmn* cmnh = hdr_cmn::access(p);
-  hdr_cctcp *cctcph = hdr_cctcp::access(p);
-  hdr_ip *iph = hdr_ip::access(p);
-
-  if ((codePt = iph->prio_) > 0)
-    return;
-
-  else {
-    if (cctcph->ccenabled_ > 0) 
-      codePt = CP_XCP;
-    else 
-      if (cmnh->ptype() == PT_TCP || cmnh->ptype() == PT_ACK)
-	codePt = CP_TCP;
-      else // for others
-	codePt = CP_OTHER;
+	int codePt;
+	hdr_cmn* cmnh = hdr_cmn::access(p);
+	hdr_xcp *xh = hdr_xcp::access(p);
+	hdr_ip *iph = hdr_ip::access(p);
+	
+	if ((codePt = iph->prio_) > 0)
+		return;
+	
+	else {
+		if (xh->xcp_enabled_ != hdr_xcp::XCP_DISABLED)
+			codePt = CP_XCP;
+		else 
+			if (cmnh->ptype() == PT_TCP || cmnh->ptype() == PT_ACK)
+				codePt = CP_TCP;
+			else // for others
+				codePt = CP_OTHER;
     
-    iph->prio_ = codePt;
-  }
+		iph->prio_ = codePt;
+	}
 }

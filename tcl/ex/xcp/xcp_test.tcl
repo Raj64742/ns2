@@ -135,10 +135,12 @@ proc plot-xcp { TraceName nXCPs  PlotTime what } {
         exec touch temp.tcp
 	global ftracetcp$i 
 	if [info exists ftracetcp$i] { flush [set ftracetcp$i] }
-        set result [exec awk -v PlotTime=$PlotTime -v what=$what {
+	set  packetSize [expr 100 * ($i +10)]
+        set result [exec awk -v PlotTime=$PlotTime -v what=$what -v p=$packetSize {
 	    {
 		if (( $6 == what ) && ($1 > PlotTime)) {
-		    print $1, $7 >> "temp.tcp";
+			set tmp $7*p
+		    print $1, $tmp >> "temp.tcp";
 		}
 	    }
 	} xcp$i.tr]
@@ -230,7 +232,7 @@ foreach link $all_links {
     set queue [$link queue]
     switch $qType {
 	"XCP" {
-		$queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
+		$queue set-link-capacity [[$link set link_] set bandwidth_];
 	}
 	"DropTail/XCP" {
 	    $queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
@@ -249,8 +251,9 @@ while { $i < $nXCPs  } {
     set StartTime [expr [$rtg integer 1000] * 0.001 * (0.01 * $delay) + $i  * 0.0] 
     set rcvr_XCP      [new Agent/XCPSink]
     $ns attach-agent  $R1 $rcvr_XCP
-    set src$i         [new GeneralSender $i [set n$i] $rcvr_XCP "$StartTime TCP/XCP"]
-    [[set src$i] set tcp_]  set  packetSize_ [expr 100 * ($i +10)]
+    set src$i         [new GeneralSender $i [set n$i] $rcvr_XCP "$StartTime TCP/Reno/XCP"]
+	[[set src$i] set tcp_]  set  packetSize_ [expr 100 * ($i +10)]
+
     [[set src$i] set tcp_]  set  window_     [expr $qSize * 10]
     incr i
 }

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.332 2004/09/22 22:53:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.333 2004/09/29 21:48:22 haldar Exp $
 
 
 #
@@ -113,6 +113,7 @@ Queue/dsRED set numQueues_ 4
 Queue/dsRED set ecn_ 0
 
 Queue/XCP set maxVirQ_ 3
+Queue/XCP set spread_bytes_ 0
 
 Queue/RED set bytes_ false
 Queue/RED set queue_in_bytes_ false
@@ -905,6 +906,10 @@ Agent/TCP set nam_tracevar_ false
 Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
 
+Agent/TCP/Reno/XCP set timestamps_ true
+Agent/TCP/Reno/XCP set xcp_metered_output_ 1
+Agent/TCP/Reno/XCP set tcpTick_	0.01
+
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
 # Agent/TCP set delay_growth_ false
@@ -924,6 +929,12 @@ Agent/TCPSink set generateDSacks_ false
 Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
 Agent/TCPSink set bytes_ 0
+
+Agent/XCPSink set packetSize_ 40
+Agent/XCPSink set ts_echo_bugfix_ true
+Agent/XCPSink set bytes_ 0
+Agent/XCPSink set RFC2581_immediate_ack_ true
+Agent/XCPSink set ts_echo_rfc1323_ false
 
 Agent/TCPSink/DelAck set interval_ 100ms
 catch {
