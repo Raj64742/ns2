@@ -24,9 +24,11 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// Incorporation Polly's web traffic module into the PagePool framework
+// Empirical Web traffic model that simulates Web traffic based on a set of
+// CDF (Cumulative Distribution Function) data derived from live tcpdump trace
+// The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.6 2001/10/04 23:01:21 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.7 2001/10/11 19:20:58 kclan Exp $
 
 #include <tclcl.h>
 
