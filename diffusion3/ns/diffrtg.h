@@ -98,7 +98,7 @@ public:
 
 class DiffRoutingAgent : public Agent {
 public:
-	DiffRoutingAgent();
+	DiffRoutingAgent(int nodeid);
 	int command(int argc, const char*const* argv);
 	
 	Packet* createNsPkt(Message *msg, int len, int dst);  

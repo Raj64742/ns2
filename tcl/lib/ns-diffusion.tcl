@@ -2,7 +2,7 @@
 
 
 Simulator instproc add-gear { node } {
-    set gear [new Application/DiffApp/GeoRoutingFilter $node]
+    set gear [new Application/DiffApp/GeoRoutingFilter]
     $self attach-diffapp $node $gear
     $self at 0.01 "$gear start"
 }
@@ -37,6 +37,7 @@ Node instproc create-diffusionApp-agent {} {
     set da $diffAppAgent_
     set port [get-da-port $da $self]
     $da agent-id $port
+    $da node $self
     
     set gradient_ [new Application/GradientFilter $da] 
     #$gradient_ debug 10

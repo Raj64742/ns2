@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-routing.hh,v 1.8 2002/05/29 21:58:09 haldar Exp $
+// $Id: geo-routing.hh,v 1.9 2002/07/02 21:50:14 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -213,7 +213,8 @@ public:
 class GeoRoutingFilter : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
-  GeoRoutingFilter(const char * mnode);
+  //GeoRoutingFilter(const char * mnode);
+  GeoRoutingFilter();
   int command(int argc, const char*const* argv);
 #else
   GeoRoutingFilter(int argc, char **argv);
@@ -312,10 +313,6 @@ protected:
 
   // GetNodeLocation --> This will move to the library in the future
   void getNodeLocation(double *longitude, double *latitude);
-#ifdef NS_DIFFUSION
-  // This will also go away in the future
-  MobileNode *node_;
-#endif // NS_DIFFUSION
 };
 
 #endif // !_GEO_ROUTING_HH_

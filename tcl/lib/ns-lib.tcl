@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.248 2002/06/06 00:28:08 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.249 2002/07/02 21:50:16 haldar Exp $
 
 
 #
@@ -348,6 +348,7 @@ Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 Simulator instproc satNodeType {val} {$self set satNodeType_ $val}
 Simulator instproc downlinkBW {val} {$self set downlinkBW_ $val}
+Simulator instproc stopTime {val} {$self set stopTime_ $val}
 Simulator instproc MPLS { val } { 
 	if { $val == "ON" } {
 		Node enable-module "MPLS"
@@ -851,6 +852,7 @@ Simulator instproc log-simstart { } {
 
 Simulator instproc halt {} {
 	$self instvar scheduler_
+	#puts "time: [clock format [clock seconds] -format %X]"
 	$scheduler_ halt
 }
 
@@ -1947,13 +1949,17 @@ Simulator instproc create-diffusion-probability-agent {node} {
 # Diffusioncore agent (in diffusion) maps to the wireless routing agent
 # in ns
 Simulator instproc create-core-diffusion-rtg-agent {node} {
+	$self instvar stopTime_
 	Node instvar ragent_ dmux_
-	set ragent [new Agent/DiffusionRouting]
+	set ragent [new Agent/DiffusionRouting [$node id]]
 	$node set ragent_ $ragent
-	#$ragent start
-
+	# at stop-time core-diffusion dumps stats data
+	# see diffusion.cc for details
+	if { [info exists stopTime_] } {
+		$ragent stop-time $stopTime_
+	}
+	
 	$node create-diffusionApp-agent
-
 	return $ragent
 }
 

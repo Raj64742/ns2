@@ -39,10 +39,14 @@
 
 static class DiffRoutingAgentClass : public TclClass {
 public:
-  DiffRoutingAgentClass() : TclClass("Agent/DiffusionRouting") {}
-  TclObject* create(int , const char*const* ) {
-    return(new DiffRoutingAgent());
-  }
+	DiffRoutingAgentClass() : TclClass("Agent/DiffusionRouting") {}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc == 5)
+			return(new DiffRoutingAgent(atoi(argv[4])));
+		
+		fprintf(stderr, "Insufficient number of args for creating DiffRtgAgent");
+		return (NULL);
+	}
 } class_diffusion_routing_agent;
 
 
@@ -97,9 +101,9 @@ void DiffusionCoreEQ::eqAddAfter(int type, void *payload, int delay_msec) {
 }
  
 
-DiffRoutingAgent::DiffRoutingAgent() : Agent(PT_DIFF) {
-  difftimer_ = new CoreDiffEventHandler(this);
-  agent_ = new DiffusionCoreAgent(this);
+DiffRoutingAgent::DiffRoutingAgent(int nodeid) : Agent(PT_DIFF) {
+	difftimer_ = new CoreDiffEventHandler(this);
+	agent_ = new DiffusionCoreAgent(this, nodeid);
 
 }
 
@@ -125,11 +129,9 @@ void DiffRoutingAgent::diffTimeout(Event *de) {
     break;
     
   case STOP_TIMER:
-    // this timer is not used for NS
-    //free(e);
-    //delete e;
-    //TimetoStop();
-    //exit(0);
+
+    delete e;
+    agent_->timeToStop();
     
     break;
     
@@ -195,14 +197,17 @@ int DiffRoutingAgent::command(int argc, const char*const* argv) {
 			
 			return TCL_OK;
 		}
-		//if (strcasecmp(argv[1], "stop")==0) {
-		//stop();
-		//return TCL_OK;
-		//}
+		
 	}
 	else if (argc == 3) {
 		if (strcasecmp(argv[1], "addr") == 0) {
 			addr_ = (Address::instance().str2addr(argv[2]));
+			return TCL_OK;
+		}
+		if (strcasecmp(argv[1], "stop-time")==0) {
+			// add stop-event which when fired dumps statistical data
+			// at end of ns simulation
+			agent_->eq_->eqAddAfter(STOP_TIMER, NULL, atoi(argv[2])*1000);
 			return TCL_OK;
 		}
 		TclObject *obj;

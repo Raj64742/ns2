@@ -34,10 +34,11 @@
 #define NS_DIFFAGENT
 
 #include <stdlib.h>
-#include "agent.h"
-#include "tclcl.h"
-#include "events.hh"
-#include "dr.hh"
+#include <tclcl.h>
+#include <agent.h>
+#include <mobilenode.h>
+#include <events.hh>
+#include <dr.hh>
 #include "difftimer.h"
 
 class DiffAppAgent;
@@ -95,7 +96,7 @@ public:
 	void diffTimeout(Event *e);	
 	
 protected:
-
+	
 	// diffusion transport agent or DR
 	NR *dr_;
 	

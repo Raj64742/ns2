@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffusion.cc,v 1.4 2002/05/29 21:58:11 haldar Exp $
+// $Id: diffusion.cc,v 1.5 2002/07/02 21:50:14 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -69,34 +69,6 @@ void DiffusionCoreAgent::usage()
   exit(0);
 }
 
-void DiffusionCoreAgent::timeToStop()
-{
-  FILE *outfile = NULL;
-
-  if (global_debug_level > DEBUG_SOME_DETAILS){
-    outfile = fopen("/tmp/diffusion.out", "w");
-    if (outfile == NULL){
-      DiffPrint(DEBUG_ALWAYS ,"Diffusion Error: Can't create /tmp/diffusion.out\n");
-      return;
-    }
-  }
-
-#ifdef STATS
-  stats_->printStats(stdout);
-  if (outfile)
-    stats_->printStats(outfile);
-#  ifndef WIRED
-#     ifdef USE_RPC
-  rpcstats_->printStats(stdout);
-  if (outfile)
-    rpcstats_->printStats(outfile);
-#     endif // USE_RPC
-#  endif // WIRED
-#endif // STATS
-
-  if (outfile)
-    fclose(outfile);
-}
 
 void DiffusionCoreAgent::run()
 {
@@ -192,6 +164,44 @@ void DiffusionCoreAgent::run()
   }
 }
 #endif // !NS_DIFFUSION
+
+
+void DiffusionCoreAgent::timeToStop()
+{
+  FILE *outfile = NULL;
+
+  if (global_debug_level > DEBUG_SOME_DETAILS){
+
+#ifdef NS_DIFFUSION
+    outfile = fopen("/tmp/diffusion.out", "a");
+#else
+    outfile = fopen("/tmp/diffusion.out", "w");
+#endif //NS_DIFFUSION
+
+    if (outfile == NULL){
+      DiffPrint(DEBUG_ALWAYS ,"Diffusion Error: Can't create /tmp/diffusion.out\n");
+      return;
+    }
+  }
+  
+#ifdef STATS
+  stats_->printStats(stdout);
+  if (outfile)
+    stats_->printStats(outfile);
+#  ifndef WIRED
+#     ifdef USE_RPC
+  rpcstats_->printStats(stdout);
+  if (outfile)
+    rpcstats_->printStats(outfile);
+#     endif // USE_RPC
+#  endif // WIRED
+#endif // STATS
+  
+  if (outfile)
+    fclose(outfile);
+}
+
+
 
 void DiffusionCoreAgent::neighborsTimeOut()
 {
@@ -916,7 +926,7 @@ void DiffusionCoreAgent::logControlMessage(Message *msg, int command,
 }
 
 #ifdef NS_DIFFUSION
-DiffusionCoreAgent::DiffusionCoreAgent(DiffRoutingAgent *diffrtg)
+DiffusionCoreAgent::DiffusionCoreAgent(DiffRoutingAgent *diffrtg, int nodeid)
 {
 #else
 DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
@@ -935,6 +945,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
 #ifdef NS_DIFFUSION
   application_id = strdup("DIFFUSION_NS");
+  my_id_ = nodeid;
 #else
   application_id = strdup(argv[0]);
 #endif // NS_DIFFUSION
@@ -1034,28 +1045,28 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
   if (!config_file_)
     config_file_ = strdup(DEFAULT_CONFIG_FILE);
-#endif // !NS_DIFFUSION
 
   // Get diffusion ID
-  if (scadds_env != NULL){
+  if (scadds_env != NULL) {
     my_id_ = atoi(scadds_env);
   }
-  else{
+  else {
     DiffPrint(DEBUG_ALWAYS, "Diffusion : scadds_addr not set. Using random id.\n");
 
     // Generate random ID
-    do{
+    do {
       GetTime(&tv);
       SetSeed(&tv);
       my_id_ = GetRand();
     }
     while(my_id_ == LOCALHOST_ADDR || my_id_ == BROADCAST_ADDR);
   }
-
+#endif // !NS_DIFFUSION
+  
   // Initialize variables
   lon_ = 0.0;
   lat_ = 0.0;
-
+  
 #ifdef STATS
   stats_ = new DiffusionStats(my_id_);
 #  ifndef WIRED
@@ -1082,12 +1093,12 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   // Add timers to the EventQueue
   eq_->eqAddAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
   eq_->eqAddAfter(FILTER_TIMER, NULL, FILTER_DELAY);
-
+  
   if (stop_time > 0) 
     eq_->eqAddAfter(STOP_TIMER, NULL, stop_time * 1000);
-
+  
   GetTime(&tv);
-
+  
   // Print Initialization message
   DiffPrint(DEBUG_ALWAYS, "Diffusion : starting at time %ld:%ld\n",
 	    tv.tv_sec, tv.tv_usec);
@@ -1105,7 +1116,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   device = new UDPLocal(&diffusion_port_);
   in_devices_.push_back(device);
   local_out_devices_.push_back(device);
-
+  
 #ifdef WIRED
   device = new UDPWired(config_file_);
   out_devices_.push_back(device);
@@ -1117,7 +1128,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   in_devices_.push_back(device);
   out_devices_.push_back(device);
 #endif // USE_RPC
-
+  
 #ifdef USE_MOTE_NIC
   device = new MOTEIO();
   in_devices_.push_back(device);
@@ -1130,10 +1141,11 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   out_devices_.push_back(device);
 #endif // USE_WINSNG2
 }
-
+ 
+ 
 HashEntry * DiffusionCoreAgent::getHash(unsigned int pkt_num,
 					 unsigned int rdm_id)
-{
+  {
   unsigned int key[2];
 
   key[0] = pkt_num;
@@ -1145,7 +1157,8 @@ HashEntry * DiffusionCoreAgent::getHash(unsigned int pkt_num,
     return NULL;
 
   return (HashEntry *)Tcl_GetHashValue(entryPtr);
-}
+  }
+
 
 void DiffusionCoreAgent::putHash(unsigned int pkt_num,
 				 unsigned int rdm_id)

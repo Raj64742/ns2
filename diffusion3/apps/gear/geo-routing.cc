@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-routing.cc,v 1.9 2002/05/29 21:58:09 haldar Exp $
+// $Id: geo-routing.cc,v 1.10 2002/07/02 21:50:14 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -28,13 +28,8 @@ static class GeoRoutingFilterClass : public TclClass {
 public:
   GeoRoutingFilterClass() : TclClass("Application/DiffApp/GeoRoutingFilter") {}
   TclObject * create(int argc, const char*const* argv) {
-    if (argc == 5)
-      return(new GeoRoutingFilter(argv[4]));
-    else
-      fprintf(stderr, "Insufficient number of args for creating GeoRoutingFilter");
-    return (NULL);
+    return(new GeoRoutingFilter());
   }
-  
 } class_geo_routing_filter;
 
 int GeoRoutingFilter::command(int argc, const char*const* argv) {
@@ -44,13 +39,6 @@ int GeoRoutingFilter::command(int argc, const char*const* argv) {
       return TCL_OK;
     }
   }
-  if (argc == 3) {
-    if (strcmp(argv[1], "node") == 0) {
-      node_ = (MobileNode *)TclObject::lookup(argv[2]);
-      return TCL_OK;
-    }
-  }
-
   return DiffApp::command(argc, argv);
 }
 #endif // NS_DIFFUSION
@@ -598,7 +586,12 @@ void GeoRoutingFilter::run()
 {
 #ifdef NS_DIFFUSION
   TimerType *timer;
-
+  
+  // set node location
+  getNodeLocation(&geo_longitude_, &geo_latitude_);
+  DiffPrint(DEBUG_ALWAYS, "GEAR: Location %f,%f\n",
+	    geo_longitude_, geo_latitude_);
+  
   // Set up filters
   pre_filter_handle_ = setupPreFilter();
   post_filter_handle_ = setupPostFilter();
@@ -632,19 +625,17 @@ void GeoRoutingFilter::run()
 }
 
 #ifdef NS_DIFFUSION
-GeoRoutingFilter::GeoRoutingFilter(const char *mnode)
+GeoRoutingFilter::GeoRoutingFilter()
 #else
-GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
+  GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
-
+  
   struct timeval tv;
 
 #ifndef NS_DIFFUSION
   // Parse command line options
   parseCommandLine(argc, argv);
-#else
-  node_ = (MobileNode *)TclObject::lookup(mnode);
 #endif // !NS_DIFFUSION
 
   // Initialize a few parameters
@@ -660,10 +651,11 @@ GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
   last_neighbor_request_tv_.tv_sec = 0;
   last_neighbor_request_tv_.tv_usec = 0;
 
+#ifndef NS_DIFFUSION
   getNodeLocation(&geo_longitude_, &geo_latitude_);
-
   DiffPrint(DEBUG_ALWAYS, "GEAR: Location %f,%f\n",
 	    geo_longitude_, geo_latitude_);
+#endif // !NS_DIFF
 
   GetTime(&tv);
   SetSeed(&tv);
@@ -707,8 +699,8 @@ void GeoRoutingFilter::getNodeLocation(double *longitude, double *latitude)
 {
 #ifdef NS_DIFFUSION
   double z;
-
-  node_->getLoc(longitude, latitude, &z);
+  MobileNode *node = ((DiffusionRouting *)dr_)->getNode();
+  node->getLoc(longitude, latitude, &z);
 #else
   char *longitude_env, *latitude_env;
 

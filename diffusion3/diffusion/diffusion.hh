@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffusion.hh,v 1.4 2002/05/29 21:58:11 haldar Exp $
+// $Id: diffusion.hh,v 1.5 2002/07/02 21:50:14 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -91,14 +91,13 @@ class DiffusionCoreAgent {
 public:
 #ifdef NS_DIFFUSION
   friend class DiffRoutingAgent;
-  DiffusionCoreAgent(DiffRoutingAgent *diffrtg);
+  DiffusionCoreAgent(DiffRoutingAgent *diffrtg, int nodeid);
 #else
   DiffusionCoreAgent(int argc, char **argv);
   void usage();
   void run();
-  void timeToStop();
 #endif // NS_DIFFUSION
-
+  void timeToStop();
 protected:
   float lon_;
   float lat_;

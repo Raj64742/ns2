@@ -124,6 +124,11 @@ int DiffAppAgent::command(int argc, const char*const* argv) {
   //Tcl& tcl = Tcl::instance();
   
   if (argc == 3) {
+	  if (strcmp(argv[1], "node") == 0) {
+		  MobileNode *node = (MobileNode *)TclObject::lookup(argv[2]);
+		  ((DiffusionRouting *)dr_)->getNode(node);
+		  return TCL_OK;
+	  } 
 	  if (strcmp(argv[1], "agent-id") == 0) {
 		  int id = atoi(argv[2]);
 		  ((DiffusionRouting *)dr_)->getAgentId(id);

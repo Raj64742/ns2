@@ -20,7 +20,7 @@ set opt(ifqlen)		50	;# max packet in ifq
 set opt(nn)		2	;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		300	;# simulation time
-set opt(prestop)        19       ;# time to prepare to stop
+set opt(prestop)        299      ;# time to prepare to stop
 set opt(tr)		"diffusion.tr"	;# trace file
 set opt(nam)            "diffusion.nam"  ;# nam file
 set opt(adhocRouting)   Directed_Diffusion
@@ -95,8 +95,8 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace ON \
-                 -macTrace ON
-                  
+                 -macTrace ON \
+		 -stopTime $opt(prestop)
 
 #  Create the specified number of nodes [$opt(nn)] and "attach" them
 #  to the channel. 
