@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.21 2000/11/02 04:01:37 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.22 2000/12/20 10:15:26 alefiyah Exp $
 #
 
 Trace instproc init type {
@@ -110,6 +110,12 @@ Trace/Drop instproc init {} {
 Class Trace/Generic -superclass Trace
 Trace/Generic instproc init {} {
 	$self next "v"
+}
+
+#MAC level Collision traces
+Class Trace/Collision -superclass Trace
+Trace/Collision instproc init {} {
+    $self next "c"
 }
 
 # var trace shouldn't be derived here because it shouldn't be a connector

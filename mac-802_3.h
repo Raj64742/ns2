@@ -23,7 +23,8 @@
 #define IEEE_8023_JAMSIZE	32		// bits
 #define IEEE_8023_MAXFRAME	1518		// bytes
 #define IEEE_8023_MINFRAME	64		// bytes
-
+#define INVALID_UID             -1              // Used for mac level traces
+#define INVALID_TIME            -1
 
 /* ======================================================================
    Handler Functions
@@ -115,6 +116,7 @@ class Mac802_3 : public Mac {
 	void recv(Packet* p, Handler* h) {
 		BiConnector::recv(p, h);
 	}
+
  protected:
 	void sendDown(Packet* p, Handler* h);
 	void sendUp(Packet* p, Handler* h);
@@ -129,6 +131,7 @@ class Mac802_3 : public Mac {
 
 	//protected:
 	virtual void	transmit(Packet* p);
+	int trace_;      // To turn on MAC level collision traces 
 private:
 	//void		send(Packet *p, Handler *h);
 	void		collision(Packet *p);
@@ -139,6 +142,7 @@ private:
 	MacHandlerRetx  mhRetx_;
 	MacHandlerIFS   mhIFS_;
 	Mac8023HandlerSend	mhSend_;
+	
 };
 
 

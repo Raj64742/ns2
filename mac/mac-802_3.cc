@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.9 2000/11/02 22:46:37 johnh Exp $
+   $Id: mac-802_3.cc,v 1.10 2000/12/20 10:13:57 alefiyah Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -17,6 +17,7 @@
 #  define FPRINTF(s, f, t, index, func) \
          do { fprintf(s, f, t, index, func); xtime= t; } while (0)
 #endif MAC_DEBUG
+
 
 inline void MacHandler::cancel() {
 	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
@@ -111,6 +112,7 @@ bool MacHandlerRetx::schedule(double delta) {
 		busy_ = 1;
 		return true;
 	}
+	fprintf(stderr,"try %d",try_);
 	return false;
 }
 
@@ -137,7 +139,9 @@ inline void MacHandlerIFS::handle(Event*) {
 
 
 Mac802_3::Mac802_3() : Mac(), 
-	mhRecv_(this), mhRetx_(this), mhIFS_(this), mhSend_(this) {
+	mhRecv_(this), mhRetx_(this), mhIFS_(this), mhSend_(this),trace_(0) {
+        // Bind mac trace variable 
+        bind_bool("trace_",&trace_);
 }
 
 void Mac802_3::sendUp(Packet *p, Handler *) {
@@ -235,7 +239,31 @@ void Mac802_3::transmit(Packet *p) {
 }
 
 void Mac802_3::collision(Packet *p) {
+
+  // Variables added for trace support.
+  // records the last time the packet was seen as well as the UID
+        static int last_collision=INVALID_UID;
+	static double last_collision_time=INVALID_TIME;
+
+	
 	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
+	
+	// Added for trace support
+        // Hack to print only once for the lan ; not for each node in Lan.
+	if(trace_){
+	  hdr_cmn *th = hdr_cmn::access(p);
+
+	  if (last_collision_time != Scheduler::instance().clock())
+	    last_collision = INVALID_UID;
+
+	  if(last_collision != th->uid()){
+	    last_collision = th->uid();
+	    HDR_CMN(p)->size() -= (ETHER_HDR_LEN + HDR_MAC(p)->padding_);
+	    drop_->recv(p);
+	    last_collision_time = Scheduler::instance().clock();
+	  }
+	}
+	
 	Packet::free(p);
 	if (mhIFS_.busy()) mhIFS_.cancel();
 
@@ -249,8 +277,12 @@ void Mac802_3::collision(Packet *p) {
 			/* schedule retransmissions */
 			if (!mhRetx_.schedule(ifstime)) {
 				p= mhRetx_.packet();
+				hdr_cmn *th = hdr_cmn::access(p);
 				HDR_CMN(p)->size() -= (ETHER_HDR_LEN + HDR_MAC(p)->padding_);
-				drop(p); // drop if backed off far enough
+				fprintf(stderr,"\nBinary Exponential Backoff exceeded backoff limit\nDropping packet %d",th->uid());
+                                fflush(stderr);
+				// drop(p); // drop if backed off far enough
+				Packet::free(p);
 				mhRetx_.reset();
 			}
 		}
@@ -282,7 +314,10 @@ void Mac802_3::recv_complete(Packet *p) {
 
 	/* xxx FEC here */
 	if( ch->error() ) {
-		drop(p);
+                fprintf(stderr,"\nChecksum error\nDropping packet");
+                fflush(stderr);
+		// drop(p);
+                Packet::free(p);
 		goto done;
 	}
 

@@ -17,7 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.31 2000/09/14 18:19:26 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.32 2000/12/20 10:16:44 alefiyah Exp $
 
 # LanNode----------------------------------------------------
 #
@@ -35,6 +35,7 @@ LanNode set macType_   Mac
 LanNode set chanType_  Channel
 LanNode set phyType_   Phy/WiredPhy
 LanNode set address_   ""
+LanNode set mactrace_   false
 
 LanNode instproc address  {val} { $self set address_  $val }
 LanNode instproc bw       {val} { $self set bw_       $val }
@@ -44,11 +45,12 @@ LanNode instproc llType   {val} { $self set llType_   $val }
 LanNode instproc macType  {val} { $self set macType_  $val }
 LanNode instproc chanType {val} { $self set chanType_ $val }
 LanNode instproc phyType  {val} { $self set phyType_  $val }
+LanNode instproc mactrace    {val} { $self set mactrace_    $val }
 
 LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
 	$self instvar bw_ delay_ ifqType_ llType_ macType_ chanType_
-	$self instvar phyType_
+	$self instvar phyType_ mactrace_
 	$self instvar ns_ nodelist_ defRouter_ cost_
 	$self instvar id_ address_ channel_ mcl_ varp_
 	$ns instvar Node_
@@ -84,8 +86,8 @@ LanNode instproc init {ns args} {
 }
 
 LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
-		{macType ""} {phyType ""}} {
-	$self instvar ifqType_ llType_ macType_ chanType_ phyType_
+	        {macType ""} {phyType ""} {mactrace ""}} {
+	$self instvar ifqType_ llType_ macType_ chanType_ phyType_ mactrace_
 	$self instvar id_ channel_ mcl_ lanIface_
 	$self instvar ns_ nodelist_ cost_ varp_
 	$ns_ instvar link_ Node_ 
@@ -94,6 +96,7 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
 	if {$macType == ""} { set macType $macType_ }
 	if {$llType  == ""} { set llType $llType_ }
 	if {$phyType  == ""} { set phyType $phyType_ }
+	if {$mactrace == ""}  { set mactrace $mactrace_ }
 
 	set vlinkcost [expr $cost_ / 2.0]
 	foreach src $nodes {
@@ -101,7 +104,8 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
 				-ifqType $ifqType \
 				-llType  $llType \
 				-macType $macType \
-				-phyType $phyType]
+				-phyType $phyType \
+				-mactrace $mactrace ]
 		
 		set tr [$ns_ get-ns-traceall]
 		if {$tr != ""} {
@@ -237,18 +241,20 @@ LanIface set ifqType_ Queue/DropTail
 LanIface set macType_ Mac
 LanIface set llType_  LL
 LanIface set phyType_  Phy/WiredPhy
+LanIface set mactrace_ false
 
 LanIface instproc llType {val} { $self set llType_ $val }
 LanIface instproc ifqType {val} { $self set ifqType_ $val }
 LanIface instproc macType {val} { $self set macType_ $val }
 LanIface instproc phyType {val} { $self set phyType_ $val }
+LanIface instproc mactrace {val} { $self set mactrace_ $val }
 
 LanIface instproc entry {} { $self set entry_ }
 LanIface instproc init {node lan args} {
 	set args [eval $self init-vars $args]
 	eval $self next $args
 
-	$self instvar llType_ ifqType_ macType_ phyType_
+	$self instvar llType_ ifqType_ macType_ phyType_ mactrace_
 	$self instvar node_ lan_ ifq_ mac_ ll_ phy_
 	$self instvar iface_ entry_ drophead_
 
@@ -258,6 +264,9 @@ LanIface instproc init {node lan args} {
 	set ll_ [new $llType_]
 	set ifq_ [new $ifqType_]
 	set mac_ [new $macType_]
+        if {[string compare $macType_ "Mac/802_3"] == 0} {
+	    $mac_ set trace_ $mactrace_
+	}
 	set iface_ [new NetworkInterface]
 	set phy_ [new $phyType_]
 
@@ -294,14 +303,18 @@ LanIface instproc init {node lan args} {
 LanIface instproc trace {ns f {op ""}} {
 	$self instvar hopT_ rcvT_ enqT_ deqT_ drpT_ 
 	$self instvar iface_ entry_ node_ lan_ drophead_ 
-	$self instvar ll_ ifq_
+	$self instvar ll_ ifq_ macType_
 
 	set hopT_ [$ns create-trace Hop   $f $node_ $lan_  $op]
 	set rcvT_ [$ns create-trace Recv  $f $lan_  $node_ $op]
 	set enqT_ [$ns create-trace Enque $f $node_ $lan_  $op]
 	set deqT_ [$ns create-trace Deque $f $node_ $lan_  $op]
-	set drpT_ [$ns create-trace Drop  $f $node_ $lan_  $op]
-
+        if {[string compare $macType_ "Mac/802_3"] == 0} {
+	    #  For Mac level collision traces 
+	    set drpT_ [$ns create-trace Collision $f $node_ $lan_ $op]
+	} else {
+	    set drpT_ [$ns create-trace Drop  $f $node_ $lan_  $op]
+	}
 	$hopT_ target [$entry_ target]
 	$entry_ target $hopT_
 
@@ -416,20 +429,64 @@ Simulator instproc newLan {nodelist bw delay args} {
 	return $lan
 }
 
+
 # For convenience, use make-lan.  For more fine-grained control,
 # use newLan instead of make-lan.
 #{macType Mac/Csma/Cd} -> for now support for only Mac
-Simulator instproc make-lan {nodelist bw delay \
-		{llType LL} \
-		{ifqType Queue/DropTail} \
-		{macType Mac} \
-		{chanType Channel} \
-		{phyType Phy/WiredPhy}} {
+Simulator instproc make-lan { args } {
+       
+        set t [lindex $args 0]
+        set mactrace "false"
+        if { $t == "-trace" } {
+	    set mactrace [lindex $args 1]
+	    if {$mactrace == "on" } {
+		set mactrace "true"
+	    }
+	
+	}
+	
+	if { $t == "-trace" } {
+	    set nodelist [lindex $args 2]
+	    set bw [lindex $args 3]
+	    set delay [lindex $args 4]
+	    set llType [lindex $args 5]
+	    set ifqType [lindex $args 6]
+	    set macType [lindex $args 7]
+	    set chanType [lindex $args 8]
+	    set phyType [lindex $args 9]
+	} else {
+	    set nodelist [lindex $args 0]
+	    set bw [lindex $args 1]
+	    set delay [lindex $args 2]
+	    set llType [lindex $args 3]
+	    set ifqType [lindex $args 4]
+	    set macType [lindex $args 5]
+	    set chanType [lindex $args 6]
+	    set phyType [lindex $args 7]
+	}
+	
+	if { $llType == "" } {
+	    set llType "LL"
+	}
+	if { $ifqType == "" } {
+	    set ifqtype "Queue/DropTail"
+	}
+	if { $macType == "" } {
+	    set macType "Mac"
+	}
+	if { $chanType == "" } {
+	    set chanType "Channel"
+	}
+	if { $phyType == ""} {
+	    set phyType "Phy/WiredPhy"
+	}
+    
 	if {[string compare $macType "Mac/Csma/Cd"] == 0} {
 	    puts "Warning: Mac/Csma/Cd is out of date"
 	    puts "Warning: Please use Mac/802_3 to replace Mac/Csma/Cd"
 	    set macType "Mac/802_3"
 	}
+
 	set lan [new LanNode $self \
 			-bw $bw \
 			-delay $delay \
@@ -437,9 +494,20 @@ Simulator instproc make-lan {nodelist bw delay \
 			-ifqType $ifqType \
 			-macType $macType \
 			-chanType $chanType \
-			-phyType $phyType]
+			-phyType $phyType \
+			-mactrace $mactrace]
 	$lan addNode $nodelist $bw $delay $llType $ifqType $macType \
-			$phyType
+			$phyType $mactrace
 	
 	return $lan
 }
+
+
+
+
+
+
+
+
+
+
