@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.29 1998/05/21 01:44:13 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.30 1998/05/21 02:25:14 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.29 1998/05/21 01:44:13 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.30 1998/05/21 02:25:14 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -78,10 +78,23 @@ Scheduler::run()
 	instance_ = this;
 	Event *p;
 	while ((p = deque()) && !halted_) {
-		clock_ = p->time_;
-		p->uid_ = -p->uid_;
-		p->handler_->handle(p);
+		dispatch(p);
 	}
+}
+
+/*
+ * dispatch a single simulator event by setting the system
+ * virtul clock to the event's timestamp and calling its handler.
+ * Note that the event may have side effects of placing other items
+ * in the scheduling queue
+ */
+
+void
+Scheduler::dispatch(Event* p)
+{
+	clock_ = p->time_;
+	p->uid_ = -p->uid_;	// being dispatched
+	p->handler_->handle(p);	// dispatch
 }
 
 class AtEvent : public Event {
@@ -232,7 +245,7 @@ Scheduler::dumpq()
 	printf("Contents of scheduler queue (events) [cur time: %f]---\n",
 		clock());
 	while ((p = deque()) != NULL) {
-		printf("t:%f uid: %d handler: 0x%p\n",
+		printf("t:%f uid: %d handler: %p\n",
 			p->time_, p->uid_, p->handler_);
 	}
 }
@@ -300,7 +313,8 @@ Event*
 ListScheduler::deque()
 { 
 	Event* e = queue_;
-	queue_ = e->next_;
+	if (e)
+		queue_ = e->next_;
 	return (e);
 }
 
@@ -595,7 +609,6 @@ public:
 	virtual void run();
 protected:
 	void sync() { clock_ = tod(); }
-	void dispatch(Event*);
 	int rwait(double);	// sleep
 	double tod();
 	double slop_;	// allowed drift between real-time and virt time
@@ -697,24 +710,4 @@ RealTimeScheduler::rwait(double deadline)
 			return 0;
 	}
 	return -1;
-}
-
-/*
- * dispatch a single simulator event by setting the system
- * virtul clock to the event's timeout, and calling its handler
- * note that the event may have side effects of placing other items
- * in the scheduling queue
- */
-
-void RealTimeScheduler::dispatch(Event* p)
-{
-		clock_ = p->time_;
-
-#ifdef RTDEBUG
-printf("dispatch sim event %d at vtime %f, time: %f\n", p->uid_, clock_,
-tod());
-#endif
-
-		p->uid_ = -p->uid_;	// being dispatched
-		p->handler_->handle(p);	// dispatch
 }
