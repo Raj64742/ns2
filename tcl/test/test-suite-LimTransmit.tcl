@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.9 2003/01/19 03:54:02 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.10 2004/10/18 19:42:17 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -43,6 +43,8 @@ Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
 Trace set show_tcphdr_ 1

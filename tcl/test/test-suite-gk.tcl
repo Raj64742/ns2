@@ -45,6 +45,8 @@ Agent/TCP set overhead_ 0.001
 catch "cd $dir"
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 

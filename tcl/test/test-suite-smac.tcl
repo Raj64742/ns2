@@ -25,6 +25,10 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-smac.tcl
 
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
+
 Class TestSuite
 
 Class Test/brdcast1 -superclass TestSuite

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.7 2003/01/19 03:54:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.8 2004/10/18 19:42:17 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -42,6 +42,7 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false

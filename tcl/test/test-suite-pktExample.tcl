@@ -33,6 +33,7 @@
 #
 
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
 source support.tcl
 
 # Uncomment the line below to use a random seed for the

@@ -33,6 +33,9 @@
 # To run all tests: test-all-vq
 
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false

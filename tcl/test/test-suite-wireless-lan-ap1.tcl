@@ -4,6 +4,8 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
@@ -25,7 +27,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-ap1.tcl,v 1.1 2003/09/23 00:46:35 aditi Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-ap1.tcl,v 1.2 2004/10/18 19:42:19 sfloyd Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan-tora

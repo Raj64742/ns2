@@ -20,12 +20,14 @@ Agent/TCP set rfc2988_ false
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-snoop.tcl,v 1.4 2002/03/08 21:55:43 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-snoop.tcl,v 1.5 2004/10/18 19:42:18 sfloyd Exp $
 
 
 # This test suite is for validating the snoop protocol
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
 Agent/TCP set useHeaders_ false

@@ -4,6 +4,8 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
@@ -27,7 +29,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.9 2002/07/19 02:35:25 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.10 2004/10/18 19:42:17 sfloyd Exp $
 
 # To run all tests: test-all-energy
 # to run individual test:

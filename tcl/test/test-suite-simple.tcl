@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.36 2004/10/13 02:29:08 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.37 2004/10/18 19:42:18 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -56,6 +56,8 @@
 #source support.tcl
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Queue/RED set bytes_ false              
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false

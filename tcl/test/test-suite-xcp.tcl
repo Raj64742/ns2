@@ -25,6 +25,9 @@
 
 # This test-suite validate xcp congestion control scenarios along with xcp-tcp mixed flows through routers.
 
+# UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Queue/RED set bytes_ false ;
 Queue/RED set queue_in_bytes_ false ;
 
@@ -261,6 +264,7 @@ TestSuite instproc finish {} {
 Class GeneralSender  -superclass Agent 
 
 #   otherparams are "startTime TCPclass .."
+
 GeneralSender instproc init { ns id srcnode dstnode otherparams } {
 	global quiet
 	$self next

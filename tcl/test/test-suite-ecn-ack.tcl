@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.14 2004/10/13 02:29:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.15 2004/10/18 19:42:17 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 Agent/TCP set syn_ false
@@ -45,6 +45,8 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Queue/RED set bytes_ false              
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false

@@ -30,13 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rap.tcl,v 1.6 2003/01/19 03:54:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rap.tcl,v 1.7 2004/10/18 19:42:18 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
 
 Trace set show_tcphdr_ 1
 

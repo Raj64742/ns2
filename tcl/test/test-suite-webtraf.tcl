@@ -37,9 +37,11 @@ Agent/TCP set rfc2988_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.5 2003/01/05 18:56:48 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.6 2004/10/18 19:42:18 sfloyd Exp $
 
 # UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 

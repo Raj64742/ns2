@@ -24,6 +24,8 @@ Agent/TCP set rfc2988_ false
 # To run the test: test-all-nixvec
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 

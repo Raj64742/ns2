@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.10 2003/05/06 04:27:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.11 2004/10/18 19:42:17 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -42,6 +42,8 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1

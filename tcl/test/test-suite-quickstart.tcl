@@ -33,6 +33,7 @@
 #
 
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
 source support.tcl
 
 set wrap 90

@@ -21,7 +21,7 @@ Agent/TCP set rfc2988_ false
 #
 # Contributed by Rishi Bhargava <rishi_bhargava@yahoo.com> May, 2001.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.3 2002/03/08 21:55:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.4 2004/10/18 19:42:18 sfloyd Exp $
 #
 
 #
@@ -31,6 +31,8 @@ Agent/TCP set rfc2988_ false
 #
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 

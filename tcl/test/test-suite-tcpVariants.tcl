@@ -30,13 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.26 2003/08/27 19:12:19 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.27 2004/10/18 19:42:18 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP/Newreno set newreno_changes1_ 0
 # The default is being changed to 1 on 5/5/03, to reflect RFC 2582.
 Agent/TCP/Newreno set partial_window_deflation_ 0  

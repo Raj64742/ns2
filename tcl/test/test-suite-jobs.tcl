@@ -35,7 +35,9 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: test-suite-jobs.tcl,v 1.1 2003/02/02 22:20:36 xuanc Exp $                  
+# $Id: test-suite-jobs.tcl,v 1.2 2004/10/18 19:42:17 sfloyd Exp $                  
+# FOR UPDATING GLOBAL DEFAULTS:
+
 #                                                                     
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-jobs

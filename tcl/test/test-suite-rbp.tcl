@@ -4,6 +4,8 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
@@ -26,7 +28,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.11 2002/03/08 21:55:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.12 2004/10/18 19:42:18 sfloyd Exp $
 #
 
 #
