@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.10 1998/06/27 01:24:47 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.11 1999/02/26 19:23:41 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -144,12 +144,14 @@ void RTPSession::recv(Packet* p, Handler*)
 	}
 	s->np(1);
 	s->ehsr(rh->seqno());
+	free(p);
 }
 
 void RTPSession::recv_ctrl(Packet* p)
 {
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	Tcl::instance().evalf("%s sample-size %d", name(), ch->size());
+	free(p);
 }
 
 /* XXX Should hash this... */
