@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.39 2000/03/15 22:28:21 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.40 2000/03/16 03:19:18 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -230,7 +230,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			 */
 			if (newreno_changes_ > 0 && (dupacks_ % 2) == 1)
 				output (t_seqno_++,0);
-		} else if (dupacks_ == 1 && singledup_ ) {
+		} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
                         send_one();
                 }
 	}

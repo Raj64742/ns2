@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.101 2000/03/15 22:28:21 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.102 2000/03/16 03:19:18 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1007,12 +1007,14 @@ TcpAgent::initial_window()
 /* 
  * A first or second duplicate acknowledgement has arrived, and
  * singledup_ is enabled.
- * If the receiver's advertised window permits, send a new packet.
+ * If the receiver's advertised window permits, and we are exceeding our
+ * congestion window by less than NUMDUPACKS, then send a new packet.
  */
 void
 TcpAgent::send_one()
 {
-	if (t_seqno_ <= highest_ack_ + wnd_ && t_seqno_ < curseq_) {
+	if (t_seqno_ <= highest_ack_ + wnd_ && t_seqno_ < curseq_ &&
+		t_seqno_ <= highest_ack_ + cwnd_ + dupacks_ ) {
 		output(t_seqno_, 0);
 		if (QOption_)
 			process_qoption_after_send () ;
@@ -1088,7 +1090,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
                 }
 		if (++dupacks_ == NUMDUPACKS) {
 			dupack_action();
-		} else if (dupacks_ == 1 && singledup_ ) {
+		} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
 			send_one();
 		}
 	}
