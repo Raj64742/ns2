@@ -371,11 +371,17 @@ type of packets, which makes reading traces simpler.
 The \code{uid_} field is used by the scheduler in scheduling
 packet arrivals.
 The \code{size_} field is of general use and gives the
-simulated packet's size.
+simulated packet's size in bytes.
 Note that the actual number of bytes consumed in the simulation
-may not relate to the value of this field.
+may not relate to the value of this field
+  (i.e., \code{size_} has \emph{no} relationship
+  to \code{sizeof(struct hdr_cmn)} or other ns structures).
 Rather, it is used most often in computing the time required for a packet
 to be delivered along a network link.
+As such it should be set to the sum of the
+  application data size
+  and IP-, transport-, and application-level headers
+  for the simulated packet.
 The \code{iface_} field is used by the simulator when performing
 multicast distribution tree computations.
 It is a label indicating (typically) on which link a packet was received.
