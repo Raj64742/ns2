@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.cc,v 1.1 2001/11/08 17:42:31 haldar Exp $
+// $Id: diffusion.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -22,6 +22,8 @@
 // Ported from SCADDS group's implementation of directed diffusion 
 // into ns-2. Padma Haldar, nov 2001.
 // ********************************************************************
+
+#ifdef NS_DIFFUSION
 
 #include "diffusion.hh"
 
@@ -1311,3 +1313,4 @@ int main(int argc, char **argv)
 
 #endif //scadds
 
+#endif // NS

@@ -28,6 +28,7 @@
 //
 // Diffusion-event handler object, Padma, nov 2001.
 
+#ifdef NS_DIFFUSION
 
 #ifndef diffevent_handler_h
 #define diffevent_handler_h
@@ -64,3 +65,4 @@ class CoreDiffEventHandler : public Handler {
 };
 
 #endif //diffusion_timer_h
+#endif // NS

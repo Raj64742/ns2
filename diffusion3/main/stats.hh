@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: stats.hh,v 1.1 2001/11/08 17:42:32 haldar Exp $
+// $Id: stats.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,6 +19,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
+
+#ifdef NS_DIFFUSION
 
 #ifndef stats_hh
 #define stats_hh
@@ -95,3 +97,4 @@ private:
 
 
 #endif
+#endif // NS

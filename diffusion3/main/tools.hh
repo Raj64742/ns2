@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.hh,v 1.1 2001/11/08 17:42:32 haldar Exp $
+// $Id: tools.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,6 +20,8 @@
 //
 //
 
+#ifdef NS_DIFFUSION
+
 #ifndef tools_hh
 #define tools_hh
 
@@ -34,3 +36,4 @@ void getSeed(struct timeval tv);
 void diffPrint(int msg_level, char *msg);
 
 #endif // tools_hh
+#endif // NS

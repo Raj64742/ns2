@@ -28,7 +28,7 @@
 
 // DiffAppAgent - Wrapper Class for diffusion transport agent DR, ported from SCADDS's directed diffusion software. --Padma, nov 2001.  
 
-
+#ifdef NS_DIFFUSION
 
 #ifndef NS_DIFFAGENT
 #define NS_DIFFAGENT
@@ -96,3 +96,4 @@ protected:
 };
 
 #endif //diffagent
+#endif // NS

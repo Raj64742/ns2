@@ -1,5 +1,6 @@
 //attr.h
 
+#ifdef NS_DIFFUSION
 
 #ifndef DIFF_ATTR
 #define DIFF_ATTR
@@ -15,3 +16,4 @@ NRSimpleAttributeFactory<int> AppDummyAttr(APP_KEY1, NRAttribute::INT32_TYPE);
 
 
 #endif //attr
+#endif // NS

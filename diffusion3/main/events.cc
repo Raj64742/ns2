@@ -3,7 +3,7 @@
 // authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.cc,v 1.1 2001/11/08 17:42:31 haldar Exp $
+// $Id: events.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,6 +19,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
+
+#ifdef NS_DIFFUSION
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -236,3 +238,4 @@ int eventQueue::randDelay(int timer[2])
   return (int) (timer[0] + ((((float)rand())/((float)RAND_MAX)) - 0.5)*timer[1]);
 }
 
+#endif // NS

@@ -3,7 +3,7 @@
 // authors         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: agent.hh,v 1.1 2001/11/08 17:42:31 haldar Exp $
+// $Id: agent.hh,v 1.2 2001/11/20 22:28:16 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,6 +19,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
+
+#ifdef NS_DIFFUSION
 
 #ifndef AGENT_HH
 #define AGENT_HH
@@ -46,3 +48,5 @@ public:
 };
 
 #endif
+
+#endif // NS

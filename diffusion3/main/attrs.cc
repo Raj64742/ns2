@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: attrs.cc,v 1.1 2001/11/08 17:42:30 haldar Exp $
+// $Id: attrs.cc,v 1.2 2001/11/20 22:28:16 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,6 +19,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
+
+#ifdef NS_DIFFUSION
 
 #include "attrs.hh"
 #include <stdlib.h>
@@ -423,7 +425,7 @@ bool OneWayMatch(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2)
   return true;
 }
 
-
+#endif // NS
 
 
 

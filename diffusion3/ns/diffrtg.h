@@ -29,6 +29,7 @@
 // Diffusion Routing Agent - a wrapper class for core diffusion agent, ported from SCADDS's directed diffusion software. --Padma, nov 2001.
 //
 
+#ifdef NS_DIFFUSION
 
 #ifndef DIFFUSION_RTG
 #define DIFFUSION_RTG
@@ -108,3 +109,4 @@ class DiffRoutingAgent : public Agent {
 }; 
 
 #endif //diffrtg
+#endif // NS

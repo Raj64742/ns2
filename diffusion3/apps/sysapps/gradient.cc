@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: gradient.cc,v 1.1 2001/11/08 17:45:45 haldar Exp $
+// $Id: gradient.cc,v 1.2 2001/11/20 22:31:04 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -23,6 +23,8 @@
 // into ns-2. Padma Haldar, nov 2001.
 // ********************************************************************
 //
+
+#ifdef NS_DIFFUSION
 
 #include "gradient.hh"
 
@@ -1425,3 +1427,4 @@ int main(int argc, char **argv)
   return 0;
 }
 #endif
+#endif // NS

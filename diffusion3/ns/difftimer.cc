@@ -28,6 +28,7 @@
 //
 // Diffusion-event handler class, Padma, nov 2001. 
 
+#ifdef NS_DIFFUSION
 
 #include "difftimer.h"
 #include "diffagent.h"
@@ -50,3 +51,5 @@ void DiffEventHandler::handle(Event *e) {
 void CoreDiffEventHandler::handle(Event *e) {
   a_->diffTimeout(e);
 }
+
+#endif // NS
