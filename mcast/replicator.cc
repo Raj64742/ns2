@@ -1,3 +1,4 @@
+
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1996 Regents of the University of California.
@@ -34,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.20 1999/09/20 01:55:03 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.21 2000/12/20 10:12:48 alefiyah Exp $";
 #endif
 
 #include "classifier.h"
@@ -55,6 +56,7 @@ public:
 protected:
 	virtual int command(int argc, const char*const* argv);
 	int ignore_;
+	int direction_;
 };
 
 static class ReplicatorClass : public TclClass {
@@ -65,9 +67,10 @@ public:
 	}
 } class_replicator;
 
-Replicator::Replicator() : ignore_(0)
+Replicator::Replicator() : ignore_(0),direction_(0)
 {
 	bind("ignore_", &ignore_);
+	bind_bool("direction_",&direction_);
 }
 
 void Replicator::recv(Packet* p, Handler*)
@@ -81,7 +84,15 @@ void Replicator::recv(Packet* p, Handler*)
 		Packet::free(p);
 		return;
 	}
-
+	
+	//If the direction of the packet is DOWN, 
+	// now that is has reached the end of the stack 
+	// change the direction to UP
+	if(direction_){
+		if( HDR_CMN(p)->direction() == hdr_cmn::DOWN){
+			ch->direction() = hdr_cmn::UP; // Up the stack 
+		}
+	}
 	for (int i = 0; i < maxslot_; ++i) {
 		NsObject* o = slot_[i];
 		if (o != 0)
@@ -111,6 +122,12 @@ int Replicator::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
+		
 	}
 	return Classifier::command(argc, argv);
 }
+
+
+
+
+
