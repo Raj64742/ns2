@@ -36,6 +36,11 @@ proc ecnecho_pkt { time ackno } {
 	puts $ecnchan "$time $ackno"
 }
 
+proc cong_act { time seqno } {
+	global cactchan
+	puts $cactchan "$time $seqno"
+}
+
 set synfound 0
 proc parse_line line {
 	global synfound active_opener passive_opener
@@ -101,12 +106,14 @@ proc parse_line line {
 	}
 
 	if { $interesting && $field(src) == $active_opener && $field(dst) == $passive_opener } {
+		set topseq [expr $field(seqno) + $field(len) - $field(tcphlen)]
 		if { $field(len) > $field(tcphlen) } {
-			forward_segment $field(time) \
-				[expr $field(seqno) + $field(len) - $field(tcphlen)]
+			forward_segment $field(time) $topseq
 		} else {
-			    forward_emptysegment $field(time) \
-				[expr $field(seqno) + $field(len) - $field(tcphlen)]
+			forward_emptysegment $field(time) $topseq
+		}
+		if { [string index $field(pflags) 3] == "A" } {
+			cong_act $field(time) $topseq
 		}
 		return
 	}
@@ -149,7 +156,7 @@ proc parse_file chan {
 }
 
 proc dofile { infile outfile } {
-	global ackchan packchan segchan dropchan ctrlchan emptysegchan ecnchan
+	global ackchan packchan segchan dropchan ctrlchan emptysegchan ecnchan cactchan
 
         set ackstmp $outfile.acks ; # data-full acks
         set segstmp $outfile.p; # segments
@@ -158,7 +165,8 @@ proc dofile { infile outfile } {
         set packstmp $outfile.packs; # pure acks
 	set ctltmp $outfile.ctrl ; # SYNs + FINs
 	set ecntmp $outfile.ecn ; # ECN acks
-        exec rm -f $ackstmp $segstmp $esegstmp $dropstmp $packstmp $ctltmp $ecntmp
+	set cacttmp $outfile.cact; # cong action
+        exec rm -f $ackstmp $segstmp $esegstmp $dropstmp $packstmp $ctltmp $ecntmp $cacttmp
 
 	set ackchan [open $ackstmp w]
 	set segchan [open $segstmp w]
@@ -167,6 +175,7 @@ proc dofile { infile outfile } {
 	set packchan [open $packstmp w]
 	set ctrlchan [open $ctltmp w]
 	set ecnchan [open $ecntmp w]
+	set cactchan [open $cacttmp w]
 
 	set inf [open $infile r]
 
@@ -179,6 +188,7 @@ proc dofile { infile outfile } {
 	close $packchan
 	close $ctrlchan
 	close $ecnchan
+	close $cactchan
 }
 
 if { $argc < 2 || $argc > 3 } {
