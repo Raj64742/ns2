@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.2 2000/06/27 05:15:42 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.3 2000/06/28 21:59:34 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -87,9 +87,12 @@ RIOQueue::RIOQueue() : link_(NULL), bcount_(0), in_len_(0), in_bcount_(0),
 	bind("linterm_", &edp_.max_p_inv);
 	bind("in_linterm_", &edp_.in_max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
+	
 	bind_bool("gentle_", &edp_.gentle);         // increase the packet
-						    // drop prob. slowly
-						    // when ave queue
+	/* added by ratul- allows a finer control over the policy.
+	   gentle automatically means both the below are gentle */
+	bind_bool("in_gentle_",&edp_.in_gentle);    // drop prob. slowly
+	bind_bool("out_gentle_",&edp_.out_gentle);  // when ave queue
 						    // exceeds maxthresh
 
 	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
@@ -150,9 +153,21 @@ void RIOQueue::reset()
 	edv_.old = 0;
 	edv_.v_a = 1 / (edp_.total_max - edp_.total_min);
 	edv_.v_b = - edp_.total_min / (edp_.total_max - edp_.total_min);
+	
+	//modified - ratul
 	if (edp_.gentle) {
-		edv_.v_c = ( 1.0 - 1 / edp_.max_p_inv ) / edp_.total_max;
-		edv_.v_d = 2 / edp_.max_p_inv - 1.0;
+		edp_.in_gentle = true;
+		edp_.out_gentle = true;
+	}
+
+	if (edp_.in_gentle) {
+		edv_.in_v_c = ( 1.0 - 1 / edp_.in_max_p_inv ) / edp_.in_th_max;
+		edv_.in_v_d = 2 / edp_.in_max_p_inv - 1.0;
+	}		
+
+	if (edp_.out_gentle) {
+		edv_.out_v_c = ( 1.0 - 1 / edp_.max_p_inv ) / edp_.out_th_max;
+		edv_.out_v_d = 2 / edp_.max_p_inv - 1.0;
 	}
 
         /* Added by Wenjia */
@@ -201,6 +216,11 @@ void RIOQueue::run_in_estimator(int in_queued, int total_queued, int m)
 
 	in_f = (float)edv_.in_v_ave;
 	in_f_sl = (float)edv_.in_v_slope;
+
+	//added by ratul
+	total_f = (float)edv_.v_ave;
+	total_f_sl= (float)edv_.v_slope;
+
 #define RED_EWMA
 #ifdef RED_EWMA
 	while (--m >= 1) {
@@ -216,7 +236,7 @@ void RIOQueue::run_in_estimator(int in_queued, int total_queued, int m)
 
         total_f_old = total_f;
         total_f *= 1.0 - (float)edp_.q_w;
-        total_f += edp_.q_w * total_queued;
+        total_f += (float)edp_.q_w * total_queued;
 #endif
 #ifdef RED_HOLT_WINTERS
 	while (--m >= 1) {
@@ -250,12 +270,11 @@ void RIOQueue::run_in_estimator(int in_queued, int total_queued, int m)
 	edv_.in_v_ave = in_f;
 	edv_.in_v_slope = in_f_sl;
 
-	//for debug
-	//printf("%f %f\n", Scheduler::instance().clock(), edv_.in_v_ave);
         edv_.v_ave  = total_f;
         edv_.v_slope = total_f_sl;
 	//for debug
-	//printf("total %f %f\n", Scheduler::instance().clock(), total_f);
+	if (debug_)
+		printf("IN %f %f %f\n", Scheduler::instance().clock(), edv_.in_v_ave, total_f);
 }
 
 /*
@@ -329,14 +348,11 @@ void RIOQueue::run_out_estimator( int out_queued, int total_queued, int m)
         edv_.out_v_ave = out_f;
         edv_.out_v_slope = out_f_sl;
 
-	// for debug
-	//printf("%f %f\n", Scheduler::instance().clock(), edv_.out_v_ave);
-
         edv_.v_ave  = total_f;
         edv_.v_slope = total_f_sl;
 	//for debug
-	//printf("total  out %f %f\n", Scheduler::instance().clock(), total_f);
-
+	if (debug_)
+		printf("OUT %f %f %f\n", Scheduler::instance().clock(), edv_.out_v_ave, total_f);
 }
 
 /*
@@ -387,10 +403,10 @@ RIOQueue::drop_in_early(Packet* pkt)
 
 	double p;
 
-	if (edp_.gentle && edv_.v_ave >= edp_.in_th_max) {
+	if (edp_.in_gentle && edv_.in_v_ave >= edp_.in_th_max) {
 		// p ranges from max_p to 1 as the average queue
 		// size ranges from th_max to twice th_max 
-		p = edv_.v_c * edv_.v_ave + edv_.v_d;
+		p = edv_.in_v_c * edv_.in_v_ave + edv_.in_v_d;
 	} else {
 		// p ranges from 0 to max_p as the average queue
 		// size ranges from th_min to th_max 
@@ -451,39 +467,40 @@ int RIOQueue::drop_out_early(Packet* pkt)
 {
         hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
-        if (edv_.v_ave >= edp_.out_th_max)
-            /* this is the case when the total queue is building up
-             */
-            edv_.out_v_prob = 1.0;
+	double p;
+        if (edp_.out_gentle && edv_.v_ave >= edp_.out_th_max)
+		// p ranges from max_p to 1 as the average queue   
+            p = edv_.out_v_c * edv_.v_ave + edv_.out_v_d;
         else {
-	        double p = edv_.out_v_a * edv_.v_ave + edv_.out_v_b;
-	        p /= edp_.out_max_p_inv;
-       		edv_.out_v_prob1 = p;
-	        if (edv_.out_v_prob1 > 1.0)
-	                edv_.out_v_prob1 = 1.0;
-	        double count1 = edv_.out_count;
-	        if (edp_.bytes)
-	           count1 = (double) (edv_.out_count_bytes/edp_.mean_pktsize);
-	        if (edp_.wait) {
-	                if (count1 * p < 1.0)
-	                        p = 0.0;
-	                else if (count1 * p < 2.0)
-	                        p /= (2 - count1 * p);
-	                else
-	                        p = 1.0;
-	        } else {
-	                if (count1 * p < 1.0)
-	                        p /= (1.0 - count1 * p);
-	                else
-	                        p = 1.0;
-	        }
-	        if (edp_.bytes && p < 1.0) {
-	                p = p * ch->size() / edp_.mean_pktsize;
-	        }
-	        if (p > 1.0)
+	        p = edv_.out_v_a * edv_.v_ave + edv_.out_v_b;
+		//modified by ratul - changed out_max_p_inv to max_p_inv
+	        p /= edp_.max_p_inv;
+        }
+       	edv_.out_v_prob1 = p;
+	if (edv_.out_v_prob1 > 1.0)
+	        edv_.out_v_prob1 = 1.0;
+	double count1 = edv_.out_count;
+	if (edp_.bytes)
+	   count1 = (double) (edv_.out_count_bytes/edp_.mean_pktsize);
+	if (edp_.wait) {
+	        if (count1 * p < 1.0)
+	                p = 0.0;
+	        else if (count1 * p < 2.0)
+	                p /= (2 - count1 * p);
+	        else
 	                p = 1.0;
-	        edv_.out_v_prob = p;
+	} else {
+	        if (count1 * p < 1.0)
+	                p /= (1.0 - count1 * p);
+	        else
+	                p = 1.0;
 	}
+	if (edp_.bytes && p < 1.0) {
+	        p = p * ch->size() / edp_.mean_pktsize;
+	}
+	if (p > 1.0)
+	        p = 1.0;
+	edv_.out_v_prob = p;
 
         // drop probability is computed, pick random number and act
         double u = Random::uniform();
@@ -563,13 +580,12 @@ void RIOQueue::enque(Packet* pkt)
 	hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
 	int off_ip_ = hdr_ip::offset();
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-
-	//printf("RIOQueue::enque queue %d queue-length %d priority %d\n", 
-	//       q_, q_->length(), hf->pri_);
-	// $s_agent set fid_ $pktClass
 	if (priority_method_ == 1) {
 		hf->pri_ = iph->flowid();
 	}
+
+	//printf("RIOQueue::enque queue %d queue-length %d priority %d\n", 
+	//      q_, q_->length(), hf->pri_);
         if (hf->pri_) {  /* Regular In packets */
 
 	/*
@@ -630,8 +646,8 @@ void RIOQueue::enque(Packet* pkt)
 	curq_ = qlen;	// helps to trace queue during arrival, if enabled
 
 	if (in_qavg >= edp_.in_th_min && in_qlen > 1) {
-		if ((!edp_.gentle && in_qavg >= edp_.in_th_max) ||
-			(edp_.gentle && in_qavg >= 2 * edp_.in_th_max)) {
+		if ((!edp_.in_gentle && in_qavg >= edp_.in_th_max) ||
+			(edp_.in_gentle && in_qavg >= 2 * edp_.in_th_max)) {
 			droptype = DTYPE_FORCED;
 		} else if (edv_.in_old == 0) {
 			/* 
@@ -782,7 +798,8 @@ void RIOQueue::enque(Packet* pkt)
           curq_ = qlen; // helps to trace queue during arrival, if enabled
 
           if (qavg >= edp_.out_th_min && qlen > 1) {
-                  if (qavg >= edp_.out_th_max) {
+                  if (!edp_.out_gentle && qavg >= edp_.out_th_max ||
+		      (edp_.out_gentle && qavg >= 2 * edp_.out_th_max)) {
                         droptype = DTYPE_FORCED;  // ? not sure, Yun
                   } else if (edv_.out_old == 0) {
 			/* 

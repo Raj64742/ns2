@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.h,v 1.2 2000/06/27 05:15:42 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.h,v 1.3 2000/06/28 21:59:34 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_rio_h
@@ -82,8 +82,10 @@ struct edp {
 	int setbit;		/* true to set congestion indication bit */
 	double q_w;		/* queue weight given to cur q size sample */
 
-	int gentle;		/* true to increases dropping prob. slowly *
-				 * when ave queue exceeds maxthresh. */
+	int gentle;		/* true to increases dropping prob. slowly */
+	int in_gentle;	        /* when ave queue exceeds maxthresh. */
+	int out_gentle;
+
 	double in_th_min;	/* minimum threshold of average queue size */
 	double in_th_max;	/* maximum threshold of average queue size */
 	double in_max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
@@ -127,6 +129,8 @@ struct edv {
         struct dlist* in_drops;
         double in_v_a;           /* v_prob = v_a * v_ave + v_b */
         double in_v_b;
+	double in_v_c;
+	double in_v_d;
         int in_count;           /* # of packets since last drop */
         int in_count_bytes;     /* # of bytes since last drop */
         int in_old;             /* 0 when average queue first exceeds thresh */
@@ -140,6 +144,8 @@ struct edv {
         struct dlist* out_drops;
         double out_v_a;          /* v_prob = v_a * v_ave + v_b */
         double out_v_b;
+	double out_v_c;
+	double out_v_d;
         int out_count;          /* # of packets since last drop */
         int out_count_bytes;    /* # of bytes since last drop */
         int out_old;            /* 0 when average queue first exceeds thresh */
