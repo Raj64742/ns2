@@ -200,6 +200,15 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
   }
   if (verbose_) queue_list_[qid].idTree_->traverse();
 
+  //this is a quick way of achieving this.
+  //but it can be justified on some grounds. will do a check with Sally later.
+  int noSessions = queue_list_[qid].pbq_->rlsList_->noMySessions(node_->nodeid());
+  if (noSessions >= MAX_SESSIONS) {
+	  sprintf(prnMsg, "My hands are full\n");
+	  printMsg(prnMsg,0); 
+	  return;
+  }
+	  
   AggReturn * aggReturn = queue_list_[qid].idTree_->identifyAggregate(arrRate, linkBW);
   if (aggReturn == NULL) return;
 
@@ -255,11 +264,22 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
 						  node_->nodeid(), qid, 
 						  RATE_LIMIT_TIME_DEFAULT, aggReturn->limit_,
 						  node_, rtLogic_);
-      queue_list_[qid].pbq_->rlsList_->insert(rls);
+    queue_list_[qid].pbq_->rlsList_->insert(rls);
       
-      PushbackEvent * event = new PushbackEvent(INITIAL_UPDATE_TIME, INITIAL_UPDATE_EVENT, rls);
-      timer_->insert(event);
-      //    }
+    PushbackEvent * event = new PushbackEvent(INITIAL_UPDATE_TIME, INITIAL_UPDATE_EVENT, rls);
+    timer_->insert(event);
+    //    }
+
+   
+    noSessions++;
+    //let sessions that are identified together be rate-limited together. 
+    //inexplicably, i observed an improvement in link utilization 
+    // with the following commented out. could be a a matter of chance though.
+    //     if (noSessions >= MAX_SESSIONS) {
+    // 	    sprintf(prnMsg, "My hands are full. Limiting fewer than identified aggregates\n");
+    // 	    printMsg(prnMsg,0); 
+    // 	    break;
+    //     }
   }
 
   queue_list_[qid].idTree_->setLowerBound(aggReturn->limit_, 0);
@@ -498,7 +518,7 @@ PushbackAgent::pushbackRefresh(int qid) {
   if (excessRate < 0) {
     sprintf(prnMsg, "Negative Excess Rate. Things maybe fine now.\n");
     printMsg(prnMsg,0);
-    //this would make all sessions go away.
+    //this would make all sessions go away after a while.
     requiredLimit = 2*totalRateLimitedArrivalRate;
   } else {
     requiredLimit = (totalRateLimitedArrivalRate - excessRate)/noSessions;
