@@ -13,9 +13,15 @@ set topofile topo1.tcl
 set agentfile agent1.tcl
 set routefile route1.tcl
 
+# we remove the agentfile, to start afresh... the agentfile is
+# opened in append mode and previous runs may cause problems
+if { [file exists $agentfile] } {
+	catch { [exec rm $agentfile] }
+}
+
 # generate the topology creation script
 puts {topology -outfile $topofile -nodes 50 -connection_prob 0.1}
-topology -outfile $topofile -nodes 50 -connection_prob 0.1
+topology -outfile $topofile -nodes 15 -connection_prob 0.1
 
 # set the route settings for unicast/mcast
 puts {routing -outfile $routefile -unicast Session -multicast CtrMcast}
@@ -55,8 +61,9 @@ source $topofile
 source $agentfile
 
 set ns [new Simulator]
-set f [open out.tr w]
-$ns trace-all $f
+# comment out the ns trace for now... it consumes a lot of mem
+# set f [open out.tr w]
+# $ns trace-all $f
 set nf [open out.nam w]
 $ns namtrace-all $nf
 
@@ -76,9 +83,9 @@ generate-agents ns node
 $ns at 3.0 "finish"
 
 proc finish {} {
-	global ns f nf
+	global ns nf; #f
 	$ns flush-trace
-	close $f
+	# close $f
 	close $nf
 
 	puts "running nam..."
