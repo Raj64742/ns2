@@ -38,7 +38,7 @@
 #
 # Link State Routing Agent
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/ns-rtProtoLS.tcl,v 1.2 2000/09/01 03:04:12 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/ns-rtProtoLS.tcl,v 1.3 2000/09/13 03:25:14 haoboy Exp $
 
 #
 # XXX These default values have to stay here because link state module
@@ -50,11 +50,6 @@ Agent/rtProto/LS set preference_        120
 Agent/rtProto/LS set INFINITY           [Agent set ttl_]
 Agent/rtProto/LS set advertInterval     1800
 
-Simulator instproc get-number-of-nodes {} {
-	$self instvar Node_
-	return  [array size Node_] 
-}
-    
 # like DV's, except $self cmd initialize and cmd setNodeNumber
 Agent/rtProto/LS proc init-all args {
 	if { [llength $args] == 0 } {
@@ -163,7 +158,7 @@ Agent/rtProto/LS instproc intf-changed {} {
 			nextHopPeer_ metric_
 	set INFINITY [$class set INFINITY]
 	set ifsUp_ ""
-	foreach nbr [array names peers_] {
+	foreach nbr [lsort -dictionary [array names peers_]] {
 		set state [$ifs_($nbr) up?]
 		if {$state != $ifstat_($nbr)} {
 			set ifstat_($nbr) $state
@@ -224,7 +219,7 @@ Agent/rtProto/LS instproc install-routes {} {
 		set nextHop_($dst) ""
 		set nh ""
 		set count [llength $path]
-		foreach nbr [array names peers_] {
+		foreach nbr [lsort -dictionary [array names peers_]] {
 			foreach nhId [lrange $path 1 $count ] {
 				if { [$nbr id] == $nhId } {
 					lappend nextHop_($dst) $ifs_($nbr)
@@ -266,7 +261,7 @@ Agent/rtProto/LS instproc get-links-status {} {
 Agent/rtProto/LS instproc get-peers {} {
 	$self instvar peers_
 	set peers ""
-	foreach nbr [array names peers_] {
+	foreach nbr [lsort -dictionary [array names peers_]] {
 		lappend peers [$nbr id]
 		lappend peers [$peers_($nbr) addr?]
 		lappend peers [$peers_($nbr) port?]

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.209 2000/09/13 03:06:52 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.210 2000/09/13 03:25:14 haoboy Exp $
 
 #
 # Word of warning to developers:
@@ -1255,6 +1255,11 @@ Simulator proc instance {} {
 Simulator instproc get-node-by-id id {
 	$self instvar Node_
 	return $Node_($id)
+}
+
+Simulator instproc get-number-of-nodes {} {
+	$self instvar Node_
+	return  [array size Node_] 
 }
 
 Simulator instproc all-nodes-list {} {
