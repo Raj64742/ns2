@@ -1,0 +1,31 @@
+#! /bin/sh
+#holes=2		* from NSA in packet.h
+NS=../../ns
+rm -f t0
+cp vegas.tcl t0
+sed -e 's/maxBurst/0/' t0 > t		# for tahoe, reno, vegas
+sed -e 's/maxBurst/4/' t0 > t1		# for newreno, sack, fack
+sed -e 's/connection tcp /connection tcp-reno /' -e s/type/reno/ t > t1.tcl
+sed -e 's/connection tcp /connection tcp-sack1 /' t1 > t2
+sed -e 's/tcp-sink/sack1-tcp-sink/' -e 's/type/sck1/' t2 > t4.tcl
+
+# vegas
+sed -e 's/connection tcp /connection tcp-vegas /' -e s/type/vegas/ t > t8.tcl
+
+
+tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' vegas.tcl`
+
+for t in $tests; do
+    echo
+    echo Running test $t
+    echo 'Reno:'
+    $NS t1.tcl $t
+    sleep 5
+    echo 'Sack1:'
+    $NS t4.tcl $t
+    sleep 5
+    echo 'Vegas:'
+    $NS t8.tcl $t
+    echo 'next?'
+    read answer
+done
