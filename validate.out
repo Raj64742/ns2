@@ -349,92 +349,44 @@ All test output agrees with reference output.
 *** ./test-all-cbq-v1
 Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
 ../../ns test-suite-cbq-v1a.tcl cbqWRR QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqPRR QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqAO QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTL QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqFor QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqForOld QUIET
 WARNING:  This test was not run.
 This functionality is not implemented in ns-2.
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax1 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax2 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra1 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra2 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin1 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin3 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin4 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin6 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO2 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO3 QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoTL QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoF QUIET
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack-v1
@@ -509,12 +461,12 @@ Test output agrees with reference output
 ../../ns test-suite-v1a.tcl stats QUIET
 tcp1:window=30/packet-size=1000/bug-fix=1
 tcp2:window=30/packet-size=1000/bug-fix=1
-tcp1/time=0/cwnd=1.000000/ssthresh=30/ack=-1/rtt=0
-tcp2/time=0/cwnd=1.000000/ssthresh=30/ack=-1/rtt=0
-tcp1/time=5/cwnd=7.000000/ssthresh=7/ack=96/rtt=3
-tcp2/time=5/cwnd=2.000000/ssthresh=13/ack=26/rtt=6
-tcp1/time=10/cwnd=11.495215/ssthresh=10/ack=328/rtt=2
-tcp2/time=10/cwnd=2.000000/ssthresh=7/ack=87/rtt=6
+tcp1/time=0/cwnd=1/ssthresh=30/ack=-1/rtt=0
+tcp2/time=0/cwnd=1/ssthresh=30/ack=-1/rtt=0
+tcp1/time=5/cwnd=7/ssthresh=7/ack=96/rtt=3
+tcp2/time=5/cwnd=2/ssthresh=13/ack=26/rtt=6
+tcp1/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=2
+tcp2/time=10/cwnd=2/ssthresh=7/ack=87/rtt=6
 stop-time 10.1
 tcp 0 total_packets_acked 335
 tcp 1 total_packets_acked 87
@@ -1206,6 +1158,34 @@ Test output agrees with reference output
 Loading connection pattern...
 Starting Simulation...
 finishing..
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-wireless-lan-aodv
+Tests: aodv
+../../ns test-suite-wireless-lan-aodv.tcl aodv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finish..
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-WLtutorial
+Tests: wireless1 wireless2 wireless3
+../../ns test-suite-WLtutorial.tcl wireless1 QUIET
+Loading connection pattern...
+Loading scenario file...
+Starting Simulation...
+NS EXITING...
+Test output agrees with reference output
+../../ns test-suite-WLtutorial.tcl wireless2 QUIET
+Starting Simulation...
+NS EXITING...
+Test output agrees with reference output
+../../ns test-suite-WLtutorial.tcl wireless3 QUIET
+Starting Simulation...
+NS EXITING...
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
