@@ -38,11 +38,13 @@ LL set bandwidth_ 2Mb
 LL set delay_ 0.5ms
 
 if [TclObject is-class LL/Snoop] {
+LL/Snoop set snoopTick_ 0.05
 LL/Snoop set bandwidth_ 1Mb
-LL/Snoop set delay_ 3ms
+LL/Snoop set delay_ 0ms
 LL/Snoop set snoopDisable_ 0
 LL/Snoop set srtt_ 100ms
-LL/Snoop set rttvar_ 100ms
+LL/Snoop set rttvar_ 0
+LL/Snoop set g_ 0.25
 }
 
 # TraceIp trace IP packet headers for LAN components
@@ -159,11 +161,12 @@ Link/LanDuplex instproc init { src dst bw delay qtype lltype } {
 
 # Setup linkage for the link-layer
 Link/LanDuplex instproc setuplinkage {src dst dstlink lan} {
-	$self instvar link_
+	$self instvar link_ ifq_
 	$link_ peerLL [$dstlink link]
 	$link_ recvtarget [$src entry]
 	$link_ sendtarget [$lan get-ifq $src]
 	$link_ mac [$lan get-mac $src]
+	$link_ ifq [$link_ sendtarget]
 }
 
 Link/LanDuplex instproc trace { ns f } {
@@ -176,7 +179,6 @@ Link/LanDuplex instproc trace { ns f } {
 	$recvT_ target [$link_ recvtarget]
 	$link_ recvtarget $recvT_
 }
-
 
 Class Link/LanLink
 Link/LanLink instproc init {nodelist bw delay lltype ifqtype mactype chantype} {
