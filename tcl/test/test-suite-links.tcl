@@ -30,32 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.13 2003/01/19 03:54:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.14 2003/03/28 02:50:16 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
 source support.tcl
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
-
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
-
 Trace set show_tcphdr_ 1
 
 set wrap 90
@@ -69,8 +51,6 @@ Topology instproc node? num {
 }
 
 #
-# Links1 uses 8Mb, 5ms feeders, and a 800Kb 10ms bottleneck.
-# Queue-limit on bottleneck is 2 packets.
 #
 Class Topology/net4 -superclass Topology
 Topology/net4 instproc init ns {
@@ -88,12 +68,30 @@ Topology/net4 instproc init ns {
     $ns queue-limit $node_(k1) $node_(r1) 8
 }
 
+Class Topology/net4a -superclass Topology
+Topology/net4a instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 100Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 100Mb 0ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 10Mb 10ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 100
+    $ns queue-limit $node_(k1) $node_(r1) 100
+}
+
 
 TestSuite instproc finish file {
 	global quiet wrap PERL
-        exec $PERL ../../bin/set_flow_id -s all.tr | \
-          $PERL ../../bin/getrc -s 2 -d 3 | \
-          $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+          $PERL ../../bin/raw2xg -a -s 0.01 -m $wrap -t $file > temp.rands
+        exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+          $PERL ../../bin/raw2xg -a -c -p -s 0.01 -m $wrap -t $file >> \
+          temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
@@ -184,6 +182,52 @@ Test/changeDelay instproc run {} {
         ##$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
+}
+
+###################################################
+## Link with changing delay, showing reordering.
+###################################################
+
+Class Test/changeDelay1 -superclass TestSuite
+Test/changeDelay1 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4a
+	set test_	changeDelay1
+	$self next pktTraceFile
+}
+Test/changeDelay1 instproc run {} {
+	global wrap wrap1
+        $self instvar ns_ node_ testName_
+	$self setTopo
+
+	set fid 1
+	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) $fid]
+        $tcp1 set window_ 80
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.0 "$ftp1 start"
+
+	$ns_ at 0.0 "$ns_ delay $node_(r1) $node_(k1) 100ms duplex"
+	$ns_ at 2.0 "$ns_ delay $node_(r1) $node_(k1) 1ms duplex"
+	$ns_ at 2.2 "$ns_ delay $node_(r1) $node_(k1) 100ms duplex"
+
+        $self tcpDump $tcp1 5.0
+
+	$ns_ at 4.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+###################################################
+## Link with changing delay, with no reordering.
+###################################################
+
+Class Test/changeDelay2 -superclass TestSuite
+Test/changeDelay2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4a
+	set test_	changeDelay2
+	DelayLink set avoidReordering_ true
+	Test/changeDelay2 instproc run {} [Test/changeDelay1 info instbody run ]
+	$self next pktTraceFile
 }
 
 ###################################################
