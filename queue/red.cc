@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.14 1997/07/03 03:18:30 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.15 1997/07/07 04:15:56 padmanab Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -84,6 +84,8 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL), idle_(1)
 	bind_bool("setbit_", &edp_.setbit);
 	bind_bool("drop-tail_", &drop_tail_);
 	bind_bool("fracthresh_", &edp_.fracthresh);
+	bind("fracminthresh_", &edp_.frac_th_min);			// frac minthresh
+	bind("fracmaxthresh_", &edp_.frac_th_max);		// frac maxthresh
 
 	bind_bool("doubleq_", &doubleq_);
 	bind("dqthresh_", &dqthresh_);
@@ -105,10 +107,9 @@ void REDQueue::reset()
 	if (link_)
 		edp_.ptc = link_->bandwidth() /
 			(8. * edp_.mean_pktsize);
-	if (edp_.fracthresh && !edp_.adjusted_for_fracthresh_) {
-		edp_.th_min *= qlim_;
-		edp_.th_max *= qlim_;
-		edp_.adjusted_for_fracthresh_ = 1;
+	if (edp_.fracthresh) {
+		edp_.th_min = edp_.frac_th_min*qlim_;
+		edp_.th_max = edp_.frac_th_max*qlim_;
 	}
 
 	edv_.v_ave = 0.0;
@@ -202,7 +203,7 @@ void REDQueue::plot1(int length)
 Packet* REDQueue::deque()
 {
 	Packet *p;
-	p = deque_helper(q());
+	p = deque(q());
 	if (p != 0) {
 		idle_ = 0;
 		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size_;
@@ -274,8 +275,7 @@ int REDQueue::drop_early(Packet* pkt)
 		edv_.count_bytes = 0;
 		if (edp_.setbit) {
 			hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
-			hf->ecn_ = 1;
-			hf->ecn_to_echo_ = 1; // XXX
+			hf->ecn_to_echo_ = 1; 
 		} else {
 			return (1);
 		}
@@ -337,7 +337,7 @@ void REDQueue::enque(Packet* pkt)
 	 * checking for absolute queue overflow.
 	 */
 	if (pkt != 0) {
-		enque_helper(q(), pkt);
+		enque(q(), pkt);
 		bcount_ += ch->size();
 		int metric = qib_ ? bcount_ : q()->length();
 		int limit = qib_ ?
@@ -350,7 +350,7 @@ void REDQueue::enque(Packet* pkt)
 				victim = Random::integer(q()->length());
 				
 			pkt = q()->lookup(victim);
-			remove_helper(q(), pkt);
+			remove(q(), pkt);
 			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
 			drop(pkt);
 		}

@@ -52,7 +52,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.3 1997/06/12 22:58:49 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.4 1997/07/07 04:15:57 padmanab Exp $ (LBL)
  */
 
 #include <math.h>
@@ -80,6 +80,8 @@ struct edp {
 
 	double th_min;		/* minimum threshold of average queue size */
 	double th_max;		/* maximum threshold of average queue size */
+	double frac_th_min;	/* fractional minimum threshold of average queue size */
+	double frac_th_max;	/* fractional threshold of average queue size */
 	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
 	double q_w;		/* queue weight */
 	int fracthresh;		/* thresholds fractions of max queue length */
@@ -88,8 +90,6 @@ struct edp {
 	 * Computed as a function of user supplied paramters.
 	 */
 	double ptc;		/* packet time constant in packets/second */
-	int adjusted_for_fracthresh_; /* adjusted for threshold expressed
-					 as fraction of the queue size */
 	int adjusted_for_bytes_;      /* adjusted for byte-counting
 					 instead of packet-counting */
 };
@@ -126,11 +126,11 @@ class REDQueue : public Queue {
 	int drop_early(Packet* pkt);
 
 		// why? -KF
-		virtual Packet* deque_helper(PacketQueue *q) { return q->deque(); }
-		virtual void enque_helper(PacketQueue *q, Packet *pkt){
+		virtual Packet* deque(PacketQueue *q) { return q->deque(); }
+		virtual void enque(PacketQueue *q, Packet *pkt){
 			q->enque(pkt);
 		}
-		virtual void remove_helper(PacketQueue *q, Packet *pkt){
+		virtual void remove(PacketQueue *q, Packet *pkt){
 			q->remove(pkt);
 		}
 		
