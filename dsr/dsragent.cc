@@ -512,7 +512,7 @@ DSRAgent::command(int argc, const char*const* argv)
 		    argv[3]);
 	    return TCL_ERROR;
 	  }
-	  ifq = (PriQueue *) obj;
+	  ifq = (CMUPriQueue *) obj;
 	  return TCL_OK;
 
 	}
@@ -525,8 +525,11 @@ DSRAgent::command(int argc, const char*const* argv)
 void
 DSRAgent::sendOutBCastPkt(Packet *p)
 {
-	// no jitter required
-	Scheduler::instance().schedule(ll, p, 0.0);
+  hdr_cmn *cmh =  hdr_cmn::access(p);
+  if(cmh->direction() == hdr_cmn::UP)
+    cmh->direction() = hdr_cmn::DOWN;
+  // no jitter required
+  Scheduler::instance().schedule(ll, p, 0.0);
 }
 
 
@@ -542,13 +545,15 @@ DSRAgent::recv(Packet* packet, Handler*)
 
   // special process for GAF
   if (cmh->ptype() == PT_GAF) {
-      if (iph->daddr() == (int)IP_BROADCAST) { 
-	  Scheduler::instance().schedule(ll,packet,0);
-	  return;
-      } else {
-	  target_->recv(packet, (Handler*)0);
-	  return;	  
-      }
+    if (iph->daddr() == (int)IP_BROADCAST) { 
+      if(cmh->direction() == hdr_cmn::UP)
+	cmh->direction() = hdr_cmn::DOWN;
+      Scheduler::instance().schedule(ll,packet,0);
+      return;
+    } else {
+      target_->recv(packet, (Handler*)0);
+      return;	  
+    }
   }
 
   assert(cmh->size() >= 0);
@@ -782,6 +787,7 @@ DSRAgent::handleFlowForwarding(SRPacket &p, int flowidx) {
 
   // make sure we aren't cycling packets
   //assert(p.pkt->incoming == 0); // this is an outgoing packet
+  assert(cmnh->direction() == hdr_cmn::UP);
 
   if (!iph->ttl()--) {
     drop(p.pkt, DROP_RTR_TTL);
@@ -817,7 +823,8 @@ DSRAgent::handleFlowForwarding(SRPacket &p, int flowidx) {
     flow_table[flowidx].timeout = Scheduler::instance().clock() + 
 				  default_flow_timeout;
   }
-
+  // set the direction pkt to be down
+  cmnh->direction() = hdr_cmn::DOWN;
   Scheduler::instance().schedule(ll, p.pkt, 0);
   p.pkt = 0;
 }
@@ -1583,7 +1590,7 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   new_iph->dport() = RT_PORT;
   //new_iph->saddr() = p_copy.src.addr;
   new_iph->saddr() =
-	  Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT); 
+    Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT); 
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1596,7 +1603,7 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
 
   // propagate the request sequence number in the reply for analysis purposes
   new_srh->rtreq_seq() = old_srh->rtreq_seq();
-
+  
   hdr_cmn *new_cmnh =  hdr_cmn::access(p_copy.pkt);
   new_cmnh->ptype() = PT_DSR;
   new_cmnh->size() = IP_HDR_LEN;
@@ -1668,7 +1675,7 @@ DSRAgent::acceptRouteReply(SRPacket &p)
     }
 
   bool good_reply = true;  
-#ifdef USE_GOD_FEEDBACK
+  //#ifdef USE_GOD_FEEDBACK
   /* check to see if this reply is valid or not using god info */
   int i;
   
@@ -1679,7 +1686,7 @@ DSRAgent::acceptRouteReply(SRPacket &p)
 	good_reply = false;
 	break;
       }
-#endif //GOD_FEEDBACK
+  //#endif //GOD_FEEDBACK
 
   if (verbose_srr)
     trace("SRR %.9f _%s_ reply-received %d from %s  %s #%d -> %s %s",
@@ -2561,7 +2568,7 @@ DSRAgent::xmitFailed(Packet *pkt, const char* reason)
   assert(cmh->size() >= 0);
 
   srh->cur_addr() -= 1;		// correct for inc already done on sending
-
+  
   if (srh->cur_addr() >= srh->num_addrs() - 1)
     {
       trace("SDFU: route error beyond end of source route????");
@@ -2611,7 +2618,8 @@ DSRAgent::xmitFailed(Packet *pkt, const char* reason)
       /* put packet back on end of ifq for xmission */
       srh->cur_addr() += 1;	// correct for decrement earlier in proc 
       // make sure we aren't cycling packets
-
+      // also change direction in pkt hdr
+      cmh->direction() = hdr_cmn::DOWN;
       ll->recv(pkt, (Handler*) 0);
       return;
     }
@@ -2654,7 +2662,7 @@ DSRAgent::xmitFailed(Packet *pkt, const char* reason)
 	      queue2 = r;
 	    }
 
-		  // now process them in order
+	    // now process them in order
 	    for(r = queue2; r; r = nr) {
 	      nr = r->next_;
 	      undeliverablePkt(r, 1);

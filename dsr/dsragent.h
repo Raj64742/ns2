@@ -38,7 +38,7 @@ class DSRAgent;
 #include <agent.h>
 #include <trace.h>
 #include <packet.h>
-#include <priqueue.h>
+#include <dsr-priqueue.h>
 #include <mac.h>
 #include <mobilenode.h>
 
@@ -115,7 +115,7 @@ private:
   // now 1/28/98 -dam
   ID net_id, MAC_id;		// our IP addr and MAC addr
   NsObject *ll;		        // our link layer output 
-  PriQueue *ifq;		// output interface queue
+  CMUPriQueue *ifq;		// output interface queue
   Mac *mac_;
 
   // extensions for wired cum wireless sim mode

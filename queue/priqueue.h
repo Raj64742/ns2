@@ -46,53 +46,9 @@
 #include "drop-tail.h"
 #include "packet.h"
 #include "lib/bsd-list.h"
-#include "cmu-trace.h"
-
-/* ============================================================
-   The BSD Interface Queues
-   ============================================================
-*/
-struct  ifqueue {
-        Packet	*ifq_head;
-        Packet	*ifq_tail;
-        int     ifq_len;
-        int     ifq_maxlen;
-        int     ifq_drops;
-};
-
-#define IFQ_MAXLEN	50
-#define IF_QFULL(ifq)   ((ifq)->ifq_len >= (ifq)->ifq_maxlen)
-#define IF_DROP(ifq)    ((ifq)->ifq_drops++)
-
-#define IF_ENQUEUE(ifq, p) { (p)->next_ = 0;		           if ((ifq)->ifq_tail == 0)		                             (ifq)->ifq_head = p;		                           else	                                                              (ifq)->ifq_tail->next_ = (p);                                   (ifq)->ifq_tail = (p);                                          (ifq)->ifq_len++;			                        }
-
-#define IF_DEQUEUE(ifq, p) {			                 (p) = (ifq)->ifq_head;				                    if (p) {	                       			          if (((ifq)->ifq_head = (p)->next_) == 0)                          (ifq)->ifq_tail = 0;		                             (p)->next_ = 0;					             (ifq)->ifq_len--;				                  }						                }
-
-
-/*
- * Control type and number of queues in PriQueue structure.
- */
-#define IFQ_RTPROTO	0	/* Routing Protocol Traffic */
-#define IFQ_REALTIME	1
-#define IFQ_LOWDELAY	2
-#define IFQ_NORMAL	3
-#define IFQ_MAX		4
-
 
 class PriQueue;
 typedef int (*PacketFilter)(Packet *, void *);
-
-/* ============================================================
-   Handles callbacks for Priority Queues
-   ============================================================
-*/
-class PriQueueHandler : public Handler {
-public:
-        inline PriQueueHandler(PriQueue *ifq) : qh_ifq(ifq) {}
-        void handle(Event*);
-private: 
-	PriQueue *qh_ifq;
-};
 
 LIST_HEAD(PriQueue_List, PriQueue);
 
@@ -101,15 +57,10 @@ public:
         PriQueue();
 
         int     command(int argc, const char*const* argv);
-        
-        /* called by upper layers to enque the packet */
         void    recv(Packet *p, Handler *h);
 
-        /* called by lower layers to get the next packet */
-        void	prq_resume(void);
-
-        // insert packet at front of queue
         void    recvHighPriority(Packet *, Handler *);
+        // insert packet at front of queue
 
         void filter(PacketFilter filter, void * data);
         // apply filter to each packet in queue, 
@@ -118,26 +69,18 @@ public:
 
         Packet* filter(nsaddr_t id);
 
-        void	Terminate(void);
-        Packet* prq_get_nexthop(nsaddr_t id);
-        int	prq_isfull(Packet *p);
-        int	prq_length(void);
-        
+	void	Terminate(void);
 private:
-        int	prq_assign_queue(Packet *p);
-
         int Prefer_Routing_Protocols;
-        struct ifqueue	prq_snd_[IFQ_MAX];
  
-        /*
+	/*
 	 * A global list of Interface Queues.  I use this list to iterate
 	 * over all of the queues at the end of the simulation and flush
 	 * their contents. - josh
 	 */
-  
 public:
-        LIST_ENTRY(PriQueue) link;
-        static struct PriQueue_List prhead;
+	LIST_ENTRY(PriQueue) link;
+	static struct PriQueue_List prhead;
 };
 
 #endif /* !_priqueue_h */

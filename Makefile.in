@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.252 2002/07/16 23:10:41 yuri Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.253 2002/07/19 02:34:10 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -209,7 +209,7 @@ OBJ_CC = \
 	common/mobilenode.o \
 	mac/arp.o mobile/god.o mobile/dem.o \
 	mobile/topography.o mobile/modulation.o \
-	queue/priqueue.o \
+	queue/priqueue.o queue/dsr-priqueue.o \
 	mac/phy.o mac/wired-phy.o mac/wireless-phy.o \
 	mac/mac-timers.o trace/cmu-trace.o mac/varp.o \
 	dsdv/dsdv.o dsdv/rtable.o queue/rtqueue.o \

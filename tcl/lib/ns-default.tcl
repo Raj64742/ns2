@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.289 2002/06/28 21:54:45 kclan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.290 2002/07/19 02:34:10 haldar Exp $
 
 
 #
@@ -97,6 +97,11 @@ Queue/DropTail set queue_in_bytes_ false
 Queue/DropTail set mean_pktsize_ 500
 
 Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
+
+# special cmu implemented priority queue used by DSR
+CMUPriQueue set qlen_logthresh_ 10
+CMUPriQueue set fw_logthresh_ 25
+CMUPriQueue set debug_ false
 
 #notel's diffserv module
 Queue/dsRED set numQueues_ 4

@@ -37,7 +37,7 @@
    priqueue.cc
    
    A simple priority queue with a remove packet function
-   $Id: priqueue.cc,v 1.3 2002/03/14 01:18:09 haldar Exp $
+   $Id: priqueue.cc,v 1.4 2002/07/19 02:34:10 haldar Exp $
    */
 
 #include <object.h>
@@ -65,16 +65,6 @@ PriQueue::PriQueue() : DropTail()
 {
         bind("Prefer_Routing_Protocols", &Prefer_Routing_Protocols);
 	LIST_INSERT_HEAD(&prhead, this, link);
-	int i;
-
-	for(i = 0; i < IFQ_MAX; i++) {
-		prq_snd_[i].ifq_head = prq_snd_[i].ifq_tail = 0;
-		prq_snd_[i].ifq_len = 0;
-		prq_snd_[i].ifq_maxlen = IFQ_MAXLEN;
-		prq_snd_[i].ifq_drops = 0;
-		
-	}
-	
 }
 
 int
@@ -187,33 +177,6 @@ PriQueue::filter(nsaddr_t id)
 /*
  * Called at the end of the simulation to purge the IFQ.
  */
-
-int
-PriQueue::prq_assign_queue(Packet *p)
-{
-        struct hdr_cmn *ch = HDR_CMN(p);
-
-	switch(ch->ptype()) {
-	case PT_AODV:
-	case PT_DSR:
-	case PT_IMEP:
-	case PT_MESSAGE:	/* used by DSDV */
-	case PT_TORA:
-		return IFQ_RTPROTO;
-
-	case PT_AUDIO:
-	case PT_VIDEO:
-		return IFQ_REALTIME;
-
-	case PT_ACK:
-		return IFQ_LOWDELAY;
-
-	default:
-		return IFQ_NORMAL;
-	}
-}
-
-
 void
 PriQueue::Terminate()
 {
@@ -225,81 +188,6 @@ PriQueue::Terminate()
 	}
 }
 
-int
-PriQueue::prq_isfull(Packet *p)
-{
-	int q = prq_assign_queue(p);
-	struct ifqueue *ifq = &prq_snd_[q];
-
-	if(IF_QFULL(ifq))
-		return 1;
-	else
-		return 0;
-}
-
-int
-PriQueue::prq_length()
-{
-	int q, tlen = 0;
-
-	for(q = 0; q < IFQ_MAX; q++) {
-		tlen += prq_snd_[q].ifq_len;
-	}
-
-	return tlen;
-}
-
-
-Packet*
-PriQueue::prq_get_nexthop(nsaddr_t id)
-{
-	int q;
-	Packet *p, *pprev = 0;
-	struct ifqueue *ifq;
-
-#if PRIQUEUE_DEBUG > 0
-	prq_validate();
-#endif
-	for(q = 0; q < IFQ_MAX; q++) {
-		ifq = &prq_snd_[q];
-		pprev = 0;
-		for(p = ifq->ifq_head; p; p = p->next_) {
-			struct hdr_cmn *ch = HDR_CMN(p);
-
-			if(ch->next_hop() == id)
-				break;
-			pprev = p;
-		}
-
-	if(p) {
-		if(p == ifq->ifq_head) {
-			assert(pprev == 0);
-
-			IF_DEQUEUE(ifq, p);
-			/* don't increment drop counter */
-#if PRIQUEUE_DEBUG > 0
-			prq_validate();
-#endif
-			return p;
-		} else {
-			assert(pprev);
-			pprev->next_ = p->next_;
-	
-			if(p == ifq->ifq_tail)
-				ifq->ifq_tail = pprev;
-			ifq->ifq_len--;
-
-#if PRIQUEUE_DEBUG > 0
-			prq_validate();
-#endif
-			p->next_ = 0;
-			return p;
-		}
-	}
-     }
-
-	return (Packet*) 0;
-}
 
 
 
