@@ -33,9 +33,9 @@ TCPHijack instproc maketopo {} {
 	set node_(nat) [$ns_ node]
 	set node_(pcap) [$ns_ node]
 
-	$ns_ simplex-link $node_(icmp) $node_(ip)
-	$ns_ simplex-link $node_(nat) $node_(ip)
-	$ns_ simplex-link $node_(pcap) $node(nat)
+	$ns_ simplex-link $node_(icmp) $node_(ip) 10Mb 0.002ms DropTail
+	$ns_ simplex-link $node_(nat) $node_(ip) 10Mb 0.002ms DropTail
+	$ns_ simplex-link $node_(pcap) $node_(nat) 10Mb 0.002ms DropTail
 }
 
 TCPHijack instproc makeicmp {} {
@@ -47,6 +47,7 @@ TCPHijack instproc makeicmp {} {
 }
 
 TCPHijack instproc makepcap {} {
+	global targetip dstip dummyip
 	$self instvar node_ agent_ ns_
 
 	# pcap for snarfing outbound tcp packets
@@ -67,8 +68,8 @@ TCPHijack instproc makepcap {} {
 	set agent_(pcapback) [new Agent/Tap]
 	$agent_(pcapback) network $livenet
 
-	$ns_ attach-agent $agent_(pcapforw) $node_(pcap)
-	$ns_ attach-agent $agent_(pcapback) $node_(pcap)
+	$ns_ attach-agent $node_(pcap) $agent_(pcapforw)
+	$ns_ attach-agent $node_(pcap) $agent_(pcapback)
 }
 
 TCPHijack instproc makeip {} {
@@ -79,20 +80,21 @@ TCPHijack instproc makeip {} {
 
 	set agent_(ip) [new Agent/Tap]
 	$agent_(ip) network $livenet
-	$ns_ attach-agent $agent_(ip) $node_(ip)
+	$ns_ attach-agent $node_(ip) $agent_(ip)
 }
 
 TCPHijack instproc makeconnections {} {
 	$self instvar node_ agent_ ns_
 
-	$agent_(icmp) simplex-connect $agent_(ip)
-	$agent_(snat) simplex-connect $agent_(ip)
-	$agent_(dnat) simplex-connect $agent_(ip)
-	$agent_(pcapforw) simplex-connect $agent_(snat)
-	$agent_(pcapback) simplex-connect $agent_(dnat)
+	$ns_ simplex-connect $agent_(icmp) $agent_(ip)
+	$ns_ simplex-connect $agent_(snat) $agent_(ip)
+	$ns_ simplex-connect $agent_(dnat) $agent_(ip)
+	$ns_ simplex-connect $agent_(pcapforw) $agent_(snat)
+	$ns_ simplex-connect $agent_(pcapback) $agent_(dnat)
 }
 
 TCPHijack instproc maketcpnat {} {
+	global dummyip targetip
 	$self instvar node_ agent_ ns_
 
 	set agent_(snat) [new Agent/NatAgent/TCPSrc]
@@ -101,13 +103,21 @@ TCPHijack instproc maketcpnat {} {
 	set agent_(dnat) [new Agent/NatAgent/TCPDest]
 	$agent_(dnat) destination $targetip
 
-	$ns_ attach-agent $agent_(snat) $node_(nat)
-	$ns_ attach-agent $agent_(dnat) $node_(nat)
+	$ns_ attach-agent $node_(nat) $agent_(snat)
+	$ns_ attach-agent $node_(nat) $agent_(dnat)
 }
 
-TCPHijack th
+TCPHijack instproc sendredirect {} {
+	global gwip targetip dstip dummyip
+	$self instvar agent_
+	$agent_(icmp) send redirect $gwip $targetip $dstip $dummyip
+}
+
+TCPHijack thobj
+set th "thobj"
 
 set ns [new Simulator]
 $ns use-scheduler RealTime
 $th config $ns
+$ns at 0.0 "$th sendredirect"
 $ns run
