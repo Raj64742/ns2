@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.73 1997/12/19 22:20:15 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.74 1997/12/31 01:25:01 kannan Exp $
 #
 
 #
@@ -628,20 +628,18 @@ Classifier instproc no-slot slot {
 # and return the installed objects.
 #
 Classifier instproc install {slot val} {
-    $self instvar elements_
-    set elements_($val) $slot
-    $self cmd install $slot $val
+	$self set slots_($slot) $val
+	$self cmd install $slot $val
 }
 
 Classifier instproc installNext val {
-    $self instvar elements_
-    set elements_($val) [$self cmd installNext $val]
-    return $elements_($val)
+	set slot [$self cmd installNext $val]
+	$self set slots_($slot) $val
+	set slot
 }
 
 Classifier instproc adjacents {} {
-    $self instvar elements_
-    return [array get elements_]
+	$self array get slots_
 }
 
 #
