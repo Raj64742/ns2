@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.25 1999/02/09 00:43:21 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.26 1999/02/13 19:08:30 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -70,7 +70,6 @@ typedef int32_t nsaddr_t;
 typedef int32_t nsmask_t; 
 
 // 64-bit integer support
-// Can we assume the existence of int64_t??
 #if defined(HAVE_STRTOQ)
 #define HAVE_INT64
 #define STRTOI64 strtoq
@@ -79,6 +78,9 @@ typedef int32_t nsmask_t;
 #define HAVE_INT64
 #define STRTOI64 strtoll
 #define STRTOI64_FMTSTR "%lld"
+#ifndef int64_t
+typedef longlong_t int64_t
+#endif
 #endif
 
 #define	NS_ALIGN	(8)	/* byte alignment for structs (eg packet.cc) */
