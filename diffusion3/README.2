@@ -3,15 +3,15 @@
 # README       : Diffusion Readme
 # author       : Fabio Silva
 #
-# $Id: README.2,v 1.1 2001/12/11 23:31:15 haldar Exp $
+# $Id: README.2,v 1.2 2002/05/07 00:48:44 haldar Exp $
 #
 ############################################################
 
 1. Compiling Diffusion
 
 Diffusion should compile cleanly by just typing 'make' on
-Linux. It has been tested with Red Hat Linux versions 6.1,
-6.2, 7.0 and 7.1.
+Linux. It has been tested with Red Hat Linux versions 6.2,
+7.0, 7.1, and 7.2.
 
 Diffusion uses a random ID for the each node. This behavior can
 be overridden by setting the 'scadds_addr' environment variable to
@@ -25,19 +25,19 @@ applications will be created in the apps directory.
 
 2. Before Running Diffusion
 
-Before starting diffusion, be sure to have rpcd (the radiometrix
-module) already running on the node.
+Depending on the platform you are using, you should have the
+appropriate radio drivers loaded before starting diffusion.
 
-Note that in the wired case, the file 'config.txt' should be present
-and contain a list of all directly connected nodes, one node in each
+Note that in the wired case, the file 'config.txt' (or an alternate
+configuration file, specified with the -f flag) should be present and
+contain a list of all directly connected nodes, one node in each
 line. If connected nodes are running on a port other than the default
 diffusion port (done by using the '-p' flag), this must be indicated
-in the config file as well. When diffusion initializes, it will
-display the list of connected nodes. An alternate configuration file
-can be specified with the -f flag. Also, the config file can include
-the link quality to each neighbor.  It's an integer from 0 to 100 and
-will indicate the probability of a message sent by your node to reach
-this neighbor. A sample configuration file is:
+in the configuration file as well. When diffusion initializes, it will
+display the list of connected nodes. Also, the configuration file can
+include the link quality to each neighbor.  It's an integer from 0 to
+100 and will indicate the probability of a message sent by your node
+to reach this neighbor. A sample configuration file is:
 
 10.0.0.1 - 3400 - 100
 10.2.4.1 - 30
@@ -53,8 +53,8 @@ meaning if there are just 2 arguments in a config line.
 
 3. Running Diffusion
 
-To run diffusion, simply start the 'diffusion' and then the
-applications/modules desired.  Please allow a few seconds for
+To run diffusion, simply start the 'diffusion' main process followed
+by the applications/modules desired.  Please allow a few seconds for
 diffusion to initialize before starting applications and modules. Be
 sure to at least start the gradient module. For debugging, the logging
 module can be used to print all messages arriving at the node.
@@ -124,6 +124,8 @@ nr/nr.cc	   - Implements basic NR API functions
 doc/*		   - Includes documentation for the Network Routing API
 
 lib/Makefile	   - Makefile for the API Library
+lib/diffapp.hh     - Defines a base class for diffusion's apps and filters
+lib/diffapp.cc     - Contains basic functions used by diffusion's apps and filters
 lib/dr.hh	   - Defines the API Library classes
 lib/dr.cc	   - Main API code. It includes support for the former
 		     publish/subscribe API. In addition, it supports the
@@ -139,7 +141,13 @@ apps/agents/agent2.cc - Application 2. It sends data that matches the
 			interest from Agent1. Two binaries are generated,
 			agent2 and agent2i, the later being an interactive
 			version that sends data when the user presses a key
-		
+apps/agents/ping.hh          - Ping application include file
+apps/agents/ping_common.cc   - Ping application's attributes are created here
+apps/agents/ping_receiver.hh - Include file for the Ping receiver application
+apps/agents/ping_receiver.cc - Ping Receiver application.
+apps/agents/ping_sender.hh   - Include file for the Ping sender application
+apps/agents/ping_sender.cc   - Ping Sender application. Can also be run interactively.
+
 apps/sysapps/Makefile    - Makefile for the systems applications
 apps/sysapps/flooding.hh - Flooding Filter include file. Defines all routing
 			   data structures
@@ -164,6 +172,9 @@ apps/sysapps/simple_gradient.cc - Gradient Filter. Subscribes to "*" with a low
 			          messages and forwards them to neighbors. Data
 			          is forwarded to the first neighbor who
 				  expressed interest for that information
-apps/sysapps/tag.hh      - Source Route Filter include file
-apps/sysapps/tag.cc	 - Source Route Filter. Tags packets containing a
+apps/sysapps/srcrt.hh    - Source Route Filter include file
+apps/sysapps/srcrt.cc    - Source Route Filter. Routes a packet through a given
+ 			   route.
+apps/sysapps/tag.hh      - Route Stamping Filter include file
+apps/sysapps/tag.cc	 - Route Stamping Filter. Tags packets containing a
 			   RouteAttr
