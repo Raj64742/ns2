@@ -51,12 +51,9 @@
  *   size can be ignored.
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.3 1997/06/12 22:58:49 kfall Exp $ (LBL)
  */
-
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.2 1997/06/11 04:58:12 gnguyen Exp $ (LBL)";
-#endif
 
 #include <math.h>
 #include <string.h>
@@ -116,7 +113,8 @@ struct edv {
 class REDQueue : public Queue {
  public:	
 	REDQueue();
-	virtual PacketQueue *q() { return q_; }
+		// why? -KF
+		virtual PacketQueue *q() { return q_; }
  protected:
 	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);
@@ -126,9 +124,15 @@ class REDQueue : public Queue {
 	void plot();
 	void plot1(int qlen);
 	int drop_early(Packet* pkt);
-	virtual Packet* deque_helper(PacketQueue *q) { return q->deque(); }
-	virtual void enque_helper(PacketQueue *q, Packet *pkt){q->enque(pkt);}
-	virtual void remove_helper(PacketQueue *q, Packet *pkt){q->remove(pkt);}
+
+		// why? -KF
+		virtual Packet* deque_helper(PacketQueue *q) { return q->deque(); }
+		virtual void enque_helper(PacketQueue *q, Packet *pkt){
+			q->enque(pkt);
+		}
+		virtual void remove_helper(PacketQueue *q, Packet *pkt){
+			q->remove(pkt);
+		}
 		
 
 	LinkDelay* link_;	/* outgoing link */
@@ -137,6 +141,7 @@ class REDQueue : public Queue {
 		
 	int bcount_;	/* byte count */
 	int qib_;	/* bool: queue measured in bytes? */
+	NsObject* de_drop_;	/* drop_early target */
 
 	/*
 	 * Static state.
