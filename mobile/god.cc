@@ -32,7 +32,7 @@ er in the
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.17 2001/04/20 23:59:02 intanago Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.18 2002/05/30 00:03:17 buchheim Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -423,8 +423,9 @@ int *God::NextOIFs(int dt, int srcid, int curid, int *ret_num_oif)
 
   int *oif_map = SRC_TAB(dt, srcid);
   int count=0;
+  int i;
 
-  for (int i=0; i<num_nodes; i++) {
+  for (i=0; i<num_nodes; i++) {
     if (oif_map[curid*num_nodes +i] == 1)
       count++;
   }
@@ -437,7 +438,7 @@ int *God::NextOIFs(int dt, int srcid, int curid, int *ret_num_oif)
   int *next_oifs = new int[count];
   int j=0;
   
-  for (int i=0; i<num_nodes; i++) {
+  for (i=0; i<num_nodes; i++) {
     if (oif_map[curid*num_nodes +i] == 1) {
       next_oifs[j] = i;
       j++;    
