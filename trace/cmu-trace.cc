@@ -577,20 +577,26 @@ CMUTrace::nam_format(Packet *p, int offset)
 
 	double energy = -1;
 	double initenergy = -1;
+
+	//default value for changing node color with respect to energy depletion
+	double l1 = 0.5; 
+	double l2 = 0.2;
+	
 	if (srcnode) {
 	    if (srcnode->energy_model()) {
 	       energy = srcnode->energy();
 	       initenergy = srcnode->initialenergy();
+	       l1 = srcnode->energy_level1();
+	       l2 = srcnode->energy_level2();
 	    }
 	}
 
         int energyLevel = 0 ;
         double energyLeft = (double)(energy/initenergy) ;
 
-
-        if ((energyLeft <= 1 ) && (energyLeft >= 0.5 )) energyLevel = 3;	
-        if ((energyLeft >= 0.2 ) && (energyLeft < 0.5 )) energyLevel = 2;	
-        if ((energyLeft > 0 ) && (energyLeft < 0.2 )) energyLevel = 1;	
+        if ((energyLeft <= 1 ) && (energyLeft >= l1 )) energyLevel = 3;	
+        if ((energyLeft >= l2 ) && (energyLeft < l1 )) energyLevel = 2;	
+        if ((energyLeft > 0 ) && (energyLeft < l2 )) energyLevel = 1;	
 
 	// convert to nam format 
 	if (op == 's') op = 'h' ;

@@ -15,7 +15,7 @@ static class EnergyModelClass:public TclClass
   EnergyModelClass ():TclClass ("EnergyModel") { }
   TclObject *create (int, const char *const *argv)
   {
-    return (new EnergyModel (atof(argv[4])));
+    return (new EnergyModel (atof(argv[4]),atof(argv[5]),atof(argv[6])));
   }
 } class_energy_model;
 

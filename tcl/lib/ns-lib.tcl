@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.183 1999/11/27 19:38:27 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.184 2000/01/09 03:43:22 klan Exp $
 
 #
 
@@ -406,6 +406,7 @@ Simulator instproc create-wireless-node { args } {
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
         $self instvar imepflag_ topoInstance_
 	$self instvar namtraceAllFile_
+	$self instvar level1_ level2_
 
 
         set imepflag_ OFF
@@ -491,7 +492,17 @@ Simulator instproc create-wireless-node { args } {
 	}
 
 	if [info exists energyModel_] {
-	     $node addenergymodel [new $energyModel_ $initialEnergy_]
+             if  [info exists level1_] {
+	       set l1 $level1_
+	     } else {
+	       set l1 0.5
+	     }
+             if  [info exists level2_] {
+	       set l2 $level2_
+	     } else {
+	       set l2 0.2
+	     }
+	     $node addenergymodel [new $energyModel_ $initialEnergy_ $l1 $l2]
         }
 
         if [info exists txPower_] {
@@ -1002,6 +1013,13 @@ Simulator instproc namtrace-all file   {
 	}
 
 }
+
+Simulator instproc energy-color-change {level1 level2} {
+	$self instvar level1_ level2_
+ 	set level1_ $level1
+ 	set level2_ $level2
+}
+
 
 Simulator instproc namtrace-all-wireless {file optx opty} {
         $self instvar namtraceAllFile_
