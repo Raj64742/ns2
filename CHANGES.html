@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.238 1998/05/12 02:12:05 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.239 1998/05/14 01:42:23 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,16 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+
+    <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[floyd]</A></B>
+       <b>Wed May 13 18:35:31 PDT 1998</b><br>
+	 Changes to tcp-newreno.cc to make corrections in the
+	 interactions between Fast Retransmit and ECN.  I also
+	 added a new validation test, "test-all-tcpVariants", to
+	 the ns "validate" test.  It tests Tahoe, Reno, NewReno,
+	 and Sack TCP with one, two, three, and four packet drops.
+	 The validation test for ECN, "test-all-ecn", is still in
+	 progress.
 
     <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[floyd]</A></B>
        <b>Mon May 11 19:05:50 PDT 1998</b><br>
