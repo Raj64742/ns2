@@ -25,6 +25,9 @@
 
 # This test-suite validate xcp congestion control scenarios along with xcp-tcp mixed flows through routers.
 
+Queue/RED set bytes_ false ;
+Queue/RED set queue_in_bytes_ false ;
+
 if {![TclObject is-class Agent/TCP/Reno/XCP]} {
 	puts "xcp module is not present; validation skipped"
 	exit 2
@@ -192,7 +195,7 @@ TestSuite instproc process-parking-lot-data {what name flows PlotTime} {
 	}
 	close $f
 	if {$quiet == 0} {
-		exec xgraph -m -x time -y $name temp.rands &
+		exec xgraph -m -x "link ID" -y $name temp.rands &
 	}
 }
 
