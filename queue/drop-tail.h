@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.16 2001/12/31 17:33:30 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.17 2002/01/01 04:26:10 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_drop_tail_h
@@ -52,6 +52,7 @@ class DropTail : public Queue {
 		bind_bool("drop_front_", &drop_front_);
 		bind_bool("summarystats_", &summarystats);
 		bind_bool("queue_in_bytes_", &qib_);  // boolean: q in bytes?
+		bind("mean_pktsize_", &mean_pktsize_);
 		//		_RENAMED("drop-front_", "drop_front_");
 	}
 	~DropTail() {
@@ -67,6 +68,7 @@ class DropTail : public Queue {
 	int summarystats;
 	void print_summarystats();
 	int qib_;       	/* bool: queue measured in bytes? */
+	int mean_pktsize_;	/* configured mean packet size in bytes */
 };
 
 #endif

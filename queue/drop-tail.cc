@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.12 2001/12/31 17:33:30 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.13 2002/01/01 04:26:10 sfloyd Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -81,12 +81,12 @@ DropTail::command(int argc, const char*const* argv) {
 void DropTail::enque(Packet* p)
 {
 	if (summarystats) {
-                int queuesize = q_->length();
-                //if (qib_) queuesize = bcount_;
-                Queue::updateStats(queuesize);
+                Queue::updateStats(qib_?q_->byteLength():q_->length());
 	}
 	q_->enque(p);
-	if (q_->length() >= qlim_) {
+	int qlimBytes = qlim_ * mean_pktsize_;
+	if ((!qib_ && q_->length() >= qlim_) || 
+	    (qib_ && q_->byteLength() >= qlimBytes)) {
 		if (drop_front_) { /* remove from head of queue */
 			Packet *pp = q_->deque();
 			drop(pp);
@@ -100,9 +100,7 @@ void DropTail::enque(Packet* p)
 Packet* DropTail::deque()
 {
         if (summarystats && &Scheduler::instance() != NULL) {
-                int queuesize = q_->length();
-                //if (qib_) queuesize = bcount_;
-                Queue::updateStats(queuesize);
+                Queue::updateStats(qib_?q_->byteLength():q_->length());
         }
 	return q_->deque();
 }
