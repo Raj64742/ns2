@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.21 1999/02/16 22:48:38 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.22 1999/02/19 22:44:07 haoboy Exp $
 #
 
 #
@@ -327,54 +327,18 @@ Agent instproc attach-trace { file } {
 }
 
 #
-# Keep the following because we can then use both TracedVar and 
-# insert var tracing code wherever we like.
-#
-Agent instproc add-var-trace { name value {type "v"} } {
-	$self instvar namTrace_
-
-	if [info exists namTrace_] {
-		set ns [Simulator instance]
-		$self instvar addr_ dst_ ntName_ features_
-		puts $namTrace_ "f -t [$ns now] -s $addr_ -d $dst_ -T $type -n $name -v $value -a $ntName_"
-		set features_($name) $value
-	}
-}
-
-Agent instproc update-var-trace { name value {type "v"} } {
-	$self instvar namTrace_
-
-	if [info exists namTrace_] {
-		set ns [Simulator instance]
-		$self instvar addr_ dst_ ntName_ features_
-		puts $namTrace_ "f -t [$ns now] -s $addr_ -d $dst_ -T $type -n $name -v $value -a $ntName_ -o $features_($name)"
-		set features_($name) $value
-	}
-}
-
-Agent instproc delete-var-trace { name } {
-	$self instvar namTrace_
-
-	if [info exists namTrace_] {
-		set ns [Simulator instance]
-		$self instvar addr_ dst_ ntName_ features_
-		puts $namTrace_ "f -t [$ns now] -s $addr_ -d $dst_ -n $name -a $ntName_ -o $features_($name) -x"
-		unset features_($name)
-	}
-}
-
-#
 # nam initialization
 #
 Simulator instproc dump-namagents {} {
 	$self instvar tracedAgents_ monitoredAgents_
 	
-	if ![$self is-started] {
+	if {![$self is-started]} {
 		return
 	}
 	if [info exists tracedAgents_] {
 		foreach id [array names tracedAgents_] {
 			$tracedAgents_($id) add-agent-trace $id
+			$tracedAgents_($id) cmd dump-namtracedvars
 		}
 		unset tracedAgents_
 	}

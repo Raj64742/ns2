@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.145 1999/02/04 06:13:24 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.146 1999/02/19 22:44:06 haoboy Exp $
 
 
 #
@@ -109,6 +109,10 @@ Agent/TCP set nrexmit_ 0
 Agent/TCP set nrexmitpack_ 0
 Agent/TCP set nrexmitbytes_ 0
 Agent/TCP set trace_all_oneline_ false
+
+# XXX Generate nam trace or plain old text trace for variables. 
+# When it's true, generate nam trace.
+Agent/TCP set nam_tracevar_ true
 
 Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
