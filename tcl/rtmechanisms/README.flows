@@ -1,5 +1,9 @@
-bdflow.tcl - Chernoff version of flow4.tcl
-bdflow_h.tcl - Chernoff version of Flows.tcl
+bdflow.tcl - Kinh's Chernoff version of flow4.tcl
+bdflow_h.tcl - Kinh's Chernoff version of Flows.tcl
+
+--------------------------------------------
+
+Flow4.v2.tcl -> Flow4A.v2.tcl to use Chernoff instead of fixed threshold.
 
 --------------------------------------
 
