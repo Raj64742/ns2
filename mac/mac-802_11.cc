@@ -343,25 +343,23 @@ Mac802_11::discard(Packet *p, const char* why)
 		switch(mh->dh_fc.fc_subtype) {
 
 		case MAC_Subtype_RTS:
-			if((u_int32_t)ETHER_ADDR(mh->dh_sa) == index_) {
-			  drop(p, why);
-			  //drop(p);
-				
+			if((u_int32_t)ETHER_ADDR(mh->dh_sa) == \
+			   (u_int32_t)index_) {
+				drop(p, why);
 				return;
 			}
-
-		/* fall through - if necessary */
-
+			
+			/* fall through - if necessary */
+			
 		case MAC_Subtype_CTS:
 		case MAC_Subtype_ACK:
-			if((u_int32_t)ETHER_ADDR(mh->dh_da) == index_) {
-				//drop(p, why);
-				drop(p);
-				
+			if((u_int32_t)ETHER_ADDR(mh->dh_da) == \
+			   (u_int32_t)index_) {
+				drop(p, why);
 				return;
 			}
 			break;
-
+			
 		default:
 			fprintf(stderr, "invalid MAC Control subtype\n");
 			exit(1);
@@ -370,10 +368,12 @@ Mac802_11::discard(Packet *p, const char* why)
 		
 	case MAC_Type_Data:
 		switch(mh->dh_fc.fc_subtype) {
-
+			
 		case MAC_Subtype_Data:
-			if((u_int32_t)ETHER_ADDR(mh->dh_da) == index_ ||
-			   (u_int32_t)ETHER_ADDR(mh->dh_sa) == index_ ||
+			if((u_int32_t)ETHER_ADDR(mh->dh_da) == \
+			   (u_int32_t)index_ ||
+			   (u_int32_t)ETHER_ADDR(mh->dh_sa) == \
+			   (u_int32_t)index_ ||
 			   (u_int32_t)ETHER_ADDR(mh->dh_da) == MAC_BROADCAST) {
 				//if (*(mh->dh_da) == (u_char)index_ ||
 				//  *(mh->dh_sa) == (u_char)index_ ||
@@ -719,7 +719,7 @@ Mac802_11::check_pktTx()
 		return -1;
 
 	mh = HDR_MAC802_11(pktTx_);
-       	int len = HDR_CMN(pktTx_)->size();
+       	//int len = HDR_CMN(pktTx_)->size();
 
 	switch(mh->dh_fc.fc_subtype) {
 
@@ -1210,7 +1210,7 @@ Mac802_11::recv_timer()
 	 * IEEE 802.11 specs, section 9.2.5.6
 	 *	- update the NAV (Network Allocation Vector)
 	 */
-	if(dst != index_) {
+	if(dst != (u_int32_t)index_) {
 		set_nav(mh->dh_duration);
 	}
 
@@ -1221,7 +1221,7 @@ Mac802_11::recv_timer()
 	/*
 	 * Address Filtering
 	 */
-	if(dst != index_ && dst != MAC_BROADCAST) {
+	if(dst != (u_int32_t)index_ && dst != MAC_BROADCAST) {
 		/*
 		 *  We don't want to log this event, so we just free
 		 *  the packet instead of calling the drop routine.

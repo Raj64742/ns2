@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.50 1999/01/08 19:04:49 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.51 1999/01/08 19:39:14 haldar Exp $ (LBL)
 
  */
 
@@ -283,7 +283,6 @@ inline Packet* Packet::alloc()
 	if (p != 0) {
 		assert(p->fflag_ == FALSE);
 		free_ = p->next_;
-		//p->init();
 		if (p->datalen_) {
 			delete[] p->data_;
 			// p->data_ = 0;
@@ -327,18 +326,6 @@ inline void Packet::allocdata(int n)
 
 }
 
-/*void Packet::init()
-{
-	if (datalen_) {
-		delete[] data_;
-		// p->data_ = 0;
-		datalen_ = 0;
-	}
-	uid_ = 0;
-	time_ = 0;
-}*/
-
-
 inline void Packet::free(Packet* p)
 {
 	int off_cmn_ = hdr_cmn::offset_;
@@ -368,9 +355,7 @@ inline Packet* Packet::copy() const
 		p->data_ = new unsigned char[datalen_];
 		memcpy(p->data_, data_, datalen_);
 	}
-//#ifdef NS_MOBILE
 	p->txinfo_.init(&txinfo_);
-//#endif
 	return (p);
 }
 
