@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.7 1997/07/28 04:40:51 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.8 1997/08/12 09:12:12 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_cdls_h
@@ -72,7 +72,7 @@ public:
 protected:
 	int command(int argc, const char*const* argv);
 	IdPacketQueue* getQueue(int id);
-	IdPacketQueue* selectQueue();
+	virtual IdPacketQueue* selectQueue();
 	double weight(IdPacketQueue*);
 
 	int qlen_;		// current queue length

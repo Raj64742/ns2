@@ -150,8 +150,8 @@ Cdls::weight(IdPacketQueue* q)
 	if (q->length() == 0)
 		return 0;
 	if (q->em()) {
-		// w = 1.0 - q->em()->rate();
-		w = 1.0 / (q->em()->rate() + 1e-9);
+		// w = 1.0 / (q->em()->rate() + 1e-9);
+		w = 1.0 - q->em()->rate();
 	}
 	else {
 		// w = (double) total_ / (numq_ * (q->total() + 1));
