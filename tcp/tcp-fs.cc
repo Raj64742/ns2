@@ -39,7 +39,10 @@ void ResetTimer::expire(Event *e) {
 class TcpFsAgent : public virtual TcpAgent {
 public:
 	TcpFsAgent() : t_exact_srtt_(0), t_exact_rttvar_(0), last_recv_time_(0), 
-		fs_startseq_(0), fs_endseq_(0), fs_mode_(0), reset_timer_(this) {}
+		fs_startseq_(0), fs_endseq_(0), fs_mode_(0), reset_timer_(this) 
+	{
+		bind_bool("fast_loss_recov_", &fast_loss_recov_);
+	}
 
 	/* helper functions */
 	virtual void output_helper(Packet* pkt);
@@ -47,6 +50,8 @@ public:
 	virtual void send_helper(int maxburst);
 	virtual void send_idle_helper();
 	virtual void recv_newack_helper(Packet* pkt);
+	virtual void partialnewack_helper(Packet* pkt) {};
+
 	virtual void set_rtx_timer();
 	virtual void timeout_nonrtx(int tno);
 	virtual void timeout_nonrtx_helper(int tno);
@@ -58,6 +63,7 @@ protected:
 	int fs_startseq_;
 	int fs_endseq_;
 	int fs_mode_;
+	int fast_loss_recov_;
 	ResetTimer reset_timer_;
 };
 
@@ -80,6 +86,7 @@ public:
 	virtual void send_helper(int maxburst) {TcpFsAgent::send_helper(maxburst);}
 	virtual void send_idle_helper() {TcpFsAgent::send_idle_helper();}
 	virtual void recv_newack_helper(Packet* pkt) {TcpFsAgent::recv_newack_helper(pkt);}
+
 	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
 	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
 	virtual void timeout_nonrtx_helper(int tno);
@@ -104,6 +111,8 @@ public:
 	virtual void send_helper(int maxburst) {TcpFsAgent::send_helper(maxburst);}
 	virtual void send_idle_helper() {TcpFsAgent::send_idle_helper();}
 	virtual void recv_newack_helper(Packet* pkt) {TcpFsAgent::recv_newack_helper(pkt);}
+	virtual void partialnewack_helper(Packet* pkt);
+
 	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
 	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
 	virtual void timeout_nonrtx_helper(int tno);
@@ -141,6 +150,7 @@ public:
 	}
 } class_facktcpfs;	
 
+
 /* mark packets sent as part of fast start */
 void
 TcpFsAgent::output_helper(Packet *pkt)
@@ -177,28 +187,8 @@ TcpFsAgent::output_helper(Packet *pkt)
 	((hdr_flags*)pkt->access(off_flags_))->fs_ = 0;
         /* check if packet belongs to the fast start phase. */
 	if (tcph->seqno() >= fs_startseq_ && tcph->seqno() < fs_endseq_ && fs_mode_) {
-		/* 
-		 * If this is a retransmission, it means that at least one of the
-		 * packets sent in fast start mode was lost. We turn off fast start 
-		 * mode and do slow start. However, we do not back off the 
-		 * retransmission timer.
-		 */
-		if (tcph->seqno() <= maxseq_) {
-#ifdef 0
-			fs_mode_ = 0;
-			maxseq_ = highest_ack_; /* retract maxseq_ */
-			T_
-			/* cancel pending timers, if any */
-			if (pending_[TCP_TIMER_RTX])
-				cancel(TCP_TIMER_RTX);
-			if (pending_[TCP_TIMER_RESET])
-				cancel(TCP_TIMER_RESET);
-			/* like a timeout except that the timer is not backed off */
-			sched(0, TCP_TIMER_RESET); 
-#endif
-		}
-		/* otherwise mark the packet */
-		else {
+		/* if not a retransmission, mark the packet */
+		if (tcph->seqno() > maxseq_) {
 			((hdr_flags*)pkt->access(off_flags_))->fs_ = 1;
 			/* ((hdr_cmn*)pkt->access(off_cmn_))->size() = 0; */ /* XXXX temporary -- only for testing */
 		}
@@ -292,6 +282,25 @@ TcpFsAgent::recv_newack_helper(Packet *pkt)
 	}
 }
 
+void
+NewRenoTcpFsAgent::partialnewack_helper(Packet* pkt)
+{
+	partialnewack(pkt);
+	/* Do this because we may have retracted maxseq_ */
+	maxseq_ = max(maxseq_, highest_ack_);
+	if (fs_mode_ && fast_loss_recov_) {
+		/* 
+		 * A partial new ack implies that more than one packet has been lost
+		 * in the window. Rather than recover one loss per RTT, we get out of
+		 * fast start mode and do a slow start (no rtx timeout, though).
+		 */
+		timeout_nonrtx(TCP_TIMER_RESET);
+	}
+	else {
+		output(last_ack_ + 1, 0);
+	}
+}
+
 void 
 TcpFsAgent::set_rtx_timer()
 {
@@ -299,7 +308,7 @@ TcpFsAgent::set_rtx_timer()
 		rtx_timer_.cancel();
 	if (reset_timer_.status() == TIMER_PENDING)
 		reset_timer_.cancel();
-	if (fs_mode_)
+	if (fs_mode_ && fast_loss_recov_)
 		reset_timer_.resched(rtt_exact_timeout());
 	else 
 		rtx_timer_.resched(rtt_timeout());
@@ -310,6 +319,7 @@ TcpFsAgent::timeout_nonrtx(int tno)
 {
 	if (tno == TCP_TIMER_RESET) {
 		fs_mode_ = 0;  /* out of fast start mode */
+		dupacks_ = 0;  /* just to be safe */
 		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
 			/*
 			 * TCP option:
