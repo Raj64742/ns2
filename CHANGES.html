@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.145 1997/09/08 19:50:13 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.146 1997/09/08 21:10:29 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,13 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Mon Sep  8 14:06:47 PDT 1997</b><br>
+       Changed default random number generator to internal rng
+       (rather than external srand/random).
+       Updated test-output/{telnet,reno4,reno4a,phase2}.
+       Random number generation should now be consistent on all platforms.
+     </LI>
 
   <LI><A HREF="mailto:huang@isi.edu">[PH]</A> Mon Sep  8 12:45:09 PDT 1997<br>
       Check in the entire automatic loss dependency insertion module.  See
@@ -939,7 +946,7 @@ postscript file that is placed in the ps-files directory. </LI>
 convert trace files into output for xgraph or gnuplot. Convenient ways
 of invoking either are: </LI>
 
-<PRE>        % raw2xg out.tr | xgraph -bb -tk -nl -m -x time -y packets
+<PRE>        % raw2xg out.tr , xgraph -bb -tk -nl -m -x time -y packets
         % raw2gp out.tr &gt; out.gp ; gnuplot
         load &quot;out.gp&quot;
         ...other gnuplot commands ...
