@@ -120,13 +120,13 @@
 \contentsline {subsection}{\numberline {13.5.2}Mac Methods}{109}
 \contentsline {subsection}{\numberline {13.5.3}Mac Class in C++}{109}
 \contentsline {subsection}{\numberline {13.5.4}CSMA-based MAC}{110}
-\contentsline {section}{\numberline {13.6}LL (link-layer) Class}{110}
+\contentsline {section}{\numberline {13.6}LL (link-layer) Class}{111}
 \contentsline {subsection}{\numberline {13.6.1}LL Class in C++}{111}
 \contentsline {subsection}{\numberline {13.6.2}Example: Link Layer configuration}{111}
 \contentsline {section}{\numberline {13.7}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily LanRouter\egroup class}{112}
 \contentsline {section}{\numberline {13.8}Other Components}{112}
 \contentsline {section}{\numberline {13.9}LANs and \emph {ns}\ routing}{112}
-\contentsline {section}{\numberline {13.10}Commands at a glance}{113}
+\contentsline {section}{\numberline {13.10}Commands at a glance}{114}
 \contentsline {chapter}{\numberline {14}The (Revised) Addressing Structure in NS}{115}
 \contentsline {section}{\numberline {14.1}The Default Address Format}{115}
 \contentsline {section}{\numberline {14.2}The Hierarchical Address Format}{116}

@@ -35,7 +35,7 @@ contains the following public member functions:
                 (similar to \fcn[]{sched}, but timer may be pending) \\
 \fcn[]{void cancel} & cancel a pending timer \\
 \fcn[]{int status} & returns timer status
-                        (either IDLE, PENDING, or HANDLING) \\
+                        (either TIMER\_IDLE, TIMER\_PENDING, or TIMER\_HANDLING) \\
 \end{tabularx}
 
 The abstract base class \code{TimerHandler}

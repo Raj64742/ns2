@@ -583,7 +583,7 @@ $ftp attach-agent $tcp  \; bind ftp traffic to tcp agent;
 set sink [new Agent/TCPSink] \; create tcpsink agent;
 $ns_ attach-agent $node_(k1) $sink \; bind sink to node;
 $sink set fid_ 0  \; set flow ID field;
-$ns_ connect $src $sink \; active connection src to sink;
+$ns_ connect $ftp $sink \; active connection src to sink;
 $ns_ at $start-time "$ftp start"  \; start ftp flow;
 \end{program}
 
