@@ -34,13 +34,14 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.h -*- c++ -*-
-   $Id: dsdv.h,v 1.5 1999/05/05 19:59:28 haldar Exp $
+   $Id: dsdv.h,v 1.6 1999/08/20 18:03:16 haoboy Exp $
 
    */
 
 #ifndef cmu_dsdv_h_
 #define cmu_dsdv_h_
 
+#include "config.h"
 #include "agent.h"
 #include "ip.h"
 #include "delay.h"

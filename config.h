@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.29 1999/08/09 21:10:56 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.30 1999/08/20 18:03:15 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -243,7 +243,12 @@ time_t time(time_t *);
 #include <math.h>
 #endif
 
-
+// Declare our implementation of snprintf() so that ns etc. can use it. 
+#ifndef HAVE_SNPRINTF
+extern "C" {
+	extern int snprintf(char *buf, int size, const char *fmt, ...);
+}
+#endif
 
 /***** These values are no longer required to be hardcoded -- mask and shift values are 
 	available from Class Address. *****/
