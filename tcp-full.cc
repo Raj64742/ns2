@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.33 1998/04/21 02:36:12 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.34 1998/05/02 01:38:49 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -106,7 +106,7 @@ public:
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1),
-	last_send_time_(0.0), irs_(-1)
+	last_send_time_(0.0), irs_(-1), ect_(FALSE)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -272,12 +272,14 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
         Packet* p = allocpkt();
         hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
         hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
+        hdr_flags *fh = (hdr_flags *)p->access(off_flags_);
         tcph->seqno() = seqno;
         tcph->ackno() = ackno;
         tcph->flags() = pflags;
         tcph->hlen() = headersize();
         tcph->ts() = now();
 	tcph->ts_echo() = ts_peer_;
+	fh->ect() = ect_;	// on after mutual agreement on ECT
 
 	/* Open issue:  should tcph->reason map to pkt->flags_ as in ns-1?? */
         tcph->reason() |= reason;
@@ -626,7 +628,7 @@ int FullTcpAgent::predict_ok(Packet* pkt)
 	int p2 = ((tcph->flags() & (TH_ACK|TH_PUSH)) == tcph->flags());
 	int p3 = (tcph->seqno() == rcv_nxt_);		// in-order data
 	int p4 = (t_seqno_ == maxseq_);			// not re-xmit
-	int p5 = (fh->ecn_ == 0);			// no ECN
+	int p5 = (fh->ecnecho() == 0);			// no ECN
 
 		// no timestamp, or no ts in this pkt, or ok ts
 	int p6 = (!ts_option_ || fh->no_ts_ || (tcph->ts() >= recent_));
@@ -711,11 +713,13 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
 
 	int needoutput = FALSE;
 	int ourfinisacked = FALSE;
 	int dupseg = FALSE;
 	int todrop = 0;
+	int cebit = (ecn_ && fh->ce()) ? 1 : 0;	// congestion experienced
 
 	last_state_ = state_;
 
@@ -742,6 +746,18 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		delack_timer_.resched(delack_interval_ * (last + 1.0) - now());
 	}
 
+	//
+	// sanity check for ECN: shouldn't be seeing a CE bit if
+	// ECT wasn't set on the packet first.  If we see this, we
+	// probably have a misbehaving router...
+	//
+
+	if (cebit && !fh->ect()) {
+		fprintf(stderr,
+		    "%f: FullTcpAgent::recv(%s): warning: CE bit on, but ECT false!\n",
+			now(), name());
+	}
+
 
 	// note predict_ok() false if PUSH bit on
 	if (predict_ok(pkt)) {
@@ -751,7 +767,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			if (ackno > highest_ack_ && ackno < maxseq_
 				&& cwnd_ >= wnd_) {
 				newack(pkt);
-				opencwnd();
+				if (!cebit)
+					opencwnd();
 				if ((curseq_ + iss_) > highest_ack_) {
 					/* more to send */
 					send_much(0, REASON_NORMAL, 0);
@@ -855,6 +872,12 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			highest_ack_ = ackno;
 			newstate(TCPS_ESTABLISHED);
 			cwnd_ = initial_window();
+			if (ecn_) {
+        			hdr_flags *fh =
+				    (hdr_flags *)pkt->access(off_flags_);
+				if (fh->ecnecho())
+					ect_ = TRUE;
+			}
 
 #ifdef notdef
 /*
@@ -993,6 +1016,12 @@ trimthenstep6:
 		}
 		newstate(TCPS_ESTABLISHED);
 		cwnd_ = initial_window();
+		if (ecn_) {
+			hdr_flags *fh =
+			    (hdr_flags *)pkt->access(off_flags_);
+			if (fh->ecnecho())
+				ect_ = TRUE;
+		}
 		/* fall into ... */
 
         /*
