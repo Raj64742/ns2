@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.5 2001/07/18 02:10:46 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.6 2001/07/18 04:24:08 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -404,16 +404,16 @@ Test/onedrop_numdup4_sack instproc init {} {
 #       $self setup FullTcpSack1 {5}
 #}
 
-Class Test/onedrop_numdup4_sack_full -superclass TestSuite
-Test/onedrop_numdup4_sack_full instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	onedrop_numdup4_sack_full
-	Agent/TCP/FullTcp set tcprexmtthresh_ 4
-	$self next
-}
-Test/onedrop_numdup4_sack_full instproc run {} {
-        $self setup FullTcpSack1 {5}
-}
+# Class Test/onedrop_numdup4_sack_full -superclass TestSuite
+# Test/onedrop_numdup4_sack_full instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
+# 	set test_	onedrop_numdup4_sack_full
+# 	Agent/TCP/FullTcp set tcprexmtthresh_ 4
+# 	$self next
+# }
+# Test/onedrop_numdup4_sack_full instproc run {} {
+#         $self setup FullTcpSack1 {5}
+# }
 
 TestSuite runTest
