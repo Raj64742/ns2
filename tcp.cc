@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.39 1997/10/13 22:24:44 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.40 1997/10/23 01:15:30 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -782,10 +782,12 @@ void TcpAgent::timeout(int tno)
 void TcpAgent::finish() {
 	char wrk[100];
 
-	if (finish_ != "") {
+	if (finish_[0] != 0) {
 		sprintf(wrk, "%s", finish_);
 		Tcl::instance().eval(wrk);
 	}
+	// john hack (currently for evaluation)
+	Tcl::instance().evalf("%s done", this->name());
 }
 
 void RtxTimer::expire(Event*) {
