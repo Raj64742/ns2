@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.2 2004/07/24 19:40:41 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.3 2004/07/30 22:52:19 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -77,7 +77,6 @@ void XcpAgent::output(int seqno, int reason)
         }
 
 	// Beginning of XCP Changes
-	double mss = double(hdr_cmn::access(p)->size());
 	hdr_xcp *xh = hdr_xcp::access(p);
 	xh->xcp_enabled_ = hdr_xcp::XCP_ENABLED;
 	xh->cwnd_ = double(cwnd_);
@@ -86,7 +85,7 @@ void XcpAgent::output(int seqno, int reason)
 	
 #define MAX_THROUGHPUT	1e24
 	if (srtt_estimate_ != 0) {
-		xh->throughput_ = cwnd_ * mss / srtt_estimate_;
+		xh->throughput_ = window() * size_ / srtt_estimate_;
 		xh->delta_throughput_ = (MAX_THROUGHPUT-xh->throughput_);
 	} else {
 		xh->throughput_ = .1; //XXX
@@ -166,6 +165,7 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 		trace_var("controlling_hop_", xh->controlling_hop_);
 	}
 	double delta_cwnd =  xh->reverse_feedback_ * srtt_estimate_ / size_;
+	//double delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
 	double newcwnd = cwnd_ + delta_cwnd;
 	if (newcwnd < 1.0)
 		newcwnd = 1.0;
@@ -235,11 +235,25 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 
 void XcpAgent::rtt_update(double tao)
 {
+#define FIX1 1 /* 1/0 : 1 for experimental XCP changes, works only with timestamps */
+#define FIX2 1 /* 1/0 : 1 for experimental XCP changes */
 	double now = Scheduler::instance().clock();
-	if (ts_option_)
+	double sendtime = now - tao; // XXX instead, better pass send/recv times as args
+	if (ts_option_) {
+#if FIX1
+		int send_tick = int(sendtime/tcp_tick_);
+		int recv_tick = int(now/tcp_tick_);
+		t_rtt_ = recv_tick - send_tick;
+#else
 		t_rtt_ = int(tao /tcp_tick_ + 0.5);
-	else {
-		double sendtime = now - tao;
+#endif /* FIX1 */
+	} else {
+		// XXX I don't understand this business with
+		// boot_time_, and so not quite sure what FIX1 should
+		// look like in this case perhaps something like:
+		//      t_rtt_ = int(now/tcp_tick_) - int((sendtime - tickoff)/tcp_tick_);
+		// for now FIX1 works only with timestamps.
+ 
 		sendtime += boot_time_;
 		double tickoff = fmod(sendtime, tcp_tick_);
 		t_rtt_ = int((tao + tickoff) / tcp_tick_);
@@ -253,7 +267,11 @@ void XcpAgent::rtt_update(double tao)
 	//
         if (t_srtt_ != 0) {
 		register short delta;
+#if FIX2
+		delta = t_rtt_ - ((t_srtt_+(1<<(T_SRTT_BITS-1))) >> T_SRTT_BITS);	// d = (m - a0)
+#else
 		delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);	// d = (m - a0)
+#endif /* FIX2 */
 		if ((t_srtt_ += delta) <= 0)	// a1 = 7/8 a0 + 1/8 m
 			t_srtt_ = 1;
 		if (delta < 0)
@@ -267,7 +285,7 @@ void XcpAgent::rtt_update(double tao)
 	}
 
 	// XCP changes
-	srtt_estimate_ = (double)t_srtt_ * tcp_tick_/(1<<T_SRTT_BITS);
+	srtt_estimate_ = double(t_srtt_) * tcp_tick_ / double(1<<T_SRTT_BITS);
 
 	if (TRACE) {
 		printf("%d:  %g  SRTT %g, RTT %g \n", tcpId_, now, srtt_estimate_, tao);
@@ -443,6 +461,7 @@ void XcpSink::ack(Packet* opkt)
 	hdr_xcp* nxcp = (hdr_xcp*)npkt->access(off_xcp_);
 	nxcp->xcp_enabled_ = hdr_xcp::XCP_ACK; // XXX can it just be disabled?
        	nxcp->reverse_feedback_ = oxcp->delta_throughput_;
+	nxcp->rtt_ = oxcp->rtt_; /* XXX relay back original rtt for debugging */
 	// End of XCP Changes
 
 	acker_->append_ack(hdr_cmn::access(npkt),
