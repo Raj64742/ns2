@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.8 1998/01/16 20:31:44 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.9 1998/01/20 01:32:59 kfall Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -46,6 +46,10 @@ static const char rcsid[] =
 
 #include <stdio.h>
 #include "rng.h"
+
+#ifndef MAXINT
+#define	MAXINT	2147483648	// XX [for now]
+#endif
 
 #if defined(sun)
 extern "C" {			// XXX Why not include config.h?
