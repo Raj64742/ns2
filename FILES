@@ -1753,6 +1753,7 @@ tcl/test/test-output-simple/reno5.Z
 tcl/test/test-output-simple/renoA.Z
 tcl/test/test-output-simple/stats.Z
 tcl/test/test-output-simple/stats1.Z
+tcl/test/test-output-simple/stats2.Z
 tcl/test/test-output-simple/tahoe1.Z
 tcl/test/test-output-simple/tahoe2.Z
 tcl/test/test-output-simple/tahoe3.Z
