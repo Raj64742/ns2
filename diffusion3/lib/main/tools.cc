@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: tools.cc,v 1.8 2003/09/09 22:39:56 haldar Exp $
+// $Id: tools.cc,v 1.9 2003/09/24 17:36:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,11 +36,11 @@ void GetTime(struct timeval *tv)
   long sec, usec;
 
   time = Scheduler::instance().clock();
-  sec = (unsigned long)(time * 1000000) / 1000000;
-  usec = (unsigned long)(time * 1000000) % 1000000;
+  sec = time;
+  usec = (time - sec) * 1000000;
   tv->tv_sec = sec;
   tv->tv_usec = usec;
-  //printf("tv->sec = %ld, tv->usec = %ld\n", tv->tv_sec, tv->tv_usec);
+  DiffPrintWithTime(DEBUG_NEVER, "tv->sec = %ld, tv->usec = %ld\n", tv->tv_sec, tv->tv_usec);
 #else
   gettimeofday(tv, NULL);
 #endif // NS_DIFFUSION
