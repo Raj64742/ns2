@@ -19,7 +19,7 @@ class EnergyModel : public TclObject {
 public:
   EnergyModel(double energy) { energy_ = energy; }
   inline double energy() { return energy_; }
-  inline void setenergy(double e) {energy_ = 0;}
+  inline void setenergy(double e) {energy_ = e;}
   virtual void DecrTxEnergy(double txtime, double P_tx) {
     energy_ -= (P_tx * txtime);
   }
