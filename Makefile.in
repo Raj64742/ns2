@@ -1,0 +1,157 @@
+#  Copyright (c) 1994, 1995, 1996
+# 	The Regents of the University of California.  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that: (1) source code distributions
+#  retain the above copyright notice and this paragraph in its entirety, (2)
+#  distributions including binary code include the above copyright notice and
+#  this paragraph in its entirety in the documentation or other materials
+#  provided with the distribution, and (3) all advertising materials mentioning
+#  features or use of this software display the following acknowledgement:
+#  ``This product includes software developed by the University of California,
+#  Lawrence Berkeley Laboratory and its contributors.'' Neither the name of
+#  the University nor the names of its contributors may be used to endorse
+#  or promote products derived from this software without specific prior
+#  written permission.
+#  THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)
+
+#
+# Various configurable paths (remember to edit Makefile.in, not Makefile)
+#
+
+# Top level hierarchy
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+# Pathname of directory to install the binary
+BINDEST = @bindir@
+# Pathname of directory to install the man page
+MANDEST = @mandir@
+
+#XXX
+TCL2C++ = ../Tcl/tcl2c++
+
+#
+# You shouldn't need to edit anything below here.
+#
+
+CC = @CC@
+C++ = @CXX@
+#CCOPT = @V_CCOPT@
+CCOPT = -g
+
+MKDEP = ./mkdep
+LIB =  /usr/src/mash/Tcl/libTcl.a /usr/src/local/otcl/libotcl.a \
+	@V_LIB_TCL@ @V_LIB@ -lm @LIBS@
+INCLS = -I/usr/src/local/otcl -I/usr/src/mash/Tcl -I. @V_INCLUDE_TCL@ @V_INCLUDE_MISC@
+DEFS = @DEFS@ -DNO_TK
+STATIC = @V_STATIC@
+
+CFLAGS =  $(INCLS) $(DEFS) $(CCOPT)
+
+INSTALL = @INSTALL@
+RANLIB = @V_RANLIB@
+@V_SHELL@
+
+# Explicitly define compilation rules since SunOS 4's make doesn't like gcc.
+# Also, gcc does not remove the .o before forking 'as', which can be a
+# problem if you don't own the file but can write to the directory.
+.SUFFIXES: .cc $(.SUFFIXES)
+
+.cc.o:
+	@rm -f $@
+	$(C++) -o $@ -c $(CFLAGS) $*.cc
+
+.c.o:
+	@rm -f $@
+	$(CC) -o $@ -c $(CFLAGS) $*.c
+
+OBJ_CC = \
+	scheduler.o ns_tclsh.o object.o \
+	classifier.o classifier-addr.o classifier-mcast.o replicator.o \
+	packet.o node.o agent.o cbr.o misc.o \
+	delay.o queue.o drop-tail.o random.o trace.o \
+	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
+	tcplib-telnet.o red.o route.o \
+	loss-monitor.o message.o ivs.o \
+	scoreboard.o tcp-sack1.o \
+	session-rtp.o rtp.o rtcp.o
+#	cbq.o
+
+OBJ_GEN = gen/version.o gen/ns_tcl.o
+
+SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc)
+
+OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN)
+HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
+	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
+	cbr.h rtp.h
+
+CLEANFILES = ns ns.dyn $(OBJ) $(GENSRC) core core.ns
+
+ns: $(OBJ) @V_DEP@
+	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) $(LIB)
+
+ns.dyn: $(OBJ) @V_DEP@
+	$(C++) -o $@ $(CFLAGS) $(OBJ) $(LIB)
+
+gen/version.c: VERSION
+	@rm -f $@
+	cat VERSION | sed 's/.*/char version_string[] = "&";/' > $@
+
+NS_TCL_LIB = \
+	tcl/lib/ns-compat.tcl \
+	tcl/lib/ns-default.tcl \
+	tcl/lib/ns-lib.tcl \
+	tcl/lib/ns-link.tcl \
+	tcl/lib/ns-mcast.tcl \
+	tcl/lib/ns-node.tcl \
+	tcl/lib/ns-source.tcl \
+	tcl/lib/ns-nam.tcl \
+	tcl/rtp/session-rtp.tcl
+
+gen/ns_tcl.cc: $(NS_TCL_LIB)
+	@rm -f $@
+	( cd tcl/lib; tclsh ../../tcl-expand.tcl ns-lib.tcl ) \
+		| $(TCL2C++) et_ns_lib >> $@
+
+install: force
+	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
+
+install-man: force
+	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
+
+clean:
+	rm -f $(CLEANFILES)
+
+distclean:
+	rm -f $(CLEANFILES) Makefile config.cache config.log config.status \
+	    gnuc.h os-proto.h
+
+tags:	force
+	ctags -wtd *.cc *.h ../Tcl/*.cc ../Tcl/*.h
+
+depend: $(SRC)
+	$(MKDEP) $(CFLAGS) $(SRC)
+
+srctar:
+	@cwd=`pwd` ; dir=`basename $$cwd` ; \
+	    name=ns-`cat VERSION | tr A-Z a-z` ; \
+	    tar=ns-src-`cat VERSION`.tar.gz ; \
+	    list="" ; \
+	    for i in `cat FILES` ; do list="$$list $$name/$$i" ; done; \
+	    echo \
+	    "(rm -f $$tar; cd .. ; ln -s $$dir $$name)" ; \
+	     (rm -f $$tar; cd .. ; ln -s $$dir $$name) ; \
+	    echo \
+	    "(cd .. ; tar cfh $$tar [lots of files])" ; \
+	     (cd .. ; tar cfh - $$list) | gzip -c > $$tar ; \
+	    echo \
+	    "rm ../$$name; chmod 444 $$tar" ;  \
+	     rm ../$$name; chmod 444 $$tar
+
+force:
+

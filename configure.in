@@ -1,0 +1,158 @@
+dnl Process this file with autoconf to produce a configure script.
+dnl
+AC_INIT(ns_tclsh.cc)
+
+AC_CANONICAL_SYSTEM
+
+AC_PROG_CC
+AC_PROG_CXX
+AC_STDC_HEADERS
+AC_HAVE_HEADERS(string.h)
+
+if test -z "$PWD" ; then
+    PWD=`pwd`
+fi
+
+AC_TEST_CPP([#include <tcl.h>], V_INCLUDE_TCL="", V_INCLUDE_TCL=FAIL)
+if test "$V_INCLUDE_TCL" = FAIL; then
+	echo "checking for tcl.h"
+	places="$PWD/../tcl7.5 \
+		$prefix/include \
+		$x_includes/tk \
+		$x_includes \
+		/usr/local/include \
+		/usr/include \
+		/import/tcl/include/tcl7.5"
+	for dir in $places; do
+		if test -r $dir/tcl.h ; then
+			V_INCLUDE_TCL=-I$dir
+		        break
+		fi
+	done
+	if test "$V_INCLUDE_TCL" = FAIL; then
+		echo "can't find tcl.h"
+		exit 1
+	fi
+fi
+AC_SUBST(V_INCLUDE_TCL)
+
+AC_CHECK_LIB(tcl, main, V_LIB_TCL="-ltcl75", V_LIB_TCL="FAIL")
+if test "$V_LIB_TCL" = FAIL; then
+	echo "checking for libtcl75.a"
+	places="$PWD/../tcl75 \
+		$prefix/lib \
+		$x_libraries \
+		/usr/local/lib \
+		/usr/lib \
+		/import/tcl/lib/tcl75"
+	for dir in $places; do
+		if test -r $dir/libtcl75.a ; then
+			V_LIB_TCL="-L$dir -ltcl75"
+			break
+		fi
+	done
+	if test "$V_LIB_TCL" = FAIL; then
+		echo "can't find libtcl75.a"
+		exit 1
+	fi
+fi
+
+AC_CHECK_LIB(socket, main)
+AC_CHECK_LIB(nsl, main)
+
+V_DEP=""
+AC_CHECK_LIB(stdc++, main, have_stdcxx=yes, have_stdcxx=no)
+if test $have_stdcxx = no ; then
+	LIBS="-L. $LIBS"
+	V_DEP="$V_DEP libstdc++.a"
+	AC_CHECK_PROGS(V_RANLIB, ranlib, @true)
+fi
+
+AC_SUBST(V_LIB_TCL)
+
+V_LIB=""
+
+#XXX
+if test $ac_cv_prog_gcc = yes ; then
+	V_STATIC="-static"
+else
+	V_STATIC="-Bstatic"
+fi
+
+AC_ARG_ENABLE(debug,   --enable-debug		build with debugging enabled, V_CCOPT="-g", V_CCOPT="-O2")
+
+V_SHELL=""
+
+case "$target" in
+sparc-sun-solaris*)
+	AC_CHECK_LIB(dl, main)
+	V_STATIC=""
+	if test $ac_cv_prog_gcc = yes ; then
+		V_CCOPT="$V_CCOPT -mv8 -msupersparc"
+	fi
+	;;
+
+*-sgi-irix5*)
+	AC_DEFINE(IRIX5)
+	AC_DEFINE(_BSD_SIGNALS)
+	if test "$target_os" = irix5.3 ; then
+		AC_DEFINE(IRIX5_3)
+	fi
+	V_SHELL="SHELL = /bin/sh"
+	if test $ac_cv_prog_gcc = no ; then
+		V_CCOPT="$V_CCOPT -xansi -signed -g3"
+		AC_DEFINE(__STDC__)
+		AC_DEFINE(inline,)
+		V_CXXOPT="$V_CXXOPT +p -float"
+		AC_DEFINE(SGI_COMPAT)
+	fi
+	V_STATIC=""
+	;;
+
+*-*-netbsd*)
+	V_LIB="$V_LIB -L/usr/local/lib"
+	;;
+
+*-*-hpux*)
+	AC_DEFINE(random,lrand48)
+	AC_DEFINE(srandom,srand)
+	V_CCOPT="-O"
+esac
+
+if test "$host_cpu" = alpha ; then
+	AC_DEFINE(INT_64,u_long)
+fi
+
+# various include hacks
+V_INCLUDE_MISC=""
+dirs="/usr/src/local/include-fixes"
+for dir in $dirs; do
+	if test -d $dir ; then
+		V_INCLUDE_MISC="$V_INCLUDE_MISC -I$dir"
+	fi
+done
+
+V_TAR_PREFIX=$target
+AC_SUBST(V_TAR_PREFIX)
+
+AC_SUBST(V_STATIC)
+AC_SUBST(V_ALL)
+AC_SUBST(V_CCOPT)
+AC_SUBST(V_CXXOPT)
+AC_SUBST(V_LIB)
+AC_SUBST(V_SHELL)
+AC_SUBST(V_INCLUDE_MISC)
+AC_SUBST(V_LIB)
+AC_SUBST(V_DEP)
+
+AC_PROG_INSTALL
+
+AC_OUTPUT(Makefile)
+
+if test ! -d gen ; then
+	mkdir gen
+fi
+
+if test -f .devel ; then
+	make depend
+fi

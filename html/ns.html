@@ -1,0 +1,145 @@
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/html/Attic/ns.html,v 1.1 1996/12/19 03:22:46 mccanne Exp $-->
+<html>
+<head><title>UCB/LBNL Network Simulator</title></head>
+<body>
+
+<h1>
+ns - UCB/LBNL Network Simulator
+</h1>
+
+<hr>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href=#overview>Overview</a>
+<li><a href=#installation>Installation</a>
+<li><a href=#ack>Acknowledgments</a>
+<li><a href=#feedback>Feedback to authors</a>
+</ul>
+
+Other links:
+<ul>
+<li><a href=ftp://ftp.ee.lbl.gov/ns.tar.gz>Source Code</a>
+<li><a href="ns1_class_hier.gif">C++ Class Hierarchy Diagram (v1)</a>
+<li><a href="CHANGES.html">Browse the change history</a>
+<li><a href="ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z">Simulator
+	Tests document</a>
+<li><a href="ftp://ftp.ee.lbl.gov/papers/cbqsims.ps.Z">
+  Ns Simulator Tests for Class-Based Queueing</a>
+<li><a href="other.html">Research done with ns</a>
+</ul>
+
+<a name=overview>
+<hr>
+<h3>Overview</h3>
+</a>
+The UCB/LNBL Network Simulator, "ns", is a simulation tool originally
+developed by
+<a href="http://www.cs.berkeley.edu/">Steven McCanne</a>
+previously with the
+<a href="http://www-nrg.ee.lbl.gov/">Network Research Group</a>
+at the
+<a href="http://www.lbl.gov/LBL.html">Lawrence Berkeley National Laboratory</a>.
+He and his group have continued working XXX.
+and now is part
+<a href=http://netweb.usc.edu/vint/">VINT</a> Project.
+
+ns is an extensible, easily configured
+and programmed event-driven simulation engine, with support for
+several flavors of TCP and router scheduling algorithms.  This work
+derives from <a href="http://netlib.att.com/netlib/att/cs/home/keshav.html">
+S. Keshav's</a>
+<a href="http://minnie.cs.adfa.oz.au/REAL/">
+REAL simulator</a>.
+
+<p>
+The ns simulation description language is an extension of
+the Tool Command Language, <a href=http://www.sunlabs.com/research/tcl/>
+Tcl</a>.  A simulation is defined by a Tcl program.  Using the ns command,
+a network topology is defined, traffic sources and sinks are
+configured, statistics are collected, and the simulation is invoked.
+By building upon a general-purpose language, arbitrary actions
+can be programmed into the configuration.
+
+<a name=installation><hr></a>
+<h3>Installation</h3>
+
+To build ns from source, simply run the ./configure script in
+the top-level of the distribution directory.  Then run 'make'.
+You'll need to have Tcl (v7.5) installed (or built in
+the directory above the ns tree).  If you use gcc for the
+compiler, you should use gcc version 2.7.2 or later;  ns 
+<a href="http://www-nrg.ee.lbl.gov/ns/compilers.html">
+does not run correctly</a> 
+with older versions of gcc and with some other compilers.  
+ns is also not compatible 
+with Tcl older than version 7.5.  ns should compile and run
+an any unix system that Tcl runs on.  
+
+<p>
+To build ns from source to enable debugging, simply run ``./configure
+--enable-debug''.
+
+<p>
+If you have to make changes in order to compile ns, please send in your
+patches.  Likewise, if you encounter bugs or unexpected behavior,
+please contact <a href=mailto:ns@magnet.cs.berkeley.edu>
+ns@magnet.cs.berkeley.edu</a>
+(this list includes only the developers
+and is not distributed beyond our site).  Finally, if you implement ns
+extensions that others can benefit from, please (if possible) send them
+in for inclusion in a future release.
+
+<p>
+You might run the following command as a quick test to verify
+that ns built correctly:
+
+<p>
+    % ./ns tcl/ex/test-suite.tcl tahoe1
+
+<p>
+You should see some debugging output on stdout, then an xgraph
+window will pop-up with a sequence plot of the connection.
+For this script to work properly,
+the <a href=http://jean-luc.ncsa.uiuc.edu/Codes/xgraph/>
+``animated'' version of xgraph</a> and awk must both be in your path.
+See test-suite.tcl and example.tcl for more examples.  A note
+describing the test suite is in
+<a href="ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z">
+ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z</a>.
+If you make changes to the simulator, you might want to make sure
+you haven't introduced bugs by running Matt Mathis' (mathis@psc.edu)
+test-all script, which is included in the distribution.
+
+<p>
+The (still rough) man page, in this directory, is the only other
+source of documentation.
+
+<p><hr>
+<h3><a name=ack>Acknowledgments</a></h3>
+<p>
+Funding for this work was provided by the
+<a href=http://www.er.doe.gov/production/octr/mics/index.html>
+Office of Energy Research, Mathematical, Information, and Computational
+Sciences Division, of the U.S. Department of Energy</a> under
+Contract No. DE-AC03-76SF00098, and an AT&T Graduate Fellowship.
+Equipment grants and support were provided by Sun Microsystems,
+Digital Equipment Corporation, and Silicon Graphics Inc.
+
+<p><hr>
+<h3><a name=feedback>Feedback</a></h3>
+
+As always, we very much want to hear about bugs and problems.  Please
+don't hesitate to offer suggestions or other feedback.  Send all ns
+related correspondence to
+<a href=mailto:ns@magnet.cs.berkeley.edu>ns@magnet.cs.berkeley.edu</a>
+(this list includes only the developers and is not distributed beyond
+our site).
+
+<p>
+<a href="http://www.cs.berkeley.edu/~mccanne/">Steve McCanne</a>
+(mccanne@eecs.berkeley.edu) <br>
+<a href="http://www-nrg.ee.lbl.gov/floyd/">Sally Floyd</a>
+(floyd@ee.lbl.gov)
+</body></html>

@@ -1,0 +1,483 @@
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.1 1996/12/19 03:22:44 mccanne Exp $-->
+<html><head><title>ns Change Log</title></head><body>
+<h1>ns: Change History</h1>
+<ul>
+
+<li><b><a href="http://www.cs.berkeley.edu/~elan">[EA]</a></b>
+Added very first rough draft of NamSimulator that produces a nam_config 
+for automatic layout.
+
+<li><b><a href="http://www.cs.berkeley.edu/~elan">[EA]</a></b>
+Added RTP Session class along with RTP and RTCP agents.
+
+</ul>
+
+<hr>
+<h3><a href=www-mash.cs.berkeley.edu/mash/ns-2.0a4.tar.gz>ns-2.0a4</a>
+<i>Sun Nov 10 11:06:46 PST 1996</i></h3>
+<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+collaborators.</i>
+<ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Removed re-parenting hooks from <i>ns-lib.tcl</i> since
+TclClass now automatically makes all the classes in
+a class path name.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Ported partially completed <i>ivs</i> module from ns-1.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Fix from
+<a href=http://www-scf.usc.edu/~ahelmy/>Ahmed A-G Helmy</a>
+to omit unecessary code in <i>MultiNode::init</i>.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Coalesce multiple sources into a single graft message
+to avoid dropped grafts with a large number of messages
+would otherwise blast into the first hop and overflow
+the queue (grafts are not yet sent reliably).
+
+</ul>
+
+<hr>
+<h3><a href=www-mash.cs.berkeley.edu/mash/ns-2.0a3.tar.gz>ns-2.0a3</a>
+<i>Sun Nov 10 11:06:46 PST 1996</i></h3>
+<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+collaborators.</i>
+<ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Implemented simple RPF style flood and prune multicast
+(see <i>tcl/lib/ns-mcast.tcl</i>).  Multicast routing object
+is build from a number of classifier objects (e.g.,
+the primary classifier routes the packet either to a multicast
+or to a unicast classifier based on the multicast bit in the
+in the destination address).
+Multicast routes are computed statically from unicast routes.
+Prune timers are not yet implemented and grafts are currently
+sent unreliably.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Created <i>Node</i> and <i>Link</i> classes to clean up
+<i>Simulator</i> class and allow these objects to be
+more easily abstracted into composite object.  E.g.,
+a multicast-node is composed of a number of sub-objects.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Use re-parenting trick across a lot more classes in <i>ns-lib.tcl</i>.
+Created <i>source</i> base class
+for <i>source/ftp</i>, <i>source/telnet</i>, etc.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Modified tcp-sink module to avoid virtual multiple inheritance
+(this causes too many problems with non-compliant C++ compilers).
+Created Acker and Sacker classes that are instanced in
+the sink classes.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Type-cast bug fixes from
+<a href=http://www-scf.usc.edu/~ahelmy/>
+Ahmed A-G Helmy</a>.
+
+</ul>
+
+<hr>
+<h3><a href=www-mash.cs.berkeley.edu/mash/ns-2.0a2.tar.gz>ns-2.0a2</a>
+<i>Thu Nov 7 1996</i></h3>
+<i>Snapshot to <a href=http://netweb.usc.edu/vint/>VINT</a>
+collaborators.</i>
+<ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+First cut at multicast router from fine-grained
+objects.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Add missing files to FILES.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Implemented <i>replicator</i> and <i>classifier/mcast</i> objects 
+as first step toward supporting multicast routers and broadcast LANs.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Clean up class interface.  Created <i>Simulator</i> OTcl class as uniform
+API for manipulating simulator.  Moved almost all of the ns-1
+backward compatability code into a new class called <i>OldSim</i>.
+
+</ul>
+
+<hr>
+<h3><a href=www-mash.cs.berkeley.edu/mash/ns-2.0a1.tar.gz>ns-2.0a1</a>
+<i>Wed Nov  6 13:57:31 PST 1996</i></h3>
+<i>Pre-release to <a href=http://netweb.usc.edu/vint/>VINT</a>
+collaborators.</i>
+
+<ul>
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Major architectural changes.  Object are now finer grained.
+We have developed a more cleanly defined Tcl API so that developers
+can change the back-end while more easily maintaining backward
+compatibility. 
+The simulator is now based entirely
+MIT's <a href=ftp://ftp.tns.lcs.mit.edu/pub/otcl/README.html>
+Object Tcl</a>.
+The TclClass C++ base class replaces the old Matcher class.
+An OTcl class is created in C++ by statically declaring
+a derived subclass of TclClass.  OTcl makes it easy to
+extend a class with new methods either on the C++ side
+or the Tcl side.
+
+</ul>
+
+<hr>
+<h3>v1.0 Tue Jul 23 11:27:17 PDT 1996</h3>
+<ul>
+<li>Added a hook to dump a stack trace and exit when a background
+error is encounter (i.e., an error in a proc scheduled with ns-at).
+This makes it MUCH easier to debug simulator scripts that have
+syntax erros and what not in scheduled tcl stubs.
+
+<li> Removed sack-tcp.cc from distribution.  This leaves tcp-sack1.cc
+as the only SACK TCP implementation distributed with ns.
+
+<li>Put back hook to source "~/.ns.tcl" since people rely on this.
+Fix provided by <a href=mailto:jtw@mercury.lcs.mit.edu>John Wroclawski</a>.
+
+</ul>
+
+<hr>
+<h3>v1.0b4 Mon May  6 22:22:31 PDT 1996</h3>
+<ul>
+<li>Corrected fix to TCP's window decrease algorithm in
+v1.0b2.  Now, after a Reno Fast Retransmit, the window decreases 
+to min(cwnd_, wnd_)/2, not to cwnd_/2 (before v1.0b2) or to
+min(cwnd_ + dupwnd_, wnd_)/2 (as in v1.0b2,3).
+
+<li>Corrected calculation of congestion window for NewReno TCP for
+the case when multiple packets are dropped from a single window of data.
+
+<li>Fixed bug in tcp-sink.cc that allowed an infinite loop under some
+circumstances when the number of outstanding packets in TCP was exactly 
+MWS-1.  Also added a note to the man page about MWS and other constants 
+in ns.  Thanks to <a href=mailto:suter@big.att.com>Bernhard Suter</a> for
+the bug report and fix.
+
+<li>In TCP, changed the constant TCP_TICK to the variable tcp_tick_,
+with the default set in ns_default.tcl.
+
+</ul>
+
+<hr>
+<h3>v1.0b3 Mon Apr 29 19:10:33 PDT 1996</h3>
+<ul>
+<li>Ported to Tcl v7.5.  Changed trace objects to use new Tcl_Channel
+abstraction (for O/S indepedence).  <i>ns</i> will NOT compile with
+earlier versions of Tcl.
+
+<li>Added the parameter "maxcwnd", for the maximum congestion window,
+and corrected the use of "window", the receiver's advertised window,
+in the reno and sack implementations of TCP.
+
+<li>Changed some of the *.tcl scripts to take into account the
+corrected use of the receiver's advertised window, and to use
+"maxcwnd".
+
+</ul>
+
+<hr>
+<h3>v1.0b2 Fri Mar 29 16:40:25 PST 1996</h3>
+<ul>
+<li>Changed interpreter to not source ".ns.tcl" since tcl no longer
+uses the tcl_RcFileName C variable.
+
+<li>Fixed a couple more SunPro C++ compiler problems.  Patcjes
+from <a href=mailto:earce@ukraine.corp.mot.comf>Michael Pearce</a>.
+
+<li>Corrected TCP's window decrease algorithm from "cwnd_ /= 2;"
+to "cwnd_ = window() / 2;".  Thanks to
+<a href=mailto:tzieg@cosy.sbg.ac.at>Thomas Ziegler</a> for the
+bug report.
+
+</ul>
+
+<hr>
+<h3>v1.0b1 Sun Mar 3 1996</h3>
+<ul>
+<li>Fixed bug in tcp.cc that caused the retransmit timeout backoff behavior
+never to reset.  Thanks to 
+<a href=mailto:mahdavi@psc.edu>Jamshid Mahdavi</a> 
+for reporting both the bug and the fix.
+
+<li>Fixed bug in tcplib telnet module.  Random number generator was
+being seeded on each call (from the system clock) rather than once
+at start-up.  Replaced calls to random number routines with calls
+to Random::uniform.  Thanks to
+<a href=mailto:vogels@CS.Cornell.EDU>Werner Vogels</a>
+for reporting this bug.
+
+<li>Added local explicit-join notification for experimentation
+with RLM.
+
+<li>Added a "message" agent that allows abibtrary message packets to be sent
+and received using tcl.
+
+<li>Moved type-specific packet fields into a "body" union.
+Eliminated "reason" field (rather than move it to tcp body)
+since we should have just used the "flags" field to begin with.
+
+<li>Added tracing functionality to loss-monitor agents (e.g., so we can
+compute sliding window loss statistics using an external tool).
+
+<li>Changed ns-now to use 17 digits of precision.  Otherwise, truncation
+could cause certain algorithms (e.g., RLM) to try to schedule events
+into the past.
+
+<li>Added "random" attribute to cbr sources to cause them to generate
+a Poisson rather than fixed-rate packet stream.
+
+<li>Fixed bug in RED initialization that could cause (almost-) infinite
+loop at start up.
+
+<li>Incorporated patches from
+<a href=mailto:pearce@ukraine.corp.mot.com>Michael Pearce</a> to
+compile with SunPro C++ v3.0.1.
+
+<li>Fixed bug that caused memory corruption when using class ID's
+larger than 10.
+
+</ul>
+
+<hr>
+<h3>v1.0a17 Thu Dec 27 1995</h3>
+<ul>
+
+<li>Finished port of "tcp-sack1" and "sack1-tcp-sink", a second
+format for selective acks.
+
+<li>Added "bursty" source for tcp connections.
+
+<li>Added new loss policies for drop-tail links, "lossy-uniform" and 
+"lossy-det".  [Kevin Fall].
+
+<li>Added more test files to the distribution:  test-all-cbq,
+test-all-red, test-all-sack, and test-sack, in addition to test-all.
+
+</ul>
+
+<hr>
+<h3>v1.0a16 <i>Tue Dec 12 19:05:56 PST 1995</i> </h3>
+<ul>
+
+<li>Added source code for sack-tcp.cc. 
+
+</ul>
+
+<hr>
+<h3>v1.0a15 <i>Tue Dec 12 17:52:32 PST 1995</i> </h3>
+<ul>
+
+<li>First cut at adding code for "tcp-sack1" and "sack1-tcp-sink",
+from Matt Mathis (mathis@zippy.psc.edu) and Jamshid Mahdavi
+(mahdavi@psc.edu).
+
+<li>Changed format of window and RTT reports sent from tcp.cc to the
+trace file.
+
+<li>Added "maxpkts" for ftp and telnet sources.  
+
+</ul>
+
+<hr>
+<h3>v1.0a14  <i>Fri Dec  1 10:35:30 PST 1995</i></h3>
+<ul>
+
+<li>Finished port of TCP with selective acks, along with SACK
+acceptance tests in "test-sack".
+
+<li>Added a modified version of Reno TCP, tcp-newreno.cc, for research
+purposes.
+
+<li>Have not yet added tcp-sack or tcp-newreno to the man page.
+
+</ul>
+
+<hr>
+<h3>v1.0a13  <i>Wed Nov 22 15:14:50 PST 1995</i></h3>
+<ul>
+
+<li>Finished port of cbq code from tcpsim (with contributions from Michael 
+Speer), and added cbq simulator tests.
+
+<li>Added unique ID to each event in scheduler queue and added
+hook to lookup an event by using this ID.
+
+<li>Added hook for deleting <i>at</i> callbacks.
+
+<li>Fixed bugs in multicast delivery where agent could
+modify routing desstructors during the callback.
+
+<li>First cut at port of TCP with selective acks.
+
+</ul>
+
+<hr>
+<h3>v1.0a12  <i>Sun Nov 5 21:19</i></h3>
+<ul>
+<li>Added config.h and loss-monitor.cc to FILES so they get included in tar.
+</ul>
+
+<hr>
+<h3>v1.0a11  <i>Sun Nov 5 21:19</i></h3>
+<ul>
+
+<li>Added loss-monitor agent, which is the same as a null-sink but calls
+a tcl proc whenever there is a gap in the received sequence space.
+Will expand functionality as necessary for MMG experiments.
+
+<li>Integrated more mature tcl/c++ architecture from vic/vat.
+This has a major impact on the way ns objects are created and deleted,
+but we maintain backward compatibility with previous versions.
+The "ns" command is no longer implemented in C++, but rather as
+a library function (in ns_default.tcl) that provides glue between
+the old commands and the new "new/delete" interface.
+
+<li>First cut at port of cbq code from tcpsim.
+
+</ul>
+
+<hr>
+<h3>v1.0a10  <i>Fri Oct 27 17:44:39 PDT 1995</i></h3>
+<ul>
+
+<li>Added "flush" method to trace objects so that output can be
+flushed before exiting.
+
+<li>Added link-level src/dst fields to Packet class so node can tell
+which "interface" a packet arrived on.
+
+<li>Added support for dense-mode PIM style flooding with prune/graft
+machinery.
+
+</ul>
+
+<hr>
+<h3>v1.0a10  <i>Fri Oct 27 17:44:39 PDT 1995</i></h3>
+<ul>
+
+<li>Fixed test-suite.tcl so that old awk works.  Problem reported
+by <a href=mailto:kannan@catarina.usc.edu>Kannan Varadhan</a>.
+
+<li>Fixed Makefile.in to use V_LIB_TCL, as intended.  Fix supplied
+by <a href=mailto:kannan@catarina.usc.edu>Kannan Varadhan</a>.
+
+</ul>
+
+<hr>
+<h3>v1.0a9   <i>Wed Oct 11 16:58:00 PDT 1995</i></h3>
+<ul>
+
+<li>Fixed solaris compilation problems.
+
+<li>Changed configure to use "-mv8 -msupersparc" only for gcc.
+
+</ul>
+
+<hr>
+<h3>v1.0a8 <i>Fri Sep 29 15:11:04 PDT 1995</i></h3>
+<ul>
+
+<li>Fixed more for-stmt scope bugs.
+
+<li>Fixed compilation problems with Sun and DEC compilers.
+Problem reported by <a href=mailto:turletti@cayenne.lcs.mit.edu>
+Thierry Turletti</a>.
+
+</ul>
+	
+<hr>
+<h3>v1.0a7  <i>Wed Sep 27 19:55:23 PDT 1995</i></h3>
+<ul>
+
+<li>First public (alpha) release.
+
+<li>Included man page to FILES so it goes in tar.
+
+<li>Updated README.
+
+</ul>
+
+<hr>
+<h3>v1.0a6  <i>Sep 21 09:24 PDT 1995</i></h3>
+<ul>
+
+<li>Added "bug-fix" hook to tcp reno.
+
+<li>Ported to tcl-7.4.
+
+<li>Include <a href=mailto:mathis@psc.edu>Matt Mathis'</a> test-all script.
+
+<li>Changed "for" statement conventions to adhere to the proposed
+	<a href=http://www.cygnus.com/~mrs/wp-draft/stmt.html#stmt.for>
+	ANSI standard change</a> which re-defines the lexical scope
+	semantics of the initializer statement.
+  In order to be compatible with both the old and new semantics, we have
+  changed all instances of
+<ul>
+<li>	for (int i = ... ) ...
+<li>	use(i);
+</ul>
+  to
+<ul>
+<li>	int i;
+<li>	for (i = ... ) ...
+<li>	use(i);
+</ul>
+
+</ul>
+
+<hr>
+<h3>v1.0a4</h3>
+
+<ul>
+
+<li>Fixed bug in xgraph output: new version of xgraph doesn't understand
+  FileorDev because it now uses the PRINTER environment variable.
+  Bug fix from Matt Mathis (mathis@psc.edu).
+
+<li>Added a 'test-all' sh script to distribution, which runs whole suite
+  of regression tests and compares them against a reference output.
+  Thanks to Matt Mathis (mathis@psc.edu).
+
+<li>Don't include tk.h from Tcl.cc.
+
+</ul>
+
+<hr>
+<h3>v1.0a1 <i>Mon Jul 31 16:05:08 PDT 1995</i></h3>
+<ul>
+
+<li>Changed all references to random() to use Random class so we
+  can easily change our pseudo-random number generator.
+
+<li>Added convention to object names so we can derive their type
+  from their name.
+
+<li>Changed nodes to be first class objects like rest of objects.
+
+<li>Changed trace syntax to use tcl files rather than it's own open/close.
+  For example,
+<ul>
+<li>	set f1 [open out.hop w]
+<li>	$trace attach $f1
+</ul>
+
+<li>Changed '-' and 'd' trace records to have same format as '+' and
+  'h' trace records.
+
+<li>Incoporate vic's "matcher" abstraction into agent and link models.
+
+<li>Major hacking to port tcpsim to tcl framework.
+
+</ul>
+</body></html>

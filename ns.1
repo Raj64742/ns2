@@ -1,0 +1,1092 @@
+.\".\"
+.\" @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/ns.1,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)
+.\"
+.\" Copyright (c) 1994-1995 Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgment:
+.\"	This product includes software developed by the Computer Systems
+.\"	Engineering Group at Lawrence Berkeley Laboratory.
+.\" 4. Neither the name of the University nor of the Laboratory may be used
+.\"    to endorse or promote products derived from this software without
+.\"    specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.TH NS 1 "28 Jul 1995"
+.de HD
+.sp 1.5
+.B
+..
+.SH NAME
+ns \- network simulator
+.SH SYNOPSIS
+.na
+.B ns
+[
+.I file
+[
+.I arg arg ...
+]
+]
+.ad
+
+.SH DESCRIPTION
+.LP
+WARNING: THIS MAN PAGE REFLECT NS VERSION 1 AND IS OUT OF
+DATE WITH THE CURRENT RELEASE.
+.LP
+.I ns
+is an event-driven network simulator embedded into the Tool Command Language,
+.I Tcl(1).
+An extensible simulation engine is implemented in C++ and is configured
+and controlled via a Tcl interface.  The simulator is invoked via
+the
+.I ns
+interpreter, which is an extension of the vanilla
+.I tclsh(1)
+command shell.
+All interaction with the interpreter is via a single, new Tcl
+procedure, ``ns''.
+.LP
+A simulation is defined by a Tcl program.  Using the ns command,
+a network topology is defined, traffic sources and sinks are
+configured, statistics are collected, and the simulation is invoked.
+By building upon a fully functional language, arbitrary actions
+can be programmed into the configuration.  The 
+.I ns at
+command allows Tcl procedures to be invoked at arbitrary points
+in simulation time.  These Tcl callbacks provide a flexible
+simulation mechanism --- they can be used to start or stop sources, dump
+statistics, instantiate link failures, reconfigure the
+network topology, etc.
+.LP
+A network topology is realized using three primitive building blocks:
+nodes, links, and agents.  Nodes are created with the
+.I ns node
+command and arranged in a network topology with the
+.I ns link
+command.
+Nodes are passive objects which act as containers for
+.I agents,
+the objects that actively drive the simulation.  Each node
+has an automatically-generated, unique address.
+Traffic sources
+and sinks and dynamic routing modules are examples of agents.
+The
+.I ns agent
+command is used to create an agent at a certain node.
+.LP
+The
+.I ns agent,
+.I ns node,
+and
+.I ns link
+commands all create new objects
+and return a procedure that is used to access the object, in the
+spirit of 
+.I Tk(1)
+widgets.
+Once an object is created, it can be manipulated in an object-oriented
+fashion using the new procedure.  For example, we might create
+a tcp agent using this command:
+.br
+.nf
+
+	set tcpSource [ns agent tcp ...]
+
+.fi
+Then, object attributes can be set by invoking the agent in
+this manner:
+.br
+.nf
+
+	$tcpSource set window-size 25
+
+.fi
+Each agent has a collection of such configuration parameters that
+can be modified as above either before a simulation begins,
+or dynamically, while the simulation is in progress.
+If a parameter is not explicitly set, it defaults to a
+value stored in a global Tcl array.
+For example,
+.I ns_tcp(window-size)
+contains the default window size for tcp objects.
+A set of defaults are built into the 
+.I ns
+interpreter and can be explicitly overridden by simple assignment.
+For example, we can say
+.br
+.nf
+
+	set ns_tcp(window-size) 30
+
+.fi
+to make all future tcp agent creations default to a window size of 30.
+.LP
+Once a topology is defined, agents are attached to nodes.
+Agents are the objects that actually produce and
+consume packets.
+Each agent is automatically assigned a port number unique across
+all agents on a given node (analogous to a tcp or udp port).
+.I Links
+can be thought of as the physical transmission links,
+.I nodes
+as end hosts and routers, and
+.I agents
+as transport entities and/or
+processes that run on end hosts.  Some types of agents may
+have sources attached to them while others may generate their
+own data.  For example, you can attach ``ftp'' and ``telnet'' sources
+to ``tcp'' agents but ``constant bit-rate'' agents generate their own data.
+.LP
+The simulation is run via the
+.I ns run
+command, and continues until there are no more
+events to be processed.  For example, a traffic source might
+be started at time 0 and stopped at time 10 (using the
+.I ns at
+command).  Once all traffic sources are stopped, all pending
+packets will be eventually
+delivered and no more events will remain.  At this time,
+the original invocation of the
+.I ns run
+command returns and the Tcl script can exit or invoke another
+simulation run after possible reconfiguration.
+Alternatively, the simulation can be prematurely halted by invoking the
+.I ns stop
+command or by exiting the script with Tcl's standard
+.I exit
+command.
+.LP
+Packets are forwarded along the shortest path route from
+a source to a destination, where the distance metric is
+simply the hop count.
+If the network topology changes
+during the simulation, routes are recomputed instantaneously --
+i.e., the routing protocol is not simulated.
+Reverse-path forwarding trees are similarly computed
+for multicast routing.
+.SH "NS COMMANDS"
+There are two classes of Tcl procedures used to manipulate
+the simulation: the core
+.I ns
+commands and the object commands.  All of the core
+commands are invoked by the
+.I ns
+Tcl procedure while the object commands are invoked
+indirectly on objects that are created with the core commands,
+.I ns node,
+.I ns link,
+.I ns agent,
+and
+.I ns trace.
+This section describes the core commands.
+.IP "\fBns agent\fI type node\fP"
+Create an agent of type
+.I type
+and attach to node
+.I node.  
+.I node
+must
+already have been created with a link command.
+.I type
+identifies the type of agent to create:
+.nf
+
+    tcp               - BSD Tahoe TCP
+    tcp-reno          - BSD Reno TCP
+    tcp-newreno       - a modified version of BSD Reno TCP
+    tcp-sack1         - BSD Reno TCP with selective ACKs
+    tcp-sink          - a standard TCP sink
+    tcp-sink-da       - a TCP sink that generates delayed ACKs
+    sack1-tcp-sink    - a TCP sink that generates selective ACKs
+    sack1-tcp-sink-da - a delayed-ack TCP sink with selective ACKs
+    cbr               - a constant bit rate traffic source
+    loss-monitor      - a CBR sink that reports losses
+
+.fi
+.IP "\fBns node\fP"
+Create a new node and return the Tcl procedure name of
+the corresponding object.
+.IP "\fBns link\fI node1 node2 type\fP"
+Create a new link between
+.I node1
+and
+.I node2
+and return the Tcl procedure name of the corresponding object.
+.I node1
+and
+.I node2
+must have already been created with the
+.I ns node
+command.
+A link is unidirectional -- bidirectional links are
+composed from two unidirectional links.
+The queuing discipline of the link is specified by
+.I type,
+which may be
+.B drop-tail,
+.B red,
+or 
+.B cbq.
+A drop-tail link is a simple FIFO queue which drops the last packet
+in the queue when the queue overflows.
+A red link is a random-early drop queue (for details see [2]).
+A cbq link is for class-based queueing (for details see [3]).
+The bandwidth and delay attributes of the link (among others) are set
+using the returned object (see OBJECT COMMANDS section).  A helper
+procedure, ns_duplex, is defined to facilitate building point-to-point
+links (see BUILTINS section).
+.IP "\fBns link\fP"
+Return a list of the names of all the link objects that have
+been created.
+.IP "\fBns link\fI node1 node2\fP"
+Return the name of the link object that connects
+.I node1
+and
+.I node2
+(there may be only one such object -- multiply connected nodes
+are handled by a single aggregate link object (not yet implemented).
+.IP "\fBns at\fI time proc\fP"
+Evaluate the Tcl code
+.I proc
+at simulation time
+.I time.
+This command can be used to dynamically reconfigure the simulator,
+dump statistics at specified intervals, start and stop sources, etc.
+.IP "\fBns now\fP"
+Return the current simulation time.
+.IP "\fBns trace\fP"
+Create a new trace object and return it.  Trace objects are used
+to generate event level capture logs.  A trace can be bound either
+to a file, using a file identifier created with the standard Tcl 
+.I open
+command, or to a Tcl procedure so that arbitrary event logging
+can be carried out by the user script.
+.IP "\fBns random\fI [ seed ]\fP"
+If
+.I seed
+is not present,
+return a pseudo-random integer between 0 and 2^31-1.
+Otherwise, seed the pseudo-random number generator with
+.I seed
+and return the seed used.
+If
+.I seed
+is 0, choose an initial seed heuristically (which varies
+on successive invocations).
+.IP "\fBns version\fP"
+Return a string identifying the version of ns currently running.
+
+.SH "OBJECT HIERARCHY"
+All ns simulation objects are derived from a single,
+generic object class.  Nested subclasses form a hierarchy
+where child objects implement a superset of their parent's
+functionality.
+Objects can be invoked as a Tcl procedure call, their
+configuration parameters can be dynamically set and queried,
+and their state variables can be queried (but not modified).
+.LP
+Configuration parameters represent simulation parameters
+that are usually fixed during the entire simulation (like a
+link bandwidth), but can be changed dynamically if desired.
+State variables represent values that are specific to a
+given object and that object's implementation.
+
+The following diagram depicts the object hierarchy:
+.nf
+
+    generic
+        agent
+            tcp
+                tcp-reno
+                tcp-newreno
+                tcp-sack1
+            tcp-sink
+                tcp-sink-da
+                sack1-tcp-sink
+                    sack1-tcp-sink-da
+            cbr
+            loss-monitor
+        tcp-source
+            ftp
+            telnet
+            bursty
+        link
+            drop-tail
+            red
+            cbq
+                wrr-cbq
+        trace
+        node
+        class
+.fi
+.LP
+For example, any method that is supported by a
+.I tcp
+agent is also supported by a
+.I tcp-reno
+or a
+.I tcp-sack1
+agent.
+Default configuration parameters are also inherited.
+For example, 
+.I ns_tcp(window)
+defines the default TCP window size for both
+.I tcp
+and
+.I tcp-reno
+objects.
+
+.SH "OBJECT METHODS"
+This section documents each command that may be executed on an object
+by invoking that object as a Tcl procedure call.
+The object class is specified implicitly by the object
+variable name in the description.   For example,
+.B $tcp
+implies the tcp object class and all of its child classes, while
+.B $generic
+implies any object class.
+
+.IP "\fB$generic set\fI var value"
+Sets the member variable
+.I var
+of the generic object to
+.I value.
+This command behaves analogously to the Tcl
+.I set
+command, but the variables are private to each object
+and only the predefined configuration parameters can
+be set (i.e., new variables cannot be created).
+.IP "\fB$generic get\fI var"
+Return the current value of the parameter
+.I var
+that is private to the generic object.
+.I var
+is either a configuration parameter or a state variable
+of the generic object.
+.IP "\fB$generic trace\fI trace"
+Attach the trace identified by
+.I trace
+to the generic object.
+.I trace
+must be an identifier return by the
+.I ns trace
+command.
+
+.SH "LINK METHODS"
+.IP "\fB$link reset\fP"
+Reset all internal statistics variables associated with this link.
+.IP "\fB$link integral\fI util|qsize|qlen"
+Return the integral over time of the utilization, queue size in bytes,
+or queue length in packets, according to the third argument.
+For example, the average queue delay at a give link can be computed
+by dividing the elapsed simulation time into
+.nf
+
+	expr "8 * [$link integral qsize] / [$link get bandwidth]"
+.fi
+.IP "\fB$link filter\fI src.sport dest.dport pkt"
+Drop the 
+.I pkt-th 
+packet seen from source
+.I src,
+port
+.I sport,
+with destination
+.I dest,
+port
+.I dport.
+(The last three arguments should be in quotes.)
+.IP "\fB$link stat\fI class type"
+Return a per-class statistic associated with this link.
+.I class
+identifies the traffic class of interest (all packets are assigned
+an integer class identifier which is determined by the
+.I class
+object variable that sourced the packet).
+.I type
+identifies the statistic of interest and may be one of:
+.I packets,
+.I bytes,
+.I drops,
+.I mean-qlen,
+or
+.I mean-qsize.
+.I packets,
+.I bytes,
+and
+.I drops
+give counts of the number of occurrences of each event for
+the given traffic class.
+.I mean-qlen
+gives the average number of packets in the queue on this link
+as seen by class
+.I class.
+Similarly,
+.I mean-qsize
+gives the average number of bytes in the queue.
+.LP
+.HD
+Configuration Parameters \fI(ns_link)\fP
+.LP
+.RS
+.IP \fIbandwidth\fP
+The bandwidth of the link, in bits per second.
+.IP \fIdelay\fP
+The latency of the link, in seconds.
+.IP \fIqueue-limit\fP
+The maximum number of packets that can be queued at the link.
+.LP
+Default values for these parameters are stored
+the
+.I ns_link
+Tcl array, e.g., 
+.I ns_link(bandwidth),
+.I ns_link(delay),
+etc.
+.RE
+.LP
+.HD
+State Variables
+.RS
+.IP \fIqueue-length\fP
+The current number of packets queued at this link.
+.IP \fIqueue-size\fP
+The current number of bytes in all packets queued at this link.
+.RE
+.SH "AGENT METHODS"
+.IP "\fB$agent addr\fP"
+Return the address of the node to which this agent is attached.
+.IP "\fB$agent port\fP"
+Return the transport-level port of the agent.
+Ports are used to identify agents within a node.
+.IP "\fB$agent dst-addr\fP"
+Return the address of the node this agent is connected to.
+.IP "\fB$agent dst-port\fP"
+Return the port that this agent is connected to.
+.IP "\fB$agent join\fI group\fP"
+Add this agent to the multicast host group identified by the address
+.I group.
+This causes the group membership protocol to arrange for the appropriate
+multicast traffic to reach this agent.
+.IP "\fB$agent connect\fI addr port\fP"
+Connect this agent to the agent identified by the address
+.I addr
+and port
+.I port.
+This causes packets transmitted from this agent to contain the
+address and port indicated, so that such packets are routed to
+the intended agent.  The two agents must be compatible (e.g.,
+a tcp-source/tcp-sink pair as opposed a cbr/tcp-sink pair).
+Otherwise, the results of the simulation are unpredictable.
+.LP
+.HD
+Configuration Parameters \fI(ns_agent)\fP
+.RS
+.IP \fIclass\fP
+The traffic class of packets generated from this agent.
+Traffic classes can be used for aggregating (or separating)
+flows for statistical data reduction and are also used
+by the CBQ (class-based queuing) module.  For example,
+in a TCP simulation, you might assign a different traffic
+class to each connection.
+.RE
+.LP
+.HD
+State Variables
+.RS
+.LP
+There are no state variables specific to the generic agent class.
+.RE
+
+.SH "NODE METHODS"
+.IP "\fB$node addr\fP"
+Return this node's address.
+.IP "\fB$node agent \fIport\fP"
+Return the Tcl object name of the agent attached to port
+.I port
+on this node.  Returns an empty string if the port is not in use.
+.LP
+There are no state variables or configuration parameters
+specific to the node class.
+
+.SH "DROP-TAIL OBJECTS"
+Drop-tail objects are a subclass of link objects that implement simple
+FIFO queue.  There are no methods, configuration parameter,
+or state variables that are specific to drop-tail objects.
+
+.SH "RED OBJECTS"
+RED objects are a subclass of link objects that implement
+random early-drop queuing.  There are no object methods
+that are specific to RED objects.
+.LP
+.HD
+Configuration Parameters \fI(ns_red)\fP
+.RS
+.IP \fIbytes\fP
+Set to "1" to measure the queue in bytes rather than in packets.
+.IP \fIthresh\fP
+The minimum threshold for the average queue size.
+.IP \fImaxthresh\fP
+The maximum threshold for the average queue size.
+.IP \fImean_pktsize\fP
+A rough estimate of the average packet size in bytes.  Used in updating
+the calculated average queue size after an idle period.
+.IP \fIq_weight\fP
+The queue weight, used in the exponential-weighted moving average for
+calculating the average queue size.
+.IP \fIwait\fP
+Set to true to maintain an interval between dropped packets.
+.IP \fIlinterm\fP
+As the average queue size varies between "thresh" and "maxthresh",
+the packet dropping probability varies between 0 and "1/linterm".
+.IP \fIsetbit\fP
+Set to true to set the congestion indication bit in packet headers 
+rather than drop packets.
+.IP \fIdrop-tail\fP
+Set to true to use drop-tail rather than random-drop when the queue
+overflows.
+.IP \fIdoubleq\fP
+Set to true to give priority to small packets.  The default is false.
+.IP \fIdqthresh\fP
+The largest size in bytes of a "small" packet.  This is only used if
+"doubleq" is set to true.
+
+For a further explanation of these variables, see [2].
+
+.LP
+.HD
+State Variables
+.RS
+None of the state variables of the RED implementation are accessible.
+.RE
+
+.SH "CBQ OBJECTS"
+CBQ objects are a subclass of link objects that implement
+class-based queueing.
+.IP "\fB$cbq insert $class\fP"
+Insert traffic class
+.I class
+into the link-sharing structure associated with link object 
+.I cbq.
+.IP "\fB$cbq bind $class $classID\fP"
+Bind class ID
+.I classID
+to the traffic class
+.I 
+class
+associated with link object
+.I cbq.
+.LP
+.HD
+Configuration Parameters \fI(ns_cbq)\fP
+.RS
+.IP \fIalgorithm\fP
+Set to "0" for Ancestor-Only link-sharing, to "1" for Top-Level
+link-sharing, to "2" for Formal link-sharing.
+.IP \fImax-pktsize\fP
+Used in implementing weighted round-robin.
+
+.SH "WRR-CBQ OBJECTS"
+WRR-CBQ objects are a subclass of CBQ objects that implement
+weighted round-robin scheduling among classes of the same
+priority level.  In contrast, CBQ objects implement packet-by-packet
+round-robin scheduling among classes of the same priority level.
+
+.SH "CLASS OBJECTS"
+CLASS objects implement the traffic classes associated with CBQ objects. 
+.IP "\fB$class1 parent $class2\fP"
+Assign traffic class
+.I class2
+as the parent class of the traffic class 
+.I class1. 
+The root class should have parent class "none".
+.IP "\fB$class1 borrow $class2\fP"
+Assign traffic class
+.I class2
+as the class to borrow bandwidth from
+for the traffic class 
+.I class1.  
+A class that is not allowed to borrow bandwidth should have
+borrow class "none".
+
+.LP
+.HD
+Configuration Parameters \fI(ns_class)\fP
+.RS 
+.IP \fIpriority\fP
+The class's priority level for packet scheduling.  Priority-0 classes
+have the highest priority.
+.IP \fIdepth\fP
+Used for the Top-Level link-sharing algorithm.  Leaf classes have
+"depth=0".
+.IP \fIallotment\fP
+The link-sharing bandwidth allocated to the class, given as a fraction of the 
+link bandwidth.
+.IP \fImaxidle\fP
+Used in calculating the bandwidth used by the class.
+.IP \fIminidle\fP
+Used in calculating the bandwidth used by the class.
+.IP \fIextradelay\fP
+Used in delaying an overlimit class.
+
+For a further explanation of the CBQ variables, see [5] and [6].
+
+.SH "TCP OBJECTS"
+TCP objects are a subclass of agent objects that implement the
+BSD Tahoe TCP transport protocol.  They inherit all of the 
+generic agent functionality.
+.IP "\fB$tcp source \fIftp|telnet|bursty\fP"
+Install a data source of the type indicated in the tcp agent.
+Returns the name of the Tcl object that corresponds to
+the new source.
+.LP
+.HD
+Configuration Parameters \fI(ns_tcp)\fP
+.RS
+.IP \fIwindow\fP
+The upper bound on the advertised window for the TCP connection.
+.IP \fIwindow-init\fP
+The initial size of the congestion window on slow-start.
+.IP \fIwindow-option\fP
+The algorithm to use for managing the congestion window.
+.IP \fIwindow-thresh\fP
+Gain constant to exponential averaging filter used to compute
+.I awnd
+(see below).
+For investigations of different window-increase algorithms.
+.IP \fIoverhead\fP
+The range of a uniform random variable used to delay each output
+packet.  The idea is to insert random delays at the source
+in order to avoid phase effects, when desired [4].  
+This has only been implemented for the Tahoe ("tcp") version of tcp, not
+for tcp-reno.  This is not intended to be a 
+realistic model of CPU processing overhead.
+.IP \fIecn\fP
+Set to true to use explicit congestion notification in addition
+to packet drops to signal congestion.
+.IP \fIpacket-size\fP
+The size in bytes to use for all packets from this source.
+.IP \fItcp-tick\fP 
+The TCP clock granularity for measuring roundtrip times.
+.IP \fIbug-fix\fP
+Set to true to remove a bug when multiple fast retransmits are allowed
+for packets dropped in a single window of data.
+.IP \fImaxburst\fP
+Set to zero to ignore.  Otherwise, the maximum number of packets that
+the source can send in response to a single incoming ACK.
+.IP \fIMWS\fP
+The Maximum Window Size in packets for a TCP connection.  MWS determines
+the size of an array in tcp-sink.cc.
+The default for MWS is 1024 packets.
+For Tahoe TCP, the "window" parameter, representing the receiver's
+advertised window, should be less than MWS-1.  For Reno TCP, the
+"window" parameter should be less than (MWS-1)/2.
+(MWS is currently a defined constant, but we plan to change MWS
+to a configuration parameter in a future release.)
+.RE
+.LP  
+.HD 
+State Variables
+.RS
+.LP
+.IP \fIdupacks\fP
+Number of duplicate acks seen since any new data was acknowledged.
+.IP \fIseqno\fP
+Current position in the sequence space (can move backwards).
+.IP \fIack\fP
+Highest acknowledgment seen from receiver.
+.IP \fIcwnd\fP
+Current value of the congestion window.
+.IP \fIawnd\fP
+Current value of a low-pass filtered version of the congestion window.
+For investigations of different window-increase algorithms.
+.IP \fIssthresh\fP
+Current value of the slow-start threshold.
+.IP \fIrtt\fP
+Round-trip time estimate.
+.IP \fIsrtt\fP
+Smoothed round-trip time estimate.
+.IP \fIrttvar\fP
+Round-trip time mean deviation estimate.
+.IP \fIbackoff\fP
+Round-trip time exponential backoff constant.
+.RE
+
+.SH "SOURCE OBJECTS"
+Source objects create data for a transport object to send
+(e.g., TCP).
+.IP "\fB$source start\fP"
+Causes the source to start producing an unbounded amount of data.
+.IP "\fB$source produce \fIn\fP"
+Causes the source to produce exactly
+.I n
+packets instantaneously.
+.RE
+
+.HD
+Configuration Parameters \fI(ns_source)\fP
+.LP
+.RS
+.IP \fImaxpkts\fP
+The maximum number of packets generated by the source.
+.RE
+
+.SH "TCP-SINK OBJECTS"
+Tcp-sink objects are a subclass of agent objects that implement 
+a receiver for TCP packets.
+The simulator only implements "one-way" TCP connections, where the
+TCP source sends data packets and the TCP sink sends ACK packets.
+Tcp-sink objects inherit all of the generic agent functionality.
+There are no methods or state variables specific to the tcp-sink object.
+.HD
+Configuration Parameters \fI(ns_sink)\fP
+.LP
+.RS
+.IP \fIpacket-size\fP
+The size in bytes to use for all acknowledgment packets.
+.RE
+
+.SH "TCP-SINK-DA OBJECTS"
+Tcp-sink-da objects are a subclass of tcp-sink that implement
+a delayed-ACK receiver for TCP packets.
+They inherit all of the tcp-sink object functionality.
+There are no methods or state variables specific to the tcp-sink-da object.
+.HD
+Configuration Parameters \fI(ns_delsink)\fP
+.LP
+.RS
+.IP \fIinterval\fP
+The amount of time to delay before generating an acknowledgment
+for a single packet.  If another packet arrives before this
+time expires, generate an acknowledgment immediately.
+.RE
+
+.SH "CONSTANT BIT-RATE OBJECTS"
+Cbr objects generate packets at a constant bit rate.
+They inherit all of the generic agent functionality.
+There are no state variables specific to the cbr class.
+.IP "\fB$cbr start\fP"
+Causes the source to start generating packets.
+.IP "\fB$cbr stop\fP"
+Causes the source to stop generating packets.
+.LP
+.HD
+Configuration Parameters \fI(ns_cbr)\fP
+.LP
+.RS
+.IP \fIinterval\fP
+The amount of time to delay between packet transmission times.
+.IP \fIpacket-size\fP
+The size in bytes to use for all packets from this source.
+.RE
+
+.SH "TRACE OBJECTS"
+Trace objects are used to generate event level capture logs, either
+directly to an output file, indirectly through a Tcl procedure,
+or both.
+There are no state variables or configuration parameters
+specific to the trace class.
+.IP "\fB$trace attach \fIfileID\fP"
+Attach a file to a trace object so that events are written to the
+indicated file.
+.I fileID
+must be a file handle returned by the Tcl
+.I open
+command and it must have been open for writing.
+.IP "\fB$trace detach\fP"
+Detach any attached file indicated from the trace object.
+Events will no longer be logged to this file.
+.IP "\fB$trace callback \fIproc\fP"
+Arrange for the Tcl procedure
+.I proc
+to be called for every event logged by the trace object.
+Both the Tcl callback and an attached file may be
+simultaneously active.
+.I proc
+is called with a single argument, which consists of a Tcl list
+representing the captured event.  Be warned that invoking
+the Tcl interpreter on each event like this will substantially
+slow down the simulation.  If
+.I proc
+is an empty string, cancel the callback.
+
+.LP
+Trace records for link objects have the following form:
+.LP
+.RS
+.nf
+    <code> <time> <hsrc> <hdst> <packet>
+.fi
+.RE
+.LP
+where
+.LP
+.RS
+.nf
+<code> := [hd+-] h=hop d=drop +=enque -=deque
+<time> := simulation time in seconds
+<hsrc> := first node address of hop/queuing link
+<hdst> := second node address of hop/queuing link
+<packet> :=  <type> <size> <flags> <class> <src.sport> <dst.dport>
+<type> := tcp|telnet|cbr|ack etc.
+<size> := packet size in bytes
+<flags> := [CP]  C=congestion, P=priority
+<class> := class ID number
+<src.sport> := transport address (src=node,sport=agent)
+<dst.sport> := transport address (dst=node,dport=agent)
+.fi
+.LP
+For links that use RED gateways,
+there are additional trace records as follows:
+.LP 
+.RS 
+.nf
+    <code> <time> <value> 
+.fi
+.RE 
+.LP 
+where
+.LP 
+.RS 
+.nf
+<code> := [Qap] Q=queue size, a=average queue size, 
+	p=packet dropping probability 
+<time> := simulation time in seconds
+<value> := value
+.fi 
+.RE
+
+.SH BUILTINS
+Because
+.I Tcl
+is a full-fledged programming language, it is easy to build
+high-level simulation constructs from the ns primitives.
+Several library routines have been built in this way, and
+are embedded into the ns interpreter (see the
+.I ns_default.tcl
+file in the distribution for the source code).
+
+.IP "\fBns_connect \fIsrc sink\fP"
+Establish a two-way connection between the agent
+.I src
+and the agent
+.I sink.
+.IP "\fBns_duplex \fInode1 node2 bandwidth delay type\fP"
+Create a duplex link (i.e., two simplex links) between nodes
+.I node1
+and
+.I node2.
+The bandwidth and delay of each link is set to
+.I bandwidth
+and
+.I delay,
+respectively.
+Both links are of type
+.I type
+(e.g., drop-tail, red, etc.).
+Returns a two-element list containing the Tcl names of the
+two link objects.
+.IP "\fBns_create_connection \fIsrcType srcNode sinkType sinkNode class\fP
+Create a source agent of type
+.I srcType
+at node
+.I srcNode
+and connect it to a sink agent of type
+.I sinkType
+at node
+.I sinkNode.
+Also, connect the sink agent to the source agent.
+The traffic class of both agents is set to
+.I class.
+.IP "\fBns_create_cbr \fIsrcNode sinkNode pktSize interval class\fP
+Create a cbr source agent at node
+.I srcNode
+and connect it to a loss-monitor sink agent at node
+.I sinkNode.
+Also, connect the sink agent to the source agent.
+The traffic class of the source agent is set to
+.I class.
+The cbr source sends packets of size
+.I pktSize
+bytes at intervals of
+.I interval
+seconds.
+.IP "\fBns_create_class\fI class parent borrow allot maxIdle minIdle\fP 
+\fIpriority depth extraDelay\fP
+Set the parent class of the traffic class
+.I class
+to
+.I parent 
+and set the class for borrowing bandwidth to
+.I borrow.
+Set the 
+.I allotment,
+.I maxidle,
+.I minidle,
+.I priority,
+.I depth,
+and
+.I extradelay
+parameters to the indicated values.
+
+.SH EXAMPLE
+.nf
+    #
+    # Create two nodes and connect them with a 1.5Mb link with a
+    # transmission delay of 10ms using FIFO drop-tail queuing
+    #
+    set n0 [ns node]
+    set n1 [ns node]
+    ns_duplex $n0 $n1 1.5Mb 10ms drop-tail
+
+    #
+    # Set up BSD Tahoe TCP connections in opposite directions.
+    #
+    set src1 [ns agent tcp $n0]
+    set snk1 [ns agent tcp-sink $n1]
+    set src2 [ns agent tcp $n1]
+    set snk2 [ns agent tcp-sink $n0]
+    ns_connect $src1 $snk1
+    ns_connect $src2 $snk2
+    $src1 set class 1
+    $src2 set class 2
+
+    #
+    # Create ftp sources at the each node
+    #
+    set ftp1 [$src1 source ftp]
+    set ftp2 [$src2 source ftp]
+
+    #
+    # Start up the first ftp at the time 0 and
+    # the second ftp staggered 1 second later
+    #
+    ns at 0.0 "$ftp1 start"
+    ns at 1.0 "$ftp2 start"
+
+    #
+    # Create a trace and arrange for all link
+    # events to be dumped to "out.tr"
+    #
+    set trace [ns trace]
+    $trace attach [open out.tr w]
+    foreach link [ns link] {
+            $link trace $trace
+    }
+
+    #
+    # Dump the queuing delay on the n0/n1 link
+    # to stdout every second of simulation time.
+    #
+    proc dump { link interval } {
+        ns at [expr [ns now] + $interval] "dump $link $interval"
+        set delay [expr 8 * [$link integral qsize] / [$link get bandwidth]]
+        puts "[ns now] delay=$delay"
+    }
+    ns at 0.0 "dump [ns link $n0 $n1] 1"
+
+    #
+    # run the simulation for 10 simulated seconds
+    #
+    ns at 10.0 "exit 0"
+    ns run
+.fi
+
+.SH DEBUGGING 
+To enable debugging when building ns from source, simply run
+``./configure --enable-debug'' before running ``make''. 
+
+.SH HISTORY
+Work on the LBL Network Simulator began in May 1990 with modifications to
+S. Keshav's (keshav@research.att.com) REAL network
+simulator, which he developed for his Ph.D. work at U.C. Berkeley.
+In Summer 1991, the simulation description language
+was revamped, and later, the NEST threads model was
+replaced with an event driven framework and
+an efficient scheduler.  Among other contributions, 
+Sugih Jamin (jamin@usc.edu)
+contributed the calendar-queue based scheduling code
+to this version of the program, which was known as 
+.I tcpsim.
+In December 1994, McCanne ported tcpsim
+to C++ and replaced the yacc-based simulation description
+language with a Tcl interface, and added preliminary
+multicast support.  Also at this time, the name changed from 
+.I tcpsim
+to the more generic
+.I ns.
+Throughout, Floyd has made modifications to
+the TCP code and added additional source models for her
+investigations into RED gateways, resource management,
+class-based queuing, explicit congestion notification,
+and traffic phase effects.  Many of the papers discussing these
+issues are available through URL http://www-nrg.ee.lbl.gov/.
+
+.SH "SEE ALSO"
+Tcl(1),
+tclsh(1),
+nam(1)
+.IP \fB[1]\fP
+S. Keshav, ``REAL: A Network Simulator''.  UCB CS Tech Report 88/472,
+December 1988.  See
+http://minnie.cs.adfa.oz.au/REAL/index.html
+for more information.
+.IP \fB[2]\fP
+Floyd, S. and Jacobson, V.  Random Early Detection gateways for
+Congestion Avoidance.  IEEE/ACM Transactions on Networking,
+Vol. 1, No. 4.  August 1993.  pp. 197-413.  Available from
+http://www-nrg.ee.lbl.gov/floyd/red.html.
+.IP \fB[3]\fP
+Floyd, S.  Simulator Tests.  July 1995.
+URL ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z.
+.IP \fB[4]\fP
+Floyd, S., and Jacobson, V.
+On Traffic Phase Effects in Packet-Switched Gateways.
+Internetworking: Research and Experience, V.3 N.3, September 1992.
+pp. 115-156.
+.IP \fB[5]\fP
+Floyd, S., and Jacobson, V.
+Link-sharing and Resource Management Models for Packet Networks.
+IEEE/ACM Transactions on Networking, Vol. 3 No. 4, August 1995. 
+pp. 365-386.
+.IP \fB[6]\fP
+Floyd, S.,
+Notes of Class-Based Queueing: Setting Parameters.
+URL ftp://ftp.ee.lbl.gov/papers/ params.ps.Z.  September 1995.
+.IP \fB[7]\fP
+Fall, K., and Floyd, S.  Comparisons of Tahoe, Reno, and Sack TCP.
+December 1995.  URL ftp:// ftp.ee.lbl.gov/papers/sacks.ps.Z.
+
+.SH AUTHORS
+Steven McCanne (mccanne@ee.lbl.gov), University of California, Berkeley
+and Lawrence Berkeley National Laboratory, Berkeley, CA, and
+Sally Floyd (floyd@ee.lbl.gov)
+Lawrence Berkeley National Laboratory, Berkeley, CA.
+.SH BUGS
+Only a single trace can be attached to any given object.
+
+Several modules from tcpsim have not been ported over yet.
+
+This manual page is incomplete.
