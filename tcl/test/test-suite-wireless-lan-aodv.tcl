@@ -176,7 +176,8 @@ Test/aodv instproc init {} {
     source $opt(sc)
     puts "Load complete..."
 
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; exit"
+    $ns_ at $opt(stop) "puts \"NS EXITING...\";"
+    $ns_ at $opt(stop).1 "$self finish-aodv"
 
 }
 
@@ -185,6 +186,46 @@ Test/aodv instproc run {} {
     puts "Starting Simulation..."
     $ns_ run
 }
+
+TestSuite instproc finish-aodv {} {
+	$self instvar ns_
+	global quiet opt
+
+	$ns_ flush-trace
+        
+        set tracefd	[open $opt(tr) r]
+        set tracefd2    [open $opt(tr).w w]
+
+        while { [eof $tracefd] == 0 } {
+
+	    set line [gets $tracefd]
+	    set items [split $line " "]
+
+	    set time [lindex $items 1]
+	    
+	    set times [split $time "."]
+	    set time1 [lindex $times 0]
+	    set time2 [lindex $times 1]
+	    set newtime2 [string range $time2 0 4]
+	    set time $time1.$newtime2
+	    
+	    set newline [lreplace $line 1 1 $time] 
+
+	    puts $tracefd2 $newline
+
+	}
+	
+	close $tracefd
+	close $tracefd2
+
+	exec mv $opt(tr).w $opt(tr)
+
+	puts "finish.."
+	exit 0
+	
+
+}
+
 
 TestSuite instproc finish {} {
 	$self instvar ns_
