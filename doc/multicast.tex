@@ -379,7 +379,6 @@ the different multicast routing protocol agents.
 \subsubsection{Centralized Multicast}
 \begin{list}{}{}
 \item
-\paragraph{CtrMcast}
 \code{CtrMcast} is inherited from \code{McastProtocol}.
 One CtrMcast agent needs to be created for each node.
 This CtrMcast agent handles multicast commands for its node,
@@ -418,7 +417,7 @@ a corresponding decapsulation agent is created at the RP;
 the two agents are connected by unicast, and the \tup{S,G} entry points
 its outgoing interface to the encapsulation agent.
 \item
-\paragraph{CtrMcastComp}
+\code{CtrMcastComp} is the centralised multicast route computation agent.
 \begin{alist}
 \proc[]{reset-mroutes} & resets all mutlicast forwarding entries.\\
 \proc[]{compute-mroutes} & (re)computes all multicast forwarding entries.\\

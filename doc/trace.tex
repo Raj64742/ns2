@@ -95,32 +95,31 @@ scripts to help in attaching trace elements (see \nsf{tcl/lib/ns-lib.tcl});
 they are instance procedures of the class Simulator:
 
 \begin{tabularx}{\linewidth}{rX}
-\code{flush-trace \{\}} &
-	flush buffers for all trace objects in simulation \\
-\code{create-trace \{ type file src dst \}} &
-	create a trace object of type {\em type}
+\code{flush-trace \{\}} & flush buffers
+	for all trace objects in simulation \\
+\code{create-trace \{ type file src dst \}} & create
+	a trace object of type {\em type}
 	between the given src and dest nodes.
 	If {\em file} is non-null, it is interpreted as a Tcl channel
 	and is attached to the newly-created trace object. \
-\	The procedure returns the handle to the newly created trace object.\
-\code{trace-queue \{ n1 n2 file \}} &
-	arrange for tracing on the link
+	The procedure returns the handle to the newly created trace object.\\
+\code{trace-queue \{ n1 n2 file \}} & arrange for tracing on the link
 	between nodes {\em n1} and {\em n2}.
 	This function calls create-trace,
 	so the same rules apply with respect to the {\em file} argument. \\
-%{\bfseries DOES TRACE-ALL REALLY BELONG HERE} & XXXX \\
 \code{trace-callback\{ ns command \}} & arranges to call \code{command}
 	when a line is to be traced.
 	The procedure treats \code{command}
 	as a string and evaluates it for every line traced.
-	See \nsf{tcl/ex/callback_demo.tcl} for additional details on usage.\\
-\code{monitor-queue \{ n1 n2 \}} &
-	this function calls the {\tt init-monitor} function
+	See \nsf{tcl/ex/callback\_demo.tcl} for additional details on usage.\\
+\code{monitor-queue \{ n1 n2 \}} & this function
+	calls the {\tt init-monitor} function
 	on the link between nodes {\em n1} and {\em n2}. \\
-\code{drop-trace \{ n1 n2 trace \}} &
-	the given {\em trace} object is made the drop-target of the queue
-	associated with the link between nodes {\em n1} and {\em n2}.\\
+\code{drop-trace \{ n1 n2 trace \}} & the given {\em trace} object
+	is made the drop-target of the queue
+	associated with the link between nodes {\em n1} and {\em n2}.
 \end{tabularx}
+
 The \proc[]{create-trace} procedure is used to create a new \code{Trace}
 object of the appropriate kind and attach an Tcl I/O channel to it
 (typically a file handle).
@@ -136,7 +135,7 @@ fields, which are also displayed when tracing.
 The \code{trace-queue} function enables
 \code{Enque}, \code{Deque}, and \code{Drop} tracing on the link
 between nodes \code{n1} and \code{n2}.
-\href{The Link \code{trace} procedure is described below}{Section{sec:libexam}.
+\href{The Link \code{trace} procedure is described below}{Section}{sec:libexam}.
 
 The \code{monitor-queue} function is constructed similarly to
 \code{trace-queue}.
@@ -346,7 +345,7 @@ The \code{format} function, in effect, dictates the trace file format.
 The \fcn[]{Trace::format} method defines the trace file format used
 in trace files produced by the \code{Trace} class.
 It is constructed to maintain backward compatibility with output files
-in earlier versions of the simulator (\ie, \ns~v1} so that \ns~v1
+in earlier versions of the simulator (\ie, \ns~v1) so that \ns~v1
 post-processing scripts continue to operate.
 The important pieces of its implementation are as follows:
 \begin{program}

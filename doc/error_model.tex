@@ -53,7 +53,7 @@ dropping packets.  The packet dropping mechanism is handled by the
 	       	ErrorModel();
 	        void recv(Packet*, Handler*);
         	virtual int corrupt(Packet*);
-	        inline double rate() \{ return rate_; \bs{}n}
+	        inline double rate() \{ return rate_; \bs{}n \}
 	protected:
         	int command(int argc, const char*const* argv);
 	        ErrorUnit eu_;		\* error unit in pkt, bit, or time */
