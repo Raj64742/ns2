@@ -13,12 +13,11 @@ set randomseed=12345
 # With Drop-Tail: 
 ../../ns Flow4.v2.tcl droptail1 $randomseed
 #category forced, plot_dropsinbytes
-
-NO:
 ../../ns Flow4.v2.tcl droptail2 $randomseed
 #category forced, plot_dropsinpackets
 
 
+NO:
 # queue-in-bytes not implemented for drop-tail
 ../../ns Flow4.v2.tcl droptail3 $randomseed
 #category forced, queue-in-bytes, plot_dropsinbytes
