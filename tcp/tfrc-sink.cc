@@ -292,7 +292,7 @@ double TfrcSinkAgent::est_thput ()
 	if ((rtt_ > 0) && ((now - last_report_sent) >= rtt_)) {
 		// more than an RTT since the last report
 		time_for_rcv_rate = (now - last_report_sent);
-		if (time_for_rcv_rate > 0 && rcvd_since_last_report > 0) {
+		if (rcvd_since_last_report > 0) {
 			thput = rcvd_since_last_report/time_for_rcv_rate;
 		}
 	}
