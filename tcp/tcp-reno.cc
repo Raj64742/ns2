@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.2 1997/01/24 17:53:00 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -38,7 +38,7 @@ class RenoTcpAgent : public TcpAgent {
 
 static class RenoTcpClass : public TclClass {
 public:
-	RenoTcpClass() : TclClass("agent/reno") {}
+	RenoTcpClass() : TclClass("agent/tcp/reno") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new RenoTcpAgent());
 	}

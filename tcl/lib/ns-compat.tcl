@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.1 1996/12/19 03:22:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.2 1997/01/24 17:53:01 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -99,13 +99,14 @@ OldSim instproc init args {
 		if { $var == "queue-limit" } {
 			set q [[ns set link($link)] queue]
 			$q set limit $val
-		} else if { $var == "bandwidth" || $var == "delay" } {
+		} elseif { $var == "bandwidth" || $var == "delay" } {
 			set d [[ns set link($link)] queue]
 			$d set $var $val
 		}
 	}
 
 	set classMap(tcp) agent/tcp
+	set classMap(tcp-reno) agent/tcp/reno
 	set classMap(cbr) agent/cbr
 	set classMap(tcp-sink) agent/tcp-sink
 	set classMap(tcp-sink-da) agent/tcp-sink-da
