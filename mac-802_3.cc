@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.5 1999/10/15 22:14:44 yuriy Exp $
+   $Id: mac-802_3.cc,v 1.6 1999/10/28 19:45:35 yuriy Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -150,17 +150,17 @@ void Mac802_3::collision(Packet *p) {
 	Packet::free(p);
 	switch(state_) {
 	case MAC_SEND:
-		assert(pktTx_);
-		assert(mhSend_.busy());
-		mhSend_.cancel();
+		if (mhSend_.busy()) mhSend_.cancel();
 		pktTx_= 0;
 
-		/* schedule retransmissions */
-		assert(mhRetx_.packet());
-		p= mhRetx_.packet();
-		if (!mhRetx_.schedule()) {
-			HDR_CMN(p)->size() -= ETHER_HDR_LEN;
-			drop(p); // drop if backed off far enough
+		if (!mhRetx_.busy()) {
+			/* schedule retransmissions */
+			assert(mhRetx_.packet());
+			p= mhRetx_.packet();
+			if (!mhRetx_.schedule()) {
+				HDR_CMN(p)->size() -= ETHER_HDR_LEN;
+				drop(p); // drop if backed off far enough
+			}
 		}
 		break;
 	case MAC_RECV:
