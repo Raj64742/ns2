@@ -18,11 +18,12 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.8 2000/05/24 16:34:02 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.9 2000/05/24 21:07:05 johnh Exp $ (LBL)
  */
 
 #include "fsm.h"
 #include <assert.h>
+
 
 
 #ifndef MAX
