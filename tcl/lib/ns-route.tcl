@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.13 1998/09/21 21:07:34 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.14 1998/09/28 19:26:13 haldar Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -51,14 +51,14 @@ Simulator instproc get-routelogic {} {
 
 Simulator instproc compute-routes {} {
 	
-        #
-	# call hierarchical routing, if applicable
-	#
-	if [Simulator set EnableHierRt_] {
-		$self compute-hier-routes 
-	} else {
-		$self compute-flat-routes
-	}
+    #
+    # call hierarchical routing, if applicable
+    #
+    if [Simulator set EnableHierRt_] {
+	$self compute-hier-routes 
+    } else {
+	$self compute-flat-routes
+    }
 }
 
 Simulator instproc compute-flat-routes {} {
@@ -168,11 +168,11 @@ RouteLogic instproc lookup { nodeid destid } {
 	set ns [Simulator instance]
 	set node [$ns get-node-by-id $nodeid]
 
-	if [Simulator set EnableHierRt_] {
-		set dest [$ns get-node-by-id $destid]
-		set nh [$self hier-lookup [$node node-addr] [$dest node-addr]]
-		return [$ns get-node-id-by-addr $nh]
-	}
+    if [Simulator set EnableHierRt_] {
+	set dest [$ns get-node-by-id $destid]
+	set nh [$self hier-lookup [$node node-addr] [$dest node-addr]]
+	return [$ns get-node-id-by-addr $nh]
+    }
 	set rtobj [$node rtObject?]
 	if { $rtobj != "" } {
 		$rtobj lookup [$ns get-node-by-id $destid]
@@ -220,41 +220,45 @@ RouteLogic instproc append-addr {level addrstr} {
 # Hierarchical routing support
 #
 Simulator instproc hier-topo {rl} {
-	#
+    #
 	# if topo info not found, use default values
-	#
-	AddrParams instvar domain_num_ cluster_num_ nodes_num_ hlevel_
+    #
+    AddrParams instvar domain_num_ cluster_num_ nodes_num_ hlevel_
+    ### this is bad hack..should be removed when changed to n-levels
+    
+    if ![info exists cluster_num_] {
 	if {$hlevel_ > 1} {
-		### set default value of clusters/domain 
-		if ![info exists cluster_num_] {
-			set def [AddrParams set def_clusters]
-			puts "Default value for cluster_num set to $def\n"
-			for {set i 0} {$i < $domain_num_} {incr i} {
-				lappend clusters $def
-			}
-			AddrParams set cluster_num_ $clusters
-		}
-		### bad hack..should be removed when changed to n-levels
-		if {$hlevel_ > 2} {
-			set total_node 0
-			### set default value of nodes/cluster
-			if ![info exists nodes_num_ ] {
-				set def [AddrParams set def_nodes]
-				puts "Default value for nodes_num set to $def\n"
-				for {set i 0} {$i < $domain_num_} {incr i} {
-					set total_node [expr $total_node + \
-							    [lindex $clusters $i]]
-				}
-				for {set i 0} {$i < $total_node} {incr i} {
-					lappend nodes $def
-				}
-				AddrParams set nodes_num_ $nodes
-			}
-		}
+	    ### set default value of clusters/domain 
+	    set def [AddrParams set def_clusters]
+	    puts "Default value for cluster_num set to $def\n"
+	    for {set i 0} {$i < $domain_num_} {incr i} {
+		lappend clusters $def
+	    }
+	} else {
+	    ### how did we reach here instead of flat routing?
+	    puts stderr "hierarchy level = 1; should use flat-rtg instead of hier-rtg" 
+	    exit 1
 	}
-	eval $rl send-num-of-domains $domain_num_
-	eval $rl send-num-of-clusters $cluster_num_
-	eval $rl send-num-of-nodes $nodes_num_
+	AddrParams set cluster_num_ $clusters
+    }
+
+    ### set default value of nodes/cluster
+    if ![info exists nodes_num_ ] {
+	set total_node 0
+	set def [AddrParams set def_nodes]
+	puts "Default value for nodes_num set to $def\n"
+	for {set i 0} {$i < $domain_num_} {incr i} {
+	    set total_node [expr $total_node + \
+				[lindex $clusters $i]]
+	}
+	for {set i 0} {$i < $total_node} {incr i} {
+	    lappend nodes $def
+	}
+	AddrParams set nodes_num_ $nodes
+    }
+    eval $rl send-num-of-domains $domain_num_
+    eval $rl send-num-of-clusters $cluster_num_
+    eval $rl send-num-of-nodes $nodes_num_
 }
 
 
