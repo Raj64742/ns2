@@ -30,7 +30,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.10 1997/11/11 20:46:49 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.11 1998/01/06 17:11:37 kannan Exp $ (USC/ISI)
 #
 
 # THis routine is a temporary hack.  It is likely to dissappear
@@ -44,7 +44,7 @@ Agent instproc traffic-source agent {
 }
 
 Agent/SRM set packetSize_  1024	;# assume default message size for repair is 1K
-Agent/SRM set groupSize_   1
+Agent/SRM set groupSize_   0
 
 Agent/SRM set distanceCompute_	ewma
 
