@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.h,v 1.7 2000/02/07 21:46:37 sfloyd Exp $ (LBL)
+ * @(#) /home/ctk21/cvsroot//hssstcp/ns/ns-2.1b9/tcp/tcp-fack.h,v 1.2 2002/08/12 10:44:38 ctk21 Exp (LBL)
  */
 
 #ifndef ns_tcp_fack_h
@@ -50,6 +50,7 @@
 class FackTcpAgent : public TcpAgent {
  public:
 	FackTcpAgent();
+	virtual ~FackTcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
 	virtual void opencwnd();
@@ -69,7 +70,10 @@ class FackTcpAgent : public TcpAgent {
 	int fack_;
 	int retran_data_;
 	int ss_div4_;
-	ScoreBoard scb_;
+
+	ScoreBoard* scb_;
+	static const int SBSIZE=1024;
 };
+
 
 #endif

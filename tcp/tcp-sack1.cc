@@ -17,10 +17,9 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.51 2001/11/08 19:06:08 sfloyd Exp $ (PSC)";
-#endif
+/* 8/02 Tom Kelly - Made scoreboard a general interface to allow
+ *                  easy swapping of scoreboard algorithms.  
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +40,7 @@ static const char rcsid[] =
 class Sack1TcpAgent : public TcpAgent {
  public:
 	Sack1TcpAgent();
+	virtual ~Sack1TcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
 	void reset();
 	virtual void timeout(int tno);
@@ -51,24 +51,30 @@ class Sack1TcpAgent : public TcpAgent {
 	u_char timeout_;	/* boolean: sent pkt from timeout? */
 	u_char fastrecov_;	/* boolean: doing fast recovery? */
 	int pipe_;		/* estimate of pipe size (fast recovery) */ 
-	ScoreBoard scb_;
+	ScoreBoard* scb_;
+	static const int SBSIZE=64; /* Initial scoreboard size */
 };
 
 static class Sack1TcpClass : public TclClass {
 public:
 	Sack1TcpClass() : TclClass("Agent/TCP/Sack1") {}
-	TclObject* create(int, const char*const*) {
+	TclObject* create(int, const char*const*) {		
 		return (new Sack1TcpAgent());
 	}
 } class_sack;
 
 Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1)
 {
+	scb_ = new ScoreBoard(new ScoreBoardNode[SBSIZE],SBSIZE);
+}
+
+Sack1TcpAgent::~Sack1TcpAgent(){
+	delete scb_;
 }
 
 void Sack1TcpAgent::reset ()
 {
-	scb_.ClearScoreBoard();
+	scb_->ClearScoreBoard();
 	TcpAgent::reset ();
 }
 
@@ -107,7 +113,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			 */
 			recv_newack_helper(pkt);
 			timeout_ = FALSE;
-			scb_.ClearScoreBoard();
+			scb_->ClearScoreBoard();
 			if (last_ack_ == 0 && delay_growth_) {
 				cwnd_ = initial_window();
 			}
@@ -119,13 +125,13 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 					tcph->seqno(), last_ack_);
 				abort();
 			}
-			scb_.UpdateScoreBoard (highest_ack_, tcph);
+			scb_->UpdateScoreBoard (highest_ack_, tcph);
 			/*
 		 	 * Check for a duplicate ACK.
 			 * Check that the SACK block actually
 			 *  acknowledges new data.
  			 */
- 		        if(scb_.CheckUpdate()) {
+ 		        if(scb_->CheckUpdate()) {
  			 	if (++dupacks_ == numdupacks_) {
  					/*
  					 * Assume we dropped just one packet.
@@ -134,7 +140,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
  					 */
  				   	dupack_action();
  				} else if (dupacks_ < numdupacks_ && singledup_ ) {
- 				         send_one();
+					send_one();
  				}
 			}
 		}
@@ -154,7 +160,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 				finish();
 			}
 			timeout_ = FALSE;
-			scb_.ClearScoreBoard();
+			scb_->ClearScoreBoard();
 
 			/* New window: W/2 - K or W/2? */
 		} else if ((int)tcph->seqno() > highest_ack_) {
@@ -167,13 +173,13 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			 * was instead from the original packet, reordered,
 			 * then this might be too aggressive. */
 			highest_ack_ = (int)tcph->seqno();
-			scb_.UpdateScoreBoard (highest_ack_, tcph);
+			scb_->UpdateScoreBoard (highest_ack_, tcph);
 			t_backoff_ = 1;
 			newtimer(pkt);
 		} else if (timeout_ == FALSE) {
 			/* got another dup ack */
-			scb_.UpdateScoreBoard (highest_ack_, tcph);
- 		        if(scb_.CheckUpdate()) {
+			scb_->UpdateScoreBoard (highest_ack_, tcph);
+ 		        if(scb_->CheckUpdate()) {
  				if (dupacks_ > 0)
  			        	dupacks_++;
  			}
@@ -219,7 +225,7 @@ Sack1TcpAgent::dupack_action()
 		pipe_ = maxseq_ - highest_ack_ - numdupacks_;
 		//pipe_ = int(cwnd_) - numdupacks_;
 		fastrecov_ = TRUE;
-		scb_.MarkRetran(highest_ack_+1);
+		scb_->MarkRetran(highest_ack_+1);
 		output(last_ack_ + 1, TCP_REASON_DUPACK);
 		return;
 	}
@@ -247,7 +253,7 @@ sack_action:
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
 	fastrecov_ = TRUE;
-	scb_.MarkRetran(highest_ack_+1);
+	scb_->MarkRetran(highest_ack_+1);
 	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
 	/*
 	 * If dynamically adjusting numdupacks_, record information
@@ -272,11 +278,11 @@ void Sack1TcpAgent::timeout(int tno)
 		if (highest_ack_ > last_ack_)
 			last_ack_ = highest_ack_;
 #ifdef DEBUGSACK1A
-		printf ("timeout. highest_ack: %d seqno: %d\n", 
-			highest_ack_, t_seqno_);
+		printf ("timeout. highest_ack: %i seqno: %i fid: %i\n", 
+			(int)highest_ack_, (int)t_seqno_, fid_);
 #endif
 		recover_ = maxseq_;
-		scb_.ClearScoreBoard();
+		scb_->ClearScoreBoard();
 	}
 	TcpAgent::timeout(tno);
 }
@@ -299,11 +305,11 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 
 		if (overhead_ == 0 || force) {
 			found = 0;
-			xmit_seqno = scb_.GetNextRetran ();
+			xmit_seqno = scb_->GetNextRetran ();
 
 #ifdef DEBUGSACK1A
 			printf("highest_ack: %d xmit_seqno: %d\n", 
-			highest_ack_, xmit_seqno);
+			(int)highest_ack_, xmit_seqno);
 #endif
 			if (xmit_seqno == -1) { 
 				if ((!fastrecov_ && t_seqno_<=highest_ack_+win)||
@@ -317,7 +323,7 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 				}
 			} else if (recover_>0 && xmit_seqno<=highest_ack_+int(wnd_)) {
 				found = 1;
-				scb_.MarkRetran (xmit_seqno);
+				scb_->MarkRetran (xmit_seqno);
 				win = window();
 			}
 			if (found) {

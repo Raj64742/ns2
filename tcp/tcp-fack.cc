@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.25 2000/09/01 03:04:07 haoboy Exp $ (PSC)";
+    "@(#) /home/ctk21/cvsroot//hssstcp/ns/ns-2.1b9/tcp/tcp-fack.cc,v 1.2 2002/08/12 10:43:58 ctk21 Exp (PSC)";
 #endif
 
 #include <stdio.h>
@@ -49,6 +49,11 @@ FackTcpAgent::FackTcpAgent() : 	timeout_(FALSE), wintrim_(0),
 {
 	bind_bool("ss-div4_", &ss_div4_);
 	bind_bool("rampdown_", &rampdown_);
+	scb_ = new ScoreBoard(new ScoreBoardNode[SBSIZE],SBSIZE);
+}
+
+FackTcpAgent::~FackTcpAgent(){
+	delete [] scb_;
 }
 
 int FackTcpAgent::window() 
@@ -60,7 +65,7 @@ int FackTcpAgent::window()
 
 void FackTcpAgent::reset ()
 {
-	scb_.ClearScoreBoard();
+	scb_->ClearScoreBoard();
 	TcpAgent::reset ();
 }
 
@@ -151,14 +156,14 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			recv_newack_helper(pkt);
 			fack_ = last_ack_;
 			timeout_ = FALSE;
-			scb_.ClearScoreBoard();
+			scb_->ClearScoreBoard();
 			retran_data_ = 0;
 			wintrim_ = 0;
 		} else if ((int)tcph->seqno() < last_ack_) {
 			// Do nothing; ack may have been misordered
 
 		} else {
-			retran_data_ -= scb_.UpdateScoreBoard (highest_ack_, tcph);
+			retran_data_ -= scb_->UpdateScoreBoard (highest_ack_, tcph);
 			oldack(pkt);
 			ms = maxsack(pkt);
 			if (ms > fack_)
@@ -190,7 +195,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 				}
 				reset_rtx_timer(1,0);
 				fastrecov_ = TRUE;
-				scb_.MarkRetran (last_ack_+1, t_seqno_);
+				scb_->MarkRetran (last_ack_+1, t_seqno_);
 				retran_data_++;
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
 			}
@@ -213,11 +218,11 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 		if (fack_ >= t_seqno_)
 			t_seqno_ = fack_ + 1;
 
-		retran_data_ -= scb_.UpdateScoreBoard (highest_ack_, tcph);
+		retran_data_ -= scb_->UpdateScoreBoard (highest_ack_, tcph);
 	
 		// If the retransmission was lost again, timeout_ forced to TRUE
 		// if timeout_ TRUE, this shuts off send()
-		timeout_ |= scb_.CheckSndNxt (tcph);
+		timeout_ |= scb_->CheckSndNxt (tcph);
 		
 		opencwnd();
 
@@ -229,7 +234,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			// No SACK blocks indicates fast recovery is over
 			fastrecov_ = FALSE;
 			timeout_ = FALSE;
-			scb_.ClearScoreBoard();
+			scb_->ClearScoreBoard();
 			retran_data_ = 0;
 			wintrim_ = 0;
 			dupacks_ = 0;
@@ -271,7 +276,7 @@ void FackTcpAgent::timeout(int tno)
 			// close down to 1 segment
 			slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
 		}
-		scb_.ClearScoreBoard();
+		scb_->ClearScoreBoard();
 		/* if there is no outstanding data, don't back off rtx timer */
 		if (highest_ack_ == maxseq_)
 			reset_rtx_timer(TCP_REASON_TIMEOUT,0);
@@ -309,7 +314,7 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 	while (( t_seqno_ <= fack_ + win - retran_data_) && (!timeout_)) {
 		if (overhead_ == 0 || force) {
 			found = 0;
-			xmit_seqno = scb_.GetNextRetran ();
+			xmit_seqno = scb_->GetNextRetran ();
 #ifdef DEBUGSACK1A
 			printf("highest_ack: %d xmit_seqno: %d timeout: %d seqno: %d fack: % d win: %d retran_data: %d\n",
 			       highest_ack_, xmit_seqno, timeout_, t_seqno_, fack_, win, retran_data_);
@@ -330,7 +335,7 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 #endif
 			} else {
 				found = 1;
-				scb_.MarkRetran (xmit_seqno, t_seqno_);
+				scb_->MarkRetran (xmit_seqno, t_seqno_);
 				retran_data_++;
 				win = window();
 			}

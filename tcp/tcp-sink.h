@@ -31,21 +31,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.20 2001/12/30 04:54:39 sfloyd Exp $ (LBL)
  */
  
 #ifndef ns_tcpsink_h
 #define ns_tcpsink_h
 
-#include <math.h>
 #include "agent.h"
 #include "tcp.h"
 
 /* max window size */
-#define MWS 1024  
+#define MWS 64  
 #define MWM (MWS-1)
-#define HS_MWS 65536
-#define HS_MWM (MWS-1)
 /* For Tahoe TCP, the "window" parameter, representing the receiver's
  * advertised window, should be less than MWM.  For Reno TCP, the
  * "window" parameter should be less than MWM/2.
@@ -65,12 +61,13 @@ public:
 	double ts_to_echo() { return ts_to_echo_;}
 	int ecn_unacked() { return ecn_unacked_;}
 	inline int Maxseen() const { return (maxseen_); }
-	void resize_buffers();  // grow Acker's arrays for large window sizes -- Sylvia
+	void resize_buffers(int sz);  // resize the seen_ buffer
 
 protected:
+	
 	int next_;		/* next packet expected */
 	int maxseen_;		/* max packet number seen */
-	int wndmask_;		/* window mask - either MWM or HS_MWM - Sylvia */ 
+	int wndmask_;		/* dynamic window mask - a multiple of 2 */
 	int ecn_unacked_;	/* ECN forwarded to sender, but not yet
 				 * acknowledged. */
 	int *seen_;		/* array of packets seen */
@@ -103,7 +100,7 @@ public:
 	TracedInt& maxsackblocks() { return max_sack_blocks_; }
 protected:
 	void ack(Packet*);
-	void resize_buffers();  // grow Acker's arrays for large window sizes -- Sylvia
+
 	virtual void add_to_ack(Packet* pkt);
 
         virtual void delay_bind_init_all();

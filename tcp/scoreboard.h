@@ -31,7 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.h,v 1.8 2000/07/23 00:29:33 sfloyd Exp $
+ */
+
+/* 8/02 Tom Kelly - Made scoreboard a general interface to allow
+ *                  easy swapping of scoreboard algorithms.  
+ *                - Allow scoreboard buffer size to grow dynamically
+ *                - Made ScoreBoardNode a more compact data structure
  */
 
 #ifndef ns_scoreboard_h
@@ -39,32 +44,36 @@
 
 //  Definition of the scoreboard class:
 
-#define SBSIZE 1024
-
 #include "tcp.h"
+
+class ScoreBoardNode {
+public:
+	int seq_no_;		/* Packet number */
+	char ack_flag_;         /* Acked by cumulative ACK */
+	char sack_flag_;        /* Acked by SACK block */
+	char retran_;           /* Packet retransmitted */
+	int snd_nxt_;		/* snd_nxt at time of retransmission */
+};
 
 class ScoreBoard {
   public:
-	ScoreBoard() {first_=0; length_=0;}
-	int IsEmpty () {return (length_ == 0);}
-	void ClearScoreBoard (); 
-	int GetNextRetran ();
-	void MarkRetran (int retran_seqno);
-	void MarkRetran (int retran_seqno, int snd_nxt);
-	int UpdateScoreBoard (int last_ack_, hdr_tcp*);
-	int CheckUpdate() {return (changed_);}
-	int CheckSndNxt (hdr_tcp*);
+	ScoreBoard(ScoreBoardNode* sbn, int sz): first_(0), length_(0), sbsize_(sz), changed_(0),SBN(sbn) {}
+	virtual ~ScoreBoard(){if(SBN) delete[] SBN;}
+	virtual int IsEmpty () {return (length_ == 0);}
+	virtual void ClearScoreBoard (); 
+	virtual int GetNextRetran ();
+	virtual void MarkRetran (int retran_seqno);
+	virtual void MarkRetran (int retran_seqno, int snd_nxt);
+	virtual int UpdateScoreBoard (int last_ack_, hdr_tcp*);
+	virtual int CheckUpdate() {return (changed_);}
+	virtual int CheckSndNxt (hdr_tcp*);
 	
   protected:
-	int first_, length_, changed_;
-	struct ScoreBoardNode {
-		int seq_no_;		/* Packet number */
-		int ack_flag_;		/* Acked by cumulative ACK */
-		int sack_flag_;		/* Acked by SACK block */
-		int retran_;		/* Packet retransmitted */
-		int snd_nxt_;		/* snd_nxt at time of retransmission */
-		int sack_cnt_;		/* number of reports for this hole */
-	} SBN[SBSIZE+1];
+	int first_, length_, sbsize_, changed_;
+
+	ScoreBoardNode * SBN; 
+
+	void resizeSB(int sz);
 };
 
 #endif

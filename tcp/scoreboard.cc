@@ -37,25 +37,17 @@
  *      UpdateScoreBoard, CheckSndNxt, MarkRetran modified for fack
  */
 
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.13 2000/07/23 00:29:33 sfloyd Exp $ (LBL)";
-#endif
-
 /*  A quick hack version of the scoreboard  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <math.h>
 
-#include "packet.h"
 #include "scoreboard.h"
 #include "tcp.h"
 
 #define ASSERT(x) if (!(x)) {printf ("Assert SB failed\n"); exit(1);}
 #define ASSERT1(x) if (!(x)) {printf ("Assert1 SB (length)\n"); exit(1);}
 
-#define SBNI SBN[i%SBSIZE]
+#define SBNI SBN[i%sbsize_]
 
 // last_ack = TCP last ack
 int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
@@ -64,31 +56,14 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 	int retran_decr = 0;
 	
 	changed_ = 0;
-
-	//  If there is no scoreboard, create one.
-	if (length_ == 0 && tcph->sa_length()) {
-		i = last_ack+1;
-		SBNI.seq_no_ = i;
-		SBNI.ack_flag_ = 0;
-		SBNI.sack_flag_ = 0;
-		SBNI.retran_ = 0;
-		SBNI.snd_nxt_ = 0;
-		first_ = i%SBSIZE;
-		length_++;
-		if (length_ >= SBSIZE) {
-			printf ("Error, scoreboard too large (increase SBSIZE for more space)\n");
-			exit(1);
-		}
-		changed_++;
-	}	
-	
+			
 	//  Advance the left edge of the block.
-	if (length_ && SBN[first_].seq_no_ <= last_ack) {
-		for (i=SBN[first_].seq_no_; i<=last_ack; i++) {
+	if (length_ && SBN[first_%sbsize_].seq_no_ <= last_ack) {
+		for (i=SBN[first_%sbsize_].seq_no_; i<=last_ack; i++) {
 			//  Advance the ACK
 			if (SBNI.seq_no_ <= last_ack) {
-				ASSERT(first_ == i%SBSIZE);
-				first_ = (first_+1)%SBSIZE; 
+				ASSERT(first_ == i);
+				first_ = (first_+1);
 				length_--;
 				ASSERT1(length_ >= 0);
 				SBNI.ack_flag_ = 1;
@@ -104,30 +79,55 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 			}
 		}
 	}
-	
+
+	//  If there is no scoreboard, create one.
+	if (length_ == 0 && tcph->sa_length()) {
+		i = last_ack+1;
+		SBNI.seq_no_ = i;
+		SBNI.ack_flag_ = 0;
+		SBNI.sack_flag_ = 0;
+		SBNI.retran_ = 0;
+		SBNI.snd_nxt_ = 0;
+		first_ = i;
+		length_++;
+		if (length_ >= sbsize_) {
+			printf ("Error, scoreboard too large (increase sbsize_ for more space)\n");
+			exit(1);
+		}
+		changed_++;
+	}	
+
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
 		sack_left = tcph->sa_left(sack_index);
 		sack_right = tcph->sa_right(sack_index);
-
+		
 		//  Create new entries off the right side.
-		if (sack_right > SBN[(first_+length_+SBSIZE-1)%SBSIZE].seq_no_) {
+		if (sack_right > SBN[(first_+length_+sbsize_-1)%sbsize_].seq_no_) {
+
+			// Resize the scoreboard if it is going to overrun the length
+			while((sack_right - last_ack) >= sbsize_ -1 ){
+				resizeSB(sbsize_*2);
+			}
+
 			//  Create new entries
-			for (i = SBN[(first_+length_+SBSIZE-1)%SBSIZE].seq_no_+1; i<sack_right; i++) {
+			for (i = SBN[(first_+length_+sbsize_-1)%sbsize_].seq_no_+1; i<sack_right; i++) {
 				SBNI.seq_no_ = i;
 				SBNI.ack_flag_ = 0;
 				SBNI.sack_flag_ = 0;
 				SBNI.retran_ = 0;
 				SBNI.snd_nxt_ = 0;
 				length_++;
-				if (length_ >= SBSIZE) {
-					printf ("Error, scoreboard too large (increase SBSIZE for more space)\n");
-					exit(1);
+				if (length_ >= sbsize_) {
+					fprintf(stderr, "ERROR: Scoreboard got too large!!!\n");
+					fprintf(stderr, " SBN[first (mod) sbsize_]: %i, sack_right: %i length_: %i\n", SBN[first_%sbsize_].seq_no_,sack_right , length_);
+					fprintf(stderr, "last_ack: %i SBN[(first_+length_+sbsize_-1) (mod) sbsize_].seq_no_: %i, sbsize_: %i\n", last_ack, SBN[(first_+length_+sbsize_-1)%sbsize_].seq_no_ , sbsize_);
+ 					exit(1);
 				}
 				changed_++;
 			}
 		}
 		
-		for (i=SBN[(first_)%SBSIZE].seq_no_; i<sack_right; i++) {
+		for (i=SBN[(first_)%sbsize_].seq_no_; i<sack_right; i++) {
 			//  Check to see if this segment is now covered by the sack block
 			if (SBNI.seq_no_ >= sack_left && SBNI.seq_no_ < sack_right) {
 				if (! SBNI.sack_flag_) {
@@ -152,7 +152,7 @@ int ScoreBoard::CheckSndNxt (hdr_tcp* tcph)
 		sack_left = tcph->sa_left(sack_index);
 		sack_right = tcph->sa_right(sack_index);
 
-		for (i=SBN[(first_)%SBSIZE].seq_no_; i<sack_right; i++) {
+		for (i=SBN[(first_)%sbsize_].seq_no_; i<sack_right; i++) {
 			//  Check to see if this segment's snd_nxt_ is now covered by the sack block
 			if (SBNI.retran_ && SBNI.snd_nxt_ < sack_right) {
 				// the packet was lost again
@@ -179,8 +179,8 @@ int ScoreBoard::GetNextRetran()	// Returns sequence number of next pkt...
 	int i;
 
 	if (length_) {
-		for (i=SBN[(first_)%SBSIZE].seq_no_; 
-		     i<SBN[(first_)%SBSIZE].seq_no_+length_; i++) {
+		for (i=SBN[(first_)%sbsize_].seq_no_; 
+		     i<SBN[(first_)%sbsize_].seq_no_+length_; i++) {
 			if (!SBNI.ack_flag_ && !SBNI.sack_flag_ && !SBNI.retran_) {
 				return (i);
 			}
@@ -192,12 +192,30 @@ int ScoreBoard::GetNextRetran()	// Returns sequence number of next pkt...
 
 void ScoreBoard::MarkRetran (int retran_seqno, int snd_nxt)
 {
-	SBN[retran_seqno%SBSIZE].retran_ = 1;
-	SBN[retran_seqno%SBSIZE].snd_nxt_ = snd_nxt;
+	SBN[retran_seqno%sbsize_].retran_ = 1;
+	SBN[retran_seqno%sbsize_].snd_nxt_ = snd_nxt;
 }
 
 void ScoreBoard::MarkRetran (int retran_seqno)
 {
-	SBN[retran_seqno%SBSIZE].retran_ = 1;
+	SBN[retran_seqno%sbsize_].retran_ = 1;
 }
 
+void ScoreBoard::resizeSB(int sz)
+{
+	ScoreBoardNode *newSBN = new ScoreBoardNode[sz+1];
+
+	if(!newSBN){
+		fprintf(stderr, "Unable to allocate new ScoreBoardNode[%i]\n", sz);
+		exit(1);
+	}
+
+	for(int i = SBN[first_%sbsize_].seq_no_;
+	    i<=SBN[(first_)%sbsize_].seq_no_+length_; i++) {
+		newSBN[i%sz] = SBN[i%sbsize_];
+	}
+
+	delete[] SBN;
+	SBN = newSBN;
+	sbsize_ = sz;
+}

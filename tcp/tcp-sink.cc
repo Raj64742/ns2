@@ -32,10 +32,7 @@
  * SUCH DAMAGE.
  */
  
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.45 2001/12/30 04:54:39 sfloyd Exp $ (LBL)";
-#endif
+/* 8/02 Tom Kelly - Dynamic resizing of seen buffer */
 
 #include "flags.h"
 #include "ip.h"
@@ -52,9 +49,7 @@ public:
 Acker::Acker() : next_(0), maxseen_(0), wndmask_(MWM), ecn_unacked_(0), 
 	ts_to_echo_(0)
 {
-	seen_ = new int[MWS]; 		// changed by Brad/Sylvia
-					// used dynamic alloc to eliminate fhuge-objects pb 
-					// when compiling with really large MWS 
+	seen_ = new int[MWS];
 	memset(seen_, 0, (sizeof(int) * (MWS)));
 }
 
@@ -65,12 +60,26 @@ void Acker::reset()
 	memset(seen_, 0, (sizeof(int) * (wndmask_ + 1)));
 }	
 
-/* resize Acker's buffers for highspeed -- Sylvia */
-void Acker::resize_buffers() { 
-	wndmask_ = HS_MWM;
+// dynamically increase the seen buffer as needed
+// size must be a factor of two for the wndmask_ to work...
+void Acker::resize_buffers(int sz) { 
+	int* new_seen = new int[sz];
+	int new_wndmask = sz - 1;
+	
+	if(!new_seen){
+		fprintf(stderr, "Unable to allocate buffer seen_[%i]\n", sz);
+		exit(1);
+	}
+	
+	memset(new_seen, 0, (sizeof(int) * (sz)));
+	
+	for(int i = next_; i <= maxseen_+1; i++){
+		new_seen[i & new_wndmask] = seen_[i&wndmask_];
+	}
+	
 	delete[] seen_;
-	seen_ = new int[HS_MWS]; 		
-	memset(seen_, 0, (sizeof(int) * (HS_MWS)));
+	seen_ = new_seen;      
+	wndmask_ = new_wndmask;
 	return; 
 }
 
@@ -90,12 +99,12 @@ int Acker::update(int seq, int numBytes)
 	if (numBytes <= 0)
 		printf("Error, received TCP packet size <= 0\n");
 	int numToDeliver = 0;
-	if (seq - next_ >= wndmask_) {
+	while(seq + 1 - next_ >= wndmask_) {
 		// next_ is next packet expected; wndmask_ is the maximum
 		// window size minus 1; if somehow the seqno of the
 		// packet is greater than the one we're expecting+wndmask_,
-		// then ignore it.
-		return 0;
+		// then resize the buffer.
+		resize_buffers((wndmask_+1)*2);
 	}
 
 	if (seq > maxseen_) {
@@ -219,7 +228,8 @@ int TcpSink::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "resize_buffers") == 0) {
-			resize_buffers();
+			// no need for this as seen buffer set dynamically
+			fprintf(stderr,"DEPRECIATED: resize_buffers\n");
 			return (TCL_OK);
 		}
 	}
@@ -300,11 +310,6 @@ void TcpSink::add_to_ack(Packet*)
 	return;
 }
 
-/* resize Acker's buffers for highspeed -- Sylvia */
-void TcpSink::resize_buffers() { 
-	acker_->resize_buffers();
-	return;
-}
 
 void TcpSink::recv(Packet* pkt, Handler*)
 {
@@ -630,6 +635,8 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 	                }
 			h->sa_left(sack_index) = sack_left;
 			h->sa_right(sack_index) = sack_right;
+			
+			// printf("pkt_seqno: %i cuml_seqno: %i sa_idx: %i sa_left: %i sa_right: %i\n" ,old_seqno, seqno, sack_index, sack_left, sack_right);
 			// record the block
 			sack_index++;
 		}
@@ -662,11 +669,14 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 
 			h->sa_left(sack_index) = sack_left;
 			h->sa_right(sack_index) = sack_right;
+			
+			// printf("pkt_seqno: %i cuml_seqno: %i sa_idx: %i sa_left: %i sa_right: %i\n" ,old_seqno, seqno, sack_index, sack_left, sack_right);
+			
 			// store the old sack (i.e. move it down one)
 			sack_index++;
 			k++;
-
                 }
+
 
 		if (old_seqno > seqno) {
 		 	/* put most recent block onto stack */
