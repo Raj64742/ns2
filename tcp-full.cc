@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.103 2001/09/05 00:28:38 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.104 2001/09/07 01:15:11 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -341,16 +341,16 @@ FullTcpAgent::advance_bytes(int nb)
 
 	//
 	// state-specific operations:
-	//	if CLOSED, reset and try a new active open/connect
-	//	if ESTABLISHED, just try to send more
-	//	if SYN_SENT, just queue
+	//	if CLOSED or LISTEN, reset and try a new active open/connect
+	//	if ESTABLISHED, queue and try to send more
+	//	if SYN_SENT or SYN_RCVD, just queue
 	//	if above ESTABLISHED, we are closing, so don't allow
-	//	if anything else (establishing), do nothing here
 	//
 
 	switch (state_) {
 
 	case TCPS_CLOSED:
+	case TCPS_LISTEN:
                 reset();
                 curseq_ = iss_ + nb;
                 connect();              // initiate new connection
@@ -358,7 +358,7 @@ FullTcpAgent::advance_bytes(int nb)
 
 	case TCPS_ESTABLISHED:
 	case TCPS_SYN_SENT:
-                closed_ = 0;
+	case TCPS_SYN_RECEIVED:
                 if (curseq_ < iss_) 
                         curseq_ = iss_; 
                 curseq_ += nb;
@@ -366,8 +366,8 @@ FullTcpAgent::advance_bytes(int nb)
 
 	default:
 	    fprintf(stderr,
-	    "%f: FullTcpAgent::advance(%s): cannot advance while in state %d\n",
-		 now(), name(), state_);
+	    "%f: FullTcpAgent::advance(%s): cannot advance while in state %s\n",
+		 now(), name(), statestr(state_));
 
 	}
 
@@ -428,13 +428,14 @@ void
 FullTcpAgent::usrclosed()
 {
 	curseq_ = maxseq_ - 1;	// now, no more data
-	infinite_send_ = 0;	// stop infinite send
+	infinite_send_ = FALSE;	// stop infinite send
 
 	switch (state_) {
 	case TCPS_CLOSED:
 	case TCPS_LISTEN:
 		cancel_timers();
 		newstate(TCPS_CLOSED);
+		finish();
 		break;
 	case TCPS_SYN_SENT:
 		newstate(TCPS_CLOSED);
@@ -459,13 +460,13 @@ FullTcpAgent::usrclosed()
 	case TCPS_CLOSING:
 		/* usr asked for a close more than once [?] */
 		fprintf(stderr,
-		  "%f FullTcpAgent(%s): app close in bad state %d\n",
-		  now(), name(), state_);
+		  "%f FullTcpAgent(%s): app close in bad state %s\n",
+		  now(), name(), statestr(state_));
 		break;
 	default:
 		fprintf(stderr,
-		  "%f FullTcpAgent(%s): app close in unknown state %d\n",
-		  now(), name(), state_);
+		  "%f FullTcpAgent(%s): app close in unknown state %s\n",
+		  now(), name(), statestr(state_));
 	}
 
 	return;
@@ -483,6 +484,68 @@ FullTcpAgent::cancel_timers()
 	TcpAgent::cancel_timers();      
 	// cancel: delack
 	delack_timer_.force_cancel();
+}
+
+void
+FullTcpAgent::newstate(int state)
+{
+//printf("%f(%s): state changed from %s to %s\n",
+//now(), name(), statestr(state_), statestr(state));
+
+	state_ = state;
+}
+
+void
+FullTcpAgent::prpkt(Packet *pkt)
+{
+	hdr_tcp *tcph = hdr_tcp::access(pkt);	// TCP header
+	hdr_cmn *th = hdr_cmn::access(pkt);	// common header (size, etc)
+	hdr_flags *fh = hdr_flags::access(pkt);	// flags (CWR, CE, bits)
+	hdr_ip* iph = hdr_ip::access(pkt);
+	int datalen = th->size() - tcph->hlen(); // # payload bytes
+
+	fprintf(stdout, " [%d:%d.%d>%d.%d] (hlen:%d, dlen:%d, seq:%d, ack:%d, flags:0x%x (%s), salen:%d, reason:0x%x)\n",
+		th->uid(),
+		iph->saddr(), iph->sport(),
+		iph->daddr(), iph->dport(),
+		tcph->hlen(),
+		datalen,
+		tcph->seqno(),
+		tcph->ackno(),
+		tcph->flags(), flagstr(tcph->flags()),
+		tcph->sa_length(),
+		tcph->reason());
+}
+
+char *
+FullTcpAgent::flagstr(int hflags)
+{
+	// update this if tcp header flags change
+	static char *flagstrs[28] = {
+		"<null>", "<FIN>", "<SYN>", "<SYN,FIN>",	// 0-3
+		"<?>", "<?,FIN>", "<?,SYN>", "<?,SYN,FIN>",	// 4-7
+		"<PSH>", "<PSH,FIN>", "<PSH,SYN>", "<PSH,SYN,FIN>", // 0x08-0x0b
+		"<??>", "<??,FIN>", "<??,SYN>", "<??,SYN,FIN>",	    // 0x0c-0x0f
+		"<ACK>", "<ACK,FIN>", "<ACK,SYN>", "<ACK,SYN,FIN>", // 0x10-0x13
+		"<ACK>", "<ACK,FIN>", "<ACK,SYN>", "<ACK,SYN,FIN>", // 0x14-0x17
+		"<PSH,ACK>", "<PSH,ACK,FIN>", "<PSH,ACK,SYN>", "<PSH,ACK,SYN,FIN>", // 0x18-0x1b
+	};
+	if (hflags < 0 || (hflags > 28))
+		return ("<invalid>");
+	return (flagstrs[hflags]);
+}
+
+char *
+FullTcpAgent::statestr(int state)
+{
+	static char *statestrs[TCP_NSTATES] = {
+		"CLOSED", "LISTEN", "SYN_SENT", "SYN_RCVD",
+		"ESTABLISHED", "CLOSE_WAIT", "FIN_WAIT_1", "CLOSING",
+		"LAST_ACK", "FIN_WAIT_2"
+	};
+	if (state < 0 || (state >= TCP_NSTATES))
+		return ("INVALID");
+	return (statestrs[state]);
 }
 
 void
@@ -528,11 +591,6 @@ FullTcpAgent::reset()
 void
 FullTcpAgent::finish()
 {
-	if (closed_)
-		return;
-	closed_ = 1;
-	rq_.clear();
-	cancel_timers();
 	Tcl::instance().evalf("%s done", this->name());
 }
 /*
@@ -546,7 +604,7 @@ FullTcpAgent::headersize()
 	int total = tcpip_base_hdr_size_;
 	if (total < 1) {
 		fprintf(stderr,
-		    "%f: TCP-FULL(%s): warning: tcpip hdr size is only %d bytes\n",
+		    "%f: FullTcpAgent(%s): warning: tcpip hdr size is only %d bytes\n",
 			now(), name(), tcpip_base_hdr_size_);
 	}
 
@@ -564,17 +622,28 @@ FullTcpAgent::headersize()
 int
 FullTcpAgent::outflags()
 {
-	int flags = 0;
-	if ((state_ != TCPS_LISTEN) && (state_ != TCPS_SYN_SENT))
-		flags |= TH_ACK;
+	// in real TCP an RST is added in the CLOSED state
+	static int tcp_outflags[TCP_NSTATES] = {
+		TH_ACK,          	/* 0, CLOSED */  
+		0,                      /* 1, LISTEN */ 
+		TH_SYN,                 /* 2, SYN_SENT */
+		TH_SYN|TH_ACK,          /* 3, SYN_RECEIVED */
+		TH_ACK,                 /* 4, ESTABLISHED */
+		TH_ACK,                 /* 5, CLOSE_WAIT */
+		TH_FIN|TH_ACK,          /* 6, FIN_WAIT_1 */
+		TH_FIN|TH_ACK,          /* 7, CLOSING */
+		TH_FIN|TH_ACK,          /* 8, LAST_ACK */
+		TH_ACK,                 /* 9, FIN_WAIT_2 */
+		/* 10, TIME_WAIT --- not used in simulator */
+	};
 
-	if ((state_ == TCPS_SYN_SENT) || (state_ == TCPS_SYN_RECEIVED))
-		flags |= TH_SYN;
+	if (state_ < 0 || (state_ >= TCP_NSTATES)) {
+		fprintf(stderr, "%f FullTcpAgent(%s): invalid state %d\n",
+			now(), name(), state_);
+		return (0x0);
+	}
 
-	if ((state_ == TCPS_FIN_WAIT_1) || (state_ == TCPS_LAST_ACK))
-		flags |= TH_FIN;
-
-	return (flags);
+	return (tcp_outflags[state_]);
 }
 
 /*
@@ -774,6 +843,12 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
         }
 
 	last_ack_sent_ = ackno;
+
+//if (state_ != TCPS_ESTABLISHED) {
+//printf("%f(%s)[state:%s]: sending pkt ", now(), name(), statestr(state_));
+//prpkt(p);
+//}
+
 	send(p, 0);
 
 	return;
@@ -1267,18 +1342,31 @@ FullTcpAgent::set_initial_window()
  * called from the agent that handles the data path below in its muxing mode
  * advance() is called when connection is established with size sent from
  * user/application agent
+ *
+ * This is a fairly complex function.  It operates generally as follows:
+ *	do header prediction for simple cases (pure ACKS or data)
+ *	if in LISTEN and we get a SYN, begin initializing connection
+ *	if in SYN_SENT and we get an ACK, complete connection init
+ *	trim any redundant data from received dataful segment
+ *	deal with ACKS:
+ *		if in SYN_RCVD, complete connection init then go on
+ *		see if ACK is old or at the current highest_ack
+ *		if at current high, is the threshold reached or not
+ *		if so, maybe do fast rtx... otherwise drop or inflate win
+ *	deal with incoming data
+ *	deal with FIN bit on in arriving packet
  */
 void
 FullTcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = hdr_tcp::access(pkt);
-	hdr_cmn *th = hdr_cmn::access(pkt);
-	hdr_flags *fh = hdr_flags::access(pkt);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);	// TCP header
+	hdr_cmn *th = hdr_cmn::access(pkt);	// common header (size, etc)
+	hdr_flags *fh = hdr_flags::access(pkt);	// flags (CWR, CE, bits)
 
 	int needoutput = FALSE;
 	int ourfinisacked = FALSE;
-	int dupseg = FALSE;			// recv'd dup segment
-	int todrop = 0;				// duplicate DATA cnt
+	int dupseg = FALSE;			// recv'd dup data segment
+	int todrop = 0;				// duplicate DATA cnt in seg
 
 	last_state_ = state_;
 
@@ -1286,13 +1374,19 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 	int ackno = tcph->ackno();		 // ack # from packet
 	int tiflags = tcph->flags() ; 		 // tcp flags from packet
 
+//if (state_ != TCPS_ESTABLISHED || (tiflags&(TH_SYN|TH_FIN))) {
+//fprintf(stdout, "%f(%s)in state %s recv'd this packet: ", now(), name(), statestr(state_));
+//prpkt(pkt);
+//}
+
 	/*
 	 * Don't expect to see anything while closed
 	 */
 
 	if (state_ == TCPS_CLOSED) {
-		fprintf(stderr, "%f: FullTcp(%s): recv'd pkt in CLOSED state\n",
+		fprintf(stderr, "%f: FullTcp(%s): recv'd pkt in CLOSED state: ",
 			now(), name());
+		prpkt(pkt);
 		goto drop;
 	}
 
@@ -1410,12 +1504,18 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 				send_much(1, REASON_NORMAL, maxburst_);
 			return;
 		}
-	}
+	} /* header prediction */
 
 
+	//
 	// header prediction failed
 	// (e.g. pure ACK out of valid range, SACK present, etc)...
 	// do slow path processing
+
+	//
+	// the following switch does special things for these states:
+	//	TCPS_LISTEN, TCPS_SYN_SENT
+	//
 
 	switch (state_) {
 
@@ -1433,9 +1533,19 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 	case TCPS_LISTEN:	/* awaiting peer's SYN */
 
 		if (tiflags & TH_ACK) {
+		    	fprintf(stderr,
+		    		"%f: FullTcpAgent(%s): warning: recv'd ACK while in LISTEN: ",
+				now(), name());
+			prpkt(pkt);
+			// don't want ACKs in LISTEN
 			goto dropwithreset;
 		}
 		if ((tiflags & TH_SYN) == 0) {
+		    	fprintf(stderr,
+		    		"%f: FullTcpAgent(%s): warning: recv'd NON-SYN while in LISTEN\n",
+				now(), name());
+			prpkt(pkt);
+			// any non-SYN is discarded
 			goto drop;
 		}
 
@@ -1485,15 +1595,17 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 			((ackno <= iss_) || (ackno > maxseq_))) {
 			// not an ACK for our SYN, discard
 			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
-			        now(), name(), int(ackno), int(maxseq_));
+			    "%f: FullTcpAgent::recv(%s): bad ACK for our SYN: ",
+			        now(), name());
+			prpkt(pkt);
 			goto dropwithreset;
 		}
 
 		if ((tiflags & TH_SYN) == 0) {
 			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN(%d)\n",
-			        now(), name(), int(maxseq_));
+			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN: ",
+			        now(), name());
+			prpkt(pkt);
 			goto drop;
 		}
 
@@ -1625,6 +1737,8 @@ trimthenstep6:
                          */
 			recent_ = 0.0;
 		} else {
+			fprintf(stderr, "%f: FullTcpAgent(%s): dropped pkt due to bad ts\n",
+				now(), name());
 			goto dropafterack;
 		}
 	}
@@ -1647,13 +1761,19 @@ trimthenstep6:
 	//	to have seq #s below rcv_nxt can trigger an ACK war by
 	//	forcing us to ACK the pure ACKs
 	//
+	// Update: if we have a dataless FIN, don't really want to
+	// do anything with it.  In particular, would like to
+	// avoid ACKing an incoming FIN+ACK while in CLOSING
+	//
 	todrop = rcv_nxt_ - tcph->seqno();  // how much overlap?
 
-	if (todrop > 0 && ((tiflags & (TH_SYN|TH_FIN)) || datalen > 0)) {
+	if (todrop > 0 && ((tiflags & (TH_SYN)) || datalen > 0)) {
+//printf("%f(%s): trim 1..todrop:%d, dlen:%d\n",now(), name(), todrop, datalen);
 		if (tiflags & TH_SYN) {
 			tiflags &= ~TH_SYN;
 			tcph->seqno()++;
 			th->size()--;	// XXX Must decrease packet size too!!
+					// Q: Why?.. this is only a SYN
 			todrop--;
 		}
 		//
@@ -1662,8 +1782,9 @@ trimthenstep6:
 		// more than this segment (i.e. the whole pkt + a FIN),
 		// or just the whole packet (no FIN)
 		//
-		if (todrop > datalen ||
-		    (todrop == datalen && (tiflags & TH_FIN) == 0)) {
+		if ((todrop > datalen) ||
+		    (todrop == datalen && ((tiflags & TH_FIN) == 0))) {
+//printf("%f(%s): trim 2..todrop:%d, dlen:%d\n",now(), name(), todrop, datalen);
                         /*
                          * Any valid FIN must be to the left of the window.
                          * At this point the FIN must be a duplicate or out
@@ -1692,7 +1813,7 @@ trimthenstep6:
 					// why? [kf]..prob when put in RQ
 		datalen -= todrop;
 
-	}
+	} /* data trim */
 
 	/*
 	 * If we are doing timstamps and this packet has one, and
@@ -1712,14 +1833,16 @@ trimthenstep6:
 
 	if (tiflags & TH_SYN) {
 		fprintf(stderr,
-		    "%f: FullTcpAgent::recv(%s) received unexpected SYN (state:%d)\n",
+		    "%f: FullTcpAgent::recv(%s) received unexpected SYN (state:%d): ",
 		        now(), name(), state_);
+		prpkt(pkt);
 		goto dropwithreset;
 	}
 
 	if ((tiflags & TH_ACK) == 0) {
-		fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (seq %d)\n",
-			now(), name(), tcph->seqno());
+		fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (state:%d): ",
+			now(), name(), state_);
+		prpkt(pkt);
 		goto drop;
 	}
 
@@ -1731,6 +1854,10 @@ trimthenstep6:
 	case TCPS_SYN_RECEIVED:	/* want ACK for our SYN+ACK */
 		if (ackno < highest_ack_ || ackno > maxseq_) {
 			// not in useful range
+		    	fprintf(stderr,
+		    		"%f: FullTcpAgent(%s): ack(%d) not in range while in SYN_RECEIVED: ",
+			 	now(), name());
+			prpkt(pkt);
 			goto dropwithreset;
 		}
                 /*
@@ -1872,8 +1999,9 @@ process_ACK:
 		if (ackno > maxseq_) {
 			// ack more than we sent(!?)
 			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s) too-big ACK (ack: %d, maxseq:%d)\n",
-				now(), name(), int(ackno), int(maxseq_));
+			    "%f: FullTcpAgent::recv(%s) too-big ACK (maxseq:%d): ",
+				now(), name(), int(maxseq_));
+			prpkt(pkt);
 			goto dropafterack;
 		}
 
@@ -1942,10 +2070,14 @@ process_ACK:
 				opencwnd();
 		}
 
-		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno == maxseq_))
+		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno == maxseq_)) {
 			ourfinisacked = TRUE;
+		}
 
-		// additional processing when we're in special states
+		//
+		// special additional processing when our state
+		// is one of the closing states:
+		//	FIN_WAIT_1, CLOSING, LAST_ACK
 
 		switch (state_) {
                 /*
@@ -1989,27 +2121,27 @@ process_ACK:
 				goto drop;
 			} else {
 				// should be a FIN we've seen
-				hdr_ip* iph = hdr_ip::access(pkt);
                                 fprintf(stderr,
-                                "%f: %d.%d>%d.%d FullTcpAgent::recv(%s) received non-ACK (state:%d)\n",
-                                        now(),
-                                        iph->saddr(), iph->sport(),
-                                        iph->daddr(), iph->dport(),
-                                        name(), state_);
+                                "%f: FullTcpAgent(%s)::received non-ACK (state:%d): ",
+                                        now(), name(), state_);
+				prpkt(pkt);
                         }
 			break;
 
 		/* no case for TIME_WAIT in simulator */
-		}  // inner state_ switch
-	} // outer state_ switch
+		}  // inner state_ switch (closing states)
+	} // outer state_ switch (ack processing)
 
 step6:
-	/* real TCP handles window updates and URG data here */
-/* dodata: this label is in the "real" code.. here only for reference */
+
 	/*
-	 * DATA processing
-	 * (only good/new data... dup data has already been trimmed above)
+	 * Processing of incoming DATAful segments.
+	 * 	Code above has already trimmed redundant data.
+	 *
+	 * real TCP handles window updates and URG data here also
 	 */
+
+/* dodata: this label is in the "real" code.. here only for reference */
 
 	if ((datalen > 0 || (tiflags & TH_FIN)) &&
 	    TCPS_HAVERCVDFIN(state_) == 0) {
@@ -2136,6 +2268,10 @@ step6:
 
 	return;
 
+	//
+	// various ways of dropping (some also ACK, some also RST)
+	//
+
 dropafterack:
 	flags_ |= TF_ACKNOW;
 	send_much(1, REASON_NORMAL, maxburst_);
@@ -2181,7 +2317,8 @@ FullTcpAgent::dupack_action()
 	fastrecov_ = TRUE;
 
         if (recovered || (!bug_fix_ && !ecn_) ||
-	    // Q: is last_cwnd_action dupack enough?
+	    // Q: is last_cwnd_action == dupack enough to trigger?
+	    // probably not.  may need to fix 1-way reno model as well
 	    last_cwnd_action_ == CWND_ACTION_DUPACK) {
                 goto full_reno_action;
         }       
@@ -2220,6 +2357,14 @@ void
 FullTcpAgent::timeout_action()
 {
 	recover_ = maxseq_;
+
+	if (cwnd_ < 1.0) {
+	    fprintf(stderr,
+	    "%f: FullTcpAgent(%s):: resetting cwnd from %f to 1\n",
+		 now(), name(), double(cwnd_));
+		cwnd_ = 1.0;
+	}
+
 	if (last_cwnd_action_ == CWND_ACTION_ECN) {
 		slowdown(CLOSE_CWND_ONE);
 	} else {
@@ -2251,14 +2396,10 @@ void
 FullTcpAgent::timeout(int tno)
 {
 
-//if (tno == TCP_TIMER_RTX)
-//printf("%f: RTX TIMEOUT: t_seqno:%d\n",
-//now(), int(t_seqno_));
-
 	if (state_ == TCPS_CLOSED || state_ == TCPS_LISTEN) {
 	 	// shouldn't be getting timeouts here
-		fprintf(stderr, "%f: (%s) FullTcp: unexpected timeout %d in state %d\n",
-			now(), name(), tno, state_);
+		fprintf(stderr, "%f: FullTcpAgent(%s): unexpected timeout %d in state %s\n",
+			now(), name(), tno, statestr(state_));
 		return;
 	}
 
@@ -2283,7 +2424,7 @@ FullTcpAgent::timeout(int tno)
                 delack_timer_.resched(delack_interval_);
 		break;
 	default:
-		fprintf(stderr, "%f: FullTcpAgent(%s) Unknown Timeout %d\n",
+		fprintf(stderr, "%f: FullTcpAgent(%s) Unknown Timeout type %d\n",
 			now(), name(), tno);
 	}
 	return;
