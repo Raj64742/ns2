@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.105 1997/07/17 15:28:56 kannan Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.106 1997/07/22 09:13:53 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,21 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</A>
 [PENDING RELEASE DATE]</H3>
 <ul>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
+<B>Tue Jul 22 02:13:12 PDT 1997</B><BR>
+	<UL>	
+	<LI> tcp.cc: finish() is called whenever there is no unacknowledged data 
+	<LI> tcp{,-reno,-newreno,-fack}.cc: 
+		<UL>
+		<LI> rtx timer is NOT backed off at the time of fast retransmission
+		<LI> during fast recovery mode, we compare new ack with recover_ only if recover_cause_==1 
+		</UL>
+	<LI> tcp-fack.h: separate file for definition of FackTcpAgent to enable derived classes
+	<LI> tcp-nonfifo.cc: added support for priority drop
+	<LI> red.cc: moved code that picks drop victim into pickPacketToDrop(). This allows derived
+          classes to use a different algorithm for this.  
+	<LI> queue-monitor.{cc,h}: option to exactly trace queue length (rather than just sample it)
+	</UL>
 <LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
 <B>Thu Jul 17 08:16:16 PDT 1997</B><BR>
 - srm.cc/srmAgent::recv() did not free packets appropriately, causing
