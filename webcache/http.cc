@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.16 1999/08/04 00:11:07 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.17 1999/08/04 21:04:01 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -52,28 +52,11 @@ public:
 // What states should be in a http agent?
 HttpApp::HttpApp() : log_(0)
 {
-#ifndef TCLCL_CLASSINSTVAR
 	bind("id_", &id_);
-#endif
-
 	// Map a client address to a particular TCP agent
 	tpa_ = new Tcl_HashTable;
 	Tcl_InitHashTable(tpa_, TCL_ONE_WORD_KEYS);
 }
-
-#ifdef TCLCL_CLASSINSTVAR
-void HttpApp::delay_bind_init_all()
-{
-	delay_bind_init_one("id_");
-	TclObject::delay_bind_init_all();
-}
-
-int HttpApp::delay_bind_dispatch(const char *varName, const char *localName)
-{
-	DELAY_BIND_DISPATCH(varName, localName, "id_", delay_bind, &id_);
-	return TclObject::delay_bind_dispatch(varName, localName);
-}
-#endif /* TCLCL_CLASSINSTVAR */
 
 HttpApp::~HttpApp()
 {
@@ -451,8 +434,6 @@ public:
 HttpYucInvalServer::HttpYucInvalServer() :
 	inv_sender_(0), invlist_(0), num_inv_(0)
 {
-#ifdef TCLCL_CLASSINSTVAR
-#else /* ! TCLCL_CLASSINSTVAR */
 	bind("hb_interval_", &hb_interval_);
 	bind("enable_upd_", &enable_upd_);
 	bind("Ca_", &Ca_);
@@ -460,40 +441,7 @@ HttpYucInvalServer::HttpYucInvalServer() :
 	bind("push_thresh_", &push_thresh_);
 	bind("push_high_bound_", &push_high_bound_);
 	bind("push_low_bound_", &push_low_bound_);
-#endif
 }
-
-#ifdef TCLCL_CLASSINSTVAR
-void HttpYucInvalServer::delay_bind_init_all()
-{
-	delay_bind_init_one("hb_interval_");
-	delay_bind_init_one("enable_upd_");
-	delay_bind_init_one("Ca_");
-	delay_bind_init_one("Cb_");
-	delay_bind_init_one("push_thresh_");
-	delay_bind_init_one("push_high_bound_");
-	delay_bind_init_one("push_low_bound_");
-	HttpApp::delay_bind_init_all();
-}
-
-int HttpYucInvalServer::delay_bind_dispatch(const char *varName, 
-					    const char *localName)
-{
-	DELAY_BIND_DISPATCH(varName, localName, "hb_interval_", 
-			    delay_bind, &hb_interval_);
-	DELAY_BIND_DISPATCH(varName, localName, "enable_upd_", 
-			    delay_bind, &enable_upd_);
-	DELAY_BIND_DISPATCH(varName, localName, "Ca_", delay_bind, &Ca_);
-	DELAY_BIND_DISPATCH(varName, localName, "Cb_", delay_bind, &Cb_);
-	DELAY_BIND_DISPATCH(varName, localName, "push_thresh_", 
-			    delay_bind, &push_thresh_);
-	DELAY_BIND_DISPATCH(varName, localName, "push_high_bound_", 
-			    delay_bind, &push_high_bound_);
-	DELAY_BIND_DISPATCH(varName, localName, "push_low_bound_", 
-			    delay_bind, &push_low_bound_);
-	return HttpApp::delay_bind_dispatch(varName, localName);
-}
-#endif /* TCLCL_CLASSINSTVAR */
 
 int HttpYucInvalServer::command(int argc, const char*const* argv)
 {
@@ -732,8 +680,6 @@ HttpMInvalCache::HttpMInvalCache() :
 	invlist_(0), num_inv_(0), inv_parent_(NULL),
 	upd_sender_(NULL), num_updater_(0), size_updater_(0)
 {
-#ifdef TCLCL_CLASSINSTVAR
-#else /* ! TCLCL_CLASSINSTVAR */
 	bind("hb_interval_", &hb_interval_);
 	bind("enable_upd_", &enable_upd_);	// If we allow push
 	bind("Ca_", &Ca_);
@@ -741,43 +687,11 @@ HttpMInvalCache::HttpMInvalCache() :
 	bind("push_thresh_", &push_thresh_);
 	bind("push_high_bound_", &push_high_bound_);
 	bind("push_low_bound_", &push_low_bound_);
-#endif
+
 	hb_timer_.set_interval(hb_interval_);
 	Tcl_InitHashTable(&sstate_, TCL_ONE_WORD_KEYS);
 	Tcl_InitHashTable(&nbr_, TCL_ONE_WORD_KEYS);
 }
-
-#ifdef TCLCL_CLASSINSTVAR
-void HttpMInvalCache::delay_bind_init_all()
-{
-	delay_bind_init_one("hb_interval_");
-	delay_bind_init_one("enable_upd_");
-	delay_bind_init_one("Ca_");
-	delay_bind_init_one("Cb_");
-	delay_bind_init_one("push_thresh_");
-	delay_bind_init_one("push_high_bound_");
-	delay_bind_init_one("push_low_bound_");
-	HttpApp::delay_bind_init_all();
-}
-
-int HttpMInvalCache::delay_bind_dispatch(const char *varName, 
-					 const char *localName)
-{
-	DELAY_BIND_DISPATCH(varName, localName, "hb_interval_", 
-			    delay_bind, &hb_interval_);
-	DELAY_BIND_DISPATCH(varName, localName, "enable_upd_", 
-			    delay_bind, &enable_upd_);
-	DELAY_BIND_DISPATCH(varName, localName, "Ca_", delay_bind, &Ca_);
-	DELAY_BIND_DISPATCH(varName, localName, "Cb_", delay_bind, &Cb_);
-	DELAY_BIND_DISPATCH(varName, localName, "push_thresh_", 
-			    delay_bind, &push_thresh_);
-	DELAY_BIND_DISPATCH(varName, localName, "push_high_bound_", 
-			    delay_bind, &push_high_bound_);
-	DELAY_BIND_DISPATCH(varName, localName, "push_low_bound_", 
-			    delay_bind, &push_low_bound_);
-	return HttpApp::delay_bind_dispatch(varName, localName);
-}
-#endif /* TCLCL_CLASSINSTVAR */
 
 HttpMInvalCache::~HttpMInvalCache() 
 {
@@ -1582,27 +1496,8 @@ public:
 
 HttpPercInvalCache::HttpPercInvalCache() 
 {
-#ifdef TCLCL_CLASSINSTVAR
-#else /* ! TCLCL_CLASSINSTVAR */
 	bind("direct_request_", &direct_request_);
-#endif
 }
-
-#ifdef TCLCL_CLASSINSTVAR
-void HttpPercInvalCache::delay_bind_init_all()
-{
-	delay_bind_init_one("direct_request_");
-	HttpMInvalCache::delay_bind_init_all();
-}
-
-int HttpPercInvalCache::delay_bind_dispatch(const char *varName, 
-					    const char *localName)
-{
-	DELAY_BIND_DISPATCH(varName, localName, "direct_request_", 
-			    delay_bind, &direct_request_);
-	return HttpMInvalCache::delay_bind_dispatch(varName, localName);
-}
-#endif /* TCLCL_CLASSINSTVAR */
 
 int HttpPercInvalCache::command(int argc, const char*const* argv)
 {

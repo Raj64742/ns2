@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.13 1999/08/04 00:11:10 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.14 1999/08/04 21:04:04 haoboy Exp $
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -465,35 +465,10 @@ public:
 
 CompMathPagePool::CompMathPagePool()
 {
-#ifdef TCLCL_CLASSINSTVAR
-#else /* ! TCLCL_CLASSINSTVAR */
 	bind("num_pages_", &num_pages_);
 	bind("main_size_", &main_size_);
 	bind("comp_size_", &comp_size_);
-#endif
 }
-
-#ifdef TCLCL_CLASSINSTVAR
-void CompMathPagePool::delay_bind_init_all()
-{
-	delay_bind_init_one("num_pages_");
-	delay_bind_init_one("main_size_");
-	delay_bind_init_one("comp_size_");
-	TclObject::delay_bind_init_all();
-}
-
-int CompMathPagePool::delay_bind_dispatch(const char *varName, 
-					  const char *localName)
-{
-	DELAY_BIND_DISPATCH(varName, localName, "num_pages_", 
-			    delay_bind, &num_pages_);
-	DELAY_BIND_DISPATCH(varName, localName, "main_size_", 
-			    delay_bind, &main_size_);
-	DELAY_BIND_DISPATCH(varName, localName, "comp_size_", 
-			    delay_bind, &comp_size_);
-	return TclObject::delay_bind_dispatch(varName, localName);
-}
-#endif /* TCLCL_CLASSINSTVAR */
 
 int CompMathPagePool::command(int argc, const char *const* argv)
 {

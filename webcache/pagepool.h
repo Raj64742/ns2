@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.11 1999/08/04 00:11:11 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.12 1999/08/04 21:04:05 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -278,11 +278,6 @@ protected:
 class CompMathPagePool : public PagePool {
 public:
 	CompMathPagePool();
-
-#ifdef TCLCL_CLASSINSTVAR
-	virtual void delay_bind_init_all();
-	virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif /* TCLCL_CLASSINSTVAR */
 
 protected:
 	virtual int command(int argc, const char*const* argv);

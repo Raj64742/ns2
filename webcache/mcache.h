@@ -26,7 +26,7 @@
 //
 // Multimedia caches
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.2 1999/08/04 00:11:09 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.3 1999/08/04 21:04:04 haoboy Exp $
 
 #ifndef ns_mcache_h
 #define ns_mcache_h
@@ -191,12 +191,6 @@ protected:
 class MClientPagePool : public ClientPagePool {
 public:
 	MClientPagePool();
-
-#ifdef TCLCL_CLASSINSTVAR
-	virtual void delay_bind_init_all();
-	virtual int delay_bind_dispatch(const char *varName, 
-					const char *localName);
-#endif /* TCLCL_CLASSINSTVAR */
 
 	virtual ClientPage* enter_page(int argc, const char*const* argv);
 	virtual int remove_page(const char *name);

@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.4 1999/08/04 00:11:09 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.5 1999/08/04 21:04:02 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -261,29 +261,9 @@ public:
 
 MClientPagePool::MClientPagePool() : ClientPagePool()
 {
-#ifdef TCLCL_CLASSINSTVAR
-#else /* ! TCLCL_CLASSINSTVAR */
 	bind("max_size_", &max_size_);
-#endif
 	used_size_ = 0;
 }
-
-#ifdef TCLCL_CLASSINSTVAR
-void MClientPagePool::delay_bind_init_all()
-{
-	delay_bind_init_one("max_size_");
-	ClientPagePool::delay_bind_init_all();
-}
-
-int MClientPagePool::delay_bind_dispatch(const char *varName, 
-					 const char *localName)
-{
-	DELAY_BIND_DISPATCH(varName, localName, "max_size_", 
-			    delay_bind, &max_size_);
-	return MClientPagePool::delay_bind_dispatch(varName, localName);
-}
-#endif
-
 
 void MClientPagePool::hc_update(const char *name, int max_layer)
 {
