@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.88 1998/04/09 01:23:24 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.89 1998/04/17 18:58:09 kfall Exp $
 #
 
 #
@@ -108,6 +108,7 @@ source ../session/session.tcl
 source ns-namsupp.tcl
 
 source ns-default.tcl
+source ../emulate/ns-emulate.tcl
 
 Simulator instproc init args {
         $self create_packetformat
