@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.18.2.3 1997/04/29 06:17:41 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.18.2.4 1997/04/29 06:31:50 padmanab Exp $
 
 
 #
@@ -86,7 +86,10 @@ Queue/SFQ set buckets_ 16
 
 Queue/FQ set secsPerByte_ 0
 
-Queue/DropTail set interleave_ 0
+Queue set interleave_ false
+Queue set acksfirst_ false
+Queue set ackfromfront_ false
+
 
 Queue/RED set bytes_ false
 Queue/RED set thresh_ 5
