@@ -35,6 +35,8 @@ try () {
 any_failed=false
 failed_list=""
 
+echo "(Validation can take 1-30 hours to run.)"
+
 cd tcl/test
 
 for i in simple tcp full monitor red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 \
