@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.181 1999/12/20 19:08:52 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.182 1999/12/21 03:55:06 yuriy Exp $
 
 
 #
@@ -604,5 +604,5 @@ Phy/WirelessPhy set Pt_ 0.2818
 Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0  
 
-
+Phy/WiredPhy set bandwidth_ 10e6
 

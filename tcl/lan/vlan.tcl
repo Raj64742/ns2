@@ -124,7 +124,8 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
 		$phy node $src
 		$phy channel $channel_
 		$channel_ addif $phy
-		
+		$phy set bandwidth_ $bw
+
 		set lanIface_($src) $nif
 
 		$src add-neighbor $self
