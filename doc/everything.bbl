@@ -1,0 +1,15 @@
+\def\url#1{\texttt{{\small #1}}}
+\begin{thebibliography}{1}
+
+\bibitem{Floy95:Reliable}
+S.~Floyd, V.~Jacobson, C.~Liu, S.~McCanne, and L.~Zhang.
+\newblock A reliable multicast framework for light-weight sessions and
+  application level framing.
+\newblock In {\em Proceedings of the~ACM SIGCOMM}, pages 342--356, August 1995.
+
+\bibitem{ns}
+S.~McCanne and S.~Floyd.
+\newblock ns---{N}etwork {S}imulator.
+\newblock \url{http://www-mash.cs.berkeley.edu/ns/}.
+
+\end{thebibliography}
