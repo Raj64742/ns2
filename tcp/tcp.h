@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.67 1999/09/22 02:07:59 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.68 1999/11/19 04:06:31 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -175,11 +175,11 @@ protected:
 	TracedInt t_rttvar_;   	/* variance in round-trip time */
 	int rttvar_init_;       /* initial value for computing t_rttvar_ */
 	double t_rtxcur_;	/* current retransmit value */
-	double rtxcur_init_;       /* initial value for t_rtxcur_ */
+	double rtxcur_init_;    /* initial value for t_rtxcur_ */
 	TracedInt t_backoff_;	/* current multiplier, 1 if not backed off */
 	virtual void rtt_init();
-	virtual double rtt_timeout();	/* provide an RTO based on RTT estimates */
-	virtual void rtt_update(double tao);	/* update RTT estimate with sample */
+	virtual double rtt_timeout();	/* provide RTO based on RTT estimates */
+	virtual void rtt_update(double tao);	/* update RTT estimate */
 	virtual void rtt_backoff();		/* double multiplier */
 
 	double ts_peer_;        /* the most recent timestamp the peer sent */
@@ -236,6 +236,8 @@ protected:
 	int wnd_option_;
 	int wnd_init_option_;   /* 1 for using wnd_init_ */
 				/* 2 for using large initial windows */
+	double decrease_num_;   /* factor for multiplicative decrease */
+	double increase_num_;   /* factor for additive increase */
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
 	int delay_growth_;  	/* delay opening cwnd until 1st data recv'd */
 	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */

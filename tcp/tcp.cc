@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.92 1999/09/22 02:08:00 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.93 1999/11/19 04:06:30 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -116,6 +116,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	bind("rttvar_", &t_rttvar_);
 	bind("backoff_", &t_backoff_);
 	bind("maxseq_", &maxseq_);
+	bind("decrease_num_", &decrease_num_);
+	bind("increase_num_", &increase_num_); 
 #ifdef OFF_HDR
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
@@ -623,7 +625,7 @@ void TcpAgent::opencwnd()
 
 		case 1:
 			/* This is the standard algorithm. */
-			cwnd_ += 1 / cwnd_;
+			cwnd_ += increase_num_ / cwnd_;
 			break;
 
 		case 2:
@@ -692,7 +694,8 @@ void
 TcpAgent::slowdown(int how)
 {
 	int win = window();
-	int halfwin = int (window() / 2);
+	// int halfwin = int (window() / 2);
+	int halfwin = int (decrease_num_ * window());
 	if (how & CLOSE_SSTHRESH_HALF)
 		ssthresh_ = halfwin;
         else if (how & THREE_QUARTER_SSTHRESH)
@@ -712,7 +715,8 @@ TcpAgent::slowdown(int how)
 	else if (how & CLOSE_CWND_ONE)
 		cwnd_ = 1;
 	else if (how & CLOSE_CWND_HALF_WAY) {
-                cwnd_ = win - (win - W_used)/2 ;
+		// cwnd_ = win - (win - W_used)/2 ;
+		cwnd_ = W_used + decrease_num_ * (win - W_used);
                 if (cwnd_ < 1)
                         cwnd_ = 1;
 	}
@@ -1126,7 +1130,8 @@ void TcpAgent::closecwnd(int how)
 
 	case 1:
 		/* Reno dup acks, or after a recent congestion indication. */
-		cwnd_ = window()/2;
+		// cwnd_ = window()/2;
+		cwnd_ = decrease_num_ * window();
 		ssthresh_ = int(cwnd_);
 		if (ssthresh_ < 2)
 			ssthresh_ = 2;		
