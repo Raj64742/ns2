@@ -36,7 +36,7 @@ AC_HEADER_STDC
 
 dnl AC_CHECK_FUNCS will place -D's in @DEFS@
 AC_CHECK_FUNCS(bcopy bzero getrusage sbrk snprintf)
-AC_CHECK_HEADERS(arpa/inet.h netinet/in.h string.h strings.h time.h unistd.h)
+AC_CHECK_HEADERS(arpa/inet.h netinet/in.h string.h strings.h time.h unistd.h net/ethernet.h)
 
 dnl
 dnl figure out random return type
@@ -70,7 +70,11 @@ AC_CHECK_TYPE(u_int32_t,unsigned int)
 
 builtin(include, ./conf/configure.in.int64_t)
 
+dnl Look for emulation specific stuff
+builtin(include, ./conf/configure.in.nse)
 
 NS_FNS_TAIL
 define(AcOutputFiles,Makefile tcl/lib/ns-autoconf.tcl indep-utils/webtrace-conv/ucb/Makefile indep-utils/webtrace-conv/dec/Makefile indep-utils/webtrace-conv/nlanr/Makefile indep-utils/webtrace-conv/epa/Makefile indep-utils/cmu-scen-gen/setdest/Makefile)
 builtin(include, ./conf/configure.in.tail)
+
+
