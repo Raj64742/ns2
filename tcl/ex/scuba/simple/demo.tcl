@@ -30,20 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/simple/demo.tcl,v 1.1 1997/06/14 00:16:05 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/simple/demo.tcl,v 1.2 1997/06/16 22:16:51 elan Exp $
 #
 
 set tcldir ../../../
 
 source $tcldir/rtp/session-scuba.tcl
 source $tcldir/rtp/session-rtp.tcl
-
-proc trace_annotate { s } {
-	global ns
-	set f [$ns set traceAllFile_]
-	
-	puts $f [format "v %s %s {set sim_annotation {%s}}" [$ns now] eval $s]
-}
 
 set ns [new MultiSim]
 
