@@ -51,6 +51,7 @@ classifier-hash.cc
 classifier-mac.cc
 classifier-mcast.cc
 classifier-mpath.cc
+classifier-virtual.cc
 classifier.cc
 classifier.h
 config.guess
@@ -349,6 +350,7 @@ tcl/ex/test-suite.tcl
 tcl/ex/tg.tcl
 tcl/ex/tg.txt
 tcl/ex/timer.tcl
+tcl/ex/virtual-classifier.tcl
 tcl/http/README
 tcl/http/dumbbell.tcl
 tcl/http/http-ex.tcl

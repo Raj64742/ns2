@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.18 1998/10/12 19:53:02 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.19 1998/10/14 20:31:13 polly Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -102,7 +102,7 @@ Simulator instproc dump-routelogic-distance {} {
 	    return 0
 	}
 
-	puts "Dumping Routing Table: Distance Information"
+	# puts "Dumping Routing Table: Distance Information"
 	set n [Node set nn_]
 	set i 0
 	puts -nonewline "\t"
@@ -138,10 +138,10 @@ Simulator instproc dump-routelogic-distance {} {
 				    }
 				    puts -nonewline "$distance\t"
 				} else {
-				    puts -nonewline "--\t"
+				    puts -nonewline "0\t"
 				}
 			} else {
-			    puts -nonewline "--\t"
+			    puts -nonewline "0\t"
 			}
 			incr j
 		}

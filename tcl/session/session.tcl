@@ -327,10 +327,65 @@ SessionSim instproc compute-hier-routes {} {
 SessionSim instproc compute-algo-routes {} {
     set r [$self get-routelogic]
     
-    puts "Computing algorithmic routes"
+    # puts "Computing algorithmic routes"
 
     $r BFS
     $r compute
+}
+
+SessionSim instproc dump-routelogic-distance {} {
+	$self instvar routingTable_ Node_ link_
+	if ![info exists routingTable_] {
+	    puts "error: routing table is not computed yet!"
+	    return 0
+	}
+
+	# puts "Dumping Routing Table: Distance Information"
+	set n [Node set nn_]
+	set i 0
+	puts -nonewline "\t"
+	while { $i < $n } {
+	    if ![info exists Node_($i)] {
+		incr i
+		continue
+	    }
+	    puts -nonewline "$i\t"
+	    incr i
+	}
+
+	set i 0
+	while { $i < $n } {
+		if ![info exists Node_($i)] {
+		    incr i
+		    continue
+		}
+		puts -nonewline "\n$i\t"
+		set n1 $Node_($i)
+		set j 0
+		while { $j < $n } {
+			if { $i != $j } {
+				set nh [$routingTable_ lookup $i $j]
+				if { $nh >= 0 } {
+				    set distance 0
+				    set tmpfrom $i
+				    set tmpto $j
+				    while {$tmpfrom != $tmpto} {
+					set tmpnext [$routingTable_ lookup $tmpfrom $tmpto]
+					set distance [expr $distance + 1]
+					set tmpfrom $tmpnext
+				    }
+				    puts -nonewline "$distance\t"
+				} else {
+				    puts -nonewline "0\t"
+				}
+			} else {
+			    puts -nonewline "0\t"
+			}
+			incr j
+		}
+		incr i
+	}
+	puts ""
 }
 
 # Because here we don't have a link object, we need to have a new 

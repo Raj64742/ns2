@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.41 1998/10/13 21:40:31 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.42 1998/10/14 20:31:12 polly Exp $
 #
 
 Class Node
@@ -548,6 +548,45 @@ ManualRtNode instproc add-route-to-adj-node args {
 
 
 
+#
+# Virtual Classifier Nodes:
+# like normal nodes, but with a virtual unicast classifier.
+#
+Class VirtualClassifierNode -superclass Node
+
+VirtualClassifierNode instproc mk-default-classifier {} {
+    $self instvar address_ classifier_ id_
+
+    set classifier_ [new Classifier/Virtual]
+    $classifier_ set node_ $self
+    $classifier_ set mask_ [AddrParams set NodeMask_(1)]
+    $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+    set address_ $id_
+}
 
 
+Classifier/Virtual instproc find dst {
+    $self instvar node_ ns_ routingTable_
 
+    if ![info exist ns_] {
+	set ns_ [Simulator instance]
+    }
+    if ![info exist routingTable_] {
+	set routingTable_ [$ns_ get-routelogic]
+    }
+
+    if {[$node_ id] == $dst} {
+	set currentTarget_ [$node_ set dmux_]
+    } else {
+	set nh [$routingTable_ lookup [$node_ id] $dst]
+	$self set-target [[$ns_ link $node_ [$ns_ set Node_($nh)]] head]
+    }
+}
+
+Classifier/Virtual instproc install {dst target} {
+#    $self instvar node_
+
+#    if {[$node_ id] != $dst} {
+#	puts "warning: trying to install routes"
+#    }
+}
