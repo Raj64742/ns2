@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.4 1999/01/22 02:37:27 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.5 1999/06/18 04:14:47 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
@@ -67,6 +67,7 @@ Topology/net2 instproc init ns {
     set node_(s4) [$ns node]
 
     $self next
+    Queue/RED set gentle_ true
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
@@ -105,10 +106,9 @@ TestSuite instproc tfccDump { label src interval file } {
                 return
         }
         $ns_ at [expr [$ns_ now] + $interval] "$self tfccDump $label $src $interval $file"
-        set report "[$ns_ now] $label [$src set packets_] " 
+        set report "[$ns_ now] $label [$src set ndatapack_] " 
         if {$quiet == "false"} {
                 puts $file $report
-		puts -nonewline [$ns_ now]..; flush stdout
         }
 }
 
@@ -152,7 +152,6 @@ TestSuite instproc finish_1 testname {
         exec touch temp.p
         foreach i { 1 2 3 4 5} {
                 exec echo "\n\"flow $i" >> temp.p
-		puts $i
                 exec awk $awkCode fid=$i temp.s > temp.$i
                 exec cat temp.$i >> temp.p
                 exec echo " " >> temp.p
@@ -176,27 +175,15 @@ proc stop {tracefile} {
 TestSuite instproc runFriendly {} {
     $self instvar ns_ node_ interval_ dumpfile_
 
-    set tf1 [new Agent/RTP/TFCC $ns_]
-    set tfr1 [new Agent/RTP/TFCC $ns_]
-    set tf2 [new Agent/RTP/TFCC $ns_]
-    set tfr2 [new Agent/RTP/TFCC $ns_]
-    
-    $ns_ attach-agent $node_(s1) $tf1
-    $ns_ attach-agent $node_(s3) $tfr1
-    $ns_ connect $tf1 $tfr1
-    
-    $ns_ attach-agent $node_(s2) $tf2
-    $ns_ attach-agent $node_(s4) $tfr2
-    $ns_ connect $tf2 $tfr2
-
+    set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 0]
+    set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 0]
     $ns_ at 0.0 "$tf1 start"
     $ns_ at 10.0 "$tf2 start"
-
     $ns_ at 40 "$tf1 stop"
     $ns_ at 40 "$tf2 stop"
 
-    $self tfccDump 1 $tfr1 $interval_ $dumpfile_
-    $self tfccDump 2 $tfr2 $interval_ $dumpfile_
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+    $self tfccDump 2 $tf2 $interval_ $dumpfile_
 }
 
 TestSuite instproc runTcps {} {
@@ -219,7 +206,7 @@ TestSuite instproc runTcps {} {
     $self pktsDump 5 $tcp3 $interval_ $dumpfile_
 }
 
-# single packet drop
+# Two TFRM connections and three TCP connections.
 Class Test/test1 -superclass TestSuite
 Test/test1 instproc init {} {
     $self instvar net_ test_
@@ -235,9 +222,6 @@ Test/test1 instproc run {} {
 
     set dumpfile_ [open temp.s w]
 
-    # Set up TCP connection
-    Agent/RTP/TFCC set packetSize_ 1000
-
     $self runFriendly 
     $self runTcps
     
@@ -247,7 +231,7 @@ Test/test1 instproc run {} {
     $ns_ run
 }
 
-# single packet drop
+# Two TFRM connections and three TCP connections.
 Class Test/test2 -superclass TestSuite
 Test/test2 instproc init {} {
     $self instvar net_ test_
@@ -264,9 +248,6 @@ Test/test2 instproc run {} {
     set dumpfile_ [open temp.s w]
     set tracefile [open all.tr w]
     $ns_ trace-all $tracefile
-
-    # Set up TCP connection
-    Agent/RTP/TFCC set packetSize_ 1000
 
     $self runFriendly 
     $self runTcps
