@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.7 1998/02/17 22:00:21 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.8 1998/02/24 02:25:57 haoboy Exp $
 #
 
 #
@@ -89,20 +89,21 @@ Node instproc get-color {} {
 	return [$self get-attribute "COLOR"]
 }
 
-Node instproc add-mark { name color } {
-	$self instvar id_ markColor_
+Node instproc add-mark { name color {shape "circle"} } {
+	$self instvar id_ markColor_ shape_
 	set ns [Simulator instance]
 
-	$ns puts-nam-traceall "m -t [$ns now] -s $id_ -n $name -c $color"
+	$ns puts-nam-traceall "m -t [$ns now] -s $id_ -n $name -c $color -h $shape"
 	set markColor_($name) $color
+	set shape_($name) $shape
 }
 
 Node instproc delete-mark { name } {
-	$self instvar id_ markColor_
+	$self instvar id_ markColor_ shape_
 	set ns [Simulator instance]
 
 	$ns puts-nam-traceall \
-		"m -t [$ns now] -s $id_ -n $name -c $markColor_($name) -X"
+		"m -t [$ns now] -s $id_ -n $name -c $markColor_($name) -h $shape_($name) -X"
 }
 
 #

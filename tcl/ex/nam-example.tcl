@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.3 1998/01/27 22:11:12 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.4 1998/02/24 02:25:57 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -108,9 +108,9 @@ $ns at 3.5 "$n(0) color red"
 $ns at 3.5 "$ns trace-annotate \"node 0 changed color\""
 
 # add/remove node marks (concentric circles around nodes)
-$ns at 4.0 "$n(0) add-mark m1 blue"
+$ns at 4.0 "$n(0) add-mark m1 blue circle"
 $ns at 4.0 "$ns trace-annotate \"node 0 added one mark\""
-$ns at 4.5 "$n(0) add-mark m2 purple"
+$ns at 4.5 "$n(0) add-mark m2 purple hexagon"
 $ns at 4.5 "$ns trace-annotate \"node 0 added second mark\""
 
 $ns at 5.0 "$n(0) delete-mark m1"
