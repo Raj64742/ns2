@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.43 1998/05/04 22:17:15 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.44 1998/05/05 15:11:48 kfall Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -221,6 +221,7 @@ protected:
 	virtual void output(int seqno, int reason = 0);
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	virtual void newtimer(Packet*);
+	virtual void dupack_action();		/* do this on dupacks */
 	void opencwnd();
 	void closecwnd(int how);
 	virtual void set_initial_window();	/* set IW */
