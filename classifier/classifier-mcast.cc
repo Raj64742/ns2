@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.9 1997/07/21 21:14:35 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.10 1997/07/24 00:15:20 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -109,10 +109,14 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst) const
 
 int MCastClassifier::classify(Packet *const pkt)
 {
-	hdr_ip* h = (hdr_ip*)pkt->access(off_ip_);
-	nsaddr_t src = h->src() >> 8; /*XXX*/
-	nsaddr_t dst = h->dst();
-        interfaceLabel iface = h->iface();
+	hdr_cmn* h = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_ip* ih = (hdr_ip*)pkt->access(off_ip_);
+
+	nsaddr_t src = ih->src() >> 8; /*XXX*/
+	nsaddr_t dst = ih->dst();
+
+	int iface = h->iface();
+
 	const hashnode* p = lookupiface(src, dst, iface);
 	if (p == 0) {
 		p = lookup(src, dst);
@@ -123,12 +127,12 @@ int MCastClassifier::classify(Packet *const pkt)
 		 */
 		if (p == 0) {
 		  Tcl::instance().evalf("%s new-group %u %u %d %s", 
-					name(), src, dst, iface, "CACHE_MISS");
+				name(), src, dst, iface, "CACHE_MISS");
 		  return (-1);
 		}
 		if ( (p->iif != -1) && (p->iif != iface) ) {
 		  Tcl::instance().evalf("%s new-group %u %u %d %s", 
-					name(), src, dst, iface, "WRONG_IIF");
+				name(), src, dst, iface, "WRONG_IIF");
 		  //printf ("wrong_iff: %s %u %u %d\n", name(), src, dst, iface);
 		  return (-1);
 		}
