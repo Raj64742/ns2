@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.11 1998/05/07 16:57:40 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.12 1998/06/09 23:52:19 breslau Exp $
 #
 
 #Code to generate random numbers here
@@ -77,8 +77,8 @@ RNG instproc normal {a1 a2 } {
         } else {
                 set w 1
                 while { $w >= 1.0 } {
-                        set v1 [expr ([$self next-random] *1.0/0x7fffffff)]
-                        set v2 [expr ([$self next-random] *1.0/0x7fffffff)]
+                        set v1 [expr 2.0 * ([$self next-random] *1.0/0x7fffffff) - 1.0]
+                        set v2 [expr 2.0 * ([$self next-random] *1.0/0x7fffffff) - 1.0]
                         set w  [expr ($v1*$v1+$v2*$v2)]
                 }
                 set w [expr  sqrt((-2.0*log($w))/$w)]
