@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.12 1997/09/06 04:39:34 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.13 1997/09/16 01:21:56 haoboy Exp $
 #
 #
 # set up the packet format for the simulation
@@ -78,7 +78,7 @@ Simulator instproc create_packetformat { } {
 	set pm [new PacketHeaderManager]
 	foreach cl [PacketHeader info subclass] {
 		set var [PacketHeaderManager set vartab_($cl)]
-		set off [$pm allochdr $cl]
+		set off [$pm allochdr [lindex [split $cl /] 1]]
 		TclObject set $var $off
 		$cl offset $off
 	}
@@ -86,7 +86,7 @@ Simulator instproc create_packetformat { } {
 }
 
 PacketHeaderManager instproc allochdr cl {
-	set size [$cl set hdrlen_]
+	set size [PacketHeader/$cl set hdrlen_]
 
 	$self instvar hdrlen_
 	set NS_ALIGN 8
