@@ -104,6 +104,12 @@ t31:
 set directory=test-output-wireless-gridkeeper
 goto doit
 t32: 
+set directory=test-output-friendly
+goto doit
+t33: 
+set directory=test-output-satellite
+goto doit
+t34: 
 exit
 doit:
 echo $directory
