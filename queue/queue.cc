@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.24 2001/12/31 04:06:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.25 2002/01/01 00:04:53 sfloyd Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -50,6 +50,7 @@ void PacketQueue::remove(Packet* target)
 					tail_= pp;
 				pp->next_= p->next_;
 				--len_;
+				bytes_ -= hdr_cmn::access(p)->size();
 			}
 			return;
 		}
@@ -72,6 +73,7 @@ void PacketQueue::remove(Packet* pkt, Packet *prev) //XXX: screwy
 			if (tail_ == pkt)
 				tail_ = prev;
 			--len_;
+			bytes_ -= hdr_cmn::access(pkt)->size();
 		}
 	}
 	return;

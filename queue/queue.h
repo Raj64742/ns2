@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.28 2001/12/31 04:06:28 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.29 2002/01/01 00:04:53 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -44,8 +44,9 @@ class Packet;
 
 class PacketQueue : public TclObject {
 public:
-	PacketQueue() : head_(0), tail_(0), len_(0) {}
+	PacketQueue() : head_(0), tail_(0), len_(0), bytes_(0) {}
 	virtual int length() const { return (len_); }
+	virtual int byteLength() const { return (bytes_); }
 	virtual void enque(Packet* p) {
 		if (!tail_) head_= tail_= p;
 		else {
@@ -54,6 +55,7 @@ public:
 		}
 		tail_->next_= 0;
 		++len_;
+		bytes_ += hdr_cmn::access(p)->size();
 	}
 	virtual Packet* deque() {
 		if (!head_) return 0;
@@ -61,6 +63,7 @@ public:
 		head_= p->next_; // 0 if p == tail_
 		if (p == tail_) head_= tail_= 0;
 		--len_;
+		bytes_ -= hdr_cmn::access(p)->size();
 		return p;
 	}
 	Packet* lookup(int n) {
@@ -82,6 +85,7 @@ public:
 	        p->next_ = head_;
 		head_ = p;
 		++len_;
+		bytes_ += hdr_cmn::access(p)->size();
 	}
         void resetIterator() {iter = head_;}
         Packet* getNext() { 
@@ -94,6 +98,7 @@ protected:
 	Packet* head_;
 	Packet* tail_;
 	int len_;		// packet count
+	int bytes_;		// queue size in bytes
 
 
 // MONARCH EXTNS
@@ -126,6 +131,8 @@ public:
 	int limit() { return qlim_; }
 	int length() { return pq_->length(); }	/* number of pkts currently in
 						 * underlying packet queue */
+	int byteLength() { return pq_->byteLength(); }	/* number of bytes *
+						 * currently in packet queue */
 protected:
 	Queue();
 	void reset();
