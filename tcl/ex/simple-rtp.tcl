@@ -30,10 +30,11 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-rtp.tcl,v 1.2 1996/12/31 22:54:16 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-rtp.tcl,v 1.3 1997/09/09 15:33:54 elan Exp $
 #
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -42,10 +43,13 @@ set n3 [$ns node]
 
 set f [open rtp-out.tr w]
 $ns trace-all $f
+Simulator set NumberInterfaces_ 1
+$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
-$ns duplex-link $n0 $n1 1.5Mb 10ms drop-tail
-$ns duplex-link $n1 $n2 1.5Mb 10ms drop-tail
-$ns duplex-link $n1 $n3 1.5Mb 10ms drop-tail
+set mproto DM
+set mrthandle [$ns mrtproto $mproto {}]
 
 set s0 [new Session/RTP]
 set s1 [new Session/RTP]
@@ -57,10 +61,10 @@ $s1 session_bw 400kb/s
 $s2 session_bw 400kb/s
 $s3 session_bw 400kb/s
 
-$s0 attach-to $n0
-$s1 attach-to $n1
-$s2 attach-to $n2
-$s3 attach-to $n3
+$s0 attach-node $n0
+$s1 attach-node $n1
+$s2 attach-node $n2
+$s3 attach-node $n3
 
 $ns at 1.4 "$s0 join-group 0x8000"
 $ns at 1.5 "$s0 start"
@@ -82,13 +86,14 @@ $ns at 4.0 "finish"
 
 proc finish {} {
 	puts "converting output to nam format..."
-	global ns
+	global ns f
 	$ns flush-trace
+	close $f
 	exec awk -f ../nam-demo/nstonam.awk rtp-out.tr > rtp-nam.tr
-	exec rm -f out
+	#exec rm -f rtp-out.tr
         #XXX
 	puts "running nam..."
-	exec /usr/src/mash/nam/nam rtp-nam &
+	exec nam rtp-nam &
 	exit 0
 }
 
