@@ -39,11 +39,16 @@
 //  6) Node goes to sleep when its neighbor is communicating with another
 //     node.
 //  7) Each node follows a periodic listen/sleep schedule
-//  8) At bootup time each node listens for a fixed SYNCPERIOD and then
-//     tries to send out a sync packet. It suppresses sending out of sync pkt 
-//     if it happens to receive a sync pkt from a neighbor and follows the 
-//     neighbor's schedule. 
-// 
+//  8.1) At bootup time each node listens for a fixed SYNCPERIOD and then
+//     tries to send out a sync packet. It suppresses sending out of sync pkt
+//     if it happens to receive a sync pkt from a neighbor and follows the
+//     neighbor's schedule.
+//  8.2) Or a node can choose its own schecule instead of following others, the
+//       schedule start time is user configurable
+//  9) Neighbor Discovery: in order to prevent that two neighbors can not
+//     find each other due to following complete different schedules, each
+//     node periodically listen for a whole period of the SYNCPERIOD
+//  10) Duty cycle is user configurable
 
 
 
@@ -255,12 +260,33 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
   
 	numSched_ = 0;
 	numNeighb_ = 0;
-
+	numSync_ = 1;  // perform neighbor discovery, do not go to sleep for the first SYNC period
+	schedListen_ = 1;
+	searchNeighb_ = 1;
+		
 	Tcl& tcl = Tcl::instance();
 	tcl.evalf("Mac/SMAC set syncFlag_");
 	if (strcmp(tcl.result(), "0") != 0)  
 		syncFlag_ = 1;              // syncflag is set; use sleep-wakeup cycle
-  
+
+
+	tcl.evalf("Mac/SMAC set selfConfigFlag_");
+        if (strcmp(tcl.result(), "0") != 0)
+                selfConfigFlag_ = 1;              // autoflag is set; user can not configure the schedule start time
+
+	
+	// User can specify the duty cycle
+	tcl.evalf("Mac/SMAC set dutyCycle_");
+	if (strcmp(tcl.result(), "0") != 0){
+                bind_bw("dutyCycle_", &dutyCycle_);
+               	//printf("dutyCyle=%f\n", dutyCycle_);
+	
+	}
+        else {
+//               	dutyCycle_ = SMAC_DUTY_CYCLE;
+	}
+
+
 	if (!syncFlag_)
 		txData_ = 0;
   
@@ -271,7 +297,7 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 		syncTime_ = difs_ + slotTime_ * SYNC_CW + SEC2CLKTICK(durSyncPkt_) + guardTime_;
 		dataTime_ = difs_ + slotTime_ * DATA_CW + SEC2CLKTICK(durCtrlPkt_) + guardTime_;
 		listenTime_ = syncTime_ + dataTime_;
-		cycleTime_ = listenTime_ * 100 / SMAC_DUTY_CYCLE + 1;
+		cycleTime_ = listenTime_ * 100 / dutyCycle_ + 1;
 		sleepTime_ = cycleTime_ - listenTime_;
     
 		//printf("cycletime=%d, sleeptime=%d, listentime=%d\n", cycleTime_, sleepTime_, listenTime_);
@@ -298,7 +324,10 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 		double s = SYNCPERIOD + 1;
 		double t = c * s ;
 		//mhGene_.sched(t + cw);
-		mhGene_.sched(t);
+
+		if ( selfConfigFlag_ == 1) {
+			mhGene_.sched(t);
+		}
 	}
 }
 
@@ -344,6 +373,35 @@ int SMAC::command(int argc, const char*const* argv)
 			if(logtarget_ == 0)
 				return TCL_ERROR;
 			return TCL_OK;
+		}
+		else if ( selfConfigFlag_ != 1) {
+			if (strcmp(argv[1], "schedule-start-time") == 0) {
+
+	                        startTime_ = strtod(argv[2],NULL);
+
+                        	// set up schedule
+	                        state_ = IDLE;
+        	                numSched_ = 1;
+                	        schedTab_[0].numPeriods = SYNCPERIOD;
+                        	schedTab_[0].txData = 0;
+	                        schedTab_[0].txSync = 1; // need to brdcast my schedule
+
+        	                // schedule starts up with listen time (sync+data)
+                	        // need to caculate time to sleep
+
+                        	startTime_ = startTime_ + listenTime_;
+	                        if ( startTime_ >= cycleTime_ )
+        	                        startTime_ = startTime_ - cycleTime_;
+
+                	        mhCounter_[0]->sched(CLKTICK2SEC(startTime_));
+                        	mySyncNode_ = index_; // myself
+
+	                        currSched_ = 0;
+
+        	                return TCL_OK;
+		
+                	}
+
 		}
 	}
 
@@ -399,6 +457,22 @@ void SMAC::handleRecvTimer() {
 	struct hdr_smac *sh = HDR_SMAC(pktRx_);
 
 	if (state_ == SLEEP) {
+
+		// Bug fixed here. a collision might happen just now, need to clear the mac_collision_ flag, otherwise the node won't receive any following packet
+
+		if (mac_collision_) {
+	                discard(pktRx_, DROP_MAC_COLLISION);
+                	mac_collision_ = 0;
+	                updateNav(CLKTICK2SEC(eifs_));
+
+	                if (state_ == CR_SENSE)
+        	                sleep(); // have to wait until next wakeup time
+                	else
+                        	radioState_ = RADIO_IDLE;
+
+	                goto done;
+                }
+
 		discard(pktRx_, DROP_MAC_SLEEP);
 		radioState_ = RADIO_SLP;
 		goto done;
@@ -701,7 +775,7 @@ void SMAC::handleCounterTimer(int id) {
 		if (radioState_ == RADIO_RX)
 			goto sched_3;
     
-		if (id == 0 && state_ == IDLE)
+		if (id == 0 && state_ == IDLE && searchNeighb_ ==0 )
 			sleep();
 
 	sched_3:
@@ -712,7 +786,31 @@ void SMAC::handleCounterTimer(int id) {
 		if (schedTab_[id].numPeriods > 0) {
 			schedTab_[id].numPeriods--;
 			if (schedTab_[id].numPeriods == 0) {
-				schedTab_[id].txSync = 1;
+	
+				schedTab_[id].txSync = 1; 
+
+				// neighbor discovery
+				if ( id == 0 ) {
+					numSync_--;
+				//	printf("numSync_ %d: ............node %d at %.6f\n", numSync_, index_,Scheduler::instance().clock());
+
+					if ( numSync_ == 1 ) {
+						searchNeighb_ = 1;	// node will go to neighbor discovery period starting from the next frame
+				//		printf("Start Neighbor Discovery: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+					}
+					else if ( numSync_ == 0 ) {
+						searchNeighb_  = 0;  // neighbor discovery period lasts exactly one SYNC period
+				//		printf("Ending Neighbor Discovery: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+						if ( numNeighb_ == 0 ) {
+							numSync_ = SRCH_CYCLES_SHORT;
+						}
+						else {
+							numSync_ = SRCH_CYCLES_LONG;
+
+						}
+					}		
+
+				}	
 			}
 		}
 	}
@@ -1054,21 +1152,24 @@ void SMAC::handleACK(Packet *p) {
 
 void SMAC::handleSYNC(Packet *p) 
 {
-	if(numSched_ == 0) { // in choose_sched state
-		mhGene_.cancel();
-		//double t = Scheduler::instance().clock();
-		//struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
-		//printf("Recvd SYNC (follow) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
-		setMySched(p);
-		return;
-	}
-	if (numNeighb_ == 0) { // getting first sync pkt
-		// follow this sched as have no other neighbor
-	        //double t = Scheduler::instance().clock();
-		//struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
-		//printf("Recvd SYNC (follow) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
-	        setMySched(p);
-		return;
+
+	if ( selfConfigFlag_ == 1) {
+		if(numSched_ == 0) { // in choose_sched state
+			mhGene_.cancel();
+			//double t = Scheduler::instance().clock();
+			//struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
+			//printf("Recvd SYNC (follow) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
+			setMySched(p);
+			return;
+		}
+		if (numNeighb_ == 0) { // getting first sync pkt
+			// follow this sched as have no other neighbor
+		        //double t = Scheduler::instance().clock();
+			//struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
+			//printf("Recvd SYNC (follow) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
+		        setMySched(p);
+			return;
+		}
 	}
 	state_ = IDLE;
 	// check if sender is on my neighbor list
@@ -1582,7 +1683,7 @@ void SMAC::sleep()
   // go to sleep, turn off radio
   state_ = SLEEP;
   radioState_ = RADIO_SLP;
-  //printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+  printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 }
 
 void SMAC::wakeup()
@@ -1596,7 +1697,7 @@ void SMAC::wakeup()
   // so careful not to change state of radio unless it is really sleeping
   if (radioState_ == RADIO_SLP)
     radioState_ = RADIO_IDLE;
-  //printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+  printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 
 }
 

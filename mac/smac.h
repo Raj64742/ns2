@@ -39,11 +39,18 @@
 //  6) Node goes to sleep when its neighbor is communicating with another
 //     node.
 //  7) Each node follows a periodic listen/sleep schedule
-//  8) At bootup time each node listens for a fixed SYNCPERIOD and then
+//  8.1) At bootup time each node listens for a fixed SYNCPERIOD and then
 //     tries to send out a sync packet. It suppresses sending out of sync pkt 
 //     if it happens to receive a sync pkt from a neighbor and follows the 
 //     neighbor's schedule. 
-// 
+//  8.2) Or a node can choose its own schecule instead of following others, the
+//       schedule start time is user configurable
+//  9) Neighbor Discovery: in order to prevent that two neighbors can not
+//     find each other due to following complete different schedules, each
+//     node periodically listen for a whole period of the SYNCPERIOD
+//  10) Duty cycle is user configurable
+
+ 
 
 #ifndef NS_SMAC
 #define NS_SMAC
@@ -93,12 +100,18 @@
  * SYNC_CW: number of slots in the sync contention window, must be 2^n - 1 
  * DATA_CW: number of slots in the data contention window, must be 2^n - 1
  * SYNC_PERIOD: period to send a sync pkt, in cycles.
+ * SRCH_CYCLES_LONG: # of SYNC periods during which a node performs a neighbor discovery
+ * SRCH_CYCLES_SHORT: if there is no known neighbor, a node need to seach neighbor more aggressively
  */
 
 #define SYNC_CW 31
 #define DATA_CW 63
 #define SYNCPERIOD 10
 #define SYNCPKTTIME 3         // an adhoc value used for now later shld converge with durSyncPkt_
+
+#define SRCH_CYCLES_SHORT 3
+#define SRCH_CYCLES_LONG 22
+
 
 /* Physical layer parameters
  *---------------------------
@@ -375,7 +388,8 @@ class SMAC : public Mac {
   double eifs_;
   double guardTime_;
   double byte_tx_time_;
-  
+  double dutyCycle_;
+ 
  private:
   // functions for node schedule folowing sleep-wakeup cycles
   void setMySched(Packet *syncpkt);
@@ -524,6 +538,8 @@ class SMAC : public Mac {
   int txData_ ;
 
   int syncFlag_;  // is set to 1 when SMAC uses sleep-wakeup cycle
+  int selfConfigFlag_;  // is set to 0 when SMAC uses user configurable schedule start time
+  double startTime_;  // schedule start time (schedule starts from SYNC period)
 
   // sleep-wakeup cycle times
   int syncTime_;
@@ -531,6 +547,13 @@ class SMAC : public Mac {
   int listenTime_;
   int sleepTime_;
   int cycleTime_;
+
+  // neighbor discovery
+
+  int searchNeighb_;  // flag indicating if node is in neighbot discovery period
+  int schedListen_;  // flag indicating if node is in scheduled listen period
+  int numSync_;  // used to set/clear searchNeighb flag
+  
 
  protected:
   int command(int argc, const char*const* argv);
