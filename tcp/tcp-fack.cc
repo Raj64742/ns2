@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.13 1998/04/28 21:27:47 bajaj Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.14 1998/05/02 01:38:22 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -131,7 +131,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 #endif
 
 	ts_peer_ = tcph->ts();
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
 		quench(1);
 	recv_helper(pkt);
 
