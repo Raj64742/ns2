@@ -40,82 +40,82 @@ if {![info exists ns]} {
 }
 
 set plane 1
-set n0 [$ns satnode-polar $alt $inc 0 0 $plane $linkargs $chan]
-set n1 [$ns satnode-polar $alt $inc 0 32.73 $plane $linkargs $chan]
-set n2 [$ns satnode-polar $alt $inc 0 65.45 $plane $linkargs $chan]
-set n3 [$ns satnode-polar $alt $inc 0 98.18 $plane $linkargs $chan]
-set n4 [$ns satnode-polar $alt $inc 0 130.91 $plane $linkargs $chan]
-set n5 [$ns satnode-polar $alt $inc 0 163.64 $plane $linkargs $chan]
-set n6 [$ns satnode-polar $alt $inc 0 196.36 $plane $linkargs $chan]
-set n7 [$ns satnode-polar $alt $inc 0 229.09 $plane $linkargs $chan]
-set n8 [$ns satnode-polar $alt $inc 0 261.82 $plane $linkargs $chan]
-set n9 [$ns satnode-polar $alt $inc 0 294.55 $plane $linkargs $chan]
-set n10 [$ns satnode-polar $alt $inc 0 327.27 $plane $linkargs $chan]
+set n0 [$ns node]; $n0 set-position $alt $inc 0 0 $plane
+set n1 [$ns node]; $n1 set-position $alt $inc 0 32.73 $plane 
+set n2 [$ns node]; $n2 set-position $alt $inc 0 65.45 $plane 
+set n3 [$ns node]; $n3 set-position $alt $inc 0 98.18 $plane 
+set n4 [$ns node]; $n4 set-position $alt $inc 0 130.91 $plane 
+set n5 [$ns node]; $n5 set-position $alt $inc 0 163.64 $plane 
+set n6 [$ns node]; $n6 set-position $alt $inc 0 196.36 $plane 
+set n7 [$ns node]; $n7 set-position $alt $inc 0 229.09 $plane 
+set n8 [$ns node]; $n8 set-position $alt $inc 0 261.82 $plane 
+set n9 [$ns node]; $n9 set-position $alt $inc 0 294.55 $plane 
+set n10 [$ns node]; $n10 set-position $alt $inc 0 327.27 $plane 
 
 incr plane  
-set n15 [$ns satnode-polar $alt $inc 31.6 16.36 $plane $linkargs $chan]
-set n16 [$ns satnode-polar $alt $inc 31.6 49.09 $plane $linkargs $chan]
-set n17 [$ns satnode-polar $alt $inc 31.6 81.82 $plane $linkargs $chan]
-set n18 [$ns satnode-polar $alt $inc 31.6 114.55 $plane $linkargs $chan]
-set n19 [$ns satnode-polar $alt $inc 31.6 147.27 $plane $linkargs $chan]
-set n20 [$ns satnode-polar $alt $inc 31.6 180 $plane $linkargs $chan]
-set n21 [$ns satnode-polar $alt $inc 31.6 212.73 $plane $linkargs $chan]
-set n22 [$ns satnode-polar $alt $inc 31.6 245.45 $plane $linkargs $chan]
-set n23 [$ns satnode-polar $alt $inc 31.6 278.18 $plane $linkargs $chan]
-set n24 [$ns satnode-polar $alt $inc 31.6 310.91 $plane $linkargs $chan]
-set n25 [$ns satnode-polar $alt $inc 31.6 343.64 $plane $linkargs $chan]
+set n15 [$ns node]; $n15 set-position $alt $inc 31.6 16.36 $plane 
+set n16 [$ns node]; $n16 set-position $alt $inc 31.6 49.09 $plane 
+set n17 [$ns node]; $n17 set-position $alt $inc 31.6 81.82 $plane 
+set n18 [$ns node]; $n18 set-position $alt $inc 31.6 114.55 $plane 
+set n19 [$ns node]; $n19 set-position $alt $inc 31.6 147.27 $plane 
+set n20 [$ns node]; $n20 set-position $alt $inc 31.6 180 $plane 
+set n21 [$ns node]; $n21 set-position $alt $inc 31.6 212.73 $plane 
+set n22 [$ns node]; $n22 set-position $alt $inc 31.6 245.45 $plane 
+set n23 [$ns node]; $n23 set-position $alt $inc 31.6 278.18 $plane 
+set n24 [$ns node]; $n24 set-position $alt $inc 31.6 310.91 $plane 
+set n25 [$ns node]; $n25 set-position $alt $inc 31.6 343.64 $plane 
 
 incr plane 
-set n30 [$ns satnode-polar $alt $inc 63.2 0 $plane $linkargs $chan]
-set n31 [$ns satnode-polar $alt $inc 63.2 32.73 $plane $linkargs $chan]
-set n32 [$ns satnode-polar $alt $inc 63.2 65.45 $plane $linkargs $chan]
-set n33 [$ns satnode-polar $alt $inc 63.2 98.18 $plane $linkargs $chan]
-set n34 [$ns satnode-polar $alt $inc 63.2 130.91 $plane $linkargs $chan]
-set n35 [$ns satnode-polar $alt $inc 63.2 163.64 $plane $linkargs $chan]
-set n36 [$ns satnode-polar $alt $inc 63.2 196.36 $plane $linkargs $chan]
-set n37 [$ns satnode-polar $alt $inc 63.2 229.09 $plane $linkargs $chan]
-set n38 [$ns satnode-polar $alt $inc 63.2 261.82 $plane $linkargs $chan]
-set n39 [$ns satnode-polar $alt $inc 63.2 294.55 $plane $linkargs $chan]
-set n40 [$ns satnode-polar $alt $inc 63.2 327.27 $plane $linkargs $chan]
+set n30 [$ns node]; $n30 set-position $alt $inc 63.2 0 $plane 
+set n31 [$ns node]; $n31 set-position $alt $inc 63.2 32.73 $plane 
+set n32 [$ns node]; $n32 set-position $alt $inc 63.2 65.45 $plane 
+set n33 [$ns node]; $n33 set-position $alt $inc 63.2 98.18 $plane 
+set n34 [$ns node]; $n34 set-position $alt $inc 63.2 130.91 $plane 
+set n35 [$ns node]; $n35 set-position $alt $inc 63.2 163.64 $plane 
+set n36 [$ns node]; $n36 set-position $alt $inc 63.2 196.36 $plane 
+set n37 [$ns node]; $n37 set-position $alt $inc 63.2 229.09 $plane 
+set n38 [$ns node]; $n38 set-position $alt $inc 63.2 261.82 $plane 
+set n39 [$ns node]; $n39 set-position $alt $inc 63.2 294.55 $plane 
+set n40 [$ns node]; $n40 set-position $alt $inc 63.2 327.27 $plane 
 
 incr plane 
-set n45 [$ns satnode-polar $alt $inc 94.8 16.36 $plane $linkargs $chan]
-set n46 [$ns satnode-polar $alt $inc 94.8 49.09 $plane $linkargs $chan]
-set n47 [$ns satnode-polar $alt $inc 94.8 81.82 $plane $linkargs $chan]
-set n48 [$ns satnode-polar $alt $inc 94.8 114.55 $plane $linkargs $chan]
-set n49 [$ns satnode-polar $alt $inc 94.8 147.27 $plane $linkargs $chan]
-set n50 [$ns satnode-polar $alt $inc 94.8 180 $plane $linkargs $chan]
-set n51 [$ns satnode-polar $alt $inc 94.8 212.73 $plane $linkargs $chan]
-set n52 [$ns satnode-polar $alt $inc 94.8 245.45 $plane $linkargs $chan]
-set n53 [$ns satnode-polar $alt $inc 94.8 278.18 $plane $linkargs $chan]
-set n54 [$ns satnode-polar $alt $inc 94.8 310.91 $plane $linkargs $chan]
-set n55 [$ns satnode-polar $alt $inc 94.8 343.64 $plane $linkargs $chan]
+set n45 [$ns node]; $n45 set-position $alt $inc 94.8 16.36 $plane 
+set n46 [$ns node]; $n46 set-position $alt $inc 94.8 49.09 $plane 
+set n47 [$ns node]; $n47 set-position $alt $inc 94.8 81.82 $plane 
+set n48 [$ns node]; $n48 set-position $alt $inc 94.8 114.55 $plane 
+set n49 [$ns node]; $n49 set-position $alt $inc 94.8 147.27 $plane 
+set n50 [$ns node]; $n50 set-position $alt $inc 94.8 180 $plane 
+set n51 [$ns node]; $n51 set-position $alt $inc 94.8 212.73 $plane 
+set n52 [$ns node]; $n52 set-position $alt $inc 94.8 245.45 $plane 
+set n53 [$ns node]; $n53 set-position $alt $inc 94.8 278.18 $plane 
+set n54 [$ns node]; $n54 set-position $alt $inc 94.8 310.91 $plane 
+set n55 [$ns node]; $n55 set-position $alt $inc 94.8 343.64 $plane 
 
 incr plane 
-set n60 [$ns satnode-polar $alt $inc 126.4 0 $plane $linkargs $chan]
-set n61 [$ns satnode-polar $alt $inc 126.4 32.73 $plane $linkargs $chan]
-set n62 [$ns satnode-polar $alt $inc 126.4 65.45 $plane $linkargs $chan]
-set n63 [$ns satnode-polar $alt $inc 126.4 98.18 $plane $linkargs $chan]
-set n64 [$ns satnode-polar $alt $inc 126.4 130.91 $plane $linkargs $chan]
-set n65 [$ns satnode-polar $alt $inc 126.4 163.64 $plane $linkargs $chan]
-set n66 [$ns satnode-polar $alt $inc 126.4 196.36 $plane $linkargs $chan]
-set n67 [$ns satnode-polar $alt $inc 126.4 229.09 $plane $linkargs $chan]
-set n68 [$ns satnode-polar $alt $inc 126.4 261.82 $plane $linkargs $chan]
-set n69 [$ns satnode-polar $alt $inc 126.4 294.55 $plane $linkargs $chan]
-set n70 [$ns satnode-polar $alt $inc 126.4 327.27 $plane $linkargs $chan]
+set n60 [$ns node]; $n60 set-position $alt $inc 126.4 0 $plane 
+set n61 [$ns node]; $n61 set-position $alt $inc 126.4 32.73 $plane 
+set n62 [$ns node]; $n62 set-position $alt $inc 126.4 65.45 $plane 
+set n63 [$ns node]; $n63 set-position $alt $inc 126.4 98.18 $plane 
+set n64 [$ns node]; $n64 set-position $alt $inc 126.4 130.91 $plane 
+set n65 [$ns node]; $n65 set-position $alt $inc 126.4 163.64 $plane 
+set n66 [$ns node]; $n66 set-position $alt $inc 126.4 196.36 $plane 
+set n67 [$ns node]; $n67 set-position $alt $inc 126.4 229.09 $plane 
+set n68 [$ns node]; $n68 set-position $alt $inc 126.4 261.82 $plane 
+set n69 [$ns node]; $n69 set-position $alt $inc 126.4 294.55 $plane 
+set n70 [$ns node]; $n70 set-position $alt $inc 126.4 327.27 $plane 
 
 incr plane
-set n75 [$ns satnode-polar $alt $inc 158 16.36 $plane $linkargs $chan]
-set n76 [$ns satnode-polar $alt $inc 158 49.09 $plane $linkargs $chan]
-set n77 [$ns satnode-polar $alt $inc 158 81.82 $plane $linkargs $chan]
-set n78 [$ns satnode-polar $alt $inc 158 114.55 $plane $linkargs $chan]
-set n79 [$ns satnode-polar $alt $inc 158 147.27 $plane $linkargs $chan]
-set n80 [$ns satnode-polar $alt $inc 158 180 $plane $linkargs $chan]
-set n81 [$ns satnode-polar $alt $inc 158 212.73 $plane $linkargs $chan]
-set n82 [$ns satnode-polar $alt $inc 158 245.45 $plane $linkargs $chan]
-set n83 [$ns satnode-polar $alt $inc 158 278.18 $plane $linkargs $chan]
-set n84 [$ns satnode-polar $alt $inc 158 310.91 $plane $linkargs $chan]
-set n85 [$ns satnode-polar $alt $inc 158 343.64 $plane $linkargs $chan]
+set n75 [$ns node]; $n75 set-position $alt $inc 158 16.36 $plane 
+set n76 [$ns node]; $n76 set-position $alt $inc 158 49.09 $plane 
+set n77 [$ns node]; $n77 set-position $alt $inc 158 81.82 $plane 
+set n78 [$ns node]; $n78 set-position $alt $inc 158 114.55 $plane 
+set n79 [$ns node]; $n79 set-position $alt $inc 158 147.27 $plane 
+set n80 [$ns node]; $n80 set-position $alt $inc 158 180 $plane 
+set n81 [$ns node]; $n81 set-position $alt $inc 158 212.73 $plane 
+set n82 [$ns node]; $n82 set-position $alt $inc 158 245.45 $plane 
+set n83 [$ns node]; $n83 set-position $alt $inc 158 278.18 $plane 
+set n84 [$ns node]; $n84 set-position $alt $inc 158 310.91 $plane 
+set n85 [$ns node]; $n85 set-position $alt $inc 158 343.64 $plane 
 
 # By setting the next_ variable on polar sats; handoffs can be optimized
 

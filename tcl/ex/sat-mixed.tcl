@@ -41,9 +41,10 @@
 
 global ns
 set ns [new Simulator]
-$ns rtproto Dummy
 
-# Global configuration parameters
+###########################################################################
+# Global configuration parameters                                         #
+###########################################################################
 
 HandoffManager/Term set elevation_mask_ 8.2
 HandoffManager/Term set term_handoff_int_ 10
@@ -63,43 +64,75 @@ set opt(ll)             LL/Sat
 set opt(alt)		780; # Polar satellite altitude (Iridium)
 set opt(inc)		90; # Orbit inclination w.r.t. equator
 
-# XXX This tracing enabling must precede link and node creation
-set f [open out.tr w]
-$ns trace-all $f
+# IMPORTANT This tracing enabling (trace-all) must precede link and node 
+#           creation.  Then following all node, link, and error model
+#           creation, invoke "$ns trace-all-satlinks $outfile" 
+set outfile [open out.tr w]
+$ns trace-all $outfile
 
-# Set up satellite and terrestrial nodes
+###########################################################################
+# Set up satellite and terrestrial nodes                                  #
+###########################################################################
 
-set linkargs "$opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_down) $opt(phy)"
-set alt $opt(alt)
-set inc $opt(inc)
-set chan $opt(chan)
+# Let's first create a single orbital plane of Iridium-like satellites
+# 11 satellites in a plane
+
+# Set up the node configuration
+
+$ns node-config -satNodeType polar \
+		-llType $opt(ll) \
+		-ifqType $opt(ifq) \
+		-ifqLen $opt(qlim) \
+		-macType $opt(mac) \
+		-phyType $opt(phy) \
+		-channelType $opt(chan) \
+		-downlinkBW $opt(bw_down)
+
+# Create nodes n0 through n10
+set n0 [$ns node]; set n1 [$ns node]; set n2 [$ns node]; set n3 [$ns node] 
+set n4 [$ns node]; set n5 [$ns node]; set n6 [$ns node]; set n7 [$ns node] 
+set n8 [$ns node]; set n9 [$ns node]; set n10 [$ns node]
+
+# Now provide position information for each of these nodes
+# Position arguments are: altitude, incl., longitude, "alpha", and plane
+# See documentation for definition of these fields
 set plane 1
-set n0 [$ns satnode-polar $alt $inc 0 0 $plane $linkargs $chan]
-set n1 [$ns satnode-polar $alt $inc 0 32.73 $plane $linkargs $chan]
-set n2 [$ns satnode-polar $alt $inc 0 65.45 $plane $linkargs $chan]
-set n3 [$ns satnode-polar $alt $inc 0 98.18 $plane $linkargs $chan]
-set n4 [$ns satnode-polar $alt $inc 0 130.91 $plane $linkargs $chan]
-set n5 [$ns satnode-polar $alt $inc 0 163.64 $plane $linkargs $chan]
-set n6 [$ns satnode-polar $alt $inc 0 196.36 $plane $linkargs $chan]
-set n7 [$ns satnode-polar $alt $inc 0 229.09 $plane $linkargs $chan]
-set n8 [$ns satnode-polar $alt $inc 0 261.82 $plane $linkargs $chan]
-set n9 [$ns satnode-polar $alt $inc 0 294.55 $plane $linkargs $chan]
-set n10 [$ns satnode-polar $alt $inc 0 327.27 $plane $linkargs $chan]
+$n0 set-position $opt(alt) $opt(inc) 0 0 $plane 
+$n1 set-position $opt(alt) $opt(inc) 0 32.73 $plane
+$n2 set-position $opt(alt) $opt(inc) 0 65.45 $plane
+$n3 set-position $opt(alt) $opt(inc) 0 98.18 $plane
+$n4 set-position $opt(alt) $opt(inc) 0 130.91 $plane
+$n5 set-position $opt(alt) $opt(inc) 0 163.64 $plane
+$n6 set-position $opt(alt) $opt(inc) 0 196.36 $plane
+$n7 set-position $opt(alt) $opt(inc) 0 229.09 $plane
+$n8 set-position $opt(alt) $opt(inc) 0 261.82 $plane
+$n9 set-position $opt(alt) $opt(inc) 0 294.55 $plane
+$n10 set-position $opt(alt) $opt(inc) 0 327.27 $plane
 
+# This next step is specific to polar satellites
 # By setting the next_ variable on polar sats; handoffs can be optimized  
 # This step must follow all polar node creation
 $n0 set_next $n10; $n1 set_next $n0; $n2 set_next $n1; $n3 set_next $n2
 $n4 set_next $n3; $n5 set_next $n4; $n6 set_next $n5; $n7 set_next $n6
 $n8 set_next $n7; $n9 set_next $n8; $n10 set_next $n9
 
-# GEO satellite:  above North America
-set n11 [$ns satnode-geo -100 $linkargs $opt(chan)]
+# GEO satellite:  above North America-- lets put it at 100 deg. W
+$ns node-config -satNodeType geo
+set n11 [$ns node]
+$n11 set-position -100
 
-# Terminals
-set n100 [$ns satnode-terminal 37.9 -122.3]; # Berkeley
-set n101 [$ns satnode-terminal 42.3 -71.1]; # Boston 
-set n200 [$ns satnode-terminal 0 10]
-set n201 [$ns satnode-terminal 0 -10]
+# Terminals:  Let's put two within the US, two around the prime meridian
+$ns node-config -satNodeType terminal 
+set n100 [$ns node]; set n101 [$ns node]
+$n100 set-position 37.9 -122.3; # Berkeley
+$n101 set-position 42.3 -71.1; # Boston
+set n200 [$ns node]; set n201 [$ns node]
+$n200 set-position 0 10 
+$n201 set-position 0 -10
+
+###########################################################################
+# Set up links                                                            #
+###########################################################################
 
 # Add any necessary ISLs or GSLs
 # GSLs to the geo satellite:
@@ -108,13 +141,13 @@ $n100 add-gsl geo $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
 $n101 add-gsl geo $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
   $opt(phy) [$n11 set downlink_] [$n11 set uplink_]
 # Attach n200 and n201 initially to a satellite on other side of the earth
-# (handoff will occur to fix this)
+# (handoff will automatically occur to fix this at the start of simulation)
 $n200 add-gsl polar $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
   $opt(phy) [$n5 set downlink_] [$n5 set uplink_]
 $n201 add-gsl polar $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
   $opt(phy) [$n5 set downlink_] [$n5 set uplink_]
 
-#ISL
+# ISLs for the polar satellites
 $ns add-isl intraplane $n0 $n1 $opt(bw_isl) $opt(ifq) $opt(qlim)
 $ns add-isl intraplane $n1 $n2 $opt(bw_isl) $opt(ifq) $opt(qlim)
 $ns add-isl intraplane $n2 $n3 $opt(bw_isl) $opt(ifq) $opt(qlim)
@@ -127,10 +160,15 @@ $ns add-isl intraplane $n8 $n9 $opt(bw_isl) $opt(ifq) $opt(qlim)
 $ns add-isl intraplane $n9 $n10 $opt(bw_isl) $opt(ifq) $opt(qlim)
 $ns add-isl intraplane $n10 $n0 $opt(bw_isl) $opt(ifq) $opt(qlim)
 
-# Trace all queues 
-$ns trace-all-satlinks $f
+###########################################################################
+# Tracing                                                                 #
+###########################################################################
+$ns trace-all-satlinks $outfile
 
-# Attach agents
+###########################################################################
+# Attach agents                                                           #
+###########################################################################
+
 set udp0 [new Agent/UDP]
 $ns attach-agent $n100 $udp0
 set cbr0 [new Application/Traffic/CBR]
@@ -152,6 +190,10 @@ $ns attach-agent $n201 $null1
 $ns connect $udp0 $null0
 $ns connect $udp1 $null1
 
+###########################################################################
+# Satellite routing                                                       #
+###########################################################################
+
 set satrouteobject_ [new SatRouteObject]
 $satrouteobject_ compute_routes
 
@@ -161,9 +203,9 @@ $ns at 305.0 "$cbr1 start"
 $ns at 9000.0 "finish"
 
 proc finish {} {
-	global ns f 
+	global ns outfile 
 	$ns flush-trace
-	close $f
+	close $outfile
 
 	exit 0
 }

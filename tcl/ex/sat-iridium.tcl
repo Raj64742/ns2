@@ -60,7 +60,6 @@
 
 global ns
 set ns [new Simulator]
-$ns rtproto Dummy
 
 # Global configuration parameters 
 HandoffManager/Term set elevation_mask_ 8.2
@@ -92,15 +91,23 @@ set opt(alt)            780; # Polar satellite altitude (Iridium)
 set opt(inc)            86.4; # Orbit inclination w.r.t. equator
 
 # XXX This tracing enabling must precede link and node creation
-set f [open out.tr w]
-$ns trace-all $f
+set outfile [open out.tr w]
+$ns trace-all $outfile
 
 # Create the satellite nodes
 # Nodes 0-99 are satellite nodes; 100 and higher are earth terminals
-set linkargs "$opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_down) $opt(phy)"
+
+$ns node-config -satNodeType polar \
+		-llType $opt(ll) \
+		-ifqType $opt(ifq) \
+		-ifqLen $opt(qlim) \
+		-macType $opt(mac) \
+		-phyType $opt(phy) \
+		-channelType $opt(chan) \
+		-downlinkBW $opt(bw_down)  
+
 set alt $opt(alt)
 set inc $opt(inc)
-set chan $opt(chan)
 
 source sat-iridium-nodes.tcl
 
@@ -108,8 +115,11 @@ source sat-iridium-nodes.tcl
 source sat-iridium-links.tcl
 
 # Set up terrestrial nodes
-set n100 [$ns satnode-terminal 37.9 -122.3]; # Berkeley
-set n101 [$ns satnode-terminal 42.3 -71.1]; # Boston 
+$ns node-config -satNodeType terminal
+set n100 [$ns node]
+$n100 set-position 37.9 -122.3; # Berkeley
+set n101 [$ns node]
+$n101 set-position 42.3 -71.1; # Boston 
 
 # Add GSL links
 # It doesn't matter what the sat node is (handoff algorithm will reset it)
@@ -119,7 +129,7 @@ $n101 add-gsl polar $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
   $opt(phy) [$n0 set downlink_] [$n0 set uplink_]
 
 # Trace all queues
-$ns trace-all-satlinks $f
+$ns trace-all-satlinks $outfile
 
 # Attach agents
 set udp0 [new Agent/UDP]
@@ -141,9 +151,9 @@ $satrouteobject_ compute_routes
 $ns at 86400.0 "finish" ; # one earth rotation 
 
 proc finish {} {
-	global ns f nf
+	global ns outfile 
 	$ns flush-trace
-	close $f
+	close $outfile
 
 	exit 0
 }

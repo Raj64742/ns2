@@ -48,11 +48,11 @@ for {set a 1} {$a <= 12} {incr a} {
 			set stagger 0
 		} else { 
 			set stagger 7.5 
-			# set stagger 0 
 		}
 		set imod [expr $i % 100]
-		set n($i) [$ns satnode-polar $alt $inc [expr 15 * ($a - 1)] \
-		    [expr $stagger + $imod * 15] $a $linkargs $chan]
+		set n($i) [$ns node]
+		$n($i) set-position $alt $inc [expr 15 * ($a - 1)] \
+		    [expr $stagger + $imod * 15] $a 
 	}
 }
 # Set up next pointer

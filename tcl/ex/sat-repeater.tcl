@@ -39,13 +39,13 @@
 
 global ns
 set ns [new Simulator]
-$ns rtproto Dummy; # Using C++ routing agents and objects
 
 # Global configuration parameters
 
 global opt
 set opt(chan)           Channel/Sat
-set opt(bw_up)		2Mb; # Uplink bandwidth-- becomes downlink bw also
+set opt(bw_up)		2Mb
+set opt(bw_down)	2Mb
 set opt(phy)            Phy/Sat
 set opt(mac)            Mac/Sat
 set opt(ifq)            Queue/DropTail
@@ -53,17 +53,29 @@ set opt(qlim)		50
 set opt(ll)             LL/Sat
 
 # XXX This tracing enabling must precede link and node creation 
-set f [open out.tr w]
-$ns trace-all $f
+set outfile [open out.tr w]
+$ns trace-all $outfile
 
 # Set up satellite and terrestrial nodes
 
 # GEO satellite at 95 degrees longitude West
-set n1 [$ns satnode-geo-repeater -95 $opt(chan)]
+$ns node-config -satNodeType geo-repeater \
+		-llType $opt(ll) \
+		-ifqType $opt(ifq) \
+		-ifqLen $opt(qlim) \
+		-macType $opt(mac) \
+		-phyType $opt(phy) \
+		-channelType $opt(chan) \
+		-downlinkBW $opt(bw_down) 
+set n1 [$ns node]
+$n1 set-position -95
 
 # Two terminals: one in NY and one in SF 
-set n2 [$ns satnode-terminal 40.9 -73.9]; # NY
-set n3 [$ns satnode-terminal 37.8 -122.4]; # SF
+$ns node-config -satNodeType terminal 
+set n2 [$ns node]
+$n2 set-position 40.9 -73.9; # NY
+set n3 [$ns node]
+$n3 set-position 37.8 -122.4; # SF
 
 # Add GSLs to geo satellites
 $n2 add-gsl geo $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
@@ -78,7 +90,7 @@ $em_ set rate_ 0.02
 $em_ ranvar [new RandomVariable/Uniform]
 $n3 interface-errormodel $em_ 
 
-$ns trace-all-satlinks $f
+$ns trace-all-satlinks $outfile
 
 # Attach agents for CBR traffic generator 
 set udp0 [new Agent/UDP]
@@ -106,9 +118,9 @@ $ns at 1.0 "$cbr0 start"
 $ns at 100.0 "finish"
 
 proc finish {} {
-	global ns f 
+	global ns outfile
 	$ns flush-trace
-	close $f
+	close $outfile
 
 	exit 0
 }

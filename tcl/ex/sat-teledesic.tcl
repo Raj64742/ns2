@@ -58,8 +58,6 @@
 
 global ns
 set ns [new Simulator]
-$ns rtproto Dummy
-$ns set-address-format expanded
 
 # Global configuration parameters
 Node/SatNode set time_advance_ 0
@@ -91,13 +89,21 @@ set opt(inc)            84.7; # Orbit inclination w.r.t. equator
 
 # XXX Tracing enabling must precede link creation !
 # and satellite classifiers, if tracing is to work
-set f [open out.tr w]
-$ns trace-all $f
+set outfile [open out.tr w]
+$ns trace-all $outfile
 
-set linkargs "$opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_down) $opt(phy)"
+# Configure satellite nodes 
+$ns node-config -satNodeType polar \
+		-llType $opt(ll) \
+		-ifqType $opt(ifq) \
+		-ifqLen $opt(qlim) \
+		-macType $opt(mac) \
+		-phyType $opt(phy) \
+		-channelType $opt(chan) \
+		-downlinkBW $opt(bw_down)   
+
 set alt $opt(alt)
 set inc $opt(inc)
-set chan $opt(chan)
 
 # Nodes n(100) - n(1223) are satellite nodes
 source sat-teledesic-nodes.tcl
@@ -106,8 +112,11 @@ source sat-teledesic-nodes.tcl
 source sat-teledesic-links.tcl
 
 # Set up terminals
-set n100 [$ns satnode-terminal 37.9 -122.3]; # Berkeley
-set n101 [$ns satnode-terminal 42.3 -71.1]; # Boston
+$ns node-config -satNodeType terminal
+set n100 [$ns node]
+$n100 set-position 37.9 -122.3; # Berkeley
+set n101 [$ns node]
+$n101 set-position 42.3 -71.1; # Boston
 
 # Add GSL links
 # It doesn't matter what the sat node is (handoff algorithm will reset it)
@@ -117,7 +126,7 @@ $n101 add-gsl polar $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
   $opt(phy) [$n(100) set downlink_] [$n(100) set uplink_]
 
 # Trace all queues
-$ns trace-all-satlinks $f
+$ns trace-all-satlinks $outfile
 
 # Attach agents
 set udp0 [new Agent/UDP]
@@ -140,9 +149,9 @@ $ns at 0.5 "$satrouteobject_ compute_routes"; # anytime before data is sent
 $ns at 86400.0 "finish" ; # one earth rotation 
 
 proc finish {} {
-	global ns f nf
+	global ns outfile 
 	$ns flush-trace
-	close $f
+	close $outfile
 
 	exit 0
 }

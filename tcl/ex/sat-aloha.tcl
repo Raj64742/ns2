@@ -42,7 +42,6 @@
 
 global ns
 set ns [new Simulator]
-$ns rtproto Dummy; # Using C++ routing agents and objects
 
 # Global configuration parameters for Aloha (also settable in ns-sat.tcl)
 Mac/Sat/UnslottedAloha set mean_backoff_ 1s ; # mean exponential backoff time(s)
@@ -51,7 +50,8 @@ Mac/Sat/UnslottedAloha set send_timeout_ 270ms; # resend if send times out
 
 global opt
 set opt(chan)           Channel/Sat
-set opt(bw_up)		2Mb; # Uplink bandwidth-- becomes downlink bw also
+set opt(bw_up)		2Mb
+set opt(bw_down)	2Mb
 set opt(phy)            Phy/Sat
 set opt(mac)            Mac/Sat/UnslottedAloha
 set opt(ifq)            Queue/DropTail
@@ -59,18 +59,30 @@ set opt(qlim)		50
 set opt(ll)             LL/Sat
 
 # XXX This tracing enabling must precede link and node creation 
-set f [open out.tr w]
-$ns trace-all $f
+set outfile [open out.tr w]
+$ns trace-all $outfile
 
 # Set up satellite and terrestrial nodes
 
 # GEO satellite at 0 degrees longitude 
-set n1 [$ns satnode-geo-repeater 0 $opt(chan)]
+$ns node-config -satNodeType geo-repeater \
+		-llType $opt(ll) \
+		-ifqType $opt(ifq) \
+		-ifqLen $opt(qlim) \
+		-macType $opt(mac) \
+		-phyType $opt(phy) \
+		-channelType $opt(chan) \
+		-downlinkBW $opt(bw_down)
+set n1 [$ns node]
+$n1 set-position 0
 
-# Place 100 nodes at 100 different locations
+
+# Place 100 terminals at 100 different locations
+$ns node-config -satNodeType terminal
 set num_nodes		100
 for {set a 1} {$a <= $num_nodes} {incr a} {
-	set n($a) [$ns satnode-terminal [expr -15 + $a * 0.3] [expr 15 - $a * 0.3] ]
+	set n($a) [$ns node]
+	$n($a) set-position [expr -15 + $a * 0.3] [expr 15 - $a * 0.3]
 	$n($a) add-gsl geo $opt(ll) $opt(ifq) $opt(qlim) $opt(mac) $opt(bw_up) \
   		$opt(phy) [$n1 set downlink_] [$n1 set uplink_]
 }
@@ -94,7 +106,7 @@ for {set a 1} {$a <= $num_nodes} {incr a} {
 	$ns at 1.0 "$exp($a) start"
 }
 
-$ns trace-all-satlinks $f
+$ns trace-all-satlinks $outfile
 
 # We use centralized routing
 set satrouteobject_ [new SatRouteObject]
@@ -103,9 +115,9 @@ $satrouteobject_ compute_routes
 $ns at 100.0 "finish"
 
 proc finish {} {
-	global ns f 
+	global ns outfile 
 	$ns flush-trace
-	close $f
+	close $outfile
 
 	exit 0
 }
