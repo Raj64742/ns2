@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffusion.hh,v 1.6 2002/09/16 17:57:28 haldar Exp $
+// $Id: diffusion.hh,v 1.7 2002/11/26 22:45:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -83,6 +83,12 @@
 #    endif // USE_RPC
 #endif // !WIRED
 
+#ifdef IO_LOG
+#define COMMAND_LINE_ARGS "f:hld:vt:p:"
+#else
+#define COMMAND_LINE_ARGS "f:hd:vt:p:"
+#endif // IO_LOG
+
 class DiffusionCoreAgent;
 class HashEntry;
 class NeighborEntry;
@@ -100,6 +106,7 @@ public:
   void usage();
   void run();
 #endif // NS_DIFFUSION
+
   void timeToStop();
   // Timer functions
   void neighborsTimeout();
@@ -196,7 +203,6 @@ public:
   DiffusionCoreAgent *agent_;
 };
 
-
 class DiffusionStopTimer : public TimerCallback {
 public:
   DiffusionStopTimer(DiffusionCoreAgent *agent) : agent_(agent) {};
@@ -205,6 +211,5 @@ public:
 
   DiffusionCoreAgent *agent_;
 };
-
 
 #endif // !_DIFFUSION_HH_

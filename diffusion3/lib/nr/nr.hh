@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: nr.hh,v 1.5 2002/09/16 17:57:30 haldar Exp $
+// $Id: nr.hh,v 1.6 2002/11/26 22:45:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -95,9 +95,10 @@ public:
     // and user-defined keys
   };
 
-  // Values for diffusion-specific keys
-  enum classes { INTEREST_CLASS, DISINTEREST_CLASS, DATA_CLASS };
-  enum scopes { NODE_LOCAL_SCOPE, GLOBAL_SCOPE };
+  // Values for diffusion-specific keys (start these at high values,
+  // so we can do simple type checking)
+  enum classes { INTEREST_CLASS = 10010, DISINTEREST_CLASS, DATA_CLASS };
+  enum scopes { NODE_LOCAL_SCOPE = 11010, GLOBAL_SCOPE };
 
   // Key Type values
   enum types { INT32_TYPE,    // 32-bit signed integer

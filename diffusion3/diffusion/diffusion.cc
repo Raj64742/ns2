@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffusion.cc,v 1.6 2002/09/16 17:57:27 haldar Exp $
+// $Id: diffusion.cc,v 1.7 2002/11/26 22:45:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -65,7 +65,7 @@ int DiffusionStopTimer::expire()
   agent_->timeToStop();
 #ifndef NS_DIFFUSION
   exit(0);
-#endif //NS_DIFFUSION
+#endif // !NS_DIFFUSION
 
   // Never gets here !
   return 0;
@@ -115,13 +115,20 @@ void signal_handler(int p)
 
 void DiffusionCoreAgent::usage()
 {
+#ifdef IO_LOG
+  DiffPrint(DEBUG_ALWAYS, "Usage: diffusion [-d debug] [-f filename] [-t stoptime] [-v] [-h] [-l] [-p port]\n\n");
+#else
   DiffPrint(DEBUG_ALWAYS, "Usage: diffusion [-d debug] [-f filename] [-t stoptime] [-v] [-h] [-p port]\n\n");
+#endif // IO_LOG
   DiffPrint(DEBUG_ALWAYS, "\t-d - Sets debug level (0-10)\n");
   DiffPrint(DEBUG_ALWAYS, "\t-t - Schedule diffusion to exit after stoptime seconds\n");
   DiffPrint(DEBUG_ALWAYS, "\t-f - Uses filename as the config file\n");
   DiffPrint(DEBUG_ALWAYS, "\t-v - Prints diffusion version\n");
   DiffPrint(DEBUG_ALWAYS, "\t-h - Prints this information\n");
   DiffPrint(DEBUG_ALWAYS, "\t-p - Sets diffusion port to port\n");
+#ifdef IO_LOG
+  DiffPrint(DEBUG_ALWAYS, "\t-l - Turns on i/o logging\n");
+#endif // IO_LOG
 
   DiffPrint(DEBUG_ALWAYS, "\n");
 
@@ -916,6 +923,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   struct timeval tv;
 #ifdef IO_LOG
   IOLog *pseudo_io_device;
+  bool use_io_log = false;
 #endif // IO_LOG
 
   opterr = 0;
@@ -928,7 +936,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 #ifndef NS_DIFFUSION
   // Parse command line options
   while (1){
-    opt = getopt(argc, argv, "f:hd:vt:p:");
+    opt = getopt(argc, argv, COMMAND_LINE_ARGS);
 
     switch(opt){
 
@@ -956,6 +964,15 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
       }
 
       break;
+
+#ifdef IO_LOG
+    case 'l':
+
+      use_io_log = true;
+
+      break;
+
+#endif // IO_LOG
 
     case 'h':
 
@@ -1083,13 +1100,20 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
   // Initialize diffusion io devices
 #ifdef IO_LOG
-  pseudo_io_device = new IOLog(my_id_);
-  in_devices_.push_back(pseudo_io_device);
-  out_devices_.push_back(pseudo_io_device);
+  if (use_io_log){
+    pseudo_io_device = new IOLog(my_id_);
+    in_devices_.push_back(pseudo_io_device);
+    out_devices_.push_back(pseudo_io_device);
 
-  in_devices = &(pseudo_io_device->in_devices_);
-  out_devices = &(pseudo_io_device->out_devices_);
-  local_out_devices = &(local_out_devices_);
+    in_devices = &(pseudo_io_device->in_devices_);
+    out_devices = &(pseudo_io_device->out_devices_);
+    local_out_devices = &(local_out_devices_);
+  }
+  else{
+    in_devices = &(in_devices_);
+    out_devices = &(out_devices_);
+    local_out_devices = &(local_out_devices_);
+  }
 #else
   in_devices = &(in_devices_);
   out_devices = &(out_devices_);
@@ -1277,7 +1301,7 @@ void DiffusionCoreAgent::recvMessage(Message *msg)
     processMessage(msg);
 }
 
-#ifndef NS_DIFFUSION
+#ifndef USE_SINGLE_ADDRESS_SPACE
 int main(int argc, char **argv)
 {
   agent = new DiffusionCoreAgent(argc, argv);
@@ -1288,4 +1312,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // !NS_DIFFUSION
+#endif // !USE_SINGLE_ADDRESS_SPACE

@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-routing.hh,v 1.10 2002/09/16 17:57:21 haldar Exp $
+// $Id: geo-routing.hh,v 1.11 2002/11/26 22:45:37 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -129,19 +129,6 @@ enum geo_actions {
 
 #define MAX_PATH_LEN     200
 
-class TimerType {
-public:
-  TimerType(int which_timer) : which_timer_(which_timer)
-  {
-    param_ = NULL;
-  };
-
-  ~TimerType() {};
-
-  int which_timer_;
-  void *param_;
-};
-
 class Region {
 public:
   void operator= (Region p) {center_ = p.center_; radius_ = p.radius_;}
@@ -203,15 +190,6 @@ public:
   GeoRoutingFilter *app_;
 };
 
-class GeoTimerReceive : public TimerCallbacks {
-public:
-  GeoTimerReceive(GeoRoutingFilter *app) : app_(app) {};
-  int expire(handle hdl, void *p);
-  void del(void *p);
-
-  GeoRoutingFilter *app_;
-};
-
 class GeoRoutingFilter : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
@@ -228,8 +206,12 @@ public:
 
   void run();
   void recv(Message *msg, handle h);
-  int processTimers(handle hdl, void *p);
 
+  // Timers
+  void messageTimeout(Message *msg);
+  void beaconTimeout();
+  void neighborTimeout();
+  
 protected:
   // General Variables
   handle pre_filter_handle_;
@@ -265,7 +247,6 @@ protected:
   
   // Receive Callback for the filter
   GeoFilterReceive *filter_callback_;
-  GeoTimerReceive *timer_callback_;
 
   // Setup the filter
   handle setupPostFilter();
@@ -275,12 +256,6 @@ protected:
   void preProcessFilter(Message *msg);
   void postProcessFilter(Message *msg);
 
-  // Timers
-  void messageTimeout(Message *msg);
-  void interestTimeout(Message *msg);
-  void beaconTimeout();
-  void neighborTimeout();
-  
   // Message processing functions
   PktHeader * preProcessMessage(Message *msg);
   PktHeader * stripOutHeader(Message *msg);
@@ -314,6 +289,38 @@ protected:
 
   // GetNodeLocation --> This will move to the library in the future
   void getNodeLocation(double *longitude, double *latitude);
+};
+
+class GeoMessageSendTimer : public TimerCallback {
+public:
+  GeoMessageSendTimer(GeoRoutingFilter *agent, Message *msg) :
+    agent_(agent), msg_(msg) {};
+  ~GeoMessageSendTimer()
+  {
+    delete msg_;
+  };
+  int expire();
+
+  GeoRoutingFilter *agent_;
+  Message *msg_;
+};
+
+class GeoNeighborsTimer : public TimerCallback {
+public:
+  GeoNeighborsTimer(GeoRoutingFilter *agent) : agent_(agent) {};
+  ~GeoNeighborsTimer() {};
+  int expire();
+
+  GeoRoutingFilter *agent_;
+};
+
+class GeoBeaconRequestTimer : public TimerCallback {
+public:
+  GeoBeaconRequestTimer(GeoRoutingFilter *agent) : agent_(agent) {};
+  ~GeoBeaconRequestTimer() {};
+  int expire();
+
+  GeoRoutingFilter *agent_;
 };
 
 #endif // !_GEO_ROUTING_HH_

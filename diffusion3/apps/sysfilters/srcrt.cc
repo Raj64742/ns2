@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: srcrt.cc,v 1.5 2002/09/16 17:57:25 haldar Exp $
+// $Id: srcrt.cc,v 1.6 2002/11/26 22:45:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -179,7 +179,7 @@ SrcRtFilter::SrcRtFilter(int argc, char **argv)
 #endif // !NS_DIFFUSION
 }
 
-#ifndef NS_DIFFUSION
+#ifndef USE_SINGLE_ADDRESS_SPACE
 int main(int argc, char **argv)
 {
   SrcRtFilter *app;
@@ -190,4 +190,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // !NS_DIFFUSION
+#endif // !USE_SINGLE_ADDRESS_SPACE

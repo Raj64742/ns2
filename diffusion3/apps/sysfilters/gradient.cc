@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: gradient.cc,v 1.5 2002/09/16 17:57:23 haldar Exp $
+// $Id: gradient.cc,v 1.6 2002/11/26 22:45:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -64,110 +64,45 @@ void GradientFilterReceive::recv(Message *msg, handle h)
   app_->recv(msg, h);
 }
 
-int GradientTimerReceive::expire(handle hdl, void *p)
+int MessageSendTimer::expire()
 {
-  return app_->ProcessTimers(hdl, p);
+  // Call timeout function
+  agent_->messageTimeout(msg_);
+
+  // Do not reschedule this timer
+  return -1;
 }
 
-void GradientTimerReceive::del(void *p)
+int InterestForwardTimer::expire()
 {
-  TimerType *timer;
-  NRAttrVec *attrs;
-  Message *msg;
+  // Call timeout function
+  agent_->interestTimeout(msg_);
 
-  timer = (TimerType *) p;
-
-  switch (timer->which_timer_){
-
-  case SUBSCRIPTION_TIMER:
-
-    attrs = ((NRAttrVec *) timer->param_);
-
-    if (attrs){
-      ClearAttrs(attrs);
-      delete attrs;
-    }
-
-    break;
-
-  case INTEREST_TIMER:
-  case MESSAGE_SEND_TIMER:
-
-    msg = ((Message *) timer->param_);
-
-    if (msg)
-      delete msg;
-
-    break;
-
-  }
-
-  delete timer;
+  // Do not reschedule this timer
+  return -1;
 }
 
-int GradientFilter::ProcessTimers(handle hdl, void *p)
+int SubscriptionExpirationTimer::expire()
 {
-  TimerType *timer;
-  NRAttrVec *attrs;
-  Message *msg;
-  int timeout = 0;
+  return(agent_->subscriptionTimeout(attrs_));
+}
 
-  timer = (TimerType *) p;
- 
-  switch (timer->which_timer_){
+int GradientExpirationCheckTimer::expire()
+{
+  // Call the callback function
+  agent_->gradientTimeout();
 
-  case GRADIENT_TIMER:
+  // Reschedule this timer
+  return 0;
+}
 
-    gradientTimeout();
+int ReinforcementCheckTimer::expire()
+{
+  // Call the callback function
+  agent_->reinforcementTimeout();
 
-    break;
-    
-  case REINFORCEMENT_TIMER:
-
-    reinforcementTimeout();
-
-    break;
-
-  case SUBSCRIPTION_TIMER:
-
-    attrs = ((NRAttrVec *) timer->param_);
-
-    timeout = subscriptionTimeout(attrs);
-
-    break;
-
-  case INTEREST_TIMER:
-
-    msg = ((Message *) timer->param_);
-    
-    interestTimeout(msg);
-
-    // Cancel Timer
-    timeout = -1;
-
-    break;
-
-  case MESSAGE_SEND_TIMER:
-
-    msg = ((Message *) timer->param_);
-
-    messageTimeout(msg);
-
-    // Cancel Timer
-    timeout = -1;
-
-    break;
-
-  default:
-
-    DiffPrint(DEBUG_IMPORTANT,
-	      "Error: ProcessTimers received unknown timer %d !\n",
-	      timer->which_timer_);
-
-    break;
-  }
-
-  return timeout;
+  // Reschedule this timer
+  return 0;
 }
 
 void GradientFilter::interestTimeout(Message *msg)
@@ -475,7 +410,7 @@ void GradientFilter::forwardPushExploratoryData(Message *msg,
   AgentList::iterator agent_itr;
   AgentEntry *agent_entry;
   Message *data_msg, *sink_message;
-  TimerType *data_timer;
+  TimerCallback *data_timer;
   unsigned int key[2];
   HashEntry *hash_entry;
 
@@ -506,7 +441,8 @@ void GradientFilter::forwardPushExploratoryData(Message *msg,
     }
 
     if ((!forwarding_history->alreadyReinforced()) &&
-	(routing_entry->agents_.size() > 0)){
+	(routing_entry->agents_.size() > 0) &&
+	(msg->last_hop_ != LOCALHOST_ADDR)){
       // Send a positive reinforcement if we have sinks
       sendPositiveReinforcement(routing_entry->attrs_, msg->rdm_id_,
 				msg->pkt_num_, msg->last_hop_);
@@ -541,13 +477,12 @@ void GradientFilter::forwardPushExploratoryData(Message *msg,
     data_msg = CopyMessage(msg);
     data_msg->next_hop_ = BROADCAST_ADDR;
 
-    data_timer = new TimerType(MESSAGE_SEND_TIMER);
-    data_timer->param_ = (void *) data_msg;
+    data_timer = new MessageSendTimer(this, data_msg);
 
     // Add data timer to the queue
     ((DiffusionRouting *)dr_)->addTimer(PUSH_DATA_FORWARD_DELAY +
 					(int) ((PUSH_DATA_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (PUSH_DATA_FORWARD_JITTER / 2))),
-					(void *) data_timer, timer_callback_);
+					data_timer);
 
     // Add broadcast information to forwarding history
     forwarding_history->forwardingToNetwork(BROADCAST_ADDR);
@@ -558,13 +493,13 @@ void GradientFilter::forwardExploratoryData(Message *msg,
 					    RoutingEntry *routing_entry,
 					    DataForwardingHistory *forwarding_history)
 {
-#ifdef USE_BROADCAST_MAC
+#ifdef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
   Message *data_msg;
-  TimerType *data_timer;
+  TimerCallback *data_timer;
 #else
   GradientList::iterator gradient_itr;
   GradientEntry *gradient_entry;
-#endif // USE_BROADCAST_MAC
+#endif // USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
   AgentList::iterator agent_itr;
   AgentEntry *agent_entry;
   Message *sink_message;
@@ -594,7 +529,8 @@ void GradientFilter::forwardExploratoryData(Message *msg,
 
   // Step 1A: Reinforcement Processing
   if ((!forwarding_history->alreadyReinforced()) &&
-      (routing_entry->agents_.size() > 0)){
+      (routing_entry->agents_.size() > 0) &&
+      (msg->last_hop_ != LOCALHOST_ADDR)){
     // Send reinforcement to 'last_hop'
     sendPositiveReinforcement(routing_entry->attrs_, msg->rdm_id_,
 			      msg->pkt_num_, msg->last_hop_);
@@ -621,7 +557,7 @@ void GradientFilter::forwardExploratoryData(Message *msg,
   }
 
   // Forward the EXPLORATORY message
-#ifdef USE_BROADCAST_MAC
+#ifdef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
   if (!forwarding_history->alreadyForwardedToNetwork(BROADCAST_ADDR)){
     if (routing_entry->gradients_.size() > 0){
       // Broadcast DATA message
@@ -631,13 +567,12 @@ void GradientFilter::forwardExploratoryData(Message *msg,
       // Add to the forwarding history
       forwarding_history->forwardingToNetwork(BROADCAST_ADDR);
 
-      data_timer = new TimerType(MESSAGE_SEND_TIMER);
-      data_timer->param_ = (void *) data_msg;
+      data_timer = new MessageSendTimer(this, data_msg);
 
       // Add timer for forwarding the data packet
       ((DiffusionRouting *)dr_)->addTimer(DATA_FORWARD_DELAY +
 					  (int) ((DATA_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))),
-					  (void *) data_timer, timer_callback_);
+					  data_timer);
     }
   }
 #else
@@ -656,7 +591,7 @@ void GradientFilter::forwardExploratoryData(Message *msg,
       forwarding_history->forwardingToNetwork(gradient_entry->node_addr_);
     }
   }
-#endif //USE_BROADCAST_MAC
+#endif // USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
 }
 
 void GradientFilter::forwardData(Message *msg, RoutingEntry *routing_entry,
@@ -705,18 +640,23 @@ void GradientFilter::forwardData(Message *msg, RoutingEntry *routing_entry,
 
   if (gradient_entry){
     while (gradient_entry){
-      // Found reinforced path
-      msg->next_hop_ = gradient_entry->node_addr_;
 
-      if (!forwarding_history->alreadyForwardedToNetwork(msg->next_hop_)){
-	DiffPrint(DEBUG_NO_DETAILS,
-		  "Forwarding data through Reinforced Gradient to node %d !\n",
-		  gradient_entry->node_addr_);
+      // Found reinforced gradient, forward data message to this
+      // neighbor only if the messages comes from a different neighbor
+      if (gradient_entry->node_addr_ != msg->last_hop_){
+	msg->next_hop_ = gradient_entry->node_addr_;
 
-	((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
+	// Check if we have forwarded the message to this neighbor already
+	if (!forwarding_history->alreadyForwardedToNetwork(msg->next_hop_)){
+	  DiffPrint(DEBUG_NO_DETAILS,
+		    "Forwarding data using Reinforced Gradient to node %d !\n",
+		    gradient_entry->node_addr_);
 
-	// Add the node to the forwarding history
-	forwarding_history->forwardingToNetwork(msg->next_hop_);
+	  ((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
+
+	  // Add the node to the forwarding history
+	  forwarding_history->forwardingToNetwork(msg->next_hop_);
+	}
       }
 
       // Move to the next one
@@ -759,7 +699,7 @@ void GradientFilter::sendPositiveReinforcement(NRAttrVec *reinf_attrs,
 {
   ReinforcementBlob *reinforcement_blob;
   NRAttribute *reinforcement_attr;
-  TimerType *reinforcement_timer;
+  TimerCallback *reinforcement_timer;
   Message *pos_reinf_message;
   NRAttrVec *attrs;
 
@@ -781,12 +721,12 @@ void GradientFilter::sendPositiveReinforcement(NRAttrVec *reinf_attrs,
 	    destination);
 
   // Create timer for sending this message
-  reinforcement_timer = new TimerType(MESSAGE_SEND_TIMER);
-  reinforcement_timer->param_ = (void *) pos_reinf_message;
+  reinforcement_timer = new MessageSendTimer(this, pos_reinf_message);
+
   // Add timer to the event queue
   ((DiffusionRouting *)dr_)->addTimer(POS_REINFORCEMENT_SEND_DELAY +
 				      (int) ((POS_REINFORCEMENT_JITTER * (GetRand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))),
-				      (void *) reinforcement_timer, timer_callback_);
+				      reinforcement_timer);
   pkt_count_++;
   ClearAttrs(attrs);
   delete reinforcement_blob;
@@ -1043,7 +983,7 @@ void GradientFilter::processNewMessage(Message *msg)
   HashEntry *hash_entry;
   AttributeEntry *attribute_entry;
   Message *my_msg;
-  TimerType *timer;
+  TimerCallback *interest_timer, *subscription_timer;
   unsigned int key[2];
   bool new_data_type = false;
 
@@ -1088,12 +1028,11 @@ void GradientFilter::processNewMessage(Message *msg)
       // Global interest messages should always be forwarded
       if (nrscope->getVal() == NRAttribute::GLOBAL_SCOPE){
 
-	timer = new TimerType(INTEREST_TIMER);
-	timer->param_ = (void *) CopyMessage(msg);
+	interest_timer = new InterestForwardTimer(this, CopyMessage(msg));
 
 	((DiffusionRouting *)dr_)->addTimer(INTEREST_FORWARD_DELAY +
 					    (int) ((INTEREST_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))),
-					    (void *) timer, timer_callback_);
+					    interest_timer);
       }
     }
     else{
@@ -1101,12 +1040,12 @@ void GradientFilter::processNewMessage(Message *msg)
 	  (nrscope->getVal() == NRAttribute::NODE_LOCAL_SCOPE) &&
 	  (new_data_type)){
 
-	timer = new TimerType(SUBSCRIPTION_TIMER);
-	timer->param_ = (void *) CopyAttrs(msg->msg_attr_vec_);
-
+	subscription_timer = new SubscriptionExpirationTimer(this,
+							     CopyAttrs(msg->msg_attr_vec_));
+	
 	((DiffusionRouting *)dr_)->addTimer(SUBSCRIPTION_DELAY +
 					    (int) (SUBSCRIPTION_DELAY * (GetRand() * 1.0 / RAND_MAX)),
-					    (void *) timer, timer_callback_);
+					    subscription_timer);
       }
 
       // Subscriptions don't have to match other subscriptions
@@ -1411,7 +1350,7 @@ GradientFilter::GradientFilter(int argc, char **argv)
 {
 #endif // NS_DIFFUSION
   struct timeval tv;
-  TimerType *timer;
+  TimerCallback *reinforcement_timer, *gradient_timer;
 
   GetTime(&tv);
   SetSeed(&tv);
@@ -1429,7 +1368,6 @@ GradientFilter::GradientFilter(int argc, char **argv)
 
   // Create callback classes and set up pointers
   filter_callback_ = new GradientFilterReceive(this);
-  timer_callback_ = new GradientTimerReceive(this);
 
   // Initialize Hashing structures
   Tcl_InitHashTable(&htable_, 2);
@@ -1443,13 +1381,11 @@ GradientFilter::GradientFilter(int argc, char **argv)
 	    filter_handle_);
 
   // Add timers for keeping state up-to-date
-  timer = new TimerType(GRADIENT_TIMER);
-  ((DiffusionRouting *)dr_)->addTimer(GRADIENT_DELAY, (void *) timer,
-				      timer_callback_);
+  gradient_timer = new GradientExpirationCheckTimer(this);
+  ((DiffusionRouting *)dr_)->addTimer(GRADIENT_DELAY, gradient_timer);
 
-  timer = new TimerType(REINFORCEMENT_TIMER);
-  ((DiffusionRouting *)dr_)->addTimer(REINFORCEMENT_DELAY, (void *) timer,
-				      timer_callback_);
+  reinforcement_timer = new ReinforcementCheckTimer(this);
+  ((DiffusionRouting *)dr_)->addTimer(REINFORCEMENT_DELAY, reinforcement_timer);
 
   GetTime(&tv);
 
@@ -1457,7 +1393,7 @@ GradientFilter::GradientFilter(int argc, char **argv)
 	    tv.tv_sec, tv.tv_usec);
 }
 
-#ifndef NS_DIFFUSION
+#ifndef USE_SINGLE_ADDRESS_SPACE
 int main(int argc, char **argv)
 {
   GradientFilter *app;
@@ -1468,4 +1404,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // !NS_DIFFUSION
+#endif // !USE_SINGLE_ADDRESS_SPACE

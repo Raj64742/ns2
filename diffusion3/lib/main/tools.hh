@@ -2,8 +2,8 @@
 // tools.hh      : Other utility functions
 // authors       : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.hh,v 1.10 2002/09/26 23:29:46 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: tools.hh,v 1.11 2002/11/26 22:45:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,

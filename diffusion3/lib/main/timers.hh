@@ -3,7 +3,7 @@
 // authors         : John Heidemann, Fabio Silva and Alefiya Hussain
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: timers.hh,v 1.1 2002/09/16 20:13:27 haldar Exp $
+// $Id: timers.hh,v 1.2 2002/11/26 22:45:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -119,6 +119,7 @@ public:
   void executeNextTimer();
   void executeAllExpiredTimers();
 #endif // NS_DIFFUSION
+
 protected:
   int next_handle_; // counter of handle ids
   EventQueue *eq_;  // internal list of timers

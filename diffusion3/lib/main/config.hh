@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: config.hh,v 1.5 2002/09/16 17:57:29 haldar Exp $
+// $Id: config.hh,v 1.6 2002/11/26 22:45:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -25,16 +25,9 @@
 #endif // HAVE_CONFIG_H
 
 // Software information
-#define PROGRAM "Diffusion 3.1.2"
+#define PROGRAM "Diffusion 3.1.3"
 #define RELEASE "Gear + Push Release"
 #define DEFAULT_CONFIG_FILE "config.txt"
-
-// Timers
-#define INTEREST_TIMER         1
-#define GRADIENT_TIMER         3
-#define SUBSCRIPTION_TIMER     4
-#define REINFORCEMENT_TIMER    9
-#define MESSAGE_SEND_TIMER     10
 
 // Configurable parameters start here
 
@@ -52,34 +45,38 @@
 // This parameter specifies how much time to wait before sending
 // a positive reinforcement message in response to an exploratory
 // data message.
-#define POS_REINFORCEMENT_SEND_DELAY  600
-#define POS_REINFORCEMENT_JITTER      200
+#define POS_REINFORCEMENT_SEND_DELAY  600 // (msec) bw receive and send
+#define POS_REINFORCEMENT_JITTER      200 // (msec) jitter
 
-#ifdef USE_BROADCAST_MAC
+#ifdef WIRED
+// These settings are for high-bandwidth point-to-point
+// communication. In this case, we assume 10Mbit/s, a 1000-byte packet
+// is sent in .8 msec.
 
-//
-// ----------------------> Please read this ! <----------------------
-//
-// The following parameters are for a broadcast mac. When using
-// non-broadcast macs (e.g. WINSNG 2.0 nodes), please look below.
+// Use multiple sends when forwarding data
+#undef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
 
 // Change the following parameters to set how long to wait between
 // receiving an interest message from a neighbor and forwarding it.
-#define INTEREST_FORWARD_DELAY   2000        // (msec) bw receive and forward
-#define INTEREST_FORWARD_JITTER  1500        // (msec) jitter
+#define INTEREST_FORWARD_DELAY    100        // (msec) bw receive and forward
+#define INTEREST_FORWARD_JITTER    50        // (msec) jitter
 
 // Change the following parameters to set how long to wait between
 // receiving an exploratory data message from a neighbor and forwarding it.
-#define DATA_FORWARD_DELAY        300        // (msec) bw receive and forward
-#define DATA_FORWARD_JITTER       200        // (msec) jitter
+#define DATA_FORWARD_DELAY         50        // (msec) bw receive and forward
+#define DATA_FORWARD_JITTER        25        // (msec) jitter
 
-#define PUSH_DATA_FORWARD_DELAY   300        // (msec) bw receive and forward
-#define PUSH_DATA_FORWARD_JITTER  200        // (msec) jitter
+#define PUSH_DATA_FORWARD_DELAY    50        // (msec) bw receive and forward
+#define PUSH_DATA_FORWARD_JITTER   25        // (msec) jitter
+#endif // WIRED
 
-#else
+#ifdef USE_WINSNG2
+// These settings are for the sensoria radios (20 kbits/s). Sending a
+// 500-byte message takes 200 msec. Radios are TDMA for unicast and
+// broadcast, therefore there should be no contention.
 
-// The following parameters are for using diffusion with
-// a non-broadcast mac.
+// Use multiple sends when forwarding data
+#undef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
 
 // Change the following parameters to set how long to wait between
 // receiving an interest message from a neighbor and forwarding it.
@@ -93,8 +90,77 @@
 
 #define PUSH_DATA_FORWARD_DELAY   150        // (msec) bw receive and forward
 #define PUSH_DATA_FORWARD_JITTER  100        // (msec) jitter
+#endif // USE_WINSNG2
 
-#endif // USE_BROADCAST_MAC
+#ifdef USE_MOTE_NIC
+// These settings are for the mote nic radios (10 kbits/s) and use
+// S-MAC at 10% duty cycle. Sending a 500-byte packet takes about 400
+// msec.
+
+// Use single send when forwarding data
+#define USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+
+// Change the following parameters to set how long to wait between
+// receiving an interest message from a neighbor and forwarding it.
+#define INTEREST_FORWARD_DELAY   1200        // (msec) bw receive and forward
+#define INTEREST_FORWARD_JITTER   600        // (msec) jitter
+
+// Change the following parameters to set how long to wait between
+// receiving an exploratory data message from a neighbor and forwarding it.
+#define DATA_FORWARD_DELAY        800        // (msec) bw receive and forward
+#define DATA_FORWARD_JITTER       400        // (msec) jitter
+
+#define PUSH_DATA_FORWARD_DELAY   800        // (msec) bw receive and forward
+#define PUSH_DATA_FORWARD_JITTER  400        // (msec) jitter
+#endif // USE_MOTE_NIC
+
+#ifdef USE_RPC
+// These settings are for the Radiometrix RPC radios (13 kbits/s) with
+// no CSMA, therefore we need to be more conservative. Sending a
+// 500-byte packet takes about 400 msec.
+
+//  Use single send when forwarding data
+#define USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+
+// Change the following parameters to set how long to wait between
+// receiving an interest message from a neighbor and forwarding it.
+#define INTEREST_FORWARD_DELAY   2000        // (msec) bw receive and forward
+#define INTEREST_FORWARD_JITTER  1500        // (msec) jitter
+
+// Change the following parameters to set how long to wait between
+// receiving an exploratory data message from a neighbor and forwarding it.
+#define DATA_FORWARD_DELAY       1200        // (msec) bw receive and forward
+#define DATA_FORWARD_JITTER       600        // (msec) jitter
+
+#define PUSH_DATA_FORWARD_DELAY  1200        // (msec) bw receive and forward
+#define PUSH_DATA_FORWARD_JITTER  600        // (msec) jitter
+#endif // USE_RPC
+
+#ifdef NS_DIFFUSION
+// These settings are for high-bandwidth point-to-point
+// communication. In this case, we assume 10Mbit/s, a 1000-byte packet
+// is sent in .8 msec.
+
+// Use multiple sends when forwarding data
+#undef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+
+// Change the following parameters to set how long to wait between
+// receiving an interest message from a neighbor and forwarding it.
+#define INTEREST_FORWARD_DELAY    100        // (msec) bw receive and forward
+#define INTEREST_FORWARD_JITTER    50        // (msec) jitter
+
+// Change the following parameters to set how long to wait between
+// receiving an exploratory data message from a neighbor and forwarding it.
+#define DATA_FORWARD_DELAY         50        // (msec) bw receive and forward
+#define DATA_FORWARD_JITTER        25        // (msec) jitter
+
+#define PUSH_DATA_FORWARD_DELAY    50        // (msec) bw receive and forward
+#define PUSH_DATA_FORWARD_JITTER   25        // (msec) jitter
+#endif // NS_DIFFUSION
+
+#ifndef INTEREST_FORWARD_DELAY
+#error "No Radio Parameters Selected in ./configure !"
+#endif // !INTEREST_FORWARD_DELAY
 
 // The following timeouts are used for determining when gradients,
 // subscriptions, filters and neighbors should expire. These are

@@ -3,7 +3,7 @@
 // authors         : John Heidemann, Fabio Silva and Alefiya Hussain 
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: timers.cc,v 1.1 2002/09/16 20:13:27 haldar Exp $
+// $Id: timers.cc,v 1.2 2002/11/26 22:45:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -188,7 +188,6 @@ void TimerManager::executeNextTimer()
   }
   delete e;
 }
-
 
 void TimerManager::executeAllExpiredTimers()
 {

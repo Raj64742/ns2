@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: gradient.hh,v 1.5 2002/09/16 17:57:23 haldar Exp $
+// $Id: gradient.hh,v 1.6 2002/11/26 22:45:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -178,15 +178,6 @@ public:
   GradientFilter *app_;
 };
 
-class GradientTimerReceive : public TimerCallbacks {
-public:
-  GradientTimerReceive(GradientFilter *app) : app_(app) {};
-  int expire(handle hdl, void *p);
-  void del(void *p);
-
-  GradientFilter *app_;
-};
-
 class DataForwardingHistory {
 public:
   DataForwardingHistory()
@@ -246,17 +237,6 @@ private:
   bool data_reinforced_;
 };
 
-class TimerType {
-public:
-  TimerType(int which_timer) : which_timer_(which_timer)
-  {
-    param_ = NULL;
-  };
-
-  int which_timer_;
-  void *param_;
-};
-
 class GradientFilter : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
@@ -274,7 +254,13 @@ public:
   };
 
   void recv(Message *msg, handle h);
-  int ProcessTimers(handle hdl, void *p);
+
+  // Timers
+  void messageTimeout(Message *msg);
+  void interestTimeout(Message *msg);
+  void gradientTimeout();
+  void reinforcementTimeout();
+  int subscriptionTimeout(NRAttrVec *attrs);
 
 protected:
 
@@ -289,7 +275,6 @@ protected:
 
   // Receive Callback for the filter
   GradientFilterReceive *filter_callback_;
-  GradientTimerReceive *timer_callback_;
 
   // List of all known datatypes
   RoutingTable routing_list_;
@@ -327,16 +312,70 @@ protected:
   void processOldMessage(Message *msg);
   void processNewMessage(Message *msg);
 
-  // Timers
-  void messageTimeout(Message *msg);
-  void interestTimeout(Message *msg);
-  void gradientTimeout();
-  void reinforcementTimeout();
-  int subscriptionTimeout(NRAttrVec *attrs);
-
   // Hashing functions
   HashEntry * getHash(unsigned int pkt_num, unsigned int rdm_id);
   void putHash(HashEntry *new_hash_entry, unsigned int pkt_num, unsigned int rdm_id);
+};
+
+class GradientExpirationCheckTimer : public TimerCallback {
+public:
+  GradientExpirationCheckTimer(GradientFilter *agent) : agent_(agent) {};
+  ~GradientExpirationCheckTimer() {};
+  int expire();
+
+  GradientFilter *agent_;
+};
+
+class ReinforcementCheckTimer : public TimerCallback {
+public:
+  ReinforcementCheckTimer(GradientFilter *agent) : agent_(agent) {};
+  ~ReinforcementCheckTimer() {};
+  int expire();
+
+  GradientFilter *agent_;
+};
+
+class MessageSendTimer : public TimerCallback {
+public:
+  MessageSendTimer(GradientFilter *agent, Message *msg) :
+    agent_(agent), msg_(msg) {};
+  ~MessageSendTimer()
+  {
+    delete msg_;
+  };
+  int expire();
+
+  GradientFilter *agent_;
+  Message *msg_;
+};
+
+class InterestForwardTimer : public TimerCallback {
+public:
+  InterestForwardTimer(GradientFilter *agent, Message *msg) :
+    agent_(agent), msg_(msg) {};
+  ~InterestForwardTimer()
+  {
+    delete msg_;
+  };
+  int expire();
+
+  GradientFilter *agent_;
+  Message *msg_;
+};
+
+class SubscriptionExpirationTimer : public TimerCallback {
+public:
+  SubscriptionExpirationTimer(GradientFilter *agent, NRAttrVec *attrs) :
+    agent_(agent), attrs_(attrs) {};
+  ~SubscriptionExpirationTimer()
+  {
+    ClearAttrs(attrs_);
+    delete attrs_;
+  };
+  int expire();
+
+  GradientFilter *agent_;
+  NRAttrVec *attrs_;
 };
 
 #endif // !_GRADIENT_HH_

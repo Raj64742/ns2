@@ -3,7 +3,7 @@
 // Authors       : Fabio Silva and Yutaka Mori
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: iolog.cc,v 1.1 2002/09/16 17:57:28 haldar Exp $
+// $Id: iolog.cc,v 1.2 2002/11/26 22:45:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -28,11 +28,13 @@
 IOLog::IOLog(int32_t id) : IOHook()
 {
   node_id_ = id;
+  DiffPrint(DEBUG_IMPORTANT, "Initializing IOLog...\n");
 }
 
 DiffPacket IOLog::recvPacket(int fd)
 {
   DiffPacket incoming_packet;
+  struct timeval tv;
   struct hdr_diff *dfh;
   u_int16_t data_len, packet_len;
   int32_t last_hop;
@@ -75,9 +77,10 @@ DiffPacket IOLog::recvPacket(int fd)
     }
 
     if (last_hop != LOCALHOST_ADDR){
+      GetTime(&tv);
       fprintf(stdout,
-	      "Diffusion Log: Node %d received %d bytes from node %d message %s\n",
-	      node_id_, packet_len, last_hop, msg_name);
+	      "Diffusion Log: Time %d.%06d Node %d received %d bytes from node %d message %s\n",
+	      tv.tv_sec, tv.tv_usec, node_id_, packet_len, last_hop, msg_name);
       fflush(NULL);
     }
 
@@ -89,6 +92,7 @@ DiffPacket IOLog::recvPacket(int fd)
 
 void IOLog::sendPacket(DiffPacket pkt, int len, int dst)
 {
+  struct timeval tv;
   struct hdr_diff *dfh;
   int msg_type;
   char *msg_name;
@@ -121,9 +125,12 @@ void IOLog::sendPacket(DiffPacket pkt, int len, int dst)
     break;
   }
 
+  // Get local time
+  GetTime(&tv);
+
   fprintf(stdout,
-	  "Diffusion Log: Node %d sending %d bytes to node %d message %s\n",
-	  node_id_, len, dst, msg_name);
+	  "Diffusion Log: Time %d.%06d Node %d sending %d bytes to node %d message %s\n",
+	  tv.tv_sec, tv.tv_usec, node_id_, len, dst, msg_name);
   fflush(NULL);
 
   free(msg_name);

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: attrs.cc,v 1.4 2002/05/29 21:58:12 haldar Exp $
+// $Id: attrs.cc,v 1.5 2002/11/26 22:45:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,

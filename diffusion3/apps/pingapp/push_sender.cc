@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: push_sender.cc,v 1.6 2002/09/26 23:28:34 haldar Exp $
+// $Id: push_sender.cc,v 1.7 2002/11/26 22:45:37 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -76,10 +76,9 @@ handle PushSenderApp::setupPublication()
   attrs.push_back(NRClassAttr.make(NRAttribute::IS, NRAttribute::DATA_CLASS));
   attrs.push_back(NRScopeAttr.make(NRAttribute::IS, NRAttribute::GLOBAL_SCOPE));
   attrs.push_back(LatitudeAttr.make(NRAttribute::LE, 70.00));
-  attrs.push_back(LongitudeAttr.make(NRAttribute::GT, 44.00));
-  attrs.push_back(LatitudeAttr.make(NRAttribute::GT, 50.78));
-  attrs.push_back(LongitudeAttr.make(NRAttribute::LE, 87.32));
-
+  attrs.push_back(LatitudeAttr.make(NRAttribute::GT, 50.00));
+  attrs.push_back(LongitudeAttr.make(NRAttribute::LE, 85.00));
+  attrs.push_back(LongitudeAttr.make(NRAttribute::GT, 50.00));
   attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));
 
   handle h = dr_->publish(&attrs);

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: dr.cc,v 1.13 2002/10/08 07:11:32 difa Exp $
+// $Id: dr.cc,v 1.14 2002/11/26 22:45:38 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -98,7 +98,7 @@ int OldAPITimer::expire()
 #ifdef NS_DIFFUSION
 class DiffEventQueue;
 
-int DiffusionRouting::getAgentId(int id /* = -1 */) {
+int DiffusionRouting::getAgentId(int id) {
   if (id != -1)
     agent_id_ = id;
   return agent_id_;
@@ -565,7 +565,6 @@ handle DiffusionRouting::addTimer(int timeout, void *p, TimerCallbacks *cb)
 
   return (addTimer(timeout, callback));
 }
-
 
 bool DiffusionRouting::removeTimer(handle hdl)
 {
