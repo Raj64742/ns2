@@ -366,6 +366,7 @@ Node instproc add-mfc { src group iif oiflist } {
 	set r [new Classifier/Replicator/Demuxer]
 	$r set srcID_ $src
 	$r set grp_ $group
+	$r set iif_ $iif
 	set replicator_($src:$group) $r
 
 	$r set node_ $self
@@ -636,3 +637,16 @@ Simulator instproc color-tree {} {
 		$self duplex-link-op $Node_($sid) $Node_($did) color blue
 	}
 }
+
+
+Agent/Mcast/Control instproc init { protocol } {
+	$self next
+	$self instvar proto_
+	set proto_ $protocol
+}
+ 
+Agent/Mcast/Control instproc handle {type from src group iface} {
+	$self instvar proto_ 
+        eval $proto_ recv-$type $from $src $group $iface
+}
+

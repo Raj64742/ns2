@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.6.2.1 1998/07/15 18:34:16 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.6.2.2 1998/08/10 18:55:28 yuriy Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -39,9 +39,11 @@ public:
 
 	void recv(Packet* pkt, Handler*) {
 		hdr_prune* ph = (hdr_prune*)pkt->access(off_prune_);
-		Tcl::instance().evalf("%s handle %s %d %d %d", name(),
+		hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+		// Agent/Mcast/Control instproc handle {type from src group iface}
+		Tcl::instance().evalf("%s handle %s %d %d %d %d", name(),
 				      ph->type(), ph->from(),
-				      ph->src(), ph->group());
+				      ph->src(), ph->group(), ch->iface());
 		Packet::free(pkt);
 	}
 

@@ -95,7 +95,7 @@ DM instproc drop { replicator src dst } {
         }
 }
 
-DM instproc recv-prune { from src group } {
+DM instproc recv-prune { from src group iface} {
         $self instvar node_ PruneTimer_ ns_
 
 	set r [$node_ getReps $src $group]
@@ -132,7 +132,7 @@ DM instproc recv-prune { from src group } {
 	}
 }
 
-DM instproc recv-graft { from src group } {
+DM instproc recv-graft { from src group iface } {
         $self instvar node_ PruneTimer_ ns_
 	set id [$node_ id]
 	set r [$node_ getReps $src $group]
@@ -214,16 +214,4 @@ DM instproc dump-routes {chan args} {
 				[lindex $sg 0] [lindex $sg 1] $fwds]
 	}
 }
-
-Agent/Mcast/Control instproc init { protocol } {
-	$self next
-	$self instvar proto_
-	set proto_ $protocol
-}
- 
-Agent/Mcast/Control instproc handle {type from src group args} {
-	$self instvar proto_ 
-        eval $proto_ recv-$type $from $src $group $args
-}
-
 #####

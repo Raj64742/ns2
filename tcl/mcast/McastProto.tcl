@@ -24,11 +24,12 @@ Class McastProtocol
 
 McastProtocol instproc init {sim node} {
 	$self next
-	$self instvar ns_ node_ status_ type_
+	$self instvar ns_ node_ status_ type_ id_
 	set ns_   $sim
 	set node_ $node
 	set status_ "down"
 	set type_   [$self info class]
+	set id_ [$node id]
 
         [$node_ getArbiter] addproto $self
 	$ns_ maybeEnableTraceAll $self $node_
@@ -42,9 +43,7 @@ McastProtocol instproc getStatus {}	{ $self set status_	   }
 
 McastProtocol instproc upcall {code args} {
 	# currently expects to handle cache-miss and wrong-iif
-	if [catch "eval $self handle-$code $args" ret] {
-		warn "${class}::${proc}: $self invalid code $code"
-	}
+	eval $self handle-$code $args
 }
  
 McastProtocol instproc handle-wrong-iif args {
@@ -62,14 +61,13 @@ McastProtocol instproc annotate args {
 	}
 }
 
-McastProtocol instproc join-group  g	{ 
-	$self instvar node_ ns_
-	$self annotate $proc $g 
+McastProtocol instproc join-group arg	{ 
+	$self annotate $proc $arg 
 }
-McastProtocol instproc leave-group g	{ 
-	$self instvar node_ ns_
-	$self annotate $proc $g 
+McastProtocol instproc leave-group arg	{ 
+	$self annotate $proc $arg
 }
+
 McastProtocol instproc trace { f src {op ""} } {
         $self instvar ns_ dynT_
 	if {$op == "nam" && [info exists dynT_] > 0} {
@@ -89,9 +87,13 @@ McastProtocol instproc dump-routes args {
 }
 
 # Find out what interface packets sent from $node will arrive at
-# this node. $node need not be a neighbor.
+# this node. $node need not be a neighbor. $node can be a node object
+# or node id.
 McastProtocol instproc from-node-iface { node } {
 	$self instvar ns_ node_
+	catch {
+		set node [$ns_ set Node_($node)]
+	}
 	set rpfnbr [$ns_ upstream-node [$node_ id] [$node id]]
 	if {![catch { set rpflink [$ns_ link $rpfnbr $node_]}]} {
 		return [$rpflink if-label?]

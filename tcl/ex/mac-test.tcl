@@ -1,21 +1,3 @@
-#!/bin/sh
-# the next line finds ns \
-nshome=`dirname $0`; [ ! -x $nshome/ns ] && [ -x ../../ns ] && nshome=../..
-# the next line starts ns \
-export nshome; exec $nshome/ns "$0" "$@"
-
-if [info exists env(nshome)] {
-	set nshome $env(nshome)
-} elseif [file executable ../../ns] {
-	set nshome ../..
-} elseif {[file executable ./ns] || [file executable ./ns.exe]} {
-	set nshome "[pwd]"
-} else {
-	puts "$argv0 cannot find ns directory"
-	exit 1
-}
-set env(PATH) "$nshome/bin:$env(PATH)"
-
 set opt(tr)	out
 set opt(namtr)	""
 set opt(seed)	0
@@ -33,7 +15,7 @@ set opt(tcp)	TCP/Reno
 set opt(sink)	TCPSink
 
 set opt(source)	FTP
-
+set opt(g) g
 
 proc Usage {} {
 	global opt argv0
@@ -67,7 +49,7 @@ proc Getopt {} {
 
 
 proc finish {} {
-	global env nshome pwd
+	global env pwd
 	global ns opt trfd
 
 	$ns flush-trace
@@ -80,13 +62,14 @@ proc finish {} {
 	if {[info exists opt(f)] || [info exists opt(g)]} {
 		set force "-f"
 	}
-	exec perl $nshome/bin/trsplit -tt r -pt tcp -c "$comment" \
+	exec perl /nfs/jade/yuri/vint/ns-2/bin/trsplit -tt r -pt tcp -c "$comment" \
 			$force $opt(tr) >& $opt(tr)-bw
 	exec head -1 $opt(tr)-bw >@ stdout
 
 	if [info exists opt(g)] {
-		catch "exec xgraph -nl -M -display $env(DISPLAY) \
-				[lsort [glob $opt(tr).*]] &"
+		exec /nfs/jade/yuri/vint/xgraph/xgraph -nl -M -display $env(DISPLAY) \
+				[lsort [glob $opt(tr).*]] &
+		puts "r= $r"
 	}
 	exit 0
 }

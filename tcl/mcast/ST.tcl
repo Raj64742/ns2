@@ -13,7 +13,7 @@ ST set decaps_() "" ;# decapsulators
 #ST set star_value_ 0 ;# value of '*' as in (*, G), should be a non-existent address
 
 ST instproc init { sim node } {
-	$self instvar ns_
+	$self instvar ns_ node_ id_
 	ST instvar decaps_    ;# decapsulators by group
 	#these two instvars are supposed to be initialized by the user
 	ST instvar RP_        ;# nodes which serve as RPs.  it will be an "assoc array" RP_(<group>)
@@ -23,31 +23,27 @@ ST instproc init { sim node } {
 		exit 1
 	}
 	$self instvar encaps_     ;# lists of encapsulators by group for a given node
-	$self instvar misses_     ;#mostly for debugging
 	$self instvar mcast_ctr_  ;# graft/prune agent
 	
-	set ns_ $sim
-	set id [$node id]
+	$self next $sim $node
 
 	set mcast_ctr_ [new Agent/Mcast/Control $self]
 	$node attach $mcast_ctr_
-	
-	set misses_ 0         ;# initially there's been no misses
 	
 	foreach grp $Groups_ {
 		foreach agent [$node set agents_] {
 			if {[expr $grp] == [expr [$agent set dst_]]}  {
 				#found an agent that's sending to a group.
 				#need to add Encapsulator
-				puts "attaching a Encapsulator for group $grp, node $id"
+				puts "attaching a Encapsulator for group $grp, node $id_"
 				set e [new Agent/Encapsulator]
 				$e set class_ 32
 				$e set status_ 1
 				$node attach $e
 				$e decap-target [$node entry]
 
-				$node add-mfc $id $grp "?" ""
-				set src_rep [$node getReps $id $grp]
+				$node add-mfc $id_ $grp "?" ""
+				set src_rep [$node getReps $id_ $grp]
 				$src_rep set ignore_ 1
 
 				lappend encaps_($grp) $e
@@ -56,14 +52,13 @@ ST instproc init { sim node } {
 		}
 		#if the node is an RP, need to attach a Decapsulator
 		if {$RP_($grp) == $node} {
-			puts "attaching a Decapsulator for group $grp, node [$node id]\n"
+			puts "attaching a Decapsulator for group $grp, node $id_\n"
 			set d [new Agent/Decapsulator]
 			$node attach $d
 			set decaps_($grp) $d
 			$node set decaps_($grp) $d ;# a node should know its decapsulator!
 		}
 	}
-	$self next $sim $node
 }
 
 ST instproc start {} {
@@ -128,7 +123,6 @@ ST instproc drop { replicator src dst iface} {
 	$self instvar node_ ns_
 	ST instvar RP_
 	
-	set id [$node_ id]
 	# No downstream listeners
 	# Send a prune back toward the RP
 	$self dbg "drops src: $src, dst: $dst, replicator: [$replicator set srcID_]"
@@ -140,7 +134,7 @@ ST instproc drop { replicator src dst iface} {
 }
 
 ST instproc recv-prune { from src group } {
-	$self instvar node_ ns_  
+	$self instvar node_ ns_ id_
 	ST instvar RP_ 
 	
 	set r [$node_ getReps "*" $group]
@@ -149,10 +143,9 @@ ST instproc recv-prune { from src group } {
 		return
 	}
 
-	set id [$node_ id]
-	set tmpoif  [[$ns_ link $id $from] head]
+	set tmpoif  [[$ns_ link $id_ $from] head]
 	if ![$r exists $tmpoif] {
-		warn "node $id, got a prune from $from, trying to prune a non-existing interface?"
+		warn "node $id_, got a prune from $from, trying to prune a non-existing interface?"
 	} else {
 		$r instvar active_
 		if $active_($tmpoif) {
@@ -167,9 +160,8 @@ ST instproc recv-prune { from src group } {
 }
 
 ST instproc recv-graft { from to group } {
-	$self instvar node_ ns_
+	$self instvar node_ ns_ id_
 	ST instvar RP_
-	set id [$node_ id]
 	
 	$self dbg "received a shared graft from: $from, to: $to"
 	set r [$node_ getReps "*" $group]
@@ -192,7 +184,7 @@ ST instproc recv-graft { from to group } {
 		$self send-ctrl "graft" $RP_($group) $group
 	}
 	# graft on the interface
-	set tmpoif [[$ns_ link $id $from] head]
+	set tmpoif [[$ns_ link $id_ $from] head]
 	$r insert $tmpoif
 }
 
@@ -200,14 +192,11 @@ ST instproc recv-graft { from to group } {
 # send a graft/prune for src/group up the RPF tree towards dst
 #
 ST instproc send-ctrl { which dst group } {
-	ST instvar RP_
-	$self instvar mcast_ctr_ ns_ node_
+	$self instvar mcast_ctr_ ns_ node_ id_
 	
 	if {$node_ != $dst} {
 		# send only if current $node_ is different from $dst
-		set id [$node_ id]
-		set next_hop [$ns_ upstream-node $id [$dst id]]
-		#    puts "$id is sending a $which to [$dest id]"
+		set next_hop [$ns_ upstream-node $id_ [$dst id]]
 		$ns_ simplex-connect $mcast_ctr_ \
 				[[[$next_hop getArbiter] getType [$self info class]] set mcast_ctr_]
 		switch $which {
@@ -222,13 +211,13 @@ ST instproc send-ctrl { which dst group } {
 				return
 			}
 		}
-		$mcast_ctr_ send $which $id [$dst id] $group
+		$mcast_ctr_ send $which $id_ [$dst id] $group
 	}
 }
 
 ################ Helpers
 
 ST instproc dbg arg {
-	$self instvar ns_ node_
-	puts [format "At %.4f : node [$node_ id] $arg" [$ns_ now]]
+	$self instvar ns_ node_ id_
+	puts [format "At %.4f : node $id_ $arg" [$ns_ now]]
 }
