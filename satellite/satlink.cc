@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.4 1999/07/18 20:02:11 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.5 1999/07/22 19:14:50 tomh Exp $";
 #endif
 
 /*
@@ -459,6 +459,7 @@ void UnslottedAlohaMac::end_of_contention(Packet* p)
 		send_timer_.force_cancel();
 		tx_state_ = MAC_IDLE;
 		rtx_ = 0;
+		drop(snd_pkt_); // Free the packet cached for retransmission
 		resume(p);
 	} else {
 		// wait for processing delay (delay_) to send packet upwards 
