@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.64 1999/08/18 00:25:20 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.65 1999/08/19 04:15:53 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -310,15 +310,14 @@ protected:
 	void closecwnd(int how);
 	void quench(int how);
 
-	void process_qoption_before_send() ;
 	void process_qoption_after_send() ;
 	void process_qoption_after_ack(int seqno) ;
 
 	int QOption_ ; /* TCP quiescence option */
-	double t_full ; /* last time the window was full */
+	int t_full ; /* last time the window was full */
 	int maxutil ;   /* max util in current measurement period */
 	int CoarseTimer_ ; /* are we using a corase grained timer? */
-	double t_start ;
+	int t_start ;
 	int RTT_count, RTT_goodcount, F_counting, W_timed, F_full ; 
 };
 

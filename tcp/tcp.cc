@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.88 1999/08/18 00:25:19 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.89 1999/08/19 04:15:52 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -237,7 +237,8 @@ TcpAgent::reset()
 	boot_time_ = Random::uniform(tcp_tick_);
 
 	if (QOption_) {
-		t_start = t_full = Scheduler::instance().clock();
+		int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
+		t_start = t_full = now ;
 		maxutil = 0 ;
 		RTT_count = 1 ; 
 		RTT_goodcount = 1 ; 
@@ -415,7 +416,7 @@ void TcpAgent::sendmsg(int nbytes, const char* /*flags*/)
 
 void TcpAgent::advanceby(int delta)
 {
-        curseq_ += delta;
+  curseq_ += delta;
 	if (delta > 0)
 		closed_ = 0;
 	send_much(0, 0, maxburst_); 
@@ -502,18 +503,11 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 		return;
 	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
 		if (overhead_ == 0 || force) {
-
-			if (QOption_ && CoarseTimer_)
-				process_qoption_before_send () ;
-
 			output(t_seqno_, reason);
 			npackets++;
-
 			if (QOption_)
 				process_qoption_after_send () ; 
-
 			t_seqno_ ++ ;
-
 		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*
 			 * Set a delayed send timeout.
@@ -921,7 +915,8 @@ void TcpAgent::timeout_nonrtx(int tno)
 		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
 	if (tno == TCP_TIMER_Q) {
-		double now = Scheduler::instance().clock();
+
+		int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
 		int win = window () ; 
 		double check_interval ; 
 
@@ -932,7 +927,6 @@ void TcpAgent::timeout_nonrtx(int tno)
 		else {
 			check_interval = t_rtxcur_ ;  
 		}
-
 		if (cwnd_ > 1) {
 			cwnd_ = win/2 ;
 		}
@@ -941,13 +935,15 @@ void TcpAgent::timeout_nonrtx(int tno)
 		}
 		else {
 			t_full = now  ; 
-			F_counting = 0 ;
-			RTT_count = 0 ;
+			maxutil = 0 ;
+			if (CoarseTimer_) {
+				F_full = 1;
+				F_counting = 0 ;
+				RTT_count = 0 ;
+			}
 			q_timer_.resched (check_interval);
 		}
-		
-		/*printf ("timeout: %f %d %f\n", now, CoarseTimer_, (float)cwnd_);*/
-		
+		/*printf ("timeout: %d %d %f\n", now, CoarseTimer_, (float)cwnd_);*/
 	}
 }
 	
@@ -1127,32 +1123,24 @@ void TcpAgent::closecwnd(int how)
 	count_ = 0;
 }
 
-void TcpAgent::process_qoption_before_send ()
-{
-	double now = Scheduler::instance().clock();
-	double rtt = (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_ ;
-
-	if (now	- t_start > 2*rtt) {
-		if (RTT_count == 0)
-			RTT_count = 1 ; 
-		if ((F_full == 1) || (RTT_count > RTT_goodcount))
-			RTT_goodcount = RTT_count ;
-		RTT_count = 0 ; 
-		t_start = now ; 
-		F_full=0 ; 
-	}
-}
-
-
 void TcpAgent::process_qoption_after_send ()
 {
-	double now = Scheduler::instance().clock();
+	int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
 	int win = window();
 	double check_interval ; 
 
 	if (CoarseTimer_) {
 		double rtt = (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_ ;
 		check_interval = 2*rtt ;
+		if (now	- t_start >= check_interval) {
+			if (RTT_count == 0)
+				RTT_count = 1 ; 
+			if ((F_full == 1) || (RTT_count > RTT_goodcount))
+				RTT_goodcount = RTT_count ;
+			RTT_count = 0 ; 
+			t_start = now ; 
+			F_full=0 ; 
+		}
 	}
 	else {
 		check_interval = t_rtxcur_ ;  
@@ -1160,56 +1148,59 @@ void TcpAgent::process_qoption_after_send ()
 
 	if (t_seqno_ == highest_ack_ + win) {
 		t_full = now ;
+		maxutil = 0 ; 
+		F_full=1 ;
 	}
-
-	if ((t_seqno_ > 0) && (t_seqno_ == maxseq_) && (cwnd_ > 1) ) {
-		int tmp = t_seqno_ - highest_ack_ ;
-		if (tmp > maxutil)
-			maxutil = tmp ;
-	
-	/*
-		printf ("before: %f %f %f %f %d %f\n", 
-						 now, t_full, now - t_full, 
-						 check_interval, maxutil, (float)cwnd_); 
-		fflush(stdout);
-	*/
-
-		if ((now - t_full) > check_interval) {
-			
-			if (CoarseTimer_) {
-				if (RTT_goodcount < 1)
-					RTT_goodcount = 1 ; 
-				for (int i = 0 ; i < RTT_goodcount ; i ++) {
+	else {
+		if ((t_seqno_ > 0) && (t_seqno_ == curseq_-1) && (cwnd_ > 1)) { 
+			int tmp = t_seqno_ - highest_ack_ ;
+			if (tmp > maxutil)
+				maxutil = tmp ;
+			/*
+			printf ("before: %d %d %d %f %d %f %d %d %d %d\n", 
+							 now, t_full, now - t_full, 
+							 check_interval, maxutil, (float)cwnd_, (int)highest_ack_, 
+							 (int)win, (int)t_seqno_, (int)curseq_); 
+			fflush(stdout);
+			*/	
+			if ((now - t_full) >= check_interval) {
+				if (CoarseTimer_) {
+					if (RTT_goodcount < 1)
+						RTT_goodcount = 1 ; 
+					for (int i = 0 ; i < RTT_goodcount ; i ++) {
+						if (maxutil < win) {
+							win = window();
+							cwnd_ =  win - (win-maxutil)/2.0;
+						}
+						else {
+							break ; 
+						}
+					}
+					F_counting = 0 ;
+					/*
+					printf ("after: %d %f %d %d\n", now, (float)cwnd_, 
+									 maxutil, RTT_goodcount);
+					fflush(stdout);
+					*/
+				}
+				else {
 					if (maxutil < win) {
-						win = window();
-						cwnd_ =  win - (win-maxutil)/2.0;
+						cwnd_ =  win - (win-maxutil)/2.0; 
 					}
-					else {
-						break ; 
-					}
+					/*
+					printf ("after: %d %f %d\n", now, (float)cwnd_, maxutil);
+					fflush(stdout);
+					*/
 				}
+				maxutil = 0 ; 
+				t_full = now ; 
 			}
-			else {
-				if (maxutil < win) {
-					cwnd_ =  win - (win-maxutil)/2.0; 
-				}
-
-				/*
-				printf ("after: %f %f %d\n", now, (float)cwnd_, maxutil);
-				fflush(stdout);
-				*/
-
-			}
-			maxutil = 0 ; 
-			t_full = now ; 
 		}
 	}
-
 	if (F_counting == 0) {
 		W_timed = t_seqno_  ; 
 		F_counting = 1 ;
 	}
-
 	q_timer_.resched (check_interval);
 }
 
