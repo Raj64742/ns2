@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.6 1997/03/29 01:42:46 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.7 1997/07/21 21:06:10 kfall Exp $";
 #endif
 
 #include "config.h"
@@ -59,7 +59,7 @@ protected:
 static class AddressClassifierClass : public TclClass {
 public:
 	AddressClassifierClass() : TclClass("Classifier/Addr") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new AddressClassifier());
 	}
 } class_address_classifier;
