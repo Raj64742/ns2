@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.54 2003/01/19 03:54:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.55 2003/11/18 00:29:58 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -50,14 +50,6 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
-Agent/TFRC set df_ 0.25
-# The default for df_ is 0.95
-Agent/TFRC set ca_ 0
-# The default for ca_ is 1
-Agent/TFRCSink set smooth_ 0
-# The default for smooth_ is 1
-Agent/TFRCSink set discount_ 0
-# The default for discount_ is 1
 Agent/TCP set oldCode_ true
 # The default for oldCode_ is false.
 Agent/TCP set minrto_ 0
@@ -65,12 +57,14 @@ Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+##########################
 Agent/TFRCSink set PreciseLoss_ 1
-# The default for PreciseLoss_ will be changed to 0, at some point.
+# The default for PreciseLoss_ might be changed to 0, at some point.
 Agent/TFRCSink set numPkts_ 1
-# The default for numPkts_ will be changed to 3, at some point.
+# The default for numPkts_ might be changed to 3, at some point.
+# But right now, the code for numPkts does not work, except for numPkts_ 1.
+##########################
 
-########Agent/TFRC set oldCode_ true
 Agent/TFRC set oldCode_ false
 # This is a new variable with a default of false.
 
@@ -274,6 +268,9 @@ Test/slowStartDiscount instproc init {} {
     set guide_  \
     "TFRC with discount_ true, for discounting older loss intervals."
     Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 0
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     Queue/RED set gentle_ false
     Test/slowStartDiscount instproc run {} [Test/slowStart info instbody run ]
     $self next pktTraceFile
@@ -289,6 +286,8 @@ Test/slowStartDiscountCA instproc init {} {
     Agent/TFRCSink set discount_ 1
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
+    Agent/TFRCSink set discount_ 0
+    Agent/TFRCSink set smooth_ 0
     Queue/RED set gentle_ false
     Test/slowStartDiscountCA instproc run {} [Test/slowStart info instbody run ]
     $self next pktTraceFile
@@ -303,6 +302,8 @@ Test/smooth instproc init {} {
     "TFRC with smooth_ true, for smoothly incorporating new loss intervals."
     Agent/TFRCSink set discount_ 1
     Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     Test/smooth instproc run {} [Test/slowStart info instbody run ]
     $self next pktTraceFile
 }
@@ -330,6 +331,9 @@ Test/slowStart instproc init {} {
     set guide_  \
     "TFRC with smooth_, discount_, and ca_ all false."
     Agent/TFRCSink set discount_ 0
+    Agent/TFRCSink set smooth_ 0
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     Queue/RED set gentle_ false
     $self next pktTraceFile
 }
@@ -397,8 +401,6 @@ Test/slowStartEWMA instproc init {} {
     set guide_  \
     "TFRC with EWMA for estimating the loss event rate."
     Agent/TFRCSink set algo_ 2
-    Agent/TFRC set df_ 0.95
-    Agent/TFRC set ca_ 1
     Test/slowStartEWMA instproc run {} [Test/slowStart info instbody run ]
     $self next pktTraceFile
 }
@@ -412,8 +414,6 @@ Test/slowStartFixed instproc init {} {
     set guide_  \
     "TFRC with Fixed Windows for estimating the loss event rate."
     Agent/TFRCSink set algo_ 3
-    Agent/TFRC set df_ 0.95
-    Agent/TFRC set ca_ 1
     Test/slowStartFixed instproc run {} [Test/slowStart info instbody run ]
     $self next pktTraceFile
 }
@@ -488,6 +488,9 @@ Test/impulseDiscount instproc init {} {
     set guide_  \
     "TFRC with discount_ true, for discounting older loss intervals."
     Agent/TFRCSink set discount_ 1
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
+    Agent/TFRCSink set smooth_ 0
     Test/impulseDiscount instproc run {} [Test/impulseCA info instbody run ]
     $self next pktTraceFile
 }
@@ -498,10 +501,11 @@ Test/impulseDiscountCA instproc init {} {
     set net_	net2
     set test_	impulseDiscountCA
     set guide_  \
-    "TFRC with discount_ and ca_ true."
+    "TFRC with discount_ and ca_ true, smooth_ false."
     Agent/TFRCSink set discount_ 1
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
+    Agent/TFRCSink set smooth_ 0
     Test/impulseDiscountCA instproc run {} [Test/impulseCA info instbody run ]
     $self next pktTraceFile
 }
@@ -514,6 +518,9 @@ Test/impulse instproc init {} {
     set guide_  \
     "TFRC with smooth_, discount_, and ca_ all false."
     Agent/TFRCSink set discount_ 0
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
+    Agent/TFRCSink set smooth_ 0
     Test/impulse instproc run {} [Test/impulseCA info instbody run ]
     $self next pktTraceFile
 }
@@ -526,6 +533,7 @@ Test/impulseCA instproc init {} {
     set guide_  \
     "TFRC with ca_ true, for Sqrt(RTT) based congestion avoidance mode."
     Agent/TFRCSink set discount_ 0
+    Agent/TFRCSink set smooth_ 0
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
 #    Test/impulseCA instproc run {} [Test/impulseCA info instbody run ]
@@ -577,9 +585,11 @@ Test/impulseMultReportDiscount instproc init {} {
     set net_	net2
     set test_	impulseMultReportDiscount
     set guide_  \
-    "TFRC with feedback four times per round-trip time, discount_ true."
+    "TFRC with feedback four times per round-trip time, discount_ true, ca_ false."
     Agent/TFRCSink set NumFeedback_ 4
     Agent/TFRCSink set discount_ 1
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     Test/impulseMultReportDiscount instproc run {} [Test/impulseMultReport info instbody run ]
     $self next pktTraceFile
 }
@@ -606,9 +616,11 @@ Test/impulseMultReport instproc init {} {
     set net_	net2
     set test_	impulseMultReport
     set guide_  \
-    "TFRC with feedback four times per RTT." 
+    "TFRC with feedback four times per RTT, discount_ and ca_ false." 
     Agent/TFRCSink set NumFeedback_ 4
     Agent/TFRCSink set discount_ 0
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     $self next pktTraceFile
 }
 
@@ -618,7 +630,7 @@ Test/impulseMultReportCA instproc init {} {
     set net_	net2
     set test_	impulseMultReportCA
     set guide_  \
-    "TFRC with feedback four times per RTT, ca_ true." 
+    "TFRC with feedback four times per RTT, discount_ false, ca_ true." 
     Agent/TFRCSink set NumFeedback_ 4
     Agent/TFRCSink set discount_ 0
     Agent/TFRC set df_ 0.95
@@ -719,8 +731,9 @@ Test/two-friendly instproc init {} {
     set net_	net2
     set test_	two-friendly
     set guide_  \
-    "Two TFRC and three TCP connections."
-    Agent/TFRCSink set discount_ 0
+    "Two TFRC and three TCP connections, ca_ false."
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     Agent/TCP set timerfix_ false
     # The default is being changed to true.
     $self next pktTraceFile
@@ -824,8 +837,10 @@ Test/randomized instproc init {} {
     set net_	net2
     set test_	randomized
     set guide_  \
-    "Random delay added to sending times."
+    "Random delay added to sending times, ca_ false."
     Agent/TFRC set overhead_ 0.5
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     Test/randomized instproc run {} [Test/slowStart info instbody run]
     $self next pktTraceFile
 }
@@ -852,8 +867,10 @@ Test/randomized1 instproc init {} {
     set net_	net2
     set test_	randomized1
     set guide_  \
-    "Smaller random delay added to sending times."
+    "Smaller random delay added to sending times, ca_ false."
     Agent/TFRC set overhead_ 0.1
+    Agent/TFRC set df_ 0.25
+    Agent/TFRC set ca_ 0
     Test/randomized1 instproc run {} [Test/slowStart info instbody run]
     $self next pktTraceFile
 }
@@ -1276,7 +1293,6 @@ Test/printLosses instproc init {} {
     set test_	printLosses
     set guide_  \
     "One TFRC flow, with the loss intervals from the TFRC receiver."
-    Agent/TFRCSink set discount_ 1
     Agent/TFRCSink set printLosses_ 1
     Agent/TFRCSink set printLoss_ 1
     $self next pktTraceFile
