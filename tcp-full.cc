@@ -72,7 +72,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.11 1997/10/21 02:44:12 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.12 1997/10/25 02:12:37 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -100,7 +100,7 @@ public:
  */
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
 	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1),
-	idle_(0), irs_(-1)
+	idle_(0), irs_(-1), delay_growth_(0)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -110,8 +110,8 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
 	bind_bool("data_on_syn_",&data_on_syn_);
 	bind_bool("dupseg_fix_", &dupseg_fix_);
 	bind_bool("dupack_reset_", &dupack_reset_);
-	bind_bool("slow_start_on_idle_", &slow_start_on_idle_);
 	bind_bool("close_on_empty_", &close_on_empty_);
+	bind_bool("delay_growth_", &delay_growth_);
 	bind("interval_", &delack_interval_);
 
 	reset();
@@ -197,6 +197,7 @@ FullTcpAgent::advance_bytes(int nb)
 	//	if above ESTABLISHED, we are closing, so don't allow
 	//	if anything else (establishing), do nothing here
 	//
+
 
 	if (state_ > TCPS_ESTABLISHED) {
 		fprintf(stderr,
@@ -300,7 +301,7 @@ void FullTcpAgent::output(int seqno, int reason)
 	// been idle for a "long" time, where long means a rto or longer
 	//
 
-	if (slow_start_on_idle_ && idle && idle_ >= t_rtxcur_) {
+	if (slow_start_restart_ && idle && idle_ >= t_rtxcur_) {
 		closecwnd(3);	// only reduce cwnd, no change to ssthresh
 	}
 #endif
@@ -905,8 +906,11 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		// K: state established and < compare
 		if (state_ == TCPS_ESTABLISHED && ackno < maxseq_)
 			needoutput = TRUE;
-		// K: change here only on 1st data
-		opencwnd();
+		// if we are delaying initial cwnd growth (probably due to
+		// large initial windows), then only open cwnd if data has
+		// been received
+		if (!delay_growth_ || (rcv_nxt_ > 0))
+			opencwnd();
 		// K: added state check in equal but diff way
 		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno >= (curseq_ + iss_)))
 			ourfinisacked = TRUE;
@@ -1127,6 +1131,7 @@ void FullTcpAgent::usrclosed()
 	case TCPS_CLOSED:
 	case TCPS_LISTEN:
 	case TCPS_SYN_SENT:
+		cancel_timers();
 		state_ = TCPS_CLOSED;
 		break;
 	case TCPS_SYN_RECEIVED:

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.6 1997/10/23 15:03:27 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.7 1997/10/25 02:12:36 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -121,7 +121,6 @@ class FullTcpAgent : public TcpAgent {
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int data_on_syn_;   // send data on initial SYN?
-	int slow_start_on_idle_;	// cwnd = 1 on idle?
 	double idle_;	    // idle time
 	int close_on_empty_;	// close conn when buffer empty
 	int tcprexmtthresh_;    // fast retransmit threshold
@@ -129,6 +128,7 @@ class FullTcpAgent : public TcpAgent {
 	int irs_;	// initial recv'd # (peer's iss)
 	int dupseg_fix_;    // fix bug with dup segs and dup acks?
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
+	int delay_growth_;  // delay opening cwnd until 1st data recv'd
 	double delack_interval_;
 
 	int headersize();   // a tcp header
