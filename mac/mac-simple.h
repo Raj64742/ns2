@@ -23,19 +23,24 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 
-
-
 #ifndef ns_mac_simple_h
 #define ns_mac_simple_h
 
+// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+#include "address.h"
+#include "ip.h"
 
 class MacSimpleWaitTimer;
 class MacSimpleSendTimer;
 class MacSimpleRecvTimer;
 
+// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+class EventTrace;
 
 
 class MacSimple : public Mac {
+	//Added by Sushmita to support backoff
+	friend class BackoffTimer;
 public:
 	MacSimple();
 	void recv(Packet *p, Handler *h);
@@ -45,6 +50,11 @@ public:
 	void sendHandler(void);
 	void recvHandler(void);
 	double txtime(Packet *p);
+
+	// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+	void trace_event(char *, Packet *);
+	int command(int, const char*const*);
+	EventTrace *et_;
 
 private:
 	Packet *	pktRx_;
@@ -56,10 +66,11 @@ private:
 	MacSimpleWaitTimer *waitTimer;
 	MacSimpleSendTimer *sendTimer;
 	MacSimpleRecvTimer *recvTimer;
+
+	int busy_ ;
+
+
 };
-
-
-
 
 class MacSimpleTimer: public Handler {
 public:

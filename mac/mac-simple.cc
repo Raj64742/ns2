@@ -28,7 +28,11 @@
 #include "mac-simple.h"
 #include "random.h"
 
+// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+#include "agent.h"
+#include "basetrace.h"
 
+#include "cmu-trace.h"
 
 static class MacSimpleClass : public TclClass {
 public:
@@ -39,7 +43,37 @@ public:
 } class_macsimple;
 
 
+// Added by Sushmita to support event tracing (singal@nunki.usc.edu).
+void MacSimple::trace_event(char *eventtype, Packet *p)
+{
+	if (et_ == NULL) return;
+	char *wrk = et_->buffer();
+	char *nwrk = et_->nbuffer();
 
+	hdr_ip *iph = hdr_ip::access(p);
+	char *src_nodeaddr =
+		Address::instance().print_nodeaddr(iph->saddr());
+	char *dst_nodeaddr =
+		Address::instance().print_nodeaddr(iph->daddr());
+
+	if (wrk != 0) 
+	{
+		sprintf(wrk, "E -t "TIME_FORMAT" %s %s %s",
+			et_->round(Scheduler::instance().clock()),
+			eventtype,
+			src_nodeaddr,
+			dst_nodeaddr);
+	}
+	if (nwrk != 0)
+	{
+		sprintf(nwrk, "E -t "TIME_FORMAT" %s %s %s",
+		et_->round(Scheduler::instance().clock()),
+		eventtype,
+		src_nodeaddr,
+		dst_nodeaddr);
+	}
+	et_->dump();
+}
 
 MacSimple::MacSimple() : Mac() {
 	rx_state_ = tx_state_ = MAC_IDLE;
@@ -47,6 +81,22 @@ MacSimple::MacSimple() : Mac() {
 	waitTimer = new MacSimpleWaitTimer(this);
 	sendTimer = new MacSimpleSendTimer(this);
 	recvTimer = new MacSimpleRecvTimer(this);
+	// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+	et_ = new EventTrace();
+	busy_ = 0;
+}
+
+// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+int 
+MacSimple::command(int argc, const char*const* argv)
+{
+	if (argc == 3) {
+		if(strcmp(argv[1], "eventtrace") == 0) {
+			et_ = (EventTrace *)TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+	}
+	return Mac::command(argc, argv);
 }
 
 void MacSimple::recv(Packet *p, Handler *h) {
@@ -58,7 +108,6 @@ void MacSimple::recv(Packet *p, Handler *h) {
 		return;
 	}
 
-
 	/* handle an incoming packet */
 
 	/*
@@ -67,7 +116,10 @@ void MacSimple::recv(Packet *p, Handler *h) {
 	 */
 
 	if (tx_active_)
+	{
 		hdr->error() = 1;
+
+	}
 
 	
 
@@ -112,8 +164,6 @@ void MacSimple::recv(Packet *p, Handler *h) {
 			}
 		}
 	}
-
-
 }
 
 
@@ -136,6 +186,8 @@ void MacSimple::send(Packet *p, Handler *h)
 	/* store data tx time */
  	ch->txtime() = Mac::txtime(ch->size());
 
+	// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+	trace_event("SENSING_CARRIER",p);
 
 	/* check whether we're idle */
 	if (tx_state_ != MAC_IDLE) {
@@ -143,10 +195,10 @@ void MacSimple::send(Packet *p, Handler *h)
 		// Note that this normally won't happen due to the queue
 		// between the LL and the MAC .. the queue won't send us
 		// another packet until we call its handler in sendHandler()
+
 		Packet::free(p);
 		return;
 	}
-
 
 	pktTx_ = p;
 	txHandler_ = h;
@@ -154,6 +206,9 @@ void MacSimple::send(Packet *p, Handler *h)
 	// jitter to reduce chance of unnecessary collisions
 	double jitter = Random::random()%40 * 100/bandwidth_;
 
+	if(rx_state_ != MAC_IDLE) {
+		trace_event("BACKING_OFF",p);
+	}
 
 	if (rx_state_ == MAC_IDLE ) {
 		// we're idle, so start sending now
@@ -169,13 +224,15 @@ void MacSimple::send(Packet *p, Handler *h)
 }
 
 
-
 void MacSimple::recvHandler()
 {
 	hdr_cmn *ch = HDR_CMN(pktRx_);
 	Packet* p = pktRx_;
 	MacState state = rx_state_;
 	pktRx_ = 0;
+
+	busy_ = 0;
+
 	rx_state_ = MAC_IDLE;
 
 	if (tx_active_) {
@@ -183,7 +240,8 @@ void MacSimple::recvHandler()
 		Packet::free(p);
 	} else if (state == MAC_COLL) {
 		// recv collision, so discard the packet
-		Packet::free(p);
+		drop(p, DROP_MAC_COLLISION);
+		//Packet::free(p);
 	} else if (ch->error()) {
 		// packet has errors, so discard it
 		Packet::free(p);
@@ -209,6 +267,8 @@ void MacSimple::sendHandler()
 	txHandler_ = 0;
 	tx_state_ = MAC_IDLE;
 	tx_active_ = 0;
+
+	busy_ = 1;
 
 	// I have to let the guy above me know I'm done with the packet
 	h->handle(p);
