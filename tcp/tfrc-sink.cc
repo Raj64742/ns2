@@ -187,13 +187,17 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 			}
 		}
 		if (hf->ect() == 1 && hf->ce() == 1) {
-			// ECN action
-			ecn = 1;
-			lossvec_[seqno%hsz] = LOST;
-			UrgentFlag = 1 ;
-			lastloss = tstamp;
-			lastloss_round_id = round_id ;
-			losses_since_last_report++;
+			if ((tsvec_[i%hsz]-lastloss > rtt_) && 
+			    (round_id > lastloss_round_id)) {
+				// ECN action
+				ecn = 1;
+				lossvec_[seqno%hsz] = ECNLOST;
+				UrgentFlag = 1 ;
+				lastloss = tstamp;
+				lastloss_round_id = round_id ;
+				losses_since_last_report++;
+				tstamp = tstamp+delta;
+			} else lossvec_[seqno%hsz] = ECNNOLOSS;
 		}
 		int x = maxseq ; 
 		maxseq = tfrch->seqno ;
@@ -436,7 +440,7 @@ double TfrcSinkAgent::est_loss_WALI ()
 	// sample[0] contains the most recent sample.
 	for (i = last_sample; i <= maxseq ; i ++) {
 		sample[0]++;
-		if (lossvec_[i%hsz] == LOST) {
+		if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST) {
 		        //  new loss event
 			// double now = Scheduler::instance().clock();
 			sample_count ++;
@@ -561,7 +565,7 @@ double TfrcSinkAgent::adjust_history (double ts)
 	int i;
 	double p;
 	for (i = maxseq; i >= 0 ; i --) {
-		if (lossvec_[i%hsz] == LOST) {
+		if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST ) {
 			lossvec_[i%hsz] = NOLOSS; 
 		}
 	}
@@ -624,7 +628,7 @@ double TfrcSinkAgent::est_loss_EWMA () {
 	double p1, p2 ;
 	for (int i = last_sample; i <= maxseq ; i ++) {
 		loss_int++; 
-		if (lossvec_[i%hsz] == LOST) {
+		if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST ) {
 			if (avg_loss_int < 0) {
 				avg_loss_int = loss_int ; 
 			} else {
@@ -688,7 +692,7 @@ double TfrcSinkAgent::est_loss_RBPH () {
 	// first see if how many lc's we find in numpkts 
 	while (pc < numpkts) {
 		pc ++ ;
-		if (lossvec_[i%hsz] == LOST)
+		if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST )
 			lc ++ ; 
 		i -- ;
 	}
@@ -703,7 +707,7 @@ double TfrcSinkAgent::est_loss_RBPH () {
 
 		while ((lc < minlc) && (pc < numpkts)) {
 			pc ++ ;
-			if (lossvec_[i%hsz] == LOST)
+			if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST )
 				lc ++ ;
 			i -- ;
 		
@@ -742,7 +746,7 @@ double TfrcSinkAgent::est_loss_EBPH () {
 
 	while ((lc < minlc) && (pc < numpkts)) {
 		pc ++ ;
-		if (lossvec_[i%hsz] == LOST)
+		if (lossvec_[i%hsz] == LOST || lossvec_[i%hsz] == ECNLOST)
 			lc ++ ;
 		i -- ;
 	}

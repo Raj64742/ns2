@@ -48,6 +48,8 @@
 #define RCVD 1
 #define LOST 2
 #define NOLOSS 3
+#define ECNLOST 4
+#define ECNNOLOSS 5
 
 #define DEFAULT_NUMSAMPLES  8
 
