@@ -182,7 +182,7 @@ proc newWebModel dir {
 	set rv [new RandomVariable/Empirical]
 	puts "$rv loadCDF $dir/HttpThinkTime.cdf"
 	$rv loadCDF $dir/HttpThinkTime.cdf
-	lappend webm -rvThinkTime $rv
+	lappend webm -rvClientTime $rv
 }
 
 proc new_http {i server client} {

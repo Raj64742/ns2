@@ -53,7 +53,8 @@ Http set phttp_ 0
 Http set maxConn_ 4
 
 # The following rv* parameters can take a value or a RandomVariable object
-Http set rvThinkTime_ 3.0
+Http set rvClientTime_ 3.0
+Http set rvServerTime_ 0
 Http set rvReqLen_ 256
 Http set rvRepLen_ 4000
 Http set rvImgLen_ 8000
@@ -63,7 +64,8 @@ Http instproc srcType {val} { $self set srcType_ $val }
 Http instproc snkType {val} { $self set snkType_ $val }
 Http instproc phttp {val} { $self set phttp_ $val }
 Http instproc maxConn {val} { $self set maxConn_ $val }
-Http instproc rvThinkTime {val} { $self set rvThinkTime_ $val }
+Http instproc rvClientTime {val} { $self set rvClientTime_ $val }
+Http instproc rvServerTime {val} { $self set rvServerTime_ $val }
 Http instproc rvReqLen {val} { $self set rvReqLen_ $val }
 Http instproc rvRepLen {val} { $self set rvRepLen_ $val }
 Http instproc rvImgLen {val} { $self set rvImgLen_ $val }
@@ -72,10 +74,10 @@ Http instproc rvNumImg {val} { $self set rvNumImg_ $val }
 Http instproc init {ns client server args} {
 	$self init-all-vars $class
 	eval $self next $args
-	$self instvar srcType_ snkType_
-	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
-	$self instvar ns_ agents_ client_ server_ tStart_
+	$self instvar srcType_ snkType_ agents_
+	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
+	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
+	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
 	set ns_ $ns
 	set client_(node) $client
@@ -90,13 +92,15 @@ Http instproc init {ns client server args} {
 		lappend agents_(source) $csrc $ssrc
 		$csrc proc done {} "$self doneRequest $i"
 		$ssrc proc done {} "$self doneReply $i"
-		if {$snkType_ != ""} {
+		if [string match "*FullTcp*" $srcType_] {
+			set csnk $ssrc
+			set ssnk $csrc
+			$csrc set dst_ [$csnk set addr_]
+			$csnk listen
+		} else {
 			set csnk [new Agent/$snkType_]
 			set ssnk [new Agent/$snkType_]
 			lappend agents_(sink) $csnk $ssnk
-		} else {
-			set csnk $ssrc
-			set ssnk $csrc
 		}
 		set client_($i) [$self newXfer FTP $client $server $csrc $csnk]
 		set server_($i) [$self newXfer FTP $server $client $ssrc $ssnk]
@@ -119,9 +123,9 @@ Http instproc agents {{type source}} {
 
 
 Http instproc start {} {
-	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
-	$self instvar ns_ agents_ client_ server_ tStart_
+	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
+	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
+	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
 	set tStart_ [$ns_ now]
 	set numGet_ 0
@@ -133,9 +137,9 @@ Http instproc start {} {
 }
 
 Http instproc doneRequest {id} {
-	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
-	$self instvar ns_ agents_ client_ server_ tStart_
+	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
+	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
+	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
 	if {$id == 0} {
 		set len [rvValue $rvRepLen_ round]
@@ -144,13 +148,20 @@ Http instproc doneRequest {id} {
 		set len [rvValue $rvImgLen_ round]
 #		puts "$self sendI [$server_($id) set agent_] $len"
 	}
-	$server_($id) produceByte $len
+
+	set tServer [rvValue $rvServerTime_]
+	if {$tServer > 0} {
+		puts $tServer
+		$ns_ at [expr $tServer+[$ns_ now]] "$server_($id) produceByte $len"
+	} else {
+		$server_($id) produceByte $len
+	}
 }
 
 Http instproc doneReply {id} {
-	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
-	$self instvar ns_ agents_ client_ server_ tStart_
+	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
+	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
+	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
 	if {$id == 0} {
 		set numImg_ [rvValue $rvNumImg_ round]
@@ -175,12 +186,11 @@ Http instproc doneReply {id} {
 }
 
 Http instproc donePage {} {
-	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
-	$self instvar ns_ agents_ client_ server_ tStart_
+	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
+	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
 	set now [$ns_ now]
-	set tt [rvValue $rvThinkTime_]
+	set tt [rvValue $rvClientTime_]
 	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $tt]
 	puts "Http $self donePage $out"
 	$ns_ at [expr $now + $tt] "$self start"
