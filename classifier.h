@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.8 1997/07/23 02:09:00 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.9 1997/08/22 23:29:21 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -39,20 +39,22 @@
 #include "object.h"
 
 class Packet;
+
 class Classifier : public NsObject {
  public:
+	Classifier();
 	~Classifier();
 	void recv(Packet*, Handler* h = 0);
 	int maxslot() const { return maxslot_; }
 	inline NsObject* slot(int slot) {
 		if ((slot >= 0) || (slot < nslot_))
 			return slot_[slot];
-		return (NsObject*)NULL;
+		return 0;
 	}
 	NsObject* find(Packet*);
-	virtual int classify(Packet *const) = 0;
+	virtual int classify(Packet *const);
+
  protected:
-	Classifier();
 	void install(int slot, NsObject*);
 	void clear(int slot);
 	virtual int command(int argc, const char*const* argv);
@@ -60,15 +62,10 @@ class Classifier : public NsObject {
 	NsObject** slot_;	/* table that maps slot number to a NsObject */
 	int nslot_;
 	int maxslot_;
-
-	/*XXX eventually the classifier should be made completely
-	 * indepedent of ip.  it should just take offsets and
-	 * masks.  We can do this as soon as we work out the interface
-	 * between the packet-header templates and the otcl packet
-	 * manager.  then the packet manager can create the right
-	 * kind of classifier for any necessary context.
-	 */
-	int off_ip_;
+	int offset_;		// offset for Packet::access()
+	int shift_;
+	int mask_;
+	int off_ip_;		// XXX to be removed
 };
 
 #endif

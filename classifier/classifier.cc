@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.11 1997/07/23 01:29:35 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.12 1997/08/22 23:29:20 gnguyen Exp $";
 #endif
 
 #include <stdlib.h>
@@ -41,9 +41,28 @@ static const char rcsid[] =
 #include "classifier.h"
 #include "packet.h"
 
+static class ClassifierClass : public TclClass {
+public:
+	ClassifierClass() : TclClass("Classifier") {}
+	TclObject* create(int, const char*const*) {
+		return (new Classifier());
+	}
+} class_classifier;
+
+
 Classifier::Classifier() : slot_(0), nslot_(0), maxslot_(-1)
+	, shift_(0), mask_(0xffffffff)
 {
-	bind("off_ip_", &off_ip_);
+	bind("offset_", &offset_);
+	bind("shift_", &shift_);
+	bind("mask_", &mask_);
+	bind("off_ip_", &off_ip_); // XXX to be removed
+}
+
+int Classifier::classify(Packet *const p)
+{
+	int value = *((int*) p->access(offset_));
+	return (value >> shift_) & mask_;
 }
 
 Classifier::~Classifier()
@@ -85,7 +104,6 @@ void Classifier::clear(int slot)
 	}
 }
 
-#include "ip.h"
 
 /*
  * objects only ever see "packet" events, which come either

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.55 1997/08/12 22:28:33 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.56 1997/08/22 23:29:21 gnguyen Exp $
 
 
 #
@@ -192,6 +192,10 @@ Agent/Message set packetSize_ 180
 
 DelayLink set bandwidth_ 1.5Mb
 DelayLink set delay_ 100ms
+
+Classifier set offset_ 0
+Classifier set shift_ 0
+Classifier set mask_ 0xffffffff
 
 Classifier/Addr set shift_ 12
 Classifier/Addr set mask_ 0xffffffff
