@@ -71,15 +71,25 @@ ScenLib/RM instproc make_topo3 { time } {
 }
 
 proc run {} {
-    global ns
+    global ns n
     set test_scen [new ScenLib/RM]
-	$test_scen make_topo3 40.0
-	$test_scen create_mcast 2 0.3 1.0 2.0 6
-	$test_scen create_mcast 3 2.3 3.0 7.0 7
-	$test_scen create_mcast 4 8.3 9.0 12.0 8
-	$test_scen create_cbr 4 2.0 9 20.0 30.0 4 5.0 9 30.0 40.0 
-	$ns at 40.0 "finish"
-	$ns run
+    $test_scen make_topo3 40.0
+    $test_scen create_mcast 2 0.1 0.4 1.0 6
+    $test_scen create_mcast 3 8.3 9.0 10.0 7
+    $test_scen create_mcast 4 18.3 19.0 20.0 8
+    $test_scen create_cbr 5 2.0 9 40.0 60.0 5 5.0 9 60.0 80.0 
+    $test_scen dump_flowmon $n(1) $n(6) 10.0
+    $test_scen dump_flowmon $n(1) $n(6) 20.0
+    $test_scen dump_flowmon $n(1) $n(7) 20.0
+    $test_scen dump_flowmon $n(1) $n(6) 40.0
+    $test_scen dump_flowmon $n(1) $n(7) 40.0
+    $test_scen dump_flowmon $n(1) $n(8) 40.0
+    $test_scen dump_flowmon $n(1) $n(6) 60.0
+    $test_scen dump_flowmon $n(1) $n(9) 60.0
+    $test_scen dump_flowmon $n(1) $n(6) 80.0
+    $test_scen dump_flowmon $n(1) $n(9) 80.0
+    $ns at 80.0 "finish"
+    $ns run
 }
 
 global argv prog opts t mflag
