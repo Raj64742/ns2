@@ -44,7 +44,7 @@
 #endif
 #define _intRVec_h 1
 
-#include "lib/int.Vec.h"
+#include "int.Vec.h"
 
 
 class intRVec : public intVec
