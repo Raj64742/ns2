@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.12 1999/09/10 22:27:13 heideman Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.13 1999/11/13 23:44:35 heideman Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -30,11 +30,10 @@ static const char rcsid[] =
 #include <sys/stat.h> 
 #include <stdio.h>
 
-// hpux fix from Ketil Danielsen <Ketil.Danielsen@hiMolde.no>
-// get htonl from in.h
-#if defined(hpux) || defined(sun) || defined(__osf__)
+#include "config.h"
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif
+#endif /* HAVE_NETINET_IN_H */
 
 
 #include "random.h"
