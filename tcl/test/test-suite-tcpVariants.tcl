@@ -30,20 +30,25 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.1 1998/05/13 22:57:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.2 1998/07/09 18:25:13 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
-# ns test-suite-tcp.tcl
+# ns test-suite-tcpVariants.tcl
 #
 
 source misc.tcl
 source topologies.tcl
 
+Trace set show_tcphdr_ 1
+
+set wrap 90
+set wrap1 [expr 90 * 512 + 40]
+
 TestSuite instproc finish file {
-	global quiet
+	global quiet wrap
         exec ../../bin/set_flow_id -s all.tr | \
           ../../bin/getrc -s 2 -d 3 | \
-          ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+          ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
@@ -114,6 +119,7 @@ TestSuite instproc drop_pkts pkts {
 }
 
 TestSuite instproc setup {tcptype list} {
+	global wrap wrap1
         $self instvar ns_ node_ testName_
 
         Agent/TCP set bugFix_ false
@@ -125,6 +131,50 @@ TestSuite instproc setup {tcptype list} {
     	} elseif {$tcptype == "Sack1"} {
       		set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
           	TCPSink/Sack1  $node_(k1) $fid]
+    	} elseif {$tcptype == "FullTcp"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp]
+	        set sink [new Agent/TCP/FullTcp]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
+    	} elseif {$tcptype == "FullTcpTahoe"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp/Tahoe]
+	        set sink [new Agent/TCP/FullTcp/Tahoe]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
+    	} elseif {$tcptype == "FullTcpNewreno"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp/Newreno]
+	        set sink [new Agent/TCP/FullTcp/Newreno]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
+    	} elseif {$tcptype == "FullTcpSack1"} {
+		set wrap $wrap1
+	        set tcp1 [new Agent/TCP/FullTcp/Sack]
+	        set sink [new Agent/TCP/FullTcp/Sack]
+	        $ns_ attach-agent $node_(s1) $tcp1
+	        $ns_ attach-agent $node_(k1) $sink
+	        $tcp1 set fid_ $fid
+	        $sink set fid_ $fid
+	        $ns_ connect $tcp1 $sink
+	        # set up TCP-level connections
+	        $sink listen ; # will figure out who its peer is
     	} else {
       		set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
           	TCPSink $node_(k1) $fid]
@@ -158,6 +208,18 @@ Test/onedrop_tahoe instproc run {} {
         $self setup Tahoe {14}
 }
 
+Class Test/onedrop_tahoe_full -superclass TestSuite
+Test/onedrop_tahoe_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	onedrop_tahoe_full
+	$self next
+}
+Test/onedrop_tahoe_full instproc run {} {
+        $self setup FullTcpTahoe {16}
+}
+
 Class Test/onedrop_reno -superclass TestSuite
 Test/onedrop_reno instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -168,6 +230,19 @@ Test/onedrop_reno instproc init topo {
 }
 Test/onedrop_reno instproc run {} {
         $self setup Reno {14}
+}
+
+Class Test/onedrop_reno_full -superclass TestSuite
+Test/onedrop_reno_full instproc init topo {
+
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	onedrop_reno_full
+	$self next
+}
+Test/onedrop_reno_full instproc run {} {
+        $self setup FullTcp {16}
 }
 
 Class Test/onedrop_newreno -superclass TestSuite
@@ -182,6 +257,18 @@ Test/onedrop_newreno instproc run {} {
         $self setup Newreno {14}
 }
 
+Class Test/onedrop_newreno_full -superclass TestSuite
+Test/onedrop_newreno_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	onedrop_newreno_full
+	$self next
+}
+Test/onedrop_newreno_full instproc run {} {
+        $self setup FullTcpNewreno {16}
+}
+
 Class Test/onedrop_sack -superclass TestSuite
 Test/onedrop_sack instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -192,6 +279,18 @@ Test/onedrop_sack instproc init topo {
 }
 Test/onedrop_sack instproc run {} {
         $self setup Sack1 {14}
+}
+
+Class Test/onedrop_sack_full -superclass TestSuite
+Test/onedrop_sack_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	onedrop_sack_full
+	$self next
+}
+Test/onedrop_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16}
 }
 
 ###################################################
@@ -210,6 +309,18 @@ Test/twodrops_tahoe instproc run {} {
         $self setup Tahoe {14 28}
 }
 
+Class Test/twodrops_tahoe_full -superclass TestSuite
+Test/twodrops_tahoe_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	twodrops_tahoe_full
+	$self next
+}
+Test/twodrops_tahoe_full instproc run {} {
+        $self setup FullTcpTahoe {16 30}
+}
+
 Class Test/twodrops_reno -superclass TestSuite
 Test/twodrops_reno instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -220,6 +331,18 @@ Test/twodrops_reno instproc init topo {
 }
 Test/twodrops_reno instproc run {} {
         $self setup Reno {14 28}
+}
+
+Class Test/twodrops_reno_full -superclass TestSuite
+Test/twodrops_reno_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	twodrops_reno_full
+	$self next
+}
+Test/twodrops_reno_full instproc run {} {
+        $self setup FullTcp {16 30}
 }
 
 Class Test/twodrops_newreno -superclass TestSuite
@@ -234,6 +357,18 @@ Test/twodrops_newreno instproc run {} {
         $self setup Newreno {14 28}
 }
 
+Class Test/twodrops_newreno_full -superclass TestSuite
+Test/twodrops_newreno_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	twodrops_newreno_full
+	$self next
+}
+Test/twodrops_newreno_full instproc run {} {
+        $self setup FullTcpNewreno {16 30}
+}
+
 Class Test/twodrops_sack -superclass TestSuite
 Test/twodrops_sack instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -244,6 +379,18 @@ Test/twodrops_sack instproc init topo {
 }
 Test/twodrops_sack instproc run {} {
         $self setup Sack1 {14 28}
+}
+
+Class Test/twodrops_sack_full -superclass TestSuite
+Test/twodrops_sack_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	twodrops_sack_full
+	$self next
+}
+Test/twodrops_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16 30}
 }
 
 ###################################################
@@ -262,6 +409,18 @@ Test/threedrops_tahoe instproc run {} {
         $self setup Tahoe {14 26 28}
 }
 
+Class Test/threedrops_tahoe_full -superclass TestSuite
+Test/threedrops_tahoe_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	threedrops_tahoe_full
+	$self next
+}
+Test/threedrops_tahoe_full instproc run {} {
+        $self setup FullTcpTahoe {16 28 30}
+}
+
 Class Test/threedrops_reno -superclass TestSuite
 Test/threedrops_reno instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -272,6 +431,18 @@ Test/threedrops_reno instproc init topo {
 }
 Test/threedrops_reno instproc run {} {
         $self setup Reno {14 26 28}
+}
+
+Class Test/threedrops_reno_full -superclass TestSuite
+Test/threedrops_reno_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	threedrops_reno_full
+	$self next
+}
+Test/threedrops_reno_full instproc run {} {
+        $self setup FullTcp {16 28 30}
 }
 
 Class Test/threedrops_newreno -superclass TestSuite
@@ -286,6 +457,18 @@ Test/threedrops_newreno instproc run {} {
         $self setup Newreno {14 26 28}
 }
 
+Class Test/threedrops_newreno_full -superclass TestSuite
+Test/threedrops_newreno_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	threedrops_newreno_full
+	$self next
+}
+Test/threedrops_newreno_full instproc run {} {
+        $self setup FullTcpNewreno {16 28 30}
+}
+
 Class Test/threedrops_sack -superclass TestSuite
 Test/threedrops_sack instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -296,6 +479,18 @@ Test/threedrops_sack instproc init topo {
 }
 Test/threedrops_sack instproc run {} {
         $self setup Sack1 {14 26 28}
+}
+
+Class Test/threedrops_sack_full -superclass TestSuite
+Test/threedrops_sack_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	threedrops_sack_full
+	$self next
+}
+Test/threedrops_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16 28 30}
 }
 
 ###################################################
@@ -314,6 +509,18 @@ Test/fourdrops_tahoe instproc run {} {
         $self setup Tahoe {14 24 26 28}
 }
 
+Class Test/fourdrops_tahoe_full -superclass TestSuite
+Test/fourdrops_tahoe_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	fourdrops_tahoe_full
+	$self next
+}
+Test/fourdrops_tahoe_full instproc run {} {
+        $self setup FullTcpTahoe {16 26 28 30}
+}
+
 Class Test/fourdrops_reno -superclass TestSuite
 Test/fourdrops_reno instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -324,6 +531,18 @@ Test/fourdrops_reno instproc init topo {
 }
 Test/fourdrops_reno instproc run {} {
         $self setup Reno {14 24 26 28}
+}
+
+Class Test/fourdrops_reno_full -superclass TestSuite
+Test/fourdrops_reno_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	fourdrops_reno_full
+	$self next
+}
+Test/fourdrops_reno_full instproc run {} {
+        $self setup FullTcp {16 26 28 30}
 }
 
 Class Test/fourdrops_newreno -superclass TestSuite
@@ -338,6 +557,18 @@ Test/fourdrops_newreno instproc run {} {
         $self setup Newreno {14 24 26 28}
 }
 
+Class Test/fourdrops_newreno_full -superclass TestSuite
+Test/fourdrops_newreno_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	fourdrops_newreno_full
+	$self next
+}
+Test/fourdrops_newreno_full instproc run {} {
+        $self setup FullTcpNewreno {16 26 28 30}
+}
+
 Class Test/fourdrops_sack -superclass TestSuite
 Test/fourdrops_sack instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -350,11 +581,18 @@ Test/fourdrops_sack instproc run {} {
         $self setup Sack1 {14 24 26 28}
 }
 
+Class Test/fourdrops_sack_full -superclass TestSuite
+Test/fourdrops_sack_full instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	fourdrops_sack_full
+	$self next
+}
+Test/fourdrops_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16 26 28 30}
+}
+
 
 TestSuite runTest
 
-### Local Variables:
-### mode: tcl
-### tcl-indent-level: 8
-### tcl-default-application: ns
-### End:
