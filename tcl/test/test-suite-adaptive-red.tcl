@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.2 2001/07/17 20:33:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.3 2001/07/17 21:22:09 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -45,8 +45,8 @@ set flowgraphfile fairflow.xgr; # file given to graph tool
 TestSuite instproc finish file {
 	global quiet PERL
 	$self instvar ns_ tchan_ testName_
-        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr > t1 
-        exec $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file t1 > temp.rands
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+          $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp.rands
 	if {$quiet == "false"} {
         	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
@@ -358,6 +358,12 @@ Test/red4Adapt instproc init {} {
     $self next
 }
 
+TestSuite instproc printall { fmon } {
+        puts "aggregate per-link total_drops [$fmon set pdrops_]"
+        puts "aggregate per-link total_packets [$fmon set pdepartures_]"
+}
+
+
 Class Test/red5Adapt -superclass TestSuite
 Test/red5Adapt instproc init {} {
     $self instvar net_ test_ ns_
@@ -370,10 +376,15 @@ Test/red5Adapt instproc init {} {
 Test/red5Adapt instproc run {} {
     $self instvar ns_ node_ testName_ net_
     $self setTopo
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
     $self maketraffic
     $self newtraffic 20 20 300 0 0.001 10
     # To run many flows:
     # $self newtraffic 4000 20 300 0 0.005 500
+    # $self newtraffic 40000 20 300 0 0.001 500
+    $ns_ at 49.99 "$self printall $fmon" 
     $ns_ run
 }
 
