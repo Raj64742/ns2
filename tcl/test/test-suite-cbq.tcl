@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.1 1997/11/03 22:28:03 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.2 1997/11/04 00:04:33 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -43,6 +43,15 @@
 # 	...
 #
 
+puts "This test suite is still under construction"
+exit 1
+
+set dir [pwd]
+catch "cd tcl/test"
+source misc.tcl
+source topologies.tcl
+catch "cd $dir"
+
 # ~/newr/rm/testB
 # Create a flat link-sharing structure.
 #
@@ -52,9 +61,6 @@
 #		dataClass	(65%), pri 2
 #
 
-puts "This test suite is still under construction"
-exit 1
-
 TestSuite instproc create_flat { } {
 	$self instvar topclass_ vidclass_ audioclass_ dataclass_
 
@@ -63,17 +69,22 @@ TestSuite instproc create_flat { } {
 	$topclass_ setparams none 0 0.98 auto 8 1 0 ;# Mbps
 
  	set vidclass_ [new CBQClass]
-	$vidclass_ setparams $topclass 1 0.32 auto 1 2 0 ;# $Mbps
+	$vidclass_ setparams $topclass_ 1 0.32 auto 1 2 0 ;# $Mbps
 
 	set audioclass_ [new CBQClass]
-	$audioclass_ setparams $topclass 1 0.03 auto 1 2 0;# $Mbps
+	$audioclass_ setparams $topclass_ 1 0.03 auto 1 2 0;# $Mbps
 
 	set dataclass_ [new CBQClass]
-	$dataclass_ setparams $topclass 1 0.65 auto 2 2 0; #$Mbps
+	$dataclass_ setparams $topclass_ 1 0.65 auto 2 2 0; #$Mbps
 }
 
 TestSuite instproc insert_flat { cbqlink } {
 	$self instvar topclass_ vidclass_ audioclass_ dataclass_
+
+	#
+	# note: auto settings for maxidle are resolved in insert
+	# (see tcl/lib/ns-queue.tcl)
+	#
 
  	$cbqlink insert $topclass_
 	$cbqlink insert $vidclass_
@@ -160,9 +171,11 @@ TestSuite instproc insert_twoAgency { cbqlink } {
 }
 
 # display graph of results
-TestSuite instproc finishcbq file {
+TestSuite instproc finish testname {
 
-	set awkCode 
+puts "running FINISH (cbq)"
+
+	set awkCode  {
 	  if ($1 == "maxbytes") maxbytes = $2;
 	  if ($2 == class) print $1, $3/maxbytes >> "temp.t"; 
 	}
@@ -174,7 +187,7 @@ TestSuite instproc finishcbq file {
 	}
 
 	set f [open temp.rands w]
-	puts $f "TitleText: $file"
+	puts $f "TitleText: $testname"
 	puts $f "Device: Postscript"
 	
 	exec rm -f temp.p temp.t
@@ -284,15 +297,15 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 #
 TestSuite instproc three_cbrs {} {
 	$self instvar ns_ node_
-	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_($r1) 1]
+	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r1) 1]
 	$cbr1 set packetSize_ 190
 	$cbr1 set interval_ 0.001
 
-	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_($r1) 2]
+	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r1) 2]
 	$cbr2 set packetSize_ 500
 	$cbr2 set interval_ 0.002
 
-	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_($r1) 3]
+	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r1) 3]
 	$cbr3 set packetSize_ 1000
 	$cbr3 set interval_ 0.005
 
@@ -307,19 +320,19 @@ TestSuite instproc three_cbrs {} {
 
 TestSuite instproc four_cbrs {} {
 	$self instvar ns_ node_
-	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_($r1) 1]
+	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r1) 1]
 	$cbr1 set packetSize_ 190
 	$cbr1 set interval_ 0.001
 
-	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_($r1) 2]
+	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r1) 2]
 	$cbr2 set packetSize_ 1000
 	$cbr2 set interval_ 0.005
 
-	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_($r1) 3]
+	set cbr3 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r1) 3]
 	$cbr3 set packetSize_ 500
 	$cbr3 set interval_ 0.002
 
-	set cbr4 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_($r1) 4]
+	set cbr4 [$ns_ create-connection CBR $node_(s3) LossMonitor $node_(r1) 4]
 	$cbr4 set packetSize_ 1000
 	$cbr4 set interval_ 0.005
 
@@ -336,24 +349,34 @@ TestSuite instproc four_cbrs {} {
 	$ns_ at 32.0 "$cbr4 start"
 }
 
+Class Test/WRR -superclass TestSuite
+Test/WRR instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ cbq1-wrr
+	set test_ CBQ_WRR
+	$self next; # call ctor for TestSuite now
+}
+
 #
 # Figure 10 from the link-sharing paper. 
 # ~/newr/rm/testB.com
 # 
-TestSuite instproc test_cbqWRR {} {
-	global s1 s2 s3 s4 r1 k1 
-	set qlen 20
+Test/WRR instproc run {} {
+	$self instvar cbqalgorithm_ ns_ net_ topo_
+	set cbqalgorithm_ top-level
 	set stopTime 28.1
-	set CBQalgorithm 1
-	create_graph $stopTime wrr-cbq $qlen
- 	create_flat [ns link $r1 $k1] $qlen
-	three_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
-	openTrace2 $stopTime test_cbqWRR
+	$self create_flat
+	$self insert_flat [$topo_ set cbqlink_]
+	$self three_cbrs
 
-	ns run
+	$self openTrace $stopTime CBQ_WRR
+
+	$ns_ run
 }
+
+##### I AM HERE
 
 Class Test/PRR -superclass TestSuite
 Test/PRR instproc init topo {
@@ -370,7 +393,6 @@ Test/PRR instproc init topo {
 Test/PRR instproc run {} {
 	$self instvar ns_
 
-##### I AM HERE
 
 
 	global s1 s2 s3 s4 r1 k1 
@@ -1064,11 +1086,4 @@ proc test_cbqTwoF {} {
 	ns run
 }
 
-if { $argc != 1 } {
-	puts stderr {usage: ns test-suite-cbq.tcl [ cbqWRR cbqPRR cbqAO cbqTL ... ]}
-	exit 1
-}
-if { "[info procs test_$argv]" != "test_$argv" } {
-	puts stderr "test-suite-cbq.tcl: no such test: $argv"
-}
-test_$argv
+TestSuite runTest
