@@ -143,7 +143,7 @@ void TfrcAgent::nextpkt()
 	
 	// during slow start and congestion avoidance, we increase rate
 	// slowly - by amount delta per packet 
-	if ((rate_change_ == SLOW_START) && (oldrate_ < rate_)) {
+	if ((rate_change_ == SLOW_START) && (oldrate_+SMALLFLOAT < rate_)) {
 		oldrate_ = oldrate_ + delta_;
 		xrate = oldrate_;
 	}
@@ -152,11 +152,9 @@ void TfrcAgent::nextpkt()
 	}
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate; 
-		/*
 		if (overhead_ > SMALLFLOAT) {
 			next = next*(Random::uniform()+0.5);
 		}
-		*/
 		if (next > SMALLFLOAT ) {
 			send_timer_.resched(next); 
 		}
@@ -283,21 +281,21 @@ void TfrcAgent::slowstart ()
 {
 	double now = Scheduler::instance().clock(); 
 
-	if (rate_ < size_/rtt_ ) {
+	/* lets see if all this works well if we add a 5% fudge factor */
+
+	if (rate_ + SMALLFLOAT < size_/rtt_ ) {
 		/*if this is the first report, change rate to 1 per rtt*/
 		/*compute delta so rate increases slowly to new value */
-
 		oldrate_ = rate_;
-		rate_ = size_/rtt_;
+		rate_ = size_/rtt_; 
 		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 		last_change_ = now;
 	} else {
-
 		/*else multiply the rate by ssmult_, and compute delta, so that the*/
 		/*rate increases slowly to new value */
 
 		if (maxrate_ > 0) {
-			if (ssmult_*rate_ < maxrate_ && now - last_change_ > rtt_) {
+			if (ssmult_*rate_ < maxrate_ && (now - last_change_) > rtt_) {
 				rate_ = ssmult_*rate_; 
 				delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 				last_change_=now;
