@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.60 2004/10/26 19:30:08 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.61 2004/11/10 02:46:06 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -143,6 +143,28 @@ Topology/net2a instproc init ns {
     $ns duplex-link $node_(r1) $node_(r2) 0.15Kb 2ms RED
     $ns queue-limit $node_(r1) $node_(r2) 2
     $ns queue-limit $node_(r2) $node_(r1) 50
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+}
+
+Class Topology/net2b -superclass Topology
+Topology/net2b instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next
+    Queue/RED set gentle_ true
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms DropTail
+    # 1.5Mb, 12.5 1500-byte pkts per 100 ms.
+    $ns queue-limit $node_(r1) $node_(r2) 12
+    $ns queue-limit $node_(r2) $node_(r1) 12
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
@@ -1653,10 +1675,64 @@ Test/initRateRFC3390 instproc init {} {
     $self next pktTraceFile
 }
 
+Class Test/tfrcOnly superclass TestSuite
+Test/tfrcOnly instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2b
+    set test_	tfrcOnly
+    set guide_  \
+    "One VoIP TFRC flow and one TCP flow, different packet sizes."
+    set voip 1
+    $self next pktTraceFile
+}
+Test/tfrcOnly instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 20.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+    set pktsize 120
+    set cbrInterval 0.01
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
+    $ns_ queue-limit $node_(r1) $node_(r2) 4 
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $tf1 set voip_ $voip
+    $tf1 set packetSize_ $pktsize
+    set cbr [new Application/Traffic/CBR]
+    $cbr set packetSize_ $pktsize
+    $cbr set interval_ $cbrInterval
+    $cbr attach-agent $tf1
+    $ns_ at 2.0 "$cbr start"
+    $ns_ at $stopTime0 "$cbr stop"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_ 
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
 Class Test/voip superclass TestSuite
 Test/voip instproc init {} {
     $self instvar net_ test_ guide_ voip
-    set net_	net2
+    set net_	net2b
     set test_	voip
     set guide_  \
     "One VoIP TFRC flow and one TCP flow, different packet sizes."
@@ -1682,7 +1758,7 @@ Test/voip instproc run {} {
     }
 
     $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
-    $ns_ queue-limit $node_(r1) $node_(r2) 10 
+    $ns_ queue-limit $node_(r1) $node_(r2) 4 
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $tf1 set voip_ $voip
@@ -1691,7 +1767,7 @@ Test/voip instproc run {} {
     $cbr set packetSize_ $pktsize
     $cbr set interval_ $cbrInterval
     $cbr attach-agent $tf1
-    $ns_ at 0.0 "$cbr start"
+    $ns_ at 2.0 "$cbr start"
     $ns_ at $stopTime0 "$cbr stop"
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 1]
