@@ -30,65 +30,60 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/example.tcl,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/example.tcl,v 1.2 1998/06/19 21:02:28 kfall Exp $ (LBL)
 #
 
 #
 # Create two nodes and connect them with a 1.5Mb link with a
 # transmission delay of 10ms using FIFO drop-tail queueing
 #
-set n0 [ns node]
-set n1 [ns node]
-ns_duplex $n0 $n1 1.5Mb 10ms drop-tail
+set ns [new Simulator]
+set n0 [$ns node]
+set n1 [$ns node]
+$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 
 #
 # Set up BSD Tahoe TCP connection in opposite directions.
 #
-set src1 [ns agent tcp $n0]
-set snk1 [ns agent tcp-sink $n1]
-set src2 [ns agent tcp $n1]
-set snk2 [ns agent tcp-sink $n0]
-ns_connect $src1 $snk1
-ns_connect $src2 $snk2
-$src1 set class 1
-$src2 set class 2
+set src1 [$ns create-connection TCP $n0 TCPSink $n1 1]
+set src2 [$ns create-connection TCP $n1 TCPSink $n0 2]
 
 #
 # Create ftp sources at the each node
 #
-set ftp1 [$src1 source ftp]
-set ftp2 [$src2 source ftp]
+set ftp1 [$src1 attach-source FTP]
+set ftp2 [$src2 attach-source FTP]
 
 #
 # Start up the first ftp at the time 0 and
 # the second ftp staggered 1 second later
 #
-ns at 0.0 "$ftp1 start"
-ns at 1.0 "$ftp2 start"
+$ns at 0.0 "$ftp1 start"
+$ns at 1.0 "$ftp2 start"
 
 #
 # Create a trace and arrange for all link
 # events to be dumped to "out.tr"
 #
-set trace [ns trace]
-$trace attach [open out.tr w]
-foreach link [ns link] {
-        $link trace $trace
-}
+set tf [open out.tr w]
+$ns trace-queue $n0 $n1 $tf
+set qmon [$ns monitor-queue $n0 $n1 ""]
+set integ [$qmon get-bytes-integrator]
 
 #
 # Dump the queueing delay on the n0->n1 link
 # to stdout every second of simulation time.
 #
 proc dump { link interval } {
-	ns at [expr [ns now] + $interval] "dump $link $interval"
-	set delay [expr 8 * [$link integral qsize] / [$link get bandwidth]]
-	puts "[ns now] delay=$delay"
+	global ns integ
+	$ns at [expr [$ns now] + $interval] "dump $link $interval"
+	set delay [expr 8 * [$integ set sum_] / [[$link link] set bandwidth_]]
+	puts "[$ns now] delay=$delay"
 }
-ns at 0.0 "dump [ns link $n0 $n1] 1"
+$ns at 0.0 "dump [$ns link $n0 $n1] 1"
 
 #
 # run the simulation for 20 simulated seconds
 #
-ns at 20.0 "exit 0"
-ns run
+$ns at 20.0 "$ns halt; exit 0"
+$ns run
