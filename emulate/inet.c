@@ -16,7 +16,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.3 1998/02/23 23:50:23 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.4 1998/11/30 23:35:16 kfall Exp $ (LBL)";
 
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +28,7 @@ static const char rcsid[] =
 #include <sys/param.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #endif
 
 #include "config.h"
@@ -161,6 +162,8 @@ in_cksum(addr, len)
 
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
+#include <stdio.h>
+void
 print_ip(struct ip *ip)
 {
 	char buf[64];
