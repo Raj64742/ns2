@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.11 1997/04/04 01:06:29 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.12 1997/04/24 03:13:34 kfall Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -58,10 +58,13 @@ void QueueHandler::handle(Event*)
 	queue_.resume();
 }
 
-Queue::Queue() : drop_(0), blocked_(0), qh_(*this)
+Queue::Queue() : drop_(0), blocked_(0),
+    unblock_on_resume_(1), qh_(*this)
 {
 	Tcl& tcl = Tcl::instance();
 	bind("limit_", &qlim_);
+	bind_bool("blocked_", &blocked_);
+	bind_bool("unblock_on_resume_", &unblock_on_resume_);
 }
 
 int Queue::command(int argc, const char*const* argv)
@@ -108,10 +111,14 @@ void Queue::recv(Packet* p, Handler*)
 void Queue::resume()
 {
 	Packet* p = deque();
-	if (p != 0)
+	if (p != 0) {
 		target_->recv(p, &qh_);
-	else
-		blocked_ = 0;
+	} else {
+		if (unblock_on_resume_)
+			blocked_ = 0;
+		else
+			blocked_ = 1;
+	}
 }
 
 void Queue::reset()
