@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.27 2002/04/13 21:24:25 buchheim Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.28 2003/12/11 23:14:55 haldar Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -278,15 +278,16 @@ RNG::command(int argc, const char*const* argv)
 			default_ = this;
 			return(TCL_OK);
 		}
-#if 0
+		//#if 0
 		if (strcmp(argv[1], "test") == 0) {
-			if (test())
-				tcl.resultf("RNG test failed");
-			else
-				tcl.resultf("RNG test passed");
+			RNGTest test; test.verbose_mil();
+			//if (test())
+			//	tcl.resultf("RNG test failed");
+			//else
+			//	tcl.resultf("RNG test passed");
 			return(TCL_OK);
 		}
-#endif
+		//#endif
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "seed") == 0) {
 			int s = atoi(argv[3]);
@@ -457,6 +458,32 @@ RNGTest::first_n(RNG::RNGSources source, long seed, int n)
 		printf("%10lu ", r);
 	};
 	printf("\n");
+}
+
+void
+RNGTest::first_n_mil(RNG::RNGSources source, long seed, int n)
+{
+	RNG rng(source, seed);
+	// print the first 1000 no, then every millionth upto n millions
+	long m = n * 1000000;
+	for (int i = 0; i < m; i++) {
+		long r = rng.uniform_positive_int();
+		if (i < 100 || (i % 1000000 == 0))
+			printf("%10lu ", r);
+	};
+	printf("\n");
+}
+
+void 
+RNGTest::verbose_mil()
+{
+	printf ("default: ");
+	//first_n_mil(RNG::RAW_SEED_SOURCE, 1L, 5);
+	first_n_mil(RNG::RAW_SEED_SOURCE, 188312339, 5);
+	int i = 1;
+	printf ("predef source %2u: ", i);
+	first_n_mil(RNG::PREDEF_SEED_SOURCE, i, 5);
+	
 }
 
 void
