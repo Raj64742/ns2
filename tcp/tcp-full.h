@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.48 2001/08/22 00:05:18 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.49 2001/09/07 01:13:16 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -75,6 +75,8 @@
 #define TCPS_CLOSING            7       /* closed xchd FIN; await FIN ACK */
 #define TCPS_LAST_ACK           8       /* had fin and close; await FIN ACK */
 #define TCPS_FIN_WAIT_2         9       /* have closed, fin is acked */
+
+#define	TCP_NSTATES		10	/* total number of states */
 
 #define TCPS_HAVERCVDFIN(s) ((s) == TCPS_CLOSING || (s) == TCPS_CLOSED || (s) == TCPS_CLOSE_WAIT)
 #define	TCPS_HAVERCVDSYN(s) ((s) >= TCPS_SYN_RECEIVED)
@@ -161,7 +163,7 @@ protected:
 	int idle_restart();	// should I restart after idle?
 	int fast_retransmit(int);  // do a fast-retransmit on specified seg
 	inline double now() { return Scheduler::instance().clock(); }
-	virtual void newstate(int ns) { state_ = ns; }
+	virtual void newstate(int ns);
 
 	void finish();
 	void reset_rtx_timer(int);  	// adjust the rtx timer
@@ -204,6 +206,9 @@ protected:
 	void dooptions(Packet*);	// process option(s)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
 	void cancel_timers();		// cancel all timers
+	void prpkt(Packet*);		// print packet (debugging helper)
+	char *flagstr(int);		// print header flags as symbols
+	char *statestr(int);		// print states as symbols
 
 	/*
 	* the following are part of a tcpcb in "real" RFC793 TCP
