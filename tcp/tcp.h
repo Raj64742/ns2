@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.105 2003/01/25 04:52:45 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.106 2003/01/27 02:34:38 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -220,6 +220,7 @@ protected:
 				/* Limited slow-start for high windows */
 	virtual int numdupacks(double cwnd); 	/* for getting numdupacks_ */
 	virtual void processQuickStart(Packet *pkt);
+	virtual void endQuickStart();
 
 	/* Helper functions. Currently used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }

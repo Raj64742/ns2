@@ -97,7 +97,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
         if (qs_approved_ == 1 && tcph->seqno() > last_ack_)
-                qs_approved_ = 0;
+		endQuickStart();
         if (qs_requested_ == 1)
                 processQuickStart(pkt);
 #ifdef notdef

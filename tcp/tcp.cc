@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.141 2003/01/25 04:52:45 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.142 2003/01/27 02:34:38 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -782,7 +782,8 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 				process_qoption_after_send () ; 
 			t_seqno_ ++ ;
 			if (qs_approved_ == 1) {
-				double delay = (double) t_rtt_ * tcp_tick_ / cwnd_;
+				// delay = effective RTT / window
+				double delay = (double) t_rtt_ * tcp_tick_ / win;
 				delsnd_timer_.resched(delay);
 				return;
 			}
@@ -1392,6 +1393,21 @@ tahoe_action:
 	return;
 }
 
+/*
+ * When exiting QuickStart, reduce the congestion window to the
+ *   size that was actually used.
+ */
+void TcpAgent::endQuickStart()
+{
+	qs_approved_ = 0;
+	int new_cwnd = maxseq_ - last_ack_;
+	if (new_cwnd > 1 && new_cwnd < cwnd_) {
+	 	cwnd_ = new_cwnd;
+		if (cwnd_ < initial_window()) 
+			cwnd_ = initial_window();
+	}
+}
+
 void TcpAgent::processQuickStart(Packet *pkt)
 {
 	// QuickStart code from Srikanth Sundarrajan.
@@ -1427,11 +1443,11 @@ void TcpAgent::processQuickStart(Packet *pkt)
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
+#ifdef notdef
 	if (qs_approved_ == 1 && tcph->seqno() > last_ack_) 
-		qs_approved_ = 0;
+		endQuickStart();
 	if (qs_requested_ == 1)
 		processQuickStart(pkt);
-#ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
 				      name());
@@ -1504,6 +1520,7 @@ void TcpAgent::timeout(int tno)
 		trace_event("TIMEOUT");
 
 	        if (cwnd_ < 1) cwnd_ = 1;
+		if (qs_approved_ == 1) qs_approved_ = 0;
 		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
 			/*
 			 * TCP option:
