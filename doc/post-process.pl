@@ -99,7 +99,7 @@ sub change_title {
     open(OUTFILE, ">$outFile") || die "Cannot create temp file $_";
     while (<FILE>) {
 	s/^(<FONT SIZE="\+2">)\s*title/$1 $title/ && ($change = 1);
-	s/^author(<\/TD>)/$author $1/ && ($change = 1);
+	s/author(<\/TD>)/$author $1/ && ($change = 1);
 	s/^(<FONT SIZE="\+1">)date/$1$month $day, $year/ && ($change = 1);
 	print OUTFILE;
     }				# while
