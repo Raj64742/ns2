@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.3 1997/04/03 22:08:56 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.4 1997/04/08 01:40:43 padmanab Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -157,7 +157,7 @@ proc finish file {
 	exec head -1 temp.d >@ $f
 	exec cat temp.d >@ $f
 	close $f
-	exec xgraph -display joyride:0.1 -bb -tk -nl -m -x time -y packet temp.rands &
+	exec xgraph -bb -tk -nl -m -x time -y packet temp.rands &
 	
 	exit 0
 }
