@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.21 2002/09/17 03:44:35 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.22 2002/10/23 23:20:40 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -55,7 +55,7 @@ public:
 		numSeqnos_(0),
 		//variables for flow rate estimation
 		estimate_rate_(0), k_(0.1), estRate_(0.0), 
-		srcId_(0), dstId_(0), channel_(0),
+		srcId_(0), dstId_(0), channel_(0), channel1_(0),
 		temp_size_(0) {
 		
 		bind("size_", &size_);
@@ -150,6 +150,7 @@ protected:
 	int srcId_;
 	int dstId_;
 	Tcl_Channel channel_;
+	Tcl_Channel channel1_;
 
 	// the estimation of incoming rate using an exponential averaging algorithm due to Stoica
 	// hence a lot of this stuff is inspired by csfq.cc(Stoica)

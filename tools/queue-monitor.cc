@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.27 2002/09/19 23:19:17 sfloyd Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.28 2002/10/23 23:20:40 sfloyd Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -68,13 +68,13 @@ int QueueMonitor::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "printRTTs") == 0) {
-			if (keepRTTstats_) {
+			if (keepRTTstats_ && channel1_) {
 				printRTTs();
 			} 
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "printSeqnos") == 0) {
-			if (keepSeqnoStats_) {
+			if (keepSeqnoStats_ && channel1_) {
 				printSeqnos();
 			} 
 			return (TCL_OK);
@@ -104,10 +104,22 @@ int QueueMonitor::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "trace") == 0) {
+			// for printStats
 			int mode;
 			const char* id = argv[2];
 			channel_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
 						if (channel_ == 0) {
+				tcl.resultf("trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "traceDist") == 0) {
+			// for printRTTs and printSeqnos distributions
+			int mode;
+			const char* id = argv[2];
+			channel1_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+						if (channel1_ == 0) {
 				tcl.resultf("trace: can't attach %s for writing", id);
 				return (TCL_ERROR);
 			}
@@ -133,50 +145,64 @@ static class QueueMonitorClass : public TclClass {
 	}
 } queue_monitor_class;
 
+
 void
 QueueMonitor::printRTTs() {
-	int i, topBin, MsPerBin;
+	int i, n, topBin, MsPerBin;
+	char wrk[500];
 
 	topBin = maxRTT_ * binsPerSec_;
 	MsPerBin = int(1000/binsPerSec_);
 	double now = Scheduler::instance().clock();
-	printf("Distribution of RTTs, %d ms bins, time %4.2f \n", 
-	    MsPerBin, now);
+	sprintf(wrk, "Distribution of RTTs, %d ms bins, time %4.2f\n", MsPerBin, now);
+	n = strlen(wrk); wrk[n] = 0;
+	(void)Tcl_Write(channel1_, wrk, n);
 	for (i = 0; i < topBin; i++) {
 		if (RTTbins_[i] > 0) {
-		   	printf("%d to %d ms: frac %5.3f num %d time %4.2f\n", 
+		   	sprintf(wrk, "%d to %d ms: frac %5.3f num %d time %4.2f\n", 
 		   	  i*MsPerBin, (i+1)*MsPerBin, 
 			  (double)RTTbins_[i]/numRTTs_,
 		   	  RTTbins_[i], now); 
+			n = strlen(wrk); wrk[n] = 0; 
+			(void)Tcl_Write(channel1_, wrk, n);
 		}
 	}
 	i = topBin - 1;
 	if (RTTbins_[i] > 0) {
-		printf("The last bin might also contain RTTs >= %d ms.\n",
+		sprintf(wrk, "The last bin might also contain RTTs >= %d ms.\n",
 		(i+1)*MsPerBin);
+		n = strlen(wrk); wrk[n] = 0;
+		(void)Tcl_Write(channel1_, wrk, n);
 	}
 }
 
 void
 QueueMonitor::printSeqnos() {
-	int i, topBin; 
+	int i, n, topBin; 
+	char wrk[500];
 
 	topBin = int(maxSeqno_ / SeqnoBinSize_);
 	double now = Scheduler::instance().clock();
-	printf("Distribution of Seqnos, %d seqnos per bin, time %4.2f\n", 
+	sprintf(wrk, "Distribution of Seqnos, %d seqnos per bin, time %4.2f\n", 
 	   SeqnoBinSize_, now);
+ 	n = strlen(wrk); wrk[n] = 0;
+	(void)Tcl_Write(channel1_, wrk, n);
 	for (i = 0; i < topBin; i++) {
 		if (SeqnoBins_[i] > 0) {
-		   	printf("%d to %d seqnos: frac %5.3f num %d time %4.2f\n", 
+		   	sprintf(wrk, "%d to %d seqnos: frac %5.3f num %d time %4.2f\n", 
 		   	  i*SeqnoBinSize_, (i+1)*SeqnoBinSize_ - 1, 
 			  (double)SeqnoBins_[i]/numSeqnos_,
 		   	  SeqnoBins_[i], now); 
+			n = strlen(wrk); wrk[n] = 0;
+			(void)Tcl_Write(channel1_, wrk, n);
 		}
 	}
 	i = topBin - 1;
 	if (SeqnoBins_[i] > 0) {
-		printf("The last bin might also contain Seqnos >= %d. \n",
+		sprintf(wrk, "The last bin might also contain Seqnos >= %d. \n",
 		(i+1)*SeqnoBinSize_);
+		n = strlen(wrk); wrk[n] = 0;
+		(void)Tcl_Write(channel1_, wrk, n);
 	}
 }
 

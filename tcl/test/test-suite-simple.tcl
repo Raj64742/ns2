@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.27 2002/10/15 01:48:48 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.28 2002/10/23 23:20:40 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1618,6 +1618,9 @@ Test/stats3 instproc run {} {
 
 	set slink [$ns_ link $node_(r1) $node_(r2)]; 
 	set fmon [new QueueMonitor]
+	#set outfile [open temp.stats w]
+	set outfile stdout
+	$fmon traceDist $outfile
 	$ns_ attach-fmon $slink $fmon
 
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
