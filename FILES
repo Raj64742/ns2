@@ -640,6 +640,8 @@ parentnode.h
 pareto.cc
 phy.cc
 phy.h
+pi.cc
+pi.h
 ping.cc
 ping.h
 pkt-counter.cc
@@ -859,6 +861,7 @@ tcl/ex/nam-large-flowid.tcl
 tcl/ex/nam-separate-trace.tcl
 tcl/ex/nam-simplexlink.tcl
 tcl/ex/omni-run.tcl
+tcl/ex/picoeff.m
 tcl/ex/ranvar.tcl
 tcl/ex/ranvar.txt
 tcl/ex/rbp_demo.tcl
@@ -1240,6 +1243,7 @@ tcl/test/test-all-mpls
 tcl/test/test-all-newreno
 tcl/test/test-all-nixvec
 tcl/test/test-all-oddBehaviors
+tcl/test/test-all-pi
 tcl/test/test-all-plm
 tcl/test/test-all-pushback
 tcl/test/test-all-rap
@@ -1626,6 +1630,11 @@ tcl/test/test-output-nixvec/NixVec.Z
 tcl/test/test-output-nixvec/NoNixVec.Z
 tcl/test/test-output-nixvec/quite.Z
 tcl/test/test-output-oddBehaviors/onedrop_reno.Z
+tcl/test/test-output-pi/ecn.Z
+tcl/test/test-output-pi/pi1.Z
+tcl/test/test-output-pi/pi2.Z
+tcl/test/test-output-pi/pi_twoway.Z
+tcl/test/test-output-pi/pi_twowaybytes.Z
 tcl/test/test-output-plm/PLM.Z
 tcl/test/test-output-pushback/A_ACC.Z
 tcl/test/test-output-pushback/A_Push.Z
@@ -2061,6 +2070,7 @@ tcl/test/test-suite-mpls.tcl
 tcl/test/test-suite-newreno.tcl
 tcl/test/test-suite-nixvec.tcl
 tcl/test/test-suite-oddBehaviors.tcl
+tcl/test/test-suite-pi.tcl
 tcl/test/test-suite-plm.tcl
 tcl/test/test-suite-pushback.tcl
 tcl/test/test-suite-rap.tcl
