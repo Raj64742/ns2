@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.45 2003/10/23 21:09:45 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.46 2003/12/10 21:06:57 xuanc Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -51,6 +51,9 @@
 #include "mac-802_11.h"
 #include "cmu-trace.h"
 
+// Added by Sushmita to support event tracing
+#include "agent.h"
+#include "basetrace.h"
 
 // XXX Can't we make these macros inline methods? Otherwise why should we have
 // inline methods at all??
@@ -313,7 +316,7 @@ Mac802_11::Mac802_11() : Mac(), mhIF_(this), mhNav_(this), mhRecv_(this), mhSend
 	
 	tx_state_ = rx_state_ = MAC_IDLE;
 	tx_active_ = 0;
-	
+
 	// change wrt Mike
 	eotPacket_ = NULL;
 	// change ends
@@ -329,7 +332,7 @@ Mac802_11::Mac802_11() : Mac(), mhIF_(this), mhNav_(this), mhRecv_(this), mhSend
 
 
 	ssrc_ = slrc_ = 0;
-	
+
 	// change wrt Mike's code
 
 	//sifs_ = phymib_->SIFSTime;
@@ -342,6 +345,9 @@ Mac802_11::Mac802_11() : Mac(), mhIF_(this), mhNav_(this), mhRecv_(this), mhSend
 	//tx_sifs_ = sifs_ - phymib_->RxTxTurnaroundTime;
 	//tx_pifs_ = tx_sifs_ + phymib_->SlotTime;
 	//tx_difs_ = tx_sifs_ + 2 * phymib_->SlotTime;
+
+	// Added by Sushmita
+        et_ = new EventTrace();
 	
 	sta_seqno_ = 1;
 	cache_ = 0;
@@ -408,9 +414,48 @@ Mac802_11::command(int argc, const char*const* argv)
 			assert(cache_);
 			bzero(cache_, sizeof(Host) * (cache_node_count_+1 ));
 			return TCL_OK;
-		}
+		} else if(strcmp(argv[1], "eventtrace") == 0) {
+			// command added to support event tracing by Sushmita
+                        et_ = (EventTrace *)TclObject::lookup(argv[2]);
+                        return (TCL_OK);
+                }
 	}
 	return Mac::command(argc, argv);
+}
+
+// Added by Sushmita to support event tracing
+void Mac802_11::trace_event(char *eventtype, Packet *p) {
+        if (et_ == NULL) return;
+        char *wrk = et_->buffer();
+        char *nwrk = et_->nbuffer();
+	
+        hdr_ip *iph = hdr_ip::access(p);
+        //char *src_nodeaddr =
+	//       Address::instance().print_nodeaddr(iph->saddr());
+        //char *dst_nodeaddr =
+        //      Address::instance().print_nodeaddr(iph->daddr());
+	
+        struct hdr_mac802_11* dh = HDR_MAC802_11(p);
+	
+        //struct hdr_cmn *ch = HDR_CMN(p);
+	
+	if(wrk != 0) {
+		sprintf(wrk, "E -t "TIME_FORMAT" %s %2x ",
+			et_->round(Scheduler::instance().clock()),
+                        eventtype,
+                        //ETHER_ADDR(dh->dh_sa)
+                        ETHER_ADDR(dh->dh_ta)
+                        );
+        }
+        if(nwrk != 0) {
+                sprintf(nwrk, "E -t "TIME_FORMAT" %s %2x ",
+                        et_->round(Scheduler::instance().clock()),
+                        eventtype,
+                        //ETHER_ADDR(dh->dh_sa)
+                        ETHER_ADDR(dh->dh_ta)
+                        );
+        }
+        et_->dump();
 }
 
 /* ======================================================================

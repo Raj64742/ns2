@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.22 2003/09/27 01:01:31 aditi Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.23 2003/12/10 21:06:57 xuanc Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -40,8 +40,14 @@
 #ifndef ns_mac_80211_h
 #define ns_mac_80211_h
 
+// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
+#include "address.h"
+#include "ip.h"
+
 #include "mac-timers.h"
 #include "marshall.h"
+
+class EventTrace;
 
 #define GET_ETHER_TYPE(x)		GET2BYTE((x))
 #define SET_ETHER_TYPE(x,y)            {u_int16_t t = (y); STORE2BYTE(x,&t);}
@@ -342,18 +348,20 @@ class Mac802_11 : public Mac {
 	friend class RxTimer;
 	friend class TxTimer;
 public:
-// change wrt Mike's code
+	// change wrt Mike's code
 	Mac802_11();
-//	Mac802_11(PHY_MIB* p, MAC_MIB *m);
+	//	Mac802_11(PHY_MIB* p, MAC_MIB *m);
 	void		recv(Packet *p, Handler *h);
 	inline int	hdr_dst(char* hdr, int dst = -2);
 	inline int	hdr_src(char* hdr, int src = -2);
 	inline int	hdr_type(char* hdr, u_int16_t type = 0);
-
-// change wrt Mike's code
+	
+	// change wrt Mike's code
 	inline int bss_id() { return bss_id_; }
-
-
+	
+	// Added by Sushmita to support event tracing
+        void trace_event(char *, Packet *);
+        EventTrace *et_;
 
 protected:
 	void	backoffHandler(void);
