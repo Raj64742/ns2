@@ -347,15 +347,15 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    # Trace Sent Packets
 	    #
 	    set sndT [cmu-trace Send "MAC" $self]
-	    $sndT target [$mac sendtarget]
-	    $mac sendtarget $sndT
+	    $sndT target [$mac down-target]
+	    $mac down-target $sndT
 
 	    #
 	    # Trace Received Packets
 	    #
 	    set rcvT [cmu-trace Recv "MAC" $self]
-	    $rcvT target [$mac recvtarget]
-	    $mac recvtarget $rcvT
+	    $rcvT target [$mac up-target]
+	    $mac up-target $rcvT
 
 	    #
 	    # Trace Dropped Packets
