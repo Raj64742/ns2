@@ -112,6 +112,11 @@ tcl/ex/test-emulator.tcl
 tcl/ex/test-suite.tcl
 tcl/ex/tg.tcl
 tcl/ex/tg-nam.tcl
+tcl/ex/newmcast/cmcast-100.tcl
+tcl/ex/newmcast/cmcast-150.tcl
+tcl/ex/newmcast/cmcast-200.tcl
+tcl/ex/newmcast/cmcast-250.tcl
+tcl/ex/newmcast/cmcast-big.txt
 tcl/ex/newmcast/cmcast-nam.tcl
 tcl/ex/newmcast/cmcast-spt.tcl
 tcl/ex/newmcast/cmcast.tcl

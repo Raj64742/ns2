@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.71 1997/05/22 20:55:52 polly Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.72 1997/05/23 01:08:48 polly Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -17,6 +17,13 @@
 
 <ul>
 <li><b><a href="http://www-scf.usc.edu/~bhuang">[PH]</a></b>
+<b>Thu May 22 18:03:36 PDT 1997</b><br>
+<ul>
+<li> Added larger scale test files. 
+tcl/ex/newmcast/cmcast-[100,150,200,250].tcl, tcl/ex/newmcast/cmcast-big.txt
+</ul>
+
+<li><b><a href="http://www-scf.usc.edu/~bhuang">[PH]</a></b>
 <b>Thu May 22 13:33:56 PDT 1997</b><br>
 <ul>
 <li> Moved agents that handles IP mcast packet encapsulation and decapsulation
@@ -25,8 +32,8 @@ to C++.
 <li> Added prune propagation for dense mode mcast. Patch provided by <a href="mailto:I.Kouvelas@cs.ucl.ac.uk">Isidor Kouvelas</a> and <a href="mailto:L.Vicisano@cs.ucl.ac.uk">Lorenzo Vicisano</a> (actually this change was committed two days ago)
 <li> Files added: ctrMcast.cc, ctrMcast.h, tcl/ex/newmcast/cmcast-spt.tcl
 <li> Files changed:tcl/ctr-mcast/CtrMcast.tcl, tcl/ctr-mcast/CtrMcastComp.tcl,
-tcl/lib/ns-packet.tcl, tcl/mcast/ns-mcast.tcl, tcl/mcast/DM.tcl, 
-Makefile.in, FILES, CHANGES.html
+tcl/lib/ns-packet.tcl, trace.h tcl/mcast/ns-mcast.tcl, tcl/mcast/DM.tcl, 
+Makefile.in, FILES, CHANGES.html tcl/ex/newmcast/*.tcl
 </ul>
 
 <li><b><a href="mailto:tomh@cs.berkeley.edu">[TH]</a></b>
