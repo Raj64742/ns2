@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.8 1999/12/20 03:03:26 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.9 2000/05/03 01:23:59 tomh Exp $";
 #endif
 
 #include "satroute.h"
@@ -172,7 +172,6 @@ void SatRouteAgent::recv (Packet * p, Handler *)
 
 	if (iph->saddr() == myaddr_ && cmh->num_forwards() == 0) {
 	 	// Must be a packet I'm originating... add the IP header
-		cmh->size() += IP_HDR_LEN;    
 		iph->ttl_ = IP_DEF_TTL;
 	} else if (iph->saddr() == myaddr_) {
 		// I received a packet that I sent.  Probably a routing loop.
