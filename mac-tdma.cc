@@ -24,7 +24,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-tdma.cc,v 1.9 2000/11/02 23:14:18 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-tdma.cc,v 1.10 2001/01/09 05:00:48 xuanc Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -141,11 +141,9 @@ public:
 } class_mac_tdma;
 
 
-/* Mac Tdma definitions:
-   TDMA frame format:
-   S1 S2 S3.....R1 R2 R3....Bcast
-*/
-
+// Mac Tdma definitions
+// Frame format:
+// Pamble Slot1 Slot2 Slot3...
 MacTdma::MacTdma(PHY_MIB* p) : 
 	Mac(), mhSlot_(this), mhTxPkt_(this), mhRxPkt_(this)
 {
