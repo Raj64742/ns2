@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/template.h,v 1.7 1997/08/21 01:41:09 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/template.h,v 1.8 1997/08/21 02:36:55 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_template_h
@@ -52,12 +52,32 @@ inline int min(int a, int b)
 	return a < b ? a : b;
 }
 
+inline double min(int a, double b)
+{
+	return a < b ? a : b;
+}
+
+inline double min(double a, int b)
+{
+	return a < b ? a : b;
+}
+
 inline double min(double a, double b)
 {
 	return a < b ? a : b;
 }
 
 inline int max(int a, int b)
+{
+	return a < b ? b : a;
+}
+
+inline double max(int a, double b)
+{
+	return a < b ? b : a;
+}
+
+inline double max(double a, int b)
 {
 	return a < b ? b : a;
 }
