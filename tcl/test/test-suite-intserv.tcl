@@ -18,7 +18,7 @@
 #
 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.6 1999/07/01 00:11:03 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.7 1999/12/15 15:55:04 heideman Exp $
 #
 
 # 
@@ -72,7 +72,8 @@ TestSuite instproc init {} {
 	$self defaults
 
 	set ns_ [new Simulator]
-	$ns_ expand-port-field-bits 16
+	# next line no longer needed with 32-bit addressing, Nov '99.
+	# $ns_ expand-port-field-bits 16
 
 	TestSuite setinstance $self
 
