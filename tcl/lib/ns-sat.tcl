@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.4 1999/07/02 01:17:18 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.5 1999/08/29 01:29:14 tomh Exp $
 
 
 # ======================================================================
@@ -577,6 +577,7 @@ Trace/Sat/Generic instproc init {} {
 
 Node/SatNode set dist_routing_ "false"; # distributed routing not yet supported
 Position/Sat set time_advance_ 0; # time offset to start of simulation 
+Position/Sat/Polar set plane_ 0
 HandoffManager/Term set elevation_mask_ 0
 HandoffManager/Term set term_handoff_int_ 10
 HandoffManager/Sat set sat_handoff_int_ 10

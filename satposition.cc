@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.5 1999/07/18 20:02:08 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.6 1999/08/29 01:28:46 tomh Exp $";
 #endif
 
 #include "satposition.h"
@@ -92,7 +92,6 @@ public:
 	}
 } class_satposition;
 
-int PolarSatPosition::num_planes_ = 0;
 double SatPosition::time_advance_ = 0;
 
 SatPosition::SatPosition() : node_(0)  
@@ -220,11 +219,9 @@ coordinate TermSatPosition::getCoordinate()
 PolarSatPosition::PolarSatPosition(double altitude, double Inc, double Lon, 
     double Alpha, double Plane) : next_(0), plane_(0) {
 	set(altitude, Lon, Alpha, Inc);
-        if (Plane) {
+        bind("plane_", &plane_);
+        if (Plane) 
 		plane_ = int(Plane);
-		if (plane_ > num_planes_)
-			num_planes_ = plane_;
-	}
 	type_ = POSITION_SAT_POLAR;
 }
 
@@ -247,7 +244,7 @@ void PolarSatPosition::set(double Altitude, double Lon, double Alpha, double Inc
 		   bounds: %f\n", Altitude);
 		exit(1);
 	}
-	initial_.r = Altitude + 6378; // Altitude in km above the earth
+	initial_.r = Altitude + EARTH_RADIUS; // Altitude in km above the earth
 	if (Alpha < 0 || Alpha >= 360) {
 		fprintf(stderr, "PolarSatPosition:  alpha out of bounds: %f\n", 
 		    Alpha);
@@ -287,7 +284,7 @@ coordinate PolarSatPosition::getCoordinate()
 	double partial;  // fraction of orbit period completed
 	// XXX: can't use "num = pow(initial_.r,3)" here because of linux lib
 	double num = initial_.r * initial_.r * initial_.r;
-	double period = 2 * PI * sqrt(num/398601.2); // seconds
+	double period = 2 * PI * sqrt(num/MU); // seconds
 	partial = 
 	    (fmod(NOW + time_advance_, period)/period) * 2*PI; //rad
 	double theta_cur, phi_cur, theta_new, phi_new;
@@ -355,13 +352,7 @@ int PolarSatPosition::command(int argc, const char*const* argv) {
         if (argc == 2) {
 	}
 	if (argc == 3) {
-		if (strcmp(argv[1], "set_plane") == 0) {
-			plane_ = atoi(argv[2]);
-			if (plane_ > PolarSatPosition::num_planes_)
-				PolarSatPosition::num_planes_ = plane_;
-			return (TCL_OK);
-		}
-		else if (strcmp(argv[1], "set_next") == 0) {
+		if (strcmp(argv[1], "set_next") == 0) {
 			next_ = (PolarSatPosition *) TclObject::lookup(argv[2]);
 			if (next_ == 0) {
 				tcl.resultf("no such object %s", argv[2]);
@@ -391,7 +382,7 @@ coordinate GeoSatPosition::getCoordinate()
 	current.r = initial_.r;
 	current.theta = initial_.theta;
 	double fractional = 
-	    (fmod(NOW + time_advance_, 86164)/86164) * 2*PI; // radians
+	    (fmod(NOW + time_advance_, EARTH_PERIOD)/EARTH_PERIOD) *2*PI; // rad
 	current.phi = fmod(initial_.phi + fractional, 2*PI);
 	return current;
 }

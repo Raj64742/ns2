@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.4 1999/07/18 20:02:09 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.5 1999/08/29 01:28:46 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -80,13 +80,11 @@ class PolarSatPosition : public SatPosition {
 	double get_altitude() { return initial_.r; }
 	PolarSatPosition* next() { return next_; }
 	int plane() { return plane_; }
-	static int num_planes() { return num_planes_; }
 
  protected:
         int command(int argc, const char*const* argv);
         PolarSatPosition* next_;    // Next intraplane satellite
 	int plane_;  // Orbital plane that this satellite resides in
-	static int num_planes_; // Number of planes
 	double inclination_; // radians
 
 	

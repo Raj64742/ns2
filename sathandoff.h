@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.h,v 1.2 1999/07/18 20:02:10 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.h,v 1.3 1999/08/29 01:28:45 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -104,7 +104,7 @@ public:
 	TermLinkHandoffMgr();
 	int handoff();
 protected:
-	int check_elevation(coordinate, coordinate);
+	double check_elevation(coordinate, coordinate);
 	TermHandoffTimer timer_;
 	static double elevation_mask_;
 	static int term_handoff_int_;

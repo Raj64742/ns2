@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.3 1999/07/18 20:02:10 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.4 1999/08/29 01:28:45 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -205,7 +205,9 @@ TermLinkHandoffMgr::TermLinkHandoffMgr() : timer_(this)
 	bind("term_handoff_int_", &term_handoff_int_);
 }
 
-int TermLinkHandoffMgr::check_elevation(coordinate satellite,
+// Returns with the elevation (in radians) if above the elevation mask
+// Zero otherwise
+double TermLinkHandoffMgr::check_elevation(coordinate satellite,
     coordinate terminal)
 {
 
@@ -221,7 +223,7 @@ int TermLinkHandoffMgr::check_elevation(coordinate satellite,
 		// elevation angle > 0
 		theta = acos((E_2+S_2-(d*d))/(2*E*S));
 		alpha = acos(sin(theta) * S/d);
-		return (alpha > elev_mask_);
+		return ( (alpha > elev_mask_) ? alpha : 0);
 	} else
 		return 0;
 }
@@ -240,11 +242,13 @@ int TermLinkHandoffMgr::handoff()
 	LinkHead* lhp;
 	SatLinkHead* slhp;
 	SatNode* peer_; // Polar satellite at opposite end of the GSL
+	SatNode* best_peer_; // Best found peer for handoff
 	Node* nodep_;  // Pointer used in searching the list of nodes
 	PolarSatPosition* nextpos_;
 	int link_changes_flag_ = FALSE; // Flag indicating change took place 
 	int restart_timer_flag_ = FALSE; // Restart timer only if polar links
-	int found_flag_ = FALSE;  // Flag indicates whether handoff can occur 
+	double found_flag_ = 0;  //``Flag'' indicates whether handoff can occur 
+	double best_found_flag_ = 0; 
 
 	earth_coord = ((SatNode *)node_)->position()->getCoordinate();
 	// Traverse the linked list of link interfaces
@@ -280,9 +284,8 @@ int TermLinkHandoffMgr::handoff()
 			// If link is down, see if we can use another satellite
 			// 
 			// As an optimization, first check the next satellite 
-			// coming over the horizon.  Next, consider satellites
-			// in a plane neighboring our current one.  Finally,
-			// consider all remaining satellites.
+			// coming over the horizon.  Next, consider all 
+			// remaining satellites.
 			// 
 			if (peer_) {
 				// Next satellite
@@ -301,7 +304,7 @@ int TermLinkHandoffMgr::handoff()
 				    nodep_ = nodep_->nextnode()) {
 					peer_ = (SatNode*) nodep_;
 					if (peer_->position() && 
-					    (peer_->position()->type() !=
+					    (peer_->position()->type() != 
 					    POSITION_SAT_POLAR))
 						    continue;
 					sat_coord = 
@@ -309,8 +312,14 @@ int TermLinkHandoffMgr::handoff()
 					found_flag_ = 
 					    check_elevation(sat_coord, 
 					    earth_coord);
-					if (found_flag_)
-						break;
+					if (found_flag_ > best_found_flag_) {
+					    best_peer_ = peer_;
+					    best_found_flag_ = found_flag_;
+					}
+				}
+				if (best_found_flag_) {
+					peer_ = best_peer_;
+					found_flag_ = best_found_flag_;
 				}
 			}
 			if (found_flag_) {

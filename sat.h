@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sat.h,v 1.2 1999/07/18 20:02:11 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sat.h,v 1.3 1999/08/29 01:28:44 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -39,12 +39,16 @@
 #ifndef __ns_sat_h__
 #define __ns_sat_h__
 
+#include <math.h>
+
 // Various constants
-#define EARTH_RADIUS 6378  // km
-#define EARTH_PERIOD 86164 // seconds
-#define GEO_ALTITUDE 35786 // km
 #define PI 3.1415926535897
+#define MU 398601.2 // Greek Mu (km^3/s^2)
 #define LIGHT 299793 // km/s
+#define EARTH_PERIOD 86164 // seconds
+#define EARTH_RADIUS 6378  // km
+#define GEO_ALTITUDE 35786 // km
+
 #define DEG_TO_RAD(x) ((x) * PI/180)
 #define RAD_TO_DEG(x) ((x) * 180/PI)
 #define DISTANCE(s_x, s_y, s_z, e_x, e_y, e_z) (sqrt((s_x - e_x) * (s_x - e_x) \
