@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.33 1998/06/27 01:24:29 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.34 1999/01/07 19:01:57 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -377,7 +377,12 @@ void REDQueue::enque(Packet* pkt)
 		if (qavg >= edp_.th_max) {
 			droptype = DTYPE_FORCED;
 		} else if (edv_.old == 0) {
-			// SALLY: would like a comment here
+			/* 
+			 * The average queue size has just crossed the
+			 * threshold from below to above "minthresh", or
+			 * from above "minthresh" with an empty queue to
+			 * above "minthresh" with a nonempty queue.
+			 */
 			edv_.count = 1;
 			edv_.count_bytes = ch->size();
 			edv_.old = 1;
@@ -385,8 +390,9 @@ void REDQueue::enque(Packet* pkt)
 			droptype = DTYPE_UNFORCED;
 		}
 	} else {
+		/* No packets are being dropped.  */
 		edv_.v_prob = 0.0;
-		edv_.old = 0;		// explain
+		edv_.old = 0;		
 	}
 	if (qlen >= qlim) {
 		// see if we've exceeded the queue size
