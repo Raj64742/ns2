@@ -1,5 +1,27 @@
-#ifndef net_interface_cc
-#define net_interface_cc
+/*
+ * net-interface.cc
+ * Copyright (C) 1997 by USC/ISI
+ * All rights reserved.                                            
+ *                                                                
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * 
+ */
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.2 1997/07/23 00:57:03 kfall Exp $ (USC/ISI)";
+#endif
 
 #include "connector.h"
 #include "packet.h"
@@ -31,7 +53,7 @@ void NetworkInterface::recv(Packet* pkt, Handler* h)
 static class NetworkInterfaceClass : public TclClass {
 public:
 	NetworkInterfaceClass() : TclClass("networkinterface") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
                 return (new NetworkInterface);
 	}
 } class_networkinterface;
@@ -46,5 +68,3 @@ int NetworkInterface::command(int argc, const char*const* argv)
         }
         return (Connector::command(argc, argv));
 }
-
-#endif 
