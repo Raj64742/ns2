@@ -43,6 +43,7 @@ Agent/QSAgent set qs_enabled_ 1
 Agent/QSAgent set state_delay_ 0.35  
 # 0.35 seconds for past approvals
 Agent/TCP/Newreno/QS set rbp_scale_ 1.0
+Agent/TCP/Newreno/QS set rate_request_ 20
 Agent/TCPSink set qs_enabled_ true
 Agent/TCP set qs_enabled_ true
 
@@ -134,8 +135,8 @@ Test/quickstart instproc init {} {
     set test_ quickstart	
     set guide_  \
     "Two TCPs, TCP/Newreno/QS, with QuickStart."
-    set sndr TCP/Newreno
-    set rcvr TCPSink
+    set sndr TCP/Newreno/QS
+    set rcvr TCPSink/QS
     set qs ON
     Agent/TCP/Newreno/QS set rate_request_ 20
     Test/quickstart instproc run {} [Test/no_quickstart info instbody run ]
@@ -276,5 +277,58 @@ Test/bad_router instproc run {} {
     $ns_ run
 }
 
+# This one is not working right yet.
+Class Test/changing_rtt -superclass TestSuite
+Test/changing_rtt instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net2
+    set test_ changing_rtt	
+    set guide_  \
+    "Changing round-trip times."
+    set sndr TCP/Sack1
+    set rcvr TCPSink/Sack1
+    set qs ON
+    $self next pktTraceFile
+}
+Test/changing_rtt instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    if {$quiet == "false"} {puts $guide_}
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 6
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 20
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 3.1 "$ns_ delay $node_(r1) $node_(r2) 100ms duplex"
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+# This one is not working right yet.
+Class Test/changing_rtt1 -superclass TestSuite
+Test/changing_rtt1 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net2
+    set test_ changing_rtt1	
+    set guide_  \
+    "Changing round-trip times."
+    set sndr TCP/Newreno/QS
+    set rcvr TCPSink/QS
+    set qs ON
+    Test/changing_rtt1 instproc run {} [Test/changing_rtt info instbody run ]
+    $self next pktTraceFile
+}
 TestSuite runTest
 
