@@ -162,7 +162,7 @@ NetIface instproc ifqType {val} { $self set ifqType_ $val }
 NetIface instproc macType {val} { $self set macType_ $val }
 
 NetIface instproc init {node bw args} {
-	$self init-all-vars $class
+	set args [eval $self init-vars $args]
 	eval $self next $args
 	$self instvar ifqType_ macType_
 	$self instvar node_ lcl_ ifq_ mac_ drpT_ deqT_
@@ -207,8 +207,7 @@ LanLink instproc macType {val} { $self set macType_ $val }
 LanLink instproc chanType {val} { $self set chanType_ $val }
 
 LanLink instproc init {ns args} {
-	$self init-all-vars $class
-	eval $self next $args
+	set args [eval $self init-vars $args]
 	$self instvar llType_ ifqType_ macType_ chanType_
 	$self instvar ns_ nodelist_
 	$self instvar id_ channel_ mcl_ netIface_
