@@ -432,6 +432,94 @@ The costs assigned to links
 are used in unicast route computations.
 All the links default
 to a cost of 1.
+.IP "\fB$ns multi-link\fI node-list bw delay type\fP"
+Connects the nodes specified in
+.I node-list
+by a mesh of duplex links
+(to simulate a broadcast LAN)
+with bandwidth
+.I bw
+in bits per second
+and link propagation delay
+.I delay
+in seconds.
+.I node-list
+is a list of node object handles
+that have already been created with the
+.I node
+method.
+.I bw
+and
+.I delay
+default to
+1.5 Mbits/sec and 100 ms respectively.
+The defaults can be changed by modifying 
+the relevant configuration parameters of the 
+DelayLink Object (see DELAYLINK OBJECTS section).
+The queuing discipline of the link is specified by
+.I type,
+which may be
+.B DropTail,
+.B FQ
+.B SFQ,
+.B DRR,
+.B RED,
+.B CBQ,
+or 
+.B CBQ/WRR.
+A DropTail link is a simple FIFO queue which drops the last packet
+in the queue when the queue overflows.
+A FQ link is for Fair Queuing (for details see [?]).
+A SFQ link is for Stochastic Fair Queuing (for details see [?]).
+A DRR link is for deficit round robin scheduling (for details see [9]).
+A RED link is a random-early drop queue (for details see [2]).
+A CBQ link is for class-based queuing using a packet-by-packet round-robin
+scheduler (for details see [3]).
+A CBQ/WRR link is for class-based queuing with a weighted round robin scheduler.
+.IP "\fB$ns multi-link-of-interfaces\fI node-list bw delay type\fP"
+Connects the nodes specified in
+.I node-list
+by a mesh of duplex links with interfaces
+(to simulate a broadcast LAN)
+with bandwidth
+.I bw
+in bits per second
+and link propagation delay
+.I delay
+in seconds.
+.I node-list
+is a list of node object handles
+that have already been created with the
+.I node
+method.
+.I bw
+and
+.I delay
+default to
+1.5 Mbits/sec and 100 ms respectively.
+The defaults can be changed by modifying 
+the relevant configuration parameters of the 
+DelayLink Object (see DELAYLINK OBJECTS section).
+The queuing discipline of the link is specified by
+.I type,
+which may be
+.B DropTail,
+.B FQ
+.B SFQ,
+.B DRR,
+.B RED,
+.B CBQ,
+or 
+.B CBQ/WRR.
+A DropTail link is a simple FIFO queue which drops the last packet
+in the queue when the queue overflows.
+A FQ link is for Fair Queuing (for details see [?]).
+A SFQ link is for Stochastic Fair Queuing (for details see [?]).
+A DRR link is for deficit round robin scheduling (for details see [9]).
+A RED link is a random-early drop queue (for details see [2]).
+A CBQ link is for class-based queuing using a packet-by-packet round-robin
+scheduler (for details see [3]).
+A CBQ/WRR link is for class-based queuing with a weighted round robin scheduler.
 .IP "\fBnew Agent/\fItype\fP"
 Create an Agent
 of type
@@ -1431,7 +1519,7 @@ to be run on the nodes specified by
 Currently
 .I proto
 can be one of
-CtrMcast, DM, dynamicDM, pimDM.
+CtrMcast, DM, detailedDM, dynamicDM, pimDM.
 .I node-list
 defaults to all the nodes in the topology.
 Returns an handle to a protocol-specific object
@@ -1440,7 +1528,7 @@ specific to that protocol.
 Note that currently CtrMcastComp object
 is returned if CtrMcast is used
 but a null string is returned
-if DM, dynamicDM or pimDM are used.
+if DM, detailedDM, dynamicDM or pimDM are used.
 
 If proto is 'CtrMcast'
 a Rendezvous Point (RP) rooted shared tree is built
@@ -1473,17 +1561,42 @@ that do not lead to any group members.
 The prune timeout value is 0.5s by default 
 (see DM OBJECTS section to change the default).
 This does not adapt to network changes.
+There is also currently no support for
+proper functioning in topologies with LANs.
+
+If proto is 'detailedDM'
+a dense mode protocol based on
+Protocol Independent Multicast - Dense Mode (PIM-DM)
+is simulated.
+This is currently the most complete version of the 
+dense mode protocol in the simulator
+and is recommended for use 
+over the other dense mode protocols.
+It adapts to network dynamics and functions correctly
+in topologies with LANs 
+(where LANs are created using the multi-link-of-interfaces method -
+see NS COMMANDS).
+The default values for the
+prune timeout, interface deletion timeout (used for LANs) and
+graft retransmission timeout are
+0.5s, 0.1s and 0.05s respectively.
+(see Prune/Iface/Timer, Deletion/Iface/Timer 
+and GraftRtx/Timer objects respectively
+to change the default values
+and for more information about the timers).
 
 If proto is 'dynamicDM'
 DVMRP-like dense mode protocol that
 adapts to network changes is simulated.
 'Poison-reverse' information
 (i.e. the information that a particular neighbouring node
-uses me to reach a particular network)
+uses this node to reach a particular network)
 is read from the routing tables of neighbouring nodes
 in order to adapt to network dynamics
 (DVMRP runs its own unicast routing protocol
 that exchanges this information).
+The current implementation does not support
+proper functioning in topologies with LANs.
 The prune timeout value is 0.5s by default 
 (see DM OBJECTS section to change the default).
 
@@ -1494,6 +1607,8 @@ over all the outgoing links except the incoming link.
 Prune messages are sent by nodes to remove
 the branches of the multicast forwarding tree
 that do not lead to any group members.
+The current implementation does not adapt to network dynamics
+and does not support proper functioning in topologies with LANs.
 The prune timeout value is 0.5s by default 
 (see DM OBJECTS section to change the default).
 
@@ -1540,6 +1655,61 @@ Configuration parameters \fP
 .IP \fIPruneTimeout\fP
 .LP
 Timeout value for the prune state at nodes.
+
+.SH "PRUNE/IFACE/TIMER OBJECTS"
+The Prune/Iface/Timer objects are used to implement
+the prune timer for detailedDM.
+There are no methods or state variables specific to this object.
+.LP
+.HD
+Configuration parameters \fP
+.RS
+.IP \fItimeout\fP
+.LP
+Timeout value for the prune state at nodes.
+
+.SH "DELETION/IFACE/TIMER OBJECTS"
+The Deletion/Iface/Timer objects are used to implement
+the interface deletion timer that are required for
+correct functioning at nodes that are part of LANs.
+If a node has a LAN as its incoming interface
+for packets from a certain source and 
+it does not have any downstream members
+it sends out a prune message onto the LAN.
+Any node that has the LAN as its incoming interface
+for the same source and has downstream members
+on hearing the prune message sent on the LAN.
+will send a join message onto the LAN.
+When the node that is acting as the forwarder for the LAN hears
+the prune message from the LAN, it does not immediately
+prune off the LAN as its outgoing interface.
+Instead it starts an interface deletion timer
+for the outgoing interface.
+The forwarder will remove the LAN as its
+outgoing interface only if it does not
+receive any join messages from the LAN
+before its deletion timer expires.
+There are no methods or state variables specific to this object.
+.LP
+.HD
+Configuration parameters \fP
+.RS
+.IP \fItimeout\fP
+.LP
+Timeout value for the interface deletion timer.
+
+.SH "GRAFTRTX/TIMER OBJECTS"
+The GraftRtx/Timer objects are used to implement
+the graft retransmission timer at nodes.
+This is to ensure the reliability of grafts 
+sent upstream by a node.
+.LP
+.HD
+Configuration parameters \fP
+.RS
+.IP \fItimeout\fP
+.LP
+Timeout value for the graft retransmission timer.
 
 .SH "AGENT OBJECTS"
 [NOTE: This section has not been verified to be up-to-date with the release.]
