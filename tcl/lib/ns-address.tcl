@@ -190,9 +190,6 @@ Simulator instproc expand-address {} {
 	return
 }
 
-
-#sets hierarchical bits
-
 Simulator instproc set-hieraddress {hlevel args} {
 	set a [$self get-AllocAddrBits "new"]
 	$a set size_ [AllocAddrBits set MAXADDRSIZE_]
@@ -200,16 +197,14 @@ Simulator instproc set-hieraddress {hlevel args} {
 		### By default, setting hierarchical addressing also turns on hier rtg, 
 		### provided the level is greater than 1
 		Simulator set EnableHierRt_ 1
-		Simulator set node_factory_ HierNode
+		# HierNode subsumed by node-config
+		#Simulator set node_factory_ HierNode
 	}
 	if [$self multicast?] {
 		$a set-mcastbits 1
 	}
 	eval $a set-idbits $hlevel $args
 }
-
-
-
 
 AllocAddrBits instproc init {} {
 	eval $self next
