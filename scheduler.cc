@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.47 1999/08/20 21:03:33 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.48 1999/09/01 06:12:36 yuriy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.47 1999/08/20 21:03:33 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.48 1999/09/01 06:12:36 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -435,12 +435,7 @@ void CalendarScheduler::insert(Event* e)
 	if (e->time_ > max_) {
 		max_ = e->time_;
 		if (e->time_ * oneonwidth_ > ULONG_MAX) {
-			width_ = newwidth();
-			oneonwidth_ = 1.0 / width_;
-			long n = (long)(clock_ * oneonwidth_);
-			lastbucket_ = n & buckbits_;
-			buckettop_= width_*(n+1.5);
-			prevtop_= buckettop_ - lastbucket_ * width_;
+			resize(nbuckets_);
 		}
 	}
 	// bucket number and address
