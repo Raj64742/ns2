@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,8 +70,9 @@ BaseLink::command(int argc, const char*const* argv)
 void
 BaseLink::recv(Packet* p, Handler* h)
 {
+	p->source(h);
 	if (em_ && em_->corrupt(p)) {
 		p->error(1);
 	}
-	ifq_->recv(p, h, target_, this);
+	ifq_->recv(p, h);
 }

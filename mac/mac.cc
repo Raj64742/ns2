@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,10 +64,10 @@ Mac::command(int argc, const char*const* argv)
 
 
 void
-Mac::recv(Packet* p, Handler* h, NsObject* target)
+Mac::recv(Packet* p, Handler* h)
 {
 	callback_ = h;
-	target_ = target;
+	target_ = (NsObject*) p->target();
 	send(p);
 }
 

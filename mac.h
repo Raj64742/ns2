@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ protected:
 class Mac : public LinkDelay {
 public:
 	Mac();
-	virtual void recv(Packet* p, Handler* h, NsObject* target);
+	virtual void recv(Packet* p, Handler* h);
 	virtual void send(Packet* p);
 	inline Channel* channel() { return channel_; }
 	inline Handler* callback() { return callback_; }
