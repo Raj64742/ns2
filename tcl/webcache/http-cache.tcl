@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.7 1999/03/04 02:21:43 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.8 1999/03/09 05:20:41 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -124,6 +124,7 @@ Http/Cache instproc alloc-connection { client fid } {
 	set snk [new Agent/TCP/$TRANSPORT_]
 	$snk set fid_ $fid
 	$ns_ attach-agent $node_ $snk
+	$snk listen
 	set wrapper [new Application/TcpApp $snk]
 	$self cmd connect $client $wrapper
 	#puts "Cache $id_ connected to client [$client id]"
@@ -335,10 +336,6 @@ Http/Cache/TTL instproc get-response-IMS { server pageid args } {
 	array set data $args
 	if {$data(modtime) > [$self get-modtime $pageid]} {
 		# Newer page, cache it
-		#if {$data(size) != 1024} {
-		#	puts "WRONG!"
-		#	debug 1
-		#}
 		eval $self enter-page $pageid $args
 		$self evTrace E ENT p $pageid m [$self get-modtime $pageid] \
 		    z [$self get-size $pageid] s [$server id]
@@ -845,6 +842,7 @@ Http/Cache/Inval/Mcast instproc setup-unicast-hb {} {
 	set snk [new Agent/TCP/$TRANSPORT_]
 	$snk set fid_ [Http set HB_FID_]
 	$ns_ attach-agent $node_ $snk
+	$snk listen
 	set wrapper [new Application/TcpApp/HttpInval $snk]
 	$wrapper set-app $self
 	return $wrapper
@@ -877,7 +875,6 @@ Http/Cache/Inval/Mcast instproc server-join { server cache } {
 	$ns_ connect $tcp $snk
 	#$tcp set dst_ [$snk set addr_] 
 	$tcp set window_ 100
-	$snk listen
 
 	set wrapper [new Application/TcpApp/HttpInval $tcp]
 	$wrapper connect $dst
@@ -1059,7 +1056,7 @@ Http/Cache/Inval/Mcast/Perc instproc refetch { cl type pageid } {
 
 	set size [$self get-refsize]
 	set server [lindex [split $pageid :] 0]
-	$self evTrace E REF p $pageid s [$server id] z $size
+	$self evTrace E REF p $pageid s [$server id] z $size 
 	$self send-request $server REF $pageid $size
 
 	$self instvar node_ marks_ ns_

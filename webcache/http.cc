@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.10 1999/03/04 02:21:45 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.11 1999/03/09 05:20:43 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -1118,7 +1118,7 @@ void HttpMInvalCache::recv_heartbeat(int id)
 		if (id == id_) 
 			return;
 		add_nbr(map_cache(id));
-#if WEBCACHE_DEBUG
+#ifdef WEBCACHE_DEBUG
 		fprintf(stderr, "TLC %d discovered TLC %d\n", id_, id);
 #endif
 		return;
@@ -1126,7 +1126,7 @@ void HttpMInvalCache::recv_heartbeat(int id)
 		// Neighbor cache recovers. Don't do anything special and
 		// let invalid entries recover themselves
 		c->up();
-#if WEBCACHE_DEBUG
+#ifdef WEBCACHE_DEBUG
 		fprintf(stderr, "[%g] Cache %d reconnected to cache %d\n", 
 			Scheduler::instance().clock(), id_, id);
 #endif
@@ -1148,7 +1148,7 @@ void HttpMInvalCache::invalidate_server(int sid)
 
 void HttpMInvalCache::handle_node_failure(int cid)
 {
-#if WEBCACHE_DEBUG
+#ifdef WEBCACHE_DEBUG
 	fprintf(stderr, "[%g] Cache %d disconnected from cache %d\n", 
 		Scheduler::instance().clock(), id_, cid);
 #endif
@@ -1174,7 +1174,7 @@ void HttpMInvalCache::handle_node_failure(int cid)
 
 void HttpMInvalCache::recv_leave(HttpLeaveData *d)
 {
-#if WEBCACHE_DEBUG
+#ifdef WEBCACHE_DEBUG
 	fprintf(stderr, "[%g] Cache %d gets a LEAVE from cache %d\n", 
 		Scheduler::instance().clock(), id_, d->id());
 #endif

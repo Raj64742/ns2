@@ -17,7 +17,7 @@
 //
 // Definition of Agent/Invalidation
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.7 1999/03/04 02:21:47 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.8 1999/03/09 05:20:45 haoboy Exp $
 
 #ifndef ns_invalagent_h
 #define ns_invalagent_h
@@ -55,6 +55,7 @@ public:
 
 protected:
 	int off_inv_;
+	int inval_hdr_size_;
 };
 
 // Implementation 2: unicast, actually an application on top of TCP

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.147 1999/03/02 20:22:01 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.148 1999/03/09 05:20:19 haoboy Exp $
 
 
 #
@@ -178,6 +178,9 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp/Sack set sack_option_size_ 2; # bytes in opt hdr
 	Agent/TCP/FullTcp/Sack set max_sack_blocks_ 3; # max # of sack blks
 }
+
+# Http invalidation agent
+Agent/HttpInval set inval_hdr_size_ 40
 
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0

@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.313 1999/03/06 02:12:18 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.314 1999/03/09 05:20:15 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,15 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>  
+
+    <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
+        <b>Mon Mar  8 21:11:47 PST 1999</b><br>
+	Changed default HTTP invalidation packet size, so that both
+        unicast and multicast invalidations have the same
+        base size. Also changed the type of unicast (TCP) invalidation
+        packet types from tcp/ack to httpInval. 
+	Updated affected test suite outputs (those related
+        to multicast invalidations). 
 
     <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
         <b>Fri Mar  5 18:09:31 PST 1999</b><br>

@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.8 1999/03/04 02:21:47 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.9 1999/03/09 05:20:44 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
@@ -41,6 +41,8 @@ public:
 HttpInvalAgent::HttpInvalAgent() : Agent(PT_INVAL)
 {
 	bind("off_inv_", &off_inv_);
+	// It should be initialized to the same as tcpip_base_hdr_size_
+	bind("inval_hdr_size_", &inval_hdr_size_);
 }
 
 void HttpInvalAgent::recv(Packet *pkt, Handler*)
@@ -69,7 +71,7 @@ void HttpInvalAgent::send(int realsize, const AppData* data)
 
 	// Set packet size proportional to the number of invalidations
 	hdr_cmn *ch = (hdr_cmn*) pkt->access(off_cmn_);
-	ch->size() = sizeof(hdr_inval) + realsize;
+	ch->size() = inval_hdr_size_ + realsize;
 	Agent::send(pkt, 0);
 }
 
@@ -82,6 +84,7 @@ public:
 		if (argc != 5)
 			return NULL;
 		Agent *a = (Agent *)TclObject::lookup(argv[4]);
+		a->set_pkttype(PT_INVAL); // It's TCP but used for invalidation
 		if (a == NULL)
 			return NULL;
 		return (new HttpUInvalAgent(a));

@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.11 1999/03/04 02:21:45 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.12 1999/03/09 05:20:43 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -270,7 +270,10 @@ public:
 		return (num_inv_*sizeof(InvalRec) + hdrlen());
 	}
 	// XXX byte cost to appear in trace file
-	virtual int cost() const { return (num_inv_*HTTPHBDATA_COST); }
+	virtual int cost() const { 
+		// Minimum size 1 so that TCP will send a packet
+		return (num_inv_ == 0) ? 1 : (num_inv_*HTTPHBDATA_COST); 
+	}
 	virtual void pack(char* buf) const {
 		HttpData::pack(buf);
 		((hdr*)buf)->num_inv_ = num_inv_;

@@ -17,7 +17,7 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.8 1999/03/04 02:21:43 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.9 1999/03/09 05:20:41 haoboy Exp $
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -141,7 +141,6 @@ Http instproc connect { server } {
 	$ns_ connect $tcp $snk
 	#$tcp set dst_ [$snk set addr_]
 	$tcp set window_ 100
-	$snk listen
 
 	# Use a wrapper to implement application data transfer
 	set wrapper [new Application/TcpApp $tcp]
@@ -539,7 +538,6 @@ Http/Client/Compound instproc next-obj { server args } {
 		incr req_objs_($mpgid) -1
 		$self send-request $dest GET $pageid
 	}
-	#if {[$self id] == 7} { debug 1 }
 	if {$req_objs_($mpgid) <= 0} {
 		# We have requested all objects for this page, done.
 		return
@@ -565,7 +563,6 @@ Http/Client/Compound instproc get-response-GET { server pageid args } {
 			simStartTime_ pgtr_
 
 	if ![info exists pending_($pageid)] {
-		#debug 1
 		error "Client $id_: Unrequested response page $pageid from server/cache [$server id]"
 	}
 

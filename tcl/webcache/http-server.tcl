@@ -17,7 +17,7 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.8 1999/03/04 02:21:44 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.9 1999/03/09 05:20:42 haoboy Exp $
 
 
 #
@@ -184,6 +184,7 @@ Http/Server instproc alloc-connection { client fid } {
 	set snk [new Agent/TCP/$TRANSPORT_]
 	$snk set fid_ $fid
 	$ns_ attach-agent $node_ $snk
+	$snk listen
 	set wrapper [new Application/TcpApp $snk]
 	$self cmd connect $client $wrapper
 	return $wrapper
@@ -411,7 +412,6 @@ Http/Server/Inval/Yuc instproc set-parent-cache { cache } {
 	$ns_ connect $tcp $snk
 	#$tcp set dst_ [$snk set addr_] 
 	$tcp set window_ 100
-	$snk listen
 
 	set wrapper [new Application/TcpApp/HttpInval $tcp]
 	$wrapper connect $dst
