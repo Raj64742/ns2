@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-red.tcl,v 1.4 1997/04/25 02:26:36 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-red.tcl,v 1.5 1997/04/30 23:36:43 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -45,6 +45,7 @@
 set flowfile fairflow.tr
 set flowgraphfile fairflow.xgr
 set pthresh 100
+set randseed 0
 
 # to generate flow graph with unforced drops:
 #       set category 1
@@ -345,7 +346,7 @@ proc flowDump1 { link fm flow } {
 }
 
 proc test_red1 {} {
-	global s1 s2 r1 r2 s3 s4
+	global s1 s2 r1 r2 s3 s4 randseed
 	create_testnet2
         set stoptime 10.0
 	set testname test_red1
@@ -368,19 +369,25 @@ proc test_red1 {} {
 	# trace only the bottleneck link
 	[ns link $r1 $r2] trace [openTrace $stoptime $testname ]
 
-	puts seed=[ns random 0]
+	puts seed=[ns random $randseed]
 	ns run
 }
 
 # For this test the average queue size in measured in bytes.
 proc test_red1_bytes {} {
-	global s1 s2 r1 r2 s3 s4
+	global s1 s2 r1 r2 s3 s4 randseed
 	create_testnet2
         set stoptime 10.0
 	set testname test_red1_bytes
+        [ns link $r1 $r2] set queue-in-bytes true
         [ns link $r1 $r2] set bytes true
 	[ns link $r1 $r2] set mean_pktsize 1000
-
+	# the following 3 lines really don't matter
+	# here because only 1-way traffic is being monitored,
+	# but rather is for consistency
+        [ns link $r2 $r1] set queue-in-bytes true
+        [ns link $r2 $r1] set bytes true
+	[ns link $r2 $r1] set mean_pktsize 1000
 	
 	set tcp1 [ns_create_connection tcp-reno $s1 tcp-sink $s3 0]
 	$tcp1 set window 15
@@ -400,12 +407,12 @@ proc test_red1_bytes {} {
 	# trace only the bottleneck link
 	[ns link $r1 $r2] trace [openTrace $stoptime $testname ]
 
-	puts seed=[ns random 0]
+	puts seed=[ns random $randseed]
 	ns run
 }
 
 proc test_ecn {} { 
-        global s1 s2 r1 r2 s3 s4
+        global s1 s2 r1 r2 s3 s4 randseed
         create_testnet2
         set stoptime 10.0
         set testname test_ecn 
@@ -431,7 +438,7 @@ proc test_ecn {} {
         # trace only the bottleneck link
         [ns link $r1 $r2] trace [openTrace $stoptime $testname ]
         
-        puts seed=[ns random 0]
+        puts seed=[ns random $randseed]
         ns run
 }
 
@@ -439,6 +446,7 @@ proc test_ecn {} {
 # This should give worse performance than "red1".
 proc test_red2 {} {
 	global s1 s2 r1 r2 s3 s4
+	global randseed
 	create_testnet2
 	[ns link $r1 $r2] set thresh 5
 	[ns link $r1 $r2] set maxthresh 10
@@ -464,13 +472,13 @@ proc test_red2 {} {
 	# trace only the bottleneck link
 	[ns link $r1 $r2] trace [openTrace $stoptime $testname ]
 
-	puts seed=[ns random 0]
+	puts seed=[ns random $randseed]
 	ns run
 }
 
 # The queue is measured in "packets".
 proc test_red_twoway {} {
-	global s1 s2 r1 r2 s3 s4
+	global s1 s2 r1 r2 s3 s4 randseed
 	create_testnet2
 	set stoptime 10.0
 	set testname test_red_twoway
@@ -500,18 +508,20 @@ proc test_red_twoway {} {
 	# trace only the bottleneck link
 	[ns link $r1 $r2] trace [openTrace $stoptime $testname]
 
-	puts seed=[ns random 0]
+	puts seed=[ns random $randseed]
 	ns run
 }
 
 # The queue is measured in "bytes".
 proc test_red_twowaybytes {} {
-	global s1 s2 r1 r2 s3 s4
+	global s1 s2 r1 r2 s3 s4 randseed
 	create_testnet2
 	set stoptime 10.0
 	set testname test_red_twowaybytes
 	[ns link $r1 $r2] set bytes true
 	[ns link $r2 $r1] set bytes true
+	[ns link $r1 $r2] set queue-in-bytes true
+	[ns link $r2 $r1] set queue-in-bytes true
 		
 	set tcp1 [ns_create_connection tcp-reno $s1 tcp-sink $s3 0]
 	$tcp1 set window 15
@@ -538,7 +548,7 @@ proc test_red_twowaybytes {} {
 	# trace only the bottleneck link
 	[ns link $r1 $r2] trace [openTrace $stoptime $testname]
 
-	puts seed=[ns random 0]
+	puts seed=[ns random $randseed]
 	ns run
 }
 
@@ -582,26 +592,26 @@ proc flows {} {
 }
 
 proc test_flows {} {
-	global category awkprocedure
+	global category awkprocedure randseed
    	set category 1
 	set awkprocedure unforcedmakeawk
-	set seed [ns random 0]
+	set seed [ns random $randseed]
 	puts seed=$seed
 	flows 
 }
 
 proc test_flows1 {} {
-	global category awkprocedure 
+	global category awkprocedure randseed
    	set category 0
 	set awkprocedure forcedmakeawk
-	set seed [ns random 0]
-#	ns random $seed
+	set seed [ns random $randseed]
 	puts seed=$seed 
 	flows 
 }
 
 proc test_flowsAll {} {
 	global s1 s2 r1 r2 s3 s4 r1fm qgraphfile flowfile awkprocedure
+	global randseed
         set stoptime 500.0
 	set testname test_two
 	set awkprocedure allmakeawk
@@ -623,13 +633,19 @@ proc test_flowsAll {} {
 	ns at $stoptime "$r1fm flush"
 	ns at $stoptime "finish_flow $testname"
 
-	puts seed=[ns random 0]
+	puts seed=[ns random $randseed]
 	ns run
 }
 
-if { $argc != 1 } {
-	puts stderr {usage: ns $argv [ two ]}
+if { $argc != 1 && $argc != 2 } {
+	puts stderr {usage: ns test-suite-red.tcl testname <randseed> }
 	exit 1
+}
+if { $argc == 2 } {
+	global randseed
+	set randseed [lindex $argv 1]
+	puts "setting random number seed to $randseed"
+	set argv [lindex $argv 0]
 }
 if { "[info procs test_$argv]" != "test_$argv" } {
 	puts stderr "$argv: no such test: $argv"
