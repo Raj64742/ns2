@@ -542,7 +542,7 @@ DSRAgent::recv(Packet* packet, Handler*)
 
   // special process for GAF
   if (cmh->ptype() == PT_GAF) {
-      if (iph->daddr() == IP_BROADCAST) { 
+      if (iph->daddr() == (int)IP_BROADCAST) { 
 	  Scheduler::instance().schedule(ll,packet,0);
 	  return;
       } else {

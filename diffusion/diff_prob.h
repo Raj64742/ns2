@@ -97,7 +97,7 @@ public:
       pkt_ = pkt;
   }
 
-  ~InterestTimer() {
+  virtual ~InterestTimer() {
     if (pkt_ != NULL) 
       Packet::free(pkt_);
   }

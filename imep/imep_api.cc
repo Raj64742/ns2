@@ -35,7 +35,7 @@
 
 /* 
    imep_api.cc
-   $Id: imep_api.cc,v 1.3 1999/10/13 22:53:06 heideman Exp $
+   $Id: imep_api.cc,v 1.4 2002/03/21 22:44:38 haldar Exp $
    */
 
 #include <imep/imep.h>
@@ -177,7 +177,7 @@ imepAgent::imepPacketUndeliverable(Packet *p)
 	  imepSetLinkDownStatus(cmh->next_hop());
 
 	if (verbose) trace("T %.9f _%d_ undeliverable pkt to %d",
-			   CURRENT_TIME, ipaddr, ip->dst());
+			   CURRENT_TIME, ipaddr, ip->daddr());
 
 	rtagent_->rtRoutePacket(p);
 }

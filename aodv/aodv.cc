@@ -765,8 +765,8 @@ rt_update(rt0, rq->rq_src_seqno, rq->rq_hop_count, ih->saddr(),
              rt->rt_hops + 1,
              rq->rq_dst,
              rt->rt_seqno,
-//             (u_int32_t) (rt->rt_expire - CURRENT_TIME),
-             rt->rt_expire - CURRENT_TIME,
+	     (u_int32_t) (rt->rt_expire - CURRENT_TIME),
+	     //             rt->rt_expire - CURRENT_TIME,
              rq->rq_timestamp);
    // Insert nexthops to RREQ source and RREQ destination in the
    // precursor lists of destination and source respectively

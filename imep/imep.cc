@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code 
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.cc,v 1.10 2001/05/21 19:27:33 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.cc,v 1.11 2002/03/21 22:44:38 haldar Exp $
  */
 
 #include <packet.h>
@@ -804,7 +804,7 @@ imepAgent::imep_object_input(Packet *p)
 	    l->lastSeq() = ob->ob_sequence - 1;
 	    if (verbose)
 	      trace("T %.9f _d_ first object from neighbor %d seq %d",
-		    CURRENT_TIME, ipaddr, iph->src(), ob->ob_sequence);
+		    CURRENT_TIME, ipaddr, iph->saddr(), ob->ob_sequence);
 	  }
 
 	// This calc requires sequence number SEQ_GT() semantics
@@ -817,7 +817,7 @@ imepAgent::imep_object_input(Packet *p)
 	    // hole
 	    if (verbose)
 	      trace("T %.9f _%d_ from %d ignored seq %d (already heard)",
-		    CURRENT_TIME, ipaddr, iph->src(), ob->ob_sequence);
+		    CURRENT_TIME, ipaddr, iph->saddr(), ob->ob_sequence);
 	    stats.num_out_of_window_objs++;
 	    return;
 	  }
@@ -825,7 +825,7 @@ imepAgent::imep_object_input(Packet *p)
 	if (verbose && reg > 1)
 	  { // found a hole in the sequence number space...
 	    trace("T %.9f _%d_ inorder - src %d seq %d out of order (%d expected)",
-		  CURRENT_TIME, ipaddr, iph->src(),
+		  CURRENT_TIME, ipaddr, iph->saddr(),
 		  ob->ob_sequence, l->lastSeq()+1);
 	  }
 
@@ -835,7 +835,7 @@ imepAgent::imep_object_input(Packet *p)
 
 	    if (verbose)
 	      trace("T %.9f _%d_ inorder - fastpath src %d seq %d (delivering)",
-		    CURRENT_TIME, ipaddr, HDR_IP(p)->src(), ob->ob_sequence);
+		    CURRENT_TIME, ipaddr, HDR_IP(p)->saddr(), ob->ob_sequence);
 	    stats.num_in_order_objs++;
 
 	    imep_object_process(p);
@@ -856,7 +856,7 @@ imepAgent::imep_object_input(Packet *p)
 	    stats.num_recvd_from_queue++;
 	    if (verbose)
 	      trace("T %.9f _%d_ inorder - src %d seq %d (delivering)",
-		    CURRENT_TIME, ipaddr, HDR_IP(p0)->src(), l->lastSeq() + 1);
+		    CURRENT_TIME, ipaddr, HDR_IP(p0)->saddr(), l->lastSeq() + 1);
 	    l->lastSeq() += 1;
 	    imep_object_process(p0);
 	    Packet::free(p0);

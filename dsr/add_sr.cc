@@ -67,7 +67,6 @@ void
 AddSR::recv(Packet* p, Handler* callback)
 {
   hdr_sr *srh =  hdr_sr::access(p);
-  hdr_ip *iph =  hdr_ip::access(p);
 
   srh->route_request() = 0;
   srh->num_addrs() = 0;
