@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.45 1998/05/29 21:14:22 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.46 1998/05/29 22:15:00 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.45 1998/05/29 21:14:22 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.46 1998/05/29 22:15:00 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -267,7 +267,7 @@ int TwoStateErrorModel::command(int argc, const char*const* argv)
 
 int TwoStateErrorModel::corrupt(Packet* p)
 {
-#define ZERO_RANGE 0.000001
+#define ZERO 0.00000
 	int error;
 	if (firstTime_) {
 		firstTime_ = 0;
@@ -276,11 +276,11 @@ int TwoStateErrorModel::corrupt(Packet* p)
 	}
 
 	// if remainLen_ is outside the range of 0, then error = state_
-	error = state_ && (remainLen_ > ZERO_RANGE);
+	error = state_ && (remainLen_ > ZERO);
 	remainLen_ -= PktLength(p);
 
 	// state transition until remainLen_ > 0 to covers the packet length
-	while (remainLen_ < ZERO_RANGE) {
+	while (remainLen_ <= ZERO) {
 		state_ ^= 1;	// state transition: 0 <-> 1
 		remainLen_ += ranvar_[state_]->value();
 		error |= state_;
