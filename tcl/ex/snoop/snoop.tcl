@@ -58,6 +58,7 @@ if [file executable ../../ns] {
 
 source ${nshome}tcl/lan/ns-mac.tcl
 source ${nshome}tcl/lan/ns-lan.tcl
+source ${nshome}tcl/lib/ns-ber.tcl
 source util.tcl
 
 set env(PATH) "${nshome}bin:$env(PATH)"
@@ -238,7 +239,6 @@ $lan trace $ns $trfd
 if [info exists opt(tracemac)] { trace-mac $lan $ltrfd }
 
 if { $opt(e) > 0 } {
-	source ber.tcl
 	create-error $opt(num) $opt(e) $opt(errmodel) $opt(eu)
 }
 
