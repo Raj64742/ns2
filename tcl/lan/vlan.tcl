@@ -44,7 +44,7 @@ LanNode instproc chanType {val} { $self set chanType_ $val }
 
 LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
-	$self instvar bw_ delay_ ifqType_ macType_ chanType_
+	$self instvar bw_ delay_ ifqType_ llType_ macType_ chanType_
 	$self instvar ns_ nodelist_ defRouter_ cost_
 	$self instvar id_ address_ channel_ mcl_
 	$ns instvar Node_
@@ -78,7 +78,7 @@ LanNode instproc init {ns args} {
 	$channel_ target $mcl_
 }
 LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} } {
-	$self instvar ifqType_ macType_ chanType_ 
+	$self instvar ifqType_ llType_ macType_ chanType_ 
 	$self instvar id_ channel_ mcl_ lanIface_
 	$self instvar ns_ nodelist_ cost_
 	$ns_ instvar link_ Node_
@@ -94,14 +94,26 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 				-llType  $llType \
 				-macType $macType]
 		
+		set tr [$ns_ get-ns-traceall]
+		if {$tr != ""} {
+			$nif trace $ns_ $tr
+		}
+		set tr [$ns_ get-nam-traceall]
+		if {$tr != ""} {
+			$nif nam-trace $ns_ $tr
+		}
+
 		set ll [$nif set ll_]
 		$ll set bandwidth_ $bw
+		# half of delay is done at Mac, and half at LL layers
 		$ll set delay_ $delay
 
 		set mac [$nif set mac_]
 		set ipAddr [AddrParams set-hieraddr [$src node-addr]]
 		set macAddr [$self assign-mac $ipAddr] ;# cf LL's arp(int ip)
 		$mac set addr_ $macAddr
+		$mac set bandwidth_ $bw
+		$mac set delay_ $delay
 
 		$mac channel $channel_
 		$mac classifier $mcl_
@@ -213,15 +225,17 @@ LanIface instproc llType {val} { $self set llType_ $val }
 LanIface instproc ifqType {val} { $self set ifqType_ $val }
 LanIface instproc macType {val} { $self set macType_ $val }
 
-LanIface instproc entry {} { $self set ifq_ }
+LanIface instproc entry {} { $self set entry_ }
 LanIface instproc init {node lan args} {
 	set args [eval $self init-vars $args]
 	eval $self next $args
 
 	$self instvar llType_ ifqType_ macType_
-	$self instvar node_ ifq_ mac_ ll_
+	$self instvar node_ lan_ ifq_ mac_ ll_
 
 	set node_ $node
+	set lan_ $lan
+
 	set ll_ [new $llType_]
 	set ifq_ [new $ifqType_]
 	set mac_ [new $macType_]
@@ -234,8 +248,26 @@ LanIface instproc init {node lan args} {
 	$mac_ target $ll_
 
 	$node addInterface $self
+	
+	$self set entry_ $ifq_
 }
 
+LanIface instproc trace {ns f {op ""}} {
+	$self instvar hopT_
+	$self instvar entry_ node_ lan_
+	set hopT_ [$ns create-trace Hop $f $node_ $lan_ $op]
+	$hopT_ target $entry_
+	set entry_ $hopT_
+}
+# should be called after LanIface::trace
+LanIface instproc nam-trace {ns f} {
+	$self instvar hopT_
+	if [info exists hopT_] {
+		$hopT_ namattach $f
+	} else {
+		$self trace $ns $f "nam"
+	}
+}
 LanIface instproc add-receive-filter filter {
 	$self instvar mac_
 	$filter target [$mac_ target]
