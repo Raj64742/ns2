@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.7 1998/02/17 03:52:11 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.8 1998/05/06 02:32:48 gnguyen Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -292,7 +292,7 @@ int EmpiricalRandomVariable::lookup(double u)
 {
 	// always return an index whose value is >= u
 	int lower, upper, mid;
-	if (u < table_[0].cdf_)
+	if (u <= table_[0].cdf_)
 		return 0;
 	for (lower=1, upper=numEntry_-1;  lower < upper; ) {
 		mid = (lower + upper) / 2;
