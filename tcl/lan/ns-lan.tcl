@@ -92,7 +92,8 @@ Trace/Recv instproc init {} {
 # Trace/Loss trace the packets that are loss due to error model
 Class Trace/Loss -superclass Trace
 Trace/Loss instproc init {} {
-	$self next "l"
+	#$self next "l" 	XXX conflicts with nam link definition
+	$self next "d"
 }
 
 #
@@ -190,6 +191,30 @@ NetIface instproc trace {ns f} {
 	$mac_ drop-target $drpT_
 }
 
+# called after NetIface trace
+
+NetIface instproc namlantrace {ns sid nid {f ""} } {
+        if { $f == "" } {return}
+
+	$self instvar hopT_ ifq_
+
+	$ns instvar alltrace_
+
+	set hopT_ [new Trace/Hop]
+	$hopT_ set src_ $sid
+	$hopT_ set dst_ $nid
+
+ 	# plumbing
+
+	$self target $hopT_
+
+	$hopT_ target $ifq_
+
+	lappend alltrace_ $hopT_
+
+	$hopT_ namattach $f
+}
+
 NetIface instproc install-error {em macSA} {
 	$self instvar lcl_
 	$em target [$lcl_ slot $macSA]
@@ -259,7 +284,7 @@ LanLink instproc netIface {node} {
 LanLink instproc addNode {nodes bw delay {sllType ""} \
 		{ifqType ""} {macType ""} {dllType ""}} {
 	$self instvar llType_ ifqType_ macType_ chanType_
-	$self instvar id_ channel_ mcl_ netIface_
+	$self instvar id_ channel_ mcl_ netIface_ nid_
 	$self instvar ns_ nodelist_
 	$ns_ instvar link_
 	$self instvar bw_ delay_
@@ -295,6 +320,11 @@ LanLink instproc addNode {nodes bw delay {sllType ""} \
 			$self attachLL $src $dst
 			$self attachLL $dst $src
 		}
+		# nam traceing b/w node and Lan, maybe need a better
+		# place to sit
+
+		$nif namlantrace $ns_ $sid $nid_ [$ns_ get-nam-traceall]
+
 		lappend nodelist_ $src
 	}
 }
@@ -314,6 +344,7 @@ LanLink instproc attachLL {src dst} {
 	# setup tracing after setting up linkage
 	$nif trace $ns_ [$ns_ get-ns-traceall]
 	$ns_ trace-queue $src $dst
+	#XXX Why ?
 	$ns_ namtrace-queue $src $dst
 }
 
