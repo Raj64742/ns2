@@ -18,11 +18,20 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.5 1999/09/08 20:56:49 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.6 1999/10/15 00:24:24 heideman Exp $ (LBL)
  */
 
 #include "fsm.h"
 #include <assert.h>
+
+
+#ifndef MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#endif
+
 
 FSM* FSM::instance_;
 TahoeAckFSM* TahoeAckFSM::instance_;
@@ -82,16 +91,150 @@ FSMState::print_all(int level)
 	};
 }
 
+static void
+report_stat_terminus(int desired_pkts,	// # needed
+			  int pkts,	     	// # got so far
+			  int rtts,		// # of rtt events
+			  int timeouts,		// # of to events
+			  int ps,		// # of times taken a prob. p event (pkt received OK)
+			  int qs,		// # of times taken a prob. q event (pkt dropped OK)
+			  int num_states,	// size of the stack
+			  int num_state_names,
+		     FSMState **states,
+		     char *state_names)
+{
+	// print states and probability
+	printf("%s: p^%d*q^%d, %d rtt, %d timeouts, %d states:",
+	       (pkts > desired_pkts ? "exceeded-pkts" :
+	        (pkts == desired_pkts ? "desired_pkts" : "unimplemented-qs")),
+	       ps, qs,
+	       rtts, timeouts,
+	       num_states);
+	char ch = ' ';
+	int i;
+	for (i = 0; i < num_states; i++) {
+		printf ("%c#%d", ch, states[i]->print_i_);
+		ch = ',';
+	};
+	printf(" [%.*s]\n", num_state_names, state_names);
+}
+
+/*
+ * FSMState::print_all_stats:
+ * Walk through the tcp state table exhaustively.
+ * Recurse to handle errors.
+ * Very hairy.
+ * johnh.
+ */
 void
-FSMState::print_all_stats(int desired_pkts, int pkts,
-			  int rtts,
-			  int timeouts,
-			  int ps,
-			  int qs,
-			  int num_states,
+FSMState::print_all_stats(int desired_pkts_total,	// # needed
+			  int pkts,	     	// # got so far
+			  int rtts,		// # of rtt events
+			  int timeouts,		// # of to events
+			  int ps,		// # of times taken a prob. p event (pkt received OK)
+			  int qs,		// # of times taken a prob. q event (pkt dropped OK)
+			  int num_states,	// size of the stack
 			  int num_state_names)
 {
-	// to be completed
+	int i;
+	static FSMState *states[17];
+	static char state_names[17*4]; // xxx: this is just some random big size :-(
+
+	if (pkts >= desired_pkts_total || qs > 5) {
+		// done; print states and probability
+		// (give up when we're where we want to be [good],
+		// or we've taken too many losses [to prevent recursion])
+		report_stat_terminus(desired_pkts_total, pkts, rtts, timeouts, ps, qs, num_states, num_state_names, states, state_names);
+		return;
+	};
+
+	// remember us!
+	states[num_states] = this;
+	num_states++;
+
+
+	// xxx: doesn't handle TCP tail behavior
+
+	//
+	// first, consider the no-loss case
+	//
+	int desired_pkts_remaining = desired_pkts_total - pkts;
+	int desired_pkts_this_round = MIN(desired_pkts_remaining, batch_size_);
+	for (i = 0; i< desired_pkts_this_round; i++)
+		state_names[num_state_names + i] = 's';
+	if (desired_pkts_remaining > desired_pkts_this_round) {
+		// more to do?  take a rtt hit and keep going
+		state_names[num_state_names + desired_pkts_this_round] = '.';
+		drop_[0]->print_all_stats(desired_pkts_total,
+					  pkts + desired_pkts_this_round,
+					  rtts + 1, timeouts,
+					  ps + desired_pkts_this_round, qs,
+					  num_states,
+					  num_state_names + desired_pkts_this_round + 1);
+	} else {
+		// no more to do... report out
+		report_stat_terminus(desired_pkts_total,
+				     pkts + desired_pkts_this_round,
+				     rtts, timeouts,
+				     ps + desired_pkts_this_round, qs,
+				     num_states,
+				     num_state_names + desired_pkts_this_round,
+				     states,
+				     state_names);
+	};
+
+	//
+	// now consider losses
+	//
+	int desired_pkts_with_loss = MAX(desired_pkts_this_round - 1, 0);
+	// loop through losing the i'th packet for all possible i's.
+	// Can't loop through more than we could have sent.
+	for (i = 1; i <= desired_pkts_this_round; i++) {
+		// keep track of sending patterns
+		if (i > 1)
+			state_names[num_state_names + i - 2] = 's';
+		state_names[num_state_names + i - 1] = 'd';
+		state_names[num_state_names + desired_pkts_this_round] = (transition_[i] == RTT ? '.' : '-');
+		// can we even have any?
+		if (qs) {
+			// not if we already had one!
+			report_stat_terminus(desired_pkts_total,
+					     pkts + i - 1,
+					     rtts, timeouts,
+					     ps + i - 1, qs + 1,
+					     num_states,
+					     num_state_names + i,
+					     states,
+					     state_names);
+		} else {
+			// recurse... assume the rest made it
+			drop_[i]->print_all_stats(desired_pkts_total, pkts + desired_pkts_with_loss,
+					  rtts + (transition_[i] == RTT ? 1 : 0),
+					  timeouts + (transition_[i] == TIMEOUT ? 1 : 0),
+					  ps + desired_pkts_with_loss, qs + 1,
+					  num_states,
+					  num_state_names + desired_pkts_this_round + 1);
+			// 2nd drop somewhere in this round?
+			int remaining_pkts_this_round = desired_pkts_this_round - i;
+			if (qs == 0 && remaining_pkts_this_round > 0) {
+				// yes, generate the probs
+				int j;
+				for (j = i+1; j <= desired_pkts_this_round; j++) {
+					if (j > i+1)
+						state_names[num_state_names + j - 1] = 's';
+					state_names[num_state_names + j] = 'd';
+					report_stat_terminus(desired_pkts_total,
+							     pkts + j - 2,
+							     rtts, timeouts,
+							     ps + j - 2, qs + 2,
+							     num_states,
+							     num_state_names + j,
+							     states,
+							     state_names);
+				};
+			};
+		};
+	};
 }
 
 
@@ -123,6 +266,7 @@ FSM::print_FSM_stats(FSMState* state, int n)
 {
 	state->reset_all_processed();
 	state->print_all_stats(n);
+	fflush(stdout);
 }
 
 static class TahoeAckFSMClass : public TclClass {
