@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.22 2002/04/22 17:49:34 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.23 2003/03/03 17:42:20 haldar Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -32,13 +32,122 @@ warn() {
 TCLVER=8.3.2
 TKVER=8.3.2
 OTCLVER=1.0a8
-TCLCLVER=1.0b12
-NSVER=2.1b9
-NAMVER=1.0a11
+TCLCLVER=1.0b13
+NSVER=2.26
+NAMVER=1.9
 XGRAPHVER=12.1
+ZLIBVER=1.1.4
 
 # Get current path
 CUR_PATH=`pwd`
+
+# Check if we are using Cygwin, and if so, if it is a bona fide install
+# Cygwin patches contributed by Nicolas Christin <nicolas@cs.virginia.edu>
+
+echo "============================================================"
+echo "* Testing for Cygwin environment"
+echo "============================================================"
+
+if [ -x /usr/bin/uname ]; then
+        # it may be a Cygwin install
+        test_cygwin=`uname | tr [a-z] [A-Z] | sed -e 's|.*CYGWIN.*|true|'`;
+        if  [ "${test_cygwin}" = "true" ]; then
+                echo "Cygwin detected";
+                echo "Note: Cygwin install is still considered EXPERIMENTAL";
+                echo "";
+                echo -n "Checking Cygwin version is >=1.3.12... "
+                cmaj=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\1/'`;
+                echo $cmaj | grep -v [0-9] >/dev/null 2>&1
+                if [ "$?" -eq "0" ]; then
+                        cmaj=0;
+                fi;
+                cmin=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\2/'`;
+                echo $cmin | grep -v [0-9] >/dev/null 2>&1
+                if [ "$?" -eq "0" ]; then
+                        cmin=0;
+                fi;
+                cpat=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\3/'`;
+                echo $cpat | grep -v [0-9] >/dev/null 2>&1
+                if [ "$?" -eq "0" ]; then
+                        cpat=0;
+                fi;
+                echo -n "$cmaj.$cmin.$cpat ";
+                if ([ "$cmaj" -gt "1" ]) || ([ "$cmaj" -eq "1" ] && [ $cmin -gt "3" ]) || ([ "$cmaj" -eq 1 ] && [ $cmin -eq "3" ] && [ "$cpat" -ge "12" ]); then
+                        echo "should be ok";
+                else
+                        echo "*** POSSIBLE PROBLEM ***";
+                        echo "";
+                        echo "ns-allinone-${NSVER} has not been tested under versions of Cygwin older than";
+                        echo "1.3.12. Your version ($cmaj.$cmin.$cpat) appears to be older than that. Success of";
+                        echo "the install process is therefore NOT GUARANTEED.";
+                        echo "";
+                        cygversion="failed";                
+		fi;
+                echo -n "Checking filesystems are mounted as UNIX filetype... ";
+                mount | grep "textmode" >/dev/null 2>&1;
+                if [ "$?" -eq "0" ]; then
+                        echo "*** NO! ***";
+                        mount_test="failed";
+                        echo "";
+                        echo "It appears that some of your Cygwin shares are mounted as DOS file";
+                        echo "type. This has not been tested, but is likely to result in failure of";
+                        echo "validation tests. Success of the install process is also NOT";
+                        echo "GUARANTEED.";
+                        echo "";
+                        echo "Refer to the Cygwin user guide for how to install Cygwin with the UNIX";
+                        echo "file text mode.";
+                        echo "";
+                else
+                        echo "yes";
+                        echo -n "Checking default mode is binmode... ";
+                        echo ${CYGWIN} | grep "nobinmode" >/dev/null 2>&1;
+                        if [ "$?" -eq "0" ]; then
+                                cyg_env_var="failed";
+                                echo "*** NO! ***";
+                                echo "";
+                                echo "Your \$CYGWIN environment variable specifies \"nobinmode\". This is";
+                                echo "likely to result in failure of validation tests, and (possibly) of";
+                                echo "the whole install process. You need to have the \$CYGWIN environment";
+                                echo "variable set to \"binmode\". Please refer to the Cygwin user guide for";
+                                echo "details on how to change this.";
+                                echo "";
+                        else 
+                                echo "yes";
+                        fi;
+                fi;                           
+                if [ "$cygversion" = "failed" ] || [ "$cyg_env_var" = "failed" ] || [ "$mount_test" = "failed" ]; then
+                        echo "";
+                        echo "Tests indicate that your installation of Cygwin may not be suitable for";
+                        echo "installing ns-2 allinone.";
+                        echo "";
+                        echo -n "Do you wish to proceed regardless? [y/n] "
+                        read answer;
+                        if [ "$answer" != "y" ] && [ "$answer" != "Y" ]; then
+                                die "Installation aborted...";
+                        fi;
+                fi;
+                echo "Patching Tcl for Cygwin.";
+                if [ ! -f ./tcl${TCLVER}/generic/tcl.h.orig ]; then
+                        cp ./tcl${TCLVER}/generic/tcl.h ./tcl${TCLVER}/generic/tcl.h.orig;
+                        echo "The original tcl${TCLVER}/generic/tcl.h is backed up as tcl${TCLVER}/generic/tcl.h.orig";
+                        sed -e 's/\#define _TCL/\#define _TCL\`\`\#ifdef __CYGWIN__\`\#define HAVE_TM_ZONE 1\`\#endif \/\* __CYGWIN__ \*\//g' ./tcl${TCLVER}/generic/tcl.h.orig | tr '\`' '\n' > ./tcl${TCLVER}/generic/tcl.h;
+                fi;
+                touch ./tcl${TCLVER}/generic/tclStubInit.c;
+                echo "Patching sgb for Cygwin.";
+                cp ./sgb/Makefile ./sgb/Makefile.orig;
+                echo "The original sgb/Makefile is backed up as sgb/Makefile.orig";
+                sed -e 's|rm \(.*\)test_io test_graph test_flip test_sample\(.*\)|rm -f \1test_io.exe test_graph.exe test_flip.exe test_sample.exe\2|' ./sgb/Makefile.orig > ./sgb/Makefile;
+                echo "Setting executable format to .exe...";
+                EXE=".exe";
+        else
+                echo "Cygwin not detected, proceeding with regular install.";
+                EXE=;
+        fi;
+else
+        echo "Cygwin not detected, proceeding with regular install.";
+fi;
+
+
 
 # Compile and install xgraph
 
@@ -48,6 +157,9 @@ echo "============================================================"
 
 cd ./xgraph-$XGRAPHVER
 ./configure --prefix=../
+if  [ "${test_cygwin}" = "true" ]; then
+       touch stamp-h;
+fi;
 if make
 then
 	echo "xgraph has been installed successfully. "
@@ -73,8 +185,8 @@ else
 	touch *.c
 	make all || warn "cweb failed to make, but it's optional"
 	# xxx: other stuff will fail...
-	chmod 755 cweave
-	chmod 755 ctangle
+	chmod 755 cweave${EXE}
+	chmod 755 ctangle${EXE}
 	cd ..
 	#echo "cd .."
 	if [ ! -d bin ]
@@ -82,8 +194,8 @@ else
 		mkdir bin
 	fi
 	cd bin
-	ln -s $CUR_PATH/cweb/cweave cweave
-	ln -s $CUR_PATH/cweb/ctangle ctangle
+	ln -s $CUR_PATH/cweb/cweave${EXE} cweave${EXE}
+	ln -s $CUR_PATH/cweb/ctangle${EXE} ctangle${EXE}
 fi
 
 cd ..
@@ -104,14 +216,13 @@ else
 	then
                 if [ -f libgb.a ] ; then
                         rm -f ../gt-itm/lib/libgb.a
-                        cp libgb.a ../gt-itm/lib/libgb.a
+			cp libgb.a ../gt-itm/lib/libgb.a
                 else 
-                        echo "* Wierd: sgb said it has been built but we can't find libgb.a!
-"
-                        exit -1
+		        echo "* Weird: sgb said it has been built but we can't find libgb.a! "
+			exit -1
                 fi
 	else
-		echo "Unable to create sgb library, but it's optional, so continuing..."
+	        echo "Unable to create sgb library, but it's optional, so continuing..."
 	fi
 fi
 
@@ -154,7 +265,7 @@ echo "============================================================"
 echo "* Build zlib"
 echo "============================================================"
 
-cd ./zlib-1.1.3
+cd ./zlib-1.1.4
 
 if ./configure --exec-prefix=../ --prefix=../
 then
@@ -165,12 +276,12 @@ then
 		warn "Zlib make failed, but it's optional Continue ..."
 	fi
 else
-	warn "Zlib-1.1.3 configuration failed, but it's optional, so continuing ..."
+	warn "Zlib-1.1.4 configuration failed, but it's optional, so continuing ..."
 fi
 
 cd ../
 
-# Build Tcl8.3.2
+# Build Tcl8.3.5
 
 echo "============================================================"
 echo "* Build tcl$TCLVER"
@@ -307,7 +418,7 @@ echo "============================================================"
 
 cd ./nam-$NAMVER
 
-./configure || die "Nam configuration failed! Exiting ..."
+./configure --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  || die "Nam configuration failed! Exiting ..."
 
 if make
 then 
@@ -327,30 +438,30 @@ fi
 
 cd bin
 
-ln -s $CUR_PATH/ns-$NSVER/ns ns
+ln -s $CUR_PATH/ns-$NSVER/ns${EXE} ns${EXE}
 
-if test -x $CUR_PATH/nam-$NAMVER/nam
+if test -x $CUR_PATH/nam-$NAMVER/nam${EXE}
 then
-    ln -s $CUR_PATH/nam-$NAMVER/nam nam
+    ln -s $CUR_PATH/nam-$NAMVER/nam${EXE} nam${EXE}
 else
     echo "Please compile your nam separately."
 fi
 
-if test -x $CUR_PATH/xgraph-$XGRAPHVER/xgraph
+if test -x $CUR_PATH/xgraph-$XGRAPHVER/xgraph${EXE}
 then
-    ln -s $CUR_PATH/xgraph-$XGRAPHVER/xgraph xgraph
+    ln -s $CUR_PATH/xgraph-$XGRAPHVER/xgraph${EXE} xgraph${EXE}
 else
     echo "Please compile your xgraph separately."
 fi
 
-if test -x $CUR_PATH/gt-itm/bin/sgb2ns
+if test -x $CUR_PATH/gt-itm/bin/sgb2ns${EXE}
 then 
-    ln -s $CUR_PATH/gt-itm/bin/sgb2ns sgb2ns
-    ln -s $CUR_PATH/gt-itm/bin/sgb2hierns sgb2hierns
-    ln -s $CUR_PATH/gt-itm/bin/sgb2comns sgb2comns
-    ln -s $CUR_PATH/gt-itm/bin/itm itm
-    ln -s $CUR_PATH/gt-itm/bin/sgb2alt sgb2alt
-    ln -s $CUR_PATH/gt-itm/bin/edriver edriver
+    ln -s $CUR_PATH/gt-itm/bin/sgb2ns${EXE} sgb2ns${EXE}
+    ln -s $CUR_PATH/gt-itm/bin/sgb2hierns${EXE} sgb2hierns${EXE}
+    ln -s $CUR_PATH/gt-itm/bin/sgb2comns${EXE} sgb2comns${EXE}
+    ln -s $CUR_PATH/gt-itm/bin/itm${EXE} itm${EXE}
+    ln -s $CUR_PATH/gt-itm/bin/sgb2alt${EXE} sgb2alt${EXE}
+    ln -s $CUR_PATH/gt-itm/bin/edriver${EXE} edriver${EXE}
 else
     echo "Please compile your gt-itm & sgb2ns separately."
 fi
