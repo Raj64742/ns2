@@ -1,6 +1,6 @@
 #!/bin/sh
 # \
-[ -x ../../ns ] && nshome=../../
+test -x ../../ns && nshome=../../
 # \
 exec ${nshome}ns "$0" "$@"
 
@@ -41,7 +41,7 @@ if {$argc == 0} {
 
 proc getopt {argc argv} {
 	global opt
-	lappend optlist tr stop num seed
+	lappend optlist tr stop num seed tmp
 	lappend optlist qsize bw delay ll ifq mac chan tp sink source cbr
 
 	for {set i 0} {$i < $argc} {incr i} {
@@ -71,17 +71,16 @@ proc cat {filename} {
 	close $fd
 }
 
-proc UseTemp {filename} {
-	global pwd dirname
-	cd /var/tmp
-	set dirname [file dirname $filename]
+proc UseTemp {tmp trfile} {
+	cd $tmp
+	set dirname [file dirname $trfile]
 	if {$dirname != "" && ![file exists $dirname]} {
 		exec mkdir -p $dirname
 	}
 }
 
 proc finish {} {
-	global env nshome pwd dirname
+	global env nshome pwd
 	global ns opt trfd
 
 	$ns flush-trace
@@ -90,8 +89,13 @@ proc finish {} {
 	exec perl $pwd/${nshome}bin/trsplit -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt > $opt(tr)-bw
 	cat $opt(tr)-bwt
 	exec cat $opt(tr)-bw $opt(tr)-bwt >> $pwd/$opt(tr)-bw
-#	exec gzip -c $opt(tr) > $pwd/$opt(tr).gz
-	exec rm $opt(tr) $opt(tr)-bw $opt(tr)-bwt
+	exec rm $opt(tr)-bwt
+	if [info exists opt(z)] {
+		exec gzip -c $opt(tr) > $pwd/$opt(tr).gz
+	}
+	if [info exists opt(tmp)] {
+		exec rm $opt(tr) $opt(tr)-bw
+	}
 
 	if [info exists opt(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
@@ -118,6 +122,7 @@ proc trace-mac {lan trfd} {
 	$channel trace-target $trHop
 }
 
+
 proc create-topology {num} {
 	global ns opt
 	global lan node source
@@ -127,7 +132,6 @@ proc create-topology {num} {
 		lappend nodelist $node($i)
 	}
 
-	Queue set limit_ [expr $num * [Queue set limit_]]
 	set lan [$ns make-lan $nodelist $opt(bw) $opt(delay) \
 			$opt(ll) $opt(ifq) $opt(mac) $opt(chan)]
 #	puts "LAN: $lan $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)"
@@ -163,7 +167,9 @@ proc create-source {num} {
 ## MAIN ##
 getopt $argc $argv
 set pwd [pwd]
-UseTemp $opt(tr)
+if [info exists opt(tmp)] {
+	UseTemp $opt(tmp) $opt(tr)
+}
 
 if {$opt(seed) > 0} {
 	ns-random $opt(seed)
