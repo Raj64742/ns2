@@ -53,6 +53,11 @@
 #define	DTYPE_FORCED	1	/* a "forced" drop */
 #define	DTYPE_UNFORCED	2	/* an "unforced" (random) drop */
 
+// Insert APPLE specific macro here
+//
+#if defined( __MACH__ ) && defined( __APPLE__ )
+#undef setbit
+#endif
 
 /*
  * Early drop parameters, supplied by user
