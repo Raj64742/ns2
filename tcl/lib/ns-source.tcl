@@ -30,23 +30,33 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.11 1997/07/25 02:21:06 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.12 1997/07/25 09:04:34 gnguyen Exp $
 #
-
-Class Source
 
 #set ns_telnet(interval) 1000ms
 #set ns_bursty(interval) 0
 #set ns_bursty(burst-size) 2
 #set ns_message(packet-size) 40
 
-Source instproc init {} {
-	$self next
-	$self instvar maxpkts_
-	#XXX Do not set this to 2^31; it breaks tcp-full.cc due to integer overflow
-	# Currently set to 2^28
-	set maxpkts_ 268435456
+#Class Source
+#Source instproc init {} {
+#	$self next
+#	$self instvar maxpkts_
+#	set maxpkts_ 268435456
+#}
+
+# XXX Do not set this to 2^31; it breaks tcp-full.cc due to integer overflow
+# Currently set to 2^28
+Source set maxpkts_ 268435456
+
+# Class Source/Telnet -superclass Source
+Source/Telnet instproc attach o {
+	$self instvar agent_ 
+	set agent_ $o
+	$self attach-agent $o
 }
+
+
 Class Source/FTP -superclass Source
 
 Source/FTP instproc start {} {
@@ -73,12 +83,3 @@ Source/FTP instproc attach o {
 	$self instvar agent_
 	set agent_ $o
 }
-
-Class Source/Telnet -superclass Source
-Source/Telnet instproc attach o {
-	$self instvar agent_ 
-	set agent_ $o
-	$self attach-agent $o
-}
-
-

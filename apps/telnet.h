@@ -1,33 +1,44 @@
+
+#ifndef ns_telnet_h
+#define ns_telnet_h
+
 #include "Tcl.h"
 #include "timer-handler.h"
-#include "random.h"
-#include "tcp.h"
 
-
+class TcpAgent;
 class TelnetSource;
+
+
+class Source : public TclObject {
+public:
+	Source();
+protected:
+	int maxpkts_;
+};
+
 
 class TelnetSourceTimer : public TimerHandler {
  public:
-        TelnetSourceTimer(TelnetSource* t) : TimerHandler() { t_ = t;};
-	inline virtual void expire(Event* e);
+	TelnetSourceTimer(TelnetSource* t) : TimerHandler(), t_(t) {}
+	inline virtual void expire(Event*);
  protected:
 	TelnetSource* t_;
 };
 
-
-class TelnetSource : public TclObject {
+class TelnetSource : public Source {
  public:
-        TelnetSource();
-        int command(int argc, const char*const* argv);
+	TelnetSource();
+	void timeout();
  protected:
-	friend class TelnetSourceTimer;
+	int command(int argc, const char*const* argv);
 	void start();
 	void stop();
-	void timeout();
-	double interval_;
 	inline double next();
+
 	TelnetSourceTimer timer_;
-	int running_;
 	TcpAgent* tcp_;
+	int running_;
+	double interval_;
 };
 
+#endif

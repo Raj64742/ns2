@@ -1,29 +1,36 @@
 
+#include "random.h"
+#include "tcp.h"
 #include "telnet.h"
 
 extern double tcplib_telnet_interarrival();
 
 static class SourceClass : public TclClass {
  public:
-        SourceClass() : TclClass("Source") {}
-	TclObject* create(int argc, const char*const* argv) {
-	        return (0);
+	SourceClass() : TclClass("Source") {}
+	TclObject* create(int, const char*const*) {
+		return (new Source);
 	}
 } class_source;
 
 static class TelnetSourceClass : public TclClass {
  public:
-        TelnetSourceClass() : TclClass("Source/Telnet") {}
-	TclObject* create(int argc, const char*const* argv) {
-	        return (new TelnetSource());
+	TelnetSourceClass() : TclClass("Source/Telnet") {}
+	TclObject* create(int, const char*const*) {
+		return (new TelnetSource);
 	}
-} class_telnetsource;
+} class_source_telnet;
 
-TelnetSource::TelnetSource() : timer_(this), running_(0), tcp_(0)
+
+Source::Source() : maxpkts_(1<<28)
 {
+	bind("maxpkts_", &maxpkts_);
+}
 
+
+TelnetSource::TelnetSource() : Source(), timer_(this), tcp_(0), running_(0)
+{
 	bind("interval_", &interval_);
-
 }
 
 int TelnetSource::command(int argc, const char*const* argv)
@@ -56,7 +63,7 @@ int TelnetSource::command(int argc, const char*const* argv)
 }
 
 
-void TelnetSourceTimer::expire(Event* e)
+void TelnetSourceTimer::expire(Event*)
 {
         t_->timeout();
 }
@@ -78,9 +85,9 @@ void TelnetSource::timeout()
 {
         if (running_) {
 	        /* call the TCP advance method */
-	        tcp_->advanceby(1);
+		tcp_->advanceby(1);
 		/* reschedule the timer */
-	        double t = next();
+		double t = next();
 		timer_.resched(t);
 	}
 }
@@ -93,4 +100,3 @@ double TelnetSource::next()
 	else
 	        return Random::exponential() * interval_;
 }
-		
