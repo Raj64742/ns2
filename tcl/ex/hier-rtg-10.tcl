@@ -55,13 +55,20 @@ $ns at 1.1 "$cbr1 start"
 puts [$cbr0 set packet_size_]
 puts [$cbr0 set interval_]
 
-$ns at 3.0 "finish"
+
+
+$ns at 1.0 {$n(2) label [$n(2) set rtsize_]}
+$ns at 1.0 {$n(4) label [$n(4) set rtsize_]}
+$ns at 1.0 {$n(6) label [$n(6) set rtsize_]}
+$ns at 1.0 {$n(8) label [$n(8) set rtsize_]}
+
+$ns at 3.5 "finish"
 
 proc finish {} {
 	global ns 
 	$ns flush-trace
-	puts "running nam..."
-	exec nam hier-out-a.nam &
+	##puts "running nam..."
+	##exec nam hier-out-a.nam &
 	exit 0
 }
 
