@@ -15,6 +15,12 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.5 1997/07/23 05:11:50 kfall Exp $ (PSC)";
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -42,7 +48,7 @@
 static class FackTcpClass : public TclClass {
 public:
 	FackTcpClass() : TclClass("Agent/TCP/Fack") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new FackTcpAgent());
 	}
 } class_fack;
@@ -118,8 +124,6 @@ void FackTcpAgent::recv_newack_helper(Packet *pkt) {
 void FackTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-
 	int ms; 
 
 #ifdef notdef
@@ -264,7 +268,7 @@ void FackTcpAgent::timeout(int tno)
 
 void FackTcpAgent::send_much(int force, int reason, int maxburst)
 {
-    register int pktno, found, nextpktno, npacket = 0;
+    register int found, npacket = 0;
     send_idle_helper();
     int win = window();
 	int xmit_seqno;
