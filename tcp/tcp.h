@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.63 1999/07/16 17:06:21 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.64 1999/08/18 00:25:20 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -108,7 +108,8 @@ struct hdr_tcp {
 #define TCP_TIMER_DELSND	1
 #define TCP_TIMER_BURSTSND	2
 #define TCP_TIMER_DELACK	3
-#define TCP_TIMER_RESET         4
+#define TCP_TIMER_Q         4
+#define TCP_TIMER_RESET        5 
 
 class TcpAgent;
 
@@ -131,6 +132,14 @@ protected:
 class BurstSndTimer : public TimerHandler {
 public: 
 	BurstSndTimer(TcpAgent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	TcpAgent *a_;
+};
+
+class QTimer : public TimerHandler {
+public: 
+	QTimer(TcpAgent *a) : TimerHandler() { a_ = a; }
 protected:
 	virtual void expire(Event *e);
 	TcpAgent *a_;
@@ -206,10 +215,13 @@ protected:
 	RtxTimer rtx_timer_;
 	DelSndTimer delsnd_timer_;
 	BurstSndTimer burstsnd_timer_;
+	QTimer q_timer_;
+
 	virtual void cancel_timers() {
 		rtx_timer_.force_cancel();
 		burstsnd_timer_.force_cancel();
 		delsnd_timer_.force_cancel();
+		q_timer_.force_cancel();
 	}
 	virtual void cancel_rtx_timer() {
 		rtx_timer_.force_cancel();
@@ -297,6 +309,17 @@ protected:
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);
 	void quench(int how);
+
+	void process_qoption_before_send() ;
+	void process_qoption_after_send() ;
+	void process_qoption_after_ack(int seqno) ;
+
+	int QOption_ ; /* TCP quiescence option */
+	double t_full ; /* last time the window was full */
+	int maxutil ;   /* max util in current measurement period */
+	int CoarseTimer_ ; /* are we using a corase grained timer? */
+	double t_start ;
+	int RTT_count, RTT_goodcount, F_counting, W_timed, F_full ; 
 };
 
 /* TCP Reno */

@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.351 1999/08/17 04:40:12 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.352 1999/08/18 00:25:21 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,16 @@
 
 
 <ul>
+	<p>
+	<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+	<b>Tue Aug 17 17:18:31 PDT 1999</b><br>
+	Added option QOption_ to TCP for an optional method for
+	reducing the congestion window after an idle period or after
+	a period where the full congestion window has not been used.
+	The code for this option is not necessarily in its final state yet.
+	The code is from Jitendra Padhye, from a collaboration with
+	Mark Handley.
+        
         <p>
 	<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
 	<b>Mon Aug 16 21:36:32 PDT 1999</b><br>
@@ -29,7 +39,7 @@
 	successor, tfrc.cc, tcp-friendly rate control.  The changes
 	are from Jitendra Padhye.  Tfrc.cc does not preserve backwards
 	compatibility with all of the options that were in tfrm.cc,
-	as the design becomes more stablel.
+	as the design becomes more stable.
 
   <p>
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.167 1999/08/17 04:26:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.168 1999/08/18 00:25:23 sfloyd Exp $
 
 
 #
@@ -111,6 +111,7 @@ Agent/TCP set nrexmitbytes_ 0
 Agent/TCP set trace_all_oneline_ false
 
 Agent/TCP set QOption_ 0 
+Agent/TCP set CoarseTimer_ 0 
 
 # XXX Generate nam trace or plain old text trace for variables. 
 # When it's true, generate nam trace.

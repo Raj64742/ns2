@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.87 1999/02/19 22:41:44 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.88 1999/08/18 00:25:19 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -65,7 +65,8 @@ public:
 TcpAgent::TcpAgent() : Agent(PT_TCP), 
 	t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
 	t_backoff_(0), ts_peer_(0), 
-	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this),
+	rtx_timer_(this), delsnd_timer_(this), 
+	burstsnd_timer_(this), q_timer_(this),
 	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
@@ -130,6 +131,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         bind("nrexmitbytes_", &nrexmitbytes_);
 	bind_bool("trace_all_oneline_", &trace_all_oneline_);
 	bind_bool("nam_tracevar_", &nam_tracevar_);
+
+	bind("QOption_", &QOption_) ; 
+	bind("CoarseTimer_", &CoarseTimer_) ; 
 
 	// reset used for dynamically created agent
 	reset();
@@ -231,6 +235,16 @@ TcpAgent::reset()
 	closed_ = 0;
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
+
+	if (QOption_) {
+		t_start = t_full = Scheduler::instance().clock();
+		maxutil = 0 ;
+		RTT_count = 1 ; 
+		RTT_goodcount = 1 ; 
+		F_counting = 0 ; 
+		W_timed = -1 ; 
+		F_full = 0 ;
+	}
 }
 
 /*
@@ -488,8 +502,18 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 		return;
 	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
 		if (overhead_ == 0 || force) {
-			output(t_seqno_++, reason);
+
+			if (QOption_ && CoarseTimer_)
+				process_qoption_before_send () ;
+
+			output(t_seqno_, reason);
 			npackets++;
+
+			if (QOption_)
+				process_qoption_after_send () ; 
+
+			t_seqno_ ++ ;
+
 		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*
 			 * Set a delayed send timeout.
@@ -752,6 +776,9 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 		closed_ = 1;
 		finish();
 	}
+	if (QOption_ && curseq_ == highest_ack_ +1) {
+		cancel_rtx_timer();
+	}
 }
 
 /*
@@ -868,6 +895,10 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 			dupack_action();
 		}
 	}
+
+	if (QOption_)
+		process_qoption_after_ack (tcph->seqno());
+
 	Packet::free(pkt);
 	/*
 	 * Try to send more data.
@@ -880,13 +911,44 @@ void TcpAgent::recv(Packet *pkt, Handler*)
  * function allows derived classes to make alterations/enhancements (e.g.,
  * response to new types of timeout events).
  */ 
-void TcpAgent::timeout_nonrtx(int) 
+void TcpAgent::timeout_nonrtx(int tno) 
 {
-	/*
-	 * delayed-send timer, with random overhead
-	 * to avoid phase effects
-	 */
-	send_much(1, TCP_REASON_TIMEOUT, maxburst_);
+	if (tno == TCP_TIMER_DELSND)  {
+	 /*
+	 	* delayed-send timer, with random overhead
+	 	* to avoid phase effects
+	 	*/
+		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
+	}
+	if (tno == TCP_TIMER_Q) {
+		double now = Scheduler::instance().clock();
+		int win = window () ; 
+		double check_interval ; 
+
+		if (CoarseTimer_) {
+			double rtt = (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_ ;
+			check_interval = 2*rtt ;
+		}
+		else {
+			check_interval = t_rtxcur_ ;  
+		}
+
+		if (cwnd_ > 1) {
+			cwnd_ = win/2 ;
+		}
+		if (cwnd_ <= 1) {
+			cwnd_ = 1 ; 
+		}
+		else {
+			t_full = now  ; 
+			F_counting = 0 ;
+			RTT_count = 0 ;
+			q_timer_.resched (check_interval);
+		}
+		
+		/*printf ("timeout: %f %d %f\n", now, CoarseTimer_, (float)cwnd_);*/
+		
+	}
 }
 	
 void TcpAgent::timeout(int tno)
@@ -986,6 +1048,11 @@ void BurstSndTimer::expire(Event*)
 	a_->timeout(TCP_TIMER_BURSTSND);
 }
 
+void QTimer::expire(Event*)
+{
+	a_->timeout(TCP_TIMER_Q);
+}
+
 /*
  * THE FOLLOWING FUNCTIONS ARE OBSOLETE, but REMAIN HERE
  * DUE TO OTHER PEOPLE's TCPs THAT MIGHT USE THEM
@@ -1058,4 +1125,103 @@ void TcpAgent::closecwnd(int how)
 	}
 	fcnt_ = 0.;
 	count_ = 0;
+}
+
+void TcpAgent::process_qoption_before_send ()
+{
+	double now = Scheduler::instance().clock();
+	double rtt = (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_ ;
+
+	if (now	- t_start > 2*rtt) {
+		if (RTT_count == 0)
+			RTT_count = 1 ; 
+		if ((F_full == 1) || (RTT_count > RTT_goodcount))
+			RTT_goodcount = RTT_count ;
+		RTT_count = 0 ; 
+		t_start = now ; 
+		F_full=0 ; 
+	}
+}
+
+
+void TcpAgent::process_qoption_after_send ()
+{
+	double now = Scheduler::instance().clock();
+	int win = window();
+	double check_interval ; 
+
+	if (CoarseTimer_) {
+		double rtt = (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_ ;
+		check_interval = 2*rtt ;
+	}
+	else {
+		check_interval = t_rtxcur_ ;  
+	}
+
+	if (t_seqno_ == highest_ack_ + win) {
+		t_full = now ;
+	}
+
+	if ((t_seqno_ > 0) && (t_seqno_ == maxseq_) && (cwnd_ > 1) ) {
+		int tmp = t_seqno_ - highest_ack_ ;
+		if (tmp > maxutil)
+			maxutil = tmp ;
+	
+	/*
+		printf ("before: %f %f %f %f %d %f\n", 
+						 now, t_full, now - t_full, 
+						 check_interval, maxutil, (float)cwnd_); 
+		fflush(stdout);
+	*/
+
+		if ((now - t_full) > check_interval) {
+			
+			if (CoarseTimer_) {
+				if (RTT_goodcount < 1)
+					RTT_goodcount = 1 ; 
+				for (int i = 0 ; i < RTT_goodcount ; i ++) {
+					if (maxutil < win) {
+						win = window();
+						cwnd_ =  win - (win-maxutil)/2.0;
+					}
+					else {
+						break ; 
+					}
+				}
+			}
+			else {
+				if (maxutil < win) {
+					cwnd_ =  win - (win-maxutil)/2.0; 
+				}
+
+				/*
+				printf ("after: %f %f %d\n", now, (float)cwnd_, maxutil);
+				fflush(stdout);
+				*/
+
+			}
+			maxutil = 0 ; 
+			t_full = now ; 
+		}
+	}
+
+	if (F_counting == 0) {
+		W_timed = t_seqno_  ; 
+		F_counting = 1 ;
+	}
+
+	q_timer_.resched (check_interval);
+}
+
+void TcpAgent::process_qoption_after_ack (int seqno)
+{
+	if (F_counting == 1) {
+		if (seqno >= W_timed) {
+			RTT_count ++ ; 
+			F_counting = 0 ; 
+		}
+		else {
+			RTT_count ++ ;
+		}
+	}
 }
