@@ -180,7 +180,7 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
 	policy_pool[EWP] = new EWPolicy();
       
       ((EWPolicy *)policy_pool[EWP])->
-	init(atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]));
+	init(atoi(argv[6]), atoi(argv[7]), atoi(argv[8]));
 
       policyTable[policyTableSize].policy_index = EWP;
       policyTable[policyTableSize].policer = EWPolicer;

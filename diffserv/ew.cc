@@ -1,25 +1,306 @@
+// Copyright (c) 1999 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// ew.cc (Early warning system)
+//   by Xuan Chen (xuanc@isi.edu), USC/ISI
+
 #include "ip.h"
 #include "random.h"
 
 #include "ew.h"
 
-// Beginning of EW
-//Constructor.  
-EW::EW() {
+// Definition of High-Low Filter
+HLF::HLF() {
+  alpha = 0;
+  high = low = 0;
+}
+
+void HLF::reset(double value) {
+  high = low = value;
+}
+
+void HLF::reset() {
+  reset(0);
+}
+
+// Set Alpha
+void HLF::setAlpha(double value) {
+  if (value > 1 || value < 0)
+    return;
+
+  if (value >= 0.5)
+    alpha = value;
+  else
+    alpha = 1 - value;
+}
+
+// Get outputs from HLF
+double HLF::getHigh() {
+  return(high);
+}
+
+double HLF::getLow() {
+  return(low);
+}
+
+// update high-low filter
+// high(t) = alpha * high(t-1) + (1 - alpha) * o(t)
+// low(t) = (1 - alpha) * low(t-1) + alpha * o(t)
+void HLF::update(double input) {
+  high = alpha * high + (1 - alpha) * input;
+  low = (1 - alpha) * low + alpha * input;
+  //  printf("HLF %d %.2f, %.2f\n", (int)now, high, low);
+}
+
+// Definition for a tocken-bucket rate limitor
+TBrateLimitor::TBrateLimitor() {
+  TBrateLimitor(DEFAULT_TB_RATE_P);
+};
+
+TBrateLimitor::TBrateLimitor(double rate) {
+  double now = Scheduler::instance().clock();
+  pkt_mode = 1;
+  bucket_size = DEFAULT_TB_SIZE;
+  tocken_rate = 0;
+  tocken_num = bucket_size;
+  last_time = now;
+  ini_tocken_rate = rate;
+
+  setRate(rate);
+  //printf("TB pkt_mode:%d, bucket_size:%g, tocken_num:%g, last_time:%g\n",
+  //	 pkt_mode, bucket_size, tocken_num, last_time);
+
+  resetScore();
+};
+
+// adjust the rate limit to the default value
+void TBrateLimitor::setRate(double rate) {
+  if (rate != tocken_rate) {
+    last_tocken_rate = tocken_rate;
+    tocken_rate = rate;
+    printf("TR %d %.2f %d %d\n", (int)(Scheduler::instance().clock()), 
+	   tocken_rate, p_score, n_score);
+  }
+}
+
+// adjust the rate limit to approaching an optimal rate limit
+void TBrateLimitor::adjustRate() {
+  // pay the penalty
+  adjustScore(-1);
+
+  double rate = tocken_rate;
+  if (p_score >= n_score)
+    rate = tocken_rate * (1 + 0.2);
+  else 
+    rate = tocken_rate * (1 - 0.2);
+
+  setRate(rate);
+}
+
+// Reset negative / positive score
+void TBrateLimitor::resetScore() {
+  n_score = p_score = 0;
+}
+
+// adjust the score for increasing or decreasing scores
+void TBrateLimitor::adjustScore(int score) {
+  // pay the penalty
+  if (last_tocken_rate > tocken_rate)
+    n_score += score;
+  else
+    p_score += score;
+}
+
+int TBrateLimitor::run(double incoming, double t_rate) {
+  double now = Scheduler::instance().clock();
+  double interval = now - last_time;
+  
+  //printf("TB: now:%g last_time:%g interval:%g; ", now, last_time, interval);
+  tocken_num += interval * t_rate;
+  last_time = now;
+
+  // more tockens are overflowed
+  if (tocken_num > bucket_size)
+    tocken_num = bucket_size;
+
+  //printf("tocken #:%g; ", tocken_num);
+
+  // through (0 dropping probability)
+  if (tocken_num >= incoming) {
+    tocken_num -= incoming;
+    //printf("...through\n");
+    return 0;
+  }
+
+  // dropped
+  //printf("...dropped\n");
+  return 1;
+}
+
+int TBrateLimitor::run(double incoming) {
+  return (run(incoming, tocken_rate));
+}
+
+// EW detector
+// Constructor
+EWdetector::EWdetector() {
   ew_src = ew_dst = -1;
-  // default value: no EW coupled, no detection
-  cew = NULL;
-  detect_p = detect_b = 0;
-  debug_p = debug_b = 0;
-  last_debug_t = 0;
 
-  // random sampling timer setup:
-  // EW sleeps initially for EW_SAMPLE_INTERVAL 
-  timer = EW_SAMPLE_INTERVAL;
-  sleep = 1;
+  // reset measurement
+  cur_rate = avg_rate = 0;
 
-  init_s_inv = s_inv = EW_SAMPLE_INTERVAL;
-  d_inv = EW_DETECT_INTERVAL;
+  // reset timers
+  db_timer = dt_timer = 0;
+
+  // reset alarm
+  resetAlarm();
+  resetChange();
+
+  // High-low filter
+  hlf.setAlpha(EW_FADING_FACTOR);
+}
+
+EWdetector::~EWdetector() {
+};
+
+// Enable detecting and debugging
+void EWdetector::setDt(int inv) {
+  dt_inv = inv;
+  //printf("DT: %d\n", dt_inv);
+};
+void EWdetector::setDb(int inv) {
+  db_inv = inv;
+  //printf("DB: %d\n", db_inv);
+};
+
+void EWdetector::setLink(int src, int dst) {
+  ew_src = src;
+  ew_dst = dst;
+  //printf("EW: (%d:%d)\n", ew_src, ew_dst);
+};
+
+void EWdetector::setAlarm() {
+  alarm = 1;
+
+  // Reset low and high gain filters' input values to the long-term avg
+  // Actually, there is no change to high gain filter
+  hlf.reset(avg_rate);
+};
+
+void EWdetector::resetAlarm() {
+  alarm = 0;
+
+  // Reset low and high gain filters' input values to the long-term avg
+  // Actually, there is no change to low gain filter
+  hlf.reset(avg_rate);
+};
+
+// Set and reset change flag
+void EWdetector::setChange() {
+  change = 1;
+}
+
+void EWdetector::resetChange() {
+  change = 0;
+}
+
+// Test if the alarm has been triggered
+int EWdetector::testAlarm() {
+  if (!change)
+    return(EW_UNCHANGE);
+  else 
+    return(alarm);
+}
+
+// Update long term average
+void EWdetector::updateAvg() {
+  // update the request rate
+  // update the aggregated response rate
+  // Update flip-flop filter
+  hlf.update(cur_rate);
+  
+  // Update SWIN, not used any more.
+  //updateSWin(cur_rate);
+  //ravgSWin();
+  //printSWin();
+  
+  // Update the long term average value with the output from different filters
+  if (!alarm) {
+    // Use low-gain filter for fast response
+    avg_rate = hlf.getLow();
+  } else {
+    // Use high-gain filter to keep the long term average stable
+    avg_rate = hlf.getHigh();
+  }
+}
+
+// the detector's engine
+void EWdetector::run(Packet *pkt) {
+  // get the time
+  now = Scheduler::instance().clock();
+  
+  //printf("EW[%d:%d] run ", ew_src, ew_dst);
+  // update the measurement 
+  measure(pkt);
+
+  // There is a timeout!
+  if (now >= dt_timer) {
+    // Start detection
+    //printf("Detection timeout(%d)\n", (int)now);
+    
+    // 1. Update the current rate from measurement
+    updateCur();
+
+    // 2. Detect change and Trigger alarm if necessary
+    // Compare the current rate with the long term average
+    detect();
+    
+    // 3. Update the long term averages
+    updateAvg();
+
+    // setup the sleeping timer
+    dt_timer = (int)now + dt_inv;
+    //printf("%d\n", dt_inv);
+
+    change = 1;
+  }
+  
+  // Schedule debug
+  if (db_inv && now >= db_timer) {
+    //printf("debugB ");
+    trace();
+    db_timer = (int)now + db_inv;
+  }
+}
+
+// end of EW detector
+
+// EW bit rate detector
+//Constructor.  
+EWdetectorB::EWdetectorB() : EWdetector() {
+  drop_p = 0;
+  arr_count = 0;
 
   adjustor = 1.0;
 
@@ -29,217 +310,81 @@ EW::EW() {
 
   swin.head = swin.tail = NULL;
   swin.count = swin.ravg = 0;
-
-  hlf.alpha = 0.875;
-  hlf.high = hlf.low = 0;
-
-  avg_rate = cur_rate = 0;
-  alarm = alarm_count = 0;
-  p_count = db_pc = avg_req = cur_req = 0;
-  
-  drop_p = 0;
 }
 
 //Deconstructor.
-EW::~EW(){
-  cew = NULL;
-
+EWdetectorB::~EWdetectorB(){
   resetAList();
   resetSWin();
 }
 
 // Initialize the EW parameters
-void EW::init(int ew_adj, int ew_inv, int qsrc, int qdst) {
+void EWdetectorB::init(int ew_adj) {
   // EW adjustor (g = resp rate / request rate)
   adjustor = ew_adj;
-
-  // Detection and sample interval
-  init_s_inv = s_inv = ew_inv;
-  d_inv = (int) (ew_inv / 8);
-  if (d_inv < EW_MIN_DETECT_INTERVAL)
-    d_inv = EW_MIN_DETECT_INTERVAL;
-
-  //printf("s_inv: %d, d_inv: %d\n", s_inv, d_inv);
-  // EW id
-  ew_src = qsrc;
-  ew_dst = qdst;
-  //printf("EW[%d:%d] \n", ew_src, ew_dst);
 }
 
-// Enter EW processing
-void EW::runEW(Packet *pkt) {
-  // test if the detector is on (when there is an EW coupled.)
-  if (!detect_b && !detect_p)
-    return;
-
-  // can't count ACKs:
-  //   with resp: may cause inaccurate calculation with TSW(??)
-  //   with req:  may cause resp retransmission.
-  hdr_cmn *th = hdr_cmn::access(pkt);
-  if (th->ptype() == PT_ACK)
-    return;
-
-  // get the time
-  now = Scheduler::instance().clock();
-  
-  //printf("EW[%d:%d] run ", ew_src, ew_dst);
-
-  if (detect_p)
-    p_count++;
-
+// Update current measurement 
+void EWdetectorB::measure(Packet *pkt) {
   //printf(" before UA");
   // Conduct detection continously
-  if (detect_b)
-    updateAList(pkt, now);
+  updateAList(pkt);
   //printf(" after UA");
-
-  // Debug information
-  if (debug_p) {
-    db_pc++;
-    if (now - last_debug_t > debug_p) {
-      //printf("debugP ");
-      tracePr();
-      last_debug_t = (int)now;
-    }
-  }
-  //printf(" DP ");
-  if (debug_b && now - last_debug_t > debug_b) {
-    //printf("debugB ");
-    traceBr();
-    last_debug_t = (int)now;
-  }
-  //printf(" DB ");
-
-  // There is a timeout!
-  if (now >= timer) {
-    // Start detection
-    //printf("Detection timeout(%d)\n", (int)now);
-    
-    // 1. Update the current rate (req/resp) from measurement
-    // update the request rate
-    if (detect_p) {
-      //printf("%d", s_inv);
-      cur_req = (int)(p_count / s_inv);
-    }
-    //printf("after UUP ");
-    // update the aggregated response rate
-    if (detect_b) {
-      //printAList();
-      // Record current aggregated response rate
-      cur_rate = computeARR();
-    }
-    //printf("after UUB ");
-    // 2. Detect change and Trigger alarm if necessary
-    // Compare the current rate with the long term average for
-    //   both req and resp
-    if (detect_p) {
-      detectChangeP();
-    }
-    //printf("after DP ");
-    if (detect_b) {
-      detectChangeB();
-    }
-    //printf("after DB ");
-    // 3. Update the long term averages
-    // update the request rate
-    if (detect_p) {
-      avg_req = (int)(hlf.alpha * avg_req + (1 - hlf.alpha) * cur_req);
-    }
-    //printf("after UP ");
-    // update the aggregated response rate
-    if (detect_b) {
-      // Update flip-flop filter
-      updateHLF(cur_rate);
-      
-      // Update SWIN, not used any more.
-      //updateSWin(cur_rate);
-      //ravgSWin();
-      //printSWin();
-      
-      // Update the long term average of aggregated response rate
-      updateAvgRate();
-    }
-    //printf("after DB ");
-    // setup the sleeping timer
-    timer = (int)now + s_inv;
-    //printf("%d\n", s_inv);
-  }
 }
 
-// Test if the alarm has been triggered.
-float EW::testAlarm(Packet *pkt) {
-  hdr_cmn *th = hdr_cmn::access(pkt);
+// Update current measurement 
+void EWdetectorB::updateCur() {
+  //printAList();
+  // Record current aggregated response rate
+  cur_rate = computeARR();
+}
+
+// Check if the packet belongs to existing flow
+int EWdetectorB::exFlow(Packet *pkt) {
   hdr_ip *iph = hdr_ip::access(pkt);
   int src_id = iph->saddr();
   int dst_id = iph->daddr();
+  int f_id = iph->flowid(); 
+  AListEntry *p;
 
-  //return 0;
-  // Can't touch acks for response.
-  if (th->ptype() == PT_ACK) {
-    //printf("an ack\n");
-    return 0;
-  }
-
-  if (!cew)
-    return 0;
-  
-  float drop_p;
-  drop_p = cew->testAlarmCouple(src_id, dst_id);
-  if (drop_p > 0 && alarm)
-    return(drop_p);
-
-  return 0;
-}
-
-// Test if the corrsponding alarm on reversed link has been triggered.
-float EW::testAlarmCouple(int c_id, int s_id){
-  // No alarm, no reaction
-  if (!alarm) {
-    if (drop_p == 0) {
-      //printf(" N/A\n");	
-      return 0;
-    } else {
-      //printf(" N/AD\n");	
-      return (drop_p);
-    }
-  }
-
-  // Alarm, clear the alarm count
-  alarm_count = 0;    
   // Protect existing connection
   // Responses are from Server to Client
-  if (searchAList(s_id, c_id)) {
-    //printf(" A/E\n");	
-    return(0);
-  }
+  // Use svr-cli pair: time-out is long
+  // Use fid: req and resp are not the same
+  //p = searchAList(dst_id, src_id, f_id);
 
-  // Reaction!
-  //printf(" A/NE\n");	
-  return(drop_p);
+  if (p) {
+    //printf("%d %d %d %d ", (int)now, src_id, dst_id, f_id);
+    //printAListEntry(p, 0);
+
+    //return(1);
+  }
+  
+  return(0);
 }
 
 // Conduct the measurement
-void EW::updateAList(Packet *pkt, double now) {
+void EWdetectorB::updateAList(Packet *pkt) {
   hdr_cmn* hdr = hdr_cmn::access(pkt);
   hdr_ip* iph = hdr_ip::access(pkt);
   int dst_id = iph->daddr();
   int src_id = iph->saddr();
-  int fid = iph->flowid(); 
+  int f_id = iph->flowid(); 
 
   // Get the corresponding id.
   //printf("EW[%d:%d] in detector\n", ew_src, ew_dst);
 
   AListEntry *p;
-  p = searchAList(src_id, dst_id);
+  p = searchAList(src_id, dst_id, f_id);
 
   // Add new entry to AList
   // keep the bytes sent by each aggregate in AList
   if (!p) {
-    p = newAListEntry(src_id, dst_id, fid);
+    p = newAListEntry(src_id, dst_id, f_id);
   }
 
   // update the existing (or just created) entry in AList
-  assert(p && p->src_id == src_id && p->dst_id == dst_id);
+  assert(p && p->f_id == f_id && p->src_id == src_id && p->dst_id == dst_id);
 
   // update the flow's arrival rate using TSW
   double bytesInTSW, newBytes;
@@ -248,14 +393,52 @@ void EW::updateAList(Packet *pkt, double now) {
   p->avg_rate = newBytes / (now - p->t_front + p->win_length);
   p->t_front = now;
 
-  //printf("%f: %d %f\n", now, p->fid, p->avg_rate);
+  //printAListEntry(p, 0);
+}
+
+// Get the median for a part of AList 
+//   starting from index with count entries
+int EWdetectorB::getMedianAList(int index, int count) {
+  struct AListEntry *med;
+  int m;
+  
+  if (!count)
+    return 0;
+
+  sortAList();
+  //printAList();
+
+  // Pick the entry with median avg_rate
+  m = (int) (count / 2);
+  if (2 * m == count) {
+    return((getRateAList(index + m - 1) + getRateAList(index + m)) / 2);
+  } else {
+    return(getRateAList(index + m));
+  }
+}
+
+// Get the rate given the index in the list
+int EWdetectorB::getRateAList(int index) {
+  struct AListEntry *p;
+
+  //printf("%d\n", index);
+  p = alist.head;
+  for (int i = 0; i < index; i++) {
+    if (p)
+      p = p->next;
+  }
+  
+  if (p)
+    return ((int)p->avg_rate);
+
+  printf("Error in AList!\n");
+  return(0);
 }
 
 // Calculate the aggragated response rate for high-bandwidth flows
-int EW::computeARR() {
+int EWdetectorB::computeARR() {
   int i, agg_rate;
   struct AListEntry *max;
-  int k;
 
   // Explicit garbage collection first 
   //  before both choosing HBFs and searching AList
@@ -263,50 +446,51 @@ int EW::computeARR() {
   timeoutAList();
   //printf("after timeout ");
 
+  // do nothing if no entry exists
+  if (!alist.count) 
+    return 0;
+
   // Pick the 10% highest bandwidth flows
-  k = (int) (alist.count * 0.1 + 1);
+  arr_count = (int) (alist.count * 0.1 + 1);
 
-  // Calculate the ARR for HBA
-  i = 0;
+  // Sort AList first
+  sortAList();
+
+  // Calculate the ARR for HBFs
+  // Use mean
   agg_rate = 0;
-
-  do {
-    max = maxAList();
-    //printAListEntry(max, i);
-    
-    if (max) {
-      agg_rate += (int)max->avg_rate;
-      i++;
-    }
-  } while (i < k && max);
-
-  // Have to clean the chosen bit in AList
-  resetAListC();
-
-  // Just use simple average!
+  for (i = 0; i < arr_count; i++) {
+    agg_rate += getRateAList(i);
+  }
+  
   if (i)
     agg_rate = (int) (agg_rate / i);
   else {
     printf("No MAX returned from ALIST!!!\n");
   }
-  //printf("%f %d %d\n", now, agg_rate, k);
+  
+  // Use median (the median for the list or median for HBFs?)
+  //agg_rate = getMedianAList(0, k);
+  //printf("%f %d %d %d\n", now, k, agg_rate, getMedianAList(0, k));
   
   return(agg_rate);
 }
 
 // Find the matched AList entry
-struct AListEntry * EW::searchAList(int src_id, int dst_id) {
+struct AListEntry * EWdetectorB::searchAList(int src_id, int dst_id, int f_id){
   AListEntry *p;
 
   // Explicit garbage collection first.
   //printf("before timeout ");
   timeoutAList();
   //printf("after timeout ");
-  // Use src and dest pair rather than flow id:
+  // Use src and dest pair and flow id:
   //   aggregate flows within the same request-response exchange
-  // Use timeout to seperate different exchanges.
+  // Timeout need to be set to a very small value in order to
+  //   seperate different exchanges.
   p = alist.head;
-  while (p && (p->src_id != src_id || p->dst_id != dst_id)) {
+  while (p && 
+	 (p->f_id != f_id || p->src_id != src_id || p->dst_id != dst_id)) {
     p = p->next;
   }
   
@@ -314,14 +498,13 @@ struct AListEntry * EW::searchAList(int src_id, int dst_id) {
 }
 
 // Add new entry to AList
-struct AListEntry * EW::newAListEntry(int src_id, int dst_id, int fid) {
+struct AListEntry * EWdetectorB::newAListEntry(int src_id, int dst_id, int f_id) {
   AListEntry *p;
 
   p = new AListEntry;
-  p->chosen = 0;
   p->src_id = src_id;
   p->dst_id = dst_id;
-  p->fid = fid;
+  p->f_id = f_id;
   p->last_update = now;
   p->avg_rate = 0;
   // Since we are doing random sampling, 
@@ -343,45 +526,84 @@ struct AListEntry * EW::newAListEntry(int src_id, int dst_id, int fid) {
   return(p);
 }
 
-// Find the max value in AList
-struct AListEntry * EW::maxAList() {
-  struct AListEntry *p, *max;
-  double interval;
-  int i;
+// Find the entry with max avg_rate in AList
+struct AListEntry * EWdetectorB::getMaxAList() {
+  struct AListEntry *p, *pp, *max, *pm;
 
   //printAList();
-  max = alist.head;
-  i = 0;
-  while (max && max->chosen) {
-    max = max->next;
-  }
-
-  //printf("%d ", i++);
-  p = max;
-  while(p) {
-    //printf("%d ", i++);
-    if (!(p->chosen) && p->avg_rate > max->avg_rate)
+  // find the max entry and remove
+  p = pp = alist.head;
+  max = pm = p;
+  
+  while (p) {
+    if (p->avg_rate > max->avg_rate) {
+      pm = pp;
       max = p;
+    }
+    
+    pp = p;
     p = p->next;
   }
-
-  // set the chosen flag
-  // Clean the chosen flag is in timeoutAList
-  if (max) 
-    max->chosen = 1;
+  
+  // remove max from AList
+  if (alist.head == max)
+    alist.head = max->next;
+  
+  if (pm != max)
+    pm->next = max->next;
+  
+  max->next = NULL;
+  //printAList();
 
   return(max);
 }
 
-// Timeout AList entries
-void EW::timeoutAList() {
-  AListEntry *p, *q;
+// Sort AList based on the avg_rate
+void EWdetectorB::sortAList() {
+  struct AListEntry *max, *head, *tail;
   
+  if (!alist.head)
+    return;
+
+  //printAList();
+  head = tail = NULL;
+
+  while (alist.head) {
+    // Get the entry with the max avg_rate
+    max = getMaxAList();
+    //printAListEntry(max, i);
+    
+    if (max) {
+      // Add max to the tail of the new list
+      if (tail)
+	tail->next = max;
+      tail = max;
+      
+      if (!head)
+	head = max;
+    }
+  }
+
+  alist.head = head;
+  alist.tail = tail;
+
+  //printAList();
+}
+
+// Timeout AList entries
+void EWdetectorB::timeoutAList() {
+  AListEntry *p, *q;
+  float to;
+
+  to = EW_FLOW_TIME_OUT;
+  if (dt_inv)
+    to = dt_inv;
+
   // Expire the old entries in AList
   p = q = alist.head;
   while (p) {
     // Garbage collection
-    if (p->last_update + EW_FLOW_TIME_OUT < now){
+    if (p->last_update + to < now){
       // The coresponding flow is expired.      
       if (p == alist.head){
 	if (p == alist.tail) {
@@ -408,21 +630,8 @@ void EW::timeoutAList() {
   }
 }
 
-// Reset the chosen bit in AList
-void EW::resetAListC() {
-  struct AListEntry *p;
-
-  p = alist.head;
-  while (p) {
-    // clean the chosen flag.
-    if (p->chosen)
-      p->chosen = 0;
-    p = p->next;
-  }
-}
-
 // Reset AList
-void EW::resetAList() {
+void EWdetectorB::resetAList() {
   struct AListEntry *ap, *aq;
 
   ap = aq = alist.head;
@@ -437,29 +646,10 @@ void EW::resetAList() {
   alist.count = 0;
 }
 
-// update the long term average aggregated response rate
-void EW::updateAvgRate() {
-  // Update the long term average value with the output from different filters
-  if (!alarm && alarm_count == 0) {
-    // Use low-gain filter for fast response
-    avg_rate = (int)(hlf.low);
-  } else {
-    // Use high-gain filter to keep the long term average stable
-    avg_rate = (int)(hlf.high);
-  }
-}
 
-// update high-low filter
-// high(t) = alpha * high(t-1) + (1 - alpha) * o(t)
-// low(t) = (1 - alpha) * low(t-1) + alpha * o(t)
-void EW::updateHLF(int rate) {
-  hlf.high = hlf.alpha * hlf.high + (1 - hlf.alpha) * rate;
-  hlf.low = (1 - hlf.alpha) * hlf.low + hlf.alpha * rate;
-  //  printf("%f Flip-flop filter [%.2f, %.2f]\n", now, hlf.high, hlf.low);
-}
 
 // Reset SWin
-void EW::resetSWin() {
+void EWdetectorB::resetSWin() {
   struct SWinEntry *p, *q;
 
   p = q = swin.head;
@@ -475,7 +665,7 @@ void EW::resetSWin() {
 }
 
 // update swin with the latest measurement of aggregated response rate
-void EW::updateSWin(int rate) {
+void EWdetectorB::updateSWin(int rate) {
   struct SWinEntry *p, *new_entry;
 
   new_entry = new SWinEntry;
@@ -501,7 +691,7 @@ void EW::updateSWin(int rate) {
 }
 
 // Calculate the running average over the sliding window
-void EW::ravgSWin() {
+void EWdetectorB::ravgSWin() {
   struct SWinEntry *p;
   float sum = 0;
   float t_weight = 0;
@@ -524,25 +714,10 @@ void EW::ravgSWin() {
   //  printf("Ravg: %d\n", swin.ravg);
 }
 
-// Detect the change in packet arrival rate
-void EW::detectChangeP() {
-  if (!detect_p)
-    return;
-
-  if (cur_req > avg_req) {
-    alarm = 1;
-  }
-}
-
 // detect the traffic change by 
 // comparing the current measurement with the long-term average
 //   trigger alarm if necessary.
-void EW::detectChangeB() {
-  if (!detect_b)
-    return;
-
-  float p = 0;
-
+void EWdetectorB::detect() {
   // When ALARM:
   //  detect if it is the time to release the alarm
   // When NO ALARM:
@@ -551,84 +726,85 @@ void EW::detectChangeB() {
     // Determine if an alarm should be released
     if (cur_rate > avg_rate * (1 + EW_DETECT_RANGE)) {
       // reset alarm
-      alarm = 0;
-      
-      if (alarm_count)
-	alarm_count = 0;
-      
-      //incSInv();
+      resetAlarm();
     } 
   } else {
     // Determine if an alarm should be triggered
-    if (cur_rate < avg_rate * (1 - EW_DETECT_RANGE)) {
-      alarm_count++;
-      if (alarm_count >= EW_A_TH) {
-        alarm = 1;
-
-        // Reset low and high gain filters' input values to the long-term avg
-        // Actually, there is no change to high gain filter
-        hlf.high = hlf.low = avg_rate;
-
-	// Initial drop_p to the MAX value whenever alarm triggered
-	if (drop_p < EW_MAX_DROP_P)
-	  drop_p = EW_MAX_DROP_P;
-      } else {
-        //decSInv();
-      }
+    //   need to be conservative!
+    if (cur_rate < avg_rate) {
+      setAlarm();
+      
+      // Initial drop_p to the MAX value whenever alarm triggered
+      if (drop_p < EW_MAX_DROP_P)
+	drop_p = EW_MAX_DROP_P;
+    } else {
     }
   }
-
+  
   // Determine the dropping probability
-  // Could be in reactor
+  //computeDropP();
+}
+
+// Determine the dropping probability based on current measurement
+void EWdetectorB::computeDropP() {
+  double p = 0;
+
   if (alarm) {
     // Compute the dropping probability as a linear function of current rate
-    if (avg_rate)
-      p = (avg_rate - cur_rate) * adjustor / avg_rate;
-    else
+    //  p is computed towards the current measurement.
+    p = 1;
+    if (cur_rate)
+      p = (avg_rate - cur_rate) * adjustor / cur_rate;
+    
+    // p could be greater than 1
+    if (p > 1)
       p = 1;
-    // p could be negative here, but will be set to the MIN
-    if (p < EW_MIN_DROP_P)
-      p = EW_MIN_DROP_P;
-    if (p > EW_MAX_DROP_P)
-      p = EW_MAX_DROP_P;
+    // p could also be negative
+    if (p < 0)
+      p = 0;
     
     // Compute the actual drop probability
-    drop_p = hlf.alpha * drop_p + (1 - hlf.alpha) * p;    
+    drop_p = EW_FADING_FACTOR * drop_p + (1 - EW_FADING_FACTOR) * p;    
+    // adjust drop_p
+    if (drop_p < EW_MIN_DROP_P)
+      drop_p = EW_MIN_DROP_P;
+    if (drop_p > EW_MAX_DROP_P)
+      drop_p = EW_MAX_DROP_P;
   } else {
     // Fade out the drop_p when no alarm
     if (drop_p > 0) {
       if (drop_p <= EW_MIN_DROP_P)
         drop_p = 0;
       else {
-        drop_p = hlf.alpha * drop_p;
+        drop_p = EW_FADING_FACTOR * drop_p;
       }
     }
   }
 }
 
 // Decreas the sample interval
-void EW::decSInv() {
+void EWdetectorB::decSInv() {
   // Need some investigation for the min allowed detection interval
-  if (s_inv / 2 > EW_MIN_SAMPLE_INTERVAL) {
-    s_inv = s_inv / 2;
+  //  if (s_inv / 2 > EW_MIN_SAMPLE_INTERVAL) {
+  // s_inv = s_inv / 2;
     
     //printf("SINV decreased by 2.\n");
-  }
+  //}
 }
 
 // Increase the sample interval
-void EW::incSInv() {
+void EWdetectorB::incSInv() {
   struct SWinEntry *p;
   
-  if(s_inv * 2 <= init_s_inv) {
-    s_inv = s_inv * 2;
+//if(s_inv * 2 <= init_s_inv) {
+//  s_inv = s_inv * 2;
     
     //printf("SINV increased by 2.\n");
-  }
+// }
 }
 
 // Prints one entry in SWin
-void EW::printSWin() {
+void EWdetectorB::printSWin() {
   struct SWinEntry *p;
   printf("%f SWIN[%d, %d]", now, swin.ravg, swin.count);
   p = swin.head;
@@ -642,23 +818,23 @@ void EW::printSWin() {
 }
 
 // Print the contents in SWin
-void EW::printSWinEntry(struct SWinEntry *p, int i) {
+void EWdetectorB::printSWinEntry(struct SWinEntry *p, int i) {
   if (p)
-    printf("[%d: %d, %.2f] ", i, p->rate, p->weight);
+    printf("[%d: %d %.2f] ", i, p->rate, p->weight);
 }
 
 // Print one entry in AList
-void EW::printAListEntry(struct AListEntry *p, int i) {
+void EWdetectorB::printAListEntry(struct AListEntry *p, int i) {
   if (!p)
     return;
 
-  printf("[%d] %d (%d>%d) %f %f %d\n", i, p->fid, p->src_id, p->dst_id, 
-	 p->avg_rate, p->last_update, p->chosen);
+  printf("[%d] %d (%d %d) %.2f %.2f\n", i, p->f_id, p->src_id, p->dst_id, 
+	 p->avg_rate, p->last_update);
 }
 
 
 // Print the entries in AList
-void EW::printAList() {
+void EWdetectorB::printAList() {
   struct AListEntry *p;
   printf("%f AList(%d):\n", now, alist.count);
 
@@ -673,110 +849,370 @@ void EW::printAList() {
   printf("\n");
 }
 
-// Trace packet incoming rate (req rate)
-void EW::tracePr() {
-  printf("P %d %d\n", (int)now, db_pc);
-  db_pc = 0;
-}
-
 // Trace bit rate (resp rate)
-void EW::traceBr() {
-  int db_rate = 0;
-  
+void EWdetectorB::trace() {
+  double db_rate = 0;
+  double m_rate = 0;
+
+  timeoutAList();
+  m_rate = getMedianAList(0, alist.count);
   //printf("B ");
   db_rate = computeARR();
-  printf("B %d %d\n", (int)now, db_rate);
+
+  if (!m_rate || !db_rate);
+    //printAList();
+
+  printf("B %d %.2f %.2f %d %d %.2f %.2f\n", 
+	 (int)now, cur_rate, avg_rate, arr_count, alarm, db_rate, m_rate);
 }
 
-// Setup the coupled EW
-void EW::coupleEW(EW *ew) {
-  if (!ew) {
-    printf("ERROR!!! NOT A VALID EW POINTER!!!\n");
-    exit (-1);
-  } else {
-    cew = ew;
-    //    printf("Coupled!\n");
+// EW packet detector
+EWdetectorP::EWdetectorP() : EWdetector() {
+  // Packet stats
+  cur_p.arrival = cur_p.dept = cur_p.drop = 0;
+  last_p.arrival = last_p.dept = last_p.drop = 0;
+  last_p_db.arrival = last_p_db.dept = last_p_db.drop = 0;
+}
+
+EWdetectorP::~EWdetectorP(){
+  // Packet stats
+  cur_p.arrival = cur_p.dept = cur_p.drop = 0;
+  last_p.arrival = last_p.dept = last_p.drop = 0;
+}
+
+// get the current request rate
+double EWdetectorP::getRate() {
+  return(cur_rate);
+}
+
+// update packet stats
+void EWdetectorP::updateStats(int flag) {
+  // Packet arrival
+  if (flag == PKT_ARRIVAL) {
+    cur_p.arrival++;
+    return;
+  }
+
+  // Packet departure
+  if (flag == PKT_DEPT) {
+    cur_p.dept++;
+    return;
+  }
+
+  // Packet dropped
+  if (flag == PKT_DROP) {
+    cur_p.drop++;
+    return;
   }
 }
 
-// Enable the detector on packet incoming rate (req rate)
-void EW::detectPr() {
-  detect_p = 1;
+// Detect changes in packet rate
+void EWdetectorP::detect() {
+  if (cur_rate > avg_rate * (1 + EW_DETECT_RANGE)) {
+    if (!alarm) {
+      setAlarm();
+    }
+  } else if (cur_rate < avg_rate * (1 - EW_DETECT_RANGE)) {
+    if (alarm)
+      resetAlarm();
+  }
 }
 
-// Enable the detector on bit rate (resp rate)
-void EW::detectBr() {
-  detect_b = 1;
+// Update current measurement
+void EWdetectorP::updateCur() {
+  // measure the accepted packet rate (rather than arrival rate)
+  cur_rate = (cur_p.dept - last_p.dept) / dt_inv;
+
+  // keep the current value
+  last_p.arrival = cur_p.arrival;
+  last_p.dept = cur_p.dept;
+  last_p.drop = cur_p.drop;
 }
 
-// Enable packet incoming rate (req rate) debugging
-void EW::debugPr(int debug_inv) {
-  debug_p = debug_inv;
-  //printf("%d\n", debug_p);
+// Update long term average
+/*void EWdetectorP::updateAvg() {
+  avg_rate = (int)(hlf.alpha * avg_rate + (1 - hlf.alpha) * cur_rate);
+}
+*/
+// Update stats
+void EWdetectorP::measure(Packet *pkt) {
+  
+
+  // stats on packet departure and drop are collect in policer 
 }
 
-// Enable bit rate (resp rate) debugging
-void EW::debugBr(int debug_inv) {
-  debug_b = debug_inv;
-  //printf("%d\n", debug_b);
+// Trace packet incoming rate (req rate)
+void EWdetectorP::trace() {
+  printf("P %d %.2f %.2f %d %d %d %d %d %d %d\n", 
+	 (int)now, cur_rate, avg_rate, alarm,
+	 cur_p.arrival - last_p_db.arrival,
+	 cur_p.dept - last_p_db.dept,
+	 cur_p.drop - last_p_db.drop,  
+	 cur_p.arrival, cur_p.dept, cur_p.drop);
+
+  last_p_db.arrival = cur_p.arrival;
+  last_p_db.dept = cur_p.dept;
+  last_p_db.drop = cur_p.drop;
 }
 
 // EW Policy: deal with queueing stuffs.
 //Constructor.  
 EWPolicy::EWPolicy() : Policy() {
-  ew = new EW;
-  drop_count = pass_count = 0;
-  drop_total = pass_total = 0;
+  // Initialize detectors
+  ewB = cewB = NULL;
+  ewP = cewP = NULL;
+  
+  // Initialize rate limitor
+  rlP = rlB = NULL;
+
+  max_p = max_b = 0;
+  alarm = pre_alarm = 0;
+  change = 0;
 }
 
 //Deconstructor.
 EWPolicy::~EWPolicy(){
-  if (ew)
-    free(ew);
+  if (ewB)
+    free(ewB);
+
+  if (ewP)
+    free(ewP);
+
+  if (cewB)
+    free(cewB);
+
+  if (cewP)
+    free(cewP);
 }
 
 // Initialize the EW parameters
-void EWPolicy::init(int ew_adj, int ew_inv, int qsrc, int qdst) {
-  ew->init(ew_adj, ew_inv, qsrc, qdst);
+void EWPolicy::init(int adj, int src, int dst) {
+  ew_adj = adj;
+  qsrc = src;
+  qdst = dst;
 }
 
-/*-----------------------------------------------------------------------------
- void EWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
- Flow states are kept in a linked list.
- Record how many bytes has been sent per flow and check if there is any flow
- timeout.
------------------------------------------------------------------------------*/
+// EW meter: do nothing.
+//  measurement is done in policer: we need to know whether the packet is
+//    dropped or not.
 void EWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
-  // Invoke the change detector in EW directly. 
-  //printf("enter applyMeter ");
-  ew->runEW(pkt);
-  //printf("leave applyMeter\n");
   return;
 }
 
-/*-----------------------------------------------------------------------------
-void EWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt) 
-    Prints the policyTable, one entry per line.
------------------------------------------------------------------------------*/
+// EW Policer
+//  1. do measurement: P: both arrival and departure; B: only departure
+//  2. make packet drop decisions
 int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
   //printf("enter applyPolicer ");
-  float p = ew->testAlarm(pkt);
-  if (p) {
-    //printf("Alarm (%.2f), ", p);
-    // Drop packets with probability of p
-    if (Random::uniform(0.0, 1.0) > p) {
-      pass_total++;
-      //printf("initial (%d)!\n", pass_total);	
-      return(policer->initialCodePt);
-    } else {
-      drop_total++;
-      //printf("downgrade (%d)!\n", drop_total);	
-      return(policer->downgrade1);
-    }
-  } else { 
-    pass_total++;
-    //printf("OK!\n");	
+
+  // can't count/penalize ACKs:
+  //   with resp: may cause inaccurate calculation with TSW(??)
+  //   with req:  may cause resp retransmission.
+  // just pass them through
+  hdr_cmn *th = hdr_cmn::access(pkt);
+  if (th->ptype() == PT_ACK)
+    return(policer->initialCodePt);
+
+  // for other packets...
+
+  // Get time
+  now = Scheduler::instance().clock();
+
+  // keep arrival packet stats
+  if (ewP)
+    ewP->updateStats(PKT_ARRIVAL);
+
+  // For other packets:
+  if (dropPacket(pkt)) {
+    // keep packet stats
+    if (ewP)
+      ewP->updateStats(PKT_DROP);
+    
+    //printf("downgrade!\n");	
+    return(policer->downgrade1);
+  } else {
+    // keep packet stats
+    if (ewP)
+      ewP->updateStats(PKT_DEPT);
+
+    // conduct EW detection
+    if (ewP)
+      ewP->run(pkt);
+    
+    if (ewB)
+      ewB->run(pkt);    
+
+    //printf("initial!\n");	
     return(policer->initialCodePt);
   }
+}
+
+// detect if there is alarm triggered
+void EWPolicy::detect(Packet *pkt) {
+  int alarm_b, alarm_p;
+
+  alarm_b = alarm_p = 0;
+
+  if (!ewP || ! cewB)
+    return;
+  
+  alarm_b = cewB->testAlarm();
+  alarm_p = ewP->testAlarm();
+  
+
+  if (alarm_p == EW_UNCHANGE || alarm_b == EW_UNCHANGE)
+    return;
+
+  // Need to get info from both parts to make a decision
+  // Reset change flags
+  ewP->resetChange();
+  cewB->resetChange();
+
+  change = 1;
+  // keep the old value of alarm
+  pre_alarm = alarm;
+
+  // As long as alarm_b is 0, reset the alarm
+  if (alarm_b == 0)
+    alarm = 0;
+  else if (alarm_p == 0)
+    alarm = 0;
+  else 
+    alarm = 1;
+
+  printf("ALARM %d %d\n", pre_alarm, alarm);
+}
+
+//  make packet drop decisions
+int EWPolicy::dropPacket(Packet *pkt) {
+  // 1. arrival stats is measured in meter (departure and drops here)
+  // 2. No penalty to response traffic!!
+  // 3. need to protect existing connections
+
+  // pass EW if there is any
+  if (cewB && ewP) {
+    // protecting existing connections
+    //  drop requests for new connection (sync packet)
+    if (cewB->exFlow(pkt))
+      return(0);
+
+    // Check alarm
+    detect(pkt);
+
+    if (change) {
+      // for new incoming requests:
+      //   use EW measurement to adjust the rate limit (to current Rq)
+      // see if the alarm should be reset
+      
+      if (pre_alarm) {
+	if (alarm) {
+	  // The rate is not right:
+	  //   too low: too few connection admitted;
+	  //   too high: congestion in response
+	  // Adjustment is needed.
+	  if (rlP)
+	    rlP->adjustRate();
+	} else {
+	  // the current rate is ok, award the current choice
+	  if (rlP)
+	    rlP->adjustScore(1);
+	}
+      } else {
+	if (alarm) {
+	  if (rlP) {
+	    // Start a new round
+	    rlP->resetScore();
+	    // Use current request rate as the rate limit
+	    rlP->setRate(ewP->getRate());
+	  }
+	} else {
+	  // the current rate is ok
+	}
+      }    
+      
+      change = 0;
+    }  
+  }
+
+  // Passing rate limitor if there is any
+  if (rlP) {
+    // rate limiting
+    return(rlP->run(1));
+  };
+  
+  // through by default
+  return(0);
+}
+
+// Enable detecting on packet incoming rate (req rate)
+void EWPolicy::detectPr(int dt_inv, int db_inv) {
+  ewP = new EWdetectorP;
+  ewP->setLink(qsrc, qdst);
+  ewP->setDt(dt_inv);
+  ewP->setDb(db_inv);
+}
+
+void EWPolicy::detectPr(int dt_inv) {
+  detectPr(dt_inv, dt_inv);
+}
+
+void EWPolicy::detectPr() {
+  detectPr(EW_DT_INV, EW_DB_INV);
+}
+
+// Enable detecting and debugging bit rate (eg: resp rate)
+void EWPolicy::detectBr(int dt_inv, int db_inv) {
+  ewB = new EWdetectorB;
+  ewB->init(ew_adj);
+  ewB->setLink(qsrc, qdst);
+  ewB->setDt(dt_inv);
+  ewB->setDb(db_inv);
+}
+
+void EWPolicy::detectBr(int dt_inv) {
+  detectBr(dt_inv, dt_inv);
+}
+
+void EWPolicy::detectBr() {
+  detectBr(EW_DT_INV, EW_DB_INV);
+}
+
+// Rate limitor: packet rate
+void EWPolicy::limitPr(double rate) {
+  //printf("PR %d\n", rate);
+  rlP = new TBrateLimitor(rate);
+};
+
+// Rate limitor: bit rate
+void EWPolicy::limitBr(double rate) {
+  //printf("BR %d\n", rate);
+  rlB = new TBrateLimitor(rate);
+};
+
+// Rate limitor: packet rate
+void EWPolicy::limitPr() {
+  limitPr(DEFAULT_TB_RATE_P);
+};
+
+// Rate limitor: bit rate
+void EWPolicy::limitBr() {
+  limitBr(DEFAULT_TB_RATE_B);
+};
+
+// couple EW detector
+void EWPolicy::coupleEW(EWPolicy *ewpc) {
+  coupleEW(ewpc, 0);
+}
+
+// couple EW detector
+void EWPolicy::coupleEW(EWPolicy *ewpc, double rate) {
+  // couple the EW detector 
+  cewB = ewpc->ewB;
+  
+  // Setup rate limitor with the default limit
+  if (rate)
+    limitPr(rate);
+  else
+    limitPr();
 }
 // End of EWP

@@ -104,7 +104,10 @@ int edgeQueue::command(int argc, const char*const* argv) {
 
   // couple the EW on request and response links
   if (strcmp(argv[1], "coupleEW") == 0) {
-    //    printf("%d, %s, %s, %s\n", argc, argv[0], argv[1], argv[2]);
+    //printf("%d ", argc);
+    //for (int i = 1; i < argc; i++) 
+    //printf("%d(%s) ", i, argv[i]);
+    //printf("\n");   
 
     EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
 
@@ -112,34 +115,68 @@ int edgeQueue::command(int argc, const char*const* argv) {
     Tcl& tcl = Tcl::instance();
     edgeQueue *cq = (edgeQueue*) TclObject::lookup(argv[2]);
     EWPolicy *ewpc = (EWPolicy *)((cq->policy).policy_pool[EWP]);
+
+    // couple the EW detector 
+    if (argc > 3)
+      ewp->coupleEW(ewpc, atof(argv[3])); 
+    else
+      ewp->coupleEW(ewpc); 
+
+    return(TCL_OK);
+  };
+
+  // Set a rate limitor
+  if (strcmp(argv[1], "limit") == 0) {
+    //printf("%d ", argc);
+    //for (int i = 1; i < argc; i++) 
+    //  printf("%d(%s) ", i, argv[i]);
+    //printf("\n");
+
+    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
     
-    ewp->ew->coupleEW(ewpc->ew);
-    //ewpc->ew->detectorOn();
-    return(TCL_OK);
+    // Packet rate limitor
+    if (strcmp(argv[2], "P") == 0) {
+      ewp->limitPr(atoi(argv[3]));
+      return(TCL_OK);
+    } 
+
+    // bits rate limitor
+    if (strcmp(argv[2], "B") == 0) {
+      ewp->limitBr(atoi(argv[3]));
+      return(TCL_OK);
+    }
   };
 
-  // Enable EW detector on a link
-  if (strcmp(argv[1], "detectPr") == 0) {
-    //printf("%d, %s, %s\n", argc, argv[0], argv[1]);
+  // Setup an EW detector on a link
+  if (strcmp(argv[1], "detect") == 0) {
+    //printf("%d ", argc);
+    //for (int i = 1; i < argc; i++) 
+    //  printf("%d(%s) ", i, argv[i]);
+    //printf("\n");
+
     EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
-    ewp->ew->detectPr();
+    
+    if (strcmp(argv[2], "P") == 0) {
+      if (argc > 4)
+	ewp->detectPr(atoi(argv[3]), atoi(argv[4]));
+      else if (argc > 3)
+	ewp->detectPr(atoi(argv[3]));
+      else
+	ewp->detectPr();
 
-    if (argc > 2)
-      ewp->ew->debugPr(atoi(argv[2]));
+      return(TCL_OK);
+    } 
 
-    return(TCL_OK);
-  };
+    if (strcmp(argv[2], "B") == 0) {
+      if (argc > 4)
+	ewp->detectBr(atoi(argv[3]), atoi(argv[4]));
+      else if (argc > 3)
+	ewp->detectBr(atoi(argv[3]));
+      else
+	ewp->detectBr();
 
-  // Enable EW detector on a link
-  if (strcmp(argv[1], "detectBr") == 0) {
-    //printf("%d, %s, %s\n", argc, argv[0], argv[1]);
-    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
-    ewp->ew->detectBr();
-
-    if (argc > 2)
-      ewp->ew->debugBr(atoi(argv[2]));
-
-    return(TCL_OK);
+      return(TCL_OK);
+    }
   };
 
   if (strcmp(argv[1], "getCBucket") == 0) {
