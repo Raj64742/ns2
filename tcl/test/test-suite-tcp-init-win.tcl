@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.2 1998/04/21 02:33:48 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.3 1998/04/21 17:03:53 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -216,6 +216,25 @@ Test/init3 instproc run {} {
         set tcp1 [$self make_tcp s1 k1 0 Tahoe] 
         set tcp2 [$self make_tcp s2 k1 1 Tahoe]
 	$tcp1 set syn_ false
+	$tcp1 set windowInit_ 6
+	$self run_test $tcp1 $tcp2 1.0 1.0 8
+}
+
+Class Test/init3a -superclass TestSuite
+Test/init3a instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6
+	set test_	init3a(PacketSize=4000)
+	$self next
+}
+Test/init3a instproc run {} {
+	$self instvar ns_ node_ testName_
+	Agent/TCP set packetSize_ 4000
+	Agent/TCP set syn_ true
+	Agent/TCP set delay_growth_ true
+        set tcp1 [$self make_tcp s1 k1 0 Tahoe] 
+        set tcp2 [$self make_tcp s2 k1 1 Tahoe]
 	$tcp1 set windowInit_ 6
 	$self run_test $tcp1 $tcp2 1.0 1.0 8
 }
