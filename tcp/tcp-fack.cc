@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.7 1997/07/25 06:40:10 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.8 1997/07/25 18:31:20 heideman Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -37,13 +37,6 @@ static const char rcsid[] =
 #define RECOVER_DUPACK  1
 #define RECOVER_TIMEOUT 2
 #define RECOVER_QUENCH  3
-
-/*
- * NOTE: To enable tracing of a certain subset of member variables of
- * TcpAgent, all references (read or write) to them in C++ are made via
- * the member functions defined in tcp.h. For example, cwnd_ is used
- * instead of cwnd_.
- */
 
 static class FackTcpClass : public TclClass {
 public:

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.16 1997/07/25 06:37:42 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.17 1997/07/25 18:31:20 heideman Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -37,13 +37,6 @@ public:
 		return (new RenoTcpAgent());
 	}
 } class_reno;
-
-/*
- * NOTE: To enable tracing of a certain subset of member variables of 
- * TcpAgent, all references (read or write) to them in C++ are made via
- * the member functions defined in tcp.h. For example, cwnd_ is used
- * instead of cwnd_.
- */ 
 
 int RenoTcpAgent::window()
 {
