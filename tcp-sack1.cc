@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.30 1998/06/27 01:25:05 gnguyen Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.31 1998/06/29 21:55:00 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -177,6 +177,15 @@ Sack1TcpAgent::dupack_action()
 		 * all unnecessary Fast Retransmits.
 		 */
 		reset_rtx_timer(1,0);
+		/*
+		 * There are three possibilities: 
+		 * (1) pipe_ = int(cwnd_) - NUMDUPACKS;
+		 * (2) pipe_ = window() - NUMDUPACKS;
+		 * (3) pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+		 * equation (2) takes into account the receiver's
+		 * advertised window, and equation (3) takes into
+		 * accout a data-limited sender.
+		 */
 		pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
 		//pipe_ = int(cwnd_) - NUMDUPACKS;
 		fastrecov_ = TRUE;
