@@ -76,16 +76,12 @@ public:
 
 IntTcpAgent::IntTcpAgent() : TcpAgent(), slink(), 
 	rxmitPend_(0), closecwTS_(0), session_(0), count_(0), lastTS_(-1), 
-	wt_(1), wndIncSeqno_(0)
+	wt_(1), wndIncSeqno_(0), num_thresh_dupack_segs_(0)
 {
 	bind("rightEdge_", &rightEdge_);
 	bind("uniqTS_", &uniqTS_);
 	bind("winInc_", &winInc_);
 	bind("winMult_", &winMult_);
-#ifdef 0
-	bind("shift_", &shift_);
-	bind("mask_", &mask_);
-#endif
 }
 
 int
@@ -256,7 +252,7 @@ IntTcpAgent::closecwnd(int how)
 int
 IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
 {
-	if (seqno == last_ack_ + 1 && (ts == rxmitPend_ || rxmitPend_ == 0)) {
+	if (seqno == last_ack_ + 1 && (ts >= rxmitPend_ || rxmitPend_ == 0)) {
 		rxmitPend_ = Scheduler::instance().clock();
 		session_->agent_rcov(this);
 		/* 
@@ -274,16 +270,21 @@ IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
 	}
 	return 0;
 }
-
+u_long output_helper_count=0;
+double last_clock=0;
 void
 IntTcpAgent::output_helper(Packet *p)
 {
 	double now = Scheduler::instance().clock();
+	output_helper_count++;
+	last_clock = now;
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+
 	/* This is to make sure that we get unique times for each xmission */
 	while (uniqTS_ && now <= lastTS_) {
 		now += 0.000001; // something arbitrarily small
 	}
+
 	lastTS_ = now;
 	tcph->ts() = now;
 	return;

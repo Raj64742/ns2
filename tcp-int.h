@@ -60,7 +60,6 @@ class IntTcpAgent : public TcpAgent, public slink {
 	void newack(Packet* pkt);
 	
   protected:
-/*	class CorresHost *peer_;*/
 	class TcpSessionAgent *session_;
 	double rxmitPend_;
 	double lastTS_;
@@ -78,5 +77,6 @@ class IntTcpAgent : public TcpAgent, public slink {
 	int wt_;
 	int dynWt_;
 	int wndIncSeqno_;       /* used to mark RTTs for window inc. algorithm */
+	int num_thresh_dupack_segs_;
 };
 #endif

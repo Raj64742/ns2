@@ -29,14 +29,13 @@ protected:
 };
 
 /*
- * This class implements the notion of a TCP session. It integrates congestion control
- * and loss detection functionality across the one or more IntTcp connections that
- * comprise the session.
+ * This class implements the notion of a TCP session. It integrates congestion 
+ * control and loss detection functionality across the one or more IntTcp 
+ * connections that comprise the session.
  */
 class TcpSessionAgent : public CorresHost {
 public:
 	TcpSessionAgent();
-/*	TcpSessionAgent(int dst);*/
 	int command(int argc, const char*const* argv);
 	void reset_rtx_timer(int mild, int backoff = 1); /* XXX mild needed ? */
 	void set_rtx_timer();
@@ -66,9 +65,6 @@ public:
 protected:
 	SessionRtxTimer rtx_timer_;
 	SessionBurstSndTimer burstsnd_timer_;
-/*	int maxburst_;
-	int size_;
-	int ecn_;*/
 	int sessionSeqno_;
 	double last_send_time_;
 	Segment *last_seg_sent_;
@@ -77,10 +73,6 @@ protected:
 	int schedDisp_;
 	int wtSum_;
 	int dynWtSum_;
-/*	double t_exact_srtt_;
-	int slow_start_restart_;
-	int restart_bugfix_;
-	int count_acks_;*/
 };
 
 #endif

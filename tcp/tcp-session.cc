@@ -1,3 +1,36 @@
+/*
+ * Copyright (c) 1997 Regents of the University of California.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ * 	This product includes software developed by the Daedalus Research
+ * 	Group at the University of California Berkeley.
+ * 4. Neither the name of the University nor of the Research Group may be
+ *    used to endorse or promote products derived from this software without
+ *    specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include "tclcl.h"
@@ -16,19 +49,20 @@
  * We separate TCP functionality into two parts: that having to do with providing
  * a reliable, ordered byte-stream service, and that having to do with congestion
  * control and loss recovery. The former is done on a per-connection basis and is
- * implemented as part of IntTcpAgent ("integrated TCP"). The latter is done in an 
- * integrated fashion across multiple TCP connections, and is implemented as part 
- * of TcpSessionAgent ("TCP session"). TcpSessionAgent is derived from CorresHost 
- * ("correspondent host"), which keeps track of the state of all TCP (TCP/Int) 
- * connections to a host that it is corresponding with.
+ * implemented as part of IntTcpAgent ("integrated TCP"). The latter is done in 
+ * an integrated fashion across multiple TCP connections, and is implemented as 
+ * part of TcpSessionAgent ("TCP session"). TcpSessionAgent is derived from 
+ * CorresHost ("correspondent host"), which keeps track of the state of all TCP 
+ * (TCP/Int) connections to a host that it is corresponding with.
  *
  * The motivation for this separation of functionality is to make an ensemble of
- * connection more well-behaved than a set of independent TCP connections and improve
- * the chances of losses being recovered via data-driven techniques (rather than
- * via timeouts). At the same time, we do not introduce any unnecessary between the
- * logically-independent byte-streams that the set of connections represents. This is
- * in contrast to the coupling that is inherent in the multiplexing at the application
- * layer of multiple byte-streams onto a single TCP connection.
+ * connection more well-behaved than a set of independent TCP connections and 
+ * improve the chances of losses being recovered via data-driven techniques 
+ * (rather than via timeouts). At the same time, we do not introduce any 
+ * unnecessary between the logically-independent byte-streams that the set of 
+ * connections represents. This is in contrast to the coupling that is inherent 
+ * in the multiplexing at the application layer of multiple byte-streams onto a 
+ * single TCP connection.
  */
 
 static class TcpSessionClass : public TclClass {
@@ -143,6 +177,7 @@ TcpSessionAgent::timeout(int tno)
 			return;
 		}
 		recover_ = sessionSeqno_ - 1;
+		recover_cause_ = 2;
 		if (seg_iter.count() == 0 && restart_bugfix_) {
 			closecwnd(3);
 			reset_rtx_timer(0,0);
@@ -156,6 +191,7 @@ TcpSessionAgent::timeout(int tno)
 		while ((curconn = conn_iter()) != NULL) {
 			curconn->t_seqno_ = curconn->highest_ack_ + 1;
 			curconn->recover_ = curconn->maxseq_;
+			curconn->recover_cause_ = 2;
 		}
 		while ((curseg = seg_iter()) != NULL) {
 			/* XXX exclude packets sent "recently"? */
@@ -169,12 +205,12 @@ TcpSessionAgent::timeout(int tno)
 }
 
 Segment* 
-TcpSessionAgent::add_pkts(int size, int seqno, int sessionSeqno, int daddr, int dport,
-			  int sport, double ts, IntTcpAgent *sender)
+TcpSessionAgent::add_pkts(int size, int seqno, int sessionSeqno, int daddr, 
+			  int dport, int sport, double ts, IntTcpAgent *sender)
 {
 	/*
-	 * set rtx timer afresh either if it is not set now or if there are no data 
-	 * packets outstanding at this time
+	 * set rtx timer afresh either if it is not set now or if there are no 
+	 * data packets outstanding at this time
 	 */
 	if (!(rtx_timer_.status() == TIMER_PENDING) || seglist_.count() == 0)
 		set_rtx_timer();
@@ -353,7 +389,7 @@ TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 		while (i-- > 0)
 			opencwnd(size_,agent);
 	}
-	clean_segs(size_, pkt, agent, sessionSeqno_);
+	clean_segs(size_, pkt, agent, sessionSeqno_,amt_data_acked);
 	if (amt_data_acked > 0)
 		newack(pkt);
 	Packet::free(pkt);
@@ -412,7 +448,9 @@ TcpSessionAgent::quench(int how, IntTcpAgent *sender, int seqno)
 
 	if (i > recover_) {
 		recover_ = sessionSeqno_ - 1;
+		recover_cause_ = 3;
 		sender->recover_ = sender->maxseq_;
+		sender->recover_cause_ = 3;
 		closecwnd(how,sender);
 	}
 }
@@ -430,7 +468,7 @@ TcpSessionAgent::traceVar(TracedVar* v)
 		if (!strcmp(v->name(), "ownd_"))
 			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), double(*((TracedDouble*) v)));
 		else if (!strcmp(v->name(), "owndCorr_"))
-			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %3d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
+			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
 		n = strlen(wrk);
 		wrk[n] = '\n';
 		wrk[n+1] = 0;
