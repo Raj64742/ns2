@@ -1,0 +1,169 @@
+############################################################
+#
+# README       : Diffusion Readme
+# author       : Fabio Silva
+#
+# $Id: README.2,v 1.1 2001/12/11 23:31:15 haldar Exp $
+#
+############################################################
+
+1. Compiling Diffusion
+
+Diffusion should compile cleanly by just typing 'make' on
+Linux. It has been tested with Red Hat Linux versions 6.1,
+6.2, 7.0 and 7.1.
+
+Diffusion uses a random ID for the each node. This behavior can
+be overridden by setting the 'scadds_addr' environment variable to
+the desired ID. Under bash, this can be done with:
+
+bash# export scadds_addr=2
+
+This package contains several sample applications as well as 'system
+modules', located in the apps directory. After compilation, all
+applications will be created in the apps directory.
+
+2. Before Running Diffusion
+
+Before starting diffusion, be sure to have rpcd (the radiometrix
+module) already running on the node.
+
+Note that in the wired case, the file 'config.txt' should be present
+and contain a list of all directly connected nodes, one node in each
+line. If connected nodes are running on a port other than the default
+diffusion port (done by using the '-p' flag), this must be indicated
+in the config file as well. When diffusion initializes, it will
+display the list of connected nodes. An alternate configuration file
+can be specified with the -f flag. Also, the config file can include
+the link quality to each neighbor.  It's an integer from 0 to 100 and
+will indicate the probability of a message sent by your node to reach
+this neighbor. A sample configuration file is:
+
+10.0.0.1 - 3400 - 100
+10.2.4.1 - 30
+10.3.12.4 - 85
+
+In this case, we have three neighbors (10.0.0.1, 10.2.4.1 and
+10.3.12.4), to which the probability of a packet getting lost is 0,
+70% and 15% respectively. Note that the first neighbor (10.0.0.1) is
+running on the port 3400 (instead of the default diffusion port, 2000).
+Since the link quality is an integer from 0 to 100, and the port number
+has to be above 1024, diffusion can correctly guess the second argument's
+meaning if there are just 2 arguments in a config line.
+
+3. Running Diffusion
+
+To run diffusion, simply start the 'diffusion' and then the
+applications/modules desired.  Please allow a few seconds for
+diffusion to initialize before starting applications and modules. Be
+sure to at least start the gradient module. For debugging, the logging
+module can be used to print all messages arriving at the node.
+
+To test if things are working, start diffusion, gradient and
+agent2 in a node. Then start diffusion, gradient and agent1 in
+another node. Agent1 should receive agent2's messages after a few
+seconds.
+
+Please note that if diffusion is run with the '-p port' flag,
+all other applications will also need it (i.e. gradient -p port,
+agent1 -p port, etc...).
+
+4. Source Files
+
+Makefile	   - Makefile for diffusion
+README		   - This file
+VERSION            - Diffusion version
+CHANGES            - Describes the changes to diffusion
+config.txt	   - File containing a list of neighbors for wired diffusion
+
+main/Makefile	   - Makefile for the main object files
+main/agent.hh	   - Definitions for agent lists.
+main/attrs.hh	   - Include file for attribute functions
+main/attrc.cc	   - Contains attribute related functions
+main/config.hh	   - Defines timers and several other delays and timeouts
+main/diffusion.hh  - Include file for diffusion. Defines all classes
+		     used for routing
+main/diffusion.cc  - The diffusion core module. It sends incoming messages 
+		     to registered filters
+main/events.hh	   - Defines the event queue
+main/events.cc	   - Contains event queue related functions
+main/filter.hh	   - Defines the filter structures and callback
+main/hashutils.hh  - From TCL (a.k.a. tcl.h). Includes support for hashing
+main/hashutils.cc  - From TCL. Implements hashing functions
+main/header.hh	   - Basic include file that defines diffusion
+		     packet header format, ports number, addresses
+		     and diffusion version
+main/iodev.hh      - Defines diffusion's device independent interface
+main/iodev.cc      - Provides basic functionality for device drivers
+main/message.hh	   - Defines the message structure used in diffusion
+main/message.cc	   - Implements some functions to deal with messages
+main/stats.hh      - Include file for diffusion stats
+main/stats.cc	   - Implements some basic stats collection for diffusion
+main/tools.hh      - Include file for wrapper functions
+main/tools.cc      - Implements some function wrappers for time, output, etc.
+
+main/drivers/Makefile     - Makefile for diffusion's drivers
+main/drivers/MOTEio.hh    - Defines the MoteNic interface
+main/drivers/MOTEio.cc    - Diffusion device driver for the MoteNic
+main/drivers/RPCio.hh     - Defines the RPC interface
+main/drivers/RPCio.cc     - Diffusion device driver for the Radiometrix radios
+main/drivers/UDPlocal.hh  - Defines the interfaces for local communication using UDP
+main/drivers/UDPlocal.cc  - Diffusion UDP device driver for local communication
+main/drivers/UDPwired.hh  - Defines the interfaces for wired Ethernet using UDP
+main/drivers/UDPwired.cc  - Diffusion device driver for wired Ethernet using UDP
+main/drivers/WINSng2.cc   - Diffusion device driver for the WINSNG 2.0 harfware
+main/drivers/WINSng2.hh   - Defines the interfaces for the Sensoria hardware
+main/drivers/rf.h         - Sensoria include file
+main/drivers/rpc_stats.hh - Include file for radio device stats collection
+main/drivers/rpc_stats.cc - Collects stats from the rpc radio
+
+nr/Makefile        - Makefile for the Network Routing API
+nr/nr.hh	   - Diffusion Network Routing API classes
+nr/nr.cc	   - Implements basic NR API functions
+
+doc/*		   - Includes documentation for the Network Routing API
+
+lib/Makefile	   - Makefile for the API Library
+lib/dr.hh	   - Defines the API Library classes
+lib/dr.cc	   - Main API code. It includes support for the former
+		     publish/subscribe API. In addition, it supports the
+		     new filter API. Note that an application can use both
+		     APIs at the same time
+
+apps/agents/Makefile  - Makefile for the sample applications
+apps/agents/README    - Instructions for using the sample applications
+apps/agents/agent.hh  - Sample applications include file
+apps/agents/agent1.cc - Application 1. It sends an interest message to the
+			entire network
+apps/agents/agent2.cc - Application 2. It sends data that matches the
+			interest from Agent1. Two binaries are generated,
+			agent2 and agent2i, the later being an interactive
+			version that sends data when the user presses a key
+		
+apps/sysapps/Makefile    - Makefile for the systems applications
+apps/sysapps/flooding.hh - Flooding Filter include file. Defines all routing
+			   data structures
+apps/sysapps/flooding.cc - Flooding Filter. Subscribes to "*" with a very
+			   low priority. It then receives interest and
+			   data messages and forwards those to neighbors
+apps/sysapps/gradient.hh - Gradient Filter include file. Declares
+			   all structures used by the module
+apps/sysapps/gradient.cc - Gradient Filter. Subscribes to "*" with a low
+			   priority. It then receives interest and data
+			   messages and forwards them to neighbors. Implements
+			   positive and negative reinforcements
+apps/sysapps/log.hh      - Log Filter include file
+apps/sysapps/log.cc      - Log Filter. Subscribes to "*" with high
+			   priority and prints information about the
+			   incoming packets. It then sends the packets
+			   to other Apps, working like a 'packet filter'
+apps/sysapps/simple_gradient.hh - Gradient Filter include file. Declares
+				  all structures used by the module
+apps/sysapps/simple_gradient.cc - Gradient Filter. Subscribes to "*" with a low
+			          priority. It then receives interest and data
+			          messages and forwards them to neighbors. Data
+			          is forwarded to the first neighbor who
+				  expressed interest for that information
+apps/sysapps/tag.hh      - Source Route Filter include file
+apps/sysapps/tag.cc	 - Source Route Filter. Tags packets containing a
+			   RouteAttr
