@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.7 1999/08/24 04:16:26 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.8 1999/09/23 20:46:38 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -328,7 +328,7 @@ int MClientPagePool::add_segment(const char* name, int layer,
 ClientPage* MClientPagePool::enter_page(int argc, const char*const* argv)
 {
 	double mt = -1, et, age = -1, noc = 0;
-	int size = -1, media_page = 0, layer;
+	int size = -1, media_page = 0, layer = -1;
 	for (int i = 3; i < argc; i+=2) {
 		if (strcmp(argv[i], "modtime") == 0)
 			mt = strtod(argv[i+1], NULL);
@@ -346,7 +346,7 @@ ClientPage* MClientPagePool::enter_page(int argc, const char*const* argv)
 			layer = atoi(argv[i+1]);
 	}
 	// XXX allow mod time < 0 and age < 0!
-	if (size < 0) {
+	if ((size < 0) || (media_page && (layer <= 0))) {
 		fprintf(stderr, "%s: wrong page information %s\n",
 			name_, argv[2]);
 		return NULL;

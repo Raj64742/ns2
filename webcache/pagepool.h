@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.12 1999/08/04 21:04:05 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.13 1999/09/23 20:46:39 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -236,6 +236,14 @@ protected:
 	double start_time_;
 	double end_time_;
 	int duration_;
+
+	// Helper functions
+	TclObject* lookup_obj(const char* name) {
+		TclObject* obj = Tcl::instance().lookup(name);
+		if (obj == NULL) 
+			fprintf(stderr, "Bad object name %s\n", name);
+		return obj;
+	}
 };
 
 // Page pool based on real server traces
