@@ -135,7 +135,8 @@ struct hdr_tcpasym {
  * Macro to log a set of member variables. It is triggered when the value of one of
  * the variables changes. All the state variables are printed out (by print_if_needed()
  * in a single line.
- */ 
+ */
+#ifndef NO_TCP_TRACE
 #define TCP_TRACE_ALL(memb, old_memb, memb_time) \
 { \
 	Scheduler& s = Scheduler::instance(); \
@@ -143,6 +144,9 @@ struct hdr_tcpasym {
 		old_memb = memb; \
 	memb_time = &s ? s.clock() : 0; \
 }
+#else
+#define TCP_TRACE_ALL(memb, old_memb, memb_time)
+#endif
 
 	       
 class TcpAgent : public Agent {
