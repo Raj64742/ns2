@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.106 1998/05/07 00:49:44 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.107 1998/05/14 05:04:14 kfall Exp $
 
 
 #
@@ -148,6 +148,7 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set dupack_reset_ false
 	Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
 	Agent/TCP/FullTcp set close_on_empty_ false
+	Agent/TCP/FullTcp set ts_option_size_ 10; # in bytes
 }
 
 Integrator set lastx_ 0.0
