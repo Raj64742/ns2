@@ -29,11 +29,11 @@ EOF
 	exit;
 }
 
-sub getopt
+sub Getopt
 {
 	local($val);
 	&Usage if ($#ARGV < 0);
-	while ($_ = $ARGV[0], /^-/) {
+	while ($_ = $ARGV[0], /^-(\w+)/) {
 		shift @ARGV;
 		if (/^-d$/) {
 			$delim = shift @ARGV;
@@ -44,14 +44,14 @@ sub getopt
 			s/-(\w+)/\$$1/;
 			eval "$_ = $_ . '$val '";
 		}
-		elsif (/^-(tt|psize|c|ctt|cpt|ctime|csrc|cdst)$/) {
+		elsif (/^-(tt|psize|ctt|cpt|ctime|csrc|cdst)$/) {
 			$val = shift @ARGV;
 			s/-(\w+)/\$$1/;
 			eval "$_ = '$val'";
 		}
-		elsif (/^-(f)$/) {
-			s/-(\w+)/$1/;
-			$opt{$_} = 1;
+		elsif (/^-([cf])$/) {
+			$opt{$1} = 1;
+			$force = $opt{'f'};
 		}
 		else {
 			last;
@@ -75,7 +75,7 @@ $cseq = 11;
 # the file descriptor number to started with
 $fdcount = 4;
 
-&getopt;			# get the command line arguments
+&Getopt;			# get the command line arguments
 
 # Set a couple of defaults if not given at the command line
 $pt = 'tcp'  if !$pt;
@@ -102,7 +102,7 @@ while (<>)
 	$pktcnt{$key}++;
 	$seqno{$key} = $col[$cseq];
 
-	if ($opt{f}) {
+	if ($force) {
 		$fd = $opened{$key};
 		if (! $fd) {
 			$opened{$key} = $fd = $fdcount++;
@@ -130,7 +130,7 @@ foreach $key (@keys) {
 # print summary information to STDERR
 if ($maxtime > 0) {
 	printf STDERR " %d\t%0.6f\t%s\t",
-	$#keys+1, 0.008 * $psize * $maxpkt / $maxtime, $c;
+	$#keys+1, 0.008 * $psize * $maxpkt / $maxtime, $opt{'c'};
 
 	@keys = sort (keys %count);
 	foreach $key (@keys) {
