@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.31 2000/07/18 05:19:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.32 2000/08/08 06:13:26 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -941,6 +941,21 @@ Test/HighLoss instproc run {} {
 
     # trace only the bottleneck link
     $ns_ run
+}
+
+Class Test/HighLossConservative -superclass TestSuite
+Test/HighLossConservative instproc init {} {
+    $self instvar net_ test_ stopTime1_
+    set net_	net2
+    set test_ HighLossConservative	
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Agent/TFRC set conservative_ true
+    set stopTime1_ 60
+    Test/HighLossConservative instproc run {} [Test/HighLoss info instbody run ]
+    $self next
 }
 
 Class Test/HighLossTCP -superclass TestSuite
