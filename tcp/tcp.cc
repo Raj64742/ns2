@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.142 2003/01/27 02:34:38 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.143 2003/01/27 02:42:40 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1443,11 +1443,11 @@ void TcpAgent::processQuickStart(Packet *pkt)
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
-#ifdef notdef
 	if (qs_approved_ == 1 && tcph->seqno() > last_ack_) 
 		endQuickStart();
 	if (qs_requested_ == 1)
 		processQuickStart(pkt);
+#ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
 				      name());
