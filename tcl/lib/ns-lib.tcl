@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.100 1998/05/20 23:07:36 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.101 1998/05/21 02:41:59 kfall Exp $
 
 #
 
@@ -337,6 +337,11 @@ Simulator instproc run {} {
 Simulator instproc halt {} {
 	$self instvar scheduler_
 	$scheduler_ halt
+}
+
+Simulator instproc dumpq {} {
+	$self instvar scheduler_
+	$scheduler_ dumpq
 }
 
 Simulator instproc is-started {} {
