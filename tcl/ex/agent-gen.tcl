@@ -1,12 +1,41 @@
+#
+# Copyright (c) 1996-1997 Regents of the University of California.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. All advertising materials mentioning features or use of this software
+#    must display the following acknowledgement:
+# 	This product includes software developed by the MASH Research
+# 	Group at the University of California Berkeley.
+# 4. Neither the name of the University nor of the Research Group may be
+#    used to endorse or promote products derived from this software without
+#    specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
 # Created May 98 by Ahmed Helmy; updated June 98
 # agent generator class
-Class AgentGen
 
-# TODO: 
-# - add topological semantics (e.g. stubs) for the
-# randomization and <relative> placement of srcs and rcvrs
-# (need api that gets the node ranges from the topology generator)
-# 
+
+
+
+Class AgentGen
 
 proc agent-usage { } {
 	puts stderr {usage: agents [options]
@@ -24,8 +53,12 @@ example options:
 proc detailed-usage { } {
 puts {usage: agents [-<key 1> <value 1> -<key n> <value n>]
 
-example:
-agents -outfile f -transport TCP -num 20 -src FTP -sink TCPSink
+example1:
+agents -outfile f -transport TCP -num 20 -src FTP -sink TCPSink -srcstub 4-7,12
+	-deststub 8-11,15 
+example2:
+agents -outfile f -transport SRM -num 50 -src Telnet -srcstub 1,3 -deststub 2,4-20 
+	-srcnum 10%
 
 Keys:
 -outfile: the filename to which the generated script will be
@@ -66,6 +99,24 @@ Keys:
 	nodes, or as percentage of the total number of nodes in
 	the topology (e.g. 60%).
 	[for srm the default is all nodes are agents]
+
+-srcstub: the stubs from the sources are going to originate. stubs can be
+        defined as a number, percentage or as a range. Nodes in the stub are selected 
+        randomly. 
+        e.g -srcstub <10> (indicates simply stub 10) or
+        -srcstub <1-6,8,10-15> (meaning all stubs between 1 to 6 and 10 to 15 and stub 8 
+	shall have n (as defined) number of source nodes or
+        -srcstub <1-6> , includes all stubs only from 1 to 6.
+        Stubs are used to determine membership/flow distribution for a given topology
+        and can be used to control dense or sparse mode simulation.
+        Defaults to all stubs in topology.
+
+-deststub: Stubs from which the destination nodes are going to originate. deststubs are
+        also defined as absolute numbers, percentages or as range. 
+        e.g -deststub <10> or
+        -deststub <1-5,8-10> or
+	-destnode <1-6>. 
+        Defaults to all stubs in topology.
 
 -srcnum: the number of srm agents that are also sources
 	[defaults to 10% of total nodes]
@@ -140,6 +191,10 @@ AgentGen instproc default_options { } {
 
 		num -1
 
+		srcstub -1
+
+		deststub -1
+
 		# may add location same_stub/other_stub later
 
 		# start range either a number x or range x1-x2
@@ -201,7 +256,7 @@ AgentGen instproc parse_input { args } {
 			return -1
 		}
 		incr i
-		# puts "changing $key from $opts($key) to [lindex $args $i]"
+		puts "changing $key from $opts($key) to [lindex $args $i]"
 		set opts($key) [lindex $args $i]
 	}
 	# puts "end of parsing... "
@@ -255,7 +310,7 @@ puts $f "\t upvar \$nodes n; upvar \$sim ns \n"
 AgentGen instproc create-agents { } {
 
 	$self instvar opts
-
+	
 	# puts "transport $opts(transport)"
 
 	set transport -1
@@ -263,33 +318,37 @@ AgentGen instproc create-agents { } {
 
 	switch $transport {
 		"TCP" {
-		  if { [$self check-tcp $opts(transport)] == -1 || \
-			[$self check-tcp-sink $opts(sink)] == -1 } {
-		    puts "invalid or unsupported tcp or sink option"
-			return -1
-		  }
-		  set tcp $opts(transport)
-		  set sink $opts(sink)
-		  set src $opts(src)
-		  if { $src == -1 } {
-			puts "you left out the source..!! using FTP"
-			set src FTP
-		  }
-		  set num [$self calc-num $opts(num)]
-
-		# we open the file in append mode since we allow 
-		# multiple agents commands in one script...
-		  set f [open $opts(outfile) a]
-
-		  set str [$self preamble-tcp]
-		  puts $f "$str"
-
-		# may add topological semantics for src,dst
-		# placemnt .. later.. for now use all (i.e.
-		# randomize over all nodes)
-		  set str [$self generate-tcp-agents $tcp $src \
-				$sink $num all]
-		  puts $f "$str"
+			if { [$self check-tcp $opts(transport)] == -1 || \
+				 [$self check-tcp-sink $opts(sink)] == -1 } {
+				puts "invalid or unsupported tcp or sink option"
+				return -1
+			}
+			set tcp $opts(transport)
+			set sink $opts(sink)
+			set src $opts(src)
+			if { $src == -1 } {
+				puts "you left out the source..!! using FTP"
+				set src FTP
+			}
+			
+			# check location of stubs (src and dest)
+			$self check-TCP-location 
+			
+			set num [$self calc-num $opts(num)]
+			
+			# we open the file in append mode since we allow 
+			# multiple agents commands in one script...
+			set f [open $opts(outfile) a]
+			
+			set str [$self preamble-tcp]
+			puts $f "$str"
+			# may add topological semantics for src,dst
+			# placemnt .. later.. for now use all (i.e.
+			# randomize over all nodes)
+			# set str [$self generate-tcp-agents $tcp $src \
+			    # $sink $num all]
+			set str [$self generate-tcp-agents $tcp $src $sink $num]
+			puts $f "$str"
 		  
 		  set start $opts(start)
 		  set stop $opts(stop)
@@ -315,6 +374,8 @@ AgentGen instproc create-agents { } {
 		  set num [$self calc-num $opts(num)]
 		  set srcnum [$self calc-num $opts(srcnum)]
 
+		  $self check-SRM-location
+		  
 		  set f [open $opts(outfile) a]
 
 		  set str [$self preamble-srm]
@@ -323,8 +384,9 @@ AgentGen instproc create-agents { } {
 		  set src $opts(src)
 		  set traffic $opts(traffic)
 
+		  #set str [$self generate-srm-agents $srm $num $srcnum $src $traffic all]
 		  set str [$self generate-srm-agents $srm $num \
-			$srcnum $src $traffic all]
+			       $srcnum $src $traffic]
 
 		  puts $f "$str"
 
@@ -378,6 +440,41 @@ AgentGen instproc check-tcp-sink { sink } {
 	return -1
 }
 
+AgentGen instproc create-stub-location { type } {
+	$self instvar opts
+	set loc $opts($type)
+	if {$loc == -1} {
+	      puts "\nLocation not specified: using randomized distribution for $type\n"
+	} else {
+		foreach L [split $loc ,] {
+			set S [split $L -]
+			if {[llength $S] == 2} {
+				for {set x [lindex $S 0]} {$x <= [lindex $S 1]} {incr x} {
+					lappend opts($type-list) $x
+				}
+			} else {
+				lappend opts($type-list) [lindex $S 0]
+			}
+		}
+		#puts "list of $type - [list $opts($type-list)]"
+	}	
+}
+
+
+AgentGen instproc check-TCP-location { } {	
+	$self instvar opts
+	$self create-stub-location srcstub
+	$self create-stub-location deststub
+	if {$opts(srcstub) != $opts(deststub)} {
+		if {[llength $opts(srcstub-list)] != [llength $opts(deststub-list)]} {
+			puts "Error: \#srcstubs donot match with \#deststubs - all stubs are now being considered"
+			set opts(srcstub) -1
+			set opts(deststub) -1
+		}
+	}
+}
+
+
 AgentGen instproc check-srm { type } {
 	set types { "" /Deterministic /Probabilistic /Adaptive }
 	foreach srmtype $types {
@@ -388,6 +485,13 @@ AgentGen instproc check-srm { type } {
 	return -1
 }
 
+AgentGen instproc check-SRM-location { } {
+	$self instvar opts
+	$self create-stub-location srcstub
+	$self create-stub-location deststub
+}
+
+
 # XXX testing hack
 # Class TG
 # TG proc get-total-nodes { } {
@@ -396,26 +500,30 @@ AgentGen instproc check-srm { type } {
 
 AgentGen instproc getNodes { range } {
 	$self instvar opts
-	if { $range == "all" } {
-	   if { !$opts(totalnodes) } {
+	if { $range == "all" && $opts(totalnodes)} {
+		# total nodes provided at cmd line	
+		return $opts(totalnodes)
+	} else {
+		#
 		# total nodes was not provided at cmd line so ask
-		# topology generator
+		# topology generator. and for all other topology
+		# semantics query topology generator as follows:
+		# all (all nodes), total-stubs (total # stubs),
+		# transit<num> (node number for that transit, e.g transit4 will return
+		# 3) , stub<num> (range of nodes in the stub, e.g stub2 returns the range
+		# 11-18).
+		#
 		if {[catch {set tg [ScenGen getTG]}]} {
-		 puts stderr {Can't find topology generator..quiting!
-Either run the topology generator first, or provide the total
-number of nodes using the "totalnodes" option.
-Use "agents -h" for more help.}
+			puts stderr {Can't find topology generator..quiting!
+			Either run the topology generator first, or provide the total
+			number of nodes using the "totalnodes" option.
+			Use "agents -h" for more help.}
 			exit
 		}
-		set lastIndex [$tg getNodes all]
-		return $lastIndex
-	   }
-	   return $opts(totalnodes)
-		# return 0-$lastIndex
+		return [$tg getNodes $range]
 	}
-	# should support stubs and other topological semantics.
-	# return $firstIndex-$lastIndex
 }
+
 
 # should there be an SRMGen class (and TCPGen class..etc) !
 
@@ -426,26 +534,72 @@ AgentGen instproc calc-num { num } {
 		# equal to the number of nodes
 		set number $totalNodes
 	} elseif { [regexp {^([0-9]+)(%)$} $num all num per] } {
-		# check for percentage
+		#
+		# check for percentage 
+		#
 		set number [expr $totalNodes * $num / 100]
 	} else { set number $num }
-	# puts "num $number"
+	 #puts "num $number"
 	return $number
 }
 
+AgentGen instproc get-tcp-stubs { num } {
+	$self instvar opts
+	set pairs ""
+	for {set i 0} {$i < [llength $opts(srcstub-list)]} {incr i} {
+		set p [lindex $opts(srcstub-list) $i]
+		set sr [split [$self getNodes stub$p] :]
+		set q [lindex $opts(deststub-list) $i]
+		set dr [split [$self getNodes stub$q] :]
+		set temp [$self randomize-agent-pairs [lindex $sr 0] \
+				   [lindex $sr 1] [lindex $dr 0] [lindex $dr 1] $num]
+		set pairs [ concat $pairs $temp]
+	}
+	
+	puts "pairs = $pairs"
+	return $pairs
+}
+
+AgentGen instproc get-srm-stubs { num srcnum } {
+	$self instvar opts
+	set srcnodes ""
+	set destnodes ""
+	for {set i 0} {$i < [llength $opts(srcstub-list)]} {incr i} {
+		set p [lindex $opts(srcstub-list) $i]
+		set sr [split [$self getNodes stub$p] :]
+		set src [$self randomize-agents [lindex $sr 0] [lindex $sr 1] \
+				      $srcnum]
+		set srcnodes [concat $scrnodes $src]
+	}
+	for {set i 0} {$i < [llength $opts(deststub-list)]} {incr i} {
+		set q [lindex $opts(deststub-list) $i]
+		set dr [split [$self getNodes stub$q] :]
+		set dest [$self randomize-agents [lindex $dr 0] \
+				       [lindex $dr 1] [expr $num - $srcnum]]
+		set destnodes [concat $destnodes $dest]
+	}
+	set opts(srcstub-list) $srcnodes
+	set opts(deststub-list) $destnodes
+}
+
+
 # should have SRMGen/TCPGen/'transport'Gen generate-agents...etc.
-AgentGen instproc generate-srm-agents { srm num srcnum src \
-		traffic node_ranges } {
+AgentGen instproc generate-srm-agents { srm num srcnum src traffic } {
+	$self instvar opts
 	# puts "generate srm agents $srm $num $srcnum $src $traffic"
 	set totalNodes [$self getNodes all]
-	if { $node_ranges == "all" } {
-	  # we assume that num is less that totalNodes..X
-	  set nodes [$self randomize-agents 0 $totalNodes $num]
+	if { $opts(srcstub) == -1 || $opts(deststub) == -1} {
+		# we assume that num is less that totalNodes..X
+		# and  incase totalNodes < num, more than one srm src/recvr agent shall
+		# be attached to nodes.
+		set nodes [$self randomize-agents 0 $totalNodes $num]
+		set srcNodes [lrange $nodes 0 [expr $srcnum -1]]
+		set rcvrNodes [lrange $nodes $srcnum end]
 	} else {
-		# not supported yet... use stubs clustering..etc
+		$self get-srm-stubs $num $srcnum
+		set srcNodes $opts(srcstub-list)
+		set rcvrNodes $opts(deststub-list)
 	}
-	set srcNodes [lrange $nodes 0 [expr $srcnum -1]]
-	set rcvrNodes [lrange $nodes $srcnum end]
 
 set a_5 "\n # generate $num $srm agents, $srcnum of which are \n"
 set a_4 "# srcs $src/$traffic. Distribute randomly. \n"
@@ -499,41 +653,52 @@ AgentGen instproc commandLine { } {
 AgentGen instproc preamble-tcp { } {
 	set separator {#################}
 	set a "\n $separator \n"
-set ab "# The command line generating this part of the script is: \n"
-	set ac "# [$self commandLine]"
-	set ad $a
-set ae "\n\n # XXX cuz we use \[array names src\], we unset it first.\n"
-	set b "catch \{unset src\} \n"
-	return "$a $ab $ac $ad $ae $b"
+	set ab "\# The command line generating this part of the script is: \n"
+	set ac "\# [$self commandLine]"
+	set ae "\n\n \#XXX cuz we use \[array names src\], we unset it first.\n"
+		set b "catch \{unset src\} \n"
+	return "$a $ab $ac $a $ae $b"
 }
 
+
 AgentGen instproc preamble-srm { } {
-	set separator {#################}
+	set separator "#################"
 	set a "\n $separator \n"
-set ab "# The command line generating this part of the script is: \n"
+	set ab "# The command line generating this part of the script is: \n"
 	set ac "# [$self commandLine]"
-	set ad $a
-set ae "\n\n # XXX cuz we use array names of srm and srmsrc, we unset.\n"
+	#set ad $a
+	set ae "\n\n # XXX cuz we use array names of srm and srmsrc, we unset.\n"
 	set b "catch \{unset srmsrc\} \n"
 	set c "catch \{unset srm\} \n"
-	return "$a $ab $ac $ad $ae $b $c"
+	return "$a $ab $ac $a $ae $b $c"
 }
 
 # node-ranges to be extended to capture topological semantics
-AgentGen instproc generate-tcp-agents { tcp src sink num \
-		node_ranges} {
-# puts "generate tcp $tcp $src $sink $num $node_ranges"
+AgentGen instproc generate-tcp-agents { tcp src sink num } {
+	$self instvar opts
+	#
+	# puts "generate tcp $tcp $src $sink $num $node_ranges"
+	#
 	set totalNodes [$self getNodes all]
+	#
 	# assume there's an API to get the total num of nodes in 
 	# the topology simulated, also we may need an API to 
 	# get ranges of topological significance (like stub
 	# ranges..etc), topology type.. so on..
-	if { $node_ranges == "all" } {
-	  set pairs [$self randomize-agent-pairs 0 $totalNodes \
-		0 $totalNodes $num]
+	#
+	if { $opts(srcstub) == -1 || $opts(deststub) == -1 } {
+		#
+		# no specific stub given for src/dest location.
+		#
+		set pairs [$self randomize-agent-pairs 0 $totalNodes \
+			       0 $totalNodes $num]
 	} else {
+		#
 	 	# may use topology info (e.g. stubs) to get
 		# the pairs
+		#
+		set pairs [$self get-tcp-stubs $num]
+		#puts "tcp pairs = [list $pairs]"
 	}
 
 set a_5 "\n # generate $num connections of $tcp, using $sink \n"
@@ -669,21 +834,37 @@ set a_1 "# the range \[$begin,$end\]\n"
 AgentGen instproc randomize-agents { first last number } {
 	set interval [expr $last - $first]
 	set result ""
-
+	#
+	# code below that checked for duplication of nodes 
+	# resulted in infinite loops where "interval" was much smaller than 
+	# "number". Hence will generate a warning instead, changing "number" 
+	# to value of "interval". -Padma (July 15, '98).
+	#
+	if {$number > [expr $interval * 2]} {
+		puts "\tinterval = $interval is much larger than number = $number
+		Changing number from $number to $interval"
+		set number $interval
+	}
 	set maxrval [expr pow(2,31)]
 	set intrval [expr $interval/$maxrval]
 	for { set i 0 } { $i < $number } { incr i } {
 		set randval [expr [ns-random] * $intrval]
 		set randNode [expr int($randval) + $first]
-		if { [info exists done($randNode)] } {
-			set i [expr $i - 1]
-		} else {
-			set done($randNode) 1
-			lappend result $randNode
-		}
+		
+		 if { [info exists done($randNode)] } {
+ 			set i [expr $i - 1]
+			 #puts "do again, $randNode exists -> i = $i"
+ 		} else {
+ 			set done($randNode) 1
+ 			lappend result $randNode
+ 			#puts "result = $result"
+ 		}
 	}
+	#puts "result = $result"	
 	return $result
 }
+
+#### may need to check if 'number' of connections exceed the interval range.
 
 # takes in src and dst ranges (first,last) from which 'number' of
 # distinct [i.e. src != dst] src,dst pairs are chosen
