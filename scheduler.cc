@@ -31,15 +31,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.35 1998/06/27 01:24:42 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.36 1998/07/23 22:57:08 breslau Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.35 1998/06/27 01:24:42 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.36 1998/07/23 22:57:08 breslau Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
+#include <limits.h>
 #include "config.h"
 #include "scheduler.h"
 #include "packet.h"
@@ -400,6 +401,7 @@ protected:
 	int bot_threshold_;
 	Event** buckets_;
 	int qsize_;
+	double max_;
 
 	virtual void reinit(int nbuck, double bwidth, double start);
 	virtual void resize(int newsize);
@@ -417,6 +419,7 @@ public:
 CalendarScheduler::CalendarScheduler() {
 	reinit(2, 1.0, 0.0);
 	resizeenabled_ = 1;
+	max_ = 0.0;
 }
 
 CalendarScheduler::~CalendarScheduler() {
@@ -426,6 +429,18 @@ CalendarScheduler::~CalendarScheduler() {
 
 void CalendarScheduler::insert(Event* e)
 {
+
+	/* (e->time_ * oneonwidth) needs to be less than the
+	 * largest integer on the machine for the mapping
+	 * of time to bucket to work properly.  if it is not
+	 * we force a resize() where we reset the width.
+	 */
+	if (e->time_ > max_) {
+		max_ = e->time_;
+		if (e->time_ * oneonwidth_ > ULONG_MAX) {
+			resize(nbuckets_);
+		}
+	}
 	// bucket number and address
 	int i = (int)(((long)(e->time_ * oneonwidth_)) & buckbits_); 
 	Event** p = buckets_ + i;
@@ -484,7 +499,7 @@ CalendarScheduler::deque()
 	// adjust year and resume
 	lastbucket_ = pos;
 	last_clock_ = min->time_;
-	long n = (long)(min->time_ * oneonwidth_);
+	unsigned long n = (unsigned long)(min->time_ * oneonwidth_);
 	buckettop_ = (n + 1) * width_ + 0.5 * width_;
 
 	return deque();
@@ -568,6 +583,13 @@ CalendarScheduler::newwidth()
 	// but don't let things get too small for numerical stability
 	double nw = count ? 3.0*(asep2/count) : asep;
 	if (nw < min) nw = min;
+
+	/* need to make sure that time_/width_ can be represented as
+	 * an int.  see the comment at the start of insert().
+	 */
+	if (max_/nw > ULONG_MAX) {
+		nw = max_/ULONG_MAX;
+	}
 	return nw;
 }
 
