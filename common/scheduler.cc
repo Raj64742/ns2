@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.11 1997/06/12 01:46:20 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.12 1997/06/17 23:18:11 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -175,6 +175,7 @@ void ListScheduler::cancel(Event* e)
 			abort();
 
 	*p = (*p)->next_;
+	e->uid_ = 0;
 }
 
 Event* ListScheduler::lookup(int uid)
@@ -194,6 +195,7 @@ void ListScheduler::run()
 		Event* p = queue_;
 		queue_ = p->next_;
 		clock_ = p->time_;
+		p->uid_ = 0;
 		p->handler_->handle(p);
 	}
 }
