@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.488 2001/12/03 22:58:07 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.489 2001/12/03 23:07:13 buchheim Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -34,6 +34,11 @@ The validation test is in test-all-ecn-full in tcl/test.
 Mon Dec  3 2001
 <br> Corrected one-way TCP so that when "syn_" is used, the first
 40-byte packet consists of header bytes, with no data bytes used.
+
+<p>
+<p><li><b><a href="http://www.isi.edu/~buchheim/">[Tim Buchheim]</a></b>
+Fri Nov 30 2001
+<br> Added a patch from Michele C. Weigle to replace the existing random number generator (an implementation of LCG16807) with a much better one (MRG32k3a, by Pierre L'Ecuyer).  The output of scripts using random numbers <i>will</i> change!
 
 <p>
 <p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
