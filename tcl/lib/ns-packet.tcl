@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.10 1997/08/10 22:17:56 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.11 1997/08/22 05:40:58 gnguyen Exp $
 #
 #
 # set up the packet format for the simulation
@@ -59,25 +59,33 @@ foreach pair {
 	        { Tap off_tap_ }
 	        { aSRM off_asrm_ }
 		{ SRM off_srm_ }} {
-	set cl [lindex $pair 0]
+	set cl PacketHeader/[lindex $pair 0]
 	set var [lindex $pair 1]
 	PacketHeaderManager set vartab_($cl) $var
 }
 
+proc PktHdr_offset {hdrName {field ""}} {
+	set var [PacketHeaderManager set vartab_($hdrName)]
+	set offset [TclObject set $var]
+	if {$field != ""} {
+		incr offset [$hdrName set offset_($field)]
+	}
+	return $offset
+}
+
 Simulator instproc create_packetformat { } {
 	set pm [new PacketHeaderManager]
-	foreach oclass [PacketHeader info subclass] {
-		set L [split $oclass /]
-		set cl [lindex $L 1]
+	foreach cl [PacketHeader info subclass] {
 		set var [PacketHeaderManager set vartab_($cl)]
 		set off [$pm allochdr $cl]
 		TclObject set $var $off
+		$cl offset $off
 	}
 	$self set packetManager_ $pm
 }
 
 PacketHeaderManager instproc allochdr cl {
-	set size [PacketHeader/$cl set hdrlen_]
+	set size [$cl set hdrlen_]
 
 	$self instvar hdrlen_
 	set NS_ALIGN 8
