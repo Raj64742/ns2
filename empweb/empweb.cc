@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.8 2001/11/15 23:04:54 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.9 2001/12/03 07:43:48 kclan Exp $
 
 #include <tclcl.h>
 
@@ -273,10 +273,13 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 */
         } else { //for HTTP1.0 non-consistent connection
 
+	 int wins = int(ceil(serverWin()->value()));
+	 int winc = int(ceil(clientWin()->value()));
+	 int window = (wins >= winc) ? wins : winc;
 
 	  // Choose source and dest TCP agents for both source and destination
-	  TcpAgent* ctcp = mgr_->picktcp();
-	  TcpAgent* stcp = mgr_->picktcp();
+	  TcpAgent* ctcp = mgr_->picktcp(window);
+	  TcpAgent* stcp = mgr_->picktcp(window);
 	  TcpSink* csnk = mgr_->picksink();
 	  TcpSink* ssnk = mgr_->picksink();
 
@@ -357,13 +360,13 @@ EmpWebTrafPool::EmpWebTrafPool() :
 	LIST_INIT(&sinkPool_);
 }
 
-TcpAgent* EmpWebTrafPool::picktcp()
+TcpAgent* EmpWebTrafPool::picktcp(int win)
 {
 
 	TcpAgent* a = (TcpAgent*)detachHead(&tcpPool_);
 	if (a == NULL) {
 		Tcl& tcl = Tcl::instance();
-		tcl.evalf("%s alloc-tcp", name());
+		tcl.evalf("%s alloc-tcp %d", name(), win);
 		a = (TcpAgent*)lookup_obj(tcl.result());
 		if (a == NULL) {
 			fprintf(stderr, "Failed to allocate a TCP agent\n");
@@ -410,7 +413,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 				return TCL_ERROR;
 			}
 			return (TCL_OK);
-		} else if (strcmp(argv[1], "set-num-client-lan") == 0) {
+		} else if (strcmp(argv[1], "set-num-remote-client") == 0) {
 			nClientL_ = atoi(argv[2]);
 			if (nClientL_ > nClient_) {
 				fprintf(stderr, "Wrong client index %d\n", nClientL_);
@@ -501,13 +504,14 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
                    }
                 }
 */
-	} else if (argc == 13) {
+	} else if (argc == 15) {
 		if (strcmp(argv[1], "create-session") == 0) {
 			// <obj> create-session <session_index>
 			//   <pages_per_sess> <launch_time>
 			//   <inter_page_rv> <page_size_rv>
 			//   <inter_obj_rv> <obj_size_rv>
 			//   <req_size_rv> <persist_sel_rv> <server_sel_rv>
+			//   <client_win_rv> <server_win_rv> 
 			//   <inbound/outbound flag>
 			int n = atoi(argv[2]);
 			if ((n < 0)||(n >= nSession_)||(session_[n] != NULL)) {
@@ -517,14 +521,14 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			int npg = (int)strtod(argv[3], NULL);
 			double lt = strtod(argv[4], NULL);
 
-			int flip = atoi(argv[12]);
+			int flip = atoi(argv[14]);
 			if ((flip < 0)||(flip > 1)) {
 				fprintf(stderr,"Invalid I/O flag %d\n",flip);
 				return (TCL_ERROR);
 			}
 
                         int cl;
-			if (flip == 0) 
+			if (flip == 1) 
                           cl = int(floor(Random::uniform(0, nClientL_)));
 			else
                           cl = int(floor(Random::uniform(nClientL_, nClient_)));
@@ -546,7 +550,11 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->persistSel(), argv[10]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
-				lookup_rv(p->serverSel(), argv[11]) : TCL_ERROR;
+				lookup_rv(p->serverWin(), argv[11]) : TCL_ERROR;
+			res = (res == TCL_OK) ? 
+				lookup_rv(p->clientWin(), argv[12]) : TCL_ERROR;
+			res = (res == TCL_OK) ? 
+				lookup_rv(p->serverSel(), argv[13]) : TCL_ERROR;
 			if (res == TCL_ERROR) {
 				delete p;
 				fprintf(stderr, "Invalid random variable\n");

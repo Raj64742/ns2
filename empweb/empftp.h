@@ -25,14 +25,13 @@
 // noted when applicable.
 //
 //
-// Empirical Web traffic model that simulates Web traffic based on a set of
+// Empirical FTP traffic model that simulates FTP traffic based on a set of
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
-// The structure of this file is largely borrowed from webtraf.h
+// The structure of this file is largely borrowed from empftp.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.11 2001/12/03 07:43:48 kclan Exp $
 
-#ifndef ns_empweb_h
-#define ns_empweb_h
+#ifndef ns_empftp_h
+#define ns_empftp_h
 
 #include "ranvar.h"
 #include "random.h"
@@ -44,100 +43,62 @@
 #include "tcp-sink.h"
 #include "persconn.h"
 
-const int WEBTRAF_DEFAULT_OBJ_PER_PAGE = 1;
 
-class EmpWebTrafPool;
+class EmpFtpTrafPool;
 
-class EmpWebTrafSession : public TimerHandler {
+class EmpFtpTrafSession : public TimerHandler {
 public: 
-	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum, int cl) : 
-		rvInterPage_(NULL), rvPageSize_(NULL),
-		rvInterObj_(NULL), rvObjSize_(NULL), 
-		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
+	EmpFtpTrafSession(EmpFtpTrafPool *mgr, int np, int id) : 
+		rvInterFile_(NULL), rvFileSize_(NULL),
 		rvServerWin_(NULL), rvClientWin_(NULL),
-//		numOfPersConn_(0), usePers_(0), 
-//		maxNumOfPersConn_(connNum), clientIdx_(cl),
-		clientIdx_(cl), 
-		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
+		rvServerSel_(NULL), 
+		mgr_(mgr), nFile_(np), curFile_(0), 
 		id_(id) {}
-	virtual ~EmpWebTrafSession();
+	virtual ~EmpFtpTrafSession();
 
 	// Queried by individual pages/objects
-	inline EmpiricalRandomVariable*& interPage() { return rvInterPage_; }
-//	inline EmpiricalRandomVariable*& pageSize() { return rvPageSize_; }
-inline RandomVariable*& pageSize() { return rvPageSize_; }
-	inline EmpiricalRandomVariable*& interObj() { return rvInterObj_; }
-	inline EmpiricalRandomVariable*& objSize() { return rvObjSize_; }
-
-	inline EmpiricalRandomVariable*& reqSize() { return rvReqSize_; }
-	inline EmpiricalRandomVariable*& persistSel() { return rvPersistSel_; }
+	inline EmpiricalRandomVariable*& interFile() { return rvInterFile_; }
+	inline EmpiricalRandomVariable*& fileSize() { return rvFileSize_; }
 	inline EmpiricalRandomVariable*& serverSel() { return rvServerSel_; }
 
 	inline EmpiricalRandomVariable*& serverWin() { return rvServerWin_; }
 	inline EmpiricalRandomVariable*& clientWin() { return rvClientWin_; }
 
-	void donePage(void* ClntData);
-	void launchReq(void* ClntData, int obj, int size, int reqSize, int sid);
+	inline void setServer(Node* s) { src_ = s; }
+	inline void setClient(Node* c) { dst_ = c; }
+
+	void sendFile(int obj, int size);
 	inline int id() const { return id_; }
-	inline EmpWebTrafPool* mgr() { return mgr_; }
+	inline EmpFtpTrafPool* mgr() { return mgr_; }
 
-//        PersConn* lookupPersConn(int client, int server);
-
-	static int LASTPAGE_;
-//	inline void setPersOpt(int opt) { usePers_ = opt; }
-//	inline int getPersOpt() { return usePers_; }
-//	inline void initPersConn() { 
-//	       if (getPersOpt() == PERSIST) {
-//	           persistConn_ = new PersConn*[maxNumOfPersConn_];  
-//	           memset(persistConn_, 0, sizeof(PersConn*)*maxNumOfPersConn_);
-//               }
-//         }
+	static int LASTFILE_;
 
 private:
 	virtual void expire(Event *e = 0);
 	virtual void handle(Event *e);
 
-//	EmpiricalRandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
-	EmpiricalRandomVariable *rvInterPage_, *rvInterObj_, *rvObjSize_;
-	RandomVariable *rvPageSize_;
-	EmpiricalRandomVariable *rvReqSize_, *rvPersistSel_, *rvServerSel_;
+	EmpiricalRandomVariable *rvInterFile_, *rvFileSize_, *rvServerSel_;
 	EmpiricalRandomVariable *rvServerWin_, *rvClientWin_;
-	EmpWebTrafPool* mgr_;
-	Node* src_;		// One Web client (source of request) per session
-	int nPage_, curPage_, donePage_;
+
+	EmpFtpTrafPool* mgr_;
+	Node* src_;		
+	Node* dst_;		
+	int nFile_, curFile_ ;
 	int id_;
 
-        int clientIdx_;
 
-        //modeling HTTP1.1
-//	PersConn** persistConn_; 
-//	int numOfPersConn_ ;
-//	int maxNumOfPersConn_ ;
-//	int usePers_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
 };
 
-class EmpWebTrafPool : public PagePool {
+class EmpFtpTrafPool : public PagePool {
 public: 
-	EmpWebTrafPool(); 
-	virtual ~EmpWebTrafPool(); 
+	EmpFtpTrafPool(); 
+	virtual ~EmpFtpTrafPool(); 
 
-	inline void startSession() {
-	       	concurrentSess_++;
-		if (isdebug()) 
-			printf("concurrent number of sessions = %d \n", concurrentSess_ );
-	}
-//	inline Node* picksrc() {
-//		int n = int(floor(Random::uniform(0, nClient_)));
-//		assert((n >= 0) && (n < nClient_));
-//		return client_[n];
-//	}
 	inline void doneSession(int idx) { 
 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
-		if (concurrentSess_ > 0) concurrentSess_--;
 		if (isdebug()) {
 			printf("deleted session %d \n", idx );
-			printf("concurrent number of sessions = %d \n", concurrentSess_ );
                 }
 		delete session_[idx];
 		session_[idx] = NULL; 
@@ -154,10 +115,9 @@ public:
 	int nSrcL_;
 	int nClientL_;
 
-	int concurrentSess_;
 
 	int nSrc_;
-	Node** server_;		/* Web servers */
+	Node** server_;		/* FTP servers */
 
 protected:
 	virtual int command(int argc, const char*const* argv);
@@ -165,10 +125,10 @@ protected:
 	// Session management: fixed number of sessions, fixed number
 	// of pages per session
 	int nSession_;
-	EmpWebTrafSession** session_; 
+	EmpFtpTrafSession** session_; 
 
 	int nClient_;
-	Node** client_; 	/* Browsers */
+	Node** client_; 	/* FTP clients */
 
 	// TCP agent pool management
 	struct AgentListElem {
@@ -205,15 +165,8 @@ protected:
 		return rv ? (TCL_OK) : (TCL_ERROR);
 	}
 
-        inline int lookup_rv1(RandomVariable*& rv, const char* name) {
-                if (rv != NULL)
-                        Tcl::instance().evalf("delete %s", rv->name());
-                rv = (RandomVariable*)lookup_obj(name);
-                return rv ? (TCL_OK) : (TCL_ERROR);
-        }
-
 	int debug_;
 };
 
 
-#endif // ns_empweb_h
+#endif // ns_empftp_h
