@@ -1279,6 +1279,7 @@ tcl/test/test-all-testReno
 tcl/test/test-all-v1
 tcl/test/test-all-vc
 tcl/test/test-all-vegas-v1
+tcl/test/test-all-vq
 tcl/test/test-all-webcache
 tcl/test/test-all-webtraf
 tcl/test/test-all-wireless-diffusion
@@ -1984,6 +1985,11 @@ tcl/test/test-output-vegas-v1/one_drop.Z
 tcl/test/test-output-vegas-v1/two_2.Z
 tcl/test/test-output-vegas-v1/two_A.Z
 tcl/test/test-output-vegas-v1/two_B.Z
+tcl/test/test-output-vq/ecn.Z
+tcl/test/test-output-vq/vq1.Z
+tcl/test/test-output-vq/vq2.Z
+tcl/test/test-output-vq/vq_twoway.Z
+tcl/test/test-output-vq/vq_twowaybytes.Z
 tcl/test/test-output-webcache/Liveness.Z
 tcl/test/test-output-webcache/Mcast-PB.Z
 tcl/test/test-output-webcache/Mcast-PBP.Z
@@ -2123,6 +2129,7 @@ tcl/test/test-suite-testReno.tcl
 tcl/test/test-suite-v1.tcl
 tcl/test/test-suite-v1a.tcl
 tcl/test/test-suite-vc.tcl
+tcl/test/test-suite-vq.tcl
 tcl/test/test-suite-vegas-v1.tcl
 tcl/test/test-suite-webcache.tcl
 tcl/test/test-suite-webtraf.tcl
@@ -2224,6 +2231,8 @@ varp.cc
 varp.h
 vat.h
 vatrcvr.cc
+vq.cc
+vq.h
 webcache/http-aux.cc
 webcache/http-aux.h
 webcache/http.cc
