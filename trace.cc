@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.4 1997/01/27 01:16:20 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.5 1997/02/03 16:59:10 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -54,7 +54,7 @@ class Trace : public Connector {
 	nsaddr_t src_;
 	nsaddr_t dst_;
 	Tcl_Channel channel_;
-	char* callback_;
+	int callback_;
 	char wrk_[256];
 	void format(int tt, int s, int d, Packet* p);
 };
@@ -99,6 +99,7 @@ Trace::Trace(int type)
 {
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
+	bind("callback_", &callback_);
 }
 
 Trace::~Trace()
@@ -109,7 +110,6 @@ Trace::~Trace()
  * $trace detach
  * $trace flush
  * $trace attach $fileID
- * $trace callback $proc
  */
 int Trace::command(int argc, const char*const* argv)
 {
@@ -132,17 +132,6 @@ int Trace::command(int argc, const char*const* argv)
 			if (channel_ == 0) {
 				tcl.resultf("trace: can't attach %s for writing", id);
 				return (TCL_ERROR);
-			}
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "callback") == 0) {
-			const char* cb = argv[2];
-			delete callback_;
-			if (*cb == 0)
-				callback_ = 0;
-			else {
-				callback_ = new char[strlen(cb) + 1];
-				strcpy(callback_, cb);
 			}
 			return (TCL_OK);
 		}
@@ -187,9 +176,9 @@ void Trace::dump()
 		(void)Tcl_Write(channel_, wrk_, n + 1);
 		wrk_[n] = 0;
 	}
-	if (callback_ != 0) {
+	if (callback_) {
 		Tcl& tcl = Tcl::instance();
-		tcl.evalf("%s { %s }", callback_, wrk_);
+		tcl.evalf("%s handle { %s }", name(), wrk_);
 	}
 }
 
@@ -197,5 +186,9 @@ void Trace::recv(Packet* p, Handler* h)
 {
 	format(type_, src_, dst_, p);
 	dump();
-	send(p, h);
+	/* hack: if trace object not attached to anything free packet */
+	if (target_ == 0)
+		Packet::free(p);
+	else
+		send(p, h);
 }

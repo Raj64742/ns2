@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.6 1997/01/31 05:11:48 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.7 1997/02/03 16:59:11 mccanne Exp $
 
 
 #
@@ -43,6 +43,7 @@
 
 Trace set src_ 0
 Trace set dst_ 0
+Trace set callback_ 0
 
 Agent set class_ 0
 Agent set addr_ 0

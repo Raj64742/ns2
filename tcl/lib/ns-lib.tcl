@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.6 1997/02/02 18:57:35 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.7 1997/02/03 16:59:12 mccanne Exp $
 #
 
 #
@@ -129,8 +129,10 @@ Simulator instproc duplex-link { n1 n2 bw delay type } {
 
 Simulator instproc flush-trace {} {
 	$self instvar alltrace_
-	foreach trace $alltrace_ {
-		$trace flush
+	if [info exists alltrace_] {
+		foreach trace $alltrace_ {
+			$trace flush
+		}
 	}
 }
 
@@ -152,6 +154,16 @@ Simulator instproc create-trace { type file src dst } {
 Simulator instproc trace-queue { n1 n2 file } {
 	$self instvar link_
 	$link_([$n1 id]:[$n2 id]) trace $self $file
+}
+
+Simulator instproc queue-limit { n1 n2 limit } {
+	$self instvar link_
+	[$link_([$n1 id]:[$n2 id]) queue] set limit_ $limit
+}
+
+Simulator instproc drop-trace { n1 n2 trace } {
+	$self instvar link_
+	[$link_([$n1 id]:[$n2 id]) queue] drop-trace $trace
 }
 
 Simulator instproc attach-agent { node agent } {

@@ -35,12 +35,13 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.2 1997/02/03 16:59:09 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <math.h>
 #include <sys/time.h>
+#include <ctype.h>
 #include "scheduler.h"
 #include "Tcl.h"
 #include "random.h"
@@ -83,8 +84,42 @@ public:
 	}
 };
 
+class TimeAtofCommand : public TclCommand {
+public:
+	TimeAtofCommand() : TclCommand("time_atof") { }
+        virtual int command(int argc, const char*const* argv) {
+		if (argc != 2)
+			return (TCL_ERROR);
+		char* s = argv[1];
+		char wrk[32];
+		char* cp = wrk;
+		while (isdigit(*s) || *s == 'e' ||
+		       *s == '+' || *s == '-' || *s == '.')
+			*cp++ = *s++;
+		*cp = 0;
+		double v = atof(wrk);
+		switch (*s) {
+		case 'm':
+			v *= 1e-3;
+			break;
+		case 'u':
+			v *= 1e-6;
+			break;
+		case 'n':
+			v *= 1e-9;
+			break;
+		case 'p':
+			v *= 1e-12;
+			break;
+		}
+		Tcl::instance().resultf("%g", v);
+		return (TCL_OK);
+	}
+};
+
 void init_misc()
 {
 	(void)new VersionCommand;
 	(void)new RandomCommand;
+	(void)new TimeAtofCommand;
 }
