@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.7 2001/05/27 02:14:58 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.8 2001/07/18 02:38:47 kfall Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -924,12 +924,12 @@ $server_(0):0"
 }
 
 # Same as media4, but with 56Kb bottleneck link between server and cache.
-Class Test/media4a -superclass Test/media4
+#Class Test/media4a -superclass Test/media4
 
-Test/media4a instproc init {} {
-	$self set-defnet cache1
-	$self next
-}
+#Test/media4a instproc init {} {
+#	$self set-defnet cache1
+#	$self next
+#}
 
 
 # Test cache replacement
@@ -1095,31 +1095,31 @@ Test/media5 instproc req2client { pagenum ran max } {
 }
 
 # 95% requests go to the high-bw client
-Class Test/media5a -superclass Test/media5 
+#Class Test/media5a -superclass Test/media5 
 
-Test/media5a instproc req2client { pagenum ran max } {
-	# Distribute 95% requests of all pages to the high-bw client, 
-	# and 5% to the low-bw client
-	set thresh [expr $max*0.05]
-	if {$ran > $thresh} {
-		return 0
-	} else {
-		return 1
-	}
-}
+#Test/media5a instproc req2client { pagenum ran max } {
+#	# Distribute 95% requests of all pages to the high-bw client, 
+#	# and 5% to the low-bw client
+#	set thresh [expr $max*0.05]
+#	if {$ran > $thresh} {
+#		return 0
+#	} else {
+#		return 1
+#	}
+#}
 
 # 50:50 distribution among 2 clients
-Class Test/media5b -superclass Test/media5
-
-Test/media5b instproc req2client { pagenum ran max } {
-	# Uniformly distribute requests of all pages
-	set thresh [expr $max*0.5]
-	if {$ran > $thresh} {
-		return 0
-	} else {
-		return 1
-	}
-}
+#Class Test/media5b -superclass Test/media5
+#
+#Test/media5b instproc req2client { pagenum ran max } {
+#	# Uniformly distribute requests of all pages
+#	set thresh [expr $max*0.5]
+#	if {$ran > $thresh} {
+#		return 0
+#	} else {
+#		return 1
+#	}
+#}
 
 
 # Configurations
