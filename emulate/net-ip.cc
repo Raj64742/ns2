@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.3 1998/02/20 23:41:30 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.4 1998/02/21 01:10:41 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -371,7 +371,20 @@ int IPNetwork::command(int argc, const char*const* argv)
 	return (Network::command(argc, argv));
 }
 
-int UDPIPNetwork::open(in_addr& addr, u_int16_t port, int ttl)
+int
+IPNetwork::open()
+{
+	Socket fd = socket(AF_INET, SOCK_RAW, IPPROTO_IP);
+	if (fd < 0) {
+		perror("socket(RAW)");
+		return (-1);
+	}
+	rsock_ = ssock_ = fd;
+	return 0;
+}
+
+int
+UDPIPNetwork::open(in_addr& addr, u_int16_t port, int ttl)
 {
 	ssock_ = openssock(addr, port, ttl);
 	if (ssock_ < 0)
@@ -416,11 +429,11 @@ int
 IPNetwork::close()
 {
 	if (ssock_ >= 0) {
-		::close(ssock_);
+		(void)::close(ssock_);
 		ssock_ = -1;
 	}
 	if (rsock_ >= 0) {
-		::close(rsock_);
+		(void)::close(rsock_);
 		rsock_ = -1;
 	}
 	return (0);
