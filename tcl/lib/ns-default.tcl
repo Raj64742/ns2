@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.158 1999/07/02 00:40:43 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.159 1999/07/07 03:42:47 sfloyd Exp $
 
 
 #
@@ -108,6 +108,9 @@ Agent/TCP set nackpack_ 0
 Agent/TCP set nrexmit_ 0
 Agent/TCP set nrexmitpack_ 0
 Agent/TCP set nrexmitbytes_ 0
+Agent/TCP set nslowdown_ 0
+Agent/TCP set myto_ 0
+Agent/TCP set myrtt_ 0
 Agent/TCP set trace_all_oneline_ false
 
 # XXX Generate nam trace or plain old text trace for variables. 
@@ -154,6 +157,26 @@ Agent/TCP/Asym set g_ 0.125
 Agent/TCP/Reno/Asym set g_ 0.125
 Agent/TCP/Newreno/Asym set g_ 0.125
 
+Agent/TFRM set packetSize_ 1000
+Agent/TFRM set df_ 0.0
+Agent/TFRM set version_ 1
+Agent/TFRM set tcp_tick_ 0.1
+Agent/TFRM set incrrate_ 0.1
+Agent/TFRM set slowincr_ 0
+Agent/TFRM set ndatapack_ 0
+Agent/TFRM set srtt_init_ 0
+Agent/TFRM set rttvar_init_ 12
+Agent/TFRM set rtxcur_init_ 6.0
+Agent/TFRM set rttvar_exp_ 2
+Agent/TFRM set T_SRTT_BITS 3
+Agent/TFRM set T_RTTVAR_BITS 2
+Agent/TFRM set InitRate_ 1000
+Agent/TFRM set SampleSizeMult_ 4
+
+Agent/TFRMSink set packetSize_ 40
+Agent/TFRMSink set SampleSizeMult_ 4
+Agent/TFRMSink set MinNumLoss_ 4
+Agent/TFRMSink set InitHistorySize_ 1000
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency

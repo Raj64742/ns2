@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.63 1999/06/21 18:14:01 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.64 1999/07/07 03:42:43 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -57,6 +57,8 @@
 #define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
 #define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
 #define HDR_SR(p)       ((struct hdr_sr*)(p)->access(hdr_sr::offset_))
+#define HDR_TFRM(p)      ((struct hdr_tfrm*)(p)->access(hdr_tfrm::offset_))
+#define HDR_TFRM(p)      ((struct hdr_tfrm*)(p)->access(hdr_tfrm::offset_))
 
 
 enum packet_t {
@@ -74,8 +76,6 @@ enum packet_t {
 	PT_JOIN,
 	PT_ASSERT,
 	PT_MESSAGE,
-	PT_TF,
-	PT_TFC,
 	PT_RTCP,
 	PT_RTP,
 	PT_RTPROTO_DV,
@@ -114,6 +114,8 @@ enum packet_t {
 
 	// insert new packet types here
 
+  PT_TFRM,
+	PT_TFRMC,
 	PT_NTYPE // This MUST be the LAST one
 };
 
@@ -134,8 +136,6 @@ public:
 		name_[PT_JOIN]= "join";
 		name_[PT_ASSERT]= "assert";
 		name_[PT_MESSAGE]= "message";
-		name_[PT_TF]= "tcpFriend";
-		name_[PT_TFC]= "tcpFriendCtl";
 		name_[PT_RTCP]= "rtcp";
 		name_[PT_RTP]= "rtp";
 		name_[PT_RTPROTO_DV]= "rtProtoDV";
@@ -167,6 +167,9 @@ public:
 		name_[PT_RAP_DATA] = "rap_data";
 		name_[PT_RAP_ACK] = "rap_ack";
 
+ 		name_[PT_TFRM]= "tcpFriend";
+		name_[PT_TFRMC]= "tcpFriendCtl";
+
 		name_[PT_NTYPE]= "undefined";
 	}
 	const char* name(packet_t p) const { 
@@ -179,7 +182,6 @@ public:
 			 (type) == PT_CBR || \
 			 (type) == PT_AUDIO || \
 			 (type) == PT_VIDEO || \
-			 (type) == PT_TF || \
 			 (type) == PT_ACK \
 			 );
 	}
@@ -274,7 +276,7 @@ struct hdr_cmn {
 	//Monarch extn begins
 	nsaddr_t next_hop_;	// next hop for this packet
 	int      addr_type_;    // type of next_hop_ addr
-	nsaddr_t last_hop_; 	// for tracing on multi-user channels
+	nsaddr_t last_hop_;     // for tracing on multi-user channels
 #define AF_NONE 0
 #define AF_ILINK 1
 #define AF_INET 2
