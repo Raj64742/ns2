@@ -32,22 +32,33 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/template.h,v 1.4 1997/08/12 09:08:32 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/template.h,v 1.5 1997/08/12 21:17:58 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_template_h
 #define ns_template_h
 
-
 #ifdef WIN32
-#define swap(a,b)	\
-do {			\
-	int tmp = a;	\
-	a = b;		\
-	b = tmp;	\
-} while (0)
+#include <minmax.h>
+#define NOMINMAX
+#undef min
+#undef max
+#undef abs
+#endif
 
-#else
+template <class Type>
+inline Type abs(Type a)
+{
+	return (a < 0) ? -a : a;
+}
+
+template <class Type>
+inline void swap(Type& a, Type& b)
+{
+	Type t = a;
+	a = b;
+	b = t;
+}
 
 template <class Type1, class Type2>
 inline Type1 min(Type1 a, Type2 b)
@@ -61,19 +72,4 @@ inline Type1 max(Type1 a, Type2 b)
 	return a < b ? b : a;
 }
 
-template <class Type>
-inline Type abs(Type a)
-{
-    return (a < 0) ? -a : a;
-}
-
-template <class Type>
-inline void swap(Type& a, Type& b)
-{
-	Type t = a;
-	a = b;
-	b = t;
-}
-
-#endif /* WIN32 */
 #endif
