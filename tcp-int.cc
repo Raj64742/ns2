@@ -35,23 +35,26 @@
  * http://daedalus.cs.berkeley.edu
  */
 
+
 /*
- * We separate TCP functionality into two parts: that having to do with providing
- * a reliable, ordered byte-stream service, and that having to do with congestion
- * control and loss recovery. The former is done on a per-connection basis and is
- * implemented as part of IntTcpAgent ("integrated TCP"). The latter is done in an 
- * integrated fashion across multiple TCP connections, and is implemented as part 
- * of TcpSessionAgent ("TCP session"). TcpSessionAgent is derived from CorresHost 
- * ("correspondent host"), which keeps track of the state of all TCP (TCP/Int) 
- * connections to a host that it is corresponding with.
+ * We separate TCP functionality into two parts: that having to do with 
+ * providing a reliable, ordered byte-stream service, and that having to do with
+ * congestion control and loss recovery. The former is done on a per-connection
+ * basis and is implemented as part of IntTcpAgent ("integrated TCP"). The 
+ * latter is done in an integrated fashion across multiple TCP connections, and
+ * is implemented as part of TcpSessionAgent ("TCP session"). TcpSessionAgent is
+ * derived from CorresHost ("correspondent host"), which keeps track of the 
+ * state of all TCP (TCP/Int) connections to a host that it is corresponding 
+ * with.
  *
  * The motivation for this separation of functionality is to make an ensemble of
- * connection more well-behaved than a set of independent TCP connections and improve
- * the chances of losses being recovered via data-driven techniques (rather than
- * via timeouts). At the same time, we do not introduce any unnecessary between the
- * logically-independent byte-streams that the set of connections represents. This is
- * in contrast to the coupling that is inherent in the multiplexing at the application
- * layer of multiple byte-streams onto a single TCP connection.
+ * connection more well-behaved than a set of independent TCP connections.
+ * The packet loss rate is cut down and the chances of losses being recovered 
+ * via data-driven techniques (rather than via timeouts) is improved. At the 
+ * same time, we do not introduce any unnecessary coupling between the 
+ * logically-independent byte-streams that the set of connections represents. 
+ * This is in contrast to the coupling that is inherent in the multiplexing at 
+ * the application layer of multiple byte-streams onto a single TCP connection.
  */
 
 #include <stdio.h>
@@ -79,7 +82,7 @@ public:
 } class_tcp_int;
 
 IntTcpAgent::IntTcpAgent() : TcpAgent(), slink(), 
-	rxmitPend_(0), closecwTS_(0), session_(0), count_(0), lastTS_(-1), 
+	closecwTS_(0), session_(0), count_(0), lastTS_(-1), 
 	wt_(1), wndIncSeqno_(0), num_thresh_dupack_segs_(0)
 {
 	bind("rightEdge_", &rightEdge_);
@@ -91,11 +94,19 @@ IntTcpAgent::IntTcpAgent() : TcpAgent(), slink(),
 int
 IntTcpAgent::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
+
 	if (argc == 3) {
 		if (!strcmp(argv[1], "setwt")) {
 			if (!session_)
 				createTcpSession();
 			session_->set_weight(this,atoi(argv[2]));
+			return (TCL_OK);
+		}
+	}
+	else if (argc == 2) {
+		if (!strcmp(argv[1], "session")) {
+			tcl.resultf("%s", session_->name());
 			return (TCL_OK);
 		}
 	}
@@ -131,12 +142,6 @@ IntTcpAgent::recv(Packet *pkt, Handler *)
 	if (tcph->seqno() > last_ack_) {
 		amt_data_acked = tcph->seqno() - last_ack_;
 		newack(pkt);
-#if 0
-		if (rxmitPend_) {
-			rxmitPend_ = 0;
-			session_->agent_frcov(this); /* XXX needed ? */
-		}
-#endif
 	} 
 	session_->recv(this, pkt, amt_data_acked);
 }
@@ -260,21 +265,18 @@ IntTcpAgent::closecwnd(int how)
 Segment *
 IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
 {
-/*	if (seqno == last_ack_ + 1 && (ts >= rxmitPend_ || rxmitPend_ == 0)) {
-		rxmitPend_ = Scheduler::instance().clock();*/
-		session_->agent_rcov(this);
-		/* 
-		 * XXX kludge -- IntTcpAgent is not supposed to deal with 
-		 * rtx timer 
-		 */
-		session_->reset_rtx_timer(1,0); 
-		output(seqno, reason);
-		daddr_ = dst_/256;
-		dport_ = dst_%256;
-		sport_ = addr_%256;
-		return (session_->add_pkts(size_, seqno, sessionSeqno, daddr_, 
-					   dport_, sport_, lastTS_, this));
-/*	}*/
+	session_->agent_rcov(this);
+	/* 
+	 * XXX kludge -- IntTcpAgent is not supposed to deal with 
+	 * rtx timer 
+	 */
+	session_->reset_rtx_timer(1,0); 
+	output(seqno, reason);
+	daddr_ = dst_/256;
+	dport_ = dst_%256;
+	sport_ = addr_%256;
+	return (session_->add_pkts(size_, seqno, sessionSeqno, daddr_, 
+				   dport_, sport_, lastTS_, this));
 	return NULL;
 }
 u_long output_helper_count=0;
