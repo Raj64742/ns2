@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.311 1999/03/04 02:21:29 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.312 1999/03/05 18:52:50 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,14 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>  
+
+    <li> <b><a href="http://www-nrg.ee.lbl.gov/floyd/">[floyd]</a></b>
+	<b>Fri Mar  5 10:47:07 PST 1999</b><br>
+	Modified tcp-sink.cc and tcp-sink.h to fix an ECN bug for
+	TCP with delayed-ack sinks.  In particular, the ECN field was
+	not being handled correctly for a packet for which the 
+	acknowledgement was being delayed.  The bug report and bug fix
+	are both from Mark Allman, mallman@grc.nasa.gov.
 
     <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
          <b>Wed Mar  3 18:16:53 PST 1999</b><br>
