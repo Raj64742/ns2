@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 The Regents of the University of California.
+ * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,11 @@
  * SUCH DAMAGE.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tap.cc,v 1.3 1997/07/23 01:02:58 kfall Exp $ (UCB)";
+#endif
+
 #include "Tcl.h"
 #include "net.h"
 #include "packet.h"
@@ -52,7 +57,7 @@ class TapAgent : public Agent, public IOHandler {
 static class TapAgentClass : public TclClass {
  public:
 	TapAgentClass() : TclClass("Agent/Tap") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TapAgent());
 	}
 } class_tap_agent;
