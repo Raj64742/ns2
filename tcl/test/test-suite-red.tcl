@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.4 1997/10/14 23:30:09 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.5 1997/10/16 00:59:04 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -55,6 +55,18 @@ set pthresh 100
 # to generate flow graph with forced drops:
 #       set category 0
 #       set awkprocedure forcedmakeawk
+
+TestSuite instproc finish file {
+	global quiet
+        exec ../../bin/getrc -s 2 -d 3 all.tr | \
+          ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+	if {$quiet == "false"} {
+        	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+	}
+        ## now use default graphing tool to make a data file
+        ## if so desired
+        exit 0
+}
 
 #
 # Reconfigure the net2 topology for the RED experiments.
