@@ -16,7 +16,7 @@
  *
  * These notices must be retained in any copies of any part of this
  * software.
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/estimator.h,v 1.5 1998/08/22 02:41:02 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/estimator.h,v 1.6 1998/09/18 19:00:22 breslau Exp $
  */
 
 //Estimator unit estimates average load every period interval of time
@@ -48,7 +48,7 @@ public:
 	int command(int argc, const char*const* argv); 
 	virtual void timeout(int);
 	inline void recv(Packet *,Handler *){}
-	void start();
+	virtual void start();
 	void stop();
 	void setmeasmod(MeasureMod *);
 	void setactype(const char*);
