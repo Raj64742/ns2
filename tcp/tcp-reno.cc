@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.23 1998/05/02 01:39:48 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.24 1998/05/04 22:18:16 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -93,8 +93,8 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 			* a retransmit timeout.
                         */
 			if ( !bug_fix_ || (highest_ack_ > recover_) ||
-			    ( recover_cause_ != 2)) {
-				recover_cause_ = 1;
+			    ( last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
+				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				recover_ = maxseq_;
 				closecwnd(1);
 				reset_rtx_timer(1,0);

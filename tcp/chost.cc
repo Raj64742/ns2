@@ -224,7 +224,7 @@ CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSe
      * of outstanding data.
      */
     if (amt_data_acked == 0 && latest_susp_loss <= recover_ && 
-	!dontAdjustOwnd_ && recover_cause_ != 2) {
+	!dontAdjustOwnd_ && last_cwnd_action_ != CWND_ACTION_TIMEOUT) {
 	    owndCorrection_ += min(double(ownd_),1);
 	    ownd_ -= min(double(ownd_),1);
     }
@@ -245,17 +245,19 @@ CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSe
 	      (cur->dupacks_ > 0 || sender == cur->sender_ ||
 	       cur->sender_->num_thresh_dupack_segs_ > 1 ||
 	       lastackTS_-cur->ts_ >= 0.2*2)) || cur->partialack_)) {
-		if (cur->sessionSeqno_ <= recover_ && recover_cause_ != 2)
+		if (cur->sessionSeqno_ <= recover_ &&
+		    last_cwnd_action_ != CWND_ACTION_TIMEOUT)
 			dontAdjustOwnd_ = 1;
-		if ((cur->sessionSeqno_ > recover_) || (recover_cause_ == 2) ||
+		if ((cur->sessionSeqno_ > recover_) ||
+		    (last_cwnd_action_ == CWND_ACTION_TIMEOUT) ||
 		    (proxyopt_ && cur->seqno_ > cur->sender_->recover_) ||
-		    (proxyopt_ && cur->sender_->recover_cause_ == 2)) { 
+		    (proxyopt_ && cur->sender_->last_cwnd_action_ == CWND_ACTION_TIMEOUT)) { 
 			/* new loss window */
 			closecwnd(1, cur->ts_, cur->sender_);
 			recover_ = sessionSeqno - 1;
-			recover_cause_ = 1;
+			last_cwnd_action_ = CWND_ACTION_DUPACK;
 			cur->sender_->recover_ = cur->sender_->maxseq_;
-			cur->sender_->recover_cause_ = 1;
+			cur->sender_->last_cwnd_action_ = CWND_ACTION_DUPACK;
 			dontAdjustOwnd_ = 0;
 		}
 		if (newseg = cur->sender_->rxmit_last(TCP_REASON_DUPACK, 
@@ -328,7 +330,7 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 			else if (amt_data_acked > 0 && 
 				 tcph->seqno() == cur->seqno_-1 &&
 				 cur->seqno_ <= sender->recover_ &&
-				 sender->recover_cause_ == 1) {
+				 sender->last_cwnd_action_ == CWND_ACTION_DUPACK) {
 				cur->partialack_ = 1;
 				partialack = 1;
 				latest_susp_loss = 

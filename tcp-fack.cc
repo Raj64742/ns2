@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.14 1998/05/02 01:38:22 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.15 1998/05/04 22:21:01 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -168,7 +168,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 				 * and try to resume the sequence.
 				 */
 				recover_ = t_seqno_;
-				recover_cause_ = RECOVER_DUPACK;
+				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				closecwnd(1);
 				if (rampdown_) {
 					wintrim_ = (t_seqno_ - fack_ - 1) * wintrimmult_;
@@ -248,7 +248,7 @@ void FackTcpAgent::timeout(int tno)
 		  highest_ack_, t_seqno_);
 #endif
 		retran_data_ = 0;
-		recover_cause_ = RECOVER_TIMEOUT;
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		/* if there is no outstanding data, don't cut down ssthresh_ */
 		if (highest_ack_ == maxseq_ && restart_bugfix_) 
 			closecwnd(3);

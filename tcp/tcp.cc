@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.60 1998/05/02 01:41:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.61 1998/05/04 22:17:55 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -212,7 +212,7 @@ TcpAgent::reset()
 	awnd_ = wnd_init_ / 2.0;
 	recover_ = 0;
 	
-	recover_cause_ = 0;
+	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
 }
 
@@ -689,7 +689,7 @@ void TcpAgent::quench(int how)
 {
 	if (highest_ack_ >= recover_) {
 		recover_ = t_seqno_ - 1;
-		recover_cause_ = 3;
+		last_cwnd_action_ = CWND_ACTION_ECN;
 		closecwnd(how);
 #ifdef notdef
 		if (trace_) {
@@ -778,11 +778,11 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		    */
 		   	if (!bug_fix_ || highest_ack_ > recover_) {
 				recover_ = maxseq_;
-				recover_cause_ = 1;
+				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				closecwnd(4);
 				reset_rtx_timer(0,0);
 			}
-			else if (ecn_ && recover_cause_ != 1) {
+			else if (ecn_ && last_cwnd_action_ != CWND_ACTION_DUPACK) {
 				closecwnd(2);
 				reset_rtx_timer(0,0);
 			}
@@ -825,7 +825,7 @@ void TcpAgent::timeout(int tno)
 			return;
 		};
 		recover_ = maxseq_;
-		recover_cause_ = 2;
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		if (highest_ack_ == -1 && wnd_init_option_ == 2)
 			/* 
 			 * First packet dropped, so don't use larger

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.24 1998/05/02 01:40:06 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.25 1998/05/04 22:21:40 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -116,8 +116,8 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 				 * and try to resume the sequence.
 				 */
 				if ((highest_ack_ > recover_) ||
-					(recover_cause_ != RECOVER_TIMEOUT)) {
-					recover_cause_ = RECOVER_DUPACK;
+					(last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
+					last_cwnd_action_ = CWND_ACTION_DUPACK;
 					recover_ = maxseq_;
 					pipe_ = int(cwnd_) - NUMDUPACKS;
 					closecwnd(1);

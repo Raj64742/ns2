@@ -236,14 +236,14 @@ TcpSessionAgent::timeout(int tno)
 			return;
 		}
 		recover_ = sessionSeqno_ - 1;
-		recover_cause_ = 2;
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		ownd_ = 0;
 		owndCorrection_ = 0;
 		while ((curconn = conn_iter()) != NULL) {
 			curconn->maxseq_ = curconn->highest_ack_;
 			curconn->t_seqno_ = curconn->highest_ack_ + 1;
 			curconn->recover_ = curconn->maxseq_;
-			curconn->recover_cause_ = 2;
+			curconn->last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		}
 		while ((curseg = seg_iter()) != NULL) {
 			/* XXX exclude packets sent "recently"? */
@@ -274,7 +274,7 @@ TcpSessionAgent::timeout(int tno)
 			return;
 		}
 		recover_ = sessionSeqno_ - 1;
-		recover_cause_ = 2;
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		if (seg_iter.count() == 0 && restart_bugfix_) {
 			closecwnd(3);
 			reset_rtx_timer(0,0);
@@ -288,7 +288,7 @@ TcpSessionAgent::timeout(int tno)
 		while ((curconn = conn_iter()) != NULL) {
 			curconn->t_seqno_ = curconn->highest_ack_ + 1;
 			curconn->recover_ = curconn->maxseq_;
-			curconn->recover_cause_ = 2;
+			curconn->last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		}
 		while ((curseg = seg_iter()) != NULL) {
 			/* XXX exclude packets sent "recently"? */
@@ -505,7 +505,7 @@ TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 	/* XXX okay to do this after clean_segs? */
 	/* if new data acked and this is not a partial ack */
 	if (amt_data_acked > 0 && (tcph->seqno() >= agent->recover_ ||
-		agent->recover_cause_ != 1) && !pktReordered_) {
+		agent->last_cwnd_action_ != CWND_ACTION_DUPACK) && !pktReordered_) {
 		int i = count_bytes_acked_ ? amt_data_acked:1;
 		while (i-- > 0)
 			opencwnd(size_,agent);
@@ -572,9 +572,9 @@ TcpSessionAgent::quench(int how, IntTcpAgent *sender, int seqno)
 
 	if (i > recover_) {
 		recover_ = sessionSeqno_ - 1;
-		recover_cause_ = 3;
+		last_cwnd_action_ = CWND_ACTION_ECN;
 		sender->recover_ = sender->maxseq_;
-		sender->recover_cause_ = 3;
+		sender->last_cwnd_action_ = CWND_ACTION_ECN;
 		closecwnd(how,sender);
 	}
 }

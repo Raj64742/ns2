@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.25 1998/05/02 01:39:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.26 1998/05/04 22:18:54 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -126,12 +126,13 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
 	    if (tcph->seqno() >= recover_ || 
-		(recover_cause_ != 1 && tcph->seqno() > last_ack_)) {
-		dupwnd_ = 0;
-		recv_newack_helper(pkt);
-		if (last_ack_ == 0 && delay_growth_) {
-			cwnd_ = initial_window();
-		}
+	       (last_cwnd_action_ != CWND_ACTION_DUPACK &&
+	        tcph->seqno() > last_ack_)) {
+			dupwnd_ = 0;
+			recv_newack_helper(pkt);
+			if (last_ack_ == 0 && delay_growth_) {
+				cwnd_ = initial_window();
+			}
 	    } else {
 		/* received new ack for a packet sent during Fast
 		 *  Recovery, but sender stays in Fast Recovery */
@@ -154,8 +155,8 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			* a retransmit timeout.
                         */
 			if ( (highest_ack_ > recover_) ||
-			    ( recover_cause_ != 2)) {
-				recover_cause_ = 1;
+			    ( last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
+				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				recover_ = maxseq_;
 				closecwnd(1);
 				reset_rtx_timer(1,0);

@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.16 1998/05/02 01:41:11 kfall Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.17 1998/05/04 22:19:12 kfall Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -296,9 +296,9 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			* a retransmit timeout.
                         */
 			if ( !bug_fix_ || (highest_ack_ > recover_) || \
-			    ( recover_cause_ != 2)) {
+			    ( last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
 				int win = window();
-				recover_cause_ = 1;
+				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				recover_ = maxseq_;
 				/* check for timeout after recv a new ack */
 				v_worried_ = MIN(2, t_seqno_ - last_ack_ );
@@ -371,7 +371,7 @@ VegasTcpAgent::timeout(int tno)
 		};
 		dupacks_ = 0;
 		recover_ = maxseq_;
-		recover_cause_ = 2;
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		reset_rtx_timer(0);
 		closecwnd(0); 
 		cwnd_ = double(v_slowstart_);
