@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.19 1997/07/23 03:41:36 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.20 1997/07/24 00:08:26 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -124,17 +124,19 @@ void Agent::recv(Packet* p, Handler*)
 Packet* Agent::allocpkt() const
 {
 	Packet* p = Packet::alloc();
+
 	hdr_cmn* th = (hdr_cmn*)p->access(off_cmn_);
 	th->uid() = uidcnt_++;
 	th->ptype() = type_;
 	th->size() = size_;
+	th->iface() = -2;	/* XXX arbitrary */
+
 	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
 	iph->src() = addr_;
 	iph->dst() = dst_;
 	iph->flowid() = fid_;
 	iph->prio() = prio_;
 	iph->ttl() = defttl_;
-	iph->iface() = -2;
 
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	hf->ecn_ = 0;
