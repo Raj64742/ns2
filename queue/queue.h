@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.25 1998/12/08 23:43:10 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.26 1999/02/19 23:03:18 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -44,23 +44,24 @@ class Packet;
 
 class PacketQueue : public TclObject {
 public:
-	PacketQueue() : head_(0), tail_(&head_), len_(0) {}
-	inline int length() const { return (len_); }
-	virtual inline void enque(Packet* p) {
-		*tail_ = p;
-		tail_ = &p->next_;
-		*tail_ = 0;
+	PacketQueue() : head_(0), tail_(0), len_(0) {}
+	virtual int length() const { return (len_); }
+	virtual void enque(Packet* p) {
+		if (!tail_) head_= tail_= p;
+		else {
+			tail_->next_= p;
+			tail_= p;
+		}
+		tail_->next_= 0;
 		++len_;
 	}
 	virtual Packet* deque() {
+		if (!head_) return 0;
 		Packet* p = head_;
-		if (p != 0) {
-			--len_;
-			head_ = p->next_;
-			if (head_ == 0)
-				tail_ = &head_;
-		}
-		return (p);
+		head_= p->next_; // 0 if p == tail_
+		if (p == tail_) head_= tail_= 0;
+		--len_;
+		return p;
 	}
 	Packet* lookup(int n) {
 		for (Packet* p = head_; p != 0; p = p->next_) {
@@ -73,25 +74,24 @@ public:
 	virtual void remove(Packet*);
 	/* Remove a packet, located after a given packet. Either could be 0. */
 	void remove(Packet *, Packet *);
-	inline Packet*& head() { return head_; }
-	inline Packet* tail() { return tail_ ? *tail_ : 0; }
+        Packet* head() { return head_; }
+	Packet* tail() { return tail_; }
 	// MONARCH EXTNS
 	virtual inline void enqueHead(Packet* p) {
-	        if (0 == head_) tail_ = &p->next_;
+	        if (!head_) tail_ = p;
 	        p->next_ = head_;
 		head_ = p;
 		++len_;
 	}
-        inline void resetIterator() {iter = head_;}
-        inline Packet* getNext() { 
-	       if (0 == iter) return 0;
-	       Packet *tmp = iter; iter = iter->next_;
-	       return tmp;
+        void resetIterator() {iter = head_;}
+        Packet* getNext() { 
+		Packet *tmp = iter; iter = iter->next_;
+		return tmp;
 	}
 
 protected:
 	Packet* head_;
-	Packet** tail_;
+	Packet* tail_;
 	int len_;		// packet count
 
 // MONARCH EXTNS

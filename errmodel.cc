@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.63 1999/02/18 02:19:15 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.64 1999/02/19 23:03:16 yuriy Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.63 1999/02/18 02:19:15 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.64 1999/02/19 23:03:16 yuriy Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -638,7 +638,7 @@ SelectErrorModel::SelectErrorModel()
 int SelectErrorModel::command(int argc, const char*const* argv)
 {
 	if (strcmp(argv[1], "drop-packet") == 0) {
-		pkt_type_ = atoi(argv[2]);
+		pkt_type_ = packet_t(atoi(argv[2]));
 		drop_cycle_ = atoi(argv[3]);
 		drop_offset_ = atoi(argv[4]);
 		return TCL_OK;
@@ -688,7 +688,7 @@ int SRMErrorModel::command(int argc, const char*const* argv)
 {
 	//int ac = 0;
 	if (strcmp(argv[1], "drop-packet") == 0) {
-		pkt_type_ = atoi(argv[2]);
+		pkt_type_ = packet_t(atoi(argv[2]));
 		drop_cycle_ = atoi(argv[3]);
 		drop_offset_ = atoi(argv[4]);
 		return TCL_OK;
@@ -703,7 +703,7 @@ int SRMErrorModel::corrupt(Packet* p)
 		hdr_cmn *ch = hdr_cmn::access(p);
 		// XXX Backward compatibility for cbr agents
 		if (ch->ptype()==PT_UDP && pkt_type_==PT_CBR && sh->type() == SRM_DATA)
-			pkt_type_ = 1; // "udp" rather than "cbr"
+			pkt_type_ = PT_UDP; // "udp" rather than "cbr"
 		if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && 
 		    (sh->seqnum() % drop_cycle_ == drop_offset_)) {
 			//printf ("dropping packet type SRM-DATA, seqno %d\n", 

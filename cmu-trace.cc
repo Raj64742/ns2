@@ -38,7 +38,7 @@
 #include <tcp.h>
 #include <rtp.h>
 #include <arp.h>
-//#include <dsr/hdr_sr.h>	// DSR
+#include <dsr/hdr_sr.h>	// DSR
 #include <mac.h>
 #include <mac-802_11.h>
 

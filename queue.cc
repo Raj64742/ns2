@@ -34,23 +34,28 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.21 1998/06/27 01:24:24 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.22 1999/02/19 23:03:17 yuriy Exp $ (LBL)";
 #endif
 
 #include "queue.h"
+#include <stdio.h>
 
 void PacketQueue::remove(Packet* target)
 {
-	for (Packet** p = &head_; *p != 0; p = &(*p)->next_) {
-		Packet* pkt = *p;
-		if (pkt == target) {
-			*p = pkt->next_;
-			if (tail_ == &pkt->next_)
-				tail_ = p;
-			--len_;
+	for (Packet *pp= 0, *p= head_; p; pp= p, p= p->next_) {
+		if (p == target) {
+			if (!pp) deque();
+			else {
+				if (p == tail_) 
+					tail_= pp;
+				else
+					pp->next_= p->next_;
+				--len_;
+			}
 			return;
 		}
 	}
+	fprintf(stderr, "PacketQueue:: remove() couldn't find target\n");
 	abort();
 }
 
@@ -58,15 +63,15 @@ void PacketQueue::remove(Packet* target)
  * Remove packet pkt located after packet prev on the queue.  Either p or prev
  * could be NULL.  If prev is NULL then pkt must be the head of the queue.
  */
-void PacketQueue::remove(Packet* pkt, Packet *prev)
+void PacketQueue::remove(Packet* pkt, Packet *prev) //XXX: screwy
 {
 	if (pkt) {
 		if (head_ == pkt)
 			PacketQueue::deque(); /* decrements len_ internally */
 		else {
 			prev->next_ = pkt->next_;
-			if (tail_ == &pkt->next_)
-				tail_ = &prev->next_;
+			if (tail_ == pkt)
+				tail_ = prev;
 			--len_;
 		}
 	}
