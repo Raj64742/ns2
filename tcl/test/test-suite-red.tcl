@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.12 1997/11/01 02:32:51 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.13 1997/11/01 05:19:52 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -84,6 +84,7 @@ Topology/net2 instproc config ns {
     # and is placed in the default file (3/31/97)
     [$ns link $node_(r1) $node_(r2)] set linterm_ 50
     [$ns link $node_(r2) $node_(r1)] set linterm_ 50
+	
 }
 
 TestSuite instproc plotQueue file {
@@ -519,7 +520,7 @@ TestSuite instproc new_tcp { startTime source dest window class dump size } {
 	$self instvar ns_
 	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $class ]
 	$tcp set window_ $window
-	if {$size > 0}  {$tcp set packet-size $size }
+	if {$size > 0}  {$tcp set packetSize_ $size }
 	set ftp [$tcp attach-source FTP]
 	$ns_ at $startTime "$ftp start"
         if {$dump == 1 } {$self tcpDumpAll $tcp 20.0 $class }
@@ -569,6 +570,35 @@ TestSuite instproc dumpflows interval {
     $ns_ at [expr [$ns_ now] + $interval] "$self dumpflows $interval"
 }   
 
+TestSuite instproc droptest { stoptime } {
+	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+
+	set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
+	set revq [[$ns_ link $node_(r2) $node_(r1)] queue]
+
+	$forwq set mean_pktsize_ 1000
+	$revq set mean_pktsize_ 1000
+	$forwq set linterm_ 10
+	$revq set linterm_ 10
+	$forwq set limit_ 100
+	$revq set limit_ 100
+
+	$self create_flowstats 
+	$self dumpflows 10.0
+
+	$forwq set bytes_ true
+	$revq set wait_ false
+
+        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
+	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
+	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
+##	$self new_cbr 1.4 $node_(s1) $node_(s4) 500 0.003 3
+
+	$ns_ at $stoptime "$self finish_flows $testName_"
+
+	$ns_ run
+}
+
 
 Class Test/flows-unforced -superclass TestSuite
 Test/flows-unforced instproc init topo {
@@ -589,31 +619,8 @@ Test/flows-unforced instproc run {} {
 	set awkprocedure_ unforcedmakeawk
 	set dump_pthresh_ 100
 
-	set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
-	set revq [[$ns_ link $node_(r2) $node_(r1)] queue]
+	$self droptest $stoptime
 
-	$forwq set mean_pktsize_ 1000
-	$revq set mean_pktsize_ 1000
-
-	$forwq set linterm_ 10
-	$revq set linterm_ 10
-
-	$forwq set limit_ 100
-	$revq set limit_ 100
-
-	$self create_flowstats 
-	$self dumpflows 10.0
-
-	$forwq set bytes_ true
-	$revq set wait_ false
-
-        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
-	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
-
-	$ns_ at $stoptime "$self finish_flows $testName_"
-
-	$ns_ run
 }
 
 Class Test/flows-forced -superclass TestSuite
@@ -635,31 +642,7 @@ Test/flows-forced instproc run {} {
 	set awkprocedure_ forcedmakeawk
 	set dump_pthresh_ 100
 
-        set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
-        set revq [[$ns_ link $node_(r2) $node_(r1)] queue]
-    
-        $forwq set mean_pktsize_ 1000
-        $revq set mean_pktsize_ 1000
-    
-        $forwq set linterm_ 10 
-        $revq set linterm_ 10 
-        
-        $forwq set limit_ 100 
-        $revq set limit_ 100
-        
-        $self create_flowstats
-        $self dumpflows 10.0
-    
-        $forwq set bytes_ true
-        $revq set wait_ false
-
-        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
-	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
-
-	$ns_ at $stoptime "$self finish_flows $testName_"
-
-	$ns_ run
+	$self droptest $stoptime
 }
 
 Class Test/flows-combined -superclass TestSuite
@@ -681,31 +664,7 @@ Test/flows-combined instproc run {} {
 	set awkprocedure_ allmakeawk
 	set dump_pthresh_ 100
 
-        set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
-        set revq [[$ns_ link $node_(r2) $node_(r1)] queue]
-    
-        $forwq set mean_pktsize_ 1000
-        $revq set mean_pktsize_ 1000
-    
-        $forwq set linterm_ 10 
-        $revq set linterm_ 10 
-        
-        $forwq set limit_ 100 
-        $revq set limit_ 100
-        
-        $self create_flowstats
-        $self dumpflows 10.0
-    
-        $forwq set bytes_ true
-        $revq set wait_ false
-
-        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
-	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
-
-	$ns_ at $stoptime "$self finish_flows $testName_"
-
-	$ns_ run
+	$self droptest $stoptime
 }
 
 TestSuite runTest
