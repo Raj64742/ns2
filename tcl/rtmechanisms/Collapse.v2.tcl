@@ -186,7 +186,8 @@ proc test_simple { interval bandwidth datafile scheduling cbrs tcps } {
     
     if { $scheduling == "wrr" } {
 	    set xlink [create_testnet5 CBQ/WRR $bandwidth]
-	    create_flat $xlink $qtype $qlim [expr $cbrs + $tcps]
+#	    create_flat $xlink $qtype $qlim [expr $cbrs + $tcps]
+	    create_flat $xlink DropTail $qlim [expr $cbrs + $tcps]
     } elseif { $scheduling == "fifo" } {
 	    set xlink [create_testnet5 RED $bandwidth]
 	    set_Red_Oneway $r1 $r2
