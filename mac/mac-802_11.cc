@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.36 2000/10/20 02:07:52 debo Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.37 2000/11/21 18:56:15 johnh Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -1324,8 +1324,14 @@ Mac802_11::recvDATA(Packet *p)
                                 return;
                         }
                         h->seqno = dh->dh_scontrol;
-                } 
-		else printf ("MAC_802_11: accessing MAC cache_ array out of range (src %u dst %u!\n", src, dst);
+                } else {
+			static int count = 0;
+			if (++count <= 10) {
+				printf ("MAC_802_11: accessing MAC cache_ array out of range (src %u, dst %u, size %d)!\n", src, dst, cache_node_count_);
+				if (count == 10)
+					printf ("[suppressing additional MAC cache_ warnings]\n";
+			};
+		};
 	}
 
 	/*
