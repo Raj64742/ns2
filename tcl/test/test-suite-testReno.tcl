@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.12 2003/01/16 02:08:36 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.13 2003/03/06 19:33:37 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno.tcl
@@ -131,7 +131,6 @@ TestSuite instproc setup {tcptype window list} {
         $self instvar ns_ node_ testName_
 	$self setTopo
 
-        Agent/TCP set bugFix_ false
 	set fid 1
         # Set up TCP connection
     	if {$tcptype == "Tahoe"} {
