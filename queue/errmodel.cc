@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.25 1997/11/20 22:50:38 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.26 1997/11/26 23:32:36 kfall Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -350,26 +350,29 @@ int PeriodicErrorModel::command(int argc, const char*const* argv)
 int PeriodicErrorModel::corrupt(Packet* p)
 {
 	hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+	double now = Scheduler::instance().clock();
 
 	if (eu_ == EU_TIME) {
-		double now = Scheduler::instance().clock();
-		if (first_time_ < 0.0 && now >= offset_) {
-			first_time_ = last_time_ = now;
-			return 1;
-		}
-
-		if ((now - last_time_) > period_) {
+		if (first_time_ < 0.0) {
+			if (now >= offset_) {
+				first_time_ = last_time_ = now;
+				return 1;
+			}
+			return 0;
+		} else if ((now - last_time_) > period_) {
 			last_time_ = now;
 			return 1;
 		}
 	}
 	cnt_ += (eu_ == EU_PKT) ? 1 : ch->size();
-	if (int(first_time_) < 0 && cnt_ >= int(offset_)) {
-		first_time_ = 1.0;
-		cnt_ = 0;
-		return 1;
-	}
-	if (cnt_ >= int(period_)) {
+	if (int(first_time_) < 0) {
+		if (cnt_ >= int(offset_)) {
+			first_time_ = 1.0;
+			cnt_ = 0;
+			return 1;
+		}
+		return 0;
+	} else if (cnt_ >= int(period_)) {
 		cnt_ = 0;
 		return 1;
 	}
