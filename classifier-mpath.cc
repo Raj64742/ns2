@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mpath.cc,v 1.7 1999/09/20 01:55:00 heideman Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mpath.cc,v 1.9 2001/12/20 00:15:34 haldar Exp $ (USC/ISI)";
 #endif
 
 #include "classifier.h"
