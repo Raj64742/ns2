@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.20 2002/01/01 04:28:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.21 2002/01/01 04:50:32 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -471,6 +471,7 @@ Test/tahoe1 instproc init topo {
 	set net_	$topo
 	set defNet_	net0
 	set test_	tahoe
+	Queue/DropTail set summarystats_ true
 	$self next
 }
 Test/tahoe1 instproc run {} {
@@ -485,6 +486,10 @@ Test/tahoe1 instproc run {} {
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 1.0
+
+	set link1 [$ns_ link $node_(r1) $node_(k1)]
+	set queue1 [$link1 queue]
+	$ns_ at 5.0 "$queue1 printstats"
 
 	# Trace only the bottleneck link
 	#
@@ -505,6 +510,7 @@ Test/tahoe1Bytes instproc init topo {
 	set test_	tahoe1Bytes
 	Queue/DropTail set queue_in_bytes_ true
 	Queue/DropTail set mean_pktsize_ 1000
+	Queue/DropTail set summarystats_ true
 	Test/tahoe1Bytes instproc run {} [Test/tahoe1 info instbody run ]
 	$self next
 }
@@ -516,6 +522,7 @@ Test/tahoe1RED instproc init topo {
 	set net_	$topo
 	set defNet_	net0a
 	set test_	tahoe1RED
+	Queue/RED set summarystats_ true
 	Test/tahoe1RED instproc run {} [Test/tahoe1 info instbody run ]
 	$self next
 }
@@ -529,6 +536,7 @@ Test/tahoe1REDbytes instproc init topo {
 	set test_	tahoe1REDbytes
 	Queue/RED set queue_in_bytes_ true
 	Queue/RED set mean_pktsize_ 1000
+	Queue/RED set summarystats_ true
 	Test/tahoe1REDbytes instproc run {} [Test/tahoe1 info instbody run ]
 	$self next
 }
