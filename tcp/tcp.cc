@@ -116,9 +116,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	old_t_rttvar_(0), old_t_backoff_(0), ts_peer_(0),
 	dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
-	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0),
-	slow_start_restart_(1)
+	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0)
 {
+	// Defaults for bound variables should be set in ns-default.tcl.
 	bind("window_", &wnd_);
 	bind("windowInit_", &wnd_init_);
 	bind("windowOption_", &wnd_option_);
