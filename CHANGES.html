@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.172 1997/10/29 00:03:12 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.173 1997/10/29 00:09:06 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -27,11 +27,16 @@
 	 <li> validate:  a new program in the top directory which runs
 	      all known test suites.
 	 <li> bin/fix_flow_id:  sets flow-id to source/dest, or min
-	      of the two.  To prior to this some scripts expected flow
-	      ids to be one or the other, or real flow ids, for plotting
-	      purposes (raw2xg).  Now if you want to something other than
-	      what's in the 7th (zero-based) field of the trace,
-	      use bin/fix_flow_id.
+	      of the two.
+	    The program raw2xg graphs trace output,
+	    optionally putting different flows into ``bands''
+	    (when invoked with -s 0.01 -m 90).
+	    It wasn't clear what the definition of a ``flow'' was:
+	    was it the flow-id or the source?
+	    Kannan changed raw2xg to use flow-id.
+	    This program (fix_flow_id) is the glue needed to map
+	    source or destination into flow id for those
+	    scripts that prefer banding based on sources.
 	 <li> test-suite-tcp.tcl was fixed to use fix_flow_id,
 	      making it work (it had been broken since 22-Oct-97).
        </ul>
