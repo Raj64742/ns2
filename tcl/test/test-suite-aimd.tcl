@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.1 1999/11/19 05:48:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.2 1999/11/24 22:07:18 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -103,14 +103,16 @@ TestSuite instproc setTopo {} {
 
 Class Test/tcp -superclass TestSuite
 Test/tcp instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ sender_ receiver_
     set net_	net2
     set test_	tcp
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
     $self next
 }
 Test/tcp instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ dumpfile_
+    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_
     $self setTopo
     Agent/TCP set window_ 20
     set stopTime  20.0
@@ -122,13 +124,13 @@ Test/tcp instproc run {} {
         $ns_ trace-all $tracefile
     }
 
-    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    set tcp1 [$ns_ create-connection $sender_ $node_(s1) $receiver_ $node_(s3) 0]
     set ftp1 [$tcp1 attach-app FTP]
     $self enable_tracecwnd $ns_ $tcp1
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at $stopTime0 "$ftp1 stop"
 
-    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 1]
+    set tcp2 [$ns_ create-connection $sender_ $node_(s2) $receiver_ $node_(s4) 1]
     set ftp2 [$tcp2 attach-app FTP]
     $ns_ at 10.0 "$ftp2 start"
     $ns_ at 15.0 "$ftp2 stop"
@@ -147,9 +149,11 @@ Test/tcp instproc run {} {
 
 Class Test/tcpA -superclass TestSuite
 Test/tcpA instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ sender_ receiver_
     set net_	net2
     set test_	tcpA{increase_0.41,decrease_0.75}
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/tcpA instproc run {} [Test/tcp info instbody run ]
@@ -158,12 +162,83 @@ Test/tcpA instproc init {} {
 
 Class Test/tcpB -superclass TestSuite
 Test/tcpB instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ sender_ receiver_
     set net_	net2
     set test_	tcpB{increase_1.00,decrease_0.875}
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
     Agent/TCP set increase_num_ 1.0
     Agent/TCP set decrease_num_ 0.875
     Test/tcpB instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+
+Class Test/tcp_tahoe -superclass TestSuite
+Test/tcp_tahoe instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcp_tahoe
+    set sender_ TCP
+    set receiver_ TCPSink
+    Test/tcp_tahoe instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+Class Test/tcpA_tahoe -superclass TestSuite
+Test/tcpA_tahoe instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcpA_tahoe{increase_0.41,decrease_0.75}
+    set sender_ TCP
+    set receiver_ TCPSink
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Test/tcpA_tahoe instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+
+Class Test/tcp_reno -superclass TestSuite
+Test/tcp_reno instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcp_reno
+    set sender_ TCP/Reno
+    set receiver_ TCPSink
+    Test/tcp_reno instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+Class Test/tcpA_reno -superclass TestSuite
+Test/tcpA_reno instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcpA_reno{increase_0.41,decrease_0.75}
+    set sender_ TCP/Reno
+    set receiver_ TCPSink
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Test/tcpA_reno instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+
+Class Test/tcp_newreno -superclass TestSuite
+Test/tcp_newreno instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcp_newreno
+    set sender_ TCP/Newreno
+    set receiver_ TCPSink
+    Test/tcp_newreno instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+Class Test/tcpA_newreno -superclass TestSuite
+Test/tcpA_newreno instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcpA_newreno{increase_0.41,decrease_0.75}
+    set sender_ TCP/Newreno
+    set receiver_ TCPSink
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Test/tcpA_newreno instproc run {} [Test/tcp info instbody run ]
     $self next
 }
 
