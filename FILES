@@ -929,7 +929,6 @@ tcl/lib/ns-route.tcl
 tcl/lib/ns-rtmodule.tcl
 tcl/lib/ns-sat.tcl
 tcl/lib/ns-source.tcl
-tcl/lib/ns-stl.tcl.in
 tcl/lib/ns-trace.tcl
 tcl/lib/ns-trafficgen.tcl
 tcl/lib/ns-wireless-mip.tcl

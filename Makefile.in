@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.206 2000/11/02 04:30:47 xuanc Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.207 2000/11/14 02:15:00 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -90,7 +90,10 @@ NSX	= nsx
 NSE	= nse
 
 # To allow conf/makefile.win overwrite this macro
-OBJ_STL = @V_STLOBJ@
+# We will set these two macros to empty in conf/makefile.win since VC6.0
+# does not seem to support the STL in gcc 2.8 and up. 
+OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o
+NS_TCL_LIB_STL = tcl/rtglib/ns-rtProtoLS.tcl
 
 # WIN32: uncomment the following line to include specific make for VC++
 # !include <conf/makefile.win>
@@ -167,7 +170,7 @@ OBJ_CC = \
 	mpls/classifier-addr-mpls.o mpls/ldp.o mpls/mpls-module.o \
 	rtmodule.o classifier-hier.o addr-params.o \
 	diffserv/dsred.o diffserv/dsEdge.o diffserv/dsCore.o diffserv/dsPolicy.o diffserv/dsredq.o \
-	$(OBJ_STL)
+	@V_STLOBJ@
 
 # don't allow comments to follow continuation lines
 
@@ -311,10 +314,11 @@ NS_TCL_LIB = \
 	tcl/mpls/ns-mpls-classifier.tcl \
 	tcl/mpls/ns-mpls-ldpagent.tcl \
 	tcl/mpls/ns-mpls-node.tcl \
-	tcl/mpls/ns-mpls-simulator.tcl
+	tcl/mpls/ns-mpls-simulator.tcl \
+	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
-	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl tcl/lib/ns-stl.tcl | $(TCL2C) et_ns_lib > $@
+	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl @V_NS_TCL_LIB_STL@ | $(TCL2C) et_ns_lib > $@
 
 $(GEN_DIR)version.c: VERSION
 	$(RM) $@
@@ -342,7 +346,7 @@ install-recursive: force
 clean:
 	$(RM) $(CLEANFILES)
 
-AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl tcl/lib/ns-stl.tcl 
+AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl
 distclean:
 	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
 	    gnuc.h os-proto.h $(AUTOCONF_GEN)
