@@ -1,3 +1,23 @@
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/*
+ * filter.cc
+ * Copyright (C) 1998 by USC/ISI
+ * All rights reserved.                                            
+ *                                                                
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
 #ifndef lint
 static const char rcsid[] =
     "@(#) $Header: /usr/src/mash/repository/vint/ns-2/filter.cc ";
@@ -44,7 +64,6 @@ void Filter::recv(Packet* p, Handler* h)
 int Filter::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-	/*XXX*/
 	if (argc == 2) {
 		if (strcmp(argv[1], "filter-target") == 0) {
 			if (filter_target_ != 0)
