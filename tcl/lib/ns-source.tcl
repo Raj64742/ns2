@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.24 2000/10/02 18:55:50 kclan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.25 2000/11/01 21:47:59 xuanc Exp $
 #
 
 #  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
@@ -85,6 +85,7 @@ Application/Traffic instproc set args {
 	eval $self next $args
 }
 # Helper function to convert rate_ into an interval_
+#Hicked to generate pulse UDP traffic (seperate rate_ and interval_).
 Application/Traffic/CBR instproc set args {
 	$self instvar packetSize_ rate_
 	if { [lindex $args 0] == "interval_" } {

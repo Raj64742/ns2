@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.223 2000/10/11 19:19:34 kclan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.224 2000/11/01 21:47:59 xuanc Exp $
 
 
 #
@@ -89,6 +89,10 @@ FQLink set queueManagement_ DropTail
 Queue/DropTail set drop_front_ false
 
 Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
+
+#notel's diffserv module
+Queue/dsRED set numQueues_ 4
+Queue/dsRED set ecn_ 0
 
 Queue/RED set bytes_ false
 Queue/RED set queue_in_bytes_ false

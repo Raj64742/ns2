@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.44 2000/06/21 05:26:30 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.45 2000/11/01 21:47:59 xuanc Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -468,7 +468,12 @@ SimpleLink instproc sample-queue-size { } {
 	$qPktsMonitor_ set sum_ 0.0
 	set lastSample_ $now
 
-	return "$meanBytesQ $meanPktsQ"
+	#return "$meanBytesQ $meanPktsQ"
+
+	$qMonitor_ instvar pdrops_ pdepartures_ parrivals_ bdrops_ bdepartures_ barrivals_
+
+	return "$meanBytesQ $meanPktsQ $parrivals_ $pdepartures_ $pdrops_ $barrivals_ $bdepartures_ $bdrops_"	
+
 }	
 
 
