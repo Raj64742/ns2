@@ -99,14 +99,16 @@ An example of a relatively simple multicast configuration is:
 \ns\ supports a multicast monitor module that can trace
 some types of packet activity about a specific source group pair.
 The module counts the number of packets in transit periodically
-and prints the results to stdout.
+and prints the results to stdout. \proc[]{trace-topo} counts
+all links.  \proc[]{trace-tree} counts only links on the tree.
 Currently, it only traces prune, join, register, and data packets.
 \begin{program}
 	set mcastmonitor [$ns McastMonitor]
 	$mcastmonitor set period_ 0.02         \; default 0.03 (sec);
-	$mcastmonitor trace-topo $src $group
+	$mcastmonitor trace-topo $src $group   \; trace the entire topology
 \end{program}
 
+\end{program}
 % SAMPLE OUTPUT?
 The following sample output illustrates the output file format (time, prune, join, register, data, source, group):
 {\small
