@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.4 1997/01/31 05:11:49 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.5 1997/03/05 03:04:20 kfall Exp $
 #
 
 Class Node
@@ -118,6 +118,15 @@ Node instproc attach agent {
 	}
 	$dmux_ install $port $agent
 
+}
+Node instproc agent port {
+        $self instvar agents_
+        foreach a $agents_ {
+                if { [$a set portID_] == $port } {
+                        return $a
+                }
+        }
+        return ""
 }
 
 #
