@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.15 1997/12/28 08:43:12 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.16 1997/12/30 20:46:51 heideman Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -69,7 +69,7 @@ void CBR_Agent::start()
 void CBR_Agent::stop()
 {
 	cbr_timer_.cancel();
-	running_ = 0;
+	finish();
 }
 
 void CBR_Agent::timeout(int)

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.83 1997/12/25 21:36:24 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.84 1997/12/30 20:46:52 heideman Exp $
 
 
 #
@@ -218,6 +218,7 @@ Agent/CBR set interval_ 3.75ms
 Agent/CBR set random_ 0
 Agent/CBR set packetSize_ 210
 Agent/CBR set maxpkts_ 0x10000000
+Agent/CBR instproc done {} { }
 
 Agent/CBR/RTP set seqno_ 0
 Agent/RTCP set seqno_ 0
