@@ -9,14 +9,41 @@
 
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
+Simulator set NumberInterfaces_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
 set n3 [$ns node]
 
-set f [open out-mcast.tr w]
+$ns color 2 black
+$ns color 1 blue
+$ns color 0 yellow
+$ns color 30 purple
+$ns color 31 green
+
+set f [open out-mc3.tr w]
 $ns trace-all $f
+set nf [open out-mc3.nam w]
+$ns namtrace-all $nf
+
+$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n1 $n2 orient right-up
+$ns duplex-link-op $n1 $n3 orient right-down
+
+$ns duplex-link-op $n0 $n1 queuePos 0.5
+$ns duplex-link-op $n1 $n0 queuePos 0.5
+$ns duplex-link-op $n3 $n1 queuePos 0.5
+
+### Start multicast configuration: 4 mproto options
+### CtrMcast : centralized multicast
+### DM       : static DVMRP (can't adapt to link up/down or node up/down)
+### dynamicDM: dynamic DVMRP 
+### pimDM    : PIM dense mode
 
 ### Uncomment following lines to change default
 #DM set PruneTimeout 0.3               ;# default 0.5 (sec)
@@ -28,11 +55,6 @@ if {$mproto == "CtrMcast"} {
     $mrthandle set_c_rp [list $n2 $n3]
 }
 ### End of multicast configuration
-
-Simulator set NumberInterfaces_ 1
-$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
-$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
-$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
 set cbr1 [new Agent/CBR]
 $ns attach-agent $n2 $cbr1
@@ -69,11 +91,9 @@ $ns at 1.1 "finish"
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../../nam-demo/nstonam.awk out-mcast.tr > cmcast-nam.tr
-        # exec rm -f out
-        #XXX
+
         puts "running nam..."
-        exec nam cmcast-nam &
+        exec nam out-mc3 &
         exit 0
 }
 

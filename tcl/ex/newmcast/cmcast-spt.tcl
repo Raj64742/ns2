@@ -34,6 +34,7 @@
 #          |2|
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
+Simulator set NumberInterfaces_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -42,10 +43,26 @@ set n3 [$ns node]
 
 set f [open out-cmcast.tr w]
 $ns trace-all $f
-Simulator set NumberInterfaces_ 1
+set nf [open out-cmcast.nam w]
+$ns namtrace-all $nf
+
+$ns color 2 black
+$ns color 1 blue
+$ns color 0 yellow
+$ns color 30 purple
+$ns color 31 green
+
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n1 $n2 orient right-up
+$ns duplex-link-op $n1 $n3 orient right-down
+
+$ns duplex-link-op $n0 $n1 queuePos 0.5
+$ns duplex-link-op $n1 $n0 queuePos 0.5
+$ns duplex-link-op $n3 $n1 queuePos 0.5
 
 # mcast set-up
 set mproto CtrMcast
@@ -91,11 +108,11 @@ $ns at 1.1 "finish"
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../../nam-demo/nstonam.awk out-cmcast.tr > cmcast-nam.tr
+        #exec awk -f ../../nam-demo/nstonam.awk out-cmcast.tr > cmcast-nam.tr
         # exec rm -f out
         #XXX
         puts "running nam..."
-        exec nam cmcast-nam &
+        exec nam out-cmcast.nam &
         exit 0
 }
 

@@ -84,14 +84,15 @@ $ns rtmodel-at 2.0 up $n4 $n6
 
 # $ns at 2.01 "finish"
 
+# Note: nam trace currently broken because DummyLink only generates two 
+# types of events ('-' and 'd'), but nam needs two more: ('+', 'h'). This 
+# will be fixed in the next release
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../../nam-demo/nstonam.awk out-detailedDM2.tr > detailedDM2-nam.tr
-        # exec rm -f out
         #XXX
-        puts "running nam..."
-        exec nam detailedDM2-nam &
+        #puts "running nam..."
+        #exec nam detailedDM2-nam &
         exit 0
 }
 

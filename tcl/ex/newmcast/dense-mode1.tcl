@@ -1,5 +1,5 @@
 #
-# tcl/ex/newmcast/cmcast.tcl
+# tcl/ex/newmcast/dense-mode1.tcl
 #
 # Copyright (C) 1997 by USC/ISI
 # All rights reserved.                                            
@@ -17,38 +17,27 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
 # 
 #
-# Centralized Multicast Module Examples
-# o. Use default RP tree(share tree) at first, then switch
-# o. RP related settings are required, such as C_RP, C_BSR, compute-rpset,...
-#
-# joining & pruning test(s) 
-#          |3|
-#           |
-#  |0|-----|1|
-#           |
-#          |2|
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
 Simulator set NumberInterfaces_ 1
+
+$ns color 1 red
+# prune/graft packets
+$ns color 30 purple
+$ns color 31 green
 
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
 set n3 [$ns node]
 
-set f [open out-cmcast.tr w]
+set f [open out-dm1.tr w]
 $ns trace-all $f
-set nf [open out-cmcast.nam w]
+set nf [open out-dm1.nam w]
 $ns namtrace-all $nf
-
-$ns color 2 black
-$ns color 1 blue
-$ns color 0 yellow
-$ns color 30 purple
-$ns color 31 green
 
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
@@ -62,48 +51,49 @@ $ns duplex-link-op $n0 $n1 queuePos 0.5
 $ns duplex-link-op $n1 $n0 queuePos 0.5
 $ns duplex-link-op $n3 $n1 queuePos 0.5
 
-set mproto CtrMcast
+set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
 
+set cbr0 [new Agent/CBR]
+$ns attach-agent $n1 $cbr0
+$cbr0 set dst_ 0x8001
+ 
 set cbr1 [new Agent/CBR]
-$ns attach-agent $n2 $cbr1
-$cbr1 set dst_ 0x8003
+$cbr1 set dst_ 0x8002
+$cbr1 set class_ 1
+$ns attach-agent $n3 $cbr1
 
-set rcvr0 [new Agent/Null]
-$ns attach-agent $n0 $rcvr0
-set rcvr1 [new Agent/Null]
-$ns attach-agent $n1 $rcvr1
-set rcvr2  [new Agent/Null]
-$ns attach-agent $n2 $rcvr2
-set rcvr3 [new Agent/Null]
-$ns attach-agent $n3 $rcvr3
+set rcvr [new Agent/LossMonitor]
+$ns attach-agent $n2 $rcvr
+$ns at 1.2 "$n2 join-group $rcvr 0x8002"
+$ns at 1.25 "$n2 leave-group $rcvr 0x8002"
+$ns at 1.3 "$n2 join-group $rcvr 0x8002"
+$ns at 1.35 "$n2 join-group $rcvr 0x8001"
+ 
+$ns at 1.0 "$cbr0 start"
+$ns at 1.1 "$cbr1 start"
+ 
+set tcp [new Agent/TCP]
+set sink [new Agent/TCPSink]
+$ns attach-agent $n0 $tcp
+$ns attach-agent $n3 $sink
+$ns connect $tcp $sink
+set ftp [new Source/FTP]
+$ftp set agent_ $tcp
+$ns at 1.2 "$ftp start"
 
-$ns at 0.2 "$cbr1 start"
-$ns at 0.3 "$n1 join-group  $rcvr1 0x8003"
-$ns at 0.4 "$n0 join-group  $rcvr0 0x8003"
-$ns at 0.45 "$mrthandle switch-treetype 0x8003"
-$ns at 0.55 "$n3 join-group  $rcvr3 0x8003"
-$ns at 0.65 "$n2 join-group  $rcvr2 0x8003"
 
-$ns at 0.7 "$n0 leave-group $rcvr0 0x8003"
-$ns at 0.8 "$n2 leave-group  $rcvr2 0x8003"
-$ns at 0.85 "$mrthandle compute-mroutes"
-$ns at 0.9 "$n3 leave-group  $rcvr3 0x8003"
-$ns at 1.0 "$n1 leave-group $rcvr1 0x8003"
-
-$ns at 1.1 "finish"
+$ns at 1.7 "finish"
 
 proc finish {} {
+        puts "converting output to nam format..."
         global ns
         $ns flush-trace
-        #exec awk -f ../../nam-demo/nstonam.awk out-cmcast.tr > cmcast-nam.tr
-        # exec rm -f out
         #XXX
         puts "running nam..."
-        exec nam out-cmcast &
+        exec nam out-dm1 &
         exit 0
 }
 
 $ns run
-
 

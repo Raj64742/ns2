@@ -30,6 +30,14 @@
 
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
+Simulator set NumberInterfaces_ 1
+
+$ns color 2 black
+$ns color 1 blue
+$ns color 0 yellow
+# prune/graft packets
+$ns color 30 purple
+$ns color 31 green
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -40,8 +48,9 @@ set n5 [$ns node]
 
 set f [open out-mc2.tr w]
 $ns trace-all $f
+set nf [open out-mc2.nam w]
+$ns namtrace-all $nf
 
-Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n0 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
@@ -49,6 +58,12 @@ $ns duplex-link $n1 $n4 1.5Mb 10ms DropTail
 $ns duplex-link $n2 $n4 1.5Mb 10ms DropTail
 $ns duplex-link $n2 $n5 1.5Mb 10ms DropTail
 
+$ns duplex-link-op $n0 $n1 orient left-down
+$ns duplex-link-op $n0 $n2 orient down-right
+$ns duplex-link-op $n1 $n3 orient left-down
+$ns duplex-link-op $n1 $n4 orient right-down
+$ns duplex-link-op $n2 $n4 orient left-down
+$ns duplex-link-op $n2 $n5 orient right-down
 
 $ns rtproto Session
 ### Start multicast configuration
@@ -88,11 +103,9 @@ proc finish {} {
         $ns flush-trace
         global rcvr
         # puts "lost [$rcvr set nlost_] pkt, rcv [$rcvr set npkts_]"
-        exec awk -f ../../nam-demo/nstonam.awk out-mc2.tr > mcast2-nam.tr
-        exec rm -f out
-        #XXX
+
         puts "running nam..."
-        exec nam mcast2-nam &
+        exec nam out-mc2 &
         exit 0
 }
 
