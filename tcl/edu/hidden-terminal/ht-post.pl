@@ -52,19 +52,38 @@ while ($line) {
 			{
 				$other_node = 0;
 			}
+			
 			$t = @fields[2] +0.005;
+
+			print Destination 'n -t ',@fields[2], ' -s ', @fields[4], ' -S COLOR -c green -o black -I black ', "\n";
+			print Destination 'n -t ',@fields[2], ' -s ',@fields[4],' -S DLABEL -l "Carrier sense" -L ""', "\n";
+			print Destination 'v -t ',@fields[2], ' -e sim_annotation ', @fields[2],' ',$i,' CASE 1 : NO CONTENTION ',"\n";
+			$last_time = @fields[2]+ 0.00005;
+			$i++;
+			print Destination 'v -t ',$last_time,' -e sim_annotation ', $last_time,' ', $i,' Only Node 2 is sending data packets and therefore no contention',"\n";
+			$last_time = $last_time+0.00005;
+			$i++;
+			$next_duration = @fields[2] + 0.01;
+			
+			print Destination 'n -t ', $next_duration, ' -s ', @fields[4], ' -S COLOR -c black -o green -i black -I green ', "\n";
+			print Destination 'n -t ', $next_duration, ' -s ', @fields[4], ' -S DLABEL -l "" -L ""', "\n";
+			print Destination '+ -t ', $next_duration, ' -s ', @fields[4], ' -d 1 -p message -e 2500 -a 1 ', "\n";
+			print Destination '- -t ', $next_duration, ' -s ', @fields[4], ' -d 1 -p message -e 2500 -a 1 ', "\n";
+			print Destination 'h -t ', $next_duration, ' -s ', @fields[4], ' -d 1 -p message -e 2500 -a 1 ', "\n";
+			print Destination 'r -t ', $next_duration, ' -s ', @fields[4], ' -d 1 -p message -e 2500 -a 1 ', "\n";
+
+			@fields[2] = $next_duration + 0.01;
+
 			print Destination 'n -t ', @fields[2], ' -s ', @fields[4], ' -S COLOR -c green -o black -i green -I black ', "\n";
 			print Destination 'n -t ', @fields[2], ' -s ', @fields[4], ' -S DLABEL -l "Carrier sense" -L ""', "\n";
-			print Destination 'v -t ', @fields[2], ' -e sim_annotation ', @fields[2],' ', $i,' Since Nodes 0 and 2 are in ',"\n";
+			print Destination 'v -t ', @fields[2], ' -e sim_annotation ', @fields[2],' ', $i,' CASE 2 : BACKOFF ',"\n";
 			$last_time = @fields[2]+0.00005;
 			$i++;
-			print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' range of each other, a node can ',"\n";
-			$last_time = $last_time+0.00005;
+			print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' Node 0 and Node 2 are in range of each other, they do carrier sense at slightly different times',"\n";
+			$last_time = $last_time + 0.00005;
 			$i++;
-			print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' detect carrier if the other node ',"\n";
+			print Destination 'v -t ', $last_time, ' -e sim_annotation ', $last_time,' ', $i,' so Node 0 finds the channel not free, and thus backs off', "\n";
 			$last_time = $last_time+0.00005;
-			$i++;
-			print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' is sending data and hence it backs off.',"\n";
 			$i++;
 			$next_duration = @fields[2] + 0.01;
 
@@ -102,21 +121,15 @@ while ($line) {
 				print Destination 'n -t ', @new_fields[2] , ' -s 2 -S COLOR -c green -o black -i green -I black ', "\n";
 				print Destination 'n -t ', @new_fields[2], ' -s 2 -S DLABEL -l "Carrier Sense" -L ""' , "\n";
 
-				print Destination 'v -t ', @new_fields[2], ' -e sim_annotation ', @new_fields[2],' ', $i,' Even though nodes 0 and 2 ',"\n";
+				print Destination 'v -t ', @new_fields[2], ' -e sim_annotation ', @new_fields[2],' ', $i,' CASE 3 : COLLISION WHEN NODES SEND AT SAME TIME  ',"\n";
 				$last_time = @new_fields[2]+0.00005;
 				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' are in range of each other since they ',"\n";
+				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' Sender nodes are in range of each other but they do carrier sense at the same time,  ',"\n";
 				$last_time = $last_time+0.00005;
 				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' do carrier sense at the same time they ',"\n";
-				$last_time = $last_time+0.00005;
+				print Destination 'v -t ', $last_time, ' -e sim_annotation ', $last_time, ' ',$i,' thus finding channel to be free , so they send packets at the same time and therefore result in collision at the receiver',"\n";
 				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' are not able to detect carrier and hence',"\n";
-				$last_time = $last_time+0.00005;
-				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' their data packets collide at the destination',"\n";
-				$i++;
-
+				$last_time = $last_time +0.00005;
 
 				$duration = @new_fields[2] + 0.01;
 				print Destination 'n -t ', $duration, ' -s 0 -S COLOR -c black -o green -i black -I green ', "\n";
@@ -139,28 +152,22 @@ while ($line) {
 				$line = <Source>;
 		}
 		elsif(($next_line !~ /SENSING_CARRIER/) && ($num_mov > 0)) {
+
 				print Destination 'n -t ', @fields[2] , ' -s 0 -S COLOR -c green -o black -i green -I black ',"\n";
 				print Destination 'n -t ', @fields[2], ' -s 0 -S DLABEL -l "Carrier sense" -L ""', "\n";
 				@fields[2] = @fields[2] + 0.005;
 				print Destination 'n -t ', @fields[2] , ' -s 2 -S COLOR -c green -o black -i green -I black ', "\n";
 				print Destination 'n -t ', @fields[2], ' -s 2 -S DLABEL -l "Carrier Sense" -L ""' , "\n";
 
-				print Destination 'v -t ', @fields[2], ' -e sim_annotation ', @fields[2],' ', $i,' Even though nodes 0 and 2 ',"\n";
+				print Destination 'v -t ', @fields[2], ' -e sim_annotation ', @fields[2],' ', $i,' CASE 4 : SUCCESSFUL TRANSMISSION WHEN NODES ARE OUT OF RANGE OF EACH OTHER',"\n";
 				$last_time = @fields[2]+0.00005;
 				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' are out of range of each other since they ',"\n";
+				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' Sender nodes are out of range of each other ', "\n";
+				$last_time = $last_time + 0.00005;
+				$i++;
+				print Destination 'v -t ', $last_time, ' -e sim_annotation ', $last_time,' ', $i, '  but they result in successful transmission since they send packets at different times',"\n";
 				$last_time = $last_time+0.00005;
 				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' do carrier sense at different times and  ',"\n";				
-				$last_time = $last_time+0.00005;
-				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' their data packets reach the destination',"\n";
-				$last_time = $last_time+0.00005;
-				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' at different times there is no collision',"\n";
-				$i++;
-
-
 			
 				$duration = @fields[2] + 0.005;
 				print Destination 'n -t ', $duration, ' -s 0 -S COLOR -c black -o green -i black -I green ', "\n";
@@ -186,21 +193,18 @@ while ($line) {
 				print Destination 'n -t ', @fields[2], ' -s 2 -S DLABEL -l "Carrier Sense" -L ""' , "\n";
 
 
-				print Destination 'v -t ', @fields[2], ' -e sim_annotation ', @fields[2],' ', $i,' Since nodes 0 and 2 ',"\n";
+				print Destination 'v -t ', @fields[2], ' -e sim_annotation ', @fields[2],' ', $i,' CASE 5 : COLLISION IN A HIDDEN TERMINAL SCENARIO',"\n";
 				$last_time = @fields[2]+0.00005;
 				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' are out of range of each other and they ',"\n";
+				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' Sender nodes are out of range of each other ', "\n";
+				$last_time = $last_time + 0.00005;
+				$i++;
+				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' even though they both do carrier sense, they cannot hear each other and thus find the channel free ', "\n";
+				$i++;
+				$last_time = $last_time + 0.00005;
+				print Destination 'v -t ', $last_time, ' -e sim_annotation ', $last_time,' ', $i,' and they send packets at the same time, thus resulting in a collision at the receiver. ',"\n";
 				$last_time = $last_time+0.00005;
 				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' do carrier sense at the same time   ',"\n";				
-				$last_time = $last_time+0.00005;
-				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' their data packets reach the destination',"\n";
-				$last_time = $last_time+0.00005;
-				$i++;
-				print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' at the same time and hence there is collision',"\n";
-				$i++;
-			
 				$duration = @fields[2] + 0.005;
 				print Destination 'n -t ', $duration, ' -s 0 -S COLOR -c black -o green -i black -I green ', "\n";
 				print Destination 'n -t ', $duration, ' -s 0 -S DLABEL -l "" -L ""', "\n";
@@ -238,16 +242,15 @@ while ($line) {
 		@fields[6] =~ m/(\d+\.\d+)/;
 		@fields[6] = $1;
 		$t = (@fields[6] - @fields[3])/@fields[8];
-		print Destination 'n -t ', @fields[1], ' -s ', @fields[2], ' -x ', @fields[3], ' -y ', @fields[4], ' -U ',@fields[8], ' -V 0.00 -T ', $t,"\n";
 
-		print Destination 'v -t ', @fields[1], ' -e sim_annotation ', @fields[1],' ', $i,' Node 2 moves ',"\n";
+		print Destination 'v -t ', @fields[1], ' -e sim_annotation ', @fields[1],' ', $i,' HIDDEN TERMINAL SCENARIO : Node 2 moves and hence is out of range of node 0',"\n";
 		$last_time = @fields[1]+0.00005;
 		$i++;
-		print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ',$i,' and hence is out of range of ',"\n";
-		$last_time = $last_time+0.00005;
-		$i++;
-		print Destination 'v -t ', $last_time,' -e sim_annotation ', $last_time,' ', $i,' node 0   ',"\n";
-		$i++;
+
+		@fields[1] = @fields[1] + 0.005;
+		print Destination 'n -t ', @fields[1], ' -s ', @fields[2], ' -x ', @fields[3], ' -y ', @fields[4], ' -U ',@fields[8], ' -V 0.00 -T ', $t,"\n";
+		@fields[1] = @fields[1] + 0.100000;
+
 
 		$num_mov ++;
 		$line = <Source>;
