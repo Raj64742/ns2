@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.378 2000/01/09 04:05:44 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.379 2000/01/13 22:43:50 salehi Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -23,6 +23,16 @@
 
 <ul>
 	<p>
+      <li><b><a href="http://www.isi.edu/~salehi">[salehi]</a></b>
+	<b>Thu Jan 10 14:05:03 PST 2000</b><br>
+	Modified the real-time scheduler, thanks to <a
+	  href="mailto:weiye@usc.edu">Wei Ye</a>.
+
+	The original real-time scheduler zeros the real-time clock
+	when doing "new RealTimeScheduler". The patch makes it zero
+	the clock when doing "$ns run", which is synchronized with the
+	virtual-time clock when simulation starts.
+
   <LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
 	<b>Sat Jan  8 20:01:51 PST 2000</b><br>
 	When resetting a sack TCP connection, the scoreboard was
