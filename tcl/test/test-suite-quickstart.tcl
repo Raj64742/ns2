@@ -59,6 +59,7 @@ TestSuite instproc finish {file stoptime} {
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
         }
+	# csh gnuplotA.com temp.rands quickstart
         exit 0
 }
 
