@@ -35,16 +35,18 @@
 
 #default channel propagation delay (for a LAN)
 Channel set delay_ 4us
+Channel set nodrop_ 0
 
 #default bandwidth setting
+Mac set delay_ 0us
 Mac set bandwidth_ 1.5Mb
 Mac set hlen_ 0
 Mac set label_ 0
 
 # WaveLAN settings (also inherited by Csma/Ca, which is what WaveLAN is)
+Mac/Csma set delay_ 64us
 Mac/Csma set bandwidth_ 2Mb
 Mac/Csma set hlen_ 20
-Mac/Csma set delay_ 64us
 Mac/Csma set ifs_ 16us
 Mac/Csma set slotTime_ 16us
 Mac/Csma set cwmin_ 16
@@ -60,19 +62,30 @@ Mac/Csma/Cd set cwmin_ 1
 
 # IEEE 802.11 MAC settings
 if [TclObject is-class Mac/802_11] {
-Mac/802_11 set hlen_ 20
 Mac/802_11 set delay_ 64us
 Mac/802_11 set ifs_ 16us
 Mac/802_11 set slotTime_ 16us
 Mac/802_11 set cwmin_ 16
 Mac/802_11 set cwmax_ 1024
 Mac/802_11 set rtxLimit_ 16
-Mac/802_11 set bssid_ -1
+Mac/802_11 set bssId_ -1
 Mac/802_11 set sifs_ 8us
 Mac/802_11 set pifs_ 12us
 Mac/802_11 set difs_ 16us
 Mac/802_11 set rtxAckLimit_ 1
 Mac/802_11 set rtxRtsLimit_ 3
+}
+Mac set delay_ 0us
+Mac set bandwidth_ 1.5Mb
+Mac set hlen_ 0
+Mac set label_ 0
+
+# IEEE 802.14 MAC settings
+if [TclObject is-class Mac/802_14] {
+Mac/802_14 set bandwidth_ 10Mb
+Mac/802_14 set hlen_ 6
+Mac/802_14 set bssId_ -1
+Mac/802_14 set slotTime_ 10us
 }
 
 # Multihop wireless MAC modeled after Metricom's Ricochet
