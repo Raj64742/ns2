@@ -59,8 +59,8 @@ DiffPacket NsLocal::recvPacket(int fd) {
 DiffEvent::DiffEvent(int type, void *payload, int time) {
   type_ = type;
   payload_ = payload;
-  getTime(&tv_);
-  timeval_addusecs(&tv_, time*1000);
+  GetTime(&tv_);
+  TimevalAddusecs(&tv_, time*1000);
 }
 
 void DiffEventQueue::eqAddAfter(int type, void *payload, int delay_msec) {
@@ -126,7 +126,7 @@ int DiffAppAgent::command(int argc, const char*const* argv) {
   if (argc == 3) {
 	  if (strcmp(argv[1], "agent-id") == 0) {
 		  int id = atoi(argv[2]);
-		  ((DiffusionRouting *)dr_)->get_agentid(id);
+		  ((DiffusionRouting *)dr_)->getAgentId(id);
 		  return TCL_OK;
 	  }
   }
@@ -172,7 +172,7 @@ void DiffAppAgent::sendPacket(DiffPacket dp, int len, int dst) {
   p = createNsPkt(msg, len); 
   iph = HDR_IP(p);
   iph->saddr() = addr();
-  iph->sport() = ((DiffusionRouting*)dr_)->get_agentid();
+  iph->sport() = ((DiffusionRouting*)dr_)->getAgentId();
   iph->daddr() = addr();
   iph->dport() = dst;
 
