@@ -23,7 +23,7 @@ proc run_sim {bandwidth scheduling cbrs tcps singlefile datafile i} {
   set interval [expr $cbrs * 0.000$i]
   puts "../../ns Collapse.v2.tcl simple $interval $bandwidth $scheduling $cbrs $tcps"
   exec ../../ns Collapse.v2.tcl simple $interval $bandwidth $scheduling $cbrs $tcps
-  append $singlefile $datafile 
+  append $singlefile $datafile $cbrs $tcps
 }
 
 exec rm -f $datafile
@@ -33,18 +33,15 @@ exec rm -f $datafile
 for {set i 4} {$i <= 9} {incr i 1} {
     puts "../../ns Collapse.v2.tcl simple 0.000$i $bandwidth"
     run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile $i
-    append $infile $datafile
 }
 # intervals 0.001 to 0.009
 for {set i 1} {$i <= 9} {incr i 1} {
     puts "../../ns Collapse.v2.tcl simple 0.00$i $bandwidth"
     run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile $i
-    append $infile $datafile
 }
 # intervals 0.01 to 0.09
 for {set i 1} {$i <= 9} {incr i 1} {
     puts "../../ns Collapse.v2.tcl simple 0.0$i $bandwidth"
     run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile $i
-    append $infile $datafile
 }
 finish
