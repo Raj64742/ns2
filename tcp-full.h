@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.18 1998/04/21 02:36:39 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.19 1998/05/02 01:39:11 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -164,6 +164,7 @@ class FullTcpAgent : public TcpAgent {
 	int maxseg_;        /* MSS */
 	int flags_;     /* controls next output() call */
 	int state_;     /* enumerated type: FSM state */
+	int ect_;	/* turn on ect bit now? */
 	int last_state_; /* FSM state at last pkt recv */
 	int rcv_nxt_;       /* next sequence number expected */
 	ReassemblyQueue rq_;    /* TCP reassembly queue */
