@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.70 2002/01/01 00:08:54 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.71 2002/01/01 04:26:50 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -302,9 +302,7 @@ Packet* REDQueue::deque()
 {
 	Packet *p;
 	if (summarystats_ && &Scheduler::instance() != NULL) {
-		int queuesize = q_->length();
-		if (qib_) queuesize = q_->byteLength(); 
-		Queue::updateStats(queuesize);
+		Queue::updateStats(qib_?q_->byteLength():q_->length());
 	}
 	p = q_->deque();
 	if (p != 0) {
@@ -543,9 +541,7 @@ void REDQueue::enque(Packet* pkt)
 	//	double(edv_.v_ave), double(edv_.v_ave), q_->length());
 	if (summarystats_) {
 		/* compute true average queue size for summary stats */
-		int queuesize = q_->length();
-		if (qib_) queuesize = q_->byteLength(); 
-		Queue::updateStats(queuesize);
+		Queue::updateStats(qib_?q_->byteLength():q_->length());
 	}
 
 	/*
