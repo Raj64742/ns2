@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.11 1997/04/04 01:06:29 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.11.2.1 1997/04/20 03:26:19 gnguyen Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -47,6 +47,8 @@ void PacketQueue::remove(Packet* target)
 			if (tail_ == &pkt->next_)
 				tail_ = p;
 			--len_;
+			if (qm_)
+				qm_->out(pkt);
 			return;
 		}
 	}
@@ -73,6 +75,11 @@ int Queue::command(int argc, const char*const* argv)
 				tcl.resultf("%s", drop_->name());
 			return (TCL_OK);
 		}
+		else if (strcmp(argv[1], "set-monitor") == 0) {
+			if (drop_ != 0)
+				tcl.resultf("%s", q_.qm()->name());
+			return (TCL_OK);
+		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "drop-target") == 0) {
 			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
@@ -81,6 +88,15 @@ int Queue::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			}
 			drop_ = p;
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "drop-target") == 0) {
+			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
+			if (p == 0) {
+				tcl.resultf("no object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			q_.qm() = (QueueMonitor*) p;
 			return (TCL_OK);
 		}
 	}

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.10 1997/04/10 03:32:43 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.10.2.1 1997/04/20 03:26:19 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -39,16 +39,20 @@
 #include "connector.h"
 #include "packet.h"
 #include "ip.h"
+#include "queue-monitor.h"
+
 
 class PacketQueue {
 public:
-	PacketQueue() : head_(0), tail_(&head_), len_(0) {}
+	PacketQueue() : head_(0), tail_(&head_), len_(0), qm_(0) {}
 	inline int length() const { return (len_); }
 	inline void enque(Packet* p) {
 		*tail_ = p;
 		tail_ = &p->next_;
 		*tail_ = 0;
 		++len_;
+		if (qm_)
+			qm_->in(p);
 	}
 	Packet* deque() {
 		Packet* p = head_;
@@ -58,6 +62,8 @@ public:
 			if (head_ == 0)
 				tail_ = &head_;
 		}
+		if (qm_)
+			qm_->out(p);
 		return (p);
 	}
 	Packet* lookup(int n) {
@@ -69,11 +75,15 @@ public:
 	}
 	/* remove a specific packet, which must be in the queue */
 	void remove(Packet*);
+
+	QueueMonitor*& qm() { return qm_; }
 protected:
 	Packet* head_;
 	Packet** tail_;
+	QueueMonitor* qm_;	// queue monitor
 	int len_;		// packet count
 };
+
 
 class Queue;
 
@@ -84,6 +94,7 @@ public:
  private:
 	Queue& queue_;
 };
+
 
 class Queue : public Connector {
  public:
@@ -102,6 +113,7 @@ class Queue : public Connector {
 	NsObject* drop_;	/* node to send all dropped packets to */
 	int qlim_;		/* maximum allowed pkts in queue */
 	int blocked_;
+	PacketQueue q_;
 	QueueHandler qh_;
 };
 

@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.9 1997/03/29 01:43:00 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.9.2.1 1997/04/20 03:26:20 gnguyen Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -118,7 +118,6 @@ class REDQueue : public Queue {
 	void plot();
 	void plot1(int qlen);
 	int drop_early(Packet* pkt);
-	PacketQueue q_;
 	int bcount_;
 
 	/*

@@ -167,10 +167,7 @@ proc finish {} {
 	} $trfile
 
 	if {$gflag > 0} {
-		exec xgraph -nl -M -display $env(DISPLAY) \
-				$trfile.tcp.0.1 $trfile.ack.1.0 \
-				$trfile.tcp.1.0 $trfile.ack.0.1 \
-				$trfile.cbr $trfile.cbr.r &
+		eval exec xgraph -nl -M -display $env(DISPLAY) [glob $trfile.*]
 	}
 	exit 0
 }

@@ -79,19 +79,13 @@ Trace/Recv instproc init {} {
 }
 
 
-Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "Queue/DropTail" } { mactype "Mac/Base" } } {
-	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
+Class SharedDuplexLink
+SharedDuplexLink instproc init {nodelist bw delay lltype ifqtype mactype} {
+	$self instvar numnodes_ channel_ mac_ ifq_
 
-	puts "$bw $delay $lltype $mactype"
-
-	if [info exists queueMap_($qtype)] {
-		set qtype $queueMap_($qtype)
-	}
-
+	set numnodes_ [llength $nodelist]
 	set channel_ [new Channel]
-
-	set numnodes [llength $nodelist]
-	for {set i 0} {$i < $numnodes} {incr i} {
+	for {set i 0} {$i < $numnodes_} {incr i} {
 		set src [lindex $nodelist $i] 
 		set mac_($src) [new $mactype]
 		$mac_($src) set bandwidth_ $bw
@@ -101,22 +95,33 @@ Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } {
 		set ifq_($src) [new $ifqtype]
 		$ifq_($src) target $mac_($src)
 	}
+}
 
-	for {set i 0} {$i < $numnodes} {incr i} {
+
+Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "Queue/DropTail" } { mactype "Mac/Base" } } {
+	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
+	$self instvar shlink_ shlink_count_
+
+	set shlink_($nodelist) [new SharedDuplexLink $nodelist $bw $delay $lltype $ifqtype $mactype]
+	$shlink_($nodelist) instvar ifq_ numnodes_
+
+	if [info exists queueMap_($qtype)] {
+		set qtype $queueMap_($qtype)
+	}
+	for {set i 0} {$i < $numnodes_} {incr i} {
 		set src [lindex $nodelist $i] 
-		for {set j 0} {$j < $numnodes} {incr j} {
+		for {set j 0} {$j < $numnodes_} {incr j} {
 			set dst [lindex $nodelist $j]
 			if { $src != $dst } {
 				set q($src:$dst) [new Queue/$qtype]
 				$q($src:$dst) drop-target $nullAgent_
-				set link_([$src id]:[$dst id]) [new Link/SharedDuplex $src $dst $bw $delay $q($src:$dst) $lltype]
+				set link_([$src id]:[$dst id]) [new Link/Simple $src $dst $bw $delay $q($src:$dst) $lltype]
 			}
 		}
 	}
-
-	for {set i 0} {$i < $numnodes} {incr i} {
+	for {set i 0} {$i < $numnodes_} {incr i} {
 		set src [lindex $nodelist $i] 
-		for {set j 0} {$j < $numnodes} {incr j} {
+		for {set j 0} {$j < $numnodes_} {incr j} {
 			set dst [lindex $nodelist $j]
 			if { $src != $dst } {
 				set sid [$src id]
@@ -126,24 +131,27 @@ Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } {
 			}
 		}
 	}
+
+	puts "$shlink_($nodelist) $bw $delay $lltype $ifqtype $mactype"
+	return $shlink_($nodelist)
 }
 
 
 			
-Class Link/SharedDuplex -superclass SimpleLink
+Class Link/Simple -superclass SimpleLink
 
-Link/SharedDuplex instproc init { src dst bw delay qtype lltype } {
+Link/Simple instproc init { src dst bw delay qtype lltype } {
 	$self next $src $dst $bw $delay $qtype $lltype
 }
 
-Link/SharedDuplex instproc setuplinkage { src ifq dstlink } {
+Link/Simple instproc setuplinkage { src ifq dstlink } {
 	$self instvar link_
 	$link_ ifq $ifq
 	$link_ recvtarget [$src entry]
 	$link_ sendtarget [$dstlink link]
 }
 
-Link/SharedDuplex instproc trace { ns f } {
+Link/Simple instproc trace { ns f } {
 	$self next $ns $f
 	$self instvar link_ fromNode_ toNode_
 	set recvT_ [$ns create-trace Recv $f $toNode_ $fromNode_]
