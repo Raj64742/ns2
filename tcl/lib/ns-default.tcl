@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.222 2000/10/04 22:46:18 yewei Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.223 2000/10/11 19:19:34 kclan Exp $
 
 
 #
@@ -303,6 +303,10 @@ Application/Traffic/RealAudio set burst_time_ 0.05ms
 Application/Traffic/RealAudio set idle_time_ 1800ms
 Application/Traffic/RealAudio set rate_ 2Kb
 Application/Traffic/RealAudio set packetSize_ 240
+Application/Traffic/RealAudio set minCDF_ 0
+Application/Traffic/RealAudio set maxCDF_ 1
+Application/Traffic/RealAudio set interpolation_ 0
+Application/Traffic/RealAudio set maxEntry_ 32
 
 Application/Traffic/CBR set rate_ 448Kb	;# corresponds to interval of 3.75ms
 Application/Traffic/CBR set packetSize_ 210
