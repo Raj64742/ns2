@@ -14,7 +14,11 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  */
- 
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.3 1997/07/23 01:09:27 kfall Exp $ (Xerox)";
+#endif
 
 #include "ranvar.h"
 
@@ -44,7 +48,7 @@ class UniformRandomVariable : public RandomVariable {
 static class UniformRandomVariableClass : public TclClass {
  public:
          UniformRandomVariableClass() : TclClass("RandomVariable/Uniform"){}
-	 TclObject* create(int argc, const char*const* argv) {
+	 TclObject* create(int, const char*const*) {
 	         return(new UniformRandomVariable());
 	 }
 } class_uniformranvar;
@@ -81,7 +85,7 @@ class ExponentialRandomVariable : public RandomVariable {
 static class ExponentialRandomVariableClass : public TclClass {
  public:
         ExponentialRandomVariableClass() : TclClass("RandomVariable/Exponential") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 	        return(new ExponentialRandomVariable());
 	}
 } class_exponentialranvar;
@@ -117,7 +121,7 @@ class ParetoRandomVariable : public RandomVariable {
 static class ParetoRandomVariableClass : public TclClass {
  public:
         ParetoRandomVariableClass() : TclClass("RandomVariable/Pareto") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 	        return(new ParetoRandomVariable());
 	}
 } class_paretoranvar;
@@ -161,7 +165,7 @@ class ConstantRandomVariable : public RandomVariable {
 static class ConstantRandomVariableClass : public TclClass {
  public:
         ConstantRandomVariableClass() : TclClass("RandomVariable/Constant"){}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 	        return(new ConstantRandomVariable());
 	}
 } class_constantranvar;
@@ -201,8 +205,8 @@ class HyperExponentialRandomVariable : public RandomVariable {
 static class HyperExponentialRandomVariableClass : public TclClass {
  public:
         HyperExponentialRandomVariableClass() : 
-	  TclClass("RandomVariable/HyperExponential") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclClass("RandomVariable/HyperExponential") {}
+	TclObject* create(int, const char*const*) {
 	        return(new HyperExponentialRandomVariable());
 	}
 } class_hyperexponentialranvar;
