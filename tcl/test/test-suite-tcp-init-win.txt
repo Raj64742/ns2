@@ -2,19 +2,25 @@ The tests of options for TCP's initial window can be tested
 with the command "./test-all-tcp-init-win" in the directory
 tcl/test.
 
-These tests verify the following two options added to the
-implementations of one-way TCP:
+These tests verify the following options added to the
+implementations of one-way TCP.  The proposal in the
+internet draft "Increasing TCP's Initial Window" can be
+modeled by setting syn_ and delay_growth_ to true, and
+setting windowInitOption_ to 2.
 
 Agent/TCP, syn_:
 
 For the default, with "syn_" set to false, TCP does not model the
-initial SYN/ACK exchange.  With "syn_" set to true, TCP
-does model the initial SYN/ACK exchange, in the following sense:
-a single packet of size synSize_ (40 bytes) is sent, an ack is received, 
-and then the initial window is sent to its specified value.
-Currently, the model in the simulator does not include the sender
-sending a separate ACK packet to acknowledge the SYN/ACK from the
-receiver.
+initial SYN/ACK exchange.  With "syn_" set to true, TCP does model
+the initial SYN/ACK exchange, in that for "syn_" set to true, the
+initial packet is of size tcpip_base_hdr_size_ (40 bytes).
+
+Agent/TCP, delay_growth_:
+
+For the default, with delay_growth_ set to false, the initial window
+applies to the first packet.  With delay_growth_ set to true,
+the initial congestion window only applies after a single packet
+has been sent and acknowledged.
 
 Agent/TCP, windowInitOption_:
 
@@ -36,7 +42,8 @@ with Tahoe TCP.
 
 The top connections in the tests "init1", "init2", and init3" all use
 "syn_" set to true and "windowInitOption_" set to 2, for the initial
-window specified in the internet draft.  The packet sizes in these
+window specified in the internet draft.  All connections with "syn_" set
+to true also have "delay_growth_" set to true.  The packet sizes in these
 three tests are 1000 bytes, 1500 bytes, and 4000 bytes, for initial
 windows of two, three, and four packets respectively.
 
