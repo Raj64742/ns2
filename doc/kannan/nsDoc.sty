@@ -1,0 +1,162 @@
+\RequirePackage{ifthen}
+\RequirePackage{html}
+
+\evensidemargin       -15pt
+\oddsidemargin        -15pt
+\topmargin            -20pt
+\leftmargin           30pt
+\rightmargin          30pt
+\textwidth            6.9in
+\textheight           9.0in
+\parindent            0pt
+\parskip              12pt
+\marginparwidth       1cm
+
+\newcommand{\nsTcl}{\emph{ns/Tcl}}
+\newcommand{\ns}{\emph{ns}}
+\newcommand{\nsf}[1]{\textasciitilde\ns/#1}
+\newcommand{\Tclf}[1]{\textasciitilde\emph{Tcl}/#1}
+
+\newcommand{\tup}[1]{$\langle$#1$\rangle$}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newcommand{\XXX}{\textbf{XXX}}
+
+\newcommand{\proc}[2][]{\code{#2}\{#1\}}
+\newcommand{\fcn}[2][void]{\code{#2}(#1)}
+\newcommand{\fcnref}[3]{\htmladdnormallink{#1}{#2.html##3}}
+\newcommand{\clsref}[2]{\htmladdnormallink{\code{class #1}}{#2.html##class#1}}
+\newcommand{\structref}[2]{%
+  \htmladdnormallink{\code{struct #1}}{#2.html##struct#1}}
+
+%%%
+%%% Mixed hyperref: use as \href{string}{Section}{label}
+%%% Typesets as ``string (Section~\ref{label})'' in plain \LaTeX, and
+%%% as  ``string'', and links to label in latex2html.
+%%%
+\newcommand{\href}[3]{\hyperref{#1}{#1 (#2~}{)}{#3}}
+\newcommand{\xref}{\htmladdnormallink}
+
+\font\manual=manfnt
+\def\dbend{{\manual\char127}}
+\def\d@nger{\medbreak\begingroup\clubpenalty=10000%
+  \def\par{\endgraf\endgroup\medbreak} \noindent\hangindent3pc\hangafter=-2%
+  \hbox to0pt{\hskip-\hangindent\dbend\hfill}\normalfont}
+\def\danger{\d@nger}
+\def\closedanger{\endgraf\endgroup}
+
+\newenvironment{program}{\bgroup%
+  \def\;##1;{\`;\#{\itshape ##1}\\}%
+  \def\*##1*/{\`/*{\itshape ##1}*/\\}%
+  \catcode`\#=11\catcode`\_=11\catcode`\$=11\relax%
+  \ttfamily\tabbing%
+01234567\=01234567\=01234567\=01234567\=01234567\=01234567\=01234567\=\kill%
+\+\kill%
+}{\endtabbing\egroup}
+
+\def\|#1|{\texttt{#1}}
+
+\endinput
+
+### Local Variables:
+### mode: latex
+### comment-column: 60
+### backup-by-copying-when-linked: t
+### file-precious-flag: nil
+### End:
+
+#LaTeX2HTML Version 96.1 : dot.latex2html-init
+#
+
+$MAX_SPLIT_DEPTH = 2;                           #$
+$MAX_LINK_DEPTH = 2;                            #$
+$BOTTOM_NAVIGATION = 1;                         #$
+
+#
+# The \LaTeXe\ commands
+#
+
+sub do_cmd_textasciitilde {
+    join('', '\~', $_[0]);                      #$
+}
+
+#
+# Some from the ifthen package
+#
+sub do_cmd_equal {
+    local($_) = @_;                             #$
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($a) = $&;
+    $a =~ s/$1//g;
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($b) = $&;
+    $b =~ s/$1//g;
+
+    join('', ($a eq $b ? 1 : 0), $_);
+}
+
+sub do_cmd_ifthenelse {
+    local($_) = @_;                             #$
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($a) = $&;
+    $a =~ s/<#$1#>//g;
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($then) = $&;
+
+    s/$next_pair_pr_rx//o;                      #$
+    local($else) = $&;
+
+    join('', ($a eq 1 ? $then : $else), $_);
+}
+
+sub do_cmd_tup {
+    local($_) = @_;                             #$
+    local($rest) = $_;
+    $rest =~ s/$next_pair_pr_rx//o;
+    join('', '&lt;', $&, '&gt;', $rest);
+}
+
+sub do_cmd_danger {
+    join('', '<IMG ALIGN=LEFT ALT="DANGER" SRC="../images/dbend.gif">', $_[0]);
+}                                               #$
+
+&ignore_commands (<<_IGNORED_CMDS_);
+closedanger
+font
+manual
+endgroup
+endgraf
+_IGNORED_CMDS_
+
+sub top_navigation_panel {
+    "$CONTENTS $PREVIOUS_GROUP $PREVIOUS $UP $NEXT $NEXT_GROUP $INDEX"; #$
+}
+
+sub bot_navigation_panel {
+'<hr>List of Indices
+<ul>
+<li> <a href=../ns/CClassIndex.html>C++ classes in <em>ns</em></a>
+<li> <a href=../ns/CFuncIndex.html>C++ functions in <em>ns</em></a>
+<li> <a href=../ns/TclClassIndex.html>Tcl classes in <em>ns</em></a>
+<li> <a href=../ns/TclProcIndex.html>Tcl procedures in <em>ns</em></a>
+<li> <a href=../Tcl/CClassIndex.html>C++ classes in <em>ns/Tcl</em></a>
+<li> <a href=../Tcl/CFuncIndex.html>C++ functions in <em>ns/Tcl</em></a>
+<li> <a href=../Tcl/TclClassIndex.html>Tcl classes in <em>ns/Tcl</em></a>
+<li> <a href=../Tcl/TclProcIndex.html>Tcl procedures in <em>ns/Tcl</em></a>
+</ul><P>
+<a href=../ns.html>The main <em>ns</em> page</a>
+';
+}
+
+### Local Variables:
+### mode: perl
+### comment-column: 60
+### backup-by-copying-when-linked: t
+### file-precious-flag: nil
+### End:
+
+1;      # This must be the last line
