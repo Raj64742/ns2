@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.4 1997/05/28 02:08:48 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.5 1997/07/26 05:32:29 heideman Exp $
 #
 # This script was written and contributed by Matt Mathis (mathis@psc.edu)
 #
@@ -66,6 +66,7 @@ for t in $tests; do
 		echo Test output differs from reference output
 		cp temp.rands test-output/$t.test
 		echo "Diagnose with: diff test-output/$t.test test-output/$t"
+		echo "Differences due to floating-point formatting are not significant."
 	    fi
 	fi
     fi
