@@ -176,10 +176,10 @@ CtrMcast instproc getrp group {
     $self instvar rpset
 
     if { $rpset != ""} {
-	set returnrp -1
-	set hashval -1
+	set returnrp 32768
+	set hashval 32768
 	foreach rp $rpset {
-	    if {[$self hash $rp $group] > $hashval} {
+	    if {[$self hash $rp $group] < $hashval} {
 		set hashval [$self hash $rp $group]
 		set returnrp $rp
 	    }

@@ -4412,34 +4412,34 @@ $ctrrpcomp compute-rpset
 
 set rcvr18 [new Agent/Null]
 $ns attach-agent $n18 $rcvr18
-$ns at 19 "$n18 join-group $rcvr18 0x8003"
+$ns at 1 "$n18 join-group $rcvr18 0x8003"
 set rcvr187 [new Agent/Null]
 $ns attach-agent $n187 $rcvr187
-$ns at 188 "$n187 join-group $rcvr187 0x8003"
+$ns at 2 "$n187 join-group $rcvr187 0x8003"
 set rcvr91 [new Agent/Null]
 $ns attach-agent $n91 $rcvr91
-$ns at 92 "$n91 join-group $rcvr91 0x8003"
+$ns at 3 "$n91 join-group $rcvr91 0x8003"
 set rcvr23 [new Agent/Null]
 $ns attach-agent $n23 $rcvr23
-$ns at 24 "$n23 join-group $rcvr23 0x8003"
+$ns at 4 "$n23 join-group $rcvr23 0x8003"
 set rcvr117 [new Agent/Null]
 $ns attach-agent $n117 $rcvr117
-$ns at 118 "$n117 join-group $rcvr117 0x8003"
+$ns at 5 "$n117 join-group $rcvr117 0x8003"
 set rcvr165 [new Agent/Null]
 $ns attach-agent $n165 $rcvr165
-$ns at 166 "$n165 join-group $rcvr165 0x8003"
+$ns at 6 "$n165 join-group $rcvr165 0x8003"
 set rcvr114 [new Agent/Null]
 $ns attach-agent $n114 $rcvr114
-$ns at 115 "$n114 join-group $rcvr114 0x8003"
+$ns at 7 "$n114 join-group $rcvr114 0x8003"
 set rcvr197 [new Agent/Null]
 $ns attach-agent $n197 $rcvr197
-$ns at 198 "$n197 join-group $rcvr197 0x8003"
+$ns at 8 "$n197 join-group $rcvr197 0x8003"
 set rcvr119 [new Agent/Null]
 $ns attach-agent $n119 $rcvr119
-$ns at 120 "$n119 join-group $rcvr119 0x8003"
+$ns at 9 "$n119 join-group $rcvr119 0x8003"
 set rcvr166 [new Agent/Null]
 $ns attach-agent $n166 $rcvr166
-$ns at 167 "$n166 join-group $rcvr166 0x8003"
+$ns at 10 "$n166 join-group $rcvr166 0x8003"
 
 set sender [new Agent/CBR]
 $sender set dst_ 0x8003
