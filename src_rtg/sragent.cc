@@ -169,8 +169,8 @@ void
 SRAgent::recv(Packet* packet, Handler*)
 
 {
-  int i = 0;
-  int n;
+	//  int i = 0;
+	//int n;
   hdr_cmn *cmh =  hdr_cmn::access(packet);
   hdr_src *srh =  hdr_src::access(packet);
   hdr_ip *iph = hdr_ip::access(packet);
