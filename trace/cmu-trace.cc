@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.80 2005/01/25 23:29:16 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.81 2005/02/02 22:18:29 haldar Exp $
  */
 
 #include <packet.h>
@@ -227,13 +227,13 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 
 
 #ifdef LOG_POSITION
-        double x = 0.0, y = 0.0, z = 0.0;
+        x = 0.0, y = 0.0, z = 0.0;
         node_->getLoc(&x, &y, &z);
 #endif
 
 	sprintf(pt_->buffer() + offset,
 #ifdef LOG_POSITION
-		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
+		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d ",
 #else
 		"%c %.9f _%d_ %3s %4s %d %s %d",
 #endif
