@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.80 1998/08/24 19:39:19 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.81 1998/08/25 19:05:24 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -744,6 +744,7 @@ TcpAgent::initial_window()
 	fprintf(stderr, "Wrong number of wnd_init_option_ %d\n", 
 		wnd_init_option_);
 	abort();
+	return (2.0); // XXX make msvc happy.
 }
 
 /*
