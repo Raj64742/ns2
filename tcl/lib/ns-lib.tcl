@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.114 1998/07/16 15:58:54 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.115 1998/07/16 18:07:01 breslau Exp $
 
 #
 
@@ -468,7 +468,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
                         #XX need to clean this up
                         set link_($sid:$did) [new IntServLink   \
                                         $n1 $n2 $bw $delay $q	\
-						[concat $qtypeOrig $args]
+						[concat $qtypeOrig $args]]
                 }
                 default {
                         set link_($sid:$did) [new SimpleLink    \
