@@ -57,18 +57,24 @@ If the user needs to create a topology larger than 256 nodes,
 then they should first expand the address space before creating any
 nodes, as
 \begin{program}
-        Node expandaddr
+        $ns set-address-format expanded
 \end{program}
 This expands the address space to 30 bits, the higher 22 of which are 
 used to assign node numbers.
+{\bf NOTE}: Starting from release 2.1b6, the above is no longer necessary;
+\ns is using 32-bit integers for both address and port.
+Therefore, the above restriction of 256 nodes is no longer applicable.
 
 By default, nodes in \ns\ are constructed for unicast simulations.
-In order to create nodes for multicast simulation, the
-class variable, \code{EnableMcast_}, should be set to 1, as:
+%In order to create nodes for multicast simulation, the
+%class variable, \code{EnableMcast_}, should be set to 1, as:
+In order to enable multicast simulation, the simulation should be created 
+with an option ``-multicast on'', e.g.:
 \begin{program}
-        Simulator set EnableMcast_ 1
+        set ns [new Simulator -multicast on]
 \end{program}
-before any nodes are created.
+{\bf NOTE}: the old way of enabling multicast, e.g., \code{Simulator set 
+EnableMcast_ 1}, is no longer needed.
 The internal structure of a typical multicast node is shown in
 Figure~\ref{sec:node:multicast}.
 \begin{figure}
