@@ -736,6 +736,12 @@ is an instance of the Simulator or MultiSim object
 that was created to invoke the simulation
 (see TRACE AND MONITORING METHODS section 
 for the output trace format).
+.LP
+.IP "\fB$link trace-callback \fIns cmd\fP"
+Trace all packets on the link with the callback \fIcmd\fP.
+Cmd is invoked for each trace event (enqueue, dequeue, drop)
+with the text that would be logged as parameters.
+(See the description of the log file for this information.)
 
 .SH "SIMPLELINK OBJECTS"
 [NOTE: This section has not been verified to be up-to-date with the release.]
@@ -1888,7 +1894,6 @@ this interval to avoid global synchronization of session messages. User may
 want to adjust this variable according to their specific simulation. 
 Measured in seconds;
 default value is 1.0 seconds.
-.\" check units?
 .IP "\fIC1_, C2_\fP"
 The parameters which control the request timer. Refer to [8] for detail. The
 default value is \fIC1_\fP = \fIC2_\fP = 2.0.

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.44 1997/08/12 22:29:21 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.45 1997/08/12 23:21:56 heideman Exp $
 #
 
 #
@@ -267,13 +267,16 @@ Simulator instproc trace-all file {
 	set traceAllFile_ $file
 }
 
+# you can pass in {} as a null file
 Simulator instproc create-trace { type file src dst } {
 	$self instvar alltrace_
 	set p [new Trace/$type]
 	$p set src_ [$src id]
 	$p set dst_ [$dst id]
 	lappend alltrace_ $p
-	$p attach $file
+	if {$file != ""} {
+		$p attach $file
+	}
 	return $p
 }
 

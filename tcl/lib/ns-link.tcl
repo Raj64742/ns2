@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.17 1997/07/22 09:05:48 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.18 1997/08/12 23:21:56 heideman Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -133,6 +133,20 @@ SimpleLink instproc trace { ns f } {
 		$self trace-dynamics $ns $f
 	}
 }
+
+#
+# Trace to a callback function rather than a file.
+#
+SimpleLink instproc trace-callback {ns cmd} {
+	$self trace $ns {}
+	foreach part {enqT_ deqT_ drpT_} {
+		$self instvar $part
+		set to [$self set $part]
+		$to set callback_ 1
+		$to proc handle a "$cmd \$a"
+	}
+}
+
 #
 # like init-monitor, but allows for specification of more of the items
 # attach-monitors $insnoop $inqm $outsnoop $outqm $dropsnoop $dropqm
