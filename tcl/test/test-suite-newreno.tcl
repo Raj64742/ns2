@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.3 1998/11/10 04:34:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.4 1998/11/10 04:56:53 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -384,6 +384,20 @@ Test/newreno1_A instproc run {} {
 # 	Agent/TCP/Newreno set newreno_changes1_ 1
 #         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 # }
+
+Class Test/newreno1_B0 -superclass TestSuite
+Test/newreno1_B0 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	newreno1_B0
+	$self next
+}
+Test/newreno1_B0 instproc run {} {
+	Agent/TCP set bugFix_ false
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP/Newreno set exit_recovery_fix_ 1
+        $self setup Newreno {14 15 16 17 18 19 20 21 25 }
+}
 
 Class Test/newreno1_B -superclass TestSuite
 Test/newreno1_B instproc init {} {
