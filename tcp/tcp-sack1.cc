@@ -29,6 +29,7 @@
 #include "tcp.h"
 #include "flags.h"
 #include "scoreboard.h"
+#include "scoreboard-rq.h"
 #include "random.h"
 
 #define TRUE    1
@@ -72,8 +73,11 @@ public:
 Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1), firstpartial_(0)
 {
 	bind_bool("partial_ack_", &partial_ack_);
-	scb_ = new ScoreBoard(new ScoreBoardNode[SBSIZE],SBSIZE);
-
+	/* Use the Reassembly Queue based scoreboard as
+	 * ScoreBoard is O(cwnd) which is bad for HSTCP
+	 * scb_ = new ScoreBoard(new ScoreBoardNode[SBSIZE],SBSIZE);
+	 */
+	scb_ = new ScoreBoardRQ();
 }
 
 Sack1TcpAgent::~Sack1TcpAgent(){
