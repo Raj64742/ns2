@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.22 2001/05/21 19:27:33 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.23 2003/04/17 01:58:59 buchheim Exp $
  */
 
 extern "C" {
@@ -1046,7 +1046,7 @@ DSDV_Agent::recv (Packet * p, Handler *)
 	    //else    
 	    processUpdate(p);
     }
-  else if ((u_int32_t) dst == IP_BROADCAST && 
+  else if (iph->daddr() == IP_BROADCAST &&
 	   (iph->dport() != ROUTER_PORT)) 
 	  {
 	     if (src == myaddr_) {
@@ -1055,7 +1055,6 @@ DSDV_Agent::recv (Packet * p, Handler *)
 	     }
 	     else {
 		     // hand it over to the port-demux
-		    
 		    port_dmux_->recv(p, (Handler*)0);
 	     }
 	  }
