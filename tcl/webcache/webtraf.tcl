@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.9 2001/11/15 21:58:39 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.10 2001/11/21 17:36:24 polly Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -50,7 +50,7 @@ PagePool/WebTraf set FLOW_SIZE_TH_ 15
 # 2: Chop long flows to short ones.
 PagePool/WebTraf set FLOW_SIZE_OPS_ 0
 
-PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size } {
+PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size pobj} {
     set launch_req 1
     set flow_th [PagePool/WebTraf set FLOW_SIZE_TH_]
 
@@ -76,11 +76,11 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size 
 
 	# Advance $size packets
 	if {[PagePool/WebTraf set FLOW_SIZE_OPS_] == 2 && $size > $flow_th} {
-	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $flow_th"
-	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $flow_th $flow_th [$ns now] [$stcp set fid_]"
+	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $flow_th $pobj"
+	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $flow_th $flow_th [$ns now] [$stcp set fid_] $pobj"
 	} else {
-	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $size"
-	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $size $flow_th [$ns now] [$stcp set fid_]"
+	    $ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size $size $pobj"
+	    $stcp proc done {} "$self done-resp $id $pid $clnt $svr $stcp $ssnk $size $size $flow_th [$ns now] [$stcp set fid_] $pobj"
 	}
 	
 #	$ctcp proc done {} "$self done-req $id $pid $clnt $svr $ctcp $csnk $stcp $size"
@@ -95,7 +95,7 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size 
     }
 }
 
-PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent } {
+PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent pobj} {
     set ns [Simulator instance]
     
     # modified to trace web traffic flows (recv request: client==>server).
@@ -120,7 +120,7 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent } 
     $stcp advanceby $sent
 }
 
-PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0}} {
+PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0} pobj} {
     set ns [Simulator instance]
     
     # modified to trace web traffic flows (recv responese: server->client).
@@ -169,6 +169,7 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
     } else {
 	# Recycle server-side TCP agents
 	$self recycle $stcp $ssnk	
+	$self doneObj $pobj
     }
 }
 
@@ -193,3 +194,4 @@ PagePool/WebTraf instproc alloc-tcp {} {
 PagePool/WebTraf instproc alloc-tcp-sink {} {
     return [new Agent/[PagePool/WebTraf set TCPSINKTYPE_]]
 }
+
