@@ -34,6 +34,7 @@
 #
 
 # Defaults for link-layer
+LL set bandwidth_ 2Mb
 LL set delay_ 0.5ms
 LL/Snoop set bandwidth_ 1Mb
 LL/Snoop set delay_ 3ms
@@ -49,6 +50,7 @@ ErrorModel set errorLen_ 0
 TraceIp set src_ -1
 TraceIp set dst_ -1
 TraceIp set callback_ 0
+TraceIp set show_tcphdr_ 0
 TraceIp set mask_ 0xffffffff
 TraceIp set shift_ 8
 
@@ -89,6 +91,12 @@ Trace/Recv instproc init {} {
 	$self next "r"
 }
 
+# Trace/Loss trace the packets that are loss due to error model
+Class Trace/Loss -superclass Trace
+Trace/Loss instproc init {} {
+	$self next "l"
+}
+
 
 # Make a LAN, given a set of nodes, the LAN bw and delay, and the types
 # of the various LAN entities (lltype, mactype, etc.)
@@ -111,6 +119,8 @@ Simulator instproc make-lan {nodelist bw delay \
 			$q($src:$dst) drop-target $nullAgent_
 			set link_($sid:$did) [new Link/LanDuplex \
 				$src $dst $bw $delay $q($src:$dst) $lltype]
+			set drpT_ [$self create-trace Loss $traceAllFile_ $src $dst]
+			[$link_($sid:$did) link] drop-target $drpT_
 		}
 	}
 	foreach src $nodelist {

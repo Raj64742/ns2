@@ -29,9 +29,10 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
-#include "random.h"
 #include "packet.h"
 #include "ll.h"
 #include "errmodel.h"
@@ -41,16 +42,17 @@ static class ErrorModelClass : public TclClass {
 public:
 	ErrorModelClass() : TclClass("ErrorModel") {}
 	TclObject* create(int argc, const char*const* argv) {
-		return (new ErrorModel);
+		ErrorUnit eu = EU_PKT;
+		if (argc >= 5)
+			eu = STR2EU(argv[4]);
+		return (new ErrorModel(eu));
 	}
 } class_errormodel;
 
 
-ErrorModel::ErrorModel(ErrorUnit eu) : unit_(eu), rate_(0), time_(0), loss_(0), good_(0), errorLen_(0)
+ErrorModel::ErrorModel(ErrorUnit eu) : DropConnector(), eu_(eu), rate_(0)
 {
 	bind("rate_", &rate_);
-	bind("time_", &time_);
-	bind("errorLen_", &errorLen_);
 	bind("off_ll_", &off_ll_);
 }
 
@@ -58,39 +60,54 @@ ErrorModel::ErrorModel(ErrorUnit eu) : unit_(eu), rate_(0), time_(0), loss_(0), 
 int 
 ErrorModel::command(int argc, const char*const* argv)
 {
-	int ac = 0;
-	if (!strcmp(argv[ac+1], "uniform")) {
-		rate_ = atof(argv[ac+2]);
-		return (TCL_OK);
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "ranvar") == 0) {
+			ranvar_ = (RandomVariable*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
 	}
-	return Connector::command(argc, argv);
+	else if (argc == 2) {
+		if (strcmp(argv[1], "ranvar") == 0) {
+			tcl.resultf("%s", ranvar_->name());
+			return (TCL_OK);
+		}
+	}
+	return DropConnector::command(argc, argv);
 }
 
 
 void
 ErrorModel::recv(Packet* p, Handler*)
 {
+	hdr_ll* llh = (hdr_ll*)p->access(off_ll_);
+	llh->errlen() = 0;
 	if (corrupt(p)) {
-		loss_++;
-		((hdr_ll*)p->access(off_ll_)) ->error() |= 1;
+		if (drop_) {
+			drop_->recv(p);
+			return;
+		}
+		llh->error() |= 1;
 	}
-	good_++;
 	if (target_)
 		target_->recv(p);
-	// XXX assume packet is still used by other object
+	// XXX if no target, assume packet is still used by other object
 }
 
 
 int
 ErrorModel::corrupt(Packet* p)
 {
-	double u = Random::uniform();
-	if (unit_ == EU_PKT)
-		return (u < rate_);
-	else if (unit_ == EU_BIT) {
-		hdr_cmn *hdr = (hdr_cmn*) p->access(off_cmn_);
+	hdr_cmn *hdr;
+	double rv = ranvar_->value();
+
+	switch (eu_) {
+	case EU_PKT:
+		return (rv < rate_);
+	case EU_BIT:
+		hdr = (hdr_cmn*) p->access(off_cmn_);
 		double per = 1 - pow((1-rate_), 8. * hdr->size());
-		return (u < per);
+		return (rv < per);
 	}
 	return 0;
 }

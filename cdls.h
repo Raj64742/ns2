@@ -33,30 +33,56 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
-#ifndef ns_errmodel_h
-#define ns_errmodel_h
+#ifndef ns_cdls_h
+#define ns_cdls_h
 
-#include "connector-drop.h"
-#include "ranvar.h"
-
-
-enum ErrorUnit { EU_PKT, EU_BIT, EU_TIME };
-#define STR2EU(s) (!strcmp(s,"bit") ? EU_BIT : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
+#include "queue.h"
+#include "errmodel.h"
 
 
-class ErrorModel : public DropConnector {
+/*
+// IdPacketQueue:  packet queue with an identifier id and statistic info
+*/
+class IdPacketQueue : public PacketQueue {
 public:
-	ErrorModel(ErrorUnit eu=EU_PKT);
-	void recv(Packet*, Handler*);
-	virtual int corrupt(Packet*);
-	inline double rate() { return rate_; }
+	IdPacketQueue() : id_(0), loss_(0), total_(0), em_(0) {}
+	inline int& id() { return id_; }
+	inline int& loss() { return loss_; }
+	inline int& total() { return total_; }
+	ErrorModel *em_;
+protected:
+	int id_;		// unique identifier for this queue
+	int loss_;
+	int total_;
+};
+
+
+/*
+// Cdls:  Channel Dependent Link Scheduler
+*/
+
+class Cdls : public Queue {
+public:
+	Cdls();
 
 protected:
 	int command(int argc, const char*const* argv);
-	ErrorUnit eu_;		// error unit in pkt, bit, or time
-	RandomVariable* ranvar_;
-	double rate_;
+	void enque(Packet*);
+	Packet* deque();
+	IdPacketQueue* getQueue(int id);
+	IdPacketQueue* selectQueue();
+	void enque_weight(Packet*, IdPacketQueue*);
+	double weight(IdPacketQueue*);
+
+	IdPacketQueue** q_;
+	int numq_;
+	int maxq_;
+	int qlen_;
+	double totalweight_;
+	int gqid_;
+	int bqid_;
 	int off_ll_;
+	int off_mac_;
 };
 
 #endif

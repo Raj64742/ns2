@@ -12,6 +12,7 @@ Split ns trace file into files for individual connection
 Usage:  $0 [options] files
 options: -d   delim:  deliminator for spliting the data fields or columns
 	 -c comment:  comment to print at the end along with total throughput
+	 -f	:  force new file for each connection
 	 -psize size of packet in bytes
 	 -tt	trace type
 	 -pt	packet type
@@ -41,6 +42,10 @@ sub ParseArgv
 	    $val = shift @ARGV;
 	    s/-(\w+)/\$$1/;
 	    eval "$_ = '$val'";
+	}
+	elsif (/^-(f)$/) {
+	    s/-(\w+)/$1/;
+	    $opt{$_} = 1;
 	}
 	else {
 	    last;
@@ -77,7 +82,7 @@ while (<>)
     $time{$key} = $col[$ctime];
     $seqno{$key} = $col[$cseq];
 
-    if ($c) {
+    if ($opt{f}) {
 	$fid = ($src << 16) + $dst;
 	if (! $opened{$fid}) {
 	    open($fid, ">$ARGV.$key");

@@ -29,32 +29,33 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #ifndef ns_errmodel_h
 #define ns_errmodel_h
 
-#include "connector.h"
+#include "connector-drop.h"
+#include "ranvar.h"
 
-#define EUnames "pkt", "bit", "time"
+
 enum ErrorUnit { EU_PKT, EU_BIT, EU_TIME };
+#define STR2EU(s) (!strcmp(s,"bit") ? EU_BIT : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
 
 
-class ErrorModel : public Connector {
+class ErrorModel : public DropConnector {
 public:
 	ErrorModel(ErrorUnit eu=EU_PKT);
 	void recv(Packet*, Handler*);
 	virtual int corrupt(Packet*);
-	double per() { return loss_ / (loss_ + good_); }
+	inline double rate() { return rate_; }
 
 protected:
 	int command(int argc, const char*const* argv);
-	ErrorUnit unit_;
+	ErrorUnit eu_;		// error unit in pkt, bit, or time
+	RandomVariable* ranvar_;
 	double rate_;
-	double time_;
-	double loss_;
-	double good_;
-	double errorLen_;
 	int off_ll_;
 };
 

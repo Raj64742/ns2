@@ -18,6 +18,7 @@ set opt(stop)	20
 set opt(num)	3
 set opt(seed)	0
 
+set opt(qsize)	100
 set opt(bw)	2Mb
 set opt(delay)	1ms
 set opt(ll)	LL
@@ -41,7 +42,7 @@ if {$argc == 0} {
 proc getopt {argc argv} {
 	global opt
 	lappend optlist tr stop num seed
-	lappend optlist bw delay ll ifq mac chan tp sink source cbr
+	lappend optlist qsize bw delay ll ifq mac chan tp sink source cbr
 
 	for {set i 0} {$i < $argc} {incr i} {
 		set arg [lindex $argv $i]
@@ -70,17 +71,27 @@ proc cat {filename} {
 	close $fd
 }
 
+proc UseTemp {filename} {
+	global pwd dirname
+	cd /var/tmp
+	set dirname [file dirname $filename]
+	if {$dirname != "" && ![file exists $dirname]} {
+		exec mkdir -p $dirname
+	}
+}
+
 proc finish {} {
-	global env nshome
+	global env nshome pwd dirname
 	global ns opt trfd
 
 	$ns flush-trace
 	close $trfd
 
-	exec perl ${nshome}bin/trsplit -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt >> $opt(tr)-bw
-	exec cat $opt(tr)-bwt >> $opt(tr)-bw
+	exec perl $pwd/${nshome}bin/trsplit -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt > $opt(tr)-bw
 	cat $opt(tr)-bwt
-	exec rm $opt(tr)-bwt
+	exec cat $opt(tr)-bw $opt(tr)-bwt >> $pwd/$opt(tr)-bw
+#	exec gzip -c $opt(tr) > $pwd/$opt(tr).gz
+	exec rm $opt(tr) $opt(tr)-bw $opt(tr)-bwt
 
 	if [info exists opt(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
@@ -107,19 +118,6 @@ proc trace-mac {lan trfd} {
 	$channel trace-target $trHop
 }
 
-proc create-error {num} {
-	global ns opt
-	global lan node source
-
-	for {set i 1} {$i <= $num} {incr i} {
-		set em($i) [new ErrorModel]
-		$em($i) set rate_ [expr $i / 100.0]
-		set ll [[$ns link $node(0) $node($i)] link]
-		$em($i) target [$ll sendtarget]
-		$ll sendtarget $em($i)
-	}
-}
-
 proc create-topology {num} {
 	global ns opt
 	global lan node source
@@ -129,7 +127,7 @@ proc create-topology {num} {
 		lappend nodelist $node($i)
 	}
 
-	Queue set limit_ 100
+	Queue set limit_ [expr $num * [Queue set limit_]]
 	set lan [$ns make-lan $nodelist $opt(bw) $opt(delay) \
 			$opt(ll) $opt(ifq) $opt(mac) $opt(chan)]
 #	puts "LAN: $lan $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)"
@@ -140,8 +138,15 @@ proc create-source {num} {
 	global lan node source
 
 	for {set i 1} {$i <= $num} {incr i} {
+		if [info exists opt(up)] {
+			set src $i
+			set dst 0
+		} else {
+			set src 0
+			set dst $i
+		}
 		set tp($i) [$ns create-connection $opt(tp) \
-				$node(0) $opt(sink) $node($i) 0]
+				$node($src) $opt(sink) $node($dst) 0]
 		set source($i) [$tp($i) attach-source $opt(source)]
 		$ns at [expr $i/1000.0] "$source($i) start"
 	}
@@ -157,9 +162,14 @@ proc create-source {num} {
 
 ## MAIN ##
 getopt $argc $argv
+set pwd [pwd]
+UseTemp $opt(tr)
+
 if {$opt(seed) > 0} {
 	ns-random $opt(seed)
 }
+Queue set limit_ $opt(qsize)
+
 set ns [new Simulator]
 
 create-trace $opt(tr)
