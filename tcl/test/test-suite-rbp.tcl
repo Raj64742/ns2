@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.1 1997/12/20 00:41:36 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.2 1998/01/09 21:52:43 heideman Exp $
 #
 
 #
@@ -39,6 +39,18 @@ when invoked as.
 
 # these are fakes for test-all
 
+Class Test/reno_slow_start_restart
+# expect to see slow-start restart every time
+# (one packet sent before the first ack of each phase)
+
+Class Test/reno_no_slow_start_restart
+# expect to see increasing burst of back-to-packets each phase
+# 7 the second phase, 10 the third.
+
+Class Test/vegas_slow_start_restart
+
+Class Test/vegas_no_slow_start_restart
+
 Class Test/reno_pacing
 # expect to see  0/5/8 packets paced
 
@@ -48,13 +60,6 @@ Class Test/vegas_pacing_rate
 Class Test/vegas_pacing_cwnd
 # expect to see  0/3/5 packets paced
 
-Class Test/reno_slow_start_restart
-# expect to see slow-start restart every time
-# (one packet sent before the first ack of each phase)
-
-Class Test/reno_no_slow_start_restart
-# expect to see increasing burst of back-to-packets each phase
-# 7 the second phase, 10 the third.
 
 proc default_options {} {
 	global opts opt_wants_arg
@@ -98,6 +103,7 @@ proc default_options {} {
 
 		graph-results 1
 		graph-join-queueing 1
+		title none
 
 		# For controlling algorithm rate or cwnd
 		# 1 is Vegas computed rates, 2 is cwnd based alg
@@ -315,7 +321,11 @@ TestScale instproc finish {} {
 	} else {
 		set q ""
 	}
-	exec xgraph -t "$opts(server-tcp-method)" <temp.rands &
+	set title $opts(title)
+	if {$title == "none"} {
+		set title $opts(server-tcp-method)
+	}
+	exec xgraph -t "$title" <temp.rands &
 #	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
 	
 	exit 0
@@ -398,25 +408,40 @@ proc main {} {
 			}
 			reno_pacing {
 				set tcp TCP/Reno/RBP
+				set title $i
 			}
 			vegas_pacing_rate {
 				set tcp TCP/Vegas/RBP
 				set rbp_alg 1
+				set title $i
 			}
 			vegas_pacing_cwnd {
 				set tcp TCP/Vegas/RBP
 				set rbp_alg 2
+				set title $i
 			}
 			reno_slow_start_restart {
 				set tcp TCP/Reno
+				set title $i
 			}
 			reno_no_slow_start_restart {
 				set tcp TCP/Reno
 				set ssr false
+				set title $i
+			}
+			vegas_slow_start_restart {
+				set tcp TCP/Vegas
+				set title $i
+			}
+			vegas_no_slow_start_restart {
+				set tcp TCP/Vegas
+				set ssr false
+				set title $i
 			}
 		}
 	}
-	process_args "-server-tcp-method $tcp -graph-results $graph -client-count 1 -experiment-trials 3 -server-tcp-slow-start-restart $ssr -rbp-rate-algorithm $rbp_alg"
+	# Always set ns-random-seed so we get the same results every time.
+	process_args "-server-tcp-method $tcp -graph-results $graph -client-count 1 -experiment-trials 3 -server-tcp-slow-start-restart $ssr -rbp-rate-algorithm $rbp_alg -title $title -ns-random-seed 1"
 	new TestScale
 }
 
