@@ -347,6 +347,20 @@ call is important.
 
 Here are some examples of this event in use:
 
+\subsubsection{Setting playback speed}
+Normally the user chooses a playback rate via the rate slider in the animation window.  A trace file may set the playback rate via the \code{set_rate_ext} command:
+
+\code{v -t <time> -e set_rate_ext <time> <update-peers?>}
+
+For example:\\
+\code{v -t 2.5 -e set_rate_ext 20ms 1}
+
+For compatibility with earlier versions of nam, the \code{set_rate} command is also supported.  Instead of specifying the step size directly, you use $10\times\log_{10} \textit{<time-in-seconds>}$.  For example:
+
+\code{v -t 2.5 -16.9897000433602 1}
+
+In order to have more readable files, \code{set_rate_ext} is preferred.
+
 \subsubsection{Annotation}
 This procedure is used for displaying text annotation at specfic times:
 
