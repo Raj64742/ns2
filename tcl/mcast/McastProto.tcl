@@ -327,12 +327,12 @@ mrtObject instproc dump-routes args {
 }
 
 # similar to membership indication by igmp.. 
-mrtObject instproc join-group args {	;# args = < G [, S] >
-	eval $self all-mprotos join-group $args
+mrtObject instproc join-group { grp src } {
+	eval $self all-mprotos join-group $grp $src
 }
 
-mrtObject instproc leave-group args {	;# args = < G [, S] >
-	eval $self all-mprotos leave-group $args
+mrtObject instproc leave-group { grp src } {
+	eval $self all-mprotos leave-group $grp $src
 }
 
 mrtObject instproc upcall { code source group iface } {

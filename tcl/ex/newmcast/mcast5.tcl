@@ -72,10 +72,10 @@ $n(3) color BlueViolet
 
 $ns at 0    "$cbr(3) start"
 $ns at 0.05 "$cbr(5) start"
-$ns at 0.2  "$n(4) join-group-source   $rcvr(4) 0x8003 *"
-$ns at 0.3  "$n(6) join-group-source   $rcvr(6) 0x8003 *"
-$ns at 0.4  "$n(4) leave-group-source  $rcvr(4) 0x8003 *"
-$ns at 0.5  "$n(6) leave-group-source  $rcvr(6) 0x8003 *"
+$ns at 0.2  "$n(4) join-group   $rcvr(4) 0x8003"
+$ns at 0.3  "$n(6) join-group   $rcvr(6) 0x8003"
+$ns at 0.4  "$n(4) leave-group  $rcvr(4) 0x8003"
+$ns at 0.5  "$n(6) leave-group  $rcvr(6) 0x8003"
 $ns at 0.55 "finish"
 
 proc finish {} {

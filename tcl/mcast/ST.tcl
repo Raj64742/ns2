@@ -110,6 +110,7 @@ ST instproc join-group  { group {src "*"} } {
 
 ST instproc leave-group { group {src "*"} } {
 	ST instvar RP_
+	$self instvar node_
 	$self next $group
 	# check if the rep is active, then send a prune
 	set r [$node_ getReps "\\*" $group]

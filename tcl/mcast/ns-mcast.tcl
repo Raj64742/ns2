@@ -176,56 +176,62 @@ Node instproc new-group { src group iface code } {
 	$mrtObject_ upcall $code $src $group $iface
 }
 
-Node instproc join-group { agent group } {
+Node instproc join-group { agent group { src "" } } {
         $self instvar replicator_ Agents_ mrtObject_
-        set group [expr $group]
-        $mrtObject_ join-group $group
+        set group [expr $group] ;# use expr to get rid of possible leading 0x
+        $mrtObject_ join-group $group $src
         lappend Agents_($group) $agent
-        foreach key [array names replicator_ "*:$group"] {
-                #
+	if { $src == "" } {
+		set reps [$self getReps "*" $group]
+	} else {
+		set reps [$self getReps $src $group]
+	}
+        foreach rep $reps {
                 # make sure agent is enabled in each replicator for this group
-                #
-                $replicator_($key) insert $agent
+                $rep insert $agent
         }
 }
 
-Node instproc leave-group { agent group } {
+Node instproc leave-group { agent group { src "" } } {
         $self instvar replicator_ Agents_ mrtObject_
         set group [expr $group] ;# use expr to get rid of possible leading 0x
-
-        foreach key [array names replicator_ "*:$group"] {
-                $replicator_($key) disable $agent
+	if { $src == "" } {
+		set reps [$self getReps "*" $group]
+	} else {
+		set reps [$self getReps $src $group]
+	}
+        foreach rep $reps  {
+                $rep disable $agent
         }
         if [info exists Agents_($group)] {
                 set k [lsearch -exact $Agents_($group) $agent]
-                if { $k >= 0 } {
-                        set Agents_($group) [lreplace $Agents_($group) $k $k]
-                }
-                $mrtObject_ leave-group $group
+		set Agents_($group) [lreplace $Agents_($group) $k $k]
+
+                $mrtObject_ leave-group $group $src
         } else {
                 warn "cannot leave a group without joining it"
         }
 }
 
-Node instproc join-group-source { agent group source } {
-        $self instvar Agents_ mrtObject_ replicator_
-        set group [expr $group]
-        ## send a message for the mcastproto agent to inform the mcast protocols
-        $mrtObject_ join-group $group $source
-        lappend Agents_($source:$group) $agent
-        if [info exists replicator_($source:$group)] {
-                $replicator_($source:$group) insert $agent
-        }
-}
+#Node instproc join-group-source { agent group source } {
+#        $self instvar Agents_ mrtObject_ replicator_
+#        set group [expr $group]
+#        ## send a message for the mcastproto agent to inform the mcast protocols
+#        $mrtObject_ join-group $group $source
+#        lappend Agents_($source:$group) $agent
+#        if [info exists replicator_($source:$group)] {
+#                $replicator_($source:$group) insert $agent
+#        }
+#}
 
-Node instproc leave-group-source { agent group source } {
-        $self instvar replicator_ Agents_ mrtObject_
-        set group [expr $group]
-        if [info exists replicator_($source:$group)] {
-                $replicator_($source:$group) disable $agent
-        }
-        $mrtObject_ leave-group $group $source
-}
+#Node instproc leave-group-source { agent group source } {
+#        $self instvar replicator_ Agents_ mrtObject_
+#        set group [expr $group]
+#        if [info exists replicator_($source:$group)] {
+#                $replicator_($source:$group) disable $agent
+#        }
+#        $mrtObject_ leave-group $group $source
+#}
 
 Node instproc add-mfc { src group iif oiflist } {
 	$self instvar multiclassifier_ \
@@ -410,152 +416,28 @@ Classifier/Replicator/Demuxer instproc reset {} {
 #
 # XXX These are PIM specific?  Why are they here?
 # 
-Simulator instproc getNodeIDs {} {
-	$self instvar Node_
-	return [array names Node_]
-}
-Simulator instproc setPIMProto { index proto } {
-	$self instvar pimProtos
-	set pimProtos($index) $proto
-}
-
-Simulator instproc getPIMProto { index } {
-	$self instvar pimProtos
-	if [info exists pimProtos($index)] {
-		return $pimProtos($index)
-	}
-	return -1
-}
-
-#XXX the following is scheduled to go away!
-#----------------------------------------------------------------------
-# Generating multicast distribution trees 
-#----------------------------------------------------------------------
+#Simulator instproc getNodeIDs {} {
+#	 $self instvar Node_
+#	 return [array names Node_]
+#}
+#Simulator instproc setPIMProto { index proto } {
+#	 $self instvar pimProtos
+#	 set pimProtos($index) $proto
+#}
 #
-# 
-# get the adjacent node thru a outgoing interface
-# NOTE: Node::ifaceGetNode() in ns-mcast.tcl get a node through an 
-# incoming interface, which is different from the one below.
-#
-#Node instproc oifGetNode { iface } {
-#	 $self instvar ns_ id_ neighbor_
-#	 foreach node $neighbor_ {
-#		 set link [$ns_ set link_($id_:[$node id])]
-#		 if {[$link set iif_] == $iface} {
-#			 return $node
-#		 }
+#Simulator instproc getPIMProto { index } {
+#	 $self instvar pimProtos
+#	 if [info exists pimProtos($index)] {
+#		 return $pimProtos($index)
 #	 }
 #	 return -1
 #}
 #
-# given an iif, find oifs in (S,G)
-#Node instproc getRepByIIF { src group iif } {
-#	 $self instvar multiclassifier_
-#	 return [$multiclassifier_ lookup [$src id] $group $iif]
-#}
-#
-#Simulator instproc find-next-child { parent sl } {
-#	 puts "Found $sl ([$sl info class]) for node [$parent id]"
-#	 set cls [$sl info class]
-#
-#	 if {$cls == "networkinterface"} {
-#		 set child [$parent oifGetNode $sl]
-#	 } elseif {$cls == "DuplexNetInterface"} {
-#		 set child [$sl getNode]
-#	 } else {
-#		 set basecls [lindex [split $cls /] 0]
-#		 if {$basecls == "Agent"} {
-#			 return ""
-#		 } else {
-#			 error "Unsupported interface type: [$sl info class]"
-#		 }
-#	 }
-#	 if {$child == -1} {
-#		 puts "Outgoing iface doesn't have corresponding nodes"
-#		 return ""
-#	 }
-#	 return $child
-#}
-#
-#
-# XXX
-# (1) Cannot start from a source in a RP tree, because there a packet is 
-#     unicast to the RP so there isn't any multicast entry at the source.
-# (2) src is a Node
-# (3) Currently NOT working for detailedDM
-#
-#Simulator instproc get-mcast-tree { src grp } {
-#	 $self instvar link_ treeLinks_
-#
-#	 # iif == -2: from local
-#	 set tmp [$src getRepByIIF $src $grp -2]
-#	 if {$tmp == ""} {
-#		 $self flush-trace
-#		 error "No replicator for $GROUP_ at [$src id]"
-#	 }
-#
-#	 set sid [$src id]
-#	 lappend repList $tmp
-#	 lappend nodeList $src
-#
-#	 while {[llength $repList] > 0} {
-#		 set h [lindex $repList 0]
-#		 set parent [lindex $nodeList 0]
-#		 set pid [$parent id]
-#		 set closeNodes($pid) 1
-#		 set repList [lreplace $repList 0 0]
-#		 set nodeList [lreplace $nodeList 0 0]
-#
-#		 set slots [$h slots]
-#		 #		puts "$slots"
-#		 foreach sl $slots {
-#			 set child [$self find-next-child $parent $sl]
-#			 if {$child == ""} {
-#				 puts "No children found for ($parent, $sl)"
-#				 continue
-#			 }
-#			 set cid [$child id]
-#			 if [info exists closeNodes($cid)] {
-#				 error "Loop: node $cid already in the tree"
-#			 }
-#
-#			 # shouldn't go upstream
-#			 if ![info exists link_($pid:$cid)] {
-#				 error "Found non-existent link ($pid:$cid)";
-#			 }
-#
-#			 lappend nodeList $child
-#			 puts "Link ($pid:$cid) found."
-#			 lappend treeLinks $pid:$cid $link_($pid:$cid)
-#			 set treeLinks_($pid:$cid) $link_($pid:$cid)
-#
-#			 set iif [[$link_($pid:$cid) set iif_] label]
-#			 if {$iif == -1} {
-#				 puts "iif == -1"
-#			 }
-#			 lappend repList [$child getRepByIIF $src $grp $iif]
-#		 }
-#	 }
-#	 return $treeLinks
-#}
-#
-# XXX assume duplex link, also assume this is called after ns starts
-#Simulator instproc color-tree {} {
-#	 $self instvar treeLinks_ Node_
-#
-#	 # color tree links
-#	 foreach l [array names treeLinks_] {
-#		 set tmp [split $l :]
-#		 set sid [lindex $tmp 0]
-#		 set did [lindex $tmp 1]
-#		 $self duplex-link-op $Node_($sid) $Node_($did) color blue
-#	 }
-#}
-#
+
 Agent/Mcast/Control instproc init { protocol } {
-        $self next
-        $self instvar proto_
-        set proto_ $protocol
+	 $self next
+	 $self instvar proto_
+	 set proto_ $protocol
 }
 
 Agent/Mcast/Control array set messages {}
