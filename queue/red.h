@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.15 1999/05/13 20:34:18 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.16 1999/06/11 23:37:19 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -74,7 +74,8 @@ struct edp {
 	int bytes;		/* true if queue in bytes, false if packets */
 	int wait;		/* true for waiting between dropped packets */
 	int setbit;		/* true to set congestion indication bit */
-
+	int gentle;		/* true to increases dropping prob. slowly *
+				 * when ave queue exceeds maxthresh. */
 	double th_min;		/* minimum threshold of average queue size */
 	double th_max;		/* maximum threshold of average queue size */
 	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
@@ -96,6 +97,8 @@ struct edv {
 	double v_prob;		/* prob. of packet drop */
 	double v_a;		/* v_prob = v_a * v_ave + v_b */
 	double v_b;
+	double v_c;		/* used for "gentle" mode */
+	double v_d;		/* used for "gentle" mode */
 	int count;		/* # of packets since last drop */
 	int count_bytes;	/* # of bytes since last drop */
 	int old;		/* 0 when average queue first exceeds thresh */

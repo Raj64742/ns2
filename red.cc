@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.38 1999/06/09 22:32:59 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.39 1999/06/11 23:37:18 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -92,6 +92,11 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
+	bind_bool("gentle_", &edp_.gentle);         // increase the packet
+						    // drop prob. slowly
+						    // when ave queue
+						    // exceeds maxthresh
+
 	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
 	_RENAMED("drop-tail_", "drop_tail_");
 
@@ -149,6 +154,10 @@ void REDQueue::reset()
 	edv_.old = 0;
 	edv_.v_a = 1 / (edp_.th_max - edp_.th_min);
 	edv_.v_b = - edp_.th_min / (edp_.th_max - edp_.th_min);
+	if (edp_.gentle) {
+		edv_.v_c = ( 1.0 - 1 / edp_.max_p_inv ) / edp_.th_max;
+		edv_.v_d = 2 / edp_.max_p_inv - 1.0;
+	}
 
 	idle_ = 1;
 	if (&Scheduler::instance() != NULL)
@@ -231,10 +240,19 @@ Packet* REDQueue::deque()
 int
 REDQueue::drop_early(Packet* pkt)
 {
+	double p;
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
-	double p = edv_.v_a * edv_.v_ave + edv_.v_b;
-	p /= edp_.max_p_inv;
+	if (edp_.gentle && edv_.v_ave >= edp_.th_max) {
+		// p ranges from max_p to 1 as the average queue
+		// size ranges from th_max to twice th_max 
+		p = edv_.v_c * edv_.v_ave + edv_.v_d;
+	} else {
+		// p ranges from 0 to max_p as the average queue
+		// size ranges from th_min to th_max 
+		p = edv_.v_a * edv_.v_ave + edv_.v_b;
+		p /= edp_.max_p_inv;
+	}
 	edv_.v_prob1 = p;
 	if (edv_.v_prob1 > 1.0)
 		edv_.v_prob1 = 1.0;
@@ -384,7 +402,8 @@ void REDQueue::enque(Packet* pkt)
 	curq_ = qlen;	// helps to trace queue during arrival, if enabled
 
 	if (qavg >= edp_.th_min && qlen > 1) {
-		if (qavg >= edp_.th_max) {
+		if ((!edp_.gentle && qavg >= edp_.th_max) ||
+			(edp_.gentle && qavg >= 2 * edp_.th_max)) {
 			droptype = DTYPE_FORCED;
 		} else if (edv_.old == 0) {
 			/* 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.155 1999/05/27 21:50:22 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.156 1999/06/11 23:37:21 sfloyd Exp $
 
 
 #
@@ -213,6 +213,7 @@ Queue/RED set q_weight_ 0.002
 Queue/RED set wait_ true
 Queue/RED set linterm_ 10
 Queue/RED set setbit_ false
+Queue/RED set gentle_ false
 Queue/RED set drop_tail_ true
 Queue/RED set drop_front_ false
 Queue/RED set drop_rand_ false
