@@ -253,6 +253,15 @@ dat2cdf -e 0 -i 0.001 -d 1 -t $f.www.inbound.BW
 dat2cdf -e 0 -i 0.001 -d 1 -t $f.www.outbound.delay
 
 date
+echo "compute packet size distribution"
+sort -o inbound.pkt.size.sort inbound.pkt.siz
+sort -o outbound.pkt.size.sort outbound.pkt.siz
+awk -f pkt.awk < inbound.pkt.size.sort > $f.www.inbound.pktsize
+awk -f pkt.awk < outbound.pkt.size.sort > $f.www.outbound.pktsize
+dat2cdf -e 0 -i 1 -d 1 -t $f.www.inbound.pktsize
+dat2cdf -e 0 -i 1 -d 1 -t $f.www.outbound.pktsize
+
+date
 echo "Locate SYN connection"
 cat $f.www | delay.pl -p 80 > $f.sync
 sort -s -o $f.sync.sorted -T /tmp $f.sync
