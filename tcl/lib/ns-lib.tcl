@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.4 1998/10/08 04:23:01 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.5 1998/10/17 04:26:09 kannan Exp $
 
 #
 
@@ -373,6 +373,10 @@ Simulator instproc run {} {
 	$self check-node-num
 	$self rtmodel-configure			;# in case there are any
 	[$self get-routelogic] configure
+	if [$self multicast?] {
+		$self run-mcast
+	}
+
 	$self instvar scheduler_ Node_ link_ started_ 
 	
 	set started_ 1
@@ -849,7 +853,7 @@ Simulator instproc all-nodes-list {} {
 	foreach n [array names Node_] {
 		lappend nodes $Node_($n)
 	}
-	set nodes
+	lsort $nodes
 }
 
 Simulator instproc link { n1 n2 } {
@@ -928,6 +932,11 @@ Classifier instproc installNext val {
 	set slot [$self cmd installNext $val]
 	$self set slots_($slot) $val
 	set slot
+}
+
+Classifier instproc clear slot {
+	$self unset slots_($slot)
+	$self cmd clear $slot
 }
 
 Classifier instproc adjacents {} {

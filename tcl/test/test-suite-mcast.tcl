@@ -17,6 +17,7 @@ source misc.tcl
 source topologies.tcl
 catch "cd $dir"
 
+
 # Method to create the multicast simulator...
 TestSuite instproc get-simulator {} {
 	new Simulator -multicast 1		;# viola

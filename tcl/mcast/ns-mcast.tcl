@@ -58,23 +58,32 @@ Simulator instproc clear-mcast {} {
 
 Simulator instproc mrtproto {mproto nodeList} {
 	$self instvar Node_ MrtHandle_
-	# assert [Class info instances $mproto] $mproto
-	set mproto_args { $node }
-	if { $nodeList == "" } {
-		set mproto_args { $Node_($node) }
-		set nodeList [array names Node_ ]
-	}
+
 	set MrtHandle_ ""
 	if {$mproto == "CtrMcast"} {
 		set MrtHandle_ [new CtrMcastComp $self]
 		$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
-		lappend mproto_args 0 {}
+		if {[llength $nodeList] == 0} {
+			foreach n [array names Node_] {
+				new $mproto $self $Node_($n) 0 [list]
+			}
+		} else {
+			foreach node $nodeList {
+				new $mproto $self $node 0 [list]
+			}
+		}
+	} else {
+		if {[llength $nodeList] == 0} {
+			foreach n [array names Node_] {
+				new $mproto $self $Node_($n)
+			}
+		} else {
+			foreach node $nodeList {
+				new $mproto $self $node
+			}
+		}
 	}
-	foreach node $nodeList {
-		eval new $mproto $self $mproto_args
-	}
-	$self at 0.0 "$self run-mcast"
-	set MrtHandle_
+	return $MrtHandle_
 }
 
 Node proc allocaddr {} {
@@ -194,7 +203,10 @@ Node instproc link2oif link {
 
 Node instproc rpf-nbr src {
 	$self instvar ns_ id_
-	$ns_ get-node-by-id [[$ns_ get-routelogic] lookup $id_ $src]
+	if [catch "$src id" srcID] {	;# assumes $src is a node handle
+		set srcID $src
+	}
+	$ns_ get-node-by-id [[$ns_ get-routelogic] lookup $id_ $srcID]
 }
 
 Node instproc getReps { src group } {
@@ -208,6 +220,22 @@ Node instproc getReps { src group } {
 
 Node instproc getReps-raw { src group } {
 	$self array get replicator_ "$src:$group"
+}
+
+Node instproc clearReps { src group } {
+	$self instvar multiclassifier_
+	foreach {key rep} [$self getReps-raw $src $group] {
+		$rep reset
+		delete $rep
+
+		foreach {slot val} [$multiclassifier_ adjacents] {
+			if { $val == $rep } {
+				$multiclassifier_ clear $slot
+			}
+		}
+
+		$self unset replicator_($key)
+	}
 }
 
 Node instproc new-group { src group iface code } {
@@ -427,6 +455,15 @@ Classifier/Replicator/Demuxer instproc change-iface { src dst oldiface newiface}
         [$node_ set multiclassifier_] change-iface $src $dst \
 			[$oldiface if-label?] [$newiface if-label?]
         return 1
+}
+
+Classifier/Replicator/Demuxer instproc reset {} {
+	$self instvar nactive_ active_
+	foreach { target slot } [array get active_] {
+		$self clear $slot
+	}
+	set nactive_ 0
+	unset active_
 }
 
 #
