@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.68 1999/11/19 04:06:31 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.69 1999/11/24 20:32:24 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -303,6 +303,8 @@ protected:
 	int trace_all_oneline_;	/* TCP tracing vars all in one line or not? */
 	int nam_tracevar_;      /* Output nam's variable trace or just plain 
 				   text variable trace? */
+	int first_decrease_;	/* First decrease of congestion window.  */
+				/* Used for decrease_num_ != 0.5. */
 
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);

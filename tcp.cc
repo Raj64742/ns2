@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.93 1999/11/19 04:06:30 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.94 1999/11/24 20:32:23 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -70,7 +70,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
-	ect_(0), restart_bugfix_(1), closed_(0), nrexmit_(0)
+	ect_(0), restart_bugfix_(1), closed_(0), nrexmit_(0),
+	first_decrease_(1)
 	
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
@@ -274,6 +275,7 @@ TcpAgent::reset()
 	closed_ = 0;
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
+	first_decrease_ == 1;
 
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
@@ -694,17 +696,22 @@ void
 TcpAgent::slowdown(int how)
 {
 	int win = window();
-	// int halfwin = int (window() / 2);
-	int halfwin = int (decrease_num_ * window());
+	int halfwin = int (window() / 2);
+	int decreasewin = int (decrease_num_ * window());
 	if (how & CLOSE_SSTHRESH_HALF)
-		ssthresh_ = halfwin;
+		ssthresh_ = decreasewin;
         else if (how & THREE_QUARTER_SSTHRESH)
 		if (ssthresh_ < 3*cwnd_/4)
 			ssthresh_  = (int)(3*cwnd_/4);
 	if (how & CLOSE_CWND_HALF)
-		cwnd_ = halfwin;
+		// For the first decrease, decrease by half
+		// even for non-standard values of decrease_num_.
+		if (first_decrease_ || decrease_num_ == 0.5) {
+			cwnd_ = halfwin;
+			first_decrease_ == 0;
+		} else cwnd_ = decreasewin;
         else if (how & CWND_HALF_WITH_MIN) {
-                cwnd_ = halfwin;
+                cwnd_ = decreasewin;
                 if (cwnd_ < 1)
                         cwnd_ = 1;
 	}
