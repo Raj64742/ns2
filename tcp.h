@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.21 1997/07/25 05:56:33 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.22 1997/07/25 06:54:36 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -237,7 +237,6 @@ protected:
 	TracedInt maxseq_;	/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
-	int disable_ecn_;       /* 1 if reaction to ECN is disabled */
 	double firstsent_;  /* When first packet was sent  --Allman */
 	int off_ip_;
 	int off_tcp_;
