@@ -1,0 +1,29 @@
+1. Introduction
+----------------
+
+This directory and its descendants contain the sources for ns, the 
+network simulator, and its support software packages including Tcl/Tk,
+TclCL, otcl, nam, and xgraph. The information here corresponds to 
+the software release as below:
+
+otcl	otcl release 1.0a2
+TclCL	tclcl release 1.0b4
+Tcl	Tcl release 8.0p2
+Tk	Tk release 8.0p2
+Xgraph  xgraph version 12
+nam	Nam release 1.0a4
+ns	ns release 2.1b2
+
+2. Installing the package
+--------------------------
+
+All you need to do is type "./install" under this directory. The install
+script will compile and install the whole package for you. The script also
+will tell you the final installation result.
+
+3. More information
+--------------------
+
+For more information, please check http://catarina.usc.edu/vint
+
+

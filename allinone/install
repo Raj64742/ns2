@@ -1,0 +1,160 @@
+#! /bin/sh
+
+# compile and install tcl
+CUR_PATH=`pwd`
+
+cd ./tcl8.0/unix
+if ./configure --prefix="$CUR_PATH/tcl8.0"
+then
+    if make
+    then 
+	if make install
+	then
+	   echo "tcl8.0 has been installed successfully!"
+	else
+	   echo "tcl8.0 installation failed! Exiting ..."
+	   exit 1
+	fi
+    else
+	echo "tcl8.0 make failed! Exiting ..."
+	exit 1
+    fi
+else
+	echo "tcl8.0 configuration failed! Exiting ..."
+	exit 1
+fi
+
+cd ../../
+
+# compile and install tk
+
+cd ./tk8.0/unix
+
+if ./configure --prefix="$CUR_PATH/tk8.0"
+then
+    if make
+    then
+        if make install
+        then
+           echo "tk8.0 has been installed successfully!"
+        else
+           echo "tk8.0 installation failed! Exiting ..."
+           exit 1
+        fi
+    else
+        echo "tk8.0 make failed! Exiting ..."
+        exit 1
+    fi
+else
+        echo "tk8.0 configuration failed! Exiting ..."
+        exit 1
+fi
+
+cd ../../
+
+# compile and install otcl
+
+cd ./otcl 
+
+if ./configure --with-tcl=../tcl8.0 --with-tk=../tk8.0
+then 
+    if make
+    then
+	echo "otcl has been installed successfully!"
+    else
+        echo "otcl make failed! Exiting ..."
+	exit 1
+    fi
+else
+    echo "otcl configuration failed! Exiting ..."
+    exit 1
+fi
+cd ../
+
+# compile and install TclCL
+
+cd ./TclCL
+if ./configure --with-otcl=../otcl --with-tcl=../tcl8.0 --with-tk=../tk8.0  --with-tcl-ver=8.0 --with-tk-ver=8.0
+then 
+    if make
+    then
+        echo "TclCL has been installed successfully!" 
+    else
+        echo "TclCL make failed! Exiting ..."
+        exit 1
+    fi
+else
+    echo "TclCL configuration failed! Exiting ..."
+    exit 1
+fi
+
+cd ../
+
+#compile and install xgraph
+
+cd ./xgraph
+if xmkmf
+then
+    if make
+    then
+	echo "xgraph has been installed successfully! "
+    else 
+	echo "Can not create xgraph! But xgraph is an optional package, continue..."
+    fi
+else
+    echo " Can not create Makefile for xgraph !, but xgraph is an optional package, continue ..."
+fi
+
+cd ../
+
+#compile and install ns
+
+cd ./ns-2
+if ./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static
+then
+    if make
+    then
+	echo " Ns has been installed successfully!" 
+    else
+        echo "Ns make failed! Exiting ..."
+        exit 1
+    fi
+else
+    echo "Ns configuration failed! Exiting ..."
+    exit 1
+fi
+
+cd ../
+
+#compile and install nam
+
+cd ./nam-1
+
+if ./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static
+then
+    if make
+    then
+	echo "Nam has been installed successfully!" 
+    else
+        echo "Nam make failed! Exiting ..."
+        exit 1
+    fi
+else
+    echo "Nam configuration failed! Exiting ..."
+    exit 1
+fi
+
+cd ../
+
+echo "Ns-allinone package has been installed successfully !"
+echo "Here are the installation places:"
+echo "ns:	$CUR_PATH/ns-2/ns"
+echo "nam:	$CUR_PATH/nam-1/nam"
+echo "otcl:	$CUR_PATH/otcl"
+echo "TclCL:	$CUR_PATH/TclCL"
+echo "tcl8.0:	$CUR_PATH/tcl8.0"
+echo "tk8.0:	$CUR_PATH/tcl8.0"
+echo "xgraph:	$CUR_PATH/xgraph"
+
+exit 0
+
