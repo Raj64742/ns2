@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.24 1998/09/28 19:25:38 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.25 1999/04/10 00:41:56 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -64,11 +64,19 @@ int RouteLogic::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
 		if (strcmp(argv[1], "compute") == 0) {
+			if (adj_ == 0) {
+				fprintf(stderr, "No adjacency info; Probably a disconnected topology! Route not computed..\n");
+				return (TCL_OK);
+			}
 			compute_routes();
 			return (TCL_OK);
 		}
 		
 		if (strcmp(argv[1], "hier-compute") == 0) {
+			if (hadj_ == 0) {
+				fprintf(stderr, "No adjacency info; Probably a disconnected topology! Hier-route not computed..\n");
+				return (TCL_OK);
+			}
 			hier_compute();
 			return (TCL_OK);
 		}
@@ -136,18 +144,6 @@ int RouteLogic::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 
-		// if(strcmp(argv[1], "send-hdata") == 0) {
-// 	    if (argc != (level_ + 1)) {
-// 		tcl.result("send-hdata: # hierarchy levels donot match with # args");
-// 		return (TCL_ERROR);
-// 	    }
-// 	    /***** change this to allow n-levels of hierarchy ***/
-// 	    D_ = atoi(argv[2]) + 1;
-// 	    C_ = atoi(argv[3]) + 1;
-// 	    hier_init();
-// 	    return (TCL_OK);
-// 	}
-
 		if(strcmp(argv[1], "send-num-of-nodes") == 0) {
 			int i, j, k=2, Ctotal=0 ;
 			for (i=1; i < D_; i++)
@@ -191,11 +187,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "hier-reset") == 0) {
 			int i;
 			int  src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
-			/* initializing src and dst addr */
-			// for (i=0; i < SMALL_LEN; i++){
-// 				src_addr[i] = 0;
-// 				dst_addr[i] = 0;
-// 			}
+			
 			str2address(argv, src_addr, dst_addr);
 			// assuming node-node addresses (instead of node-cluster or node-domain pair) 
 			// are sent for hier_reset  
@@ -258,11 +250,6 @@ int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	int src[SMALL_LEN], dst[SMALL_LEN];
 	Tcl& tcl = Tcl::instance();
 
-	/* initializing src and dst addr */
-	// for (i=0; i < SMALL_LEN; i++){
-	// 				src_addr[i] = 0;
-	// 				dst_addr[i] = 0;
-	// 			}
 	if ( hroute_ == 0) {
 		tcl.result("Required Hier_data not sent");
 		return TCL_ERROR;
@@ -271,7 +258,6 @@ int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	ns_strtok(asrc, src);
 	ns_strtok(adst, dst);
 
-	// for (i=0; i < HIER_LEVEL; i++)
 	for (i=0; i < level_; i++)
 		if (src[i] <= 0) {
 			tcl.result("negative src node number");
