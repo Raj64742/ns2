@@ -28,16 +28,18 @@
 # a hierarchical address to the lan itself.  This maybe confusing.
 #------------------------------------------------------------
 Class LanNode -superclass InitObject
-LanNode set ifqType_ Queue/DropTail
-LanNode set macType_ Mac/Csma/Cd
-LanNode set chanType_ Channel
-LanNode set address_ ""
+LanNode set ifqType_   Queue/DropTail
+LanNode set llType_    LL
+LanNode set macType_   Mac/Csma/Cd
+LanNode set chanType_  Channel
+LanNode set address_   ""
 
-LanNode instproc address {val} { $self set address_ $val }
-LanNode instproc bw {val} { $self set bw_ $val }
-LanNode instproc delay {val} { $self set delay_ $val }
-LanNode instproc ifqType {val} { $self set ifqType_ $val }
-LanNode instproc macType {val} { $self set macType_ $val }
+LanNode instproc address  {val} { $self set address_  $val }
+LanNode instproc bw       {val} { $self set bw_       $val }
+LanNode instproc delay    {val} { $self set delay_    $val }
+LanNode instproc ifqType  {val} { $self set ifqType_  $val }
+LanNode instproc llType   {val} { $self set llType_   $val }
+LanNode instproc macType  {val} { $self set macType_  $val }
 LanNode instproc chanType {val} { $self set chanType_ $val }
 
 LanNode instproc init {ns args} {
@@ -75,7 +77,7 @@ LanNode instproc init {ns args} {
 	$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
 	$channel_ target $mcl_
 }
-LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
+LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} } {
 	$self instvar ifqType_ macType_ chanType_ 
 	$self instvar id_ channel_ mcl_ lanIface_
 	$self instvar ns_ nodelist_ cost_
@@ -83,10 +85,14 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 
 	if {$ifqType == ""} { set ifqType $ifqType_ }
 	if {$macType == ""} { set macType $macType_ }
+	if {$llType  == ""} { set llType $llType_ }
 
 	set vlinkcost [expr $cost_ / 2.0]
 	foreach src $nodes {
-		set nif [new LanIface $src $self -ifqType $ifqType -macType $macType]
+		set nif [new LanIface $src $self \
+				-ifqType $ifqType \
+				-llType  $llType \
+				-macType $macType]
 		
 		set ll [$nif set ll_]
 		$ll set bandwidth_ $bw
@@ -296,3 +302,30 @@ lanRouter instproc init {ns lan} {
 }
 
 Node instproc is-lan? {} { return 0 }
+
+#
+# newLan:  create a LAN from a sete of nodes
+#
+Simulator instproc newLan {nodelist bw delay args} {
+	set lan [eval new LanNode $self -bw $bw -delay $delay $args]
+	$lan addNode $nodelist $bw $delay
+	return $lan
+}
+
+# For convenience, use make-lan.  For more fine-grained control,
+# use newLan instead of make-lan.
+Simulator instproc make-lan {nodelist bw delay \
+		{llType LL} \
+		{ifqType Queue/DropTail} \
+		{macType Mac} \
+		{chanType Channel}} {
+	set lan [new LanNode $self \
+			-bw $bw \
+			-delay $delay \
+			-llType $llType \
+			-ifqType $ifqType \
+			-macType $macType \
+			-chanType $chanType]
+	$lan addNode $nodelist $bw $delay $llType $ifqType $macType
+	return $lan
+}
