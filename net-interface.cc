@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.9 1999/09/27 20:51:09 yuriy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.10 1999/09/27 21:09:35 yuriy Exp $ (USC/ISI)";
 #endif
 
 #include "net-interface.h"
@@ -49,7 +49,7 @@ void NetworkInterface::recv(Packet* p, Handler* h) {
 	printf("Marking to %d\n", intf_label_);
 #endif
 	ch->iface() = intf_label_;
-	ch->direction()= -1;
+	ch->direction()= 0; //direction: none
 	send(p, h);
 }
 
