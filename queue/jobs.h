@@ -46,7 +46,7 @@
  * Grateful acknowledgments to Tarek Abdelzaher for his help and       
  * comments.                                                           
  *                                                                     
- * $Id: jobs.h,v 1.1 2003/02/02 22:18:22 xuanc Exp $
+ * $Id: jobs.h,v 1.2 2003/07/11 00:10:10 johnh Exp $
  */
 
 #ifndef JOBS_H
@@ -63,7 +63,9 @@
 #include "marker.h"
 
 /* JoBS Queuing */
+#ifndef INFINITY
 #define	INFINITY	+1.0e499
+#endif
 #define	PRECISION_ERROR +1.0e-10
 #define TOL		0.02		// Tolerance in the constraints (2%)
 #define MON_WINDOW_SIZE 0.5		// Size of the moving average window
