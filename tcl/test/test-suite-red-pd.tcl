@@ -36,6 +36,10 @@ set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set q_weight_ 0.002
+Queue/RED set thresh_ 5 
+Queue/RED set maxthresh_ 15
+# The RED parameter defaults are being changed for automatic configuration.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1

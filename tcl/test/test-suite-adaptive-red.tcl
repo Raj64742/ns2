@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.10 2001/11/29 17:59:17 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.11 2001/12/03 02:44:29 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -40,6 +40,10 @@ source misc_simple.tcl
 catch "cd $dir"
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set q_weight_ 0.002
+Queue/RED set thresh_ 5 
+Queue/RED set maxthresh_ 15
+# The RED parameter defaults are being changed for automatic configuration.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
 Agent/TCP set useHeaders_ false

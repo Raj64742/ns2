@@ -26,6 +26,12 @@
 # ns test-suite-diffserv.tcl
 #
 
+# FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set q_weight_ 0.002
+Queue/RED set thresh_ 5 
+Queue/RED set maxthresh_ 15
+# The RED parameter defaults are being changed for automatic configuration.
+
 # The topology used in the test suite is:
 #
 #    s1 -------

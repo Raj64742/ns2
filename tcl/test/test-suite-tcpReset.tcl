@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.5 2001/11/28 23:04:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.6 2001/12/03 02:44:31 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -38,6 +38,10 @@
 
 source misc.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set q_weight_ 0.002
+Queue/RED set thresh_ 5 
+Queue/RED set maxthresh_ 15
+# The RED parameter defaults are being changed for automatic configuration.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
