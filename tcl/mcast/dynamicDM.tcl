@@ -27,7 +27,7 @@ dynamicDM instproc periodic-check {} {
 dynamicDM instproc check-downstream-list { } {
         $self instvar ns DownstreamList_ Node PruneTimer_ iif_
 
-        puts "[$ns now] check downstream list"
+        # puts "[$ns now] check downstream list"
 	set neighbor [$Node set neighbor_]
 	set id [$Node set id_]
 
@@ -153,21 +153,3 @@ dynamicDM instproc handle-cache-miss { argslist } {
 	$Node add-mfc $srcID $group $iif $oiflist
 }
 
-dynamicDM instproc handle-wrong-iif { argslist } {
-
-
-}
-
-dynamicDM instproc send-ctrl { which src group } {
-        $self instvar prune ns Node
-	set id [$Node id]
-	# puts "_node $id, send ctrl $which, src $src, group $group"
-        set nbr [$ns upstream-node $id $src]
-	$ns connect $prune [[[$nbr getArbiter] getType "dynamicDM"] set prune]
-        if { $which == "prune" } {
-                $prune set class_ 30
-        } else {
-                $prune set class_ 31
-        }        
-        $prune send "$which/$id/$src/$group"
-}

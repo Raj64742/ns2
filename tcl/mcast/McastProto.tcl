@@ -39,7 +39,7 @@ McastProtocol instproc join-group {} {
         $self instvar dynT_ Node group_
         if [info exists dynT_] {
 	    foreach tr $dynT_ {
-		$tr format annotation "[$Node id]-join-group-$group_"
+		$tr annotate "[$Node id] join group $group_"
 	    }
 	}
 }
@@ -48,7 +48,7 @@ McastProtocol instproc leave-group {} {
         $self instvar dynT_ Node group_
         if [info exists dynT_] {
 	    foreach tr $dynT_ {
-		$tr format annotation "[$Node id]-leave-group-$group_"
+		$tr annotate "[$Node id] leave group $group_"
 	    }
 	}
 }

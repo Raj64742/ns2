@@ -188,7 +188,7 @@ CtrMcast instproc drop  { replicator src group } {
     #puts "drop"
 }
 
-McastProtocol instproc handle-wrong-iif { argslist } {
+CtrMcast instproc handle-wrong-iif { argslist } {
     set srcID [lindex $argslist 0]
     set group [lindex $argslist 1]
     set iface [lindex $argslist 2]

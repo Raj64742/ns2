@@ -225,6 +225,7 @@ MultiNode instproc ifaceGetNode { iface } {
 		return $node
 	    }
         }
+	return -1
 }
 
 MultiNode instproc init-outLink { } {

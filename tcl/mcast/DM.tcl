@@ -18,7 +18,7 @@ DM instproc init { sim node } {
 DM instproc initialize { } {
 	$self instvar Node prune
         # puts "initialize DM-like: creating prune msg agents"
-	set prune [new Agent/Message/Prune $self]
+	set prune [new Agent/Mcast/Prune $self]
         [$Node getArbiter] addproto $self
 	$Node attach $prune
 }
@@ -168,39 +168,25 @@ DM instproc send-ctrl { which src group } {
 	set id [$Node id]
 	#puts "_node $id, send ctrl $which, src $src, group $group"
         set nbr [$ns upstream-node $id $src]
-	$ns connect $prune [[[$nbr getArbiter] getType "DM"] set prune]
+	$ns connect $prune [[[$nbr getArbiter] getType [$self info class]] set prune]
         if { $which == "prune" } {
                 $prune set class_ 30
         } else {
                 $prune set class_ 31
         }        
-        $prune send "$which/$id/$src/$group"
+        $prune send $which $id $src $group
 }
 
-
-
-Class Agent/Message/Prune -superclass Agent/Message
-
-Agent/Message/Prune instproc init { protocol } {
+Agent/Mcast/Prune instproc init { protocol } {
 	$self next
 	$self instvar proto
 	set proto $protocol
 }
  
-Agent/Message/Prune instproc handle msg {
+Agent/Mcast/Prune instproc handle {type from src group} {
 	$self instvar proto 
 	# puts "_node [[$proto set Node] id], prune agent handle"
-        set L [split $msg /]
-        set type [lindex $L 0]
-        set from [lindex $L 1]
-        set src [lindex $L 2]
-        set group [lindex $L 3]
-        $self instvar node
-        if { $type == "prune" } {
-                $proto recv-prune $from $src $group 
-        } else {
-                $proto recv-graft $from $src $group
-        }
+        eval $proto recv-$type $from $src $group 
 }
 
 #####

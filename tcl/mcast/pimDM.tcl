@@ -29,7 +29,7 @@ pimDM instproc handle-cache-miss { argslist } {
         set upstream [$ns upstream-node $id $srcID]
         foreach node $neighbor {
 	    set nbr [$node id]
-	    #if { [$upstream id] != $nbr } {
+	    if { [$upstream id] != $nbr } {
 		set oifInfo [$Node get-oif [$ns set link_($id:$nbr)]]
 		set index [lindex $oifInfo 0]
 		set oif [lindex $oifInfo 1]
@@ -38,7 +38,7 @@ pimDM instproc handle-cache-miss { argslist } {
 		    lappend indexList $index
 		    lappend oiflist $oif
 		}
-	    #}
+	    }
 	}
 	# got to find iface
 	if {$srcID == $id} {
@@ -62,6 +62,10 @@ pimDM instproc handle-wrong-iif { argslist } {
     set nbr [$Node ifaceGetNode $iface]
     if {[$ns upstream-node $id $srcID] == $nbr} {
 	set r [$Node getRep $srcID $group] 
+	set newoifnode [$Node ifaceGetNode $iif_($srcID)]
+	if {$newoifnode > -1} {
+	    $r insert [lindex [$Node get-oif [$ns set link_($id:[$newoifnode id])]] 1]
+	}
 	$r change-iface $srcID $group $iif_($srcID) $iface
 	set iif_($srcID) $iface
     } else {
@@ -75,26 +79,12 @@ pimDM instproc send-ctrl-wrong-iface { which src group iface } {
 	set id [$Node id]
 	# puts "wrong-iface: _node $id, send ctrl $which, src $src, group $group"
         set nbr [$Node ifaceGetNode $iface]
-	$ns connect $prune [[[$nbr getArbiter] getType "pimDM"] set prune]
+	$ns connect $prune [[[$nbr getArbiter] getType [$self info class]] set prune]
         if { $which == "prune" } {
                 $prune set class_ 30
         } else {
                 $prune set class_ 31
         }        
-        $prune send "$which/$id/$src/$group"
-}
-
-pimDM instproc send-ctrl { which src group } {
-        $self instvar prune ns Node
-	set id [$Node id]
-	# puts "send-ctrl: _node $id, send ctrl $which, src $src, group $group"
-        set nbr [$ns upstream-node $id $src]
-	$ns connect $prune [[[$nbr getArbiter] getType "pimDM"] set prune]
-        if { $which == "prune" } {
-                $prune set class_ 30
-        } else {
-                $prune set class_ 31
-        }        
-        $prune send "$which/$id/$src/$group"
+        $prune send $which $id $src $group
 }
 

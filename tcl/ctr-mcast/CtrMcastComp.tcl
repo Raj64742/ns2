@@ -259,7 +259,7 @@ CtrMcastComp instproc switch-treetype group {
 
     if [info exists dynT_] {
 	foreach tr $dynT_ {
-	    $tr format annotation "$group-switch-tree-type"
+	    $tr annotate "$group switch tree type"
 	}
     }
     set treetype($group) $SPT

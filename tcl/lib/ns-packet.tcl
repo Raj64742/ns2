@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.8 1997/06/11 03:07:02 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.9 1997/06/28 03:26:04 polly Exp $
 #
 #
 # set up the packet format for the simulation
@@ -55,6 +55,7 @@ Simulator instproc create_packetformat { } {
                 { IVS off_ivs_ }
                 { rtProtoDV off_DV_ }
 	        { CtrMcast off_CtrMcast_ }
+	        { Prune off_prune_ }
 		{ SRM off_srm_ }} {
 
 		set cl [lindex $pair 0]

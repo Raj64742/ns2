@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.40 1997/06/26 01:48:01 polly Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.41 1997/06/28 03:25:58 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -92,7 +92,7 @@ OBJ_CC = \
 	errmodel.o biconnector.o trace-ip.o \
 	ll.o snoop.o csdp.o csdp-ls.o \
 	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
-	net-interface.o	ctrMcast.o \
+	net-interface.o	ctrMcast.o prune.o \
 	net.o net-ip.o tap.o \
 	lib/int.Vec.o lib/int.RVec.o \
 	lib/dmalloc_support.o \
@@ -129,7 +129,7 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
 	delay.h \
 	snoop.h ll.h mac.h mac-multihop.h mac-csma.h mac-802_11.h \
-	rtProtoDV.h ctrMcast.h 
+	rtProtoDV.h ctrMcast.h prune.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
 	gen/* core core.ns core.nsx

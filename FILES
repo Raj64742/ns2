@@ -66,6 +66,8 @@ object.h
 packet.cc
 packet.h
 pareto.cc
+prune.cc
+prune.h
 queue.cc
 queue.h
 queue-monitor.h

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.30 1997/06/20 03:05:48 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.31 1997/06/28 03:26:04 polly Exp $
 
 
 #
@@ -206,3 +206,5 @@ Traffic/Pareto set idle-time 500ms
 Traffic/Pareto set rate 64Kb
 Traffic/Pareto set packet-size 210
 Traffic/Pareto set shape 1.5
+
+Agent/Mcast/Prune set packetSize_ 80
