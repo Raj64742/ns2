@@ -13,6 +13,7 @@
 #         /                 \
 #        s2                 s4
 #
+# updated to use -multicast on and allocaddr by Lloyd Wood
 
 proc build_topology { ns } {
 
@@ -45,10 +46,8 @@ proc build_topology { ns } {
  
 source ../mcast/srm-nam.tcl
 
-Simulator set NumberInterfaces_ 1
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
- 
+set ns [new Simulator -multicast on]
+
 set f [open out.tr w]
 $ns trace-all $f
 set nf [open out.nam w]
@@ -56,7 +55,7 @@ $ns namtrace-all $nf
 
 build_topology $ns
 
-set group 0x8000
+set group [Node allocaddr]
 set mh [$ns mrtproto DM {}]
 
 set srmStats [open srmStats.tr w]

@@ -39,10 +39,9 @@
 # The routing protocol that must be run is specified as arguments to the 
 # run command, rather than being specified separately.
 #
+# updated to use -multicast on by Lloyd Wood
 
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
-Simulator set NumberInterfaces_ 1
+set ns [new Simulator -multicast on]
 
 Node set multiPath_ 1
 

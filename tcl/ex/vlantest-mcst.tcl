@@ -74,9 +74,7 @@ proc create-topology {} {
 
 ## MAIN ##
 
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
-Simulator set NumberInterfaces_ 1
+set ns [new Simulator -multicast on]
 $ns color 2 black
 $ns color 1 blue
 $ns color 0 red
@@ -89,6 +87,7 @@ create-topology
 
 set mproto DM
 set mrthandle [$ns mrtproto $mproto  {}]
+set group [Node allocaddr]
 
 set udp0 [new Agent/UDP]
 $ns attach-agent $node0 $udp0
@@ -100,11 +99,11 @@ $ns attach-agent $nodex $rcvrx
 set rcvry [new Agent/Null]
 $ns attach-agent $nodey $rcvry
 
-$udp0 set dst_ 0x8003
+$udp0 set dst_ $group
 $cbr0 set interval_ 0.01
 
-$ns at 0.0 "$nodex join-group $rcvrx 0x8003"
-$ns at 0.0 "$nodey join-group $rcvry 0x8003"
+$ns at 0.0 "$nodex join-group $rcvrx $group"
+$ns at 0.0 "$nodey join-group $rcvry $group"
 $ns at 0.1 "$cbr0 start"
 $ns at $opt(stop) "finish"
 $ns run

@@ -18,10 +18,10 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-#
+# updated to use -multicast on by Lloyd Wood
 
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
+set ns [new Simulator -multicast on]
+
 
 set n0 [$ns node]
 set n1 [$ns node]

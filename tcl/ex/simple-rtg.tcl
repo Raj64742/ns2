@@ -18,10 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-#
+# updated to use -multicast on by Lloyd Wood
 
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
+set ns [new Simulator -multicast on]
 
 $ns color 0 blue
 $ns color 1 red

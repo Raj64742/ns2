@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/08/24 04:16:20 $
+# Version Date: $Date: 1999/09/10 22:08:48 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star.tcl,v 1.10 1999/08/24 04:16:20 haoboy Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star.tcl,v 1.11 1999/09/10 22:08:48 haoboy Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -38,9 +38,8 @@ if {[llength $argv] > 0} {
 source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 
-Simulator set NumberInterfaces_ 1
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
+set ns [new Simulator -multicast on]
+
 $ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
 
@@ -55,7 +54,7 @@ for {set i 1} {$i <= $nmax} {incr i} {
     $ns duplex-link $n($i) $n(0) 1.5Mb 10ms DropTail
 }
 
-set group 0x8000
+set group [Node allocaddr]
 set cmc [$ns mrtproto CtrMcast {}]
 $ns at 0.3 "$cmc switch-treetype $group"
 

@@ -1,5 +1,5 @@
 #
-# Copyright (c) @ Regents of the University of California.
+# Copyright (c) 1997,1998,1999 Regents of the University of California.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,10 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-rtp.tcl,v 1.4 1997/11/04 21:54:36 haoboy Exp $
-#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-rtp.tcl,v 1.5 1999/09/10 22:08:45 haoboy Exp $
+# updated to use -multicast on and allocaddr by Lloyd Wood
 
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
+set ns [new Simulator -multicast on]
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -53,7 +52,6 @@ $ns trace-all $f
 set nf [open out.nam w]
 $ns namtrace-all $nf
 
-Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
@@ -65,6 +63,7 @@ $ns duplex-link-op $n0 $n1 queuePos 0.5
 
 set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
+set group [Node allocaddr]
 
 set s0 [new Session/RTP]
 set s1 [new Session/RTP]
@@ -81,19 +80,19 @@ $s1 attach-node $n1
 $s2 attach-node $n2
 $s3 attach-node $n3
 
-$ns at 1.4 "$s0 join-group 0x8000"
+$ns at 1.4 "$s0 join-group $group"
 $ns at 1.5 "$s0 start"
 $ns at 1.6 "$s0 transmit 400kb/s"
 
-$ns at 1.7 "$s1 join-group 0x8000"
+$ns at 1.7 "$s1 join-group $group"
 $ns at 1.8 "$s1 start"
 $ns at 1.9 "$s1 transmit 400kb/s"
 
-$ns at 2.0 "$s2 join-group 0x8000"
+$ns at 2.0 "$s2 join-group $group"
 $ns at 2.1 "$s2 start"
 $ns at 2.2 "$s2 transmit 400kb/s"
 
-$ns at 2.3 "$s3 join-group 0x8000"
+$ns at 2.3 "$s3 join-group $group"
 $ns at 2.4 "$s3 start"
 $ns at 2.5 "$s3 transmit 400kb/s"
 

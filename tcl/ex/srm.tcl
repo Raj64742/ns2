@@ -18,10 +18,11 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:41 $
+# Version Date: $Date: 1999/09/10 22:08:48 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm.tcl,v 1.7 1999/07/02 01:49:41 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm.tcl,v 1.8 1999/09/10 22:08:48 haoboy Exp $ (USC/ISI)
 #
+# updated to use -multicast on and allocaddr by Lloyd Wood
 
 if [string match {*.tcl} $argv0] {
 	set prog [string range $argv0 0 [expr [string length $argv0] - 5]]
@@ -32,9 +33,7 @@ if [string match {*.tcl} $argv0] {
 source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 
-Simulator set NumberInterfaces_ 1
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
+set ns [new Simulator -multicast on]
 
 $ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
@@ -67,7 +66,7 @@ $ns duplex-link-op $n(0) $n(1) orient left
 $ns duplex-link-op $n(0) $n(2) orient right-up
 $ns duplex-link-op $n(0) $n(3) orient right-down
 
-set group 0x8000
+set group [Node allocaddr]
 set mh [$ns mrtproto DM {}]
 #$ns at 0.3 "$mh switch-treetype $group"	;# for centralised multicast
 

@@ -17,7 +17,8 @@
 # software. 
 #
 
-#XXX
+# updated to use -multicast on by Lloyd Wood
+
 proc uniform01 {} {
 	return [expr double(([ns-random] % 10000000) + 1) / 1e7]
 }
@@ -299,7 +300,7 @@ foreach a $argv {
 #Clean up rectFile
 #rlm_init $rectFile $level $runtime  
 
-set ns [new Simulator]
+set ns [new Simulator -multicast on]
 #XXXX
 proc ns-now {} "return \[$ns now]"
 
@@ -314,9 +315,6 @@ $ns color 31 yellow
 
 $ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
-
-Simulator set EnableMcast_ 1
-Simulator set NumberInterfaces_ 1
 
 
 set scn [new Scenario$scenario $ns]
