@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftp.h,v 1.2 2001/06/12 18:27:47 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftp.h,v 1.3 2001/07/19 17:57:02 haldar Exp $ (LBL)
  */
 #ifndef ns_ftp_h
 #define ns_ftp_h
@@ -40,6 +40,8 @@
 
 /* states */
 #define REQ_SENT 0 
+#define DATA_RCVD 1 
+#define END_RCVD 2 
 /* events */
 #define NEW_FILE 0
 
@@ -54,23 +56,25 @@ protected:
 };
 
 
+/* added int to recv -kmn 6/8/00 */
+
 class FtpClientAgent : public BayTcpAppAgent {
  public:
 	FtpClientAgent();
 	int command(int argc, const char*const* argv);
-	virtual void recv(Packet*, BayFullTcpAgent*);
+	virtual void recv(Packet*, BayFullTcpAgent*, int);
+	//virtual void recv(Packet*, BayFullTcpAgent*);
         virtual void timeout(int);
  protected:
 
 	void start();
 	void stop();
-	double now() { return (Scheduler::instance().clock()); }
+	double now() { return Scheduler::instance().clock(); }
 	int sendget();
 	int running_;
 	double start_trans_;
 	int state_;
 	BayFullTcpAgent* tcp_;
-	//static FILE* fp_;
         NewFileTimer newfile_timer_;
 };
 

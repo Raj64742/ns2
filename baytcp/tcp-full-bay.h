@@ -30,45 +30,41 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.h,v 1.1 2001/04/05 22:49:46 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.h,v 1.2 2001/07/19 17:57:02 haldar Exp $ (LBL)
  */
-
-/* Kathie Nichols/Van Jacobson's version of Full-TCP (called BayTCP) ported into ns-2.   --Padma. March20, 2001.
-*/
 
 #ifndef ns_tcp_full_h
 #define ns_tcp_full_h
 
 #include "tcp.h"
-/*#include "tcp-full.h"*/
+
 /*
  * these defines are directly from tcp_var.h in "real" TCP
  * they are used in the 'tcp_flags_' member variable
  */
 
-#define TF_ACKNOW       0x0001      /* ack peer immediately */
-#define TF_DELACK       0x0002      /* ack, but try to delay it */
-#define TF_NODELAY      0x0004      /* don't delay packets to coalesce */
-#define TF_NOOPT        0x0008      /* don't use tcp options */
-#define TF_SENTFIN      0x0010      /* have sent FIN */
-#define TF_SENTSYN      0x0020      /* have sent SYN */
+#define TF_ACKNOW       0x0001          /* ack peer immediately */
+#define TF_DELACK       0x0002          /* ack, but try to delay it */
+#define TF_NODELAY      0x0004          /* don't delay packets to coalesce */
+#define TF_NOOPT        0x0008          /* don't use tcp options */
+#define TF_SENTFIN      0x0010          /* have sent FIN */
+#define TF_SENTSYN      0x0020          /* have sent SYN */
 
-#define TCPS_CLOSED             0   /* closed */
-#define TCPS_LISTEN             1   /* listening for connection */
-#define TCPS_SYN_SENT           2   /* active, have sent syn */
-#define TCPS_SYN_RECEIVED       3   /* have send and received syn */
-#define TCPS_ESTABLISHED        4   /* established */
-#define TCPS_FIN_WAIT_1         6   /* have closed, sent fin */
-#define TCPS_CLOSING            7   /* closed xchd FIN; await FIN ACK */
-#define TCPS_LAST_ACK           8   /* had fin and close; await FIN ACK */
-#define TCPS_FIN_WAIT_2         9   /* have closed, fin is acked */
+#define TCPS_CLOSED             0       /* closed */
+#define TCPS_LISTEN             1       /* listening for connection */
+#define TCPS_SYN_SENT           2       /* active, have sent syn */
+#define TCPS_SYN_RECEIVED       3       /* have send and received syn */
+#define TCPS_ESTABLISHED        4       /* established */
+#define TCPS_FIN_WAIT_1         6       /* have closed, sent fin */
+#define TCPS_CLOSING            7       /* closed xchd FIN; await FIN ACK */
+#define TCPS_LAST_ACK           8       /* had fin and close; await FIN ACK */
+#define TCPS_FIN_WAIT_2         9       /* have closed, fin is acked */
 
-#define TCPIP_BASE_PKTSIZE      40  /* base TCP/IP header in real life */
-
+#define TCPIP_BASE_PKTSIZE      40      /* base TCP/IP header in real life */
 /* these are used to mark packets as to why we xmitted them */
 #define REASON_NORMAL   0  
-#define REASON_TIMEOUT  1    
-#define REASON_DUPACK   2    
+#define REASON_TIMEOUT  1
+#define REASON_DUPACK   2
 
 /* bits for the tcp_flags field below */
 /* from tcp.h in the "real" implementation */
@@ -79,7 +75,7 @@
 #define TH_PUSH 0x08        /* PUSH: used here to "deliver" data */
 #define TH_ACK  0x10        /* ACK: ack number is valid */
 
-#define PF_TIMEOUT 0x04	    /* protocol defined */
+#define PF_TIMEOUT 0x04		/* protocol defined */
 
 /*
  * inserted by kedar
@@ -93,7 +89,7 @@ public:
 protected:
     virtual void expire(Event *);
     BayFullTcpAgent *a_;
-    }; 
+};
  
 class BayReassemblyQueue : public TcpAgent {
     struct seginfo {
@@ -213,9 +209,9 @@ public:
 };
 
 #ifdef notdef
-class BayNewRenoFullTcpAgent : public BayFullTcpAgent {
+class NewRenoBayFullTcpAgent : public BayFullTcpAgent {
 public:
-	BayNewRenoFullTcpAgent();
+	NewRenoBayFullTcpAgent();
 protected:
 	int	save_maxburst_;		// saved value of maxburst_
 	int	recov_maxburst_;	// maxburst lim during recovery
@@ -223,15 +219,15 @@ protected:
 	void ack_action(Packet*);
 };
 
-class BayTahoeFullTcpAgent : public BayFullTcpAgent {
+class TahoeBayFullTcpAgent : public BayFullTcpAgent {
 protected:
 	void dupack_action();
 };
 
-class BaySackFullTcpAgent : public BayFullTcpAgent {
+class SackBayFullTcpAgent : public BayFullTcpAgent {
 public:
-	BaySackFullTcpAgent();
-	~BaySackFullTcpAgent();
+	SackBayFullTcpAgent();
+	~SackBayFullTcpAgent();
 	void	recv(Packet*, Handler*);
 protected:
 	int build_options(hdr_tcp*);	// insert opts, return len

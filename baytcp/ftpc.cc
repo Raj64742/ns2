@@ -35,21 +35,15 @@
  * For use with "full tcp" model.
  */
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.3 2001/06/12 18:27:47 haldar Exp $ (LBL)";
-#endif
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.4 2001/07/19 17:57:02 haldar Exp $ (LBL)";
 
 #include "tcp-full-bay.h"
-#include "tclcl.h"
+#include "Tcl.h"
 #include "trace.h"
 #include "random.h"
 #include "ftp.h"
 
-
-
-
-//FILE* FtpClientAgent::fp_ = fopen("ftpdly.tr", "w");
 
 static class FtpClientClass : public TclClass {
 public:
@@ -83,8 +77,7 @@ void FtpClientAgent::timeout(int event_type)
 				start_trans_ = now();
 			}
 			else {
-				newfile_timer_.resched(0.2);
-printf("ftpclient: had to resched get\n");
+				printf("ftpclient:timeout erroneous tcp state\n");
 			}
 		}
 }
@@ -97,11 +90,20 @@ int FtpClientAgent::sendget()
 
 //scheduled only when the tcp connection(s) are upcalling
 // ask for another file after a delay to allow connection to close
-void FtpClientAgent::recv(Packet*, BayFullTcpAgent*)
+// 6/8/00 shouldn't need the delay. Consider reducing or removing -kmn
+void FtpClientAgent::recv(Packet*, BayFullTcpAgent*, int code)
 {
-  //fprintf(fp_, "%g %d %g\n", now(), addr_, now() - start_trans_);
-	if(running_)
-		newfile_timer_.resched(.2);
+  //at data complete time, schedule a "far out" event to ensure
+  // simulator doesn't terminate
+  if(running_ && code == DATA_PUSH) {
+  state_ = DATA_RCVD;
+  newfile_timer_.resched(5.0);
+  }
+  else if(running_ && code == CONNECTION_END) {
+    state_ = END_RCVD;
+    newfile_timer_.cancel();
+    newfile_timer_.resched(.0);
+  }
 }
 
 int FtpClientAgent::command(int argc, const char*const* argv)
@@ -132,4 +134,3 @@ int FtpClientAgent::command(int argc, const char*const* argv)
 void NewFileTimer::expire(Event *e) {
 	a_->timeout(NEW_FILE);
 }
-

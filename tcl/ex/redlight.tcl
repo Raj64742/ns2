@@ -1,4 +1,5 @@
-set stopTime 120
+#set stopTime 120
+set stopTime 10
 set ns [new Simulator]
 
 if {[llength $argv] > 0} {
@@ -19,7 +20,7 @@ if {[llength $argv] > 2} {
 } else {
 	set bottleneck 1.5Mb
 }
-debug 1
+
 
 #set random_seed  [lindex $argv 3]
 set random_seed 0
@@ -157,7 +158,7 @@ proc build_ftpclient {cnd snd sftp startTime timeToStop Flow_id} {
     set cli [get_ftpclient]
     set ctcp [get_fulltcp]
     $ctcp attach-application $cli
-    #$ctcp attach-app $cli
+    #set cli [$ctcp attach-app FTP]
     $ctcp set fid_ $Flow_id
     $cli tcp $ctcp
     $ns attach-agent $cnd $ctcp
@@ -184,6 +185,7 @@ proc build_ftpclient {cnd snd sftp startTime timeToStop Flow_id} {
 proc get_ftpclient {} {
     global client_addr
     set cli [new Agent/BayTcpApp/FtpClient]
+    #set cli [new Agent/TcpApp/FtpClient]
     $cli set addr_ [incr client_addr]
     return $cli
 }
@@ -192,6 +194,7 @@ proc get_ftpclient {} {
 proc get_fulltcp {} {
     global segperack segsize delack
     set atcp [new Agent/TCP/BayFullTcp]
+    #set atcp [new Agent/TCP/FullTcp]
     $atcp set segsperack_ $segperack
     $atcp set segsize_ $segsize
     $atcp set interval_ $delack
@@ -204,13 +207,19 @@ proc uniform {a b} {
 }
 
 proc finish {} {
-        global ns
+        global ns PERL
 	$ns halt
         $ns flush-trace
+    set wrap [expr 90 * 1000 + 40]
+    set file BayFullTCP
+    exec $PERL ../../bin/set_flow_id -s bay-out.tr | \
+	    $PERL ../../bin/getrc -e -s 1 -d 0 | \
+	    $PERL ../../bin/raw2xg -v -s 0.01 -m $wrap -t $file > temp.rands
+    exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
         exit 0
 }
-$ns trace-all [open baytcp-out.tr w]
-$ns namtrace-all [open baytcp-out.nam w]
+$ns trace-all [open bay-out.tr w]
+$ns namtrace-all [open bay-out.nam w]
 $ns color 2 blue
 $ns color 3 red
 $ns color 4 yellow
@@ -228,6 +237,7 @@ for {set k 1} {$k <= $num_ftps} {incr k 1} {
     set j [expr $k+1]
     set i [expr $j+$nn]
     set sftp [new Agent/BayTcpApp/FtpServer]
+    #set sftp [new Agent/TcpApp/FtpServer]
     $sftp file_size $filesize
     build_ftpclient [set n$j] [set n$i]  $sftp \
     		[expr ($k-1)*[uniform 0.0 2.0]] 225 $j

@@ -68,15 +68,10 @@
  *	the ack for the first segment, which can cause connections
  *	to take longer to start up than if we be sure to ack it quickly.
  */
-/*----------------------------------------------------------*/
-/* Kathie Nichols/Van Jacobson's version of Full-TCP (called BayTCP) ported into ns-2.   --Padma. March20, 2001.
-*/
-
-
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.3 2001/06/05 23:49:44 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.4 2001/07/19 17:57:02 haldar Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -97,31 +92,38 @@ public:
     }
 } class_bayfull;
 
-static class BayTahoeFullTcpClass : public TclClass { 
+static class TahoeBayFullTcpClass : public TclClass { 
 public:
-	BayTahoeFullTcpClass() : TclClass("Agent/TCP/BayFullTcp/Tahoe") {}
-	TclObject* create(int, const char*const*) { 
-		// tcl lib code
-		// sets reno_fastrecov_ to false
-	  return (new BayFullTcpAgent());
+	TahoeBayFullTcpClass() : TclClass("Agent/TCP/BayFullTcp/Tahoe") {}
+  TclObject* create(int, const char*const*) { 
+    // tcl lib code
+    // sets reno_fastrecov_ to false
+    //return (new BayFullTcpAgent());
+    fprintf(stderr,"Tahoe, NewReno or Sack flavors are NOT available for BayTCP!! Use BayFullTcp only, which actually implements Reno.\n");
+
+    exit(1);
 	}
 } class_tahoe_bayfull;
 
-static class BayNewRenoFullTcpClass : public TclClass { 
+static class NewRenoBayFullTcpClass : public TclClass { 
 public:
-	BayNewRenoFullTcpClass() : TclClass("Agent/TCP/BayFullTcp/Newreno") {}
+	NewRenoBayFullTcpClass() : TclClass("Agent/TCP/BayFullTcp/Newreno") {}
 	TclObject* create(int, const char*const*) { 
-		// tcl lib code
-		// sets deflate_on_pack_ to false
-		return (new BayFullTcpAgent());
+	  // tcl lib code
+	  // sets deflate_on_pack_ to false
+	  //return (new BayFullTcpAgent());
+	  fprintf(stderr,"Tahoe, NewReno or Sack flavors are NOT available for BayFullTCP!! Use BayFullTcp only, which actually implements Reno.\n");
+	  exit(1);
 	}
 } class_newreno_bayfull;
 
-static class BaySackFullTcpClass : public TclClass { 
+static class SackBayFullTcpClass : public TclClass { 
 public:
-	BaySackFullTcpClass() : TclClass("Agent/TCP/BayFullTcp/Sack") {}
+	SackBayFullTcpClass() : TclClass("Agent/TCP/BayFullTcp/Sack") {}
 	TclObject* create(int, const char*const*) { 
-		return (new BayFullTcpAgent());
+	  //return (new BayFullTcpAgent());
+	  fprintf(stderr,"Tahoe, NewReno or Sack flavors are NOT available for BayFullTCP!! Use BayFullTcp only, which actually implements Reno.\n");
+	  exit(1);
 	}
 } class_sack_bayfull;
 
@@ -318,7 +320,6 @@ int BayFullTcpAgent::outflags()
 	return (flags);
 }
 
-
 void BayFullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen,
 			      int reason)
 {
@@ -345,7 +346,6 @@ void BayFullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen,
 	}
 	send(p, 0);
 }
-
 
 /*
  * see if we should send a segment, and if so, send it
@@ -574,7 +574,7 @@ void BayFullTcpAgent::newack(Packet* pkt)
 /*
  * nuked this stuff, but left in method - kmn
  */
-int BayFullTcpAgent::predict_ok(Packet*)
+int BayFullTcpAgent::predict_ok(Packet* )
 {
 	return 0;
 }
@@ -677,7 +677,7 @@ void BayFullTcpAgent::timeout(int tno)
 
 void BayDelAckTimer::expire(Event *) {
 	a_->timeout(TCP_TIMER_DELACK);
-	}
+}
 
 /*
  * main reception path - 
@@ -694,8 +694,6 @@ void BayFullTcpAgent::recv(Packet *pkt, Handler*)
 	int ourfinisacked = 0;
 	int todrop = 0;
 	int dupseg = FALSE;
-	
-
 
 #ifdef notdef
 	if (trace_)
@@ -717,7 +715,6 @@ void BayFullTcpAgent::recv(Packet *pkt, Handler*)
 		delack_timer_.resched(delack_interval_ * (last + 1.0) - now);
 
 	}
-
 
 	int datalen = th->size() - tcph->hlen();
 	int ackno = tcph->ackno();	// ack # from packet
@@ -1093,8 +1090,9 @@ step6:
 			// send an ACK to the other side right now.
 			tiflags = rq_.add(pkt);
 			if (tiflags & TH_PUSH) {
-				app_->recv(pkt,this,DATA_PUSH);
-				needoutput = need_send();
+			  if (app_ != NULL )
+			    app_->recv(pkt,this,DATA_PUSH);
+			  needoutput = need_send();
 			} else
 				flags_ |= TF_ACKNOW;
 			//reset for losses
@@ -1212,8 +1210,8 @@ void BayFullTcpAgent::connect()
 void BayFullTcpAgent::listen()
 {
 	state_ = TCPS_LISTEN;
-	//type_ = PT_TCP;	//  changed by kmn 8/6/97
-	type_ = PT_ACK;	// instead of PT_TCP
+	type_ = PT_TCP;	//  changed by kmn 8/6/97
+	//type_ = PT_ACK;	// instead of PT_TCP
 }
 
 /*
@@ -1401,10 +1399,3 @@ endfast:
 	}
 	return (tiflags);
 }
-
-
-
-
-
-
-

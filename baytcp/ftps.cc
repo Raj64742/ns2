@@ -2,13 +2,11 @@
  * This agent is paired with one or more ftp clients.
  * It expects to be the target of a FullTcpAgent.
  */
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.3 2001/06/12 18:27:47 haldar Exp $ ()";
-#endif
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.4 2001/07/19 17:57:02 haldar Exp $ ()";
 
 #include "tcp-full-bay.h"
-#include "tclcl.h"
+#include "Tcl.h"
 #include "random.h"
 #include "trace.h"
 #include "tcp.h"
@@ -17,16 +15,15 @@ class FtpSrvrAgent : public BayTcpAppAgent {
  public:
 	FtpSrvrAgent();
 	int command(int argc, const char*const* argv);
-	void recv(Packet*, BayFullTcpAgent*);
+  void recv(Packet*, BayFullTcpAgent*, int code);
+  //void recv(Packet*, BayFullTcpAgent*);
 protected:
-	double now()  { return (Scheduler::instance().clock()); }
+	double now()  { return Scheduler::instance().clock(); }
 	int min_response_;	//number of bytes in min response file
 	int max_response_;	//number of bytes in max response file
 	int filesize_; 		//file size in Bytes
-        //static FILE* fp_;
 };
 
-//FILE* FtpSrvrAgent::fp_ = fopen("ftpfilesize.tr", "w");
 
 static class FtpSrvrClass : public TclClass {
 public:
@@ -47,12 +44,13 @@ FtpSrvrAgent::FtpSrvrAgent() : BayTcpAppAgent(PT_NTYPE)
 //should only be called when a get is received from a client
 //need to make sure it goes to the right tcp connection
 
-void FtpSrvrAgent::recv(Packet*, BayFullTcpAgent* tcp)
+void FtpSrvrAgent::recv(Packet*, BayFullTcpAgent* tcp, int code)
 {
-	int length = filesize_;
-	//tells tcp-full with my mods to send FIN when empty
-	tcp->advance(length, 1);
-	//fprintf(fp_, "server %g %d %d\n", now(), addr_, length);
+  if(code == DATA_PUSH) {
+    int length = filesize_;
+    //tells tcp-full with my mods to send FIN when empty
+    tcp->advance(length, 1);
+  }
 }
 
 /*
@@ -68,7 +66,4 @@ int FtpSrvrAgent::command(int argc, const char*const* argv)
 	} 
 	return (Agent::command(argc, argv));
 }
-
-
-
 
