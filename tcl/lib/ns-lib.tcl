@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.190 2000/06/21 05:26:31 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.191 2000/06/30 19:47:50 sfloyd Exp $
 
 #
 
@@ -870,7 +870,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
                                 # default classifier for cbq is just Fid type
                                 set c [new Classifier/Hash/Fid 33]
                         } else {
-                                set c [lindex $args 1]
+                                set c [lindex $args 0]
                         }
                         set link_($sid:$did) [new CBQLink       \
                                         $n1 $n2 $bw $delay $q $c]
@@ -1437,6 +1437,8 @@ Classifier instproc in-slot? slot {
 	}
 	set ret
 }
+
+# Why don't we have an "unknown-flow" method for Classifier?
 
 # dump is for debugging purposes
 Classifier instproc dump {} {
