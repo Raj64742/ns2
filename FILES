@@ -1483,6 +1483,7 @@ tcl/test/fratecdf
 tcl/test/gnuplotA.com
 tcl/test/gnuplotB.com
 tcl/test/gnuplotC.com
+tcl/test/gnuplotC1.com
 tcl/test/gnuplotD.com
 tcl/test/gnuplotE.com
 tcl/test/gnuplotF.com
@@ -1827,7 +1828,9 @@ tcl/test/test-output-ecn-full/ecn_twoecn_reno_full.Z
 tcl/test/test-output-energy/aodv.Z
 tcl/test/test-output-energy/dsdv.Z
 tcl/test/test-output-energy/dsr.Z
-tcl/test/test-output-examples/example1.Z
+tcl/test/test-output-examples/oneTCP.Z
+tcl/test/test-output-examples/oneTFRC.Z 
+tcl/test/test-output-examples/twoTCPs.Z 
 tcl/test/test-output-friendly/BadParams.Z
 tcl/test/test-output-friendly/HighLoss.Z
 tcl/test/test-output-friendly/HighLossConservative.Z
@@ -1933,6 +1936,8 @@ tcl/test/test-output-lan/lan-routing-flat.Z
 tcl/test/test-output-lan/lan-routing-hier.Z
 tcl/test/test-output-links/changeBandwidth.Z
 tcl/test/test-output-links/changeDelay.Z
+tcl/test/test-output-links/changeDelay1.Z
+tcl/test/test-output-links/changeDelay2.Z
 tcl/test/test-output-links/delayPacket.Z
 tcl/test/test-output-links/dropPacket.Z
 tcl/test/test-output-links/links.Z
@@ -2023,6 +2028,12 @@ tcl/test/test-output-newreno/newreno2_A_bugfix_LC.Z
 tcl/test/test-output-newreno/newreno2_B_bugfix_LC.Z 
 tcl/test/test-output-newreno/newreno5_LC.Z 
 tcl/test/test-output-newreno/newreno5_noLT_LC.Z 
+tcl/test/test-output-newreno/sack5.Z
+tcl/test/test-output-newreno/reno5.Z 
+tcl/test/test-output-newreno/reno5_noBF.Z
+tcl/test/test-output-newreno/reno5_noLT_noBF.Z 
+tcl/test/test-output-newreno/ reno5a.Z 
+tcl/test/test-output-newreno/reno5a_noLT_noBF.Z
 tcl/test/test-output-nixvec/NixVec.Z
 tcl/test/test-output-nixvec/NoNixVec.Z
 tcl/test/test-output-nixvec/quite.Z
@@ -2216,6 +2227,7 @@ tcl/test/test-output-simple/reno3.Z
 tcl/test/test-output-simple/reno4.Z
 tcl/test/test-output-simple/reno4a.Z
 tcl/test/test-output-simple/reno5.Z
+tcl/test/test-output-simple/reno5_nobug.Z
 tcl/test/test-output-simple/renoA.Z
 tcl/test/test-output-simple/stats.Z
 tcl/test/test-output-simple/stats1.Z
