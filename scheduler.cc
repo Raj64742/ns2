@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.25 1998/01/06 01:52:40 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.26 1998/01/21 19:27:18 gnguyen Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.25 1998/01/06 01:52:40 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.26 1998/01/21 19:27:18 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -151,14 +151,15 @@ int Scheduler::command(int argc, const char*const* argv)
 		return (TCL_OK);
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "at") == 0) {
-			double t = atof(argv[2]);
+			/* t < 0 means relative time: delay = -t */
+			double delay, t = atof(argv[2]);
 			const char* proc = argv[3];
 	
 			AtEvent* e = new AtEvent;
 			int n = strlen(proc);
 			e->proc_ = new char[n + 1];
 			strcpy(e->proc_, proc);
-			double delay = t - clock();
+			delay = (t < 0) ? -t : t - clock();
 			if (delay < 0) {
 				tcl.result("can't schedule command in past");
 				return (TCL_ERROR);
