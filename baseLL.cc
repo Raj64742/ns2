@@ -33,7 +33,6 @@
  */
 
 #include "baseLL.h"
-#include "ifqueue.h"
 
 
 static class BaseLLClass : public TclClass {
@@ -45,7 +44,7 @@ public:
 } class_baseLL;
 
 
-BaseLL::BaseLL() : LinkDelay(), ifq_(0), em_(0)
+BaseLL::BaseLL() : LinkDelay(), em_(0)
 {
 }
 
@@ -54,10 +53,6 @@ int
 BaseLL::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
-		if (strcmp(argv[1], "ifqueue") == 0) {
-			ifq_ = (IFQueue*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
 		if (strcmp(argv[1], "error") == 0) {
 			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
@@ -82,8 +77,8 @@ BaseLL::recv(Packet* p, Handler* h)
 	if (em_ && em_->corrupt(p)) {
 		p->error(1);
 	}
-	p->target(sendtarget_);    /* set target to peer link layer */
-	ifq_->recv(p, h);         /* send it down to the interface queue */
+	p->target(sendtarget_);	// set target to peer link layer
+	target_->recv(p, h);	// send it down to the interface queue
 	s.schedule(h, &intr_, 0);
 }
 
@@ -91,7 +86,6 @@ void
 BaseLL::handle(Event* e)    
 {
 	Scheduler& s = Scheduler::instance();
-	((Packet*)e)->target(recvtarget_);  /* the classifier on this node */
+	((Packet*)e)->target(recvtarget_);  // the classifier on this node
 	s.schedule(recvtarget_, e, 0);
 }
-

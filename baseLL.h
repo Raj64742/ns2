@@ -6,8 +6,6 @@
 #include "errmodel.h"
 
 
-class IFQueue;
-
 class BaseLL : public LinkDelay {
 public:
 	BaseLL();
@@ -16,7 +14,6 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
-	IFQueue* ifq_;		// interface queue
 	ErrorModel* em_;	// error model
         NsObject* sendtarget_;  // usually the link layer of the peer
 	NsObject* recvtarget_;  // usually the classifier of the same node
