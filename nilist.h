@@ -45,8 +45,10 @@ public:
 class slist_base {
     slink *last_;
     int count_;
+	int append_count_;
+	int remove_count_;
 public:
-    slist_base() {last_ = 0;count_=0;}
+    slist_base() {last_ = 0;count_=0;append_count_=0;remove_count_=0;}
     slist_base(slink *a) {last_ = a->next_ = a;}
 
     void insert(slink *a);	// add at head
@@ -58,7 +60,9 @@ public:
 
     void clear() {last_ = 0;}
     int count() {return count_;}	
-    
+    slink *last() {return last_;}    /* XXX */
+    int ac() {return append_count_;} /* XXX */
+    int rc() {return remove_count_;} /* XXX */
     friend class slist_base_iter;
 };
 

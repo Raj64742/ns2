@@ -53,10 +53,14 @@ void slist_base::insert(slink *a)
 	last_ = a;
     last_->next_ = a;
 }
+#include <stdio.h>
 
 void slist_base::remove(slink *a, slink *prev)
 {
+    remove_count_++; /* XXX */
     count_--;
+    if (prev && prev->next_ != a)
+	    printf("In remove(): Error: prev->next!=a  prev=%p  a=%p\n", prev, a);
     if (last_ == NULL) 
 	return;
     if (prev == NULL)
@@ -74,6 +78,7 @@ void slist_base::remove(slink *a, slink *prev)
 
 void slist_base::append(slink *a)
 {
+    append_count_++; /* XXX */
     count_++;
     if (last_) {
 	a->next_ = last_->next_;
@@ -128,3 +133,4 @@ template<class T> T* Slist_iter<T>::operator() ()
     Tlink<T> *lnk = (Tlink<T> *) slist_base_iter::operator() ();
     return lnk ? &lnk->info : 0;
 }
+
