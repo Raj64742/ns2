@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.99 2000/01/15 00:15:07 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.100 2000/01/24 18:46:57 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -353,6 +353,7 @@ void
 TcpAgent::reset()
 {
 	rtt_init();
+	rtt_seq_ = -1;
 	/*XXX lookup variables */
 	dupacks_ = 0;
 	curseq_ = 0;
