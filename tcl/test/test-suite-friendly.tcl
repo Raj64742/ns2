@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.15 1999/10/04 19:44:40 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.16 1999/10/12 23:21:05 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -515,18 +515,16 @@ Test/OnlyTcp instproc run {} {
 }
 
 
-# BAD PARAMETERS! - small measurement interval
-# SampleSizeMult_: controls interval for measuring packet drop rate
-# MinNumLoss_: controls number of losses required in measurement interval
+# BAD PARAMETERS! - very fast increase
+#
+### BAD PARAMETERS! - small measurement interval?
+### MinNumLoss_: controls number of losses required in measurement interval?
 Class Test/BadParams -superclass TestSuite
 Test/BadParams instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	BadParams
-    Agent/TFRC set SampleSizeMult_ 0.5
-    Agent/TFRC set MinNumLoss_ 0
-    Agent/TFRCSink set SampleSizeMult_ 0.5
-    Agent/TFRCSink set MinNumLoss_ 0 
+    Agent/TFRC set ssmult_ 5
     Test/BadParams instproc run {} [Test/two-friendly info instbody run ]
     $self next
 }
