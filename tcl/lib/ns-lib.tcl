@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.71 1997/11/29 03:15:15 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.72 1997/12/17 21:25:04 gnguyen Exp $
 #
 
 #
@@ -117,6 +117,7 @@ Simulator instproc use-scheduler type {
 		}
 	}
 	set scheduler_ [new Scheduler/$type]
+	$scheduler_ now
 	if { $type == "RealTime" } {
 		#
 		# allocate room for packet bodies but only
