@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.10 1997/03/04 22:39:04 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.11 1997/03/07 07:08:52 mccanne Exp $
 #
 
 #
@@ -288,4 +288,14 @@ Agent instproc port {} {
 }
 
 Agent/LossMonitor instproc log-loss {} {
+}
+
+Agent/TCPSimple instproc opencwnd {} {
+	$self instvar cwnd_
+	set cwnd_ [expr $cwnd_ + 1.0 / $cwnd_]
+}
+
+Agent/TCPSimple instproc closecwnd {} {
+	$self instvar cwnd_
+	set cwnd_ [expr 0.5 * $cwnd_]
 }

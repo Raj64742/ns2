@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.27 1997/03/07 02:24:43 kfall Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.28 1997/03/07 07:08:46 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -12,6 +12,22 @@
 collaborators and
 <a href=http://www-mash.cs.berkeley.edu/cs268/>CS268 students.</a></i>
 <ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Fix up tcl/ex/simple.tcl for v2.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Set flow-id in tcp ack agent just as we used to set the
+class-id.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Arrange for tcl variable "class_" to be bound to flow-id
+field so that scripts impacted by Kevin's recent
+packet header changes continue to work.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+Added a new TCPSimple that does minimal Go-back-N (no slow-start,
+no fast restransmit, etc) for a CS268 homework.
 
 <li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
 Change to ns-source.tcl to incorporate Source/FTP "produce" function,

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.10 1997/02/27 04:41:30 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.11 1997/03/07 07:08:51 mccanne Exp $
 
 
 #
@@ -126,3 +126,12 @@ QueueMonitor set lastx_ 0
 QueueMonitor set lasty_ 0
 QueueMonitor set size_ 0
 
+Agent set class_ 0
+
+Agent/TCPSimple set t_seqno_ 0
+Agent/TCPSimple set dupacks_ 0
+Agent/TCPSimple set packetSize_ 1000
+Agent/TCPSimple set seqno_ 0
+Agent/TCPSimple set ack_ 0
+Agent/TCPSimple set cwnd_ 1
+Agent/TCPSimple set window_ 20

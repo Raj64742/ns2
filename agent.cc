@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.7 1997/02/27 04:38:32 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.8 1997/03/07 07:08:47 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -65,6 +65,13 @@ Agent::Agent(int pkttype) :
 	bind("fid_", (int*)&fid_);
 	bind("prio_", (int*)&prio_);
 	bind("flags_", (int*)&flags_);
+	/*
+	 * XXX Kevin replaced class_ with fid_.
+	 * I don't understand this.  It's just a name
+	 * change that has broke my scripts.  I added this
+	 * extra bind as a workaround...  -Steve
+	 */
+	bind("class_", (int*)&fid_);
 
 #ifdef notdef
 /*

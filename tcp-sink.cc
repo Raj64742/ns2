@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.7 1997/02/27 04:39:15 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.8 1997/03/07 07:08:49 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -130,9 +130,11 @@ void Acker::build_ack(Packet* newpkt, Packet *const pkt) const
 	h->ts() = ts;
 	IPHeader *ip = IPHeader::access(pkt->bits());
 	int flags = ip->flags();
+	int fid = ip->flowid();
 	ip = IPHeader::access(newpkt->bits());
 	ip->flags() = flags;
-
+	ip->flowid() = fid;
+	
 #ifdef notdef
 newh->class_ = pkt->class_;
 #endif
