@@ -13,7 +13,7 @@
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
  *	This product includes software developed by the Network Research
- *	Group at Lawrence Berkeley Laboratory.
+ *	Group at Lawrence Berkeley National Laboratory.
  * 4. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.2 1997/03/27 05:09:05 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.3 1997/04/01 02:28:58 kfall Exp $ (LBL)";
 #endif
 
 /*
@@ -56,22 +56,13 @@ static char rcsid[] =
  * implementation of weighted round-robin could use a great deal of
  * improvement.)
  *
- * This version includes the notion of "specialized" flows.  That is,
- * particular flow signatures (e.g. src/dst addr, port, classid, etc)
- * can received "special" treatment.  This is generally used for
- * penalizing the flow somehow because it has been using a large fraction
- * of the link bandwidth [and has failed to take steps to avoid congestion].
- * This is the reason for the references to 'penalty box' below.
- * 
  * Parameters for a particular class:
  * 
  *   The parameters "parent" and "borrow" indicate the parent class
  * in the class structure, and the class to borrow bandwidth from.
  * Generally these two parameters will be the same.
  * This version includes support for an arbitrary queueing discipline
- * to be associated with each CBQ class.  For now, the queueing discipline
- * is maintained as a "Link*" type in ns 1.x, but will evolve in the
- * 2.x releases.
+ * to be associated with each CBQ class.
  *
  *   The parameter "depth" indicates the "depth" of the class in
  * the class structure, used by Top-Level link-sharing.  Leaf classes have
@@ -93,19 +84,15 @@ static char rcsid[] =
 #include <sys/types.h>
 #include <math.h>
 
-#include "agent.h"
-#include "node.h"
-#include "Tcl.h"
+#include "connector.h"
+#include "queue.h"
 #include "packet.h"
-#include "link.h"
+#include "trace.h"
 #include "scheduler.h"
 
-#define MAXDEPTH 	32
+#define MAXDEPTH 	32	/* max depth of the class tree */
 #define MAXPRIO 	8	/* number of priorities in the scheduler */
 #define POWEROFTWO	16	/* for calculating avgidle */
-#define	MAXPBOX		2048	/* size of penalty box */
-#define MAXCLASS	2048	/* # of different packet classes allowed
-				   (see class_ field in packet.h) */
 
 class CBQueue;
 class CBQClass;
@@ -115,38 +102,44 @@ typedef CBQClass* (CBQClass::*LinkageMethod)();
  * a CBQ Class object: holds state about allocations of a particular
  * CBQ class and includes a reference to the actual Queue underneath
  * (e.g. red or drop-tail)
+ *
+ * general arrangement:
+ *
+ *		    CBQClass-\
+ *		   /	      \
+ * --->[classifier]-CBQClass---+>Queue/CBQueue
+ *		   \	      /
+ *		    CBQClass-/
  */
-class CBQClass : public NsObject {
+class CBQClass : public Connector {
     public:
 	CBQClass();
 	virtual int command(int argc, const char*const* argv);
 	inline CBQClass* parent() const { return (parent_); }
 	inline CBQClass* borrow() const { return (borrow_); }
-	void traverse(LinkageMethod);
-	void newallot(double);
-
 	inline Queue* qdisc() { return (qdisc_); }
 	inline CBQueue* cbq() { return (cbq_); }
 
-	CBQClass	*peer_;	/* circ linked list of peers at same prio */
-	int	bytes_alloc_;	/* num. of bytes allocated for current round */
-	Queue	*qdisc_;	/* underlying per-class q-ing discipline */
-	CBQueue	*cbq_;		/* ref to corresponding CBQueue object */
+	void traverse(LinkageMethod);
+	void newallot(double);
+
+	CBQClass* peer_;	/* circ linked list of peers at same prio */
+	int       bytes_alloc_;	/* num. of bytes allocated for current round */
+	Queue *   qdisc_;	/* underlying per-class q-ing discipline */
+	CBQueue*  cbq_;		/* ref to corresponding CBQueue object */
 
 	CBQClass* next_;	/* linked list for all classes */
-	int	mark_;		/* for walking graph [not used now] */
-	double	last_;		/* last time this class completed a pkt xmit */
-	double	undertime_;	/* time class will become unsat <?> */
-	double	avgidle_;	/* EWMA of idle (see below) */
-	int	pri_;		/* priority [0..MAXPRIO] */
-	int	depth_;		/* "depth" of this class in class tree */
-	double	allotment_;	/* this class' fraction of link bandwidth */
-	double	maxidle_;	/* upper bound for avgidle */
-	double	minidle_;	/* lower bound for avgidle, no longer used */
+	int       mark_;	/* for walking graph [not used now] */
+	double    last_;	/* last time this class completed a pkt xmit */
+	double	  undertime_;	/* time class will become unsat <?> */
+	double	  avgidle_;	/* EWMA of idle (see below) */
+	int	  pri_;		/* priority [0..MAXPRIO] */
+	int	  depth_;	/* "depth" of this class in class tree */
+	double	  allotment_;   /* this class' fraction of link bandwidth */
+	double    maxidle_;	/* upper bound for avgidle */
 	double	extradelay_;	/* 'offtime'-time overlim class waits to snd */
 	double	maxrate_;	/* bytes per second allowed this class */
 	int	delayed_;	/* 1 for an already-delayed class */
-	int	plot_;		/* to plot for debugging */
     protected:
 	CBQClass	*parent_;
 	CBQClass	*borrow_;
@@ -161,7 +154,9 @@ public:
 } class_cbq_class;
 
 /*
- * the CBQ link sharing machinery
+ * the CBQ link sharing machinery is incorporates into one Queue
+ * object.  Does packet-by-packet RR with priority between the
+ * queues.
  */
 
 class CBQueue : public Queue {
@@ -169,9 +164,9 @@ class CBQueue : public Queue {
 	CBQueue();
 	virtual int command(int argc, const char*const* argv);
 	Packet	*deque();
-	int	enque(Packet *pkt);
+	void	enque(Packet* pkt);
+	void	recv(Packet *, Handler*);
 	int	qlen();			// sum of all q's managed by this CBQ
-inline double bandwidth() { return (bandwidth_); }	// from link.h
 	void	addallot(int, double);	// change allotment at some pri level
     protected:
 	virtual void insert_class(CBQClass*);	// WRR and 
@@ -183,43 +178,23 @@ inline double bandwidth() { return (bandwidth_); }	// from link.h
 	int	under_limit(CBQClass *cl, double now);
 	void	plot(CBQClass *cl, double idle);
 	void	update_class_util(CBQClass *cl, double now, int pktsize);
-	void check_for_cycles(LinkageMethod);
-
-int	special(Flow *, CBQClass *);
-void	unspecial(Flow *);
-void	unspecial_all();
-inline Class* determine_class(Packet *pkt) {
-// used in incoming path to classify a packet
-Class *cl = classtab_[pkt->class_];
-PenaltyBoxEntry *pb;
-if (npbox_ > 0) {
-if ((pb = findpbox(pkt)) != NULL)
-cl = pb->class_;
-}
-return (cl);
-}
-inline int pmatch(Packet* pkt, Flow *fp) {
-	return (pkt->src_ == fp->src() &&
-		pkt->dst_ == fp->dst() &&
-		pkt->class_ == fp->fclass());
-};
+	void	check_for_cycles(LinkageMethod);
 
 	CBQClass* active_[MAXPRIO];	/* active class at each level */
+	int	  num_[MAXPRIO];	/* number of classes at each prio lev */
 	CBQClass* borrowed_;		/* the class last borrowed from */
-	CBQClass* classtab_[MAXCLASS];	/* class of newly-arrived pkts */
-	CBQClass* list_;		/* beginning of list of classes */
+	CBQClass* list_;		/* beginning of list of all classes */
 	int	maxpkt_;	/* max packet size in bytes */
 	int	maxdepth_;	/* max depth at which borrowing is allowed */
 	int	algorithm_;	/* 1 to restrict borrowing, 0 otherwise */
 				/* 2 for idealized link-sharing guidelines */
-	int	num_[MAXPRIO];	/* number of classes at each priority level */
 	double	alloc_[MAXPRIO];	/* total allocation at each level, 
 					 *for WRR */
-PenaltyBoxEntry* findpbox(Flow *);	/* special handling entry */
-PenaltyBoxEntry* findpbox(Packet *);	/* special handling entry */
-PenaltyBoxEntry	penalty_box_[MAXPBOX];	/* penalty box */
-u_int	npbox_;				/* # entries in pbox */
 };
+
+/*
+ * a weighted-round-robin version of the CBQueue class
+ */
 
 class WRR_CBQueue : public CBQueue {
 public:
@@ -249,20 +224,18 @@ public:
 } class_cbq_wrr;
 
 
-/*********************** Class member functions *************************/
+/*********************** CBQClass member functions *************************/
 
 CBQClass::CBQClass() : peer_(0), bytes_alloc_(0), qdisc_(0), next_(0), mark_(0),
 	last_(0.0), undertime_(0.0), avgidle_(0.0), delayed_(0),
 	parent_(0), borrow_(0), cbq_(0)
 
 {
-	bind("priority_", &pri_);
-	bind("depth_", &depth_);
-	bind("plot_", &plot_);
-	bind("allotment_", &allotment_);
-	bind("maxidle_", &maxidle_);
-	bind("minidle_", &minidle_);
-	bind("extradelay_", &extradelay_);
+	bind("priority_", &pri_);		/* this class' priority */
+	bind("depth_", &depth_);		/* this class' depth in tree */
+	bind("allotment_", &allotment_);	/* frac of link allotment */
+	bind("maxidle_", &maxidle_);		/* max idle bound */
+	bind("extradelay_", &extradelay_);	/* add extra delay */
 
 	/*XXX*/
 	if (pri_ < 0 || pri_ > MAXPRIO)
@@ -288,44 +261,13 @@ CBQClass::newallot(double bw)
  */
 int CBQClass::command(int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
-		if (strcmp(argv[1], "allot") == 0) {
-			tcl.resultf("%g", allotment_);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "cbq") == 0) {
-			tcl.resultf("%s", cbq()->name());
-			return(TCL_OK);
-		}
-		if (strcmp(argv[1], "qdisc") == 0) {
-			tcl.resultf("%s", qdisc()->name());
-			return (TCL_OK);
-		}
-	} else if (argc == 3) {
-		if (strcmp(argv[1], "parent") == 0) {
-			parent_ = (CBQClass*)TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "borrow") == 0) {
-			borrow_ = (CBQClass*)TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "qdisc") == 0) {
-			qdisc_ = (Link*) TclObject::lookup(argv[2]);
-			if (qdisc_ != NULL)
-				return (TCL_OK);
-			return (TCL_ERROR);
-		}
-		if (strcmp(argv[1], "allot") == 0) {
-			double bw = atof(argv[2]);
-			if (bw < 0)
-				return (TCL_ERROR);
-			newallot(bw);
+		if (strcmp(argv[1], "reset") == 0) {
+			reset();
 			return (TCL_OK);
 		}
 	}
-	return (NsObject::command(argc, argv));
+	return (Connector::command(argc, argv));
 }
 
 void CBQClass::traverse(LinkageMethod method)
@@ -342,26 +284,14 @@ void CBQClass::traverse(LinkageMethod method)
 
 /*********************** CBQueue member functions *************************/
 
-CBQueue::CBQueue() : borrowed_(0), list_(0), maxdepth_(MAXDEPTH),
-	npbox_(0)
+CBQueue::CBQueue() : borrowed_(0), list_(0), maxdepth_(MAXDEPTH)
 {
 	bind("algorithm_", &algorithm_);
 	bind("max-pktsize_", &maxpkt_);
 
-	int i;
-	for (i = 0; i < MAXPRIO; ++i) {
-		active_[i] = 0;
-		num_[i] = 0;
-		alloc_[i] = 0.0;
-	}
-	for (i = 0; i < MAXCLASS; ++i)
-		classtab_[i] = 0;
-
-for (i = 0; i < MAXPBOX; ++i) {
-	penalty_box_[i].flow_ = 0;
-	penalty_box_[i].class_ = 0;
-}
-
+	memset(active_, '\0', sizeof(active_));
+	memset(num_, '\0', sizeof(num_));
+	memset(alloc_, '\0', sizeof(alloc_));
 }
 
 /*
@@ -383,38 +313,17 @@ int CBQueue::command(int argc, const char*const* argv)
 			insert_class(p);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "unspecial") == 0) {
-			if (strcmp(argv[2], "all") == 0) {
-				unspecial_all();
-				return (TCL_OK);
-			}
-			Flow *fp = (Flow*)TclObject::lookup(argv[2]);
-			unspecial(fp);
-			return (TCL_OK);
-		}
-		// get specialty class for this flow
-		if (strcmp(argv[1], "sclass") == 0) {
-			char *bp = tcl.buffer();
-			Flow *fp = (Flow*)TclObject::lookup(argv[2]);
-			PenaltyBoxEntry* pb = findpbox(fp);
-			sprintf(bp, "%s",
-			    (pb != 0) ? pb->class_->TclObject::name() : "0");
-			return(TCL_OK);
-		}
 	} else if (argc == 4) {
-		if (strcmp(argv[1], "special") == 0) {
-			Flow *fp = (Flow*)TclObject::lookup(argv[2]);
-			CBQClass* p = (CBQClass*)TclObject::lookup(argv[3]);
-			return(special(fp, p));
-		}
+		/* $cbq bind $class $flow */
 		if (strcmp(argv[1], "bind") == 0) {
 			CBQClass* p = (CBQClass*)TclObject::lookup(argv[2]);
 			int id = atoi(argv[3]);
 			/*XXX check id range */
-			classtab_[id] = p;
+abort(); // need to deal with classifier?
 			return (TCL_OK);
 		}
 	} else if (argc == 5) {
+		/* $cbq bind $class n1 nk */
 		if (strcmp(argv[1], "bind") == 0) {
 			CBQClass* p = (CBQClass*)TclObject::lookup(argv[2]);
 			int firstid = atoi(argv[3]);
@@ -422,12 +331,12 @@ int CBQueue::command(int argc, const char*const* argv)
 			/*XXX check id range */
 			register i;
 			for (i=firstid; i <= lastid; i++) {
-			   classtab_[i] = p;
+abort();
 			}
 			return (TCL_OK);
 		}
 	}
-	return (Link::command(argc, argv));
+	return (Queue::command(argc, argv));
 }
 
 /*
@@ -501,20 +410,24 @@ void CBQueue::delay_action(CBQClass *cl)
 
 /*
  * Ancestor returns 1 if class cl is an ancestor of class p. 
- * This is used only for algorithm_ ==2 or 3.
+ *	Search up the tree following 'borrow' links for the answer.
+ * [This is used only for algorithm_ == 2 or 3.]
  */
 int CBQueue::ancestor(CBQClass* cl, CBQClass* p)
 {
-	if (cl == p->borrow() ) return (1);
+	if (cl == p->borrow())
+		return (1);
 	else while (p->borrow() != 0) {
 		p = p->borrow();
-		if (cl == p->borrow() ) return (1);
+		if (cl == p->borrow())
+			return (1);
 	}
 	return (0);
 }
 
-/* Satisfied returns 1 if the class is satisfied.
- * This is used only for algorithm==2 or 3.
+/*
+ * Satisfied returns 1 if the class is satisfied.
+ * [This is used only for algorithm == 2 or 3.]
  */
 int CBQueue::satisfied(CBQClass* cl)
 {
@@ -555,7 +468,8 @@ int CBQueue::qlen()
 	return (sum);
 }
 
-/* Ok_to_borrow returns 1 if it is ok for a descendant to borrow
+/*
+ * ok_to_borrow() returns 1 if it is ok for a descendant to borrow
  * from this underlimit interior class cl.
  * It is ok to borrow if there are no unsatisfied classes at a lower level.
  * This is for the new version of Formal link-sharing.
@@ -564,13 +478,15 @@ int CBQueue::qlen()
  */
 int CBQueue::ok_to_borrow(CBQClass* cl)
 {
-	for (CBQClass* p = list_; p != 0; p = p->next_)
+	CBQClass *p;
+	for (p = list_; p != 0; p = p->next_)
 		if ((p->depth_ < cl->depth_) && !satisfied(p))
 			return (0);
 	return (1);
 }
 
-/* Ok_to_borrow3 returns 1 if it is ok for a descendant to borrow
+/*
+ * ok_to_borrow3() returns 1 if it is ok for a descendant to borrow
  * from this underlimit interior class cl.
  * It is ok to borrow if there are no unsatisfied descendants.
  * This is used only for algorithm==3, for the older version of 
@@ -578,7 +494,8 @@ int CBQueue::ok_to_borrow(CBQClass* cl)
  */
 int CBQueue::ok_to_borrow3(CBQClass* cl)
 {
-	for (CBQClass* p = list_; p != 0; p = p->next_)
+	CBQClass *p;
+	for (p = list_; p != 0; p = p->next_)
 		if (ancestor(cl,p) && !satisfied(p))
 			return (0);
 	return (1);
@@ -629,11 +546,13 @@ int CBQueue::under_limit(CBQClass* cl, double now)
 /* Plot needs to be implemented still. */ 
 void CBQueue::plot(CBQClass* cl, double idle)
 {
+#ifdef notdef
 	double t = Scheduler::instance().clock();
    	sprintf(trace_->buffer(), "%g avg %g\n", t, cl->avgidle_);
 	trace_->dump();
 	sprintf(trace_->buffer(), "%g idl %g\n", t, idle);
 	trace_->dump();
+#endif
 }
 
 /*
@@ -677,10 +596,6 @@ void CBQueue::update_class_util(CBQClass* cl, double now, int pktsize)
 			cl->undertime_ += (1-POWEROFTWO) * avgidle;
 		}
 		cl->last_ = now;
-#ifdef notyet
-		if (plot_) 
-			plot(cl, cl->idle);
-#endif
 	} while (cl = cl->parent());
 
 	if (algorithm_ == 1 && maxdepth_ >= borrowed_->depth_) {
@@ -701,7 +616,7 @@ void CBQueue::update_class_util(CBQClass* cl, double now, int pktsize)
  * the first class that had a nonzero queue and is allowed to borrow gets
  * to send.
  */
-Packet* CBQueue::deque(void)
+Packet* CBQueue::deque()
 {
 	double now = Scheduler::instance().clock();
 	CBQClass* first = 0;
@@ -726,11 +641,11 @@ Packet* CBQueue::deque(void)
 					/* under-limit or can borrow */
 					/* so send and update stats */
 					Packet* pkt = cl->qdisc()->deque();
-					update_class_util(cl, now, pkt->size_);
+					hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+					update_class_util(cl, now, ch->size());
 					active_[i] = cl->peer_;
 					// could let qdisc do tracing, but
 					// instead do it here
-					log_packet_departure(pkt);
 					return (pkt);
 				}
 			}
@@ -746,7 +661,6 @@ Packet* CBQueue::deque(void)
 		Packet* pkt = first->qdisc()->deque();
 		if (pkt) {
 			active_[first->pri_] = first->peer_;
-			log_packet_departure(pkt);
 			return (pkt);
 		}
 	}
@@ -759,19 +673,18 @@ Packet* CBQueue::deque(void)
  * If algorithm==1, and that class could send a packet borrowing 
  * from depth at most d, then "stp->depth" is set to no more than d.
  */
-int CBQueue::enque(Packet* pkt)
+
+ /********* this needs work *********/
+void CBQueue::enque(Packet* pkt)
 {
+	abort();	/* shouldn't ever be called */
+}
+
+#ifdef notdef
 	double	now = Scheduler::instance().clock();
-	CBQClass *cl = determine_class(pkt);
-	Flow *f = 0;
+CBQClass *cl = determine_class(pkt);
+abort();
 	int rval = 0;
-	log_packet_arrival(pkt);
-        if (flowmgr_) {
-                if ((f = flowmgr_->findflow(pkt)) == NULL) 
-                        f = flowmgr_->newflow(pkt);
-                if (f)
-                        f->arrival(pkt);
-        }
 
 	//
 	// note: the following will DROP packets which don't
@@ -789,8 +702,8 @@ int CBQueue::enque(Packet* pkt)
 			}
 		}
 		if (cl->qdisc() == NULL) {
-			fprintf(stderr, "CBQ: enque: no qdisc for class %d\n",
-				pkt->class_);
+			fprintf(stderr, "CBQ: enque: no qdisc for pkt@%p\n",
+				pkt);
 			abort();
 		}
 		// qdisc may drop packet:
@@ -810,10 +723,11 @@ int CBQueue::enque(Packet* pkt)
 	 *	XXX should have a default best-effort class,
 	 */
 fprintf(stderr, "warning: CBQ received pkt with unknown class %d\n", pkt->class_);
-	log_packet_drop(pkt);
 	Packet::free(pkt);
 	return (-1);
 }
+
+#endif	/* formerly enque() */
 
 /*
  * Check that a linkage forms a forest.
@@ -833,71 +747,12 @@ void CBQueue::check_for_cycles(LinkageMethod linkage)
 			fprintf(stderr, "class set has cycle");
 }
 
-/*
- * deal with a specialized flow:
- *	need to determine to which class a penalized flow goes..
- */
-int
-CBQueue::special(Flow *fp, CBQClass *cp)
-{
-	if (fp && cp && npbox_ < MAXPBOX) {
-		npbox_++;
-		penalty_box_[npbox_-1].flow_ = fp;
-		penalty_box_[npbox_-1].class_ = cp;
-		return (TCL_OK);
-	}
-	return (TCL_ERROR);
-}
-
-/*
- * find a penalty box entry given a flow or a packet
- */
-
-PenaltyBoxEntry*
-CBQueue::findpbox(Flow *fp)
-{
-	register i;
-	for (i = 0; i < npbox_; i++)
-		if (penalty_box_[i].flow_ == fp)
-			return (&penalty_box_[i]);
-	return (NULL);
-}
-
-PenaltyBoxEntry*
-CBQueue::findpbox(Packet *p)
-{
-	register i;
-	for (i = 0; i < npbox_; i++)
-		if (pmatch(p, penalty_box_[i].flow_))
-			return (&penalty_box_[i]);
-	return (NULL);
-}
-
-void CBQueue::unspecial_all()
-{
-	npbox_ = 0;
-}
-
-void CBQueue::unspecial(Flow *fp)
-{
-	PenaltyBoxEntry*	pe = findpbox(fp);
-	int index;
-
-	if (pe == NULL)
-		return;
-	index = pe - penalty_box_;
-	if (index != npbox_ - 1)
-		penalty_box_[index] = penalty_box_[npbox_-1];
-	npbox_--;
-	return;
-}
-
 WRR_CBQueue::WRR_CBQueue()
 {
-	for (int i = 0; i < MAXPRIO; ++i)
-		M_[i] = 0.;
+	memset(M_, '\0', sizeof(M_));
 }
 
+/* counts the number of cbq classes at the specified priority */
 int WRR_CBQueue::npri(int pri)
 {
 	int n = 0;
@@ -915,13 +770,14 @@ int WRR_CBQueue::npri(int pri)
 void WRR_CBQueue::setM()
 {
 	for (int i = 0; i < MAXPRIO; ++i) {
-		if (alloc_[i] > 0)
+		if (alloc_[i] > 0) {
 			/*
 			M_[i] = npri(i) * maxpkt_ * 1.0/alloc_[i];
 			*/
 			M_[i] = num_[i] * maxpkt_ * 1.0/alloc_[i];
-		else
+		} else {
 			M_[i] = 0.0;
+		}
 	}
 }
 
@@ -944,9 +800,11 @@ void WRR_CBQueue::insert_class(CBQClass* p)
  * the first class found that had a nonzero queue and is allowed to borrow
  * gets to send.
  */
-Packet* WRR_CBQueue::deque(void)
+Packet*
+WRR_CBQueue::deque()
 {
 	double now = Scheduler::instance().clock();
+	hdr_cmn* ch;
 	CBQClass* first = 0;
 	for (int i = 0; i < MAXPRIO; ++i) {
 		/*
@@ -975,17 +833,18 @@ Packet* WRR_CBQueue::deque(void)
 					else {
 						if (cl->bytes_alloc_ > 0 || deficit > 1) {
 							Packet* pkt = cl->qdisc()->deque();
+							ch = (hdr_cmn*)pkt->access(off_cmn_);
 							if (cl->bytes_alloc_ > 0)
-								cl->bytes_alloc_ -= pkt->size_;
-							update_class_util(cl, now, pkt->size_);
+								cl->bytes_alloc_ -= ch->size();
+							update_class_util(cl, now, ch->size());
 							if (cl->bytes_alloc_ <= 0)
 								active_[i] = cl->peer_;
 							else
 								active_[i] = cl;
-							log_packet_departure(pkt);
 							return (pkt);
-						} else
+						} else {
 							deficit = 1;
+						}
 					}
 				}
 				cl->bytes_alloc_ = 0;
