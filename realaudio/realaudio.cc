@@ -1,24 +1,36 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) Xerox Corporation 1997. All rights reserved.
- *  
- * License is granted to copy, to use, and to make and to use derivative
- * works for research and evaluation purposes, provided that Xerox is
- * acknowledged in all documentation pertaining to any such copy or derivative
- * work. Xerox grants no other licenses expressed or implied. The Xerox trade
- * name should not be used in any advertising without its written permission.
- *  
- * XEROX CORPORATION MAKES NO REPRESENTATIONS CONCERNING EITHER THE
- * MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
- * FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without
- * express or implied warranty of any kind.
- *  
- * These notices must be retained in any copies of any part of this software.
- */
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+//
+// Copyright (c) 2000 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+// RealAudio traffic model that simulates RealAudio traffic based on a set of
+// traces collected from Broadcast.com
+//
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/realaudio/realaudio.cc,v 1.4 2000/11/14 01:48:56 kclan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/realaudio/realaudio.cc,v 1.5 2001/12/19 19:11:55 kclan Exp $ (USC/ISI)";
 #endif
 
 #ifndef WIN32 
