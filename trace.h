@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.21 1998/10/06 21:36:58 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.22 1998/10/06 21:58:23 yuriy Exp $
  */
 
 #ifndef ns_trace_h
@@ -40,6 +40,7 @@
 
 #define NUMFLAGS 7
 
+#include <math.h> // floor
 #include "packet.h"
 #include "connector.h"
 
