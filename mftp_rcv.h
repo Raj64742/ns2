@@ -24,7 +24,6 @@
 #ifndef mftp_rcv_h
 #define mftp_rcv_h
 
-#include "sb.h"
 #include "codeword.h"
 #include "mftp.h"                       // due to MFTPAgent
 

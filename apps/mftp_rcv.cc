@@ -44,7 +44,7 @@
 #include "Tcl.h"
 #include "mftp_rcv.h"
 
-#include "sb.h"            // due to declaration of sb_ulong, etc.
+#include "codeword.h"            // due to declaration of sb_ulong, etc.
 #include "ip.h"            // due to declaration of hdr_ip
 
 #define min(a, b)       ((a) < (b) ? (a) : (b))

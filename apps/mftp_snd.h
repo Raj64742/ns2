@@ -24,7 +24,6 @@
 #ifndef mftp_snd_h
 #define mftp_snd_h
 
-#include "sb.h"
 #include "codeword.h"
 #include "mftp.h"                    // due to class MFTPAgent
 

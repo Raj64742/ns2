@@ -24,8 +24,7 @@
 #ifndef mftp_h
 #define mftp_h
 
-#include "sb.h"        // due to definition of sb_-data types
-#include "codeword.h"  // due to definition of CW_PATTERN_t
+#include "codeword.h"  // due to definition of CW_PATTERN_t, and sb_*
 #include "agent.h"     // due to class Agent
 #include "assert.h"    // due to assert()
 

@@ -1,10 +1,20 @@
+
+/*
+ * bitops.h
+ *
+ * These functions were originally from Christoph Haenle, chris@cs.vu.nl
+ * but the were generalized to not require sb_* definitions.
+ *
+ */
+
 #ifndef BITOPS_H
 #define BITOPS_H
 
-#include "sb.h"
 #include "string.h"      /* due to memset */
 
-
+/* we'll undef these before leaving this .h */
+#define sb_uint8 unsigned char
+#define sb_ulong unsigned long
 
 /* determines if bit number "bit_nb" is set in array "arr" */
 #define IS_BIT_SET(arr, bit_nb) (((sb_uint8*) arr)[(bit_nb) >> 3] & (((sb_uint8) 1) << ((bit_nb) & 7)))
@@ -37,5 +47,8 @@ inline void RESET_ALL_BITS(sb_uint8* arr, sb_ulong nb_bits)
         arr[nb_bits >> 3] &= ((sb_uint8) 255) << (nb_bits & 7);
     }
 }
+
+#undef sb_uint8
+#undef sb_ulong
 
 #endif

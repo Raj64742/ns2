@@ -23,7 +23,32 @@
 #ifndef codeword_h
 #define codeword_h
 
-#include "sb.h"
+/*
+ * The following sb_ definitions were pulled in from sb.h
+ * to merge the mftp-specific .h's.
+ * begin sb.h:
+ */
+
+typedef void            sb_void;
+typedef unsigned        sb_unsigned;
+typedef char            sb_char;
+typedef char            sb_int8;
+typedef unsigned char   sb_uchar;
+typedef unsigned char   sb_uint8;
+typedef int             sb_int;
+typedef int             sb_long;
+typedef unsigned int    sb_ulong;
+typedef unsigned int    sb_uint;
+typedef short           sb_short;
+typedef short           sb_int16;
+typedef unsigned short  sb_ushort;
+typedef unsigned short  sb_uint16;
+typedef long            sb_int32;
+typedef unsigned long   sb_uint32;
+typedef double          sb_double;
+
+/* end sb.h: */
+
 
 typedef sb_uint32 CW_PATTERN_t; /* Codeword-typedef for erasure correction  */
 
