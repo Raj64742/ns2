@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.h,v 1.7 1997/09/08 21:27:01 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.h,v 1.8 1997/09/13 00:22:28 breslau Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -55,7 +55,7 @@ private:
 
 public:
 	static void seed(int s) { rng().set_seed(RNG::RAW_SEED_SOURCE, s); }
-	static int seed_heuristically() { rng().set_seed(RNG::RAW_SEED_SOURCE); return rng().seed(); };
+	static int seed_heuristically() { rng().set_seed(RNG::HEURISTIC_SEED_SOURCE); return rng().seed(); };
 
 	static int random() { return rng().uniform_positive_int(); }
 	static double uniform() { return rng().uniform_double();}
