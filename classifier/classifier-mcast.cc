@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.10 1997/07/24 00:15:20 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.11 1997/08/10 08:46:11 ahelmy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -64,6 +64,7 @@ protected:
 		hashnode* next;
                 int iif; // for RPF checking
 	};
+        void clearAll();
 	hashnode* ht_[256];
 	const hashnode* lookup(nsaddr_t src, nsaddr_t dst) const;
 	hashnode* lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const;
@@ -93,6 +94,19 @@ MCastClassifier::~MCastClassifier()
 			p = n;
 		}
 	}
+}
+
+void MCastClassifier::clearAll()
+{
+        for (int i = 0; i < 256; ++i) {
+                hashnode* p = ht_[i];
+                while (p != 0) {
+                        hashnode* n = p->next;
+                        delete p;
+                        p = n;
+                }
+        }
+        memset(ht_, 0, sizeof(ht_));
 }
 
 const MCastClassifier::hashnode*
@@ -184,6 +198,12 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
+        if (argc == 2) {
+                if (strcmp(argv[1], "clearAll") == 0) {
+                        clearAll();
+                        return (TCL_OK);
+                }
+        }
 	return (Classifier::command(argc, argv));
 }
 
