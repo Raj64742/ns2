@@ -186,7 +186,7 @@ class BroadcastID {
         double          expire;         // now + BCAST_ID_SAVE s
 };
 
-LIST_HEAD(bcache, BroadcastID);
+LIST_HEAD(aodv_bcache, BroadcastID);
 
 
 /*
@@ -282,7 +282,7 @@ class AODV: public Agent {
 
         aodv_rtable         rthead;                 // routing table
         aodv_ncache         nbhead;                 // Neighbor Cache
-        bcache          bihead;                 // Broadcast ID Cache
+        aodv_bcache          bihead;                 // Broadcast ID Cache
 
         /*
          * Timers
