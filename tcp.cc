@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.67 1998/05/11 21:13:29 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.68 1998/05/12 02:01:44 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -700,13 +700,13 @@ TcpAgent::initial_window()
  *	bugfix	ecn	last-cwnd == ecn	action
  *
  *	0	0	0			tahoe_action
- *	0	0	1			tahoe_action	[nonsense]
+ *	0	0	1			tahoe_action	[impossible]
  *	0	1	0			tahoe_action
- *	0	1	1			1/2 window, return
+ *	0	1	1			slow-start, return
  *	1	0	0			nothing
- *	1	0	1			nothing		[nonsense]
+ *	1	0	1			nothing		[impossible]
  *	1	1	0			nothing
- *	1	1	1			1/2 window, return
+ *	1	1	1			slow-start, return
  */
 
 void
@@ -719,7 +719,7 @@ TcpAgent::dupack_action()
 
 	if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
 		last_cwnd_action_ = CWND_ACTION_DUPACK;
-		slowdown(CLOSE_CWND_INIT);
+		slowdown(CLOSE_CWND_ONE);
 		reset_rtx_timer(0,0);
 		return;
 	}
