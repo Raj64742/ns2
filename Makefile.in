@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.253 2002/07/19 02:34:10 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.254 2002/09/16 18:22:52 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -57,7 +57,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSION -DSTL_NAMESPACE=@STL_NAMESPACE@
+DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSION -DSMAC_NO_SYNC -DSTL_NAMESPACE=@STL_NAMESPACE@ 
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -108,6 +108,7 @@ OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
 	diffusion3/diffusion/diffusion.o \
 	diffusion3/lib/main/attrs.o \
 	diffusion3/lib/main/iodev.o \
+	diffusion3/lib/main/timers.o \
 	diffusion3/lib/main/events.o \
 	diffusion3/lib/main/message.o \
 	diffusion3/lib/main/stats.o \
@@ -200,7 +201,7 @@ OBJ_CC = \
 	common/Decapsulator.o common/Encapsulator.o \
 	common/encap.o \
 	mac/channel.o mac/mac.o mac/ll.o mac/mac-802_11.o \
-	mac/mac-802_3.o mac/mac-tdma.o \
+	mac/mac-802_3.o mac/mac-tdma.o mac/smac.o \
 	mobile/mip.o mobile/mip-reg.o mobile/gridkeeper.o \
 	mobile/propagation.o mobile/tworayground.o \
 	mobile/antenna.o mobile/omni-antenna.o \
@@ -267,6 +268,7 @@ OBJ_CC = \
 	linkstate/ls.o linkstate/rtProtoLS.o \
 	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
 	pgm/pgm-receiver.o pgm/rcvbuf.o \
+	mobile/dumb-agent.o \
 	@V_STLOBJ@
 
 
