@@ -62,12 +62,12 @@ Agent/MFTP/Snd instproc send-data { } {
 }
 
 Agent/MFTP/Snd instproc start {} {
-    $self instvar node_ dst_
+    $self instvar node_ dst_addr_
 
-    set dst_ [expr $dst_]           ;# get rid of possibly leading 0x etc.
+    set dst_addr_ [expr $dst_addr_]           ;# get rid of possibly leading 0x etc.
 
     $self cmd start
-    $node_ join-group $self $dst_
+    $node_ join-group $self $dst_addr_
     $self send-data
 }
 

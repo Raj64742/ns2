@@ -41,11 +41,11 @@ Agent/MFTP/Rcv instproc init {} {
 }
 
 Agent/MFTP/Rcv instproc start {} {
-    $self instvar node_ dst_
+    $self instvar node_ dst_addr_
 
-    set dst_ [expr $dst_]           ;# get rid of possibly leading 0x etc.
+    set dst_addr_ [expr $dst_addr_]           ;# get rid of possibly leading 0x etc.
     $self cmd start
-    $node_ join-group $self $dst_
+    $node_ join-group $self $dst_addr_
 }
 
 Agent/MFTP/Rcv instproc delete {} {
@@ -54,9 +54,9 @@ Agent/MFTP/Rcv instproc delete {} {
 Agent/MFTP/Rcv instproc done-notify { args } {
     # File reception completed
 
-    $self instvar node_ dst_
+    $self instvar node_ dst_addr_
     eval $self evTrace done notify $args
-    $node_ leave-group $self $dst_
+    $node_ leave-group $self $dst_addr_
 }
 
 Agent/MFTP/Rcv instproc recv { type args } {
