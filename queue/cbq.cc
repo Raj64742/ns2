@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.18 1997/05/14 00:33:31 heideman Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.19 1997/07/22 21:42:08 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -141,7 +141,7 @@ public:
 	CBQClass*	level(int n) const { return levels_[n]; }
 	Packet*		deque();
 	virtual int	command(int argc, const char*const* argv);
-	virtual void	addallot(int prio, double diff) { }
+	virtual void	addallot(int, double) { }
 	Packet*	pending_pkt() const { return (pending_pkt_); }
 	void		sched();
 	int		toplevel() {	// are we using toplevel?
@@ -178,7 +178,7 @@ protected:
 static class CBQQueueClass : public TclClass {
 public:
 	CBQQueueClass() : TclClass("Queue/CBQ") { }
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new CBQueue);
 	}
 } class_cbq;
@@ -186,7 +186,7 @@ public:
 static class CBQClassClass : public TclClass {
 public:
 	CBQClassClass() : TclClass("CBQClass") { }
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new CBQClass);
 	}
 } class_cbqclass;
@@ -216,7 +216,7 @@ CBQueue::sched()
  */
 
 void
-CBQueue::recv(Packet* p, Handler* h)
+CBQueue::recv(Packet* p, Handler*)
 {
 
 	if (pending_pkt_ != NULL)
@@ -594,7 +594,7 @@ protected:
 static class WRR_CBQQueueClass : public TclClass {
 public:
 	WRR_CBQQueueClass() : TclClass("Queue/CBQ/WRR") { }
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new WRR_CBQueue);
 	}
 } class_wrr_cbq;
