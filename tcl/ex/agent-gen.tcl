@@ -241,7 +241,9 @@ AgentGen instproc save-command { file command } {
 		# XXX complete
 		# puts $f "header info... "
 puts $f "\n proc generate-agents \{ sim nodes \} \{ \n"
-puts $f "\t upvar \$nodes n; upvar \$sim ns \n\n"
+puts $f "\t upvar \$nodes n; upvar \$sim ns \n"
+		# initialize the fid to 0
+		puts $f "\t set fid 0\n\n"
 		flush $f; close $f
 		set AllCommandLines ""
 	}
@@ -540,8 +542,8 @@ set a_4 "# sink types, and $src sources. Distribute randomly. \n"
 	set a "foreach pair \{$pairs\} \{ \n"
 	set b "\t set sorc \[lindex \$pair 0\] \n"
 	set c "\t set dst \[lindex \$pair 1\] \n"
-	# set the fid as srcdst for now
-	set d_1 "\t set fid \$sorc\$dst \n"	
+	# set the fid
+	set d_1 "\t incr fid \n"	
 set d "\t set tcp(\$i) \[\$ns create-connection $tcp \$n(\$sorc) $sink \$n(\$dst) \$fid\] \n"
 	set e "\t set src(\$i) \[\$tcp(\$i) attach-source $src\] \n"
 	set f "\t incr i \n \}"
