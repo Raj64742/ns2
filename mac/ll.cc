@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.39 1999/08/11 22:43:17 yaxu Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.40 1999/08/24 04:21:28 haoboy Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -134,8 +134,8 @@ int LL::command(int argc, const char*const* argv)
 
 void LL::recv(Packet* p, Handler* /*h*/)
 {
-	char *mh = (char*) HDR_MAC(p);
 	hdr_cmn *ch = HDR_CMN(p);
+	//char *mh = (char*) HDR_MAC(p);
 	//struct hdr_sr *hsr = HDR_SR(p);
 	
 	/*
