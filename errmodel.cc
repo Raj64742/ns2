@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.47 1998/06/03 03:26:48 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.48 1998/06/10 22:45:59 kfall Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.47 1998/06/03 03:26:48 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.48 1998/06/10 22:45:59 kfall Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -482,7 +482,6 @@ int
 ListErrorModel::parse_droplist(int argc, const char *const* argv)
 {
 
-printf("parse_droplist: argc:%d, argv[0]: %s\n", argc, *argv);
 	int cnt = 0;		// counter for argc list
 	int spaces = 0;		// counts # of spaces in an argv entry
 	int total = 0;		// total entries in the drop list
