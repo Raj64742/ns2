@@ -1,7 +1,7 @@
 #
 # example of adding nam traces separately without using namtrace-all
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-separate-trace.tcl,v 1.2 1998/09/01 01:47:02 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-separate-trace.tcl,v 1.3 1999/01/12 20:54:27 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -20,8 +20,8 @@ if {[llength $argv] > 0} {
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 ns-random 1
 Simulator set NumberInterfaces_ 1
-Simulator set EnableMcast_ 1
-set ns [new Simulator]
+# Simulator set EnableMcast_ 1
+set ns [new Simulator -multicast on]
 
 #$ns trace-all [open out.tr w]
 

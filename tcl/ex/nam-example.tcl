@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.10 1998/10/06 01:27:31 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.11 1999/01/12 20:54:26 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -20,8 +20,8 @@ if {[llength $argv] > 0} {
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 ns-random 1
 Simulator set NumberInterfaces_ 1
-Simulator set EnableMcast_ 1
-set ns [new Simulator]
+# Simulator set EnableMcast_ 1
+set ns [new Simulator -multicast on]
 Node expandaddr
 
 #$ns trace-all [open out.tr w]
