@@ -60,8 +60,10 @@ At present, this code is experimental and "in-progress".
 ../../ns rtm_reclass.tcl two net3
 #  To illustrate the "unfriendly" test.
 
+# This is similar to the test in the paper.
 ../../ns rtm_reclass.tcl three net3
 #  To test the "unresponsive" test.
+../../ns rtm_reclass.tcl three net3 disable
 
 ../../ns Collapseall.tcl
 #  To run the "congestion collapse" simulations.
@@ -70,11 +72,18 @@ At present, this code is experimental and "in-progress".
 #  To run the "fairness" simulations.
 
 ../../ns bdflow.tcl combined 12345
-../../ns flow4.tcl combined 12345 ?
+../../ns Flow4.v2.tcl combined 12345 
 #  To run tests of RED drop history
 
 Turn off HIGH test:
 rtm_tests.tcl: set High_const_ 120000
 
+-----------------------------------------
 
+rtm_reclass.tcl 
+mechanisms.tcl, 
+sources.tcl, 
+rtm_plot.tcl
+rtm_tests.tcl, 
+rtm_link.tcl
 
