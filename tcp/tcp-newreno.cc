@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.8 1997/05/27 23:49:01 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.9 1997/06/09 22:00:23 tomh Exp $ (LBL)";
 #endif
 
 //
@@ -48,6 +48,8 @@ class NewRenoTcpAgent : public TcpAgent {
 					/* to implement other algorithms from */
 					/* Hoe's paper */
 	void partialnewack(Packet *pkt);
+	int acked, new_ssthresh;  /* used if newreno_changes_ == 1 */
+	double ack2, ack3, basertt; /* used if newreno_changes_ == 1 */
 };
 
 static class NewRenoTcpClass : public TclClass {
@@ -71,7 +73,7 @@ int NewRenoTcpAgent::window()
         return (win);
 }
 
-NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0), newreno_changes_(0)
+NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0), newreno_changes_(0), acked(0)
 {
 	bind("newreno_changes_", &newreno_changes_);
 }
@@ -102,10 +104,6 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-
-	static int acked = 0;
-	int new_ssthresh;
-	static double ack2, ack3, basertt;
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
