@@ -42,6 +42,9 @@ SRM instproc evTrace1 {type args} {
 
 SRM/request/debug instproc compute-delay {} {
     $self instvar C1_ C2_ agent_ sender_ backoff_
+    if { $agent_ == "_o167" } {
+	debug 1
+}
     set unif [uniform 0 1]
     set rancomp [expr $C1_ + $C2_ * $unif]
     set dist [$agent_ distance? $sender_]

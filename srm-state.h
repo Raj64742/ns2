@@ -46,57 +46,49 @@ public:
 protected:
 	char	*received_;		  /* Bit vector of msgs received */
 	int	recvmax_;
-#define	BITVEC_SIZE_DEFAULT	256	  // for 2K messages
 
-	void resize() {
+#define	BITVEC_SIZE_DEFAULT	256	  // for (256 * 8) = 2K messages
+	void resize(int id) {
 		if (! received_) {
 			received_ = new char[BITVEC_SIZE_DEFAULT];
 			recvmax_ = BITVEC_SIZE_DEFAULT * sizeof(char);
 			(void) memset(received_, '\0', BITVEC_SIZE_DEFAULT);
-		} else {
-			int osize = recvmax_ / sizeof(char);
-			int nsize = osize * 2;
+		}
+		if (recvmax_ <= id) {
+			int osize, nsize;
+			nsize = osize = recvmax_;
+			while (nsize <= id)
+				nsize *= 2;
+			osize /= sizeof(char);
+			nsize /= sizeof(char);
 			char* nvec = new char[nsize];
-		
 			(void) memcpy(nvec, received_, osize);
 			(void) memset(nvec + osize, '\0', osize);
-			recvmax_ *= 2;
-		
 			delete[] received_;
 			received_ = nvec;
+			recvmax_ = nsize;
 		}
 	}	
 		
 public:
 	SRMinfo(int sender) : next_(0), sender_(sender),
 		lsess_(-1), sendTime_(0), recvTime_(0), distance_(1.0),
-		ldata_(-1), received_(0), recvmax_(-1)
-	{
-	}
-
+		ldata_(-1), received_(0), recvmax_(-1) { }
 	~SRMinfo() { delete[] received_; }
 	
 	char ifReceived(int id) {
 		assert(id >= 0);
 		if (id >= recvmax_)
-			return 0;
+			resize(id);
 		return (received_[id / 8] & (1 << (id % 8)));
 	}
 	char setReceived(int id) {
-		if (id < 0) 
-			return -1;
-		if (id >= recvmax_)
-			resize();
-		int obit = (received_[id / 8] & (1 << (id % 8)));
+		int obit = ifReceived(id);
 		received_[id / 8] |= (1 << (id % 8));
 		return obit;
 	}
 	char resetReceived(int id) {
-		if (id < 0)
-			return -1;
-		if (id >= recvmax_)
-			resize();
-		int obit = (received_[id / 8] & (1 << (id % 8)));
+		int obit = ifReceived(id);
 		received_[id / 8] &= ~(1 << (id % 8));
 		return obit;
 	}

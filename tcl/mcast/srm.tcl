@@ -61,7 +61,8 @@ Class Agent/SRM/Probabilistic -superclass Agent/SRM
 Agent/SRM/Probabilistic set C1_ 0.0
 Agent/SRM/Probabilistic set D1_ 0.0
 
-Class Agent/SRM/AdaptiveRepair -superclass Agent/SRM
+Class Agent/SRM/FixedTimers -superclass Agent/SRM
+Class Agent/SRM/AdaptiveTimers -superclass Agent/SRM
 #
 Agent/SRM instproc init {} {
     $self next
@@ -174,21 +175,23 @@ Agent/SRM instproc repair {requestor sender msgid} {
 
 Agent/SRM instproc recv-repair {sender msgid} {
     $self instvar pending_
-    if [info exists pending_($sender:$msgid)] {
-	$pending_($sender:$msgid) recv-repair
-    } else {
+    if ![info exists pending_($sender:$msgid)] {
 	# 1.  We didn't hear the request for the older ADU, or
 	# 2.  This is a very late repair beyond the $3 d_{S,B}$ wait
 	# What should we do?
 	error "Oy vey!  How did we get here?"
     }
+    $pending_($sender:$msgid) recv-repair
 }
 
-Agent/SRM/AdaptiveRepair instproc repair args {
+Agent/SRM/FixedTimers instproc repair args {
     $self set D1_ [expr log10([$self set groupSize_])]
     $self set D2_ [expr log10([$self set groupSize_])]
     $self next
 }
+#
+Agent/SRM/AdaptiveTimers instproc foo args {}
+
 #
 Agent/SRM instproc clear {obj s m} {
     $self instvar pending_ done_
@@ -453,6 +456,7 @@ SRM/session instproc init args {
 SRM/session instproc delete {} {
     $self instvar $ns_ eventID_
     $ns_ cancel $eventID_
+    $self next
 }
 
 SRM/session instproc schedule {} {

@@ -14,13 +14,13 @@ proc nam_config {net} {
 
     $net queue 0 1 0
 
-    $net color 0 blue
-    $net color 1 red
-    $net color 2 white
-    $net color 3 green
-    $net color 4 magenta
-    $net color 5 yellow
-    $net color 6 black
+    $net color 0 white			;# data packets
+    $net color 1 blue			;# source control packets
+    $net color 2 chocolate
+    $net color 3 red
+    $net color 4 brown
+    $net color 5 tan
+    $net color 6 gold
 
     # chart utilization from 1 to 2 width 5sec
     # chart avgutilization from 1 to 2 width 5sec

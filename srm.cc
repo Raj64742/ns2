@@ -125,6 +125,7 @@ void SRMAgent::recv(Packet* p, Handler* h)
                 sh->type() = SRM_DATA;
                 sh->sender() = addr_;
                 sh->seqnum() = ++dataCtr_;
+		addExtendedHeaders(p);
 		ih->dst() = dst_;
                 target_->recv(p, h);
         } else {

@@ -49,6 +49,7 @@ struct hdr_srm {
 };
 
 class SRMAgent : public Agent {
+protected:
 	int	dataCtr_;	          /* # of data packets sent */
 	int	sessCtr_;		  /* # of session messages sent */
 	int	packetSize_;	          /* size of data messages for repr */
@@ -72,6 +73,8 @@ class SRMAgent : public Agent {
 		}
 		return ret;
 	}
+	void addExtendedHeaders(Packet*) {}
+
 	void recv_data(int sender, int id, u_char* data);
         void recv_repr(int sender, int msgid, u_char* data);
         void recv_rqst(int requestor, int sender, int msgid);

@@ -15,7 +15,7 @@ $ns trace-all [open out.tr w]
 set srmStats [open srm-stats.tr w]
 
 set group 0x8000
-set fid  -1
+set fid  0
 for {set i 0} {$i <= 5} {incr i} {
     set n($i) [$ns node]
     #new CtrMcast $ns $n($i) $cmc {}
@@ -25,6 +25,7 @@ for {set i 0} {$i <= 5} {incr i} {
     $srm($i) set dst_ $group
     $srm($i) set fid_ [incr fid]
     $srm($i) trace $srmStats
+    $ns at 1.0 "$srm($i) start"
 
     $ns attach-agent $n($i) $srm($i)
 }
@@ -44,20 +45,16 @@ $s set interval_ 0.02
 $s set packetSize_ $packetSize
 $srm(0) traffic-source $s
 $srm(0) set packetSize_ $packetSize
-$s set fid_ [incr fid]
+$s set fid_ 0
 
-$ns at 4.0 "$srm(0) start-source"
+$ns at 3.5 "$srm(0) start-source"
 
 
 # Fake a dropped packet by incrementing seqno.
 #$ns at 1.6 "$s1 set seqno 0"	;# need to figure out how to do this.
 #
-$ns rtmodel-at 4.019 down $n(0) $n(1)	;# this ought to drop exactly one
-$ns rtmodel-at 4.031 up   $n(0) $n(1)	;# data packet?
-
-foreach i [array names srm] {
-    $ns at 1.0 "$srm($i) start"
-}
+$ns rtmodel-at 3.519 down $n(0) $n(1)	;# this ought to drop exactly one
+$ns rtmodel-at 3.521 up   $n(0) $n(1)	;# data packet?
 
 proc distDump {} {
 	global srm
@@ -66,7 +63,7 @@ proc distDump {} {
 	}
 	puts "---"
 }
-$ns at 4.0 "distDump"
+$ns at 3.3 "distDump"
 
 proc finish {} {
     global s
@@ -92,5 +89,5 @@ proc finish {} {
     exit 0
 }
 
-$ns at 9.0 "finish"
+$ns at 4.0 "finish"
 $ns run

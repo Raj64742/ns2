@@ -32,13 +32,18 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/ktest-all,v 1.2 1997/05/16 07:58:26 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/ktest-all,v 1.3 1997/06/05 16:28:39 kannan Exp $
 #
 # This script was written and contributed by Matt Mathis (mathis@psc.edu)
 # This script was later hacked extensively by Kannan to build the rtglib
 # test suites.  The script has been renamed to reflet this extensive hacking.
 #	-- Kannan (kannan@isi.edu) Mon Apr 28 10:44:11 PDT 1997
 #
+PROG=`basename $0`
+
+# Compress raw trace files for storage.
+COMPRESSP=:
+
 if [ $# -ge 1 ] ; then
 	TESTSUITE=tcl/test/test-suite-$1 shift
 else
@@ -53,7 +58,9 @@ top=`perl -ane 'm.^Class Topology/. &&
 	print substr($F[1], index($F[1], "/")+1), " "' tcl/test/topologies.tcl`
 
 if [ -n "$old_tests" -a -n "$new_tests" ] ; then
-    echo "test-all-routed: warning $TESTSUITE.tcl mixes old and new test suites" 2>&1
+    echo "$PROG: warning $TESTSUITE.tcl mixes old and new test suites" 2>&1
+    echo "$PROG: ignore old tests" 2>&1
+    old_tests=
 fi
 
 if [ $# -ge 1 ] ; then
@@ -77,6 +84,11 @@ compare() {
 #	if echo $file | grep : >/dev/null ; then
 #	    file=`echo $file | sed 's/^[a-zA-Z0-9_]*:\(.*\)/'$1':\1/'`
 #	fi
+	if [ -f test-output-raw/$file.gz ]
+	then
+		gunzip test-output-raw/$file.gz
+	fi
+	COMPRESS=$COMPRESSP
 	if [ ! -f test-output-raw/$file ]
 	then
 	    echo saving output to $file for future validation
@@ -96,6 +108,7 @@ compare() {
 		fi
 		cp all.tr test-output-raw/$file.test
 		echo "Diagnose with: $DIFFCMD"
+		COMPRESS=false
 	    fi
 	fi
 	if [ -n "$DISPLAY" ] ; then
@@ -111,6 +124,9 @@ compare() {
 		mv $file.ps.gz ps-files
 		rm -f packets drops link-fails link-recovery
 	    fi
+	fi
+	if ${COMPRESS} ; then
+		gzip test-output-raw/$file
 	fi
     else
 	echo "Test $1 did not run over topology $2.  Continuing..."

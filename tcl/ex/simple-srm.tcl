@@ -26,7 +26,7 @@ $ns trace-all $f
 
 set srmStats [open srm-stats.tr w]
 
-set fid -1			    ;# so it looks "cute" in nam.
+set fid 0			    ;# so it looks "cute" in nam.
 for {set i 0} {$i < 4} {incr i} {
     set n [$ns node]
 #    new "CtrMcast" $ns $n $cmc {}
@@ -44,34 +44,34 @@ for {set i 0} {$i < 4} {incr i} {
 }
 
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
-$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
-$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+$ns duplex-link $n0 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n0 $n3 1.5Mb 10ms DropTail
 
 set packetSize 210
 
-set s1 [new Agent/CBR/UDP]
-set exp1 [new Traffic/Expoo]
-$exp1 set packet-size $packetSize
-$exp1 set burst-time 500ms
-$exp1 set idle-time 500ms
-$exp1 set rate 100k
-$s1 set fid_ [incr fid]
-$s1 attach-traffic $exp1
+set s0 [new Agent/CBR/UDP]
+set exp0 [new Traffic/Expoo]
+$exp0 set packet-size $packetSize
+$exp0 set burst-time 500ms
+$exp0 set idle-time 500ms
+$exp0 set rate 100k
+$s0 set fid_ 0
+$s0 attach-traffic $exp0
 
-$srm1 traffic-source $s1
-$srm1 set packetSize_ $packetSize	;# so repairs are correct
+$srm0 traffic-source $s0
+$srm0 set packetSize_ $packetSize	;# so repairs are correct
 
-$ns at 0.5 "$srm1 start; $srm1 start-source"
-$ns at 1.4 "$srm0 start"
-$ns at 1.5 "$srm2 start"
-$ns at 1.6 "$srm3 start"
+$ns at 0.5 "$srm0 start; $srm0 start-source"
+$ns at 1.0 "$srm1 start"
+$ns at 1.1 "$srm2 start"
+$ns at 1.2 "$srm3 start"
 
 $ns at 0.0 "distDump 1"
-$ns at 10.0 "finish"
+$ns at 5.0 "finish"
 
 proc finish {} {
-    global s1
-    $s1 stop
+    global s0
+    $s0 stop
 
     global argv0
     global ns f srmStats
