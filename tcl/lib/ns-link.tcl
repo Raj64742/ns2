@@ -30,18 +30,19 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.24 1997/09/15 17:41:14 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.25 1997/09/27 21:33:39 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
 	$self next
 
         #modified for interface code
-	$self instvar trace_ fromNode_ toNode_ source_ dest_
+	$self instvar trace_ fromNode_ toNode_ source_ dest_ color_
 	set fromNode_ [$src getNode]
 	set toNode_ [$dst getNode]
         set source_ $src
         set dest_ $dst
+	set color_ "black"
 
 	set trace_ ""
 }
@@ -59,6 +60,16 @@ Link instproc queue {} {
 Link instproc link {} {
 	$self instvar link_
 	return $link_
+}
+
+Link instproc src {} {
+	$self instvar source_
+	return $source_
+}
+
+Link instproc dst {} {
+	$self instvar dest_
+	return $dest_
 }
 
 Link instproc cost c {
@@ -82,8 +93,8 @@ Link instproc up { } {
 		foreach tr $dynT_ {
 			$tr format link-up {$src_} {$dst_}
 			set ns [Simulator instance]
-			$self instvar source_ dest_
-			$tr ntrace "l -t[$ns now] -s[$source_ id] -d[$dest_ id] -SUP"
+			$self instvar fromNode_ toNode_
+			$tr ntrace "l -t[$ns now] -s[$fromNode_ id] -d[$toNode_ id] -SUP"
 		}
 	}
 }
@@ -100,8 +111,8 @@ Link instproc down { } {
 		foreach tr $dynT_ {
 			$tr format link-down {$src_} {$dst_}
 			set ns [Simulator instance]
-			$self instvar source_ dest_
-			$tr ntrace "l -t[$ns now] -s[$source_ id] -d[$dest_ id] -SDOWN"
+			$self instvar fromNode_ toNode_
+			$tr ntrace "l -t[$ns now] -s[$fromNode_ id] -d[$toNode_ id] -SDOWN"
 		}
 	}
 }
@@ -128,6 +139,22 @@ Link instproc all-connectors op {
 			}
 		}
 	}
+}
+
+# a link doesn't have its own trace file, write it to global trace file
+Link instproc change-color { color } {
+	$self instvar color_ source_ dest_
+	set ns [Simulator instance]
+	$ns instvar namtraceAllFile_
+	if [info exists namtraceAllFile_] {
+		puts $namtraceAllFile_ [eval list "l -t[$ns now] -s[$source_ id] -d[$dest_ id] -c$color -o$color_"]
+		set color_ $color
+	}
+}
+
+Link instproc get-color {} {
+	$self instvar color_
+	return $color_
 }
 
 Class SimpleLink -superclass Link
