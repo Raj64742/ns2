@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.118 1997/07/31 19:20:10 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.119 1997/08/01 00:45:16 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -24,6 +24,7 @@
 <UL>
 <LI><A HREF="http://ww-nrg.ee.lbl.gov/kfall">[KF]</A> <B>Thu Jul 31 12:09:34 PDT 1997<BR></B>
 <UL>
+<LI> add a max bound on the TCP rto (maxrto_), default is 64 sec (like bsd)
 <LI> modifications to the compat library to allow constructs of the
 form "set ns_foo(bar) 3" to change global defaults.
 <LI> add a (hacky) way to support the ns-1 style of creating cbq
