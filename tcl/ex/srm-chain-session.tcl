@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1998/09/01 01:47:05 $
+# Version Date: $Date: 1998/09/10 20:36:19 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain-session.tcl,v 1.3 1998/09/01 01:47:05 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain-session.tcl,v 1.4 1998/09/10 20:36:19 polly Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -65,6 +65,13 @@ set group 0x8000
 set srmStats [open srmStatsSes.tr w]
 set srmEvents [open srmEventsSes.tr w]
 
+#$ns rtmodel-at 3.519 down $n(0) $n(1)	;# this ought to drop exactly one
+#$ns rtmodel-at 3.521 up   $n(0) $n(1)	;# data packet?
+set loss_module [new SRMErrorModel]
+$loss_module drop-packet 2 10 1
+$loss_module drop-target [$ns set nullAgent_]
+$ns insert-loss $loss_module 0 1
+
 set fid 0
 for {set i 0} {$i <= 5} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
@@ -87,13 +94,6 @@ $srm(0) set tg_ $s
 $srm(0) set app_fid_ 0
 $srm(0) set packetSize_ $packetSize
 $ns at 3.5 "$srm(0) start-source"
-
-#$ns rtmodel-at 3.519 down $n(0) $n(1)	;# this ought to drop exactly one
-#$ns rtmodel-at 3.521 up   $n(0) $n(1)	;# data packet?
-set loss_module [new SRMErrorModel]
-$loss_module drop-packet 2 10 1
-$loss_module drop-target [$ns set nullAgent_]
-$ns at 1.25 "$sessionhelper(0) insert-depended-loss $loss_module $srm(1) $srm(0) $group"
 
 proc distDump {} {
     global srm

@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1998/09/01 01:47:06 $
+# Version Date: $Date: 1998/09/10 20:36:20 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star-session.tcl,v 1.3 1998/09/01 01:47:06 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star-session.tcl,v 1.4 1998/09/10 20:36:20 polly Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -61,6 +61,14 @@ set srmStats [open srmStatsSes.tr w]
 set srmEvents [open srmEventsSes.tr w]
 
 set fid 0
+for {set i 2} {$i <= $nmax} {incr i} {
+    set loss_module [new SRMErrorModel]
+    $loss_module drop-packet 2 10 1
+    $loss_module drop-target [$ns set nullAgent_]
+    $ns insert-loss $loss_module 0 $i
+}
+
+
 for {set i 1} {$i <= $nmax} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
     $srm($i) set dst_ $group
@@ -84,13 +92,6 @@ $srm(1) set tg_ $s
 $srm(1) set app_fid_ 0
 $srm(1) set packetSize_ $packetSize
 $ns at 3.5 "$srm(1) start-source"
-
-for {set i 2} {$i <= $nmax} {incr i} {
-    set loss_module [new SRMErrorModel]
-    $loss_module drop-packet 2 10 1
-    $loss_module drop-target [$ns set nullAgent_]
-    $ns at 1.25 "$sessionhelper(1) insert-loss $loss_module $srm($i)"
-}
 
 $ns at 4.0 "finish $s"
 proc distDump interval {

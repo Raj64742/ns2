@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1998/09/01 01:47:03 $
+# Version Date: $Date: 1998/09/10 20:36:18 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req-session.tcl,v 1.3 1998/09/01 01:47:03 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req-session.tcl,v 1.4 1998/09/10 20:36:18 polly Exp $ (USC/ISI)
 #
 
 #
@@ -63,6 +63,16 @@ set group 0x8000
 set srmStats [open srmStats.tr w]
 set srmEvents [open srmEvents.tr w]
 
+# Drop a packet every 0.5 secs. starting at 3.52s.
+# Drops packets from the source so all receivers see the loss.
+#$ns rtmodel Deterministic {3.021 0.498 0.002} $n(0) $n(1)
+for {set i 2} {$i <= $nmax} {incr i} {
+    set loss_module [new SRMErrorModel]
+    $loss_module drop-packet 2 200 1
+    $loss_module drop-target [$ns set nullAgent_]
+    $ns insert-loss $loss_module 0 $i
+}
+
 set fid 0
 for {set i 1} {$i <= $nmax} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
@@ -89,16 +99,6 @@ $srm(1) set tg_ $s
 $srm(1) set app_fid_ 0
 $srm(1) set packetSize_ $packetSize
 $ns at 3.5 "$srm(1) start-source"
-
-# Drop a packet every 0.5 secs. starting at 3.52s.
-# Drops packets from the source so all receivers see the loss.
-#$ns rtmodel Deterministic {3.021 0.498 0.002} $n(0) $n(1)
-for {set i 2} {$i <= $nmax} {incr i} {
-    set loss_module [new SRMErrorModel]
-    $loss_module drop-packet 2 200 1
-    $loss_module drop-target [$ns set nullAgent_]
-    $ns at 1.25 "$sessionhelper(1) insert-loss $loss_module $srm($i)"
-}
 
 $ns at 50 "finish $s"
 
