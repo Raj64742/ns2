@@ -160,7 +160,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	    offset = strlen(wrk_);
 
 	    sprintf(wrk_ + offset, 
-		    "-m [ %x %x %x %x ] ",
+		    "-Ma %x -Md %x -Ms %x -Mt %x ",
 		    mh->dh_duration,
 		    ETHER_ADDR(mh->dh_da),
 		    ETHER_ADDR(mh->dh_sa),
@@ -275,7 +275,7 @@ CMUTrace::format_dsr(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset, 
-		"-P dsr -Pn %d -Pq %d -Pi %d -Pp %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc%d -Pb %d->%d ",
+		"-P dsr -Pn %d -Pq %d -Pi %d -Pp %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
 		    srh->num_addrs(),                   // how many nodes travered
 
 		    srh->route_request(),               //is this a route request?
