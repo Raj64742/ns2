@@ -8,7 +8,7 @@
 //
 // Part of the code comes from Steven Gribble's UCB trace parse codes
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/tr-stat.cc,v 1.1 1999/02/24 01:29:30 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/tr-stat.cc,v 1.2 1999/07/09 21:19:08 haoboy Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,7 +63,7 @@ int compare(const void *a1, const void *b1)
 
 void sort_rlog()
 {
-	heapsort((void *)rlog, num_rlog, sizeof(ReqLog), compare);
+	qsort((void *)rlog, num_rlog, sizeof(ReqLog), compare);
 	double t = rlog[0].time;
 	for (unsigned int i = 0; i < num_rlog; i++) {
 		rlog[i].time -= t;
@@ -96,7 +96,7 @@ void sort_url()
 	Tcl_DeleteHashTable(&urlHash);
 
 	// sort using access frequencies
-	heapsort((void *)tbl, sz, sizeof(URL*), compare_url);
+	qsort((void *)tbl, sz, sizeof(URL*), compare_url);
 	umap = new int[url];
 	// write sorted url to page table
 	for (i = 0; i < sz; i++) {

@@ -10,7 +10,7 @@
 //
 // Part of the code comes from Steven Gribble's UCB trace parse codes
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/tr-stat.cc,v 1.1 1999/02/24 01:30:03 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/tr-stat.cc,v 1.2 1999/07/09 21:19:07 haoboy Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,7 +72,7 @@ static int compare(const void *a1, const void *b1)
 
 void sort_rlog()
 {
-	heapsort((void *)rlog, num_rlog, sizeof(ReqLog), compare);
+	qsort((void *)rlog, num_rlog, sizeof(ReqLog), compare);
 	double t = rlog[0].time;
 	for (unsigned int i = 0; i < num_rlog; i++) {
 		rlog[i].time -= t;
@@ -109,7 +109,7 @@ void sort_url()
 	Tcl_DeleteHashTable(&urlHash);
 
 	// sort using access frequencies
-	heapsort((void *)tbl, sz, sizeof(URL*), compare_url);
+	qsort((void *)tbl, sz, sizeof(URL*), compare_url);
 	umap = new int[url];
 	// write sorted url to page table
 	for (i = 0; i < sz; i++) {
@@ -191,36 +191,43 @@ int get_next_entry(Entry& lfe)
 	if (feof(stdin) || ferror(stdin))
 		return 0;
 
-	char *tmp = buf, *code, *date, *method;
-	lfe.client = strsep(&tmp, " ");
-	date = strsep(&tmp, " "); 	
-	method = strsep(&tmp, " "); 	// GET/POST
+	char *tmp = buf, *code, *method, *date;
+	lfe.client = strtok(tmp, " ");
+	date = strtok(NULL, " "); 
+	method = strtok(NULL, " "); 	// GET/POST
 	*(method++) = 0;
 	if (strcmp(method, "GET") != 0) 
 		// Only take GET requests
 		return -1;
 
-	lfe.url = strsep(&tmp, " "); 
+	lfe.url = strtok(NULL, " "); 
 	if (strchr(lfe.url, '?') != NULL) 
 		// Do not take any url that contains '?'
 		return -1;
-	strsep(&tmp, " "); 		// HTTP/1.0
-	code = strsep(&tmp, " "); 	// return code
+	strtok(NULL, " "); 		// HTTP/1.0
+	code = strtok(NULL, " "); 	// return code
 	if ((atoi(code) != 200) && (atoi(code) != 304)) 
 		return -1;
-	lfe.size = atoi(tmp); 		// size
+	// last element: size
+	tmp = strtok(NULL, " ");
+	lfe.size = atoi(tmp);
 
 	// parse date
-	tmp = date + 1;
+	// date is from internal string of strtok(), we have to copy it. 
+	// What a stupid strtok()!!!!
+	tmp = new char[strlen(date)+1];
+	strcpy(tmp, date);	
+	date = tmp + 1;
 	lfe.time = 0;
-	date = strsep(&tmp, ":"); // day
+	date = strtok(date, ":"); // day
 	lfe.time = atoi(date);
-	date = strsep(&tmp, ":"); // hour
+	date = strtok(NULL, ":"); // hour
 	lfe.time = lfe.time*24 + atoi(date);
-	date = strsep(&tmp, ":"); // minute
+	date = strtok(NULL, ":"); // minute
 	lfe.time = lfe.time*60 + atoi(date);
-	tmp[2] = 0; // get rid of the last ']'
-	lfe.time = lfe.time*60 + atoi(tmp);
+	date = strtok(NULL, "]");
+	lfe.time = lfe.time*60 + atoi(date);
+	delete []tmp;
 
 	return 1;
 }

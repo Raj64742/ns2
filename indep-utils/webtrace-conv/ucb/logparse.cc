@@ -57,7 +57,7 @@ int lf_get_next_entry(int logfile_fd, lf_entry *nextentry, int vers)
   unsigned char blockbuf[60], *tmp;
   int           uln, ret;
 
-  if ((ret = correct_read(logfile_fd, (void *) blockbuf, (size_t) 60)) != 60) {
+  if ((ret = correct_read(logfile_fd, (char *)blockbuf, (size_t) 60)) != 60) {
     if (ret == 0)
       return 1;
 /*    fprintf(stderr, "read 60 failed...%d\n", ret); */
@@ -93,7 +93,7 @@ int lf_get_next_entry(int logfile_fd, lf_entry *nextentry, int vers)
     fprintf(stderr, "out of memory in lf_get_next_netry!\n");
     exit(1);
   }
-  if ((ret = correct_read(logfile_fd, (void *) (nextentry->url), (size_t) uln))
+  if ((ret = correct_read(logfile_fd, (char *) (nextentry->url), (size_t) uln))
       != uln ) {
     if (ret == 0) {
       free(nextentry->url);

@@ -32,7 +32,7 @@
  *   o thread-safe strtok
  *   o thread-unsafe AVL trees (with dorky deletion)
  *
- * $Id: utils.cc,v 1.1 1999/02/24 01:29:00 haoboy Exp $
+ * $Id: utils.cc,v 1.2 1999/07/09 21:19:11 haoboy Exp $
  * 
  */
 
@@ -146,10 +146,10 @@ tv_time  tv_timemul(tv_time t1, double mult)
   rsec = mult * ((double) t1.tv_sec);
   rusec = mult * ((double) t1.tv_usec);
 
-  ret.tv_sec = rsec;
-  ret.tv_usec = rusec;
+  ret.tv_sec = (long)rsec;
+  ret.tv_usec = (long)rusec;
 
-  ret.tv_usec += ((double) 1000000.0 * (rsec - (double) ret.tv_sec));
+  ret.tv_usec += (long)((double) 1000000.0 * (rsec - (double) ret.tv_sec));
   while (ret.tv_usec > 1000000) {
     ret.tv_usec -= 1000000;
     ret.tv_sec += 1;
@@ -204,10 +204,10 @@ ts_time  ts_timemul(ts_time t1, double mult)
   rsec = mult * ((double) t1.tv_sec);
   rnsec = mult * ((double) t1.tv_nsec);
 
-  ret.tv_sec = rsec;
-  ret.tv_nsec = rnsec;
+  ret.tv_sec = (long)rsec;
+  ret.tv_nsec = (long)rnsec;
 
-  ret.tv_nsec += ((double) 1000000000.0 * (rsec - (double) ret.tv_sec));
+  ret.tv_nsec += (long)((double) 1000000000.0 * (rsec - (double) ret.tv_sec));
   while (ret.tv_nsec > 1000000000) {
     ret.tv_nsec -= 1000000000;
     ret.tv_sec += 1;
@@ -355,7 +355,7 @@ int saccept(int s)
     int     ns;
 
     fromlen = sizeof (from);
-    if ((ns = accept (s, (void *) &from, (void *)&fromlen)) < 0)
+    if ((ns = accept (s, (struct sockaddr*)&from, &fromlen)) < 0)
         return -1;
     return ns;
 }

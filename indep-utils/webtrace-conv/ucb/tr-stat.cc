@@ -9,7 +9,7 @@
  *
  * Part of the code comes from Steven Gribble's UCB trace parse code.
  * 
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/ucb/tr-stat.cc,v 1.1 1999/02/24 01:29:00 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/ucb/tr-stat.cc,v 1.2 1999/07/09 21:19:10 haoboy Exp $
  */
 
 #include <stdio.h>
@@ -66,7 +66,7 @@ int compare(const void *a1, const void *b1)
 
 void sort_rlog()
 {
-	heapsort((void *)rlog, num_rlog, sizeof(ReqLog), compare);
+	qsort((void *)rlog, num_rlog, sizeof(ReqLog), compare);
 	double t = rlog[0].time;
 	for (unsigned int i = 0; i < num_rlog; i++) {
 		rlog[i].time -= t;
@@ -144,12 +144,12 @@ double lf_analyze(lf_entry& lfe)
 	 * filters out entries
 	 */
 	char *str, *idx = (char *)lfe.url, *tmp;
-	tmp = strsep(&idx, " ");
+	tmp = strtok(idx, " ");
 	if (strcmp(tmp, "GET") != 0) { 
 		/* We only count GETs */
 		return -1;
 	}
-	str = strsep(&idx, ".");	/* This is the URL to be entered */
+	str = strtok(NULL, ".");	/* This is the URL to be entered */
 
 	time = (double)lfe.crs + (double)lfe.cru/(double)1000000.0;
 
