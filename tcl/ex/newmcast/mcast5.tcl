@@ -50,7 +50,7 @@ for {set l 1} {$l<$depth} {incr l} {
 }
 
 ### Start multicast configuration: 
-source ~/vint/ns-main/tcl/mcast/BST.tcl
+source ../../mcast/BST.tcl
 
 BST set RP_([expr 0x8003]) $n(0)
 
