@@ -33,20 +33,7 @@
 # Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
 #
 
-# Defaults for link-layer
-LL set bandwidth_ 2Mb
-LL set delay_ 0.5ms
-LL set macDA_ 0
-
-if [TclObject is-class LL/Snoop] {
-LL/Snoop set snoopTick_ 0.05
-LL/Snoop set bandwidth_ 1Mb
-LL/Snoop set delay_ 0ms
-LL/Snoop set snoopDisable_ 0
-LL/Snoop set srtt_ 100ms
-LL/Snoop set rttvar_ 0
-LL/Snoop set g_ 0.25
-}
+# Defaults for link-layer are in ns-ll.tcl
 
 # TraceIp trace IP packet headers for LAN components
 TraceIp set src_ -1
@@ -54,6 +41,7 @@ TraceIp set dst_ -1
 TraceIp set callback_ 0
 TraceIp set show_tcphdr_ 0
 TraceIp set mask_ 0xffffffff
+#TraceIp set shift_ 8
 TraceIp set shift_ 8
 
 TraceIp instproc init {type args} {
@@ -107,7 +95,6 @@ Trace/Loss instproc init {} {
 	$self next "l"
 }
 
-
 #
 # newLan:  create a LAN from a sete of nodes
 #
@@ -117,7 +104,8 @@ Simulator instproc newLan {nodelist bw delay args} {
 	return $lan
 }
 
-# XXX Depricated:  use newLan instead of make-lan
+# For convenience, use make-lan.  For more fine-grained control,
+# use newLan instead of make-lan.
 Simulator instproc make-lan {nodelist bw delay {llType LL} \
 		{ifqType Queue/DropTail} {macType Mac} {chanType Channel}} {
 	set lan [new LanLink $self -llType $llType -ifqType $ifqType \
@@ -146,7 +134,7 @@ Link/LanDuplex instproc trace {ns f} {
 	$recvT_ target [$link_ recvtarget]
 	$link_ recvtarget $recvT_
 
-	set drpT_ [$ns create-trace Loss $f $fromNode_ $toNode_]
+	set drpT_ [$ns create-trace Loss $f $toNode_ $fromNode_]
 	set namtrfd [$ns get-nam-traceall]
 	if {$namtrfd != ""} {
 		$drpT_ attach-nam $namtraceAllFile_
@@ -191,9 +179,15 @@ NetIface instproc trace {ns f} {
 	$mac_ drop-target $drpT_
 }
 
+NetIface instproc install-error {em macSA} {
+	$self instvar lcl_
+	$em target [$lcl_ slot $macSA]
+	$lcl_ install $macSA $em
+}
+
 
 #
-# LanLink:  a LAN abstract
+# LanLink:  a LAN abstraction
 #
 Class LanLink -superclass InitObject
 LanLink set llType_ LL
@@ -294,14 +288,13 @@ LanLink instproc attachLL {src dst} {
 
 
 LanLink instproc install-error {em {src ""} {dst ""}} {
-	$self instvar ns_ channel_
+	$self instvar ns_ channel_ netIface_
 	if {$src == ""} {
 		$em target [$channel_ target]
 		$channel_ target $em
 	} else {
-		set ll [[$ns_ link $src $dst] link]
-		$em target [$ll target]
-		$ll target $em
+		set macSA [[$netIface_($src) set mac_] set addr_]
+		$netIface_($dst) install-error $em $macSA
 	}
 }
 
@@ -326,8 +319,8 @@ LanLink instproc create-error { src dstlist emname rate unit {trans ""}} {
 	}       
 	
 	foreach dst $dstlist {
-		$self install-error $src $dst $e1
-		$self install-error $dst $src $e2
+		$self install-error $e1 $src $dst
+		$self install-error $e2 $dst $src
 	}
 }
 
