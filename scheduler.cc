@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.12 1997/06/17 23:18:11 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.13 1997/06/19 23:52:15 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -175,7 +175,7 @@ void ListScheduler::cancel(Event* e)
 			abort();
 
 	*p = (*p)->next_;
-	e->uid_ = 0;
+	e->uid_ = - e->uid_;
 }
 
 Event* ListScheduler::lookup(int uid)
@@ -195,7 +195,7 @@ void ListScheduler::run()
 		Event* p = queue_;
 		queue_ = p->next_;
 		clock_ = p->time_;
-		p->uid_ = 0;
+		p->uid_ = - p->uid_;
 		p->handler_->handle(p);
 	}
 }
@@ -242,6 +242,7 @@ void HeapScheduler::run()
 	instance_ = this;
 	while ((p = (Event*) hp_->heap_extract_min()) != 0) {
 		clock_ = p->time_;
+		p->uid_ = - p->uid_;
 		p->handler_->handle(p);
 	}
 }
@@ -450,6 +451,7 @@ void CalendarScheduler::cancel(Event* e)
 	for (Event** p = buckets_ + i; (*p) != NULL; p = &(*p)->next_)
 		if ((*p) == e) {
 			(*p) = (*p)->next_;
+			e->uid_ = - e->uid_;
 			qsize_--;
 			return;
 		}
@@ -468,8 +470,10 @@ void CalendarScheduler::run()
 	Event* p;
 	/*XXX*/
 	instance_ = this;
-	while ((p = dequeue()) != NULL) 
+	while ((p = dequeue()) != NULL) {
+		p->uid_ = - p->uid_;
 		p->handler_->handle(p);
+	}
 }
 
 #include <sys/time.h>
@@ -541,6 +545,7 @@ void RealTimeScheduler::run()
 		if (clock_ > now)
 			abort();
 
+		p->uid_ = - p->uid_;
 		p->handler_->handle(p);
 	}
 }
