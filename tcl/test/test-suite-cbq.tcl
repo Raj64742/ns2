@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.24 1999/01/22 02:37:25 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.25 1999/01/29 06:17:41 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -153,11 +153,11 @@ TestSuite instproc create_flat3 { rootbw rootmaxidle } {
 	$dataclass_ setparams $topclass_ true 0.99 auto 2 1 0
 }
 
-TestSuite instproc create_flat4 { rootbw rootmaxidle } {
+TestSuite instproc create_flat4 { rootbw rootmaxidle {audiobw 0.01} 
+   {databw 0.99} {qlim 20} } {
 	$self instvar topclass_ audioclass_ dataclass_
 	$self instvar cbq_qtype_
 
-	set qlim 20
 	set cbq_qtype_ DropTail
 
 	set topclass_ [new CBQClass]
@@ -166,11 +166,11 @@ TestSuite instproc create_flat4 { rootbw rootmaxidle } {
 
 	set audioclass_ [new CBQClass]
 	$self make_queue $audioclass_ $qlim
-	$audioclass_ setparams $topclass_ true 0.01 auto 1 1 0
+	$audioclass_ setparams $topclass_ true $audiobw auto 1 1 0
 
 	set dataclass_ [new CBQClass]
 	$self make_queue $dataclass_ $qlim
-	$dataclass_ setparams $topclass_ true 0.99 auto 1 1 0
+	$dataclass_ setparams $topclass_ true $databw auto 1 1 0
 }
 
 TestSuite instproc insert_flat2 cbqlink {
@@ -274,7 +274,7 @@ TestSuite instproc insert_twoagency cbqlink {
 
 # display graph of results
 TestSuite instproc finish testname {
-	global quiet
+	global quiet 
 	$self instvar tmpschan_ tmpqchan_ topo_
 	$topo_ instvar cbqlink_
 
@@ -1145,6 +1145,12 @@ Test/TwoDynamic instproc run {} {
 #
 # This tests the dynamic allocation of bandwidth to classes.
 # For this test the two classes have the same priority level.
+# This is packet-by-packet round robin.
+#
+# At time 6.0, each class is allocated 80% of the link bandwidth.
+# Because this is packet-by-packet round robin, bandwidth is distributed
+# according to the packet sizes of the two classes;  the Audio class
+# has 190-byte packets, while the Data class has 500-byte packets.
 #
 Class Test/TwoDynamic1 -superclass TestSuite
 Test/TwoDynamic1 instproc init topo { 
@@ -1175,6 +1181,87 @@ Test/TwoDynamic1 instproc run {} {
         $ns_ at 2.0 "$audioclass_ newallot 0.4; $dataclass_ newallot 0.6"
         $ns_ at 4.0 "$audioclass_ newallot 0.2; $dataclass_ newallot 0.8"
 	$ns_ at 6.0 "$audioclass_ newallot 0.8; $dataclass_ newallot 0.8"
+
+        $ns_ run
+}
+
+# This tests the dynamic allocation of bandwidth to classes.
+# For this test the two classes have the same priority level.
+# This is weighted round robin.
+#
+# At time 6.0, each class is allocated 80% of the link bandwidth.
+# Because this is weighted round robin, each class receives
+# half of the link bandwidth. 
+#
+Class Test/TwoDynamic1WRR -superclass TestSuite
+Test/TwoDynamic1WRR instproc init topo { 
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-wrr
+        set test_ CBQ_TwoDynamic1WRR
+        $self next 0
+} 
+Test/TwoDynamic1WRR instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        $self instvar topclass_ audioclass_ dataclass_
+
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+
+        $topo_ instvar cbqlink_ 
+        $self create_flat4 1.0 auto
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0
+        $self make_fmon $cbqlink_
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+
+        $self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+        $self openTrace $stopTime CBQ_TwoDynamic1WRR
+
+        $ns_ at 2.0 "$audioclass_ newallot 0.4; $dataclass_ newallot 0.6"
+        $ns_ at 4.0 "$audioclass_ newallot 0.2; $dataclass_ newallot 0.8"
+	$ns_ at 6.0 "$audioclass_ newallot 0.8; $dataclass_ newallot 0.8"
+
+        $ns_ run
+}
+
+# This tests the dynamic allocation of bandwidth to classes.
+# For this test the two classes have the same priority level.
+# This is weighted round robin.
+#
+# The purpose of this test is to illustrate the number of bytes
+# in a single round of the weighted round robin.
+#
+Class Test/TwoWRR -superclass TestSuite
+Test/TwoWRR instproc init topo { 
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-wrr
+        set test_ CBQ_TwoWRR
+        $self next 0
+} 
+Test/TwoWRR instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_ test_
+        $self instvar topclass_ audioclass_ dataclass_
+
+        set stopTime 0.4
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+
+        $topo_ instvar cbqlink_ 
+	$self create_flat4 1.0 auto 0.039 .961 200
+        $self insert_flat2 $cbqlink_
+	$self two_cbrs 40 1000 0.002 0.005 0
+        $self make_fmon $cbqlink_
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+
+ 	TestSuite instproc finish tname { $self finish_max $tname }
+	$self traceQueues $node_(r1) [$self openTrace $stopTime $test_]
+
+	$ns_ at 0.1 "$audioclass_ newallot 0.075; $dataclass_ newallot 0.925"
+	$ns_ at 0.2 "$audioclass_ newallot 0.138; $dataclass_ newallot 0.862"
+	$ns_ at 0.3 "$audioclass_ newallot 0.069; $dataclass_ newallot 0.431"
 
         $ns_ run
 }
