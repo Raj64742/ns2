@@ -198,7 +198,8 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 		set $new_pbw $Max_cbw_
 	}
 	$self instvar badclass_
-	set bw [[$cbqlink_ link] set bandwidth_]
+	# link bw is in bits/sec
+	set bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
 	set nallot [expr $new_pbw / $bw]
 
 	$self pallot $nallot
