@@ -211,7 +211,7 @@ void SSMSRMAgent::send_ctrl(int type, int round, int sender, int msgid, int size
 
   hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
   ch->size() = sizeof(hdr_srm) + size;
-  target_->recv(p, NULL);
+  target_->recv(p, (Handler*)NULL);
 }
 
 void SSMSRMAgent::recv_rqst(int requestor, int round, int sender, 
@@ -291,7 +291,7 @@ void SSMSRMAgent::send_glb_sess()
 	// Currently put this to distinguish various session messages
 	ih->flowid() = SRM_GLOBAL;
 	seh->ottl() = groupScope_;
-        target_->recv(p, NULL);
+        target_->recv(p, (Handler*)NULL);
 }
 
 
@@ -348,7 +348,7 @@ void SSMSRMAgent::send_loc_sess()
 	// Currently put this to distinguish various session messages
 	ih->flowid() = SRM_LOCAL;
 	seh->ottl() = localScope_;
-        target_->recv(p, NULL);
+        target_->recv(p, (Handler*)NULL);
 }
 
 
@@ -408,7 +408,7 @@ void SSMSRMAgent::send_rep_sess()
 	// Currently put this to distinguish various session messages
 	ih->flowid() = SRM_RINFO;
 	seh->ottl() = localScope_;
-        target_->recv(p, NULL);
+        target_->recv(p, (Handler*)NULL);
 }
 
 

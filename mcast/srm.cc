@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.21 1998/08/31 23:50:18 tomh Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.22 1998/12/09 00:39:15 haldar Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -322,7 +322,7 @@ void SRMAgent::send_sess()
 	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
 	ch->size() = size+ sizeof(hdr_srm);
 
-	target_->recv(p, NULL);
+	target_->recv(p, (Handler*)NULL);
 }
 
 #define	GET_SESSION_INFO			\

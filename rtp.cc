@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.22 1998/09/17 01:38:42 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.23 1998/12/09 00:39:14 haldar Exp $";
 #endif
 
 
@@ -217,7 +217,7 @@ void RTPAgent::sendpkt()
 	Packet* p = allocpkt();
 	lastpkttime_ = Scheduler::instance().clock();
 	makepkt(p);
-	target_->recv(p, 0);
+	target_->recv(p, (Handler*)0);
 }
 
 void RTPAgent::makepkt(Packet* p)

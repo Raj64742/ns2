@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.14 1998/11/30 05:36:48 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.15 1998/12/09 00:39:14 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -240,7 +240,7 @@ void IvsSource::sendpkt()
 	p->key() = key_;
 	p->maxrtt() = maxrtt_;
 
-	target_->recv(pkt, 0);
+	target_->recv(pkt, (Handler *)0);
 }
 
 IvsReceiver::IvsReceiver() : Agent(PT_MESSAGE), state_(ST_U),
@@ -482,7 +482,7 @@ int IvsReceiver::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			}
 			strcpy(p->msg(), s);
-			target_->recv(pkt, 0);
+			target_->recv(pkt, (Handler*)0);
 			return (TCL_OK);
 		}
 	}
