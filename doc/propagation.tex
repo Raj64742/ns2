@@ -10,7 +10,7 @@ threshold. When a packet is received, if its signal power is below the receiving
 threshold, it is marked as error and dropped by the MAC layer.
 
 Up to now there are three propagation models in \ns, which are the free
-space model\footnote{Based on the code cotributed to \ns~from the CMU Monarch
+space model\footnote{Based on the code contributed to \ns~from the CMU Monarch
 project.}, two-ray ground reflection model\footnote{Contributed to \ns~from the
 CMU Monarch project.} and the shadowing model\footnote{Implemented in \ns~by
 Wei Ye at USC/ISI}. Their implementation can be found in \nsf{propagation.\{cc,h\}},
@@ -33,13 +33,13 @@ transmitter \cite{Friis46}.
 \end{equation}
 
 where $P_t$ is the transmitted signal power. $G_t$ and $G_r$ are the antenna
-gains of the transimitter and the receiver respectively. $L (L\ge1)$ is the
+gains of the transmitter and the receiver respectively. $L (L\ge1)$ is the
 system loss, and $\lambda$ is the wavelength. It is common to select
 $G_t = G_r = 1$ and $L = 1$ in \ns~ simulations.
 
 The free space model basically represents the communication range as a circle
 around the transmitter. If a receiver is within the circle, it receives all
-packets. Ohterwise, it loses all packets
+packets. Otherwise, it loses all packets
 
 The OTcl interface for utilizing a propagation model is the \code{node-config}
 command. One way to use it here is
@@ -72,7 +72,7 @@ model. The received power at distance $d$ is predicted by
 
 where $h_t$ and $h_r$ are the heights of the transmit and receive antennas
 respectively. Note that the original equation in \cite{Rappaport96} assumes
-$L = 1$. To be consistant with the free space model, $L$ is added here.
+$L = 1$. To be consistent with the free space model, $L$ is added here.
 
 The above equation shows a faster power loss than Eqn. (\ref{eqn:freespace})
 as distance increases. However, The two-ray model does not give a good result
