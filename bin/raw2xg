@@ -11,6 +11,7 @@ usage: $progname [options] [trace files...]
 options:
     -a		plot acks
     -s SCALE    scale TCP sequence numbers by SCALE
+    -n FACTOR	scale flow number by FACTOR
     -m MODULUS  treat TCP sequence numbers as mod MODULUS
     -q		show queueing delay by connecting lines
     -l		show packet length
@@ -25,13 +26,14 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('aes:m:qlt:') || usage;
+&Getopts('aes:mn:qlt:') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
 %q_time_seg = ();
-$modulus = defined($opt_m) ? $opt_m : 2 ** 31;
 $scale = defined($opt_s) ? $opt_s : 1;
+$modulus = defined($opt_m) ? $opt_m : 2 ** 31;
+$flow_factor = defined($opt_n) ? $opt_n : 1;
 $plot_acks = defined($opt_a);
 $plot_ecn = defined($opt_e);
 
@@ -39,7 +41,7 @@ $file = $acks = '';
 
 sub translate_point {
     my($time, $seq, $flow) = @_;
-    return ($time, $flow + ($seq % $modulus) * $scale);
+    return ($time, $flow * $flow_factor + ($seq % $modulus) * $scale);
 }
 
 while (<>) {
