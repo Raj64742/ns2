@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.224 1998/03/27 20:29:15 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.225 1998/04/11 01:42:52 ahelmy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,17 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+      <li><b><a href="http://catarina.usc.edu/ahelmy/">[AH]</a>
+	  Fri Apr 10 18:40:20 PST 1998</b>
+	  <ul>
+	  <li>Added support for trace driven packet loss. Modified errmodel.h,cc
+	  to support TraceErrorModel and MrouteErrorModel.
+	  <li>Added support for exhaustive selective packet loss over lans.
+	  Modified tcl/mcast/ns-mlink.tcl and 
+	  tcl/mcast/ex/newmcast/loss.tcl,types.awk.
+	  <li>Added an example of selective loss over lan test suite. Added
+	  tcl/ex/newmcast/pim-loss.tcl,pim-no-loss.tcl.
+	  </ul>
       <li><b><a href="http://www.cs.berkeley.edu/~amc/">[AMC]</a>
           Wed Mar 25 20:23:42 GMT 1998</b>
           <ul>
@@ -449,6 +460,7 @@ control from Tcl, and derived TCP classes can define their own trace function. <
 Files: tcp.{cc,h}
 	
 	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
+
 
 ric networks. <br>
 Files: ack-recons.{cc,h}, tcl/lib/ns-queue.tcl
