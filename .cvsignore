@@ -1,0 +1,9 @@
+config.cache
+config.log
+embedded-tclobj.cc
+embedded-tk.cc
+gen
+config.status
+Makefile
+ns
+ns-src*.tar.gz
