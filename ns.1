@@ -1412,19 +1412,13 @@ A centralized computation agent is used
 to compute the fowarding trees and set up 
 multicast forwarding state, (*,G) at the relevant nodes
 as new receivers join a group.
-If a sender to a group sends data less than
-a certain threshold(?), 
-packets are unicast to the RP.
-Only when the data rate threshold is crossed,
-multicast forwarding state 
-is set up from the sender to the RP.
+Data packets from the senders to a group
+are unicast to the RP.
 Methods are provided in the CtrMcastComp object
+(see CTRMCASTCOMP OBJECTS section)
 that is returned by mrtproto 
 to switch to source-specific trees,
 choose some nodes as candidate RPs etc.
-Note that the above mechanisms reflect the
-Protocol Independent Multicast - Sparse Mode (PIM-SM) [cite]
-specifications.
 When a node/link on a multicast distribution tree
 goes down, the tree is instanteously recomputed.
 
@@ -1436,20 +1430,22 @@ the data packets are broadcast.
 Prune messages are sent by nodes
 to remove branches from the multicast forwarding tree
 that do not lead to any group members.
+The prune timeout value is 0.5s by default 
+(see DM OBJECTS section to change the default).
 This does not adapt to network changes.
 
 If proto is 'dynamicDM'
 DVMRP-like dense mode protocol that
 adapts to network changes is simulated.
-In addition to parent-child lists 
-a downstream-member list per source is maintained
-for every outgoing interface
-and 'poison-reverse' information
+'Poison-reverse' information
 (i.e. the information that a particular neighbouring node
 uses me to reach a particular network)
 is read from the routing tables of neighbouring nodes
+in order to adapt to network dynamics
 (DVMRP runs its own unicast routing protocol
 that exchanges this information).
+The prune timeout value is 0.5s by default 
+(see DM OBJECTS section to change the default).
 
 If proto is 'pimDM'
 Protocol Independent Multicast - Dense mode is simulated.
@@ -1458,6 +1454,8 @@ over all the outgoing links except the incoming link.
 Prune messages are sent by nodes to remove
 the branches of the multicast forwarding tree
 that do not lead to any group members.
+The prune timeout value is 0.5s by default 
+(see DM OBJECTS section to change the default).
 
 .SH "CTRMCASTCOMP OBJECTS"
 A handle to the CtrMcastComp object is returned
@@ -1468,10 +1466,9 @@ Switch from the Rendezvous Point rooted shared tree
 to source-specific trees 
 for the group specified by
 .I group-addr.
-Note that it's not possible to switch back
-from source-specific trees to 
-a shared tree for the group 
-(on the lines of Protocol Independent Multicast - Sparse Mode [cite]).
+Note that this method cannot be used
+to switch from source-specific trees
+back to a shared tree for a multicast group.
 .IP "\fB$ctrmcastcomp set_c_rp \fInode-list\fP"
 Make all the nodes specified in
 .I node-list
@@ -1480,18 +1477,15 @@ All nodes are candidate RPs by default
 and currently the node with the highest node id
 serves as the RP for all multicast groups.
 This is likely to change soon.
-.IP "\fB$ctrmcastcomp set_c_bsr \fInode-priority-list\fP"
-Make all the specified nodes as 
-candidate bootstrap routers with 
-the specified priorities as given in
-.I node-priority-list.
-.I node-priority-list
-is a list of the form node:priority
-where node is a node object handle
-and priority is an integer that determines
-the priority of the node in becoming the Bootstrap router.
 .IP "\fB$ctrmcastcomp get_rp \fInode group\fP"
-.IP "\fB$ctrmcastcomp get_bsr \fInode\fP"
+Returns the RP for the group
+as seen by the node
+.I node
+for the multicast group with address
+.I group-addr.
+Note that different nodes may see different
+RPs for the group if the network is partitioned
+as the nodes might be in different partitions.
 
 .SH "DM OBJECTS"
 DM Objects implement DVMRP style densemode multicast
@@ -1500,8 +1494,11 @@ the number of links over which
 initial data packets are broadcast.
 There are no methods or state variables specific to this object.
 .LP
-Configuration parameters
-PruneTimeout
+.HD
+Configuration parameters \fP
+.RS
+.IP \fIPruneTimeout\fP
+.LP
 Timeout value for the prune state at nodes.
 
 .SH "AGENT OBJECTS"
@@ -1820,6 +1817,115 @@ Configuration Parameters \fP
 The amount of time to delay before generating an acknowledgment
 for a single packet.  If another packet arrives before this
 time expires, generate an acknowledgment immediately.
+.RE
+
+.SH "SRM OBJECTS"
+SRM objects are a subclass of agent objects that implement the
+SRM reliable multicast transport protocol. They inherit all of the 
+generic agent functionalities.
+.IP "\fB$srm traffic-source \fIsource\fP"
+Attach a traffic source, e.g., Agent/CBR, to the SRM agent. This is likely to change as the API for Traffic Generators is improved.
+.IP "\fB$srm start\fP"
+Join the multicast group, start the SRM agent and its attached traffic source.
+.IP "\fB$srm delete\fP"
+Stop the SRM agent, delete all its status and detach the traffic source.
+.IP "\fB$srm trace \fItrace-file \fP"
+Write the traces generated by the SRM agent to \fItrace-file\fP. The traces 
+includes timer settings, request and repair sending and receipts, etc. Two 
+related files that are not built into ns are
+\fItcl/mcast/srm-debug.tcl\fP
+that permits more detailed tracing of the delay computation functions,
+and 
+\fItcl/mcast/srm-nam.tcl\fP
+that separately marks srm control messages from data.
+The latter is useful to enhance nam visualisation.
+.IP "\fB$srm log \fIlog-file \fP"
+Write the recovery statistics during each request or repair to \fIlog-file\fP.
+The statistics include start time, duration, message id, total number of 
+duplicate requests and repairs.
+.IP "\fB$srm distance? \fInode \fP"
+Return the distance estimate to \fInode\fP in this SRM agent.
+.IP "\fB$srm distances? \fInode \fP"
+Returns a list of <group member,  distance> tuples of the distances to all 
+group members that this node is aware of.  The group member is
+identified
+as the address of the remote agent.
+The first tuple is this agent's token.
+The list can be directly loaded into a Tcl array.
+.LP
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fIpacketSize_\fP
+The data packet size that will be used for repair messages. The default value
+is 1024. 
+.IP \fIrequestFunction_\fP
+The algorithm used to produce a retransmission request, e.g., setting 
+request timers. The default value is SRM/request. Other possible request
+functions are SRM/request/Adaptive, used by the
+Adaptive SRM code.
+.IP \fIrepairFunction_\fP
+The algorithm used to produce a repair, e.g., compute repair timers. The
+default value is SRM/repair. Other possible request functions are 
+SRM/repair/Adaptive, used by the Adaptive SRM code.
+.IP \fIsessionFunction_\fP
+The algorithm used to generate session messages. Default is SRM/session
+.IP \fIsessionDelay_\fP
+The basic interval of session messages. Slight random variation is added to 
+this interval to avoid global synchronization of session messages. User may 
+want to adjust this variable according to their specific simulation. 
+Default value is 1.0.
+.IP "\fIC1_, C2_\fP"
+The parameters which control the request timer. Refer to [8] for detail. The
+default value is \fIC1_\fP = \fIC2_\fP = 2.0.
+.IP "\fID1_, D2_\fP"
+The parameters which control the repair timer. Refer to [8] for detail. The 
+default value is \fID1_\fP = \fID2_\fP = 1.0.
+.IP \fIrequestBackoffLimit_\fP
+The maximum number of exponential backoffs. Default value is 5.
+.RE
+.LP  
+.HD 
+State Variables
+.RS
+.LP
+.IP \fIstats_\fP
+An array containing multiple statistics needed by adaptive SRM agent. 
+Including: duplicate requests and repairs in current request/repair period,
+average number of duplicate requests and repairs, request and repair delay in
+current request/repair period, average request and repair delay.
+.RE
+
+.SH "SRM/Adaptive OBJECTS"
+SRM/Adaptive objects are a subclass of the SRM objects that implement the
+adaptive SRM reliable multicast transport protocol. They inherit all of the 
+SRM object functionalities.
+.LP
+.HD
+State Variables
+Refer to the SRM paper by Sally et al ([11]) for more detail.
+.RS
+.LP
+.IP \fIpdistance_\fP
+This variable is used to pass the distance estimate provided by the
+remote agent in a request or repair message.
+.IP "\fID1_, D2_\fP"
+The same as that in SRM agents, except that they are initialized to 
+log10(group size) when generating the first repair.
+.IP "\fIMinC1_, MaxC1_, MinC2_, MaxC2_\fP"
+The minimum/maximum values of C1_ and C2_. Default initial values are 
+defined in [8].
+These values define the dynamic range of \fIC1_\fP and \fIC2_\fP.
+.IP "\fIMinD1_, MaxD1_, MinD2_, MaxD2_\fP"
+The minimum/maximum values of D1_ and D2_. Default initial values are defined
+in [8]. These values define the dynamic range of \fID1_\fP and \fID2_\fP.
+.IP \fIAveDups\fP
+Higher bound for average duplicates.
+.IP \fIAveDelay\fP
+Higher bound for average delay.
+.IP \fIeps\fP
+\fIAveDups\fP - \fIdups\fP determines the lower bound of the number of 
+duplicates, when we should adjust parameters to decrease delay.
 .RE
 
 .SH "CONSTANT BIT-RATE OBJECTS"
@@ -2315,6 +2421,11 @@ URL http://www.acm.org/sigcomm/sigcomm96/papers/hoe.html.
 Fall, K., Floyd, S., and Henderson, T.,
 Ns Simulator Tests for Reno FullTCP.
 URL ftp://ftp.ee.lbl.gov/papers/fulltcp.ps.Z.  July 1997.
+.IP \fB[12]\fP
+Floyd, S., Jacobson, V., Liu, C.-G., McCanne, S. and Zhang, L., 
+A Reliable Multicast Framework for Light-weight Sessions and Application Level
+Framing. To appear in IEEE/ACK Transaction on Networking, November 1996. 
+ftp://ftp.ee.lbl.gov/papers/srm1.ps.gz
 .LP
 Work on ns is on-going.
 Information about the most recent version is available
