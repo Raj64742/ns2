@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.162 1999/08/03 04:06:09 yaxu Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.163 1999/08/12 03:59:16 sfloyd Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -130,7 +130,7 @@ OBJ_CC = \
 	$(LIB_DIR)dmalloc_support.o \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
-	lanRouter.o tfcc.o filter.o pkt-counter.o \
+	lanRouter.o filter.o pkt-counter.o \
 	Decapsulator.o Encapsulator.o \
 	channel.o mac.o ll.o \
 	mac-802_11.o \
