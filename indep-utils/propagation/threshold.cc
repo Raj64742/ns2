@@ -128,15 +128,15 @@ int main(int argc, char** argv)
 	
 	// specify default values
 	char** propModel = NULL;       // propagation model
-	double Pt = 0.2818;            // transmit power
+	double Pt = 0.28183815;            // transmit power
 	double Gt = 1.0;               // transmit antenna gain
 	double Gr = 1.0;               // receive antenna
 	double freq = 914.0e6;         // frequency
 	double sysLoss = 1.0;          // system loss
 	
 	// for two-ray model
-	double ht = 0.5;               // transmit antenna height
-	double hr = 0.5;               // receive antenna height
+	double ht = 1.5;               // transmit antenna height
+	double hr = 1.5;               // receive antenna height
 	
 	// for shadowing model
 	double pathlossExp_ = 2.0;     // path loss exponent
@@ -154,14 +154,20 @@ int main(int argc, char** argv)
 		cout << endl;
 		cout << "<propagation-model>: FreeSpace, TwoRayGround or Shadowing" << endl;
 		cout << "[other-options]: set parameters other than default values:" << endl;
-		cout << "-pl <path-loss-exponent>" << endl;
-		cout << "-std <shadowing-deviation>" << endl;
+		cout << endl << "Common parameters:" << endl;
 		cout << "-Pt <transmit-power>" << endl;
 		cout << "-fr <frequency>" << endl;
 		cout << "-Gt <transmit-antenna-gain>" << endl;
 		cout << "-Gr <receive-antenna-gain>" << endl;
 		cout << "-L <system-loss>" << endl;
+		cout << endl << "For two-ray ground model:" << endl;
+		cout << "-ht <transmit-antenna-height>" << endl;
+		cout << "-hr <receive-antenna-height>" << endl;
+		cout << endl << "For shadowing model:" << endl;
+		cout << "-pl <path-loss-exponent>" << endl;
+		cout << "-std <shadowing-deviation>" << endl;
 		cout << "-d0 <reference-distance>" << endl;
+		cout << "-r <receiving-rate>" << endl;
 		return 0;
 	}
 
@@ -176,50 +182,39 @@ int main(int argc, char** argv)
 	    	propModel = argv + 1;
 	    	cout << "propagation model: " << *propModel << endl;
 	    }
-        if(!strcmp(*argv,"-r")) {        // rate of correct reception (Shadowing model)
-            prob = atof(*(argv + 1));
-            cout << "receive rate: " << prob << endl;
-        }
-        if(!strcmp(*argv,"-pl")) {        // path loss exponent
-            pathlossExp_ = atof(*(argv + 1));
-            cout << "path loss exp.: " << pathlossExp_ << endl;
-        }
-        if(!strcmp(*argv,"-std")) {        // shadowing deviation
-            std_db_ = atof(*(argv + 1));
-            cout << "shadowing deviation: " << std_db_ << endl;
-        }
         if(!strcmp(*argv,"-Pt")) {        // transmit power
             Pt = atof(*(argv + 1));
-            cout << "transmit power: " << Pt << endl;
         }
         if(!strcmp(*argv,"-fr")) {        // frequency
             freq = atof(*(argv + 1));
-            cout << "frequency: " << freq << endl;
         }
         if(!strcmp(*argv,"-Gt")) {        // transmit antenna gain
             Gt = atof(*(argv + 1));
-            cout << "transmit antenna gain: " << Gt << endl;
         }
         if(!strcmp(*argv,"-Gr")) {        // receive antenna gain
             Gr = atof(*(argv + 1));
-            cout << "receive antenna gain: " << Gr << endl;
         }
         if(!strcmp(*argv,"-L")) {        // system loss
             sysLoss = atof(*(argv + 1));
-            cout << "system loss: " << sysLoss << endl;
 	    }
-        if(!strcmp(*argv,"-d0")) {        // close-in reference distance
-            dist0_ = atof(*(argv + 1));
-            cout << "close-in reference distance: " << dist0_ << endl;
-	    }
-        if(!strcmp(*argv,"-ht")) {        // transmit antenna height
+        if(!strcmp(*argv,"-ht")) {        // transmit antenna height (Two ray model)
             ht = atof(*(argv + 1));
-            cout << "transmit antenna height: " << ht << endl;
 	    }
-        if(!strcmp(*argv,"-hr")) {        // receive antenna height
+        if(!strcmp(*argv,"-hr")) {        // receive antenna height (Two ray model)
             hr = atof(*(argv + 1));
-            cout << "receive antenna height: " << hr << endl;
 	    }
+        if(!strcmp(*argv,"-pl")) {        // path loss exponent (Shadowing model)
+            pathlossExp_ = atof(*(argv + 1));
+        }
+        if(!strcmp(*argv,"-std")) {        // shadowing deviation (Shadowing model)
+            std_db_ = atof(*(argv + 1));
+        }
+        if(!strcmp(*argv,"-d0")) {        // close-in reference distance (Shadowing model)
+            dist0_ = atof(*(argv + 1));
+	    }
+        if(!strcmp(*argv,"-r")) {        // rate of correct reception (Shadowing model)
+            prob = atof(*(argv + 1));
+        }
 	    argv += 2;
 	}
 	
@@ -233,33 +228,57 @@ int main(int argc, char** argv)
 	// compute threshold	
 	if (!strcmp(*propModel, "FreeSpace")) {
 		rxThresh_ = Friis(Pt, Gt, Gr, lambda, sysLoss, dist);
+		cout << endl << "Selected parameters:" << endl;
+        cout << "transmit power: " << Pt << endl;
+        cout << "frequency: " << freq << endl;
+        cout << "transmit antenna gain: " << Gt << endl;
+        cout << "receive antenna gain: " << Gr << endl;
+        cout << "system loss: " << sysLoss << endl;
 	} else if (!strcmp(*propModel, "TwoRayGround")) {
 		rxThresh_ = TwoRay(Pt, Gt, Gr, ht, hr, sysLoss, dist, lambda);
+		cout << endl << "Selected parameters:" << endl;
+        cout << "transmit power: " << Pt << endl;
+        cout << "frequency: " << freq << endl;
+        cout << "transmit antenna gain: " << Gt << endl;
+        cout << "receive antenna gain: " << Gr << endl;
+        cout << "system loss: " << sysLoss << endl;
+        cout << "transmit antenna height: " << ht << endl;
+        cout << "receive antenna height: " << hr << endl;
 	} else if (!strcmp(*propModel, "Shadowing")) {
-	// calculate receiving power at reference distance
-	double Pr0 = Friis(Pt, Gt, Gr, lambda, sysLoss, dist0_);
+		// calculate receiving power at reference distance
+		double Pr0 = Friis(Pt, Gt, Gr, lambda, sysLoss, dist0_);
 
-	// calculate average power loss predicted by path loss model
-	double avg_db = -10.0 * pathlossExp_ * log10(dist/dist0_);
+		// calculate average power loss predicted by path loss model
+		double avg_db = -10.0 * pathlossExp_ * log10(dist/dist0_);
 
-	// calculate the the threshold
-	double invq = inv_Q(prob);
-	double threshdb = invq * std_db_ + avg_db;
+		// calculate the the threshold
+		double invq = inv_Q(prob);
+		double threshdb = invq * std_db_ + avg_db;
+		rxThresh_ = Pr0 * pow(10.0, threshdb/10.0);
 	
 #ifdef DEBUG
-	cout << "Pr0 = " << Pr0 << endl;
-	cout << "avg_db = " << avg_db << endl;
-	cout << "invq = " << invq << endl;
-	cout << "threshdb = " << threshdb << endl;
+		cout << "Pr0 = " << Pr0 << endl;
+		cout << "avg_db = " << avg_db << endl;
+		cout << "invq = " << invq << endl;
+		cout << "threshdb = " << threshdb << endl;
 #endif
-	
-	rxThresh_ = Pr0 * pow(10.0, threshdb/10.0);
+		
+		cout << endl << "Selected parameters:" << endl;
+        cout << "transmit power: " << Pt << endl;
+        cout << "frequency: " << freq << endl;
+        cout << "transmit antenna gain: " << Gt << endl;
+        cout << "receive antenna gain: " << Gr << endl;
+        cout << "system loss: " << sysLoss << endl;
+        cout << "path loss exp.: " << pathlossExp_ << endl;
+        cout << "shadowing deviation: " << std_db_ << endl;
+        cout << "close-in reference distance: " << dist0_ << endl;
+        cout << "receiving rate: " << prob << endl;
     } else {
     	cout << "Error: unknown propagation model." << endl;
     	cout << "Available model: FreeSpace, TwoRayGround, Shadowing" << endl;
     	return 0;
     }
 
-	cout << "Receiving threshold RXThresh_ is: " << rxThresh_ << endl;
-	return 1;
+	cout << endl << "Receiving threshold RXThresh_ is: " << rxThresh_ << endl;
+
 }
