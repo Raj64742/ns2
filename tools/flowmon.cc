@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.23 2002/03/10 04:43:31 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.24 2004/10/28 01:21:41 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -377,9 +377,9 @@ FlowMon::fformat(Flow* f)
 {
 	double now = Scheduler::instance().clock();
 #if defined(HAVE_INT64)
-	sprintf(wrk_, "%8.3f %d %d %d %d %d %d " STRTOI64_FMTSTR " " STRTOI64_FMTSTR " %d %d " STRTOI64_FMTSTR " " STRTOI64_FMTSTR " %d %d %d %d %d %d",
+	sprintf(wrk_, "%8.3f %d %d %d %d %d %d " STRTOI64_FMTSTR " " STRTOI64_FMTSTR " %d %d " STRTOI64_FMTSTR " " STRTOI64_FMTSTR " %d %d %d %d %d %d %d %d %d",
 #else /* no 64-bit int */
-	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
 #endif
 		now,		// 1: time
 		f->flowid(),	// 2: flowid
@@ -399,7 +399,10 @@ FlowMon::fformat(Flow* f)
 		pdrops(),	// 16: total drops (pkts)
 		bdrops(),	// 17: total drops (bytes)
 		f->pdrops(),	// 18: drops this flow (pkts) [includes edrops]
-		f->bdrops()	// 19: drops this flow (bytes) [includes edrops]
+		f->bdrops(),	// 19: drops this flow (bytes) [includes edrops]
+		f->qs_pkts(),	// 20: Quick-Start packets this flow
+		f->qs_bytes(),  // 21: Quick-Start bytes this flow
+		f->qs_drops()	// 22: dropped Quick-Start pkts this flow
 	);
 };
 

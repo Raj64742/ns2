@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.28 2002/10/23 23:20:40 sfloyd Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.29 2004/10/28 01:21:41 sfloyd Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -225,6 +225,17 @@ void QueueMonitor::in(Packet* p)
 	hdr_cmn* hdr = hdr_cmn::access(p);
 	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
+	hdr_flags* pf = hdr_flags::access(p);
+
+	last_pkt_ = Scheduler::instance().clock();
+	if (parrivals_ == 0) {
+		first_pkt_ = last_pkt_;
+	}
+
+	if (pf->qs()) {
+		qs_pkts_++;
+		qs_bytes_ += pktsz;
+	}
 
        	//if enabled estimate rate now
 	if (estimate_rate_) {
@@ -284,11 +295,16 @@ void QueueMonitor::drop(Packet* p)
 	hdr_cmn* hdr = hdr_cmn::access(p);
 	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
+	hdr_flags* pf = hdr_flags::access(p);
 
 	size_ -= pktsz;
 	pkts_--;
 	bdrops_ += pktsz;
 	pdrops_++;
+
+	if (pf->qs())
+		qs_drops_++;
+
 	if (bytesInt_)
 		bytesInt_->newPoint(now, double(size_));
 	if (pktsInt_)

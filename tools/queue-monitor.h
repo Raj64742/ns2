@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.24 2003/01/28 23:31:04 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.25 2004/10/28 01:21:41 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -50,6 +50,7 @@ public:
 		parrivals_(0), barrivals_(0),
 		pdepartures_(0), bdepartures_(0),
 		pdrops_(0), pmarks_(0), bdrops_(0), 
+			 qs_pkts_(0), qs_bytes_(0), qs_drops_(0),
 		keepRTTstats_(0), maxRTT_(1), numRTTs_(0), binsPerSec_(10),
 		keepSeqnoStats_(0), maxSeqno_(1000), 
 		numSeqnos_(0), SeqnoBinSize_(1),
@@ -67,6 +68,13 @@ public:
 		bind("pdrops_", &pdrops_);
 		bind("pmarks_", &pmarks_);
 		bind("bdrops_", &bdrops_);
+
+		bind("qs_pkts_", &qs_pkts_);
+		bind("qs_bytes_", &qs_bytes_);
+		bind("qs_drops_", &qs_drops_);
+
+		bind("first_pkt_", &first_pkt_);
+		bind("last_pkt_", &last_pkt_);
 
 		//for keeping RTT statistics
                 bind_bool("keepRTTstats_", &keepRTTstats_);
@@ -105,6 +113,13 @@ public:
 	int pdrops() const { return (pdrops_); }
 	int pmarks() const { return (pmarks_); }
 	int bdrops() const { return (bdrops_); }
+
+	int qs_pkts() const { return (qs_pkts_); }
+	int qs_bytes() const { return (qs_bytes_); }
+	int qs_drops() const { return (qs_drops_); }
+
+	double first_pkt() const { return (first_pkt_); }
+
 	void printRTTs();
 	void printSeqnos();
 	void printStats();
@@ -134,6 +149,13 @@ protected:
 	int pdrops_;
 	int pmarks_;
 	int bdrops_;
+
+	int qs_pkts_;			/* Number of Quick-Start packets */
+	int qs_bytes_;			/* Number of Quick-Start bytes */
+	int qs_drops_;			/* Number of dropped QS packets */
+
+	double first_pkt_;		/* Time of first packet arrival */
+	double last_pkt_;		/* Time of last packet arrival */
 
         int keepRTTstats_;		/* boolean - keeping RTT stats? */
 	int maxRTT_;			/* Max RTT to measure, in seconds */
