@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.6 1997/11/04 00:02:01 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.7 1997/11/05 19:34:31 kfall Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -297,6 +297,7 @@ Topology/cbq1 instproc init ns {
 	$ns duplex-link $node_(s3) $node_(r1) 10Mb 5ms DropTail
 	$ns duplex-link $node_(s4) $node_(r1) 10Mb 5ms DropTail
 	$ns simplex-link $node_(r2) $node_(r1) 1.5Mb 5ms DropTail
+	$ns queue-limit $node_(r2) $node_(r1) 20
 }
 
 Class Topology/cbq1-prr -superclass Topology/cbq1
@@ -306,7 +307,6 @@ Topology/cbq1-prr instproc init ns {
 	$self instvar node_ cbqlink_
 	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 5ms CBQ
 	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
-	$ns queue-limit $node_(r1) $node_(r2) 20
 }
 
 Class Topology/cbq1-wrr -superclass Topology/cbq1
@@ -316,7 +316,6 @@ Topology/cbq1-wrr instproc init ns {
 	$self instvar node_ cbqlink_
 	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 5ms CBQ/WRR
 	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
-	$ns queue-limit $node_(r1) $node_(r2) 20
 }
 
 Class Topology/net2 -superclass NodeTopology/6nodes
