@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.204 2000/07/10 07:38:22 intanago Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.205 2000/07/19 21:41:26 haoboy Exp $
 
 
 #
@@ -717,3 +717,15 @@ LanRouter set debug_ false
 Phy/Sat set debug_ false
 Mac/Sat set debug_ false
 LL/Sat set debug_ false
+
+# PLM contributed by Arnaud Legout at INRIA
+Agent/LossMonitor/PLM set flag_PP_ 0
+Agent/LossMonitor/PLM set packet_time_PP_ 0
+Agent/LossMonitor/PLM set fid_PP_ 0
+Agent/LossMonitor/PLM set seqno_ 0
+
+Application/Traffic/CBR_PP set rate_ 448Kb ;# corresponds to interval of 3.75ms
+Application/Traffic/CBR_PP set packetSize_ 210
+Application/Traffic/CBR_PP set random_ 0
+Application/Traffic/CBR_PP set maxpkts_ 268435456; # 0x10000000
+Application/Traffic/CBR_PP set PBM_ 2;
