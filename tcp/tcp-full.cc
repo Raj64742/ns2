@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.80 2000/06/20 23:01:26 kclan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.81 2000/08/23 01:05:13 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1745,7 +1745,8 @@ step6:
 	// haoboy: Is here the place for done{} of active close? 
 	// It cannot be put in the switch above because we might need to do
 	// send_much() (an ACK)
-	Tcl::instance().evalf("%s done", this->name());
+	if (state_ == TCPS_CLOSED) 
+		Tcl::instance().evalf("%s done", this->name());
 
 	return;
 
