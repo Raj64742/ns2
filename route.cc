@@ -39,75 +39,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.16 1998/06/27 01:24:35 gnguyen Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.16.2.1 1998/08/20 22:25:02 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <assert.h>
 #include <tclcl.h>
 #include "config.h"
-
-#define INFINITY	0x3fff
-#define INDEX(i, j, N) ((N) * (i) + (j))
-
-/*** definitions for hierarchical routing support 
-right now implemented for 3 levels of hierarchy --> should
-be able to extend it for n levels of hierarchy in the future ***/
-
-#define HIER_LEVEL	3
-#define N_N_INDEX(i, j, a, b, c)	(((i) * (a+b+c)) + (j))
-#define N_C_INDEX(i, j, a, b, c)	(((i) * (a+b+c)) + (a+j))
-#define N_D_INDEX(i, j, a, b, c)	(((i) * (a+b+c)) + (a+(b-1)+j))
-#define C_C_INDEX(i, j, a, b, c)	(((a+i) * (a+b+c)) + (a+j))
-#define C_D_INDEX(i, j, a, b, c)	(((a+i) * (a+b+c)) + (a+(b-1)+j))
-#define D_D_INDEX(i, j, a, b, c)	(((a+(b-1)+i) * (a+b+c)) + (a+(b-1)+j))
-
-
-
-class RouteLogic : public TclObject {
-public:
-	RouteLogic();
-	~RouteLogic();
-	int command(int argc, const char*const* argv);
-protected:
-	void check(int);
-	void alloc(int n);
-	void insert(int src, int dst, int cost);
-	void reset(int src, int dst);
-	void compute_routes();
-	int *adj_;
-	int *route_;
-	int size_,
-		maxnode_;
-
-	/**** Hierarchical routing support ****/
-
-	void hier_check(int index);
-	void hier_alloc(int size);
-	void hier_init(void);
-	void ns_strtok(char *addr, int *addrstr);
-	void str2address(const char*const* address, int *src, int *dst);
-	void get_address(char * target, int next_hop, int index, int d, int size, int *src);
-	void hier_insert(int *src, int *dst, int cost);
-	void hier_reset(int *src, int *dst);
-	void hier_compute();
-	void hier_compute_routes(int index, int d);
-
-	/* Debugging print functions */
-	void hier_print_hadj();
-	void hier_print_route();
-	
-	int	**hadj_;
-	int	**hroute_;
-	int	*hsize_;
-	int	*cluster_size_;		/* no. of nodes/cluster/domain */
-	char	***hconnect_;		/* holds the connectivity info --> address of target */
-	int	level_;
-	int	*C_;                    /* no. of clusters/domain */
-	int	D_,			/* total no. of domains */
-		Cmax_;			/* max value of C_ for initialization purpose */
-};
-
+#include "route.h"
 
 class RouteLogicClass : public TclClass {
 public:
@@ -268,74 +207,12 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 
 		if (strcmp(argv[1], "hier-lookup") == 0) {
-			int i;
-			int src[SMALL_LEN], dst[SMALL_LEN];
-			/* initializing src and dst addr */
-			// for (i=0; i < SMALL_LEN; i++){
-// 				src_addr[i] = 0;
-// 				dst_addr[i] = 0;
-// 			}
-			if ( hroute_ == 0) {
-				tcl.result("Required Hier_data not sent");
+			int nh= lookup_hier((char*)argv[2], (char*)argv[3]);
+			if (nh < 0) {
 				return (TCL_ERROR);
 			}
-      
-			str2address(argv, src, dst);
-			for (i=0; i < HIER_LEVEL; i++)
-				if (src[i] <= 0) {
-					tcl.result ("negative src node number");
-					return (TCL_ERROR);
-				}
-			if (dst[0] <= 0) {
-				tcl.result ("negative dst domain number");
-				return (TCL_ERROR);
-			}
-
-			int d = src[0];
-			int index = INDEX(src[0], src[1], Cmax_);
-			int size = cluster_size_[index];
-
-			if (hsize_[index] == 0) {
-				tcl.result ("Routes not computed");
-				return (TCL_ERROR);
-			}
-			if ((src[0] < D_) || (dst[0] < D_)) {
-				if((src[1] < C_[d]) || (dst[1] < C_[dst[0]]))
-					if((src[2] <= size) ||
-					   (dst[2] <= cluster_size_[INDEX(dst[0], dst[1], Cmax_)]))
-						;
-			}
-			else { 
-				tcl.result("node out of range");
-				return (TCL_ERROR);
-			}
-			int next_hop = 0;
-			/* if node-domain lookup */
-			if (((dst[1] <= 0) && (dst[2] <= 0)) ||
-			    (src[0] != dst[0])){
-				next_hop = hroute_[index][N_D_INDEX(src[2], dst[0], size, C_[d], D_)];
-			}
-
-			/* if node-cluster lookup */
-			else if ((dst[2] <= 0) || (src[1] != dst[1])) {
-				next_hop = hroute_[index][N_C_INDEX(src[2], dst[1], size, C_[d], D_)];
-			}
-
-			/* if node-node lookup */
-			else {
-				next_hop = hroute_[index][N_N_INDEX(src[2], dst[2], size, C_[d], D_)];	
-			}
-			char target[SMALL_LEN];
-			if (next_hop > 0) {
-				get_address(target, next_hop, index, d, size, src);
-			} else {
-				strcpy(target, "-1");
-			}
-			
-			tcl.resultf("%s",target);
 			return (TCL_OK);
 		}
-
 
 		if (strcmp(argv[1], "reset") == 0) {
 			int src = atoi(argv[2]) + 1;
@@ -348,21 +225,105 @@ int RouteLogic::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "lookup") == 0) {
-			if (route_ == 0) {
-				tcl.result("routes not computed");
+			int nh= lookup_flat((char*)argv[2], (char*)argv[3]);
+			if (nh<0) {
 				return (TCL_ERROR);
 			}
-			int src = atoi(argv[2]) + 1;
-			int dst = atoi(argv[3]) + 1;
-			if (src >= size_ || dst >= size_) {
-				tcl.result("node out of range");
-				return (TCL_ERROR);
-			}
-			tcl.resultf("%d", route_[INDEX(src, dst, size_)] - 1);
+			tcl.resultf("%d", nh);
 			return (TCL_OK);
 		}
 	}
 	return (TclObject::command(argc, argv));
+}
+
+int RouteLogic::lookup_flat(char* asrc, char* adst) {
+	Tcl& tcl = Tcl::instance();
+	int src = atoi(asrc) + 1;
+	int dst = atoi(adst) + 1;
+
+	if (route_ == 0) {
+		tcl.result("routes not computed");
+		return -1;
+	}
+	if (src >= size_ || dst >= size_) {
+		tcl.result("node out of range");
+		return -1;
+	}
+	return route_[INDEX(src, dst, size_)] - 1;
+}
+
+int RouteLogic::lookup_hier(char* asrc, char* adst) {
+	int i;
+	int src[SMALL_LEN], dst[SMALL_LEN];
+	Tcl& tcl = Tcl::instance();
+
+	/* initializing src and dst addr */
+	// for (i=0; i < SMALL_LEN; i++){
+	// 				src_addr[i] = 0;
+	// 				dst_addr[i] = 0;
+	// 			}
+	if ( hroute_ == 0) {
+		tcl.result("Required Hier_data not sent");
+		return -1;
+	}
+      
+	ns_strtok(asrc, src);
+	ns_strtok(adst, dst);
+
+	for (i=0; i < HIER_LEVEL; i++)
+		if (src[i] <= 0) {
+			tcl.result("negative src node number");
+			return -1;
+		}
+	if (dst[0] <= 0) {
+		tcl.result("negative dst domain number");
+		return -1;
+	}
+
+	int d = src[0];
+	int index = INDEX(src[0], src[1], Cmax_);
+	int size = cluster_size_[index];
+
+	if (hsize_[index] == 0) {
+		tcl.result("Routes not computed");
+		return -1;
+	}
+	if ((src[0] < D_) || (dst[0] < D_)) {
+		if((src[1] < C_[d]) || (dst[1] < C_[dst[0]]))
+			if((src[2] <= size) ||
+			   (dst[2] <= cluster_size_[INDEX(dst[0], dst[1], Cmax_)]))
+				;
+	}
+	else { 
+		tcl.result("node out of range");
+		return -1;
+	}
+	int next_hop = 0;
+	/* if node-domain lookup */
+	if (((dst[1] <= 0) && (dst[2] <= 0)) ||
+	    (src[0] != dst[0])){
+		next_hop = hroute_[index][N_D_INDEX(src[2], dst[0], size, C_[d], D_)];
+	}
+
+	/* if node-cluster lookup */
+	else if ((dst[2] <= 0) || (src[1] != dst[1])) {
+		next_hop = hroute_[index][N_C_INDEX(src[2], dst[1], size, C_[d], D_)];
+	}
+
+	/* if node-node lookup */
+	else {
+		next_hop = hroute_[index][N_N_INDEX(src[2], dst[2], size, C_[d], D_)];	
+	}
+	
+	char target[SMALL_LEN];
+	if (next_hop > 0) {
+		get_address(target, next_hop, index, d, size, src);
+		tcl.result(target);
+		return next_hop;
+	} else {
+		tcl.result("-1");
+		return -1;
+	}
 }
 
 RouteLogic::RouteLogic()

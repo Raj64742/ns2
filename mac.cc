@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.26 1998/06/27 01:24:07 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.26.2.1 1998/08/20 22:25:02 yuriy Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -96,7 +96,7 @@ int Mac::command(int argc, const char*const* argv)
 			channel_ = (Channel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "classifier") == 0) {
+		if (strcmp(argv[1], "mcl") == 0) {
 			mcl_ = (Classifier*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
@@ -109,7 +109,7 @@ int Mac::command(int argc, const char*const* argv)
 			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "classifier") == 0) {
+		if (strcmp(argv[1], "mcl") == 0) {
 			tcl.resultf("%s", mcl_->name());
 			return (TCL_OK);
 		}
@@ -134,6 +134,7 @@ void Mac::recv(Packet* p, Handler* h)
 	hdr_mac* mh = hdr_mac::access(p);
 	mh->set(MF_DATA, addr_);
 	state(MAC_SEND);
+
 	send(p);
 }
 

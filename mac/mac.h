@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.21 1998/06/27 01:24:08 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.21.2.1 1998/08/20 22:25:03 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -41,6 +41,8 @@
 
 #include "connector.h"
 #include "packet.h"
+#include "ip.h"
+#include "route.h"
 
 #define ZERO	0.00000
 

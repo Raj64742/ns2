@@ -33,14 +33,15 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.16 1998/06/27 01:24:01 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.16.2.1 1998/08/20 22:25:05 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
 #define ns_ll_h
 
 #include "delay.h"
-
+#include "classifier.h"
+#include "lanRouter.h"
 
 enum LLFrameType {
 	LL_DATA		= 0x0001,
@@ -88,12 +89,16 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
+	void handle(Event* e);
+	inline virtual int arp (int ip_addr) { return ip_addr; } 
 	int seqno_;			// link-layer sequence number
 	int ackno_;			// ACK received so far
 	int macDA_;			// destination MAC address
         Queue* ifq_;			// interface queue
         NsObject* sendtarget_;		// for outgoing packet 
 	NsObject* recvtarget_;		// for incoming packet
+
+        lanRouter* lanrouter_; // for lookups of the next hop
 };
 
 #endif
