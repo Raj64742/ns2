@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.287 2002/04/30 17:24:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.288 2002/05/31 23:11:30 haldar Exp $
 
 
 #
@@ -1054,85 +1054,3 @@ RtModule/Base set classifier_ ""
 #RtModule/Manual set classifier_ [new Classifier/Hash/Dest 2]
 #RtModule/VC set classifier_ [new Classifier/Virtual]
 
-################################################################
-# PGM
-################################################################
-
-RtModule/PGM set node_  ""
-
-PGMErrorModel set rate_         0.0     ;# just to eliminate warnings
-PGMErrorModel set errPkt_       0
-PGMErrorModel set errByte_      0
-PGMErrorModel set errTime_      0.0
-PGMErrorModel set onlink_       0
-PGMErrorModel set delay_        0
-PGMErrorModel set delay_pkt_    0
-PGMErrorModel set enable_       0
-PGMErrorModel set ndrops_       0
-PGMErrorModel set bandwidth_    2Mb
-PGMErrorModel set markecn_      false
-PGMErrorModel set debug_        false
-
-# *** PGM AGENT ***
-Agent/PGM set pgm_enabled_ 1
-
-# Number of seconds to wait between retransmitting a NAK that is waiting
-# for a NCF packet.
-Agent/PGM set nak_retrans_ival_ 50ms
-
-# The length of time for which a network element will continue to repeat
-# NAKs while waiting for a corresponding NCF.  Once this time expires and
-# no NCF is received, then we remove the entire repair state.
-Agent/PGM set nak_rpt_ival_ 1000ms
-
-# The length of time for which a network element will wait for the
-# corresponding RDATA before removing the entire repair state.
-Agent/PGM set nak_rdata_ival_ 10000ms
-
-# Once a NAK has been confirmed, network elements must discard all
-# further NAKs for up to this length of time.  Should be a fraction
-# of nak_rdata_ival_.
-Agent/PGM set nak_elim_ival_ 5000ms
-
-Agent/PGM instproc done {} { }
-
-# *** PGM SENDER ***
-
-# The length of time between sending SPM packets.
-Agent/PGM/Sender set spm_interval_ 500ms
-
-# Time to delay sending out an RDATA in response to a NAK packet, this
-# is to allow slow NAKs to get processed at one time, so we don't send
-# out duplicate RDATA.
-Agent/PGM/Sender set rdata_delay_ 70ms
-
-Agent/PGM/Sender instproc done {} { }
-
-# *** PGM RECEIVER ***
-
-# Maximum number of times we can send out a NAK and time-out waiting for
-# an NCF reply. Once we hit this many times, we discard the NAK state
-# entirely and loose data.
-Agent/PGM/Receiver set max_nak_ncf_retries_ 5
-
-# Maximum number of times we can time-out waiting for RDATA after an
-# NCF confirmation for a NAK request.  Once we hit this many times, we
-# discard the NAK state entirely and loose data.
-Agent/PGM/Receiver set max_nak_data_retries_ 5
-
-# A random amount of this time period (range) that will be selected to wait
-# for an NCF after detecting a gap in the data stream, before sending out
-# a NAK.
-Agent/PGM/Receiver set nak_bo_ivl_ 30ms
-
-# The amount of time to wait for a NCF packet after sending out a NAK
-# packet to the upstream node. If no NCF is received, another random
-# backoff time is observed, and then the NAK is retransmitted.
-Agent/PGM/Receiver set nak_rpt_ivl_ 50ms
-
-# The amount of time to wait for RDATA after receiving an NCF confirmation
-# for a given NAK. Once this timer expires, another random backoff time
-# is observed, and then the NAK is retransmitted.
-Agent/PGM/Receiver set nak_rdata_ivl_ 1000ms
-
-Agent/PGM/Receiver instproc done {} { }

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.12 2001/09/18 06:10:26 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.13 2002/05/31 23:11:30 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -125,8 +125,8 @@ int HasInt64Command::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	char res[2];
 	int flag = 0; 
-	#if defined(HAVE_INT64)
-		flag = 1; 
+#if defined(HAVE_INT64)
+	flag = 1; 
 	#endif
 	sprintf(res, "%d", flag);
 	tcl.resultf("%s", res);
@@ -171,6 +171,26 @@ public:
 	}
 };
 
+class HasSTLCommand : public TclCommand {
+public:
+	HasSTLCommand() : TclCommand("ns-hasSTL") { }
+	virtual int command(int, const char*const*);
+};
+
+int HasSTLCommand::command(int argc, const char*const* argv) {
+	Tcl& tcl = Tcl::instance();
+	char res[2];
+	int flag = 0;
+        #if defined(HAVE_STL)
+	flag = 1;
+        #endif
+	sprintf(res, "%d", flag);
+	tcl.resultf("%s", res);
+	return (TCL_OK);
+}
+
+
+
 class TimeAtofCommand : public TclCommand {
 public:
 	TimeAtofCommand() : TclCommand("time_atof") { }
@@ -210,9 +230,11 @@ void init_misc(void)
 	(void)new RandomCommand;
 	(void)new TimeAtofCommand;
 	(void)new HasInt64Command;
+	(void)new HasSTLCommand;
 #if defined(HAVE_INT64)
 	(void)new Add64Command;
 	(void)new Mult64Command;
 	(void)new Int64ToDoubleCommand;
 #endif
 }
+

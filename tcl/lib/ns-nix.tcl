@@ -26,3 +26,20 @@ Link instproc set-ipaddr { ipaddr netmask } {
 # NixNode instproc's
 #Class Node/NixNode -superclass Node
 
+
+#Class RtModule/Nix -superclass RtModule
+
+#Nix-vector routing
+RtModule/Nix instproc register { node } {
+	$self next $node
+	# Create classifier
+	$self instvar classifier_
+	set classifier_ [new Classifier/Nix]
+	$classifier_ set-node-id [$node set id_]
+	#puts "RtModule/Nix set node id to [$node set id_]"
+	$node install-entry $self $classifier_
+}
+
+RtModule/Nix instproc route-notify { module } { }
+
+

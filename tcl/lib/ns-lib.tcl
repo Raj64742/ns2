@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.245 2002/05/30 17:47:21 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.246 2002/05/31 23:11:31 haldar Exp $
 
 
 #
@@ -120,6 +120,7 @@ proc delay_parse { spec } {
 	return [time_parse $spec]
 }
 
+
 #
 # Create the core OTcl class called "Simulator".
 # This is the principal interface to the simulation engine.
@@ -151,7 +152,7 @@ source ns-intserv.tcl
 source ns-cmutrace.tcl
 source ns-mip.tcl
 source ns-sat.tcl
-source ns-nix.tcl
+#source ns-nix.tcl
 source ns-diffusion.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
@@ -205,7 +206,15 @@ source ../emulate/ns-emulate.tcl
 source ns-pushback.tcl
 
 # PGM
-source ../pgm/ns-pgm.tcl
+#source ../pgm/ns-pgm.tcl
+
+# STL dependent modules get included
+# ONLY when STL is found
+#if {[ns-hasSTL] == 1} {
+#	source ns-nix.tcl
+#	source ../pgm/ns-pgm.tcl
+#	source ../rtglib/ns-rtProtoLS.tcl
+#}
 
 # Obsolete modules
 #source ns-wireless-mip.tcl

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.249 2002/05/30 17:44:02 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.250 2002/05/31 23:11:29 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -127,7 +127,12 @@ OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
 	diffusion3/apps/gear/geo-routing.o \
 	diffusion3/apps/gear/geo-tools.o 
 
-NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl
+NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl \
+	tcl/lib/ns-nix.tcl \
+	tcl/pgm/ns-pgm.tcl\
+	tcl/rtglib/ns-rtProtoLS.tcl
+
+
 
 # WIN32: uncomment the following line to include specific make for VC++
 # !include <conf/makefile.win>
@@ -421,7 +426,6 @@ NS_TCL_LIB = \
 	tcl/mpls/ns-mpls-simulator.tcl \
 	tcl/lib/ns-pushback.tcl \
 	tcl/lib/ns-srcrt.tcl \
-	tcl/rtglib/ns-rtProtoLS.tcl \
 	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)

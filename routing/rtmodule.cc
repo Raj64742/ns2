@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.12 2002/05/30 17:44:06 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.13 2002/05/31 23:11:30 haldar Exp $
  */
 
 #include "rtmodule.h"
@@ -81,8 +81,8 @@ public:
 	}
 } class_vc_routing_module;
 
-#ifdef HAVE_STL   // since PGM uses STL
 
+#ifdef HAVE_STL
 static class PgmRoutingModuleClass : public TclClass {
 public:
         PgmRoutingModuleClass() : TclClass("RtModule/PGM") {}
@@ -90,8 +90,7 @@ public:
                 return (new PgmRoutingModule);
         }
 } class_pgm_routing_module;
-
-#endif // STL
+#endif //STL
 
 RoutingModule::RoutingModule() : 
 	next_rtm_(NULL), n_(NULL), classifier_(NULL) {
