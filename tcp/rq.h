@@ -112,6 +112,8 @@ public:
 		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt) { };
 	int empty() { return (head_ == NULL); }
 	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags = 0);
+	int max() { return (tail_ ? (tail_->endseq_) : -1); }
+	int min() { return (head_ ? (head_->startseq_) : -1); }
 
 	int gensack(int *sacks, int maxsblock);
 
