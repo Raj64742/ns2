@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.16 1999/09/20 17:42:29 haoboy Exp $
+   $Id: dsragent.cc,v 1.17 1999/10/04 18:00:00 haldar Exp $
 */
 
 #include <assert.h>
@@ -288,7 +288,6 @@ public:
   }
 } class_DSRAgent;
 
-
 static class BS_DSRAgentClass : public TclClass {
 public:
   BS_DSRAgentClass() : TclClass("Agent/DSRAgent/BS_DSRAgent") {}
@@ -297,6 +296,20 @@ public:
   }
 } class_BS_DSRAgent;
 
+/* ***************************************************
+ * Comment on compilation error at line 297, dsragent.cc
+
+ * The following compiler error has been seen in sunos and solaris
+ * for compiler version egcs-2.90.27 980315 (egcs-1.0.2 release) 
+ *  dsr/dsragent.cc: In method `SendBufEntry::SendBufEntry()':
+ *  dsr/dsragent.cc:297: Internal compiler error.
+ *  dsr/dsragent.cc:297: Please submit a full bug report to
+ *  `egcs-bugs@cygnus.com'.
+    *** Error code 1
+ * Solution: Use GCC or more recent version of C++.
+ (the problem seems to go away with egcs 1.1.2 release).
+ * Padma Haldar, 09/30/99.
+ ***********************************************************/
 
 /*===========================================================================
   DSRAgent methods
