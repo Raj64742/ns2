@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.hh,v 1.5 2002/05/29 21:58:13 haldar Exp $
+// $Id: tools.hh,v 1.6 2002/05/29 23:05:26 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -61,7 +61,7 @@
 
 // Defines the default debug level
 #ifdef NS_DIFFUSION
-#define DEBUG_DEFAULT           0
+#define DEBUG_DEFAULT           10
 #else
 #define DEBUG_DEFAULT           1
 #endif // NS_DIFFUSION

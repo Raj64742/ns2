@@ -177,7 +177,7 @@ void DiffAppAgent::sendPacket(DiffPacket dp, int len, int dst) {
   iph->dport() = dst;
 
   // schedule for realistic delay : set to 0 sec for now
-  (void)Scheduler::instance().schedule(target_, p, 1);
+  (void)Scheduler::instance().schedule(target_, p, 0.000001);
 
 }
 

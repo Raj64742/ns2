@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: ping_sender.hh,v 1.4 2002/05/29 21:58:10 haldar Exp $
+// $Id: ping_sender.hh,v 1.5 2002/05/29 23:05:25 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -69,6 +69,7 @@ private:
   handle pubHandle_;
 
   // Ping App variables
+  int tasks_;
   int last_seq_sent_;
   NRAttrVec data_attr_;
   NRSimpleAttribute<void *> *timeAttr_;

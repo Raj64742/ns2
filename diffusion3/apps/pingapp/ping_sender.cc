@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: ping_sender.cc,v 1.4 2002/05/29 21:58:10 haldar Exp $
+// $Id: ping_sender.cc,v 1.5 2002/05/29 23:05:25 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -41,19 +41,20 @@ void PingSenderApp::send()
   struct timeval tmv;
   int retval;
 
-  // Update time in the packet
-  GetTime(&tmv);
-  lastEventTime_->seconds_ = tmv.tv_sec;
-  lastEventTime_->useconds_ = tmv.tv_usec;
+  if (tasks_ > 0){
+    // Update time in the packet
+    GetTime(&tmv);
+    lastEventTime_->seconds_ = tmv.tv_sec;
+    lastEventTime_->useconds_ = tmv.tv_usec;
 
-  // Send data probe
-  DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
-  retval = dr_->send(pubHandle_, &data_attr_);
+    // Send data probe
+    DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+    retval = dr_->send(pubHandle_, &data_attr_);
 
-  // Update counter
-  last_seq_sent_++;
-  counterAttr_->setVal(last_seq_sent_);
-
+    // Update counter
+    last_seq_sent_++;
+    counterAttr_->setVal(last_seq_sent_);
+  }
   // re-schedule the timer 
   sdt_.resched(SEND_DATA_INTERVAL);
 }
@@ -90,11 +91,13 @@ void PingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
   case NRAttribute::INTEREST_CLASS:
 
     DiffPrint(DEBUG_ALWAYS, "Received an Interest message !\n");
+    tasks_++;
     break;
 
   case NRAttribute::DISINTEREST_CLASS:
 
     DiffPrint(DEBUG_ALWAYS, "Received a Disinterest message !\n");
+    tasks_--;
     break;
 
   default:
@@ -209,6 +212,7 @@ PingSenderApp::PingSenderApp(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
   last_seq_sent_ = 0;
+  tasks_= 0;
 
   mr_ = new PingSenderReceive(this);
 

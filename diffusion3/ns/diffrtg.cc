@@ -154,7 +154,7 @@ void DiffRoutingAgent::sendPacket(DiffPacket dp, int len, int dst) {
 	iph->dport() = dst;
 	
 	// schedule for a realistic delay : 0 sec for now
-	(void)Scheduler::instance().schedule(port_dmux(), p, 1);
+	(void)Scheduler::instance().schedule(port_dmux(), p, 0.000001);
 	
 }
 
