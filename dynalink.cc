@@ -17,9 +17,15 @@
  * 
  */
 
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+//      Author:         Kannan Varadhan <kannan@isi.edu>
+//      Version Date:   Mon Jun 30 15:51:33 PDT 1997
+
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.4 1997/07/22 21:39:22 kfall Exp $ (USC/ISI)";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.5 1997/07/22 21:50:34 kfall Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
