@@ -33,8 +33,12 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
-#include "connector-drop.h"
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector-drop.cc,v 1.3 1997/07/22 21:57:33 kfall Exp $ (UCB)";
+#endif
 
+#include "connector-drop.h"
 
 int
 DropConnector::command(int argc, const char*const* argv)
