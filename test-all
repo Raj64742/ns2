@@ -1,106 +1,13 @@
 #! /bin/sh
-# script to run all tests in test-suite.tcl
-#
-# Copyright (c) 1995 The Regents of the University of California.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-# 1. Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-# 3. All advertising materials mentioning features or use of this software
-#    must display the following acknowledgement:
-#	This product includes software developed by the Network Research
-#	Group at Lawrence Berkeley National Laboratory.
-# 4. Neither the name of the University nor of the Laboratory may be used
-#    to endorse or promote products derived from this software without
-#    specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-# SUCH DAMAGE.
-#
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.14 1997/11/06 03:04:34 heideman Exp $
-#
-# The initial version of this script was written and contributed 
-# by Matt Mathis (mathis@psc.edu).
-#
-# To run in quiet mode:  "./test-all quiet".
 
-file="test-suite.tcl"
-directory="test-output"
-quiet="false"
-failed=false
-tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' $file`
-if [ $# -ge 1 ] 
-then
-        flag="$*"
-	if test "$flag" = "QUIET" -o "$flag" = "quiet"; then
-	    quiet="true"
-	else
-	    tests="$*"
-	fi
-fi
+echo "test-all has been moved"
+echo
+echo "to validate ns (running all test suites), run"
+echo "    ./validate"
+echo
+echo "to run the old test-all (a subset of validate), run"
+echo "    ./tcl/test/test-all-simple"
+echo
+echo "for example code, please see ./README"
 
-
-if [ ! -d $directory ]; then
-	mkdir $directory
-fi
-
-echo $tests
-for t in $tests; do
-    if test "$quiet" = "false"; then
-    	echo
-    fi
-    echo Running test $t
-
-    # Beware that xgraph is run on temp.rands asynchronously, if it
-    # is slow to launch, you may get an incorrect graph
-    if test "$quiet" = "true"; then
-    	./ns $file $t QUIET
-    else 
-	./ns $file $t
-    fi
-    if [ -f temp.rands ]; then
-	if [ ! -f $directory/$t ]; then
-	    echo saving output for future validation
-	    cp temp.rands $directory/$t
-	else
-	    cmp -s temp.rands $directory/$t
-	    if [ $? = 0 ]; then
-		echo Test output agrees with reference output
-	    else
-		echo Test output differs from reference output
-		cp temp.rands $directory/$t.test
-	        echo "Diagnose with: diff $directory/$t.test $directory/$t"
-	 	echo "Differences due to floating-point formatting are not significant."
-		failed=true
-
-	    fi
-	fi
-    fi
-    if test "$quiet" = "false"; then
-        echo 'next?'
-        read answer
-    fi
-done
-
-if $failed
-then
-	exit 1
-else
-	exit 0
-fi
-
+exit 1
