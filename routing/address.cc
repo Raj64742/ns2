@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.24 2001/10/11 14:08:23 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.25 2002/01/25 20:25:39 haldar Exp $
  */
 
 #include <stdio.h>
@@ -165,7 +165,8 @@ char *Address::print_nodeaddr(int address)
 		strcat(str, temp);
 	}
 	int len;
-	addrstr = new char[len= strlen(str)];
+	len = strlen(str);
+	addrstr = new char[len+1];
 	str[len-1]= 0; //kill the last dot
 	strcpy(addrstr, str);
 	// printf("Nodeaddr - %s\n",addrstr);
