@@ -65,71 +65,67 @@ in tcl/lib/ns-default.tcl must be no greater than MAX_QUEUES (the physical
 queue array size).
 ------------------------------------------------------------------------------*/
 dsREDQueue::dsREDQueue() : de_drop_(NULL), link_(NULL)   {
-	bind("numQueues_", &numQueues_);
-	bind_bool("ecn_", &ecn_);
-	int i;
-
-	numPrec = MAX_PREC;
-   schedMode = schedModeRR;
-
-   for(i=0;i<MAX_QUEUES;i++){
-		queueMaxRate[i] = 0;
-      queueWeight[i]=1;
-   }
-		
-   queuesDone = MAX_QUEUES;
-	phbEntries = 0;		// Number of entries in PHB table
-	
-	reset();
+  bind("numQueues_", &numQueues_);
+  bind_bool("ecn_", &ecn_);
+  int i;
+  
+  numPrec = MAX_PREC;
+  schedMode = schedModeRR;
+  
+  for(i=0;i<MAX_QUEUES;i++){
+    queueMaxRate[i] = 0;
+    queueWeight[i]=1;
+  }
+  
+  queuesDone = MAX_QUEUES;
+  phbEntries = 0;		// Number of entries in PHB table
+  
+  reset();
 }
 
-
-/*------------------------------------------------------------------------------
-void edrop(Packet* pkt)
-    This method is used so that flowmonitor can monitor early drops.
-------------------------------------------------------------------------------*/
+// RED queues initilization
 void dsREDQueue::reset() {
-	int i;
-
-	qToDq = 0;		// q to be dequed, initialized to 0	
-
-   for(i=0;i<MAX_QUEUES;i++){
-		queueAvgRate[i] = 0.0;
-		queueArrTime[i] = 0.0;
-      slicecount[i]=0;
-      pktcount[i]=0;
-      wirrTemp[i]=0;
-      wirrqDone[i]=0;
-   }
-
-	stats.drops = 0;
-	stats.edrops = 0;
-	stats.pkts = 0;
-
-	for(i=0;i<MAX_CP;i++){
-		stats.drops_CP[i]=0;
-		stats.edrops_CP[i]=0;
-		stats.pkts_CP[i]=0;
-	}
-
-	for (i = 0; i < MAX_QUEUES; i++)
-		redq_[i].qlim = limit();
-	
-	// Compute the "packet time constant" if we know the
-	// link bandwidth.  The ptc is the max number of (avg sized)
-	// pkts per second which can be placed on the link.
-	if (link_)
-		for (int i = 0; i < MAX_QUEUES; i++)
-			redq_[i].setPTC(link_->bandwidth());
-	
-	Queue::reset();
+  int i;
+  
+  qToDq = 0;		// q to be dequed, initialized to 0	
+  
+  for(i=0;i<MAX_QUEUES;i++){
+    queueAvgRate[i] = 0.0;
+    queueArrTime[i] = 0.0;
+    slicecount[i]=0;
+    pktcount[i]=0;
+    wirrTemp[i]=0;
+    wirrqDone[i]=0;
+  }
+  
+  stats.drops = 0;
+  stats.edrops = 0;
+  stats.pkts = 0;
+  
+  for(i=0;i<MAX_CP;i++){
+    stats.drops_CP[i]=0;
+    stats.edrops_CP[i]=0;
+    stats.pkts_CP[i]=0;
+  }
+  
+  for (i = 0; i < MAX_QUEUES; i++)
+    redq_[i].qlim = limit();
+  
+  // Compute the "packet time constant" if we know the
+  // link bandwidth.  The ptc is the max number of (avg sized)
+  // pkts per second which can be placed on the link.
+  if (link_)
+    for (int i = 0; i < MAX_QUEUES; i++)
+      redq_[i].setPTC(link_->bandwidth());
+  
+  Queue::reset();
 }
 
 
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
 void edrop(Packet* pkt)
     This method is used so that flowmonitor can monitor early drops.
-------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------*/
 void dsREDQueue::edrop(Packet* p)
 {
 
@@ -141,26 +137,36 @@ void dsREDQueue::edrop(Packet* p)
 	}
 }
 
-
-/*------------------------------------------------------------------------------
-void applyTSWMeter(Packet *pkt)
+/*-----------------------------------------------------------------------------
+void applyTSWMeter(Packet *pkt, int q_id)
 Pre: policy's variables avgRate, arrivalTime, and winLen hold valid values; and
   pkt points to a newly-arrived packet.
 Post: Adjusts policy's TSW state variables avgRate and arrivalTime (also called
   tFront) according to the specified packet.
 Note: See the paper "Explicit Allocation of Best effor Delivery Service" (David
   Clark and Wenjia Fang), Section 3.3, for a description of the TSW Tagger.
-------------------------------------------------------------------------------*/
-void dsREDQueue::applyTSWMeter(Packet *pkt) {
-	double now, bytesInTSW, newBytes;
-	hdr_cmn* hdr = hdr_cmn::access(pkt);
-	double winLen = 1.0;
+-----------------------------------------------------------------------------*/
+void dsREDQueue::applyTSWMeter(Packet *pkt, int q_id) {
+  double now, bytesInTSW, newBytes;
+  hdr_cmn* hdr;
+  double winLen = 1.0;
 
-	bytesInTSW = queueAvgRate[qToDq] * winLen;
-	newBytes = bytesInTSW + (double) hdr->size();
-	now = Scheduler::instance().clock();
-	queueAvgRate[qToDq] = newBytes / (now - queueArrTime[qToDq] + winLen);
-	queueArrTime[qToDq] = now;
+  bytesInTSW = queueAvgRate[q_id] * winLen;
+
+  // Modified by xuanc
+  // Even if there is no packet to dequeue 
+  // under the strict priority scheduling,
+  // the queueAvgRate still need to be updated.
+  newBytes = bytesInTSW;
+  if (pkt) {
+    hdr = hdr_cmn::access(pkt);
+    newBytes += (double) hdr->size();
+  }
+
+  // Calculate the average rate (SW)
+  now = Scheduler::instance().clock();
+  queueAvgRate[q_id] = newBytes / (now - queueArrTime[q_id] + winLen);
+  queueArrTime[q_id] = now;
 	
 }
 
@@ -174,7 +180,8 @@ outline.
 void dsREDQueue::enque(Packet* pkt) {
    int codePt, queue, prec;
    hdr_ip* iph = hdr_ip::access(pkt);
-   codePt = iph->prio();	//extracting the marking done by the edge router
+   //extracting the marking done by the edge router
+   codePt = iph->prio();	
    int ecn = 0;
 
    //looking up queue and prec numbers for that codept
@@ -211,168 +218,169 @@ void dsREDQueue::enque(Packet* pkt) {
    }
 }
 
-
-/*------------------------------------------------------------------------------
-Packet* deque() 
-    This method implements the dequing mechanism for a Diffserv router.
-------------------------------------------------------------------------------*/
+// Dequing mechanism for both edge and core router.
 Packet* dsREDQueue::deque() {
-	Packet *p;
-	int queue, prec;
-   hdr_ip* iph;
-   int fid;
+  Packet *p = NULL;
+  int queue, prec;
+  hdr_ip* iph;
+  int fid;
+  int dq_id;
 
-	// Select queue to deque in a round robin manner:
-	selectQueueToDeque();
+  // Select queue to deque under the scheduling scheme specified.
+  dq_id = selectQueueToDeque();
+  
+  // Dequeue a packet from the underlying queue:
+  if (dq_id < numQueues_) 
+    p = redq_[dq_id].deque();
+  
+  if (p) { 
+    iph= hdr_ip::access(p);
+    fid = iph->flowid()/32;
+    pktcount[dq_id]+=1;
 
-	// Dequeue a packet from the underlying queue:
-	p = redq_[qToDq].deque();
+    // update the average rate for pri-queue
+    if (schedMode==schedModePRI && queueMaxRate[dq_id]) 
+      applyTSWMeter(p, dq_id);
 
-	if (p != 0) { 
-      iph= hdr_ip::access(p);
-      fid = iph->flowid()/32;
-      pktcount[qToDq]+=1;
-
-		if (schedMode==schedModePRI && queueMaxRate[qToDq]) applyTSWMeter(p);
-
-      /* There was a packet to be dequed;
-         find the precedence level (or virtual queue)
-         to which this packet was attached:
-      */
-      lookupPHBTable(getCodePt(p), &queue, &prec);
-
-      // update state variables for that "virtual" queue
-      redq_[qToDq].updateREDStateVar(prec);
-	}
-
-	// Return the dequed packet:	
-	return(p);
+    // Get the precedence level (or virtual queue id)
+    // for the packet dequeued.
+    lookupPHBTable(getCodePt(p), &queue, &prec);
+    
+    // update state variables for that "virtual" queue
+    redq_[dq_id].updateREDStateVar(prec);
+  }
+  
+  // Return the dequed packet:	
+  return(p);
 }
 
-
-/*------------------------------------------------------------------------------
-int getCodePt(Packet *p) 
-    This method, when given a packet, extracts the code point marking from its 
-header.
-------------------------------------------------------------------------------*/
+//    Extracts the code point marking from packet header.
 int dsREDQueue::getCodePt(Packet *p) {
-	hdr_ip* iph = hdr_ip::access(p);
-	return(iph->prio());
+  hdr_ip* iph = hdr_ip::access(p);
+  return(iph->prio());
 }
 
+// Reutrn the id of physical queue to be dequeued
+int dsREDQueue::selectQueueToDeque() {
+  // If the queue to be dequed has no elements, 
+  // look for the next queue in line
+  // except the strict priority queue.
 
-/*------------------------------------------------------------------------------
-void selectQueueToDeque(void) 
-    This method determines the next queue in line to be dequed.
-------------------------------------------------------------------------------*/
-void dsREDQueue::selectQueueToDeque() {
-   // If the queue to be dequed has no elements, look for the next queue in line:
-   int i = 0;
+  int i = 0;
 
-   if(schedMode==schedModeRR){
-		qToDq = ((qToDq + 1) % numQueues_);
-      while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
-			qToDq = ((qToDq + 1) % numQueues_);			
-         i++;
-      }
-   }
-   else if (schedMode==schedModeWRR) {
-      if(wirrTemp[qToDq]<=0){
-  	      qToDq = ((qToDq + 1) % numQueues_);
-     	   wirrTemp[qToDq] = queueWeight[qToDq] - 1;
-		} else {
-			wirrTemp[qToDq] = wirrTemp[qToDq] -1;
-		}			
-      while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
-			wirrTemp[qToDq] = 0;
-  	      qToDq = ((qToDq + 1) % numQueues_);
-     	   wirrTemp[qToDq] = queueWeight[qToDq] - 1;
-			i++;
-		}
-
-   }
-   else if (schedMode==schedModeWIRR) {
+  if(schedMode==schedModeRR){
+    //printf("RR\n");
+    qToDq = ((qToDq + 1) % numQueues_);
+    while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
+      qToDq = ((qToDq + 1) % numQueues_);			
+      i++;
+    }
+  } else if (schedMode==schedModeWRR) {
+    if(wirrTemp[qToDq]<=0){
       qToDq = ((qToDq + 1) % numQueues_);
-		while ((i<numQueues_) && ((redq_[qToDq].getRealLength()==0) || (wirrqDone[qToDq]))) {
-			if (!wirrqDone[qToDq]) {
-				queuesDone++;
-				wirrqDone[qToDq]=1;
-			}
-  	      qToDq = ((qToDq + 1) % numQueues_);
-			i++;
-		}
-      if (wirrTemp[qToDq] == 1) {
-  	       queuesDone +=1;
-          wirrqDone[qToDq]=1;
+      wirrTemp[qToDq] = queueWeight[qToDq] - 1;
+    } else {
+      wirrTemp[qToDq] = wirrTemp[qToDq] -1;
+    }			
+    while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
+      wirrTemp[qToDq] = 0;
+      qToDq = ((qToDq + 1) % numQueues_);
+      wirrTemp[qToDq] = queueWeight[qToDq] - 1;
+      i++;
+    }
+  } else if (schedMode==schedModeWIRR) {
+    qToDq = ((qToDq + 1) % numQueues_);
+    while ((i<numQueues_) && ((redq_[qToDq].getRealLength()==0) || (wirrqDone[qToDq]))) {
+      if (!wirrqDone[qToDq]) {
+	queuesDone++;
+	wirrqDone[qToDq]=1;
       }
-  	   wirrTemp[qToDq]-=1;
-      if(queuesDone >= numQueues_) {
-          queuesDone = 0;
-          for(i=0;i<numQueues_;i++) {
-  	          wirrTemp[i] = queueWeight[i];
-     	       wirrqDone[i]=0;
-          }   	
-      }
-   }
-	else if (schedMode==schedModePRI) {
-		qToDq = 0;
-		while ((i < numQueues_) && ((redq_[qToDq].getRealLength() == 0) ||
-			((queueAvgRate[qToDq] > queueMaxRate[qToDq]) && queueMaxRate[qToDq]))) {
-			i++;
-			qToDq = i;
-		}
-		if (i == numQueues_) {
-			i = qToDq = 0;			
-			while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
-				qToDq = ((qToDq + 1) % numQueues_);
-				i++;
-			}
-		}
+      qToDq = ((qToDq + 1) % numQueues_);
+      i++;
+    }
+    
+    if (wirrTemp[qToDq] == 1) {
+      queuesDone +=1;
+      wirrqDone[qToDq]=1;
+    }
+    wirrTemp[qToDq]-=1;
+    if(queuesDone >= numQueues_) {
+      queuesDone = 0;
+      for(i=0;i<numQueues_;i++) {
+	wirrTemp[i] = queueWeight[i];
+	wirrqDone[i]=0;
+      }   	
+    }
+  } else if (schedMode==schedModePRI) {
+    i = 0;
+    while ((i < numQueues_) && 
+	   ((redq_[i].getRealLength() == 0) ||
+	    (queueMaxRate[i] &&
+	     (queueAvgRate[i] > queueMaxRate[i])
+	     ))) {
+      // update the average rate for this physical queues
+      // EVEN IF its packet can't be dequeued 
+      // due to strict priority scheduling
+      // (ie, average rate > max rate).
+      if (queueMaxRate[i])
+	applyTSWMeter(NULL, i);
+      i++;
+    }
+    qToDq = i;
+    
+    if ((priMode != schedModePRIStr) && (i == numQueues_)) {
+	i = qToDq = 0;			
+	while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
+	  qToDq = ((qToDq + 1) % numQueues_);
+	  i++;
 	}
+	qToDq = i;
+    }
+
+  }
+  
+  return(qToDq);
 }	
 
-
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
 void lookupPHBTable(int codePt, int* queue, int* prec)
     Assigns the queue and prec parameters values corresponding to a given code 
 point.  The code point is assumed to be present in the PHB table.  If it is 
 not, an error message is outputted and queue and prec are undefined.
-------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------*/
 void dsREDQueue::lookupPHBTable(int codePt, int* queue, int* prec) {
-   for (int i = 0; i < phbEntries; i++) {
-      if (phb_[i].codePt_ == codePt) {
-         *queue = phb_[i].queue_;
-         *prec = phb_[i].prec_;
-         return;
-      }
-   }
-   printf("ERROR: No match found for code point %d in PHB Table.\n", codePt);
+  for (int i = 0; i < phbEntries; i++) {
+    if (phb_[i].codePt_ == codePt) {
+      *queue = phb_[i].queue_;
+      *prec = phb_[i].prec_;
+      return;
+    }
+  }
+  printf("ERROR: No match found for code point %d in PHB Table.\n", codePt);
 }
 
-
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
 void addPHBEntry(int codePt, int queue, int prec)
     Add a PHB table entry.  (Each entry maps a code point to a queue-precedence
 pair.)
-------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------*/
 void dsREDQueue::addPHBEntry(int codePt, int queue, int prec) {
-	if (phbEntries == MAX_CP) {
-      printf("ERROR: PHB Table size limit exceeded.\n");
-	} else {
-		phb_[phbEntries].codePt_ = codePt;
-		phb_[phbEntries].queue_ = queue;
-		phb_[phbEntries].prec_ = prec;
-		stats.valid_CP[codePt] = 1;
-		phbEntries++;
-	}
+  if (phbEntries == MAX_CP) {
+    printf("ERROR: PHB Table size limit exceeded.\n");
+  } else {
+    phb_[phbEntries].codePt_ = codePt;
+    phb_[phbEntries].queue_ = queue;
+    phb_[phbEntries].prec_ = prec;
+    stats.valid_CP[codePt] = 1;
+    phbEntries++;
+  }
 }
 
-
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
 void addPHBEntry(int codePt, int queue, int prec)
     Add a PHB table entry.  (Each entry maps a code point to a queue-precedence
 pair.)
-------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------*/
 double dsREDQueue::getStat(int argc, const char*const* argv) {
 
 	if (argc == 3) {
@@ -503,122 +511,120 @@ void addQueueWeights(int queueNum, int weight)
    An input method to set the individual Queue Weights.
 ----------------------------------------------------------------------------*/
 void dsREDQueue::addQueueWeights(int queueNum, int weight) {
-
-   if(queueNum < MAX_QUEUES){
-      queueWeight[queueNum]=weight;
-   } else {
-      printf("The queue number is out of range.\n");
-   }
+  if(queueNum < MAX_QUEUES){
+    queueWeight[queueNum]=weight;
+  } else {
+    printf("The queue number is out of range.\n");
+  }
 }
 
-
-/*------------------------------------------------------------------------------
-void addQueueRate(int queueNum, int rate)
-   An input method to set the individual Queue Max Rates for Priority Queueing.
-----------------------------------------------------------------------------*/
-void dsREDQueue::addQueueRate(int queueNum, int rate) {
-
-   if(queueNum < MAX_QUEUES){
-      queueMaxRate[queueNum]=(double)rate/8.0;
-   } else {
-      printf("The queue number is out of range.\n");
-   }
+//Set the individual Queue Max Rates for Priority Queueing.
+void dsREDQueue::addQueueRate(int queueNum, int rate, int strict) {
+  //printf("setQueueRate, %d\n", strict);
+  if (strict)
+    priMode = schedModePRIStr;
+  
+  if(queueNum < MAX_QUEUES){
+    queueMaxRate[queueNum]=(double)rate/8.0;
+  } else {
+    printf("The queue number is out of range.\n");
+  }
 }
 
-
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
 int command(int argc, const char*const* argv)
     Commands from the ns file are interpreted through this interface.
-------------------------------------------------------------------------------*/
-int dsREDQueue::command(int argc, const char*const* argv)
-{
-
-	if (strcmp(argv[1], "configQ") == 0) {
-		redq_[atoi(argv[2])].config(atoi(argv[3]), argv);
-		return(TCL_OK);
-	}
-	if (strcmp(argv[1], "addPHBEntry") == 0) {
-		addPHBEntry(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
-		return (TCL_OK);
-	}
-	if (strcmp(argv[1], "meanPktSize") == 0) {
-		for (int i = 0; i < MAX_QUEUES; i++)
-			redq_[i].setMPS(atoi(argv[2]));
-		return(TCL_OK);
-	}
-	if (strcmp(argv[1], "setNumPrec") == 0) {
-		setNumPrec(atoi(argv[2]));
-		return(TCL_OK);
-	}
-	if (strcmp(argv[1], "getAverage") == 0) {
-		Tcl& tcl = Tcl::instance();
-		tcl.resultf("%f", redq_[atoi(argv[2])].getWeightedLength());
-		return(TCL_OK);
-	}
-	if (strcmp(argv[1], "getStat") == 0) {
-		Tcl& tcl = Tcl::instance();
-		tcl.resultf("%f", getStat(argc,argv));
-		return(TCL_OK);
-	}
-	if (strcmp(argv[1], "getCurrent") == 0) {
-		Tcl& tcl = Tcl::instance();
-		tcl.resultf("%f", redq_[atoi(argv[2])].getRealLength()*1.0);
-		return(TCL_OK);
-	}
-	if (strcmp(argv[1], "printStats") == 0) {
-		printStats();
-		return (TCL_OK);
-	}
-	if (strcmp(argv[1], "printWRRcount") == 0) {
-		printWRRcount();
-		return (TCL_OK);
-	}
-	if (strcmp(argv[1], "printPHBTable") == 0) {
-		printPHBTable();
-		return (TCL_OK);
-	}
-	if (strcmp(argv[1], "link") == 0) {
-		Tcl& tcl = Tcl::instance();
-		LinkDelay* del = (LinkDelay*) TclObject::lookup(argv[2]);
-		if (del == 0) {
-			tcl.resultf("RED: no LinkDelay object %s",
-			argv[2]);
-			return(TCL_ERROR);
-		}
-		link_ = del;
-		return (TCL_OK);
-	}
-	if (strcmp(argv[1], "early-drop-target") == 0) {
-		Tcl& tcl = Tcl::instance();
-		NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
-		if (p == 0) {
-			tcl.resultf("no object %s", argv[2]);
-			return (TCL_ERROR);
-		}
-		de_drop_ = p;
-		return (TCL_OK);
-	}
-   if (strcmp(argv[1], "setSchedularMode") == 0) {
-      setSchedularMode(argv[2]);
-      return(TCL_OK);
-   }
-   if (strcmp(argv[1], "setMREDMode") == 0) {
-		if (argc == 3)
-	      setMREDMode(argv[2],0);
-		else
-			setMREDMode(argv[2],argv[3]);
-      return(TCL_OK);
-   }
-   if (strcmp(argv[1], "addQueueWeights") == 0) {
-      addQueueWeights(atoi(argv[2]), atoi(argv[3]));
-      return(TCL_OK);
-   }
-   if (strcmp(argv[1], "addQueueRate") == 0) {
-      addQueueRate(atoi(argv[2]), atoi(argv[3]));
-      return(TCL_OK);
-   }
-
-	return(Queue::command(argc, argv));
+-----------------------------------------------------------------------------*/
+int dsREDQueue::command(int argc, const char*const* argv) {
+  if (strcmp(argv[1], "configQ") == 0) {
+    redq_[atoi(argv[2])].config(atoi(argv[3]), argv);
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "addPHBEntry") == 0) {
+    addPHBEntry(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+    return (TCL_OK);
+  }
+  if (strcmp(argv[1], "meanPktSize") == 0) {
+    for (int i = 0; i < MAX_QUEUES; i++)
+      redq_[i].setMPS(atoi(argv[2]));
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "setNumPrec") == 0) {
+    setNumPrec(atoi(argv[2]));
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "getAverage") == 0) {
+    Tcl& tcl = Tcl::instance();
+    tcl.resultf("%f", redq_[atoi(argv[2])].getWeightedLength());
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "getStat") == 0) {
+    Tcl& tcl = Tcl::instance();
+    tcl.resultf("%f", getStat(argc,argv));
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "getCurrent") == 0) {
+    Tcl& tcl = Tcl::instance();
+    tcl.resultf("%f", redq_[atoi(argv[2])].getRealLength()*1.0);
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "printStats") == 0) {
+    printStats();
+    return (TCL_OK);
+  }
+  if (strcmp(argv[1], "printWRRcount") == 0) {
+    printWRRcount();
+    return (TCL_OK);
+  }
+  if (strcmp(argv[1], "printPHBTable") == 0) {
+    printPHBTable();
+    return (TCL_OK);
+  }
+  if (strcmp(argv[1], "link") == 0) {
+    Tcl& tcl = Tcl::instance();
+    LinkDelay* del = (LinkDelay*) TclObject::lookup(argv[2]);
+    if (del == 0) {
+      tcl.resultf("RED: no LinkDelay object %s",
+		  argv[2]);
+      return(TCL_ERROR);
+    }
+    link_ = del;
+    return (TCL_OK);
+  }
+  if (strcmp(argv[1], "early-drop-target") == 0) {
+    Tcl& tcl = Tcl::instance();
+    NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
+    if (p == 0) {
+      tcl.resultf("no object %s", argv[2]);
+      return (TCL_ERROR);
+    }
+    de_drop_ = p;
+    return (TCL_OK);
+  }
+  if (strcmp(argv[1], "setSchedularMode") == 0) {
+    setSchedularMode(argv[2]);
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "setMREDMode") == 0) {
+    if (argc == 3)
+      setMREDMode(argv[2],0);
+    else
+      setMREDMode(argv[2],argv[3]);
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "addQueueWeights") == 0) {
+    addQueueWeights(atoi(argv[2]), atoi(argv[3]));
+    return(TCL_OK);
+  }
+  if (strcmp(argv[1], "addQueueRate") == 0) {
+    if (argc == 4)
+      addQueueRate(atoi(argv[2]), atoi(argv[3]), 0);
+    else if (argc == 5)
+      addQueueRate(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+    return(TCL_OK);
+  }
+  
+  return(Queue::command(argc, argv));
 }
 
 

@@ -49,11 +49,15 @@
 #define SRTCM 4
 #define TRTCM 5
 #define FW 6
+#define EWP 7
 
-enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, FWPolicer};
+#define EW_MAX_WIN 8
+#define EW_WIN_SIZE 4
+#define EW_A_TH 3
 
-enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, fwTagger};
+enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, FWPolicer, EWPolicer};
 
+enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, fwTagger, ewTagger};
 
 class Policy;
 class TBPolicy;
@@ -217,4 +221,67 @@ void printFlowTable();
   struct flow_list flow_table;
 };
 
+// Record the request ratio
+struct SWinEntry {
+  float weight;
+  int requests;
+  struct SWinEntry *next;
+};
+
+struct SWin {
+  int node_id;   //The node to be monitored
+
+  // for the sliding window
+  int win_count;
+  struct SWinEntry *head;
+  struct SWinEntry *tail;
+
+  int init_th;        // initial threshold
+  int th;        // threshold
+  int win[EW_WIN_SIZE];     // sliding window
+  int count;    // how many samples in the window now...
+  int point;    // where to put the new sample
+  int requests;     // count for how many requests
+  int init_inv;  // Initial interval
+  int s_inv;  // Sample interval
+  int last_t; // last sample time
+  int alarm_count; 
+  int alarm;    // The alarm to trigger
+};
+
+class EW {
+ public:
+  EW();
+  ~EW();
+
+  void init(int, int, int);
+  int get_swin_index(int);
+  // The table to keep the flow states.
+  struct SWin swin[EW_MAX_WIN];
+
+  int ravgSWin(int);
+  void printSWin(int);
+
+  // Increase/decrease SWin.
+  void decSWin(int);
+  void incSWin(int);
+
+ private:
+  int swin_point;
+};
+
+class EWPolicy : public Policy {
+ public:
+  EWPolicy();
+  ~EWPolicy();
+
+  void init(int, int, int);
+  
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
+
+ protected:
+  EW *ew;
+};
 #endif

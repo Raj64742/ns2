@@ -149,37 +149,36 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
    now = Scheduler::instance().clock();
 
    //now determining the avg for that queue
-	if (mredMode == dropTail) {
-		if (q_->length() >= qParam_[0].edp_.th_min) {
-			return PKT_DROPPED;
-		} else {
-		   q_->enque(pkt);
-	      return PKT_ENQUEUED;		
-		}
-	} else if (mredMode == rio_c) {
-      for (int i = prec; i < numPrec; i++) {	
-         m = 0;
-         if (qParam_[i].idle_) {
-            qParam_[i].idle_ = 0;
-            m = int(qParam_[i].edp_.ptc * (now - qParam_[i].idletime_));
+   if (mredMode == dropTail) {
+     if (q_->length() >= qParam_[0].edp_.th_min) {
+       return PKT_DROPPED;
+     } else {
+       q_->enque(pkt);
+       return PKT_ENQUEUED;		
+     }
+   } else if (mredMode == rio_c) {
+     for (int i = prec; i < numPrec; i++) {	
+       m = 0;
+       if (qParam_[i].idle_) {
+	 qParam_[i].idle_ = 0;
+	 m = int(qParam_[i].edp_.ptc * (now - qParam_[i].idletime_));
          }
-         calcAvg(i, m+1);
-      }
+       calcAvg(i, m+1); 
+     }
    } else if (mredMode == rio_d) {
-      if (qParam_[prec].idle_) {
-         qParam_[prec].idle_ = 0;
-         m = int(qParam_[prec].edp_.ptc * (now - qParam_[prec].idletime_));
-      }	
-      calcAvg(prec, m+1);
+     if (qParam_[prec].idle_) {
+       qParam_[prec].idle_ = 0;
+       m = int(qParam_[prec].edp_.ptc * (now - qParam_[prec].idletime_));
+     }	
+     calcAvg(prec, m+1);
    } else { //wred
-      if (qParam_[0].idle_) {
-         qParam_[0].idle_ = 0;
-         m = int(qParam_[0].edp_.ptc * (now - qParam_[0].idletime_));
-      }	
-      calcAvg(0, m+1);
+     if (qParam_[0].idle_) {
+       qParam_[0].idle_ = 0;
+       m = int(qParam_[0].edp_.ptc * (now - qParam_[0].idletime_));
+     }	
+     calcAvg(0, m+1);
    }
-
-
+   
    // enqueu packet if we are using ecn
    if (ecn) {
 
@@ -254,29 +253,29 @@ independently.  If it is true, the calculated size of queue n includes the sizes
 of all virtual queues up to and including n.
 ------------------------------------------------------------------------------*/
 void redQueue::calcAvg(int prec, int m) {
-	float f;
-	int i;
-
-	f = qParam_[prec].edv_.v_ave;
-
-	while (--m >= 1) {
-		f *= 1.0 - qParam_[prec].edp_.q_w;
-	}
-	f *= 1.0 - qParam_[prec].edp_.q_w;
-
-	if (mredMode == rio_c)
-		for (i = 0; i <= prec; i ++)
-			f += qParam_[i].edp_.q_w * qParam_[i].qlen;
-	else if (mredMode == rio_d)
-		f += qParam_[prec].edp_.q_w * qParam_[prec].qlen;
-   else //wred
-      f += qParam_[prec].edp_.q_w * q_->length();
-		
-   if (mredMode == wred)
-      for (i = 0; i < numPrec; i ++)
-			qParam_[prec].edv_.v_ave = f;
-   else //rio_c, rio_d
-      qParam_[prec].edv_.v_ave = f;
+  float f;
+  int i;
+  
+  f = qParam_[prec].edv_.v_ave;
+  
+  while (--m >= 1) {
+    f *= 1.0 - qParam_[prec].edp_.q_w;
+  }
+  f *= 1.0 - qParam_[prec].edp_.q_w;
+  
+  if (mredMode == rio_c)
+    for (i = 0; i <= prec; i ++)
+      f += qParam_[i].edp_.q_w * qParam_[i].qlen;
+  else if (mredMode == rio_d)
+    f += qParam_[prec].edp_.q_w * qParam_[prec].qlen;
+  else //wred
+    f += qParam_[prec].edp_.q_w * q_->length();
+  
+  if (mredMode == wred)
+    for (i = 0; i < numPrec; i ++)
+      qParam_[i].edv_.v_ave = f;
+  else //rio_c, rio_d
+    qParam_[prec].edv_.v_ave = f;
 }
 
 

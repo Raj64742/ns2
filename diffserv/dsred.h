@@ -81,7 +81,8 @@ each network device, with up to MAX_PREC virtual queues in each queue. */
 #define MAX_CP 40	// maximum number of code points in a simulation
 #define MEAN_PKT_SIZE 1000 	// default mean packet size, in bytes, needed for RED calculations
 
-enum schedModeType {schedModeRR, schedModeWRR, schedModeWIRR, schedModePRI};
+enum schedModeType {schedModeRR, schedModeWRR, schedModeWIRR, schedModePRI, 
+		    schedModePRIStr};
 
 #define PKT_MARKED 3
 #define PKT_EDROPPED 2
@@ -111,55 +112,65 @@ struct statType {
 };
 
 
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
 class dsREDQueue 
     This class specifies the characteristics for a Diffserv RED router.
-------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------*/
 class dsREDQueue : public Queue {
-public:	
-	dsREDQueue();
-	int command(int argc, const char*const* argv);	// interface to ns scripts
+ public:	
+  dsREDQueue();
+  int command(int argc, const char*const* argv);	// interface to ns scripts
+  
+ protected:
+  redQueue redq_[MAX_QUEUES];	// the physical queues at the router
+  NsObject* de_drop_;		// drop_early target
+  statType stats; // used for statistics gatherings
+  int qToDq;			// current queue to be dequeued in a round robin manner
+  int numQueues_;		// the number of physical queues at the router
+  int numPrec;		        // the number of virtual queues in each physical queue
+  phbParam phb_[MAX_CP];		// PHB table
+  int phbEntries;     		// the current number of entries in the PHB table
+  int ecn_;			// used for ECN (Explicit Congestion Notification)
+  LinkDelay* link_;		// outgoing link
+  int schedMode;                  // the Queue Scheduling mode
+  // Added by Xuanc, 
+  // strict mode: when this queue's average rate beyond the max rate,
+  // no packet will be dequeued
+  // even if there is no packets in other queues.
+  int priMode;                  // Weather the priority is strict
 
-protected:
-	redQueue redq_[MAX_QUEUES];	// the physical queues at the router
-	NsObject* de_drop_;		// drop_early target
-	statType stats; // used for statistics gatherings
-	int qToDq;			// current queue to be dequeued in a round robin manner
-	int numQueues_;			// the number of physical queues at the router
-	int numPrec;			// the number of virtual queues in each physical queue
-	phbParam phb_[MAX_CP];		// PHB table
-	int phbEntries;     		// the current number of entries in the PHB table
-	int ecn_;			// used for ECN (Explicit Congestion Notification)
-	LinkDelay* link_;		// outgoing link
-   int schedMode;                  // the Queue Scheduling mode
-   int queueWeight[MAX_QUEUES];    // A queue weight per queue
-	double queueMaxRate[MAX_QUEUES];   // Maximum Rate for Priority Queueing
-	double queueAvgRate[MAX_QUEUES];   // Average Rate for Priority Queueing
-	double queueArrTime[MAX_QUEUES];	  // Arrival Time for Priority Queueing
-   int slicecount[MAX_QUEUES];
-   int pktcount[MAX_QUEUES];
-   int wirrTemp[MAX_QUEUES];
-   unsigned char wirrqDone[MAX_QUEUES];
-   int queuesDone;
+  int queueWeight[MAX_QUEUES];    // A queue weight per queue
+  double queueMaxRate[MAX_QUEUES];   // Maximum Rate for Priority Queueing
+  double queueAvgRate[MAX_QUEUES];   // Average Rate for Priority Queueing
+  double queueArrTime[MAX_QUEUES];	  // Arrival Time for Priority Queueing
+  int slicecount[MAX_QUEUES];
+  int pktcount[MAX_QUEUES];
+  int wirrTemp[MAX_QUEUES];
+  unsigned char wirrqDone[MAX_QUEUES];
+  int queuesDone;
+  
+  void reset();
+  void edrop(Packet* p); // used so flowmonitor can monitor early drops
+  void enque(Packet *pkt); // enques a packet
+  Packet *deque(void);	// deques a packet
+  int getCodePt(Packet *p); // given a packet, extract the code point marking from its header field
+  int selectQueueToDeque();	// round robin scheduling dequing algorithm
+  void lookupPHBTable(int codePt, int* queue, int* prec); // looks up queue and prec numbers corresponding to a code point
+  void addPHBEntry(int codePt, int queue, int prec); // edits phb entry in the table
+  void setNumPrec(int curPrec);
+  void setMREDMode(const char* mode, const char* queue);
+  void printStats(); // print various stats
+  double getStat(int argc, const char*const* argv);
+  void printPHBTable();  // print the PHB table
+  void setSchedularMode(const char* schedtype); // Sets the schedular mode
 
-	void reset();
-	void edrop(Packet* p); // used so flowmonitor can monitor early drops
-	void enque(Packet *pkt); // enques a packet
-	Packet *deque(void);	// deques a packet
-	int getCodePt(Packet *p); // given a packet, extract the code point marking from its header field
-	void selectQueueToDeque();	// round robin scheduling dequing algorithm
-	void lookupPHBTable(int codePt, int* queue, int* prec); // looks up queue and prec numbers corresponding to a code point
-	void addPHBEntry(int codePt, int queue, int prec); // edits phb entry in the table
-	void setNumPrec(int curPrec);
-	void setMREDMode(const char* mode, const char* queue);
-	void printStats(); // print various stats
-	double getStat(int argc, const char*const* argv);
-	void printPHBTable();  // print the PHB table
-   void setSchedularMode(const char* schedtype); // Sets the schedular mode
-   void addQueueWeights(int queueNum, int weight); // Add a maxRate to a PRI queue
-   void addQueueRate(int queueNum, int rate); // Add a weigth to a WRR or WIRR queue
-	void printWRRcount();		// print various stats
-	void applyTSWMeter(Packet *pkt); // apply meter to calculate average rate of a PRI queue
+  // Add a weigth to a WRR or WIRR queue
+  void addQueueWeights(int queueNum, int weight); 
+  // Add a maxRate to a PRI queue
+  void addQueueRate(int queueNum, int rate, int strict); 
+
+  void printWRRcount();		// print various stats
+  void applyTSWMeter(Packet *pkt, int q_id); // apply meter to calculate average rate of a PRI queue
 };
 
 #endif

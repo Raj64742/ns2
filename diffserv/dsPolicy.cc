@@ -174,7 +174,17 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
 
       // Use cir as the transmission size threshold for the moment.
       policyTable[policyTableSize].cir = atoi(argv[6]);
-    } else {
+    } else if (strcmp(argv[4], "EW") == 0) {
+      if(!policy_pool[EWP])
+	policy_pool[EWP] = new EWPolicy();
+      int dst = atoi(argv[3]);
+      if (dst != ANY_HOST)
+	((EWPolicy *)policy_pool[EWP])->init(dst, atoi(argv[6]), atoi(argv[7]));
+
+      policyTable[policyTableSize].policy_index = EWP;
+      policyTable[policyTableSize].policer = EWPolicer;
+      policyTable[policyTableSize].meter = ewTagger;
+  } else {
       printf("No applicable policy specified, exit!!!\n");
       exit(-1);
     }
@@ -257,6 +267,11 @@ void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
 	policy_pool[FW] = new FWPolicy;
       policerTable[policerTableSize].policer = FWPolicer;
       policerTable[policerTableSize].policy_index = FW;      
+    } else if (strcmp(argv[2], "EW") == 0) {
+      if(!policy_pool[EWP])
+	policy_pool[EWP] = new EWPolicy;
+      policerTable[policerTableSize].policer = EWPolicer;
+      policerTable[policerTableSize].policy_index = EWP;      
     } else {
       printf("No applicable policer specified, exit!!!\n");
       exit(-1);
@@ -299,10 +314,11 @@ int PolicyClassifier::mark(Packet *pkt) {
   iph = hdr_ip::access(pkt);
   fid = iph->flowid();
   policy = getPolicyTableEntry(iph->saddr(), iph->daddr());
-  codePt = policy->codePt;
-  policy_index = policy->policy_index;
-  policer = getPolicerTableEntry(policy_index, codePt);
-
+  if (policy) {
+    codePt = policy->codePt;
+    policy_index = policy->policy_index;
+    policer = getPolicerTableEntry(policy_index, codePt);
+  }
   
   if (policy_pool[policy_index]) {
     policy_pool[policy_index]->applyMeter(policy, pkt);
@@ -413,6 +429,11 @@ void PolicyClassifier::printPolicyTable() {
 	printf("initial code point %d, TH %d bytes.\n",
 	       policyTable[i].codePt, (int)policyTable[i].cir);
 	break;
+      case EWPolicer:
+	printf("Flow (%d to %d): EW policer, ",
+	       policyTable[i].sourceNode,policyTable[i].destNode);
+	printf("initial code point %d.\n", policyTable[i].codePt);
+	break;
       default:
 	printf("ERROR: Unknown policer type in Policy Table.\n");
       }
@@ -452,6 +473,9 @@ void PolicyClassifier::printPolicerTable() {
     case FWPolicer:
       printf("FW ");
       //printFlowTable();
+      break;
+    case EWPolicer:
+      printf("EW ");
       break;
     default:
       printf("ERROR: Unknown policer type in Policer Table.");
@@ -934,5 +958,271 @@ void FWPolicy::printFlowTable() {
   p = NULL;
   printf("\n");
 }
-
 // End of FW
+
+// Beginning of EW Policy
+//Constructor.  
+EWPolicy::EWPolicy() : Policy() {
+  ew = new EW;
+}
+
+//Deconstructor.
+EWPolicy::~EWPolicy(){
+  if (ew)
+    free(ew);
+}
+
+// Initialize the EW parameters
+void EWPolicy::init(int id, int ew_th, int ew_inv) {
+  ew->init(id, ew_th, ew_inv);
+}
+
+/*-----------------------------------------------------------------------------
+ void EWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
+ Flow states are kept in a linked list.
+ Record how many bytes has been sent per flow and check if there is any flow
+ timeout.
+-----------------------------------------------------------------------------*/
+void EWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+  struct SWinEntry *p, *new_entry;
+
+  double now = Scheduler::instance().clock();
+  hdr_cmn* hdr = hdr_cmn::access(pkt);
+  hdr_ip* iph = hdr_ip::access(pkt);
+  int dst = iph->daddr();
+  int id;
+
+  //printf("enter applyMeter\n");
+
+  // original output for comparasion purpose
+  if (dst == policy->destNode) {
+    id = ew->get_swin_index(dst);
+    ew->swin[id].requests++;
+    //printf("dst: %d, %d, %d\n", dst, ew->swin[id].requests, (int)now); 
+
+    int t_diff = (int) now - ew->swin[id].last_t;
+    if (t_diff >= ew->swin[id].s_inv) {
+      new_entry = new SWinEntry;
+      new_entry->requests = ew->swin[id].requests;
+      new_entry->weight = 1;
+      new_entry->next = NULL;
+      
+      if (ew->swin[id].tail)
+	ew->swin[id].tail->next = new_entry;
+      ew->swin[id].tail = new_entry;
+
+      if (!ew->swin[id].head)
+	ew->swin[id].head = new_entry;
+
+      ew->swin[id].requests = 0;
+      if (ew->swin[id].win_count < EW_WIN_SIZE) {
+	ew->swin[id].win_count++;
+      } else {
+	p = ew->swin[id].head;
+	ew->swin[id].head = p->next;
+	free(p);
+      }
+
+      ew->swin[id].last_t = (int)now;
+     
+      int r_avg = ew->ravgSWin(id);
+      printf("Ravg: %d, th: %d\n", r_avg, ew->swin[id].th);
+    
+      if (r_avg >= ew->swin[id].th) {
+	if (ew->swin[id].alarm) {
+	  printf("w+ %d %d\n", dst, (int)now);
+	} else {
+	  ew->swin[id].alarm_count++;
+	  if (ew->swin[id].alarm_count > EW_A_TH) {
+	    ew->swin[id].alarm = 1;
+	    printf("w+ %d %d\n", dst, (int)now);
+	  } else {
+	    ew->decSWin(id);
+	  }
+	}
+      } else {
+	if (ew->swin[id].alarm)
+	  ew->swin[id].alarm = 0;
+	if (ew->swin[id].alarm_count)
+	  ew->swin[id].alarm_count = 0;
+
+	  ew->incSWin(id);
+      }
+    }
+  }
+  
+  //printf("leave applyMeter\n");
+  return;
+}
+
+/*-----------------------------------------------------------------------------
+void EWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt) 
+    Prints the policyTable, one entry per line.
+-----------------------------------------------------------------------------*/
+int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+  struct SWinEntry *p;
+  hdr_ip* iph = hdr_ip::access(pkt);
+  int dst = iph->daddr();
+  int id;
+  //  printf("enter applyPolicer\n");
+
+ // original output for comparasion purpose
+  if (dst == policy->destNode) {
+    id = ew->get_swin_index(dst);
+    //printf("dst: %d", dst);	
+    
+    if (ew->swin[id].alarm) {
+      ew->swin[id].alarm_count = 0;
+      //printf(" ALARM!\n");	
+      return(policer->downgrade1);
+    } else {
+      //printf(" OK!\n");	
+      return(policer->initialCodePt);
+    }
+  }
+
+  return(policer->initialCodePt);
+}
+// End of EWP
+
+// Beginning of EW
+//Constructor.  
+EW::EW() {
+  swin_point = 0;
+
+  for (int i = 0; i < EW_MAX_WIN; i++) {
+    swin[i].head = NULL;
+    swin[i].tail = NULL;
+    
+    swin[i].th = swin[i].init_th = 0;
+    swin[i].point = 0;
+    swin[i].win_count = 0;
+    swin[i].requests = 0;
+    swin[i].last_t = 0;
+    swin[i].s_inv = 0;
+    swin[i].alarm_count = 0;
+    swin[i].alarm = 0;
+  }
+}
+
+//Deconstructor.
+EW::~EW(){
+  struct SWinEntry *p, *q;
+  
+  swin_point = 0;
+  for (int i = 0; i < EW_MAX_WIN; i++) {
+    p = q = swin[i].head;
+    while (p) {
+      q = p;
+      p = p->next;
+      free(q);
+    }
+    
+    p = q = NULL;
+    swin[i].head = swin[i].tail = NULL;
+  }
+}
+
+// Initialize the EW parameters
+void EW::init(int id, int ew_th, int ew_inv) {
+  if (swin_point < EW_MAX_WIN) {
+    //printf("init: th: %d, inv: %d\n", ew_th, ew_inv);
+    swin[swin_point].node_id = id;
+    swin[swin_point].th = swin[swin_point].init_th = ew_th;
+    swin[swin_point].s_inv = swin[swin_point].init_inv = ew_inv;
+    swin_point++;
+  } else {
+    printf("No space left for new EW monitor...EXITING...!\n");
+    exit(-1);
+  }
+}
+
+// Find the right index for slinding window
+int EW::get_swin_index(int node_id) {
+  for (int i = 0; i < swin_point; i++) {
+    if(swin[i].node_id == node_id)
+      return i;
+  }
+
+  printf("Error!!! No Early Warning Monitor has been created for node %d, exiting...\n", node_id);
+  exit(-1);
+}
+
+// Calculate the running average over the sliding window
+int EW::ravgSWin(int id) {
+  struct SWinEntry *p;
+  float sum = 0;
+  float t_weight = 0;
+  int i = 0;
+
+  //printf("Calculate running average over the sliding window:\n");
+  p = swin[id].head;
+  //printf("after p\n");
+
+  while (p) {
+    //printf("win[%d]: (%d, %.2f) ", i++, p->requests, p->weight);
+    sum += p->requests * p->weight;
+    t_weight += p->weight;
+    p = p->next;
+  }
+  p = NULL;
+  //printf("\n");  
+  return((int)(sum / t_weight));
+}
+
+// Decreas SWin.
+void EW::decSWin(int id) {
+  struct SWinEntry *p;
+
+  // Need some investigation for the min allowed inv and th
+  if (swin[id].s_inv > 10 && swin[id].th > 4) {
+    swin[id].s_inv = swin[id].s_inv / 2;
+    swin[id].th = swin[id].th / 2;
+    
+    p = swin[id].head;
+    while (p) {
+      p->weight = p->weight / 2;
+      p = p->next;
+    }
+    p = NULL;
+    
+    printf("Swin Decrease by 2.\n");
+    printSWin(id);	      
+  }
+}
+
+// Increase SWin.
+void EW::incSWin(int id) {
+  struct SWinEntry *p;
+
+  if(swin[id].s_inv * 2 <= swin[id].init_inv) {
+    swin[id].s_inv = swin[id].s_inv * 2;
+    swin[id].th = swin[id].th * 2;
+    
+    p = swin[id].head;
+    while (p) {
+      p->weight = p->weight * 2;
+      p = p->next;
+    }
+    p = NULL;
+    
+    printf("Swin Increase by 2.\n");
+    printSWin(id);
+  }
+}
+
+//    Prints the sliding window, one entry per line.
+void EW::printSWin(int id) {
+  struct SWinEntry *p;
+  printf("Sliding Window(s_inv: %d, th: %d):\n", 
+	 swin[id].s_inv, swin[id].th);
+  
+  p = swin[id].head;
+  int i = 0;
+  while (p) {
+    printf("[%d: %d, %.2f] ", i++, p->requests, p->weight);
+    p = p->next;
+  }
+  p = NULL;
+  printf("\n");
+}
