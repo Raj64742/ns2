@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.186 2000/02/01 06:37:06 mjh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.187 2000/02/03 15:58:20 sfloyd Exp $
 
 
 #
@@ -207,6 +207,7 @@ Agent/TFRC set bval_ 1
 Agent/TFRC set aggr_incr_ 0
 Agent/TFRC set aggr_dec_  1
 Agent/TFRC set ca_ 0;  #congestion avoidance
+Agent/TFRC set printStatus_ 0
 
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000

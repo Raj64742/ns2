@@ -138,6 +138,7 @@ protected:
 				//  and recever-provded loss estimate
 	double maxrate_;	// prevents sending at more than 2 times the 
 				//  rate at which the receiver is _receving_ 
+ 	int printStatus_;	// to print status reports
 
 	/* "accurate" estimates for formula */
 	double rtt_; /*EWMA version*/

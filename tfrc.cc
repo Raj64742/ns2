@@ -88,6 +88,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("aggr_incr_", &aggr_incr_);
 	bind("aggr_dec_", &aggr_dec_);
 	bind("ca_", &ca_);
+	bind("printStatus_", &printStatus_);
 }
 
 
@@ -273,7 +274,8 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 			x = 2 ;
 		}
 	}
-//	printf("time: %5.2f rate: %5.2f\n", now, rate_);
+	if (printStatus_)
+		printf("time: %5.2f rate: %5.2f\n", now, rate_);
 	prevflost = flost ; 
 	prevrtt = rtt_ ; 
 	prevto = tzero_ ;
