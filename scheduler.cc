@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.44 1999/07/26 22:21:21 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.45 1999/08/14 00:37:40 heideman Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.44 1999/07/26 22:21:21 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.45 1999/08/14 00:37:40 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -68,6 +68,13 @@ void Scheduler::schedule(Handler* h, Event* e, double delay)
 		printf("Scheduler: Event UID not valid!\n\n");
 		abort();
 	}
+	
+	if (delay < 0) {
+		// You probably don't want to do this
+		// (it probably represents a bug in your simulation).
+		fprintf(stderr, "warning: ns Scheduler::schedule: scheduling event\n\twith negative delay (%f) at time %f.\n", delay, clock_);
+	}
+
 	e->uid_ = uid_++;
 	e->handler_ = h;
 	double t = clock_ + delay;

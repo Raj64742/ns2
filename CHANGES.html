@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.349 1999/08/14 00:30:00 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.350 1999/08/14 00:37:42 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,12 +22,20 @@
 
 
 <ul>
+  <p>
+  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+           <b>Fri Aug 13 17:36:20 PDT 1999</b><br>
+	 Added a warning to scheduler.cc
+	 contributed by Pascal Anelli &lt;Pascal.Anelli@lip6.fr&gt;.
+
+	 <p>
 	<li><b><a href="http://www.isi.edu/~haldar">[haldar]</a></b>
 	<b>Fri Aug 13 17:24:06 PDT 1999</B>
 	Added ifdef's for a stand-alone (without using tclcl lib) version
 	of rng. Also revised setdest's Makefile allowing to build setdest
 	using this stand-alone version of rng.o
 
+  <p>
 	<li><b><a href="http://www.isi.edu/~yaxu">[yaxu]</a></b>
         <b> Thu Aug 12 16:19:45 PDT 1999 </b>
         Added TORA/IMEP implementation according to CMU's release
@@ -40,12 +48,14 @@
 	     2 examples for tora.
         </ul>
 	
+  <p>
 	<li><b><a href="http://www.isi.edu/~haldar">[haldar]</a></b>
 	<b>Wed Aug 11 17:50:35 PDT 1999</b>
 	Changed cmu's node-movement and traffic pattern
 	generation files (setdest.cc and calcdest.cc) to make them more
 	portable.
 
+  <p>
 	<li><b><a href="http://www.isi.edu/~kkumar">[kkumar]</a></b>
 	<b> Thu Jul 29 16:19:45 PDT 1999 </b>
 	Added a simple energy model to keep track of remaining energy
@@ -66,6 +76,7 @@
              show how energy usage can be logged.
 	</ul>
 
+  <p>
 	<li><b><a href="http://www.isi.edu/~kkumar">[kkumar]</a></b>
 	<b> Thu Jul 21 17:53 PDT 1999 </b>
 	Added a distributed self-organizing hierarchy construction
@@ -82,11 +93,13 @@
 		generates responses (if any) back to the querying node.
 	</ul>
 
+  <p>
 	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 	<b>Fri Jul  9 14:20:23 PDT 1999</b>
 	Changed all strsep() to strtok() and all heapsort() to qsort()
 	in indep-utils/webtrace-conv/.
 
+  <p>
         <li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
         <b>Tue Jul  6 21:19:27 PDT 1999</b><br>
         Updated files connected with tfrm.cc and tfrm-sink.cc for
@@ -94,6 +107,7 @@
         is from Mark Handley, with structural modifications by
         Jitendra Padhye.  The validation test is "test-all-friendly".
 
+  <p>
 	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 	<b>Tue Jul  6 15:50:42 PDT 1999</b><br>
 	<ul>
@@ -116,12 +130,14 @@
 	different results on Solaris and SunOS. 
 	</ul>
 
+  <p>
 	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 	<b>Fri Jul  2 14:00:01 PDT 1999</b><br>
 	Updated various files to work under win32. The most important one
 	is to update ptypes2tcl.cc to handle long strings using codes borrowed
 	from ~tclcl/tcl2c++.c
 
+  <p>
 	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 	<b>Fri Jul  2 10:00:23 PDT 1999</b><br>
 	Test suite for multimedia cache. CAUTION: this is only intended
@@ -130,14 +146,17 @@
 	tcl/webcache/http-mcache.tcl; it is absolutely NOT
 	a test suite for RAP and Quality Adaptation.
 
+  <p>
         <LI><B><A HREF="http://www.isi.edu/~salehi">[salehi]</A></B>
 	<b>Mon Jun 28 15:35:40 PDT 1999</b><br>
 	Added support and example script for BiDirectional multicast.
 
+  <p>
 	<LI><B><A HREF="http://www.cs.berkeley.edu/~tomh/">[tomh]</A></B>
 	  <b>Fri Jun 25 13:47:05 PDT 1999</b><br>
 	  Added support and example script for unslotted Aloha MAC.
 
+  <p>
 	<LI><B><A HREF="http://www.cs.berkeley.edu/~tomh/">[tomh]</A></B>
 	  <b>Mon Jun 21 11:30:50 PDT 1999</b><br>
 	  Added support for geostationary and LEO satellite constellations.
@@ -1349,20 +1368,7 @@ set in packet header (it's usually not set, unless there's an ack reconstructor 
 control from Tcl, and derived TCP classes can define their own trace function. <br>
 Files: tcp.{cc,h}
 	
-	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
-
-
-
-
-
-
-
-
-
-
-
-
-ric networks. <br>
+	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmetric networks. <br>
 Files: ack-recons.{cc,h}, tcl/lib/ns-queue.tcl
 	
 	<li> Tracing tcp-asym-specific variables; controlling parameters from Tcl, fix for ACC to work with ECN.  Added new test script with many changes from the previous version. <br>
