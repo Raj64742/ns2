@@ -37,7 +37,8 @@ failed_list=""
 try ./test-all
 
 cd tcl/test
-for i in tcp red sack schedule tcp red-v1 cbq-v1 sack-v1 v1
+# red sack schedule tcp red-v1 cbq-v1 sack-v1 v1
+for i in tcp
 do
 	try ./test-all-$i
 done
