@@ -16,6 +16,12 @@
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
 
+###########################################################################
+# IMPORTANT NOTE:
+# If you are updating any part of this WLtutorial test-suite, please
+# update the examples (wireless1.tcl, wireless2.tcl & wireless3.tcl) used
+# for wireless tutorial under vint/tutorial/example directory.
+###########################################################################
 
 # This test suite is for validating wireless examples used in Greis' tutorial
 # To run all tests: test-all-WLtutorial
