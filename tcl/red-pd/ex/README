@@ -1,0 +1,2 @@
+# To run simulations:
+ns red-pd.tcl one netTestIdent TestIdent
