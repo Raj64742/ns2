@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.12 1998/01/23 21:36:04 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.13 1998/01/24 04:09:58 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -133,8 +133,7 @@ void Mac802_11::transmit(Packet* p, double ifs)
 void Mac802_11::RtsCts_send(Packet* p)
 {
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
-	mh->macSA() = label_;
-	mh->ftype() = MF_DATA;
+	mh->set(MF_DATA, addr_);
 	mh->txtime() = txtime(p);
 	pkt_ = p;
 	if (state_ == MAC_IDLE && pktTx_ == 0) {

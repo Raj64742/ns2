@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.18 1998/01/23 21:36:04 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.19 1998/01/24 04:09:59 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -77,7 +77,6 @@ MacHandlerEoc::handle(Event* e)
 
 MacCsma::MacCsma() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
 {
-	bind_time("delay_", &delay_);
 	bind_time("ifs_", &ifs_);
 	bind_time("slotTime_", &slotTime_);
 	bind("cwmin_", &cwmin_);

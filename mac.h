@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.15 1998/01/23 08:13:48 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.16 1998/01/24 04:09:57 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -131,7 +131,7 @@ public:
 		return (8. * bytes / bandwidth_);
 	}
 	inline double bandwidth() const { return bandwidth_; }
-	inline int label() { return label_; }
+	inline int addr() { return addr_; }
 	inline MacState state() { return state_; }
 	inline MacState state(int m) { return state_ = (MacState) m; }
 	inline Mac*& macList() { return macList_; }
@@ -142,7 +142,7 @@ protected:
 	double delay_;		// MAC overhead
 	double bandwidth_;	// MAC bandwidth
 	int hlen_;		// MAC header length
-	int label_;		// MAC address
+	int addr_;		// MAC address
 	MacState state_;	// MAC's current state
 	Channel* channel_;	// channel this MAC is connected to
 	Classifier* mcl_;	// MAC classifier to obtain the peer MAC

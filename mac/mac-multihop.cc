@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.6 1998/01/23 21:33:47 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.7 1998/01/24 04:09:59 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -215,13 +215,13 @@ void MultihopMac::recv(Packet* p, Handler *h)
 		return;
 	}
 	callback_ = h;
-	hdr_mac *mach = (hdr_mac *)p->access(off_mac_);
-	mach->macSA() = label_;
-	if (mach->ftype() == MF_ACK) {
+	hdr_mac *mh = (hdr_mac *)p->access(off_mac_);
+	mh->macSA() = addr_;
+	if (mh->ftype() == MF_ACK) {
 		mode_ = MAC_SND;
 		send(p);
 	} else {
-		mach->ftype() = MF_DATA;
+		mh->ftype() = MF_DATA;
 		poll(p);		/* poll first */
 	}
 }

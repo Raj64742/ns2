@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.20 1998/01/23 21:36:05 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.21 1998/01/24 04:09:58 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -83,7 +83,7 @@ Mac::Mac() : Connector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0),
 	bind_time("delay_", &delay_);
 	bind_bw("bandwidth_", &bandwidth_);
 	bind("hlen_", &hlen_);
-	bind("label_", &label_);
+	bind("addr_", &addr_);
 	bind("off_mac_", &off_mac_);
 }
 
@@ -132,7 +132,7 @@ void Mac::recv(Packet* p, Handler* h)
 	}
 	callback_ = h;
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
-	mh->set(MF_DATA, label_);
+	mh->set(MF_DATA, addr_);
 	state(MAC_SEND);
 	send(p);
 }
