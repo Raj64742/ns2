@@ -21,6 +21,7 @@
  * George Riley, Georgia Tech, Winter 2000
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 // Creates a bitmap object.  The 'entries' can be more than one bit,
@@ -56,10 +57,10 @@ BitMap::BitMap( u_long Size, u_long BitsPerEntry)
   if(0)printf("Exiting bitmap constructor\n");
 }
 
-BitMap::~BitMap()
+/*BitMap::~BitMap()
 {
   if (m_Words > 1) delete [] m_pM;
-}
+}*/
 
 void BitMap::Set(u_long Which, u_long Value)
 {
@@ -272,3 +273,4 @@ BitMap B3(64, 3);
 #endif
 
 #endif /* NIXVECTOR */
+#endif /* STL */

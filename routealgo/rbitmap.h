@@ -37,7 +37,7 @@ class BitMap {
   public :
     BitMap      ( );
     BitMap      ( u_long Size, u_long BitsPerEntry = 1);
-    ~BitMap     ();
+    ~BitMap     () {if (m_Words > 1) delete [] m_pM; }
     void   Set  ( u_long Which, u_long Value = 1);
     void   Clear( u_long Which);
     u_long Get  ( u_long Which);  // Return the specified entry

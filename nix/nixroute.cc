@@ -23,6 +23,7 @@
  *
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 #include "rtmodule.h"
@@ -43,3 +44,4 @@ public:
 
 
 #endif /* NIXVECTOR */
+#endif

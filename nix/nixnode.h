@@ -1,33 +1,14 @@
 /* -*-	Mode:C++; c-basic-offset:2; tab-width:2; indent-tabs-mode:f -*- */
-/*
- * Copyright (c) 2000 University of Southern California.
- * All rights reserved.                                            
- *                                                                
- * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation, advertising
- * materials, and other materials related to such distribution and use
- * acknowledge that the software was developed by the University of
- * Southern California, Information Sciences Institute.  The name of the
- * University may not be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- *
- * Nix-Vector routing capable node
- * contributed to ns from 
- * George F. Riley, Georgia Tech, Spring 2000
- *
- */
-
+/* Nix-Vector routing capable node. */
+/* George F. Riley, Georgia Tech, Spring 2000 */
 /* Changed to NOT subclass the Node class, suggestion from ns developers */
+
+#ifndef __NIXNODE_H__
+#define __NIXNODE_H__
 
 #include "routealgo/rnode.h"
 #include "object.h"
-#include <hash_map>
+#include <map>
 
 // Define the edge class
 class Edge {
@@ -43,11 +24,10 @@ typedef EdgeVec_t::iterator   EdgeVec_it;
 typedef vector<NsObject*>     ObjVec_t;
 typedef ObjVec_t::iterator    ObjVec_it;
 
-// Use a hash_map to keep a table of known NixVectors
-typedef hash_map<nodeid_t, NixVec*,
-                 hash<nodeid_t>, equal_to<nodeid_t> > NVMap_t;
-typedef NVMap_t::iterator                             NVMap_it;
-typedef pair<nodeid_t, NixVec*>                       NVPair_t;
+// Use a map to keep a table of known NixVectors
+typedef map<nodeid_t, NixVec*, less<nodeid_t> > NVMap_t;
+typedef NVMap_t::iterator                       NVMap_it;
+typedef NVMap_t::value_type                     NVPair_t;
 
 class NixNode : public RNode {
 public :
@@ -73,5 +53,6 @@ private :
   int          m_Map;             // Which system this node is mapped to
   NVMap_t*     m_pNixVecs;        // Hash-map list of known NixVectors
 };
+#endif
 
 

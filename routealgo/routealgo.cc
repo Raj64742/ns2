@@ -21,6 +21,7 @@
  * George Riley, Georgia Tech, Winter 2000
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 
@@ -142,3 +143,4 @@ static void NixPred(nodeid_t s, nodeid_t p, RoutingVec_t& pred,
 }
 
 #endif /* NIXVECTOR */
+#endif /* STL */

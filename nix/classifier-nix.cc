@@ -23,6 +23,7 @@
  *
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 
@@ -106,3 +107,4 @@ int NixClassifier::command(int argc, const char*const* argv)
 }
  
 #endif /* NIXVECTOR */
+#endif

@@ -21,7 +21,7 @@
  * George F. Riley, Georgia Tech, Spring 2000
  *
  */
-
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 // STL includes
@@ -234,9 +234,13 @@ NVMap_it i;
 		 NVCount++;
 		 NVTot += pNv->ALth();
 		 // End debug stats
-
-		 NVPair_t* p = new NVPair_t(t, pNv);
-		 m_pNixVecs->insert(*p);
+#ifdef TRY_DIFFERENT
+		 m_pNixVecs[(const nodeid_t)t] = (const NixVec const *)pNv;
+#else
+		 NVPair_t p = NVPair_t(t, pNv);
+                 //const pair <const nodeid_t, NixVec*> p1 = new pair<const nodeid_t, NixVec*>(t,pNv);
+		 m_pNixVecs->insert(p);
+#endif
 		 pNv->Reset();
 		 // debug follows
 #ifdef DEBUG_VERBOSE		
@@ -245,8 +249,8 @@ NVMap_it i;
 #endif
 		 return(pNv); // Return a the vector
 	 }
- i->second->Reset();
- return(i->second); // Return the vector
+ (*i).second->Reset();
+ return((*i).second); // Return the vector
 }
 
 void NixNode::PopulateObjects(void)
@@ -296,3 +300,4 @@ void ReportNixStats()
 }
 
 #endif /* NIXVECTOR */
+#endif /* STL */

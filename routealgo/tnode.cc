@@ -21,6 +21,7 @@
  * George Riley, Georgia Tech, Winter 2000
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 #include <stdio.h>
@@ -74,3 +75,4 @@ Edge* pE;
 }
 
 #endif /* NIXVECTOR */
+#endif

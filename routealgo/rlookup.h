@@ -1,25 +1,5 @@
-/*
- * Copyright (c) 2000 University of Southern California.
- * All rights reserved.                                            
- *                                                                
- * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation, advertising
- * materials, and other materials related to such distribution and use
- * acknowledge that the software was developed by the University of
- * Southern California, Information Sciences Institute.  The name of the
- * University may not be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- * Define classes for routing table representation and lookup
- * contributed to ns
- * George Riley, Georgia Tech, Winter 2000
- */
-
+// Define classes for routing table representation and lookup
+// George F. Riley, Georgia Tech, Winter 2000
 
 // Defines several variations on routing table representations
 // and a method to determine the most memory efficient.
@@ -30,9 +10,14 @@
 #include "routealgo/rnode.h"
 #include "routealgo/rbitmap.h"
 
-// #include <iostream>
+#include <iostream.h>
+#ifdef USE_HASH
 #include <hash_map>
 #include <hash_set>
+#else
+#include <map>
+#include <set>
+#endif
 
 typedef enum {
   RL_NULL, RL_FIXED, RL_BITMAP, RL_HASH, RL_NEXTHOP, RL_LAST}
@@ -54,8 +39,10 @@ public :
                         nodeid_t f = NODE_NONE, // First non-default
                         nodeid_t l = NODE_NONE) // Last non-default
                         = 0;
+  virtual void Populate(istream& is);           // Populate from log
   virtual nodeid_t Lookup(nodeid_t) = 0;        // Return next hop given target
-  virtual size_t   Size() = 0;
+  virtual size_t   Size() = 0;                  // Estimate size
+  virtual size_t   NumberEntries(){return 0;}   // Number of entries in table
   virtual void     Log( ostream&);              // Log to ostream
   static void Analyze(RoutingVec_t&,
                       RoutingVec_t&,            // Population counts
@@ -130,6 +117,7 @@ public :
                         nodeid_t l = NODE_NONE);// Last non-default
   virtual nodeid_t Lookup(nodeid_t);
   virtual size_t   Size();
+  virtual size_t   NumberEntries();             // Number of entries in table
   virtual void     Log( ostream&);              // Log to ostream
   static  size_t   EstimateSize(
                         RoutingVec_t& r, // NextHop table
@@ -150,10 +138,15 @@ private:
 
 // The "HashMap" lookup is used when the previous two methods do not work.
 // Uses the STL "hash_map" associative container to store non-default routes
+#ifdef USE_HASH
 typedef hash_map<nodeid_t, nodeid_t,
                  hash<nodeid_t>, equal_to<nodeid_t> > RouteMap_t;
+#else
+typedef map<nodeid_t, nodeid_t,  equal_to<nodeid_t> > RouteMap_t;
+#endif
+
 typedef RouteMap_t::iterator                          RouteMap_it;
-typedef pair<nodeid_t, nodeid_t>                      RoutePair_t;
+typedef RouteMap_t::value_type                        RoutePair_t;
 
 class HMLookup : public  RLookup {
 public :
@@ -169,6 +162,7 @@ public :
                         nodeid_t l = NODE_NONE);// Last non-default
   virtual nodeid_t Lookup(nodeid_t);
   virtual size_t   Size();
+  virtual size_t   NumberEntries();             // Number of entries in table
   virtual void     Log( ostream&);              // Log to ostream
   static  size_t   EstimateSize(
                         RoutingVec_t& r, // NextHop table
@@ -198,8 +192,10 @@ public :
                         nodeid_t o = NODE_NONE, // Routing table owner
                         nodeid_t f = NODE_NONE, // First non-default
                         nodeid_t l = NODE_NONE);// Last non-default
+  virtual void Populate(istream& is);           // Populate from log
   virtual nodeid_t Lookup(nodeid_t);
   virtual size_t   Size();
+  virtual size_t   NumberEntries();             // Number of entries in table
   virtual void     Log( ostream&);              // Log to ostream
   static  size_t   EstimateSize(
                         RoutingVec_t& r, // NextHop table

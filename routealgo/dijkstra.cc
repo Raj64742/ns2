@@ -21,6 +21,7 @@
  * George Riley, Georgia Tech, Winter 2000
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 #include "routealgo/dijkstra.h"
@@ -176,3 +177,4 @@ RoutingVec_t Parent;
 #endif
 
 #endif /* NIXVECTOR */
+#endif /* STL */

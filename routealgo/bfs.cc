@@ -22,6 +22,7 @@
  *
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 #include "routealgo/bfs.h"
@@ -167,3 +168,4 @@ RoutingVec_t Parent;
 #endif
 
 #endif /* NIXVECTOR */
+#endif

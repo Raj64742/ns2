@@ -22,7 +22,7 @@
  * George F. Riley, Georgia Tech, Spring 2000
  *
  */
-
+#ifdef HAVE_STL
 #include "nix/hdr_nv.h"
 
 #ifdef NIXVECTOR
@@ -39,3 +39,4 @@ public:
 } class_nvhdr;
 
 #endif /* NIXVECTOR */
+#endif

@@ -22,6 +22,7 @@
  *
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 #include <string.h> // for memcpy
@@ -305,3 +306,4 @@ int main()
 #endif
 
 #endif /* NIXVECTOR */
+#endif /* STL */

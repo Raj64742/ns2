@@ -21,6 +21,7 @@
  * George Riley, Georgia Tech, Winter 2000
  */
 
+#ifdef HAVE_STL
 #ifdef NIXVECTOR
 
 
@@ -57,3 +58,4 @@ Nixl_t RNode::GetNixl()
 }
 
 #endif /* NIXVECTOR */
+#endif /* STL */

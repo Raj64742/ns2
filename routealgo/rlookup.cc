@@ -1,27 +1,5 @@
-/*
- * Copyright (c) 2000 University of Southern California.
- * All rights reserved.                                            
- *                                                                
- * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation, advertising
- * materials, and other materials related to such distribution and use
- * acknowledge that the software was developed by the University of
- * Southern California, Information Sciences Institute.  The name of the
- * University may not be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- *
- * Define classes for routing table representation and lookup
- * contributed to ns
- * George Riley, Georgia Tech, Winter 2000
- */
-
-#ifdef NIXVECTOR
+// Define classes for routing table representation and lookup
+// George F. Riley, Georgia Tech, Winter 2000
 
 // Defines several variations on routing table representations
 // and a method to determine the most memory efficient.
@@ -93,6 +71,11 @@ void RLookup::Log( ostream& os)
   os << "LOG called";
 }
 
+void RLookup::Populate( istream& is)
+{
+  printf("Populate(istream) called\n");
+}
+
 #ifdef OLD_WAY
 ostream& operator<<(ostream& os , const RLookup& R ) // Output a routing table
 {
@@ -120,7 +103,7 @@ ostream& operator<<(ostream& os , const RLookup& R ) // Output a routing table
 
 NOLookup::NOLookup()
 {
-  if(0)printf("Created FRLookup\n");
+  if(0)printf("Created NOLookup\n");
 }
 
 NOLookup::~NOLookup()
@@ -298,6 +281,11 @@ size_t   BMLookup::Size()
          sizeof(nodeid_t)*m_NVec.size();    // items in m_NVec
 }
 
+size_t   BMLookup::NumberEntries()
+{
+  return(m_LastNonDefault - m_FirstNonDefault -1 );
+}
+
 size_t   BMLookup::EstimateSize(
     RoutingVec_t& r,   // NextHop table
     RoutingVec_t& p,   // Population counts
@@ -370,8 +358,13 @@ void HMLookup::Populate(
     {
       if (r[i] != d && r[i] != NODE_NONE)
         { // Not the default, create a HT entry
+#ifdef CHANGED_DUE_TO_FREEBSD_PROB
           RoutePair_t* p = new RoutePair_t(i, r[i]);
           m_RouteMap.insert(*p);
+#else
+          RoutePair_t p = RoutePair_t(i, r[i]);
+          m_RouteMap.insert(p);
+#endif
         }
     }
 }
@@ -382,7 +375,7 @@ nodeid_t HMLookup::Lookup(nodeid_t t)
 
   i = m_RouteMap.find(t);
   if (i == m_RouteMap.end()) return(m_Default);
-  return(i->second);
+  return((*i).second);
 }
 
 size_t   HMLookup::Size( void )
@@ -390,6 +383,11 @@ size_t   HMLookup::Size( void )
   return sizeof(u_long) +      // m_Default
          sizeof(RouteMap_t) +  // m_RouteMap
          m_RouteMap.size() * sizeof(nodeid_t); // entries in hash table
+}
+
+size_t   HMLookup::NumberEntries()
+{
+  return(m_RouteMap.size());
 }
 
 size_t   HMLookup::EstimateSize(
@@ -451,14 +449,35 @@ void NHLookup::Populate(
     }
 }
 
+void NHLookup::Populate(istream& is)
+{ // Populate from log flie
+int count;
+
+  is >> count;
+  for (int i = 0; i < count; i++)
+    {
+      int j;
+      is >> j;
+      nodeid_t n;
+      n = (j < 0) ? NODE_NONE : (nodeid_t)j;
+      m_RouteTable.push_back(n);
+    }
+}
+
 nodeid_t NHLookup::Lookup(nodeid_t t)
 {
+  if (t >= m_RouteTable.size()) return(NODE_NONE);
   return(m_RouteTable[t]); // Just a table lookup
 }
 
 size_t   NHLookup::Size( void )
 {
   return sizeof(u_long) * m_RouteTable.size();
+}
+
+size_t   NHLookup::NumberEntries()
+{
+  return(m_RouteTable.size());
 }
 
 void NHLookup::Log( ostream& os)
@@ -468,7 +487,12 @@ RoutingVec_it i;
   os << " " << (int)WhatType();
   os << " " << m_RouteTable.size();
   for (i = m_RouteTable.begin(); i != m_RouteTable.end(); i++)
-    os << " " << *i;
+    {
+      if (*i == NODE_NONE)
+        os << " " << -1; // The NODE_NONE representation is hard to read
+      else
+        os << " " << *i;
+    }
 }
 
 size_t   NHLookup::EstimateSize(
@@ -483,4 +507,3 @@ size_t   NHLookup::EstimateSize(
   return sizeof(u_long) * r.size();
 }
 
-#endif /* NIXVECTOR */
