@@ -27,7 +27,7 @@ Node instproc create-diffusionApp-agent {} {
 	puts "diffAppAgent_ exists: $diffAppAgent_"
 	return $diffAppAgent_
     }
-    puts "creating new DiffAppAgent_"
+    #puts "creating new DiffAppAgent_"
     $self set diffAppAgent_ [new Agent/DiffusionApp]
     set da $diffAppAgent_
     set port [get-da-port $da $self]

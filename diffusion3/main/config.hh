@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: config.hh,v 1.3 2001/12/11 23:21:44 haldar Exp $
+// $Id: config.hh,v 1.4 2002/01/08 19:06:33 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -49,7 +49,7 @@
 #define DEBUG_IMPORTANT         2
 #define DEBUG_ALWAYS            1
 
-#define DEBUG_DEFAULT           1
+#define DEBUG_DEFAULT           0
 
 #ifdef BBN_LOGGER
 #define LOGGER_BUFFER_SIZE 512

@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.5 2001/12/14 21:43:55 haldar Exp $
+// $Id: tools.cc,v 1.6 2002/01/08 19:06:33 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -27,7 +27,10 @@
 #include "random.h"
 #endif // NS_DIFFUSION
 
+// XXXX setting debug level to 0 for now; (Default value is now changed from 1 to 0; will add tcl wrapper for changing debug level.
 int global_debug_level = DEBUG_DEFAULT;
+
+
 int default_debug_level = DEBUG_DEFAULT;
 
 char *application_id = NULL;
