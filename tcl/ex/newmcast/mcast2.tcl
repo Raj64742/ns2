@@ -28,7 +28,8 @@
 ## 3    4     5
 ##
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -40,12 +41,13 @@ set n5 [$ns node]
 set f [open out-mc2.tr w]
 $ns trace-all $f
 
-$ns duplex-link-of-interfaces $n0 $n1 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n0 $n2 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n1 $n3 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n1 $n4 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n2 $n4 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n2 $n5 1.5Mb 10ms DropTail
+Simulator set NumberInterfaces_ 1
+$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
+$ns duplex-link $n0 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n4 1.5Mb 10ms DropTail
+$ns duplex-link $n2 $n4 1.5Mb 10ms DropTail
+$ns duplex-link $n2 $n5 1.5Mb 10ms DropTail
 
 ### Start multicast configuration
 DM set PruneTimeout 0.3
