@@ -389,6 +389,8 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 					t_seqno_ = xmit_seqno + 1;
 				npacket++;
 				pipe_++;
+				if (QOption_)
+					process_qoption_after_send () ;
 			}
 		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*
