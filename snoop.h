@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.7 1998/02/19 18:28:31 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.8 1998/06/03 03:23:55 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -86,7 +86,6 @@ class LLSnoop : public LL {
   public:
 	LLSnoop() : LL() { bind("integrate_", &integrate_);}
 	void recv(Packet *, Handler *);
-	void sendto(Packet *);
 	void snoop_rtt(double);
 	inline double timeout() { 
 		return max(srtt_+4*rttvar_, snoopTick_);
@@ -179,7 +178,6 @@ class Snoop : public NsObject {
 	double   snoopTick_;	/* minimum rxmission timer granularity */
 	double   g_;		/* gain in EWMA for srtt_ and rttvar_ */
 	int      integrate_;	/* integrate loss rec across active conns */
-	int      off_ll_;	/* ll header offset */
 	int      off_snoop_;	/* snoop header offset */
 	int      off_tcp_;	/* tcp header offset */
 	int      lru_;		/* an lru cache? */

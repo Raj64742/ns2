@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.14 1998/05/06 02:32:19 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.15 1998/06/03 03:23:55 gnguyen Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -126,7 +126,7 @@ Snoop::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "llsnoop") == 0) {
 			parent_ = (LLSnoop *) TclObject::lookup(argv[2]);
 			if (parent_)
-				recvtarget_ = parent_->rtg();
+				recvtarget_ = parent_->recvtarget();
 			return (TCL_OK);
 		}
 		
@@ -205,7 +205,7 @@ Snoop::handle(Event *e)
 	int prop = SNOOP_PROPAGATE; // by default;  propagate ack or packet
 	Scheduler& s = Scheduler::instance();
 
-	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
+	hdr_ll *llh = hdr_ll::get(p);
 	if (((hdr_cmn*) p->access(off_cmn_))->error()) {
 		parent_->drop(p);        // drop packet if it's been corrupted
 		return;
@@ -609,12 +609,6 @@ Snoop::snoop_rtt(double sndTime)
 	}
 }
 
-void
-LLSnoop::sendto(Packet *p)
-{
-	((hdr_ll*)p->access(off_ll_))->seqno() = ++seqno_;
-	sendtarget_->recv(p, 0);
-}
 
 /* 
  * Calculate smoothed rtt estimate and linear deviation.

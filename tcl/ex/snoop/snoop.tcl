@@ -175,8 +175,8 @@ proc create-trace {trfile} {
 	# need LAN id?
 	global trfd ltrfd
 	if [file exists $trfile] {
-		exec touch $trfile.
-		eval exec rm $trfile [glob $trfile.*]
+#		exec touch $trfile.
+#		eval exec rm $trfile [glob $trfile.*]
 	}
 	set trfd [open $trfile w]
 }

@@ -36,18 +36,23 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.17 1998/05/06 02:32:19 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.18 1998/06/03 03:23:54 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
 #include "mac.h"
 #include "ll.h"
 
+int hdr_ll::offset_;
+
 static class LLHeaderClass : public PacketHeaderClass {
 public:
-	LLHeaderClass()
-		: PacketHeaderClass("PacketHeader/LL", sizeof(hdr_ll)) {}
-} class_llhdr;
+	LLHeaderClass()	: PacketHeaderClass("PacketHeader/LL",
+					    sizeof(hdr_ll)) {
+		offset(&hdr_ll::offset_);
+	}
+} class_hdr_ll;
+
 
 static class LLClass : public TclClass {
 public:
@@ -61,10 +66,7 @@ public:
 LL::LL() : seqno_(0), macDA_(0), ifq_(0), sendtarget_(0), recvtarget_(0)
 {
 	bind("macDA_", &macDA_);
-	bind("off_ll_", &off_ll_);
-	bind("off_mac_", &off_mac_);
 }
-
 
 int LL::command(int argc, const char*const* argv)
 {
@@ -106,9 +108,19 @@ void LL::recv(Packet* p, Handler* h)
 {
 	if (h == 0)		// from MAC classifier
 		recvtarget_ ? recvfrom(p) : drop(p);
-	else {			// from higher layer
-		((hdr_mac*)p->access(off_mac_))->macDA() = macDA_;
-		sendtarget_ ? sendto(p, h) : LinkDelay::recv(p, h);
+	else
+		sendto(p, h);
+}
+
+
+void LL::sendto(Packet* p, Handler* h)
+{	
+	hdr_ll::get(p)->seqno_ = ++seqno_;
+	hdr_mac::get(p)->macDA_ = macDA_;
+	sendtarget_->recv(p);
+	if (h) {
+		Scheduler& s = Scheduler::instance();
+		s.schedule(h, &intr_, 0.000001); // XXX -- resume higher layer
 	}
 }
 
@@ -120,15 +132,4 @@ void LL::recvfrom(Packet* p)
 		drop(p);
 	else
 		s.schedule(recvtarget_, p, delay_);
-}
-
-
-void LL::sendto(Packet* p, Handler* h)
-{	
-	Scheduler& s = Scheduler::instance();
-	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
-
-	llh->seqno() = ++seqno_;
-	s.schedule(h, &intr_, 0.000001); // XXX -- resume higher layer
-	sendtarget_->recv(p, h);
 }
