@@ -32,7 +32,8 @@ detailedDM instproc initialize { } {
 	$self instvar Node prune
 	set prune [new Agent/Mcast/Prune/detailedDM $self]
 	[$Node getArbiter] addproto $self
-	$Node attach $prune
+	set nullagent [[Simulator instance] set nullAgent_]
+	$Node attach $prune $nullagent
 }
 
 detailedDM instproc start {} {
@@ -101,7 +102,6 @@ detailedDM instproc handle-cache-miss { argslist } {
 
 detailedDM instproc drop { replicator src grp } {
         $self instvar Node ns iif_
-
 	set id [$Node id]
         #
         # No downstream listeners 
@@ -701,7 +701,7 @@ Agent/Mcast/Prune/detailedDM instproc handle { msg from src grp } {
 	set L [split $msg /]
 	set type [lindex $L 0]
 	set L [lreplace $L 0 0]
-	$proto recv-$type $src $grp $from $L
+        $proto recv-$type $src $grp $from $L
 }
 
 
