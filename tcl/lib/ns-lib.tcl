@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.176 1999/10/05 20:01:48 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.177 1999/10/11 18:36:40 yaxu Exp $
 
 #
 
@@ -242,7 +242,37 @@ Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
+Simulator instproc reset {} {
+	$self instvar addressType_ routingAgent_ llType_ macType_ propType_
+	$self instvar ifqType_ ifqlen_ phyType_ antType_ channelType_ 
+	$self instvar topoInstance_ wiredRouting_ mobileIP_ energyModel_
+	$self instvar initialEnergy_ txPower_ rxPower_ agentTrace_ routerTrace_
+	$self instvar macTrace_ movementTrace_ toraDebug_ 
 
+	set addressType_ "flat"
+	set routingAgent_  ""	
+	set llType_ ""
+	set macType_ ""
+	set propType_ ""
+	set ifqType_ ""
+	set ifqlen_ ""
+	set phyType_ ""
+	set antType_ ""
+	set channelType_ ""
+	set topoInstance_ ""
+	set wiredRouting_ ""
+	set mobileIP_ ""
+	set energyModel_ ""
+	set initialEnergy_ ""
+	set txPower_ ""
+	set rxPower_ ""
+	set agentTrace_ ""
+	set routerTrace_ ""
+	set macTrace_ ""
+	set movementTrace_ ""
+	set toraDebug_ ""
+
+}
 
 Simulator instproc get-nodetype {} {
 
