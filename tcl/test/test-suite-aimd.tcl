@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.4 2000/07/18 02:41:47 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.5 2000/08/08 02:42:31 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -158,6 +158,20 @@ Test/tcpA instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/tcpA instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+
+Class Test/tcpA_precise -superclass TestSuite
+Test/tcpA_precise instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcpA_precise{increase_0.41,decrease_0.75}
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Agent/TCP set precisionReduce_ true
+    Test/tcpA_precise instproc run {} [Test/tcp info instbody run ]
     $self next
 }
 
@@ -339,6 +353,19 @@ Test/tcpA_tahoe instproc init {} {
     Test/tcpA_tahoe instproc run {} [Test/tcp info instbody run ]
     $self next
 }
+Class Test/tcpA_precise_tahoe -superclass TestSuite
+Test/tcpA_precise_tahoe instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcpA_precise_tahoe{increase_0.41,decrease_0.75}
+    set sender_ TCP
+    set receiver_ TCPSink
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Agent/TCP set precisionReduce_ true
+    Test/tcpA_precise_tahoe instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
 
 Class Test/tcp_reno -superclass TestSuite
 Test/tcp_reno instproc init {} {
@@ -362,6 +389,19 @@ Test/tcpA_reno instproc init {} {
     Test/tcpA_reno instproc run {} [Test/tcp info instbody run ]
     $self next
 }
+Class Test/tcpA_precise_reno -superclass TestSuite
+Test/tcpA_precise_reno instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcpA_precise_reno{increase_0.41,decrease_0.75}
+    set sender_ TCP/Reno
+    set receiver_ TCPSink
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Agent/TCP set precisionReduce_ true
+    Test/tcpA_precise_reno instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
 
 Class Test/tcp_newreno -superclass TestSuite
 Test/tcp_newreno instproc init {} {
@@ -383,6 +423,19 @@ Test/tcpA_newreno instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/tcpA_newreno instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+Class Test/tcpA_precise_newreno -superclass TestSuite
+Test/tcpA_precise_newreno instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	tcpA_precise_newreno{increase_0.41,decrease_0.75}
+    set sender_ TCP/Newreno
+    set receiver_ TCPSink
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Agent/TCP set precisionReduce_ true
+    Test/tcpA_precise_newreno instproc run {} [Test/tcp info instbody run ]
     $self next
 }
 
