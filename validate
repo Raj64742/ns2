@@ -1,6 +1,7 @@
 #!/bin/sh
 ##
-## As a temporary measure, one of the ways to run automatic validation
+## For members of the VINT project, as a temporary measure, 
+## one of the ways to run automatic validation
 ## is the following:
 ## ./validate > out ; diff out validate.out
 ##
