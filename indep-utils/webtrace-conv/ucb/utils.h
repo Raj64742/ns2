@@ -23,7 +23,7 @@
  * utils.h --
  *
  * Various utility functions - sockets, linked list, hash tables.
- * $Id: utils.h,v 1.2 2000/04/19 00:30:22 haoboy Exp $
+ * $Id: utils.h,v 1.3 2002/05/23 21:26:03 buchheim Exp $
  * 
  */
 
@@ -107,7 +107,7 @@ int              ts_strtok_finish(ts_strtok_state *state);
 
 /************* A really dumb implementation of strnstr and strcasestr ***********/
 char *dumb_strnstr(char *str, char *substr, int n);
-const char *strcasestr(const char *string, const char *substr);
+const char *dumb_strcasestr(const char *string, const char *substr);
 
 /*
  ***************** Socket convenience utilities ****************

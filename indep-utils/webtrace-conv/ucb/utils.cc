@@ -32,7 +32,7 @@
  *   o thread-safe strtok
  *   o thread-unsafe AVL trees (with dorky deletion)
  *
- * $Id: utils.cc,v 1.3 2000/04/19 00:30:21 haoboy Exp $
+ * $Id: utils.cc,v 1.4 2002/05/23 21:26:03 buchheim Exp $
  * 
  */
 
@@ -61,7 +61,7 @@
 
 
 const char *
-strcasestr(const char *string, const char *substr)
+dumb_strcasestr(const char *string, const char *substr)
 {
   int str_len, substr_len, cmplen, i;
   const char *ptr;
