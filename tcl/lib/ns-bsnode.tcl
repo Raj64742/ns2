@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-bsnode.tcl,v 1.6 2000/08/29 19:28:02 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-bsnode.tcl,v 1.7 2000/08/30 23:27:50 haoboy Exp $
 #
 
 #THE CODE INCLUDED IN THIS FILE IS USED FOR BACKWARD COMPATIBILITY ONLY
@@ -122,7 +122,7 @@ Node/MobileNode/BaseStationNode instproc add-target {agent port } {
 	$agent set sport_ $port
 	set level [AddrParams set hlevel_]
 
-	if { $port == 255 } {	
+	if { $port == [Node set rtagent_port_] } {	
 		if { [Simulator set RouterTrace_] == "ON" } {
 			#
 			# Send Target

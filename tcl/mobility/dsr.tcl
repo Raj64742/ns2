@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.10 1999/09/09 03:39:37 salehi Exp $
+# $Id: dsr.tcl,v 1.11 2000/08/30 23:27:51 haoboy Exp $
 
 # ======================================================================
 # Default Script Options
@@ -40,9 +40,6 @@
 
 set opt(rt_port) 255
 set opt(cc)      "off"            ;# have god check the caches for bad links?
-
-Agent/DSRAgent set sport_ 255
-Agent/DSRAgent set dport_ 255
 
 # ======================================================================
 # god cache monitoring

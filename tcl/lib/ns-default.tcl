@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-26 18:04:05 haoboy>
+# Time-stamp: <2000-08-30 14:36:09 haoboy>
 #
 # Copyright (c) 1996-1997 Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.217 2000/08/29 19:28:02 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.218 2000/08/30 23:27:50 haoboy Exp $
 
 
 #
@@ -43,15 +43,6 @@
 # class into the instance when the object is created
 # (this happens in the Tcl/tcl-object.tcl helper library)
 #
-
-#########################################################
-# Intitialization for directed diffusion : Chalermek
-
-Agent/Diff_Sink set packetSize_ 512
-Agent/Diff_Sink set interval_   0.5
-Agent/Diff_Sink set random_     1
-Agent/Diff_Sink set maxpkts_    10000
-Agent/Diff_Sink set data_type_  0
 
 ########################################################
 
@@ -69,6 +60,424 @@ Trace set debug_ false
 
 CMUTrace set debug_ false
 
+Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
+
+#
+# Queues and associated
+#
+Integrator set lastx_ 0.0
+Integrator set lasty_ 0.0
+Integrator set sum_ 0.0
+
+# 10->50 to be like ns-1
+Queue set limit_ 50
+Queue set blocked_ false
+Queue set unblock_on_resume_ true
+
+Queue set interleave_ false
+Queue set acksfirst_ false
+Queue set ackfromfront_ false
+Queue set debug_ false
+
+Queue/SFQ set maxqueue_ 40
+Queue/SFQ set buckets_ 16
+
+Queue/FQ set secsPerByte_ 0
+# change DropTail to RED for RED on individual queues
+FQLink set queueManagement_ DropTail
+
+Queue/DropTail set drop_front_ false
+
+Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
+
+Queue/RED set bytes_ false
+Queue/RED set queue_in_bytes_ false
+Queue/RED set thresh_ 5
+Queue/RED set maxthresh_ 15
+Queue/RED set mean_pktsize_ 500
+Queue/RED set q_weight_ 0.002
+Queue/RED set wait_ true
+Queue/RED set linterm_ 10
+Queue/RED set setbit_ false
+Queue/RED set gentle_ false
+Queue/RED set drop_tail_ true
+Queue/RED set drop_front_ false
+Queue/RED set drop_rand_ false
+Queue/RED set doubleq_ false
+Queue/RED set ns1_compat_ false
+Queue/RED set dqthresh_ 50
+Queue/RED set ave_ 0.0
+Queue/RED set prob1_ 0.0
+Queue/RED set curq_ 0
+
+Queue/RED/RIO set bytes_ false
+Queue/RED/RIO set queue_in_bytes_ false
+Queue/RED/RIO set thresh_ 5
+Queue/RED/RIO set maxthresh_ 15
+Queue/RED/RIO set in_thresh_ 15
+Queue/RED/RIO set in_maxthresh_ 30
+Queue/RED/RIO set out_thresh_ 5
+Queue/RED/RIO set out_maxthresh_ 15
+Queue/RED/RIO set mean_pktsize_ 500
+Queue/RED/RIO set q_weight_ 0.002
+Queue/RED/RIO set wait_ true
+Queue/RED/RIO set linterm_ 10
+Queue/RED/RIO set in_linterm_ 50
+Queue/RED/RIO set out_linterm_ 5
+Queue/RED/RIO set setbit_ false
+Queue/RED/RIO set gentle_ false
+Queue/RED/RIO set in_gentle_ false
+Queue/RED/RIO set out_gentle_ false
+Queue/RED/RIO set drop_tail_ true
+Queue/RED/RIO set drop_front_ false
+Queue/RED/RIO set drop_rand_ false
+Queue/RED/RIO set doubleq_ false
+Queue/RED/RIO set ns1_compat_ false
+Queue/RED/RIO set dqthresh_ 50
+Queue/RED/RIO set ave_ 0.0
+Queue/RED/RIO set in_ave_ 0.0
+Queue/RED/RIO set out_ave_ 0.0
+Queue/RED/RIO set prob1_ 0.0
+Queue/RED/RIO set in_prob1_ 0.0
+Queue/RED/RIO set out_prob1_ 0.0
+Queue/RED/RIO set curq_ 0
+Queue/RED/RIO set priority_method_ 0
+
+Queue/DRR set buckets_ 10
+Queue/DRR set blimit_ 25000
+Queue/DRR set quantum_ 250
+Queue/DRR set mask_ 0
+
+Queue/CBQ set algorithm_ 0 ;# used by compat only, not bound
+Queue/CBQ set maxpkt_ 1024
+CBQClass set priority_ 0
+CBQClass set level_ 1
+CBQClass set extradelay_ 0.0
+CBQClass set def_qtype_ DropTail
+CBQClass set okborrow_ true
+CBQClass set automaxidle_gain_ 0.9375
+CBQClass set debug_ false
+
+SnoopQueue/In set debug_ false
+SnoopQueue/Out set debug_ false
+SnoopQueue/Drop set debug_ false
+SnoopQueue/EDrop set debug_ false
+SnoopQueue/Tagger set debug_ false
+
+PacketQueue/Semantic set acksfirst_ false
+PacketQueue/Semantic set filteracks_ false
+PacketQueue/Semantic set replace_head_ false
+PacketQueue/Semantic set priority_drop_ false
+PacketQueue/Semantic set random_drop_ false
+PacketQueue/Semantic set reconsAcks_ false
+PacketQueue/Semantic set random_ecn_ false
+
+QueueMonitor set size_ 0
+QueueMonitor set pkts_ 0
+QueueMonitor set parrivals_ 0
+QueueMonitor set barrivals_ 0
+QueueMonitor set pdepartures_ 0
+QueueMonitor set bdepartures_ 0
+QueueMonitor set pdrops_ 0
+QueueMonitor set bdrops_ 0
+QueueMonitor/ED set epdrops_ 0
+QueueMonitor/ED set ebdrops_ 0
+QueueMonitor/ED/Flowmon set enable_in_ true
+QueueMonitor/ED/Flowmon set enable_out_ true
+QueueMonitor/ED/Flowmon set enable_drop_ true
+QueueMonitor/ED/Flowmon set enable_edrop_ true
+QueueMonitor/ED/Flow set src_ -1
+QueueMonitor/ED/Flow set dst_ -1
+QueueMonitor/ED/Flow set flowid_ -1
+QueueMonitor/ED/Flow/TB set target_rate_ 128000 
+QueueMonitor/ED/Flow/TB set bucket_depth_ 10000
+QueueMonitor/ED/Flow/TB set tbucket_ 10000
+QueueMonitor/ED/Flow/TSW set target_rate_ 0
+QueueMonitor/ED/Flow/TSW set win_len_ 10
+QueueMonitor/ED/Flow/TSW set wait_ true
+
+DelayLink set bandwidth_ 1.5Mb
+DelayLink set delay_ 100ms
+DelayLink set debug_ false
+
+DynamicLink set status_ 1
+DynamicLink set debug_ false
+
+Filter set debug_ false
+Filter/Field set offset_ 0
+Filter/Field set match_  -1
+
+# these are assigned when created
+Classifier set offset_ 0
+Classifier set shift_ 0
+Classifier set mask_ 0xffffffff
+Classifier set debug_ false
+
+Classifier/Hash set default_ -1; # none
+Classifier/Replicator set ignore_ 0
+
+# MPLS Classifier
+Classifier/Addr/MPLS set ttl_   32
+Classifier/Addr/MPLS set trace_mpls_ 0
+Classifier/Addr/MPLS set label_ -1
+Classifier/Addr/MPLS set enable_reroute_    0
+Classifier/Addr/MPLS set reroute_option_ 0
+Classifier/Addr/MPLS set control_driven_ 0
+Classifier/Addr/MPLS set data_driven_ 0
+
+#
+# Error models
+#
+
+ErrorModule set debug_ false
+
+ErrorModel set enable_ 1
+ErrorModel set markecn_ false
+ErrorModel set rate_ 0
+ErrorModel set bandwidth_ 2Mb
+ErrorModel set debug_ false
+
+ErrorModel/Trace set good_ 123456789
+ErrorModel/Trace set loss_ 0
+ErrorModel/Periodic set period_ 1.0
+ErrorModel/Periodic set offset_ 0.0
+ErrorModel/Periodic set burstlen_ 0.0
+ErrorModel/MultiState set curperiod_ 0.0
+ErrorModel/MultiState set sttype_ pkt
+ErrorModel/MultiState set texpired_ 0
+
+SelectErrorModel set enable_ 1
+SelectErrorModel set markecn_ false
+SelectErrorModel set rate_ 0
+SelectErrorModel set bandwidth_ 2Mb
+SelectErrorModel set pkt_type_ 2
+SelectErrorModel set drop_cycle_ 10
+SelectErrorModel set drop_offset_ 1
+SelectErrorModel set debug_ false
+SRMErrorModel set enable_ 1
+SRMErrorModel set markecn_ false
+SRMErrorModel set rate_ 0
+SRMErrorModel set bandwidth_ 2Mb
+SRMErrorModel set pkt_type_ 2
+SRMErrorModel set drop_cycle_ 10
+SRMErrorModel set drop_offset_ 1
+SRMErrorModel set debug_ false
+#MrouteErrorModel set enable_ 1
+#MrouteErrorModel set rate_ 0
+#MrouteErrorModel set bandwidth_ 2Mb
+#MrouteErrorModel set pkt_type_ 2
+#MrouteErrorModel set drop_cycle_ 10
+#MrouteErrorModel set drop_offset_ 1
+#MrouteErrorModel set good_ 99999999
+#MrouteErrorModel set loss_ 0
+
+rtModel set startTime_ 0.5
+rtModel set finishTime_ "-"
+rtModel/Exponential set upInterval_   10.0
+rtModel/Exponential set downInterval_  1.0
+rtModel/Deterministic set upInterval_   2.0
+rtModel/Deterministic set downInterval_ 1.0
+
+#
+# Application
+#
+
+Application/Traffic/CBR_PP set rate_ 448Kb ;# corresponds to interval of 3.75ms
+Application/Traffic/CBR_PP set packetSize_ 210
+Application/Traffic/CBR_PP set random_ 0
+Application/Traffic/CBR_PP set maxpkts_ 268435456; # 0x10000000
+Application/Traffic/CBR_PP set PBM_ 2
+
+Application/Traffic/Exponential set burst_time_ .5
+Application/Traffic/Exponential set idle_time_ .5
+Application/Traffic/Exponential set rate_ 64Kb
+Application/Traffic/Exponential set packetSize_ 210
+
+Application/Traffic/Pareto set burst_time_ 500ms
+Application/Traffic/Pareto set idle_time_ 500ms
+Application/Traffic/Pareto set rate_ 64Kb
+Application/Traffic/Pareto set packetSize_ 210
+Application/Traffic/Pareto set shape_ 1.5
+
+Application/Traffic/CBR set rate_ 448Kb	;# corresponds to interval of 3.75ms
+Application/Traffic/CBR set packetSize_ 210
+Application/Traffic/CBR set random_ 0
+Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
+
+Application/Telnet set interval_ 1.0
+
+RandomVariable/Uniform set min_ 0.0
+RandomVariable/Uniform set max_ 1.0
+RandomVariable/Exponential set avg_ 1.0
+RandomVariable/Pareto set avg_ 1.0
+RandomVariable/Pareto set shape_ 1.5
+RandomVariable/ParetoII set avg_ 10.0
+RandomVariable/ParetoII set shape_ 1.2
+RandomVariable/Constant set val_ 1.0
+RandomVariable/HyperExponential set avg_ 1.0
+RandomVariable/HyperExponential set cov_ 4.0
+RandomVariable/Empirical set minCDF_ 0
+RandomVariable/Empirical set maxCDF_ 1
+RandomVariable/Empirical set interpolation_ 0
+RandomVariable/Empirical set maxEntry_ 32
+RandomVariable/Normal set avg_ 0.0
+RandomVariable/Normal set std_ 1.0
+RandomVariable/LogNormal set avg_ 1.0
+RandomVariable/LogNormal set std_ 1.0
+
+ADC/MS set debug_ false
+ADC/HB set debug_ false
+ADC/Param set debug_ false
+ADC/ACTP set debug_ false
+ADC/ACTO set debug_ false
+
+Est/Null set debug_ false
+Est/TimeWindow set debug_ false
+Est/ExpAvg set debug_ false
+Est/PointSample set debug_ false
+
+MeasureMod set debug_ false
+SALink set debug_ false
+
+#
+# Node
+#
+
+Node set multiPath_ 0
+Node set rtagent_port_ 255
+
+Node/MobileNode set X_				0
+Node/MobileNode set Y_				0
+Node/MobileNode set Z_				0
+Node/MobileNode set speed_				0
+Node/MobileNode set position_update_interval_	0
+Node/MobileNode set bandwidth_			0	;# not used
+Node/MobileNode set delay_				0	;# not used
+Node/MobileNode set REGAGENT_PORT 0
+Node/MobileNode set DECAP_PORT 1
+
+# Default settings for Hierarchical topology
+#
+# Bits are allocated for different fields like port, nodeid, mcast, 
+# hierarchical-levels. 
+# All Mask and Shift values are stored in Class AddrParams.
+AddrParams set ALL_BITS_SET 0xffffffff
+AddrParams set PortShift_ 0
+AddrParams set PortMask_ [AddrParams set ALL_BITS_SET]
+AddrParams set domain_num_ 1
+AddrParams set def_clusters 4
+AddrParams set def_nodes 5
+
+####  Default and Maximum Address space - leaving the MSB as signed bit
+AllocAddrBits set DEFADDRSIZE_ 32
+AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
+
+Simulator set node_factory_ Node
+Simulator set nsv1flag 0
+Simulator set mobile_ip_ 0			 ;# flag for mobileIP
+# is hierarchical routing on?  (to turn it on, call set-hieraddress)
+Simulator set EnableHierRt_ 0                    
+Simulator set routingAgent_ ""
+Simulator set addressType_   ""
+Simulator set MovementTrace_ OFF
+# This flag should be initially empty. It will be set to either ON or OFF
+# by Simulator::create-wireless-node{}. 
+Simulator set IMEPFlag_ ""
+Simulator set WirelessNewTrace_ 0
+
+# Enable packet reference count
+SessionSim set rc_ 0
+
+# Defaults for multicast addresses
+Simulator set McastBaseAddr_ 0x80000000
+Simulator set McastAddr_ 0x80000000
+
+# Default values used for wireless simulations
+Simulator set AgentTrace_ ON
+Simulator set RouterTrace_ OFF
+Simulator set MacTrace_   OFF
+
+SessionHelper set rc_ 0                      ;# just to eliminate warnings
+SessionHelper set debug_ false
+
+NetworkInterface set debug_ false
+
+# SRM Agent defaults are in ../tcl/mcast/srm.tcl and ../mcast/srm-adaptive.tcl
+
+# IntServ Object specific defaults are in ../tcl/lib/ns-intserv.tcl
+
+# defaults for tbf
+TBF set rate_ 64k
+TBF set bucket_ 1024
+TBF set qlen_ 0
+
+#
+# mobile Ip
+#
+MIPEncapsulator set addr_ 0
+MIPEncapsulator set port_ 0
+MIPEncapsulator set shift_ 0
+MIPEncapsulator set mask_ [AddrParams set ALL_BITS_SET]
+MIPEncapsulator set ttl_ 32
+MIPEncapsulator set debug_ false
+ 
+# HTTP-related defaults are in ../tcl/webcache/http-agent.tcl
+
+#
+# Wireless simulation support 
+#
+
+Mac set debug_ false
+ARPTable set debug_ false
+God set debug_ false
+
+Mac/Tdma set slot_packet_len_	1500
+Mac/Tdma set max_node_num_	64
+
+LL set mindelay_                50us
+LL set delay_                   25us
+LL set bandwidth_               0       ;# not used
+LL set debug_ false
+
+# Unity gain, omni-directional antennas
+# Set up the antennas to be centered in the node and 1.5 meters above it
+Antenna/OmniAntenna set X_ 0
+Antenna/OmniAntenna set Y_ 0
+Antenna/OmniAntenna set Z_ 1.5 
+Antenna/OmniAntenna set Gt_ 1.0
+Antenna/OmniAntenna set Gr_ 1.0
+
+# Initialize the SharedMedia interface with parameters to make
+# it work like the 914MHz Lucent WaveLAN DSSS radio interface
+Phy/WirelessPhy set CPThresh_ 10.0
+Phy/WirelessPhy set CSThresh_ 1.559e-11
+Phy/WirelessPhy set RXThresh_ 3.652e-10
+Phy/WirelessPhy set bandwidth_ 2e6
+Phy/WirelessPhy set Pt_ 0.28183815
+Phy/WirelessPhy set freq_ 914e+6
+Phy/WirelessPhy set L_ 1.0  
+Phy/WirelessPhy set debug_ false
+
+Phy/WiredPhy set bandwidth_ 10e6
+Phy/WiredPhy set debug_ false
+Phy/Repeater set debug_ false
+LanRouter set debug_ false
+
+Phy/Sat set debug_ false
+Mac/Sat set debug_ false
+LL/Sat set debug_ false
+
+# Shadowing propagation model
+Propagation/Shadowing set pathlossExp_ 2.0
+Propagation/Shadowing set std_db_ 4.0
+Propagation/Shadowing set dist0_ 1.0
+Propagation/Shadowing set seed_ 0
+
+# variables of the link state module is moved to ns-rtProtoLS.tcl
+
+#
+# Agents
+#
 Agent set fid_ 0
 Agent set prio_ 0
 Agent set agent_addr_ -1
@@ -79,8 +488,6 @@ Agent set flags_ 0
 Agent set ttl_ 32 ; # arbitrary choice here
 Agent set debug_ false
 Agent set class_ 0
-
-Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
 
 ##Agent set seqno_ 0 now is gone
 ##Agent set class_ 0 now is gone
@@ -347,265 +754,8 @@ Agent/rtProto/DV set advertInterval	  2
 Agent/Encapsulator set status_ 1
 Agent/Encapsulator set overhead_ 20
 
-Integrator set lastx_ 0.0
-Integrator set lasty_ 0.0
-Integrator set sum_ 0.0
-
-# 10->50 to be like ns-1
-Queue set limit_ 50
-Queue set blocked_ false
-Queue set unblock_on_resume_ true
-
-Queue set interleave_ false
-Queue set acksfirst_ false
-Queue set ackfromfront_ false
-Queue set debug_ false
-
-Queue/SFQ set maxqueue_ 40
-Queue/SFQ set buckets_ 16
-
-Queue/FQ set secsPerByte_ 0
-# change DropTail to RED for RED on individual queues
-FQLink set queueManagement_ DropTail
-
-Queue/DropTail set drop_front_ false
-
-Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
-
-Queue/RED set bytes_ false
-Queue/RED set queue_in_bytes_ false
-Queue/RED set thresh_ 5
-Queue/RED set maxthresh_ 15
-Queue/RED set mean_pktsize_ 500
-Queue/RED set q_weight_ 0.002
-Queue/RED set wait_ true
-Queue/RED set linterm_ 10
-Queue/RED set setbit_ false
-Queue/RED set gentle_ false
-Queue/RED set drop_tail_ true
-Queue/RED set drop_front_ false
-Queue/RED set drop_rand_ false
-Queue/RED set doubleq_ false
-Queue/RED set ns1_compat_ false
-Queue/RED set dqthresh_ 50
-Queue/RED set ave_ 0.0
-Queue/RED set prob1_ 0.0
-Queue/RED set curq_ 0
-
-Queue/RED/RIO set bytes_ false
-Queue/RED/RIO set queue_in_bytes_ false
-Queue/RED/RIO set thresh_ 5
-Queue/RED/RIO set maxthresh_ 15
-Queue/RED/RIO set in_thresh_ 15
-Queue/RED/RIO set in_maxthresh_ 30
-Queue/RED/RIO set out_thresh_ 5
-Queue/RED/RIO set out_maxthresh_ 15
-Queue/RED/RIO set mean_pktsize_ 500
-Queue/RED/RIO set q_weight_ 0.002
-Queue/RED/RIO set wait_ true
-Queue/RED/RIO set linterm_ 10
-Queue/RED/RIO set in_linterm_ 50
-Queue/RED/RIO set out_linterm_ 5
-Queue/RED/RIO set setbit_ false
-Queue/RED/RIO set gentle_ false
-Queue/RED/RIO set in_gentle_ false
-Queue/RED/RIO set out_gentle_ false
-Queue/RED/RIO set drop_tail_ true
-Queue/RED/RIO set drop_front_ false
-Queue/RED/RIO set drop_rand_ false
-Queue/RED/RIO set doubleq_ false
-Queue/RED/RIO set ns1_compat_ false
-Queue/RED/RIO set dqthresh_ 50
-Queue/RED/RIO set ave_ 0.0
-Queue/RED/RIO set in_ave_ 0.0
-Queue/RED/RIO set out_ave_ 0.0
-Queue/RED/RIO set prob1_ 0.0
-Queue/RED/RIO set in_prob1_ 0.0
-Queue/RED/RIO set out_prob1_ 0.0
-Queue/RED/RIO set curq_ 0
-Queue/RED/RIO set priority_method_ 0
-
-Queue/DRR set buckets_ 10
-Queue/DRR set blimit_ 25000
-Queue/DRR set quantum_ 250
-Queue/DRR set mask_ 0
-
-Queue/CBQ set algorithm_ 0 ;# used by compat only, not bound
-Queue/CBQ set maxpkt_ 1024
-CBQClass set priority_ 0
-CBQClass set level_ 1
-CBQClass set extradelay_ 0.0
-CBQClass set def_qtype_ DropTail
-CBQClass set okborrow_ true
-CBQClass set automaxidle_gain_ 0.9375
-CBQClass set debug_ false
-
-SnoopQueue/In set debug_ false
-SnoopQueue/Out set debug_ false
-SnoopQueue/Drop set debug_ false
-SnoopQueue/EDrop set debug_ false
-SnoopQueue/Tagger set debug_ false
-
-PacketQueue/Semantic set acksfirst_ false
-PacketQueue/Semantic set filteracks_ false
-PacketQueue/Semantic set replace_head_ false
-PacketQueue/Semantic set priority_drop_ false
-PacketQueue/Semantic set random_drop_ false
-PacketQueue/Semantic set reconsAcks_ false
-PacketQueue/Semantic set random_ecn_ false
-
-DelayLink set bandwidth_ 1.5Mb
-DelayLink set delay_ 100ms
-DelayLink set debug_ false
-
-DynamicLink set status_ 1
-DynamicLink set debug_ false
-
-Filter set debug_ false
-Filter/Field set offset_ 0
-Filter/Field set match_  -1
-
-# these are assigned when created
-Classifier set offset_ 0
-Classifier set shift_ 0
-Classifier set mask_ 0xffffffff
-Classifier set debug_ false
-
-Classifier/Hash set default_ -1; # none
-Classifier/Replicator set ignore_ 0
-
-ErrorModule set debug_ false
-
-ErrorModel set enable_ 1
-ErrorModel set markecn_ false
-ErrorModel set rate_ 0
-ErrorModel set bandwidth_ 2Mb
-ErrorModel set debug_ false
-
-ErrorModel/Trace set good_ 123456789
-ErrorModel/Trace set loss_ 0
-ErrorModel/Periodic set period_ 1.0
-ErrorModel/Periodic set offset_ 0.0
-ErrorModel/Periodic set burstlen_ 0.0
-ErrorModel/MultiState set curperiod_ 0.0
-ErrorModel/MultiState set sttype_ pkt
-ErrorModel/MultiState set texpired_ 0
-
-SelectErrorModel set enable_ 1
-SelectErrorModel set markecn_ false
-SelectErrorModel set rate_ 0
-SelectErrorModel set bandwidth_ 2Mb
-SelectErrorModel set pkt_type_ 2
-SelectErrorModel set drop_cycle_ 10
-SelectErrorModel set drop_offset_ 1
-SelectErrorModel set debug_ false
-SRMErrorModel set enable_ 1
-SRMErrorModel set markecn_ false
-SRMErrorModel set rate_ 0
-SRMErrorModel set bandwidth_ 2Mb
-SRMErrorModel set pkt_type_ 2
-SRMErrorModel set drop_cycle_ 10
-SRMErrorModel set drop_offset_ 1
-SRMErrorModel set debug_ false
-#MrouteErrorModel set enable_ 1
-#MrouteErrorModel set rate_ 0
-#MrouteErrorModel set bandwidth_ 2Mb
-#MrouteErrorModel set pkt_type_ 2
-#MrouteErrorModel set drop_cycle_ 10
-#MrouteErrorModel set drop_offset_ 1
-#MrouteErrorModel set good_ 99999999
-#MrouteErrorModel set loss_ 0
-
-QueueMonitor set size_ 0
-QueueMonitor set pkts_ 0
-QueueMonitor set parrivals_ 0
-QueueMonitor set barrivals_ 0
-QueueMonitor set pdepartures_ 0
-QueueMonitor set bdepartures_ 0
-QueueMonitor set pdrops_ 0
-QueueMonitor set bdrops_ 0
-QueueMonitor/ED set epdrops_ 0
-QueueMonitor/ED set ebdrops_ 0
-QueueMonitor/ED/Flowmon set enable_in_ true
-QueueMonitor/ED/Flowmon set enable_out_ true
-QueueMonitor/ED/Flowmon set enable_drop_ true
-QueueMonitor/ED/Flowmon set enable_edrop_ true
-QueueMonitor/ED/Flow set src_ -1
-QueueMonitor/ED/Flow set dst_ -1
-QueueMonitor/ED/Flow set flowid_ -1
-QueueMonitor/ED/Flow/TB set target_rate_ 128000 
-QueueMonitor/ED/Flow/TB set bucket_depth_ 10000
-QueueMonitor/ED/Flow/TB set tbucket_ 10000
-QueueMonitor/ED/Flow/TSW set target_rate_ 0
-QueueMonitor/ED/Flow/TSW set win_len_ 10
-QueueMonitor/ED/Flow/TSW set wait_ true
-
-Application/Traffic/Exponential set burst_time_ .5
-Application/Traffic/Exponential set idle_time_ .5
-Application/Traffic/Exponential set rate_ 64Kb
-Application/Traffic/Exponential set packetSize_ 210
-
-Application/Traffic/Pareto set burst_time_ 500ms
-Application/Traffic/Pareto set idle_time_ 500ms
-Application/Traffic/Pareto set rate_ 64Kb
-Application/Traffic/Pareto set packetSize_ 210
-Application/Traffic/Pareto set shape_ 1.5
-
-Application/Traffic/CBR set rate_ 448Kb	;# corresponds to interval of 3.75ms
-Application/Traffic/CBR set packetSize_ 210
-Application/Traffic/CBR set random_ 0
-Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
-
-Application/Telnet set interval_ 1.0
-
-RandomVariable/Uniform set min_ 0.0
-RandomVariable/Uniform set max_ 1.0
-RandomVariable/Exponential set avg_ 1.0
-RandomVariable/Pareto set avg_ 1.0
-RandomVariable/Pareto set shape_ 1.5
-RandomVariable/ParetoII set avg_ 10.0
-RandomVariable/ParetoII set shape_ 1.2
-RandomVariable/Constant set val_ 1.0
-RandomVariable/HyperExponential set avg_ 1.0
-RandomVariable/HyperExponential set cov_ 4.0
-RandomVariable/Empirical set minCDF_ 0
-RandomVariable/Empirical set maxCDF_ 1
-RandomVariable/Empirical set interpolation_ 0
-RandomVariable/Empirical set maxEntry_ 32
-RandomVariable/Normal set avg_ 0.0
-RandomVariable/Normal set std_ 1.0
-RandomVariable/LogNormal set avg_ 1.0
-RandomVariable/LogNormal set std_ 1.0
-
-SessionHelper set rc_ 0                      ;# just to eliminate warnings
-SessionHelper set debug_ false
-
-NetworkInterface set debug_ false
-
-ADC/MS set debug_ false
-ADC/HB set debug_ false
-ADC/Param set debug_ false
-ADC/ACTP set debug_ false
-ADC/ACTO set debug_ false
-
-Est/Null set debug_ false
-Est/TimeWindow set debug_ false
-Est/ExpAvg set debug_ false
-Est/PointSample set debug_ false
-
-MeasureMod set debug_ false
-SALink set debug_ false
-
-#
-# The following are defautls for objects that are not necessarily TclObjects
-#
-Node set multiPath_ 0
-
-####  Bits are allocated for different fields like port, nodeid, mcast, hierarchical-levels
-####  All Mask and Shift values are stored in Class AddrParams.
-AddrParams set ALL_BITS_SET 0xffffffff
-AddrParams set PortShift_ 0
-AddrParams set PortMask_ [AddrParams set ALL_BITS_SET]
+Agent/DSRAgent set sport_ 255
+Agent/DSRAgent set dport_ 255
 
 Agent/MIPBS set adSize_ 48
 Agent/MIPBS set shift_ 0
@@ -619,118 +769,12 @@ Agent/MIPMH set shift_ 0
 Agent/MIPMH set mask_ [AddrParams set ALL_BITS_SET]
 Agent/MIPMH set reg_lifetime_ 2
  
-####  Default and Maximum Address space - leaving the MSB as signed bit
-AllocAddrBits set DEFADDRSIZE_ 32
-AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
-
-Simulator set node_factory_ Node
-Simulator set nsv1flag 0
-
-#Simulator set mn_ 0				 ;# counter for mobile nodes
-Simulator set mobile_ip_ 0			 ;# flag for mobileIP
-
-Simulator set EnableHierRt_ 0                    ;# is hierarchical routing on?  (to turn it on, call set-hieraddress)
-SessionSim set rc_ 0                             ;# to enable packet reference count
-
-### Default settings for Hierarchical topology
-AddrParams set domain_num_ 1
-AddrParams set def_clusters 4
-AddrParams set def_nodes 5
-
-# Defaults for unicast addresses
-# While changing these, ensure that the values are consistent in config.h
-# Simulator set NodeMask_ 0xffffff
-# Simulator set NodeShift_ 8
-# Simulator set NodeMask_(1) 0xffffff
-# Simulator set NodeShift_(1) 8
-# Simulator set PortMask_ 0xff
-
-# Defaults for multicast addresses
-#Simulator set McastShift_ 15
-Simulator set McastBaseAddr_ 0x80000000
-Simulator set McastAddr_ 0x80000000
-
-rtModel set startTime_ 0.5
-rtModel set finishTime_ "-"
-rtModel/Exponential set upInterval_   10.0
-rtModel/Exponential set downInterval_  1.0
-rtModel/Deterministic set upInterval_   2.0
-rtModel/Deterministic set downInterval_ 1.0
-
-# SRM Agent defaults are in ../tcl/mcast/srm.tcl and ../mcast/srm-adaptive.tcl
-
-#IntServ Object specific defaults are in ../tcl/lib/ns-intserv.tcl
-
-# defaults for tbf
-TBF set rate_ 64k
-TBF set bucket_ 1024
-TBF set qlen_ 0
-
-#mobile Ip
- 
-MIPEncapsulator set addr_ 0
-MIPEncapsulator set port_ 0
-MIPEncapsulator set shift_ 0
-MIPEncapsulator set mask_ [AddrParams set ALL_BITS_SET]
-MIPEncapsulator set ttl_ 32
-MIPEncapsulator set debug_ false
- 
-# HTTP-related defaults are in ../tcl/webcache/http-agent.tcl
-
-Node/MobileNode set REGAGENT_PORT 0
-Node/MobileNode set DECAP_PORT 1
-
-# Default values used for wireless simulations
-Simulator set AgentTrace_ ON
-Simulator set RouterTrace_ OFF
-Simulator set MacTrace_   OFF
-
-Mac set debug_ false
-ARPTable set debug_ false
-God set debug_ false
-
-Mac/Tdma set slot_packet_len_	1500
-Mac/Tdma set max_node_num_	64
-
-LL set mindelay_                50us
-LL set delay_                   25us
-LL set bandwidth_               0       ;# not used
-LL set debug_ false
-
-# unity gain, omni-directional antennas
-# set up the antennas to be centered in the node and 1.5 meters above it
-Antenna/OmniAntenna set X_ 0
-Antenna/OmniAntenna set Y_ 0
-Antenna/OmniAntenna set Z_ 1.5 
-Antenna/OmniAntenna set Gt_ 1.0
-Antenna/OmniAntenna set Gr_ 1.0
-
-# Initialize the SharedMedia interface with parameters to make
-# it work like the 914MHz Lucent WaveLAN DSSS radio interface
-Phy/WirelessPhy set CPThresh_ 10.0
-Phy/WirelessPhy set CSThresh_ 1.559e-11
-Phy/WirelessPhy set RXThresh_ 3.652e-10
-#Phy/WirelessPhy set Rb_ 2*1e6
-Phy/WirelessPhy set bandwidth_ 2e6
-Phy/WirelessPhy set Pt_ 0.28183815
-Phy/WirelessPhy set freq_ 914e+6
-Phy/WirelessPhy set L_ 1.0  
-Phy/WirelessPhy set debug_ false
-
-Phy/WiredPhy set bandwidth_ 10e6
-Phy/WiredPhy set debug_ false
-Phy/Repeater set debug_ false
-LanRouter set debug_ false
-
-Phy/Sat set debug_ false
-Mac/Sat set debug_ false
-LL/Sat set debug_ false
-
-#Shadowing propagation model
-Propagation/Shadowing set pathlossExp_ 2.0
-Propagation/Shadowing set std_db_ 4.0
-Propagation/Shadowing set dist0_ 1.0
-Propagation/Shadowing set seed_ 0
+# Intitialization for directed diffusion : Chalermek
+Agent/Diff_Sink set packetSize_ 512
+Agent/Diff_Sink set interval_   0.5
+Agent/Diff_Sink set random_     1
+Agent/Diff_Sink set maxpkts_    10000
+Agent/Diff_Sink set data_type_  0
 
 # PLM contributed by Arnaud Legout at EURECOM
 Agent/LossMonitor/PLM set flag_PP_ 0
@@ -738,23 +782,8 @@ Agent/LossMonitor/PLM set packet_time_PP_ 0
 Agent/LossMonitor/PLM set fid_PP_ 0
 Agent/LossMonitor/PLM set seqno_ 0
 
-Application/Traffic/CBR_PP set rate_ 448Kb ;# corresponds to interval of 3.75ms
-Application/Traffic/CBR_PP set packetSize_ 210
-Application/Traffic/CBR_PP set random_ 0
-Application/Traffic/CBR_PP set maxpkts_ 268435456; # 0x10000000
-Application/Traffic/CBR_PP set PBM_ 2
-
-# variables of the link state module is moved to ns-rtProtoLS.tcl
-
-# MPLS
-Classifier/Addr/MPLS set ttl_   32
-Classifier/Addr/MPLS set trace_mpls_ 0
-Classifier/Addr/MPLS set label_ -1
-Classifier/Addr/MPLS set enable_reroute_    0
-Classifier/Addr/MPLS set reroute_option_ 0
-Classifier/Addr/MPLS set control_driven_ 0
-Classifier/Addr/MPLS set data_driven_ 0
-
+# MPLS Label Distribution Protocol agent
 Agent/LDP set packetSize_  64
 Agent/LDP set new_msgid_ 0
 Agent/LDP set trace_ldp_ 0
+

@@ -16,6 +16,7 @@
 # These notices must be retained in any copies of any part of this
 # software. 
 #
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-intserv.tcl,v 1.11 2000/08/30 23:27:51 haoboy Exp $
 
 #defaults
 Queue/SimpleIntServ set qlimit1_ 50

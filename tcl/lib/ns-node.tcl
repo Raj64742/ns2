@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-30 11:48:32 haoboy>
+# Time-stamp: <2000-08-30 13:59:20 haoboy>
 #
 # Copyright (c) 1996-1998 Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.75 2000/08/30 18:54:04 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.76 2000/08/30 23:27:51 haoboy Exp $
 #
 
 Node set nn_ 0
@@ -47,16 +47,18 @@ Node instproc init args {
 	eval $self next $args
 
         $self instvar id_ agents_ dmux_ neighbor_ rtsize_ address_ \
-			nodetype_ multiPath_
+			nodetype_ multiPath_ ns_
 
+	set ns_ [Simulator instance]
 	set id_ [Node getid]
+	$self nodeid $id_	;# Propagate id_ into c++ space
 	if {[llength $args] != 0} {
 		set address_ [lindex $args 0]
 	} else {
 		set address_ $id_
 	}
 
-        set nodetype_ [[Simulator instance] get-nodetype]
+        set nodetype_ [$ns_ get-nodetype]
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
@@ -64,6 +66,9 @@ Node instproc init args {
 	$self mk-default-classifier$nodetype_
 	$self cmd addr $address_; # new by tomh
 	set multiPath_ [$class set multiPath_]
+	if [$ns_ multicast?] {
+		$self enable-mcast $ns_
+	}
 }
 
 Node instproc node-type {} {
@@ -94,7 +99,10 @@ Node instproc mk-default-classifierHier {} {
 
 Node instproc mk-default-classifier {} {
 	$self instvar classifier_ 
-	# set up classifer as a router
+	# Set up classifer as a router. Hierarchical routing, or multi-path
+	# routing, cannot be specified as a plugin routing module, because 
+	# its installation is too closely tied to the node initialization 
+	# process.  - Aug 30, 2000
 	if [Simulator set EnableHierRt_] {
 		$self instvar classifiers_
 		set levels [AddrParams set hlevel_]
@@ -113,9 +121,9 @@ Node instproc mk-default-classifier {} {
 	}
 }
 
-Node instproc enable-mcast sim {
+# We no longer take $sim as argument, since ns_ is set in Node::init{}
+Node instproc enable-mcast args {
 	$self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
-	$self set ns_ $sim
 	
 	$self set switch_ [new Classifier/Addr]
 	#
@@ -151,11 +159,9 @@ Node instproc decr-rtgtable-size {} {
 }
 
 Node instproc entry {} {
+	$self instvar ns_
 	if [info exists router_supp_] {
 		return $router_supp_
-	}
-	if ![info exist ns_] {
-		set ns_ [Simulator instance]
 	}
 	if [$ns_ multicast?] {
 		$self instvar switch_
@@ -364,6 +370,13 @@ Node instproc split-addrstr addrstr {
 	return $L
 }
 
+# method to remove an entry from the hier classifiers
+Node/MobileNode instproc delete-hroute args {
+	$self instvar classifiers_
+	set l [llength $args]
+	$classifiers_($l) clear [lindex $args [expr $l-1]] 
+}
+
 Node instproc add-hroute { dst target } {
 	$self instvar classifiers_ rtsize_
 	set al [$self split-addrstr $dst]
@@ -527,7 +540,7 @@ VirtualClassifierNode instproc add-route { dst target } {
 }
 
 Classifier/Virtual instproc find dst {
-	$self instvar node_ ns_ routingTable_
+	$self instvar node_ ns_ 
 
 	if ![info exist ns_] {
 		set ns_ [Simulator instance]

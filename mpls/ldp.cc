@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.1 2000/08/29 19:28:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.2 2000/08/30 23:27:50 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -504,12 +504,12 @@ void LDPAgent::MSGTlookup(int entrynb, int &MsgID, int &FEC, int &LspID,
 void LDPAgent::MSGTdump()
 {
 	for (int i = 0; i < MSGT_.NB; i++) {
-		cout << "  # MsgID =" << MSGT_.Entry[i].MsgID << "  ";
-		cout << "  # FEC   =" << MSGT_.Entry[i].FEC   << "  ";
-		cout << "  # LspID =" << MSGT_.Entry[i].LspID << "  ";
-		cout << "  # Src   =" << MSGT_.Entry[i].Src   << "  ";
-		cout << "  # PMsgID=" << MSGT_.Entry[i].PMsgID<< "  ";
-		cout << "  # LabelOp=" << MSGT_.Entry[i].LabelOp << "\n";
+		cerr << "  # MsgID =" << MSGT_.Entry[i].MsgID << "  ";
+		cerr << "  # FEC   =" << MSGT_.Entry[i].FEC   << "  ";
+		cerr << "  # LspID =" << MSGT_.Entry[i].LspID << "  ";
+		cerr << "  # Src   =" << MSGT_.Entry[i].Src   << "  ";
+		cerr << "  # PMsgID=" << MSGT_.Entry[i].PMsgID<< "  ";
+		cerr << "  # LabelOp=" << MSGT_.Entry[i].LabelOp << "\n";
 	}
 }
 

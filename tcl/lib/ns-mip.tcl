@@ -27,7 +27,7 @@
 #
 # These notices must be retained in any copies of any part of this software.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.6 2000/08/29 19:28:03 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.7 2000/08/30 23:27:51 haoboy Exp $
 
 #     
 # Broadcast Nodes:
@@ -148,7 +148,7 @@ Agent/MIPBS instproc clear-reg mhaddr {
 		$node_ add-route $mhaddr $OldRoute_($mhaddr)
 	}
 	if {[$node_ info class] == "MobileNode/MIPBS" || [$node_ info class] =="Node/MobileNode" } {
-	    eval $node_ clear-hroute [AddrParams get-hieraddr $mhaddr]
+	    eval $node_ delete-hroute [AddrParams get-hieraddr $mhaddr]
 	}
 	if { [info exists RegTimer_($mhaddr)] && $RegTimer_($mhaddr) != "" } {
 		[Simulator instance] cancel $RegTimer_($mhaddr)

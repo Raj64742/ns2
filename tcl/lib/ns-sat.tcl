@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.6 1999/10/19 05:05:32 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.7 2000/08/30 23:27:51 haoboy Exp $
 
 
 # ======================================================================
@@ -99,7 +99,7 @@ Node/SatNode instproc add-target {agent port } {
 
 	$self instvar dmux_ 
 	
-	if { $port == 255 } {			
+	if { $port == [Node set rtagent_port_] } {			
 		# Set the default target at C++ level.  
 		[$self set classifier_] defaulttarget $agent
 		$dmux_ install $port $agent

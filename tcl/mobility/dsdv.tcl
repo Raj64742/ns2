@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) 1996-1998 Regents of the University of California.
 # All rights reserved.
@@ -29,10 +30,10 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
-# Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
-# @(#) $Header: 
 #
-
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/dsdv.tcl,v 1.9 2000/08/30 23:27:51 haoboy Exp $
+#
+# Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 
 # ======================================================================
 # Default Script Options
@@ -45,13 +46,8 @@ Agent/DSDV set use_mac_      0        ;# Performance suffers with this on
 Agent/DSDV set be_random_    1        ;# Flavor the performance numbers :)
 Agent/DSDV set alpha_        0.875    ;# 7/8, as in RIP(?)
 Agent/DSDV set min_update_periods_ 3  ;# Missing perups before linkbreak
-##Agent/DSDV set myaddr_       0        ;# My address
 Agent/DSDV set verbose_      0        ;# 
 Agent/DSDV set trace_wst_    0        ;# 
-
-
-
-#Class Agent/DSDV
 
 set opt(ragent)		Agent/DSDV
 set opt(pos)		NONE			;# Box or NONE
@@ -95,9 +91,7 @@ proc create-dsdv-routing-agent { node id } {
     $node addr $addr
     $node set ragent_ $ragent
     
-    
-    
-    $node attach $ragent 255
+    $node attach $ragent [Node set rtagent_port_]
 
     ##$ragent set target_ [$node set ifq_(0)]	;# ifq between LL and MAC
         
