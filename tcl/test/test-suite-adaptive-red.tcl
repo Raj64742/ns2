@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.13 2001/12/29 20:44:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.14 2002/01/03 04:36:16 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -66,6 +66,8 @@ TestSuite instproc finish file {
 	if { [info exists tchan_] && $quiet == "false" } {
 		$self plotQueue $testName_
 	}
+	## exec csh gnuplotA1.com temp.rands $testName_
+	## exec csh gnuplotQueue.com temp.queue $testName_
 	$ns_ halt
 }
 
@@ -345,6 +347,18 @@ Test/red1Adapt instproc run {} {
     $ns_ run   
 }
 
+Class Test/red1AdaptFeng -superclass TestSuite
+Test/red1AdaptFeng instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ net2 
+    set test_ red1AdaptFeng
+    Queue/RED set alpha_ 3.0
+    Queue/RED set beta_ 2.0
+    Queue/RED set feng_adaptive_ 1
+    Test/red1AdaptFeng instproc run {} [Test/red1Adapt info instbody run ]
+    $self next
+}
+
 #####################################################################
 
 Class Test/fastlink -superclass TestSuite
@@ -521,6 +535,7 @@ Test/red2Adapt instproc run {} {
     $self newtraffic 20 20 1000 25 0.1 20
     $ns_ run   
 }
+
 Class Test/red2A-Adapt -superclass TestSuite
 Test/red2A-Adapt instproc init {} {
     $self instvar net_ test_ ns_
@@ -531,6 +546,19 @@ Test/red2A-Adapt instproc init {} {
     Test/red2A-Adapt instproc run {} [Test/red2Adapt info instbody run ]
     $self next
 }
+
+Class Test/red2-AdaptFeng -superclass TestSuite
+Test/red2-AdaptFeng instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ net2 
+    set test_ red2-AdaptFeng
+    Queue/RED set alpha_ 3
+    Queue/RED set beta_ 2
+    Queue/RED set feng_adaptive_ 1
+    Test/red2-AdaptFeng instproc run {} [Test/red2Adapt info instbody run ]
+    $self next
+}
+
 
 #####################################################################
 
