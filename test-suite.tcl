@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.15 1998/05/06 18:15:10 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.16 1998/05/06 18:15:42 kfall Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1069,7 +1069,6 @@ Test/stats instproc init topo {
 Test/stats instproc printpkts { label tcp } {
 	puts "tcp $label total_packets_acked [$tcp set ack_]"
 }
-#XXX Still unfinished in ns-2
 Test/stats instproc printdrops { fid fmon } {
 	set fcl [$fmon classifier]; # flow classifier
 	#
