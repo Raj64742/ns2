@@ -23,24 +23,35 @@
 #include "dsred.h"
 
 #define ANY_HOST -1		// Add to enable point to multipoint policy
-#define MAX_FLOW 8            // MAX num of flows to keep state in hash table.
 #define FLOW_TIME_OUT 5.0      // The flow does not exist already.
-
 #define MAX_POLICIES 20		// Max. size of Policy Table.
 
-enum policerType {dumbPolicer, TSW2CM, TSW3CM, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, FW};
+#define DUMB 0
+#define TSW2CM 1
+#define TSW3CM 2
+#define TB 3
+#define SRTCM 4
+#define TRTCM 5
+#define FW 6
+
+enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, FWPolicer};
+
 enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, fwTagger};
+
+
+class Policy;
 
 //struct policyTableEntry
 struct policyTableEntry {
   nsaddr_t sourceNode, destNode;	// Source-destination pair
+  int policy_index;                     // Index to the policy table.
   policerType policer;
   meterType meter;
   int codePt;		     // In-profile code point
   double cir;		     // Committed information rate (bytes per s) 
-  double cbs;		     // Committed burst size (bytes)			
+  double cbs;		     // Committed burst size (bytes)		       
   double cBucket;	     // Current size of committed bucket (bytes)     
-  double ebs;		     // Excess burst size (bytes)			
+  double ebs;		     // Excess burst size (bytes)		       
   double eBucket;	     // Current size of excess bucket (bytes)	
   double pir;		     // Peak information rate (bytes per s)
   double pbs;		     // Peak burst size (bytes)			
@@ -50,15 +61,14 @@ struct policyTableEntry {
 };
 	
 
-//    This struct specifies the elements of a policer table entry.
+// This struct specifies the elements of a policer table entry.
 struct policerTableEntry {
-	policerType policer;
-	int initialCodePt;
-	int downgrade1;
-	int downgrade2;
+  policerType policer;
+  int initialCodePt;
+  int downgrade1;
+  int downgrade2;
+  int policy_index;
 };
-
-class Policy;
 
 // Class PolicyClassifier: keep the policy and polier tables.
 class PolicyClassifier : public TclObject {
@@ -75,49 +85,30 @@ class PolicyClassifier : public TclObject {
   void printPolicerTable();
 
  protected:
-  Policy *policy;
-
-  // policy table and its pointer
-  //policyTableEntry policyTable[MAX_POLICIES];
-  int policyTableSize;
-  // policer table and its pointer
-  //policerTableEntry policerTable[MAX_CP];  
-  int policerTableSize;	
-
-  //policyTableEntry* getPolicyTableEntry(nsaddr_t source, nsaddr_t dest);
-};
-
-// Below are actual policy classes.
-class Policy : public TclObject {
- public:
-  Policy();
-  virtual void addPolicyEntry(int argc, const char*const* argv);
-  virtual void addPolicerEntry(int argc, const char*const* argv);
-  void updatePolicyRTT(int argc, const char*const* argv);
-  double getCBucket(const char*const* argv);
-  int mark(Packet *pkt);
+  // The table keeps pointers to the real policy
+  // Added to support multiple policy per interface.
+  Policy *policy_pool[MAX_POLICIES];
   
-  // prints the policy tables
-  virtual void printPolicyTable() = 0;		
-  virtual void printPolicerTable() = 0;
-
- protected:
   // policy table and its pointer
   policyTableEntry policyTable[MAX_POLICIES];
   int policyTableSize;
   // policer table and its pointer
-  policerTableEntry policerTable[MAX_CP];  
+  policerTableEntry policerTable[MAX_CP];
   int policerTableSize;	
 
   policyTableEntry* getPolicyTableEntry(nsaddr_t source, nsaddr_t dest);
-  
+  policerTableEntry* getPolicerTableEntry(int policy_index, int oldCodePt);
+};
+
+// Below are actual policy classes.
+// Supper class Policy can't do anything useful.
+class Policy : public TclObject {
+ public:
+  Policy(){};
+
   // Metering and policing methods:
   virtual void applyMeter(policyTableEntry *policy, Packet *pkt) = 0;
-  virtual int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt) = 0;
-
-  // Map a code point to a new code point:
-  int downgradeOne(policerType policer, int oldCodePt);
-  int downgradeTwo(policerType policer, int oldCodePt);
+  virtual int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) = 0;
 };
 
 // DumbPolicy will do nothing, but is a good example to show how to add 
@@ -125,91 +116,57 @@ class Policy : public TclObject {
 class DumbPolicy : public Policy {
  public:
   DumbPolicy() : Policy(){};
-  void addPolicyEntry(int argc, const char*const* argv);
-  void addPolicerEntry(int argc, const char*const* argv);
 
-  void printPolicyTable();		
-  void printPolicerTable();
-
- protected:
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 };
 
 class TSW2CMPolicy : public Policy {
  public:
   TSW2CMPolicy() : Policy(){};
-  void addPolicyEntry(int argc, const char*const* argv);
-  void addPolicerEntry(int argc, const char*const* argv);
 
-  void printPolicyTable();		
-  void printPolicerTable();
-
- protected:
+  // protected:
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 };
 
 class TSW3CMPolicy : public Policy {
  public:
   TSW3CMPolicy() : Policy(){};
-  void addPolicyEntry(int argc, const char*const* argv);
-  void addPolicerEntry(int argc, const char*const* argv);
 
-  void printPolicyTable();		
-  void printPolicerTable();
-
- protected:
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 };
 
 class TBPolicy : public Policy {
  public:
   TBPolicy() : Policy(){};
-  void addPolicyEntry(int argc, const char*const* argv);
-  void addPolicerEntry(int argc, const char*const* argv);
 
-  void printPolicyTable();		
-  void printPolicerTable();
-
- protected:
+  // protected:
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 };
 
 class SRTCMPolicy : public Policy {
  public:
   SRTCMPolicy() : Policy(){};
-  void addPolicyEntry(int argc, const char*const* argv);
-  void addPolicerEntry(int argc, const char*const* argv);
 
-  void printPolicyTable();		
-  void printPolicerTable();
-
- protected:
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 };
 
 class TRTCMPolicy : public Policy {
  public:
   TRTCMPolicy() : Policy(){};
-  void addPolicyEntry(int argc, const char*const* argv);
-  void addPolicerEntry(int argc, const char*const* argv);
 
-  void printPolicyTable();		
-  void printPolicerTable();
-
- protected:
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 };
 
 struct flow_entry {
@@ -228,20 +185,16 @@ class FWPolicy : public Policy {
  public:
   FWPolicy();
   ~FWPolicy();
-  void addPolicyEntry(int argc, const char*const* argv);
-  void addPolicerEntry(int argc, const char*const* argv);
 
-  void printPolicyTable();		
-  void printPolicerTable();
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
+
   void printFlowTable();
 
  protected:
   // The table to keep the flow states.
   struct flow_list flow_table;
-
-  // Metering and policing methods:
-  void applyMeter(policyTableEntry *policy, Packet *pkt);
-  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
 };
 
 #endif
