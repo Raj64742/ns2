@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.16 2002/04/30 19:26:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.17 2002/04/30 19:39:06 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -444,6 +444,21 @@ Test/fastlinkAllAdapt instproc init {} {
     Queue/RED set thresh_ 0
     Queue/RED set maxthresh_ 0
     Test/fastlinkAllAdapt instproc run {} [Test/fastlink info instbody run ]
+    $self next
+}
+
+Class Test/fastlinkAllAdaptECN -superclass TestSuite
+Test/fastlinkAllAdaptECN instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ netfast 
+    set test_ fastlinkAllAdaptECN
+    Queue/RED set adaptive_ 1
+    Queue/RED set q_weight_ 0
+    Queue/RED set thresh_ 0
+    Queue/RED set maxthresh_ 0
+    Queue/RED set setbit_ true
+    Agent/TCP set ecn_ 1
+    Test/fastlinkAllAdaptECN instproc run {} [Test/fastlink info instbody run ]
     $self next
 }
 
