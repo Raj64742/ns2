@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu, haoboy@isi.edu
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.3 1997/11/04 22:26:44 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.4 1997/11/04 22:45:44 haoboy Exp $
 #
 
 #
@@ -137,7 +137,7 @@ SimpleLink instproc dump-namconfig {} {
 		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(ORIENTATION)"
 }
 
-SimpleLink instproc dump-nam-queueconfig {} {
+Link instproc dump-nam-queueconfig {} {
 	$self instvar attr_ fromNode_ toNode_
 
 	set ns [Simulator instance]
