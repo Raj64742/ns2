@@ -59,7 +59,7 @@ public:
 } class_WirelessPhy;
 
 
-WirelessPhy::WirelessPhy(void) : Phy()
+WirelessPhy::WirelessPhy() : Phy()
 {
 	node_ = 0;
 	propagation_ = 0;
