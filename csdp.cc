@@ -46,14 +46,16 @@ public:
 } class_csdp;
 
 
-Csdp::Csdp() : qsize_(16), qlen_(0)
+Csdp::Csdp() : maxq_(4), numq_(0)
 {
-	q_ = new Packet*[qsize_];
+	bind("off_ip_", &off_ip_);
+	bind("off_ll_", &off_ll_);
+	q_ = new IdPacketQueue*[maxq_];
 }
 
 
 void
-Csdp::recv(Packet* p, Handler*)
+Csdp::recv(Packet* p, Handler* h)
 {
 	enque(p);
 	if (!blocked_) {
@@ -70,40 +72,57 @@ Csdp::recv(Packet* p, Handler*)
 void
 Csdp::enque(Packet* p)
 {
-	if (++qlen_ >= qsize_) {
-		qsize_ *= 2;
-		realloc(q_, qsize_);
-	}
-	for (int i=0;  i < qsize_;  i++) {
-		if (q_[i] == 0) {
-			q_[i] = p;
+	hdr_ip *iph = (hdr_ip*) p->access(off_ip_);
+	int id = iph->src();
+	int i;
+
+	for (i = 0;  i < numq_;  i++) {
+		if (q_[i]->id() == id)
 			break;
-		}
 	}
+	if (i == numq_) {
+		if (++numq_ == maxq_) {
+			maxq_ *= 2;
+			q_ = (IdPacketQueue**)
+				realloc(q_, maxq_ * sizeof(IdPacketQueue*));
+		}
+		q_[i] = new IdPacketQueue;
+		q_[i]->id() = id;
+	}
+
+	q_[i]->enque(p);
+	updateState(q_[i], p);
+}
+
+
+void
+Csdp::updateState(IdPacketQueue* q, Packet* p)
+{
+	double oldscore = (q->total() > 0) ? 1.0 - q->loss() / q->total() : 0;
+	if (p->error())
+		q->loss()++;
+	q->total()++;
+	totalscore_ += 1.0 - q->loss() / q->total() - oldscore;
 }
 
 
 Packet*
 Csdp::deque()
 {
-	if (qlen_ < 1)
-		return 0;
-	int bestindex = 0;
-	double bestscore = score(q_[0]);
-	for (int i=1;  i < qlen_;  i++) {
-		if (score(q_[i]) > bestscore)
-			bestindex = i;
-	}
-	Packet* p = q_[bestindex];
-	q_[bestindex] = NULL;
-	qlen_--;
-	((BlockingLL*)p->source()) ->resume();
-	return p;
+	IdPacketQueue* q = selectQueue();
+	return q ? q->deque() : 0;
 }
 
 
-double
-Csdp::score(Packet* p)
+IdPacketQueue*
+Csdp::selectQueue()
 {
-	return Random::uniform(2.0 - p->error()); // XXX
+	double r = Random::uniform(totalscore_);
+	for (int i = 0;  i < numq_;  i++) {
+		IdPacketQueue* q = q_[i];
+		r -= 1.0 - q->loss() / q->total();
+		if (r <= 0)
+			return q;
+	}
+	return 0;
 }

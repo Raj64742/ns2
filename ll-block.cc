@@ -54,9 +54,18 @@ BlockingLL::recv(Packet* p, Handler* h)
 {
 	callback_ = h;
 	p->source() = this;
+	Scheduler& s = Scheduler::instance();
+	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
+	llh->seqno() = ++seqno_;
 	p->target() = sendtarget_; // set target to peer link layer
-	ifq_->recv(p);		// send it down to the interface queue
-	// rely ifq to callback to let the pkt->source() resume
+	s.schedule(ifq_, p, delay_);
+}
+
+
+void
+BlockingLL::resume()
+{
+	callback_->handle(&intr_);
 }
 
 

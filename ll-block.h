@@ -52,9 +52,8 @@ protected:
 class BlockingLL : public BaseLL {
 public:
 	BlockingLL();
-	virtual void recv(Packet* p, Handler* h);
-	virtual void resume() { callback_->handle(&intr_); }
-	inline Handler* callback() { return callback_; }
+	void recv(Packet* p, Handler* h);
+	void resume();
 protected:
 	Handler* callback_;
 	LLHandlerRs hRs_;

@@ -80,12 +80,22 @@ Channel::send(Packet* p, Handler* target, double txtime, double txstart)
 	double busy = max(txstop_, cwstop_);
 	txstart = (txstart > 0) ? txstart : now;
 	txstop_ = txstart + txtime;
-	if (p->error() || txstart < busy) {
+	if (txstart < busy) {
+		if (pkt_ && pkt_->time_ > now) {
+			s.cancel(pkt_);
+			drop(pkt_);
+			pkt_ = 0;
+		}
 		drop(p);
-		return 1;
 	}
-	s.schedule(target, p, txstop_ + delay_ - txstart);
-	return 0;
+	else if (p->error())
+		drop(p);
+	else {
+		pkt_ = p;
+		s.schedule(target, p, txstop_ + delay_ - txstart);
+		return 0;
+	}
+	return 1;
 }
 
 

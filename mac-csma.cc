@@ -86,12 +86,11 @@ CsmaMac::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
-	double txstop = channel_->txstop();
 
 	// if channel is not ready, then wait
 	// else content for the channel
-	if (txstop + ifs_ > now)
-		s.schedule(&mh_, p, txstop + ifs_ - now);
+	if (channel_->txstop() + ifs_ > now)
+		s.schedule(&mh_, p, channel_->txstop() + ifs_ - now);
 	else {
 		txstart_ = now;
 		channel_->content(p, &mhEoc_);
@@ -103,13 +102,15 @@ void
 CsmaMac::backoff(Packet* p, double delay)
 {
 	Scheduler& s = Scheduler::instance();
+	double now = s.clock();
 
 	// if retransmission time within limit, do exponential backoff
 	// else drop the packet and resume
 	if (++rtx_ < rtxmax_) {
-		cw_ = min(2 * cw_, cwmax_);
+		delay += max(channel_->txstop() + ifs_ - now, 0);
 		int slot = Random::integer(cw_) + 1;
 		s.schedule(&mh_, p, delay + slotTime_ * slot);
+		cw_ = min(2 * cw_, cwmax_);
 	}
 	else {
 		callback_->handle(&intr_);
@@ -151,10 +152,9 @@ CsmaCaMac::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
-	double txstop = channel_->txstop();
 
-	if (txstop + ifs_ > now)
-		backoff(p, txstop + ifs_ - now);
+	if (cw_ == cwmin_ || channel_->txstop() + ifs_ > now)
+		backoff(p);
 	else {
 		txstart_ = now;
 		channel_->content(p, &mhEoc_);

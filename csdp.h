@@ -38,19 +38,35 @@
 #include "queue.h"
 
 
+class IdPacketQueue : public PacketQueue {
+public:
+	IdPacketQueue() : id_(0), loss_(0), total_(0) {}
+	inline int& id() { return id_; }
+	inline int& loss() { return loss_; }
+	inline int& total() { return total_; }
+protected:
+	int id_;		// unique identifier for this queue
+	int loss_;
+	int total_;
+};
+
+
 class Csdp : public Queue {
 public:
 	Csdp();
-	virtual void recv(Packet*, Handler*);
-	virtual double score(Packet*);
+	void recv(Packet*, Handler*);
+	virtual void updateState(IdPacketQueue*, Packet*);
+	virtual IdPacketQueue* selectQueue();
 
 protected:
 	void enque(Packet*);
 	Packet* deque();
-	Packet** q_;
-	int qsize_;
-	int qlen_;
-	Event intr_;
+	double totalscore_;
+	IdPacketQueue** q_;
+	int numq_;
+	int maxq_;
+	int off_ip_;
+	int off_ll_;
 };
 
 #endif

@@ -35,9 +35,6 @@
 
 LL/Base set bandwidth_ 1.5Mb
 LL/Base set delay_ 1ms
-LL/Blocking set bandwidth_ 10Mb
-LL/Blocking set delay_ 1ms
-LL/Blocking set off_ll_ 0
 
 Channel set delay_ 16us
 Mac/Base set bandwidth_ 1.5Mb
@@ -69,14 +66,19 @@ Trace/Recv instproc init {} {
 }
 
 TraceIp instproc init {type} {
-    $self next $type
-    $self instvar type_
-    set type_ $type
+	$self next $type
+	$self instvar type_
+	set type_ $type
 }
 
 Class TraceIp/Drop -superclass TraceIp
 TraceIp/Drop instproc init {} {
 	$self next "d"
+}
+
+Class TraceIp/Corrupt -superclass TraceIp
+TraceIp/Corrupt instproc init {} {
+	$self next "c"
 }
 
 
@@ -143,8 +145,9 @@ Class Link/SharedDuplex
 Link/SharedDuplex instproc init {nodelist bw delay lltype ifqtype mactype} {
 	$self instvar numnodes_ channel_ mac_ ifq_ drop_
 
-	set numnodes_ [llength $nodelist]
 	set channel_ [new Channel]
+	$channel_ drop-target [new TraceIp/Corrupt]
+	set numnodes_ [llength $nodelist]
 	for {set i 0} {$i < $numnodes_} {incr i} {
 		set src [lindex $nodelist $i] 
 		# drop_ share by both IFQ and MAC

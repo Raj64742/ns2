@@ -51,7 +51,9 @@ set n3 [$ns node]
 #$ns duplex-link $n0 $n1 2Mb 32us DropTail
 set shl [$ns shared-duplex-link "$n0 $n1 $n2 $n3" $bw $delay DropTail $ll $ifq $mac]
 
-set qfile [open "q.dat" w]
+[[$shl set channel_] drop-target] attach $trfd
+
+#set qfile [open "q.dat" w]
 #$shl init-monitor $ns $qfile 1 $n0
 #$shl init-monitor $ns $qfile 1 $n1
 #$ns at 0 "$shl queue-sample-timeout"
@@ -75,7 +77,7 @@ $ftp2 set agent_ $tcpSource2
 set tcpSink2 [new Agent/TCPSink]
 $ns attach-agent $n0 $tcpSink2
 $ns connect $tcpSource2 $tcpSink2
-$ns at 0.0 "$ftp2 start"
+$ns at 0.001 "$ftp2 start"
 
 set tcp [new Agent/TCP]
 $tcp set class_ 2

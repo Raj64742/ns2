@@ -56,6 +56,7 @@ protected:
 	double txstop_;		// end of the last transmission
 	double cwstop_;		// end of the contention window
 	int numtx_;		// number of transmissions during contention
+	Packet* pkt_;		// packet current transmitted on the channel
 };
 
 #endif
