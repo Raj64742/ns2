@@ -10,6 +10,15 @@ of introducing live traffic into the simulator and
 injecting traffic from the simulator into the
 live network.
 
+{\bf Note that while the interfaces described below
+are not expected to change drastically,
+this facility is still under development and
+should be considered experimental and subject to change.
+Note further that the facility described here has been
+developed under FreeBSD 2.2.5, and use on other systems
+has not been tested by the author.
+}
+
 \section{Introduction}
 
 The emulation facility can be subdivided into
@@ -47,7 +56,42 @@ It is described below.
 
 \section{Real-Time Scheduler}
 
-In progress.
+The real-time scheduler implements a soft real-time scheduler
+which ties event execution within the simulator to real time.
+Provided sufficient CPU horsepower is available to keep up
+with arriving packets, the simulator virtual time should closely
+track real-time.
+If the simulator becomes too slow to keep up with elapsing real
+time, a warning is continually produced if the skew exceeds a
+pre-specified constant ``slop factor'' (currently 10ms).
+
+The main dispatch loop is found in the routine {\tt RealTimeScheduler::run()},
+in the file {\tt scheduler.cc}.
+It follows essentially the following algorithm:
+\begin{itemize}
+	\item While simulator is not halted
+	\begin{itemize}
+		\item get current real time (``now'')
+		\item dispatch all pending simulator events prior to now
+		\item fetch next (future) event if there is one
+		\item delay until the next simulator event is ready or a Tcl event occurs
+		\item if a tcl event occured, re-insert next event in simulator event queue and continue
+		\item otherwise, dispatch simulator event, continue
+		\item if there was no future even, check for Tcl events and continue
+	\end{itemize}
+\end{itemize}
+
+The real-time scheduler should always be used with the emulation facility.
+Failure to do so may easily result in the simulator running faster
+than real-time.
+In such cases, traffic passing through the simulated network will
+not be delayed by the proper amount of time.
+Enabling the real-time scheduler requires the
+following specification at the beginning of a simulation script:
+\begin{verbatim}
+    set ns [new Simulator]
+    $ns use-scheduler RealTime
+\end{verbatim}
 
 \section{Tap Agents}
 
@@ -182,6 +226,120 @@ total number of packets that arrived at the filter, respectively
 
 \subsection{IP Network Objects}
 
+These objects provide raw access to the IP protocol, and allow
+the complete specification of IP packets (including header).
+The implementation makes use of a {\em raw socket}.
+In most UNIX systems, access to such sockets requires super-user privileges.
+In addition, the interface to raw sockets is somewhat less standard than
+other types of sockets.
+The class {\tt Network/IP} provides raw IP functionality plus a
+base class from
+which other network objects implementing higher-layer protocols
+are derived.
 
+\paragraph{Configuration}
+The configuration of a raw IP network object is comparatively
+simple.
+The object is not associated with any particular physical network
+interface; the system's IP routing capability will be used to
+emit the specified datagram out whichever interface is required
+to reach the destination address contained in the header.
+Here is an example of configuring an IP object:
+\begin{verbatim}
+    set ipnet [new Network/IP]
+    $ipnet open writeonly
+    ...
+    $ipnet close
+\end{verbatim}
+The IP network object only supports the {\tt open} and {\tt close}
+methods.
+
+\subsetion{IP/UDP Network Objects}
+
+These objects provide access to the system's UDP implementation
+along with support for IP multicast group membership operations.
+{\bf IN PROGRESS}
+
+\section{An Example}
+
+The following code illustrates a small but complete
+simulation script for setting up an emulation test.
+It was run on a multi-homed machine, and the simulator essentially
+provides routing capability by reading frames from one interface,
+passing them through the simulated network, and writing them
+out via the raw IP network object:
+\begin{verbatim}
+
+        set me "10.0.1.1"
+        set ns [new Simulator]
+
+        $ns use-scheduler RealTime
+
+        #
+        # we want the test machine to have ip forwarding disabled, so
+        # check this (this is how to do so under FreeBSD at least)
+        #
+
+        set ipforw [exec sysctl -n net.inet.ip.forwarding]
+        if { $ipforw } {
+                puts "can not run with ip forwarding enabled"
+                exit 1
+        }
+
+        #
+        # allocate a BPF type network object and a raw-IP object
+        #
+        set bpf0 [new Network/Pcap/Live]
+        set bpf1 [new Network/Pcap/Live]
+        $bpf0 set promisc_ true
+        $bpf1 set promisc_ true
+
+        set ipnet [new Network/IP]
+
+        set nd0 [$bpf0 open readonly fxp0]
+        set nd1 [$bpf1 open readonly fxp1]
+        $ipnet open writeonly
+
+        #
+        # try to filter out wierd stuff like netbios pkts, arp requests, dns,
+        # also, don't catch stuff to/from myself or broadcasted
+        #
+        set notme "(not ip host $me)"
+        set notbcast "(not ether broadcast)"
+        set ftp "and port ftp-data"
+        set f0len [$bpf0 filter "(ip dst host bit) and $notme and $notbcast"]
+        set f1len [$bpf1 filter "(ip src host bit) and $notme and $notbcast"]
+
+        puts "filter lengths: $f0len (bpf0), $f1len (bpf1)"
+        puts "dev $nd0 has address [$bpf0 linkaddr]"
+        puts "dev $nd1 has address [$bpf1 linkaddr]"
+
+        set a0 [new Agent/Tap]
+        set a1 [new Agent/Tap]
+        set a2 [new Agent/Tap]
+        puts "install nets into taps..."
+        $a0 network $bpf0
+        $a1 network $bpf1
+        $a2 network $ipnet
+
+        set node0 [$ns node]
+        set node1 [$ns node]
+        set node2 [$ns node]
+
+        puts "node0: $node0 (id:[$node0 id]), node1: $node1 (id:[$node1 id]), node2: $node2 (id: [$node2 id])"
+
+        $ns simplex-link $node0 $node2 10Mb 10ms DropTail
+        $ns simplex-link $node1 $node2 10Mb 10ms DropTail
+
+        $ns attach-agent $node0 $a0
+        $ns attach-agent $node1 $a1
+        $ns attach-agent $node2 $a2
+
+        $ns connect $a0 $a2
+        $ns connect $a1 $a2
+
+        puts "okey"
+        $ns run
+\end{verbatim}
 
 \endinput
