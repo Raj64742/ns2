@@ -33,7 +33,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.24 1998/03/17 04:06:18 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.25 1998/03/17 08:28:26 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -43,9 +43,9 @@
 #include "ranvar.h"
 
 
-enum ErrorUnit { EU_PKT=0, EU_BYTE, EU_TIME };
-#define EU_NAMES "pkt", "byte", "time"
-#define STR2EU(s) (!strcmp(s,"byte") ? EU_BYTE : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
+enum ErrorUnit { EU_TIME=0, EU_BYTE, EU_PKT };
+#define EU_NAMES "time", "byte", "pkt"
+#define STR2EU(s) (!strcmp(s,"time") ? EU_TIME : (!strcmp(s,"byte") ? EU_BYTE : EU_PKT))
 
 #define EM_GOOD 1
 #define EM_BAD  2
@@ -57,44 +57,68 @@ enum ErrorUnit { EU_PKT=0, EU_BYTE, EU_TIME };
  * this includes the uniform and exponentially-distributed models.
  */
 class ErrorModel : public Connector {
-  public:
+public:
 	ErrorModel();
-	virtual void recv(Packet *, Handler *);
+	virtual void recv(Packet*, Handler*);
 	virtual void reset();
-	virtual int corrupt(Packet *);
-	virtual int CorruptPkt(Packet *);
-	virtual int CorruptTime(Packet *);
-	virtual int CorruptByte(Packet *);
+	virtual int corrupt(Packet*);
+	virtual int CorruptPkt(Packet*);
+	virtual int CorruptTime(Packet*);
+	virtual int CorruptByte(Packet*);
 	inline double rate() { return rate_; }
 	inline ErrorUnit unit() { return unit_; }
 
-  protected:
+protected:
 	virtual int command(int argc, const char*const* argv);
-	ErrorUnit unit_;	// error unit in pkts, bytes, or time
-	RandomVariable *ranvar_;// the underlying random variate generator
-	double rate_;		/* mean pkts between errors (for EU_PKT), or
-				 * mean bytes between errors (for EU_BYTE), or 
-				 * mean time between errors (for EU_TIME). */
-	double errorLen_;	// current length of error
+	double PktLength(Packet*);
+
 	int enable_;		// true if this error module is turned on
 	int firstTime_;		// to not corrupt first packet in byte model
+	ErrorUnit unit_;	// error unit in pkts, bytes, or time
+	double rate_;		// uniform error rate in pkt or byte
+	double bandwidth_;	// bandwidth of the link
+	RandomVariable *ranvar_;// the underlying random variate generator
 	Event intr_;		// set callback to queue
 };
 
 
 class TwoStateErrorModel : public ErrorModel {
-  public:
-	TwoStateErrorModel() { unit_ = EU_TIME; };
-	virtual int CorruptTime(Packet *);
+public:
+	TwoStateErrorModel();
+	virtual int corrupt(Packet*);
+protected:
 	int command(int argc, const char*const* argv);
-  protected:
-	RandomVariable *ranvar_[2];
 	int state_;
+	double remainLen_;	// remaining length of the current state
+	RandomVariable *ranvar_[2];
 };
+
 
 class MultiStateErrorModel : public ErrorModel {
 public:
-	virtual int corrupt(Packet *);
+	MultiStateErrorModel();
+	virtual int corrupt(Packet*);
+protected:
+	int command(int argc, const char*const* argv);
+	ErrorModel* em_;	// current error model to use
+};
+
+
+/*
+ * periodic packet drops (drop every nth packet we see)
+ * this can be conveniently combined with a flow-based classifier
+ * to achieve drops in particular flows
+ */
+class PeriodicErrorModel : public ErrorModel {
+  public:
+        PeriodicErrorModel();
+        int corrupt(Packet*);
+  protected:
+	int cnt_;
+        double period_;
+	double offset_;
+	double last_time_;
+	double first_time_;
 };
 
 
@@ -111,15 +135,15 @@ class SelectErrorModel : public ErrorModel {
 };
 
 
-/* Error model for srm experiments */
-class SRMErrorModel : public SelectErrorModel {
-public:
-	SRMErrorModel();
-	virtual int corrupt(Packet*);
+class Classifier;
 
+class ErrorModule : public Connector {
+public:
+	ErrorModule() : classifier_(0) {}
 protected:
-	int command(int argc, const char*const* argv);
-        int off_srm_;
+	int command(int, const char*const*);
+	void recv(Packet*, Handler*);
+	Classifier* classifier_;
 };
 
 #endif

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.95 1998/03/16 23:20:06 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.96 1998/03/17 08:28:27 gnguyen Exp $
 
 
 #
@@ -257,18 +257,18 @@ Agent/LossMonitor set expected_ 0
 
 ErrorModel set enable_ 1
 ErrorModel set rate_ 0
-ErrorModel set errorLen_ 0
+ErrorModel set bandwidth_ 2Mb
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
 SelectErrorModel set enable_ 1
 SelectErrorModel set rate_ 0
-SelectErrorModel set errorLen_ 0
+SelectErrorModel set bandwidth_ 2Mb
 SelectErrorModel set pkt_type_ 2
 SelectErrorModel set drop_cycle_ 10
 SelectErrorModel set drop_offset_ 1
 SRMErrorModel set enable_ 1
 SRMErrorModel set rate_ 0
-SRMErrorModel set errorLen_ 0
+SRMErrorModel set bandwidth_ 2Mb
 SRMErrorModel set pkt_type_ 2
 SRMErrorModel set drop_cycle_ 10
 SRMErrorModel set drop_offset_ 1
