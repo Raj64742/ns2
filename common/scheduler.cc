@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.24 1997/12/17 19:52:55 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.25 1998/01/06 01:52:40 gnguyen Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.24 1997/12/17 19:52:55 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.25 1998/01/06 01:52:40 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -367,7 +367,8 @@ void CalendarScheduler::insert(Event* e)
 	e->next_ = *p;
 	*p = e;
   
-	if (++qsize_ > top_threshold_) resize(2*nbuckets_);
+	if (++qsize_ > top_threshold_)
+		resize(2*nbuckets_);
 }
 
 Event* CalendarScheduler::dequeue()
