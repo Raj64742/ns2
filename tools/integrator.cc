@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/integrator.cc,v 1.5 1997/07/30 23:39:23 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/integrator.cc,v 1.6 1997/08/12 17:31:42 heideman Exp $";
 #endif
 
 #include <stdlib.h>
@@ -128,6 +128,12 @@ int Samples::command(int argc, const char*const* argv)
 			reset();
 			return (TCL_OK);
 		}
-	}
+	} else if ( argc == 3 ) {
+	    if ( strcmp(argv[1],"newpoint") == 0 ) {
+		double x = atof(argv[2]);
+		newPoint(x);
+		return (TCL_OK);
+	    }
+	};
 	return (TclObject::command(argc, argv));
 }
