@@ -44,7 +44,7 @@ Class Test/mip-adv-multi -superclass TestSuite
 
 proc usage {} {
 	global argv0
-	puts stderr "usage: ns $argv0 <tests> \[<topologies>\]"
+	puts stderr "usage: ns $argv0 <tests>"
 	puts stderr "Valid tests are: mip-adv-one mip-adv-zero mip-adv-multi"
 	exit 1
 }
