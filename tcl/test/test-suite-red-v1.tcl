@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1.tcl,v 1.1 1997/05/28 01:42:51 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1.tcl,v 1.2 1998/10/21 23:49:13 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -414,6 +414,7 @@ proc test_red1_bytes {} {
 proc test_ecn {} { 
         global s1 s2 r1 r2 s3 s4 randseed
         create_testnet2
+	Agent/TCP set old_ecn_ 1
         set stoptime 10.0
         set testname test_ecn 
         [ns link $r1 $r2] set setbit true
