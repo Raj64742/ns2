@@ -164,6 +164,11 @@ SessionSim instproc simplex-link { n1 n2 bw delay type } {
     set delay_($sid:$did) [$self delay_parse $delay]
 }
 
+SessionSim instproc duplex-link { n1 n2 bw delay type } {
+    $self simplex-link $n1 $n2 $bw $delay $type
+    $self simplex-link $n2 $n1 $bw $delay $type
+}
+
 SessionSim instproc simplex-link-of-interfaces { n1 n2 bw delay type } {
     $self simplex-link $n1 $n2 $bw $delay $type
 }
