@@ -35,7 +35,7 @@
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
 
-
+#IT IS NOT ENCOURAGED TO SUBCLASSS MOBILNODE CLASS DEFINED IN THIS FILE
 
 #Class ARPTable
 # ======================================================================

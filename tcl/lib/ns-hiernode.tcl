@@ -32,6 +32,7 @@
 #
 #
 
+# THE CODE INCLUDED IN THIS FILE IS USED FOR BACKWARD COMPATIBILITY ONLY
 
 # for now creating a new class for hier-node for the sake of minimum overlap. 
 # However this may be combined with ns-node at a later date when hierarchical routing

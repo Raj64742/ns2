@@ -32,6 +32,8 @@
 #
 #
 
+# THE CODE INCLUDED IN THIS FILE IS USED FOR BACKWARD COMPATIBILITY ONLY
+
 Class MobileNode/MIPBS -superclass Node/MobileNode/BaseStationNode
 
 MobileNode/MIPBS instproc init {args} {

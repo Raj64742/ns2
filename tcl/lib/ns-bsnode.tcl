@@ -33,6 +33,8 @@
 # @(#) $Header: 
 #
 
+#THE CODE INCLUDED IN THIS FILE IS USED FOR BACKWARD COMPATIBILITY ONLY
+
 #
 #
 # Special Base station nodes for communicating between wired and 
