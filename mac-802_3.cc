@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.11 2001/02/19 20:36:04 yuri Exp $
+   $Id: mac-802_3.cc,v 1.12 2001/05/30 19:07:52 alefiyah Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -112,7 +112,6 @@ bool MacHandlerRetx::schedule(double delta) {
 		busy_ = 1;
 		return true;
 	}
-	fprintf(stderr,"try %d",try_);
 	return false;
 }
 
@@ -241,31 +240,8 @@ void Mac802_3::transmit(Packet *p) {
 
 void Mac802_3::collision(Packet *p) {
 
-  // Variables added for trace support.
-  // records the last time the packet was seen as well as the UID
-        static int last_collision=INVALID_UID;
-	static double last_collision_time=INVALID_TIME;
-
-	
 	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
-	
-	// Added for trace support
-        // Hack to print only once for the lan ; not for each node in Lan.
-	if(trace_){
-	  hdr_cmn *th = hdr_cmn::access(p);
 
-	  if (last_collision_time != Scheduler::instance().clock())
-	    last_collision = INVALID_UID;
-
-	  if(last_collision != th->uid()){
-	    last_collision = th->uid();
-	    HDR_CMN(p)->size() -= (ETHER_HDR_LEN + HDR_MAC(p)->padding_);
-	    drop_->recv(p);
-	    last_collision_time = Scheduler::instance().clock();
-	  }
-	}
-	
-	Packet::free(p);
 	if (mhIFS_.busy()) mhIFS_.cancel();
 
 	double ifstime= netif_->txtime(int((IEEE_8023_JAMSIZE+IEEE_8023_IFS_BITS)/8.0)); //jam time + ifs
@@ -273,6 +249,11 @@ void Mac802_3::collision(Packet *p) {
 
 	switch(state_) {
 	case MAC_SEND:
+	  // If mac trace feature is on generate a collision trace for this packet. 
+	        if (trace_)
+	           drop(p);
+	        else
+	           Packet::free(p);
 		if (mhSend_.busy()) mhSend_.cancel();
 		if (!mhRetx_.busy()) {
 			/* schedule retransmissions */
@@ -280,15 +261,15 @@ void Mac802_3::collision(Packet *p) {
 				p= mhRetx_.packet();
 				hdr_cmn *th = hdr_cmn::access(p);
 				HDR_CMN(p)->size() -= (ETHER_HDR_LEN + HDR_MAC(p)->padding_);
-				fprintf(stderr,"\nBinary Exponential Backoff exceeded backoff limit\nDropping packet %d",th->uid());
+				fprintf(stderr,"\nBEB limit exceeded:Dropping packet %d",th->uid());
                                 fflush(stderr);
-				// drop(p); // drop if backed off far enough
-				Packet::free(p);
+				drop(p); // drop if backed off far enough
 				mhRetx_.reset();
 			}
 		}
 		break;
 	case MAC_RECV:
+	        Packet::free(p);
 		// more than 2 packets collisions possible
 		if (mhRecv_.busy()) mhRecv_.cancel();
 		break;

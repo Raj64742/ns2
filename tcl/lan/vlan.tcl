@@ -17,7 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.34 2001/02/22 19:45:41 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.35 2001/05/30 19:08:06 alefiyah Exp $
 
 # LanNode----------------------------------------------------
 #
@@ -310,18 +310,21 @@ LanIface instproc init {node lan args} {
 LanIface instproc trace {ns f {op ""}} {
 	$self instvar hopT_ rcvT_ enqT_ deqT_ drpT_ 
 	$self instvar iface_ entry_ node_ lan_ drophead_ 
-	$self instvar ll_ ifq_ macType_
+	$self instvar ll_ ifq_ mac_ mactrace_
 
 	set hopT_ [$ns create-trace Hop   $f $node_ $lan_  $op]
 	set rcvT_ [$ns create-trace Recv  $f $lan_  $node_ $op]
 	set enqT_ [$ns create-trace Enque $f $node_ $lan_  $op]
 	set deqT_ [$ns create-trace Deque $f $node_ $lan_  $op]
-        if {[string compare $macType_ "Mac/802_3"] == 0} {
+        set drpT_ [$ns create-trace Drop  $f $node_ $lan_  $op]
+        if {[string compare $mactrace_ "true"] == 0} {
 	    #  For Mac level collision traces 
-	    set drpT_ [$ns create-trace Collision $f $node_ $lan_ $op]
-	} else {
-	    set drpT_ [$ns create-trace Drop  $f $node_ $lan_  $op]
+	    set macdrpT_ [$ns create-trace Collision $f $node_ $lan_ $op]
+	    set macdrophead_ [new Connector]
+	    $mac_ drop-target $macdrophead_
+	    $macdrophead_ target $macdrpT_
 	}
+
 	$hopT_ target [$entry_ target]
 	$entry_ target $hopT_
 
