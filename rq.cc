@@ -54,27 +54,16 @@
 
 #include "rq.h"
 
-#ifdef notdef
 /*
- * constructure for reassembly queue-- give it a ref
- * to the containing tcp's rcv_nxt_ field, plus
- * allow it to find off_tcp_ and off_cmn_
+ * clear out reassembly queue and stack
  */
 
-ReassemblyQueue::ReassemblyQueue(int& nxt) :
-	head_(NULL), tail_(NULL), rcv_nxt_(nxt)
-{
-}
-#endif
-
-/*
- * clear out reassembly queue
- */
-void ReassemblyQueue::clear()
+void
+ReassemblyQueue::clear()
 {
 	top_ = NULL;	// clear stack
 
-	seginfo * p= head_;
+	seginfo *p = head_;
 	while (head_) {
 		p= head_;
 		head_= head_->next_;
@@ -87,6 +76,7 @@ void ReassemblyQueue::clear()
 /*
  * gensack() -- generate 'maxsblock' sack blocks (start/end seq pairs)
  * at specified address
+ * returns the number of blocks written into the buffer specified
  *
  * According to RFC2018, a sack block contains:
  *	left edge of block (first seq # of the block)
@@ -109,7 +99,7 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 }
 
 /*
- * dumplist -- print out list (for debugging)
+ * dumplist -- print out FIFO and LIFO (for debugging)
  */
 
 void
@@ -122,8 +112,13 @@ ReassemblyQueue::dumplist()
 	} else {
 		register seginfo* p = head_;
 		while (p != NULL) {
+			if (p->rqflags_ & RQF_MARK) {
+				printf("OOPS: LOOP1\n");
+				abort();
+			}
 			printf("[->%d, %d<-]",
 				p->startseq_, p->endseq_);
+			p->rqflags_ |= RQF_MARK;
 			p = p->next_;
 		}
 		printf("\n");
@@ -135,12 +130,19 @@ ReassemblyQueue::dumplist()
 	} else {
 		register seginfo* s = top_;
 		while (s != NULL) {
+			if (s->rqflags_ & RQF_MARK)
+				s->rqflags_ &= ~RQF_MARK;
+			else {
+				printf("OOPS: LOOP2\n");
+				abort();
+			}
 			printf("[->%d, %d<-]",
 				s->startseq_, s->endseq_);
 			s = s->snext_;
 		}
 		printf("\n");
 	}
+	printf("\n");
 }
 
 /*
@@ -303,15 +305,17 @@ ReassemblyQueue::coalesce(seginfo *p, seginfo *n, seginfo *q)
 	return (flags);
 }
 
-#ifdef	RQDEBUG
+#ifdef RQDEBUG
 main()
 {
 	int rcvnxt;
 	ReassemblyQueue rq(rcvnxt);
 
-	rq.add(1, 10, 0, 0);
+	rq.add(5, 10, 0, 0);
 	rq.dumplist();
-	rq.add(11, 20, 0, 0);
+	rq.add(10, 20, 0, 0);
+	rq.dumplist();
+	rq.add(1, 3, 0, 0);
 	rq.dumplist();
 
 	exit(0);
