@@ -294,7 +294,7 @@ SessionSim instproc compute-hier-routes {} {
 	# support
         # n-levels of hierarchy
         #
-        puts "Computing Hierarchical routes\n"
+        # puts "Computing Hierarchical routes\n"
         set level [AddrParams set hlevel_]
         $r hlevel-is $level
         $self hier-topo $r
@@ -313,7 +313,14 @@ SessionSim instproc compute-hier-routes {} {
         $r hier-compute
 }
 
+SessionSim instproc compute-algo-routes {} {
+    set r [$self get-routelogic]
+    
+    puts "Computing algorithmic routes"
 
+    $r BFS
+    $r compute
+}
 
 # Because here we don't have a link object, we need to have a new 
 # link register method

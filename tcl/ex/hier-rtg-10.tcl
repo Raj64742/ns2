@@ -61,7 +61,7 @@ proc finish {} {
 	global ns 
 	$ns flush-trace
 	puts "running nam..."
-	exec nam out.nam &
+	exec nam hier-out-a.nam &
 	exit 0
 }
 

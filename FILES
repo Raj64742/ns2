@@ -289,6 +289,7 @@ tcl/ex/newmcast/pim5.tcl
 tcl/ex/newmcast/pim6-nam.tcl
 tcl/ex/newmcast/pim6.tcl
 tcl/ex/newmcast/pktintran.tcl
+tcl/ex/newmcast/session-algo.tcl
 tcl/ex/newmcast/session-hier.tcl
 tcl/ex/newmcast/session1.tcl
 tcl/ex/newmcast/session2.tcl
@@ -405,6 +406,7 @@ tcl/rlm/rlm.tcl
 tcl/rlm/rlm-cmn.tcl
 tcl/rlm/rlm-ns.tcl
 tcl/rlm/rlm-thesis.tcl
+tcl/rtglib/algo-route-proto.tcl
 tcl/rtglib/dynamics.tcl
 tcl/rtglib/route-proto.tcl
 tcl/rtmechanisms/Collapse.v2.tcl

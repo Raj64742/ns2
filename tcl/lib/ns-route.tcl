@@ -30,11 +30,15 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.12 1998/09/13 05:25:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.13 1998/09/21 21:07:34 polly Exp $
 #
 
 Simulator instproc rtproto {proto args} {
-	eval [$self get-routelogic] register $proto $args
+    $self instvar routingTable_
+    if {$proto == "Algorithmic"} {
+	set routingTable_ [new RouteLogic/Algorithmic]
+    }
+    eval [$self get-routelogic] register $proto $args
 }
 
 Simulator instproc get-routelogic {} {
@@ -265,7 +269,7 @@ Simulator instproc compute-hier-routes {} {
 	# assuming 3 levels of hierarchy --> this should be extended to support
 	# n-levels of hierarchy
 	#
-	puts "Computing Hierarchical routes\n"
+	#puts "Computing Hierarchical routes\n"
 	set level [AddrParams set hlevel_]
 	$r hlevel-is $level
 	$self hier-topo $r
@@ -353,6 +357,7 @@ RouteLogic instproc dump nn {
 #
 source ../rtglib/route-proto.tcl
 source ../rtglib/dynamics.tcl
+source ../rtglib/algo-route-proto.tcl
 
 
 
