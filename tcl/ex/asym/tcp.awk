@@ -85,7 +85,7 @@ END {
 		else {
 			sh_bw = -1;
 		}
- 		print ind[i], duration, bw, ss_starttime, ss_bw, sh_bw >> "thruput";
+ 		print ind[i], duration, bw, ss_starttime, ss_bw, sh_bw > "thruput";
  	}
 	close("thruput");
 }
