@@ -52,7 +52,7 @@ public:
 	virtual void resume();
 
 protected:
-	int command(int argc, const char*const* argv);
+	virtual int command(int argc, const char*const* argv);
 	virtual void start();
 	virtual void stop();
 
