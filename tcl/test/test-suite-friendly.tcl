@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.50 2002/12/19 05:28:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.51 2002/12/20 04:10:33 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -69,7 +69,9 @@ Agent/TFRCSink set PreciseLoss_ 1
 # The default for PreciseLoss_ will be changed to 0, at some point.
 Agent/TFRCSink set numPkts_ 1
 # The default for numPkts_ will be changed to 3, at some point.
-Agent/TFRC set oldCode_ true
+
+########Agent/TFRC set oldCode_ true
+Agent/TFRC set oldCode_ false
 # This is a new variable with a default of false.
 
 Agent/TCP set window_ 100
