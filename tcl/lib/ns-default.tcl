@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.237 2001/05/10 00:43:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.238 2001/05/11 05:18:15 sfloyd Exp $
 
 
 #
@@ -588,6 +588,7 @@ Agent/TCP set window_ 20
 Agent/TCP set windowInit_ 1
 Agent/TCP set windowInitOption_ 1
 Agent/TCP set syn_ false
+# Agent/TCP set syn_ true
 Agent/TCP set windowOption_ 1
 Agent/TCP set windowConstant_ 4
 Agent/TCP set windowThresh_ 0.002
@@ -607,12 +608,16 @@ Agent/TCP set restart_bugfix_ true
 Agent/TCP set tcpTick_ 0.1
 Agent/TCP set maxrto_ 100000
 Agent/TCP set minrto_ 0
+#Agent/TCP set minrto_ 1
 Agent/TCP set srtt_init_ 0
 Agent/TCP set rttvar_init_ 12
 Agent/TCP set rtxcur_init_ 6.0
 Agent/TCP set T_SRTT_BITS 3
 Agent/TCP set T_RTTVAR_BITS 2
 Agent/TCP set rttvar_exp_ 2
+Agent/TCP set timerfix_ false
+#Agent/TCP set timerfix_ true
+
 Agent/TCP instproc done {} { }
 Agent/TCP set noFastRetrans_ false
 
@@ -652,6 +657,7 @@ Agent/TCP/Fack set rampdown_ false
 Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
 Agent/TCP set delay_growth_ false
+# Agent/TCP set delay_growth_ true
 
 Agent/TCP set CoarseTimer_      0
 

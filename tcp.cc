@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.119 2001/05/10 00:43:50 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.120 2001/05/11 05:18:15 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -149,6 +149,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("noFastRetrans_");
 	delay_bind_init_one("precisionReduce_");
 	delay_bind_init_one("oldCode_");
+	delay_bind_init_one("timerfix_");
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
@@ -224,7 +225,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "EnblRTTCtr_", &EnblRTTCtr_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "control_increase_", &control_increase_ , tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "oldCode_", &oldCode_, tracer)) return TCL_OK;
-
+	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
 
 #ifdef TCP_DELAY_BIND_ALL
 	// not if (delay-bound delay-bound tracevars aren't yet supported
@@ -930,7 +931,7 @@ void TcpAgent::newack(Packet* pkt)
 	 * Wouldn't it be better to set the timer *after*
 	 * updating the RTT, instead of *before*? 
 	 */
-	newtimer(pkt);
+	if (timerfix_ == false) newtimer(pkt);
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
 	prev_highest_ack_ = highest_ack_ ;
@@ -964,6 +965,7 @@ void TcpAgent::newack(Packet* pkt)
 				rtt_update(now - rtt_ts_);
 		}
 	}
+	if (timerfix_ == true) newtimer(pkt);
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
 	awnd_ += wnd_th_ * cwnd_;

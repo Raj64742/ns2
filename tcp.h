@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.86 2001/05/10 00:43:50 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.87 2001/05/11 05:18:15 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -220,7 +220,6 @@ protected:
 	RtxTimer rtx_timer_;
 	DelSndTimer delsnd_timer_;
 	BurstSndTimer burstsnd_timer_;
-
 	virtual void cancel_timers() {
 		rtx_timer_.force_cancel();
 		burstsnd_timer_.force_cancel();
@@ -231,7 +230,8 @@ protected:
 	}
 	virtual void set_rtx_timer();
 	void reset_rtx_timer(int mild, int backoff = 1);
-
+	int timerfix_;		/* set to true to update timer *after* */
+				/* update the RTT, instead of before   */
 	double boot_time_;	/* where between 'ticks' this sytem came up */
 	double overhead_;
 	double wnd_;
