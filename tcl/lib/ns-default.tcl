@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.220 2000/09/14 18:19:27 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.221 2000/10/02 18:55:50 kclan Exp $
 
 
 #
@@ -298,6 +298,11 @@ Application/Traffic/Pareto set idle_time_ 500ms
 Application/Traffic/Pareto set rate_ 64Kb
 Application/Traffic/Pareto set packetSize_ 210
 Application/Traffic/Pareto set shape_ 1.5
+
+Application/Traffic/RealAudio set burst_time_ 0.05ms
+Application/Traffic/RealAudio set idle_time_ 1800ms
+Application/Traffic/RealAudio set rate_ 2Kb
+Application/Traffic/RealAudio set packetSize_ 240
 
 Application/Traffic/CBR set rate_ 448Kb	;# corresponds to interval of 3.75ms
 Application/Traffic/CBR set packetSize_ 210

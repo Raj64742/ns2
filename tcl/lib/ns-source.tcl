@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.23 1999/10/23 03:43:38 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.24 2000/10/02 18:55:50 kclan Exp $
 #
 
 #  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
@@ -235,6 +235,7 @@ Agent/CBR instproc set args {
  
 Class Traffic/Expoo -superclass Application/Traffic/Exponential
 Class Traffic/Pareto -superclass Application/Traffic/Pareto
+Class Traffic/RealAudio -superclass Application/Traffic/RealAudio
 Class Traffic/Trace -superclass Application/Traffic/Trace
 
 # These instprocs are needed to map old Traffic/* type variables
@@ -308,6 +309,40 @@ Traffic/Pareto instproc set args {
                        	return 
                	} elseif { [llength $args] == 1 } {
 			return $shape_
+               	}
+	}
+	eval $self next $args
+}
+
+Traffic/RealAudio instproc set args {
+	$self instvar packetSize_ burst_time_ idle_time_ rate_ 
+	if { [lindex $args 0] == "packet-size" } {
+		if { [llength $args] == 2 } {
+			$self set packetSize_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $packetSize_
+               	}
+	} elseif { [lindex $args 0] == "burst-time" } {
+		if { [llength $args] == 2 } {
+			$self set burst_time_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $burst_time_
+               	}
+	} elseif { [lindex $args 0] == "idle-time" } {
+		if { [llength $args] == 2 } {
+			$self set idle_time_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $idle_time_
+               	}
+	} elseif { [lindex $args 0] == "rate" } {
+		if { [llength $args] == 2 } {
+			$self set rate_ [lindex $args 1]
+                       	return 
+               	} elseif { [llength $args] == 1 } {
+			return $rate_
                	}
 	}
 	eval $self next $args
