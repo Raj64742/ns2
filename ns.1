@@ -450,8 +450,8 @@ which may be:
   Null                  - Traffic Sink
   LossMonitor           - Traffic Sink that monitors loss parameters
   TCP                   - BSD Tahoe TCP
-  TCP/FullTcp           - Full Reno TCP with two-way connections [10]
-  tcP/Reno              - BSD Reno TCP
+  TCP/FullTcp           - Full Reno TCP with two-way connections [11]
+  TCP/Reno              - BSD Reno TCP
   TCP/Newreno           - a modified version of BSD Reno TCP
   TCP/Vegas             - Vegas TCP (from U. Arizonia via USC)
   TCP/Sack1             - BSD Reno TCP with selective ACKs
@@ -1697,7 +1697,7 @@ Configuration Parameters \fP
 .IP \fInewreno_changes_\fP
 Set to zero for the default NewReno described in [7].  Set to 1 for
 additional
-NewReno algorithms as suggested in [9]; this includes the estimation
+NewReno algorithms as suggested in [10]; this includes the estimation
 of the ssthresh parameter during slow-start.
 .RE
 
@@ -1742,6 +1742,11 @@ Rampdown data smoothing algorithm. Slowly reduces congestion window
 rather than instantly halving it. (1=Enable, 0=Disable) 
 .RE
 
+.SH "TCP/FULLTCP OBJECTS"
+This section has not yet been added to the man page.
+The implementation and the configuration parameters are described in 
+[11].
+
 .SH "TCPSINK OBJECTS"
 TCPSink objects are a subclass of agent objects that implement 
 a receiver for TCP packets.
@@ -1756,7 +1761,15 @@ Configuration Parameters \fP
 .IP \fIpacketSize_\fP
 The size in bytes to use for all acknowledgment packets.
 .IP \fImaxSackBlocks_\fP
-Should this go in TCPSink/Sack1?
+The maximum number of blocks of data that can be acknowledged
+in a SACK option.  For a receiver that is also
+using the time stamp option [RFC 1323], the SACK option 
+specified in RFC 2018 has room to include three SACK blocks.
+This is only used by the TCPSink/Sack1 subclass.
+This value may not be increased within any particular TCPSink
+object after that object has been allocated.
+(Once a TCPSink object has been allocated, the value of this
+parameter may be decreased but not increased).
 .RE
 
 .SH "TCPSINK/DELACK OBJECTS"
@@ -2280,6 +2293,15 @@ At <http://www.tns.lcs.mit.edu/publications/tcltk95.djw.html>.
 .IP \fB[9]\fP
 M. Shreedhar and G. Varghese. Efficient Fair Queueing Using Deficit
 Round Robin. In Proc. of SIGCOMM, pp. 231-242, 1995.
+.IP \fB[10]\fP
+Hoe, J., 
+Improving the Start-up Behavior of a Congestion Control Scheme for TCP.
+in SIGCOMM 96, August 1996, pp. 270-280.
+URL http://www.acm.org/sigcomm/sigcomm96/papers/hoe.html.
+.IP \fB[11]\fP 
+Fall, K., Floyd, S., and Henderson, T.,
+Ns Simulator Tests for Reno FullTCP.
+URL ftp://ftp.ee.lbl.gov/papers/fulltcp.ps.Z.  July 1997.
 .LP
 Work on ns is on-going.
 Information about the most recent version is available
