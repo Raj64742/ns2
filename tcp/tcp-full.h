@@ -1,6 +1,6 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
- * Copyright (c) 1997 The Regents of the University of California.
+ * Copyright (c) 1997, 2001 The Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.44 2001/08/17 18:53:04 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.45 2001/08/17 21:47:44 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -41,8 +41,8 @@
 #include "rq.h"
 
 /*
- * these defines are directly from tcp_var.h or tcp_fsm.h
- * in "real" TCP
+ * most of these defines are directly from
+ * tcp_var.h or tcp_fsm.h in "real" TCP
  */
 
 
@@ -96,12 +96,10 @@
 #define TH_PUSH 0x08        /* PUSH: used here to "deliver" data */
 #define TH_ACK  0x10        /* ACK: ack number is valid */
 
-#define PF_TIMEOUT 0x04		/* protocol defined */
-
+#define PF_TIMEOUT 0x04	    /* protocol defined */
 #define	TCP_PAWS_IDLE	(24 * 24 * 60 * 60)	/* 24 days in secs */
 
 class FullTcpAgent;
-
 class DelAckTimer : public TimerHandler {
 public:
 	DelAckTimer(FullTcpAgent *a) : TimerHandler(), a_(a) { }
@@ -111,8 +109,7 @@ protected:
 };
 
 class FullTcpAgent : public TcpAgent {
-	friend ReassemblyQueue;
- public:
+public:
 	FullTcpAgent();
 	~FullTcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
@@ -123,9 +120,7 @@ class FullTcpAgent : public TcpAgent {
         virtual void sendmsg(int nbytes, const char *flags = 0);
         virtual int& size() { return maxseg_; } //FullTcp uses maxseg_ for size_
 	virtual int command(int argc, const char*const* argv);
-
- protected:
-
+protected:
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 	int closed_;
@@ -181,7 +176,6 @@ class FullTcpAgent : public TcpAgent {
 		if (seq == t_seqno_)
 			t_seqno_ += amt;
 		pipe_ += amt;
-//printf("%f: sent(seq:%d): pipe bumped by %d, now %d\n", now(), seq, amt, pipe_);
 	}
 	virtual void oldack() {			// what to do on old ack
 		dupacks_ = 0;
@@ -282,11 +276,6 @@ protected:
 	int sack_min_;		// first seq# in sack queue, initializes sq_
 	int h_seqno_;		// next seq# to hole-fill
 	int clear_on_timeout_;	// clear sender's SACK queue on RTX timeout?
-
-//int sack_max_;		// highest seq# seen in any sack block
-//void	send_much(int force, int reason, int maxburst = 0);
-//void	send_holes(int force, int maxburst);
-
 };
 
 #endif
