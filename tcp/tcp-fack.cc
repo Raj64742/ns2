@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.12 1997/10/13 22:24:40 mccanne Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.13 1998/04/28 21:27:47 bajaj Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -52,7 +52,7 @@ FackTcpAgent::FackTcpAgent() : wintrim_(0), wintrimmult_(.5),
 int FackTcpAgent::window() 
 {
 	int win;
-	win = int((cwnd_ < wnd_ ? cwnd_ : wnd_) + wintrim_);
+	win = int((cwnd_ < wnd_ ? (double) cwnd_ : (double) wnd_) + wintrim_);
 	return (win);
 }
 

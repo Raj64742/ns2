@@ -39,7 +39,7 @@ template<class T>
 T Slist<T>::get()
 {
     Tlink<T>* lnk = (Tlink<T>*) slist_base::get();
-    t i = lnk->info;
+    T i = lnk->info;
     delete lnk;
     return i;
 }

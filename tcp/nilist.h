@@ -93,9 +93,9 @@ class Slist: private slist_base {
     friend class Slist_iter<T>;
 public:
     void insert(const T& a)
-         { slist_Base::insert(new Tlink<T>(a));}
+         { slist_base::insert(new Tlink<T>(a));}
     void append(const T& a)
-         { slist_Base::append(new Tlink<T>(a));}
+         { slist_base::append(new Tlink<T>(a));}
     T get();
 };
 

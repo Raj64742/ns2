@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.22 1998/04/21 23:39:55 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.23 1998/04/28 21:27:48 bajaj Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -62,7 +62,7 @@ public:
 
 int Sack1TcpAgent::window()
 {
-        return(int(cwnd_ < wnd_ ? cwnd_ : wnd_));
+        return(cwnd_ < wnd_ ? (int) cwnd_ : (int) wnd_);
 }
 
 Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1)

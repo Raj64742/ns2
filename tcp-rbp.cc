@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.15 1998/01/21 22:38:19 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-rbp.cc,v 1.16 1998/04/28 21:27:47 bajaj Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -174,7 +174,7 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 		// Conservatively set the congestion window to min of
 		// congestion window and the smoothed rbwin_vegas
 		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", double(cwnd_)));
-		cwnd_ = MIN(cwnd_, rbwin_vegas);
+		cwnd_ = MIN(cwnd_,(TracedDouble) rbwin_vegas);
 		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", double(cwnd_)));
 		RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
 		// RBP timer calculations must be based on the actual
@@ -343,7 +343,7 @@ RBPRenoTcpAgent::send_much(int force, int reason, int maxburst)
 		// Conservatively set the congestion window to min of
 		// congestion window and the smoothed rbwin_reno
 		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", double(cwnd_)));
-		cwnd_ = MIN(cwnd_, rbwin_reno);
+		cwnd_ = MIN(cwnd_,(TracedDouble) rbwin_reno);
 		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", double(cwnd_)));
 		RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
 		// RBP timer calculations must be based on the actual

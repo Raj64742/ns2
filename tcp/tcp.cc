@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.58 1998/04/25 01:33:24 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.59 1998/04/28 21:27:48 bajaj Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -415,7 +415,7 @@ int TcpAgent::command(int argc, const char*const* argv)
 
 int TcpAgent::window()
 {
-	return (int(cwnd_ < wnd_ ? cwnd_ : wnd_));
+	return (cwnd_ < wnd_ ? (int)cwnd_ : (int)wnd_);
 }
 
 /*
