@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.53 1999/02/18 02:19:20 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.54 1999/02/19 22:03:37 yuriy Exp $ (LBL)
 
  */
 
@@ -154,7 +154,6 @@ public:
 		name_[PT_TORA]= "TORA";
 		name_[PT_DSR]= "DSR";
 		name_[PT_AODV]= "AODV";
-		name_[PT_NTYPE]= "undefined";
 	}
 	const char* name(packet_t p) const { 
 		if ( p <= PT_NTYPE ) return name_[p];
