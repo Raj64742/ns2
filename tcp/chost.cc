@@ -331,8 +331,9 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked)
 	       (!done || tcph->ts_echo() > cur->ts_)) {
 		int remove_flag = 0;
 		/* ack for older pkt of another connection */
-		if (sender != cur->sender_ && tcph->ts_echo() > cur->ts_) {
-			cur->later_acks_++;
+		if (sender != cur->sender_ && tcph->ts_echo() > cur->ts_) { 
+			if (!disableIntLossRecov_)
+				cur->later_acks_++;
 			latest_susp_loss = 
 				max(latest_susp_loss,cur->sessionSeqno_);
 			dontIncrCwnd_ = 1;

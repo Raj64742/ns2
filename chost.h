@@ -121,6 +121,8 @@ class CorresHost : public slink, public TcpFsAgent {
 			       reordering) */
 	int rexmtSegCount_; /* number of segments that we "suspect" need to be
 			       retransmitted */
+	int disableIntLossRecov_; /* disable integrated loss recovery */
+
 	/* possible candidates for rxmission */
 	Segment *curArray_[MAX_PARALLEL_CONN]; 
 	Segment *prevArray_[MAX_PARALLEL_CONN]; /* prev segs */

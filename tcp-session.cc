@@ -86,6 +86,7 @@ TcpSessionAgent::TcpSessionAgent() : CorresHost(),
 	bind_bool("proxyopt_", &proxyopt_);
 	bind_bool("fixedIw_", &fixedIw_);
 	bind("schedDisp_", &schedDisp_);
+	bind_bool("disableIntLossRecov_", &disableIntLossRecov_);
 
 	sessionList_.append(this);
 }
