@@ -77,40 +77,43 @@ TraceIp set show_tcphdr_ 0
 TraceIp set mask_ 0xffffffff
 TraceIp set shift_ 8
 
-TraceIp instproc init {type} {
+TraceIp instproc init {type args} {
 	$self next $type
-	$self instvar type_
+	$self instvar type_ src_
 	set type_ $type
+	if {$args != ""} {
+		set src_ $args
+	}
 }
 
 Class TraceIp/Enque -superclass TraceIp
-TraceIp/Enque instproc init {} {
-	$self next "+"
+TraceIp/Enque instproc init {args} {
+	eval $self next "+" $args
 }
 
 Class TraceIp/Deque -superclass TraceIp
-TraceIp/Deque instproc init {} {
-	$self next "-"
+TraceIp/Deque instproc init {args} {
+	eval $self next "-" $args
 }
 
 Class TraceIp/Drop -superclass TraceIp
-TraceIp/Drop instproc init {} {
-	$self next "d"
+TraceIp/Drop instproc init {args} {
+	eval $self next "d" $args
 }
 
 Class TraceIp/BackoffDrop -superclass TraceIp
-TraceIp/BackoffDrop instproc init {} {
-	$self next "b"
+TraceIp/BackoffDrop instproc init {args} {
+	eval $self next "b" $args
 }
 
 Class TraceIp/Corrupt -superclass TraceIp
-TraceIp/Corrupt instproc init {} {
-	$self next "c"
+TraceIp/Corrupt instproc init {args} {
+	eval $self next "c" $args
 }
 
 Class TraceIp/Mac/Hop -superclass TraceIp/Mac
-TraceIp/Mac/Hop instproc init {} {
-	$self next "h"
+TraceIp/Mac/Hop instproc init {args} {
+	eval $self next "h" $args
 }
 
 # Trace/Recv trace the receive events of a packet
@@ -127,7 +130,7 @@ Trace/Loss instproc init {} {
 
 
 #
-# newLAN:  create a LAN from a sete of nodes
+# newLan:  create a LAN from a sete of nodes
 #
 Simulator instproc newLan {nodelist bw delay args} {
 	set lan [eval new LanLink $self $args]
@@ -137,16 +140,16 @@ Simulator instproc newLan {nodelist bw delay args} {
 	return $lan
 }
 
-# XXX Depricated:  use newLAN instead of make-lan
+# XXX Depricated:  use newLan instead of make-lan
 Simulator instproc make-lan {nodelist bw delay {llType LL} {ifqType Queue/DropTail} {macType Mac} {chanType Channel}} {
-	return [$self newLAN $nodelist $bw $delay -llType $llType \
+	return [$self newLan $nodelist $bw $delay -llType $llType \
 		-ifqType $ifqType -macType $macType -chanType $chanType]
 }
 
 
 #
 # Link/LanDuplex:  a peer-to-peer duplex link on a LAN
-#
+# 
 Class Link/LanDuplex -superclass SimpleLink
 Link/LanDuplex instproc init {src dst bw delay q args} {
 	eval $self next $src $dst $bw $delay $q $args
@@ -154,6 +157,7 @@ Link/LanDuplex instproc init {src dst bw delay q args} {
 
 Link/LanDuplex instproc trace {ns f} {
 	$self instvar link_ fromNode_ toNode_
+	$self instvar enqT_ deqT_ drpT_ rcvT_ dynT_
 
 	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
 	$enqT_ target [$link_ sendtarget]
@@ -168,6 +172,44 @@ Link/LanDuplex instproc trace {ns f} {
 		$drpT_ attach-nam $namtraceAllFile_
 	}
 	$link_ drop-target $drpT_
+}
+
+
+Class NetIface -superclass Connector
+
+NetIface set ifqType_ Queue/DropTail
+NetIface set macType_ Mac/Csma/Cd
+
+NetIface instproc ifqType {val} { $self set ifqType_ $val }
+NetIface instproc macType {val} { $self set macType_ $val }
+
+NetIface instproc init {node bw args} {
+	eval $self next $args
+	$self instvar ifqType_ macType_
+	$self instvar node_ lcl_ ifq_ mac_ drpT_ deqT_
+
+	set node_ $node
+	set lcl_ [new Classifier]
+	set ifq_ [new $ifqType_]
+	set mac_ [new $macType_]
+	$lcl_ set offset_ [PktHdr_offset PacketHeader/Mac macSA_]
+	$mac_ set bandwidth_ $bw
+
+	$mac_ target $lcl_
+	$ifq_ target $mac_
+	$self target $ifq_
+}
+
+NetIface instproc trace {ns f} {
+	$self instvar node_ lcl_ ifq_ mac_ drpT_ deqT_
+
+	set id [$node_ id]
+	[set drpT_ [new TraceIp/Drop $id]] attach $f
+	[set deqT_ [new TraceIp/Deque $id]] attach $f
+	$deqT_ target [$ifq_ target]
+	$ifq_ target $deqT_
+	$ifq_ drop-target $drpT_
+	$mac_ drop-target $drpT_
 }
 
 
@@ -187,7 +229,7 @@ LanLink instproc chanType {val} { $self set chanType_ $val }
 
 LanLink instproc init {ns args} {
 	$self instvar llType_ ifqType_ macType_ chanType_
-	$self instvar ns_ nodelist_ id_ ifq_ mac_ channel_ mcl_ lcl_
+	$self instvar ns_ nodelist_ id_ channel_ mcl_ netIface_
 	eval $self next $args
 
 	set ns_ $ns
@@ -199,84 +241,81 @@ LanLink instproc init {ns args} {
 	$channel_ target $mcl_
 }
 
+LanLink instproc trace {ns f} {
+	$self instvar ns_ nodelist_ id_ channel_ mcl_ netIface_
+	[set drpT_ [new TraceIp/Corrupt]] attach $f
+	$channel_ drop-target $drpT_
+	foreach node $nodelist_ {
+		$netIface_($node) trace $ns $f
+	}
+}
+
+LanLink instproc netIface {node} {
+	return [$self set netIface_($node)]
+}
+
 # addNode:  add a new node to the LAN by creating LL, IFQ, MAC...
-LanLink instproc addNode {src bw delay {llType ""} {ifqType ""} {macType ""}} {
+LanLink instproc addNode {node bw delay {nif ""} {sllType ""} {dllType ""}} {
 	$self instvar llType_ ifqType_ macType_ chanType_
-	$self instvar ns_ nodelist_ id_ ifq_ mac_ channel_ mcl_ lcl_
+	$self instvar ns_ nodelist_ id_ channel_ mcl_ netIface_
 	$ns_ instvar link_
 
-	if {$llType == ""} { set llType $llType_ }
-	if {$ifqType == ""} { set ifqType $ifqType_ }
-	if {$macType == ""} { set macType $macType_ }
-
-	set ifq [set ifq_($src) [new $ifqType]]
-	set mac [set mac_($src) [new $macType]]
-	set lcl [set lcl_($src) [new Classifier]]
-	$lcl set offset_ [PktHdr_offset PacketHeader/Mac macSA_]
-	$mac set bandwidth_ $bw
-	$mac set label_ [incr id_]
+	if {$sllType == ""} { set sllType $llType_ }
+	if {$dllType == ""} { set dllType $llType_ }
+	if {$nif == ""} {
+		set nif [new NetIface $node $bw \
+				-ifqType $ifqType_ -macType $macType_]
+	} 
+	set netIface_($node) $nif
+	set mac [$nif set mac_]
+	$mac set addr_ [incr id_]
 	$mac channel $channel_
 	$mac classifier $mcl_
-	$mac target $lcl
-	$ifq target $mac
 	$mcl_ install $id_ $mac
-	$src addmac $mac
+	$node addmac $mac
 
+	set src $node
 	set sid [$src id]
 	foreach dst $nodelist_ {
 		set did [$dst id]
-		set link_($sid:$did) [new Link/LanDuplex $src $dst \
-				$bw $delay [new Queue/DropTail] $llType]
-		set link_($did:$sid) [new Link/LanDuplex $dst $src \
-				$bw $delay [new Queue/DropTail] $llType]
+		set sl [set link_($sid:$did) [new Link/LanDuplex $src $dst \
+				$bw $delay [new Queue/DropTail] $sllType]]
+		set dl [set link_($did:$sid) [new Link/LanDuplex $dst $src \
+				$bw $delay [new Queue/DropTail] $dllType]]
+
+		set macDA [[$netIface_($dst) set mac_] set addr_]
+		$self setupLL $src $dst [$sl link] $macDA
+		$self setupLL $dst $src [$dl link] $id_
 	}
-	foreach dst $nodelist_ {
-		set did [$dst id]
-		set macDA [$mac_($dst) set label_]
-		$self setupLinkage $src [$link_($sid:$did) link] $macDA
-		$self setupLinkage $dst [$link_($did:$sid) link] $id_
-		# setup tracing after setting up linkage
-		$ns_ trace-queue $src $dst
-		$ns_ namtrace-queue $src $dst
-	}
-	lappend nodelist_ $src
+	lappend nodelist_ $node
 }
 
-LanLink instproc setupLinkage {src sll macDA} {
-	$self instvar ifq_ lcl_
-	$sll ifq $ifq_($src)
-	$sll sendtarget $ifq_($src)
-	$sll recvtarget [$src entry]
-	$sll set macDA_ $macDA
-	$lcl_($src) install $macDA $sll
-}
+LanLink instproc setupLL {src dst ll macDA} {
+	$self instvar ns_ netIface_
+	set nif $netIface_($src)
+	$ll ifq [$nif set ifq_]
+	$ll sendtarget $nif
+	$ll recvtarget [$src entry]
+	$ll set macDA_ $macDA
+	[$nif set lcl_] install $macDA $ll
 
-LanLink instproc get-ifq {src} {
-	$self instvar ifq_
-	return $ifq_($src)
-}
-
-LanLink instproc get-mac {src} {
-	$self instvar mac_
-	return $mac_($src)
-}
-
-LanLink instproc get-lcl {src} {
-	$self instvar lcl_
-	return $lcl_($src)
+	# setup tracing after setting up linkage
+	$ns_ trace-queue $src $dst
+	$ns_ namtrace-queue $src $dst
 }
 
 LanLink instproc install-error {em {src ""} {dst ""}} {
-	$self instvar channel_ mac_ lcl_
+	$self instvar ns_ channel_
 	if {$src == ""} {
 		$em target [$channel_ target]
 		$channel_ target $em
 	} else {
-		set peerlabel [$mac_($src) set label_]
-		$em target [$lcl_($dst) slot $peerlabel]
-		$lcl_($dst) install $peerlabel $em
+		set ll [[$ns_ link $src $dst] link]
+		$em target [$ll target]
+		$ll target $em
 	}
 }
+
 
 LanLink instproc create-error { src dstlist emname rate unit {trans ""}} {
 	if { $trans == "" } {
@@ -303,60 +342,31 @@ LanLink instproc create-error { src dstlist emname rate unit {trans ""}} {
 	}
 }
 
-LanLink instproc trace {ns f} {
-	$self instvar nodelist_ channel_ mac_ ifq_ drpT_
-
-	set drpT_($channel_) [new TraceIp/Corrupt]
-	$channel_ drop-target $drpT_($channel_)
-	$drpT_($channel_) attach $f
-	foreach src $nodelist_ {
-		set sid [$src id]
-		set drpT [set drpT_($src) [new TraceIp/Drop]]
-		$drpT set src_ $sid
-		$drpT attach $f
-		$ifq_($src) drop-target $drpT
-
-		set bodT [new TraceIp/BackoffDrop]
-		$bodT set src_ [$src id]
-		$bodT attach $f
-		$mac_($src) drop-target $bodT
-
-		set deqT_ [new TraceIp/Deque]
-		$deqT_ set src_ $sid
-		$deqT_ attach $f
-		$deqT_ target [$ifq_($src) target]
-		$ifq_($src) target $deqT_
-	}
-}
-
 LanLink instproc init-monitor {ns qfile sampleInt src {dst ""}} {
-	$self instvar ns_ qfile_ sampleInterval_
-	$self instvar ifq_ qm_ si_ so_ sd_
+	$self instvar ns_ ifq_
+	$self instvar qfile_ sampleInterval_ qm_ si_ so_ sd_
 	$ns instvar link_
 
-	set ns_ $ns
+	set ifq ifq_($src)
 	set qfile_($src) $qfile
 	set sampleInterval_($src) $sampleInt
+	set qm [set qm_($src) [new QueueMonitor]]
+	set si [set si_($src) [new SnoopQueue/In]]
+	set so [so_($src) [new SnoopQueue/Out]]
+	set sd [sd_($src) [new SnoopQueue/Drop]]
 
-	set qm_($src) [new QueueMonitor]
-	set si_($src) [new SnoopQueue/In]
-	set so_($src) [new SnoopQueue/Out]
-	set sd_($src) [new SnoopQueue/Drop]
+	$si set-monitor $qm
+	$so set-monitor $qm
+	$sd set-monitor $qm
 
-	set qMonitor_ $qm_($src)
-	set si $si_($src)
-	$si set-monitor $qMonitor_
-	$so_($src) set-monitor $qMonitor_
-	$sd_($src) set-monitor $qMonitor_
-
-	$si target $ifq_($src)
+	$si target $ifq
 	foreach dst $nodelist_ {
 		if {$src == $dst} continue
 		[$link_([$src id]:[$dst id]) link] target $si
 	}
 
-	$so_($src) target [$ifq_($src) target]
-	ifq_($src) target $so_($src)
+	$so target [$ifq target]
+	$ifq target $so_($src)
 
 	if [info exists drpT_] {
 		$sd_($src) target [$drpT_($src) target]
