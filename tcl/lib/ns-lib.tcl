@@ -30,8 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.32 1997/05/16 07:58:30 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.33 1997/05/23 18:17:01 heideman Exp $
 #
+
+#
+# Word of warning to developers:
+# this code (and all it sources) is compiled into the
+# ns executable.  You need to rebuild ns or explicitly
+# source this code to see changes take effect.
+#
+
 
 if {[info commands debug] == ""} {
     proc debug args {
