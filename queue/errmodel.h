@@ -33,7 +33,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.22 1998/03/11 04:38:02 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.23 1998/03/17 01:17:12 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -61,12 +61,12 @@ class ErrorModel : public Connector {
 	ErrorModel();
 	virtual void recv(Packet *, Handler *);
 	virtual void reset();
-	virtual void copy(ErrorModel *);
 	virtual int corrupt(Packet *);
 	virtual int CorruptPkt(Packet *);
 	virtual int CorruptTime(Packet *);
 	virtual int CorruptByte(Packet *);
 	inline double rate() { return rate_; }
+	inline ErrorUnit unit() { return unit_; }
 
   protected:
 	virtual int command(int argc, const char*const* argv);

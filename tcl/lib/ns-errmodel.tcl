@@ -63,7 +63,7 @@ ErrorModel instproc copy {{orig ""}} {
 		set copy [new [$orig info class]]
 	}
 	foreach var [orig info vars] {
-		set array_names [$orig array names $v]
+		set array_names [$orig array names $var]
 		if {$array_names == ""} {
 			$copy set $var [$orig set $var]
 			continue
@@ -76,50 +76,43 @@ ErrorModel instproc copy {{orig ""}} {
 	return $copy
 }
 
-ErrorModel instproc initvars { rate unit } {
-	$self instvar rate_ rv_
 
-	set rate_ $rate 
-	$self unit $unit
+Class ErrorModel/Uniform -superclass ErrorModel
+Class ErrorModel/Expo -superclass ErrorModel/TwoState
+Class ErrorModel/Empirical -superclass ErrorModel/TwoState
+
+ErrorModel/Uniform instproc init {rate unit} {
+	$self next
+	$self set rate_ $rate
 	$self ranvar $rv_
 }
 
-Class ErrorModel/Uniform -superclass ErrorModel
-Class ErrorModel/Expo -superclass ErrorModel
-Class ErrorModel/Empirical -superclass ErrorModel/TwoState
-
-ErrorModel/Uniform instproc init { rate unit } {
-	$self instvar rv_
-
-        set rv_ [new RandomVariable/Uniform]
-	$rv_ set min_ 0
-	$rv_ set max_ [expr 2*$rate]
+ErrorModel/Expo instproc init {avgList unit} {
 	$self next
-	$self initvars $rate $unit
+	$self unit $unit
+	set rv0 [new RandomVariable/Exponential]
+	set rv1 [new RandomVariable/Exponential]
+	$rv0 set avg_ [lindex $avgList 0]
+	$rv1 set avg_ [lindex $avgList 1]
+	$self ranvar 0 $rv0
+	$self ranvar 1 $rv1
 }
 
-ErrorModel/Expo instproc init { rate unit } {
+ErrorModel/Empirical instproc initrv {fileList unit} {
 	$self next
-	$self instvar rv_
-
-	set rv_ [new RandomVariable/Exponential]
-	$rv_ set avg_ $rate
-	$self initvars $rate $unit
+	$self unit $unit
+	set rv0 [new RandomVariable/Empirical]
+	set rv1 [new RandomVariable/Empirical]
+	$rv0 loadCDF [lindex $fileList 0]
+	$rv1 loadCDF [lindex $fileList 1]
+	$self ranvar 0 $rv0
+	$self ranvar 1 $rv1
 }
 
-ErrorModel/Empirical instproc initrv { files } {
-	set grv_ [new RandomVariable/Empirical]
-	$grv_ loadCDF [lindex $files 0]
-	$self ranvar 0 $grv_
-
-	set brv_ [new RandomVariable/Empirical]
-	$brv_ loadCDF [lindex $files 1]
-	$self ranvar 1 $brv_
-}
 
 Class ErrorModel/MultiState -superclass ErrorModel
 
-ErrorModel/MultiState instproc init { states trans transunit nstates start } {
+ErrorModel/MultiState instproc init {states trans transunit nstates start} {
 	# states_ is an array of states (errmodels),
 	# transmatrix_ is the transition state model matrix,
 	# nstates_ is the number of states
@@ -181,7 +174,7 @@ ErrorModel/MultiState instproc transition { } {
 
 Class ErrorModel/TwoStateMarkov -superclass ErrorModel/TwoState
 
-ErrorModel/TwoStateMarkov instproc init {rate eu transition} {
+ErrorModel/TwoStateMarkov instproc init {rate eu {transition}} {
 	set rv0 [new RandomVariable/Exponential]
 	set rv1 [new RandomVariable/Exponential]
 	$rv0 set avg_ [lindex $rate 0]

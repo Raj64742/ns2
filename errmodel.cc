@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.33 1998/03/16 23:20:05 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.34 1998/03/17 01:17:11 gnguyen Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -77,18 +77,6 @@ ErrorModel::ErrorModel() : unit_(EU_PKT), ranvar_(0), errorLen_(0), firstTime_(1
 	bind("enable_", &enable_);
 }
 
-
-void ErrorModel::copy(ErrorModel* orig)
-{
-	*this = *orig;
-/*
-	// OR only copy variables that are not Tcl-bound;
-	unit_ = orig->unit_;
-	ranvar_ = orig->ranvar_;
-*/
-}
-
-
 int ErrorModel::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
@@ -104,7 +92,10 @@ int ErrorModel::command(int argc, const char*const* argv)
 		} 
 		if (strcmp(argv[1], "copy") == 0) {
 			em = (ErrorModel*)TclObject::lookup(argv[2]);
-			copy(em);
+			*this = *em;
+			// OR only copy variables that are not Tcl-bound;
+			// unit_ = em->unit_;
+			// ranvar_ = em->ranvar_;
 			return (TCL_OK);
 		}
 	} else if (argc == 2) {
