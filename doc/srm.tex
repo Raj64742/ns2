@@ -1028,6 +1028,52 @@ For example, the start of the constructor for the
         \}
 \end{program}
 
+\section{Commands at a glance}
+\label{sec:srmcommand}
+
+The following is a list of commands to create/manipulate srm agents in
+simulations:
+\begin{flushleft}
+\code{set srm0 [new Agent/SRM]}\\
+This creates an instance of the SRM agent. In addition to the base class,
+two extensions of the srm agent have been implemented. They are
+Agent/SRM/Fixed and Agent/SRM/Adaptive. See section \ref{sec:extensions}
+for details about these extensions.
+
+
+\code{ns_ attach-agent <node> <srm-agent>}\\
+This attaches the srm agent instance to the given <node>.
+
+
+\code{set grp [Node allocaddr]\\
+$srm set dst_ $grp}\\
+This assigns the srm agent to a multicast group represented by the mcast
+address <grp>.
+
+
+Configuration parameters for srm agent may be set as follows:
+\code{$srm set fid_ <flow-id>\\
+$srm set tg_ <traffic-generator-instance>\\
+.. etc}\\
+For all possible parameters and their default values please lookup \ns/tcl/mcast/srm.tcl
+and \ns/tcl/mcast/srm-adaptive.tcl.
+
+
+\code{set exp [new Application/Traffic/Exponential]\\
+$exp attach-agent $srm}\\
+This command attaches a traffic generator (an exponential one in this example),
+to the srm agent.
+
+\code{$srm start\\
+$exp start}\\
+These commands start the srm agent and traffic generator. Note that the srm
+agent and traffic generator have to be started separately. Alternatively, the
+traffic generator may be started through the agent as follows:\\
+\code{$srm start-source}.
+
+See \ns/tcl/ex/srm.tcl for a simple example of setting up a SRM agent.
+
+\end{flushleft}
 
 \endinput
 

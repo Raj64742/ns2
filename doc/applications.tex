@@ -457,5 +457,39 @@ from an exponential distribution with average equal to \code{interval_}.
 If \code{interval_} is zero, then inter-arrival times are chosen
 according to the tcplib distribution (see tcplib-telnet.cc).
 The start method starts the packet generation process.
- 
+
+
+\section{Commands at a glance}
+\label{sec:appscommand}
+
+Following are some transport agent and application related commands
+commonly used in simulation scripts:
+\begin{flushleft}
+\code{set tcp1 [new Agent/TCP]\\
+$ns_ attach-agent $node_(src) $tcp1\\
+set sink1 [new Agent/TCPSink]\\
+$ns_ attach-agent $node_(snk) $sink1\\
+$ns_ connect $tcp1 $sink1}\\
+This creates a source tcp agent and a destination sink agent. Both the transport
+agents are attached to their resoective nodes. Finally an end-to-end connection
+is setup between the src and sink.
+
+
+\code{set ftp1 [new Application/FTP]\\
+$ftp1 attach-agent $agent}\\
+or
+\code{set ftp1 [$agent attach-app FTP]}\\
+Both the above commands achieve the same. An application (ftp in this example)
+is created and attached to the source agent. An application can be of two
+types, a traffic generator or a simulated application.
+Types of Traffic generators currently present are: \\
+Application/Traffic/Exponential, Application/Traffic/Pareto,
+Application/Traffic/CBR, and Application/Traffic/Trace. See section \ref{sec:trafgenclass}
+for details.\\
+Types of simulated applications currently implemented are:\\
+Application/FTP and Application/Telnet. See  section \ref{sec:simapps} for
+details.
+
+\end{flushleft}
+
 \endinput

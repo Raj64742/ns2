@@ -147,6 +147,7 @@ Details on configuring these application source objects are in
 Section~\ref{sec:simapps}.
 
 \subsection{Other Configuration Parameters}
+\label{sec:other-tcp-config}
 
 In addition to the \code{window_} parameter listed above,
 the TCP agent supports additional configuration variables.
@@ -333,6 +334,7 @@ congestion control algorithms (e.g., Tahoe, SACK, Vegas, etc.).
 
 
 \subsection{Simple Configuration}
+\label{sec:simpleconfig}
 Running an Full TCP simulation requires
 creating and configuring the agent,
 attaching an application-level data source (a traffic generator), and
@@ -543,5 +545,51 @@ by default using the regular trace object.
 By enabling the flag {\tt show\_tcphdr\_} on the trace object
 (see section~ref{sec:traceformat}), 3 additional header fields are
 written to the trace file: ack number, tcp-specific flags, and header length.
+
+
+\section{Commands at a glance}
+\label{sec:tcpcommand}
+
+The following is a list of commands used to setup/manipulate TCP flows
+for simulations:
+\begin{flushleft}
+\code{set tcp0 [new Agent/TCP]}\\
+This creates an instance of a TCP agent. There are several flavors of
+TCP-sender and TCP-receiver (or sink) agent currently implemented in ns.
+TCP-senders currently available are:
+Agent/TCP, Agent/TCP/Reno, Agent/TCP/NewReno, Agent/TCP/Sack1, Agent/TCP/Vegas,
+Agent/TCP/Fack. \\
+TCP-receivers currently available are:
+Agent/TCPSink, Agent/TCPSink/DelAck, Agent/TCPSink/Sack1,
+Agent/TCPSink/Sack1/DelAck.\\
+There is also a two-way implementation of tcp called Agent/TCP/FullTcp. For
+details on the different TCP flavors see earlier sections of this chapter.
+
+
+Configuration parameters for TCP flows maybe set as follows:
+\code{$tcp set window_ <wnd-size>}\\
+For all possible configuration parameters available for TCP see section
+\ref{sec:other-tcp-config}. The default configuration values can also be
+found in \ns/tcl/lib/ns-default.tcl.
+
+
+Following is an example of a simple TCP connection setup:
+\begin{program}
+set tcp [new Agent/TCP] \; create tcp agent;
+$ns_ attach-agent $node_(s1) $tcp \; bind src to node;
+$tcp set fid_ 0   \; set flow ID field;
+set ftp [new Application/FTP]   \; create ftp traffic;
+$ftp attach-agent $tcp  \; bind ftp traffic to tcp agent;
+set sink [new Agent/TCPSink] \; create tcpsink agent;
+$ns_ attach-agent $node_(k1) $sink \; bind sink to node;
+$sink set fid_ 0  \; set flow ID field;
+$ns_ connect $src $sink \; active connection src to sink;
+$ns_ at $start-time "$ftp start"  \; start ftp flow;
+\end{program}
+
+For an example of setting up a full-tcp connection see section
+\ref{sec:simpleconfig}.
+
+\end{flushleft}
 
 \endinput

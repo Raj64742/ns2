@@ -41,4 +41,46 @@ function.
         $ns connect $udp0 $null0
         $ns at 1.0 "$cbr0 start"
 \end{program}
+
+\section{Commands at a glance}
+\label{sec:udpcommand}
+
+The following commands are used to setup UDP agents in simulation scripts:
+\begin{flushleft}
+\code{set udp0 [new Agent/UDP]}\\
+This creates an instance of the UDP agent.
+
+
+\code{$ns_ attach-agent <node> <agent>}\\
+This is a common command used to attach any <agent> to a given <node>.
+
+
+\code{$traffic-gen attach-agent <agent>}\\
+This a class Application/Traffic/<traffictype> method which connects the
+traffic generator to the given <agent>. For example, if we want to setup
+a CBR traffic flow for the udp agent, udp1, we given the following commands\\
+\code{set cbr1 [new Application/Traffic/CBR]\\
+$cbr1 attach-agent $udp1}
+
+
+\code{$ns_ connect <src-agent> <dst-agent>}\\
+This command sets up an end-to-end connection between two agents (at the
+transport layer).
+
+
+\code{$udp set packetSize_ <pktsize>\\
+$udp set dst_addr_ <address>\\
+$udp set dst_port_ <portnum>\\
+$udp set class_ <class-type>\\
+$udp set ttl_ <time-to-live>\\
+..... etc }
+
+There are different parameter values that may be set as shown above for udp
+agents. The default values can be found in \ns/tcl/lib/ns-default.tcl.
+
+For a typical example of setting up an UDP agent used in a simulation, see
+the above section \ref{sec:udpAgents}.
+
+\end{flushleft}
+
 \endinput

@@ -296,6 +296,22 @@ must be a receiver application.
   \label{fig:session}
 \end{figure}
 
+
+\section{Commands at a glance}
+\label{sec:sessioncommand}
+
+Following is a list of session-level related commands:
+\begin{flushleft}
+\code{set ns [new SessionSim]}\\
+This command creates an instance of the sessionmode simulator.
+
+
+\code{$ns_ create-session <node> <agent>}\\
+This command creates and attaches a session-helper, which is basically a
+replicator, for the source <agent> created at the <node>.
+
+\end{flushleft} 
+
 \endinput
 
 ### Local Variables:

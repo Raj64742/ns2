@@ -137,6 +137,7 @@ its live traffic to the {\tt \$a1} agent via the current
 route through the simulated topology.
 
 \section{Network Objects}
+\label{sec:networkobj}
 
 Network objects provide access to a live network.
 There are several forms of network objects, depending on the
@@ -349,5 +350,24 @@ out via the raw IP network object:
         puts "okey"
         $ns run
 \end{verbatim}
+
+
+\section{Commands at a glance}
+\label{sec:emulationcommand}
+
+Following is a list of emulation related commands:
+\begin{flushleft}
+\code{$ns_ use-scheduler RealTime}\\
+This command sets up the real-time scheduler. Note that a real-time scheduler
+should be used with any emulation facility. Otherwise it may result the simulated network
+running faster than real-time.
+
+\code{set netob [new Network/<network-object-type>]}\\
+This command creates an instance of a network object. Network objects are used
+to access a live network. Currently the types of network objects  available
+are Network/Pcap/Live, Network/IP and Network/IP/UDP. See section
+\ref{sec:networkobj} for details on network objects.
+
+\end{flushleft}
 
 \endinput
