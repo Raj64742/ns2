@@ -220,7 +220,10 @@ char *Simulator::append_addr(int level, int *addr) {
 			sprintf(tmp, "%d.",addr[i-2]);
 			strcat(a, tmp);
 		}
-		str = new char[strlen(a)];
+		// To fix the bug of writing beyond the end of 
+		// allocated memory for hierarchical addresses (xuanc, 1/14/02)
+		// contributed by Joerg Diederich <dieder@ibr.cs.tu-bs.de>
+		str = new char[strlen(a) + 1];
 		strcpy(str, a);
 		return (str);
 	}
