@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.87 2001/07/03 21:38:52 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.88 2001/07/11 21:25:36 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -164,6 +164,7 @@ FullTcpAgent::delay_bind_init_all()
         delay_bind_init_one("pipectrl_");
         delay_bind_init_one("open_cwnd_on_pack_");
         delay_bind_init_one("halfclose_");
+        delay_bind_init_one("nopredict_");
 
 	TcpAgent::delay_bind_init_all();
        
@@ -188,6 +189,7 @@ FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, Tc
         if (delay_bind_bool(varName, localName, "pipectrl_", &pipectrl_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "open_cwnd_on_pack_", &open_cwnd_on_pack_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "halfclose_", &halfclose_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "nopredict_", &nopredict_, tracer)) return TCL_OK;
 
         return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
@@ -868,8 +870,9 @@ FullTcpAgent::predict_ok(Packet* pkt)
 	int p5 = (tcph->seqno() == rcv_nxt_);		// in-order data
 	int p6 = (t_seqno_ == maxseq_);			// not re-xmit
 	int p7 = (!ecn_ || fh->ecnecho() == 0);		// no ECN
+	int p8 = (tcph->sa_length() == 0);		// no SACK info
 
-	return (p1 && p2 && p3 && p4 && p5 && p6 && p7);
+	return (p1 && p2 && p3 && p4 && p5 && p6 && p7 && p8);
 }
 
 /*
@@ -963,7 +966,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int dupseg = FALSE;
 	int todrop = 0;
 
-
 	last_state_ = state_;
 
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
@@ -1004,7 +1006,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		now(), name());
 	}
 
-	if (predict_ok(pkt)) {
+	if (!nopredict_ && predict_ok(pkt)) {
                 /*
                  * If last ACK falls within this segment's sequence numbers,
                  * record the timestamp.
@@ -1074,7 +1076,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		}
 	}
 
-	// header predication failed (or pure ACK out of valid range)...
+	// header predication failed (or pure ACK out of valid range, or SACK present, etc)...
 	// do slow path processing
 
 	switch (state_) {
