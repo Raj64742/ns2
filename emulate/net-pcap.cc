@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.11 1998/02/28 00:04:18 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.12 1998/02/28 02:44:22 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -105,7 +105,7 @@ public:
 	int schannel() { return(pfd_); }
 	virtual int command(int argc, const char*const* argv);
 
-	virtual int open(const char*) = 0;
+	virtual int open(int mode, const char *) = 0;
 	virtual int skiphdr() = 0;
 	int recv(u_char *buf, int len, sockaddr&);		// get from net
 	int send(u_char *buf, int len);			// write to net
@@ -149,8 +149,8 @@ public:
 	NetworkAddress& laddr() { return (linkaddr_); }
 	NetworkAddress& naddr() { return (netaddr_); }
 protected:
-	int open();
-	int open(const char*);
+	int open(int mode);
+	int open(int mode, const char*);
 	int command(int argc, const char*const* argv);
 	int skiphdr();
 	const char*	autodevname();
@@ -175,7 +175,7 @@ private:
 
 class PcapFileNetwork : public PcapNetwork {
 public:
-	int open(const char*);
+	int open(int mode, const char *);
 	int skiphdr() { return 0; }	// XXX check me
 protected:
 	int command(int argc, const char*const* argv);
@@ -349,11 +349,11 @@ int PcapNetwork::command(int argc, const char*const* argv)
 
 #include <net/if.h>
 int
-PcapLiveNetwork::open(const char *devname)
+PcapLiveNetwork::open(int mode, const char *devname)
 {
 	close();
 	pcap_ = pcap_open_live((char*) devname, snaplen_, promisc_,
-		int(timeout_ * 1000.), errbuf_, O_RDWR);
+		int(timeout_ * 1000.), errbuf_, mode);
 
 	if (pcap_ == NULL) {
 		fprintf(stderr,
@@ -361,6 +361,7 @@ PcapLiveNetwork::open(const char *devname)
 			name(), devname, errbuf_);
 		return -1;
 	}
+	mode_ = mode;
 	dlink_type_ = pcap_datalink(pcap_);
 	pfd_ = pcap_fileno(pcap_);
 	strncpy(srcname_, devname, sizeof(srcname_)-1);
@@ -445,9 +446,9 @@ PcapLiveNetwork::bindvars()
 }
 
 int
-PcapLiveNetwork::open()
+PcapLiveNetwork::open(int mode)
 {
-	return (open(autodevname()));
+	return (open(mode, autodevname()));
 }
 
 int PcapLiveNetwork::command(int argc, const char*const* argv)
@@ -455,22 +456,25 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
-		// $obj open
-		if (strcmp(argv[1], "open") == 0) {
-			if (open() < 0)
-				return (TCL_ERROR);
-			tcl.result(srcname_);
-			return (TCL_OK);
-		}
 		if (strcmp(argv[1], "linkaddr") == 0) {
 			/// XXX: only for ethernet now
 			tcl.result(Ethernet::etheraddr_string(linkaddr_.addr_));
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
-		// $obj open "devicename"
+		// $obj open mode
 		if (strcmp(argv[1], "open") == 0) {
-			if (open(argv[2]) < 0)
+			int mode = parsemode(argv[2]);
+			if (open(mode) < 0)
+				return (TCL_ERROR);
+			tcl.result(srcname_);
+			return (TCL_OK);
+		}
+	} else if (argc == 4) {
+		// $obj open mode devicename
+		if (strcmp(argv[1], "open") == 0) {
+			int mode = parsemode(argv[2]);
+			if (open(mode, argv[3]) < 0)
 				return (TCL_ERROR);
 			tcl.result(srcname_);
 			return (TCL_OK);
@@ -485,7 +489,7 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 //
 
 int
-PcapFileNetwork::open(const char *filename)
+PcapFileNetwork::open(int mode, const char *filename)
 {
 
 	close();
@@ -496,6 +500,7 @@ PcapFileNetwork::open(const char *filename)
 			name(), filename, errbuf_);
 		return -1;
 	}
+	mode_ = O_RDONLY;	// sorry, that's all for now
 	pfd_ = pcap_fileno(pcap_);
 	strncpy(srcname_, filename, sizeof(srcname_)-1);
 	state_ = PNET_PSTATE_ACTIVE;
@@ -506,10 +511,11 @@ int PcapFileNetwork::command(int argc, const char*const* argv)
 {
 
 	Tcl& tcl = Tcl::instance();
-	if (argc == 3) {
-		// $obj open filename
+	if (argc == 4) {
+		// $obj open mode filename
 		if (strcmp(argv[1], "open") == 0) {
-			if (open(argv[2]) < 0)
+			int mode = parsemode(argv[2]);
+			if (open(mode, argv[3]) < 0)
 				return (TCL_ERROR);
 			tcl.result("1");
 			return (TCL_OK);

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.3 1998/02/21 03:03:10 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.4 1998/02/28 02:44:31 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -88,16 +88,20 @@ int Network::command(int argc, const char*const* argv)
 {
 	if (argc == 2) {
 		Tcl& tcl = Tcl::instance();
-		char* cp = tcl.buffer();
 		if (strcmp(argv[1], "flush") == 0) {
-			unsigned char buf[1024];
-			sockaddr from;		    
-			int rchan = rchannel();
-			while (recv(buf, sizeof(buf), from) > 0)
-				;
-		} else
-			return (TclObject::command(argc, argv));
-		tcl.result(cp);
+			if (mode_ == O_RDWR || mode_ == O_RDONLY) {
+				int rchan = rchannel();
+				unsigned char buf[1024];
+				sockaddr from;		    
+				while (recv(buf, sizeof(buf), from) > 0)
+					;
+			}
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "mode") == 0) {
+			tcl.result(modename(mode_));
+			return (TCL_OK);
+		}
 		return (TCL_OK);
 	}
 	return (TclObject::command(argc, argv));
@@ -131,4 +135,31 @@ Network::nonblock(int fd)
         }
 #endif
 	return 0;
+}
+
+int
+Network::parsemode(const char *mname)
+{
+	if (strcmp(mname, "readonly") == 0) {
+		return (O_RDONLY);
+	} else if (strcmp(mname, "readwrite") == 0) {
+		return (O_RDWR);
+	} else if (strcmp(mname, "writeonly") == 0) {
+		return (O_WRONLY);
+	}
+	return (::atoi(mname));
+}
+
+char *
+Network::modename(int mode)
+{
+	switch (mode) {
+	case O_RDONLY:
+		return ("readonly");
+	case O_WRONLY:
+		return ("writeonly");
+	case O_RDWR:
+		return ("readwrite");
+	}
+	return ("unknown");
 }

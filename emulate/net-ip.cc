@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.7 1998/02/28 00:01:30 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.8 1998/02/28 02:44:07 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -96,7 +96,7 @@ class IPNetwork : public Network {
 	Socket rsock_;
 	Socket ssock_;
 
-	int open();
+	int open(int mode);
 	int close();
 	static void getaddr(Socket, sockaddr_in*);	// sock -> addr discovery
 	time_t last_reset_;
@@ -234,6 +234,9 @@ UDPIPNetwork::send(u_char* buf, int len)
 int
 IPNetwork::recv(u_char* buf, int len, sockaddr& sa)
 {
+
+printf("RAW IPNetwork::recv!!!\n");
+abort();
 	int fromlen = sizeof(sa);
 	int cc = ::recvfrom(rsock_, (char*)buf, len, 0, &sa, &fromlen);
 	if (cc < 0) {
@@ -361,12 +364,6 @@ int IPNetwork::command(int argc, const char*const* argv)
 			close();
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "open") == 0) {
-			if (open() < 0)
-				return (TCL_ERROR);
-			return (TCL_OK);
-		}
-
 		char* cp = tcl.result();
 		if (strcmp(argv[1], "destaddr") == 0) {
 			strcpy(cp, inet_ntoa(destaddr_));
@@ -385,12 +382,19 @@ int IPNetwork::command(int argc, const char*const* argv)
 			strcpy(cp, inet_ntoa(localaddr_));
 			return (TCL_OK);
 		}
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "open") == 0) {
+			int mode = parsemode(argv[2]);
+			if (open(mode) < 0)
+				return (TCL_ERROR);
+			return (TCL_OK);
+		}
 	}
 	return (Network::command(argc, argv));
 }
 
 int
-IPNetwork::open()
+IPNetwork::open(int mode)
 {
 	// obtain a raw socket we can use to send ip datagrams
 	Socket fd = socket(AF_INET, SOCK_RAW, IPPROTO_IP);
@@ -422,9 +426,13 @@ IPNetwork::open()
 		perror("connect");
 	}
 	rsock_ = ssock_ = fd;
+	mode_ = mode;
 	return 0;
 }
 
+//
+// open the sending side (open for writing)
+//
 int
 UDPIPNetwork::open(in_addr& addr, u_int16_t port, int ttl)
 {
@@ -575,7 +583,12 @@ void IPNetwork::reset()
 		last_reset_ = t;
 		if (ssock_ >= 0) {
 			(void)::close(ssock_);
-			open();
+			if (open(mode_) < 0) {
+				fprintf(stderr,
+				  "IPNetwork(%s): couldn't reset\n");
+				mode_ = -1;
+				return;
+			}
 		}
 	}
 }
@@ -603,6 +616,8 @@ UDPIPNetwork::openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local)
 		perror("socket");
 		exit(1);
 	}
+
+	mode_ = (mode_ == O_WRONLY) ? O_RDWR : mode_;
 	nonblock(fd);
 	int on = 1;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&on,
@@ -770,6 +785,9 @@ UDPIPNetwork::openssock(in_addr& addr, u_short port, int ttl)
 		perror("socket");
 		exit(1);
 	}
+
+	mode_ = (mode_ == O_RDONLY) ? O_RDWR : mode_;
+
 	nonblock(fd);
 
 	struct sockaddr_in sin;
