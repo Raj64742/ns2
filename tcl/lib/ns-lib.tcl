@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.137 1999/02/04 06:13:25 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.138 1999/02/16 21:13:21 yuriy Exp $
 
 #
 
@@ -46,7 +46,7 @@
 proc warn msg {
 	global warned_
 	if ![info exists warned_($msg)] {
-		puts stderr $msg
+		puts stderr "warning: $msg"
 		set warned_($msg) 1
 	}
 }
@@ -194,6 +194,11 @@ Simulator instproc node args {
                         % \$ns multicast"
                 $self multicast
                 Simulator unset EnableMcast_
+        }
+        if { [Simulator info vars NumberInterfaces_] != "" } {
+                warn "Flag variable Simulator::NumberInterfaces_ discontinued.\n\t\
+                      Setting (or not) this variable will not affect the simulations."
+                Simulator unset NumberInterfaces_
         }
 	set node [new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
