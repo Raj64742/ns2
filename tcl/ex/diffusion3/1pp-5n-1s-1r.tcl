@@ -131,15 +131,15 @@ $node_(4) set Z_ 0.000000000000
 
 
 # 1 ping sender
-for {set i 1} {$i <= $opt(sndr)} {incr i} {
-    set src_($i) [new Application/DiffApp/PingSender]
-    $ns_ attach-diffapp $node_([expr $i + 2]) $src_($i)
+for {set i 0} {$i < $opt(sndr)} {incr i} {
+    set src_($i) [new Application/DiffApp/PingSender/OPP]
+    $ns_ attach-diffapp $node_([expr $i + 1]) $src_($i)
     $ns_ at [expr 0.123 * [expr 1+$i]] "$src_($i) publish"
 }
 
 # 1 ping receiver
 for {set i 0} {$i < $opt(rcvr)} {incr i} {
-    set snk_($i) [new Application/DiffApp/PingReceiver]
+    set snk_($i) [new Application/DiffApp/PingReceiver/OPP]
     $ns_ attach-diffapp $node_([expr $opt(nn)-1 -$i]) $snk_($i)
     $ns_ at [expr 1.156*[expr 1+$i]] "$snk_($i) subscribe"
 

@@ -132,13 +132,13 @@ $node_(4) set Z_ 0.000000000000
 
 
 # 1 ping sender
-set src_(0) [new Application/DiffApp/PingSender]
+set src_(0) [new Application/DiffApp/PingSender/TPP]
 $ns_ attach-diffapp $node_(0) $src_(0)
 $ns_ at 0.123 "$src_(0) publish"
 
 
 # 1 ping receiver
-set snk_(0) [new Application/DiffApp/PingReceiver]
+set snk_(0) [new Application/DiffApp/PingReceiver/TPP]
 $ns_ attach-diffapp $node_(4) $snk_(0)
 $ns_ at 1.456 "$snk_(0) subscribe"
 
