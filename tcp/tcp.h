@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.25 1997/08/19 18:45:50 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.26 1997/08/26 03:42:18 padmanab Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -145,6 +145,7 @@ struct hdr_tcpasym {
 #define TCP_TIMER_DELSND	1
 #define TCP_TIMER_BURSTSND	2
 #define TCP_TIMER_DELACK	3
+#define TCP_TIMER_RESET         4
 
 class TcpAgent;
 
@@ -178,6 +179,7 @@ public:
 
 	virtual void recv(Packet*, Handler*);
 	virtual void timeout(int tno);
+	virtual void timeout_nonrtx(int tno);
 	int command(int argc, const char*const* argv);
 
 	void trace(TracedVar* v);
@@ -209,7 +211,7 @@ protected:
 	/*XXX start/stop */
 	virtual void output(int seqno, int reason = 0);
 	virtual void send_much(int force, int reason, int maxburst = 0);
-	void set_rtx_timer();
+	virtual void set_rtx_timer();
 	void reset_rtx_timer(int mild);
 	void reset_rtx_timer(int mild, int backoff);
 	virtual void newtimer(Packet* pkt);
@@ -274,6 +276,10 @@ protected:
 	int slow_start_restart_;   /* boolean: re-init cwnd after connection 
 				      goes idle.  On by default.
 				      */
+	int restart_bugfix_;    /* ssthresh is cut down because of
+				   timeouts during a connection's idle period.
+				   Setting this boolean fixes this problem.
+				   For now, it is off by default. */ 
 	char finish_[100];      /* name of Tcl proc to call at finish time */
 	int closed_;            /* whether this connection has closed */
 };
