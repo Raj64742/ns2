@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.18 2000/09/15 20:46:12 haoboy Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.19 2000/11/02 04:03:24 haoboy Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -114,10 +114,18 @@ public:
 		{ return (-log(uniform())); }
 	inline double exponential(double r)
 		{ return (r * exponential());}
-	inline double pareto(double scale, double shape)
-		{ return (scale * (1.0/pow(uniform(), 1.0/shape)));}
-        inline double paretoII(double scale, double shape)
-                { return (scale * ((1.0/pow(uniform(), 1.0/shape)) - 1));}
+	// See "Wide-area traffic: the failure of poisson modeling", Vern 
+	// Paxson and Sally Floyd, IEEE/ACM Transaction on Networking, 3(3),
+	// pp. 226-244, June 1995, on characteristics of counting processes 
+	// with Pareto interarrivals.
+	inline double pareto(double scale, double shape) { 
+		// When 1 < shape < 2, its mean is scale**shape, its 
+		// variance is infinite.
+		return (scale * (1.0/pow(uniform(), 1.0/shape)));
+	}
+        inline double paretoII(double scale, double shape) { 
+		return (scale * ((1.0/pow(uniform(), 1.0/shape)) - 1));
+	}
 	double normal(double avg, double std);
 	inline double lognormal(double avg, double std) 
                 { return (exp(normal(avg, std))); }
