@@ -68,6 +68,8 @@ class WebServer : public TimerHandler{
 	void set_rate(double);
 	// Set server function mode
 	void set_mode(int);
+	// Set the limit for job queue
+	void set_queue_limit(int);
 
 	// Handling incoming job
 	double job_arrival(int, Node *, Agent *, Agent *, int, void *);
@@ -90,6 +92,8 @@ class WebServer : public TimerHandler{
 
 	// Job queue
 	job_s *head, *tail;
+	int queue_size_;
+	int queue_limit_;
 
 	virtual void expire(Event *e);
 

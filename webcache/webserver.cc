@@ -48,7 +48,9 @@ WebServer::WebServer(WebTrafPool *webpool) {
   
   // initialize the job queue
   head = tail = NULL;
-  
+  queue_size_ = 0;
+  queue_limit_ = 0;
+
   //cancel();
 }
 
@@ -61,6 +63,12 @@ void WebServer::set_rate(double s_rate) {
 void WebServer::set_mode(int s_mode) {
   mode_ = s_mode;
 }
+
+// Set the limit for job queue
+void WebServer::set_queue_limit(int limit) {
+  queue_limit_ = limit;
+}
+
 
 // Return server's node id
 int WebServer::get_nid() {
@@ -81,31 +89,39 @@ double WebServer::job_arrival(int obj_id, Node *clnt, Agent *tcp, Agent *snk, in
   if (! mode_) {
     web_pool_->launchResp(obj_id, node, clnt, tcp, snk, size, data);
 
+    return 1;
+  }
+
+  if (!queue_limit_ || queue_size_ < queue_limit_) {
+    // Insert the new job to the job queue
+    job_s *new_job = new(job_s);
+    new_job->obj_id = obj_id;
+    new_job->clnt = clnt;
+    new_job->tcp = tcp;
+    new_job->snk = snk;
+    new_job->size = size;
+    new_job->data = data;
+    new_job->next = NULL; 
+
+    // always insert the new job to the tail.
+    if (tail)
+      tail->next = new_job;
+    else
+      head = new_job;
+    tail = new_job;
+
+    queue_size_++;
+  } else {
+    // drop the incoming job
+    //printf("server drop job\n");
     return 0;
   }
-  
-  // Insert the new job to the job queue
-  job_s *new_job = new(job_s);
-  new_job->obj_id = obj_id;
-  new_job->clnt = clnt;
-  new_job->tcp = tcp;
-  new_job->snk = snk;
-  new_job->size = size;
-  new_job->data = data;
-  new_job->next = NULL;
-  
-  // always insert the new job to the tail.
-  if (tail)
-    tail->next = new_job;
-  else
-    head = new_job;
-  tail = new_job;
-  
+
   // Schedule the dequeue time when there's no job being processed
   if (!busy_) 
     schedule_next_job();
   
-  return 0;
+  return 1;
 }
 
 
@@ -121,6 +137,7 @@ double WebServer::job_departure() {
       head = tail = NULL;
     
     delete(p);
+    queue_limit_--;
   }
   
   // Schedule next job

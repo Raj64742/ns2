@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.25 2003/01/05 22:55:02 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.26 2003/02/06 16:59:54 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -453,6 +453,15 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			}
 			
 			return (TCL_OK);
+		} else if (strcmp(argv[1], "set-server-qlimit") == 0) {
+			// <obj> set-server-qlimit <qlimit> 
+			int qlimit = atoi(argv[2]);
+
+			for (int n = 0; n < nServer_; n++) {
+				server_[n].set_queue_limit(qlimit);
+			}
+			
+			return (TCL_OK);
 		}
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "set-server") == 0) {
@@ -522,6 +531,17 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 				return (TCL_ERROR);
 
 			server_[n].set_mode(mode);
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "set-server-qlimit") == 0) {
+			// <obj> set-server-qlimit <server> <qlimit>
+			int sid = atoi(argv[2]);
+			int qlimit = atoi(argv[3]);
+
+			int n = find_server(sid);
+			if (n >= nServer_) 
+				return (TCL_ERROR);
+
+			server_[n].set_queue_limit(qlimit);
 			return (TCL_OK);
 		} 
 	} else if (argc == 9) {
