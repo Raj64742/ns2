@@ -773,7 +773,8 @@ SRNodeNew instproc init {args} {
     if { [Simulator set RouterTrace_] == "ON" } {
 	# Recv Target
 	set rcvT [$ns_ mobility-trace Recv "RTR" $self]
-        if [info exists namtraceFile_] {
+        set namtraceFile_ [$ns_ set namtraceAllFile_]
+        if {  $namtraceFile_ != "" } {
             $rcvT namattach $namtraceFile_
         }
 	$rcvT target $dsr_agent_
@@ -847,10 +848,12 @@ SRNodeNew instproc add-interface {args} {
 
     $dsr_agent_ mac-addr [$mac_(0) id]
 
+
     if { [Simulator set RouterTrace_] == "ON" } {
 	# Send Target
 	set sndT [$ns_ mobility-trace Send "RTR" $self]
-        if [info exists namtraceFile_] {
+        set namtraceFile_ [$ns_ set namtraceAllFile_]
+        if {$namtraceFile_ != "" } {
             $sndT namattach $namtraceFile_
         }
 	$sndT target $ll_(0)
