@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.51 1999/09/16 23:16:10 heideman Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.52 1999/09/17 21:19:30 haoboy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.51 1999/09/16 23:16:10 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.52 1999/09/17 21:19:30 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -311,7 +311,7 @@ ListScheduler::deque()
 
 #include "heap.h"
 
-Heap::Heap(int size =HEAP_DEFAULT_SIZE)
+Heap::Heap(int size)
 		: h_s_key(0), h_size(0), h_maxsize(size), h_iter(0)
 {
 	h_elems = new Heap_elem[h_maxsize];
