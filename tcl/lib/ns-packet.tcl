@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.45 2001/08/03 16:43:20 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.46 2002/01/14 20:05:43 xuanc Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -142,6 +142,7 @@ foreach prot {
 	rtProtoDV
 	rtProtoLS
 	SR
+	Src_rt
   	SRM 
   	SRMEXT
 	Snoop
@@ -152,7 +153,7 @@ foreach prot {
 	TORA
 	GAF
 	UMP 
-	PUSHBACK
+	Pushback
 	NV
 } {
 	add-packet-header $prot
