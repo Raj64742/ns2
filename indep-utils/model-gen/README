@@ -61,9 +61,10 @@ ModelGen contains a set of programs, including
 (4) outputCDF
 (5) time-series.pl
 
-The files http_connect and http_active are 2 C programs contributed by
+The files http_connect and http_active are 2 C programs  
+written and contributed by Don Smith <smithfd@cs.unc.edu> and
 Felix Hernandez Campos <fhernand@cs.unc.edu> from The University
-of Northern Carolina at Chapel Hill. These two programs were also used
+of North Carolina at Chapel Hill. These two programs were also used
 for their SIGMETRICS 2001 paper "What TCP/IP Protocol Headers Can Tell 
 Us About the Web". The program http_connect is used to performs an analysis
 of tcpdump output and produce a summary of the TCP connections used for
