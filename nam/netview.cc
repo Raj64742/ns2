@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netview.cc,v 1.3 1997/03/29 06:20:09 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netview.cc,v 1.4 1997/08/10 07:50:06 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -46,7 +46,7 @@ extern "C" {
 #include "bbox.h"
 #include "netview.h"
 #include "netmodel.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "paint.h"
 #include "nam-packet.h"
 

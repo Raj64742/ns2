@@ -32,13 +32,13 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tracegen.h,v 1.2 1997/07/24 22:15:57 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tracegen.h,v 1.3 1997/08/10 07:50:03 mccanne Exp $
  */
 
 #ifndef ns_tracegen_h
 #define ns_tracegen_h
 
-#include "Tcl.h"
+#include "tclcl.h"
 
 
 class TraceGen : public TclObject {

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.cc,v 1.2 1997/07/23 04:45:36 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.cc,v 1.3 1997/08/10 07:49:43 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -48,6 +48,7 @@ static const char rcsid[] =
 #include <errno.h>
 #include <string.h>
 #ifdef WIN32
+#include <windows.h>
 #include <winsock.h>
 #else
 #include <sys/socket.h>

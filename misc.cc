@@ -35,15 +35,17 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.4 1997/07/21 21:31:05 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.5 1997/08/10 07:49:42 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <math.h>
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 #include <ctype.h>
 #include "scheduler.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "random.h"
 
 class RandomCommand : public TclCommand {
@@ -117,7 +119,7 @@ public:
 	}
 };
 
-void init_misc()
+void init_misc(void)
 {
 	(void)new VersionCommand;
 	(void)new RandomCommand;

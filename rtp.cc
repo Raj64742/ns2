@@ -33,14 +33,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.10 1997/07/22 21:23:44 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.11 1997/08/10 07:49:52 mccanne Exp $";
 #endif
 
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "Tcl.h"
+#include "tclcl.h"
 #include "agent.h"
 #include "packet.h"
 #include "cbr.h"
@@ -102,7 +102,7 @@ void RTPAgent::timeout(int)
 
 void RTPAgent::recv(Packet* p, Handler*)
 {
-	session_->recv(p);
+	session_->recv(p, 0);
 }
 
 int RTPAgent::command(int argc, const char*const* argv)
@@ -151,5 +151,5 @@ void RTPAgent::sendpkt()
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;
 	rh->srcid() = session_->srcid();
-	target_->recv(p);
+	target_->recv(p, 0);
 }

@@ -33,13 +33,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.4 1997/07/21 21:09:58 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.5 1997/08/10 07:49:45 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
-#include "Tcl.h"
+#include "tclcl.h"
 #include "object.h"
 
 /*XXX*/

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.15 1997/07/28 03:54:03 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.16 1997/08/10 07:49:35 mccanne Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -116,7 +116,7 @@ Channel::send(Packet* p, double txtime)
 		return 1;
 	}
 	pkt_ = p;
-	trace_ ? trace_->recv(p) : recv(p);
+	trace_ ? trace_->recv(p, 0) : recv(p, 0);
 	return 0;
 }
 
@@ -154,7 +154,7 @@ DuplexChannel::send(Packet* p, double txtime)
 {
 	double now = Scheduler::instance().clock();
 	txstop_ = now + txtime;
-	trace_ ? trace_->recv(p) : recv(p);
+	trace_ ? trace_->recv(p, 0) : recv(p, 0);
 	return 0;
 }
 

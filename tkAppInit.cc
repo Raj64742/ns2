@@ -13,7 +13,7 @@
  * SCCS: @(#) tkAppInit.c 1.21 96/03/26 16:47:07
  */
 
-#include "Tcl.h"
+#include "tclcl.h"
 #include "tk.h"
 
 extern init_misc();

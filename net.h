@@ -31,14 +31,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.h,v 1.3 1997/07/23 02:23:24 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.h,v 1.4 1997/08/10 07:49:44 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_net_h
 #define ns_net_h
 
 #include "inet.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "iohandler.h"
 #include "timer.h"
 

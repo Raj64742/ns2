@@ -22,8 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /usr/src/mash/repository/vint/ns-2/net-interface.cc,v 1.2 199
-7/07/23 00:57:03 kfall Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.cc,v 1.5 1997/08/10 07:49:36 mccanne Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"

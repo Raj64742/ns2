@@ -30,13 +30,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/integrator.h,v 1.4 1997/07/23 02:18:08 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/integrator.h,v 1.5 1997/08/10 07:49:39 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_integrator_h
 #define ns_integrator_h
 
-#include "Tcl.h"
+#include "tclcl.h"
 
 class Integrator : public TclObject {
 public:

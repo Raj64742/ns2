@@ -38,12 +38,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.7 1997/07/22 00:52:15 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.8 1997/08/10 07:49:51 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <assert.h>
-#include "Tcl.h"
+#include "tclcl.h"
 
 #define INFINITY 0x3fff
 #define INDEX(i, j, N) ((N) * (i) + (j))

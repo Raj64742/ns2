@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.6 1997/07/24 00:55:16 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.7 1997/08/10 07:49:56 mccanne Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -47,7 +47,7 @@ static class SnoopClass : public TclClass {
 } snoop_class;
 
 
-Snoop::Snoop(int = 0) : LL(), 
+Snoop::Snoop(int makeHandler) : LL(), 
 	fstate_(0), lastWin_(0), lastSeen_(-1), lastSize_(0), lastAck_(-1), 
 	expNextAck_(0), expDupacks_(0), bufhead_(0), buftail_(0),
 	toutPending_(0)

@@ -52,7 +52,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.8 1997/07/25 09:10:33 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.9 1997/08/10 07:49:50 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -63,7 +63,7 @@
 #include <sys/types.h>
 
 #include "queue.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "packet.h"
 #include "random.h"
 #include "flags.h"

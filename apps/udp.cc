@@ -17,12 +17,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.2 1997/07/22 21:43:21 kfall Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.3 1997/08/10 07:50:04 mccanne Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
 #include "rtp.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "packet.h"
 #include "random.h"
 

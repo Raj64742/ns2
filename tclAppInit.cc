@@ -13,9 +13,10 @@
  * SCCS: @(#) tclAppInit.c 1.17 96/03/26 12:45:29
  */
 
-#include "Tcl.h"
+#include "tclcl.h"
 
-extern init_misc();
+extern void init_misc(void);
+extern EmbeddedTcl et_ns_lib;
 
 extern "C" {
 
@@ -86,7 +87,6 @@ Tcl_AppInit(Tcl_Interp *interp)
 
 	Tcl_SetVar(interp, "tcl_rcFileName", "~/.ns.tcl", TCL_GLOBAL_ONLY);
 	Tcl::init(interp, "ns");
-	extern EmbeddedTcl et_ns_lib;
 	et_ns_lib.load();
 	init_misc();
 
@@ -101,6 +101,7 @@ Tcl_AppInit(Tcl_Interp *interp)
     return TCL_OK;
 }
 
+#ifndef WIN32
 abort()
 {
 	Tcl& tcl = Tcl::instance();
@@ -113,5 +114,6 @@ abort()
 #endif /*abort*/
 	/*NOTREACHED*/
 }
+#endif
 
 }

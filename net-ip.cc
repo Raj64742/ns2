@@ -33,11 +33,13 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-ip.cc,v 1.4 1997/07/23 04:44:53 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-ip.cc,v 1.5 1997/08/10 07:49:43 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #include <time.h>
 #include <errno.h>
 #include <string.h>
@@ -55,7 +57,7 @@ static const char rcsid[] =
 
 #include "config.h"
 #include "net.h"
-#include "Tcl.h"
+#include "tclcl.h"
 
 class IPNetwork : public Network {
     public:
@@ -131,6 +133,10 @@ int IPNetwork::command(int argc, const char*const* argv)
 			
 		if (strcmp(argv[1], "loopback") == 0) {
 			char c = atoi(argv[2]);
+/* XXX why isn't this a problem in mash... */
+#ifdef WIN32
+#define IP_MULTICAST_LOOP -1
+#endif
 			if (setsockopt(ssock_, IPPROTO_IP, IP_MULTICAST_LOOP,
 				       &c, 1) < 0) {
 				/*

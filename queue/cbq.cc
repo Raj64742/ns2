@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.19 1997/07/22 21:42:08 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.20 1997/08/10 07:49:33 mccanne Exp $ (LBL)";
 #endif
 
 //
@@ -417,7 +417,10 @@ CBQueue::find_lender(CBQClass* cl, double now)
 		// found what may be an eligible
 		// lender, check using per-algorithm eligibility
 		// criteria
-		if (eligible_(cl, now))
+		// XXX we explicitly invoke this indirect method with
+		// the "this" pointer because MS VC++ can't parse it
+		// without it...
+		if ((this->*eligible_)(cl, now))
 			return (cl);
 		cl = cl->lender_;
 	}

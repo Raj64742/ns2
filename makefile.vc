@@ -1,0 +1,280 @@
+#
+# First cut at makefile.vc hacked from configure-generated Makefile
+# (mccanne)
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.1 1997/08/10 07:49:41 mccanne Exp $
+#
+
+# change the following lines to reflect local paths
+TOOLS32  = c:\msdev
+cc32 = $(TOOLS32)\bin\cl
+rc32 = $(TOOLS32)\bin\rc
+link32 = $(TOOLS32)\bin\link /libpath:c:\msdev\lib
+CPP = $(cc32)
+CC = $(cc32)
+PERL = c:\ntreskit\perl\perl
+TCLSH = c:\bin\tclsh76.exe
+
+!include <c:\msdev\include\win32.mak>
+
+lflags = $(lflags) /libpath:c:\msdev\lib
+
+link32 = $(TOOLS32)\bin\link /libpath:c:\msdev\lib
+
+
+# Generated automatically from Makefile.in by configure.
+#  Copyright (c) 1994, 1995, 1996
+# 	The Regents of the University of California.  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that: (1) source code distributions
+#  retain the above copyright notice and this paragraph in its entirety, (2)
+#  distributions including binary code include the above copyright notice and
+#  this paragraph in its entirety in the documentation or other materials
+#  provided with the distribution, and (3) all advertising materials mentioning
+#  features or use of this software display the following acknowledgement:
+#  ``This product includes software developed by the University of California,
+#  Lawrence Berkeley Laboratory and its contributors.'' Neither the name of
+#  the University nor the names of its contributors may be used to endorse
+#  or promote products derived from this software without specific prior
+#  written permission.
+#  THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.1 1997/08/10 07:49:41 mccanne Exp $ (LBL)
+
+#
+# Various configurable paths (remember to edit Makefile.in, not Makefile)
+#
+
+LOCAL_SRC=c:\src
+TK_DIR  =$(LOCAL_SRC)\tk4.2
+TCL_DIR =$(LOCAL_SRC)\tcl7.6
+TCLCL_DIR =..\Tcl
+OTCL_DIR =..\otcl
+GSM_DIR =..\gsm
+
+TCL2CPP =$(TCLCL_DIR)\tcl2C++.exe
+
+# insert a makedepend like function here 
+MKDEP = \bin\makedep2 
+
+INCLUDE_TK = -I$(TK_DIR)/win -I$(TK_DIR)/generic
+INCLUDE_TCL = -I$(TCL_DIR)/win -I$(TCL_DIR)/generic 
+INCLUDE_OTCL = -I$(OTCL_DIR)
+INCLUDE_TCLCL = -I$(TCLCL_DIR)
+INCLUDE_X11 = -I$(TK_DIR)/xlib
+INCLUDE_MISC = -I$(TOOLS32)\include 
+
+LIB_TK = g:/src/tk4.2/win/tk42.lib
+LIB_TCL = g:/src/tcl7.6//win/tcl76.lib
+LIB_TCLCL = $(TCLCL_DIR)/tclcl.lib
+LIB_OTCL = $(OTCL_DIR)/otcl.lib
+LIB_GSM  = $(GSM_DIR)/lib/gsm.lib
+
+LOCAL_SRC=c:\src
+TK_DIR  =$(LOCAL_SRC)\tk4.2
+TCL_DIR =$(LOCAL_SRC)\tcl7.6
+TCLCL_DIR =..\Tcl
+OTCL_DIR =..\otcl
+GSM_DIR =..\gsm
+
+LIBS = $(LIB_GRABBER) $(LIB_TK) $(LIB_TCL) $(LIB_TCLCL) $(LIB_GSM) \
+	$(LIB_OTCL) $(guilibs) wsock32.lib $(conlibs)
+#winmm.lib
+
+# don't want system files to be added when making dependencies
+DEPEND_INCS = \
+	$(INCLUDE_TK) $(INCLUDE_TCL) \
+	$(INCLUDE_OTCL) $(INCLUDE_TCLCL) \
+	$(INCLUDE_X11) $(MD_INC) -I./jpeg -I./p64 -I.
+INCLUDES = $(INCLUDE_MISC) \
+	$(DEPEND_INCS)
+
+DEFINE =  -DUSE_SHM -DHAVE_LIBOTCL0_96 -DHAVE_OTCL_H -DHAVE_LIBTK4_2 -DHAVE_TK_H -DHAVE_LIBTCL7_6 -DHAVE_TCL_H  -DNO_TK -DWIN32
+STATIC = 
+
+CCOPT = /Zi /Gm /Gi /YX
+ #/Fp./mash.pch
+BFLAGS = $(DEFINE) $(INCLUDES)
+CFLAGS = $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
+#CFLAGS =  $(INCLUDE) $(DEFINE) $(CCOPT)
+
+.SUFFIXES : .cc
+
+# add -FR$*.sbr if you want browse info
+.cc.o:
+	$(cc32) $(CFLAGS) -Fo$@ -Tp $<
+
+.c.o:
+	$(cc32) $(CFLAGS) -Fo$@ $<
+
+OBJ_CC = \
+	random.o ranvar.o misc.o timer-handler.o \
+	scheduler.o object.o \
+	classifier.o classifier-addr.o classifier-flow.o classifier-hash.o \
+	classifier-mcast.o classifier-mpath.o replicator.o \
+	classifier-mac.o \
+	packet.o ip.o route.o connector.o ttl.o \
+	trace.o	trace-ip.o tracegen.o \
+	cbr.o traffictrace.o pareto.o expoo.o telnet.o tcplib-telnet.o \
+	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
+	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
+	tcp-vegas.o tcp-rbp.o \
+	scoreboard.o tcp-sack1.o tcp-fack.o \
+	integrator.o queue-monitor.o flowmon.o loss-monitor.o \
+	queue.o drop-tail.o red.o \
+	semantic-packetqueue.o \
+	sfq.o fq.o drr.o cbq.o \
+	hackloss.o errmodel.o \
+	delay.o ll.o snoop.o \
+	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
+	dynalink.o rtProtoDV.o net-interface.o \
+	ctrMcast.o prune.o srm.o \
+	net.o net-ip.o tap.o \
+	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o \
+	sessionhelper.o delaymodel.o
+
+OBJ_C = \
+	inet.o
+
+OBJ_NAM = \
+	nam/animation.o \
+	nam/nam-drop.o \
+	nam/nam-edge.o \
+	nam/nam-node.o \
+	nam/nam-packet.o \
+	nam/nam-queue.o \
+	nam/nam-trace.o \
+	nam/paint.o \
+	nam/state.o \
+	nam/transform.o \
+	nam/netview.o \
+	nam/netmodel.o
+
+OBJ_COMPAT = $(OBJ_GETOPT) win32.o 
+#XXX compat/win32x.o compat/tkConsole.o
+
+OBJ_GEN = gen/version.o gen/ns_tcl.o
+
+SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
+	tclAppInit.cc tkAppInit.cc
+
+OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
+WINOBJ = $(OBJ:/=\)
+HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
+	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
+	tcp-sink.h tcp-fack.h drop-tail.h red.h \
+	queue-monitor.h semantic-packetqueue.h \
+	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
+	delay.h \
+	snoop.h ll.h mac.h mac-multihop.h mac-csma.h mac-802_11.h \
+	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h
+
+CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
+	gen/* core core.ns core.nsx
+
+ns.exe: $(OBJ) tclAppInit.o
+	$(link) $(ldebug) $(guilflags) -out:ns.exe tclAppInit.o $(OBJ) $(LIBS)
+
+nsx: $(OBJ) tkAppInit.o $(OBJ_NAM)
+	$(link) $(ldebug) $(guilflags) -out:$@ tkAppInit.o \
+		$(OBJ) $(OBJ_NAM) $(LIBS)
+
+# XXX doesn't work yet
+#gen/version.c: VERSION
+#	-@erase gen\version.c
+#	$(PERL) -ne "print \" char version[] = \\\" $_ \\\" ;\n\" " < VERSION > gen\version.c
+#
+
+gen/ns_tcl.o: gen/ns_tcl.cc
+	$(cc32) $(CFLAGS) -Fogen\ns_tcl.o -Zm1000 -Tp gen\ns_tcl.cc
+	
+PURIFY	= purify -cache-dir=/tmp
+
+ns.pure: $(OBJ) tclAppInit.o
+	$(PURIFY) g++ $(STATIC) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
+
+NS_TCL_LIB = \
+	tcl/lib/ns-compat.tcl \
+	tcl/lib/ns-default.tcl \
+	tcl/lib/ns-lib.tcl \
+	tcl/lib/ns-link.tcl \
+	tcl/lib/ns-node.tcl \
+	tcl/lib/ns-packet.tcl \
+	tcl/lib/ns-queue.tcl \
+	tcl/lib/ns-source.tcl \
+	tcl/lib/ns-nam.tcl \
+	tcl/lib/ns-trace.tcl \
+	tcl/lib/ns-agent.tcl \
+	tcl/lib/ns-random.tcl \
+	tcl/rtp/session-rtp.tcl \
+	tcl/rtglib/dynamics.tcl \
+	tcl/rtglib/route-proto.tcl \
+        tcl/interface/ns-iface.tcl \
+        tcl/mcast/ns-mcast.tcl \
+        tcl/mcast/McastProto.tcl \
+        tcl/mcast/DM.tcl \
+        tcl/mcast/dynamicDM.tcl \
+        tcl/mcast/pimDM.tcl \
+	tcl/mcast/srm.tcl \
+	tcl/mcast/srm-adaptive.tcl \
+	tcl/mcast/McastMonitor.tcl \
+        tcl/ctr-mcast/CtrMcast.tcl \
+        tcl/ctr-mcast/CtrMcastComp.tcl \
+        tcl/ctr-mcast/CtrRPComp.tcl \
+        tcl/pim/pim-init.tcl \
+        tcl/pim/pim-messagers.tcl \
+        tcl/pim/pim-mfc.tcl \
+        tcl/pim/pim-mrt.tcl \
+        tcl/pim/pim-recvr.tcl \
+        tcl/pim/pim-sender.tcl \
+        tcl/pim/pim-vifs.tcl \
+	tcl/session/session.tcl
+
+#XXX doesn't work yet
+#gen\ns_tcl.cc: $(NS_TCL_LIB)
+#	-@erase $@
+#	@set TCLSH=tclsh76
+#	$(PERL) expand.pl tcl/lib/ns-lib.tcl > $@
+
+install: force
+	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
+
+install-man: force
+	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
+
+clean:
+	rm -f $(CLEANFILES)
+
+distclean:
+	rm -f $(CLEANFILES) Makefile config.cache config.log config.status \
+	    gnuc.h os-proto.h
+
+tags:	force
+	ctags -wtd *.cc *.h ../Tcl/*.cc ../Tcl/*.h
+
+TAGS:	force
+	etags *.cc *.h ../Tcl/*.cc ../Tcl/*.h
+
+depend: $(SRC)
+	$(MKDEP) $(CFLAGS) $(SRC)
+
+srctar:
+	@cwd=`pwd` ; dir=`basename $$cwd` ; \
+	    name=ns-`cat VERSION | tr A-Z a-z` ; \
+	    tar=ns-src-`cat VERSION`.tar.gz ; \
+	    list="" ; \
+	    for i in `cat FILES` ; do list="$$list $$name/$$i" ; done; \
+	    echo \
+	    "(rm -f $$tar; cd .. ; ln -s $$dir $$name)" ; \
+	     (rm -f $$tar; cd .. ; ln -s $$dir $$name) ; \
+	    echo \
+	    "(cd .. ; tar cfh $$tar [lots of files])" ; \
+	     (cd .. ; tar cfh - $$list) | gzip -c > $$tar ; \
+	    echo \
+	    "rm ../$$name; chmod 444 $$tar" ;  \
+	     rm ../$$name; chmod 444 $$tar
+
+force:
+

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.4 1997/07/29 22:50:51 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.5 1997/08/10 07:50:00 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -42,7 +42,7 @@
 #include "tcp.h"
 #include "agent.h"
 #include "flags.h"
-#include "Tcl.h"
+#include "tclcl.h"
 
 /* max window size */
 #define MWS 1024

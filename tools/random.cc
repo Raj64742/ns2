@@ -33,10 +33,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.4 1997/07/21 21:33:52 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.5 1997/08/10 07:49:49 mccanne Exp $ (LBL)";
 #endif
 
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 #include "random.h"
 
 #if defined(sun)

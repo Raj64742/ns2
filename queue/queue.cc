@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.16 1997/07/24 04:45:11 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.17 1997/08/10 07:49:48 mccanne Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -117,6 +117,7 @@ void Queue::resume()
 
 void Queue::reset()
 {
-	while (Packet* p = deque())
+	Packet* p;
+	while ((p = deque()) != 0)
 		drop(p);
 }

@@ -33,12 +33,12 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.2 1997/02/27 04:39:01 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.3 1997/08/10 07:49:51 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
 #include "node.h"
-#include "Tcl.h"
+#include "tclcl.h"
 #include "packet.h"
 
 struct srcpkt {

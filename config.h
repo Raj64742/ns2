@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.7 1997/06/10 01:33:20 suchi Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.8 1997/08/10 07:49:36 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -97,6 +97,80 @@ int getpid();
 int gethostname(char*, int);
 }
 #endif
+
+#ifdef WIN32
+
+#include <windows.h>
+#include <winsock.h>
+
+#include <time.h>		/* For clock_t */
+
+#define MAXHOSTNAMELEN	256
+
+#define _SYS_NMLN	9
+struct utsname {
+	char sysname[_SYS_NMLN];
+	char nodename[_SYS_NMLN];
+	char release[_SYS_NMLN];
+	char version[_SYS_NMLN];
+	char machine[_SYS_NMLN];
+};
+
+typedef char *caddr_t;
+
+struct iovec {
+	caddr_t iov_base;
+	int	    iov_len;
+};
+
+#ifndef TIMEZONE_DEFINED_
+#define TIMEZONE_DEFINED_
+struct timezone {
+	int tz_minuteswest;
+	int tz_dsttime;
+};
+#endif
+
+typedef int pid_t;
+typedef int uid_t;
+typedef int gid_t;
+    
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+int uname(struct utsname *); 
+int getopt(int, char * const *, const char *);
+int strcasecmp(const char *, const char *);
+#define srandom srand
+#define random rand
+int gettimeofday(struct timeval *p, struct timezone *z);
+int gethostid(void);
+int getuid(void);
+int getgid(void);
+int getpid(void);
+int nice(int);
+int sendmsg(int, struct msghdr*, int);
+time_t time(time_t *);
+        
+#define bzero(dest,count) memset(dest,0,count)
+#define bcopy(src,dest,size) memcpy(dest,src,size)
+#if defined(__cplusplus)
+}
+#endif
+
+#ifdef sgi
+#include <math.h>
+#endif
+
+#define ECONNREFUSED	WSAECONNREFUSED
+#define ENETUNREACH	WSAENETUNREACH
+#define EHOSTUNREACH	WSAEHOSTUNREACH
+#define EWOULDBLOCK	WSAEWOULDBLOCK
+
+#define M_PI		3.14159265358979323846
+
+#endif /* WIN32 */
 
 #endif
 

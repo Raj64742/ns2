@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.17 1997/07/24 04:45:13 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.18 1997/08/10 07:49:53 mccanne Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.17 1997/07/24 04:45:13 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.18 1997/08/10 07:49:53 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -484,7 +484,9 @@ void CalendarScheduler::run()
 	}
 }
 
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 
 /*
  * Really should instance the list/calendar/heap discipline

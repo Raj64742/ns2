@@ -33,13 +33,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.22 1997/07/24 06:32:57 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.23 1997/08/10 07:49:33 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "Tcl.h"
+#include "tclcl.h"
 #include "agent.h"
 #include "packet.h"
 #include "ip.h"
@@ -123,7 +123,7 @@ void Agent::handle(Event* e)
 		timeout(tno);
 	} else
 		/* otherwise, can only be a packet */
-		recv((Packet*)e);
+		recv((Packet*)e, 0);
 }
 
 void Agent::recv(Packet* p, Handler*)

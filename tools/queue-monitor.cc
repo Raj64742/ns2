@@ -33,8 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/barad-dur/b/grad/hari/src/ns/RCS/queue-monitor.cc,v 1.1 1997/03/24 22:
-59:47 hari Exp hari $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.17 1997/08/10 07:49:47 mccanne Exp $";
 #endif
 
 #include "queue-monitor.h"

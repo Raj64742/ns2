@@ -33,10 +33,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.6 1997/07/22 21:22:56 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.7 1997/08/10 07:49:55 mccanne Exp $";
 #endif
 
-#include <Tcl.h>
+#include <tclcl.h>
 #include <stdlib.h>
 #include "packet.h"
 #include "ip.h"

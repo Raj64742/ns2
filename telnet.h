@@ -2,7 +2,7 @@
 #ifndef ns_telnet_h
 #define ns_telnet_h
 
-#include "Tcl.h"
+#include "tclcl.h"
 #include "timer-handler.h"
 
 class TcpAgent;

@@ -17,13 +17,13 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timer-handler.h,v 1.2 1997/07/23 03:17:53 kfall Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timer-handler.h,v 1.3 1997/08/10 07:50:02 mccanne Exp $ (USC/ISI)
  */
 
 #ifndef timer_handler_h
 #define timer_handler_h
 
-#include "Tcl.h"
+#include "tclcl.h"
 #include "scheduler.h"
 
 /*
