@@ -10,7 +10,8 @@
 # Instructions:
 #	1> first compile 'nse', the ns simulator with emulation
 #	2> change the 'myname' var below to the name of some machine
-#		that isn't being used right now
+#		that isn't being used right now,
+#		and set ifname to the relevant interface
 #	3> run this script (nse pingdemo.tcl)
 #	4> run a 'ping' from some host to the name chosen in step 2
 #	5> ping output should indicate the various functions exercised by
@@ -21,15 +22,34 @@ Class PingDemo
 
 PingDemo instproc init {} {
 	$self next
-	$self instvar myname myaddr dotrace stoptime owdelay ifname
+	$self instvar myname myaddr dotrace stoptime owdelay ifname delay_list next_delay_list
 	$self instvar traceallfile tracenamfile
 
-	set myname "bit.ee.lbl.gov";	# unused ip address
+	#
+	# These parameters are system specific.
+	#
+	switch [exec hostname] {
+	pollytto* {
+		set myname "dash-w.isi.edu"
+		set ifname cnw0
+		set dotrace 0
+	}
+	kfalls-host* {
+		set myname "bit.ee.lbl.gov"
+		set ifname fxp0
+		set dotrace 1
+	}
+	default {
+		puts "error: running on an unknown host; edit PingDemo::init"
+		exit 1
+	}
+	}
+
 	set myaddr [exec host $myname | sed "s/.*address\ //"]
-	set dotrace 1
 	set stoptime 200.0
 	set owdelay 1000ms
-	set ifname fxp0
+	set delay_list 0.5 0.1 0.01 0.001
+	set next_delay_list ""
 
 	set traceallfile em-all.tr
 	set tracenamfile em.nam
@@ -142,6 +162,18 @@ PingDemo instproc newowdelay delay {
 	$lnk set delay_ $delay
 }
 
+# eternally cycle through the delays in delay_list
+PingDemo instproc newowdelay_cycle {} {
+	$self instvar delay_list next_delay_list
+	if { "$next_delay_list" == "" } {
+		set next_delay_list $delay_list
+	}
+	set next_delay [lindex $next_delay_list 0]
+	set next_delay_list [lrange $next_delay_list 1]
+	$self newowdelay $next_delay
+	$ns at [expr [$ns now] + 10] "$self newowdelay_cycle"
+}
+
 
 PingDemo instproc run {} {
 
@@ -151,10 +183,7 @@ PingDemo instproc run {} {
 
 	puts "listening for pings on addr $myaddr, 1-way link delay: $owdelay\n"
 
-	$ns at 10.5 "$self newowdelay 0.5"
-	$ns at 20.5 "$self newowdelay 0.10"
-	$ns at 30.5 "$self newowdelay 0.01"
-	$ns at 40.5 "$self newowdelay 0.001"
+	$ns at 10.5 "$self newowdelay_cycle"
 
 	$ns run
 }
