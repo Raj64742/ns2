@@ -25,9 +25,10 @@
 #
 # Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.2 1999/08/14 00:18:48 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.3 1999/11/19 22:33:53 haldar Exp $
 
 CCX = @CXX@
+CC = @CC@
 MKDEP	= ../../../conf/mkdep
 
 DEFINE = -Dstand_alone
@@ -38,19 +39,19 @@ LIBS = @V_LIB@ -lm @LIBS@
 all: setdest calcdest
 
 setdest: rng.o setdest.o
-	$(CCX) -o setdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
+	$(CC) -o setdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
 	$(LIBS)
 
 calcdest: rng.o calcdest.o
-	$(CCX) -o calcdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
+	$(CC) -o calcdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \
 	$(LIBS)
 
 rng.o:
 	@rm -f $@
-	$(CCX) -c $(DEFINE) -o $@ ../../../rng.cc
+	$(CC) -c $(DEFINE) -o $@ ../../../rng.cc
 
 setbox: setbox.o
-	$(CCX) -o setbox $@.o $(LDFLAGS) $(CFLAGS) $(LIBS)
+	$(CC) -o setbox $@.o $(LDFLAGS) $(CFLAGS) $(LIBS)
 
 clean:
 	@rm -f setdest setbox *.o *.core
@@ -58,5 +59,5 @@ clean:
 .SUFFIXES: .cc
 
 .cc.o:
-	$(CCX) -c $(DEFINE) $(CFLAGS) -o $@ $*.cc
+	$(CC) -c $(DEFINE) $(CFLAGS) -o $@ $*.cc
 
