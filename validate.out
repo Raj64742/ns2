@@ -817,12 +817,8 @@ Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0f-ottl QUIET
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl TLC1 QUIET
-20.0020664: 5 send TLC
-20.302960301075263: Cache 5 knows server 11 -> tlc 4
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl TLC1f QUIET
-20.006162400000001: 5 send TLC
-20.607698210752684: Cache 5 knows server 11 -> tlc 4
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl TLC1-dreq QUIET
 Test output agrees with reference output
