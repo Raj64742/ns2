@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.39 1998/05/15 20:04:24 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.40 1998/05/15 22:56:57 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -106,7 +106,7 @@ public:
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1),
-	last_send_time_(0.0), irs_(-1), ect_(FALSE)
+	last_send_time_(0.0), irs_(-1), ect_(FALSE), recent_ce_(0)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -290,6 +290,12 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
 		tcph->ts() = tcph->ts_echo() = -1.0;
 	}
 	fh->ect() = ect_;	// on after mutual agreement on ECT
+
+	if (ecn_ && !ect_)	// initializing; ect = 0, ecnecho = 1
+		fh->ecnecho() = 1;
+	else {
+		fh->ecnecho() = recent_ce_;
+	}
 
 //printf("TCPF(%s): sending with ts:%f, ts_echo:%f\n",
 //name(), tcph->ts(), tcph->ts_echo());
@@ -680,9 +686,9 @@ FullTcpAgent::predict_ok(Packet* pkt)
 	int p4 = (!ts_option_ || fh->no_ts_ || (tcph->ts() >= recent_)); // tsok
 	int p5 = (tcph->seqno() == rcv_nxt_);		// in-order data
 	int p6 = (t_seqno_ == maxseq_);			// not re-xmit
-	int p7 = (fh->ecnecho() == 0);			// no ECN
+	int p7 = (!ecn_ || fh->ecnecho() == 0);		// no ECN
 
-	return (p1 && p2 && p3 && p4 && p5 && p6);
+	return (p1 && p2 && p3 && p4 && p5 && p6 && p7);
 }
 
 /*
@@ -769,7 +775,10 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int ourfinisacked = FALSE;
 	int dupseg = FALSE;
 	int todrop = 0;
-	int cebit = (ecn_ && fh->ce()) ? 1 : 0;	// congestion experienced
+
+//printf("%s: ecn:%d, ect:%d, CEBIT %d, ecnecho %d, time %f\n", name(),
+//ecn_, ect_,
+//fh->ce(), fh->ecnecho(), now());
 
 	last_state_ = state_;
 
@@ -806,7 +815,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	// probably have a misbehaving router...
 	//
 
-	if (cebit && !fh->ect()) {
+	if (fh->ce() && !fh->ect()) {
 	    fprintf(stderr,
 	    "%f: FullTcpAgent::recv(%s): warning: CE bit on, but ECT false!\n",
 		now(), name());
@@ -828,6 +837,12 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			recent_age_ = now();
 			recent_ = tcph->ts();
                 }
+
+		//
+		// turn around ce bits we see
+		//
+		if (ecn_)
+			recent_ce_ = fh->ce();
 
 		if (datalen == 0) {
 			// check for a received pure ACK in the correct range..
@@ -905,6 +920,9 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		t_seqno_ = iss_; /* tcp_sendseqinit() macro in real tcp */
 		rcv_nxt_ = rcvseqinit(irs_, datalen);
 		flags_ |= TF_ACKNOW;
+		if (ecn_ && fh->ecnecho()) {
+			ect_ = TRUE;
+		}
 		newstate(TCPS_SYN_RECEIVED);
 		goto trimthenstep6;
 
@@ -946,17 +964,20 @@ cancel_rtx_timer();	// cancel timer on our 1st SYN [does this belong!?]
 		irs_ = tcph->seqno();	// get initial recv'd seq #
 		rcv_nxt_ = rcvseqinit(irs_, datalen);
 
+		/*
+		 * we are seeing either a SYN or SYN+ACK.  For pure SYN,
+		 * ecnecho tells us our peer is ecn-capable.  For SYN+ACK,
+		 * it's acking our SYN, so it already knows we're ecn capable,
+		 * so it can just turn on ect
+		 */
+		if (ecn_ && (fh->ecnecho() || fh->ect()))
+			ect_ = TRUE;
+
 		if (tiflags & TH_ACK) {
 			// SYN+ACK (our SYN was acked)
 			// CHECKME
 			highest_ack_ = ackno;
 			cwnd_ = initial_window();
-			if (ecn_) {
-        			hdr_flags *fh =
-				    (hdr_flags *)pkt->access(off_flags_);
-				if (fh->ecnecho())
-					ect_ = TRUE;
-			}
 
 #ifdef notdef
 /*
@@ -1174,12 +1195,6 @@ trimthenstep6:
                         newstate(TCPS_ESTABLISHED);
                 }
 		cwnd_ = initial_window();
-		if (ecn_) {
-			hdr_flags *fh =
-			    (hdr_flags *)pkt->access(off_flags_);
-			if (fh->ecnecho())
-				ect_ = TRUE;
-		}
 		/* fall into ... */
 
         /*
@@ -1198,6 +1213,27 @@ trimthenstep6:
         case TCPS_FIN_WAIT_2:
         case TCPS_CLOSING:
         case TCPS_LAST_ACK:
+
+		//
+		// look for ECNs, react as necessary
+		//
+
+		if (fh->ecnecho()) {
+			if (!ecn_ || !ect_) {
+				fprintf(stderr, "%f: FullTcp(%s): warning, recvd ecnecho but I am not ECN capable!\n",
+					now(), name());
+			} else {
+//printf("%f TCP(%s): ECN ACTION\n",
+//now(), name());
+				ecn();
+			}
+		}
+
+		//
+		// turn around ce bits we see
+		//
+		if (ecn_)
+			recent_ce_ = fh->ce();
 
 		// look for dup ACKs (dup ack numbers, no data)
 		//
