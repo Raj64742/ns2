@@ -5,7 +5,7 @@
 # invoke with "tclsh thisfile infile outprefix"
 #
 
-set seqmod 1
+set seqmod 0
 
 proc forward_segment { time seqno } {
 	global segchan
@@ -76,9 +76,17 @@ proc parse_line line {
 	set field(dst) [lindex $sline 9]
 	set field(dstaddr) [lindex [split $field(dst) "."] 0]
 	set field(dstaddr) [lindex [split $field(dst) "."] 1]
-	set field(seqno) [expr [lindex $sline 10] % $seqmod]
+	if { $seqmod != 0 } {
+		set field(seqno) [expr [lindex $sline 10] % $seqmod]
+	} else {
+		set field(seqno) [lindex $sline 10]
+	}
 	set field(uid) [lindex $sline 11]
-	set field(tcpackno) [expr [lindex $sline 12] % $seqmod]
+	if { $seqmod != 0 } {
+		set field(tcpackno) [expr [lindex $sline 12] % $seqmod]
+	} else {
+		set field(tcpackno) [lindex $sline 12]
+	}
 	set field(tcpflags) [lindex $sline 13]
 	set field(tcphlen) [lindex $sline 14]
 	set field(salen) [lindex $sline 15]
@@ -232,7 +240,7 @@ if { [info exists opt(m)] && $opt(m) != "" } {
 if { [info exists opt(r)] && $opt(r) != "" } {
 	global reverse base argc argv
 	set reverse 1
-	decr argc
+	incr argc -1
 	incr base
 }
 
@@ -245,6 +253,5 @@ if { $argc < 2 || $argc > 3 } {
 		set reverse 1
 	}
 }
-puts "executing dofile argv: $argv seqmod: $seqmod, base: $base"
 dofile [lindex $argv [expr $base]] [lindex $argv [expr $base + 1]]
 exit 0
