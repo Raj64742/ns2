@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.4.2.2 1997/04/18 02:23:41 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.4.2.3 1997/04/20 01:45:49 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -82,6 +82,25 @@ struct hdr_tcp {
 	}
 };
 
+struct hdr_tcpasym {
+	int ackcount_;          /* the number of segments this ack represents */
+	double win_;            /* the amount of window remaining */
+	int highest_ack_;       /* the highest ack seen */
+	int max_left_to_send_;  /* the max. amount of data that remains to be sent */
+	int& ackcount() {
+		return (ackcount_);
+	}
+	double& win() {
+		return (win_);
+	}
+	int& highest_ack() {
+		return (highest_ack_);
+	}
+	int& max_left_to_send() {
+		return (max_left_to_send_);
+	}
+};
+
 #define TCP_BETA 2.0
 #define TCP_ALPHA 0.125
 
@@ -103,7 +122,6 @@ struct hdr_tcp {
 #define TCP_TIMER_DELSND	1
 
 
-#ifdef TCP_TRACE
 /* Macro to log the *specified* member whenever its value changes */
 #define TCP_TRACE(memb, old_memb, memb_time, name) { \
 		       Scheduler& s = Scheduler::instance(); \
@@ -124,13 +142,20 @@ struct hdr_tcp {
 #define TCP_TRACE_ALL(memb, old_memb, memb_time) { \
 		       double cur_time; \
 		       Scheduler& s = Scheduler::instance(); \
+                       char wrk[500]; \
+                       int n; \
 		       if (&s) \
 			       cur_time = s.clock(); \
 		       else \
 			       cur_time = 0; \
 		       if (memb != old_memb && cur_time > memb_time) { \
                                if (memb_time > last_log_time_) { \
-                                       fprintf(stderr,"time: %-6.3f maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d\n", memb_time, maxseq_, highest_ack_, t_seqno_, cwnd_, ssthresh_, dupacks_, t_rtt_*tcp_tick_, (t_srtt_ >> 3)*tcp_tick_, (t_rttvar_ >> 2)*tcp_tick_, t_backoff_); \
+                                       sprintf(wrk,"time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", memb_time, addr_/256, addr_%256, dst_/256, dst_%256, maxseq_, highest_ack_, t_seqno_, cwnd_, ssthresh_, dupacks_, t_rtt_*tcp_tick_, (t_srtt_ >> 3)*tcp_tick_, (t_rttvar_ >> 2)*tcp_tick_, t_backoff_); \
+                                       n = strlen(wrk); \
+                                       wrk[n] = '\n'; \
+                                       wrk[n+1] = 0; \
+                                       (void)Tcl_Write(channel_, wrk, n+1); \
+                                       wrk[n] = 0; \
 			               last_log_time_ = memb_time; \
 			       } \
 			       old_memb = memb; \
@@ -138,17 +163,33 @@ struct hdr_tcp {
                        memb_time = cur_time; \
 }
 
-#else
-#define TCP_TRACE
-#define TCP_TRACE_ALL
-#endif		       
+#ifdef 0
+class InstVarTrace {
+public:
+	virtual void update() = 0;
+};
 
-
+class cwndTrace : InstVarTrace {
+public:
+	cwndTrace() {}
+	void update() {
+		fprintf(stderr, "cwnd = %g\n", *cwnd_ptr_);
+	}
+	double*& cwnd_ptr() {
+		return(cwnd_ptr_);
+	}
+private:
+	double* cwnd_ptr_;
+};
+#endif
+		       
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
 	virtual void recv(Packet*, Handler*);
 	int command(int argc, const char*const* argv);
+
+/*	cwndTrace cwnd_trace_;*/
 
 	int& maxseq() {
 		TCP_TRACE_ALL(maxseq_, old_maxseq_, maxseq_time_);

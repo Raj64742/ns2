@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13.2.1 1997/04/16 03:21:26 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13.2.2 1997/04/20 01:45:48 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -103,6 +103,9 @@ public:
 
 TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0)
 {
+/*	InstVarTrace *ivt;*/
+
+/*	cwnd_trace_.cwnd_ptr() = &cwnd_;*/
 	bind("window_", &wnd_);
 	bind("windowInit_", &wnd_init_);
 	bind("windowOption_", &wnd_option_);
@@ -133,6 +136,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_tim
 
 	// reset used for dynamically created agent
 	reset();
+/*	ivt = (InstVarTrace *) &cwnd_trace_;
+	ivt->update();*/
 }
 
 void TcpAgent::reset()
@@ -549,6 +554,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 				recover_cause_ = 1;
 				closecwnd(0);
 				reset_rtx_timer(0);
+				fprintf(stderr,"doing fastrxt\n");
 			}
 			else if (ecn_ && recover_cause_ != 1) {
 				closecwnd(2);

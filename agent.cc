@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.12 1997/04/09 00:10:03 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.12.2.1 1997/04/20 01:45:46 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -57,7 +57,7 @@ int Agent::uidcnt_;		/* running unique id */
 
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
-	prio_(-1), flags_(0)
+	prio_(-1), flags_(0), channel_(0)
 {
 	memset(pending_, 0, sizeof(pending_));
 	// this is really an IP agent, so set up
@@ -81,6 +81,25 @@ Agent::Agent(int pkttype) :
 Agent::~Agent()
 {
 }
+
+int Agent::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "trace") == 0) {
+			int mode;
+			const char* id = argv[2];
+			channel_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+						if (channel_ == 0) {
+				tcl.resultf("trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+	}
+	return (Connector::command(argc, argv));
+}
+
 
 void Agent::sched(double delay, int tno)
 {
