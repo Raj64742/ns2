@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.13 1998/08/30 02:09:04 yuriy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.14 1998/09/16 22:53:00 yaxu Exp $
  */
 
 #include <stdio.h>
@@ -185,13 +185,24 @@ int Address::str2addr(const char *str) const
 	if (levels_ < 2) 
 		return atoi(str);
 
-
+/*
 	int istr[levels_], addr= 0;
+*/
+	/*
+	 * for VC++
+	 */
+
+	int *istr= new int[levels_];
+	int addr= 0;
+
 	RouteLogic::ns_strtok((char*)str, istr);
 	for (int i = 0; i < levels_; i++) {
 		addr = set_word_field(addr, --istr[i],
 				      NodeShift_[i+1], NodeMask_[i+1]);
 	}
+
+	delete istr;
+
 	return addr;
 }
 
