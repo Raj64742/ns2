@@ -1,5 +1,4 @@
 /*
-/*
  * Copyright (c) Intel Corporation 2001. All rights reserved.
  *
  * License is granted to copy, to use, and to make and to use derivative
@@ -102,7 +101,7 @@ class ReassemblyQueue {
 
 public:
 	ReassemblyQueue(TcpSeq& rcvnxt) :
-		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt), hint_(NULL), total_(0) { };
+		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), hint_(NULL), total_(0), rcv_nxt_(rcvnxt) { };
 	int empty() { return (head_ == NULL); }
 	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags = 0);
 	int maxseq() { return (tail_ ? (tail_->endseq_) : -1); }
