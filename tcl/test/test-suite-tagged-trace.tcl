@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tagged-trace.tcl,v 1.3 2002/10/15 01:48:48 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tagged-trace.tcl,v 1.4 2004/01/18 17:20:26 haldar Exp $
 
 
 # This test suite is for validating the tagged trace format
@@ -292,7 +292,7 @@ Test/Format-simple instproc run {} {
 
   # now that ns is done, convert the output file
   exec $PERL -I../../bin ../../bin/ns2oldns.pl < $opt(tr) > $opt(tr).tmp
-  exec mv $opt(tr).tmp $opt(tr)
+  exec cp $opt(tr).tmp $opt(tr)	
 }
 
 
