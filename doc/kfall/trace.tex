@@ -645,7 +645,7 @@ relationship to the flows known by the flow monitor.
 Typically, a flow monitor will create flow objects on-demand when
 packets arrive that cannot be mapped to an already-known flow.
 
-\subsubsection{\hdr{the flow monitor}{flowmon.cc}{sec:flowclass}}
+\subsubsection{\shdr{the flow monitor}{flowmon.cc}{sec:flowclass}}
 
 The \code{QueueMonitor/ED/Flowmon} class is responsible for managing
 the creation of new flow objects when packets arrive on previously
@@ -686,7 +686,7 @@ by the flow monitor in a way understandable to Tcl.
 This allows tcl code to interrogate a flow monitor in order
 to obtain handles to the individual flows it maintains.
 
-\subsubsection{\hdr{flow monitor trace format}{flowmon.cc}{sec:flowmonclass}}
+\subsubsection{\shdr{flow monitor trace format}{flowmon.cc}{sec:flowmonclass}}
 
 The flow monitor defines a trace format which may be used by post-processing
 scripts to determine various counts on a per-flow basis.
@@ -727,7 +727,7 @@ Most of the fields are explained in the code comments.
 The ``category'' is historical, but is used to maintain loose backward-
 compatibility with the flow manager format in ns version 1.
 
-\subsubsection{\hdr{the flow class}{flowmon.cc}{sec:flowclass}}
+\subsubsection{\shdr{the flow class}{flowmon.cc}{sec:flowclass}}
 
 The class \code{QueueMonitor/ED/Flow} is used by the flow monitor
 for containing per-flow counters.
