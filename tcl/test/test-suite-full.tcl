@@ -54,7 +54,10 @@ TestSuite instproc finish testname {
 	$ns_ halt
 
 	set fname [pid]
-	exec tclsh ../../bin/tcpfull-summarize.tcl out.tr $fname
+	set tmpnam /tmp/$fname
+	exec ../../bin/getrc -s 2 -f 1 out.tr > $tmpnam
+	exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname
+	exec rm -f $tmpnam
 
 	set outtype text
 	if { [info exists env(NSOUT)] } {
@@ -71,7 +74,8 @@ TestSuite instproc finish testname {
 			exec tclsh ../../bin/cplot.tcl $outtype $testname \
 			  $fname.p "segments" \
 			  $fname.acks "acks w/data" \
-			  $fname.packs "pure acks" $fname.d "drops" > .gnuplot
+			  $fname.packs "pure acks" $fname.d "drops" \
+			  $fname.ctrl "SYN or FIN" > .gnuplot
 			exec xterm -T "Gnuplot: $testname" -e gnuplot &
 			exec sleep 1
 			exec rm -f .gnuplot
@@ -80,12 +84,14 @@ TestSuite instproc finish testname {
 			exec tclsh ../../bin/cplot.tcl $outtype $testname \
 			  $fname.p "segments" \
 			  $fname.acks "acks w/data" \
-			  $fname.packs "pure acks" $fname.d "drops" | $outtype &
+			  $fname.packs "pure acks" $fname.d "drops" \
+			  $fname.ctrl "SYN or FIN" | $outtype &
 		}
 		exec sleep 1
-		exec rm -f $fname.p $fname.acks $fname.packs $fname.d
+		exec rm -f \
+			$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl
 	} else {
-		puts "output files are $fname.{p,packs,acks,d}"
+		puts "output files are $fname.{p,packs,acks,d,ctrl}"
 	}
 }
 
@@ -129,9 +135,6 @@ Test/full instproc run {} {
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
-	# forward
-	$self instvar direction_
-	set direction_ forward
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]  
 	$ns_ run
 }
@@ -166,10 +169,6 @@ Test/close instproc run {} {
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.0 "$ftp1 produce 50"
 	$ns_ at 5.5 "$src close"
-
-	# forward
-	$self instvar direction_
-	set direction_ forward
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
@@ -208,10 +207,6 @@ Test/twoway instproc run {} {
 	$ns_ at 0.0 "$ftp1 start"
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at $startt "$ftp2 start"
-
-	#forward
-	$self instvar direction_
-	set direction_ forward
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
@@ -252,10 +247,6 @@ Test/twoway0 instproc run {} {
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at $startt "$ftp2 start"
 
-	#bidirectional
-	$self instvar direction_
-	set direction_ bidirectional
-
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
 }
@@ -294,10 +285,6 @@ Test/twoway1 instproc run {} {
 	$ns_ at 0.0 "$ftp1 start"
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at $startt "$ftp2 start"
-
-	#bidirectional
-	$self instvar direction_
-	set direction_ bidirectional
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
@@ -339,10 +326,6 @@ Test/twoway_bsdcompat instproc run {} {
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at $startt "$ftp2 start"
 
-	#bidirectional
-	    $self instvar direction_
-        set direction_ bidirectional
-
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
 }
@@ -380,10 +363,6 @@ Test/oneway_bsdcompat instproc run {} {
 	$self bsdcompat $sink
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.0 "$ftp1 start"
-
-	#forward
-	$self instvar direction_
-	set direction_ forward
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
@@ -425,10 +404,6 @@ Test/twowayrandom instproc run {} {
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at $startt "$ftp2 start"
 
-	# forward
-	$self instvar direction_
-	set direction_ forward
-
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
 }
@@ -467,6 +442,102 @@ Test/delack instproc run {} {
 	#forward
 	$self instvar direction_
 	set direction_ forward
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+Class Test/iw=4 -superclass TestSuite
+Test/iw=4 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ iw=4
+	$self next
+}
+Test/iw=4 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	set stopt 6.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set ftp1 [$src attach-source FTP]
+	$ns_ at 0.0 "$ftp1 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set windowInit_ 4
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+Class Test/droppedsyn -superclass TestSuite
+Test/droppedsyn instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ droppedsyn
+	$self next
+}
+Test/droppedsyn instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	set stopt 6.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	set src2 [new Agent/TCP/FullTcp]
+	set sink2 [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$ns_ attach-agent $node_(s2) $src2
+	$ns_ attach-agent $node_(k1) $sink2
+	$src set fid_ 1
+	$sink set fid_ 1
+	$src2 set fid_ 2
+	$sink2 set fid_ 2
+	$ns_ connect $src $sink
+	$ns_ connect $src2 $sink2
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$src2 set dst_ [$sink2 set addr_]
+	$sink listen
+	$sink2 listen
+	set ftp1 [$src attach-source FTP]
+	set ftp2 [$src2 attach-source FTP]
+	$ns_ at 0.7 "$ftp1 start"
+	$ns_ at 0.4 "$ftp2 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set windowInit_ 4
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$src2 set window_ 100
+	$src2 set windowInit_ 10
+	$src2 set tcpTick_ 0.500
+	$src2 set packetSize_ 4192
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
