@@ -30,9 +30,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code, nov'98 -Padma.
+ * Contributions by:
+ *   - Mike Holland
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
-
 
 #include <delay.h>
 #include <connector.h>
@@ -141,22 +143,6 @@ DeferTimer::handle(Event *)
 	mac->deferHandler();
 }
 
-// change wrt Mike's code
- /* ======================================================================
-    Beacon Timer
-    ====================================================================== */
-
- void
- BeaconTimer::handle(Event *)
- {
-       busy_ = 0;
-       paused_ = 0;
-       stime = 0.0;
-       rtime = 0.0;
-
-       mac->beaconHandler();
- }
-
 
 /* ======================================================================
    NAV Timer
@@ -246,8 +232,6 @@ BackoffTimer::start(int cw, int idle)
 	paused_ = 0;
 	stime = s.clock();
 	
-	// change wrt Mike's code
-	//rtime = (Random::random() % cw) * mac->phymib_->SlotTime;
 	rtime = (Random::random() % cw) * mac->phymib_.getSlotTime();
 
 
@@ -277,22 +261,17 @@ BackoffTimer::pause()
 	double st = s.clock();
 	double rt = stime + difs_wait;
 	double sr = st - rt;
-        // change wrt Mike's code
-	//double mst = (mac->phymib_->SlotTime);
-	 double mst = (mac->phymib_.getSlotTime());
+	double mst = (mac->phymib_.getSlotTime());
 
 
 
         int slots = int (sr/mst);
 
-    //int slots = (int) ((s.clock() - (stime + difs_wait)) / mac->phymib_->SlotTime);
 	if(slots < 0)
 		slots = 0;
 	assert(busy_ && ! paused_);
 
 	paused_ = 1;
-// change wrt Mike's code
-//	rtime -= (slots * mac->phymib_->SlotTime);
 	rtime -= (slots * mac->phymib_.getSlotTime());
 
 

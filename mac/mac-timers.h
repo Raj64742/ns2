@@ -43,8 +43,6 @@ class Mac802_11;
 
 class MacTimer : public Handler {
 public:
-// change wrt Mike's code
-//	MacTimer(Mac802_11* m, double s = 0) : mac(m), slottime(s) {
 	MacTimer(Mac802_11* m) : mac(m) {
 		busy_ = paused_ = 0; stime = rtime = 0.0;
 	}
@@ -69,16 +67,11 @@ protected:
 	Event		intr;
 	double		stime;	// start time
 	double		rtime;	// remaining time
-
-// change wrt Mike's code
-//	double		slottime;
 };
 
 
 class BackoffTimer : public MacTimer {
 public:
-// change wrt Mike's code
-//	BackoffTimer(Mac802_11 *m, double s) : MacTimer(m, s), difs_wait(0.0) {}
 	BackoffTimer(Mac802_11 *m) : MacTimer(m), difs_wait(0.0) {}
 
 
@@ -93,21 +86,12 @@ private:
 
 class DeferTimer : public MacTimer {
 public:
-// change wrt Mike's code
-//	DeferTimer(Mac802_11 *m, double s) : MacTimer(m,s) {}
 	DeferTimer(Mac802_11 *m) : MacTimer(m) {}
 
 	void	start(double);
 	void	handle(Event *e);
 };
 
-// change wrt Mike's code
-class BeaconTimer : public MacTimer {
- public:
-       BeaconTimer(Mac802_11 *m) : MacTimer(m) {}
-
-       void    handle(Event *e);
- };
 
 
 class IFTimer : public MacTimer {
