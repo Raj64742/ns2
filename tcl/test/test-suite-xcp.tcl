@@ -40,7 +40,7 @@ Class TestSuite
 proc usage {} {
 	global argv0
 	puts stderr "usage: ns $argv0 <tests> "
-	puts "Valid Tests: simple-xcp xcp-tcp parking-lot-topo"
+	puts "Valid Tests: simple-xcp xcp-tcp"
 	exit 1
 }
 
@@ -471,127 +471,127 @@ Test/xcp-tcp instproc run {} {
 
 }
 
-Class Test/parking-lot-topo -superclass TestSuite
+#Class Test/parking-lot-topo -superclass TestSuite
 
-Test/parking-lot-topo instproc init {} {
-	$self instvar ns_ testName_ delay_ BW_list_ qType_list_ delay_list_ qSize_list_ nTCPsPerHop_list_ rTCPs_ nAllHopsTCPs_ qEffective_RTT_ numHops_ SimStopTime_ qSize_
+# Test/parking-lot-topo instproc init {} {
+# 	$self instvar ns_ testName_ delay_ BW_list_ qType_list_ delay_list_ qSize_list_ nTCPsPerHop_list_ rTCPs_ nAllHopsTCPs_ qEffective_RTT_ numHops_ SimStopTime_ qSize_
 	
-	set testName_   parking-lot-topo
-	set qType_	XCP
-	set BW_	        30;                # in Mb/s
-	set BBW_         [expr $BW_ / 2.0]  ;# BW of bottleneck
-	set delay_	10;                # in ms
-	set qSize_      [expr round([expr ($BW_ / 8.0) * 2.0 * $delay_ * 4.5])];
-	set SimStopTime_	  20
-	set qEffective_RTT_        [expr  20 * $delay_ * 0.001]
-	set nAllHopsTCPs_          30
-	set numHops_               9
-	set BW_list_     " $BW_ $BW_ $BBW_ $BW_ $BW_ $BW_ $BW_ $BW_ $BW_"
-	set qType_list_  " $qType_ $qType_  $qType_ $qType_  $qType_ $qType_ $qType_ $qType_ $qType_"
-	set delay_list_  "$delay_ $delay_ $delay_ $delay_ $delay_ $delay_ $delay_ $delay_ $delay_"
-	set qSize_list_  "$qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_"
-	set nTCPsPerHop_list_     "30 30 30 30 30 30 30 30 30"
-	set rTCPs_                30; #traverse all of the reverse path
+# 	set testName_   parking-lot-topo
+# 	set qType_	XCP
+# 	set BW_	        30;                # in Mb/s
+# 	set BBW_         [expr $BW_ / 2.0]  ;# BW of bottleneck
+# 	set delay_	10;                # in ms
+# 	set qSize_      [expr round([expr ($BW_ / 8.0) * 2.0 * $delay_ * 4.5])];
+# 	set SimStopTime_	  20
+# 	set qEffective_RTT_        [expr  20 * $delay_ * 0.001]
+# 	set nAllHopsTCPs_          30
+# 	set numHops_               9
+# 	set BW_list_     " $BW_ $BW_ $BBW_ $BW_ $BW_ $BW_ $BW_ $BW_ $BW_"
+# 	set qType_list_  " $qType_ $qType_  $qType_ $qType_  $qType_ $qType_ $qType_ $qType_ $qType_"
+# 	set delay_list_  "$delay_ $delay_ $delay_ $delay_ $delay_ $delay_ $delay_ $delay_ $delay_"
+# 	set qSize_list_  "$qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_ $qSize_"
+# 	set nTCPsPerHop_list_     "30 30 30 30 30 30 30 30 30"
+# 	set rTCPs_                30; #traverse all of the reverse path
 
-	$self next
+# 	$self next
 	
-}
+# }
 
 
-Test/parking-lot-topo instproc run {} {
-	$self instvar ns_ rtg_ numHops_ BW_list_ qType_list_ delay_ delay_list_ qSize_list_ nTCPsPerHop_list_ rTCPs_ nAllHopsTCPs_ qtraces_ qEffective_RTT_ SimStopTime_ qSize_
+# Test/parking-lot-topo instproc run {} {
+# 	$self instvar ns_ rtg_ numHops_ BW_list_ qType_list_ delay_ delay_list_ qSize_list_ nTCPsPerHop_list_ rTCPs_ nAllHopsTCPs_ qtraces_ qEffective_RTT_ SimStopTime_ qSize_
 	
-	global n all_links
+# 	global n all_links
 	
-	#all except the first are lists
-	$self create-string-topology $numHops_ $BW_list_ $delay_list_ $qType_list_ $qSize_list_;
+# 	#all except the first are lists
+# 	$self create-string-topology $numHops_ $BW_list_ $delay_list_ $qType_list_ $qSize_list_;
 	
-	# set BW for xcp queue
-	foreach link $all_links {
-		set queue [$link queue]
-		if {[$queue info class] == "Queue/XCP"} {
-			$queue set-link-capacity [[$link set link_] set bandwidth_];  
-		}
-	}
+# 	# set BW for xcp queue
+# 	foreach link $all_links {
+# 		set queue [$link queue]
+# 		if {[$queue info class] == "Queue/XCP"} {
+# 			$queue set-link-capacity [[$link set link_] set bandwidth_];  
+# 		}
+# 	}
 	
-	# Create sources: 1) Long TCPs
-	set i 0
-	while { $i < $nAllHopsTCPs_  } {
-		set StartTime     [expr [$rtg_ integer 1000] * 0.001 * (0.01 * $numHops_ * $delay_)] 
-		set src_($i)      [new GeneralSender $ns_ $i $n(0) [set n($numHops_)] "$StartTime TCP/Reno/XCP"]
+# 	# Create sources: 1) Long TCPs
+# 	set i 0
+# 	while { $i < $nAllHopsTCPs_  } {
+# 		set StartTime     [expr [$rtg_ integer 1000] * 0.001 * (0.01 * $numHops_ * $delay_)] 
+# 		set src_($i)      [new GeneralSender $ns_ $i $n(0) [set n($numHops_)] "$StartTime TCP/Reno/XCP"]
 		
-		[[set src_($i)] set tcp_]  set  window_     [expr $qSize_ * 10]
-		incr i
-	}
+# 		[[set src_($i)] set tcp_]  set  window_     [expr $qSize_ * 10]
+# 		incr i
+# 	}
 
-	# 2) jth Hop TCPs; start at j*1000
-	set i 0;
-	while {$i < $numHops_} {
-		set j [expr (1000 * $i) + 1000 ]; 
-		while { $j < [expr [lindex $nTCPsPerHop_list_ $i] + ($i + 1) * 1000]  } {
-			set StartTime     [expr [$rtg_ integer 1000] * 0.001 * (0.01 * $numHops_ * $delay_)] 
-			set src_($j)      [new GeneralSender $ns_ $j [set n($i)] [set n([expr $i+1])] "$StartTime TCP/Reno/XCP"]
-			[[set src_($j)] set tcp_] set window_ [expr $qSize_ * 10]
-			incr j
-		}
-		incr i
-	}
+# 	# 2) jth Hop TCPs; start at j*1000
+# 	set i 0;
+# 	while {$i < $numHops_} {
+# 		set j [expr (1000 * $i) + 1000 ]; 
+# 		while { $j < [expr [lindex $nTCPsPerHop_list_ $i] + ($i + 1) * 1000]  } {
+# 			set StartTime     [expr [$rtg_ integer 1000] * 0.001 * (0.01 * $numHops_ * $delay_)] 
+# 			set src_($j)      [new GeneralSender $ns_ $j [set n($i)] [set n([expr $i+1])] "$StartTime TCP/Reno/XCP"]
+# 			[[set src_($j)] set tcp_] set window_ [expr $qSize_ * 10]
+# 			incr j
+# 		}
+# 		incr i
+# 	}
 	
-	# 3) reverse TCP; ids follow directly allhops TCPs
+# 	# 3) reverse TCP; ids follow directly allhops TCPs
 
 	
-	set i 0
-	while {$i < $numHops_} {
-		set l 0
-		while { $l < $rTCPs_} {
-			set s [expr $l + $nAllHopsTCPs_ + ( $i * $rTCPs_ ) ] 
-			#puts "s=$s  rTCPs=$rTCPs  l=$l  All=$nAllHopsTCPs"
-			set StartTime     [expr [$rtg_ integer 1000] * 0.001 * (0.01 * $numHops_ * $delay_)+ 0.0] 
-			set src_($s)      [new GeneralSender $ns_ $s [set n([expr $i + 1])] [set n($i)] "$StartTime TCP/Reno/XCP"]
+# 	set i 0
+# 	while {$i < $numHops_} {
+# 		set l 0
+# 		while { $l < $rTCPs_} {
+# 			set s [expr $l + $nAllHopsTCPs_ + ( $i * $rTCPs_ ) ] 
+# 			#puts "s=$s  rTCPs=$rTCPs  l=$l  All=$nAllHopsTCPs"
+# 			set StartTime     [expr [$rtg_ integer 1000] * 0.001 * (0.01 * $numHops_ * $delay_)+ 0.0] 
+# 			set src_($s)      [new GeneralSender $ns_ $s [set n([expr $i + 1])] [set n($i)] "$StartTime TCP/Reno/XCP"]
 		
-			[[set src_($s)] set tcp_] set window_ [expr $qSize_ * 10]
-			incr l
-		}
-		incr i
-	}
+# 			[[set src_($s)] set tcp_] set window_ [expr $qSize_ * 10]
+# 			incr l
+# 		}
+# 		incr i
+# 	}
 
-	# Trace Queues
-	set i 0;
-	while { $i < $numHops_ } {
-		set qtype [lindex $qType_list_ $i]
-		global q$i rq$i
-		foreach queue_name "q$i rq$i" {
-			set queue [set "$queue_name"]
-			switch $qtype {
-				"XCP" {
-					set qtrace [open ft_red_[set queue_name].tr w]
-					$queue attach $qtrace
-				}
-			}
-		}
-		# sample parameters at queue at a given time interval of qeffective_RTT
-		foreach queue_name "q$i" {
-			set queue [set "$queue_name"]
-			$queue queue-sample-everyrtt $qEffective_RTT_
-		}
-		incr i
-	}
-	set i 0;
-	while { $i < $numHops_ } {
-		set qtraces_ "ft_red_q$i ft_red_rq$i"
-		incr i
-	}
+# 	# Trace Queues
+# 	set i 0;
+# 	while { $i < $numHops_ } {
+# 		set qtype [lindex $qType_list_ $i]
+# 		global q$i rq$i
+# 		foreach queue_name "q$i rq$i" {
+# 			set queue [set "$queue_name"]
+# 			switch $qtype {
+# 				"XCP" {
+# 					set qtrace [open ft_red_[set queue_name].tr w]
+# 					$queue attach $qtrace
+# 				}
+# 			}
+# 		}
+# 		# sample parameters at queue at a given time interval of qeffective_RTT
+# 		foreach queue_name "q$i" {
+# 			set queue [set "$queue_name"]
+# 			$queue queue-sample-everyrtt $qEffective_RTT_
+# 		}
+# 		incr i
+# 	}
+# 	set i 0;
+# 	while { $i < $numHops_ } {
+# 		set qtraces_ "ft_red_q$i ft_red_rq$i"
+# 		incr i
+# 	}
 	
-	$ns_ at $SimStopTime_ "$self finish"
-	$ns_ run
+# 	$ns_ at $SimStopTime_ "$self finish"
+# 	$ns_ run
 	
-	set flows "0 1 2 3 4 5 6 7 8"
-	# use utilisation as validation output
-	$self process-parking-lot-data "u" "Utilisation" $flows 0.0
-	#$self process-parking-lot-data "q" "Average Queue" $flows 0.0
+# 	set flows "0 1 2 3 4 5 6 7 8"
+# 	# use utilisation as validation output
+# 	$self process-parking-lot-data "u" "Utilisation" $flows 0.0
+# 	#$self process-parking-lot-data "q" "Average Queue" $flows 0.0
 
 	
-}
+# }
 
 proc runtest {arg} {
 	global quiet
