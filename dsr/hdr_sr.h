@@ -37,7 +37,7 @@
    hdr_sr.h
 
    source route header
-   $Id: hdr_sr.h,v 1.3 1999/03/13 03:53:17 haoboy Exp $
+   $Id: hdr_sr.h,v 1.4 1999/12/21 02:39:38 salehi Exp $
 */
 #ifndef sr_hdr_h
 #define sr_hdr_h
@@ -74,6 +74,15 @@ struct hdr_sr {
   int rtreq_seq_;		// route request sequence number
   int max_propagation_;		// how many times can RTreq be forwarded?
 
+#if defined(sun)
+  // The following field is to bypass what seems to be a compiler bug.
+  // Under Solaris and gcc 2.7.2.2 (and apparently higher version)
+  // route_reply_ and route_reply_len_ become part of reply_addrs_!
+  // this causes the wireless code to malfunction.  This seems like a
+  // byte alignment problem
+  // Nader Salehi 12/20/99
+  char dummy_variable_to_bypass_byte_alignment_problem_in_solaris_[8];
+#endif // defined(sun)
   int route_reply_;		// is the reply below valid?
   int route_reply_len_;
   struct sr_addr reply_addrs_[MAX_SR_LEN];
