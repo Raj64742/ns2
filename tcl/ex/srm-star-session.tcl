@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:40 $
+# Version Date: $Date: 2000/02/18 10:41:49 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star-session.tcl,v 1.5 1999/07/02 01:49:40 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star-session.tcl,v 1.6 2000/02/18 10:41:49 polly Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -39,9 +39,7 @@ if {[llength $argv] > 0} {
 source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 
-Simulator set NumberInterfaces_ 1
 set ns [new SessionSim]
-$ns trace-all [open out.tr w]
 
 # make the nodes
 set nmax 8
@@ -54,7 +52,7 @@ for {set i 1} {$i <= $nmax} {incr i} {
     $ns duplex-link $n($i) $n(0) 1.5Mb 10ms DropTail
 }
 
-set group 0x8000
+set group [Node allocaddr]
 
 # now the multicast, and the agents
 set srmStats [open srmStatsSes.tr w]
@@ -65,13 +63,14 @@ for {set i 2} {$i <= $nmax} {incr i} {
     set loss_module [new SRMErrorModel]
     $loss_module drop-packet 2 10 1
     $loss_module drop-target [$ns set nullAgent_]
-    $ns insert-loss $loss_module 0 $i
+    $ns insert-loss $loss_module $n(0) $n($i)
 }
 
 
 for {set i 1} {$i <= $nmax} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
-    $srm($i) set dst_ $group
+    $srm($i) set dst_addr_ $group
+    $srm($i) set dst_port_ 0
 
     $srm($i) set fid_ [incr fid]
     $srm($i) log $srmStats

@@ -617,7 +617,7 @@ set a_4 "# srcs $src/$traffic. Distribute randomly. \n"
 	set a "foreach i \{$rcvrNodes\} \{ \n"
 	set b "\t set srm(\$i) \[new Agent/$srm\] \n"
 	# set the group ... and other params.. XXX
-	set c "\t \$srm(\$i) set dst_ \$group \n"
+	set c "\t \$srm(\$i) set dst_addr_ \$group \n"
 	set d "\t \$ns attach-agent \$n(\$i) \$srm(\$i) \n \} \n"
 
 	set str1 "$a_5 $a_4 $a_1 $a $b $c $d"
@@ -625,7 +625,7 @@ set a_4 "# srcs $src/$traffic. Distribute randomly. \n"
 	set ba "foreach i \{$srcNodes\} \{ \n"
 	set bb "\t set srmsrc(\$i) \[new Agent/$srm\] \n"
 	# set the group ... and other params.. XXX
-	set bc "\t \$srmsrc(\$i) set dst_ \$group \n"
+	set bc "\t \$srmsrc(\$i) set dst_addr_ \$group \n"
 	set bd "\t \$ns attach-agent \$n(\$i) \$srmsrc(\$i) \n"
 
 	# assign the srcs

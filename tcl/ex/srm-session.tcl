@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:40 $
+# Version Date: $Date: 2000/02/18 10:41:49 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-session.tcl,v 1.4 1999/07/02 01:49:40 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-session.tcl,v 1.5 2000/02/18 10:41:49 polly Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -44,7 +44,7 @@ for {set i 1} {$i <= 3} {incr i} {
 	$ns duplex-link $n($i) $n(0) 1.5Mb 10ms DropTail
 }
 
-set group 0x8000
+set group [Node allocaddr]
 
 # now the multicast, and the agents
 set srmStats [open srmStatsSes.tr w]
@@ -53,7 +53,8 @@ set srmEvents [open srmEventsSes.tr w]
 set fid 0
 foreach i [array names n] {
 	set srm($i) [new Agent/SRM]
-	$srm($i) set dst_ $group
+	$srm($i) set dst_addr_ $group
+	$srm($i) set dst_port_ 0
 	$srm($i) set fid_ [incr fid]
 	$srm($i) log $srmStats
 	$srm($i) trace $srmEvents

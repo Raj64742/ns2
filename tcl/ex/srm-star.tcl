@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/09/10 22:08:48 $
+# Version Date: $Date: 2000/02/18 10:41:50 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star.tcl,v 1.11 1999/09/10 22:08:48 haoboy Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star.tcl,v 1.12 2000/02/18 10:41:50 polly Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -65,8 +65,8 @@ set srmEvents [open srmEvents.tr w]
 set fid 0
 for {set i 1} {$i <= $nmax} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
-    $srm($i) set dst_ $group
-
+    $srm($i) set dst_addr_ $group
+    $srm($i) set dst_port_ 0
     $srm($i) set fid_ [incr fid]
     $srm($i) log $srmStats
     $srm($i) trace $srmEvents

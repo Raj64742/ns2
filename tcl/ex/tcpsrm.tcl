@@ -69,7 +69,8 @@ set n(3) $node_(s4)
 set fid 0
 foreach i [array names n] {
         set srm($i) [new Agent/SRM]
-        $srm($i) set dst_ $group
+        $srm($i) set dst_addr_ $group
+        $srm($i) set dst_port_ 0
         $srm($i) set fid_ [incr fid]
         $srm($i) log $srmStats
         $srm($i) trace $srmEvents

@@ -74,7 +74,8 @@ Simulator instproc cbr_flow { node fid addr bw } {
 	$cbr attach-agent $agent
 	
 	#XXX abstraction violation
-	$agent set dst_ $addr
+	$agent set dst_addr_ $addr
+	$agent set dst_port_ 0
 	
 	$cbr set packetSize_ $packetSize
 	$cbr set interval_ [expr $packetSize * 8. / $bw]

@@ -35,7 +35,7 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.13 1999/09/10 22:08:47 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.14 2000/02/18 10:41:49 polly Exp $
 #
 # updated to use -multicast on by Lloyd Wood. dst_ needs improving
 
@@ -106,11 +106,13 @@ Agent/Message/MC_Acker set packetSize_ 800
 
 Agent/Message/MC_Acker instproc recv msg {
 	set type [lindex $msg 0]
-	set from [lindex $msg 1]
-	set seqno [lindex $msg 2]
-	puts "Agent/Message/MC_Acker::recv $msg, $from"
-	$self set dst_ $from
-	$self send "ack $from $seqno"
+	set from_addr [lindex $msg 1]
+	set from_port [lindex $msg 2]
+	set seqno [lindex $msg 3]
+	puts "Agent/Message/MC_Acker::recv $msg, $from_addr"
+	$self set dst_addr_ $from_addr
+	$self set dst_port_ $from_port
+	$self send "ack $from_addr $seqno"
 }
 
 Class Agent/Message/MC_Sender -superclass Agent/Message
@@ -141,7 +143,8 @@ Agent/Message/MC_Sender instproc send-pkt {} {
 set grp [Node allocaddr]
 set sndr [new Agent/Message/MC_Sender]
 $sndr set packetSize_ 1400
-$sndr set dst_ $grp
+$sndr set dst_addr_ $grp
+$sndr set dst_port_ 0
 $sndr set class_ 1
 
 $ns at 1.0 {
