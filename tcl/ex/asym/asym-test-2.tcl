@@ -1,6 +1,5 @@
 #!../../../../ns
 source ../../../lan/ns-lan.tcl
-source ../../../asym/webbench.tcl
 
 proc createTcpSource { type tcptrace { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
 	set tcp0 [new Agent/$type]
@@ -114,8 +113,8 @@ proc finish {ns traceall tcptrace graph midtime} {
 }	
 
 proc plotgraph {graph midtime} {
-	exec gawk --lint -f ../../../asym/seq.awk out.tr
-	exec gawk --lint -v mid=$midtime -f ../../../asym/tcp.awk tcp.tr
+	exec gawk --lint -f ../../../ex/asym/seq.awk out.tr
+	exec gawk --lint -v mid=$midtime -f ../../../ex/asym/tcp.awk tcp.tr
 	if {$graph == 0} {
 		return
 	}
