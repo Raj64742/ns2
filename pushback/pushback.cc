@@ -569,7 +569,7 @@ PushbackAgent::pushbackRefresh(int qid) {
 		 listItem = listItem->next_;
 	  }
 	  if (listItem == NULL) {
-		  printf("Error: Rank not found\n");
+		  printf("Error: Rank %d not found\n", i);
 		  exit(0);
 	  }
 	  
@@ -589,6 +589,7 @@ PushbackAgent::pushbackRefresh(int qid) {
 #endif
 			pushbackCancel(listItem);       //cancel rate-limiting
 			requiredLimit_+= (requiredLimit_ - sendRate)/(noSessions - i - 1);
+			i--; noSessions--;
 		  } 
 		  else {
 			  //refresh upstream with double of max(sending rate, old limit)

@@ -267,6 +267,7 @@ RateLimitSessionList::endSession(RateLimitSession * rls) {
   exit(-1);
 }
 
+//descending order
 int 
 RateLimitSessionList::rankRate(int myID, double rate) {
     int rank=0;
@@ -281,18 +282,19 @@ RateLimitSessionList::rankRate(int myID, double rate) {
     return rank;
 }
 
+//ascending order
 int 
 RateLimitSessionList::rankSession(int myID, RateLimitSession * session) {
     int rank=0;
     RateLimitSession * listItem = first_;
     while (listItem != NULL) {
 		if (listItem->origin_ == myID) {
-			if (listItem->getArrivalRateForStatus() > session->getArrivalRateForStatus()) {
+			if (listItem->getArrivalRateForStatus() < session->getArrivalRateForStatus()) {
 				rank++;
 			}
 			//to enforce deterministic ordering between sessions with same rate
 			else if (listItem->getArrivalRateForStatus() == session->getArrivalRateForStatus() &&
-					 listItem > session) {
+					 listItem < session) {
 				rank++;
 			}
 		}
