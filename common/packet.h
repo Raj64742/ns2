@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.92 2002/09/18 05:41:50 sundarra Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.93 2003/02/02 22:33:53 xuanc Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -426,6 +426,7 @@ struct hdr_cmn {
 	dir_t	direction_;	// direction: 0=none, 1=up, -1=down
 	// source routing 
         char src_rt_valid;
+	double ts_arr_; // Required by Marker of JOBS 
 
 	//Monarch extn begins
 	nsaddr_t prev_hop_;     // IP addr of forwarding hop
