@@ -10,16 +10,20 @@ following in-progress paper:
 
 
 ----------------------------------------------------------------
+# ../../ns rtm_reclass.tcl three net3
 
 rtm_reclass.tcl		Main test file for the router mechanisms simulations
-mechanisms.tcl		main support routines for implementing the mechanisms
+			  Called by rtm_link.tcl.
 sources.tcl		Creates TCP and CBR connections.
 rtm_plot.tcl		Routines to perform post processing.
 
-rtm.tcl ?		contains the simulation tests
+rtm.tcl 		contains simulation tests
 rtm_link.tcl		Code to build links with router mechanisms
+
 rtm_tests.tcl		Tests for detecting unfriendly, unresponsive 
-				and high-bw flows
+			  and high-bw flows.  Used by mechanisms.tcl.
+mechanisms.tcl		main support routines for implementing the mechanisms
+			  Called by rtm_reclass.tcl, rtm.tcl.
 
 USING RED DROP HISTORY:
 bdflow.tcl		To run tests.
@@ -36,12 +40,13 @@ Fairnessall1.tcl	Processes output for congestion collapse
 
 GENERAL UTILITIES:
 Setred.tcl		Changes default RED parameters.
-flowmon.tcl		Makes a flow monitor, attaches it to link.
 
+
+USING RED DROP HISTORY:
+flow4.tcl	
+Flows.tcl		(Called by flow4.tcl.)
 
 NOT USED:
-flow4.tcl?		Not used.
-Flows.tcl?		Not used.  (Called by flow4.tcl.)
 traffic.tcl?		Not called.
 
 
