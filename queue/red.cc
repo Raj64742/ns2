@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.9 1997/03/29 01:43:00 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.10 1997/04/25 02:17:32 kfall Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -67,6 +67,7 @@ static char rcsid[] =
 #include "packet.h"
 #include "random.h"
 #include "flags.h"
+#include "delay.h"
 
 /*
  * Early drop parameters, supplied by user
@@ -118,8 +119,10 @@ class REDQueue : public Queue {
 	void plot();
 	void plot1(int qlen);
 	int drop_early(Packet* pkt);
-	PacketQueue q_;
-	int bcount_;
+	LinkDelay* link_;	/* outgoing link */
+	PacketQueue q_;	/* underlying FIFO queue */
+	int bcount_;	/* byte count */
+	int qib_;	/* bool: queue measured in bytes? */
 
 	/*
 	 * Static state.
@@ -147,13 +150,16 @@ public:
 	}
 } class_red;
 
-REDQueue::REDQueue()
+REDQueue::REDQueue() : link_(NULL), bcount_(0), idle_(1)
 {
-	bind("bytes_", &edp_.bytes);			// boolean: use bytes?
+	memset(&edp_, '\0', sizeof(edp_));
+	memset(&edv_, '\0', sizeof(edv_));
+
+	bind_bool("bytes_", &edp_.bytes);		// boolean: use bytes?
+	bind_bool("queue-in-bytes_", &qib_);		// boolean: q in bytes?
 	bind("thresh_", &edp_.th_min);			// minthresh
 	bind("maxthresh_", &edp_.th_max);		// maxthresh
 	bind("mean_pktsize_", &edp_.mean_pktsize);	// avg pkt size
-	bind("ptc_", &edp_.ptc);			// pkt time constant
 	bind("q_weight_", &edp_.q_w);			// for EWMA
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
@@ -172,10 +178,13 @@ print_edv();
 
 void REDQueue::reset()
 {
-	if (edp_.bytes) {
+	if (qib_) {
 		edp_.th_min *= edp_.mean_pktsize;
 		edp_.th_max *= edp_.mean_pktsize;
 	}
+	if (link_)
+		edp_.ptc = link_->bandwidth() /
+			(8. * edp_.mean_pktsize);
 	edv_.v_ave = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
@@ -351,7 +360,7 @@ void REDQueue::enque(Packet* pkt)
         } else
                 m = 0;
 
-	run_estimator(edp_.bytes ? bcount_ : q_.length(), m + 1);
+	run_estimator(qib_ ? bcount_ : q_.length(), m + 1);
 
 	++edv_.count;
 	edv_.count_bytes += ch->size();
@@ -384,8 +393,8 @@ void REDQueue::enque(Packet* pkt)
 	if (pkt != 0) {
 		q_.enque(pkt);
 		bcount_ += ch->size();
-		int metric = edp_.bytes ? bcount_ : q_.length();
-		int limit = edp_.bytes ?
+		int metric = qib_ ? bcount_ : q_.length();
+		int limit = qib_ ?
 			(qlim_ * edp_.mean_pktsize) : qlim_;
 		if (metric > qlim_) {
 			int victim;
@@ -409,12 +418,28 @@ void REDQueue::enque(Packet* pkt)
 }
 int REDQueue::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
 		if (strcmp(argv[1], "reset") == 0) {
 			reset();
 			return (TCL_OK);
 		}
 	}
+	if (strcmp(argv[1], "link") == 0) {
+		LinkDelay* del = (LinkDelay*)TclObject::lookup(argv[2]);
+		if (del == 0) {
+			tcl.resultf("RED: no LinkDelay object %s",
+				argv[2]);
+			return(TCL_ERROR);
+		}
+		// set ptc now
+		link_ = del;
+		edp_.ptc = link_->bandwidth() /
+		    (8. * edp_.mean_pktsize);
+
+		return (TCL_OK);
+	}
+
 	return (Queue::command(argc, argv));
 }
 /* for debugging help */
