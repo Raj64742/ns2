@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.15 2000/09/01 03:04:05 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.16 2000/10/23 23:49:37 sfloyd Exp $
  */
 
 /*
@@ -47,18 +47,20 @@
 struct hdr_flags {
 	unsigned char ecn_;	     /* transport receiver notifying
 				      *  transport sender of ECN 
-				      *  (the ECN Echo bit) */
-	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the
-					opposite direction (the CE bit) */
+				      *  (ECN Echo bit in TCP header) */
+	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the *
+				      *	opposite direction *
+				      *	(CE bit in IP header) */
 	unsigned char eln_;     /* explicit loss notification (snoop) */
 	unsigned char fs_;	/* tcp fast start (work in progress --venkat) */
 	unsigned char no_ts_;	/* don't use the tstamp of this pkt for rtt */
 	unsigned char pri_;	/* unused */
-	unsigned char ecn_capable_;  /* an ecn-capable tranport (ECT bit) */
+	unsigned char ecn_capable_;  /* an ecn-capable tranport *
+				      * (ECT bit in IP header) */
 	unsigned char cong_action_;  /* Congestion Action.  Transport 
 				      *	sender notifying transport
-				      * receiver of responses to
-				      * congestion. */
+				      * receiver of responses to congestion.
+				      * (CWR bit in TCP header) */
 	/*
 	 * these functions use the newer ECN names but leaves the actual field
 	 * names above to maintain backward compat
