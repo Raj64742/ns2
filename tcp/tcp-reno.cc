@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.5 1997/02/27 04:39:13 kfall Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.6 1997/03/13 22:49:59 tomh Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -124,5 +124,7 @@ void RenoTcpAgent::timeout(int tno)
 		dupacks_ = 0;
 		if (bug_fix_) recover_ = maxseq_;
 		TcpAgent::timeout(tno);
+	} else {
+		send(1, TCP_REASON_TIMEOUT);
 	}
 }
