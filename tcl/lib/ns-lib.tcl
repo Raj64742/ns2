@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.38 1997/07/14 08:52:19 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.39 1997/07/22 09:02:57 padmanab Exp $
 #
 
 #
@@ -276,9 +276,9 @@ Simulator instproc trace-queue { n1 n2 file } {
 # to be tracked and return object that can be queried
 # to learn average q size etc.  XXX this API still rough
 #
-Simulator instproc monitor-queue { n1 n2 } {
+Simulator instproc monitor-queue { n1 n2 qtrace { sampleInterval 0.1 } } {
 	$self instvar link_
-	return [$link_([$n1 id]:[$n2 id]) init-monitor $self]
+	return [$link_([$n1 id]:[$n2 id]) init-monitor $self $qtrace $sampleInterval]
 }
 
 Simulator instproc queue-limit { n1 n2 limit } {
