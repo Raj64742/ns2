@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.27 1998/06/27 01:03:24 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.28 1998/06/27 01:25:40 tomh Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -119,7 +120,6 @@ protected:
 	seginfo* ptr_;		// used for nextblk() iterator
 	seginfo* last_added_;	// last seginfo inserted
 	int& rcv_nxt_;		// start seq of next expected thing
-	FullTcpAgent* sink_;	// back pointer to FullTcpAgent
 };
 
 class FullTcpAgent : public TcpAgent {
