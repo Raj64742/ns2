@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1.tcl,v 1.1 1997/05/28 01:43:21 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1.tcl,v 1.2 1997/06/17 00:57:12 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -71,6 +71,7 @@ proc create_testnet { } {
 	ns_duplex $s1 $r1 8Mb 5ms drop-tail
 	ns_duplex $s2 $r1 8Mb 5ms drop-tail
 	set L [ns_duplex $r1 $k1 800Kb 100ms drop-tail]
+	# transmission time for a 1000-byte packet:  0.01 sec.
 	[lindex $L 0] set queue-limit 6
 	[lindex $L 1] set queue-limit 6
 }
@@ -478,6 +479,8 @@ proc test_phaseSack {} {
 }
 
 # random overhead, but segregation remains 
+# This is because of the phase of the "tcp1" connection, where
+#  packets arrive at the router right after a slot is freed in the buffer.
 proc test_phaseSack2 {} {
         global s1 s2 r1 k1
         create_testnet  
