@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.15 2002/03/21 23:21:10 ddutta Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.16 2002/06/27 21:26:42 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -58,6 +58,9 @@ PagePool/WebTraf set FLOW_SIZE_TH_ 15
 # 1: Allow only short flows
 # 2: Chop long flows to short ones.
 PagePool/WebTraf set FLOW_SIZE_OPS_ 0
+
+# Flag of introducing server processing delay
+PagePool/WebTraf set server_delay_ 0
 
 PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size pobj} {
     set launch_req 1
@@ -137,8 +140,22 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk stcp size sent po
 	puts "resp + $id $pid $sent $size [$svr id] [$clnt id] [$ns now]"
     }
     
-    # Send $sent packets
-    $self send-message $stcp $sent
+    # Delay introduced by the server
+    set sdelay 0 
+    
+    if {[PagePool/WebTraf set server_delay_]} {
+	#set svr [new SimpleServer [Simulator instance] 1]
+	#set sdelay [$svr job_arrival $sent]
+	set sdelay [$self job_arrival [$svr id] $size]
+	#	puts "$sdelay"
+
+	# schedule to send packets later
+	set timer_ [new ServerTimer $self]
+	$timer_ sched $stcp $sent $sdelay
+    } else {
+	# no server delay, send packets right away.
+	$self send-message $stcp $sent
+    }
 }
 
 PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_th {startTime 0} {fid 0} pobj} {
@@ -227,6 +244,7 @@ PagePool/WebTraf instproc alloc-tcp-sink {} {
 }
 
 PagePool/WebTraf instproc send-message {tcp num_packet} {
+    #puts "send message: [[Simulator instance] now]"
     if {[PagePool/WebTraf set fulltcp_] == 1} {
 	# for fulltcp: need to use flag
 	$tcp sendmsg [expr $num_packet * 1000] "MSG_EOF"
@@ -262,4 +280,32 @@ PagePool/WebTraf instproc  add2asim { srcid dstid lambda mu } {
 
     #puts "setup short flow .. now sflows_ = $sf_"
 
+}
+
+# Timer for server side delay
+Class ServerTimer -superclass Timer
+ServerTimer instproc init {webtraf} {
+    $self instvar webtraf_
+    $self set webtraf_ $webtraf
+
+    $self next [Simulator instance]
+}
+
+ServerTimer instproc sched {tcp sent delay} {
+    $self instvar tcp_
+    $self instvar pkt_
+
+    $self set tcp_ $tcp
+    $self set pkt_ $sent
+
+    $self next $delay
+}
+
+ServerTimer instproc timeout {} {
+    $self instvar webtraf_
+    $self instvar tcp_
+    $self instvar pkt_
+
+    #puts "timeout!!"
+    $webtraf_ send-message $tcp_ $pkt_
 }

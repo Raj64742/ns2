@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.19 2002/03/21 23:21:11 ddutta Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.20 2002/06/27 21:26:21 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -286,11 +286,12 @@ int WebTrafPool::delay_bind_dispatch(const char *varName,const char *localName,
 
 // By default we use constant request interval and page size
 WebTrafPool::WebTrafPool() : 
-	session_(NULL), nSrc_(0), server_(NULL), nClient_(0), client_(NULL),
-	nTcp_(0), nSink_(0), fulltcp_(0)
+	session_(NULL), nServer_(0), server_(NULL), nClient_(0), client_(NULL),
+	nTcp_(0), nSink_(0), fulltcp_(0), recycle_page_(0), server_delay_(0)
 {
 	bind("fulltcp_", &fulltcp_);
 	bind("recycle_page_", &recycle_page_);
+	bind("server_delay_", &server_delay_);
 	// Debo
 	asimflag_=0;
 	LIST_INIT(&tcpPool_);
@@ -352,10 +353,15 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			memset(session_, 0, sizeof(WebTrafSession*)*nSession_);
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "set-num-server") == 0) {
-			nSrc_ = atoi(argv[2]);
+			nServer_ = atoi(argv[2]);
 			if (server_ != NULL) 
 				delete []server_;
-			server_ = new Node*[nSrc_];
+			server_ = new WebServer[nServer_];
+			// Initialize the data structure for web servers
+			for (int i = 0; i < nServer_; i++) {
+				server_[i].finish_t_ = 0;
+				server_[i].rate_ = 1;
+			}
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "set-num-client") == 0) {
 			nClient_ = atoi(argv[2]);
@@ -380,26 +386,26 @@ int WebTrafPool::command(int argc, const char*const* argv)
 		}
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "set-server") == 0) {
-			Node* cli = (Node*)lookup_obj(argv[3]);
-			if (cli == NULL)
-				return (TCL_ERROR);
-			int nc = atoi(argv[2]);
-			if (nc >= nSrc_) {
-				fprintf(stderr, "Wrong server index %d\n", nc);
-				return TCL_ERROR;
-			}
-			server_[nc] = cli;
-			return (TCL_OK);
-		} else if (strcmp(argv[1], "set-client") == 0) {
 			Node* s = (Node*)lookup_obj(argv[3]);
 			if (s == NULL)
+				return (TCL_ERROR);
+			int n = atoi(argv[2]);
+			if (n >= nServer_) {
+				fprintf(stderr, "Wrong server index %d\n", n);
+				return TCL_ERROR;
+			}
+			server_[n].node = s;
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "set-client") == 0) {
+			Node* c = (Node*)lookup_obj(argv[3]);
+			if (c == NULL)
 				return (TCL_ERROR);
 			int n = atoi(argv[2]);
 			if (n >= nClient_) {
 				fprintf(stderr, "Wrong client index %d\n", n);
 				return TCL_ERROR;
 			}
-			client_[n] = s;
+			client_[n] = c;
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "recycle") == 0) {
 			// <obj> recycle <tcp> <sink>
@@ -409,7 +415,7 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			Agent* snk = (Agent*)lookup_obj(argv[3]);
 			if ((tcp == NULL) || (snk == NULL))
 				return (TCL_ERROR);
-
+			
 			if (fulltcp_) {
 				delete tcp;
 				delete snk;
@@ -422,6 +428,40 @@ int WebTrafPool::command(int argc, const char*const* argv)
 				insertAgent(&sinkPool_, snk);
 			}
 			return (TCL_OK);
+		} else if (strcmp(argv[1], "job_arrival") == 0) {
+			// <obj> job_arrive <server> <size> 
+			int sid = atoi(argv[2]);
+			int size = atoi(argv[3]);
+			
+			int n = 0;
+			while ((server_[n].node)->nodeid() != sid) {
+				n++;
+			}
+			
+			if ((server_[n].node)->nodeid() != sid) {
+				return (TCL_ERROR);
+			} else {
+				double delay = server_[n].job_arrival(size);
+				
+				Tcl::instance().resultf("%f", delay);
+				return (TCL_OK);
+			}
+		} else if (strcmp(argv[1], "set_server_rate") == 0) {
+			// <obj> set_rate <server> <size> 
+			int sid = atoi(argv[2]);
+			int rate = atoi(argv[3]);
+			
+			int n = 0;
+			while ((server_[n].node)->nodeid() != sid) {
+				n++;
+			}
+			
+			if ((server_[n].node)->nodeid() != sid) {
+				return (TCL_ERROR);
+			} else {
+				server_[n].rate_ = rate;
+				return (TCL_OK);
+			}
 		}
 	} else if (argc == 9) {
 		if (strcmp(argv[1], "create-session") == 0) {
@@ -452,29 +492,43 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			}
 			p->sched(lt);
 			session_[n] = p;
-
+			
 			// Debojyoti added this for asim
 			if(asimflag_){										// Asim stuff. Added by Debojyoti Dutta
 				// Assumptions exist 
 				//Tcl::instance().evalf("puts \"Here\"");
-				double lambda = (1/(p->interPage())->avg())/(nSrc_*nClient_);
+				double lambda = (1/(p->interPage())->avg())/(nServer_*nClient_);
 				double mu = ((p->objSize())->value());
 				//Tcl::instance().evalf("puts \"Here\"");
-				for (int i=0; i<nSrc_; i++){
+				for (int i=0; i<nServer_; i++){
 					for(int j=0; j<nClient_; j++){
 						// Set up short flows info for asim
-						Tcl::instance().evalf("%s add2asim %d %d %lf %lf", this->name(),server_[i]->nodeid(),client_[j]->nodeid(),lambda, mu);
+						Tcl::instance().evalf("%s add2asim %d %d %lf %lf", this->name(),(server_[i].node)->nodeid(),client_[j]->nodeid(),lambda, mu);
 					}
 				}
 				//Tcl::instance().evalf("puts \"Here\""); 
 			}
-
+			
 			return (TCL_OK);
 		}
 	}
 	return PagePool::command(argc, argv);
 }
 
+// Simple web server implementation
+double WebServer::job_arrival(int job_size) {
+	double now = Scheduler::instance().clock();
+	
+	if (finish_t_ < now) {
+		finish_t_ = now;
+	}
+	
+	finish_t_ = finish_t_ + job_size / rate_;
+	
+	double delay_ = finish_t_ - now;
+	//printf("%d, %f, %f %f\n", job_size, rate_, finish_t_, delay_);
+	return delay_;
+}
 
  
  

@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.12 2002/03/21 23:21:11 ddutta Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.13 2002/06/27 21:26:23 xuanc Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -84,6 +84,16 @@ private:
 	int recycle_page_;
 };
 
+// Data structure for web server
+class WebServer {
+public:
+	Node *node;
+	double rate_;
+	double finish_t_;
+
+	double job_arrival(int);
+};
+
 class WebTrafPool : public PagePool {
 public: 
 	WebTrafPool(); 
@@ -95,9 +105,9 @@ public:
 		return client_[n];
 	}
 	inline Node* pickdst() {
-		int n = int(floor(Random::uniform(0, nSrc_)));
-		assert((n >= 0) && (n < nSrc_));
-		return server_[n];
+		int n = int(floor(Random::uniform(0, nServer_)));
+		assert((n >= 0) && (n < nServer_));
+		return server_[n].node;
 	}
 	inline void doneSession(int idx) { 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
@@ -123,10 +133,15 @@ protected:
 	int nSession_;
 	WebTrafSession** session_; 
 
-	int nSrc_;
-	Node** server_;		/* Web servers */
+	// Web servers
+	int nServer_;
+	//Node** server_;
+	// keep the finish time of the last job (M/G/1)
+	WebServer *server_;
+
+	// Browsers
 	int nClient_;
-	Node** client_; 	/* Browsers */
+	Node** client_;
 
 	// Debo added this
 	int asimflag_;
@@ -170,8 +185,9 @@ protected:
 	int fulltcp_;
 	// Reuse of page level attributes support
 	int recycle_page_;
+	// support simple server delay
+	int server_delay_;
 };
-
 
 #endif // ns_webtraf_h
 
