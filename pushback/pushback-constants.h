@@ -1,6 +1,6 @@
 /* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
- * Copyright (c) 1999  International Computer Science Institute
+ * Copyright (c) 2000  International Computer Science Institute
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
