@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.13 1998/08/25 20:27:49 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.14 1998/09/02 21:26:20 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -54,7 +54,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@ 
+DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -324,6 +324,3 @@ test:	force
 
 # Create makefile.vc for Win32 development by replacing:
 # "# !include ..." 	-> 	"!include ..."
-makefile.vc:
-	$(PERL) bin/gen-vcmake.pl < Makefile.in > makefile.vc
-#	$(PERL) -pe 's/^# (\!include)/\!include/o' < Makefile.in > makefile.vc
