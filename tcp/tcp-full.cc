@@ -36,19 +36,21 @@
  * Kathie Nichols (nichols@baynetworks.com).  The code below is based primarily
  * on the 4.4BSD TCP implementation. -KF [kfall@ee.lbl.gov]
  *
- * Kathie Nichols and Van Jacobson have contributed a significant bug fixes,
- * especially with respect to the the handling of sequence numbers.
+ * Kathie Nichols and Van Jacobson have contributed significant bug fixes,
+ * especially with respect to the the handling of sequence numbers during
+ * connection establishment/clearin.  Additional fixes have followed
+ * theirs.
  *
- * Some Warnings:
+ * Some warnings and comments:
  *	this version of TCP will not work correctly if the sequence number
  *	goes above 2147483648 due to sequence number wrap
  *
- *	this version of TCP currently sends data on the 3rd segment of
- *	the initial 3-way handshake.  So, the typical sequence of events is
+ *	this version of TCP by default sends data at the beginning of a
+ *	connection in the "typical" way... That is,
  *		A   ------> SYN ------> B
  *		A   <----- SYN+ACK ---- B
- *		A   ------> ACK+data -> B
- *	whereas many "real-world" TCPs don't send data until a 4th segment
+ *		A   ------> ACK ------> B
+ *		A   ------> data -----> B
  *
  *	there is no dynamic receiver's advertised window.   The advertised
  *	window is simulated by simply telling the sender a bound on the window
@@ -68,11 +70,14 @@
  *	ack's are handled on connection startup.  Some delay
  *	the ack for the first segment, which can cause connections
  *	to take longer to start up than if we be sure to ack it quickly.
+ *
+ *	SACK
+ *
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.16 1997/11/25 00:02:22 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.17 1997/11/26 21:32:57 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -370,14 +375,15 @@ void FullTcpAgent::output(int seqno, int reason)
 	 * TF_ACKNOW can be set during connection establishment and
 	 * to generate acks for out-of-order data
 	 */
-	// K: K has PUSH here also... is that right?
+	// K: K has PUSH here also...
+	//	but if nodelay is enabled, the SWS check above should
+	//	pushd the packet out now.
 	if ((flags_ & TF_ACKNOW) || (pflags & (TH_SYN|TH_FIN)))
 		goto send;
 
 	return;		// no reason to send now
 
 send:
-
 	if (pflags & TH_SYN) {
 		seqno = iss_;
 		if (!data_on_syn_)
@@ -414,7 +420,7 @@ send:
 		t_seqno_ += datalen;	// update snd_nxt (t_seqno_)
 
 	if ((seqno + datalen) > maxseq_) {
-		maxseq_ = seqno+datalen; 	// largest seq# we've sent
+		maxseq_ = seqno + datalen;  // largest seq# we've sent
 		/*
 		 * Time this transmission if not a retransmission and
 		 * not currently timing anything.
@@ -431,8 +437,10 @@ send:
 	 * round-trip time + 2 * round-trip time variance.
 	 * Future values are rtt + 4 * rttvar.
 	 */
-	if ((rtx_timer_.status() != TIMER_PENDING) && (t_seqno_ > highest_ack_))
+	if ((rtx_timer_.status() != TIMER_PENDING) && (t_seqno_ > highest_ack_)) {
+
 		set_rtx_timer();  // no timer pending, schedule one
+	}
 	return;
 }
 
@@ -500,11 +508,13 @@ void FullTcpAgent::newack(Packet* pkt)
 
 	/* always with timestamp option */
 	double tao = now() - tcph->ts();
+
 	rtt_update(tao);
 
-	if (ackno >= maxseq_)
+
+	if (ackno > maxseq_) {
 		cancel_rtx_timer();
-	else {
+	} else {
 		if (ackno > highest_ack_) {
 			set_rtx_timer();
 		}
@@ -540,7 +550,7 @@ int FullTcpAgent::predict_ok(Packet* pkt)
 	int p1 = (state_ == TCPS_ESTABLISHED);		// ready
 	int p2 = (tcph->flags() == TH_ACK);		// is an ACK
 	int p3 = (tcph->seqno() == rcv_nxt_);		// in-order data
-	int p4 = (t_seqno_ == maxseq_);			// not re-xmit
+	int p4 = (t_seqno_ == (maxseq_+1));		// not re-xmit
 	int p5 = (((hdr_flags*)pkt->access(off_flags_))->ecn_ == 0);	// no ECN
 
 	return (p1 && p2 && p3 && p4 && p5);
@@ -590,26 +600,33 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
 
-	int needoutput = 0;
-	int ourfinisacked = 0;
-	int todrop = 0;
+	int needoutput = FALSE;
+	int ourfinisacked = FALSE;
 	int dupseg = FALSE;
-	int myack = 0;
+	int todrop = 0;
 
+
+	int datalen = th->size() - tcph->hlen(); // # payload bytes
+	int ackno = tcph->ackno();	// ack # from packet
+	int tiflags = tcph->flags() ; // tcp flags from packet
+
+
+	if (state_ == TCPS_CLOSED)
+		goto drop;
 
 	//
-	// if no delayed-ACK timer is set, set one
-	// they are set to fire every 'interval_' secs, starting
+	// if we are using delayed-ACK timers and
+	// no delayed-ACK timer is set, set one.
+	// They are set to fire every 'interval_' secs, starting
 	// at time t0 = (0.0 + k * interval_) for some k such
 	// that t0 > now
 	//
-	if (!(delack_timer_.status() == TIMER_PENDING)) {
+	if (delack_interval_ > 0.0 &&
+	    (delack_timer_.status() != TIMER_PENDING)) {
 		int last = int(now() / delack_interval_);
 		delack_timer_.resched(delack_interval_ * (last + 1.0) - now());
 	}
 
-	int datalen = th->size() - tcph->hlen();
-	int ackno = tcph->ackno();	// ack # from packet
 
 	// note predict_ok() false if PUSH bit on
 	if (predict_ok(pkt)) {
@@ -650,7 +667,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			return;
 		}
 	}
-	int tiflags = tcph->flags() ; // tcp flags from packet
 
 	switch (state_) {
 
@@ -666,13 +682,11 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
          */
 
 	case TCPS_LISTEN:	/* awaiting peer's SYN */
+
 		if (tiflags & TH_ACK) {
 			goto dropwithreset;
 		}
 		if ((tiflags & TH_SYN) == 0) {
-			// K: if a FIN, K sends an ACK first before drop
-			//	but real TCP doesn't appear to do this...
-			//	should we?
 			goto drop;
 		}
 
@@ -720,29 +734,33 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		irs_ = tcph->seqno();	// get initial recv'd seq #
 		rcv_nxt_ = rcvseqinit(irs_, datalen);
 
-		/*
-		 * if there's data, delay ACK; if tehre's also a FIN
-		 * ACKNOW will be turned on later.
-		 */
-		if (datalen > 0) {
-			flags_ |= TF_DELACK;	// data there: wait
-		} else {
-			flags_ |= TF_ACKNOW;	// ACK peer's SYN
-		}
 
 		if (tiflags & TH_ACK) {
-			// SYN+ACK
+			// SYN+ACK (our SYN was acked)
 			highest_ack_ = ackno;
 			state_ = TCPS_ESTABLISHED;
+
+#ifdef notdef
+/*
+ * if we didn't have to retransmit the SYN,
+ * use its rtt as our initial srtt & rtt var.
+ */
+if (t_rtt_) {
+	double tao = now() - tcph->ts();
+	rtt_update(tao);
+}
+#endif
+
 			/*
-			 * if we didn't have to retransmit the SYN,
-			 * use its rtt as our initial srtt & rtt var.
+			 * if there's data, delay ACK; if there's also a FIN
+			 * ACKNOW will be turned on later.
 			 */
-			if (t_rtt_) {
-				double tao = now() - tcph->ts();
-				rtt_update(tao);
+			if (datalen > 0) {
+				flags_ |= TF_DELACK;	// data there: wait
+			} else {
+				flags_ |= TF_ACKNOW;	// ACK peer's SYN
 			}
-			// new to ns:
+			// special to ns:
 			//  generate pure ACK here.
 			//  this simulates the ordinary connection establishment
 			//  where the ACK of the peer's SYN+ACK contains
@@ -771,6 +789,10 @@ trimthenstep6:
 		 * advance the seq# to correspond to first data byte
 		 */
 		tcph->seqno()++;
+
+		if (tiflags & TH_ACK)
+			goto process_ACK;
+
 		goto step6;
 	}
 
@@ -952,6 +974,8 @@ trimthenstep6:
 			goto dropafterack;
 		}
 
+process_ACK:
+
                 /*
                  * If we have a timestamp reply, update smoothed
                  * round trip time.  If no timestamp is present but
@@ -966,7 +990,14 @@ trimthenstep6:
                  * timer, using current (possibly backed-off) value.
                  */
 		newack(pkt);
-		if (ackno >= maxseq_)
+                /*
+                 * If no data (only SYN) was ACK'd,
+                 *    skip rest of ACK processing.
+                 */
+		if (ackno == (highest_ack_ + 1))
+			goto step6;
+
+		if (ackno > maxseq_)
 			needoutput = TRUE;
 		// if we are delaying initial cwnd growth (probably due to
 		// large initial windows), then only open cwnd if data has
@@ -974,10 +1005,11 @@ trimthenstep6:
 		if (!delay_growth_ || (rcv_nxt_ > 0))
 			opencwnd();
 		// K: added state check in equal but diff way
-		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno >= (curseq_ + iss_)))
+		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno > maxseq_)) {
 			ourfinisacked = TRUE;
-		else
+		} else {
 			ourfinisacked = FALSE;
+		}
 		// additional processing when we're in special states
 
 		switch (state_) {
@@ -1040,10 +1072,9 @@ step6:
 	 */
 
 	if ((datalen > 0 || (tiflags & TH_FIN)) &&
-	    state_ <= TCPS_ESTABLISHED) {
-		// K: assigns first_data true here
-		// see the "TCP_REASS" macro for this code
+	    TCPS_HAVERCVDFIN(state_) == 0) {
 		if (tcph->seqno() == rcv_nxt_ && rq_.empty()) {
+			// see the "TCP_REASS" macro for this code:
 			// got the in-order packet we were looking
 			// for, nobody is in the reassembly queue,
 			// so this is the common case...
@@ -1054,14 +1085,13 @@ step6:
 			// don't really have a process anyhow, just
 			// accept the data here as-is (i.e. don't
 			// require being in ESTABLISHED state)
-			tiflags &= TH_FIN;
-			if (tiflags)
-				++rcv_nxt_;
 			flags_ |= TF_DELACK;
 			rcv_nxt_ += datalen;
+			tiflags = tcph->flags() & TH_FIN;
 			// give to "application" here
 			needoutput = need_send();
 		} else {
+			// see the "tcp_reass" function:
 			// not the one we want next (or it
 			// is but there's stuff on the reass queue);
 			// do whatever we need to do for out-of-order
@@ -1088,7 +1118,7 @@ step6:
 	 */
 
 	if (tiflags & TH_FIN) {
-		if (state_ <= TCPS_ESTABLISHED) {
+		if (TCPS_HAVERCVDFIN(state_) == 0) {
 			flags_ |= TF_ACKNOW;
 			rcv_nxt_++;
 		}
@@ -1099,9 +1129,17 @@ step6:
                  * enter the CLOSE_WAIT state.
 		 * (in the simulator, go to LAST_ACK)
 		 * (passive close)
+		 *
+		 * special to ns:
+		 * Because there is no CLOSE_WAIT state, the
+		 * ACK that should be generated for the FIN is
+		 * performed directly here..  This code generates
+		 * a pure ACK for the FIN, although strictly speaking
+		 * it appears to be "TCP-legal" to have data in this packet.
                  */
                 case TCPS_SYN_RECEIVED:
                 case TCPS_ESTABLISHED:
+			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
                         state_ = TCPS_LAST_ACK;
                         break;
 
@@ -1118,9 +1156,10 @@ step6:
                  * starting the time-wait timer, turning off the other
                  * standard timers.
 		 * (in the simulator, just go to CLOSED)
-		 * (active close)
+		 * (completion of active close)
                  */
                 case TCPS_FIN_WAIT_2:
+			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
                         state_ = TCPS_CLOSED;
 			cancel_timers();
                         break;
