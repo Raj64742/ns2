@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.30 1997/11/27 05:20:30 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.31 1998/05/02 01:36:22 kfall Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -206,7 +206,12 @@ Packet* REDQueue::deque()
 	return (p);
 }
 
-int REDQueue::drop_early(Packet* pkt)
+/*
+ * should the packet be dropped/marked due to a probabilistic drop?
+ */
+
+int
+REDQueue::drop_early(Packet* pkt)
 {
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
@@ -245,10 +250,11 @@ int REDQueue::drop_early(Packet* pkt)
 		edv_.count = 0;
 		edv_.count_bytes = 0;
 		hdr_flags* hf = (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
-		if (edp_.setbit && hf->ecn_capable_) {
-			hf->ecn_to_echo_ = 1; 
+		if (edp_.setbit && hf->ect()) {
+			hf->ce() = 1; 	// mark Congestion Experienced bit
+			return (0);	// no drop
 		} else {
-			return (1);
+			return (1);	// drop
 		}
 	}
 	return (0);  // no DROP/mark
@@ -262,7 +268,8 @@ int REDQueue::drop_early(Packet* pkt)
  * ECN notification.
  */
 Packet*
-REDQueue::pickPacketForECN(Packet* pkt) {
+REDQueue::pickPacketForECN(Packet* pkt)
+{
 	return pkt; /* pick the packet that just arrived */
 }
 
