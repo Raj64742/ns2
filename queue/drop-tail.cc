@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.14 2002/05/07 18:28:27 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.15 2003/01/16 19:02:54 sfloyd Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -83,17 +83,20 @@ void DropTail::enque(Packet* p)
 	if (summarystats) {
                 Queue::updateStats(qib_?q_->byteLength():q_->length());
 	}
-	Packet* pt = q_->enque(p);
+
 	int qlimBytes = qlim_ * mean_pktsize_;
-	if ((!qib_ && q_->length() >= qlim_) || 
-	    (qib_ && q_->byteLength() >= qlimBytes)) {
+	if ((!qib_ && (q_->length() + 1) >= qlim_) ||
+  	(qib_ && (q_->byteLength() + hdr_cmn::access(p)->size()) >= qlimBytes)){
+		// if the queue would overflow if we added this packet...
 		if (drop_front_) { /* remove from head of queue */
+			q_->enque(p);
 			Packet *pp = q_->deque();
 			drop(pp);
 		} else {
-			q_->remove(p, pt);
 			drop(p);
 		}
+	} else {
+		q_->enque(p);
 	}
 }
 
