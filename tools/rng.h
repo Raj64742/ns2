@@ -35,7 +35,7 @@
 
 // #ifndef lint
 // static const char rcsid[] =
-//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.5 1997/10/20 23:05:23 heideman Exp $ (LBL)";
+//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.6 1997/10/20 23:22:22 heideman Exp $ (LBL)";
 // #endif
 
 /* new random number generator */
@@ -43,6 +43,7 @@
 
 #ifndef _rng_h_
 #define _rng_h_
+
 
 // Define rng_test to build the test harness.
 #define rng_test

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.8 1997/09/13 00:22:28 breslau Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.9 1997/10/20 23:22:20 heideman Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -38,12 +38,6 @@
 
 #include <math.h>
 #include "config.h"
-
-#define USE_RNG   /* run new rng by default as of  8-Sep-97 */
-
-#ifdef USE_RNG
-
-/* new rng version under developement */
 
 
 #include "rng.h"
@@ -66,51 +60,5 @@ public:
         static double exponential(double r) { return rng().exponential(r); }
 	static double pareto(double scale, double shape) { return rng().pareto(scale, shape); }
 };
-
-#else
-
-class Random {
-public:
-	static void seed(int);
-	static int seed_heuristically();
-	static inline int random() {
-#if defined(__svr4__) || defined(__SVR4)
-		return (::lrand48() & 0x7fffffff);
-#else
-		return (::random());
-#endif
-	}
-	static inline double uniform() {
-		/* random returns numbers in the range [0,2^31-1] */
-#if defined(__svr4__) || defined(__SVR4)
-		return (drand48());
-#else
-		return ((double)random() / 0x7fffffff);
-#endif
-	}
-	static inline double uniform(double r) {
-		return (r * uniform());
-	}
-	static inline double uniform(double a, double b) {
-		return (a + uniform(b - a));
-	}
-	static inline double exponential() {
-		return (-log(uniform()));
-	}
-	static inline int integer(int k) {
-		return (random() % (unsigned)k);
-	}
-        static inline double exponential(double r) {
-                return (r * exponential());
-        }
-	/* pareto distribution with specified shape and average
-	 * equal to scale * (shape/(shape-1))
-	 */
-	static inline double pareto(double scale, double shape) {
-	        return (scale * (1.0/pow(uniform(), 1.0/shape)));
-	}
-};
-
-#endif
 
 #endif
