@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.28 1997/11/06 04:16:01 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.29 1997/11/14 22:11:27 kfall Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -377,7 +377,6 @@ void REDQueue::enque(Packet* pkt)
 		/* forced drop, or not a drop: first enqueue pkt */
 		q_->enque(pkt);
 		bcount_ += ch->size();
-		qlen = qib_ ? bcount_ : q_->length();
 
 		/* drop a packet if we were told to */
 		if (droptype == DTYPE_FORCED) {
