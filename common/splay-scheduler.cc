@@ -16,11 +16,11 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.2 2002/07/16 22:36:20 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.3 2002/07/18 23:09:53 yuri Exp $
  */
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.2 2002/07/16 22:36:20 yuri Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.3 2002/07/18 23:09:53 yuri Exp $";
 #endif
 /**
  *
@@ -63,8 +63,14 @@ public:
 	void validate() { assert(validate(root_) == qsize_); };
     
 protected:
-	Event *&left(Event *e)  { return e->prev_; }
-	Event *&right(Event *e) { return e->next_; } 
+	//XXX even if debug is enabled, we want these inlined
+	//Event *&LEFT(Event *e)  { return e->prev_; }
+	//Event *&RIGHT(Event *e) { return e->next_; }
+#undef LEFT
+#undef RIGHT
+#define LEFT(e)				((e)->prev_)	
+#define RIGHT(e)			((e)->next_)
+
 	Event *uid_lookup(Event *);
 
 	Event			*root_;
@@ -85,28 +91,28 @@ public:
 
 #define ROTATE_RIGHT(t, x)		\
     do {				\
-    	left(t) = right(x);	 	\
-    	right(x) = (t);			\
+    	LEFT(t) = RIGHT(x);	 	\
+    	RIGHT(x) = (t);			\
     	(t) = (x);			\
     } while(0)
 
 #define ROTATE_LEFT(t, x)		\
     do {				\
-    	right(t)  = left(x);	 	\
-    	left(x) = (t);			\
+    	RIGHT(t)  = LEFT(x);	 	\
+    	LEFT(x) = (t);			\
     	(t) = (x);			\
     } while(0)
 #define LINK_LEFT(l, t)			\
     do {				\
-	right(l) = (t);			\
+	RIGHT(l) = (t);			\
 	(l) = (t);			\
-	(t) = right(t);			\
+	(t) = RIGHT(t);			\
     } while (0)
 #define LINK_RIGHT(r, t)		\
     do {				\
-	left(r) = (t);			\
+	LEFT(r) = (t);			\
 	(r) = (t);			\
-	(t) = left(t);			\
+	(t) = LEFT(t);			\
     } while (0)
 
 #define FULL_ZIG_ZAG 0 		/* if true, perform full zig-zags, if
@@ -125,7 +131,7 @@ SplayScheduler::insert(Event *n)
 	double time = n->time_;
     
 	if (root_ == 0) {
-		left(n) = right(n) = 0;
+		LEFT(n) = RIGHT(n) = 0;
 		root_ = n;
 		//validate();
 		return;
@@ -136,10 +142,10 @@ SplayScheduler::insert(Event *n)
 	r = n;
 	for (;;) {
 		if (time < t->time_) {
-			x = left(t);
+			x = LEFT(t);
 			if (x == 0) {
-				left(r) = t;
-				right(l) = 0;
+				LEFT(r) = t;
+				RIGHT(l) = 0;
 				break;
 			}
 			if (time < x->time_) {
@@ -153,15 +159,15 @@ SplayScheduler::insert(Event *n)
 #endif
 			}
 			if (t == 0) {
-				right(l) = 0;
+				RIGHT(l) = 0;
 				break;
 			}
 		}
 		if (time >= t->time_) {
-			x = right(t);
+			x = RIGHT(t);
 			if (x == 0) {
-				right(l) = t; 
-				left(r) = 0;
+				RIGHT(l) = t; 
+				LEFT(r) = 0;
 				break;	
 			}
 			if (time >= x->time_) {
@@ -175,7 +181,7 @@ SplayScheduler::insert(Event *n)
 #endif
 			}
 			if (t == 0) {
-				left(r) = 0;
+				LEFT(r) = 0;
 				break;
 			}
 		}
@@ -183,9 +189,9 @@ SplayScheduler::insert(Event *n)
 
 	// assemble:
 	//   swap left and right children
-	x = left(n);
-	left(n) = right(n);
-	right(n) = x;
+	x = LEFT(n);
+	LEFT(n) = RIGHT(n);
+	RIGHT(n) = x;
 	//validate();
 }
 
@@ -203,32 +209,32 @@ SplayScheduler::deque()
 	--qsize_;
 
 	t = root_;
-	l = left(t);
+	l = LEFT(t);
 
 	if (l == 0) {		// root is the element to dequeue
-		root_ = right(t);	// right branch becomes the root
+		root_ = RIGHT(t);	// right branch becomes the root
 		//validate();
 		return t;
 	}
 	for (;;) { 
-		ll = left(l);
+		ll = LEFT(l);
 		if (ll == 0) {
-			left(t) = right(l);
+			LEFT(t) = RIGHT(l);
 			//validate();
 			return l;
 		}
 
-		lll = left(ll);
+		lll = LEFT(ll);
 		if (lll == 0) {
-			left(l) = right(ll);
+			LEFT(l) = RIGHT(ll);
 			//validate();
 			return ll;
 		}
 
 		// zig-zig: rotate l with ll
-		left(t) = ll;
-		left(l) = right(ll);
-		right(ll) = l;
+		LEFT(t) = ll;
+		LEFT(l) = RIGHT(ll);
+		RIGHT(ll) = l;
 
 		t = ll;
 		l = lll;
@@ -253,7 +259,7 @@ SplayScheduler::cancel(Event *e)
 		for (t = &root_; *t;) {
 			t = ((e->time_ > (*t)->time_) || 
 			     ((e->time_ == (*t)->time_) && e->uid_ > (*t)->uid_))
-				? &right(*t) : &left(*t);
+				? &RIGHT(*t) : &LEFT(*t);
 			if (*t == e)
 				break;
 		}
@@ -266,38 +272,38 @@ SplayScheduler::cancel(Event *e)
 	e->uid_ = -e->uid_;
 	--qsize_;
 
-	if (right(e) == 0) {
-		*t = left(e);
-		left(e) = 0;
+	if (RIGHT(e) == 0) {
+		*t = LEFT(e);
+		LEFT(e) = 0;
 		//validate();
 		return;
 	} 
-	if (left(e) == 0) {
-		*t = right(e);
-		right(e) = 0;
+	if (LEFT(e) == 0) {
+		*t = RIGHT(e);
+		RIGHT(e) = 0;
 		//validate();
 		return;
 	}
 
 	// find successor
-	Event *p = right(e), *q = left(p);
+	Event *p = RIGHT(e), *q = LEFT(p);
 
 	if (q == 0) {
 		// p is the sucessor
 		*t = p;
-		left(p) = left(e);
+		LEFT(p) = LEFT(e);
 		//validate();
 		return;
 	}
-	for (; left(q); p = q, q = left(q)) 
+	for (; LEFT(q); p = q, q = LEFT(q)) 
 		;
 	// q is the successor
 	// p is q's parent
 	*t = q;
-	left(p) = right(q);
-	left(q) = left(e);
-	right(q) = right(e);
-	right(e) = left(e) = 0;
+	LEFT(p) = RIGHT(q);
+	LEFT(q) = LEFT(e);
+	RIGHT(q) = RIGHT(e);
+	RIGHT(e) = LEFT(e) = 0;
 	//validate();
 }
 
@@ -317,12 +323,12 @@ SplayScheduler::uid_lookup(Event *root)
 	if (root->uid_ == lookup_uid_)
 		return root;
 
-	Event *res = uid_lookup(left(root));
+	Event *res = uid_lookup(LEFT(root));
  
 	if (res) 
 		return res;
 
-	return uid_lookup(right(root));
+	return uid_lookup(RIGHT(root));
 }
 
 int
@@ -331,10 +337,10 @@ SplayScheduler::validate(Event *root)
 	int size = 0;
 	if (root) {
 		++size;
-		assert(left(root) == 0 || root->time_ >= left(root)->time_);
-		assert(right(root) == 0 || root->time_ <= right(root)->time_);
-		size += validate(left(root));
-		size += validate(right(root));
+		assert(LEFT(root) == 0 || root->time_ >= LEFT(root)->time_);
+		assert(RIGHT(root) == 0 || root->time_ <= RIGHT(root)->time_);
+		size += validate(LEFT(root));
+		size += validate(RIGHT(root));
 		return size;
 	}
 	return 0;

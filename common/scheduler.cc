@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.67 2002/07/16 22:28:09 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.68 2002/07/18 23:09:53 yuri Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.67 2002/07/16 22:28:09 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.68 2002/07/18 23:09:53 yuri Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -567,9 +567,8 @@ public:
 	}
 } class_calendar_sched;
 
-CalendarScheduler::CalendarScheduler() {
-	reinit(4, 1.0, 0.0);
-	resizeenabled_ = 1;
+CalendarScheduler::CalendarScheduler() : cal_clock_(clock_) {
+	reinit(4, 1.0, cal_clock_);
 }
 
 CalendarScheduler::~CalendarScheduler() {
@@ -581,7 +580,13 @@ CalendarScheduler::~CalendarScheduler() {
 
 void CalendarScheduler::insert(Event* e)
 {
-	int i = CALENDAR_HASH(e->time_);
+	int i;
+	if (cal_clock_ > e->time_) {
+		// may happen in RT scheduler
+		cal_clock_ = e->time_;
+		i = lastbucket_ = CALENDAR_HASH(cal_clock_);
+	} else
+		i = CALENDAR_HASH(e->time_);
 
 	Event *head = buckets_[i].list_;
 	Event *before=0;
@@ -624,8 +629,7 @@ void CalendarScheduler::insert(Event* e)
 	assert(e == buckets_[i].list_->prev_ || e->next_->time_ >= e->time_);
 
   	if (stat_qsize_ > top_threshold_) {
-		assert(resizeenabled_);
-  		resize(nbuckets_ << 1, clock_);
+  		resize(nbuckets_ << 1, cal_clock_);
 		return;
 	}
 }
@@ -692,7 +696,7 @@ CalendarScheduler::deque()
 #define CAL_DEQUEUE(x) 						\
 do { 								\
 	if ((e = buckets_[i].list_) != NULL) {			\
-		diff = e->time_ - clock_;			\
+		diff = e->time_ - cal_clock_;			\
 		if (diff < diff##x##_)	{			\
 			l = i;					\
 			goto found_l;				\
@@ -753,10 +757,12 @@ do { 								\
 	if (buckets_[l].count_ == 0)
 		assert(buckets_[l].list_ == 0);
 
-  	if (stat_qsize_ < bot_threshold_) {
-		assert(resizeenabled_);
-		resize(nbuckets_ >> 1, e->time_);
+ 	cal_clock_ = e->time_;
+
+ 	if (stat_qsize_ < bot_threshold_) {
+		resize(nbuckets_ >> 1, cal_clock_);
 	}
+
 	return e;
 }
 
@@ -784,8 +790,6 @@ void CalendarScheduler::reinit(int nbuck, double bwidth, double start)
 
 void CalendarScheduler::resize(int newsize, double start)
 {
-	if (!resizeenabled_) return;
-
 	double bwidth = newwidth();
 
 	if (newsize < 4)
@@ -798,7 +802,7 @@ void CalendarScheduler::resize(int newsize, double start)
 
 	// copy events to new buckets
 	int i;
-	resizeenabled_ = 0;
+
 	for (i = 0; i < oldn; ++i) {
 		// we can do inserts faster, if we use insert2, but to
 		// preserve FIFO, we have to start from the end of
@@ -814,7 +818,6 @@ void CalendarScheduler::resize(int newsize, double start)
 			} while (e != tail);
 		}
 	}
-	resizeenabled_ = 1;
 	delete [] oldb;
 }
 
