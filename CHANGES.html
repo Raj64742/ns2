@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.263 1998/07/11 22:16:13 yaxu Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.264 1998/07/13 16:58:28 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -231,6 +231,25 @@ under tcl/ex/agent-gen-script.tcl.
     <li><b><a href="mailto:breslau@parc.xerox.com">[LB]</A></B>
         <b>Mon May  4 11:22:02 PDT 1998</b>
 	Added nam trace functionality to admission control modules.
+
+    <li><b><a href="mailto:haldar@isi.edu">[haldar]</a></b>
+        <b>Wed Apr 29 10:25:45 PDT 1998</b>
+        <ul>
+        <li> Revised the addressing format for ns as follows:
+        Added API's for allocating bits to address fields. Default
+value being 8 bits for port (2^8 agents) and 7 bits for node address
+(2^7 nodes in a topology and 1 bit for mcast.
+The API allows to set address for multilevel hierarchy (for
+hierarchical routing), and expand the port bits to allow higher number
+of agents in a node. For details see ~ns/tcl/lib/ns-address.tcl
+
+         <li> Added support for hierarchical routing.Currently
+hierarchical routing supports upto 3 levels of hierarchy. 
+The gt-itm to hierarchical converter - sgb2hierns, is available from
+topology generation webpage for ns. Example scripts for hierarchical
+routing are available in ~ns/ex/hier-rtg-10.tcl and hier-rtg-100.tcl
+</ul>
+
 
     <li><b><a href="mailto:bajaj@parc.xerox.com">[SB]</A></B>
         <b>Tue Apr 28 14:30:08 PDT 1998</b>
