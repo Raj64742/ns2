@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.37 2000/09/01 03:04:06 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.38 2000/12/20 10:11:50 alefiyah Exp $ (UCB)";
 #endif
 
 //#include "classifier.h"
@@ -86,11 +86,12 @@ static int MacIndex = 0;
 
 Mac::Mac() : 
 	BiConnector(), netif_(0), tap_(0), ll_(0), channel_(0), callback_(0), 
-	hRes_(this), hSend_(this), state_(MAC_IDLE), pktRx_(0), pktTx_(0)
+	hRes_(this), hSend_(this), state_(MAC_IDLE), pktRx_(0), pktTx_(0),abstract_(0)
 {
 	index_ = MacIndex++;
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
+	bind_bool("abstract_", &abstract_);
 }
 
 int Mac::command(int argc, const char*const* argv)
@@ -105,6 +106,7 @@ int Mac::command(int argc, const char*const* argv)
 			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
+		
 	} else if (argc == 3) {
 		TclObject *obj;
 		if( (obj = TclObject::lookup(argv[2])) == 0) {
@@ -147,7 +149,12 @@ void Mac::sendUp(Packet* p)
 
 	state(MAC_IDLE);
 	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_)) {
-		drop(p);
+		if(!abstract_){
+			drop(p);
+		}else {
+			//Dont want to creat a trace
+			Packet::free(p);
+		}
 		return;
 	}
 	Scheduler::instance().schedule(uptarget_, p, delay_);
@@ -158,7 +165,8 @@ void Mac::sendDown(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p);
 	downtarget_->recv(p, this);
-	s.schedule(&hRes_, &intr_, txt);
+	if(!abstract_)
+		s.schedule(&hRes_, &intr_, txt);
 }
 
 
@@ -175,3 +183,13 @@ void Mac::resume(Packet* p)
 //{
 //return (Mac*) mcl_->slot(hdr_mac::access(p)->macDA());
 //}
+
+
+
+
+
+
+
+
+
+

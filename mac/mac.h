@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.34 2000/09/01 03:04:06 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.35 2000/12/20 10:11:36 alefiyah Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -226,6 +226,7 @@ protected:
 	int index_;		// MAC address
 	double bandwidth_;      // channel bitrate
 	double delay_;		// MAC overhead
+	int abstract_;         //   MAC support for abstract LAN 
         
 	Phy *netif_;            // network interface
         Tap *tap_;              // tap agent
