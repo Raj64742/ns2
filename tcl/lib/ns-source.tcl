@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.19 1998/08/14 20:11:05 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.20 1998/08/15 02:03:31 tomh Exp $
 #
 
 #  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
@@ -71,6 +71,20 @@ Application/FTP instproc producemore { pktcnt } {
 	[$self agent] advanceby $pktcnt
 }
 
+
+# Helper function to convert rate_ into an interval_
+Application/Traffic/CBR instproc set args {
+	$self instvar packet_size_ rate_
+	if { [lindex $args 0] == "interval_" } {
+		if { [llength $args] == 2 } {
+			$self set rate_ [expr $packet_size_ * 8.0/[lindex $args 1]]
+			return
+		} elseif { [llength $args] == 1 } {
+			return [expr $packet_size_ * 8.0/$rate_]
+		}
+	}
+	eval $self next $args
+}
 
 #
 # Below are backward compatible components
@@ -125,7 +139,7 @@ Agent/CBR instproc init {} {
 	set trafgen_ [new Application/Traffic/CBR]
 	$trafgen_ attach-agent $self
 	# Convert packetSize_ and interval_ to trafgen_ rate_
-	$trafgen_ set rate_ [expr $packetSize_ * 8/ $interval_]
+	$trafgen_ set rate_ [expr $packetSize_ * 8.0/ $interval_]
 	$trafgen_ set random_ [$self set random_]
 	$trafgen_ set maxpkts_ [$self set maxpkts_]
 	$trafgen_ set packet_size_ [$self set packetSize_]
@@ -164,7 +178,7 @@ Agent/CBR instproc set args {
 				$trafgen_ set packet_size_ [lindex $args 1]
 				set packetSize_ [lindex $args 1]
 				# Recompute rate 
-				$trafgen_ set rate_ [expr $packetSize_ * 8/ $interval_]
+				$trafgen_ set rate_ [expr $packetSize_ * 8.0/ $interval_]
                         	return 
                 	} elseif { [llength $args] == 1 } {
 				return $packetSize_
@@ -190,7 +204,7 @@ Agent/CBR instproc set args {
 				set ns_ [Simulator instance]
 				set interval_ [$ns_ delay_parse [lindex $args 1]]
 				# Convert interval_ to rate for trafgen_
-				$trafgen_ set rate_ [expr $packetSize_ * 8/ $interval_]
+				$trafgen_ set rate_ [expr $packetSize_ * 8.0/ $interval_]
 				return
                 	} elseif { [llength $args] == 1 } {
 				return $interval_
