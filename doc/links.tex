@@ -246,6 +246,83 @@ TTLChecker &	will decrement the ttl in each packet that it receives.
 \end{tabularx}
 
 
+\section{Object hierarchy}
+\label{sec:linkobjects}
+
+The base class used to represent links is called Link. Methods for
+this class are listed in the next section. Other link objects derived from
+the base class are given as follows:
+
+\begin{itemize}
+
+\item SimpleLink Object
+A SimpleLink object is used to represent a simple unidirectional link.
+There are no state variables or configuration parameters associated with
+this object. Methods for this class are:
+\code{$simplelink enable-mcast <src> <dst>}\\
+This turns on multicast for the link by creating an incoming network
+interface for the destination and adds an outgoing interface for the
+source.
+
+\code{$simplelink trace <ns> <file> <optional:op>}\\
+Build trace objects for this link and update object linkage. If op is
+specified as "nam" create nam trace files.
+
+\code{$simplelink nam-trace <ns> <file>}\\
+Sets up nam tracing in the link.
+
+\code{$simplelink trace-dynamics <ns> <file> <optional:op>}\\
+This sets up tracing specially for dynamic links. <op> allows setting up
+of nam tracing as well.
+
+\code{$simplelink init-monitor <ns> <qtrace> <sampleInterval>}\\
+Insert objects that allow us to monitor the queue size of this link.
+Return the name of the object that can be queried to determine the average
+queue size.
+
+\code{$simplelink attach-monitors <insnoop> <outsnoop> <dropsnoop>
+<qmon>}\\
+This is similar to init-monitor, but allows for specification of more of
+the items.
+
+\code{$simplelink dynamic}\\
+Sets up the dynamic flag for this link.
+
+\code{$simplelink errormodule <args>}\\
+Inserts an error module before the queue.
+
+\code{$simpleilnk insert-linkloss <args>}\\
+Inserts the error module after the queue.
+
+//Other link objects derived from class SimpleLink are FQLink,
+CBQLink and IntServLink.
+
+Configuration parameters for FQLink are:
+\begin{description}
+\item[queueManagement\_] The type of queue management used in the link.
+                        Default value is DropTail.
+\end{description}
+
+No configuration parameters are specified for CBQLink and IntServLink
+objects.
+
+
+\item DelayLink Object
+The DelayLink Objects determine the amount of time required for a packet
+to traverse a link. This is defined to be size/bw + delay where size is
+the packet size, bw is the link bandwidth and delay is the link
+propagation delay. There are no methods or state variables associated with
+this object. 
+
+Configuration Parameters are:
+\begin{description}
+
+\item[bandwidth\_] Link bandwidth in bits per second. 
+
+\item[delay\_] Link propagation delay in seconds. 
+\end{description}
+\end{itemize}
+
 \section{Commands at a glance}
 \label{sec:linkscommand}
 
@@ -292,6 +369,7 @@ visualized by nam.
 
 \code{$ns_ lossmodel <lossobj> <from> <to>}\\
 This is used to insert a loss module in regular links.
+
 
 
 Following is a list of internal link-related procedures:

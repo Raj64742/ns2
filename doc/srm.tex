@@ -1028,6 +1028,96 @@ For example, the start of the constructor for the
         \}
 \end{program}
 
+
+\section{SRM objects}
+\label{srmobjects}
+SRM objects are a subclass of agent objects that implement the SRM
+reliable multicast transport protocol. They inherit all of the generic
+agent functionalities. The methods for this object is described in the
+next section \ref{srmcommand}. Configuration parameters for this object
+are:
+\begin{description}
+\item[packetSize\_] The data packet size that will be used for repair
+messages. The default value is 1024. 
+
+\item[requestFunction\_] The algorithm used to produce a retransmission
+request, e.g., setting request timers. The default value is SRM/request.
+Other possible request functions are SRM/request/Adaptive, used by the
+Adaptive SRM code. 
+
+\item[repairFunction\_]
+The algorithm used to produce a repair, e.g., compute repair timers. The
+default value is SRM/repair. Other possible request functions are
+SRM/repair/Adaptive, used by the Adaptive SRM code. 
+
+\item[sessionFunction\_]
+The algorithm used to generate session messages. Default is SRM/session 
+
+\item[sessionDelay\_]
+The basic interval of session messages. Slight random variation is added
+to this interval to avoid global synchronization of session messages. User
+may want to adjust this variable according to their specific simulation.
+Default value is 1.0. 
+
+\item[C1\_, C2\_]
+The parameters which control the request timer. Refer to [8] for detail.
+The default value is C1\_ = C2\_ = 2.0. 
+
+\item[D1\_, D2\_]
+The parameters which control the repair timer. Refer to [8] for detail.
+The default value is D1\_ = D2\_ = 1.0. 
+
+\item[requestBackoffLimit\_]
+The maximum number of exponential backoffs. Default value is 5. 
+\end{description}
+
+State Variables are:
+\begin{description}
+\item[stats\_]
+An array containing multiple statistics needed by adaptive SRM agent.
+Including: duplicate requests and repairs in current request/repair
+period, average number of duplicate requests and repairs, request and
+repair delay in current request/repair period, average request and repair
+delay. 
+\end{description}
+
+\textsc{SRM/Adaptive Objects}
+SRM/Adaptive objects are a subclass of the SRM objects that implement the
+adaptive SRM reliable multicast transport protocol. They inherit all of
+the SRM object functionalities. 
+State Variables are: \\
+(Refer to the SRM paper by Sally et al [Fall, K., Floyd, S., and
+Henderson, T., Ns Simulator Tests for Reno FullTCP. URL
+ftp://ftp.ee.lbl.gov/papers/fulltcp.ps. July 1997.] for more detail.)
+\begin{description}
+
+\item[pdistance\_]
+This variable is used to pass the distance estimate provided by the remote
+agent in a request or repair message. 
+
+\item[D1\_, D2\_]
+The same as that in SRM agents, except that they are initialized to
+log10(group size) when generating the first repair. 
+
+\item[MinC1\_, MaxC1\_, MinC2\_, MaxC2\_]
+The minimum/maximum values of C1\_ and C2\_. Default initial values are
+defined in [8]. These values define the dynamic range of C1\_ and C2\_. 
+
+\item[MinD1\_, MaxD1\_, MinD2\_, MaxD2\_]
+The minimum/maximum values of D1\_ and D2\_. Default initial values are
+defined in [8]. These values define the dynamic range of D1\_ and D2\_. 
+
+\item[AveDups]
+Higher bound for average duplicates. 
+
+\item[AveDelay]
+Higher bound for average delay. 
+
+\item[eps AveDups] -dups determines the lower bound of the number of
+duplicates, when we should adjust parameters to decrease delay. 
+\end{description}
+
+
 \section{Commands at a glance}
 \label{sec:srmcommand}
 

@@ -276,6 +276,56 @@ The use of integrals to compute certain types of averages
 (e.g. mean queue lengths) is given in (pp. 429--430, \cite{Jain91:Art}).
 
 
+\section{Some mathematical-support related objects}
+\label{sec:mathobjects}
+
+\textsc{Integrator objects}
+Integrator Objects support the approximate computation of continuous
+integrals using discrete sums. The running sum(integral) is computed as:
+\code{sum_ += [lasty_ * (x lastx_)]} where (x, y) is the last element
+entered and
+(lastx\_, lasty\_) was the element previous to that added to the sum.
+lastx\_ and lasty\_ are updated as new elements are added. The first
+sample point defaults to (0,0) that can be changed by changing the values
+of (lastx\_,lasty\_). 
+\code{$integrator newpoint <x> <y>}\\
+Add the point (x,y) to the sum. Note that it does not make sense for x to
+be less than lastx\_. 
+
+There are no configuration parameters specific to this object. \\
+
+State Variables are:
+\begin{description}
+\item[lastx\_]
+x-coordinate of the last sample point. 
+
+\item[lasty\_]
+y-coordinate of the last sample point. 
+
+\item[sum\_] Running sum (i.e. the integral) of the sample points. 
+\end{description}
+
+
+\textsc{Samples Object}
+Samples Objects support the computation of mean and variance statistics
+for a given sample. 
+
+\code{$samples mean}\\
+Returns mean of the sample. 
+
+\code{$samples variance}\\
+Returns variance of the sample. 
+
+\code{$samples cnt}\\
+Returns a count of the sample points considered. 
+
+\code{$samples reset }\\
+Reset the Samples object to monitor a fresh set of samples. 
+
+There are no configuration parameters or state variables specific to this
+object. 
+
+
 
 \section{Commands at a glance}
 \label{sec:mathcommand}
