@@ -66,7 +66,7 @@ proc default_options {} {
 	set opt(seed)		0.0
 	set opt(stop)		1000.0	      ;# simulation time
 	set opt(tr)		temp.rands    ;# trace file
-	set opt(lm)             "on"          ;# log movement
+	set opt(lm)             "off"          ;# log movement
 
 }
 
