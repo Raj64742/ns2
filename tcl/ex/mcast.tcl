@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.9 1999/07/02 01:49:33 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.10 1999/07/20 21:53:09 haoboy Exp $
 #
 
 #
@@ -86,7 +86,7 @@ set cbr1 [new Application/Traffic/CBR]
 $cbr1 attach-agent $udp1
 
 set rcvr [new Agent/LossMonitor]
-$ns attach-agent $n3 $rcvr
+$ns attach-agent $n2 $rcvr
 $ns at 1.2 "$n2 join-group $rcvr 0x8002"
 $ns at 1.25 "$n2 leave-group $rcvr 0x8002"
 $ns at 1.3 "$n2 join-group $rcvr 0x8002"
