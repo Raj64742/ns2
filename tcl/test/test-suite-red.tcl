@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.17 1997/11/04 07:27:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.18 1997/11/04 08:39:44 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -129,15 +129,22 @@ TestSuite instproc plotQueue file {
 }
 
 TestSuite instproc tcpDumpAll { tcpSrc interval label } {
+    global quiet
     $self instvar dump_inst_ ns_
     if ![info exists dump_inst_($tcpSrc)] {
 	set dump_inst_($tcpSrc) 1
-	puts $label/window=[$tcpSrc set window_]/packetSize=[$tcpSrc set packetSize_]
+	set report $label/window=[$tcpSrc set window_]/packetSize=[$tcpSrc set packetSize_]
+	if {$quiet == "false"} {
+		puts $report
+	}
 	$ns_ at 0.0 "$self tcpDumpAll $tcpSrc $interval $label"
 	return
     }
     $ns_ at [expr [$ns_ now] + $interval] "$self tcpDumpAll $tcpSrc $interval $label"
-    puts time=[$ns_ now]/class=$label/ack=[$tcpSrc set ack_]/packets_resent=[$tcpSrc set nrexmitpack_]
+    set report time=[$ns_ now]/class=$label/ack=[$tcpSrc set ack_]/packets_resent=[$tcpSrc set nrexmitpack_]
+    if {$quiet == "false"} {
+    	puts $report
+    }
 }       
 
 
@@ -172,7 +179,6 @@ Test/red1 instproc run {} {
     # trace only the bottleneck link
     $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -212,7 +218,6 @@ Test/ecn instproc run {} {
     # trace only the bottleneck link
     $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
         
-    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -253,7 +258,6 @@ Test/red2 instproc run {} {
     # trace only the bottleneck link
     $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -296,7 +300,6 @@ Test/red_twoway instproc run {} {
     # trace only the bottleneck link
     $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -342,7 +345,6 @@ Test/red_twowaybytes instproc run {} {
     # trace only the bottleneck link
     $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -357,8 +359,8 @@ TestSuite instproc create_flowstats {} {
 	set r1fm_ [$ns_ makeflowmon Fid]
 	set flowchan [open $flowfile w]
 	$r1fm_ attach $flowchan
-#	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_ 1
-	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_ 
+	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_ 1
+#	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_ 
 }
 
 #
@@ -479,20 +481,23 @@ TestSuite instproc finish_flows testname {
 	close $flowchan
 	$self create_flow_graph $testname $flowgraphfile
 	puts "running xgraph..."
+	exec cp $flowgraphfile temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $flowgraphfile &
 	}
 	exit 0
 }
 
-TestSuite instproc new_tcp { startTime source dest window class quiet size } {
+TestSuite instproc new_tcp { startTime source dest window class verbose size } {
 	$self instvar ns_
 	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $class ]
 	$tcp set window_ $window
 	if {$size > 0}  {$tcp set packetSize_ $size }
 	set ftp [$tcp attach-source FTP]
 	$ns_ at $startTime "$ftp start"
-        if {$quiet == "false" } {$self tcpDumpAll $tcp 20.0 $class }
+	if {$verbose == "1"} {
+	  $self tcpDumpAll $tcp 20.0 $class 
+	}
 }
 
 TestSuite instproc new_cbr { startTime source dest pktSize interval class } {
@@ -540,7 +545,6 @@ TestSuite instproc dumpflows interval {
 }   
 
 TestSuite instproc droptest { stoptime } {
-	global quiet
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 
 	set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
@@ -560,8 +564,8 @@ TestSuite instproc droptest { stoptime } {
 	$forwq set queue-in-bytes_ true
 	$forwq set wait_ false
 
-        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 $quiet 1000
-	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 $quiet 50
+        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
+	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
 	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
 
 	$ns_ at $stoptime "$self finish_flows $testName_"
