@@ -30,13 +30,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * semantic-packetqueue.cc: contributed by the Daedalus Research Group, U.C.Berkeley 
- * http://daedalus.cs.berkeley.edu
+ * semantic-packetqueue.cc: contributed by the Daedalus Research Group, 
+ * UC Berkeley (http://daedalus.cs.berkeley.edu).
  */
 
-#include "semantic-packetqueue.h"
 #include "ip.h"
 #include "tcp.h"
+#include "template.h"
+#include "semantic-packetqueue.h"
+#include "ack-recons.h"
 
 static class SemanticPacketQueueClass : public TclClass {
 public:
@@ -47,24 +49,35 @@ public:
 } class_semanticpacketqueue;
 
 SemanticPacketQueue::SemanticPacketQueue() : ack_count(0), data_count(0), 
-	acks_to_send(0), marked_count_(0), unmarked_count_(0) {
-
+	acks_to_send(0), marked_count_(0), unmarked_count_(0) 
+{
 	bind("off_cmn_", &off_cmn_);
 	bind("off_flags_", &off_flags_);
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
-
+	bind("off_flags_", &off_flags_);
+	
 	bind_bool("acksfirst_", &acksfirst_);
 	bind_bool("filteracks_", &filteracks_);
+	bind_bool("reconsAcks_", &reconsAcks_);
 	bind_bool("replace_head_", &replace_head_);
 	bind_bool("priority_drop_", &priority_drop_);
 	bind_bool("random_drop_", &random_drop_);
-}	
-
+}
 
 int
 SemanticPacketQueue::command(int argc, const char*const* argv)
 {
+	if (argc == 3) {
+		if (strcmp(argv[1], "ackrecons") == 0) {
+			if ((reconsCtrl_ = (AckReconsController *) 
+			     TclObject::lookup(argv[2]))) {
+				reconsCtrl_->spq_ = this;
+				reconsAcks_ = 1;
+			}
+		}
+		return (TCL_OK);
+	}
 	return (TclObject::command(argc, argv));
 }
 
@@ -92,12 +105,6 @@ SemanticPacketQueue::deque_acksfirst() {
 		p = PacketQueue::deque();
 	}
 	return p;
-}
-
-int
-SemanticPacketQueue::compareFlows(hdr_ip *ip1, hdr_ip *ip2)
-{
-	return ((ip1->src() == ip2->src()) && (ip1->dst() == ip2->dst()));
 }
 
 /*
@@ -137,6 +144,7 @@ SemanticPacketQueue::filterAcks(Packet *pkt, int replace_head)
 					if (replace_head && pkt != p &&
 					    !done_replacement) {
 						PacketQueue::remove(pkt);
+						ack_count--; /* XXX */
 						pkt->next_ = p;
 						if (pp)
 							pp->next_ = pkt;
@@ -157,15 +165,17 @@ SemanticPacketQueue::filterAcks(Packet *pkt, int replace_head)
 							fprintf(stderr, "Warning: In filterAcks(): packet being dropped from queue is in scheduler queue\n");
 						}
 						PacketQueue::remove(p, pp);
-						if (ack_count <= 0)
-							fprintf(stderr,
-								"oops! ackcount %d\n", ack_count);
-						Packet::free(p); /* XXXX should drop, 
-							    but we don't have
-							    access to q here */
+						/* XXX should drop, but we
+						   don't have access to q */
+						Packet::free(p); 
+						ack_count--;
 						p = new_p;
 						continue;
 					}
+					if (ack_count <= 0)
+						fprintf(stderr, 
+							"oops! ackcount %d\n",
+							ack_count);
 				}
 			}
 		}
@@ -210,12 +220,11 @@ SemanticPacketQueue::pickPacketToDrop()
 	int victimIndex, victimMarked;
 
 	if (!priority_drop_) {
-		if (!random_drop_)
-			victim = PacketQueue::lookup(length() - 1);
+		if (random_drop_)
+			victim=PacketQueue::lookup(Random::integer(length()));
 		else
-			victim = PacketQueue::lookup(Random::integer(length()));
-	}
-	else {
+			victim = PacketQueue::lookup(length() - 1);
+	} else {
 		/* if there are marked (low priority) packets */
 		if (marked_count_) {
 			victimMarked = 1;
@@ -239,15 +248,21 @@ SemanticPacketQueue::pickPacketToDrop()
 void 
 SemanticPacketQueue::enque(Packet *pkt)
 {
-	PacketQueue::enque(pkt);
+	if (reconsAcks_&&(((hdr_cmn*)pkt->access(off_cmn_))->ptype_==PT_ACK)) {
+		reconsCtrl_->recv(pkt);
+		return;
+	}
 	if (((hdr_cmn*)pkt->access(off_cmn_))->ptype_ == PT_ACK)
 		ack_count++;
 	else
-		data_count++;
+	       data_count++;
 	if (isMarked(pkt)) 
 		marked_count_++;
 	else
 		unmarked_count_++;
+
+	PacketQueue::enque(pkt); /* actually enqueue the packet */
+
 	if (filteracks_ && (((hdr_cmn*)pkt->access(off_cmn_))->ptype_==PT_ACK))
 		filterAcks(pkt, replace_head_);
 }
@@ -290,3 +305,4 @@ SemanticPacketQueue::remove(Packet *pkt)
 			unmarked_count_--;
 	}
 }
+

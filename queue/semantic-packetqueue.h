@@ -30,15 +30,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/semantic-packetqueue.h,v 1.2 1997/08/28 18:31:21 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/semantic-packetqueue.h,v 1.3 1997/10/26 05:49:54 hari Exp $ (UCB)
  */
 
 #ifndef ns_semantic_packetqueue_h
 #define ns_semantic_packetqueue_h
 
+#include "object.h"
+#include "connector.h"
+#include "packet.h"
 #include "queue.h"
 #include "flags.h"
 #include "random.h"
+#include "tcp.h"
+
+class AckReconsController;
 
 /*
  * This flavor of PacketQueue includes several buffer management and
@@ -52,7 +58,9 @@ class SemanticPacketQueue : public PacketQueue {
 	/* deque TCP acks before any other type of packet */
 	Packet* deque_acksfirst();
 	/* determine whether two packets belong to the same connection */
-	int compareFlows(hdr_ip *ip1, hdr_ip *ip2);
+	inline int compareFlows(hdr_ip *ip1, hdr_ip *ip2) {
+		return ((ip1->src()==ip2->src()) && (ip1->dst()==ip2->dst()));
+	}
 	/*
 	 * When a new ack is enqued, purge older acks (as determined by the 
 	 * sequence number of the ack field) from the queue. The enqued ack
@@ -96,13 +104,24 @@ class SemanticPacketQueue : public PacketQueue {
 	 */
 	int acksfirst_;         /* deque TCP acks before any other data */
 	int filteracks_;        /* purge old acks when new one arrives */
+	int reconsAcks_;	/* set up queue as an ack recontructor */
 	int replace_head_;      /* new ack should take the place of old ack
 				   closest to the head */
 	int priority_drop_;     /* drop marked (low priority) packets first */
 	int random_drop_;       /* pick packet to drop at random */
 	virtual Packet* deque();
-	virtual void enque(Packet *);
+	void enque(Packet *);
+	virtual inline void enque_head(Packet *p) {
+		if (len_ == 0)
+			PacketQueue::enque(p);
+		else {
+			p->next_ = head_;
+			head_ = p;
+			++len_;
+		}
+	}
 	virtual void remove(Packet *);
+	AckReconsController *reconsCtrl_;
 };
 
 #endif
