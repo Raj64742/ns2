@@ -200,9 +200,10 @@ Topology/net2 instproc init ns {
 
 Class Topology/net3 -superclass Topology
 Topology/net3 instproc init ns {
+    $self next 
     $self instvar node_ bandwidth_ bandwidth1_
-    set bandwidth_ 0.5Mb
-    set bandwidth1_ 500000
+    set bandwidth_ 1.0Mb
+    set bandwidth1_ 1000000
     #the destinations; declared first 
     for {set i 0} {$i < 2} {incr i} {
         set node_(d$i) [$ns node]
@@ -211,23 +212,33 @@ Topology/net3 instproc init ns {
     #the routers
     for {set i 0} {$i < 4} {incr i} {
         set node_(r$i) [$ns node]
-        $node_(r$i) add-pushback-agent
+	$node_(r$i) add-pushback-agent
     }
 
     #the sources
     for {set i 0} {$i < 4} {incr i} {
         set node_(s$i) [$ns node]
+	set pushback($i) [$node_(s$i) add-pushback-agent]
     }
 
-    $self next 
 
-    $ns duplex-link $node_(s0) $node_(r2) 10Mb 2ms DropTail
-    $ns duplex-link $node_(s1) $node_(r3) 10Mb 3ms DropTail
+    $ns pushback-duplex-link $node_(s0) $node_(r2) 10Mb 2ms 
+    #$ns duplex-link $node_(s0) $node_(r2) 10Mb 2ms DropTail
+    $ns pushback-duplex-link $node_(s1) $node_(r2) 10Mb 3ms
+    #$ns duplex-link $node_(s1) $node_(r3) 10Mb 3ms DropTail
+    $ns pushback-duplex-link $node_(s2) $node_(r3) 10Mb 3ms
+    $ns pushback-duplex-link $node_(s3) $node_(r3) 10Mb 3ms
     $ns pushback-duplex-link $node_(r0) $node_(r1) $bandwidth_ 10ms 
-    $ns pushback-duplex-link $node_(r2) $node_(r0) $bandwidth_ 10ms 
-    $ns pushback-duplex-link $node_(r3) $node_(r0) $bandwidth_ 10ms 
-    $ns duplex-link $node_(d0) $node_(r1) 10Mb 2ms DropTail
-    $ns duplex-link $node_(d1) $node_(r1) 10Mb 2ms DropTail
+    $ns pushback-duplex-link $node_(r2) $node_(r0) 10Mb 10ms 
+    $ns pushback-duplex-link $node_(r3) $node_(r0) 10Mb 10ms 
+    #
+    $ns pushback-simplex-link $node_(r1) $node_(d0) 10Mb 2ms
+    $ns simplex-link $node_(d0) $node_(r1) 10Mb 2ms DropTail
+    #$ns duplex-link $node_(d0) $node_(r1) 10Mb 2ms DropTail
+    #
+    $ns pushback-simplex-link $node_(r1) $node_(d1) 10Mb 2ms 
+    $ns simplex-link $node_(d1) $node_(r1) 10Mb 2ms DropTail
+    #$ns duplex-link $node_(d1) $node_(r1) 10Mb 2ms DropTail
 
     $ns queue-limit $node_(r0) $node_(r1) 100
     $ns queue-limit $node_(r1) $node_(r0) 100
@@ -237,12 +248,10 @@ TestSuite instproc setTopo {} {
     $self instvar node_ net_ ns_ topo_
 
     set topo_ [new Topology/$net_ $ns_]
-    set node_(s0) [$topo_ node? s0]
-    set node_(s1) [$topo_ node? s1]
-    set node_(r0) [$topo_ node? r0]
-    set node_(r1) [$topo_ node? r1]
-    set node_(d0) [$topo_ node? d0]
-    set node_(d1) [$topo_ node? d1]
+    foreach i [$topo_ array names node_] {
+        set node_($i) [$topo_ node? $i]
+        # puts "i = $i $node_($i)"
+    }
     [$ns_ link $node_(r0) $node_(r1)] trace-dynamics $ns_ stdout
 }
 
@@ -298,7 +307,6 @@ TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
 TestSuite instproc setup {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self instvar maxAggregates_
-    $self setTopo
 
     set stoptime 100.0
     #set stoptime 5.0
@@ -426,7 +434,6 @@ Test/cbrs-acc1 instproc init {} {
 TestSuite instproc setup1 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self instvar maxAggregates_
-    $self setTopo
 
     set stoptime 35.0
     #set dumptime 5.0
@@ -561,7 +568,6 @@ Test/slowgrow-acc instproc init {} {
 TestSuite instproc setup4 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self instvar maxAggregates_
-    $self setTopo
 
     set stoptime 60.0
     #set dumptime 5.0
@@ -682,12 +688,13 @@ Test/tcp-acc instproc init {} {
 
 ######################################################33
 
-TestSuite instproc setup2 {} {
+TestSuite instproc setup5 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self instvar maxAggregates_
-    $self setTopo
 
     set stoptime 100.0
+    #set stoptime 5.0
+    #set dumptime 5.0
     set dumptime 1.0
     set stoptime1 [expr $stoptime + 1.0]
     set packetsize_ 200
@@ -700,12 +707,12 @@ TestSuite instproc setup2 {} {
 
     set udp1 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 1]
     set cbr1 [$udp1 attach-app Traffic/CBR]
-    $cbr1 set rate_ 0.1Mb
+    $cbr1 set rate_ 0.12Mb
     $cbr1 set random_ 0.005
 
     set udp2 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 2]
     set cbr2_ [$udp2 attach-app Traffic/CBR]
-    $cbr2_ set rate_ 0.1Mb
+    $cbr2_ set rate_ 0.08Mb
     $cbr2_ set random_ 0.005
 
     # bad traffic
@@ -717,20 +724,107 @@ TestSuite instproc setup2 {} {
 
     set udp4 [$ns_ create-connection UDP $node_(s1) Null $node_(d0) 4]
     set cbr4 [$udp4 attach-app Traffic/CBR]
-    $cbr4 set rate_ 0.1Mb
+    $cbr4 set rate_ 0.07Mb
     $cbr4 set random_ 0.005
 
     set udp5 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 5]
     set cbr5 [$udp5 attach-app Traffic/CBR]
-    $cbr5 set rate_ 0.1Mb
+    $cbr5 set rate_ 0.06Mb
     $cbr5 set random_ 0.005
 
-    set maxAggregates_ 5
+    set udp6 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 6]
+    set cbr6 [$udp6 attach-app Traffic/CBR]
+    $cbr6 set rate_ 0.05Mb
+    $cbr6 set random_ 0.005
+
+
+    set maxAggregates_ 6
 
     $ns_ at 0.2 "$cbr1 start"
     $ns_ at 0.1 "$cbr2_ start"
     $ns_ at 0.3 "$cbr4 start"
     $ns_ at 0.4 "$cbr5 start"
+
+    $self statsDump $dumptime $fmon $packetsize_ 0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime1 "$self cleanupAll $testName_"
+}
+
+#
+#
+Class Test/onoff -superclass TestSuite
+Test/onoff instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ onoff
+    $self next 0
+}
+Test/onoff instproc run {} {
+    $self instvar ns_ node_ testName_ net_ topo_
+    $self setTopo
+    $self setup5
+    $ns_ run
+}
+
+#
+#
+Class Test/onoff-acc -superclass TestSuite
+Test/onoff-acc instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ onoff-acc
+    Queue/RED/Pushback set rate_limiting_ 1
+    Test/onoff-acc instproc run {} [Test/onoff info instbody run]
+    $self next 0
+}
+
+
+######################################################33
+
+TestSuite instproc setup2 {} {
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
+
+    set stoptime 100.0
+    set dumptime 1.0
+    set stoptime1 [expr $stoptime + 1.0]
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    set udp1 [$ns_ create-connection UDP $node_(s2) Null $node_(d0) 1]
+    set cbr1 [$udp1 attach-app Traffic/CBR]
+    $cbr1 set rate_ 0.2Mb
+    $cbr1 set random_ 0.001
+
+    set udp2 [$ns_ create-connection UDP $node_(s3) Null $node_(d0) 2]
+    set cbr2_ [$udp2 attach-app Traffic/CBR]
+    $cbr2_ set rate_ 0.2Mb
+    $cbr2_ set random_ 0.001
+
+    # bad traffic
+    set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 3]
+    set cbr_ [$udp attach-app Traffic/CBR]
+    $cbr_ set rate_ 3.0Mb
+    $cbr_ set random_ 0.001
+    $ns_ at 0.0 "$cbr_ start"
+
+    # poor traffic
+    set udp6 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 3]
+    set cbr6_ [$udp attach-app Traffic/CBR]
+    $cbr6_ set rate_ 0.2Mb
+    $cbr6_ set random_ 0.001
+    $ns_ at 0.0 "$cbr6_ start"
+
+    set maxAggregates_ 3
+
+    $ns_ at 0.2 "$cbr1 start"
+    $ns_ at 0.1 "$cbr2_ start"
 
     $self statsDump $dumptime $fmon $packetsize_ 0
     # trace only the bottleneck link
