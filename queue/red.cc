@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -56,9 +57,16 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.31 1998/05/02 01:36:22 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.32 1998/06/26 02:25:09 gnguyen Exp $ (LBL)";
 #endif
 
+#include <math.h>
+#include <string.h>
+#include <sys/types.h>
+#include "template.h"
+#include "random.h"
+#include "flags.h"
+#include "delay.h"
 #include "red.h"
 
 static class REDClass : public TclClass {

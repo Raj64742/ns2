@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -52,23 +53,15 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.12 1997/11/27 05:21:08 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.13 1998/06/26 02:25:08 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_red_h
 #define ns_red_h
 
-#include <math.h>
-#include <string.h>
-#include <sys/types.h>
-
 #include "queue.h"
-#include "tclcl.h"
-#include "packet.h"
-#include "random.h"
-#include "flags.h"
-#include "delay.h"
-#include "template.h"
+
+class LinkDelay;
 
 /*
  * Early drop parameters, supplied by user
