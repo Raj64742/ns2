@@ -52,10 +52,10 @@ The default is to run the same multicast routing
 protocol on all the nodes in the topology. As an example, the
 following commands illustrate the use of procedure \proc[]{mrtproto} command.
 \begin{program}
-	set cmc [$ns mrtproto CtrMcast \{\}]	\; specify centralized multicast for all nodes;
-	\; cmc is the handle for multicast protocol object;
-	$ns mrtproto DM $n1 $n2 $n3		\; specify dense mode multicast for nodes n1, n2 and n3;
-	$ns mrtproto dynamicDM 			\; specify dynamic dense mode;
+        set cmc [$ns mrtproto CtrMcast \{\}]    \; specify centralized multicast for all nodes;
+        \; cmc is the handle for multicast protocol object;
+        $ns mrtproto DM $n1 $n2 $n3             \; specify dense mode multicast for nodes n1, n2 and n3;
+        $ns mrtproto dynamicDM                  \; specify dynamic dense mode;
 \end{program}
 
 New/unused multicast address can be allocated using the procedure
@@ -74,25 +74,25 @@ corresponding agent and second argument specifies the group address.
 
 An example of a relatively simple multicast configuration is:
 \begin{program}
-	set ns [new Simulator]
-	{\bfseries{}Simulator set EnableMcast_ 1} \; enable multicast routing;
-	Node expandaddr  \; expand address space, required if more than 128 nodes;
-	set group [{\bfseries{}Node allocaddr}]   \; allocate a mulicast address;
-	set node0 [$ns node]         \; create multicast capable nodes;
-	set node1 [$ns node]
-	{\bfseries{}Simulator set NumberInterfaces_ 1}  \; number interfaces for all links;
-	$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail \; create links with interfaces;
+        set ns [new Simulator]
+        {\bfseries{}Simulator set EnableMcast_ 1} \; enable multicast routing;
+        Node expandaddr  \; expand address space, required if more than 128 nodes;
+        set group [{\bfseries{}Node allocaddr}]   \; allocate a mulicast address;
+        set node0 [$ns node]         \; create multicast capable nodes;
+        set node1 [$ns node]
+        {\bfseries{}Simulator set NumberInterfaces_ 1}  \; number interfaces for all links;
+        $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail \; create links with interfaces;
 
-	set mproto dynamicDM          \; configure multicast protocol;
-	set mrthandle [{\bfseries{}$ns mrtproto $mproto \{\}}] \; if an empty list is give,;
-		\; all nodes will contain multicast protocol agents;
-	set src [new Agent/CBR]        \; create a source agent at node 0;
-	$ns attach-agent $node0 $src 
-	{\bfseries{}$src set dst_ $group}
+        set mproto dynamicDM          \; configure multicast protocol;
+        set mrthandle [{\bfseries{}$ns mrtproto $mproto \{\}}] \; if an empty list is give,;
+                \; all nodes will contain multicast protocol agents;
+        set src [new Agent/CBR]        \; create a source agent at node 0;
+        $ns attach-agent $node0 $src 
+        {\bfseries{}$src set dst_ $group}
 
-	set rcvr [new Agent/LossMonitor]  \; create a receiver agent at node 1;
-	$ns attach-agent $node1 $rcvr
-	$ns at 0.3 "{\bfseries{}$node1 join-group $rcvr $group}" \; join the group at simulation time 0.3 (sec);
+        set rcvr [new Agent/LossMonitor]  \; create a receiver agent at node 1;
+        $ns attach-agent $node1 $rcvr
+        $ns at 0.3 "{\bfseries{}$node1 join-group $rcvr $group}" \; join the group at simulation time 0.3 (sec);
 \end{program}
 
 \subsection{Multicast Behavior Monitor Configuration}
@@ -104,9 +104,9 @@ all links.  \proc[]{trace-tree} counts only links on the tree.
 Currently, it only traces prune, join, register, and data packets.
 
 \begin{program}
-	set mcastmonitor [$ns McastMonitor]
-	$mcastmonitor set period_ 0.02         \; default 0.03 (sec);
-	$mcastmonitor trace-topo $src $group   \; trace the entire topology;
+        set mcastmonitor [$ns McastMonitor]
+        $mcastmonitor set period_ 0.02         \; default 0.03 (sec);
+        $mcastmonitor trace-topo $src $group   \; trace the entire topology;
 \end{program}
 
 % SAMPLE OUTPUT?
@@ -148,8 +148,8 @@ ideal for studying transient behaviours.
 
 The method of enabling centralised multicast routing in a simulation is:
 \begin{program}
-	set mproto CtrMcast    \; set multicast protocol;
-	set mrthandle [$ns mrtproto $mproto \{\}]
+        set mproto CtrMcast    \; set multicast protocol;
+        set mrthandle [$ns mrtproto $mproto \{\}]
 \end{program}
 The command procedure \proc[]{mrtproto}
 returns a handle to the multicast protocol object.
@@ -158,19 +158,19 @@ switch tree-types for a particular group,
 from shared trees to source specific trees or vice-versa, and
 recompute multicast routes.
 \begin{program}
-	$mrthandle set_c_rp \{$node0 $node1\}      \; set the RPs;
-	$mrthandle set_c_bsr \{$node0:0 $node1:1\} \; set the BSR, specified as list of node:priority;
+        $mrthandle set_c_rp \{$node0 $node1\}      \; set the RPs;
+        $mrthandle set_c_bsr \{$node0:0 $node1:1\} \; set the BSR, specified as list of node:priority;
 
-	$mrthandle get_c_rp $node0 $group          \; get the current RP ???;
-	$mrthandle get_c_bsr $node0                \; get the current BSR;
+        $mrthandle get_c_rp $node0 $group          \; get the current RP ???;
+        $mrthandle get_c_bsr $node0                \; get the current BSR;
 
-	$mrthandle switch-treetype $group         \; to source specific or shared tree;
+        $mrthandle switch-treetype $group         \; to source specific or shared tree;
 
-	$mrthandle compute-mroutes       \; recompute routes; usually invoked automatically as needed;
+        $mrthandle compute-mroutes       \; recompute routes; usually invoked automatically as needed;
 \end{program}
 
 \paragraph{Static Dense Mode}
-The Static Dense Mode protocol is based on DVMRP \cite{DVMRP}
+The Static Dense Mode protocol is based on DVMRP \cite{rfc1075}
 with the exception
 that it does not adapt to network dynamics.  It uses parent-child
 lists as in DVMRP to reduce the number of links over which the data
@@ -191,9 +191,9 @@ links that do not lead to any group members.  The prune state at the
 nodes times out after a prune timeout value.  The prune timeout is a
 class variable in DM and its value can be changed as shown below.
 \begin{program}
-	DM set PruneTimeout 0.3           \; default 0.5 (sec);
-	set mproto DM
-	set mrthandle [$ns mrtproto $mproto \{\}]
+        DM set PruneTimeout 0.3           \; default 0.5 (sec);
+        set mproto DM
+        set mrthandle [$ns mrtproto $mproto \{\}]
 \end{program}
 This multicast protocol computes parent-child relationships prior to
 the start of simulation and does not respond to the topology
@@ -222,10 +222,10 @@ neighbour.
 The class dynamicDM is
 inherited from the class DM.
 \begin{program}
-	dynamicDM set PruneTimeout 0.3           \; default 0.5 (sec);
-	dynamicDM set ReportRouteTimeout 0.5  \; default 1 (sec);
-	set mproto dynamicDM
-	set mrthandle [$ns mrtproto $mproto \{\}]
+        dynamicDM set PruneTimeout 0.3           \; default 0.5 (sec);
+        dynamicDM set ReportRouteTimeout 0.5  \; default 1 (sec);
+        set mproto dynamicDM
+        set mrthandle [$ns mrtproto $mproto \{\}]
 \end{program}
 
 \paragraph{PIM dense mode}
@@ -238,9 +238,9 @@ at that node or downstream of them.
 The prune timeout value is 0.5s by default.
 This class pimDM is inherited from the class DM.
 \begin{program}
-        pimDM set PruneTimeout  0.3	\; default 0.5 (sec);
-	set mproto pimDM
-	set mrthandle [$ns mrtproto $mproto \{\}]
+        pimDM set PruneTimeout  0.3     \; default 0.5 (sec);
+        set mproto pimDM
+        set mrthandle [$ns mrtproto $mproto \{\}]
 \end{program}
 
 \section{Internals of multicast routing}
@@ -299,10 +299,9 @@ there is one replicator per \tup{source, group, incoming interface} tuple.
 Replicators copy the incoming packet and forward to all outgoing interfaces.
 
 When a node receives a join-group message,
-it invokes \proc[]{Node::join-group}, 
-which in turn calls
-\proc[]{McastProtoArbiter::join-group} for the particular instance
-of the McastProtoArbiter.
+\proc[]{Node::join-group} is invoked, that then invokes
+the arbiter instance's
+\proc[]{join-group}.
 The node stores a reference to the McastProtoArbiter at that node in
 its instance variable \code{mcastproto_}.
 After the arbiter has returned, the node
@@ -312,8 +311,9 @@ and adds the outgoing interfaces to all the replicators for that group.
 \proc[]{Node::leave-group} reverses the process described earlier.
 It disables the outgoing interfaces to the receiver agents
 for all the replicators of the group,
-deletes the receiver agents from the local \code{Agents_} list,
-and invokes \proc[]{McastProtoArbiter::leave-group}.
+deletes the receiver agents from the local \code{Agents_} list; it then
+invokes the arbiter instance's 
+\proc[]{leave-group}.
 
 When a multicast data packet is received, and the multicast
 classifier cannot find the slot corresponding to that data packet,
@@ -374,7 +374,7 @@ multicast routing protocols.
 There are instance procedures to control the elements in each slot:
 \begin{alist}
 \proc[oif]{insert} & inserting a new outgoing interface
-			to the next available slot.\\
+                        to the next available slot.\\
 \proc[oif]{disable} & disable the slot pointing to the specified oif.\\
 \proc[oif]{enable} &  enable the slot pointing to the specified oif.\\
 \proc[]{is-active} & returns true if the replicator has atleast one active slot.\\
@@ -393,7 +393,8 @@ the different multicast routing protocol agents.
 \item
 \code{CtrMcast} is inherited from \code{McastProtocol}.
 One CtrMcast agent needs to be created for each node.
-This CtrMcast agent handles multicast commands for its node,
+This CtrMcast agent handles multicast commands for the node it is
+attached to;
 \eg, \proc[]{join-group}, 
 \proc[]{leave-group}, and \proc[]{handle-cache-miss}.
 When multicast forwarding entries need to be updated, it calls a 
@@ -434,70 +435,70 @@ its outgoing interface to the encapsulation agent.
 \proc[]{reset-mroutes} & resets all mutlicast forwarding entries.\\
 \proc[]{compute-mroutes} & (re)computes all multicast forwarding entries.\\
 \proc[source, group]{compute-tree} & computes a multicast tree for one source to reach 
-		all the receivers in a specific group.\\
+                all the receivers in a specific group.\\
 \proc[source, group, member]{compute-branch} & is executed when a receiver joins a multicast group.
-	It could also be invoked by \proc[]{compute-tree} when it itself
-	is recomputing the multicast tree, and has to reparent
-	all receivers.
-	The algorithm starts at the receiver, recursively
-	finding successive next hops,
-	until it either reaches the source or RP,
-	or it reaches a node that is already 
-	a part of the relevent multicast tree.
-	 During the process, several new replicators and an
-	outgoing interface will be installed.\\
+        It could also be invoked by \proc[]{compute-tree} when it itself
+        is recomputing the multicast tree, and has to reparent
+        all receivers.
+        The algorithm starts at the receiver, recursively
+        finding successive next hops,
+        until it either reaches the source or RP,
+        or it reaches a node that is already 
+        a part of the relevent multicast tree.
+         During the process, several new replicators and an
+        outgoing interface will be installed.\\
 \proc[source, group, member]{prune-branch} & is similar to \proc[]{compute-branch} except the
-	outgoing interface is disabled;
-	if the outgoing interface list is empty at that node,
-	it will walk up the multicast tree, pruning at each of the
-	intermediate nodes, until it reaches a node that has a
-	non-empty outgoing interface list for the particular multicast tree.
+        outgoing interface is disabled;
+        if the outgoing interface list is empty at that node,
+        it will walk up the multicast tree, pruning at each of the
+        intermediate nodes, until it reaches a node that has a
+        non-empty outgoing interface list for the particular multicast tree.
 \end{alist}
 \end{list}
 
 \subsubsection{Dense Mode}
 \begin{alist}
 \proc[group]{join-group} & sends graft messages upstream if \tup{S,G} does not
-	contain any active outgoing slots (\ie, no downstream receivers).\\
+        contain any active outgoing slots (\ie, no downstream receivers).\\
 \proc[group]{leave-group} & does not do anything.\\
 \proc[group]{handle-cache-miss} & creates \tup{S,G} with only
-	the outgoing interfaces to each of the child nodes.
-	For basic dense mode,
-	parent-child relationship is computed only once at the start-up.\\
- &	However, for dynamic dense mode,
-	the incoming interface must be set properly so packets from the
-	wrong incoming interfaces will be dropped. \\
- &	Finally, in the case of pim dense mode, 
-	\proc[]{handle-cache-miss} is the same as in dynamic dense mode,
-	except that the outgoing interface list is set to all neighbours
-	excluding the incoming interface.\\
+        the outgoing interfaces to each of the child nodes.
+        For basic dense mode,
+        parent-child relationship is computed only once at the start-up.\\
+ &      However, for dynamic dense mode,
+        the incoming interface must be set properly so packets from the
+        wrong incoming interfaces will be dropped. \\
+ &      Finally, in the case of pim dense mode, 
+        \proc[]{handle-cache-miss} is the same as in dynamic dense mode,
+        except that the outgoing interface list is set to all neighbours
+        excluding the incoming interface.\\
 \proc[replicator, source, group]{drop} & sends prune messages upstream.
-	Recall that the packet is only dropped when there are
-	no downstream receivers for the \tup{S, G} tuple.\\
+        Recall that the packet is only dropped when there are
+        no downstream receivers for the \tup{S, G} tuple.\\
 \proc[from, source, group]{recv-prune} & resets the prune timer
-	 if the interface had been pruned previously;
-	otherwise, it starts the prune timer and disables the interface;
-	furthermore,  if the outgoing interface list becomes empty,
-	it forwards the prune message upstream.\\
+         if the interface had been pruned previously;
+        otherwise, it starts the prune timer and disables the interface;
+        furthermore,  if the outgoing interface list becomes empty,
+        it forwards the prune message upstream.\\
 \proc[from, source, group]{recv-graft} & cancels any existing prune timer, and
-	re-enables the pruned interface.
-	If the outgoing interface list was previously empty,
-	it forwards the graft upstream.\\
+        re-enables the pruned interface.
+        If the outgoing interface list was previously empty,
+        it forwards the graft upstream.\\
 \proc[]{periodic-check} & This procedure is only used in dynamic dense mode.
-	Each node periodically updates its parent-child relationships
-	with respect to each of its neighbours.\\
+        Each node periodically updates its parent-child relationships
+        with respect to each of its neighbours.\\
 proc[]{handle-wrong-iif} & This proceudre is only used by PIM dense mode.
-	This is invoked when the multicast classifier drops a packet
-	because it arrived on the wrong interface, and
-	invoked \proc[]{new-group}.
-	This routine is invoked by \proc[]{McastProtoArbiter::new-group}.
-	When invoked, the agent checks if the incoming interface in the
-	forwarding entry has become outdated.
-	If so, this procedure will update the forwarding entry to the
-	new incoming interface;
-	otherwise, it will send a prume message back towards the
-	wrong incoming interface to stop packets
-	reaching from the wrong path.
+        This is invoked when the multicast classifier drops a packet
+        because it arrived on the wrong interface, and
+        invoked \proc[]{new-group}.
+        This routine is invoked by \proc[]{McastProtoArbiter::new-group}.
+        When invoked, the agent checks if the incoming interface in the
+        forwarding entry has become outdated.
+        If so, this procedure will update the forwarding entry to the
+        new incoming interface;
+        otherwise, it will send a prume message back towards the
+        wrong incoming interface to stop packets
+        reaching from the wrong path.
 \end{alist}
 
 \endinput

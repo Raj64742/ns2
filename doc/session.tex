@@ -37,7 +37,7 @@ within the network is suspect.
 
 Configuration of a session level simulation consists of two parts,
 \href{configuration of the session level details themselves}{Section}{%
-	sec:basic-config}
+        sec:basic-config}
 and 
 \href{adding loss and error models to the session level abstraction
 to model specific behaviours}{Section}{sec:loss-config}.
@@ -57,7 +57,7 @@ finally, (3) have the session members join the session.
         set node [$ns node]    
         set group [$ns allocaddr]
 
-        set src [new Agent/CBR]		\; create and configure the source;
+        set src [new Agent/CBR]         \; create and configure the source;
         $src set dst_ $group
         $ns attach-agent $node $src
 
@@ -79,6 +79,11 @@ The steps involved in doing this are:
   Each link only stores instance variables to track the bandwidth and delay attributes.
 \item The topology, consisting of links is translated into a virtual mesh.
 \end{enumerate}
+\begin{figure}
+  \centerline{\includegraphics{regularTree}\hfil\includegraphics{sessionTree}}
+  \caption{Comparison of Multicast Trees for Detailed vs. Session Routing}
+  \label{fig:conversions}
+\end{figure}
 Figure~\ref{fig:conversions} shows the difference between a
 multicast tree in a detailed simulation and one in a session level simulation.
 Notice that the translation process results in a session level simulation
@@ -123,7 +128,7 @@ The following code gives an example to create a uniform 0.1 loss rate.
         $loss_module ranvar $loss_random_variable \; attach random var. to loss module;
 \end{program}
 \href{A catalogue of the random variable distributions was described earlier}{%
-	Chapter}{chap:math}.
+        Chapter}{chap:math}.
 \href{A more detailed discussion of error models was also described earlier
 in a different chapter}{Chapter}{chap:error_model}.
 
@@ -158,27 +163,33 @@ They only follow the established Session.
 
 \section{Internals}
 This section describes the internals of Session-level Packet Distribution.
-The implementation is split into two parts:
-\begin{list}{}{}
-\item  Linkage of objects to make a Session in OTcl 
-\item  Packet forwarding activities are executed by C++ methods.  
-\end{list}
+We first describe the OTcl primitives to configure a session level
+simulation (Section~\ref{sec:session-objlink});
+we conclude with a brief note on hos packet forwarding is achieved
+(Section~\ref{sec:session-pktforward}).
 
 \subsection{Object Linkage}
 \label{sec:session-objlink}
 
-\begin{list}{}{}
-\item  Simplified links and nodes.
-\item  Replicator
-\item  Delay and loss modules
-\end{list}
+We describe three aspects of constructing a session level simulation in
+\ns:
+the modified topology routines that permit the creation of abstract
+nodes and links,
+establish the session helper for each active source,
+add receivers to the session by inserting the appropriate loss and delay
+models when that receiver joins the appropriate group.
 
 \paragraph{Nodes and Links}
-A link only contains the values of
-its bandwidth and delay, and a node contains only its id and port number
-for next agent.
+The node contains only its node id and the port number for the next agent.
+A link only contains the values of its bandwidth and delay.
 
 \begin{program}
+SessionNode instproc init \{\} \{
+    $self instvar id_ np_
+    set id_ [Node getid]
+    set np_ 0
+\}
+
 SessionSim instproc simplex-link \{ n1 n2 bw delay type \} \{
     $self instvar bw_ delay_
     set sid [$n1 id]
@@ -187,22 +198,16 @@ SessionSim instproc simplex-link \{ n1 n2 bw delay type \} \{
     set bw_($sid:$did) [expr [string trimright $bw Mb] * 1000000]
     set delay_($sid:$did) [expr [string trimright $delay ms] * 0.001]
 \}
-
-SessionNode instproc init \{\} \{
-    $self instvar id_ np_
-    set id_ [Node getid]
-    set np_ 0
-\}
 \end{program}
 
-\paragraph{Replicator}
-One replicator is required per source.  While the source is configured,
-a replicator (session helper) need to be attached to the source.  By
-calling \proc[]{create-session}, a replicator is:
-created,
-attached to the source application, and 
-kept in a SessionSim instance variable \code{session_} array with 
-its source and destination addresses as the index.
+\paragraph{Session Helper}
+Each active source in a session requires a ``session helper''.
+The session helper in \ns\ is realised through a replicator.
+This session helper is created when the user issues a
+\proc[]{create-session} to identify the source agent.
+The simulator itself keeps a reference to the session helper
+in its instance variable array, \code{session_},
+indexed by the source and destination address of the source.
 
 Note that the destination of source agent must be set before
 calling \proc[]{create-session}.
@@ -221,26 +226,27 @@ SessionSim instproc create-session \{ node agent \} \{
 
 \paragraph{Delay and Loss Modules}
 
-At least one delay module is required per receiver.
-See Section~\ref{sec:loss-config} for inserting a loss module for a receiver.
-When a receiver joins a group, 
-the \proc[]{join-group} method goes through
-all replicators (session helpers) maintained in \code{session_}.
+Each receiver in a group requires a delay module that
+reflects its delay with respect to the particular source.
+When the receiver joins a group, 
+\proc[]{join-group} identifies all session helpers in \code{session_}.
 If the destination index matches the group address
 the receiver are joining, then the following actions are performed.
-
-1. A new slot of the replicator (session helper) is created and assigned to the receiver.
-
-2. An accumulated bandwidth and delay between the source and receiver are obtained by SessionSim instance procedure \proc[]{get-bw} and \proc[]{get-delay}.
-
-3. A constant random variable is created and assigned with the
-accumulative delay.
-
-4. A delay module is created and assigned with the constant random 
-variable and the accumulative bandwidth.
-
-5. The delay module in inserted into the replicator slot in
-front of the receiver.
+\begin{enumerate}
+\item A new slot of the session helper is created and assigned to the receiver.
+\item The routine computes the accumulated bandwidth and delay
+  between the source and receiver using the SessionSim instance procedures
+  \proc[]{get-bw} and \proc[]{get-delay}.
+\item A constant random variable is created; it will generate random delivery
+  times using the accumulative delay as an estimate of the average delay.
+\item A new delay module is created with the end-to-end bandwidth
+  characterisitcs, and the random variable generator provides the delay
+  estimates.
+\item The delay module in inserted into the session helper and interposed
+  between the helper and the receiver.
+\end{enumerate}
+See Section~\ref{sec:loss-config} for similarly
+inserting a loss module for a receiver.
 
 \begin{program}
 SessionSim instproc join-group \{ agent group \} \{
@@ -252,26 +258,21 @@ SessionSim instproc join-group \{ agent group \} \{
             # Note: must insert the chain of loss, delay, 
             # and destination agent in this order:
 
-            #1. insert destination agent into session replicator
-            $session_($index) insert $agent
+            $session_($index) insert $agent \; insert destination agent into session replicator;
 
-            #2. find accumulative bandwidth and delay
-            set src [lindex $pair 0]
+            set src [lindex $pair 0] \; find accum. b/w and delay;
             set dst [[$agent set node_] id]
             set accu_bw [$self get-bw $dst $src]
             set delay [$self get-delay $dst $src]
 
-            #3. set up a constant delay random variable
-            set random_variable [new RandomVariable/Constant]
+            set random_variable [new RandomVariable/Constant] \; set delay variable ;
             $random_variable set avg_ $delay
 
-            #4. set up the delay module
-            set delay_module [new DelayModel]
+            set delay_module [new DelayModel] \; configure the delay module;
             $delay_module bandwidth $accu_bw
             $delay_module ranvar $random_variable
 
-            #5. insert the delay module in front of the dest agent
-            $session_($index) insert-module $delay_module $agent
+            $session_($index) insert-module $delay_module $agent \; insert the delay module;
         \}
     \}
 \}

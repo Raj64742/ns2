@@ -69,7 +69,7 @@ original value.
 
 The following are example specifications of parameters to this model:
 \begin{program}
-      0.8 1.0 1.0	\; start at \(0.8s.\), up/down = \(1.0s.\), finish is default;
+      0.8 1.0 1.0       \; start at \(0.8s.\), up/down = \(1.0s.\), finish is default;
       5.0 0.5           \; start is default, up/down = \(5.0s, 0.5s.\), finish is default;
       - 0.7             \; start, up interval are default, down = \(0.7s.\), finish is default;
       - - - 10          \; start, up, down are default, finish at \(10s.\);
@@ -219,13 +219,14 @@ The individual instance procedures that accomplish this in pieces are:
   The instance procedure
   \fcnref{\proc[]{trace}}{../ns-2/dynamics.tcl}{rtModel::trace}
   enables \proc[]{trace-dynamics} on each of the links that it affects.
-  \proc[]{trace-dynamics} is discussed in the
-  \href{section on extensions to the class Link}{Section}{sec:dyn-exten}.
+  Additional details on \proc[]{trace-dynamics} is discussed in the
+  \href{section on extensions to the class Link}{Section}{sec:nd-extensions}.
 \end{list}
 The next sequnce of configuration steps are taken just prior to
 the start of the simulator.
-The instance procedure \proc[]{Simulator::run} invokes
-\fcnref{\proc[]{rtmodel-configure}}{../ns-2/dynamics.tcl}{Simulator::rtmodel-configure}.
+\ns\ invokes 
+\fcnref{\proc[]{rtmodel-configure}}{../ns-2/dynamics.tcl}{Simulator::rtmodel-configure}
+just before starting the simulation.
 This instance procedure first acquires an instance of the class rtQueue,
 and then invokes \proc[]{configur} for each route model in its list,
 \code{rtModel_}.
@@ -238,7 +239,7 @@ and then invokes \proc[]{configur} for each route model in its list,
   Then the procedure schedules its first event.
 \item The default instance procedure
   \fcnref{\proc[]{set-first-event}}{../ns-w/dynamics.tcl}{rtModel::set-first-event}
-  schedules the first event to take all the links ``down'' at
+  schedules the first event to take all the links ``down'' at \\
   \code{$startTime_} + \code{upInterval_}.
   Individual types of route models derived from this base class should
   redefine tihs function.
@@ -364,7 +365,7 @@ can remove a queued action with the time and the name of the object.
 
 In an earlier section,
 we had described how
-\href{unicast routing reacts}{Section}{sec:ur-interface}
+\href{unicast routing reacts}{Section}{sec:rtglibAPI}
 to changes to the topology.
 This section details the steps by which 
 the network dynamics code will notify the nodes and routing
@@ -395,18 +396,20 @@ about the changes to the topology.
 \end{enumerate}
 
 \subsection{Extensions to Other Classes}
+\label{sec:nd-extensions}
 
 The existing classes assume that the topology is static by default.
 In this section, we document the necessary changes to these
 classes to support dynamic topologies.
 
 We have already described the instance procedures
-in the \clsref{Simulator}{../ns-2/ns-lib.tcl}:
+in the \clsref{Simulator}{../ns-2/ns-lib.tcl} to create or manipulate
+route models, \ie,
 \proc[]{rtmodel}, \proc[]{rtmodel-at}, \proc[]{rtmodel-delete}, and
-\proc[]{rtmodel-configure} \href{in earlier sections}{Section}{sec:XXX}.
+\proc[]{rtmodel-configure} \href{in earlier sections}{Section}{sec:rtmodel}.
 Similarly, the \clsref{Node}{../ns-2/ns-node.tcl}
 contains the instance procedure \proc[]{intf-changed}
-that we described in \href{the previous section}{Section}{sec:XXX}.
+that we described in \href{the previous section}{Section}{sec:unicast-int}.
 
 The network dynamics code operates on individual links.
 Each model currently translates its specification into
@@ -459,7 +462,8 @@ We have already described the latter procedure when describing the
 \proc[]{trace} procedure in the class rtModel.
 
 The instance procedure \proc[]{dynamic} inserts a 
-\href{DynamicLink object}{sec:XXX} at the head of the queue.
+\href{DynamicLink object}{Section}{sec:links:connectors}
+at the head of the queue.
 It points the down-target of the object to the 
 drop target of the link, \code{drpT_}, if the object is defined,
 or to the \code{nullAgent_} in the simulator.
@@ -478,7 +482,7 @@ at which point, the shadow object will execute its
 \fcnref{reset instproc-like}{../ns-2/dynalink.cc}{DynaLink::command},
 and flush all packets in its internal queue.
 Additional details about the DelayLink can be found
-\href{in another chapter}{Chapter}{chap:delaylink}.
+\href{in another chapter}{Chapter}{chap:delays}.
 
 \section{Deficencies in the Current Network Dynamics API}
 \label{sec:deficiencies}

@@ -8,13 +8,13 @@ through methods in the \clsref{Simulator}{../ns-2/ns-lib.tcl}
 and the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}.
 We then describe
 \href{configuration mechanisms for specialised routing}{%
-	Section}{sec:uni:specroute}
+        Section}{sec:uni:specroute}
 such as asymetric routing, or equal cost multipath routing
 The next section describes the
 \href{the configuration mechanisms for individual routing strategies
 and protocols}{Section}{sec:uni:protconfig}.
 We conclude with a comprehensive look at 
-\href{the internal architecture}{Section}{sec:internals}
+\href{the internal architecture}{Section}{sec:rtg-internals}
 of routing in \ns.
 
 The procedures and functions described in this chapter can be found in
@@ -135,6 +135,8 @@ returns the cost of traversing the specified unidirectional link.
 The default cost of a link is 1.
 
 \section{Other Configuration Mechanisms for Specialised Routing}
+\label{sec:uni:specroute}
+
 It is possible to adjust preference and cost mechanisms to get two
 special types of route configurations: 
 asymetric routing, and multipath routing.
@@ -146,12 +148,12 @@ The following shows a simple topology, and cost configuration
 that can achieve such a result:
 
 \hfil
-\begin{minipage}{1.5in}
+\begin{minipage}{1.85in}
 Nodes $n_1$ and $n_2$ use different paths to reach each other.
 All other pairs of nodes use symetric paths to reach each other.
 \end{minipage}
 \hfil
-\begin{minipage}{1in}
+\begin{minipage}{1.in}
   \begin{pspicture}(-1,-1)(1,1)
     \cnodeput( 0, 1){r1}{$r_1$}
     \cnodeput( 0,-1){r2}{$r_2$}
@@ -161,7 +163,7 @@ All other pairs of nodes use symetric paths to reach each other.
   \end{pspicture}
 \end{minipage}
 \hfil
-\begin{minipage}{1.5in}
+\begin{minipage}{1.85in}
   \begin{program}
     $ns cost $n1 $r1 2
     $ns cost $n2 $r2 2
@@ -195,7 +197,8 @@ A typical configuration is as shown below:
 \end{program}
 Currently, only DV routing can generate multipath routes.
 
-\subsection{Protocol Specific Configuration Parameters}
+\section{Protocol Specific Configuration Parameters}
+\label{sec:uni:protconfig}
 
 \paragraph{Static Routing}
 The static route computation strategy is
@@ -677,8 +680,8 @@ For each of the unicast routing protocols operating at that node,
 each individual protocol's instance procedure,  \proc[]{intf-changed},
 followed by that protocol's \proc[]{compute-routes}.
 
-After each of the protocols has computed its individual routes
-\proc[]{rtObject::intf-changed} invokes \proc[]{rtObject::compute-routes}
+After each protocol has computed its individual routes
+\proc[]{rtObject::intf-changed} invokes \proc[]{compute-routes}
 to possibly install new routes.
 If new routes were installed in the node,
 \proc[]{rtObject::compute-routes} will invoke

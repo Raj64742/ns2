@@ -49,7 +49,7 @@ set of objects that are created and inserted into the network topology
 around queues.
 They provide a place where
 arrival statistics and times are gathered and make use of the
-\clsref{Integrator}{../ns-2/integrator.h} (Section~\ref{sec:integclass})
+\clsref{Integrator}{../ns-2/integrator.h} (Section~\ref{sec:integral})
 to compute statistics over time intervals.
 
 \section{Trace Support}
@@ -96,28 +96,28 @@ they are instance procedures of the class Simulator:
 
 \begin{tabularx}{\linewidth}{rX}
 \code{flush-trace \{\}} & flush buffers
-	for all trace objects in simulation \\
+        for all trace objects in simulation \\
 \code{create-trace \{ type file src dst \}} & create
-	a trace object of type {\em type}
-	between the given src and dest nodes.
-	If {\em file} is non-null, it is interpreted as a Tcl channel
-	and is attached to the newly-created trace object. \
-	The procedure returns the handle to the newly created trace object.\\
+        a trace object of type {\em type}
+        between the given src and dest nodes.
+        If {\em file} is non-null, it is interpreted as a Tcl channel
+        and is attached to the newly-created trace object. \
+        The procedure returns the handle to the newly created trace object.\\
 \code{trace-queue \{ n1 n2 file \}} & arrange for tracing on the link
-	between nodes {\em n1} and {\em n2}.
-	This function calls create-trace,
-	so the same rules apply with respect to the {\em file} argument. \\
+        between nodes {\em n1} and {\em n2}.
+        This function calls create-trace,
+        so the same rules apply with respect to the {\em file} argument. \\
 \code{trace-callback\{ ns command \}} & arranges to call \code{command}
-	when a line is to be traced.
-	The procedure treats \code{command}
-	as a string and evaluates it for every line traced.
-	See \nsf{tcl/ex/callback\_demo.tcl} for additional details on usage.\\
+        when a line is to be traced.
+        The procedure treats \code{command}
+        as a string and evaluates it for every line traced.
+        See \nsf{tcl/ex/callback\_demo.tcl} for additional details on usage.\\
 \code{monitor-queue \{ n1 n2 \}} & this function
-	calls the {\tt init-monitor} function
-	on the link between nodes {\em n1} and {\em n2}. \\
+        calls the {\tt init-monitor} function
+        on the link between nodes {\em n1} and {\em n2}. \\
 \code{drop-trace \{ n1 n2 trace \}} & the given {\em trace} object
-	is made the drop-target of the queue
-	associated with the link between nodes {\em n1} and {\em n2}.
+        is made the drop-target of the queue
+        associated with the link between nodes {\em n1} and {\em n2}.
 \end{tabularx}
 
 The \proc[]{create-trace} procedure is used to create a new \code{Trace}
@@ -130,7 +130,7 @@ is being traced.
 Note that they are not used for {\em matching}.  Specifically, these
 values in no way relate to the packet header \code{src} and \code{dst}
 fields, which are also displayed when tracing.
-\href[See the description of the \code{Trace} class below]{Section}{sec:traceclass}.
+\href{See the description of the \code{Trace} class below}{Section}{sec:tracemoncplus}.
 
 The \code{trace-queue} function enables
 \code{Enque}, \code{Deque}, and \code{Drop} tracing on the link
@@ -165,14 +165,14 @@ The \code{trace} function is defined as follows (in \code{ns-link.tcl}):
 #
 SimpleLink instproc trace \{ ns f \} \{
         $self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
-	$self instvar drophead_
+        $self instvar drophead_
 
         set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
         set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
         set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
 
-	$drpT_ target [$drophead_ target]
-	$drophead_ target $drpT_
+        $drpT_ target [$drophead_ target]
+        $drophead_ target $drpT_
         $queue_ drop-target $drpT_
 
         $deqT_ target [$queue_ target]
@@ -220,7 +220,7 @@ with a link.
 They are defined as follows:
 \begin{program}
         SimpleLink instproc attach-monitors \{ insnoop outsnoop dropsnoop qmon \} \{
-p               $self instvar queue_ head_ snoopIn_ snoopOut_ snoopDrop_
+                $self instvar queue_ head_ snoopIn_ snoopOut_ snoopDrop_
                 $self instvar drophead_ qMonitor_
 
                 set snoopIn_ $insnoop
@@ -233,8 +233,8 @@ p               $self instvar queue_ head_ snoopIn_ snoopOut_ snoopDrop_
                 $snoopOut_ target [$queue_ target]
                 $queue_ target $snoopOut_
 
-		$snoopDrop_ target [$drophead_ target]
-		$drophead_ target $snoopDrop_
+                $snoopDrop_ target [$drophead_ target]
+                $drophead_ target $snoopDrop_
 
                 $snoopIn_ set-monitor $qmon
                 $snoopOut_ set-monitor $qmon
@@ -242,7 +242,7 @@ p               $self instvar queue_ head_ snoopIn_ snoopOut_ snoopDrop_
                 set qMonitor_ $qmon
         \}
 
-	#
+        #
         # {\cf Insert objects that allow us to monitor the queue size}
         # {\cf of this link.  Return the name of the object that}
         # {\cf can be queried to determine the average queue size.}
@@ -255,7 +255,7 @@ p               $self instvar queue_ head_ snoopIn_ snoopOut_ snoopDrop_
                 set sampleInterval_ $sampleInterval
                 set qMonitor_ [new QueueMonitor]
 
-                $self attach-monitors [new SnoopQueue/In] \
+                $self attach-monitors [new SnoopQueue/In] \bs
                         [new SnoopQueue/Out] [new SnoopQueue/Drop] $qMonitor_
 
                 set bytesInt_ [new Integrator]
@@ -284,7 +284,7 @@ classes are described below.
 \label{sec:tracemoncplus}
 
 Underlying C++ objects are created in support of the interface specified
-in Section~\ref{sec:traceclass} and are linked into the network topology
+in Section~\ref{sec:tracemoncplus} and are linked into the network topology
 as network elements.
 The single C++ \code{Trace} class is used to implement the OTcl
 classes \code{Trace/Hop}, \code{Trace/Enque}, \code{Trace/Deque},
@@ -373,7 +373,7 @@ The important pieces of its implementation are as follows:
                 else
                         seqno = -1;
 
-		\ldots
+                \ldots
 
                 if (!show_tcphdr_) \{
                         sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
@@ -390,8 +390,8 @@ The important pieces of its implementation are as follows:
                                 seqno,
                                 th->uid() /* was p->uid_ */);
                 \} else \{
-                        sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x
-         %d",
+                        sprintf(wrk_,
+                        "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
                                 tt,
                                 Scheduler::instance().clock(),
                                 s,
@@ -506,8 +506,8 @@ associated symblic names are as follows
         #define PT_SRM          16
         #define PT_NTYPE        17
 
-        #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
-                "start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
+        #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \bs
+                "start", "stop", "prune", "graft", "message", "rtcp", "rtp", \bs
                 "rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM"
 \end{program}
 The definition of \code{PT_NAMES} is used to initialize the
@@ -566,7 +566,7 @@ A \code{QueueMonitor} is defined as follows (\nsf{queue-monitor.cc}):
                 virtual void drop(Packet*);
                 virtual void edrop(Packet*) \{ abort(); \}; // not here
                 virtual int command(int argc, const char*const* argv);
-		\ldots
+                \ldots
 
         // {\cf packet arrival to a queue}
         void QueueMonitor::in(Packet* p)
@@ -594,7 +594,7 @@ A \code{QueueMonitor} is defined as follows (\nsf{queue-monitor.cc}):
 It addition to the packet and byte counters, a queue monitor
 may optionally refer to objects that keep an integral
 of the queue size over time using
-\code{Integrator} objects, which are defined in Section\ref{sec:mathinteg}.
+\code{Integrator} objects, which are defined in Section\ref{sec:integral}.
 The \code{Integrator} class provides a simple implementation of
 integral approximation by discrete sums.
 
@@ -633,7 +633,7 @@ These classes include: \\
 Typically, an arriving packet is inspected to determine
 to which flow it belongs.
 This inspection and flow mapping is performed by a {\em classifier}
-object (described in section \ref{sec:hashclass}).
+object (described in section \ref{sec:flowmonitor}).
 Once the correct flow is determined, the packet is passed to
 a {\em flow monitor}, which is responsible for collecting per-flow
 state.

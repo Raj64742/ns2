@@ -67,7 +67,7 @@ but {\em are} intended to be over-ridden by classes deriving from Agent:
 The \fcn[]{allocpkt} method is used by derived classes
 to create packets to send.
 The function fills in the following fields
-\href{in the common packet header}{Section}{sec:pformat}:
+\href{in the common packet header}{Section}{chap:pformat}:
 {\tt uid, ptype, size}, and the following fields in the IP header:
 {\tt src, dst, flowid, prio, ttl}.
 It also zero-fills in the following fields of the Flags header:
@@ -271,7 +271,7 @@ These code fragments illustrate the common case where an agent's
 constructor passes a packet type identifier to the \code{Agent}
 constructor.
 The values for the various packet types are
-\href{used by the packet tracing facility}{Section}{sec:trace}
+\href{used by the packet tracing facility}{Section}{sec:traceptype}
 and are defined in \nsf{trace.h}.
 The variables which are bound in the \code{TcpAgent} constructor
 are ordinary instance/member variables for the class
@@ -294,7 +294,7 @@ the relevant agent.
 The \code{TcpAgent} agent is started in the example when its
 FTP source receives the \code{start} directive at time 1.2.
 The \code{start} operation is an instance procedure defined on the
-\href{class Source/FTP}{Section}{sec:sources}.
+\href{class Source/FTP}{Section}{sec:sourceobjects}.
 It is defined in \nsf{tcl/lib/ns-source.tcl} as follows:
 \begin{program}
         Source/FTP instproc start \{\} \{
@@ -434,7 +434,7 @@ invoked which attempts to send more data if the TCP window allows.
 \label{sec:tcptimer}
 
 As described in 
-\href{the following section}{Section}{sec:timers}, specific
+\href{the following chapter}{Chapter}{chap:timers}, specific
 timer classes must be derived from an abstract base
 \clsref{TimerHandler}{../ns-2/timer-handler.h}
 defined in \nsf{timer-handler.h}.  Instances of these

@@ -595,22 +595,22 @@ The \clsref{SRMinfo}{../ns-2/srm-state.h} has two methods
 to access and set the bit vector, \ie,
 \begin{alist}
 \fcn[int id]{ifReceived} & indicates whether the particular message
-		from the appropriate sender, with id \code{id}
-		 was received at $n_i$,\\
+                from the appropriate sender, with id \code{id}
+                 was received at $n_i$,\\
 \fcn[int id]{setReceived} & to set the bit to indicate that the
-		particular message from the appropriate sender,
-		with id \code{id} was received at $n_i$.
+                particular message from the appropriate sender,
+                with id \code{id} was received at $n_i$.
 \end{alist}
 The session message variables to access timing information are public;
 no encapsulating methods are provided.  These are:
 \begin{program}
-	int	lsess_;			  \* # of last session msg received */
-	int	sendTime_;		  \* Time sess. msg. # sent */
-	int	recvTime_;		  \* Time sess. msg. # received */
-	double	distance_;
+        int     lsess_;                   \* # of last session msg received */
+        int     sendTime_;                \* Time sess. msg. # sent */
+        int     recvTime_;                \* Time sess. msg. # received */
+        double  distance_;
 
-	/* {\cf Data messages} */
-	int	ldata_;			  \* # of last data msg sent */
+        /* {\cf Data messages} */
+        int     ldata_;                   \* # of last data msg sent */
 \end{program}
 
 \section{Loss Recovery Objects}
@@ -672,6 +672,7 @@ The key to the array is the message identifier \tup{sender}:\tup{msgid}.
 \item
   The final step in \proc[]{request} is to schedule the timer
   to send the actual request at the appropriate moment.
+  The instance procedure
   \fcnref{\proc[]{SRM/request::schedule}}{../ns-2/srm.tcl}{%
     SRM/request::schedule}
   uses 
@@ -957,7 +958,7 @@ invokes the virtual method
 for each SRM packet that it sends out.
 The method is invoked after adding the SRM packet headers, and
 before the packet is transmitted.
-The adaptive SRM agent overloads the method
+The adaptive SRM agent overloads 
 \fcnref{\fcn[]{addExtendedHeaders}}{../ns-2/srm.h}{%
         ASRMAgent::addExtendedHeaders}
 to specify its distances in the additional headers.

@@ -10,15 +10,15 @@
 \label{chap:timers}
 
 Timers may be implemented in C++ or OTcl.  In C++, timers are based on an 
-abstract base class defined in \code{timer-handler.h}.  They are most often 
+abstract base class defined in \nsf{timer-handler.h}.  They are most often 
 used in agents, but the 
 framework is general enough to be used by other objects.  The discussion
 below is oriented towards the use of timers in agents.
 
 The procedures and functions described in this chapter can be found in
-\nsf{tcl/XXX/timer.tcl}, and \nsf{timer-handler.\{cc, h\}}.
+\nsf{tcl/ex/timer.tcl}, and \nsf{timer-handler.\{cc, h\}}.
 
-In OTcl, a simple timer class is defined in \nsf{tcl/XXX/timer.tcl}.  
+In OTcl, a simple timer class is defined in \nsf{tcl/ex/timer.tcl}.  
 Subclasses can be derived to provide a simple mechanism for scheduling events 
 at the OTcl level.
 
@@ -30,12 +30,12 @@ contains the following public member functions:
 
 \begin{tabularx}{\linewidth}{rX}
   \fcn[double delay]{void sched} & schedule a timer to
-				expire delay seconds in the future \\
+                                expire delay seconds in the future \\
 \fcn[double delay]{void resched} & reschedule a timer
-		(similar to \fcn[]{sched}, but timer may be pending) \\
+                (similar to \fcn[]{sched}, but timer may be pending) \\
 \fcn[]{void cancel} & cancel a pending timer \\
 \fcn[]{int status} & returns timer status
-			(either IDLE, PENDING, or HANDLING) \\
+                        (either IDLE, PENDING, or HANDLING) \\
 \end{tabularx}
 
 The abstract base class \code{TimerHandler}
@@ -43,9 +43,9 @@ contains the following protected members:
 
 \begin{tabularx}{\linewidth}{rlX}
 \fcn[Event* e]{virtual void expire} & \code{=0} &
-	 this method must be filled in by the timer client\\
+         this method must be filled in by the timer client\\
 \fcn[Event* e]{virtual void handle} & \code{=0} &
-	 consumes an event\\
+         consumes an event\\
 \code{int status\_} & &  keeps track of the current timer status\\
 \code{Event event\_} & & event to be consumed upon timer expiry\\
 \end{tabularx}
@@ -113,9 +113,9 @@ defined in the basic Tahoe TCP agent defined in \code{tcp.cc}:
 \begin{program}
         rtx_timer_;      \*  Retransmission timer */
         delsnd_timer_;   \*  Delays sending of packets by a small random amount of time, */
-			\* to avoid phase effects */
+                        \* to avoid phase effects */
         burstsnd_timer_;   \* Helps TCP to stagger the transmission of a large window */
-				\* into several smaller bursts */
+                                \* into several smaller bursts */
 \end{program}
 In \nsf{tcp.h}, three classes are derived from the base class
 \clsref{TimerHandler}{tcp.h}:

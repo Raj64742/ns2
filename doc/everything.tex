@@ -3,19 +3,21 @@
 \usepackage{times}
 \usepackage[T1]{fontenc}
 
-\PassOptionsToPackage{draft}{nsdoc}
+%\PassOptionsToPackage{draft}{nsdoc}
 \usepackage{nsdoc}
 
 \title{\ns\ Notes and Documentation}
-\author{Multiple Members of the VINT project\\
-  Kevin Fall \tup{kfall@ee.lbl.gov}, Editor\\
-  Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor}
+\author{The VINT Project\\[2ex]
+A Collaboration between researchers at\\
+UC Berkeley, LBL, USC/ISI, and Xerox PARC.\\[2ex]
+Kevin Fall \tup{kfall@ee.lbl.gov}, Editor\\
+Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor}
 \date{\timestamp}
 
 \begin{document}
 \begin{titlepage}
   \begin{center}\makeatletter%
-    {\Large\@title\par}%
+    {\Large\@title\footnotemark\par}%
     \vskip 1.5em%
     {\normalsize
       \begin{tabular}[t]{c}%
@@ -41,6 +43,17 @@
     (3) the interface code to the OTcl interpreter is
         separate from the main simulator.
   \end{quote}
+  \footnotetext{
+    The VINT project is a joint effort by people from
+    UC Berkeley, USC/ISI, LBL, and Xerox PARC.
+    The project is supported by the Defense Advanced Research Projects
+    Agency (DARPA) 
+    at LBL under DARPA grant DABT63-96-C-0105,
+    at USC/ISI under DARPA grant ABT63-96-C-0054,
+    at Xerox PARC under DARPA grant DABT63-96-C-0105.
+  Any opinions, findings, and conclusions or recommendations expressed 
+  in this material are those of the author(s) and do not necessarily
+  reflect the views of the DARPA.}
   \vfil
 \end{titlepage}
 \clearpage
@@ -57,12 +70,14 @@
 \include{links}
 \include{queue_mgmt}
 \include{delays}
-\include{packet_format}
+\include{agents}
 \include{timers}
 \include{events}
-\include{agents}
-\include{lan}
+\include{packet_format}
+
+\include{sources}
 \include{error_model}
+\include{lan}
 
 \part{Support}
 \include{math}
@@ -80,8 +95,8 @@
 \part{Scale}
 \include{session}
 
-\part{Other}
-\include{debugging}
+%\part{Other}
+%\include{debugging}
 
 \bibliography{ns}
 

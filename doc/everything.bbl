@@ -1,10 +1,33 @@
 \def\url#1{\texttt{{\small #1}}}
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{Alae94:Design}
 C.~Alaettino\u{g}lu, A.U. Shankar, K.~Dussa-Zeiger, and I.~Matta.
 \newblock Design and implementation of {MaRS}: A routing testbed.
 \newblock {\em Internetworking: Research and Experience}, 5:17--41, 1994.
+
+\bibitem{Brak94:TCP}
+L.S. Brakmo, S.~O'Malley, and L.L. Peterson.
+\newblock {TCP} vegas: New techniques for congestion detection and avoidance.
+\newblock In {\em Proceedings of the~ACM SIGCOMM}, pages 24--35, October 1994.
+
+\bibitem{Brak94a:TCP}
+L.S. Brakmo, S.~O'Malley, and L.L. Peterson.
+\newblock {TCP} vegas: New techniques for congestion detection and avoidance.
+\newblock Technical Report TR 94 04, Department of Computer Science, The
+  University of Arizona, Tucson, AZ 85721, February 1994.
+
+\bibitem{Brow88:Calendar}
+R.~Brown.
+\newblock Calendar queues: A fast {O(1)} priority queue implementation for the
+  simulation event set problem.
+\newblock {\em Communications of the ACM}, 31(10):1220--1227, October 1988.
+
+\bibitem{Deer94a:Architecture}
+S.~Deering, D.~Estrin, D.~Farinacci, V.~Jacobson, Ching-{G}ung Liu, and L.~Wei.
+\newblock An architecture for wise-area multicast routing.
+\newblock Technical Report USC-SC-94-565, Computer Science Department,
+  University of Southern California, Los Angeles, CA 90089., 1994.
 
 \bibitem{Floy95:Reliable}
 S.~Floyd, V.~Jacobson, C.~Liu, S.~McCanne, and L.~Zhang.
@@ -17,6 +40,21 @@ A.~Heybey.
 \newblock {\em Netsim Manual}.
 \newblock MIT, 1989.
 
+\bibitem{Jain91:Art}
+R.~Jain.
+\newblock {\em The Art of Computer Systems Performance Analysis}.
+\newblock John Wiley and Sons, Inc., 1996.
+
+\bibitem{Math96:Forward}
+M.~Mathis and J.~Mahdavi.
+\newblock Forward acknowledgement: Refining {TCP} congestion control.
+\newblock In {\em Proceedings of the~ACM SIGCOMM}, August 1996.
+
+\bibitem{rfc2018}
+M.~Mathis, J.~Mahdavi, S.~Floyd, and A.~Romanov.
+\newblock {\em {TCP} Selective Acknowledgement Options}, {RFC 2018} edition,
+  1996.
+
 \bibitem{ns}
 S.~McCanne and S.~Floyd.
 \newblock ns---{N}etwork {S}imulator.
@@ -26,5 +64,10 @@ S.~McCanne and S.~Floyd.
 S.K. Park and R.W. Miller.
 \newblock Random number generation: Good ones are hard to find.
 \newblock {\em Communications of the ACM}, 31(10):1192--1201, October 1988.
+
+\bibitem{rfc1075}
+D.~Waitzman, C.~Partridge, and S.E. Deering.
+\newblock {\em {Distance Vector Multicast Routing Protocol}}, {RFC 1075}
+  edition, 1988.
 
 \end{thebibliography}

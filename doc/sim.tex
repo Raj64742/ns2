@@ -34,7 +34,7 @@ performs the following operations:
 \end{itemize}
 The packet format initialization sets up field offsets within packets
 used by the entire simulation.  It is described in more detail
-in \href{the following chapter on packets}{Chapter}{chap:packets}.
+in \href{the following chapter on packets}{Chapter}{chap:pformat}.
 The scheduler runs the simulation in an event-driven manner and may
 be replaced by alternative schedulers which provide somewhat
 different semantics (see the following section for more detail).
@@ -63,7 +63,7 @@ serially.
 No partial execution of events or pre-emption is supported.
 
 An {\em event} generally comprises a ``firing time'' and a handler function.
-The actual definition of an event is found in \code{scheduler.h}:
+The actual definition of an event is found in \nsf{scheduler.h}:
 \begin{program}
         class Event \{ 
         public: 

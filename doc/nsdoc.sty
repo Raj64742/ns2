@@ -5,18 +5,15 @@
 \RequirePackage{tabularx}
 \renewcommand{\arraystretch}{1.2}
 
+\ifx\@noresizetrue\undefined
 \RequirePackage[dvips]{graphics}
 \DeclareGraphicsExtensions{.eps, .ps, .epsf}
 \graphicspath{
   {./}
+  {./figures/}
   {./sl-figures/}
   {../sl-figures/}
-  {./figures/}
   }
-\RequirePackage{pstricks,pst-node}
-\RequirePackage{longtable}
-
-\ifx\@noresizetrue\undefined
 \evensidemargin       -15pt
 \oddsidemargin        -15pt
 \topmargin            -20pt
@@ -29,6 +26,9 @@
 \marginparwidth       1cm
 \message{resize completed}
 \fi
+
+\RequirePackage{pstricks,pst-node}
+\RequirePackage{longtable}
 
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\floatpagefraction}{0.9}
@@ -94,6 +94,7 @@
 
 \def\ie{\textit{i.e.}}
 \def\eg{\textit{e.g.}}
+\def\etc{\textit{etc}}
 \def\etal{\textit{et\,al}}
 \def\via{\textit{via}}
 \def\viz{\textit{viz.}}

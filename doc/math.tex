@@ -4,7 +4,7 @@
 %        - KFALL
 %
 \chapter{Mathematical Support}
-\label{sec:math}
+\label{chap:math}
 
 The simulator includes a small collection of mathematical
 functions used to implement random variate generation and integration.
@@ -45,7 +45,7 @@ provided.
 
 \paragraph{C++ Support}
 This random number generator is
-implemented by the RNG class, defined in rng.h:
+implemented by the RNG class, defined in \nsf{rng.h}:
 \begin{program}
 class RNG : public TclObject \{
 enum RNGSources \{ RAW_SEED_SOURCE, PREDEF_SEED_SOURCE, HEURISTIC_SEED_SOURCE \};
@@ -82,14 +82,14 @@ generation:
 
 \begin{tabularx}{\linewidth}{rX}
 \fcn[double r]{uniform} & generate a floating-point number
-			  uniformly distributed on $[0,r]$ \\
+                          uniformly distributed on $[0,r]$ \\
 \fcn[double a, double b]{uniform} & generate a floating-point number
-				    uniformly distributed on $[a,b]$ \\
+                                    uniformly distributed on $[a,b]$ \\
 \fcn[]{exponential} & generate a floating-point number
-		      exponentially distributed (with parameter 1)
-		      on $[0, \infty)$ \\
+                      exponentially distributed (with parameter 1)
+                      on $[0, \infty)$ \\
 \fcn[int k]{integer} & generate an integer
-		       uniformly distributed on $[0, (k-1)]$ \\
+                       uniformly distributed on $[0, (k-1)]$ \\
 \end{tabularx}
 
 The \code{Random} class can be used to construct randomized algorithms,
@@ -117,13 +117,13 @@ values of this enumerated type used determine the initial seed value:
 
 \begin{tabularx}{\linewidth}{rX}
 RAW\_SEED\_SOURCE &  the value contained in the second parameter is used
-			as the seed.\\
+                        as the seed.\\
 PREDEF\_SEED\_SOURCE &  the value contained in the second parameter is
-	used as the index into an array of predefined seed values.  These
-	values have been precomputed and provide independent streams of random
-	numbers.  There are currently 64 such seeds.\\
+        used as the index into an array of predefined seed values.  These
+        values have been precomputed and provide independent streams of random
+        numbers.  There are currently 64 such seeds.\\
 HEURISTIC\_SEED\_SOURCE  & use a heuristic to generate the seed.
-	The second argument is ignored if provided.\\
+        The second argument is ignored if provided.\\
 \end{tabularx}
 
 The heuristic seeding method
@@ -153,12 +153,58 @@ provides a thin layer of functionality on top
 of the base random number generator that implements random variates.
 It is defined in \nsf{ranvar.h}:
 
+\begin{program}
+  class RandomVariable : public TclObject \{
+  public:
+        virtual double value() = 0;
+        int command(int argc, const char*const* argv);
+        RandomVariable();
+  protected:
+        RNG* rng_;
+  \};
+\end{program}
+
+Classes derived from this abstract class implement specific
+distributions.  Each distribution is parameterized with the values of
+appropriate parameters.  The value method is used to return a value
+from the distribution.  
+
+The currently defined distributions, and their associated parameters are:
+
+\begin{tabular}{rl}
+\clsref{UniformRandomVariable}{../ns-2/ranvar.h} & \code{min_}, \code{max_} \\
+\clsref{ExponentialRandomVariable}{../ns-2/expoo.h} & \code{avg_} \\
+\clsref{ParetoRandomVariable}{../ns-2/pareto.h} & \code{avg_}, \code{shape_}\\
+\clsref{ConstantRandomVariable} & \code{val_}\\
+\clsref{HyperExponentialRandomVariable}{../ns-2/ranvar.h} & \code{avg_}, \code{cov_}\\
+\end{tabular}
+
+The RandomVariable class is available in OTcl.  For instance, to
+create a random variable that generates number uniformly on [10, 20]:
+\begin{program}
+        set u [new RandomVariable/Uniform]
+        $u set min_ 10
+        $u set max_ 20
+        $u value
+\end{program}
+By default, RandomVariable objects use the default random number
+generator described in the previous section.  The use-rng method can
+be used to associate a RandomVariable with a non-default RNG:
+\begin{program}
+        set rng [new RNG]
+        $rng seed 0
+
+        set e [new RandomVariable/Exponential]
+        $e use-rng $rng
+\end{program}
+
+
 \section{Integrals}
 \label{sec:integral}
 
-To support the approximation of (continuous) integration by (discrete)
-sums, the \clsref{Integrator}{../ns-2/integrator.h}
-is defined in \nsf{integrator.h}:
+The  \clsref{Integrator}{../ns-2/integrator.h}
+supports the approximation of (continuous) integration by (discrete)
+sums; it is defined in \nsf{integrator.h} as
 \begin{program}
 {\rm From integrator.h:}
         class Integrator : public TclObject \{
