@@ -33,37 +33,63 @@
  */
 
 /* Marking scheme proposed by Kunniyur and Srikant in "Decentralized Adaptive
-   ECN Algorithms" published in the Proceedings of Infocom2000, Tel-Aviv, 
-   Israel, March 2000.
- * Central Idea:
- * ------------
+*    ECN Algorithms" published in the Proceedings of Infocom2000, Tel-Aviv, 
+*    Israel, March 2000.
+* 
+* Basic Idea of the AVQ (Adaptive Virtual Queue) Algorithm
+* --------------------------------------------------------
+* 
+* The scheme involves having a virtual queue at each link with the same
+* arrival rate as the original queue, but with the service rate scaled
+* down by some factor (ecnlim_). The buffer capacity remains the same,
+* but if needed we can also scale the buffer capacity by come constant
+* (buflim_). When a packet is dropped from the virtual queue, mark a
+* packet at the front of the real queue. Although in this implemetation,
+* a "drop-tail" function is used in the VIRTUAL QUEUE to mark packets in
+* the original queue, any algorithm (like RED) can be used in the
+* virtual queue to signal congestion. The capacity of the virtual queue
+* is adapted periodically to guarantee loss-free service. 
+* 
+* The update of the virtual capacity (capacity of the virtual queue) is
+* done using a token-bucket. For implentation details, please refer to
+* the Sigcomm 2001 paper titled "Analysis and Design of an Adaptive
+* Virtual Queue (AVQ) algorithm for Active Queue Management (AQM). 
+* 
+* The virtual queue length can be taken in packets or in bytes. If the
+* packet sizes are not fixed, then it is recommended to use bytes
+* instead of packets as units of length. If the variable (qib_) is set,
+* then the virtual queue is measured in bytes, else it is measured in
+* packets and the mean packet size is set to 1000. 
+* 
+*                          -Srisankar
+* 
+* ********************************************************************  
+* Options in the AVQ algorithm code:
+* ----------------------------------
+* 
+* * ecnlim_ -> This parameter specifies the capacity of the virtual 
+*              queue as a fraction of the capcity of the original queue.
+* 
+* * buflim_ -> This parameter specifies the buffer capacity of the
+*              virtual queue as a fraction of the buffer capacity of the
+*              original queue.
+* 
+* * queue_in_bytes_ -> Indicates whether you want to measure the queue
+*                      in bytes or packets. 
+* 
+* * markpkts_ -> Set to 1 if router wants to emply marking for that
+*                link. Set to 0, if dropping is preferred. 
+* 
+* * markfront_ -> Set to 1 if mark from front policy is employed. Usually
+*                 set to zero.   
+* 
+* * mean_pktsize- -> The mean packet size is set to 1000.
+* 
+* * gamma -> This parameter specifies the desired arrival rate at the link.
+* 
+* ********************************************************************  
+*/
 
- * The scheme involves having a virtual queue at each link with the
- * same arrivals as the real queue but with the service rate scaled 
- * down by some factor (ecnlim_). If needed, we can also scale down the
- * buffer capacity by some constant (buflim_). When a packet is
- * dropped from the virtual queue, mark a packet at the front of the
- * real queue. The capacity of the virtual queue is adapted
- * periodically to guarantee loss-free service.
-
- * Implementation Details:
- * -----------------------
-
- * The update of the virtual capacity (capacity of the virtual queue)
- * is done using a token-bucket. For implentation details, please refer 
- * to the Sigcomm 2001 paper titled "Analysis and Design of an Adaptive
- * Virtual Queue (AVQ) algorithm for Active Queue Management (AQM). 
-
- * The virtual queue length can be taken in packets or in bytes.
- * If the packet sizes are not fixed, then it is recommended to use 
- * bytes instead of packets as units of length. If the variable (qib_)
- * is set, then the virtual queue is measured in bytes, else it is
- * measured in packets and the mean packet size is set to 1000.
-
- 
-                         - Srisankar
-						   01/07/2001.
- */
 #ifndef lint
 static const char rcsid[] =
     "@(#) $Header: /usr/src/mash/repository/vint/ns-2/drop-tail.cc,v 1.9 1998/06/27
