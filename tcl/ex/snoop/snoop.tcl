@@ -64,13 +64,13 @@ set env(PATH) "$nshome/bin:$env(PATH)"
 #
 
 source $nshome/tcl/lan/ns-mac.tcl
-source $nshome/tcl/lan/ns-lan.tcl
+#source $nshome/tcl/lan/ns-lan.tcl
 source $nshome/tcl/lan/ns-ll.tcl
 source $nshome/tcl/lib/ns-errmodel.tcl
 source $nshome/tcl/lib/ns-trace.tcl
 source $nshome/tcl/ex/snoop/util.tcl
 source $nshome/tcl/http/http.tcl
-
+source $nshome/tcl/lan/vlan.tcl
 
 set env(PATH) "${nshome}bin:$env(PATH)"
 
@@ -238,7 +238,7 @@ proc create-topology {num} {
 	set lan [$ns make-lan $nodelist $opt(bw) $opt(delay) \
 			LL $opt(ifq) $opt(mac) $opt(chan)]
 	$lan addNode [list $node(0)] $opt(bw) $opt(delay) $opt(ll) $opt(ifq) \
-			$opt(mac) LL
+			$opt(mac)
 
 	set s(0) [$ns node]
 	$ns duplex-link $s(0) $node(0) $opt(ibw) $opt(idelay) DropTail
@@ -382,7 +382,7 @@ if { [info exists opt(www)] } {
 	create-topology $opt(num)
 }
 
-$lan trace $ns $trfd
+#$lan trace $ns $trfd
 
 if [info exists opt(tracemac)] { trace-mac $lan $ltrfd }
 
