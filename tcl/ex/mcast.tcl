@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.3 1997/01/27 01:16:20 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.4 1997/08/05 01:12:14 polly Exp $
 #
 
 #
@@ -39,13 +39,10 @@
 # We create a four node start; start a CBR source in the center
 # and then at node 3 and exercise the join/leave code.
 #
+# See tcl/ex/newmcast/mcast*.tcl for more mcast example scripts
 
-#
-# PLEASE NOTE: The current form of this file does not yet
-#	conform with our intended API.
-#
-
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -55,10 +52,13 @@ set n3 [$ns node]
 set f [open out.tr w]
 $ns trace-all $f
 #$ns trace-all stdout
-
+Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+
+set mproto DM
+set mrthandle [$ns mrtproto $mproto {}]
 
 set cbr0 [new Agent/CBR]
 $ns attach-agent $n1 $cbr0

@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.119 1997/08/01 00:45:16 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.120 1997/08/05 01:12:11 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,15 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+<LI><A HREF="mailto:huang@isi.edu">[PH]</A> <B>Mon Aug  4 17:59:32 PDT 1997<BR></B>
+<UL>
+<LI> Added session level packet distribution(1st pass). 
+Files added: sessionhelper.cc, tcl/session/session.tcl, and example 
+scripts tcl/ex/newmcast/session*.tcl.
+<LI> Modified tcl/ex/mcast.tcl and tcl/ex/newmcast/*.tcl example scripts 
+to be consistent with the current API.
+</UL>
+
 <LI><A HREF="http://ww-nrg.ee.lbl.gov/kfall">[KF]</A> <B>Thu Jul 31 12:09:34 PDT 1997<BR></B>
 <UL>
 <LI> add a max bound on the TCP rto (maxrto_), default is 64 sec (like bsd)

@@ -32,10 +32,11 @@
 #
 # Modified by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.4 1997/07/25 00:12:52 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.5 1997/08/05 01:12:27 polly Exp $
 #
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -49,12 +50,8 @@ $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
-set dm0 [new DM $ns $n0]
-set dm1 [new DM $ns $n1]
-set dm2 [new DM $ns $n2]
-set dm3 [new DM $ns $n3]
-
-$ns at 0.0 "$ns run-mcast"
+set mproto DM
+set mrthandle [$ns mrtproto $mproto {}]
 
 set s0 [new Session/RTP]
 set s1 [new Session/RTP]
@@ -65,7 +62,6 @@ $s0 session_bw 400kb/s
 $s1 session_bw 400kb/s
 $s2 session_bw 400kb/s
 $s3 session_bw 400kb/s
-
 
 $s0 attach-node $n0
 $s1 attach-node $n1

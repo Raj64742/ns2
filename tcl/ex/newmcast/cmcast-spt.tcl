@@ -1,39 +1,39 @@
- #
- # tcl/ex/newmcast/cmcast-spt.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- # 
- #
-## Centralized Multicast Module Examples
-## o. Use only source specific tree. 
-## o. Note that when all receivers leave a group, the group tree type will be
-## reset to the default, RP tree.
-## o. RP related settings are not required.
-##
-## joining & pruning test(s)
+#
+# tcl/ex/newmcast/cmcast-spt.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# 
+#
+# Centralized Multicast Module Examples
+# o. Use only source specific tree. 
+# o. Note that when all receivers leave a group, the group tree type will be
+# reset to the default, RP tree.
+# o. RP related settings are not required.
+#
+# joining & pruning test(s)
 #          |3|
 #           |
 #  |0|-----|1|
 #           |
 #          |2|
-
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -42,17 +42,14 @@ set n3 [$ns node]
 
 set f [open out-cmcast.tr w]
 $ns trace-all $f
+Simulator set NumberInterfaces_ 1
+$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
-$ns duplex-link-of-interfaces $n0 $n1 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n1 $n2 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n1 $n3 1.5Mb 10ms DropTail
-
-set ctrmcastcomp [new CtrMcastComp $ns]
-
-set ctrmcast0 [new CtrMcast $ns $n0 $ctrmcastcomp [list]]
-set ctrmcast1 [new CtrMcast $ns $n1 $ctrmcastcomp [list]]
-set ctrmcast2 [new CtrMcast $ns $n2 $ctrmcastcomp [list]]
-set ctrmcast3 [new CtrMcast $ns $n3 $ctrmcastcomp [list]]
+# mcast set-up
+set mproto CtrMcast
+set mrthandle [$ns mrtproto $mproto  {}]
 
 # Create a sender and receivers
 set cbr1 [new Agent/CBR]
@@ -70,7 +67,7 @@ $ns attach-agent $n3 $rcvr3
 
 # Switch group 0x8003 to source specific tree at the beginning
 # Default tree type is RP tree (shared tree)
-$ns at 0 "$ctrmcastcomp switch-treetype 0x8003"
+$ns at 0 "$mrthandle switch-treetype 0x8003"
 
 # Group events
 $ns at 0.2 "$cbr1 start"
@@ -84,10 +81,9 @@ $ns at 0.8 "$n2 leave-group  $rcvr2 0x8003"
 
 # Re-compute the entire mcast routes. 
 # In this case, nothing is changed
-$ns at 0.85 "$ctrmcastcomp compute-mroutes"
+$ns at 0.85 "$mrthandle compute-mroutes"
 $ns at 0.9 "$n3 leave-group  $rcvr3 0x8003"
 $ns at 1.0 "$n1 leave-group $rcvr1 0x8003"
-
 
 
 $ns at 1.1 "finish"

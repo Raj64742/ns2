@@ -1,26 +1,27 @@
- #
- # tcl/ex/newmcast/dense-mode1.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- # 
- #
-set ns [new MultiSim]
+#
+# tcl/ex/newmcast/dense-mode1.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# 
+#
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -34,12 +35,8 @@ $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
-set dm0 [new DM $ns $n0]
-set dm1 [new DM $ns $n1]
-set dm2 [new DM $ns $n2]
-set dm3 [new DM $ns $n3]
-
-$ns at 0.0 "$ns run-mcast"
+set mproto DM
+set mrthandle [$ns mrtproto $mproto {}]
 
 set cbr0 [new Agent/CBR]
 $ns attach-agent $n1 $cbr0

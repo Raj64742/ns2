@@ -167,6 +167,7 @@ scoreboard.h
 semantic-packetqueue.cc
 semantic-packetqueue.h
 session-rtp.cc
+sessionhelper.cc
 sfq.cc
 snoop.cc
 snoop.h
@@ -221,6 +222,8 @@ tcl/ex/newmcast/pim5.tcl
 tcl/ex/newmcast/pim6-nam.tcl
 tcl/ex/newmcast/pim6.tcl
 tcl/ex/newmcast/rtp-nam.tcl
+tcl/ex/newmcast/session1.tcl
+tcl/ex/newmcast/session2.tcl
 tcl/ex/newmcast/simple-rtp.tcl
 tcl/ex/ranvar.tcl
 tcl/ex/ranvar.txt
@@ -318,6 +321,7 @@ tcl/rtmechanisms/rtm_link.tcl
 tcl/rtmechanisms/rtm_tests.tcl
 tcl/rtp/session-rtp.tcl
 tcl/rtp/session-scuba.tcl
+tcl/session/session.tcl
 tcl/test/README
 tcl/test/misc.tcl
 tcl/test/queuemon-test.tcl

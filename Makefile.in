@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.55 1997/07/26 05:55:09 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.56 1997/08/05 01:12:12 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -95,7 +95,8 @@ OBJ_CC = \
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o prune.o srm.o \
 	net.o net-ip.o tap.o \
-	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o
+	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o \
+	sessionhelper.o
 
 OBJ_C = \
 	inet.o
@@ -183,7 +184,8 @@ NS_TCL_LIB = \
         tcl/pim/pim-mrt.tcl \
         tcl/pim/pim-recvr.tcl \
         tcl/pim/pim-sender.tcl \
-        tcl/pim/pim-vifs.tcl 
+        tcl/pim/pim-vifs.tcl \
+	tcl/session/session.tcl
 
 gen/ns_tcl.cc: $(NS_TCL_LIB)
 	@rm -f $@
