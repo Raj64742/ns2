@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.34 2000/11/01 00:33:00 haoboy Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.35 2000/12/14 05:05:21 xuanc Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -261,6 +261,11 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 		if(v_incr_>0 && (cwnd_-(t_seqno_-last_ack_))<=2)
 			cwnd_ = cwnd_+v_incr_;	
 
+		// Add to make Vegas obey maximum congestion window variable.
+		if (maxcwnd_ && (int(cwnd_) > maxcwnd_)) {
+			cwnd_ = maxcwnd_;
+		}
+
 		/*
 		 * See if we need to update the fine grained timeout value,
 		 * v_timeout_
@@ -371,6 +376,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			++cwnd_;
 	}
 	Packet::free(pkt);
+
 #if 0
 	if (trace_)
 		plot();
@@ -463,12 +469,13 @@ VegasTcpAgent::output(int seqno, int reason)
 			if (seqno > rtt_seq_) {
 				rtt_seq_ = seqno;
 				rtt_ts_ = now;
-			} else {
-				++nrexmitpack_;
-				nrexmitbytes_ += bytes;
 			}
 		}
-	}
+	} else {
+		++nrexmitpack_;
+       		nrexmitbytes_ += bytes;
+    	}
+
 	if (!(rtx_timer_.status() == TIMER_PENDING))
 		/* No timer pending.  Schedule one. */
 		set_rtx_timer();
