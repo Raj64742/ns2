@@ -21,6 +21,9 @@
 # To run in quiet mode:  "./test-all-wireless-lanquiet".
 #
 
+echo "OBSOLETE TEST."
+exit 0
+
 f="wireless-lan"	
 file="test-suite-$f.tcl"
 directory="test-output-$f"
