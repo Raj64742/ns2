@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.13 1998/03/19 23:45:46 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.14 1998/05/06 02:32:19 gnguyen Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -613,7 +613,6 @@ void
 LLSnoop::sendto(Packet *p)
 {
 	((hdr_ll*)p->access(off_ll_))->seqno() = ++seqno_;
-	((hdr_mac*)p->access(off_mac_))->macDA() = macDA_;
 	sendtarget_->recv(p, 0);
 }
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.16 1998/04/08 20:09:42 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.17 1998/05/06 02:32:19 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -106,8 +106,10 @@ void LL::recv(Packet* p, Handler* h)
 {
 	if (h == 0)		// from MAC classifier
 		recvtarget_ ? recvfrom(p) : drop(p);
-	else			// from higher layer
+	else {			// from higher layer
+		((hdr_mac*)p->access(off_mac_))->macDA() = macDA_;
 		sendtarget_ ? sendto(p, h) : LinkDelay::recv(p, h);
+	}
 }
 
 
@@ -118,7 +120,6 @@ void LL::recvfrom(Packet* p)
 		drop(p);
 	else
 		s.schedule(recvtarget_, p, delay_);
-	return;
 }
 
 
@@ -128,7 +129,6 @@ void LL::sendto(Packet* p, Handler* h)
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 
 	llh->seqno() = ++seqno_;
-	((hdr_mac*)p->access(off_mac_))->macDA() = macDA_;
 	s.schedule(h, &intr_, 0.000001); // XXX -- resume higher layer
 	sendtarget_->recv(p, h);
 }
