@@ -149,6 +149,7 @@ Node instproc clear-caches {} {
 	foreach var {Agents_ replicator_} {
 		$self instvar $var
 		if { [info exists $var] } {
+			delete $var
 			unset $var
 		}
 	}
@@ -258,7 +259,7 @@ Node instproc add-mfc { src group iif oiflist } {
 		$multiclassifier_ add-rep $r $src $group $iif
 	}
 
-	foreach oif $oiflist {
+	foreach oif [lsort $oiflist] {
 		$r insert $oif
 	}
 }
@@ -426,55 +427,56 @@ Simulator instproc getPIMProto { index } {
 	return -1
 }
 
+#XXX the following is scheduled to go away!
 #----------------------------------------------------------------------
 # Generating multicast distribution trees 
 #----------------------------------------------------------------------
-
+#
 # 
 # get the adjacent node thru a outgoing interface
 # NOTE: Node::ifaceGetNode() in ns-mcast.tcl get a node through an 
 # incoming interface, which is different from the one below.
 #
-Node instproc oifGetNode { iface } {
-        $self instvar ns_ id_ neighbor_
-        foreach node $neighbor_ {
-                set link [$ns_ set link_($id_:[$node id])]
-		if {[$link set iif_] == $iface} {
-			return $node
-		}
-        }
-	return -1
-}
-
+#Node instproc oifGetNode { iface } {
+#	 $self instvar ns_ id_ neighbor_
+#	 foreach node $neighbor_ {
+#		 set link [$ns_ set link_($id_:[$node id])]
+#		 if {[$link set iif_] == $iface} {
+#			 return $node
+#		 }
+#	 }
+#	 return -1
+#}
+#
 # given an iif, find oifs in (S,G)
-Node instproc getRepByIIF { src group iif } {
-	$self instvar multiclassifier_
-	return [$multiclassifier_ lookup [$src id] $group $iif]
-}
-
-Simulator instproc find-next-child { parent sl } {
-	puts "Found $sl ([$sl info class]) for node [$parent id]"
-	set cls [$sl info class]
-
-	if {$cls == "networkinterface"} {
-		set child [$parent oifGetNode $sl]
-	} elseif {$cls == "DuplexNetInterface"} {
-		set child [$sl getNode]
-	} else {
-		set basecls [lindex [split $cls /] 0]
-		if {$basecls == "Agent"} {
-			return ""
-		} else {
-			error "Unsupported interface type: [$sl info class]"
-		}
-	}
-	if {$child == -1} {
-		puts "Outgoing iface doesn't have corresponding nodes"
-		return ""
-	}
-	return $child
-}
-
+#Node instproc getRepByIIF { src group iif } {
+#	 $self instvar multiclassifier_
+#	 return [$multiclassifier_ lookup [$src id] $group $iif]
+#}
+#
+#Simulator instproc find-next-child { parent sl } {
+#	 puts "Found $sl ([$sl info class]) for node [$parent id]"
+#	 set cls [$sl info class]
+#
+#	 if {$cls == "networkinterface"} {
+#		 set child [$parent oifGetNode $sl]
+#	 } elseif {$cls == "DuplexNetInterface"} {
+#		 set child [$sl getNode]
+#	 } else {
+#		 set basecls [lindex [split $cls /] 0]
+#		 if {$basecls == "Agent"} {
+#			 return ""
+#		 } else {
+#			 error "Unsupported interface type: [$sl info class]"
+#		 }
+#	 }
+#	 if {$child == -1} {
+#		 puts "Outgoing iface doesn't have corresponding nodes"
+#		 return ""
+#	 }
+#	 return $child
+#}
+#
 #
 # XXX
 # (1) Cannot start from a source in a RP tree, because there a packet is 
@@ -482,74 +484,74 @@ Simulator instproc find-next-child { parent sl } {
 # (2) src is a Node
 # (3) Currently NOT working for detailedDM
 #
-Simulator instproc get-mcast-tree { src grp } {
-	$self instvar link_ treeLinks_
-
-	# iif == -2: from local
-	set tmp [$src getRepByIIF $src $grp -2]
-	if {$tmp == ""} {
-		$self flush-trace
-		error "No replicator for $GROUP_ at [$src id]"
-	}
-
-	set sid [$src id]
-	lappend repList $tmp
-	lappend nodeList $src
-
-	while {[llength $repList] > 0} {
-		set h [lindex $repList 0]
-		set parent [lindex $nodeList 0]
-		set pid [$parent id]
-		set closeNodes($pid) 1
-		set repList [lreplace $repList 0 0]
-		set nodeList [lreplace $nodeList 0 0]
-
-		set slots [$h slots]
-		#		puts "$slots"
-		foreach sl $slots {
-			set child [$self find-next-child $parent $sl]
-			if {$child == ""} {
-				puts "No children found for ($parent, $sl)"
-				continue
-			}
-			set cid [$child id]
-			if [info exists closeNodes($cid)] {
-				error "Loop: node $cid already in the tree"
-			}
-
-			# shouldn't go upstream
-			if ![info exists link_($pid:$cid)] {
-				error "Found non-existent link ($pid:$cid)";
-			}
-
-			lappend nodeList $child
-			puts "Link ($pid:$cid) found."
-			lappend treeLinks $pid:$cid $link_($pid:$cid)
-			set treeLinks_($pid:$cid) $link_($pid:$cid)
-
-			set iif [[$link_($pid:$cid) set iif_] label]
-			if {$iif == -1} {
-				puts "iif == -1"
-			}
-			lappend repList [$child getRepByIIF $src $grp $iif]
-		}
-	}
-	return $treeLinks
-}
-
+#Simulator instproc get-mcast-tree { src grp } {
+#	 $self instvar link_ treeLinks_
+#
+#	 # iif == -2: from local
+#	 set tmp [$src getRepByIIF $src $grp -2]
+#	 if {$tmp == ""} {
+#		 $self flush-trace
+#		 error "No replicator for $GROUP_ at [$src id]"
+#	 }
+#
+#	 set sid [$src id]
+#	 lappend repList $tmp
+#	 lappend nodeList $src
+#
+#	 while {[llength $repList] > 0} {
+#		 set h [lindex $repList 0]
+#		 set parent [lindex $nodeList 0]
+#		 set pid [$parent id]
+#		 set closeNodes($pid) 1
+#		 set repList [lreplace $repList 0 0]
+#		 set nodeList [lreplace $nodeList 0 0]
+#
+#		 set slots [$h slots]
+#		 #		puts "$slots"
+#		 foreach sl $slots {
+#			 set child [$self find-next-child $parent $sl]
+#			 if {$child == ""} {
+#				 puts "No children found for ($parent, $sl)"
+#				 continue
+#			 }
+#			 set cid [$child id]
+#			 if [info exists closeNodes($cid)] {
+#				 error "Loop: node $cid already in the tree"
+#			 }
+#
+#			 # shouldn't go upstream
+#			 if ![info exists link_($pid:$cid)] {
+#				 error "Found non-existent link ($pid:$cid)";
+#			 }
+#
+#			 lappend nodeList $child
+#			 puts "Link ($pid:$cid) found."
+#			 lappend treeLinks $pid:$cid $link_($pid:$cid)
+#			 set treeLinks_($pid:$cid) $link_($pid:$cid)
+#
+#			 set iif [[$link_($pid:$cid) set iif_] label]
+#			 if {$iif == -1} {
+#				 puts "iif == -1"
+#			 }
+#			 lappend repList [$child getRepByIIF $src $grp $iif]
+#		 }
+#	 }
+#	 return $treeLinks
+#}
+#
 # XXX assume duplex link, also assume this is called after ns starts
-Simulator instproc color-tree {} {
-	$self instvar treeLinks_ Node_
-
-	# color tree links
-	foreach l [array names treeLinks_] {
-		set tmp [split $l :]
-		set sid [lindex $tmp 0]
-		set did [lindex $tmp 1]
-		$self duplex-link-op $Node_($sid) $Node_($did) color blue
-	}
-}
-
+#Simulator instproc color-tree {} {
+#	 $self instvar treeLinks_ Node_
+#
+#	 # color tree links
+#	 foreach l [array names treeLinks_] {
+#		 set tmp [split $l :]
+#		 set sid [lindex $tmp 0]
+#		 set did [lindex $tmp 1]
+#		 $self duplex-link-op $Node_($sid) $Node_($did) color blue
+#	 }
+#}
+#
 Agent/Mcast/Control instproc init { protocol } {
         $self next
         $self instvar proto_

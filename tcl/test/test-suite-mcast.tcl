@@ -16,7 +16,7 @@ Class TestSuite
 TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	set ns_ [new Simulator -multicast on]
-#	$ns_ use-scheduler List
+	$ns_ use-scheduler List
 	if {$test_ == "CtrMcast1"} {
 		Node expandaddr
 	}
@@ -737,6 +737,8 @@ Test/DM5 instproc run {} {
 	####
 	
 	$ns_ at 0.1 "$cbr0 start"
+#	$ns_ at 0.11 "$node_(n4) dump-routes stdout"
+#	$ns_ at 0.25 "$node_(n0) dump-routes stdout"
 	$ns_ at 1.0 "$self finish 5e-nam"
 	
 	$ns_ run

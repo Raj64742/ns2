@@ -153,8 +153,57 @@ McastProtocol instproc notify { dummy } {
 	}
 }
 
-McastProtocol instproc dump-routes args {
-	# NOTHING
+McastProtocol instproc dump-routes {chan {grp ""} {src ""}} {
+	$self instvar ns_ node_
+	if { $grp == "" } {
+		# dump all replicator entries
+		array set reps [$node_ getReps-raw * *]
+	} elseif { $src == "" } {
+		# dump entries for group
+		array set reps [$node_ getReps-raw * $grp]  ;# actually, more than *,g
+	} else {
+		# dump entries for src, group.
+		array set reps [$node_ getReps-raw $src $grp]
+	}
+	puts $chan [concat "Node:\t${node_}([$node_ id])\tat t ="	\
+			[format "%4.2f" [$ns_ now]]]
+	puts $chan "\trepTag\tActive\t\tsrc\tgroup\tiifNode\t\tdest_nodes"
+	foreach ent [lsort [array names reps]] {
+		set sg [split $ent ":"]
+		if { [$reps($ent) is-active] } {
+			set active Y
+		} else {
+			set active N
+		}
+		# translate each oif to a link and then the neighbor node
+		set dest ""
+		foreach oif [$reps($ent) dump-oifs] {
+			if ![catch { set nbr [[$node_ oif2link $oif] dst] } ] {
+				set nbrid [$nbr id]
+				if [$nbr is-lan?] {
+					set nbrid ${nbrid}(L)
+				}
+				lappend dest $nbrid
+			}
+		}
+		set s [lindex $sg 0]
+		set g [lindex $sg 1]
+		set iif [$node_ lookup-iface $s $g]
+
+		set iif_node_id $iif
+		catch {
+			# catch: iif can be negative for senders
+			set iif_node [[$node_ iif2link $iif] src]
+			if [$iif_node is-lan?] {
+				set iif_node_id [$iif_node id](L)
+			} else {
+				set iif_node_id [$iif_node id]
+			}
+		}
+
+		puts $chan [format "\t%5s\t  %s\t\t%d\t0x%x\t%s\t\t%s"	\
+				$reps($ent) $active $s $g $iif_node_id $dest]
+	}
 }
 
 # Find out what interface packets sent from $node will arrive at
@@ -262,8 +311,8 @@ mrtObject instproc all-mprotos {op args} {
 mrtObject instproc start {}	{ $self all-mprotos start	}
 mrtObject instproc stop {}	{ $self all-mprotoc stop	}
 mrtObject instproc notify changes { $self all-mprotos notify $changes }
-mrtObject instproc dump-mroutes args {
-	eval all-mprotos dump-routes $args
+mrtObject instproc dump-routes args {
+	$self all-mprotos dump-routes $args
 }
 
 # similar to membership indication by igmp.. 
