@@ -30,7 +30,9 @@ This chapter consists of two sections and several subsections. The first section
 
 
 
+
 used to construct the network stack for a mobilenode. The components that are covered briefly are Channel, Network-interface, Radio propagation model, MAC protocols, Interface Queue, Link layer and Address resolution protocol model (ARP). CMU trace suppor
+
 
 
 
@@ -54,6 +56,7 @@ used to construct the network stack for a mobilenode. The components that are co
 
 t and Generation of node movement and traffic scenario files are also covered in this section.
 The original CMU model allows simulation of pure wireless LANs or multihop ad-hoc networks. Further extensions were made to this model to allow combined simulation of wired and wireless networks. MobileIP was also extended to the wireless model. These are
+
 
 
 
@@ -122,28 +125,10 @@ over a topology of 50 nodes. These scripts can be run simply by typing
 $ns tcl/ex/wireless.tcl (or /wireless-test.tcl)
 \end{program}
 
-The two ad-hoc routing protocols that are currently supported are Destination Sequence Distance Vector (DSDV) and Dynamic Source Routing (DSR). The APIs for creating a mobilenode depends on which routing protocol it would be using. Hence the primitive to 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+The two ad-hoc routing protocols that are currently supported are
+Destination Sequence Distance Vector (DSDV) and Dynamic Source Routing
+(DSR). The APIs for creating a mobilenode depends on which routing
+protocol it would be using. Hence the primitive to    
 create a mobilenode is
 
 \begin{program}
@@ -151,83 +136,33 @@ create a mobilenode is
 \end{program}
 where \$opt(rp) defines "dsdv" or "dsr" and id is the index for the mobilenode.
 
-The above procedure creates a mobilenode (split)object, creates a routing agent as specified, creates the network stack consisting of a link layer, interface queue, mac layer, and a network interface with an antenna, interconnects these components and con
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-nects the stack to the channel. The mobilenode now looks like the schematic in Figure~\ref{fig:mobilenode-dsdv}. 
+The above procedure creates a mobilenode (split)object, creates a routing
+agent as specified, creates the network stack consisting of a link layer,
+interface queue, mac layer, and a network interface with an antenna,
+interconnects these components and con   
+nects the stack to the channel. The mobilenode now looks like the
+schematic in Figure~\ref{fig:mobilenode-dsdv}.  
 \begin{figure}
     \centerline{\includegraphics{dsdv}}
-    \caption{Schematic of a mobilenode under the CMU monarch's wireless extensions to \ns}
+    \caption{Schematic of a mobilenode under the CMU monarch's wireless
+extensions to \ns} 
     \label{fig:mobilenode-dsdv}
 \end{figure}
 
-The mobilenode structure used for DSR routing is a little different from the mobilenode described above. The class SRNode is derived from class MobileNode. SRNode doesnot use address demux or classifiers and all packets received by the node are handed dow
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-n to the DSR routing agent by default. The DSR routing agent either receives pkts for itself by handing it over to the port dmux or forwards pkts as per source routes in the pkt hdr or sends out route requests and route replies for fresh packets. Details 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-on DSR routing agent may be found in section~\ref{sec:dsr}. The schematic model for a SRNode is shown in Figure~\ref{fig:mobilenode-dsr}.
+The mobilenode structure used for DSR routing is slightly different from
+the mobilenode described above. The class SRNode is derived from class
+MobileNode. SRNode doesnot use address demux or classifiers and all
+packets received by the node are handed dow   
+n to the DSR routing agent by default. The DSR routing agent either
+receives pkts for itself by handing it over to the port dmux or forwards
+pkts as per source routes in the pkt hdr or sends out route requests and
+route replies for fresh packets. Details    
+on DSR routing agent may be found in section~\ref{sec:dsr}. The schematic
+model for a SRNode is shown in Figure~\ref{fig:mobilenode-dsr}. 
 \begin{figure}[tb]
     \centerline{\includegraphics{dsr}}
-    \caption{Schematic of a SRNode under the CMU monarch's wireless extensions to \ns}
+    \caption{Schematic of a SRNode under the CMU monarch's wireless
+extensions to \ns} 
     \label{fig:mobilenode-dsr}
 \end{figure}
 
@@ -273,9 +208,11 @@ In this method the node-movement-updates are triggered whenever the position of 
 
 
 
+
  described above that changes the direction and speed of the node.
 
 An example of a movement scenario file using the above APIs, can be found in \nsf{tcl/mobility/scene/scen-670x670-50-600-20-0}. Here 670x670 defines the length and width of the topology with 50 nodes moving at a maximum speed of 20m/s with average pause t
+
 
 
 
@@ -305,6 +242,7 @@ The second method employs random movement of the node. The primitive to be used 
 $mobilenode start
 \end{program}
 which starts the mobilenode with a random position and have routined updates to change the direction and speed of the node. The destination and speed values are generated in a random fashion. We have not used the second method and leave it to the user to 
+
 
 
 
@@ -513,7 +451,9 @@ Each component is briefly described here. Hopefully more detailed docuentation f
 
 
 
+
 . Normally for all outgoing (into the channel) packets, the packets are handed down to the \code{LL} by the Routing Agent. The \code{LL} hands down packets to the interface queue. For all incoming packets (out of the channel), the mac layer hands up packe
+
 
 
 
@@ -559,7 +499,9 @@ ts to the \code{LL} which is then handed off at the \code{node_entry_} point. Th
 
 
 
+
 d caches the packet temporarily. For each unknown destination hardware address, there is a buffer for a single packet. Incase additional packets to the same destination is sent to ARP, the earlier buffered packet is dropped. Once the hardware address of a
+
 
 
 
@@ -617,9 +559,11 @@ physical and virtual carrier sense. The \clsref{Mac802\_11}{../ns-2/mac-802\_11.
 
 
 
+
 given all packets received by the mac layer, before address filtering is done. See \nsf{mac.\{cc,h\}} for \clsref{Tap} implementation.
 
 \item[{\bf Network Interfaces}] The Network Interphase layer serves as a hardware interface which is used by mobilenode to access the channel. The wireless shared media interface is implemented as \clsref{Phy/WirelessPhy}{../ns-2/wireless-phy.h}. This int
+
 
 
 
@@ -663,7 +607,9 @@ erface subject to collisions and the radio propagation model receives packets tr
 
 
 
+
 power, wavelength etc. This meta-data in pkt header is used by the propagation model in receiving network interface to determine if the packet has minimum power to be received and/or captured and/or detected (carrier sense) by the receiving node. The mode
+
 
 
 
@@ -709,6 +655,7 @@ l approximates the DSSS radio interface (Lucent WaveLan direct-sequence spread-s
 
 
 
+
 nd.\{cc,h\}} for implementation.
 
 \item[{\bf Antenna}] An omni-directional antenna having unity gain is used by mobilenodes. See \nsf{antenna.\{cc,h\}} for implementation details.
@@ -717,180 +664,66 @@ nd.\{cc,h\}} for implementation.
 \subsection{Routing Agent in mobilenode}
 \label{sec:mobilenode-routing}
 
-Currently there are two different ad-hoc routing protocols implemented for mobile networking in \ns. We will first briefly discuss DSDV and then DSR. Again hopefully we will have some detailed documentation from CMU/Monarch group.
+Currently there are two different ad-hoc routing protocols implemented for
+mobile networking in \ns. We will first briefly discuss DSDV and then DSR.
+Again hopefully we will have some detailed documentation from CMU/Monarch
+group. 
 
 \subsubsection{DSDV}
 \label{sec:dsdv}
 
-In this routing protocol routing messages are exchanged between neighbouring mobilenodes (i.e mobilenodes that are within range of one another). Routing updates may be triggered or routine. Updates are triggered in case a routing information from one of t
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+In this routing protocol routing messages are exchanged between
+neighbouring mobilenodes (i.e mobilenodes that are within range of one
+another). Routing updates may be triggered or routine. Updates are
+triggered in case a routing information from one of t   
 he neighbours forces a change in the routing table.
-A packet for which the route to its destination is not known is cached while routing queries are sent out. The pkts are cached until route-replies are received from the destination. There is a maximum buffer size for caching the pkts waiting for routing i
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+A packet for which the route to its destination is not known is cached
+while routing queries are sent out. The pkts are cached until
+route-replies are received from the destination. There is a maximum buffer
+size for caching the pkts waiting for routing i   
 nformation beyond which pkts are dropped.
 
-All packets destined for the mobilenode are routed directly by the address dmux to its port dmux. The port dmux hands the packets to the respective destination agents. A port number of 255 is used to attach routing agent in mobilenodes. The mobilenodes al
+All packets destined for the mobilenode are routed directly by the address
+dmux to its port dmux. The port dmux hands the packets to the respective
+destination agents. A port number of 255 is used to attach routing agent
+in mobilenodes. The mobilenodes al
+so use a default-target in their classifier (or address demux). In the
+event a target is not found for the destination in the classifier (which
+happens when the destination of the packet is not the mobilenode itself),
+the pkts are handed to the default-ta   
+rget which is the routing agent. The routing agent assigns the next hop
+for the packet and sends it down to the link layer. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-so use a default-target in their classifier (or address demux). In the event a target is not found for the destination in the classifier (which happens when the destination of the packet is not the mobilenode itself), the pkts are handed to the default-ta
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-rget which is the routing agent. The routing agent assigns the next hop for the packet and sends it down to the link layer.
-
-The routing protocol is mainly implemented in C++. See \nsf{dsdv} directory and \nsf{tcl/mobility/dsdv.tc}l for all procedures related to DSDV protocol implementation.
+The routing protocol is mainly implemented in C++. See \nsf{dsdv}
+directory and \nsf{tcl/mobility/dsdv.tc}l for all procedures related to
+DSDV protocol implementation.  
 
 
 \subsubsection{DSR}
 \label{sec:dsr}
 
-This section briefly describes the functionality of the dynamic source routing protocol. As mentioned earlier the \code{SRNode} is different from the \code{MobileNode}.  The \code{SRNode}'s \code{entry\_} points to the DSR routing agent, thus forcing all 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-packets received by the node to be handed down to the routing agent. This model is required for future implementation of piggy-backed routing information on data packets which otherwise would not flow through the routing agent.
-
-The DSR agent checks every data packet for source-route information. It forwards the packet as per the routing information. Incase it doesnot find routing information in the packet, it provides the source route, if route is known, or caches the packet and
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- sends out route queries if route to destination is not known. Routing queries, always triggered by a data packet with no route to its destination, are initially broadcast to all neighbours. Route-replies are send back either by intermediate nodes or the 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-destination node, to the source, if it can find routing info for the destination in the route-query.  It hands over all packets destined to itself to the port dmux.
-In \code{SRNode} the port number 255 points to a null agent since the packet has already been processed by the routing agent.
+This section briefly describes the functionality of the dynamic source
+routing protocol. As mentioned earlier the \code{SRNode} is different from
+the \code{MobileNode}.  The \code{SRNode}'s \code{entry\_} points to the
+DSR routing agent, thus forcing all    
+packets received by the node to be handed down to the routing agent. This
+model is required for future implementation of piggy-backed routing
+information on data packets which otherwise would not flow through the
+routing agent.   
+
+The DSR agent checks every data packet for source-route information. It
+forwards the packet as per the routing information. Incase it doesnot find
+routing information in the packet, it provides the source route, if route
+is known, or caches the packet and   
+sends out route queries if route to destination is not known. Routing
+queries, always triggered by a data packet with no route to its
+destination, are initially broadcast to all neighbours. Route-replies are
+send back either by intermediate nodes or the 
+destination node, to the source, if it can find routing info for the
+destination in the route-query.  It hands over all packets destined to
+itself to the port dmux.  
+In \code{SRNode} the port number 255 points to a null agent since the
+packet has already been processed by the routing agent. 
 
 See \nsf{dsr} directory and \nsf{tcl/mobility/dsr.tcl} for implementation
 of DSR protocol. 
@@ -1148,7 +981,6 @@ four types:
 
 \item[General tag]
 The second field starting with "-t" may stand for time or global setting
-(****** explanation required)
 \begin{description}
 \item[-t] time
 \item[-t] * (global setting)
@@ -1345,7 +1177,9 @@ As mentioned earlier, the original CMU wireless model allows simulation of wirel
 
 
 
+
 call this wired-cum-wireless feature. Also SUN's MobileIP (implemented for wired nodes) was integrated into the wireless model allowing mobileIP to run over wireless mobilenodes. The following two subsections describe these two extensions to the wireless 
+
 
 
 
@@ -1395,9 +1229,11 @@ The mobilenodes described so far mainly supports simulation of multi-hop ad-hoc 
 
 
 
+
 less nodes? The extensions made to the CMU wireless model allows us to do that.
 
 The main problem facing the wired-cum-wireless scenario was the issue of routing. In ns, routing information is generated based on the connectivity of the topology, i.e how nodes are connected to one another through \code{Links}. Mobilenodes on the other 
+
 
 
 
@@ -1442,6 +1278,7 @@ So a node called \code{BaseStationNode} is created which plays the role of a gat
 
 
 
+
 ls on hierarchical routing and internals of \code{HierNode}.} (\code{HierNode}) and a \code{MobileNode}. The basestation node is responsible for delivering packets into and out of the wireless domain. In order to achieve this we need Hierarchical routing.
 
 
@@ -1464,7 +1301,9 @@ ls on hierarchical routing and internals of \code{HierNode}.} (\code{HierNode}) 
 
 
 
+
  Each wireless domain along with its base-station would have an unique domain address assigned to them. All packets destined to a wireless node would reach the base-station attached to the domain of that wireless node, who would eventually hand the packet
+
 
 
 
@@ -1516,7 +1355,9 @@ The mobilenodes in wired-cum-wireless scenario are required to support hierarchi
 
 
 
+
 ot require any address demuxes and thus is not required to support hier routing\footnote{In order to do away with all these different variations of the definition of a node, we are planning to revise the node architecture that would allow a more flexible 
+
 
 
 
@@ -1562,9 +1403,11 @@ The DSDV agent on having to forward a packet checks to see if the destination is
 
 
 
+
 packet is forwarded to the next\_hop towards the base-station. Which is then routed towards the wired network by base-station's classifiers.
 
 The DSR agent, on receiving a pkt destined outside its subnet, sends out a route-query for its base-station in case the route to base-station is not known. The data pkt is temporarily cached while it waits to hear route replies from base-station. On getti
+
 
 
 
@@ -1610,6 +1453,7 @@ The example script for a wired-cum-wireless simulation can be found at \nsf{tcl/
 
 
 
+
 , \nsf{dsdv/dsdv.\{cc,h\}} and \nsf{dsr/dsragent.\{cc,h\}}.
 
 
@@ -1617,6 +1461,7 @@ The example script for a wired-cum-wireless simulation can be found at \nsf{tcl/
 \label{sec:mobileip}
 
 The wired-cum-wireless extensions for the wireless model paved the path for supporting wireless MobileIP in \ns. Sun Microsystem's (Charlie Perkins etal) MobileIP model was based on ns's wired model (consisting of \code{Node}'s and \code{Link}'s) and thus
+
 
 
 
@@ -1674,7 +1519,9 @@ The MH nodes are defined as \code{MobileNode/MIPMH} which too have a regagent\_ 
 
 
 
+
  node. The \code{MobileNode/MIPMH} node is very similar to this except for the fact that it doesnot have any encapsulator or decapsulator. As for the SRNode version of a MH, it doesnot have the hierarchical classifiers and the RA agent forms the entry poi
+
 
 
 
@@ -1720,6 +1567,7 @@ The \code{MobileNode/MIPBS} node routinely broadcasts beacon or advertisement me
 
 
 
+
 MH and is used as the COA (care-of-address) of the MH. Thus as the MH moves from its native to foreign domains, its COA changes.
 Upon receiving  reg\_request (as reply to ads) from a mobilehost the base-station checks to see if it is the HA for the MH. If not, it sets up its decapsulator and forwards the reg\_request towards the HA of the MH. 
 Incase the base-station {\em is} the HA for the requesting MH but the COA doesnot match its own, it sets up an encapsulator and sends reg-request-reply back to the COA (address of the FA) who has forwarded the reg\_request to it. so now all packets destin
@@ -1744,7 +1592,9 @@ Incase the base-station {\em is} the HA for the requesting MH but the COA doesno
 
 
 
+
 ed to the MH reaching the HA would be tunneled through the encapsulator which encapsulates the IP pkthdr with a IPinIP hdr, now destined to the COA instead of MH. The FA's decapsulator recives this packet, removes the encapsulation and sends it to the MH.
+
 
 
 
