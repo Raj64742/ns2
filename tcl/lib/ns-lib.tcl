@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.51 1997/09/12 01:31:25 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.52 1997/09/16 22:36:25 haoboy Exp $
 #
 
 #
@@ -117,7 +117,7 @@ Simulator instproc use-scheduler type {
 		# Scheduler/RealTime and Agent/Tap
 		#
 		$self instvar packetManager_
-		TclObject set off_tap_ [$packetManager_ allochdr PacketHeader/Tap]
+		TclObject set off_tap_ [$packetManager_ allochdr Tap]
 	}
 }
 
