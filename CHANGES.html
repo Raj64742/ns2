@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.491 2001/12/20 01:48:09 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.492 2001/12/20 03:11:51 kclan Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -44,6 +44,16 @@ The validation test is in test-all-ecn-full in tcl/test.
 Mon Dec  3 2001
 <br> Corrected one-way TCP so that when "syn_" is used, the first
 40-byte packet consists of header bytes, with no data bytes used.
+
+
+<p>
+<li>
+<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>
+Thur Nov 30 15:29:19 PDT 2001
+<br> Adding an empirical FTP traffic model that simulates FTP 
+traffic based on a set of CDF (Cumulative Distribution Function) data 
+derived from live tcpdump trace
+
 
 <p>
 <p><li><b><a href="http://www.isi.edu/~buchheim/">[Tim Buchheim]</a></b>
@@ -98,10 +108,30 @@ ns documentation).  New example script:  tcl/ex/sat-wired.tcl
 
 <p>
 <li>
+<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>
+Thur Nov 1 09:18:27 PDT 2001
+<br> Adding an empirical Web traffic model that simulates Web 
+traffic based on a set of CDF (Cumulative Distribution Function) data 
+derived from live tcpdump trace
+
+
+<p>
+<li>
 <b><a href="mailto:tomh@tomh.org">[Tom Henderson]</a></b>
 Thur Oct 11 07:15:31 PDT 2001
 <br>Added support for tracing satellite aloha collisions, and enhanced the
 example test script.
+
+<p>
+<li>
+<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>
+Thur Oct 6 16:09:52 PDT 2001
+<br> Creation of a rapid model generation tool "ModelGen", which
+is a set of scripts that take tcpdump trace as input and
+output a set of CDF files that model Web traffic. It also outputs
+a time series of traffic size (in 1ms block) for further wavelet
+scaling analysis
+
 
   <p>
 <li><b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b>
