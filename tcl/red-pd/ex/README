@@ -1,8 +1,34 @@
 # To run simulations:
 ns red-pd.tcl one netTestIdent TestIdent
-# TFRC test, 4 flows (set in traffic.tcl), 
-ns red-pd.tcl one netTFRC TFRC
-ns red-pd.tcl one netTFRC TFRC disable
+# This simulation has 5 TCP flows.
+
+# Section 7.2, Fairness
+ns red-pd.tcl one netAllUDP AllUDP enable
+ns red-pd.tcl one netAllUDP AllUDP disable
+ns red-pd.tcl one netMix Mix enable
+ns red-pd.tcl one netMix Mix disable
+
+# Section 7.3, Adapting dropping probability
+# 9 TCP flows, one UDP flow.
+
+# Section 7.4, Web Traffic
+# ns red-pd.tcl one netWeb Web enable
+# ns red-pd.tcl one netWeb Web disable
+
+# Section 7.5, Multiple Congested Links
+# These have to be run with 1-5 congested links, with either a TCP or a
+#     UDP flow going over the congested link.
+# ns red-pd.tcl multi netMulti Multi enable
+# ns red-pd.tcl multi netMulti Multi disable
+
+# Section 7.6: Other Congestion Control Modules.
+# TFRC test, flowpairs: 2-16, RTTs of 30 or 120 ms.
+ns red-pd.tcl one netTFRC TFRC enable 2
+ns red-pd.tcl one netTFRC TFRC disable 2
+
+# Section 7.7: Choosing R.
+# Simulations with R from 10 to 170
+
 #
 #
 ## Tests:
