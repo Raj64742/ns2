@@ -43,6 +43,7 @@ Steps in doing an ns release:
 8.1. update CHANGES.html with a placeholder for comments for the new
     version
 8.2 commit your changes to the VERSION and CHANGES.html for the next release
+9. Create a seperate "NS-Problems" section for the new version.
 
 B. If making a ns-allinone release
 1. check if all pkgs (tk,tcl, otcl,tclcl,ns, nam etc) are same as the
