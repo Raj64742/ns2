@@ -93,6 +93,9 @@ print "TitleText: $title\n" .
 print "\n\"packets\n", @p;
 
 # insert dummy data sets so we get X's for marks in data-set 4
+if (!defined($a[0])) {
+    push(@a, "0 1\n");
+}
 printf "\n\"skip-1\n0 1\n";
 if ($plot_acks) {
     print "\n\"acks\n", @a;
