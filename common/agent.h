@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.33 2001/11/16 23:16:34 buchheim Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.34 2002/03/21 18:42:10 buchheim Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -43,6 +43,9 @@
 #include "ns-process.h"
 #include "app.h"
 //#include "basetrace.h"
+#define TIME_FORMAT "%.15g"
+// TIME_FORMAT is in basetrace.h, but including that header leads to problems
+
 
 #define TIMER_IDLE 0
 #define TIMER_PENDING 1

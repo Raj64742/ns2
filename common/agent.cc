@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.71 2001/11/16 23:16:34 buchheim Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.72 2002/03/21 18:42:10 buchheim Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -212,7 +212,7 @@ void Agent::flushAVar(TracedVar *v)
 	if (strcmp(value, "") == 0) 
 		// no value, because no writes has occurred to this var
 		return;
-	sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -o %s -T v -x",
+	sprintf(wrk, "f -t "TIME_FORMAT" -s %d -d %d -n %s -a %s -o %s -T v -x",
 		Scheduler::instance().clock(), addr(), dst_.addr_,
 		v->name(), traceName_, value); 
 	n = strlen(wrk);
@@ -233,7 +233,7 @@ void Agent::deleteAgentTrace()
 
 	// we need to flush all var values to trace file, 
 	// so nam can do backtracing
-	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s -x",
+	sprintf(wrk, "a -t "TIME_FORMAT" -s %d -d %d -n %s -x",
 		Scheduler::instance().clock(), here_.addr_,
 		dst_.addr_, traceName_); 
 	if (traceName_ != NULL)
@@ -290,7 +290,7 @@ void Agent::trace(TracedVar* v)
 	OldValue *ov = lookupOldValue(v);
 	if (ov != NULL) {
 		sprintf(wrk, 
-			"f -t %.17f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
+			"f -t "TIME_FORMAT" -s %d -d %d -n %s -a %s -v %s -o %s -T v",
 			Scheduler::instance().clock(), here_.addr_,
 			dst_.addr_, v->name(), traceName_, value, ov->val_);
 		strncpy(ov->val_, 
@@ -298,7 +298,7 @@ void Agent::trace(TracedVar* v)
 			min(strlen(value)+1, TRACEVAR_MAXVALUELENGTH));
 	} else {
 		// if there is value, insert it into old value list
-		sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -v %s -T v",
+		sprintf(wrk, "f -t "TIME_FORMAT" -s %d -d %d -n %s -a %s -v %s -T v",
 			Scheduler::instance().clock(), here_.addr_,
 			dst_.addr_, v->name(), traceName_, value);
 		insertOldValue(v, value);
@@ -316,7 +316,7 @@ void Agent::monitorAgentTrace()
 	double curTime = (&Scheduler::instance() == NULL ? 0 : 
 			  Scheduler::instance().clock());
 	
-	sprintf(wrk, "v -t %.17f -e monitor_agent %d %s",
+	sprintf(wrk, "v -t "TIME_FORMAT" -e monitor_agent %d %s",
 		curTime, here_.addr_, traceName_);
 	n = strlen(wrk);
 	wrk[n] = '\n';
@@ -332,7 +332,7 @@ void Agent::addAgentTrace(const char *name)
 	double curTime = (&Scheduler::instance() == NULL ? 0 : 
 			  Scheduler::instance().clock());
 	
-	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s",
+	sprintf(wrk, "a -t "TIME_FORMAT" -s %d -d %d -n %s",
 		curTime, here_.addr_, dst_.addr_, name);
 	n = strlen(wrk);
 	wrk[n] = '\n';
