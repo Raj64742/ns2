@@ -22,7 +22,7 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
 	$self instvar Unresp_flowbw_factor_
 	$self instvar PUFrac_
 
-	set verbose_ 6	; #-1 means no messages
+	set verbose_ 0	; #-1 means no messages
 	set cbqlink_ $cbqlink
 	set Rtt_ $rtt
 	set Mtu_ $mtu
@@ -53,8 +53,8 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
 	#
 	# Set High_const_ to INFINITY to turn off HIGH-BANDWIDTH test.
 	#
-#        set High_const_ 12000   
-       set High_const_ 1200000
+        set High_const_ 12000   
+#       set High_const_ 1200000
 
 	# don't schedule reward initially;  nobody in pbox yet
 	if { $enable == "true" || $enable == 1 } {
@@ -64,13 +64,13 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
 	}
 }      
 
-RTMechanisms instproc test_friendly { flow_bw ref_bw } {
+RTMechanisms instproc test_friendly { flow flow_bw ref_bw } {
         $self instvar Safety_factor_
         if { $ref_bw != "none" && $flow_bw  > ($Safety_factor_ * $ref_bw) } {
-		$self vprint 0 "FRIENDLY-TEST: FAILED (fbw: $flow_bw, refbw: $ref_bw)"
+		$self vprint 0 "FRIENDLY-TEST: FAILED (flow: $flow, ([$flow set flowid_]) fbw: $flow_bw, refbw: $ref_bw)"
                 return "fail"
         }       
-	$self vprint 0 "FRIENDLY-TEST: OK (fbw: $flow_bw, refbw: $ref_bw)"
+	$self vprint 1 "FRIENDLY-TEST: OK (flow: $flow ([$flow set flowid_]), fbw: $flow_bw, refbw: $ref_bw)"
         return "ok"
 }    
 
@@ -91,12 +91,11 @@ RTMechanisms instproc test_unresponsive_initial { flow flow_bw droprate lastidx 
 			if { $flowhist_($idx,name) != $flow } {
 				error "unresp_init: flow wrong!"
 			}
-			$self vprint 0 "UNRESPONSIVE-TEST: FAILED (flow: $flow fbw: $flow_bw, droprate: $droprate"
+			$self vprint 0 "UNRESPONSIVE-TEST: FAILED (flow: $flow ([$flow set flowid_]) fbw: $flow_bw, droprate: $droprate"
 			return "fail"
 		}
 	}
-	$self vprint 1 "idx $idx lastidx $lastidx" 
-	$self vprint 0 "UNRESPONSIVE-TEST: OK (flow: $flow fbw: $flow_bw, droprate: $droprate"
+	$self vprint 1 "UNRESPONSIVE-TEST: OK (flow: $flow ([$flow set flowid_]) fbw: $flow_bw, droprate: $droprate"
 	return "ok"
 }
 
@@ -108,15 +107,15 @@ RTMechanisms instproc test_unresponsive_again { flow flow_bw droprate bwfrac drf
 	}
 	if { $flow_bw >= $bwfrac * $state_($flow,bandwidth) &&
 		($droprate >= $drfrac * $state_($flow,droprate)) } {
-		$self vprint 0 "UNRESP-AGAIN-TEST: FAILED (flow: $flow fbw: $flow_bw, droprate: $droprate"
+		$self vprint 0 "UNRESP-AGAIN-TEST: FAILED (flow: $flow ([$flow set flowid_]) fbw: $flow_bw, droprate: $droprate"
 		return "fail"
 	}
-	$self vprint 0 "UNRESP-AGAIN-TEST: OK (flow: $flow fbw: $flow_bw, droprate: $droprate"
+	$self vprint 1 "UNRESP-AGAIN-TEST: OK (flow: $flow ([$flow set flowid_]) fbw: $flow_bw, droprate: $droprate"
 	return "ok"
 }
 
 
-RTMechanisms instproc test_high { flow_bw droprate etime } {
+RTMechanisms instproc test_high { flow flow_bw droprate etime } {
 	$self instvar okboxfm_
 	$self instvar High_const_
 
@@ -126,9 +125,9 @@ RTMechanisms instproc test_high { flow_bw droprate etime } {
 	set fBps [expr $goodBps / $numflows]
 	if { $flow_bw > log(3*$numflows) * $fBps  &&
 		$flow_bw * sqrt($droprate) > $High_const_ } {
-		$self vprint 0 "HIGH-TEST: FAILED (fbw: $flow_bw, droprate: $droprate, etime: $etime)"
+		$self vprint 0 "HIGH-TEST: FAILED (flow: $flow ([$flow set flowid_]), fbw: $flow_bw, droprate: $droprate, etime: $etime)"
 		return "fail"
 	}
-	$self vprint 0 "HIGH-TEST: OK (fbw: $flow_bw, droprate: $droprate, etime: $etime)"
+	$self vprint 1 "HIGH-TEST: OK (fbw: $flow_bw, droprate: $droprate, etime: $etime)"
 	return "ok"
 }
