@@ -1607,6 +1607,9 @@ Configuration Parameters \fP
 .RS
 .IP \fIwindow_\fP
 The upper bound on the advertised window for the TCP connection.
+.IP \fImaxcwnd_\fP
+The upper bound on the congestion window for the TCP connection.
+Set to zero to ignore.  (This is the default.)
 .IP \fIwindowInit_\fP
 The initial size of the congestion window on slow-start.
 .IP \fIwindowOption_\fP
@@ -1639,6 +1642,8 @@ for packets dropped in a single window of data.
 .IP \fImaxburst_\fP
 Set to zero to ignore.  Otherwise, the maximum number of packets that
 the source can send in response to a single incoming ACK.
+.IP \fIslow_start_restart_\fP
+Set to 1 to slow-start after the connection goes idle.  On by default.
 .RE 
 .LP 
 .HD 
@@ -1652,8 +1657,6 @@ The default for MWS is 1024 packets.
 For Tahoe TCP, the "window" parameter, representing the receiver's
 advertised window, should be less than MWS-1.  For Reno TCP, the
 "window" parameter should be less than (MWS-1)/2.
-(MWS is currently a defined constant, but we plan to change MWS
-to a configuration parameter in a future release.)
 .RE
 .LP  
 .HD 
