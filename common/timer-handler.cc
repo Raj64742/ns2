@@ -1,4 +1,3 @@
-
 /*
  * timer-handler.cc
  * Copyright (C) 1997 by USC/ISI
@@ -19,10 +18,13 @@
  * 
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.2 1997/07/23 05:16:51 kfall Exp $ (USC/ISI)";
+#endif
 
 #include <stdlib.h>  // abort()
 #include "timer-handler.h"
-
 
 void
 TimerHandler::cancel()
