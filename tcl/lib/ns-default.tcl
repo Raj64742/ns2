@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.311 2003/03/13 02:19:29 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.312 2003/03/28 02:45:13 sfloyd Exp $
 
 
 #
@@ -333,7 +333,9 @@ QueueMonitor/ED/Flow/RedPD set auto_ 0
 DelayLink set bandwidth_ 1.5Mb
 DelayLink set delay_ 100ms
 DelayLink set debug_ false
-
+DelayLink set avoidReordering_ false ;	# Added 3/27/2003.
+					# Set to true to avoid reordering when
+					#   changing link bandwidth or delay.
 DynamicLink set status_ 1
 DynamicLink set debug_ false
 
