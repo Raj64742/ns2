@@ -598,7 +598,7 @@ tcl/mcast/srm.tcl
 tcl/mcast/timer.tcl
 tcl/mobility/dsdv.tcl
 tcl/mobility/dsr.tcl
-tcl/mobility/scene/cbr-50-20-4-512\
+tcl/mobility/scene/cbr-50-20-4-512
 tcl/mobility/scene/cbr-3-test
 tcl/mobility/scene/loopize
 tcl/mobility/scene/scen-670x670-50-600-20-2
