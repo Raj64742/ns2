@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.12 1997/09/06 04:39:09 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.13 1997/11/11 00:21:13 haoboy Exp $";
 #endif
 
 #include "classifier.h"
@@ -52,6 +52,7 @@ public:
 	void recv(Packet*, Handler* h = 0);
 	virtual int classify(Packet* const) {/*NOTREACHED*/ return -1;};
 protected:
+	virtual int command(int argc, const char*const* argv);
 	int ignore_;
 };
 
@@ -86,4 +87,28 @@ void Replicator::recv(Packet* p, Handler*)
 	}
 	/* we know that maxslot is non-null */
 	slot_[maxslot_]->recv(p);
+}
+
+int Replicator::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		/*
+		 * $replicator slot
+		 */
+		if (strcmp(argv[1], "slots") == 0) {
+			if (maxslot_ < 0) {
+				tcl.result("");
+				return (TCL_OK);
+			}
+			for (int i = 0; i <= maxslot_; i++) {
+				if (slot_[i] == 0) 
+					continue;
+				tcl.resultf("%s %s", tcl.result(),
+					    slot_[i]->name());
+			}
+			return (TCL_OK);
+		}
+	}
+	return Classifier::command(argc, argv);
 }

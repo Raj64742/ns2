@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.18 1997/11/06 04:22:22 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.19 1997/11/11 00:21:12 haoboy Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -54,7 +54,7 @@ static char* eu_names[] = { EU_NAMES };
 
 
 ErrorModel::ErrorModel() : Connector(), eu_(EU_PKT), rate_(0), ranvar_(0), 
-	onlink_(0), firstTime_(1)
+	onlink_(0), firstTime_(1), enable_(1)
 {
 	bind("rate_", &rate_);
 	bind("off_mac_", &off_mac_);
@@ -85,6 +85,18 @@ int ErrorModel::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "unit") == 0) {
 			tcl.resultf("%s", eu_names[eu_]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "enable") == 0) {
+			enable_ = 1;
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "disable") == 0) {
+			enable_ = 0;
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "enabled?") == 0) {
+			tcl.resultf("%d", enable_);
 			return (TCL_OK);
 		}
 	}
@@ -120,6 +132,8 @@ void ErrorModel::recv(Packet* p, Handler* h)
 int ErrorModel::corrupt(Packet* p)
 {
 	/* If no random var is specified, assume uniform random variable */
+	if (!enable_) return 0;
+
 	switch (eu_) {
 	case EU_PKT: 
 		return CorruptPkt(p);

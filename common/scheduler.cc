@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.21 1997/10/21 02:20:32 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.22 1997/11/11 00:21:13 haoboy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.21 1997/10/21 02:20:32 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.22 1997/11/11 00:21:13 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -105,6 +105,7 @@ int Scheduler::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "resume") == 0) {
 			halted_ = 0;
 			run();
+			return (TCL_OK);
 		} else if (strcmp(argv[1], "halt") == 0) {
 			halted_ = 1;
 			return (TCL_OK);
@@ -116,6 +117,9 @@ int Scheduler::command(int argc, const char*const* argv)
                                 globalMemTrace->diff("Sim.");
 #endif
                         return (TCL_OK);
+		} else if (strcmp(argv[1], "is-running") == 0) {
+			sprintf(tcl.buffer(), "%d", !halted_);
+			return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "at") == 0 ||
@@ -128,7 +132,19 @@ int Scheduler::command(int argc, const char*const* argv)
 				delete[] ae->proc_;
 				delete ae;
 			}
-		}
+		} else if (strcmp(argv[1], "at-now") == 0) {
+                        const char* proc = argv[2];
+
+			// "at [$ns now]" may not work because of tcl's 
+			// string number resolution
+                        AtEvent* e = new AtEvent;
+                        int n = strlen(proc);
+                        e->proc_ = new char[n + 1];
+                        strcpy(e->proc_, proc);
+                        schedule(&at_handler, e, 0);
+                        sprintf(tcl.buffer(), "%u", e->uid_);
+                        tcl.result(tcl.buffer());
+                }
 		return (TCL_OK);
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "at") == 0) {

@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.16 1997/11/06 04:22:23 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.17 1997/11/11 00:21:12 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -76,6 +76,7 @@ class ErrorModel : public Connector {
 	Event intr_;		/* set callback to queue */
 	int firstTime_;		/* to not corrupt first packet in byte model */
 	int off_mac_;
+	int enable_;		/* true if this error module is turned on */
 };
 
 

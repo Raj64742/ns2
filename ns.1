@@ -2434,6 +2434,13 @@ Create a color index, which links the number \fIid\fP to the color name
 \fIname\fP. All colors created \fIbefore\fP the simulator starts to run will 
 be written to nam trace file, if there is any.
 
+.IP "\fB$ns trace-annotate \fIstring\fP"
+Writes an annotation to ns and nam trace file, if there are any.
+
+.IP "\fBtrace_annotate \fIstring\fP"
+Another version of \fB$ns trace-annotate\fP, which is a global function and 
+doesn't require the caller to know ns.
+
 .IP "\fB$ns duplex-link-op $node1 $node2 $op $args\fP"
 Perform a given operation \fI$op\fP on the given duplex link 
 (\fI$node1\fP, \fI$node2\fP).
