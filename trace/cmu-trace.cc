@@ -298,11 +298,11 @@ CMUTrace::command(int argc, const char*const* argv)
 void
 CMUTrace::recv(Packet *p, Handler *h)
 {
-	struct hdr_ip *ih = HDR_IP(p);
+	//struct hdr_ip *ih = HDR_IP(p);
 	
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
-	int src = Address::instance().get_nodeaddr(ih->src());
+	//int src = Address::instance().get_nodeaddr(ih->src());
         
         assert(initialized());
 

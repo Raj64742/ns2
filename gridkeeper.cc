@@ -69,8 +69,7 @@ public:
 } class_grid_keeper;
 
 
-GridKeeper::GridKeeper() : dim_x_(0), dim_y_(0),
-  size_(0), grid_(NULL)
+GridKeeper::GridKeeper() : size_(0),grid_(NULL), dim_x_(0), dim_y_(0)
 {
   gh_ = new GridHandler();
 
