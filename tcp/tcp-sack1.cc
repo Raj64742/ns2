@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.14 1997/07/25 05:26:04 padmanab Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.15 1997/07/25 18:15:11 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -214,7 +214,7 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 #endif
 			if (xmit_seqno == -1) { 
 				if ((!fastrecov_ && t_seqno_<=highest_ack_+win)||
-					(fastrecov_ && t_seqno_<=last_ack_+int(2*wnd_))) { 
+					(fastrecov_ && t_seqno_<=highest_ack_+int(wnd_))) {
 					found = 1;
 					xmit_seqno = t_seqno_++;
 #ifdef DEBUGSACK1A
@@ -222,7 +222,7 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 						xmit_seqno, fastrecov_, win);
 #endif
 		    	}
-			} else if (recover_>0 && xmit_seqno<=last_ack_+int(2*wnd_)) {
+			} else if (recover_>0 && xmit_seqno<=highest_ack_+int(wnd_)) {
 				found = 1;
 				scb_.MarkRetran (xmit_seqno);
 				win = window();
