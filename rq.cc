@@ -108,15 +108,38 @@ ReassemblyQueue::push(seginfo *p)
 void
 ReassemblyQueue::clear()
 {
-	top_ = bottom_ = NULL;	// clear stack
+	// clear stack and end of queue
+	tail_ = top_ = bottom_ = NULL;
 
 	seginfo *p = head_;
 	while (head_) {
-		p= head_;
+		p = head_;
 		head_= head_->next_;
 		delete(p);
 	}
-	head_ = tail_ = NULL;
+	tail_ = NULL;
+	return;
+}
+
+/*
+ * clear out reassembly queue (and stack) up
+ * to the given sequence number
+ */
+
+void
+ReassemblyQueue::clearto(TcpSeq seq)
+{
+	seginfo *p = head_, *q;
+	while (p) {
+		if (p->endseq_ <= seq) {
+			q = p->next_;
+			sremove(p);
+			fremove(p);
+			delete p;
+			p = q;
+		} else
+			break;
+	}
 	return;
 }
 
@@ -397,7 +420,7 @@ dumplist();
 	return (flags);
 }
 
-#ifdef notdef
+#ifdef RQDEBUG
 main()
 {
 	int rcvnxt;
@@ -426,9 +449,9 @@ main()
 		++blocks;
 		++blocks;
 	}
-	printf("\n");
+	printf("\n-->clrto20\n");
 
-	rq.clear();
+	rq.clearto(20);
 	rq.dumplist();
 
 	exit(0);
