@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.30 1997/10/23 04:31:13 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.31 1997/10/26 05:55:43 hari Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -185,7 +185,7 @@ protected:
 	virtual void plot();
 	print_if_needed(double memb_time);
 	void traceAll();
-	void traceVar(TracedVar* v);
+	virtual void traceVar(TracedVar* v);
 
 	/*
 	 * State encompassing the round-trip-time estimate.
@@ -284,11 +284,10 @@ protected:
 	TracedInt maxseq_;	/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
-	double firstsent_;  /* When first packet was sent  --Allman */
+	double firstsent_;	/* When first packet was sent  --Allman */
 	int off_tcp_;
-	int slow_start_restart_;   /* boolean: re-init cwnd after connection 
-				      goes idle.  On by default.
-				      */
+	int slow_start_restart_; /* boolean: re-init cwnd after connection 
+				    goes idle.  On by default. */
 	int restart_bugfix_;    /* ssthresh is cut down because of
 				   timeouts during a connection's idle period.
 				   Setting this boolean fixes this problem.
@@ -301,6 +300,7 @@ protected:
 				   when there was data outstanding */
         TracedInt nrexmitpack_; /* number of retransmited packets */
         TracedInt nrexmitbytes_; /* number of retransmited bytes */
+	int trace_all_oneline_;	/* TCP tracing vars all in one line? */
 };
 
 /* TCP Reno */
