@@ -64,6 +64,8 @@ main(int argc, char **argv)
 
 #if defined(HAVE_FESETPRECISION) || defined(__GNUC__)
 #if !defined(HAVE_FESETPRECISION) && defined(__i386__)
+// use our own!
+#define HAVE_FESETPRECISION
 /*
  * From:
  |  Floating-point environment <fenvwm.h>                                    |
@@ -127,7 +129,7 @@ setup_floating_point_environment()
 {
 	// In general, try to use the C99 standards to set things up.
 	// If we can't do that, do nothing and hope the default is right.
-#if defined(HAVE_FESETPRECISION) || defined(__GNUC__)
+#ifdef HAVE_FESETPRECISION
 	fesetprecision(FE_DBLPREC);
 #endif
 #ifdef HAVE_FEENABLEEXCEPT
