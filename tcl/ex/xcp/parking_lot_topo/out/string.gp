@@ -31,10 +31,10 @@ set ylabel "Utilization"
 set xlabel "(a) Link ID"
 set yrange [ * : *]
 
-plot 'u.1' title 'XCP' ls 1,  'u.1' notitle with lines ls 1,          \
-     'u.2' title 'RED' ls 2,  'u.2' notitle with lines ls 2,          \
-     'u.3' title 'DropTail' ls 3, 'u.3' notitle with lines ls 3,          \
-     'u.4' title 'REM' ls 4,  'u.4' notitle with lines ls 4
+plot 'u.1' title 'XCP' ls 1,  'u.1' notitle with lines ls 1          
+#     'u.2' title 'RED' ls 2,  'u.2' notitle with lines ls 2,          \
+#     'u.3' title 'DropTail' ls 3, 'u.3' notitle with lines ls 3,          \
+#     'u.4' title 'REM' ls 4,  'u.4' notitle with lines ls 4
 
 pause 0
 
@@ -47,10 +47,10 @@ set ylabel "Average Queue (packets)"
 set xlabel "(b) Link ID"
 set yrange [ * : * ]
 
-plot 'q.1' title 'XCP' ls 1,  'q.1' notitle with lines ls 1,          \
-     'q.2' title 'RED' ls 2,  'q.2' notitle with lines ls 2,          \
-     'q.3' title 'DropTail' ls 3, 'q.3' notitle with lines ls 3,          \
-     'q.4' title 'REM' ls 4,  'q.4' notitle with lines ls 4
+plot 'q.1' title 'XCP' ls 1,  'q.1' notitle with lines ls 1
+#     'q.2' title 'RED' ls 2,  'q.2' notitle with lines ls 2,          \
+#     'q.3' title 'DropTail' ls 3, 'q.3' notitle with lines ls 3,          \
+#     'q.4' title 'REM' ls 4,  'q.4' notitle with lines ls 4
 
 pause 0
 
@@ -61,10 +61,10 @@ set origin 0,0
 set ylabel "Packet Drops"
 set xlabel "(c) Link ID"
 
-plot 'd.1' title 'XCP' ls 1,  'd.1' notitle with lines ls 1,          \
-     'd.2' title 'RED' ls 2,  'd.2' notitle with lines ls 2,          \
-     'd.3' title 'DropTail' ls 3, 'd.3' notitle with lines ls 3,          \
-     'd.4' title 'REM' ls 4,  'd.4' notitle with lines ls 4
+plot 'd.1' title 'XCP' ls 1,  'd.1' notitle with lines ls 1
+#     'd.2' title 'RED' ls 2,  'd.2' notitle with lines ls 2,          \
+#     'd.3' title 'DropTail' ls 3, 'd.3' notitle with lines ls 3,          \
+#     'd.4' title 'REM' ls 4,  'd.4' notitle with lines ls 4
 
 pause 0
 
