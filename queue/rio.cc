@@ -57,10 +57,17 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.8 2000/09/01 03:04:06 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.9 2001/12/29 20:12:10 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
+#include "tclcl.h"
+#include "packet.h"
+#include "random.h"
+#include "flags.h"
+#include "delay.h"
+#include "template.h"
+#include "red.h"
 
 static class RIOClass : public TclClass {
 public:

@@ -35,11 +35,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red-pd.cc,v 1.5 2001/04/12 20:41:01 ratul Exp $ (ACIRI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red-pd.cc,v 1.6 2001/12/29 20:12:31 sfloyd Exp $ (ACIRI)";
 #endif
 
 #include "red-pd.h"
-
+#include "red.h"
+#include "flowmon.h"
 
 static class ReDPDClass : public TclClass {
 public:
