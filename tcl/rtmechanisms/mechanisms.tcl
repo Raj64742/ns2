@@ -492,14 +492,21 @@ RTMechanisms instproc do_reward {} {
 	set flowage [expr $now - $state_($goodflow,ctime)]
 	$self vprint "found flow $goodflow as potential good-guy (age: $flowage)"
 	if { $flowage < $Mintime_ } {
-		$self vprint "DO_REWARD: flow $goodflow too young ($flowage)"
+		$self vprint "DO_REWARD: flow $goodflow too young ($flowage) to be rewarded"
 		$self sched-reward
 		return
 	}
 
-#set flow_bw_est [expr $goodmetric * $barrivals / $elapsed]
+
+	set pgoodarrivals [$okboxfm_ set parrivals_]
+	set ngdrops [$okboxfm_ set pdrops_]
+	set droprateG [$self frac $ngdrops $pgoodarrivals]
+
+
+	# assume we have per-flow arrival stats in bad box
+	#set flow_bw_est [expr $goodmetric * $barrivals / $elapsed]
 	set flow_bw_est [expr [$goodflow set barrivals_] / $elapsed]
-	#
+	
 	# if it was unfriendly and is now friendly, reward
 	# if it was unresp and is now resp + friendly, reward
 	# if it was high and is now !high + friendly, reward
@@ -529,7 +536,7 @@ RTMechanisms instproc do_reward {} {
 		}
 
 		"HIGH" {
-			set h [$self test_high $goodflow]
+			set h [$self test_high $flow_bw_est $droprateG $elapsed]
 			if { $h == "ok" } {
 			    set fr [$self test_friendly $flow_bw_est \
 			      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
@@ -541,9 +548,6 @@ RTMechanisms instproc do_reward {} {
 		}
 	}
 	if { $npenalty_ > 0 } {
-		set pgoodarrivals [$okboxfm_ set parrivals_]
-		set ngdrops [$okboxfm_ set pdrops_]
-		set droprateG [$self frac $ngdrops $pgoodarrivals]
 		$self checkbw_droprate $droprateB $droprateG
 	}
 	$self sched-reward
