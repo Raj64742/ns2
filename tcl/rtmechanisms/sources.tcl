@@ -18,7 +18,7 @@ TestSuite instproc create-connection-list {s_type source d_type dest pktClass} {
 #
 # create and schedule a cbr source/dst 
 #
-TestSuite instproc new_cbr { startTime source dest pktSize interval fid maxPkts} {
+TestSuite instproc new_Cbr { startTime source dest pktSize interval fid maxPkts} {
 	$self instvar ns_
 	set cbrboth \
 	    [$self create-connection-list CBR $source LossMonitor $dest $fid ]
@@ -33,7 +33,7 @@ TestSuite instproc new_cbr { startTime source dest pktSize interval fid maxPkts}
 #
 # create and schedule a tcp source/dst
 #
-TestSuite instproc new_tcp { startTime source dest window fid dump size type maxPkts } {
+TestSuite instproc new_Tcp { startTime source dest window fid dump size type maxPkts } {
 	$self instvar ns_
 
         if { $type == "reno" } {
