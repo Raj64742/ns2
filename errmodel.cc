@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.49 1998/06/11 01:04:51 heideman Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.50 1998/06/15 17:43:21 kfall Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.49 1998/06/11 01:04:51 heideman Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.50 1998/06/15 17:43:21 kfall Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -137,8 +137,7 @@ void ErrorModel::recv(Packet* p, Handler* h)
 		if (markecn_) {
 			hdr_flags* hf = (hdr_flags*) p->access(off_flags_);
 			hf->ce() = 1;
-		}
-		if (drop_) {
+		} else if (drop_) {
 			drop_->recv(p);
 			return;
 		}
