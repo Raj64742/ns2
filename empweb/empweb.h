@@ -29,7 +29,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.12 2001/12/19 18:57:51 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.13 2002/02/11 19:33:14 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -59,7 +59,7 @@ public:
 //		maxNumOfPersConn_(connNum), clientIdx_(cl),
 		clientIdx_(cl), 
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
-		id_(id) {}
+		id_(id), interPageOption_(1) {}
 	virtual ~EmpWebTrafSession();
 
 	// Queried by individual pages/objects
@@ -81,6 +81,8 @@ inline RandomVariable*& pageSize() { return rvPageSize_; }
 	inline int id() const { return id_; }
 	inline EmpWebTrafPool* mgr() { return mgr_; }
 
+        inline void set_interPageOption(int option) { interPageOption_ = option; }
+	 
 //        PersConn* lookupPersConn(int client, int server);
 
 	static int LASTPAGE_;
@@ -106,6 +108,8 @@ private:
 	Node* src_;		// One Web client (source of request) per session
 	int nPage_, curPage_, donePage_;
 	int id_;
+
+        int interPageOption_;
 
         int clientIdx_;
 

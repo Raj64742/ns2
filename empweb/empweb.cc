@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.11 2001/12/19 18:57:51 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.12 2002/02/11 19:33:14 kclan Exp $
 
 #include <tclcl.h>
 
@@ -44,7 +44,7 @@
 class EmpWebPage : public TimerHandler {
 public:
 	EmpWebPage(int id, EmpWebTrafSession* sess, int nObj, Node* dst, int svrId) :
-		id_(id), sess_(sess), nObj_(nObj), curObj_(0), dst_(dst), svrId_(svrId) {}
+		id_(id), sess_(sess), nObj_(nObj), curObj_(0), doneObj_(0), dst_(dst), svrId_(svrId) {}
 	virtual ~EmpWebPage() {}
 
 	inline void start() {
@@ -55,6 +55,16 @@ public:
 	inline int id() const { return id_; }
 	inline int svrId() const { return svrId_; }
 	Node* dst() { return dst_; }
+
+	void doneObject() {
+	 	if (++doneObj_ >= nObj_) {
+	   		printf("doneObject: %g %d %d \n", Scheduler::instance().clock(), doneObj_, nObj_);
+		        sess_->donePage((void*)this);
+	 	}
+	}
+        inline int curObj() const { return curObj_; }
+	inline int doneObj() const { return doneObj_; }
+		
 
 private:
 	virtual void expire(Event* = 0) {
@@ -69,23 +79,19 @@ private:
 			       sess_->id(), id_, curObj_);
 	}
 	virtual void handle(Event *e) {
-		// XXX Note when curObj_ == nObj_, we still schedule the timer
-		// once, but we do not actually send out requests. This extra
-		// schedule is only meant to be a hint to wait for the last
-		// request to finish, then we will ask our parent to delete
-		// this page.
-		if (curObj_ <= nObj_) {
-			// If this is not the last object, schedule the next 
-			// one. Otherwise stop and tell session to delete me.
+		// If this is not the last object, schedule the next one
+		  
+		if (curObj_ <  nObj_) {
 			TimerHandler::handle(e);
 			curObj_++;
-			sched(sess_->interObj()->value());
-		} else
-			sess_->donePage((void*)this);
+			double delay=sess_->interObj()->value();
+			if (curObj_ <  nObj_) sched(sess_->interObj()->value());
+		} 
 	}
 	int id_;
 	EmpWebTrafSession* sess_;
 	int nObj_, curObj_;
+	int doneObj_;
 	Node* dst_;
 	int svrId_ ;
 	static int LASTOBJ_;
@@ -99,7 +105,6 @@ int EmpWebTrafSession::LASTPAGE_ = 1;
 // XXX Must delete this after all pages are done!!
 EmpWebTrafSession::~EmpWebTrafSession() 
 {
-
 	if (donePage_ != curPage_) {
 		fprintf(stderr, "done pages %d != all pages %d\n",
 			donePage_, curPage_);
@@ -137,11 +142,18 @@ EmpWebTrafSession::~EmpWebTrafSession()
 
 void EmpWebTrafSession::donePage(void* ClntData) 
 {
+	EmpWebPage* pg = (EmpWebPage*)ClntData;
 	if (mgr_->isdebug()) 
-		printf("Session %d done page %d\n", id_, 
-		       ((EmpWebPage*)ClntData)->id());
-
-	delete (EmpWebPage*)ClntData;
+		printf("Session %d done page %d\n", id_, pg->id());
+		
+	if (pg->doneObj() != pg->curObj()) {
+	        fprintf(stderr, "done objects %d != all objects %d\n",
+	                pg->doneObj(), pg->curObj());
+	                abort();
+	}
+	
+	delete pg;
+	
 	// If all pages are done, tell my parent to delete myself
 	if (++donePage_ >= nPage_) {
 
@@ -161,7 +173,10 @@ void EmpWebTrafSession::donePage(void* ClntData)
 */
 
 	    mgr_->doneSession(id_);
-        }
+        } else if (interPageOption_) {
+		sched(rvInterPage_->value());
+		// printf("donePage: %g %d %d\n", Scheduler::instance().clock(), donePage_, curPage_);
+	}
 }
 
 // Launch the current page
@@ -200,12 +215,17 @@ void EmpWebTrafSession::handle(Event *e)
 {
 	// If I haven't scheduled all my pages, do the next one
 	TimerHandler::handle(e);
+	++curPage_;
 	// XXX Notice before each page is done, it will schedule itself 
 	// one more time, this makes sure that this session will not be
 	// deleted after the above call. Thus the following code will not
 	// be executed in the context of a deleted object. 
-	if (++curPage_ < nPage_)
-		sched(rvInterPage_->value());
+	if (!interPageOption_) {
+		if (curPage_ < nPage_) {
+			sched(rvInterPage_->value());
+			// printf("schedule: %g %d %d\n", Scheduler::instance().clock(), donePage_, curPage_);
+		}
+	}
 }
 
 // Launch a request for a particular object
@@ -285,11 +305,11 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 	  TcpSink* ssnk = mgr_->picksink();
 
 	  // Setup new TCP connection and launch request
-	  Tcl::instance().evalf("%s launch-req %d %s %s %s %s %s %s %d %d", 
-			      mgr_->name(), obj, src_->name(), 
-			      pg->dst()->name(),
-			      ctcp->name(), csnk->name(), stcp->name(),
-			      ssnk->name(), size, reqSize);
+	  Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d %d",                             mgr_->name(), obj, pg->id(), 
+			      src_->name(), pg->dst()->name(),
+			      ctcp->name(), csnk->name(), 
+			      stcp->name(), ssnk->name(), 
+			      size, reqSize, ClntData);
 
 	}
 
@@ -433,6 +453,21 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 				delete []client_;
 			client_ = new Node*[nClient_];
 			return (TCL_OK);
+		} else if (strcmp(argv[1], "set-interPageOption") == 0) {
+			int option = atoi(argv[2]);
+			if (session_ != NULL) {
+				for (int i = 0; i < nSession_; i++) {
+					EmpWebTrafSession* p = session_[i];
+					p->set_interPageOption(option);
+				}
+			}
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "doneObj") == 0) {
+		        EmpWebPage* p = (EmpWebPage*)atoi(argv[2]);
+			
+			p->doneObject();
+                
+			return (TCL_OK);
 		}
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "set-server") == 0) {
@@ -563,7 +598,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			}
 			p->sched(lt);
 			session_[n] = p;
-		       
+
 		        // decide to use either persistent or non-persistent
 			// use http1.0 for now
 			// int opt = (int)ceil(p->persistSel()->value());
