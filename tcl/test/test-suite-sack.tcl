@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.14 2001/09/06 16:58:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.15 2001/09/21 03:06:41 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -539,7 +539,7 @@ Test/sackB4a instproc run {} {
 }
 
 # Incorrect estimated pipe value
-# packet 7, 8, 9, 10 are delayed
+# Four packets delayed, no packets dropped.
 Class Test/FalsePipe -superclass TestSuite
 Test/FalsePipe instproc init {} {
     $self instvar net_ test_
@@ -561,6 +561,35 @@ Test/FalsePipe instproc run {} {
 
     #delay packet 7, 8, 9, 10
     $self drops4 true 0.1
+
+    $ns_ at 3.0 "$self cleanupAll $testName_"
+    $ns_ run
+}
+
+# Incorrect estimated pipe value
+# One packet dropped, four packets delayed.
+Class Test/FalsePipe1 -superclass TestSuite
+Test/FalsePipe1 instproc init {} {
+    $self instvar net_ test_
+    set net_ net3
+    set test_ FalsePipe1
+    $self next
+}
+
+Test/FalsePipe1 instproc run {} {
+    $self instvar ns_ node_ testName_
+    $self setTopo
+    $self June01defaults
+    $ns_ eventtrace-all
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 1]
+    $tcp1 set window_ 20
+    set ftp1 [$tcp1 attach-app FTP]
+    $ns_ at 0.0 "$ftp1 start"
+    $self tcpDump $tcp1 3.0
+
+    #delay packet 7, 8, 9, 10
+    $self drops4 true 0.5
+    $self dropPkts [$ns_ link $node_(r1) $node_(r2)] 1 7
 
     $ns_ at 3.0 "$self cleanupAll $testName_"
     $ns_ run
