@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.36 1998/07/09 18:46:35 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.37 1998/07/09 21:08:19 heideman Exp $
 #
 
 Class Node
@@ -201,7 +201,7 @@ Node instproc attach { agent } {
 	} else {
 		set nodeaddr [expr ( $address_ &			\
 				[AddrParams set NodeMask_(1)] ) <<	\
-					[AdddrParams set NodeShift_(1) ]]
+					[AddrParams set NodeShift_(1) ]]
 	}
 	$agent set addr_ [expr (($port & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
 	
