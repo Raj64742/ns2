@@ -47,6 +47,27 @@ main(int argc, char** argv)
     Tk_Main(argc, argv, Tcl_AppInit);
     return 0;			/* Needed only to prevent compiler warning. */
 }
+
+
+#include "bitmap/play.xbm"
+#include "bitmap/stop.xbm"
+#include "bitmap/rewind.xbm"
+#include "bitmap/ff.xbm"
+
+void loadbitmaps(Tcl_Interp* tcl)
+{
+	Tk_DefineBitmap(tcl, Tk_GetUid("play"),
+			play_bits, play_width, play_height);
+	Tk_DefineBitmap(tcl, Tk_GetUid("stop"),
+			stop_bits, stop_width, stop_height);
+
+	Tk_DefineBitmap(tcl, Tk_GetUid("rewind"),
+			rewind_bits, rewind_width, rewind_height);
+	Tk_DefineBitmap(tcl, Tk_GetUid("ff"),
+			ff_bits, ff_width, ff_height);
+}
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -101,9 +122,13 @@ Tcl_AppInit(Tcl_Interp *interp)
      */
 
     Tcl::init(interp, "ns");
-    extern EmbeddedTcl et_ns_lib;
+    Tcl::instance().tkmain(Tk_MainWindow(interp));
+    extern EmbeddedTcl et_ns_lib, et_tk;
+    et_tk.load();
     et_ns_lib.load();
     init_misc();
+    loadbitmaps(interp);
+
 
     /*
      * Call Tcl_CreateCommand for application-specific commands, if
