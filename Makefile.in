@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.25 1997/05/16 07:58:23 kannan Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.26 1997/05/22 20:55:53 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -87,8 +87,9 @@ OBJ_CC = \
 	session-rtp.o rtp.o rtcp.o ip.o sfq.o fq.o drr.o \
 	dynalink.o rtProtoDV.o cbq.o \
 	udp.o traffictrace.o pareto.o expoo.o \
-	net-interface.o \
+	net-interface.o	ctrMcast.o \
 	net.o net-ip.o tap.o
+
 
 OBJ_C = \
 	inet.o
@@ -117,7 +118,7 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
 	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
 	delay.h \
-	rtProtoDV.h
+	rtProtoDV.h ctrMcast.h 
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
 	gen/* core core.ns core.nsx

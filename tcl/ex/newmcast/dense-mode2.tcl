@@ -51,7 +51,7 @@ $ns at 2.7 "finish"
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../nam-demo/nstonam.awk out-dm2.tr > dense-mode2-nam.tr
+        exec awk -f ../../nam-demo/nstonam.awk out-dm2.tr > dense-mode2-nam.tr
         # exec rm -f out
         #XXX
         puts "running nam..."

@@ -54,7 +54,7 @@ proc finish {} {
         puts "converting output to nam format..."
         global ns
         $ns flush-trace
-        exec awk -f ../nam-demo/nstonam.awk out-dm1.tr > dense-mode1-nam.tr
+        exec awk -f ../../nam-demo/nstonam.awk out-dm1.tr > dense-mode1-nam.tr
         exec rm -f out
         #XXX
         puts "running nam..."

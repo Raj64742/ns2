@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.70 1997/05/22 01:59:21 tomh Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.71 1997/05/22 20:55:52 polly Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -16,6 +16,19 @@
 [PENDING RELEASE DATE]</h3>
 
 <ul>
+<li><b><a href="http://www-scf.usc.edu/~bhuang">[PH]</a></b>
+<b>Thu May 22 13:33:56 PDT 1997</b><br>
+<ul>
+<li> Moved agents that handles IP mcast packet encapsulation and decapsulation
+to C++. 
+<li> Added a centralized mcast example that uses only source specific trees. tcl/ex/newmcast/cmcast-spt.tcl
+<li> Added prune propagation for dense mode mcast. Patch provided by <a href="mailto:I.Kouvelas@cs.ucl.ac.uk">Isidor Kouvelas</a> and <a href="mailto:L.Vicisano@cs.ucl.ac.uk">Lorenzo Vicisano</a> (actually this change was committed two days ago)
+<li> Files added: ctrMcast.cc, ctrMcast.h, tcl/ex/newmcast/cmcast-spt.tcl
+<li> Files changed:tcl/ctr-mcast/CtrMcast.tcl, tcl/ctr-mcast/CtrMcastComp.tcl,
+tcl/lib/ns-packet.tcl, tcl/mcast/ns-mcast.tcl, tcl/mcast/DM.tcl, 
+Makefile.in, FILES, CHANGES.html
+</ul>
+
 <li><b><a href="mailto:tomh@cs.berkeley.edu">[TH]</a></b>
 <b>Wed May 21 18:57:00 PDT 1997</b><br>
 Ported bug fixes from ns-1 for tcp.cc, tcp-newreno.cc, tcp-reno.cc.  This

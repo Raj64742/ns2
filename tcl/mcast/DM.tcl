@@ -64,6 +64,7 @@ DM instproc handle-cache-miss { argslist } {
 
 DM instproc drop { replicator src dst } {
 	$self instvar Node
+
 	#
         # No downstream listeners
         # Send a prune back toward the source
@@ -78,12 +79,12 @@ DM instproc drop { replicator src dst } {
                 #
 		$replicator set ignore 1
         } else {
-                $self send-ctrl prune $src $dst
+	        $self send-ctrl prune $src $dst
         }
 }
 
 DM instproc recv-prune { from src group } {
-        $self instvar Node 
+        $self instvar Node
 
 	#puts "_node [$Node id], recv prune from $from, src $src, group $group"
 	set r [$Node getRep $src $group]
@@ -99,7 +100,7 @@ DM instproc recv-prune { from src group } {
         if {$nactive_ == 0} {
 	    # set src [expr $src >> 8]
 	    if { $src != [$Node id] } {
-		$self send-ctrl prune $src $group
+		    $self send-ctrl prune $src $group
 	    }
 	}
 }

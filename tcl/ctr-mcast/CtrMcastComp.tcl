@@ -34,10 +34,12 @@ CtrMcastComp instproc reset-mroutes {} {
 		}
 		$n1 unset repByGroup_($group)
 	    }
-
-	    foreach tmp $Slist($group) {
-		if {[$n1 getRep $tmp $group] != ""} {
-		    $n1 unset replicator_($tmp:$group)
+	    
+	    if [info exists Slist($group)] {
+		foreach tmp $Slist($group) {
+		    if {[$n1 getRep $tmp $group] != ""} {
+			$n1 unset replicator_($tmp:$group)
+		    }
 		}
 	    }
 	}
@@ -50,8 +52,10 @@ CtrMcastComp instproc compute-mroutes {} {
 
     $self reset-mroutes
     foreach group $Glist {
-	foreach src $Slist($group) {
-	    $self compute-tree $src $group
+	if [info exists Slist($group)] {
+	    foreach src $Slist($group) {
+		$self compute-tree $src $group
+	    }
 	}
     }
 }
@@ -97,7 +101,13 @@ CtrMcastComp instproc compute-branch { src group member } {
 	### set iif : RPF link dest id: interface label
 
 	if {$tmp == $target} {
-	    set iif -2
+	    if {$treetype($group) == $SPT} {
+		set iif -2
+	    } else {
+		set upstreamtmp [$ns upstream-node $tmp $src]	
+		set iilink [$ns RPF-link $src [$upstreamtmp id] $tmp]
+		set iif [[$iilink set dest_] id]
+	    }
 	} else {
 	    set upstreamtmp [$ns upstream-node $tmp $target]	
 	    set iilink [$ns RPF-link $target [$upstreamtmp id] $tmp]
@@ -219,10 +229,14 @@ CtrMcastComp instproc exists-treetype group {
 }
 
 CtrMcastComp instproc switch-treetype group {
-    $self instvar treetype SPT
+    $self instvar treetype SPT Glist
 
     set group [expr $group]
     set treetype($group) $SPT
+    if { [lsearch $Glist $group] < 0 } {
+	lappend Glist $group
+    }
+
     $self compute-mroutes
 }
 

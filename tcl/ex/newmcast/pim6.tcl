@@ -92,7 +92,7 @@ $ns at 2.5 "finish"
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../nam-demo/nstonam.awk out-pim6.tr > pim6-nam.tr
+        exec awk -f ../../nam-demo/nstonam.awk out-pim6.tr > pim6-nam.tr
         # exec rm -f out
         #XXX
         puts "running nam..."

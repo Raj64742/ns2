@@ -18,6 +18,7 @@ proc nam_config {net} {
 	$net color 106 green
 	$net color 104 blue
 	$net color 1 blue
+        $net color 0 yellow
 }
 
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.1 1997/05/13 23:58:03 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.2 1997/05/22 20:56:04 polly Exp $
 #
 
 set ns [new MultiSim]
@@ -92,7 +92,7 @@ proc finish {} {
 	puts "converting output to nam format..."
 	global ns
 	$ns flush-trace
-	exec awk -f ../nam-demo/nstonam.awk rtp-out.tr > rtp-nam.tr
+	exec awk -f ../../nam-demo/nstonam.awk rtp-out.tr > rtp-nam.tr
 	exec rm -f out
         #XXX
 	puts "running nam..."

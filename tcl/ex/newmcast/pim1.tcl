@@ -67,7 +67,7 @@ $ns at 0.0 "$ns run-mcast"
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../nam-demo/nstonam.awk out-pim1.tr > pim1-nam.tr
+        exec awk -f ../../nam-demo/nstonam.awk out-pim1.tr > pim1-nam.tr
         # exec rm -f out
         #XXX
         puts "running nam..."

@@ -17,10 +17,11 @@ CtrMcast instproc init { sim node agent confArgs} {
     set default $RPT
 
     [$Node getArbiter] addproto $self
-    set decapagent [new Agent/Message/DecapAgent]
+    set decapagent [new Agent/CtrMcast/Decap]
     $ns attach-agent $Node $decapagent
 
     ### config PIM nodes
+    if ![info exists confArgs] { return 0 }
     if { ! [set len [llength $confArgs]] } { return 0 }
 
     set c_rp [lindex $confArgs 0]
@@ -125,7 +126,7 @@ CtrMcast instproc handle-cache-miss { argslist } {
     if { [$Node id] == $srcID } {
 	if { [$Agent set treetype($group)] == $RPT && $srcID != [$self getrp $group]} {
 	    ### create encapsulation agent
-	    set encapagent [new Agent/Message/EncapAgent $srcID $group]
+	    set encapagent [new Agent/CtrMcast/Encap]
 	    $ns attach-agent $Node $encapagent
 
 	    ### find decapsulation agent and connect encap and decap agents
@@ -133,13 +134,12 @@ CtrMcast instproc handle-cache-miss { argslist } {
 	    set n [$ns set Node_($RP)]
 	    set arbiter [$n getArbiter]
 	    set ctrmcast [$arbiter getType "CtrMcast"]
-	    set target [$ctrmcast set decapagent]
-	    $ns connect $encapagent $target
+	    $ns connect $encapagent [$ctrmcast set decapagent]
 
 	    ### create (S,G,iif=-2) entry
 	    set oiflist "$encapagent"
 	    $Node add-mfc-reg $srcID $group -2 $oiflist
-	    #puts "creat (S,G) oif to register $srcID $group -1 $oiflist"
+	    #puts "creat (S,G) oif to register $srcID $group -2 $oiflist"
 	}
     
 	### add into global source list
@@ -196,40 +196,17 @@ CtrMcast instproc hash {rp group} {
 
 
 
-################# Agent/Message messagers ###############
-Class Agent/Message/EncapAgent -superclass Agent/Message
+################# Agent/CtrMcast/Encap ###############
 
-Agent/Message/EncapAgent instproc init { src grp } {
+Agent/CtrMcast/Encap instproc init {} {
         $self next
-        $self instvar source group
-
-        set source $src
-        set group $grp
-        $self set class_ 1
-}
-
-
-Agent/Message/EncapAgent instproc handle msg {
-    $self instvar source group
-    $self send "$source/$group"
-}
-
-
-Class Agent/Message/DecapAgent -superclass Agent/Message
-
-Agent/Message/DecapAgent instproc handle msg {
-    $self instvar addr_ dst_
-
-    set L [split $msg /]
-    $self set addr_ [expr [lindex $L 0] << 8 ]
-    $self set dst_ [lindex $L 1]
-    set mesg [lindex $L 2]
-    $self send "$mesg"
+        $self instvar fid_
+        
+        set fid_ 1
 }
 
 
 #################### MultiNode: add-mfc-reg ################
-
 
 MultiNode instproc add-mfc-reg { src group iif oiflist } {
     $self instvar multiclassifier_ Regreplicator_
