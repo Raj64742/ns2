@@ -30,10 +30,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.12 2001/05/27 02:14:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.13 2001/09/06 03:44:01 sfloyd Exp $
 #
 
 source misc_simple.tcl
+source support.tcl
+
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
@@ -50,8 +52,16 @@ TestSuite instproc finish file {
         global quiet PERL
         exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
           $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+	if {$file == "FalsePipe"} {
+	  exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	    $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp1.rands
+        } else {
+	  exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	    $PERL ../../bin/raw2xg -a -c -s 0.01 -m 90 -t $file > temp1.rands
+	}
         if {$quiet == "false"} {
-                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
+			temp1.rands &
         }
         ## now use default graphing tool to make a data file
         ## if so desired
@@ -127,6 +137,25 @@ Topology/net2 instproc init ns {
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
 
+
+Class Topology/net3 -superclass Topology
+Topology/net3 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 100Mb 1ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 100Mb 1ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 10Mb 200ms RED
+    $ns duplex-link $node_(s3) $node_(r2) 100Mb 1ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 100Mb 1ms DropTail
+}
+
 TestSuite instproc setTopo {} {
     $self instvar node_ net_ ns_ topo_
 
@@ -138,7 +167,7 @@ TestSuite instproc setTopo {} {
         set node_(k1) [$topo_ node? k1]
         [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
     }
-    if {$net_ == "net2"} {
+    if {$net_ == "net2" | $net_ == "net3"} {
         set node_(s1) [$topo_ node? s1]
         set node_(s2) [$topo_ node? s2]
         set node_(s3) [$topo_ node? s3]
@@ -147,6 +176,14 @@ TestSuite instproc setTopo {} {
         set node_(r2) [$topo_ node? r2]
         [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
     }
+}
+
+TestSuite instproc drops4 {delayPkt delay} {
+	$self instvar ns_ node_
+	set list {7 8 9 10}
+	set link [$ns_ link $node_(r1) $node_(r2)]
+	set fid 1
+        $self dropPkts $link $fid $list $delayPkt $delay
 }
 
 # single packet drop
@@ -488,6 +525,34 @@ Test/sackB4a instproc run {} {
     # trace only the bottleneck link
     #$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
     $ns_ at 2.0 "$self cleanupAll $testName_"
+    $ns_ run
+}
+
+# Incorrect estimated pipe value
+# packet 7, 8, 9, 10 are delayed
+Class Test/FalsePipe -superclass TestSuite
+Test/FalsePipe instproc init {} {
+    $self instvar net_ test_
+    set net_ net3
+    set test_ FalsePipe
+    $self next
+}
+
+Test/FalsePipe instproc run {} {
+    $self instvar ns_ node_ testName_
+    $self setTopo
+    $self June01defaults
+    $ns_ eventtrace-all
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 1]
+    $tcp1 set window_ 8
+    set ftp1 [$tcp1 attach-app FTP]
+    $ns_ at 0.0 "$ftp1 start"
+    $self tcpDump $tcp1 3.0
+
+    #delay packet 7, 8, 9, 10
+    $self drops4 true 0.1
+
+    $ns_ at 3.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
