@@ -13,6 +13,7 @@ proc traffic1 {} {
     global s1 s2 r1 r2 s3 s4
     new_tcp 1.0 $s1 $s3 100 1 1 1000
     new_tcp 4.2 $s2 $s4 100 2 0 50
+#    new_cbr 18.4 $s1 $s4 190 0.00003 3
     new_cbr 18.4 $s1 $s4 190 0.003 3
     new_tcp 65.4 $s1 $s4 4 4 0 2000
     new_tcp 100.2 $s3 $s1 8 5 0 1000
@@ -55,10 +56,11 @@ proc create_testnet6 { queuetype }  {
 }
 
 proc finish_ns {} {
-    global ns
+    global ns flowdesc
     $ns instvar scheduler_
     $scheduler_ halt
     puts "simulation complete"
+    close $flowdesc
 }
 
 proc test {testname seed finishfile label createflows dump queue} {
@@ -76,12 +78,10 @@ proc test {testname seed finishfile label createflows dump queue} {
     [[$ns link $r2 $r1] queue] set limit_ $queuesize
     if {$queuetype == "RED"} {
 	set_Red $r1 $r2
-	[$redlink queue] set concise_ true
 	[$redlink queue] set limit_ 100
 	new_tcp 50.2 $s1 $s3 100 20 0 1500
 	new_tcp 50.2 $s1 $s3 100 21 0 1500
     }
-    [$redlink queue] set link-concise_ true
     $createflows $redlink $dump $stoptime
     traffic1
     new_tcp 50.2 $s1 $s3 100 18 0 1460

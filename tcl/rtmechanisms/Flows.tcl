@@ -749,27 +749,35 @@ proc printFlow { f outfile fm } {
 
 proc flowDump { link fm } {
     global category pthresh drop_interval ns flowdesc
-    foreach f [$fm flows] {
-	if {[string compare $category "unforced"] == 0} {
-	    if {[$f set epdrops_] >= $pthresh} {
-		printFlow $f $flowdesc $fm
-		$f reset
+	if {$category == "unforced"} {
+	    if {[$fm set epdrops_] >= $pthresh} {
+		$fm dump
+		$fm reset
+		foreach f [$fm flows] {
+		  $f reset
+		}
 		set drop_interval 2.0
 	    } else {
 		set drop_interval 1.0
 	    }
 	} elseif {[string compare $category "forced"] == 0} {
-	    if {[expr [$f set pdrops_] - [$f set epdrops_]] >= $pthresh} {
-		printFlow $f $flowdesc $fm
-		$f reset
+	    if {[expr [$fm set pdrops_] - [$fm set epdrops_]] >= $pthresh} {
+		$fm dump
+		$fm reset
+                foreach f [$fm flows] {
+                  $f reset
+                } 
 		set drop_interval 2.0
 	    } else {
 		set drop_interval 1.0
 	    }
 	} elseif {[string compare $category "combined"] == 0} {
-	    if {[$f set pdrops_] >= $pthresh} {
-		printFlow $f $flowdesc $fm
-		$f reset
+	    if {[$fm set pdrops_] >= $pthresh} {
+		$fm dump
+                $fm reset
+                foreach f [$fm flows] {
+                  $f reset
+                } 
 		set drop_interval 2.0
 	    } else {
 		set drop_interval 1.0
@@ -777,7 +785,6 @@ proc flowDump { link fm } {
 	} else {
 	    puts stderr "Error: flowDump: drop category $category unknown."
 	}
-    }
     # check data
     # if data good (if N > 2.3/p^2, N is field 14, flowid is 2, packet
     # drops is 10 ), 
