@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/integrator.cc,v 1.4 1997/07/22 20:50:08 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/integrator.cc,v 1.5 1997/07/30 23:39:23 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -106,6 +106,7 @@ int Samples::command(int argc, const char*const* argv)
 				Tcl::instance().resultf("%g", mean());
 				return (TCL_OK);
 			}
+			Tcl::instance().resultf("tried to take mean with no sample points");
 			return (TCL_ERROR);
 		}
 		if (strcmp(argv[1], "cnt") == 0) {
