@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.77 1998/08/12 23:41:22 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.78 1998/08/19 04:30:24 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -68,7 +68,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
 	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(1),
 	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this),
-	count_(0), fcnt_(0), cong_action_(0), ecn_burst_(0)
+	count_(0), fcnt_(0), nrexmit_(0), cong_action_(0), ecn_burst_(0)
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
 	bind("window_", &wnd_);
@@ -222,7 +222,6 @@ TcpAgent::reset()
 	wnd_restart_ = 1.;
 	awnd_ = wnd_init_ / 2.0;
 	recover_ = 0;
-	
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
 }
