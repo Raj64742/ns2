@@ -135,7 +135,6 @@ Topology/net3 instproc init ns {
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 0ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 1ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 10ms PI
-    $ns duplex-link $node_(r2) $node_(r1) 1.5Mb 10ms PI
     $ns queue-limit $node_(r1) $node_(r2) 100
     $ns queue-limit $node_(r2) $node_(r1) 100
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 2ms DropTail
