@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.264 2001/11/16 22:29:59 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.265 2001/11/27 22:40:21 sfloyd Exp $
 
 
 #
@@ -658,6 +658,7 @@ Agent/TCP set ecn_ 0
 Agent/TCP set old_ecn_ 0
 Agent/TCP set packetSize_ 1000
 Agent/TCP set tcpip_base_hdr_size_ 40
+Agent/TCP set ts_option_size_ 10; 	# in bytes
 Agent/TCP set bugFix_ true
 Agent/TCP set timestamps_ false
 Agent/TCP set slow_start_restart_ true
@@ -693,6 +694,7 @@ Agent/TCP set singledup_ 0
 # Agent/TCP set singledup_ 1 ;		# This will become the new default.
 Agent/TCP set precisionReduce_ false
 Agent/TCP set oldCode_ false
+Agent/TCP set useHeaders_ false ;	# The default will become "true". 
 
 Agent/TCP set ndatapack_ 0
 Agent/TCP set ndatabytes_ 0

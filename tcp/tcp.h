@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.90 2001/11/08 19:06:07 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.91 2001/11/27 22:40:20 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -161,6 +161,7 @@ protected:
 	void print_if_needed(double memb_time);
 	void traceAll();
 	virtual void traceVar(TracedVar* v);
+	virtual int headersize();   // a tcp header
 
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
@@ -252,6 +253,7 @@ protected:
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
 	int delay_growth_;  	/* delay opening cwnd until 1st data recv'd */
 	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
+	int ts_option_size_;    // header bytes in a ts option
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
 	int ts_option_;		/* use RFC1323-like timestamps? */
 	int maxburst_;		/* max # packets can send back-2-back */
@@ -322,7 +324,7 @@ protected:
         TracedInt singledup_;   /* Send on a single dup ack.  */
 	int noFastRetrans_;	/* No Fast Retransmit option.  */
 	int oldCode_;		/* Use old code. */
-
+	int useHeaders_;	/* boolean: Add TCP/IP header sizes */
 
         /* support for event-tracing */
         //EventTrace *et_;

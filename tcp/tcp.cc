@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.125 2001/11/08 19:06:07 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.126 2001/11/27 22:40:20 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -122,6 +122,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("eln_rxmit_thresh_");
         delay_bind_init_one("packetSize_");
         delay_bind_init_one("tcpip_base_hdr_size_");
+	delay_bind_init_one("ts_option_size_");
         delay_bind_init_one("bugFix_");
         delay_bind_init_one("slow_start_restart_");
         delay_bind_init_one("restart_bugfix_");
@@ -151,6 +152,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("noFastRetrans_");
 	delay_bind_init_one("precisionReduce_");
 	delay_bind_init_one("oldCode_");
+	delay_bind_init_one("useHeaders_");
 	delay_bind_init_one("timerfix_");
 
 #ifdef TCP_DELAY_BIND_ALL
@@ -199,6 +201,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "eln_rxmit_thresh_", &eln_rxmit_thresh_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "packetSize_", &size_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "tcpip_base_hdr_size_", &tcpip_base_hdr_size_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "bugFix_", &bug_fix_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "slow_start_restart_", &slow_start_restart_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "restart_bugfix_", &restart_bugfix_ , tracer)) return TCL_OK;
@@ -227,6 +230,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "EnblRTTCtr_", &EnblRTTCtr_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "control_increase_", &control_increase_ , tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "oldCode_", &oldCode_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "useHeaders_", &useHeaders_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
 
 
@@ -517,6 +521,25 @@ void TcpAgent::rtt_backoff()
 	}
 }
 
+/*
+ * headersize:
+ *      how big is an IP+TCP header in bytes; include options such as ts
+ * this function should be virtual so others (e.g. SACK) can override
+ */
+int TcpAgent::headersize()
+{
+        int total = tcpip_base_hdr_size_;
+	if (total < 1) {
+		fprintf(stderr,
+		  "TcpAgent(%s): warning: tcpip hdr size is only %d bytes\n",
+		  name(), tcpip_base_hdr_size_);
+	}
+	if (ts_option_)
+		total += ts_option_size_;
+        return (total);
+}
+
+
 void TcpAgent::output(int seqno, int reason)
 {
 	int force_set_rtx_timer = 0;
@@ -544,6 +567,9 @@ void TcpAgent::output(int seqno, int reason)
 //			hf->cong_action() = 1;
 			hf->ect() = 0;
 		}
+	} 
+	else if (useHeaders_ == true) {
+		hdr_cmn::access(p)->size() += headersize();
 	}
         int bytes = hdr_cmn::access(p)->size();
 

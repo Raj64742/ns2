@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.14 2001/11/08 23:29:49 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.15 2001/11/27 22:40:22 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1291,6 +1291,18 @@ Test/stats1a instproc init topo {
 	Queue/RED set summarystats_ true
 	set test_	stats1a
 	Test/stats1a instproc run {} [Test/stats1 info instbody run]
+	$self next
+}
+
+Class Test/statsHeaders -superclass TestSuite
+Test/statsHeaders instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0a
+	Queue/RED set summarystats_ true
+	Agent/TCP set useHeaders_ true
+	set test_	statsHeaders
+	Test/statsHeaders instproc run {} [Test/stats1 info instbody run]
 	$self next
 }
 

@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.484 2001/11/08 21:59:58 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.485 2001/11/27 22:40:20 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -16,6 +16,18 @@ with the most recent changes coming first.
 <hr>
 <h3>
 ns-2.1b9 release PENDING</h3>
+
+<ul>
+
+<p>
+<p><li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+Tue Nov 27 13:34:43 PST 2001
+<br>Added an option "useHeaders_" to one-way TCP that takes into
+account the TCP/IP header size in bytes when computing the size of
+the packet to be transmitted on the wire.  The current default 
+is for this to be false, but at some point the default will be
+changed.
+The validation test is "./test-all-simple statsHeaders" in tcl/lib.
 
 <p>
 <p><li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
@@ -37,7 +49,6 @@ All ns specific files can be found at ~ns /diffusion3/ns.
 An example script can be found at ~ns/tcl/ex/simple-diffusion.tcl and it tests a simple 3 node topology where (1) all 3 nodes can hear each other and a source and sink apps pair is setup on two of the nodes. (2) where node0 and node2 donot hear eachother and communicated thru the third node1. src and skn apps reside on node 0 and node2.
 
 **Note templates are used extensively and hence this code maynot be run in systems having compilers that donot support STL.
-<ul>
 
 <p>
 <li>

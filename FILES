@@ -1843,6 +1843,7 @@ tcl/test/test-output-simple/reno4a.Z
 tcl/test/test-output-simple/reno5.Z
 tcl/test/test-output-simple/renoA.Z
 tcl/test/test-output-simple/stats.Z
+tcl/test/test-output-simple/statsHeaders.Z
 tcl/test/test-output-simple/stats1.Z
 tcl/test/test-output-simple/stats2.Z
 tcl/test/test-output-simple/tahoe1.Z
