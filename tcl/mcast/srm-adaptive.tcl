@@ -26,7 +26,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-adaptive.tcl,v 1.5 1997/10/23 20:53:37 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-adaptive.tcl,v 1.6 1998/01/28 22:06:35 kannan Exp $ (USC/ISI)
 #
 
 Agent/SRM/Adaptive set pdistance_	0.0	;# bound instance variables
@@ -118,7 +118,7 @@ Agent/SRM/Adaptive instproc recompute-request-params {} {
 	if {$stats_(ave-req-delay) > $AveDelay_} {
 	    set C2_ [expr $C2_ - 0.1]
 	}
-	if {$stats_(ave-dup-rep) < 0.25} {
+	if {$stats_(ave-dup-req) < 0.25} {
             set C1_ [expr $C1_ - 0.05]
 	}
     } else {
