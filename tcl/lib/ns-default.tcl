@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.253 2001/07/05 21:17:46 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.254 2001/07/12 17:36:04 kfall Exp $
 
 
 #
@@ -831,6 +831,7 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set pipectrl_ false; # use "pipe" ctrl
 	Agent/TCP/FullTcp set open_cwnd_on_pack_ true; # ^ win on partial acks?
 	Agent/TCP/FullTcp set halfclose_ false; # do simplex closes (shutdown)?
+	Agent/TCP/FullTcp set nopredict_ false; # disable header prediction code?
 
 	Agent/TCP/FullTcp/Newreno set recov_maxburst_ 2; # max burst dur recov
 
