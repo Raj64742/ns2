@@ -52,8 +52,11 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.6 1997/07/22 22:21:21 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.7 1997/07/23 02:47:44 kfall Exp $ (LBL)
  */
+
+#ifndef ns_red_h
+#define ns_red_h
 
 #include <math.h>
 #include <string.h>
@@ -158,3 +161,5 @@ class REDQueue : public Queue {
 	void print_edp();
 	void print_edv();
 };
+
+#endif
