@@ -34,15 +34,16 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.42 1998/05/07 00:49:32 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.43 1998/05/08 22:02:02 kfall Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.42 1998/05/07 00:49:32 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.43 1998/05/08 22:02:02 kfall Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
+#include <ctype.h>
 #include "packet.h"
 #include "flags.h"
 #include "errmodel.h"
@@ -379,6 +380,151 @@ int PeriodicErrorModel::corrupt(Packet* p)
 
         return 0;
 }
+
+/*
+ * List ErrorModel: specify a list of packets/bytes to drop
+ * can be specified in any order
+ */
+static class ListErrorModelClass : public TclClass {
+public:
+        ListErrorModelClass() : TclClass("ErrorModel/List") {}
+        TclObject* create(int, const char*const*) {
+                return (new ListErrorModel);
+        }
+} class_list_error_model;
+
+int ListErrorModel::corrupt(Packet* p)
+{
+	/* assumes droplist_ is sorted */
+	int rval = 0;	// no drop
+
+	if (unit_ == EU_TIME) {
+		fprintf(stderr,
+		    "ListErrorModel: error, EU_TIME not supported\n");
+		return 0;
+	}
+
+	if (droplist_ == NULL || dropcnt_ == 0) {
+		fprintf(stderr, "warning: ListErrorModel: null drop list\n");
+		return 0;
+	}
+
+	if (unit_ == EU_PKT) {
+//printf("TEST: cur_:%d, dropcnt_:%d, droplist_[cur_]:%d, cnt_:%d\n",
+//cur_, dropcnt_, droplist_[cur_], cnt_);
+		if ((cur_ < dropcnt_) && droplist_[cur_] == cnt_) {
+			rval = 1;
+			cur_++;
+		}
+		cnt_++;
+
+	} else if (unit_ == EU_BYTE) {
+		int sz = ((hdr_cmn*)p->access(off_cmn_))->size();
+		if ((cur_ < dropcnt_) && (cnt_ + sz) >= droplist_[cur_]) {
+			rval = 1;
+			cur_++;
+		}
+		cnt_ += sz;
+	}
+
+	return (rval);
+}
+
+int
+ListErrorModel::command(int argc, const char*const* argv)
+{
+	/*
+	 * works for variable args:
+	 *	$lem droplist "1 3 4 5"
+	 * and
+	 *	$lem droplist 1 3 4 5
+	 */
+	Tcl& tcl = Tcl::instance();
+	if (strcmp(argv[1], "droplist") == 0) {
+		int cnt;
+		if ((cnt = parse_droplist(argc-2, argv + 2)) < 0)
+			return (TCL_ERROR);
+		tcl.resultf("%u", cnt);
+		return(TCL_OK);
+	}
+	return (ErrorModel::command(argc, argv));
+}
+int
+ListErrorModel::intcomp(const void *p1, const void *p2)
+{
+	int a = *((int*) p1);
+	int b = *((int*) p2);
+	return (a - b);
+}
+int
+ListErrorModel::parse_droplist(int argc, const char *const* argv)
+{
+
+//printf("parse_droplist: argc:%d, argv[0]: %s\n", argc, *argv);
+	int cnt = 0;
+	int spaces = 0;
+	int total = 0;
+	const char *p;
+	while (cnt < argc) {
+		p = argv[cnt];
+		spaces = 0;
+		while (*p) {
+			if (*p == ' ')
+				spaces++;
+			else if (!isdigit(*p)) {
+				/* problem... */
+//printf("PROBLEM1 at spaces: %d, %s\n", spaces, p);
+				return (-1);
+			}
+			p++;
+		}
+		total += (spaces + 1);
+		cnt++;
+	}
+
+//printf("total drop list entries: %d\n", total);
+
+	dropcnt_ = total;
+	droplist_ = new int[dropcnt_];
+	cnt = 0;
+
+	int val, n = 0;
+	while (cnt < argc) {
+		p = argv[cnt];
+		while (*p) {
+			if (p == argv[cnt]) {
+				val = atoi(p);
+				droplist_[n++] = val;
+			} else if (*p == ' ') {
+				val = atoi(p+1);
+				droplist_[n++] = val;
+			}
+			if ((n > 1) && droplist_[n-1] == droplist_[n-2]) {
+				fprintf(stderr, "ListErrorModel: dups in list\n");
+				delete droplist_;
+				droplist_ = NULL;
+				return (-1);
+			}
+			p++;
+		}
+		cnt++;
+	}
+	qsort(droplist_, dropcnt_, sizeof(int), intcomp);
+
+#ifdef notdef
+printf("sorted list:\n");
+{
+	register i;
+	for (i =0; i < dropcnt_; i++) {
+		printf("list[%d] = %d\n", i, droplist_[i]);
+	}
+}
+#endif
+	return dropcnt_;
+}
+
+
+/***** ***/
 
 
 static class SelectErrorModelClass : public TclClass {
