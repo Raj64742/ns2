@@ -65,6 +65,11 @@ The current version still supports
 simulation scripts written in Tcl
 meant for the ns version 1 simulator.
 .LP
+This manual page documents some of the interfaces
+for ns.  For much more complete documentation, please
+see "ns Notes and Documentation" [13], available in the distribution
+and on the web.
+.LP
 The simulator is invoked via the
 .I ns
 interpreter, an extension of the vanilla
@@ -639,6 +644,9 @@ on successive invocations).
 This method is executed in
 the global context
 by the interpreter.
+.LP
+Ns has other facilities for random number generation;
+please see documentation for details [13].
 
 .SH "OBJECT HIERARCHY"
 A brief description of 
@@ -2859,6 +2867,11 @@ Floyd, S., Jacobson, V., Liu, C.-G., McCanne, S. and Zhang, L.,
 A Reliable Multicast Framework for Light-weight Sessions and Application Level
 Framing. To appear in IEEE/ACK Transaction on Networking, November 1996. 
 ftp://ftp.ee.lbl.gov/papers/srm1.ps.gz
+.IP \fB[13]\fP
+Fall, K., and Varadhan, K., (eds.),
+"Ns notes and documentation",
+work in progress.
+http://www-mash.cs.berkeley.edu/ns/nsDoc.ps.gz
 .LP
 Research using ns is on-going.
 A list of recent research contributions employing ns
