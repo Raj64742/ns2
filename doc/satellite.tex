@@ -207,7 +207,10 @@ handoff manager,  and link objects attached.
 The position object keeps track of the satellite node's location 
 in the coordinate system as a function of the elapsed simulation time.
 This position information is used to determine link propagation delays and
-appropriate times for link handoffs. 
+appropriate times for link handoffs.  Section~\ref{sec:node:nodeconfig} 
+introduced the 
+"node-config" utility used to prime the node generator for different
+types of satellite nodes. 
 
 Figure \ref{fig:spherical} illustrates the spherical coordinate system,
 and the corresponding Cartesian coordinate system.
@@ -226,20 +229,28 @@ exist:
 longitude.  Latitude ranges from $[-90, 90]$ and longitude ranges from
 $[-180, 180]$, with negative values corresponding to south and west, 
 respectively.  As simulation time evolves, the terminals move along
-with the Earth's surface.  The  Simulator instproc \code{satnode} can be used 
+with the Earth's surface.  The  node generator can be used 
 to create a terminal with an attached position object as follows:
 \begin{program}
-$ns satnode terminal $lat $lon
+$ns node-config -satNodeType terminal \bs
+		(other node config commands go here...)
+set n1 [$ns node]
+$n1 set-position $lat $lon; # in decimal degrees
 \end{program}
 \item \code{Position/Sat/Geo} A geostationary satellite is specified by its 
 longitude above the equator.  As simulation time evolves, the geostationary
 satellite moves through the coordinate system with the same orbital period
 as that of the Earth's rotation.  The longitude ranges from $[-180,180]$
-degrees.  The Simulator instproc \code{satnode} can be 
+degrees.  As we describe further below, two flavors of geostationary nodes
+exist:  ``geo'' (for processing satellites) and ``geo-repeater'' (for bent-pipe
+satellites).  The node generator can be
 used to create a geostationary satellite with an attached position object as 
 follows:
 \begin{program}
-$ns satnode geo $lon
+$ns node-config -satNodeType geo (or ``geo-repeater'') \bs
+		(other node config commands go here...)
+set n1 [$ns node]
+$n1 set-position $lon; # in decimal degrees
 \end{program}
 \item \code{Position/Sat/Polar} A polar orbiting satellite has a purely
 circular orbit along a fixed plane in the coordinate system; the Earth
@@ -280,22 +291,16 @@ satellite is initially above the equator moving from north to south.
 Finally, a fifth parameter, {\bf plane}, is specified when creating
 polar satellite nodes-- all satellites in the same plane are given the
 same plane index.
-The Simulator instproc \code{satnode} can be 
+The node generator 
 used to create a polar satellite with an attached position object as 
 follows:
 \begin{program}
-$ns satnode polar $alt $inc $lon $alpha $plane
+$ns node-config -satNodeType polar \bs
+		(other node config commands go here...)
+set n1 [$ns node]
+$n1 set-position $alt $inc $lon $alpha $plane
 \end{program}
 
-Note that the above methods use the atomic \code{satnode} instproc.  In 
-Section \ref{sec:satellite/usage/links}, we introduce wrapper methods
-that may be more convenient for generating various types of satellite nodes:
-\begin{program}
-$ns satnode-terminal $latitude $longitude
-$ns satnode-polar $alt $inc $lon $alpha $plane $linkargs $chan
-$ns satnode-geo $longitude $linkargs $chan
-$ns satnode-geo-repeater $longitude $chan
-\end{program}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -395,18 +400,11 @@ of the \code{downlink_} and \code{uplink_} instvars of the satellite;
 therefore, the satellite's uplink and downlink must be created before
 this instproc is called.
 
-Finally, the following wrapper methods can be used to create nodes of a 
-given type and, in the case of satellite nodes, give them an uplink and
-downlink interface as well as create and attach an uplink and downlink
-channel: 
-\begin{program}
-$ns satnode-terminal $latitude $longitude
-$ns satnode-polar $alt $inc $lon $alpha $plane $linkargs $chan
-$ns satnode-geo $longitude $linkargs $chan
-$ns satnode-geo-repeater $longitude $chan
-\end{program}
-where \code{linkargs} is a list of link argument options for the 
-network interfaces (i.e., \code{$ll $qtype $qlim $mac $mac_bw $phy}). 
+By default, the node generator for satellite nodes (described in
+Section~\ref{sec:node:nodeconfig}) will create nodes of a 
+given type, give them an uplink and
+downlink interface, and create and attach an (initial) uplink and downlink
+channel, based on the interface options specified.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -513,9 +511,8 @@ The current status of routing is that it is incomplete.  Ideally, one should
 be able to run all existing \ns~routing protocols over satellite links.  
 However,
 many of the existing routing protocols implemented in OTcl require that
-the conventional \ns~links be used.  The \ns~developers are working to
-remedy this situation so that existing routing implementations are 
-independent of the underlying link objects.
+the conventional \ns~links be used.  Contributions in this area are welcome,
+but unfortunately it is not a trivial change.
 
 With that being said, the current routing implementation is similar to
 Session routing described in Chapter \ref{chap:unicast}, except that it
@@ -619,6 +616,16 @@ due to errors as follows, for example:
 e 1.2404 12 13 cbr 210 ------- 0 12.0 13.0 0 0 -0.00 10.20 -0.00 -10.00
 \end{program}
 
+It may happen that a satellite node generates a packet that it cannot
+forward (such as in sat-mixed.tcl).  This will show up as a drop in
+the tracefile with a destination field set to -2, and the coordinates
+set to -999.00:
+\begin{program}
+d 848.0000 14 -2 cbr 210 ------- 1 14.0 15.0 6 21 0.00 10.00 -999.00 -999.00 
+\end{program}
+This indicates that node 14, in trying to send a packet to node 15, could
+not find an available route.
+
 To enable tracing of all satellite links in the simulator, use the following
 commands {\em before} instantiating nodes and links:
 \begin{program}
@@ -639,6 +646,8 @@ $node trace-inlink-queue $f $i
 $node trace-outlink-queue $f $i
 \end{program}
 where $i$ is the index of the interface to be traced.  
+
+
 
 The implementations of the satellite trace objects can be found in 
 \nsf{tcl/lib/ns-sat.tcl} and \nsf{sattrace.\{cc,h\}}.
@@ -698,9 +707,8 @@ Position/Sat set time_advance_ 0; # seconds
 
 \subsection{\nam~~support}
 \label{sec:satellite/usage/nam}
-\nam~~is not currently supported.  Addition of \nam~~ for GEO satellite
-topologies is an active work item.  \nam~~ support for LEO constellations is
-not planned (interested users are encouraged to develop this component).
+\nam~~is not currently supported.  Addition of \nam~~ for satellite
+is open to interested contributors.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -949,6 +957,19 @@ any other link interfaces other than repeater interfaces.
 
 Following is a list of commands related to satellite networking:
 \begin{flushleft}
+\code{$ns_ node-config -satNodeType <type>}\\
+This node configuration declares that the subsequent new nodes created
+will be of type <type>, where <type> can be one of the following:
+\code{geo, geo-repeater, polar, terminal}.  Other required fields for
+satellite nodes (for setting up initial links and channels) are as follows 
+(see Section~\ref{sec:node:nodeconfig}):
+\code{$ns_ node-config -llType <type>}\\
+\code{$ns_ node-config -ifqType <type>}\\
+\code{$ns_ node-config -ifqLen <length>}\\
+\code{$ns_ node-config -macType <type>}\\
+\code{$ns_ node-config -channelType <type>}\\
+\code{$ns_ node-config -downlinkBW <value>}\\
+
 \code{$ns_ satnode-polar <alt> <inc> <lon> <alpha> <plane> <linkargs> <chan>}\\
 This a simulator wrapper method for creating a polar satellite node. Two
 links, uplink and downlink, are created along with two channels, uplink

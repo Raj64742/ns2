@@ -7,10 +7,10 @@ In
 \href{the next chapter}{Chapter}{chap:links},
 we will describe second aspect of creating the topology,
 \ie, connecting the nodes to form links.
-This chapter does not describe the detailed internal organization of
-a node (although some schematics are given), nor the interaction
-between a node and its routing modules; please refer to
-Chapter~\ref{chap:rtarch} for detailed discussion.
+% This chapter does not describe the detailed internal organization of
+% a node (although some schematics are given), nor the interaction
+% between a node and its routing modules; please refer to
+% Chapter~\ref{chap:rtarch} for detailed discussion.
 
 Recall that each simulation requires a single instance of the
 \clsref{Simulator}{../ns-2/tcl/lib/ns-lib.tcl} to control and operate
@@ -30,16 +30,16 @@ We conclude
 from which the more complex node objects are formed.
 
 The procedures and functions described in this chapter can be found in
-\nsf{tcl/lib/ns-lib.tcl}, \nsf{tcl/lib/ns-nodes.tcl}, \\
+\nsf{tcl/lib/ns-lib.tcl}, \nsf{tcl/lib/ns-node.tcl}, \\
 \nsf{tcl/lib/ns-rtmodule.tcl}, \nsf{rtmodule.\{cc,h\}}, 
 \nsf{classifier.\{cc, h\}}, \nsf{classifier-addr.cc},
 \nsf{classifier-mcast.cc}, \nsf{classifier-mpath.cc}, 
 and, \nsf{replicator.cc}.
 
-\section{Simulator Methods: Creating the Topology}
+\section{Node Basics}
 \label{sec:node:simulator}
 
-The basic primitive for acquiring a node is
+The basic primitive for creating a node is
 \begin{program}
     set ns [new Simulator]
     $ns \fcnref{\textbf{node}}{../ns-2/ns-lib.tcl}{Simulator::node}
@@ -49,34 +49,49 @@ a node out of more simple
 \href{classifier objects}{Section}{sec:node:classifiers}.
 The Node itself is a standalone class in OTcl.
 However, most of the components of the node are themselves TclObjects.
-The typical structure of a node is as shown in Figure~\ref{fig:node:unicast}.
+The typical structure of a (unicast) 
+node is as shown in Figure~\ref{fig:node:unicast}.  This simple structure
+consists of two TclObjects:  an address classifer (\code{classifer_}) and
+a port classifier (\code{dmux_}).  The function of these classifiers
+is to distribute incoming packets to the correct agent or outgoing link.
 \begin{figure}[tb]
   \centerline{\includegraphics{node}}
-  \caption{Structure of an Unicast Node. Notice that entry\_ is simply a
-    label variable instead of a real object, e.g., the classifier\_.}
+  \caption{Structure of a Unicast Node.  Notice that entry\_ is simply a 
+   label variable instead of a real object, e.g., the classifier\_.}
   \label{fig:node:unicast}
 \end{figure}
 
-Before \ns\ release 2.1b6, the address of an agent in a node is 16
-bits wide: the higher 8 bits define the node \code{id_},
-the lower 8 bits identify the individual agent at the node.
-This limits the number of nodes in a simulation to 256 nodes.
-If the user needs to create a topology larger than 256 nodes,
-then they should first expand the address space before creating any
-nodes, as
-\begin{program}
-        $ns set-address-format expanded
-\end{program} %$
-This expands the address space to 30 bits, the higher 22 of which are 
-used to assign node numbers.
+All nodes contain at least the following components:
+\begin{itemize}
+\item an address or \code{id_}, monotonically increasing by 1 (from 
+initial value 0) across the simulation namespace as nodes are created,
+\item a list of neighbors (\code{neighbor_}),
+\item a list of agents (\code{agent_}),
+\item a node type identifier (\code{nodetype_}), and
+\item a routing module (described in Section~\ref{sec:node:rtarch} below)
+\end{itemize}
 
-\framebox{
-  \begin{minipage}{\textwidth}
-    {\bf Note}: Starting from release 2.1b6, the above is no longer
-    necessary; \ns\ uses 32-bit integers for both address and port.
-    Therefore, the above restriction of 256 nodes is no longer applicable.
-  \end{minipage}
-}
+
+% Before \ns\ release 2.1b6, the address of an agent in a node is 16
+% bits wide: the higher 8 bits define the node \code{id_},
+% the lower 8 bits identify the individual agent at the node.
+% This limits the number of nodes in a simulation to 256 nodes.
+% If the user needs to create a topology larger than 256 nodes,
+% then they should first expand the address space before creating any
+% nodes, as
+% \begin{program}
+%         $ns set-address-format expanded
+% \end{program} %$
+% This expands the address space to 30 bits, the higher 22 of which are 
+% used to assign node numbers.
+% 
+% \framebox{
+%   \begin{minipage}{\textwidth}
+%     {\bf Note}: Starting from release 2.1b6, the above is no longer
+%     necessary; \ns\ uses 32-bit integers for both address and port.
+%     Therefore, the above restriction of 256 nodes is no longer applicable.
+%   \end{minipage}
+% }
 
 By default, nodes in \ns\ are constructed for unicast simulations.
 In order to enable multicast simulation, the simulation should be created 
@@ -100,8 +115,8 @@ the highest bit of the address indicates whether the particular
 address is a multicast address or an unicast address.
 If the bit is 0, the address represents a unicast address,
 else the address represents a multicast address.
-This implies that, by default, 
-a multicast simulation is restricted to 128 nodes.
+% This implies that, by default, 
+% a multicast simulation is restricted to 128 nodes.
 
 \section{Node Methods: Configuring the Node}
 \label{sec:node:node}
@@ -218,26 +233,8 @@ to \code{nullagent}.
 Each node keeps a list of its adjacent neighbors in its instance variable,
 \code{neighbor_}.  The procedure \proc[]{add-neighbor} adds a neighbor to the list.  The procedure \proc[]{neighbors} returns this list.
 
-\section{Configuring Node Functionality}
+\section{Node Configuration Interface}
 \label{sec:node:nodeconfig}
-
-\proc[]{Simulator::node-config} accomodates flexible and modular
-construction of different node definitions within the same base Node
-class.
-For instance, to create a mobile node capable
-of wireless communication, one no longer needs a specialized node
-creation command, e.g., \proc[]{dsdv-create-mobile-node}; instead, one
-simply say \proc[]{node-config -adhocRouting dsdv}.
-Together with routing modules, this allows
-one to combine ``arbitrary'' routing functionalities within a single
-node without resorting to multiple inheritance and other fancy object
-gimmicks. 
-We will describe this in more detail in Chapter~\ref{chap:rtarch}.
-
-This section describes node configuration interfaces and compare them with
-the old ones. 
-The functions and procedures relevant to the new node APIs may be
-found in \nsf{tcl/lib/ns-node.tcl}.
 
 \framebox{
   \begin{minipage}{\textwidth}
@@ -246,15 +243,32 @@ found in \nsf{tcl/lib/ns-node.tcl}.
     significant changes in the near future. However, we will do our
     best to maintain the same interface as described in this chapter.
     In addition, this API currently does not cover all existing nodes
-    in the old format, namely, nodes built using inheritance. In
-    particular, satellite simulation and part of mobile IP are not
-    covered. 
-    [Sep 15, 2000].
+    in the old format, namely, nodes built using inheritance, and
+    parts of mobile IP. It is principally oriented towards wireless
+    and satellite simulation.
+    [Sep 15, 2000; updated June 2001].
   \end{minipage}
 }
 
-\subsection{Node Configuration Interface}
-\label{sec:newnode-API}
+\proc[]{Simulator::node-config} accommodates flexible and modular
+construction of different node definitions within the same base Node
+class.
+For instance, to create a mobile node capable
+of wireless communication, one no longer needs a specialized node
+creation command, e.g., \proc[]{dsdv-create-mobile-node}; instead, one
+changes default configuration parameters, such as  
+\begin{program}
+$ns node-config -adhocRouting dsdv 
+\end{program}
+before actually 
+creating the node with the command: \code{$ns node}.
+Together with routing modules, this allows
+one to combine ``arbitrary'' routing functionalities within a single
+node without resorting to multiple inheritance and other fancy object
+gimmicks. 
+We will describe this in more detail in Section~\ref{sec:node:rtarch}.
+The functions and procedures relevant to the new node APIs may be
+found in \nsf{tcl/lib/ns-node.tcl}.
 
 The node configuration interface consists of two parts. 
 The first part deals with node configuration, while the second part
@@ -267,64 +281,37 @@ characteristics before creating them. They may consist of the type of
 addressing structure used in the simulation, defining the network
 components for mobilenodes, turning on or off the trace options at
 Agent/Router/MAC levels, selecting the type of adhoc routing protocol for
-wirelessnodes or defining their energy model.
-The node configuration API in its entirety looks as the following:
+wireless nodes or defining their energy model.
 
-\begin{program}
-                   OPTION_TYPE    AVAILABLE OPTION_VALUES
-                  -------------   --------------------------
-
- \$ns_ node-config -addressingType flat or hierarchical or expanded
-                  -adhocRouting   DSDV or DSR or TORA or AODV
-                  -llType         LL
-                  -macType        Mac/802_11
-                  -propType       Propagation/TwoRayGround
-                  -ifqType        Queue/DropTail/PriQueue
-                  -ifqLen         50
-                  -phyType        Phy/WirelessPhy
-                  -antType        Antenna/OmniAntenna
-                  -channelType    Channel/WirelessChannel
-                  -topoInstance   \$topo_instance
-                  -wiredRouting   ON or OFF
-                  -mobileIP       ON or OFF
-                  -energyModel    EnergyModel
-                  -initialEnergy  (in Joules)
-                  -rxPower        (in W)
-                  -txPower        (in W)
-                  -agentTrace     ON or OFF
-                  -routerTrace    ON or OFF
-                  -macTrace       ON or OFF
-                  -movementTrace  ON or OFF
-                  -reset
-\end{program}
-
-The default values for all the above options are NULL except -addressingType
-whose default value is flat. The option -reset can be used to reset all
-node-config parameters to their default value.
-
-Thus node-configuration for a wireless, mobile node that runs AODV as its
+As an example, node-configuration for a wireless, mobile node that 
+runs AODV as its
 adhoc routing protocol in a hierarchical topology would be as shown below.
 We decide to turn tracing on at the agent and router level only. Also we 
 assume a topology has been instantiated with "set topo [new Topography]". 
 The node-config command would look like the following:
 
 \begin{program}
-  \$ns_ node-config -addressingType hierarchical
-                   -adhocRouting AODV
-                   -llType LL
-                   -macType Mac/802_11
-                   -ifqType Queue/DropTail/PriQueue
-                   -ifqLen 50
-                   -antType Antenna/OmniAntenna
-                   -propType Propagation/TwoRayGround
-                   -phyType Phy/WirelessPhy
-                   -topoInstance \$topo
-                   -channelType Channel/WirelessChannel
-                   -agentTrace ON
-                   -routerTrace ON
-                   -macTrace OFF
-                   -movementTrace OFF
+  \$ns_ node-config -addressType hierarchical \bs 
+                   -adhocRouting AODV \bs
+                   -llType LL \bs
+                   -macType Mac/802_11 \bs 
+                   -ifqType Queue/DropTail/PriQueue \bs
+                   -ifqLen 50 \bs
+                   -antType Antenna/OmniAntenna \bs 
+                   -propType Propagation/TwoRayGround \bs
+                   -phyType Phy/WirelessPhy \bs
+                   -topologyInstance \$topo \bs
+                   -channel Channel/WirelessChannel \bs 
+                   -agentTrace ON \bs 
+                   -routerTrace ON \bs
+                   -macTrace OFF \bs
+                   -movementTrace OFF 
 \end{program}
+
+The default values for all the above options are NULL except 
+\code{-addressingType}
+whose default value is flat. The option \code{-reset} can be used to reset all
+node-config parameters to their default value.
 
 Note that the config command can be broken down into separate lines like
 \begin{program}
@@ -354,6 +341,61 @@ use the following node-configuration command:
 This will set all parameter values to their default setting which
 basically defines configuration of a simple node.
 
+Currently, this type of node configuration is oriented towards wireless
+and satellite nodes.  Table 5.1
+%% ~\ref{table:nodeconfig} 
+lists the available options
+for these kinds of nodes.  The example scripts 
+\nsf{tcl/ex/simple-wireless.tcl} and \nsf{tcl/ex/sat-mixed.tcl} provide
+usage examples.
+
+\begin{table}[h]
+\label{table:nodeconfig}
+\begin{center} 
+{\footnotesize
+\begin{tabular}{|l|l|l|}\hline
+{\bf option} & {\bf available values} & {\bf default}\\\hline\hline 
+\multicolumn{3}{|c|}{\bf general} \\\hline
+{\bf addressType} & flat, hierarchical & flat\\\hline
+{\bf MPLS} & ON, OFF & OFF\\\hline
+\multicolumn{3}{|c|}{\bf both satellite- and wireless-oriented} \\\hline
+{\bf llType} & LL, LL/Sat & "" \\\hline
+{\bf macType} & Mac/802\_11, Mac/Csma/Ca, Mac/Sat, & \\ 
+& Mac/Sat/UnslottedAloha, Mac/Tdma & "" \\\hline
+{\bf ifqType} & Queue/DropTail, Queue/DropTail/PriQueue & "" \\\hline
+{\bf phyType} & Phy/WirelessPhy, Phy/Sat& "" \\\hline
+\multicolumn{3}{|c|}{\bf wireless-oriented} \\\hline
+{\bf adhocRouting} & DIFFUSION/RATE, DIFFUSION/PROB, DSDV, & \\
+& DSR, FLOODING, OMNIMCAST, AODV, TORA & ""\\\hline
+{\bf propType} & Propagation/TwoRayGround, Propagation/Shadowing & ""\\\hline
+{\bf propInstance} & Propagation/TwoRayGround, Propagation/Shadowing & ""\\\hline
+{\bf antType} & Antenna/OmniAntenna & ""\\\hline
+{\bf channel} & Channel/WirelessChannel, Channel/Sat & ""\\\hline
+{\bf topoInstance} & <topology file> & ""\\\hline
+{\bf wiredRouting} & ON, OFF & OFF\\\hline
+{\bf mobileIP} & ON, OFF& OFF \\\hline
+{\bf energyModel} & EnergyModel & "" \\\hline
+{\bf initialEnergy} & <value in Joules> & "" \\\hline
+{\bf rxPower} & <value in W> & "" \\\hline
+{\bf txPower} & <value in W> & "" \\\hline
+{\bf idlePower} & <value in W> & "" \\\hline
+{\bf agentTrace} & ON, OFF & OFF \\\hline
+{\bf routerTrace} & ON, OFF & OFF \\\hline
+{\bf macTrace} & ON, OFF & OFF \\\hline
+{\bf movementTrace} & ON, OFF & OFF \\\hline
+{\bf errProc} & UniformErrorProc & "" \\\hline
+{\bf FECProc} &? & ? \\\hline
+{\bf toraDebug} & ON, OFF & OFF \\\hline
+\multicolumn{3}{|c|}{\bf satellite-oriented} \\\hline
+{\bf satNodeType} & polar, geo, terminal, geo-repeater & "" \\\hline
+{\bf downlinkBW} & <bandwidth value, e.g. "2Mb"> & ""\\\hline
+\end{tabular}
+}
+\end{center}
+\caption{Available options for node configuration (see tcl/lib/ns-lib.tcl).
+}
+\end{table}
+\normalsize
 
 \section{The Classifier}
 \label{sec:node:classifiers}
@@ -376,7 +418,8 @@ We begin with a description of the base class in this section.
 The next subsections describe
 \href{the address classifier}{Section}{sec:node:addr-classifier},
 \href{the multicast classifier}{Section}{sec:node:mcast-classifier},
-\href{the multipath classifier}{Section}{sec:node:mpath-classifier}, and
+\href{the multipath classifier}{Section}{sec:node:mpath-classifier}, 
+\href{the hash classifier}{Section}{sec:node:hash-classifier}, and
 finally, \href{the replicator}{Section}{sec:node:replicator}.
 
 A classifier provides a way to match a packet against some
