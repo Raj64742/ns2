@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.18 2000/09/16 01:46:01 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.19 2001/09/20 19:05:38 alefiyah Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -57,10 +57,10 @@ static const char rcsid[] =
 
 #ifdef __cplusplus
 extern "C" {
-#include <pcap.h>
+#include <pcap/pcap.h>
 }
 #else
-#include <pcap.h>
+#include <pcap/pcap.h>
 #endif
 
 #include "config.h"
@@ -481,7 +481,7 @@ PcapLiveNetwork::open(int mode, const char *devname)
 		  "warning: pcap/live (%s) couldn't get local IP network info: %s\n",
 		  name(), errbuf_) ;
 	}
-
+#ifndef __linux__
 	{
 		int immed = 1;
 		if (ioctl(pfd_, BIOCIMMEDIATE, &immed) < 0) {
@@ -491,6 +491,7 @@ PcapLiveNetwork::open(int mode, const char *devname)
 			perror("ioctl(BIOCIMMEDIATE)");
 		}
 	}
+#endif
 	return 0;
 }
 

@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.18 2000/11/06 19:29:44 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.19 2001/09/20 19:05:50 alefiyah Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -573,10 +573,22 @@ int
 IPNetwork::send(u_char* buf, int len)
 {
 	struct ip *ip = (struct ip*) buf;
-	ip->ip_len = ntohs(ip->ip_len);
-	ip->ip_off = ntohs(ip->ip_off);
-
-	return (::send(ssock_, (char*)buf, len, 0));
+#ifdef __linux__ 
+// For raw sockets on linux the send does not work,
+// all packets show up only on the loopback device and are not routed
+// to the correct host. Using sendto on a closed socket solves this problem
+       ip->ip_len = (ip->ip_len);
+       ip->ip_off = (ip->ip_off);
+        sockaddr_in sin;
+       memset((char *)&sin, 0, sizeof(sin));
+       sin.sin_family = AF_INET;
+        sin.sin_addr = ip->ip_dst;
+       return (::sendto(ssock_, (char*)buf, len, 0,(sockaddr *) &sin,sizeof(sin)));
+#else
+        ip->ip_len = ntohs(ip->ip_len);
+        ip->ip_off = ntohs(ip->ip_off);
+        return (::send(ssock_, (char*)buf, len, 0));
+#endif
 }
 
 int IPNetwork::command(int argc, const char*const* argv)
@@ -713,7 +725,7 @@ IPNetwork::open(int mode)
 			name(), strerror(errno));
 		return (-1);
 	}
-
+#ifndef __linux__
 	// sort of curious, but do a connect() even though we have
 	// HDRINCL on.  Otherwise, we get ENOTCONN when doing a send()
 	sockaddr_in sin;
@@ -723,6 +735,7 @@ IPNetwork::open(int mode)
 	"IPNetwork(%s): open: unable to connect : %s\n",
 			name(), strerror(errno));
 	}
+#endif
 	rsock_ = ssock_ = fd;
 	mode_ = mode;
 	NIDEBUG5("IPNetwork(%s): opened with mode %d, rsock_:%d, ssock_:%d\n",
