@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.27 2000/05/17 15:45:57 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.28 2000/05/18 22:43:45 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -697,7 +697,7 @@ Test/randomized instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	randomized
-    Agent/TFRC set overhead_ 1.0
+    Agent/TFRC set overhead_ 0.5
     Test/randomized instproc run {} [Test/slowStart info instbody run]
     $self next
 }
@@ -708,7 +708,7 @@ Test/randomizedCA instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	randomizedCA
-    Agent/TFRC set overhead_ 1.0
+    Agent/TFRC set overhead_ 0.5
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/randomizedCA instproc run {} [Test/slowStart info instbody run]
