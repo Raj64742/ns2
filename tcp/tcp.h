@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.47 1998/05/12 02:03:10 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.48 1998/05/13 23:03:42 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -344,7 +344,7 @@ class RenoTcpAgent : public virtual TcpAgent {
 };
 
 /* TCP New Reno */
-class NewRenoTcpAgent : public virtual TcpAgent {
+class NewRenoTcpAgent : public virtual RenoTcpAgent {
  public:
 	NewRenoTcpAgent();
 	virtual int window();
