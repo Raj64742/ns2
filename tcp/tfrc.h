@@ -133,9 +133,9 @@ public:
 protected:
 	TfrcSendTimer send_timer_;
 	TfrcNoFeedbackTimer NoFeedbacktimer_;
-	int SndrType_; // 0 -> infinite sender, 1 -> need FTP
-	int maxseq_; // max seq produced by the app so far
-	int seqno_; // next seq to be sent 
+	int SndrType_;          // 0 -> infinite sender, 1 -> need FTP
+	int maxseq_;            // max seq produced by the app so far
+	int seqno_;             // next seq to be sent 
 	int psize_;
 	double rate_;		// send rate
 	double oldrate_;	// allows rate to be changed gradually

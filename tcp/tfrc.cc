@@ -91,7 +91,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind_bool("conservative_", &conservative_);
 	bind_bool("ecn_", &ecn_);
 	bind("maxHeavyRounds_", &maxHeavyRounds_);
-	bind("SndrType_", &SndrType_);
+	bind("SndrType_", &SndrType_); 
 	seqno_ = -1;
 	maxseq_ = 0;
 }
