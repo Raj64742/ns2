@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.28 1997/05/28 17:40:10 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.29 1997/05/29 01:59:48 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -37,20 +37,14 @@ CCOPT = @V_CCOPT@
 TCL2C++ = @V_TCL2CPP@
 
 MKDEP = ./mkdep
-LIB =  @V_LIB_BTCL@ \
-	@V_LIB_OTCL@ \
-	@V_LIB_TK@ \
+LIB =  \
 	@V_LIB_X11@ \
-	@V_LIB_TCL@ \
 	@V_LIB@ \
 	@V_LIBS@ \
 	-lm @LIBS@
 
 INCLUDE = \
-	@V_INCLUDE_TK@ \
-	@V_INCLUDE_TCL@ \
 	@V_INCLUDE_BTCL@ \
-	@V_INCLUDE_OTCL@ \
 	@V_INCLUDE_X11@ \
 	@V_INCLUDES@ \
 	-I.

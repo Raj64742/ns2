@@ -567,6 +567,10 @@ V_SHELL=""
 
 
 
+
+
+
+
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
   if test -f $ac_dir/install-sh; then
@@ -614,7 +618,7 @@ else { echo "configure: error: can not run $ac_config_sub" 1>&2; exit 1; }
 fi
 
 echo $ac_n "checking host system type""... $ac_c" 1>&6
-echo "configure:618: checking host system type" >&5
+echo "configure:622: checking host system type" >&5
 
 host_alias=$host
 case "$host_alias" in
@@ -635,7 +639,7 @@ host_os=`echo $host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$host" 1>&6
 
 echo $ac_n "checking target system type""... $ac_c" 1>&6
-echo "configure:639: checking target system type" >&5
+echo "configure:643: checking target system type" >&5
 
 target_alias=$target
 case "$target_alias" in
@@ -653,7 +657,7 @@ target_os=`echo $target | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 echo "$ac_t""$target" 1>&6
 
 echo $ac_n "checking build system type""... $ac_c" 1>&6
-echo "configure:657: checking build system type" >&5
+echo "configure:661: checking build system type" >&5
 
 build_alias=$build
 case "$build_alias" in
@@ -679,7 +683,7 @@ test "$host_alias" != "$target_alias" &&
 # Extract the first word of "gcc", so it can be a program name with args.
 set dummy gcc; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:683: checking for $ac_word" >&5
+echo "configure:687: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_CC'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -708,7 +712,7 @@ if test -z "$CC"; then
   # Extract the first word of "cc", so it can be a program name with args.
 set dummy cc; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:712: checking for $ac_word" >&5
+echo "configure:716: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_CC'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -756,7 +760,7 @@ fi
 fi
 
 echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works""... $ac_c" 1>&6
-echo "configure:760: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works" >&5
+echo "configure:764: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) works" >&5
 
 ac_ext=c
 # CFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
@@ -766,11 +770,11 @@ ac_link='${CC-cc} -o conftest $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 
 cross_compiling=$ac_cv_prog_cc_cross
 
 cat > conftest.$ac_ext <<EOF
-#line 770 "configure"
+#line 774 "configure"
 #include "confdefs.h"
 main(){return(0);}
 EOF
-if { (eval echo configure:774: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:778: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   ac_cv_prog_cc_works=yes
   # If we can't run a trivial program, we are probably using a cross compiler.
   if (./conftest; exit) 2>/dev/null; then
@@ -790,12 +794,12 @@ if test $ac_cv_prog_cc_works = no; then
   { echo "configure: error: installation or configuration problem: C compiler cannot create executables." 1>&2; exit 1; }
 fi
 echo $ac_n "checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler""... $ac_c" 1>&6
-echo "configure:794: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler" >&5
+echo "configure:798: checking whether the C compiler ($CC $CFLAGS $LDFLAGS) is a cross-compiler" >&5
 echo "$ac_t""$ac_cv_prog_cc_cross" 1>&6
 cross_compiling=$ac_cv_prog_cc_cross
 
 echo $ac_n "checking whether we are using GNU C""... $ac_c" 1>&6
-echo "configure:799: checking whether we are using GNU C" >&5
+echo "configure:803: checking whether we are using GNU C" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gcc'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -804,7 +808,7 @@ else
   yes;
 #endif
 EOF
-if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:808: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
+if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:812: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
   ac_cv_prog_gcc=yes
 else
   ac_cv_prog_gcc=no
@@ -819,7 +823,7 @@ if test $ac_cv_prog_gcc = yes; then
   ac_save_CFLAGS="$CFLAGS"
   CFLAGS=
   echo $ac_n "checking whether ${CC-cc} accepts -g""... $ac_c" 1>&6
-echo "configure:823: checking whether ${CC-cc} accepts -g" >&5
+echo "configure:827: checking whether ${CC-cc} accepts -g" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_cc_g'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -851,7 +855,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:855: checking for $ac_word" >&5
+echo "configure:859: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_CXX'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -882,7 +886,7 @@ test -n "$CXX" || CXX="gcc"
 
 
 echo $ac_n "checking whether the C++ compiler ($CXX $CXXFLAGS $LDFLAGS) works""... $ac_c" 1>&6
-echo "configure:886: checking whether the C++ compiler ($CXX $CXXFLAGS $LDFLAGS) works" >&5
+echo "configure:890: checking whether the C++ compiler ($CXX $CXXFLAGS $LDFLAGS) works" >&5
 
 ac_ext=C
 # CXXFLAGS is not in ac_cpp because -g, -O, etc. are not valid cpp options.
@@ -892,11 +896,11 @@ ac_link='${CXX-g++} -o conftest $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $L
 cross_compiling=$ac_cv_prog_cxx_cross
 
 cat > conftest.$ac_ext <<EOF
-#line 896 "configure"
+#line 900 "configure"
 #include "confdefs.h"
 main(){return(0);}
 EOF
-if { (eval echo configure:900: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:904: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   ac_cv_prog_cxx_works=yes
   # If we can't run a trivial program, we are probably using a cross compiler.
   if (./conftest; exit) 2>/dev/null; then
@@ -922,12 +926,12 @@ if test $ac_cv_prog_cxx_works = no; then
   { echo "configure: error: installation or configuration problem: C++ compiler cannot create executables." 1>&2; exit 1; }
 fi
 echo $ac_n "checking whether the C++ compiler ($CXX $CXXFLAGS $LDFLAGS) is a cross-compiler""... $ac_c" 1>&6
-echo "configure:926: checking whether the C++ compiler ($CXX $CXXFLAGS $LDFLAGS) is a cross-compiler" >&5
+echo "configure:930: checking whether the C++ compiler ($CXX $CXXFLAGS $LDFLAGS) is a cross-compiler" >&5
 echo "$ac_t""$ac_cv_prog_cxx_cross" 1>&6
 cross_compiling=$ac_cv_prog_cxx_cross
 
 echo $ac_n "checking whether we are using GNU C++""... $ac_c" 1>&6
-echo "configure:931: checking whether we are using GNU C++" >&5
+echo "configure:935: checking whether we are using GNU C++" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gxx'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -936,7 +940,7 @@ else
   yes;
 #endif
 EOF
-if { ac_try='${CXX-g++} -E conftest.C'; { (eval echo configure:940: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
+if { ac_try='${CXX-g++} -E conftest.C'; { (eval echo configure:944: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
   ac_cv_prog_gxx=yes
 else
   ac_cv_prog_gxx=no
@@ -951,7 +955,7 @@ if test $ac_cv_prog_gxx = yes; then
   ac_save_CXXFLAGS="$CXXFLAGS"
   CXXFLAGS=
   echo $ac_n "checking whether ${CXX-g++} accepts -g""... $ac_c" 1>&6
-echo "configure:955: checking whether ${CXX-g++} accepts -g" >&5
+echo "configure:959: checking whether ${CXX-g++} accepts -g" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_cxx_g'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -979,7 +983,7 @@ else
 fi
 
 echo $ac_n "checking how to run the C preprocessor""... $ac_c" 1>&6
-echo "configure:983: checking how to run the C preprocessor" >&5
+echo "configure:987: checking how to run the C preprocessor" >&5
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
@@ -994,13 +998,13 @@ else
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp.
   cat > conftest.$ac_ext <<EOF
-#line 998 "configure"
+#line 1002 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1004: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1008: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1011,13 +1015,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -E -traditional-cpp"
   cat > conftest.$ac_ext <<EOF
-#line 1015 "configure"
+#line 1019 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1021: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1025: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1040,12 +1044,12 @@ fi
 echo "$ac_t""$CPP" 1>&6
 
 echo $ac_n "checking for ANSI C header files""... $ac_c" 1>&6
-echo "configure:1044: checking for ANSI C header files" >&5
+echo "configure:1048: checking for ANSI C header files" >&5
 if eval "test \"`echo '$''{'ac_cv_header_stdc'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1049 "configure"
+#line 1053 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 #include <stdarg.h>
@@ -1053,7 +1057,7 @@ else
 #include <float.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1057: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1061: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1070,7 +1074,7 @@ rm -f conftest*
 if test $ac_cv_header_stdc = yes; then
   # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 1074 "configure"
+#line 1078 "configure"
 #include "confdefs.h"
 #include <string.h>
 EOF
@@ -1088,7 +1092,7 @@ fi
 if test $ac_cv_header_stdc = yes; then
   # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 1092 "configure"
+#line 1096 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 EOF
@@ -1109,7 +1113,7 @@ if test "$cross_compiling" = yes; then
   :
 else
   cat > conftest.$ac_ext <<EOF
-#line 1113 "configure"
+#line 1117 "configure"
 #include "confdefs.h"
 #include <ctype.h>
 #define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
@@ -1120,7 +1124,7 @@ if (XOR (islower (i), ISLOWER (i)) || toupper (i) != TOUPPER (i)) exit(2);
 exit (0); }
 
 EOF
-if { (eval echo configure:1124: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1128: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   :
 else
@@ -1147,17 +1151,17 @@ for ac_hdr in string.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1151: checking for $ac_hdr" >&5
+echo "configure:1155: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1156 "configure"
+#line 1160 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1161: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1165: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1194,7 +1198,7 @@ V_TARCMD="tar cfh"
 V_SIGRET="void"
 
 echo $ac_n "checking for main in -lXbsd""... $ac_c" 1>&6
-echo "configure:1198: checking for main in -lXbsd" >&5
+echo "configure:1202: checking for main in -lXbsd" >&5
 ac_lib_var=`echo Xbsd'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1202,14 +1206,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lXbsd  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1206 "configure"
+#line 1210 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1213: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1217: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1230,7 +1234,7 @@ else
 fi
 
 echo $ac_n "checking for poll in -lsocket""... $ac_c" 1>&6
-echo "configure:1234: checking for poll in -lsocket" >&5
+echo "configure:1238: checking for poll in -lsocket" >&5
 ac_lib_var=`echo socket'_'poll | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1238,7 +1242,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lsocket  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1242 "configure"
+#line 1246 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1249,7 +1253,7 @@ int main() {
 poll()
 ; return 0; }
 EOF
-if { (eval echo configure:1253: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1257: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1270,7 +1274,7 @@ else
 fi
 
 echo $ac_n "checking for gethostbyname in -lnsl""... $ac_c" 1>&6
-echo "configure:1274: checking for gethostbyname in -lnsl" >&5
+echo "configure:1278: checking for gethostbyname in -lnsl" >&5
 ac_lib_var=`echo nsl'_'gethostbyname | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1278,7 +1282,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lnsl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1282 "configure"
+#line 1286 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1289,7 +1293,7 @@ int main() {
 gethostbyname()
 ; return 0; }
 EOF
-if { (eval echo configure:1293: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1297: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1310,7 +1314,7 @@ else
 fi
 
 echo $ac_n "checking for getnodebyname in -ldnet_stub""... $ac_c" 1>&6
-echo "configure:1314: checking for getnodebyname in -ldnet_stub" >&5
+echo "configure:1318: checking for getnodebyname in -ldnet_stub" >&5
 ac_lib_var=`echo dnet_stub'_'getnodebyname | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1318,7 +1322,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldnet_stub  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1322 "configure"
+#line 1326 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1329,7 +1333,7 @@ int main() {
 getnodebyname()
 ; return 0; }
 EOF
-if { (eval echo configure:1333: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1337: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1418,53 +1422,7 @@ fi
 
 TCL_VERS=7.6
 TCL_ALT_VERS=76
-
-if test "$d" != "" ; then 
-	if test ! -d $d ; then 
-		{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
-	fi
-        places="$d \
-                $d/generic \
-		$d/../include/tcl$TCL_VERS \
-                $d/include"
-	echo $ac_n "checking for tcl.h""... $ac_c" 1>&6
-echo "configure:1432: checking for tcl.h" >&5
-        V_INCLUDE_TCL=FAIL
-        for f in $places; do
-                if test -r $f/tcl.h ; then
-                        V_INCLUDE_TCL=-I$f
-                        break   
-                fi      
-        done    
-	echo "$ac_t""$V_INCLUDE_TCL" 1>&6
-        if test "$V_INCLUDE_TCL" = FAIL; then
-		{ echo "configure: error: cannot find tcl.h" 1>&2; exit 1; }
-        fi
-
-	echo $ac_n "checking for libtcl version $TCL_VERS""... $ac_c" 1>&6
-echo "configure:1446: checking for libtcl version $TCL_VERS" >&5
-        places="$d \
-                $d/lib \
-		$d/unix"  
-        V_LIB_TCL=FAIL 
-        for f in $places; do
-                if test -r $f/libtcl$TCL_VERS.a -o -r $f/libtcl$TCL_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_VERS"
-                        break
-                fi
-                if test -r $f/libtcl$TCL_ALT_VERS.a -o -r $f/libtcl$TCL_ALT_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_ALT_VERS"
-                        break
-                fi
-        done
-	echo "$ac_t""$V_LIB_TCL" 1>&6
-        if test "$V_LIB_TCL" = FAIL ; then
-		{ echo "configure: error: cannot find libtcl" 1>&2; exit 1; }
-        fi
-
-	echo $ac_n "checking for library/init.tcl""... $ac_c" 1>&6
-echo "configure:1467: checking for library/init.tcl" >&5
-	places="$d \
+TCL_TCL_PLACES="$d \
 		$d/library \
 		$d/lib/tcl \
 		$d/lib/tcl$TCL_VERS \
@@ -1477,146 +1435,8 @@ echo "configure:1467: checking for library/init.tcl" >&5
 		/usr/lib/tcl$TCL_ALT_VERS \
 		/usr/../lib/tcl$TCL_VERS \
 		/usr/../lib/tcl$TCL_ALT_VERS \
-		/usr/lib"
-	V_LIBRARY_TCL=FAIL
-	for dir in $places; do
-		if test -r $dir/init.tcl ; then
-			V_LIBRARY_TCL=$dir
-			break
-		fi
-	done
-	echo "$ac_t""$V_LIBRARY_TCL" 1>&6
-	if test "$V_LIBRARY_TCL" = FAIL ; then
-		{ echo "configure: error: cannot find tcl runtime libraries" 1>&2; exit 1; }
-	fi
-else
-	V_INCLUDE_TCL=FAIL
-	echo $ac_n "checking for tcl.h""... $ac_c" 1>&6
-echo "configure:1496: checking for tcl.h" >&5
-	places="$PWD/../tcl$TCL_VERS/generic \
-		$PWD/../tcl$TCL_ALT_VERS/generic \
-		/usr/src/local/tcl$TCL_VERS/generic \
-		/usr/src/local/tcl$TCL_ALT_VERS/generic \
-		/usr/local/lib/tcl$TCL_VERS \
-		/usr/local/lib/tcl$TCL_ALT_VERS \
-		/usr/local/include \
-		/usr/local/include/tcl$TCL_VERS \
-		/usr/local/include/tcl$TCL_ALT_VERS \
-		/import/tcl/include/tcl$TCL_VERS \
-		/import/tcl/include/tcl$TCL_ALT_VERS \
-		$prefix/include \
-		$x_includes/tk \
-		$x_includes \
-		/usr/contrib/include \
-		/usr/include"
-	for dir in $places; do
-		if test -r $dir/tcl.h ; then
-			V_INCLUDE_TCL=-I$dir
-			break
-		fi
-	done
-	if test "$V_INCLUDE_TCL" = FAIL; then
-		cat > conftest.$ac_ext <<EOF
-#line 1521 "configure"
-#include "confdefs.h"
-#include <tcl.h>
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1526: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  V_INCLUDE_TCL=""
-else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  V_INCLUDE_TCL=FAIL
-fi
-rm -f conftest*
-	fi
-	echo "$ac_t""$V_INCLUDE_TCL" 1>&6
-	if test "$V_INCLUDE_TCL" = FAIL; then
-		{ echo "configure: error: cannot find tcl.h" 1>&2; exit 1; }
-	fi
-
-	V_LIB_TCL=FAIL
-	echo $ac_n "checking for libtcl$TCL_VERS""... $ac_c" 1>&6
-echo "configure:1547: checking for libtcl$TCL_VERS" >&5
-        places="$PWD/../tcl$TCL_VERS/unix \
-                $PWD/../tcl$TCL_ALT_VERS/unix \
-                /usr/src/local/tcl$TCL_VERS/unix \
-                /usr/src/local/tcl$TCL_ALT_VERS/unix \
-                /usr/local/lib/tcl$TCL_VERS \
-                /usr/local/lib/tcl$TCL_ALT_VERS \
-                /usr/local/lib \
-                $prefix/lib \
-                $x_libs/tk \
-                $x_libs \
-                /usr/contrib/lib \
-                /usr/lib"
-        for f in $places; do
-                if test -r $f/libtcl$TCL_VERS.a -o -r $f/libtcl$TCL_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_VERS"
-                        break
-                fi
-                if test -r $f/libtcl$TCL_ALT_VERS.a -o -r $f/libtcl$TCL_ALT_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_ALT_VERS"
-                        break
-                fi
-        done
-	if test "$V_LIB_TCL" = FAIL; then
-		echo $ac_n "checking for main in -ltcl""... $ac_c" 1>&6
-echo "configure:1572: checking for main in -ltcl" >&5
-ac_lib_var=`echo tcl'_'main | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-ltcl  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 1580 "configure"
-#include "confdefs.h"
-
-int main() {
-main()
-; return 0; }
-EOF
-if { (eval echo configure:1587: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  V_LIB_TCL="-ltcl"
-else
-  echo "$ac_t""no" 1>&6
-V_LIB_TCL="FAIL"
-fi
-
-	fi
-	echo "$ac_t""$V_LIB_TCL" 1>&6
-	if test "$V_LIB_TCL" = FAIL; then
-		{ echo "configure: error: cannot find libtcl" 1>&2; exit 1; }
-	fi
-	if test $solaris ; then
-		V_LIB_TCL="-R$dir $V_LIB_TCL"
-	fi
-
-	echo $ac_n "checking for tcl/init.tcl""... $ac_c" 1>&6
-echo "configure:1618: checking for tcl/init.tcl" >&5
-	V_LIBRARY_TCL=FAIL
-        places="$PWD/../tcl$TCL_VERS/library \
+		/usr/lib \
+		$PWD/../tcl$TCL_VERS/library \
                 $PWD/../tcl$TCL_ALT_VERS/library \
                 /usr/src/local/tcl$TCL_VERS/library \
                 /usr/src/local/tcl$TCL_ALT_VERS/library \
@@ -1631,17 +1451,203 @@ echo "configure:1618: checking for tcl/init.tcl" >&5
                 $x_includes \
                 /usr/contrib/include \
                 /usr/include"
+TCL_H_PLACES="$d/generic \
+		$PWD/../tcl$TCL_VERS/generic \
+		$PWD/../tcl$TCL_ALT_VERS/generic \
+		/usr/src/local/tcl$TCL_VERS/generic \
+		/usr/src/local/tcl$TCL_ALT_VERS/generic \
+		$d/unix \
+		$PWD/../tcl$TCL_VERS/unix \
+		$PWD/../tcl$TCL_ALT_VERS/unix \
+		/usr/src/local/tcl$TCL_VERS/unix \
+		/usr/src/local/tcl$TCL_ALT_VERS/unix \
+		/usr/local/lib/tcl$TCL_VERS \
+		/usr/local/lib/tcl$TCL_ALT_VERS \
+		/usr/local/include \
+		/usr/local/include/tcl$TCL_VERS \
+		/usr/local/include/tcl$TCL_ALT_VERS \
+		/import/tcl/include/tcl$TCL_VERS \
+		/import/tcl/include/tcl$TCL_ALT_VERS \
+		$prefix/include \
+		$x_includes/tk \
+		$x_includes \
+		/usr/contrib/include \
+		/usr/include"
+TCL_LIB_PLACES="$d \
+		$d/lib \
+		$d/unix \
+		$PWD/../tcl$TCL_VERS/unix \
+                $PWD/../tcl$TCL_ALT_VERS/unix \
+                /usr/src/local/tcl$TCL_VERS/unix \
+                /usr/src/local/tcl$TCL_ALT_VERS/unix \
+                /usr/local/lib/tcl$TCL_VERS \
+                /usr/local/lib/tcl$TCL_ALT_VERS \
+                /usr/local/lib \
+                $prefix/lib \
+                $x_libs/tk \
+                $x_libs \
+                /usr/contrib/lib \
+		/usr/lib/tcl$TCL_VERS \
+		/usr/lib/tcl$TCL_ALT_VERS \
+                /usr/lib"
+
+
+NS_PACKAGE_tcl_PARTIAL=false
+NS_PACKAGE_tcl_COMPLETE=true
+
+
+echo $ac_n "checking for tcl.h""... $ac_c" 1>&6
+echo "configure:1501: checking for tcl.h" >&5
+if test "x$d" = "xno"; then
+	: disable header
+	V_INCLUDE_TCL=FAIL
+	NS_PACKAGE_tcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$TCL_H_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_INCLUDE_TCL=""
 	for dir in $places; do
-		if test -r $dir/init.tcl; then
-			V_LIBRARY_TCL=$dir
+		if test -r $dir/tcl.h; then
+			V_INCLUDE_TCL="-I$dir"
 			break
 		fi
 	done
-	echo "$ac_t""$V_LIBRARY_TCL" 1>&6
-	if test "$V_LIBRARY_TCL" = FAIL; then
-		{ echo "configure: error: cannot find tcl runtime libraries" 1>&2; exit 1; }
+	if test "FAIL$V_INCLUDE_TCL" = "FAIL" ; then
+		NS_PACKAGE_tcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+
+				  ac_tr_hdr=HAVE_`echo tcl.h | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+		                cat >> confdefs.h <<EOF
+#define $ac_tr_hdr 1
+EOF
+
+
+		V_INCLUDES="$V_INCLUDE_TCL $V_INCLUDES"
+		V_DEFINES="-D$ac_tr_hdr $V_DEFINES"
+
+		NS_PACKAGE_tcl_PARTIAL=true
+
+		echo "$ac_t""$V_INCLUDE_TCL" 1>&6
 	fi
 fi
+
+
+echo $ac_n "checking for libtcl$TCL_VERS""... $ac_c" 1>&6
+echo "configure:1546: checking for libtcl$TCL_VERS" >&5
+if test "x$d" = "xno"; then
+	: disable library
+	V_LIB_TCL=FAIL
+	NS_PACKAGE_tcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$TCL_LIB_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_LIB_TCL=""
+	full_lib_name="tcl$TCL_VERS"
+	simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
+	simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
+	double_break=false
+	for dir in $places; do
+		for file in $full_lib_name $simple_lib_name $simpler_lib_name
+		do
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+				V_LIB_TCL="-L$dir -l$file"
+				break
+			fi
+		done
+		if $double_break; then
+			break
+		fi
+	done
+	if test "FAIL$V_LIB_TCL" = "FAIL" ; then
+		NS_PACKAGE_tcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+		if test "$solaris"; then
+			V_LIB_TCL="-R$dir $V_LIB_TCL"
+		fi
+
+				ac_tr_lib=HAVE_LIB`echo tcl$TCL_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+		    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+				cat >> confdefs.h <<EOF
+#define $ac_tr_lib 1
+EOF
+
+
+				V_LIBS="$V_LIB_TCL $V_LIBS"
+		V_DEFINES="-D$ac_tr_lib $V_DEFINES"
+
+		NS_PACKAGE_tcl_PARTIAL=true
+
+		echo "$ac_t""$V_LIB_TCL" 1>&6
+	fi
+fi
+
+
+echo $ac_n "checking for init.tcl""... $ac_c" 1>&6
+echo "configure:1605: checking for init.tcl" >&5
+if test "x$d" = "xno"; then
+	: disable header
+	V_LIBRARY_TCL=FAIL
+	NS_PACKAGE_tcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$TCL_TCL_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_LIBRARY_TCL=""
+	for dir in $places; do
+		if test -r $dir/init.tcl; then
+			V_LIBRARY_TCL="-I$dir"
+			break
+		fi
+	done
+	if test "FAIL$V_LIBRARY_TCL" = "FAIL" ; then
+		NS_PACKAGE_tcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+
+		NS_PACKAGE_tcl_PARTIAL=true
+
+		echo "$ac_t""$V_LIBRARY_TCL" 1>&6
+	fi
+fi
+
+
+NS_PACKAGE_tcl_VALID=false
+if $NS_PACKAGE_tcl_PARTIAL; then
+	if $NS_PACKAGE_tcl_COMPLETE; then
+		: All components of tcl found.
+		NS_PACKAGE_tcl_VALID=true
+	else
+		{ echo "configure: error: Installation of tcl seems incomplete.
+Please correct the problem or re-run with --with-tcl=no." 1>&2; exit 1; }
+	fi
+fi
+NS_PACKAGE_tcl_PARTIAL=false
+NS_PACKAGE_tcl_COMPLETE=true
 
 
 
@@ -1657,53 +1663,7 @@ fi
 
 TCL_VERS=7.6
 TCL_ALT_VERS=76
-
-if test "$d" != "" ; then 
-	if test ! -d $d ; then 
-		{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
-	fi
-        places="$d \
-                $d/generic \
-		$d/../include/tcl$TCL_VERS \
-                $d/include"
-	echo $ac_n "checking for tcl.h""... $ac_c" 1>&6
-echo "configure:1671: checking for tcl.h" >&5
-        V_INCLUDE_TCL=FAIL
-        for f in $places; do
-                if test -r $f/tcl.h ; then
-                        V_INCLUDE_TCL=-I$f
-                        break   
-                fi      
-        done    
-	echo "$ac_t""$V_INCLUDE_TCL" 1>&6
-        if test "$V_INCLUDE_TCL" = FAIL; then
-		{ echo "configure: error: cannot find tcl.h" 1>&2; exit 1; }
-        fi
-
-	echo $ac_n "checking for libtcl version $TCL_VERS""... $ac_c" 1>&6
-echo "configure:1685: checking for libtcl version $TCL_VERS" >&5
-        places="$d \
-                $d/lib \
-		$d/unix"  
-        V_LIB_TCL=FAIL 
-        for f in $places; do
-                if test -r $f/libtcl$TCL_VERS.a -o -r $f/libtcl$TCL_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_VERS"
-                        break
-                fi
-                if test -r $f/libtcl$TCL_ALT_VERS.a -o -r $f/libtcl$TCL_ALT_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_ALT_VERS"
-                        break
-                fi
-        done
-	echo "$ac_t""$V_LIB_TCL" 1>&6
-        if test "$V_LIB_TCL" = FAIL ; then
-		{ echo "configure: error: cannot find libtcl" 1>&2; exit 1; }
-        fi
-
-	echo $ac_n "checking for library/init.tcl""... $ac_c" 1>&6
-echo "configure:1706: checking for library/init.tcl" >&5
-	places="$d \
+TCL_TCL_PLACES="$d \
 		$d/library \
 		$d/lib/tcl \
 		$d/lib/tcl$TCL_VERS \
@@ -1716,146 +1676,8 @@ echo "configure:1706: checking for library/init.tcl" >&5
 		/usr/lib/tcl$TCL_ALT_VERS \
 		/usr/../lib/tcl$TCL_VERS \
 		/usr/../lib/tcl$TCL_ALT_VERS \
-		/usr/lib"
-	V_LIBRARY_TCL=FAIL
-	for dir in $places; do
-		if test -r $dir/init.tcl ; then
-			V_LIBRARY_TCL=$dir
-			break
-		fi
-	done
-	echo "$ac_t""$V_LIBRARY_TCL" 1>&6
-	if test "$V_LIBRARY_TCL" = FAIL ; then
-		{ echo "configure: error: cannot find tcl runtime libraries" 1>&2; exit 1; }
-	fi
-else
-	V_INCLUDE_TCL=FAIL
-	echo $ac_n "checking for tcl.h""... $ac_c" 1>&6
-echo "configure:1735: checking for tcl.h" >&5
-	places="$PWD/../tcl$TCL_VERS/generic \
-		$PWD/../tcl$TCL_ALT_VERS/generic \
-		/usr/src/local/tcl$TCL_VERS/generic \
-		/usr/src/local/tcl$TCL_ALT_VERS/generic \
-		/usr/local/lib/tcl$TCL_VERS \
-		/usr/local/lib/tcl$TCL_ALT_VERS \
-		/usr/local/include \
-		/usr/local/include/tcl$TCL_VERS \
-		/usr/local/include/tcl$TCL_ALT_VERS \
-		/import/tcl/include/tcl$TCL_VERS \
-		/import/tcl/include/tcl$TCL_ALT_VERS \
-		$prefix/include \
-		$x_includes/tk \
-		$x_includes \
-		/usr/contrib/include \
-		/usr/include"
-	for dir in $places; do
-		if test -r $dir/tcl.h ; then
-			V_INCLUDE_TCL=-I$dir
-			break
-		fi
-	done
-	if test "$V_INCLUDE_TCL" = FAIL; then
-		cat > conftest.$ac_ext <<EOF
-#line 1760 "configure"
-#include "confdefs.h"
-#include <tcl.h>
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1765: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  V_INCLUDE_TCL=""
-else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  V_INCLUDE_TCL=FAIL
-fi
-rm -f conftest*
-	fi
-	echo "$ac_t""$V_INCLUDE_TCL" 1>&6
-	if test "$V_INCLUDE_TCL" = FAIL; then
-		{ echo "configure: error: cannot find tcl.h" 1>&2; exit 1; }
-	fi
-
-	V_LIB_TCL=FAIL
-	echo $ac_n "checking for libtcl$TCL_VERS""... $ac_c" 1>&6
-echo "configure:1786: checking for libtcl$TCL_VERS" >&5
-        places="$PWD/../tcl$TCL_VERS/unix \
-                $PWD/../tcl$TCL_ALT_VERS/unix \
-                /usr/src/local/tcl$TCL_VERS/unix \
-                /usr/src/local/tcl$TCL_ALT_VERS/unix \
-                /usr/local/lib/tcl$TCL_VERS \
-                /usr/local/lib/tcl$TCL_ALT_VERS \
-                /usr/local/lib \
-                $prefix/lib \
-                $x_libs/tk \
-                $x_libs \
-                /usr/contrib/lib \
-                /usr/lib"
-        for f in $places; do
-                if test -r $f/libtcl$TCL_VERS.a -o -r $f/libtcl$TCL_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_VERS"
-                        break
-                fi
-                if test -r $f/libtcl$TCL_ALT_VERS.a -o -r $f/libtcl$TCL_ALT_VERS.so ; then
-                        V_LIB_TCL="-L$f -ltcl$TCL_ALT_VERS"
-                        break
-                fi
-        done
-	if test "$V_LIB_TCL" = FAIL; then
-		echo $ac_n "checking for main in -ltcl""... $ac_c" 1>&6
-echo "configure:1811: checking for main in -ltcl" >&5
-ac_lib_var=`echo tcl'_'main | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-ltcl  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 1819 "configure"
-#include "confdefs.h"
-
-int main() {
-main()
-; return 0; }
-EOF
-if { (eval echo configure:1826: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  V_LIB_TCL="-ltcl"
-else
-  echo "$ac_t""no" 1>&6
-V_LIB_TCL="FAIL"
-fi
-
-	fi
-	echo "$ac_t""$V_LIB_TCL" 1>&6
-	if test "$V_LIB_TCL" = FAIL; then
-		{ echo "configure: error: cannot find libtcl" 1>&2; exit 1; }
-	fi
-	if test $solaris ; then
-		V_LIB_TCL="-R$dir $V_LIB_TCL"
-	fi
-
-	echo $ac_n "checking for tcl/init.tcl""... $ac_c" 1>&6
-echo "configure:1857: checking for tcl/init.tcl" >&5
-	V_LIBRARY_TCL=FAIL
-        places="$PWD/../tcl$TCL_VERS/library \
+		/usr/lib \
+		$PWD/../tcl$TCL_VERS/library \
                 $PWD/../tcl$TCL_ALT_VERS/library \
                 /usr/src/local/tcl$TCL_VERS/library \
                 /usr/src/local/tcl$TCL_ALT_VERS/library \
@@ -1870,17 +1692,203 @@ echo "configure:1857: checking for tcl/init.tcl" >&5
                 $x_includes \
                 /usr/contrib/include \
                 /usr/include"
+TCL_H_PLACES="$d/generic \
+		$PWD/../tcl$TCL_VERS/generic \
+		$PWD/../tcl$TCL_ALT_VERS/generic \
+		/usr/src/local/tcl$TCL_VERS/generic \
+		/usr/src/local/tcl$TCL_ALT_VERS/generic \
+		$d/unix \
+		$PWD/../tcl$TCL_VERS/unix \
+		$PWD/../tcl$TCL_ALT_VERS/unix \
+		/usr/src/local/tcl$TCL_VERS/unix \
+		/usr/src/local/tcl$TCL_ALT_VERS/unix \
+		/usr/local/lib/tcl$TCL_VERS \
+		/usr/local/lib/tcl$TCL_ALT_VERS \
+		/usr/local/include \
+		/usr/local/include/tcl$TCL_VERS \
+		/usr/local/include/tcl$TCL_ALT_VERS \
+		/import/tcl/include/tcl$TCL_VERS \
+		/import/tcl/include/tcl$TCL_ALT_VERS \
+		$prefix/include \
+		$x_includes/tk \
+		$x_includes \
+		/usr/contrib/include \
+		/usr/include"
+TCL_LIB_PLACES="$d \
+		$d/lib \
+		$d/unix \
+		$PWD/../tcl$TCL_VERS/unix \
+                $PWD/../tcl$TCL_ALT_VERS/unix \
+                /usr/src/local/tcl$TCL_VERS/unix \
+                /usr/src/local/tcl$TCL_ALT_VERS/unix \
+                /usr/local/lib/tcl$TCL_VERS \
+                /usr/local/lib/tcl$TCL_ALT_VERS \
+                /usr/local/lib \
+                $prefix/lib \
+                $x_libs/tk \
+                $x_libs \
+                /usr/contrib/lib \
+		/usr/lib/tcl$TCL_VERS \
+		/usr/lib/tcl$TCL_ALT_VERS \
+                /usr/lib"
+
+
+NS_PACKAGE_tcl_PARTIAL=false
+NS_PACKAGE_tcl_COMPLETE=true
+
+
+echo $ac_n "checking for tcl.h""... $ac_c" 1>&6
+echo "configure:1742: checking for tcl.h" >&5
+if test "x$d" = "xno"; then
+	: disable header
+	V_INCLUDE_TCL=FAIL
+	NS_PACKAGE_tcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$TCL_H_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_INCLUDE_TCL=""
 	for dir in $places; do
-		if test -r $dir/init.tcl; then
-			V_LIBRARY_TCL=$dir
+		if test -r $dir/tcl.h; then
+			V_INCLUDE_TCL="-I$dir"
 			break
 		fi
 	done
-	echo "$ac_t""$V_LIBRARY_TCL" 1>&6
-	if test "$V_LIBRARY_TCL" = FAIL; then
-		{ echo "configure: error: cannot find tcl runtime libraries" 1>&2; exit 1; }
+	if test "FAIL$V_INCLUDE_TCL" = "FAIL" ; then
+		NS_PACKAGE_tcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+
+				  ac_tr_hdr=HAVE_`echo tcl.h | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+		                cat >> confdefs.h <<EOF
+#define $ac_tr_hdr 1
+EOF
+
+
+		V_INCLUDES="$V_INCLUDE_TCL $V_INCLUDES"
+		V_DEFINES="-D$ac_tr_hdr $V_DEFINES"
+
+		NS_PACKAGE_tcl_PARTIAL=true
+
+		echo "$ac_t""$V_INCLUDE_TCL" 1>&6
 	fi
 fi
+
+
+echo $ac_n "checking for libtcl$TCL_VERS""... $ac_c" 1>&6
+echo "configure:1787: checking for libtcl$TCL_VERS" >&5
+if test "x$d" = "xno"; then
+	: disable library
+	V_LIB_TCL=FAIL
+	NS_PACKAGE_tcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$TCL_LIB_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_LIB_TCL=""
+	full_lib_name="tcl$TCL_VERS"
+	simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
+	simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
+	double_break=false
+	for dir in $places; do
+		for file in $full_lib_name $simple_lib_name $simpler_lib_name
+		do
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+				V_LIB_TCL="-L$dir -l$file"
+				break
+			fi
+		done
+		if $double_break; then
+			break
+		fi
+	done
+	if test "FAIL$V_LIB_TCL" = "FAIL" ; then
+		NS_PACKAGE_tcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+		if test "$solaris"; then
+			V_LIB_TCL="-R$dir $V_LIB_TCL"
+		fi
+
+				ac_tr_lib=HAVE_LIB`echo tcl$TCL_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+		    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+				cat >> confdefs.h <<EOF
+#define $ac_tr_lib 1
+EOF
+
+
+				V_LIBS="$V_LIB_TCL $V_LIBS"
+		V_DEFINES="-D$ac_tr_lib $V_DEFINES"
+
+		NS_PACKAGE_tcl_PARTIAL=true
+
+		echo "$ac_t""$V_LIB_TCL" 1>&6
+	fi
+fi
+
+
+echo $ac_n "checking for init.tcl""... $ac_c" 1>&6
+echo "configure:1846: checking for init.tcl" >&5
+if test "x$d" = "xno"; then
+	: disable header
+	V_LIBRARY_TCL=FAIL
+	NS_PACKAGE_tcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$TCL_TCL_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_LIBRARY_TCL=""
+	for dir in $places; do
+		if test -r $dir/init.tcl; then
+			V_LIBRARY_TCL="-I$dir"
+			break
+		fi
+	done
+	if test "FAIL$V_LIBRARY_TCL" = "FAIL" ; then
+		NS_PACKAGE_tcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+
+		NS_PACKAGE_tcl_PARTIAL=true
+
+		echo "$ac_t""$V_LIBRARY_TCL" 1>&6
+	fi
+fi
+
+
+NS_PACKAGE_tcl_VALID=false
+if $NS_PACKAGE_tcl_PARTIAL; then
+	if $NS_PACKAGE_tcl_COMPLETE; then
+		: All components of tcl found.
+		NS_PACKAGE_tcl_VALID=true
+	else
+		{ echo "configure: error: Installation of tcl seems incomplete.
+Please correct the problem or re-run with --with-tcl=no." 1>&2; exit 1; }
+	fi
+fi
+NS_PACKAGE_tcl_PARTIAL=false
+NS_PACKAGE_tcl_COMPLETE=true
 
 
 
@@ -1895,77 +1903,41 @@ else
   d=""
 fi
 
+
 TK_VERS=4.2
 TK_ALT_VERS=42
-if test "$d" != "" ; then 
-	if test ! -d $d ; then 
-		{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
-	fi
-        places="$d \
-                $d/generic \
-                $d/../include/tk$TK_VERS \
-                $d/include"
-	echo $ac_n "checking for tk.h""... $ac_c" 1>&6
-echo "configure:1910: checking for tk.h" >&5
-	V_INCLUDE_TK=FAIL
-        for f in $places; do
-                if test -r $f/tk.h ; then
-                        V_INCLUDE_TK=-I$f
-                        break
-                fi
-        done
-	echo "$ac_t""$V_INCLUDE_TK" 1>&6
-        if test "V_INCLUDE_TK" = FAIL; then
-		{ echo "configure: error: cannot find tk.h" 1>&2; exit 1; }
-        fi
-
-	echo $ac_n "checking for libtk$TK_VERS""... $ac_c" 1>&6
-echo "configure:1924: checking for libtk$TK_VERS" >&5
-        places="$d \ 
-                $d/lib \
-		$d/unix" 
-        V_LIB_TK=FAIL
-        for f in $places; do
-                if test -r $f/libtk$TK_VERS.a -o -r $f/libtk$TK_VERS.so ; then
-                        V_LIB_TK="-L$f -ltk$TK_VERS"
-                        break
-                fi
-                if test -r $f/libtk$TK_ALT_VERS.a -o -r $f/libtk$TK_ALT_VERS.so ; then 
-                        V_LIB_TK="-L$f -ltk$TK_ALT_VERS"
-                        break
-                fi
-        done
-	echo "$ac_t""$V_LIB_TK" 1>&6
-        if test "$V_LIB_TK" = FAIL ; then
-		{ echo "configure: error: cannot find libtk$TK_VERS" 1>&2; exit 1; }
-        fi
-	echo $ac_n "checking for library/tk.tcl""... $ac_c" 1>&6
-echo "configure:1944: checking for library/tk.tcl" >&5
-        places="$d \
+TK_TCL_PLACES="$d \
                 $d/library \
                 $d/lib/tk \
                 $d/lib/tk$TK_VERS \
                 $d/lib/tk$TK_ALT_VERS \
+                $d/../lib/tk \
                 $d/../lib/tk$TK_VERS \
                 $d/../lib/tk$TK_ALT_VERS \
-                $d/lib" 
-        V_LIBRARY_TK=FAIL
-        for dir in $places; do
-                if test -r $dir/tk.tcl ; then
-                        V_LIBRARY_TK=$dir
-                        break
-                fi
-        done
-	echo "$ac_t""$V_LIBRARY_TK" 1>&6
-        if test $V_LIBRARY_TK = FAIL ; then
-		{ echo "configure: error: cannot find tk runtime libraries" 1>&2; exit 1; }
-        fi 
-
-else
-        V_INCLUDE_TK=FAIL
-	echo $ac_n "checking for tk.h""... $ac_c" 1>&6
-echo "configure:1968: checking for tk.h" >&5
-        places="$PWD/../tk$TK_VERS/generic \
+                $d/lib \
+		$PWD/../tk/library \
+		$PWD/../tk$TK_VERS/library \
+                $PWD/../tk$TK_ALT_VERS/library \
+                /usr/src/local/tk$TK_VERS/library \
+                /usr/src/local/tk$TK_ALT_VERS/library \
+                /usr/local/lib/tk$TK_VERS \
+                /usr/local/lib/tk$TK_ALT_VERS \
+                /usr/local/include \ 
+                /usr/local/include/tk$TK_VERS \
+                /usr/local/include/tk$TK_ALT_VERS \
+                /usr/lib/tk$TK_VERS \
+                /usr/lib/tk$TK_ALT_VERS \
+                $prefix/include \
+		$prefix/lib/tk \
+                $x_includes/tk \
+                $x_includes \
+                /usr/contrib/include \
+                /usr/include"
+TK_H_PLACES="$d \
+                $d/generic \
+                $d/../include/tk$TK_VERS \
+                $d/include \
+		$PWD/../tk$TK_VERS/generic \
                 $PWD/../tk$TK_ALT_VERS/generic \
                 /usr/src/local/tk$TK_VERS/generic \
                 /usr/src/local/tk$TK_ALT_VERS/generic \
@@ -1981,42 +1953,10 @@ echo "configure:1968: checking for tk.h" >&5
                 $x_includes \
                 /usr/contrib/include \
                 /usr/include"
-        for dir in $places; do
-                if test -r $dir/tk.h ; then
-                        V_INCLUDE_TK=-I$dir
-                        break
-                fi
-        done
-        if test "$V_INCLUDE_TK" = FAIL; then
-                cat > conftest.$ac_ext <<EOF
-#line 1993 "configure"
-#include "confdefs.h"
-#include <tk.h>
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1998: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  V_INCLUDE_TK=""
-else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  V_INCLUDE_TK=FAIL
-fi
-rm -f conftest*           
-        fi      
-	echo "$ac_t""$V_INCLUDE_TK" 1>&6
-        if test "$V_INCLUDE_TK" = FAIL; then
-		{ echo "configure: error: cannot find tk.h" 1>&2; exit 1; }
-        fi      
-
-        V_LIB_TK=FAIL
-	echo $ac_n "checking for libtk$TK_VERS""... $ac_c" 1>&6
-echo "configure:2019: checking for libtk$TK_VERS" >&5
-        places="$PWD/../tk$TK_VERS/unix \
+TK_LIB_PLACES="$d \ 
+                $d/lib \
+		$d/unix \
+		$PWD/../tk$TK_VERS/unix \
                 $PWD/../tk$TK_ALT_VERS/unix \
                 /usr/src/local/tk$TK_VERS/unix \
                 /usr/src/local/tk$TK_ALT_VERS/unix \
@@ -2028,93 +1968,165 @@ echo "configure:2019: checking for libtk$TK_VERS" >&5
                 $x_libs \
                 /usr/contrib/lib \
                 /usr/lib"
-        for f in $places; do
-                if test -r $f/libtk$TK_VERS.a -o -r $f/libtk$TK_VERS.so ;
- then
-                        V_LIB_TK="-L$f -ltk$TK_VERS"
-                        break
-                fi
-                if test -r $f/libtk$TK_ALT_VERS.a -o -r $f/libtk$TK_ALT_VERS.so ; then 
-                        V_LIB_TK="-L$f -ltk$TK_ALT_VERS"
-                        break
-                fi
-        done    
-        if test "$V_LIB_TK" = FAIL; then
-                echo $ac_n "checking for main in -ltk""... $ac_c" 1>&6
-echo "configure:2045: checking for main in -ltk" >&5
-ac_lib_var=`echo tk'_'main | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-ltk  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 2053 "configure"
-#include "confdefs.h"
 
-int main() {
-main()
-; return 0; }
+
+NS_PACKAGE_tk_PARTIAL=false
+NS_PACKAGE_tk_COMPLETE=true
+
+
+echo $ac_n "checking for tk.h""... $ac_c" 1>&6
+echo "configure:1979: checking for tk.h" >&5
+if test "x$d" = "xno"; then
+	: disable header
+	V_INCLUDE_TK=FAIL
+	NS_PACKAGE_tk_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$TK_H_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_INCLUDE_TK=""
+	for dir in $places; do
+		if test -r $dir/tk.h; then
+			V_INCLUDE_TK="-I$dir"
+			break
+		fi
+	done
+	if test "FAIL$V_INCLUDE_TK" = "FAIL" ; then
+		NS_PACKAGE_tk_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+
+				  ac_tr_hdr=HAVE_`echo tk.h | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+		                cat >> confdefs.h <<EOF
+#define $ac_tr_hdr 1
 EOF
-if { (eval echo configure:2060: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
+
+
+		V_INCLUDES="$V_INCLUDE_TK $V_INCLUDES"
+		V_DEFINES="-D$ac_tr_hdr $V_DEFINES"
+
+		NS_PACKAGE_tk_PARTIAL=true
+
+		echo "$ac_t""$V_INCLUDE_TK" 1>&6
+	fi
+fi
+
+
+echo $ac_n "checking for libtk$TK_VERS""... $ac_c" 1>&6
+echo "configure:2024: checking for libtk$TK_VERS" >&5
+if test "x$d" = "xno"; then
+	: disable library
+	V_LIB_TK=FAIL
+	NS_PACKAGE_tk_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
 else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
+	places="$TK_LIB_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
 
+	V_LIB_TK=""
+	full_lib_name="tk$TK_VERS"
+	simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
+	simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
+	double_break=false
+	for dir in $places; do
+		for file in $full_lib_name $simple_lib_name $simpler_lib_name
+		do
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+				V_LIB_TK="-L$dir -l$file"
+				break
+			fi
+		done
+		if $double_break; then
+			break
+		fi
+	done
+	if test "FAIL$V_LIB_TK" = "FAIL" ; then
+		NS_PACKAGE_tk_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+		if test "$solaris"; then
+			V_LIB_TK="-R$dir $V_LIB_TK"
+		fi
+
+				ac_tr_lib=HAVE_LIB`echo tk$TK_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+		    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+				cat >> confdefs.h <<EOF
+#define $ac_tr_lib 1
+EOF
+
+
+				V_LIBS="$V_LIB_TK $V_LIBS"
+		V_DEFINES="-D$ac_tr_lib $V_DEFINES"
+
+		NS_PACKAGE_tk_PARTIAL=true
+
+		echo "$ac_t""$V_LIB_TK" 1>&6
+	fi
 fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  V_LIB_TK="-ltk"
+
+
+echo $ac_n "checking for tk.tcl""... $ac_c" 1>&6
+echo "configure:2083: checking for tk.tcl" >&5
+if test "x$d" = "xno"; then
+	: disable header
+	V_LIBRARY_TK=FAIL
+	NS_PACKAGE_tk_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
 else
-  echo "$ac_t""no" 1>&6
-V_LIB_TK="FAIL"
+	places="$TK_TCL_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_LIBRARY_TK=""
+	for dir in $places; do
+		if test -r $dir/tk.tcl; then
+			V_LIBRARY_TK="-I$dir"
+			break
+		fi
+	done
+	if test "FAIL$V_LIBRARY_TK" = "FAIL" ; then
+		NS_PACKAGE_tk_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+
+		NS_PACKAGE_tk_PARTIAL=true
+
+		echo "$ac_t""$V_LIBRARY_TK" 1>&6
+	fi
 fi
 
-        fi      
-	echo "$ac_t""$V_LIB_TK" 1>&6
-        if test "$V_LIB_TK" = FAIL; then
-		{ echo "configure: error: cannot find libtk$TK_VERS" 1>&2; exit 1; }
-        fi
-        if test $solaris ; then
-                V_LIB_TK="-R$dir $V_LIB_TK"
-        fi
 
-	echo $ac_n "checking library/tk.tcl""... $ac_c" 1>&6
-echo "configure:2091: checking library/tk.tcl" >&5
-        V_LIBRARY_TK=FAIL
-        places="$PWD/../tk$TK_VERS/library \
-                $PWD/../tk$TK_ALT_VERS/library \
-                /usr/src/local/tk$TK_VERS/library \
-                /usr/src/local/tk$TK_ALT_VERS/library \
-                /usr/local/lib/tk$TK_VERS \
-                /usr/local/lib/tk$TK_ALT_VERS \
-                /usr/local/include \ 
-                /usr/local/include/tk$TK_VERS \
-                /usr/local/include/tk$TK_ALT_VERS \
-                $prefix/include \
-		$prefix/lib/tk \
-                $x_includes/tk \
-                $x_includes \
-                /usr/contrib/include \
-                /usr/include"
-        for dir in $places; do
-                if test -r $dir/tk.tcl; then
-                        V_LIBRARY_TK=$dir
-                        break
-                fi
-        done
-	echo "$ac_t""$V_LIBRARY_TK" 1>&6
-        if test "$V_LIBRARY_TK" = FAIL; then
-		{ echo "configure: error: cannot find tk runtime libraries" 1>&2; exit 1; }
-        fi
+NS_PACKAGE_tk_VALID=false
+if $NS_PACKAGE_tk_PARTIAL; then
+	if $NS_PACKAGE_tk_COMPLETE; then
+		: All components of tk found.
+		NS_PACKAGE_tk_VALID=true
+	else
+		{ echo "configure: error: Installation of tk seems incomplete.
+Please correct the problem or re-run with --with-tk=no." 1>&2; exit 1; }
+	fi
 fi
+NS_PACKAGE_tk_PARTIAL=false
+NS_PACKAGE_tk_COMPLETE=true
+
 
 if test -r $V_LIBRARY_TK/optionMenu.tcl ; then
 	V_TKDOSNAMES='$(LIBRARY_TK)/optionMenu.tcl $(LIBRARY_TK)/scrollbar.tcl'
@@ -2128,7 +2140,6 @@ fi
 
 
 
-
 # Check whether --with-otcl or --without-otcl was given.
 if test "${with_otcl+set}" = set; then
   withval="$with_otcl"
@@ -2137,46 +2148,11 @@ else
   d=""
 fi
 
-if test "$d" != "" ; then 
-	if test ! -d $d ; then 
-		{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
-	fi
-	echo $ac_n "checking for otcl.h""... $ac_c" 1>&6
-echo "configure:2146: checking for otcl.h" >&5
-	places="$d \
-		$d/include"
-	V_INCLUDE_OTCL=FAIL
-	for f in $places; do
-		if test -r $f/otcl.h ; then
-			V_INCLUDE_OTCL=-I$f
-			break
-		fi
-	done
-	echo "$ac_t""$V_INCLUDE_OTCL" 1>&6
-	if test "V_INCLUDE_OTCL" = FAIL; then
-		{ echo "configure: error: cannot find otcl.h" 1>&2; exit 1; }
-	fi
 
-	echo $ac_n "checking for libotcl""... $ac_c" 1>&6
-echo "configure:2162: checking for libotcl" >&5
-	places="$d \
-		$d/lib"
-	V_LIB_OTCL=FAIL
-	for f in $places; do
-		if test -r $f/libotcl.a ; then
-			V_LIB_OTCL="-L$f -lotcl"
-			break
-		fi
-	done
-	echo "$ac_t""$V_LIB_OTCL" 1>&6
-	if test "$V_LIB_OTCL" = FAIL ; then
-		{ echo "configure: error: cannot find libotcl" 1>&2; exit 1; }
-	fi
-else
-	V_INCLUDE_OTCL=FAIL
-	echo $ac_n "checking for otcl.h""... $ac_c" 1>&6
-echo "configure:2179: checking for otcl.h" >&5
-	places="$PWD/../otcl \
+OTCL_VERS=0.96
+OTCL_H_PLACES="$d \
+		$d/include \
+		$PWD/../otcl \
 		/usr/src/local/otcl \
 		$PWD/../otcl-0.96 \
 		/import/otcl/include \
@@ -2185,42 +2161,8 @@ echo "configure:2179: checking for otcl.h" >&5
 		/usr/local/include \
 		/usr/contrib/include \
 		/usr/include"
-	for dir in $places; do
-		if test -r $dir/otcl.h ; then
-			V_INCLUDE_OTCL=-I$dir
-			break
-		fi
-	done
-	if test "$V_INCLUDE_OTCL" = FAIL; then
-		cat > conftest.$ac_ext <<EOF
-#line 2197 "configure"
-#include "confdefs.h"
-#include <otcl.h>
-EOF
-ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2202: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
-ac_err=`grep -v '^ *+' conftest.out`
-if test -z "$ac_err"; then
-  rm -rf conftest*
-  V_INCLUDE_OTCL=""
-else
-  echo "$ac_err" >&5
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  V_INCLUDE_OTCL=FAIL
-fi
-rm -f conftest*
-	fi
-	echo "$ac_t""$V_INCLUDE_OTCL" 1>&6
-	if test "$V_INCLUDE_OTCL" = FAIL; then
-		{ echo "configure: error: cannot find otcl.h" 1>&2; exit 1; }
-	fi
-
-	echo $ac_n "checking for libotcl""... $ac_c" 1>&6
-echo "configure:2222: checking for libotcl" >&5
-	V_LIB_OTCL=FAIL
-	places="\
+OTCL_LIB_PLACES="$d \
+		$d/lib \
 		$PWD/../otcl \
 		$PWD/../otcl-0.96 \
 		$prefix/lib \
@@ -2231,59 +2173,128 @@ echo "configure:2222: checking for libotcl" >&5
 		/usr/src/local/otcl \
 		/usr/src/local/otcl-0.96 \
 		"
+
+
+NS_PACKAGE_otcl_PARTIAL=false
+NS_PACKAGE_otcl_COMPLETE=true
+
+
+echo $ac_n "checking for otcl.h""... $ac_c" 1>&6
+echo "configure:2184: checking for otcl.h" >&5
+if test "x$d" = "xno"; then
+	: disable header
+	V_INCLUDE_OTCL=FAIL
+	NS_PACKAGE_otcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$OTCL_H_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
+	fi
+
+	V_INCLUDE_OTCL=""
 	for dir in $places; do
-		if test -r $dir/libotcl.so -o -r $dir/libotcl.a; then
-			V_LIB_OTCL="-L$dir -lotcl"
+		if test -r $dir/otcl.h; then
+			V_INCLUDE_OTCL="-I$dir"
 			break
 		fi
 	done
-	if test "$V_LIB_OTCL" = FAIL; then
-		echo $ac_n "checking for main in -lotcl""... $ac_c" 1>&6
-echo "configure:2243: checking for main in -lotcl" >&5
-ac_lib_var=`echo otcl'_'main | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-lotcl  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 2251 "configure"
-#include "confdefs.h"
+	if test "FAIL$V_INCLUDE_OTCL" = "FAIL" ; then
+		NS_PACKAGE_otcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
 
-int main() {
-main()
-; return 0; }
+				  ac_tr_hdr=HAVE_`echo otcl.h | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+		                cat >> confdefs.h <<EOF
+#define $ac_tr_hdr 1
 EOF
-if { (eval echo configure:2258: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
 
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  V_LIB_OTCL="-lotcl"
-else
-  echo "$ac_t""no" 1>&6
-V_LIB_OTCL="FAIL"
+
+		V_INCLUDES="$V_INCLUDE_OTCL $V_INCLUDES"
+		V_DEFINES="-D$ac_tr_hdr $V_DEFINES"
+
+		NS_PACKAGE_otcl_PARTIAL=true
+
+		echo "$ac_t""$V_INCLUDE_OTCL" 1>&6
+	fi
 fi
 
+
+echo $ac_n "checking for libotcl$OTCL_VERS""... $ac_c" 1>&6
+echo "configure:2229: checking for libotcl$OTCL_VERS" >&5
+if test "x$d" = "xno"; then
+	: disable library
+	V_LIB_OTCL=FAIL
+	NS_PACKAGE_otcl_COMPLETE=false
+	echo "$ac_t""no" 1>&6
+
+else
+	places="$OTCL_LIB_PLACES"
+	if test "x$d" != ""; then
+		if test ! -d $d; then
+			{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
+		fi
+		places="$d $places"
 	fi
-	echo "$ac_t""$V_LIB_OTCL" 1>&6
-	if test "$V_LIB_OTCL" = FAIL; then
-		{ echo "configure: error: cannot find libotcl" 1>&2; exit 1; }
-	fi
-	if test $solaris ; then
-		V_LIB_OTCL="-R$dir $V_LIB_OTCL"
+
+	V_LIB_OTCL=""
+	full_lib_name="otcl$OTCL_VERS"
+	simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
+	simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
+	double_break=false
+	for dir in $places; do
+		for file in $full_lib_name $simple_lib_name $simpler_lib_name
+		do
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+				V_LIB_OTCL="-L$dir -l$file"
+				break
+			fi
+		done
+		if $double_break; then
+			break
+		fi
+	done
+	if test "FAIL$V_LIB_OTCL" = "FAIL" ; then
+		NS_PACKAGE_otcl_COMPLETE=false
+		echo "$ac_t""no" 1>&6
+	else
+		if test "$solaris"; then
+			V_LIB_OTCL="-R$dir $V_LIB_OTCL"
+		fi
+
+				ac_tr_lib=HAVE_LIB`echo otcl$OTCL_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+		    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+				cat >> confdefs.h <<EOF
+#define $ac_tr_lib 1
+EOF
+
+
+				V_LIBS="$V_LIB_OTCL $V_LIBS"
+		V_DEFINES="-D$ac_tr_lib $V_DEFINES"
+
+		NS_PACKAGE_otcl_PARTIAL=true
+
+		echo "$ac_t""$V_LIB_OTCL" 1>&6
 	fi
 fi
+
+
+NS_PACKAGE_otcl_VALID=false
+if $NS_PACKAGE_otcl_PARTIAL; then
+	if $NS_PACKAGE_otcl_COMPLETE; then
+		: All components of otcl found.
+		NS_PACKAGE_otcl_VALID=true
+	else
+		{ echo "configure: error: Installation of otcl seems incomplete.
+Please correct the problem or re-run with --with-otcl=no." 1>&2; exit 1; }
+	fi
+fi
+NS_PACKAGE_otcl_PARTIAL=false
+NS_PACKAGE_otcl_COMPLETE=true
 
 
 
@@ -2296,13 +2307,14 @@ else
   d=""
 fi
 
+
 if test "$d" != "" ; then 
 	if test ! -d $d ; then 
 		{ echo "configure: error: $d is not a directory" 1>&2; exit 1; }
 	fi
 	V_INCLUDE_BTCL=FAIL
 	echo $ac_n "checking for Tcl.h""... $ac_c" 1>&6
-echo "configure:2306: checking for Tcl.h" >&5
+echo "configure:2318: checking for Tcl.h" >&5
         places="$d \
                 $d/include"
         for f in $places; do
@@ -2317,7 +2329,7 @@ echo "configure:2306: checking for Tcl.h" >&5
         fi
 
 	echo $ac_n "checking for libTcl""... $ac_c" 1>&6
-echo "configure:2321: checking for libTcl" >&5
+echo "configure:2333: checking for libTcl" >&5
         places="$d \
                 $d/lib"  
 	V_LIB_BTCL=FAIL
@@ -2333,7 +2345,7 @@ echo "configure:2321: checking for libTcl" >&5
 	fi
 
 	echo $ac_n "checking for tcl2c++""... $ac_c" 1>&6
-echo "configure:2337: checking for tcl2c++" >&5
+echo "configure:2349: checking for tcl2c++" >&5
 	places="$d \
 		"
 	V_TCL2CPP=FAIL
@@ -2350,7 +2362,7 @@ echo "configure:2337: checking for tcl2c++" >&5
 else
 	V_INCLUDE_BTCL=FAIL
 	echo $ac_n "checking for Tcl.h""... $ac_c" 1>&6
-echo "configure:2354: checking for Tcl.h" >&5
+echo "configure:2366: checking for Tcl.h" >&5
         places="$PWD/../Tcl \
                 /usr/src/local/Tcl \
                 $PWD/../Tcl-1.0 \
@@ -2368,12 +2380,12 @@ echo "configure:2354: checking for Tcl.h" >&5
         done
 	if test "$V_INCLUDE_BTCL" = FAIL; then
 		cat > conftest.$ac_ext <<EOF
-#line 2372 "configure"
+#line 2384 "configure"
 #include "confdefs.h"
 #include <Tcl.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2377: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2389: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2394,7 +2406,7 @@ rm -f conftest*
 
 	V_LIB_BTCL=FAIL
 	echo $ac_n "checking for libTcl""... $ac_c" 1>&6
-echo "configure:2398: checking for libTcl" >&5
+echo "configure:2410: checking for libTcl" >&5
         places="$PWD/../Tcl \
                 $PWD/../Tcl-1.0 \
                 $prefix/lib \
@@ -2412,7 +2424,7 @@ echo "configure:2398: checking for libTcl" >&5
         done    
         if test "$V_LIB_BTCL" = FAIL; then
 		echo $ac_n "checking for main in -lTcl""... $ac_c" 1>&6
-echo "configure:2416: checking for main in -lTcl" >&5
+echo "configure:2428: checking for main in -lTcl" >&5
 ac_lib_var=`echo Tcl'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2420,14 +2432,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lTcl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2424 "configure"
+#line 2436 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:2431: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:2443: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2458,7 +2470,7 @@ fi
 	fi
 
 	echo $ac_n "checking for tcl2c++""... $ac_c" 1>&6
-echo "configure:2462: checking for tcl2c++" >&5
+echo "configure:2474: checking for tcl2c++" >&5
 	V_TCL2CPP=FAIL
         places="\
                 $PWD/../Tcl \
@@ -2604,12 +2616,12 @@ xincdirs="\
 echo "checking for X11 header files"
 if test "$x_includes" = NONE ; then
 	cat > conftest.$ac_ext <<EOF
-#line 2608 "configure"
+#line 2620 "configure"
 #include "confdefs.h"
 #include <X11/Intrinsic.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2613: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2625: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2643,7 +2655,7 @@ fi
 echo "checking for X11 library archive"
 if test "$x_libraries" = NONE ; then
 	echo $ac_n "checking for XOpenDisplay in -lX11""... $ac_c" 1>&6
-echo "configure:2647: checking for XOpenDisplay in -lX11" >&5
+echo "configure:2659: checking for XOpenDisplay in -lX11" >&5
 ac_lib_var=`echo X11'_'XOpenDisplay | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2651,7 +2663,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lX11  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2655 "configure"
+#line 2667 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2662,7 +2674,7 @@ int main() {
 XOpenDisplay()
 ; return 0; }
 EOF
-if { (eval echo configure:2666: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:2678: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2702,7 +2714,7 @@ V_LIB_X11=-lX11
 if test -n "$V_SHM" ; then
 	if test -z "$x_libraries" ; then
 		echo $ac_n "checking for XShmAttach in -lXext""... $ac_c" 1>&6
-echo "configure:2706: checking for XShmAttach in -lXext" >&5
+echo "configure:2718: checking for XShmAttach in -lXext" >&5
 ac_lib_var=`echo Xext'_'XShmAttach | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2710,7 +2722,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lXext -lX11 $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2714 "configure"
+#line 2726 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2721,7 +2733,7 @@ int main() {
 XShmAttach()
 ; return 0; }
 EOF
-if { (eval echo configure:2725: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:2737: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2792,7 +2804,7 @@ NS_PACKAGE_tcldebug_COMPLETE=true
 
 
 echo $ac_n "checking for libtcldbg""... $ac_c" 1>&6
-echo "configure:2796: checking for libtcldbg" >&5
+echo "configure:2808: checking for libtcldbg" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TCLDEBUG=FAIL
@@ -2809,9 +2821,19 @@ else
 	fi
 
 	V_LIB_TCLDEBUG=""
-	for f in $places; do
-		if test -r $f/libtcldbg.so -o -r $f/libtcldbg.a; then
-			V_LIB_TCLDEBUG="-L$f -ltcldbg"
+	full_lib_name="tcldbg"
+	simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
+	simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
+	double_break=false
+	for dir in $places; do
+		for file in $full_lib_name $simple_lib_name $simpler_lib_name
+		do
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+				V_LIB_TCLDEBUG="-L$dir -l$file"
+				break
+			fi
+		done
+		if $double_break; then
 			break
 		fi
 	done
@@ -2820,7 +2842,7 @@ else
 		echo "$ac_t""no" 1>&6
 	else
 		if test "$solaris"; then
-			V_LIB_TCLDEBUG="-R$f $V_LIB_TCLDEBUG"
+			V_LIB_TCLDEBUG="-R$dir $V_LIB_TCLDEBUG"
 		fi
 
 				ac_tr_lib=HAVE_LIB`echo tcldbg | sed -e 's/[^a-zA-Z0-9_]/_/g' \
@@ -2880,7 +2902,7 @@ NS_PACKAGE_dmalloc_COMPLETE=true
 
 
 echo $ac_n "checking for libdmalloc""... $ac_c" 1>&6
-echo "configure:2884: checking for libdmalloc" >&5
+echo "configure:2906: checking for libdmalloc" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_DMALLOC=FAIL
@@ -2897,9 +2919,19 @@ else
 	fi
 
 	V_LIB_DMALLOC=""
-	for f in $places; do
-		if test -r $f/libdmalloc.so -o -r $f/libdmalloc.a; then
-			V_LIB_DMALLOC="-L$f -ldmalloc"
+	full_lib_name="dmalloc"
+	simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
+	simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
+	double_break=false
+	for dir in $places; do
+		for file in $full_lib_name $simple_lib_name $simpler_lib_name
+		do
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+				V_LIB_DMALLOC="-L$dir -l$file"
+				break
+			fi
+		done
+		if $double_break; then
 			break
 		fi
 	done
@@ -2908,7 +2940,7 @@ else
 		echo "$ac_t""no" 1>&6
 	else
 		if test "$solaris"; then
-			V_LIB_DMALLOC="-R$f $V_LIB_DMALLOC"
+			V_LIB_DMALLOC="-R$dir $V_LIB_DMALLOC"
 		fi
 
 				ac_tr_lib=HAVE_LIB`echo dmalloc | sed -e 's/[^a-zA-Z0-9_]/_/g' \
@@ -2929,7 +2961,7 @@ fi
 
 
 echo $ac_n "checking for dmalloc.h""... $ac_c" 1>&6
-echo "configure:2933: checking for dmalloc.h" >&5
+echo "configure:2965: checking for dmalloc.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_DMALLOC=FAIL
@@ -2946,9 +2978,9 @@ else
 	fi
 
 	V_HEADER_DMALLOC=""
-	for f in $places; do
-		if test -r $f/dmalloc.h; then
-			V_HEADER_DMALLOC="-I$f"
+	for dir in $places; do
+		if test -r $dir/dmalloc.h; then
+			V_HEADER_DMALLOC="-I$dir"
 			break
 		fi
 	done
@@ -2974,7 +3006,7 @@ fi
 
 
 echo $ac_n "checking for return.h""... $ac_c" 1>&6
-echo "configure:2978: checking for return.h" >&5
+echo "configure:3010: checking for return.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_RETURN=FAIL
@@ -2991,9 +3023,9 @@ else
 	fi
 
 	V_HEADER_RETURN=""
-	for f in $places; do
-		if test -r $f/return.h; then
-			V_HEADER_RETURN="-I$f"
+	for dir in $places; do
+		if test -r $dir/return.h; then
+			V_HEADER_RETURN="-I$dir"
 			break
 		fi
 	done
@@ -3064,7 +3096,6 @@ fi
 
 
 
-
 # we now default to non-static linking, although if the "magic" file
 # .devel exists in the current directory, we try for a static link
 # under the assumption we are trying to produce re-distributable
@@ -3100,7 +3131,7 @@ if test ! -z "$V_NEED_DL" ; then
 		;;
 	*-*-linux*)
 		echo $ac_n "checking for dlopen in -ldl""... $ac_c" 1>&6
-echo "configure:3104: checking for dlopen in -ldl" >&5
+echo "configure:3135: checking for dlopen in -ldl" >&5
 ac_lib_var=`echo dl'_'dlopen | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3108,7 +3139,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3112 "configure"
+#line 3143 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3119,7 +3150,7 @@ int main() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:3123: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3154: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3148,7 +3179,7 @@ fi
 			;;
 		*)
 			echo $ac_n "checking for main in -l$V_LIB_DL""... $ac_c" 1>&6
-echo "configure:3152: checking for main in -l$V_LIB_DL" >&5
+echo "configure:3183: checking for main in -l$V_LIB_DL" >&5
 ac_lib_var=`echo $V_LIB_DL'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3156,14 +3187,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3160 "configure"
+#line 3191 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:3167: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3198: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3254,7 +3285,7 @@ V_TAR_TARGET=$target_os
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:3258: checking for a BSD compatible install" >&5
+echo "configure:3289: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3467,15 +3498,9 @@ s%@CXX@%$CXX%g
 s%@CPP@%$CPP%g
 s%@V_PLUGIN_DEFINE@%$V_PLUGIN_DEFINE%g
 s%@V_OBJ_MPLUG@%$V_OBJ_MPLUG%g
-s%@V_INCLUDE_TCL@%$V_INCLUDE_TCL%g
-s%@V_LIB_TCL@%$V_LIB_TCL%g
 s%@V_LIBRARY_TCL@%$V_LIBRARY_TCL%g
 s%@V_TKDOSNAMES@%$V_TKDOSNAMES%g
-s%@V_INCLUDE_TK@%$V_INCLUDE_TK%g
-s%@V_LIB_TK@%$V_LIB_TK%g
 s%@V_LIBRARY_TK@%$V_LIBRARY_TK%g
-s%@V_INCLUDE_OTCL@%$V_INCLUDE_OTCL%g
-s%@V_LIB_OTCL@%$V_LIB_OTCL%g
 s%@V_INCLUDE_BTCL@%$V_INCLUDE_BTCL%g
 s%@V_LIB_BTCL@%$V_LIB_BTCL%g
 s%@V_TCL2CPP@%$V_TCL2CPP%g
@@ -3484,7 +3509,6 @@ s%@V_LIB_X11@%$V_LIB_X11%g
 s%@V_INCLUDES@%$V_INCLUDES%g
 s%@V_LIBS@%$V_LIBS%g
 s%@V_DEFINES@%$V_DEFINES%g
-s%@V_OBJS@%$V_OBJS%g
 s%@V_STATIC@%$V_STATIC%g
 s%@V_TAR_TARGET@%$V_TAR_TARGET%g
 s%@V_ALL@%$V_ALL%g
