@@ -11,8 +11,9 @@ set filename=fairflow.xgr
 # With Drop-Tail: 
 ../../ns Flow4.v2.tcl droptail1 $randomseed
 ../../ns Flow4.v2.tcl droptail2 $randomseed
-../../ns Flow4.v2.tcl droptail3 $randomseed
-../../ns Flow4.v2.tcl droptail4 $randomseed
+## Drop-tail queues in bytes not implemented yet in ns-2.
+##../../ns Flow4.v2.tcl droptail3 $randomseed
+##../../ns Flow4.v2.tcl droptail4 $randomseed
 ## To make S graphs:
 csh Diagonal1.com $filename.u 4 Packets Random
 csh Diagonal1.com $filename.u1 5 Bytes Random
