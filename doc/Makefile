@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.17 2000/07/12 22:58:23 johnh Exp $
+# $Id: Makefile,v 1.18 2000/07/12 23:18:21 johnh Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -60,7 +60,7 @@ html-process:
 	cd $(L2H_WORKING_DIR); $(LATEX2HTML) -show_section_numbers everything.tex
 
 html-post-process:
-	cd $(L2H_WORKING_DIR); ../post-process.pl .
+	cd $(L2H_WORKING_DIR)/everything; ../../post-process.pl .
 
 everything.html: html-pre-process html-process html-post-process
 	@echo html results are in  $(L2H_WORKING_DIR)/everything
@@ -72,7 +72,7 @@ everything.ps: $(FILES) everything.dvi
 everything.ps.gz: $(FILES) everything.dvi everything.ps
 	gzip < everything.ps >everything.ps.gz
 
-everything.pdf: $(FILES) everything.ps everything.pdf
+everything.pdf: $(FILES) everything.ps
 	ps2pdf everything.ps
 
 everything.dvi: $(FILES)
@@ -82,7 +82,9 @@ everything.dvi: $(FILES)
 gv: everything.ps $(FILES)
 	gv everything.ps
 
-ns-doc-auto: everything.ps.gz everything.html everything.pdf
-	cp everything.ps.gz everything.pdf  $(L2H_WORKING_DIR)/everything/*.{html,css,gif} $(WEB_TARGET_DIR)
+ns-doc-auto: everything.ps.gz everything.pdf everything.html
+	cp everything.ps.gz  $(WEB_TARGET_DIR)/ns_doc.ps.gz
+	cp everything.pdf $(WEB_TARGET_DIR)/ns_doc.pdf
+	cp $(L2H_WORKING_DIR)/everything/*.{html,css,gif} $(WEB_TARGET_DIR)
 
 
