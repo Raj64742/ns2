@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.18 1997/08/26 03:33:41 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.19 1997/09/10 07:50:55 padmanab Exp $ (LBL)";
 #endif
 
 //
@@ -84,6 +84,12 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
         }
 }
 
+void NewRenoTcpAgent::partialnewack_helper(Packet* pkt)
+{
+	partialnewack(pkt);
+	output(last_ack_ + 1, 0);
+}
+
 void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
@@ -126,8 +132,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		/* received new ack for a packet sent during Fast
 		 *  Recovery, but sender stays in Fast Recovery */
 		dupwnd_ = 0;
-		partialnewack(pkt);
-		output(last_ack_ + 1, 0);
+		partialnewack_helper(pkt);
 	    }
    	} else if (tcph->seqno() == last_ack_)  {
 		if (++dupacks_ == NUMDUPACKS) {
