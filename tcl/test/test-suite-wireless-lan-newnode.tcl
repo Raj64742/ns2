@@ -41,7 +41,7 @@ Class Test/dsdv -superclass TestSuite
 #Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
 
-Class Test/tora -superclass TestSuite
+#Class Test/tora -superclass TestSuite
 #wireless model using TORA
 
 
@@ -232,63 +232,63 @@ Test/dsdv instproc run {} {
     $ns_ run
 }
 
-Test/tora instproc init {} {
-    global opt node_ god_ chan topo
-    $self instvar ns_ testName_
-    set testName_       tora
-    set opt(rp)         tora
-    set opt(cp)		"../mobility/scene/cbr-3-test" 
-    set opt(sc)		"../mobility/scene/scen-3-test" 
-    set opt(nn)		3	      
-    set opt(stop)       900.0
+#Test/tora instproc init {} {
+#    global opt node_ god_ chan topo
+#    $self instvar ns_ testName_
+#    set testName_       tora
+#    set opt(rp)         tora
+#    set opt(cp)		"../mobility/scene/cbr-3-test" 
+#    set opt(sc)		"../mobility/scene/scen-3-test" 
+#    set opt(nn)		3	      
+#    set opt(stop)       900.0
+#
+#    $self next
+#
+#	#
+#	# Create God
+#	#
+#   
+#	set god_ [create-god $opt(nn)]
+#
+#
+#    $ns_ node-config -adhocRouting TORA \
+#                         -llType $opt(ll) \
+#                         -macType $opt(mac) \
+#                         -ifqType $opt(ifq) \
+#                         -ifqLen $opt(ifqlen) \
+#                         -antType $opt(ant) \
+#                         -propType $opt(prop) \
+#                         -phyType $opt(netif) \
+#                         -agentTrace ON \
+#                         -routerTrace ON \
+#                         -macTrace OFF \
+#                         -movementTrace OFF
+#
+#    
+#    for {set i 0} {$i < $opt(nn) } {incr i} {
+#                set node_($i) [$ns_ node $chan]
+#                $node_($i) random-motion 0              ;# disable random motion
+#                $node_($i) topography $topo
+#
+#
+#    }
+#    puts "Loading connection pattern..."
+#    source $opt(cp)
+#    
+#    puts "Loading scenario file..."
+#    source $opt(sc)
+#    puts "Load complete..."
+#
+#    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; exit"
+#
+#}
 
-    $self next
-
-	#
-	# Create God
-	#
-    
-	set god_ [create-god $opt(nn)]
-
-
-    $ns_ node-config -adhocRouting TORA \
-                         -llType $opt(ll) \
-                         -macType $opt(mac) \
-                         -ifqType $opt(ifq) \
-                         -ifqLen $opt(ifqlen) \
-                         -antType $opt(ant) \
-                         -propType $opt(prop) \
-                         -phyType $opt(netif) \
-                         -agentTrace ON \
-                         -routerTrace ON \
-                         -macTrace OFF \
-                         -movementTrace OFF
-
-    
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-                set node_($i) [$ns_ node $chan]
-                $node_($i) random-motion 0              ;# disable random motion
-                $node_($i) topography $topo
-
-
-    }
-    puts "Loading connection pattern..."
-    source $opt(cp)
-    
-    puts "Loading scenario file..."
-    source $opt(sc)
-    puts "Load complete..."
-
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; exit"
-
-}
-
-Test/tora instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_ run
-}
-
+#Test/tora instproc run {} {
+#    $self instvar ns_
+#    puts "Starting Simulation..."
+#    $ns_ run
+#}
+#
 
 #Test/dsr instproc init {} {
 #    global opt node_ god_ chan topo
