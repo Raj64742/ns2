@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.7 2002/01/02 16:43:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.8 2002/01/03 04:34:06 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -116,7 +116,7 @@ TestSuite instproc enable_tracecwnd { ns tcp } {
 #
 # Plot the TCP congestion window cwnd_.
 #
-TestSuite instproc plot_cwnd { {terse 0} } {
+TestSuite instproc plot_cwnd { {terse 0} {title cwnd} } {
         global quiet
         $self instvar cwnd_chan_
         set awkCode {
@@ -137,7 +137,7 @@ TestSuite instproc plot_cwnd { {terse 0} } {
               } }
         }
         set f [open cwnd.xgr w]
-        puts $f "TitleText: cwnd"
+        puts $f "TitleText: $title"
         puts $f "Device: Postscript"
  
         if { [info exists cwnd_chan_] } {
