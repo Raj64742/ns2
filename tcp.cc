@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.61 1998/05/04 22:17:55 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.62 1998/05/05 15:12:05 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -739,6 +739,44 @@ TcpAgent::initial_window()
 	}
 }
 
+void
+TcpAgent::dupack_action()
+{
+	/*
+	 * The line below, for "bug_fix_" true, avoids
+	 * problems with multiple fast retransmits in one
+	 * window of data. 
+	 */
+
+	int recovered = (highest_ack_ > recover_);
+
+	if (bug_fix_) {
+		if (recovered)
+			goto tahoe_action;
+
+		/*
+		 * bug_fix_ is true and we are
+		 * in the middle of a previous recovery
+		 */
+		if (ecn_) {
+			switch (last_cwnd_action_) {
+			case CWND_ACTION_TIMEOUT:
+			case CWND_ACTION_ECN:
+				closecwnd(2);
+				reset_rtx_timer(0,0);
+			}
+		}
+		// dupacks during recovery w/bug_fix on do nothing
+		return;
+	} 
+
+tahoe_action:
+	recover_ = maxseq_;
+	last_cwnd_action_ = CWND_ACTION_DUPACK;
+	closecwnd(4);		// full slow-start
+	reset_rtx_timer(0,0);
+	return;
+}
 
 /*
  * main reception path - should only see acks, otherwise the
@@ -772,20 +810,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
                         return;
                 }
 		if (++dupacks_ == NUMDUPACKS) {
-                   /* The line below, for "bug_fix_" true, avoids
-		    * problems with multiple fast retransmits in one
-		    * window of data. 
-		    */
-		   	if (!bug_fix_ || highest_ack_ > recover_) {
-				recover_ = maxseq_;
-				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				closecwnd(4);
-				reset_rtx_timer(0,0);
-			}
-			else if (ecn_ && last_cwnd_action_ != CWND_ACTION_DUPACK) {
-				closecwnd(2);
-				reset_rtx_timer(0,0);
-			}
+			dupack_action();
 		}
 	}
 	Packet::free(pkt);
