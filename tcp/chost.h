@@ -41,6 +41,8 @@
 #include "tcp-int.h"
 #include "nilist.h"
 
+#define MAX_PARALLEL_CONN 1000
+
 class Segment : public slink {
 	friend class CorresHost;
 	friend class TcpSessionAgent;
@@ -114,10 +116,17 @@ class CorresHost : public slink, public TcpFsAgent {
 	 */
 	double wndInit_;    /* should = path_mtu_ */
 	Segment *rtt_seg_;  /* segment being timed for RTT computation */
-	int dontAdjustOwnd_; /* don't adjust ownd in response to dupacks */
+	int dontAdjustOwnd_;/* don't adjust ownd in response to dupacks */
+	int dontIncrCwnd_;  /* set when pkt loss is suspected (e.g., there is
+			       reordering) */
+	int rexmtSegCount_; /* number of segments that we "suspect" need to be
+			       retransmitted */
+	/* possible candidates for rxmission */
+	Segment *curArray_[MAX_PARALLEL_CONN]; 
+	Segment *prevArray_[MAX_PARALLEL_CONN]; /* prev segs */
 	/* variables for fast start */
 	class IntTcpAgent *connWithPktBeforeFS_;
-	int pktReordered_;
+	
 	/* following is for right-edge timer recovery */
 /*	int pending_;*/
 	Event timer_;
