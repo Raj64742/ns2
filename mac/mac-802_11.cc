@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.16 1998/06/03 03:26:49 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.17 1998/06/19 22:03:18 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -46,20 +46,13 @@ static const char rcsid[] =
 
 #ifdef DEBUG
 #include <iostream.h>
-
 #define CHECK_PKT(p) \
 	while (p->uid_ > 0) { \
 		cerr << "p->uid_ = " << p->uid_ << "\n"; \
 		p = p->copy();	\
 	}
-
-#define PRINT_MAC(s, p) \
-	cerr <<Scheduler().instance().clock() <<" " <<label_ <<" " <<state_ \
-		<< (s) << (p) <<"\n"
-
 #else
 #define CHECK_PKT(p)
-#define PRINT_MAC(s, p)
 #endif
 
 
@@ -166,7 +159,7 @@ void Mac802_11::RtsCts_recv(Packet* p)
 		if (eIdle_.uid_ > 0)
 			s.cancel(&eIdle_);
 		sendAck(p);
-		target_->recv(p);
+		s.schedule(target_, p, delay_);
 		return;
 	case MF_ACK:
 		if (state_ == MAC_SEND) {

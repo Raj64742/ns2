@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.cc,v 1.8 1998/06/03 03:26:50 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.cc,v 1.9 1998/06/19 22:03:17 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -211,7 +211,7 @@ void MultihopMac::recv(Packet* p, Handler *h)
 {
 	if (h == 0) {		/* from MAC classifier (pass pkt to LL) */
 		mode_ = MAC_IDLE;
-		target_->recv(p);
+		Scheduler::instance().schedule(target_, p, delay_);
 		return;
 	}
 	callback_ = h;
