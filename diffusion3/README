@@ -1,4 +1,4 @@
-Release Notes for Diffusion 3.1.2
+Release Notes for Diffusion 3.2.0
 ---------------------------------
 
 1. Compiling Diffusion
@@ -10,35 +10,37 @@ There are several options that can be used with configure (for a
 complete list, please type ./configure --help). Relevant command line
 options for configure are:
 
---with-ethernet // Enables wired Ethernet support in diffusion
---with-wins2    // Enables support for the Sensoria WINSNG 2.0 radios
---with-sh4      // Enables support for using the sh4 cross compiler
-		// It assumes that the sh4 cross-compiler provided by
-		// Sensoria is already installed and on the user's path
+--with-ethernet  // Enables wired Ethernet support in diffusion
+--with-wins2     // Enables support for the Sensoria WINSNG 2.0 radios
+--host=sh4-linux // Enables support for using the sh4 cross compiler
+		 // It assumes that the sh4 cross-compiler provided by
+		 // Sensoria is already installed and on the user's path.
+		 // The configure script will default to gcc/g++ if
+		 // sh4-linux-gcc and sh4-linux-g++ cannot be found.
 
 --prefix=destination_path
-		// Enables the user to specify where the binaries will
-		// be installed (default is the test directory inside
-		// the distribution)
+		 // Enables the user to specify where the binaries will
+		 // be installed (default is the test directory inside
+		 // the distribution)
 
 So, compiling diffusion for the Sensoria nodes, should be as simple as:
 
-bash# ./configure --with-wins2 --with-sh4
+bash# ./configure --with-wins2 --host=sh4-linux
 bash# make
 bash# make install
 
-On the other hand, compiling for wired Ethernet on an i386 machine is:
+On the other hand, compiling for wired Ethernet on an x86 machine is:
 
-bash# ./configure --with-ethernet
-bash# make
-bash# make install
+bash$ ./configure --with-ethernet
+bash$ make
+bash$ make install
 
 Please remember to remove the config.cache file when compiling for a
 different environment, as the file is not always deleted and may
 contain misleading information for the configure script.
 
-We tested compiling diffusion on both Red Hat Linux versions 7.2 and
-7.3. It also compiles and runs on other versions of Unix.
+We tested compiling diffusion on Red Hat Linux versions 7.2, 7.3, 8.0,
+and 9.0. It also compiles and runs on other versions of Unix.
 
 2. Before Running Diffusion (Sensoria Hardware)
 
@@ -60,10 +62,15 @@ specific topology is not important).
 3. Setting up Node Ids
 
 Diffusion uses a random ID for the each node. This behavior can be
-overridden by setting the 'scadds_addr' environment variable to the
+overridden by setting the 'node_addr' environment variable to the
 desired ID. Under bash, this can be done with:
 
-bash# export scadds_addr=2
+bash$ export node_addr=2
+
+When diffusion is compiled to run on emsim (with the --with-emsim
+configure flag), it can get its node id directly from emsim's
+environment variables. Gear will also be able to get node location
+from emsim automatically.
 
 4. Configuration File (Wired Ethernet Environment)
 
@@ -92,37 +99,39 @@ meaning if there are just 2 arguments in a config line.
 
 5. Running Diffusion
 
-To run diffusion, simply start the 'diffusion' main process followed
+To run diffusion, simply start the 'filter_core' main process followed
 by the applications/filters desired.  Please allow a few seconds for
-diffusion to initialize before starting applications and filters. Be
-sure to at least start the gradient module. For debugging, the log
-filter can be used to print all messages arriving at the node.
+the filter_core to initialize before starting applications and
+filters. Be sure to at least start the two_phase_pull filter (where
+the two-phase pull and one-phase push algorithms are implemented). For
+debugging, the log filter can be used to print all messages arriving
+at the node.
 
-To test if things are working, start diffusion, gradient and
-ping_sender in a node. Then start diffusion, gradient and
+To test if things are working, start filter_core, two_phase_pull and
+ping_sender in a node. Then start filter_core, two_phase_pull and
 ping_receiver in another node. ping_receiver should receive
 ping_sender's messages after a few seconds. For example:
 
-bash# diffusion &
-bash# gradient &
-bash# ping_receiver
+bash$ filter_core &
+bash$ two_phase_pull &
+bash$ ping_receiver
 
 To increase the amount of debug messages, you can use the '-d
 debug_level' flag. A debug_level 10 will generate a lot of output. The
 default value is 1.
 
-Please note that if diffusion is run with the '-p port' flag,
-all other applications will also need it (i.e. gradient -p port,
+Please note that if filter_core is run with the '-p port' flag, all
+other applications will also need it (i.e. two_phase_pull -p port,
 agent1 -p port, etc...).
 
-Also, for running GEAR, you will need to start gear as well, So, the
-list of processes to start is:
+Also, for using the GEAR protocol, you will need to start gear as
+well, So, the list of processes to start is:
 
-bash# diffusion &
-bash# gradient &
-bash# gear &
+bash$ filter_core &
+bash$ two_phase_pull &
+bash$ gear &
 
-bash# your_application &
+bash$ your_application &
 
 
 ---------------------------------

@@ -2,8 +2,8 @@
 // config.hh     : Common defines + other config parameters
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
-// Copyright (C) 2000-2002 by the University of Southern California
-// $Id: config.hh,v 1.6 2002/11/26 22:45:39 haldar Exp $
+// Copyright (C) 2000-2003 by the University of Southern California
+// $Id: config.hh,v 1.7 2003/07/09 17:50:02 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -25,16 +25,21 @@
 #endif // HAVE_CONFIG_H
 
 // Software information
-#define PROGRAM "Diffusion 3.1.3"
+#define PROGRAM "Diffusion 3.2.0"
 #define RELEASE "Gear + Push Release"
 #define DEFAULT_CONFIG_FILE "config.txt"
 
 // Configurable parameters start here
 
-// Change the following parameters to set how often
-// interest messages are sent.
-#define INTEREST_DELAY          25000        // (msec) bw sends
-#define INTEREST_JITTER          5000        // (msec) jitter
+// Change the following parameters to set how often interest messages
+// are sent.
+// To calculate the lambda, you should divide 1 by the
+// number of milliseconds you want to have (on average) between
+// interest messages. For example, 1 / 30000 (30 seconds) results in a
+// lambda of 0.0000333333333.
+#define INTEREST_LAMBDA   0.00003333333333333333 // 30 seconds bw interests
+#define INTEREST_DELAY    30000                  // (msec) bw sends
+#define ROUND_EXPIRATION  50000                  // (msec)
 
 // This parameter specifies how often an exploratory message is allowed
 // to go to the network. It's used to establish a reinforced path as well
@@ -54,7 +59,7 @@
 // is sent in .8 msec.
 
 // Use multiple sends when forwarding data
-#undef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+#undef USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
 
 // Change the following parameters to set how long to wait between
 // receiving an interest message from a neighbor and forwarding it.
@@ -76,7 +81,7 @@
 // broadcast, therefore there should be no contention.
 
 // Use multiple sends when forwarding data
-#undef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+#undef USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
 
 // Change the following parameters to set how long to wait between
 // receiving an interest message from a neighbor and forwarding it.
@@ -98,7 +103,7 @@
 // msec.
 
 // Use single send when forwarding data
-#define USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+#define USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
 
 // Change the following parameters to set how long to wait between
 // receiving an interest message from a neighbor and forwarding it.
@@ -120,7 +125,7 @@
 // 500-byte packet takes about 400 msec.
 
 //  Use single send when forwarding data
-#define USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+#define USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
 
 // Change the following parameters to set how long to wait between
 // receiving an interest message from a neighbor and forwarding it.
@@ -136,13 +141,58 @@
 #define PUSH_DATA_FORWARD_JITTER  600        // (msec) jitter
 #endif // USE_RPC
 
+#ifdef USE_SMAC
+// These settings are for the mote nic radios (10 kbits/s) and use
+// S-MAC at 10% duty cycle. Sending a 500-byte packet takes about 400
+// msec.
+
+// Use single send when forwarding data
+#define USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
+
+// Change the following parameters to set how long to wait between
+// receiving an interest message from a neighbor and forwarding it.
+#define INTEREST_FORWARD_DELAY   1200        // (msec) bw receive and forward
+#define INTEREST_FORWARD_JITTER   600        // (msec) jitter
+
+// Change the following parameters to set how long to wait between
+// receiving an exploratory data message from a neighbor and forwarding it.
+#define DATA_FORWARD_DELAY        800        // (msec) bw receive and forward
+#define DATA_FORWARD_JITTER       400        // (msec) jitter
+
+#define PUSH_DATA_FORWARD_DELAY   800        // (msec) bw receive and forward
+#define PUSH_DATA_FORWARD_JITTER  400        // (msec) jitter
+#endif // USE_SMAC
+
+#ifdef USE_EMSTAR
+// These settings are for the mote nic radios (10 kbits/s) and use
+// EMSTAR. This is a generic (conservative) setting for all
+// emstar-class devices. This should be updated in the near future to
+// allow device-specific configuration.
+
+// Use single send when forwarding data
+#define USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
+
+// Change the following parameters to set how long to wait between
+// receiving an interest message from a neighbor and forwarding it.
+#define INTEREST_FORWARD_DELAY   1200        // (msec) bw receive and forward
+#define INTEREST_FORWARD_JITTER   600        // (msec) jitter
+
+// Change the following parameters to set how long to wait between
+// receiving an exploratory data message from a neighbor and forwarding it.
+#define DATA_FORWARD_DELAY        800        // (msec) bw receive and forward
+#define DATA_FORWARD_JITTER       400        // (msec) jitter
+
+#define PUSH_DATA_FORWARD_DELAY   800        // (msec) bw receive and forward
+#define PUSH_DATA_FORWARD_JITTER  400        // (msec) jitter
+#endif // USE_EMSTAR
+
 #ifdef NS_DIFFUSION
 // These settings are for high-bandwidth point-to-point
 // communication. In this case, we assume 10Mbit/s, a 1000-byte packet
 // is sent in .8 msec.
 
 // Use multiple sends when forwarding data
-#undef USE_BROADCAST_TO_MULTIPLE_RECEIPTENTS
+#undef USE_BROADCAST_TO_MULTIPLE_RECIPIENTS
 
 // Change the following parameters to set how long to wait between
 // receiving an interest message from a neighbor and forwarding it.
@@ -165,7 +215,7 @@
 // The following timeouts are used for determining when gradients,
 // subscriptions, filters and neighbors should expire. These are
 // mostly a function of other parameters and should not be changed.
-#define SUBSCRIPTION_TIMEOUT    (INTEREST_DELAY/1000 * 3)         // sec
+#define SUBSCRIPTION_TIMEOUT    (INTEREST_DELAY/1000 * 4)         // sec
 #define GRADIENT_TIMEOUT        (INTEREST_DELAY/1000 * 5)         // sec
 #define FILTER_TIMEOUT          (FILTER_KEEPALIVE_DELAY/1000 * 2) // sec
 #define NEIGHBORS_TIMEOUT       (INTEREST_DELAY/1000 * 4)         // sec

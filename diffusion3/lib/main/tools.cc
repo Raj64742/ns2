@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: tools.cc,v 1.6 2002/11/26 22:45:40 haldar Exp $
+// $Id: tools.cc,v 1.7 2003/07/09 17:50:03 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -72,6 +72,27 @@ void DiffPrint(int msg_debug_level, const char *fmt, ...)
   va_start(ap, fmt);
 
   if (global_debug_level >= msg_debug_level){
+    // Print message
+    vfprintf(stderr, fmt, ap);
+    fflush(NULL);
+  }
+
+  va_end(ap);
+}
+
+void DiffPrintWithTime(int msg_debug_level, const char *fmt, ...)
+{
+  struct timeval tv;
+  va_list ap;
+
+  va_start(ap, fmt);
+
+  if (global_debug_level >= msg_debug_level){
+    // Get time
+    GetTime(&tv);
+
+    // Print Time
+    fprintf(stderr, "%d.%06d : ", tv.tv_sec, tv.tv_usec);
     // Print message
     vfprintf(stderr, fmt, ap);
     fflush(NULL);

@@ -1,10 +1,52 @@
+Diffusion 3.2.0
+---------------
+
+- Added support for blacklisting neighbor nodes to the Filter API. The
+  two new API functions (addToBlacklist() and clearBlacklist()) were added
+  to dr.cc and supporting code was added to the filter_core.
+- Added the first alpha version of RMST (Reliable Multi-Segment Transport).
+  The sendRmst() API function was added to dr.cc. This filter is located
+  in the filters directory and there are sample rmst applications in
+  the apps directory.
+- Changed the node id environment variable from scadds_addr
+  to node_addr.
+- Added support for emstar-class devices with the --with-emstar
+  configure option.
+- Added --disable-stats and --with-emsim options to configure.
+  --with-emsim is a super-set of --with-emstar, but also adds
+  support running diffusion under emsim. It will try to detect
+  if it's being executed under emsim and then get node and
+  group ids from the corresponding environment variables. When compiled
+  with --with-emsim, Gear will also try to get node location information
+  from emsim's SIM_LOC environment variable.
+  --disable-stats will remove all iostats code from the filter_core
+  (and the two stats-related command-line options -s and -i).
+- Added the DiffPrintWithTime function. It works the same way as
+  DiffPrint, but will print a timestamp before the message.
+- Added support for gear to forward messages to geographic points
+  (in addition to regions).
+- Changed diffusion so it outputs stats to /tmp/diffusion-%d.out,
+  allowing multiple nodes running on a single machine to create
+  separate files (removed the ifdef for ns to it will do it also
+  inside ns).
+- Changed the directory structure to group diffusion filters and
+  applications in separate directories. Also moved stats.cc from the
+  library to the filter_core directory.
+- Renamed gradient --> two_phase_pull and diffusion --> filter_core
+  to avoid confusion. Some gear files were also renamed to match files
+  in other directories.
+- Removed support for the old rpc_stats mechanism (from lib/drivers)
+
 Diffusion 3.1.3
 ---------------
 
 - Diffusion now compiles with GCC 3.1 without any warnings.
 - Updated the autoconf/automake scripts to work with autoconf 2.52,
   automake 1.6.3 and libtool 1.4.2. These versions are now required if
-  users want to re-create the configure script.
+  users want to re-create the configure script. make dist now includes
+  all other files (CHANGES, VERSION, COPYRIGHT, doc/*, and config/*).
+  In addition, the --with-sh4 and --with-ipaq configure options were
+  removed (the new autoconf version uses --host for cross-compiling).
 - Changed the sendPacket function in the WINSNG driver to print the
   destination node if it is not cached.
 - Fixed a bug in gradient.cc that caused positive reinforcements to also
@@ -26,7 +68,7 @@ Diffusion 3.1.3
   use the new addTimer API.
 - removeTimer is now supported in ns.
 - Removed all timer references from config.hh in lib/main.
-- Changed gradient.cc not to forward data back to where it came from.
+- Changed gradient.cc not to forward data back to where it comes from.
   This will suppress duplicate traffic when we have a lot of cross
   subscriptions.
 - Improved debugging in Gear. All debug messages now have a timestamp.
@@ -139,7 +181,7 @@ Diffusion 3.0.3
 
 - Diffusion can now use alternate ports (instead of the default 2000)
   with the new command line option '-p port'. Other apps will have to
-  be change to use this feature.
+  be changed to use this feature.
 - The '-s' command line option has been removed.
 - This version features an initial implementation of the device independent
   layer in diffusion along with diffusion drivers for the RPC, the MoteNic

@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Padma Haldar
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffapp.hh,v 1.7 2002/11/26 22:45:38 haldar Exp $
+// $Id: diffapp.hh,v 1.8 2003/07/09 17:50:00 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,

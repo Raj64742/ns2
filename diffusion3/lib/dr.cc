@@ -2,8 +2,8 @@
 // dr.cc           : Diffusion Routing Class
 // authors         : John Heidemann and Fabio Silva
 //
-// Copyright (C) 2000-2002 by the University of Southern California
-// $Id: dr.cc,v 1.14 2002/11/26 22:45:38 haldar Exp $
+// Copyright (C) 2000-2003 by the University of Southern California
+// $Id: dr.cc,v 1.15 2003/07/09 17:50:00 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -41,6 +41,7 @@ public:
   NRAttrVec *attrs_;
   NR::Callback *cb_;
   struct timeval exploratory_time_;
+  int32_t subscription_id_; // Used for One-Phase Pull
 
   HandleEntry()
   {
@@ -161,10 +162,16 @@ void ReleaseLock(pthread_mutex_t *mutex)
 
 #ifdef NS_DIFFUSION
 DiffusionRouting::DiffusionRouting(u_int16_t port, DiffAppAgent *da)
+{
 #else
 DiffusionRouting::DiffusionRouting(u_int16_t port)
-#endif // NS_DIFFUSION
 {
+#ifdef USE_EMSIM
+  char *sim_id;
+  char *sim_group;
+#endif // USE_EMSIM
+#endif // NS_DIFFUSION
+
   struct timeval tv;
   DiffusionIO *device;
 
@@ -180,6 +187,17 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
     port = DEFAULT_DIFFUSION_PORT;
 
   diffusion_port_ = port;
+
+#ifdef USE_EMSIM
+  // Check if we are running in the emstar simulator
+  sim_id = getenv("SIM_ID");
+  sim_group = getenv("SIM_GROUP");
+
+  // Update diffusion port if running inside the simulator
+  if (sim_id && sim_group){
+    diffusion_port_ = diffusion_port_ + atoi(sim_id) + (100 * atoi(sim_group));
+  }
+#endif // USE_EMSIM
 
   // Initialize timer manager
   timers_manager_ = new TimerManager;
@@ -227,9 +245,10 @@ DiffusionRouting::~DiffusionRouting()
 
 handle DiffusionRouting::subscribe(NRAttrVec *subscribe_attrs, NR::Callback *cb)
 {
-  HandleEntry *my_handle;
-  NRAttribute *scope_attr;
+  NRSimpleAttribute<int> *nr_algorithm = NULL;
   TimerCallback *timer_callback;
+  NRAttribute *scope_attr;
+  HandleEntry *my_handle;
 
   // Get lock first
   GetLock(dr_mtx_);
@@ -248,13 +267,23 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribe_attrs, NR::Callback *cb)
   my_handle->cb_ = (NR::Callback *) cb;
   sub_list_.push_back(my_handle);
 
-  // Copy the attributes   
+  // Copy the attributes
   my_handle->attrs_ = CopyAttrs(subscribe_attrs);
 
   // For subscriptions, scope is global if not specified
   if (!hasScope(subscribe_attrs)){
     scope_attr = NRScopeAttr.make(NRAttribute::IS, NRAttribute::GLOBAL_SCOPE);
     my_handle->attrs_->push_back(scope_attr);
+  }
+
+  // For One-Phase Pull, we need a subscription id
+  nr_algorithm = NRAlgorithmAttr.find(subscribe_attrs);
+  if (nr_algorithm &&
+      nr_algorithm->getVal() == NRAttribute::ONE_PHASE_PULL_ALGORITHM){
+
+    my_handle->subscription_id_ = GetRand();
+    my_handle->attrs_->push_back(NRSubscriptionAttr.make(NRAttribute::IS,
+							 my_handle->subscription_id_));
   }
 
   // Create Interest Timer and add it to the queue
@@ -352,10 +381,12 @@ int DiffusionRouting::unpublish(handle publication_handle)
 int DiffusionRouting::send(handle publication_handle,
 			   NRAttrVec *send_attrs)
 {
-  Message *my_message;
-  HandleEntry *my_handle;
+  NRSimpleAttribute<int> *nr_algorithm = NULL;
+  NRSimpleAttribute<int> *rmst_id_attr = NULL;
   int8_t send_message_type = DATA;
   struct timeval current_time;
+  HandleEntry *my_handle;
+  Message *my_message;
 
   // Get the lock first
   GetLock(dr_mtx_);
@@ -369,7 +400,8 @@ int DiffusionRouting::send(handle publication_handle,
 
   // Check the send attributes
   if (!checkSend(send_attrs)){
-    DiffPrint(DEBUG_ALWAYS, "Error : Invalid class/scope attributes in the send attributes !\n");
+    DiffPrint(DEBUG_ALWAYS,
+	      "Error : Invalid class/scope attributes in send attributes !\n");
     ReleaseLock(dr_mtx_);
     return FAIL;
   }
@@ -377,26 +409,35 @@ int DiffusionRouting::send(handle publication_handle,
   // Check if it is time to send another exploratory data message
   GetTime(&current_time);
 
-  if (TimevalCmp(&current_time, &(my_handle->exploratory_time_)) >= 0){
+  // Check algorithms
+  nr_algorithm = NRAlgorithmAttr.find(my_handle->attrs_);
+  rmst_id_attr = RmstIdAttr.find(send_attrs);
 
-    // Check if it is a push data message or a regular data message
-    if (isPushData(my_handle->attrs_)){
-      // Push data message
+  if (!nr_algorithm && !rmst_id_attr || nr_algorithm &&
+      nr_algorithm->getVal() != NRAttribute::ONE_PHASE_PULL_ALGORITHM){
 
-      // Update time for the next push exploratory message
-      GetTime(&(my_handle->exploratory_time_));
-      my_handle->exploratory_time_.tv_sec += PUSH_EXPLORATORY_DELAY;
+    // In One-Phase Pull, there are no exploratory messages
+    if (TimevalCmp(&current_time, &(my_handle->exploratory_time_)) >= 0){
 
-      send_message_type = PUSH_EXPLORATORY_DATA;
-    }
-    else{
-      // Regular data message
+      // Check if it is a push data message or a regular data message
+      if (isPushData(my_handle->attrs_)){
+	// Push data message
 
-      // Update time for the next exploratory message
-      GetTime(&(my_handle->exploratory_time_));
-      my_handle->exploratory_time_.tv_sec += EXPLORATORY_DATA_DELAY;
+	// Update time for the next push exploratory message
+	GetTime(&(my_handle->exploratory_time_));
+	my_handle->exploratory_time_.tv_sec += PUSH_EXPLORATORY_DELAY;
+
+	send_message_type = PUSH_EXPLORATORY_DATA;
+      }
+      else{
+	// Regular data message
+
+	// Update time for the next exploratory message
+	GetTime(&(my_handle->exploratory_time_));
+	my_handle->exploratory_time_.tv_sec += EXPLORATORY_DATA_DELAY;
     
-      send_message_type = EXPLORATORY_DATA;
+	send_message_type = EXPLORATORY_DATA;
+      }
     }
   }
 
@@ -425,6 +466,162 @@ int DiffusionRouting::send(handle publication_handle,
 
   delete my_message;
 
+  return OK;
+}
+
+int DiffusionRouting::sendRmst(handle publication_handle,
+			       NRAttrVec *send_attrs, int fragment_size)
+{
+  NRSimpleAttribute<void *> *rmst_data_attr;
+  NRSimpleAttribute<int> *frag_number_attr;
+  NRSimpleAttribute<int> *max_frag_attr;
+  void *frag_ptr, *blob_ptr;
+  char *blob;
+  timeval send_interval;
+  int retval;
+  int id = GetRand() % 500;
+  int size;
+  int num_frag;
+  int max_frag_len;
+
+  // Find RMST blob to send
+  rmst_data_attr = RmstDataAttr.find(send_attrs);
+
+  // We must have a RMST data attribute to send
+  if(!rmst_data_attr){
+    DiffPrint(DEBUG_ALWAYS, "sendRMST - can't find blob to send !\n");
+    return FAIL;
+  }
+
+  // Copy RMST blob and calculate number of fragments
+  blob_ptr = rmst_data_attr->getVal();
+  size = rmst_data_attr->getLen();
+  blob = new char[size];
+  memcpy((void *)blob, blob_ptr, size);
+  num_frag = (size + fragment_size - 1) / fragment_size;
+
+  // We index starting at zero
+  num_frag--;
+  max_frag_len = size - (num_frag * fragment_size);
+  DiffPrint(DEBUG_DETAILS,
+	    "sendRMST: rmst num_frag = %d, fragment_size = %d, max_frag_len = %d\n",
+	    num_frag, fragment_size, max_frag_len);
+
+  // Prepare attribute vector with RMST attributes
+  max_frag_attr = RmstMaxFragAttr.make(NRAttribute::IS, num_frag);
+  send_attrs->push_back(max_frag_attr);
+  send_attrs->push_back(RmstTsprtCtlAttr.make(NRAttribute::IS, RMST_RESP));
+  frag_number_attr = RmstFragAttr.make(NRAttribute::IS, 0);
+  send_attrs->push_back(frag_number_attr);
+  send_attrs->push_back(RmstIdAttr.make(NRAttribute::IS, id));
+
+  // Replace the large blob with a blob fragment
+  frag_ptr = (void *)&blob[0];
+
+  // The call to setVal will delete the original blob!!
+  if (num_frag == 0)
+    rmst_data_attr->setVal(frag_ptr, max_frag_len);
+  else
+    rmst_data_attr->setVal(frag_ptr, fragment_size);
+
+  // Send 1st fragment
+  retval = send(publication_handle, send_attrs);
+
+  // Send other fragments
+  for (int i = 1; i <= num_frag; i++){
+
+    // Small delay between sending fragments
+    send_interval.tv_sec = 0;
+    send_interval.tv_usec = 25000;
+    select(0, NULL, NULL, NULL, &send_interval);
+
+    // Send next fragment
+    frag_number_attr->setVal(i);
+    frag_ptr = (void *)&blob[i * fragment_size];
+    if (num_frag == i)
+      rmst_data_attr->setVal(frag_ptr, max_frag_len);
+    else
+      rmst_data_attr->setVal(frag_ptr, fragment_size);
+    retval = send(publication_handle, send_attrs);
+  }
+
+  ClearAttrs(send_attrs);
+  delete blob;
+
+  return OK;
+}
+
+int DiffusionRouting::addToBlacklist(int32_t node)
+{
+  ControlMessage *control_blob;
+  NRAttribute *ctrl_msg_attr;
+  Message *my_message;
+  NRAttrVec *attrs;
+
+  control_blob = new ControlMessage(ADD_TO_BLACKLIST, node, 0);
+
+  ctrl_msg_attr = ControlMsgAttr.make(NRAttribute::IS,
+				      (void *)control_blob,
+				      sizeof(ControlMessage));
+  attrs = new NRAttrVec;
+  attrs->push_back(ctrl_msg_attr);
+
+  my_message = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
+			   0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			   LOCALHOST_ADDR);
+
+  // Increment pkt_counter
+  pkt_count_++;
+
+  // Add attributes to the message
+  my_message->msg_attr_vec_ = attrs;
+  my_message->num_attr_ = attrs->size();
+  my_message->data_len_ = CalculateSize(attrs);
+
+  // Send Packet
+  sendMessageToDiffusion(my_message);
+
+  // Delete message
+  delete my_message;
+  delete control_blob;
+
+  return OK;
+}
+
+int DiffusionRouting::clearBlacklist()
+{
+  ControlMessage *control_blob;
+  NRAttribute *ctrl_msg_attr;
+  Message *my_message;
+  NRAttrVec *attrs;
+  
+  control_blob = new ControlMessage(CLEAR_BLACKLIST, 0, 0);
+
+  ctrl_msg_attr = ControlMsgAttr.make(NRAttribute::IS,
+				      (void *)control_blob,
+				      sizeof(ControlMessage));
+  attrs = new NRAttrVec;
+  attrs->push_back(ctrl_msg_attr);
+
+  my_message = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
+			   0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			   LOCALHOST_ADDR);
+
+  // Increment pkt_counter
+  pkt_count_++;
+
+  // Add attributes to the message
+  my_message->msg_attr_vec_ = attrs;
+  my_message->num_attr_ = attrs->size();
+  my_message->data_len_ = CalculateSize(attrs);
+
+  // Send Packet
+  sendMessageToDiffusion(my_message);
+
+  // Delete message
+  delete my_message;
+  delete control_blob;
+  
   return OK;
 }
 
@@ -669,9 +866,8 @@ int DiffusionRouting::interestTimeout(HandleEntry *handle_entry)
     ReleaseLock(dr_mtx_);
 
     // Reschedule this timer in the queue
-    return (INTEREST_DELAY +
-	    (int) ((INTEREST_JITTER * (GetRand() * 1.0 / RAND_MAX)) -
-		   (INTEREST_JITTER / 2)));
+    return (int) (floor(-1 * (log(1 - (GetRand() * 1.0 / RAND_MAX))) /
+			INTEREST_LAMBDA));
   }
   else{
     // Interest was canceled. Just delete it from the handle_list
@@ -817,7 +1013,7 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
 	flag = false;
 	for (itr = in_devices_.begin(); itr != in_devices_.end(); ++itr){
 	  fd = (*itr)->checkInFDS(&fds);
-	  if (fd != 0){
+	  if (fd != -1){
 	    // Message waiting
 	    in_pkt = (*itr)->recvPacket(fd);
 	    recvPacket(in_pkt);
@@ -1007,12 +1203,13 @@ void DiffusionRouting::processControlMessage(Message *msg)
 
 void DiffusionRouting::processMessage(Message *msg)
 {
-  CallbackList cbl;
-  CallbackEntry *aux;
-  HandleList::iterator sub_itr;
+  NRSimpleAttribute<int> *rmst_id_attr = NULL;
   CallbackList::iterator cbl_itr;
-  HandleEntry *entry; 
+  HandleList::iterator sub_itr;
   NRAttrVec *callback_attrs;
+  HandleEntry *entry; 
+  CallbackEntry *aux;
+  CallbackList cbl;
 
   // First, acquire the lock
   GetLock(dr_mtx_);
@@ -1028,6 +1225,18 @@ void DiffusionRouting::processMessage(Message *msg)
 
   // We can release the lock now
   ReleaseLock(dr_mtx_);
+
+  // Check for RMST id attribute
+  rmst_id_attr = RmstIdAttr.find(msg->msg_attr_vec_);
+  cbl_itr = cbl.begin();
+
+  // Process RMST fragment if we have callbacks and this message has an RmstId
+  if (rmst_id_attr && (cbl_itr != cbl.end())){
+    if (!processRmst(msg)){
+      cbl.clear();
+      return;
+    }
+  }
 
   // Now we just call all callback functions
   for (cbl_itr = cbl.begin(); cbl_itr != cbl.end(); ++cbl_itr){
@@ -1046,6 +1255,93 @@ void DiffusionRouting::processMessage(Message *msg)
 
   // We are done
   cbl.clear();
+}
+
+bool DiffusionRouting::processRmst(Message *msg)
+{
+  NRSimpleAttribute<void *> *data_buf_attr = NULL;
+  NRSimpleAttribute<int> *max_frag_attr = NULL;
+  NRSimpleAttribute<int> *rmst_id_attr = NULL;
+  NRSimpleAttribute<int> *frag_attr = NULL;
+  int rmst_no, frag_no, data_buf_len, count;
+  void *blob_ptr, *tmp_frag_ptr;
+  Int2RecRmst::iterator rmst_iterator;
+  Int2Frag::iterator frag_iterator;
+  char *dstPtr;
+  int dstSize;
+  RecRmst *rmst_ptr;
+
+  // Read Rmst attributes
+  data_buf_attr = RmstDataAttr.find(msg->msg_attr_vec_);
+  rmst_id_attr = RmstIdAttr.find(msg->msg_attr_vec_);
+  frag_attr = RmstFragAttr.find(msg->msg_attr_vec_);
+  rmst_no = rmst_id_attr->getVal();
+  frag_no = frag_attr->getVal();
+  blob_ptr = data_buf_attr->getVal();
+  data_buf_len = data_buf_attr->getLen();
+
+  // See if we are receiving this blob, if not start a new RecRmst
+  rmst_iterator = rec_rmst_map_.find(rmst_no);
+  if (rmst_iterator == rec_rmst_map_.end()){
+    rmst_ptr = new RecRmst(rmst_no);
+    rec_rmst_map_.insert(Int2RecRmst::value_type(rmst_no, rmst_ptr));
+  }
+  else
+    rmst_ptr = (*rmst_iterator).second;
+
+  if (frag_no == 0){
+    max_frag_attr = RmstMaxFragAttr.find(msg->msg_attr_vec_);
+    rmst_ptr->max_frag_ = max_frag_attr->getVal();
+    rmst_ptr->mtu_len_ = data_buf_len;
+  }
+
+  // Copy fragment to map
+  tmp_frag_ptr = new char[data_buf_len];
+  memcpy(tmp_frag_ptr, blob_ptr, data_buf_len);
+  rmst_ptr->frag_map_.insert(Int2Frag::value_type(frag_no, tmp_frag_ptr));
+
+  if (frag_no == rmst_ptr->max_frag_)
+    rmst_ptr->max_frag_len_ = data_buf_len;
+
+  count = rmst_ptr->frag_map_.size();
+
+  // If this is the last rmst fragment, create the entire rmst
+  if (count == (rmst_ptr->max_frag_ + 1)){
+    
+    DiffPrint(DEBUG_DETAILS, 
+	      "RMST #%d is complete, creating big blob !\n", rmst_no);
+
+    // Allocate memory for the big blob
+    dstSize = rmst_ptr->max_frag_ * rmst_ptr->mtu_len_ + rmst_ptr->max_frag_len_;
+    dstPtr = new char[dstSize];
+    
+    // Copy all but last fragment to a buffer
+    for (int i = 0; i < rmst_ptr->max_frag_; i++){
+      frag_iterator = rmst_ptr->frag_map_.find(i);
+      tmp_frag_ptr = (*frag_iterator).second;
+      memcpy((void *)&dstPtr[i * rmst_ptr->mtu_len_],
+	     (void *)tmp_frag_ptr, rmst_ptr->mtu_len_);
+    }
+
+    // Now, copy the last fragment to the buffer
+    frag_iterator = rmst_ptr->frag_map_.find(rmst_ptr->max_frag_);
+    tmp_frag_ptr = (*frag_iterator).second;
+    memcpy((void *)&dstPtr[rmst_ptr->max_frag_ * rmst_ptr->mtu_len_],
+	   (void *)tmp_frag_ptr, rmst_ptr->max_frag_len_);
+
+    // Since we copied everything from the map - clean it up
+    rec_rmst_map_.erase(rmst_iterator);
+    delete rmst_ptr;
+
+    // Now we substitute the last fragment with the reconstructed blob
+    data_buf_attr->setVal(dstPtr, dstSize);
+
+    // Deliver this to the application
+    return true;
+  }
+
+  // We don't have the entire blob
+  return false;
 }
 
 HandleEntry * DiffusionRouting::removeHandle(handle my_handle, HandleList *hl)

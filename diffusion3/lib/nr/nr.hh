@@ -3,8 +3,8 @@
 // authors       : Dan Coffin, John Heidemann, Dan Van Hook
 // authors       : Fabio Silva
 // 
-// Copyright (C) 2000-2002 by the University of Southern California
-// $Id: nr.hh,v 1.7 2003/01/22 06:20:21 xuanc Exp $
+// Copyright (C) 2000-2003 by the University of Southern California
+// $Id: nr.hh,v 1.8 2003/07/09 17:50:03 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -46,7 +46,7 @@ typedef char int8_t;
 #else
 // Conflicts with system declaration of int8_t in Solaris and Cygwin
 typedef signed char int8_t;
-#endif // sparc/cygwin
+#endif // sparc || cygwin
 
 #define FAIL -1
 #define OK    0
@@ -74,6 +74,9 @@ public:
     // range 1000-1499 is diffusion-specific
     SCOPE_KEY = 1001,             // INT32_TYPE
     CLASS_KEY = 1002,             // INT32_TYPE
+    ALGORITHM_KEY = 1003,         // INT32_TYPE
+    SUBSCRIPTION_ID_KEY = 1004,   // INT32_TYPE
+    FLOWS_KEY = 1005,             // BLOB_TYPE
 
     // range 1500-1999 is reserved for system filters
     REINFORCEMENT_KEY = 1500,     // BLOB_TYPE
@@ -89,7 +92,16 @@ public:
     TASK_QUERY_DETAIL_KEY = 2004, // BLOB_TYPE
     TARGET_KEY = 2005,            // STRING_TYPE
     TARGET_RANGE_KEY = 2006,      // FLOAT_TYPE
-    CONFIDENCE_KEY = 2007         // FLOAT_TYPE
+    CONFIDENCE_KEY = 2007,        // FLOAT_TYPE
+
+    // RMST Keys
+    RMST_DATA_KEY = 2010,         // BLOB_TYPE  The actual data (fragment)
+    RMST_ID_KEY = 2011,           // INT32_TYPE Unique ID for the frag set
+    RMST_FRAG_KEY = 2012,         // INT32_TYPE Fragment ID
+    RMST_MAX_FRAG_KEY = 2013,     // INT32_TYPE Largest frag id in set
+    RMST_TSPRT_CTL_KEY = 2014,    // INT32_TYPE Transport Control Messages
+    RMST_PKTS_SENT_KEY = 2015,    // INT32_TYPE Support for blacklisting
+    RMST_TARGET_KEY = 2016        // STRING_TYPE Type of Rmst Data
 
     // range 3000-3999 is reserved for experimentation
     // and user-defined keys
@@ -99,6 +111,9 @@ public:
   // so we can do simple type checking)
   enum classes { INTEREST_CLASS = 10010, DISINTEREST_CLASS, DATA_CLASS };
   enum scopes { NODE_LOCAL_SCOPE = 11010, GLOBAL_SCOPE };
+  enum algorithms { ONE_PHASE_PULL_ALGORITHM = 12010,
+		    TWO_PHASE_PULL_ALGORITHM,
+		    ONE_PHASE_PUSH_ALGORITHM };
 
   // Key Type values
   enum types { INT32_TYPE,    // 32-bit signed integer
@@ -288,10 +303,35 @@ public:
  */
 extern NRSimpleAttributeFactory<int> NRScopeAttr;
 extern NRSimpleAttributeFactory<int> NRClassAttr;
+extern NRSimpleAttributeFactory<int> NRAlgorithmAttr;
+extern NRSimpleAttributeFactory<int> NRSubscriptionAttr;
+extern NRSimpleAttributeFactory<void *> NRFlowAttr;
 extern NRSimpleAttributeFactory<float> LatitudeAttr;
 extern NRSimpleAttributeFactory<float> LongitudeAttr;
 extern NRSimpleAttributeFactory<char *> RouteAttr;
 extern NRSimpleAttributeFactory<char *> SourceRouteAttr;
+extern NRSimpleAttributeFactory<void *> ReinforcementAttr;
+
+/*
+ * RMST related attribute factories (used by the rmst filter as well as
+ * the rmst sample applications and the library api)
+ */
+
+extern NRSimpleAttributeFactory<int> RmstIdAttr;
+extern NRSimpleAttributeFactory<int> RmstFragAttr;
+extern NRSimpleAttributeFactory<int> RmstMaxFragAttr;
+extern NRSimpleAttributeFactory<void *> RmstDataAttr;
+extern NRSimpleAttributeFactory<int> RmstTsprtCtlAttr;
+extern NRSimpleAttributeFactory<int> RmstPktsSentAttr;
+extern NRSimpleAttributeFactory<char *> RmstTargetAttr;
+
+/* Defines for RmstTsprtCtlAttr */
+#define RMST_RESP 1   // Normal fragment message
+#define NAK_REQ   2   // Request from sink for missing fragment
+#define ACK_RESP  3   // Ack Response (Blob complete) from sink or caching node
+#define RMST_CONT 4   // Flow control (temporary)
+#define EXP_REQ   5   // Request for new path
+
 
 #ifdef NS_DIFFUSION
 class DiffAppAgent;

@@ -2,8 +2,8 @@
 // filter.hh     : Filter definitions
 // authors       : Fabio Silva
 //
-// Copyright (C) 2000-2002 by the University of Southern California
-// $Id: filter.hh,v 1.6 2002/11/26 22:45:39 haldar Exp $
+// Copyright (C) 2000-2003 by the University of Southern California
+// $Id: filter.hh,v 1.7 2003/07/09 17:50:02 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -27,20 +27,39 @@
 #include "config.h"
 #endif // HAVE_CONFIG_H
 
-#define FILTER_MIN_PRIORITY 1
-#define FILTER_MAX_PRIORITY 254
-#define FILTER_KEEP_PRIORITY 255
-#define FILTER_ZERO_PRIORITY 0
-#define FILTER_INVALID_PRIORITY 256
-
 #include <sys/time.h>
 #include <unistd.h>
-
 #include <list>
 
 #include "message.hh"
 
 using namespace std;
+
+// Filter priority definitions
+#define FILTER_ZERO_PRIORITY 0
+#define FILTER_MIN_PRIORITY 1
+#define FILTER_MAX_PRIORITY 254
+#define FILTER_KEEP_PRIORITY 255
+#define FILTER_INVALID_PRIORITY 256
+
+// The following definitions should help people pick a priority when
+// writing filters.
+
+// If a filter is a pre-processing filter (e.g. logging) which should
+// receive messages before they get to a routing protocol, it should
+// have a priority between FILTER_MAX_PRIORITY and
+// PRE_PROCESSING_COMPLETED_PRIORITY.
+
+#define PRE_PROCESSING_COMPLETED_PRIORITY 200
+
+// Filters implementing routing protocols, should have a priority
+// between PRE_PROCESSING_COMPLETED_PRIORITY and
+// ROUTING_COMPLETED_PRIORITY.
+
+#define ROUTING_COMPLETED_PRIORITY 50
+
+// If a filter is a post-processing filter, it should use a priority
+// between ROUTING_COMPLETED_PRIORITY and FILTER_MIN_PRIORITY.
 
 class FilterEntry;
 class FilterCallback;

@@ -64,7 +64,7 @@ developed by Wei Ye shortly, but in the meantime diffusion users
 may wish to adjust the 802.11 MAC energy parameters to approximate a
 sensor-net specific MAC.
 
-* This version of the port is based on diffusion3.0.7.
+* This version of the port is based on diffusion3.2.0
 
 Any comments, bug-reports and other feedbacks are welcome as usual.
 

@@ -2,8 +2,8 @@
 // dr.hh           : Diffusion Routing Class Definitions
 // authors         : John Heidemann and Fabio Silva
 //
-// Copyright (C) 2000-2002 by the University of Southern California
-// $Id: dr.hh,v 1.13 2002/11/26 22:45:39 haldar Exp $
+// Copyright (C) 2000-2003 by the University of Southern California
+// $Id: dr.hh,v 1.14 2003/07/09 17:50:00 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,6 +36,8 @@
 
 #include <pthread.h>
 #include <string.h>
+#include <math.h>
+#include <map>
 
 #include "main/timers.hh"
 #include "main/filter.hh"
@@ -103,6 +105,27 @@ public:
   void *p_;
 };
 
+// Rmst specific definitions
+typedef map<int, void*, less<int> > Int2Frag;
+class RecRmst {
+public:
+  RecRmst(int id){rmst_no_ = id;}
+  ~RecRmst(){
+    void *tmp_frag_ptr;
+    Int2Frag::iterator frag_iterator;
+    for(frag_iterator=frag_map_.begin(); frag_iterator!=frag_map_.end(); ++frag_iterator){
+      tmp_frag_ptr = (void*)(*frag_iterator).second;
+      delete((char *)tmp_frag_ptr);
+    }
+  }
+  int rmst_no_;
+  int max_frag_;
+  int max_frag_len_;
+  int mtu_len_;
+  Int2Frag frag_map_;
+};
+typedef map<int, RecRmst*, less<int> > Int2RecRmst;
+
 class DiffusionRouting : public NR {
 public:
 
@@ -134,6 +157,8 @@ public:
 
   int send(handle publication_handle, NRAttrVec *send_attrs);
 
+  int sendRmst(handle publication_handle, NRAttrVec *send_attrs, int fragment_size);
+
   // NR Filter API functions
 
   handle addFilter(NRAttrVec *filter_attrs, u_int16_t priority,
@@ -142,6 +167,10 @@ public:
   int removeFilter(handle filter_handle);
 
   int sendMessage(Message *msg, handle h, u_int16_t priority = FILTER_KEEP_PRIORITY);
+
+  int addToBlacklist(int32_t node);
+
+  int clearBlacklist();
 
   // NR Timer API functions
   handle addTimer(int timeout, TimerCallback *callback);
@@ -177,6 +206,7 @@ protected:
   void sendMessageToDiffusion(Message *msg);
   void sendPacketToDiffusion(DiffPacket pkt, int len, int dst);
 
+  bool processRmst(Message *msg);
   void processMessage(Message *msg);
   void processControlMessage(Message *msg);
 
@@ -191,6 +221,9 @@ protected:
   FilterEntry * deleteFilter(handle my_handle);
   FilterEntry * findFilter(handle my_handle);
   bool hasScope(NRAttrVec *attrs);
+
+  // RMST support 
+  Int2RecRmst rec_rmst_map_;
 
   // Handle variables
   int next_handle_;

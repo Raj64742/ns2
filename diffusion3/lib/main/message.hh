@@ -2,8 +2,8 @@
 // message.hh    : Message definitions
 // authors       : Fabio Silva
 //
-// Copyright (C) 2000-2002 by the University of Southern California
-// $Id: message.hh,v 1.6 2002/11/26 22:45:40 haldar Exp $
+// Copyright (C) 2000-2003 by the University of Southern California
+// $Id: message.hh,v 1.7 2003/07/09 17:50:02 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -107,7 +107,9 @@ extern NRSimpleAttributeFactory<void *> OriginalHdrAttr;
 typedef enum ctl_t_ {
   ADD_UPDATE_FILTER,
   REMOVE_FILTER,
-  SEND_MESSAGE
+  SEND_MESSAGE,
+  ADD_TO_BLACKLIST,
+  CLEAR_BLACKLIST
 } ctl_t;
 
 class ControlMessage {

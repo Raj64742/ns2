@@ -3,8 +3,8 @@
 // authors       : Dan Coffin, John Heidemann, Dan Van Hook
 // authors       : Fabio Silva
 // 
-// Copyright (C) 2000-2002 by the University of Southern California
-// $Id: nr.cc,v 1.6 2002/11/26 22:45:40 haldar Exp $
+// Copyright (C) 2000-2003 by the University of Southern California
+// $Id: nr.cc,v 1.7 2003/07/09 17:50:03 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -26,12 +26,41 @@
 #include <algorithm>  // for stl min
 #include "nr.hh"
 
-NRSimpleAttributeFactory<int> NRScopeAttr(NRAttribute::SCOPE_KEY, NRAttribute::INT32_TYPE);
-NRSimpleAttributeFactory<int> NRClassAttr(NRAttribute::CLASS_KEY, NRAttribute::INT32_TYPE);
-NRSimpleAttributeFactory<float> LatitudeAttr(NRAttribute::LATITUDE_KEY, NRAttribute::FLOAT32_TYPE);
-NRSimpleAttributeFactory<float> LongitudeAttr(NRAttribute::LONGITUDE_KEY, NRAttribute::FLOAT32_TYPE);
-NRSimpleAttributeFactory<char *> RouteAttr(NRAttribute::ROUTE_KEY, NRAttribute::STRING_TYPE);
-NRSimpleAttributeFactory<char *> SourceRouteAttr(NRAttribute::SOURCE_ROUTE_KEY, NRAttribute::STRING_TYPE);
+NRSimpleAttributeFactory<int> NRScopeAttr(NRAttribute::SCOPE_KEY,
+					  NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<int> NRClassAttr(NRAttribute::CLASS_KEY,
+					  NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<int> NRAlgorithmAttr(NRAttribute::ALGORITHM_KEY,
+					      NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<int> NRSubscriptionAttr(NRAttribute::SUBSCRIPTION_ID_KEY,
+						 NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<void *> NRFlowAttr(NRAttribute::FLOWS_KEY,
+					    NRAttribute::BLOB_TYPE);
+NRSimpleAttributeFactory<float> LatitudeAttr(NRAttribute::LATITUDE_KEY,
+					     NRAttribute::FLOAT32_TYPE);
+NRSimpleAttributeFactory<float> LongitudeAttr(NRAttribute::LONGITUDE_KEY,
+					      NRAttribute::FLOAT32_TYPE);
+NRSimpleAttributeFactory<char *> RouteAttr(NRAttribute::ROUTE_KEY,
+					   NRAttribute::STRING_TYPE);
+NRSimpleAttributeFactory<char *> SourceRouteAttr(NRAttribute::SOURCE_ROUTE_KEY,
+						 NRAttribute::STRING_TYPE);
+NRSimpleAttributeFactory<void *> ReinforcementAttr(NRAttribute::REINFORCEMENT_KEY, NRAttribute::BLOB_TYPE);
+
+// RMST attribute factory definitions
+NRSimpleAttributeFactory<int> RmstIdAttr(NRAttribute::RMST_ID_KEY,
+					 NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<int> RmstFragAttr(NRAttribute::RMST_FRAG_KEY,
+					   NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<int> RmstMaxFragAttr(NRAttribute::RMST_MAX_FRAG_KEY,
+					      NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<void *> RmstDataAttr(NRAttribute::RMST_DATA_KEY,
+					      NRAttribute::BLOB_TYPE);
+NRSimpleAttributeFactory<int> RmstTsprtCtlAttr(NRAttribute::RMST_TSPRT_CTL_KEY,
+					       NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<int> RmstPktsSentAttr(NRAttribute::RMST_PKTS_SENT_KEY,
+					       NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<char *> RmstTargetAttr(NRAttribute::RMST_TARGET_KEY,
+						NRAttribute::STRING_TYPE);
 
 NRAttributeFactory *NRAttributeFactory::first_ = NULL;
 

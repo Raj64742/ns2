@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: tools.hh,v 1.11 2002/11/26 22:45:40 haldar Exp $
+// $Id: tools.hh,v 1.12 2003/07/09 17:50:03 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -81,4 +81,7 @@ int GetRand();
 // sent to the logging device (usually set to stderr).
 void DiffPrint(int msg_debug_level, const char *fmt, ...);
 
+// Same as DiffPrint but will print the current system time before
+// printing the message
+void DiffPrintWithTime(int msg_debug_level, const char *fmt, ...);
 #endif // !_TOOLS_HH_

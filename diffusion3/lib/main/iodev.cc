@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: iodev.cc,v 1.6 2002/11/26 22:45:39 haldar Exp $
+// $Id: iodev.cc,v 1.7 2003/07/09 17:50:02 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -52,7 +52,7 @@ int DiffusionIO::checkInFDS(fd_set *fds)
       return (fd);
     }
   }
-  return 0;
+  return -1;
 }
 
 bool DiffusionIO::hasFD(int fd)
