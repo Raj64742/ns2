@@ -84,6 +84,9 @@ Phy/WirelessPhy set Pt_ 0.2818
 Phy/WirelessPhy set freq_ 914e+6 
 Phy/WirelessPhy set L_ 1.0
 
+# Pt_ is transmitted signal power. The propagation model and Pt_ determines
+# the received signal power of each packet. The packet can not be correctly
+# received if received power is below RXThresh_.
 
 # ======================================================================
 # Main Program
