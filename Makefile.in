@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.213 2001/03/02 19:31:00 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.214 2001/03/07 23:17:27 jahn Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -123,7 +123,7 @@ OBJ_CC = \
 	queue.o drop-tail.o simple-intserv-sched.o red.o \
 	semantic-packetqueue.o semantic-red.o ack-recons.o \
 	sfq.o fq.o drr.o cbq.o \
-	hackloss.o errmodel.o \
+	hackloss.o errmodel.o fec.o\
 	delay.o snoop.o \
 	gaf/gaf.o \
 	dynalink.o rtProtoDV.o net-interface.o \
