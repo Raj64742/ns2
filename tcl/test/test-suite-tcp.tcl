@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.13 1999/08/12 06:29:47 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.14 1999/08/18 00:27:39 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -462,12 +462,12 @@ Test/quiescent instproc init topo {
         set net_        $topo
         set defNet_     net6
         set test_       quiescent
+	Agent/TCP set QOption_ 0
         $self next
 } 
 Test/quiescent instproc run {} {
         $self instvar ns_ node_ testName_
 	Agent/TCP set packetSize_ 100 
-	Agent/TCP set QOption_ 0 
 	Agent/TCP set window_ 25
 	set stoptime 30.1
 
@@ -486,6 +486,16 @@ Test/quiescent instproc run {} {
 }
 
 
+Class Test/quiescent_op -superclass TestSuite
+Test/quiescent_op instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_op
+	Agent/TCP set QOption_ 1
+	Test/quiescent_op instproc run {} [Test/quiescent info instbody run ]
+        $self next
+} 
 
 ##############
 
