@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.218 2001/02/22 19:45:42 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.219 2001/03/02 19:31:01 haldar Exp $
 
 #
 # Word of warning to developers:
@@ -147,6 +147,7 @@ source ns-intserv.tcl
 source ns-cmutrace.tcl
 source ns-mip.tcl
 source ns-sat.tcl
+source ns-nix.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mac.tcl

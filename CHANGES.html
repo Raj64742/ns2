@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.450 2001/03/01 18:39:31 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.451 2001/03/02 19:31:00 haldar Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -17,13 +17,37 @@ with the most recent changes coming first.
 <h3>
 ns-2.1b8 release PENDING</h3>
 
+
 <ul>
-<LI><B>Haldar</B>
+<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
+Fri Mar  2 10:59:12 PST 2001
+<BR>Nix-Vector Routing contributed to ns from George F.Riley, Georgia Tech, was integrated into ns source code.
+<UL>
+List of files added/modified:
+<LI>Makefile.in
+<LI>addition of new directory ~ns/nix:
+<UL>
+<LI>classifier-nix{.cc,.h}
+<LI>hdr_nv{.cc,.h}
+<LI>nixnode{.cc,.h}
+<LI>nixroute.cc
+<LI>nixvector{.cc,.h}
+</UL>
+<LI>tcl/lib/ns-rtmodule.tcl
+<LI>tcl/lib/ns-lib.tcl
+<LI>tcl/lib/ns-packet.tcl
+<LI>tcl/test/test-all-nixvec
+<LI>tcl/test/test-suite-nixvec.tcl
+<LI>tcl/test/test-output-nixvec/{NixVec.Z,NoNixVec.Z,quite.Z}
+</UL>
+Contact info of contributor: George Riley(riley@cc.gatech.edu)
+
+<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
 Thu Mar  1 10:27:46 PST 2001
 <BR>
 Error checking added for out of range address for ascii-to-interger conversions in addr2str routine.
 
-<LI><B>Haldar</B>
+<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
 Thu Feb 22 11:10:01 PST 2001
 <BR>
 The following modifications made to the routing code in NS:

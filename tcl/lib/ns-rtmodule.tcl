@@ -26,7 +26,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.4 2001/02/22 19:45:42 haldar Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.5 2001/03/02 19:31:01 haldar Exp $
 #
 # OTcl interface definition for the base routing module. They provide 
 # linkage to Node, hence all derived classes should inherit these interfaces
@@ -273,17 +273,21 @@ Classifier/Virtual instproc find dst {
 Classifier/Virtual instproc install {dst target} {
 }
 
-# Nix-vector routing
-#RtModule/Nix instproc register { node } {
-#	$self next $node
-#	# Create classifier
-#	$self instvar classifier_
-#	set classifier_ [new Classifier/Nix]
-#	$classifier_ set-node-id [$node set id_]
-#	#puts "RtModule/Nix set node id to [$node set id_]"
-#	$node install-entry $self $classifier_
-#       $self attach-classifier $classifier_
-#}
+Class RtModule/Nix -superclass RtModule
+
+#Nix-vector routing
+RtModule/Nix instproc register { node } {
+	$self next $node
+	# Create classifier
+	$self instvar classifier_
+	set classifier_ [new Classifier/Nix]
+	$classifier_ set-node-id [$node set id_]
+	#puts "RtModule/Nix set node id to [$node set id_]"
+	$node install-entry $self $classifier_
+        #$self attach-classifier $classifier_
+}
+
+RtModule/Nix instproc route-notify { module } { }
 
 
 
