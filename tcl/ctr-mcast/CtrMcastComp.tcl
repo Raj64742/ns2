@@ -61,10 +61,7 @@ CtrMcastComp instproc trace { f nop {op ""} } {
 CtrMcastComp instproc reset-mroutes {} {
     $self instvar ns Glist Slist
 
-    set i 0
-    set n [Node set nn_]
-    while { $i < $n } {
-        set n1 [$ns set Node_($i)]
+    foreach n1 [$ns all-nodes-list] {
 	foreach group $Glist {
 	    set tmp [$n1 getReps * $group]
 	    if {$tmp != ""} {
@@ -79,7 +76,6 @@ CtrMcastComp instproc reset-mroutes {} {
 		}
 	    }
 	}
-	incr i
     }
 }
 

@@ -282,22 +282,6 @@ SessionSim instproc simulator-simplex-link { n1 n2 bw delay qtype args } {
 	if [info exists queueMap_($qtype)] {
 		set qtype $queueMap_($qtype)
 	}
-	if [Simulator set NumberInterfaces_] {
-		$self instvar interfaces_
-		if ![info exists interfaces_($n1:$n2)] {
-			set interfaces_($n1:$n2) [new DuplexNetInterface]
-			set interfaces_($n2:$n1) [new DuplexNetInterface]
-			$n1 addInterface $interfaces_($n1:$n2)
-			$n2 addInterface $interfaces_($n2:$n1)
-		}
-		set nd1 $interfaces_($n1:$n2)
-		set nd2 $interfaces_($n2:$n1)
-	} else {
-		set nd1 $n1
-		set nd2 $n2
-	}
-
-	
 	# construct the queue
 	set qtypeOrig $qtype
 	switch -exact $qtype {
@@ -322,7 +306,7 @@ SessionSim instproc simulator-simplex-link { n1 n2 bw delay qtype args } {
 		RTM {
                         set c [lindex $args 1]
                         set link_($sid:$did) [new CBQLink       \
-                                        $nd1 $nd2 $bw $delay $q $c]
+                                        $n1 $n2 $bw $delay $q $c]
                 }
                 CBQ -
                 CBQ/WRR {
@@ -334,17 +318,17 @@ SessionSim instproc simulator-simplex-link { n1 n2 bw delay qtype args } {
                                 set c [lindex $args 1]
                         }
                         set link_($sid:$did) [new CBQLink       \
-                                        $nd1 $nd2 $bw $delay $q $c]
+                                        $n1 $n2 $bw $delay $q $c]
                 }
                 intserv {
                         #XX need to clean this up
                         set link_($sid:$did) [new IntServLink   \
-                                        $nd1 $nd2 $bw $delay $q	\
+                                        $n1 $n2 $bw $delay $q	\
 						[concat $qtypeOrig $args]]
                 }
                 default {
                         set link_($sid:$did) [new SimpleLink    \
-                                        $nd1 $nd2 $bw $delay $q]
+                                        $n1 $n2 $bw $delay $q]
                 }
         }
 	$n1 add-neighbor $n2
