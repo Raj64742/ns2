@@ -38,7 +38,6 @@ set opt(cbr)	0
 set opt(ftp)	0
 set opt(http)	-1
 
-# set opt(webModel) ""
 set opt(webModel) $nshome/tcl/http/data
 set opt(phttp) 0
 
@@ -148,6 +147,9 @@ proc create-source {} {
 	global ns opt
 	global lan node source
 
+	if {$opt(webModel) != ""} {
+		create-webModel $opt(webModel)
+	}
 	# make node($num+1) the source of all connection
 	set src $node(0)
 	foreach ttype {http ftp cbr telnet} {
@@ -162,38 +164,17 @@ proc create-source {} {
 	}
 }
 
-proc newWebModel dir {
-	set rv [new RandomVariable/Empirical]
-	puts "$rv loadCDF $dir/HttpConnections.cdf"
-	$rv loadCDF $dir/HttpConnections.cdf
-	lappend webm -rvNumImg $rv
-
-	set rv [new RandomVariable/Empirical]
-	puts "$rv loadCDF $dir/HttpReplyLength.cdf"
-	$rv loadCDF $dir/HttpReplyLength.cdf
-	lappend webm -rvRepLen $rv
-	lappend webm -rvImgLen $rv
-
-	set rv [new RandomVariable/Empirical]
-	puts "$rv loadCDF $dir/HttpRequestLength.cdf"
-	$rv loadCDF $dir/HttpRequestLength.cdf
-	lappend webm -rvReqLen $rv
-
-	set rv [new RandomVariable/Empirical]
-	puts "$rv loadCDF $dir/HttpThinkTime.cdf"
-	$rv loadCDF $dir/HttpThinkTime.cdf
-	lappend webm -rvClientTime $rv
+proc create-webModel path {
+	Http setCDF rvClientTime $path/HttpThinkTime.cdf
+	Http setCDF rvReqLen $path/HttpRequestLength.cdf
+	Http setCDF rvNumImg $path/HttpConnections.cdf
+	set rv [Http setCDF rvRepLen $path/HttpReplyLength.cdf]
+	Http setCDF rvImgLen $rv
 }
 
 proc new_http {i server client} {
 	global ns opt http webm
 	set webopt "-srcType $opt(tcp) -snkType $opt(sink) -phttp $opt(phttp)"
-	if {$opt(webModel) != ""} {
-		if ![info exists webm] {
-			set webm [newWebModel $opt(webModel)]
-		}
-		set webopt "$webopt $webm"
-	}
 	set http($i) [eval new Http $ns $client $server $webopt]
 	$ns at [expr 0 + $i/1000.0] "$http($i) start"
 }

@@ -71,9 +71,19 @@ Http instproc rvRepLen {val} { $self set rvRepLen_ $val }
 Http instproc rvImgLen {val} { $self set rvImgLen_ $val }
 Http instproc rvNumImg {val} { $self set rvNumImg_ $val }
 
+Http proc setCDF {rvName value} {
+	if [file exists $value] {
+		set rv [new RandomVariable/Empirical]
+		$rv loadCDF $value
+		set value $rv
+	}
+	eval "$self set ${rvName}_ $value"
+	return $value
+}
+
+
 Http instproc init {ns client server args} {
-	$self init-all-vars $class
-	eval $self next $args
+	eval $self init-vars $args
 	$self instvar srcType_ snkType_ agents_
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
 	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
@@ -82,7 +92,7 @@ Http instproc init {ns client server args} {
 	set ns_ $ns
 	set client_(node) $client
 	set server_(node) $server
-	if {$phttp_ > 0} {
+	if {$phttp_} {
 		set $maxConn_ 1
 	}
 
@@ -122,18 +132,21 @@ Http instproc agents {{type source}} {
 }
 
 
-Http instproc transmit {source nbyte} {
-	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
-	$source instvar agent_
+Http instproc transmit {source nbyte {npkt 0}} {
+	$self instvar numPut_ phttp_
+	[$source set agent_] instvar packetSize_
 
-	set psize [$agent_ set packetSize_]
-	if {$numPut_ == 0} {
-		set npkt 1
+	if {$npkt == 1} {
+		set packetSize_ $nbyte
 	} else {
-		set npkt [expr ceil(1.0 * $nbyte / $psize)]
+		set npkt [expr ceil(1.0 * $nbyte / $packetSize_)]
+	}
+	if {$phttp_ == 0} {
+		[$source set agent_] reset
 	}
 	$source producemore $npkt
 }
+
 
 Http instproc start {} {
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
@@ -144,20 +157,22 @@ Http instproc start {} {
 	set numGet_ 0
 	set numPut_ 0
 	set len [rvValue $rvReqLen_ round]
-	$self transmit $client_(0) $len
+	$self transmit $client_(0) $len 1
+
 #	puts "Http $self starts at $tStart_"
 #	puts "$self reqH$numGet_ [$client_(0) set agent_] $len"
 }
 
+
 Http instproc doneRequest {id} {
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
 	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
+	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_ psz_
 
 	if {$numPut_ == 0} {
 		set len [rvValue $rvRepLen_ round]
 	} else {
-		set num [expr ($phttp_ > 0) ? $numImg_ : 1]
+		set num [expr $phttp_ ? $numImg_ : 1]
 		for {set i [set len 0]} {$i < $num} {incr i} {
 			incr len [rvValue $rvImgLen_ round]
 		}
@@ -172,6 +187,7 @@ Http instproc doneRequest {id} {
 		eval $cmd
 	}
 }
+
 
 Http instproc doneReply {id} {
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
@@ -190,15 +206,15 @@ Http instproc doneReply {id} {
 		return
 	}
 
-	if {$phttp_ > 0} {
-		# set numGet_ and numPut_ as if only 1 more request is needed
-		set numPut_ $numImg_
-		set numGet_ [expr $numImg_ - 1]
-	}
+	# set numGet_ and numPut_ as if only 1 more request is needed
 	foreach id $idlist {
 		if {[incr numGet_] > $numImg_} break
+		if {$phttp_} {
+			set numGet_ $numImg_
+			set numPut_ $numImg_
+		}
 		set len [rvValue $rvReqLen_ round]
-		$self transmit $client_($id) $len
+		$self transmit $client_($id) $len 1
 #		puts "$self reqI$numGet_ $id [$client_($id) set agent_] $len [$ns_ now]"
 	}
 }
@@ -208,8 +224,8 @@ Http instproc donePage {} {
 	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
 	set now [$ns_ now]
-	set tt [rvValue $rvClientTime_]
-	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $tt]
+	set ct [rvValue $rvClientTime_]
+	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $ct]
 	puts "Http $self donePage $out"
-	$ns_ at [expr $now + $tt] "$self start"
+	$ns_ at [expr $now + $ct] "$self start"
 }
