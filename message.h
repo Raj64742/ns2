@@ -31,11 +31,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.5 1998/08/12 23:41:09 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.6 1998/08/13 22:45:10 tomh Exp $
  */
 
 #ifndef ns_msg_h
 #define ns_msg_h
+
+#include "packet.h"
 
 struct hdr_msg {
 	char msg_[64];
