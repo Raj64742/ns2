@@ -66,7 +66,7 @@ Channel::senseCarrier(Packet* p, Handler* h)
 
 
 int
-Channel::send(Packet* p, double txtime, double txstart)
+Channel::send(Packet* p, NsObject* target, double txtime, double txstart)
 {
 	// without collision, return 0
 	Scheduler& s = Scheduler::instance();
@@ -78,7 +78,7 @@ Channel::send(Packet* p, double txtime, double txstart)
 		drop(p);
 		return 1;
 	}
-	s.schedule(p->target(), p, txstop_ - s.clock());
+	s.schedule(target, p, txstop_ - s.clock());
 	return 0;
 }
 
