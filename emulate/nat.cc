@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.3 1998/12/01 06:49:49 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.4 1998/12/01 07:38:55 kfall Exp $";
 #endif
 
 #include <stdio.h>
@@ -217,6 +217,9 @@ NatAgent::addrsum(in_addr* ia1, in_addr* ia2)
  * incrementally update tcp or udp packet for new addresses:
  *	rewrite IP addresses and recompute IP header cksum
  *	recompute TCP or UDP pseudoheader checksum
+ *
+ * note: this code is tricky because of the masking.
+ * Please do not modify without careful testing.
  */
 void
 NatAgent::fixtcpudpcksums(ip* iph, int iphlen)
@@ -225,11 +228,16 @@ NatAgent::fixtcpudpcksums(ip* iph, int iphlen)
 
 	tcphdr* tcph = (tcphdr*)(((u_char*) iph) + iphlen);
 	u_short sum = tcph->th_sum;
-	u_long nsum = ~sum + ~oldval(iph) + newval();
+	u_long nsum;
+	nsum = ~sum & 0xffff;
+	nsum += ~oldval(iph) & 0xffff;
+	nsum += newval();
+printf("nsum2: 0x%x\n", nsum);
 	nsum = (nsum >> 16) + (nsum & 0xffff);
 	nsum += (nsum >> 16);
 	sum = ~nsum;
-	tcph->th_sum = sum;
+	tcph->th_sum = sum & 0xffff;
+printf("fsum: 0x%hx\n", tcph->th_sum);
 	return;
 }
 
@@ -286,6 +294,7 @@ TCPSrcDestNat::newval()
 u_short
 TCPSrcDestNat::oldval(ip* iph)
 {
+printf("oldval:%hx\n", addrsum(&iph->ip_src, &iph->ip_dst));
 	return(addrsum(&iph->ip_src, &iph->ip_dst));
 }
 
