@@ -20,27 +20,25 @@
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
 #
 
-There are three main example scripts to demonstrate the implementation of
-SRM.  These are srm-star.tcl, srm-chain.tcl, and srm2.tcl.  When the
-results from each of these scripts is viewed in nam, data traffic is
-coloured white, traffic from the source is coloured blue, and traffic
-from the the receivers is multi-coloured in various shades of red.
-(Tiny packets are requests, slightly larger packets are
-session messages, and large colored packets are repairs.)
+There are five example scripts to demonstrate the implementation of SRM.
+These are srm-star.tcl, srm-chain.tcl, srm.tcl, srm-adapt-req.tcl, and
+srm-adapt-rep.tcl.  When the results from each of these scripts is viewed in
+nam, data traffic is coloured white, traffic from the source is coloured
+blue, and traffic from the the receivers is multi-coloured in various shades
+of red.  (Tiny packets are requests, slightly larger packets are session
+messages, and large colored packets are repairs.)
 
 Traffic from the source consists of session messages, and repairs.
 Traffic from the receivers is session messages, requests, and
 (occasionally) repairs.
 
-In order to make viewing protocol behaviour more intuitive in nam,
-these scripts source ../mcast/srm-nam.tcl.  This script modifies the
-messages classes, so that session messages are coloured blue, request
-messages are coloured red, and repairs are coloured green.  Dense mode
-traffic, such as joins and prunes, where applicable, are coloured
-black.  Data traffic is white (the good guys, see? :-) In addition,
-requests are normally teensy weensy packets (about 12 bytes long),
-session messages are medium sized, and data packets are relatively
-hugish.
+In order to make viewing protocol behaviour more intuitive in nam, these
+scripts source ../mcast/srm-nam.tcl.  This script modifies the messages
+classes, to achieve the desired colouring described earlier.  Dense mode
+traffic, such as joins and prunes, where applicable, are coloured black.
+Data traffic is white (the good guys, see? :-) In addition, requests are
+normally teensy weensy packets (about 12 bytes long), session messages are
+medium sized, and data packets are relatively hugish.
 
 In addition, sources are square, leaf nodes are circle, transit nodes
 are hexagonal.  In general, all nodes are members of the group.  The
@@ -73,7 +71,7 @@ currently missing.  Request messages will start appearing after about
 3s.  because the nodes have not computed distances to each other
 accurately yet.
 
-Example 4: srm-adapt-re[pq].tcl is a 8 node topology, identical to
+Example 4, 5: srm-adapt-re[pq].tcl is a 8 node topology, identical to
 srm-star.tcl.  The simulation runs for 50s.  In the -req, the link
 incident to the source fails periodically, causing data packets to be
 dropped.  This causes request parameter adaptation in all the other
