@@ -65,6 +65,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("NumSamples_", &numsamples);
 	bind ("discount_", &discount);
 	bind ("smooth_", &smooth_);
+	bind ("ShortIntervals_", &ShortIntervals_);
 
 	// EWMA use only
 	bind ("history_", &history); // EWMA history
@@ -100,6 +101,8 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	sample = NULL ; 
 	weights = NULL ;
 	mult = NULL ;
+        losses = NULL ;
+	count_losses = NULL ;
 	sample_count = 1 ;
 	mult_factor_ = 1.0;
 	init_WALI_flag = 0;
@@ -113,7 +116,8 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 }
 
 /*
- * This is a new loss event if it is at least an RTT after the last one.
+ * This is a new loss event if it is at least an RTT after the beginning
+ *   of the last one.
  * If PreciseLoss_ is set, the new_loss also checks that there is a
  *     new round_id.
  * The sender updates the round_id when it receives a new report from
@@ -124,10 +128,15 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
  */
 int TfrcSinkAgent::new_loss(int i, double tstamp)
 {
-	if ((tsvec_[i%hsz]-lastloss > rtt_) 
+	double time_since_last_loss_interval = tsvec_[i%hsz]-lastloss;
+	if ((time_since_last_loss_interval > rtt_)
 	     && (PreciseLoss_ == 0 || (round_id > lastloss_round_id))) {
 		lastloss = tstamp;
 		lastloss_round_id = round_id ;
+                if (time_since_last_loss_interval < 2.0 * rtt_ &&
+				algo == WALI) {
+                        count_losses[0] = 1;
+                }
 		return TRUE;
 	} else return FALSE;
 }
@@ -205,12 +214,28 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 				ecnEvent = 1;
 				lossvec_[seqno%hsz] = ECNLOST;
 				losses_since_last_report++;
-			} 
+			} else if (algo == WALI) {
+                       		++ losses[0];
+			}
 		} else lossvec_[seqno%hsz] = RCVD;
+	}
+	if (seqno > maxseq) {
+		int i = maxseq + 1;
+		while (i < seqno) {
+			// Added 3/1/05 in case we have wrapped around
+			//   in packet sequence space.
+			lossvec_[i%hsz] = UNKNOWN;
+			++ i;
+		}
 	}
 	if (seqno > maxseqList && 
 	  (ecnEvent || numPktsSoFar_ >= numPkts_ ||
 	     tsvec_[seqno%hsz] - tsvec_[maxseqList%hsz] > rtt_)) {
+		// numPktsSoFar_ >= numPkts_:
+		// Number of pkts since we last entered this procedure
+		//   at least equal numPkts_, the number of non-sequential 
+		//   packets that must be seen before inferring loss.
+		// maxseqList: max seq number checked for dropped packets
 		// Decide which losses begin new loss events.
 		int i = maxseqList ;
 		while(i < seqno) {
@@ -224,6 +249,9 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 					// This lost packet is marked "NOT_RCVD"
 					// as it does not begin a loss event.
 					lossvec_[i%hsz] = NOT_RCVD; 
+					if (algo == WALI) {
+				    		++ losses[0];
+					}
 				}
 				losses_since_last_report++;
 			}
@@ -395,6 +423,8 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 			strcpy(w, (char *)argv[2]);
 			numsamples = atoi(strtok(w,"+"));
 			sample = (int *)malloc((numsamples+1)*sizeof(int));
+			losses = (int *)malloc((numsamples+1)*sizeof(int));
+                        count_losses = (int *)malloc((numsamples+1)*sizeof(int));
 			weights = (double *)malloc((numsamples+1)*sizeof(double));
 			mult = (double *)malloc((numsamples+1)*sizeof(double));
 			fflush(stdout);
@@ -402,6 +432,8 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 				int count = 0 ;
 				while (count < numsamples) {
 					sample[count] = 0;
+					losses[count] = 1;
+					count_losses[count] = 0;
 					mult[count] = 1;
 					char *w;
 					w = strtok(NULL, "+");
@@ -416,6 +448,8 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 					abort();
 				}
 				sample[count] = 0;
+				losses[count] = 1;
+				count_losses[count] = 0;
 				weights[count] = 0;
 				mult[count] = 1;
 				free(w);
@@ -454,6 +488,20 @@ void TfrcSinkAgent::print_loss_all(int *sample)
 		now, sample[0], sample[1], sample[2], sample[3], sample[4]); 
 }
 
+void TfrcSinkAgent::print_losses_all(int *losses) 
+{
+	double now = Scheduler::instance().clock();
+	printf ("%f: losses 0: %5d 1: %5d 2: %5d 3: %5d 4: %5d\n", 
+		now, losses[0], losses[1], losses[2], losses[3], losses[4]); 
+}
+
+void TfrcSinkAgent::print_count_losses_all(int *count_losses) 
+{
+	double now = Scheduler::instance().clock();
+	printf ("%f: count? 0: %5d 1: %5d 2: %5d 3: %5d 4: %5d\n", 
+		now, count_losses[0], count_losses[1], count_losses[2], count_losses[3], count_losses[4]); 
+}
+
 ////////////////////////////////////////
 // algo specific code /////////////////
 ///////////////////////////////////////
@@ -480,6 +528,8 @@ double TfrcSinkAgent::est_loss_WALI ()
 			// double now = Scheduler::instance().clock();
 			sample_count ++;
 			shift_array (sample, numsamples+1, 0); 
+			shift_array (losses, numsamples+1, 1); 
+			shift_array (count_losses, numsamples+1, 0); 
 			multiply_array(mult, numsamples+1, mult_factor_);
 			shift_array (mult, numsamples+1, 1.0); 
 			mult_factor_ = 1.0;
@@ -498,7 +548,8 @@ double TfrcSinkAgent::est_loss_WALI ()
 		return 0; 
 	/* do we need to discount weights? */
 	if (sample_count > 1 && discount && sample[0] > 0) {
-		double ave = weighted_average(1, ds, 1.0, mult, weights, sample);
+                double ave = weighted_average1(1, ds, 1.0, mult, weights, sample, ShortIntervals_, losses, count_losses);
+                //double ave = weighted_average(1, ds, 1.0, mult, weights, sample);
 		int factor = 2;
 		double ratio = (factor*ave)/sample[0];
 		double min_ratio = 0.5;
@@ -510,23 +561,28 @@ double TfrcSinkAgent::est_loss_WALI ()
 		}
 	}
 	// Calculations including the most recent loss interval.
-	ave_interval1 = weighted_average(0, ds, mult_factor_, mult, weights, sample);
+        ave_interval1 = weighted_average1(0, ds, mult_factor_, mult, weights, sample, ShortIntervals_, losses, count_losses);
+        //ave_interval1 = weighted_average(0, ds, mult_factor_, mult, weights, sample);
 	// The most recent loss interval does not end in a loss
 	// event.  Include the most recent interval in the 
 	// calculations only if this increases the estimated loss
 	// interval.
-	ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
+        ave_interval2 = weighted_average1(1, ds, mult_factor_, mult, weights, sample, ShortIntervals_, losses, count_losses);
+        //ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
 	if (ave_interval2 > ave_interval1)
 		ave_interval1 = ave_interval2;
 	if (ave_interval1 > 0) { 
 		if (printLoss_ > 0) {
 			print_loss(sample[0], ave_interval1);
 			print_loss_all(sample);
+			if (ShortIntervals_ == 1) {
+				print_losses_all(losses);
+				print_count_losses_all(count_losses);
+			}
 		}
 		return 1/ave_interval1; 
 	} else return 999;     
 }
-
 
 // Calculate the weighted average.
 double TfrcSinkAgent::weighted_average(int start, int end, double factor, double *m, double *w, int *sample)
@@ -566,6 +622,81 @@ double TfrcSinkAgent::weighted_average(int start, int end, double factor, double
 				answer += factor*m[i]*w[i]*sample[i]/wsum;
 	        return answer;
 	}
+}
+
+int TfrcSinkAgent::get_sample(int oldSample, int numLosses) 
+{
+	int newSample;
+	if (numLosses == 0) {
+		newSample = oldSample;
+	} else {
+		newSample = (int) floor(oldSample / numLosses);
+	}
+	return newSample;
+}
+
+// Calculate the weighted average, factor*m[i]*w[i]*sample[i]/wsum.
+// "factor" is "mult_factor_", for weighting the most recent interval
+//    when it is very large
+// "m[i]" is "mult[]", for old values of "mult_factor_".
+//
+// When ShortIntervals_ is used, the length of a loss interval is
+//   "sample[i]/losses[i]" for short intervals, not just "sample[i]".
+//   This is equivalent to a loss event rate of "losses[i]/sample[i]",
+//   instead of "1/sample[i]".
+//
+double TfrcSinkAgent::weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses)
+{
+        int i;
+        int ThisSample;
+        double wsum = 0;
+        double answer = 0;
+        if (smooth_ == 1 && start == 0) {
+                if (end == numsamples+1) {
+                        // the array is full, but we don't want to uses
+                        //  the last loss interval in the array
+                        end = end-1;
+                }
+                // effectively shift the weight arrays
+                for (i = start ; i < end; i++)
+                        if (i==0)
+                                wsum += m[i]*w[i+1];
+                        else
+                                wsum += factor*m[i]*w[i+1];
+                for (i = start ; i < end; i++) {
+                        ThisSample = sample[i];
+                        if (ShortIntervals == 1 && count_losses[i] == 1) {
+			       ThisSample = get_sample(sample[i], losses[i]);
+                        }
+                        if (i==0)
+                                answer += m[i]*w[i+1]*ThisSample/wsum;
+                                //answer += m[i]*w[i+1]*sample[i]/wsum;
+                        else
+                                answer += factor*m[i]*w[i+1]*ThisSample/wsum;
+                                //answer += factor*m[i]*w[i+1]*sample[i]/wsum;
+		}
+                return answer;
+
+        } else {
+                for (i = start ; i < end; i++)
+                        if (i==0)
+                                wsum += m[i]*w[i];
+                        else
+                                wsum += factor*m[i]*w[i];
+                for (i = start ; i < end; i++) {
+                       ThisSample = sample[i];
+                       if (ShortIntervals == 1 && count_losses[i] == 1) {
+			       ThisSample = get_sample(sample[i], losses[i]);
+                       }
+                       if (i==0)
+                                answer += m[i]*w[i]*ThisSample/wsum;
+                                //answer += m[i]*w[i]*sample[i]/wsum;
+                        else
+                                answer += factor*m[i]*w[i]*ThisSample/wsum;
+                                //answer += factor*m[i]*w[i]*sample[i]/wsum;
+		}
+                return answer;
+        }
 }
 
 // Shift array a[] up, starting with a[sz-2] -> a[sz-1].
@@ -613,9 +744,17 @@ double TfrcSinkAgent::adjust_history (double ts)
 	false_sample = (int)(1.0/p);
 	sample[1] = false_sample;
 	sample[0] = 0;
+	losses[1] = 0;
+	losses[0] = 1;
+	count_losses[1] = 0;
+	count_losses[0] = 0;
 	sample_count++; 
 	if (printLoss_) {
 		print_loss_all (sample);
+		if (ShortIntervals_ == 1) {
+			print_losses_all(losses);
+			print_count_losses_all(count_losses);
+		}
 	}
 	false_sample = -1 ; 
 	return p;
@@ -633,6 +772,8 @@ void TfrcSinkAgent::init_WALI () {
 		numsamples = numsamples + 1;
 	}
 	sample = (int *)malloc((numsamples+1)*sizeof(int));
+        losses = (int *)malloc((numsamples+1)*sizeof(int));
+        count_losses = (int *)malloc((numsamples+1)*sizeof(int));
 	weights = (double *)malloc((numsamples+1)*sizeof(double));
 	mult = (double *)malloc((numsamples+1)*sizeof(double));
 	for (i = 0 ; i < numsamples+1 ; i ++) {
