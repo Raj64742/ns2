@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.5 1998/05/01 18:57:46 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.6 1998/06/20 02:08:46 gnguyen Exp $
  */
 
 
@@ -113,7 +113,7 @@ int Address::command(int argc, const char*const* argv)
 			}
 			else 
 				levels_ = temp;
-			NodeShift_ = new int[levels_];
+			NodeShift_ = new int[levels_ + 1];
 			for (i = 3, c = 1; c <= levels_; c++, i+=2) 
 				NodeShift_[c] = atoi(argv[i]);
 			return (TCL_OK); 
@@ -129,7 +129,7 @@ int Address::command(int argc, const char*const* argv)
 			}
 			else 
 				levels_ = temp;
-			NodeMask_ = new int[levels_];
+			NodeMask_ = new int[levels_ + 1];
 			for (i = 3, c = 1; c <= levels_; c++, i+=2) 
 				NodeMask_[c] = atoi(argv[i]);
 			return (TCL_OK);
