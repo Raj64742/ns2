@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.27 1998/05/11 19:13:52 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.28 1998/05/12 02:04:35 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -43,6 +43,7 @@ class Sack1TcpAgent : public TcpAgent {
 	virtual int window();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
+	virtual void dupack_action();
 	void plot();
 	virtual void send_much(int force, int reason, int maxburst);
  protected:
@@ -115,17 +116,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 				 * Retransmit last ack + 1
 				 * and try to resume the sequence.
 				 */
-				if ((highest_ack_ > recover_) ||
-					(last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
-					last_cwnd_action_ = CWND_ACTION_DUPACK;
-					recover_ = maxseq_;
-					pipe_ = int(cwnd_) - NUMDUPACKS;
-					slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
-					reset_rtx_timer(1);
-					fastrecov_ = TRUE;
-					scb_.MarkRetran (last_ack_+1);
-					output(last_ack_ + 1, TCP_REASON_DUPACK);
-				}
+				dupack_action();
 			}
 		}
 		if (dupacks_ == 0)
@@ -164,6 +155,53 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 	if (trace_)
 		plot();
 #endif
+}
+void
+Sack1TcpAgent::dupack_action()
+{
+        int recovered = (highest_ack_ > recover_);
+        if (recovered || (!bug_fix_ && !ecn_)) {
+                goto sack_action;
+        }
+ 
+        if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+                last_cwnd_action_ = CWND_ACTION_DUPACK;
+                /*
+                 * What if there is a DUPACK action followed closely by ECN
+                 * followed closely by a DUPACK action?
+                 * The optimal thing to do would be to remember all
+                 * congestion actions from the most recent window
+                 * of data.  Otherwise "bugfix" might not prevent
+                 * all unnecessary Fast Retransmits.
+                 */
+                reset_rtx_timer(1,0);
+		pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
+		//pipe_ = int(cwnd_) - NUMDUPACKS;
+		fastrecov_ = TRUE;
+		scb_.MarkRetran(highest_ack_+1);
+                output(last_ack_ + 1, TCP_REASON_DUPACK);
+                return;
+        }
+ 
+        if (bug_fix_) {
+                /*
+                 * The line below, for "bug_fix_" true, avoids
+                 * problems with multiple fast retransmits in one
+                 * window of data.
+                 */
+                return;
+        }
+ 
+sack_action:
+        recover_ = maxseq_;
+        last_cwnd_action_ = CWND_ACTION_DUPACK;
+	pipe_ = int(cwnd_) - NUMDUPACKS;
+        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+        reset_rtx_timer(1,0);
+	fastrecov_ = TRUE;
+	scb_.MarkRetran(highest_ack_+1);
+        output(last_ack_ + 1, TCP_REASON_DUPACK);       // from top
+        return;
 }
 
 void Sack1TcpAgent::timeout(int tno)
