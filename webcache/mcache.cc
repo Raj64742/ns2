@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.2 1999/07/02 21:02:19 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.3 1999/07/02 21:24:54 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -107,16 +107,16 @@ int MediaPage::evict_tail_segment(int layer, int size)
 		return 0;
 
 	assert((layer >= 0) && (layer < MAX_LAYER));
-#if 1
+#ifdef MCACHE_DEBUG
 	char buf[20];
 	name(buf);
 	fprintf(stderr, "Page %s evicted layer %d: ", buf, layer);
 #endif
 	int sz = layer_[layer].evict_tail(size);
 	realsize_ -= sz;
-
+#ifdef MCACHE_DEBUG
 	fprintf(stderr, "\n");
-
+#endif
 	return sz;
 }
 
@@ -326,7 +326,7 @@ int MClientPagePool::add_segment(const char* name, int layer,
 	// Check space availability
 	if (used_size_ + s.datasize() > max_size_) {
 		cache_replace(pg, s.datasize());
-#if 1
+#ifdef MCACHE_DEBUG
 		fprintf(stderr, 
 			"Replaced for page %s segment (%d %d) layer %d\n",
 			name, s.start(), s.end(), layer);
@@ -732,7 +732,7 @@ int MediaCache::command(int argc, const char*const* argv)
 			assert(pg != NULL);
 			pg->unlock();
 			// XXX Should we clear all "last" flag of segments??
-#if 0
+#ifdef MCACHE_DEBUG
 			// Printing out current buffer status of the page
 			char *buf;
 			for (int i = 0; i < pg->num_layer(); i++) {
@@ -787,7 +787,7 @@ int MediaCache::command(int argc, const char*const* argv)
 			RegInfo *ri = (RegInfo*)Tcl_GetHashValue(he);
 			// Update hit count
 			mpool()->hc_update(argv[4], ri->hl_);
-#if 1
+#ifdef MCACHE_DEBUG
 			printf("Cache %d hit counts: \n", id_);
 			mpool()->dump_hclist();
 #endif
@@ -974,10 +974,6 @@ AppData* MediaServer::get_data(int& size, const AppData *req)
 			size = s2.datasize();
 			p = new HttpMediaData(name(), r->name(),
 					   r->layer(), s2.start(), s2.end());
-#if 0
-			fprintf(stderr, "Server %d sends data (%d,%d,%d)\n",
-				id_, r->layer(), s2.start(), s2.end());
-#endif			
 		}
 		if (s2.is_last()) {
 			p->set_last();
@@ -1080,16 +1076,6 @@ int MediaServer::command(int argc, const char*const* argv)
 			}
 			assert(p != NULL);
 
-#if 0
-			char *buf;
-			if (p[layer].length() > 0) {
-				buf = p[layer].dump2list();
-				fprintf(stderr, 
-			  "Server %d preempted segments %s of layer %d\n",
-					id_, buf, layer);
-				delete []buf;
-			}
-#endif
 			// Preempt all old requests because they 
 			// cannot reach the cache "in time"
 			p[layer].destroy();
