@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.196 2000/07/21 04:56:58 yewei Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.197 2000/07/22 23:52:34 xuanc Exp $
 
 #
 
@@ -186,7 +186,11 @@ Simulator instproc dumper obj {
 }
 
 # New node structure
-
+#
+# Add APT to support multi-interface: user can specified multiple channels
+# when config nod. Still need modifications in routing agents to make
+# multi-interfaces really work.   -chen xuan  07/21/00
+#
 # Define global node configuration
 # $ns_ node-config -addressType flat/hierarchical
 #                  -adhocRouting   DSDV/DSR/TORA
@@ -197,6 +201,7 @@ Simulator instproc dumper obj {
 #                  -ifqLen
 #                  -phyType
 #                  -antType
+#		   -channel
 #                  -channelType
 #                  -topologyInstance
 #                  -wiredRouting   ON/OFF
@@ -235,6 +240,7 @@ Simulator instproc ifqType  {val} { $self set ifqType_  $val }
 Simulator instproc ifqLen  {val} { $self set ifqlen_  $val }
 Simulator instproc phyType  {val} { $self set phyType_  $val }
 Simulator instproc antType  {val} { $self set antType_  $val }
+Simulator instproc channel {val} {$self set channel_ $val}
 Simulator instproc channelType {val} {$self set channelType_ $val}
 Simulator instproc topoInstance {val} {$self set topoInstance_ $val}
 Simulator instproc wiredRouting {val} {$self set wiredRouting_ $val}
@@ -291,9 +297,10 @@ Simulator instproc get-nodetype {} {
 
 Simulator instproc node-config args {
         set args [eval $self init-vars $args]
-        $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
+        $self instvar addressType_  routingAgent_ nodefactory_ propType_  
         $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
-        $self instvar channelType_ topoInstance_ propInstance_ chan mobileIP_
+        $self instvar channelType_ channel_ chan
+	$self instvar topoInstance_ propInstance_ mobileIP_
         $self instvar rxPower_ txPower_ idlePower_
 
         if [info exists macTrace_] {
@@ -327,9 +334,29 @@ Simulator instproc node-config args {
             set propInstance_ [new $propType_] 
 	}
 	
-	if {[info exists channelType_] && ![info exists chan]} {
-	    set chan [new $channelType_]
+	# Add multi-interface support: 
+ 	# User can only specify either channelType_ (single_interface as before)
+ 	# or channel_ (multi_interface)
+ 	# If both variables are specified, error!
+ 	if {[info exists channelType_] && [info exists channel_]} { 
+  	   error "Can't specify both channel and channelType, error!"
+         } elseif {[info exists channelType_]} {
+ 	    # Single channel, single interface
+ 	    if {![info exists chan]} {
+                set chan [new $channelType_]
+                #puts "no channel specified, create a new one."
+             } else {
+                #puts "use the existed chan."
+             } 
+ 	} elseif {[info exists channel_]} {
+ 	    #Multiple channel, multiple interfaces
+ 	    set chan $channel_
+ 	    #puts "only channel_ specified, use it."
+ 	} else {
+ 	    warn "No channel specified."
 	}
+ 	#puts "Current channel id: [$chan id]"
+
 
 	if [info exists topoInstance_] {
 	    $propInstance_  topography $topoInstance_

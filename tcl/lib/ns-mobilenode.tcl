@@ -219,7 +219,7 @@ Node/MobileNode instproc reset {} {
 #
 
 Node/MobileNode instproc add-target {agent port } {
-    
+
     #global opt
     $self instvar dmux_ classifier_
     $self instvar imep_ toraDebug_
@@ -252,7 +252,6 @@ Node/MobileNode instproc add-target {agent port } {
     
     if { $port == 255 } {			# routing agents
 
-	
 	if { [Simulator set RouterTrace_] == "ON" } {
 	    #
 	    # Send Target
@@ -329,6 +328,7 @@ Node/MobileNode instproc add-target {agent port } {
 #	    $dmux_ install $port $rcvT
 	    
 	} else {
+
 	    #
 	    # Send Target
 	    #
@@ -387,6 +387,7 @@ Node/MobileNode instproc add-target {agent port } {
 	}
 	
     } else {
+
 	if { [Simulator set AgentTrace_] == "ON" } {
 	    #
 	    # Send Target

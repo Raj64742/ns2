@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.70 2000/07/10 07:38:22 intanago Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.71 2000/07/22 23:52:34 xuanc Exp $
 #
 
 # for MobileIP
@@ -196,9 +196,7 @@ Node instproc incr-rtgtable-size {} {
 }
 
 Node instproc entry {} {
-    
         #set nodetype [[Simulator instance] get-nodetype]
-    
         $self instvar nodetype_
         return [$self entry-New$nodetype_]
 }

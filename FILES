@@ -405,6 +405,8 @@ mac-802_11.cc
 mac-802_11.h
 mac-802_3.cc
 mac-802_3.h
+mac-tdma.cc
+mac-tdma.h
 mac-csma.cc
 mac-csma.h
 mac-multihop.cc
@@ -726,6 +728,7 @@ tcl/ex/web-traffic.tcl
 tcl/ex/wired-cum-wireless-sim.tcl
 tcl/ex/wireless-test.tcl
 tcl/ex/wireless.tcl
+tcl/ex/wireless_mitf.tcl
 tcl/http/README
 tcl/http/data/HttpConnections.cdf
 tcl/http/data/HttpReplyLength.cdf
