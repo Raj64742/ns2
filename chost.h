@@ -45,8 +45,8 @@ class Segment : public slink {
 	friend class TcpSessionAgent;
   public:
 	Segment() {ts_ = 0;
-	seqno_ = later_acks_ = dport_ = sport_ = size_ = rxmitted_ = 
-		daddr_ = 0;};
+	seqno_ = later_acks_ = dupacks_ = dport_ = sport_ = size_ = rxmitted_ = 
+		daddr_ = 0; thresh_dupacks_ = 0; partialack_ = 0;};
   protected:
 	int seqno_;
 	int sessionSeqno_;
@@ -55,7 +55,11 @@ class Segment : public slink {
 	int sport_;
 	int size_;
 	double ts_;		/* timestamp */
-	int later_acks_;
+	int dupacks_;     /* on same connection */
+	int later_acks_;  /* on other connections */
+	int thresh_dupacks_; /* whether there have been a threshold # of
+				dupacks/later acks for this segment */
+	int partialack_;  /* whether a partial ack points to this segment */
 	short rxmitted_;
 	class IntTcpAgent *sender_;
 };
@@ -64,16 +68,13 @@ class CorresHost : public slink, public TcpFsAgent {
 	friend class IntTcpAgent;
   public:
 	CorresHost();
-/*	CorresHost(int addr, int cwndinit = 0, int path_mtu_ = 1500, 
-		   int maxcwnd = 999999, int wnd_option = 0 );*/
 	/* add pkt to pipe */
 	virtual Segment* add_pkts(int size, int seqno, int sessionSeqno, int daddr, 
 		      int dport, int sport, double ts, IntTcpAgent *sender); 
 	/* remove pkt from pipe */
 	int clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSeqno,
-		       int clean_dup = 1, int uniq_ts = 0);
-	int rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int clean_dup = 1,
-			 int uniq_ts = 0);
+		       int amt_data_acked);
+	int rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int amt_data_acked);
 
 	void opencwnd(int size, IntTcpAgent *sender=0);
 	void closecwnd(int how, double ts, IntTcpAgent *sender=0);
@@ -90,7 +91,6 @@ class CorresHost : public slink, public TcpFsAgent {
 	void quench(int how);
 
   protected:
-	/* int addr_;*/	     /* my addr */
 	class Islist<IntTcpAgent> conns_; /* active connections */
 	Islist_iter<IntTcpAgent> *connIter_;
 	u_int nActive_;	     /* number of active tcp conns to this host */
@@ -100,10 +100,7 @@ class CorresHost : public slink, public TcpFsAgent {
 	double winMult_;
 	int winInc_;
 	TracedDouble ownd_;  /* outstanding data to host */
-	TracedInt owndCorrection_; /* correction factor to account for dupacks */   
-/*	int wndOption_;*/
-	int pathmtu_;	     /* should do path mtu discovery here */
-			     /* should also do t/tcp cache info here */
+	TracedDouble owndCorrection_; /* correction factor to account for dupacks */   
 	int proxyopt_;	     /* indicates whether the connections are on behalf
 			        of distinct users (like those from a proxy) */
 	int fixedIw_;        /* fixed initial window (not a function of # conn) */
