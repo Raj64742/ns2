@@ -34,10 +34,11 @@ require "ctime.pl";
 
 @FILES = `ls *.html`;
 foreach $filename (@FILES) {
-    chop $filename
+    chop $filename;
     &adjust_buttons($filename);
+};
 
-}				# foreach
+exit 0;
 
 
 sub adjust_buttons 
@@ -48,17 +49,26 @@ sub adjust_buttons
     $outFile = "$filename.new";
     open(FILE, "$filename") || die "Cannot open $filename: $_";
     open(OUTFILE, ">$outFile") || die "Cannot open $outFile: $_";
+    my($in_pre) = 0;
     while (<FILE>) {
 	s/(SRC\s*=\s*")[^>"].*(next_motif.+gif)/$1$2/g && ($change = 1);
 	s/(SRC\s*=\s*")[^>"].*(up_motif.+gif)/$1$2/g && ($change = 1);
 	s/(SRC\s*=\s*")[^>"].*(index_motif.+gif)/$1$2/g && ($change = 1);
-	s/(SRC\s*=\s*")[^>"].*(contents_motif.+gif)/$1$2/g && ($chagne = 1);
+	s/(SRC\s*=\s*")[^>"].*(contents_motif.+gif)/$1$2/g && ($change = 1);
 	s/(SRC\s*=\s*")[^>"].*(previous_motif.+gif)/$1$2/g && ($change = 1);
+	if (!$in_pre && /^<PRE>$/) {
+	    $in_pre = 1;
+	} elsif ($in_pre && /^<\/PRE>$/) {
+	    $in_pre = 0;
+	} elsif ($in_pre) {
+	    s/\\([\$_])/$1/g;
+	    $change = 1;
+	};
 	print OUTFILE;
     }				# while
     close(OUTFILE);
     close(FILE);
-    if ($change == 1) {
+    if ($change) {
 	print "$filename has been altered!\n";
 	rename($filename, "$filename.org");
 	rename($outFile, $filename);
@@ -68,7 +78,7 @@ sub adjust_buttons
 }				# adjust_buttons
 
 sub change_title {
-    $Date = &ctime(time), "\n";
+    $Date = &ctime(time) . "\n";
     $Date =~ /^(\w+)\s+(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)[^\d]*(\d+)/;
     $temp = $2;
     $temp =~ tr/A-Z/a-z/;
