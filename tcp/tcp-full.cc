@@ -69,7 +69,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.5 1997/07/25 21:13:46 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.6 1997/07/25 21:19:25 kfall Exp $ (LBL)";
 #endif
 
 #include "Tcl.h"
@@ -95,8 +95,8 @@ public:
  *	segsperack: for delayed ACKs, how many to wait before ACKing
  *	segsize: segment size to use when sending
  */
-FullTcpAgent::FullTcpAgent() : last_ack_sent_(-1), flags_(0),
-	state_(TCPS_CLOSED), rq_(rcv_nxt_)
+FullTcpAgent::FullTcpAgent() : flags_(0),
+	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -624,7 +624,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// not an ACK for our SYN, discard
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
-			        now, name(), ackno, maxseq_);
+			        now, name(), int(ackno), int(maxseq_));
 			goto drop;
 		}
 		if ((tiflags & TH_SYN) == 0) {
@@ -632,7 +632,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// we're looking for a SYN in return
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN(%d)\n",
-			        now, name(), maxseq_);
+			        now, name(), int(maxseq_));
 			goto drop;
 		}
 		rcv_nxt_ = tcph->seqno();	// initial expected seq#
@@ -817,7 +817,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// ack more than we sent(!?)
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s) too-big ACK (ack: %d, maxseq:%d)\n",
-				now, name(), ackno, maxseq_);
+				now, name(), int(ackno), int(maxseq_));
 			goto dropafterack;
 		}
 
@@ -881,7 +881,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 
 step6:
 	/* real TCP handles window updates and URG data here */
-dodata:
+/* dodata: this label is in the "real" code.. here only for reference */
 	/*
 	 * DATA processing
 	 */
