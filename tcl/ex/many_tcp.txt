@@ -1,0 +1,59 @@
+Investigating TCP's larger initial windows:
+
+To use many_tcp.tcl to investigate packet drop rates with larger
+initial windows:
+This runs two simulations, one with initial windows of one packet
+and one with initial windows as specified in the internet
+draft for larger initial windows, and for each simulation prints
+out the aggregate packet drop rate.
+
+ set seed=12345
+ set params='-print-drop-rate 1 -debug 0 -trace-filename none' 
+ set p1='-bottle-queue-length 50 -bottle-queue-method DropTail'
+ set p2='-client-arrival-rate 140 -bottle-bw 10Mb -ns-random-seed '$seed 
+ set p3='-client-mouse-chance 90 -client-mouse-packets 10' 
+ set p4='-client-bw 100Mb -node-number 100'
+
+ ns many_tcp.tcl $params $p1 $p2 $p3 $p4
+ ns many_tcp.tcl $params $p1 $p2 $p3 $p4 -init-win 1
+
+Results:  
+drop_percentage 18.0101
+drop_percentage 18.5479 (larger windows)
+
+-----------------------------
+
+All 4-packet mice:
+ set p2='-client-arrival-rate 600 -bottle-bw 10Mb -ns-random-seed '$seed
+ set p3='-client-mouse-chance 100 -client-mouse-packets 4'
+
+Results:
+total clients started: 17774
+total clients finished: 14926
+total_drops 35082 total_packets 99965
+drop_percentage 35.0943
+Larger windows:
+total clients started: 17774
+total clients finished: 15643
+total_drops 32346 total_packets 98942
+drop_percentage 32.6919
+
+-----------------------------
+
+Above, with a smaller drop rate:
+ set p2='-client-arrival-rate 560 -bottle-bw 10Mb -ns-random-seed '$seed
+ set p3='-client-mouse-chance 100 -client-mouse-packets 4'
+drop_percentage 23.9940
+drop_percentage 21.8517
+
+TO TRY:  5-10% drop rates, initial windows of 10 packets, mice of size 10. 
+
+
+----------------------------
+
+TODO:  add two-way traffic.
+Opening four flows at once.
+
+------------
+
+
