@@ -164,7 +164,7 @@ proc finish {} {
 
 	if [info exists opt(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
-				[lsort [glob $opt(tr).*]]
+				[lsort [glob $opt(tr)*]]
 	}
 	exit
 }
@@ -212,10 +212,9 @@ proc create-error { lan src dstlist emname rate unit {trans ""}} {
 		set e2 [new ErrorModel/Expo $rate $unit]
 	}
 
-	foreach dst $dstlist {
-		$lan install-error $e1 $src $dst
-		$lan install-error $e2 $dst $src
-	}
+	$lan instvar channel_
+	$e1 target [$channel_ target]
+	$channel_ target $e1
 }
 
 # Topology
