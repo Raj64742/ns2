@@ -21,6 +21,17 @@ with the most recent changes coming first.
 
 <p><li><b>[Sally Floyd]</b>
 <br>
+Thu Jan 16 2003
+<br>
+Adding a patch to drop-tail to check if the queue would have
+overflowed *before* adding a packet to the queue, and to drop the
+packet in this case without adding it to the queue.  This improves
+the efficiency of the code for simulations with large queues.  Code
+contributed by Tom Kelly.
+<p>
+
+<p><li><b>[Sally Floyd]</b>
+<br>
 Tue Jan 14 2003
 <br>
 Added additions to the scoreboard so that Sack TCP can run more
