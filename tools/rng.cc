@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.26 2002/01/29 19:29:03 buchheim Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.27 2002/04/13 21:24:25 buchheim Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -421,27 +421,27 @@ RNGTest::RNGTest()
 #ifdef OLD_RNG
 	  if (r != 1043618065L) {
 		  fprintf (stderr, "r (%lu) != 1043618065L\n", r);
-		  abort();
+		  exit(-1);
 	  }
 #else
-	  if (r != 582989707L) {
-		  fprintf (stderr, "r (%lu) != 582989707\n", r);
-		  abort();
+	  if (r != 1179983147L) {
+		  fprintf (stderr, "r (%lu) != 1179983147L\n", r);
+		  exit(-1);
 	  }
 #endif /* OLD_RNG */
-	  
+
 	  for (i = 10000; i < 551246; i++)
 		  r = rng.uniform_positive_int();
 
 #ifdef OLD_RNG
 	  if (r != 1003L) {
 		  fprintf (stderr, "r (%lu) != 1003L\n", r);
-		  abort();
+		  exit(-1);
 	  }
 #else
-	  if (r != 1625334359L) {
-		  fprintf (stderr, "r (%lu) != 1625334359L\n", r);
-		  abort();
+	  if (r != 817829295L) {
+		  fprintf (stderr, "r (%lu) != 817829295L\n", r);
+		  exit(-1);
 	  }
 #endif /* OLD_RNG */
 
@@ -773,12 +773,17 @@ void RNG::init()
 
 void RNG::set_seed (long seed) 
 {
-	unsigned long seed_vec[6] = {0, 0, 0, 0, 0, 0};
-	for (int i=0; i<6; i++) {
-		seed_vec[i] = (unsigned long) seed;
+	if (seed == 0) {
+		set_seed (HEURISTIC_SEED_SOURCE, seed);
 	}
-	set_package_seed (seed_vec);
-	init();
+	else {
+		unsigned long seed_vec[6] = {0, 0, 0, 0, 0, 0};
+		for (int i=0; i<6; i++) {
+			seed_vec[i] = (unsigned long) seed;
+		}
+		set_package_seed (seed_vec);
+		init();
+	}
 }
 
 long RNG::seed() 
