@@ -29,14 +29,16 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.14 1997/12/31 01:23:29 kannan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.15 1998/01/01 00:36:51 kannan Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 
+#if 0
 #include <stdio.h>
+#endif
 
 #include "tclcl.h"
 #include "agent.h"
@@ -61,17 +63,8 @@ public:
 } class_srmhdr;
 
 SRMAgent::SRMAgent() 
-        : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), buckets_(SRM_BUCKETS)
+        : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), sip_(0), siphash_(0)
 {
-	sip_ = new SRMinfo(-1);
-
-	// need to initialize hash table
-	htab_ = new hnode[buckets_];
-	if (htab_ != NULL) 
-		memset(htab_, 0, sizeof(hnode) * buckets_);
-	else
-		fprintf(stderr, "SRMAgent: out of memory\n");
-	
 	bind("off_srm_", &off_srm_);
 	bind("off_cmn_", &off_cmn_);
 	bind("packetSize_", &packetSize_);
@@ -80,19 +73,7 @@ SRMAgent::SRMAgent()
 
 SRMAgent::~SRMAgent()
 {
-	register i;
-	hnode *p;
-	hnode *n;
-	for (i = 0; i < buckets_; i++) {
-		p = htab_[i].next;
-		while (p != NULL) {
-			n = p;
-			p = p->next;
-			delete n->data;
-			delete n;
-		}
-	}
-	delete htab_;
+	cleanup();
 }
 
 int SRMAgent::command(int argc, const char*const* argv)
@@ -123,20 +104,18 @@ int SRMAgent::command(int argc, const char*const* argv)
         }
 	if (argc == 2) {
 		if (strcmp(argv[1], "distances?") == 0) {
-			if (sip_->sender_ < 0) { // i.e. this agent is not
-				tcl.result("");	 //      yet active.
-				return TCL_OK;
+			tcl.result("");
+			if (sip_) {		 // i.e. this agent is active
+				for (SRMinfo* sp = sip_; sp; sp = sp->next_) {
+					tcl.resultf("%s %d %f", tcl.result(),
+						    sp->sender_,
+						    sp->distance_);
+				}
 			}
-			for (SRMinfo* sp = sip_; sp; sp = sp->next_)
-				tcl.resultf("%s %d %f", tcl.result(),
-					    sp->sender_, sp->distance_);
 			return TCL_OK;
 		}
 		if (strcmp(argv[1], "start") == 0) {
-			sip_->sender_ = addr_;
-			sip_->distance_ = 0.0;
-			// insert the first node into hash table
-			insert(find_hash(addr_), sip_);
+			start();
 			return TCL_OK;
 		}
 	}
@@ -168,8 +147,9 @@ void SRMAgent::recv(Packet* p, Handler* h)
 
 #if 0
  		static char *foo[] = {"NONE", "DATA", "SESS", "RQST", "REPR"};
- 		fprintf(stderr, "%7.4f %s recvd SRM_%s <%d, %d> from %d\n",
-			Scheduler::instance().clock(), name_, foo[sh->type()],
+ 		fprintf(stderr, "%7.4f %s %d recvd SRM_%s <%d, %d> from %d\n",
+			Scheduler::instance().clock(), name_, addr_,
+			foo[sh->type()],
 			sh->sender(), sh->seqnum(), ih->src());
 #endif
 		
@@ -343,34 +323,6 @@ void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 		if (sp->ldata_ < dataCnt)
 			sp->ldata_ = dataCnt;
 	}
-}
-
-SRMAgent::hnode* 
-SRMAgent::lookup(nsaddr_t sender)
-{
-	hnode *hn = &htab_[find_hash(sender)];
-	while (hn != NULL) {
-		if (compare(hn, sender))
-			break;
-		hn = hn->next;
-	}
-	return hn;
-}
-
-void SRMAgent::insert(int buck, SRMinfo *si)
-{
-	hnode *p;
-	if (htab_[buck].active) {
-		p = new hnode;
-		p->next = htab_[buck].next;
-		htab_[buck].next = p;
-	} else {
-		p = &htab_[buck];
-	}
-
-	p->active = 1;
-	p->id = si->sender_;
-	p->data = si;
 }
 
 static class ASRMAgentClass : public TclClass {

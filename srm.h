@@ -26,71 +26,58 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.9 1997/12/31 01:23:30 kannan Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.10 1998/01/01 00:36:52 kannan Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
 #define ns_srm_h
 
 #include <math.h>
+#include <tcl.h>
 
 #include "config.h"
 #include "heap.h"
 #include "srm-state.h"
-
 #include "srm-headers.h"
-
-#define SRM_BUCKETS 300
 
 class SRMAgent : public Agent {
 protected:
 	int	dataCtr_;	          /* # of data packets sent */
 	int	sessCtr_;		  /* # of session messages sent */
 	int	packetSize_;	          /* size of data messages for repr */
-	SRMinfo* sip_;		          /* sender info ptr. */
+	SRMinfo *sip_;	          	  /* Table of sender info */
+	Tcl_HashTable*	siphash_;
 	int	groupSize_;
 	int off_srm_;
 	int off_cmn_;
 
-	// hash functions
-	struct hnode {
-		int active;
-		nsaddr_t id;		  /* sender */
-		SRMinfo *data;
-		hnode *next;
-	};
-	hnode* htab_;
-	int buckets_;
-	virtual int compare(hnode* hn, nsaddr_t id) {
-		return (hn->active && hn->id == id);
+	virtual int start() {
+		siphash_ = new Tcl_HashTable;
+		Tcl_InitHashTable(siphash_, TCL_ONE_WORD_KEYS);
+		SRMinfo *sip_ = get_state(addr_);
+		sip_->distance_ /* to itself */ = 0.0;
+		sip_->next_ = NULL;
 	}
-	virtual int find_hash(nsaddr_t sender) {
-		/* 
-		 * all agents from the same node are put into the same
-		 * bucket 
-		 */
-		return ((sender >> 8) % buckets_);
-	}
-	hnode* lookup(nsaddr_t);
-	void insert(int buck, SRMinfo *si);
-
 	SRMinfo* get_state(int sender) {
 		assert(sip_);
-		hnode *hn = lookup(sender);
 
-		if (! hn) {
-			// maintain both the sip_ list and a hash table
-			SRMinfo *ret = new SRMinfo(sender);
-			ret = new SRMinfo(sender);
-			ret->next_ = sip_->next_;
-			sip_->next_ = ret;
+		int new_entry = 0;
+		Tcl_HashEntry* he = Tcl_CreateHashEntry(siphash_,
+							(char*) &sender,
+							&new_entry);
+		if (new_entry) {
 			groupSize_++;
-
-			insert(find_hash(sender), ret);
-			return ret;
+			SRMinfo* tmp = new SRMinfo(sender);
+			tmp->next_ = sip_->next_;
+			sip_->next_ = tmp;
+			Tcl_SetHashValue(he, (ClientData*)tmp);
 		}
-		return hn->data;
+		return (SRMinfo*)Tcl_GetHashValue(he);
 	}
+	virtual void cleanup () {
+		Tcl_DeleteHashTable(siphash_);
+	}
+	
 	virtual void addExtendedHeaders(Packet*) {}
 	virtual void parseExtendedHeaders(Packet*) {}
 	virtual int request(SRMinfo* sp, int hi) {
