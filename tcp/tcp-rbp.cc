@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 University of Southern California.
  * All rights reserved.                                            
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.16 1998/04/28 21:27:47 bajaj Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.17 1998/06/27 01:25:03 gnguyen Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -285,7 +286,7 @@ RBPRenoTcpAgent::recv(Packet *pkt, Handler *hand)
 
 		// reset cwnd such that we're now ack clocked.
 		hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	        if (tcph->seqno() > last_ack_) {
+		if (tcph->seqno() > last_ack_) {
 			/* reno does not do rate adjustments as Vegas;
 			 * normally, one wouldn't do any adjustments to
 			 * cwnd and allow the sliding window to do its job

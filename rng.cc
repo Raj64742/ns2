@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -34,13 +34,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.11 1998/06/25 23:29:34 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.12 1998/06/27 01:24:33 gnguyen Exp $ (LBL)";
 #endif
 
 /* new random number generator */
 
 #ifndef WIN32
-#include <sys/time.h>   // for gettimeofday
+#include <sys/time.h>			// for gettimeofday
 #include <unistd.h>
 #endif
 
@@ -56,7 +56,7 @@ extern "C" {			// XXX Why not include config.h?
 	int atoi(...);
 	//	int gettimeofday(struct timeval*, struct timezone*);
 	int gettimeofday(...); //fix to work on solaris as well
-	   }
+}
 #endif
 
 /*
@@ -131,14 +131,14 @@ extern "C" {			// XXX Why not include config.h?
  */
  
 
-#define A       16807L          /* multiplier, 7**5 */
-#define M       2147483647L     /* modulus, 2**31 - 1; both used in random */
-#define INVERSE_M ((double)4.656612875e-10)  /* (1.0/(double)M) */
+#define A	16807L		/* multiplier, 7**5 */
+#define M	2147483647L	/* modulus, 2**31 - 1; both used in random */
+#define INVERSE_M ((double)4.656612875e-10)	/* (1.0/(double)M) */
 
 long
 RNGImplementation::next()
 {
-        long L, H;
+	long L, H;
 	L = A * (seed_ & 0xffff);
 	H = A * (seed_ >> 16);
 	
@@ -147,7 +147,7 @@ RNGImplementation::next()
 	seed_ += H >> 15;
 	
 	if (seed_ <= 0) {
-	        seed_ += 0x7fffffff;
+		seed_ += 0x7fffffff;
 	}
 	return(seed_);
 }
@@ -166,9 +166,9 @@ RNGImplementation::next_double()
  */
 static class RNGClass : public TclClass {
 public:
-        RNGClass() : TclClass("RNG") {}
+	RNGClass() : TclClass("RNG") {}
 	TclObject* create(int, const char*const*) {
-	        return(new RNG());
+		return(new RNG());
 	}
 } class_rng;
 
@@ -179,9 +179,9 @@ RNG* RNG::default_ = NULL;
 int
 RNG::command(int argc, const char*const* argv)
 {
-        Tcl& tcl = Tcl::instance();
+	Tcl& tcl = Tcl::instance();
 
-        if (argc == 3) {
+	if (argc == 3) {
 		if (strcmp(argv[1], "testint") == 0) {
 			int n = atoi(argv[2]);
 			tcl.resultf("%d", uniform(n));
@@ -193,7 +193,7 @@ RNG::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "seed") == 0) {
-		        int s = atoi(argv[2]);
+			int s = atoi(argv[2]);
 			// NEEDSWORK: should be a way to set seed to PRDEF_SEED_SORUCE
 			if (s) {
 				if (s <= 0 || s >= MAXINT) {
@@ -201,30 +201,30 @@ RNG::command(int argc, const char*const* argv)
 					tcl.resultf("Setting random number seed to known bad value.");
 					return TCL_ERROR;
 				};
-			        set_seed(RAW_SEED_SOURCE, s);
+				set_seed(RAW_SEED_SOURCE, s);
 			} else set_seed(HEURISTIC_SEED_SOURCE, 0);
 			return(TCL_OK);
 		}
 	}
 	if (argc == 2) {
-	        if (strcmp(argv[1], "next-random") == 0) {
-		        tcl.resultf("%u", uniform_positive_int());
+		if (strcmp(argv[1], "next-random") == 0) {
+			tcl.resultf("%u", uniform_positive_int());
 			return(TCL_OK);
 		}
 		if (strcmp(argv[1], "seed") == 0) {
-		        tcl.resultf("%u", stream_.seed());
+			tcl.resultf("%u", stream_.seed());
 			return(TCL_OK);
 		}
 		if (strcmp(argv[1], "default") == 0) {
-		        default_ = this;
+			default_ = this;
 			return(TCL_OK);
 		}
 #if 0
-	        if (strcmp(argv[1], "test") == 0) {
-		        if (test())
-			        tcl.resultf("RNG test failed");
+		if (strcmp(argv[1], "test") == 0) {
+			if (test())
+				tcl.resultf("RNG test failed");
 			else
-			        tcl.resultf("RNG test passed");
+				tcl.resultf("RNG test passed");
 			return(TCL_OK);
 		}
 #endif
@@ -235,12 +235,12 @@ RNG::command(int argc, const char*const* argv)
 void
 RNG::set_seed(RNGSources source, int seed)
 {
-        /* The following predefined seeds are evenly spaced around
+	/* The following predefined seeds are evenly spaced around
 	 * the 2^31 cycle.  Each is approximately 33,000,000 elements
 	 * apart.
 	 */
 #define N_SEEDS_ 64
-        static long predef_seeds[N_SEEDS_] = {  
+	static long predef_seeds[N_SEEDS_] = {
 		1973272912L,  188312339L, 1072664641L,  694388766L,
 		2009044369L,  934100682L, 1972392646L, 1936856304L,
 		1598189534L, 1822174485L, 1871883252L,  558746720L,

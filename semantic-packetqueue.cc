@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.

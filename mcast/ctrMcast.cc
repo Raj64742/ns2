@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * ctrMcast.cc
  * Copyright (C) 1997 by USC/ISI
@@ -22,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.cc,v 1.5 1997/08/10 07:49:36 mccanne Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.cc,v 1.6 1998/06/27 01:23:39 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -31,63 +32,63 @@ static const char rcsid[] =
 
 class CtrMcastEncap : public Agent {
 public:
-  CtrMcastEncap() : Agent(PT_CtrMcast_Encap) { 
-    bind("off_CtrMcast_", &off_CtrMcast_);
-  }
-  int command(int argc, const char*const* argv);
-  void recv(Packet* p, Handler*);
+	CtrMcastEncap() : Agent(PT_CtrMcast_Encap) { 
+		bind("off_CtrMcast_", &off_CtrMcast_);
+	}
+	int command(int argc, const char*const* argv);
+	void recv(Packet* p, Handler*);
 protected:
-  int off_CtrMcast_;
+	int off_CtrMcast_;
 };
 
 class CtrMcastDecap : public Agent {
 public:
-  CtrMcastDecap() : Agent(PT_CtrMcast_Decap) { 
-    bind("off_CtrMcast_", &off_CtrMcast_);
-  }
-  int command(int argc, const char*const* argv);
-  void recv(Packet* p, Handler*);
+	CtrMcastDecap() : Agent(PT_CtrMcast_Decap) { 
+		bind("off_CtrMcast_", &off_CtrMcast_);
+	}
+	int command(int argc, const char*const* argv);
+	void recv(Packet* p, Handler*);
 protected:
-  int off_CtrMcast_;
+	int off_CtrMcast_;
 };
 
 static class CtrMcastHeaderClass : public PacketHeaderClass {
 public:
-        CtrMcastHeaderClass() : PacketHeaderClass("PacketHeader/CtrMcast",
-                                              sizeof(hdr_CtrMcast)) { } 
+	CtrMcastHeaderClass() : PacketHeaderClass("PacketHeader/CtrMcast",
+						  sizeof(hdr_CtrMcast)) { } 
 } class_CtrMcast_hdr;
 
 static class CtrMcastEncapclass : public TclClass {
 public:
-        CtrMcastEncapclass() : TclClass("Agent/CtrMcast/Encap") {}
-        TclObject* create(int, const char*const*) {
-                return (new CtrMcastEncap);
-        }
+	CtrMcastEncapclass() : TclClass("Agent/CtrMcast/Encap") {}
+	TclObject* create(int, const char*const*) {
+		return (new CtrMcastEncap);
+	}
 } class_CtrMcastEncap;
 
 static class CtrMcastDecapclass : public TclClass {
 public:
-        CtrMcastDecapclass() : TclClass("Agent/CtrMcast/Decap") {}
-        TclObject* create(int, const char*const*) {
-                return (new CtrMcastDecap);
-        }
+	CtrMcastDecapclass() : TclClass("Agent/CtrMcast/Decap") {}
+	TclObject* create(int, const char*const*) {
+		return (new CtrMcastDecap);
+	}
 } class_CtrMcastDecap;
 
 
 int CtrMcastEncap::command(int argc, const char*const* argv)
 {
-       return Agent::command(argc, argv);
+	return Agent::command(argc, argv);
 }
 
 int CtrMcastDecap::command(int argc, const char*const* argv)
 {
-       return Agent::command(argc, argv);
+	return Agent::command(argc, argv);
 }
 
 void CtrMcastEncap::recv(Packet* p, Handler*)
 {
-        hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
-        hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
+	hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
+	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
 
 	ch->src() = ih->src();
 	ch->group() = ih->dst();
@@ -101,8 +102,8 @@ void CtrMcastEncap::recv(Packet* p, Handler*)
 
 void CtrMcastDecap::recv(Packet* p, Handler*)
 {
-        hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
-        hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
+	hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
+	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
 
 	ih->src() = ch->src();
 	ih->dst() = ch->group();

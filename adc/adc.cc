@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -18,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.cc,v 1.4 1998/05/08 00:30:30 bajaj Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.cc,v 1.5 1998/06/27 01:23:23 gnguyen Exp $";
 #endif
 
 #include "adc.h"
@@ -45,7 +46,7 @@ int ADC::command(int argc,const char*const*argv)
 	} else if (argc==4) {
 		if (strcmp(argv[1],"attach-measmod") == 0) {
 			/* $adc attach-measmod $meas $cl */
-			MeasureMod *meas_mod =  (MeasureMod *)TclObject::lookup(argv[2]);
+			MeasureMod *meas_mod = (MeasureMod *)TclObject::lookup(argv[2]);
 			if (meas_mod== 0) {
 				tcl.resultf("no measuremod found");
 				return(TCL_ERROR);

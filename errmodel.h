@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.33 1998/06/26 02:20:15 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.34 1998/06/27 01:23:48 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h

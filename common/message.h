@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.h,v 1.3 1997/03/29 01:42:55 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.h,v 1.4 1998/06/27 01:24:11 gnguyen Exp $
  */
 
 #ifndef ns_msg_h
@@ -39,13 +40,9 @@
 struct hdr_msg {
 	char msg_[64];
 
-        /* per-field member functions */
-        char* msg() {
-                return (msg_);
-        }
-	int maxmsg() {
-		return (sizeof(msg_));
-	}
+	/* per-field member functions */
+	char* msg() { return (msg_); }
+	int maxmsg() { return (sizeof(msg_)); }
 };
 
 #endif

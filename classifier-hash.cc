@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.14 1998/06/19 22:20:05 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.15 1998/06/27 01:23:30 gnguyen Exp $ (LBL)";
 #endif
 
 //
@@ -286,9 +287,9 @@ HashClassifier::~HashClassifier()
 int HashClassifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-        /*
-         * $classifier set-hash $hashbucket src dst fid $slot
-         */
+	/*
+	 * $classifier set-hash $hashbucket src dst fid $slot
+	 */
 
 	if (argc == 7) {
 		if (strcmp(argv[1], "set-hash") == 0) {
@@ -304,7 +305,7 @@ int HashClassifier::command(int argc, const char*const* argv)
 				buck = atoi(argv[2]);
 
 			/* printf("classifier-hash(%s), set-hash [%d/%d/%d] (buck:%d)(slot:%d)[%s]\n",
-			       name(), src, dst, fid, buck, slot, slot_[slot]->name());
+			   name(), src, dst, fid, buck, slot, slot_[slot]->name());
 			*/
 
 			insert(buck, src, dst, fid, slot);
@@ -357,7 +358,7 @@ int HashClassifier::command(int argc, const char*const* argv)
 			return TCL_OK;
 		};
 	};
-        return (Classifier::command(argc, argv));
+	return (Classifier::command(argc, argv));
 }
 
 

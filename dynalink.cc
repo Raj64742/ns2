@@ -1,7 +1,8 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (C) 1997 by USC/ISI
- * All rights reserved.                                            
- *                                                                
+ * All rights reserved.
+ *
  * Redistribution and use in source and binary forms are permitted
  * provided that the above copyright notice and this paragraph are
  * duplicated in all such forms and that any documentation, advertising
@@ -25,7 +26,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.8 1997/10/22 21:00:27 kannan Exp $ (USC/ISI)";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.9 1998/06/27 01:23:46 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 //
 // Copyright (c) 1997 by the University of Southern California
 // All rights reserved.
@@ -26,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-headers.h,v 1.2 1997/10/23 20:53:24 kannan Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-headers.h,v 1.3 1998/06/27 01:24:52 gnguyen Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_headers_h

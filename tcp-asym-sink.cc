@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * tcp-asym-sink.cc: contributed by the Daedalus Research Group, U.C.Berkeley 
+ * Contributed by the Daedalus Research Group, U.C.Berkeley
  * http://daedalus.cs.berkeley.edu
  */
 
@@ -52,7 +52,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.8 1998/06/27 01:03:34 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.9 1998/06/27 01:24:57 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"

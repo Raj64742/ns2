@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * prune.cc
  * Copyright (C) 1997 by USC/ISI
@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.5 1998/06/26 02:20:24 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.6 1998/06/27 01:24:20 gnguyen Exp $ (LBL)";
 #endif
 
 #include "agent.h"

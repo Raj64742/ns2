@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.15 1998/06/25 23:36:30 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.16 1998/06/27 01:24:01 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h

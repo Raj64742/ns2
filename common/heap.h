@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * heap.h
  * Copyright (C) 1997 by USC/ISI
@@ -16,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/heap.h,v 1.3 1997/07/23 02:16:35 kfall Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/heap.h,v 1.4 1998/06/27 01:23:56 gnguyen Exp $ (USC/ISI)
  */
 
 #ifndef ns_heap_h
@@ -173,7 +174,7 @@ public:
 	void heap_insert(heap_key_t key, void* elem) {
 		unsigned int	i, par;
 
-		if (h_maxsize == h_size) {	  /* Adjust heap_size */
+		if (h_maxsize == h_size) {	/* Adjust heap_size */
 			unsigned int osize = h_maxsize;
 			Heap_elem *he_old = h_elems;
 			h_maxsize *= 2;
@@ -260,7 +261,7 @@ public:
 			if (r < h_size)
 				x = (KEY_LESS_THAN(h_elems[l].he_key,
 						   h_elems[r].he_key) ?
-				       l : r);
+				     l : r);
 			else
 				x = (l < h_size ? l : i);
 			if ((x != i) && (KEY_LESS_THAN(h_elems[x].he_key,

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1996 Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.13 1997/11/11 00:21:13 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/replicator.cc,v 1.14 1998/06/27 01:24:30 gnguyen Exp $";
 #endif
 
 #include "classifier.h"
@@ -73,7 +74,7 @@ void Replicator::recv(Packet* p, Handler*)
 {
 	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
 	if (maxslot_ < 0) {
-                if (!ignore_) 
+		if (!ignore_) 
 			Tcl::instance().evalf("%s drop %u %u", name(), 
 				iph->src(), iph->dst());
 		Packet::free(p);

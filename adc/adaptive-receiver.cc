@@ -1,4 +1,4 @@
-
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -19,8 +19,8 @@
  */
 
 #ifndef lint
-static const char  rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.cc,v 1.1 1998/04/25 00:57:44 bajaj Exp $";
+static const char rcsid[] =
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adaptive-receiver.cc,v 1.2 1998/06/27 01:23:19 gnguyen Exp $";
 #endif
 
 #include "agent.h"

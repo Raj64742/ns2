@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * A RED queue that allows certain operations to be done in a way
  * that depends on higher-layer semantics. The only such operation

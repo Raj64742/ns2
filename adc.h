@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -15,7 +16,7 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adc.h,v 1.3 1998/05/08 00:30:31 bajaj Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adc.h,v 1.4 1998/06/27 01:23:23 gnguyen Exp $
  */
 
 #ifndef ns_adc_h
@@ -44,7 +45,7 @@ protected:
 	int src_;
 	int dst_;
 	int backoff_;
-};  
+};
 
 #endif
 

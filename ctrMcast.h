@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * ctrMcast.h
  * Copyright (C) 1997 by USC/ISI
@@ -18,7 +19,7 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.h,v 1.4 1997/08/08 02:55:29 polly Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.h,v 1.5 1998/06/27 01:23:40 gnguyen Exp $ (USC/ISI)
  */
 
 #ifndef ns_ctrmcast_h
@@ -27,14 +28,14 @@
 #include "packet.h"
 
 struct hdr_CtrMcast {
-  nsaddr_t       src_;            /* mcast data source */
-  nsaddr_t       group_;          /* mcast data destination group */
-  int            fid_;
-  
-  /* per field member functions */
-  nsaddr_t& src() { return src_;   }
-  nsaddr_t& group() { return group_;   }
-  int& flowid() { return fid_;   }
+	nsaddr_t	src_;		/* mcast data source */
+	nsaddr_t	group_;          /* mcast data destination group */
+	int		fid_;
+
+	/* per field member functions */
+	nsaddr_t& src() { return src_; }
+	nsaddr_t& group() { return group_; }
+	int& flowid() { return fid_; }
 };
 
 #endif

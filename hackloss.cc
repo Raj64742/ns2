@@ -1,6 +1,7 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.3 1997/08/27 19:28:04 kannan Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.4 1998/06/27 01:23:55 gnguyen Exp $";
 #endif
 
 #include "connector.h"

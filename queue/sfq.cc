@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -35,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.5 1997/07/22 21:26:14 kfall Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.6 1998/06/27 01:24:49 gnguyen Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>

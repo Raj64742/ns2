@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.11 1997/10/13 22:24:36 mccanne Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.12 1998/06/27 01:24:24 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -41,24 +42,24 @@
 #include "packet.h"
 
 class QueueMonitor : public TclObject {
- public: 
-        QueueMonitor() : bytesInt_(NULL), pktsInt_(NULL), delaySamp_(NULL),
-          size_(0), pkts_(0),
-          parrivals_(0), barrivals_(0),
-          pdepartures_(0), bdepartures_(0),
-	  pdrops_(0), bdrops_(0),
-  	  srcId_(0), dstId_(0), channel_(0) {
-
-                bind("size_", &size_);
-                bind("pkts_", &pkts_);
-                bind("parrivals_", &parrivals_);
-                bind("barrivals_", &barrivals_);
-                bind("pdepartures_", &pdepartures_);
-                bind("bdepartures_", &bdepartures_);
-                bind("pdrops_", &pdrops_);
-                bind("bdrops_", &bdrops_);
-                bind("off_cmn_", &off_cmn_);
-        };      
+public: 
+	QueueMonitor() : bytesInt_(NULL), pktsInt_(NULL), delaySamp_(NULL),
+		size_(0), pkts_(0),
+		parrivals_(0), barrivals_(0),
+		pdepartures_(0), bdepartures_(0),
+		pdrops_(0), bdrops_(0),
+		srcId_(0), dstId_(0), channel_(0)
+	{
+		bind("size_", &size_);
+		bind("pkts_", &pkts_);
+		bind("parrivals_", &parrivals_);
+		bind("barrivals_", &barrivals_);
+		bind("pdepartures_", &pdepartures_);
+		bind("bdepartures_", &bdepartures_);
+		bind("pdrops_", &pdrops_);
+		bind("bdrops_", &bdrops_);
+		bind("off_cmn_", &off_cmn_);
+	};
 
 	int size() const { return (size_); }
 	int pkts() const { return (pkts_); }
@@ -69,17 +70,17 @@ class QueueMonitor : public TclObject {
 	int pdrops() const { return (pdrops_); }
 	int bdrops() const { return (bdrops_); }
 	void printStats();
-        virtual void in(Packet*);
-        virtual void out(Packet*);
+	virtual void in(Packet*);
+	virtual void out(Packet*);
 	virtual void drop(Packet*);
 	virtual void edrop(Packet*) { abort(); }; // not here
-        virtual int command(int argc, const char*const* argv);
+	virtual int command(int argc, const char*const* argv);
 protected:
-        Integrator  *bytesInt_;	// q-size integrator (bytes)
-        Integrator  *pktsInt_;	// q-size integrator (pkts)
-        Samples*	delaySamp_;	// stat samples of q delay
-        int size_;	// current queue size (bytes)
-        int pkts_;	// current queue size (packets)
+	Integrator *bytesInt_;		// q-size integrator (bytes)
+	Integrator *pktsInt_;		// q-size integrator (pkts)
+	Samples* delaySamp_;		// stat samples of q delay
+	int size_;			// current queue size (bytes)
+	int pkts_;			// current queue size (packets)
 	// aggregate counters bytes/packets
 	int parrivals_;
 	int barrivals_;
@@ -87,53 +88,53 @@ protected:
 	int bdepartures_;
 	int pdrops_;
 	int bdrops_;
-        int off_cmn_;
+	int off_cmn_;
 	int srcId_;
 	int dstId_;
-        Tcl_Channel channel_;
-};   
+	Tcl_Channel channel_;
+};
 
 class SnoopQueue : public Connector {
- public: 
-        SnoopQueue() : qm_(0) {}
-        int command(int argc, const char*const* argv) {
-                if (argc == 3) { 
-                        if (strcmp(argv[1], "set-monitor") == 0) {
-                                qm_ = (QueueMonitor*)
-                                        TclObject::lookup(argv[2]);
+public: 
+	SnoopQueue() : qm_(0) {}
+	int command(int argc, const char*const* argv) {
+		if (argc == 3) { 
+			if (strcmp(argv[1], "set-monitor") == 0) {
+				qm_ = (QueueMonitor*)
+					TclObject::lookup(argv[2]);
 				if (qm_ == NULL)
 					return (TCL_ERROR);
-                                return (TCL_OK);
-                        }
-                }
-                return (Connector::command(argc, argv));
-        }
+				return (TCL_OK);
+			}
+		}
+		return (Connector::command(argc, argv));
+	}
  protected:
-        QueueMonitor* qm_;
-};      
-                
+	QueueMonitor* qm_;
+};
+
 class SnoopQueueIn : public SnoopQueue {
- public:
-        void recv(Packet* p, Handler* h) {
-                qm_->in(p);
-                send(p, h);
-        }
-};      
-                
+public:
+	void recv(Packet* p, Handler* h) {
+		qm_->in(p);
+		send(p, h);
+	}
+};
+
 class SnoopQueueOut : public SnoopQueue {
- public:
-        void recv(Packet* p, Handler* h) {
-                qm_->out(p);
-                send(p, h);
-        }       
+public:
+	void recv(Packet* p, Handler* h) {
+		qm_->out(p);
+		send(p, h);
+	}
 };
 
 class SnoopQueueDrop : public SnoopQueue {
- public:
-        void recv(Packet* p, Handler* h) {
-                qm_->drop(p);
-                send(p, h);
-        }       
+public:
+	void recv(Packet* p, Handler* h) {
+		qm_->drop(p);
+		send(p, h);
+	}
 };
 
 /*
@@ -145,8 +146,8 @@ class SnoopQueueDrop : public SnoopQueue {
 class EDQueueMonitor : public QueueMonitor {
 public:
 	EDQueueMonitor() : ebdrops_(0), epdrops_(0) {
-                bind("ebdrops_", &ebdrops_);
-                bind("epdrops_", &epdrops_);
+		bind("ebdrops_", &ebdrops_);
+		bind("epdrops_", &epdrops_);
 	}
 	void edrop(Packet* p) {
 		hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
@@ -162,11 +163,11 @@ protected:
 };
 
 class SnoopQueueEDrop : public SnoopQueue {
- public:
-        void recv(Packet* p, Handler* h) {
-                qm_->edrop(p);
-                send(p, h);
-        }       
+public:
+	void recv(Packet* p, Handler* h) {
+		qm_->edrop(p);
+		send(p, h);
+	}
 };
 
 
@@ -182,10 +183,10 @@ class SnoopQueueEDrop : public SnoopQueue {
 class QueueMonitorCompat : public QueueMonitor {
 public:
 	QueueMonitorCompat();
-        void in(Packet*);
-        void out(Packet*);
-        void drop(Packet*);
-        int command(int argc, const char*const* argv);
+	void in(Packet*);
+	void out(Packet*);
+	void drop(Packet*);
+	int command(int argc, const char*const* argv);
 protected:
 	void	flowstats(int flowid);	/* create a flowstats structure */
 	int	off_ip_;

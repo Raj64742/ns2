@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.19 1998/06/26 00:10:55 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.20 1998/06/27 01:23:41 gnguyen Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -138,37 +138,37 @@ void LinkDelay::pktintran(int src, int group)
 	int graft = 31;
 	int data = 0;
 	for (int i=0; i<4; i++) {
-          total_[i] = 0;
-        }
+		total_[i] = 0;
+	}
 
-        if (dynamic_) {
-          int len = itq_->length();
-          while (len) {
-            len--;
-            Packet* p = itq_->lookup(len);
-            hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+	if (! dynamic_)
+		return;
 
-            if (iph->flowid() == prune) {
-              hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
-              if (ph->src() == src && ph->group() == group) {
-                total_[0]++;
-              }
-            } else if (iph->flowid() == graft) {
-              hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
-              if (ph->src() == src && ph->group() == group) {
-                total_[1]++;
-              }
-            } else if (iph->flowid() == reg) {
-              hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
-              if (ch->src() == src+1 && ch->group() == group) {
-                total_[2]++;
-              }
-            } else if (iph->flowid() == data) {
-              if (iph->src() == src+1 && iph->dst() == group) {
-                total_[3]++;
-              }
-            }
-          }
-        }
+	int len = itq_->length();
+	while (len) {
+		len--;
+		Packet* p = itq_->lookup(len);
+		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+		if (iph->flowid() == prune) {
+			hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+			if (ph->src() == src && ph->group() == group) {
+				total_[0]++;
+			}
+		} else if (iph->flowid() == graft) {
+			hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+			if (ph->src() == src && ph->group() == group) {
+				total_[1]++;
+			}
+		} else if (iph->flowid() == reg) {
+			hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
+			if (ch->src() == src+1 && ch->group() == group) {
+				total_[2]++;
+			}
+		} else if (iph->flowid() == data) {
+			if (iph->src() == src+1 && iph->dst() == group) {
+				total_[3]++;
+			}
+		}
+	}
         //printf ("%f %d %d %d %d\n", Scheduler::instance().clock(), total_[0], total_[1], total_[2],total_[3]);
 }

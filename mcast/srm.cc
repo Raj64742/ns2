@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 //
 // Copyright (c) 1997 by the University of Southern California
 // All rights reserved.
@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.17 1998/06/26 02:20:33 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.18 1998/06/27 01:24:55 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -49,8 +49,8 @@ static const char rcsid[] =
 
 static class SRMAgentClass : public TclClass {
 public:
-        SRMAgentClass() : TclClass("Agent/SRM") {}
-        TclObject* create(int, const char*const*) {
+	SRMAgentClass() : TclClass("Agent/SRM") {}
+	TclObject* create(int, const char*const*) {
 		return (new SRMAgent());
 	}
 } class_srm_agent;
@@ -62,7 +62,7 @@ public:
 } class_srmhdr;
 
 SRMAgent::SRMAgent() 
-        : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), siphash_(0)
+	: Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), siphash_(0)
 {
 	sip_ = new SRMinfo(-1);
 
@@ -79,30 +79,30 @@ SRMAgent::~SRMAgent()
 
 int SRMAgent::command(int argc, const char*const* argv)
 {
-        Tcl& tcl = Tcl::instance();
+	Tcl& tcl = Tcl::instance();
 
-        if (strcmp(argv[1], "send") == 0) {
-                if (strcmp(argv[2], "session") == 0) {
-                        send_sess();
-                        return TCL_OK;
-                }
-                if (strcmp(argv[2], "request") == 0) {
+	if (strcmp(argv[1], "send") == 0) {
+		if (strcmp(argv[2], "session") == 0) {
+			send_sess();
+			return TCL_OK;
+		}
+		if (strcmp(argv[2], "request") == 0) {
 			int round = atoi(argv[3]);
-                        int sender = atoi(argv[4]);
-                        int msgid  = atoi(argv[5]);
-                        send_ctrl(SRM_RQST, round, sender, msgid, 0);
-                        return TCL_OK;
-                }
-                if (strcmp(argv[2], "repair") == 0) {
+			int sender = atoi(argv[4]);
+			int msgid  = atoi(argv[5]);
+			send_ctrl(SRM_RQST, round, sender, msgid, 0);
+			return TCL_OK;
+		}
+		if (strcmp(argv[2], "repair") == 0) {
 			int round = atoi(argv[3]);
-                        int sender = atoi(argv[4]);
-                        int msgid  = atoi(argv[5]);
-                        send_ctrl(SRM_REPR, round, sender, msgid, packetSize_);
-                        return TCL_OK;
-                }
-                tcl.resultf("%s: invalid send request %s", name_, argv[2]);
-                return TCL_ERROR;
-        }
+			int sender = atoi(argv[4]);
+			int msgid  = atoi(argv[5]);
+			send_ctrl(SRM_REPR, round, sender, msgid, packetSize_);
+			return TCL_OK;
+		}
+		tcl.resultf("%s: invalid send request %s", name_, argv[2]);
+		return TCL_ERROR;
+	}
 	if (argc == 2) {
 		if (strcmp(argv[1], "distances?") == 0) {
 			tcl.result("");
@@ -120,31 +120,31 @@ int SRMAgent::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 	}
-        if (argc == 3) {
-                if (strcmp(argv[1], "distance?") == 0) {
-                        int sender = atoi(argv[2]);
-                        SRMinfo* sp = get_state(sender);
-                        tcl.resultf("%lf", sp->distance_);
-                        return TCL_OK;
-                }
-        }
-        return Agent::command(argc, argv);
+	if (argc == 3) {
+		if (strcmp(argv[1], "distance?") == 0) {
+			int sender = atoi(argv[2]);
+			SRMinfo* sp = get_state(sender);
+			tcl.resultf("%lf", sp->distance_);
+			return TCL_OK;
+		}
+	}
+	return Agent::command(argc, argv);
 }
 
 void SRMAgent::recv(Packet* p, Handler* h)
 {
-        hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
-        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+	hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
+	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
 	
-        if (ih->dst() == 0) {
-                // Packet from local agent.  Add srm headers, set dst, and fwd
-                sh->type() = SRM_DATA;
-                sh->sender() = addr_;
-                sh->seqnum() = ++dataCtr_;
+	if (ih->dst() == 0) {
+		// Packet from local agent.  Add srm headers, set dst, and fwd
+		sh->type() = SRM_DATA;
+		sh->sender() = addr_;
+		sh->seqnum() = ++dataCtr_;
 		addExtendedHeaders(p);
 		ih->dst() = dst_;
 		target_->recv(p, h);
-        } else {
+	} else {
 
 #if 0
  		static char *foo[] = {"NONE", "DATA", "SESS", "RQST", "REPR"};
@@ -155,41 +155,41 @@ void SRMAgent::recv(Packet* p, Handler* h)
 #endif
 		
 		parseExtendedHeaders(p);
-                switch (sh->type()) {
-                case SRM_DATA:
+		switch (sh->type()) {
+		case SRM_DATA:
 			recv_data(sh->sender(), sh->seqnum(), p->accessdata());
 			break;
-                case SRM_RQST:
-                        recv_rqst(ih->src(),
+		case SRM_RQST:
+			recv_rqst(ih->src(),
 				  sh->round(), sh->sender(), sh->seqnum());
-                        break;
-                case SRM_REPR:
-                        recv_repr(sh->round(), sh->sender(), sh->seqnum(),
+			break;
+		case SRM_REPR:
+			recv_repr(sh->round(), sh->sender(), sh->seqnum(),
 				  p->accessdata());
-                        break;
-                case SRM_SESS:
-                        // This seqnum() is the session sequence number,
-                        // not the data packet sequence numbers seen before.
-                        recv_sess(p, sh->seqnum(), (int*) p->accessdata());
-                        break;
-                }
+			break;
+		case SRM_SESS:
+			// This seqnum() is the session sequence number,
+			// not the data packet sequence numbers seen before.
+			recv_sess(p, sh->seqnum(), (int*) p->accessdata());
+			break;
+		}
 		Packet::free(p);
-        }
+	}
 }
 
 void SRMAgent::send_ctrl(int type, int round, int sender, int msgid, int size)
 {
-        Packet* p = Agent::allocpkt();
-        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-        sh->type() = type;
-        sh->sender() = sender;
-        sh->seqnum() = msgid;
+	Packet* p = Agent::allocpkt();
+	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+	sh->type() = type;
+	sh->sender() = sender;
+	sh->seqnum() = msgid;
 	sh->round() = round;
 	addExtendedHeaders(p);
 
 	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
-        ch->size() = sizeof(hdr_srm) + size;
-        target_->recv(p);
+	ch->size() = sizeof(hdr_srm) + size;
+	target_->recv(p);
 }
 
 void SRMAgent::recv_data(int sender, int msgid, u_char*)
@@ -208,57 +208,57 @@ void SRMAgent::recv_data(int sender, int msgid, u_char*)
 void SRMAgent::recv_rqst(int requestor, int round, int sender, int msgid)
 {
 	Tcl& tcl = Tcl::instance();
-        SRMinfo* sp = get_state(sender);
-        if (msgid > sp->ldata_) {
+	SRMinfo* sp = get_state(sender);
+	if (msgid > sp->ldata_) {
 		(void) request(sp, msgid);	// request upto msgid
-                sp->ldata_ = msgid;
-        } else {
-                tcl.evalf("%s recv request %d %d %d %d", name_,
-                          requestor, round, sender, msgid);
-        }
+		sp->ldata_ = msgid;
+	} else {
+		tcl.evalf("%s recv request %d %d %d %d", name_,
+			  requestor, round, sender, msgid);
+	}
 }
 
 void SRMAgent::recv_repr(int round, int sender, int msgid, u_char*)
 {
 	Tcl& tcl = Tcl::instance();
-        SRMinfo* sp = get_state(sender);
-        if (msgid > sp->ldata_) {
+	SRMinfo* sp = get_state(sender);
+	if (msgid > sp->ldata_) {
 		(void) request(sp, msgid - 1);	// request upto msgid - 1
-                sp->setReceived(msgid);
-                sp->ldata_ = msgid;
-        } else {
-                tcl.evalf("%s recv repair %d %d %d", name_,
+		sp->setReceived(msgid);
+		sp->ldata_ = msgid;
+	} else {
+		tcl.evalf("%s recv repair %d %d %d", name_,
 			  round, sender, msgid);
-        }
-        // Notice that we currently make no provisions for a listener
-        // agent to receive the data.
+	}
+	// Notice that we currently make no provisions for a listener
+	// agent to receive the data.
 }
 
 void SRMAgent::send_sess()
 {
 	int	size = (1 + groupSize_ * 4) * sizeof(int);
-        Packet* p = Agent::allocpkt(size);
-        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
-        sh->type() = SRM_SESS;
-        sh->sender() = addr_;
-        sh->seqnum() = ++sessCtr_;
+	Packet* p = Agent::allocpkt(size);
+	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+	sh->type() = SRM_SESS;
+	sh->sender() = addr_;
+	sh->seqnum() = ++sessCtr_;
 	addExtendedHeaders(p);
 
-        int* data = (int*) p->accessdata();
+	int* data = (int*) p->accessdata();
 	*data++ = groupSize_;
 	for (SRMinfo* sp = sip_; sp; sp = sp->next_) {
-                *data++ = sp->sender_;
-                *data++ = sp->ldata_;
-                *data++ = sp->recvTime_;
-                *data++ = sp->sendTime_;
-        }
+		*data++ = sp->sender_;
+		*data++ = sp->ldata_;
+		*data++ = sp->recvTime_;
+		*data++ = sp->sendTime_;
+	}
 	data = (int*) p->accessdata();
 	data[4] = (int) (Scheduler::instance().clock()*1000);
 
 	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
-        ch->size() += size+ sizeof(hdr_srm);
+	ch->size() += size+ sizeof(hdr_srm);
 
-        target_->recv(p, NULL);
+	target_->recv(p, NULL);
 }
 
 #define	GET_SESSION_INFO			\
@@ -271,8 +271,8 @@ void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 {
 	SRMinfo* sp;
 	
-        int sender, dataCnt, rtime, stime;
-        int now, sentAt, sentBy;
+	int sender, dataCnt, rtime, stime;
+	int now, sentAt, sentBy;
 	int cnt = *data++;
 	int i;
 
@@ -285,9 +285,9 @@ void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 	if (sp->lsess_ > sessCtr)		// older session message recd.
 		return;
 	
-        now = (int) (Scheduler::instance().clock() * 1000);
+	now = (int) (Scheduler::instance().clock() * 1000);
 	sentBy = sender;			// to later compute rtt
-        sentAt = stime;
+	sentAt = stime;
 	
 	sp->lsess_ = sessCtr;
 	sp->recvTime_ = now;
@@ -328,8 +328,8 @@ void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 
 static class ASRMAgentClass : public TclClass {
 public:
-        ASRMAgentClass() : TclClass("Agent/SRM/Adaptive") {}
-        TclObject* create(int, const char*const*) {
+	ASRMAgentClass() : TclClass("Agent/SRM/Adaptive") {}
+	TclObject* create(int, const char*const*) {
 		return (new ASRMAgent());
 	}
 } class_adaptive_srm_agent;

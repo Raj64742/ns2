@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -19,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/param-adc.cc,v 1.1 1998/05/04 18:29:27 breslau Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/param-adc.cc,v 1.2 1998/06/27 01:24:19 gnguyen Exp $";
 #endif
 
 
@@ -83,23 +84,23 @@ public:
 
 void Param_ADC::trace(TracedVar* v)
 {
-        char wrk[500];
+	char wrk[500];
 	double *p, newval;
 
 	/* check for right variable */
 	if (strcmp(v->name(), "\"Reserved Rate\"") == 0) {
-	        p = &oresv_rate_;
+		p = &oresv_rate_;
 	}
 	else {
-	        fprintf(stderr, "PBAC: unknown trace var %s\n", v->name());
+		fprintf(stderr, "PBAC: unknown trace var %s\n", v->name());
 		return;
 	}
 
 	newval = double(*((TracedDouble*)v));
 
-        if (tchan_) {
-	        int n;
-	        double t = Scheduler::instance().clock();
+	if (tchan_) {
+		int n;
+		double t = Scheduler::instance().clock();
 		/* f -t 0.0 -s 1 -a SA -T v -n Num -v 0 -o 0 */
 		sprintf(wrk, "f -t %g -s %d -a %s:%d-%d -T v -n %s -v %g -o %g",
 			t, src_, type_, src_, dst_, v->name(), newval, *p);

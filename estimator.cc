@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -18,10 +19,10 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/estimator.cc,v 1.3 1998/05/08 00:30:32 bajaj Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/estimator.cc,v 1.4 1998/06/27 01:23:49 gnguyen Exp $";
 #endif
 
-#include  "estimator.h"
+#include "estimator.h"
 
 Estimator::Estimator() : meas_mod_(0),avload_(0.0),est_timer_(this), measload_(0.0), tchan_(0), omeasload_(0), oavload_(0)
 {
@@ -92,26 +93,26 @@ void Estimator_Timer::expire(Event *e)
 
 void Estimator::trace(TracedVar* v)
 {
-        char wrk[500];
+	char wrk[500];
 	double *p, newval;
 
 	/* check for right variable */
 	if (strcmp(v->name(), "\"Estimated Util.\"") == 0) {
-	        p = &oavload_;
+		p = &oavload_;
 	}
 	else if (strcmp(v->name(), "\"Measured Util.\"") == 0) {
-	        p = &omeasload_;
+		p = &omeasload_;
 	}
 	else {
-	        fprintf(stderr, "Estimator: unknown trace var %s\n", v->name());
+		fprintf(stderr, "Estimator: unknown trace var %s\n", v->name());
 		return;
 	}
 
 	newval = double(*((TracedDouble*)v));
 
-        if (tchan_) {
-	        int n;
-	        double t = Scheduler::instance().clock();
+	if (tchan_) {
+		int n;
+		double t = Scheduler::instance().clock();
 		/* f -t 0.0 -s 1 -a SA -T v -n Num -v 0 -o 0 */
 		sprintf(wrk, "f -t %g -s %d -a %s:%d-%d -T v -n %s -v %g -o %g",
 			t, src_, actype_, src_, dst_, v->name(), newval, *p);
@@ -132,7 +133,7 @@ void Estimator::trace(TracedVar* v)
 
 void Estimator::setactype(const char* type)
 {
-        actype_ = new char[strlen(type)+1];
+	actype_ = new char[strlen(type)+1];
 	strcpy(actype_, type);
 	return;
 }

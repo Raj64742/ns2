@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 //
 // Copyright (c) 1997 by the University of Southern California
 // All rights reserved.
@@ -26,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.14 1998/04/20 23:52:44 haoboy Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.15 1998/06/27 01:24:55 gnguyen Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -42,10 +43,10 @@
 
 class SRMAgent : public Agent {
 protected:
-	int	dataCtr_;	          /* # of data packets sent */
-	int	sessCtr_;		  /* # of session messages sent */
-	int	packetSize_;	          /* size of data messages for repr */
-	SRMinfo* sip_;	          	  /* Table of sender info */
+	int	dataCtr_;		/* # of data packets sent */
+	int	sessCtr_;		/* # of session messages sent */
+	int	packetSize_;		/* size of data messages for repr */
+	SRMinfo* sip_;			/* Table of sender info */
 	Tcl_HashTable*	siphash_;
 	int	groupSize_;
 	int off_srm_;
@@ -112,9 +113,9 @@ protected:
 		return miss;
 	}
 
-        virtual void recv_data(int sender, int msgid, u_char* data);
-        virtual void recv_repr(int round, int sender, int msgid, u_char* data);
-        virtual void recv_rqst(int requestr, int round, int sender, int msgid);
+	virtual void recv_data(int sender, int msgid, u_char* data);
+	virtual void recv_repr(int round, int sender, int msgid, u_char* data);
+	virtual void recv_rqst(int requestr, int round, int sender, int msgid);
 	virtual void recv_sess(Packet*, int sessCtr, int* data);
 
 	virtual void send_ctrl(int typ, int rnd, int sndr, int msgid, int sz);
@@ -139,7 +140,7 @@ public:
 protected:
 	virtual void addExtendedHeaders(Packet* p) {
 		SRMinfo* sp;
-		hdr_srm*  sh = (hdr_srm*) p->access(off_srm_);
+		hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
 		hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
 		switch (sh->type()) {
 		case SRM_RQST:

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -33,61 +34,61 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.18 1997/10/13 22:24:36 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.19 1998/06/27 01:24:22 gnguyen Exp $";
 #endif
 
 #include "queue-monitor.h"
 
 int QueueMonitor::command(int argc, const char*const* argv)
 {
-        Tcl& tcl = Tcl::instance();
+	Tcl& tcl = Tcl::instance();
 
-        if (argc == 2) {
-                if (strcmp(argv[1], "get-bytes-integrator") == 0) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "get-bytes-integrator") == 0) {
 			if (bytesInt_)
 				tcl.resultf("%s", bytesInt_->name());
 			else
 				tcl.resultf("");
-                        return (TCL_OK);
-                }
-                if (strcmp(argv[1], "get-pkts-integrator") == 0) {
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "get-pkts-integrator") == 0) {
 			if (pktsInt_)
 				tcl.resultf("%s", pktsInt_->name());
 			else
 				tcl.resultf("");
-                        return (TCL_OK);
-                }
-                if (strcmp(argv[1], "get-delay-samples") == 0) {
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "get-delay-samples") == 0) {
 			if (delaySamp_)
 				tcl.resultf("%s", delaySamp_->name());
 			else
 				tcl.resultf("");
-                        return (TCL_OK);
-                }
-        }
+			return (TCL_OK);
+		}
+	}
 
-        if (argc == 3) {
-                if (strcmp(argv[1], "set-bytes-integrator") == 0) {
+	if (argc == 3) {
+		if (strcmp(argv[1], "set-bytes-integrator") == 0) {
 			bytesInt_ = (Integrator *)
 				TclObject::lookup(argv[2]);
 			if (bytesInt_ == NULL)
 				return (TCL_ERROR);
-                        return (TCL_OK);
-                }
-                if (strcmp(argv[1], "set-pkts-integrator") == 0) {
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "set-pkts-integrator") == 0) {
 			pktsInt_ = (Integrator *)
 				TclObject::lookup(argv[2]);
 			if (pktsInt_ == NULL)
 				return (TCL_ERROR);
-                        return (TCL_OK);
-                }
-                if (strcmp(argv[1], "set-delay-samples") == 0) {
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "set-delay-samples") == 0) {
 			delaySamp_ = (Samples*)
 				TclObject::lookup(argv[2]);
 			if (delaySamp_ == NULL)
 				return (TCL_ERROR);
-                        return (TCL_OK);
-                }
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "trace") == 0) {
 			int mode;
 			const char* id = argv[2];
@@ -98,7 +99,7 @@ int QueueMonitor::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
-        }
+	}
 	if (argc == 4) {
 		if (strcmp(argv[1], "set-src-dst") == 0) {
 			srcId_ = atoi(argv[2]);
@@ -112,10 +113,10 @@ int QueueMonitor::command(int argc, const char*const* argv)
 
 static class QueueMonitorClass : public TclClass {
  public:
-        QueueMonitorClass() : TclClass("QueueMonitor") {}
-        TclObject* create(int, const char*const*) {
-                return (new QueueMonitor());
-        }
+	QueueMonitorClass() : TclClass("QueueMonitor") {}
+	TclObject* create(int, const char*const*) {
+		return (new QueueMonitor());
+	}
 } queue_monitor_class;
 
 void
@@ -135,7 +136,7 @@ QueueMonitor::printStats() {
 void QueueMonitor::in(Packet* p)
 {
 	hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
-        double now = Scheduler::instance().clock();
+	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
 	barrivals_ += pktsz;
@@ -155,11 +156,11 @@ void QueueMonitor::in(Packet* p)
 void QueueMonitor::out(Packet* p)
 {
 	hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
-        double now = Scheduler::instance().clock();
+	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
-        size_ -= pktsz;
-        pkts_--;
+	size_ -= pktsz;
+	pkts_--;
 	bdepartures_ += pktsz;
 	pdepartures_++;
 	if (bytesInt_)
@@ -175,7 +176,7 @@ void QueueMonitor::out(Packet* p)
 void QueueMonitor::drop(Packet* p)
 {
 	hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
-        double now = Scheduler::instance().clock();
+	double now = Scheduler::instance().clock();
 	int pktsz = hdr->size();
 
 	size_ -= pktsz;
@@ -192,42 +193,42 @@ void QueueMonitor::drop(Packet* p)
 
 static class SnoopQueueInClass : public TclClass {
 public:
-        SnoopQueueInClass() : TclClass("SnoopQueue/In") {}
-        TclObject* create(int, const char*const*) {
-                return (new SnoopQueueIn());
-        }
+	SnoopQueueInClass() : TclClass("SnoopQueue/In") {}
+	TclObject* create(int, const char*const*) {
+		return (new SnoopQueueIn());
+	}
 } snoopq_in_class;
 
 static class SnoopQueueOutClass : public TclClass {
 public:
-        SnoopQueueOutClass() : TclClass("SnoopQueue/Out") {}
-        TclObject* create(int, const char*const*) {
-                return (new SnoopQueueOut());
-        }
+	SnoopQueueOutClass() : TclClass("SnoopQueue/Out") {}
+	TclObject* create(int, const char*const*) {
+		return (new SnoopQueueOut());
+	}
 } snoopq_out_class;
 
 static class SnoopQueueDropClass : public TclClass {
 public:
-        SnoopQueueDropClass() : TclClass("SnoopQueue/Drop") {}
-        TclObject* create(int, const char*const*) {
-                return (new SnoopQueueDrop());
-        }
+	SnoopQueueDropClass() : TclClass("SnoopQueue/Drop") {}
+	TclObject* create(int, const char*const*) {
+		return (new SnoopQueueDrop());
+	}
 } snoopq_drop_class;
 
 static class SnoopQueueEDropClass : public TclClass {
 public:
-        SnoopQueueEDropClass() : TclClass("SnoopQueue/EDrop") {}
-        TclObject* create(int, const char*const*) {
-                return (new SnoopQueueEDrop);
-        }
+	SnoopQueueEDropClass() : TclClass("SnoopQueue/EDrop") {}
+	TclObject* create(int, const char*const*) {
+		return (new SnoopQueueEDrop);
+	}
 } snoopq_edrop_class;
 
 static class QueueMonitorEDClass : public TclClass {
- public: 
-        QueueMonitorEDClass() : TclClass("QueueMonitor/ED") {}
-        TclObject* create(int, const char*const*) { 
-                return (new EDQueueMonitor);
-        }       
+public: 
+	QueueMonitorEDClass() : TclClass("QueueMonitor/ED") {}
+	TclObject* create(int, const char*const*) { 
+		return (new EDQueueMonitor);
+	}
 } queue_monitor_ed_class;
 
 /*
@@ -256,7 +257,7 @@ QueueMonitorCompat::QueueMonitorCompat()
 void
 QueueMonitorCompat::flowstats(int flowid)
 {
-        Tcl& tcl = Tcl::instance();
+	Tcl& tcl = Tcl::instance();
 
 	/*
 	 * here is the deal.  we are in C code.  we'd like to do
@@ -284,7 +285,7 @@ void QueueMonitorCompat::out(Packet* pkt)
 {
 	hdr_cmn* hdr = (hdr_cmn*)pkt->access(off_cmn_);
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-        double now = Scheduler::instance().clock();
+	double now = Scheduler::instance().clock();
 	int fid = iph->flowid();
 
 	if (fid >= MAXFLOW) {
@@ -304,7 +305,7 @@ void QueueMonitorCompat::out(Packet* pkt)
 void QueueMonitorCompat::in(Packet* pkt)
 {
 	hdr_cmn* hdr = (hdr_cmn*)pkt->access(off_cmn_);
-        double now = Scheduler::instance().clock();
+	double now = Scheduler::instance().clock();
 	// QueueMonitor::in() *may* do this, but we always need it...
 	hdr->timestamp() = now;
 	QueueMonitor::in(pkt);
@@ -325,7 +326,7 @@ void QueueMonitorCompat::drop(Packet* pkt)
 
 int QueueMonitorCompat::command(int argc, const char*const* argv)
 {
-        Tcl& tcl = Tcl::instance();
+	Tcl& tcl = Tcl::instance();
 	int fid;
 	if (argc == 3) {
 		fid = atoi(argv[2]);
@@ -375,8 +376,8 @@ int QueueMonitorCompat::command(int argc, const char*const* argv)
 
 static class QueueMonitorCompatClass : public TclClass {
  public: 
-        QueueMonitorCompatClass() : TclClass("QueueMonitor/Compat") {}
-        TclObject* create(int, const char*const*) { 
-                return (new QueueMonitorCompat);
-        }       
+	QueueMonitorCompatClass() : TclClass("QueueMonitor/Compat") {}
+	TclObject* create(int, const char*const*) { 
+		return (new QueueMonitorCompat);
+	}
 } queue_monitor_compat_class;

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -31,7 +32,7 @@
 TBF::TBF() :tokens_(0),lastpkttime_(0),tbf_timer_(this)
 {
 	q_=new PacketQueue();
-        bind_bw("rate_",&rate_);
+	bind_bw("rate_",&rate_);
 	bind("bucket_",&bucket_);
 	bind("qlen_",&qlen_);
 }

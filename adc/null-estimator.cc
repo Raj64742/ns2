@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -19,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/null-estimator.cc,v 1.1 1998/05/04 18:29:26 breslau Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/null-estimator.cc,v 1.2 1998/06/27 01:24:16 gnguyen Exp $";
 #endif
 
 /* Dummy estimator that only measures actual utilization */
@@ -29,7 +30,7 @@ static const char rcsid[] =
 
 class Null_Est : public Estimator {
  public:
-        Null_Est();
+	Null_Est();
  protected:
 	void estimate();
 };

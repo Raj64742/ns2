@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
@@ -86,7 +87,7 @@ void
 AckRecons::recv(Packet *pkt)
 {
 	double now = Scheduler::instance().clock();
-        hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);
+	hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);
 	int &ack = tcph->seqno(), a, i;
 	Tcl& tcl = Tcl::instance();
 #ifdef DEBUG

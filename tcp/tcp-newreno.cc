@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1990, 1997 Regents of the University of California.
  * All rights reserved.
@@ -18,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.30 1998/05/20 22:06:35 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.31 1998/06/27 01:25:02 gnguyen Exp $ (LBL)";
 #endif
 
 //
@@ -55,19 +56,19 @@ NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), acked_(0)
 void NewRenoTcpAgent::partialnewack(Packet* pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-        newtimer(pkt);
+	newtimer(pkt);
 #ifdef notyet
-        if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
-                stp->endtime = (float) realtime();
+	if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
+		stp->endtime = (float) realtime();
 #endif
-        last_ack_ = tcph->seqno();
-        highest_ack_ = last_ack_;
-        if (t_seqno_ < last_ack_ + 1)
-                t_seqno_ = last_ack_ + 1;
-        if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
-                rtt_active_ = 0;
-                t_backoff_ = 1;
-        }
+	last_ack_ = tcph->seqno();
+	highest_ack_ = last_ack_;
+	if (t_seqno_ < last_ack_ + 1)
+		t_seqno_ = last_ack_ + 1;
+	if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
+		rtt_active_ = 0;
+		t_backoff_ = 1;
+	}
 }
 
 void NewRenoTcpAgent::partialnewack_helper(Packet* pkt)
@@ -82,20 +83,20 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
-  	if (++acked_ == 1) 
-  		basertt_ = Scheduler::instance().clock() - firstsent_;
-  
-  	/* Estimate ssthresh based on the calculated RTT and the estimated
-  		bandwidth (using ACKs 2 and 3).  */
-  
-  	else if (acked_ == 2)
-  		ack2_ = Scheduler::instance().clock();
-  	else if (acked_ == 3) {
-  		ack3_ = Scheduler::instance().clock();
-  		new_ssthresh_ = int((basertt_ * (size_ / (ack3_ - ack2_))) / size_);
-  		if (newreno_changes_ > 0 && new_ssthresh_ < ssthresh_)
-  			ssthresh_ = new_ssthresh_;
-  	}
+	if (++acked_ == 1) 
+		basertt_ = Scheduler::instance().clock() - firstsent_;
+
+	/* Estimate ssthresh based on the calculated RTT and the estimated
+	   bandwidth (using ACKs 2 and 3).  */
+
+	else if (acked_ == 2)
+		ack2_ = Scheduler::instance().clock();
+	else if (acked_ == 3) {
+		ack3_ = Scheduler::instance().clock();
+		new_ssthresh_ = int((basertt_ * (size_ / (ack3_ - ack2_))) / size_);
+		if (newreno_changes_ > 0 && new_ssthresh_ < ssthresh_)
+			ssthresh_ = new_ssthresh_;
+	}
 
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
@@ -111,25 +112,25 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
-	    if (tcph->seqno() >= recover_ 
-	    	|| (last_cwnd_action_ != CWND_ACTION_DUPACK &&
-       		tcph->seqno() > last_ack_)) {
-		dupwnd_ = 0;
-		recv_newack_helper(pkt);
-		if (last_ack_ == 0 && delay_growth_) {
-			cwnd_ = initial_window();
-                }
-	    } else {
-		/* received new ack for a packet sent during Fast
-		 *  Recovery, but sender stays in Fast Recovery */
-		dupwnd_ = 0;
-		partialnewack_helper(pkt);
-	    }
-   	} else if (tcph->seqno() == last_ack_)  {
-                if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
-                        tcp_eln(pkt);
-                        return;
-                }
+		if (tcph->seqno() >= recover_ 
+		    || (last_cwnd_action_ != CWND_ACTION_DUPACK &&
+			tcph->seqno() > last_ack_)) {
+			dupwnd_ = 0;
+			recv_newack_helper(pkt);
+			if (last_ack_ == 0 && delay_growth_) {
+				cwnd_ = initial_window();
+			}
+		} else {
+			/* received new ack for a packet sent during Fast
+			 *  Recovery, but sender stays in Fast Recovery */
+			dupwnd_ = 0;
+			partialnewack_helper(pkt);
+		}
+	} else if (tcph->seqno() == last_ack_) {
+		if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
+			tcp_eln(pkt);
+			return;
+		}
 		if (++dupacks_ == NUMDUPACKS) {
 			dupack_action();
 			dupwnd_ = NUMDUPACKS;
@@ -155,10 +156,10 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 	 */
 
 	if (dupacks_ == 0) 
-                /*
-                 * Maxburst is really only needed for the first
-                 *   window of data on exiting Fast Recovery.
-                 */
+		/*
+		 * Maxburst is really only needed for the first
+		 *  window of data on exiting Fast Recovery.
+		 */
 		send_much(0, 0, maxburst_);
 	else if (dupacks_ > NUMDUPACKS - 1 && newreno_changes_ == 0)
 		send_much(0, 0, 2);

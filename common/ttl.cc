@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.9 1997/12/31 01:23:32 kannan Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.10 1998/06/27 01:25:10 gnguyen Exp $";
 #endif
 
 #include "packet.h"
@@ -118,7 +119,7 @@ public:
 	}
 protected:
 	int off_ip_;
-        int tick_;
+	int tick_;
 };
 
 static class SessionTTLCheckerClass : public TclClass {
@@ -131,11 +132,11 @@ public:
 
 int SessionTTLChecker::command(int argc, const char*const* argv)
 {
-        if (argc == 3) {
-                if (strcmp(argv[1], "tick") == 0) {
-                        tick_ = atoi(argv[2]);
-                        return (TCL_OK);
-                }
-        }
-        return (Connector::command(argc, argv));
+	if (argc == 3) {
+		if (strcmp(argv[1], "tick") == 0) {
+			tick_ = atoi(argv[2]);
+			return (TCL_OK);
+		}
+	}
+	return (Connector::command(argc, argv));
 }

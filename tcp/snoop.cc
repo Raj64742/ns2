@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -33,25 +34,25 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.16 1998/06/25 23:50:57 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.17 1998/06/27 01:24:50 gnguyen Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
 
 static class LLSnoopClass : public TclClass {
- public:
-        LLSnoopClass() : TclClass("LL/LLSnoop") {}
-        TclObject* create(int, const char*const*) {
-                return (new LLSnoop());
-        }
+public:
+	LLSnoopClass() : TclClass("LL/LLSnoop") {}
+	TclObject* create(int, const char*const*) {
+		return (new LLSnoop());
+	}
 } llsnoop_class;
 
 static class SnoopClass : public TclClass {
- public:
-        SnoopClass() : TclClass("Snoop") {}
-        TclObject* create(int, const char*const*) {
-                return (new Snoop());
-        }
+public:
+	SnoopClass() : TclClass("Snoop") {}
+	TclObject* create(int, const char*const*) {
+		return (new Snoop());
+	}
 } snoop_class;
 
 Snoop::Snoop() : NsObject(),
@@ -173,7 +174,7 @@ void LLSnoop::recv(Packet *p, Handler *h)
 }
 
 /*
- * Receive a packet from higher layer or from the network.  
+ * Receive a packet from higher layer or from the network.
  * Call snoop_data() if TCP packet and forward it on if it's an ack.
  */
 void
@@ -184,7 +185,7 @@ Snoop::recv(Packet* p, Handler* h)
 		return;
 	}
 	int type = ((hdr_cmn*)p->access(off_cmn_))->ptype();
-        /* Put packet (if not ack) in cache after checking, and send it on */
+	/* Put packet (if not ack) in cache after checking, and send it on */
 	if (type == PT_TCP)
 		snoop_data(p);
 	else if (type == PT_ACK)
@@ -207,7 +208,7 @@ Snoop::handle(Event *e)
 
 	hdr_ll *llh = hdr_ll::access(p);
 	if (((hdr_cmn*) p->access(off_cmn_))->error()) {
-		parent_->drop(p);        // drop packet if it's been corrupted
+		parent_->drop(p);	// drop packet if it's been corrupted
 		return;
 	}
 
@@ -288,7 +289,7 @@ Snoop::snoop_insert(Packet *p)
 		buftail_ = next(buftail_);
 		fstate_ |= ~SNOOP_FULL;
 	}
-			     
+
 	if (seq > lastSeen_ || pkts_[buftail_] == 0) { // in-seq or empty cache
 		i = bufhead_;
 		bufhead_ = next(bufhead_);

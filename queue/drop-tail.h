@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1994 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.7 1997/11/06 04:16:00 hari Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.8 1998/06/27 01:23:45 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_drop_tail_h
@@ -53,7 +54,7 @@ class DropTail : public Queue {
 	int command(int argc, const char*const* argv); 
 	void enque(Packet*);
 	Packet* deque();
-        PacketQueue *q_;	/* underlying FIFO queue */
+	PacketQueue *q_;	/* underlying FIFO queue */
 	int drop_front_;	/* drop-from-front (rather than from tail) */
 };
 

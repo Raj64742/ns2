@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.32 1998/06/26 02:25:09 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.33 1998/06/27 01:24:29 gnguyen Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -164,13 +164,13 @@ void REDQueue::run_estimator(int nqueued, int m)
 	f_sl = edv_.v_slope;
 #define RED_EWMA
 #ifdef RED_EWMA
-        while (--m >= 1) {
-                f_old = f;
-                f *= 1.0 - edp_.q_w;
-        }
-        f_old = f;
-        f *= 1.0 - edp_.q_w;
-        f += edp_.q_w * nqueued;
+	while (--m >= 1) {
+		f_old = f;
+		f *= 1.0 - edp_.q_w;
+	}
+	f_old = f;
+	f *= 1.0 - edp_.q_w;
+	f += edp_.q_w * nqueued;
 #endif
 #ifdef RED_HOLT_WINTERS
 	while (--m >= 1) {
@@ -265,7 +265,7 @@ REDQueue::drop_early(Packet* pkt)
 			return (1);	// drop
 		}
 	}
-	return (0);  // no DROP/mark
+	return (0);			// no DROP/mark
 }
 
 /*
@@ -331,12 +331,12 @@ void REDQueue::enque(Packet* pkt)
 	 */
 
 	int m = 0;
-        if (idle_) {
+	if (idle_) {
 		double now = Scheduler::instance().clock();
-		/* To account for the period when the queue was empty.  */
-                idle_ = 0;
+		/* To account for the period when the queue was empty. */
+		idle_ = 0;
 		m = int(edp_.ptc * (now - idletime_));
-        }
+	}
 
 	/*
 	 * Run the estimator with either 1 new packet arrival, or with
@@ -369,7 +369,7 @@ void REDQueue::enque(Packet* pkt)
 	register double qavg = edv_.v_ave;
 	int droptype = DTYPE_NONE;
 	int qlen = qib_ ? bcount_ : q_->length();
-	int qlim = qib_ ?  (qlim_ * edp_.mean_pktsize) : qlim_;
+	int qlim = qib_ ? (qlim_ * edp_.mean_pktsize) : qlim_;
 
 	curq_ = qlen;	// helps to trace queue during arrival, if enabled
 
@@ -437,11 +437,11 @@ int REDQueue::command(int argc, const char*const* argv)
 			reset();
 			return (TCL_OK);
 		}
-                if (strcmp(argv[1], "early-drop-target") == 0) {
-                        if (de_drop_ != NULL)
-                                tcl.resultf("%s", de_drop_->name());
-                        return (TCL_OK);
-                }
+		if (strcmp(argv[1], "early-drop-target") == 0) {
+			if (de_drop_ != NULL)
+				tcl.resultf("%s", de_drop_->name());
+			return (TCL_OK);
+		}
 	} else if (argc == 3) {
 		// attach a file for variable tracing
 		if (strcmp(argv[1], "attach") == 0) {
@@ -465,19 +465,19 @@ int REDQueue::command(int argc, const char*const* argv)
 			// set ptc now
 			link_ = del;
 			edp_.ptc = link_->bandwidth() /
-			    (8. * edp_.mean_pktsize);
+				(8. * edp_.mean_pktsize);
 
 			return (TCL_OK);
 		}
-                if (strcmp(argv[1], "early-drop-target") == 0) {
-                        NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
-                        if (p == 0) {
-                                tcl.resultf("no object %s", argv[2]);
-                                return (TCL_ERROR);
-                        }
-                        de_drop_ = p;
-                        return (TCL_OK);
-                }
+		if (strcmp(argv[1], "early-drop-target") == 0) {
+			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
+			if (p == 0) {
+				tcl.resultf("no object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			de_drop_ = p;
+			return (TCL_OK);
+		}
 		if (!strcmp(argv[1], "packetqueue-attach")) {
 			delete q_;
 			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))
@@ -501,7 +501,7 @@ int REDQueue::command(int argc, const char*const* argv)
 void
 REDQueue::trace(TracedVar* v)
 {
-        char wrk[500], *p;
+	char wrk[500], *p;
 
 	if (((p = strstr(v->name(), "ave")) == NULL) &&
 	    ((p = strstr(v->name(), "prob")) == NULL) &&
@@ -526,18 +526,18 @@ REDQueue::trace(TracedVar* v)
 		wrk[n+1] = 0;
 		(void)Tcl_Write(tchan_, wrk, n+1);
 	}
-        return; 
+	return; 
 }
 
 /* for debugging help */
 void REDQueue::print_edp()
 {
-        printf("mean_pktsz: %d\n", edp_.mean_pktsize); 
-        printf("bytes: %d, wait: %d, setbit: %d\n",
-                edp_.bytes, edp_.wait, edp_.setbit);
-        printf("minth: %f, maxth: %f\n", edp_.th_min, edp_.th_max);
-        printf("max_p_inv: %f, qw: %f, ptc: %f\n",
-                edp_.max_p_inv, edp_.q_w, edp_.ptc);
+	printf("mean_pktsz: %d\n", edp_.mean_pktsize); 
+	printf("bytes: %d, wait: %d, setbit: %d\n",
+	       edp_.bytes, edp_.wait, edp_.setbit);
+	printf("minth: %f, maxth: %f\n", edp_.th_min, edp_.th_max);
+	printf("max_p_inv: %f, qw: %f, ptc: %f\n",
+	       edp_.max_p_inv, edp_.q_w, edp_.ptc);
 	printf("qlim: %d, idletime: %f\n", qlim_, idletime_);
 	printf("=========\n");
 }

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -23,10 +24,10 @@
 #include "random.h"
 
 #define tprintf(x) { \
-        Scheduler &_s = Scheduler::instance(); \
-        double _now = _s.clock(); \
-        printf("%f : ", _now); \
-        printf x;\
+	Scheduler &_s = Scheduler::instance(); \
+	double _now = _s.clock(); \
+	printf("%f : ", _now); \
+	printf x;\
 	fflush(stdout);\
 }              
 #define SRM_DATA 0

@@ -1,4 +1,4 @@
-
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -16,20 +16,20 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adaptive-receiver.h,v 1.1 1998/04/25 00:57:45 bajaj Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adaptive-receiver.h,v 1.2 1998/06/27 01:23:20 gnguyen Exp $
  */
 
 #ifndef ns_adaptivercvr_h
 #define ns_adaptivercvr_h
 
 class AdaptiveRcvr : public Agent {
-  public :
-    AdaptiveRcvr();
-    void recv(Packet* pkt, Handler*);
-  protected :
-    int off_rtp_;
+	public :
+	AdaptiveRcvr();
+	void recv(Packet* pkt, Handler*);
+	protected :
+	int off_rtp_;
 
-    virtual int adapt(Packet *pkt,u_int32_t time)=0;
+	virtual int adapt(Packet *pkt,u_int32_t time)=0;
 };
 
 /*

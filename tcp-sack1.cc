@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1990, 1997 Regents of the University of California.
  * All rights reserved.
@@ -18,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.29 1998/05/20 22:06:34 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.30 1998/06/27 01:25:05 gnguyen Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -47,9 +48,9 @@ class Sack1TcpAgent : public TcpAgent {
 	void plot();
 	virtual void send_much(int force, int reason, int maxburst);
  protected:
-	u_char timeout_;        /* boolean: sent pkt from timeout? */
-	u_char fastrecov_;      /* boolean: doing fast recovery? */
-	int pipe_;              /* estimate of pipe size (fast recovery) */ 
+	u_char timeout_;	/* boolean: sent pkt from timeout? */
+	u_char fastrecov_;	/* boolean: doing fast recovery? */
+	int pipe_;		/* estimate of pipe size (fast recovery) */ 
 	ScoreBoard scb_;
 };
 
@@ -63,7 +64,7 @@ public:
 
 int Sack1TcpAgent::window()
 {
-        return(cwnd_ < wnd_ ? (int) cwnd_ : (int) wnd_);
+	return(cwnd_ < wnd_ ? (int) cwnd_ : (int) wnd_);
 }
 
 Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1)
@@ -100,7 +101,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			}
 		} else if ((int)tcph->seqno() < last_ack_) {
 			/*NOTHING*/
-		} else if (timeout_ == FALSE)  {
+		} else if (timeout_ == FALSE) {
 			if (tcph->seqno() != last_ack_) {
 				fprintf(stderr, "pkt seq %d should be %d\n" ,
 					tcph->seqno(), last_ack_);
@@ -156,52 +157,53 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 		plot();
 #endif
 }
+
 void
 Sack1TcpAgent::dupack_action()
 {
-        int recovered = (highest_ack_ > recover_);
-        if (recovered || (!bug_fix_ && !ecn_)) {
-                goto sack_action;
-        }
+	int recovered = (highest_ack_ > recover_);
+	if (recovered || (!bug_fix_ && !ecn_)) {
+		goto sack_action;
+	}
  
-        if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
-                last_cwnd_action_ = CWND_ACTION_DUPACK;
-                /*
-                 * What if there is a DUPACK action followed closely by ECN
-                 * followed closely by a DUPACK action?
-                 * The optimal thing to do would be to remember all
-                 * congestion actions from the most recent window
-                 * of data.  Otherwise "bugfix" might not prevent
-                 * all unnecessary Fast Retransmits.
-                 */
-                reset_rtx_timer(1,0);
+	if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+		last_cwnd_action_ = CWND_ACTION_DUPACK;
+		/*
+		 * What if there is a DUPACK action followed closely by ECN
+		 * followed closely by a DUPACK action?
+		 * The optimal thing to do would be to remember all
+		 * congestion actions from the most recent window
+		 * of data.  Otherwise "bugfix" might not prevent
+		 * all unnecessary Fast Retransmits.
+		 */
+		reset_rtx_timer(1,0);
 		pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
 		//pipe_ = int(cwnd_) - NUMDUPACKS;
 		fastrecov_ = TRUE;
 		scb_.MarkRetran(highest_ack_+1);
-                output(last_ack_ + 1, TCP_REASON_DUPACK);
-                return;
-        }
- 
-        if (bug_fix_) {
-                /*
-                 * The line below, for "bug_fix_" true, avoids
-                 * problems with multiple fast retransmits in one
-                 * window of data.
-                 */
-                return;
-        }
- 
+		output(last_ack_ + 1, TCP_REASON_DUPACK);
+		return;
+	}
+
+	if (bug_fix_) {
+		/*
+		 * The line below, for "bug_fix_" true, avoids
+		 * problems with multiple fast retransmits in one
+		 * window of data.
+		 */
+		return;
+	}
+
 sack_action:
-        recover_ = maxseq_;
-        last_cwnd_action_ = CWND_ACTION_DUPACK;
+	recover_ = maxseq_;
+	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	pipe_ = int(cwnd_) - NUMDUPACKS;
-        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
-        reset_rtx_timer(1,0);
+	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+	reset_rtx_timer(1,0);
 	fastrecov_ = TRUE;
 	scb_.MarkRetran(highest_ack_+1);
-        output(last_ack_ + 1, TCP_REASON_DUPACK);       // from top
-        return;
+	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
+	return;
 }
 
 void Sack1TcpAgent::timeout(int tno)
@@ -214,7 +216,7 @@ void Sack1TcpAgent::timeout(int tno)
 			last_ack_ = highest_ack_;
 #ifdef DEBUGSACK1A
 		printf ("timeout. highest_ack: %d seqno: %d\n", 
-		  highest_ack_, t_seqno_);
+			highest_ack_, t_seqno_);
 #endif
 		recover_ = maxseq_;
 		scb_.ClearScoreBoard();
@@ -234,7 +236,7 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 	/*
 	 * as long as the pipe is open and there is app data to send...
 	 */
-	while (((!fastrecov_  && (t_seqno_ <= last_ack_ + win)) ||
+	while (((!fastrecov_ && (t_seqno_ <= last_ack_ + win)) ||
 			(fastrecov_ && (pipe_ < int(cwnd_)))) 
 			&& t_seqno_ < curseq_ && found) {
 
@@ -255,7 +257,7 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 					printf("sending %d fastrecovery: %d win %d\n",
 						xmit_seqno, fastrecov_, win);
 #endif
-		    	}
+				}
 			} else if (recover_>0 && xmit_seqno<=highest_ack_+int(wnd_)) {
 				found = 1;
 				scb_.MarkRetran (xmit_seqno);

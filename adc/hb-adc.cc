@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -18,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/hb-adc.cc,v 1.4 1998/06/11 04:54:08 breslau Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/hb-adc.cc,v 1.5 1998/06/27 01:23:56 gnguyen Exp $";
 #endif
 
 //Hoeffding Bounds Admission Control
@@ -71,8 +72,8 @@ int HB_ADC::admit_flow(int cl,double r,int b)
 
 void HB_ADC::rej_action(int cl,double r,int b)
 {
-  double p=peak_rate(cl,r,b);
-  sump2_ -= p*p;
+	double p=peak_rate(cl,r,b);
+	sump2_ -= p*p;
 }
 
 

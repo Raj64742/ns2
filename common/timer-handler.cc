@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * timer-handler.cc
  * Copyright (C) 1997 by USC/ISI
@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.5 1998/06/26 02:20:38 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.cc,v 1.6 1998/06/27 01:25:07 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>  // abort()

@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.10 1998/06/26 02:20:18 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.11 1998/06/27 01:24:01 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -45,17 +45,17 @@ static const char rcsid[] =
 
 /* ivs data packet; ctrl packets are sent back as "messages" */
 struct hdr_ivs {
-        double ts_;             /* timestamp sent at source */
-        u_int8_t S_;
-        u_int8_t R_;
-        u_int8_t state_;
-        u_int8_t rshft_;
-        u_int8_t kshft_;
-        u_int16_t key_;
-        double maxrtt_;
+	double ts_;			/* timestamp sent at source */
+	u_int8_t S_;
+	u_int8_t R_;
+	u_int8_t state_;
+	u_int8_t rshft_;
+	u_int8_t kshft_;
+	u_int16_t key_;
+	double maxrtt_;
 	int seqno_;
 
-        /* per-field member functions */
+	/* per-field member functions */
 	double& ts() {
 		return (ts_);
 	}
@@ -83,11 +83,11 @@ struct hdr_ivs {
 	int& seqno() {
 		return (seqno_);
 	}
-};   
+};
 
 static class IvsHeaderClass : public PacketHeaderClass {
 public:
-        IvsHeaderClass() : PacketHeaderClass("PacketHeader/IVS",
+	IvsHeaderClass() : PacketHeaderClass("PacketHeader/IVS",
 					     sizeof(hdr_ivs)) {}
 } class_ivshdr;
 
@@ -201,7 +201,7 @@ void IvsSource::recv(Packet* pkt, Handler*)
 void IvsSource::probe_timeout()
 {
 	rndStart_ = now;
-  
+
 	if (keyShift_ == 15) {
 		if (key_ == 0) {
 			if (solicitedResponses_ == 0)
@@ -252,15 +252,15 @@ void IvsSource::sendpkt()
 }
 
 IvsReceiver::IvsReceiver() : Agent(PT_MESSAGE), state_(ST_U),
-	  nextSeq_(0),
-	  timeMean_(0.), timeVar_(0.),/*XXX*/
-	  ipg_(0.),
-	  head_(0),
-	  tail_(0),
-	  lastPktTime_(0.),
-	  ignoreR_(0),
-	  lastTime_(0.),
-	  key_(0)
+	nextSeq_(0),
+	timeMean_(0.), timeVar_(0.),/*XXX*/
+	ipg_(0.),
+	head_(0),
+	tail_(0),
+	lastPktTime_(0.),
+	ignoreR_(0),
+	lastTime_(0.),
+	key_(0)
 {
 	bind("ignoreR_", &ignoreR_);
 	bind("key_", &key_);
@@ -342,7 +342,7 @@ int IvsReceiver::lossMeter(double timeDiff, u_int32_t seq, double maxrtt)
 	if (timeDiff < 0)
 		timeDiff = -timeDiff;
 
-	timeVar_  = (7 * timeVar_ + timeDiff) / 8;
+	timeVar_ = (7 * timeVar_ + timeDiff) / 8;
 
 	int lostPkts = 0;
 	/* 
@@ -358,7 +358,7 @@ int IvsReceiver::lossMeter(double timeDiff, u_int32_t seq, double maxrtt)
 	double validEnd = now - 2 * timeVar_;
 	double validStart = validEnd - maxrtt;
 
-	/* for each hole, if it is older than required, dump it  */
+	/* for each hole, if it is older than required, dump it */
 	/* If it is valid, add the size to the loss count */
 	/* Go to the next hole */
 
@@ -427,7 +427,7 @@ void IvsReceiver::recv(Packet* pkt, Handler*)
 	double ts = p->ts();
 	int prevState = state_;
 	state_ = lossMeter(now - ts, p->seqno(), p->maxrtt());
-  
+
 	lastPktTime_ = now;
 
 	/* If soliciting rtt */

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1990, 1997 Regents of the University of California.
  * All rights reserved.
@@ -18,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.27 1998/05/20 22:06:35 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.28 1998/06/27 01:25:04 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -76,12 +77,12 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		recv_newack_helper(pkt);
 		if (last_ack_ == 0 && delay_growth_) {
 			cwnd_ = initial_window();
-                }
-   	} else if (tcph->seqno() == last_ack_)  {
-                if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
-                        tcp_eln(pkt);
-                        return;
-                }
+		}
+	} else if (tcph->seqno() == last_ack_) {
+		if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
+			tcp_eln(pkt);
+			return;
+		}
 		if (++dupacks_ == NUMDUPACKS) {
 			dupack_action();
 			dupwnd_ = NUMDUPACKS;
@@ -104,7 +105,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		send_much(0, 0, maxburst_);
 }
 
-/*  
+/*
  * Dupack-action: what to do on a DUP ACK.  After the initial check
  * of 'recover' below, this function implements the following truth
  * table:
@@ -123,15 +124,15 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
     
 void
 RenoTcpAgent::dupack_action()
-{   
-        int recovered = (highest_ack_ > recover_);
-        if (recovered || (!bug_fix_ && !ecn_) ||
+{
+	int recovered = (highest_ack_ > recover_);
+	if (recovered || (!bug_fix_ && !ecn_) ||
 		last_cwnd_action_ == CWND_ACTION_DUPACK) {
-                goto reno_action;
-        }       
-    
-        if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
-                last_cwnd_action_ = CWND_ACTION_DUPACK;
+		goto reno_action;
+	}
+
+	if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+		last_cwnd_action_ = CWND_ACTION_DUPACK;
 		/* 
 		 * What if there is a DUPACK action followed closely by ECN
 		 * followed closely by a DUPACK action?
@@ -140,27 +141,27 @@ RenoTcpAgent::dupack_action()
 		 * of data.  Otherwise "bugfix" might not prevent
 		 * all unnecessary Fast Retransmits.
 		 */
-                reset_rtx_timer(1,0);
+		reset_rtx_timer(1,0);
 		output(last_ack_ + 1, TCP_REASON_DUPACK);
-                return; 
-        }               
-    
-        if (bug_fix_) {
-                /*
-                 * The line below, for "bug_fix_" true, avoids
-                 * problems with multiple fast retransmits in one
-                 * window of data.
-                 */      
-                return;  
-        }       
-    
-reno_action:   
-        recover_ = maxseq_;
-        last_cwnd_action_ = CWND_ACTION_DUPACK;
-        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
-        reset_rtx_timer(1,0);
+		return; 
+	}
+
+	if (bug_fix_) {
+		/*
+		 * The line below, for "bug_fix_" true, avoids
+		 * problems with multiple fast retransmits in one
+		 * window of data.
+		 */
+		return;
+	}
+
+reno_action:
+	recover_ = maxseq_;
+	last_cwnd_action_ = CWND_ACTION_DUPACK;
+	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+	reset_rtx_timer(1,0);
 	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
-        return;
+	return;
 }
 
 void RenoTcpAgent::timeout(int tno)

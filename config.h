@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1995-1997 The Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.19 1998/06/26 18:41:44 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.20 1998/06/27 01:23:35 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -72,12 +73,12 @@ typedef int32_t nsmask_t;
 
 
 /* some global definitions */
-#define SMALL_LEN      32
-#define MID_LEN        256
-#define BIG_LEN        4096
-#define HUGE_LEN       65536
-#define TRUE           1
-#define FALSE          0
+#define SMALL_LEN	32
+#define MID_LEN		256
+#define BIG_LEN		4096
+#define HUGE_LEN	65536
+#define TRUE		1
+#define FALSE		0
 
 
 #include <stdlib.h>
@@ -162,8 +163,8 @@ struct utsname {
 typedef char *caddr_t;
 
 struct iovec {
-	caddr_t iov_base;
-	int	    iov_len;
+	caddr_t	iov_base;
+	int	iov_len;
 };
 
 #ifndef TIMEZONE_DEFINED_
@@ -177,7 +178,7 @@ struct timezone {
 typedef int pid_t;
 typedef int uid_t;
 typedef int gid_t;
-    
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -197,7 +198,7 @@ int sendmsg(int, struct msghdr*, int);
 #ifndef WIN32
 time_t time(time_t *);
 #endif
-        
+
 #define bzero(dest,count) memset(dest,0,count)
 #define bcopy(src,dest,size) memcpy(dest,src,size)
 #if defined(__cplusplus)
@@ -219,12 +220,11 @@ time_t time(time_t *);
 
 
 /***** These values are no longer required to be hardcoded -- mask and shift values are 
-       available from Class Address. *****/
+	available from Class Address. *****/
 
 /* While changing these ensure that values are consistent with tcl/lib/ns-default.tcl
-/* #define NODEMASK  0xffffff */
-/* #define NODESHIFT 8 */
-/* #define PORTMASK  0xff */
+/* #define NODEMASK	0xffffff */
+/* #define NODESHIFT	8 */
+/* #define PORTMASK	0xff */
 
 #endif
-

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1996-1997 The Regents of the University of California.
  * All rights reserved.
@@ -49,18 +50,18 @@
 #include "semantic-packetqueue.h"
 
 class AckReconsController : public TclObject {
-  public:
+public:
 	AckReconsController() : spq_(0) { 
 		bind("off_ip_", &off_ip_);
 	}
 	void recv(Packet *p, Handler *h=0);
 	SemanticPacketQueue *spq_;
-  private:
+private:
 	int off_ip_;
 };
 	
 class AckRecons : public Agent {
-  public:
+public:
 	AckRecons(nsaddr_t src, nsaddr_t dst) :
 		Agent(PT_TCP),src_(src), dst_(dst),
 		spq_(0), lastAck_(0), lastRealAck_(0), ackPending_(0),
@@ -78,32 +79,32 @@ class AckRecons : public Agent {
 			bind("alpha_", &alpha_);
 			bind("size_", &size_);
 		}
-	int  command(int argc, const char*const* argv);
+	int command(int argc, const char*const* argv);
 	void handle(Event *e);
 	void recv(Packet *p);
 	SemanticPacketQueue *spq_; /* the corresponding queue of packets */
-  private:
-	void     sendack(int ack, double t); /* send ack pkt at time t */
+private:
+	void sendack(int ack, double t); /* send ack pkt at time t */
 	nsaddr_t src_;		/* src addr:port */
 	nsaddr_t dst_;		/* dst addr:port */
-	Packet   *ackTemplate_;	/* used as a template for generated acks */
-	int      ackPending_;
-	int      lastAck_;	/* last ack sent by recons, maybe generated */
-	int      lastRealAck_;	/* last ack actually received on link */
-	double   lastTime_;	/* time when last ack was sent */
-	double   lastRealTime_;	/* time when last ack arrived on link */
-	int      dupacks_;	/* number of dup acks seen so far */
-	int      size_;		/* TCP packet size -- needed because TCP
+	Packet	*ackTemplate_;	/* used as a template for generated acks */
+	int	ackPending_;
+	int	lastAck_;	/* last ack sent by recons, maybe generated */
+	int	lastRealAck_;	/* last ack actually received on link */
+	double	lastTime_;	/* time when last ack was sent */
+	double	lastRealTime_;	/* time when last ack arrived on link */
+	int	dupacks_;	/* number of dup acks seen so far */
+	int	size_;		/* TCP packet size -- needed because TCP
 				 * acks are in terms of packets */
 	/* knobs/policies */
-	int      deltaAckThresh_; /* threshold for reconstruction to kick in */
-	double   ackInterArr_;	/* estimate of arrival rate of acks */
-	double   ackSpacing_;	/* time duration between acks sent by recons */
-	int      delack_;	/* generate ack at least every delack_ acks */
-	int      adaptive_;	/* whether to adapt ack bandwidth? */
-	double   alpha_;	/* used in linear filter for ack rate est. */
+	int	deltaAckThresh_; /* threshold for reconstruction to kick in */
+	double	ackInterArr_;	/* estimate of arrival rate of acks */
+	double	ackSpacing_;	/* time duration between acks sent by recons */
+	int	delack_;	/* generate ack at least every delack_ acks */
+	int	adaptive_;	/* whether to adapt ack bandwidth? */
+	double	alpha_;	/* used in linear filter for ack rate est. */
 
-	int      off_tcp_;	/* offset of TCP header in packet */
+	int	off_tcp_;	/* offset of TCP header in packet */
 };
 
 #endif

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * rtProtoDV.cc
  *
@@ -21,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.cc,v 1.3 1997/08/27 19:28:06 kannan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.cc,v 1.4 1998/06/27 01:24:36 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -29,7 +30,7 @@ static const char rcsid[] =
 
 static class rtDVHeaderClass : public PacketHeaderClass {
 public:
-        rtDVHeaderClass() : PacketHeaderClass("PacketHeader/rtProtoDV",
+	rtDVHeaderClass() : PacketHeaderClass("PacketHeader/rtProtoDV",
 					      sizeof(hdr_DV)) { } 
 } class_rtProtoDV_hdr;
 
@@ -44,14 +45,14 @@ public:
 
 int rtProtoDV::command(int argc, const char*const* argv)
 {
-        if (strcmp(argv[1], "send-update") == 0) {
-                nsaddr_t  dst   = atoi(argv[2]);
-                u_int32_t mtvar = atoi(argv[3]);
+	if (strcmp(argv[1], "send-update") == 0) {
+		nsaddr_t  dst   = atoi(argv[2]);
+		u_int32_t mtvar = atoi(argv[3]);
 		u_int32_t size  = atoi(argv[4]);
-                sendpkt(dst, mtvar, size);
-                return TCL_OK;
-       }
-       return Agent::command(argc, argv);
+		sendpkt(dst, mtvar, size);
+		return TCL_OK;
+	}
+	return Agent::command(argc, argv);
 }
 
 void rtProtoDV::sendpkt(nsaddr_t dst, u_int32_t mtvar, u_int32_t size)
@@ -59,18 +60,18 @@ void rtProtoDV::sendpkt(nsaddr_t dst, u_int32_t mtvar, u_int32_t size)
 	dst_ = dst;
 	size_ = size;
 	
-        Packet* p = Agent::allocpkt();
+	Packet* p = Agent::allocpkt();
 	hdr_DV *rh = (hdr_DV*)p->access(off_DV_);
-        rh->metricsVar() = mtvar;
+	rh->metricsVar() = mtvar;
 
-        target_->recv(p);               
+	target_->recv(p);
 }
 
 void rtProtoDV::recv(Packet* p, Handler*)
 {
 	hdr_DV* rh = (hdr_DV*)p->access(off_DV_);
 	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
-        Tcl::instance().evalf("%s recv-update %d %d", name(),
+	Tcl::instance().evalf("%s recv-update %d %d", name(),
 			      ih->src(), rh->metricsVar());
 	Packet::free(p);
 }

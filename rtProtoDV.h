@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * rtProtoDV.h
  * Copyright (C) 1997 by USC/ISI
@@ -16,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.h,v 1.2 1997/07/23 02:49:45 kfall Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.h,v 1.3 1998/06/27 01:24:37 gnguyen Exp $ (USC/ISI)
  */
 
 #ifndef ns_rtprotodv_h
@@ -26,20 +27,20 @@
 #include "ip.h"
 
 struct hdr_DV {
-        u_int32_t       mv_;            // metrics variable identifier
+	u_int32_t mv_;			// metrics variable identifier
 
 	// per field member functions
-        u_int32_t& metricsVar() { return mv_;   }
+	u_int32_t& metricsVar() { return mv_; }
 };
 
 class rtProtoDV : public Agent {
 public:
-        rtProtoDV() : Agent(PT_RTPROTO_DV) { 
+	rtProtoDV() : Agent(PT_RTPROTO_DV) { 
 		bind("off_DV_", &off_DV_);
 	}
-        int command(int argc, const char*const* argv);
-        void sendpkt(nsaddr_t dst, u_int32_t z, u_int32_t mtvar);
-        void recv(Packet* p, Handler*);
+	int command(int argc, const char*const* argv);
+	void sendpkt(nsaddr_t dst, u_int32_t z, u_int32_t mtvar);
+	void recv(Packet* p, Handler*);
 protected:
 	int off_DV_;
 };

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.22 1998/06/11 01:04:48 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.23 1998/06/27 01:23:26 gnguyen Exp $ (LBL)";
 #endif
 
 //
@@ -385,7 +386,7 @@ int CBQueue::send_permitted(CBQClass* cl, double now)
 		last_lender_ = cl;
 		return (1);
 	} else if (cl->permit_borrowing_ &&
-	    (((cl = find_lender(cl, now)) != NULL))) {
+		   (((cl = find_lender(cl, now)) != NULL))) {
 		last_lender_ = cl;
 		return (1);
 	}
@@ -459,12 +460,12 @@ CBQueue::eligible_formal(CBQClass *cl, double now)
 int
 CBQueue::insert_class(CBQClass *p)
 {
-        p->cbq_ = this;
+	p->cbq_ = this;
 
-        /*
-         * Add to circularly-linked list "active_"
+	/*
+	 * Add to circularly-linked list "active_"
 	 *    of peers for the given priority.
-         */
+	 */
 
 	if (p->pri_ < 0 || p->pri_ > (MAXPRIO-1)) {
 		fprintf(stderr, "CBQ class %s has invalid pri %d\n",
@@ -486,11 +487,11 @@ CBQueue::insert_class(CBQClass *p)
 			maxprio_ = p->pri_;
 	}
 
-        /*
-         * Compute maxrate from allotment.
+	/*
+	 * Compute maxrate from allotment.
 	 * convert to bytes/sec
 	 *	and store the highest prio# we've seen
-         */
+	 */
 
 	if (p->allotment_ < 0.0 || p->allotment_ > 1.0) {
 		fprintf(stderr, "CBQ class %s has invalid allot %f\n",
@@ -508,12 +509,12 @@ CBQueue::insert_class(CBQClass *p)
 		return (-1);
 	}
 
-        p->maxrate_ = p->allotment_ * (link_->bandwidth() / 8.0);
+	p->maxrate_ = p->allotment_ * (link_->bandwidth() / 8.0);
 	addallot(p->pri_, p->allotment_);
 
 	/*
 	 * Add to per-level list
-	 *     and store the highest level# we've seen
+	 *	and store the highest level# we've seen
 	 */
 
 	if (p->level_ <= 0 || p->level_ > MAXLEVEL) {
@@ -527,12 +528,12 @@ CBQueue::insert_class(CBQClass *p)
 	if (p->level_ > maxlevel_)
 		maxlevel_ = p->level_;
 
-        /*
-         * Check that parent and borrow linkage are acyclic.
-         */
+	/*
+	 * Check that parent and borrow linkage are acyclic.
+	 */
 #ifdef notdef
-        check_for_cycles(CBQClass::parent);
-        check_for_cycles(CBQClass::borrow);
+	check_for_cycles(CBQClass::parent);
+	check_for_cycles(CBQClass::borrow);
 #endif
 	return 0;
 }
@@ -640,27 +641,27 @@ WRR_CBQueue::deque()
 
 	Packet* rval;
 
-        /*
-         * prio runs from 0 .. maxprio_
-         *
-         * round-robin through all the classes at priority 'prio'
-         *      if any class is ok to send, resume it's queue
-         * go on to next lowest priority (higher prio nuber) and repeat
-         * [lowest priority number is the highest priority]
-         */
+	/*
+	 * prio runs from 0 .. maxprio_
+	 *
+	 * round-robin through all the classes at priority 'prio'
+	 *      if any class is ok to send, resume it's queue
+	 * go on to next lowest priority (higher prio nuber) and repeat
+	 * [lowest priority number is the highest priority]
+	 */
 
-        for (prio = 0; prio <= maxprio_; prio++) {
-                // see if there is any class at this prio
-                if ((cl = active_[prio]) == NULL) {
-                        // nobody at this prio level
-                        continue;
-                }
+	for (prio = 0; prio <= maxprio_; prio++) {
+		// see if there is any class at this prio
+		if ((cl = active_[prio]) == NULL) {
+			// nobody at this prio level
+			continue;
+		}
 		deficit = done = 0;
 		while (!done) {
 			do {
 				if (deficit < 2 && cl->bytes_alloc_ <= 0)
 					cl->bytes_alloc_ +=
-					  (int)(cl->allotment_ * M_[cl->pri_]);
+						(int)(cl->allotment_ * M_[cl->pri_]);
 				if (cl->demand()) {
 					if (first == NULL && cl->permit_borrowing_ && cl->lender_ != NULL)
 						first = cl;
@@ -690,10 +691,10 @@ WRR_CBQueue::deque()
 	}
 
 found:
-        // do accounting
-        if (eligible != NULL) {
+	// do accounting
+	if (eligible != NULL) {
 		next_eligible = eligible->peer_;
-                eligible->q_->resume();
+		eligible->q_->resume();
 		if (pending_pkt_ != NULL && !none_found) {
 			// reduce our alloc
 			// by the packet size.  If we're
@@ -716,7 +717,7 @@ found:
 	rval = pending_pkt_;
 	pending_pkt_ = NULL;
 
-        return (rval);
+	return (rval);
 }
 
 int
@@ -766,7 +767,7 @@ CBQClass::CBQClass() : cbq_(0), peer_(0), level_peer_(0), lender_(0),
 	if (pri_ < 0 || pri_ > (MAXPRIO-1))
 		abort();
 
-        if (level_ <= 0 || level_ > MAXLEVEL)
+	if (level_ <= 0 || level_ > MAXLEVEL)
 		abort();
 }
 
@@ -827,7 +828,7 @@ void CBQClass::update(Packet* p, double now)
 	avgidle += (idle - avgidle) / POWEROFTWO;
 	if (maxidle_ < 0) {
 		fprintf(stderr,
-		    "CBQClass: warning: maxidle_ not configured!\n");
+			"CBQClass: warning: maxidle_ not configured!\n");
 	} else if (avgidle > maxidle_)
 		avgidle = maxidle_;
 	avgidle_ = avgidle;
@@ -904,7 +905,7 @@ void CBQClass::delayed(double now)
 int
 CBQClass::ancestor(CBQClass *p)
 {
-	if (!p->permit_borrowing_ ||  p->lender_ == NULL)
+	if (!p->permit_borrowing_ || p->lender_ == NULL)
 		return (0);
 	else if (p->lender_ == this)
 		return (1);
@@ -917,11 +918,11 @@ CBQClass::ancestor(CBQClass *p)
 void
 CBQClass::newallot(double bw)
 {
-        maxrate_ = bw * ( cbq_->link()->bandwidth() / 8.0 );
-        double diff = allotment_ - bw;
-        allotment_ = bw;
-        cbq_->addallot(pri_, diff);
-        return;
+	maxrate_ = bw * ( cbq_->link()->bandwidth() / 8.0 );
+	double diff = allotment_ - bw;
+	allotment_ = bw;
+	cbq_->addallot(pri_, diff);
+	return;
 }
 
 
@@ -937,85 +938,85 @@ CBQClass::newallot(double bw)
  */
 int CBQClass::command(int argc, const char*const* argv)
 {
-        Tcl& tcl = Tcl::instance();
-        if (argc == 2) {
-                if (strcmp(argv[1], "allot") == 0) {
-                        tcl.resultf("%g", allotment_);
-                        return (TCL_OK);
-                }
-                if (strcmp(argv[1], "cbq") == 0) {
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		if (strcmp(argv[1], "allot") == 0) {
+			tcl.resultf("%g", allotment_);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "cbq") == 0) {
 			if (cbq_ != NULL)
 				tcl.resultf("%s", cbq_->name());
 			else
 				tcl.resultf("");
-                        return(TCL_OK);
-                }
-                if (strcmp(argv[1], "qdisc") == 0) {
+			return(TCL_OK);
+		}
+		if (strcmp(argv[1], "qdisc") == 0) {
 			if (q_ != NULL)
 				tcl.resultf("%s", q_->name());
 			else
 				tcl.resultf("");
-                        return (TCL_OK);
-                }
-                if (strcmp(argv[1], "qmon") == 0) {
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "qmon") == 0) {
 			if (qmon_ != NULL)
 				tcl.resultf("%s", qmon_->name());
 			else
 				tcl.resultf("");
-                        return (TCL_OK);
+			return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		// for now these are the same
-                if ((strcmp(argv[1], "parent") == 0)) {
+		if ((strcmp(argv[1], "parent") == 0)) {
 
 			if (strcmp(argv[2], "none") == 0) {
 				lender_ = NULL;
 				return (TCL_OK);
 			}
-                        lender_ = (CBQClass*)TclObject::lookup(argv[2]);
+			lender_ = (CBQClass*)TclObject::lookup(argv[2]);
 			if (lender_ != NULL)
 				return (TCL_OK);
 
-                        return (TCL_ERROR);
-                }
-                if (strcmp(argv[1], "qdisc") == 0) {
-                        q_ = (Queue*) TclObject::lookup(argv[2]);
-                        if (q_ != NULL)
-                                return (TCL_OK);
+			return (TCL_ERROR);
+		}
+		if (strcmp(argv[1], "qdisc") == 0) {
+			q_ = (Queue*) TclObject::lookup(argv[2]);
+			if (q_ != NULL)
+				return (TCL_OK);
 			tcl.resultf("couldn't find object %s",
 				argv[2]);
-                        return (TCL_ERROR);
-                }
-                if (strcmp(argv[1], "qmon") == 0) {
-                        qmon_ = (QueueMonitor*) TclObject::lookup(argv[2]);
-                        if (qmon_ != NULL)
-                                return (TCL_OK);
-                        return (TCL_ERROR);
-                }
-                if (strcmp(argv[1], "allot") == 0) {
-                        double bw = atof(argv[2]);
-                        if (bw < 0.0)
-                                return (TCL_ERROR);
+			return (TCL_ERROR);
+		}
+		if (strcmp(argv[1], "qmon") == 0) {
+			qmon_ = (QueueMonitor*) TclObject::lookup(argv[2]);
+			if (qmon_ != NULL)
+				return (TCL_OK);
+			return (TCL_ERROR);
+		}
+		if (strcmp(argv[1], "allot") == 0) {
+			double bw = atof(argv[2]);
+			if (bw < 0.0)
+				return (TCL_ERROR);
 			if (allotment_ != 0.0) {
 				tcl.resultf(" class %s already has allotment of %f!",
-					name(), allotment_);
+					    name(), allotment_);
 				return (TCL_ERROR);
 			}
 			allotment_ = bw;
-                        return (TCL_OK);
-                }
-                if (strcmp(argv[1], "newallot") == 0) {
-                        double bw = atof(argv[2]);
-                        if (bw < 0.0)
-                                return (TCL_ERROR);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "newallot") == 0) {
+			double bw = atof(argv[2]);
+			if (bw < 0.0)
+				return (TCL_ERROR);
 			newallot(bw);
-                        return (TCL_OK);
-                }
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "maxidle") == 0) {
 			double m = atof(argv[2]);
 			if (m < 0.0) {
 				tcl.resultf("invalid maxidle value %s (must be non-negative)",
-					argv[2]);
+					    argv[2]);
 				return (TCL_ERROR);
 			}
 			maxidle_ = m;

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -17,7 +18,6 @@
  * software. 
  */
 
-
 /* define a simple reservation header service */
 
 #ifndef ns_resv_h
@@ -33,17 +33,9 @@ struct hdr_resv {
 	
 	static int offset_;
 	//provide per field member functions
-	double& rate() {
-		return rate_;
-	}
-	
-	int &bucket() {
-		return bucket_;
-	}
-	
-	int &decision() {
-		return decision_;
-	}
+	double& rate() { return rate_; }
+	int& bucket() { return bucket_; }
+	int& decision() { return decision_; }
 };
 
 #endif

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * delaymodel.cc
  * Copyright (C) 1997 by USC/ISI
@@ -22,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.cc,v 1.6 1998/01/22 08:06:52 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.cc,v 1.7 1998/06/27 01:23:43 gnguyen Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -63,7 +64,7 @@ int DelayModel::command(int argc, const char*const* argv)
 
 void DelayModel::recv(Packet* p, Handler* h)
 {
-        double delay = ranvar_->value();
+	double delay = ranvar_->value();
 	static int tmp = 0;
 
 	double txt = txtime(p);

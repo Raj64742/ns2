@@ -1,8 +1,9 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * sessionhelper.cc
  * Copyright (C) 1997 by USC/ISI
- * All rights reserved.                                            
- *                                                                
+ * All rights reserved.
+ *
  * Redistribution and use in source and binary forms are permitted
  * provided that the above copyright notice and this paragraph are
  * duplicated in all such forms and that any documentation, advertising
@@ -22,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.10 1998/04/20 23:52:44 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.11 1998/06/27 01:24:48 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -35,8 +36,8 @@ struct dstobj {
 	double bw;
 	double delay;
 	double prev_arrival;
-        int ttl;
-        int dropped;
+	int ttl;
+	int dropped;
 	nsaddr_t addr;
 	NsObject *obj;
 	dstobj *next;
@@ -47,11 +48,11 @@ struct rcv_depobj {
 	rcv_depobj *next;
 };
 
-  
+
 struct loss_depobj {
 	ErrorModel *obj;
-        loss_depobj *loss_dep;
-        rcv_depobj *rcv_dep;
+	loss_depobj *loss_dep;
+	rcv_depobj *rcv_dep;
 	loss_depobj *next;
 };
 
@@ -61,20 +62,20 @@ public:
 	int command(int, const char*const*);
 	void recv(Packet*, Handler*);
 protected:
-        void get_dropped(loss_depobj*, Packet*);
-        void mark_dropped(loss_depobj*);
-        void clear_dropped();
-        dstobj* find_dstobj(NsObject*);
-        void delete_dstobj(NsObject*);
-        loss_depobj* find_loss_depobj(ErrorModel*);
-        void show_dstobj();
-        void show_loss_depobj(loss_depobj*);
-        nsaddr_t src_;
-        dstobj *dstobj_;
-        loss_depobj *loss_dependency_;
-        int off_ip_;
-        int ndst_;
-        int rc_;
+	void get_dropped(loss_depobj*, Packet*);
+	void mark_dropped(loss_depobj*);
+	void clear_dropped();
+	dstobj* find_dstobj(NsObject*);
+	void delete_dstobj(NsObject*);
+	loss_depobj* find_loss_depobj(ErrorModel*);
+	void show_dstobj();
+	void show_loss_depobj(loss_depobj*);
+	nsaddr_t src_;
+	dstobj *dstobj_;
+	loss_depobj *loss_dependency_;
+	int off_ip_;
+	int ndst_;
+	int rc_;
 };
 
 static class SessionHelperClass : public TclClass {
@@ -87,8 +88,8 @@ public:
 
 SessionHelper::SessionHelper() : dstobj_(0), ndst_(0), rc_(0)
 {
-        bind("off_ip_", &off_ip_);
-        bind("rc_", &rc_);
+	bind("off_ip_", &off_ip_);
+	bind("rc_", &rc_);
 	loss_dependency_ = new loss_depobj;
 	loss_dependency_->obj = 0;
 	loss_dependency_->loss_dep = 0;
@@ -109,7 +110,7 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 
 	get_dropped(loss_dependency_->loss_dep, pkt);
 	if (rc_) {
-	  th->ref_count() = ndst_;
+		th->ref_count() = ndst_;
 	}
 
 	while (tmpdst != 0) {
@@ -147,40 +148,40 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 
 void SessionHelper::get_dropped(loss_depobj* loss_dep, Packet* pkt)
 {
-  if (loss_dep != 0) 
-    if (loss_dep->obj != 0) {
-      if (loss_dep->obj->corrupt(pkt)) {
-	mark_dropped(loss_dep);
-      } else {
-	get_dropped(loss_dep->loss_dep, pkt);
-      }
-      get_dropped(loss_dep->next, pkt);
-    }
+	if (loss_dep != 0) 
+		if (loss_dep->obj != 0) {
+			if (loss_dep->obj->corrupt(pkt)) {
+				mark_dropped(loss_dep);
+			} else {
+				get_dropped(loss_dep->loss_dep, pkt);
+			}
+			get_dropped(loss_dep->next, pkt);
+		}
 }
 
 void SessionHelper::mark_dropped(loss_depobj* loss_dep)
 {
-  if (loss_dep != 0) {
-    rcv_depobj *tmprcv_dep = loss_dep->rcv_dep;
-    loss_depobj *tmploss_dep = loss_dep->loss_dep;
+	if (loss_dep != 0) {
+		rcv_depobj *tmprcv_dep = loss_dep->rcv_dep;
+		loss_depobj *tmploss_dep = loss_dep->loss_dep;
 
-    while (tmprcv_dep != 0) {
-      tmprcv_dep->obj->dropped = 1;
-      tmprcv_dep = tmprcv_dep->next;
-    }
+		while (tmprcv_dep != 0) {
+			tmprcv_dep->obj->dropped = 1;
+			tmprcv_dep = tmprcv_dep->next;
+		}
 
-    while (tmploss_dep != 0) {
-      mark_dropped(tmploss_dep);
-      tmploss_dep = tmploss_dep->next;
-    }
-  }
+		while (tmploss_dep != 0) {
+			mark_dropped(tmploss_dep);
+			tmploss_dep = tmploss_dep->next;
+		}
+	}
 }
 
 void SessionHelper::clear_dropped()
 {
 	dstobj *tmpdst = dstobj_;
 	while (tmpdst != 0) {
-	        tmpdst->dropped = 0;
+		tmpdst->dropped = 0;
 		tmpdst = tmpdst->next;
 	}
 }
@@ -188,37 +189,37 @@ void SessionHelper::clear_dropped()
 dstobj* SessionHelper::find_dstobj(NsObject* obj) {
 	dstobj *tmpdst = dstobj_;
 	while (tmpdst != 0) {
-	  if (tmpdst->obj == obj) return (tmpdst);
-	  tmpdst = tmpdst->next;
+		if (tmpdst->obj == obj) return (tmpdst);
+		tmpdst = tmpdst->next;
 	}
 	return 0;
 }
 
 loss_depobj* SessionHelper::find_loss_depobj(ErrorModel* err) {
 	struct stackobj {
-	  loss_depobj *loss_obj;
-	  stackobj *next;
+		loss_depobj *loss_obj;
+		stackobj *next;
 	};
 
 	if (!loss_dependency_) return 0;
 
-        stackobj *top = new stackobj;
+	stackobj *top = new stackobj;
 	top->loss_obj = loss_dependency_;
 	top->next = 0;
 
 	while (top != 0) {
-	  if (top->loss_obj->obj == err) return (top->loss_obj);
-	  loss_depobj *tmploss = top->loss_obj->loss_dep;
-	  stackobj *befreed = top;
-	  top = top->next;
-	  free(befreed);
-	  while (tmploss != 0) {
-	    stackobj *new_element = new stackobj;
-	    new_element->loss_obj = tmploss;
-	    new_element->next = top;
-	    top = new_element;
-	    tmploss = tmploss->next;
-	  }
+		if (top->loss_obj->obj == err) return (top->loss_obj);
+		loss_depobj *tmploss = top->loss_obj->loss_dep;
+		stackobj *befreed = top;
+		top = top->next;
+		free(befreed);
+		while (tmploss != 0) {
+			stackobj *new_element = new stackobj;
+			new_element->loss_obj = tmploss;
+			new_element->next = top;
+			top = new_element;
+			tmploss = tmploss->next;
+		}
 	}
 	return 0;
 }
@@ -226,8 +227,8 @@ loss_depobj* SessionHelper::find_loss_depobj(ErrorModel* err) {
 void SessionHelper::show_dstobj() {
 	dstobj *tmpdst = dstobj_;
 	while (tmpdst != 0) {
-	  printf("bw:%.2f, delay:%.2f, ttl:%d, dropped:%d, addr:%d, obj:%s\n", tmpdst->bw, tmpdst->delay, tmpdst->ttl, tmpdst->dropped, tmpdst->addr, tmpdst->obj->name());
-	  tmpdst = tmpdst->next;
+		printf("bw:%.2f, delay:%.2f, ttl:%d, dropped:%d, addr:%d, obj:%s\n", tmpdst->bw, tmpdst->delay, tmpdst->ttl, tmpdst->dropped, tmpdst->addr, tmpdst->obj->name());
+		tmpdst = tmpdst->next;
 	}
 }
 
@@ -236,14 +237,14 @@ void SessionHelper::delete_dstobj(NsObject *obj) {
 	dstobj *tmpprev = 0;
 
 	while (tmpdst != 0) {
-	  if (tmpdst->obj == obj) {
-	    if (tmpprev == 0) dstobj_ = tmpdst->next;
-	    else tmpprev->next = tmpdst->next;
-	    free(tmpdst);
-	    return;
-	  }
-	  tmpprev = tmpdst;
-	  tmpdst = tmpdst->next;
+		if (tmpdst->obj == obj) {
+			if (tmpprev == 0) dstobj_ = tmpdst->next;
+			else tmpprev->next = tmpdst->next;
+			free(tmpdst);
+			return;
+		}
+		tmpprev = tmpdst;
+		tmpdst = tmpdst->next;
 	}
 }
 
@@ -253,19 +254,19 @@ void SessionHelper::show_loss_depobj(loss_depobj *loss_obj) {
 	rcv_depobj *tmprcv = loss_obj->rcv_dep;
 
 	while (tmprcv != 0) {
-	  printf("%d ", tmprcv->obj->addr);
-	  tmprcv = tmprcv->next;
+		printf("%d ", tmprcv->obj->addr);
+		tmprcv = tmprcv->next;
 	}
 	while (tmploss != 0) {
-	  printf("(%s: ", tmploss->obj->name());
-	  show_loss_depobj(tmploss);
-	  tmploss = tmploss->next;
+		printf("(%s: ", tmploss->obj->name());
+		show_loss_depobj(tmploss);
+		tmploss = tmploss->next;
 	}
 
 	if (loss_obj == loss_dependency_) {
-	  printf("\n");
+		printf("\n");
 	} else {
-	  printf(")");
+		printf(")");
 	}
 }
 
@@ -273,7 +274,7 @@ void SessionHelper::show_loss_depobj(loss_depobj *loss_obj) {
 int SessionHelper::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-        if (argc == 2) {
+	if (argc == 2) {
 		if (strcmp(argv[1], "list-mbr") == 0) {
 			dstobj *tmp = dstobj_;
 			while (tmp != 0) {
@@ -284,17 +285,17 @@ int SessionHelper::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "show-loss-depobj") == 0) {
-                        show_loss_depobj(loss_dependency_);
+			show_loss_depobj(loss_dependency_);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "show-dstobj") == 0) {
-                        show_dstobj();
+			show_dstobj();
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "set-node") == 0) {
-		        int src = atoi(argv[2]);
-                        src_ = src;
+			int src = atoi(argv[2]);
+			src_ = src;
 			//printf("set node %d\n", src_);
 			return (TCL_OK);
 		}
@@ -312,16 +313,16 @@ int SessionHelper::command(int argc, const char*const* argv)
 			loss_depobj *tmploss = find_loss_depobj(tmperr);
 			//printf ("%d, loss_dependency_ %d\n", tmploss, loss_dependency_);
 			if (!tmploss) {
-			  tmploss = new loss_depobj;
-			  tmploss->obj = tmperr;
-			  tmploss->next = 0;
-			  tmploss->rcv_dep = 0;
-			  tmploss->loss_dep = 0;
-			  tcl.resultf("%d", tmploss);
+				tmploss = new loss_depobj;
+				tmploss->obj = tmperr;
+				tmploss->next = 0;
+				tmploss->rcv_dep = 0;
+				tmploss->loss_dep = 0;
+				tcl.resultf("%d", tmploss);
 			} else {
-			  tcl.result("0");
+				tcl.result("0");
 			}
-		        rcv_depobj *tmprcv = new rcv_depobj;
+			rcv_depobj *tmprcv = new rcv_depobj;
 			tmprcv->obj = find_dstobj(tmpobj);
 			tmprcv->next = tmploss->rcv_dep;
 			tmploss->rcv_dep = tmprcv;
@@ -332,14 +333,14 @@ int SessionHelper::command(int argc, const char*const* argv)
 			loss_depobj *tmplossparent = find_loss_depobj(tmperrparent);
 			loss_depobj *tmplosschild = (loss_depobj*)(atoi(argv[3]));
 			if (!tmplossparent) {
-			  tmplossparent = new loss_depobj;
-			  tmplossparent->obj = tmperrparent;
-			  tmplossparent->next = 0;
-			  tmplossparent->loss_dep = 0;
-			  tmplossparent->rcv_dep = 0;
-			  tcl.resultf("%d", tmplossparent);
+				tmplossparent = new loss_depobj;
+				tmplossparent->obj = tmperrparent;
+				tmplossparent->next = 0;
+				tmplossparent->loss_dep = 0;
+				tmplossparent->rcv_dep = 0;
+				tcl.resultf("%d", tmplossparent);
 			} else {
-			  tcl.result("0");
+				tcl.result("0");
 			}
 			tmplosschild->next = tmplossparent->loss_dep;
 			tmplossparent->loss_dep = tmplosschild;

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -66,33 +67,31 @@ void SALink::recv(Packet *p, Handler *h)
 	
 	switch(ch->ptype()) {
 	case PT_REQUEST:
-	        {
-			decide=adc_->admit_flow(cl,rv->rate(),rv->bucket());
-			if (tchan_)
-			        if (last_ != decide) {
-				        int n;
-				        char wrk[50];
-					double t = Scheduler::instance().clock();
-					sprintf(wrk, "l -t %g -s %d -d %d -S COLOR -c %s", 
-						t, src_, dst_, decide ? "MediumBlue" : "red" );
-					n = strlen(wrk);
-					wrk[n] = '\n';
-					wrk[n+1] = 0;
-					(void)Tcl_Write(tchan_, wrk, n+1);
-					last_ = decide;
-				}
-			//put decide in the packet
-			rv->decision() &= decide;
-			if (decide) {
-				j=get_nxt();
-				pending_[j].flowid=iph->flowid();
-				//pending_[j].status=decide;
-				numfl_++;
+		decide=adc_->admit_flow(cl,rv->rate(),rv->bucket());
+		if (tchan_)
+			if (last_ != decide) {
+				int n;
+				char wrk[50];
+				double t = Scheduler::instance().clock();
+				sprintf(wrk, "l -t %g -s %d -d %d -S COLOR -c %s", 
+					t, src_, dst_, decide ? "MediumBlue" : "red" );
+				n = strlen(wrk);
+				wrk[n] = '\n';
+				wrk[n+1] = 0;
+				(void)Tcl_Write(tchan_, wrk, n+1);
+				last_ = decide;
 			}
-			break;
+		//put decide in the packet
+		rv->decision() &= decide;
+		if (decide) {
+			j=get_nxt();
+			pending_[j].flowid=iph->flowid();
+			//pending_[j].status=decide;
+			numfl_++;
 		}
+		break;
 	case PT_ACCEPT:
-        case PT_REJECT:
+	case PT_REJECT:
 		break;
 	case PT_CONFIRM:
 		{
@@ -150,8 +149,8 @@ int SALink::command(int argc, const char*const* argv)
 	}
 	if (argc == 2) {
 		if (strcmp(argv[1], "add-trace") == 0) {
-		        if (tchan_) {
-			        sprintf(wrk, "a -t * -n %s:%d-%d -s %d",
+			if (tchan_) {
+				sprintf(wrk, "a -t * -n %s:%d-%d -s %d",
 					adc_->type(), src_, dst_, src_);
 				int n = strlen(wrk);
 				wrk[n] = '\n';
@@ -190,22 +189,22 @@ int SALink::get_nxt()
 void SALink::trace(TracedVar* v)
 {
 
-        char wrk[500];
+	char wrk[500];
 	int *p, newval;
 
 	if (strcmp(v->name(), "\"Admitted Flows\"") == 0) {
-	        p = &onumfl_;
+		p = &onumfl_;
 	}
 	else {
-	        fprintf(stderr, "SALink: unknown trace var %s\n", v->name());
+		fprintf(stderr, "SALink: unknown trace var %s\n", v->name());
 		return;
 	}
 
 	newval = int(*((TracedInt*)v));
 
-        if (tchan_) {
-	        int n;
-	        double t = Scheduler::instance().clock();
+	if (tchan_) {
+		int n;
+		double t = Scheduler::instance().clock();
 		/* f -t 0.0 -s 1 -a SA -T v -n Num -v 0 -o 0 */
 		sprintf(wrk, "f -t %g -s %d -a %s:%d-%d -T v -n %s -v %d -o %d",
 			t, src_, adc_->type(), src_, dst_, v->name(), newval, *p);
@@ -219,5 +218,4 @@ void SALink::trace(TracedVar* v)
 	*p = newval;
 
 	return;
-	       
 }

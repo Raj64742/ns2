@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.h,v 1.4 1998/05/11 18:48:41 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.h,v 1.5 1998/06/27 01:25:00 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_tcp_fack_h
@@ -59,8 +60,8 @@ class FackTcpAgent : public virtual TcpAgent {
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	virtual void recv_newack_helper(Packet* pkt);
  protected:
-	u_char timeout_;        /* flag: sent pkt from timeout; */
-	u_char fastrecov_;      /* flag: in fast recovery */
+	u_char timeout_;	/* flag: sent pkt from timeout; */
+	u_char fastrecov_;	/* flag: in fast recovery */
 	double wintrim_;
 	double wintrimmult_;
 	int rampdown_;

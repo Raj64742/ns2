@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1991-1994 Regents of the University of California.
  * All rights reserved.
@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.15 1998/06/26 02:20:30 gnguyen Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.16 1998/06/27 01:24:35 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -47,20 +47,20 @@ static const char rcsid[] =
 #include <tclcl.h>
 #include "config.h"
 
-#define INFINITY       0x3fff
+#define INFINITY	0x3fff
 #define INDEX(i, j, N) ((N) * (i) + (j))
 
 /*** definitions for hierarchical routing support 
 right now implemented for 3 levels of hierarchy --> should
 be able to extend it for n levels of hierarchy in the future ***/
 
-#define HIER_LEVEL     3
-#define N_N_INDEX(i, j, a, b, c)       (((i) * (a+b+c)) + (j))
-#define N_C_INDEX(i, j, a, b, c)       (((i) * (a+b+c)) + (a+j))
-#define N_D_INDEX(i, j, a, b, c)       (((i) * (a+b+c)) + (a+(b-1)+j))
-#define C_C_INDEX(i, j, a, b, c)       (((a+i) * (a+b+c)) + (a+j))
-#define C_D_INDEX(i, j, a, b, c)       (((a+i) * (a+b+c)) + (a+(b-1)+j))
-#define D_D_INDEX(i, j, a, b, c)       (((a+(b-1)+i) * (a+b+c)) + (a+(b-1)+j))
+#define HIER_LEVEL	3
+#define N_N_INDEX(i, j, a, b, c)	(((i) * (a+b+c)) + (j))
+#define N_C_INDEX(i, j, a, b, c)	(((i) * (a+b+c)) + (a+j))
+#define N_D_INDEX(i, j, a, b, c)	(((i) * (a+b+c)) + (a+(b-1)+j))
+#define C_C_INDEX(i, j, a, b, c)	(((a+i) * (a+b+c)) + (a+j))
+#define C_D_INDEX(i, j, a, b, c)	(((a+i) * (a+b+c)) + (a+(b-1)+j))
+#define D_D_INDEX(i, j, a, b, c)	(((a+(b-1)+i) * (a+b+c)) + (a+(b-1)+j))
 
 
 
@@ -81,7 +81,7 @@ protected:
 		maxnode_;
 
 	/**** Hierarchical routing support ****/
-  
+
 	void hier_check(int index);
 	void hier_alloc(int size);
 	void hier_init(void);
@@ -97,15 +97,15 @@ protected:
 	void hier_print_hadj();
 	void hier_print_route();
 	
-	int   **hadj_;
-	int   **hroute_;
-	int   *hsize_;
-	int   *cluster_size_;        /* no. of nodes/cluster/domain */
-	char  ***hconnect_;         /* holds the connectivity info --> address of target */
-	int   level_;
-	int   *C_;                    /* no. of clusters/domain */
-	int   D_,                    /* total no. of domains */
-		Cmax_;                 /* max value of C_ for initialization purpose */
+	int	**hadj_;
+	int	**hroute_;
+	int	*hsize_;
+	int	*cluster_size_;		/* no. of nodes/cluster/domain */
+	char	***hconnect_;		/* holds the connectivity info --> address of target */
+	int	level_;
+	int	*C_;                    /* no. of clusters/domain */
+	int	D_,			/* total no. of domains */
+		Cmax_;			/* max value of C_ for initialization purpose */
 };
 
 
@@ -230,10 +230,8 @@ int RouteLogic::command(int argc, const char*const* argv)
 				tcl.result("Required Hier_data not sent");
 				return (TCL_ERROR);
 			}
-			int i,
-				n;
-			int  src_addr[SMALL_LEN],
-				dst_addr[SMALL_LEN];
+			int i, n;
+			int src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
 			/* initializing src and dst addr */
 			// for (i=0; i < SMALL_LEN; i++){
 // 				src_addr[i] = 0;
@@ -252,8 +250,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 
 		if (strcmp(argv[1], "hier-reset") == 0) {
 			int i, n;
-			int  src_addr[SMALL_LEN],
-				dst_addr[SMALL_LEN];
+			int  src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
 			/* initializing src and dst addr */
 			// for (i=0; i < SMALL_LEN; i++){
 // 				src_addr[i] = 0;
@@ -272,8 +269,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 
 		if (strcmp(argv[1], "hier-lookup") == 0) {
 			int i;
-			int  src[SMALL_LEN],
-				dst[SMALL_LEN];
+			int src[SMALL_LEN], dst[SMALL_LEN];
 			/* initializing src and dst addr */
 			// for (i=0; i < SMALL_LEN; i++){
 // 				src_addr[i] = 0;
@@ -319,12 +315,12 @@ int RouteLogic::command(int argc, const char*const* argv)
 			    (src[0] != dst[0])){
 				next_hop = hroute_[index][N_D_INDEX(src[2], dst[0], size, C_[d], D_)];
 			}
-      
+
 			/* if node-cluster lookup */
 			else if ((dst[2] <= 0) || (src[1] != dst[1])) {
 				next_hop = hroute_[index][N_C_INDEX(src[2], dst[1], size, C_[d], D_)];
 			}
-      
+
 			/* if node-node lookup */
 			else {
 				next_hop = hroute_[index][N_N_INDEX(src[2], dst[2], size, C_[d], D_)];	
@@ -336,10 +332,10 @@ int RouteLogic::command(int argc, const char*const* argv)
 				strcpy(target, "-1");
 			}
 			
-			tcl.resultf("%s",target);	   
+			tcl.resultf("%s",target);
 			return (TCL_OK);
 		}
-    
+
 
 		if (strcmp(argv[1], "reset") == 0) {
 			int src = atoi(argv[2]) + 1;
@@ -368,7 +364,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 	}
 	return (TclObject::command(argc, argv));
 }
-    
+
 RouteLogic::RouteLogic()
 {
 	size_ = 0;
@@ -391,7 +387,7 @@ RouteLogic::~RouteLogic()
 {
 	delete[] adj_;
 	delete[] route_;
-    
+
 	for (int i = 0; i < (Cmax_ * D_); i++) {
 		for (int j = 0; j < (Cmax_ + D_) * (cluster_size_[i]+1); j++) {
 			if (hconnect_[i][j] != NULL)
@@ -399,7 +395,7 @@ RouteLogic::~RouteLogic()
 		}
 		delete [] hconnect_[i];
 	}
-    
+
 	for (int n =0; n < (Cmax_ * D_); n++) {
 		if (hadj_[n] != NULL)
 			delete [] hadj_[n];
@@ -432,7 +428,7 @@ void RouteLogic::check(int n)
 {
 	if (n < size_)
 		return;
-    
+
 	int* old = adj_;
 	int osize = size_;
 	int m = osize;
@@ -474,7 +470,7 @@ void RouteLogic::compute_routes()
 	delete[] route_;
 	route_ = new int[n * n];
 	memset((char *)route_, 0, n * n * sizeof(route_[0]));
-    
+
 	/* do for all the sources */
 	int k;
 	for (k = 1; k < n; ++k) {
@@ -523,7 +519,7 @@ void RouteLogic::compute_routes()
 	 */
 	for (k = 1; k < n; ++k)
 		ROUTE(k, k) = k;
-    
+
 	delete[] hopcnt;
 	delete[] parent;
 }
@@ -536,7 +532,6 @@ void RouteLogic::compute_routes()
 
 void RouteLogic::hier_alloc(int i)
 {
-    
 	hsize_[i] = cluster_size_[i]+ Cmax_+ D_ ;
 	hsize_[i] *= hsize_[i];
 	hadj_[i] = new int[hsize_[i]];
@@ -560,7 +555,7 @@ void RouteLogic::hier_check(int i)
 void RouteLogic::hier_init(void) 
 {
 	int i;
-    
+
 	for (i = 1; i < D_; i++) {
 		Cmax_ = C_[i] > Cmax_ ? C_[i]: Cmax_;
 	}
@@ -572,7 +567,7 @@ void RouteLogic::hier_init(void)
 	hadj_ = new (int *)[arr_size];
 	hroute_ = new (int *)[arr_size];
 	hconnect_ = new (char **)[arr_size];
-}   
+}
 
 
 void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_addr)
@@ -590,12 +585,9 @@ void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_add
 
 void RouteLogic::ns_strtok(char *addr, int *addrstr)
 {
-	int     i;
-	char    tmpstr[SMALL_LEN];
-	char    *next,
-		*index;
-	
-	    	
+	int	i;
+	char	tmpstr[SMALL_LEN];
+	char	*next, *index;
 	
 	i = 0;
 	strcpy(tmpstr, addr);
@@ -645,7 +637,7 @@ void RouteLogic::hier_reset(int *src, int *dst)
 			n = cluster_size_[i];
 			hadj_[i][N_N_INDEX(src[2], dst[2], n, C_[d], D_)] = INFINITY;
 		}
-  
+
 		else {
 			for (int y=1; y < C_[d]; y++) { 
 				i = INDEX(src[0], y, Cmax_);
@@ -656,7 +648,7 @@ void RouteLogic::hier_reset(int *src, int *dst)
 			}
 		}
 	else {
-		for (int x=1; x < D_; x++)  
+		for (int x=1; x < D_; x++)
 			for (int y=1; y < C_[x]; y++) {
 				i = INDEX(x, y, Cmax_);
 				n = cluster_size_[i];
@@ -672,15 +664,13 @@ void RouteLogic::hier_reset(int *src, int *dst)
 
 void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 {
-  
 	int X1 = src_addr[0];
 	int Y1 = src_addr[1];
 	int Z1 = src_addr[2];
 	int X2 = dst_addr[0];
 	int Y2 = dst_addr[1];
 	int Z2 = dst_addr[2];
-	int n,
-		i;
+	int n, i;
 
 	if ( X1 == X2)
 		if (Y1 == Y2){ 
@@ -692,7 +682,7 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 			hier_check(i);
 			hadj_[i][N_N_INDEX(Z1, Z2, n, C_[X1], D_)] = cost;
 		}
-  
+
 		else { 
 			/* 
 			 * For the same domain but diff clusters 
@@ -711,7 +701,7 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 				}
 			}
 		}
-    
+
 	else { 
 		/* 
 		 * For different domains 
@@ -738,7 +728,6 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 		hconnect_[i][I] = new char[SMALL_LEN];
 		sprintf(hconnect_[i][I],"%d.%d.%d",X2-1,Y2-1,Z2-1);
 	}
-  
 }
 
 
@@ -888,5 +877,3 @@ void RouteLogic::hier_print_route()
 			printf("\n\n");
 		}
 }
-
-	    

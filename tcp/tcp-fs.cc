@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * tcp-fs: TCP with "fast start", a procedure for avoiding the penalty of
  * slow start when a connection resumes after a pause. The connection tries
@@ -89,7 +90,7 @@ TcpFsAgent::output_helper(Packet *pkt)
 	}
 	/* initially set fs_ flag to 0 */
 	((hdr_flags*)pkt->access(off_flags_))->fs_ = 0;
-        /* check if packet belongs to the fast start phase. */
+	/* check if packet belongs to the fast start phase. */
 	if (tcph->seqno() >= fs_startseq_ && tcph->seqno() < fs_endseq_ && fs_mode_) {
 		/* if not a retransmission, mark the packet */
 		if (tcph->seqno() > maxseq_) {
@@ -249,8 +250,8 @@ void
 TcpFsAgent::timeout_nonrtx(int tno) 
 {
 	if (tno == TCP_TIMER_RESET) {
-		fs_mode_ = 0;  /* out of fast start mode */
-		dupacks_ = 0;  /* just to be safe */
+		fs_mode_ = 0;	/* out of fast start mode */
+		dupacks_ = 0;	/* just to be safe */
 		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
 			/*
 			 * TCP option:
