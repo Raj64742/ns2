@@ -59,6 +59,7 @@ net.h
 net-interface.cc
 net-ip.cc
 ns.1
+ns-2.1
 ns_tclsh.cc
 object.cc
 object.h
