@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.76 2002/10/08 22:15:09 buchheim Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.77 2003/03/26 23:16:14 sfloyd Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -190,6 +190,7 @@ Trace::get_seqno(Packet* p)
 	hdr_rtp *rh = hdr_rtp::access(p);
         hdr_rap *raph = hdr_rap::access(p);
 	hdr_tfrc *tfrch = hdr_tfrc::access(p);
+	hdr_tfrc_ack *tfrch_ack = hdr_tfrc_ack::access(p);
 	packet_t t = th->ptype();
 	int seqno;
 
@@ -204,6 +205,8 @@ Trace::get_seqno(Packet* p)
 		seqno = tcph->seqno();
 	else if (t == PT_TFRC)
 		seqno = tfrch->seqno;
+	else if (t == PT_TFRC_ACK)
+                seqno = tfrch_ack->seqno;
 	else
 		seqno = -1;
  	return seqno;
