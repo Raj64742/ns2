@@ -15,6 +15,12 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.13 1997/07/22 20:55:41 kfall Exp $ (PSC)";
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -56,7 +62,7 @@ class Sack1TcpAgent : public TcpAgent {
 static class Sack1TcpClass : public TclClass {
 public:
 	Sack1TcpClass() : TclClass("Agent/TCP/Sack1") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Sack1TcpAgent());
 	}
 } class_sack;
@@ -66,16 +72,13 @@ int Sack1TcpAgent::window()
         return(int(cwnd() < wnd_ ? cwnd() : wnd_));
 }
 
-Sack1TcpAgent::Sack1TcpAgent() : pipe_(-1), fastrecov_(FALSE)
+Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1)
 {
 }
 
 void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-	int xmit_seqno;
-	int dontSend = 0;
 
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
@@ -187,7 +190,7 @@ void Sack1TcpAgent::timeout(int tno)
 
 void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 {
-	register int pktno, found, nextpktno, npacket = 0;
+	register int found, npacket = 0;
 	int win = window();
 	int xmit_seqno;
 
