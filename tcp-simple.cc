@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.4 1997/04/18 00:55:26 bajaj Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.5 1997/06/18 04:59:15 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -61,7 +61,7 @@ protected:
 
 	/*XXX start/stop */
 	void output(int seqno);
-	virtual void send();
+	virtual void send_much();
 
 	void opencwnd();
 	void closecwnd();
@@ -123,7 +123,7 @@ void TcpSimpleAgent::output(int seqno)
 	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
 	tcph->ts() = now;
-	Connector::send(p, 0);
+	send(p, 0);
 	if (seqno > maxseq_) {
 		maxseq_ = seqno;
 	}
@@ -133,13 +133,13 @@ int TcpSimpleAgent::command(int argc, const char*const* argv)
 {
 	if (argc == 2) {
 		if (strcmp(argv[1], "send") == 0) {
-			send();
+			send_much();
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
 			curseq_ += atoi(argv[2]);
-			send();
+			send_much();
 			return (TCL_OK);
 		}
 	}
@@ -155,7 +155,7 @@ int TcpSimpleAgent::window()
  * Try to send as much data as the window will allow.  The link layer will 
  * do the buffering; we ask the application layer for the size of the packets.
  */
-void TcpSimpleAgent::send()
+void TcpSimpleAgent::send_much()
 {
 	int win = window();
 	while (t_seqno_ <= ack_ + win && t_seqno_ < curseq_)
@@ -192,5 +192,5 @@ void TcpSimpleAgent::recv(Packet *pkt, Handler*)
 	/*
 	 * Try to send more data.
 	 */
-	send();
+	send_much();
 }

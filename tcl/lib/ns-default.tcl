@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.28 1997/06/14 01:51:45 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.29 1997/06/18 04:59:19 heideman Exp $
 
 
 #
@@ -84,6 +84,10 @@ Agent/TCP set backoff_ 0
 # proposed by Janey Hoe (other than fixing reno's
 # unnecessary retransmit timeouts)
 Agent/TCP/Newreno set newreno_changes_ 0
+
+Agent/TCP/Vegas set v_alpha_ 1
+Agent/TCP/Vegas set v_beta_ 3
+Agent/TCP/Vegas set v_gamma_ 1
 
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0

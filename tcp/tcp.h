@@ -147,6 +147,7 @@ struct hdr_tcpasym {
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
+
 	virtual void recv(Packet*, Handler*);
 	int command(int argc, const char*const* argv);
 
@@ -233,8 +234,8 @@ protected:
 	double ts_peer_;        /* the most recent timestamp the peer sent */
 
 	/*XXX start/stop */
-	void output(int seqno, int reason = 0);
-	virtual void send(int force, int reason, int maxburst = 0);
+	virtual void output(int seqno, int reason = 0);
+	virtual void send_much(int force, int reason, int maxburst = 0);
 	void set_rtx_timer();
 	void reset_rtx_timer(int mild);
 	void newtimer(Packet* pkt);
@@ -247,9 +248,9 @@ protected:
 	void finish(); /* called when the connection is terminated */
 
 	/* Helper functions. Currently used by TCP asym */
-	virtual void output_helper(Packet* p) { return; }
+	virtual void output_helper(Packet* pkt) { return; }
 	virtual void send_helper(int maxburst) { return; }
-	virtual void recv_helper(Packet* p) { return;}
+	virtual void recv_helper(Packet* pkt) { return; }
 	virtual void recv_newack_helper(Packet* pkt);
 
 	double overhead_;
@@ -336,15 +337,6 @@ class RenoTcpAgent : public virtual TcpAgent {
 	u_int dupwnd_;
 };
 
-static class RenoTcpClass : public TclClass {
-public:
-	RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new RenoTcpAgent());
-	}
-} class_reno;
-
-
 /* TCP New Reno */
 class NewRenoTcpAgent : public virtual TcpAgent {
  public:
@@ -363,4 +355,59 @@ class NewRenoTcpAgent : public virtual TcpAgent {
 	double ack2_, ack3_, basertt_; /* used if newreno_changes_ == 1 */
 };
 
+/* TCP vegas */
+class VegasTcpAgent : public virtual TcpAgent {
+ public:
+	VegasTcpAgent();
+	virtual int window();
+	virtual void recv(Packet *pkt, Handler *);
+	virtual void timeout(int tno);
+protected:
+	double vegastime() {
+		return(Scheduler::instance().clock() - firstsent_);
+	}
+	virtual void output(int seqno, int reason = 0);
+	int vegas_expire(Packet*); 
+	void reset();
+
+	double t_cwnd_changed_; // last time cwnd changed
+	double firstrecv_;	// time recv the 1st ack
+
+	int    v_alpha_;    	// vegas thruput thresholds in pkts
+	int    v_beta_;  	    	
+
+	int    v_gamma_;    	// threshold to change from slow-start to
+				// congestion avoidance, in pkts
+
+	int    v_slowstart_;    // # of pkts to send after slow-start, deflt(2)
+	int    v_worried_;      // # of pkts to chk after dup ack (1 or 2)
+
+	double v_timeout_;      // based on fine-grained timer
+	double v_rtt_;		
+	double v_sa_;		
+	double v_sd_;	
+
+	int    v_cntRTT_;       // # of rtt measured within one rtt
+	double v_sumRTT_;       // sum of rtt measured within one rtt
+
+	double v_begtime_;	// tagged pkt sent
+	int    v_begseq_;	// tagged pkt seqno
+
+	double* v_sendtime_;	// each unacked pkt's sendtime is recorded.
+	int*   v_transmits_;	// # of retx for an unacked pkt
+
+	int    v_maxwnd_;	// maxwnd size for v_sendtime_[]
+	double v_newcwnd_;	// record un-inflated cwnd
+
+	double v_baseRTT_;	// min of all rtt
+
+	double v_incr_;		// amount cwnd is increased in the next rtt
+	int    v_inc_flag_;	// if cwnd is allowed to incr for this rtt
+};
+
+// Local Variables:
+// mode:c++
+// End:
+
 #endif
+

@@ -24,13 +24,11 @@
  *					North Carolina St. Univ. and
  *					Networking Software Div, IBM
  *					tkuo@eos.ncsu.edu
- *
- * ns-2 port by John Heidemann <johnh@isi.edu>.
  */
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.1 1997/06/17 00:17:55 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.2 1997/06/18 04:59:16 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -43,52 +41,6 @@ static char rcsid[] =
 
 #define MIN(x, y) ((x)<(y) ? (x) : (y))
 
-class VegasTcpAgent : public TcpAgent {
- public:
-	VegasTcpAgent();
-	virtual void recv(Packet *pkt);
-	virtual void timeout(int tno);
-	inline double vegastime() {
-		return(Scheduler::instance().clock() - firstsent_);
-	}
-	void output(int seqno, int reason = 0);
-	int vegas_expire(Packet*); 
-	void reset();
- protected:
-	double t_cwnd_changed_; // last time cwnd changed
-	double firstrecv_;	// time recv the 1st ack
-
-	int    v_alpha_;    	// vegas thruput thresholds in pkts
-	int    v_beta_;  	    	
-
-	int    v_gamma_;    	// threshold to change from slow-start to
-				// congestion avoidance, in pkts
-
-	int    v_slowstart_;    // # of pkts to send after slow-start, deflt(2)
-	int    v_worried_;      // # of pkts to chk after dup ack (1 or 2)
-
-	double v_timeout_;      // based on fine-grained timer
-	double v_rtt_;		
-	double v_sa_;		
-	double v_sd_;	
-
-	int    v_cntRTT_;       // # of rtt measured within one rtt
-	double v_sumRTT_;       // sum of rtt measured within one rtt
-
-	double v_begtime_;	// tagged pkt sent
-	int    v_begseq_;	// tagged pkt seqno
-
-	double* v_sendtime_;	// each unacked pkt's sendtime is recorded.
-	int*   v_transmits_;	// # of retx for an unacked pkt
-
-	int    v_maxwnd_;	// maxwnd size for v_sendtime_[]
-	double v_newcwnd_;	// record un-inflated cwnd
-
-	double v_baseRTT_;	// min of all rtt
-
-	double v_incr_;		// amount cwnd is increased in the next rtt
-	int    v_inc_flag_;	// if cwnd is allowed to incr for this rtt
-};
 
 static class VegasTcpClass : public TclClass {
 public:
@@ -98,12 +50,13 @@ public:
 	}
 } class_vegas;
 
+
 VegasTcpAgent::VegasTcpAgent() : TcpAgent()
 {
 	/* init vegas var */
-	bind("v-alpha", &v_alpha_);
-	bind("v-beta", &v_beta_);
-	bind("v-gamma", &v_gamma_);
+	bind("v_alpha_", &v_alpha_);
+	bind("v_beta_", &v_beta_);
+	bind("v_gamma_", &v_gamma_);
 }
 
 void
@@ -124,8 +77,18 @@ VegasTcpAgent::reset()
 	v_inc_flag_ = 1;
 }
 
+/*
+ * xxx: johnh: it's not clear that this is the right def
+ * but it's what was done in ns-1
+ */
+int
+VegasTcpAgent::window()
+{
+	return (int(cwnd() < wnd_ ? cwnd() : wnd_));
+}
+
 void
-VegasTcpAgent::recv(Packet *pkt)
+VegasTcpAgent::recv(Packet *pkt, Handler *)
 {
 	double currentTime = vegastime();
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
@@ -368,7 +331,7 @@ VegasTcpAgent::recv(Packet *pkt)
 	 * Try to send more data
 	 */
 	if (dupacks() == 0 || dupacks() > NUMDUPACKS - 1)
-		send(0, 0, maxburst_);
+		send_much(0, 0, maxburst_);
 }
 
 void
@@ -383,11 +346,11 @@ VegasTcpAgent::timeout(int tno)
 		cwnd_ = double(v_slowstart_);
 		v_newcwnd_ = 0;
 		t_cwnd_changed_ = vegastime();
-		send(0, TCP_REASON_TIMEOUT);
+		send_much(0, TCP_REASON_TIMEOUT);
 	} else {
 		/* delayed-sent timer, with random overhead to avoid
 		 * phase effect. */
-		send(1, TCP_REASON_TIMEOUT);
+		send_much(1, TCP_REASON_TIMEOUT);
 	};
 }
 
@@ -419,7 +382,7 @@ VegasTcpAgent::output(int seqno, int reason)
 	v_sendtime_[index] = vegastime();  
 	++v_transmits_[index];
 
-	Connector::send(p, 0);
+	send(p, 0);
 
 	if (seqno > maxseq_) {
 		maxseq_ = seqno;
@@ -448,3 +411,4 @@ VegasTcpAgent::vegas_expire(Packet* pkt)
 	}
 	return(-1);
 }
+

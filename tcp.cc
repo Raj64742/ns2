@@ -289,7 +289,7 @@ void TcpAgent::output(int seqno, int reason)
 	/* call helper function to fill in additional fields */
 	output_helper(p);
 
-	Connector::send(p, 0);
+	send(p, 0);
 	if (seqno > maxseq()) {
 		maxseq() = seqno;
 		if (!rtt_active_) {
@@ -308,7 +308,7 @@ int TcpAgent::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
 			curseq_ = atoi(argv[2]);
-			send(0, 0);
+			send_much(0, 0);
 			return (TCL_OK);
 		}
 		/*
@@ -354,7 +354,7 @@ int TcpAgent::window()
  * Try to send as much data as the window will allow.  The link layer will 
  * do the buffering; we ask the application layer for the size of the packets.
  */
-void TcpAgent::send(int force, int reason, int maxburst)
+void TcpAgent::send_much(int force, int reason, int maxburst)
 {
 	int win = window();
 	int npackets = 0;
@@ -672,7 +672,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	/*
 	 * Try to send more data.
 	 */
-	send(0, 0, maxburst_);
+	send_much(0, 0, maxburst_);
 }
 
 void TcpAgent::timeout(int tno)
@@ -690,13 +690,13 @@ void TcpAgent::timeout(int tno)
 		recover_cause_ = 2;
 		closecwnd(0);
 		reset_rtx_timer(0);
-		send(0, TCP_REASON_TIMEOUT, maxburst_);
+		send_much(0, TCP_REASON_TIMEOUT, maxburst_);
 	} else {
 		/*
 		 * delayed-send timer, with random overhead
 		 * to avoid phase effects
 		 */
-		send(1, TCP_REASON_TIMEOUT, maxburst_);
+		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
 }
 

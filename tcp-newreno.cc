@@ -168,9 +168,9 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
                  * Maxburst is really only needed for the first
                  *   window of data on exiting Fast Recovery.
                  */
-		send(0, 0, maxburst_);
+		send_much(0, 0, maxburst_);
 	else if (dupacks() > NUMDUPACKS - 1 && newreno_changes_ == 0)
-		send(0, 0, 2);
+		send_much(0, 0, 2);
 }
 
 void NewRenoTcpAgent::timeout(int tno)
@@ -181,6 +181,6 @@ void NewRenoTcpAgent::timeout(int tno)
 		if (bug_fix_) recover_ = maxseq();
 		TcpAgent::timeout(tno);
 	} else {
-		send(1, TCP_REASON_TIMEOUT, maxburst_);
+		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
 }

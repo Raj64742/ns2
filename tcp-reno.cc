@@ -23,6 +23,15 @@
 #include "tcp.h"
 #include "flags.h"
 
+
+static class RenoTcpClass : public TclClass {
+public:
+	RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new RenoTcpAgent());
+	}
+} class_reno;
+
 /*
  * NOTE: To enable tracing of a certain subset of member variables of 
  * TcpAgent, all references (read or write) to them in C++ are made via
@@ -105,7 +114,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 	 */
 
 	if (dupacks() == 0 || dupacks() > NUMDUPACKS - 1)
-		send(0, 0, maxburst_);
+		send_much(0, 0, maxburst_);
 }
 
 void RenoTcpAgent::timeout(int tno)
@@ -116,6 +125,6 @@ void RenoTcpAgent::timeout(int tno)
 		if (bug_fix_) recover_ = maxseq();
 		TcpAgent::timeout(tno);
 	} else {
-		send(1, TCP_REASON_TIMEOUT, maxburst_);
+		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
 	}
 }

@@ -49,7 +49,7 @@ class FackTcpAgent : public TcpAgent {
 	void oldack (Packet* pkt);
 	int maxsack (Packet* pkt); 
 	void plot();
-	void send(int force, int reason, int maxburst);
+	virtual void send_much(int force, int reason, int maxburst = 0);
  protected:
 	u_char timeout_;        /* flag: sent pkt from timeout; */
 	u_char fastrecov_;      /* flag: in fast recovery */
@@ -189,7 +189,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			}
 		}
 		if (dupacks() == 0)
-			send(FALSE, 0, maxburst_);
+			send_much(FALSE, 0, maxburst_);
 	} else {
 		// we are in fast recovery
 		oldack(pkt);
@@ -227,7 +227,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 			wintrim_ = 0;
 			dupacks() = 0;
 		}
-		send(FALSE, 0, maxburst_);
+		send_much(FALSE, 0, maxburst_);
 	}
 
 	Packet::free(pkt);
@@ -255,14 +255,14 @@ void FackTcpAgent::timeout(int tno)
 		reset_rtx_timer(TCP_REASON_TIMEOUT);
 		fack_ = last_ack_;
 		t_seqno() = last_ack_ + 1;  
-		send(0, TCP_REASON_TIMEOUT);
+		send_much(0, TCP_REASON_TIMEOUT);
 	} else {
 		TcpAgent::timeout(tno);
 	}
 }
 
 
-void FackTcpAgent::send(int force, int reason, int maxburst)
+void FackTcpAgent::send_much(int force, int reason, int maxburst)
 {
     register int pktno, found, nextpktno, npacket = 0;
     int win = window();

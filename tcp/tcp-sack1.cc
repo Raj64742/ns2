@@ -45,7 +45,7 @@ class Sack1TcpAgent : public TcpAgent {
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
 	void plot();
-	void send(int force, int reason, int maxburst);
+	virtual void send_much(int force, int reason, int maxburst);
  protected:
 	u_char timeout_;        /* boolean: sent pkt from timeout? */
 	u_char fastrecov_;      /* boolean: doing fast recovery? */
@@ -130,7 +130,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
                         }
                 }
                 if (dupacks() == 0)
-                        send(FALSE, 0, 0);
+                        send_much(FALSE, 0, 0);
         } else {
                 /* we are in fast recovery */
                 --pipe_;
@@ -157,7 +157,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
                         if (dupacks() > 0)
                                 dupacks()++;
                 }
-                send(FALSE, 0, 0);
+                send_much(FALSE, 0, 0);
         }
 
 	Packet::free(pkt);
@@ -185,7 +185,7 @@ void Sack1TcpAgent::timeout(int tno)
 	TcpAgent::timeout(tno);
 }
 
-void Sack1TcpAgent::send(int force, int reason, int maxburst)
+void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 {
         register int pktno, found, nextpktno, npacket = 0;
         int win = window();
