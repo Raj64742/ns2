@@ -1849,6 +1849,13 @@ Tcp segments can be sent with the advance and advanaceby commands.
 When all data is sent, the done method will be invoked
 (which can be overridden in OTcl).
 .LP
+.IP "\fB$tcp advance n\fP"
+Send up to the nth packets.
+.IP "\fB$tcp advanceby n\fP"
+Send n more packets.
+.IP "\fB$tcp done\fP"
+Functional called when all packets (specified by advance/advanceby/maxpkts_)
+have been sent.  Can be overriden on a per-object basis.
 .HD
 Configuration Parameters \fP
 .RS

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.101 1998/05/21 02:41:59 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.102 1998/05/22 18:37:34 heideman Exp $
 
 #
 
@@ -150,9 +150,13 @@ Simulator instproc dumper obj {
 
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
-Simulator instproc node {} {
+Simulator instproc node args {
 	$self instvar Node_
-	set node [new Node]
+	if {[Simulator set EnableHierRt_]} {
+		set node [new HierNode $args]
+	} else {
+		set node [new Node]
+	}
 	set Node_([$node id]) $node
 	if [Simulator set EnableMcast_] {
 		$node enable-mcast $self
@@ -167,17 +171,19 @@ Simulator instproc node {} {
 Simulator instproc hier-node haddr {
 	### Simulator variable Node_ kept unchanged
 	$self instvar Node_
-	if [Simulator set EnableHierRt_] {
-		set hiernode [new HierNode $haddr]
-		set Node_([$hiernode id]) $hiernode
-		if [Simulator set EnableMcast_] {
-			$hiernode hier-enable-mcast $self
-		}
-		return $hiernode
-	} else {
+	if {![Simulator set EnableHierRt_]} {
 		error "Hierarchical Routing not enabled"
 	}
+	set hiernode [new HierNode $haddr]
+	set Node_([$hiernode id]) $hiernode
+	if [Simulator set EnableMcast_] {
+		$hiernode hier-enable-mcast $self
+	}
+	return $hiernode
 }
+# Simulator instproc hier-node haddr 
+# 	error "now create hier-nodes with just [$ns_ node $haddr]"
+# 
 
 Simulator instproc now {} {
 	$self instvar scheduler_
@@ -556,6 +562,11 @@ Simulator instproc namtrace-all file {
 	set namtraceAllFile_ $file
 }
 
+Simulator instproc namtrace-some file {
+	$self instvar namtraceSomeFile_
+	set namtraceSomeFile_ $file
+}
+
 Simulator instproc trace-all file {
 	$self instvar traceAllFile_
 	set traceAllFile_ $file
@@ -592,6 +603,8 @@ Simulator instproc puts-nam-traceall { str } {
 	$self instvar namtraceAllFile_
 	if [info exists namtraceAllFile_] {
 		puts $namtraceAllFile_ $str
+	} elseif [info exists namtraceSomeFile_] {
+		puts $namtraceSomeFile_ $str
 	}
 }
 
@@ -621,6 +634,8 @@ Simulator instproc puts-nam-config { str } {
 		puts $namConfigFile_ $str
 	} elseif [info exists namtraceAllFile_] {
 		puts $namtraceAllFile_ $str
+	} elseif [info exists namtraceSomeFile_] {
+		puts $namtraceSomeFile_ $str
 	}
 }
 
@@ -841,8 +856,22 @@ Classifier instproc in-slot? slot {
 	set ret ""
 	if {[array size slots_] < $slot} {
 		set ret slots_($slot)
-    }
+	}
 	set ret
+}
+
+# dump is for debugging purposes
+Classifier instproc dump {} {
+	$self instvar slots_ offset_ shift_ mask_
+	puts "classifier $self"
+	puts "\t$offset_ offset"
+	puts "\t$shift_ shift"
+	puts "\t$mask_ mask"
+	puts "\t[array size slots_] slots"
+	foreach i [lsort -integer [array names slots_]] {
+		set iv $slots_($i)
+		puts "\t\tslot $i: $iv"
+	}
 }
 
 #
@@ -1074,3 +1103,37 @@ Simulator instproc lossmodel {lossobj from to} {
 	$head target $lossobj
 	# puts "[[$head target] info class]"
 }
+
+Simulator instproc bw_parse { bspec } {
+        if { [scan $bspec "%f%s" b unit] == 1 } {
+                set unit b
+        }
+	# xxx: all units should support X"ps" --johnh
+        switch $unit {
+        b  { return $b }
+        bps  { return $b }
+        kb { return [expr $b*1000] }
+        Mb { return [expr $b*1000000] }
+        Gb { return [expr $b*1000000000] }
+        default { 
+                  puts "error: bw_parse: unknown unit `$unit'" 
+                  exit 1
+                }
+        }
+}
+
+Simulator instproc delay_parse { dspec } {
+        if { [scan $dspec "%f%s" b unit] == 1 } {
+                set unit s
+        }
+        switch $unit {
+        s  { return $b }
+        ms { return [expr $b*0.001] }
+        ns { return [expr $b*0.000001] }
+        default { 
+                  puts "error: bw_parse: unknown unit `$unit'" 
+                  exit 1
+                }
+        }
+}
+

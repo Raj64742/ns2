@@ -64,7 +64,7 @@ HierNode instproc entry {} {
 }
 
 
-HierNode instproc hier-enable-mcast sim {
+HierNode instproc enable-mcast sim {
 	$self instvar classifiers_ multiclassifier_ ns_ switch_ mcastproto_
 	$self set ns_ $sim
 

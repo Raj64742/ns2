@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.242 1998/05/21 00:43:02 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.243 1998/05/22 18:37:28 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,21 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+
+    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+       <b>Fri May 22 11:17:00 PDT 1998</b><br>
+	 <ul>
+	   <li> Agent/TCP advance/advanceby/done commands are now documented
+		in the man page.
+	   <li> Hierarchical routing renames:
+		Simulator instproc {hier-,}node,
+		HierNode instproc {hier-,}enable-mcast
+	   <li> Classifier instproc dump
+	   <li> SessionSim {bw,delay}_parse moved to Simulator
+	   <li> Simulator instproc nodes-to-link
+		and Simulator instproc nodes-to-link?
+		provide an abstract way to get link_($n1id:$n2id)
+	 </ul>
 
     <li><b><a href="http://www-nrg.ee.lbl.gov/floyd/">[floyd]</A></B>
        <b>Wed May 20 17:37:59 PDT 1998</b><br>

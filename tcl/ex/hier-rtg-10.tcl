@@ -16,18 +16,18 @@ AddrParams set nodes_num_ $eilastlevel
 set naddr {0.0.0 0.0.1 0.1.0 0.1.1 0.1.2 1.0.0 1.0.1 1.1.0 1.1.1 1.1.2}
 
 for {set i 0} {$i < 10} {incr i} {
-     set n($i) [$ns hier-node [lindex $naddr $i]]
- }
+     set n($i) [$ns node [lindex $naddr $i]]
+}
 
- $ns duplex-link $n(0) $n(1) 5Mb 2ms DropTail
- $ns duplex-link $n(1) $n(2) 5Mb 2ms DropTail
- $ns duplex-link $n(2) $n(3) 5Mb 2ms DropTail
- $ns duplex-link $n(2) $n(4) 5Mb 2ms DropTail
- $ns duplex-link $n(1) $n(5) 5Mb 2ms DropTail
- $ns duplex-link $n(5) $n(6) 5Mb 2ms DropTail
- $ns duplex-link $n(6) $n(7) 5Mb 2ms DropTail
- $ns duplex-link $n(7) $n(8) 5Mb 2ms DropTail
- $ns duplex-link $n(8) $n(9) 5Mb 2ms DropTail
+$ns duplex-link $n(0) $n(1) 5Mb 2ms DropTail
+$ns duplex-link $n(1) $n(2) 5Mb 2ms DropTail
+$ns duplex-link $n(2) $n(3) 5Mb 2ms DropTail
+$ns duplex-link $n(2) $n(4) 5Mb 2ms DropTail
+$ns duplex-link $n(1) $n(5) 5Mb 2ms DropTail
+$ns duplex-link $n(5) $n(6) 5Mb 2ms DropTail
+$ns duplex-link $n(6) $n(7) 5Mb 2ms DropTail
+$ns duplex-link $n(7) $n(8) 5Mb 2ms DropTail
+$ns duplex-link $n(8) $n(9) 5Mb 2ms DropTail
 
 set cbr0 [new Agent/CBR]
 $ns attach-agent $n(0) $cbr0

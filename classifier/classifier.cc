@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.17 1998/05/07 00:09:48 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.18 1998/05/22 18:37:29 heideman Exp $";
 #endif
 
 #include <stdlib.h>
@@ -143,6 +143,10 @@ NsObject* Classifier::find(Packet* p)
         NsObject* node = NULL;
         int cl = classify(p);
         if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) { 
+		/*
+		 * Sigh.  Can't pass the pkt out to tcl because it's
+		 * not an object.
+		 */
                 Tcl::instance().evalf("%s no-slot %d", name(), cl);
                 /*      
                  * Try again.  Maybe callback patched up the table.

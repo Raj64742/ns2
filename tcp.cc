@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.71 1998/05/21 00:35:00 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.72 1998/05/22 18:37:31 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -393,8 +393,11 @@ int TcpAgent::command(int argc, const char*const* argv)
 		 * This implementation (persist) may not correctly
 		 * emulate pure-BSD-based systems which close cwnd
 		 * after the connection goes idle (slow-start
-		 * restart).  See Jacobson and Karels ``Congestion
-		 * Avoidance and Control'' in CCR (*not* the original
+		 * restart).  See appendix C in
+		 * Jacobson and Karels ``Congestion
+		 * Avoidance and Control'' at
+		 * <ftp://ftp.ee.lbl.gov/papers/congavoid.ps.Z>
+		 * (*not* the original
 		 * '88 paper) for why BSD does this.  See
 		 * ``Performance Interactions Between P-HTTP and TCP
 		 * Implementations'' in CCR 27(2) for descriptions of

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.33 1998/03/30 21:45:39 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.34 1998/05/22 18:37:34 heideman Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -159,6 +159,16 @@ Link instproc install-error {em} {
 	$self instvar link_
 	$em target [$link_ target]
 	$link_ target $em
+}
+
+# Map between two nodes and their link (if any).
+Simulator instproc nodes-to-link {src dst} {
+	$self instvar link_
+	return $link_([$src id]:[$dst id])
+}
+Simulator instproc nodes-to-link? {src dst} {
+	$self instvar link_
+	return [info exists link_([$src id]:[$dst id])]
 }
 
 Class SimpleLink -superclass Link
