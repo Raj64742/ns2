@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.10 2000/09/14 18:19:48 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.11 2001/08/17 05:21:34 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -164,9 +164,9 @@ void WebTrafSession::launchReq(void* ClntData, int obj, int size)
 	TcpSink* ssnk = mgr_->picksink();
 
 	// Setup TCP connection and done
-	Tcl::instance().evalf("%s launch-req %d %s %s %s %s %s %s %d", 
-			      mgr_->name(), obj, src_->name(), 
-			      pg->dst()->name(),
+	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d", 
+			      mgr_->name(), obj, pg->id(),
+			      src_->name(), pg->dst()->name(),
 			      ctcp->name(), csnk->name(), stcp->name(),
 			      ssnk->name(), size);
 	// Debug only
