@@ -52,10 +52,6 @@ BlockingLL::BlockingLL() : BaseLL(), hRs_(*this)
 void
 BlockingLL::recv(Packet* p, Handler* h)
 {
-	if (em_ && em_->corrupt(p)) {
-		p->error() |= 1;
-	}
-
 	callback_ = h;
 	p->source() = this;
 	p->target() = sendtarget_; // set target to peer link layer
