@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.1 1998/08/18 23:42:40 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.2 1998/08/19 17:08:41 heideman Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -1300,7 +1300,7 @@ void HttpMInvalCache::send_upd_helper(int pgsize, int size, const char* data)
 
 void HttpMInvalCache::send_upd(ClientPage *page)
 {
-	if ((num_updater_ == NULL) || !enable_upd_) 
+	if ((num_updater_ == 0) || !enable_upd_) 
 		return;
 
 	HttpUpdateData* d = pack_upd(page);
