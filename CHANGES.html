@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.403 2000/07/08 00:24:34 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.404 2000/07/09 16:46:43 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,16 @@
 	Release of ns-2.1b7</a> [PENDING]</h3>
 <ul>
  <p>
+   <LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
+       <b>Sun Jul  9 09:38:26 PDT 2000</b><br>
+       Added "first_reset_" to red.{h,cc} so that "queue-in-bytes_" works
+       correctly for RED when reset() is called multiple times.  
+       Bug report from Wen Shushan.  The option "queue-in-bytes_" 
+       had been working correctly in the validation test in 
+       "./test-all-red red_twowaybytes", but in other scripts 
+       REDQueue::reset() can be called twice, and in this case 
+       "queue-in-bytes_" had not been working correctly.
+       <p>
    <LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
        <b>Fri Jul  7 17:02:16 PDT 2000</b><br>
        Added the TCP Rate-Halving code to NS.  This is contributed
