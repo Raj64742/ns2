@@ -18,7 +18,7 @@
 #
 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.4 1998/10/15 23:55:37 breslau Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.5 1998/12/02 20:04:58 breslau Exp $
 #
 
 # 
@@ -291,7 +291,7 @@ Test/HB instproc init {} {
 
 Test/HB instproc defaults {} {
 	$self next
-	ADC/HB set epsilon_ 0.8
+	ADC/HB set epsilon_ 0.999
 	Est/ExpAvg set w_ 0.0625
 }
 
@@ -307,7 +307,7 @@ Test/ACTP instproc init {} {
 Test/ACTP instproc defaults {} {
 	$self next
 	$self instvar param_
-	ADC/ACTP set s_ [expr 2e-6]
+	ADC/ACTP set s_ [expr 2e-7]
 	set param_(S) 2.5e4
 	Est set period_ [expr $param_(S) * $param_(ptime)]
 }
@@ -324,7 +324,7 @@ Test/ACTO instproc init {} {
 Test/ACTO instproc defaults {} {
 	$self next
 	$self instvar param_
-	ADC/ACTO set s_ [expr 2e-6]
+	ADC/ACTO set s_ [expr 8e-8]
 	set param_(S) 2.5e4
 	Est set period_ [expr $param_(S) * $param_(ptime)]
 }
@@ -340,7 +340,7 @@ Test/Param instproc init {} {
 
 Test/Param instproc defaults {} {
 	$self next
-	ADC/Param set utilization_ 1.9
+	ADC/Param set utilization_ 2.05
 }
 
 Class SkelTopology

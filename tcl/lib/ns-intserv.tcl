@@ -78,7 +78,7 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 		
 		#Create a Measurement Module 
 		set measmod_ [new MeasureMod]
-		$measmod_ target $link_
+		$measmod_ target $queue_
 		$adc_ attach-measmod $measmod_ 1
 	}
 	
@@ -91,7 +91,7 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	$self add-to-head $signalmod_
 	#Create a measurement classifier to decide which packets to measure
 	$self create-meas-classifier
-	$queue_ target $measclassifier_
+	$signalmod_ target $measclassifier_
 	
 	#Schedule to start the admission control object
 	$ns_ at 0.0 "$adc_ start"
@@ -104,11 +104,11 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 # FlowId non-zero -> Int Serv traffic 
 
 IntServLink instproc create-meas-classifier {} {
-	$self instvar measclassifier_ measmod_ link_
+	$self instvar measclassifier_ measmod_ link_ queue_
 	
 	set measclassifier_ [new Classifier/Hash/Fid 1 ]
 	#set slots for measclassifier
-	set slot [$measclassifier_ installNext $link_]
+	set slot [$measclassifier_ installNext $queue_]
 	$measclassifier_ set-hash 0 0 0 0 $slot 
 	
 	#Currently measure all flows with fid.ne.0 alone
