@@ -4,7 +4,8 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Fri Apr 24 19:54:20 PDT 1998, with tcl8.0p1, tk8.0p1.
+### on pig.ee.lbl.gov, Wed May  6 21:21:26 PDT 1998,
+### with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
 ### version of this output,
@@ -57,10 +58,23 @@ Running test timers
 Test output agrees with reference output
 Running test stats
 tcp0/window=30/packetSize=1000/bugFix=1
+tcp1/window=30/packetSize=1000/bugFix=1
 tcp0/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
 tcp0/time=5/cwnd=7.0000/ssthresh=7/ack=96/rtt=3
+tcp1/time=5.0000099999999996/cwnd=2.0000/ssthresh=13/ack=26/rtt=6
 tcp0/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=2
+tcp1/time=10.000019999999999/cwnd=2.0000/ssthresh=7/ack=87/rtt=6
+tcp 1 total_packets_acked 87
 tcp 0 total_packets_acked 335
+fid: 0 per-link total_drops 13
+fid: 0 per-link total_packets 359
+fid: 0 per-link total_bytes 359000
+fid: 1 per-link total_drops 6
+fid: 1 per-link total_packets 103
+fid: 1 per-link total_bytes 103000
+aggregate per-link total_drops 19
+aggregate per-link total_packets 462
 Test output agrees with reference output
 *** ./test-all-tcp
 Tests: ecn timers timersA timers1 timers2 timers3 timers4 timers5 stats1
