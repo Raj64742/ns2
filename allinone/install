@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.18 2000/11/08 06:38:12 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.19 2000/11/08 06:47:46 haoboy Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -102,14 +102,14 @@ else
 	echo "Making sgb"
 	if make tests
 	then
-		if [ -f lib*.a ]
-		then
-			if [ -f ../gt-itm/lib/libgb.a ]
-			then
-				rm ../gt-itm/lib/libgb.a
-				cp lib*.a ../gt-itm/lib/libgb.a
-			fi
-		fi
+                if [ -f libgb.a ] ; then
+                        rm -f ../gt-itm/lib/libgb.a
+                        cp libgb.a ../gt-itm/lib/libgb.a
+                else 
+                        echo "* Wierd: sgb said it has been built but we can't find libgb.a!
+"
+                        exit -1
+                fi
 	else
 		echo "Unable to create sgb library, but it's optional, so continuing..."
 	fi
