@@ -69,7 +69,7 @@ while (<>) {
 	next;
     };
     /^d / && do {
-	($x, $y) = translate_point(@F[1, 7, 10]);
+	($x, $y) = translate_point(@F[1, 10, 7]);
 	push(@d, "$x $y\n");
 	next;
     };

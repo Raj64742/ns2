@@ -309,9 +309,8 @@ rtModel instproc configure {} {
     $self set-first-event
 }
 
-rtModel instproc set-event {interval op} {
+rtModel instproc set-event-exact {fireTime op} {
     $self instvar ns_ finishTime_
-    set fireTime [expr [$ns_ now] + $interval]
     if {$finishTime_ != "-" && $fireTime > $finishTime_} {
 	if {$op == up} {
 	    [rtModel set rtq_] insq $finishTime_ $self $op
@@ -319,6 +318,11 @@ rtModel instproc set-event {interval op} {
     } else {
 	[rtModel set rtq_] insq $fireTime $self $op
     }
+}
+
+rtModel instproc set-event {interval op} {
+    $self instvar ns_
+    $self set-event-exact [expr [$ns_ now] + $interval] $op
 }
 
 rtModel instproc set-first-event {} {
@@ -435,7 +439,7 @@ rtModel/Trace instproc set-trace-events {} {
 	if {$nextTime > $time} break
 	if ![info exists evq_($time)] {
 	    set op [string range [lindex $nextEvent_ 2] 5 end]
-	    $self set-event $time $op
+	    $self set-event-exact $time $op
 	    set evq_($time) 1
 	}
 	set nextEvent_ [$self get-next-event]
@@ -481,7 +485,7 @@ Class rtModel/Manual -superclass rtModel
 
 rtModel/Manual instproc set-first-event {} {
     $self instvar op_ at_
-    $self set-event $at_ $op_		;# you could concievably set a finishTime_?
+    $self set-event-exact $at_ $op_ ;# you could concievably set a finishTime_?
 }
 
 rtModel/Manual instproc set-parms {op at} {

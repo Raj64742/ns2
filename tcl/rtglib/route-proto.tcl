@@ -404,7 +404,9 @@ rtObject instproc compute-routes {} {
 
 rtObject instproc flag-multicast changes {
     $self instvar node_
-    catch "[$node_ getArbiter] notify $changes"
+    if ![catch "$node_ getArbiter" mrtObject] {
+	$mrtObject notify $changes
+    }
 }
 
 rtObject instproc intf-changed {} {
