@@ -38,6 +38,7 @@ protected:
 class TBF : public Connector {
 public:
 	TBF();
+	~TBF();
 	void timeout(int);
 protected:
 	void recv(Packet *, Handler *);

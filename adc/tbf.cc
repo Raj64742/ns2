@@ -36,9 +36,19 @@ TBF::TBF() :tokens_(0),lastpkttime_(0),tbf_timer_(this)
 	bind("qlen_",&qlen_);
 }
 	
-	
+TBF::~TBF()
+{
+	if (q_->length() != 0) {
+		//Clear all pending timers
+		tbf_timer_.cancel();
+		//Free up the packetqueue
+		for (Packet *p=q_->head();p!=0;p=p->next_) 
+			delete p;
+	}
+}
 
-void TBF::recv(Packet *p, Handler *h)
+
+void TBF::recv(Packet *p, Handler *)
 {
 	static int init=1;
 
