@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) 1996 Regents of the University of California.
 # All rights reserved.
@@ -30,9 +31,8 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.203 2000/08/24 18:33:07 haoboy Exp $
-
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.204 2000/08/29 19:28:03 haoboy Exp $
 #
 
 #
@@ -41,7 +41,6 @@
 # ns executable.  You need to rebuild ns or explicitly
 # source this code to see changes take effect.
 #
-
 
 proc warn {msg} {
 	global warned_
@@ -59,7 +58,7 @@ if {[info commands debug] == ""} {
 
 proc assert args {
         if [catch "expr $args" ret] {
-                set ret [eval $args]
+                set ret [eval expr $args]
         }
         if {! $ret} {
                 error "assertion failed: $args"
@@ -185,6 +184,12 @@ source ../plm/plm.tcl
 source ../plm/plm-ns.tcl
 source ../plm/plm-topo.tcl
 
+# MPLS
+source ../mpls/ns-mpls-simulator.tcl
+source ../mpls/ns-mpls-node.tcl
+source ../mpls/ns-mpls-ldpagent.tcl
+source ../mpls/ns-mpls-classifier.tcl
+
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
 
@@ -275,16 +280,9 @@ Simulator instproc dumper obj {
 
 Simulator set routingAgent_ ""
 Simulator set addressType_   ""
-#Simulator set llType_   ""
-#Simulator set macType_   ""
-#Simulator set propType_   ""
-#Simulator set ifqType_   ""
-#Simulator set phyType_   ""
-#Simulator set antType_   ""
-#Simulator set ifqlen_   ""
 
-Simulator set nodefactory_ Node
-Simulator set MovementTrace OFF
+Simulator set node_factory_ Node
+Simulator set MovementTrace_ OFF
 
 Simulator instproc addressType  {val} { $self set addressType_  $val }
 Simulator instproc adhocRouting  {val} { $self set routingAgent_  $val }
@@ -311,29 +309,30 @@ Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
-
+Simulator instproc MPLS { val } { 
+	if { $val == "ON" } {
+		$self set EnableMPLS_ 1
+	} else {
+		$self set EnableMPLS_ 0
+	}
+}
 
 Simulator instproc get-nodetype {} {
-
-	$self instvar addressType_ routingAgent_ wiredRouting_
+	$self instvar addressType_ routingAgent_ wiredRouting_ EnableMPLS_
 	set val ""
 
 	if { [info exists addressType_] && $addressType_ == "hierarchical" } {
 		set val Hier
 	}
-	
 	if { [info exists routingAgent_] && $routingAgent_ != "" } {
 		set val Mobile
 	}
-	
 	if { [info exists wiredRouting_] && $wiredRouting_ == "ON" } {
 		set val Base
 	}
-	
 	if { [info exists wiredRouting_] && $wiredRouting_ == "OFF"} {
 		set val Base
 	}
-
 	if { [Simulator set mobile_ip_] } {
 		if { $val == "Base" && $wiredRouting_ == "ON" } {
 			set val MIPBS
@@ -342,12 +341,15 @@ Simulator instproc get-nodetype {} {
 			set val MIPMH
 		}
 	}
+	if { [info exists EnableMPLS_] && $EnableMPLS_ } {
+		set val "MPLS"
+	}
 	return $val
 }
 
 Simulator instproc node-config args {
         set args [eval $self init-vars $args]
-        $self instvar addressType_  routingAgent_ nodefactory_ propType_  
+        $self instvar addressType_  routingAgent_ propType_  
         $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
         $self instvar channelType_ channel_ chan
 	$self instvar topoInstance_ propInstance_ mobileIP_
@@ -356,37 +358,28 @@ Simulator instproc node-config args {
         if [info exists macTrace_] {
             Simulator set MacTrace_ $macTrace_
 	}
-
-
         if [info exists routerTrace_] {
             Simulator set RouterTrace_ $routerTrace_
 	}
-	
-	
         if [info exists agentTrace_] {
             Simulator set AgentTrace_ $agentTrace_
 	}
-
         if [info exists movementTrace_] {
             Simulator set MovementTrace_ $movementTrace_
 	}
-	
         # hacking for matching old cmu add-interface
         # not good style, for back-compability ONLY
-
+	#
 	# Only create 1 instance of prop
-	
 	if {[info exists propType_] && [info exists propInstance_]} {
 	    warn "Both propType and propInstance are set."
 	}
-
 	if {[info exists propType_] && ![info exists propInstance_]} {
             set propInstance_ [new $propType_] 
 	}
-	
 	# Add multi-interface support: 
- 	# User can only specify either channelType_ (single_interface as before)
- 	# or channel_ (multi_interface)
+ 	# User can only specify either channelType_ (single_interface as 
+	# before) or channel_ (multi_interface)
  	# If both variables are specified, error!
  	if {[info exists channelType_] && [info exists channel_]} { 
   	   error "Can't specify both channel and channelType, error!"
@@ -400,34 +393,24 @@ Simulator instproc node-config args {
                 #puts "use the existed chan."
              } 
  	} elseif {[info exists channel_]} {
- 	    #Multiple channel, multiple interfaces
- 	    set chan $channel_
- 	    #puts "only channel_ specified, use it."
- 	} else {
- 	    warn "No channel specified."
-	}
- 	#puts "Current channel id: [$chan id]"
-
-
+		#Multiple channel, multiple interfaces
+		set chan $channel_
+ 	}
 	if [info exists topoInstance_] {
-	    $propInstance_  topography $topoInstance_
+		$propInstance_  topography $topoInstance_
 	}
-# set address type, hierarchical or expanded
-
-    if {[string compare $addressType_ ""] != 0} {
-
-	    $self set-address-format $addressType_ 
+	# set address type, hierarchical or expanded
+	if {[string compare $addressType_ ""] != 0} {
+		$self set-address-format $addressType_ 
 	}
-
-# set mobileIP flag
-    if { [info exists mobileIP_] && $mobileIP_ == "ON"} {
-
-	   Simulator set mobile_ip_  1
-    } else {
-	   if { [info exists mobileIP_] } {
-	       Simulator set mobile_ip_ 0
-	   }
-    }
+	# set mobileIP flag
+	if { [info exists mobileIP_] && $mobileIP_ == "ON"} {
+		Simulator set mobile_ip_  1
+	} else {
+		if { [info exists mobileIP_] } {
+			Simulator set mobile_ip_ 0
+		}
+	}
 }
 
 # Default behavior is changed: consider nam as not initialized if 
@@ -449,15 +432,11 @@ Simulator instproc node args {
         }
 	
 	# wireless-ready node
-
 	if [info exists routingAgent_] {
 	    if  {[string compare $routingAgent_ ""] != 0} {
 	        set node [$self create-wireless-node $args]
-
 		# for base node
-
 		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
-		    
 		   set Node_([$node id]) $node
 		}
 	        return $node
@@ -465,9 +444,7 @@ Simulator instproc node args {
 	}
 
 	set node [new [Simulator set node_factory_] $args]
-
 	set Node_([$node id]) $node
-	
 	$node set ns_ $self
 	if [$self multicast?] {
 		$node enable-mcast $self
@@ -900,8 +877,6 @@ Simulator instproc chk-hier-field-lengths {} {
 }
 
 Simulator instproc run {} {
-	#$self compute-routes
-
 	$self check-node-num
 	$self rtmodel-configure			;# in case there are any
 	[$self get-routelogic] configure
@@ -1467,7 +1442,7 @@ Simulator proc instance {} {
 
 Simulator instproc get-node-by-id id {
 	$self instvar Node_
-	set Node_($id)
+	return $Node_($id)
 }
 
 Simulator instproc all-nodes-list {} {
@@ -1476,7 +1451,7 @@ Simulator instproc all-nodes-list {} {
 	foreach n [array names Node_] {
 		lappend nodes $Node_($n)
 	}
-	set nodes
+	return $nodes
 }
 
 Simulator instproc link { n1 n2 } {
@@ -1538,18 +1513,6 @@ Simulator instproc create-tcp-connection {s_type source d_type dest pktClass} {
 	return "$s_agent $d_agent"
 }
 
-Classifier instproc no-slot slot {
-        puts stderr "--- Classfier::no-slot{} default handler (tcl/lib/ns-lib.tcl) ---"
-        puts stderr "\t$self: no target for slot $slot"
-        puts stderr "\t$self type: [$self info class]"
-        puts stderr "content dump:"
-        $self dump
-        puts stderr "---------- Finished standard no-slot{} default handler ----------"
-        # Clear output before we bail out
-        [Simulator instance] flush-trace
-        exit 1
-}
-
 #
 # Other classifier methods overload the instproc-likes to track 
 # and return the installed objects.
@@ -1578,9 +1541,7 @@ Classifier instproc in-slot? slot {
 	set ret
 }
 
-# Why don't we have an "unknown-flow" method for Classifier?
-
-# dump is for debugging purposes
+# For debugging
 Classifier instproc dump {} {
 	$self instvar slots_ offset_ shift_ mask_
 	puts "classifier $self"
@@ -1594,6 +1555,18 @@ Classifier instproc dump {} {
 	}
 }
 
+Classifier instproc no-slot slot {
+        puts stderr "--- Classfier::no-slot{} default handler (tcl/lib/ns-lib.tcl) ---"
+        puts stderr "\t$self: no target for slot $slot"
+        puts stderr "\t$self type: [$self info class]"
+        puts stderr "content dump:"
+        $self dump
+        puts stderr "---------- Finished standard no-slot{} default handler ----------"
+        # Clear output before we bail out
+        [Simulator instance] flush-trace
+        exit 1
+}
+
 Classifier/Hash instproc dump args {
 	eval $self next $args
 	$self instvar default_
@@ -1601,7 +1574,7 @@ Classifier/Hash instproc dump args {
 }
 
 Classifier/Hash instproc init nbuck {
-	# we need to make sure that port shift/mask values are there
+	# We need to make sure that port shift/mask values are there
 	# so we set them after they get their default values
 	$self next $nbuck
 	$self instvar shift_ mask_
@@ -1609,8 +1582,12 @@ Classifier/Hash instproc init nbuck {
 	set mask_ [AddrParams set NodeMask_(1)]
 }
 
+Classifier/Port/Reserve instproc init args {
+        eval $self next
+        $self reserve-port 2
+}
+
 Simulator instproc makeflowmon { cltype { clslots 29 } } {
-	
 	set flowmon [new QueueMonitor/ED/Flowmon]
 	set cl [new Classifier/Hash/$cltype $clslots]
 	

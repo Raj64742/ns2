@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.2 2000/08/24 18:37:07 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.3 2000/08/29 19:28:04 haoboy Exp $
 
 # Simple test for Link State routing contributed by 
 # Mingzhou Sun <msun@rainfinity.com> based on Kannan's old equal-cost 
@@ -146,6 +146,22 @@ proc isProc? {cls prc} {
 		puts stderr "$argv0: no such $cls: $prc"
 		usage
 	}
+}
+
+proc get-subclasses {cls pfx} {
+	set ret ""
+	set l [string length $pfx]
+
+	set c $cls
+	while {[llength $c] > 0} {
+		set t [lindex $c 0]
+		set c [lrange $c 1 end]
+		if [string match ${pfx}* $t] {
+			lappend ret [string range $t $l end]
+		}
+		eval lappend c [$t info subclass]
+	}
+	set ret
 }
 
 TestSuite proc runTest {} {

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.77 2000/08/18 18:34:01 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.78 2000/08/29 19:28:02 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -130,6 +130,9 @@ enum packet_t {
 	// LinkState routing update packets
 	PT_RTPROTO_LS,
 
+	// MPLS LDP header
+	PT_LDP,
+
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -192,6 +195,9 @@ public:
 
 		// Link state routing updates
 		name_[PT_RTPROTO_LS] = "rtProtoLS";
+
+		// MPLS LDP packets
+		name_[PT_LDP] = "LDP";
 
 		name_[PT_NTYPE]= "undefined";
 	}

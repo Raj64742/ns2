@@ -7,7 +7,7 @@
 <!-- Changed by: Sandeep Bajaj, 24-Apr-1998 -->
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.414 2000/08/21 21:34:56 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.415 2000/08/29 19:28:01 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>
 ns: Change History</h1>
 <!--
@@ -21,6 +21,32 @@ ns: Change History</h1>
 of ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
+
+<p><li>
+	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
+	<b>Thu Aug 24 14:25:08 PDT 2000</b>
+	<br>
+	<ol>
+	<li> Added MPLS package originally written by <a
+	href="mailto:fog1@ce.cnu.ac.kr">Gaeil Ahn</a>.
+	It was modified to reduce the amount of otcl calls, and moved
+	to use node-config instead of creating a new Node
+	subclass. However, there is still a long way to go when a new
+	routing module can be introduced into a Node
+	without intefering with other routing modules.
+	Please see <a href="TODO.html">TODO.html</a> for more
+	information.
+	<li> Fixed bugs in assert{} usage: what follows must be quotes
+	instead of braces, the latter does not perform substitution
+	and variables in the expression won't be visible inside
+	assert{}.
+	<li> Cosmetic changes in ns-node.tcl and
+	ns-route.tcl. Commented out unused code, including
+	Simulator::compute-routes-mobilenodes{}, Node::*TcpSession{}.
+	Commented code resides at the end of its corresponding file.
+	<li> Changed tcl/test/test-all-template1 to use case instead
+	of if(s) to redirect stdout to temp.rands.
+	</ol> 
 
 <p><li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>

@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) Sun Microsystems, Inc. 1998 All rights reserved.
 #
@@ -26,6 +27,34 @@
 #
 # These notices must be retained in any copies of any part of this software.
 #
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.6 2000/08/29 19:28:03 haoboy Exp $
+
+#     
+# Broadcast Nodes:
+# accept limited broadcast packets
+#     
+Class Node/Broadcast -superclass Node
+ 
+Node/Broadcast instproc mk-default-classifier {} {
+        $self instvar address_ classifier_ id_ dmux_
+        set classifier_ [new Classifier/Hash/Dest/Bcast 32]
+ 
+        $classifier_ set mask_ [AddrParams set NodeMask_(1)]
+        $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+        set address_ $id_
+        if { $dmux_ == "" } {
+                set dmux_ [new Classifier/Port/Reserve]
+		$dmux_ set mask_ [AddrParams set ALL_BITS_SET]
+                $dmux_ set shift_ 0
+ 
+                if [Simulator set EnableHierRt_] {  
+                        $self add-hroute $address_ $dmux_
+                } else {
+                        $self add-route $address_ $dmux_
+                }
+        }
+        $classifier_ bcast-receiver $dmux_
+}
 
 MIPEncapsulator instproc tunnel-exit mhaddr {
 	$self instvar node_

@@ -1,3 +1,6 @@
+# -*- Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+#
+# Time-stamp: <2000-08-26 18:04:26 haoboy>
 #
 # Copyright (c) 1996 Regents of the University of California.
 # All rights reserved.

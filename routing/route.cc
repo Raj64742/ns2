@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.33 1999/09/28 03:46:34 heideman Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.34 2000/08/29 19:28:02 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -125,7 +125,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "send-num-of-domains") == 0) {
 			D_ = atoi(argv[2]) + 1;
 			if (D_ <= 1) {
-				tcl.result("send-num-of-domains: # domains should be non-zero");
+				tcl.result("send-num-of-domains: # domains should be larger than 1");
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
@@ -133,7 +133,9 @@ int RouteLogic::command(int argc, const char*const* argv)
 
 		if (strcmp(argv[1], "send-num-of-clusters") == 0) {
 			if (argc != D_ + 1) {
-				tcl.result("send-num-of-clusters: # args do not match as expected\n");
+				tcl.resultf("send-num-of-clusters: # of "
+					    "clusters %d != domain (%d) + 1\n",
+					    argc, D_);
 				return (TCL_ERROR);
 			}
 			C_ = new int[D_];

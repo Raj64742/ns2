@@ -1,3 +1,6 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+#
+# Time-stamp: <2000-08-26 18:03:56 haoboy>
 #
 # Copyright (c) 1997 Regents of the University of California.
 # All rights reserved.
@@ -30,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.38 2000/08/18 18:34:05 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.39 2000/08/29 19:28:03 haoboy Exp $
 #
 #
 # set up the packet format for the simulation
@@ -90,14 +93,13 @@ foreach pair {
 	{ MFTP off_mftp_ }
 	{ Encap off_encap_ }
 	{ RAP off_rap_ }
-	{ UMP off_ump_ }
-	{ TFRC off_tfrm_}
-	{ Ping off_ping_}
+	{ UMP off_ump_  }
+	{ TFRC off_tfrm_ }
+	{ Ping off_ping_ }
+	{ MPLS off_mpls_ }
+	{ LDP off_ldp_ }
 } {
 	create-packet-header [lindex $pair 0] [lindex $pair 1]
-#  	set cl [lindex $pair 0]
-#  	set var [lindex $pair 1]
-#  	PacketHeaderManager set vartab_(PacketHeader/$cl) $var
 }
 
 proc PktHdr_offset {hdrName {field ""}} {

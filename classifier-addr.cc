@@ -34,14 +34,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.24 1999/10/01 22:03:32 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.25 2000/08/29 19:28:02 haoboy Exp $";
 #endif
 
 #include "classifier-addr.h"
 
 int AddressClassifier::classify(Packet *p) {
-		hdr_ip* iph = hdr_ip::access(p);
-		return mshift(iph->daddr());
+	hdr_ip* iph = hdr_ip::access(p);
+	return mshift(iph->daddr());
 };
 
 static class AddressClassifierClass : public TclClass {

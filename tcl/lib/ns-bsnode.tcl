@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) 1996-1998 Regents of the University of California.
 # All rights reserved.
@@ -30,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-bsnode.tcl,v 1.6 2000/08/29 19:28:02 haoboy Exp $
 #
 
 #THE CODE INCLUDED IN THIS FILE IS USED FOR BACKWARD COMPATIBILITY ONLY
@@ -40,9 +41,10 @@
 # Special Base station nodes for communicating between wired and 
 # wireless topologies in ns. Base stations are a hybrid form between 
 # mobilenodes and hierarchical nodes. 
-# XXXX does otcl support multiple inheritence? then maybe could 
+#
+# XXX does otcl support multiple inheritence? then maybe could 
 # inheriting from hiernode and mobilenode.
-# 
+#
 
 #
 # The Node/MobileNode/BaseStationNode class
@@ -55,29 +57,28 @@ Node/MobileNode/BaseStationNode instproc init args {
 }
 
 Node/MobileNode/BaseStationNode instproc mk-default-classifier {} {
-    $self instvar classifiers_ 
-    
-    set levels [AddrParams set hlevel_]
-    for {set n 1} {$n <= $levels} {incr n} {
-	set classifiers_($n) [new Classifier/Hash/Dest/Bcast 32]
-	$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
-	$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
-    }
+	$self instvar classifiers_ 
+	set levels [AddrParams set hlevel_]
+	for {set n 1} {$n <= $levels} {incr n} {
+		set classifiers_($n) [new Classifier/Hash/Dest/Bcast 32]
+		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
+		$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
+	}
 }
 
 
 Node/MobileNode/BaseStationNode instproc entry {} {
-    #XXX although mcast is not supported with wireless networking currently
-    $self instvar ns_
-    if ![info exist ns_] {
-	set ns_ [Simulator instance]
-    }
-    if [$ns_ multicast?] { 
-	$self instvar switch_
-	return $switch_
-    }
-    $self instvar classifiers_
-    return $classifiers_(1)
+	#XXX although mcast is not supported with wireless networking currently
+	$self instvar ns_
+	if ![info exist ns_] {
+		set ns_ [Simulator instance]
+	}
+	if [$ns_ multicast?] { 
+		$self instvar switch_
+		return $switch_
+	}
+	$self instvar classifiers_
+	return $classifiers_(1)
 }
 
 Node/MobileNode/BaseStationNode instproc add-hroute { dst target } {
@@ -98,20 +99,18 @@ Node/MobileNode/BaseStationNode instproc add-hroute { dst target } {
 	set rtsize_ [expr $rtsize_ + 1]
 }
 
-## method to remove an entry from the hier classifiers
+# remove an entry from the hier classifiers
 Node/MobileNode/BaseStationNode instproc clear-hroute args {
-    $self instvar classifiers_
-    set a [split $args]
-    set l [llength $a]
-    $classifiers_($l) clear [lindex $a [expr $l-1]] 
+	$self instvar classifiers_
+	set a [split $args]
+	set l [llength $a]
+	$classifiers_($l) clear [lindex $a [expr $l-1]] 
 }
-
 
 Node/MobileNode/BaseStationNode instproc node-addr {} {
 	$self instvar address_
 	return $address_
 }
-
 
 Node/MobileNode/BaseStationNode instproc split-addrstr addrstr {
 	set L [split $addrstr .]
@@ -119,64 +118,53 @@ Node/MobileNode/BaseStationNode instproc split-addrstr addrstr {
 }
 
 Node/MobileNode/BaseStationNode instproc add-target {agent port } {
+	$self instvar dmux_ classifiers_
+	$agent set sport_ $port
+	set level [AddrParams set hlevel_]
 
-    #global RouterTrace AgentTrace
-    $self instvar dmux_ classifiers_
-    $agent set sport_ $port
-    set level [AddrParams set hlevel_]
-
-    if { $port == 255 } {	
-	if { [Simulator set RouterTrace_] == "ON" } {
-	    #
-	    # Send Target
-	    #
-	    set sndT [cmu-trace Send "RTR" $self]
-	    $sndT target [$self set ll_(0)]
-	    $agent target $sndT
-	    
-	    #
-	    # Recv Target
-	    #
-	    set rcvT [cmu-trace Recv "RTR" $self]
-	    $rcvT target $agent
-	    for {set i 1} {$i <= $level} {incr i} {
-		$classifiers_($i) defaulttarget $rcvT
-		$classifiers_($i) bcast-receiver $rcvT
-	    }
-	    $dmux_ install $port $rcvT
-	
+	if { $port == 255 } {	
+		if { [Simulator set RouterTrace_] == "ON" } {
+			#
+			# Send Target
+			#
+			set sndT [cmu-trace Send "RTR" $self]
+			$sndT target [$self set ll_(0)]
+			$agent target $sndT
+			#
+			# Recv Target
+			#
+			set rcvT [cmu-trace Recv "RTR" $self]
+			$rcvT target $agent
+			for {set i 1} {$i <= $level} {incr i} {
+				$classifiers_($i) defaulttarget $rcvT
+				$classifiers_($i) bcast-receiver $rcvT
+			}
+			$dmux_ install $port $rcvT
+		} else {
+			$agent target [$self set ll_(0)]
+			for {set i 1} {$i <= $level} {incr i} {
+				$classifiers_($i) bcast-receiver $agent
+				$classifiers_($i) defaulttarget $agent
+			}
+			$dmux_ install $port $agent
+		}
 	} else {
-	    $agent target [$self set ll_(0)]
-	    for {set i 1} {$i <= $level} {incr i} {
-		$classifiers_($i) bcast-receiver $agent
-		$classifiers_($i) defaulttarget $agent
-	    }
-	    $dmux_ install $port $agent
-	    ##$classifiers_($level) defaulttarget $agent
+		if { [Simulator set AgentTrace_] == "ON" } {
+			#
+			# Send Target
+			#
+			set sndT [cmu-trace Send AGT $self]
+			$sndT target [$self entry]
+			$agent target $sndT
+			#
+			# Recv Target
+			#
+			set rcvT [cmu-trace Recv AGT $self]
+			$rcvT target $agent
+			$dmux_ install $port $rcvT
+		} else {
+			$agent target [$self entry]
+			$dmux_ install $port $agent
+		}
 	}
-    } else {
-	if { [Simulator set AgentTrace_] == "ON" } {
-	    #
-	    # Send Target
-	    #
-	    set sndT [cmu-trace Send AGT $self]
-	    $sndT target [$self entry]
-	    $agent target $sndT
-		
-	    #
-	    # Recv Target
-	    #
-	    set rcvT [cmu-trace Recv AGT $self]
-	    $rcvT target $agent
-	    $dmux_ install $port $rcvT
-
-	} else {
-	    $agent target [$self entry]
-	    #for {set i 1} {$i <= $level} {incr i} {
-		#$classifiers_($i) bcast-receiver $dmux_
-		#}
-	    $dmux_ install $port $agent
-	}
-    }
 }
-

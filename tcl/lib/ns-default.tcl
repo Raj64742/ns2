@@ -1,3 +1,6 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+#
+# Time-stamp: <2000-08-26 18:04:05 haoboy>
 #
 # Copyright (c) 1996-1997 Regents of the University of California.
 # All rights reserved.
@@ -30,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.216 2000/08/20 00:24:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.217 2000/08/29 19:28:02 haoboy Exp $
 
 
 #
@@ -743,3 +746,15 @@ Application/Traffic/CBR_PP set PBM_ 2
 
 # variables of the link state module is moved to ns-rtProtoLS.tcl
 
+# MPLS
+Classifier/Addr/MPLS set ttl_   32
+Classifier/Addr/MPLS set trace_mpls_ 0
+Classifier/Addr/MPLS set label_ -1
+Classifier/Addr/MPLS set enable_reroute_    0
+Classifier/Addr/MPLS set reroute_option_ 0
+Classifier/Addr/MPLS set control_driven_ 0
+Classifier/Addr/MPLS set data_driven_ 0
+
+Agent/LDP set packetSize_  64
+Agent/LDP set new_msgid_ 0
+Agent/LDP set trace_ldp_ 0

@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.21 2000/07/28 23:14:19 johnh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.22 2000/08/29 19:28:02 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: TODO list</H1>
 
@@ -51,8 +51,44 @@ test suite for error models
 
   <hr>
 <!-----add stuff AFTER here----------------------------->
+
+	<p><li>
+	<b>Node Structure:</b>
+	The node-config interface should be cleaned up: 
+	<ul> 
+	<li> A node can be considered as a collection of classifiers
+	and routing modules. An important function that Node should
+	provide is how to interface the classifiers to the routing
+	modules. There are two aspects to this: (1) what is the
+	organization of these classifiers, and (2) when there is a
+	routing change, which classifiers should be notified and how.
+
+	<li> For this purpose, Node::*[nodetype_] instprocs
+	should be cleaned up: the base Node should provide a set of
+	customization interfaces, and each add-on routing module
+	be an independent object which uses these interfaces to
+	customize classifier settings inside the node; 
+	<br>
+	Also, numerous Simulator condition checks should be moved to
+	the initialization process of individual modules instead of 
+	staying in the Simulator; 
+
+	<li> We need a capability database to register which
+	routing modules are present in the Node, instead of
+	Node::nodetype_ which is inflexible and ad hoc. This can be
+	done following the pattern that file systems are constructed
+	in Linux, for example. Packaging each routing module into an
+	individual object will greatly facilitate this process.
+
+	<li> We should get rid of all wireless code that is _really_
+	for backward compatibility only, and move them to a separate
+	directory instead of polluing tcl/lib and so on.
+
+	</ul>
+	<em>(<a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a>
+	Thu Aug 24 14:25:08 PDT 2000)</em>
        
-       <p>
+  <p>
   <li>
        <b>Queueing:</b>
        Change the Drop-Tail queue size so that it includes the

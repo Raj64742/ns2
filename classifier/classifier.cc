@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.33 1999/09/20 01:55:02 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.34 2000/08/29 19:28:02 haoboy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -51,10 +51,9 @@ public:
 } class_classifier;
 
 
-Classifier::Classifier() : slot_(0), nslot_(0), maxslot_(-1)
-	, shift_(0), mask_(0xffffffff)
+Classifier::Classifier() : 
+	slot_(0), nslot_(0), maxslot_(-1), shift_(0), mask_(0xffffffff)
 {
-
 	default_target_ = 0;
 
 	bind("offset_", &offset_);
@@ -145,9 +144,8 @@ NsObject* Classifier::find(Packet* p)
 	NsObject* node = NULL;
 	int cl = classify(p);
 	if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) { 
-
-		if (default_target_) return default_target_;
-
+		if (default_target_) 
+			return default_target_;
 		/*
 		 * Sigh.  Can't pass the pkt out to tcl because it's
 		 * not an object.
@@ -169,26 +167,23 @@ int Classifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if(argc == 2) {
-
                 if (strcmp(argv[1], "defaulttarget") == 0) {
                         if (default_target_ != 0)
                                 tcl.result(default_target_->name());
                         return (TCL_OK);
                 }
-
-        }
-	if (argc == 3) {
+        } else if (argc == 3) {
 		/*
 		 * $classifier alloc-port nullagent
 		 */
 		if (strcmp(argv[1],"alloc-port") == 0) {
 			int slot;
-			NsObject* nullagent =(NsObject*)TclObject::lookup(argv[2]);
-			slot=getnxt(nullagent);
+			NsObject* nullagent =
+				(NsObject*)TclObject::lookup(argv[2]);
+			slot = getnxt(nullagent);
 			tcl.resultf("%u",slot);
 			return(TCL_OK);
 		}
-
 		/*
 		 * $classifier clear $slot
 		 */
@@ -204,10 +199,10 @@ int Classifier::command(int argc, const char*const* argv)
 			int slot = maxslot_ + 1;
 			NsObject* node = (NsObject*)TclObject::lookup(argv[2]);
 			if (node == NULL) {
-				tcl.resultf("Classifier::installNext attempt to install non-object %s into classifier", argv[2]);
+				tcl.resultf("Classifier::installNext attempt "
+		    "to install non-object %s into classifier", argv[2]);
 				return TCL_ERROR;
 			};
-				
 			install(slot, node);
 			tcl.resultf("%u", slot);
 			return TCL_OK;
@@ -245,15 +240,12 @@ int Classifier::command(int argc, const char*const* argv)
 			tcl.result("-1");
 			return (TCL_OK);
 		}
-
 		if(strcmp(argv[1], "defaulttarget") == 0) {
 			default_target_=(NsObject*)TclObject::lookup(argv[2]);
 			if(default_target_ == 0)
 				return TCL_ERROR;
 			return TCL_OK;
 		}
-
-		
 	} else if (argc == 4) {
 		/*
 		 * $classifier install $slot $node

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.193 2000/08/24 01:51:34 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.194 2000/08/29 19:28:01 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -164,7 +164,8 @@ OBJ_CC = \
 	rio.o semantic-rio.o tcp-sack-rh.o scoreboard-rh.o \
 	plm/loss-monitor-plm.o plm/cbr-traffic-PP.o \
 	linkstate/hdr-ls.o \
-	@V_STLOBJ@
+	mpls/classifier-addr-mpls.o mpls/ldp.o \
+	@V_STLOBJ@ 
 
 # don't allow comments to follow continuation lines
 
@@ -205,7 +206,7 @@ OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* $(NS).core core core.$(NS) core.$(NSX) core.$(NSE) \
-	ptypes2tcl ptypes2tcl.o
+	ptypes2tcl ptypes2tcl.o 
 
 SUBDIRS=\
 	indep-utils/cmu-scen-gen/setdest \
@@ -243,68 +244,70 @@ ns-pure: $(OBJ) tclAppInit.o
 		tclAppInit.o $(OBJ) $(LIB)
 
 NS_TCL_LIB = \
-        tcl/ctr-mcast/CtrMcast.tcl \
-        tcl/ctr-mcast/CtrMcastComp.tcl \
-        tcl/ctr-mcast/CtrRPComp.tcl \
-	tcl/emulate/ns-emulate.tcl \
-        tcl/interface/ns-iface.tcl \
-	tcl/lan/ns-ll.tcl \
-	tcl/lan/ns-mac.tcl \
-	tcl/lan/vlan.tcl \
-	tcl/lib/ns-address.tcl \
-	tcl/lib/ns-agent.tcl \
-	tcl/lib/ns-autoconf.tcl \
-	tcl/lib/ns-bsnode.tcl \
-	tcl/lib/ns-cmutrace.tcl \
 	tcl/lib/ns-compat.tcl \
 	tcl/lib/ns-default.tcl \
 	tcl/lib/ns-errmodel.tcl \
-	tcl/lib/ns-hiernode.tcl \
-	tcl/lib/ns-intserv.tcl \
 	tcl/lib/ns-lib.tcl \
 	tcl/lib/ns-link.tcl \
-	tcl/lib/ns-mip.tcl \
 	tcl/lib/ns-mobilenode.tcl \
-	tcl/lib/ns-namsupp.tcl \
+	tcl/lib/ns-sat.tcl \
+	tcl/lib/ns-cmutrace.tcl \
 	tcl/lib/ns-node.tcl \
+	tcl/lib/ns-hiernode.tcl \
 	tcl/lib/ns-packet.tcl \
 	tcl/lib/ns-queue.tcl \
-	tcl/lib/ns-random.tcl \
-	tcl/lib/ns-route.tcl \
-	tcl/lib/ns-rtProtoLS.tcl \
-	tcl/lib/ns-sat.tcl \
 	tcl/lib/ns-source.tcl \
+	tcl/lib/ns-nam.tcl \
 	tcl/lib/ns-trace.tcl \
-	tcl/mcast/BST.tcl \
-        tcl/mcast/DM.tcl \
-	tcl/mcast/McastMonitor.tcl \
-        tcl/mcast/McastProto.tcl \
-	tcl/mcast/mftp_rcv.tcl \
-	tcl/mcast/mftp_rcv_stat.tcl \
-	tcl/mcast/mftp_snd.tcl \
-        tcl/mcast/ns-mcast.tcl \
-	tcl/mcast/srm-adaptive.tcl \
-	tcl/mcast/srm-ssm.tcl \
-	tcl/mcast/srm.tcl \
-	tcl/mcast/timer.tcl \
-	tcl/mobility/com.tcl \
-	tcl/mobility/dsdv.tcl \
-	tcl/mobility/dsr.tcl \
-	tcl/plm/plm-ns.tcl \
-	tcl/plm/plm-topo.tcl \
-	tcl/plm/plm.tcl \
-	tcl/rlm/rlm-ns.tcl \
-	tcl/rlm/rlm.tcl \
-	tcl/rtglib/algo-route-proto.tcl \
+	tcl/lib/ns-agent.tcl \
+	tcl/lib/ns-random.tcl \
+	tcl/lib/ns-namsupp.tcl \
+	tcl/lib/ns-address.tcl \
+	tcl/lib/ns-intserv.tcl \
+	tcl/lib/ns-autoconf.tcl \
+	tcl/rtp/session-rtp.tcl \
+	tcl/lib/ns-mip.tcl \
 	tcl/rtglib/dynamics.tcl \
 	tcl/rtglib/route-proto.tcl \
-	tcl/rtp/session-rtp.tcl \
+	tcl/rtglib/algo-route-proto.tcl \
+        tcl/interface/ns-iface.tcl \
+	tcl/mcast/BST.tcl \
+        tcl/mcast/ns-mcast.tcl \
+        tcl/mcast/McastProto.tcl \
+        tcl/mcast/DM.tcl \
+	tcl/mcast/srm.tcl \
+	tcl/mcast/srm-adaptive.tcl \
+	tcl/mcast/srm-ssm.tcl \
+	tcl/mcast/timer.tcl \
+	tcl/mcast/McastMonitor.tcl \
+	tcl/mcast/mftp_snd.tcl \
+	tcl/mcast/mftp_rcv.tcl \
+	tcl/mcast/mftp_rcv_stat.tcl \
+	tcl/mobility/dsr.tcl \
+        tcl/ctr-mcast/CtrMcast.tcl \
+        tcl/ctr-mcast/CtrMcastComp.tcl \
+        tcl/ctr-mcast/CtrRPComp.tcl \
+	tcl/rlm/rlm.tcl \
+	tcl/rlm/rlm-ns.tcl \
 	tcl/session/session.tcl \
+	tcl/lib/ns-route.tcl \
+	tcl/emulate/ns-emulate.tcl \
+	tcl/lan/vlan.tcl \
+	tcl/lan/ns-ll.tcl \
+	tcl/lan/ns-mac.tcl \
 	tcl/webcache/http-agent.tcl \
+	tcl/webcache/http-server.tcl \
 	tcl/webcache/http-cache.tcl \
 	tcl/webcache/http-mcache.tcl \
-	tcl/webcache/http-server.tcl \
-	tcl/webcache/webtraf.tcl 
+	tcl/webcache/webtraf.tcl \
+	tcl/plm/plm.tcl \
+	tcl/plm/plm-ns.tcl \
+	tcl/plm/plm-topo.tcl \
+	tcl/lib/ns-rtProtoLS.tcl \
+	tcl/mpls/ns-mpls-classifier.tcl \
+	tcl/mpls/ns-mpls-ldpagent.tcl \
+	tcl/mpls/ns-mpls-node.tcl \
+	tcl/mpls/ns-mpls-simulator.tcl
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	$(TCLSH) bin/tcl-expand.tcl tcl/lib/ns-lib.tcl tcl/lib/ns-stl.tcl | $(TCL2C) et_ns_lib > $@

@@ -23,9 +23,10 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 #
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/route-proto.tcl,v 1.28 2000/08/29 19:28:03 haoboy Exp $
 
 #
-# Maintainer: <kannan@isi.edu>.
+# Author: <kannan@isi.edu> (this email address has deprecated.)
 #
 
 # This file only contains the methods for dynamic routing
@@ -40,6 +41,9 @@ Class rtObject
 rtObject set unreach_ -1
 rtObject set maxpref_   255
 
+# This may not be called by all routing agents. For instance, DV calls 
+# this one but static does not. As a result, static routing does not have
+# rtObject on any node.
 rtObject proc init-all args {
     foreach node $args {
 	if { [$node rtObject?] == "" } {
@@ -76,7 +80,6 @@ rtObject instproc init node {
     }
     $self add-proto Direct $node
     $rtProtos_(Direct) compute-routes
-#    $self compute-routes
 }
 
 rtObject instproc add-proto {proto node} {
@@ -376,9 +379,7 @@ Agent/rtProto/Static proc init-all args {
     # The Simulator knows the entire topology.
     # Hence, the current compute-routes method in the Simulator class is
     # well suited.  We use it as is.
-    
     [Simulator instance] compute-routes
-    
 }
 
 #
@@ -392,7 +393,6 @@ Agent/rtProto/Session proc init-all args {
 
 Agent/rtProto/Session proc compute-all {} {
     [Simulator instance] compute-routes
-
 }
 
 #
