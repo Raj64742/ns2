@@ -3,7 +3,7 @@
 // author               : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: one_phase_pull.hh,v 1.2 2003/07/10 21:18:56 haldar Exp $
+// $Id: one_phase_pull.hh,v 1.3 2004/01/08 23:05:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -39,9 +39,9 @@
 
 #define ONE_PHASE_PULL_FILTER_PRIORITY 80
 
-class GradientEntry {
+class OPPGradientEntry {
 public:
-  GradientEntry(int32_t node_id) : node_id_(node_id)
+  OPPGradientEntry(int32_t node_id) : node_id_(node_id)
   {
     GetTime(&tv_);
   };
@@ -50,7 +50,7 @@ public:
   struct timeval tv_;
 };
 
-typedef list<GradientEntry *> GradientList;
+typedef list<OPPGradientEntry *> GradientList;
 
 class SinkEntry {
 public:
@@ -65,9 +65,9 @@ public:
 
 typedef list<SinkEntry *> SinkList;
 
-class DataNeighborEntry {
+class OPPDataNeighborEntry {
 public:
-  DataNeighborEntry(int32_t node_id) : node_id_(node_id)
+  OPPDataNeighborEntry(int32_t node_id) : node_id_(node_id)
   {
     messages_ = 1;
   };
@@ -77,7 +77,7 @@ public:
   bool new_messages_;
 };
 
-typedef list<DataNeighborEntry *> DataNeighborList;
+typedef list<OPPDataNeighborEntry *> DataNeighborList;
 
 class SubscriptionEntry {
 public:
@@ -126,7 +126,7 @@ public:
     sinks_.clear();
   };
 
-  GradientEntry * findGradient(int32_t node_id);
+  OPPGradientEntry * findGradient(int32_t node_id);
   void deleteGradient(int32_t node_id);
   void addGradient(int32_t node_id);
   void updateSink(u_int16_t sink_id);

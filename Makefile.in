@@ -123,8 +123,10 @@ OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
 	diffusion3/apps/gear_examples/gear_sender.o \
 	diffusion3/apps/rmst_examples/rmst_sink.o \
 	diffusion3/apps/rmst_examples/rmst_source.o \
-	diffusion3/apps/ping/ping_sender.o \
-	diffusion3/apps/ping/ping_receiver.o \
+	diffusion3/apps/ping/1pp_ping_sender.o \
+	diffusion3/apps/ping/1pp_ping_receiver.o \
+	diffusion3/apps/ping/2pp_ping_sender.o \
+	diffusion3/apps/ping/2pp_ping_receiver.o \
 	diffusion3/apps/ping/ping_common.o \
 	diffusion3/apps/ping/push_receiver.o \
 	diffusion3/apps/ping/push_sender.o \

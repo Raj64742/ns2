@@ -3,7 +3,7 @@
 // author               : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: one_phase_pull.cc,v 1.4 2003/09/24 17:45:12 haldar Exp $
+// $Id: one_phase_pull.cc,v 1.5 2004/01/08 23:05:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -143,7 +143,7 @@ void RoutingEntry::updateNeighborDataInfo(int32_t node_id,
 					  bool new_message)
 {
   DataNeighborList::iterator data_neighbor_itr;
-  DataNeighborEntry *data_neighbor_entry;
+  OPPDataNeighborEntry *data_neighbor_entry;
 
   for (data_neighbor_itr = data_neighbors_.begin();
        data_neighbor_itr != data_neighbors_.end(); ++data_neighbor_itr){
@@ -164,7 +164,7 @@ void RoutingEntry::updateNeighborDataInfo(int32_t node_id,
   }
 
   // We need to add a new data neighbor
-  data_neighbor_entry = new DataNeighborEntry(node_id);
+  data_neighbor_entry = new OPPDataNeighborEntry(node_id);
   data_neighbor_entry->new_messages_ = new_message;
   data_neighbors_.push_back(data_neighbor_entry);
 }
@@ -173,7 +173,7 @@ void RoutingEntry::addGradient(int32_t last_hop,
 			       int32_t round_id, bool new_gradient)
 {
   RoundIdEntry *round_id_entry;
-  GradientEntry *gradient_entry;
+  OPPGradientEntry *gradient_entry;
 
   // Look for an existing routing id entry
   round_id_entry = findRoundIdEntry(round_id);
@@ -296,7 +296,7 @@ int32_t RoutingEntry::getNeighborFromFlow(int32_t flow_id)
 {
   RoundIdList::iterator round_id_itr;
   RoundIdEntry *round_id_entry;
-  GradientEntry *gradient_entry;
+  OPPGradientEntry *gradient_entry;
 
   for (round_id_itr = round_ids_.begin();
        round_id_itr != round_ids_.end(); round_id_itr++){
@@ -347,7 +347,7 @@ void RoundIdEntry::deleteExpiredSinks()
 void RoundIdEntry::deleteExpiredGradients()
 {
   GradientList::iterator gradient_itr;
-  GradientEntry *gradient_entry;
+  OPPGradientEntry *gradient_entry;
   struct timeval tmv;
 
   GetTime(&tmv);
@@ -391,10 +391,10 @@ void RoundIdEntry::updateSink(u_int16_t sink_id)
   sinks_.push_back(sink_entry);
 }
 
-GradientEntry * RoundIdEntry::findGradient(int32_t node_id)
+OPPGradientEntry * RoundIdEntry::findGradient(int32_t node_id)
 {
   GradientList::iterator gradient_itr;
-  GradientEntry *gradient_entry;
+  OPPGradientEntry *gradient_entry;
 
   // Go through all gradients
   for (gradient_itr = gradients_.begin();
@@ -412,17 +412,17 @@ GradientEntry * RoundIdEntry::findGradient(int32_t node_id)
 
 void RoundIdEntry::addGradient(int32_t node_id)
 {
-  GradientEntry *gradient_entry;
+  OPPGradientEntry *gradient_entry;
 
   // Create new gradient
-  gradient_entry = new GradientEntry(node_id);
+  gradient_entry = new OPPGradientEntry(node_id);
   gradients_.push_back(gradient_entry);
 }
 
 void RoundIdEntry::deleteGradient(int32_t node_id)
 {
   GradientList::iterator gradient_itr;
-  GradientEntry *gradient_entry;
+  OPPGradientEntry *gradient_entry;
 
   // Go through all gradients
   for (gradient_itr = gradients_.begin();
@@ -445,7 +445,7 @@ void RoundIdEntry::deleteGradient(int32_t node_id)
 
 void OnePhasePullFilter::interestTimeout(Message *msg)
 {
-  DiffPrint(DEBUG_MORE_DETAILS, "Interest Timeout !\n");
+  DiffPrint(DEBUG_MORE_DETAILS, "Node%d: Interest Timeout !\n", ((DiffusionRouting *)dr_)->getNodeId());
 
   msg->last_hop_ = LOCALHOST_ADDR;
   msg->next_hop_ = BROADCAST_ADDR;
@@ -455,7 +455,7 @@ void OnePhasePullFilter::interestTimeout(Message *msg)
 
 void OnePhasePullFilter::messageTimeout(Message *msg)
 {
-  DiffPrint(DEBUG_MORE_DETAILS, "Message Timeout !\n");
+  DiffPrint(DEBUG_MORE_DETAILS, "Node%d: Message Timeout !\n", ((DiffusionRouting *)dr_)->getNodeId());
 
   ((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
 }
@@ -465,7 +465,7 @@ void OnePhasePullFilter::gradientTimeout()
   RoutingTable::iterator routing_itr;
   RoutingEntry *routing_entry;
 
-  DiffPrint(DEBUG_MORE_DETAILS, "Gradient Timeout !\n");
+  DiffPrint(DEBUG_MORE_DETAILS, "Node%d: Gradient Timeout !\n",((DiffusionRouting *)dr_)->getNodeId());
 
   routing_itr = routing_list_.begin();
 
@@ -492,7 +492,7 @@ void OnePhasePullFilter::gradientTimeout()
 void OnePhasePullFilter::reinforcementTimeout()
 {
   DataNeighborList::iterator data_neighbor_itr;
-  DataNeighborEntry *data_neighbor_entry;
+  OPPDataNeighborEntry *data_neighbor_entry;
   RoutingTable::iterator routing_itr;
   RoutingEntry *routing_entry;
   Message *my_message;
@@ -519,8 +519,8 @@ void OnePhasePullFilter::reinforcementTimeout()
 	my_message->msg_attr_vec_ = CopyAttrs(routing_entry->attrs_);
 
 	DiffPrint(DEBUG_NO_DETAILS,
-		  "Sending Negative Reinforcement to node %d !\n",
-		  data_neighbor_entry->node_id_);
+		  "Node%d: Sending Negative Reinforcement to node %d !\n",
+		  ((DiffusionRouting *)dr_)->getNodeId(), data_neighbor_entry->node_id_);
 
 	((DiffusionRouting *)dr_)->sendMessage(my_message, filter_handle_);
 
@@ -753,7 +753,7 @@ void OnePhasePullFilter::forwardData(Message *msg,
   }
 
   // Step 2: Intermediate Processing
-  DiffPrint(DEBUG_NO_DETAILS, "Forwarding Data\n");
+  DiffPrint(DEBUG_NO_DETAILS, "Node%d: Forwarding Data\n", ((DiffusionRouting *)dr_)->getNodeId());
 
   // Set reinforcement flags
   if (msg->last_hop_ != LOCALHOST_ADDR)
@@ -1010,7 +1010,7 @@ void OnePhasePullFilter::processOldMessage(Message *msg)
 
   case INTEREST:
 
-    DiffPrint(DEBUG_NO_DETAILS, "Received Old Interest !\n");
+    DiffPrint(DEBUG_NO_DETAILS, "Node%d: Received Old Interest !\n",((DiffusionRouting *)dr_)->getNodeId());
 
     if (msg->last_hop_ == LOCALHOST_ADDR){
       // Old interest should not come from local sink
@@ -1237,13 +1237,13 @@ void OnePhasePullFilter::processNewMessage(Message *msg)
   case EXPLORATORY_DATA:
   case PUSH_EXPLORATORY_DATA:
 
-    DiffPrint(DEBUG_ALWAYS, "Received EXPLORATORY Message !\n");
+    DiffPrint(DEBUG_ALWAYS, "Node%d: Received EXPLORATORY Message !\n",((DiffusionRouting *)dr_)->getNodeId());
 
     break;
 
   case DATA:
 
-    DiffPrint(DEBUG_NO_DETAILS, "Received Data !\n");
+    DiffPrint(DEBUG_NO_DETAILS, "Node%d: Received Data !\n",((DiffusionRouting *)dr_)->getNodeId());
 
     // Create data message forwarding cache
     forwarding_history = new DataForwardingHistory;

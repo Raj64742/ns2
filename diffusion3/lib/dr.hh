@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: dr.hh,v 1.14 2003/07/09 17:50:00 haldar Exp $
+// $Id: dr.hh,v 1.15 2004/01/08 23:05:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -131,7 +131,8 @@ public:
 
 #ifdef NS_DIFFUSION
   DiffusionRouting(u_int16_t port, DiffAppAgent *da);
-  int getAgentId(int id = -1);
+  int getNodeId();               // node-id
+  int getAgentId(int id = -1);   // port-id
   MobileNode *getNode(MobileNode *mn = 0)
   {
     if (mn != 0)

@@ -3,7 +3,7 @@
 // author             : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: two_phase_pull.cc,v 1.4 2003/08/05 23:38:36 haldar Exp $
+// $Id: two_phase_pull.cc,v 1.5 2004/01/08 23:05:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -650,8 +650,8 @@ void GradientFilter::forwardData(Message *msg, TppRoutingEntry *routing_entry,
 	// Check if we have forwarded the message to this neighbor already
 	if (!forwarding_history->alreadyForwardedToNetwork(msg->next_hop_)){
 	  DiffPrint(DEBUG_NO_DETAILS,
-		    "Forwarding data using Reinforced Gradient to node %d !\n",
-		    gradient_entry->node_addr_);
+		    "Node%d: Forwarding data using Reinforced Gradient to node %d !\n",
+		    ((DiffusionRouting *)dr_)->getNodeId(), gradient_entry->node_addr_);
 
 	  ((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
 
@@ -892,7 +892,7 @@ void GradientFilter::processOldMessage(Message *msg)
 
   case INTEREST:
 
-    DiffPrint(DEBUG_NO_DETAILS, "Received Old Interest !\n");
+    DiffPrint(DEBUG_NO_DETAILS, "Node%d: Received Old Interest !\n", ((DiffusionRouting *)dr_)->getNodeId());
 
     if (msg->last_hop_ == LOCALHOST_ADDR){
       // Old interest should not come from local agent
@@ -909,7 +909,7 @@ void GradientFilter::processOldMessage(Message *msg)
 
   case DATA: 
 
-    DiffPrint(DEBUG_NO_DETAILS, "Received an old Data message !\n");
+    DiffPrint(DEBUG_NO_DETAILS, "Node%d: Received an old Data message !\n", ((DiffusionRouting *)dr_)->getNodeId());
 
     // Find the correct routing entry
     routing_itr = routing_list_.begin();
@@ -1085,7 +1085,7 @@ void GradientFilter::processNewMessage(Message *msg)
 
   case DATA:
 
-    DiffPrint(DEBUG_NO_DETAILS, "Received Data !\n");
+    DiffPrint(DEBUG_NO_DETAILS, "Node%d: Received Data !\n",((DiffusionRouting *)dr_)->getNodeId());
 
     // Create data message forwarding cache
     forwarding_history = new DataForwardingHistory;

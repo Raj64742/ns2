@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_receiver.cc,v 1.4 2003/09/24 17:45:10 haldar Exp $
+// $Id: gear_receiver.cc,v 1.5 2004/01/08 23:05:52 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -133,20 +133,23 @@ void GearReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
     if (counterAttr->getVal() < last_seq_recv_){
       // Multiple sources detected, disabling statistics
       last_seq_recv_ = -1;
-      DiffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f!\n",
+      DiffPrint(DEBUG_ALWAYS, "Node%d: Received data %d, total latency = %f!\n",
+		((DiffusionRouting *)dr_)->getNodeId(),
 		counterAttr->getVal(), total_delay);
     }
     else{
       last_seq_recv_ = counterAttr->getVal();
       num_msg_recv_++;
-      DiffPrint(DEBUG_ALWAYS, "Received data: %d, total latency = %f, %% messages received: %f !\n",
+      DiffPrint(DEBUG_ALWAYS, "Node%d: Received data: %d, total latency = %f, %% messages received: %f !\n",
+		((DiffusionRouting *)dr_)->getNodeId(),
 		last_seq_recv_, total_delay,
 		(float) ((num_msg_recv_ * 100.00) /
 			 ((last_seq_recv_ - first_msg_recv_) + 1)));
     }
   }
   else{
-    DiffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f !\n",
+    DiffPrint(DEBUG_ALWAYS, "Node%d: Received data %d, total latency = %f !\n",
+	      ((DiffusionRouting *)dr_)->getNodeId(),
 	      counterAttr->getVal(), total_delay);
   }
 }

@@ -3,7 +3,7 @@
 // authors         : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: filter_core.cc,v 1.1 2003/07/08 17:55:57 haldar Exp $
+// $Id: filter_core.cc,v 1.2 2004/01/08 23:05:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -308,7 +308,7 @@ void DiffusionCoreAgent::sendMessage(Message *msg)
     if (tcl_hash_entry == NULL)
       putHash(key[0], key[1]);
     else
-      DiffPrint(DEBUG_DETAILS, "Message being sent is an old message !\n");
+      DiffPrint(DEBUG_DETAILS, "Node%d: Message being sent is an old message !\n", my_id_);
 
     // Send Message
     sendMessageToNetwork(send_message);
@@ -1367,7 +1367,7 @@ void DiffusionCoreAgent::recvMessage(Message *msg)
     tcl_hash_entry = Tcl_FindHashEntry(&htable_, (char *) key);
 
     if (tcl_hash_entry != NULL){
-      DiffPrint(DEBUG_DETAILS, "Received old message !\n");
+      DiffPrint(DEBUG_DETAILS, "Node%d: Received old message !\n", my_id_);
       msg->new_message_ = 0;
     }
     else{

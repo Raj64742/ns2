@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_sender.cc,v 1.3 2003/09/24 17:45:11 haldar Exp $
+// $Id: gear_sender.cc,v 1.4 2004/01/08 23:05:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -50,7 +50,7 @@ void GearSenderApp::send()
       lastEventTime_->useconds_ = tmv.tv_usec;
       
       // Send data probe
-      DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+      DiffPrint(DEBUG_ALWAYS, "Node%d: Sending Data %d\n", ((DiffusionRouting *)dr_)->getNodeId(), last_seq_sent_);
       retval = dr_->send(pubHandle_, &data_attr_);
       
       // Update counter
@@ -258,7 +258,7 @@ void GearSenderApp::run()
       lastEventTime_->useconds_ = tmv.tv_usec;
 
       // Send data probe
-      DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+      DiffPrint(DEBUG_ALWAYS, "Node%d: Sending Data %d\n", ((DiffusionRouting *)dr_)->getNodeId(), last_seq_sent_);
       retval = dr_->send(pubHandle_, &data_attr_);
 
       // Update counter

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: dr.cc,v 1.15 2003/07/09 17:50:00 haldar Exp $
+// $Id: dr.cc,v 1.16 2004/01/08 23:05:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -98,6 +98,10 @@ int OldAPITimer::expire()
 
 #ifdef NS_DIFFUSION
 class DiffEventQueue;
+
+int DiffusionRouting::getNodeId() {
+  return node_->address();
+}
 
 int DiffusionRouting::getAgentId(int id) {
   if (id != -1)
