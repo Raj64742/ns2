@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.13 1998/05/21 00:03:09 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.14 1998/05/23 02:41:09 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -107,7 +107,7 @@ public:
 	inline Socket schannel() { return(ssock_); }	// virtual in Network
 
         int send(u_char* buf, int len);			// virtual in Network
-        int recv(u_char* buf, int len, sockaddr& from);	// virtual in Network
+        int recv(u_char* buf, int len, sockaddr& from, double& ); // virtual in Network
 
         inline in_addr& laddr() { return (localaddr_); }
         inline in_addr& dstaddr() { return (destaddr_); }
@@ -143,7 +143,7 @@ protected:
 class UDPIPNetwork : public IPNetwork {
 public:
 	int send(u_char*, int);
-	int recv(u_char*, int, sockaddr&);
+	int recv(u_char*, int, sockaddr&, double&);
 	int open(int mode);			// mode only
 
 	int command(int argc, const char*const* argv);
@@ -273,7 +273,7 @@ UDPIPNetwork::send(u_char* buf, int len)
 	return cc;	// bytes sent
 }
 int
-UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from)
+UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from, double& ts)
 {
 	sockaddr_in sfrom;
 	int fromlen = sizeof(sfrom);
@@ -305,6 +305,7 @@ UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from)
 		return (0);	// empty
 	}
 
+	ts = tod();	// now
 	return (cc);	// number of bytes received
 }
 
@@ -541,7 +542,7 @@ UDPIPNetwork::command(int argc, const char*const* argv)
 // raw IP network recv()
 //
 int
-IPNetwork::recv(u_char* buf, int len, sockaddr& sa)
+IPNetwork::recv(u_char* buf, int len, sockaddr& sa, double& ts)
 {
 	if (mode_ == O_WRONLY) {
 		fprintf(stderr,
@@ -556,6 +557,7 @@ IPNetwork::recv(u_char* buf, int len, sockaddr& sa)
 			perror("recvfrom");
 		return (-1);
 	}
+	ts = tod();
 	return (cc);
 }
 
