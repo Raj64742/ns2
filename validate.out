@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output
-### on Sat Sep 12 1998.
+### on Sun Sep 13 1998.
 ###
 ##################################################################
 *** ./test-all-simple
@@ -187,19 +187,10 @@ Test output agrees with reference output
 ../../ns test-suite-red.tcl red_twowaybytes QUIET
 Test output agrees with reference output
 ../../ns test-suite-red.tcl flows_unforced QUIET
-awkprocedure: unforcedmakeawk
-writing flow xgraph data to fairflow.xgr...
-running xgraph...
 Test output agrees with reference output
 ../../ns test-suite-red.tcl flows_forced QUIET
-awkprocedure: forcedmakeawk
-writing flow xgraph data to fairflow.xgr...
-running xgraph...
 Test output agrees with reference output
 ../../ns test-suite-red.tcl flows_combined QUIET
-awkprocedure: allmakeawk
-writing flow xgraph data to fairflow.xgr...
-running xgraph...
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack
@@ -875,24 +866,16 @@ All test output agrees with reference output.
 *** ./test-all-srm
 Tests: srm-chain srm-star srm-adapt-rep srm-adapt-req
 ../../ns test-suite-srm.tcl srm-chain QUIET
-seting mcast..
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-finishing..
 Test output agrees with reference output
 ../../ns test-suite-srm.tcl srm-star QUIET
-seting mcast..
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-finishing..
 Test output agrees with reference output
 ../../ns test-suite-srm.tcl srm-adapt-rep QUIET
-seting mcast..
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-finishing..
 Test output agrees with reference output
 ../../ns test-suite-srm.tcl srm-adapt-req QUIET
-seting mcast..
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
-finishing..
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-session
