@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.10.2.7 1997/04/29 06:30:22 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.10.2.8 1997/04/30 19:51:09 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -110,16 +110,17 @@ public:
 
 	inline Packet* head() { return head_; }
 	QueueMonitor*& qm() { return qm_; }
+
+        int ack_count_;         /* number of TCP acks in the queue */
+	int data_count_;        /* number of non-ack packets in the queue */
+	int acks_to_send_;      /* number of acks to send in current scheduling
+				   cycle */
 protected:
 	Packet* head_;
 	Packet** tail_;
 	QueueMonitor* qm_;	// queue monitor
 
 	int len_;		// packet count
-        int ack_count_;         /* number of TCP acks in the queue */
-	int data_count_;        /* number of non-ack packets in the queue */
-	int acks_to_send_;      /* number of acks to send in current scheduling
-				   cycle */
 };
 
 

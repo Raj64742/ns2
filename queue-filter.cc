@@ -59,6 +59,7 @@ QueueFilter::filter(PacketQueue *queue, Packet *p)
 				hdr_tcp *th = (hdr_tcp*) q->access(off_tcp_);
 				if (th->seqno() < ack) { // remove this ack
 				      queue->purge(q, qq);
+				      queue->ack_count_--;
 				      Packet::free(q); // should really be drop
 				      q = qq->next();
 				      continue;

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.2.2.4 1997/04/26 01:47:43 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.2.2.5 1997/04/30 19:51:07 padmanab Exp $ (LBL)";
 #endif
 
 #include <string.h>
@@ -45,14 +45,27 @@ static char rcsid[] =
  */
 void DropTail::enque(Packet* p)
 {
-	q_.enque(p);
+	if (interleave_ || acksfirst_)
+		q_.enque(p, off_cmn_);
+	else
+		q_.enque(p);
 	if (q_.length() > qlim_) { /* changed >= to > */
-		q_.remove(p);
+		if (ackfromfront_)
+			p = q_.remove_ackfromfront(p, off_cmn_);
+		else if (interleave_ || acksfirst_)
+			q_.remove(p, off_cmn_);
+		else
+			q_.remove(p);
 		drop(p);
 	}
 }
 
 Packet* DropTail::deque()
 {
-	return (q_.deque());
+	if (interleave_)
+		return(q_.deque_interleave(off_cmn_));
+	else if (acksfirst_)
+		return(q_.deque_acksfirst(off_cmn_));
+	else
+		return (q_.deque());
 }
