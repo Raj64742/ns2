@@ -50,8 +50,8 @@ current round-trip times and router-assigned throughput in each
 packet. XCP routers insert feedback into the packets that is
 interpreted by the sources. 
   
-XCP may be implemented for any transport protocol. However as an
-intial testing it has been implemented in TCP. The next section
+Although XCP may be implemented for any transport protocol, however as an
+initial test it has been implemented in TCP. The next section
 gives details of the way XCP is implemented in \ns{}.
 
 
@@ -68,7 +68,8 @@ portion of the code may be found under xcp.{cc,h} and xcpq.{cc,h}.
 \subsection{Endpoints in XCP}
 \label{sec:endpoints}
 
-The end points consist of the sender and receiver nodes. The
+The end points consist of TCP source and sink agents using XCP as their
+congestion control mechanism. The
 intermediate node or router writes feedback in each packet header as
 the delta\_throughput value, about the data capacity that may be
 incremented if feedback is positive and should be decreased if
@@ -77,11 +78,12 @@ value is returned to the sender in a reverse\_feedback field of a
 congestion header in the returning packet, which is an ACK packet in
 case of TCP. 
   
-  The sender upon receiving this reverse\_feedback value adjusts its
-  sending rate by increasing or decreasing its congestion window size as
-  the case maybe. 
+The sender upon receiving this reverse\_feedback value adjusts its
+sending rate by increasing or decreasing its congestion window size as
+the case maybe. 
 
-  The hdr\_xcp structure is defined as follows:
+The packet header that is used by XCP is implemented as a structure
+called hdr\_xcp in \ns{} and is defined as follows:
   \begin{program}
     double	throughput_;
     double	rtt_;
@@ -100,13 +102,13 @@ case of TCP.
     unsigned int controlling_hop_;
   \end{program}
   
-    The xcp receiver is responsible in copying the delta\_throughput
+    The xcp receiver is responsible for copying the delta\_throughput
     value into the reverse\_feedback field of the ack packets. In some
     cases where delayed ack is used the receiver calculates the sum of
     the delta\_throughput values in arriving packets for copying into the
     reverse\_feedback field of the outgoing ack packet.
 
-    In case of a packet loss in the network, the TCP's Van Jacobson
+    In case of a packet loss in the network, TCP's Van Jacobson
     congestion control overrides XCP. This happens with cwnd being
     halved and fast retransmit and fast recovery algorithms being used
     for the rest of the connection. The assumption here is that a packet
@@ -127,7 +129,7 @@ case of TCP.
     manner. Each queue has a weight that determines the percentage of the
     service it receives. The current queue weights of 0.5 each for the XCP
     and TCP allows equal service between the two. The third queue reserved
-    for OTHER flows has not been used as yet. 
+    for OTHER flows has not been used as yet and has a weight of 0.0. 
     
     OTCL Class Queue/XCP has a flag named tcp\_xcp\_on\_ which is set to
     a default 
@@ -136,16 +138,16 @@ case of TCP.
     of the router between the XCP and TCP queues in simulations that
     use both flow types. This is supposed to be a temporary fix and
     should go away once the dynamic queue weights come into effect. A
-    caveat for the tcp\_xcp flag is that it is set as a class xcp-queue
-    variable and not per instance of that class. This might cause some
-    problems in 
-    topologies that uses mix of xcp and tcp flows that donot run the
-    entire length of the topology but is seen as intermittent flows.
+    caveat for the tcp\_xcp flag is that it is set as a class variable
+    and not per instance variable. This might cause some 
+    problems in topologies that uses mix of intermittent xcp and tcp
+    flows for which some router would require to support both TCP and
+    XCP and some wouldn't.
     
     Every packet received by the wrapper queue class is first marked or
     assigned a code point depending on the type of the packet. Packets,
     for the current TCP implementation, are marked for XCP, TCP/TCP-ACK
-    and OTHER packets. This code point is used to enqueue packets in the right
+    and OTHER packets. This code point is used to enque packets in the right
     queue. The wrapper class is implemented in xcp.{cc,h}.
     
     
@@ -175,8 +177,8 @@ case of TCP.
     \code{ $queue queue-sample-everyrtt $rtt_value}
     
     where \$queue is a handle to the xcp router and \$rtt\_value is the
-    interval for which parameters like packet drop , queue size etc
-    shall be measured in the xcp queue. See example script under
+    interval for which xcp queue parameters like packet drop , queue size etc
+    shall be measured. See example script under
     \nsf{tcl/ex/xcp/parking\_lot\_topo/parking\_lot\_topo.tcl} for use of
     this API.
     
@@ -184,7 +186,7 @@ case of TCP.
     incremented by the size of the packet received. The sum of inversed
     throughput and sum of rtt by throughput is incremented as
     well. Values for throughput and rtt are read from the xcp header as
-    set by the source. Each value is normalised by the packet size.
+    set by the TCP source. Each value is normalised by the packet size.
     
     On the event of the estimation timer going off, average rtt of all
     flows is estimated using the above two sums as follows
@@ -206,11 +208,10 @@ case of TCP.
     per-flow while negative feedback is made proportional to each flow's
     capacity. Also a downsream router can change the delta\_throughput
     value in a packet's header only if the feedback value calculated is
-    less than that in the header (written by an upstream less congested
+    less than that in the header (written by an less congested upstream
     router). The implementation of XCP queue in \ns{} may be found in
     xcpq.\{cc,h\}. 
-  
-  
+    
   
     \section{XCP example script}
     \label{sec:example}

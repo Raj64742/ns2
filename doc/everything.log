@@ -1,4 +1,4 @@
-This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 2003.2.18)  11 JAN 2005 18:08
+This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 2003.2.18)  11 JAN 2005 18:28
 **everything
 (everything.tex
 LaTeX2e <2001/06/01>
@@ -803,7 +803,7 @@ Chapter 21.
 
 
 
-] [201] [202] [203] [204] [205]) [206] [207
+] [201] [202] [203] [204] [205] [206]) [207] [208
 
 
 ]
@@ -811,10 +811,10 @@ Chapter 21.
 
  (debug.tex
 Chapter 22.
-[208
+[209
 
 
-] [209]
+] [210]
 Overfull \hbox (3.84097pt too wide) in paragraph at lines 123--132
 \T1/ptm/m/n/10 doc-u-men-ta-tion at http://www.letters.com/dmalloc/ and get the
  source code from ftp://ftp.letters.com/src/dmalloc/dmalloc.tar.gz
@@ -827,13 +827,13 @@ e ns <logfile\T1/ptm/m/n/10 . (You need to down-load \T1/pcr/m/n/10 dmalloc_sum
 marize
  []
 
-[210]
+[211]
 Overfull \hbox (12.72655pt too wide) in paragraph at lines 198--204
 \T1/pcr/m/n/10 [new CtrMcast $ns $n(1) $ctrmcastcomp [list 1 1]] \T1/ptm/m/n/10
  would be bet-ter if re-placed by \T1/pcr/m/n/10 new CtrMcast
  []
 
-[211]) [212]
+[212]) [213]
 \openout2 = `math.aux'.
 
  (math.tex
@@ -843,48 +843,48 @@ File: figures/rng-streams.eps Graphic file (type eps)
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[213
+[214
 
 
 
-] [214] [215] [216] [217] [218] [219] [220]
+] [215] [216] [217] [218] [219] [220] [221]
 Underfull \hbox (badness 10000) in paragraph at lines 471--472
 
  []
 
-[221]) [222]
+[222]) [223]
 \openout2 = `trace.aux'.
 
  (trace.tex
 Chapter 24.
-[223
+[224
 
 
 
-] [224] [225] [226] [227] [228] [229] [230] [231] [232] [233]
+] [225] [226] [227] [228] [229] [230] [231] [232] [233] [234]
 Overfull \hbox (50.00006pt too wide) in paragraph at lines 795--795
 [][] 
  []
 
-[234] [235]) [236]
+[235] [236]) [237]
 \openout2 = `testsuite.aux'.
 
  (testsuite.tex
 Chapter 25.
-[237
+[238
 
 
 
-] [238]) [239]
+] [239]) [240]
 \openout2 = `codestyle.aux'.
 
  (codestyle.tex
 Chapter 26.
-[240
+[241
 
 
 
-]) [241] [242
+]) [242] [243
 
 
 ]
@@ -896,14 +896,14 @@ No file rtarch.tex.
 
 (unicast.tex
 Chapter 27.
-[243
+[244
 
 
 
 
-] [244]
+] [245]
 File: ./figures/asymmetric_routing.eps Graphic file (type eps)
- <./figures/asymmetric_routing.eps> [245] [246]
+ <./figures/asymmetric_routing.eps> [246] [247]
 Overfull \hbox (9.925pt too wide) in paragraph at lines 335--338
 []\T1/ptm/m/n/10 If there are no el-e-ments in \T1/pcr/m/n/10 rtprotos_\T1/ptm/
 m/n/10 , the rou-tine in-vokes Static rout-ing, as \T1/pcr/m/n/10 Agent/rtProto
@@ -916,29 +916,29 @@ Overfull \hbox (0.50368pt too wide) in paragraph at lines 350--356
 same name. The pro-ce-dure queries the ap-pro-pri-ate \T1/pcr/m/n/10 rtObject
  []
 
-[247] [248] [249]
+[248] [249] [250]
 Overfull \hbox (4.37482pt too wide) in paragraph at lines 711--724
 \T1/ptm/m/n/10 the route changes at the node, in-di-cat-ing the num-ber of chan
 ges that have been ex-e-cuted. \T1/pcr/m/n/10 rtObject::flag-multicast\T1/ptm/m
 /n/10 {}
  []
 
-[250] [251] [252]) [253]
+[251] [252] [253]) [254]
 \openout2 = `multicast.aux'.
 
  (multicast.tex
 Chapter 28.
-[254
+[255
 
 
 
-] [255] [256] [257] [258]
+] [256] [257] [258] [259]
 Underfull \hbox (badness 2012) in paragraph at lines 435--435
 []|\T1/ptm/m/n/10 Class pro-ce-dures for ad-dress man-age-ment. \T1/pcr/m/n/10 
 expandaddr\T1/ptm/m/n/10 {} is now ob-so-leted.
  []
 
-[259] [260] [261] [262]
+[260] [261] [262] [263]
 Underfull \hbox (badness 10000) in paragraph at lines 672--672
 []|\T1/ptm/m/n/10 depending on the value of \T1/pcr/m/n/10 CacheMissMode
  []
@@ -965,34 +965,34 @@ Underfull \hbox (badness 7081) in paragraph at lines 672--672
 e is in-voked by
  []
 
-[263] [264] [265]) [266]
+[264] [265] [266]) [267]
 \openout2 = `dynamics.aux'.
 
  (dynamics.tex
 Chapter 29.
-[267
+[268
 
 
 
-] [268]
+] [269]
 Overfull \hbox (3.52374pt too wide) in paragraph at lines 225--233
 \T1/ptm/m/n/10 The next se-quence of con-fig-u-ra-tion steps are taken just pri
 or to the start of the sim-u-la-tor. \T1/ptm/m/it/10 ns \T1/ptm/m/n/10 in-vokes
  \T1/pcr/m/n/10 rtmodel-configure\T1/ptm/m/n/10 {}
  []
 
-[269] [270] [271] [272]) [273]
+[270] [271] [272] [273]) [274]
 \openout2 = `hier-rtg.aux'.
 
  (hier-rtg.tex
 Chapter 30.
-[274
+[275
 
 
 
-] [275]
+] [276]
 File: ./figures/hier-classifier.eps Graphic file (type eps)
- <./figures/hier-classifier.eps> [276]) [277] [278
+ <./figures/hier-classifier.eps> [277]) [278] [279
 
 
 ]
@@ -1000,78 +1000,78 @@ File: ./figures/hier-classifier.eps Graphic file (type eps)
 
  (udp.tex
 Chapter 31.
-[279
+[280
 
 
-]) [280]
+]) [281]
 \openout2 = `tcp.aux'.
 
  (tcp.tex
 Chapter 32.
-[281
+[282
 
 
 
-] [282] [283] [284] [285] [286] [287] [288] [289]) [290]
+] [283] [284] [285] [286] [287] [288] [289] [290]) [291]
 \openout2 = `sctp.aux'.
 
  (sctp.tex
 Chapter 33.
-[291
+[292
 
 
 
 ]
 File: ./figures/sctp-multihomedNode.eps Graphic file (type eps)
- <./figures/sctp-multihomedNode.eps> [292] [293]
+ <./figures/sctp-multihomedNode.eps> [293] [294]
 
-LaTeX Warning: Citation `SCTP_CARO_2003b' on page 294 undefined on input line 2
+LaTeX Warning: Citation `SCTP_CARO_2003b' on page 295 undefined on input line 2
 69.
 
-[294]
+[295]
 
-LaTeX Warning: Citation `SCTP_CARO_2003e' on page 295 undefined on input line 2
+LaTeX Warning: Citation `SCTP_CARO_2003e' on page 296 undefined on input line 2
 90.
 
 
-LaTeX Warning: Citation `SCTP_CARO_2003e' on page 295 undefined on input line 3
+LaTeX Warning: Citation `SCTP_CARO_2003e' on page 296 undefined on input line 3
 12.
 
 
-LaTeX Warning: Citation `SCTP_CARO_2003e' on page 295 undefined on input line 3
+LaTeX Warning: Citation `SCTP_CARO_2003e' on page 296 undefined on input line 3
 23.
 
-[295] [296] [297] [298]) [299]
+[296] [297] [298] [299]) [300]
 \openout2 = `srm.aux'.
 
  (srm.tex
 Chapter 34.
-[300
+[301
 
 
 
-] [301] [302] [303] [304] [305]
+] [302] [303] [304] [305] [306]
 Overfull \hbox (4.41515pt too wide) in paragraph at lines 395--406
 []\T1/ptm/m/n/10 The log-ging of re-quest and re-pair traces is done by \T1/pcr
 /m/n/10 SRM::evTrace\T1/ptm/m/n/10 {}. How-ever, the rou-tine \T1/pcr/m/n/10 SR
 M/Session::evTrace\T1/ptm/m/n/10 {},
  []
 
-[306]
+[307]
 Overfull \hbox (33.73381pt too wide) in paragraph at lines 480--488
 \T1/ptm/m/n/10 ever, the agent as-sumes that any ap-pli-ca-tion data is placed 
 in the data por-tion of the packet, pointed to by \T1/pcr/m/n/10 packet->access
 data()\T1/ptm/m/n/10 . 
  []
 
-[307] [308]
+[308] [309]
 Overfull \hbox (2.8842pt too wide) in paragraph at lines 660--671
 \T1/ptm/m/n/10 fixes other schedul-ing pa-ram-e-ters: the back-off con-stant (\
 T1/pcr/m/n/10 backoff_\T1/ptm/m/n/10 ), the cur-rent num-ber of back-offs (\T1/
 pcr/m/n/10 backoffCtr_\T1/ptm/m/n/10 ),
  []
 
-[309] [310]
+[310] [311]
 Overfull \hbox (8.04716pt too wide) in paragraph at lines 892--907
 \T1/ptm/m/n/10 The \T1/pcr/m/n/10 class Agent/SRM/Adaptive \T1/ptm/m/n/10 uses 
 \T1/pcr/m/n/10 class SRM/request/Adaptive \T1/ptm/m/n/10 and \T1/pcr/m/n/10 cla
@@ -1092,12 +1092,12 @@ Overfull \hbox (7.04312pt too wide) in paragraph at lines 941--950
 re, \T1/pcr/m/n/10 sending-repair\T1/ptm/m/n/10 {},
  []
 
-[311] [312] [313]) [314]
+[312] [313] [314]) [315]
 \openout2 = `plm.aux'.
 
  (plm.tex
 Chapter 35.
-[315
+[316
 
 
 
@@ -1107,9 +1107,9 @@ Underfull \hbox (badness 1152) in paragraph at lines 72--76
 o out-put to 3 full out-put. For
  []
 
-[316] [317]
+[317] [318]
 File: figures/instanPLMrecv.eps Graphic file (type eps)
- <figures/instanPLMrecv.eps> [318] [319] [320]) [321] [322
+ <figures/instanPLMrecv.eps> [319] [320] [321]) [322] [323
 
 
 ]
@@ -1119,24 +1119,24 @@ File: figures/instanPLMrecv.eps Graphic file (type eps)
 (applications.tex
 Chapter 36.
 File: ./figures/application.eps Graphic file (type eps)
-<./figures/application.eps> [323
+<./figures/application.eps> [324
 
 
-] [324]
+] [325]
 Overfull \hbox (13.18585pt too wide) in paragraph at lines 136--141
 []\T1/pcr/m/n/10 sendmsg(int nbytes, const char* flags = 0)\T1/ptm/m/n/10 ---Id
 entical to \T1/pcr/m/n/10 send(int nbytes)\T1/ptm/m/n/10 , ex-cept that it pass
 es
  []
 
-[325] [326] [327]
+[326] [327] [328]
 Overfull \hbox (22.04388pt too wide) in paragraph at lines 332--342
 []\T1/ptm/b/n/10 NOTE: \T1/ptm/m/n/10 The Ex-po-nen-tial On/Off gen-er-a-tor ca
 n be con-fig-ured to be-have as a \T1/ptm/b/n/10 Pois-son pro-cess \T1/ptm/m/n/
 10 by set-ting the vari-able \T1/pcr/m/n/10 burst_time_
  []
 
-[328] [329] [330]
+[329] [330] [331]
 Overfull \hbox (59.04251pt too wide) in paragraph at lines 523--531
 []\T1/ptm/m/n/10 Application/Traffic/Trace ob-jects are used to gen-er-ate traf
 -fic from a trace file. \T1/pcr/m/n/10 $trace attach-tracefile
@@ -1147,27 +1147,27 @@ Underfull \hbox (badness 10000) in paragraph at lines 523--531
 
  []
 
-[331]
+[332]
 Overfull \hbox (4.33275pt too wide) in paragraph at lines 586--594
 \T1/ptm/m/n/10 tion/Traffic/Trace ob-jects de-scribed ear-lier in this sec-tion
 ). \T1/pcr/m/n/10 $tracefile \T1/ptm/m/n/10 is an in-stance of the Trace-file O
 b-ject. \T1/pcr/m/n/10 $tracefile
  []
 
-) [332]
+) [333]
 \openout2 = `webcache.aux'.
 
  (webcache.tex
 Chapter 37.
 File: ./figures/app-dataflow.eps Graphic file (type eps)
-<./figures/app-dataflow.eps> [333
+<./figures/app-dataflow.eps> [334
 
 
 
-] [334] [335] [336]
+] [335] [336] [337]
 File: ./figures/appdata-hier.eps Graphic file (type eps)
 
-<./figures/appdata-hier.eps> [337] [338]
+<./figures/appdata-hier.eps> [338] [339]
 Overfull \hbox (29.54924pt too wide) in paragraph at lines 445--448
 []\T1/pcr/m/n/10 name(char *buf) \T1/ptm/m/n/10 - Print the page's name into th
 e given buffer. A page's name is in the for-mat of: $\OMS/cmsy/m/n/10 h$\T1/ptm
@@ -1175,9 +1175,9 @@ e given buffer. A page's name is in the for-mat of: $\OMS/cmsy/m/n/10 h$\T1/ptm
 tm/m/n/10 PageID$\OMS/cmsy/m/n/10 i$\T1/ptm/m/n/10 . 
  []
 
-[339]
+[340]
 File: ./figures/pagepool-hier.eps Graphic file (type eps)
- <./figures/pagepool-hier.eps> [340] [341] [342]
+ <./figures/pagepool-hier.eps> [341] [342] [343]
 Overfull \hbox (60.33748pt too wide) in paragraph at lines 681--681
  []        \T1/pcr/m/n/10 WebTrafSession(WebTrafPool *mgr, Node *src, int np, i
 nt id) : rvInterPage_(NULL),[] 
@@ -1201,29 +1201,29 @@ Overfull \hbox (12.33748pt too wide) in paragraph at lines 726--726
  for the next object[] 
  []
 
-[343] [344] [345]
+[344] [345] [346]
 File: ./figures/cache-flowchart.eps Graphic file (type eps)
  <./figures/cache-flowchart.eps>
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[346] [347] [348] [349] [350]) [351]
+[347] [348] [349] [350] [351]) [352]
 \openout2 = `worm-model.aux'.
 
  (worm-model.tex
 Chapter 38.
 File: figures/dn-an.eps Graphic file (type eps)
-<figures/dn-an.eps> [352
+<figures/dn-an.eps> [353
 
 
 
-] [353]
+] [354]
 Overfull \hbox (35.33745pt too wide) in paragraph at lines 135--135
 []  \T1/pcr/m/n/10 $w v_percent 0.01          # the percentage of vulnerable ho
 sts in the abstract network[] 
  []
 
-) [354] [355
+) [355] [356
 
 
 ]
@@ -1231,25 +1231,25 @@ sts in the abstract network[]
 
  (session.tex
 Chapter 39.
-[356
+[357
 
 
 ]
 File: ./figures/regularTree.eps Graphic file (type eps)
  <./figures/regularTree.eps>
 File: ./figures/sessionTree.eps Graphic file (type eps)
- <./figures/sessionTree.eps> [357] [358]
-[359] [360]) [361]
+ <./figures/sessionTree.eps> [358] [359]
+[360] [361]) [362]
 \openout2 = `asim.aux'.
 
  (asim.tex
 Chapter 40.
 File: figures/struct.eps Graphic file (type eps)
-<figures/struct.eps> [362
+<figures/struct.eps> [363
 
 
 
-] [363] [364]) [365] [366
+] [364] [365]) [366] [367
 
 
 ]
@@ -1257,17 +1257,17 @@ File: figures/struct.eps Graphic file (type eps)
 
  (emulation.tex
 Chapter 41.
-[367
+[368
 
 
-] [368]
+] [369]
 Overfull \hbox (80.38358pt too wide) in paragraph at lines 162--176
 \T1/ptm/m/n/10 These ob-jects pro-vide an ex-tended in-ter-face to the LBNL pac
 ket cap-ture li-brary (libp-cap). (See \T1/pcr/m/n/10 ftp://ftp.ee.lbl.gov/libp
 cap.tar.Z
  []
 
-[369] [370] [371]) [372] [373
+[370] [371] [372]) [373] [374
 
 
 ]
@@ -1286,15 +1286,15 @@ Overfull \hbox (1160.51964pt too wide) in paragraph at lines 28--42
 [][] 
  []
 
-[374
+[375
 
 
-] [375] [376] [377]) [378]
+] [376] [377] [378]) [379]
 \openout2 = `namtrace.aux'.
 
  (namtrace.tex
 Chapter 43.
-[379
+[380
 
 
 
@@ -1309,7 +1309,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 88--89
 
  []
 
-[380]
+[381]
 Overfull \hbox (17.33745pt too wide) in paragraph at lines 127--132
 \T1/pcr/m/n/10 n -t <time> -a <src-addr> -s <src-id> -S <state> -v <shape> -c <
 color> -i <l-color> -o
@@ -1321,12 +1321,12 @@ Overfull \hbox (11.33745pt too wide) in paragraph at lines 159--165
 on -r <bw> -D <delay> 
  []
 
-[381]
+[382]
 Underfull \hbox (badness 10000) in paragraph at lines 209--210
 
  []
 
-[382] [383]
+[383] [384]
 Overfull \hbox (11.33745pt too wide) in paragraph at lines 303--315
 \T1/pcr/m/n/10 f -t <time> -s <src> -a <agentname> -T <type> -n <varname> -v <v
 alue> -o <prev value> 
@@ -1342,7 +1342,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 334--336
 
  []
 
-[384]
+[385]
 Underfull \hbox (badness 10000) in paragraph at lines 367--368
 
  []
@@ -1362,14 +1362,14 @@ Underfull \hbox (badness 10000) in paragraph at lines 387--389
 
  []
 
-[385] [386] [387] [388] (nam_trace_format_table.tex [389] [390] [391] [392]
-[393]) [394] [395]
+[386] [387] [388] [389] (nam_trace_format_table.tex [390] [391] [392] [393]
+[394]) [395] [396]
 Overfull \hbox (2.12503pt too wide) in paragraph at lines 725--732
 \T1/ptm/m/n/10 spaces, it must be quoted us-ing the dou-ble quote. An ex-am-ple
  of this would be \T1/pcr/m/n/10 $ns at $time ''$ns trace-annotate
  []
 
-) [396] [397
+) [397] [398
 
 
 ]
@@ -1377,15 +1377,15 @@ Overfull \hbox (2.12503pt too wide) in paragraph at lines 725--732
 
  (educational.tex
 Chapter 44.
-[398
+[399
 
 
-]) [399] (everything.bbl [400
+]) [400] (everything.bbl [401
 
 
 ])
 No file everything.ind.
-[401] (everything.aux (basic.aux) (undocumented.aux) (otcl.aux) (sim.aux)
+[402] (everything.aux (basic.aux) (undocumented.aux) (otcl.aux) (sim.aux)
 (nodes.aux) (links.aux) (queue_mgmt.aux) (delays.aux) (diffserv.aux)
 (agents.aux) (timers.aux) (events.aux) (packet_format.aux) (error_model.aux)
 (lan.aux) (address.aux) (mobility.aux) (satellite.aux) (propagation.aux)
@@ -1404,10 +1404,10 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  3239 strings out of 20880
  37153 string characters out of 196184
- 119679 words of memory out of 350001
+ 118679 words of memory out of 350001
  6008 multiletter control sequences out of 10000+15000
  56436 words of font info for 60 fonts, out of 400000 for 1000
  14 hyphenation exceptions out of 10000
  32i,10n,24p,916b,445s stack positions out of 3000i,100n,1500p,50000b,4000s
 
-Output written on everything.dvi (402 pages, 1310988 bytes).
+Output written on everything.dvi (403 pages, 1311236 bytes).
