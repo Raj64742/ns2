@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.3 2000/07/07 21:28:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.4 2000/07/18 02:41:47 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -136,7 +136,8 @@ Test/tcp instproc run {} {
     $ns_ at 15.0 "$ftp2 stop"
 
 
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    ###$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -236,7 +237,8 @@ Test/ssthresh instproc run {} {
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at $stopTime0 "$ftp1 stop"
     
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    ###$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -289,7 +291,8 @@ Test/ssthresh_second instproc run {} {
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at $stopTime0 "$ftp1 stop"
     
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    ###$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
