@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.13 1997/10/27 23:02:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.14 1997/11/06 03:04:34 heideman Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -42,11 +42,12 @@
 file="test-suite.tcl"
 directory="test-output"
 quiet="false"
+failed=false
 tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' $file`
 if [ $# -ge 1 ] 
 then
         flag="$*"
-	if (test "$flag" = "QUIET" -o "$flag" = "quiet") then
+	if test "$flag" = "QUIET" -o "$flag" = "quiet"; then
 	    quiet="true"
 	else
 	    tests="$*"
@@ -60,14 +61,14 @@ fi
 
 echo $tests
 for t in $tests; do
-    if (test "$quiet" = "false") then
+    if test "$quiet" = "false"; then
     	echo
     fi
     echo Running test $t
 
     # Beware that xgraph is run on temp.rands asynchronously, if it
     # is slow to launch, you may get an incorrect graph
-    if (test "$quiet" = "true") then
+    if test "$quiet" = "true"; then
     	./ns $file $t QUIET
     else 
 	./ns $file $t
@@ -85,12 +86,21 @@ for t in $tests; do
 		cp temp.rands $directory/$t.test
 	        echo "Diagnose with: diff $directory/$t.test $directory/$t"
 	 	echo "Differences due to floating-point formatting are not significant."
+		failed=true
 
 	    fi
 	fi
     fi
-    if (test "$quiet" = "false") then
+    if test "$quiet" = "false"; then
         echo 'next?'
         read answer
     fi
 done
+
+if $failed
+then
+	exit 1
+else
+	exit 0
+fi
+

@@ -1,24 +1,53 @@
 #!/bin/sh
-##
-## For members of the VINT project, as a temporary measure, 
-## one of the ways to run automatic validation
-## is the following:
-## ./validate > out ; diff out validate.out
-##
-## If all that prints out is a list of messages about
-## "warning: using backward compatibility mode",
-## then the automatic validation scripts ran correctly.
-##
 
-echo "*** test-all"
-./test-all quiet
+#
+# validate -- run all the test scripts
+#
+# Copyright (c) 1997 University of Southern California.
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+
+
+
+try () {
+	echo "*** $1"
+	$1 quiet || {
+		any_failed=true
+		failed_list="$failed_list $1"
+	}
+	return $?
+}
+
+
+any_failed=false
+failed_list=""
+try ./test-all
 
 cd tcl/test
-for i in red sack schedule tcp red-v1 cbq-v1 sack-v1 v1
+for i in tcp red sack schedule tcp red-v1 cbq-v1 sack-v1 v1
 do
-	p=./test-all-$i
-	echo "*** $p"
-	$p quiet
+	try ./test-all-$i
 done
 
-exit 0
+if $any_failed
+then
+	echo "validate overall report: some tests failed:"
+	echo "    $failed_list"
+	exit 1
+else
+	echo "validate overall report: all tests passed"
+	exit 0
+fi

@@ -7,3 +7,9 @@ t6.tcl
 t7.tcl
 t8.tcl
 temp.*
+*.tr
+*.tr1
+all.q
+out.*
+fairflow.tr
+fairflow.xgr
