@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.19 1999/11/19 00:44:49 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.20 2000/05/16 05:53:17 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -57,6 +57,7 @@ Topology instproc makenodes ns {
     set node_(r2) [$ns node]
     set node_(s3) [$ns node]
     set node_(s4) [$ns node]
+    set node_(r3) [$ns node]
 }
 
 Topology instproc createlinks ns {  
@@ -78,6 +79,30 @@ Topology instproc createlinks ns {
     $ns duplex-link-op $node_(s4) $node_(r2) orient left-up
 }
 
+Topology instproc createlinks3 ns {  
+    $self instvar node_
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 25
+    $ns queue-limit $node_(r2) $node_(r1) 25
+    $ns duplex-link $node_(r2) $node_(r3) 100Mb 0ms RED
+    $ns queue-limit $node_(r2) $node_(r3) 100
+    $ns queue-limit $node_(r3) $node_(r2) 100
+    $ns duplex-link $node_(s3) $node_(r3) 10Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r3) 10Mb 5ms DropTail
+
+    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
+    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
+    $ns duplex-link-op $node_(r1) $node_(r2) orient right
+    $ns duplex-link-op $node_(r1) $node_(r2) queuePos 0
+    $ns duplex-link-op $node_(r2) $node_(r1) queuePos 0
+    $ns duplex-link-op $node_(r2) $node_(r3) queuePos 0
+    $ns duplex-link-op $node_(r3) $node_(r2) queuePos 0
+    $ns duplex-link-op $node_(s3) $node_(r3) orient left-down
+    $ns duplex-link-op $node_(s4) $node_(r3) orient left-up
+}
+
 Class Topology/net2 -superclass Topology
 Topology/net2 instproc init ns {
     $self instvar node_
@@ -97,6 +122,33 @@ Topology/net2-lossy instproc init ns {
     set errmodel [new ErrorModel/Periodic]
     $errmodel unit pkt
     $lossylink_ errormodule $em
+    $em insert $errmodel
+    $em bind $errmodel 0
+    $em default pass
+} 
+
+Class Topology/net3-lossy -superclass Topology
+Topology/net3-lossy instproc init ns {
+    $self instvar node_
+    $self makenodes $ns
+    $self createlinks3 $ns
+ 
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r1) $node_(r2)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+    $em insert $errmodel
+    $em bind $errmodel 0
+    $em default pass
+
+    $self instvar lossylink1_
+    set lossylink1_ [$ns link $node_(r2) $node_(r3)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink1_ errormodule $em
     $em insert $errmodel
     $em bind $errmodel 0
     $em default pass
@@ -198,8 +250,15 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
 
 TestSuite instproc emod {} {
 	$self instvar topo_
-	$topo_ instvar lossylink_
+	$topo_ instvar lossylink_ 
         set errmodule [$lossylink_ errormodule]
+	return $errmodule
+}
+
+TestSuite instproc emod2 {} {
+	$self instvar topo_
+	$topo_ instvar lossylink1_ 
+        set errmodule [$lossylink1_ errormodule]
 	return $errmodule
 }
 
@@ -219,13 +278,14 @@ TestSuite instproc setTopo {} {
     $self instvar node_ net_ ns_ topo_
 
     set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net2" || $net_ == "net2-lossy"} {
+    if {$net_ == "net2" || $net_ == "net2-lossy"|| $net_ == "net3-lossy"} {
         set node_(s1) [$topo_ node? s1]    
         set node_(s2) [$topo_ node? s2]    
         set node_(s3) [$topo_ node? s3]    
         set node_(s4) [$topo_ node? s4]    
         set node_(r1) [$topo_ node? r1]    
         set node_(r2) [$topo_ node? r2]    
+        set node_(r3) [$topo_ node? r3]
         [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout    
     }
     if {$net_ == "net6"} {
@@ -361,6 +421,15 @@ TestSuite instproc drop_pkts pkts {
     $emod insert $errmodel1
     $emod bind $errmodel1 1
 
+}
+
+TestSuite instproc drop_pkts2 pkts {
+    $self instvar ns_ errmodel2
+    set emod [$self emod2]
+    set errmodel2 [new ErrorModel/List]
+    $errmodel2 droplist $pkts
+    $emod insert $errmodel2
+    $emod bind $errmodel2 1
 }
 
 #######################################################################
@@ -617,6 +686,62 @@ Test/ecn_smallwinEcn_tahoe instproc run {} {
 	$ns_ run
 }
 
+# ECN, cwnd 4, packet 4 is dropped, and then packet 6 is marked. 
+# The retransmit timer expires, packet 4 is retransmitted, and then the
+#   ECN bit is set on the retransmitted packet.
+# The ACK for packet 4 comes in, cancelling the retransmit timer, but
+#   there was a bug so that the retransmit timer was never reset. 
+# The retransmit timer was set after we send a packet,
+# after we get an ACK *ONLY IF* there is outstanding data,
+# and after three dup ACKs.
+# The retransmit timer also has to be set after an ACK when there is
+#  no outstanding data but we are unable to send because of cwnd < 1.
+
+Class Test/ecn_smallwin1Ecn_tahoe -superclass TestSuite
+Test/ecn_smallwin1Ecn_tahoe instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net3-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_smallwin1Ecn_tahoe
+        $self next
+}
+Test/ecn_smallwin1Ecn_tahoe instproc run {} {
+	$self instvar ns_ errmodel1 errmodel2
+	Agent/TCP set old_ecn_ 0
+	$self ecnsetup Tahoe 10.0 1
+	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
+	$errmodel1 set markecn_ true
+	$self drop_pkts2 {6}
+	$errmodel2 set markecn_ false
+	$ns_ run
+}
+
+# ECN with a window of one packet, slow_start_restart_ false.
+Class Test/ecn_smallwin2Ecn_tahoe -superclass TestSuite
+Test/ecn_smallwin2Ecn_tahoe instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net2-lossy
+	Agent/TCP set bugFix_ true
+	Agent/TCP set slow_start_restart_ false
+        set test_	ecn_smallwin2Ecn_tahoe
+	Test/ecn_smallwin2Ecn_tahoe instproc run {} [Test/ecn_smallwinEcn_tahoe info instbody run ]
+        $self next
+}
+
+Class Test/ecn_smallwin3Ecn_tahoe -superclass TestSuite
+Test/ecn_smallwin3Ecn_tahoe instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net3-lossy
+	Agent/TCP set bugFix_ true
+	Agent/TCP set slow_start_restart_ false
+        set test_	ecn_smallwin3Ecn_tahoe
+	Test/ecn_smallwin3Ecn_tahoe instproc run {} [Test/ecn_smallwin1Ecn_tahoe info instbody run ]
+        $self next
+}
+
 # Packet drops for the second packet.
 Class Test/ecn_secondpkt_tahoe -superclass TestSuite
 Test/ecn_secondpkt_tahoe instproc init {} {
@@ -653,6 +778,18 @@ Test/ecn_secondpktEcn_tahoe instproc run {} {
 	$self drop_pkts {1 3} 
 	$errmodel1 set markecn_ true
 	$ns_ run
+}
+
+# ECN for the second packet.
+Class Test/ecn_secondpkt1Ecn_tahoe -superclass TestSuite
+Test/ecn_secondpkt1Ecn_tahoe instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_secondpkt1Ecn_tahoe
+	Test/ecn_secondpkt1Ecn_tahoe instproc run {} [Test/ecn_secondpktEcn_tahoe info instbody run ] 
+        $self next
 }
 
 #######################################################################
