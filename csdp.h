@@ -54,19 +54,16 @@ protected:
 class Csdp : public Queue {
 public:
 	Csdp();
-	void recv(Packet*, Handler*);
+	virtual double weight(IdPacketQueue*);
 	virtual void updateState(IdPacketQueue*, Packet*);
-	virtual IdPacketQueue* selectQueue();
 
 protected:
 	void enque(Packet*);
 	Packet* deque();
-	double totalscore_;
 	IdPacketQueue** q_;
 	int numq_;
 	int maxq_;
-	int off_ip_;
-	int off_ll_;
+	double totalweight_;
 };
 
 #endif

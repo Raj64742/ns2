@@ -32,8 +32,6 @@
  * SUCH DAMAGE.
  */
 
-#include <iostream.h>
-#include <stdlib.h>
 #include "random.h"
 #include "packet.h"
 #include "errmodel.h"
@@ -48,6 +46,14 @@ public:
 } class_errormodel;
 
 
+ErrorModel::ErrorModel(ErrorUnit eu) : unit_(eu), rate_(0), time_(0), loss_(0), good_(0), errorLen_(0)
+{
+	bind_time("rate_", &rate_);
+	bind_time("time_", &time_);
+	bind_time("errorLen_", &errorLen_);
+}
+
+
 int 
 ErrorModel::command(int argc, const char*const* argv)
 {
@@ -56,20 +62,6 @@ ErrorModel::command(int argc, const char*const* argv)
 		rate_ = atof(argv[ac+2]);
 		return (TCL_OK);
 	}
-	if (!strcmp(argv[ac+1], "unit")) {
-		if (!strcmp(argv[ac+2], "bit"))
-			unit_ = EuBit;
-		else if (!strcmp(argv[ac+2], "time"))
-			unit_ = EuTime;
-		else
-			unit_ = EuPacket;
-		return (TCL_OK);
-	}
-	if (!strcmp(argv[ac+1], "dump")) {
-		ofs_.open(argv[ac+2]);
-		if (ofs_)
-			return (TCL_OK);
-	}
 	return (TCL_ERROR);
 }
 
@@ -77,8 +69,14 @@ ErrorModel::command(int argc, const char*const* argv)
 void
 ErrorModel::recv(Packet* p)
 {
-	corrupt(p);
-	target_->recv(p);
+	if (corrupt(p)) {
+		loss_++;
+		p->error() |= 1;
+	}
+	good_++;
+	if (target_)
+		target_->recv(p);
+	// XXX
 }
 
 
@@ -86,26 +84,12 @@ int
 ErrorModel::corrupt(Packet* p)
 {
 	double u = Random::uniform();
-	if (u < rate_) {
-		loss_++;
-		p->error() |= 1;
+	if (unit_ == EuPacket)
+		return (u < rate_);
+	else if (unit_ == EuBit) {
+		hdr_cmn *hdr = (hdr_cmn*) p->access(off_cmn_);
+		double per = pow(rate_, 8. * hdr->size());
+		return (u < per);
 	}
-	else {
-		if (loss_) {
-			dump();
-			loss_ = good_ = 0;
-		}
-		good_++;
-	}
-	return (u < rate_);
-}
-
-
-void
-ErrorModel::dump()
-{
-	if (ofs_) {
-		ofs_ << Scheduler::instance().clock()
-			<< "\t" << loss_ << "\t" << good_ << "\n";
-	}
+	return 0;
 }

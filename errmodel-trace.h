@@ -38,15 +38,32 @@
 #include "errmodel.h"
 
 
+class ErrorModelTrace;
+
+class EmTraceHandler : public Handler {
+public:
+	EmTraceHandler(ErrorModelTrace& em) : em_(em) {}
+	void handle(Event*);
+protected:
+	ErrorModelTrace& em_;
+};
+
+
 class ErrorModelTrace : public ErrorModel {
 public:
-	ErrorModelTrace() : ErrorModel() {}
-	virtual int command(int argc, const char*const* argv);
+	ErrorModelTrace();
 	virtual int corrupt(Packet*);
-	int read(const char *filename);
+	void start();
+	void timeout();
 
 protected:
-	ifstream ifs_;
+	int command(int argc, const char*const* argv);
+        Tcl_Channel channel_;
+	double start_;		// starting time of error model
+	double ts_;		// start of the next error
+	double len_;		// length of the next error
+	Event intr_;
+	EmTraceHandler hTmo_;	// timeout handler
 };
 
 #endif

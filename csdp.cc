@@ -48,32 +48,14 @@ public:
 
 Csdp::Csdp() : maxq_(4), numq_(0)
 {
-	bind("off_ip_", &off_ip_);
-	bind("off_ll_", &off_ll_);
 	q_ = new IdPacketQueue*[maxq_];
-}
-
-
-void
-Csdp::recv(Packet* p, Handler* h)
-{
-	enque(p);
-	if (!blocked_) {
-		blocked_ = 1;
-		p = deque();
-		if (p != 0)
-			target_->recv(p, &qh_);
-		else
-			blocked_ = 0;
-	}
 }
 
 
 void
 Csdp::enque(Packet* p)
 {
-	hdr_ip *iph = (hdr_ip*) p->access(off_ip_);
-	int id = iph->src();
+	int id = (int) p->target();
 	int i;
 
 	for (i = 0;  i < numq_;  i++) {
@@ -95,34 +77,37 @@ Csdp::enque(Packet* p)
 }
 
 
-void
-Csdp::updateState(IdPacketQueue* q, Packet* p)
-{
-	double oldscore = (q->total() > 0) ? 1.0 - q->loss() / q->total() : 0;
-	if (p->error())
-		q->loss()++;
-	q->total()++;
-	totalscore_ += 1.0 - q->loss() / q->total() - oldscore;
-}
-
-
 Packet*
 Csdp::deque()
 {
-	IdPacketQueue* q = selectQueue();
-	return q ? q->deque() : 0;
+	IdPacketQueue* q;
+	double r = Random::uniform(totalweight_);
+	for (int i = 0;  i < numq_;  i++) {
+		q = q_[i];
+		r -= 1.0 - q->loss() / q->total();
+		if (r <= 0) {
+			totalweight_ -= weight(q);
+			return q->deque();
+		}
+	}
+	return 0;
 }
 
 
-IdPacketQueue*
-Csdp::selectQueue()
+double
+Csdp::weight(IdPacketQueue* q)
 {
-	double r = Random::uniform(totalscore_);
-	for (int i = 0;  i < numq_;  i++) {
-		IdPacketQueue* q = q_[i];
-		r -= 1.0 - q->loss() / q->total();
-		if (r <= 0)
-			return q;
-	}
-	return 0;
+	double w = 1.0 - q->loss() / (q->total() + 1);
+	return w *= q->length();
+}
+
+
+void
+Csdp::updateState(IdPacketQueue* q, Packet* p)
+{
+	double oldweight = weight(q);
+	if (p->error())
+		q->loss()++;
+	q->total()++;
+	totalweight_ += weight(q) - oldweight;
 }

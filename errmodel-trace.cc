@@ -32,9 +32,8 @@
  * SUCH DAMAGE.
  */
 
-#include <iostream.h>
-#include <stdlib.h>
 #include "random.h"
+#include "trace.h"
 #include "errmodel-trace.h"
 
 
@@ -47,48 +46,84 @@ public:
 } class_errormodel_trace;
 
 
+ErrorModelTrace::ErrorModelTrace() : ErrorModel(), channel_(0), start_(0), len_(0), hTmo_(*this)
+{
+}
+
+
 int
 ErrorModelTrace::command(int argc, const char*const* argv)
 {
-	int ac = 0;
-
-	if (!strcmp(argv[ac+1], "read")) {
-		read(argv[ac+2]);
-		return (TCL_OK);
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "attach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			channel_ = Tcl_GetChannel(tcl.interp(), (char*)id,
+						  &mode);
+			if (channel_ == 0) {
+				tcl.resultf("trace: can't attach %s for reading", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+	}
+	else if (argc == 3) {
+		if (strcmp(argv[1], "start") == 0) {
+			start();
+			return (TCL_OK);
+		}
 	}
 	return ErrorModel::command(argc, argv);
 }
 
 
 int
-ErrorModelTrace::read(const char *filename)
+ErrorModelTrace::corrupt(Packet* p)
 {
-	char buf[256];
-	ifs_.open(filename);
-	if (! ifs_) {
-		cerr << "cannot open input file" << filename << "\n";
+	Scheduler& s = Scheduler::instance();
+	if (errorLen_ <= 0)
 		return 0;
+	if (unit_ == EuPacket)
+		errorLen_ -= 1;
+	else if (unit_ == EuBit) {
+		hdr_cmn *hdr = (hdr_cmn*) p->access(off_cmn_);
+		errorLen_ -= 8. * hdr->size();
 	}
-
-	ifs_ >> time_ >> loss_ >> good_;
-	ifs_.get(buf, 256, '\n');
-	dump();
-	return 0;
+	else if (time_ + errorLen_ < s.clock())
+		return 0;
+	return 1;
 }
 
 
-int
-ErrorModelTrace::corrupt(Packet* pkt)
+void
+ErrorModelTrace::start()
 {
-	char buf[256];
-	if (--good_ > 0)
-		return 0;
-	if (loss_-- > 0)
-		return 1;
-	ifs_ >> time_ >> loss_ >> good_;
-	ifs_.get(buf, 256, '\n');
-	if (good_ > 0)
-		dump();
-	else good_ = 123456789;
-	return 0;
+	Scheduler& s = Scheduler::instance();
+	Tcl_DString line;
+	start_ = s.clock();
+	if (channel_ && (Tcl_Gets(channel_, &line) >= 0) &&
+	    sscanf(Tcl_DStringValue(&line), "%f %f", &ts_, &len_) == 2) {
+		s.schedule(&hTmo_, &intr_, start_ + ts_ - s.clock());
+	}
+}
+
+
+void
+ErrorModelTrace::timeout()
+{
+	Scheduler& s = Scheduler::instance();
+	Tcl_DString line;
+	time_ = start_ + ts_;
+	errorLen_ = len_;
+	if (sscanf(Tcl_DStringValue(&line), "%f %f", &ts_, &len_) == 2) {
+		s.schedule(&hTmo_, &intr_, start_ + ts_ - s.clock());
+	}
+}
+
+
+void
+EmTraceHandler::handle(Event*)
+{
+	em_.timeout();
 }

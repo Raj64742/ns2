@@ -44,7 +44,7 @@ enum ErrorUnit { EuPacket, EuBit, EuTime };
 
 class ErrorModel : public Connector {
 public:
-	ErrorModel() : unit_(EuPacket), time_(0), loss_(0), good_(0) {}
+	ErrorModel(ErrorUnit eu=EuPacket);
 	void recv(Packet*);
 	virtual int corrupt(Packet*);
 	double per() { return loss_ / (loss_ + good_); }
@@ -57,7 +57,7 @@ protected:
 	double time_;
 	double loss_;
 	double good_;
-	ofstream ofs_;
+	double errorLen_;
 };
 
 #endif
