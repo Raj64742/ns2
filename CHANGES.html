@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.265 1998/07/13 23:21:34 yaxu Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.266 1998/07/14 01:31:32 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -29,9 +29,15 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> on Sat July 11 15:15:00 PDT 1998
 </H3>
 <UL>
+    <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH] </A></B>
+    <b> Mon Jul 13 18:23:53 PDT 1998 </b><br>
+	added hierarchical routing support for session sim<br>
+	example: tcl/ex/newmcast/session-hier.tcl
+
     <LI><B><A HREF="http://catarina.usc.edu/yaxu/">[XY] </A></B>
     <b> July 11 15:15:00 PDT 1998 </b><br>
     ns-2.1b3 Release.<br>
+
     <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A></B>
        <b>Fri Jul  10 17:54:49 PDT 1998</b><br>
 	added session simulator validation test<br>
@@ -741,6 +747,7 @@ control from Tcl, and derived TCP classes can define their own trace function. <
 Files: tcp.{cc,h}
 	
 	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
+
 
 
 

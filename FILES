@@ -283,6 +283,7 @@ tcl/ex/newmcast/pim5.tcl
 tcl/ex/newmcast/pim6-nam.tcl
 tcl/ex/newmcast/pim6.tcl
 tcl/ex/newmcast/pktintran.tcl
+tcl/ex/newmcast/session-hier.tcl
 tcl/ex/newmcast/session1.tcl
 tcl/ex/newmcast/session2.tcl
 tcl/ex/newmcast/session3.tcl

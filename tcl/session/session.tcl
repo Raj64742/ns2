@@ -33,9 +33,9 @@ SessionSim instproc delay_parse { dspec } {
         }
 }
 
-SessionSim instproc node {} {
+SessionSim instproc node args {
     $self instvar Node_
-    set node [new SessionNode]
+    set node [new SessionNode $args]
     set Node_([$node id]) $node
     return $node
 }
@@ -262,7 +262,7 @@ in SessionSim"
 }
 
 SessionSim instproc compute-routes {} {
-	$self instvar routingTable_ link_
+	$self instvar link_
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
@@ -279,6 +279,37 @@ SessionSim instproc compute-routes {} {
 	}
 	$r compute
 }
+
+Simulator instproc compute-hier-routes {} {
+        $self instvar link_
+        set r [$self get-routelogic]
+        #
+        # send hierarchical data :
+        # array of cluster size, #clusters, #domains
+        # assuming 3 levels of hierarchy --> this should be extended to
+	# support
+        # n-levels of hierarchy
+        #
+        puts "Computing Hierarchical routes\n"
+        set level [AddrParams set hlevel_]
+        $r hlevel-is $level
+        $self hier-topo $r
+
+        foreach ln [array names link_] {
+                set L [split $ln :]
+                set srcID [[$self get-node-by-id [lindex $L 0]] node-addr]
+                set dstID [[$self get-node-by-id [lindex $L 1]] node-addr]
+                if { $link_($ln) != 0 } {
+#                        $r hier-insert $srcID $dstID $link_($ln)
+                        $r hier-insert $srcID $dstID
+                } else {
+                        $r hier-reset $srcID $dstID
+                }
+        }       
+        $r hier-compute
+}
+
+
 
 # Because here we don't have a link object, we need to have a new 
 # link register method
@@ -424,11 +455,15 @@ SessionSim instproc merge-path { src mbr } {
 
 ############## SessionNode ##############
 Class SessionNode -superclass Node
-SessionNode instproc init {} {
+SessionNode instproc init args {
     $self instvar id_ np_ address_
     set id_ [Node getid]
     set np_ 0
-    set address_ $id_
+    if {[llength $args] > 0} {
+	set address_ $args
+    } else {
+        set address_ $id_
+    }
 }
 
 SessionNode instproc id {} {
@@ -451,14 +486,18 @@ SessionNode instproc attach agent {
 
     $agent set node_ $self
     set port [$self alloc-port]
+
+    if [Simulator set EnableHierRt_] {
+	set nodeaddr [AddrParams set-hieraddr $address_]
+    } else {
 	set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] \
 			  << [AddrParams set NodeShift_(1)]]
-	
-	set mask [AddrParams set PortMask_]
-	set shift [AddrParams set PortShift_]
-	$agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
-			      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
-	# $agent set addr_ [expr $id_ << 8 | $port]
+    }
+    set mask [AddrParams set PortMask_]
+    set shift [AddrParams set PortShift_]
+    $agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
+		      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
+    # $agent set addr_ [expr $id_ << 8 | $port]
 }
 
 SessionNode instproc join-group { agent group } {
