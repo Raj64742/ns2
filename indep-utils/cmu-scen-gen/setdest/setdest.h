@@ -91,6 +91,7 @@ private:
 	void	RandomSpeed(void);
 
 	u_int32_t	index;                  // unique node identifier
+	u_int32_t 	first_trip;		// 1 if first trip, 0 otherwise. (by J. Yoon)
 
 	vector		position;		// current position
 	vector		destination;		// destination
