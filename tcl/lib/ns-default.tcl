@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.118 1998/07/06 17:41:38 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.119 1998/07/07 22:52:36 tomh Exp $
 
 
 #
@@ -57,6 +57,8 @@ Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
 
 ##Agent set seqno_ 0 now is gone
 ##Agent set class_ 0 now is gone
+
+Agent/UDP set packetSize_ 1000
 
 Agent/TCP set seqno_ 0
 Agent/TCP set t_seqno_ 0
@@ -321,6 +323,10 @@ Application/Traffic/Pareto set idle-time 500ms
 Application/Traffic/Pareto set rate 64Kb
 Application/Traffic/Pareto set packet-size 210
 Application/Traffic/Pareto set shape 1.5
+
+Application/Traffic/CBR set rate 448Kb	;# corresponds to interval of 3.75ms
+Application/Traffic/CBR set packet-size 210
+Application/Traffic/CBR set random_ 0
 
 Agent/Mcast/Prune set packetSize_ 80
 
