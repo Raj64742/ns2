@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.506 2002/03/08 22:08:45 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.507 2002/03/14 01:12:04 haldar Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -19,7 +19,32 @@ ns-2.1b9 release PENDING</h3>
 
 <ul>
 
-<p>
+<p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
+Wed Mar 13 16:44:22 PST 2002
+Bug fixes and changes made to mac-802.11. A special thanks to Gavin Holland<gholland@wins.hrl.com> for providing patches and support for the port.
+Changes consis of the following bug fixes for the mac-802.11:
+
+1. The new IEEEmac-802.11 -1999 std defines a separate PLCP (Physical 
+Layer Convergence Protocol) layer and a corr. PLCP hdr and preamble 
+(used for sync'ing between nodes etc); This PLCP is reqd to be tx'ed at a fixed rate of 1Mbps. Our older mac model lacked this feature.
+
+2. The new std also states that all nodes in a network MUST use a data 
+rate from a set of what is called the Basic data set, for tx'ing their 
+control pkts (CTS, RTS and ACK). and they MAY choose a different data rate for tx'ing data pkts. This feature has been added.
+
+3. There are some other bug fixes. one is the length of time the mac needs to wait before tx'ing a data pkt, which depends on whether 
+CTS/RTS reservation is used or not etc. and it is something like
+
+difs RTS sifs CTS sifs DATA sifs ACK
+difs DATA sifs ACK
+
+4. Pkt hdsr now have an additional field that have the txtime for that pkt. 
+
+5. The energy calculation at wireless-phy is modified to reflect these changes.
+
+<p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
+Wed Mar 13 16:44:22 PST 2002
+Newer updated version of dsr contributed by the cmu group, and specifically by Yih-Chun Hu, into ns. This port adds newer versions of routecaches, mobicache and simplecache. also maintains flowstates in the nodes.
 
 <p><li><b><a href="http://www.icir.org/floyd/">[Sally Floyd]</a></b>
 Fri Mar 8 2002</li>
