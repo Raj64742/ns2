@@ -12,9 +12,6 @@ Agents represent endpoints where network-layer
 packets are constructed or consumed, and provide
 some functions helpful in developing transport-layer and other
 protocols.
-The C++ agent class supports an array of
-timers which are often
-useful in constructing protocol sources or sinks.
 Generally, a user wishing to create a new
 source or sink for network-layer packets
 will create a class derived from {\tt Agent}.
@@ -42,23 +39,17 @@ This state includes the following:
 	\item[defttl\_] - default IP ttl value
 \end{itemize}
 \end{quote}
-The class also keeps an array of timers which may be used
-by classes derived from \code{Agent} as needed.
 These variables may be modified by any class derived from \code{Agent},
 although not all of them may be needed by any particular agent.
 
 \subsection{\shdr{Agent methods}{agent.h}{sec:agentmethods}}
 
-The \code{Agent} class supports packet generation, reception,
-and timer management.
+The \code{Agent} class supports packet generation and reception.
 The following member functions are implemented by the C++ Agent class, and are
 generally {\em not} over-ridden by derived classes:
 \begin{tt}
 \begin{quote}
 \begin{itemize}
-\item[void sched(delay, timeout number)] - schedule a time out in {\em delay} secs
-\item[void cancel(timeout number)] - cancel a time out
-\item[void handle(Event*)] - dispatcher for time outs
 \item[Packet* allocpkt()] - allocate new packet and assign its fields
 \item[Packet* allocpkt(int)] - allocate new packet with a data payload of n bytes and assign its fields
 \end{itemize}
@@ -69,26 +60,11 @@ but {\em are} intended to be over-ridden by classes deriving from Agent:
 \begin{tt}
 \begin{quote}
 \begin{itemize}
-        \item[void timeout(timeout number)] - subclass-specific time out handler
+        \item[void timeout(timeout number)] - subclass-specific time out method 
         \item[void recv(Packet*, Handler*)] - receiving agent main receive path
 \end{itemize}
 \end{quote}
 \end{tt}
-The \code{sched} function causes the \code{handle} function
-of the same agent to be invoked after \code{delay} simulated
-seconds have elapsed.
-The \code{timeout number} parameter is an index into the
-timeout arrays \code{pending\_} and \code{timer\_} included in the
-C++ \code{Agent} base class.
-The \code{cancel} function cancels a scheduled timeout.
-Generally, the \code{handle} function is invoked either
-because the agent has scheduled an event using \code{sched}, or
-because a packet has arrived from an upstream node (packets are events).
-If the handler has \emph{not} been invoked due to a packet arrival,
-\code{handle} invokes the \code{timeout} function.
-The \code{timeout} function is intended to be used in whatever fashion
-a specific type of agent requires it
-(e.g. the TCP agent might generate a retransmission).
 
 The \code{allocpkt} function is used by derived classes to create
 packets to send.
@@ -265,7 +241,8 @@ These two constructors appear as follows:
 
 The TcpSimpleAgent constructor (tcp.cc):
 
-        TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1)
+        TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
+			rtx_timer_(this), delsnd_timer_(this)
         {
                 bind("window_", &wnd_);
                 bind("windowInit_", &wnd_init_);
@@ -306,6 +283,11 @@ These are needed in order to access a TCP header and IP header,
 respectively.
 For details on how to access packet headers, see \ref{sec:ppackethdr}.
 
+Note that the \code{TcpAgent} constructor contains initializations for
+two timers, \code{rtx_timer_} and \code{delsnd_timer_}.  \code{TimerHandler} 
+objects are initialized by providing a pointer (the \code{this} pointer) to
+the relevant agent.
+
 \subsubsection{\shdr{starting the agent}{tcp.cc}{sec:starttcp}}
 
 The \code{TcpAgent} agent is started in the example when its
@@ -321,8 +303,8 @@ It is defined in \code{tcl/lib/ns-source.tcl} as follows:
         }
 \end{verbatim}
 \end{small}
-In this case, \code{agent\_} refers to our simple TCP agent and
-\code{maxpkts\_} defaults to a large value (2147483647).
+In this case, \code{agent_} refers to our simple TCP agent and
+\code{maxpkts_} defaults to a large value (2147483647).
 
 The call to \code{advance} eventually results in the simple TCP sender
 generating some packets.  The following function \code{output}
@@ -339,7 +321,7 @@ performs this:
                 tcph->reason() = reason;
                 Connector::send(p, 0);
                 ...
-                if (!pending_[TCP_TIMER_RTX])
+                if (!(rtx_timer_.status() == TIMER_PENDING))
                         /* No timer pending.  Schedule one. */
                         set_rtx_timer();
         }
@@ -359,8 +341,8 @@ and the \code{send} function of the \code{Connector} class is called
 to send the packet downstream one hop.
 Note that the C++ \code{::} scoping operator is used here to avoid
 calling \code{TcpSimpleAgent::send()} (which is also defined).
-The check for a pending timer uses the array \code{pending_} which
-is defined in the \code{Agent} base class.
+The check for a pending timer uses the timer method \code{status()} which
+is defined in the \code{TimerHandler} base class.
 It is used here to set a retransmission timer if one is not already set
 (a TCP sender only sets one timer per window of packets on each connection).
 
@@ -453,57 +435,23 @@ invoked which attempts to send more data if the TCP window allows.
 
 \subsubsection{\shdr{implementing timers}{tcp.cc}{sec:tcptimer}}
 
-As mentioned above in section \ref{sec:agentmethods}, an agent
-may wish to override the \code{Agent::timeout} function (which does
-nothing).
-In the case of the Tahoe TCP agent, two timers are used: a delayed
-send timer and a retransmission timer.
-The retransmission timer is the more interesting of the two.
-It is set with the following function:
-\begin{small}
-\begin{verbatim}
-from tcp.h:
-        #define TCP_TIMER_RTX           0
-        #define TCP_TIMER_DELSND        1
-
-from tcp.cc:
-
-        /*
-         * Set retransmit timer.  If one is already pending, cancel it
-         * and set a new one based on the current rtt estimate.
-         */
-        void TcpAgent::set_rtx_timer()
-        {
-                if (pending_[TCP_TIMER_RTX])
-                        cancel(TCP_TIMER_RTX);
-                sched(rtt_timeout(), TCP_TIMER_RTX);
-        }
-        void TcpAgent::timeout(int tno)
-        {
-                /* retransmit timer */
-                if (tno == TCP_TIMER_RTX) {
-                        ...
-                        closecwnd(0);
-                        reset_rtx_timer(0);
-                        send(0, TCP_REASON_TIMEOUT);
-                } else {
-                        /*
-                         * delayed-send timer, with random overhead
-                         * to avoid phase effects
-                         */
-                        send(1, TCP_REASON_TIMEOUT);
-                }
-        }
-
-\end{verbatim}
-\end{small}
+As described in the following section (Section \ref{sec:timers}), specific
+timer classes must be derived from an abstract base class 
+\code{TimerHandler} defined in \code{timer-handler.h}.  Instances of these
+subclasses can then be used as various agent timers.
+An agent may wish to override the \code{Agent::timeout} function (which does 
+nothing).  In the case of the Tahoe TCP agent, two timers are used: a delayed
+send timer \code{delsnd_timer_} and a retransmission timer \code{rtx_timer_}.
+Section \ref{sec:timerexample} describes the retransmission timer in TCP
+as an example of timer usage.  
 
 \subsection{\shdr{Creating a New Agent}{agent.cc}{sec:createagent}}
 
 To create a new agent, one has to do the following:
 \begin{enumerate}
         \item decide its inheritance structure (section \ref{sec:pingexample})
-        \item create the class, \code{recv}, and \code{timeout} functions (section \ref{}
+        \item create the class, \code{recv}, and \code{timeout} functions (section \ref{})
+		\item define any necessary timer classes,
         \item define OTcl linkage functions (section \ref{})
         \item write the necessary OTcl code to access your agent (section \ref{})
 \end{enumerate}
@@ -530,9 +478,12 @@ In our example, we'll use Agent as the base class, given that
 we are constructing an agent logically belonging to the IP layer
 (or just above it).
 
-We may use the following class definition:
+We may use the following class definitions:
 \begin{small}
 \begin{verbatim}
+	
+        class ECHO_Timer;
+ 
         class ECHO_Agent : public Agent {
          public:
                 ECHO_Agent();
@@ -541,7 +492,16 @@ We may use the following class definition:
                 void timeout(int);
                 void sendit();
                 double interval_;
+                ECHO_Timer echo_timer_;
         };
+
+        class ECHO_Timer : public TimerHandler {
+        public:
+                ECHO_Timer(ECHO_Agent *a) : TimerHandler() {a_ = a; }
+        protected:
+                virtual void expire(Event *e);
+                ECHO_Agent *a_;
+        }; 
 \end{verbatim}
 \end{small}
 
@@ -566,7 +526,7 @@ function \code{sendit}:
         void ECHO_Agent::timeout(int)
         {
                 sendit();
-                sched(interval_, 0);
+                echo_timer_.resched(interval_);
         }
         void ECHO_Agent::sendit()
         {
@@ -574,6 +534,10 @@ function \code{sendit}:
                 ECHOHeader *eh = ECHOHeader::access(p->bits());
                 eh->timestamp() = Scheduler::instance().clock();
                 send(p, 0);     // Connector::send()
+        }
+
+        void ECHO_Timer::expire(Event *e) {
+                a_->timeout(0);
         }
 \end{verbatim}
 \end{small}
@@ -604,7 +568,7 @@ This is done as follows:
         public:
                 ECHOClass() : TclClass("Agent/ECHO") {}
                 TclObject* create(int argc, const char*const* argv) {
-                        return (new ECHO\_Agent());
+                        return (new ECHO_Agent());
                 }
         } class_echo;
 \end{verbatim}
