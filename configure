@@ -1310,6 +1310,8 @@ if test "$d" != "" ; then
 	places="$d \
 		$d/library \
 		$d/lib/tcl \
+		$d/lib/tcl$TCL_VERS \
+		$d/lib/tcl$TCL_ALT_VERS \
 		$d/lib"
 	V_LIBRARY_TCL=FAIL
 	for dir in $places; do
