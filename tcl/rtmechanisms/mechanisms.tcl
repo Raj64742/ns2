@@ -84,13 +84,14 @@ RTMechanisms instproc mmetric { op flows } {
 }
 
 RTMechanisms instproc setstate { flow reason bandwidth droprate } { 
-	$self instvar state_
+	$self instvar state_ ns_
 
 	$self vprint "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
 
 	set state_($flow,reason) $reason
 	set state_($flow,bandwidth) $bandwidth
 	set state_($flow,droprate) $droprate
+	set state_($flow,ctime) [$ns_ now]
 }
 
 # set new allotment in pbox
@@ -323,6 +324,7 @@ RTMechanisms instproc do_detect {} {
 	set now [$ns_ now]
 	$self vprint "DO_DETECT started at time $now, last: $last_detect_"
 	set elapsed [expr $now - $last_detect_]
+	set last_detect_ $now
 	if { $elapsed < $Mintime_ } {
 		puts "ERROR: do_detect: elapsed: $elapsed, min: $Mintime_"
 		exit 1
@@ -337,6 +339,7 @@ RTMechanisms instproc do_detect {} {
 	set badflow [lindex $M 0]
 	set maxmetric [lindex $M 1]
 
+	$self vprint "DO_DETECT: droprateG: $droprateG"
 	$self vprint "DO_DETECT: possible bad flow: $badflow, maxmetric:$maxmetric"
 
 	if { $badflow == "none" } {
@@ -346,24 +349,34 @@ RTMechanisms instproc do_detect {} {
 		return
 	}
 
+	set known false
+	if { [info exists state_($badflow,ctime)] } {
+		set known true
+		set flowage [expr $now - $state_($badflow,ctime)]
+		if { $flowage < $Mintime_ } {
+			$self vprint "DO_DETECT: flow $badflow too young ($flowage)"
+			$self sched-detect
+			return
+		}
+	}
+
 	# estimate the bw's arrival rate without knowing it directly
 	#	note: in ns-1 maxmetric was a %age, here it is a frac
 	set flow_bw_est [expr $maxmetric * $barrivals / $elapsed]
 	set guideline_bw  [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateG]
 
 	set friendly [$self test_friendly $flow_bw_est $guideline_bw]
-	if { $friendly != "ok" } {
+	if { $friendly == "fail" } {
 		# didn't pass friendly test
 		$self setstate $badflow "UNFRIENDLY" $flow_bw_est $droprateG
 		$self penalize $badflow $guideline_bw
 		$self sched-reward
-	} elseif { [info exists state_($badflow,reason)] && \
-	    $state_($badflow,reason) == "UNRESPONSIVE" } {
+	} elseif { $known == "true" && $state_($badflow,reason) == "UNRESPONSIVE" } {
 		# was unresponsive once already
 		$self instvar PUFrac_
 		set u [$self test_unresponsive_again \
 		    $badflow $flow_bw_est $droprateG $PUFrac_ $PUFrac_]
-		if { $u != "ok" } {
+		if { $u == "fail" } {
 			# is still unresponsive
 			$self setstate $badflow "UNRESPONSIVE2" \
 			    $flow_bw_est $droprateG
@@ -374,10 +387,10 @@ RTMechanisms instproc do_detect {} {
 		set nxt [$self fhist-add $badflow $droprateG $flow_bw_est]
 		set u [$self test_unresponsive_initial \
 		    $badflow $flow_bw_est $droprateG $nxt]
-		if { $u != "ok" } {
+		if { $u == "fail" } {
 			$self setstate $badflow "UNRESPONSIVE"
 			    $flow_bw_est $droprateG
-		} elseif { [$self test_high $flow_bw_est $droprateG $elapsed] != "ok" } {
+		} elseif { [$self test_high $flow_bw_est $droprateG $elapsed] == "fail" } {
 			$self setstate $badflow "HIGH" \
 			    $flow_bw_est $droprateG
 			$self penalize $badflow $guideline_bw
@@ -385,7 +398,7 @@ RTMechanisms instproc do_detect {} {
 		} else {
 			set ck1 [$self checkbw_fair $guideline_bw]
 			set ck2 [$self checkbw_fair $flow_bw_est]
-			if { $ck1 != "ok" || $ck2 != "ok" } {
+			if { $ck1 == "fail" || $ck2 == "fail" } {
 				if { $ck1 == "ok" } {
 					set nallot $ck2
 				} elseif { $ck2 == "ok" } {
@@ -438,84 +451,96 @@ RTMechanisms instproc do_reward {} {
 	$self instvar Mtu_ Rtt_
 
 	set reward_pending_ false
-	if { $npenalty_ == 0 } {
-		return
-	}
 	set now [$ns_ now]
 	$self vprint "DO_REWARD starting at $now, last: $last_reward_"
 	set elapsed [expr $now - $last_reward_]
-	if { $elapsed > $Mintime_ / 2 } {
-		set parrivals [$pboxfm_ set parrivals_]
-		set pdrops [$pboxfm_ set pdrops_]
-		set barrivals [$pboxfm_ set barrivals_]
-		set badBps [expr $barrivals / $elapsed]
-		set pgoodarrivals [$okboxfm_ set parrivals_]
-		set pflows [$pboxfm_ flows] ; # all penalized flows
-		if { $parrivals == 0 } {
-			# nothing!, everybody becomes good
-			$self vprint "do_reward: no bad flows, reward all"
-			foreach f $pflows {
-				$self unpenalize $f
-			}
-			set npenalty_ 0
-			return
-		}
-		set droprateB [$self frac $pdrops $parrivals]
-		$self vprint "REWARD: badbox pool of flows: $pflows"
-		set M [$self mmetric min "$pflows"]
-		set goodflow [lindex $M 0]
-		set goodmetric [lindex $M 1]
-		$self vprint "found flow $goodflow as potential good-guy"
-		if { $goodflow == "none" } {
-			#none
-			$self sched-reward
-			return
-		}
-		set flow_bw_est [expr $goodmetric * .01 * $barrivals / $elapsed]
-		#
-		# if it was unfriendly and is now friendly, reward
-		# if it was unresp and is now resp + friendly, reward
-		# if it was high and is now !high + friendly, reward
-		#
-		switch $state_($goodflow,reason) {
-			"UNFRIENDLY" {
-				set fr [$self test_friendly $flow_bw_est \
-				    [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
-				if { $fr == "ok" } {
-					$self setstate $goodflow "OK" $flow_bw_est $droprateB
-					$self unpenalize $goodflow
-				}
-			}
+	set last_reward_ $now
 
-			"UNRESPONSIVE" {
-				$self instvar RUBFrac_
-				$self instvar RUDFrac_
-				set unr [$self test_unresponsive_again $goodflow $RUBFrac_ $RUDFrac_]
-				if { $unr == "ok" } {
-				    set fr [$self test_friendly $flow_bw_est \
-				      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
-				    if { $fr == "ok" } {
-					$self setstate $goodflow "OK" $flow_bw_est $droprateB
-					$self unpenalize $goodflow
-				    }
-				}
-			}
+	if { $npenalty_ == 0 } {
+		return
+	}
 
-			"HIGH" {
-				set h [$self test_high $goodflow]
-				if { $h == "ok" } {
-				    set fr [$self test_friendly $flow_bw_est \
-				      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
-				    if { $fr == "ok" } {
-					$self setstate $goodflow "OK" $flow_bw_est $droprateB
-					$self unpenalize $goodflow
-				    }
-				}
+	set parrivals [$pboxfm_ set parrivals_]
+	set pdrops [$pboxfm_ set pdrops_]
+	set barrivals [$pboxfm_ set barrivals_]
+	set badBps [expr $barrivals / $elapsed]
+	set pgoodarrivals [$okboxfm_ set parrivals_]
+	set pflows [$pboxfm_ flows] ; # all penalized flows
+
+	$self vprint "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals)"
+	$self vprint "DO_REWARD: badbox pool of flows: $pflows"
+
+	if { $parrivals == 0 && $elapsed > $Mintime_ } {
+		# nothing!, everybody becomes good
+		$self vprint "do_reward: no bad flows, reward all"
+		foreach f $pflows {
+			$self unpenalize $f
+		}
+		set npenalty_ 0
+		return
+	}
+
+	set droprateB [$self frac $pdrops $parrivals]
+	set M [$self mmetric min "$pflows"]
+	set goodflow [lindex $M 0]
+	set goodmetric [lindex $M 1]
+	if { $goodflow == "none" } {
+		#none
+		$self sched-reward
+		return
+	}
+	set flowage [expr $now - $state_($goodflow,ctime)]
+	$self vprint "found flow $goodflow as potential good-guy (age: $flowage)"
+	if { $flowage < $Mintime_ } {
+		$self vprint "DO_REWARD: flow $goodflow too young ($flowage)"
+		$self sched-reward
+		return
+	}
+
+	set flow_bw_est [expr $goodmetric * $barrivals / $elapsed]
+	#
+	# if it was unfriendly and is now friendly, reward
+	# if it was unresp and is now resp + friendly, reward
+	# if it was high and is now !high + friendly, reward
+	#
+	switch $state_($goodflow,reason) {
+		"UNFRIENDLY" {
+			set fr [$self test_friendly $flow_bw_est \
+			    [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
+			if { $fr == "ok" } {
+				$self setstate $goodflow "OK" $flow_bw_est $droprateB
+				$self unpenalize $goodflow
 			}
 		}
-		if { $npenalty_ > 0 } {
-			$self checkbw_droprate $droprateB $droprateG
+
+		"UNRESPONSIVE" {
+			$self instvar RUBFrac_
+			$self instvar RUDFrac_
+			set unr [$self test_unresponsive_again $goodflow $RUBFrac_ $RUDFrac_]
+			if { $unr == "ok" } {
+			    set fr [$self test_friendly $flow_bw_est \
+			      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
+			    if { $fr == "ok" } {
+				$self setstate $goodflow "OK" $flow_bw_est $droprateB
+				$self unpenalize $goodflow
+			    }
+			}
 		}
+
+		"HIGH" {
+			set h [$self test_high $goodflow]
+			if { $h == "ok" } {
+			    set fr [$self test_friendly $flow_bw_est \
+			      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
+			    if { $fr == "ok" } {
+				$self setstate $goodflow "OK" $flow_bw_est $droprateB
+				$self unpenalize $goodflow
+			    }
+			}
+		}
+	}
+	if { $npenalty_ > 0 } {
+		$self checkbw_droprate $droprateB $droprateG
 	}
 	$pboxfm_ dump
 	$self sched-reward
