@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.136 1997/08/19 22:30:11 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.137 1997/08/25 20:46:05 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,15 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[Kevin Fall]</A> Mon Aug 25 13:27:11 PDT 1997</B><br>
+	Change timeout initialization in tcp.cc:rtt_timeout().
+	Old code:
+		((srtt>>3)+rttvar)*tick
+	new code
+		((srtt>>3)+rttvar+1)*tick
+	Fix contributed by Kathie Nichols w/Van.
+     </LI>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Tue Aug 19 15:27:11 PDT 1997</B><br>
        Initialization bugs in Vegas fixed.
