@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.232 2001/07/31 02:18:08 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.233 2001/08/17 07:24:58 kclan Exp $
 
 
 #
@@ -91,7 +91,7 @@ proc bw_parse { bspec } {
 	regsub {[/p]s(ec)?$} $unit {} unit
 	if [string match {*B} $unit] {
 		set b [expr $b*8]
-		set unit "[string trimright B $unit]b"
+		set unit "[string trimright $unit B]b"
 	}
 	switch $unit {
 		b { return $b }
