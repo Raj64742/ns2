@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.17 1999/09/09 03:34:32 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.18 1999/09/10 23:47:38 salehi Exp $
 #
 
 #
@@ -48,7 +48,6 @@ Agent instproc set args {
 		set addr [lindex $args 1]
 		set baseAddr [Simulator set McastBaseAddr_]
 		if { $addr >= $baseAddr } {
-			puts "addr:$addr, baseAddr: $baseAddr"
 			$self set dst_addr_ $addr
 			$self set dst_port_ 0
 		} else {
