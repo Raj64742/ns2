@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.19 1998/05/27 19:46:45 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.20 1998/06/19 18:43:22 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -61,8 +61,7 @@ Classifier::Classifier() : slot_(0), nslot_(0), maxslot_(-1)
 
 int Classifier::classify(Packet *const p)
 {
-	int value = *((int*) p->access(offset_));
-	return (value >> shift_) & mask_;
+	return (mshift(*((int*) p->access(offset_))));
 }
 
 Classifier::~Classifier()
