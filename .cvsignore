@@ -1,4 +1,5 @@
 Makefile
+.depend
 TAGS
 config.cache
 config.log
@@ -11,5 +12,7 @@ ns-src*.tar.gz
 *.ps
 *.tr
 *.dat
-out.*
+out*
+*-bw
+*-tcpstat.*
 temp.rands
