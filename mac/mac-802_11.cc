@@ -45,7 +45,7 @@ public:
 } class_mac_802_11;
 
 
-Mac802_11::Mac802_11() : CsmaCaMac(), mode_(MM_DCF), sender_(-1), rtxAck_(0), rtxRts_(0), pkt_(0), pktTx_(0), mhRts_(this), mhData_(this), mhIdle_(this)
+Mac802_11::Mac802_11() : CsmaCaMac(), mode_(MM_RTS_CTS), sender_(-1), rtxAck_(0), rtxRts_(0), pkt_(0), pktTx_(0), mhRts_(this), mhData_(this), mhIdle_(this)
 {
 	bind("bssid_", &bssid_);
 	bind_time("sifs_", &sifs_);
