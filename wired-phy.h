@@ -60,13 +60,13 @@ protected:
 	
 	/* holder for propagation model for the wired channel having
 	   contention, collision features */
-	TclObject* propagation_;  
+	//TclObject* propagation_;  
 
 	//Node *node_;
 private:
   
 	inline int	initialized() {
-		return (node_ && uptarget_ && downtarget_ && propagation_);
+		return (node_ && uptarget_ && downtarget_ );
 	}
 };
 

@@ -49,7 +49,7 @@ class Mac;
 static int InterfaceIndex = 0;
 
 
-Phy::Phy() {
+Phy::Phy() : BiConnector() {
 	index_ = InterfaceIndex++;
 	bandwidth_ = 0.0;
 	channel_ = 0;

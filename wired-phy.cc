@@ -46,7 +46,7 @@ public:
 
 WiredPhy::WiredPhy(void) : Phy() 
 {
-	propagation_ = 0;
+	//propagation_ = 0;
 	bandwidth_ = 10*1e6;		// 10M
 }
 	
@@ -60,11 +60,11 @@ WiredPhy::command(int argc, const char*const* argv) {
 			return TCL_ERROR;
 		}
 
-		if (strcmp(argv[1], "propagation") == 0) {
-			assert(propagation_ == 0);
-			propagation_ = (TclObject*) obj;
-			return TCL_OK;
-		}
+		//if (strcmp(argv[1], "propagation") == 0) {
+		//assert(propagation_ == 0);
+		//propagation_ = (TclObject*) obj;
+		//return TCL_OK;
+		//}
 	}
 	
 	return Phy::command(argc, argv);
