@@ -8,153 +8,280 @@
 
 static class TfrcSinkClass : public TclClass {
 public:
-  TfrcSinkClass() : TclClass("Agent/TFRCSink") {}
-  TclObject* create(int, const char*const*) {
-     return (new TfrcSinkAgent());
-  }
+  	TfrcSinkClass() : TclClass("Agent/TFRCSink") {}
+  	TclObject* create(int, const char*const*) {
+     		return (new TfrcSinkAgent());
+  	}
 } class_tfrcSink; 
 
 
 TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 {
 	bind("packetSize_", &size_);	
-	bind("SampleSizeMult_", &SampleSizeMult_);
-	bind("MinNumLoss_", &MinNumLoss_);
 	bind("InitHistorySize_", &InitHistorySize_);
-	bind("bval_", &bval_);
 	bind("NumFeedback_", &NumFeedback_);
+	bind ("AdjustHistoryAfterSS_", &adjust_history_after_ss);
 
-	rate_ = 0 ; 
-	rtt_ =  0 ; 
-	tzero_ = 0 ;
-	flost_ = 0 ;
+	rate_ = 0; 
+	rtt_ =  0; 
+	tzero_ = 0;
+	flost_ = 0;
 	last_timestamp_ = 0;
-	last_arrival_ = 0 ;
-	last_nack_ = 0 ; 
-	pvec_ = NULL ; 
-	tsvec_ = NULL ; 
-	rtvec_ = NULL ;
-	RTTvec_ = NULL ;
-	pveclen_ = 0 ; 
-	pvecfirst_ = 0 ; 
-	pveclast_ = 0 ; 
-	prevpkt_ = -1 ; 
-	total_received_ = 0 ;
-	loss_seen_yet = 0 ;
-	last_report_sent=0 ;
-	prevpkt_=-1;
-	left_edge = 0 ;
+	last_arrival_ = 0;
+	last_nack_ = 0; 
+	pvec_ = NULL; 
+	tsvec_ = NULL; 
+	rtvec_ = NULL;
+	RTTvec_ = NULL;
+	lossvec_ = NULL;
+	total_received_ = 0;
+	loss_seen_yet = 0;
+	last_report_sent=0;
+	maxseq = -1;
+	rcvd_since_last_report  = 0;
+	lastloss = 0;
+	false_sample = 0;
 }
 
+/*
+ * Receive new data packet.  If appropriate, generate a new report.
+ */
 void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 {
-	double prevrtt ;
-  hdr_tfrc *tfrch = hdr_tfrc::access(pkt); 
+	double prevrtt;
+  	hdr_tfrc *tfrch = hdr_tfrc::access(pkt); 
 	double now = Scheduler::instance().clock();
-	int UrgentFlag ; 
-
+	int UrgentFlag; 
+	int prevmaxseq = maxseq;
 	total_received_++;
+	rcvd_since_last_report ++;
+	double p = -1;
 
-	UrgentFlag = tfrch->UrgentFlag ;
-	/*
-	printf ("r %f %d\n", now, tfrch->seqno); 
-	fflush(stdout); 
-	*/
-
-	if (pvec_==NULL) {
-
-		/* create history list if not yet created */
-
-		pvec_=(int *)malloc(sizeof(int)*InitHistorySize_);
-		tsvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
-		rtvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
-		RTTvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
-
-		if ((pvec_ == NULL) || (tsvec_ == NULL) || (rtvec_ == NULL)) {
-			printf ("error allocating memory\n");
-			exit(1);
-		}
-		pveclen_=InitHistorySize_;
-		pvecfirst_=0; 
-		pveclast_=0;
-		pvec_[0]=tfrch->seqno;
-		tsvec_[0]=tfrch->timestamp;
-		rtvec_[0]=now;
-	} 
-	else {
-
-		/* add packet to existing history */
-		/* history is maintained a queue in */
-		/* circular buffer between pvecfirst and pveclast */
-
-		pveclast_++;
-		
-		if (pveclast_==pveclen_)
-			pveclast_=0;
-		if (pvecfirst_==pveclast_) 
-			pvecfirst_++;
-		if (pvecfirst_==pveclen_) 
-			pvecfirst_=0;
-		pvec_[pveclast_] = tfrch->seqno;
-		tsvec_[pveclast_] = tfrch->timestamp;
-		rtvec_[pveclast_] = now;
-		RTTvec_[pveclast_] = tfrch->rtt;
-	}
+	UrgentFlag = tfrch->UrgentFlag;
+	
+	add_packet_to_history (pkt);
 
 	prevrtt=rtt_;
 	rtt_=tfrch->rtt;
-	prevpkt_=tfrch->seqno;
 	tzero_=tfrch->tzero;
 	psize_=tfrch->psize;
 	last_arrival_=Scheduler::instance().clock();
 	last_timestamp_=tfrch->timestamp;
 	rate_=tfrch->rate;
-
 	/*if we are in slow start (i.e. (loss_seen_yet ==0)), */
 	/*and if we saw a loss, report it immediately */
 
-	if ( (rate_ < SMALLFLOAT) || 
-			 (prevrtt < SMALLFLOAT)||
-			 (UrgentFlag) ||
-			 ((rtt_ > SMALLFLOAT) && 
-				(now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
-			 ((pveclast_>1) && 
-				(loss_seen_yet ==0) && 
-			  (tfrch->seqno-pvec_[pveclast_-1] > 1))
-		 ) {
-		nextpkt();
-		if((pveclast_>1) && 
-			 (loss_seen_yet ==0) && 
-			 (tfrch->seqno-pvec_[pveclast_-1] > 1)) {
+	if ( (rate_ < SMALLFLOAT) || (prevrtt < SMALLFLOAT) || (UrgentFlag) ||
+		 ((rtt_ > SMALLFLOAT) && 
+		  (now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
+		((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq > 1)) ) {
+		/*
+		 * time to generate a new report
+		 */
+		if((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq> 1)) {
 			loss_seen_yet = 1;
+			if (adjust_history_after_ss) {
+				p = adjust_history(); 
+			}
 		}
+		nextpkt(p);
 	}
 	Packet::free(pkt);
 }
 
-void TfrcSinkAgent::nextpkt() {
+void TfrcSinkAgent::add_packet_to_history (Packet *pkt) 
+{
+	hdr_tfrc *tfrch = hdr_tfrc::access(pkt);
+	double now = Scheduler::instance().clock();
+	register int i; 
+	register int seqno = tfrch->seqno;
+
+	if (seqno >= InitHistorySize_) {
+		printf ("history buffer too small\n");
+		abort ();
+	}
+	if (pvec_ == NULL) {
+		pvec_=(char *)malloc(sizeof(int)*InitHistorySize_);
+		tsvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
+		rtvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
+		RTTvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
+		lossvec_=(char *)malloc(sizeof(double)*InitHistorySize_);
+		if (pvec_ && tsvec_ && rtvec_ && RTTvec_ && lossvec_) {
+			for (i = 0; i < InitHistorySize_ ; i ++) {
+				pvec_[i] = UNKNOWN;
+				tsvec_[i] = rtvec_[i] = RTTvec_[i] = -1; 
+				lossvec_[i] = UNKNOWN;
+			}
+		}
+		else {
+			printf ("error allocating memory for packet buffers\n");
+			abort (); 
+		}
+	}
+
+	/* for the time being, we will ignore out of order and duplicate 
+	   packets etc. */
+	if (seqno > maxseq) {
+		pvec_[seqno] = RCVD; 
+		tsvec_[seqno] = tfrch->timestamp;
+		rtvec_[seqno]=now;	
+		RTTvec_[seqno]=tfrch->rtt;
+		lossvec_[seqno] = NOLOSS;
+		for (i = maxseq+1; i < seqno ; i ++) {
+			pvec_[i] = LOST;
+			tsvec_[i] = tfrch->timestamp;
+			rtvec_[i]=now;	
+			RTTvec_[i]=tfrch->rtt;
+			if (tsvec_[i] - lastloss > RTTvec_[i]) {
+/*
+printf ("lost: %d %f %f %f %f\n", i, lastloss, tsvec_[i], RTTvec_[i], rate_);
+*/
+				lossvec_[i] = LOST;
+				lastloss = tsvec_[i] + 0.5*rtt_;
+			}
+			else {
+				lossvec_[i] = NOLOSS; 
+			}
+		}
+		maxseq = seqno;
+	}
+}
+
+/*
+ * Estimate the loss rate.  This function calculates two loss rates,
+ * and returns the smaller of the two.
+ */
+double TfrcSinkAgent::est_loss () 
+{
+	int sample[MAXSAMPLES+1] = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	double weights[MAXSAMPLES] = {1, 1, 1, 0.8, 0.6, 0.4, 0.2}; 
+	int i, count;
+	double p1, p2; 
+
+	count = 0;
+	// sample[i] counts the number of packets since the i-th loss event
+	// sample[0] contains the most recent sample.
+	for (i = maxseq; i >= 0 ; i --) {
+		if (lossvec_[i] == LOST) {
+			count ++;
+			if (count >= MAXSAMPLES+1) {
+				count = MAXSAMPLES;
+				break;
+			}
+			else sample[count] = 1;
+		}
+		else sample[count]++; 
+	}
+
+	if (count == 0) 
+		return 0; 
+
+	if (count < MAXSAMPLES && false_sample > 0) 
+		sample[count] += false_sample;
+	p1 = 0; p2 = 0;
+	double wsum1 = 0; 
+	double wsum2 = 0; 
+	for (i = 0; i < count; i ++) 
+		wsum1 += weights[i]; 
+	wsum2 = wsum1; 
+	if (count < MAXSAMPLES)  
+		wsum1 += weights[i]; 
+	for (i = 0; i <= count; i ++) {
+		// p1 is the weighted sum of all sample intervals
+		p1 += weights[i]*sample[i]/wsum1;
+		// p2 is the weighted sum of all sample intervals
+		//  except for the first
+		if (i > 0) 
+			p2 += weights[i-1]*sample[i]/wsum2;
+	}
+	if (p2 > p1)
+		p1 = p2;
+/*
+double now = Scheduler::instance().clock();
+printf ("%f %d: ", now, count+1);
+for (i = 0 ; i <= count ; i++) 
+        printf ("%d ", sample[i]);
+printf ("\n");
+if (p1 > 0) 
+	printf ("%f %f %f %f\n", now, 1/p1, wsum1, wsum2);
+*/
+	if (p1 > 0) 
+		return 1/p1; 
+	else return 999;     
+}
+
+/*
+ * compute estimated throughput for report.
+ */
+double TfrcSinkAgent::est_thput () 
+{
+	double time_for_rcv_rate;
+	double now = Scheduler::instance().clock();
+	if ((rtt_ > 0) && ((now - last_report_sent) >= rtt_)) {
+		// more than an RTT since the last report
+		time_for_rcv_rate = (now - last_report_sent);
+		if (time_for_rcv_rate > 0 && rcvd_since_last_report > 0) 
+			return rcvd_since_last_report/time_for_rcv_rate;
+		else return 1;
+	}
+	else {
+		// count number of packets received in the last RTT
+		if (rtt_ > 0){
+			double last = rtvec_[maxseq]; 
+			int rcvd = 0;
+			int i = maxseq;
+			while (((rtvec_[i] + rtt_) > last) && (i >= 0)) {
+				if (pvec_[i] == RCVD) 
+					rcvd++; 
+				i--; 
+			}
+			if (rcvd > 0)
+				return rcvd/rtt_; 
+			else return 1; 
+		}
+		else return 1;
+	}
+}
+
+/*
+ * We just received our first loss, and need to adjust our history.
+ */
+double TfrcSinkAgent::adjust_history ()
+{
+	int i;
+	double p;
+	for (i = maxseq; i >= 0 ; i --) {
+		if (lossvec_[i] == LOST) {
+			lossvec_[i] = NOLOSS; 
+		}
+	}
+	lastloss = tsvec_[maxseq]+0.5*rtt_; 
+	p=b_to_p(est_thput()*psize_, rtt_, tzero_, psize_, 1);
+	false_sample = (int)(1/p);
+	return p;
+}
+
+/*
+ * Schedule sending this report, and set timer for the next one.
+ */
+void TfrcSinkAgent::nextpkt(double p) {
 
 	/*double now = Scheduler::instance().clock();*/
 
 	/* send the report */
-	sendpkt();
+	sendpkt(p);
 
 	/* schedule next report rtt/NumFeedback_ later */
-
 	if (rtt_ > 0.0 && NumFeedback_ > 0) 
 		nack_timer_.resched(1.5*rtt_/(float)NumFeedback_);
 		/*nack_timer_.resched(rtt_/(float)NumFeedback_);*/
 }
 
-void TfrcSinkAgent::sendpkt()
+/*
+ * Create report message, and send it.
+ */
+void TfrcSinkAgent::sendpkt(double p)
 {
-	int sample ;	
-  double p;
-	int rcvd_since_last_report  = 0 ;
-	double time_for_rcv_rate = -1; 
-	int sent=0;
-	int lost=0;
-	int rcvd=0;
 	double now = Scheduler::instance().clock();
 
 	/*don't send an ACK unless we've received new data*/
@@ -173,100 +300,21 @@ void TfrcSinkAgent::sendpkt()
 	hdr_tfrc_ack *tfrc_ackh = hdr_tfrc_ack::access(pkt);
 
 	last_nack_=now;
-	tfrc_ackh->seqno=pvec_[pveclast_];
+	tfrc_ackh->seqno=maxseq;
 	tfrc_ackh->timestamp_echo=last_timestamp_;
 	tfrc_ackh->timestamp_offset=now-last_arrival_;
 	tfrc_ackh->timestamp=now;
-	tfrc_ackh->SampleSizeMult_ = SampleSizeMult_;
-	tfrc_ackh->bval_ = bval_ ;
-	tfrc_ackh->NumFeedback_ = NumFeedback_ ;
-
-	/* estimate loss rate from formula */
-
-  if (rate_!=0) {
-    p = b_to_p(rate_, rtt_, tzero_, psize_, bval_);
-  } 
-	else {
-    p=1;
-	}
-
-	/* estimate size of sample in which to look for loss rate */
-
-	sample = (int)(SampleSizeMult_/p); 
-	if (sample>total_received_)
-		sample=total_received_;
-
-	/* now, see what loss we actually observed */
-	/* assume no redordering! */
-
-	tfrc_ackh->signal = NORMAL ;
-	
-	int prev=pvec_[pveclast_]+1;
-	int ix=pveclast_;
-	double last_loss=LARGE_DOUBLE;
-
-	while((sent<sample)||(lost<MinNumLoss_)) {      
-		sent+=prev-pvec_[ix];
-		rcvd++;
-		if ((prev-pvec_[ix])!=1) {
-			/*all losses within one RTT count as one*/
-			if ((last_loss - tsvec_[ix]) > RTTvec_[ix]) {
-	 			lost++;
-	 			last_loss = tsvec_[ix];
-			}
-		}
-		prev=pvec_[ix];
-		/*have we any more history? or have we hit the left edge*/
-		if (ix==pvecfirst_ || ix==left_edge) { 
-			break;
-		}
-		ix--;
-		if (ix < 0) 
-			ix = pveclen_-1;
-	}
-	left_edge = ix ; 
-
-	/* pick the larger of the two loss rates */
-
-	if (sent > 0 && lost > 0 ) {
-		flost_=(float)lost/(float)sent;
-	}
-	else {
-		flost_ = 0 ;
-	}
-
-	tfrc_ackh->flost = flost_ ; 
-
-	if ((rtt_ > 0) && ((now - last_report_sent) >= rtt_)) {
-		time_for_rcv_rate = (now - last_report_sent) ; 
-	}
-	else if (rtt_ > 0){
-		time_for_rcv_rate = rtt_; 
-	}
-
-	ix = pveclast_;
-	double last = now ; 
-	while((ix>=0) && ((last - rtvec_[ix]) < time_for_rcv_rate)) {
-		rcvd_since_last_report ++ ;
-		if (ix==pvecfirst_) 
-			break;
-		ix--;
-		if (ix < 0) 
-			ix = pveclen_-1;
-	}
-	if (rcvd_since_last_report > 0 && time_for_rcv_rate > SMALLFLOAT) {
-		tfrc_ackh->rate_since_last_report = 
-			rcvd_since_last_report/time_for_rcv_rate; 
-	}
-	else {
-		tfrc_ackh->rate_since_last_report = 1 ; 
-	}
-
-	/* note time */
-	last_report_sent = now ; 
+	tfrc_ackh->NumFeedback_ = NumFeedback_;
+	if (p < 0) 
+		tfrc_ackh->flost = est_loss (); 
+	else
+		tfrc_ackh->flost = p;
+	tfrc_ackh->rate_since_last_report = est_thput ();
+	last_report_sent = now; 
+	rcvd_since_last_report = 0;
 	send(pkt, 0);
 }
 
 void TfrcNackTimer::expire(Event *) {
-	a_->nextpkt();
+	a_->nextpkt(-1);
 }

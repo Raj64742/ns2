@@ -1,6 +1,6 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
- * Copyright (c) 1991-1997 Regents of the University of California.
+ * Copyright(c) 1991-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,10 +24,10 @@
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * DAMAGES(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
@@ -43,82 +43,78 @@
 #define LARGE_DOUBLE 9999999999.99 
 #define SAMLLFLOAT 0.0000001
 
+/* packet status */
+#define UNKNOWN 0
+#define RCVD 1
+#define LOST 2
+#define NOLOSS 3
+
+#define MAXSAMPLES 7
+
 class TfrcSinkAgent;
 
 class TfrcNackTimer : public TimerHandler {
 public:
-  TfrcNackTimer(TfrcSinkAgent *a) : TimerHandler() 
+  	TfrcNackTimer(TfrcSinkAgent *a) : TimerHandler() 
 		{ a_ = a; }
-  virtual void expire(Event *e);
+  	virtual void expire(Event *e);
 protected:
-  TfrcSinkAgent *a_;
+  	TfrcSinkAgent *a_;
 };
 
 class TfrcSinkAgent : public Agent {
-  friend TfrcNackTimer;
+	friend TfrcNackTimer;
 public:
-  TfrcSinkAgent();
-  void recv(Packet*, Handler*);
+	TfrcSinkAgent();
+	void recv(Packet*, Handler*);
 protected:
-  void sendpkt();
-  void nextpkt();
-  void increase_pvec(int);
+	void sendpkt(double);
+	void nextpkt(double);
+	void increase_pvec(int);
+	void add_packet_to_history(Packet *);
+	double adjust_history();
+	double est_loss();
+	double est_thput(); 
 
-  TfrcNackTimer nack_timer_;
+	TfrcNackTimer nack_timer_;
 
-	/* size of received packet */
-  int psize_;
+	int psize_;		// size of received packet
+	double rate_;		// sender's reported send rate
+	double rtt_;		// rtt value reported by sender
+	double tzero_;		// timeout value reported by sender
+	double flost_;		// frequency of loss events computed
+				// by the receiver
 
-	/* sender's reproted send rate */ 
-  double rate_;
+	// these assist in keep track of incming packets and calculate flost_
+	double last_timestamp_, last_arrival_, last_nack_;
+	int InitHistorySize_;
+	char *pvec_;
+	char *lossvec_;
+	double *tsvec_;
+	double *rtvec_;
+	double *RTTvec_;
+	int prevpkt_;
+	int maxseq; 
 
-	/* rtt and timeout value reported by sender */
-  double rtt_, tzero_;
-
-	/* frequency of loss events computed by the receuver */
-  double flost_;
-
-	/* all these assit in keep track of incming packets and calculate flost_ */
-
-  double last_timestamp_, last_arrival_, last_nack_;
-	int InitHistorySize_ ;
-  int *pvec_;
-  double *tsvec_;
-  double *rtvec_;
-  double *RTTvec_;
-  int pveclen_;
-  int pvecfirst_, pveclast_;
-  int prevpkt_;
-
-	/* controls the size of congestion window over which flost is computed */
-  double SampleSizeMult_;
-
-	/* minimum number of loss events that must be observed to compute flost*/
-	int MinNumLoss_ ;
-
-	/* total # of pkts rcvd by rcvr */
-  int total_received_;
+	int total_received_;	// total # of pkts rcvd by rcvr
 
 	/* bounds on loss rate for signal changes in version 0 */
-	double HysterisisLower_ ;
-	double HysterisisUpper_ ;
+	double HysterisisLower_;
+	double HysterisisUpper_;
 
-	/* value of B used in the formula */
-	int bval_ ;
+	int bval_;		// value of B used in the formula
 
 	/* set to 0 until first loss is seen. Used to end slow start */
-	int loss_seen_yet ;
+	int loss_seen_yet;
 
 	/* time last report was sent */
-	double last_report_sent ; 
+	double last_report_sent; 
 
 	/* send feedback these many times per rtt */
 	double NumFeedback_;
 
-	/* earliest received packet checked for calcualing loss rate for 
-		 previous report. This is the left edge of the loss history,
-		 and it never moves left. */
-
-	int left_edge ; 
-
+	int rcvd_since_last_report;
+	double lastloss;
+	int adjust_history_after_ss;
+	int false_sample;
 }; 
