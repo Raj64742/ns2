@@ -135,6 +135,10 @@ void Simulator::populate_flat_classifiers() {
 	char tmp[TINY_LEN];
 	if (nodelist_ == NULL)
 		return;
+
+	// Updating nodelist_ (total no of connected nodes)
+	// size since size_ maybe smaller than nn_ (total no of nodes)
+	check(nn_);    
 	for (int i=0; i<nn_; i++) {
 		if (nodelist_[i] == NULL) {
 			i++; 
@@ -163,6 +167,8 @@ void Simulator::populate_hier_classifiers() {
 	int n_addr, levels, nh;
 	int addr[TINY_LEN];
 	char a[SMALL_LEN];
+	// update the size of nodelist with nn_
+	check(nn_);
 	for (int i=0; i<nn_; i++) {
 		if (nodelist_[i] == NULL) {
 			i++; 
