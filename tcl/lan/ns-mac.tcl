@@ -41,7 +41,7 @@ Channel set nodrop_ 0
 Mac set delay_ 0us
 Mac set bandwidth_ 1.5Mb
 Mac set hlen_ 0
-Mac set label_ 0
+Mac set addr_ 0
 
 # WaveLAN settings (also inherited by Csma/Ca, which is what WaveLAN is)
 Mac/Csma set delay_ 64us
@@ -75,17 +75,13 @@ Mac/802_11 set difs_ 16us
 Mac/802_11 set rtxAckLimit_ 1
 Mac/802_11 set rtxRtsLimit_ 3
 }
-Mac set delay_ 0us
-Mac set bandwidth_ 1.5Mb
-Mac set hlen_ 0
-Mac set label_ 0
 
 # IEEE 802.14 MAC settings
-if [TclObject is-class Mac/802_14] {
-Mac/802_14 set bandwidth_ 10Mb
-Mac/802_14 set hlen_ 6
-Mac/802_14 set bssId_ -1
-Mac/802_14 set slotTime_ 10us
+if [TclObject is-class Mac/Mcns] {
+Mac/Mcns set bandwidth_ 10Mb
+Mac/Mcns set hlen_ 6
+Mac/Mcns set bssId_ -1
+Mac/Mcns set slotTime_ 10us
 }
 
 # Multihop wireless MAC modeled after Metricom's Ricochet
