@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.4 1999/10/14 22:19:25 yuriy Exp $
+   $Id: mac-802_3.cc,v 1.5 1999/10/15 22:14:44 yuriy Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -164,16 +164,17 @@ void Mac802_3::collision(Packet *p) {
 		}
 		break;
 	case MAC_RECV:
-		assert(pktRx_);
-		assert(!mhSend_.busy());
-
-		mhRecv_.cancel();
-		Packet::free(pktRx_);
-		pktRx_ = 0;
+		// more than 2 packets collisions possible
+		if (mhRecv_.busy()) mhRecv_.cancel();
+		if (pktRx_) {
+			Packet::free(pktRx_);
+			pktRx_ = 0;
+		}
 		break;
 	default:
 	  assert("SHOULD NEVER HAPPEN" == 0);
 	}
+	if (mhIFS_.busy()) mhIFS_.cancel();
 	mhIFS_.schedule(netif_->txtime(IEEE_8023_JAMSIZE/8) + // jam time +
 			IEEE_8023_IFS);                       // IFS
 }
