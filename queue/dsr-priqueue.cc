@@ -2,7 +2,7 @@
    priqueue.cc
    
    A simple priority queue with a remove packet function
-   $Id: dsr-priqueue.cc,v 1.1 2002/07/19 02:34:10 haldar Exp $
+   $Id: dsr-priqueue.cc,v 1.2 2002/09/11 20:11:09 buchheim Exp $
    */
 
 #include <object.h>
@@ -101,7 +101,9 @@ CMUPriQueue::log_stats()
 	 */
 	if(s >= qlen_logthresh_ || d >= qlen_logthresh_ ||
 	   stat_recv_ > fw_logthresh_) {
-		trace("I %.9f _%d_ ifq rx %d tx %d bl %d [%d %d] [%d %d] [%d %d] [%d %d]",
+		if (prq_logtarget_->pt_->tagged()) {
+		   // using the new tagged trace format
+		   trace("I "TIME_FORMAT" -prq:adr %d -prq:rx %d -prq:tx %d -prq:bl %d -prq:snd0 {%d %d} -prq:snd1 {%d %d} -prq:snd2 {%d %d} -prq:snd3 {%d %d}",
 		      Scheduler::instance().clock(),
 		      prq_ipaddr_,
 		      stat_recv_, stat_send_, stat_blocked_,
@@ -109,6 +111,16 @@ CMUPriQueue::log_stats()
 		      prq_snd_[1].ifq_len, prq_snd_[1].ifq_len-last_ifqlen_[1],
 		      prq_snd_[2].ifq_len, prq_snd_[2].ifq_len-last_ifqlen_[2],
 		      prq_snd_[3].ifq_len, prq_snd_[3].ifq_len-last_ifqlen_[3]);
+		} else {
+		   trace("I %.9f _%d_ ifq rx %d tx %d bl %d [%d %d] [%d %d] [%d %d] [%d %d]",
+		      Scheduler::instance().clock(),
+		      prq_ipaddr_,
+		      stat_recv_, stat_send_, stat_blocked_,
+		      prq_snd_[0].ifq_len, prq_snd_[0].ifq_len-last_ifqlen_[0],
+		      prq_snd_[1].ifq_len, prq_snd_[1].ifq_len-last_ifqlen_[1],
+		      prq_snd_[2].ifq_len, prq_snd_[2].ifq_len-last_ifqlen_[2],
+		      prq_snd_[3].ifq_len, prq_snd_[3].ifq_len-last_ifqlen_[3]);
+		}
 	}
 
 	for(q = 0; q < IFQ_MAX; q++) {
