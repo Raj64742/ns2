@@ -173,6 +173,7 @@ See hier-rtg-10.tcl and hier-rtg-100.tcl in \nsf{tcl/ex} for example
 scripts of hier routing on small and large topologies
 respectively. 
 
+
 \section{Hierarchical Routing with SessionSim}
 \label{sec:hier-rtg-with-sessionsim}
 
@@ -182,5 +183,50 @@ for running multicast simulations over very large topologies, gains
 additionally in terms of memory savings if used with hierarchical
 routing. See simulation script \nsf{tcl/ex/newmcast/session-hier.tcl}
 for an example of sessionsim over hier rtg.
+
+
+\section{Commands at a glance}
+\label{sec:dynamicscommand}
+
+Following is a list of hierarchical routing/addressing related commands
+used in simulation scripts:
+\begin{flushleft}
+\code{$ns_ set-address-format hierarchical}\\
+This command was used to setup hierarchical addressing in \ns. However with
+the recent changes in node APIs, this command has been replaced by\\
+\code{ns_ node-config -addressType hierarchical}\\
+This creates a default topology of 3 levels of hierarchy, assigning 8 bits
+to each level.
+
+
+\code{$ns_ set-address-format hierarchical <nlevels> <#bits in level1>..
+..<#bits in level n>}\\
+This command creates a hierarchy of <nlevels> and assigns the bits in each level
+as specified in the arguments.
+
+
+\code{AddrParams set domain_num_ <n_domains>
+AddrParams set cluster_num_ <n_clusters>
+AddrParams set nodes_num_ <n_nodes>}\\
+The above APIs are used to specify the hierarchical topology, i.e the number of
+domains, clusters and nodes present in the topology. Default values used by
+AddrParams (i.e if nothing is specified) provide a topology with a single
+domain with 4 clusters, with each cluster consisting of 5 nodes.
+
+
+Internal procedures:\\
+
+\code{$Hiernode_ add-hroute <dst> <target>}\\
+This procedure is used to add next-hop entries of a destination <dst> for a
+given <target>. Since hier-nodes have multiple classifiers, one for each level
+of hierarchy, add-hroute populates hier-classifiers correctly and should be
+used in place of add-route used for flat-routing.
+
+
+\code{$hiernode_ split-addrstr <str>}\\
+This splits up a hierarchical adrress string  (say a.b.c) into a list of
+the addresses at each level (i.e, a,b and c).
+
+\end{flushleft}
 
 \endinput

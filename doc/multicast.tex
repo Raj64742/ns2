@@ -738,4 +738,77 @@ appropriate routes.
 	number.\\
 \end{alist}
 
+
+\section{Commands at a glance}
+\label{sec:mcastcommand}
+
+Following is a list of commands used for multicast simulations:
+\begin{flushleft}
+\code{set ns [new Simulator -mcast on]}\\
+This turns the multicast flag on for the the given simulation, at the time of
+creation of the simulator object.
+
+
+\code{ns_ multicast}\\
+This like the command above turns the multicast flag on.
+
+
+\code{ns_ multicast?}\\
+This returns true if multicast flag has been turned on for the simulation
+and returns false if multicast is not turned on.
+
+
+\code{$ns_ mrtproto <mproto> <optional:nodelist>}\\
+This command specifies the type of multicast protocol <mproto> to be used
+like DM, CtrMcast etc. As an additional argument, the list of nodes <nodelist>
+that will run an instance of the routing protocol can also be passed.
+
+
+\code{$ns_ mrtproto-iifs <mproto> <node> <iifs>}\\
+This command allows a finer control than mrtproto. Since multiple mcast
+protocols can be run at a node, this command specifies which mcast protocol
+<mproto> to run at which of the incoming interfaces given by <iifs> in the <node>.
+
+
+\code{Node allocaddr}\\
+This returns a new/unused multicast address that may be used to assign a multicast
+address to a group.
+
+
+\code{Node expandaddr}\\
+This command expands the address space from 16 bits to 30 bits. However this
+command has been replaced by \code{"ns_ set-address-format-expanded"}.
+
+
+\code{$node_ join-group <agent> <grp>}\\
+This command is used when the <agent> at the node joins a particular group <grp>.
+
+
+\code{$node_ leave-group <agent> <grp>}\\
+This is used when the <agent> at the nodes decides to leave the group <grp>.
+
+Internal methods:\\
+
+\code{$ns_ run-mcast}\\
+This command starts multicast routing at all nodes. 
+
+
+\code{$ns_ clear-mcast}\\
+This stopd mcast routing at all nodes.
+
+
+\code{$node_ enable-mcast <sim>}\\
+This allows special mcast supporting mechanisms (like a mcast classifier) to
+be added to the mcast-enabled node. <sim> is the a handle to the simulator
+object.
+
+
+In addition to the internal methods listed here there are other methods specific to
+protocols like centralized mcast (CtrMcast), dense mode (DM), shared tree
+mode (ST) or bi-directional shared tree mode (BST), Node and Link class
+methods and NetworkInterface and Multicast classifier methods specific to
+multicast routing. All mcast related files may be found under \ns/tcl/mcast dir.
+
+\end{flushleft}
+
 \endinput
