@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.52 1997/07/24 23:07:32 breslau Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.53 1997/07/25 00:43:41 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -79,7 +79,7 @@ OBJ_CC = \
 	classifier-mac.o \
 	packet.o ip.o route.o connector.o ttl.o \
 	trace.o	trace-ip.o tracegen.o \
-	cbr.o traffictrace.o pareto.o expoo.o tcplib-telnet.o \
+	cbr.o traffictrace.o pareto.o expoo.o telnet.o tcplib-telnet.o \
 	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
 	tcp-vegas.o tcp-rbp.o tcp-full.o \
@@ -94,7 +94,7 @@ OBJ_CC = \
 	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o prune.o srm.o \
-	net.o net-ip.o tap.o telnet.o \
+	net.o net-ip.o tap.o \
 	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o
 
 OBJ_C = \

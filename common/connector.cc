@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.8 1997/07/24 04:45:06 gnguyen Exp $ ";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.9 1997/07/25 00:43:41 gnguyen Exp $ ";
 #endif
 
 #include "packet.h"
@@ -47,7 +47,7 @@ public:
 	}
 } class_connector;
 
-Connector::Connector() : target_(0)
+Connector::Connector() : target_(0), drop_(0)
 {
 }
 
