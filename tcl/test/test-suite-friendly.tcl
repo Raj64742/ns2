@@ -30,10 +30,11 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.45 2002/03/08 21:55:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.46 2002/12/12 04:04:28 sfloyd Exp $
 #
 
 source misc_simple.tcl
+source support.tcl
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false
@@ -64,8 +65,11 @@ Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
-
 Agent/TCP set window_ 100
+
+Agent/TFRCSink set PreciseLoss_ 1
+# The default for PreciseLoss_ has been changed to 0.
+
 # Uncomment the line below to use a random seed for the
 #  random number generator.
 # ns-random 0
@@ -1182,6 +1186,146 @@ Test/printLosses instproc run {} {
     $ns_ run
 }
 
+TestSuite instproc printpkts { label tcp } {
+        puts "tcp $label highest_seqment_acked [$tcp set ack_]"
+}
+
+TestSuite instproc printTFRCpkts { label src } {
+        puts "tfrc $label [$src set ndatapack_] " 
+}
+
+Class Test/goodTFRC superclass TestSuite
+Test/goodTFRC instproc init {} {
+    $self instvar net_ test_ period_
+    set net_	net2
+    set test_	goodTFRC
+    set period_ 10000.0
+    $self next
+}
+Test/goodTFRC instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ period_
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 20.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $ns_ at 0.0 "$tf1 start"
+
+    $self dropPktsPeriodic [$ns_ link $node_(r2) $node_(s3)] 0 1000.0 $period_
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+    $ns_ at $stopTime0 "$self printTFRCpkts 0 $tf1"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/droppedTFRC superclass TestSuite
+Test/droppedTFRC instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_    net2
+    set test_   droppedTFRC
+    set period_ 40.0
+    Test/droppedTFRC instproc run {} [Test/goodTFRC info instbody run ]
+    $self next
+}
+
+Class Test/delayedTFRC superclass TestSuite
+Test/delayedTFRC instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_    net2
+    set test_   delayedTFRC
+    set period_ 40.0
+    ErrorModel set delay_pkt_ true
+    ErrorModel set drop_ false
+    ErrorModel set delay_ 0.03
+    Test/delayedTFRC instproc run {} [Test/goodTFRC info instbody run ]
+    $self next
+}
+
+Class Test/goodTCP superclass TestSuite
+Test/goodTCP instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_	net2
+    set test_	goodTCP
+    set list_ {50000 50001}
+    set period_ 1000.0
+    $self next
+}
+Test/goodTCP instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ list_ period_
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 20.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    set ftp1 [$tcp1 attach-app FTP]
+    $ns_ at 0.0 "$ftp1 start"
+    $self pktsDump 1 $tcp1 $interval_ $dumpfile_
+
+    $self dropPktsPeriodic [$ns_ link $node_(r2) $node_(s3)] 0 200.0 $period_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+    $ns_ at $stopTime0 "$self printpkts 0 $tcp1"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/droppedTCP superclass TestSuite
+Test/droppedTCP instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_    net2
+    set test_   droppedTCP
+    set period_ 40.0
+    Test/droppedTCP instproc run {} [Test/goodTCP info instbody run ]
+    $self next
+}
+
+Class Test/delayedTCP superclass TestSuite
+Test/delayedTCP instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_    net2
+    set test_   delayedTCP
+    set period_ 40.0
+    ErrorModel set delay_pkt_ true
+    ErrorModel set drop_ false
+    ErrorModel set delay_ 0.03
+    Test/delayedTCP instproc run {} [Test/goodTCP info instbody run ]
+    $self next
+}
 
 TestSuite runTest
 
