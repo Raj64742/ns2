@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.69 1998/10/14 01:09:10 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.70 1998/11/24 19:12:47 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1707,6 +1707,12 @@ step6:
 		usrclosed();
 
 	Packet::free(pkt);
+
+	// haoboy: Is here the place for done{} of active close? 
+	// It cannot be put in the switch above because we might need to do
+	// send_much() (an ACK)
+	Tcl::instance().evalf("%s done", this->name());
+
 	return;
 
 dropafterack:
