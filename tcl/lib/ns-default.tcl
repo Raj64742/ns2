@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.314 2003/05/05 21:57:48 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.315 2003/05/06 04:21:00 sfloyd Exp $
 
 
 #
@@ -842,14 +842,17 @@ catch {
 }
 Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 
-# setting this to 1 implements some changes to reno 
-# proposed by Janey Hoe (other than fixing reno's
-# unnecessary retransmit timeouts)
+ # setting newreno_changes_ to 1 implements some changes to reno 
+ # proposed by Janey Hoe (other than fixing reno's
+ # unnecessary retransmit timeouts)
 Agent/TCP/Newreno set newreno_changes_ 0
-# setting this to 1 allows the retransmit timer to expire for
-# a window with many packet drops
-Agent/TCP/Newreno set newreno_changes1_ 0
-Agent/TCP/Newreno set partial_window_deflation_ 0
+ # setting newreno_changes1_ to 1 allows the retransmit timer to expire for
+ # a window with many packet drops
+ # Default changed to 1 on 5/5/03, to reflect RFC 2582.
+Agent/TCP/Newreno set newreno_changes1_ 1
+Agent/TCP/Newreno set partial_window_deflation_ 1 ; # Default changed to 1
+						    # on 5/5/03, to reflect
+						    # RFC 2582.
 Agent/TCP/Newreno set exit_recovery_fix_ 0
 
 Agent/TCP/Vegas set v_alpha_ 1
