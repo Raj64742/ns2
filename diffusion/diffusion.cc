@@ -398,6 +398,11 @@ void DiffusionAgent::MACprepare(Packet *pkt, nsaddr_t next_hop,
 }
 
 
+void dummy()
+{
+}
+
+
 void DiffusionAgent::MACsend(Packet *pkt, Time delay=0)
 {
   hdr_cmn*  cmh = HDR_CMN(pkt);
@@ -409,6 +414,10 @@ void DiffusionAgent::MACsend(Packet *pkt, Time delay=0)
   else
     cmh->size() = 36 + 4*(dfh->num_next -1);
 
+  dummy();
+
+  /*
+
   if (cmh->addr_type() == NS_AF_INET) {
     llinfo= arp_table->arplookup(cmh->next_hop());
     if (llinfo==0) {
@@ -417,6 +426,8 @@ void DiffusionAgent::MACsend(Packet *pkt, Time delay=0)
       return;
     }
   }
+
+  */
 
   Scheduler::instance().schedule(ll, pkt, delay);
 }

@@ -279,8 +279,32 @@ void OmniMcastAgent::Terminate()
 }
 
 
+/*
+void dummy()
+{
+}
+*/
+
 void OmniMcastAgent::Start()
 {
+
+  /*
+  double temp;
+
+  temp = Random::uniform(1.0);
+  printf("Random::uniform(1.0) = %f at time %f at node %d\n", temp, NOW, 
+	 THIS_NODE);
+  arp_buf_timer.sched(ARP_BUFFER_CHECK + ARP_BUFFER_CHECK * temp);	  
+
+  temp = Random::uniform(1.0);
+  printf("Random::uniform(1.0) = %f at time %f at node %d\n", temp, NOW,
+	 THIS_NODE);
+  send_buf_timer.sched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK * temp);
+
+  */
+
+  //  dummy();
+
   arp_buf_timer.sched(ARP_BUFFER_CHECK + ARP_BUFFER_CHECK * 
 		      Random::uniform(1.0));	  
   send_buf_timer.sched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK *
@@ -372,6 +396,7 @@ void OmniMcastAgent::MACsend(Packet *pkt, Time delay=0)
   else
     cmh->size() = 36 + 4*(dfh->num_next -1);
 
+  /*
   if (cmh->addr_type() == NS_AF_INET) {
     llinfo= arp_table->arplookup(cmh->next_hop());
     if (llinfo==0) {
@@ -380,6 +405,7 @@ void OmniMcastAgent::MACsend(Packet *pkt, Time delay=0)
       return;
     }
   }
+  */
 
   Scheduler::instance().schedule(ll, pkt, delay);
 }
