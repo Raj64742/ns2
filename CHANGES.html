@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.205 1998/01/21 22:38:17 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.206 1998/01/22 06:23:11 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -19,6 +19,15 @@
 <hr>
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
 <UL>
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[KF]</A></B>
+	<b>
+        Wed Jan 21 22:20:58 PST 1998
+	</b><br>
+	Change to tcp to record time in rtt_ts for rtt_update calls
+	when not using actual timestamps.
+	A number of changes to tcp-full to make the simul-close test
+	work (esp. handling of fins and retransmitted fins).<br>
+
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        and <B><A HREF="http://www.isi.edu/~visweswa/">[visweswa]</A></B>
        <b>Wed Jan 21 14:37:07 PST 1998</b><br>
