@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.45 2001/08/17 21:47:44 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.46 2001/08/20 23:11:37 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -263,10 +263,13 @@ protected:
 	}
 
 	int build_options(hdr_tcp*);	// insert opts, return len
+	int clear_on_timeout_;	// clear sender's SACK queue on RTX timeout?
 	int sack_option_size_;	// base # bytes for sack opt (no blks)
 	int sack_block_size_;	// # bytes in a sack block (def: 8)
 	int max_sack_blocks_;	// max # sack blocks to send
-
+	int sack_rtx_bthresh_;	// hole-fill byte threshold
+	int sack_rtx_cthresh_;	// hole-fill counter threshold
+	int sack_rtx_threshmode_;	// hole-fill mode setting
 
 	ReassemblyQueue sq_;	// SACK queue, used by sender
 
@@ -275,7 +278,6 @@ protected:
 
 	int sack_min_;		// first seq# in sack queue, initializes sq_
 	int h_seqno_;		// next seq# to hole-fill
-	int clear_on_timeout_;	// clear sender's SACK queue on RTX timeout?
 };
 
 #endif
