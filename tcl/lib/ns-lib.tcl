@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.52 1997/09/16 22:36:25 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.53 1997/10/01 00:35:16 haoboy Exp $
 #
 
 #
@@ -266,7 +266,7 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	}
 }
 
-Simulator instproc duplex-link { n1 n2 bw delay type {ori "left"} {q_clrid 0} } {
+Simulator instproc duplex-link { n1 n2 bw delay type {ori ""} {q_clrid 0} } {
 	$self simplex-link $n1 $n2 $bw $delay $type
 	$self simplex-link $n2 $n1 $bw $delay $type
 
@@ -479,7 +479,7 @@ Simulator instproc simplex-link-of-interfaces { f1 f2 bw delay type } {
         $n1 add-neighbor $n2
 }
 
-Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type {ori "left"} {q_clrid 0} } {
+Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type {ori ""} {q_clrid 0} } {
         $self instvar traceAllFile_
         set f1 [new DuplexNetInterface]
         $n1 addInterface $f1
