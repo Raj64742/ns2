@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.103 2001/10/12 17:27:29 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.104 2001/12/04 22:23:23 haldar Exp $
 
 try () {
 	echo "*** $1"
@@ -50,7 +50,7 @@ intserv diffserv webcache mcache webtraf \
 simultaneous mip links plm linkstate mpls oddBehaviors \
 wireless-shadowing wireless-lan-aodv wireless-tdma wireless-gridkeeper \
 wireless-diffusion wireless-lan-newnode satellite WLtutorial energy \
-v1 red-v1 cbq-v1 sack-v1 vegas-v1 source-routing snoop
+v1 red-v1 cbq-v1 sack-v1 vegas-v1 source-routing snoop diffusion3
 # wireless-lan-gaf
 # pi
 
