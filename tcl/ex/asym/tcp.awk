@@ -14,6 +14,8 @@ cwnd = $18;
 ssthresh = $20;
 srtt = $26;
 rttvar = $28;
+ownd = $34;
+owndcorr = $36;
 
 if (!((saddr, sport, daddr, dport) in starttime)) {
 	starttime[saddr, sport, daddr, dport] = time;
@@ -54,6 +56,16 @@ if (!((saddr, sport, daddr, dport) in ssthreshfile)) {
 	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > ssthreshfile[saddr,sport,daddr,dport];
 	printf "Device: Postscript\n" > ssthreshfile[saddr,sport,daddr,dport];
 }
+if (!((saddr, sport, daddr, dport) in owndfile)) {
+	owndfile[saddr, sport, daddr, dport] = sprintf("%s/ownd-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
+	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > owndfile[saddr,sport,daddr,dport];
+	printf "Device: Postscript\n" > owndfile[saddr,sport,daddr,dport];
+}
+if (!((saddr, sport, daddr, dport) in owndcorrfile)) {
+	owndcorrfile[saddr, sport, daddr, dport] = sprintf("%s/owndcorr-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
+	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > owndcorrfile[saddr,sport,daddr,dport];
+	printf "Device: Postscript\n" > owndcorrfile[saddr,sport,daddr,dport];
+}
 if (!((saddr, sport, daddr, dport) in srttfile)) {
 	srttfile[saddr, sport, daddr, dport] = sprintf("%s/srtt-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
 	printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > srttfile[saddr,sport,daddr,dport];
@@ -67,6 +79,8 @@ if (!((saddr, sport, daddr, dport) in rttvarfile)) {
 
 printf "%g %g\n", time, cwnd > cwndfile[saddr, sport, daddr, dport];
 printf "%g %d\n", time, ssthresh > ssthreshfile[saddr, sport, daddr, dport];
+printf "%g %d\n", time, ownd > owndfile[saddr, sport, daddr, dport];
+printf "%g %d\n", time, owndcorr > owndcorrfile[saddr, sport, daddr, dport];
 printf "%g %g\n", time, srtt > srttfile[saddr, sport, daddr, dport];
 printf "%g %g\n", time, rttvar > rttvarfile[saddr, sport, daddr, dport];
 1} 
@@ -76,6 +90,12 @@ END {
 	}
 	for (f in ssthreshfile) {
 		close(ssthreshfile[f]);
+	}
+	for (f in owndfile) {
+		close(owndfile[f]);
+	}
+	for (f in owndcorrfile) {
+		close(owndcorrfile[f]);
 	}
 	for (f in srttfile) {
 		close(srttfile[f]);
@@ -109,7 +129,8 @@ END {
 		on_bw = -1;
 		if (i in turnontime) {
 			if (turnontime[i] < turnofftime[i]) {
-				on_bw = calc_bw(turnonhiack[i],turnoffhiack[i],turnontime[i],turnofftime[i]);
+#				on_bw = calc_bw(turnonhiack[i],turnoffhiack[i],turnontime[i],turnofftime[i]);
+				on_bw = calc_bw(turnonhiack[i],turnoffhiack[i],turnon,turnoff);
 #				on_bw = ((turnoffhiack[i] - turnonhiack[i])/(turnofftime[i] - turnontime[i]))*8.0;
 			}
 		}
