@@ -145,13 +145,12 @@ created and seeded with:
 set rng [new RNG]
 $rng seed 0 \; seeds the RNG heuristically;
 $rng seed n \; seeds the RNG with value n;
+$rng seed predef n \; seeds the RNG with predefined seed number n;
 $rng next-random \;  return the next random number;
 $rng uniform a b \; return a number uniformly distributed on [a, b];
 $rng integer k \; return an integer uniformly distributed on [0, (k-1)];
 $rng exponential \; return a number from an exponential distribution with average 1.;
 \end{program}
-
-Currently there is no way to select predefined seeds from OTcl.
 
 \section{Random Variables}
 \label{sec:ranvar}
