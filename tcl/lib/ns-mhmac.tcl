@@ -39,3 +39,40 @@ Mac/Multihop set tx_rx_ 11.125ms
 Mac/Multihop set rx_tx_ 13.25ms
 Mac/Multihop set rx_rx_ 10.5625
 Mac/Multihop set backoffBase_ 20ms
+Mac/Multihop set hlen_ 16
+
+
+# This should eventually be in ns-lib.tcl
+Simulator instproc macnode {} {
+	$self instvar Node_
+	set node [new Node/MacNode]
+	set Node_([$node id]) $node
+	return $node
+}
+
+# In the long run, this should be done in the route logic
+Class Node/MacNode -superclass Node
+Node/MacNode instproc init args {
+	eval $self next $args
+	$self instvar macList_
+	$self instvar numMacs_
+
+	set macList_ {}
+	set numMacs_ 0
+}
+
+# Hook up the MACs together at a given MacNode
+Node/MacNode instproc linkmacs {} { 
+	$self instvar macList_
+	$self instvar numMacs_
+
+	puts "#macs = $numMacs_"
+	puts "[expr 1%1]"
+
+	for {set i 0} {$i < $numMacs_} {incr i} {
+		puts "MACLIST $macList_"
+		puts "MACLIST($i) [lindex $macList_ $i]"
+		[lindex $macList_ $i] set-maclist [lindex $macList_ [expr ($i+1)%$numMacs_]]
+	}
+}
+
