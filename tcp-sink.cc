@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.24 1998/06/27 01:03:37 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.25 1998/08/11 20:16:18 heideman Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -205,7 +205,7 @@ void DelAckSink::recv(Packet* pkt, Handler*)
          * If there's no timer and the packet is in sequence, set a timer.
          * Otherwise, send the ack and update the timer.
          */
-        if (!(delay_timer_.status() == TIMER_PENDING) && 
+        if (delay_timer_.status() != TIMER_PENDING && 
 				th->seqno() == acker_->Seqno()) {
                 /*
                  * There's no timer, so set one and delay this ack.

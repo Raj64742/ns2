@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/traffictrace.cc,v 1.6 1998/07/16 18:34:22 breslau Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/traffictrace.cc,v 1.7 1998/08/11 20:16:18 heideman Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -29,6 +29,13 @@ static const char rcsid[] =
 #include <sys/types.h>
 #include <sys/stat.h> 
 #include <stdio.h>
+
+// hpux fix from Ketil Danielsen <Ketil.Danielsen@hiMolde.no>
+// get htonl from in.h
+#ifdef hpux
+#include <netinet/in.h>
+#endif
+
 
 #include "random.h"
 /* module to implement a traffic generator in ns driven by a trace

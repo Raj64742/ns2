@@ -27,6 +27,14 @@
 #endif /* WIN32 */
 #include <unistd.h>
 
+/* hpux patch from Ketil Danielsen <Ketil.Danielsen@hiMolde.no> */
+#ifdef hpux
+#include <sys/resource.h>
+#include <sys/syscall.h>
+#define getrusage(a, b)  syscall(SYS_GETRUSAGE, a, b)
+#endif
+
+
 
 #define fDIFF(FIELD) (now_.FIELD - start_.FIELD)
 #define absolute(var) (var > 0 ? var : -var)

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.20 1998/06/27 01:23:35 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.21 1998/08/11 20:16:17 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -205,10 +205,6 @@ time_t time(time_t *);
 }
 #endif
 
-#ifdef sgi
-#include <math.h>
-#endif
-
 #define ECONNREFUSED	WSAECONNREFUSED
 #define ENETUNREACH	WSAENETUNREACH
 #define EHOSTUNREACH	WSAEHOSTUNREACH
@@ -217,6 +213,11 @@ time_t time(time_t *);
 #define M_PI		3.14159265358979323846
 
 #endif /* WIN32 */
+
+#ifdef sgi
+#include <math.h>
+#endif
+
 
 
 /***** These values are no longer required to be hardcoded -- mask and shift values are 
