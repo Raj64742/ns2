@@ -46,7 +46,7 @@ LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
 	$self instvar bw_ delay_ ifqType_ macType_ chanType_
 	$self instvar ns_ nodelist_ defRouter_ cost_
-	$self instvar id_ address_ channel_ mcl_ netIface_ 
+	$self instvar id_ address_ channel_ mcl_
 	$ns instvar Node_
 
 	$self next
@@ -234,6 +234,12 @@ LanIface instproc init {node lan args} {
 	$mac_ target $ll_
 
 	$node addInterface $self
+}
+
+LanIface instproc add-receive-filter filter {
+	$self instvar mac_
+	$filter target [$mac_ target]
+	$mac_ target $filter
 }
 
 # Vlink------------------------------------------------------
