@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.1 1998/01/07 21:59:16 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.2 1998/01/07 22:59:13 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -78,63 +78,70 @@ extern "C" {
 #define	PNET_PSTATE_INACTIVE	0
 #define	PNET_PSTATE_ACTIVE	1
 
-#define	PNET_SRCTYPE_CHANNEL	0
-#define	PNETN_SRCTYPE_LIVE	1
-
 class PcapNetwork : public Network {
 
 public:
-	PcapNetwork();
 	virtual int command(int argc, const char*const* argv);
-	virtual void reset();
+	void reset();
 protected:
-	virtual int open();
-	virtual int open(char*);
+	virtual int open(char*) = 0;
 	virtual void bindvars();
 
 	void reset();
 	int close();
 
 	char errbuf_[PCAP_ERRBUF_SIZE];
-	char *devname_;
+	char srcname_[PATH_MAX];		// device of file name
 	int state_;
-	int optimize_;
-	pcap_t pcap_;
-	struct bpf_program bpfpgm_;
+	int optimize_;				// bpf optimizer enable
+	pcap_t pcap_;				// reference to pcap state
+	struct bpf_program bpfpgm_;		// generated program
 };
 
 class PcapLiveNetwork : public PcapNetwork {
 public:
+	PcapLiveNetwork() : local_net_(0), local_netmask_(0) 
+		bindvars(); reset();
+	}
+
 	int open();
 	int open(char*);
 protected:
+	char*	autodevname();
+
 	int snaplen_;
 	int promisc_;
 	int livetimeout_;
+
+	unsigned int local_net_;
+	unsigned int local_netmask_;
 }
 
-static class PcapLiveNetWork : public TclClass {
-    public:
+class PcapFileNetwork : public PcapNetwork {
+public:
+	int open(char*);
+protected:
+}
+
+static class PcapLiveNetworkClass : public TclClass {
+public:
 	PcapLiveNetWork() : TclClass("Network/Pcap/Live") {}
 	TclObject* create(int, const char*const*) {
-		return (new PcapNetwork);
+		return (new PcapLiveNetwork);
 	}
 } net_pcaplive;
 
-static class PcapChanNetWork : public TclClass {
-    public:
-	PcapChanNetWork() : TclClass("Network/Pcap/Channel") {}
+static class PcapFileNetworkClass : public TclClass {
+public:
+	PcapFileNetWork() : TclClass("Network/Pcap/File") {}
 	TclObject* create(int, const char*const*) {
-		return (new PcapNetwork);
+		return (new PcapFileNetwork);
 	}
-} net_pcapchan;
+} net_pcapfile;
 
-void
-PcapNetwork::PcapNetwork()
-{
-	reset();
-	bindvars();
-}
+//
+// defs for base PcapNetwork class
+//
 
 void
 PcapNetwork::bindvars()
@@ -147,34 +154,9 @@ PcapNetwork::reset()
 {
 	state_ = PSTATE_INACTIVE;
 	*errbuf_ = '\0';
+	*srcname_ = '\0';
 }
 
-int
-PcapNetwork::open()
-{
-	return (open(autodevname()));
-}
-
-int
-PcapNetwork::open(char *dname)
-{
-	// to_ms parameter zero means don't set timeout
-	if (srctype_ == PNETN_SRCTYPE_LIVE) {
-		pcap_ = pcap_open_live(devname_,
-			snaplen_, promisc_, livetimeout_, errbuf_);
-	} else if (srctype_ == PNET_SRCTYPE_CHANNEL) {
-		pcap_ = pcap_open_offline(devname_, errbuf_);
-	}
-
-	if (pcap_ == NULL) {
-		fprintf(stderr,
-		  "pcap object (%s) couldn't open packet source %s: %s\n",
-			name(), devname_, errbuf_);
-		return -1;
-	}
-	devname_ = dname;
-	return 0;
-}
 
 void
 PcapNetwork::close()
@@ -187,10 +169,19 @@ PcapNetwork::close()
 /* XXXwe aren't using 'bcast', so don't care about mask... sigh */
 
 int
-PcapNetwork::bpf_compile(char *pgm)
+PcapNetwork::filter(char *pgm)
 {
-	bpf_u_int32 mask = bpf_u_int32(0x0);
-	return(pcap_compile(pcap_, &bpfpgm_, pgm, optimize_, mask));
+	if (pcap_compile(pcap_, &bpfpgm_, pgm, optimize_, local_netmask) < 0) {
+		fprintf(stderr, "pcapnet obj(%s): couldn't compile filter pgm",
+			name());
+		return -1;
+	}
+	if (pcap_setfilter(pcap_, &bpfpgm_) < 0) {
+		fprintf(stderr, "pcapnet obj(%s): couldn't set filter pgm",
+			name());
+		return -1;
+	}
+	return 0;
 }
 
 int PcapNetwork::command(int argc, const char*const* argv)
@@ -202,66 +193,61 @@ int PcapNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
-		if (strcmp(argv[1], "open") == 0) {
-			if (strcmp(argv[2], "live") == 0) {
-				srctype_ = PNET_SRCTYPE_LIVE;
-			} else {
-				tcl.resultf(
-				   "pcap obj (%s): invalid source %s",
-				   name(), argv[2]);
+		if (strcmp(argv[1], "filter") == 0) {
+			if (state_ != PNET_PSTATE_ACTIVE) {
+				tcl.resultf("net/pcap obj(%s): can't install filter prior to opening data source\n",
+					name();
 				return (TCL_ERROR);
 			}
-			if (open() < 0)
-				return (TLC_ERROR);
-			tcl.result("1");
-			return (TCL_OK);
-		}
-	} else if (argc == 4) {
-		if (strcmp(argv[1], "open") == 0) {
-			if (strcmp(argv[2], "chan") == 0) {
-				srctype_ = PNET_SRCTYPE_CHAN;
-			else if (strcmp(argv[2], "live") == 0) {
-				srctype_ = PNET_SRCTYPE_LIVE;
-			} else {
-				tcl.resultf(
-				   "pcap obj (%s): unknown src type %s\n"
-				   name(), argv[2]);
-				return (TCL_ERROR);
-			}
-			if (open(argv[3]) < 0) {
+			if (filter(argv[2]) < 0) {
+				tcl.resultf("problem compiling/installing filter program");
 				return (TCL_ERROR);
 			}
 			tcl.result("1");
 			return (TCL_OK);
 		}
+	}
 	return (Network::command(argc, argv));
 }
 
-int PcapNetwork::open(u_int32_t addr, int port, int ttl)
-{
-	return (0);
-}
+//
+// defs for PcapLiveNetwork
+//
 
-int PcapNetwork::open(int port)
+int
+PcapLiveNetwork::open(char *devname)
 {
-}
+	pcap_ = pcap_open_live(srcname_, snaplen_, promisc_,
+		livetimeout_, errbuf_);
 
-int PcapNetwork::close()
-{
-	return (0);
-}
+	if (pcap_ == NULL) {
+		fprintf(stderr,
+		  "pcap/live object (%s) couldn't open packet source %s: %s\n",
+			name(), srcname_, errbuf_);
+		return -1;
+	}
+	strncpy(srcname_, devname, sizeof(srcname_)-1);
+	state_ = PSTATE_ACTIVE;
 
+	if (pcap_lookupnet(srcname_, &local_net, &local_netmask, errbuf_) < 0) {
+		fprintf(stderr,
+		  "warning: pcap/live (%s) couldn't get local IP network info: %s\n",
+		  name(), errbuf_) 
+	}
+
+	return 0;
+}
 
 char *
 PcapLiveNetwork::autodevname()
 {
 	char *dname;
 	if ((dname = pcap_lookupdev(errbuf_)) == NULL) {
-		fprintf(stderr, "warning: PcapNet(%s) : %s\n",
+		fprintf(stderr, "warning: PcapNet/Live(%s) : %s\n",
 			name(), errbuf_);
 		return;
 	}
-	return dname;
+	return dname;	// ptr to static data in pcap library
 }
 
 void
@@ -271,4 +257,67 @@ PcapLiveNetwork::bindvars()
 	bind("promisc_", &promisc_);
 	bind("livetimeout_", &livetimeout_);
 	PcapNetwork::bindvars();
+}
+
+int
+PcapLiveNetwork::open()
+{
+	return (open(autodevname()));
+}
+
+int PcapLiveNetwork::command(int argc, const char*const* argv)
+{
+
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		// $obj open
+		if (strcmp(argv[1], "open") == 0) {
+			if (open() < 0)
+				return (TCL_ERROR);
+			return (TCL_OK);
+		}
+	} else if (argc == 3) {
+		// $obj open "devicename"
+		if (strcmp(argv[1], "open") == 0) {
+			if (open(argv[2]) < 0)
+				return (TCL_ERROR);
+			return (TCL_OK);
+		}
+	}
+	return (PcapNetwork::command(argc, argv));
+}
+
+//
+// defs for PcapFileNetwork
+// use a file instead of a live network
+//
+
+int
+PcapFileNetwork::open(char *filename)
+{
+	pcap_ = pcap_open_offline(filename, errbuf_);
+	if (pcap_ == NULL) {
+		fprintf(stderr,
+		  "pcap/file object (%s) couldn't open packet source %s: %s\n",
+			name(), srcname_, errbuf_);
+		return -1;
+	}
+	strncpy(srcname_, filename, sizeof(srcname_)-1);
+	state_ = PSTATE_ACTIVE;
+	return 0;
+}
+
+int PcapFileNetwork::command(int argc, const char*const* argv)
+{
+
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		// $obj open filename
+		if (strcmp(argv[1], "open") == 0) {
+			if (open(argv[2]) < 0)
+				return (TCL_ERROR);
+			return (TCL_OK);
+		}
+	}
+	return (PcapNetwork::command(argc, argv));
 }
