@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.75 2003/10/05 06:20:30 xuanc Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.76 2003/10/12 21:15:10 xuanc Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -406,13 +406,11 @@ void Agent::sendmsg(int /*sz*/, AppData* /*data*/, const char* /*flags*/)
 
 void Agent::sendmsg(int /*nbytes*/, const char* /*flags*/)
 {
-printf("called sendmesg 2\n");
 }
 
 void Agent::sendto(int /*sz*/, AppData* /*data*/, const char* /*flags*/,
 		   nsaddr_t /*dst*/)
 {
-printf("called sendto 1\n");
 	fprintf(stderr, 
 	"Agent::sendmsg(int, AppData*, const char*) not implemented\n");
 	abort();
@@ -422,7 +420,6 @@ printf("called sendto 1\n");
 void Agent::sendto(int /*sz*/, AppData* /*data*/, const char* /*flags*/,
 		   ns_addr_t /*dst*/)
 {
-printf("called sendto 2\n");
 }
 
 /* 
@@ -431,7 +428,6 @@ printf("called sendto 2\n");
  */
 void Agent::sendto(int /*nbytes*/, const char /*flags*/[], nsaddr_t /*dst*/)
 {
-printf("called sendto 3\n");
 /*
 	dst_ = dst;
 	sendmsg(nbytes, flags);
@@ -440,7 +436,6 @@ printf("called sendto 3\n");
 // to support application using message passing
 void Agent::sendto(int /*nbytes*/, const char /*flags*/[], ns_addr_t /*dst*/)
 {
-printf("called sendto 4\n");
 }
 
 void Agent::recv(Packet* p, Handler*)
