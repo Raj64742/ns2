@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.9 1997/07/14 23:07:39 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.10 1997/07/23 03:41:19 kfall Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -60,6 +60,7 @@ class Agent : public Connector {
 	int fid_;		/* for IPv6 flow id field */
 	int prio_;		/* for IPv6 prio field */
 	int flags_;		/* for experiments (see ip.h) */
+	int defttl_;		/* default ttl for outgoing pkts */
 
 #ifdef notdef
 int seqno_;		/* current seqno */
