@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.13 2002/03/08 21:55:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.14 2002/05/07 21:31:34 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -144,8 +144,8 @@ Topology/net1 instproc init ns {
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail
     $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 100ms DropTail
-    $ns queue-limit $node_(r1) $node_(k1) 23
-    $ns queue-limit $node_(k1) $node_(r1) 23
+    $ns queue-limit $node_(r1) $node_(k1) 19
+    $ns queue-limit $node_(k1) $node_(r1) 19
 }
 
 
@@ -367,6 +367,8 @@ Test/sack5 instproc run {} {
     $self instvar ns_ node_ testName_
     $self setTopo
 
+    Agent/TCP set window_ 50
+    Agent/TCP set bugFix_ false
     $ns_ delay $node_(s1) $node_(r1) 3ms
     $ns_ delay $node_(r1) $node_(s1) 3ms
 
@@ -377,10 +379,7 @@ Test/sack5 instproc run {} {
     set ftp2 [$tcp2 attach-app FTP]
     $ns_ at 1.75 "$ftp2 produce 100"
 
-    # trace only the bottleneck link
-    #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
-#    $ns_ at 6.0 "$self cleanupAll $testName_"
-    $ns_ at 10.0 "$self cleanupAll $testName_"
+    $ns_ at 6.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
