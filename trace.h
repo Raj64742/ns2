@@ -1,4 +1,3 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -31,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.17 1998/07/01 21:20:28 yaxu Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.18 1998/07/01 22:17:12 yaxu Exp $
  */
 
 #ifndef ns_trace_h
@@ -76,6 +75,7 @@ class Trace : public Connector {
 	int off_ip_;
 	int off_tcp_;
 	int off_rtp_;
+	int off_srm_;
 };
 
 class DequeTrace : public Trace {
