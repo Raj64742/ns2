@@ -46,7 +46,7 @@ public:
 } class_csdp;
 
 
-Csdp::Csdp() : maxq_(4), numq_(0)
+Csdp::Csdp() : maxq_(4), numq_(0), qlen_(0), totalweight_(0)
 {
 	q_ = new IdPacketQueue*[maxq_];
 }
@@ -57,6 +57,12 @@ Csdp::enque(Packet* p)
 {
 	int id = (int) p->target();
 	int i;
+
+	if (qlen_ >= qlim_) {
+		drop(p);
+		return;
+	}
+	qlen_++;
 
 	for (i = 0;  i < numq_;  i++) {
 		if (q_[i]->id() == id)
@@ -71,26 +77,46 @@ Csdp::enque(Packet* p)
 		q_[i] = new IdPacketQueue;
 		q_[i]->id() = id;
 	}
-
-	q_[i]->enque(p);
-	updateState(q_[i], p);
+	insert(q_[i], p);
 }
 
 
 Packet*
 Csdp::deque()
 {
-	IdPacketQueue* q;
+	if (qlen_ == 0)
+		return 0;
 	double r = Random::uniform(totalweight_);
 	for (int i = 0;  i < numq_;  i++) {
-		q = q_[i];
-		r -= 1.0 - q->loss() / q->total();
+		r -= weight(q_[i]);
 		if (r <= 0) {
-			totalweight_ -= weight(q);
-			return q->deque();
+			qlen_--;
+			return extract(q_[i]);
 		}
 	}
 	return 0;
+}
+
+
+void
+Csdp::insert(IdPacketQueue* q, Packet* p)
+{
+	double oldweight = weight(q);
+	q->enque(p);
+	if (p->error())
+		q->loss()++;
+	q->total()++;
+	totalweight_ += weight(q) - oldweight;
+}
+
+
+Packet*
+Csdp::extract(IdPacketQueue* q)
+{
+	double oldweight = weight(q);
+	Packet *p = q->deque();
+	totalweight_ += weight(q) - oldweight;
+	return p;
 }
 
 
@@ -99,15 +125,4 @@ Csdp::weight(IdPacketQueue* q)
 {
 	double w = 1.0 - q->loss() / (q->total() + 1);
 	return q->length() ? w : 0;
-}
-
-
-void
-Csdp::updateState(IdPacketQueue* q, Packet* p)
-{
-	double oldweight = weight(q);
-	if (p->error())
-		q->loss()++;
-	q->total()++;
-	totalweight_ += weight(q) - oldweight;
 }

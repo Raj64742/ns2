@@ -48,9 +48,9 @@ public:
 
 ErrorModel::ErrorModel(ErrorUnit eu) : unit_(eu), rate_(0), time_(0), loss_(0), good_(0), errorLen_(0)
 {
-	bind_time("rate_", &rate_);
-	bind_time("time_", &time_);
-	bind_time("errorLen_", &errorLen_);
+	bind("rate_", &rate_);
+	bind("time_", &time_);
+	bind("errorLen_", &errorLen_);
 }
 
 

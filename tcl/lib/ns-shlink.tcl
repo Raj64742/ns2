@@ -55,6 +55,10 @@ Mac/Csma set rtxmax_ 16
 #Mac/Csma/Cd set slotTime_ 52us
 #Mac/Csma/Cd set cwmin_ 1
 
+ErrorModel set rate_ 0
+ErrorModel set time_ 0
+ErrorModel set errorLen_ 0
+
 TraceIp set src_ 0
 TraceIp set dst_ 0
 TraceIp set callback_ 0

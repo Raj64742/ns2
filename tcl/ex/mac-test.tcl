@@ -19,8 +19,6 @@ for {set i 0} {$i < $argc} {incr i} {
 	set opt [lindex $argv $i]
 	if {$opt == "-stop"} {
 		set stop [lindex $argv [incr i]]
-	} elseif {$opt == "-g"} {
-		set flags([string range $opt 1 1]) 1
 	} elseif {$opt == "-bw"} {
 		set bw [lindex $argv [incr i]]
 	} elseif {$opt == "-delay"} {
@@ -34,6 +32,8 @@ for {set i 0} {$i < $argc} {incr i} {
 	} elseif {$opt == "-tr"} {
 		regexp {^(.+)\..*$} $argv0 match ext
 		set trfile [lindex $argv [incr i]]
+	} elseif {[string range $opt 0 0] == "-"} {
+		set flags([string range $opt 1 1]) 1
 	}
 }
 
@@ -74,18 +74,20 @@ set cbr(2:3) [$ns create-connection CBR $n(2) Null $n(3) 0]
 #$ns at 0 "$shl queue-sample-timeout"
 
 
-proc create-error {ns n} {
+proc create-error {ns nodearray} {
+	upvar $nodearray n
 	foreach dst {1 2 3} {
 		set em(0:$dst) [new ErrorModel]
-		[$ns link $n(0) $n($dst)] error-model $em(0:$dst)
+		[[$ns link $n(0) $n($dst)] link] errormodel $em(0:$dst)
 	}
-	$em(0:1) set rate 0
-	$em(0:2) set rate 0.01
-	$em(0:3) set rate 0.02
+	$em(0:1) set rate_ 0
+	$em(0:2) set rate_ 0.01
+	$em(0:3) set rate_ 0.02
 }
 
 if [info exist flags(e)] {
-	create-error $ns $n
+	puts "add error models"
+	create-error $ns n
 }
 
 
@@ -165,7 +167,8 @@ proc finish {} {
 	} $trfile
 
 	if [info exist flags(g)] {
-		eval exec xgraph -nl -M -display $env(DISPLAY) [glob $trfile.*]
+		eval exec xgraph -nl -M -display $env(DISPLAY) \
+				[lsort [glob $trfile.*]]
 	}
 	exit 0
 }

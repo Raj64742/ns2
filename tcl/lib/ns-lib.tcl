@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24.2.3 1997/04/20 01:31:22 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24.2.4 1997/04/22 02:18:24 gnguyen Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -324,7 +324,7 @@ Simulator proc all-nodes-list {} {
     return $nodes
 }
 
-Simulator proc link { n1 n2 } {
+Simulator instproc link { n1 n2 } {
     set ns [Simulator instance]
     $ns instvar link_
     return [$ns set link_([$n1 id]:[$n2 id])]
