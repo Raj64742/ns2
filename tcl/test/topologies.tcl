@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.12 1998/05/05 03:40:24 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.13 1998/05/07 01:45:15 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -402,6 +402,7 @@ Topology/net2-lossy instproc init ns {
     $lossylink_ errormodule $em
     $em insert $errmodel
     $em bind $errmodel 0
+    $em default pass
 }
 
 Class Topology/net2- -superclass Topology/net2
