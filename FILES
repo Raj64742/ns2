@@ -87,7 +87,6 @@ lib/int.Vec.h
 lib/int.defs.h
 ll.cc
 ll.h
-log.cc
 loss-monitor.cc
 mac-802_11.cc
 mac-802_11.h
