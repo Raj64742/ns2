@@ -56,15 +56,15 @@
 struct hdr_tfrc {
 
 	int seqno;		//data sequence number
-	double rate;	//sender's current rate
-	double rtt;	 //RTT estimate of sender
-	double tzero;	 //RTO in Umass eqn
-	double timestamp;		 //time this message was sent
-	int psize;	//packet size	
+	double rate;		//sender's current rate
+	double rtt;	 	//RTT estimate of sender
+	double tzero;	 	//RTO in Umass eqn
+	double timestamp; 	//time this message was sent
+	int psize;		//packet size	
 	int UrgentFlag;		//Urgent Flag
-	int round_id ; //round id.
+	int round_id ; 		//round id.
 
-	static int offset_;		// offset for this header
+	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
 	inline static hdr_tfrc* access(Packet* p) {
 		return (hdr_tfrc*) p->access(offset_);
@@ -74,11 +74,11 @@ struct hdr_tfrc {
 
 struct hdr_tfrc_ack {
 
-	int seqno;	 // not sure yet
-	double timestamp;		 //time this nack was sent
+	int seqno;	 	// not sure yet
+	double timestamp;		//time this nack was sent
 	double timestamp_offset;	//offset since we received data packet
-	double timestamp_echo;		 //timestamp from the last data packet
-	double flost;	//frequnecy of loss indications
+	double timestamp_echo;		//timestamp from the last data packet
+	double flost;		//frequnecy of loss indications
 	double rate_since_last_report;	//what it says ...
 	double NumFeedback_;
 	
@@ -131,9 +131,13 @@ protected:
 	int seqno_; 
 	int psize_;
 	double rate_;		// send rate
-	double oldrate_;		 // allows rate to be changed gradually
-	double delta_;		 // allows rate to be changed gradually
-	int rate_change_;	 //slow start, cong avoid, decrease ...
+	double oldrate_;	// allows rate to be changed gradually
+	double delta_;		// allows rate to be changed gradually
+	int rate_change_; 	// slow start, cong avoid, decrease ...
+	double rcvrate  ; 	// TCP friendly rate based on current RTT 
+				//  and recever-provded loss estimate
+	double maxrate_;	// prevents sending at more than 2 times the 
+				//  rate at which the receiver is _receving_ 
 
 	/* "accurate" estimates for formula */
 	double rtt_;
@@ -156,19 +160,18 @@ protected:
 	int InitRate_;		// initial send rate
 	double df_;		// decay factor for accurate RTT estimate
 	double last_change_;	// time last change in rate was made
-	double ssmult_;		// during slow start, increase rate by
-		//	this factor every rtt
+	double ssmult_;		// during slow start, increase rate by this 
+				//  factor every rtt
 	int bval_;		// value of B for the formula
 	double overhead_;	// if > 0, dither outgoing packets by 50% 
-	double maxrate_;	// prevents sending at more than 2
-		//	 times the rcvr receive rate
-	TracedInt ndatapack_;	 // number of packets sent
+	TracedInt ndatapack_;	// number of packets sent
 	int UrgentFlag;		// urget flag
 	int active_;		// have we shut down? 
-	int round_id ;		 // round id
+	int round_id ;		// round id
 	
 	int aggr_dec_ ; 
 	int aggr_incr_ ; 
-	double prevflost, prevrtt, prevto ;// previous values of flost, rtt and tzero
+	double prevflost, prevrtt, prevto ; // previous values of flost, 
+					    // rtt and tzero
 
 };

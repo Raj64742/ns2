@@ -1,4 +1,3 @@
-/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1999  International Computer Science Institute
  * All rights reserved.
@@ -57,6 +56,8 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind("NumFeedback_", &NumFeedback_);
 	bind ("AdjustHistoryAfterSS_", &adjust_history_after_ss);
 	bind ("NumSamples_", &numsamples);
+	bind ("discount_", &discount);
+	bind ("domax_", &domax);
 
 	rate_ = 0; 
 	rtt_ =  0; 
@@ -74,10 +75,11 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	lastloss = 0;
 	false_sample = 0;
 	lastloss_round_id = -1 ;
-	sample_count = 0 ;
+	sample_count = 1 ;
 	last_sample = 0;
 	sample = NULL ; 
 	weights = NULL ;
+	mult = NULL ;
 }
 
 /*
@@ -97,7 +99,8 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	if (numsamples < 0) {
 		numsamples = DEFAULT_NUMSAMPLES ;	
 		sample = (int *)malloc((numsamples+1)*sizeof(int));
-		weights = (double *)malloc(numsamples*sizeof(double));
+		weights = (double *)malloc((numsamples+1)*sizeof(double));
+		mult = (double *)malloc((numsamples+1)*sizeof(double));
 		for (int i = 0 ; i < numsamples+1 ; i ++) {
 			sample[i] = 0 ; 
 		}
@@ -109,6 +112,10 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 		weights[5] = 0.6 ;
 		weights[6] = 0.4 ;
 		weights[7] = 0.2 ;
+		weights[8] = 0 ;
+		for (int i = 0 ; i < numsamples+1; i ++) {
+			mult[i] = 1 ; 
+		}
 	}
 
 	UrgentFlag = tfrch->UrgentFlag;
@@ -206,6 +213,7 @@ double TfrcSinkAgent::est_loss ()
 {
 	int i;
 	double p1, p2; 
+	int ds ; 
 
 	// sample[i] counts the number of packets since the i-th loss event
 	// sample[0] contains the most recent sample.
@@ -213,46 +221,62 @@ double TfrcSinkAgent::est_loss ()
 		sample[0]++; 
 		if (lossvec_[i%hsz] == LOST) {
 			sample_count ++;
-			if (sample_count >= numsamples+1) 
-				sample_count = numsamples;
 			shift_array (sample, numsamples+1); 
+			shift_array (mult, numsamples+1, 1.0); 
 		}
 	}
 	last_sample = maxseq+1 ; 
 
-	if (sample_count == 0 && false_sample == 0) 
+	(sample_count>numsamples+1)?ds=numsamples+1:ds=sample_count ;
+
+	if (sample_count == 1 && false_sample == 0) 
 		return 0; 
 
-	if (sample_count < numsamples && false_sample > 0) {
-		/* sample_count++; sample[sample_count] = false_sample;*/
-		sample[sample_count] += false_sample;
+	if (sample_count <= numsamples+1 && false_sample > 0) {
+		sample[ds-1] += false_sample;
 		false_sample = 0 ; 
 	}
 
+	/* do we need to discount weights? */
+	if (sample_count > 1 && discount) {
+		double wsum = 0 ; 
+		double sum = 0 ;
+
+		for (i = 1 ; i < ds ; i++) {
+			wsum += weights[i-1];
+		}
+		for (i = 1; i < ds; i ++) {
+			sum += weights[i-1]*sample[i]/wsum ;
+		}
+		if (sample[0] > 2*sum) {
+			for (i = 1 ; i < ds ; i++) {
+				mult[i] = 2*sum/sample[0] ;
+			}
+		}
+	}
 	p1 = 0; p2 = 0;
 	double wsum1 = 0; 
-	double wsum2 = 0; 
-	for (i = 0; i < sample_count; i ++) 
-		wsum1 += weights[i]; 
-	wsum2 = wsum1; 
-	if (sample_count < numsamples)  
-		wsum1 += weights[i]; 
-	for (i = 0; i <= sample_count; i ++) {
-		if (i != numsamples)
-			p1 += weights[i]*sample[i]/wsum1;
-		if (i > 0) 
-			p2 += weights[i-1]*sample[i]/wsum2;
+	double wsum2 = 0;
+	// Calculations including the most recent loss interval.
+	for (i = 0; i < ds; i ++) 
+		wsum1 += mult[i]*weights[i]; 
+	for (i = 0; i < ds; i ++) {
+		p1 += mult[i]*weights[i]*sample[i]/wsum1;
 	}
-	if (p2 > p1)
-		p1 = p2;
-/*
-double now = Scheduler::instance().clock();
-printf ("%f %d: ", now, sample_count +1);
-for (i = 0 ; i <= sample_count ; i++) 
-        printf ("%d ", sample[i]);
-if (p1 > 0) 
-	printf (" p=%.6f %.2f %.2f %d\n", 1/p1, wsum1, wsum2, maxseq);
-*/
+	// Calculations not including the most recent loss interval.
+	for (i = 1 ; i < ds; i ++) 
+		wsum2 += mult[i]*weights[i-1] ;
+	for (i = 1 ; i < ds; i++) { 
+		p2 += mult[i]*weights[i-1]*sample[i]/wsum2;
+	}
+	if (domax) {
+		// The most recent loss interval does not end in a loss
+		// event.  Include the most recent interval in the 
+		// calculations only if this increases the estimated loss
+		// interval.
+		if (p2 > p1)
+			p1 = p2;
+	}
 	if (p1 > 0) 
 		return 1/p1; 
 	else return 999;     
@@ -264,6 +288,13 @@ void TfrcSinkAgent::shift_array(int *a, int sz)
 		a[i+1] = a[i] ;
 	}
 	a[0] = 0;
+}
+void TfrcSinkAgent::shift_array(double *a, int sz, double defval) {
+	int i ;
+	for (i = sz-2 ; i >= 0 ; i--) {
+		a[i+1] = a[i] ;
+	}
+	a[0] = defval;
 }
 
 /*
@@ -386,12 +417,14 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 			strcpy(w, (char *)argv[2]);
 			numsamples = atoi(strtok(w,"+"));
 			sample = (int *)malloc((numsamples+1)*sizeof(int));
-			weights = (double *)malloc(numsamples*sizeof(double));
+			weights = (double *)malloc((numsamples+1)*sizeof(double));
+			mult = (double *)malloc((numsamples+1)*sizeof(double));
 			fflush(stdout);
 			if (sample && weights) {
 				int count = 0 ;
 				while (count < numsamples) {
 					sample[count] = 0;
+					mult[count] = 1;
 					char *w;
 					w = strtok(NULL, "+");
 					if (w == NULL)
@@ -405,6 +438,8 @@ int TfrcSinkAgent::command(int argc, const char*const* argv)
 					abort();
 				}
 				sample[count] = 0;
+				weights[count] = 0;
+				mult[count] = 1;
 				free(w);
 				return (TCL_OK);
 			}

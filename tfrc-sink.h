@@ -76,6 +76,7 @@ protected:
 	double est_loss();
 	double est_thput(); 
 	void shift_array(int *a, int sz) ;
+	void shift_array(double *a, int sz, double defval) ;
 	int command(int argc, const char*const* argv);
 
 	TfrcNackTimer nack_timer_;
@@ -96,19 +97,25 @@ protected:
 	int numsamples ;
 	int *sample;
 	double *weights ;
+	double *mult ;
 	int sample_count ;
 	int last_sample ;  
 
-	int maxseq; // max seq number seen
+	int maxseq; 		// max seq number seen
 	int total_received_;	// total # of pkts rcvd by rcvr
 	int bval_;		// value of B used in the formula
-	double last_report_sent; // when was last feedback sent
-	double NumFeedback_; // how many feedbacks per rtt
-	int rcvd_since_last_report; // # of pakcets received since last report
-	double lastloss; // when last loss occured
+	double last_report_sent; 	// when was last feedback sent
+	double NumFeedback_; 	// how many feedbacks per rtt
+	int rcvd_since_last_report; 	// # of packets rcvd since last report
+	double lastloss; 	// when last loss occured
 
-	// these are for "faking" hisotry after slow start
-	int loss_seen_yet; // have we seen the first loss yet?
+	// these are for "faking" history after slow start
+	int loss_seen_yet; 	// have we seen the first loss yet?
 	int adjust_history_after_ss; // fake history after slow start? (0/1)
-	int false_sample; // by how much?
+	int false_sample; 	// by how much?
+
+	int discount ;		// emphasize most recent loss interval
+				//  when it is very large
+	int domax ;		// ignore most recent loss interval when 
+				//  it is very small and does not end in loss
 }; 

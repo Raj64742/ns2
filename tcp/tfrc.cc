@@ -126,6 +126,7 @@ void TfrcAgent::start()
 	prevflost = 1 ; prevrtt = 999 ; prevto = 999 ;
 	sendpkt();
 	send_timer_.resched(size_/rate_);
+	rcvrate = 0 ;
 }
 
 void TfrcAgent::stop()
@@ -143,7 +144,7 @@ void TfrcAgent::nextpkt()
 	
 	// during slow start and congestion avoidance, we increase rate
 	// slowly - by amount delta per packet 
-	if ((rate_change_ == SLOW_START) && (oldrate_+SMALLFLOAT < rate_)) {
+	if ((rate_change_ == SLOW_START) && (oldrate_+SMALLFLOAT< rate_)) {
 		oldrate_ = oldrate_ + delta_;
 		xrate = oldrate_;
 	}
@@ -152,9 +153,11 @@ void TfrcAgent::nextpkt()
 	}
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate; 
+		/*
 		if (overhead_ > SMALLFLOAT) {
 			next = next*(Random::uniform()+0.5);
 		}
+		*/
 		if (next > SMALLFLOAT ) {
 			send_timer_.resched(next); 
 		}
@@ -205,7 +208,6 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	double ts = nck->timestamp_echo;
 	double rate_since_last_report = nck->rate_since_last_report;
 	double NumFeedback_ = nck->NumFeedback_;
-	double rcvrate; 
 	double flost = nck->flost; 
 
 	round_id ++ ;
@@ -219,6 +221,9 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 		
 	/* update the round trip time */
 	update_rtt (ts, now);
+
+	/* .. and estimate of fair rate */
+	rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
 
 	/* if we get no more feedback for some time, cut rate in half */
 	if (NumFeedback_ < 1) 
@@ -236,7 +241,6 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	}
 	else if ((rate_change_ == SLOW_START) && (flost > 0)) {
 		rate_change_ = OUT_OF_SLOW_START;
-		rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
 		oldrate_ = rate_ = rcvrate;
 		prevflost = flost ; 
 		prevrtt = rtt_ ; 
@@ -252,25 +256,14 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 		x = 1 ;
 	}
 	else {
-		rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
 		if (rcvrate>rate_) {
 			increase_rate(flost);
 			x = 1 ;
-		}
-		else {
+		} else {
 			decrease_rate (flost);		
 			x = 2 ;
 		}
 	}
-/*
-printf ("%s now=%f %s %s rate=%f rtt=%f p=%f\n", 
-x==1?"I":"D", 
-now,
-rtt_<prevrtt?"RD":"RI",
-flost<prevflost?"LD":"LI",
-rate_, rtt_, flost);
-*/                                                                                            
-
 	prevflost = flost ; 
 	prevrtt = rtt_ ; 
 	prevto = tzero_ ;
@@ -281,39 +274,33 @@ void TfrcAgent::slowstart ()
 {
 	double now = Scheduler::instance().clock(); 
 
-	/* lets see if all this works well if we add a 5% fudge factor */
-
-	if (rate_ + SMALLFLOAT < size_/rtt_ ) {
-		/*if this is the first report, change rate to 1 per rtt*/
-		/*compute delta so rate increases slowly to new value */
+	if (rate_+SMALLFLOAT< size_/rtt_ ) {
+		/* if this is the first report, change rate to 1 per rtt */
+		/* compute delta so rate increases slowly to new value   */
 		oldrate_ = rate_;
-		rate_ = size_/rtt_; 
+		rate_ = size_/rtt_;
 		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 		last_change_ = now;
 	} else {
-		/*else multiply the rate by ssmult_, and compute delta, so that the*/
-		/*rate increases slowly to new value */
-
+		/* else multiply the rate by ssmult_, and compute delta, */
+		/*  so that the rate increases slowly to new value       */
 		if (maxrate_ > 0) {
-			if (ssmult_*rate_ < maxrate_ && (now - last_change_) > rtt_) {
+			if (ssmult_*rate_ < maxrate_ && now - last_change_ > rtt_) {
 				rate_ = ssmult_*rate_; 
 				delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 				last_change_=now;
-			}
-			else {
+			} else {
 				if ( (oldrate_ > maxrate_) || (rate_ > maxrate_)) {
 					if (oldrate_ > maxrate_) {
 						delta_ = 0; 
 						rate_ = oldrate_ = 0.5*maxrate_;
 						last_change_ = now;
-					}
-					else {
+					} else {
 						rate_ = maxrate_; 
 						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 						last_change_ = now; 
 					}
-				}
-				else {
+				} else {
 					if (now - last_change_ > rtt_) {
 						rate_ = maxrate_;
 						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
@@ -321,8 +308,7 @@ void TfrcAgent::slowstart ()
 					}
 				}
 			}
-		}
-		else {
+		} else {
 			rate_ = ssmult_*rate_; 
 			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 			last_change_=now;
@@ -333,9 +319,12 @@ void TfrcAgent::slowstart ()
 
 void TfrcAgent::increase_rate (double p) 
 {
-	double rcvrate ;
 	double now = Scheduler::instance().clock(); 
-	rcvrate = p_to_b(p, rtt_, tzero_, size_, bval_);
+
+	if (p < 0) {
+		printf ("error\n"); 
+		abort();
+	}
 	rate_change_ = CONG_AVOID;
 	if (rate_ < size_/rtt_) {
 		// The sending rate is less than one pkt/RTT.
@@ -360,7 +349,6 @@ void TfrcAgent::decrease_rate (double p)
 {
 	double now = Scheduler::instance().clock(); 
 	if (p > prevflost || aggr_dec_) {
-		double rcvrate = p_to_b(p, rtt_, tzero_, size_, bval_);
 		rate_ = rcvrate;
 	}
 	else {
