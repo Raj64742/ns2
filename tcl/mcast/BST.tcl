@@ -64,30 +64,42 @@ BST instproc start {} {
 }
 
 BST instproc join-group  { group {src "x"} } {
-	$self instvar node_ ns_
+	$self instvar node_ ns_ oiflist_
 	BST instvar RP_
 	
-	set r [$node_ getReps "x" $group]
-
-	if {$r == ""} {
+	if {[$node_ getReps "x" $group] == ""} {
 		set iif [$node_ from-node-iface $RP_($group)]
 		$self dbg "********* join: adding <x, $group, $iif>"
 		$node_ add-mfc "x" $group $iif ""
-		set r [$node_ getReps "x" $group]
 	}
-	if { ![$r is-active] } {
+
+	set rpfiif [$node_ from-node-iface $RP_($group)]
+	if { $rpfiif != "?" } {
+		set rpfoif [$node_ iif2oif $rpfiif]
+	} else {
+		set rpfoif ""
+	}
+	if { $oiflist_($group) == $rpfoif && ![$node_ check-local $group] } {
+		# propagate
 		$self send-ctrl "graft" $RP_($group) $group
 	}
 	$self next $group ; #annotate
 }
 
 BST instproc leave-group { group {src "x"} } {
-	BST instvar RP_
-	$self next $group
+	BST instvar RP_ 
 
-	$self instvar node_
-	set r [$node_ getReps "x" $group]
-	if ![$r is-active] {
+	$self next $group ;#annotate
+	$self instvar node_ oiflist_
+
+	set rpfiif [$node_ from-node-iface $RP_($group)]
+	if { $rpfiif != "?" } {
+		set rpfoif [$node_ iif2oif $rpfiif]
+	} else {
+		set rpfoif ""
+	}
+	if { $oiflist_($group) == $rpfoif && ![$node_ check-local $group] } {
+		# propagate
 		$self send-ctrl "prune" $RP_($group) $group
 	}
 }
@@ -178,7 +190,7 @@ BST instproc recv-prune { from src group iface} {
 				set rpfoif [$node_ iif2oif $rpfiif]
 			} else {
 				set rpfoif ""
-	}
+			}
 			if { $oiflist_($group) == $rpfoif && ![$node_ check-local $group] } {
 				# propagate
 				$self send-ctrl "prune" $RP_($group) $group
