@@ -1,5 +1,25 @@
 Some notes on the test suite
 
+---------------------------
+
+To run the test suites:
+
+./test-all-red
+./test-all-tcp
+./test-all-red-v1
+./test-all-cbq-v1
+./test-all-sack-v1
+
+OR, just for validation purposes:
+
+./test-all-red quiet
+./test-all-tcp quiet
+./test-all-red-v1 quiet
+./test-all-cbq-v1 quiet
+./test-all-sack-v1 quiet  
+
+----------------------------
+
 Each of the test suites has been split off into three parts, two of
 which are common to all of them.  The common parts are:
 
@@ -338,3 +358,4 @@ will generate the graph of tahoe1, similar to that produced by
 	% ./ns test-suite.tcl tahoe1
 
 in the ns-1 test suites.
+
