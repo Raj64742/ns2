@@ -1,3 +1,6 @@
+### to use:
+### ./validate > out ; diff out validate.out
+###
 *** ./test-all
 tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 Running test tahoe1
@@ -192,6 +195,31 @@ Test output agrees with reference output
 Running test TwoF
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-mcast
+Tests: DM1 DM2 CtrMcast1 CtrMcast2 detailedDM1 detailedDM2 detailedDM3 detailedDM4 detailedDM5 detailedDM6 detailedDM7
+Running test DM1
+Test output agrees with reference output
+Running test DM2
+Test output agrees with reference output
+Running test CtrMcast1
+Test output agrees with reference output
+Running test CtrMcast2
+Test output agrees with reference output
+Running test detailedDM1
+Test output agrees with reference output
+Running test detailedDM2
+Test output agrees with reference output
+Running test detailedDM3
+Test output agrees with reference output
+Running test detailedDM4
+Test output agrees with reference output
+Running test detailedDM5
+Test output agrees with reference output
+Running test detailedDM6
+Test output agrees with reference output
+Running test detailedDM7
+Test output agrees with reference output
+All test output agrees with reference output
 *** ./test-all-red-v1
 Tests: red1 red1_bytes ecn red2 red_twoway red_twowaybytes flows flows1 flowsAll
 Running test red1
@@ -351,29 +379,4 @@ class: 1 per-link total_packets 103
 class: 1 per-link total_bytes 103000
 Test output agrees with reference output
 All test output agrees with reference output.
-*** ./test-all-mcast
-Tests: DM1 DM2 CtrMcast1 CtrMcast2 detailedDM1 detailedDM2 detailedDM3 detailedDM4 detailedDM5 detailedDM6 detailedDM7
-Running test DM1
-Test output agrees with reference output
-Running test DM2
-Test output agrees with reference output
-Running test CtrMcast1
-Test output agrees with reference output
-Running test CtrMcast2
-Test output agrees with reference output
-Running test detailedDM1
-Test output agrees with reference output
-Running test detailedDM2
-Test output agrees with reference output
-Running test detailedDM3
-Test output agrees with reference output
-Running test detailedDM4
-Test output agrees with reference output
-Running test detailedDM5
-Test output agrees with reference output
-Running test detailedDM6
-Test output agrees with reference output
-Running test detailedDM7
-Test output agrees with reference output
-All test output agrees with reference output
 validate overall report: all tests passed
