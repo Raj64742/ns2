@@ -33,14 +33,15 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.17 1998/08/12 23:41:06 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.18 1998/08/22 01:01:32 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
 #define ns_ll_h
 
 #include "delay.h"
-
+#include "classifier.h"
+#include "lanRouter.h"
 
 enum LLFrameType {
 	LL_DATA		= 0x0001,
@@ -58,8 +59,8 @@ struct hdr_ll {
 
 	static int offset_;
 	inline int& offset() { return offset_; }
-	static hdr_ll* access(Packet* p) {
-		return (hdr_ll*) p->access(offset_);
+	static hdr_ll* access(Packet* p, int off=-1) {
+		return (hdr_ll*) p->access(off < 0 ? offset_ : off);
 	}
 
 	inline LLFrameType& lltype() { return lltype_; }
@@ -88,12 +89,16 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
+	void handle(Event* e);
+	inline virtual int arp (int ip_addr) { return ip_addr; } 
 	int seqno_;			// link-layer sequence number
 	int ackno_;			// ACK received so far
 	int macDA_;			// destination MAC address
         Queue* ifq_;			// interface queue
         NsObject* sendtarget_;		// for outgoing packet 
 	NsObject* recvtarget_;		// for incoming packet
+
+        lanRouter* lanrouter_; // for lookups of the next hop
 };
 
 #endif

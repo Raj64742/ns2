@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.27 1998/08/13 00:12:41 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.28 1998/08/22 01:01:30 yuriy Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -49,7 +49,7 @@ static class MacHeaderClass : public PacketHeaderClass {
 public:
 	MacHeaderClass() : PacketHeaderClass("PacketHeader/Mac",
 					     sizeof(hdr_mac)) {
-		bind_offset(&hdr_mac::offset_);
+		offset(&hdr_mac::offset_);
 	}
 	void export_offsets() {
 		field_offset("macSA_", OFFSET(hdr_mac, macSA_));
@@ -96,7 +96,7 @@ int Mac::command(int argc, const char*const* argv)
 			channel_ = (Channel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "classifier") == 0) {
+		if (strcmp(argv[1], "mcl") == 0) {
 			mcl_ = (Classifier*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
@@ -109,7 +109,7 @@ int Mac::command(int argc, const char*const* argv)
 			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "classifier") == 0) {
+		if (strcmp(argv[1], "mcl") == 0) {
 			tcl.resultf("%s", mcl_->name());
 			return (TCL_OK);
 		}
@@ -134,6 +134,7 @@ void Mac::recv(Packet* p, Handler* h)
 	hdr_mac* mh = hdr_mac::access(p);
 	mh->set(MF_DATA, addr_);
 	state(MAC_SEND);
+
 	send(p);
 }
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.24 1998/08/13 00:12:40 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.25 1998/08/22 01:01:32 yuriy Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -49,7 +49,7 @@ static class LLHeaderClass : public PacketHeaderClass {
 public:
 	LLHeaderClass()	: PacketHeaderClass("PacketHeader/LL",
 					    sizeof(hdr_ll)) {
-		bind_offset(&hdr_ll::offset_);
+		offset(&hdr_ll::offset_);
 	}
 } class_hdr_ll;
 
@@ -63,7 +63,8 @@ public:
 } class_ll;
 
 
-LL::LL() : seqno_(0), ackno_(0), macDA_(0), ifq_(0), sendtarget_(0), recvtarget_(0)
+LL::LL() : seqno_(0), ackno_(0), macDA_(0), ifq_(0), sendtarget_(0), recvtarget_(0),
+	lanrouter_(0)
 {
 	bind("macDA_", &macDA_);
 }
@@ -84,8 +85,12 @@ int LL::command(int argc, const char*const* argv)
 			recvtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-	}
+		if (strcmp(argv[1], "lanrouter") == 0) {
+			lanrouter_ = (lanRouter*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
 
+	}
 	else if (argc == 2) {
 		if (strcmp(argv[1], "ifq") == 0) {
 			tcl.resultf("%s", ifq_->name());
@@ -107,10 +112,11 @@ int LL::command(int argc, const char*const* argv)
 void LL::recv(Packet* p, Handler* h)
 {
 	if (h == 0) {		// from MAC classifier
-		if (recvtarget_)
+		if (recvtarget_) {
 			recvfrom(p);
-		else
+		} else { 
 			drop(p);
+		}
 	}
 	else {
 		hdr_ll::access(p)->lltype() = LL_DATA;
@@ -122,12 +128,16 @@ void LL::recv(Packet* p, Handler* h)
 Packet* LL::sendto(Packet* p, Handler* h)
 {	
 	hdr_ll::access(p)->seqno_ = ++seqno_;
-	hdr_mac::access(p)->macDA_ = macDA_;
-	sendtarget_->recv(p);
-	if (h) {
-		Scheduler& s = Scheduler::instance();
-		s.schedule(h, &intr_, txtime(p));
-	}
+
+	int nh= (lanrouter_) ? lanrouter_->next_hop(p) : -1;
+	hdr_mac::access(p)->macDA_= (nh < 0) ? BCAST_ADDR : arp(nh);
+
+	// let mac decide when to take a new packet from the queue.
+	sendtarget_->recv(p,h);
+	//	if (h) {
+	//		Scheduler& s = Scheduler::instance();
+	//		s.schedule(h, &intr_, txtime(p) - delay_);
+	//	}
 	return p;
 }
 
@@ -135,9 +145,16 @@ Packet* LL::sendto(Packet* p, Handler* h)
 Packet* LL::recvfrom(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	if (hdr_cmn::access(p)->error() != 0)
+	if (((hdr_cmn*)p->access(off_cmn_))->error() > 0)
 		drop(p);
 	else
 		s.schedule(recvtarget_, p, delay_);
 	return p;
+}
+
+// redefined to avoid problems with passing pkts from MAC
+// directly to LL (upstack) without an intermediate connector
+void LL::handle(Event* e)
+{
+	recv((Packet*)e, 0);
 }

@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.22 1998/08/12 23:41:07 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.23 1998/08/22 01:01:31 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -41,6 +41,8 @@
 
 #include "connector.h"
 #include "packet.h"
+#include "ip.h"
+#include "route.h"
 
 #define ZERO	0.00000
 
@@ -86,8 +88,8 @@ struct hdr_mac {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_mac* access(Packet* p) {
-		return (hdr_mac*) p->access(offset_);
+	inline static hdr_mac* access(Packet* p, int off=-1) {
+		return (hdr_mac*) p->access(off < 0 ? offset_ : off);
 	}
 
 	inline void set(MacFrameType ft, int sa, int da=-1) {
@@ -127,9 +129,12 @@ public:
 	virtual void send(Packet* p);
 	virtual void resume(Packet* p = 0);
 
-	inline double txtime(int bytes) { return (8. * bytes / bandwidth_); }
 	inline double txtime(Packet* p) {
-		return txtime(hdr_cmn::access(p)->size() + hlen_);
+		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
+		return (8. * (hdr->size() + hlen_) / bandwidth_);
+	}
+	inline double txtime(int bytes) {
+		return (8. * bytes / bandwidth_);
 	}
 	inline double bandwidth() const { return bandwidth_; }
 	inline int addr() { return addr_; }
