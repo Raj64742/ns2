@@ -37,7 +37,7 @@ set xlabel "Time"
 set ylabel "Packet"
 set title "$filename3"
 set output "$filename3.ps"
-set key left 
+set key left box
 # set size 0.6,0.8
 # set size 3.0,2.4 
 set size 1.0,0.8 
