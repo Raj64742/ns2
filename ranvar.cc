@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.16 2000/10/13 17:05:13 debo Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.17 2001/06/15 22:22:43 kclan Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -329,8 +329,9 @@ int EmpiricalRandomVariable::loadCDF(const char* filename)
 	CDFentry* e;
 
 	fp = fopen(filename, "r");
-	if (fp == 0)
+	if (fp == 0) 
 		return 0;
+
 
 	if (table_ == 0)
 		table_ = new CDFentry[maxEntry_];
@@ -347,6 +348,7 @@ int EmpiricalRandomVariable::loadCDF(const char* filename)
 		// Use * and l together raises a warning
 		sscanf(line, "%lf %*f %lf", &e->val_, &e->cdf_);
 	}
+        fclose(fp);
 	return numEntry_;
 }
 
