@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.13 1997/12/18 23:06:18 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.14 1997/12/31 01:23:29 kannan Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -161,7 +161,6 @@ void SRMAgent::recv(Packet* p, Handler* h)
                 sh->type() = SRM_DATA;
                 sh->sender() = addr_;
                 sh->seqnum() = ++dataCtr_;
-		//fprintf(stderr, "source seq #:%d at %7.4f\n", sh->seqnum(),Scheduler::instance().clock());
 		addExtendedHeaders(p);
 		ih->dst() = dst_;
 		target_->recv(p, h);
@@ -190,7 +189,7 @@ void SRMAgent::recv(Packet* p, Handler* h)
                 case SRM_SESS:
                         // This seqnum() is the session sequence number,
                         // not the data packet sequence numbers seen before.
-                        recv_sess(sh->seqnum(), (int*) p->accessdata());
+                        recv_sess(p, sh->seqnum(), (int*) p->accessdata());
                         break;
                 }
 		Packet::free(p);
@@ -233,10 +232,8 @@ void SRMAgent::recv_rqst(int requestor, int round, int sender, int msgid)
 		(void) request(sp, msgid);	// request upto msgid
                 sp->ldata_ = msgid;
         } else {
-
                 tcl.evalf("%s recv request %d %d %d %d", name_,
                           requestor, round, sender, msgid);
-
         }
 }
 
@@ -289,7 +286,7 @@ void SRMAgent::send_sess()
 	rtime = *data++;			\
 	stime = *data++
 
-void SRMAgent::recv_sess(int sessCtr, int* data)
+void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 {
 	SRMinfo* sp;
 	

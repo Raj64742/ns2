@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.8 1997/12/18 23:06:19 haoboy Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.9 1997/12/31 01:23:30 kannan Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -117,18 +117,18 @@ protected:
 		return miss;
 	}
 
-        void recv_data(int sender, int msgid, u_char* data);
-        void recv_repr(int round, int sender, int msgid, u_char* data);
-        void recv_rqst(int requestor, int round, int sender, int msgid);
-	void recv_sess(int sessCtr, int* data);
+        virtual void recv_data(int sender, int msgid, u_char* data);
+        virtual void recv_repr(int round, int sender, int msgid, u_char* data);
+        virtual void recv_rqst(int requestr, int round, int sender, int msgid);
+	virtual void recv_sess(Packet*, int sessCtr, int* data);
 
-	void send_ctrl(int type, int round, int sender, int msgid, int size);
-	void send_sess();
+	virtual void send_ctrl(int typ, int rnd, int sndr, int msgid, int sz);
+	virtual void send_sess();
 public:
 	SRMAgent();
 	virtual ~SRMAgent();
-	int command(int argc, const char*const* argv);
-	void recv(Packet* p, Handler* h);
+	virtual int command(int argc, const char*const* argv);
+	virtual void recv(Packet* p, Handler* h);
 };
 
 class ASRMAgent : public SRMAgent {
@@ -142,7 +142,7 @@ public:
 		bind("off_asrm_", &off_asrm_);
 	}
 protected:
-	void addExtendedHeaders(Packet* p) {
+	virtual void addExtendedHeaders(Packet* p) {
 		SRMinfo* sp;
 		hdr_srm*  sh = (hdr_srm*) p->access(off_srm_);
 		hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
@@ -163,8 +163,10 @@ protected:
 			assert(0);
 			/*NOTREACHED*/
 		}
+		SRMAgent::addExtendedHeaders(p);
 	}
-	void parseExtendedHeaders(Packet* p) {
+	virtual void parseExtendedHeaders(Packet* p) {
+		SRMAgent::parseExtendedHeaders(p);
 		hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
 		pdistance_ = seh->distance();
 	}

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.8 1997/10/13 22:24:53 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.9 1997/12/31 01:23:32 kannan Exp $";
 #endif
 
 #include "packet.h"
@@ -42,18 +42,39 @@ static const char rcsid[] =
 
 class TTLChecker : public Connector {
 public:
-	TTLChecker() {
+	TTLChecker() : noWarn_(1), tick_(1) {
 		bind("off_ip_", &off_ip_);
 	}
-	//int command(int argc, const char*const* argv);
+	int command(int argc, const char*const* argv) {
+		if (argc == 3) {
+			if (strcmp(argv[1], "warning") == 0) {
+				noWarn_ = ! atoi(argv[2]);
+				return TCL_OK;
+			}
+			if (strcmp(argv[1], "tick") == 0) {
+				int tick = atoi(argv[2]);
+				if (tick > 0) {
+					tick_ = tick;
+					return TCL_OK;
+				} else {
+					Tcl& tcl = Tcl::instance();
+					tcl.resultf("%s: TTL must be positive (specified = %d)\n",
+						    name(), tick);
+					return TCL_ERROR;
+				}
+			}
+		}
+		return Connector::command(argc, argv);
+	}
 	void recv(Packet* p, Handler* h) {
 		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
-		int ttl = iph->ttl() - 1;
+		int ttl = iph->ttl() - tick_;
 		if (ttl <= 0) {
 			/* XXX should send to a drop object.*/
 			// Yes, and now it does...
 			// Packet::free(p);
-			printf("ttl exceeded\n");
+			if (! noWarn_)
+				printf("ttl exceeded\n");
 			drop(p);
 			return;
 		}
@@ -62,6 +83,8 @@ public:
 	}
 protected:
 	int off_ip_;
+	int noWarn_;
+	int tick_;
 };
 
 static class TTLCheckerClass : public TclClass {
