@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.5 1998/01/21 19:28:45 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.6 1998/01/25 23:55:53 gnguyen Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -227,9 +227,14 @@ EmpiricalRandomVariable::EmpiricalRandomVariable() : minCDF_(0), maxCDF_(1), max
 
 int EmpiricalRandomVariable::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 	        if (strcmp(argv[1], "loadCDF") == 0) {
-			loadCDF(argv[2]);
+			if (loadCDF(argv[2]) == 0) {
+				tcl.resultf("%s loadCDF %s: invalid file",
+					    name(), argv[2]);
+				return (TCL_ERROR);
+			}
 			return (TCL_OK);
 		}
 	}
@@ -240,29 +245,34 @@ int EmpiricalRandomVariable::loadCDF(const char* filename)
 {
 	FILE* fp;
 	char line[256];
+	CDFentry* e;
 
-	if (table_ == 0)
-		table_ = new CDFentry[maxEntry_];
 	fp = fopen(filename, "r");
 	if (fp == 0)
 		return 0;
+
+	if (table_ == 0)
+		table_ = new CDFentry[maxEntry_];
 	for (numEntry_=0;  fgets(line, 256, fp);  numEntry_++) {
-		CDFentry* e;
 		if (numEntry_ >= maxEntry_) {	// resize the CDF table
-			maxEntry_ >>= 1;	// double
+			maxEntry_ <<= 1;	// double
 			e = new CDFentry[maxEntry_];
 			for (int i=numEntry_-1; i >= 0; i--)
 				e[i] = table_[i];
+			delete table_;
 			table_ = e;
 		}
 		e = &table_[numEntry_];
-		sscanf(line, "%f %* %f", &e->val_, &e->cdf_);
+		sscanf(line, "%lf %*lf %lf", &e->val_, &e->cdf_);
 	}
 	return numEntry_;
 }
 
 double EmpiricalRandomVariable::value()
 {
+	if (numEntry_ <= 0) {
+		return 0;
+	}
 	double u = rng_->uniform(minCDF_, maxCDF_);
 	int mid = lookup(u);
 	if (interpolation_ && (u > table_[mid-1].cdf_ && u < table_[mid].cdf_))
