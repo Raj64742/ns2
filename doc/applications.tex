@@ -1,0 +1,429 @@
+\chapter{Applications and transport agent API}
+\label{chap:applications}
+
+In \ns, applications sit on top of transport agents.  There are two basic types
+of applications:  sources and traffic generators.  Generally, source objects
+are used to generate traffic that is transported by TCP Agent objects, and
+traffic generators are used in conjunction with UDP Agent objects.  
+Figure~\ref{fig:application} illustrates two examples of how applications
+are composed and attached to transport agents.  Transport agents are described
+in Part V (Transport).
+
+\begin{figure}[tb] 
+  \centerline{\includegraphics{application}}
+  \caption{Example of Application Composition}
+  \label{fig:application} 
+\end{figure}
+
+This chapter first describes the base \clsref{Application}{../ns-2/app.h}. 
+Next, the transport API, through which applications request services from
+underlying transport agents, is described.  Finally, the current 
+implementations of traffic generators and sources are explained.  
+
+%There are currently two methods of traffic generation in \ns.
+%One method uses the abstract
+%\clsref{TrafficGenerator}{../ns-2/trafgen.h}
+%to generate inter-packet intervals and packet sizes.
+%Currently, classes derived
+%from TrafficGenerator are used in conjunction with the UDP\_Agent
+%objects, which are responsible for actually allocating and
+%transmitting the generated packets (Section~\ref{sec:trafgenclass}).
+%The second method of traffic generation uses the Source class.
+%Source objects generate traffic that is transported by TCPAgent objects
+%(Section~\ref{sec:sourceobjects}).
+
+\section{The class Application}
+\label{sec:appclass}
+
+Application is a C++ class defined as follows:
+\begin{program}
+        class Application : public TclObject \{
+        public:
+                Application();
+                virtual void send(int nbytes);
+                virtual void recv(int nbytes);
+                virtual void resume();
+        protected:
+                int command(int argc, const char*const* argv);
+                virtual void start();
+                virtual void stop();
+                Agent *agent_;
+                int enableRecv_;                // call OTcl recv or not
+                int enableResume_;              // call OTcl resume or not
+        \};
+\end{program}
+Although objects of \code{class Application} are not meant to be instantiated,
+we do not make it an abstract base class so that it is visible from OTcl level.
+The class provides basic prototypes for application behavior 
+(\code{send(), recv(), resume(), start(), stop()}), a pointer to the 
+transport agent to which it is connected, and flags that indicate whether
+a OTcl-level upcall should be made for \code{recv()} and 
+\code{resume()} events.  
+
+\section{The transport agent API}
+In real-world systems, applications typically access network services through
+a well-defined applications programming interface (API).  The most popular
+of these APIs is known as ``sockets.''  In \ns, we mimic the behavior of the
+sockets API through a set of well-defined API functions.  These functions 
+are then mapped to the appropriate internal agent functions (e.g.,
+a call to \code{send(numBytes)} causes TCP to increment its ``send buffer'' 
+by a corresponding number of bytes).
+
+This section describes how agents and applications are hooked together and
+communicate with one another via the API.
+
+\subsection{Attaching transport agents to nodes}
+\label{sec:attachagentnode}
+This step is typically done at OTcl level.  Agent management was also briefly
+discussed in Section \ref{sec:node:node}.  
+
+\begin{program}
+        set src [new Agent/TCP/FullTcp]
+        set sink [new Agent/TCP/FullTcp]
+        $ns_ attach-agent $node_(s1) $src
+        $ns_ attach-agent $node_(k1) $sink
+        $ns_ connect $src $sink
+\end{program}
+
+The above code illustrates that in \ns, agents are first attached to a node
+via \code{attach-agent}.  Next, the \code{connect} instproc sets each agent's
+destination target to the other.  Note that, in \ns, \code{connect()} has
+different semantics than in regular sockets.  In \ns, \code{connect()} simply
+establishes the destination address for an agent, but does not set up the
+connection.  As a result, the overlying application does not need to know
+its peer's address.  For TCPs that exchange SYN segments, the first call to 
+\code{send()} will trigger the SYN exchange. 
+
+To detach an agent from a node, the instproc \code{detach-agent} can be 
+used; this resets the target for the agent to a null agent.
+
+\subsection{Using transport agents via system calls}
+\label{sec:systemcalls}
+Once transport agents have been configured, applications can use their 
+services via the following system calls.  These calls can be invoked at either
+OTcl or C++ level, thereby allowing applications to be coded in either C++ or
+OTcl.  These functions have been implemented as virtual functions in the base
+\code{class Agent}, and can be redefined as needed by derived Agents. 
+\begin{itemize}
+\item \code{send(int nbytes)}---Send nbytes of data to peer.  For TCP agents,
+if \code{nbytes == -1}, this corresponds to an ``infinite'' send; i.e., the
+TCP agent will act as if its send buffer is continually replenished by the
+application.
+\item \code{sendmsg(int nbytes, const char* flags = 0)}---Identical to 
+\code{send(int nbytes)}, except that it passes an additional string 
+\code{flags}.  Currently one flag value, ``MSG\_EOF,'' is defined; MSG\_EOF
+specifies that this is the last batch of data that the application will 
+submit, and serves as an implied close (so that TCP can send FIN with data).
+\item \code{close()}---Requests the agent to close the connection (only 
+applicable for TCP).
+\item \code{listen()}---Requests the agent to listen for new connections
+(only applicable for Full TCP).
+\end{itemize}
+Note that certain calls are not applicable for certain agents; e.g., a call
+to \fcn[]{close} a UDP connection results in a no-op.  Additional calls
+can be implemented in specialized agents, provided that they are made
+\code{public} member functions. 
+
+\subsection{Attaching applications to agents}
+\label{sec:attachappagent}
+
+After applications are instantiated, they must be connected to a transport
+agent.  The \code{attach-agent} method can be used to attach an application
+to an agent, as follows:
+\begin{program}
+        set ftp1 [new Application/FTP]
+        $ftp1 attach-agent $src
+\end{program}
+
+The attach-agent method is implemented in C++.  It sets the \code{agent_}
+pointer in \code{class Application} to point to the transport agent, and then
+it calls \code{attachApp()} in \code{agent.cc} to set the \code{app_} pointer
+to point back to the application.  By maintaining this binding only in C++,
+OTcl-level instvars pointers are avoided and consistency between OTcl and C++ 
+is guaranteed.  The OTcl-level command \code{[$ftp1 agent]} can be used by 
+applications to obtain the handler for the transport agent.
+
+\subsection{Upcalls to applications}
+\label{sec:upcalls}
+
+Since presently in \ns there is no actual data being passed between 
+applications, agents can instead announce to applications the occurence of 
+certain events at the transport layer through ``upcalls.''  For example,
+applications can be notified of the arrival of a number of bytes of data;
+this information may aid the application in modelling real-world application
+behavior more closely.  Two basic ``upcalls'' have been implemented in 
+base \code{class Application}:
+\begin{itemize} 
+\item \code{recv(int nbytes)}---Announces that \code{nbytes} of data have been
+received by the agent.  For UDP agents, this signifies the arrival of
+a single packet.  For TCP agents, this signifies the ``delivery'' of an 
+amount of in-sequence data, but does not necessarily correspond with the 
+arrival of a certain number of packets (due to the possibility of reordering
+in the network).
+\item \code{resume()}---This indicates to the application that the transport
+agent has sent out all of the data submitted to it up to that point in time.  
+For TCP, it does not indicate whether the data has been ACKed yet, only that
+it has been sent out for the first time. 
+\end{itemize}
+The default behavior is as follows: 
+If an application has been implemented at OTcl-level, these C++ functions
+call a similarly named (\code{recv, resume}) OTcl method in the application,
+if such methods have been defined.   
+
+Although strictly not a callback to applications, certain Agents have
+implemented a callback from C++ to OTcl-level that has been used by 
+applications such as HTTP simulators.  This callback method, \code{done()},
+is used in TCP and CBR agents\footnote{CBR agents are a combination of UDP 
+agent and CBR traffic generator that was implemented before this API was 
+finalized.  Under the current API structure, CBR traffic generators can be
+implemented as \code{class Application/Traffic/CBR} on top of a UDP agent}.
+In TCP, \code{done} is called when a TCP sender has received ACKs for all of 
+its data and is now closed.  In CBR agents, \code{done} indicates that
+the CBR agent has stopped, due to either a user request or a lack of 
+packets to send.
+
+\subsection{An example}
+\label{sec:syscallsexample}
+Here is an example of how the API is used to implement a simple application
+(FTP) on top of a FullTCP connection. 
+
+\begin{program}
+        set src [new Agent/TCP/FullTcp]
+        set sink [new Agent/TCP/FullTcp]
+        $ns_ attach-agent $node_(s1) $src
+        $ns_ attach-agent $node_(k1) $sink
+        $ns_ connect $src $sink
+
+        # set up TCP-level connections
+        $sink listen; 
+        $src set window_ 100
+
+        set ftp1 [new Application/FTP]
+        $ftp1 attach-agent $src
+
+        $ns_ at 0.0 "$ftp1 start"
+\end{program}
+
+In the configuration script, the first five lines of code allocates two new
+FullTcp agents, attaches them to the correct nodes, and "connects" them
+together (assigns the correct destination addresses to each agent).  The
+next two lines configure the TCP agents further, placing one of them in
+LISTEN mode.  Next, \code{ftp1} is defined as a new FTP Application, and 
+the \code{attach-agent} method is called in C++ (\code{app.cc}).     
+
+The ftp1 application is started at time 0:
+\begin{program}
+        Application/FTP instproc start \{\} \{
+      	        [$self agent] send -1;   # Send indefinitely
+        \}
+\end{program}
+Alternatively, the FTP application could have been implemented in C++ as
+follows:
+\begin{program}
+        void FTP::start()
+        \{
+                agent_->send(-1);    // Send indefinitely
+        \}
+\end{program}  
+Since the FTP application does not make use of callbacks, these functions
+are null in C++ and no OTcl callbacks are made. 
+
+\section{The class TrafficGenerator}
+\label{sec:trafgenclass}
+
+TrafficGenerator is an abstract C++ class defined as follows:
+\begin{program}
+        class TrafficGenerator : public Application \{
+        public:
+                TrafficGenerator();
+                virtual double next_interval(int &) = 0;
+                virtual void init() \{\}
+                virtual double interval() \{ return 0; \}
+                virtual int on() \{ return 0; \}
+                virtual void timeout();
+                virtual void recv() \{\}
+                virtual void resume() \{\}
+        protected:
+                virtual void start();
+                virtual void stop();
+                double nextPkttime_;
+                int size_;
+                int running_;
+                TrafficTimer timer_;
+        \};
+\end{program}
+The pure virtual function \fcn[]{next\_interval} returns the time until the
+next packet is created and also sets the size in bytes of the next
+packet.  The function \fcn[]{start} calls \fcn{init} and starts the 
+timer.  The function \fcn[]{timeout} sends a packet and reschedules the
+next timeout.  The function \fcn[]{stop} cancels any pending transmissions.
+Callbacks are typically not used for traffic generators, so these 
+functions (\code{recv, resume}) are null.
+
+Currently, there are four C++ classes derived from the
+class TrafficGenerator:
+\begin{enumerate}
+\item \code{EXPOO_Source}---generates traffic according to an
+  Exponential On/Off distribution.
+  Packets are sent at a fixed rate during on periods, and
+  no packets are sent during off periods.
+  Both on and off periods are taken from an exponential distribution.
+  Packets are constant size.
+\item \code{POO_Source}---generates traffic
+  according to a Pareto On/Off distribution.
+  This is identical to the Exponential On/Off distribution,
+  except the on and off periods are taken from a pareto distribution.
+  These sources can be used to generate aggregate traffic
+  that exhibits long range dependency.
+\item \code{CBR_Source}---generates traffic according to a deterministic rate.
+  Packets are constant size.  Optionally, some randomizing dither can be
+  enabled on the interpacket departure intervals. 
+\item \code{TrafficTrace}---generates traffic according to a trace file.
+  Each record in the trace file consists of 2 32-bit fields.
+  The first contains the time in microseconds
+  until the next packet is generated.
+  The second contains the length in bytes of the next packet.
+\end{enumerate}
+These classes can be created from OTcl.  The OTcl classes names and
+associated parameters are given below:
+
+\paragraph{Exponential On/Off}
+An Exponential On/Off object is embodied in the OTcl class
+Application/Traffic/Expoo.  The member variables that parameterize this
+object are:
+\begin{alist}
+\code{packet-size} & the constant size of the packets generated\\
+\code{burst-time} & the average "on" time for the source\\
+\code{idle-time} & the average "off" time for the source\\
+\code{rate} & the sending rate during "on" times\\
+\end{alist}
+Hence a new Exponential On/Off source can be created and parameterized
+as follows:
+\begin{program}
+        set e [new Application/Traffic/Expoo]
+        $e set packet-size 210
+        $e set burst-time 500ms
+        $e set idle-time 500ms
+        $e set rate 100k
+\end{program}
+
+\paragraph{Pareto On/Off}
+A Pareto On/Off object is embodied in the OTcl class Application/Traffic/Pareto.
+The member variables that parameterize this object are:
+\begin{alist}
+\code{packet-size} & the constant size of the packets generated\\
+\code{burst-time} & the average "on" time for the source\\
+\code{idle-time} & the average "off" time for the source\\
+\code{rate} & the sending rate during "on" times\\
+\code{shape} & the "shape" parameter used by the pareto distribution\\
+\end{alist}
+A new Pareto On/Off source can be created as follows:
+\begin{program}
+        set p [new Application/Traffic/Pareto]
+        $p set packet-size 210
+        $p set burst-time 500ms
+        $p set idle-time 500ms
+        $p set rate 200k
+        $p set shape 1.5
+\end{program}
+
+\paragraph{CBR}
+A CBR  object is embodied in the OTcl class
+Application/Traffic/CBR.  The member variables that parameterize this
+object are:  
+\begin{alist}
+\code{rate} & the sending rate \\
+\code{packet-size} & the constant size of the packets generated\\
+\code{random} & flag indicating whether or not to introduce random ``noise'' 
+in the scheduled departure times (default is off)\\
+\end{alist}
+Hence a new CBR source can be created and parameterized
+as follows:
+\begin{program}
+        set e [new Application/Traffic/CBR]
+        $e set packet-size 48
+        $e set rate 64Kb
+        $e set random 1
+\end{program}
+
+\paragraph{Traffic Trace}
+A Traffic Trace object is instantiated by the OTcl class 
+Application/Traffic/Trace.
+The associated class Tracefile is used to enable multiple 
+Traffic/Trace objects to be associated with a single trace file.
+The Traffic/Trace class uses the method attach-tracefile to associate
+a Traffic/Trace object with a particular Tracefile object.
+The method filename of the Tracefile class associates a trace file
+with the Tracefile object.
+The following example shows how to create two Application/Traffic/Trace objects,
+each associated with the same trace file
+(called "example-trace" in this example).
+To avoid synchronization of the traffic generated,
+random starting places within the trace file are chosen for
+each Traffic/Trace object.
+\begin{program}
+        set tfile [new Tracefile]
+        $tfile filename example-trace
+
+        set t1 [new Application/Traffic/Trace]
+        $t1 attach-tracefile $tfile
+        set t2 [new Application/Traffic/Trace]
+        $t2 attach-tracefile $tfile
+\end{program}
+
+\subsection{An example}
+
+The following code illustrates the basic steps to configure an Exponential
+traffic source over a UDP agent, for traffic flowing from node s1 to node k1:
+
+\begin{program}
+        set src [new Agent/UDP]
+        set sink [new Agent/UDP]
+        $ns_ attach-agent $node_(s1) $src
+        $ns_ attach-agent $node_(k1) $sink
+        $ns_ connect $src $sink
+	
+        set e [new Application/Traffic/Expoo]
+        $e attach-agent $src
+        $e set packet-size 210
+        $e set burst-time 500ms
+        $e set idle-time 500ms
+        $e set rate 100k
+
+        $ns_ at 0.0 "$e start"
+\end{program}
+
+\section{Simulated applications}
+\label{sec:simapps}
+ 
+There are currently two ``application'' classes derived from Application:
+Application/FTP and Application/Telnet.  These classes work by advancing the
+count of packets available to be sent by a TCP transport agent.
+The actual transmission of available packets is still controlled by TCP's flow 
+control algorithm.
+ 
+\paragraph{Application/FTP} 
+Application/FTP, implemented in OTcl, simulates bulk data transfer.  
+The following are methods of the Application/FTP class:
+\begin{alist}
+\code{attach-agent} & attaches an Application/FTP object to an agent.\\ 
+\code{start} & start the Application/FTP by calling the TCP agent's 
+\code{send(-1)} function, which causes TCP to behave as if the application 
+were continuously sending new data.\\
+\code{stop} & stop sending.\\ 
+\code{produce n} &  set the counter of packets to be sent to $n$.\\ 
+\code{producemore n} &  increase the counter of packets to be sent by $n$. \\
+\code{send n} & similar to \code{producemore}, but sends $n$ bytes instead of
+packets.  
+\end{alist} 
+
+\paragraph{Application/Telnet} 
+Application/Telnet objects generate packets in one of two ways.
+If the member variable \code{interval_} is non-zero,
+then inter-packet times are chosen
+from an exponential distribution with average equal to \code{interval_}.
+If \code{interval_} is zero, then inter-arrival times are chosen
+according to the tcplib distribution (see tcplib-telnet.cc).
+The start method starts the packet generation process.
+ 
+\endinput
