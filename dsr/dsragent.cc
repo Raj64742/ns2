@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.19 1999/10/14 22:19:33 yuriy Exp $
+   $Id: dsragent.cc,v 1.20 1999/10/28 20:20:51 yaxu Exp $
 */
 
 #include <assert.h>
@@ -1757,10 +1757,12 @@ DSRAgent::trace(char* fmt, ...)
   
   if (!logtarget) return;
 
-  va_start(ap, fmt);
-  vsprintf(logtarget->buffer(), fmt, ap);
-  logtarget->dump();
-  va_end(ap);
+  if (verbose) {
+      va_start(ap, fmt);
+      vsprintf(logtarget->buffer(), fmt, ap);
+      logtarget->dump();
+      va_end(ap);
+  }
 }
 
 

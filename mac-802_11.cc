@@ -746,7 +746,9 @@ Mac802_11::check_pktTx()
 
 		if((u_int32_t)ETHER_ADDR(mh->dh_da) != MAC_BROADCAST)
 			//timeout = ACKTimeout(netif_->txtime(pktTx_))+5;
-			timeout = ACKTimeout(len) + 10;
+			// why 10 ? buggy
+			//timeout = ACKTimeout(len) + 10;
+			timeout = ACKTimeout(len);
 		else
 			timeout = TX_Time(pktTx_);
 

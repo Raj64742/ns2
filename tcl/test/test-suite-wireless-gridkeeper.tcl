@@ -60,7 +60,7 @@ proc default_options {} {
 	set opt(ifqlen)		50	      ;# max packet in ifq
 	set opt(nn)		50	      ;# number of nodes
 	set opt(seed)		0.0
-	set opt(stop)		1000.0	      ;# simulation time
+	set opt(stop)		500.0	      ;# simulation time
 	set opt(tr)		temp.rands    ;# trace file
 	set opt(lm)             "off"          ;# log movement
 
