@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tracegen.h,v 1.1 1997/07/24 04:44:00 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tracegen.h,v 1.2 1997/07/24 22:15:57 gnguyen Exp $
  */
 
 #ifndef ns_tracegen_h
@@ -43,13 +43,13 @@
 
 class TraceGen : public TclObject {
 public:
-	TraceGen(int tt);
+	TraceGen(char tt);
 	virtual void trace(TracedVar*);
 	void dump();
 
 protected:
         int command(int argc, const char*const* argv);
-	int type_;
+	char type_;
 	const char* name_;
         Tcl_Channel channel_;
 	char wrk_[256];

@@ -35,9 +35,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: ";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tracegen.cc,v 1.3 1997/07/24 22:15:56 gnguyen Exp $ ";
 #endif
 
+#include <strstream.h>
 #include "scheduler.h"
 #include "tracegen.h"
 
@@ -53,7 +54,7 @@ public:
 } tracegen_class;
 
 
-TraceGen::TraceGen(int tt) : type_(tt), name_(""), channel_(0)
+TraceGen::TraceGen(char tt) : type_(tt), name_(""), channel_(0)
 {
 }
 
@@ -106,12 +107,15 @@ void TraceGen::dump()
 	}
 }
 
+
 void TraceGen::trace(TracedVar* var)
 {
-	char tmp[256];
+	char tmp[256] = "";
 	Scheduler& s = Scheduler::instance();
 	if (&s == 0)
 		return;
+
+	// format: use Mark's nam feature code without the '-' prefix
 	sprintf(wrk_, "%c t%g a%s n%s v%s",
 		type_,
 		s.clock(),
