@@ -45,10 +45,12 @@
 
 #ifndef lint
 static const char  rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/vatrcvr.cc,v 1.3 1998/06/27 01:25:12 gnguyen Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/vatrcvr.cc,v 1.4 1998/08/21 17:38:05 haoboy Exp $";
 #endif
 
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 #include "agent.h"
 #include "rtp.h"
 #include "adaptive-receiver.h"

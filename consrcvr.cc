@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char  rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/consrcvr.cc,v 1.2 1998/06/27 01:23:38 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/consrcvr.cc,v 1.3 1998/08/21 17:38:03 haoboy Exp $";
 #endif
 
 
@@ -28,7 +28,10 @@ static const char  rcsid[] =
 #include "packet.h"
 #include "rtp.h"
 #include "adaptive-receiver.h"
+#ifndef WIN32
+// VC 5.0 doesn't have this
 #include <sys/time.h>
+#endif
 
 //#define CONS_OFFSET 0.025*SAMPLERATE
 #define CONS_OFFSET 200
