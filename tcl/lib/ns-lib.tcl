@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.201 2000/08/18 18:34:04 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.202 2000/08/24 01:51:34 haoboy Exp $
 
 #
 
@@ -125,6 +125,10 @@ proc delay_parse { spec } {
 #
 Class Simulator
 
+#
+# XXX Whenever you modify the source list below, please also change the
+# OTcl script dependency list in Makefile.in
+#
 source ns-autoconf.tcl
 source ns-address.tcl
 source ns-node.tcl
@@ -134,7 +138,6 @@ source ns-bsnode.tcl
 source ns-link.tcl
 source ns-source.tcl
 source ns-compat.tcl
-source ns-nam.tcl
 source ns-packet.tcl
 source ns-queue.tcl
 source ns-trace.tcl
@@ -146,7 +149,6 @@ source ns-intserv.tcl
 source ns-cmutrace.tcl
 source ns-mip.tcl
 source ns-sat.tcl
-#source ns-wireless-mip.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mac.tcl
@@ -185,6 +187,10 @@ source ../plm/plm-topo.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
+
+# Obsolete modules
+#source ns-wireless-mip.tcl
+#source ns-nam.tcl
 
 Simulator instproc init args {
 	$self create_packetformat
