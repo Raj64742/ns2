@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.9 1998/03/25 20:46:30 amc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.10 1998/04/13 17:54:52 bajaj Exp $
 #
 
 #Code to generate random numbers here
@@ -49,6 +49,14 @@ proc integer {args} {
 	eval [list $defaultRNG integer] $args
 }
 
+RNG instproc init {} {
+        $self next
+        #z2 used to create a normal distribution  from a uniform distribution
+        #using the polar method
+        $self instvar z2
+        set z2 0
+}
+
 RNG instproc uniform {a b} {
 	expr $a + (($b - $a) * ([$self next-random] * 1.0 / 0x7fffffff))
 }
@@ -61,6 +69,24 @@ RNG instproc exponential {{mu 1.0}} {
 	expr - $mu * log(([$self next-random] + 1.0) / (0x7fffffff + 1.0))
 }
 
+RNG instproc normal {a1 a2 } {
+        $self instvar z2
+        if {$z2 !=0 } {
+                set z1 $z2
+                set z2 0
+        } else {
+                set w 1
+                while { $w >= 1.0 } {
+                        set v1 [expr ([$self next-random] *1.0/0x7fffffff)]
+                        set v2 [expr ([$self next-random] *1.0/0x7fffffff)]
+                        set w  [expr ($v1*$v1+$v2*$v2)]
+                }
+                set w [expr  sqrt((-2.0*log($w))/$w)]
+                set z1 [expr $v1*$w]
+                set z2 [expr $v2*$w]
+        }
+        expr $a1 + $z1 *$a2
+}
 
 RandomVariable instproc test count {
 	for {set i 0} {$i < $count} {incr i} {
