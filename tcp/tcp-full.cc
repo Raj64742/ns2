@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.78 2000/03/24 19:40:51 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.79 2000/04/10 16:27:57 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2040,7 +2040,12 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 
 	int *sacks_base_p = sacks; 
 	register int num_sack_blocks=0;
+#ifdef WIN32
+	// MSVC does not support variable-sized array definition :(
+	double* sacks_times = new double[maxsblock];
+#else
 	double sacks_times[maxsblock];
+#endif
 
 	p = q = tail_;
 	while (p && num_sack_blocks < maxsblock) {
@@ -2113,7 +2118,9 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 
 		p = q = p->prev_;
 	}
-
+#ifdef WIN32
+	delete sacks_times;
+#endif
 	return (num_sack_blocks);
 #if 0
 	double max;
