@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.10 1997/03/29 01:43:08 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.11 1997/05/20 23:32:15 tomh Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -247,6 +247,7 @@ public:
 	}
 
 	inline void push(int n = 0) {
+ 		if (cnt_ >= size_) cnt_ = size_ - 1;  // overflow check
 		for (register i = cnt_-1; i >= n; i--)
 			SFE_[i+1] = SFE_[i];	// not efficient for big size
 		cnt_++;
