@@ -53,13 +53,13 @@ Webbench instproc webbench { ns server stcp ssink client ctcp csink reqsz replsz
 	# client to server
 	set tcp_cs_ [setuptcp $ns_ $client $ctcp $server $ssink $tcptrace $sinktrace] 
 	$tcp_cs_ set packetSize_ $reqsz
-	$tcp_cs_ finish [format "%s sendreply" $self]
+	$tcp_cs_ proc done {} {$self sendreply}
 	set ftp_cs_ [setupsource $tcp_cs_ "FTP"]
 	
 	# server to client
 	for {set i 0} {$i < $numpll} {incr i 1} {
 		set tcp_sc_($i) [setuptcp $ns_ $server $stcp $client $csink $tcptrace $sinktrace]
-		$tcp_sc_($i) finish [format "%s recdreply" $self]
+		$tcp_sc_($i) proc done {} {$self recdreply}
 		set ftp_sc_($i) [setupsource $tcp_sc_($i) "FTP"]
 	}
 	
