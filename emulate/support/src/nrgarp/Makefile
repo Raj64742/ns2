@@ -2,7 +2,6 @@
 
 PROG=	nrgarp
 MAN8=	nrgarp.8
-MAN4=	nrgarp.4
 COPTS+=	-Wall -g
 
 .include <bsd.prog.mk>
