@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.237 1998/05/07 01:55:53 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.238 1998/05/12 02:12:05 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -23,11 +23,22 @@
 </H3>
 <UL>
 
+    <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[floyd]</A></B>
+       <b>Mon May 11 19:05:50 PDT 1998</b><br>
+	 Changes to tcp.cc, tcp-reno.cc, tcp-sack1.cc, and tcp.h,
+	 to make small corrections in the interactions between
+	 Fast Retransmit and ECN, to avoid some unnecessary reductions
+	 of the congestion window.  The ECN validation test
+	 "test-all-ecn" now documents the correct functioning
+	 of the Tahoe, Reno, and Sack1 ECN code.  In addition, the
+	 Fast Retransmit code has been restructured, for readability.
+	 This is joint work with Kevin Fall.
+
     <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall">[kfall]</A></B>
        <b>Wed May 6 18:52:37 PDT 1998</b><br>
 	 Changes to tcp.cc for ECN.  ErrorModule now has "default"
 	 function which says what to do with packets that shouldn't
-	 be handled specially.  Classifier's now have "findslot" fn
+	 be handled specially.  Classifiers now have "findslot" fn
 	 which tells the slot# an object is in.  Periodic Error Model
 	 now has 'burstlen' parameter that provides for bursty
 	 periodic losses, rather than just 1 pkt loss per period.
@@ -35,7 +46,6 @@
     <li><b><a href="mailto:breslau@parc.xerox.com">[LB]</A></B>
         <b>Mon May  4 11:22:02 PDT 1998</b>
 	Added nam trace functionality to admission control modules.
-
 
     <li><b><a href="mailto:bajaj@parc.xerox.com">[SB]</A></B>
         <b>Tue Apr 28 14:30:08 PDT 1998</b>
