@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.59 1998/04/28 21:27:48 bajaj Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.60 1998/05/02 01:41:31 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -319,7 +319,7 @@ void TcpAgent::output(int seqno, int reason)
 	tcph->reason() = reason;
 	if (ecn_) {
 		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
-		hf->ecn_capable_ = 1;
+		hf->ect() = 1;	// ECN-capable transport
 	}
 	/* Check if this is the initial SYN packet. */
 	if (syn_ && (seqno == 0)) 
@@ -705,7 +705,7 @@ void TcpAgent::quench(int how)
 void TcpAgent::recv_newack_helper(Packet *pkt) {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newack(pkt);
-	if ( !((hdr_flags*)pkt->access(off_flags_))->ecn_ || !ecn_ ) {
+	if ( !((hdr_flags*)pkt->access(off_flags_))->ecnecho() || !ecn_ ) {
 	        opencwnd();
 	}
 	/* if the connection is done, call finish() */
@@ -757,7 +757,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 #endif
 	++nackpack_;
 	ts_peer_ = tcph->ts();
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
 		quench(1);
 	recv_helper(pkt);
 	/* grow cwnd and check if the connection is done */ 
