@@ -17,7 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# An tcl script that extracts SYN/SYN-ACK packets from tcpdump trace, 
+# An tcl script that extracts DATA/ACK packets from/to ISI domain, 
 # used by SAMAN ModelGen
 #
 # This work is supported by DARPA through SAMAN Project
@@ -26,14 +26,18 @@
 #
 
 if { $argc != 1} {
-	puts "usage: delayw.tcl <tcpdump ASCII file> "
+	puts "usage: io.tcl <tcpdump ASCII file> "
 	exit
 } else {
 	set arg [split $argv " " ]
 	set tfile [lindex $arg 0]
 }
 
+set isiPrefix "129.1"
+
 set fi [open $tfile r ]
+set f1 [open $tfile.inbound w ]
+set f2 [open $tfile.outbound w ]
 while {[gets $fi line] >= 0} {
 
 	set sTime [lindex $line 0]  
@@ -42,17 +46,18 @@ while {[gets $fi line] >= 0} {
 	set s [split $ipport "."]
 	set opport [lindex $line 3]
 	set d [split $opport "."]
+	set prefixc [format "%s.%s" [lindex $s 0] [lindex $s 1]]
+	set prefixs [format "%s.%s" [lindex $d 0] [lindex $d 1]]
 
-	set client $ipport
-	set server $opport
 
-	if { [lindex $s 4] == 80} {
-		set client $opport
-		set server $ipport
+        #data packet from ISI
+	if { $prefixc == $isiPrefix} {
+                puts $f2 "$line"
+	} else {
+                puts $f1 "$line"
 	}
 
-	if { [lindex $line 4] == "S"} { 
-		puts "$client $server $sTime [lindex $line 5] [lindex $line 6] [lindex $line 7]"
-	}
 }
+close $f1 
+close $f2 
 close $fi 

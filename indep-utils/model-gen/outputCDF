@@ -24,18 +24,56 @@
 # (http://www.isi.edu/saman/), administered by the Space and Naval
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
 
+sub usage {
+        print STDERR <<END;
+      usage: $0 [-e FilenameExtention]
+        Options:
+            -e string  specify the filename extention
 
-open(IDLE,"> idle.dat") || die("cannot open idle.dat.\n");
-open(REQ,"> request.dat") || die("cannot open request.dat.\n");
-open(NUMPAGE,"> numpage.dat") || die("cannot open numpage.dat.\n");
-open(PAGESIZE,"> pagesize.dat") || die("cannot open pagesize.dat.\n");
-open(OBJSIZE,"> objsize.dat") || die("cannot open objsize.dat.\n");
-open(OBJINTER,"> objinter.dat") || die("cannot open objinter.dat.\n");
-open(SESSINTER,"> sessinter.dat") || die("cannot open sessinter.dat.\n");
-open(SERVER,"> server.dat") || die("cannot open server.dat.\n");
-open(SERVERCDF,"> server.dat.cdf") || die("cannot open server.dat.cdf.\n");
-open(PERSIST,"> persist.dat") || die("cannot open persist.dat.\n");
+END
+        exit 1;
+}
+BEGIN {
+        $dblibdir = "./";
+        push(@INC, $dblibdir);
+}
+use DbGetopt;
+require "dblib.pl";
+my(@orig_argv) = @ARGV;
+&usage if ($#ARGV < 0);
+my($prog) = &progname;
+my($dbopts) = new DbGetopt("e:?", \@ARGV);
+my($ch);                                                                       
+while ($dbopts->getopt) {
+        $ch = $dbopts->opt;
+        if ($ch eq 'e') {
+                $fext = $dbopts->optarg;
+	} else {
+                &usage;
+        };
+};                          
 
+$idle=join(".",$fext,"idle.dat");
+$req=join(".",$fext,"request.dat");
+$numpage=join(".",$fext,"numpage.dat");
+$pagesize=join(".",$fext,"pagesize.dat");
+$objsize=join(".",$fext,"objsize.dat");
+$objinter=join(".",$fext,"objinter.dat");
+$sessinter=join(".",$fext,"sessinter.dat");
+$server=join(".",$fext,"server.dat");
+$servercdf=join(".",$fext,"server.dat.cdf");
+$persist=join(".",$fext,"persist.dat");
+
+open(IDLE,"> $idle") || die("cannot open $idle.\n");
+open(REQ,"> $req") || die("cannot open $req.\n");
+open(NUMPAGE,"> $numpage") || die("cannot open $numpage.\n");
+open(PAGESIZE,"> $pagesize") || die("cannot open $pagesize.\n");
+open(OBJSIZE,"> $objsize") || die("cannot open $objsize.\n");
+open(OBJINTER,"> $objinter") || die("cannot open $objinter.\n");
+open(SESSINTER,"> $sessinter") || die("cannot open $sessinter.\n");
+open(SERVER,"> $server") || die("cannot open $server.\n");
+open(SERVERCDF,"> $servercdf") || die("cannot open $servercdf.\n");
+open(PERSIST,"> $persist") || die("cannot open $persist.\n");
 
 $oldClient = "";
 $pagePerSess = 0;
@@ -192,13 +230,14 @@ close(PERSIST);
 
 #compute CDF
 print "compute and output CDF files\n";
-&outputCDF(1000,100,1000,"idle.dat");
-&outputCDF(1,1,1,"numpage.dat");
-&outputCDF(0,0.0001,1,"objinter.dat");
-&outputCDF(0,1460,1460,"objsize.dat");
-&outputCDF(0,1460,1460,"request.dat");
-&outputCDF(0,0.001,1,"sessinter.dat");
-&outputCDF(0,0.0001,1,"delay.dat");
+&outputCDF(1000,100,1000,$idle);
+&outputCDF(1,1,1,$numpage);
+&outputCDF(0,0.0001,1,$objinter);
+&outputCDF(0,1460,1460,$objsize);
+&outputCDF(0,1460,1460,$pagesize);
+&outputCDF(0,1460,1460,$req);
+&outputCDF(0,0.001,1,$sessinter);
+#&outputCDF(0,0.0001,1,"delay.dat");
 print "done computing CDF files\n";
 
 

@@ -24,50 +24,143 @@
 # a time series of traffic size (in 1ms block) for further wavelet 
 # scaling analysis
 #
+#             usage:
+#                  ./ModelGen <tcpdump trace> <threshold> <network prefix>
+#
+#                  <tcpdump trace> : tcpdump trace file generated using
+#                                    tcpdump -w option
+#                  <threshold>     : the threshold time value (in millisecond)
+#                                    that distinguishes idle periods in order 
+#                                    to infer user "think" times between 
+#                                    requests for new top-level pages.
+#                  <network prefix>: network prefix used to distinguish
+#                                    inbound vs. outbound traffic
+#
+#             example: ./ModelGen tracefile 1000 128.9
+#
 # This work is supported by DARPA through SAMAN Project
 # (http://www.isi.edu/saman/), administered by the Space and Naval
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
 #
+#
+#
 
-echo "parsing tcpdump file"
 date
-./tcpdump -n -tt -r $1 tcp port 80 > $1.www
-./tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
+echo "***  parsing tcpdump file  ***"
+#tcpdump -n -tt -q -r $1  > $1.all
+#tcpdump -n -tt -r $1 tcp port 80 > $1.www
+#tcpdump -n -tt -r $1 port ftp or port ftp-data > $1.ftp
+#tcpdump -n -tt -r $1 port domain > $1.dns
+#tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
 
+date
+echo "***  analyze traffic mix  ***"
+#cat $1.all | io.pl -s $3  -w $1.all
+#cat $1.all.inbound | traffic-classify > $1.traffic.cnt.inbound
+#cat $1.all.outbound | traffic-classify > $1.traffic.cnt.outbound
+
+date
+echo "***  seperate Inbound and Outbound traffic  ***"
+echo "DNS"
+#io.tcl $1.dns
+
+date
+echo "WWW"
+#cat $1.www | io.www.pl -s $3  -w $1.www
+#cat $1.http-srv | io.www.pl -s $3  -w $1.http-srv
+
+date
+echo "FTP"
+#cat $1.ftp | io.ftp.pl -s $3  -w $1.ftp
+
+##############################
+
+date
+
+/bin/rm -rf *.time-series
+/bin/rm -rf *connect.time*
+
+echo "***  Analyze Inbound traffic  ***"
 echo "run http_connect"
+sort -s -o $1.in.http-srv-sort +1 -2 +3 -4 +0 -1 -T /tmp $1.http-srv.inbound
+http_connect -r $1.in.http-srv-sort -w $1.in.http-srv.connect
+grep "ACT" $1.in.http-srv.connect > $1.in.http-srv.connect.time
+sort $1.in.http-srv.connect.time > $1.in.http-srv.connect.time.sort
+
+
 date
-sort -s -o $1.http-srv-sort +1 -2 +3 -4 +0 -1 -T /tmp $1.http-srv
-http_connect -r $1.http-srv -w $1.http-srv.connect
-
-grep "ACT" $1.http-srv.connect > $1.http-srv.connect.time
-sort $1.http-srv.connect.time > $1.http-srv.connect.time.sort
-
 echo "run http_active"
-date
-sort -s -o $1.http-srv.connect.sort +1 -2 +0 -1 -T /tmp $1.http-srv.connect
-http_active -r $1.http-srv.connect.sort -w $1.http-srv.active -I $2
+sort -s -o $1.in.http-srv.connect.sort +1 -2 +0 -1 -T /tmp $1.in.http-srv.connect
+http_active -r $1.in.http-srv.connect.sort -w $1.in.http-srv.active -I $2
 
-echo "Compute delay for each SYN triplet"
-echo "sorting by connection"
+
 date
+echo "compute CDF statistics"
+cat $1.in.http-srv.active.activity | outputCDF -e inbound
+
+
+date
+echo "compute time series (1ms block)"
+bw.tcl $1.http-srv.inbound
+cat $1.http-srv.inbound.bw | time-series.pl > $1.in.time-series
+
+##############################
+
+date
+echo "***  Analyze Outbound traffic  ***"
+echo "run http_connect"
+sort -s -o $1.out.http-srv-sort +1 -2 +3 -4 +0 -1 -T /tmp $1.http-srv.outbound
+http_connect -r $1.out.http-srv-sort -w $1.out.http-srv.connect
+grep "ACT" $1.out.http-srv.connect > $1.out.http-srv.connect.time
+sort $1.out.http-srv.connect.time > $1.out.http-srv.connect.time.sort
+
+
+date
+echo "run http_active"
+sort -s -o $1.out.http-srv.connect.sort +1 -2 +0 -1 -T /tmp $1.out.http-srv.connect
+http_active -r $1.out.http-srv.connect.sort -w $1.out.http-srv.active -I $2
+
+
+date
+echo "compute CDF statistics"
+cat $1.out.http-srv.active.activity | outputCDF -e outbound
+
+
+date
+echo "compute time series (1ms block)"
+bw.tcl $1.http-srv.outbound
+cat $1.http-srv.outbound.bw | time-series.pl > $1.out.time-series
+
+######################################
+
+echo "***  Delay and Bandwidth estimation  ***"
+
+date
+echo "output traffic between web servers and clients"
+cat $1.www | BW-seq.pl
+sort inbound.seq -o inbound.seq.sorted
+sort outbound.seq -o outbound.seq.sorted
+
+date
+echo "search for DATA/ACK packets which have the same seqence number for outboun
+d traffic"
+cat outbound.seq.sorted | BW-pair.pl > $1.outbound.pair
+
+date
+echo "estimate the bandwidth for inbound/outbound traffic"
+cat $1.outbound.pair | BW.out.pl
+cat inbound.seq.sorted | BW.in.pl
+
+date
+echo "Locate SYN connection"
 ./delay.tcl $1.www > $1.sync
 sort -s -o $1.sync.sorted -T /tmp $1.sync
 
-echo "compute delay for each SYN connection pair"
 date
+echo "compute delay for each SYN connection pair between servers and clients"
 pair.tcl $1.sync.sorted >  $1.sync.delay
 sort -s -o $1.sync.delay.sorted -T /tmp $1.sync.delay
-awk -f delay.awk < $1.sync.delay.sorted > delay.dat
+awk -f delay.awk < $1.sync.delay.sorted > inbound.delay
 
-echo "Finish computing delay"
-echo "compute CDF statistics"
 date
-outputCDF $1.http-srv.active.activity
-
-echo "compute time series (1ms block)"
-date
-bw.tcl $1.http-srv
-cat $1.http-srv.bw | time-series.pl > $1.time-series
-
 echo "execution complete"
-date
