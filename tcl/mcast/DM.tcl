@@ -96,7 +96,7 @@ DM instproc handle-cache-miss  { srcID group iface } {
 
 DM instproc handle-cache-miss-pimdm { srcID group iface } {
         $self instvar node_ ns_
-
+	
 	if { $iface >= 0 } {
 		set rpf_nbr [$node_ rpf-nbr $srcID]
 		set inlink  [$node_ iif2link $iface]
@@ -105,6 +105,7 @@ DM instproc handle-cache-miss-pimdm { srcID group iface } {
 		if { $inlink != $rpflink } {
 			set from [$inlink src]
 			$self send-ctrl "prune" $srcID $group [$from id]
+			return 0; #drop this packet
 		}
 		set rpfoif [$node_ iif2oif $iface]
 	} else {
