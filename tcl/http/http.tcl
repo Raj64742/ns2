@@ -33,10 +33,22 @@
 # Code contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
 #
 
+proc rvValue {rv {op ""}} {
+	if [catch "$rv value" val] {
+		set val $rv
+	}
+	if {$op == ""} {
+		return $val
+	} else {
+		return  [expr ${op}($val)]
+	}
+}
+
+
 Class Http -superclass InitObject
 
-Http set srcType_ TCP/FullTcp
-Http set snkType_ ""
+Http set srcType_ TCP/Reno
+Http set snkType_ TCPSink
 Http set phttp_ 0
 Http set maxConn_ 4
 
@@ -51,7 +63,7 @@ Http instproc srcType {val} { $self set srcType_ $val }
 Http instproc snkType {val} { $self set snkType_ $val }
 Http instproc phttp {val} { $self set phttp_ $val }
 Http instproc maxConn {val} { $self set maxConn_ $val }
-Http instproc rvThinkTime {{val ""}} { $self set rvThinkTime_ $val }
+Http instproc rvThinkTime {val} { $self set rvThinkTime_ $val }
 Http instproc rvReqLen {val} { $self set rvReqLen_ $val }
 Http instproc rvRepLen {val} { $self set rvRepLen_ $val }
 Http instproc rvImgLen {val} { $self set rvImgLen_ $val }
@@ -105,20 +117,6 @@ Http instproc agents {{type source}} {
 	return $agents_($type)
 }
 
-Http instproc value {rv} {
-	if ![catch "$rv value" val] {
-		return $val
-	}
-	return $rv
-}
-
-Http instproc integer {rv} {
-	if ![catch "$rv value" val] {
-		return [expr int($val)]
-	}
-	return $rv
-}
-
 
 Http instproc start {} {
 	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
@@ -128,7 +126,7 @@ Http instproc start {} {
 	set tStart_ [$ns_ now]
 	set numGet_ 0
 	set numPut_ 0
-	set len [$self value $rvReqLen_]
+	set len [rvValue $rvReqLen_ round]
 	$client_(0) produceByte $len
 #	puts "Http $self starts at $tStart_"
 #	puts "$self reqH$numGet_ [$client_(0) set agent_] $len"
@@ -140,12 +138,13 @@ Http instproc doneRequest {id} {
 	$self instvar ns_ agents_ client_ server_ tStart_
 
 	if {$id == 0} {
-		set len [$self value $rvRepLen_]
+		set len [rvValue $rvRepLen_ round]
+#		puts "$self sendH [$server_($id) set agent_] $len"
 	} else {
-		set len [$self value $rvImgLen_]
+		set len [rvValue $rvImgLen_ round]
+#		puts "$self sendI [$server_($id) set agent_] $len"
 	}
 	$server_($id) produceByte $len
-#	puts "$self send$numPut_ [$server_(0) set agent_] $len"
 }
 
 Http instproc doneReply {id} {
@@ -154,23 +153,22 @@ Http instproc doneReply {id} {
 	$self instvar ns_ agents_ client_ server_ tStart_
 
 	if {$id == 0} {
-		set numOpen $maxConn_
-		set numImg_ [$self integer $rvNumImg_]
+		set numImg_ [rvValue $rvNumImg_ round]
+		for {set i 1} {$i <= $maxConn_} {incr i} {
+			lappend idlist $i
+		}
 	} else {
-		set numOpen 1
-		incr numPut_
+		set idlist $id
 	}
-	if {$numPut_ == $numImg_} {
+
+	if {[incr numPut_] > $numImg_} {
 		$self donePage
 		return
 	}
 
-	for {set i 0} {$i < $numOpen} {incr i} {
-		if {[incr numGet_] > $numImg_} {
-			break
-		}
-		set id [expr $id ? $id : 1 + ($i % $maxConn_)]
-		set len [$self value $rvReqLen_]
+	foreach id $idlist {
+		if {[incr numGet_] > $numImg_} break
+		set len [rvValue $rvReqLen_ round]
 		$client_($id) produceByte $len
 #		puts "$self reqI$numGet_ [$client_($id) set agent_] $len"
 	}
@@ -182,8 +180,8 @@ Http instproc donePage {} {
 	$self instvar ns_ agents_ client_ server_ tStart_
 
 	set now [$ns_ now]
-	set tt [$self value $rvThinkTime_]
+	set tt [rvValue $rvThinkTime_]
 	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $tt]
-#	puts "Http $self donePage $out"
+	puts "Http $self donePage $out"
 	$ns_ at [expr $now + $tt] "$self start"
 }
