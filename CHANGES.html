@@ -53,11 +53,9 @@ Sat Oct  4 14:59:08 PDT 2003
 <br>
 Added worm model to support simulations of Internet worm attacks.
 This model supports different abstract levels in simulations.
-It provides functions to simulate a detailed network at packet level,
-which includes individual infected hosts and scan traffic.
-It can also simulate a sub-network using an analytical model (SIR).
-Further, it allows interaction between detailed and analytical network via
-scan traffic.
+It simulates a detailed sub-network at packet level, and the rest of the
+Internet with an analytical model (SIR). It supports two worm scanning
+behaviors: random and local-preferred.
 
 This worm model is implemented as an application. It uses message-passing
 support to send scan packets.
