@@ -34,7 +34,7 @@ Agent/TCP set rfc2988_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.23 2002/03/08 21:55:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.24 2002/03/10 04:53:15 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1296,6 +1296,7 @@ TestSuite instproc printdrops { fid fmon } {
 	#
 	set flow [$fcl lookup auto 0 0 $fid]
 	puts "fid: $fid per-link total_drops [$flow set pdrops_]"
+	puts "fid: $fid per-link total_marks [$flow set pmarks_]"
 	puts "fid: $fid per-link total_packets [$flow set pdepartures_]"
 	puts "fid: $fid per-link total_bytes [$flow set bdepartures_]"
 	#
@@ -1308,6 +1309,7 @@ TestSuite instproc printstop { stoptime } {
 }
 TestSuite instproc printall { fmon } {
  	puts "aggregate per-link total_drops [$fmon set pdrops_]"
+	puts "aggregate per-link total_marks [$fmon set pmarks_]"
 	puts "aggregate per-link total_packets [$fmon set pdepartures_]"
 }
 
@@ -1354,6 +1356,56 @@ Test/stats instproc run {} {
 	set almosttime [expr $stoptime - 0.001]
 	$ns_ at $almosttime "$self printpkts 0 $tcp0"
 	$ns_ at $almosttime "$self printpkts 1 $tcp1"
+	$ns_ at $stoptime "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
+	$ns_ at $stoptime "$self printall $fmon"
+
+	# trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+	$ns_ run
+}
+
+Class Test/statsECN -superclass TestSuite
+Test/statsECN instproc init topo {
+	$self instvar net_ defNet_ test_ guide_
+	set net_	$topo
+	set defNet_	net0a
+	set test_	statsECN
+	Queue/RED set setbit_ true
+	Queue/RED set thresh_ 1
+	Queue/RED set maxthresh_ 0
+	Agent/TCP set ecn_ 1
+	set guide_	\
+	"Flow monitor statistics with ECN."
+	$self next
+}
+Test/statsECN instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_ guide_ 
+	if {$quiet == "false"} {puts $guide_}
+
+	$ns_ delay $node_(s2) $node_(r1) 200ms
+	$ns_ delay $node_(r1) $node_(s2) 200ms
+	$ns_ queue-limit $node_(r1) $node_(k1) 100
+	$ns_ queue-limit $node_(k1) $node_(r1) 100
+
+	set slink [$ns_ link $node_(r1) $node_(k1)]; # link to collect stats on
+	set fmon [$ns_ makeflowmon Fid]
+	$ns_ attach-fmon $slink $fmon
+
+	set stoptime 10.1 
+
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	$tcp0 set window_ 30
+	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
+	$tcp1 set window_ 30
+
+	set ftp0 [$tcp0 attach-app FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+
+	$ns_ at 1.0 "$ftp0 start"
+	$ns_ at 1.0 "$ftp1 start"
+
+	set almosttime [expr $stoptime - 0.001]
 	$ns_ at $stoptime "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
 	$ns_ at $stoptime "$self printall $fmon"
 
