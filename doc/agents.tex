@@ -107,9 +107,7 @@ These are their names in OTcl:
         \\
   UDP & a basic UDP agent\\
 	\\
-  CBR & a UDP-like agent with sequence numbers and a send timer \\
-  CBR/RTP & an RTP sender and receiver  \\
-%  CBR/UDP & UDP with sequence numbers and traffic sources       \\
+  RTP & an RTP sender and receiver  \\
   RTCP & an RTCP sender and receiver    \\
         \\
   LossMonitor & a packet sink which checks for losses   \\
@@ -169,23 +167,18 @@ of an Agent in OTcl:
 Default values for member variables, those visible in OTcl only and those
 linked between OTcl and C++ with \code{bind} are initialized
 in the \nsf{tcl/lib/ns-default.tcl} file.  For example,
-\code{Agent} and \code{CBR_Agent} are initialized as follows:
+\code{Agent} is initialized as follows:
 \begin{program}
         Agent set fid_ 0
         Agent set prio_ 0
         Agent set addr_ 0
         Agent set dst_ 0
         Agent set flags_ 0
-
-        Agent/CBR set interval_ 3.75ms
-        Agent/CBR set random_ 0
-        Agent/CBR set packetSize_ 210
-        \ldots
 \end{program}
 
 Generally these initializations are placed in the OTcl namespace
 before any objects of these types are created.
-Thus, when an \code{Agent} or \code{Agent/CBR} object
+Thus, when an \code{Agent} object
 is created, the calls to \code{bind}
 in the objects' constructors will causes the corresponding member variables
 to be set to these specified defaults.
@@ -473,10 +466,8 @@ Deciding on the inheritance structure is a matter of personal choice, but is
 likely to be related to the layer at which the agent will operate
 and its assumptions on lower layer functionality.
 The simplest type of Agent, connectionless datagram-oriented transport, is
-the \code{Agent/UDP} base class.
-For protocol endpoints wishing to use a connectionless
-datagram-oriented transport layer (like UDP) with sequencing and periodic
-send events, the \code{CBR_Agent} base class is likely to be appropriate.
+the \code{Agent/UDP} base class.  Traffic generators can easily be connected
+to UDP Agents.
 For protocols wishing to use a connection-oriented stream transport
 (like TCP), the various TCP Agents could be used.
 Finally, if a new transport or ``sub-transport'' protocol
@@ -509,8 +500,6 @@ We may use the following class definitions:
                 ECHO_Agent *a_;
         \}; 
 \end{program}
-The implementation of the member functions will look similar to
-the \code{CBR_Agent} described above.
 
 \subsection{The \texttt{recv}() and \texttt{timeout}() Methods}
 \label{sec:agents:exmethods}
@@ -636,7 +625,7 @@ These are often control functions that initiate, terminate or
 modify behavior.
 In our present example, we may wish to be able to start the
 ping query agent from OTcl using a ``start'' directive.
-This may be implemented as follows (very similar to the CBR Agent):
+This may be implemented as follows:
 \begin{program}
         int ECHO_Agent::command(int argc, const char*const* argv)
         \{

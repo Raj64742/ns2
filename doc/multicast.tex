@@ -86,9 +86,11 @@ An example of a relatively simple multicast configuration is:
         set mproto dynamicDM          \; configure multicast protocol;
         set mrthandle [{\bfseries{}$ns mrtproto $mproto \{\}}] \; if an empty list is give,;
                 \; all nodes will contain multicast protocol agents;
-        set src [new Agent/CBR]        \; create a source agent at node 0;
-        $ns attach-agent $node0 $src 
-        {\bfseries{}$src set dst_ $group}
+	set udp [new Agent/UDP]		\; create a source agent at node 0;
+        $ns attach-agent $node0 $udp 
+        set src [new Application/Traffic/CBR]        
+	$src attach-agent $udp
+        {\bfseries{}$udp set dst_ $group}
 
         set rcvr [new Agent/LossMonitor]  \; create a receiver agent at node 1;
         $ns attach-agent $node1 $rcvr

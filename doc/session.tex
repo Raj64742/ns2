@@ -57,11 +57,13 @@ finally, (3) have the session members join the session.
         set node [$ns node]    
         set group [$ns allocaddr]
 
-        set src [new Agent/CBR]         \; create and configure the source;
-        $src set dst_ $group
-        $ns attach-agent $node $src
+        set udp [new Agent/UDP]         \; create and configure the source;
+        $udp set dst_ $group
+	set src [new Application/Traffic/CBR]
+	$src attach-agent $udp
+        $ns attach-agent $node $udp
 
-        $ns create-session $node $src   \; create attach session helper to src;
+        $ns create-session $node $udp   \; create attach session helper to src;
 
         set rcvr [new Agent/NULL]        \; configure the receiver;
         $ns attach-agent $node $rcvr
