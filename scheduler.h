@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.2 1997/01/26 22:32:36 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.3 1997/06/11 21:24:08 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -67,6 +67,7 @@ public:
 	virtual void insert(Event*) = 0;
 	virtual Event* lookup(int uid) = 0;
 	inline double clock() const { return (clock_); }
+	virtual void sync() {};
 	inline void reset() { clock_ = 0.; }/*XXX*/
 protected:
 	Scheduler();

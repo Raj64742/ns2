@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.82 1997/06/11 16:45:52 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.83 1997/06/11 21:24:06 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -19,6 +19,17 @@
 
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</A>
 [PENDING RELEASE DATE]</H3>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B>
+<B>Wed Jun 11 11:49:28 PDT 1997</B><BR>
+</LI>
+
+Bug fixes to emulation rig.  Previous version didn't properly account
+for the fact that external events (i.e., packet arrivals)
+could come before the next future event.  Now, the scheduler
+sets a tcl timer to advance time (instead of waiting in
+a null select) and the tap-agent sync's simulation
+time to real time when an external packet arrives.
 
 <UL>
 <LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Wed Jun 

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.9 1997/06/03 21:33:43 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.10 1997/06/11 21:24:07 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -481,6 +481,7 @@ public:
 	RealTimeScheduler();
 	virtual void run();
 protected:
+	void sync() { clock_ = tod(); }
 	double tod();
 	double wait(double then);
 	timeval start_;
@@ -508,20 +509,8 @@ double RealTimeScheduler::tod()
 	return (s);
 }
 
-double RealTimeScheduler::wait(double then)
+static void nullTimer(ClientData)
 {
-	for (;;) {
-		double now = tod();
-		double delay = then - now;
-		/* return if less than 500us (slop) */
-		if (delay < 0.0005)
-			return (now);
-		timeval tv;
-		int s = int(delay);
-		tv.tv_sec = s;
-		tv.tv_usec = int(1e6 * (delay - s));
-		select(0, 0, 0, 0, &tv);
-	}
 }
 
 void RealTimeScheduler::run()
@@ -535,10 +524,21 @@ void RealTimeScheduler::run()
 			Tcl_DoOneEvent(0);
 			continue;
 		}
+		if (p->time_ > now + 0.001) {
+			Tcl_TimerToken token;
+			token = Tcl_CreateTimerHandler(p->time_ - now,
+						       nullTimer, 0);
+			Tcl_DoOneEvent(0);
+			Tcl_DeleteTimerHandler(token);
+			now = tod();
+			continue;
+		}
 		queue_ = p->next_;
 		clock_ = p->time_;
+
+		/* sanity check */
 		if (clock_ > now)
-			now = wait(clock_);
+			abort();
 
 		p->handler_->handle(p);
 	}

@@ -117,6 +117,7 @@ void TapAgent::dispatch(int)
 	 * if there is a queue in the socket buffer; this allows
 	 * other events to get a chance to slip in...
 	 */
+	Scheduler::instance().sync();
 	recvpkt();
 }
 
