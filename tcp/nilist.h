@@ -57,6 +57,7 @@ public:
     slink *find(int key);	// return to matching key
 
     void clear() {last_ = 0;}
+    int count() {return count_;}	
     
     friend class slist_base_iter;
 };
@@ -72,6 +73,7 @@ class Islist : private slist_base {
 	void remove(T* a, T* prev) {slist_base::remove(a,prev);}
 	T *get() {return (T* ) slist_base::get();}
 	T *find(int key) {return (T*) slist_base::find(key);}
+	int count() {return slist_base::count();}
 };
 
 template<class T>
@@ -103,6 +105,7 @@ public:
     slink *get_cur() {return ce;}
     slink *get_last() {return cs->last_;}
     slink *operator() ();
+    int count() {return cs->count();}
 };
 
 template <class T>
