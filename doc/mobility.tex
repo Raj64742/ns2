@@ -71,10 +71,16 @@ over a topology of 50 nodes. These scripts can be run simply by typing
 $ns tcl/ex/wireless.tcl (or /wireless-test.tcl)
 \end{program} %$
 
+%\code{$opt(rp)} and \$opt(rp) dont work  ---xuanc
 The four ad-hoc routing protocols that are currently supported are 
 Destination Sequence Distance Vector (DSDV), Dynamic Source Routing
 (DSR), Temporally ordered Routing Algorithm (TORA) and Adhoc On-demand
-Distance Vector (AODV). The primitive to create a mobilenode is described below. Please note that the old APIs for creating a mobilenode depended on which routing protocol was used, like \begin{program} set mnode [$opt(rp)-create-mobile-node $id] \end{program} where \$opt(rp) defines "dsdv", "aodv", "tora" or "dsr" and id is the index for the mobilenode. But the old API's use is being deprecated and the new API is described as follows:.
+Distance Vector (AODV). 
+The primitive to create a mobilenode is described below. Please note that the old APIs for creating a mobilenode depended on which routing protocol was used, like 
+\begin{program} set mnode [$opt(rp)-create-mobile-node $id] \end{program} 
+where 
+\begin{program} $opt(rp) \end{program} 
+defines "dsdv", "aodv", "tora" or "dsr" and id is the index for the mobilenode. But the old API's use is being deprecated and the new API is described as follows:.
 
 \begin{program}
 $ns_ node-config -adhocRouting $opt(adhocRouting) 
