@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.7 1997/11/04 20:34:02 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.8 1997/11/05 19:19:44 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -162,6 +162,13 @@ TestSuite instproc create_twoagency { } {
  	$vidBClass_ setparams $topBClass 1 0.1 auto 1 1 0
  	set dataBClass_ [new CBQClass]
  	$dataBClass_ setparams $topBClass 1 0.2 auto 2 1 0
+
+	# (topclass_ doesn't have a queue)
+	set cbq_qtype_ DropTail
+	$self make_queue $vidAClass_
+	$self make_queue $dataAClass_
+	$self make_queue $vidBClass_
+	$self make_queue $dataBClass_
 }
 
 TestSuite instproc insert_twoAgency { cbqlink } {
@@ -187,45 +194,50 @@ TestSuite instproc insert_twoAgency { cbqlink } {
 # display graph of results
 TestSuite instproc finish testname {
 
-	$self instvar tmpschan_ tmpqchan_
-	
-	set awkCode  { {
-	  if ($1 == "maxbytes") maxbytes = $2;
-	  if ($2 == class) print $1, $3/maxbytes >> "temp.t"; 
-	} }
-	set awkCodeAll { { 
-	  if ($2 == class) { print time, sum >> "temp.t"; sum = 0; }
-	  if ($1 == "maxbytes") maxbytes = $2;
-	  sum += $3/maxbytes;
-	  if (NF==3) time = $1; else time = 0;
-	} }
+	$self instvar tmpschan_ tmpqchan_ topo_
+	$topo_ instvar cbqlink_
+
+	set graphfile temp.rands
+	set bw [[$cbqlink_ set link_] set bandwidth_]
+	set maxbytes [expr $bw / 8.0]
+
+	set awkCode  {
+		$2 == fid { print $1, $3/maxbytes }
+	}
+	set awkCodeAll {
+		$2 == fid { print time, sum; sum = 0 }
+		{
+			sum += $3/maxbytes;
+			if (NF==3)
+				time = $1;
+			else
+				time = 0;
+		}
+	}
 
 	close $tmpschan_
 	close $tmpqchan_
 
-	set f [open temp.rands w]
+	set f [open $graphfile w]
 	puts $f "TitleText: $testname"
 	puts $f "Device: Postscript"
 	
-	exec touch temp.p temp.t
+	exec rm -f temp.p
+	exec touch temp.p
 	foreach i { 1 2 3 4 } {
-		exec awk $awkCode class=$i temp.s 
-		exec cat temp.t >> temp.p
+		exec echo "\n\"flow $i" >> temp.p
+		exec awk $awkCode fid=$i maxbytes=$maxbytes temp.s > temp.$i
+		exec cat temp.$i >> temp.p
 		exec echo " " >> temp.p
-		exec mv temp.t temp.$i
-		exec touch temp.t
 	}
 
-	exec rm -f temp.t
-	exec touch temp.p temp.t
-	exec awk $awkCodeAll class=1 temp.s 
-	exec cat temp.t >> temp.p 
-	exec echo " " >> temp.p  
-	exec mv temp.t temp.5 
+	exec awk $awkCodeAll fid=1 maxbytes=$maxbytes temp.s > temp.all
+	exec echo "\n\"all " >> temp.p  
+	exec cat temp.all >> temp.p 
 
 	exec cat temp.p >@ $f
 	close $f
-	exec xgraph -bb -tk -x time -y bandwidth temp.rands &
+	exec xgraph -bb -tk -x time -y bandwidth $graphfile &
 #	exec csh figure2.com $file
 	
 	exit 0
