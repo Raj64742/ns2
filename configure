@@ -4116,7 +4116,7 @@ TCL_HI_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'
 TCL_MAJOR_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TCL_ALT_VERS=`echo $TCL_HI_VERS | sed 's/\.//'`
 
-TCL_OLD_VERS=8.3.2
+TCL_OLD_VERS=8.3
 TCL_OLD_ALT_VERS=`echo $TCL_OLD_VERS | sed 's/\.//'`
 
 TCL_TCL_PLACES_D="$d \
@@ -4576,7 +4576,7 @@ TK_HI_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'`
 TK_MAJOR_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TK_ALT_VERS=`echo $TK_VERS | sed 's/\.//'`
 
-TK_OLD_VERS=8.3.2
+TK_OLD_VERS=8.3
 TK_OLD_ALT_VERS=`echo $TK_OLD_VERS | sed 's/\.//'`
 
 TK_TCL_PLACES_D="$d \
