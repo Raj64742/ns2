@@ -1,5 +1,5 @@
-#puts "sourcing tcl/lan/vlan.tcl..."
-#source tcl/lan/vlan.tcl
+puts "sourcing tcl/lan/vlan.tcl..."
+source tcl/lan/vlan.tcl
 
 set opt(tr)	out
 set opt(namtr)	"vlantest-flat.nam"
