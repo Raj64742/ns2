@@ -20,7 +20,7 @@ Agent/TCP set rfc2988_ false
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.13 2002/03/08 21:55:41 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.14 2002/07/19 02:35:25 haldar Exp $
 
 ###########################################################################
 # IMPORTANT NOTE:
@@ -92,7 +92,8 @@ set opt(tr)          temp.rands
 Test/wireless1 instproc init {} {
   global opt
   $self instvar ns_
-  set opt(adhocRouting)   DSR
+	set opt(adhocRouting)   DSR
+	set opt(ifq)            CMUPriQueue
   set opt(nn)             3             
   set opt(cp)             "../mobility/scene/cbr-3-test"
   set opt(sc)             "../mobility/scene/scen-3-test"

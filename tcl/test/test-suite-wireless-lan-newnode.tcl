@@ -20,7 +20,7 @@ Agent/TCP set rfc2988_ false
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.22 2002/03/08 21:55:44 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.23 2002/07/19 02:35:25 haldar Exp $
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
@@ -224,6 +224,7 @@ Test/dsr instproc init {} {
     $self instvar ns_ testName_
     set testName_       dsr
     set opt(rp)         dsr
+    set opt(ifq)        CMUPriQueue	
     set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
     set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
     set opt(nn)         50

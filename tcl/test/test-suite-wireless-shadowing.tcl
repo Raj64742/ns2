@@ -190,6 +190,7 @@ Test/dsr instproc init {} {
     $self instvar ns_ testName_
     set testName_       dsr
     set opt(rp)         dsr
+    set opt(ifq)        CMUPriQueue
     set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
     set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
     set opt(nn)         50

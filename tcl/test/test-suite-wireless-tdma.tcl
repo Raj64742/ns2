@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-tdma.tcl,v 1.4 2000/08/31 18:59:23 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-tdma.tcl,v 1.5 2002/07/19 02:35:25 haldar Exp $
 
 # This test suite is for validating wireless TDMA mac layer protocol 
 # To run all tests: test-all-wireless-tdma
@@ -185,6 +185,7 @@ Test/dsr instproc init {} {
     $self instvar ns_ testName_
     set testName_       dsr
     set opt(rp)         dsr
+    set opt(ifq)        CMUPriQueue
     set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
     set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
     set opt(nn)         50

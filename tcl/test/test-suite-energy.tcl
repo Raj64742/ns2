@@ -27,7 +27,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.8 2002/03/08 21:55:41 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.9 2002/07/19 02:35:25 haldar Exp $
 
 # To run all tests: test-all-energy
 # to run individual test:
@@ -251,6 +251,7 @@ Test/dsr instproc init {} {
    global opt
    $self instvar ns_ topo
    set opt(rp)             DSR
+   set opt(ifq)            CMUPriQueue
    $self next
 }
 Test/dsr instproc run {} {
