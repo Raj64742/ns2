@@ -36,7 +36,7 @@
  * Requires a radio model such that sendPacket returns true
  * iff the packet is recieved by the destination node.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.24 2001/05/21 19:27:33 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.25 2001/06/05 23:49:44 haldar Exp $
  */ 
 
 #include <assert.h>
@@ -176,7 +176,7 @@ Our strategy is as follows:
 //}
 
 void
-SendBufferTimer::expire(Event *e) 
+SendBufferTimer::expire(Event *) 
 { 
   a_->sendBufferCheck(); 
   resched(BUFFER_CHECK + BUFFER_CHECK * Random::uniform(1.0));
@@ -760,7 +760,7 @@ DSRAgent::handleForwarding(SRPacket &p)
 {
   hdr_sr *srh = hdr_sr::access(p.pkt);
   hdr_cmn *cmh = hdr_cmn::access(p.pkt);
-  Node *thisnode;
+  //  Node *thisnode;
 
   trace("SF %.9f _%s_ --- %d [%s -> %s] %s", 
 	Scheduler::instance().clock(), net_id.dump(), cmh->uid(),

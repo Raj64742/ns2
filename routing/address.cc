@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.22 2001/03/01 18:39:32 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.23 2001/06/05 23:49:43 haldar Exp $
  */
 
 #include <stdio.h>
@@ -220,7 +220,7 @@ int Address::get_nodeaddr(int address)
 
 
 //Sets address in pkthdr format (having port and node fields)
-int Address::create_ipaddr(int nodeid, int portid)
+int Address::create_ipaddr(int nodeid, int)
 {
 	return nodeid;
 	// The following code is obsolete

@@ -64,19 +64,19 @@ extern char *MsgStr[];
 static class DiffusionRateClass : public TclClass {
 public:
   DiffusionRateClass() : TclClass("Agent/Diffusion/RateGradient") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int , const char*const* ) {
     return(new DiffusionRate());
   }
 } class_diffusion_rate;
 
 
-void GradientTimer::expire(Event *e)
+void GradientTimer::expire(Event *)
 {
   a_->GradientTimeOut();
 }
 
 
-void NegativeReinforceTimer::expire(Event *e)
+void NegativeReinforceTimer::expire(Event *)
 {
   a_->NegReinfTimeOut();
 }

@@ -44,8 +44,8 @@ public:
   /*virtual int command(int argc, const char*const* argv) {}*/
   virtual inline int address() { return address_;}
   virtual inline int nodeid() { return nodeid_;}
-  virtual void add_route (char *dst, NsObject *target) {};
-  virtual void delete_route (char *dst, NsObject *nullagent) {};
+  virtual void add_route (char *, NsObject *) {};
+  virtual void delete_route (char *, NsObject *) {};
 protected:
   int nodeid_;
   int address_;

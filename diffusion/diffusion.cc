@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.9 2001/05/21 19:27:33 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.10 2001/06/05 23:49:44 haldar Exp $
 
 /****************************************************************/
 /* diffusion.cc : Chalermek Intanagonwiwat (USC/ISI)  05/18/99  */
@@ -75,7 +75,7 @@ public:
 static class DiffusionClass : public TclClass {
 public:
   DiffusionClass() : TclClass("Agent/Diffusion") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int , const char*const* ) {
     return(new DiffusionAgent());
   }
 } class_diffusion;
@@ -443,7 +443,7 @@ void XmitFailedCallback(Packet *pkt, void *data)
 }
 
 
-void DiffusionAgent::xmitFailed(Packet *pkt)
+void DiffusionAgent::xmitFailed(Packet *)
 {
   // For future use, if needed.
 }

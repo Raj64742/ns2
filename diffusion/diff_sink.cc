@@ -58,7 +58,7 @@ void Periodic_Timer::expire(Event *) {
 static class SinkClass : public TclClass {
 public:
   SinkClass() : TclClass("Agent/Diff_Sink") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int , const char*const* ) {
     return(new SinkAgent());
   }
 } class_sink;

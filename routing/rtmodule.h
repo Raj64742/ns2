@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.7 2001/05/23 16:37:10 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.8 2001/06/05 23:49:43 haldar Exp $
  *
  * Definition of RoutingModule, base class for all extensions to routing 
  * functionality in a Node. These modules are meant to be "plugin", and 
@@ -116,7 +116,7 @@ public:
 	VcRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "VC"; }
 	virtual int command(int argc, const char*const* argv);
-	virtual void add_route(char *dst, NsObject *target){}
+	virtual void add_route(char *, NsObject *);
 };
 
 #endif //  ns_rtmodule_h

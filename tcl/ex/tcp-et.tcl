@@ -48,11 +48,11 @@ set nf [open out.nam w]
 $ns namtrace-all $nf
 
 #should add eventrace line after trace-all since trace-all file is used as defualt by eventracing.
-#debug 1
+
 #set file [open et.tr w]
 $ns eventtrace-all
 #$ns eventtrace-all $file
-#$ns eventtrace-some tcp srm etc
+#$ns eventtrace-some tcp srm etc -future work
 
 build_topology $ns
 set redq [[$ns link $node_(r1) $node_(r2)] queue]

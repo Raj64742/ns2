@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.8 2001/05/23 16:37:10 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.9 2001/06/05 23:49:43 haldar Exp $
  */
 
 #include "rtmodule.h"
@@ -297,6 +297,9 @@ int ManualRoutingModule::command(int argc, const char*const* argv) {
 	}
 	return (RoutingModule::command(argc, argv));
 }
+
+void VcRoutingModule::add_route(char *, NsObject *) { }
+	
 
 int VcRoutingModule::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();

@@ -76,7 +76,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.2 2001/05/16 00:10:34 alefiyah Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.3 2001/06/05 23:49:44 haldar Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -574,7 +574,7 @@ void BayFullTcpAgent::newack(Packet* pkt)
 /*
  * nuked this stuff, but left in method - kmn
  */
-int BayFullTcpAgent::predict_ok(Packet* pkt)
+int BayFullTcpAgent::predict_ok(Packet*)
 {
 	return 0;
 }
@@ -675,7 +675,7 @@ void BayFullTcpAgent::timeout(int tno)
  * introduced kedar
  */
 
-void BayDelAckTimer::expire(Event *e) {
+void BayDelAckTimer::expire(Event *) {
 	a_->timeout(TCP_TIMER_DELACK);
 	}
 

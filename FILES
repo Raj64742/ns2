@@ -1467,6 +1467,7 @@ tcl/test/test-output-friendly/HighLoss.Z
 tcl/test/test-output-friendly/HighLossConservative.Z
 tcl/test/test-output-friendly/HighLossTCP.Z
 tcl/test/test-output-friendly/OnlyTcp.Z
+tcl/test/test-output-friendly/TFRC_FTP.Z
 tcl/test/test-output-friendly/ecn.Z
 tcl/test/test-output-friendly/impulse.Z
 tcl/test/test-output-friendly/impulseCA.Z
@@ -1547,6 +1548,8 @@ tcl/test/test-output-intserv/Param.Z
 tcl/test/test-output-lan/lan-broadcast.Z
 tcl/test/test-output-lan/lan-routing-flat.Z
 tcl/test/test-output-lan/lan-routing-hier.Z
+tcl/test/test-output-lan/lan-abstract.Z
+tcl/test/test-output-lan/lan-mactrace.Z
 tcl/test/test-output-links/changeBandwidth.Z
 tcl/test/test-output-links/changeDelay.Z
 tcl/test/test-output-links/links.Z
@@ -1662,6 +1665,8 @@ tcl/test/test-output-red-pd/complete.Z
 tcl/test/test-output-red-pd/frp.Z
 tcl/test/test-output-red-pd/simple.Z
 tcl/test/test-output-red-pd/unresponsive.Z
+tcl/test/test-output-red-pd/cbrs-noidle.Z
+tcl/test/test-output-red-pd/cbrs.Z
 tcl/test/test-output-red-v1/ecn.Z
 tcl/test/test-output-red-v1/flows.Z
 tcl/test/test-output-red-v1/flows1.Z
@@ -1755,7 +1760,6 @@ tcl/test/test-output-simple/tahoe4.Z
 tcl/test/test-output-simple/telnet.Z
 tcl/test/test-output-simple/timers.Z
 tcl/test/test-output-simple-full/manyflows.Z
-tcl/test/test-output-simple-full/no_bug.Z
 tcl/test/test-output-simple-full/phase.Z
 tcl/test/test-output-simple-full/phase1.Z
 tcl/test/test-output-simple-full/phase2.Z

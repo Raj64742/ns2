@@ -63,20 +63,20 @@
 static class DiffusionProbClass : public TclClass {
 public:
   DiffusionProbClass() : TclClass("Agent/Diffusion/ProbGradient") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int , const char*const* ) {
     return(new DiffusionProb());
   }
 } class_diffusion_probability;
 
 
 
-void InterestTimer::expire(Event *e)
+void InterestTimer::expire(Event *)
 {
   a_->InterestPropagate(pkt_, hashPtr_);
 }
 
 
-void EnergyTimer::expire(Event *e)
+void EnergyTimer::expire(Event *)
 {
   if (node_->energy_model()->energy() < threshold_) {    
     if (a_->NEG_REINF_ == true) {

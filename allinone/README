@@ -11,11 +11,11 @@ Currently the package contains:
   
 - Tcl       Tcl release 8.3.2     (required component)
 - Tk        Tk release 8.3.2      (required component)
-- Otcl      otcl release 1.0a6    (required component)
-- TclCL     tclcl release 1.0b10  (required component)
-- Ns        ns release 2.1b7      (required component)
+- Otcl      otcl release 1.0a7    (required component)
+- TclCL     tclcl release 1.0b11  (required component)
+- Ns        ns release 2.1b8      (required component)
 - TclDebug  tcl-debug relase 1.9  (optional component)
-- Nam       Nam release 1.0a9     (optional component)
+- Nam       Nam release 1.0a10     (optional component)
 - Xgraph    xgraph version 12     (optional component)
 - GT-ITM    Georgia Tech Internetwork
             Topology Modeler      (optional component)
@@ -24,7 +24,7 @@ Currently the package contains:
 - CWEB      CWeb version 1.0 (?)  (optional component)
 - ZLib      zlib version 1.1.3    (optional component) 
 
-2. FEATURES IN ns-allinone2.1b7
+2. FEATURES IN ns-allinone2.1b8
 -------------------------------
 
 Features in this version include:
@@ -36,8 +36,6 @@ Features in this version include:
 
 - Bugs fixed:      All components inside the package, with the
                    exceptoin of Tcl/Tk, are the most recent versions;
-                   TclDebug does not work with the recent versions of
-                   Tcl/Tk.
 
 - Easy to use :    Only one-line command is needed to build all ns
 		   components
@@ -61,5 +59,6 @@ Ns-allinone is available from
 <http://www.isi.edu/nsnam/ns/ns-build.html>
 
 -----------------------------
-The VINT Project
+The VINT/CONSER Project
 http://www.isi.edu/nsnam
+

@@ -1,9 +1,16 @@
 
 Steps in doing an ns release:
 
+OTCL/TCLCL/NAM RELEASE
+If necessary, do a otcl,tclcl release. Following are things you need to do for a otcl, tclcl or nam release:
 
-0. do a {otcl,tclcl} release, if necessary (update configure to show
-   current versions)
+1. update configure (or conf/*) to show current versions of pkgs 
+1.a re-autoconf if you have changed conf/*
+2. update CHANGES.html to show when release happens.
+3. make srctar.
+
+
+NS RELEASE
 
 0.1. figure what the new version
 0.2. send out release announcement to ns-developers for approval
@@ -13,19 +20,18 @@ Steps in doing an ns release:
      (For example TclCL_VERS should match the most recent tclcl release,
      etc.)
      (re-autoconf ns if you change things in conf/*).
-0.4. tag the revisions
-0.5. update the web page(s), e.g., "Building NS".
-1. make sure test suites all pass
-2. make sure that FILES is up-to-date
+
+1.1. make sure test suites all pass
+1.2. make sure that FILES is up-to-date
 	diff "bin/gen-files" aginst FILES
+	Remove files that are no longer needed and add the
+        new ones
         don't add files which are generated
 2.1.  update CHANGES.html to show when the release happens
     (like the last time it was released)
 2.2. make sure makefile.vc(WINDOWS) is up to date. If not, do 
 	make makefile.vc
-3.1. Update FILES; Remove files that are no longer needed and add the
-    new ones
-3.2."make srctar"
+2.3. "make srctar"
 4.1. test on new system
     (build, run test scripts)
 4.2. Run the same test on a machine other than those of ISI's or even
@@ -36,17 +42,20 @@ Steps in doing an ns release:
 5.1. commit all your changes
 5.2. tag the cvs archive
     (cd ~ns; cvs tag NS_2_1B6; )
-6. update the web pages
+6.1. update the web page(s), e.g., "Building NS".
+6.2. Create a seperate "NS-Problems" section for the new version.
 7. send out the release announcement (ns-users, ns-announce)
    (also send to end2end if it's a non-{alpha,beta} release)
 8. update the VERSION and the BASE-VERSION files to the next version
-8.1. update CHANGES.html with a placeholder for comments for the new
-    version
+8.1. 
 8.2 commit your changes to the VERSION, BASE-VERSION and CHANGES.html for the next release
-9. Create a seperate "NS-Problems" section for the new version.
 
-B. If making a ns-allinone release
+
+NS_ALLINONE RELEASE
+
+If making a ns-allinone release,
 1. check if all pkgs (tk,tcl, otcl,tclcl,ns, nam etc) are same as the
-   current available version.
+   current available version and change version num in install 
+   accordingly
 2. follow steps as above.
 3. update install in the cvs under ~ns/allinone
