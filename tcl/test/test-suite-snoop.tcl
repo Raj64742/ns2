@@ -16,12 +16,14 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-snoop.tcl,v 1.2 2001/11/28 23:04:28 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-snoop.tcl,v 1.3 2001/11/29 17:59:17 sfloyd Exp $
 
 
 # This test suite is for validating the snoop protocol
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 
