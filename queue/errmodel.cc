@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.74 2002/09/18 05:41:52 sundarra Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.75 2003/01/28 19:50:51 sfloyd Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.74 2002/09/18 05:41:52 sundarra Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.75 2003/01/28 19:50:51 sfloyd Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -393,7 +393,7 @@ static char * st_names[]={ST_NAMES};
 //	If em_ is assigned, then invoke em_->corrupt(p)
 */
 
-MultiStateErrorModel::MultiStateErrorModel() : em_(0), prevTime_(0.0)
+MultiStateErrorModel::MultiStateErrorModel() : prevTime_(0.0), em_(0)
 {
 	bind("sttype_", &sttype_);
 	bind("texpired_", &texpired_);

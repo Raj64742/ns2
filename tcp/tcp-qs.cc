@@ -120,7 +120,7 @@ public:
 void QSNewRenoPaceTimer::expire(Event *) { a_->paced_send_one(); }
 
 QSNewRenoTcpAgent::QSNewRenoTcpAgent() : TcpAgent(),
-	rbp_mode_(RBP_OFF), pace_timer_(this), ttl_diff_(0), qs_approved_(0)
+	ttl_diff_(0), qs_approved_(0), rbp_mode_(RBP_OFF), pace_timer_(this)
 {
 	bind("rbp_scale_", &rbp_scale_);
 	// algorithm is not used in New Reno
@@ -436,8 +436,8 @@ void QSTcpSink::ack(Packet* opkt)
 		ntcp->ts_echo() = otcp->ts();
 	// echo the original's time stamp
 
-	hdr_ip* oip = hdr_ip::access(opkt);
-	hdr_ip* nip = hdr_ip::access(npkt);
+	// hdr_ip* oip = hdr_ip::access(opkt);
+	// hdr_ip* nip = hdr_ip::access(npkt);
 	// get the ip headers
 	//nip->flowid() = oip->flowid();
 	// copy the flow id

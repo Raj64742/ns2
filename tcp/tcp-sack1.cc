@@ -70,8 +70,7 @@ public:
 	}
 } class_sack;
 
-Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1), firstpartial_(0),
- next_pkt_(0)
+Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1), next_pkt_(0), firstpartial_(0)
 {
 	bind_bool("partial_ack_", &partial_ack_);
 	/* Use the Reassembly Queue based scoreboard as

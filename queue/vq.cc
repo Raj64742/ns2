@@ -92,7 +92,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/vq.cc,v 1.4 2002/05/30 23:58:29 buchheim Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/vq.cc,v 1.5 2003/01/28 19:50:51 sfloyd Exp $ (LBL)";
 #endif
 #include "flags.h"
 #include "delay.h"
@@ -222,7 +222,6 @@ void Vq::enque(Packet* p)
 		if (drop_front_) { /* remove from head of queue */
 			if(q_->length() > 0){
 				Packet *pp = q_->head();
-				hdr_cmn* chh = hdr_cmn::access(pp);
 				qlength = qlength - qib_ * ch->size() - (1 - qib_);
 				q_->remove(pp); 
 				drop(pp);
@@ -286,7 +285,6 @@ void Vq::dropPacketForECN(Packet* pkt)
 		   Usually not recommended */ 
 		if(q_->length() > 0 ){
 			Packet *pp = q_->head();
-			hdr_cmn* chh = hdr_cmn::access(pp);
 			qlength = qlength - qib_ * ch->size() - (1 - qib_);
 			q_->remove(pp); /* The queue length is taken care of in
 										 in the deque program */

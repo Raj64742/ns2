@@ -87,13 +87,12 @@ int QSAgent::command(int argc, const char*const* argv)
 
 void QSAgent::recv(Packet* packet, Handler*)
 {
-	int src, dst, nhop, app_rate;
+	int app_rate;
 	double avail_bw, util;
 	Classifier * pkt_target;
 	Tcl& tcl = Tcl::instance();
 	char qname[64], lname[64];
 
-	hdr_cmn *cmh = hdr_cmn::access(packet);
 	hdr_qs *qsh =  hdr_qs::access(packet);
 	hdr_ip *iph = hdr_ip::access(packet);
 

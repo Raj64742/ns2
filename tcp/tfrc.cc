@@ -477,7 +477,6 @@ void TfrcAgent::sendpkt()
 
 void TfrcAgent::reduce_rate_on_no_feedback()
 {
-	double now = Scheduler::instance().clock();
 	rate_change_ = RATE_DECREASE; 
 	if (oldCode_ || !datalimited_ || rate_ > 4.0 * size_/rtt_ ) {
 		// if we are not datalimited,
