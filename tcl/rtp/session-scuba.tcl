@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.1 1997/06/14 00:16:54 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-scuba.tcl,v 1.2 1997/06/22 19:06:19 elan Exp $
 #
 
 Class Session/RTP/Scuba -superclass Session/RTP
@@ -373,14 +373,25 @@ Timer instproc msched { t } {
 	global ns
 	$self instvar id_ manager_ callback_
 	
-	set id_ [$ns at [expr [$ns now]+$t/1000.] "$manager_ $callback_"]
+	if [info exists id_] {
+		puts stderr "warning: $self ($class): overlapping timers."
+	}
+	
+	set id_ [$ns at [expr [$ns now]+$t/1000.] "$self timeout"]
 }
 	
+Timer instproc timeout {} {
+	$self instvar id_ manager_ callback_
+	unset id_
+	
+	eval $manager_ $callback_
+}
+
 Timer instproc cancel {} {
 	global ns
 	$self instvar id_
 	if [info exists id_] {
-		$ns cancel $id
+		$ns cancel $id_
 		unset id_
 	}
 }

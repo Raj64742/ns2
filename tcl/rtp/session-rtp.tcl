@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.6 1997/06/14 00:17:31 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.7 1997/06/22 19:06:18 elan Exp $
 #
 
 proc mvar args {
@@ -91,6 +91,13 @@ Session/RTP instproc start {} {
 
 	mvar cchan_ 
 	$cchan_ start 
+}
+
+Session/RTP instproc stop {} {
+	$self instvar cchan_ dchan_
+	$dchan_ stop
+	$cchan_ stop
+	$self set stopped_ 1
 }
 
 Session/RTP instproc report-interval { i } {
