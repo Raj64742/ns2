@@ -411,7 +411,10 @@ The steps are:
   The handle is returned to the user.
   Most handles in \ns\ have the form \code{_o\tup{NNN}}, where \tup{NNN}
   is an integer.  This handle is created by
-  \fcnref{\proc{getid}}{../Tcl/tcl-object.tcl}{TclObject::getid}.
+  \fcnref{\proc{getid}}{../tclcl/tcl-object.tcl}{TclObject::getid}.
+  It can be retrieved from C++ with the
+  \fcnref{\proc{name()}}{../tclcl/tclcl.h}{TclObject::name()}
+  method.
 \item Execute the constructor for the new object.
   Any user-specified arguments are passed as arguments to the constructor.
   This constructor must invoke the constructor
