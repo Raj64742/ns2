@@ -48,17 +48,12 @@ public:
 protected:
 	int mask_;
 	int shift_;
-	int off_mac_;
 };
 
 class TraceIpMac : public TraceIp {
 public:
-	TraceIpMac(int type) : TraceIp(type) {
-		bind("off_mac_", &off_mac_);
-	}
+	TraceIpMac(int type) : TraceIp(type) {}
 	void recv(Packet*, Handler*);
-protected:
-	int off_mac_;
 };
 
 
@@ -104,7 +99,7 @@ void TraceIpMac::recv(Packet* p, Handler* h)
 	int src = (src_ >= 0) ? src_ : (iph->src() >> shift_) & mask_;
 	int dst = (iph->dst() >> shift_) & mask_;
 
-	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
+	hdr_mac* mh = hdr_mac::get(p);
 	if (mh->ftype() == MF_ACK || mh->ftype() == MF_CTS)
 		format(type_, dst, src , p);
 	else

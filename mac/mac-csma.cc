@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.21 1998/04/08 20:09:45 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.22 1998/06/03 03:26:50 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -104,14 +104,14 @@ void MacCsma::resume(Packet* p)
 void MacCsma::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	double now = s.clock();
+	double delay = channel_->txstop() + ifs_ - s.clock();
 
 	// if channel is not ready, then wait
 	// else content for the channel
-	if (csense_ && channel_->txstop() + ifs_ > now)
-		s.schedule(&hSend_, p, channel_->txstop() + ifs_ - now);
+	if (csense_ && delay > 0)
+		s.schedule(&hSend_, p, delay + 0.000001);
 	else {
-		txstart_ = now;
+		txstart_ = s.clock();
 		channel_->contention(p, &hEoc_);
 	}
 }
@@ -139,7 +139,7 @@ void MacCsma::endofContention(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
-	((hdr_mac*) p->access(off_mac_))->txtime() = txt;
+	hdr_mac::get(p)->txtime() = txt;
 	channel_->send(p, txt);
 	s.schedule(&hRes_, &eEoc_, txt);
 	rtx_ = 0;
@@ -162,12 +162,12 @@ void MacCsmaCd::endofContention(Packet* p)
 void MacCsmaCa::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	double now = s.clock();
+	double delay = channel_->txstop() + ifs_ - s.clock();
 
-	if (csense_ && channel_->txstop() + ifs_ > now)
+	if (csense_ && delay > 0)
 		backoff(&hSend_, p);
 	else {
-		txstart_ = now;
+		txstart_ = s.clock();
 		channel_->contention(p, &hEoc_);
 	}
 }

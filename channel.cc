@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.19 1998/04/08 20:09:38 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.20 1998/06/03 03:26:47 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -68,9 +68,7 @@ Channel::Channel() : Connector(), txstop_(0), cwstop_(0), numtx_(0), pkt_(0), tr
 	bind_time("delay_", &delay_);
 }
 
-
-int
-Channel::command(int argc, const char*const* argv)
+int Channel::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
 		if (strcmp(argv[1], "trace-target") == 0) {
@@ -88,16 +86,14 @@ Channel::command(int argc, const char*const* argv)
 }
 
 
-void
-Channel::recv(Packet* p, Handler*)
+void Channel::recv(Packet* p, Handler*)
 {
 	Scheduler& s = Scheduler::instance();
 	s.schedule(target_, p, txstop_ + delay_ - s.clock());
 }
 
 
-int
-Channel::send(Packet* p, double txtime)
+int Channel::send(Packet* p, double txtime)
 {
 	// without collision, return 0
 	Scheduler& s = Scheduler::instance();
@@ -108,8 +104,8 @@ Channel::send(Packet* p, double txtime)
 		int discard = (! nodrop_);
 		((hdr_cmn*)p->access(off_cmn_))->error() |= EF_COLLISION;
 		if (pkt_ && pkt_->time_ > now) {
-			hdr_mac* mh = (hdr_mac*)pkt_->access(hdr_mac::offset_);
-			hdr_mac* mh2 = (hdr_mac*)p->access(hdr_mac::offset_);
+			hdr_mac* mh = hdr_mac::get(pkt_);
+			hdr_mac* mh2 = hdr_mac::get(p);
 			((hdr_cmn*)pkt_->access(off_cmn_))->error() |= EF_COLLISION;
 			if (discard) {
 				s.cancel(pkt_);
@@ -130,13 +126,12 @@ Channel::send(Packet* p, double txtime)
 }
 
 
-void
-Channel::contention(Packet* p, Handler* h)
+void Channel::contention(Packet* p, Handler* h)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 	if (now > cwstop_) {
-		cwstop_ = now + delay_ /* - 0.0000005 */;
+		cwstop_ = now + delay_;
 		numtx_ = 0;
 	}
 	numtx_++;
@@ -144,8 +139,7 @@ Channel::contention(Packet* p, Handler* h)
 }
 
 
-int
-Channel::hold(double txtime)
+int Channel::hold(double txtime)
 {
 	// without collision, return 0
 	double now = Scheduler::instance().clock();
@@ -158,8 +152,7 @@ Channel::hold(double txtime)
 }
 
 
-int
-DuplexChannel::send(Packet* p, double txtime)
+int DuplexChannel::send(Packet* p, double txtime)
 {
 	double now = Scheduler::instance().clock();
 	txstop_ = now + txtime;
@@ -168,8 +161,7 @@ DuplexChannel::send(Packet* p, double txtime)
 }
 
 
-void
-DuplexChannel::contention(Packet* p, Handler* h)
+void DuplexChannel::contention(Packet* p, Handler* h)
 {
 	Scheduler::instance().schedule(h, p, delay_);
 	numtx_ = 1;

@@ -38,6 +38,11 @@ LL set bandwidth_ 2Mb
 LL set delay_ 0.5ms
 LL set macDA_ 0
 
+if [TclObject is-class LL/Arq] {
+LL/Arq set segsize_ 0
+LL/Arq set timeout_ 10ms
+}
+
 # Snoop variables
 if [TclObject is-class Snoop] {
 	Snoop set snoopTick_ 0.1

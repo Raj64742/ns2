@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.22 1998/04/08 20:09:46 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.23 1998/06/03 03:26:51 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -55,7 +55,7 @@ public:
 		field_offset("macSA_", OFFSET(hdr_mac, macSA_));
 		field_offset("macDA_", OFFSET(hdr_mac, macDA_));
 	}
-} class_machdr;
+} class_hdr_mac;
 
 static class MacClass : public TclClass {
 public:
@@ -85,7 +85,6 @@ Mac::Mac() : Connector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0),
 	bind_bw("bandwidth_", &bandwidth_);
 	bind("hlen_", &hlen_);
 	bind("addr_", &addr_);
-	bind("off_mac_", &off_mac_);
 }
 
 
@@ -132,7 +131,7 @@ void Mac::recv(Packet* p, Handler* h)
 		return;
 	}
 	callback_ = h;
-	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
+	hdr_mac* mh = hdr_mac::get(p);
 	mh->set(MF_DATA, addr_);
 	state(MAC_SEND);
 	send(p);
@@ -162,5 +161,5 @@ void Mac::resume(Packet* p)
 
 Mac* Mac::getPeerMac(Packet* p)
 {
-	return (Mac*) mcl_->slot(((hdr_mac*)p->access(off_mac_))->macDA());
+	return (Mac*) mcl_->slot((hdr_mac::get(p))->macDA());
 }

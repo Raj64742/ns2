@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.18 1998/04/08 20:09:47 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.19 1998/06/03 03:26:51 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -42,6 +42,7 @@
 #include "connector.h"
 #include "packet.h"
 
+#define ZERO	0.00000
 
 /*
 // Medium Access Control (MAC)
@@ -84,13 +85,16 @@ struct hdr_mac {
 	double sstime_;		// slot start time
 
 	static int offset_;
-	inline int& offset() { return offset_; }
+	inline static int& offset() { return offset_; }
+	inline static hdr_mac* get(Packet* p, int offset=-1) {
+		if (offset == -1)  offset = offset_;
+		return (hdr_mac*) p->access(offset);
+	}
 
-	inline void set(MacFrameType ft, int sa, int da=-99999) {
+	inline void set(MacFrameType ft, int sa, int da=-1) {
 		ftype_ = ft;
 		macSA_ = sa;
-		if (da > -999)
-			macDA_ = da;
+		if (da != -1)  macDA_ = da;
 	}
 	inline MacFrameType& ftype() { return ftype_; }
 	inline int& macSA() { return macSA_; }
@@ -150,7 +154,6 @@ protected:
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandlerResume hRes_;	// resume handler
 	MacHandlerSend hSend_;	// handle delay send due to busy channel
-	int off_mac_;		// MAC header offset
         Mac* macList_;		// circular list of MACs
 	Event intr_;
 };
