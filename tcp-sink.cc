@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.22 1998/05/21 00:35:01 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.23 1998/06/18 01:16:38 kfall Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -388,8 +388,8 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 					break;
 				}
 	                }
-			h->sa_left()[sack_index] = sack_left;
-			h->sa_right()[sack_index] = sack_right;
+			h->sa_left(sack_index) = sack_left;
+			h->sa_right(sack_index) = sack_right;
 			sack_index++;
 		}
 
@@ -421,8 +421,8 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 				continue;
 			}
 
-			h->sa_left()[sack_index] = sack_left;
-			h->sa_right()[sack_index] = sack_right;
+			h->sa_left(sack_index) = sack_left;
+			h->sa_right(sack_index) = sack_right;
 			sack_index++;
 			k++;
 

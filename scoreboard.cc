@@ -38,7 +38,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.7 1997/07/22 20:50:40 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.8 1998/06/18 01:16:37 kfall Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -79,8 +79,8 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 	}	
 
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
-		sack_left = tcph->sa_left()[sack_index];
-		sack_right = tcph->sa_right()[sack_index];
+		sack_left = tcph->sa_left(sack_index);
+		sack_right = tcph->sa_right(sack_index);
 
 		//  Create new entries off the right side.
 		if (sack_right > SBN[(first_+length_+SBSIZE-1)%SBSIZE].seq_no_) {
@@ -142,8 +142,8 @@ int ScoreBoard::CheckSndNxt (hdr_tcp* tcph)
 	int force_timeout = 0;
 
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
-		sack_left = tcph->sa_left()[sack_index];
-		sack_right = tcph->sa_right()[sack_index];
+		sack_left = tcph->sa_left(sack_index);
+		sack_right = tcph->sa_right(sack_index);
 
 		for (i=SBN[(first_)%SBSIZE].seq_no_; i<sack_right; i++) {
 			//  Check to see if this segment's snd_nxt_ is now covered by the sack block

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.18 1998/05/20 22:06:37 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.19 1998/06/18 01:16:37 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -99,8 +99,8 @@ int FackTcpAgent::maxsack(Packet *pkt)
     int maxsack=-1, sack_index; 
     
     for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
-        if (tcph->sa_right()[sack_index] > maxsack)
-            maxsack = tcph->sa_right()[sack_index];
+        if (tcph->sa_right(sack_index) > maxsack)
+            maxsack = tcph->sa_right(sack_index);
     }
     return (maxsack-1);
 }   
