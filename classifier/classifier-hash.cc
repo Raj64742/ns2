@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.2 1997/04/10 03:31:28 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.3 1997/04/22 18:35:17 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -41,6 +41,7 @@ static char rcsid[] =
 // to a bucket.  "buckets_" worth of hash table entries are created
 // at init time, and other entries in the same bucket are created when
 // needed
+//
 //
 
 #include <stdlib.h>
@@ -128,15 +129,51 @@ protected:
 	}
 };
 
+class FidHashClassifier : public HashClassifier {
+public:
+	FidHashClassifier(int nb) : HashClassifier(nb) {}
+protected:
+	int command(int argc, const char*const* argv);
+	const hnode* lookup(Packet *);
+	int hash(int fid) {
+		return (fid % buckets_);
+	}
+	int compare(hnode *hn, Packet *p) {
+		hdr_ip* h = (hdr_ip*)p->access(off_ip_);
+		return (hn->active && hn->fid == h->flowid());
+	}
+	void set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
+		int buck = hash(fid);
+		insert(buck, src, dst, fid, slot);
+	}
+};
+
 /**************  TCL linkage ****************/
 static class SrcDestHashClassifierClass : public TclClass {
 public:
 	SrcDestHashClassifierClass() : TclClass("Classifier/Hash/SrcDest") {}
 	TclObject* create(int argc, const char*const* argv) {
+		if (argc < 2) {
+			fprintf(stderr, "SrcDestHashClassifier ctor requires buckets arg\n");
+			exit(1);
+		}
 		int buckets = atoi(argv[1]);
 		return (new SrcDestHashClassifier(buckets));
 	}
 } class_hash_srcdest_classifier;
+
+static class FidHashClassifierClass : public TclClass {
+public:
+	FidHashClassifierClass() : TclClass("Classifier/Hash/Fid") {}
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc < 5) {
+			fprintf(stderr, "FidHashClassifier ctor requires buckets arg\n");
+			exit(1);
+		}
+		int buckets = atoi(argv[4]);
+		return (new FidHashClassifier(buckets));
+	}
+} class_hash_fid_classifier;
 
 static class SrcDestFidHashClassifierClass : public TclClass {
 public:
@@ -144,6 +181,10 @@ public:
 		TclClass("Classifier/Hash/SrcDestFid") {}
 
 	TclObject* create(int argc, const char*const* argv) {
+		if (argc < 2) {
+			fprintf(stderr, "SrcDstFidHashClassifier ctor requires buckets arg\n");
+			exit(1);
+		}
 		int buckets = atoi(argv[1]);
 		return (new SrcDestFidHashClassifier(buckets));
 	}
@@ -185,16 +226,19 @@ int HashClassifier::command(int argc, const char*const* argv)
         /*
          * $classifier set-hash $src $dst $fid $slot
          */
-        if (argc == 6) {
-                if (strcmp(argv[1], "set-hash") == 0) {
-                        nsaddr_t src = strtol(argv[2], (char**)0, 0);
-                        nsaddr_t dst = strtol(argv[3], (char**)0, 0);
-                        int fid = atoi(argv[4]);
-                        int slot = atoi(argv[5]);
-                        set_hash(src, dst, fid, slot);
-                        return (TCL_OK);
-                }
-        }
+
+	if (argc < 5) 
+		return (Classifier::command(argc, argv));
+
+	if (strcmp(argv[1], "set-hash") == 0) {
+		if (strcmp(argv[2], "fid") == 0) {
+			NsObject* cl = (NsObject*)TclObject::lookup(argv[3]);
+			int fid = atoi(argv[4]);
+			set_hash(0, 0, fid, fid);
+			install(fid, cl);	// Classifier::install()
+			return (TCL_OK);
+		}
+	}
         return (Classifier::command(argc, argv));
 }
 
@@ -277,12 +321,32 @@ SrcDestFidHashClassifier::lookup(Packet *pkt)
 	return (hn);
 }
 
+const HashClassifier::hnode*
+FidHashClassifier::lookup(Packet *pkt)
+{
+	HashClassifier::hnode* hn;
+	hdr_ip* h = (hdr_ip*)pkt->access(off_ip_);
+	int bucknum = hash(h->flowid());
+	hn = &htab_[bucknum];
+	while (hn != NULL) {
+		if (compare(hn, pkt))
+			break;
+		hn = hn->next;
+	}
+	return (hn);
+}
+
 int SrcDestHashClassifier::command(int argc, const char*const* argv)
 {
 	return (HashClassifier::command(argc, argv));
 }
 
 int SrcDestFidHashClassifier::command(int argc, const char*const* argv)
+{
+	return (HashClassifier::command(argc, argv));
+}
+
+int FidHashClassifier::command(int argc, const char*const* argv)
 {
 	return (HashClassifier::command(argc, argv));
 }
