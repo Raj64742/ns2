@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.23 1998/09/14 02:06:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.24 1998/10/21 23:18:12 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -226,6 +226,7 @@ Class Test/ecn -superclass TestSuite
 Test/ecn instproc init {} {
     $self instvar net_ test_
     Queue/RED set setbit_ true
+    Agent/TCP set old_ecn_ 1
     set net_	net2
     set test_	ecn
     $self next
