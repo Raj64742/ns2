@@ -1,6 +1,7 @@
 #!/bin/sh
 # To remove temporary files in tcl/test.
 # To run: "./remove.com"
+# You might have to first make this file executable.
 #
 rm -f temp* *.ps
 rm -f t?.tcl
@@ -15,7 +16,7 @@ vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing \
 intserv webcache mcast newreno srm session mixmode algo-routing vc \
 simultaneous lan wireless-lan ecn-ack mip energy wireless-gridkeeper mcache \
 satellite wireless-lan-newnode wireless-lan-aodv WLtutorial aimd greis \
-rfc793edu friendly rfc2581 links
+rfc793edu friendly rfc2581 links wireless-tdma rio \
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
