@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.1 2001/06/15 00:31:37 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.2 2001/07/17 20:33:21 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -45,8 +45,8 @@ set flowgraphfile fairflow.xgr; # file given to graph tool
 TestSuite instproc finish file {
 	global quiet PERL
 	$self instvar ns_ tchan_ testName_
-        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-          $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp.rands
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr > t1 
+        exec $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file t1 > temp.rands
 	if {$quiet == "false"} {
         	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
@@ -250,15 +250,24 @@ Test/red1Adapt instproc run {} {
 
 #####################################################################
 
-TestSuite instproc newtraffic { num window packets start interval } {
+# THIS NEEDS TO REUSE CONNECTION STATE!
+TestSuite instproc newtraffic { num window packets start interval conns} {
     $self instvar ns_ node_ testName_ net_
 
+    for {set i 0} {$i < $conns } {incr i} {
+       	set tcp($i) [$ns_ create-connection-list TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 2]
+	set source($i) [lindex $tcp($i) 0]
+	set sink($i) [lindex $tcp($i) 1]
+       	$source($i) set window_ $window
+	set ftp($i) [$source($i) attach-app FTP]
+	$ns_ at 0.0 "$ftp($i) produce 0"
+    }
     for {set i 0} {$i < $num } {incr i} {
-        set tcpi [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 2]
-        $tcpi set window_ $window
-        set ftpi [$tcpi attach-app FTP]
+        set tcpnum [ expr $i % $conns ]
 	set time [expr $start + $i * $interval]
-        $ns_ at $time  "$ftpi produce $packets"
+	$ns_ at $time  "$source($tcpnum) reset"
+	$ns_ at $time  "$sink($tcpnum) reset"
+        $ns_ at $time  "$ftp($tcpnum) producemore $packets"
     }
 }
 
@@ -273,7 +282,7 @@ Test/red2 instproc run {} {
     $self instvar ns_ node_ testName_ net_
     $self setTopo
     $self maketraffic 
-    $self newtraffic 20 20 1000 25 0.1
+    $self newtraffic 20 20 1000 25 0.1 20
     $ns_ run
 }
 
@@ -290,7 +299,7 @@ Test/red2Adapt instproc run {} {
     set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
     $forwq set adaptive_ 1 
     $self maketraffic
-    $self newtraffic 20 20 1000 25 0.1
+    $self newtraffic 20 20 1000 25 0.1 20
     $ns_ run   
 }
 Class Test/red2A-Adapt -superclass TestSuite
@@ -317,7 +326,7 @@ Test/red3 instproc run {} {
     $self instvar ns_ node_ testName_ net_
     $self setTopo
     $self maketraffic 
-    $self newtraffic 15 20 300 0 0.1
+    $self newtraffic 15 20 300 0 0.1 15
     $ns_ run
 }
 
@@ -334,7 +343,7 @@ Test/red3Adapt instproc run {} {
     set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
     $forwq set adaptive_ 1 
     $self maketraffic
-    $self newtraffic 15 20 300 0 0.1
+    $self newtraffic 15 20 300 0 0.1 15
     $ns_ run   
 }
 
@@ -347,6 +356,25 @@ Test/red4Adapt instproc init {} {
     Queue/RED set beta_ 0.8
     Test/red4Adapt instproc run {} [Test/red3Adapt info instbody run ]
     $self next
+}
+
+Class Test/red5Adapt -superclass TestSuite
+Test/red5Adapt instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ net2 
+    set test_ red5Adapt
+    Queue/RED set alpha_ 0.02
+    Queue/RED set beta_ 0.8
+    $self next
+}
+Test/red5Adapt instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+    $self maketraffic
+    $self newtraffic 20 20 300 0 0.001 10
+    # To run many flows:
+    # $self newtraffic 4000 20 300 0 0.005 500
+    $ns_ run
 }
 
 #####################################################################
