@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -33,16 +34,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.12 1997/08/14 00:07:35 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.13 1998/06/26 02:20:28 gnguyen Exp $";
 #endif
 
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "tclcl.h"
 #include "agent.h"
-#include "packet.h"
 #include "cbr.h"
 #include "random.h"
 #include "rtp.h"

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -14,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.6 1998/01/21 19:28:44 gnguyen Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.h,v 1.7 1998/06/26 02:20:26 gnguyen Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -25,13 +26,12 @@
  * appropriate.
  */
 
-#include "tclcl.h"
 #include "random.h"
 #include "rng.h"
 
 class RandomVariable : public TclObject {
  public:
-        virtual double value() = 0;
+	virtual double value() = 0;
 	int command(int argc, const char*const* argv);
 	RandomVariable();
  protected:
@@ -40,23 +40,23 @@ class RandomVariable : public TclObject {
 
 class UniformRandomVariable : public RandomVariable {
  public:
-        virtual double value();
+	virtual double value();
 	UniformRandomVariable();
 	UniformRandomVariable(double, double);
-	double* minp() { return &min_; };
-	double* maxp() { return &max_; };
-	double min()   { return min_; };
-	double max()   { return max_; };
-	void setmin(double d)  { min_ = d; };
-	void setmax(double d)  { max_ = d; };
+	double* minp()	{ return &min_; };
+	double* maxp()	{ return &max_; };
+	double min()	{ return min_; };
+	double max()	{ return max_; };
+	void setmin(double d)	{ min_ = d; };
+	void setmax(double d)	{ max_ = d; };
  private:
-        double min_;
+	double min_;
 	double max_;
 };
 
 class ExponentialRandomVariable : public RandomVariable {
  public:
-        virtual double value();
+	virtual double value();
 	ExponentialRandomVariable();
 	ExponentialRandomVariable(double);
 	double* avgp() { return &avg_; };
@@ -73,10 +73,10 @@ class ParetoRandomVariable : public RandomVariable {
 	ParetoRandomVariable(double, double);
 	double* avgp() { return &avg_; };
 	double* shapep() { return &shape_; };
-	double avg()   { return avg_; };
-	double shape()   { return shape_; };
-	void setavg(double d)  { avg_ = d; };
-	void setshape(double d)  { shape_ = d; };
+	double avg()	{ return avg_; };
+	double shape()	{ return shape_; };
+	void setavg(double d)	{ avg_ = d; };
+	void setshape(double d)	{ shape_ = d; };
  private:
 	double avg_;
 	double shape_;
@@ -85,7 +85,7 @@ class ParetoRandomVariable : public RandomVariable {
 
 class ConstantRandomVariable : public RandomVariable {
  public:
-        virtual double value();
+	virtual double value();
 	ConstantRandomVariable();
 	ConstantRandomVariable(double);
 	double* valp() { return &val_; };
@@ -97,15 +97,15 @@ class ConstantRandomVariable : public RandomVariable {
 
 class HyperExponentialRandomVariable : public RandomVariable {
  public:
-        virtual double value();
+	virtual double value();
 	HyperExponentialRandomVariable();
 	HyperExponentialRandomVariable(double, double);
-	double* avgp() { return &avg_; };
-	double* covp() { return &cov_; };
-	double avg()   { return avg_; };
-	double cov()   { return cov_; };
-	void setavg(double d)  { avg_ = d; };
-	void setcov(double d)  { cov_ = d; };
+	double* avgp()	{ return &avg_; };
+	double* covp()	{ return &cov_; };
+	double avg()	{ return avg_; };
+	double cov()	{ return cov_; };
+	void setavg(double d)	{ avg_ = d; };
+	void setcov(double d)	{ cov_ = d; };
  private:
 	double avg_;
 	double cov_;

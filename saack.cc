@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -20,8 +21,6 @@
 //SignalAckClass
 //Null receiver agent which merely acknowledges a request
 
-#include "tclcl.h"
-#include "packet.h"
 #include "agent.h"
 #include "ip.h"
 #include "resv.h"

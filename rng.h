@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.9 1998/06/25 23:41:38 gnguyen Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.10 1998/06/26 02:20:28 gnguyen Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -47,8 +47,7 @@
 
 #include <math.h>
 #include <stdlib.h>			// for atoi
-
-#include "tclcl.h"
+#include <tclcl.h>
 
 /*
  * RNGImplementation is internal---do not use it, use RNG.

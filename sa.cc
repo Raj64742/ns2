@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *
@@ -23,8 +24,6 @@
 #include "udp.h"
 #include "sa.h"
 #include "ip.h"
-#include "tclcl.h"
-#include "packet.h"
 #include "random.h"
 
 SA_Agent::SA_Agent() 

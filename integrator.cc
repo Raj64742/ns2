@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1996 Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.6 1997/08/12 17:31:42 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.7 1998/06/26 02:20:17 gnguyen Exp $";
 #endif
 
 #include <stdlib.h>
@@ -41,10 +42,10 @@ static const char rcsid[] =
 
 static class IntegratorClass : public TclClass {
  public:
-        IntegratorClass() : TclClass("Integrator") {}
-        TclObject* create(int, const char*const*) {
-                return (new Integrator);
-        }
+	IntegratorClass() : TclClass("Integrator") {}
+	TclObject* create(int, const char*const*) {
+		return (new Integrator);
+	}
 } integrator_class;
 
 Integrator::Integrator() : lastx_(0.), lasty_(0.), sum_(0.)
@@ -92,10 +93,10 @@ int Integrator::command(int argc, const char*const* argv)
  */
 static class SamplesClass : public TclClass {
  public:
-        SamplesClass() : TclClass("Samples") {}
-        TclObject* create(int, const char*const*) {
-                return (new Samples);
-        }
+	SamplesClass() : TclClass("Samples") {}
+	TclObject* create(int, const char*const*) {
+		return (new Samples);
+	}
 } samples_class;
 
 int Samples::command(int argc, const char*const* argv)
@@ -129,11 +130,11 @@ int Samples::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	} else if ( argc == 3 ) {
-	    if ( strcmp(argv[1],"newpoint") == 0 ) {
-		double x = atof(argv[2]);
-		newPoint(x);
-		return (TCL_OK);
-	    }
-	};
+		if ( strcmp(argv[1],"newpoint") == 0 ) {
+			double x = atof(argv[2]);
+			newPoint(x);
+			return (TCL_OK);
+		}
+	}
 	return (TclObject::command(argc, argv));
 }

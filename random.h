@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.11 1998/06/25 23:29:30 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.12 1998/06/26 02:20:25 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -39,8 +39,6 @@
 
 #include <math.h>
 #include "config.h"
-
-
 #include "rng.h"
 
 class Random {

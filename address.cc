@@ -31,14 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.7 1998/06/26 00:10:53 gnguyen Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.8 1998/06/26 02:20:13 gnguyen Exp $
  */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "tclcl.h"
 #include "address.h"
-#include "config.h"
 
 
 static class AddressClass : public TclClass {

@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.32 1998/05/27 20:35:34 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.33 1998/06/26 02:20:15 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -48,8 +48,8 @@ enum ErrorUnit { EU_TIME=0, EU_BYTE, EU_PKT };
 #define EU_NAMES "time", "byte", "pkt"
 #define STR2EU(s) (!strcmp(s,"time") ? EU_TIME : (!strcmp(s,"byte") ? EU_BYTE : EU_PKT))
 
-#define EM_GOOD 1
-#define EM_BAD  2
+#define EM_GOOD	1
+#define EM_BAD	2
 
 /* 
  * Basic object for error models.  This can be used unchanged by error 
@@ -112,12 +112,12 @@ protected:
  * to achieve drops in particular flows
  */
 class PeriodicErrorModel : public ErrorModel {
-  public:
-        PeriodicErrorModel();
-        int corrupt(Packet*);
-  protected:
+public:
+	PeriodicErrorModel();
+	int corrupt(Packet*);
+protected:
 	int cnt_;
-        double period_;
+	double period_;
 	double offset_;
 	double burstlen_;
 	double last_time_;
@@ -128,14 +128,14 @@ class PeriodicErrorModel : public ErrorModel {
  * List error model: specify which packets to drop in tcl
  */
 class ListErrorModel : public ErrorModel {
-  public:
-        ListErrorModel() : cnt_(0), droplist_(NULL),
+public:
+	ListErrorModel() : cnt_(0), droplist_(NULL),
 		dropcnt_(0), cur_(0) { }
 	~ListErrorModel() { if (droplist_) delete droplist_; }
-        int corrupt(Packet*);
+	int corrupt(Packet*);
 	int command(int argc, const char*const* argv);
-  protected:
-	int parse_droplist(int argc,  const char *const*);
+protected:
+	int parse_droplist(int argc, const char *const*);
 	static int nextval(const char*&p);
 	static int intcomp(const void*, const void*);		// for qsort
 	int cnt_;	/* cnt of pkts/bytes we've seen */
@@ -146,13 +146,13 @@ class ListErrorModel : public ErrorModel {
 
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {
-  public:
+public:
 	SelectErrorModel();
 	virtual int corrupt(Packet*);
-  protected:
+protected:
 	int command(int argc, const char*const* argv);
-        int pkt_type_;
-        int drop_cycle_;
+	int pkt_type_;
+	int drop_cycle_;
 	int drop_offset_;
 };
 
@@ -171,31 +171,29 @@ protected:
 /* error model that reads a loss trace (instead of a math/computed model) */
 class TraceErrorModel : public ErrorModel {
 public:
-        TraceErrorModel();
-        virtual int match(Packet* p);
-        virtual int corrupt(Packet* p);
-        virtual void recv(Packet* pkt, Handler* h);
+	TraceErrorModel();
+	virtual int match(Packet* p);
+	virtual int corrupt(Packet* p);
+	virtual void recv(Packet* pkt, Handler* h);
 protected:
-        double loss_;
-        double good_;
+	double loss_;
+	double good_;
 };
-        
-#include <string.h>
-#include "prune.h"
+
 /* error model for multicast routing,... now inherits from trace.. later
 may make them separate and use pointer/containment.. etc */
 class MrouteErrorModel : public TraceErrorModel {
 public:
-        MrouteErrorModel();
-        virtual int match(Packet* p);
-        inline int maxtype() { return sizeof(msg_type); }
+	MrouteErrorModel();
+	virtual int match(Packet* p);
+	inline int maxtype() { return sizeof(msg_type); }
 protected:
-        int command(int argc, const char*const* argv);
-        int off_prune_; /* don't forget to bind this to tcl */
-        char msg_type[15]; /* to which to copy the message code (e.g.
-                            *  "prune","join"). It's size is the same
-                            * as type_ in prune.h [also returned by maxtype.]
-                            */
+	int command(int argc, const char*const* argv);
+	int off_prune_; /* don't forget to bind this to tcl */
+	char msg_type[15]; /* to which to copy the message code (e.g.
+			    *  "prune","join"). It's size is the same
+			    * as type_ in prune.h [also returned by maxtype.]
+			    */
 };
 
 

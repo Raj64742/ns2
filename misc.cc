@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1994 Regents of the University of California.
  * All rights reserved.
@@ -35,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.5 1997/08/10 07:49:42 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.6 1998/06/26 02:20:21 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -45,13 +46,12 @@ static const char rcsid[] =
 #endif
 #include <ctype.h>
 #include "scheduler.h"
-#include "tclcl.h"
 #include "random.h"
 
 class RandomCommand : public TclCommand {
 public:
 	RandomCommand() : TclCommand("ns-random") { }
-        virtual int command(int argc, const char*const* argv);
+	virtual int command(int argc, const char*const* argv);
 };
 
 /*
@@ -80,7 +80,7 @@ extern "C" char version_string[];
 class VersionCommand : public TclCommand {
 public:
 	VersionCommand() : TclCommand("ns-version") { }
-        virtual int command(int, const char*const*) {
+	virtual int command(int, const char*const*) {
 		Tcl::instance().result(version_string);
 		return (TCL_OK);
 	}
@@ -89,7 +89,7 @@ public:
 class TimeAtofCommand : public TclCommand {
 public:
 	TimeAtofCommand() : TclCommand("time_atof") { }
-        virtual int command(int argc, const char*const* argv) {
+	virtual int command(int argc, const char*const* argv) {
 		if (argc != 2)
 			return (TCL_ERROR);
 		char* s = (char*) argv[1];

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * prune.cc
  * Copyright (C) 1997 by USC/ISI
@@ -21,30 +22,29 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.4 1997/08/10 07:49:47 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.5 1998/06/26 02:20:24 gnguyen Exp $ (LBL)";
 #endif
 
 #include "agent.h"
-#include "tclcl.h"
-#include "packet.h"
 #include "random.h"
 #include "prune.h"
 #include "ip.h"
 
-static class PruneHeaderClass : public PacketHeaderClass {
-public:
-        PruneHeaderClass() : PacketHeaderClass("PacketHeader/Prune",
-					     sizeof(hdr_prune)) {}
-} class_prunehdr;
-
 class PruneAgent : public Agent {
- public:
+public:
 	PruneAgent();
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler*);
 protected:
 	int off_prune_;
 };
+
+
+static class PruneHeaderClass : public PacketHeaderClass {
+public:
+	PruneHeaderClass() : PacketHeaderClass("PacketHeader/Prune",
+					       sizeof(hdr_prune)) {}
+} class_prunehdr;
 
 static class PruneClass : public TclClass {
 public:
@@ -53,6 +53,7 @@ public:
 		return (new PruneAgent());
 	}
 } class_prune;
+
 
 PruneAgent::PruneAgent() : Agent(PT_GRAFT)
 {

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * prune.h
  * Copyright (C) 1997 by USC/ISI
@@ -18,7 +19,7 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.h,v 1.2 1997/07/25 02:21:04 polly Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.h,v 1.3 1998/06/26 02:20:23 gnguyen Exp $
  */
 
 #ifndef ns_prune_h
