@@ -1,4 +1,4 @@
- #
+  #
  # tcl/mcast/ns-mcast.tcl
  #
  # Copyright (C) 1997 by USC/ISI
@@ -42,8 +42,7 @@ Simulator instproc run-mcast {} {
 
 Simulator instproc clear-mcast {} {
         $self instvar Node_
-        #puts "Clearing mcast"
-        foreach n [array names Node] {
+        foreach n [array names Node_] {
                 set node $Node_($n)
                 $node stop-mcast
         }
@@ -144,6 +143,11 @@ Node proc expandaddr {} {
 	McastProtoArbiter expandaddr
 }
 
+Node instproc notify-mcast changes {
+	$self instvar mcastproto_
+	$mcastproto_ notify $changes
+}
+
 Node instproc stop-mcast {} {
         $self instvar mcastproto_
         $self clear-caches
@@ -152,7 +156,10 @@ Node instproc stop-mcast {} {
 
 Node instproc clear-caches {} {
         $self instvar Agents_ repByGroup_ multiclassifier_ replicator_
+
         $multiclassifier_ clearAll
+	$multiclassifier_ set nrep_ 0
+
         if [info exists repByGroup_] {
                 unset repByGroup_
         }
@@ -172,7 +179,10 @@ Node instproc start-mcast {} {
 
 Node instproc getArbiter {} {
         $self instvar mcastproto_
-        return $mcastproto_
+	if [info exists mcastproto_] {
+	        return $mcastproto_
+	}
+	return ""
 }
 
 Node instproc check-local { group } {
@@ -368,6 +378,7 @@ Node instproc add-mfc { src group iif oiflist } {
 
     set r [new Classifier/Replicator/Demuxer]
     $r set srcID_ $src
+    $r set grp_ $group
     set replicator_($src:$group) $r
 
     lappend repByGroup_($group) $r
@@ -471,7 +482,7 @@ Classifier/Replicator/Demuxer instproc insert target {
                         $self install $index_($target) $target
                         incr nactive_
                         set active_($target) 1
-                        # set ignore_ 0
+                        set ignore_ 0
                         return 1
                 }
                 return 0
@@ -482,12 +493,15 @@ Classifier/Replicator/Demuxer instproc insert target {
 	incr nactive_
 	$self install $n $target
 	set active_($target) 1
-	# set ignore_ 0
+	set ignore_ 0
 	set index_($target) $n
 }
 
 Classifier/Replicator/Demuxer instproc disable target {
 	$self instvar nactive_ active_ index_
+	if ![info exists active_($target)] {
+		return 0
+	}
 	if $active_($target) {
 		$self clear $index_($target)
 		incr nactive_ -1
@@ -501,7 +515,7 @@ Classifier/Replicator/Demuxer instproc enable target {
 		$self install $index_($target) $target
 		incr nactive_
 		set active_($target) 1
-		# set ignore_ 0
+		set ignore_ 0
 	}
 }
 
@@ -512,8 +526,7 @@ Classifier/Replicator/Demuxer instproc exists target {
 
 Classifier/Replicator/Demuxer instproc drop { src dst } {
 	set src [expr $src >> 8]
-	$self instvar node_ ignore_
-        # set ignore_ 1
+	$self instvar node_
         if [info exists node_] {
 	    [$node_ set mcastproto_] drop $self $src $dst
 	}
