@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.7 1997/04/09 00:10:10 kannan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.8 1997/04/09 22:14:27 mccanne Exp $
 #
 
 set ns [new Simulator]
@@ -29,7 +29,7 @@ $ns proc simplex-link { n1 n2 bw delay type } {
 	#XXX yuck
 	if { $type == "RED" } {
 	 	set bw [[$link_($sid:$did) set link_] set bandwidth_]
-		$q set ptc_ [expr $bw / (8. * [$q set mean_pktize_])]
+		$q set ptc_ [expr $bw / (8. * [$q set mean_pktsize_])]
 	}
 }
 
