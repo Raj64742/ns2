@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.20 1998/04/17 06:15:47 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.21 1998/04/21 02:37:38 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -95,7 +95,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			timeout_ = FALSE;
 			scb_.ClearScoreBoard();
 			if (last_ack_ == 0 && syn_) {
-				set_init_window();
+				cwnd_ = initial_window();
 			}
 		} else if ((int)tcph->seqno() < last_ack_) {
 			/*NOTHING*/
