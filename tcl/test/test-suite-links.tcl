@@ -30,13 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.5 2001/05/27 02:14:58 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.6 2001/06/09 03:25:20 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
+source support.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
@@ -244,6 +245,58 @@ Test/changeBandwidth instproc run {} {
         ##$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
+}
+
+###################################################
+## Two dropped packets.  
+###################################################
+
+TestSuite instproc drop_pkts { link fid pkts } {
+    set emod [new ErrorModule Fid]
+    set errmodel1 [new ErrorModel/List]
+    $errmodel1 droplist $pkts
+    $link errormodule $emod
+    $emod insert $errmodel1
+    $emod bind $errmodel1 $fid
+}
+
+Class Test/dropPacket -superclass TestSuite
+Test/dropPacket instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	dropPacket
+	Agent/TCP set minrto_ 1
+	$self next
+}
+Test/dropPacket instproc run {} {
+	global wrap wrap1
+        $self instvar ns_ node_ testName_
+	$self setTopo
+	$self June01defaults
+
+	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
+        $tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.0 "$ftp1 start"
+        $self drop_pkts [$ns_ link $node_(r1) $node_(k1)] 1 {20 22}
+
+        $self tcpDump $tcp1 5.0
+
+	$ns_ at 5.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+Class Test/delayPacket -superclass TestSuite
+Test/delayPacket instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	delayPacket
+	Agent/TCP set minrto_ 1
+	ErrorModel set delay_pkt_ true
+	ErrorModel set drop_ false
+	ErrorModel set delay_ 0.3
+	Test/delayPacket instproc run {} [Test/dropPacket info instbody run ]
+	$self next
 }
 
 TestSuite runTest
