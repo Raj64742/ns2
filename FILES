@@ -1341,6 +1341,7 @@ tcl/test/test-output-friendly/HighLoss.Z
 tcl/test/test-output-friendly/HighLossConservative.Z
 tcl/test/test-output-friendly/HighLossTCP.Z
 tcl/test/test-output-friendly/OnlyTcp.Z
+tcl/test/test-output-friendly/ecn.Z
 tcl/test/test-output-friendly/impulse.Z
 tcl/test/test-output-friendly/impulseCA.Z
 tcl/test/test-output-friendly/impulseDiscount.Z
