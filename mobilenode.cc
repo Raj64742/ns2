@@ -41,21 +41,21 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "connector.h"
-#include "delay.h"
-#include "packet.h"
-#include "random.h"
-  
-  //#include <debug.h>
-#include "arp.h"
-#include "topography.h"
-#include "trace.h"
-#include "ll.h"
-#include "mac.h"
-#include "propagation.h"
-#include "mobilenode.h"
-  
-static LIST_HEAD(nodehead, MobileNode)      nodehead = { 0 };
+#include <connector.h>
+#include <delay.h>
+#include <packet.h>
+#include <random.h>
+
+//#include <debug.h>
+#include <arp.h>
+#include <topography.h>
+#include <trace.h>
+#include <ll.h>
+#include <mac.h>
+#include <propagation.h>
+#include <mobilenode.h>
+
+static LIST_HEAD(, MobileNode)      nodehead = { 0 };
 
 //static int	MobileNodeIndex = 0;
 
@@ -159,6 +159,10 @@ MobileNode::command(int argc, const char*const* argv)
 
 		        update_position();
 		        log_movement();
+			return TCL_OK;
+		}		
+		if(strcmp(argv[1], "log-energy") == 0) {
+			log_energy();
 			return TCL_OK;
 		}		
 	}
@@ -281,6 +285,18 @@ MobileNode::log_movement()
 		s.clock(), address_, X, Y, Z, destX, destY, speed);
 	log_target->dump();
 }
+
+
+void
+MobileNode::log_energy()
+{
+	if(!log_target) return;
+	Scheduler &s = Scheduler::instance();
+	sprintf(log_target->buffer(),"Node %d: Remaining energy at time %f: %f", address_, s.clock(), energy());
+	log_target->dump();
+}
+
+
 
 
 void
@@ -541,3 +557,4 @@ MobileNode::propdelay(MobileNode *m)
 {
 	return distance(m) / SPEED_OF_LIGHT;
 }
+

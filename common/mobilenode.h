@@ -14,6 +14,7 @@
 #include "arp.h"
 #include "node.h"
 #include "gridkeeper.h"
+#include "energy-model.h"
 
 class GridKeeper;
 
@@ -145,6 +146,7 @@ protected:
 	Event pos_intr;
 
 	void	log_movement();
+	void log_energy();
 	
 	void	random_direction();
 	void	random_speed();
