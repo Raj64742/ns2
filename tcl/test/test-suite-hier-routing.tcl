@@ -97,7 +97,7 @@ TestSuite instproc init {} {
 TestSuite instproc finish {} {
 	$self instvar ns_
 	$ns_ flush-trace
-	puts "finishing.."
+	#puts "finishing.."
 	exit 0
 }
 
@@ -221,6 +221,8 @@ proc runtest {arg} {
 	set b [llength $arg]
 	if {$b == 1} {
 		set test $arg
+	} elseif {$b == 2} {
+		set test [lindex $arg 0]
 	} else {
 		usage
 	}
