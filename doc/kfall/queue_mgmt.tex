@@ -12,11 +12,15 @@ Buffer management refers to any particular discipline used
 to regulate the occupancy of a particular queue.
 At present, support is included for drop-tail (FIFO) queueing,
 RED buffer management, CBQ (including a priority and round-robin scheduler), and
-Stochastic Fair Queueing (SFQ).
+variants of Fair Queueing including Weighted Fair Queueing (WFQ), 
+Stochastic Fair Queueing (SFQ), and Deficit Round-Robin (DRR).
 In the common case where a {\em delay} element is downstream from
 a queue, the queue may be {\em blocked} until it is re-enabled
 by its downstream neighbor.
 This is the mechanism by which transmission delay is simulated.
+In addition, queues may be forcibly blocked or unblocked at arbitrary
+times by their neighbors (which is used to implement multi-queue
+aggregate queues with inter-queue flow control).
 Packet drops are implemented in such a way that queues contain
 a ``drop destination''; that is, an object that receives all packets
 dropped by a queue.
@@ -37,14 +41,16 @@ The following definitions are provided in \code{queue.h}:
                 virtual Packet* deque() = 0;
                 void recv(Packet*, Handler*);
                 void resume();
+                int blocked();
+		void unblock();
+		void block();
          protected:
                 Queue();
                 int command(int argc, const char*const* argv);
                 inline void drop(Packet* p) { drop_->recv(p); }
-                NsObject* drop_;   /* node to send all dropped packets to */
                 int qlim_;         /* maximum allowed pkts in queue */
-         private:
                 int blocked_;
+		int unblock_on_resume_; /* unblock q on idle? */
                 QueueHandler qh_;
         };
 \end{verbatim}
@@ -59,8 +65,6 @@ because it invokes the
 the particular \code{enque} and \code{deque}.
 
 The \code{Queue} class does not contain much internal state.
-The \code{drop\_} member variable contains a pointer to the object
-which will receive all dropped packets.
 Often these are special monitoring objects (see Section\ref{sec:trace})
 for more detail.
 The \code{qlim\_} member is constructed to dictate a bound on the maximum
@@ -75,11 +79,11 @@ When a queue is blocked, it is able to enqueue packets but not send them.
 A queue may be either blocked or unblocked at any given time.
 Generally, a queue is blocked when a packet is in transit between it
 and its downstream neighbor (most of the time if the queue is occupied).
-A blocked queue will remain blocked as long as it contains at least
-one packet to send.
+A blocked queue will remain blocked as long as it downstream link is
+busy and the queue has at least one packet to send.
 A queue becomes unblocked only when its \code{resume} function is
 invoked (by means of a downstream neighbor scheduling it via
-a callback) when no packets are queued.
+a callback), usually when no packets are queued.
 The callback is implemented by using the following class and
 methods:
 \begin{small}
@@ -123,8 +127,12 @@ methods:
                 Packet* p = deque();
                 if (p != 0)
                         target_->recv(p, &qh_);
-                else
-                        blocked_ = 0;
+                else {
+			if (unblock_on_resume_)
+				blocked_ = 0;
+			else
+				blocked_ = 1;
+		}
         }
 \end{verbatim}
 \end{small}
@@ -154,22 +162,6 @@ or unblock the queue when no packet is ready to be sent.
 This process is made more clear by also referring to the
 \code{LinkDelay::recv()} function below (section \ref{sec:delayclass}).
 
-\subsubsection{\shdr{OTcl members}{../ns/ns-lib.tcl}{sec:qtclmembers}}
-
-A Queue object has one method available from OTcl
-called \code{drop-target}.
-It can take one or two arguments, to get or set the drop target, respectively:
-\begin{small}
-\begin{verbatim}
-
-        set dropdest [$queue drop-target]
-        $queue drop-target $dropdest
-\end{verbatim}
-\end{small}
-
-There are several objects which may be of use for drop targets.
-These are described further in Section\ref{sec:trace}.
-
 \subsection{\shdr{PacketQueue Class}{queue.h}{sec:packetqclass}}
 
 The \code{Queue} class may implement buffer management and scheduling but
@@ -181,9 +173,8 @@ The \code{PacketQueue} class is used for this purpose, and is defined as follows
 
         class PacketQueue {
         public:
-                PacketQueue() : head_(0), tail_(&head_), len_(0), bcount_(0) {}
-                inline int length() const { return (len_); }
-                inline int bcount() const { return (bcount_); }
+                PacketQueue();
+                int length(); /* queue length in packets */
                 void enque(Packet* p);
                 Packet* deque();
                 Packet* lookup(int n);
@@ -193,7 +184,6 @@ The \code{PacketQueue} class is used for this purpose, and is defined as follows
                 Packet* head_;
                 Packet** tail_;
                 int len_;               // packet count
-                int bcount_;            // byte count
         };
 \end{verbatim}
 \end{small}
@@ -204,12 +194,10 @@ to hold an ordered set of packets.
 Particular scheduling or buffer management schemes may make
 use of several \code{PacketQueue} objects.
 The \code{PacketQueue} class maintains current counts of the number of
-packets and bytes held in the queue
-(byte counts are based on the IP header {\em size} field).
-The \code{length} and \code{bcount} functions return these values,
-respectively.
+packets held in the queue which is returned by the \code{length()}
+function.
 The \code{enque} function places the specified packet at the end of
-the queue and updates the packet and byte count member variables.
+the queue and updates the \code{len\_} member variable.
 The \code{deque} function returns the packet at the head of the
 queue and removes it from the queue (and updates the counters), or
 returns NULL if the queue is empty.
@@ -222,20 +210,14 @@ It causes an abnormal program termination if the packet does not exist.
 \subsection{\shdr{Example: Drop Tail}{drop-tail.cc}{sec:droptail}}
 
 The following example illustrates the implementation of the
-``drop-tail'' module, which implements FIFO scheduling and
+\code{Queue/DropTail} object,
+which implements FIFO scheduling and
 drop-on-overflow buffer management typical of most present-day
 Internet routers.
 The following definitions declare the class and its OTcl linkage:
 \begin{small}
 \begin{verbatim}
 
-        static class DropTailClass : public TclClass {
-        public:
-                DropTailClass() : TclClass("Queue/DropTail") {}
-                TclObject* create(int argc, const char*const* argv) {
-                        return (new DropTail);
-                }
-        } class_drop_tail;
         /*
          * A bounded, drop-tail queue
          */
