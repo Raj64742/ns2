@@ -195,14 +195,16 @@ if {$opt(seed) > 0} {
 # Initialize Global Variables
 #
 set ns_		[new Simulator]
-set chan	[new $opt(chan)]
-set prop	[new $opt(prop)]
+#set chan	[new $opt(chan)]
+#set prop	[new $opt(prop)]
 set topo	[new Topography]
 set tracefd	[open $opt(tr) w]
 
 $topo load_flatgrid $opt(x) $opt(y)
 
-$prop topography $topo
+#$prop topography $topo
+
+$ns_ trace-all $tracefd
 
 #
 # Create God
@@ -235,22 +237,22 @@ if { [string compare $opt(rp) "dsr"] == 0} {
 
 	#global node setting
 
-        $ns_ node-config -routingAgent Agent/DSDV \
+        $ns_ node-config -adhocRouting DSDV \
 			 -llType $opt(ll) \
 			 -macType $opt(mac) \
 			 -ifqType $opt(ifq) \
-			 -ifqlen $opt(ifqlen) \
+			 -ifqLen $opt(ifqlen) \
 			 -antType $opt(ant) \
 			 -propType $opt(prop) \
 			 -phyType $opt(netif) \
+			 -channelType $opt(chan) \
+			 -topoInstance $topo \
 			 -energyModel $opt(energymodel) \
 			 -initialEnergy $opt(initialenergy)
 			 
 	for {set i 0} {$i < $opt(nn) } {incr i} {
-		set node_($i) [$ns_ node $chan]	
+		set node_($i) [$ns_ node]	
 		$node_($i) random-motion 0		;# disable random motion
-		$node_($i) topography $topo
-	        $node_($i) nodetrace $tracefd
 	}
 }
 
