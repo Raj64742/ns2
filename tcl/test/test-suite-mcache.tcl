@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.8 2001/07/18 02:38:47 kfall Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.9 2001/07/20 21:34:02 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -932,167 +932,167 @@ $server_(0):0"
 #}
 
 
-# Test cache replacement
-# Clients with heterogeneous bandwidth to the cache: client0-cache is 1.5Mb,
-# client1-cache is 56Kb, cache-server is the same as in media5, 56Kb.
-#
-# We distribute 95% of the requests to the low-bw client 1
-Class Test/media5 -superclass Test-mcache
-
-Test/media5 instproc init {} {
-	$self set-defnet 4node-h
-
-	global opts
-	set opts(num-pages) 3
-	set opts(obj-layer) 8
-	set opts(cache-sizefac) 0.4
-	set opts(total-requests) 10
-	set opts(duration) [expr 50*$opts(total-requests)+50]
-
-	$self next
-
-	$self set-server-type /Media
-	$self set-client-type /Media
-	$self set-cache-type /Media
-	Http set TRANSPORT_ FullTcp
-	Http set MEDIA_TRANSPORT_ RAP
-	Http set MEDIA_APP_ MediaApp/QA
-}
-
-Test/media5 instproc set-pagepool {} {
-	$self next
-
-	# Set sizes of the pages
-	$self instvar pgp_ ns_
-	global opts
-	set layer $opts(obj-layer)
-	set lbw [Application/MediaApp/QA set LAYERBW_]
-
-	# Uniformly distribute stream lengths
-	set rv [new RandomVariable/Uniform]
-	$rv set min_ 10
-	$rv set max_ 20
-
-	$self instvar totalSize_ log_
-	set totalSize_ 0
-	for {set i 0} {$i < $opts(num-pages)} {incr i} {
-		set tmp [expr int([$rv value]*$layer*$lbw)]
-		puts $log_ "# Page $i has size $tmp"
-		incr totalSize_ $tmp
-		$pgp_ set-pagesize $i $tmp
-	}
-	delete $rv
-}
-
-Test/media5 instproc set-connections {} {
-	$self instvar client_ server_ cache_ totalSize_
-
-	# Set cache size to be 
-	global opts
-	set np $opts(num-pages)
-	set layer $opts(obj-layer)
-	set lbw [Application/MediaApp/QA set LAYERBW_]
-	# Set cache size to be 0.5 times total page size
-	$cache_(0) set-cachesize [expr $opts(cache-sizefac) * $totalSize_]
-
-	# Establish connection
-	$client_(0) connect $cache_(0)
-	$client_(1) connect $cache_(0)
-	$cache_(0) connect $server_(0)
-}
-
-Test/media5 instproc start-requests {} {
-	$self instvar client_ cache_ server_ ns_ log_
-
-	# Client setting parent caches
-	$client_(0) set-cache $cache_(0)
-	$client_(1) set-cache $cache_(0)
-
-	# Generate non-overlapping request sequence
-	global opts
-	set np $opts(num-pages)
-	set time [$ns_ now]
-	set tr $opts(total-requests)
-
-	# Build page popularity table according to total requests and 
-	# Zipf's law
-	set omega 0
-	for {set i 1} {$i <= $np} {incr i} {
-		set omega [expr $omega + 1.0/$i]
-	}
-	set omega [expr 1.0 / $omega]
-	# Calculate number of requests for each page
-	set j 0
-	for {set i 0} {$i < $np} {incr i} {
-		set nreq($i) [expr round($omega*$tr/($i+1.0))]
-		for {set ii 0} {$ii < $nreq($i)} {incr ii} {
-			set tmp1($j) 0	;# Whether this request is occupied
-			set tmp2($j) $i ;# which page this request belong to
-			incr j
-		}
-		puts $log_ "# Total $nreq($i) requests for page $i"
-	}
-	if {$j != $tr} {
-		error "Mis-calculated number of requests: this $j orig $tr"
-	}
-	# Build request sequence, uniform distribution
-	set rv [new RandomVariable/Uniform]
-	$rv set min_ 0
-	$rv set max_ $j
-	set i 0
-	set time 0
-	$self instvar reqlist_
-	# Schedule requests, 500s interval should suffice for 56K bottleneck
-	# link and 600s stream with 8 layers of 2.5K bw.
-	while {$i < $j} {
-		set rid [expr int([$rv value])]
-		if {$tmp1($rid) != 0} {
-			# Already allocated
-			continue
-		}
-		set tmp1($rid) 1
-		# Determine client ID
-		set cid [$self req2client $tmp2($rid) [$rv value] $j]
-
-		# Instead of scheduling a request right now, let's do it
-		# step by step so that scheduler won't complain.
-		lappend reqlist_ $cid $tmp2($rid)
-
-		# XXX Interval 500 second. Should adjust it according to 
-		# maximum page size
-		incr time 50
-		incr i
-	}
-	$self next-request
-}
-
-# Get the first request from reqlist_
-Test/media5 instproc next-request {} {
-	$self instvar server_ cache_ client_ reqlist_ ns_
-	set cid [lindex $reqlist_ 0]
-	set pagenum [lindex $reqlist_ 1]
-	set reqlist_ [lrange $reqlist_ 2 end]
-
-	$client_($cid) send-request $cache_(0) GET $server_(0):$pagenum
-
-	# Do our next request 50 seconds later
-	if {[llength $reqlist_] > 0} {
-		# If we still have more requests, continue
-		$ns_ at [expr [$ns_ now] + 50] "$self next-request"
-	}
-}
-
-# Use a random number and the upper bound of the random number to 
-# decide whether the request goes to client 0 or 1
-Test/media5 instproc req2client { pagenum ran max } {
-	# Most requests go to the low-bw client
-	set thresh [expr $max * 0.95]
-	if {$ran > $thresh} {
-		return 0
-	} else {
-		return 1
-	}
-}
+# # Test cache replacement
+# # Clients with heterogeneous bandwidth to the cache: client0-cache is 1.5Mb,
+# # client1-cache is 56Kb, cache-server is the same as in media5, 56Kb.
+# #
+# # We distribute 95% of the requests to the low-bw client 1
+# Class Test/media5 -superclass Test-mcache
+# 
+# Test/media5 instproc init {} {
+# 	$self set-defnet 4node-h
+# 
+# 	global opts
+# 	set opts(num-pages) 3
+# 	set opts(obj-layer) 8
+# 	set opts(cache-sizefac) 0.4
+# 	set opts(total-requests) 10
+# 	set opts(duration) [expr 50*$opts(total-requests)+50]
+# 
+# 	$self next
+# 
+# 	$self set-server-type /Media
+# 	$self set-client-type /Media
+# 	$self set-cache-type /Media
+# 	Http set TRANSPORT_ FullTcp
+# 	Http set MEDIA_TRANSPORT_ RAP
+# 	Http set MEDIA_APP_ MediaApp/QA
+# }
+# 
+# Test/media5 instproc set-pagepool {} {
+# 	$self next
+# 
+# 	# Set sizes of the pages
+# 	$self instvar pgp_ ns_
+# 	global opts
+# 	set layer $opts(obj-layer)
+# 	set lbw [Application/MediaApp/QA set LAYERBW_]
+# 
+# 	# Uniformly distribute stream lengths
+# 	set rv [new RandomVariable/Uniform]
+# 	$rv set min_ 10
+# 	$rv set max_ 20
+# 
+# 	$self instvar totalSize_ log_
+# 	set totalSize_ 0
+# 	for {set i 0} {$i < $opts(num-pages)} {incr i} {
+# 		set tmp [expr int([$rv value]*$layer*$lbw)]
+# 		puts $log_ "# Page $i has size $tmp"
+# 		incr totalSize_ $tmp
+# 		$pgp_ set-pagesize $i $tmp
+# 	}
+# 	delete $rv
+# }
+# 
+# Test/media5 instproc set-connections {} {
+# 	$self instvar client_ server_ cache_ totalSize_
+# 
+# 	# Set cache size to be 
+# 	global opts
+# 	set np $opts(num-pages)
+# 	set layer $opts(obj-layer)
+# 	set lbw [Application/MediaApp/QA set LAYERBW_]
+# 	# Set cache size to be 0.5 times total page size
+# 	$cache_(0) set-cachesize [expr $opts(cache-sizefac) * $totalSize_]
+# 
+# 	# Establish connection
+# 	$client_(0) connect $cache_(0)
+# 	$client_(1) connect $cache_(0)
+# 	$cache_(0) connect $server_(0)
+# }
+# 
+# Test/media5 instproc start-requests {} {
+# 	$self instvar client_ cache_ server_ ns_ log_
+# 
+# 	# Client setting parent caches
+# 	$client_(0) set-cache $cache_(0)
+# 	$client_(1) set-cache $cache_(0)
+# 
+# 	# Generate non-overlapping request sequence
+# 	global opts
+# 	set np $opts(num-pages)
+# 	set time [$ns_ now]
+# 	set tr $opts(total-requests)
+# 
+# 	# Build page popularity table according to total requests and 
+# 	# Zipf's law
+# 	set omega 0
+# 	for {set i 1} {$i <= $np} {incr i} {
+# 		set omega [expr $omega + 1.0/$i]
+# 	}
+# 	set omega [expr 1.0 / $omega]
+# 	# Calculate number of requests for each page
+# 	set j 0
+# 	for {set i 0} {$i < $np} {incr i} {
+# 		set nreq($i) [expr round($omega*$tr/($i+1.0))]
+# 		for {set ii 0} {$ii < $nreq($i)} {incr ii} {
+# 			set tmp1($j) 0	;# Whether this request is occupied
+# 			set tmp2($j) $i ;# which page this request belong to
+# 			incr j
+# 		}
+# 		puts $log_ "# Total $nreq($i) requests for page $i"
+# 	}
+# 	if {$j != $tr} {
+# 		error "Mis-calculated number of requests: this $j orig $tr"
+# 	}
+# 	# Build request sequence, uniform distribution
+# 	set rv [new RandomVariable/Uniform]
+# 	$rv set min_ 0
+# 	$rv set max_ $j
+# 	set i 0
+# 	set time 0
+# 	$self instvar reqlist_
+# 	# Schedule requests, 500s interval should suffice for 56K bottleneck
+# 	# link and 600s stream with 8 layers of 2.5K bw.
+# 	while {$i < $j} {
+# 		set rid [expr int([$rv value])]
+# 		if {$tmp1($rid) != 0} {
+# 			# Already allocated
+# 			continue
+# 		}
+# 		set tmp1($rid) 1
+# 		# Determine client ID
+# 		set cid [$self req2client $tmp2($rid) [$rv value] $j]
+# 
+# 		# Instead of scheduling a request right now, let's do it
+# 		# step by step so that scheduler won't complain.
+# 		lappend reqlist_ $cid $tmp2($rid)
+# 
+# 		# XXX Interval 500 second. Should adjust it according to 
+# 		# maximum page size
+# 		incr time 50
+# 		incr i
+# 	}
+# 	$self next-request
+# }
+# 
+# # Get the first request from reqlist_
+# Test/media5 instproc next-request {} {
+# 	$self instvar server_ cache_ client_ reqlist_ ns_
+# 	set cid [lindex $reqlist_ 0]
+# 	set pagenum [lindex $reqlist_ 1]
+# 	set reqlist_ [lrange $reqlist_ 2 end]
+# 
+# 	$client_($cid) send-request $cache_(0) GET $server_(0):$pagenum
+# 
+# 	# Do our next request 50 seconds later
+# 	if {[llength $reqlist_] > 0} {
+# 		# If we still have more requests, continue
+# 		$ns_ at [expr [$ns_ now] + 50] "$self next-request"
+# 	}
+# }
+# 
+# # Use a random number and the upper bound of the random number to 
+# # decide whether the request goes to client 0 or 1
+# Test/media5 instproc req2client { pagenum ran max } {
+# 	# Most requests go to the low-bw client
+# 	set thresh [expr $max * 0.95]
+# 	if {$ran > $thresh} {
+# 		return 0
+# 	} else {
+# 		return 1
+# 	}
+# }
 
 # 95% requests go to the high-bw client
 #Class Test/media5a -superclass Test/media5 
