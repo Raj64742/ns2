@@ -6,7 +6,7 @@ This directory contains files used to build the tests for the
 following in-progress paper:
 	Floyd, S., and Fall, K.,
 	Router Mechanisms to Support End-to-End Congestion Control.
-	ftp.ee.lbl.gov/papers/collapse.ps
+	ftp://ftp.ee.lbl.gov/papers/collapse.ps
 
 rtm.tcl			contains the simulation tests
 mechanisms.tcl		main support routines for implementing the mechanisms
