@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.13.2.6 1998/10/08 02:34:00 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.13.2.7 1998/10/14 07:36:16 kannan Exp $";
 #endif
 
 #include <stdlib.h>
@@ -141,13 +141,13 @@ int MCastClassifier::classify(Packet *const pkt)
 		 * If tcl doesn't come through then fail.
 		 */
 		if (p == 0) {
-			Tcl::instance().evalf("%s new-group %u %u %d %s", 
-					      name(), src, dst, iface, "CACHE_MISS");
+			Tcl::instance().evalf("%s new-group %u %u %d cache-miss", 
+					      name(), src, dst, iface);
 			return (-1);
 		}
 		if ( (p->iif != -1) && (p->iif != iface) ) {
-			Tcl::instance().evalf("%s new-group %u %u %d %s", 
-					      name(), src, dst, iface, "WRONG_IIF");
+			Tcl::instance().evalf("%s new-group %u %u %d wrong-iif", 
+					      name(), src, dst, iface);
 			//printf ("wrong_iff: %s %u %u %d\n", name(), src, dst, iface);
 			return (-1);
 		}

@@ -23,34 +23,12 @@
 Class DM -superclass McastProtocol
 
 DM set PruneTimeout_	0.5
-DM set rpfNbrCompat_	0
 
 DM instproc init { sim node } {
 	$self instvar prune_
 	set prune_ [new Agent/Mcast/Control $self]
 	$node attach $prune_
 	$self next $sim $node
-
-	$self proto-init
-}
-
-DM instproc proto-init {} {
-	$self rpf-nbr-compat
-}
-
-DM proc rpf-nbr-compat args {
-	if { [llength $args] > 0 } {
-		DM set rpfNbrCompat_ [lindex $args 0]
-	}
-}
-
-DM instproc rpf-nbr-compat args {
-	$self instvar rpfNbrCompat_
-	if { [llength $args] > 0 } {
-		$self set rpfNbrCompat_ [lindex $args 0]
-	} else {
-		$self set rpfNbrCompat_ [DM set rpfNbrCompat_]
-	}
 }
 
 DM instproc join-group  { group } {
@@ -83,11 +61,7 @@ DM instproc find-oifs {src grp iif} {
 	set oiflist ""
         # in the future this should be foreach iface $interfaces
 	foreach nbr [$node_ neighbors] {
-		if { $rpfNbrCompat_ } {
-        		set oifInfo [$node_ RPF-interface $src $id [$nbr id]]
-		} else {
-        		set oifInfo [$self link2oif [$ns_ link $node_ [$self rpf-nbr $src]]]
-		}
+        	set oifInfo [$node_ RPF-interface $src $id [$nbr id]]
         	if { $oifInfo != "" && ![info exists oifSeen($oifInfo)] } {
 			lappend oiflist $oifInfo
 			set oifSeen($oifInfo) 1

@@ -101,6 +101,12 @@ McastProtocol instproc from-node-iface { node } {
 	return "?" ;#unknown iface
 }
 
+McastProtocol instproc rpf-nbr src {
+	$self instvar node_
+	$node_ rpf-nbr $src
+}
+
+
 McastProtocol instproc iface2link ifid {
 	$self instvar node_
 	$node_ if2link $ifid
