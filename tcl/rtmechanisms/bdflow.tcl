@@ -1,6 +1,5 @@
 source bdflow_h.tcl
 source Setred.v2.tcl
-source flowmon.tcl
 #
 set flowfile fairflow.tr
 set flowgraphfile fairflow.xgr
