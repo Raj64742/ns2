@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.51 2002/12/20 04:10:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.52 2003/01/16 02:01:42 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -144,25 +144,10 @@ Topology/net2a instproc init ns {
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
 
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ topo_
-
-    set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net2" || $net_ == "net2a"} {
-        set node_(s1) [$topo_ node? s1]
-        set node_(s2) [$topo_ node? s2]
-        set node_(s3) [$topo_ node? s3]
-        set node_(s4) [$topo_ node? s4]
-        set node_(r1) [$topo_ node? r1]
-        set node_(r2) [$topo_ node? r2]
-        [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
-    }
-}
-
-# 
+#
 # Arrange for TFCC stats to be dumped for $src every
 # $interval seconds of simulation time
-# 
+#
 TestSuite instproc tfccDump { label src interval file } {
 	set dumpfile temp.s
         $self instvar dump_inst_ ns_ f

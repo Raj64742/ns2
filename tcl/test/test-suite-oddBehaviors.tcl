@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.5 2002/03/08 21:55:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.6 2003/01/16 02:01:42 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -143,17 +143,6 @@ TestSuite instproc drop_pkts pkts {
     $errmodel1 droplist $pkts
     $emod insert $errmodel1
     $emod bind $errmodel1 1
-}
-
-TestSuite instproc setTopo {} {
-    $self instvar node_ net_ ns_ topo_
-
-    set topo_ [new Topology/$net_ $ns_]
-    set node_(s1) [$topo_ node? s1]
-    set node_(s2) [$topo_ node? s2]
-    set node_(r1) [$topo_ node? r1]
-    set node_(k1) [$topo_ node? k1]
-    [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
 }
 
 TestSuite instproc setup {tcptype list} {
