@@ -96,6 +96,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	mult = NULL ;
 	sample_count = 1 ;
 	mult_factor_ = 1.0;
+	init_WALI_flag = 0;
 
 	// used only for EWMA
 	avg_loss_int = -1 ;
@@ -410,7 +411,7 @@ double TfrcSinkAgent::est_loss_WALI ()
 	double ave_interval1, ave_interval2; 
 	int ds ; 
 		
-	 if (numsamples < 0) {
+	if (!init_WALI_flag) {
 		init_WALI () ;
 	}
 	// sample[i] counts the number of packets since the i-th loss event
@@ -562,7 +563,8 @@ double TfrcSinkAgent::adjust_history (double ts)
 
 
 void TfrcSinkAgent::init_WALI () {
-	numsamples = DEFAULT_NUMSAMPLES ;	
+	if (numsamples < 0)
+		numsamples = DEFAULT_NUMSAMPLES ;	
 	if (smooth_ == 1) {
 		numsamples = numsamples + 1;
 	}
@@ -592,6 +594,7 @@ void TfrcSinkAgent::init_WALI () {
 	for (int i = 0; i < numsamples+1; i ++) {
 		mult[i] = 1.0 ; 
 	}
+	init_WALI_flag = 1;  /* initialization done */
 }
 
 ///////////////////////////

@@ -49,7 +49,7 @@
 #define LOST 2
 #define NOLOSS 3
 
-#define DEFAULT_NUMSAMPLES 8 
+#define DEFAULT_NUMSAMPLES  8
 
 #define WALI 1
 #define EWMA 2 
@@ -133,6 +133,7 @@ protected:
 	double mult_factor_;	// most recent multiple of mult array
 	int sample_count ;
 	int last_sample ;  
+	int init_WALI_flag;
 
 	// these are for "faking" history after slow start
 	int loss_seen_yet; 	// have we seen the first loss yet?
