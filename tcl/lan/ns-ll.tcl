@@ -76,10 +76,8 @@ LL/LLSnoop instproc get-snoop { src dst } {
 	}
 	# make snoop's llsnoop_ ourself, and make it's recvtarget_ same as ours
 	$snoops_($src:$dst) llsnoop $self
-	$snoops_($src:$dst) set off_ll_ $off_ll_
 	$snoops_($src:$dst) set delay_ $delay_
 	return $snoops_($src:$dst)
-	
 }
 
 # Integrate snoop processing across concurrent active connections
