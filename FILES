@@ -11,6 +11,7 @@ cbr.h
 classifier.cc
 classifier.h
 classifier-addr.cc
+classifier-flow.cc
 classifier-mcast.cc
 conf/configure.in.head
 conf/configure.in.tcl
@@ -29,6 +30,7 @@ delay.cc
 drop-tail.cc
 dynalink.cc
 example.tcl
+fq.cc
 heap.h
 install-sh
 ivs.cc
@@ -66,6 +68,8 @@ session-rtp.cc
 sfq.cc
 tcl-expand.tcl
 tcl/ex/dynamic-nam.tcl
+tcl/ex/fq.tcl
+tcl/ex/fq-nam.tcl
 tcl/ex/mcast.tcl
 tcl/ex/mcast-nam.tcl
 tcl/ex/simple-nam.tcl
@@ -74,6 +78,8 @@ tcl/ex/simple-dyn.tcl
 tcl/ex/simple-rtg.tcl
 tcl/ex/simple-rtp.tcl
 tcl/ex/srm-demo.tcl
+tcl/ex/rc.tcl
+tcl/ex/rc-nam.tcl
 tcl/ex/rtp-nam.tcl
 tcl/ex/test-suite.tcl
 tcl/lib/ns-compat.tcl
