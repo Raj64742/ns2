@@ -70,6 +70,6 @@ for t in $tests; do
     fi
 done
 if (test "$success" = "true") then
-	echo All test output agrees with reference output
+	echo All test outputs agree with reference outputs
 fi
 
