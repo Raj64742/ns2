@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.8 1997/03/25 22:22:09 kannan Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.9 1997/03/27 07:34:24 elan Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -83,7 +83,7 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
 	cbr.h rtp.h cbr.h classifier.h connector.h ip.h
 
-CLEANFILES = ns ns.dyn $(OBJ) $(GENSRC) core core.ns
+CLEANFILES = ns ns.dyn $(OBJ) gen/* core core.ns
 
 ns: $(OBJ)
 	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) $(LIB)
