@@ -28,8 +28,6 @@ loss-monitor.cc
 message.cc
 misc.cc
 mkdep
-node.cc
-node.h
 ns.1
 ns_tclsh.cc
 object.cc
