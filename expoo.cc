@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.11 2000/10/13 17:05:13 debo Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.12 2000/10/13 19:44:15 debo Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -72,8 +72,8 @@ int EXPOO_Traffic::command(int argc, const char*const* argv){
         
         if(argc==3){
                 if (strcmp(argv[1], "use-rng") == 0) {
-                        burstlen_.seed(argv[2]);
-                        Offtime_.seed(argv[2]);
+                        burstlen_.seed((char *)argv[2]);
+                        Offtime_.seed((char *)argv[2]);
                         return (TCL_OK);
                 }
         }
