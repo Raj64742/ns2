@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.cc,v 1.5 1998/06/27 01:23:23 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.cc,v 1.6 1998/12/22 23:11:24 breslau Exp $";
 #endif
 
 #include "adc.h"
@@ -77,7 +77,12 @@ int ADC::command(int argc,const char*const*argv)
 			}
 			return (TCL_OK);
 			
-		} 
+		}
+		if (strcmp(argv[1], "setbuf") == 0) {
+			/* some sub classes actually do something here */
+			return(TCL_OK);
+		}
+
 
 	}
 	return (NsObject::command(argc,argv));
