@@ -146,7 +146,7 @@ Node proc expandaddr {} {
         set ns [Simulator instance]
         $ns set-address-format expanded
 	
-	set mcastshift [AddrParams set McastShift]
+	set mcastshift [AddrParams set McastShift_]
 	Simulator set McastAddr_ [expr 1 << mcastshift]
 	#Simulator set McastAddr_ [expr 1 << 30]
 
@@ -616,7 +616,7 @@ Simulator instproc get-mcast-tree { src grp } {
 	# iif == -2: from local
 	set tmp [$src getRepByIIF $src $grp -2]
 	if {$tmp == ""} {
-		$ns flush-trace
+		$self flush-trace
 		error "No replicator for $GROUP_ at [$src id]"
 	}
 
