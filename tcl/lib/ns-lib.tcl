@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.107 1998/06/24 23:42:24 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.108 1998/07/06 06:25:20 kannan Exp $
 
 #
 
@@ -402,27 +402,11 @@ Simulator instproc clearMemTrace {} {
 	$scheduler_ clearMemTrace
 }
 
-Simulator instproc simplex-link { n1 n2 bw delay arg } {
+Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	$self instvar link_ queueMap_ nullAgent_
 	set sid [$n1 id]
 	set did [$n2 id]
 	
-	# XXX the following is an absolutely disgusting hack,
-	# but difficult to avoid for the moment (kf)
-	# idea: if arg (formerly type) is "QTYPE stuff", split
-	# the string so type is QTYPE and "stuff" is passed along
-	#
-	set argsz [llength $arg]
-	if { $argsz == 1 } {
-		set type $arg
-	} else {
-		if { [ lindex $arg 0] == "intserv" } {
-			set type [lindex $arg 1]
-		} else {
-			set type [lindex $arg 0]
-			set larg [lindex $arg 1]
-		}
-	}
 	if [info exists queueMap_($type)] {
 		set type $queueMap_($type)
 	}
@@ -442,35 +426,53 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	}
 
 	
-	# XXX more disgusting hack
-	if { [string first "ErrorModule" $type] != 0 } {
-		set q [new Queue/$type]
-	} else {
-		if { $argsz > 1 } {
-			set q [eval new $type $larg]
-		} else {
-			set q [new $type Fid]
+	# construct the queue
+	switch -exact $qtype {
+		ErrorModule {
+			if { [llength $args] > 0 } {
+				set q [eval new $qtype $args]
+			} else {
+				set q [new $qtype Fid]
+			}
+		}
+		intserv {
+			set qtype [lindex $args 1]
+			set q [new Queue/$qtype]
+		}
+		default {
+			set q [new Queue/$qtype]
 		}
 	}
 
-	if { $argsz != 1 } {
-		# assume we have a string of form "linktype linkarg"
-		if { $type == "RTM" || $type == "CBQ" || $type == "CBQ/WRR" } {
-			set link_($sid:$did) [new CBQLink $nd1 $nd2 $bw $delay $q $larg]
-		}
-		#XX need to clean this up
-		if { [lindex $arg 0] == "intserv" } {
-			set link_($sid:$did) [new IntServLink $nd1 $nd2 $bw $delay $q $arg]
-		}
-	} else {
-		if { $type == "CBQ" || $type == "CBQ/WRR" } {
-			# default classifier for cbq is just Fid type
-			set classifier [new Classifier/Hash/Fid 33]
-			set link_($sid:$did) [new CBQLink $nd1 $nd2 $bw $delay $q $classifier]
-		} else {
-			set link_($sid:$did) [new SimpleLink $nd1 $nd2 $bw $delay $q]
-		}
-	}
+	# Now create the link
+	switch -exact $qtype {
+		RTM {
+                        set c [lindex $args 1]
+                        set link_($sid:$did) [new CBQLink       \
+                                        $n1 $n2 $bw $delay $q $c]
+                }
+                CBQ -
+                CBQ/WRR {
+                        # assume we have a string of form "linktype linkarg"
+                        if {[llength $args] == 0} {
+                                # default classifier for cbq is just Fid type
+                                set c [new Classifier/Hash/Fid 33]
+                        } else {
+                                set c [lindex $args 1]
+                        }
+                        set link_($sid:$did) [new CBQLink       \
+                                        $n1 $n2 $bw $delay $q $c]
+                }
+                intserv {
+                        #XX need to clean this up
+                        set link_($sid:$did) [new IntServLink   \
+                                        $n1 $n2 $bw $delay $q $qtype $args]
+                }
+                default {
+                        set link_($sid:$did) [new SimpleLink    \
+                                        $n1 $n2 $bw $delay $q]
+                }
+        }
 	$n1 add-neighbor $n2
 	
 	#XXX yuck
