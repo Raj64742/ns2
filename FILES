@@ -867,6 +867,8 @@ tcl/ex/nam-large-flowid.tcl
 tcl/ex/nam-separate-trace.tcl
 tcl/ex/nam-simplexlink.tcl
 tcl/ex/omni-run.tcl
+tcl/ex/pi/README
+tcl/ex/pi/picoeff.dat.gz
 tcl/ex/picoeff.m
 tcl/ex/ranvar.tcl
 tcl/ex/ranvar.txt
