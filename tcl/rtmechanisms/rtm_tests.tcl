@@ -11,16 +11,22 @@ RTMechanisms instproc init { ns cbqlink rtt mtu } {
         $self instvar npenalty_     
 	$self instvar cbqlink_
 	$self instvar last_reward_ last_detect_
-	$self instvar Reward_interval_
-	$self instvar Detect_interval_
+	$self instvar Reward_interval_ reward_pending_
+	$self instvar Detect_interval_ detect_pending_
 	$self instvar ns_
+	$self instvar Mtu_ Rtt_
+	$self instvar verbose_
 
+	set verbose_ true
 	set cbqlink_ $cbqlink
 	set Rtt_ $rtt
 	set Mtu_ $mtu
 	set ns_ $ns
+
 	set Reward_interval_  5.0
 	set Detect_interval_  5.0
+	set detect_pending_ false
+	set reward_pending_ false
 
         set Safety_factor_ 1.2
         set Max_cbw_ 46750
@@ -31,8 +37,8 @@ RTMechanisms instproc init { ns cbqlink rtt mtu } {
 	set last_detect_ 0.0
         set High_const_ 12000   
 
-	$ns_ at $Reward_interval_ "$self do_reward"
-	$ns_ at $Detect_interval_ "$self do_detect"
+	# don't schedule reward initially;  nobody in pbox yet
+	$self sched-detect
 }      
 
 RTMechanisms instproc test_friendly { flow_bw ref_bw } {
