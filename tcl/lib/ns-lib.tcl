@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.253 2002/12/18 03:36:38 sundarra Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.254 2003/01/13 23:45:50 buchheim Exp $
 
 
 #
@@ -1134,12 +1134,10 @@ Simulator instproc energy-color-change {level1 level2} {
 }
 
 Simulator instproc namtrace-all-wireless {file optx opty} {
-        $self instvar namtraceAllFile_
-        if {$file != ""} {
-                set namtraceAllFile_ $file
-        } else {
-                unset namtraceAllFile_
-        }
+        $self instvar namtraceAllFile_ namNeedsWEvent_
+
+	$self namtrace-all $file
+
 	if { $optx != "" && $opty != "" } {
 		$self puts-nam-config "W -t * -x $optx -y $opty"
 	}
@@ -1156,17 +1154,6 @@ Simulator instproc nam-end-wireless {stoptime} {
 Simulator instproc namtrace-some file {
 	$self instvar namtraceSomeFile_
 	set namtraceSomeFile_ $file
-}
-
-Simulator instproc namtrace-all-wireless {file optx opty} {
-        $self instvar namtraceAllFile_  
- 
-        if {$file != ""} { 
-                set namtraceAllFile_ $file
-        } else {
-                unset namtraceAllFile_
-        }       
-        $self puts-nam-config "W -t * -x $optx -y $opty"
 }
 
 # Support for event-tracing

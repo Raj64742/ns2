@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.39 2002/09/25 20:40:19 johnh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.40 2003/01/13 23:45:50 buchheim Exp $
 #
 
 #
@@ -109,7 +109,7 @@ Node instproc label-at { str } {
 }
 
 Node instproc dump-namconfig {} {
-	$self instvar attr_ id_ address_
+	$self instvar attr_ id_ address_ X_ Y_ Z_
 	set ns [Simulator instance]
 
 	if ![info exists attr_(SHAPE)] {
@@ -122,8 +122,18 @@ Node instproc dump-namconfig {} {
         if ![info exists attr_(DCOLOR)] {
                 set attr_(DCOLOR) "black"
         }
+	if { [info exists X_] && [info exists Y_] } {
+		if [info exists Z_] {
+			$ns puts-nam-config \
+			[eval list "n -t * -a $address_ -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR) -i $attr_(LCOLOR) -x $X_ -y $Y_ -Z $Z_"]
+		} else {
+			$ns puts-nam-config \
+			[eval list "n -t * -a $address_ -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR) -i $attr_(LCOLOR) -x $X_ -y $Y_"]
+		}
+	} else {
 	$ns puts-nam-config \
 		[eval list "n -t * -a $address_ -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR) -i $attr_(LCOLOR)"]
+	}
 }
 
 Node instproc change-color { color } {
@@ -180,16 +190,17 @@ SimpleLink instproc dump-namconfig {} {
 		set attr_(COLOR) "black"
 	}
 
-	if ![info exists attr_(ORIENTATION)] {
-		set attr_(ORIENTATION) ""
-	}
-
 	set ns [Simulator instance]
 	set bw [$link_ set bandwidth_]
 	set delay [$link_ set delay_]
 
-	$ns puts-nam-config \
-		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -c $attr_(COLOR) -o $attr_(ORIENTATION)"
+	if [info exists attr_(ORIENTATION)] {
+		$ns puts-nam-config \
+			"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -c $attr_(COLOR) -o $attr_(ORIENTATION)"
+	} else {
+		$ns puts-nam-config \
+			"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -c $attr_(COLOR)"
+	}
 }
 
 Link instproc dump-nam-queueconfig {} {
