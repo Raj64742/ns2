@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.467 2001/06/14 22:32:21 weiye Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.468 2001/06/15 00:26:02 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -17,6 +17,13 @@ with the most recent changes coming first.
 <h3>
 ns-2.1b9 release PENDING</h3>
 
+<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+Thu Jun 14 17:19:43 PDT 2001</li>
+<br>Added parameter "adaptive_" for adaptively adjusting max_p, to keep
+the average queue size between minthresh and maxthresh.
+The validation test and example is "./test-all-adaptive-red"
+in "tcl/test".
+
 <li>
 <b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> Thu Jun 14 15:20:55
 PDT 2001</li>
@@ -26,6 +33,7 @@ cc}. It uses a bitmap to represent the environment of the wireless network.
 Two shadowing models are used for either line-of-sight or obstructed transmission.
 The example script wireless-shadowing-vis-test.tcl and the bitmap environment.pnm
 can be found at ns-2/tcl/ex/.
+
 <li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Tue Jun 12 16:55:03
 PDT 2001</li>
@@ -33,6 +41,7 @@ PDT 2001</li>
 <br>Added a parameter summarystats_ to Queue/RED to report the true average
 queue size since the beginning of the simulation. The validation test and
 example is in ``./test-all-simple stats2'' in ``tcl/tests''.
+
 <li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Sat Jun 9 13:44:00
 PDT 2001</li>
