@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.46 1997/03/28 20:25:32 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.47 1997/03/28 21:39:00 kfall Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -12,6 +12,16 @@
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz>ns-2.0a17</a>
 [PENDING RELESAE DATE]</h3>
 <ul>
+
+<li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
+<b>Fri Mar 28 13:36:58 PST 1997</b><br>
+Updates to make RED gateways work.  Includes mods to red.cc and
+RED's default parameter names,
+some additions to the compat library, and a change so that
+when the simulator begins all queues have a "reset" method
+called (previously, only nodes and agents had this done to them, but RED
+and probably some other queue types need to be reset to compute
+functions of their Otcl-linked variables before the sim starts).
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 <b>Fri Mar 28 12:23:58 PST 1997</b><br>
