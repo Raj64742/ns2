@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.139 1998/11/05 03:12:31 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.140 1998/11/10 03:51:37 polly Exp $
 
 
 #
@@ -445,3 +445,7 @@ TBF set qlen_ 0
 
 #Increased Floating Point Precision
 set tcl_precision 17
+
+Agent/Decapsulator set off_encap_ 0
+Agent/Encapsulator set off_encap_ 0
+Agent/Encapsulator set status_ 1

@@ -1,3 +1,6 @@
+source /a/home/catarina6/huang/research/vint/ns-2/tcl/lib/ns-default.tcl
+source /a/home/catarina6/huang/research/vint/ns-2/tcl/ctr-mcast/CtrMcast.tcl
+source /a/home/catarina6/huang/research/vint/ns-2/tcl/ctr-mcast/CtrMcastComp.tcl
 #
 # tcl/ex/newmcast/cmcast.tcl
 #
@@ -31,8 +34,7 @@
 #           |
 #          |2|
 set ns [new Simulator]
-Simulator set EnableMcast_ 1
-Simulator set NumberInterfaces_ 1
+$ns multicast
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -65,9 +67,12 @@ $ns duplex-link-op $n3 $n1 queuePos 0.5
 set mproto CtrMcast
 set mrthandle [$ns mrtproto $mproto {}]
 
-set cbr1 [new Agent/CBR]
-$ns attach-agent $n2 $cbr1
-$cbr1 set dst_ 0x8003
+set udp0 [new Agent/UDP]
+$udp0 set dst_ 0x8003
+$udp0 set class_ 1
+$ns attach-agent $n2 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
 
 set rcvr0 [new Agent/Null]
 $ns attach-agent $n0 $rcvr0
@@ -78,7 +83,7 @@ $ns attach-agent $n2 $rcvr2
 set rcvr3 [new Agent/Null]
 $ns attach-agent $n3 $rcvr3
 
-$ns at 0.2 "$cbr1 start"
+$ns at 0.2 "$cbr0 start"
 $ns at 0.3 "$n1 join-group  $rcvr1 0x8003"
 $ns at 0.4 "$n0 join-group  $rcvr0 0x8003"
 $ns at 0.45 "$mrthandle switch-treetype 0x8003"

@@ -680,8 +680,12 @@ SessionSim instproc merge-path { src mbr } {
 }
 
 SessionSim instproc get-node-by-id id {
-	$self instvar sessionNode_
+	$self instvar sessionNode_ Node_
+    if [info exists Node_($id)] {
+	set Node_($id)
+    } else {
 	set sessionNode_($id)
+    }
 }
 
 SessionSim instproc get-node-id-by-addr address {

@@ -1,5 +1,8 @@
+source /a/home/catarina6/huang/research/vint/ns-2/tcl/lib/ns-default.tcl
+source /a/home/catarina6/huang/research/vint/ns-2/tcl/ctr-mcast/CtrMcast.tcl
+source /a/home/catarina6/huang/research/vint/ns-2/tcl/ctr-mcast/CtrMcastComp.tcl
 set ns [new Simulator]
-Simulator set EnableMcast_ 1
+$ns multicast
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -37,17 +40,18 @@ $ns duplex-link-op $n2 $n5 orient right-down
 
 $ns rtproto Session
 ### Start multicast configuration
-DM set PruneTimeout 0.3
-dynamicDM set ReportRouteTimeout 0.15
-
 set mproto CtrMcast
 set mrthandle [$ns mrtproto $mproto  {}]
 ### End of multicast  config
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n0 $cbr0
-$cbr0 set dst_ 0x8002
- 
+set udp0 [new Agent/UDP]
+$udp0 set dst_ 0x8002
+$udp0 set class_ 0
+$ns attach-agent $n0 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
+#$cbr0 set interval_ 37.5ms
+
 set rcvr3 [new Agent/LossMonitor]
 set rcvr4 [new Agent/LossMonitor]
 set rcvr5 [new Agent/LossMonitor]

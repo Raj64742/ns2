@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.39 1998/10/27 00:50:10 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.40 1998/11/10 03:51:33 polly Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -74,7 +74,9 @@
 #define PT_EXP		29
 #define PT_INVAL	30
 #define PT_HTTP		31
-#define PT_NTYPE	32
+/* new encapsulator */
+#define PT_ENCAPSULATED 	32
+#define PT_NTYPE	33
 
 #define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
 	"start", "stop", "prune", "graft", "graftAck", "join", "assert","message", "rtcp", "rtp", \

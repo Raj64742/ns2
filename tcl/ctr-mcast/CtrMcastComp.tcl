@@ -1,348 +1,369 @@
- #
- # tcl/ctr-mcast/CtrMcastComp.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- # 
- #
+#
+# tcl/ctr-mcast/CtrMcastComp.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# 
+#
 ########## CtrMcastComp Class ##################################
 ########## init {}
 ########## compute-tree {src group Ttype}
 ########## compute-branch {src group member Ttype}
-########## exists-Mlist {group}
-########## exists-Slist {group}
-########## exists-treetype {group}
 
 Class CtrMcastComp
 
 CtrMcastComp instproc init sim {
-    $self instvar ns Glist Mlist Slist treetype 
-    $self instvar RPT SPT
-    $self instvar ctrrpcomp dynT_
+	$self instvar ns_
 
-    set ns $sim
-    set Glist ""
-    set SPT 1
-    set RPT 2
-        $ns maybeEnableTraceAll $self {}
+	set ns_ $sim
+	$self init-groups
+	$ns_ maybeEnableTraceAll $self {}
 }
 
 CtrMcastComp instproc id {} {
-    return 0
+	return 0
 }
 
 CtrMcastComp instproc trace { f nop {op ""} } {
-        $self instvar ns dynT_
-        if {$op == "nam" && [info exists dynT_]} {
-                foreach tr $dynT_ {
-                        $tr namattach $f
-                }
-        } else {
-                lappend dynT_ [$ns create-trace Generic $f $self $self $op]
-        }
+        $self instvar ns_ dynT_
+	if {$op == "nam" && [info exists dynT_]} {
+		foreach tr $dynT_ {
+			$tr namattach $f
+		}
+	} else {
+		lappend dynT_ [$ns_ create-trace Generic $f $self $self $op]
+	}
 }
 
 ##### Main computation functions #####
 CtrMcastComp instproc reset-mroutes {} {
-    $self instvar ns Glist Slist
+	$self instvar ns_
 
-    foreach n1 [$ns all-nodes-list] {
-	foreach group $Glist {
-	    set tmp [$n1 getReps * $group]
-	    if {$tmp != ""} {
-		$n1 clearReps * $group
-	    }
-	    
-	    if [info exists Slist($group)] {
-		foreach tmp $Slist($group) {
-		    if {[$n1 getReps $tmp $group] != ""} {
-			$n1 unset replicator_($tmp:$group)
-		    }
+	foreach node [$ns_ all-nodes-list] {
+		foreach group [$self groups?] {
+			$node clearReps * $group
+#			*,G match catches all sources.
+# 			foreach src [$self sources? $group] {
+# 				$node clearReps [$src id] $group
+# 			}
 		}
-	    }
 	}
-    }
 }
 
 CtrMcastComp instproc compute-mroutes {} {
-    $self instvar ns Glist Slist treetype
-
-    $self reset-mroutes
-    foreach group $Glist {
-	if [info exists Slist($group)] {
-	    foreach src $Slist($group) {
-		$self compute-tree $src $group
-	    }
+	$self reset-mroutes
+	foreach group [$self groups?] {
+		foreach src [$self sources? $group] {
+			$self compute-tree $src $group
+		}
 	}
-    }
 }
 
 CtrMcastComp instproc compute-tree { src group } {
-    $self instvar ns Mlist
-
-    if { [$self exists-Mlist $group] } {
-	foreach m $Mlist($group) {
-	    $self compute-branch $src $group $m
+	foreach mem [$self members? $group] {
+		$self compute-branch $src $group $mem
 	}
-    }
 }
 
 
-CtrMcastComp instproc compute-branch { src group member } {
-    $self instvar ns treetype 
-    $self instvar SPT RPT
+CtrMcastComp instproc compute-branch { src group nodeh } {
+	$self instvar ns_
 
-    # puts "create $src $member mcast entry until merging with an existing one"
+	### set (S,G) join target
+	set tt [$self treetype? $group]
+	if { $tt == "SPT" } {
+		set target $src
+	} elseif { $tt == "RPT" } {
+		set target [$self get_rp $nodeh $group]
+	}
 
-    ### set (S,G) join target
-    if { $treetype($group) == $SPT } {
-	set target $src
-	# puts "compute SPT branch: install ($src, $group) cache from $member to $src"
-    } elseif { $treetype($group) == $RPT } {
-        set n [$ns set Node_($member)]
-	set RP [$self get_rp $n $group]
-	set target $RP
-	# puts "compute RPT branch, to $RP"
-    }
+	for {
+		set downstreamtmp ""
+		set tmp $nodeh
+	} { $downstreamtmp != $target } {
+		set downstreamtmp $tmp
+		set tmp [$tmp rpf-nbr $target]
+	} {
+
+		if {[SessionSim set MixMode_] && $downstreamtmp != "" && ![$ns_ detailed-link? [$tmp id] [$downstreamtmp id]]} {
+		    # puts "joining into session area"
+		    break
+		}
 
 
-    set tmp $member
-    set downstreamtmp -1
-
-    while { $downstreamtmp != $target } {
-
-	### set iif : RPF link dest id: interface label
-
-	if {$tmp == $target} {
-	    if {$treetype($group) == $SPT || $tmp == $src} {
-		#when the member is also the source
-		set iif -1
-	    } else {
-		#when member is at RP, find iif from RP to source
-		set upstreamtmp [[$ns get-node-by-id $tmp] rpf-nbr $src]	
-		set iilink [$ns RPF-link $src [$upstreamtmp id] $tmp]
-		if {$iilink != ""} {
-		    set iif [[$iilink set iif_] label]
+		### set iif : RPF link dest id: interface label
+		if {$tmp == $target} {
+			if {$tt == "SPT" || $tmp == $src} {
+				set iif -1
+			} else {
+				# when member is RP, find iif from RP to source
+				#set rpfl [$ns_ link [$tmp rpf-nbr $src] $tmp]
+				#set iif [$rpfl if-label?]
+				set iif -1			    
+			}
 		} else {
-		    set iif -1
+			set rpfl [$ns_ link [$tmp rpf-nbr $target] $tmp]
+		    if {$rpfl != ""} {
+			set iif [$rpfl if-label?]
+		    } else {
+			set iif -1
+		    }
 		}
-	    }
-	} else {
-	    set upstreamtmp [[$ns get-node-by-id $tmp] rpf-nbr $target]
-	    set iilink [$ns RPF-link $target [$upstreamtmp id] $tmp]
-	    if {$iilink != ""} {
-		set iif [[$iilink set iif_] label]
-	    } else {
-		set iif -1
-	    }
-	}
 
-	### set oif : RPF link
-	set oiflist "" 
-	if { $downstreamtmp >= 0 } {
-	    set rpflink [$ns RPF-link $target $tmp $downstreamtmp]
-	    if { $rpflink != "" } {
-		lappend oiflist [$rpflink head]
- 	    }
-	}
-
-	set node [$ns set Node_($tmp)]
-	set r [$node getReps $src $group]
-	if { $r != "" } {
-	    if [$r is-active] {
-		# puts "reach merging point, r exist & active"
-		if { $oiflist != "" } {
-		    $r insert [lindex $oiflist 0]
+		### set oif : RPF link
+		set oiflist ""
+		if { $downstreamtmp != "" } {
+			set rpfnbr [$downstreamtmp rpf-nbr $target]
+			if { $rpfnbr == $tmp } {
+			    set rpflink [$ns_ link $tmp $downstreamtmp]
+			    if {$rpflink != ""} {
+				set oiflist [$tmp link2oif $rpflink]
+			    } 
+			}
 		}
-		return 1
-	    } else {
-		# puts "hasn't reached merging point, so continue to insert the oif"
-		if { $oiflist != "" } {
-		    $r insert [lindex $oiflist 0]
+		if { [set r [$tmp getReps [$src id] $group]] != "" } {
+			if [$r is-active] {
+				# puts "reach merging point, $group [$src id] [$target id] [$tmp id] [$nodeh id], iif $iif, oif $oiflist"
+				if { $oiflist != "" } {
+					$r insert [lindex $oiflist 0]
+				}
+				break
+			} else {
+				# puts "hasn't reached merging point, $group [$src id] [$target id] [$tmp id] [$nodeh id], iif $iif, oif $oiflist"
+				# so continue to insert the oif
+				if { $oiflist != "" } {
+					$r insert [lindex $oiflist 0]
+				}
+			}
+		} else {
+			# hasn't reached merging point,
+			# puts "so keep creating (S,G) like a graft, $group [$src id] [$target id] [$tmp id] [$nodeh id], iif $iif, oif $oiflist"
+			$tmp add-mfc [$src id] $group $iif $oiflist
 		}
-	    }
-	} else {
-	    # puts "hasn't reached merging point, so keep creating (S,G) like a graft, $src, $group, $iif, $oiflist"
-	    $node add-mfc $src $group $iif $oiflist
 	}
-
-	set downstreamtmp $tmp
-	set tmp [[[$ns get-node-by-id $tmp] rpf-nbr $target] id]
-	if {[SessionSim set MixMode_] && ![$ns detailed-link? $tmp $downstreamtmp]} {
-	    # puts "joining into session area"
-	    return
-	}
-    }
 }
 
 
-CtrMcastComp instproc prune-branch { src group member } {
-    $self instvar ns treetype 
-    $self instvar SPT RPT
+CtrMcastComp instproc prune-branch { src group nodeh } {
+	$self instvar ns_
 
-    ### set (S,G) prune target
-    if { $treetype($group) == $SPT } {
-	# puts "prune SPT branch: remove ($src, $group) cache from $member to $src"
-	
-	set target $src
-    } elseif { $treetype($group) == $RPT } {
-	# puts "prune RPT branch"
-
-        set n [$ns set Node_($member)]
-	set RP [$self get_rp $n $group]
-	set target $RP
-    }
-
-    set tmp $member
-    set downstreamtmp -1
-
-    while { $downstreamtmp != $target } {
-	set iif -1
-
-	set oif -1
-	if { $downstreamtmp >= 0 } {
-	    set rpflink [$ns RPF-link $target $tmp $downstreamtmp]
-	    if { $rpflink != "" } {
-		set oif [$rpflink head]
-	    }
+	### set (S,G) prune target
+	set tt [$self treetype? $group]
+	if { $tt == "SPT" } {
+		set target $src
+	} elseif { $tt == "RPT" } {
+		set target [$self get_rp $nodeh $group]
 	}
 
-	set node [$ns set Node_($tmp)]
-	set r [$node getReps $src $group]
-	if { $r == "" } {
-	    return 0
-	}
-	if { $oif != -1 } {
-	    $r disable $oif
-	}
+	for {
+		set downstreamtmp ""
+		set tmp $nodeh
+	} { $downstreamtmp != $target } {
+		set downstreamtmp $tmp
+		set tmp [$tmp rpf-nbr $target]
+	} {
+		set iif -1
+		set oif ""
+		if { $downstreamtmp != "" } {
+			set rpfnbr [$downstreamtmp rpf-nbr $target]
+			if { $rpfnbr == $tmp } {
+				set oif [$tmp link2oif [$ns_ link $tmp $downstreamtmp]]
+			}
+		}
 
-	if [$r is-active] {
-	    return 1
-	}
+		if { [set r [$tmp getReps [$src id] $group]] != "" } {
+			if { $oif != "" } {
+				$r disable $oif
+			}
 
-	set downstreamtmp $tmp
-	set tmp [[[$ns get-node-by-id $tmp] rpf-nbr $target] id]
-    }
+			if [$r is-active] {
+				break
+			}
+		} else {
+			break
+		}
+	}
     
 }
 
+# notify(): adapt to rtglib dynamics
+CtrMcastComp instproc notify {} {
+	$self instvar ctrrpcomp
 
-##### utility functions to detect existence of array elements #####
-##### for the use of distributed CtrMcast agents              #####
-CtrMcastComp instproc exists-Mlist group {
-    $self instvar Mlist
-
-    if [info exists Mlist($group)] {
-	return 1
-    } else {
-	return 0
-    }
-	
+	### need to add a delay before recomputation
+	$ctrrpcomp compute-rpset
+	$self compute-mroutes
 }
 
-CtrMcastComp instproc exists-Slist group {
-    $self instvar Slist
-
-    if [info exists Slist($group)] {
-	return 1
-    } else {
-	return 0
-    }
-	
+#
+# utility functions to track Source, Group, and Member State 
+#
+CtrMcastComp instproc init-groups {} {
+	$self set Glist_ ""
 }
 
-CtrMcastComp instproc exists-treetype group {
-    $self instvar treetype
+CtrMcastComp instproc add-new-group group {
+    $self instvar Glist_ 
+    set group [expr $group]
 
-    if [info exists treetype($group)] {
-	return 1
-    } else {
-	return 0
+    if ![info exist Glist_] {
+        set Glist_ ""
     }
-	
+    if {[lsearch $Glist_ $group] < 0} {
+        lappend Glist_ $group
+    }
+}
+
+CtrMcastComp instproc add-new-member {group node} {
+    $self instvar Mlist_ 
+    set group [expr $group]
+
+    $self add-new-group $group
+    if ![info exist Mlist_($group)] {
+        set Mlist_($group) ""
+    }
+
+    if {[lsearch $Mlist_($group) $node] < 0} {
+        lappend Mlist_($group) $node
+    }
+}
+
+CtrMcastComp instproc new-source? {group node} {
+    $self instvar Slist_ 
+    set group [expr $group]
+
+    $self add-new-group $group
+    if ![info exist Slist_($group)] {
+        set Slist_($group) ""
+    }
+
+    if {[lsearch $Slist_($group) $node] < 0} {
+        lappend Slist_($group) $node
+        return 1
+    } else {
+        return 0
+    }
+}
+
+CtrMcastComp instproc groups? {} {
+	$self set Glist_
+}
+
+CtrMcastComp instproc members? group {
+	$self instvar Mlist_
+	set group [expr $group]
+	if ![info exists Mlist_($group)] {
+		set Mlist_($group) ""
+	}
+	set Mlist_($group)
+}
+
+CtrMcastComp instproc sources? group {
+	$self instvar Slist_
+	set group [expr $group]
+	if ![info exists Slist_($group)] {
+		set Slist_($group) ""
+	}
+	set Slist_($group)
+}
+
+CtrMcastComp instproc remove-member {group node} {
+    $self instvar Mlist_ Glist_
+    set group [expr $group]
+
+    set k [lsearch $Mlist_($group) $node]
+    if {$k < 0} {
+	puts "warning: removing non-member"
+    } else {
+	set Mlist_($group) [lreplace $Mlist_($group) $k $k]
+    }
+
+    if { $Mlist_($group) == "" } {
+	set k [lsearch $Glist_ $group]
+	if {$k < 0} {
+	    puts "warning: removing non-existing group"
+	} else {
+	    set Glist_ [lreplace $Glist_ $k $k]
+	}
+    }
+}
+
+CtrMcastComp instproc treetype? group {
+	$self instvar treetype_
+	set group [expr $group]
+	if [info exists treetype_($group)] {
+		return $treetype_($group)
+	} else {
+		return ""
+	}
+}
+
+CtrMcastComp instproc treetype {group tree} {
+	$self set treetype_([expr $group]) $tree
 }
 
 CtrMcastComp instproc switch-treetype group {
-    $self instvar treetype SPT Glist dynT_
-    set group [expr $group]
+	$self instvar treetype_ dynT_
+	set group [expr $group]
 
-    if [info exists dynT_] {
-	foreach tr $dynT_ {
-	    $tr annotate "$group switch tree type"
+	if [info exists dynT_] {
+		foreach tr $dynT_ {
+			$tr annotate "$group switch tree type"
+		}
 	}
-    }
-    set treetype($group) $SPT
-    if { [lsearch $Glist $group] < 0 } {
-	lappend Glist $group
-    }
-
-    $self compute-mroutes
+	set treetype_($group) "SPT"
+	$self add-new-group $group
+	$self compute-mroutes
 }
 
-CtrMcastComp instproc set_c_rp { nodeList } {
-    $self instvar ns
+CtrMcastComp instproc set_c_rp args {
+	$self instvar ns_
     
-    foreach n [$ns all-nodes-list] {
-	set arbiter [$n getArbiter]	   
-	set ctrmcast [$arbiter getType "CtrMcast"]
-	$ctrmcast unset_c_rp
-    }
-
-    foreach node $nodeList {
-	set arbiter [$node getArbiter]	   
-	set ctrmcast [$arbiter getType "CtrMcast"]
-	$ctrmcast set_c_rp
-    }
+	foreach n [$ns_ all-nodes-list] {
+		set arbiter [$n getArbiter]	   
+		set ctrmcast [$arbiter getType "CtrMcast"]
+		$ctrmcast unset_c_rp
+	}
+	foreach node $args {
+		set arbiter [$node getArbiter]	   
+		set ctrmcast [$arbiter getType "CtrMcast"]
+		$ctrmcast set_c_rp
+	}
 }
 
-CtrMcastComp instproc set_c_bsr { nodeList } {
-    foreach node $nodeList {
-	set tmp [split $node :]
-	set node [lindex $tmp 0]
-	set prior [lindex $tmp 1]
-	set arbiter [$node getArbiter]
-	set ctrmcast [$arbiter getType "CtrMcast"]
-	$ctrmcast set_c_bsr $prior
-    }
+CtrMcastComp instproc set_c_bsr args {
+	foreach node $args {
+		set tmp [split $node :]
+		set node [lindex $tmp 0]
+		set prior [lindex $tmp 1]
+		set arbiter [$node getArbiter]
+		set ctrmcast [$arbiter getType "CtrMcast"]
+		$ctrmcast set_c_bsr $prior
+	}
 }
 
 CtrMcastComp instproc get_rp { node group } {
-    set arbiter [$node getArbiter]
-    set ctrmcast [$arbiter getType "CtrMcast"]
-    $ctrmcast get_rp $group
+	set ctrmcast [[$node getArbiter] getType "CtrMcast"]
+	$ctrmcast get_rp $group
 }
 
 CtrMcastComp instproc get_bsr { node } {
-    set arbiter [$node getArbiter]
-    set ctrmcast [$arbiter getType "CtrMcast"]
-    $ctrmcast get_bsr
+	set arbiter [$node getArbiter]
+	set ctrmcast [$arbiter getType "CtrMcast"]
+	$ctrmcast get_bsr
 }
-
-############# notify(): adapt to rtglib dynamics ####################
-CtrMcastComp instproc notify {} {
-    $self instvar ctrrpcomp
-
-    ### need to add a delay before recomputation
-    $ctrrpcomp compute-rpset
-    $self compute-mroutes
-}
-
-
-
-
-
