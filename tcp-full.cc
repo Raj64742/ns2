@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.53 1998/07/02 02:52:03 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.54 1998/07/06 17:41:10 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2351,7 +2351,16 @@ void DelAckTimer::expire(Event *) {
         a_->timeout(TCP_TIMER_DELACK);
 }
 
+/*
+ * for TCP Tahoe, we force a slow-start as the dup ack
+ * action.  Also, no window inflation due to multiple dup
+ * acks.  The latter is arranged by setting reno_fastrecov_
+ * false [which is performed by the Tcl constructor for Tahoe in
+ * ns-agent.tcl].
+ */
+
 /* 
+ * Tahoe
  * Dupack-action: what to do on a DUP ACK.  After the initial check
  * of 'recover' below, this function implements the following truth
  * table:
@@ -2381,7 +2390,7 @@ TahoeFullTcpAgent::dupack_action()
                 slowdown(CLOSE_CWND_HALF);
 		set_rtx_timer();
                 rtt_active_ = FALSE;
-		t_seqno_ = highest_ack_;	// restart
+		t_seqno_ = highest_ack_;	// slow-start
 		send_much(0, REASON_NORMAL, 0);
                 return; 
         }
@@ -2398,27 +2407,45 @@ TahoeFullTcpAgent::dupack_action()
 full_tahoe_action:
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
-        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);
+        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);	// cwnd->1
 	set_rtx_timer();
         rtt_active_ = FALSE;
-	t_seqno_ = highest_ack_;		// restart
+	t_seqno_ = highest_ack_;		// slow-start
 	send_much(0, REASON_NORMAL, 0);
         return; 
 }  
 
+
 /*
  * for NewReno, a partial ACK does not exit fast recovery,
  * and does not reset the dup ACK counter (which might trigger fast
- * retransmits we don't want)
+ * retransmits we don't want).  In addition, the number of packets
+ * sent in response to an ACK is limited to recov_maxburst_ during
+ * recovery periods.
  */
+
+NewRenoFullTcpAgent::NewRenoFullTcpAgent() : save_maxburst_(-1)
+{
+	bind("recov_maxburst_", &recov_maxburst_);
+}
 
 void
 NewRenoFullTcpAgent::pack_action(Packet*)
 {
-	
-//	send_much(0, REASON_DUPACK, maxburst_);
 	fast_retransmit(highest_ack_);
 	cwnd_ = ssthresh_;
+	if (save_maxburst_ < 0) {
+		save_maxburst_ = maxburst_;
+		maxburst_ = recov_maxburst_;
+	}
+}
 
-//printf("%f TCP(%s): pack-fastrexmt: %d\n", now(), name(), int(highest_ack_));
+void
+NewRenoFullTcpAgent::ack_action(Packet* p)
+{
+	if (save_maxburst_ >= 0) {
+		maxburst_ = save_maxburst_;
+		save_maxburst_ = -1;
+	}
+	FullTcpAgent::ack_action(p);
 }
