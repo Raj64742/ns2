@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.242 2002/02/01 06:28:33 xuanc Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.243 2002/03/12 01:26:49 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -116,7 +116,10 @@ OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o \
 	diffusion3/lib/diffapp.o \
 	diffusion3/apps/agents/ping_sender.o \
 	diffusion3/apps/agents/ping_receiver.o \
-	diffusion3/apps/agents/ping_common.o
+	diffusion3/apps/agents/ping_common.o \
+	diffusion3/apps/gear/geo-attr.o \
+	diffusion3/apps/gear/geo-routing.o \
+	diffusion3/apps/gear/geo-tools.o		
 
 NS_TCL_LIB_STL = tcl/rtglib/ns-rtProtoLS.tcl \
 	tcl/lib/ns-diffusion.tcl
