@@ -35,6 +35,7 @@ public:
 
 TfrmAgent::TfrmAgent() : Agent(PT_TFRM), 
 	send_timer_(this), 
+	NoFeedbacktimer_(this), 
   tcp_tick_(0.1), 
 	incrrate_(0.1), 
 	version_(0), 
@@ -187,6 +188,9 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 
 	update_rtt (ts, now) ;
 
+	/* if we get no more feedback for 2 more rtts, cur rate in half */
+	NoFeedbacktimer_.resched(2*rtt_);
+	
 	/* if we are in slow start and we just saw a loss */
 	/* then come out of slow start */
 
@@ -197,16 +201,16 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	}
 	else if ((rate_change_ == SLOW_START) && (flost > 0)) {
 		rate_change_ = OUT_OF_SLOW_START ; 
-		printf ("ooss %f\n", now);
-		fflush(stdout);
-		if (oldrate_ > 0.5*maxrate_) {
-			rate_ = 0.5*maxrate_ ; 
-			delta_ = 0 ; 
-		}
-		else {
-			rate_ = 0.5*oldrate_ ; 
-			delta_ = 0 ; 
-		}
+                /* when coming out of slow-start, cut the sending rate */
+                /* in half, or down to the rcv rate, whichever is higher */
+
+                if (oldrate_ > 0.5*maxrate_) {
+                        if (maxrate_ > oldrate_)
+                                rate_ = 0.5*maxrate_ ;
+                        else
+                                rate_ = 0.5*oldrate_;
+                        delta_ = 0 ;
+                }
 		Packet::free(pkt);
 		return ;
 	}
@@ -392,6 +396,24 @@ void TfrmAgent::sendpkt()
 	send(p, 0);
 }
 
+void TfrmAgent::reduce_rate_on_no_feedback()
+{
+	/*
+	double now=Scheduler::instance().clock();
+	rate_change_ = RATE_DECREASE ; 
+	rate_*=0.5;
+	delta_ = 0 ;
+	NoFeedbacktimer_.resched(2*rtt_);
+	*/
+	/*
+	printf ("%f %f %f\n", now, rate_, rtt_);
+	fflush(stdout);
+	*/
+}
 void TfrmSendTimer::expire(Event *) {
   	a_->nextpkt();
+}
+
+void TfrmNoFeedbackTimer::expire(Event *) {
+	a_->reduce_rate_on_no_feedback () ;
 }

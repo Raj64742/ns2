@@ -29,10 +29,11 @@ TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC),
 	bind("HysterisisLower_", &HysterisisLower_);
 	bind("HysterisisUpper_", &HysterisisUpper_);
 	bind("bval_", &bval_);
+	bind("NumFeedback_", &NumFeedback_);
 	prevpkt_=-1;
 	loss_seen_yet = 0 ;
 	last_report_sent=0 ;
-
+	rtt_ = 0 ;
 
 }
 
@@ -125,8 +126,8 @@ void TfrmSinkAgent::nextpkt() {
 	last_report_sent = now ; 
 
 	/* schedule next report one rtt later */
-	if (rtt_ > 0.0) 
-		nack_timer_.resched(rtt_);
+	if (rtt_ > 0.0 && NumFeedback_ > 0) 
+		nack_timer_.resched(rtt_/(float)NumFeedback_);
 }
 
 void TfrmSinkAgent::sendpkt()
@@ -180,9 +181,10 @@ void TfrmSinkAgent::sendpkt()
 	if (pveclen_<sample) {
 		/*we don't have a long enough pvec for this low loss rate*/
 		/*we'd like this never to happen!*/
+		/*
 		printf ("very low loss rate: %f %f\n", now, p);
 		fflush(stdout);
-		exit(1);
+		*/
 	}
 
 

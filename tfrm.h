@@ -100,8 +100,17 @@ protected:
     TfrmAgent *a_;
 };  
 
+class TfrmNoFeedbackTimer : public TimerHandler {
+public:
+    TfrmNoFeedbackTimer(TfrmAgent *a) : TimerHandler() { a_ = a; }
+    virtual void expire(Event *e);
+protected:
+    TfrmAgent *a_;
+}; 
+
 class TfrmAgent : public Agent {
     friend TfrmSendTimer;
+    friend TfrmNoFeedbackTimer;
 public:
     TfrmAgent();
     void recv(Packet*, Handler*);
@@ -114,10 +123,12 @@ public:
 		void increase_rate (double p, double now) ;
 		void decrease_rate (double p, double now);
 		void slowstart ();
+		void reduce_rate_on_no_feedback() ;
 
 protected:
 		
     TfrmSendTimer send_timer_;
+    TfrmNoFeedbackTimer NoFeedbacktimer_;
     int seqno_ ; 
 		int psize_;
 

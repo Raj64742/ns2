@@ -113,4 +113,8 @@ protected:
 
 	/* time last report was sent */
 	double last_report_sent ; 
+
+	/* send feedback these many times per rtt */
+	int NumFeedback_;
+
 }; 
