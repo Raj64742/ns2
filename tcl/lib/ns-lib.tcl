@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.74 1997/12/31 01:25:01 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.75 1997/12/31 17:24:53 kannan Exp $
 #
 
 #
@@ -640,6 +640,15 @@ Classifier instproc installNext val {
 
 Classifier instproc adjacents {} {
 	$self array get slots_
+}
+
+Classifier instproc in-slot? slot {
+	$self instvar slots_
+	set ret ""
+	if {[array size slots_] < $slot} {
+		set ret slots_($slot)
+	}
+	set ret
 }
 
 #

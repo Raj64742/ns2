@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.20 1997/12/31 01:25:01 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.21 1997/12/31 17:24:53 kannan Exp $
 #
 
 Class Node
@@ -368,43 +368,33 @@ Node instproc add-routes {id ifs} {
 	incr routes_($id)
     } else {
 	if ![info exists mpathClsfr_($id)] {
-	    set mclass [new Classifier/MultiPath]
-	    if {$routes_($id) > 0} {
-		# XXX This breaks because the adjacents call is now
-		#     changed.  In any case, the adjacents routine
-		#     was very broken, and does not work for some of
-		#     the more complex cases...
-		array set current [$classifier_ adjacents]
-		foreach i [array names current] {
-		    if {$current($i) == $id} {
-			$mclass installNext $i
-			break
-		    }
-		}
-	    }
-	    $classifier_ install $id $mclass
-	    set mpathClsfr_($id) $mclass
-	}
-	foreach L $ifs {
-	    $mpathClsfr_($id) installNext [$L head]
-	    incr routes_($id)
-	}
+            # 1. get new MultiPathClassifier,
+            # 2. migrate existing routes to that mclassifier
+            # 3. install the mclassifier in the node classifier_
+            #
+            set mpathClsfr_($id) [new Classifier/MultiPath]
+            if {$routes_($id) > 0} {
+                assert {$routes_($id) == 1}
+                $mpathClsfr_($id) installNext [$classifier_ in-slot? $id]
+            }
+            $classifier_ install $id $mpathClsfr_($id)
+        }
+        foreach L $ifs {
+            $mpathClsfr_($id) installNext [$L head]
+            incr routes_($id)
+        }
     }
 }
 
 Node instproc delete-routes {id ifs nullagent} {
     $self instvar mpathClsfr_ routes_
     if [info exists mpathClsfr_($id)] {
-	# XXX This breaks because the adjacents call is now
-	#     changed.  In any case, the adjacents routine
-	#     was very broken, and does not work for some of
-	#     the more complex cases...
-	array set eqPeers [$mpathClsfr_($id) adjacents]
-	foreach L $ifs {
-	    set link [$L head]
-	    if [info exists eqPeers($link)] {
-		$mpathClsfr_($id) clear $eqPeers($link)
-		unset eqPeers($link)
+        foreach L $ifs {
+            set nonLink([$L head]) 1
+        }
+        foreach {slot link} [$mpathClsfr_($id) adjacents] {
+            if [info exists nonLink($link)] {
+                $mpathClsfs_($id) clear $slot
 		incr routes_($id) -1
 	    }
 	}
