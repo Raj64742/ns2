@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.20 1998/06/27 01:23:41 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.21 1998/07/09 18:46:28 kannan Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -61,7 +61,7 @@ LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
 int LinkDelay::command(int argc, const char*const* argv)
 {
 	if (argc == 2) {
-		if (strcmp(argv[1], "dynamic") == 0) {
+		if (strcmp(argv[1], "isDynamic") == 0) {
 			dynamic_ = 1;
 			itq_ = new PacketQueue();
 			return TCL_OK;

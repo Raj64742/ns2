@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.35 1998/06/29 23:03:12 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.36 1998/07/09 18:46:35 kannan Exp $
 #
 
 Class Node
@@ -199,11 +199,11 @@ Node instproc attach { agent } {
 		set nodeaddr [AddrParams set-hieraddr $address_]
 		
 	} else {
-		set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] \
-				  << [AddrParams set NodeShift_(1)]]
+		set nodeaddr [expr ( $address_ &			\
+				[AddrParams set NodeMask_(1)] ) <<	\
+					[AdddrParams set NodeShift_(1) ]]
 	}
-	$agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
-			      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
+	$agent set addr_ [expr (($port & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
 	
 	$dmux_ install $port $agent
 	
@@ -211,7 +211,7 @@ Node instproc attach { agent } {
 	set addr [$agent set addr_]
 	#     puts "node address: $address_"
 	#     puts "Agent addr: $addr" 
-	
+
 }
 
 #

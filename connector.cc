@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.11 1998/06/27 01:23:36 gnguyen Exp $ ";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.12 1998/07/09 18:46:29 kannan Exp $ ";
 #endif
 
 #include "packet.h"
@@ -68,7 +68,7 @@ int Connector::command(int argc, const char*const* argv)
 				tcl.resultf("%s", drop_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "dynamic") == 0) {
+		if (strcmp(argv[1], "isDynamic") == 0) {
 			return TCL_OK;
 		}
 	}
