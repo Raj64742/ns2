@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.42 1999/10/15 22:36:10 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.43 1999/11/19 22:39:01 haldar Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -51,9 +51,11 @@
 #include "autoconf.h"
 
 /* after autoconf (and HAVE_INT64) we can pick up tclcl.h */
+#ifndef stand_alone
 #ifdef __cplusplus
 #include <tclcl.h>
 #endif /* __cplusplus */
+#endif
 
 typedef int32_t nsaddr_t; 
 typedef int32_t nsmask_t; 
