@@ -839,7 +839,7 @@ void SFDPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
       p->bytes_sent += hdr->size();
       return;
     } else if (p->last_update + FLOW_TIME_OUT < now){
-      // The coresponding flow is dead.      
+      // The coresponding flow is expired.      
       if (p == flow_table.head){
 	if (p == flow_table.tail) {
 	  flow_table.head = flow_table.tail = NULL;
@@ -964,6 +964,7 @@ void SFDPolicy::printFlowTable() {
 //Constructor.  
 EWPolicy::EWPolicy() : Policy() {
   ew = new EW;
+  drop_count = drop_total = 0;
 }
 
 //Deconstructor.
@@ -995,13 +996,22 @@ void EWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet 
 -----------------------------------------------------------------------------*/
 int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
   //  printf("enter applyPolicer\n");
-  //if (ew->testAlarm(pkt)) {
-    //    printf(" DOWNGRADE!\n");	
-  //  return(policer->downgrade1);
-  //} else { 
-    //printf(" OK!\n");	
+  if (ew->testAlarm(pkt)) {
+    //    printf("Alarm, ");	
+    if (drop_count < ew->drop_ratio) {
+      drop_count++;
+      drop_total++;
+      //printf("downgrade(%d)!\n", drop_count);	
+      return(policer->downgrade1);
+    } else {
+      drop_count = 0;
+      //printf("but OK(%d)!\n", drop_count);	
+      return(policer->initialCodePt);
+    }
+  } else { 
+    //printf("OK!\n");	
     return(policer->initialCodePt);
-    //}
+  }
 }
 
 // End of EWP
@@ -1028,8 +1038,13 @@ EW::EW() {
   swin.head = swin.tail = NULL;
   swin.count = swin.ravg = 0;
 
+  ff.alpha = 0.875;
+  ff.high = ff.low = 0;
+
   cur_rate = 0;
   alarm = alarm_count = 0;
+
+  drop_ratio = EW_DROP_RATIO;
 }
 
 //Deconstructor.
@@ -1066,33 +1081,20 @@ void EW::runEW(Packet *pkt) {
     return;
 
   now = Scheduler::instance().clock();
+  // Conduct detection continously
+  applyDetector(pkt, now);
 
   // There is a timeout!
   if (now >= timer) {
-    //printf("Timeout(%d):", (int)now);
-    // Sleeps previously, now start working
-    if (sleep) {
-      //printf("sleep->detect\n");
-      sleep = 0;
-      // setup the detection timer
-      timer = (int)now + d_inv;
-    } else {
-      // works previously, now sleep!
-      //printf("detect->sleep\n");
-      sleep = 1;
-      // setup the sleeping timer
-      timer = (int)now + s_inv;
-      //printAList();
-      //updateHTab();
-      choseHBA();
-      resetAList();
-    }
-  } 
-
-  // Conduct detection when not sleeping.
-  if (!sleep) {
-    applyDetector(pkt, now);
-  }
+    // Start detection
+    //printf("Detection timeout(%d)\n", (int)now);
+    
+    // setup the sleeping timer
+    timer = (int)now + s_inv;
+    //printAList();
+    choseHBA();
+    //resetAList();
+  }    
 }
 
 // Test if the alarm has been triggered.
@@ -1108,14 +1110,13 @@ int EW::testAlarm(Packet *pkt) {
   }
 
   if(cew)
-    return(cew->testAlarmCouple(dst_id));
+    return(cew->testAlarmCouple());
   else
     return 0;
 }
 
 // Test if the corrsponding alarm on reversed link has been triggered.
-int EW::testAlarmCouple(int dst_id){
-  //printf("EW[%d:%d] in testAlarm\n", ew_src, ew_dst);
+int EW::testAlarmCouple(){
   if (alarm) {
     alarm_count = 0;
     //printf(" ALARM!\n");	
@@ -1144,11 +1145,36 @@ void EW::applyDetector(Packet *pkt, double now) {
   //printf("EW[%d:%d] in detector\n", ew_src, ew_dst);
 
   // keep the bytes sent by each aggregate in AList
-  AListEntry *p;
+  AListEntry *p, *q;
 
-  p = alist.head;
-  while (p && p->fid != fid)
-    p = p->next;
+  p = q = alist.head;
+  while (p && p->fid != fid) {
+    // Garbage collection
+    if (p->last_update + EW_FLOW_TIME_OUT < now){
+      // The coresponding flow is expired.      
+      if (p == alist.head){
+	if (p == alist.tail) {
+	  alist.head = alist.tail = NULL;
+	  free(p);
+	  p = q = NULL;
+	} else {
+	  alist.head = p->next;
+	  free(p);
+	  p = q = alist.head;
+	}
+      } else {
+	q->next = p->next;
+	if (p == alist.tail)
+	  alist.tail = q;
+	free(p);
+	p = q->next;
+      }
+      alist.count--;
+    } else {
+      q = p;
+      p = q->next;
+    }
+  }
 
   // Add new entry to AList
   if (!p) {
@@ -1157,9 +1183,7 @@ void EW::applyDetector(Packet *pkt, double now) {
     p->src_id = src_id;
     p->dst_id = dst_id;
     p->fid = fid;
-    p->ts = now;
-    p->bytes = 0;
-    p->bw = 0;
+    p->last_update = now;
     p->avg_rate = 0;
     // Since we are doing random sampling, 
     // the t_front should set to the beginning of this period instead of 0.
@@ -1180,13 +1204,6 @@ void EW::applyDetector(Packet *pkt, double now) {
 
   // update the existing (or just created) entry in AList
   assert(p && p->fid == fid);
-  p->bytes += hdr->size();
-  p->te = now;
-
-  if (p->te != p->ts) 
-    p->bw = (int)(p->bytes * 8 / (p->te - p->ts));
-  else 
-    p->bw = (int)(p->bytes * 8 / d_inv);
 
   // update the flow's arrival rate using TSW
   double bytesInTSW, newBytes;
@@ -1195,8 +1212,7 @@ void EW::applyDetector(Packet *pkt, double now) {
   p->avg_rate = newBytes / (now - p->t_front + p->win_length);
   p->t_front = now;
 
-  //printf("%f: %d %d[%d %f %f] %f\n", 
-  // now, p->fid, p->bw, p->bytes, p->ts, p->te, p->avg_rate);
+  //printf("%f: %d %f\n", now, p->fid, p->avg_rate);
 }
 
 // Choose the high-bandwidth aggregates
@@ -1205,32 +1221,34 @@ void EW::applyDetector(Packet *pkt, double now) {
 
 // Choose the high-bandwidth aggregates
 void EW::choseHBA() {
-  int i, agg_bw, agg_rate;
+  int i, agg_rate;
   struct AListEntry *max;
-  int k = 8;
+  int k = (int) (alist.count * 0.1 + 1);
 
   // Pick the highest K bandwidth aggregates
   i = 0;
-  agg_bw = agg_rate = 0;
+  agg_rate = 0;
 
   while (i < k) {
     max = maxAList();
     //printAListEntry(max, i);
     
-    agg_bw += max->bw;
     agg_rate += (int)max->avg_rate;
 
-    max->bw = 0;
     max->avg_rate = 0;
     i++;
   }
-  agg_bw = (int) (agg_bw / i);
   agg_rate = (int) (agg_rate / i);
 
-  //printf("%f %d\n", now, agg_rate);
+  //printf("%f %d %d\n", now, agg_rate, k);
 
-  // Record current aggregated response rate and update SWin
+  // Record current aggregated response rate
   cur_rate = agg_rate;
+
+  // Update flip-flop filter
+  updateFF(agg_rate);
+
+  // Update SWIN
   updateSWin(agg_rate);
   ravgSWin();
   //printSWin();
@@ -1270,6 +1288,16 @@ void EW::resetAList() {
   
   ap = aq = NULL;
   alist.head = alist.tail = NULL;  
+  alist.count = 0;
+}
+
+// update flip-flop filter
+// high(t) = alpha * high(t-1) + (1 - alpha) * o(t)
+// low(t) = (1 - alpha) * low(t-1) + alpha * o(t)
+void EW::updateFF(int rate) {
+  ff.high = ff.alpha * ff.high + (1 - ff.alpha) * rate;
+  ff.low = (1 - ff.alpha) * ff.low + ff.alpha * rate;
+  //  printf("%f Flip-flop filter [%.2f, %.2f]\n", now, ff.high, ff.low);
 }
 
 // Reset SWin
@@ -1285,6 +1313,7 @@ void EW::resetSWin() {
   
   p = q = NULL;
   swin.head = swin.tail = NULL;  
+  swin.count = swin.ravg = 0;
 }
 
 // update swin with the latest measurement of aggregated response rate
@@ -1341,39 +1370,41 @@ void EW::ravgSWin() {
 // comparing the running average calculated on the sliding window with 
 // a threshold and trigger alarm if necessary.
 void EW::detectChange() {
-  if (cur_rate < swin.ravg) {
+  // Use low-pass filter to react quickly
+  //  if (cur_rate < swin.ravg) {
+  if (cur_rate < ff.low) {
     if (alarm) {
     } else {
       alarm_count++;
       if (alarm_count >= EW_A_TH) {
 	alarm = 1;
       } else {
-	//decSWin(id);
+	//decSWin();
       }
     }
   } else {
+    /*
     if (alarm)
       alarm = 0;
     if (alarm_count)
       alarm_count = 0;
-
-    //incSWin(id);
+    */
+    //incSWin();
   }
 
-  printf("%d %d %d ", (int)now, cur_rate, swin.ravg);  
+  printf("%d %d [%d %d] %d", 
+	 (int)now, cur_rate, (int)ff.high, (int)ff.low, swin.ravg);  
   if (alarm)
-    printf("A\n");
-  else
-    printf("\n");
+    printf(" A");
+  printf("\n");
 }
 
 // Decreas SWin.
-void EW::decSWin(int id) {
-  //  struct SWinEntry *p;
+void EW::decSWin() {
+  struct SWinEntry *p;
 
   // Need some investigation for the min allowed inv and th
-  /*  
-      if (s_inv > 10 && th > 4) {
+  if (s_inv > 10 && th > 4) {
     s_inv = s_inv / 2;
     th = th / 2;
     
@@ -1384,16 +1415,14 @@ void EW::decSWin(int id) {
     }
     p = NULL;
     
-    printf("Swin Decrease by 2.\n");
-    printHTabEntry(id);	      
+    //printf("Swin Decrease by 2.\n");
   }
-  */
 }
 
 // Increase SWin.
-void EW::incSWin(int id) {
-  //struct SWinEntry *p;
-  /*
+void EW::incSWin() {
+  struct SWinEntry *p;
+  
   if(s_inv * 2 <= init_inv) {
     s_inv = s_inv * 2;
     th = th * 2;
@@ -1405,10 +1434,8 @@ void EW::incSWin(int id) {
     }
     p = NULL;
     
-    printf("Htab Increase by 2.\n");
-    printHTabEntry(id);
+    //printf("Htab Increase by 2.\n");
   }
-  */
 }
 
 // Prints one entry in SWin
@@ -1434,16 +1461,15 @@ void EW::printSWinEntry(struct SWinEntry *p, int i) {
 // Print one entry in AList
 void EW::printAListEntry(struct AListEntry *p, int i) {
   assert(p);
-  printf("[%d] %d (%d>%d) %d (%d %.2f-%.2f) %f ", 
-	 i, p->fid, p->src_id, p->dst_id, 
-	 p->bw, p->bytes, p->ts, p->te, p->avg_rate);
+  printf("[%d] %d (%d>%d) %f %f\n", 
+	 i, p->fid, p->src_id, p->dst_id, p->avg_rate, p->last_update);
 }
 
 
 // Print the entries in AList
 void EW::printAList() {
   struct AListEntry *p;
-  printf("AList(%d): ", alist.count);
+  printf("%f AList(%d):\n", now, alist.count);
 
   p = alist.head;
   int i = 0;

@@ -54,6 +54,9 @@
 #define EW_MAX_WIN 8
 #define EW_SWIN_SIZE 4
 #define EW_A_TH 1
+// cut 3/4 of the incoming requests
+#define EW_DROP_RATIO 10
+#define EW_FLOW_TIME_OUT 30.0
 #define EW_SLEEP_INTERVAL 300
 #define EW_DETECT_INTERVAL 60
 #define EW_MIN_DETECT_INTERVAL 15
@@ -231,10 +234,7 @@ struct AListEntry {
   int src_id;
   int dst_id;
   int fid;
-  double ts;
-  double te;
-  int bytes;
-  int bw;
+  double last_update;
   double avg_rate;
   double t_front;
   double win_length;
@@ -266,6 +266,16 @@ struct SWin {
   struct SWinEntry *tail;
 };
 
+// Data structure for Flip-flop filter
+// high(t) = alpha * high(t-1) + (1 - alpha) * o(t)
+// low(t) = (1 - alpha) * low(t-1) + alpha * o(t)
+struct FF {
+  double alpha;
+  
+  // the estimated value for the high-pass/low-pass filters
+  double high, low;
+};
+
 // Data structure to keep the HOTTEST aggragates states
 struct HTableEntry {
   //The node to be monitored
@@ -275,7 +285,7 @@ struct HTableEntry {
 
   // Sliding window:
   struct SWin swin;
-
+  
   // last sample time
   int last_t; 
   // The alarm to trigger
@@ -299,7 +309,7 @@ class EW {
   // Test if the alarm has been triggered.
   int testAlarm(Packet *);
   // Test if the corrsponding alarm on reversed link has been triggered.
-  int testAlarmCouple(int);
+  int testAlarmCouple();
 
   // Setup the coupled EW
   void coupleEW(EW *);
@@ -314,6 +324,7 @@ class EW {
   // Print one entry in AList
   void printAListEntry(struct AListEntry *, int);
 
+  int drop_ratio;
  private:
   // The nodes connected by EW
   int ew_src, ew_dst;
@@ -354,6 +365,8 @@ class EW {
   struct AList alist;
   // The sliding window for running average on the aggregated response rate
   struct SWin swin;
+  // Flip-flop filter
+  struct FF ff;
 
   // Measurement:
   // Find the max value in AList
@@ -362,6 +375,9 @@ class EW {
   void choseHBA();
   // Reset AList
   void resetAList();
+
+  // update flip-flop filter
+  void updateFF(int);
 
   // update swin with the latest measurement for one HTab entry.
   void updateSWin(int);
@@ -377,8 +393,8 @@ class EW {
   void detectChange();
 
   // Increase/decrease SWin to adjust the detection latency.
-  void decSWin(int);
-  void incSWin(int);
+  void decSWin();
+  void incSWin();
 };
 
 class EWPolicy : public Policy {
@@ -394,5 +410,8 @@ class EWPolicy : public Policy {
 
   //protected:
   EW *ew;
+ private:
+  int drop_count;
+  int drop_total;
 };
 #endif

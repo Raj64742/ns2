@@ -537,7 +537,8 @@ int command(int argc, const char*const* argv)
 -----------------------------------------------------------------------------*/
 int dsREDQueue::command(int argc, const char*const* argv) {
   if (strcmp(argv[1], "configQ") == 0) {
-    redq_[atoi(argv[2])].config(atoi(argv[3]), argv);
+    // modification to set the parameter q_w by Thilo
+    redq_[atoi(argv[2])].config(atoi(argv[3]), argc, argv);
     return(TCL_OK);
   }
   if (strcmp(argv[1], "addPHBEntry") == 0) {
@@ -620,7 +621,23 @@ int dsREDQueue::command(int argc, const char*const* argv) {
     addQueueRate(atoi(argv[2]), atoi(argv[3]));
     return(TCL_OK);
   }
-  
+  // Returns the weighted RED queue length for one virtual queue in packets
+  // Added by Thilo
+  if (strcmp(argv[1], "getAverageV") == 0) {
+    Tcl& tcl = Tcl::instance();
+    tcl.resultf("%f",
+		redq_[atoi(argv[2])].getWeightedLength_v(atoi(argv[3])));
+    return(TCL_OK);
+  } 
+  // Returns the length of one virtual queue, in packets 
+  // Added by Thilo
+  if (strcmp(argv[1], "getCurrentV") == 0) {
+    Tcl& tcl = Tcl::instance();
+    tcl.resultf("%f",
+		redq_[atoi(argv[2])].getRealLength_v(atoi(argv[3]))*1.0);
+    return(TCL_OK);
+  }
+
   return(Queue::command(argc, argv));
 }
 

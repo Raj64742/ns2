@@ -50,9 +50,11 @@ redQueue::redQueue() {
   q_ = new PacketQueue();	
 }
 
-// void config(int prec, const char*const* argv)
-//    Configures a virtual queue according to values supplied by the user.
-void redQueue::config(int prec, const char*const* argv) {
+// void config(int prec, int argc, const char*const* argv)
+//   Configures a virtual queue according to values supplied by the user.
+//   Added option to config q_w by Thilo, 
+//     xuanc (12/14/01)
+void redQueue::config(int prec, int argc, const char*const* argv) {
   if (mredMode == dropTail) {
     qParam_[0].edp_.th_min = atoi(argv[4]);
     return;
@@ -62,7 +64,14 @@ void redQueue::config(int prec, const char*const* argv) {
   qParam_[prec].edp_.th_min = atoi(argv[4]);
   qParam_[prec].edp_.th_max = atoi(argv[5]);
   qParam_[prec].edp_.max_p_inv = 1.0 / atof(argv[6]);
-  qParam_[prec].edp_.q_w = 0.002;
+
+  // modification to set the parameter q_w by Thilo
+  // it's an optional parameter to conserve backward compatibility
+  if (argc > 7)  
+    qParam_[prec].edp_.q_w = atof(argv[7]);
+  else 
+    qParam_[prec].edp_.q_w = 0.002;
+  
   qParam_[prec].edv_.v_ave = 0.0;
   qParam_[prec].idle_ = 1;
   if (&Scheduler::instance() != NULL)
@@ -311,6 +320,18 @@ double redQueue::getWeightedLength() {
 //    Returns the length of the physical queue, in packets.
 int redQueue::getRealLength(void) {
   return(q_->length());
+}
+
+// Returns the weighted RED queue length for one virtual queue in packets
+// Added by Thilo (12/14/2001), xuanc
+double redQueue::getWeightedLength_v(int prec) {
+  return qParam_[prec].edv_.v_ave;
+}
+
+// Returns the length of one virtual queue, in packets
+// Added by Thilo (12/14/2001), xuanc
+int redQueue::getRealLength_v(int prec) {
+  return qParam_[prec].qlen;
 }
 
 //  void setPTC(int outLinkBW)

@@ -62,7 +62,9 @@ class redQueue {
   int qlim;
   mredModeType mredMode;
   redQueue();
-  void config(int prec, const char*const* argv);	// configures one virtual RED queue
+  // configures one virtual RED queue
+  void config(int prec, int argc, const char*const* argv);	
+
   void initREDStateVar(void);		// initializes RED state variables
   // Updates a virtual queue's length after dequeueing
   void updateVREDLen(int);
@@ -79,6 +81,12 @@ class redQueue {
   int getRealLength(void);		// queries length of a physical queue
   // sets packet time constant values
   //(needed for calc. avgQSize) for each virtual queue
+
+  // queries average length of a virtual queue
+  double getWeightedLength_v(int prec); 
+  // queries length of a virtual queue
+  int getRealLength_v(int prec); 
+
   void setPTC(double outLinkBW);
   // sets mean packet size (needed to calculate avg. queue size)
   void setMPS(int mps);
