@@ -96,7 +96,6 @@ double ShadowingVis::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 int ShadowingVis::command(int argc, const char*const* argv)
 {
 	TclObject *obj;
-	Tcl& tcl = Tcl::instance();
 	
 	if (argc == 3) {
 		if (strcmp(argv[1], "get-bitmap") == 0) {
