@@ -341,6 +341,7 @@ mrtObject instproc upcall { code source group iface } {
 	if { [expr ( $group & $wkgroup ) == $wkgroup] } {
                 $self instvar node_
 		$node_ add-mfc $source $group -1 {}
+		return 1
         } else {
 		$self all-mprotos upcall $code $source $group $iface
 	}
