@@ -1,26 +1,71 @@
+#
+# A test of the emulation facility.  Note that this script
+# must be run through "nse", the version of the simulator with
+# the emulation extensions.
+#
 
-set ns [new Simulator]
-$ns use-scheduler RealTime
+set sap_addr 224.2.127.254
+set sap_port 9875
+set stoptime 20
 
-set net1 [new Network/IP]
-$net1 open 10.0.0.2 6623 16
+Class TestEmul
+TestEmul instproc init {} {
+	$self instvar ns_
+	set ns_ [new Simulator]
+	$ns_ use-scheduler RealTime
+}
 
-set net2 [new Network/IP]
-$net2 open 10.0.0.3 6628 16
+TestEmul instproc makenet ntype {
+	$self instvar net_ ta_
+	set net_ [new Network/$ntype]
+	$net_ open readonly
+	set ta_ [new Agent/Tap]
+	$ta_ network $net_
+}
 
-set a [new Agent/Tap]
-$a network $net1
+TestEmul instproc maketopo { tfname } {
+	$self instvar ns_ ta_ tfchan_
 
-set b [new Agent/Tap]
-$b network $net2
+	set n0 [$ns_ node]
+	set n1 [$ns_ node]
 
-set n0 [$ns node]
-set n1 [$ns node]
+	#$ns_ duplex-link $n0 $n1 8Mb 5ms DropTail
+	$self dlink $n0 $n1 8Mb 5ms DropTail
 
-$ns duplex-link $n0 $n1 8Mb 5ms DropTail
+	$ns_ attach-agent $n0 $ta_
+	set na [$ns_ nullagent]
 
-$ns attach-agent $n0 $a
-$ns attach-agent $n1 $b
-$ns connect $a $b
+	set tfchan_ [open $tfname w]
+	$ns_ monitor-queue $n0 $n1 $tfchan_
+	$ns_ attach-agent $n1 $na
+	$ns_ connect $ta_ $na
+}
 
-$ns run
+TestEmul instproc run {} {
+	global sap_addr sap_port stoptime
+	$self instvar net_ ns_
+	$self makenet IP/UDP
+	$self maketopo emout.tr
+	$net_ bind $sap_addr $sap_port
+	puts "running..."
+	$ns_ at $stoptime "$self finish"
+	$ns_ run
+}
+
+TestEmul instproc finish {} {
+	$self instvar tfchan_ ns_
+	puts "emulation complete.., writing output file"
+	$ns_ halt
+	$ns_ dumpq
+	close $tfchan_
+	exit 0
+}
+
+TestEmul instproc dlink { n1 n2 bw delay type } {
+	$self instvar ns_
+	$ns_ simplex-link $n1 $n2 $bw $delay $type
+	$ns_ simplex-link $n2 $n1 $bw $delay $type
+}
+
+TestEmul instance
+instance run
