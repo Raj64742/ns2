@@ -1875,7 +1875,7 @@ sparc-sun-sunos*)
 	V_SHM=""
 	V_TARCMD="tar cfL"
 	V_CCOPT="-O2 -m486"
-	V_LIB="$V_LIB -lipc"
+	V_LIB="$V_LIB -ldl"
 	;;
 *-*-netbsd*)
 	V_TARCMD="tar -h -c -f"
