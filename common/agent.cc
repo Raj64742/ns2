@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.67 2001/03/28 06:23:54 xuanc Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.68 2001/05/22 07:42:53 haoboy Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -108,7 +108,7 @@ Agent::delay_bind_dispatch(const char *varName, const char *localName, TclObject
 Agent::~Agent()
 {
 	if (oldValueList_ != NULL) {
-		OldValue *p;
+		OldValue *p = oldValueList_;
 		while (oldValueList_ != NULL) {
 			oldValueList_ = oldValueList_->next_;
 			delete p;
