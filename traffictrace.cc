@@ -15,6 +15,11 @@
  * These notices must be retained in any copies of any part of this software.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/traffictrace.cc,v 1.4 1997/07/22 21:49:07 kfall Exp $ (Xerox)";
+#endif
+
 /* XXX: have not dealt with errors.  e.g., if something fails during
  * TraceFile::setup(), or TrafficTrace is not pointing to a TraceFile,
  * no guarantee about results.
@@ -81,7 +86,7 @@ class TrafficTrace : public TrafficGenerator {
 static class TraceFileClass : public TclClass {
  public:
 	TraceFileClass() : TclClass("Tracefile") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TraceFile());
 	}
 } class_tracefile;
@@ -100,6 +105,7 @@ int TraceFile::command(int argc, const char*const* argv)
 			return(TCL_OK);
 		}
 	}
+	return (NsObject::command(argc, argv));
 }
 
 void TraceFile::get_next(int& ndx, struct tracerec& t)
@@ -168,7 +174,7 @@ void TraceFile::recv(Packet*, Handler*)
 static class TrafficTraceClass : public TclClass {
  public:
 	TrafficTraceClass() : TclClass("Traffic/Trace") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 	        return(new TrafficTrace());
 	}
 } class_traffictrace;
