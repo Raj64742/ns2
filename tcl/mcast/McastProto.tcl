@@ -53,16 +53,23 @@ McastProtocol instproc handle-wrong-iif args {
 }
 
 McastProtocol instproc annotate args {
-	$self instvar dynT_ node_
+	$self instvar dynT_ node_ ns_
+	set s "[$ns_ now] [$node_ id] $args" ;#nam wants uinique first arg???
 	if [info exists dynT_] {
 		foreach tr $dynT_ {
-			$tr annotate [list [$node_ id] $args]
+			$tr annotate $s
 		}
 	}
 }
 
-McastProtocol instproc join-group  g	{ $self annotate $proc $g }
-McastProtocol instproc leave-group g	{ $self annotate $proc $g }
+McastProtocol instproc join-group  g	{ 
+	$self instvar node_ ns_
+	$self annotate $proc $g 
+}
+McastProtocol instproc leave-group g	{ 
+	$self instvar node_ ns_
+	$self annotate $proc $g 
+}
 McastProtocol instproc trace { f src {op ""} } {
         $self instvar ns_ dynT_
 	if {$op == "nam" && [info exists dynT_] > 0} {
