@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.34 2000/08/20 04:56:12 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.35 2000/10/03 17:41:16 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -837,16 +837,16 @@ Test/ungentleBadParams instproc init {} {
     $self next
 }
 
-Class Test/gentleBadParams -superclass TestSuite
-Test/gentleBadParams instproc init {} {
-    $self instvar net_ test_
-    set net_ net3 
-    set test_ gentleBadParams
-    Queue/RED set gentle_ true
-    Queue/RED set linterm_ 50
-    Queue/RED set maxthresh_ 10
-    Test/gentleBadParams instproc run {} [Test/ungentle info instbody run ]
-    $self next
-}
+# Class Test/gentleBadParams -superclass TestSuite
+# Test/gentleBadParams instproc init {} {
+#     $self instvar net_ test_
+#     set net_ net3 
+#     set test_ gentleBadParams
+#     Queue/RED set gentle_ true
+#     Queue/RED set linterm_ 50
+#     Queue/RED set maxthresh_ 10
+#     Test/gentleBadParams instproc run {} [Test/ungentle info instbody run ]
+#     $self next
+# }
 
 TestSuite runTest
