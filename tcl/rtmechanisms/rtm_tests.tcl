@@ -20,6 +20,7 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
 	$self instvar High_const_
 	$self instvar Unresp_droprate_factor_
 	$self instvar Unresp_flowbw_factor_
+	$self instvar PUFrac_
 
 	set verbose_ 6	; #-1 means no messages
 	set cbqlink_ $cbqlink
@@ -45,8 +46,10 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
         set Max_cbw_ 46750
         set Maxallot_ 0.98          
         set Mintime_ 0.5
-	set Unresp_droprate_factor_ 3
-	set Unresp_flowbw_factor_ 0.9
+	#set Unresp_droprate_factor_ 3
+	set Unresp_droprate_factor_ 2
+	set Unresp_flowbw_factor_ 0.8
+	set PUFrac_ 0.98
 	#
 	# Set High_const_ to INFINITY to turn off HIGH-BANDWIDTH test.
 	#
@@ -77,17 +80,20 @@ RTMechanisms instproc test_unresponsive_initial { flow flow_bw droprate lastidx 
 	$self instvar flowhist_
 
 	set idx [$self fhist-mindroprate $flow]
-	if { $idx >= 0 && $idx != $lastidx &&
-		$droprate > [expr $Unresp_droprate_factor_ * \
+	if { $idx >= 0 && $idx != $lastidx } {
+		$self vprint 1 "UNRES-INIT: droprate: $droprate, past drop rate: $flowhist_($idx,droprate)"
+		$self vprint 1 "UNRES-INIT: flow_bw: $flow_bw, past bw: $flowhist_($idx,bandwidth)"
+		if { $droprate > [expr $Unresp_droprate_factor_ * \
 		    $flowhist_($idx,droprate)] &&
 		$flow_bw > [expr $Unresp_flowbw_factor_ * \
 		    $flowhist_($idx,bandwidth)] } {
 
-		if { $flowhist_($idx,name) != $flow } {
-			error "unresp_init: flow wrong!"
+			if { $flowhist_($idx,name) != $flow } {
+				error "unresp_init: flow wrong!"
+			}
+			$self vprint 0 "UNRESPONSIVE-TEST: FAILED (flow: $flow fbw: $flow_bw, droprate: $droprate"
+			return "fail"
 		}
-		$self vprint 0 "UNRESPONSIVE-TEST: FAILED (flow: $flow fbw: $flow_bw, droprate: $droprate"
-		return "fail"
 	}
 	$self vprint 1 "idx $idx lastidx $lastidx" 
 	$self vprint 0 "UNRESPONSIVE-TEST: OK (flow: $flow fbw: $flow_bw, droprate: $droprate"
@@ -96,7 +102,7 @@ RTMechanisms instproc test_unresponsive_initial { flow flow_bw droprate lastidx 
 
 # is a flow unresponsive for a 2nd time
 RTMechanisms instproc test_unresponsive_again { flow flow_bw droprate bwfrac drfrac } {
-	$self instvar flowhist_
+	$self instvar flowhist_ state_
 	if { $flow_bw == "0" } {
 		return "ok"
 	}
