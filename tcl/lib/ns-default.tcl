@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.340 2004/10/26 22:59:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.341 2004/10/28 01:19:38 sfloyd Exp $
 
 
 #
@@ -290,6 +290,13 @@ QueueMonitor set bdepartures_ 0
 QueueMonitor set pdrops_ 0
 QueueMonitor set pmarks_ 0
 QueueMonitor set bdrops_ 0
+
+QueueMonitor set qs_pkts_ 0
+QueueMonitor set qs_bytes_ 0
+QueueMonitor set qs_drops_ 0
+
+QueueMonitor set first_pkt_ 0
+QueueMonitor set last_pkt_ 0
 
 #added for keeping RTT stats
 QueueMonitor set keepRTTstats_ 0
@@ -890,6 +897,9 @@ Agent/TCP set cwnd_range_ 0 ;		# cwnd_frac_ deleted on 6/6/04,
 Agent/TCP set rate_request_ 0
 Agent/TCP set qs_enabled_ false
 Agent/TCP set tcp_qs_recovery_ true ;	# Added on 2004/09/21, by Pasi.
+Agent/TCP set qs_request_mode_ 1
+Agent/TCP set qs_rtt_ 50
+Agent/TCP set qs_thresh_ 4
 
 # These are all variables for tracing information.
 Agent/TCP set ndatapack_ 0
@@ -1310,10 +1320,12 @@ Agent/TCP/Newreno/QS set rate_request_ 128
 Agent/QSAgent set qs_enabled_ 1
 Agent/QSAgent set old_classifier_ 0
 Agent/QSAgent set state_delay_ 0.25
-Agent/QSAgent set alloc_rate_ 0.01
+Agent/QSAgent set alloc_rate_ 0.6
+Agent/QSAgent set threshold_ 0.4
 Agent/QSAgent set max_rate_ 256
 Agent/QSAgent set mss_ [Agent/TCP set packetSize_]
-Agent/QSAgent set rate_function_ 1
+Agent/QSAgent set rate_function_ 2
+Agent/QSAgent set algorithm_ 2
 
 Agent/TCPSink/QS set sport_        0
 Agent/TCPSink/QS set dport_        0         
@@ -1325,6 +1337,8 @@ Agent/TCPSink/QS set generateDSacks_ false
 Agent/TCPSink/QS set RFC2581_immediate_ack_ true
 
 Queue set util_weight_ 0.8
+Queue set util_check_intv_ 1
+Queue set util_records_ 0
 
 # Quick Start definitions end here
 

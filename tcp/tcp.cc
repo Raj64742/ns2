@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.154 2004/10/26 22:59:42 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.155 2004/10/28 01:19:38 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -179,6 +179,9 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("rate_request_");
 	delay_bind_init_one("qs_enabled_");
 	delay_bind_init_one("tcp_qs_recovery_");
+	delay_bind_init_one("qs_request_mode_");
+	delay_bind_init_one("qs_thresh_");
+	delay_bind_init_one("qs_rtt_");
 
 	delay_bind_init_one("frto_enabled_");
 	delay_bind_init_one("sfrto_enabled_");
@@ -628,6 +631,10 @@ void TcpAgent::output(int seqno, int reason)
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
  
+	// Mark packet for diagnosis purposes if we are in Quick-Start Phase
+	if (qs_approved_) {
+		hf->qs() = 1;
+	}
  
         // store timestamps, with bugfix_ts_.  From Andrei Gurtov. 
 	// (A real TCP would use scoreboard for this.)
@@ -677,13 +684,31 @@ void TcpAgent::output(int seqno, int reason)
 		}
 		if (qs_enabled_) {
 			hdr_qs *qsh = hdr_qs::access(p);
-		    	if (rate_request_ > 0) {
+
+			// dataout is kilobytes queued for sending
+			int dataout = (curseq_ - maxseq_ - 1) * (size_ + headersize()) / 1024;
+			int qs_rr = rate_request_;
+			if (qs_request_mode_ == 1) {
+				// PS: Avoid making unnecessary QS requests
+				// use a rough estimation of RTT in qs_rtt_
+				// to calculate the desired rate from dataout.
+				if (dataout * 1000 / qs_rtt_ < qs_rr) {
+					qs_rr = dataout * 1000 / qs_rtt_;
+				}
+				// qs_thresh_ is minimum number of unsent
+				// segments needed to activate QS request
+				if ((curseq_ - maxseq_ - 1) < qs_thresh_) {
+					qs_rr = 0;
+				}
+			}
+
+		    	if (qs_rr > 0) {
 				// QuickStart code from Srikanth Sundarrajan.
 				qsh->flag() = QS_REQUEST;
 				Random::seed_heuristically();
 				qsh->ttl() = Random::integer(256);
 				ttl_diff_ = (iph->ttl() - qsh->ttl()) % 256;
-				qsh->rate() = hdr_qs::Bps_to_rate(rate_request_* 1024);
+				qsh->rate() = hdr_qs::Bps_to_rate(qs_rr * 1024);
 				qs_requested_ = 1;
 		    	} else {
 				qsh->flag() = QS_DISABLE;
@@ -856,7 +881,7 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 	if (burstsnd_timer_.status() == TIMER_PENDING)
 		return;
 	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
-		if (overhead_ == 0 || force) {
+		if (overhead_ == 0 || force || qs_approved_) {
 			output(t_seqno_, reason);
 			npackets++;
 			if (QOption_)
@@ -865,7 +890,11 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 			if (qs_approved_ == 1) {
 				// delay = effective RTT / window
 				double delay = (double) t_rtt_ * tcp_tick_ / win;
-				delsnd_timer_.resched(delay);
+				if (overhead_) { 
+					delsnd_timer_.resched(delay + Random::uniform(overhead_));
+				} else {
+					delsnd_timer_.resched(delay);
+				}
 				return;
 			}
 		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
@@ -1552,7 +1581,6 @@ void TcpAgent::processQuickStart(Packet *pkt)
 	qs_approved_ = 0;
 	if (qsh->flag() == QS_RESPONSE && qsh->ttl() == ttl_diff_ && 
             qsh->rate() > 0) {
-                app_rate = (int) (qsh->rate() * (now - tcph->ts_echo())) ;
                 app_rate = (int) (hdr_qs::rate_to_Bps(qsh->rate()) *
                       (now - tcph->ts_echo()) / (size_ + headersize()));
 #ifdef QS_DEBUG

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.116 2004/10/26 22:59:42 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.117 2004/10/28 01:19:39 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -424,6 +424,18 @@ protected:
         int qs_cwnd_; /* Initial window for Quick-Start */
         int tcp_qs_recovery_; /* != 0 if we apply slow start on packet
                                  losses during QS window */
+	int qs_request_mode_;   /* 1 = Try to avoid unnecessary QS requests
+				   for short flows. Use qs_rtt_ as the RTT
+				   used in window calculation.
+				   2 = Always request 'rate_request_' bytes,
+				   regardless of flow size */
+	int qs_thresh_;         /* Do not use QS if there are less data to send
+				   than this. Applies only if
+				   qs_request_mode_ == 1 */
+	int qs_rtt_;            /* QS needs some assumption of the RTT in
+				   in order to be able to determine how much
+				   it needs for rate request with given amount
+				   of data to send. milliseconds. */
 	int ttl_diff_;
         /* end of section for Quick-Start. */
 
