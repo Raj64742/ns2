@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.8 2001/05/27 02:14:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.9 2001/07/03 16:44:30 haldar Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno.tcl
@@ -90,17 +90,18 @@ Topology/net4 instproc init ns {
 
 
 TestSuite instproc finish file {
-	global quiet wrap PERL
-        exec $PERL ../../bin/set_flow_id -s all.tr | \
-          $PERL ../../bin/getrc -s 2 -d 3 | \
-          $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
-	if {$quiet == "false"} {
-		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
-	}
-        ## now use default graphing tool to make a data file
-	## if so desired
-	# exec csh gnuplotC.com temp.rands $file
-        exit 0
+    global quiet wrap PERL
+    exec $PERL ../../bin/set_flow_id -s all.tr | \
+	    $PERL ../../bin/getrc -e -s 2 -d 3 | \
+	    $PERL ../../bin/raw2xg -v -s 0.01 -m $wrap -t $file > temp.rands
+
+    if {$quiet == "false"} {
+	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+    }
+    ## now use default graphing tool to make a data file
+    ## if so desired
+    # exec csh gnuplotC.com temp.rands $file
+    exit 0
 }
 
 TestSuite instproc emod {} {
@@ -130,7 +131,7 @@ TestSuite instproc setTopo {} {
     [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
 }
 
-TestSuite instproc setup {tcptype list} {
+TestSuite instproc setup {tcptype window list} {
 	global wrap wrap1
         $self instvar ns_ node_ testName_
 	$self setTopo
@@ -148,7 +149,9 @@ TestSuite instproc setup {tcptype list} {
       		set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
           	TCPSink/DelAck $node_(k1) $fid]
     	}
-        $tcp1 set window_ 5
+
+        #$tcp1 set window_ 5
+	$tcp1 set window_ $window
         set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 1.0 "$ftp1 start"
 
@@ -160,35 +163,6 @@ TestSuite instproc setup {tcptype list} {
         $ns_ run
 }
 
-TestSuite instproc setup1 {tcptype list} {
-	global wrap wrap1
-        $self instvar ns_ node_ testName_
-	$self setTopo
-
-        Agent/TCP set bugFix_ false
-	set fid 1
-        # Set up TCP connection
-    	if {$tcptype == "Tahoe"} {
-      		set tcp1 [$ns_ create-connection TCP $node_(s1) \
-          	TCPSink/DelAck $node_(k1) $fid]
-    	} elseif {$tcptype == "Sack1"} {
-      		set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
-          	TCPSink/Sack1/DelAck  $node_(k1) $fid]
-    	} else {
-      		set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
-          	TCPSink/DelAck $node_(k1) $fid]
-    	}
-        $tcp1 set window_ 8
-        set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 1.0 "$ftp1 start"
-
-        $self tcpDump $tcp1 4.0
-        $self drop_pkts $list
-
-        #$self traceQueues $node_(r1) [$self openTrace 4.01 $testName_]
-	$ns_ at 4.01 "$self cleanupAll $testName_"
-        $ns_ run
-}
 
 # Definition of test-suite tests
 
@@ -204,7 +178,7 @@ Test/Tahoe_TCP instproc init {} {
 	$self next
 }
 Test/Tahoe_TCP instproc run {} {
-        $self setup Tahoe {15 18}
+    $self setup Tahoe {5} {15 18}
 }
 
 Class Test/Tahoe_TCP_without_Fast_Retransmit -superclass TestSuite
@@ -216,7 +190,7 @@ Test/Tahoe_TCP_without_Fast_Retransmit instproc init {} {
 	$self next
 }
 Test/Tahoe_TCP_without_Fast_Retransmit instproc run {} {
-        $self setup Tahoe {15 18}
+    $self setup Tahoe {5} {15 18}
 }
 
 Class Test/Reno_TCP -superclass TestSuite
@@ -227,7 +201,7 @@ Test/Reno_TCP instproc init {} {
 	$self next
 }
 Test/Reno_TCP instproc run {} {
-        $self setup Reno {15 18}
+    $self setup Reno {5} {15 18}
 }
 
 Class Test/NewReno_TCP -superclass TestSuite
@@ -239,7 +213,7 @@ Test/NewReno_TCP instproc init {} {
 	$self next
 }
 Test/NewReno_TCP instproc run {} {
-        $self setup Newreno {15 18}
+    $self setup Newreno {5} {15 18}
 }
 
 Class Test/Sack_TCP -superclass TestSuite
@@ -251,7 +225,7 @@ Test/Sack_TCP instproc init {} {
 	$self next
 }
 Test/Sack_TCP instproc run {} {
-        $self setup Sack1 {15 18}
+    $self setup Sack1 {5} {15 18}
 }
 
 ###################################################
@@ -266,7 +240,8 @@ Test/Tahoe_TCP2 instproc init {} {
 	$self next
 }
 Test/Tahoe_TCP2 instproc run {} {
-        $self setup1 Tahoe {17}
+        #$self setup1 Tahoe {17}
+	$self setup Tahoe {8} {17}
 }
 
 Class Test/Tahoe_TCP2_without_Fast_Retransmit -superclass TestSuite
@@ -278,7 +253,8 @@ Test/Tahoe_TCP2_without_Fast_Retransmit instproc init {} {
 	$self next
 }
 Test/Tahoe_TCP2_without_Fast_Retransmit instproc run {} {
-        $self setup1 Tahoe {17}
+        #$self setup1 Tahoe {17}
+	$self setup Tahoe {8} {17}
 }
 
 Class Test/Reno_TCP2 -superclass TestSuite
@@ -289,7 +265,7 @@ Test/Reno_TCP2 instproc init {} {
 	$self next
 }
 Test/Reno_TCP2 instproc run {} {
-        $self setup1 Reno {17}
+    $self setup Reno {8} {17}
 }
 
 Class Test/NewReno_TCP2 -superclass TestSuite
@@ -301,7 +277,7 @@ Test/NewReno_TCP2 instproc init {} {
 	$self next
 }
 Test/NewReno_TCP2 instproc run {} {
-        $self setup1 Newreno {17}
+    $self setup Newreno {8} {17}
 }
 
 Class Test/Sack_TCP2 -superclass TestSuite
@@ -313,7 +289,7 @@ Test/Sack_TCP2 instproc init {} {
 	$self next
 }
 Test/Sack_TCP2 instproc run {} {
-        $self setup1 Sack1 {17}
+    $self setup Sack1 {8} {17}
 }
 
 TestSuite runTest
