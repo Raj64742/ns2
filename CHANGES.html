@@ -5,7 +5,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.113 1997/07/26 00:31:12 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.114 1997/07/27 01:01:16 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -33,7 +33,7 @@
        Configure now checks for libTcl-1.0b2.
 
     <li><b><a href="http://www.isi.edu/~kkumar/">[SK]</a>
-	  Fri Jul 25 12:49:36 PDT 1997
+	  Fri Jul 25 12:49:36 PDT 1997</b><br>
       Made modifications to remove MultiSim and MultiNode.
       Files affected: ns-lib.tcl, ns-node.tcl, ns-mcast.tcl, CtrMcast.tcl
 
@@ -48,7 +48,7 @@ window during Fast Recovery.
 <LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
 <B>Fri Jul 25 02:32:43 PDT 1997</B><BR>
 	<UL>
-	<LI> Added semantic-packetqueue.{cc,h}: a derived class of PacketQueue that understands higher-layer (e.g., TCP) semantics. To enable the creation and configuration of a PacketQueue/Semantic object in Tcl, PacketQueue is now derived from TcpObject.
+	<LI> Added semantic-packetqueue.{cc,h}: a derived class of PacketQueue that understands higher-layer (e.g., TCP) semantics. To enable the creation and configuration of a PacketQueue/Semantic object in Tcl, PacketQueue is now derived from TclObject.
 	<LI> tcp*.{cc,h}: Got rid of the return-by-reference functions for the traced member variables of TcpAgent.
 	</UL>
     <LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Thu Jul 24 16:02:27 PDT 1997<BR>
