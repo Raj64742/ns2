@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.194 2000/07/20 00:37:00 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.195 2000/07/20 00:44:10 haoboy Exp $
 
 #
 
@@ -136,6 +136,10 @@ source ns-namsupp.tcl
 source ../mobility/dsdv.tcl
 source ../mobility/dsr.tcl
 source ../mobility/com.tcl
+
+source ../plm/plm.tcl
+source ../plm/plm-ns.tcl
+source ../plm/plm-topo.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
