@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.13 2002/03/14 01:18:09 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.14 2002/09/17 18:27:02 haldar Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -67,7 +67,7 @@
 #define DROP_MAC_INVALID_STATE		"STA"
 #define DROP_MAC_BUSY			"BSY"
 #define DROP_MAC_INVALID_DST            "DST"
-
+#define DROP_MAC_SLEEP                  "SLP"   // smac sleep state
 
 #define DROP_RTR_NO_ROUTE		"NRTE"  // no route
 #define DROP_RTR_ROUTE_LOOP		"LOOP"  // routing loop

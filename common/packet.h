@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.90 2002/06/14 23:15:02 yuri Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.91 2002/09/17 18:27:03 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -55,6 +55,7 @@
 #define HDR_MAC(p)      (hdr_mac::access(p))
 #define HDR_MAC802_11(p) ((hdr_mac802_11 *)hdr_mac::access(p))
 #define HDR_MAC_TDMA(p) ((hdr_mac_tdma *)hdr_mac::access(p))
+#define HDR_SMAC(p)     ((hdr_smac *)hdr_mac::access(p))
 #define HDR_LL(p)       (hdr_ll::access(p))
 #define HDR_IP(p)       (hdr_ip::access(p))
 #define HDR_RTP(p)      (hdr_rtp::access(p))
