@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.22 1998/06/27 01:23:27 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.23 1998/08/05 18:24:10 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -93,38 +93,56 @@ void Channel::recv(Packet* p, Handler*)
 }
 
 
+// send():
+//  The packet occupies the channel for the transmission time, txtime
+//  If collision occur (>1 pkts overlap), corrupt all pkts involved
+//	by setting the error bit or discard them if nodrop_ is not set
+
 int Channel::send(Packet* p, double txtime)
 {
 	// without collision, return 0
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
+
+	// busy = time when the channel are still busy with earlier tx
 	double busy = max(txstop_, cwstop_);
-	txstop_ = now + txtime;
+
+	// txstop = when the channel is no longer busy from this tx
+	txstop_ = max(busy, now + txtime);
+
+	// now < busy => collision
+	//	mark the pkt error bit, EF_COLLISION
+	//	drop if there is a drop target, drop_
 	if (now < busy) {
-		int discard = (! nodrop_);
-		((hdr_cmn*)p->access(off_cmn_))->error() |= EF_COLLISION;
+		// if still transmit earlier packet, pkt_, then corrupt it
 		if (pkt_ && pkt_->time_ > now) {
-			hdr_mac* mh = hdr_mac::access(pkt_);
-			hdr_mac* mh2 = hdr_mac::access(p);
-			((hdr_cmn*)pkt_->access(off_cmn_))->error() |= EF_COLLISION;
-			if (discard) {
+			hdr_cmn::access(pkt_)->error() |= EF_COLLISION;
+			if (drop_) {
 				s.cancel(pkt_);
 				drop(pkt_);
 				pkt_ = 0;
 			}
-			else if (mh->macDA() == mh2->macDA())
-				discard = 1;
 		}
-		if (discard) {
+
+		// corrupts the current packet p, and drop if drop_ exists
+		hdr_cmn::access(p)->error() |= EF_COLLISION;
+		if (drop_) {
 			drop(p);
 			return 1;
 		}
 	}
+
+	// if p was not dropped, call recv() or hand it to trace_ if present
 	pkt_ = p;
 	trace_ ? trace_->recv(p, 0) : recv(p, 0);
 	return 0;
 }
 
+
+// contention():
+//  The MAC calls this Channel::contention() to enter contention period
+//  It determines when the contention window is over, cwstop_,
+//	and schedule a callback to the MAC for the actual send()
 
 void Channel::contention(Packet* p, Handler* h)
 {
@@ -139,7 +157,11 @@ void Channel::contention(Packet* p, Handler* h)
 }
 
 
-int Channel::hold(double txtime)
+// jam():
+//  Jam the channel for a period txtime
+//  Some MAC protocols use this to let other MAC detect collisions
+
+int Channel::jam(double txtime)
 {
 	// without collision, return 0
 	double now = Scheduler::instance().clock();
