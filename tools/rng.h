@@ -35,7 +35,7 @@
 
 // #ifndef lint
 // static const char rcsid[] =
-//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.3 1997/09/08 21:32:43 heideman Exp $ (LBL)";
+//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.4 1997/10/19 03:31:06 heideman Exp $ (LBL)";
 // #endif
 
 /* new random number generator */
@@ -44,18 +44,11 @@
 #ifndef _rng_h_
 #define _rng_h_
 
-// Define rng_tcl to enable the TclCL interfaces.
-#define rng_tcl
-
 // Define rng_test to build the test harness.
 #define rng_test
 
 #include <math.h>
 #include <stdlib.h>   // for atoi
-
-#ifdef rng_tcl
-#include "Tcl.h"
-#endif
 
 /*
  * RNGImplementation is internal---do not use it, use RNG.
@@ -76,11 +69,7 @@ private:
 /*
  * Use class RNG in real programs.
  */
-class RNG
-#ifdef rng_tcl
-	: public TclObject
-#endif /* rng_tcl */
-				{
+class RNG : public TclObject {
 
 public:
 	enum RNGSources { RAW_SEED_SOURCE, PREDEF_SEED_SOURCE, HEURISTIC_SEED_SOURCE };
@@ -92,9 +81,7 @@ public:
 	int seed() { return stream_.seed(); }
 	static RNG* defaultrng() { return (default_); }
 
-#ifdef rng_tcl
 	int command(int argc, const char*const* argv);
-#endif
 
 	// These are primitive but maybe useful.
 	inline int uniform_positive_int() {  // range [0, MAXINT]
