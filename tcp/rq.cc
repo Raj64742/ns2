@@ -566,10 +566,10 @@ dumplist();
  * of the block.  If not, return -1, but 
  */
 int
-ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt)
+ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt, int& nxtbytes)
 {
 
-	nxtcnt = -1;
+	nxtbytes = nxtcnt = -1;
 	hint_ = head_;
 #ifdef notdef
 	if (hint_ == NULL) {
@@ -584,6 +584,7 @@ again:
 		// so it looksl like a legit "hole"
 		if (p->startseq_ > seq) {
 			nxtcnt = p->cnt_;
+			nxtbytes = (p->endseq_ - p->startseq_);
 			return (seq);
 //return (-1);
 		}
@@ -592,8 +593,10 @@ again:
 		// so the hole is at the end of the region
 		if ((p->startseq_ <= seq) && (p->endseq_ >= seq)) {
 			//hint_ = p;
-			if (p->next_)
+			if (p->next_) {
 				nxtcnt = p->next_->cnt_;
+				nxtbytes = (p->next_->endseq_ - p->next_->startseq_);
+			}
 			return (p->endseq_);
 		}
 	}
