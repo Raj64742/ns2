@@ -166,9 +166,7 @@ void TfrcAgent::nextpkt()
 
 void TfrcAgent::update_rtt (double tao, double now) 
 {
-
 	/* the TCP update */
-
 	t_rtt_ = int((now-tao) /tcp_tick_ + 0.5);
 	if (t_rtt_==0) t_rtt_=1;
 	if (t_srtt_ != 0) {
@@ -178,8 +176,8 @@ void TfrcAgent::update_rtt (double tao, double now)
 			t_srtt_ = 1;
 		if (delta < 0)
 			delta = -delta;
-	  delta -= (t_rttvar_ >> T_RTTVAR_BITS);
-	  if ((t_rttvar_ += delta) <= 0)  
+	  	delta -= (t_rttvar_ >> T_RTTVAR_BITS);
+	  	if ((t_rttvar_ += delta) <= 0)  
 			t_rttvar_ = 1;
 	} else {
 		t_srtt_ = t_rtt_ << T_SRTT_BITS;		
@@ -188,14 +186,12 @@ void TfrcAgent::update_rtt (double tao, double now)
 	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) + t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
 	tzero_=t_rtxcur_;
 
-	/* fine grained RTT estimate */
-
+	/* fine grained RTT estimate for use in the equation */
 	if (rtt_ > 0) {
 		rtt_ = df_*rtt_ + ((1-df_)*(now - tao));
 	} else {
 		rtt_ = now - tao;
 	}
-
 }
 
 /*
@@ -317,33 +313,37 @@ void TfrcAgent::slowstart ()
 	nextpkt();
 }
 
-void TfrcAgent::increase_rate (double p) 
-{
-	double now = Scheduler::instance().clock(); 
-
+void TfrcAgent::increase_rate (double p)
+{               
+        double newrate, newrate1, mult;
+        double now = Scheduler::instance().clock();
 	if (p < 0) {
 		printf ("error\n"); 
 		abort();
 	}
-	rate_change_ = CONG_AVOID;
-	if (rate_ < size_/rtt_) {
-		// The sending rate is less than one pkt/RTT.
-		rate_ = (rcvrate + rate_)/2;
-		if (rate_ > maxrate_)
-			rate_ = maxrate_;
-  	}
-	else {
-		// Increase the sending rate by at most one pkt/RTT.
-		double mult = (now-last_change_)/rtt_ ;
-		if (mult > 2) 
-			mult = 2 ;
-		rate_ = rate_ + (size_/rtt_)*mult ;
-		if (rate_ > maxrate_)
-			rate_ = maxrate_;
-	}       
-	oldrate_ = rate_;
-	last_change_ = now;
-}
+        rate_change_ = CONG_AVOID;  
+        // Calculate the new sending rate for increase of one pkt/RTT.
+        mult = (now-last_change_)/rtt_ ;
+        if (mult > 2)
+                mult = 2 ;
+        newrate = rate_ + (size_/rtt_)*mult ; 
+        // Calculate the new sending rate for a limited increase.
+        newrate1 = (rate_ + rcvrate)/2;
+        // Make the increase in the sending rate:
+        if (rate_ < size_/rtt_ && newrate1 < newrate) {
+                // The sending rate is less than one pkt/RTT.
+                rate_ = newrate1;
+        } else {
+                // Increase the sending rate by at most one pkt/RTT.
+                rate_ = newrate;
+        }
+        if (rate_ > maxrate_)
+                rate_ = maxrate_;
+        if (rate_ > rcvrate)
+                rate_ = rcvrate;
+        oldrate_ = rate_;
+        last_change_ = now;
+}       
 
 void TfrcAgent::decrease_rate (double p) 
 {
