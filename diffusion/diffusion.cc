@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.10 2001/06/05 23:49:44 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.11 2001/11/08 18:16:32 haldar Exp $
 
 /****************************************************************/
 /* diffusion.cc : Chalermek Intanagonwiwat (USC/ISI)  05/18/99  */
@@ -62,12 +62,12 @@ char *MsgStr[]= {"", "INTEREST", "DATA", "DATA_READY", "DATA_REQUEST",
 		"POS_REINFORCE", "NEG_REINFORCE", "INHIBIT", "TX_FAILED",
 		"DATA_STOP" };
 
-int hdr_diff::offset_;
+int hdr_cdiff::offset_;
 static class DiffHeaderClass : public PacketHeaderClass {
 public:
 	DiffHeaderClass() : PacketHeaderClass("PacketHeader/Diffusion", 
-					      sizeof(hdr_diff)) {
-		bind_offset(&hdr_diff::offset_);
+					      sizeof(hdr_cdiff)) {
+		bind_offset(&hdr_cdiff::offset_);
 	}
 } class_diffhdr;
 
@@ -97,11 +97,11 @@ void SendBufTimer::expire(Event *e)
 
 void DiffusionAgent::DataForSink(Packet *pkt)
 {
-  hdr_diff     *dfh  = HDR_DIFF(pkt);
+  hdr_cdiff     *dfh  = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   Agent_List   *cur_agent;
   Packet       *cur_pkt;
-  hdr_diff     *cur_dfh;
+  hdr_cdiff     *cur_dfh;
   hdr_ip       *cur_iph;
 
 
@@ -114,7 +114,7 @@ void DiffusionAgent::DataForSink(Packet *pkt)
       cur_iph       = HDR_IP(cur_pkt);
       cur_iph->dst_ = AGT_ADDR(cur_agent);
 
-      cur_dfh       = HDR_DIFF(cur_pkt);
+      cur_dfh       = HDR_CDIFF(cur_pkt);
       cur_dfh->forward_agent_id = here_;
       cur_dfh->num_next = 1;
       cur_dfh->next_nodes[0] = NODE_ADDR(cur_agent);
@@ -128,11 +128,11 @@ Packet *DiffusionAgent::prepare_message(unsigned int dtype, ns_addr_t to_addr,
 				  int msg_type)
 {
   Packet *pkt;
-  hdr_diff *dfh;
+  hdr_cdiff *dfh;
   hdr_ip *iph;
 
     pkt = create_packet();
-    dfh = HDR_DIFF(pkt);
+    dfh = HDR_CDIFF(pkt);
     iph = HDR_IP(pkt);
     
     dfh->mess_type = msg_type;
@@ -169,7 +169,7 @@ DiffusionAgent::DiffusionAgent() : Agent(PT_DIFF), arp_buf_timer(this),
 
 void DiffusionAgent::recv(Packet* packet, Handler*)
 {
-  hdr_diff* dfh = HDR_DIFF(packet);
+  hdr_cdiff* dfh = HDR_CDIFF(packet);
 
   // Packet Hash Table is used to keep info about experienced pkts.
 
@@ -369,7 +369,7 @@ Packet * DiffusionAgent:: create_packet()
   hdr_cmn*  cmh = HDR_CMN(pkt);
   cmh->size() = 36;
 
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   dfh->ts_ = NOW;
   return pkt;
 }
@@ -378,7 +378,7 @@ Packet * DiffusionAgent:: create_packet()
 void DiffusionAgent::MACprepare(Packet *pkt, nsaddr_t next_hop, 
 				int type, bool lk_dtct)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   hdr_cmn* cmh = HDR_CMN(pkt);
   hdr_ip*  iph = HDR_IP(pkt);
 
@@ -425,7 +425,7 @@ void DiffusionAgent::MACprepare(Packet *pkt, nsaddr_t next_hop,
 void DiffusionAgent::MACsend(Packet *pkt, Time delay)
 {
   hdr_cmn*  cmh = HDR_CMN(pkt);
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
 
   if (dfh->mess_type == DATA)
     cmh->size() = (God::instance()->data_pkt_size) + 4*(dfh->num_next - 1);
@@ -542,7 +542,7 @@ void DiffusionAgent::StickPacketInSendBuffer(Packet *p)
   
   // Before killing somebody, you'd better give him the last chance.
 
-  hdr_diff  *dfh = HDR_DIFF(send_buf[min_index].p);
+  hdr_cdiff  *dfh = HDR_CDIFF(send_buf[min_index].p);
   hdr_ip    *iph = HDR_IP(send_buf[min_index].p);
   int dtype = dfh->data_type;
 
@@ -563,7 +563,7 @@ void DiffusionAgent::StickPacketInSendBuffer(Packet *p)
 void DiffusionAgent::SendBufferCheck()
 {
   int c;
-  hdr_diff *dfh;
+  hdr_cdiff *dfh;
   hdr_cmn  *cmh;
   hdr_ip   *iph;
   int dtype;
@@ -573,7 +573,7 @@ void DiffusionAgent::SendBufferCheck()
     if (send_buf[c].p == NULL)
       continue;
     
-    dfh = HDR_DIFF(send_buf[c].p);
+    dfh = HDR_CDIFF(send_buf[c].p);
     cmh = HDR_CMN(send_buf[c].p);
     iph = HDR_IP(send_buf[c].p);
     dtype = dfh->data_type;

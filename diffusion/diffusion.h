@@ -123,7 +123,7 @@ class DiffusionAgent : public Agent {
   int command(int argc, const char*const* argv);
   void recv(Packet*, Handler*);
 
-  Routing_Entry  routing_table[MAX_DATA_TYPE];
+  Diff_Routing_Entry  routing_table[MAX_DATA_TYPE];
 
 
  protected:

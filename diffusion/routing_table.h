@@ -61,7 +61,7 @@
 
 // Routing Entry
 
-class Routing_Entry {
+class Diff_Routing_Entry {
  public:
   int      counter;
   int      num_active;
@@ -77,7 +77,7 @@ class Routing_Entry {
                                        // For Diffusion/RateGradient
   int new_org_counter;                 // Across all incoming gradients.
 
-  Routing_Entry();
+  Diff_Routing_Entry();
 
   void reset();
   void clear_outlist(Out_List *);

@@ -69,7 +69,7 @@ class Pkt_Hash_Table {
   }
 
   void reset();
-  void put_in_hash(hdr_diff *);
+  void put_in_hash(hdr_cdiff *);
   Pkt_Hash_Entry *GetHash(ns_addr_t sender_id, unsigned int pkt_num);
 };
 

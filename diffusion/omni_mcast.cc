@@ -84,11 +84,11 @@ void OmniMcastSendBufTimer::expire(Event *e)
 
 void OmniMcastAgent::DataForSink(Packet *pkt)
 {
-  hdr_diff     *dfh  = HDR_DIFF(pkt);
+  hdr_cdiff     *dfh  = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   Agent_List   *cur_agent;
   Packet       *cur_pkt;
-  hdr_diff     *cur_dfh;
+  hdr_cdiff     *cur_dfh;
   hdr_ip       *cur_iph;
 
 
@@ -99,7 +99,7 @@ void OmniMcastAgent::DataForSink(Packet *pkt)
       cur_iph       = HDR_IP(cur_pkt);
       cur_iph->dst_ = AGT_ADDR(cur_agent);
 
-      cur_dfh       = HDR_DIFF(cur_pkt);
+      cur_dfh       = HDR_CDIFF(cur_pkt);
       cur_dfh->forward_agent_id = here_;
       cur_dfh->num_next = 1;
       cur_dfh->next_nodes[0] = NODE_ADDR(cur_agent);
@@ -111,10 +111,10 @@ void OmniMcastAgent::DataForSink(Packet *pkt)
 
 void OmniMcastAgent::GodForwardData(Packet *pkt)
 {
-  hdr_diff     *dfh  = HDR_DIFF(pkt);
+  hdr_cdiff     *dfh  = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   Packet       *cur_pkt;
-  hdr_diff     *cur_dfh;
+  hdr_cdiff     *cur_dfh;
   hdr_ip       *cur_iph;
   nsaddr_t     src_node = (dfh->sender_id).addr_;
   int          ret_num_oif;
@@ -135,7 +135,7 @@ void OmniMcastAgent::GodForwardData(Packet *pkt)
       (cur_iph->dst_).addr_ = next_oif[i];
       (cur_iph->dst_).port_ = ROUTING_PORT;
 
-      cur_dfh       = HDR_DIFF(cur_pkt);
+      cur_dfh       = HDR_CDIFF(cur_pkt);
       cur_dfh->forward_agent_id = here_;
       cur_dfh->num_next = 1;
       cur_dfh->next_nodes[0] = next_oif[i];
@@ -153,11 +153,11 @@ Packet *OmniMcastAgent::prepare_message(unsigned int dtype, ns_addr_t to_addr,
 				  int msg_type)
 {
   Packet *pkt;
-  hdr_diff *dfh;
+  hdr_cdiff *dfh;
   hdr_ip *iph;
 
     pkt = create_packet();
-    dfh = HDR_DIFF(pkt);
+    dfh = HDR_CDIFF(pkt);
     iph = HDR_IP(pkt);
     
     dfh->mess_type = msg_type;
@@ -190,7 +190,7 @@ OmniMcastAgent::OmniMcastAgent() : Agent(PT_DIFF), arp_buf_timer(this),
 
 void OmniMcastAgent::recv(Packet* packet, Handler*)
 {
-  hdr_diff* dfh = HDR_DIFF(packet);
+  hdr_cdiff* dfh = HDR_CDIFF(packet);
 
   // Packet Hash Table is used to keep info about experienced pkts.
 
@@ -215,7 +215,7 @@ void OmniMcastAgent::recv(Packet* packet, Handler*)
 
 void OmniMcastAgent::ConsiderNew(Packet *pkt)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
@@ -225,7 +225,7 @@ void OmniMcastAgent::ConsiderNew(Packet *pkt)
   nsaddr_t   from_nodeID, forward_nodeID;
 
   Packet *gen_pkt;
-  hdr_diff *gen_dfh;
+  hdr_cdiff *gen_dfh;
 
   switch (msg_type) {
     case INTEREST : 
@@ -272,7 +272,7 @@ void OmniMcastAgent::ConsiderNew(Packet *pkt)
 
       God::instance()->AddSource(dtype, (dfh->sender_id).addr_);
       gen_pkt = prepare_message(dtype, dfh->sender_id, DATA_REQUEST);
-      gen_dfh = HDR_DIFF(gen_pkt);
+      gen_dfh = HDR_CDIFF(gen_pkt);
       gen_dfh->report_rate = ORIGINAL;
       send_to_dmux(gen_pkt, 0);
       Packet::free(pkt);
@@ -332,7 +332,7 @@ Packet * OmniMcastAgent:: create_packet()
   hdr_cmn*  cmh = HDR_CMN(pkt);
   cmh->size() = 36;
 
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   dfh->ts_ = NOW;
   return pkt;
 }
@@ -341,7 +341,7 @@ Packet * OmniMcastAgent:: create_packet()
 void OmniMcastAgent::MACprepare(Packet *pkt, nsaddr_t next_hop, 
 				unsigned int type, bool lk_dtct)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   hdr_cmn* cmh = HDR_CMN(pkt);
   hdr_ip*  iph = HDR_IP(pkt);
 
@@ -387,7 +387,7 @@ void OmniMcastAgent::MACprepare(Packet *pkt, nsaddr_t next_hop,
 void OmniMcastAgent::MACsend(Packet *pkt, Time delay)
 {
   hdr_cmn*  cmh = HDR_CMN(pkt);
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
 
   if (dfh->mess_type == DATA)
     cmh->size() = (God::instance()->data_pkt_size) + 4*(dfh->num_next - 1);

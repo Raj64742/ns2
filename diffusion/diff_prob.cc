@@ -101,7 +101,7 @@ DiffusionProb::DiffusionProb() : DiffusionAgent()
 
 void DiffusionProb::recv(Packet* packet, Handler*)
 {
-  hdr_diff* dfh = HDR_DIFF(packet);
+  hdr_cdiff* dfh = HDR_CDIFF(packet);
 
   // Packet Hash Table is used to keep info about experienced pkts.
 
@@ -134,7 +134,7 @@ void DiffusionProb::recv(Packet* packet, Handler*)
 
 void DiffusionProb::consider_old(Packet *pkt)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
@@ -191,7 +191,7 @@ void DiffusionProb::consider_old(Packet *pkt)
 
 void DiffusionProb::consider_new(Packet *pkt)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
@@ -455,7 +455,7 @@ void DiffusionProb::consider_new(Packet *pkt)
 void DiffusionProb::InterestPropagate(Packet *pkt, 
 					       Pkt_Hash_Entry *hashPtr)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   unsigned int dtype=dfh->data_type;
 
   CreateIOList(hashPtr, dtype);
@@ -475,11 +475,11 @@ void DiffusionProb::InterestPropagate(Packet *pkt,
 
 void DiffusionProb::ForwardData(Packet *pkt)
 {
-  hdr_diff     *dfh  = HDR_DIFF(pkt);
+  hdr_cdiff     *dfh  = HDR_CDIFF(pkt);
   unsigned int dtype =dfh->data_type;
   Out_List     *cur_out;
   Packet       *cur_pkt;
-  hdr_diff     *cur_dfh;
+  hdr_cdiff     *cur_dfh;
   hdr_ip       *cur_iph;
 
   cur_out = WHERE_TO_GO(routing_table[dtype].active);
@@ -493,7 +493,7 @@ void DiffusionProb::ForwardData(Packet *pkt)
 
       cur_iph->dst_ = AGT_ADDR(cur_out);
 
-      cur_dfh = HDR_DIFF(cur_pkt);
+      cur_dfh = HDR_CDIFF(cur_pkt);
       cur_dfh->forward_agent_id = here_;
       cur_dfh->num_next = 1;
       cur_dfh->next_nodes[0] = NODE_ADDR(cur_out);
@@ -549,7 +549,7 @@ void DiffusionProb::ForwardData(Packet *pkt)
   // YES, we are in backtracking mode so send TX_FAILED to the forwarder.
 
   cur_pkt = prepare_message(dtype, dfh->forward_agent_id, TX_FAILED);
-  cur_dfh = HDR_DIFF(cur_pkt);
+  cur_dfh = HDR_CDIFF(cur_pkt);
   cur_dfh->info.sender = dfh->sender_id;
   cur_dfh->info.seq = dfh->pk_num;
 
@@ -565,7 +565,7 @@ void DiffusionProb::ForwardData(Packet *pkt)
 
 void DiffusionProb::ForwardTxFailed(Packet *pkt)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   hdr_ip   *iph = HDR_IP(pkt);
 
   dfh->forward_agent_id = here_;
@@ -590,7 +590,7 @@ void DiffusionProb::ForwardTxFailed(Packet *pkt)
 
 void DiffusionProb::ReTxData(Packet *pkt)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);  
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);  
   Pkt_Hash_Entry *hashPtr=PktTable.GetHash(dfh->info.sender, dfh->info.seq);
 
   // Make sure it has data on its cache.
@@ -607,7 +607,7 @@ void DiffusionProb::ReTxData(Packet *pkt)
   if (to_out == NULL) return;
 
   Packet *rtxPkt = prepare_message(dtype, AGT_ADDR(to_out), DATA);
-  hdr_diff *rtx_dfh = HDR_DIFF(rtxPkt);
+  hdr_cdiff *rtx_dfh = HDR_CDIFF(rtxPkt);
   hdr_cmn  *rtx_cmh = HDR_CMN(rtxPkt);
 
   rtx_dfh->sender_id = dfh->info.sender;
@@ -811,7 +811,7 @@ void DiffusionProb::FwdPosReinf(unsigned int dtype, Packet *pkt)
 {
   In_List  *cur_in, *max_in=NULL;
   hdr_ip   *iph = HDR_IP(pkt);
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
 
   max_in = FIND_MAX_IN(routing_table[dtype].iif);
   if (max_in != NULL) {

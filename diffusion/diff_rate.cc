@@ -104,7 +104,7 @@ DiffusionRate::DiffusionRate() : DiffusionAgent()
 
 void DiffusionRate::recv(Packet* packet, Handler*)
 {
-  hdr_diff* dfh = HDR_DIFF(packet);
+  hdr_cdiff* dfh = HDR_CDIFF(packet);
 
   // Packet Hash Table is used to keep info about experienced pkts.
 
@@ -151,7 +151,7 @@ void DiffusionRate::recv(Packet* packet, Handler*)
 
 void DiffusionRate::consider_old(Packet *pkt)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   hdr_cmn* cmh = HDR_CMN(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
@@ -188,14 +188,14 @@ void DiffusionRate::consider_old(Packet *pkt)
 
 void DiffusionRate::consider_new(Packet *pkt)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   hdr_cmn * cmh = HDR_CMN(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
   Agent_List *agentPtr;
   Packet *gen_pkt;
-  hdr_diff *gen_dfh;
+  hdr_cdiff *gen_dfh;
 
   switch (msg_type) {
     case INTEREST : 
@@ -247,7 +247,7 @@ void DiffusionRate::consider_new(Packet *pkt)
       if (routing_table[dtype].active != NULL ||
 	    routing_table[dtype].sink != NULL) {
 	gen_pkt = prepare_message(dtype, dfh->sender_id, DATA_REQUEST);
-	gen_dfh = HDR_DIFF(gen_pkt);
+	gen_dfh = HDR_CDIFF(gen_pkt);
 	gen_dfh->report_rate = SUB_SAMPLED;
 	send_to_dmux(gen_pkt, 0);
 
@@ -323,7 +323,7 @@ void DiffusionRate::CheckNegCounter(int dtype)
 
 void DiffusionRate::InterestHandle(Packet *pkt)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   Agent_List *agentPtr;
 
@@ -445,10 +445,10 @@ void DiffusionRate::GradientTimeOut()
 
 bool DiffusionRate::FwdSubsample(Packet *pkt)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   Out_List *cur_out;
   Packet   *cur_pkt;
-  hdr_diff *cur_dfh;
+  hdr_cdiff *cur_dfh;
   hdr_ip   *cur_iph;
   unsigned int dtype = dfh->data_type;
 
@@ -483,7 +483,7 @@ bool DiffusionRate::FwdSubsample(Packet *pkt)
 	  cur_iph       = HDR_IP(cur_pkt);
 	  cur_iph->dst_ = AGT_ADDR(cur_out);
 
-	  cur_dfh       = HDR_DIFF(cur_pkt);
+	  cur_dfh       = HDR_CDIFF(cur_pkt);
 	  cur_dfh->forward_agent_id = here_;
 	  cur_dfh->num_next = 1;
 	  cur_dfh->next_nodes[0] = NODE_ADDR(cur_out);
@@ -511,7 +511,7 @@ bool DiffusionRate::FwdSubsample(Packet *pkt)
 
 void DiffusionRate::TriggerPosReinf(Packet *pkt, ns_addr_t forward_agent)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   nsaddr_t forwarder_node = forward_agent.addr_;
 
@@ -548,11 +548,11 @@ void DiffusionRate::TriggerPosReinf(Packet *pkt, ns_addr_t forward_agent)
 
 void DiffusionRate::FwdOriginal(Packet *pkt)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   Out_List *cur_out;
   Packet   *cur_pkt;
-  hdr_diff *cur_dfh;
+  hdr_cdiff *cur_dfh;
   hdr_ip   *cur_iph;
  
   if (org_type_ == BCAST_ORG) {
@@ -578,7 +578,7 @@ void DiffusionRate::FwdOriginal(Packet *pkt)
 	cur_iph       = HDR_IP(cur_pkt);
 	cur_iph->dst_ = AGT_ADDR(cur_out);
 
-	cur_dfh       = HDR_DIFF(cur_pkt);
+	cur_dfh       = HDR_CDIFF(cur_pkt);
 	cur_dfh->forward_agent_id = here_;
 	cur_dfh->num_next = 1;
 	cur_dfh->next_nodes[0] = NODE_ADDR(cur_out);
@@ -608,7 +608,7 @@ void DiffusionRate::FwdOriginal(Packet *pkt)
 
 void DiffusionRate::FwdData(Packet *pkt)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   nsaddr_t forwarder_node;
   ns_addr_t forward_agent;
@@ -655,12 +655,12 @@ void DiffusionRate::DataReqAll(unsigned int dtype, int report_rate)
 {
   Agent_List *cur_agent;
   Packet *pkt;
-  hdr_diff *dfh;
+  hdr_cdiff *dfh;
 
   for (cur_agent=routing_table[dtype].source; cur_agent != NULL; 
        cur_agent = AGENT_NEXT(cur_agent) ) {
     pkt = prepare_message(dtype, AGT_ADDR(cur_agent), DATA_REQUEST);
-    dfh = HDR_DIFF(pkt);
+    dfh = HDR_CDIFF(pkt);
     dfh->report_rate = report_rate;
     send_to_dmux(pkt, 0);
   }
@@ -710,7 +710,7 @@ void DiffusionRate::BcastNeg(int dtype)
       num_neg_bcast_send++;
 
 #ifdef DEBUG_RATE
-      hdr_diff *dfh = HDR_DIFF(pkt);
+      hdr_cdiff *dfh = HDR_CDIFF(pkt);
       hdr_cmn *cmh = HDR_CMN(pkt);
       printf("DF node %d will send %s (%x, %x, %d) to %x\n",
 	     THIS_NODE, MsgStr[dfh->mess_type], (dfh->sender_id).addr_, 
@@ -728,7 +728,7 @@ void DiffusionRate::UcastNeg(int dtype, ns_addr_t to)
       overhead++;
 
 #ifdef DEBUG_RATE
-      hdr_diff *dfh = HDR_DIFF(pkt);
+      hdr_cdiff *dfh = HDR_CDIFF(pkt);
       hdr_cmn *cmh = HDR_CMN(pkt);
       printf("DF node %d will send %s (%x, %x, %d) to %x\n",
 	     THIS_NODE, MsgStr[dfh->mess_type], (dfh->sender_id).addr_, 
@@ -740,7 +740,7 @@ void DiffusionRate::UcastNeg(int dtype, ns_addr_t to)
 
 void DiffusionRate::ProcessNegReinf(Packet *pkt)
 {
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   Out_List *cur_out;
   PrvCurPtr RetVal;
@@ -779,7 +779,7 @@ void DiffusionRate::ProcessNegReinf(Packet *pkt)
 
 void DiffusionRate::ProcessPosReinf(Packet *pkt)
 {
-  hdr_diff *dfh= HDR_DIFF(pkt);
+  hdr_cdiff *dfh= HDR_CDIFF(pkt);
   unsigned int dtype = dfh->data_type;
   Out_List *cur_out, *OutPtr;
   PrvCurPtr RetVal;
@@ -908,7 +908,7 @@ void DiffusionRate::PosReinf(int dtype, nsaddr_t to_node,
   to_agent_addr.port_ = ROUTING_PORT;
 
   Packet *pkt=prepare_message(dtype, to_agent_addr, POS_REINFORCE);
-  hdr_diff *dfh = HDR_DIFF(pkt);
+  hdr_cdiff *dfh = HDR_CDIFF(pkt);
 
       dfh->report_rate = ORIGINAL;
       dfh->info.sender = info_sender;

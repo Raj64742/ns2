@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diff_header.h,v 1.2 2000/09/01 03:04:08 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diff_header.h,v 1.3 2001/11/08 18:16:32 haldar Exp $
 
 /******************************************************/
 /* diff_header.h : Chalermek Intanagonwiwat  08/16/99 */
@@ -74,7 +74,7 @@ struct extra_info {
 };
 
 
-struct hdr_diff {
+struct hdr_cdiff {
 	unsigned char mess_type;
 	unsigned int pk_num;
 	ns_addr_t sender_id;
@@ -91,8 +91,8 @@ struct hdr_diff {
 	
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_diff* access(const Packet* p) {
-		return (hdr_diff*) p->access(offset_);
+	inline static hdr_cdiff* access(const Packet* p) {
+		return (hdr_cdiff*) p->access(offset_);
 	}
 };
 

@@ -60,7 +60,7 @@
 #include "routing_table.h"
 
 
-void Routing_Entry::reset()
+void Diff_Routing_Entry::reset()
 {
   counter = 0;
   num_active = 0;
@@ -82,7 +82,7 @@ void Routing_Entry::reset()
 }
 
 
-void Routing_Entry::clear_outlist(Out_List *list)
+void Diff_Routing_Entry::clear_outlist(Out_List *list)
 {
   Out_List *cur=list;
   Out_List *temp = NULL;
@@ -96,7 +96,7 @@ void Routing_Entry::clear_outlist(Out_List *list)
 }
 
 
-void Routing_Entry::clear_inlist(In_List *list)
+void Diff_Routing_Entry::clear_inlist(In_List *list)
 {
   In_List *cur=list;
   In_List *temp = NULL;
@@ -110,7 +110,7 @@ void Routing_Entry::clear_inlist(In_List *list)
 
 
 
-void Routing_Entry::clear_agentlist(Agent_List *list)
+void Diff_Routing_Entry::clear_agentlist(Agent_List *list)
 {
   Agent_List *cur=list;
   Agent_List *temp = NULL;
@@ -123,7 +123,7 @@ void Routing_Entry::clear_agentlist(Agent_List *list)
 }
 
 
-int Routing_Entry::MostRecvOrg()
+int Diff_Routing_Entry::MostRecvOrg()
 {
   In_List *cur;
   int     most = 0;
@@ -135,7 +135,7 @@ int Routing_Entry::MostRecvOrg()
 }
 
 
-bool Routing_Entry::ExistOriginalGradient()
+bool Diff_Routing_Entry::ExistOriginalGradient()
 {
   Out_List *cur_out;
 
@@ -148,7 +148,7 @@ bool Routing_Entry::ExistOriginalGradient()
 }
 
 
-void Routing_Entry::IncRecvCnt(ns_addr_t agent_addr)
+void Diff_Routing_Entry::IncRecvCnt(ns_addr_t agent_addr)
 {
   PrvCurPtr RetVal;
 
@@ -171,7 +171,7 @@ void Routing_Entry::IncRecvCnt(ns_addr_t agent_addr)
 }
 
 
-void Routing_Entry::CntPosSend(ns_addr_t agent_addr)
+void Diff_Routing_Entry::CntPosSend(ns_addr_t agent_addr)
 {
   PrvCurPtr RetVal;
 
@@ -188,7 +188,7 @@ void Routing_Entry::CntPosSend(ns_addr_t agent_addr)
 }
 
 
-void Routing_Entry::CntNeg(ns_addr_t agent_addr)
+void Diff_Routing_Entry::CntNeg(ns_addr_t agent_addr)
 {
   PrvCurPtr RetVal;
 
@@ -204,7 +204,7 @@ void Routing_Entry::CntNeg(ns_addr_t agent_addr)
 }
 
 
-void Routing_Entry::CntNewSub(ns_addr_t agent_addr)
+void Diff_Routing_Entry::CntNewSub(ns_addr_t agent_addr)
 {
   PrvCurPtr RetVal;
 
@@ -229,7 +229,7 @@ void Routing_Entry::CntNewSub(ns_addr_t agent_addr)
 }
 
 
-void Routing_Entry::ClrNewSub(ns_addr_t agent_addr)
+void Diff_Routing_Entry::ClrNewSub(ns_addr_t agent_addr)
 {
   PrvCurPtr RetVal;
 
@@ -242,7 +242,7 @@ void Routing_Entry::ClrNewSub(ns_addr_t agent_addr)
 }
 
 
-void Routing_Entry::CntNewOrg(ns_addr_t agent_addr)
+void Diff_Routing_Entry::CntNewOrg(ns_addr_t agent_addr)
 {
   PrvCurPtr RetVal;
 
@@ -265,7 +265,7 @@ void Routing_Entry::CntNewOrg(ns_addr_t agent_addr)
 }
 
 
-void Routing_Entry::CntOldOrg(ns_addr_t agent_addr)
+void Diff_Routing_Entry::CntOldOrg(ns_addr_t agent_addr)
 {
   PrvCurPtr RetVal;
 
@@ -288,7 +288,7 @@ void Routing_Entry::CntOldOrg(ns_addr_t agent_addr)
 }
 
 
-void Routing_Entry::ClrAllNewOrg()
+void Diff_Routing_Entry::ClrAllNewOrg()
 {
   In_List *cur;
 
@@ -298,7 +298,7 @@ void Routing_Entry::ClrAllNewOrg()
 }
 
 
-void Routing_Entry::ClrAllOldOrg()
+void Diff_Routing_Entry::ClrAllOldOrg()
 {
   In_List *cur;
 
@@ -308,7 +308,7 @@ void Routing_Entry::ClrAllOldOrg()
 }
 
 
-In_List *Routing_Entry::MostRecentIn()
+In_List *Diff_Routing_Entry::MostRecentIn()
 {
   In_List *cur, *ret;
   double recent_time;
@@ -325,7 +325,7 @@ In_List *Routing_Entry::MostRecentIn()
 }
 
 
-In_List * Routing_Entry::AddInList(ns_addr_t addr)
+In_List * Diff_Routing_Entry::AddInList(ns_addr_t addr)
 {
   In_List *inPtr= new In_List;
 
@@ -337,7 +337,7 @@ In_List * Routing_Entry::AddInList(ns_addr_t addr)
 }
 
 
-Routing_Entry:: Routing_Entry() 
+Diff_Routing_Entry:: Diff_Routing_Entry() 
 { 
     last_fwd_time = -2.0*INTEREST_PERIODIC;  
     counter      = 0;

@@ -148,7 +148,7 @@ void SinkAgent::sendpkt()
       }
 
       Packet* pkt = create_packet();
-      hdr_diff* dfh = HDR_DIFF(pkt);
+      hdr_cdiff* dfh = HDR_CDIFF(pkt);
       hdr_ip* iph = HDR_IP(pkt);
       hdr_cmn*  cmh = HDR_CMN(pkt);
 
@@ -203,7 +203,7 @@ void SinkAgent::sendpkt()
 void SinkAgent::bcast_interest()
 {
       Packet* pkt = create_packet();
-      hdr_diff* dfh = HDR_DIFF(pkt);
+      hdr_cdiff* dfh = HDR_CDIFF(pkt);
       hdr_ip* iph = HDR_IP(pkt);
 
       // Set message type, packet number and sender ID
@@ -244,7 +244,7 @@ void SinkAgent::data_ready()
       Packet* pkt = create_packet();
 
       // Access the Sink header for the new packet:
-      hdr_diff* dfh = HDR_DIFF(pkt);
+      hdr_cdiff* dfh = HDR_CDIFF(pkt);
       hdr_ip* iph = HDR_IP(pkt);
 
       // Set message type, packet number and sender ID
@@ -343,7 +343,7 @@ int SinkAgent::command(int argc, const char*const* argv)
 
 void SinkAgent::recv(Packet* pkt, Handler*)
 {
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
 
   /*
   printf("SK %d recv (%x, %x, %d) %s size %d at time %lf\n", here_.addr_, 
@@ -444,7 +444,7 @@ Packet * SinkAgent:: create_packet()
 
   cmh->size() = 36;
 
-  hdr_diff* dfh = HDR_DIFF(pkt);
+  hdr_cdiff* dfh = HDR_CDIFF(pkt);
   dfh->ts_ = NOW; 
 
   return pkt;

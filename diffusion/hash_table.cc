@@ -84,7 +84,7 @@ Pkt_Hash_Entry *Pkt_Hash_Table::GetHash(ns_addr_t sender_id,
 }
 
 
-void Pkt_Hash_Table::put_in_hash(hdr_diff *dfh)
+void Pkt_Hash_Table::put_in_hash(hdr_cdiff *dfh)
 {
     Tcl_HashEntry *entryPtr;
     Pkt_Hash_Entry    *hashPtr;
