@@ -1,5 +1,4 @@
 /*
-/*
  * Copyright (c) Intel Corporation 2001. All rights reserved.
  *
  * License is granted to copy, to use, and to make and to use derivative
