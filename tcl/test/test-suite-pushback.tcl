@@ -106,6 +106,20 @@ TestSuite instproc finishflows {testname maxAggregate} {
 		  	oldpkts = newpkts
 		}}
         }
+        set awkCodeDrop {
+		{
+		if ($1==0) {oldpkts = 0; olddrops = 0; time=0;}
+		if ($5~"totalOQDrops:"){
+		  time = $2;
+		  pkts = $4;
+		  drops = $6;
+		  newpkts = pkts - oldpkts;
+		  newdrops = drops - olddrops;
+		  print time, newdrops/newpkts;
+		  oldpkts = pkts; olddrops = drops;
+		}}
+	}
+
 
         if { [info exists tmpschan_] } {
                 close $tmpschan_
@@ -130,6 +144,7 @@ TestSuite instproc finishflows {testname maxAggregate} {
 
         exec cat temp.p >@ $f
         close $f
+        exec awk $awkCodeDrop temp.s > temp.droprate
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -ly 0,1 -x time -y bandwidth $graphfile &
         }
@@ -236,6 +251,7 @@ TestSuite instproc setTopo {} {
 TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
         global quiet 
         $self instvar dump_inst_ ns_ tmpschan_ f
+	$self instvar maxAggregates_
 	set dumpfile temp.s
         if ![info exists dump_inst_] {
 		$self instvar tmpschan_ f
@@ -263,7 +279,7 @@ TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
     	    puts $f "time: [format %.3f $now] LinkUtilThisTime  [format %.3f $recentUtil] totalLinkUtil: [format %.3f $totalLinkUtil] totalOQPkts: $totalPkts" 
     	    set fcl [$fmon classifier];
 	    ## this 
-    	    for {set i 1} {$i < 6} {incr i} {
+	    for {set i 1} {$i < $maxAggregates_ + 1} {incr i} {
     	        set flow [$fcl lookup auto 0 0 $i]
 		if {$flow != "" } {
 		  set flowpkts($flow) [$flow set pdepartures_]
@@ -336,7 +352,7 @@ TestSuite instproc setup {} {
 }
 
 #
-# one complete test with CBR flows only, no pushback and no red-pd.
+# one complete test with CBR flows only, no pushback and no ACC.
 #
 Class Test/cbrs -superclass TestSuite
 Test/cbrs instproc init {} {
@@ -419,28 +435,40 @@ TestSuite instproc setup1 {} {
 
     set udp1 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 1]
     set cbr1_ [$udp1 attach-app Traffic/CBR]
-    $cbr1_ set rate_ 0.1Mb
+    $cbr1_ set rate_ 0.12Mb
     $cbr1_ set random_ 0.005
 
     set udp2 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 2]
     set cbr2_ [$udp2 attach-app Traffic/CBR]
-    $cbr2_ set rate_ 0.1Mb
+    $cbr2_ set rate_ 0.08Mb
     $cbr2_ set random_ 0.005
 
     set udp3 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 3]
     set cbr3_ [$udp3 attach-app Traffic/CBR]
-    $cbr3_ set rate_ 0.1Mb
+    $cbr3_ set rate_ 0.07Mb
     $cbr3_ set random_ 0.005
 
     set udp4 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 4]
     set cbr4_ [$udp4 attach-app Traffic/CBR]
-    $cbr4_ set rate_ 0.1Mb
+    $cbr4_ set rate_ 0.05Mb
     $cbr4_ set random_ 0.005
+
+    set udp5 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 5]
+    set cbr5_ [$udp5 attach-app Traffic/CBR]
+    $cbr5_ set rate_ 0.04Mb
+    $cbr5_ set random_ 0.005
+
+    set udp6 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 6]
+    set cbr6_ [$udp6 attach-app Traffic/CBR]
+    $cbr6_ set rate_ 0.04Mb
+    $cbr6_ set random_ 0.005
 
     $ns_ at 0.2 "$cbr1_ start"
     $ns_ at 0.1 "$cbr2_ start"
     $ns_ at 0.3 "$cbr3_ start"
     $ns_ at 0.4 "$cbr4_ start"
+    $ns_ at 0.5 "$cbr5_ start"
+    $ns_ at 0.6 "$cbr6_ start"
 
     # bad traffic
     set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 5]
@@ -448,7 +476,7 @@ TestSuite instproc setup1 {} {
     $cbr_ set rate_ 0.1Mb
     $cbr_ set random_ 0.001
 
-    set maxAggregates_ 5
+    set maxAggregates_ 7
 
     $ns_ at 0.0 "$cbr_ start"
     $ns_ at 1.0 "$cbr_ set rate_ 0.15Mb"
@@ -489,7 +517,7 @@ TestSuite instproc setup1 {} {
 }
 
 #
-# one complete test with CBR flows only, no pushback and no red-pd.
+# one complete test with CBR flows only, no pushback and no ACC.
 # Slowly-growing bad flow.
 #
 Class Test/slowgrow -superclass TestSuite
@@ -507,7 +535,7 @@ Test/slowgrow instproc run {} {
 }
 
 #
-# one complete test with CBR flows only, no pushback and no red-pd.
+# one complete test with CBR flows only, no pushback and no ACC.
 # Slowly-growing bad flow, but with local ACC.
 #
 Class Test/slowgrow-acc -superclass TestSuite
