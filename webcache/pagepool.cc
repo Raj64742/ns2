@@ -21,19 +21,14 @@
 // Trace statistics file format:
 // <URL> <size> {<modification time>}
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.4 1998/08/27 16:50:36 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.5 1998/12/16 21:10:59 haoboy Exp $
 
 #include <stdio.h>
 #include <limits.h>
+#include <ctype.h>
+
 #include "pagepool.h"
 #include "http.h"
-
-Page::Page(const char *name, int size)
-{
-	size_ = size;
-	name_ = new char[strlen(name) + 1];
-	strcpy(name_, name);
-}
 
 void ServerPage::set_mtime(int *mt, int n)
 {
@@ -44,9 +39,9 @@ void ServerPage::set_mtime(int *mt, int n)
 }
 
 ClientPage::ClientPage(const char *n, int s, double mt, double et, double a) :
-		Page(n, s), age_(a), mtime_(mt), etime_(et), 
+		Page(s), age_(a), mtime_(mt), etime_(et), 
 		status_(HTTP_VALID_PAGE), counter_(0), 
-		mandatoryPush_(0), mpushTime_(0)
+		mpushTime_(0)
 {
 	// Parse name to get server and page id
 	char *buf = new char[strlen(n) + 1];
@@ -62,6 +57,26 @@ ClientPage::ClientPage(const char *n, int s, double mt, double et, double a) :
 	delete []buf;
 }
 
+void ClientPage::split_name(const char* name, PageID& id)
+{
+	char *buf = new char[strlen(name)+1];
+	strcpy(buf, name);
+	char *tmp = strtok(buf, ":");
+	id.s_ = (HttpApp*)TclObject::lookup(tmp);
+	if (id.s_ == NULL) {
+		fprintf(stderr, "Non-exitent server name for page %s\n", name);
+		abort();
+	}
+	tmp = strtok(NULL, ":");
+	id.id_ = atol(tmp);
+	delete []buf;
+}
+
+void ClientPage::name(char* buf) 
+{
+	sprintf(buf, "%s:%d", server_->name(), id());
+}
+
 
 static class PagePoolClass : public TclClass {
 public:
@@ -70,6 +85,11 @@ public:
 		return (new PagePool());
 	}
 } class_pagepool_agent;
+
+
+// TracePagePool
+// Used for Worrell's filtered server traces only. For handling general 
+// web server traces and proxy traces, have a look at ProxyTracePagePool below.
 
 static class TracePagePoolClass : public TclClass {
 public:
@@ -96,14 +116,7 @@ TracePagePool::TracePagePool(const char *fn) :
 	idmap_ = new Tcl_HashTable;
 	Tcl_InitHashTable(idmap_, TCL_ONE_WORD_KEYS);
 
-	ServerPage *pg;
-	while ((pg = load_page(fp)))
-		if (add_page(pg)) {
-			fprintf(stderr, 
-				"TracePagePool: couldn't add page %s\n",
-			       pg->name());
-			abort();
-		}
+	while (load_page(fp));
 	change_time();
 }
 
@@ -153,7 +166,12 @@ ServerPage* TracePagePool::load_page(FILE *fp)
 	tmp1 = strtok(buf, delim);
 	// Size
 	tmp2 = strtok(NULL, delim);
-	pg = new ServerPage(tmp1, atoi(tmp2), num_pages_++);
+	pg = new ServerPage(atoi(tmp2), num_pages_++);
+
+	if (add_page(tmp1, pg)) {
+		delete pg;
+		return NULL;
+	}
 
 	// Modtimes, assuming they are in ascending time order
 	int num = 0;
@@ -178,11 +196,11 @@ ServerPage* TracePagePool::load_page(FILE *fp)
 	return pg;
 }
 
-int TracePagePool::add_page(ServerPage *pg)
+int TracePagePool::add_page(const char* name, ServerPage *pg)
 {
 	int newEntry = 1;
 	Tcl_HashEntry *he = Tcl_CreateHashEntry(namemap_, 
-						(const char *)pg->name(),
+						(const char *)name,
 						&newEntry);
 	if (he == NULL)
 		return -1;
@@ -190,7 +208,7 @@ int TracePagePool::add_page(ServerPage *pg)
 		Tcl_SetHashValue(he, (ClientData)pg);
 	else 
 		fprintf(stderr, "TracePagePool: Duplicate entry %s\n", 
-			pg->name());
+			name);
 
 	Tcl_HashEntry *hf = 
 		Tcl_CreateHashEntry(idmap_, (const char *)pg->id(), &newEntry);
@@ -275,6 +293,9 @@ int TracePagePool::command(int argc, const char *const* argv)
 			double st = strtod(argv[2], NULL);
 			start_time_ = st;
 			end_time_ += st;
+		} else if (strcmp(argv[1], "gen-init-modtime") == 0) {
+			tcl.resultf("%.17g", Scheduler::instance().clock());
+			return TCL_OK;
 		}
 	} else {
 		if (strcmp(argv[1], "gen-modtime") == 0) {
@@ -347,6 +368,10 @@ int MathPagePool::command(int argc, const char *const* argv)
 				return TCL_ERROR;
 			}
 			int size = (int) rvSize_->value();
+			if (size == 0)
+				// XXX do not allow page size 0, because TcpApp
+				// doesn't behave correctly when sending 0 byte
+				size = 1;
 			tcl.resultf("%d", size);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "ranvar-size") == 0) {
@@ -359,6 +384,10 @@ int MathPagePool::command(int argc, const char *const* argv)
 			double st = strtod(argv[2], NULL);
 			start_time_ = st;
 			end_time_ += st;
+			return TCL_OK;
+		} else if (strcmp(argv[1], "gen-init-modtime") == 0) {
+			tcl.resultf("%.17g", Scheduler::instance().clock());
+			return TCL_OK;
 		}
 	} else {
 		if (strcmp(argv[1], "gen-modtime") == 0) {
@@ -438,22 +467,30 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 		} else if (strcmp(argv[1], "get-duration") == 0) {
 			tcl.resultf("%d", duration_);
 			return TCL_OK;
-		} else if (strcmp(argv[1], "get-comp-pages") == 0) {
-			tcl.resultf("%d", num_pages_-1);
-			return TCL_OK;
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "gen-size") == 0) {
 			tcl.resultf("%d", main_size_);
 			return TCL_OK;
-		} else if (strcmp(argv[1], "gen-comp-size") == 0) {
+		} else if (strcmp(argv[1], "gen-obj-size") == 0) {
 			tcl.resultf("%d", comp_size_);
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "get-next-objs") == 0) {
+			PageID id;
+			ClientPage::split_name(argv[2], id);
+			// If we want simultaneous requests of multiple
+			// objects, return a list; otherwise return a single
+			// pageid. 
+			for (int i = id.id_+1; i < num_pages_; i++) {
+				tcl.resultf("%s %s:%d", tcl.result(), 
+					    id.s_->name(), i);
+			}
 			return TCL_OK;
-		} else if (strcmp(argv[1], "ranvar-age") == 0) {
+		} else if (strcmp(argv[1], "ranvar-main-age") == 0) {
 			rvMainAge_ = 
 				(RandomVariable*)TclObject::lookup(argv[2]);
 			return TCL_OK;
-		} else if (strcmp(argv[1], "ranvar-comp-age") == 0) {
+		} else if (strcmp(argv[1], "ranvar-obj-age") == 0) {
 			rvCompAge_ =
 				(RandomVariable*)TclObject::lookup(argv[2]);
 			return TCL_OK;
@@ -461,6 +498,39 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 			double st = strtod(argv[2], NULL);
 			start_time_ = st;
 			end_time_ += st;
+			return TCL_OK;
+		} else if (strcmp(argv[1], "gen-init-modtime") == 0) {
+			tcl.resultf("%.17g", Scheduler::instance().clock());
+			return TCL_OK;
+		} else if (strcmp(argv[1], "is-mainpage") == 0) {
+			// Tell if the given page is a main page or an 
+			// embedded object. 
+			// XXX Here because we have only one page, so only 
+			// page id 0 is the main page. If we have multiple 
+			// pages, we need something else to do this.
+			PageID t1;
+			ClientPage::split_name(argv[2], t1);
+			if (t1.id_ == 0)
+				tcl.result("1");
+			else 
+				tcl.result("0");
+			return TCL_OK;
+		} else if (strcmp(argv[1], "get-mainpage") == 0) {
+			// Get the main page of an embedded object
+			// XXX Should maintain a mapping between embedded
+			// objects and main pages. It can be an algorithmic
+			// one, e.g., using page id intervals. It's simple 
+			// here because we have only one page.
+			PageID t1;
+			ClientPage::split_name(argv[2], t1);
+			tcl.resultf("%s:0", t1.s_->name());
+			return TCL_OK;
+		} else if (strcmp(argv[1], "get-obj-num") == 0) {
+			// Returns the number of embedded objects of the page
+			// given in argv[1]. Here because we have only one 
+			// page, we return a fixed value.
+			tcl.resultf("%d", num_pages_-1);
+			return TCL_OK;
 		}
 	} else {
 		if (strcmp(argv[1], "gen-modtime") == 0) {
@@ -472,7 +542,7 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 			double mt = strtod(argv[3], NULL);
 			tcl.resultf("%.17g", mt + rvMainAge_->value());
 			return TCL_OK;
-		} else if (strcmp(argv[1], "gen-comp-modtime") == 0) {
+		} else if (strcmp(argv[1], "gen-obj-modtime") == 0) {
 			if (rvCompAge_ == 0) {
 				tcl.add_errorf("%s: no page age generator", 
 					       name_);
@@ -499,7 +569,7 @@ public:
 ClientPagePool::ClientPagePool()
 {
 	namemap_ = new Tcl_HashTable;
-	Tcl_InitHashTable(namemap_, TCL_STRING_KEYS);
+	Tcl_InitHashTable(namemap_, 2);
 }
 
 ClientPagePool::~ClientPagePool()
@@ -512,7 +582,13 @@ ClientPagePool::~ClientPagePool()
 
 ClientPage* ClientPagePool::get_page(const char *name)
 {
-	Tcl_HashEntry *he = Tcl_FindHashEntry(namemap_, name);
+	PageID t1;
+	void* t2[2];
+	ClientPage::split_name(name, t1);
+	t2[0] = (void *)t1.s_;
+	t2[1] = (void *)t1.id_;
+
+	Tcl_HashEntry *he = Tcl_FindHashEntry(namemap_, (const char *)t2);
 	if (he == NULL)
 		return NULL;
 	return (ClientPage *)Tcl_GetHashValue(he);
@@ -524,9 +600,15 @@ ClientPagePool::add_page(const char *name, int size, double mt,
 {
 	ClientPage *pg = new ClientPage(name, size, mt, et, age);
 
+	PageID t1;
+	void* t2[2];
+	ClientPage::split_name(name, t1);
+	t2[0] = (void *)t1.s_;
+	t2[1] = (void *)t1.id_;
+
 	int newEntry = 1;
 	Tcl_HashEntry *he = Tcl_CreateHashEntry(namemap_, 
-						(const char *)pg->name(),
+						(const char *)t2,
 						&newEntry);
 	if (he == NULL)
 		return NULL;
@@ -538,8 +620,8 @@ ClientPagePool::add_page(const char *name, int size, double mt,
 		// XXX must copy the counter value
 		pg->counter() = q->counter();
 		// XXX must copy the mpush values
-		pg->mandatoryPush_ = q->mandatoryPush_;
-		pg->mpushTime_ = q->mpushTime_;
+		if (q->is_mpush())
+			pg->set_mpush(q->mpushTime_);
 		Tcl_SetHashValue(he, (ClientData)pg);
 		delete q;
  		//fprintf(stderr, "ClientPagePool: Replaced entry %s\n", 
@@ -627,3 +709,324 @@ void ClientPagePool::invalidate_server(int sid)
 			pg->server_down();
 	}
 }
+
+
+// Proxy traces. Request file format:
+//
+// [<time> <clientID> <serverID> <URL_ID>]
+// i <Duration> <Number_of_unique_URLs>
+//
+// <time> is guaranteed to start from 0. It needs to be adjusted
+//
+// Page file format (sorted by access counts)
+// 
+// <serverID> <URL_ID> <PageSize> <AccessCount>
+
+static class ProxyTracePagePoolClass : public TclClass {
+public:
+        ProxyTracePagePoolClass() : TclClass("PagePool/ProxyTrace") {}
+        TclObject* create(int, const char*const*) {
+		return (new ProxyTracePagePool());
+	}
+} class_ProxyTracepagepool_agent;
+
+ProxyTracePagePool::ProxyTracePagePool() : 
+	rvDyn_(NULL), rvStatic_(NULL), br_(0), 
+	size_(NULL), reqfile_(NULL), req_(NULL), lastseq_(0)
+{
+}
+
+ProxyTracePagePool::~ProxyTracePagePool()
+{
+	if (size_ != NULL) 
+		delete []size_;
+	if (reqfile_ != NULL) 
+		fclose(reqfile_);
+	if (req_ != NULL) {
+		Tcl_DeleteHashTable(req_);
+		delete req_;
+	}
+}
+
+int ProxyTracePagePool::init_req(const char *fn) 
+{
+	reqfile_ = fopen(fn, "r");
+	if (reqfile_ == NULL) {
+		fprintf(stderr, 
+		  "ProxyTracePagePool: couldn't open trace file %s\n", fn);
+		return TCL_ERROR;
+	}
+
+	// Discover information about the trace, e.g., number of pages,
+	// start time, end time, etc. They should be available at the 
+	// first line of the trace file.
+	return find_info();
+}
+
+int ProxyTracePagePool::find_info()
+{
+	// Read the last line of the file
+	fseek(reqfile_, -128, SEEK_END);
+	char buf[129];
+	if (fread(buf, 1, 128, reqfile_) != 128) {
+		fprintf(stderr,
+			"ProxyTracePagePool: cannot read file information\n");
+		return TCL_ERROR;
+	}
+	int i;
+	// ignore the last RETURN
+	buf[128] = 0;
+	if (buf[127] == '\n')
+		buf[127] = 0; 
+	for (i = 127; i >= 0; i--)
+		if (buf[i] == '\n') {
+			i++; 
+			break;
+		}
+	if (buf[i] != 'i') {
+		fprintf(stderr, 
+	"ProxyTracePagePool: trace file doesn't contain statistics.\n");
+		abort();
+	}
+	double len;
+	sscanf(buf+i+1, "%lf %u", &len, &num_pages_);
+	duration_ = (int)ceil(len);
+#if 0
+	printf("ProxyTracePagePool: duration %d pages %u\n",
+	       duration_, num_pages_);
+#endif
+	rewind(reqfile_);
+	return TCL_OK;
+}
+
+// Load page size info. Assuming request stream has already been loaded
+int ProxyTracePagePool::init_page(const char *fn)
+{
+	FILE *fp = fopen(fn, "r");
+	if (fp == NULL) {
+		fprintf(stderr, 
+		  "ProxyTracePagePool: couldn't open trace file %s\n", fn);
+		return TCL_ERROR;
+	}
+	if (size_ != NULL) 
+		delete []size_;
+	int* p = new int[num_pages_];
+	size_ = p;
+	for (int i = 0; i < num_pages_; i++, p++)
+		fscanf(fp, "%*d %*d %d %*u\n", p);
+	fclose(fp);
+	return TCL_OK;
+}
+
+ProxyTracePagePool::ClientRequest* ProxyTracePagePool::load_req(int cid)
+{
+	// Find out which client we are seeking
+	Tcl_HashEntry *he;
+	ClientRequest *p;
+	int dummy; 
+	
+	if ((he = Tcl_FindHashEntry(req_, (const char*)cid)) == NULL) {
+		// New entry
+		p = new ClientRequest();
+		p->seq_ = lastseq_++;
+		he = Tcl_CreateHashEntry(req_, (const char*)cid, &dummy);
+		Tcl_SetHashValue(he, (const char*)p);
+		// Search from the beginning of file for this new client
+		fseek(reqfile_, 0, SEEK_SET);
+	} else {
+		p = (ClientRequest*)Tcl_GetHashValue(he);
+		if (p->nrt_ == -1)
+			// No more requests for this client
+			return p;
+		// Clear EOF status
+		fseek(reqfile_, p->fpos_, SEEK_SET);
+	}
+
+	// Looking for the next available request for this client
+	double nrt;
+	int ncid = -1, nurl;
+	char buf[256];
+	while (fgets(buf, 256, reqfile_)) {
+		if (isalpha(buf[0])) {
+			// Last line, break;
+			ncid = -1;
+			break;
+		}
+		sscanf(buf, "%lf %d %*d %d\n", &nrt, &ncid, &nurl);
+		if ((ncid % nclient_) == p->seq_)
+			break;
+	}
+	if ((ncid % nclient_) != p->seq_)
+		// Didn't find the next request for this client
+		p->nrt_ = -1;
+	else {
+		p->nrt_ = nrt, p->nurl_ = nurl;
+		p->nrt_ += start_time_;
+	}
+	p->fpos_ = ftell(reqfile_);
+	return p;
+}
+
+// Provide a tcl interface compatible with MathPagePool
+int ProxyTracePagePool::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+
+	if (argc == 2) {
+		if (strcmp(argv[1], "get-poolsize") == 0) { 
+			tcl.resultf("%u", num_pages_);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "get-start-time") == 0) {
+			tcl.resultf("%.17g", start_time_);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "get-duration") == 0) {
+			tcl.resultf("%d", duration_);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "bimodal-ratio") == 0) {
+			tcl.resultf("%g", br_ / 10);
+			return TCL_OK;
+		}
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "set-client-num") == 0) {
+			// Set the number of clients it'll access
+			// Cannot be changed once set
+			if (req_ != NULL)
+				return TCL_ERROR;
+			int num = atoi(argv[2]);
+			req_ = new Tcl_HashTable;
+			Tcl_InitHashTable(req_, TCL_ONE_WORD_KEYS);
+			nclient_ = num;
+			return TCL_OK;
+		} else if (strcmp(argv[1], "gen-request") == 0) {
+			// Use client id to get a corresponding request
+			int id = atoi(argv[2]);
+			ClientRequest *p = load_req(id);
+			if ((p->nrt_ >= 0) && 
+			    (p->nrt_ < Scheduler::instance().clock())) {
+				// XXX Do NOT treat this as an error, but 
+				// do NOT disable further requests from this 
+				// client.
+				fprintf(stderr,
+					"%.17g: Wrong request time %g.\n",
+					Scheduler::instance().clock(),
+					p->nrt_);
+				p->nrt_ = 0;
+			}
+			tcl.resultf("%lf %d", 
+				    p->nrt_ - Scheduler::instance().clock(), 
+				    p->nurl_);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "gen-size") == 0) {
+			int id = atoi(argv[2]);
+			if ((id < 0) || (id > num_pages_)) {
+				tcl.result("PagePool: id out of range.\n");
+				return TCL_ERROR;
+			}
+			tcl.resultf("%d", size_[id]);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "set-start-time") == 0) {
+			start_time_ = strtod(argv[2], NULL);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "bimodal-ratio") == 0) {
+			// XXX Codes in Http/Server::gen-page{} also depends
+			// on this dyn/static page algorithm. If this is 
+			// changed, that instproc must be changed too.
+			//
+			// percentage of dynamic pages. E.g., 
+			// if this ratio is 5, then page 0-4 is 
+			// dynamic, and page 4-99 is static, and so on.
+			double ratio = strtod(argv[2], NULL);
+			//br_ = (int)ceil(ratio*100);
+			br_ = (int)ceil(ratio*10);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "ranvar-dp") == 0) {
+			// Page mod ranvar for dynamic pages
+			rvDyn_ = (RandomVariable*)TclObject::lookup(argv[2]);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "ranvar-sp") == 0) {
+			// page mod ranvar for static pages
+			rvStatic_= (RandomVariable*)TclObject::lookup(argv[2]);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "set-reqfile") == 0) {
+			return init_req(argv[2]);
+		} else if (strcmp(argv[1], "set-pagefile") == 0) {
+			return init_page(argv[2]);
+		} else if (strcmp(argv[1], "gen-init-modtime") == 0) {
+			int id = atoi(argv[2]) % 10;
+			if (id >= br_)
+				// Static page
+				tcl.result("-86400");
+			else
+				// Dynamic page
+				tcl.resultf("%.17g", 
+					    Scheduler::instance().clock());
+			return TCL_OK;
+		}
+	} else {
+		if (strcmp(argv[1], "gen-modtime") == 0) {
+			if ((rvDyn_ == 0) || (rvStatic_ == 0)) {
+				tcl.add_errorf("%s: no page age generator", 
+					       name_);
+				return TCL_ERROR;
+			}
+			// int id = atoi(argv[2]) % 100;
+			int id = atoi(argv[2]) % 10;
+			double mt = strtod(argv[3], NULL);
+			if (id >= br_) 
+				tcl.resultf("%.17g", mt + rvStatic_->value());
+			else 
+				tcl.resultf("%.17g", mt + rvDyn_->value());
+			return TCL_OK;
+		}
+	}
+
+	return PagePool::command(argc, argv);
+}
+
+
+// Proxy trace with special method for page modification
+static class EPAPagePoolClass : public TclClass {
+public:
+	EPAPagePoolClass() : TclClass("PagePool/ProxyTrace/epa") {}
+	TclObject* create(int, const char*const*) {
+		return (new EPATracePagePool());
+	}
+} class_epapagepool_agent;
+
+int EPATracePagePool::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		if (strcmp(argv[1], "pick-pagemod") == 0) {
+			if (rvDyn_ == 0) {
+				tcl.add_errorf("%s: no page age generator",
+					       name_);
+				return (TCL_ERROR);
+			}
+			int j = (int)floor(rvDyn_->value());
+			//fprintf(stderr, "mod id = %d\n", j/br_*10 + j % br_);
+			tcl.resultf("%d", j/br_*10 + j % br_);
+			return TCL_OK;
+		}
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "ranvar-dp") == 0) {
+			rvDyn_ = (RandomVariable*)TclObject::lookup(argv[2]);
+			if (rvDyn_ == 0) {
+				tcl.add_errorf("%s: no page age generator",
+					       name_);
+				return (TCL_ERROR);
+			}
+			((UniformRandomVariable*)rvDyn_)->setmin(0);
+			((UniformRandomVariable*)rvDyn_)->setmax(num_pages_/10*br_ + num_pages_%br_ - 1);
+			return TCL_OK;
+		}
+	} else {
+		if (strcmp(argv[1], "gen-modtime") == 0) {
+			// Return a very large number
+			tcl.resultf("%d", INT_MAX);
+			return TCL_OK;
+		}
+	}
+	return ProxyTracePagePool::command(argc, argv);
+}
+

@@ -21,7 +21,7 @@
 // If we have interface declaration independent from class type definition,
 // we'll be better off.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.cc,v 1.1 1998/08/18 23:42:43 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcp-simple.cc,v 1.2 1998/12/16 21:11:01 haoboy Exp $
 
 #include <stdlib.h>
 #include "tclcl.h"
@@ -84,7 +84,8 @@ int SimpleTcpAgent::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "close") == 0) {
-			// Do nothing
+			// Call done{} to match tcp-full's syntax
+			Tcl::instance().evalf("%s done", name());
 			return (TCL_OK);
 		}
 	}

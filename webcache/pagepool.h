@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.3 1998/10/05 17:43:44 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.4 1998/12/16 21:11:00 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -31,37 +31,29 @@
 
 class Page {
 public:
-	Page(const char *name, int size);
-	virtual ~Page() {
-		delete []name_;
-	}
-	const char *name() const { return name_; }
+	Page(int size) : size_(size) {}
 	int size() const { return size_; }
-
+	int& id() { return id_; }
 protected:
-	char *name_;
-	int id_;
 	int size_;
+	int id_;
 };
 
 class ServerPage : public Page {
 public:
-	ServerPage(char *name, int size, int id) : Page(name, size) {
+	ServerPage(int size, int id) : Page(size) {
 		id_ = id, mtime_ = NULL, num_mtime_ = 0;
 	}
 	virtual ~ServerPage() {
 		if (mtime_ != NULL) 
 			delete []mtime_;
 	}
-	const char *name() const { return name_; }
-	int& id() { return id_; }
 	int& size() { return size_; }
 	int& mtime(int n) { return mtime_[n]; }
 	int& num_mtime() { return num_mtime_; }
 	void set_mtime(int *mt, int n);
 
 protected:
-	int id() const { return id_; }
 	int *mtime_;
 	int num_mtime_;
 };
@@ -69,75 +61,131 @@ protected:
 class HttpApp;
 
 // Page states
-const int HTTP_VALID_PAGE	= 1;	// Valid page
-const int HTTP_INVALID_PAGE	= 2;	// Invalid page
-const int HTTP_SERVER_DOWN	= 3;	// Server is down. Don't know if 
+const int HTTP_PAGE_STATE_MASK	= 0x00FF;
+const int HTTP_ALL_PAGE_STATES	= 0x00ff; // all page states
+const int HTTP_VALID_PAGE	= 0x01;	// Valid page
+const int HTTP_SERVER_DOWN	= 0x02;	// Server is down. Don't know if 
 					// page is valid
-const int HTTP_VALID_HEADER	= 4;	// Only meta-data is valid
-const int HTTP_UNREAD_PAGE	= 5;	// Unread valid page
+const int HTTP_VALID_HEADER	= 0x04;	// Only meta-data is valid
+const int HTTP_UNREAD_PAGE	= 0x08;	// Unread valid page
+
+// Page actions
+const int HTTP_PAGE_ACTION_MASK = 0xFF00; // Page action bit mask
+const int HTTP_MANDATORY_PUSH	= 0x1000; // If the page is mandatory pushed
+
+struct PageID {
+	HttpApp* s_;
+	int id_;
+};
 
 class ClientPage : public Page {
 public:
 	ClientPage(const char *n, int s, double mt, double et, double a);
 
+	void name(char* buf);
 	double& mtime() { return mtime_; }
 	double& etime() { return etime_; }
 	double& age() { return age_; }
-	int id() { return id_; }
 	HttpApp* server() { return server_; }
 	inline int& counter() { return counter_; }
 
+	// Page becomes valid. Clear all other possible invalid bits
 	void validate(double mtime) { 
 		if (mtime_ >= mtime)
 			abort(); // This shouldn't happen!
-		status_ = HTTP_VALID_PAGE; 
+		// Clear server down bit
+		clear_page_state(HTTP_SERVER_DOWN);
+		set_page_state(HTTP_VALID_PAGE);
 		mtime_ = mtime;
 	}
 	void invalidate(double mtime) { 
 		if (mtime_ >= mtime)
 			return;
-		status_ = HTTP_INVALID_PAGE; 
+		clear_page_state(HTTP_VALID_PAGE);
+		clear_page_state(HTTP_VALID_HEADER);
 		mtime_ = mtime;
 	}
-
-	inline void server_down() {
-		// Don't change mtime, only change page status
-		// Useful for setting HTTP_SERVER_DOWN
-		status_ = HTTP_SERVER_DOWN;
-	}
 	int is_valid() const { 
-		return (status_ == HTTP_VALID_PAGE) || 
-			(status_ == HTTP_UNREAD_PAGE);
+		return (status_ & HTTP_VALID_PAGE);
 	}
 	int is_header_valid() const {
-		return ((status_ == HTTP_VALID_PAGE) || 
-			(status_ == HTTP_VALID_HEADER));
+		return ((status_ & HTTP_VALID_PAGE) || 
+			(status_ & HTTP_VALID_HEADER));
 	}
-	inline int is_server_down() { return (status_ == HTTP_SERVER_DOWN); }
-	inline void set_valid_hdr() { status_ = HTTP_VALID_HEADER; }
-	inline void set_unread() { status_ = HTTP_UNREAD_PAGE; }
-	inline void set_read() { status_ = HTTP_VALID_PAGE; }
-	inline int is_unread() { return (status_ == HTTP_UNREAD_PAGE); }
-	inline int count_inval(int a) { counter_ -= a; return counter_; }
-	inline int count_request(int b) { counter_ += b; return counter_; }
+	inline void set_valid_hdr() { 
+		// XXX page invalid, but only header valid
+		clear_page_state(HTTP_SERVER_DOWN);
+		clear_page_state(HTTP_VALID_PAGE);
+		set_page_state(HTTP_VALID_HEADER); 
+	}
+
+	// Has nothing to do with valid/invalid/server_down etc. It can 
+	// be combined with all other page status
+	inline void set_unread() { 
+		set_page_state(HTTP_UNREAD_PAGE); 
+	}
+	inline void set_read() { 
+		clear_page_state(HTTP_UNREAD_PAGE);
+	}
+	inline int is_unread() { return (status_ & HTTP_UNREAD_PAGE); }
+
+	inline int is_server_down() { return (status_ & HTTP_SERVER_DOWN); }
+	inline void server_down() {
+		// Set page as invalid
+		// Don't change mtime, only change page status
+		clear_page_state(HTTP_VALID_PAGE);
+		clear_page_state(HTTP_VALID_HEADER);
+		set_page_state(HTTP_SERVER_DOWN);
+	}
+
+	inline int count_inval(int a, int th) { 
+		counter_ -= a; 
+#ifndef WEBCACHE_PUSHALL
+		if (counter_ < th) 
+			counter_ = th;
+#endif
+		return counter_; 
+	}
+	inline int count_request(int b, int th) { 
+		counter_ += b; 
+#ifndef WEBCACHE_PUSHALL
+		if (counter_ > th) 
+			counter_ = th;
+#endif
+		return counter_; 
+	}
 	inline void set_mpush(double time) { 
-		mandatoryPush_ = 1, mpushTime_ = time; 
+		set_page_action(HTTP_MANDATORY_PUSH), mpushTime_ = time; 
 	}
-	inline void clear_mpush() { mandatoryPush_ = 0; }
-	inline int is_mpush() { return mandatoryPush_; }
+	inline void clear_mpush() { clear_page_action(HTTP_MANDATORY_PUSH); }
+	inline int is_mpush() { return status_ & HTTP_MANDATORY_PUSH; }
 	inline double mpush_time() { return mpushTime_; }
 
 	friend class ClientPagePool;
 
+	// Used to split page names into page identifiers
+	static void split_name(const char* name, PageID& id);
+
 protected:
+	void set_page_state(int state) {
+		status_ |= state;
+	}
+	void clear_page_state(int state) {
+		status_ = status_ & ~state;
+	}
+	void set_page_action(int action) {
+		status_ |= action;
+	}
+	void clear_page_action(int action) {
+		status_ = status_ & ~action;
+	}
+
 	HttpApp* server_;
-	int id_;
 	double age_;
 	double mtime_;	// modification time
 	double etime_;	// entry time
 	int status_;	// VALID or INVALID
 	int counter_;	// counter for invalidation & request
-	int mandatoryPush_;
 	double mpushTime_;
 };
 
@@ -171,8 +219,8 @@ protected:
 
 	ServerPage* load_page(FILE *fp);
 	void change_time();
+	int add_page(const char* pgname, ServerPage *pg);
 
-	int add_page(ServerPage *pg);
 	ServerPage* get_page(int id);
 };
 
@@ -202,9 +250,9 @@ public:
 
 protected:
 	virtual int command(int argc, const char*const* argv);
-	RandomVariable *rvMainAge_; // modtime for main page
-	RandomVariable *rvCompAge_; // modtime for component pages
- 	int main_size_, comp_size_;
+	RandomVariable *rvMainAge_;  // modtime for main page
+	RandomVariable *rvCompAge_;  // modtime for component pages
+	int main_size_, comp_size_;
 };
 
 class ClientPagePool : public PagePool {
@@ -236,7 +284,6 @@ protected:
 	Tcl_HashTable *namemap_;
 };
 
-// How could we load a client request trace? 
 // This is *not* designed for BU trace files. We should write a script to 
 // transform BU traces to a single trace file with the following format:
 //
@@ -247,18 +294,44 @@ protected:
 // is longer and a real client request for the same page happened before the 
 // simulated request completes? 
 
-// class ClientTracePagePool : public TracePagePool {
-// public:
-// 	ClientTracePagePool(const char *fn);
-// 	virtual ~ClientTracePagePool();
-// 	virtual int command(int argc, const char*const* argv);
+class ProxyTracePagePool : public PagePool {
+public:
+	ProxyTracePagePool();
+// : rvDyn_(NULL), rvStatic_(NULL), br_(0), 
+//		size_(NULL), reqfile_(NULL), req_(NULL), lastseq_(0)
+//		{}
+	virtual ~ProxyTracePagePool();
+	virtual int command(int argc, const char*const* argv);
 
-// protected:
-// 	struct Page {
-// 	};
-// 	// How would we handle different types of page modifications? How 
-// 	// to integrate bimodal, and multi-modal distributions?
-// 	virtual Page* load_page(FILE *fp);
-// };
+protected:
+	// How would we handle different types of page modifications? How 
+	// to integrate bimodal, and multi-modal distributions?
+	int init_req(const char *fn);
+	int init_page(const char *fn);
+	int find_info();
+
+	RandomVariable *rvDyn_, *rvStatic_;
+	int br_; 	// bimodal ratio
+	int *size_; 	// page sizes
+	FILE *reqfile_;	// request stream of proxy trace
+
+	struct ClientRequest {
+		ClientRequest() : seq_(0), nrt_(0), nurl_(0), fpos_(0)
+			{}
+		int seq_;	// client sequence number, used to match 
+				// client ids in the trace file
+		double nrt_;	// next request time
+		int nurl_; 	// next request url
+		long fpos_;	// position in file of its next request
+	};
+	Tcl_HashTable *req_;	// Requests table
+	int nclient_, lastseq_;
+	ClientRequest* load_req(int cid);
+};
+
+class EPATracePagePool : public ProxyTracePagePool {
+public:
+	virtual int command(int argc, const char*const* argv);
+};
 
 #endif //ns_pagepool_h

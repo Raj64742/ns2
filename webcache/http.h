@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.1 1998/08/18 23:42:41 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.2 1998/12/16 21:10:56 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -87,6 +87,7 @@ public:
 
 protected:
 	int Ca_, Cb_, push_thresh_, enable_upd_;
+	int push_high_bound_, push_low_bound_;
 	double hb_interval_;		// Heartbeat interval (second)
 };
 
@@ -178,6 +179,7 @@ protected:
 	double hb_interval_;		// Heartbeat interval (second)
 	int enable_upd_;		// Whether enable push
 	int Ca_, Cb_, push_thresh_;
+	int push_high_bound_, push_low_bound_;
 
 	HttpInvalAgent **upd_sender_;	// Agents to push updates to
 	int num_updater_;		// # number of update agents

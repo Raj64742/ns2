@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.2 1998/08/19 00:31:41 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.3 1998/12/16 21:11:03 haoboy Exp $
 //
 // TcpApp - Transmitting real application data via TCP
 //

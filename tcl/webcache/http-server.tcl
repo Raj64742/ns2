@@ -17,12 +17,13 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.3 1998/08/25 01:08:21 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.4 1998/12/16 21:11:24 haoboy Exp $
 
 Http/Server instproc init args {
 	eval $self next $args
-	$self instvar node_
+	$self instvar node_ stat_
 	$node_ color "HotPink"
+	array set stat_ [list hit-num 0 mod-num 0 barrival 0]
 }
 
 Http/Server instproc set-page-generator { pagepool } {
@@ -54,6 +55,15 @@ Http/Server instproc gen-age { id } {
 	}
 }
 
+Http/Server instproc gen-init-modtime { id } {
+	$self instvar pgtr_ ns_
+	if [info exists pgtr_] {
+		return [$pgtr_ gen-init-modtime $id]
+	} else {
+		return [$ns_ now]
+	}
+}
+
 # XXX 
 # This method to calculate staleness time isn't scalable!!! We have to have
 # a garbage collection method to release unused portion of modtimes_ and 
@@ -80,8 +90,9 @@ Http/Server instproc stale-time { pageid modtime } {
 
 Http/Server instproc modify-page { pageid } {
 	# Set Last-Modified-Time to current time
-	$self instvar ns_ id_
+	$self instvar ns_ id_ stat_
 
+	incr stat_(mod-num)
 	set id [lindex [split $pageid :] end]
 
 	# Change modtime and lifetime only, do not change page size
@@ -91,8 +102,8 @@ Http/Server instproc modify-page { pageid } {
 	$ns_ at [expr [$ns_ now] + $age] "$self modify-page $pageid"
 	$self enter-page $pageid size $size modtime $modtime age $age
 
-#	$ns_ trace-annotate "S $id_ INV $pageid"
-	$self evTrace S MOD p $pageid m [$ns_ now] 
+	$ns_ trace-annotate "S $id_ INV $pageid"
+	$self evTrace S MOD p $pageid m [$ns_ now] n [expr [$ns_ now] + $age]
 
 	$self instvar modtimes_ modseq_
 	incr modseq_($pageid)
@@ -109,7 +120,7 @@ Http/Server instproc gen-page { pageid } {
 
 	set id [lindex [split $pageid :] end]
 
-	set modtime [$ns_ now]
+	set modtime [$self gen-init-modtime $id]
 	set size [$self gen-pagesize $id]
 	set age [$self gen-age $id]
 	$ns_ at [expr [$ns_ now] + $age] "$self modify-page $pageid"
@@ -124,7 +135,7 @@ Http/Server instproc gen-page { pageid } {
 }
 
 Http/Server instproc disconnect { client } {
-	$self instvar ns_ clist_ 
+	$self instvar ns_ clist_ node_
 	set pos [lsearch $clist_ $client]
 	if {$pos >= 0} {
 		lreplace $clist_ $pos $pos
@@ -132,9 +143,10 @@ Http/Server instproc disconnect { client } {
 		error "Http/Server::disconnect: not connected to $server"
 	}
 	set tcp [[$self get-cnc $client] agent]
-	$tcp close
-	#delete $tcp	;# Should we do a destroy here?
 	$self cmd disconnect $client
+	$tcp proc done {} "$ns_ detach-agent $node_ $tcp; delete $tcp"
+	$tcp close
+	#puts "server [$self id] disconnect"
 }
 
 Http/Server instproc alloc-connection { client fid } {
@@ -171,11 +183,12 @@ Http/Server instproc handle-request-IMS { pageid args } {
 		# valid page
 		set pageinfo \
 		  "size $size modtime $mt time [$self get-cachetime $pageid]"
-		$self evTrace S SND p $pageid m $mt z $size t IMS
+		$self evTrace S SND p $pageid m $mt z $size t IMS-NM
 	} else {
 		# Page modified, send the new one
 		set size [$self get-size $pageid]
 		set pageinfo [$self get-page $pageid]
+		$self evTrace S SND p $pageid m $mt z $size t IMS-M
 	}
 	lappend res $size
 	eval lappend res $pageinfo
@@ -183,7 +196,12 @@ Http/Server instproc handle-request-IMS { pageid args } {
 }
 
 Http/Server instproc get-request { client type pageid args } {
-	$self instvar ns_ id_
+	$self instvar ns_ id_ stat_
+
+	incr stat_(hit-num)
+	array set data $args
+	incr stat_(barrival) $data(size)
+	unset data
 
 	# XXX Here maybe we want to wait for a random time to model 
 	# server response delay, it could be easily added in a derived class.
@@ -198,6 +216,67 @@ Http/Server instproc get-request { client type pageid args } {
 
 Http/Server instproc set-parent-cache { cache } {
 	# Dummy proc
+}
+
+
+#----------------------------------------------------------------------
+# Http server modifying pages in the way as described in Pei Cao et al's 
+# ICDCS'97 paper. Used to test the simulator
+#----------------------------------------------------------------------
+
+Class Http/Server/epa -superclass Http/Server
+
+Http/Server/epa instproc start-update { interval } {
+	$self instvar pm_itv_ ns_
+	set pm_itv_ $interval
+	$ns_ at [expr [$ns_ now] + $pm_itv_] "$self modify-page"
+}
+
+# Do not schedule the next page modification.
+Http/Server/epa instproc gen-page { pageid } {
+	$self instvar ns_ pgtr_ 
+
+	if [$self exist-page $pageid] {
+		debug 1
+		error "$self: shouldn't use gen-page for existing pages"
+	}
+
+	set id [lindex [split $pageid :] end]
+
+	set modtime [$self gen-init-modtime $id]
+	set size [$self gen-pagesize $id]
+	set age [$self gen-age $id]
+
+	$self instvar modtimes_ modseq_
+	set modseq_($pageid) 0
+	set modtimes_($pageid:0) $modtime
+
+	#puts "Generated page $pageid age $age"
+	$self enter-page $pageid size $size modtime $modtime age $age
+	return "size $size modtime $modtime age $age"
+}
+
+Http/Server/epa instproc modify-page args {
+	# Set Last-Modified-Time to current time
+	$self instvar ns_ id_ stat_ pgtr_ pm_itv_
+
+	incr stat_(mod-num)
+	set id [$pgtr_ pick-pagemod]
+	set pageid $self:$id
+	$ns_ at [expr [$ns_ now]+$pm_itv_] "$self modify-page"
+
+	# Change modtime and lifetime only, do not change page size
+	set modtime [$ns_ now]
+	set size [$self gen-pagesize $id]
+	set age [$self gen-age $id]	;# retrieve next modtime
+	$self enter-page $pageid size $size modtime $modtime age $age
+
+	$ns_ trace-annotate "S $id_ INV $pageid"
+	$self evTrace S MOD p $pageid m [$ns_ now] n [expr [$ns_ now] + $age]
+
+	$self instvar modtimes_ modseq_
+	incr modseq_($pageid)
+	set modtimes_($pageid:$modseq_($pageid)) $modtime
 }
 
 
@@ -396,7 +475,7 @@ Http/Server/Compound instproc gen-pagesize { id } {
 	} else {
 		$self instvar pgtr_
 		if [info exists pgtr_] {
-			return [$pgtr_ gen-comp-size $id]
+			return [$pgtr_ gen-obj-size $id]
 		} else { 
 			error "Must have a pagepool to generate compound page"
 		}
@@ -410,12 +489,13 @@ Http/Server/Compound instproc gen-age { id } {
 		$self instvar pgtr_ ns_
 		if [info exists pgtr_] {
 			set mtime [$ns_ now]
-			return [expr [$pgtr_ gen-comp-modtime $id $mtime] - $mtime]
+			return [expr [$pgtr_ gen-obj-modtime $id $mtime] - $mtime]
 		} else { 
 			error "Must have a pagepool to generate compound page"
 		}
 	}
 }
 
+# Invalidation server for compound pages
 Class Http/Server/Inval/MYuc -superclass \
 		{ Http/Server/Inval/Yuc Http/Server/Compound}

@@ -17,13 +17,14 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.3 1998/09/30 01:26:18 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.4 1998/12/16 21:11:23 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
 
-	$self instvar node_
+	$self instvar node_ stat_
 	$node_ color "yellow"	;# no page
+	array set stat_ [list hit-num 0 barrival 0 ims-num 0]
 }
 
 # It's the user's responsibility to connect clients to caches, and caches to
@@ -35,6 +36,11 @@ Http/Cache instproc connect { server } {
 
 Http/Cache instproc disconnect { http } {
 	$self instvar slist_ clist_
+
+	if [$http info class Http/Cache] {
+		error "Cannot disconnect a cache from another cache"
+	}
+
 	if {[lsearch $slist_ $http] >= 0} {
 		$self disconnect-server $http
 	} else {
@@ -44,7 +50,7 @@ Http/Cache instproc disconnect { http } {
 
 # XXX Should add pending_ handling into disconnect
 Http/Cache instproc disconnect-server { server } {
-	$self instvar ns_ slist_ 
+	$self instvar ns_ slist_ node_
 	set pos [lsearch $slist_ $server]
 	if {$pos >= 0} {
 		lreplace $slist_ $pos $pos
@@ -52,24 +58,53 @@ Http/Cache instproc disconnect-server { server } {
 		error "Http::disconnect: not connected to $server"
 	}
 	set tcp [[$self get-cnc $server] agent]
-	$tcp close
-	#delete $tcp	;# Should we do a destroy here?
 	$self cmd disconnect $server
 	$server disconnect $self
+	$tcp proc done {} "$ns_ detach-agent $node_ $tcp; delete $tcp"
+	$tcp close
+	#puts "cache [$self id] disconnect from server [$server id]"
+
+	# Clear all states related to the server. 
+	# XXX Assume the server isn't a cache!
+	$self instvar pending_
+	foreach p [array names pending_] {
+		if {$server == [lindex [split $p :] 0]} {
+			unset pending_($p)
+		}
+	}
 }
 
+# XXX Should clean up client request states
 Http/Cache instproc disconnect-client { client } {
-	$self instvar ns_ clist_ 
+	$self instvar ns_ clist_ node_
 	set pos [lsearch $clist_ $client]
 	if {$pos >= 0} {
 		lreplace $clist_ $pos $pos
 	} else { 
-		error "Http/Server::disconnect: not connected to $server"
+		error "Http/Cache::disconnect: not connected to $server"
 	}
 	set tcp [[$self get-cnc $client] agent]
-	$tcp close
-	#delete $tcp	;# Should we do a destroy here?
 	$self cmd disconnect $client
+	$tcp proc done {} "$ns_ detach-agent $node_ $tcp; delete $tcp"
+	$tcp close
+	#puts "cache [$self id] disconnect from client [$client id]"
+
+	# Clear all pending requests associated with the client
+	$self instvar creq_
+	foreach p [array names creq_] {
+		set res {}
+		for {set i 0} {$i < [llength $creq_($p)]} {incr i} {
+			set clt [lindex $creq_($p) $i]
+			if {$client != [lindex [split clt /] 0]} {
+				lappend res $clt
+			}
+		}
+		if {[llength $res] == 0} {
+			unset creq_($p)
+		} else {
+			set creq_($p) $res
+		}
+	}
 }
 
 # Use this function to construct a cache hierarchy
@@ -101,7 +136,11 @@ Http/Cache instproc alloc-connection { client fid } {
 Http/Cache instproc send-request { server type pageid size args } {
 	$self instvar ns_ pending_	;# pending requests, includes those 
 					;# from itself
-	$self instvar id_
+
+	# Don't bother sending a request to a not-connected server
+	if ![$self is-connected $server] {
+		return
+	}
 	set pending_($pageid) [$ns_ now]
 	$self send $server $size \
 	    "$server get-request $self $type $pageid size $size [join $args]"
@@ -110,8 +149,9 @@ Http/Cache instproc send-request { server type pageid size args } {
 # By constructing page id as tuple (server name, page id) we build in 
 # support for multiple web servers
 Http/Cache instproc get-request { cl type pageid args } {
-	$self instvar slist_ clist_ ns_ id_ pending_
+	$self instvar slist_ clist_ ns_ id_ pending_ stat_
 
+	incr stat_(hit-num)
 	array set data $args
 	if ![info exists data(size)] {
 		error "Http/Cache $id_: client [$cl id] must include request size in its request"
@@ -190,11 +230,15 @@ Http/Cache instproc get-response-GET { server pageid args } {
 		$self evTrace E ENT p $pageid m $data(modtime) \
 			z $data(size) s [$server id]
 	} else {
-		$self instvar id_
-		error "Cache $id_ has requested a page which it already has."
+		$self instvar id_ ns_
+		error "At [$ns_ now], cache $id_ has requested a page which \
+it already has."
 	}
 	eval $self answer-pending-requests $pageid $args
-	
+
+	$self instvar stat_
+	incr stat_(barrival) $data(size)
+
 	$self instvar node_
 	$node_ color "blue"	;# valid page
 }
@@ -238,8 +282,9 @@ Http/Cache/TTL set updateThreshold_ 0.1
 
 Http/Cache/TTL instproc init args {
 	eval $self next $args
+
+	# Default value
 	$self instvar thresh_
-	# default value
 	set thresh_ [Http/Cache/TTL set updateThreshold_]
 }
 
@@ -298,6 +343,10 @@ Http/Cache/TTL instproc get-response-IMS { server pageid args } {
 		$self set-cachetime $pageid [$ns_ now]
 	}
 	eval $self answer-pending-requests $pageid $args
+
+	# Compute total bytes arrived
+	$self instvar stat_
+	incr stat_(barrival) $data(size)
 }
 
 
@@ -305,7 +354,7 @@ Http/Cache/TTL instproc is-expired { pageid } {
 	$self instvar thresh_ ns_
 	set cktime [expr [$ns_ now] - [$self get-cachetime $pageid]]
 	set age [expr ([$ns_ now] - [$self get-modtime $pageid]) * $thresh_]
-	if {$cktime < $age} {
+	if {$cktime <= $age} {
 		# Not expired
 		return 0
 	}
@@ -343,6 +392,11 @@ Http/Cache/TTL instproc refetch { cl type pageid } {
 	if [info exists parent_] {
 		set server $parent_
 	}
+
+	# Compute how many IMSs have been sent so far
+	$self instvar stat_
+	incr stat_(ims-num)
+
 	$self evTrace E IMS p $pageid c [$cl id] s [$server id] z $size \
 		t [$self get-cachetime $pageid] m [$self get-modtime $pageid]
 	$self send-request $server IMS $pageid $size \
@@ -352,17 +406,17 @@ Http/Cache/TTL instproc refetch { cl type pageid } {
 
 
 # Old style TTL, using a single fixed threshold
-Class Http/Cache/TTL/Old -superclass Http/Cache/TTL
+Class Http/Cache/TTL/Plain -superclass Http/Cache/TTL
 
-Http/Cache/TTL/Old set updateThreshold_ 100
+Http/Cache/TTL/Plain set updateThreshold_ 100
 
-Http/Cache/TTL/Old instproc init { args } {
+Http/Cache/TTL/Plain instproc init { args } {
 	eval $self next $args
 	$self instvar thresh_
 	set thresh_ [[$self info class] set updateThreshold_]
 }
 
-Http/Cache/TTL/Old instproc is-expired { pageid } {
+Http/Cache/TTL/Plain instproc is-expired { pageid } {
 	$self instvar ns_ thresh_
 	set cktime [expr [$ns_ now] - [$self get-cachetime $pageid]]
 	if {$cktime < $thresh_} {
@@ -400,6 +454,16 @@ Http/Cache/Inval instproc mark-valid {} {
 	$node_ color "blue"
 }
 
+Http/Cache/Inval instproc mark-leave {} {
+	$self instvar node_ 
+	$node_ add-mark down "cyan"
+}
+
+Http/Cache/Inval instproc mark-rejoin {} {
+	$self instvar node_ 
+	$node_ delete-mark down
+}
+
 Http/Cache/Inval instproc answer-request-REF { cl pageid } {
 	# Send my new page back
 	set pginfo [$self get-page $pageid]
@@ -409,20 +473,39 @@ Http/Cache/Inval instproc answer-request-REF { cl pageid } {
 		"$cl get-response-REF $self $pageid $pginfo"
 }
 
+Http/Cache/Inval instproc get-response-GET { server pageid args } {
+	# Check sstate
+	set sid [[lindex [split $pageid :] 0] id]
+	set cid [$server id]
+	$self check-sstate $sid $cid
+	eval $self next $server $pageid $args
+}
+
 # Only get the new page cached, do nothing else
 Http/Cache/Inval instproc get-response-REF { server pageid args } {
 	$self instvar creq_ id_ 
 
+	# Check sstate
+	set sid [[lindex [split $pageid :] 0] id]
+	set cid [$server id]
+	$self check-sstate $sid $cid
+
 	array set data $args
-
 	if {[$self get-modtime $pageid] > $data(modtime)} {
-		error "Cache $self ($id_) refetched an old page $pageid ($data(modtime), new time [$self get-modtime $pageid]) from [$server id]"
+		# XXX We may get an old page because we are doing full TCP
+		# and an update is sent *during* a regular refetch, which is 
+		# sent through several smaller packets. 
+#$self instvar ns_
+#error "At [$ns_ now], cache $self ($id_) refetched an old page\
+#$pageid ($data(modtime), new time [$self get-modtime $pageid])\
+#from [$server id]"
+		# Do nothing; send back the newer page
+	} else {
+		# The page is re-validated by replacing the old entry
+		eval $self enter-page $pageid $args
+		$self evTrace E UPD p $pageid m [$self get-modtime $pageid] \
+				z [$self get-size $pageid] s [$server id]
 	}
-
-	# The page is re-validated by replacing the old entry
-	eval $self enter-page $pageid $args
-	$self evTrace E UPD p $pageid m [$self get-modtime $pageid] \
-			z [$self get-size $pageid] s [$server id]
 	eval $self answer-pending-requests $pageid $args
 
 	$self instvar node_ marks_ ns_
@@ -771,18 +854,21 @@ Http/Cache/Inval/Mcast instproc server-join { server cache } {
 	# Establishing heartbeat
 	Http instvar TRANSPORT_
 	$self instvar ns_ node_
+
 	set tcp [new Agent/TCP/$TRANSPORT_]
 	$tcp set fid_ [Http set HB_FID_]
 	$ns_ attach-agent $node_ $tcp
 	set dst [$parent_ setup-unicast-hb]
 	set snk [$dst agent]
 	$ns_ connect $tcp $snk
-	$tcp set dst_ [$snk set addr_] 
+	#$tcp set dst_ [$snk set addr_] 
 	$tcp set window_ 100
 	$snk listen
+
 	set wrapper [new Application/TcpApp/HttpInval $tcp]
 	$wrapper connect $dst
 	$wrapper set-app $self
+
 	$self set-pinv-agent $wrapper
 
 	# If we haven't started it yet, start it.
@@ -823,7 +909,7 @@ Http/Cache/Inval/Mcast instproc cancel-mpush-refresh { page } {
 	$self instvar mpush_refresh_ ns_ 
 	if [info exists mpush_refresh_($page)] {
 		$ns_ cancel $mpush_refresh_($page)
-		puts "[$ns_ now]: Cache [$self id] stops mpush"
+		#puts "[$ns_ now]: Cache [$self id] stops mpush"
 	} else {
 		error "Cache [$self id]: No mpush to stop!"
 	}
@@ -885,6 +971,16 @@ Http/Cache/Inval/Mcast instproc get-response-TLC { server pageid tlc } {
 #   sending it to its parent cache, which in turn forwards it up the tree.
 # - Every cache keeps a cost for each cached page. 
 #----------------------------------------------------------------------
+
+# XXX Do not check-sstate{} when getting a response. Because we are doing 
+# direct request, those responses will always come from the server
+Http/Cache/Inval/Mcast/Perc instproc check-sstate {sid cid} {
+	$self instvar direct_request_
+	if !$direct_request_ {
+		# If not using direct request, check sstate
+		$self cmd check-sstate $sid $cid
+	}
+}
 
 # Because we are doing direct request, we'll get a lot of responses 
 # directly from the server, and we'll have cid == sid. We don't want to
@@ -999,7 +1095,7 @@ Http/Cache/Inval/Mcast/Perc instproc send-proforma { pageid args } {
 		# Query the global server-to-TLC map to unicast this 
 		# pro forma to that TLC...
 		set par [$server get-tlc]
-		puts "TLC [$self id] learned about server [$server id] by pro forma"
+		#puts "TLC [$self id] learned about server [$server id] by pro forma"
 	}
 	$self send $par [$self get-pfsize] \
 		"$par recv-proforma $self $pageid [join $args]"
@@ -1027,6 +1123,10 @@ Http/Cache/Inval/Mcast/Perc instproc mark-valid-hdr {} {
 }
 
 Http/Cache/Inval/Mcast/Perc instproc recv-proforma { cache pageid args } {
+	$self instvar stat_
+	# count pro forma as one TLC hit
+	incr stat_(hit-num)
+
 	$self evTrace E RPF p $pageid c [$cache id]
 
 	array set data $args

@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.5 1998/08/25 19:48:28 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.6 1998/12/16 21:10:54 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -269,7 +269,7 @@ protected:
 		double age_;
 		int size_;
 		void copy(ClientPage *p) {
-			strcpy(pg_, p->name());
+			p->name(pg_);
 			mtime_ = p->mtime();
 			age_ = p->age();
 			size_ = p->size();

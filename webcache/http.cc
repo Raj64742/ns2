@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.4 1998/08/22 02:41:34 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.5 1998/12/16 21:10:55 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -51,8 +51,7 @@ public:
 // What states should be in a http agent?
 HttpApp::HttpApp() : log_(0)
 {
-#ifdef JOHNH_CLASSINSTVAR
-#else /* ! JOHNH_CLASSINSTVAR */
+#ifndef JOHNH_CLASSINSTVAR
 	bind("id_", &id_);
 #endif
 
@@ -271,23 +270,24 @@ int HttpApp::command(int argc, const char*const* argv)
 			HttpApp *client = 
 				(HttpApp *)TclObject::lookup(argv[2]);
 			if (client == NULL) {
-				tcl.resultf("%s: bad client name %s",
-					    name_, argv[2]);
+				tcl.add_errorf("%s: bad client name %s",
+					       name_, argv[2]);
 				return TCL_ERROR;
 			}
 			int bytes = atoi(argv[3]);
 			TcpApp *cnc = (TcpApp *)lookup_cnc(client);
 			if (cnc == NULL) {
-				tcl.resultf("%s: no connection to client %s",
-					    name_, argv[2]);
+				//tcl.resultf("%s: no connection to client %s",
+				//	    name_, argv[2]);
+				// Tolerate it
 				return TCL_OK;
 			}
 			cnc->send(bytes, strlen(argv[4])+1, argv[4]);
 			return TCL_OK;
 		
 		} else if (strcmp(argv[1], "enter-page") == 0) {
-			double mt, et, age;
-			int size;
+			double mt = -1, et, age = -1;
+			int size = -1;
 			for (int i = 3; i < argc; i+=2) {
 				if (strcmp(argv[i], "modtime") == 0)
 					mt = strtod(argv[i+1], NULL);
@@ -295,6 +295,12 @@ int HttpApp::command(int argc, const char*const* argv)
 					size = atoi(argv[i+1]);
 				else if (strcmp(argv[i], "age") == 0)
 					age = strtod(argv[i+1], NULL);
+			}
+			// XXX allow mod time < 0
+			if ((size < 0) || (age < 0)) {
+				tcl.resultf("%s: wrong page information %s",
+					    name_, argv[2]);
+				return TCL_ERROR;
 			}
 			et = Scheduler::instance().clock();
 			pool_->add_page(argv[2], size, mt, et, age);
@@ -370,6 +376,8 @@ HttpYucInvalServer::HttpYucInvalServer()
 	bind("Ca_", &Ca_);
 	bind("Cb_", &Cb_);
 	bind("push_thresh_", &push_thresh_);
+	bind("push_high_bound_", &push_high_bound_);
+	bind("push_low_bound_", &push_low_bound_);
 #endif
 }
 
@@ -381,6 +389,8 @@ HttpYucInvalServer::delay_bind_init_all()
 	delay_bind_init_one("Ca_");
 	delay_bind_init_one("Cb_");
 	delay_bind_init_one("push_thresh_");
+	delay_bind_init_one("push_high_bound_");
+	delay_bind_init_one("push_low_bound_");
 	HttpApp::delay_bind_init_all();
 }
 
@@ -395,6 +405,10 @@ int HttpYucInvalServer::delay_bind_dispatch(const char *varName,
 	DELAY_BIND_DISPATCH(varName, localName, "Cb_", delay_bind, &Cb_);
 	DELAY_BIND_DISPATCH(varName, localName, "push_thresh_", 
 			    delay_bind, &push_thresh_);
+	DELAY_BIND_DISPATCH(varName, localName, "push_high_bound_", 
+			    delay_bind, &push_high_bound_);
+	DELAY_BIND_DISPATCH(varName, localName, "push_low_bound_", 
+			    delay_bind, &push_low_bound_);
 	return HttpApp::delay_bind_dispatch(varName, localName);
 }
 #endif /* JOHNH_CLASSINSTVAR */
@@ -411,8 +425,8 @@ int HttpYucInvalServer::command(int argc, const char*const* argv)
 				    id_, argv[2]);
 			return TCL_ERROR;
 		}
-		pg->count_request(Cb_);
-		log("S NTF v %d\n", pg->counter());
+		pg->count_request(Cb_, push_high_bound_);
+		log("S NTF p %s v %d\n", argv[2], pg->counter());
 		return TCL_OK;
 	} else if (strcmp(argv[1], "count-inval") == 0) {
 		ClientPage *pg = 
@@ -422,8 +436,8 @@ int HttpYucInvalServer::command(int argc, const char*const* argv)
 				    id_, argv[2]);
 			return TCL_ERROR;
 		}
-		pg->count_inval(Ca_);
-		log("S NTF v %d\n", pg->counter());
+		pg->count_inval(Ca_, push_low_bound_);
+		log("S NTF p %s v %d\n", argv[2], pg->counter());
 		return TCL_OK;
 	} else if (strcmp(argv[1], "is-pushable") == 0) {
 		ClientPage *pg = 
@@ -538,6 +552,8 @@ HttpMInvalCache::HttpMInvalCache() :
 	bind("Ca_", &Ca_);
 	bind("Cb_", &Cb_);
 	bind("push_thresh_", &push_thresh_);
+	bind("push_high_bound_", &push_high_bound_);
+	bind("push_low_bound_", &push_low_bound_);
 #endif
 	hb_timer_.set_interval(hb_interval_);
 	Tcl_InitHashTable(&sstate_, TCL_ONE_WORD_KEYS);
@@ -552,6 +568,8 @@ void HttpMInvalCache::delay_bind_init_all()
 	delay_bind_init_one("Ca_");
 	delay_bind_init_one("Cb_");
 	delay_bind_init_one("push_thresh_");
+	delay_bind_init_one("push_high_bound_");
+	delay_bind_init_one("push_low_bound_");
 	HttpApp::delay_bind_init_all();
 }
 
@@ -566,6 +584,10 @@ int HttpMInvalCache::delay_bind_dispatch(const char *varName,
 	DELAY_BIND_DISPATCH(varName, localName, "Cb_", delay_bind, &Cb_);
 	DELAY_BIND_DISPATCH(varName, localName, "push_thresh_", 
 			    delay_bind, &push_thresh_);
+	DELAY_BIND_DISPATCH(varName, localName, "push_high_bound_", 
+			    delay_bind, &push_high_bound_);
+	DELAY_BIND_DISPATCH(varName, localName, "push_low_bound_", 
+			    delay_bind, &push_low_bound_);
 	return HttpApp::delay_bind_dispatch(varName, localName);
 }
 #endif /* JOHNH_CLASSINSTVAR */
@@ -643,8 +665,17 @@ int HttpMInvalCache::command(int argc, const char*const* argv)
 					    id_, argv[2]);
 				return TCL_ERROR;
 			}
-			pg->count_request(Cb_);
-			log("E NTF v %d\n", pg->counter());
+			pg->count_request(Cb_, push_high_bound_);
+			log("E NTF p %s v %d\n", argv[2], pg->counter());
+			return TCL_OK;
+		} else if (strcmp(argv[1], "check-sstate") == 0) {
+			/*
+			 * <cache> check-sstate <sid> <cid>
+			 * If server is re-connected, reinstate it
+			 */
+			int sid = atoi(argv[2]);
+			int cid = atoi(argv[3]);
+			check_sstate(sid, cid);
 			return TCL_OK;
 		}
 		break;
@@ -745,9 +776,11 @@ int HttpMInvalCache::command(int argc, const char*const* argv)
 			for (int i = 3; i < argc; i+=2) {
 				if (strcmp(argv[i], "modtime") == 0)
 				  d->rec_mtime(0) = strtod(argv[i+1], NULL);
-				else if (strcmp(argv[i], "size") == 0) 
+				else if (strcmp(argv[i], "size") == 0) {
 				  d->rec_size(0) = atoi(argv[i+1]);
-				else if (strcmp(argv[i], "age") == 0)
+				  // XXX need to set total update page size
+				  d->pgsize() = d->rec_size(0);
+				} else if (strcmp(argv[i], "age") == 0)
 				  d->rec_age(0) = strtod(argv[i+1], NULL);
 			}
 			tcl.resultf("%d", recv_upd(d));
@@ -845,17 +878,40 @@ void HttpMInvalCache::check_sstate(int sid, int cid)
 		// How come?
 		return;
 	SState *sst = lookup_sstate(sid);
+	NeighborCache *c = lookup_nbr(cid);
 	if (sst == NULL) {
-		NeighborCache *c = lookup_nbr(cid);
 		if (c == NULL) {
 			fprintf(stderr, 
 "%g: cache %d: No neighbor cache for received invalidation from %d via %d\n", 
 				Scheduler::instance().clock(), id_, sid, cid);
 			abort();
 		}
+#ifdef WEBCACHE_DEBUG
+		fprintf(stderr,
+			"%g: cache %d: registered server %d via cache %d\n",
+			Scheduler::instance().clock(), id_, sid, cid);
+#endif
 		sst = new SState(c);
 		add_sstate(sid, sst);
 		c->add_server(sid);
+	} else if (sst->is_down()) {
+		sst->up();
+		if (cid != id_) {
+			if (c == NULL) {
+				fprintf(stderr, 
+ "[%g]: Cache %d has an invalid neighbor cache %d\n",
+ Scheduler::instance().clock(), id_, cid);
+				abort();
+			}
+			c->server_up(sid);
+		}
+#ifdef WEBCACHE_DEBUG
+		fprintf(stderr, 
+		"[%g] Cache %d reconnected to server %d via cache %d\n", 
+			Scheduler::instance().clock(), id_, 
+			sid, cid);
+#endif
+		Tcl::instance().evalf("%s mark-rejoin", name_);
 	}
 }
 
@@ -940,6 +996,7 @@ void HttpMInvalCache::recv_heartbeat(int id)
 		fprintf(stderr, "[%g] Cache %d reconnected to cache %d\n", 
 			Scheduler::instance().clock(), id_, id);
 #endif
+		Tcl::instance().evalf("%s mark-rejoin", name_);
 	} else
 		// Update heartbeat time
 		c->reset_timer(time);
@@ -960,8 +1017,8 @@ void HttpMInvalCache::handle_node_failure(int cid)
 #if WEBCACHE_DEBUG
 	fprintf(stderr, "[%g] Cache %d disconnected from cache %d\n", 
 		Scheduler::instance().clock(), id_, cid);
-	Tcl::instance().evalf("%s mark-invalid", name_);
 #endif
+	Tcl::instance().evalf("%s mark-leave", name_);
 
 	NeighborCache *c = lookup_nbr(cid);
 	if (c == NULL) {
@@ -996,6 +1053,7 @@ void HttpMInvalCache::recv_leave(HttpLeaveData *d)
 
 	SState *sst;
 	HttpLeaveData* data = new HttpLeaveData(id_, d->num());
+	NeighborCache *c = lookup_nbr(d->id());
 	int i, j;
 	for (i = 0, j = 0; i < d->num(); i++) {
 		sst = lookup_sstate(d->rec_id(i));
@@ -1007,12 +1065,18 @@ void HttpMInvalCache::recv_leave(HttpLeaveData *d)
 		// If it's already marked down, don't bother again.
 		if (sst->is_down()) 
 			continue;
+		// If we hear a LEAVE about a server from one of 
+		// our child in the virtual distribution tree 
+		// of the server, ignore it.
+		if (c != sst->cache()) 
+			continue;
+
 		// We have the page, and we hold inval contract. Invalidate 
 		// the page and inform our children of it.
 		sst->down();
 		data->add(j++, d->rec_id(i));
 		pool_->invalidate_server(d->rec_id(i));
-		Tcl::instance().evalf("%s mark-invalid", name_);
+		Tcl::instance().evalf("%s mark-leave", name_);
 	}
 	if (j > 0)
 		send_leave(data);
@@ -1047,6 +1111,7 @@ void HttpMInvalCache::timeout(int reason)
 void HttpMInvalCache::recv_pkt(int /*size*/, char* data)
 {
 	HttpData *d = new HttpData(data);
+	
 	switch (d->type()) {
 	case HTTP_INVALIDATION: {
 		// Update timer for the source of the heartbeat
@@ -1140,7 +1205,7 @@ int HttpMInvalCache::recv_inv(HttpHbData *data)
 	data->extract(head);
 	int old_inv = num_inv_;
 	process_inv(data->num_inv(), head, data->id());
-	log("E GINV z %d\n", data->size());
+	//log("E GINV z %d\n", data->size());
 	if (old_inv < num_inv_) 
 		// This invalidation is valid
 		return 1;
@@ -1166,9 +1231,20 @@ void HttpMInvalCache::process_inv(int, InvalidationRec *ivlist, int cache)
 		if (pg != NULL) {
 			check_sstate(pg->server()->id(), cache);
 			// Count this invalidation no matter whether we're
-			// going to drop it
-			pg->count_inval(Ca_);
-			log("E NTF v %d\n", pg->counter());
+			// going to drop it. But if we doesn't get it 
+			// from our virtual parent, don't count it
+			SState *sst = lookup_sstate(pg->server()->id());
+			if (sst == NULL) {
+				// How come we doesn't know the server???
+				fprintf(stderr, 
+					"%s %d: couldn't find the server.\n", 
+					__FILE__, __LINE__);
+				abort();
+			}
+			if (sst->cache()->cache()->id() == cache) {
+				pg->count_inval(Ca_, push_low_bound_);
+				log("E NTF p %s v %d\n",p->pg(),pg->counter());
+			}
 		}
 
 		// Hook for filters of derived classes
@@ -1204,7 +1280,7 @@ void HttpMInvalCache::process_inv(int, InvalidationRec *ivlist, int cache)
 				num_inv_++;
 				// XXX
 				Tcl::instance().evalf("%s mark-invalid",name_);
-				log("E GINV p %s m %g\n", r->pg(), r->mtime());
+				log("E GINV p %s m %.17g\n", r->pg(), r->mtime());
 			} else
 				delete r;
 		}
@@ -1253,8 +1329,8 @@ int HttpMInvalCache::recv_upd(HttpUpdateData *d)
 			// Our old page is invalidated by this new push,
 			// set up invalidation records for our children
 			add_inv(d->rec_page(0), d->rec_mtime(0));
-			pg->count_inval(Ca_);
-			log("E NTF v %d\n", pg->counter());
+			pg->count_inval(Ca_, push_low_bound_);
+			log("E NTF p %s v %d\n", d->rec_page(0),pg->counter());
 		}
 
 	// Add the new page into our pool
@@ -1262,8 +1338,10 @@ int HttpMInvalCache::recv_upd(HttpUpdateData *d)
 					d->rec_mtime(0),
 					Scheduler::instance().clock(),
 					d->rec_age(0));
+	// By default the page is valid and read. Set it as unread
 	q->set_unread();
-	log("E GUPD m %g z %d\n", d->rec_mtime(0), d->pgsize());
+
+	log("E GUPD m %.17g z %d\n", d->rec_mtime(0), d->pgsize());
 	Tcl::instance().evalf("%s mark-valid", name_);
 
 	// XXX If the page was previously marked as MandatoryPush, then
@@ -1273,7 +1351,7 @@ int HttpMInvalCache::recv_upd(HttpUpdateData *d)
 		// If mandatory push timer expires, stop push
 		q->clear_mpush();
 		Tcl::instance().evalf("%s cancel-mpush-refresh %s", 
-				      name_, q->name());
+				      name_, d->rec_page(0));
 	}
 
 	if (enable_upd_ && (q->counter() >= push_thresh_) || q->is_mpush())
@@ -1368,8 +1446,8 @@ int HttpPercInvalCache::command(int argc, const char*const* argv)
 		 * as HTTP_VALID_HEADER, i.e., if we get a request, we need 
 		 * to fetch the actual valid page content
 		 */
-		double mt, et, age;
-		int size;
+		double mt = -1, et, age = -1;
+		int size = -1;
 		for (int i = 3; i < argc; i+=2) {
 			if (strcmp(argv[i], "modtime") == 0)
 				mt = strtod(argv[i+1], NULL);
@@ -1377,6 +1455,11 @@ int HttpPercInvalCache::command(int argc, const char*const* argv)
 				size = atoi(argv[i+1]);
 			else if (strcmp(argv[i], "age") == 0)
 				age = strtod(argv[i+1], NULL);
+		}
+		if ((mt < 0) || (size < 0) || (age < 0)) {
+			tcl.resultf("%s: wrong page information %s",
+				    name_, argv[2]);
+			return TCL_ERROR;
 		}
 		et = Scheduler::instance().clock();
 		pool_->add_metadata(argv[2], size, mt, et, age);
