@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.2 1996/12/31 22:44:46 elan Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -62,7 +62,7 @@ Agent::Agent(int pkttype) :
 	 */
 	bind("cls", &class_);
 	bind("addr", (int*)&addr_);
-	bind("dst", &dst_);
+	bind("dst", (int*)&dst_);
 	bind("seqno", &seqno_);
 }
 
