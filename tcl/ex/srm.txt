@@ -3,6 +3,8 @@ SRM.  These are simple-srm.tcl, srm2.tcl, and srm_star.tcl.  When the
 results from each of these scripts is viewed in nam, data traffic is
 coloured white, traffic from the source is coloured blue, and traffic
 from the the receivers is multi-coloured in various shades of red.
+(Tiny packets are requests, slightly larger packets are
+session messages, and large colored packets are repairs.)
 
 Traffic from the source consists of session messages, and repairs.
 Traffic from the receivers is session messages, requests, and
