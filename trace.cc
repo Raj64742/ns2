@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.10 1997/03/29 01:43:10 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.10.2.1 1997/04/19 05:08:57 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -61,7 +61,7 @@ public:
 
 
 Trace::Trace(int type)
-	: type_(type), channel_(0), callback_(0), src_(0), dst_(0)
+	: Connector(), type_(type), channel_(0), callback_(0), src_(0), dst_(0)
 {
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
@@ -129,7 +129,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
 	int seqno;
 	/* XXX */
-	if (t == PT_RTP)
+	if (t == PT_RTP || t == PT_CBR)
 		seqno = rh->seqno();
 	else if (t == PT_TCP || t == PT_ACK)
 		seqno = tcph->seqno();

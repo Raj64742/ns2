@@ -81,7 +81,7 @@ class CsmaCaMac : public CsmaMac
 {
 public:
 	CsmaCaMac() : CsmaMac() {}
-	void recv(Packet*, Handler* h);
+	void send(Packet*);
 };
 
 #endif

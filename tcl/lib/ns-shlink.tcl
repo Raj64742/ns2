@@ -33,21 +33,38 @@
 # @(#) $Header: /usr/src/mash/repository/vint/ns-2/tcl/lib/ns-shlink.tcl
 #
 
-LL/Base set bandwidth_ 10Mb
+LL/Base set bandwidth_ 1.5Mb
 LL/Base set delay_ 1ms
 
-Mac/Base set bandwidth_ 10Mb
+Mac/Base set bandwidth_ 1.5Mb
 Mac/Base set delay_ 1ms
-
-Mac/Csma set bandwidth_ 10Mb
 Mac/Csma set delay_ 1ms
-Mac/Csma set ifs_ 16us
-Mac/Csma set slotTime_ 16us
-Mac/Csma set cwmin_ 1
-Mac/Csma set cwmax_ 256
-Mac/Csma set rtxmax_ 10
 
 Channel set delay_ 16us
+
+# WaveLAN settings
+Mac/Csma set bandwidth_ 2Mb
+Mac/Csma set ifs_ 16us
+Mac/Csma set slotTime_ 16us
+Mac/Csma set cwmin_ 16
+Mac/Csma set cwmax_ 1024
+Mac/Csma set rtxmax_ 16
+
+# Ethernet settings
+#Mac/Csma/Cd set bandwidth_ 10Mb
+#Mac/Csma/Cd set ifs_ 52us
+#Mac/Csma/Cd set slotTime_ 52us
+#Mac/Csma/Cd set cwmin_ 1
+
+TraceIp set src_ 0
+TraceIp set dst_ 0
+TraceIp set callback_ 0
+
+
+Class TraceIp/Drop -superclass TraceIp
+TraceIp/Drop instproc init {} {
+	$self next "d"
+}
 
 
 Class Trace/Recv -superclass Trace
@@ -65,18 +82,16 @@ Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } {
 		set qtype $queueMap_($qtype)
 	}
 
-	set numnodes [llength $nodelist]
 	set channel_ [new Channel]
-	$channel_ set delay_ $delay
 
+	set numnodes [llength $nodelist]
 	for {set i 0} {$i < $numnodes} {incr i} {
 		set src [lindex $nodelist $i] 
-
 		set mac_($src) [new $mactype]
 		$mac_($src) set bandwidth_ $bw
-		$mac_($src) set slotTime_ $delay
+		$mac_($src) set delay_ $delay
 		$mac_($src) channel $channel_
-
+		$mac_($src) drop-target [new TraceIp/Drop]
 		set ifq_($src) [new $ifqtype]
 		$ifq_($src) target $mac_($src)
 	}

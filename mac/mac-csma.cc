@@ -91,10 +91,10 @@ CsmaMac::send(Packet* p)
 	// if there is an ongoing transmission, then backoff
 	// else if within the ifs, then wait until the end of ifs
 	// else do carrier sense
-	if (txstop > now)
-		backoff(p);
-	else if (txstop + ifs_ > now)
+	if (txstop + ifs_ > now)
 		s.schedule(&mh_, p, txstop + ifs_ - now);
+//	else if (txstop + ifs_ > now)
+//		backoff(p);
 	else {
 		txstart_ = now;
 		channel_->senseCarrier(p, &mhEoc_);
@@ -110,8 +110,6 @@ CsmaMac::backoff(Packet* p, double delay)
 	// if retransmission time within limit, do exponential backoff
 	// else drop the packet and resume
 	if (++rtx_ < rtxmax_) {
-		double txstart = channel_->txstop() + ifs_;
-		delay += max(txstart - s.clock(), 0);
 		cw_ = min(2 * cw_, cwmax_);
 		int slot = Random::integer(cw_) + 1;
 		s.schedule(&mh_, p, delay + slotTime_ * slot);
@@ -150,8 +148,16 @@ CsmaCdMac::endofContention(Packet* p)
 
 
 void
-CsmaCaMac::recv(Packet* p, Handler* h)
+CsmaCaMac::send(Packet* p)
 {
-	callback_ = h;
-	backoff(p);
+	Scheduler& s = Scheduler::instance();
+	double now = s.clock();
+	double txstop = channel_->txstop();
+
+	if (txstop + ifs_ > now)
+		backoff(p, txstop + ifs_ - now);
+	else {
+		txstart_ = now;
+		channel_->senseCarrier(p, &mhEoc_);
+	}
 }

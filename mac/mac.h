@@ -35,6 +35,7 @@
 #ifndef ns_mac_h
 #define ns_mac_h
 
+#include <iostream.h>
 #include "delay.h"
 #include "channel.h"
 
@@ -55,12 +56,14 @@ public:
 	Mac();
 	virtual void recv(Packet* p, Handler* h);
 	virtual void send(Packet* p);
+	void drop(Packet* p);
 	inline Channel* channel() { return channel_; }
 	inline Handler* callback() { return callback_; }
 
 protected:
 	int command(int argc, const char*const* argv);
 	Channel* channel_;	// channel this MAC is connected to
+	NsObject* drop_;	// drop target for this Mac
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandler mh_;		// handle delay send due to busy channel
 };
