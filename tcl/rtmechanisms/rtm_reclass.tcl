@@ -15,11 +15,11 @@ TestSuite instproc init {} {
         if {$net_ == ""} {
                 set net_ $defNet_
         }
-        if ![Topology/$defNet_ info subclass Topology/$net_] {
-                global argv0
-                puts stderr "$argv0: cannot run test $test_ over topology $net_"
-                exit 1
-        }
+#        if ![Topology info subclass Topology/$net_] {
+#                global argv0
+#                puts stderr "$argv0: cannot run test $test_ over topology $net_"
+#                exit 1
+#        }
         set topo_ [new Topology/$net_ $ns_]
         foreach i [$topo_ array names node_] {
                 # This would be cool, but lets try to be compatible
@@ -108,6 +108,28 @@ Topology/net2 instproc init ns {
 	return $cbqlink_
 }
 
+Class Topology/net3 -superclass NodeTopology/6nodes
+Topology/net3 instproc init ns {
+	$self next $ns
+	$self instvar node_ cbqlink_ bandwidth_
+
+	$ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
+	$ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
+	set cl [new Classifier/Hash/SrcDestFid 33]
+	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 3ms "CBQ $cl"
+	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
+	[$cbqlink_ queue] algorithm "formal"
+	$ns simplex-link $node_(r2) $node_(r1) 1.5Mb 3ms DropTail
+	set bandwidth_ 1500
+	[[$ns link $node_(r2) $node_(r1)] queue] set limit_ 25
+	$ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
+	$ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+	$ns duplex-link $node_(s5) $node_(r1) 10Mb 10ms DropTail
+	$ns duplex-link $node_(s6) $node_(r2) 10Mb 1ms DropTail
+
+	return $cbqlink_
+}
+
 #
 # prints "time: $time class: $class bytes: $bytes" for the link.
 #
@@ -131,32 +153,31 @@ puts "linkDumpFlows: opening file $linkflowfile_, fdesc: $f"
         $ns_ at $stoptime "flush $f"
 }
 
-Class Test/one -superclass TestSuite
-Test/one instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo   
-        set defNet_     net2
-        set test_       reclass2
-        $self next
-	$self config
+#----------------------
+
+TestSuite instproc finish {} {
+	$self instvar post_ scheduler_
+	$scheduler_ halt
+	set bandwidth 1500
+	$post_ plot_bytes $bandwidth
 }
 
-Test/one instproc config {} {
+TestSuite instproc config { name } {
 	$self instvar linkflowfile_ linkgraphfile_
 	$self instvar goodflowfile_ goodgraphfile_
 	$self instvar badflowfile_ badgraphfile_
 	$self instvar label_ post_
 
-	set label_ RECLASS2
+	set label_ $name
 
-	set linkflowfile_ RECLASS2.tr
-	set linkgraphfile_ RECLASS2.xgr
+	set linkflowfile_ $name.tr
+	set linkgraphfile_ $name.xgr
 
-	set goodflowfile_ RECLASS2_gf.tr
-	set goodgraphfile_ RECLASS2_gf.xgr
+	set goodflowfile_ $name.gf.tr
+	set goodgraphfile_ $name.gf.xgr
 
-	set badflowfile_ RECLASS2_bf.tr
-	set badgraphfile_ RECLASS2_bf.xgr
+	set badflowfile_ $name.bf.tr
+	set badgraphfile_ $name.bf.xgr
 
 	set post_ [new PostProcess $label_ $linkflowfile_ $linkgraphfile_ \
 		$goodflowfile_ $goodgraphfile_ \
@@ -168,7 +189,7 @@ Test/one instproc config {} {
 #
 # Create traffic.
 #
-Test/one instproc traffic1 {} {
+TestSuite instproc traffic1 {} {
     $self instvar node_ 
     $self new_tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50 reno 60000
     $self new_cbr 18.4 $node_(s1) $node_(s4) 200 0.003 3 0
@@ -196,7 +217,7 @@ Test/one instproc traffic1 {} {
 #
 # Create traffic.
 #
-Test/one instproc more_cbrs {} {
+TestSuite instproc more_cbrs {} {
     $self instvar node_ 
     $self new_cbr 105.0 $node_(s2) $node_(s4) 200 0.006 22 50000
     $self new_cbr 234.0 $node_(s1) $node_(s3) 220 0.01 23 10000
@@ -205,6 +226,17 @@ Test/one instproc more_cbrs {} {
     $self new_cbr 289.0 $node_(s1) $node_(s3) 180 0.02 27 5000
 }
 
+#-----------------------
+
+Class Test/one -superclass TestSuite
+Test/one instproc init { topo name } {
+        $self instvar net_ defNet_ test_
+        set net_ $topo   
+        set defNet_ net2
+        set test_ $name
+        $self next
+	$self config $name
+}
 
 Test/one instproc run {} {
     $self instvar ns_ net_ topo_
@@ -215,7 +247,7 @@ Test/one instproc run {} {
 #    set stoptime 100.0
 
 	set rtt 0.06
-	set mtu 512
+	set mtu 1500
 
 	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu]
 
@@ -244,12 +276,58 @@ Test/one instproc run {} {
 	$ns_ run
 }
 
-Test/one instproc finish {} {
-	$self instvar post_ scheduler_
-	$scheduler_ halt
-	set bandwidth 1500
-	$post_ plot_bytes $bandwidth
+#--------
+
+Class Test/two -superclass TestSuite
+Test/two instproc init { topo name } {
+        $self instvar net_ defNet_ test_
+        set net_ $topo   
+        set defNet_ net2
+        set test_ $name
+        $self next
+	$self config $name
 }
+
+Test/two instproc run {} {
+    $self instvar ns_ net_ topo_
+    $topo_ instvar cbqlink_ node_
+    set cbqlink $cbqlink_
+
+#    set stoptime 600.0
+    set stoptime 100.0
+
+	set rtt 0.06
+	set mtu 1500
+
+	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu]
+
+	$self instvar goodflowfile_
+	set gfm [$rtm makeflowmon]
+	set gflowf [open $goodflowfile_ w]
+	$gfm set enable_in_ false	; # no per-flow arrival state
+	$gfm set enable_out_ false	; # no per-flow departure state
+	$gfm attach $gflowf
+
+	$self instvar badflowfile_
+	set bfm [$rtm makeflowmon]
+	set bflowf [open $badflowfile_ w]
+	$bfm attach $bflowf
+
+	$rtm makeboxes $gfm $bfm 100 1000
+	$rtm bindboxes
+	set L1 [$rtm monitor-link]
+	$self linkDumpFlows $L1 20.0 $stoptime
+
+	$self traffic1
+        $self more_cbrs
+	$ns_ at $stoptime "$self finish"
+
+	ns-random 0
+	$ns_ run
+}
+
+#---------
+
 
 TestSuite proc usage {} {
         global argv0
@@ -303,7 +381,7 @@ TestSuite proc runTest {} {
                         $self usage
                 }
         }
-        set t [new Test/$test $topo]
+        set t [new Test/$test $topo $test ]
         $t run
 }
 
