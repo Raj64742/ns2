@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.47 1997/07/21 21:59:32 kfall Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.48 1997/07/22 07:57:42 padmanab Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -125,7 +125,7 @@ SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN)
 HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
-	tcp-sink.h drop-tail.h red.h \
+	tcp-sink.h tcp-fack.h drop-tail.h red.h \
 	queue-monitor.h queue-nonfifo.h \
 	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
 	delay.h \
