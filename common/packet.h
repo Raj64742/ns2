@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.32.2.6 1998/07/28 20:16:09 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.32.2.7 1998/08/30 03:50:45 kannan Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -39,7 +39,7 @@
 
 #include "config.h"
 #include "scheduler.h"
-#include <iostream.h>
+// #include <iostream.h>
 
 #define PT_TCP          0
 #define PT_TELNET       1
