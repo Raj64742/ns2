@@ -4,6 +4,7 @@ COPYRIGHTS
 FILES
 HOWTO-CONTRIBUTE
 INSTALL.WIN32
+Makefile
 Makefile.in
 README
 TODO.html
@@ -193,8 +194,11 @@ conf/configure.in.z
 conf/configure.in.ztrace
 conf/makefile.win
 conf/mkdep
+config.cache
 config.guess
 config.h
+config.log
+config.status
 config.sub
 configure
 configure.in
@@ -527,6 +531,7 @@ imep/rxmit_queue.cc
 imep/rxmit_queue.h
 indep-utils/cmu-scen-gen/README
 indep-utils/cmu-scen-gen/cbrgen.tcl
+indep-utils/cmu-scen-gen/setdest/Makefile
 indep-utils/cmu-scen-gen/setdest/Makefile.in
 indep-utils/cmu-scen-gen/setdest/README
 indep-utils/cmu-scen-gen/setdest/addrmap-example
@@ -570,6 +575,7 @@ indep-utils/model-gen/win.awk
 indep-utils/propagation/threshold.cc
 indep-utils/webtrace-conv/Makefile
 indep-utils/webtrace-conv/README
+indep-utils/webtrace-conv/dec/Makefile
 indep-utils/webtrace-conv/dec/Makefile.in
 indep-utils/webtrace-conv/dec/formsquid.cc
 indep-utils/webtrace-conv/dec/formtxt.cc
@@ -581,12 +587,15 @@ indep-utils/webtrace-conv/dec/proxytrace2any.cc
 indep-utils/webtrace-conv/dec/proxytrace2txt.c
 indep-utils/webtrace-conv/dec/proxytrace2txt.h
 indep-utils/webtrace-conv/dec/tr-stat.cc
+indep-utils/webtrace-conv/epa/Makefile
 indep-utils/webtrace-conv/epa/Makefile.in
 indep-utils/webtrace-conv/epa/tr-stat.cc
+indep-utils/webtrace-conv/nlanr/Makefile
 indep-utils/webtrace-conv/nlanr/Makefile.in
 indep-utils/webtrace-conv/nlanr/logparse.cc
 indep-utils/webtrace-conv/nlanr/logparse.h
 indep-utils/webtrace-conv/nlanr/tr-stat.cc
+indep-utils/webtrace-conv/ucb/Makefile
 indep-utils/webtrace-conv/ucb/Makefile.in
 indep-utils/webtrace-conv/ucb/config.h
 indep-utils/webtrace-conv/ucb/logparse.cc
@@ -652,6 +661,7 @@ mcast/ctrMcast.h
 mcast/mcast_ctrl.cc
 mcast/mcast_ctrl.h
 mcast/replicator.cc
+mcast/rlm.cc
 mcast/srm-headers.h
 mcast/srm-ssm.cc
 mcast/srm-ssm.h
@@ -805,6 +815,8 @@ queue/red-pd.cc
 queue/red-pd.h
 queue/red.cc
 queue/red.h
+queue/rem.cc
+queue/rem.h
 queue/rio.cc
 queue/rio.h
 queue/rtqueue.cc
@@ -1203,6 +1215,7 @@ tcl/lan/ns-mac.tcl
 tcl/lan/vlan.tcl
 tcl/lib/ns-address.tcl
 tcl/lib/ns-agent.tcl
+tcl/lib/ns-autoconf.tcl
 tcl/lib/ns-autoconf.tcl.in
 tcl/lib/ns-bsnode.tcl
 tcl/lib/ns-cmutrace.tcl
@@ -2441,6 +2454,9 @@ tcp/tcp-session.h
 tcp/tcp-sink.cc
 tcp/tcp-sink.h
 tcp/tcp-vegas.cc
+tcp/tcp.cc
+tcp/tcp.h
+tcp/tcplib-telnet.cc
 tcp/template.h
 tcp/tfrc-sink.cc
 tcp/tfrc-sink.h
