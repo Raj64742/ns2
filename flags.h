@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.7 1998/02/16 20:37:50 hari Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.8 1998/05/02 01:35:52 kfall Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -43,14 +43,22 @@
 struct hdr_flags {
 	unsigned char ecn_;          /* transport receiver notifying
 				      *  transport sender of ECN */
-	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the opposite direction */
-	unsigned char eln_;     /* explicit loss notification */
+	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the
+					opposite direction (the CE bit) */
+	unsigned char eln_;     /* explicit loss notification (snoop) */
 	unsigned char fs_;	/* tcp fast start (work in progress --venkat) */
 	unsigned char no_ts_;	/* don't use the tstamp of this pkt for rtt */
-	unsigned char pri_;
-	unsigned char usr1_;
-	unsigned char usr2_;
-	unsigned char ecn_capable_;  /* indicates an ecn-capable tranport */
+	unsigned char pri_;	/* unused */
+	unsigned char usr1_;	/* unused; also: usr2_ deleted */
+	unsigned char ecn_capable_;  /* an ecn-capable tranport (ECT bit) */
+
+	/*
+	 * these functions use the newer ECN names but leaves the actual field
+	 * names above to maintain backward compat
+	 */
+	unsigned char& ect()	{ return ecn_capable_; }
+	unsigned char& ecnecho() { return ecn_; }
+	unsigned char& ce() { return ecn_to_echo_; }
 };
 
 #endif
