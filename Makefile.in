@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.2 1996/12/20 02:49:49 mccanne Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.3 1997/01/26 22:32:23 mccanne Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -64,7 +64,7 @@ RANLIB = @V_RANLIB@
 OBJ_CC = \
 	scheduler.o ns_tclsh.o object.o \
 	classifier.o classifier-addr.o classifier-mcast.o replicator.o \
-	packet.o node.o agent.o cbr.o misc.o \
+	packet.o connector.o agent.o cbr.o misc.o \
 	delay.o queue.o drop-tail.o random.o trace.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
 	tcplib-telnet.o red.o route.o \

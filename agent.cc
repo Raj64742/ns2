@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.2 1996/12/31 22:44:46 elan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.3 1997/01/26 22:32:24 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -41,7 +41,6 @@ static char rcsid[] =
 
 #include "Tcl.h"
 #include "agent.h"
-#include "node.h"
 #include "packet.h"
 
 static class NullAgentClass : public TclClass {

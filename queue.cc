@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.2 1997/01/26 22:32:32 mccanne Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -69,7 +69,7 @@ int Queue::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
 		if (strcmp(argv[1], "drop-trace") == 0) {
-			drop_ = (Node*)TclObject::lookup(argv[2]);
+			drop_ = (NsObject*)TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 	}

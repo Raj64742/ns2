@@ -34,21 +34,21 @@
 #ifndef ns_classifier_h
 #define ns_classifier_h
 
-#include "node.h"
+#include "object.h"
 
 class Packet;
-class Classifier : public Node {
+class Classifier : public NsObject {
  public:
 	~Classifier();
 	void recv(Packet*, Handler* h = 0);
  protected:
 	Classifier();
-	void install(int slot, Node*);
+	void install(int slot, NsObject*);
 	void clear(int slot);
 	virtual int command(int argc, const char*const* argv);
 	virtual int classify(const Packet*) = 0;
 	void alloc(int);
-	Node** slot_;		/* table that maps slot number to a Node */
+	NsObject** slot_;	/* table that maps slot number to a NsObject */
 	int nslot_;
 	int maxslot_;
 };

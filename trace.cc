@@ -33,13 +33,12 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.1 1996/12/19 03:22:46 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.2 1997/01/26 22:32:39 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "packet.h"
-#include "node.h"
 #include "queue.h"
 
 class Trace : public Connector {

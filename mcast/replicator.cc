@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.2 1997/01/26 22:32:34 mccanne Exp $";
 #endif
 
 #include "classifier.h"
@@ -77,9 +77,9 @@ void Replicator::recv(Packet* p, Handler*)
 		return;
 	}
 	for (int i = 0; i < maxslot_; ++i) {
-		Node* node = slot_[i];
-		if (node != 0)
-			node->recv(p->copy());
+		NsObject* o = slot_[i];
+		if (o != 0)
+			o->recv(p->copy());
 	}
 	/* we know that maxslot is non-null */
 	slot_[maxslot_]->recv(p);

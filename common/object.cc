@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.2 1997/01/26 22:32:31 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -66,3 +66,13 @@ int NsObject::command(int argc, const char*const* argv)
 	return (TclObject::command(argc, argv));
 }
 
+/*
+ * Packets may be handed to NsObjects at sheduled points
+ * in time since a node is an event handler and a packet
+ * is an event.  Packets should be the only type of event
+ * scheduled on a node so we can carry out the cast below.
+ */
+void NsObject::handle(Event* e)
+{
+	recv((Packet*)e);
+}

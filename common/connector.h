@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 1993 Regents of the University of California.
+ * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -12,12 +12,12 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
+ * 	This product includes software developed by the MASH Research
+ * 	Group at the University of California Berkeley.
+ * 4. Neither the name of the University nor of the Research Group may be
+ *    used to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -30,36 +30,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.h,v 1.1 1997/01/26 22:32:27 mccanne Exp $
  */
 
-#ifndef ns_node_h
-#define ns_node_h
+#ifndef ns_connector_h
+#define ns_connector_h
 
 #include "object.h"
-#include "scheduler.h"
-
-class Packet;
-
-class Node : public NsObject, public Handler {
- public:
-	virtual void recv(Packet*, Handler* callback = 0) = 0;
- protected:
-	void handle(Event*);
-	virtual int command(int argc, const char*const* argv);
-};
 
 /*
- * A Node with only a single neighbor.
+ * An NsObject with only a single neighbor.
  */
-class Connector : public Node {
+class Connector : public NsObject {
 public:
 	Connector();
 protected:
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler* callback = 0);
 	inline void send(Packet* p, Handler* h) { target_->recv(p, h); }
-	Node* target_;
+	NsObject* target_;
 };
-
 #endif

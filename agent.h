@@ -30,15 +30,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.2 1996/12/31 22:46:25 elan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.3 1997/01/26 22:32:24 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
 #define ns_agent_h
 
 #include "config.h"
-#include "node.h"
-#include "scheduler.h"
+#include "connector.h"
 
 class Packet;
 

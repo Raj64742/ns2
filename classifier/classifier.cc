@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.1 1996/12/19 03:22:44 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.2 1997/01/26 22:32:25 mccanne Exp $";
 #endif
 
 #include <stdlib.h>
@@ -52,21 +52,21 @@ Classifier::~Classifier()
 
 void Classifier::alloc(int slot)
 {
-	Node** old = slot_;
+	NsObject** old = slot_;
 	int n = nslot_;
 	if (old == 0)
 		nslot_ = 32;
 	while (nslot_ <= slot)
 		nslot_ <<= 1;
-	slot_ = new Node*[nslot_];
-	memset(slot_, 0, nslot_ * sizeof(Node*));
+	slot_ = new NsObject*[nslot_];
+	memset(slot_, 0, nslot_ * sizeof(NsObject*));
 	for (int i = 0; i < n; ++i)
 		slot_[i] = old[i];
 	delete old;
 }
 
 
-void Classifier::install(int slot, Node* p)
+void Classifier::install(int slot, NsObject* p)
 {
 	if (slot >= nslot_)
 		alloc(slot);
@@ -86,12 +86,12 @@ void Classifier::clear(int slot)
 
 
 /*
- * Nodes only ever see "packet" events, which come either
+ * objects only ever see "packet" events, which come either
  * from an incoming link or a local agent (i.e., packet source).
  */
 void Classifier::recv(Packet* p, Handler*)
 {
-	Node* node;
+	NsObject* node;
 	int cl = classify(p);
 	if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
 		Tcl::instance().evalf("%s no-slot %d", name(), cl);
@@ -119,10 +119,10 @@ int Classifier::command(int argc, const char*const* argv)
 		 */
 		if (strcmp(argv[1], "install") == 0) {
 			int slot = atoi(argv[2]);
-			Node* node = (Node*)TclObject::lookup(argv[3]);
+			NsObject* node = (NsObject*)TclObject::lookup(argv[3]);
 			install(slot, node);
 			return (TCL_OK);
 		}
 	}
-	return (Node::command(argc, argv));
+	return (NsObject::command(argc, argv));
 }

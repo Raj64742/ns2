@@ -30,22 +30,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.2 1997/01/26 22:32:31 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_object_h
 #define ns_object_h
 
 #include "Tcl.h"
+#include "scheduler.h"
 
-/*XXX this has become an uninteresting class! */
-class NsObject : public TclObject {
+class Packet;
+
+class NsObject : public TclObject, public Handler {
  public:
 	NsObject();
 	virtual ~NsObject();
+	virtual void recv(Packet*, Handler* callback = 0) = 0;
 	virtual int command(int argc, const char*const* argv);
  protected:
 	virtual void reset();
+	void handle(Event*);
 };
 
 #endif
