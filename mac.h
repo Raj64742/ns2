@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.14 1998/01/13 03:27:42 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.15 1998/01/23 08:13:48 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -145,7 +145,7 @@ protected:
 	int label_;		// MAC address
 	MacState state_;	// MAC's current state
 	Channel* channel_;	// channel this MAC is connected to
-	Classifier* cclass_;	// classifier to obtain the peer MAC
+	Classifier* mcl_;	// MAC classifier to obtain the peer MAC
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandlerResume hRes_;	// resume handler
 	MacHandlerSend hSend_;	// handle delay send due to busy channel

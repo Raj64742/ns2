@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.17 1998/01/13 03:27:42 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.18 1998/01/23 08:13:48 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -98,8 +98,8 @@ Mac::command(int argc, const char*const* argv)
 			channel_ = (Channel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "cclass") == 0) {
-			cclass_ = (Classifier*) TclObject::lookup(argv[2]);
+		if (strcmp(argv[1], "classifier") == 0) {
+			mcl_ = (Classifier*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "maclist") == 0) {
@@ -111,8 +111,8 @@ Mac::command(int argc, const char*const* argv)
 			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "cclass") == 0) {
-			tcl.resultf("%s", cclass_->name());
+		if (strcmp(argv[1], "classifier") == 0) {
+			tcl.resultf("%s", mcl_->name());
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "maclist") == 0) {
@@ -167,5 +167,5 @@ Mac::resume(Packet* p)
 Mac*
 Mac::getPeerMac(Packet* p)
 {
-	return (Mac*) cclass_->slot(((hdr_mac*)p->access(off_mac_))->macDA());
+	return (Mac*) mcl_->slot(((hdr_mac*)p->access(off_mac_))->macDA());
 }
