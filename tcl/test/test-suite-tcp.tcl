@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.18 1999/08/24 05:07:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.19 1999/08/24 05:30:20 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -544,6 +544,18 @@ Test/underutilized_100ms instproc run {} {
 	Agent/TCP set window_ 100
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$self run2 $tcp0
+}
+
+Class Test/underutilized_100ms_control -superclass TestSuite
+Test/underutilized_100ms_control instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       underutilized_100ms_control
+        Agent/TCP set QOption_ 0
+        Agent/TCP set control_increase_ 1
+        Test/underutilized_100ms_control instproc run {} [Test/underutilized_100ms info instbody run ]
+        $self next
 }
 
 Class Test/quiescent_100ms_fine -superclass TestSuite
