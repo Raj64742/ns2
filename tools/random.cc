@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.2 1997/03/07 02:22:07 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.3 1997/04/18 00:55:26 bajaj Exp $ (LBL)";
 #endif
 
 #include <sys/time.h>
@@ -41,7 +41,6 @@ static char rcsid[] =
 
 #if defined(sun)
 extern "C" int srandom(...);
-extern "C" int gettimeofday(struct timeval*, ...);
 #endif
 
 void Random::seed(int s)

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.3 1997/03/29 01:43:08 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.4 1997/04/18 00:55:26 bajaj Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -83,13 +83,13 @@ protected:
 	int off_tcp_;
 };
 
-static class TcpClass : public TclClass {
+static class TcpSimpleClass : public TclClass {
 public:
-	TcpClass() : TclClass("Agent/TCPSimple") {}
+	TcpSimpleClass() : TclClass("Agent/TCPSimple") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new TcpSimpleAgent());
 	}
-} class_tcp;
+} class_tcpsimple;
 
 TcpSimpleAgent::TcpSimpleAgent() : Agent(PT_TCP)
 {
