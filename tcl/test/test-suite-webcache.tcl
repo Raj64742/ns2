@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.7 1998/12/20 19:38:08 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.8 1998/12/23 23:14:10 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -16,7 +16,7 @@ source topologies.tcl
 #----------------------------------------------------------------------
 # Misc setup
 #----------------------------------------------------------------------
-set tcl_precision 17
+set tcl_precision 10
 
 
 #----------------------------------------------------------------------
