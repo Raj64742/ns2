@@ -136,7 +136,7 @@ Mac802_11::sendRtsCts(Packet* p)
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
 	mh->macSA() = label_;
 	mh->ftype() = MF_DATA;
-	mh->duration() = txtime(p);
+	mh->txtime() = txtime(p);
 	pkt_ = p;
 	if (state_ == MAC_IDLE && pktTx_ == 0) {
 		rtxRts_ = 0;
@@ -154,8 +154,8 @@ Mac802_11::recvRtsCts(Packet* p)
 	// process received packets
 	switch(mh->ftype()) {
 	case MF_RTS:
-		if (evIdle_.uid_ > 0)
-			s.cancel(&evIdle_);
+		if (eIdle_.uid_ > 0)
+			s.cancel(&eIdle_);
 		sendCts(p);
 		return;
 	case MF_CTS:
@@ -168,8 +168,8 @@ Mac802_11::recvRtsCts(Packet* p)
 		}
 		break;
 	case MF_DATA:
-		if (evIdle_.uid_ > 0)
-			s.cancel(&evIdle_);
+		if (eIdle_.uid_ > 0)
+			s.cancel(&eIdle_);
 		sendAck(p);
 		target_->recv(p);
 		return;
@@ -247,7 +247,7 @@ Mac802_11::lengthNAV(Packet* p)
 	case MF_RTS:
 		delay += sifs_ + txtime(hlen_);
 	case MF_CTS:
-		delay += sifs_ + mh->duration();
+		delay += sifs_ + mh->txtime();
 	case MF_DATA:
 		delay += sifs_ + txtime(hlen_);
 		break;
@@ -267,7 +267,8 @@ Mac802_11::sendRts()
 	}
 
 	if (++rtxRts_ > rtxRtsLimit_) {
-		resume(pkt_);
+//		resume(pkt_);
+		sendData();
 		return;
 	}
 	Packet* p = pkt_->copy();
@@ -284,7 +285,7 @@ void
 Mac802_11::sendCts(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	s.schedule(&mhIdle_, &evIdle_, lengthNAV(p));
+	s.schedule(&mhIdle_, &eIdle_, lengthNAV(p));
 	hdr_mac* mh = (hdr_mac*)p->access(off_mac_);
 	sender_ = mh->macSA();
 	swap(mh->macSA(), mh->macDA());

@@ -111,7 +111,7 @@ protected:
 	MacHandlerRts mhRts_;	// handle RTS retransmission
 	MacHandlerData mhData_;	// handle ACK retransmission
 	MacHandlerIdle mhIdle_;	// timeout of the MAC_RECV state
-	Event evIdle_;		// event for the mhIdle_ handler
+	Event eIdle_;		// event for the mhIdle_ handler
 };
 
 #endif
