@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.13 1999/07/05 17:06:33 haoboy Exp $
+   $Id: dsdv.cc,v 1.14 1999/07/07 22:17:54 salehi Exp $
 
    */
 
@@ -357,8 +357,8 @@ DSDV_Agent::lost_link (Packet *p)
   if (verbose_ && hdrc->addr_type_ == AF_INET)
     trace ("VLL %.8f %d->%d lost at %d",
   Scheduler::instance ().clock (),
-	   ((hdr_ip *) p->access (off_ip_))->src_,
-	   ((hdr_ip *) p->access (off_ip_))->dst_,
+	   ((hdr_ip *) p->access (off_ip_))->src(),
+	   ((hdr_ip *) p->access (off_ip_))->dst(),
 	   myaddr_);
 
   if (!use_mac_ || !prte || hdrc->addr_type_ != AF_INET)
@@ -367,10 +367,10 @@ DSDV_Agent::lost_link (Packet *p)
   if (verbose_)
     trace ("VLP %.5f %d:%d->%d:%d lost at %d [hop %d]",
   Scheduler::instance ().clock (),
-	   ((hdr_ip *) p->access (off_ip_))->src_,
-	   ((hdr_ip *) p->access (off_ip_))->sport_,
-	   ((hdr_ip *) p->access (off_ip_))->dst_,
-	   ((hdr_ip *) p->access (off_ip_))->dport_,
+	   ((hdr_ip *) p->access (off_ip_))->src(),
+	   ((hdr_ip *) p->access (off_ip_))->sport(),
+	   ((hdr_ip *) p->access (off_ip_))->dst(),
+	   ((hdr_ip *) p->access (off_ip_))->dport(),
 	   myaddr_, prte->dst);
 
   if (prte->timeout_event)
@@ -393,9 +393,9 @@ DSDV_Agent::lost_link (Packet *p)
     {
       if (verbose_)
       trace ("VRS %.5f %d:%d->%d:%d lost at %d", Scheduler::instance ().clock (),
-	       ((hdr_ip *) p2->access (off_ip_))->src_,
-	       ((hdr_ip *) p2->access (off_ip_))->sport_,
-	       ((hdr_ip *) p2->access (off_ip_))->dst_,
+	       ((hdr_ip *) p2->access (off_ip_))->src(),
+	       ((hdr_ip *) p2->access (off_ip_))->sport(),
+	       ((hdr_ip *) p2->access (off_ip_))->dst(),
 	       ((hdr_ip *) p2->access (off_ip_))->dport_, myaddr_);
 
       recv(p2, 0);
@@ -405,10 +405,10 @@ DSDV_Agent::lost_link (Packet *p)
     {
       if (verbose_)
       trace ("VRS %.5f %d:%d->%d:%d lost at %d", Scheduler::instance ().clock (),
-	       ((hdr_ip *) p2->access (off_ip_))->src_,
-	       ((hdr_ip *) p2->access (off_ip_))->sport_,
-	       ((hdr_ip *) p2->access (off_ip_))->dst_,
-	       ((hdr_ip *) p2->access (off_ip_))->dport_, myaddr_);
+	       ((hdr_ip *) p2->access (off_ip_))->src(),
+	       ((hdr_ip *) p2->access (off_ip_))->sport(),
+	       ((hdr_ip *) p2->access (off_ip_))->dst(),
+	       ((hdr_ip *) p2->access (off_ip_))->dport(), myaddr_);
 
       recv (p2, 0);
     }
@@ -449,8 +449,8 @@ DSDV_Agent::makeUpdate(int& periodic)
   // The packet we send wants to be broadcast
   hdrc->next_hop_ = IP_BROADCAST;
   hdrc->addr_type_ = AF_INET;
-  iph->dst_ = IP_BROADCAST << Address::instance().nodeshift();
-  iph->dport_ = ROUTER_PORT;
+  iph->dst() = IP_BROADCAST << Address::instance().nodeshift();
+  iph->dport() = ROUTER_PORT;
 
   change_count = 0;
   rtbl_sz = 0;
@@ -486,8 +486,8 @@ DSDV_Agent::makeUpdate(int& periodic)
       seqno_ += 2;
 
       rte.dst = myaddr_;
-      //rte.hop = iph->src_;
-      rte.hop = Address::instance().get_nodeaddr(iph->src_);
+      //rte.hop = iph->src();
+      rte.hop = Address::instance().get_nodeaddr(iph->src());
       rte.metric = 0;
       rte.seqnum = seqno_;
 
@@ -613,9 +613,9 @@ DSDV_Agent::processUpdate (Packet * p)
 
   //DEBUG
   //int src, dst;
-  //src = Address::instance().get_nodeaddr(iph->src_);
-  //dst = Address::instance().get_nodeaddr(iph->dst_);
-  //printf("Received DSDV packet from %d(%d) to %d(%d) [%d)]\n", src, iph->sport_, dst, iph->dport_, myaddr_);
+  //src = Address::instance().get_nodeaddr(iph->src());
+  //dst = Address::instance().get_nodeaddr(iph->dst());
+  //printf("Received DSDV packet from %d(%d) to %d(%d) [%d)]\n", src, iph->sport(), dst, iph->dport(), myaddr_);
 
   for (i = *d; i > 0; i--)
     {
@@ -638,8 +638,8 @@ DSDV_Agent::processUpdate (Packet * p)
 	}
 
       rte.dst = dst;
-      //rte.hop = iph->src_;
-      rte.hop = Address::instance().get_nodeaddr(iph->src_);
+      //rte.hop = iph->src();
+      rte.hop = Address::instance().get_nodeaddr(iph->src());
       rte.metric = *(w++);
       rte.seqnum = *(w++);
       rte.seqnum = rte.seqnum << 8 | *(w++);
@@ -805,7 +805,7 @@ DSDV_Agent::processUpdate (Packet * p)
     } // end of all destination mentioned in routing update packet
 
   // Reschedule the timeout for this neighbor
-  prte = table_->GetEntry(Address::instance().get_nodeaddr(iph->src_));
+  prte = table_->GetEntry(Address::instance().get_nodeaddr(iph->src()));
   if (prte)
     {
       if (prte->timeout_event)
@@ -827,8 +827,8 @@ DSDV_Agent::processUpdate (Packet * p)
       
       // Hi there, nice to meet you. I'll make a fake advertisement
       bzero(&rte, sizeof(rte));
-      rte.dst = Address::instance().get_nodeaddr(iph->src_);
-      rte.hop = Address::instance().get_nodeaddr(iph->src_);
+      rte.dst = Address::instance().get_nodeaddr(iph->src());
+      rte.hop = Address::instance().get_nodeaddr(iph->src());
       rte.metric = 1;
       rte.seqnum = 0;
       rte.advertise_ok_at = now + 604800;	// check back next week... :)
@@ -889,8 +889,8 @@ DSDV_Agent::forwardPacket (Packet * p)
   // forward it to base_stn node
   // Note: pkt is not buffered if route to base_stn is unknown
 
-  dst = Address::instance().get_nodeaddr(iph->dst_);  
-  if (diff_subnet(iph->dst_)) {
+  dst = Address::instance().get_nodeaddr(iph->dst());  
+  if (diff_subnet(iph->dst())) {
 	   prte = table_->GetEntry (dst);
 	  if (prte && prte->metric != BIG) 
 		  goto send;
@@ -912,7 +912,7 @@ DSDV_Agent::forwardPacket (Packet * p)
   prte = table_->GetEntry (dst);
   
   //  trace("VDEBUG-RX %d %d->%d %d %d 0x%08x 0x%08x %d %d", 
-  //  myaddr_, iph->src_, iph->dst_, hdrc->next_hop_, hdrc->addr_type_,
+  //  myaddr_, iph->src(), iph->dst(), hdrc->next_hop_, hdrc->addr_type_,
   //  hdrc->xmit_failure_, hdrc->xmit_failure_data_,
   //  hdrc->num_forwards_, hdrc->opt_num_forwards);
 
@@ -932,8 +932,8 @@ DSDV_Agent::forwardPacket (Packet * p)
       prte->q->enque(p);
 
       if (verbose_)
-	trace ("VBP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
-	       iph->sport_, iph->dst_, iph->dport_);
+	trace ("VBP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src(),
+	       iph->sport(), iph->dst(), iph->dport());
 
       while (prte->q->length () > MAX_QUEUE_LENGTH)
 	      drop (prte->q->deque (), DROP_RTR_QFULL);
@@ -963,8 +963,8 @@ DSDV_Agent::forwardPacket (Packet * p)
       table_->AddEntry(rte);
       
       if (verbose_)
-	      trace ("VBP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
-	       iph->sport_, iph->dst_, iph->dport_);
+	      trace ("VBP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src(),
+	       iph->sport(), iph->dst(), iph->dport());
       return;
     }
 
@@ -979,9 +979,9 @@ DSDV_Agent::forwardPacket (Packet * p)
 	  hdrc->next_hop_ = dst;
   if (verbose_)
 	  trace ("Routing pkts outside domain: \
-VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
-		 iph->sport_, iph->dst_,
-		 iph->dport_);  
+VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src(),
+		 iph->sport(), iph->dst(), iph->dport());  
+
   assert (!HDR_CMN (p)->xmit_failure_ ||
 	  HDR_CMN (p)->xmit_failure_ == mac_callback);
   target_->recv(p, (Handler *)0);
@@ -997,8 +997,8 @@ DSDV_Agent::sendOutBCastPkt(Packet *p)
   //hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   //hdrc->next_hop_ = IP_BROADCAST;
   //hdrc->addr_type_ = AF_INET;
-  //iph->dst_ = IP_BROADCAST << Address::instance().nodeshift();
-  //iph->dport_ = 0;
+  //iph->dst() = IP_BROADCAST << Address::instance().nodeshift();
+  //iph->dport() = 0;
   // send out bcast pkt with jitter to avoid sync
   s.schedule (target_, p, jitter(DSDV_BROADCAST_JITTER, be_random_));
 }
@@ -1009,7 +1009,7 @@ DSDV_Agent::recv (Packet * p, Handler *)
 {
   hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
   hdr_cmn *cmh = (hdr_cmn *)p->access (off_cmn_);
-  int src = Address::instance().get_nodeaddr(iph->src_);
+  int src = Address::instance().get_nodeaddr(iph->src());
   int dst = cmh->next_hop();
   /*
    *  Must be a packet I'm originating...
@@ -1042,20 +1042,20 @@ DSDV_Agent::recv (Packet * p, Handler *)
     }
   }
   
-  if ((src != myaddr_) && (iph->dport_ == ROUTER_PORT))
+  if ((src != myaddr_) && (iph->dport() == ROUTER_PORT))
     {
 	    // XXX disable this feature for mobileIP where
 	    // the MH and FA (belonging to diff domains)
 	    // communicate with each other.
 
 	    // Drop pkt if rtg update from some other domain:
-	    // if (diff_subnet(iph->src_)) 
+	    // if (diff_subnet(iph->src())) 
 	    // drop(p, DROP_OUTSIDE_SUBNET);
 	    //else    
 	    processUpdate(p);
     }
   else if ((u_int32_t) dst == IP_BROADCAST && 
-	   (iph->dport_ != ROUTER_PORT)) 
+	   (iph->dport() != ROUTER_PORT)) 
 	  {
 	     if (src == myaddr_) {
 		     // handle brdcast pkt
@@ -1165,9 +1165,9 @@ DSDV_Agent::command (int argc, const char *const *argv)
 	  rtable_ent *prte;
 
 	  printf ("Table Dump %d[%d]\n----------------------------------\n",
-		  iph2->src_, iph2->sport_);
+		  iph2->src(), iph2->sport());
 	trace ("VTD %.5f %d:%d\n", Scheduler::instance ().clock (),
-		 iph2->src_, iph2->sport_);
+		 iph2->src(), iph2->sport());
 
 	  /*
 	   * Freeing a routing layer packet --> don't need to

@@ -270,12 +270,12 @@ LandmarkAgent::ProcessHierUpdate(Packet *p)
   //  if(debug_) printf("Node %d: Processing Hierarchy Update Packet", myaddr_);
 
   //  if(debug_)
-  //    trace("Node %d: Received packet from %d with ttl %d", myaddr_,iph->src_,iph->ttl_);
+  //    trace("Node %d: Received packet from %d with ttl %d", myaddr_,iph->src(),iph->ttl_);
 
   walk = p->accessdata();
 
   // Originator of the LM advertisement and the next hop to reach originator
-  origin_id = iph->src_;    
+  origin_id = iph->src();    
 
   // Free and return if we are seeing our own packet again
   if(origin_id == myaddr_) {
@@ -619,12 +619,12 @@ LandmarkAgent::makeUpdate(ParentChildrenList *pcl, int pkt_type)
 
   hdrc->next_hop_ = IP_BROADCAST; // need to broadcast packet
   hdrc->addr_type_ = AF_INET;
-  iph->dst_ = IP_BROADCAST;  // packet needs to be broadcast
-  iph->dport_ = ROUTER_PORT;
+  iph->dst() = IP_BROADCAST;  // packet needs to be broadcast
+  iph->dport() = ROUTER_PORT;
   iph->ttl_ = radius(pcl->level_);
 
-  iph->src_ = myaddr_;
-  iph->sport_ = ROUTER_PORT;
+  iph->src() = myaddr_;
+  iph->sport() = ROUTER_PORT;
 
   if(pkt_type == HIER_ADVS) {
     
@@ -905,9 +905,9 @@ LandmarkAgent::command (int argc, const char *const *argv)
 	  //	  rtable_ent *prte;
 
           trace ("Table Dump %d[%d]\n----------------------------------\n",
-	    myaddr_, iph2->sport_);
+	    myaddr_, iph2->sport());
 	  trace ("VTD %.5f %d:%d\n", Scheduler::instance ().clock (),
-		 myaddr_, iph2->sport_);
+		 myaddr_, iph2->sport());
 
 	  /*
 	   * Freeing a routing layer packet --> don't need to
@@ -1022,7 +1022,7 @@ LandmarkAgent::recv(Packet *p, Handler *)
   /*
    *  Must be a packet being originated from some other agent at my node?
    */
-  if(iph->src_ == myaddr_ && cmh->num_forwards() == 0) {
+  if(iph->src() == myaddr_ && cmh->num_forwards() == 0) {
     /*
      * Add the IP Header
      */
@@ -1032,7 +1032,7 @@ LandmarkAgent::recv(Packet *p, Handler *)
    *  I received a packet that I sent.  Probably
    *  a routing loop.
    */
-  else if(iph->src_ == myaddr_) {
+  else if(iph->src() == myaddr_) {
     drop(p, DROP_RTR_ROUTE_LOOP);
     return;
   }
@@ -1049,7 +1049,7 @@ LandmarkAgent::recv(Packet *p, Handler *)
   // Packet will be forwarded down (if it's not dropped)
   cmh->direction_ = -1;
   
-  if ((iph->src_ != myaddr_) && (iph->dport_ == ROUTER_PORT))
+  if ((iph->src() != myaddr_) && (iph->dport() == ROUTER_PORT))
     {
       ProcessHierUpdate(p);
     }
