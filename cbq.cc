@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.17 1997/05/14 00:06:33 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.18 1997/05/14 00:33:31 heideman Exp $ (LBL)";
 #endif
 
 //
@@ -166,7 +166,8 @@ protected:
 	int		maxlevel_;		// highest level# seen
 	int		toplevel_;		// for top-level LS
 
-	int (CBQueue::*eligible_)(CBQClass*, double); // eligible function
+	typedef int (CBQueue::*eligible_type_)(CBQClass*, double);
+	eligible_type_ eligible_;		// eligible function
 	int	eligible_formal(CBQClass*, double);
 	int	eligible_ancestors(CBQClass*, double) { return (1); }
 	int	eligible_toplevel(CBQClass* cl, double) {
@@ -191,14 +192,10 @@ public:
 } class_cbqclass;
 
 CBQueue::CBQueue() : last_lender_(NULL), pending_pkt_(NULL), link_(NULL),
-	maxprio_(-1), maxlevel_(-1), toplevel_(MAXLEVEL)
+	maxprio_(-1), maxlevel_(-1), toplevel_(MAXLEVEL), eligible_((eligible_type_)NULL)
 {
 	memset(active_, '\0', sizeof(active_));
 	memset(levels_, '\0', sizeof(levels_));
-	// memset(eleigible_) because eligible_(NULL) above
-	// causes (incorrect) compiler errors with gcc-2.7.2.1
-	// under Linux.
-	memset(&eligible_, '\0', sizeof(eligible_));
 }
 
 /*
