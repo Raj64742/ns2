@@ -110,11 +110,12 @@ class ReassemblyQueue {
 
 public:
 	ReassemblyQueue(TcpSeq& rcvnxt) :
-		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt), hint_(NULL) { };
+		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt), hint_(NULL), total_(0) { };
 	int empty() { return (head_ == NULL); }
 	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags = 0);
 	int max() { return (tail_ ? (tail_->endseq_) : -1); }
 	int min() { return (head_ ? (head_->startseq_) : -1); }
+	int total() { return total_; }
 	int nexthole(TcpSeq seq, int&);	// find next hole above seq, also
 					// include cnt of following blk
 
@@ -135,6 +136,7 @@ protected:
 	seginfo* top_;		// top of stack
 	seginfo* bottom_;	// bottom of stack
 	seginfo* hint_;	// hint for nexthole() function
+	int total_;	// # bytes in Reassembly Queue
 
 	// rcv_nxt_ is a reference to an externally allocated TcpSeq
 	// (aka integer)that will be updated with the highest in-sequence sequence
