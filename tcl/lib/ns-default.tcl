@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.153 1999/05/26 01:34:20 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.154 1999/05/26 01:35:47 haoboy Exp $
 
 
 #
@@ -406,6 +406,9 @@ AllocAddrBits set DEFADDRSIZE_ 16
 AllocAddrBits set MAXADDRSIZE_ 31                ;# leaving the signed bit
 
 Simulator set node_factory_ Node
+
+#Simulator set mn_ 0				 ;# counter for mobile nodes
+Simulator set mobile_ip_ 0			 ;# flag for mobileIP
 
 Simulator set EnableHierRt_ 0                    ;# is hierarchical routing on?  (to turn it on, call set-hieraddress)
 SessionSim set rc_ 0                             ;# to enable packet reference count
