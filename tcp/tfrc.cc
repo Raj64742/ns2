@@ -104,14 +104,19 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 /*
  * Must convert bytes into packets. 
  * If nbytes == -1, this corresponds to infinite send.  We approximate
- * infinite by a very large number (TCP_MAXSEQ).
+ * infinite by a very large number (MAXSEQ).
+ * For simplicity, when bytes are converted to packets, fractional packets 
+ * are always rounded up.  
  */
 void TfrcAgent::sendmsg(int nbytes, const char* /*flags*/)
 {
         if (nbytes == -1 && maxseq_ < MAXSEQ)
 		advanceby(MAXSEQ - maxseq_);
-        else {
-		int npkts = nbytes/psize_ + (nbytes%psize_ ? 1 : 0);
+        else if (size_ > 0) {
+		int npkts = int(nbytes/size_);
+		npkts += (nbytes%size_ ? 1 : 0);
+		//if (debug_) printf("nbytes: %d size: %d npkts: %d\n",
+		//    nbytes, size_, npkts);
 		advanceby(npkts);
 	}
 }
@@ -307,6 +312,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 				/* there was no loss in the most recent RTT */
 				maxrate_ = scmult_*rate_since_last_report*size_;
 			}
+			if (debug_) printf("time: %5.2f losses: %d rate %5.2f maxrate: %5.2f\n", now, losses, rate_since_last_report, maxrate_);
 		} else 
 			maxrate_ = 2*rate_since_last_report*size_;
 	} else {
