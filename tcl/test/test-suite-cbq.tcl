@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.26 1999/07/01 00:10:59 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.27 1999/09/15 03:05:07 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -509,6 +509,38 @@ TestSuite instproc four_cbrs {} {
 	$ns_ at 32.0 "$cbr4 start"
 }
 
+TestSuite instproc four_tcps {} {
+	$self instvar ns_ node_
+
+	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(r2) 1]
+	set ftp1 [$tcp1 attach-app FTP]
+	$tcp1 set packetSize_ 190
+
+	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(r2) 2]
+	set ftp2 [$tcp2 attach-app FTP]
+	$tcp2 set packetSize_ 1000 
+
+	set tcp3 [$ns_ create-connection TCP $node_(s3) TCPSink $node_(r2) 3]
+	set ftp3 [$tcp3 attach-app FTP]
+	$tcp3 set packetSize_ 500
+
+	set tcp4 [$ns_ create-connection TCP $node_(s3) TCPSink $node_(r2) 4]
+	set ftp4 [$tcp4 attach-app FTP]
+	$tcp4 set packetSize_ 1000 
+
+	$ns_ at 0.0 "$ftp1 start; $ftp2 start; $ftp3 start; $ftp4 start"
+	$ns_ at 12.0 "$ftp1 stop"
+	$ns_ at 16.0 "$ftp1 start"
+	$ns_ at 36.0 "$ftp1 stop"
+	$ns_ at 20.0 "$ftp2 stop"
+	$ns_ at 24.0 "$ftp2 start"
+	$ns_ at 4.0 "$ftp3 stop"
+	$ns_ at 8.0 "$ftp3 start"
+	$ns_ at 36.0 "$ftp3 stop"
+	$ns_ at 28.0 "$ftp4 stop"
+	$ns_ at 32.0 "$ftp4 start"
+}
+
 #
 # Figure 10 from the link-sharing paper. 
 # ~/newr/rm/testB.com
@@ -638,8 +670,6 @@ Test/TL instproc run {} {
 	$ns_ run
 }
 
-### I AM HERE
-
 #
 # Figure 11 from the link-sharing paper.
 # WRR, Formal (new) link-sharing.
@@ -669,6 +699,37 @@ Test/FORMAL instproc run {} {
 
 	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
 	$self openTrace $stopTime CBQ_FORMAL
+
+	$ns_ run
+}
+
+#
+# WRR, Formal link-sharing, with TCP instead of UDP traffic.
+#
+
+Class Test/FORMAL_TCP -superclass TestSuite
+Test/FORMAL_TCP instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ cbq1-wrr
+	set test_ CBQ_FORMAL_TCP
+	$self next 0
+}
+Test/FORMAL_TCP instproc run {} {
+	$self instvar cbqalgorithm_ ns_ net_ topo_
+	set stopTime 40.1
+	set maxbytes 187500
+	set cbqalgorithm_ formal
+
+	$topo_ instvar cbqlink_
+	$self create_twoagency
+	$self insert_twoagency $cbqlink_
+	$self four_tcps
+	$self make_fmon $cbqlink_
+	[$cbqlink_ queue] algorithm $cbqalgorithm_
+
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+	$self openTrace $stopTime CBQ_FORMAL_TCP
 
 	$ns_ run
 }
