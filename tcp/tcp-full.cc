@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.106 2001/12/03 02:41:16 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.107 2002/03/08 17:30:51 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -868,7 +868,11 @@ void
 FullTcpAgent::reset_rtx_timer(int /* mild */)
 {
 	// cancel old timer, set a new one
-        rtt_backoff();		// double current timeout
+	/* if there is no outstanding data, don't back off rtx timer *
+	 * (Fix from T. Kelly.) */
+	if (!(highest_ack_ == maxseq_ && restart_bugfix_)) {
+        	rtt_backoff();		// double current timeout
+	}
         set_rtx_timer();	// set new timer
         rtt_active_ = FALSE;	// no timing during this window
 }
@@ -1218,17 +1222,29 @@ FullTcpAgent::newack(Packet* pkt)
          * various reasons (without violating e2e semantics).
          */
         hdr_flags *fh = hdr_flags::access(pkt);
-        if (!fh->no_ts_) {
+
+	if (!fh->no_ts_) {
                 if (ts_option_) {
 			recent_age_ = now();
 			recent_ = tcph->ts();
-                        rtt_update(now() - tcph->ts_echo());
+			rtt_update(now() - tcph->ts_echo());
 		} else if (rtt_active_ && ackno > rtt_seq_) {
 			// got an RTT sample, record it
-                        t_backoff_ = 1;
-                        rtt_active_ = FALSE;
+			// "t_backoff_ = 1;" deleted by T. Kelly.
+			rtt_active_ = FALSE;
 			rtt_update(now() - rtt_ts_);
                 }
+
+		if (!ect_ || !ecn_backoff_ ||
+		    !hdr_flags::access(pkt)->ecnecho()) {
+			/*
+			 * Don't end backoff if still in ECN-Echo with
+			 * a congestion window of 1 packet.
+			 * Fix from T. Kelly.
+			 */
+			t_backoff_ = 1;
+			ecn_backoff_ = 0;
+		}
         }
 	return;
 }
@@ -2059,9 +2075,12 @@ process_ACK:
 		 */
 
 		if (fh->ecnecho() && !(tiflags&TH_SYN) )
-		if (fh->ecnecho())
+		if (fh->ecnecho()) {
 			ecn(highest_ack_);  // updated by newack(), above
-
+			// "set_rtx_timer();" from T. Kelly.
+			if (cwnd_ < 1)
+			 	set_rtx_timer();
+		}
 		// CHECKME: handling of rtx timer
 		if (ackno == maxseq_) {
 			needoutput = TRUE;
