@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.30 1997/07/25 06:54:06 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.31 1997/07/25 09:36:11 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -143,8 +143,7 @@ TcpAgent::traceVar(TracedVar* v) {
 
 void
 TcpAgent::trace(TracedVar* v) {
-/*	traceVar(v);*/
-	traceAll();
+	traceVar(v);
 }
 
 void TcpAgent::reset()
