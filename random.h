@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.6 1997/08/27 21:08:28 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.7 1997/09/08 21:27:01 heideman Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -38,6 +38,8 @@
 
 #include <math.h>
 #include "config.h"
+
+#define USE_RNG   /* run new rng by default as of  8-Sep-97 */
 
 #ifdef USE_RNG
 
