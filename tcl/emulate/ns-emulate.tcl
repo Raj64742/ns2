@@ -13,14 +13,20 @@ if [TclObject is-class Network/Pcap/Live] {
 }
 
 if [TclObject is-class Agent/Tap] {
-	Agent/Tap set maxpkt_ 1600
+    Agent/Tap set maxpkt_ 1600
+}
+
+if [TclObject is-class Agent/TCPTap] {
+    Agent/TCPTap set maxpkt_ 1600
 }
 
 if [TclObject is-class Agent/IcmpAgent] {
-	Agent/IcmpAgent set ttl_ 254
+    Agent/IcmpAgent set ttl_ 254
 }
 
-
+if [TclObject is-class Agent/IPTap] {
+    Agent/IPTap set maxpkt_ 1600
+}
 
 if [TclObject is-class ArpAgent] {
 
@@ -43,3 +49,4 @@ if [TclObject is-class ArpAgent] {
 		$self cmd myip $myip_
 	}
 }
+
