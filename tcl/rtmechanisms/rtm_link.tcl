@@ -121,8 +121,22 @@ flush stdout
 
         $cl proc unknown-flow { src dst fid hashbucket } $pbody
 	$cl proc no-slot slotnum {
-puts "classifier $self, no-slot for slotnum $slotnum"
-flush stdout
+		#
+		# note: we can wind up here when a packet passes
+		# through either an Out or a Drop Snoop Queue for
+		# a queue that the flow doesn't belong to anymore.
+		# For exampe, if a flow is penalized, future packets
+		# are directed to a "penalty box" queue, but there
+		# may be previos packets still in the good box queue
+		# which are allowed to either depart or are dropped.
+		# Since there is no longer hash state in the good box's
+		# hash classifier, we get a -1 return value for the
+		# hash classifier's classify() function, and there
+		# is no node at slot_[-1].  What to do about this?
+		# Well, we are talking about flows that have already
+		# been moved and so should rightly have their stats
+		# zero'd anyhow, so for now just ignore this case..
+		# puts "classifier $self, no-slot for slotnum $slotnum"
 	}
         $flowmon classifier $cl
         return $flowmon
