@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.3 2000/09/01 03:04:10 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.4 2000/11/14 02:25:47 haoboy Exp $
 
 #include "hdr-ls.h"
 #include "rtProtoLS.h"
@@ -152,7 +152,7 @@ void rtProtoLS::recv(Packet* p, Handler*)
 		receiveMessage(findPeerNodeId(ih->src()), rh->msgId());
 	else
 		Tcl::instance().evalf("%s recv-update %d %d", name(),
-				      ih->src(), rh->metricsVar());
+				      ih->saddr(), rh->metricsVar());
 	Packet::free(p);
 }
 

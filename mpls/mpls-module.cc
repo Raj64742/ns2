@@ -16,12 +16,14 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/mpls-module.cc,v 1.1 2000/09/14 18:22:28 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/mpls-module.cc,v 1.2 2000/11/14 02:25:46 haoboy Exp $
  *
  * MPLS node plugin module
  */
 
 #include <tclcl.h>
+
+#include "node.h"
 #include "mpls/ldp.h"
 #include "mpls/mpls-module.h"
 
@@ -86,7 +88,7 @@ int MPLSModule::command(int argc, const char*const* argv)
 				e->agt_->turn_on_trace();
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "trace-msgtbl") == 0) {
-			printf("%d : message-table\n");
+			printf("%d : message-table\n", node()->nodeid());
 			for (LDPListElem *e = ldplist_.lh_first; e != NULL;
 			     e = e->link.le_next)
 				e->agt_->MSGTdump();

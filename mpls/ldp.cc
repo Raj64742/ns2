@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.5 2000/10/18 20:42:21 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.6 2000/11/14 02:25:46 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -66,8 +66,8 @@ public:
 	}
 } class_agentldp;
 
-LDPAgent::LDPAgent() : 
-	new_msgid_(0), trace_ldp_(0), peer_(0), Agent(PT_LDP)
+LDPAgent::LDPAgent() : Agent(PT_LDP), 
+	new_msgid_(0), trace_ldp_(0), peer_(0)
 {
 	MSGT_.NB      = 0;
 }
