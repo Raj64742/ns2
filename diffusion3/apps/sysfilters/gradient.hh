@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: gradient.hh,v 1.1 2002/05/06 22:54:08 haldar Exp $
+// $Id: gradient.hh,v 1.2 2002/05/07 00:10:06 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
