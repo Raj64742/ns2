@@ -100,6 +100,9 @@ proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag 
 }
 
 proc monitor_queue {ns n0 n1 queuetrace sampleInterval} {
+	if {$queuetrace == 0} {
+		return
+	}
 	set id0 [$n0 id]
 	set id1 [$n1 id]
 	set l01 [$ns set link_($id0:$id1)]
@@ -118,7 +121,7 @@ proc trace_queue {ns n0 n1 queuetrace} {
 }
 
 
-proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } { slow_start_restart false } { fs_enable false } } {
+proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } { slow_start_restart false } { fs_enable false } {ssthresh 0} {flr true} {frt true} } {
 	set tcp0 [new Agent/$type]
 	$tcp0 set class_ 1
 	$tcp0 set maxburst_ $maxburst
@@ -131,10 +134,18 @@ proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } { slow
 	if {$fs_enable} {
 		$tcp0 set fs_enable_ $fs_enable
 	}
+	if {$ssthresh > 0} {
+		$tcp0 set ssthresh_ $ssthresh
+	}
+	$tcp0 set fast_loss_recov_ $flr
+	$tcp0 set fast_reset_timer_ $frt
 	return $tcp0
 } 
 
 proc enableTcpTracing { tcp tcptrace } {
+	if {$tcptrace == 0} {
+		return
+	}
 	$tcp attach $tcptrace
 	$tcp trace "t_seqno_" 
 	$tcp trace "rtt_" 
@@ -147,11 +158,15 @@ proc enableTcpTracing { tcp tcptrace } {
 	$tcp trace "ssthresh_" 
 	$tcp trace "maxseq_" 
 	$tcp trace "seqno_"
-	$tcp trace "exact_srtt_"
-	$tcp trace "avg_win_"
+#	$tcp trace "exact_srtt_"
+#	$tcp trace "avg_win_"
+	$tcp trace "nrexmit_"
 }
 
 proc setupTcpTracing { tcp tcptrace { sessionFlag false } } {
+	if {$tcptrace == 0} {
+		return
+	}
 	enableTcpTracing $tcp $tcptrace
 	if { $sessionFlag } {
 		set dst [expr ([$tcp set dst_]/256)*256]
@@ -182,13 +197,15 @@ proc setupGraphing { tcp connGraph connGraphFlag {sessionFlag false} } {
 	}
 }
 
-proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
+proc createTcpSink { type {sinktrace 0} { ackSize 40 } { maxdelack 25 } } {
 	set sink0 [new Agent/$type]
 	$sink0 set packetSize_ $ackSize
 	if {[string first "Asym" $type] != -1} { 
 		$sink0 set maxdelack_ $maxdelack
 	}
-	$sink0 attach $sinktrace
+	if {$sinktrace != 0} {
+		$sink0 attach $sinktrace
+	}
 	return $sink0
 }
 
@@ -207,7 +224,9 @@ proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_R
 
 		$session set count_bytes_acked_ $count_bytes_acked
 		$session set schedDisp_ $schedDisp
+		return true
 	}
+	return false
 }
 		
 
@@ -216,11 +235,11 @@ proc createFtp { ns n0 tcp0 n1 sink0 } {
 	$ns attach-agent $n1 $sink0
 	$ns connect $tcp0 $sink0
 	set ftp0 [new Source/FTP]
-	$ftp0 set agent_ $tcp0
+	$ftp0 attach $tcp0
 	return $ftp0
 }
 
-proc configQueue { ns n0 n1 type qtrace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } { random_ecn false } { reconsacks false } } { 
+proc configQueue { ns n0 n1 type {qtrace 0} { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } { random_ecn false } { reconsacks false } } { 
 # proc configQueue { ns n0 n1 type qtrace rtrace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } { reconsacks false } }  
 	if { $size >= 0 } {
 		$ns queue-limit $n0 $n1 $size
@@ -251,9 +270,9 @@ proc configQueue { ns n0 n1 type qtrace { size -1 } { nonfifo 0 } { acksfirst fa
 #		configREDQueue $ns $n0 $n1 [$q01 set q_weight_] 1
 #	}
 #	$q01 trace $trace
-	if { $qtrace != 0 } {
-		trace_queue $ns $n0 $n1 $qtrace
-	}
+#	if { $qtrace != 0 } {
+	trace_queue $ns $n0 $n1 $qtrace
+#	}
 	$q01 reset
 }
 
@@ -262,7 +281,9 @@ proc configREDQueue { ns n0 n1 { redtrace } { q_weight -1 } { fracthresh 0 } { f
 	set id1 [$n1 id]
 	set l01 [$ns set link_($id0:$id1)]
 	set q01 [$l01 set queue_]
-	$q01 attach $redtrace
+	if {$redtrace != 0} {
+		$q01 attach $redtrace
+	}
 	if {$q_weight >= 0} {
 		$q01 set q_weight_ $q_weight
 	}

@@ -6,8 +6,8 @@ Queue/RED set q_weight_ 0.1
 
 # set up simulation
 set ns [new Simulator]
-set numsrc 20
-set numdst 20
+set numsrc 31
+set numdst 31
 for {set i 0} {$i < $numsrc} {incr i} {
 	set n(0$i) [$ns node]
 }
@@ -20,6 +20,8 @@ for {set i 0} {$i < $numdst} {incr i} {
 set dir "."
 set trace_opened 0
 set graph 0
+set phttpAllFlag 0
+set httpseqAllFlag 0
 set connGraphFlag("") 0
 set maxdelack 25
 set maxburst 0
@@ -53,6 +55,7 @@ set burstsz 5
 set firstburstsz 0
 set pause 5
 set monitorq 0
+set donttrace 0
 set traceq 0
 set duration 30
 set delay 50ms
@@ -62,20 +65,34 @@ set turnontime -1
 set turnofftime -1
 set schedDisp $FINE_ROUND_ROBIN
 set overhead 0
+set f 0
+set tcptrace 0
+set sinktrace 0
+set redtrace 0
+set queuetrace 0
+set numimg 4
+set reqsize 0.3
+set htmlsize 1
+set imgsize 10
 
 proc finish {ns traceall tcptrace redtrace queuetrace graph connGraphFlag midtime turnontime turnofftime { qtraceflag false } } {
 	upvar $connGraphFlag graphFlag
 	global dir
+	global qm
+	global donttrace
 
-	$ns flush-trace
-	close $traceall
-	flush $tcptrace
-	close $tcptrace
-	flush $redtrace
-	close $redtrace
-	flush $queuetrace
-	close $queuetrace
-	processtrace $midtime $turnontime $turnofftime $qtraceflag $dir
+	puts stderr "[$qm(12) set pdrops_] [$qm(21) set pdrops_] "
+	if {!$donttrace} {
+		$ns flush-trace
+		close $traceall
+		flush $tcptrace
+		close $tcptrace
+		flush $redtrace
+		close $redtrace
+		flush $queuetrace
+		close $queuetrace
+		processtrace $midtime $turnontime $turnofftime $qtraceflag $dir
+	}
 #	plotgraph $graph graphFlag $midtime $turnontime $turnofftime $qtraceflag $dir
 	exit 0
 }
@@ -101,6 +118,16 @@ while {$count < $argc} {
 		}
 		'-graph' {
 			set graph 1
+			incr count -1
+			continue
+		}
+		'-phttp' {
+			set phttpAllFlag 1
+			incr count -1
+			continue
+		}
+		'-httpseq' {
+			set httpseqAllFlag 1
 			incr count -1
 			continue
 		}
@@ -196,6 +223,11 @@ while {$count < $argc} {
 			incr count -1
 			continue
 		}
+		'-donttrace' {
+			set donttrace 1
+			incr count -1
+			continue
+		}
 		'-traceq' {
 			if {[regexp {^[0-9]} [expr $count -1]]} {
 				set fromNode [lindex $argv [expr $count -1]]
@@ -207,6 +239,22 @@ while {$count < $argc} {
 				set traceq 1
 				incr count -1
 			}
+			continue
+		}
+		'-numimg' {
+			set numimg [lindex $argv [expr $count-1]]
+			continue
+		}
+		'-reqsz' {
+			set reqsize [lindex $argv [expr $count-1]]
+			continue
+		}
+		'-htmlsz' {
+			set htmlsize [lindex $argv [expr $count-1]]
+			continue
+		}
+		'-imgsz' {
+			set imgsize [lindex $argv [expr $count-1]]
 			continue
 		}
 		'-mda' {
@@ -335,7 +383,7 @@ while {$count < $argc} {
 		}
 	}
 
-	if {!$trace_opened} {
+	if {!$trace_opened && !$donttrace} {
 		# set up trace files
 		set f [open $dir/out.tr w]
 		$ns trace-all $f
@@ -355,6 +403,8 @@ while {$count < $argc} {
 
 	set burstflag 0
 	set webFlag false
+	set phttpFlag 0
+	set httpseqFlag 0
 	set direction ""
 	while {$count < $argc} {
 		set arg [lindex $argv $count]
@@ -374,6 +424,14 @@ while {$count < $argc} {
 			}
 			'-web' {
 				set webFlag true
+				continue
+			}
+			'-phttp' {
+				set phttpFlag 1
+				continue
+			}
+			'-httpseq' {
+				set httpseqFlag 1
 				continue
 			}
 			default {
@@ -490,19 +548,21 @@ while {$count < $argc} {
 	}
 
 	if {$webFlag} {
-		set web [new WebCS $ns $src $dst "$srctype $maxburst $tcpTick $win $slow_start_restart $fs_enable" $tcptrace "$sinktype $sinktrace" false $sessionFlag "$count_bytes_acked $schedDisp"]
-		$ns at startTime "$web start"
+		set web [new WebCS $ns $src $dst "$srctype $maxburst $tcpTick $win $slow_start_restart $fs_enable" $tcptrace "$sinktype $sinktrace" [expr $phttpAllFlag || $phttpFlag] [expr $httpseqAllFlag || $httpseqFlag] $sessionFlag "$count_bytes_acked $schedDisp $fs_enable"]
+		$web set finish_ "finish $ns $f $tcptrace $redtrace $queuetrace $graph connGraphFlag 0 $turnontime $turnofftime [expr $monitorq || $traceq]"
+		$ns at $startTime "$web start"
 	} else {
 		set tcp [createTcpSource $srctype $maxburst $tcpTick $win $slow_start_restart $fs_enable]
 		set sink [createTcpSink $sinktype $sinktrace]
 		set ftp [createFtp $ns $src $tcp $dst $sink]
+		set newSessionFlag false
 		if {$sessionFlag} {
-			setupTcpSession $tcp $count_bytes_acked $schedDisp $fs_enable
+			set newSessionFlag [setupTcpSession $tcp $count_bytes_acked $schedDisp $fs_enable]
 			#		set d [expr ([$tcp set dst_]/256)*256]
 			#		set session [[$tcp set node_] getTcpSession $d]
 		}
-		setupTcpTracing $tcp $tcptrace $sessionFlag
-		setupGraphing $tcp $connGraph connGraphFlag $sessionFlag
+		setupTcpTracing $tcp $tcptrace $newSessionFlag
+		setupGraphing $tcp $connGraph connGraphFlag $newSessionFlag
 		if { $burstflag == 0 } {
 			$ns at $startTime "$ftp start"
 		} elseif { $fixed_period } {
@@ -577,6 +637,10 @@ if {$topology == "fs"} {
 	# configure forward bottleneck queue
 	configQueue $ns $n(1) $n(2) $fgw $queuetrace $fqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
 	configQueue $ns $n(2) $n(1) $rgw $queuetrace $rqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
+	set l(12) [$ns link $n(1) $n(2)]
+	set qm(12) [$l(12) set qMonitor_]
+	set l(21) [$ns link $n(2) $n(1)]
+	set qm(21) [$l(21) set qMonitor_]
 	#configQueue $ns $n(1) $n(2) $fgw 0 $fqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
 	configREDQueue $ns $n(1) $n(2) $redtrace $fgw_q_weight 1 0.15 0.6 
 	configREDQueue $ns $n(2) $n(1) $redtrace $rgw_q_weight 1 0.15 0.6

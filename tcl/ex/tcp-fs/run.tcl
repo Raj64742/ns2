@@ -1,4 +1,4 @@
-#! /usr/sww/bin/tclsh
+#! /usr/local/bin/tclsh
 
 #set pdrop_opt {-null -null "-recn -rdrop" "-pdrop" "-recn -rdrop -pdrop"}
 #set tcptype_opt {-fack -fackfs -fackfs -fackfs -fackfs}
@@ -10,7 +10,7 @@
 #set tcptype_opt {-newreno -newrenofs -newrenofs -newrenofs -newrenofs}
 
 set pdrop_opt {-null -pdrop}
-set tcptype_opt {-newrenofs -newrenofs}
+set tcptype_opt {-newreno -newrenofs}
 
 #initial values
 set tick 0.1
@@ -32,6 +32,7 @@ set burstStartTime 0
 set burstEndTime 1
 set bulkStartTime 5
 set bulkEndTime 10
+set fbw 1.5Mb
 set dir "."
 set opt(tk) tick
 set opt(nc) maxnumconn
@@ -53,6 +54,7 @@ set opt(burstend) burstEndTime
 set opt(bulkstart) bulkStartTime
 set opt(bulkend) bulkEndTime
 set opt(dir) dir
+set opt(fbw) fbw
 
 proc getopt {argc argv} {
 	global opt
@@ -75,6 +77,7 @@ proc BulkWebComputeResults { } {
 	global tcptype_opt pdrop_opt
 	global dir
 	global numconn
+	global burstsize
 
 	set thruputsum 0
 	set thruputs [exec gawk {BEGIN {s="";} {if (index($1,"0,") == 0) { sum += $7;	s = sprintf("%s %d", s, $7);}} END {printf "%s %d", s, sum;}} thruput]
@@ -157,7 +160,7 @@ set errfid [open "err-$tcptype-$maxnumconn-$numburstconn.res" w]
 set cmdfid [open "cmd-$tcptype-$maxnumconn-$numburstconn.res" w]
 
 #set numconn $maxnumconn
-for {set iter 0} {$iter < 10} {incr iter} {
+for {set iter 0} {$iter < 3} {incr iter} {
 for {set numconn $maxnumconn} {$numconn <= $maxnumconn} {incr numconn} { 
 	set seed [expr int([exec rand 0 1000])]
 #	puts -nonewline $cmdfid "$iter "
@@ -182,6 +185,7 @@ for {set numconn $maxnumconn} {$numconn <= $maxnumconn} {incr numconn} {
 #	flush $cmdfid
 #	foreach qsize {200} {
 #		foreach delay {200ms} {
+#	for {set burstsize 10} {$burstsize < 200} {incr burstsize 10} {
 			for {set j 0} {$j < [llength $pdrop_opt]} {incr j} {
 				set cmd1 ""
 				if {[lindex $tcptype_opt $j] == "-null"} {
@@ -197,8 +201,8 @@ for {set numconn $maxnumconn} {$numconn <= $maxnumconn} {incr numconn} {
 				foreach f [glob -nocomplain $dir/{burst*.out}] {
 					exec rm $f
 				}
-#				set cmd "../../../../ns.bsdi ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -tk $tick -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
-				set cmd "../../../../ns.solaris ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -tk $tick -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
+				set cmd "../../../../ns.bsdi ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -tk $tick -fp -dur $duration -fbw $fbw -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
+#				set cmd "../../../../ns.solaris ../test1.tcl [lindex $pdrop_opt $j] -seed $seed -overhead 0.001 -tk $tick -fp -dur $duration -del $delay -nonfifo -sred -redwt $redwt -q $qsize -mb 4 -bs $burstsize -fbs $firstburstsize -pause $pause -ton [expr $burstStartTime+$pause] -toff [expr $burstStartTime+$pause+5] -win $window -bwin $burstwin -dir $dir"
 				append cmd $cmd1
 				append cmd $cmd2
 				puts -nonewline $cmdfid "$iter "
@@ -213,6 +217,7 @@ for {set numconn $maxnumconn} {$numconn <= $maxnumconn} {incr numconn} {
 				}
 			}
 #		}
+		#	}
 #	}
 }
 }
