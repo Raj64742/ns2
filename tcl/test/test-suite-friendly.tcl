@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.12 1999/08/17 04:26:58 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.13 1999/09/18 00:06:54 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
@@ -48,6 +48,8 @@ TestSuite instproc finish file {
         }
         ## now use default graphing tool to make a data file
         ## if so desired
+#       exec csh figure2.com $file
+#	exec csh gnuplotA.com temp1.rands $file
 ###        exit 0
 }
 
@@ -160,7 +162,8 @@ TestSuite instproc finish_1 testname {
 		exec cp -f $graphfile temp2.rands
                 exec xgraph -bb -tk -x time -y packets temp2.rands &
         }
-#       exec csh figure2.com $file
+#	exec csh gnuplotB.com temp2.rands $testname
+#       exec csh figure2.com temp.rands $testname
 
 ###        exit 0
 }
