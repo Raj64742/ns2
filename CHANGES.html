@@ -7,7 +7,7 @@
 <!-- Changed by: Sandeep Bajaj, 24-Apr-1998 -->
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.413 2000/08/18 18:34:00 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.414 2000/08/21 21:34:56 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>
 ns: Change History</h1>
 <!--
@@ -21,6 +21,16 @@ ns: Change History</h1>
 of ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
+
+<p><li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+<b>Sun Aug 20 22:17:11 PDT 2000</b>
+<br>
+A change to setting the pipe_ variable in Sack TCP when entering
+in Fast Recovery for the non-ECN case, to make the performance the
+same as the ECN case.  Motivated by a suggestion from Mark Allman.
+Set oldCode_ to true to use the old code.
+Validated in "./test-all-tcp underutilized_100ms_control_Sack".
 
 <p><li>
 	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
