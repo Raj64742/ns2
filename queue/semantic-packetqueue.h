@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/semantic-packetqueue.h,v 1.6 1998/06/27 01:24:46 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/semantic-packetqueue.h,v 1.7 1999/09/09 03:25:25 salehi Exp $ (UCB)
  */
 
 #ifndef ns_semantic_packetqueue_h
@@ -60,7 +60,10 @@ class SemanticPacketQueue : public PacketQueue {
 	Packet* deque_acksfirst();
 	/* determine whether two packets belong to the same connection */
 	inline int compareFlows(hdr_ip *ip1, hdr_ip *ip2) {
-		return ((ip1->src()==ip2->src()) && (ip1->dst()==ip2->dst()));
+		return ((ip1->saddr() == ip2->saddr()) &&
+			(ip1->sport() == ip2->sport()) &&
+			(ip1->daddr() == ip2->daddr()) && 
+			(ip1->dport() == ip2->dport())); 
 	}
 	/*
 	 * When a new ack is enqued, purge older acks (as determined by the 

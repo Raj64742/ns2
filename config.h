@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.31 1999/09/08 20:56:45 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.32 1999/09/09 03:25:22 salehi Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -70,6 +70,12 @@ typedef unsigned int u_int32_t;
 
 typedef int32_t nsaddr_t; 
 typedef int32_t nsmask_t; 
+
+// 32-bit addressing support
+typedef struct ns_addr_tag {
+	int32_t addr_;
+	int32_t port_;
+} ns_addr_t;
 
 // 64-bit integer support
 #if defined(HAVE_STRTOQ)

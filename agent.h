@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.26 1999/08/24 04:16:12 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.27 1999/09/09 03:25:20 salehi Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -83,7 +83,10 @@ class Agent : public Connector {
 	virtual void listen();
 	virtual void attachApp(Application* app);
 	virtual int& size() { return size_; }
-	inline nsaddr_t& addr() { return addr_; }
+	inline nsaddr_t& addr() { return here_.addr_; }
+	inline nsaddr_t& port() { return here_.port_; }
+	inline nsaddr_t& daddr() { return dst_.addr_; }
+	inline nsaddr_t& dport() { return dst_.port_; }
 	void set_pkttype(packet_t pkttype) { type_ = pkttype; }
 
  protected:
@@ -99,8 +102,8 @@ class Agent : public Connector {
 	Packet* allocpkt(int) const;	// same, but w/data buffer
 	void initpkt(Packet*) const;	// set up fields in a pkt
 
-	nsaddr_t addr_;			// address of this agent
-	nsaddr_t dst_;			// destination address for pkt flow
+	ns_addr_t here_;		// address of this agent
+	ns_addr_t dst_;			// destination address for pkt flow
 	int size_;			// fixed packet size
 	packet_t type_;			// type to place in packet header
 	int fid_;			// for IPv6 flow id field

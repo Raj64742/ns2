@@ -27,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.18 1999/02/18 02:19:23 yuriy Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.19 1999/09/09 03:25:25 salehi Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -59,14 +59,14 @@ protected:
 	virtual void start() {
 		int new_entry = 0;
 
-		sip_->sender_   /* is itself */ = addr_;
+		sip_->sender_   /* is itself */ = addr();
 		sip_->distance_ /* to itself */ = 0.0;
 		sip_->next_ = NULL;
 
 		siphash_ = new Tcl_HashTable;
 		Tcl_InitHashTable(siphash_, TCL_ONE_WORD_KEYS);
 		Tcl_HashEntry* he = Tcl_CreateHashEntry(siphash_,
-							(char*) addr_,
+							(char*) addr(),
 							&new_entry);
 		Tcl_SetHashValue(he, (ClientData*)sip_);
 		groupSize_++;

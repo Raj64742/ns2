@@ -62,7 +62,7 @@ public:
 	MIPEncapsulator();
 	void recv(Packet *p, Handler *h);
 protected:
-	nsaddr_t addr_;
+	ns_addr_t here_;
 	int mask_;
 	int shift_;
 	int off_ip_;

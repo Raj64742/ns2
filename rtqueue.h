@@ -1,5 +1,5 @@
 /* -*- c++ -*-
-   $Id: rtqueue.h,v 1.1 1999/08/03 04:06:11 yaxu Exp $
+   $Id: rtqueue.h,v 1.2 1999/09/09 03:25:24 salehi Exp $
 */
 
 #ifndef __ifqueue_h__
@@ -43,7 +43,8 @@ class rtqueue : public Connector {
  private:
         Packet*         remove_head();
         void            purge(void);
-	void		findPacketWithDst(nsaddr_t dst, Packet*& p, Packet*& prev);
+	void		findPacketWithDst(nsaddr_t dst, Packet*& p, 
+					  Packet*& prev);
 	void		verifyQueue(void);
 
         Packet          *head_;

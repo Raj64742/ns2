@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.h,v 1.4 1998/08/12 23:41:13 gnguyen Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.h,v 1.5 1999/09/09 03:25:24 salehi Exp $ (USC/ISI)
  */
 
 #ifndef ns_rtprotodv_h
@@ -45,7 +45,7 @@ public:
 		bind("off_DV_", &off_DV_);
 	}
 	int command(int argc, const char*const* argv);
-	void sendpkt(nsaddr_t dst, u_int32_t z, u_int32_t mtvar);
+	void sendpkt(ns_addr_t dst, u_int32_t z, u_int32_t mtvar);
 	void recv(Packet* p, Handler*);
 protected:
 	int off_DV_;

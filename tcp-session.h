@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-session.h,v 1.7 1999/03/13 03:53:07 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-session.h,v 1.8 1999/09/09 03:25:26 salehi Exp $ (UCB)
  */
 
 #ifndef nc_tcp_session_h
@@ -106,8 +106,8 @@ public:
 	void quench(int how, IntTcpAgent *sender, int seqno);
 	virtual void traceVar(TracedVar* v);
 
-	inline nsaddr_t& addr() {return addr_;}
-	inline nsaddr_t& dst() {return dst_;}
+// 	inline nsaddr_t& addr() {return addr_;}
+// 	inline nsaddr_t& dst() {return dst_;}
 	static Islist<TcpSessionAgent> sessionList_;
 
 protected:

@@ -58,7 +58,7 @@ protected:
 
     // note: ns uses dst_ as the multicast address from which packets are received,
     // thus we need the (unicast) reply address as well.
-    nsaddr_t reply_;		        // unicast reply-address for status response messages
+    ns_addr_t reply_;		        // unicast reply-address for status response messages
 
     // The following variables are not accessible from tcl-scripts:
     unsigned long CurrentPass;           // current pass number

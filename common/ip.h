@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.10 1998/12/08 23:43:06 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.11 1999/09/09 03:25:22 salehi Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -48,15 +48,13 @@
 
 struct hdr_ip {
 	/* common to IPv{4,6} */
-	nsaddr_t	src_;
-	nsaddr_t	dst_;
+	ns_addr_t	src_;
+	ns_addr_t	dst_;
 	int		ttl_;
 
 	/* Monarch extn */
-	u_int16_t	sport_;
-	u_int16_t	dport_;
-        u_int16_t& sport() { return sport_;}
-        u_int16_t& dport() { return dport_;}
+// 	u_int16_t	sport_;
+// 	u_int16_t	dport_;
 	
 	/* IPv6 */
 	int		fid_;	/* flow id */
@@ -69,8 +67,13 @@ struct hdr_ip {
 	}
 
 	/* per-field member acces functions */
-	nsaddr_t& src() { return (src_); }
-	nsaddr_t& dst() { return (dst_); }
+	ns_addr_t& src() { return (src_); }
+	nsaddr_t& saddr() { return (src_.addr_); }
+        int32_t& sport() { return src_.port_;}
+
+	ns_addr_t& dst() { return (dst_); }
+	nsaddr_t& daddr() { return (dst_.addr_); }
+        int32_t& dport() { return dst_.port_;}
 	int& ttl() { return (ttl_); }
 	/* ipv6 fields */
 	int& flowid() { return (fid_); }
