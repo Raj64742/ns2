@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.5 1998/05/07 00:01:03 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.6 1998/05/26 17:14:46 haldar Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -46,12 +46,25 @@ Simulator instproc get-routelogic {} {
 }
 
 Simulator instproc compute-routes {} {
+	
+        #
+	# call hierarchical routing, if applicable
+	#
+	if [Simulator set EnableHierRt_] {
+		$self compute-hier-routes 
+	} else {
+		$self compute-flat-routes
+	}
+}
+
+Simulator instproc compute-flat-routes {} {
 	$self instvar Node_ link_
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
 	set r [$self get-routelogic]
 	#set r [new RouteLogic]		;# must not create multiple instances
+	
 	foreach ln [array names link_] {
 		set L [split $ln :]
 		set srcID [lindex $L 0]
