@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.10.2.2 1997/04/20 20:30:17 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.10.2.3 1997/04/29 06:34:04 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -138,16 +138,17 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
 	/*XXX*/
 	char flags[5];
-	flags[0] = flags[1] = flags[2] = flags[3] = '-';
-	flags[4] = 0;
+	flags[0] = flags[1] = flags[2] = flags[3] = flags[4] = '-';
+	flags[5] = 0;
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	flags[0] = hf->ecn_ ? 'C' : '-';
+	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';
 
 #ifdef notdef
 flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
 flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
 flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
-flags[4] = 0;
+flags[5] = 0;
 #endif
 
 	sprintf(wrk_, "%c %g %d %d %s %d %s %d %d %d %d %d",
