@@ -281,11 +281,10 @@ class MacTdma : public Mac {
   /* Data structure for tdma scheduling. */
   static int active_node_;            // How many nodes needs to be scheduled
 
-  static char *tdma_schedule_;
+  static int *tdma_schedule_;
   int slot_num_;                      // The slot number it's allocated.
 
-  //  static char tdma_preamble_[MAC_TDMA_SLOT_NUM];
-  static char *tdma_preamble_;
+  static int *tdma_preamble_;        // The preamble data structure.
 
   // When slot_count_ = active_nodes_, a new preamble is needed.
   int slot_count_;
@@ -299,12 +298,10 @@ double MacTdma::slot_time_ = 0;
 double MacTdma::start_time_ = 0;
 int MacTdma::active_node_ = 0;
 int MacTdma::max_slot_num_ = 0;
-char *MacTdma::tdma_schedule_ = NULL;
-char *MacTdma::tdma_preamble_ = NULL;
+int *MacTdma::tdma_schedule_ = NULL;
+int *MacTdma::tdma_preamble_ = NULL;
 
 int MacTdma::tdma_ps_ = 0;
 int MacTdma::tdma_pr_ = 0;
 
 #endif /* __mac_tdma_h__ */
-
-

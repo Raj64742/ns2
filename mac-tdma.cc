@@ -138,8 +138,8 @@ MacTdma::MacTdma(PHY_MIB* p) : Mac(), mhSlot_(this), mhTxPkt_(this), mhRxPkt_(th
      topology, like WLAN etc. 
   */
   // Initualize the tdma schedule and preamble data structure.
-  tdma_schedule_ = new char[max_slot_num_];
-  tdma_preamble_ = new char [max_slot_num_];
+  tdma_schedule_ = new int[max_slot_num_];
+  tdma_preamble_ = new int[max_slot_num_];
 
   /* Do each node's initialization. */
   // Record the initial active node number.
@@ -347,8 +347,6 @@ void MacTdma::recvDATA(Packet *p){
 /* Send packet down to the physical layer. 
    Need to calculate a certain time slot for transmission. */
 void MacTdma::sendDown(Packet* p) {
-  double current_time, frame_time, stxt, txt, txdelay, txd,lltxt;
-  int frame_num;
   u_int32_t dst, src, size;
   
   struct hdr_cmn* ch = HDR_CMN(p);
@@ -472,8 +470,6 @@ void MacTdma::makePreamble() {
    radio turned on for the whole slot.
 */
 void MacTdma::slotHandler(Event *e) {
-  double delay;
-
   //  printf("<%d>, %f, enter SlotHandler, slot_count_ = %d, preamble[%d] = %d\n", index_, NOW, slot_count_, slot_count_, tdma_preamble_[slot_count_]);
 
   // Restart timer for next slot.
@@ -504,7 +500,7 @@ void MacTdma::slotHandler(Event *e) {
   }
  
   // If I am supposed to listen in this slot
-  if ((tdma_preamble_[slot_count_] == index_) || (tdma_preamble_[slot_count_] == MAC_BROADCAST)) {
+  if ((tdma_preamble_[slot_count_] == index_) || ((u_int32_t)tdma_preamble_[slot_count_] == MAC_BROADCAST)) {
     //    printf("<%d>, %f, preamble[%d]=%d, I am supposed to receive now.\n", index_, NOW, slot_count_, tdma_preamble_[slot_count_]);
     slot_count_++;
 
@@ -521,7 +517,8 @@ void MacTdma::slotHandler(Event *e) {
 }
 
 void MacTdma::recvHandler(Event *e) {
-  u_int32_t dst, src, size;
+  u_int32_t dst, src; 
+  int size;
   struct hdr_cmn *ch = HDR_CMN(pktRx_);
   struct hdr_mac_tdma *dh = HDR_MAC_TDMA(pktRx_);
 
@@ -543,7 +540,7 @@ void MacTdma::recvHandler(Event *e) {
 
   /* Ordinary operations on the incoming packet */
   // Not a pcket destinated to me.
-  if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_)) {
+  if ((dst != MAC_BROADCAST) && (dst != (u_int32_t)index_)) {
     drop(pktRx_);
     return;
   }
@@ -554,8 +551,6 @@ void MacTdma::recvHandler(Event *e) {
 
 /* After transmission a certain packet. Turn off the radio. */
 void MacTdma::sendHandler(Event *e) {
-  double rcdelay;
-
   //  printf("<%d>, %f, send a packet finished.\n", index_, NOW);
 
   /* Once transmission is complete, drop the packet. 
