@@ -1021,6 +1021,7 @@ tcl/test/test-output-tcp-init-win/tahoe1.Z
 tcl/test/test-output-tcp-init-win/tahoe2.Z
 tcl/test/test-output-tcp-init-win/tahoe3.Z
 tcl/test/test-output-tcp-init-win/tahoe4.Z
+tcl/test/test-output-tcpVariants/fourdrops_fack.Z
 tcl/test/test-output-tcpVariants/fourdrops_newreno.Z
 tcl/test/test-output-tcpVariants/fourdrops_newreno_full.Z
 tcl/test/test-output-tcpVariants/fourdrops_reno.Z
@@ -1029,6 +1030,7 @@ tcl/test/test-output-tcpVariants/fourdrops_sack.Z
 tcl/test/test-output-tcpVariants/fourdrops_sack_full.Z
 tcl/test/test-output-tcpVariants/fourdrops_tahoe.Z
 tcl/test/test-output-tcpVariants/fourdrops_tahoe_full.Z
+tcl/test/test-output-tcpVariants/onedrop_fack.Z
 tcl/test/test-output-tcpVariants/onedrop_newreno.Z
 tcl/test/test-output-tcpVariants/onedrop_newreno_full.Z
 tcl/test/test-output-tcpVariants/onedrop_reno.Z
@@ -1037,6 +1039,7 @@ tcl/test/test-output-tcpVariants/onedrop_sack.Z
 tcl/test/test-output-tcpVariants/onedrop_sack_full.Z
 tcl/test/test-output-tcpVariants/onedrop_tahoe.Z
 tcl/test/test-output-tcpVariants/onedrop_tahoe_full.Z
+tcl/test/test-output-tcpVariants/threedrops_fack.Z
 tcl/test/test-output-tcpVariants/threedrops_newreno.Z
 tcl/test/test-output-tcpVariants/threedrops_newreno_full.Z
 tcl/test/test-output-tcpVariants/threedrops_reno.Z
@@ -1045,6 +1048,7 @@ tcl/test/test-output-tcpVariants/threedrops_sack.Z
 tcl/test/test-output-tcpVariants/threedrops_sack_full.Z
 tcl/test/test-output-tcpVariants/threedrops_tahoe.Z
 tcl/test/test-output-tcpVariants/threedrops_tahoe_full.Z
+tcl/test/test-output-tcpVariants/twodrops_fack.Z
 tcl/test/test-output-tcpVariants/twodrops_newreno.Z
 tcl/test/test-output-tcpVariants/twodrops_newreno_full.Z
 tcl/test/test-output-tcpVariants/twodrops_reno.Z
