@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.9 1998/01/20 01:32:59 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.10 1998/02/05 21:00:43 hari Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -233,7 +233,7 @@ RNG::command(int argc, const char*const* argv)
 }
 
 void
-RNG::set_seed(RNGSources source, int seed = 1)
+RNG::set_seed(RNGSources source, int seed)
 {
         /* The following predefined seeds are evenly spaced around
 	 * the 2^31 cycle.  Each is approximately 33,000,000 elements

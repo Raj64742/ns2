@@ -58,7 +58,7 @@ CorresHost::CorresHost() : slink(), TcpFsAgent()
  * Open up the congestion window.
  */
 void 
-CorresHost::opencwnd(int size, IntTcpAgent *sender = 0)
+CorresHost::opencwnd(int size, IntTcpAgent *sender)
 {
 	if (cwnd_ < ssthresh_) {
 		/* slow-start (exponential) */
@@ -111,7 +111,7 @@ CorresHost::opencwnd(int size, IntTcpAgent *sender = 0)
 }
 
 void 
-CorresHost::closecwnd(int how, double ts, IntTcpAgent *sender=0)
+CorresHost::closecwnd(int how, double ts, IntTcpAgent *sender)
 {
 	if (proxyopt_) {
 		if (!sender || ts > sender->closecwTS_)
@@ -124,7 +124,7 @@ CorresHost::closecwnd(int how, double ts, IntTcpAgent *sender=0)
 }
 
 void 
-CorresHost::closecwnd(int how, IntTcpAgent *sender=0)
+CorresHost::closecwnd(int how, IntTcpAgent *sender)
 {
 	int sender_ownd = 0;
 	if (sender)

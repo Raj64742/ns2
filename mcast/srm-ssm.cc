@@ -452,6 +452,8 @@ void SSMSRMAgent::recv_glb_sess(int sessCtr, int* data, Packet* p)
   int now, sentAt, sentBy;
   int cnt = *data++;
   int type = *data++;
+  int i;
+
   // data = data + SESS_CONST;  
   /* As as included type of session message also */
   /* The first block contains the sender's own state */
@@ -492,13 +494,13 @@ void SSMSRMAgent::recv_glb_sess(int sessCtr, int* data, Packet* p)
   sp->lglbsess_ = sessCtr;
   sp->recvTime_ = now;
   sp->sendTime_ = stime;
-  for (int i = sp->ldata_ + 1; i <= dataCnt; i++)
+  for (i = sp->ldata_ + 1; i <= dataCnt; i++)
     if (! sp->ifReceived(i))
       tcl.evalf("%s request %d %d", name_, sender, i, sp->repid_);
   if (sp->ldata_ < dataCnt)
     sp->ldata_ = dataCnt;
   
-  for (int i = 1; i < cnt; i++) {
+  for (i = 1; i < cnt; i++) {
     GET_SESSION_INFO;
     if (sender == addr_ && now) {
       int rtt = (now - sentAt) + (rtime - stime);
@@ -533,11 +535,13 @@ void SSMSRMAgent::recv_loc_sess(int sessCtr, int* data, Packet* p)
   hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
   hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
   ttl = seh->ottl() - ih->ttl();
-	
+  
   int sender, dataCnt, rtime, stime,repid;
   int now, sentAt, sentBy;
   int cnt = *data++;
   int type = *data++;
+  int i;
+
   // data = data + SESS_CONST;  
   /* As as included type of session message also */
 
@@ -567,13 +571,13 @@ void SSMSRMAgent::recv_loc_sess(int sessCtr, int* data, Packet* p)
   sp->llocsess_ = sessCtr;
   sp->recvTime_ = now;
   sp->sendTime_ = stime;
-  for (int i = sp->ldata_ + 1; i <= dataCnt; i++)
+  for (i = sp->ldata_ + 1; i <= dataCnt; i++)
     if (! sp->ifReceived(i))
       tcl.evalf("%s request %d %d", name_, sender, i, sp->repid_);
   if (sp->ldata_ < dataCnt)
     sp->ldata_ = dataCnt;
   
-  for (int i = 1; i < cnt; i++) {
+  for (i = 1; i < cnt; i++) {
     GET_SESSION_INFO;
     if (sender == addr_ && now) {
       int rtt = (now - sentAt) + (rtime - stime);
@@ -610,6 +614,7 @@ void SSMSRMAgent::recv_rep_sess(int sessCtr, int* data, Packet* p)
   int now, sentAt, sentBy;
   int cnt = *data++;
   int type = *data++;
+  int i;
 
   //data = data + SESS_CONST;  
   /* As as included type of session message also */
@@ -638,13 +643,13 @@ void SSMSRMAgent::recv_rep_sess(int sessCtr, int* data, Packet* p)
   sp->lrepsess_ = sessCtr;
   sp->recvTime_ = now;
   sp->sendTime_ = stime;
-  for (int i = sp->ldata_ + 1; i <= dataCnt; i++)
+  for (i = sp->ldata_ + 1; i <= dataCnt; i++)
     if (! sp->ifReceived(i))
       tcl.evalf("%s request %d %d", name_, sender, i, sp->repid_);
   if (sp->ldata_ < dataCnt)
     sp->ldata_ = dataCnt;
 	
-  for (int i = 1; i < cnt; i++) {
+  for (i = 1; i < cnt; i++) {
     GET_SESSION_INFO;
     if (sender == addr_ && now) {
       int rtt = (now - sentAt) + (rtime - stime);

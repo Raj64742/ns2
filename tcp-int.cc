@@ -159,7 +159,7 @@ IntTcpAgent::createTcpSession()
 }
 
 void
-IntTcpAgent::output(int seqno, int reason = 0)
+IntTcpAgent::output(int seqno, int reason)
 {
 	Packet *pkt = allocpkt();
 	hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);

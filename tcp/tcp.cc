@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.48 1998/01/21 21:30:59 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.49 1998/02/05 21:00:45 hari Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -432,7 +432,7 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
  * "mild" is 0 for timeouts and Tahoe dup acks, 1 for Reno dup acks.
  * "backoff" is 1 if the timer should be backed off, 0 otherwise.
  */
-void TcpAgent::reset_rtx_timer(int mild, int backoff = 1)
+void TcpAgent::reset_rtx_timer(int mild, int backoff)
 {
 	if (backoff)
 		rtt_backoff();

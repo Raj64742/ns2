@@ -116,7 +116,7 @@ SessionBurstSndTimer::expire(Event*)
 }
 
 void
-TcpSessionAgent::reset_rtx_timer(int mild, int backoff = 1)
+TcpSessionAgent::reset_rtx_timer(int mild, int backoff)
 {
 	if (backoff)
 		rtt_backoff();
