@@ -32,9 +32,15 @@
  * SUCH DAMAGE.
  *
  *   
- * ns-2 code written by: Sanjeewa Athuraliya and Victor Li
- *		       Caltech, Pasadena 
- *		       CA 91125 
+ * ns-2 code written by: Sanjeewa Athuraliya (sanjeewa@caltech.edu)
+ *                       Caltech, Pasadena,
+ *			 CA 91125
+ *                       Victor Li
+ *                       University of Melbourne, Parkville
+ *                       Vic., Australia.
+ *
+ * Ref: Active Queue Management (REM), IEEE Network, May/June 2001.
+ *      http://netlab.caltech.edu
  */
 
 #include <math.h>
@@ -85,7 +91,7 @@ REMQueue::REMQueue() : link_(NULL), tchan_(0), rem_timer_(this)
 	bind("pbo_", &remp_.p_bo); 
 	bind("prob_", &remv_.v_prob);		    // dropping probability
 	bind("curq_", &curq_);			    // current queue size
-	bind("pmark_", &pmark_);      //number of packets being marked 
+	bind("pmark_", &pmark_);      	//number of packets being marked 
 	bind_bool("markpkts_", &markpkts_); /* Whether to mark or drop?  Default is drop */
 	bind_bool("qib_", &qib_); /* queue in bytes? */ 
 
@@ -125,7 +131,6 @@ void REMQueue::reset()
 	remv_.v_in2 = 0.0;
 	pmark_ = 0.0;
 	bcount_ = 0; 
-	remp_.p_bo = qib_ ? remp_.p_bo*remp_.p_pktsize : remp_.p_bo ; 
 	
 	//Queue::reset();
 	set_update_timer();
@@ -137,28 +142,40 @@ void REMQueue::reset()
 void REMQueue::run_updaterule()
 {
 
-	double f, pl, pr;
-	double in;
+	double in, in_avg, nqueued, pl, pr;
 
-	f = remv_.v_ave;
-	double in2 = remv_.v_in;
-	double in1 = remv_.v_count;
-	in = in1 - in2;
+        // link price, the congestion measure
+
 	pl = remv_.v_pl;
 
-	f *= (1.0 - remp_.p_inw);
-	f += remp_.p_inw*in;
+	// in is the number of bytes (if qib_ is true) or packets (otherwise)
+	// arriving at the link (input rate) during one update time interval
 
-	remv_.v_pl1 = remv_.v_pl2;
-	remv_.v_pl2 = pl;
-	remv_.v_in1 = remv_.v_in2;
-	remv_.v_in2 = in;
+	in = remv_.v_count;
+       
+	// in_avg is the low pss filtered input rate
+	// which is in bytes if qib_ is true and in packets otherwise.
 
-	double nqueued = qib_ ? bcount_ : q_->length(); 
+	in_avg = remv_.v_ave;
+  
+	in_avg *= (1.0 - remp_.p_inw);
+	
+	if (qib_) {
+		in_avg += remp_.p_inw*in/remp_.p_pktsize; 
+		nqueued = bcount_/remp_.p_pktsize; 
+        }
+	else {
+		in_avg += remp_.p_inw*in;
+		nqueued = q_ -> length();
+	}
 
-	double m = remp_.p_updtime*remp_.p_ptc;
 
-	pl = pl + remp_.p_gamma*( f + 0.1*(nqueued-remp_.p_bo) - m );
+	// c measures the maximum number of packets that 
+	// could be sent during one update interval.
+
+	double c  = remp_.p_updtime*remp_.p_ptc;
+
+	pl = pl + remp_.p_gamma*( in_avg + 0.1*(nqueued-remp_.p_bo) - c );
 
 	if ( pl < 0.0) {
 	    pl = 0.0;
@@ -167,8 +184,9 @@ void REMQueue::run_updaterule()
 	double pow1 = pow (remp_.p_phi, -pl);
 	pr = 1.0-pow1;
 
-	remv_.v_ave = f;
-	remv_.v_in = in1;
+
+	remv_.v_count = 0.0;
+	remv_.v_ave = in_avg;
 	remv_.v_pl = pl;
 	remv_.v_prob = pr;
 }
