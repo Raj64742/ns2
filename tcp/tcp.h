@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.45 1998/05/06 23:55:34 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.46 1998/05/11 18:51:26 kfall Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -134,6 +134,14 @@ struct hdr_tcpasym {
 #define	CWND_ACTION_TIMEOUT	2	// retransmission timeout
 #define	CWND_ACTION_ECN		3	// ECN bit [src quench if supported]
 
+/* these are bits for how to change the cwnd and ssthresh values */
+
+#define	CLOSE_SSTHRESH_HALF	0x00000001
+#define	CLOSE_CWND_HALF		0x00000002
+#define	CLOSE_CWND_RESTART	0x00000004
+#define	CLOSE_CWND_INIT		0x00000008
+#define	CLOSE_CWND_ONE		0x00000010
+
 /*
  * tcp_tick_:
  * default 0.1,
@@ -222,12 +230,12 @@ protected:
 	virtual void newtimer(Packet*);
 	virtual void dupack_action();		/* do this on dupacks */
 	void opencwnd();
-	void closecwnd(int how);
+	void slowdown(int how);			/* reduce cwnd/ssthresh */
+	void ecn();				/* react to quench */
 	virtual void set_initial_window();	/* set IW */
 	double initial_window();		/* what is IW? */
 	void reset();
 	void newack(Packet*);
-	void quench(int how);
 	void tcp_eln(Packet *pkt); /* reaction to ELN (usually wireless) */
 	void finish(); /* called when the connection is terminated */
 
@@ -317,6 +325,10 @@ protected:
         TracedInt nrexmitpack_; /* number of retransmited packets */
         TracedInt nrexmitbytes_; /* number of retransmited bytes */
 	int trace_all_oneline_;	/* TCP tracing vars all in one line or not? */
+
+	/* these function are now obsolete, see other above */
+	void closecwnd(int how);
+	void quench(int how);
 };
 
 /* TCP Reno */
