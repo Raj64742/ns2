@@ -82,8 +82,8 @@ PrefixTree::calculateLowerBound() {
   //bulk of this code is taken from identifyAggregate.
 	// bad idea - but quick.
 	// better way - to make the common code into a separate function.
-  int sum = 0; int count=0;
-  for (int i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
+  int sum = 0; int count=0; int i;
+  for (i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
     if (countArray[i]!=0) {
       sum+=countArray[i];
       count++;
@@ -96,20 +96,19 @@ PrefixTree::calculateLowerBound() {
 
   cluster *clusterList = (cluster *)malloc(sizeof(cluster)*MAX_CLUSTER);
   
-  for (int i=0; i < MAX_CLUSTER; i++) {
+  for (i=0; i < MAX_CLUSTER; i++) {
     clusterList[i].prefix_=-1;
     clusterList[i].count_=0;
   }
   
   double mean = sum/count;
-  for (int i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
+  for (i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
     if (countArray[i] >= mean/2) { //using mean/2 helps in trivial simulations.
       insertCluster(clusterList, i, countArray[i], CLUSTER_LEVEL);
     }
   }
   
-  int i=0;
-  for (; i<MAX_CLUSTER; i++) {
+  for (i=0; i<MAX_CLUSTER; i++) {
     if (clusterList[i].prefix_==-1) {
       break;
     }
@@ -125,8 +124,8 @@ PrefixTree::calculateLowerBound() {
 AggReturn *  
 PrefixTree::identifyAggregate(double arrRate, double linkBW) {
   
-  int sum = 0; int count=0;
-  for (int i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
+  int sum = 0; int count=0; int i;
+  for (i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
     if (countArray[i]!=0) {
       sum+=countArray[i];
       count++;
@@ -137,20 +136,19 @@ PrefixTree::identifyAggregate(double arrRate, double linkBW) {
 
   cluster *clusterList = (cluster *)malloc(sizeof(cluster)*MAX_CLUSTER);
   
-  for (int i=0; i < MAX_CLUSTER; i++) {
+  for (i=0; i < MAX_CLUSTER; i++) {
     clusterList[i].prefix_=-1;
     clusterList[i].count_=0;
   }
   
   double mean = sum/count;
-  for (int i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
+  for (i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
     if (countArray[i] >= mean/2) { //using mean/2 helps in trivial simulations.
       insertCluster(clusterList, i, countArray[i], CLUSTER_LEVEL);
     }
   }
   
-  int i=0;
-  for (; i<MAX_CLUSTER; i++) {
+  for (i=0; i<MAX_CLUSTER; i++) {
     if (clusterList[i].prefix_==-1) {
       break;
     }
