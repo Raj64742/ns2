@@ -1,6 +1,25 @@
+/*
+ * Copyright (C) 1997 by USC/ISI
+ * All rights reserved.                                            
+ *                                                                
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * 
+ */
+
 #ifndef lint
-static char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/dynalink.cc,v 1.3 1997/05/16 07:58:24 kannan Exp $";
+static const char rcsid[] =
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/dynalink.cc,v 1.4 1997/07/22 21:39:22 kfall Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
@@ -21,7 +40,7 @@ protected:
 static class DynamicLinkClass : public TclClass {
 public:
 	DynamicLinkClass() : TclClass("DynamicLink") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new DynamicLink);
 	}
 } class_dynamic_link;
