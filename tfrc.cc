@@ -69,7 +69,7 @@ public:
 
 
 TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this), 
-                         NoFeedbacktimer_(this) 
+			 NoFeedbacktimer_(this) 
 {
 	bind("packetSize_", &size_);
 	bind("df_", &df_);
@@ -125,8 +125,8 @@ void TfrcAgent::start()
 	t_srtt_ = int(srtt_init_/tcp_tick_) << T_SRTT_BITS;
 	t_rttvar_ = int(rttvar_init_/tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
-
 	round_id = 0;
+	prev_loss = 9999;
 }
 
 void TfrcAgent::stop()
@@ -156,7 +156,7 @@ void TfrcAgent::nextpkt()
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate; 
 		if (overhead_ > SMALLFLOAT) {
-			next = next + Random::uniform(overhead_);
+			next = next*(Random::uniform()+0.5);
 		}
 		if (next > SMALLFLOAT ) {
 			send_timer_.resched(next); 
@@ -206,10 +206,10 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	double now = Scheduler::instance().clock();
 	hdr_tfrc_ack *nck = hdr_tfrc_ack::access(pkt);
 	double ts = nck->timestamp_echo;
-	double flost = nck->flost; 
 	double rate_since_last_report = nck->rate_since_last_report;
 	double NumFeedback_ = nck->NumFeedback_;
 	double rcvrate; 
+	double flost = nck->flost; 
 
 	round_id ++ ;
 	UrgentFlag = 0;
@@ -254,12 +254,21 @@ printf ("oss: %f %f %f %d %f\n", now, oldrate_, maxrate_, size_, flost);
 	}
 			
 	rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
-	if (rcvrate > rate_) {
-		increase_rate(flost);
+	if (rcvrate>rate_) {
+/*
+printf ("inc: r=%f rr=%f rtt=%f to=%f p=%f\n", 
+rate_, rcvrate, rtt_, tzero_, flost);
+*/
+			increase_rate(flost);
 	}
 	else {
+/*
+printf ("dec: r=%f rr=%f rtt=%f to=%f p=%f\n", 
+rate_, rcvrate, rtt_, tzero_, flost);
+*/
 		decrease_rate (flost);		
 	}
+	prev_loss = flost ;
 	Packet::free(pkt);
 }
 
@@ -319,33 +328,29 @@ void TfrcAgent::slowstart ()
 
 void TfrcAgent::increase_rate (double p) 
 {
-/*
-	double oldrate = rate_;
-*/
 	double rcvrate = p_to_b(p, rtt_, tzero_, size_, bval_);
 	double now = Scheduler::instance().clock(); 
-
 
 	oldrate_ = rate_;
 	rate_change_ = CONG_AVOID;
 	if (rate_ < size_/rtt_) {
-                // The sending rate is less than one pkt/RTT.
-                rate_ = (rcvrate + rate_)/2;
-                if (rate_ > maxrate_)
-                        rate_ = maxrate_;
-		last_change_ = now;
+		// The sending rate is less than one pkt/RTT.
+		rate_ = (rcvrate + rate_)/2;
+		if (rate_ > maxrate_)
+			rate_ = maxrate_;
   	}
-        else if (now - last_change_ >= rtt_) {
-                // Increase the sending rate by at most one pkt/RTT.
-                // Increase at most once per RTT. 
-                if ((rate_ + (size_/rtt_) < rcvrate )) {
-                        rate_ = rate_ + size_/rtt_;
-                } else
-                        rate_ = (rcvrate + rate_)/2;
-                if (rate_ > maxrate_)
-                        rate_ = maxrate_;
-                last_change_ = now;
-        }       
+	else {
+		// Increase the sending rate by at most one pkt/RTT.
+		if ((rate_ + (size_/rtt_) < rcvrate )) {
+			double mult = (now-last_change_)/rtt_ ;
+			if (mult > 2) mult = 2 ;
+			rate_ = rate_ + (size_/rtt_)*mult ;
+		} else
+			rate_ = (rcvrate + rate_)/2;
+		if (rate_ > maxrate_)
+			rate_ = maxrate_;
+	}       
+	last_change_ = now;
 /*
 printf ("increase rate: %5.2f %5.2f %5.2f %5.4f %5.4f\n",  
   now, oldrate, rate_, rtt_, p);

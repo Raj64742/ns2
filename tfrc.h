@@ -171,4 +171,5 @@ protected:
 	int UrgentFlag;		// urget flag
 	int active_;		// have we shut down? 
 	int round_id ; 		// round id
+	double prev_loss ;
 };

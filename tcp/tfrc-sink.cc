@@ -53,7 +53,7 @@ public:
 TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 {
 	bind("packetSize_", &size_);	
-	bind("InitHistorySize_", &InitHistorySize_);
+	bind("InitHistorySize_", &hsz);
 	bind("NumFeedback_", &NumFeedback_);
 	bind ("AdjustHistoryAfterSS_", &adjust_history_after_ss);
 
@@ -63,11 +63,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	flost_ = 0;
 	last_timestamp_ = 0;
 	last_arrival_ = 0;
-	last_nack_ = 0; 
-	pvec_ = NULL; 
-	tsvec_ = NULL; 
 	rtvec_ = NULL;
-	RTTvec_ = NULL;
 	lossvec_ = NULL;
 	total_received_ = 0;
 	loss_seen_yet = 0;
@@ -77,6 +73,18 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	lastloss = 0;
 	false_sample = 0;
 	lastloss_round_id = -1 ;
+	sample_count = 0 ;
+	last_sample = 0;
+	for (int i = 0 ; i < MAXSAMPLES+1 ; i ++) {
+		sample[i] = 0 ; 
+	}
+	weights[0] = 1; 
+	weights[1] = 1; 
+	weights[2] = 1; 
+	weights[3] = 0.8; 
+	weights[4] = 0.6; 
+	weights[5] = 0.4; 
+	weights[6] = 0.2; 
 }
 
 /*
@@ -96,29 +104,38 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	UrgentFlag = tfrch->UrgentFlag;
 	round_id = tfrch->round_id ;
 
-	add_packet_to_history (pkt);
+	if (tfrch->seqno - last_sample > hsz) {
+		printf ("time=%f, pkt=%d, last=%d history to small\n",
+		         now, tfrch->seqno, last_sample);
+		abort();
+	}
 
 	prevrtt=rtt_;
 	rtt_=tfrch->rtt;
 	tzero_=tfrch->tzero;
 	psize_=tfrch->psize;
-	last_arrival_=Scheduler::instance().clock();
+	last_arrival_=now;
 	last_timestamp_=tfrch->timestamp;
 	rate_=tfrch->rate;
-	/*if we are in slow start (i.e. (loss_seen_yet ==0)), */
-	/*and if we saw a loss, report it immediately */
+	
+	add_packet_to_history (pkt);
 
-	if ( (rate_ < SMALLFLOAT) || (prevrtt < SMALLFLOAT) || (UrgentFlag) ||
-		 ((rtt_ > SMALLFLOAT) && 
-		  (now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
-		((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq > 1)) ) {
+	/*
+	 * if we are in slow start (i.e. (loss_seen_yet ==0)), 
+	 * and if we saw a loss, report it immediately
+	 */
+
+	if ((rate_ < SMALLFLOAT) || (prevrtt < SMALLFLOAT) || (UrgentFlag) ||
+		  ((rtt_ > SMALLFLOAT) && 
+			 (now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
+		  ((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq > 1)) ) {
 		/*
 		 * time to generate a new report
 		 */
 		if((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq> 1)) {
 			loss_seen_yet = 1;
 			if (adjust_history_after_ss) {
-				p = adjust_history(); 
+				p = adjust_history(tfrch->timestamp); 
 			}
 		}
 		nextpkt(p);
@@ -133,21 +150,13 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 	register int i; 
 	register int seqno = tfrch->seqno;
 
-	if (seqno >= InitHistorySize_) {
-		printf ("history buffer too small\n");
-		abort ();
-	}
-	if (pvec_ == NULL) {
-		pvec_=(char *)malloc(sizeof(int)*InitHistorySize_);
-		tsvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
-		rtvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
-		RTTvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
-		lossvec_=(char *)malloc(sizeof(double)*InitHistorySize_);
-		if (pvec_ && tsvec_ && rtvec_ && RTTvec_ && lossvec_) {
-			for (i = 0; i < InitHistorySize_ ; i ++) {
-				pvec_[i] = UNKNOWN;
-				tsvec_[i] = rtvec_[i] = RTTvec_[i] = -1; 
+	if (lossvec_ == NULL) {
+		rtvec_=(double *)malloc(sizeof(double)*hsz);
+		lossvec_=(char *)malloc(sizeof(double)*hsz);
+		if (rtvec_ && lossvec_) {
+			for (i = 0; i < hsz ; i ++) {
 				lossvec_[i] = UNKNOWN;
+				rtvec_[i] = -1; 
 			}
 		}
 		else {
@@ -159,29 +168,22 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 	/* for the time being, we will ignore out of order and duplicate 
 	   packets etc. */
 	if (seqno > maxseq) {
-		pvec_[seqno] = RCVD; 
-		tsvec_[seqno] = tfrch->timestamp;
-		rtvec_[seqno]=now;	
-		RTTvec_[seqno]=tfrch->rtt;
-		lossvec_[seqno] = NOLOSS;
-		for (i = maxseq+1; i < seqno ; i ++) {
-			pvec_[i] = LOST;
-			tsvec_[i] = tfrch->timestamp;
-			rtvec_[i]=now;	
-			RTTvec_[i]=tfrch->rtt;
-			if ( (tsvec_[i]-lastloss > RTTvec_[i]) &&
-			     (round_id > lastloss_round_id)) {
-/*
-printf ("lost: %d %f %f %f %f %d %d\n", i, lastloss, tsvec_[i], RTTvec_[i],
-rate_, round_id, lastloss_round_id);
-*/
-				lossvec_[i] = LOST;
-				lastloss = tsvec_[i];
+		rtvec_[seqno%hsz]=now;	
+		lossvec_[seqno%hsz] = RCVD;
+		i = maxseq+1 ;
+		while(i < seqno) {
+			rtvec_[i%hsz]=now;	
+			if ((last_timestamp_-lastloss > rtt_) && 
+			    (round_id > lastloss_round_id)) {
+				lossvec_[i%hsz] = LOST;
+/*printf ("===>%d %d\n", round_id, lastloss_round_id); */
+				lastloss = tfrch->timestamp;
 				lastloss_round_id = round_id ;
 			}
 			else {
-				lossvec_[i] = NOLOSS; 
+				lossvec_[i%hsz] = NOLOSS; 
 			}
+			i++;
 		}
 		maxseq = seqno;
 	}
@@ -193,44 +195,42 @@ rate_, round_id, lastloss_round_id);
  */
 double TfrcSinkAgent::est_loss () 
 {
-	int sample[MAXSAMPLES+1] = {0, 0, 0, 0, 0, 0, 0, 0}; 
-	double weights[MAXSAMPLES] = {1, 1, 1, 0.8, 0.6, 0.4, 0.2}; 
-	int i, count;
+	int i;
 	double p1, p2; 
 
-	count = 0;
 	// sample[i] counts the number of packets since the i-th loss event
 	// sample[0] contains the most recent sample.
-	for (i = maxseq; i >= 0 ; i --) {
-		if (lossvec_[i] == LOST) {
-			count ++;
-			if (count >= MAXSAMPLES+1) {
-				count = MAXSAMPLES;
-				break;
-			}
-			else sample[count] = 1;
+	for (i = last_sample; i <= maxseq ; i ++) {
+		sample[0]++; 
+		if (lossvec_[i%hsz] == LOST) {
+			sample_count ++;
+			if (sample_count >= MAXSAMPLES+1) 
+				sample_count = MAXSAMPLES;
+			shift_array (sample, MAXSAMPLES+1); 
 		}
-		else sample[count]++; 
 	}
+	last_sample = maxseq+1 ; 
 
-	if (count == 0) 
+	if (sample_count == 0 && false_sample == 0) 
 		return 0; 
 
-	if (count < MAXSAMPLES && false_sample > 0) 
-		sample[count] += false_sample;
+	if (sample_count < MAXSAMPLES && false_sample > 0) {
+		/* sample_count++; sample[sample_count] = false_sample;*/
+		sample[sample_count] += false_sample;
+		false_sample = 0 ; 
+	}
+
 	p1 = 0; p2 = 0;
 	double wsum1 = 0; 
 	double wsum2 = 0; 
-	for (i = 0; i < count; i ++) 
+	for (i = 0; i < sample_count; i ++) 
 		wsum1 += weights[i]; 
 	wsum2 = wsum1; 
-	if (count < MAXSAMPLES)  
+	if (sample_count < MAXSAMPLES)  
 		wsum1 += weights[i]; 
-	for (i = 0; i <= count; i ++) {
-		// p1 is the weighted sum of all sample intervals
-		p1 += weights[i]*sample[i]/wsum1;
-		// p2 is the weighted sum of all sample intervals
-		//  except for the first
+	for (i = 0; i <= sample_count; i ++) {
+		if (i != MAXSAMPLES)
+			p1 += weights[i]*sample[i]/wsum1;
 		if (i > 0) 
 			p2 += weights[i-1]*sample[i]/wsum2;
 	}
@@ -238,16 +238,23 @@ double TfrcSinkAgent::est_loss ()
 		p1 = p2;
 /*
 double now = Scheduler::instance().clock();
-printf ("%f %d: ", now, count+1);
-for (i = 0 ; i <= count ; i++) 
+printf ("%f %d: ", now, sample_count +1);
+for (i = 0 ; i <= sample_count ; i++) 
         printf ("%d ", sample[i]);
-printf ("\n");
 if (p1 > 0) 
-	printf ("%f %f %f %f\n", now, 1/p1, wsum1, wsum2);
+	printf (" p=%.6f %.2f %.2f %d\n", 1/p1, wsum1, wsum2, maxseq);
 */
 	if (p1 > 0) 
 		return 1/p1; 
 	else return 999;     
+}
+void TfrcSinkAgent::shift_array(int *a, int sz) 
+{
+	int i ;
+	for (i = sz-2 ; i >= 0 ; i--) {
+		a[i+1] = a[i] ;
+	}
+	a[0] = 0;
 }
 
 /*
@@ -267,11 +274,11 @@ double TfrcSinkAgent::est_thput ()
 	else {
 		// count number of packets received in the last RTT
 		if (rtt_ > 0){
-			double last = rtvec_[maxseq]; 
+			double last = rtvec_[maxseq%hsz]; 
 			int rcvd = 0;
 			int i = maxseq;
-			while (((rtvec_[i] + rtt_) > last) && (i >= 0)) {
-				if (pvec_[i] == RCVD) 
+			while (((rtvec_[i%hsz] + rtt_) > last) && (i >= 0)) {
+				if (lossvec_[i%hsz] == RCVD) 
 					rcvd++; 
 				i--; 
 			}
@@ -286,16 +293,16 @@ double TfrcSinkAgent::est_thput ()
 /*
  * We just received our first loss, and need to adjust our history.
  */
-double TfrcSinkAgent::adjust_history ()
+double TfrcSinkAgent::adjust_history (double ts)
 {
 	int i;
 	double p;
 	for (i = maxseq; i >= 0 ; i --) {
-		if (lossvec_[i] == LOST) {
-			lossvec_[i] = NOLOSS; 
+		if (lossvec_[i%hsz] == LOST) {
+			lossvec_[i%hsz] = NOLOSS; 
 		}
 	}
-	lastloss = tsvec_[maxseq]; 
+	lastloss = ts; 
 	lastloss_round_id = round_id ;
 	p=b_to_p(est_thput()*psize_, rtt_, tzero_, psize_, 1);
 	false_sample = (int)(1/p);
@@ -329,7 +336,7 @@ void TfrcSinkAgent::sendpkt(double p)
 	/*if we're sending slower than one packet per RTT, don't need*/
 	/*multiple responses per data packet.*/
 
-	if (last_arrival_ < last_nack_)
+	if (last_arrival_ < last_report_sent)
 		return;
 
 	Packet* pkt = allocpkt();
@@ -340,7 +347,6 @@ void TfrcSinkAgent::sendpkt(double p)
 
 	hdr_tfrc_ack *tfrc_ackh = hdr_tfrc_ack::access(pkt);
 
-	last_nack_=now;
 	tfrc_ackh->seqno=maxseq;
 	tfrc_ackh->timestamp_echo=last_timestamp_;
 	tfrc_ackh->timestamp_offset=now-last_arrival_;

@@ -72,9 +72,10 @@ protected:
 	void nextpkt(double);
 	void increase_pvec(int);
 	void add_packet_to_history(Packet *);
-	double adjust_history();
+	double adjust_history(double);
 	double est_loss();
 	double est_thput(); 
+	void shift_array(int *a, int sz) ;
 
 	TfrcNackTimer nack_timer_;
 
@@ -86,21 +87,14 @@ protected:
 				// by the receiver
 
 	// these assist in keep track of incming packets and calculate flost_
-	double last_timestamp_, last_arrival_, last_nack_;
-	int InitHistorySize_;
-	char *pvec_;
+	double last_timestamp_, last_arrival_;
+	int hsz;
 	char *lossvec_;
-	double *tsvec_;
 	double *rtvec_;
-	double *RTTvec_;
 	int prevpkt_;
 	int maxseq; 
 
 	int total_received_;	// total # of pkts rcvd by rcvr
-
-	/* bounds on loss rate for signal changes in version 0 */
-	double HysterisisLower_;
-	double HysterisisUpper_;
 
 	int bval_;		// value of B used in the formula
 
@@ -119,4 +113,8 @@ protected:
 	int false_sample;
 	int round_id ;
 	int lastloss_round_id ;
+	int sample[MAXSAMPLES+1];
+	double weights[MAXSAMPLES+1] ;
+	int sample_count ;
+	int last_sample ;
 }; 
