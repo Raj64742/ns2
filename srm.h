@@ -27,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.15 1998/06/27 01:24:55 gnguyen Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.16 1998/08/31 23:50:18 tomh Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -49,8 +49,12 @@ protected:
 	SRMinfo* sip_;			/* Table of sender info */
 	Tcl_HashTable*	siphash_;
 	int	groupSize_;
+	int seqno_;			/* Seqno for CBR packets */
 	int off_srm_;
 	int off_cmn_;
+	int off_rtp_;
+	int app_fid_;
+	int app_type_;
 
 	virtual void start() {
 		int new_entry = 0;
@@ -125,6 +129,8 @@ public:
 	virtual ~SRMAgent();
 	virtual int command(int argc, const char*const* argv);
 	virtual void recv(Packet* p, Handler* h);
+        virtual void sendmsg(int nbytes, const char *flags = 0);
+        virtual void send(int nbytes) { sendmsg(nbytes); }
 };
 
 class ASRMAgent : public SRMAgent {

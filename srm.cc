@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.20 1998/08/12 23:41:17 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.21 1998/08/31 23:50:18 tomh Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -45,6 +45,7 @@ static const char rcsid[] =
 #include "ip.h"
 #include "srm.h"
 #include "trace.h"
+#include "rtp.h"
 
 
 int hdr_srm::offset_;
@@ -85,14 +86,17 @@ public:
 
 
 SRMAgent::SRMAgent() 
-	: Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), siphash_(0)
+	: Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), siphash_(0), seqno_(-1),
+    app_type_(PT_NTYPE)
 {
 	sip_ = new SRMinfo(-1);
 
 	bind("off_srm_", &off_srm_);
 	bind("off_cmn_", &off_cmn_);
+        bind("off_rtp_", &off_rtp_);
 	bind("packetSize_", &packetSize_);
 	bind("groupSize_", &groupSize_);
+	bind("app_fid_", &app_fid_);
 }
 
 SRMAgent::~SRMAgent()
@@ -159,7 +163,7 @@ void SRMAgent::recv(Packet* p, Handler* h)
 	hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
 	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
 	
-	if (ih->dst() == 0) {
+	if (ih->dst() == -1) {
 		// Packet from local agent.  Add srm headers, set dst, and fwd
 		sh->type() = SRM_DATA;
 		sh->sender() = addr_;
@@ -199,6 +203,43 @@ void SRMAgent::recv(Packet* p, Handler* h)
 		Packet::free(p);
 	}
 }
+
+void SRMAgent::sendmsg(int nbytes, const char* /*flags*/)
+{
+	if (nbytes == -1) {
+		printf("Error:  sendmsg() for SRM should not be -1\n");
+		return;
+	}
+	// The traffic generator may have reset our payload type when it
+	// initialized.  If so, save the current payload type as app_type_,
+	// and set type_ to PT_SRM.  Use app_type_ for all app. packets
+	// 
+	if (type_ != PT_SRM) {
+		app_type_ = type_;
+		type_ = PT_SRM;
+	}
+	size_ = nbytes;
+	Packet *p;
+	p = allocpkt();
+        hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
+        hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
+	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	//hdr_cmn* ch = hdr_cmn::access(p);
+	
+	ch->ptype() = app_type_;
+	ch->size() =  size_;
+	ih->flowid() = app_fid_;
+	rh->seqno() = ++seqno_;
+	// Add srm headers, set dst, and fwd
+	sh->type() = SRM_DATA;
+	sh->sender() = addr_;
+	sh->seqnum() = ++dataCtr_;
+	addExtendedHeaders(p);
+	ih->dst() = dst_;
+	target_->recv(p);
+}
+
 
 void SRMAgent::send_ctrl(int type, int round, int sender, int msgid, int size)
 {
@@ -279,7 +320,7 @@ void SRMAgent::send_sess()
 	data[4] = (int) (Scheduler::instance().clock()*1000);
 
 	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
-	ch->size() += size+ sizeof(hdr_srm);
+	ch->size() = size+ sizeof(hdr_srm);
 
 	target_->recv(p, NULL);
 }
