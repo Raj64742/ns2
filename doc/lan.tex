@@ -135,7 +135,7 @@ other mechanisms such as piggybacking.
 Since multiple \code{LL} objects can use the same \code{Mac} object for
 sending, their packets must be buffered in the interface queue.  This
 interface queue belongs to the same \code{Queue} class that is described
-in Section \ref{queue_mgmt}.  On the receiving side, the link-layer
+in Chapter~\ref{chap:qmgmt}.  On the receiving side, the link-layer
 specific \code{Classifier} object is responsible for demultiplexing
 packets that are received by a single MAC to the appropriate \code{LL}
 objects.
@@ -406,8 +406,8 @@ The link-layer object is responsible for simulating the data link
 protocols.  Many protocols can be implemented within this layer such as
 packet fragmentation and reassembly, and reliable link protocol.
 
-\subsection{Mac Class in C++}
-\label{sec:maccplus}
+\subsection{LL Class in C++}
+\label{sec:llcplus}
 
 The C++ class \code{LL} derives from the \code{LinkDelay} class.  Since
 it is a duplex object, it keeps a separate pointer for the send target,
