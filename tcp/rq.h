@@ -55,9 +55,7 @@
 #ifndef ns_rq_h
 #define ns_rq_h
 
-#define	RQF_NORMAL	1	// out-of-order seq #s
-#define	RQF_DSACK	2	// for DSACK book-keeping
-#define	RQF_MARK	3	// for debugging
+#define	RQF_MARK	1	// for debugging
 
 typedef int	TcpSeq;		// a TCP sequence number
 typedef	int	TcpFlag;	// holds flags from TCP hdr
@@ -71,13 +69,7 @@ typedef int	RqFlag;		// meta data (owned by ReassemblyQueue)
 #define	FALSE	0
 #endif
 
-#ifndef	MAX
-#define	MAX(a,b)	((a)>(b)?(a):(b))
-#endif
-
-#ifndef	MIN
-#define	MIN(a,b)	((a)<(b)?(a):(b))
-#endif
+#define	RQC_CNTDUPS	FALSE	// count exact dups on add()?
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,8 +105,8 @@ public:
 		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt), hint_(NULL), total_(0) { };
 	int empty() { return (head_ == NULL); }
 	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags = 0);
-	int max() { return (tail_ ? (tail_->endseq_) : -1); }
-	int min() { return (head_ ? (head_->startseq_) : -1); }
+	int maxseq() { return (tail_ ? (tail_->endseq_) : -1); }
+	int minseq() { return (head_ ? (head_->startseq_) : -1); }
 	int total() { return total_; }
 	int nexthole(TcpSeq seq, int&, int&);	// find next hole above seq, also
 						// include cnt of following blk
