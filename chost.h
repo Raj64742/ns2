@@ -113,12 +113,16 @@ class CorresHost : public slink, public TcpFsAgent {
 	 */
 	double wndInit_;    /* should = path_mtu_ */
 	Segment *rtt_seg_;  /* segment being timed for RTT computation */
+	int dontAdjustOwnd_; /* don't adjust ownd in response to dupacks */
+	/* variables for fast start */
+	class IntTcpAgent *connWithPktBeforeFS_;
+	int pktReordered_;
 	/* following is for right-edge timer recovery */
-	int pending_;
+/*	int pending_;*/
 	Event timer_;
 	inline void cancel() {	
 		(void)Scheduler::instance().cancel(&timer_);
-		pending_ = 0;
+/*		pending_ = 0;*/
 	}
 };
 
