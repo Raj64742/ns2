@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.39 1998/10/07 22:31:30 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.40 1998/10/12 19:46:39 haldar Exp $
 #
 
 Class Node
@@ -101,6 +101,7 @@ Node instproc add-neighbor p {
 	lappend neighbor_ $p
 }
 
+## not called anymore
 Node instproc incr-rtgtable-size {} {
     $self instvar rtsize_
     set rtsize_ [expr $rtsize_ + 1]
@@ -119,8 +120,12 @@ Node instproc entry {} {
 }
 
 Node instproc add-route { dst target } {
-	$self instvar classifier_
+	$self instvar classifier_ rtsize_
 	$classifier_ install $dst $target
+    #
+    # increase the routing table size counter - keeps track of rtg table size for 
+    # each node
+    set rtsize_ [expr $rtsize_ + 1]
 }
 
 Node instproc id {} {
