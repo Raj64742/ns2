@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.27 1997/09/05 23:09:09 hari Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.28 1997/09/10 07:48:59 padmanab Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -228,6 +228,7 @@ protected:
 	virtual void send_idle_helper() { return; }
 	virtual void recv_helper(Packet*) { return; }
 	virtual void recv_newack_helper(Packet* pkt);
+	virtual void partialnewack_helper(Packet* pkt) {};
 
 	/* Timers */
 	RtxTimer rtx_timer_;
@@ -301,6 +302,7 @@ class NewRenoTcpAgent : public virtual TcpAgent {
 	virtual int window();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
+	virtual void partialnewack_helper(Packet* pkt);
  protected:
 	unsigned int dupwnd_;
 	int newreno_changes_;	/* 0 for fixing unnecessary fast retransmits */
