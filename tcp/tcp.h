@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.26 1997/08/26 03:42:18 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.27 1997/09/05 23:09:09 hari Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -271,7 +271,6 @@ protected:
 				/* highest seqno sent so far */
 	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
 	double firstsent_;  /* When first packet was sent  --Allman */
-	int off_ip_;
 	int off_tcp_;
 	int slow_start_restart_;   /* boolean: re-init cwnd after connection 
 				      goes idle.  On by default.
