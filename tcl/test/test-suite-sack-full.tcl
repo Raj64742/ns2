@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.4 2001/08/22 23:44:12 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.5 2001/08/23 00:09:06 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -47,8 +47,8 @@ Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
 
-# set style raw2xg
-set style tcpf2xgr
+set style raw2xg
+# set style tcpf2xgr
 
 Trace set show_tcphdr_ 1 ;	# needed for plotting ACK numbers
 
@@ -339,7 +339,7 @@ Test/sack3 instproc run {} {
     $ns_ queue-limit $node_(r1) $node_(k1) 8
     $ns_ queue-limit $node_(k1) $node_(r1) 8
 
-    [$self makeproto s1 k1 100 0 FTP 1.0] set bugFix_ false
+    [$self makeproto s1 k1 100 0 FTP 0.95] set bugFix_ false
     [$self makeproto s2 k1 16 1 FTP 0.5] set bugFix_ false
 
     # trace only the bottleneck link
@@ -371,7 +371,8 @@ Test/sack5 instproc run {} {
 
     # trace only the bottleneck link
     #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
-    $ns_ at 6.0 "$self cleanupAll $testName_"
+#    $ns_ at 6.0 "$self cleanupAll $testName_"
+    $ns_ at 10.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
