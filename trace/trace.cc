@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.72 2001/05/21 19:27:32 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.73 2002/03/21 22:50:34 buchheim Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -147,11 +147,19 @@ void Trace::write_nam_trace(const char *s)
 
 void Trace::annotate(const char* s)
 {
-	sprintf(pt_->buffer(), "v "TIME_FORMAT" eval {set sim_annotation {%s}}", 
-		pt_->round(Scheduler::instance().clock()), s);
+	if (pt_->tagged()) {
+		sprintf(pt_->buffer(),
+			"v "TIME_FORMAT" -e {sim_annotation %g %s}",
+			Scheduler::instance().clock(), 
+			Scheduler::instance().clock(), s);
+	} else {
+		sprintf(pt_->buffer(),
+			"v "TIME_FORMAT" eval {set sim_annotation {%s}}", 
+			pt_->round(Scheduler::instance().clock()), s);
+	}
 	pt_->dump();
 	callback();
-	sprintf(pt_->nbuffer(), "v -t %.17g sim_annotation %g %s", 
+	sprintf(pt_->nbuffer(), "v -t "TIME_FORMAT" -e sim_annotation %g %s", 
 		Scheduler::instance().clock(), 
 		Scheduler::instance().clock(), s);
 	pt_->namdump();
@@ -243,7 +251,24 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->daddr());
 	char *dst_portaddr = Address::instance().print_portaddr(iph->dport());
 
-	if (!show_tcphdr_) {
+	if (pt_->tagged()) {
+		sprintf(pt_->buffer(), 
+			"%c "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
+			tt,
+			Scheduler::instance().clock(),
+			s,
+ 			d,
+			name,
+			th->size(),
+			iph->flowid(),
+			th->uid(),
+			iph->flowid(),
+			src_nodeaddr,
+			src_portaddr,
+			dst_nodeaddr,
+			dst_portaddr,
+			seqno,flags,sname);
+	} else if (!show_tcphdr_) {
 		sprintf(pt_->buffer(), "%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d",
 			tt,
 			pt_->round(Scheduler::instance().clock()),
@@ -341,13 +366,22 @@ void Trace::trace(TracedVar* var)
 	if (&s == 0)
 		return;
 
-	// format: use Mark's nam feature code without the '-' prefix
-	sprintf(pt_->buffer(), "%c t"TIME_FORMAT" a%s n%s v%s",
-		type_,
-		pt_->round(s.clock()),
-		var->owner()->name(),
-		var->name(),
-		var->value(tmp, 256));
+	if (pt_->tagged()) {
+		sprintf(pt_->buffer(), "%c "TIME_FORMAT" -a%s -n%s -v%s",
+			type_,
+			pt_->round(s.clock()),
+			var->owner()->name(),
+			var->name(),
+			var->value(tmp, 256));
+	} else {
+		// format: use Mark's nam feature code without the '-' prefix
+		sprintf(pt_->buffer(), "%c t"TIME_FORMAT" a%s n%s v%s",
+			type_,
+			pt_->round(s.clock()),
+			var->owner()->name(),
+			var->name(),
+			var->value(tmp, 256));
+	}
 	pt_->dump();
 	callback();
 }
@@ -389,7 +423,8 @@ DequeTrace::recv(Packet* p, Handler* h)
 	callback();
 	pt_->namdump();
 
-	if (pt_->namchannel() != 0) {
+	if (pt_->namchannel() != 0 ||
+	    (pt_->tagged() && pt_->channel() !=0)) {
 		hdr_cmn *th = hdr_cmn::access(p);
 		hdr_ip *iph = hdr_ip::access(p);
 		hdr_srm *sh = hdr_srm::access(p);
@@ -430,23 +465,45 @@ DequeTrace::recv(Packet* p, Handler* h)
 		flags[5] = 0;
 #endif
 		
-		sprintf(pt_->nbuffer(), 
-			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
-			'h',
-			Scheduler::instance().clock(),
-			src_,
-  			dst_,
-			name,
-			th->size(),
-			iph->flowid(),
-			th->uid(),
-			iph->flowid(),
-			src_nodeaddr,
-			src_portaddr,
-			dst_nodeaddr,
-			dst_portaddr,
-			-1, flags, sname);
-		pt_->namdump();
+		if (pt_->nbuffer() != 0) {
+			sprintf(pt_->nbuffer(), 
+				"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
+				'h',
+				Scheduler::instance().clock(),
+				src_,
+  				dst_,
+				name,
+				th->size(),
+				iph->flowid(),
+				th->uid(),
+				iph->flowid(),
+				src_nodeaddr,
+				src_portaddr,
+				dst_nodeaddr,
+				dst_portaddr,
+				-1, flags, sname);
+			pt_->namdump();
+		}
+		if (pt_->tagged() && pt_->buffer() != 0) {
+			sprintf(pt_->buffer(), 
+				"%c "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
+				'h',
+				Scheduler::instance().clock(),
+				src_,
+	  			dst_,
+				name,
+				th->size(),
+				iph->flowid(),
+				th->uid(),
+				iph->flowid(),
+				src_nodeaddr,
+				src_portaddr,
+				dst_nodeaddr,
+				dst_portaddr,
+				-1, flags, sname);
+			pt_->dump();
+		}
+
 		delete [] src_nodeaddr;
 		delete [] src_portaddr;
 		delete [] dst_nodeaddr;

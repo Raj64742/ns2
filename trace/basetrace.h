@@ -72,12 +72,16 @@ public:
 	static double round (double x, double precision=PRECISION) {
 		return (double)floor(x*precision + 0.5)/precision;
 	}
+
+	inline bool tagged() { return tagged_; }
+	inline void tagged(bool tag) { tagged_ = tag; }
 	
 protected:
 	Tcl_Channel channel_;
 	Tcl_Channel namChan_;
 	char *wrk_;
 	char *nwrk_;
+	bool tagged_;
 };
 
 class EventTrace : public BaseTrace {

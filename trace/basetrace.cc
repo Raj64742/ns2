@@ -55,7 +55,7 @@ public:
 
 
 BaseTrace::BaseTrace() 
-  : channel_(0), namChan_(0) 
+  : channel_(0), namChan_(0), tagged_(0) 
 {
   wrk_ = new char[1026];
   nwrk_ = new char[256];
