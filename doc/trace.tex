@@ -423,7 +423,7 @@ output should append tcp header information (ack number, flags, header length)
 at the end of each output line.
 This is especially useful for simulations using
 FullTCP agents (Section~\ref{sec:fulltcp}).
-An example of a trace file (without the tcp header fields) migh
+An example of a trace file (without the tcp header fields) might
 appear as follows: 
 \begin{small}
 \begin{verbatim}
@@ -573,7 +573,7 @@ Queue monitoring refers to the capability of tracking the
 dynamics of packets at a queue (or other object).
 A queue monitor tracks packet arrival/departure/drop statistics,
 and may optionally compute averages of these values.
-Monitoring may be applied all packets (aggregate statistics), or
+Monitoring may be applied to all packets (aggregate statistics), or
 per-flow statistics (using a Flow Monitor).
 
 Several classes are used in supporting queue monitoring.
@@ -741,7 +741,7 @@ to obtain handles to the individual flows it maintains.
 
 The flow monitor defines a trace format which may be used by post-processing
 scripts to determine various counts on a per-flow basis.
-The format is defined by the folling code in \nsf{flowmon.cc}:
+The format is defined by the following code in \nsf{flowmon.cc}:
 \begin{program}
 void
 FlowMon::fformat(Flow* f)
@@ -786,7 +786,7 @@ bytes.
 In addition, because each flow is typically identified by
 some combination of the packet source, destination, and flow
 identifier fields, these objects contain such fields.
-It's OTcl interface contains only bound variables:
+Its OTcl interface contains only bound variables:
 \begin{quote}
 \begin{alist}
         \code{src\_} &   source address on packets for this flow\\

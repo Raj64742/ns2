@@ -156,12 +156,12 @@ can be implemented in specialized agents, provided that they are made
 \label{sec:upcalls}
 
 Since presently in \ns~there is no actual data being passed between 
-applications, agents can instead announce to applications the occurence of 
+applications, agents can instead announce to applications the occurrence of 
 certain events at the transport layer through ``upcalls.''  For example,
 applications can be notified of the arrival of a number of bytes of data;
 this information may aid the application in modelling real-world application
 behavior more closely.  Two basic ``upcalls'' have been implemented in 
-base \code{class Application} and int the transport agents:
+base \code{class Application} and in the transport agents:
 \begin{itemize} 
 \item \code{recv(int nbytes)}---Announces that \code{nbytes} of data have been
 received by the agent.  For UDP agents, this signifies the arrival of
