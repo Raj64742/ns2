@@ -30,9 +30,11 @@ RTMechanisms instproc frac { num denom } {
 
 RTMechanisms instproc vprint args {
 	$self instvar verbose_
-	if { $verbose_ == "true" } {
+	set level [lindex $args 0]
+	set a [lrange $args 1 end]
+	if { $level <= $verbose } {
 		$self instvar ns_
-		puts "[$ns_ now] $args"
+		puts "[$ns_ now] $a"
 		flush stdout
 	}
 }
