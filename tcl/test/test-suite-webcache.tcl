@@ -5,13 +5,19 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.5 1998/10/27 01:56:28 yuriy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.6 1998/12/16 21:12:23 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
-source misc.tcl
-source topologies.tcl
+source $env(NS2HOME)/tcl/test/misc.tcl
+source $env(NS2HOME)/tcl/test/topologies.tcl
+#source $env(HOME)/research/lib/test.tcl
+
+source $env(NS2HOME)/tcl/webcache/http-agent.tcl
+source $env(NS2HOME)/tcl/webcache/http-server.tcl
+source $env(NS2HOME)/tcl/webcache/http-cache.tcl
+
 
 #----------------------------------------------------------------------
 # Misc setup
@@ -146,9 +152,11 @@ Topology/cache3 instproc init ns {
 # bottleneck link connecting TCL to other caches + n clients
 Class Topology/BottleNeck -superclass SkelTopology
 
+Class Topology/BottleNeck -superclass SkelTopology
+
 Topology/BottleNeck instproc init { ns } {
 	$self next 
-	$self instvar node_
+	$self instvar node_ 
 
 	global opts
 	if [info exists opts(num-2nd-cache)] {
@@ -171,25 +179,62 @@ Topology/BottleNeck instproc init { ns } {
 	# Between TLC and server: T1
 #	$ns duplex-link $node_(e$n) $node_(s0) 1.5Mb 100ms DropTail
 
-	# Server attached to a client
+	# Server attached to a client via a LAN
 	$ns duplex-link $node_(e0) $node_(s0) 1.5Mb 100ms DropTail
-	# Traffic on the duplex link. 
-	$self instvar qmon_
+	#$ns duplex-link $node_(e0) $node_(s0) 10Mb 2ms DropTail
+
+	# Bottleneck link
+	$self instvar dummy_
+	set dummy_ [$ns node]
+	$ns duplex-link $node_(e$n) $dummy_ 1.5Mb 50ms DropTail
+
+	for {set i 0} {$i < $n} {incr i} {
+		$ns duplex-link $node_(e$i) $dummy_ 1.5Mb 50ms DropTail
+		$ns duplex-link $node_(c$i) $node_(e$i) 10Mb 2ms DropTail
+	}
+
+	$self checkConfig $class $ns
+}
+
+Topology/BottleNeck instproc start-monitor { ns } {
+	$self instvar qmon_ node_ dummy_
+
+	# Traffic between server and its primary cache
 	set qmon_(svr_f) [$ns monitor-queue $node_(s0) $node_(e0) ""]
 	set qmon_(svr_t) [$ns monitor-queue $node_(e0) $node_(s0) ""]
 
-	# Bottleneck link
-	set sn [$ns node]
-	$ns duplex-link $node_(e$n) $sn 1.5Mb 50ms DropTail
-	# Traffic between TLC and all others
-	set qmon_(btnk_f) [$ns monitor-queue $node_(e$n) $sn ""]
-	set qmon_(btnk_t) [$ns monitor-queue $sn $node_(e$n) ""]
+	global opts
+	set n $opts(num-2nd-cache)
 
+	# Traffic between TLC and all others
+	set qmon_(btnk_f) [$ns monitor-queue $node_(e$n) $dummy_ ""]
+	set qmon_(btnk_t) [$ns monitor-queue $dummy_ $node_(e$n) ""]
+
+	# Traffic for all the rest links
 	for {set i 0} {$i < $n} {incr i} {
-		$ns duplex-link $node_(e$i) $sn 1.5Mb 50ms DropTail
-		$ns duplex-link $node_(c$i) $node_(e$i) 10Mb 2ms DropTail
+		set qmon_(e${i}_d_f) [$ns monitor-queue $node_(e$i) $dummy_ ""]
+		set qmon_(e${i}_d_t) [$ns monitor-queue $dummy_ $node_(e$i) ""]
+		set qmon_(e${i}_c${i}_f) \
+			[$ns monitor-queue $node_(e$i) $node_(c$i) ""]
+		set qmon_(e${i}_c${i}_t) \
+			[$ns monitor-queue $node_(c$i) $node_(e$i) ""]
 	}
-	$self checkConfig $class $ns
+	#puts "Monitors started at time [$ns now]"
+}
+
+Topology/BottleNeck instproc mon-stat {} {
+	$self instvar qmon_
+
+	set total_bw 0
+	foreach n [array names qmon_] {
+		set total_bw [expr $total_bw + \
+			double([$qmon_($n) set bdepartures_])]
+	}
+	set svr_bw [expr double([$qmon_(svr_f) set bdepartures_]) + \
+			double([$qmon_(svr_t) set bdepartures_])]
+	set btnk_bw [expr double([$qmon_(btnk_f) set bdepartures_]) + \
+			double([$qmon_(btnk_t) set bdepartures_])]
+	return [list total_bw $total_bw svr_bw $svr_bw btnk_bw $btnk_bw]
 }
 
 #
@@ -444,6 +489,13 @@ Test instproc set-defnet { defnet } {
 	}
 }
 
+Test instproc inherit-set { name val } {
+	$self instvar $name
+	if ![info exists $name] {
+		set $name $val
+	}
+}
+
 Test instproc write-testconf { file } {
 	$self instvar test_ net_
 	puts $file "# TESTNAME: $test_"
@@ -603,6 +655,9 @@ Test-Cache instproc init {} {
 	$self instvar ns_
 	$ns_ color 40 red
 	$ns_ color 41 orange
+
+	# Set default transport to SimpleTcp
+	Http set TRANSPORT_ SimpleTcp
 }
 
 # Allow global options to preempt, and derived classes to overwrite.
@@ -1588,6 +1643,15 @@ Test/Mcast-PB instproc start-requests {} {
 	for {set i 0} {$i < $n} {incr i} {
 		$client_($i) start $cache_($i) $server_(0)
 	}
+
+	$self instvar pgp_ topo_ ns_
+
+	# Because Test/Cache::init{} already did set-pagepool{}, now we 
+	# know how many pages we have. Estimate the cache population time
+	# by NumPages*1+10, then start bandwidth monitoring after 
+	# the caches are populated with pages
+	$ns_ at [expr [$ns_ now] + [$pgp_ get-poolsize] + 10] \
+		"$topo_ start-monitor $ns_"
 }
 
 Test/Mcast-PB instproc set-connections {} {
@@ -1627,29 +1691,54 @@ Test/Mcast-PB instproc set-groups {} {
 }
 
 Test/Mcast-PB instproc collect-stat {} {
-	$self instvar topo_ client_
-	$topo_ instvar qmon_
+	$self instvar topo_ client_ server_ cache_ secondCaches_
+	set bw [$topo_ mon-stat]
 
-	set svr_bw [expr [$qmon_(svr_f) set bdepartures_] + \
-			[$qmon_(svr_t) set bdepartures_]]
-	set btnk_bw [expr [$qmon_(btnk_f) set bdepartures_] + \
-			[$qmon_(btnk_t) set bdepartures_]]
 	set sn 0
 	set gn 0
-	set st 0
-	set rt 0
+	set st(max) 0
+	set st(min) 98765432
+	set st(avg) 0
+	set rt(max) 0
+	set rt(min) 98765432
+	set rt(avg) 0
 	foreach c [array names client_] {
 		set gn [expr $gn + [$client_($c) stat req-num]]
 		set sn [expr $sn + [$client_($c) stat stale-num]]
-		set st [expr $st + [$client_($c) stat stale-time]]
-		set rt [expr $rt + [$client_($c) stat rep-time]]
+
+		set st(avg) [expr $st(avg) + [$client_($c) stat stale-time]]
+		set tmp [$client_($c) stat st-min]
+		if { $tmp < $st(min) } { set st(min) $tmp }
+		set tmp [$client_($c) stat st-max]
+		if { $tmp > $st(max) } { set st(max) $tmp }
+
+		set rt(avg) [expr $rt(avg) + [$client_($c) stat rep-time]]
+		set tmp [$client_($c) stat rt-max]
+		if { $tmp > $rt(max) } { set rt(max) $tmp }
+		set tmp [$client_($c) stat rt-min]
+		if { $tmp < $rt(min) } { set rt(min) $tmp }
+	}
+	if {$st(max) < $st(min)} {
+		set st(max) 0
+		set st(min) 0
+	}
+	if {$rt(max) < $rt(min)} {
+		set rt(max) 0
+		set rt(min) 0
 	}
 	set sr [expr double($sn) / $gn * 100]
-	if [catch {set st [expr double($st) / $sn]}] {
-		set st 0	;# No stale hits
+	if [catch {set st(avg) [expr double($st(avg)) / $sn]}] {
+		set st(avg) 0	;# No stale hits
 	} 
-	set rt [expr double($rt) / $gn]
-	return [list svr_bw $svr_bw btnk_bw $btnk_bw sr $sr st $st rt $rt]
+	set rt(avg) [expr double($rt(avg)) / $gn]
+
+	set ims 0
+	foreach c [array names cache_] {
+		set ims [expr $ims + [$cache_($c) stat ims-num]]
+	}
+
+	set res [list sr $sr sh [$server_(0) stat hit-num] th [$cache_($secondCaches_) stat hit-num] st $st(avg) st-max $st(max) st-min $st(min) rt $rt(avg) rt-max $rt(max) rt-min $rt(min) mn [$server_(0) stat mod-num] ims-num $ims]
+	return [concat $bw $res]
 }
 
 Test/Mcast-PB instproc output-stat { args } {
@@ -1764,6 +1853,108 @@ Test/ottl-PB instproc output-stat { args } {
 }
 
 
+#
+# All the above tests with real traces
+#
+Class Test/Mcast-PBtr -superclass Test/Mcast-PB
+
+Test/Mcast-PBtr instproc init {} {
+	$self inherit-set pagepoolType_ "ProxyTrace"
+	$self next
+	Http set TRANSPORT_ FullTcp
+}
+
+Test/Mcast-PBtr instproc populate-cache {} {
+	# Populate servers and caches with pages.
+	# Do not use Http/Client::populate{}!
+	$self instvar pgp_ cache_ server_ secondCaches_ startTime_ ns_
+	set n $secondCaches_
+	for {set i 0} {$i < [$pgp_ get-poolsize]} {incr i} {
+		set pageid $server_(0):$i
+		$server_(0) gen-page $pageid
+		#set pageinfo [$server_(0) get-page $pageid]
+		#for {set j 0} {$j < $secondCaches_} {incr j} {
+		#	eval $cache_($j) enter-page $pageid $pageinfo
+		#}
+		#eval $cache_($secondCaches_) enter-page $pageid $pageinfo
+#		if {$i % 1000 == 0} {
+#			puts "$i pages populated"
+#		}
+	}
+}
+
+Test/Mcast-PBtr instproc start-connection {} {
+	$self next
+	$self populate-cache
+}
+
+Test/Mcast-PBtr instproc start-requests {} {
+	$self instvar client_ cache_ server_ secondCaches_
+	
+	for {set i 0} {$i < $secondCaches_} {incr i} {
+		# Use start-session{} to avoid populating cache
+		$client_($i) start-session $cache_($i) $server_(0)
+	}
+	
+	$self instvar topo_ ns_
+	$topo_ start-monitor $ns_
+}
+
+Test/Mcast-PBtr instproc set-pagepool {} {
+	$self instvar startTime_ finishTime_ pgp_ ns_ pagepoolType_
+	global opts
+	if {![info exists opts(xtrace-req)] || ![info exists opts(xtrace-page)]} {
+		error "Must supply request logs and page logs of proxy traces"
+	}
+	set pgp_ [new PagePool/$pagepoolType_]
+	$pgp_ set-reqfile $opts(xtrace-req)
+	$pgp_ set-pagefile $opts(xtrace-page)
+	$pgp_ bimodal-ratio 0.1
+	$pgp_ set-client-num $opts(num-2nd-cache)
+
+	# XXX Do *NOT* set start time of page generators. It'll be set
+	# after the cache population phase
+	# Estimate a finish time
+	set opts(duration) [$pgp_ get-duration]
+	set finishTime_ [expr $opts(duration) + $startTime_]
+	#puts "Duration changed to $opts(duration), finish at $finishTime_"
+
+	$self instvar ageRNG_
+	if ![info exists ageRNG_] {
+		set ageRNG_ [new RNG]
+		$ageRNG_ seed $opts(ns-random-seed)
+	}
+
+	# Dynamic page, with page modification 
+	set tmp [new RandomVariable/Uniform]
+	$tmp use-rng $ageRNG_
+	$tmp set min_ [expr $opts(avg-page-age)*0.001]
+	$tmp set max_ [expr $opts(avg-page-age)*1.999]
+	$pgp_ ranvar-dp $tmp
+
+	# Static page
+	set tmp [new RandomVariable/Uniform]
+	$tmp use-rng $ageRNG_
+	$tmp set min_ [expr $finishTime_ * 1.1]
+	$tmp set max_ [expr $finishTime_ * 1.2]
+	$pgp_ ranvar-sp $tmp
+}
+
+# Set every client's request generator to pgp_
+Test/Mcast-PBtr instproc set-req-generator { client } {
+	$self instvar pgp_
+	$client set-page-generator $pgp_
+}
+
+Class Test/Mcast-PBPtr -superclass {Test/Mcast-PBP Test/Mcast-PBtr}
+
+Class Test/Mcast-PBUtr -superclass {Test/Mcast-PBU Test/Mcast-PBtr}
+
+Class Test/ttl-PBtr -superclass {Test/ttl-PB Test/Mcast-PBtr}
+
+Class Test/ottl-PBtr -superclass {Test/ottl-PB Test/Mcast-PBtr}
+
+
 #----------------------------------------------------------------------
 # Test group 2
 #
@@ -1799,7 +1990,7 @@ Test/mmcast-PB instproc set-pagepool {} {
 	set tmp [new RandomVariable/Exponential]
 	$tmp use-rng $ageRNG_
 	$tmp set avg_ $opts(avg-page-age)
-	$pgp_ ranvar-age $tmp
+	$pgp_ ranvar-main-age $tmp
 
 	# Compound age generator
 	$self instvar compAgeRNG_
@@ -1811,7 +2002,7 @@ Test/mmcast-PB instproc set-pagepool {} {
 	$tmp use-rng $compAgeRNG_
 	$tmp set min_ [expr $opts(avg-comp-page-age) * 0.9]
 	$tmp set max_ [expr $opts(avg-comp-page-age) * 1.1]
-	$pgp_ ranvar-comp-age $tmp
+	$pgp_ ranvar-obj-age $tmp
 
 	$pgp_ set num_pages_ [expr $opts(num-comp-pages) + 1]
 
@@ -2039,6 +2230,10 @@ set raw_opt_info {
 	num-2nd-cache 5
 
 	scheduler-type Calendar
+
+	# Proxy trace files: requests and pages
+	xtrace-req webtrace-reqlog
+	xtrace-page webtrace-pglog
 }
 
 
