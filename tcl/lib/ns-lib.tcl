@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.55 1997/10/30 07:07:55 kkumar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.56 1997/10/30 07:13:06 kkumar Exp $
 #
 
 #
@@ -75,7 +75,7 @@ source ../interface/ns-iface.tcl
 source ../lan/ns-mlink.tcl
 source ../lan/ns-mac.tcl
 source ../lan/ns-lan.tcl
-source ../ex/timer.tcl
+source ../mcast/timer.tcl
 source ../mcast/ns-mcast.tcl
 source ../mcast/McastProto.tcl
 source ../mcast/DM.tcl
