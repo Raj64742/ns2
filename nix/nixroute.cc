@@ -32,6 +32,7 @@ class NixRoutingModule : public RoutingModule {
 public:
 	NixRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "Nix"; }
+	virtual int command(int argc, const char*const* argv);  
 };
 
 static class NixRoutingModuleClass : public TclClass {
@@ -42,6 +43,15 @@ public:
 	}
 } class_nix_routing_module;
 
+int NixRoutingModule::command(int argc, const char*const* argv) {
+       if (argc == 3) {
+               if (strcmp(argv[1] , "route-notify") == 0) {
+                       return TCL_OK;
+               }
+       }
+       return (RoutingModule::command(argc, argv));
+
+}  
 
 #endif /* NIXVECTOR */
 #endif

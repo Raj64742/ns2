@@ -26,7 +26,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.8 2001/05/23 16:47:15 haldar Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.9 2002/02/26 17:13:44 kclan Exp $
 #
 # OTcl interface definition for the base routing module. They provide 
 # linkage to Node, hence all derived classes should inherit these interfaces
@@ -337,7 +337,7 @@ Classifier/Virtual instproc find dst {
 Classifier/Virtual instproc install {dst target} {
 }
 
-Class RtModule/Nix -superclass RtModule
+#Class RtModule/Nix -superclass RtModule
 
 #Nix-vector routing
 RtModule/Nix instproc register { node } {
