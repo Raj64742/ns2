@@ -121,6 +121,7 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
 				[[$nif set mac_] id]
 		
 		set phy [$nif set phy_]
+		$phy node $src
 		$phy channel $channel_
 		$channel_ addif $phy
 		

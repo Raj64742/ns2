@@ -26,7 +26,7 @@
 #
 # Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Attic/Makefile,v 1.2 1999/03/04 02:21:37 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Attic/Makefile,v 1.3 1999/03/06 02:26:50 yaxu Exp $
 
 CCX = c++
 MKDEP	= ../../../conf/mkdep
