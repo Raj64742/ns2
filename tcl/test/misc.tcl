@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.12 1997/10/31 18:17:38 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.13 1997/10/31 22:48:44 sfloyd Exp $
 #
 
 #source plotting.tcl
@@ -48,13 +48,16 @@ Object instproc exit args {
 Class TestSuite
 
 TestSuite instproc init { {dotrace 1} } {
-	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
+	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_ 
+	$self instvar allchan_ namchan_
 	if [catch "$self get-simulator" ns_] {
 	    set ns_ [new Simulator]
 	}
 	if { $dotrace } {
-		$ns_ trace-all [open all.tr w]
-		$ns_ namtrace-all [open all.nam w]
+                set allchan_ [open all.tr w]
+                $ns_ trace-all $allchan_
+                set namchan_ [open all.nam w]
+                $ns_ namtrace-all $namchan_
 	}
 	if {$net_ == ""} {
 		set net_ $defNet_
@@ -141,12 +144,21 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
 }
 
 TestSuite instproc openTrace { stopTime testName } {
-	$self instvar ns_
+	$self instvar ns_ allchan_ namchan_
 	exec rm -f out.tr temp.rands
 	set traceFile [open out.tr w]
 	puts $traceFile "v testName $testName"
-	$ns_ at $stopTime \
-		"$ns_ halt; close $traceFile ; $self finish $testName"
+	set sbody " \
+		$ns_ halt; \
+		close $traceFile; \
+		if { [info exists allchan_] } { \
+			close $allchan_ \
+		} ; \
+		if { [info exists namchan_] } { \
+			close $namchan_ \
+		} ; \
+		$self finish $testName "
+	$ns_ at $stopTime "$sbody"
 	return $traceFile
 }
 
