@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.21 2001/11/30 22:30:49 buchheim Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.22 2001/12/11 00:01:31 haldar Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -405,7 +405,7 @@ RNG::set_seed(RNGSources source, int seed)
  *
  * Simple test program:
  */
-#ifdef stand_alone
+#ifdef rng_stand_alone
 int main() { RNGTest test; test.verbose(); }
 #endif 
 
