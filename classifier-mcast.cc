@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.24 1999/06/25 20:13:37 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.25 1999/06/28 22:30:05 salehi Exp $";
 #endif
 
 #include <stdlib.h>
@@ -42,46 +42,7 @@ static const char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "classifier.h"
-
-class MCastClassifier : public Classifier {
-public:
-	MCastClassifier();
-	~MCastClassifier();
-	static const char STARSYM[]; //"source" field for shared trees
-protected:
-	int command(int argc, const char*const* argv);
-	int classify(Packet *const p);
-	int findslot();
-	enum {HASHSIZE = 256};
-	struct hashnode {
-		int slot;
-		nsaddr_t src;
-		nsaddr_t dst;
-		hashnode* next;
-		int iif; // for RPF checking
-	};
-	int hash(nsaddr_t src, nsaddr_t dst) const {
-		u_int32_t s = src ^ dst;
-		s ^= s >> 16;
-		s ^= s >> 8;
-		return (s & 0xff);
-	}
-	hashnode* ht_[HASHSIZE];
-	hashnode* ht_star_[HASHSIZE]; // for search by group only (not <s,g>)
-
-	void set_hash(hashnode* ht[], nsaddr_t src, nsaddr_t dst,
-		      int slot, int iface);
-	void clearAll();
-	void clearHash(hashnode* h[], int size);
-	hashnode* lookup(nsaddr_t src, nsaddr_t dst,
-			 int iface = iface_literal::ANY_IFACE) const;
-	hashnode* lookup_star(nsaddr_t dst,
-			      int iface = iface_literal::ANY_IFACE) const;
-	void change_iface(nsaddr_t src, nsaddr_t dst,
-			  int oldiface, int newiface);
-	void change_iface(nsaddr_t dst,
-			  int oldiface, int newiface);
-};
+#include "classifier-mcast.h"
 
 const char MCastClassifier::STARSYM[]= "x"; //"source" field for shared trees
 
@@ -174,9 +135,11 @@ int MCastClassifier::classify(Packet *const pkt)
   			// Didn't find an entry.
 			tcl.evalf("%s new-group %u %u %d cache-miss", 
 				  name(), src, dst, iface);
-			// XXX see McastProto.tcl for the return values 0 - once, 1 - twice
+			// XXX see McastProto.tcl for the return values 0 -
+			// once, 1 - twice 
 			//printf("cache-miss result= %s\n", tcl.result());
 			int res= atoi(tcl.result());
+
 			return (res)? Classifier::TWICE : Classifier::ONCE;
 		}
 		if (p->iif == ANY_IFACE.value()) // || iface == UNKN_IFACE.value())
@@ -305,3 +268,4 @@ void MCastClassifier::change_iface(nsaddr_t dst, int oldiface, int newiface)
 	hashnode* p = lookup_star(dst, oldiface);
 	if (p) p->iif = newiface;
 }
+
