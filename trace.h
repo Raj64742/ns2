@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.9 1997/07/14 21:43:59 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.10 1997/07/24 00:08:07 kfall Exp $
  */
 
 #ifndef ns_trace_h
@@ -70,6 +70,7 @@ struct hdr_cmn {
 	int		ptype_;	// packet type (see above)
 	int		uid_;	// unique id
 	int		size_;	// simulated packet size
+	int		iface_;	// receiving interface (label)
 
 	/* per-field member functions */
 	int& ptype() {
@@ -80,6 +81,9 @@ struct hdr_cmn {
 	}
 	int& size() {
 		return (size_);
+	}
+	int& iface() {
+		return (iface_);
 	}
 	double& timestamp() {
 		return (ts_);
