@@ -1,7 +1,6 @@
 
 #
 # vlan.tcl
-# $Id: vlan.tcl
 #
 # Copyright (c) 1997 University of Southern California.
 # All rights reserved.                                            
@@ -32,22 +31,21 @@ Class LanNode -superclass InitObject
 LanNode set ifqType_ Queue/DropTail
 LanNode set macType_ Mac/Csma/Cd
 LanNode set chanType_ Channel
-LanNode set addr_ ""
+LanNode set address_ ""
 
 LanNode instproc bw {val} { $self set bw_ $val }
-LanNode instproc addr {val} { $self set addr_ $val }
+LanNode instproc address {val} { $self set address_ $val }
 LanNode instproc delay {val} { $self set delay_ $val }
 LanNode instproc ifqType {val} { $self set ifqType_ $val }
 LanNode instproc macType {val} { $self set macType_ $val }
 LanNode instproc chanType {val} { $self set chanType_ $val }
 
 LanNode instproc rtObject? {} {
-	$self instvar ln_
-	return [$ln_ rtObject?]
+	return ""
 }
 LanNode instproc id {} { $self set id_ }
 LanNode instproc node-addr {{addr ""}} { 
-	eval $self set addr_ $addr
+	eval $self set address_ $addr
 }
 LanNode instproc reset {} {
 	#NOTHING: needed for node processing by ns routing
@@ -67,36 +65,33 @@ LanNode instproc dump-namconfig {} {
 	}
 }
 
+LanNode instproc enable-mcast sim {
+	$self instvar switch_ defRouter_
+
+	set switch_ [new Classifier/Addr]
+	$switch_ set mask_ [AddrParams set McastMask_]
+	$switch_ set shift_ [AddrParams set McastShift_]
+
+	$defRouter_ switch $switch_
+}
+
 LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
 	$self instvar bw_ delay_ ifqType_ macType_ chanType_
-	$self instvar ns_ nodelist_ ln_ defRouter_ switch_
-	$self instvar id_ addr_ channel_ mcl_ netIface_ 
-	$ns instvar Node_ EnableHierRt_
+	$self instvar ns_ nodelist_ defRouter_ cost_
+	$self instvar id_ address_ channel_ mcl_ netIface_ 
+	$ns instvar Node_
 
 	set ns_ $ns
 	set nodelist_ ""
+	set cost_ 1
 
-	eval set ln_ [$ns node $addr_]
-	set id_ [$ln_ id]
-	set addr_ [$ln_ node-addr]
+	set id_ [Node getid]
 	set Node_($id_) $self
-
-	set defRouter_ [new lanRouter]
-	if {[info exists EnableHierRt_] && $EnableHierRt_} {
-		$defRouter_ routing hier
-	} else {
-		$defRouter_ routing flat
+	if {$address_ == ""} {
+		set address_ $id_
 	}
-	$defRouter_ lanaddr $addr_
-	$defRouter_ routelogic [$ns get-routelogic]
-	$ns instvar EnableMcast_
-	if [info exists EnableMcast_] {
-		if $EnableMcast_ { 
-			set switch_ [$ln_ set switch_]
-			$defRouter_ switch $switch_
-		}
-	}
+	set defRouter_ [new lanRouter $ns $self]
 
 	set channel_ [new $chanType_]
 	set mcl_ [new Classifier/Mac]
@@ -111,15 +106,31 @@ LanNode instproc add-route {dest mac} {
 LanNode instproc assign-mac {ip} {
 	return $ip ;# use ip addresses at MAC layer
 }
+LanNode instproc cost c {
+	$self instvar ns_ nodelist_ id_ cost_
+	$ns_ instvar link_
+	set cost_ $c
+	set vlinkcost [expr $c / 2]
+	foreach node $nodelist_ {
+		set nid [$node id]
+		$link_($id_:$nid) cost $vlinkcost
+		$link_($nid:$id_) cost $vlinkcost
+	}
+}
+LanNode instproc cost? {} {
+	$self instvar cost_
+	return $cost_
+}
 LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 	$self instvar ifqType_ macType_ chanType_ 
-	$self instvar id_ channel_ mcl_ lanIface_ ln_
-	$self instvar ns_ nodelist_
+	$self instvar id_ channel_ mcl_ lanIface_
+	$self instvar ns_ nodelist_ cost_
 	$ns_ instvar link_ Node_
 
 	if {$ifqType == ""} { set ifqType $ifqType_ }
 	if {$macType == ""} { set macType $macType_ }
 
+	set vlinkcost [expr $cost_ / 2.0]
 	foreach src $nodes {
 		set nif [new LanIface $src $bw $self -ifqType $ifqType -macType $macType]
 		set mac [$nif set mac_]
@@ -134,11 +145,13 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 		set sid [$src id]
 		set link_($sid:$id_) [new Vlink $ns_ $self $sid $id_ $bw 0]
 		set link_($id_:$sid) [new Vlink $ns_ $self $id_ $sid $bw 0]
+
 		$link_($sid:$id_) queue [$nif set ifq_]
 		$link_($id_:$sid) queue [$nif set ifq_]
-		# cost of each vlink is .5, so total from a node to a node is 1
-		$link_($sid:$id_) cost .5
-		$link_($id_:$sid) cost .5
+
+		$link_($sid:$id_) cost $vlinkcost
+		$link_($id_:$sid) cost $vlinkcost
+		
 	}
 	set nodelist_ [concat $nodelist_ $nodes]
 }
@@ -205,13 +218,13 @@ Vlink instproc init {ns lan src dst b d} {
 }
 
 # if this is a link TO the lan vnode, return the lanIface object
-# if this is a link FROM the lan vnode, return the MAC object of the dest.
+# if this is a link FROM the lan vnode, return the LL object of the dest.
 Vlink instproc head {} {
 	$self instvar lan_ dst_ src_
 	if {$src_ == [$lan_ set id_]} {
 		# from the LAN vnode 
 		set dst_lif [$lan_ set lanIface_($dst_)]
-		return  [$dst_lif set mac_]
+		return  [$dst_lif set ll_]
 	} else {
 		# to the LAN
 		set src_lif [$lan_ set lanIface_($src_)]
@@ -228,3 +241,19 @@ Vlink instproc cost? {} {
 	return $cost_
 }
 
+# lanRouter--------------------------------------------------
+#
+# "Virtual node lan" needs to know which of the lan nodes is
+# the next hop towards the packet's destination.
+#------------------------------------------------------------
+lanRouter instproc init {ns lan} {
+	$self next
+	$ns instvar EnableHierRt_ EnableMcast_
+	if {[info exists EnableHierRt_] && $EnableHierRt_} {
+		$self routing hier
+	} else {
+		$self routing flat
+	}
+	$self lanaddr [$lan node-addr]
+	$self routelogic [$ns get-routelogic]
+}
