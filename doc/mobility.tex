@@ -8,86 +8,21 @@
 \label{chap:mobility}
 
 This chapter describes the wireless model that was originally ported as CMU's Monarch group's mobility extension to \ns. 
-This chapter consists of two sections and several subsections. The first section covers the original mobility model ported from CMU/Monarch group. In this section, we cover the internals of a mobilenode, routing mechanisms and network components that are 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-used to construct the network stack for a mobilenode. The components that are covered briefly are Channel, Network-interface, Radio propagation model, MAC protocols, Interface Queue, Link layer and Address resolution protocol model (ARP). CMU trace suppor
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-t and Generation of node movement and traffic scenario files are also covered in this section.
-The original CMU model allows simulation of pure wireless LANs or multihop ad-hoc networks. Further extensions were made to this model to allow combined simulation of wired and wireless networks. MobileIP was also extended to the wireless model. These are
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- discussed in the second section of this chapter.		
+This chapter consists of two sections and several subsections. The
+first section covers the original mobility model ported from
+CMU/Monarch group. In this section, we cover the internals of a
+mobilenode, routing mechanisms and network components that are used to
+construct the network stack for a mobilenode. The components that are
+covered briefly are Channel, Network-interface, Radio propagation
+model, MAC protocols, Interface Queue, Link layer and Address
+resolution protocol model (ARP). CMU trace support and Generation of
+node movement and traffic scenario files are also covered in this
+section. 
+The original CMU model allows simulation of pure wireless LANs or
+multihop ad-hoc networks. Further extensions were made to this model
+to allow combined simulation of wired and wireless networks. MobileIP
+was also extended to the wireless model. These are
+discussed in the second section of this chapter.                
 
 
 \section{The basic wireless model in ns}
@@ -134,9 +69,9 @@ over a topology of 50 nodes. These scripts can be run simply by typing
 
 \begin{program}
 $ns tcl/ex/wireless.tcl (or /wireless-test.tcl)
-\end{program}
+\end{program} %$
 
-The four ad-hoc routing protocols that are currently supported are
+The four ad-hoc routing protocols that are currently supported are 
 Destination Sequence Distance Vector (DSDV), Dynamic Source Routing
 (DSR), Temporally ordered Routing Algorithm (TORA) and Adhoc On-demand
 Distance Vector (AODV). The APIs for creating a mobilenode depends on
@@ -144,7 +79,7 @@ which routing protocol it would be using. Hence the primitive to
 create a mobilenode is
 
 \begin{program}
-	set mnode [$opt(rp)-create-mobile-node $id] 
+        set mnode [$opt(rp)-create-mobile-node $id] 
 \end{program}
 where \$opt(rp) defines "dsdv", "aodv", "tora" or "dsr" and id is the
 index for the mobilenode.
@@ -157,9 +92,9 @@ nects the stack to the channel. The mobilenode now looks like the
 schematic in Figure~\ref{fig:mobilenode-dsdv}.  
 \begin{figure}
     \centerline{\includegraphics{dsdv}}
-    \caption{Schematic of a mobilenode under the CMU monarch's wireless
-extensions to \ns} 
-    \label{fig:mobilenode-dsdv}
+    \caption{Schematic of a mobilenode under the CMU monarch's
+      wireless extensions to \ns} 
+    \label{fig:mobilenode-dsdv} 
 \end{figure}
 
 The mobilenode structure used for DSR routing is slightly different from
@@ -175,7 +110,7 @@ model for a SRNode is shown in Figure~\ref{fig:mobilenode-dsr}.
 \begin{figure}[tb]
     \centerline{\includegraphics{dsr}}
     \caption{Schematic of a SRNode under the CMU monarch's wireless
-extensions to \ns} 
+      extensions to \ns} 
     \label{fig:mobilenode-dsr}
 \end{figure}
 
@@ -186,118 +121,60 @@ The mobilenode is designed to move in a three dimensional topology. However the 
 Thus the mobilenode has X, Y, Z(=0) co-ordinates that is continually adjusted as the node moves. There are two mechanisms to induce movement in mobilenodes. 
 In the first method, starting position of the node and its future destinations may be set explicitly. These directives are normally included in a separate movement scenario file. 
 
-The start-position and future destinations for a mobilenode may be set by using the following APIs:
-
+The start-position and future destinations for a mobilenode may be set
+by using the following APIs:
 \begin{program}
-
 $node set X_ <x1>
 $node set Y_ <y1>
 $node set Z_ <z1>
 
-$ns at $time $node setdest <x2> <y2> <speed>
+$ns at $time $node setdest <x2> <y2> <speed> 
 \end{program}
 At \$time sec, the node would start moving from its initial position 
 of (x1,y1) towards a destination (x2,y2) at the defined speed.
 
-In this method the node-movement-updates are triggered whenever the position of the node at a given time is required to be known. This may be triggered by a query from a neighbouring node seeking to know the distance between them, or the setdest directive
+In this method the node-movement-updates are triggered whenever the
+position of the node at a given time is required to be known. This
+may be triggered by a query from a neighbouring node seeking to know
+the distance between them, or the setdest directive
+described above that changes the direction and speed of the node.
 
+An example of a movement scenario file using the above APIs, can be
+found in \nsf{tcl/mobility/scene/scen-670x670-50-600-20-0}. Here
+670x670 defines the length and width of the topology with 50 nodes
+moving at a maximum speed of 20m/s with average pause time of
+600s. These node movement files may be generated using CMU's scenario
+generator to be found under
+\nsf{indep-utils/cmu-scen-gen/setdest}. See 
+subsection~\ref{sec:mobile-scen-generator} for details on generation
+of node movement scenarios. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- described above that changes the direction and speed of the node.
-
-An example of a movement scenario file using the above APIs, can be found in \nsf{tcl/mobility/scene/scen-670x670-50-600-20-0}. Here 670x670 defines the length and width of the topology with 50 nodes moving at a maximum speed of 20m/s with average pause t
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ime of 600s. These node movement files may be generated using CMU's scenario generator to be found under ~ns/indep-utils/cmu-scen-gen/setdest.See subsection~\ref{sec:mobile-scen-generator} for details on generation of node movement scenarios.
-
-The second method employs random movement of the node. The primitive to be used is:
-
+The second method employs random movement of the node. The primitive
+to be used is:
 \begin{program}
 $mobilenode start
-\end{program}
-which starts the mobilenode with a random position and have routined updates to change the direction and speed of the node. The destination and speed values are generated in a random fashion. We have not used the second method and leave it to the user to 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+\end{program} %$
+which starts the mobilenode with a random position and have routined
+updates to change the direction and speed of the node. The destination
+and speed values are generated in a random fashion. We have not used
+the second method and leave it to the user to 
 explore the details. 
-The mobilenode movement is implemented in C++. See methods in ~ns/mobilenode.{cc.h} for the implementational details.
+The mobilenode movement is implemented in C++. See methods in
+\nsf{mobilenode.\{cc.h\}} for the implementational details.
 
 Irrespective of the methods used to generate node movement,
-the topography for mobilenodes needs to be defined. It should be defined before creating mobilenodes. Normally flat topology is created by specifying the length and width of the topography using the following primitive:
-\begin{program}	   
-set topo	[new Topography]
+the topography for mobilenodes needs to be defined. It should be
+defined before creating mobilenodes. Normally flat topology is created
+by specifying the length and width of the topography using the
+following primitive:
+\begin{program}    
+set topo        [new Topography]
 $topo load_flatgrid $opt(x) $opt(y)
-\end{program}
+\end{program} %$
 where opt(x) and opt(y) are the boundaries used in simulation.
 
-The movement of mobilenodes may be logged by using a procedure like the following:
+The movement of mobilenodes may be logged by using a procedure like
+the following:
 
 \begin{program}
 proc log-movement \{\} \{
@@ -307,26 +184,28 @@ proc log-movement \{\} \{
     source ../mobility/timer.tcl
     Class LogTimer -superclass Timer
     LogTimer instproc timeout \{\} \{
-	global opt node_;
-	for \{set i 0\} \{$i < $opt(nn)\} \{incr i\} \{
-	    $node_($i) log-movement
-	\}
-	$self sched 0.1
+        global opt node_;
+        for \{set i 0\} \{$i < $opt(nn)\} \{incr i\} \{
+            $node_($i) log-movement
+        \}
+        $self sched 0.1
     \}
 
     set logtimer [new LogTimer]
     $logtimer sched 0.1
 \}
-\end{program}
+\end{program} %$
 In this case, mobilenode positions would be logged every 0.1 sec.
-
 
 \subsection{Network Components in a mobilenode}
 \label{sec:mobilenode-components}
 
-The network stack for a mobilenode consists of a link layer(LL), an ARP module connected to LL, an interface priority queue(IFq), a mac layer(MAC), a network interface(netIF), all connected to the channel. 
-These network components are created and plumbed together in OTcl.
-The relevant MobileNode method add-interface() in \nsf{tcl/lib/ns-mobilenode.tcl} is shown below:
+The network stack for a mobilenode consists of a link layer(LL), an
+ARP module connected to LL, an interface priority queue(IFq), a mac
+layer(MAC), a network interface(netIF), all connected to the channel. 
+These network components are created and plumbed together in OTcl. 
+The relevant MobileNode method add-interface() in
+\nsf{tcl/lib/ns-mobilenode.tcl} is shown below:
 
 \begin{program}
 #
@@ -334,381 +213,196 @@ The relevant MobileNode method add-interface() in \nsf{tcl/lib/ns-mobilenode.tcl
 #  and physical layer structures for the mobile node.
 #
 Node/MobileNode instproc add-interface \{ channel pmodel 
-		lltype mactype qtype qlen iftype anttype \} \{
+                lltype mactype qtype qlen iftype anttype \} \{
 
-	$self instvar arptable_ nifs_
-	$self instvar netif_ mac_ ifq_ ll_
+        $self instvar arptable_ nifs_
+        $self instvar netif_ mac_ ifq_ ll_
 
-	global ns_ MacTrace opt
+        global ns_ MacTrace opt
 
-	set t $nifs_
-	incr nifs_
+        set t $nifs_
+        incr nifs_
 
-	set netif_($t)	[new $iftype]		;# net-interface
-	set mac_($t)	[new $mactype]		;# mac layer
-	set ifq_($t)	[new $qtype]		;# interface queue
-	set ll_($t)	[new $lltype]		;# link layer
+        set netif_($t)  [new $iftype]           ;# net-interface
+        set mac_($t)    [new $mactype]          ;# mac layer
+        set ifq_($t)    [new $qtype]            ;# interface queue
+        set ll_($t)     [new $lltype]           ;# link layer
         set ant_($t)    [new $anttype]
 
-	#
-	# Local Variables
-	#
-	set nullAgent_ [$ns_ set nullAgent_]
-	set netif $netif_($t)
-	set mac $mac_($t)
-	set ifq $ifq_($t)
-	set ll $ll_($t)
+        #
+        # Local Variables
+        #
+        set nullAgent_ [$ns_ set nullAgent_]
+        set netif $netif_($t)
+        set mac $mac_($t)
+        set ifq $ifq_($t)
+        set ll $ll_($t)
 
-	#
-	# Initialize ARP table only once.
-	#
-	if \{ $arptable_ == "" \} \{
+        #
+        # Initialize ARP table only once.
+        #
+        if \{ $arptable_ == "" \} \{
             set arptable_ [new ARPTable $self $mac]
             set drpT [cmu-trace Drop "IFQ" $self]
             $arptable_ drop-target $drpT
         \}
 
-	#
-	# Link Layer
-	#
-	$ll arptable $arptable_
-	$ll mac $mac
-	$ll up-target [$self entry]
-	$ll down-target $ifq
+        #
+        # Link Layer
+        #
+        $ll arptable $arptable_
+        $ll mac $mac
+        $ll up-target [$self entry]
+        $ll down-target $ifq
 
-	#
-	# Interface Queue
-	#
-	$ifq target $mac
-	$ifq set qlim_ $qlen
-	set drpT [cmu-trace Drop "IFQ" $self]
-	$ifq drop-target $drpT
+        #
+        # Interface Queue
+        #
+        $ifq target $mac
+        $ifq set qlim_ $qlen
+        set drpT [cmu-trace Drop "IFQ" $self]
+        $ifq drop-target $drpT
 
-	#
-	# Mac Layer
-	#
-	$mac netif $netif
-	$mac up-target $ll
-	$mac down-target $netif
-	$mac nodes $opt(nn)
+        #
+        # Mac Layer
+        #
+        $mac netif $netif
+        $mac up-target $ll
+        $mac down-target $netif
+        $mac nodes $opt(nn)
 
-	#
-	# Network Interface
-	#
-	$netif channel $channel
-	$netif up-target $mac
-	$netif propagation $pmodel	;# Propagation Model
-	$netif node $self		;# Bind node <---> interface
-	$netif antenna $ant_($t)        ;# attach antenna
+        #
+        # Network Interface
+        #
+        $netif channel $channel
+        $netif up-target $mac
+        $netif propagation $pmodel      ;# Propagation Model
+        $netif node $self               ;# Bind node <---> interface
+        $netif antenna $ant_($t)        ;# attach antenna
 
-	#
-	# Physical Channel
-	#
-	$channel addif $netif           ;# add to list of interfaces
+        #
+        # Physical Channel
+        #
+        $channel addif $netif           ;# add to list of interfaces
 
-	# ============================================================
-	# Setting up trace objects
-	
-	if \{ $MacTrace == "ON" \} \{
-	    #
-	    # Trace RTS/CTS/ACK Packets
-	    #
-	    set rcvT [cmu-trace Recv "MAC" $self]
-	    $mac log-target $rcvT
+        # ============================================================
+        # Setting up trace objects
+        
+        if \{ $MacTrace == "ON" \} \{
+            #
+            # Trace RTS/CTS/ACK Packets
+            #
+            set rcvT [cmu-trace Recv "MAC" $self]
+            $mac log-target $rcvT
 
 
-	    #
-	    # Trace Sent Packets
-	    #
-	    set sndT [cmu-trace Send "MAC" $self]
-	    $sndT target [$mac sendtarget]
-	    $mac sendtarget $sndT
+            #
+            # Trace Sent Packets
+            #
+            set sndT [cmu-trace Send "MAC" $self]
+            $sndT target [$mac sendtarget]
+            $mac sendtarget $sndT
 
-	    #
-	    # Trace Received Packets
-	    #
-	    set rcvT [cmu-trace Recv "MAC" $self]
-	    $rcvT target [$mac recvtarget]
-	    $mac recvtarget $rcvT
+            #
+            # Trace Received Packets
+            #
+            set rcvT [cmu-trace Recv "MAC" $self]
+            $rcvT target [$mac recvtarget]
+            $mac recvtarget $rcvT
 
-	    #
-	    # Trace Dropped Packets
-	    #
-	    set drpT [cmu-trace Drop "MAC" $self]
-	    $mac drop-target $drpT
-	\} else \{
-	    $mac log-target [$ns_ set nullAgent_]
-	    $mac drop-target [$ns_ set nullAgent_]
-	\}
+            #
+            # Trace Dropped Packets
+            #
+            set drpT [cmu-trace Drop "MAC" $self]
+            $mac drop-target $drpT
+        \} else \{
+            $mac log-target [$ns_ set nullAgent_]
+            $mac drop-target [$ns_ set nullAgent_]
+        \}
 
-	# ============================================================
+        # ============================================================
 
-	$self addif $netif
+        $self addif $netif
 \}
-\end{program}
+\end{program} %$
 
-The plumbing in the above method creates the network stack we see in Figure~\ref{fig:mobilenode-dsdv}.
+The plumbing in the above method creates the network stack we see in
+Figure~\ref{fig:mobilenode-dsdv}.
 
-Each component is briefly described here. Hopefully more detailed docuentation from CMU shall be available in the future.
+Each component is briefly described here. Hopefully more detailed
+docuentation from CMU shall be available in the future. 
 \begin{description}
-\item[{\bf Link Layer}] The \code{LL} used by mobilenode is same as described in Chapter~\ref{chap:lan}. The only difference being the link layer for mobilenode, has an ARP module connected to it which resolves all IP to hardware (Mac) address conversions
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-. Normally for all outgoing (into the channel) packets, the packets are handed down to the \code{LL} by the Routing Agent. The \code{LL} hands down packets to the interface queue. For all incoming packets (out of the channel), the mac layer hands up packe
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ts to the \code{LL} which is then handed off at the \code{node_entry_} point. The \clsref{LL}{../ns-2/ll.h} is implemented in \nsf{ll.\{cc,h\}} and \nsf{tcl/lan/ns-ll.tcl}.
-
-\item [{\bf ARP}] The Address Resolution Protocol (implemented in BSD style) module receives queries from Link layer. If ARP has the hardware address for destination, it writes it into the mac header of the packet. Otherwise it broadcasts an ARP query, an
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-d caches the packet temporarily. For each unknown destination hardware address, there is a buffer for a single packet. Incase additional packets to the same destination is sent to ARP, the earlier buffered packet is dropped. Once the hardware address of a
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- packet"s next hop is known, the packet is inserted into the interface queue. The \clsref{ARPTable}{../ns-2/arp.h} is implemented in \nsf{arp.\{cc,h\}} and \nsf{tcl/lib/ns-mobilenode.tcl}.
-
-\item[{\bf Interface Queue}] The \clsref{PriQueue}{../ns-2/priqueue.h} is implemented as a priority queue which gives priority to routing 
-rotocol packets, inserting them at the head of the queue. It supports
-running a filter over all packets in the queue and removes those with
-a specified destination address. See \nsf{priqueue.\{cc,h\}} for 
-interface queue implementation.
+\item[{\bf Link Layer}] The \code{LL} used by mobilenode is same as
+  described in Chapter~\ref{chap:lan}. The only difference being the
+  link layer for mobilenode, has an ARP module connected to it which
+  resolves all IP to hardware (Mac) address conversions. Normally for
+  all outgoing (into the channel) packets, the packets are handed down
+  to the \code{LL} by the Routing Agent. The \code{LL} hands down
+  packets to the interface queue. For all incoming packets (out of the
+  channel), the mac layer hands up packets to the \code{LL} which is
+  then handed off at the \code{node_entry_} point. The
+  \clsref{LL}{../ns-2/ll.h} is implemented in \nsf{ll.\{cc,h\}} and
+  \nsf{tcl/lan/ns-ll.tcl}.
+
+\item [{\bf ARP}] The Address Resolution Protocol (implemented in BSD
+  style) module receives queries from Link layer. If ARP has the
+  hardware address for destination, it writes it into the mac header
+  of the packet. Otherwise it broadcasts an ARP query, and caches the
+  packet temporarily. For each unknown destination hardware address,
+  there is a buffer for a single packet. Incase additional packets to
+  the same destination is sent to ARP, the earlier buffered packet is
+  dropped. Once the hardware address of a
+  packet"s next hop is known, the packet is inserted into the
+  interface queue. The \clsref{ARPTable}{../ns-2/arp.h} is implemented
+  in \nsf{arp.\{cc,h\}} and \nsf{tcl/lib/ns-mobilenode.tcl}.
+
+\item[{\bf Interface Queue}] The \clsref{PriQueue}{../ns-2/priqueue.h}
+  is implemented as a priority queue which gives priority to routing  
+  rotocol packets, inserting them at the head of the queue. It supports
+  running a filter over all packets in the queue and removes those with
+  a specified destination address. See \nsf{priqueue.\{cc,h\}} for 
+  interface queue implementation.
 
 \item[{\bf Mac Layer}] The IEEE 802.11 distributed coordination 
-function (DCF) Mac protocol has been implemented by CMU. It uses a 
-RTS/CTS/DATA/ACK pattern for all unicast packets and simply sends out
- DATA for all broadcast packets. The implementation uses both 
-physical and virtual carrier sense. The \clsref{Mac802\_11}{../ns-2/mac-802\_11.h} is implemented in \nsf{mac-802\_11.\{cc,h\}}.
-
-\item[{\bf Tap Agents}] \code{Agents} that subclass themselves as \clsref{Tap}{../ns-2/mac.h} defined in mac.h can register themselves with the mac object using method installTap(). If the particular Mac protocol permits it, the tap will promiscuously be 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-given all packets received by the mac layer, before address filtering is done. See \nsf{mac.\{cc,h\}} for \clsref{Tap} implementation.
-
-\item[{\bf Network Interfaces}] The Network Interphase layer serves as a hardware interface which is used by mobilenode to access the channel. The wireless shared media interface is implemented as \clsref{Phy/WirelessPhy}{../ns-2/wireless-phy.h}. This int
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-erface subject to collisions and the radio propagation model receives packets transmitted by other node interfaces to the channel. The interface stamps each transmitted packet with the meta-data related to the transmitting interface like the transmission 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-power, wavelength etc. This meta-data in pkt header is used by the propagation model in receiving network interface to determine if the packet has minimum power to be received and/or captured and/or detected (carrier sense) by the receiving node. The mode
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-l approximates the DSSS radio interface (Lucent WaveLan direct-sequence spread-spectrum). See \nsf{phy.\{cc.h\}} and \nsf{wireless-phy.\{cc,h\}} for network interface implementations.
-
-\item[{\bf Radio Propagation Model}]  It uses Friss-space attenuation ($1/r^2$) at near distances and an approximation to Two ray Ground ($1/r^4$) at far distances. The approximation assumes specular reflection off a flat ground plane. See \nsf{tworaygrou
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-nd.\{cc,h\}} for implementation.
-
-\item[{\bf Antenna}] An omni-directional antenna having unity gain is
-used by mobilenodes. See \nsf{antenna.\{cc,h\}} for implementation details.
+  function (DCF) Mac protocol has been implemented by CMU. It uses a 
+  RTS/CTS/DATA/ACK pattern for all unicast packets and simply sends out
+  DATA for all broadcast packets. The implementation uses both 
+  physical and virtual carrier sense. The
+  \clsref{Mac802\_11}{../ns-2/mac-802\_11.h} is implemented in
+  \nsf{mac-802\_11.\{cc,h\}}.
+  
+\item[{\bf Tap Agents}] \code{Agents} that subclass themselves as
+  \clsref{Tap}{../ns-2/mac.h} defined in mac.h can register themselves
+  with the mac object using method installTap(). If the particular Mac
+  protocol permits it, the tap will promiscuously be 
+  given all packets received by the mac layer, before address filtering
+  is done. See \nsf{mac.\{cc,h\}} for \clsref{Tap} implementation. 
+
+\item[{\bf Network Interfaces}] The Network Interphase layer serves as
+  a hardware interface which is used by mobilenode to access the
+  channel. The wireless shared media interface is implemented as
+  \clsref{Phy/WirelessPhy}{../ns-2/wireless-phy.h}. This interface
+  subject to collisions and the radio propagation model receives
+  packets transmitted by other node interfaces to the channel. The
+  interface stamps each transmitted packet with the meta-data related
+  to the transmitting interface like the transmission power,
+  wavelength etc. This meta-data in pkt header is used by the
+  propagation model in receiving network interface to determine if the
+  packet has minimum power to be received and/or captured and/or
+  detected (carrier sense) by the receiving node. The model
+  approximates the DSSS radio interface (Lucent WaveLan
+  direct-sequence spread-spectrum). See \nsf{phy.\{cc.h\}} and
+  \nsf{wireless-phy.\{cc,h\}} for network interface implementations.
+
+\item[{\bf Radio Propagation Model}]  It uses Friss-space attenuation
+  ($1/r^2$) at near distances and an approximation to Two ray Ground
+  ($1/r^4$) at far distances. The approximation assumes specular
+  reflection off a flat ground plane. See \nsf{tworayground.\{cc,h\}}
+  for implementation.
+
+\item[{\bf Antenna}] An omni-directional antenna having unity gain is 
+  used by mobilenodes. See \nsf{antenna.\{cc,h\}} for implementation
+  details. 
 \end{description}
 
 \subsection{Different types of Routing Agents in mobile networking}
@@ -746,7 +440,6 @@ for the packet and sends it down to the link layer.
 The routing protocol is mainly implemented in C++. See \nsf{dsdv}
 directory and \nsf{tcl/mobility/dsdv.tc}l for all procedures related to
 DSDV protocol implementation.  
-
 
 \subsubsection{DSR}
 \label{sec:dsr}
@@ -808,9 +501,9 @@ answered by each node that hears it by a HELLO reply message.
 See \ns/tora directory and \ns/tcl/mobility/tora.tcl for implementation of
 tora in \ns.
 
-
 \subsubsection{AODV}
 \label{sec:AODV}
+
 AODV is a combination of both DSR and DSDV protocols. It has the basic
 route-discovery and route-maintenance of DSR and uses the hop-by-hop
 routing, sequence numbers and beacons of DSDV. The node that wants to know
@@ -844,43 +537,47 @@ implementing wireless trace support can be found under
 \nsf{trace.\{cc,h\}} and \nsf{tcl/lib/ns-cmutrace.tcl}.
 
 A cmu-trace object may be created by the following API:
-
 \begin{program}
 set sndT [cmu-trace Send "RTR" $self]
-\end{program}
-which creates a trace object, sndT, of the type \code{CMUTrace/Send} for tracing all packets that are sent out in a router. The trace objects may be used to trace packets in MAC, agents (routing or others), routers or any other NsObject. 
+\end{program} %$
+which creates a trace object, sndT, of the type \code{CMUTrace/Send}
+for tracing all packets that are sent out in a router. The trace
+objects may be used to trace packets in MAC, agents (routing or
+others), routers or any other NsObject. 
 
-The cmu-trace object \code{CMUTrace} is derived from the base class \code{Trace}. See Chapter~\ref{chap:trace} for details on class \code{Trace}. The class \code{CMUTrace} is defined as the following:
+The cmu-trace object \code{CMUTrace} is derived from the base class
+\code{Trace}. See Chapter~\ref{chap:trace} for details on class
+\code{Trace}. The class \code{CMUTrace} is defined as the following:
 
 \begin{program}
 class CMUTrace : public Trace \{
 public:
-	CMUTrace(const char *s, char t);
-	void	recv(Packet *p, Handler *h);
-	void	recv(Packet *p, const char* why);
+        CMUTrace(const char *s, char t);
+        void    recv(Packet *p, Handler *h);
+        void    recv(Packet *p, const char* why);
 
 private:
-	int off_arp_;
-	int off_mac_;
-	int off_sr_;
+        int off_arp_;
+        int off_mac_;
+        int off_sr_;
 
-	char	tracename[MAX_ID_LEN + 1];
+        char    tracename[MAX_ID_LEN + 1];
         int     tracetype;
         MobileNode *node_;
 
         int initialized() \{ return node_ && 1; \}
 
-	int	command(int argc, const char*const* argv);
-	void	format(Packet *p, const char *why);
+        int     command(int argc, const char*const* argv);
+        void    format(Packet *p, const char *why);
 
-	void	format_mac(Packet *p, const char *why, int offset);
-	void	format_ip(Packet *p, int offset);
+        void    format_mac(Packet *p, const char *why, int offset);
+        void    format_ip(Packet *p, int offset);
 
-	void	format_arp(Packet *p, int offset);
-	void	format_dsr(Packet *p, int offset);
-	void	format_msg(Packet *p, int offset);
-	void	format_tcp(Packet *p, int offset);
-	void	format_rtp(Packet *p, int offset);
+        void    format_arp(Packet *p, int offset);
+        void    format_dsr(Packet *p, int offset);
+        void    format_msg(Packet *p, int offset);
+        void    format_tcp(Packet *p, int offset);
+        void    format_rtp(Packet *p, int offset);
 \};
 \end{program}
 
@@ -891,55 +588,54 @@ packet. A fourth type {\bf f} is used to denote forwarding of a packet
 (When the node is not the originator of the packet). 
 Similar to the method Trace::format(), the CMUTrace::format() defines and
 dictates the trace file format. The method is shown below: 
-
 \begin{program}
 void CMUTrace::format(Packet* p, const char *why)
 \{
-	hdr_cmn *ch = HDR_CMN(p);
-	int offset = 0;
+        hdr_cmn *ch = HDR_CMN(p);
+        int offset = 0;
 
-	/*
-	 * Log the MAC Header
-	 */
-	format_mac(p, why, offset);
-	offset = strlen(wrk_);
+        /*
+         * Log the MAC Header
+         */
+        format_mac(p, why, offset);
+        offset = strlen(wrk_);
 
-	switch(ch->ptype()) \{
+        switch(ch->ptype()) \{
 
-	case PT_MAC:
-		break;
+        case PT_MAC:
+                break;
 
-	case PT_ARP:
-		format_arp(p, offset);
-		break;
+        case PT_ARP:
+                format_arp(p, offset);
+                break;
 
-	default:
-		format_ip(p, offset);
-		offset = strlen(wrk_);
+        default:
+                format_ip(p, offset);
+                offset = strlen(wrk_);
 
-		switch(ch->ptype()) \{
+                switch(ch->ptype()) \{
 
-		case PT_DSR:
-			format_dsr(p, offset);
-			break;
+                case PT_DSR:
+                        format_dsr(p, offset);
+                        break;
 
-		case PT_MESSAGE:
-		case PT_UDP:
-			format_msg(p, offset);
-			break;
-			
-		case PT_TCP:
-		case PT_ACK:
-			format_tcp(p, offset);
-			break;
-			
-		case PT_CBR:
-			format_rtp(p, offset);
-			break;
-		..........
+                case PT_MESSAGE:
+                case PT_UDP:
+                        format_msg(p, offset);
+                        break;
+                        
+                case PT_TCP:
+                case PT_ACK:
+                        format_tcp(p, offset);
+                        break;
+                        
+                case PT_CBR:
+                        format_rtp(p, offset);
+                        break;
+                ..........
 
-		\}
-	\}
+                \}
+        \}
 \}
 \end{program}
 The above function calls different format functions depending on the type
@@ -949,36 +645,35 @@ different trace functions. The most basic format is defined by
 format\_mac() and is used to trace all pkt types. The other format
 functions print additional information as defined by the packet types. The
 mac format prints the following:   
-
 \begin{program}
 \#ifdef LOG_POSITION
         double x = 0.0, y = 0.0, z = 0.0;
         node_->getLoc(&x, &y, &z);
 \#endif
 
-	sprintf(wrk_ + offset,
+        sprintf(wrk_ + offset,
 \#ifdef LOG_POSITION
-		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
+                "%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
 \#else
-		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
+                "%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
 \#endif
-		op,                    // s, r, D or f
-		Scheduler::instance().clock(),  // time stamp
+                op,                    // s, r, D or f
+                Scheduler::instance().clock(),  // time stamp
                 src_,                  // the nodeid for this node
 \#ifdef LOG_POSITION
                 x,                     // x co-ord 
                 y,                     // y co-ord
 \#endif
-		tracename,             // name of object type tracing
-		why,                   // reason, if any
+                tracename,             // name of object type tracing
+                why,                   // reason, if any
 
                 ch->uid(),             // identifier for this event
-		packet_info.name(ch->ptype()), // packet type
-		ch->size(),                    // size of cmn header
-		mh->dh_duration,       // expected time to send data 
-		ETHER_ADDR(mh->dh_da), // mac_destination address
-		ETHER_ADDR(mh->dh_sa),         // mac_sender address
-		GET_ETHER_TYPE(mh->dh_body));  // type - arp or IP
+                packet_info.name(ch->ptype()), // packet type
+                ch->size(),                    // size of cmn header
+                mh->dh_duration,       // expected time to send data 
+                ETHER_ADDR(mh->dh_da), // mac_destination address
+                ETHER_ADDR(mh->dh_sa),         // mac_sender address
+                GET_ETHER_TYPE(mh->dh_body));  // type - arp or IP
 \end{program}
 
 If the LOG\_POSITION is defined the x and y co-ordinates for the
@@ -989,12 +684,12 @@ described below:
 
 \begin{program}
 sprintf(wrk_ + offset, "------- [%d:%d %d:%d %d %d] ",
-		src,          // IP src address
-		ih->sport_,   // src port number
-		dst,          // IP dest address
-		ih->dport_,   // dest port number
-		ih->ttl_,     // TTL value 
-		(ch->next_hop_ < 0) ? 0 : ch->next_hop_); // next hopaddress, if any.
+                src,          // IP src address
+                ih->sport_,   // src port number
+                dst,          // IP dest address
+                ih->dport_,   // dest port number
+                ih->ttl_,     // TTL value 
+                (ch->next_hop_ < 0) ? 0 : ch->next_hop_); // next hopaddress, if any.
 \end{program}
 
 An example of a trace for a tcp packet is as follows:
@@ -1206,7 +901,8 @@ other applications as they get included along the way.
 \end{description}
 
 
-\subsection{Generation of node-movement and traffic-connection for wireless scenarios}
+\subsection{Generation of node-movement and traffic-connection for
+  wireless scenarios}
 \label{sec:mobile-scen-generator}
 
 Normally for large topologies, the node movement and traffic connection
@@ -1225,23 +921,33 @@ information regarding number of hops between the nodes is fed to the
 central object "GOD" (XXX but why/where is this information used??-answer
 awaited from CMU.) Next each node is a speed and a direction to move to. 
 
-The generator for creating node movement files are to be found under \nsf{indep-utils/cmu-scen-gen/setdest/} directory. Compile the files under setdest to create an executable. run setdest with arguments in the following way:
+The generator for creating node movement files are to be found under
+\nsf{indep-utils/cmu-scen-gen/setdest/} directory. Compile the files
+under setdest to create an executable. run setdest with arguments in
+the following way:
 \begin{program}
-./setdest -n <num_of_nodes> -p <pausetime> -s <maxspeed> -t <simtime> -x <maxx> -y <maxy> > <outdir>/<scenario-file>
+./setdest -n <num_of_nodes> -p <pausetime> -s <maxspeed> -t <simtime>
+          -x <maxx> -y <maxy> > <outdir>/<scenario-file>
 \end{program}
-Note that the index used for nodes now start from 0 instead of 1 as was in the original CMU version, to match with \ns's tradition of assigning node indices from 0. 
+Note that the index used for nodes now start from 0 instead of 1 as
+was in the original CMU version, to match with \ns's tradition of
+assigning node indices from 0.
 
 
 \subsubsection{Generating traffic pattern files}
 \label{sec:mobile-traffic-file}
 
-The examples for traffic patterns may be found in \nsf{tcl/mobility/scene/cbr-50-\{10-4-512, 20-4-512\}}. 
+The examples for traffic patterns may be found in
+\nsf{tcl/mobility/scene/cbr-50-\{10-4-512, 20-4-512\}}.
 
-The traffic generator is located under \nsf{indep-utils/cmu-scen-gen/} and are called cbrgen.tcl and tcpgen.tcl. They may be used for generating CBR and TCP connections respectively.
+The traffic generator is located under \nsf{indep-utils/cmu-scen-gen/}
+and are called cbrgen.tcl and tcpgen.tcl. They may be used for
+generating CBR and TCP connections respectively.
 
 To create CBR connecions, run
 \begin{program}
-ns cbrgen.tcl [-type cbr|tcp] [-nn nodes] [-seed seed] [-mc connections] [-rate rate]
+ns cbrgen.tcl [-type cbr|tcp] [-nn nodes] [-seed seed] 
+              [-mc connections] [-rate rate]
 \end{program}
 To create TCP connections, run
 \begin{program}
@@ -1250,527 +956,163 @@ ns tcpgen.tcl [-nn nodes] [-seed seed]
 You will need to pipe the outputs from above to a cbr-* or a tcp-* file.
 
 
-
 \section{Extensions made to CMU's wireless model}
 \label{sec:wireless-extensions}
 
-As mentioned earlier, the original CMU wireless model allows simulation of wireless LANs and ad-hoc networks. However in order to use the wireless model for simulations using both wired and wireless nodes we had to add certain extensions to cmu model. We 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-call this wired-cum-wireless feature. Also SUN's MobileIP (implemented for wired nodes) was integrated into the wireless model allowing mobileIP to run over wireless mobilenodes. The following two subsections describe these two extensions to the wireless 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+As mentioned earlier, the original CMU wireless model allows
+simulation of wireless LANs and ad-hoc networks. However in order to
+use the wireless model for simulations using both wired and wireless
+nodes we had to add certain extensions to cmu model. We 
+call this wired-cum-wireless feature. Also SUN's MobileIP (implemented
+for wired nodes) was integrated into the wireless model allowing
+mobileIP to run over wireless mobilenodes. The following two
+subsections describe these two extensions to the wireless 
 model in \ns. 
 
 
 \subsection{wired-cum-wireless scenarios}
 \label{sec:wired-cum-wireless}
 
-The mobilenodes described so far mainly supports simulation of multi-hop ad-hoc networks or wireless LANs. But what if we need to simulate a topology of multiple wireless LANs connected through wired nodes, or may need to run mobileIP on top of these wire
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-less nodes? The extensions made to the CMU wireless model allows us to do that.
-
-The main problem facing the wired-cum-wireless scenario was the issue of routing. In ns, routing information is generated based on the connectivity of the topology, i.e how nodes are connected to one another through \code{Links}. Mobilenodes on the other 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-hand have no concept of links. They route packets among themselves, within the wireless topology, using their routing protocol. so how would packets be exchanged between these two types of nodes?
-So a node called \code{BaseStationNode} is created which plays the role of a gateway for the wired and wireless domains. The \code{BaseStationNode} is essentially a hybrid between a Hierarchical node\footnote{Refer to Chapter~\ref{chap:hier-rtg} for detai
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ls on hierarchical routing and internals of \code{HierNode}.} (\code{HierNode}) and a \code{MobileNode}. The basestation node is responsible for delivering packets into and out of the wireless domain. In order to achieve this we need Hierarchical routing.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- Each wireless domain along with its base-station would have an unique domain address assigned to them. All packets destined to a wireless node would reach the base-station attached to the domain of that wireless node, who would eventually hand the packet
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- over to the destination (mobilenode). And mobilenodes route packets, destined to outside their (wireless) domain, to their base-station node. The base-station knows how to forward these packets towards the (wired) destination. 
+The mobilenodes described so far mainly supports simulation of
+multi-hop ad-hoc networks or wireless LANs. But what if we need to
+simulate a topology of multiple wireless LANs connected through wired
+nodes, or may need to run mobileIP on top of these wireless nodes? The
+extensions made to the CMU wireless model allows us to do that. 
+
+The main problem facing the wired-cum-wireless scenario was the issue
+of routing. In ns, routing information is generated based on the
+connectivity of the topology, i.e how nodes are connected to one
+another through \code{Links}. Mobilenodes on the other hand have no
+concept of links. They route packets among themselves, within the
+wireless topology, using their routing protocol. so how would packets
+be exchanged between these two types of nodes? 
+
+So a node called \code{BaseStationNode} is created which plays the
+role of a gateway for the wired and wireless domains. The
+\code{BaseStationNode} is essentially a hybrid between a Hierarchical
+node\footnote{Refer to Chapter~\ref{chap:hier-rtg} for details on
+  hierarchical routing and internals of \code{HierNode}.}
+(\code{HierNode}) and a \code{MobileNode}. The basestation node is
+responsible for delivering packets into and out of the wireless
+domain. In order to achieve this we need Hierarchical routing. 
+
+Each wireless domain along with its base-station would have an unique
+domain address assigned to them. All packets destined to a wireless
+node would reach the base-station attached to the domain of that
+wireless node, who would eventually hand the packet
+over to the destination (mobilenode). And mobilenodes route packets,
+destined to outside their (wireless) domain, to their base-station
+node. The base-station knows how to forward these packets towards the
+(wired) destination.
 \begin{figure}
     \centerline{\includegraphics{basestation}}
     \caption{Schematic of a baseStationNode}
     \label{fig:mobilenode-basestation}
 \end{figure}
-The schematic of a \code{BaseStationNode} is shown in Figure~\ref{fig:mobilenode-basestation}.
-
-The mobilenodes in wired-cum-wireless scenario are required to support hierarchical addressing/routing. Thus the \code{MobileNode} looks exactly like the \code{BaseStationNode}. The SRNode, however, simply needs to have its own hier-address since it doesn
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ot require any address demuxes and thus is not required to support hier routing\footnote{In order to do away with all these different variations of the definition of a node, we are planning to revise the node architecture that would allow a more flexible 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-and modularised construction of a node without the necessity of having to define and be limited to certain Class definitions only.}.
-
-The DSDV agent on having to forward a packet checks to see if the destination is outside its (wireless) subnet. If so, it tries to forward the packet to its base-station node. In case no route to base-station is found the packet is dropped. Otherwise the 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-packet is forwarded to the next\_hop towards the base-station. Which is then routed towards the wired network by base-station's classifiers.
-
-The DSR agent, on receiving a pkt destined outside its subnet, sends out a route-query for its base-station in case the route to base-station is not known. The data pkt is temporarily cached while it waits to hear route replies from base-station. On getti
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ng a reply the packet is provided with routing information in its header and send away towards the base-station. The base-station address demuxes routes it correctly toward the wired network. 
-
-The example script for a wired-cum-wireless simulation can be found at \nsf{tcl/ex/wired-cum-wireless-sim.tcl}. The methods for wired-cum-wireless implementations are defined in \nsf{tcl/lib/ns-bsnode.tcl}, \nsf{tcl/mobility/\{com.tcl,dsr.tcl, dsdv.tcl\}}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-, \nsf{dsdv/dsdv.\{cc,h\}} and \nsf{dsr/dsragent.\{cc,h\}}.
+The schematic of a \code{BaseStationNode} is shown in
+Figure~\ref{fig:mobilenode-basestation}.
+
+The mobilenodes in wired-cum-wireless scenario are required to support
+hierarchical addressing/routing. Thus the \code{MobileNode} looks
+exactly like the \code{BaseStationNode}. The SRNode, however, simply
+needs to have its own hier-address since it does not require any
+address demuxes and thus is not required to support hier
+routing\footnote{In order to do away with all these different
+  variations of the definition of a node, we are planning to revise
+  the node architecture that would allow a more flexible
+  and modularised construction of a node without the necessity of having
+  to define and be limited to certain Class definitions only.}.
+
+The DSDV agent on having to forward a packet checks to see if the
+destination is outside its (wireless) subnet. If so, it tries to
+forward the packet to its base-station node. In case no route to
+base-station is found the packet is dropped. Otherwise the
+packet is forwarded to the next\_hop towards the base-station. Which
+is then routed towards the wired network by base-station's
+classifiers.
+
+The DSR agent, on receiving a pkt destined outside its subnet, sends
+out a route-query for its base-station in case the route to
+base-station is not known. The data pkt is temporarily cached while it
+waits to hear route replies from base-station. On getting a reply the
+packet is provided with routing information in its header and send
+away towards the base-station. The base-station address demuxes routes
+it correctly toward the wired network.
+
+The example script for a wired-cum-wireless simulation can be found at
+\nsf{tcl/ex/wired-cum-wireless-sim.tcl}. The methods for
+wired-cum-wireless implementations are defined in
+\nsf{tcl/lib/ns-bsnode.tcl}, \nsf{tcl/mobility/\{com.tcl,dsr.tcl,
+  dsdv.tcl\}}, \nsf{dsdv/dsdv.\{cc,h\}} and
+\nsf{dsr/dsragent.\{cc,h\}}.
 
 
 \subsection{MobileIP}
 \label{sec:mobileip}
 
-The wired-cum-wireless extensions for the wireless model paved the path for supporting wireless MobileIP in \ns. Sun Microsystem's (Charlie Perkins etal) MobileIP model was based on ns's wired model (consisting of \code{Node}'s and \code{Link}'s) and thus
+The wired-cum-wireless extensions for the wireless model paved the
+path for supporting wireless MobileIP in \ns. Sun Microsystem's
+(Charlie Perkins {\em et al}) MobileIP model was based on ns's wired model
+(consisting of \code{Node}'s and \code{Link}'s) and thus didnot use
+CMU's mobility model.
 
+Here we briefly describe the wireless MobileIP implementation. We hope
+that Sun would provide the detailed version of the documentation in
+the future.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- didnot use CMU's mobility model.
-
-Here we briefly describe the wireless MobileIP implementation. We hope that Sun would provide the detailed version of the documentation in the future.
-
-The mobileIP scenario consists of Home-Agents(HA) and Foreign-Agents(FA) and have Mobile-Hosts(MH) moving between their HA and FAs.
-The HA and FA are essentially base-station nodes we have described earlier. While MHs are basically the mobileNodes described in section~\ref{sec:mobilenode-creation}.
-The methods and procedures for MobileIP extensions are described in \nsf{mip.\{cc,h\}}, \nsf{mip-reg.cc}, \nsf{tcl/lib/ns-mip.tcl} and \nsf{tcl/lib/ns-wireless-mip.tcl}.
+The mobileIP scenario consists of Home-Agents(HA) and
+Foreign-Agents(FA) and have Mobile-Hosts(MH) moving between their HA
+and FAs.
+The HA and FA are essentially base-station nodes we have described
+earlier. While MHs are basically the mobileNodes described in
+section~\ref{sec:mobilenode-creation}.
+The methods and procedures for MobileIP extensions are described in
+\nsf{mip.\{cc,h\}}, \nsf{mip-reg.cc}, \nsf{tcl/lib/ns-mip.tcl} and
+\nsf{tcl/lib/ns-wireless-mip.tcl}.
 
 \begin{figure}
     \centerline{\includegraphics{wireless-mip}}
     \caption{Schematic of a Wireless MobileIP BaseStation Node}
     \label{fig:mobilenode-wireless-mip}
 \end{figure}
-The HA and FA nodes are defined as \code{MobileNode/MIPBS} having a registering agent (regagent\_) that sends beacon out to the mobilenodes, sets up encapsulator and decapsulator, as required and replies to solicitations from MHs. 
-The MH nodes are defined as \code{MobileNode/MIPMH} which too have a regagent\_ that receives and responds to beacons and sends out solicitations to HA or FAs. Figure~\ref{fig:mobilenode-wireless-mip} illustrates the schematic of a \code{MobileNode/MIPBS}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- node. The \code{MobileNode/MIPMH} node is very similar to this except for the fact that it doesnot have any encapsulator or decapsulator. As for the SRNode version of a MH, it doesnot have the hierarchical classifiers and the RA agent forms the entry poi
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-nt of the node. See Figure~\ref{fig:mobilenode-dsr} for model of a SRNode.
-
-The \code{MobileNode/MIPBS} node routinely broadcasts beacon or advertisement messages out to MHs. A solicitation from a mobilenode generates an ad that is send directly to the requesting MH. The address of the base-station sending out beacon is heard by 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-MH and is used as the COA (care-of-address) of the MH. Thus as the MH moves from its native to foreign domains, its COA changes.
-Upon receiving  reg\_request (as reply to ads) from a mobilehost the base-station checks to see if it is the HA for the MH. If not, it sets up its decapsulator and forwards the reg\_request towards the HA of the MH. 
-Incase the base-station {\em is} the HA for the requesting MH but the COA doesnot match its own, it sets up an encapsulator and sends reg-request-reply back to the COA (address of the FA) who has forwarded the reg\_request to it. so now all packets destin
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ed to the MH reaching the HA would be tunneled through the encapsulator which encapsulates the IP pkthdr with a IPinIP hdr, now destined to the COA instead of MH. The FA's decapsulator recives this packet, removes the encapsulation and sends it to the MH.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-If the COA matches that of the HA, it just removes the encapsulator it might have set up (when its mobilehost was roaming into foreign networks) and sends the reply directly back to the MH, as the MH have now returned to its native domain.
+The HA and FA nodes are defined as \code{MobileNode/MIPBS} having a
+registering agent (regagent\_) that sends beacon out to the
+mobilenodes, sets up encapsulator and decapsulator, as required and
+replies to solicitations from MHs. 
+The MH nodes are defined as \code{MobileNode/MIPMH} which too have a
+regagent\_ that receives and responds to beacons and sends out
+solicitations to HA or FAs. Figure~\ref{fig:mobilenode-wireless-mip}
+illustrates the schematic of a \code{MobileNode/MIPBS} 
+node. The \code{MobileNode/MIPMH} node is very similar to this except
+for the fact that it doesnot have any encapsulator or decapsulator. As
+for the SRNode version of a MH, it doesnot have the hierarchical
+classifiers and the RA agent forms the entry point of the node. See
+Figure~\ref{fig:mobilenode-dsr} for model of a SRNode. 
+
+The \code{MobileNode/MIPBS} node routinely broadcasts beacon or
+advertisement messages out to MHs. A solicitation from a mobilenode
+generates an ad that is send directly to the requesting MH. The
+address of the base-station sending out beacon is heard by 
+MH and is used as the COA (care-of-address) of the MH. Thus as the MH
+moves from its native to foreign domains, its COA changes. 
+Upon receiving  reg\_request (as reply to ads) from a mobilehost the
+base-station checks to see if it is the HA for the MH. If not, it sets
+up its decapsulator and forwards the reg\_request towards the HA of
+the MH. 
+
+In case the base-station {\em is} the HA for the requesting MH but the
+COA doesnot match its own, it sets up an encapsulator and sends
+reg-request-reply back to the COA (address of the FA) who has
+forwarded the reg\_request to it. so now all packets destined to the
+MH reaching the HA would be tunneled through the encapsulator which
+encapsulates the IP pkthdr with a IPinIP hdr, now destined to the COA
+instead of MH. The FA's decapsulator recives this packet, removes the
+encapsulation and sends it to the MH.
+
+If the COA matches that of the HA, it just removes the encapsulator it
+might have set up (when its mobilehost was roaming into foreign
+networks) and sends the reply directly back to the MH, as the MH have
+now returned to its native domain.
 
 The mobilehost sends out solicitations if it doesnot hear any ads from the
 base-stations. Upon receiving ads, it changes its COA to the address of
@@ -1789,7 +1131,6 @@ An example script for wireless mobileIP can be found at
 between its HA and a FA. The HA and FA are each connected to a wired
 domain on one side and to their wireless domains on the other. TCP flows
 are set up between the MH and a wired node. 
-
 
 \section{Commands at a glance}
 \label{sec:wirelesscommand}
@@ -1860,7 +1201,8 @@ DEMFiles.
 \code{$ns_ namtrace-all-wireless <namtrace> <X> <Y>}\\
 This command is used to initialize a namtrace file for logging node movements
 to be viewed in nam. The namtrace file descriptor, the X and Y 
-co-ordinates of the wireless topology is passed as parameters with this command.
+co-ordinates of the wireless topology is passed as parameters with
+this command.
 
 
 \code{$ns_ nam-end-wireless <stop-time>}\\
