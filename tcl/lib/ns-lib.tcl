@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.143 1999/03/16 03:05:46 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.144 1999/03/16 17:53:26 yuriy Exp $
 
 #
 
@@ -399,22 +399,6 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	# Register this simplex link in nam link list. Treat it as 
 	# a duplex link in nam
 	$self register-nam-linkconfig $link_($sid:$did)
-}
-
-# 
-# Assumes every lan is a MultiLink. We keep pointers to all lan created 
-# during startup and call MultiLink::dump-namconfig in Simulator::run
-#
-Simulator instproc register-nam-lanconfig mlink {
-	$self instvar lanConfigList_
-	
-	if [info exists lanConfigList_] {
-		if {[lsearch $lanConfigList_ $mlink] >= 0} {
-			# This lan is already there
-			return
-		}
-	}
-	lappend lanConfigList_ $mlink
 }
 
 #
@@ -865,129 +849,6 @@ Classifier/Hash instproc init nbuck {
 	set shift_ [AddrParams set NodeShift_(1)]
 	set mask_ [AddrParams set NodeMask_(1)]
 }
-
-Simulator instproc multi-link { nodes bw delay type } {
-	$self instvar link_ 
-
-	# set multiLink [new PhysicalMultiLink $nodes $bw $delay $type]
-	set multiLink [new NonReflectingMultiLink $nodes $bw $delay $type]
-	
-	# set up dummy links for unicast routing
-	foreach n $nodes {
-	set q [$multiLink getQueue $n]
-		set l [$multiLink getDelay $n]
-		set did [$n id]
-		foreach n2 $nodes {
-	    if { [$n2 id] != $did } {
-		    set sid [$n2 id]
-		    set dumlink [new DummyLink $n2 $n $q $l]
-		    set link_($sid:$did) $dumlink
-		    $dumlink setContainingObject $multiLink
-		    # set lan trace
-		    set trace [$self get-ns-traceall]
-		    if {$trace != "" } {
-			    $self trace-queue $n2 $n $trace
-		    }
-		    set trace [$self get-nam-traceall]
-		    if {$trace != ""} {
-			    $self namtrace-queue $n2 $n $trace
-		    }
-		    $self register-nam-linkconfig $dumlink
-	    }
-		}
-	}
-	
-	return $multiLink
-}
-
-#Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
-#        $self instvar link_ 
-#        
-#        # create the interfaces
-#        set ifs ""
-#        foreach n $nodes {
-#                set f [new DuplexNetInterface]
-#                $n addInterface $f
-#                lappend ifs $f
-#        }
-#
-#	# create lan
-#        set multiLink [new NonReflectingMultiLink $ifs $bw $delay $type]
-#
-#        # set up dummy links for multicast routing
-#        foreach f $ifs {
-#                set n [$f getNode]
-#                set q [$multiLink getQueue $n]
-#                set l [$multiLink getDelay $n]  
-#                set did [$n id]
-#                foreach f2 $ifs {
-#                        set n2 [$f2 getNode]
-#                        if { [$n2 id] != $did } {
-#				set sid [$n2 id]   
-#				set dumlink [new DummyLink $f2 $f $q $l $multiLink]
-#				set link_($sid:$did) $dumlink
-#				# set lan trace
-#				set trace [$self get-ns-traceall]
-#				if {$trace != "" } {
-#					$self trace-queue $n2 $n $trace
-#				}
-#				set trace [$self get-nam-traceall]
-#				if {$trace != ""} {
-#					$self namtrace-queue $n2 $n $trace
-#				}
-#				$self register-nam-linkconfig $dumlink
-#                        }
-#                }
-#        }
-#
-#        return $multiLink
-#}
-
-# XXX Hack to use nam lan traces. Does not work with trace-all
-Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
-	$self instvar link_ 
-	
-	# create the interfaces
-	set ifs ""
-	foreach n $nodes {
-		set f [new DuplexNetInterface]
-		$n addInterface $f
-		lappend ifs $f
-	}
-	
-	# create lan
-	set multiLink [new NonReflectingMultiLink $ifs $bw $delay $type]
-	
-	# set up dummy links for multicast routing
-	foreach f $ifs {
-		set n [$f getNode]
-		set q [$multiLink getQueue $n]
-		set l [$multiLink getDelay $n]  
-		set did [$n id]
-		foreach f2 $ifs {
-			set n2 [$f2 getNode]
-			if { [$n2 id] != $did } {
-				set sid [$n2 id]   
-				set dumlink [new DummyLink $f2 $f $q $l $multiLink]
-				set link_($sid:$did) $dumlink
-			}
-		}
-	}
-	
-	# set lan trace
-	set trace [$self get-ns-traceall]
-	if {$trace != "" } {
-		$multiLink trace $self $trace
-	}
-	set trace [$self get-nam-traceall]
-	if {$trace != ""} {
-		$multiLink nam-trace $self $trace
-	}
-	$self register-nam-lanconfig $multiLink
-	
-	return $multiLink
-}
-
 Simulator instproc makeflowmon { cltype { clslots 29 } } {
 	
 	set flowmon [new QueueMonitor/ED/Flowmon]
