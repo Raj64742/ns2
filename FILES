@@ -1146,6 +1146,7 @@ tcl/test/test-all-srm
 tcl/test/test-all-tcp
 tcl/test/test-all-tcp-init-win
 tcl/test/test-all-tcpOptions
+tcl/test/test-all-tcpReset
 tcl/test/test-all-tcpVariants
 tcl/test/test-all-template1
 tcl/test/test-all-template1.win
@@ -1676,6 +1677,10 @@ tcl/test/test-output-tcpOptions/onedrop_sack.Z
 tcl/test/test-output-tcpOptions/onedrop_sack_full.Z
 tcl/test/test-output-tcpOptions/onedrop_tahoe.Z
 tcl/test/test-output-tcpOptions/onedrop_tahoe_full.Z
+tcl/test/test-output-tcpReset
+tcl/test/test-output-tcpReset/reset.Z
+tcl/test/test-output-tcpReset/resetDelAck.Z
+tcl/test/test-output-tcpReset/resetDelAck1.Z
 tcl/test/test-output-tcpVariants/fourdrops_fack.Z
 tcl/test/test-output-tcpVariants/fourdrops_newreno.Z
 tcl/test/test-output-tcpVariants/fourdrops_newreno_full.Z
@@ -1881,6 +1886,7 @@ tcl/test/test-suite-tcp-init-win.txt
 tcl/test/test-suite-tcp.tcl
 tcl/test/test-suite-tcp.txt
 tcl/test/test-suite-tcpOptions.tcl
+tcl/test/test-suite-tcpReset.tcl
 tcl/test/test-suite-tcpVariants.tcl
 tcl/test/test-suite-testReno.tcl
 tcl/test/test-suite-v1.tcl
