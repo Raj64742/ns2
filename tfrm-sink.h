@@ -38,86 +38,45 @@
 #include "ip.h"
 #include "timer-handler.h"
 #include "random.h"
+#include "tfrm.h"
 
-struct hdr_tfrm {
+#define MAX_HISTORY_SIZE 1000000
+#define LARGE_DOUBLE 9999999999.99 
 
-	int seqno;    //data sequence number
-	double rate;    //sender's current rate
-	double rtt;     //RTT estimate of sender
-	double tzero;     //RTO in Umass eqn
-	double timestamp;   //time this message was sent
-	int psize;
-	int version;
+class TfrmSinkAgent;
 
-	static int offset_;	// offset for this header
-	inline static int& offset() { return offset_; }
-	inline static hdr_tfrm* access(Packet* p) {
-		return (hdr_tfrm*) p->access(offset_);
-	}
-
-};
-
-struct hdr_tfrmc {
-
-  int seqno; // not sure yet
-  double timestamp; //time this nack was sent
-  double timestamp_echo; //timestamp from a data packet
-  double timestamp_offset; //offset since we received that data packet
-  double flost;
-  int signal;
-
-  static int offset_; // offset for this header
-  inline static int& offset() { return offset_; }
-  inline static hdr_tfrmc* access(Packet* p) {
-    return (hdr_tfrmc*) p->access(offset_);
-  }
-
-};
-
-#define DECREASE 1
-#define NORMAL 2
-#define INCREASE 3
-
-class TfrmAgent; 
-
-class TfrmSendTimer : public TimerHandler {
+class TfrmNackTimer : public TimerHandler {
 public:
-    TfrmSendTimer(TfrmAgent *a) : TimerHandler() { a_ = a; }
-    virtual void expire(Event *e);
+  TfrmNackTimer(TfrmSinkAgent *a) : TimerHandler() { a_ = a; }
+  virtual void expire(Event *e);
 protected:
-    TfrmAgent *a_;
-};  
-
-class TfrmAgent : public Agent {
-    friend TfrmSendTimer;
-public:
-    TfrmAgent();
-    void recv(Packet*, Handler*);
-    void sendpkt();
-    void nextpkt();
-    int command(int argc, const char*const* argv);
-    void start();
-    void stop();
-protected:
-    double rate_, rtt_, rttvar_, tzero_;
-
-    //for TCP tahoe RTO alg.
-    int t_srtt_, t_rtt_, t_rttvar_, rttvar_exp_;
-    double t_rtxcur_;
-    double tcp_tick_;
-		int T_SRTT_BITS, T_RTTVAR_BITS ;
-		int srtt_init_, rttvar_init_ ;
-		double rtxcur_init_ ;
-
-		int InitRate_ ;
-    double incrrate_;
-    int seqno_, psize_;
-    TfrmSendTimer send_timer_;
-    int run_;
-    double df_;       // decay factor for RTT EWMA
-    int version_;
-    int slowincr_;
-    int k_;
-    double last_change_;
-    TracedInt ndatapack_;   // number of packets sent
+  TfrmSinkAgent *a_;
 };
+
+class TfrmSinkAgent : public Agent {
+  friend TfrmNackTimer;
+public:
+  TfrmSinkAgent();
+  void recv(Packet*, Handler*);
+protected:
+  void sendpkt();
+  void nextpkt();
+  void increase_pvec(int);
+
+  double rate_;
+  double rtt_, tzero_;
+  double flost_;
+  double last_timestamp_, last_arrival_, last_nack_;
+  int *pvec_;
+  double *tsvec_;
+  int pveclen_;
+  int pvecfirst_, pveclast_;
+  int prevpkt_;
+  int psize_;
+  int k_;
+	int MinNumLoss_ ;
+  int version_;
+  int total_received_;
+	int InitHistorySize_ ;
+  TfrmNackTimer nack_timer_;
+}; 
