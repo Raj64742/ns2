@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.6 2001/07/03 16:53:59 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.7 2002/01/02 16:43:53 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -41,6 +41,7 @@ Object instproc exit args {
 
 Class TestSuite
 
+# Use "$self next 0" to avoid creating all.tr and all.nam.
 TestSuite instproc init { {dotrace 1} } {
 	global quiet argv0
 	$self instvar ns_ test_ node_ testName_ 
@@ -115,13 +116,24 @@ TestSuite instproc enable_tracecwnd { ns tcp } {
 #
 # Plot the TCP congestion window cwnd_.
 #
-TestSuite instproc plot_cwnd {} {
+TestSuite instproc plot_cwnd { {terse 0} } {
         global quiet
         $self instvar cwnd_chan_
         set awkCode {
               {
               if ($6 == "cwnd_") {
                 print $1, $7 >> "temp.cwnd";
+              } }
+        }
+        set awkCodeTerse {
+	      BEGIN { oldcwnd = -2 }
+              {
+              if ($6 == "cwnd_") {
+		 newcwnd = $7;
+                 if ((newcwnd >= oldcwnd + 1) || (newcwnd <= oldcwnd - 1)){
+                    print $1, newcwnd >> "temp.cwnd";
+		    oldcwnd = $7;
+		 }
               } }
         }
         set f [open cwnd.xgr w]
@@ -134,7 +146,11 @@ TestSuite instproc plot_cwnd {} {
         exec rm -f temp.cwnd
         exec touch temp.cwnd
         
-        exec awk $awkCode all.cwnd
+	if {$terse == 1} {
+		exec awk $awkCodeTerse all.cwnd
+	} else {
+       		exec awk $awkCode all.cwnd
+	}
         
         puts $f \"cwnd
         exec cat temp.cwnd >@ $f
