@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.47 2002/09/18 05:41:52 sundarra Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.48 2003/05/05 21:57:46 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -152,6 +152,8 @@ protected:
 	double burstlen_;
 	double last_time_;
 	double first_time_;
+	int default_drop_;	// 0 for regular, 1 to drop all
+				//   but last pkt in period_
 };
 
 

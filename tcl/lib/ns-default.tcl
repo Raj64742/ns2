@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.313 2003/04/01 01:15:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.314 2003/05/05 21:57:48 sfloyd Exp $
 
 
 #
@@ -388,6 +388,9 @@ ErrorModel/Trace set loss_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
 ErrorModel/Periodic set burstlen_ 0.0
+ErrorModel/Periodic set default_drop_ 0 ;	# set to 1 for default-drop,
+						# to drop all but last pkt
+						# in period_
 ErrorModel/MultiState set curperiod_ 0.0
 ErrorModel/MultiState set sttype_ pkt
 ErrorModel/MultiState set texpired_ 0

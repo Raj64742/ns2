@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.75 2003/01/28 19:50:51 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.76 2003/05/05 21:57:46 sfloyd Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.75 2003/01/28 19:50:51 sfloyd Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.76 2003/05/05 21:57:46 sfloyd Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -500,6 +500,7 @@ PeriodicErrorModel::PeriodicErrorModel() : cnt_(0), last_time_(0.0), first_time_
 	bind("period_", &period_);
 	bind("offset_", &offset_);
 	bind("burstlen_", &burstlen_);
+	bind("default_drop_", &default_drop_);
 }
 
 int PeriodicErrorModel::corrupt(Packet* p)
@@ -525,22 +526,39 @@ int PeriodicErrorModel::corrupt(Packet* p)
 		return 0;
 	}
 	cnt_ += (unit_ == EU_PKT) ? 1 : ch->size();
-	if (int(first_time_) < 0) {
-		if (cnt_ >= int(offset_)) {
-			last_time_ = first_time_ = 1.0;
-			cnt_ = 0;
-			return 1;
+	if (default_drop_) {
+		if (int(first_time_) < 0) {
+			if (cnt_ >= int(offset_)) {
+				last_time_ = first_time_ = 1.0;
+				cnt_ = 0;
+				return 0;
+			}
+			return 0;
+		} else {
+			if (cnt_ >= int(period_)) {
+				cnt_ = 0;
+				return 0;
+			}
+		}
+		return 1;
+	} else {
+		if (int(first_time_) < 0) {
+			if (cnt_ >= int(offset_)) {
+				last_time_ = first_time_ = 1.0;
+				cnt_ = 0;
+				return 1;
+			}
+			return 0;
+		} else {
+			if (cnt_ >= int(period_)) {
+				cnt_ = 0;
+				return 1;
+			}
+			if (cnt_ < burstlen_)
+				return 1;
 		}
 		return 0;
-	} else {
-		if (cnt_ >= int(period_)) {
-			cnt_ = 0;
-			return 1;
-		}
-		if (cnt_ < burstlen_)
-			return 1;
 	}
-	return 0;
 }
 
 /*
