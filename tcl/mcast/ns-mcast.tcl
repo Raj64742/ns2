@@ -333,7 +333,7 @@ Node instproc leave-group { agent group } {
 	## inform the mcastproto agent
 	$mcastproto_ leave-group $group
     } else {
-	put stderr "error: leaving a group without joining it"
+	puts stderr "error: leaving a group without joining it"
 	exit 0
     }
 }
