@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.14 1998/05/23 02:41:09 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.15 1998/05/23 02:44:22 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -64,6 +64,7 @@ typedef int Socket;
 #include "net.h"
 #include "inet.h"
 #include "tclcl.h"
+#include "scheduler.h"
 
 //#define	NIPDEBUG	1
 #ifdef NIPDEBUG
@@ -305,7 +306,7 @@ UDPIPNetwork::recv(u_char* buf, int len, sockaddr& from, double& ts)
 		return (0);	// empty
 	}
 
-	ts = tod();	// now
+	ts = Scheduler::instance().clock();
 	return (cc);	// number of bytes received
 }
 
@@ -557,7 +558,7 @@ IPNetwork::recv(u_char* buf, int len, sockaddr& sa, double& ts)
 			perror("recvfrom");
 		return (-1);
 	}
-	ts = tod();
+	ts = Scheduler::instance().clock();
 	return (cc);
 }
 
