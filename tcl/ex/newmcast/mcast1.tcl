@@ -29,7 +29,8 @@
 #           |
 #          |2|
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -38,10 +39,10 @@ set n3 [$ns node]
 
 set f [open out-cmcast.tr w]
 $ns trace-all $f
-
-$ns duplex-link-of-interfaces $n0 $n1 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n1 $n2 1.5Mb 10ms DropTail
-$ns duplex-link-of-interfaces $n1 $n3 1.5Mb 10ms DropTail
+Simulator set NumberInterfaces_ 1
+$ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
+$ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
 ### Start multicast configuration: 4 mproto options
 ### CtrMcast : centralized multicast
@@ -55,7 +56,7 @@ $ns duplex-link-of-interfaces $n1 $n3 1.5Mb 10ms DropTail
 
 set mproto dynamicDM
 set mrthandle [$ns mrtproto $mproto  {}]
-if {$mrthandle != 0} {
+if {$mrthandle != ""} {
     $mrthandle set_c_rp [list $n2 $n3]
     $mrthandle set_c_bsr [list $n1:0]
 }
@@ -77,7 +78,7 @@ $ns attach-agent $n3 $rcvr3
 $ns at 0.2 "$cbr1 start"
 $ns at 0.3 "$n1 join-group  $rcvr1 0x8003"
 $ns at 0.4 "$n0 join-group  $rcvr0 0x8003"
-if {$mrthandle != 0} {
+if {$mrthandle != ""} {
     $ns at 0.45 "$mrthandle switch-treetype 0x8003"
 }
 $ns at 0.5 "$n3 join-group  $rcvr3 0x8003"
@@ -85,14 +86,14 @@ $ns at 0.6.5 "$n2 join-group  $rcvr2 0x8003"
 
 $ns at 0.7 "$n0 leave-group $rcvr0 0x8003"
 $ns at 0.8 "$n2 leave-group  $rcvr2 0x8003"
-if {$mrthandle != 0} {
+if {$mrthandle != ""} {
     #$ns at 0.85 "$mrthandle compute-mroutes"
 }
 $ns at 0.9 "$n3 leave-group  $rcvr3 0x8003"
 $ns at 1.0 "$n1 leave-group $rcvr1 0x8003"
+$ns at 1.1 "$n1 join-group $rcvr1 0x8003"
 
-
-$ns at 1.1 "finish"
+$ns at 1.2 "finish"
 
 proc finish {} {
         global ns
