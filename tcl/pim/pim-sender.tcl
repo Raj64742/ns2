@@ -74,6 +74,14 @@ PIM instproc send-prune { code source group } {
 	$self send [PIM set PRUNE] $dst $code $source $group $finaldst $oif
 }
 
+PIM instproc send-assert { source group code oif } {
+        # XXX should give a msg to send ... chnge send join
+        # send prune... and rxvng etc, then send would append
+        # whatever to the msg.. !
+        #puts "send assert $source, $group, $code, $oif"
+        $self send [PIM set ASSERT] 0 $code $source $group 0 $oif
+}
+
 PIM instproc send { type dst code source group finaldst oif } {
 	$self instvar messager
 	$messager set class_ $type
@@ -91,7 +99,8 @@ PIM instproc send { type dst code source group finaldst oif } {
 	# if doing i/f routing include i/f address ! not yet supported.
 	set originator [$Node id]
 
+        set msg "$type/$dst/$code/$source/$group/$originator/$finaldst"
 	# puts "node [$Node id] $self send $type/$dst/$code/$source/$group/$originator/$finaldst"
 
-	$messager send "$type/$dst/$code/$source/$group/$originator/$finaldst"
+        $messager transmit $msg
 }
