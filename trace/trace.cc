@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.3 1997/01/26 23:26:29 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.4 1997/01/27 01:16:20 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -97,8 +97,8 @@ public:
 Trace::Trace(int type)
 	: type_(type), channel_(0), callback_(0), src_(0), dst_(0)
 {
-	bind("src", (int*)&src_);
-	bind("dst", (int*)&dst_);
+	bind("src_", (int*)&src_);
+	bind("dst_", (int*)&dst_);
 }
 
 Trace::~Trace()

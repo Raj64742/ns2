@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.3 1997/01/26 23:26:20 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.4 1997/01/27 01:16:15 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -68,11 +68,11 @@ LossMonitor::LossMonitor() : Agent(-1)
 	npkts_ = 0;
 	expected_ = -1;
 	last_packet_time_ = 0.;
-	bind("nlost", &nlost_);
-	bind("npkts", &npkts_);
-	bind("bytes", &bytes_);
-	bind("lastPktTime", &last_packet_time_);
-	bind("expected", &expected_);
+	bind("nlost_", &nlost_);
+	bind("npkts_", &npkts_);
+	bind("bytes_", &bytes_);
+	bind("lastPktTime_", &last_packet_time_);
+	bind("expected_", &expected_);
 }
 
 void LossMonitor::recv(Packet* pkt, Handler*)

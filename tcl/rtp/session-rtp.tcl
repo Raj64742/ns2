@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.3 1997/01/26 23:26:37 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.4 1997/01/27 01:16:27 mccanne Exp $
 #
 
 proc mvar args {
@@ -286,6 +286,6 @@ RTCPTimer instproc session-bw { b } {
 
 Agent/RTCP set interval_ 0.
 Agent/RTCP set random_ 0
-Agent/RTCP set cls 32
+Agent/RTCP set class_ 32
 
 RTPSource set srcid_ -1

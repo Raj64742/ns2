@@ -30,40 +30,40 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.2 1997/01/26 23:26:33 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.3 1997/01/27 01:16:24 mccanne Exp $
 #
 Class Link
 Link instproc init { src dst } {
 	$self next
-	$self instvar trace fromNode toNode
-	set fromNode $src
-	set toNode $dst
-	set trace ""
+	$self instvar trace_ fromNode_ toNode_
+	set fromNode_ $src
+	set toNode_ $dst
+	set trace_ ""
 }
 
 Link instproc head {} {
-	$self instvar head
-	return $head
+	$self instvar head_
+	return $head_
 }
 
 Link instproc queue {} {
-	$self instvar queue
-	return $queue
+	$self instvar queue_
+	return $queue_
 }
 
 Class SimpleLink -superclass Link
 
 SimpleLink instproc init { src dst bw delay q } {
 	$self next $src $dst
-	$self instvar link queue head toNode
-	set queue $q
-	set link [new Delay/Link]
-	$link set bandwidth $bw
-	$link set delay $delay
+	$self instvar link_ queue_ head_ toNode_
+	set queue_ $q
+	set link_ [new Delay/Link]
+	$link_ set bandwidth_ $bw
+	$link_ set delay_ $delay
 
-	$queue target $link
-	$link target [$toNode entry]
-	set head $queue
+	$queue_ target $link_
+	$link_ target [$toNode_ entry]
+	set head_ $queue_
 }
 
 #
@@ -71,15 +71,14 @@ SimpleLink instproc init { src dst bw delay q } {
 # update the object linkage
 #
 SimpleLink instproc trace { ns f } {
-	$self instvar enqT deqT drpT queue link head fromNode toNode
-	set enqT [$ns create-trace Enque $f $fromNode $toNode]
-	set deqT [$ns create-trace Deque $f $fromNode $toNode]
-	set drpT [$ns create-trace Drop $f $fromNode $toNode]
-	$drpT target [$ns set nullAgent]
-	$enqT target $queue
-	$queue target $deqT
-	$queue drop-trace $drpT
-	$deqT target $link
-	set head $enqT
+	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
+	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
+	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
+	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
+	$drpT_ target [$ns set nullAgent_]
+	$enqT_ target $queue_
+	$queue_ target $deqT_
+	$queue_ drop-trace $drpT_
+	$deqT_ target $link_
+	set head_ $enqT_
 }
-

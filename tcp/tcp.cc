@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.3 1997/01/26 23:26:28 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.4 1997/01/27 01:16:19 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -53,29 +53,29 @@ public:
 
 TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1)
 {
-	bind("window", &wnd_);
-	bind("window-init", &wnd_init_);
-	bind("window-option", &wnd_option_);
-	bind("window-constant", &wnd_const_);
-	bind("window-thresh", &wnd_th_);
-	bind("overhead", &overhead_);
-	bind("tcp-tick", &tcp_tick_);
-	bind("ecn", &ecn_);
-	bind("packet-size", &size_);
-	bind_bool("bug-fix", &bug_fix_);
-	bind("maxburst", &maxburst_);
-	bind("maxcwnd", &maxcwnd_);
+	bind("window_", &wnd_);
+	bind("windowInit_", &wnd_init_);
+	bind("windowOption_", &wnd_option_);
+	bind("windowConstant_", &wnd_const_);
+	bind("windowThresh_", &wnd_th_);
+	bind("overhead_", &overhead_);
+	bind("tcpTick_", &tcp_tick_);
+	bind("ecn_", &ecn_);
+	bind("packetSize_", &size_);
+	bind_bool("bugFix_", &bug_fix_);
+	bind("maxburst_", &maxburst_);
+	bind("maxcwnd_", &maxcwnd_);
 
-	bind("dupacks", &dupacks_);
-	bind("seqno", &curseq_);
-	bind("ack", &highest_ack_);
-	bind("cwnd", &cwnd_);
-	bind("awnd", &awnd_);
-	bind("ssthresh", &ssthresh_);
-	bind("rtt", &t_rtt_);
-	bind("srtt", &t_srtt_);
-	bind("rttvar", &t_rttvar_);
-	bind("backoff", &t_backoff_);
+	bind("dupacks_", &dupacks_);
+	bind("seqno_", &curseq_);
+	bind("ack_", &highest_ack_);
+	bind("cwnd_", &cwnd_);
+	bind("awnd_", &awnd_);
+	bind("ssthresh_", &ssthresh_);
+	bind("rtt_", &t_rtt_);
+	bind("srtt_", &t_srtt_);
+	bind("rttvar_", &t_rttvar_);
+	bind("backoff_", &t_backoff_);
 }
 
 void TcpAgent::reset()

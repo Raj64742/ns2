@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.4 1997/01/26 23:26:15 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.5 1997/01/27 01:16:12 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -59,10 +59,10 @@ Agent::Agent(int pkttype) :
 	 * XXX warning: we don't use "class" here because it conflicts
 	 * with otcl's member class variable
 	 */
-	bind("cls", &class_);
-	bind("addr", (int*)&addr_);
-	bind("dst", (int*)&dst_);
-	bind("seqno", &seqno_);
+	bind("class_", &class_);
+	bind("addr_", (int*)&addr_);
+	bind("dst_", (int*)&dst_);
+	bind("seqno_", &seqno_);
 }
 
 Agent::~Agent()

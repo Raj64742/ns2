@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.2 1997/01/26 22:32:32 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.3 1997/01/27 01:16:17 mccanne Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -62,7 +62,7 @@ void QueueHandler::handle(Event*)
 Queue::Queue() : drop_(&dnode_), blocked_(0), qh_(*this)
 {
 	Tcl& tcl = Tcl::instance();
-	bind("limit", &qlim_);
+	bind("limit_", &qlim_);
 }
 
 int Queue::command(int argc, const char*const* argv)

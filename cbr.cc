@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.3 1997/01/26 23:26:15 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.4 1997/01/27 01:16:12 mccanne Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -53,8 +53,8 @@ CBR_Agent::CBR_Agent() : Agent(PT_CBR), random_(0)
 {
 	Tcl& tcl = Tcl::instance();
 	bind_time("interval_", &interval_);
-	bind("packet-size", &size_);
-	bind("random", &random_);
+	bind("packetSize_", &size_);
+	bind("random_", &random_);
 	running_ = 0;
 }
 

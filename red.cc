@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.2 1997/01/26 23:26:21 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.3 1997/01/27 01:16:17 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -143,18 +143,18 @@ public:
 
 REDQueue::REDQueue()
 {
-	bind("bytes", &edp_.bytes);
-	bind("thresh", &edp_.th_min);
-	bind("maxthresh", &edp_.th_max);
-	bind("mean_pktsize", &edp_.mean_pktsize);
-	bind("q_weight", &edp_.q_w);
-	bind_bool("wait", &edp_.wait);
-	bind("linterm", &edp_.max_p_inv);
-	bind_bool("setbit", &edp_.setbit);
-	bind_bool("drop-tail", &drop_tail_);
+	bind("bytes_", &edp_.bytes);
+	bind("thresh_", &edp_.th_min);
+	bind("maxthresh_", &edp_.th_max);
+	bind("meanPacketSize_", &edp_.mean_pktsize);
+	bind("queueWeight_", &edp_.q_w);
+	bind_bool("wait_", &edp_.wait);
+	bind("linterm_", &edp_.max_p_inv);
+	bind_bool("setbit_", &edp_.setbit);
+	bind_bool("dropTail_", &drop_tail_);
 
-	bind_bool("doubleq", &doubleq_);
-	bind("dqthresh", &dqthresh_);
+	bind_bool("doubleq_", &doubleq_);
+	bind("dqthresh_", &dqthresh_);
 
 	reset();
 }

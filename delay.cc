@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.2 1997/01/26 23:26:18 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.3 1997/01/27 01:16:14 mccanne Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -62,8 +62,8 @@ LinkDelay::LinkDelay()
 {
 	Tcl& tcl = Tcl::instance();
 	/*XXX*/
-	bind_bw("bandwidth", &bandwidth_);
-	bind_time("delay", &delay_);
+	bind_bw("bandwidth_", &bandwidth_);
+	bind_time("delay_", &delay_);
 }
 
 void LinkDelay::recv(Packet* p, Handler* h)

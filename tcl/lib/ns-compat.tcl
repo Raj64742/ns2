@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.4 1997/01/26 23:26:31 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.5 1997/01/27 01:16:21 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -49,7 +49,7 @@ proc ns args {
 OldSim instproc init args {
 	eval $self next $args
 	puts stderr "warning: using backward compatibility mode"
-	$self instvar classMap
+	$self instvar classMap_
 	#
 	# Catch queue-limit variable which is now "$q limit"
 	#
@@ -73,23 +73,94 @@ OldSim instproc init args {
 		$src set agent $self
 		return $src
 	}
+	#
+	# support for new variable names
+	# it'd be nice to set up mappings on a per-class
+	# basis, but this is too painful.  Just do the
+	# mapping across all objects and hope this
+	# doesn't cause any collisions...
+	#
+	TclObject instproc set args {
+		TclObject instvar varMap_
+		set var [lindex $args 0] 
+		if [info exists varMap_($var)] {
+			set var $varMap_($var)
+			set args "$var [lrange $args 1 end]"
+		}
+		return [eval $self next $args]
+	}
+	# Agent
+	TclObject set varMap_(addr) addr_
+	TclObject set varMap_(dst) dst_
+	TclObject set varMap_(seqno) seqno_
+	TclObject set varMap_(cls) class_
+
+	# Trace
+	TclObject set varMap_(src) src_
+
+	# TCP
+	TclObject set varMap_(window) window_
+	TclObject set varMap_(window-init) windowInit_
+	TclObject set varMap_(window-option) windowOption_
+	TclObject set varMap_(window-constant) windowConstant_
+	TclObject set varMap_(window-thresh) windowThresh_
+	TclObject set varMap_(overhead) overhead_
+	TclObject set varMap_(tcp-tick) tcpTick_
+	TclObject set varMap_(ecn) ecn_
+	TclObject set varMap_(packet-size) packetSize_
+	TclObject set varMap_(bug-fix) bugFix_
+	TclObject set varMap_(maxburst) maxburst_
+	TclObject set varMap_(maxcwnd) maxcwnd_
+	TclObject set varMap_(dupacks) dupacks_
+	TclObject set varMap_(seqno) seqno_
+	TclObject set varMap_(ack) ack_
+	TclObject set varMap_(cwnd) cwnd_
+	TclObject set varMap_(awnd) awnd_
+	TclObject set varMap_(ssthresh) ssthresh_
+	TclObject set varMap_(rtt) rtt_
+	TclObject set varMap_(srtt) srtt_
+	TclObject set varMap_(rttvar) rttvar_
+	TclObject set varMap_(backoff) backoff_
+
+	# Queue
+	TclObject set varMap_(limit) limit_
+
+	# Queue/RED
+	TclObject set varMap_(bytes) bytes_
+	TclObject set varMap_(thresh) thresh_
+	TclObject set varMap_(maxthresh) maxthresh_
+	TclObject set varMap_(mean_pktsize) meanPacketSize_
+	TclObject set varMap_(q_weight) queueWeight_
+	TclObject set varMap_(wait) wait_
+	TclObject set varMap_(linterm) linterm_
+	TclObject set varMap_(setbit) setbit_
+	TclObject set varMap_(drop-tail) dropTail_
+	TclObject set varMap_(doubleq) doubleq_
+	TclObject set varMap_(dqthresh) dqthresh_
+	TclObject set varMap_(subclasses) subclasses_
+
+	# Agent/TCPSinnk, Agent/CBR
+	TclObject set varMap_(packet-size) packetSize_
+
+	# Agent/CBR
+	TclObject set varMap_(random) random_
 
 	Class traceHelper
 	traceHelper instproc attach f {
-		$self instvar file
-		set file $f
+		$self instvar file_
+		set file_ $f
 	}
 	Class linkHelper
 	linkHelper instproc init args {
 		$self next
-		$self instvar node1 node2 link
-		set node1 [lindex $args 0]
-		set node2 [lindex $args 1]
-		set link [$node1 id]:[$node2 id]	    
+		$self instvar node1_ node2_ link_
+		set node1_ [lindex $args 0]
+		set node2_ [lindex $args 1]
+		set link_ [$node1_ id]:[$node2_ id]	    
 	}
 	linkHelper instproc trace traceObj {
-		$self instvar node1 node2
-		ns trace-queue $node1 $node2 [$traceObj set file]
+		$self instvar node1_ node2_
+		ns trace-queue $node1_ $node2_ [$traceObj set file_]
 	}
 
 	#
@@ -98,23 +169,26 @@ OldSim instproc init args {
 	# (in the new simulator queue-limit is limit)
 	#
 	linkHelper instproc set { var val } {
-		$self instvar link
+		$self instvar link_
 		if { $var == "queue-limit" } {
-			set q [[ns set link($link)] queue]
-			$q set limit $val
-		} elseif { $var == "bandwidth" || $var == "delay" } {
-			set d [[ns set link($link)] queue]
-			$d set $var $val
+			set q [[ns set link_($link_)] queue]
+			$q set limit_ $val
+		} elseif { $var == "bandwidth"  || $var == "bandwidth_" } {
+			set d [[ns set link_($link_)] queue]
+			$d set bandwidth_ $val
+		} elseif { $var == "delay"  || $var == "delay_" } {
+			set d [[ns set link_($link_)] queue]
+			$d set delay_ $val
 		}
 	}
 
-	set classMap(tcp) Agent/TCP
-	set classMap(tcp-reno) Agent/TCP/Reno
-	set classMap(cbr) Agent/CBR
-	set classMap(tcp-sink) Agent/TCPSink
-	set classMap(tcp-sink-da) Agent/TCPSink/Delack
-	set classMap(tcp-sack1) Agent/TCP/Sack1
-	set classMap(sack1-tcp-sink) Agent/TCP/Sack1
+	set classMap_(tcp) Agent/TCP
+	set classMap_(tcp-reno) Agent/TCP/Reno
+	set classMap_(cbr) Agent/CBR
+	set classMap_(tcp-sink) Agent/TCPSink
+	set classMap_(tcp-sink-da) Agent/TCPSink/Delack
+	set classMap_(tcp-sack1) Agent/TCP/Sack1
+	set classMap_(sack1-tcp-sink) Agent/TCP/Sack1
 
 	$self instvar queueMap_
 	set queueMap_(drop-tail) DropTail
@@ -127,22 +201,22 @@ OldSim instproc duplex-link-compat { n1 n2 bw delay type } {
 }
 
 OldSim instproc get-queues { n1 n2 } {
-	$self instvar link
+	$self instvar link_
 	set n1 [$n1 id]
 	set n2 [$n2 id]
-	return "[$link($n1:$n2) queue] [$link($n2:$n1) queue]"
+	return "[$link_($n1:$n2) queue] [$link_($n2:$n1) queue]"
 }
 
 OldSim instproc create-agent { node type pktClass } {
 
-	$self instvar Agents PortID classMap
-	if ![info exists classMap($type)] {
+	$self instvar classMap_
+	if ![info exists classMap_($type)] {
 		puts stderr \
 		  "backward compat bug: need to update classMap for $type"
 		exit 1
 	}
-	set agent [new $classMap($type)]
-	$agent set cls $pktClass
+	set agent [new $classMap_($type)]
+	$agent set class_ $pktClass
 	$self attach-agent $node $agent
 
 	$agent proc get var {
@@ -155,7 +229,6 @@ OldSim instproc create-agent { node type pktClass } {
 OldSim instproc create-connection \
 	{ srcType srcNode sinkType sinkNode pktClass } {
 
-	$self instvar PortID NodeID
 	set src [$self create-agent $srcNode $srcType $pktClass]
 	set sink [$self create-agent $sinkNode $sinkType $pktClass]
 	$self connect $src $sink
@@ -167,12 +240,12 @@ OldSim instproc create-connection \
 # return helper object for backward compat of "ns link" command
 #
 OldSim instproc link { n1 n2 } {
-	$self instvar LH
-	if ![info exists LH($n1:$n2)] {
-		set LH($n1:$n2) 1
-		linkHelper LH:$n1:$n2 $n1 $n2
+	$self instvar LH_
+	if ![info exists LH_($n1:$n2)] {
+		set LH_($n1:$n2) 1
+		linkHelper LH_:$n1:$n2 $n1 $n2
 	}
-	return LH:$n1:$n2
+	return LH_:$n1:$n2
 }
 
 OldSim instproc trace {} {
@@ -202,5 +275,5 @@ proc ns_create_connection { srcType srcNode sinkType sinkNode pktClass } {
 # by OTcl instance variables
 #
 Agent instproc connect d {
-	$self set dst $d
+	$self set dst_ $d
 }

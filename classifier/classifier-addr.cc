@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.2 1997/01/26 23:26:16 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.3 1997/01/27 01:16:13 mccanne Exp $";
 #endif
 
 #include "config.h"
@@ -43,8 +43,8 @@ static char rcsid[] =
 class AddressClassifier : public Classifier {
 public:
 	AddressClassifier() : mask_(~0), shift_(0) {
-		bind("mask", (int*)&mask_);
-		bind("shift", &shift_);
+		bind("mask_", (int*)&mask_);
+		bind("shift_", &shift_);
 	}
 protected:
 	int classify(const Packet* p) {

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.2 1997/01/27 01:16:14 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -113,13 +113,13 @@ public:
 IvsSource::IvsSource() : S_(0), R_(0), state_(ST_U),
 	rttShift_(0), keyShift_(0), key_(0), maxrtt_(0)
 {
-	bind("S", &S_);
-	bind("R", &R_);
-	bind("state", &state_);
-	bind("rttShift", &rttShift_);
-	bind("keyShift", &keyShift_);
-	bind("key", &key_);
-	bind("maxrtt", &maxrtt_);
+	bind("S_", &S_);
+	bind("R_", &R_);
+	bind("state_", &state_);
+	bind("rttShift_", &rttShift_);
+	bind("keyShift_", &keyShift_);
+	bind("key_", &key_);
+	bind("maxrtt_", &maxrtt_);
 }
 
 void IvsSource::reset()
@@ -210,11 +210,10 @@ IvsReceiver::IvsReceiver()
 	  lastTime_(0.),
 	  key_(0)
 {
-	bind("ignoreR", &ignoreR_);
-	bind("key", &key_);
-	bind("state", &state_);
-	/*XXX*/
-	bind("packet-size", &size_);
+	bind("ignoreR_", &ignoreR_);
+	bind("key_", &key_);
+	bind("state_", &state_);
+	bind("packetSize_", &size_);
 }
 
 inline void IvsReceiver::update_ipg(double v)

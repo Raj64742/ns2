@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.3 1997/01/26 23:26:28 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.4 1997/01/27 01:16:18 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -113,7 +113,7 @@ void Acker::update(int seq)
 
 TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
 {
-	bind("packet-size", &size_);
+	bind("packetSize_", &size_);
 }
 
 void Acker::build_ack(Packet* newpkt, const Packet *pkt) const
@@ -284,9 +284,9 @@ public:
 
 Sacker::Sacker()
 {
-#ifdef notdef
-        bind("max-sack-blocks", &max_sack_blocks_);
-#endif
+	max_sack_blocks_ = 3;
+        bind("maxSackBlocks", &max_sack_blocks_);
+
 	/*XXX what's the point of binding if this can change?*/
 	sf_ = new SackStack(max_sack_blocks_);
 }

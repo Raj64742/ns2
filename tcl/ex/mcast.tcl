@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.2 1997/01/26 23:26:30 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.3 1997/01/27 01:16:20 mccanne Exp $
 #
 
 #
@@ -62,11 +62,11 @@ $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
 
 set cbr0 [new Agent/CBR]
 $ns attach-agent $n1 $cbr0
-$cbr0 set dst 0x8001
+$cbr0 set dst_ 0x8001
 
 set cbr1 [new Agent/CBR]
-$cbr1 set dst 0x8002
-$cbr1 set cls 1
+$cbr1 set dst_ 0x8002
+$cbr1 set class_ 1
 $ns attach-agent $n3 $cbr1
 
 set rcvr [new Agent/LossMonitor]

@@ -30,55 +30,55 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.2 1997/01/26 23:26:35 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.3 1997/01/27 01:16:26 mccanne Exp $
 #
 
 Class Node
-Node set nn 0
+Node set nn_ 0
 Node proc getid {} {
-	set id [Node set nn]
-	Node set nn [expr $id + 1]
+	set id [Node set nn_]
+	Node set nn_ [expr $id + 1]
 	return $id
 }
 
 Node instproc init args {
 	eval $self next $args
-	$self instvar np id classifier agents dmux neighbor
-	set neighbor ""
-	set agents ""
-	set dmux ""
-	set np 0
-	set id [Node getid]
-	set classifier [new Classifier/Addr]
+	$self instvar np_ id_ classifier_ agents_ dmux_ neighbor_
+	set neighbor_ ""
+	set agents_ ""
+	set dmux_ ""
+	set np_ 0
+	set id_ [Node getid]
+	set classifier_ [new Classifier/Addr]
 	# set up classifer as a router (i.e., 24 bit of addr and 8 bit port)
-	$classifier set mask 0xffffff
-	$classifier set shift 8
+	$classifier_ set mask_ 0xffffff
+	$classifier_ set shift_ 8
 }
 
 Node instproc add-neighbor p {
-	$self instvar neighbor
-	lappend neighbor $p
+	$self instvar neighbor_
+	lappend neighbor_ $p
 }
 
 Node instproc entry {} {
-	$self instvar classifier
-	return $classifier
+	$self instvar classifier_
+	return $classifier_
 }
 
 Node instproc add-route { dst target } {
-	$self instvar classifier
-	$classifier install $dst $target
+	$self instvar classifier_
+	$classifier_ install $dst $target
 }
 
 Node instproc id {} {
-	$self instvar id
-	return $id
+	$self instvar id_
+	return $id_
 }
 
 Node instproc alloc-port {} {
-	$self instvar np
-	set p $np
-	incr np
+	$self instvar np_
+	set p $np_
+	incr np_
 	return $p
 }
 
@@ -87,14 +87,14 @@ Node instproc alloc-port {} {
 # bind the agent to the port number.
 #
 Node instproc attach agent {
-	$self instvar agents classifier id dmux
+	$self instvar agents_ classifier_ id_ dmux_
 	#
 	# assign port number (i.e., this agent receives
 	# traffic addressed to this host and port)
 	#
-	lappend agents $agent
+	lappend agents_ $agent
 	set port [$self alloc-port]
-	$agent set portID $port
+	$agent set portID_ $port
 
 	#
 	# Attach agents to this node (i.e., the classifier inside).
@@ -105,21 +105,20 @@ Node instproc attach agent {
 	# local addr of this agent.
 	#
 	$agent target [$self entry]
-	$agent set node $self
-	$agent set addr [expr $id << 8 | $port]
+	$agent set node_ $self
+	$agent set addr_ [expr $id_ << 8 | $port]
 
 	#
 	# If a port demuxer doesn't exist, create it.
 	#
-	if { $dmux == "" } {
-		set dmux [new Classifier/Addr]
-		$dmux set mask 0xff
-		$dmux set shift 0
+	if { $dmux_ == "" } {
+		set dmux_ [new Classifier/Addr]
+		$dmux_ set mask_ 0xff
+		$dmux_ set shift_ 0
 	}
-	$dmux install $port $agent
+	$dmux_ install $port $agent
 
 	#XXX might as well reset agent here.
 	#XXX should happen at run time
 	$agent reset
 }
-
