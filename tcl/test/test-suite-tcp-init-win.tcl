@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.10 1999/05/27 21:50:26 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.11 2000/07/18 05:20:39 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -127,7 +127,8 @@ TestSuite instproc runall_test {tcp1 dumptime runtime} {
 	$ns_ at 0.0 "$ftp1 start"
 
 	$self tcpDump $tcp1 $dumptime
-	$self traceQueues $node_(r1) [$self openTrace $runtime $testName_]
+	#$self traceQueues $node_(r1) [$self openTrace $runtime $testName_]
+	$ns_ at $runtime "$self cleanupAll $testName_"
 	$ns_ run
 }
 
@@ -142,7 +143,8 @@ TestSuite instproc second_test {tcp1 tcp2} {
 	$ns_ at 0.0 "$ftp2 start"
 
 	$self tcpDump $tcp1 5.0
-	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	#$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_"
 	$ns_ run
 }
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.8 1999/01/22 02:37:30 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.9 2000/07/18 05:20:38 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -158,7 +158,8 @@ Test/sack1 instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ at 5.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -182,7 +183,8 @@ Test/sack1z instproc run {} {
     $self tcpDump $tcp1 1.0
     
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ at 5.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -206,7 +208,8 @@ Test/sack1a instproc run {} {
     $self tcpDump $tcp1 1.0
     
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ at 5.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -231,7 +234,8 @@ Test/sack1aa instproc run {} {
     $self tcpDump $tcp1 1.0
     
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ at 5.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -253,7 +257,8 @@ Test/sack1b instproc run {} {
     $self tcpDump $tcp1 1.0
     
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ at 5.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -275,7 +280,8 @@ Test/sack1c instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ at 5.0 "$self cleanupAll $testName_"
 
     $ns_ run
 }
@@ -310,7 +316,8 @@ Test/sack3 instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
+    $ns_ at 4.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -345,7 +352,8 @@ Test/sack5 instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    $ns_ at 6.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -381,7 +389,8 @@ Test/sack5a instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    $ns_ at 6.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -413,7 +422,8 @@ Test/sackB2 instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
+    $ns_ at 8.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -438,7 +448,8 @@ Test/sackB4 instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+    $ns_ at 2.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -464,7 +475,8 @@ Test/sackB4a instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+    $ns_ at 2.0 "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -491,7 +503,7 @@ Test/sackB4a instproc run {} {
 #     $self tcpDump $tcp1 1.0
 # 
 #     # trace only the bottleneck link
-#     $self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
+#     #$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
 #     $ns_ run
 # }
 
@@ -527,7 +539,7 @@ Test/sackB4a instproc run {} {
 #    $self tcpDump $tcp1 5.0
 #
 #    # trace only the bottleneck link
-#    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+#    #$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 #    $ns_ run
 #}
 #
@@ -565,7 +577,7 @@ Test/sackB4a instproc run {} {
 #    $self tcpDump $tcp1 5.0
 #    
 #    # trace only the bottleneck link
-#    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+#    #$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 #    $ns_ run
 #}
 #
@@ -603,7 +615,7 @@ Test/sackB4a instproc run {} {
 #    $self tcpDump $tcp1 5.0
 #
 #    # trace only the bottleneck link
-#    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+#    #$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 #    $ns_ run
 #}
 
@@ -639,7 +651,7 @@ Test/sackB4a instproc run {} {
 #     $self tcpDump $tcp1 5.0
 # 
 #     # trace only the bottleneck link
-#     $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+#     #$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 #     $ns_ run
 # }
 

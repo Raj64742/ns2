@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.5 1999/01/22 02:37:28 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.6 2000/07/18 05:19:45 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -206,7 +206,8 @@ TestSuite instproc setup {tcptype list} {
         $self tcpDump $tcp1 5.0
         $self drop_pkts $list
 
-        $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+        #$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+	$ns_ at 6.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.4 2000/07/03 06:32:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.5 2000/07/18 05:20:38 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -221,7 +221,8 @@ Test/strict instproc run {} {
 
     $self tcpDump $tcp1 5.0
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
     $ns_ run
 }
 
@@ -343,7 +344,8 @@ Test/tagging instproc run {} {
 
     $self tcpDump $tcp1 5.0
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
     $ns_ run
 }
 

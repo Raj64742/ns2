@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.30 1999/12/04 16:26:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.31 2000/07/18 05:20:38 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -247,7 +247,8 @@ Test/red1 instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 
     $ns_ run
 }
@@ -287,7 +288,8 @@ Test/ecn instproc run {} {
     $self tcpDump $tcp1 5.0
         
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
         
     $ns_ run
 }
@@ -327,7 +329,8 @@ Test/red2 instproc run {} {
     $self tcpDump $tcp1 5.0
     
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 
     $ns_ run
 }
@@ -369,7 +372,8 @@ Test/red_twoway instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 
     $ns_ run
 }
@@ -415,7 +419,8 @@ Test/red_twowaybytes instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 
     $ns_ run
 }
@@ -790,7 +795,8 @@ Test/ungentle instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 
     $ns_ run
 }

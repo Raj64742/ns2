@@ -274,7 +274,8 @@ TestSuite instproc setup {tcptype list} {
 	$ns_ at 1.5  "$ftp3 start"
 	$ns_ at 2.5 "$ftp2 stop"
 	$ns_ at 2.5 "$ftp3 stop"
-	$self traceQueues $node_(r1) [$self openTrace 20.0 $testName_]
+	##$self traceQueues $node_(r1) [$self openTrace 20.0 $testName_]
+	$ns_ at 20.0 "$self cleanupAll $testName_"
     }	
 ################################## seqno-{fastrtx, nofastrtx}
     if {$tcptype == "seqno-fastrtx" || $tcptype == "seqno-nofastrtx" } {
@@ -306,7 +307,8 @@ TestSuite instproc setup {tcptype list} {
 	$tcp1 set add793slowstart_ true
 	
 	$ns_ at 0.5 "$ftp1 produce 100000"	
-	$self traceQueues $node_(r1) [$self openTrace 1.25 $testName_]
+	#$self traceQueues $node_(r1) [$self openTrace 1.25 $testName_]
+	$ns_ at 1.25 "$self cleanupAll $testName_"
     }
 
 ################################## rto-{karn, nokarn}
@@ -343,7 +345,8 @@ TestSuite instproc setup {tcptype list} {
 	$ns_ at 0.0  "$self plotsrtt $tcp1 0.25"
 	$ns_ at 0.5 "$ftp1 produce 100000"
 
-	$self traceQueues $node_(r1) [$self openTrace 50.0 $testName_]
+	#$self traceQueues $node_(r1) [$self openTrace 50.0 $testName_]
+	$ns_ at 50.0 "$self cleanupAll $testName_"
 	}
 
 ##################################  jacobson88-noss
@@ -377,7 +380,8 @@ TestSuite instproc setup {tcptype list} {
 		$tcp1 set add793slowstart_ true
 	}
 	$ns_ at 0.0 "$ftp1 start"
-	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	#$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_"
 	}
 
     

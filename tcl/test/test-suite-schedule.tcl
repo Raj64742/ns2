@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.6 1999/01/22 02:37:30 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.7 2000/07/18 05:20:39 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-schedule.tcl
@@ -146,7 +146,8 @@ TestSuite instproc runDetailed {} {
         $self tcpDump $tcp1 5.0
         $self tcpDump $tcp2 5.0
 
-        $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+        #$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 

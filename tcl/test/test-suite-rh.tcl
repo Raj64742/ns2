@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rh.tcl,v 1.1 2000/07/07 22:04:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rh.tcl,v 1.2 2000/07/18 05:20:38 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -365,7 +365,8 @@ TestSuite instproc netsetup { {stoptime 3.0} {ecnmode false} } {
     $redq set maxthresh_ 20
         
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 }
 
 TestSuite instproc tcpsetup { tcptype {starttime 0.0} {numpkts 10000} {ssthresh 30} { tcp1fid 0 } { delack 0 }  {src s1} {dst s3} } {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.30 2000/07/06 17:04:30 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.31 2000/07/18 05:19:44 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -340,7 +340,8 @@ Test/slowStart instproc run {} {
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -411,7 +412,8 @@ Test/slowStartTcp instproc run {} {
     $self tfccDump 2 $tcp2 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -490,7 +492,8 @@ Test/impulse instproc run {} {
     $self tfccDump 2 $tf2 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -574,7 +577,8 @@ Test/impulseMultReport instproc run {} {
     $self tfccDump 2 $tf2 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -618,7 +622,8 @@ Test/impulseTcp instproc run {} {
     $self tfccDump 2 $tcp2 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -670,7 +675,8 @@ Test/two-friendly instproc run {} {
     $self runTcps
     
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -707,7 +713,8 @@ Test/OnlyTcp instproc run {} {
     $self runTcps
     
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -800,7 +807,8 @@ Test/slow instproc run {} {
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -874,7 +882,8 @@ Test/twoDrops instproc run {} {
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -923,7 +932,8 @@ Test/HighLoss instproc run {} {
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -971,7 +981,8 @@ Test/HighLossTCP instproc run {} {
 		$ns_ at [expr 2.0*$stopTime1_/3.0] "$cbr1 stop"   
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_"
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
@@ -1012,7 +1023,8 @@ Test/printLosses instproc run {} {
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
-    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_"
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.1 2000/05/27 23:49:24 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.2 2000/07/18 05:19:45 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -143,7 +143,8 @@ Test/links instproc run {} {
 
         $self tcpDump $tcp1 5.0
 
-        $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+        ###$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
@@ -173,7 +174,8 @@ Test/changeDelay instproc run {} {
 
         $self tcpDump $tcp1 5.0
 
-        $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+        ##$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
@@ -201,7 +203,8 @@ Test/links1 instproc run {} {
 
         $self tcpDump $tcp1 5.0
 
-        $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+        ##$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
@@ -227,7 +230,8 @@ Test/changeBandwidth instproc run {} {
 
         $self tcpDump $tcp1 5.0
 
-        $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+        ##$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_"
         $ns_ run
 }
 
