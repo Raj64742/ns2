@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.184 2000/01/10 05:09:02 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.185 2000/01/31 07:40:02 sfloyd Exp $
 
 
 #
@@ -213,8 +213,8 @@ Agent/TFRCSink set NumFeedback_ 1
 Agent/TFRCSink set AdjustHistoryAfterSS_ 1
 Agent/TFRCSink set NumSamples_ -1
 Agent/TFRCSink set discount_ 0
-Agent/TFRCSink set domax_ 1
 Agent/TFRCSink set printLoss_ 0
+Agent/TFRCSink set smooth_ 0
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency

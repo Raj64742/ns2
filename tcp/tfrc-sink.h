@@ -90,6 +90,8 @@ protected:
 	double rtt_;		// rtt value reported by sender
 	double tzero_;		// timeout value reported by sender
 	double flost_;		// frequency of loss events computed by the receiver
+	int smooth_;		// for the smoother method for incorporating
+				//  incorporating new loss intervals
 
 	// these assist in keep track of incming packets and calculate flost_
 	double last_timestamp_, last_arrival_;
@@ -122,6 +124,4 @@ protected:
 
 	int discount ;		// emphasize most recent loss interval
 				//  when it is very large
-	int domax ;		// ignore most recent loss interval when 
-				//  it is very small and does not end in loss
 }; 

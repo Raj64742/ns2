@@ -57,8 +57,8 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("AdjustHistoryAfterSS_", &adjust_history_after_ss);
 	bind ("NumSamples_", &numsamples);
 	bind ("discount_", &discount);
-	bind ("domax_", &domax);
 	bind ("printLoss_", &printLoss_);
+	bind ("smooth_", &smooth_);
 
 	rate_ = 0; 
 	rtt_ =  0; 
@@ -262,15 +262,13 @@ double TfrcSinkAgent::est_loss ()
 	}
 	// Calculations including the most recent loss interval.
 	ave_interval1 = weighted_average(0, ds, mult_factor_, mult, weights, sample);
-	if (domax) {
-		// The most recent loss interval does not end in a loss
-		// event.  Include the most recent interval in the 
-		// calculations only if this increases the estimated loss
-		// interval.
-		ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
-		if (ave_interval2 > ave_interval1)
-			ave_interval1 = ave_interval2;
-	}
+	// The most recent loss interval does not end in a loss
+	// event.  Include the most recent interval in the 
+	// calculations only if this increases the estimated loss
+	// interval.
+	ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
+	if (ave_interval2 > ave_interval1)
+		ave_interval1 = ave_interval2;
 	if (ave_interval1 > 0) { 
 		if (printLoss_ > 0) 
 			print_loss(sample[0], ave_interval1);
@@ -292,20 +290,36 @@ double TfrcSinkAgent::weighted_average(int start, int end, double factor, double
 	int i; 
 	double wsum = 0;
 	double answer = 0;
-	for (i = start ; i < end; i++) 
-		if (i==0)
-			wsum += m[i]*w[i];
-		else 
-			wsum += factor*m[i]*w[i];
-	for (i = start ; i < end; i++)  
-		if (i==0)
-		 	answer += m[i]*w[i]*sample[i]/wsum;
-		else 
-			answer += factor*m[i]*w[i]*sample[i]/wsum;
-        return answer;
+	if (smooth_ > 0 && start == 0) {
+		// effectively shift the arrays 
+		for (i = start ; i < end - 1; i++) 
+			if (i==0)
+				wsum += m[i+1]*w[i+1];
+			else 
+				wsum += factor*m[i+1]*w[i+1];
+		for (i = start ; i < end; i++)  
+			if (i==0)
+			 	answer += m[i+1]*w[i+1]*sample[i]/wsum;
+			else 
+				answer += factor*m[i+1]*w[i+1]*sample[i]/wsum;
+	        return answer;
+
+	} else {
+		for (i = start ; i < end; i++) 
+			if (i==0)
+				wsum += m[i]*w[i];
+			else 
+				wsum += factor*m[i]*w[i];
+		for (i = start ; i < end; i++)  
+			if (i==0)
+			 	answer += m[i]*w[i]*sample[i]/wsum;
+			else 
+				answer += factor*m[i]*w[i]*sample[i]/wsum;
+	        return answer;
+	}
 }
 
-// Shift array.
+// Shift array a[] up, starting with a[sz-2] -> a[sz-1].
 void TfrcSinkAgent::shift_array(int *a, int sz) 
 {
 	int i ;
@@ -315,7 +329,7 @@ void TfrcSinkAgent::shift_array(int *a, int sz)
 	a[0] = 0;
 }
 
-// Shift array, inserting default value at the bottom.
+// Shift array a[], inserting default value defval at the bottom.
 void TfrcSinkAgent::shift_array_new(double *a, int sz, double defval) {
 	int i ;
 	for (i = sz-2 ; i >= 0 ; i--) {
