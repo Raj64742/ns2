@@ -37,14 +37,3 @@ Agent/Null instproc init args {
 
 Agent/LossMonitor instproc log-loss {} {
 }
-
-Agent/TCPSimple instproc opencwnd {} {
-	$self instvar cwnd_
-	set cwnd_ [expr $cwnd_ + 1.0 / $cwnd_]
-}
-
-Agent/TCPSimple instproc closecwnd {} {
-	$self instvar cwnd_
-	set cwnd_ [expr 0.5 * $cwnd_]
-}
-
