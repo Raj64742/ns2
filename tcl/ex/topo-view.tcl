@@ -1,14 +1,19 @@
 ################ XXX temp to view the topology using nam.. !! ###
 
-proc view-topology { infile outfile } {
+proc view-topology { infile outfile hier_flag } {
         source $infile
+	global ns node
 	set f [open $outfile w]
         set ns [new Simulator]
-
+	
         $ns namtrace-all $f
 
         # create-topology ... [params]..
-        create-topology ns node 1.5Mb
+	if {$hier_flag} {
+		create-hier-topology ns node 1.5Mb
+	} else {
+		create-topology ns node 1.5Mb
+	}
 
         #... dump the file
         $ns dump-topology $f
