@@ -16,11 +16,12 @@ session sim with various memory conservation solutions.
 
 # nodes in topo		Mem consumption (in MB)
 		session		with delay_bind		with hierarchial
-512-1023	   40		  10			
-1024-2047	  160		  40			  13
-2048-4095	  640		 160			  30
-4096-8191	 2560		 640			 180
-8192-16384	10240		2560			1067
+		connectivity ~1.8			connectivity ~3-4
+512-1023	   16		  10			  
+1024-2047	   46		  40			  16 (1040 node)
+2048-4095	  180		 160			  40 (2080 node)
+4096-8191	  720		 640			 169 (5120 node)
+8192-16384	 2886		2560			1049 (10075 node)
 
 Currently, the set of simulations running with hierarchial routing uses
 different topologies than the set without hierarchial routing does. We're
