@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38.2.2 1998/07/16 23:14:19 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38.2.3 1998/08/28 18:44:05 yuriy Exp $
 #
 
 Class Node
@@ -106,13 +106,13 @@ Node instproc entry {} {
 	if [info exists router_supp_] {
 		return $router_supp_
 	}
-	$self instvar ns_
-	if { [$ns_ multicast?] } {
-		$self instvar switch_
-		return $switch_
-	}
-	$self instvar classifier_
-	return $classifier_
+        $self instvar ns_
+        if { [$ns_ multicast?] } {
+                $self instvar switch_
+                return $switch_
+        }
+        $self instvar classifier_
+        return $classifier_
 }
 
 Node instproc add-route { dst target } {

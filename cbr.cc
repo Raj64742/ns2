@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.21 1998/07/07 22:49:34 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.21.2.1 1998/08/28 18:44:03 yuriy Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
