@@ -83,7 +83,7 @@ Mac::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p);
-	channel_->send(p, txt + delay_);
+	channel_->send(p, p->target(), txt + delay_);
 	s.schedule(callback_, &intr_, txt);
 }
 
