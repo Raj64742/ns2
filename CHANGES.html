@@ -6,20 +6,19 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.519 2002/05/22 18:57:07 johnh Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.520 2002/05/22 20:45:29 buchheim Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
 This ChangeLog is updated in the reverse order 
 with the most recent changes coming first.
 -->
+
 <hr>
-<h3>
-
-ns-2.1b9 released on Sat Apr 13 16:26:33 PDT 2002</h3>
-
-
+<h3>ns-2.1b10
+[PENDING RELEASE DATE]</h3>
 <ul>
+
 <p><li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Wed May 22 11:51:40 PDT 2002
 </b></li>
      <p> Added autoconf detection of STL namespace (ported from lavaps :-).
@@ -31,7 +30,7 @@ Added map scheduler that uses STL map and dequeue collections to implement a sch
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Tue May  7 10:39:21 PDT 2002
 Added patches for bug fix in queue from George Riley. Files changed are:
-queue.cc, drop-tail.cc, semantic-packetqueue.cc & semantic-packetqueue.h
+queue.cc, drop-tail.cc, semantic-packetqueue.cc &amp; semantic-packetqueue.h
 Packet-queue now returns the last tail, everytime a new pkt in enqueued;
 
 
@@ -48,6 +47,13 @@ p < mark_p, the selected packet is marked if ECN is being used.
 When p > mark_p, the selected packet is dropped instead of marked, whether 
 or not ECN is being used.  By default, mark_p_ is set to 0.1, and with 
 this setting, the behavior of the validation tests is unchanged.
+</ul>
+
+<hr>
+<h3>
+<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b9.tar.gz">ns-2.1b9</a> released on Sat Apr 13 16:26:33 PDT 2002</h3> 
+
+<ul>
 
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Wed Apr 10 13:27:37 PDT 2002
