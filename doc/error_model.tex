@@ -131,6 +131,61 @@ to insert an error module into three different places.
 \end{itemize}
 
 
+\section{Commands at a glance}
+\label{sec:errmodelcommand}
+
+The following is a list of error-model related commands commonly used in
+simulation scripts:
+
+\begin{program}
+set em [new ErrorModel]
+$em unit pkt
+$em set rate_ 0.02
+$em ranvar [new RandomVariable/Uniform]
+$em drop-target [new Agent/Null]
+\end{program}
+This is a simple example of how to create and configure an error model.
+The commands to place the error-model in a simple link will be shown next.
+
+
+\begin{program}
+$simplelink errormodule  <args>
+\end{program}
+This commands inserts the error-model before the queue object in simple link.
+However in this case the error-model's drop-target points to the link's
+\code{drophead_} element.
+
+
+\begin{program}
+$ns_ lossmodel <em> <src> <dst>
+\end{program}
+This command places the error-model before the queue in a simplelink defined
+by the <src> and <dst> nodes. This is basically a wrapper for the above method.
+
+
+\begin{program}
+$simplelink insert-linkloss <args>
+\end{program}
+This inserts a loss-module after the queue, but right before the delay \code{link_}
+element in the simple link. This is because nam can visualize a packet drop
+only if the packet is on the link or in the queue. The error-module's
+drop-target points to the link's \code{drophead_} element.
+
+
+\begin{program}
+$ns_ link-lossmodel <em> <src> <dst>
+\end{program}
+This too is a wrapper method for insert-linkloss method described above.
+That is this inserts the error-module right after the queue element in a
+simple link (src-dst).
+
+In addition to the methods described above for the class ErrorModel, there
+are several other types of error modules derived from this base class like
+SRMErrorModel, ErrorModel/Trace, ErrorModel/Periodic etc. These definitions
+can be found in \ns/tcl/lib/{ns-errmodel.tcl and ns-default.tcl}.
+
+
+
 % Local Variables:
 % TeX-master: "everything"
 % LocalWords:

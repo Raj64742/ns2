@@ -538,6 +538,78 @@ nodes connected by parallel simple links and use them both (the array
 connected pair of source and destination, and it can be only one
 object per source/destination pair).
 
+\section{Commands at a glance}
+\label{sec:lancommand}
+
+\begin{program}
+$ns_ make-lan  <nodelist> <bw> <delay> <LL> <ifq> <MAC> <channel> <phy>
+\end{program}
+Creates a lan from a set of nodes given by <nodelist>. Bandwidth, delay characteristics
+along with the link-layer, Interface queue, Mac layer and channel type for the
+lan also needs to be defined. Default values used are as follows:
+<LL> .. LL
+<ifq>.. Queue/DropTail
+<MAC>.. Mac
+<channel>.. Channel
+<phy>.. Phy/WiredPhy
+
+
+\begin{program}
+$ns_ newLan <nodelist> <BW> <delay> <args>
+\end{program}
+This command creates a lan similar to make-lan described above. But this
+command can be used for finer control whereas make-lan is a more convinient and
+easier command. For example newLan maybe used to create a lan with hierarchical
+addresses. See \ns/tcl/ex/{vlantest-hier.tcl, vlantest-mcst.tcl, lantest.tcl,
+mac-test.tcl} for usage of newLan. The possible argument types that can be passed
+are LL, ifq, MAC, channel, phy and address.
+
+\begin{program}
+$lannode cost <c>
+\end{program}
+This assigns a cost of c/2 to each of the (uni-directional) links in the lan.
+
+\begin{program}
+$lannode cost?
+\end{program}
+Returns the cost of (bi-directional) links in the lan, i.e c.
+
+
+Internal procedures :
+
+\begin{program}
+$lannode addNode <nodes> <bw> <delay> <LL> <ifq> <MAC> <phy>
+\end{program}
+Lan is implemented as a virtual node. The LanNode mimics a real node and uses
+an address (id) from node's address space.
+This command adds a list of <nodes> to the lan represented by lannode.
+The bandwidth, delay and network characteristics of nodes are given by
+the above arguments. This is an internal command used by make-lan and newLan.
+
+\begin{program}
+$lannode id
+\end{program}
+Returns the virtual node's id.
+
+\begin{program}
+$lannode node-addr
+\end{program}
+Returns virtual nodes's address.
+
+\begin{program}
+$lannode dump-namconfig
+\end{program}
+This command creates a given lan layout in nam. This function may be changed
+to redefine the lan layout in a different way.
+
+\begin{program}
+$lannode is-lan?
+\end{program}
+This command always returns 1, since the node here is a virtual node
+representing a lan. The corresponding command for node \code{$node is-lan?}
+always returns a 0.
+
+
 %\end{document}
 \endinput
 
