@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.22 1998/08/22 02:40:58 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.23 1998/12/10 18:58:09 haldar Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -80,6 +80,12 @@ typedef int32_t nsmask_t;
 #define TRUE		1
 #define FALSE		0
 
+#ifndef bzero
+#define bzero(dest,count) memset(dest,0,count)
+#endif
+#ifndef bcopy
+#define bcopy(src,dest,size) memcpy(dest,src,size)
+#endif
 
 #include <stdlib.h>
 #if (defined(__hpux) || defined(_AIX)) && defined(__cplusplus)
