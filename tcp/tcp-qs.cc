@@ -30,6 +30,8 @@
  *
  * Srikanth Sundarrajan, 2002
  * sundarra@usc.edu
+ *
+ * Modifications: Pasi Sarolahti <pasi.sarolahti@iki.fi>, Sept. 2004
  */
 
 #include <stdio.h>
@@ -156,7 +158,9 @@ QSNewRenoTcpAgent::recv(Packet *pkt, Handler *hand)
 
 		if (qsh->flag() == QS_RESPONSE && qsh->ttl() == ttl_diff_ && qsh->rate() > 0) {
 			printf("Quick Start approved\t");
-			app_rate = (int) (qsh->rate() * (now - tcph->ts_echo()));
+                        // PS: Convert rate to initial window in pkts
+                        app_rate = (int) (hdr_qs::rate_to_Bps(qsh->rate()) *
+                            (now - tcph->ts_echo()) / (size_ + headersize()));
 			if (app_rate > initial_window()) {
 				rbp_mode_ = RBP_POSSIBLE;
 				wnd_init_option_ = 1;
@@ -287,7 +291,8 @@ void QSNewRenoTcpAgent::output(int seqno, int reason)
 		Random::seed_heuristically();
 		qsh->ttl() = Random::integer(256);
 		ttl_diff_ = (iph->ttl() - qsh->ttl()) % 256;
-		qsh->rate() = rate_request_;
+                // PS: rate_request_ parameter is in KB/sec
+                qsh->rate() = hdr_qs::Bps_to_rate(rate_request_ * 1024);
 	}
 	else {
 		qsh->flag() = QS_DISABLE;
@@ -417,7 +422,7 @@ void QSTcpSink::ack(Packet* opkt)
 	if (otcp->seqno() == 0 && oqsh->flag() == QS_REQUEST) {
 		nqsh->flag() = QS_RESPONSE;
 		nqsh->ttl() = (oiph->ttl() - oqsh->ttl()) % 256;
-		nqsh->rate() = (oqsh->rate() < MWS) ? oqsh->rate() : MWS;
+		nqsh->rate() = oqsh->rate();
 	}
 	else {
 		nqsh->flag() = QS_DISABLE;

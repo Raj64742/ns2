@@ -60,6 +60,7 @@ public:
 	virtual int CheckUpdate() {return (changed_);}
 	virtual int CheckSndNxt (hdr_tcp*);
 	virtual int GetNextUnacked (int seqno);
+	virtual void Dump();
 protected:	
 	int h_seqno_;
 	int sack_min;	// highest cumulative ack seen so far, plus one

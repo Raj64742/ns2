@@ -58,6 +58,8 @@ public:
 	}
 } class_QSAgent;
 
+int QSAgent::rate_function_ = 1;
+
 QSAgent::QSAgent():Agent(PT_TCP), old_classifier_(NULL), qs_enabled_(1), 
     qs_timer_(this) 
 {
@@ -71,6 +73,7 @@ QSAgent::QSAgent():Agent(PT_TCP), old_classifier_(NULL), qs_enabled_(1),
 	bind("alloc_rate_", &alloc_rate_);
 	bind("max_rate_", &max_rate_);
 	bind("mss_", &mss_);
+	bind("rate_function_", &rate_function_);
 
 	qs_timer_.resched(state_delay_);
   
@@ -87,7 +90,7 @@ int QSAgent::command(int argc, const char*const* argv)
 
 void QSAgent::recv(Packet* packet, Handler*)
 {
-	int app_rate;
+	double app_rate;
 	double avail_bw, util;
 	Classifier * pkt_target;
 	Tcl& tcl = Tcl::instance();
@@ -100,9 +103,6 @@ void QSAgent::recv(Packet* packet, Handler*)
 		pkt_target = (Classifier *)TclObject::lookup(old_classifier_->name());
 
 	if (qs_enabled_) {
-		/*if ((qsh->flag() == QS_REQUEST || qsh->flag() == QS_RESPONSE) && qsh->rate() > 0) 
-		printf("%d: got flag = %d, ttl1 = %d, ttl2 = %d, rate = %d\n", 
-		addr(), qsh->flag(), iph->ttl(), qsh->ttl(), qsh->rate());*/
 		if (qsh->flag() == QS_REQUEST && qsh->rate() > 0 && iph->daddr() != addr()) {
 			sprintf (qname, "[Simulator instance] get-queue %d %d", addr(), iph->daddr()); 
 			tcl.evalc (qname);
@@ -114,70 +114,32 @@ void QSAgent::recv(Packet* packet, Handler*)
 
 			if (link != NULL && queue != NULL) {
 				util = queue->utilization();
-				avail_bw = link->bandwidth() / 8 * (1 - util) / mss_;
+				// PS: avail_bw is in units of bytes per sec.
+				avail_bw = link->bandwidth() / 8 * (1 - util);
 				avail_bw -= (prev_int_aggr_ + aggr_approval_);
 				avail_bw *= alloc_rate_;
-				printf("%d: requested = %d, available = %f\n", addr(), qsh->rate(), avail_bw);
-				app_rate = (avail_bw < (double)qsh->rate()) ? (int) avail_bw : qsh->rate();
-				app_rate = (app_rate < max_rate_) ? app_rate : max_rate_;
+
+				double qs_Bps = hdr_qs::rate_to_Bps(qsh->rate());
+#ifdef QS_DEBUG
+				printf("%d: requested = %d (%f KBps), available = %f KBps\n", addr(), qsh->rate(), qs_Bps/1024, avail_bw/1024);
+#endif				
+				app_rate = (avail_bw < qs_Bps) ?
+					(int) avail_bw : qs_Bps;
+				app_rate = (app_rate < (max_rate_ * 1024)) ?
+					app_rate : (max_rate_ * 1024);
 				if (app_rate > 0) {    
 					aggr_approval_ += app_rate; // add approved to current bucket
 					qsh->ttl() -= 1;
-					qsh->rate() = app_rate; //update rate
+					qsh->rate() = hdr_qs::Bps_to_rate(app_rate); //update rate
 				}
 				else {
 					qsh->rate() = 0; //disable quick start, not enough bandwidth
 					qsh->flag() = QS_DISABLE;
 				}
 			}
-      }
-  }
-
-#if 0   
-  if (qs_enabled_) {
-      /*if ((qsh->flag() == QS_REQUEST || qsh->flag() == QS_RESPONSE) && qsh->rate() > 0) 
-          printf("%d: got flag = %d, ttl1 = %d, ttl2 = %d, rate = %d\n", 
-              addr(), qsh->flag(), iph->ttl(), qsh->ttl(), qsh->rate());*/
-      if (qsh->flag() == QS_REQUEST && qsh->rate() > 0 && iph->daddr() != addr()) {
-          Connector * head = (Connector *) pkt_target->find(packet);
-          if (head) {
-              //printf("%d: got head %s %p\n", addr(), head->name(), head);
-              Connector * enqT = (Connector *) head->target();
-              if (enqT) {
-                  //printf("%d: got enqT %s %p\n", addr(), enqT->name(), enqT);
-                  Queue * queue = (Queue *) enqT->target();
-                  if (queue) {
-                      //printf("%d: got queue %s %p\n", addr(), queue->name(), queue);
-                      Connector * deqT = (Connector *) queue->target();
-                      if (deqT) {
-                          //printf("%d: got deqT %s %p\n", addr(), deqT->name(), deqT);
-                          LinkDelay * link = (LinkDelay *) deqT->target();
-                          if (link) {
-							  util = queue->utilization();
-                              avail_bw = link->bandwidth() / 8 * (1 - util) / mss_;
-                              avail_bw -= (prev_int_aggr_ + aggr_approval_);
-                              avail_bw *= alloc_rate_;
-                              printf("%d: requested = %d, available = %f\n", addr(), qsh->rate(), avail_bw);
-                              app_rate = (avail_bw < (double)qsh->rate()) ? (int) avail_bw : qsh->rate();
-                              app_rate = (app_rate < max_rate_) ? app_rate : max_rate_;
-                              if (app_rate > 0) {    
-                                  aggr_approval_ += app_rate; // add approved to current bucket
-                                  qsh->ttl() -= 1;
-                                  qsh->rate() = app_rate; //update rate
-                              }
-                              else {
-                                  qsh->rate() = 0; //disable quick start, not enough bandwidth
-                                  qsh->flag() = QS_DISABLE;
-                              }
-                          }
-                      }
-                  }
-              }
-          }
-      }
-  }
-#endif
-
+		}
+	}
+	
 	if (pkt_target) 
 		pkt_target->recv(packet, 0);
 	else {
@@ -197,3 +159,10 @@ void QSTimer::expire(Event *e) {
 	this->resched(qs_handle_->state_delay_);
 
 }
+
+
+/*
+Local Variables:
+c-basic-offset: 8
+End:
+*/

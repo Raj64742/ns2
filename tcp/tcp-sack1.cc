@@ -281,11 +281,7 @@ Sack1TcpAgent::dupack_action()
 	}
 
 sack_action:
-	// we are now going into fast_recovery and will trace that event
-	trace_event("FAST_RECOVERY");
-
 	recover_ = maxseq_;
-	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	if (oldCode_) {
 	 	pipe_ = int(cwnd_) - numdupacks(cwnd_);
 	} else if (singledup_ && LimTransmitFix_) {
@@ -295,15 +291,20 @@ sack_action:
 		  // numdupacks(cwnd_) packets have left the pipe
 		  pipe_ = maxseq_ - highest_ack_ - numdupacks(cwnd_);
 	}
-	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
 	fastrecov_ = TRUE;
 	scb_->MarkRetran(highest_ack_+1);
-	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
-	/*
-	 * If dynamically adjusting numdupacks_, record information
-	 *  at this point.
-	 */
+        if (!lossQuickStart()) {
+                // we are now going into fast_recovery and will trace that event
+                trace_event("FAST_RECOVERY");
+                last_cwnd_action_ = CWND_ACTION_DUPACK;
+                slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+		output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
+		/*
+		 * If dynamically adjusting numdupacks_, record information
+		 *  at this point.
+		 */
+	}
 	return;
 }
 

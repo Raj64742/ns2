@@ -111,3 +111,7 @@ int ScoreBoardRQ::CheckSndNxt(hdr_tcp* h) {
 	printf("ScoreBoardRQ::CheckSndNxt not implemented\n");
 	exit(1);
 }
+
+void ScoreBoardRQ::Dump() {
+  rq_.dumplist();
+}

@@ -243,3 +243,25 @@ void ScoreBoard::resizeSB(int sz)
 	SBN = newSBN;
 	sbsize_ = sz;
 }
+
+void ScoreBoard::Dump()
+{
+       int i;
+
+       printf("SB len: %d  ", length_);
+       if (length_) {
+               for (i=SBN[(first_)%sbsize_].seq_no_; 
+                    i<SBN[(first_)%sbsize_].seq_no_+length_; i++) {
+                       printf("seq: %d  [ ", i);
+                       if(SBNI.ack_flag_)
+                               printf("A");
+                       if(SBNI.sack_flag_)
+                               printf("S");
+                       if(SBNI.retran_)
+                               printf("R");
+                       printf(" ]");
+               }
+       }
+       printf("\n");
+}
+

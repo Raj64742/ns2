@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.152 2004/07/27 21:02:29 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.153 2004/09/22 22:53:44 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -76,7 +76,8 @@ TcpAgent::TcpAgent()
 	  maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
 	  ect_(0), lastreset_(0.0),
 	  restart_bugfix_(1), closed_(0), nrexmit_(0),
-	  first_decrease_(1), qs_requested_(0), qs_approved_(0)
+	  first_decrease_(1), qs_requested_(0), qs_approved_(0),
+	  qs_window_(0), qs_cwnd_(0)
 	
 {
 #ifdef TCP_DELAY_BIND_ALL
@@ -177,6 +178,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("LimTransmitFix_");
 	delay_bind_init_one("rate_request_");
 	delay_bind_init_one("qs_enabled_");
+	delay_bind_init_one("tcp_qs_recovery_");
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
@@ -275,7 +277,8 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "LimTransmitFix_", &LimTransmitFix_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "rate_request_", &rate_request_ , tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_ , tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "tcp_qs_recovery_", &tcp_qs_recovery_, tracer)) return TCL_OK;
 
 
 #ifdef TCP_DELAY_BIND_ALL
@@ -672,7 +675,7 @@ void TcpAgent::output(int seqno, int reason)
 				Random::seed_heuristically();
 				qsh->ttl() = Random::integer(256);
 				ttl_diff_ = (iph->ttl() - qsh->ttl()) % 256;
-				qsh->rate() = rate_request_;
+				qsh->rate() = hdr_qs::Bps_to_rate(rate_request_* 1024);
 				qs_requested_ = 1;
 		    	} else {
 				qsh->flag() = QS_DISABLE;
@@ -1318,6 +1321,11 @@ int TcpAgent::network_limited() {
 void TcpAgent::recv_newack_helper(Packet *pkt) {
 	//hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
+        if (qs_window_ && highest_ack_ >= qs_window_) {
+                // All segments in the QS window have been acknowledged.
+                // We can exit the Quick-Start phase.
+                qs_window_ = 0;
+        }
 	if (!ect_ || !hdr_flags::access(pkt)->ecnecho() ||
 		(old_ecn_ && ecn_burst_)) {
 		/* If "old_ecn", this is not the first ACK carrying ECN-Echo
@@ -1357,6 +1365,11 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 double
 TcpAgent::initial_window()
 {
+        // If Quick-Start Request was approved, use that as a basis for
+        // initial window
+        if (qs_cwnd_) {
+                return (qs_cwnd_);
+        }
 	//
 	// init_option = 1: static iw of wnd_init_
 	//
@@ -1442,12 +1455,13 @@ TcpAgent::dupack_action()
 	}
 
 tahoe_action:
-	// we are now going to fast-retransmit and willtrace that event
-	trace_event("FAST_RETX");
-
-	recover_ = maxseq_;
-	last_cwnd_action_ = CWND_ACTION_DUPACK;
-	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);
+        recover_ = maxseq_;
+        if (!lossQuickStart()) {
+		// we are now going to fast-retransmit and willtrace that event
+		trace_event("FAST_RETX");
+		last_cwnd_action_ = CWND_ACTION_DUPACK;
+		slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);
+	}
 	reset_rtx_timer(0,0);
 	return;
 }
@@ -1459,6 +1473,8 @@ tahoe_action:
 void TcpAgent::endQuickStart()
 {
 	qs_approved_ = 0;
+        qs_cwnd_ = 0;
+        qs_window_ = maxseq_;
 	int new_cwnd = maxseq_ - last_ack_;
 	if (new_cwnd > 1 && new_cwnd < cwnd_) {
 	 	cwnd_ = new_cwnd;
@@ -1482,18 +1498,52 @@ void TcpAgent::processQuickStart(Packet *pkt)
 	if (qsh->flag() == QS_RESPONSE && qsh->ttl() == ttl_diff_ && 
             qsh->rate() > 0) {
                 app_rate = (int) (qsh->rate() * (now - tcph->ts_echo())) ;
+                app_rate = (int) (hdr_qs::rate_to_Bps(qsh->rate()) *
+                      (now - tcph->ts_echo()) / (size_ + headersize()));
+#ifdef QS_DEBUG
 		printf("Quick Start approved, rate %d, window %d\n", 
 				     qsh->rate(), app_rate);
+#endif
                 if (app_rate > initial_window()) {
-                        wnd_init_option_ = 1;
-                        wnd_init_ = app_rate;
+			qs_cwnd_ = app_rate;
                         qs_approved_ = 1;
                 }
         } else { // Quick Start rejected
+#ifdef QS_DEBUG
                 printf("Quick Start rejected\n");
+#endif
         }
 
 }
+
+
+/*
+ * Loss occurred in Quick-Start window.
+ * If Quick-Start is enabled, packet loss in the QS phase should
+ * trigger slow start instead of the regular fast retransmit,
+ * see [draft-amit-quick-start-03.txt] (to appear).
+ * We use variable tcp_qs_recovery_ to toggle this behaviour on and off.
+ * If tcp_qs_recovery_ is true, initiate slow start to probe for
+ * a correct window size.
+ *
+ * Return value: non-zero if Quick-Start specific loss recovery took place
+ */
+int TcpAgent::lossQuickStart()
+{
+       if (qs_window_ && tcp_qs_recovery_) {
+                //recover_ = maxseq_;
+                //reset_rtx_timer(1,0);
+                slowdown(CLOSE_CWND_INIT);
+		// reset ssthresh to half of W-D/2?
+                qs_window_ = 0;
+                output(last_ack_ + 1, TCP_REASON_DUPACK);
+                return 1;
+       }
+       return 0;
+}
+
+
+
 
 /*
  * main reception path - should only see acks, otherwise the

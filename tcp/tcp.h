@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.114 2004/06/07 18:33:35 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.115 2004/09/22 22:53:44 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -245,6 +245,7 @@ protected:
 	virtual int numdupacks(double cwnd); 	/* for getting numdupacks_ */
 	virtual void processQuickStart(Packet *pkt);
 	virtual void endQuickStart();
+	int lossQuickStart();
 
 	/* Helper functions. Currently used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }
@@ -406,10 +407,15 @@ protected:
         /* end of section for experimental high-speed TCP */
 
 	/* for Quick-Start, experimental. */
-	int rate_request_;	/* Rate request in pps, for QuickStart. */
-	int qs_enabled_; /* to enable QuickStart. */
+	int rate_request_;      /* Rate request in Kbps, for QuickStart.  */
+	int qs_enabled_;        /* to enable QuickStart. */
 	int qs_requested_;
 	int qs_approved_;
+        int qs_window_;  /* >0: there are outstanding non-acked segments
+                            from QS window */
+        int qs_cwnd_; /* Initial window for Quick-Start */
+        int tcp_qs_recovery_; /* != 0 if we apply slow start on packet
+                                 losses during QS window */
 	int ttl_diff_;
         /* end of section for Quick-Start. */
 
@@ -560,6 +566,7 @@ protected:
 
 // Local Variables:
 // mode:c++
+// c-basic-offset: 8
 // End:
 
 #endif

@@ -69,13 +69,19 @@ public:
 	int max_rate_;
 	int mss_;
 
+	/*
+	 * 1: Bps = rate * 10 KB
+	 * 2: Bps = 2 ^ rate * 1024
+	 */
+	static int rate_function_;
+
 	QSTimer qs_timer_;
 
 	QSAgent();
 	~QSAgent();
 
-	long aggr_approval_;
-	long prev_int_aggr_;
+	double aggr_approval_;
+	double prev_int_aggr_;
 };
 
 #endif // _QSAGENT_H

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.331 2004/06/24 16:31:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.332 2004/09/22 22:53:41 sfloyd Exp $
 
 
 #
@@ -880,6 +880,7 @@ Agent/TCP set cwnd_range_ 0 ;		# cwnd_frac_ deleted on 6/6/04,
 # For Quick-Start:
 Agent/TCP set rate_request_ 0
 Agent/TCP set qs_enabled_ false
+Agent/TCP set tcp_qs_recovery_ true ;	# Added on 2004/09/21, by Pasi.
 
 # These are all variables for tracing information.
 Agent/TCP set ndatapack_ 0
@@ -1266,6 +1267,7 @@ Agent/QSAgent set state_delay_ 0.25
 Agent/QSAgent set alloc_rate_ 0.01
 Agent/QSAgent set max_rate_ 256
 Agent/QSAgent set mss_ [Agent/TCP set packetSize_]
+Agent/QSAgent set rate_function_ 1
 
 Agent/TCPSink/QS set sport_        0
 Agent/TCPSink/QS set dport_        0         

@@ -36,6 +36,8 @@
 #include <assert.h>
 #include <packet.h>
 
+#define QS_DEBUG 1 // get some output on QS events -PS
+
 enum QS_STATE { QS_DISABLE, QS_REQUEST, QS_RESPONSE };
 
 struct hdr_qs {
@@ -55,6 +57,13 @@ struct hdr_qs {
 	int& ttl() { return ttl_; }
 	int& rate() { return rate_; }
 
+        static double rate_to_Bps(int rate);
+        static int Bps_to_rate(double Bps);
 };
 
+// Local Variables:
+// mode:c++
+// c-basic-offset: 8
+// End:
 #endif
+

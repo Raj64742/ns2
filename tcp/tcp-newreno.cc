@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.53 2003/09/23 02:48:36 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.54 2004/09/22 22:53:44 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -160,13 +160,15 @@ NewRenoTcpAgent::dupack_action()
         }
 
 reno_action:
-	trace_event("NEWRENO_FAST_RETX");
         recover_ = maxseq_;
-        last_cwnd_action_ = CWND_ACTION_DUPACK;
-        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
         reset_rtx_timer(1,0);
-        output(last_ack_ + 1, TCP_REASON_DUPACK);       // from top
-	dupwnd_ = numdupacks_;
+        if (!lossQuickStart()) {
+                trace_event("NEWRENO_FAST_RETX");
+        	last_cwnd_action_ = CWND_ACTION_DUPACK;
+        	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+        	output(last_ack_ + 1, TCP_REASON_DUPACK);       // from top
+		dupwnd_ = numdupacks_;
+	}
         return;
 }
 

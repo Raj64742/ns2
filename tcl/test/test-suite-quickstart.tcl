@@ -43,7 +43,10 @@ Agent/QSAgent set qs_enabled_ 1
 Agent/QSAgent set state_delay_ 0.35  
 # 0.35 seconds for past approvals
 Agent/TCP/Newreno/QS set rbp_scale_ 1.0
+
+# PS: Rate request is now in KBytes per second including headers
 Agent/TCP/Newreno/QS set rate_request_ 20
+
 Agent/TCPSink set qs_enabled_ true
 Agent/TCP set qs_enabled_ true
 
@@ -62,6 +65,25 @@ TestSuite instproc finish {file stoptime} {
 	# csh gnuplotA.com temp.rands quickstart
         exit 0
 }
+
+
+TestSuite instproc emod {} {
+        $self instvar topo_
+        $topo_ instvar lossylink_
+        set errmodule [$lossylink_ errormodule]
+        return $errmodule
+}
+
+
+TestSuite instproc drop_pkts pkts {
+    $self instvar ns_ errmodel
+    set emod [$self emod]
+    set errmodel [new ErrorModel/List]
+    $errmodel droplist $pkts
+    $emod insert $errmodel
+    $emod bind $errmodel 1
+}
+
 
 Class Topology
 
@@ -88,6 +110,16 @@ Topology/net2 instproc init ns {
     $ns queue-limit $node_(r2) $node_(r1) 100 
     $ns duplex-link $node_(s3) $node_(r2) 1000Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 1000Mb 5ms DropTail
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(s1) $node_(r1)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+    $em insert $errmodel
+    $em bind $errmodel 0
+    $em default pass
 }
 
 Class Test/no_quickstart -superclass TestSuite
@@ -364,6 +396,48 @@ Test/no_acks_back instproc run {} {
     $ftp2 attach-agent $tcp2
     $ns_ at 2 "$ftp2 produce 80"
     $ns_ at 3.0 "$ns_ delay $node_(r2) $node_(s4) 10000ms duplex"
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+Class Test/pkt_drops -superclass TestSuite
+Test/pkt_drops instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net2
+    set test_ pkt_drops	
+    set guide_  \
+    "Packets are dropped in the initial window after quickstart."
+    set sndr TCP/Sack1
+    set rcvr TCPSink/Sack1
+    set qs ON
+    $self next pktTraceFile
+}
+
+Test/pkt_drops instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    if {$quiet == "false"} {puts $guide_}
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 20
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s4) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 20
+    $tcp2 set tcp_qs_recovery_ true
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2 "$ftp2 produce 80"
+
+    $self drop_pkts {5 6}
+
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
     $ns_ run

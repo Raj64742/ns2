@@ -31,6 +31,8 @@
 
 #include <stdio.h>
 #include "hdr_qs.h"
+#include "qsagent.h"
+#include <math.h>
 
 int hdr_qs::offset_;
 
@@ -41,3 +43,39 @@ public:
 	}
 
 } class_QShdr;
+
+
+/*
+ * These two functions convert rate in QS packet to KBps and vice versa.
+ */
+double hdr_qs::rate_to_Bps(int rate)
+{
+       if (rate == 0)
+               return 0;
+       switch(QSAgent::rate_function_) {
+       case 1:
+       default:
+               return rate * 10240; // rate unit: 10 kilobytes per sec
+       case 2:
+               return pow(2, rate) * 5000; // exponential, base 2
+       }
+}
+
+int hdr_qs::Bps_to_rate(double Bps)
+{
+       if (Bps == 0)
+               return 0;
+       switch(QSAgent::rate_function_) {
+       case 1:
+       default:
+               return (int) Bps / 10240; // rate unit: 10 kilobytes per sec
+       case 2:
+               return (int) (log(Bps / 5000) / log(2));
+       }
+}
+
+// Local Variables:
+// mode:c++
+// c-basic-offset: 8
+// End:
+

@@ -62,6 +62,7 @@ class ScoreBoard {
 	virtual int IsEmpty () {return (length_ == 0);}
 	virtual void ClearScoreBoard (); 
 	virtual int GetNextRetran ();
+	virtual void Dump();
 	virtual void MarkRetran (int retran_seqno);
 	virtual void MarkRetran (int retran_seqno, int snd_nxt);
 	virtual int UpdateScoreBoard (int last_ack_, hdr_tcp*);
