@@ -44,7 +44,7 @@ set opt(lm)             "off"           ;# log movement
 set opt(x)		670	;# X dimension of the topography
 set opt(y)		670     ;# Y dimension of the topography
 set opt(nn)		3	;# number of nodes
-set opt(stop)		200	;# simulation time
+set opt(stop)		50	;# simulation time
 set opt(prestop)        198      ;# time to prepare to stop
 set opt(adhocRouting)   Directed_Diffusion
 # ======================================================================
@@ -98,10 +98,10 @@ proc usage {} {
 }
 
 TestSuite instproc init {} {
-    global opt tracefd
+    global opt tracefd quiet
     $self instvar ns_
     set ns_ [new Simulator]
-    set tracefd [open temp.tands w]
+    set tracefd [open temp.rands w]
     $ns_ trace-all $tracefd
 } 
 
