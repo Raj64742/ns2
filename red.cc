@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.15 1997/07/07 04:15:56 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.16 1997/07/16 23:19:26 sfloyd Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -225,8 +225,10 @@ int REDQueue::drop_early(Packet* pkt)
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 	if (edv_.v_ave >= edp_.th_max) {
 		// policy: if above max thresh, force drop
+		// THIS IS A FORCED PACKET DROP.
 		edv_.v_prob = 1.0;
 	} else {
+	        // THIS IS AN UNFORCED PACKET DROP.
 		double p = edv_.v_a * edv_.v_ave + edv_.v_b;
 		p /= edp_.max_p_inv;
 		edv_.v_prob1 = p;
@@ -321,6 +323,10 @@ void REDQueue::enque(Packet* pkt)
 			 * Drop each packet with probability edv.v_prob.
 			 */
 			if (drop_early(pkt)) {
+				// this could be either a forced or an
+				// unforced packet drop, depending on
+				// whether the ave queue size exceeds
+				// maxthresh
 				if (de_drop_ != NULL)
 					de_drop_->recv(pkt);
 				else
@@ -353,6 +359,7 @@ void REDQueue::enque(Packet* pkt)
 			remove(q(), pkt);
 			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
 			drop(pkt);
+			// forced packet drop because of queue overflow
 		}
 	}
 #ifdef notyet
