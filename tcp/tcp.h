@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.101 2002/12/06 00:25:00 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.102 2002/12/28 16:44:54 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -388,8 +388,10 @@ protected:
 	int F_full ; 
 	int Backoffs ;
 
-	int control_increase_ ; 
-	int prev_highest_ack_ ; 
+	int control_increase_ ; /* If true, don't increase cwnd if sender */
+				/*  is not window-limited.  */
+	int prev_highest_ack_ ; /* Used to determine if sender is */
+				/*  window-limited.  */
 };
 
 /* TCP Reno */
