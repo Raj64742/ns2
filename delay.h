@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.h,v 1.8 1997/07/23 02:07:16 kfall Exp $ (LBL)
  */
 
 #ifndef ns_delay_h
@@ -40,7 +42,6 @@
 #include "queue.h"
 #include "ip.h"
 #include "connector-drop.h"
-
 
 class LinkDelay : public DropConnector {
  public:
