@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.137 1997/08/25 20:46:05 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.138 1997/08/26 03:57:49 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,28 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Mon Aug 25 20:52:30 PDT 1997</B><BR>
+</LI>
+
+<UL>
+<LI> Added tcp-fs.cc: TCP enhanced with "fast start" to enable a connection to quickly
+     resume after an idle period. A more detailed description can be found in the
+     source file itself.
+<LI> Added semantic-red.cc: a version of RED that allows certain operations
+     (at present, pickPacketToDrop()) to be dependent on higher-layer semantics.
+<LI> tcp{,-fack}.cc: Added a new case ("3") to the switch in closecwnd() that
+     resets cwnd_ to 1 but leaves ssthresh_ unchanged. This is invoked by the
+     TCP timeout code if there is no outstanding data and if restart_bugfix_
+     is set.
+<LI> tcp.cc: If we are just coming out from an idle period, rtx timer is forced
+     to be set again in output().
+<LI> tcp(,-reno,-newreno}.cc: moved code that handles non-rtx timeout events into
+     a new function timeout_nonrtx(). This enables derived classes to make additions
+     or modifications to the handling of non-rtx timeouts without being forced to
+     duplicate the rtx timeout code.
+<LI> tcp-fack.cc: fack_ is updated in oldack() as well.
+</UL>
 
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[Kevin Fall]</A> Mon Aug 25 13:27:11 PDT 1997</B><br>
 	Change timeout initialization in tcp.cc:rtt_timeout().
