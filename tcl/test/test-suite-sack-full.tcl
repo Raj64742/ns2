@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.7 2001/08/23 20:07:50 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.8 2001/08/23 20:13:38 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -46,8 +46,8 @@ Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
 
-# set style raw2xg
-set style tcpf2xgr
+set style raw2xg
+# set style tcpf2xgr
 
 Trace set show_tcphdr_ 1 ;	# needed for plotting ACK numbers
 
@@ -73,10 +73,10 @@ TestSuite instproc finish file {
  	} elseif { $style == "raw2xg" } {
 		set space 512
 		exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-		   $PERL ../../bin/raw2xg -n $space -s 0.01 -m $wrap1 -t $file \
+		   $PERL ../../bin/raw2xg -c -n $space -s 0.01 -m $wrap1 -t $file \
 		   > temp.rands
 	        exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
-	           $PERL ../../bin/raw2xg -a -f -n $space -s 0.01 -m $wrap1 -t $file > temp1.rands
+	           $PERL ../../bin/raw2xg -a -c -f -n $space -s 0.01 -m $wrap1 -t $file > temp1.rands
 	
 		if {$quiet == "false"} {
 		#	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
