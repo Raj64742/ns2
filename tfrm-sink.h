@@ -47,7 +47,8 @@ class TfrmSinkAgent;
 
 class TfrmNackTimer : public TimerHandler {
 public:
-  TfrmNackTimer(TfrmSinkAgent *a) : TimerHandler() { a_ = a; }
+  TfrmNackTimer(TfrmSinkAgent *a) : TimerHandler() 
+		{ a_ = a; }
   virtual void expire(Event *e);
 protected:
   TfrmSinkAgent *a_;
@@ -63,25 +64,53 @@ protected:
   void nextpkt();
   void increase_pvec(int);
 
+  TfrmNackTimer nack_timer_;
+
+	/* size of received packet */
+  int psize_;
+
+	/* sender's reproted send rate */ 
   double rate_;
+
+	/* rtt and timeout value reported by sender */
   double rtt_, tzero_;
+
+	/* frequency of loss events computed by the receuver */
   double flost_;
+
+	/* all these assit in keep track of incming packets and calculate flost_ */
+
   double last_timestamp_, last_arrival_, last_nack_;
+	int InitHistorySize_ ;
   int *pvec_;
   double *tsvec_;
+  double *rtvec_;
   int pveclen_;
   int pvecfirst_, pveclast_;
   int prevpkt_;
-  int psize_;
-  double k_;
+
+	/* controls the size of congestion window over which flost is computed */
+  double SampleSizeMult_;
+
+	/* minimum number of loss events that must be observed to compute flost*/
 	int MinNumLoss_ ;
+
+	/* version # of protocol used by sender */
   int version_;
+
+	/* total # of pkts rcvd by rcvr */
   int total_received_;
-	int InitHistorySize_ ;
+
+	/* bounds on loss rate for signal changes in version 0 */
 	double HysterisisLower_ ;
 	double HysterisisUpper_ ;
+
+	/* value of B used in the formula */
 	int bval_ ;
+
+	/* set to 0 until first loss is seen. Used to end slow start */
 	int loss_seen_yet ;
+
+	/* time last report was sent */
 	double last_report_sent ; 
-  TfrmNackTimer nack_timer_;
 }; 
