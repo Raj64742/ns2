@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.7 1997/07/22 02:12:08 gnguyen Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.8 1997/07/23 01:06:13 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -183,8 +183,8 @@ FlowMon::dumpflows()
 char*
 FlowMon::flow_list()
 {
+	register const char* z;
 	register i, j = classifier_->maxslot();
-	const register char* z;
 	Flow* f;
 	register char* p = wrk_;
 	register char* q;
@@ -290,7 +290,7 @@ FlowMon::command(int argc, const char*const* argv)
 static class FlowMonitorClass : public TclClass {
  public:
 	FlowMonitorClass() : TclClass("QueueMonitor/ED/Flowmon") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new FlowMon);
 	}
 } flow_monitor_class;
@@ -298,7 +298,7 @@ static class FlowMonitorClass : public TclClass {
 static class FlowClass : public TclClass {
  public:
 	FlowClass() : TclClass("QueueMonitor/ED/Flow") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Flow);
 	}
 } flow_class;
