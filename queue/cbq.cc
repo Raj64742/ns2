@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.3 1997/04/01 02:28:58 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.4 1997/04/02 04:38:41 kfall Exp $ (LBL)";
 #endif
 
 /*
@@ -113,6 +113,9 @@ typedef CBQClass* (CBQClass::*LinkageMethod)();
  */
 class CBQClass : public Connector {
     public:
+	friend class CBQueue;
+	void recv(Packet*, Handler*);	// from classifier
+	Packet* nextpkt() { return (qdisc_->deque()); }
 	CBQClass();
 	virtual int command(int argc, const char*const* argv);
 	inline CBQClass* parent() const { return (parent_); }
@@ -121,11 +124,13 @@ class CBQClass : public Connector {
 	inline CBQueue* cbq() { return (cbq_); }
 
 	void traverse(LinkageMethod);
-	void newallot(double);
+	void newallot(double);	/* give this class a new link-share */
 
+    protected:
 	CBQClass* peer_;	/* circ linked list of peers at same prio */
 	int       bytes_alloc_;	/* num. of bytes allocated for current round */
 	Queue *   qdisc_;	/* underlying per-class q-ing discipline */
+	int	  pcount_;	/* packet cnt; current queue len for class */
 	CBQueue*  cbq_;		/* ref to corresponding CBQueue object */
 
 	CBQClass* next_;	/* linked list for all classes */
@@ -140,7 +145,6 @@ class CBQClass : public Connector {
 	double	extradelay_;	/* 'offtime'-time overlim class waits to snd */
 	double	maxrate_;	/* bytes per second allowed this class */
 	int	delayed_;	/* 1 for an already-delayed class */
-    protected:
 	CBQClass	*parent_;
 	CBQClass	*borrow_;
 };
@@ -166,10 +170,10 @@ class CBQueue : public Queue {
 	Packet	*deque();
 	void	enque(Packet* pkt);
 	void	recv(Packet *, Handler*);
-	int	qlen();			// sum of all q's managed by this CBQ
 	void	addallot(int, double);	// change allotment at some pri level
+	double	linkbw() { return (link_bw_); }
     protected:
-	virtual void insert_class(CBQClass*);	// WRR and 
+	virtual void insert_class(CBQClass*);	// WRR and PKT-by-PKT RR
 	void	delay_action(CBQClass*);
 	int	ancestor(CBQClass *cl, CBQClass *p);
 	int	satisfied(CBQClass *cl);
@@ -188,6 +192,7 @@ class CBQueue : public Queue {
 	int	maxdepth_;	/* max depth at which borrowing is allowed */
 	int	algorithm_;	/* 1 to restrict borrowing, 0 otherwise */
 				/* 2 for idealized link-sharing guidelines */
+	double	link_bw_;		/* total link bandwidth */
 	double	alloc_[MAXPRIO];	/* total allocation at each level, 
 					 *for WRR */
 };
@@ -228,7 +233,7 @@ public:
 
 CBQClass::CBQClass() : peer_(0), bytes_alloc_(0), qdisc_(0), next_(0), mark_(0),
 	last_(0.0), undertime_(0.0), avgidle_(0.0), delayed_(0),
-	parent_(0), borrow_(0), cbq_(0)
+	parent_(0), borrow_(0), cbq_(0), pcount_(0)
 
 {
 	bind("priority_", &pri_);		/* this class' priority */
@@ -242,10 +247,15 @@ CBQClass::CBQClass() : peer_(0), bytes_alloc_(0), qdisc_(0), next_(0), mark_(0),
 		abort();
 }
 
+/*
+ * set up a new allotment for this cbq class
+ * let the cbq queue object know about the change
+ */
+
 void
 CBQClass::newallot(double bw)
 {
-	maxrate_ = bw * ( cbq_->bandwidth() / 8.0 );
+	maxrate_ = bw * ( cbq_->linkbw() / 8.0 );
 	double diff = allotment_ - bw;
 	allotment_ = bw;
 	cbq_->addallot(pri_, diff);
@@ -253,19 +263,49 @@ CBQClass::newallot(double bw)
 }
 
 /* 
+ *
+ * $class cbq
+ * $class qdisc
+ *
  * $class1 parent $class2
  * $class1 borrow $class2
  * $class1 qdisc $class2
- * $class1 allot
- * $class1 allot new-bw
+ * $class1 allot $newbw
  */
 int CBQClass::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
-		if (strcmp(argv[1], "reset") == 0) {
-			reset();
-			return (TCL_OK);
-		}
+                if (strcmp(argv[1], "cbq") == 0) {
+                        tcl.resultf("%s", cbq_->name());
+                        return(TCL_OK);
+                }
+                if (strcmp(argv[1], "qdisc") == 0) {
+                        tcl.resultf("%s", qdisc_->name());
+                        return (TCL_OK);
+                }
+	} else if (argc == 3) {
+                if (strcmp(argv[1], "parent") == 0) {
+                        parent_ = (CBQClass*)TclObject::lookup(argv[2]);
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "borrow") == 0) {
+                        borrow_ = (CBQClass*)TclObject::lookup(argv[2]);
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "qdisc") == 0) {
+                        qdisc_ = (Queue*) TclObject::lookup(argv[2]);
+                        if (qdisc_ != NULL)
+                                return (TCL_OK);
+                        return (TCL_ERROR);
+                }
+                if (strcmp(argv[1], "allot") == 0) {
+                        double bw = atof(argv[2]);
+                        if (bw < 0)
+                                return (TCL_ERROR);
+                        newallot(bw);
+                        return (TCL_OK);
+                }
 	}
 	return (Connector::command(argc, argv));
 }
@@ -288,6 +328,7 @@ CBQueue::CBQueue() : borrowed_(0), list_(0), maxdepth_(MAXDEPTH)
 {
 	bind("algorithm_", &algorithm_);
 	bind("max-pktsize_", &maxpkt_);
+	bind("bandwidth_", &link_bw_);
 
 	memset(active_, '\0', sizeof(active_));
 	memset(num_, '\0', sizeof(num_));
@@ -299,10 +340,6 @@ CBQueue::CBQueue() : borrowed_(0), list_(0), maxdepth_(MAXDEPTH)
  *  $cbq insert $class
  *  $cbq bind $class $classID
  *  $cbq bind $class $first $last
- *  $cbq special $flow
- *  $cbq unspecial $flow
- *  $cbq clookup $flow
- *  $cbq sclass $flow
  */
 int CBQueue::command(int argc, const char*const* argv)
 {
@@ -367,7 +404,7 @@ void CBQueue::insert_class(CBQClass* p)
 	/*
 	 * Compute maxrate from allotment.
 	 */
-	p->maxrate_ = p->allotment_ * ( bandwidth() / 8 );
+	p->maxrate_ = p->allotment_ * ( linkbw() / 8.0 );
 
 	/*
 	 * Check that parent and borrow linkage are acyclic.
@@ -437,35 +474,19 @@ int CBQueue::satisfied(CBQClass* cl)
 	if (cl->undertime_ > now)
 		return (1);
 	else if (cl->depth_ == 0) {
-		if (cl->qdisc()->qlen() > 0)
+		if (cl->pcount_ > 0)
 			return (0);
 		else
 			return (1);
 	} else {
 		for (p = list_; p != 0; p = p->next_) {
 			if (p->depth_ == 0 && ancestor(cl, p)) {
-				if (p->qdisc()->qlen() > 0)
+				if (p->pcount_ > 0)
 					return (0);
 			}
 		}
 	}
 	return (1);
-}
-
-/*
- * consider the "cbq q len" to be the sum of the queues managed
- * by all the classes
- */
-
-int CBQueue::qlen()
-{
-	int sum = 0;
-	CBQClass *p;
-
-	for (p = list_; p != 0; p = p->next_)
-		sum += p->qdisc()->qlen();
-
-	return (sum);
 }
 
 /*
@@ -578,7 +599,7 @@ void CBQueue::update_class_util(CBQClass* cl, double now, int pktsize)
 	int queue_length; 
 	double txt = pktsize * 8. / bandwidth();	// xmit time
 	now += txt;				// after this pkt is sent
-	queue_length = cl->qdisc()->qlen(); 
+	queue_length = cl->pcount_;
 
 	// walk up to root of class tree, and determine
 	do {
@@ -616,7 +637,8 @@ void CBQueue::update_class_util(CBQClass* cl, double now, int pktsize)
  * the first class that had a nonzero queue and is allowed to borrow gets
  * to send.
  */
-Packet* CBQueue::deque()
+Packet*
+CBQueue::deque()
 {
 	double now = Scheduler::instance().clock();
 	CBQClass* first = 0;
@@ -631,7 +653,7 @@ Packet* CBQueue::deque()
 		// pkt-by-pkt round robin loop at same prio
 		// regulated by the LS alg in under_limit()
 		do {
-			if (cl->qdisc()->qlen() > 0) {
+			if (cl->pcount_ > 0) {
 				if (first == 0 && cl->borrow() != 0)
 					first = cl;
 				if (!under_limit(cl, now)) {
@@ -640,7 +662,7 @@ Packet* CBQueue::deque()
 				} else {
 					/* under-limit or can borrow */
 					/* so send and update stats */
-					Packet* pkt = cl->qdisc()->deque();
+					Packet* pkt = cl->nextpkt();
 					hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 					update_class_util(cl, now, ch->size());
 					active_[i] = cl->peer_;
@@ -658,7 +680,7 @@ Packet* CBQueue::deque()
 	 */
 	maxdepth_ = MAXDEPTH;
 	if (first != 0) {
-		Packet* pkt = first->qdisc()->deque();
+		Packet* pkt = first->nextpkt();
 		if (pkt) {
 			active_[first->pri_] = first->peer_;
 			return (pkt);
@@ -668,66 +690,29 @@ Packet* CBQueue::deque()
 }
 
 /*
- * Map arriving packets to the appropriate class, and add the 
- * arriving packet to the queue for that class.
- * If algorithm==1, and that class could send a packet borrowing 
- * from depth at most d, then "stp->depth" is set to no more than d.
+ * main entrypoint for a packet:
+ *	a classifier has already determined which class the packet
+ *	belongs to, so we just need to do the appropriate stuff here
  */
+void CBQClass::recv(Packet *p, Handler *h)
 
- /********* this needs work *********/
-void CBQueue::enque(Packet* pkt)
-{
-	abort();	/* shouldn't ever be called */
-}
-
-#ifdef notdef
-	double	now = Scheduler::instance().clock();
-CBQClass *cl = determine_class(pkt);
-abort();
-	int rval = 0;
-
-	//
-	// note: the following will DROP packets which don't
-	// belong to a known CBQ class.  this should probably be changed
-	// when simulations with unknown traffic are used
-	//
-
-	if (cl != 0) {
-		if (algorithm_ == 1 && maxdepth_ > 0) {
-			if (cl->undertime_ < now) 
-				maxdepth_ = 0;
-			else if (maxdepth_ > 1 && cl->borrow() != 0) {
-				if (cl->borrow()->undertime_ < now)
-					maxdepth_ = 1;
+	double now = Scheduler::instance().clock();
+	if (cbq_->algorithm_ == 1 && cbq_->maxdepth_ > 0) {
+		if (undertime_ < now) 
+			cbq_->maxdepth_ = 0;
+		else if (cbq_->maxdepth_ > 1 && borrow_ != 0) {
+			if (borrow_->undertime_ < now)
+				cbq_->maxdepth_ = 1;
 			}
-		}
-		if (cl->qdisc() == NULL) {
-			fprintf(stderr, "CBQ: enque: no qdisc for pkt@%p\n",
-				pkt);
-			abort();
-		}
-		// qdisc may drop packet:
-		//	if so, log this.... (this call is a little
-		//	dangerous in that the qdisc's enque() generalls
-		//	frees the packet, but we need its hdr data
-		//	[fortunately, its only on the free list...]
-
-		if ((rval = cl->qdisc()->enque(pkt)) < 0)
-			log_packet_drop(pkt);
-		return (rval);
 	}
-
-	/*
-	 * log drops due if no cbq class for this pkt
-	 *
-	 *	XXX should have a default best-effort class,
-	 */
-fprintf(stderr, "warning: CBQ received pkt with unknown class %d\n", pkt->class_);
-	Packet::free(pkt);
-	return (-1);
+	if (qdisc_ == NULL) {
+		fprintf(stderr, "CBQ: enque: no qdisc for pkt@%p\n",
+			pkt);
+		abort();
+	}
+	qdisc_->enque(p);
+	pcount_++;
 }
-
-#endif	/* formerly enque() */
 
 /*
  * Check that a linkage forms a forest.
@@ -803,10 +788,11 @@ void WRR_CBQueue::insert_class(CBQClass* p)
 Packet*
 WRR_CBQueue::deque()
 {
+	register i;
 	double now = Scheduler::instance().clock();
 	hdr_cmn* ch;
 	CBQClass* first = 0;
-	for (int i = 0; i < MAXPRIO; ++i) {
+	for (i = 0; i < MAXPRIO; ++i) {
 		/*
 		 * Loop through twice for a priority level, if some class
 		 * was unable to send a packet the first round because
@@ -817,22 +803,25 @@ WRR_CBQueue::deque()
 		 * the byte size for the largest packet in the class.)
 		 */
 		CBQClass* cl = active_[i];
-		if (cl == 0)
+		if (cl == NULL)
 			continue;
 		int deficit = 0;
 		int done = 0;
 		while (!done) {
 			do {
 				if (deficit < 2 && cl->bytes_alloc_ <= 0) 
-					cl->bytes_alloc_ += (int)(cl->allotment_ * M_[cl->pri_]);
-				if (cl->qdisc()->qlen() > 0) {
+					cl->bytes_alloc_ +=
+					  (int)(cl->allotment_ * M_[cl->pri_]);
+				if (cl->pcount_ > 0) {
 					if (first == 0 && cl->borrow() != 0)
 						first = cl;
 					if (!under_limit(cl, now))
 					 	delay_action(cl);
 					else {
-						if (cl->bytes_alloc_ > 0 || deficit > 1) {
-							Packet* pkt = cl->qdisc()->deque();
+						if (cl->bytes_alloc_ > 0 ||
+						    deficit > 1) {
+							Packet* pkt =
+							   cl->nextpkt();
 							ch = (hdr_cmn*)pkt->access(off_cmn_);
 							if (cl->bytes_alloc_ > 0)
 								cl->bytes_alloc_ -= ch->size();
@@ -863,7 +852,7 @@ WRR_CBQueue::deque()
 	 */
 	maxdepth_ = MAXDEPTH;
 	if (first != 0) {
-		Packet* pkt = first->qdisc()->deque();
+		Packet* pkt = first->nextpkt();
 		if (pkt) {
 			active_[first->pri_] = first->peer_;
 			return (pkt);
