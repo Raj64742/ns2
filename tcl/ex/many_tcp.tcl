@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.1 1998/06/01 17:36:51 heideman Exp $
+# $Id: many_tcp.tcl,v 1.2 1998/06/01 21:16:16 heideman Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -21,8 +21,6 @@
 # 
 
 proc usage {} {
-	global raw_opt_info
-
 	puts stderr {usage: ns rbp_simulation.tcl [options]
 
 This simulation demonstrates large numbers of TCP flows.
@@ -54,10 +52,12 @@ some ways to optimize some otcl common cases)  (this work is in progress)
 
 Options (specify with -OPTIONNAME OPTIONVALUE):
 }
-	puts stderr raw_opt_info
+	global raw_opt_info
+	puts stderr $raw_opt_info
 	exit 1
 }
 
+global raw_opt_info
 set raw_opt_info {
 	# how long to run the sim?
 	duration 30
@@ -67,6 +67,21 @@ set raw_opt_info {
 	# or some kind of autodetection on when we've reached
 	# steady state would be nice.
 	initial-client-count 10
+
+	#
+	# BASIC TOPOLOGY:
+	#
+	# (The basic n clients on the left and right going through a
+	# bottleneck.)
+	#
+	# cl_1                                                     cr_1
+	# ...     ---- bottleneck_left ---- bottleneck_right ---   ...
+	# cl_n                                                     cr_n
+	#
+	# Currently all data traffic flows left-to-right.
+	# NEEDSWORK: relax this assumption (but Poduri and Nichols
+	# I-D suggests that relaxing it won't change things much).
+	#
 
 	#
 	# CLIENT TRAFFIC MODEL:
@@ -145,12 +160,13 @@ Class Main
 
 Main instproc default_options {} {
 	global opts opt_wants_arg raw_opt_info
+	set cooked_opt_info $raw_opt_info
 
-	while {$raw_opt_info != ""} {
-		if {![regexp "^\[^\n\]*\n" $raw_opt_info line]} {
+	while {$cooked_opt_info != ""} {
+		if {![regexp "^\[^\n\]*\n" $cooked_opt_info line]} {
 			break
 		}
-		regsub "^\[^\n\]*\n" $raw_opt_info {} raw_opt_info
+		regsub "^\[^\n\]*\n" $cooked_opt_info {} cooked_opt_info
 		set line [string trim $line]
 		if {[regexp "^\[ \t\]*#" $line]} {
 			continue
