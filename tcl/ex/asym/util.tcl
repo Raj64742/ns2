@@ -22,27 +22,27 @@ Agent/TCP set restart_bugfix_ true
 Agent/TCP/Fack set ss-div4 0
 Agent/TCP/Fack set rampdown 0
 
-proc plotgraph {graph connGraphFlag midtime { qtraceflag false } } {
+proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag false } { dir "." } } {
 	global env
 	upvar $connGraphFlag graphFlag
 
-	exec gawk --lint -f ../../../ex/asym/tcp-trace.awk tcp-raw.tr
-	exec gawk --lint -f ../../../ex/asym/seq.awk out.tr
-	exec gawk --lint -v mid=$midtime -f ../../../ex/asym/tcp.awk tcp.tr
-	exec gawk --lint -f ../../../ex/asym/tcp-burst.awk tcp.tr
+	exec gawk --lint -v dir=$dir -f ../../../ex/asym/tcp-trace.awk $dir/tcp-raw.tr
+	exec gawk --lint -v dir=$dir -f ../../../ex/asym/seq.awk $dir/out.tr
+	exec gawk --lint -v dir=$dir -v mid=$midtime -v turnon=$turnontime -v turnoff=$turnofftime -f ../../../ex/asym/tcp.awk $dir/tcp.tr
+	exec gawk --lint -v dir=$dir -f ../../../ex/asym/tcp-burst.awk $dir/tcp.tr
 	if { $qtraceflag } {
-		exec gawk --lint -f ../../../ex/asym/queue.awk q.tr
+		exec gawk --lint -f ../../../ex/asym/queue.awk $dir/q.tr
 	}
 
 	set if [open index.out r]
 	while {[gets $if i] >= 0} {
 		if {$graph || $graphFlag($i)} {
-			set seqfile [format "seq-%s.out" $i]
-			set ackfile [format "ack-%s.out" $i]
-			set cwndfile [format "cwnd-%s.out" $i]
-			set ssthreshfile [format "ssthresh-%s.out" $i]
-			set srttfile [format "srtt-%s.out" $i]
-			set rttvarfile [format "rttvar-%s.out" $i]
+			set seqfile [format "%s/seq-%s.out" $dir $i]
+			set ackfile [format "%s/ack-%s.out" $dir $i]
+			set cwndfile [format "%s/cwnd-%s.out" $dir $i]
+			set ssthreshfile [format "%s/ssthresh-%s.out" $dir $i]
+			set srttfile [format "%s/srtt-%s.out" $dir $i]
+			set rttvarfile [format "%s/rttvar-%s.out" $dir $i]
 			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y seqno $seqfile $ackfile &
 			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y window $cwndfile &
 		}
@@ -79,7 +79,6 @@ proc trace_queue {ns n0 n1 queuetrace} {
 
 proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
 	set tcp0 [new Agent/$type]
-	puts "$type $maxburst"
 	$tcp0 set class_ 1
 	$tcp0 set maxburst_ $maxburst
 	$tcp0 set tcpTick_ $tcpTick
@@ -102,11 +101,12 @@ proc setupTcpTracing { tcp0 tcptrace } {
 	$tcp0 trace "cwnd_"
 	$tcp0 trace "ssthresh_" 
 	$tcp0 trace "maxseq_" 
+	$tcp0 trace "seqno_"
 	$tcp0 trace "exact_srtt_"
 	$tcp0 trace "avg_win_"
 }
 
-proc setupGraphing { tcp connGraph connGraphFlag} {
+proc setupGraphing { tcp connGraph connGraphFlag } {
 	upvar $connGraphFlag graphFlag
 
 	set saddr [expr [$tcp set addr_]/256]
@@ -128,7 +128,6 @@ proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
 }
 
 proc createFtp { ns n0 tcp0 n1 sink0 } {
-	puts "creating ftp $n0 $n1"
 	$ns attach-agent $n0 $tcp0
 	$ns attach-agent $n1 $sink0
 	$ns connect $tcp0 $sink0
@@ -137,7 +136,8 @@ proc createFtp { ns n0 tcp0 n1 sink0 } {
 	return $ftp0
 }
 
-proc configQueue { ns n0 n1 type qtrace rtrace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } { reconsacks false } } { 
+proc configQueue { ns n0 n1 type qtrace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } { random_ecn false } { reconsacks false } } { 
+# proc configQueue { ns n0 n1 type qtrace rtrace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } { reconsacks false } }  
 	if { $size >= 0 } {
 		$ns queue-limit $n0 $n1 $size
 	}
@@ -148,12 +148,11 @@ proc configQueue { ns n0 n1 type qtrace rtrace { size -1 } { nonfifo 0 } { acksf
 	if {$nonfifo} {
 		set spq [new PacketQueue/Semantic]
 		$spq set acksfirst_ $acksfirst
-		puts "filteracks $filteracks reconsacks $reconsacks"
 		$spq set filteracks_ $filteracks
 		$spq set replace_head_ $replace_head
 		$spq set priority_drop_ $priority_drop
-		puts "rand $random_drop"
 		$spq set random_drop_ $random_drop
+		$spq set random_ecn_ $random_ecn
 		if { $reconsacks == "true"} {
 			set recons [new AckReconsControllerClass]
 			# Set queue_ of controller.  This is 
@@ -175,7 +174,6 @@ proc configQueue { ns n0 n1 type qtrace rtrace { size -1 } { nonfifo 0 } { acksf
 }
 
 proc configREDQueue { ns n0 n1 { q_weight -1 } { fracthresh 0 } { fracminthresh 0.4 } { fracmaxthresh 0.8} } {
-	puts "Configuring reverse RED gateway"
 	set id0 [$n0 id]
 	set id1 [$n1 id]
 	set l01 [$ns set link_($id0:$id1)]
