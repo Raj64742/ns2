@@ -1486,6 +1486,7 @@ tcl/test/test-all-sliding-window
 tcl/test/test-all-snoop
 tcl/test/test-all-source-routing
 tcl/test/test-all-srm
+tcl/test/test-all-tagged-trace
 tcl/test/test-all-tcp
 tcl/test/test-all-tcp-init-win
 tcl/test/test-all-tcp-init-win-full
@@ -2095,6 +2096,9 @@ tcl/test/test-output-srm/srm-adapt-rep.Z
 tcl/test/test-output-srm/srm-adapt-req.Z
 tcl/test/test-output-srm/srm-chain.Z
 tcl/test/test-output-srm/srm-star.Z
+tcl/test/test-output-tagged-trace/Format-simple.Z
+tcl/test/test-output-tagged-trace/simple.Z
+tcl/test/test-output-tagged-trace/wireless.Z
 tcl/test/test-output-tcp/dialup.Z
 tcl/test/test-output-tcp/dialup1.Z
 tcl/test/test-output-tcp/ecn.Z
@@ -2433,6 +2437,7 @@ tcl/test/test-suite-snoop.tcl
 tcl/test/test-suite-source-routing.tcl
 tcl/test/test-suite-srm.tcl
 tcl/test/test-suite-srr.tcl
+tcl/test/test-suite-tagged-trace.tcl
 tcl/test/test-suite-tcp-init-win-full.tcl
 tcl/test/test-suite-tcp-init-win.tcl
 tcl/test/test-suite-tcp-init-win.txt
