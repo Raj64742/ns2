@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.1 1999/02/18 19:09:07 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.2 1999/02/24 23:27:34 haldar Exp $
 #
 # Ported from CMU/Monarch's code, nov'98 -Padma.
 
@@ -49,7 +49,7 @@ set opt(ant)            Antenna/OmniAntenna
 set opt(x)		0	;# X dimension of the topography
 set opt(y)		0		;# Y dimension of the topography
 set opt(cp)		"../mobility/scene/cbr-50-20-4-512" ;# connection pattern file
-set opt(sc)		"../mobility/scene/scen-1500x300-50-0-20-1" ;# scenario file
+set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-2" ;# scenario file
 
 set opt(ifqlen)		50		;# max packet in ifq
 set opt(nn)		50		;# number of nodes
@@ -158,7 +158,7 @@ proc log-movement {} {
     global logtimer ns_ ns
 
     set ns $ns_
-    source timer.tcl
+    source ../mobility/timer.tcl
     Class LogTimer -superclass Timer
     LogTimer instproc timeout {} {
 	global opt node_;
@@ -184,7 +184,7 @@ source ../lib/ns-mobilenode.tcl
 
 #if { $opt(rp) != "" } {
 	source ../mobility/$opt(rp).tcl
-#} elseif { [catch { set env(NS_PROTO_SCRIPT) } ] == 1 } {
+	#} elseif { [catch { set env(NS_PROTO_SCRIPT) } ] == 1 } {
 	#puts "\nenvironment variable NS_PROTO_SCRIPT not set!\n"
 	#exit
 #} else {
