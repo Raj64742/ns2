@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.4 1999/11/20 00:40:18 heideman Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.5 1999/12/03 21:11:46 haoboy Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -87,7 +87,11 @@ int WebTrafSession::LASTPAGE_ = 1;
 // XXX Must delete this after all pages are done!!
 WebTrafSession::~WebTrafSession() 
 {
-	assert(donePage_ == curPage_);
+	if (donePage_ != curPage_) {
+		fprintf(stderr, "done pages %d != all pages %d\n",
+			donePage_, curPage_);
+		abort();
+	}
 
 	if (rvInterPage_ != NULL)
 		Tcl::instance().evalf("delete %s", rvInterPage_->name());
@@ -101,8 +105,10 @@ WebTrafSession::~WebTrafSession()
 
 void WebTrafSession::donePage(void* ClntData) 
 {
-	donePage_++;
 	delete (WebPage*)ClntData;
+	// If all pages are done, tell my parent to delete myself
+	if (++donePage_ >= nPage_)
+		mgr_->doneSession(id_);
 }
 
 // Launch the current page
@@ -119,11 +125,9 @@ void WebTrafSession::expire(Event *)
 void WebTrafSession::handle(Event *e)
 {
 	TimerHandler::handle(e);
-	if (++curPage_ >= nPage_) {
-		// We are done, tell our parent and delete ourselves
-		mgr_->doneSession(id_);
+	// If I've scheduled all my pages, don't schedule it any more.
+	if (++curPage_ >= nPage_)
 		return;
-	}
 #if 0
 	printf("Session %d schedule next page %d\n", id_, LASTPAGE_);
 #endif
