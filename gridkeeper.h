@@ -33,7 +33,7 @@ public:
   int get_neighbors(MobileNode *mn, MobileNode **output);
   void new_moves(MobileNode *);
   void dump();
-  static GridKeeper* instance() { assert(instance_); return instance_;}
+  static GridKeeper* instance() { return instance_;}
   int size_;                     /* how many nodes are kept */
 protected:
 
