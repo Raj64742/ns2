@@ -33,7 +33,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.23 1998/03/17 01:17:12 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.24 1998/03/17 04:06:18 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -112,16 +112,13 @@ class SelectErrorModel : public ErrorModel {
 
 
 /* Error model for srm experiments */
-class SRMErrorModel : public ErrorModel {
+class SRMErrorModel : public SelectErrorModel {
 public:
 	SRMErrorModel();
 	virtual int corrupt(Packet*);
 
 protected:
 	int command(int argc, const char*const* argv);
-        int pkt_type_;
-        int drop_cycle_;
-	int drop_offset_;
         int off_srm_;
 };
 

@@ -32,50 +32,32 @@
 #
 # Contributed by the Daedalus Research Group, UC Berkeley 
 # (http://daedalus.cs.berkeley.edu)
-# Support code for error generation based on packet-, byte- or time-based 
-# models.
+#
 
-# There are three levels to error generation.  At the lowest levels are
-# 1-state error models, typically parametrized by a single rate_ parameter.
-# Examples include uniform and exponential models.
-# The next level in the hierarchy consists of multi-state error models.  These
-# objects consist of a list of error models (which could be 1-state or multi-
-# state themselves), a matrix (list of lists) of transition probabilities,
-# and a start state for the model.  These usually corresond to homogeneous 
-# Markov chains, but are not restricted to them, because it is possible to 
-# change the transition probabilities on the fly and depending on past 
-# history, if you so desire.
-# Multi-state error models reside entirely in Tcl and aren't split between
-# C and Tcl.  One-state error models are split objects and ErrorModel is
-# derived from Connector.  As an example, a 2-state Markov error model is
-# built-in, as ErrorModel/MultiState/TwoStateMarkov
-# Finally, an error *module* contains a classifier, a set of dynamically-added
-# ErrorModels, and enough plumbing to construct flow-based Errors.
-
-# copy: copy instance variable from one object to another
-# 	create a new object if no object is given
-#	use "next" to copy non-Tcl instvar (C++ copy method required)
-
-ErrorModel instproc copy {{orig ""}} {
-	set copy $self
-	if {orig == ""} {
-		set orig $self
-		set copy [new [$orig info class]]
-	}
-	foreach var [orig info vars] {
-		set array_names [$orig array names $var]
-		if {$array_names == ""} {
-			$copy set $var [$orig set $var]
-			continue
-		}
-		foreach i $array_names {
-			eval "$copy set $var\($i) \[$orig set $var\($i)]"
-		}
-	}
-	$copy next $orig
-	return $copy
-}
-
+#
+# There are three levels to error generation.
+# 1. Single State
+#	rate_:  uniform error rate in pkt or byte
+# 2. Two State
+#	error-free (0) and error (1) states
+#	each state has a ranvar determining the length each state
+# 3. Multi-State:  extending Two-State in OTcl
+#	each state has a ranvar determining the length each state
+#	a matrix specifying transition probabilities
+#
+# Each state is an error model (which could be 1-state or multi-state),
+# In addtion, the error model has a matrix of transition probabilities,
+# and a start state for the model.  These usually corresond to
+# homogeneous Markov chains, but are not restricted to them, because it
+# is possible to change the transition probabilities on the fly and
+# depending on past history, if you so desire.  Multi-state error models
+# reside entirely in Tcl and aren't split between C and Tcl.  One-state
+# error models are split objects and ErrorModel is derived from
+# Connector.  As an example, a 2-state Markov error model is built-in,
+# as ErrorModel/MultiState/TwoStateMarkov Finally, an error *module*
+# contains a classifier, a set of dynamically-added ErrorModels, and
+# enough plumbing to construct flow-based Errors.
+#
 
 Class ErrorModel/Uniform -superclass ErrorModel
 Class ErrorModel/Expo -superclass ErrorModel/TwoState
@@ -83,8 +65,8 @@ Class ErrorModel/Empirical -superclass ErrorModel/TwoState
 
 ErrorModel/Uniform instproc init {rate unit} {
 	$self next
+	$self unit $unit
 	$self set rate_ $rate
-	$self ranvar $rv_
 }
 
 ErrorModel/Expo instproc init {avgList unit} {

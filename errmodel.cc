@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.34 1998/03/17 01:17:11 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.35 1998/03/17 04:06:17 gnguyen Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -93,9 +93,6 @@ int ErrorModel::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "copy") == 0) {
 			em = (ErrorModel*)TclObject::lookup(argv[2]);
 			*this = *em;
-			// OR only copy variables that are not Tcl-bound;
-			// unit_ = em->unit_;
-			// ranvar_ = em->ranvar_;
 			return (TCL_OK);
 		}
 	} else if (argc == 2) {
@@ -116,10 +113,10 @@ void ErrorModel::recv(Packet* p, Handler* h)
 {
 	int error = corrupt(p);
 	((hdr_cmn*)p->access(off_cmn_))->error() |= error;
-	if (corrupt && drop_) {
+	if (error && drop_) {
 		// if drop_ target exists, drop the corrupted packet
 		if (h != 0) {
-			// XXX if recv from queue, then resume
+			// if recv from queue, then resume
 			Scheduler::instance().schedule(h, &intr_, 0);
 		}
 		drop_->recv(p);
@@ -132,17 +129,17 @@ void ErrorModel::recv(Packet* p, Handler* h)
 
 int ErrorModel::corrupt(Packet* p)
 {
-	if (enable_) {
-		switch (unit_) {
-		case EU_PKT: 
-			return CorruptPkt(p);
-		case EU_TIME:
-			return CorruptTime(p);
-		case EU_BYTE:
-			return CorruptByte(p);
-		default:
-			break;
-		}
+	if (enable_ == 0)
+		return 0;
+	switch (unit_) {
+	case EU_PKT:
+		return (CorruptPkt(p) != 0);
+	case EU_TIME:
+		return (CorruptTime(p) != 0);
+	case EU_BYTE:
+		return (CorruptByte(p) != 0);
+	default:
+		break;
 	}
 	return 0;
 }
@@ -155,24 +152,41 @@ int ErrorModel::corrupt(Packet* p)
  */
 int ErrorModel::CorruptPkt(Packet *p) 
 {
+	double u;
+	// if no random var is specified, assume uniform random variable
+	u = ranvar_ ? ranvar_->value() : Random::uniform();
+	return u < rate_;
+}
+
+
+/*
+ * Decide whether or not to corrupt this packet, based on a byte-based error
+ * model.  The main parameter used in errorLen_, which is the number of
+ * bytes to next error, from the last time an error occured on the channel.
+ * It is dependent on the random variable being used internally.  
+ * rate_ is the user-specified mean number of bytes between errors.
+ */
+int ErrorModel::CorruptByte(Packet *p)
+{
+	int size = ((hdr_cmn*)p->access(off_cmn_))->size();
+	int numerrs = 0;
 	double rv;
-#ifdef XXX
-	if (errorLen_ == 0) {
+
+	/* The same packet might have multiple errors, so catch them all! */
+	while (errorLen_ < size) {
 		if (firstTime_)
 			firstTime_ = 0;
 		else		/* corrupt the packet */
 			numerrs++;
 		/* rv is a random variable with mean = rate_ (set up in tcl) */
 		rv = ranvar_ ? ranvar_->value() : Random::uniform(rate_);
-		errorLen_ += (int) rv; /* # pkts to next error */
-	} else
-		errorLen_--;	/* count down to next error */
-	return numerrs;
-#endif
+		errorLen_ += (int) rv;
 
-	// If no random var is specified, assume uniform random variable
-	rv = ranvar_ ? ranvar_->value() : Random::uniform();
-	return rv < rate_;
+	}
+	errorLen_ -= size;
+	if (errorLen_ < 0)	/* XXX this should never happen, actually */
+		errorLen_ = 0;
+	return numerrs;
 }
 
 
@@ -212,36 +226,6 @@ int ErrorModel::CorruptTime(Packet *p)
 	return numerrs;
 }
 
-/*
- * Decide whether or not to corrupt this packet, based on a byte-based error
- * model.  The main parameter used in errorLen_, which is the number of
- * bytes to next error, from the last time an error occured on the channel.
- * It is dependent on the random variable being used internally.  
- * rate_ is the user-specified mean number of bytes between errors.
- */
-int ErrorModel::CorruptByte(Packet *p)
-{
-	int size = ((hdr_cmn*)p->access(off_cmn_))->size();
-	int numerrs = 0;
-	double rv;
-
-	/* The same packet might have multiple errors, so catch them all! */
-	while (errorLen_ < size) {
-		if (firstTime_)
-			firstTime_ = 0;
-		else		/* corrupt the packet */
-			numerrs++;
-		/* rv is a random variable with mean = rate_ (set up in tcl) */
-		rv = ranvar_ ? ranvar_->value() : Random::uniform(rate_);
-		errorLen_ += (int) rv;
-
-	}
-	errorLen_ -= size;
-	if (errorLen_ < 0)	/* XXX this should never happen, actually */
-		errorLen_ = 0;
-	return numerrs;
-}
-
 void ErrorModel::reset()
 {
 	errorLen_ = 0;
@@ -265,7 +249,7 @@ int TwoStateErrorModel::command(int argc, const char*const* argv)
 }
 
 /*
- * Two-State error model based on CDFs of errored and error-free lengths.  
+ * Two-State:  error-free and error
  */
 int TwoStateErrorModel::CorruptTime(Packet *p)
 {
