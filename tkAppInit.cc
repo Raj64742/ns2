@@ -13,15 +13,12 @@
  * SCCS: @(#) tkAppInit.c 1.21 96/03/26 16:47:07
  */
 
+#include "Tcl.h"
 #include "tk.h"
 
-/*
- * The following variable is a special hack that is needed in order for
- * Sun shared libraries to be used for Tcl.
- */
+extern init_misc();
 
-extern int matherr();
-int *tclDummyMathPtr = (int *) matherr;
+extern "C" {
 
 #ifdef TK_TEST
 EXTERN int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
@@ -45,9 +42,7 @@ EXTERN int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
  */
 
 int
-main(argc, argv)
-    int argc;			/* Number of command-line arguments. */
-    char **argv;		/* Values of command-line arguments. */
+main(int argc, char** argv)
 {
     Tk_Main(argc, argv, Tcl_AppInit);
     return 0;			/* Needed only to prevent compiler warning. */
@@ -73,10 +68,12 @@ main(argc, argv)
  */
 
 int
-Tcl_AppInit(interp)
-    Tcl_Interp *interp;		/* Interpreter for application. */
+Tcl_AppInit(Tcl_Interp *interp)
 {
     if (Tcl_Init(interp) == TCL_ERROR) {
+	return TCL_ERROR;
+    }
+    if (Otcl_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;
     }
     if (Tk_Init(interp) == TCL_ERROR) {
@@ -103,6 +100,11 @@ Tcl_AppInit(interp)
      * where "Mod" is the name of the module.
      */
 
+    Tcl::init(interp, "ns");
+    extern EmbeddedTcl et_ns_lib;
+    et_ns_lib.load();
+    init_misc();
+
     /*
      * Call Tcl_CreateCommand for application-specific commands, if
      * they weren't already created by the init procedures called above.
@@ -115,6 +117,9 @@ Tcl_AppInit(interp)
      * then no user-specific startup file will be run under any conditions.
      */
 
-    Tcl_SetVar(interp, "tcl_rcFileName", "~/.wishrc", TCL_GLOBAL_ONLY);
+    Tcl_SetVar(interp, "tcl_rcFileName", "~/.ns.tcl", TCL_GLOBAL_ONLY);
+
     return TCL_OK;
+}
+
 }

@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.40 1997/03/27 07:00:55 elan Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.41 1997/03/27 08:21:56 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -7,17 +7,24 @@
 <! I think that this ChangeLog is updated in the reverse order, right? >
 <! with the most recent changes coming first? >
 
+</ul>
+<hr>
+<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a16.tar.gz>ns-2.0a16</a>
+<i>[PENDING]</i></h3>
+<ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<i>Thu Mar 27 00:11:31 PST 1997</i><br>
+Added a make rule for "nsx", which is
+just like ns but is a wish interpreter instead of a tclsh.
+Retired ns_tclsh.cc and replaced with tclAppInit.cc and tkAppInit.cc.
+Also added -ldl for bsdi-3.  
+
 <li><b><a href=http://www.cs.berkeley.edu/~elan>[EA]</a></b>
 <i>Wed Mar 26 22:49:30 PST 1997</i><br>
 Fixed up Session/RTP to work with latest version.  Added a 
 <i>rate_change()</i> method to RTPAgent to allow correct behavior when 
  changing transmission rates.  See code in <t>rtp.cc</t> for details.
-
-</ul>
-<hr>
-<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a15.tar.gz>ns-2.0a15</a>
-<i>Tue Mar 25 14:56:39 PST 1997</i></h3>
-<ul>
 
 <li><b><a href=http://www-nrg.ee.lbl.gov/kfall>[KF]</a></b>
 <i>Wed Mar 26 17:11:17 PST 1997</i><br>
@@ -32,6 +39,13 @@ subclass of Simulator.  So, wrote a `Simulator instance' procedure that
 returns the current instance of the simulator.<br>
 Files affected: tcl/lib/ns-lib.tcl, tcl/lib/ns-trace.tcl,
 tcl/rtglib/dynamics.tcl, tcl/rtglib/route-proto.tcl
+
+</ul>
+
+<hr>
+<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a15.tar.gz>ns-2.0a15</a>
+<i>Tue Mar 25 14:56:39 PST 1997</i></h3>
+<ul>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 Added trace.h to FILES.
