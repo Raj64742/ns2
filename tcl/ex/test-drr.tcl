@@ -1,3 +1,29 @@
+#
+# Copyright (c) Xerox Corporation 1997. All rights reserved.
+#  
+# License is granted to copy, to use, and to make and to use derivative
+# works for research and evaluation purposes, provided that Xerox is
+# acknowledged in all documentation pertaining to any such copy or derivative
+# work. Xerox grants no other licenses expressed or implied. The Xerox trade
+# name should not be used in any advertising without its written permission.
+#  
+# XEROX CORPORATION MAKES NO REPRESENTATIONS CONCERNING EITHER THE
+# MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
+# FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without
+# express or implied warranty of any kind.
+#  
+# These notices must be retained in any copies of any part of this software.
+#
+# This file contributed by Sandeep Bajaj <bajaj@parc.xerox.com>, Mar 1997.
+#
+
+# This script is a simple test for testing DRR functionality
+# This script creates a simple topology and places 6 CBR sources of different
+# rates. Finally it prints some stats to indicate the share of the bottleneck 
+# link that each source gets.
+# The flows can be discriminated by each individual source or by each 
+# node (using the setmask command line option) 
+
 # Run this script as
 # ../../ns test-drr.tcl 
 # or
@@ -14,6 +40,17 @@ if { [lindex $argv 0] == "setmask" } {
 
 set ns [new Simulator]
 
+
+# Create a simple four node topology:
+#
+#	   n0
+#	     \ 
+# 10Mb,0.01ms \   1Mb,0.01ms
+#	        n2 --------- n3
+# 10Mb,0.01ms /
+#	     /
+#	   n1
+
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
@@ -28,7 +65,6 @@ $ns duplex-link $n2 $n0 10.0Mb 0.01ms DRR
 $ns duplex-link $n3 $n0 10.0Mb 0.01ms DRR 
 
 # trace the bottleneck queue 
-#
 $ns trace-queue $n0 $n1 $f
 
 Simulator instproc get-link { node1 node2 } {
@@ -123,8 +159,21 @@ $ns at 3.0 "close $f;finish"
 
 proc finish {} {
     puts "processing output ..."
-    exec awk -f drr-awkfile out.tr >out; exec cat out & 
-    exec sleep 1
+    exec awk  { 
+	{
+	    n[$9]=$9; \
+	    if ($1=="-") r[$9]++; \
+	    if ($1=="+") s[$9]++; \
+	    if ($1=="d") d[$9]++ \
+	    }
+	END \
+	    { 
+		printf ("Flow#\t#sent\t#recvd\t#drop\t%%recvd\n"); \
+		    for (i in r) \
+		    printf ("%1.1f\t%d\t%d\t%d\t%f\n",n[i],s[i],r[i],d[i],r[i]*1.0/s[i])\
+		}
+    } out.tr > out
+    exec cat out &
     exit 0
 }
 
