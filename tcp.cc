@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.31 1997/07/25 09:36:11 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.32 1997/08/01 00:44:10 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -78,6 +78,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind_bool("slow_start_restart_", &slow_start_restart_);
 	bind("maxburst_", &maxburst_);
 	bind("maxcwnd_", &maxcwnd_);
+	bind("maxrto_", &maxrto_);
 
 	bind("dupacks_", &dupacks_);
 	bind("seqno_", &curseq_);
@@ -180,12 +181,17 @@ double TcpAgent::rtt_timeout()
 	double timeout = ((t_srtt_ >> 3) + t_rttvar_) * tcp_tick_ ;
         timeout *= t_backoff_;
 
-	/* XXX preclude overflow */
-	if (timeout > 2000 || timeout < -2000)
-		abort();
+	if (timeout > maxrto_)
+		timeout = maxrto_;
 
-        if (timeout < 2 * tcp_tick_)
+        if (timeout < 2 * tcp_tick_) {
+		if (timeout < 0) {
+			fprintf(stderr, "TcpAgent: negative RTO! (%f)\n",
+				timeout);
+			exit(1);
+		}
 		timeout = 2 * tcp_tick_;
+	}
 	return (timeout);
 }
 
@@ -620,7 +626,6 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
