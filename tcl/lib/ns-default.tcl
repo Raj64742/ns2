@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.206 2000/07/21 04:56:58 yewei Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.207 2000/07/25 05:42:59 haoboy Exp $
 
 
 #
@@ -725,7 +725,7 @@ Propagation/Shadowing set std_db_ 4.0
 Propagation/Shadowing set dist0_ 1.0
 Propagation/Shadowing set seed_ 0
 
-# PLM contributed by Arnaud Legout at INRIA
+# PLM contributed by Arnaud Legout at EURECOM
 Agent/LossMonitor/PLM set flag_PP_ 0
 Agent/LossMonitor/PLM set packet_time_PP_ 0
 Agent/LossMonitor/PLM set fid_PP_ 0
@@ -735,4 +735,5 @@ Application/Traffic/CBR_PP set rate_ 448Kb ;# corresponds to interval of 3.75ms
 Application/Traffic/CBR_PP set packetSize_ 210
 Application/Traffic/CBR_PP set random_ 0
 Application/Traffic/CBR_PP set maxpkts_ 268435456; # 0x10000000
-Application/Traffic/CBR_PP set PBM_ 2;
+Application/Traffic/CBR_PP set PBM_ 2
+
