@@ -58,7 +58,7 @@ void
 RoutingTable::AddEntry(const rtable_ent &ent)
 {
   rtable_ent *it;
-
+  //DEBUG
   assert(ent.metric <= BIG);
 
   if ((it = (rtable_ent*) bsearch(&ent, rtab, elts, sizeof(rtable_ent), 
@@ -86,14 +86,21 @@ RoutingTable::AddEntry(const rtable_ent &ent)
   
   int max;
   
-  for (max=0;max<elts;max++)
-      if (ent.dst < rtab[max].dst)
-	break;
-  
+  for (max=0;max<elts;max++) {
+	  if (ent.dst < rtab[max].dst) {
+		  break;
+	  }
+  }
   // Copy all the further out guys out yet another.
-  bcopy(&rtab[max], &rtab[max+1], 
-	(elts-max)*sizeof(rtable_ent));
-
+  // bcopy does not seem to quite work on sunos???
+  
+  //bcopy(&rtab[max], &rtab[max+1], sizeof(rtable_ent)*(elts-max));
+  
+  //if (elts) {
+  int i = elts-1;
+  while (i >= max) 
+	  rtab[i+1] = rtab[i--];
+  //}
   bcopy(&ent, &rtab[max], sizeof(rtable_ent));
   elts++;
 

@@ -45,7 +45,7 @@ Agent/DSDV set use_mac_      0        ;# Performance suffers with this on
 Agent/DSDV set be_random_    1        ;# Flavor the performance numbers :)
 Agent/DSDV set alpha_        0.875    ;# 7/8, as in RIP(?)
 Agent/DSDV set min_update_periods_ 3  ;# Missing perups before linkbreak
-Agent/DSDV set myaddr_       0        ;# My address
+##Agent/DSDV set myaddr_       0        ;# My address
 Agent/DSDV set verbose_      0        ;# 
 Agent/DSDV set trace_wst_    0        ;# 
 
@@ -74,38 +74,43 @@ Agent/DSDV instproc init args {
 # ======================================================================
 
 proc create-routing-agent { node id } {
-	global ns_ ragent_ tracefd opt
+    global ns_ ragent_ tracefd opt
 
-	#
-	#  Create the Routing Agent and attach it to port 255.
-	#
-	#set ragent_($id) [new $opt(ragent) $id]
-	set ragent_($id) [new $opt(ragent)]
-	set ragent $ragent_($id)
-	$ragent set myaddr_ $id
-	$node attach $ragent 255
+    #
+    #  Create the Routing Agent and attach it to port 255.
+    #
+    #set ragent_($id) [new $opt(ragent) $id]
+    set ragent_($id) [new $opt(ragent)]
+    set ragent $ragent_($id)
 
-	$ragent set target_ [$node set ifq_(0)]	;# ifq between LL and MAC
+    ## setup address (supports hier-addr) for dsdv agent and mobilenode
+    set addr [$node node-addr]
+    $ragent addr $addr
+    $node addr $addr
+    
+    $node attach $ragent 255
+
+    ##$ragent set target_ [$node set ifq_(0)]	;# ifq between LL and MAC
         
-        # XXX FIX ME XXX
-        # Where's the DSR stuff?
-	#$ragent ll-queue [$node get-queue 0]    ;# ugly filter-queue hack
-	$ns_ at 0.0 "$ragent_($id) start-dsdv"	;# start updates
+    # XXX FIX ME XXX
+    # Where's the DSR stuff?
+    #$ragent ll-queue [$node get-queue 0]    ;# ugly filter-queue hack
+    $ns_ at 0.0 "$ragent_($id) start-dsdv"	;# start updates
 
-	#
-	# Drop Target (always on regardless of other tracing)
-	#
-	set drpT [cmu-trace Drop "RTR" $node]
-	$ragent drop-target $drpT
-	
-	#
-	# Log Target
-	#
-	set T [new Trace/Generic]
-	$T target [$ns_ set nullAgent_]
-	$T attach $tracefd
-	$T set src_ $id
-	$ragent tracetarget $T
+    #
+    # Drop Target (always on regardless of other tracing)
+    #
+    set drpT [cmu-trace Drop "RTR" $node]
+    $ragent drop-target $drpT
+    
+    #
+    # Log Target
+    #
+    set T [new Trace/Generic]
+    $T target [$ns_ set nullAgent_]
+    $T attach $tracefd
+    $T set src_ $id
+    $ragent tracetarget $T
 }
 
 
@@ -156,3 +161,10 @@ proc dsdv-create-mobile-node { id } {
 		$ns_ at 0.0 "$node_($id) start"
 	}
 }
+
+
+
+
+
+
+

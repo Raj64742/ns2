@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.4 1999/02/24 23:32:08 haldar Exp $
+# $Id: dsr.tcl,v 1.5 1999/04/10 00:10:54 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -88,8 +88,11 @@ SRNode instproc init {args} {
 	}
 	# puts "making dsragent for node [$self id]"
 	set dsr_agent_ [new Agent/DSRAgent]
-	$dsr_agent_ ip-addr [$self id]
-
+	# setup address (supports hier-address) for dsragent
+	$dsr_agent_ addr $address_
+	# set up IP address
+	$self addr $address_
+	
     if { $RouterTrace == "ON" } {
 	# Recv Target
 	set rcvT [cmu-trace Recv "RTR" $self]

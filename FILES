@@ -540,6 +540,7 @@ tcl/ex/vlantest-flat.tcl
 tcl/ex/vlantest-hier.tcl
 tcl/ex/vlantest-mcst.tcl
 tcl/ex/wireless.tcl
+tcl/ex/wireless-test.tcl
 tcl/http/README
 tcl/http/data/HttpConnections.cdf
 tcl/http/data/HttpReplyLength.cdf
@@ -600,6 +601,7 @@ tcl/mobility/dsr.tcl
 tcl/mobility/scene/cbr-50-20-4-512
 tcl/mobility/scene/loopize
 tcl/mobility/scene/scen-670x670-50-600-20-2
+tcl/mobility/scene/scen-670x670-50-600-20-0
 tcl/mobility/timer.tcl
 tcl/nam-demo/nstonam.awk
 tcl/old/ns_default.tcl

@@ -37,7 +37,7 @@
    path.h
 
    handles source routes
-   $Id: path.h,v 1.3 1999/01/08 19:04:51 haldar Exp $
+   $Id: path.h,v 1.4 1999/04/10 00:10:50 haldar Exp $
 */
 #ifndef _path_h
 #define _path_h
@@ -45,7 +45,7 @@
 extern "C" {
 #include <stdio.h>
 #include <assert.h>
-}
+	   }
 
 #include <packet.h>
 #include <dsr/hdr_sr.h>
@@ -110,25 +110,30 @@ public:
   Path(const struct sr_addr *addrs, int len);
   Path(const struct hdr_sr *srh);
 
-  ~Path();
-
-  void fillSR(struct hdr_sr *srh);
-
-  inline ID& next() {assert(cur_index < len); return path[cur_index++];}
-  inline void resetIterator() {  cur_index = 0;}
-  inline void reset() {len = 0; cur_index = 0;}
-
-  inline void setIterator(int i) {assert(i>=0 && i<len); cur_index = i;}
-  inline void setLength(int l) {assert(l>=0 && l<=MAX_SR_LEN); len = l;}
-  inline ID& operator[] (int n) const {  
-    assert(n < len && n >= 0);
-    return path[n];}
-  void operator=(const Path& rhs);
-  bool operator==(const Path& rhs);
-  inline void appendToPath(const ID& id) { 
-    assert(len < MAX_SR_LEN); 
-    path[len++] = id;}
-  void appendPath(Path& p);
+	~Path();
+	
+	void fillSR(struct hdr_sr *srh);
+	
+	inline ID& next() {assert(cur_index < len); return path[cur_index++];}
+	inline void resetIterator() {  cur_index = 0;}
+	inline void reset() {len = 0; cur_index = 0;}
+	
+	inline void setIterator(int i) {assert(i>=0 && i<len); cur_index = i;}
+	inline void setLength(int l) {assert(l>=0 && l<=MAX_SR_LEN); len = l;}
+	inline ID& operator[] (int n) const {  
+		//debug 
+		//if (n >= len || n < 0) {
+		//printf("..........n-%d,len-%d\n",n,len);
+		//}
+		//assert(n < len && n >= 0);
+		return path[n];
+	}
+	void operator=(const Path& rhs);
+	bool operator==(const Path& rhs);
+	inline void appendToPath(const ID& id) { 
+		assert(len < MAX_SR_LEN); 
+		path[len++] = id;}
+	void appendPath(Path& p);
   bool member(const ID& id) const;
   bool member(const ID& net_id, const ID& MAC_id) const;
   Path copy() const;

@@ -38,6 +38,7 @@
 
 #include <phy.h>
 #include <wired-phy.h>
+#include <address.h>
 #include <node.h>
 
 
@@ -50,7 +51,7 @@ public:
         }
 } class_node;
 
-Node::Node(void)
+Node::Node(void) : address_(-1)
 {
 	LIST_INIT(&ifhead_);	
 }
@@ -58,6 +59,13 @@ Node::Node(void)
 int
 Node::command(int argc, const char*const* argv)
 {
+	if (argc == 2) {
+		Tcl& tcl = Tcl::instance();
+		if(strcmp(argv[1], "address?") == 0) {
+			tcl.resultf("%d", address_);
+ 			return TCL_OK;
+ 		}
+	}
 	if (argc == 3) {
 		if(strcmp(argv[1], "addif") == 0) {
 			WiredPhy* n = (WiredPhy*) TclObject::lookup(argv[2]);
@@ -65,6 +73,10 @@ Node::command(int argc, const char*const* argv)
 				return TCL_ERROR;
 			n->insertnode(&ifhead_);
 			n->setnode(this);
+			return TCL_OK;
+		}else if (strcmp(argv[1], "addr") == 0) {
+			address_ = Address::instance().\
+				str2addr(argv[2]);
 			return TCL_OK;
 		}
 	}

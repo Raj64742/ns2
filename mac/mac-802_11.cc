@@ -49,9 +49,6 @@
 #include "cmu-trace.h"
 
 
-/* ======================================================================
-   Macros
-   ====================================================================== */
 #define CHECK_BACKOFF_TIMER()						\
 {									\
 	if(is_idle() && mhBackoff_.paused())				\
@@ -70,8 +67,10 @@
          * and hence, must be discarded.                                \
          */                                                             \
         if(rx_state_ != MAC_IDLE) {                                      \
-                assert(HDR_MAC802_11(p)->dh_fc.fc_type == MAC_Type_Control); \
-                assert(HDR_MAC802_11(p)->dh_fc.fc_subtype == MAC_Subtype_ACK);\
+                struct hdr_mac802_11 *dh = HDR_MAC802_11(p);                  \
+                                                                        \
+                assert(dh->dh_fc.fc_type == MAC_Type_Control);          \
+                assert(dh->dh_fc.fc_subtype == MAC_Subtype_ACK);        \
                                                                         \
                 assert(pktRx_);                                          \
                 struct hdr_cmn *ch = HDR_CMN(pktRx_);                    \
@@ -87,7 +86,7 @@
          *       Interface can distinguish between incoming and         \
          *       outgoing packets.                                      \
          */                                                             \
-										downtarget_->recv(p, this);                                     \
+        downtarget_->recv(p->copy(), this);                             \
                                                                         \
         mhSend_.start(t);                                                \
                                                                         \
@@ -107,6 +106,8 @@
 						\
 	CHECK_BACKOFF_TIMER();			\
 }
+
+
 
 
 /* ======================================================================
@@ -523,6 +524,11 @@ Mac802_11::deferHandler()
 		return;
 
 	assert(mhBackoff_.busy() == 0);
+	//if (mhBackoff_.busy() != 0)
+	//{
+	//	printf("deferHandler:mhBackoff_ busy!\n");
+	//	return;
+	//}
 
 	if(check_pktRTS() == 0)
 		return;
@@ -628,7 +634,7 @@ Mac802_11::check_pktCTRL()
 		return -1;
 
 	mh = HDR_MAC802_11(pktCTRL_);
-
+							  
 	switch(mh->dh_fc.fc_subtype) {
 
 	/*
@@ -658,7 +664,7 @@ Mac802_11::check_pktCTRL()
 		break;
 
 	default:
-		fprintf(stderr, "Invalid MAC Control subtype\n");
+		fprintf(stderr, "check_pktCTRL:Invalid MAC Control subtype\n");
 		exit(1);
 	}
 
@@ -672,12 +678,15 @@ int
 Mac802_11::check_pktRTS()
 {
 	struct hdr_mac802_11 *mh;
+	
+	
 	double timeout;
 
 	assert(mhBackoff_.busy() == 0);
 
 	if(pktRTS_ == 0)
  		return -1;
+	//struct hdr_cmn *ch = HDR_CMN(pktRTS_);
 	mh = HDR_MAC802_11(pktRTS_);
 
  	switch(mh->dh_fc.fc_subtype) {
@@ -695,7 +704,7 @@ Mac802_11::check_pktRTS()
 		break;
 
 	default:
-		fprintf(stderr, "Invalid MAC Control subtype\n");
+		fprintf(stderr, "check_pktRTS:Invalid MAC Control subtype\n");
 		exit(1);
 	}
 
@@ -710,14 +719,14 @@ Mac802_11::check_pktTx()
 {
 	struct hdr_mac802_11 *mh;
 	double timeout;
-
+	
 	assert(mhBackoff_.busy() == 0);
 
 	if(pktTx_ == 0)
 		return -1;
 
 	mh = HDR_MAC802_11(pktTx_);
-       	//int len = HDR_CMN(pktTx_)->size();
+       	int len = HDR_CMN(pktTx_)->size();
 
 	switch(mh->dh_fc.fc_subtype) {
 
@@ -734,14 +743,17 @@ Mac802_11::check_pktTx()
 		SET_TX_STATE(MAC_SEND);
 
 		if((u_int32_t)ETHER_ADDR(mh->dh_da) != MAC_BROADCAST)
-			timeout = ACKTimeout(netif_->txtime(pktTx_));
+			//timeout = ACKTimeout(netif_->txtime(pktTx_))+5;
+			timeout = ACKTimeout(len) + 10;
 		else
 			timeout = TX_Time(pktTx_);
 
 		break;
 
 	default:
-		fprintf(stderr, "Invalid MAC Control subtype\n");
+		fprintf(stderr, "check_pktTx:Invalid MAC Control subtype\n");
+		//printf("pktRTS:%x, pktCTS/ACK:%x, pktTx:%x\n",pktRTS_, pktCTRL_,pktTx_);
+		
 		exit(1);
 	}
 
@@ -761,6 +773,7 @@ Mac802_11::sendRTS(int dst)
 	Packet *p = Packet::alloc();
 	hdr_cmn* ch = HDR_CMN(p);
 	struct rts_frame *rf = (struct rts_frame*)p->access(hdr_mac::offset_);
+	//struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
 	
 	assert(pktTx_);
 	assert(pktRTS_ == 0);
@@ -783,21 +796,20 @@ Mac802_11::sendRTS(int dst)
 	ch->size() = ETHER_RTS_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->direction() = -1;
 
 	bzero(rf, MAC_HDR_LEN);
 
 	rf->rf_fc.fc_protocol_version = MAC_ProtocolVersion;
-	rf->rf_fc.fc_type	= MAC_Type_Control;
-	rf->rf_fc.fc_subtype	= MAC_Subtype_RTS;
-	rf->rf_fc.fc_to_ds	= 0;
-	rf->rf_fc.fc_from_ds	= 0;
-	rf->rf_fc.fc_more_frag	= 0;
-	rf->rf_fc.fc_retry	= 0;
-	rf->rf_fc.fc_pwr_mgt	= 0;
-	rf->rf_fc.fc_more_data	= 0;
-	rf->rf_fc.fc_wep	= 0;
-	rf->rf_fc.fc_order	= 0;
+ 	rf->rf_fc.fc_type	= MAC_Type_Control;
+ 	rf->rf_fc.fc_subtype	= MAC_Subtype_RTS;
+ 	rf->rf_fc.fc_to_ds	= 0;
+ 	rf->rf_fc.fc_from_ds	= 0;
+ 	rf->rf_fc.fc_more_frag	= 0;
+ 	rf->rf_fc.fc_retry	= 0;
+ 	rf->rf_fc.fc_pwr_mgt	= 0;
+ 	rf->rf_fc.fc_more_data	= 0;
+ 	rf->rf_fc.fc_wep	= 0;
+ 	rf->rf_fc.fc_order	= 0;
 
 	rf->rf_duration = RTS_DURATION(pktTx_);
 	//ETHER_ADDR(rf->rf_ra) = dst;
@@ -818,6 +830,7 @@ Mac802_11::sendCTS(int dst, double rts_duration)
 	Packet *p = Packet::alloc();
 	hdr_cmn* ch = HDR_CMN(p);
 	struct cts_frame *cf = (struct cts_frame*)p->access(hdr_mac::offset_);
+	//struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
 
 	assert(pktCTRL_ == 0);
 
@@ -826,29 +839,32 @@ Mac802_11::sendCTS(int dst, double rts_duration)
 	ch->size() = ETHER_CTS_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->direction() = -1;
+	//ch->direction() = -1;
 	bzero(cf, MAC_HDR_LEN);
 
 	cf->cf_fc.fc_protocol_version = MAC_ProtocolVersion;
 	cf->cf_fc.fc_type	= MAC_Type_Control;
 	cf->cf_fc.fc_subtype	= MAC_Subtype_CTS;
-	cf->cf_fc.fc_to_ds	= 0;
-	cf->cf_fc.fc_from_ds	= 0;
-	cf->cf_fc.fc_more_frag	= 0;
-	cf->cf_fc.fc_retry	= 0;
-	cf->cf_fc.fc_pwr_mgt	= 0;
-	cf->cf_fc.fc_more_data	= 0;
-	cf->cf_fc.fc_wep	= 0;
-	cf->cf_fc.fc_order	= 0;
+ 	cf->cf_fc.fc_to_ds	= 0;
+ 	cf->cf_fc.fc_from_ds	= 0;
+ 	cf->cf_fc.fc_more_frag	= 0;
+ 	cf->cf_fc.fc_retry	= 0;
+ 	cf->cf_fc.fc_pwr_mgt	= 0;
+ 	cf->cf_fc.fc_more_data	= 0;
+ 	cf->cf_fc.fc_wep	= 0;
+ 	cf->cf_fc.fc_order	= 0;
+	
 
 	cf->cf_duration = CTS_DURATION(rts_duration);
 	//ETHER_ADDR(cf->cf_ra) = dst;
 	STORE4BYTE(&dst, (cf->cf_ra));
+	//STORE4BYTE(&dst, (mh->dh_da));
 	
 
 	// cf->cf_fcs;
 
 	pktCTRL_ = p;
+	
 }
 
 void
@@ -857,6 +873,7 @@ Mac802_11::sendACK(int dst)
 	Packet *p = Packet::alloc();
 	hdr_cmn* ch = HDR_CMN(p);
 	struct ack_frame *af = (struct ack_frame*)p->access(hdr_mac::offset_);
+	//struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
 
 	assert(pktCTRL_ == 0);
 
@@ -865,21 +882,21 @@ Mac802_11::sendACK(int dst)
 	ch->size() = ETHER_ACK_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	ch->direction() = -1;
+	//ch->direction() = -1;
 	
 	bzero(af, MAC_HDR_LEN);
 
 	af->af_fc.fc_protocol_version = MAC_ProtocolVersion;
-	af->af_fc.fc_type	= MAC_Type_Control;
-	af->af_fc.fc_subtype	= MAC_Subtype_ACK;
-	af->af_fc.fc_to_ds	= 0;
-	af->af_fc.fc_from_ds	= 0;
-	af->af_fc.fc_more_frag	= 0;
-	af->af_fc.fc_retry	= 0;
-	af->af_fc.fc_pwr_mgt	= 0;
-	af->af_fc.fc_more_data	= 0;
-	af->af_fc.fc_wep	= 0;
-	af->af_fc.fc_order	= 0;
+ 	af->af_fc.fc_type	= MAC_Type_Control;
+ 	af->af_fc.fc_subtype	= MAC_Subtype_ACK;
+ 	af->af_fc.fc_to_ds	= 0;
+ 	af->af_fc.fc_from_ds	= 0;
+ 	af->af_fc.fc_more_frag	= 0;
+ 	af->af_fc.fc_retry	= 0;
+ 	af->af_fc.fc_pwr_mgt	= 0;
+ 	af->af_fc.fc_more_data	= 0;
+ 	af->af_fc.fc_wep	= 0;
+ 	af->af_fc.fc_order	= 0;
 
 	af->af_duration = ACK_DURATION();
 	//ETHER_ADDR(af->af_ra) = dst;
@@ -905,6 +922,8 @@ Mac802_11::sendDATA(Packet *p)
 	dh->dh_fc.fc_protocol_version = MAC_ProtocolVersion;
 	dh->dh_fc.fc_type       = MAC_Type_Data;
 	dh->dh_fc.fc_subtype    = MAC_Subtype_Data;
+	//printf(".....p = %x, mac-subtype-%d\n",p,dh->dh_fc.fc_subtype);
+	
 	dh->dh_fc.fc_to_ds      = 0;
 	dh->dh_fc.fc_from_ds    = 0;
 	dh->dh_fc.fc_more_frag  = 0;
@@ -920,6 +939,7 @@ Mac802_11::sendDATA(Packet *p)
 		dh->dh_duration = 0;
 
 	pktTx_ = p;
+	
 }
 
 
@@ -929,6 +949,7 @@ Mac802_11::sendDATA(Packet *p)
 void
 Mac802_11::RetransmitRTS()
 {
+
 	assert(pktTx_);
 	assert(pktRTS_);
 
@@ -956,16 +977,17 @@ Mac802_11::RetransmitRTS()
                         ch->xmit_failure_(pktTx_->copy(),
                                           ch->xmit_failure_data_);
                 }
-
+		//printf("(%d)....discarding RTS:%x\n",index_,pktRTS_);
 		discard(pktTx_, DROP_MAC_RETRY_COUNT_EXCEEDED); pktTx_ = 0;
 
 		ssrc_ = 0;
 		rst_cw();
 	}
 	else {
+		//printf("(%d)...retxing RTS:%x\n",index_,pktRTS_);
 		struct rts_frame *rf;
-
-		rf = (struct rts_frame*)pktRTS_->access(off_mac_);
+		
+		rf = (struct rts_frame*)pktRTS_->access(hdr_mac::offset_);
 		rf->rf_fc.fc_retry = 1;
 
 		inc_cw();
@@ -977,6 +999,7 @@ Mac802_11::RetransmitRTS()
 void
 Mac802_11::RetransmitDATA()
 {
+
 	struct hdr_cmn *ch;
 	struct hdr_mac802_11 *mh;
 	u_int32_t *rcount, *thresh;
@@ -1033,7 +1056,7 @@ Mac802_11::RetransmitDATA()
                 }
 
 		discard(pktTx_, DROP_MAC_RETRY_COUNT_EXCEEDED); pktTx_ = 0;
-
+		//printf("(%d)DATA discarded: count exceeded\n",index_);
 		*rcount = 0;
 		rst_cw();
 	}
@@ -1044,6 +1067,7 @@ Mac802_11::RetransmitDATA()
 		dh->dh_fc.fc_retry = 1;
 
 		sendRTS(ETHER_ADDR(mh->dh_da));
+		//printf("(%d)retxing data:%x..sendRTS..\n",index_,pktTx_);
 		inc_cw();
 		mhBackoff_.start(cw_, is_idle());
 	}
@@ -1096,7 +1120,9 @@ void
 Mac802_11::recv(Packet *p, Handler *h)
 {
 	struct hdr_cmn *hdr = HDR_CMN(p);
-
+	//hdr_mac802_11 *mh = HDR_MAC802_11(p);
+	//u_int32_t dst = ETHER_ADDR(mh->dh_da);
+	//u_int32_t src = ETHER_ADDR(mh->dh_sa);
 	/*
 	 * Sanity Check
 	 */
@@ -1167,6 +1193,10 @@ Mac802_11::recv_timer()
 	hdr_cmn *ch = HDR_CMN(pktRx_);
 	hdr_mac802_11 *mh = HDR_MAC802_11(pktRx_);
 	u_int32_t dst = ETHER_ADDR(mh->dh_da);
+	// XXX debug
+	//struct cts_frame *cf = (struct cts_frame*)pktRx_->access(hdr_mac::offset_);
+	//u_int32_t src = ETHER_ADDR(mh->dh_sa);
+	
 	u_int8_t  type = mh->dh_fc.fc_type;
 	u_int8_t  subtype = mh->dh_fc.fc_subtype;
 
@@ -1212,9 +1242,10 @@ Mac802_11::recv_timer()
 		set_nav(mh->dh_duration);
 	}
 
-        /* tap out */
+        /* tap out - */
         if (tap_ && type == MAC_Type_Data &&
-            MAC_Subtype_Data == subtype) tap_->tap(pktRx_);
+            MAC_Subtype_Data == subtype ) 
+		tap_->tap(pktRx_);
 
 	/*
 	 * Address Filtering
@@ -1252,7 +1283,7 @@ Mac802_11::recv_timer()
 			break;
 
 		default:
-			fprintf(stderr, "Invalid MAC Control Subtype %x\n",
+			fprintf(stderr,"recvTimer1:Invalid MAC Control Subtype %x\n",
 				subtype);
 			exit(1);
 		}
@@ -1267,14 +1298,14 @@ Mac802_11::recv_timer()
 			break;
 
 		default:
-			fprintf(stderr, "Invalid MAC Data Subtype %x\n",
+			fprintf(stderr, "recv_timer2:Invalid MAC Data Subtype %x\n",
 				subtype);
 			exit(1);
 		}
 		break;
 
 	default:
-		fprintf(stderr, "Invalid MAC Type %x\n", subtype);
+		fprintf(stderr, "recv_timer3:Invalid MAC Type %x\n", subtype);
 		exit(1);
 	}
 
@@ -1328,7 +1359,10 @@ Mac802_11::recvCTS(Packet *p)
 	Packet::free(pktRTS_); pktRTS_ = 0;
 
 	assert(pktTx_);
-
+	// debug
+	//struct hdr_mac802_11 *mh = HDR_MAC802_11(pktTx_);
+	//printf("(%d):recvCTS:pktTx_-%x,mac-subtype-%d & pktCTS_:%x\n",index_,pktTx_,mh->dh_fc.fc_subtype,p);
+	
 	mhSend_.stop();
 
 	/*
@@ -1378,11 +1412,13 @@ Mac802_11::recvDATA(Packet *p)
 				/*
 				 * Our CTS got through.
 				 */
+				//printf("(%d): RECVING DATA!\n",index_);
 				ssrc_ = 0;
 				rst_cw();
 			}
 			else {
 				discard(p, DROP_MAC_BUSY);
+				//printf("(%d)..discard DATA\n",index_);
 				return;
 			}
 			sendACK(src);
@@ -1429,13 +1465,14 @@ Mac802_11::recvDATA(Packet *p)
 void
 Mac802_11::recvACK(Packet *p)
 {
+	
 	struct hdr_cmn *ch = HDR_CMN(p);
 
 	if(tx_state_ != MAC_SEND) {
-		discard(p, DROP_MAC_INVALID_STATE);
-		return;
+	discard(p, DROP_MAC_INVALID_STATE);
+	return;
 	}
-
+	//printf("(%d)...................recving ACK:%x\n",index_,p);
 	assert(pktTx_);
 	Packet::free(pktTx_); pktTx_ = 0;
 

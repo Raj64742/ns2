@@ -1,7 +1,7 @@
 #ifndef __cache_stats__
 #define __cache_stats__
 
-#include<cmu/dsr/routecache.h>
+#include<dsr/routecache.h>
 
 #define ACTION_ADD_ROUTE        1
 #define ACTION_NOTICE_ROUTE     2

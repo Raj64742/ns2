@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.6 1999/03/13 03:53:16 haoboy Exp $
+   $Id: dsragent.cc,v 1.7 1999/04/10 00:10:47 haldar Exp $
 */
 
 #include <assert.h>
@@ -48,16 +48,17 @@
 #include <signal.h>
 #include <float.h>
 
-#include "object.h"
-#include "agent.h"
-#include "trace.h"
-#include "packet.h"
-#include "scheduler.h"
-#include "random.h"
+#include <object.h>
+#include <agent.h>
+#include <trace.h>
+#include <packet.h>
+#include <scheduler.h>
+#include <random.h>
 
-#include "mac.h"
-#include "ll.h"
-#include "cmu-trace.h"
+#include <mac.h>
+#include <ll.h>
+#include <cmu-trace.h>
+#include <address.h>
 
 #include "path.h"
 #include "srpacket.h"
@@ -409,9 +410,11 @@ DSRAgent::command(int argc, const char*const* argv)
     }
   else if(argc == 3) 
     {
-      if (strcasecmp(argv[1], "ip-addr") == 0) 
+      if (strcasecmp(argv[1], "addr") == 0) 
 	{
-	 net_id = ID(atoi(argv[2]), ::IP);
+         int temp;
+	 temp = Address::instance().str2addr(argv[2]);
+	 net_id = ID(temp, ::IP);
 	 route_cache->net_id = net_id;
 	 return TCL_OK;
 	} 
@@ -479,12 +482,12 @@ DSRAgent::recv(Packet* packet, Handler*)
   assert(cmh->size() >= 0);
 
   SRPacket p(packet, srh);
-  p.dest = ID(iph->dst(),::IP);
-  p.src = ID(iph->src(),::IP);
+  p.dest = ID((Address::instance().get_nodeaddr(iph->dst())),::IP);
+  p.src = ID((Address::instance().get_nodeaddr(iph->src())),::IP);
 
   assert(logtarget != 0);
 
-  if (!srh->valid())
+  if (srh->valid() != 1)
     { // this must be an outgoing packet, it doesn't have a SR header on it
       srh->init();		 // give packet an SR header now
       cmh->size() += IP_HDR_LEN; // add on IP header size
@@ -495,11 +498,13 @@ DSRAgent::recv(Packet* packet, Handler*)
       handlePktWithoutSR(p, false);
       goto done;
     }
-  else if (p.dest == net_id || p.dest == IP_broadcast)
-    { // this packet is intended for us
-      handlePacketReceipt(p);
-      goto done;
-    }
+  else if (srh->valid() == 1) 
+    {
+       if (p.dest == net_id || p.dest == IP_broadcast)
+	      { // this packet is intended for us
+		      handlePacketReceipt(p);
+		      goto done;
+	      }
       
   // should we check to see if it's an error packet we're handling
   // and if so call processBrokenRouteError to snoop
@@ -516,8 +521,13 @@ DSRAgent::recv(Packet* packet, Handler*)
     { // we're not the intended final recpt, but we're a hop
       handleForwarding(p);
     }
-
-
+  }
+  else {
+	  // some invalid pkt has reached here
+	  fprintf(stderr,"dsragent: Error-received Invalid pkt!\n");
+	  Packet::free(p.pkt);
+	  p.pkt =0; // drop silently
+  }
 done:
   assert(p.pkt == 0);
 
@@ -569,7 +579,8 @@ DSRAgent::handlePacketReceipt(SRPacket& p)
   /* Handle a packet destined to us */
 {
   hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
-
+  hdr_ip *iph = HDR_IP(p.pkt);
+  
   if (srh->route_reply())
     { // we got a route_reply piggybacked on a route_request
       // accept the new source route before we do anything else
@@ -601,6 +612,11 @@ DSRAgent::handlePacketReceipt(SRPacket& p)
   /* give the data in the packet to our higher layer (our port dmuxer, most 
    likely) */
   assert(p.dest == net_id || p.dest == MAC_id);
+  // set pkt address format as the dmux expects 
+  int mask = Address::instance().portmask();
+  int shift = Address::instance().portshift();
+  iph->dst() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & \
+						   iph->dst());
   target_->recv(p.pkt, (Handler*)0);
   p.pkt = 0;
 }
@@ -650,8 +666,9 @@ void
 DSRAgent::handleRouteRequest(SRPacket &p)
   /* process a route request that isn't targeted at us */
 {
-  hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
-  assert (srh->route_request());
+
+	hdr_sr *srh =  (hdr_sr*)p.pkt->access(off_sr_);
+	assert (srh->route_request());
 
   if (ignoreRouteRequestp(p)) 
     {
@@ -828,9 +845,9 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   p.pkt = allocpkt();
 
   hdr_ip *iph =  (hdr_ip*)p.pkt->access(off_ip_);
-  iph->src() = p.src.addr;
+  iph->src() = p.src.addr << Address::instance().nodeshift();
   iph->sport() = RT_PORT;
-  iph->dst() = p.dest.addr;
+  iph->dst() = p.dest.addr << Address::instance().nodeshift();
   iph->dport() = RT_PORT;
   iph->ttl() = 255;
 
@@ -890,7 +907,9 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
     }
   p.route.fillSR(srh);
   cmnh->size() += srh->size();
-
+  // set direction of pkt to -1 , i.e downward
+  cmnh->direction_ = -1;
+  
   if (srh->route_request())
     { // broadcast forward
       cmnh->xmit_failure_ = 0;
@@ -911,7 +930,7 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
 
   // make sure we aren't cycling packets
   //assert(p.pkt->incoming == 0); // this is an outgoing packet
-  assert(cmnh->direction() == -1);
+  //assert(cmnh->direction() == -1);
 
   if (ifq->length() > 25)
     trace("SIFQ %.5f _%s_ len %d",
@@ -962,9 +981,9 @@ DSRAgent::getRouteForPacket(SRPacket &p, bool retry)
   hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
-  iph->dst() = p.dest.getNSAddr_t();
+  iph->dst() = (p.dest.getNSAddr_t()) << Address::instance().nodeshift();
   iph->dport() = RT_PORT;
-  iph->src() = net_id.getNSAddr_t();
+  iph->src() = (net_id.getNSAddr_t()) << Address::instance().nodeshift();
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_;
@@ -979,14 +998,16 @@ DSRAgent::getRouteForPacket(SRPacket &p, bool retry)
   hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
-  iph->dst() = p.dest.getNSAddr_t();
+  iph->dst() = (p.dest.getNSAddr_t()) << \
+	  Address::instance().nodeshift();
   iph->dport() = RT_PORT;
-  iph->src() = net_id.getNSAddr_t();
+  iph->src() = (net_id.getNSAddr_t()) << \
+	  Address::instance().nodeshift();
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_ + IP_HDR_LEN; // add in IP header
   cmnh->num_forwards() = 0;
-
+  
   srh->init();
 
   if (BackOffTest(e, time))
@@ -1078,9 +1099,9 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   p_copy.route.appendToPath(net_id);
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = p_copy.dest.addr;
+  new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
   new_iph->dport() = RT_PORT;
-  new_iph->src() = p_copy.src.addr;
+  new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1268,9 +1289,9 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
   p_copy.dest = ID(new_srh->down_links()[new_srh->num_route_errors()-1].tell_addr, ::IP);
   p_copy.src = net_id;
 
-  new_iph->dst() = p_copy.dest.addr;
+  new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
   new_iph->dport() = RT_PORT;
-  new_iph->src() = p_copy.src.addr;
+  new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
       
@@ -1290,7 +1311,7 @@ DSRAgent::tap(const Packet *packet)
   
   if (!dsragent_use_tap) return;
 
-  if (!srh->valid()) return;	// can't do anything with it
+  if (srh->valid() != 1) return;	// can't do anything with it
 
   // don't trouble me with packets I'm about to receive anyway
   /* this change added 5/13/98 -dam */
@@ -1298,8 +1319,8 @@ DSRAgent::tap(const Packet *packet)
   if (next_hop == net_id || next_hop == MAC_id) return;
 
   SRPacket p((Packet *) packet, srh);
-  p.dest = ID(iph->dst(),::IP);
-  p.src = ID(iph->src(),::IP);
+  p.dest = ID((Address::instance().get_nodeaddr(iph->dst())),::IP);
+  p.src = ID((Address::instance().get_nodeaddr(iph->src())),::IP);
 
   // don't trouble me with my own packets
   if (p.src == net_id) return; 
@@ -1446,9 +1467,9 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
   p_copy.route.removeSection(0,p_copy.route.index());
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = p_copy.dest.addr;
+  new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
   new_iph->dport() = RT_PORT;
-  new_iph->src() = p_copy.src.addr;
+  new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1523,15 +1544,15 @@ DSRAgent::undeliverablePkt(Packet *pkt, int mine)
   hdr_cmn *cmh;
 
   SRPacket p(pkt,srh);
-  p.dest = ID(iph->dst(),::IP);
-  p.src = ID(iph->src(),::IP);
+  p.dest = ID((Address::instance().get_nodeaddr(iph->dst())),::IP);
+  p.src = ID((Address::instance().get_nodeaddr(iph->src())),::IP);
   p.pkt = mine ? pkt : pkt->copy();
 
   srh =  (hdr_sr*)p.pkt->access(off_sr_);
   iph = (hdr_ip*)p.pkt->access(off_ip_);
   cmh = (hdr_cmn*)p.pkt->access(off_cmn_);
 
-  if (ID(iph->src(),::IP) == net_id)
+  if (p.src == net_id)
     { // it's our packet we couldn't send
       cmh->size() -= srh->size(); // remove SR header
       assert(cmh->size() >= 0);
@@ -1757,9 +1778,9 @@ DSRAgent::xmitFailed(Packet *pkt)
   srh->route_reply() = 0;
   srh->route_request() = 0;
 
-  iph->dst() = deadlink->tell_addr;
+  iph->dst() = (deadlink->tell_addr) << Address::instance().nodeshift();
   iph->dport() = RT_PORT;
-  iph->src() = net_id.addr;
+  iph->src() = (net_id.addr) << Address::instance().nodeshift();
   iph->sport() = RT_PORT;
   iph->ttl() = 255;
 

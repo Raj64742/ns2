@@ -36,13 +36,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.35 1999/03/13 03:52:50 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.36 1999/04/10 00:10:35 haldar Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
 #include <mac.h>
 #include <ll.h>
 #include <address.h>
+#include <dsr/hdr_sr.h>
 
 int hdr_ll::offset_;
 
@@ -135,6 +136,8 @@ void LL::recv(Packet* p, Handler* /*h*/)
 {
 	char *mh = (char*) HDR_MAC(p);
 	hdr_cmn *ch = HDR_CMN(p);
+	//struct hdr_sr *hsr = HDR_SR(p);
+	
 	/*
 	 * Sanity Check
 	 */
@@ -143,7 +146,8 @@ void LL::recv(Packet* p, Handler* /*h*/)
 	// If direction = 1, then pass it up the stack
 	// Otherwise, set direction to -1 and pass it down the stack
 	if(ch->direction() == 1) {
-		if(mac_->hdr_type(mh) == ETHERTYPE_ARP)
+		//if(mac_->hdr_type(mh) == ETHERTYPE_ARP)
+		if(ch->ptype_ == PT_ARP)
 			arptable_->arpinput(p, this);
 		else
 			uptarget_ ? sendUp(p) : drop(p);
@@ -159,7 +163,9 @@ void LL::sendDown(Packet* p)
 {	
 	hdr_cmn *ch = HDR_CMN(p);
 	hdr_ip *ih = HDR_IP(p);
-	nsaddr_t dst = ih->dst();
+	// XXX HACK for now - Padma, 03/99.
+	nsaddr_t dst = (nsaddr_t)Address::instance().get_nodeaddr(ih->dst());
+	//nsaddr_t dst = ih->dst();
 	hdr_ll *llh = HDR_LL(p);
 	char *mh = (char*)p->access(hdr_mac::offset_);
 

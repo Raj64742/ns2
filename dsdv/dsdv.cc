@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.5 1999/03/26 01:27:12 yaxu Exp $
+   $Id: dsdv.cc,v 1.6 1999/04/10 00:10:45 haldar Exp $
 
    */
 
@@ -46,8 +46,10 @@ extern "C" {
 #include "dsdv.h"
 #include "priqueue.h"
 
-#include "random.h"
-#include "cmu-trace.h"
+#include <random.h>
+
+#include <cmu-trace.h>
+#include <address.h>
 
 #define DSDV_STARTUP_JITTER 2.0	// secs to jitter start of periodic activity from
 				// when start-dsr msg sent to agent
@@ -59,6 +61,7 @@ extern "C" {
 #define IP_DEF_TTL   32 // default TTTL
 
 #undef TRIGGER_UPDATE_ON_FRESH_SEQNUM
+//#define TRIGGER_UPDATE_ON_FRESH_SEQNUM
 /* should the receipt of a fresh (newer) sequence number cause us
    to send a triggered update?  If undef'd, we'll only trigger on
    routing metric changes */
@@ -98,6 +101,9 @@ DSDV_Agent::tracepkt (Packet * p, double now, int me, const char *type)
   while (ct--)
     {
       dst = *(walk++);
+      //dst = dst << 8 | *(walk++);
+      //dst = dst << 8 | *(walk++);
+      //dst = dst << 8 | *(walk++);
       met = *(walk++);
       seq = *(walk++);
       seq = seq << 8 | *(walk++);
@@ -145,18 +151,24 @@ void
 DSDVTriggerHandler::handle(Event *e)
  // send a triggered update (or a full update if one's needed)
 {
+	//DEBUG
+	//printf("(%d)-->triggered update with e=%x\n", a->myaddr_,e); 
+
   Scheduler & s = Scheduler::instance ();
   Time now = s.clock ();
   rtable_ent *prte;
   int update_type;	 // we want periodic (=1) or triggered (=0) update?
   Time next_possible = a->lasttup_ + DSDV_MIN_TUP_PERIOD;
 
-  for (a->table_->InitLoop (); (prte = a->table_->NextLoop ());)
-    if (prte->trigger_event == e) break;
+  for (a->table_->InitLoop(); (prte = a->table_->NextLoop());)
+	  if (prte->trigger_event == e) break;
+
   assert(prte && prte->trigger_event == e);
 
   if (now < next_possible)
     {
+	    //DEBUG
+	    //printf("(%d)..Re-scheduling triggered update\n",a->myaddr_);
       s.schedule(a->trigger_handler, e, next_possible - now);
       a->cancelTriggersBefore(next_possible);
       return;
@@ -171,6 +183,8 @@ DSDVTriggerHandler::handle(Event *e)
 	{ // we got a periodic update, though we only asked for triggered
 	  // cancel and reschedule periodic update
 	  s.cancel(a->periodic_callback_);
+	  //DEBUG
+	  //printf("we got a periodic update, though asked for trigg\n");
 	  s.schedule (a->helper_, a->periodic_callback_, 
 		      a->perup_ * (0.75 + jitter (0.25, a->be_random_)));
 	  if (a->verbose_) a->tracepkt (p, now, a->myaddr_, "PU");	  
@@ -200,12 +214,14 @@ DSDV_Agent::cancelTriggersBefore(Time t)
   // Cancel any triggered events scheduled to take place *before* time
   // t (exclusive)
 {
-  rtable_ent *prte;
+  struct rtable_ent *prte;
   Scheduler & s = Scheduler::instance ();
 
   for (table_->InitLoop (); (prte = table_->NextLoop ());)
     if (prte->trigger_event && prte->trigger_event->time_ < t)
       {
+	      //DEBUG
+	      //printf("(%d) cancel event %x\n",myaddr_,prte->trigger_event);
 	s.cancel(prte->trigger_event);
 	delete prte->trigger_event;
 	prte->trigger_event = 0;
@@ -225,7 +241,8 @@ DSDV_Agent::needTriggeredUpdate(rtable_ent *prte, Time t)
     s.cancel(prte->trigger_event);
   else
     prte->trigger_event = new Event;
-
+  //DEBUG
+  //printf("(%d)..scheduling trigger-update with event %x\n",myaddr_,prte->trigger_event);
   s.schedule(trigger_handler, prte->trigger_event, t - now);
 }
 
@@ -237,7 +254,7 @@ DSDV_Agent::helper_callback (Event * e)
   rtable_ent *prte;
   rtable_ent *pr2;
   int update_type;	 // we want periodic (=1) or triggered (=0) update?
-
+  //DEBUG
   //printf("Triggered handler on 0x%08x\n", e);
 
   // Check for periodic callback
@@ -251,12 +268,15 @@ DSDV_Agent::helper_callback (Event * e)
 	  tracepkt (p, now, myaddr_, "PU");
 	}
 
+      
       if (p) {
-              assert (!HDR_CMN (p)->xmit_failure_);	// DEBUG 0x2
-      // send out update packet jitter to avoid sync
+	      assert (!HDR_CMN (p)->xmit_failure_);	// DEBUG 0x2
+	      // send out update packet jitter to avoid sync
+	      //DEBUG
+	      //printf("(%d)..sendout update pkt (periodic=%d)\n",myaddr_,update_type);
 	      s.schedule (target_, p, jitter(DSDV_BROADCAST_JITTER, be_random_));
       }
-
+      
       // put the periodic update sending callback back onto the 
       // the scheduler queue for next time....
       s.schedule (helper_, periodic_callback_, 
@@ -278,7 +298,7 @@ DSDV_Agent::helper_callback (Event * e)
   // wst is computed, it doesn't consider the infinte metric the best
   // one at that sequence number.
   if (prte)
-    {
+	  {
       if (verbose_)
 	{
 	  trace ("VTO %.5f _%d_ %d->%d", now, myaddr_, myaddr_, prte->dst);
@@ -300,6 +320,8 @@ DSDV_Agent::helper_callback (Event * e)
 	      pr2->advert_seqnum = true;
 	      pr2->seqnum++;
 	      // And we have routing info to propogate.
+	      //DEBUG
+	      //printf("(%d)..we have routing info to propagate..trigger update for dst %d\n",myaddr_,pr2->dst);
 	      needTriggeredUpdate(pr2, now);
 	    }
 	}
@@ -328,6 +350,8 @@ DSDV_Agent::lost_link (Packet *p)
           return;
   }
 
+  //DEBUG
+  //printf("(%d)..Lost link..\n",myaddr_);
   if (verbose_ && hdrc->addr_type_ == AF_INET)
     trace ("VLL %.8f %d->%d lost at %d",
   Scheduler::instance ().clock (),
@@ -402,7 +426,11 @@ DSDV_Agent::makeUpdate(int& periodic)
     // partial update if there are only a few changes and full update otherwise
     // returns with periodic = 1 if full update returned, or = 0 if partial
   //   update returned
+	
 {
+	//DEBUG
+	//printf("(%d)-->Making update pkt\n",myaddr_);
+	
   Packet *p = allocpkt ();
   hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
   hdr_cmn *hdrc = HDR_CMN (p);
@@ -419,7 +447,7 @@ DSDV_Agent::makeUpdate(int& periodic)
   // The packet we send wants to be broadcast
   hdrc->next_hop_ = IP_BROADCAST;
   hdrc->addr_type_ = AF_INET;
-  iph->dst_ = IP_BROADCAST;
+  iph->dst_ = IP_BROADCAST << Address::instance().nodeshift();
   iph->dport_ = ROUTER_PORT;
 
   change_count = 0;
@@ -435,7 +463,7 @@ DSDV_Agent::makeUpdate(int& periodic)
 
       if (prte->advertise_ok_at > now) unadvertiseable++;
     }
-
+  //printf("change_count = %d\n",change_count);
   if (change_count * 3 > rtbl_sz && change_count > 3)
     { // much of the table has changed, just do a periodic update now
       periodic = 1;
@@ -445,7 +473,7 @@ DSDV_Agent::makeUpdate(int& periodic)
   if (periodic)
     {
       change_count = rtbl_sz - unadvertiseable;
-
+      //printf("rtbsize-%d, unadvert-%d\n",rtbl_sz,unadvertiseable);
       rtable_ent rte;
       bzero(&rte, sizeof(rte));
 
@@ -456,7 +484,8 @@ DSDV_Agent::makeUpdate(int& periodic)
       seqno_ += 2;
 
       rte.dst = myaddr_;
-      rte.hop = iph->src_;
+      //rte.hop = iph->src_;
+      rte.hop = Address::instance().get_nodeaddr(iph->src_);
       rte.metric = 0;
       rte.seqnum = seqno_;
 
@@ -475,7 +504,7 @@ DSDV_Agent::makeUpdate(int& periodic)
   if (change_count == 0) 
     {
       Packet::free(p); // allocated by us, no drop needed
-      p = 0;
+
       return NULL; // nothing to advertise
     }
 
@@ -485,11 +514,12 @@ DSDV_Agent::makeUpdate(int& periodic)
      multiple packets -dam 4/26/98 */
   assert(rtbl_sz <= (1500 / 12));
 
-  p->allocdata ((change_count * 6) + 1);
+  p->allocdata((change_count * 6) + 1);
   walk = p->accessdata ();
   *(walk++) = change_count;
 
-  hdrc->size_ = change_count * 12 + 20;	// DSDV + IP
+  // hdrc->size_ = change_count * 12 + 20;	// DSDV + IP
+  hdrc->size_ = change_count * 12 + IP_HDR_LEN;	// DSDV + IP
 
   for (table_->InitLoop (); (prte = table_->NextLoop ());)
     {
@@ -507,8 +537,12 @@ DSDV_Agent::makeUpdate(int& periodic)
 	  if (!periodic && verbose_)
 	    trace ("VCT %.5f _%d_ %d", now, myaddr_, prte->dst);
 
-	  assert (prte->dst < 256 && prte->metric < 256);
+	  //assert (prte->dst < 256 && prte->metric < 256);
 	  *(walk++) = prte->dst;
+	  //*(walk++) = prte->dst >> 24;
+ 	  //*(walk++) = (prte->dst >> 16) & 0xFF;
+ 	  //*(walk++) = (prte->dst >> 8) & 0xFF;
+ 	  //*(walk++) = (prte->dst >> 0) & 0xFF;
 	  *(walk++) = prte->metric;
 	  *(walk++) = (prte->seqnum) >> 24;
 	  *(walk++) = ((prte->seqnum) >> 16) & 0xFF;
@@ -529,13 +563,13 @@ DSDV_Agent::makeUpdate(int& periodic)
 	  change_count--;
 	}
     }  
-
   assert(change_count == 0);
   return p;
 }
 
 void
-DSDV_Agent::updateRoute(rtable_ent *old_rte, rtable_ent *new_rte)
+DSDV_Agent::updateRoute(struct rtable_ent *old_rte, 
+			struct rtable_ent *new_rte)
 {
   assert(new_rte);
 
@@ -546,13 +580,13 @@ DSDV_Agent::updateRoute(rtable_ent *old_rte, rtable_ent *new_rte)
 	    (new_rte->metric != BIG 
 	     && (!old_rte || old_rte->metric != BIG)) ? 'D' : 'U', 
 	    now, myaddr_, new_rte->dst, 
-	    old_rte ? old_rte->metric : -1, new_rte->metric, // -1 to UINT??
-	    old_rte ? old_rte->seqnum : -1,  new_rte->seqnum, // -1 to UINT??
+	    old_rte ? old_rte->metric : -1, new_rte->metric, 
+	    old_rte ? old_rte->seqnum : -1,  new_rte->seqnum,
 	    old_rte ? old_rte->hop : -1,  new_rte->hop, 
 	    new_rte->advertise_ok_at);
-  
-  table_->AddEntry (*new_rte);
 
+  table_->AddEntry (*new_rte);
+  //printf("(%d),Route table updated..\n",myaddr_);
   if (trace_wst_)
     trace ("VWST %.12lf frm %d to %d wst %.12lf nxthp %d [of %d]",
 	   now, myaddr_, new_rte->dst, new_rte->wst, new_rte->hop, 
@@ -575,10 +609,11 @@ DSDV_Agent::processUpdate (Packet * p)
   rtable_ent rte;		// new rte learned from update being processed
   rtable_ent *prte;		// ptr to entry *in* routing tbl
 
-      /* DEBUG
-         printf("Received DSDV packet from %d(%d) to %d(%d) [%d(%d)]\n", 
-         iph->src_, iph->sport_, iph->dst_, iph->dport_, myaddr_);
-       */
+  //DEBUG
+  //int src, dst;
+  //src = Address::instance().get_nodeaddr(iph->src_);
+  //dst = Address::instance().get_nodeaddr(iph->dst_);
+  //printf("Received DSDV packet from %d(%d) to %d(%d) [%d)]\n", src, iph->sport_, dst, iph->dport_, myaddr_);
 
   for (i = *d; i > 0; i--)
     {
@@ -587,6 +622,9 @@ DSDV_Agent::processUpdate (Packet * p)
       prte = NULL;
 
       dst = *(w++);
+      //dst = dst << 8 | *(w++);
+      //dst = dst << 8 | *(w++);
+      //dst = dst << 8 | *(w++);
 
       if ((prte = table_->GetEntry (dst)))
 	{
@@ -598,7 +636,8 @@ DSDV_Agent::processUpdate (Packet * p)
 	}
 
       rte.dst = dst;
-      rte.hop = iph->src_;
+      //rte.hop = iph->src_;
+      rte.hop = Address::instance().get_nodeaddr(iph->src_);
       rte.metric = *(w++);
       rte.seqnum = *(w++);
       rte.seqnum = rte.seqnum << 8 | *(w++);
@@ -758,7 +797,7 @@ DSDV_Agent::processUpdate (Packet * p)
     } // end of all destination mentioned in routing update packet
 
   // Reschedule the timeout for this neighbor
-  prte = table_->GetEntry (iph->src_);
+  prte = table_->GetEntry(Address::instance().get_nodeaddr(iph->src_));
   if (prte)
     {
       if (prte->timeout_event)
@@ -780,8 +819,8 @@ DSDV_Agent::processUpdate (Packet * p)
       
       // Hi there, nice to meet you. I'll make a fake advertisement
       bzero(&rte, sizeof(rte));
-      rte.dst = iph->src_;
-      rte.hop = iph->src_;
+      rte.dst = Address::instance().get_nodeaddr(iph->src_);
+      rte.hop = Address::instance().get_nodeaddr(iph->src_);
       rte.metric = 1;
       rte.seqnum = 0;
       rte.advertise_ok_at = now + 604800;	// check back next week... :)
@@ -801,7 +840,7 @@ DSDV_Agent::processUpdate (Packet * p)
    * call drop here.
    */
   Packet::free (p);
-  p = 0;
+
 }
 
 void
@@ -811,9 +850,11 @@ DSDV_Agent::forwardPacket (Packet * p)
   Scheduler & s = Scheduler::instance ();
   double now = s.clock ();
 
+  int dst = Address::instance().get_nodeaddr(iph->dst_);
   // We should route it.
+  //printf("(%d)-->forwardig pkt\n",myaddr_);
   hdr_cmn *hdrc = HDR_CMN (p);
-  rtable_ent *prte = table_->GetEntry (iph->dst_);
+  rtable_ent *prte = table_->GetEntry (dst);
 
       //    trace("VDEBUG-RX %d %d->%d %d %d 0x%08x 0x%08x %d %d", 
       //  myaddr_, iph->src_, iph->dst_, hdrc->next_hop_, hdrc->addr_type_,
@@ -822,6 +863,7 @@ DSDV_Agent::forwardPacket (Packet * p)
 
   if (prte && prte->metric != BIG)
     {
+	    //printf("(%d)-have route for dst\n",myaddr_);
       hdrc->addr_type_ = AF_INET;
 
       hdrc->xmit_failure_ = mac_callback;
@@ -830,7 +872,7 @@ DSDV_Agent::forwardPacket (Packet * p)
       if (prte->metric > 1)
 	hdrc->next_hop_ = prte->hop;
       else
-	hdrc->next_hop_ = iph->dst_;
+	hdrc->next_hop_ = dst;
 
       if (verbose_)
 	trace ("VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
@@ -848,6 +890,7 @@ DSDV_Agent::forwardPacket (Packet * p)
     }
   else if (prte)
     { /* must queue the packet */
+	    //printf("(%d)-no route, queue pkt\n",myaddr_);
       if (!prte->q)
 	{
 	  prte->q = new PacketQueue ();
@@ -868,8 +911,8 @@ DSDV_Agent::forwardPacket (Packet * p)
       double now = s.clock();
       
       bzero(&rte, sizeof(rte));
-      rte.dst = iph->dst_;
-      rte.hop = iph->dst_;
+      rte.dst = dst;
+      rte.hop = dst;
       rte.metric = BIG;
       rte.seqnum = 0;
 
@@ -895,13 +938,14 @@ DSDV_Agent::forwardPacket (Packet * p)
 void
 DSDV_Agent::recv (Packet * p, Handler *)
 {
-  hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
-  hdr_cmn *cmh = (hdr_cmn *) p->access (off_cmn_);
+  hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+  hdr_cmn *cmh = (hdr_cmn *)p->access (off_cmn_);
 
+  int src = Address::instance().get_nodeaddr(iph->src_);
   /*
    *  Must be a packet I'm originating...
    */
-  if(iph->src_ == myaddr_ && cmh->num_forwards() == 0) {
+  if(src == myaddr_ && cmh->num_forwards() == 0) {
     /*
      * Add the IP Header
      */
@@ -912,7 +956,7 @@ DSDV_Agent::recv (Packet * p, Handler *)
    *  I received a packet that I sent.  Probably
    *  a routing loop.
    */
-  else if(iph->src_ == myaddr_) {
+  else if(src == myaddr_) {
     drop(p, DROP_RTR_ROUTE_LOOP);
     return;
   }
@@ -929,7 +973,7 @@ DSDV_Agent::recv (Packet * p, Handler *)
     }
   }
   
-  if ((iph->src_ != myaddr_) && (iph->dport_ == ROUTER_PORT))
+  if ((src != myaddr_) && (iph->dport_ == ROUTER_PORT))
     {
       processUpdate(p);
     }
@@ -968,7 +1012,7 @@ DSDV_Agent::DSDV_Agent (): Agent (PT_MESSAGE), ll_queue (0), seqno_ (0),
   bind ("be_random_", &be_random_);
   bind ("alpha_", &alpha_);
   bind ("min_update_periods_", &min_update_periods_);
-  bind ("myaddr_", &myaddr_);
+  //bind ("myaddr_", &myaddr_);
   bind ("verbose_", &verbose_);
   bind ("trace_wst_", &trace_wst_);
   
@@ -1033,7 +1077,7 @@ DSDV_Agent::command (int argc, const char *const *argv)
 	   * call drop here.
 	   */
 	Packet::free (p2);
-	p2 = 0;
+
 	  for (table_->InitLoop (); (prte = table_->NextLoop ());)
 	    output_rte ("\t", prte, this);
 
@@ -1058,7 +1102,7 @@ DSDV_Agent::command (int argc, const char *const *argv)
       if (strcasecmp (argv[1], "tracetarget") == 0)
 	{
 	  TclObject *obj;
-	if ((obj = TclObject::lookup (argv[2])) == 0)
+	  if ((obj = TclObject::lookup (argv[2])) == 0)
 	    {
 	      fprintf (stderr, "%s: %s lookup of %s failed\n", __FILE__, argv[1],
 		       argv[2]);
@@ -1067,7 +1111,19 @@ DSDV_Agent::command (int argc, const char *const *argv)
 	  tracetarget = (Trace *) obj;
 	  return TCL_OK;
 	}
+      else if (strcasecmp (argv[1], "addr") == 0) {
+	      int temp;
+	      temp = Address::instance().str2addr(argv[2]);
+	      myaddr_ = temp;
+	      return TCL_OK;
+      }
     }
 
 return (Agent::command (argc, argv));
 }
+
+
+
+
+
+

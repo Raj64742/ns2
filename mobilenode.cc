@@ -57,7 +57,7 @@
   
 static LIST_HEAD(nodehead, MobileNode)      nodehead = { 0 };
 
-static int	MobileNodeIndex = 1;
+//static int	MobileNodeIndex = 0;
 
 static class MobileNodeClass : public TclClass {
 public:
@@ -83,7 +83,7 @@ PositionHandler::handle(Event*)
 
 #if 0
 	fprintf(stderr, "*** POSITION HANDLER for node %d (time: %f) ***\n",
-		node->index(), s.clock());
+		node->address(), s.clock());
 #endif
 	/*
 	 * Update current location
@@ -95,7 +95,7 @@ PositionHandler::handle(Event*)
 	 */
 #ifdef DEBUG
         fprintf(stderr, "%d - %s: calling random_destination()\n",
-                node->index_, __PRETTY_FUNCTION__);
+                node->address_, __PRETTY_FUNCTION__);
 #endif
 	node->random_destination();
 
@@ -114,7 +114,7 @@ MobileNode::MobileNode(void) : Node(), pos_handle(this)
 	dX=0.0; dY=0.0; dZ=0.0;
 	destX=0.0; destY=0.0;
 
-	index_ = MobileNodeIndex++;
+        // address_ = MobileNodeIndex++;
 	random_motion_ = 0;
 
 	T = 0;
@@ -136,12 +136,12 @@ int
 MobileNode::command(int argc, const char*const* argv)
 {
 	if(argc == 2) {
-		Tcl& tcl = Tcl::instance();
+		//Tcl& tcl = Tcl::instance();
 
-		if(strcmp(argv[1], "id") == 0) {
-			tcl.resultf("%d", index_);
-			return TCL_OK;
-		}
+		// if(strcmp(argv[1], "id") == 0) {
+// 			tcl.resultf("%d", address_);
+// 			return TCL_OK;
+// 		}
 		if(strcmp(argv[1], "start") == 0) {
 		        start();
 			return TCL_OK;
@@ -150,7 +150,7 @@ MobileNode::command(int argc, const char*const* argv)
 #ifdef DEBUG
                         fprintf(stderr,
                                 "%d - %s: calling update_position()\n",
-                                index_, __PRETTY_FUNCTION__);
+                                address_, __PRETTY_FUNCTION__);
 #endif
 
 		        update_position();
@@ -189,7 +189,7 @@ MobileNode::command(int argc, const char*const* argv)
 	    { /* <mobilenode> setdest <X> <Y> <speed> */
 #ifdef DEBUG
                     fprintf(stderr, "%d - %s: calling set_destination()\n",
-                            index_, __FUNCTION__);
+                            address_, __FUNCTION__);
 #endif
 	      if(set_destination(atof(argv[2]), atof(argv[3]), atof(argv[4])) < 0)
 		return TCL_ERROR;
@@ -209,7 +209,7 @@ MobileNode::dump(void)
 {
 	Phy *n;
 
-	fprintf(stdout, "Index: %d\n", index_);
+	fprintf(stdout, "Index: %d\n", address_);
 	fprintf(stdout, "Network Interface List\n");
  	for(n = ifhead_.lh_first; n; n = n->nextnode() )
 		n->dump();	
@@ -235,7 +235,7 @@ MobileNode::start()
 	random_position();
 #ifdef DEBUG
         fprintf(stderr, "%d - %s: calling random_destination()\n",
-                index_, __PRETTY_FUNCTION__);
+                address_, __PRETTY_FUNCTION__);
 #endif
 	random_destination();
 
@@ -252,7 +252,7 @@ MobileNode::log_movement()
 
 	sprintf(log_target->buffer(),
 		"M %.5f %d (%.2f, %.2f, %.2f), (%.2f, %.2f), %.2f",
-		s.clock(), index_, X, Y, Z, destX, destY, speed);
+		s.clock(), address_, X, Y, Z, destX, destY, speed);
 	log_target->dump();
 }
 
@@ -294,7 +294,7 @@ MobileNode::bound_position()
 			recheck = 1;
 		}
 		if(recheck) {
-			fprintf(stderr, "Adjust position of node %d\n",index_);
+			fprintf(stderr, "Adjust position of node %d\n",address_);
 		}
 	}
 }
@@ -329,7 +329,7 @@ MobileNode::set_destination(double x, double y, double s)
   position_update_time = Scheduler::instance().clock();
 
 #ifdef DEBUG
-  fprintf(stderr, "%d - %s: calling log_movement()\n", index_, __FUNCTION__);
+  fprintf(stderr, "%d - %s: calling log_movement()\n", address_, __FUNCTION__);
 #endif
   log_movement();
 
@@ -358,7 +358,7 @@ MobileNode::update_position()
 	Z = T->height(X, Y);
 #if 0
 	fprintf(stderr, "Node: %d, X: %6.2f, Y: %6.2f, Z: %6.2f, time: %f\n",
-		index_, X, Y, Z, now);
+		address_, X, Y, Z, now);
 #endif
 
 	position_update_time = now;
@@ -391,7 +391,7 @@ MobileNode::random_destination()
 	random_speed();
 #ifdef DEBUG
         fprintf(stderr, "%d - %s: calling set_destination()\n",
-                index_, __FUNCTION__);
+                address_, __FUNCTION__);
 #endif
 	(void) set_destination(Random::uniform() * T->upperX(),
                                Random::uniform() * T->upperY(),

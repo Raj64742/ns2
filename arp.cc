@@ -35,7 +35,7 @@
 
    /* arp.cc
    basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.4 1999/03/13 03:52:40 haoboy Exp $
+   $Id: arp.cc,v 1.5 1999/04/10 00:10:33 haldar Exp $
 
    Note: code in this file violates the convention that addresses of
    type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
@@ -53,7 +53,7 @@
 #include "mobilenode.h"
 #include "ll.h"
 #include "packet.h"
-
+#include <address.h>
 
 // #define DEBUG
 
@@ -99,9 +99,9 @@ ARPTable::ARPTable(const char *tclnode, const char *tclmac) : LinkDelay() {
 
 	mac_ = (Mac*) TclObject::lookup(tclmac);
 	assert(mac_);
-
+	off_mac_ = hdr_mac::offset_;
 	bind("off_ll_", &off_ll_);
-	bind("off_mac_", &off_mac_);
+	//bind("off_mac_", &off_mac_);
 	bind("off_arp_", &off_arp_);
 
 	LIST_INSERT_HEAD(&athead_, this, link_);
@@ -130,7 +130,7 @@ ARPTable::arpresolve(nsaddr_t dst, Packet *p, LL *ll)
 	llinfo = arplookup(dst);
 
 #ifdef DEBUG
-        fprintf(stderr, "%d - %s\n", node_->index(), __FUNCTION__);
+        fprintf(stderr, "%d - %s\n", node_->address(), __FUNCTION__);
 #endif
 	
 	if(llinfo && llinfo->up_) {
@@ -195,7 +195,7 @@ ARPTable::arpresolve(nsaddr_t dst, Packet *p, LL *ll)
 	 *  XXX: Do I need to worry about the case where I keep ARPing
 	 *	 for the SAME destination.
 	 */
-	int src = node_->index(); // this host's IP addr
+	int src = node_->address(); // this host's IP addr
 	arprequest(src, dst, ll);
 	return EADDRNOTAVAIL;
 }
@@ -263,7 +263,7 @@ ARPTable::arpinput(Packet *p, LL *ll)
 #ifdef DEBUG
 	fprintf(stderr,
                 "%d - %s\n\top: %x, sha: %x, tha: %x, spa: %x, tpa: %x\n",
-		node_->index(), __FUNCTION__, ah->arp_op,
+		node_->address(), __FUNCTION__, ah->arp_op,
                 ah->arp_sha, ah->arp_tha, ah->arp_spa, ah->arp_tpa);
 #endif
 
@@ -287,8 +287,12 @@ ARPTable::arpinput(Packet *p, LL *ll)
 		char *mh = (char*) HDR_MAC(llinfo->hold_);
                 hdr_ip *ih = HDR_IP(llinfo->hold_);
                 
+		// XXXHACK for now: 
+		// Future work: separate port-id from IP address ??
+		int dst = Address::instance().get_nodeaddr(ih->dst());
+		
 		if((ch->addr_type() == AF_NONE &&
-                    ih->dst() == ah->arp_spa) ||
+                    dst == ah->arp_spa) ||
                    (AF_INET == ch->addr_type() &&
                     ch->next_hop() == ah->arp_spa)) {
 #ifdef DEBUG
@@ -305,7 +309,7 @@ ARPTable::arpinput(Packet *p, LL *ll)
 	}
 
 	if(ah->arp_op == ARPOP_REQUEST &&
-		ah->arp_tpa == node_->index()) {
+		ah->arp_tpa == node_->address()) {
 		
 		hdr_cmn *ch = HDR_CMN(p);
 		char	*mh = (char*)HDR_MAC(p);
@@ -313,6 +317,7 @@ ARPTable::arpinput(Packet *p, LL *ll)
 
 		ch->size() = ARP_HDR_LEN;
 		ch->error() = 0;
+		ch->direction_ = -1; // send this pkt down
 
 		mac_->hdr_dst(mh, ah->arp_sha);
 		mac_->hdr_src(mh, ll->mac_->addr());

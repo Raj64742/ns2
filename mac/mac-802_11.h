@@ -39,6 +39,7 @@
 #define ns_mac_80211_h
 
 #include "mac-timers.h"
+#include "marshall.h"
 
 #define GET_ETHER_TYPE(x)		GET2BYTE((x))
 #define SET_ETHER_TYPE(x,y)            {u_int16_t t = (y); STORE2BYTE(x,&t);}

@@ -89,7 +89,7 @@ public:
 	  // and last Z position
 	}
         
-	inline int index() { return index_; }
+	//inline int index() { return index_; }
 	inline MobileNode* nextnode() { return link.le_next; }
 
 	void dump(void);
@@ -131,7 +131,7 @@ private:
 	void		random_position();
 	void		bound_position();
 
-	int		index_;		// unique identifier
+	//int		index_;		// unique identifier
 	int		random_motion_;	// is mobile
 
 	/*

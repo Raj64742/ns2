@@ -41,6 +41,7 @@
 #include <dsr/hdr_sr.h>	// DSR
 #include <mac.h>
 #include <mac-802_11.h>
+#include <address.h>
 
 #include <cmu-trace.h>
 
@@ -82,8 +83,8 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 	assert(type_ == DROP || type_ == SEND || type_ == RECV);
 
         node_ = 0;
-
-	bind("off_mac_", &off_mac_);
+	off_mac_ = hdr_mac::offset_;
+	//bind("off_mac_", &off_mac_);
 	bind("off_arp_", &off_arp_);
 	bind("off_SR_", &off_sr_);
 }
@@ -95,9 +96,13 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	struct hdr_ip *ih = HDR_IP(p);
 	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
 	char op = (char) type_;
-
+	
+	// hack the IP address to convert pkt format to hostid format
+	// for now until port ids are removed from IP address. -Padma.
+	int src = Address::instance().get_nodeaddr(ih->src_);
+	
 	if(tracetype == TR_ROUTER && type_ == SEND) {
-		if(src_ != ih->src_)
+		if(src_ != src)
 			op = FWRD;
 	}
 
@@ -138,10 +143,14 @@ CMUTrace::format_ip(Packet *p, int offset)
 {
         struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
-
+	
+	// hack the IP address to convert pkt format to hostid format
+	// for now until port ids are removed from IP address. -Padma.
+	int src = Address::instance().get_nodeaddr(ih->src_);
+	int dst = Address::instance().get_nodeaddr(ih->dst_);
 	sprintf(wrk_ + offset, "------- [%d:%d %d:%d %d %d] ",
-		ih->src_, ih->sport_,
-		ih->dst_, ih->dport_,
+		src, ih->sport_,
+		dst, ih->dport_,
 		ih->ttl_, (ch->next_hop_ < 0) ? 0 : ch->next_hop_);
 }
 
@@ -288,8 +297,12 @@ CMUTrace::command(int argc, const char*const* argv)
 void
 CMUTrace::recv(Packet *p, Handler *h)
 {
-        struct hdr_ip *ih = HDR_IP(p);
-
+	struct hdr_ip *ih = HDR_IP(p);
+	
+	// hack the IP address to convert pkt format to hostid format
+	// for now until port ids are removed from IP address. -Padma.
+	int src = Address::instance().get_nodeaddr(ih->src_);
+        
         assert(initialized());
 
         /*
@@ -297,7 +310,7 @@ CMUTrace::recv(Packet *p, Handler *h)
          * sending.
          */
         if(tracetype == TR_AGENT && type_ == SEND) {
-                assert(src_ == ih->src_);
+                assert(src_ == src);
                 God::instance()->stampPacket(p);
         }
 #if 0
@@ -306,7 +319,7 @@ CMUTrace::recv(Packet *p, Handler *h)
          * not have been stamped by GOD.  Stamp it before logging the
          * information.
          */
-        if(src_ == ih->src_ && type_ == DROP) {
+        if(src_ == src && type_ == DROP) {
                 God::instance()->stampPacket(p);
         }
 #endif
@@ -336,4 +349,5 @@ CMUTrace::recv(Packet *p, const char* why)
 	dump();
 	Packet::free(p);
 }
+
 

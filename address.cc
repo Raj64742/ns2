@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.14 1998/09/16 22:53:00 yaxu Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.15 1999/04/10 00:10:31 haldar Exp $
  */
 
 #include <stdio.h>
@@ -152,7 +152,11 @@ char *Address::print_nodeaddr(int address)
 		a = address >> NodeShift_[i];
 		if (levels_ > 1)
 			a = a & NodeMask_[i];
+		//if (i < levels_)
 		sprintf(temp, "%d.", a);
+		//else
+		//sprintf(temp, "%d", a);
+		
 		strcat(str, temp);
 	}
 	addrstr = new char[strlen(str)+1];
@@ -160,6 +164,54 @@ char *Address::print_nodeaddr(int address)
 	// printf("Nodeaddr - %s\n",addrstr);
 	return(addrstr);
 }
+
+char *Address::get_subnetaddr(int address)
+{
+	int a;
+	char temp[SMALL_LEN];
+	char str[SMALL_LEN];
+	char *addrstr;
+
+	if (levels_ > 1) {
+		str[0] = '\0';
+		for (int i=1; i < levels_; i++) {
+			a = address >> NodeShift_[i];
+			a = a & NodeMask_[i];
+			if (i < (levels_-1))
+				sprintf(temp, "%d.", a);
+			else
+				sprintf(temp, "%d", a);
+			strcat(str, temp);
+		}
+		addrstr = new char[strlen(str)+1];
+		strcpy(addrstr, str);
+		printf("Subnet_addr - %s\n",addrstr);
+		return(addrstr);
+	}
+	return NULL;
+	
+}
+
+// returns nodeaddr in integer form (relevant especially for hier-addr)
+int Address::get_nodeaddr(int address)
+{
+	int a;
+	char *temp;
+	
+	temp = print_nodeaddr(address);
+	a = str2addr(temp);
+	delete temp;
+	return a;
+}
+
+
+int Address::get_lastaddr(int address)
+{
+ 	int a;
+ 	a = address >> NodeShift_[levels_];
+ 	a = a & NodeMask_[levels_];
+ 	return a;
+ }
 
 
 char *Address::print_portaddr(int address)

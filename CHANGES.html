@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.322 1999/04/07 22:06:00 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.323 1999/04/10 00:10:42 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,22 @@
 	Release of ns-2.1b6<a> [PENDING]</a></h3>
 
 <ul>
+
+    <LI><B><A HREF="http://www.isi.edu/~haldar/">[haldar]</A></B>
+    <B>Fri Apr  9 15:49:23 PDT 1999</B>
+    <BR> The wireless module had several bugs for both DSR and DSDV 
+    routing protocol implementation. These bugs were removed. 
+    A scenario file 670x670-600-50-20-0 was added which uses node 
+    indexing of 0 instead of 1.
+    A wireless example file in tcl/ex/wireless-test.tcl was added
+    which simulates with just 3 mobilenodes.
+
+    <LI><B><A HREF="http://www.isi.edu/~haldar/">[haldar]</A></B>
+    <B>Thur Apr  8 10:50:12 PDT 1999</B>
+    <BR> An error condition is checked in when route or hier-route is 
+    computed for dis-connected topologies.
+
+
     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
            <b>Wed Mar 31 13:51:35 PST 1999</b><br>
 	 Ns now knows where the tclsh is that autoconf finds,

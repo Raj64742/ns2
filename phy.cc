@@ -43,6 +43,7 @@
 #include <string.h>
 #include <packet.h>
 #include <phy.h>
+#include <dsr/hdr_sr.h>
 
 class Mac;
 
@@ -98,6 +99,8 @@ void
 Phy::recv(Packet* p, Handler*)
 {
 	struct hdr_cmn *hdr = HDR_CMN(p);	
+	struct hdr_sr *hsr = HDR_SR(p);
+	
 	/*
 	 * Handle outgoing packets
 	 */

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.32 1999/01/04 19:45:09 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.33 1999/04/10 00:10:37 haldar Exp $ (UCB)";
 #endif
 
 //#include "classifier.h"
@@ -83,14 +83,15 @@ MacHandlerSend::handle(Event* e)
 /* =================================================================
    Mac Class Functions
   ==================================================================*/
-static int MacIndex = 1;
+static int MacIndex = 0;
 
 Mac::Mac() : BiConnector(), netif_(0), tap_(0), ll_(0), channel_(0), callback_(0), hRes_(this), hSend_(this), state_(MAC_IDLE), pktRx_(0), pktTx_(0)
 {
 	index_ = MacIndex++;
 	bandwidth_ = 2.0 * 1e6;
+	off_mac_ = hdr_mac::offset_;
 	bind_time("delay_", &delay_);
-	bind("off_mac_", &off_mac_);
+	//bind("off_mac_", &off_mac_);
 }
 
 

@@ -57,14 +57,14 @@ proc default_options {} {
         set opt(ifq)		Queue/DropTail/PriQueue
 	set opt(ll)		LL
 	set opt(ant)            Antenna/OmniAntenna
-	set opt(x)		640 ;# X dimension of the topography
-	set opt(y)		640;# Y dimension of the topography
+	set opt(x)		670 ;# X dimension of the topography
+	set opt(y)		670;# Y dimension of the topography
 	set opt(cp)		"../mobility/scene/cbr-50-20-4-512" ;# connection pattern file
-	set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-2" ;# scenario file
+	set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0" ;# scenario file
 	set opt(ifqlen)		50	      ;# max packet in ifq
 	set opt(nn)		50	      ;# number of nodes
 	set opt(seed)		0.0
-	set opt(stop)		10.0	      ;# simulation time
+	set opt(stop)		1000.0	      ;# simulation time
 	set opt(tr)		temp.rands    ;# trace file
 	set opt(lm)             "on"          ;# log movement
 
@@ -144,7 +144,7 @@ TestSuite instproc init {} {
 		$self log-movement
 	}
 	source ../mobility/$testName_.tcl
-	for {set i 1} {$i <= $opt(nn) } {incr i} {
+	for {set i 0} {$i < $opt(nn) } {incr i} {
 		$testName_-create-mobile-node $i
 	}
 	puts "Loading connection pattern..."
@@ -153,7 +153,7 @@ TestSuite instproc init {} {
 	#
 	# Tell all the nodes when the simulation ends
 	#
-	for {set i 1} {$i <= $opt(nn) } {incr i} {
+	for {set i 0} {$i < $opt(nn) } {incr i} {
 		$ns_ at $opt(stop).000000001 "$node_($i) reset";
 	}
 	$ns_ at $opt(stop).00000001 "$self finish"
@@ -238,7 +238,7 @@ TestSuite instproc log-movement {} {
 	Class LogTimer -superclass Timer
 	LogTimer instproc timeout {} {
 		global opt node_;
-		for {set i 1} {$i <= $opt(nn)} {incr i} {
+		for {set i 0} {$i < $opt(nn)} {incr i} {
 			$node_($i) log-movement
 		}
 		$self sched 0.1

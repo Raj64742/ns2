@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.27 1999/03/13 03:52:41 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.28 1999/04/10 00:10:33 haldar Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -53,6 +53,10 @@ static const char rcsid[] =
 #include "phy.h"
 #include "wireless-phy.h"
 #include "mobilenode.h"
+#include "ip.h"
+#include "dsr/hdr_sr.h"
+
+
 
 static class ChannelClass : public TclClass {
 public:
@@ -150,7 +154,6 @@ Channel::sendUp(Packet* p, Phy *tifp)
 	double propdelay = 0.0;
 	struct hdr_cmn *hdr = HDR_CMN(p);
 	
-
 	hdr->direction() = 1;
 	for( ; rifp; rifp = rifp->nextchnl()) {
 		rnode = rifp->node();
@@ -164,6 +167,7 @@ Channel::sendUp(Packet* p, Phy *tifp)
 		 *
 		 */
 		newp = p->copy();
+		
 		propdelay = get_pdelay(tnode, rnode);
 		
 		/*
@@ -219,7 +223,7 @@ WirelessChannel::get_pdelay(Node* tnode, Node* rnode)
 		   each other, move them slightly apart -dam 7/28/98 */
 		propdelay = 2 * DBL_EPSILON;
 		printf ("propdelay 0: %d->%d at %f\n",
-			tmnode->index(), rmnode->index(), s.clock());
+			tmnode->address(), rmnode->address(), s.clock());
 	}
 	return propdelay;
 }

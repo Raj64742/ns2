@@ -43,7 +43,7 @@
    NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
    node->index() are 1 based.
 
-   $Id: god.cc,v 1.3 1999/02/18 02:19:17 yuriy Exp $
+   $Id: god.cc,v 1.4 1999/04/10 00:10:35 haldar Exp $
    */
 
 #include <object.h>
@@ -141,8 +141,8 @@ God::command(int argc, const char* const* argv)
                         int j = atoi(argv[3]);
                         int d = atoi(argv[4]);
 
-                        assert(i > 0 && i < num_nodes);
-                        assert(j > 0 && j < num_nodes);
+                        assert(i >= 0 && i < num_nodes);
+                        assert(j >= 0 && j < num_nodes);
 
                         min_hops[i * num_nodes + j] = d;
                         min_hops[j * num_nodes + i] = d;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.59 1999/03/13 03:52:59 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.60 1999/04/10 00:10:40 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -45,7 +45,7 @@
 #include "object.h"
 #include "list.h"
 #include "packet-stamp.h"
-
+#include "dsr/hdr_sr.h"
 
 #define RT_PORT		255	/* port that all route msgs are sent to */
 #define HDR_CMN(p)      ((struct hdr_cmn*)(p)->access(hdr_cmn::offset_))
@@ -56,6 +56,8 @@
 #define HDR_IP(p)       ((struct hdr_ip*)(p)->access(hdr_ip::offset_))
 #define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
 #define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
+#define HDR_SR(p)       ((struct hdr_sr*)(p)->access(hdr_sr::offset_))
+
 
 enum packet_t {
 	PT_TCP,
@@ -192,7 +194,7 @@ private:
 	unsigned char* bits_;	// header bits
 	unsigned char* data_;	// variable size buffer for 'data'
 	unsigned int datalen_;	// length of variable size buffer
-       //void init();            // initialize pkts getting freed.
+	static void init(Packet*);     // initialize pkt hdr 
 	bool fflag_;
 protected:
 	static Packet* free_;	// packet free list
@@ -350,9 +352,13 @@ inline Packet* Packet::alloc()
 			abort();
 //		p->data_ = 0;
 //		p->datalen_ = 0;
-		bzero(p->bits_, hdrlen_);
+		//bzero(p->bits_, hdrlen_);
 	}
+	init(p);
 	p->fflag_ = TRUE;
+	(HDR_CMN(p))->direction() = -1;
+	/* setting all direction of pkts to be downward as default; 
+	   until channel changes it to +1 (upward) */
 	p->next_ = 0;
 	return (p);
 }
@@ -371,12 +377,19 @@ inline Packet* Packet::alloc(int n)
 
 inline void Packet::allocdata(int n)
 {
+	assert(datalen_ == 0);
 	datalen_ = n;
 	data_ = new unsigned char[n];
 	if (data_ == 0)
 		abort();
 
 }
+
+inline void Packet::init(Packet* p)
+{
+	bzero(p->bits_, hdrlen_);
+}
+
 
 inline void Packet::free(Packet* p)
 {
@@ -389,9 +402,9 @@ inline void Packet::free(Packet* p)
 			 * == 0 (newed but never gets into the event queue.
 			 */
 			assert(p->uid_ <= 0);
+			init(p);
 			p->next_ = free_;
 			free_ = p;
-			//init();
 			p->fflag_ = FALSE;
 		} else {
 			ch->ref_count() = ch->ref_count() - 1;

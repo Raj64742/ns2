@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* mobicache.cc
-   $Id: mobicache.cc,v 1.3 1999/03/13 03:53:18 haoboy Exp $
+   $Id: mobicache.cc,v 1.4 1999/04/10 00:10:49 haldar Exp $
 
    cache used in the mobicom 98 submission.  see the paper for a description
 */
@@ -50,7 +50,7 @@ extern "C" {
 #include "path.h"
 #include "routecache.h"
 #ifdef DSR_CACHE_STATS
-#include <cmu/dsr/cache_stats.h>
+#include <dsr/cache_stats.h>
 #endif
 
 

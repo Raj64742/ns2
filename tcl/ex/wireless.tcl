@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.2 1999/02/24 23:27:34 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.3 1999/04/10 00:10:57 haldar Exp $
 #
 # Ported from CMU/Monarch's code, nov'98 -Padma.
 
@@ -46,15 +46,15 @@ set opt(ifq)		Queue/DropTail/PriQueue
 set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
 
-set opt(x)		0	;# X dimension of the topography
-set opt(y)		0		;# Y dimension of the topography
-set opt(cp)		"../mobility/scene/cbr-50-20-4-512" ;# connection pattern file
-set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-2" ;# scenario file
+set opt(x)		670	;# X dimension of the topography
+set opt(y)		670		;# Y dimension of the topography
+set opt(cp)		"../mobility/scene/cbr-50-10-4-512"
+set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0"
 
 set opt(ifqlen)		50		;# max packet in ifq
 set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
-set opt(stop)		10.0		;# simulation time
+set opt(stop)		1000.0		;# simulation time
 set opt(tr)		out.tr		;# trace file
 set opt(rp)             dsdv            ;# routing protocol script
 set opt(lm)             "on"           ;# log movement
@@ -162,7 +162,7 @@ proc log-movement {} {
     Class LogTimer -superclass Timer
     LogTimer instproc timeout {} {
 	global opt node_;
-	for {set i 1} {$i <= $opt(nn)} {incr i} {
+	for {set i 0} {$i < $opt(nn)} {incr i} {
 	    $node_($i) log-movement
 	}
 	$self sched 0.1
@@ -242,11 +242,11 @@ if { $opt(lm) == "on" } {
 #
 
 if { [string compare $opt(rp) "dsr"] == 0} { 
-	for {set i 1} {$i <= $opt(nn) } {incr i} {
+	for {set i 0} {$i < $opt(nn) } {incr i} {
 		dsr-create-mobile-node $i
 	}
 } elseif { [string compare $opt(rp) "dsdv"] == 0} { 
-	for {set i 1} {$i <= $opt(nn) } {incr i} {
+	for {set i 0} {$i < $opt(nn) } {incr i} {
 		dsdv-create-mobile-node $i
 	}
 }
@@ -268,7 +268,7 @@ if { $opt(cp) == "" } {
 #
 # Tell all the nodes when the simulation ends
 #
-for {set i 1} {$i <= $opt(nn) } {incr i} {
+for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
 $ns_ at $opt(stop).00000001 "puts \"NS EXITING...\" ; $ns_ halt"

@@ -46,7 +46,15 @@ class Address : public TclObject {
 	~Address();
 	char *print_nodeaddr(int address);
 	char *print_portaddr(int address);
-	int str2addr(const char *str) const;
+	char *get_subnetaddr(int address);
+	int   get_lastaddr(int address);
+	int   get_nodeaddr(int address);
+	int   str2addr(const char *str) const;
+
+	inline int portshift() {return PortShift_;}
+	inline int portmask() {return PortMask_;}
+	inline int nodeshift() {return NodeShift_[levels_];}
+	inline int nodemask() {return NodeMask_[levels_];}
 	inline int set_word_field(int word, int field, int shift, int mask) const {
 		return (((field & mask)<<shift) | ((~(mask << shift)) & word));
 	}
