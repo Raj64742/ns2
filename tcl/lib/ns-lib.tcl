@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.223 2001/05/21 19:27:34 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.224 2001/05/23 01:50:09 intanago Exp $
 
 #
 # Word of warning to developers:
@@ -1727,6 +1727,7 @@ Simulator instproc abstract-tcp {} {
 # Chalermek: For Diffusion, Flooding, and Omnicient Multicast 
 
 Simulator instproc create-diffusion-rate-agent {node} {
+	global opt
 	set diff [new Agent/Diffusion/RateGradient]
 
 	$node set diffagent_ $diff
@@ -1793,6 +1794,7 @@ Simulator instproc create-diffusion-rate-agent {node} {
 }
 
 Simulator instproc create-diffusion-probability-agent {node} {
+	global opt
 	set diff [new Agent/Diffusion/ProbGradient]
 
 	$node set diffagent_ $diff
