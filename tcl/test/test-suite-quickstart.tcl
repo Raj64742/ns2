@@ -35,6 +35,9 @@
 source misc_simple.tcl
 source support.tcl
 
+set wrap 90
+set wrap1 [expr $wrap * 512 + 40]
+
 Queue set util_weight_ 2  
 # 18 seconds
 Agent/QSAgent set alloc_rate_ 0.5    
@@ -55,9 +58,23 @@ Agent/TCP set qs_enabled_ true
 # ns-random 0
 
 TestSuite instproc finish {file stoptime} {
-        global quiet PERL
-	exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-	  $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+        global quiet PERL wrap wrap1
+
+        set space 512
+        if [string match {*full*} $file] {
+                exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+                   $PERL ../../bin/raw2xg -c -n $space -s 0.01 -m $wrap1 -t $file > temp.rands
+                #exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+                #   $PERL ../../bin/raw2xg -a -c -f -p -y -n $space -s 0.01 -m $wrap1 -t $file >> temp.rands
+        } else {
+                exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+                  $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+                #exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+                #  $PERL ../../bin/raw2xg -a -c -p -y -s 0.01 -m $wrap -t $file \
+                #  >> temp.rands
+        } 
+#	exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+#	  $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
         exec echo $stoptime 0 >> temp.rands 
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
@@ -231,6 +248,58 @@ Test/quickstart4 instproc init {} {
     Test/quickstart4 instproc run {} [Test/no_quickstart info instbody run ]
     $self next pktTraceFile
 }
+
+Class Test/quickstart4full -superclass TestSuite
+Test/quickstart4full instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net2
+    set test_ quickstart4	
+    set guide_  \
+    "Two TCPs, Sack Full TCP.  QuickStart not added to Full TCP yet."
+    set sndr TCP/Sack1
+    set rcvr TCPSink/Sack1
+    set qs ON
+    #set qs OFF
+    $self next pktTraceFile
+}
+Test/quickstart4full instproc run {} {
+    global quiet wrap1 wrap
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    if {$quiet == "false"} {puts $guide_}
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 6
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0 "$ftp1 start"
+
+    set wrap $wrap1
+    set fid 1
+    set tcp2 [new Agent/TCP/FullTcp/Sack]
+    set sink [new Agent/TCP/FullTcp/Sack]
+    $ns_ attach-agent $node_(s1) $tcp2
+    $ns_ attach-agent $node_(s3) $sink
+    $tcp2 set fid_ $fid
+    $sink set fid_ $fid
+    $ns_ connect $tcp2 $sink
+    # set up TCP-level connections
+    $sink listen ; # will figure out who its peer is
+
+    #set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 20
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2 "$ftp2 produce 80"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
 
 Class Test/high_request -superclass TestSuite
 Test/high_request instproc init {} {
