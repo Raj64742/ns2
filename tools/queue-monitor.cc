@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.24 2002/03/10 04:43:31 sfloyd Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.25 2002/09/16 05:35:00 sfloyd Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -43,6 +43,8 @@ static const char rcsid[] =
 
 int QueueMonitor::command(int argc, const char*const* argv)
 {
+	int i, topBin, MsPerBin, first, last;
+	double frac;
 	Tcl& tcl = Tcl::instance();
 
 	if (argc == 2) {
@@ -65,6 +67,27 @@ int QueueMonitor::command(int argc, const char*const* argv)
 				tcl.resultf("%s", delaySamp_->name());
 			else
 				tcl.resultf("");
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "printRTTs") == 0) {
+			if (keepRTTstats_) {
+			      	topBin = maxRTT_ * binsPerSec_;
+				MsPerBin = int(1000/binsPerSec_);
+				printf("Distribution of RTTs, %d ms bins\n", MsPerBin);
+			      	for (i = 0; i < topBin; i++) {
+					if (RTTbins_[i] > 0) {
+					   frac = (double)RTTbins_[i]/numRTTs_;
+					   printf("%d to %d ms: fraction %5.3f number %d\n", 
+					   i*MsPerBin, (i+1)*MsPerBin, frac,
+					   RTTbins_[i]); 
+					   }
+				}
+				i = topBin - 1;
+				if (RTTbins_[i] > 0) {
+					printf("The last bin might also contain RTTs > %d ms\n",
+					(i+1)*MsPerBin);
+				}
+			} 
 			return (TCL_OK);
 		}
 	}
@@ -183,6 +206,10 @@ void QueueMonitor::out(Packet* p)
 		pktsInt_->newPoint(now, double(pkts_));
 	if (delaySamp_)
 		delaySamp_->newPoint(now - hdr->timestamp());
+
+        if (keepRTTstats_) {
+		keepRTTstats(p);
+	}
 	if (channel_)
 		printStats();
 }
@@ -226,6 +253,31 @@ void QueueMonitor::estimateRate(Packet *pkt) {
 	prevTime_ = now;
 	
 	estRate_ = (1 - exp(-timeGap/k_))*((double)pktSize)/timeGap + exp(-timeGap/k_)*estRate_;
+}
+
+//The procedure to keep RTT statistics.
+void QueueMonitor::keepRTTstats(Packet *pkt) {
+        int i, j, topBin, rttInMs, MsPerBin;
+	hdr_cmn* hdr  = hdr_cmn::access(pkt);
+	packet_t t = hdr->ptype();
+	if (t == PT_TCP || t == PT_HTTP || t == PT_FTP || t == PT_TELNET) {
+		hdr_tcp *tcph = hdr_tcp::access(pkt);
+		rttInMs = tcph->last_rtt(); 
+		if (rttInMs < 0) rttInMs = 0;
+		topBin = maxRTT_ * binsPerSec_;
+		if (numRTTs_ == 0) {
+			RTTbins_ = (int *)malloc(sizeof(int)*topBin);
+			for (i = 0; i < topBin; i++) {
+				RTTbins_[i] = 0;
+			}
+		}
+		MsPerBin = int(1000/binsPerSec_);
+		j = (int)floor(rttInMs/MsPerBin);
+		if (j < 0) j = 0;
+		if (j >= topBin) j = topBin - 1;
+		++ RTTbins_[j];
+		++ numRTTs_;
+	}
 }
 
 /* ##############

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.19 2002/03/10 04:43:31 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.20 2002/09/16 05:35:00 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -50,9 +50,11 @@ public:
 		parrivals_(0), barrivals_(0),
 		pdepartures_(0), bdepartures_(0),
 		pdrops_(0), pmarks_(0), bdrops_(0), 
-		srcId_(0), dstId_(0), channel_(0),
+		keepRTTstats_(0), numRTTs_(0), maxRTT_(1), binsPerSec_(10),
 		//variables for flow rate estimation
-		estimate_rate_(0), k_(0.1), estRate_(0.0), temp_size_(0) {
+		estimate_rate_(0), k_(0.1), estRate_(0.0), 
+		srcId_(0), dstId_(0), channel_(0),
+		temp_size_(0) {
 		
 		bind("size_", &size_);
 		bind("pkts_", &pkts_);
@@ -64,13 +66,18 @@ public:
 		bind("pmarks_", &pmarks_);
 		bind("bdrops_", &bdrops_);
 
+		//for keeping RTT statistics
+                bind_bool("keepRTTstats_", &keepRTTstats_);
+		bind("maxRTT_", &maxRTT_);
+		bind("binsPerSec_", &binsPerSec_);
+
 		//variable binding for flow rate estimation
 		bind_bool("estimate_rate_", &estimate_rate_);
 		bind("k_", &k_);
 		bind("prevTime_", &prevTime_);
 		bind("startTime_", &startTime_);
  		bind("estRate_", &estRate_);
-
+		
 		startTime_ = Scheduler::instance().clock();
 		prevTime_  = startTime_;
 	};
@@ -118,6 +125,13 @@ protected:
 	int pdrops_;
 	int pmarks_;
 	int bdrops_;
+
+        int keepRTTstats_;		/* boolean - keeping RTT stats? */
+	int maxRTT_;			/* Max RTT to measure, in seconds */
+	int numRTTs_;			/* number of RTT measurements */
+	int binsPerSec_;		/* number of bins per second */
+	int *RTTbins_;			/* Number of RTTs in each bin */
+
 	int srcId_;
 	int dstId_;
 	Tcl_Channel channel_;
@@ -137,6 +151,7 @@ protected:
 	int temp_size_;               /* keep track of packets that arrive at the same time */
 
 	void estimateRate(Packet *p);
+	void keepRTTstats(Packet *p);
 };
 
 class SnoopQueue : public Connector {
