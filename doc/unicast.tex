@@ -28,8 +28,8 @@ The user level simulation script requires one command:
 to specify the unicast routing strategy or protocols for the simulation.
 A routing strategy is a general mechanism by which \ns\
 will compute routes for the simulation.
-There are three routing strategies in \ns:
-Static, Session, and Dynamic.
+There are four routing strategies in \ns:
+Static, Session, Dynamic and Manual.
 Conversely, a routing protocol is a realization of a specific algorithm.
 Currently, Static and Session routing use
 the
@@ -206,6 +206,12 @@ prior to the start of the simulation.
 The routes are computed
 using an adjacency matrix and link costs of all the links in the topology.
 
+(Note that static routing is static in the sense that it is computed
+  once when the simulation starts, as opposed to session
+  and DV routing that allow routes to change mid-simulation.
+An alternative to static routing is Manual routing
+  where routes are not computed but instead are set (manually) by the user.)
+
 \paragraph{Session Routing}
 The static routing strategy described earlier
 only computes routes for the topology once in the course of a simulation.
@@ -260,6 +266,27 @@ The value is determined by the class variable of the same name.
 
 Each agent uses the class variable \code{INFINITY} (set at 32)
 to determine the validity of a route.
+
+
+\paragraph{Manual Routing}
+Manual routing is not a route computation protocol (like the others),
+  but simply a way for users to configure the routing table by hand,
+  much as you would with the ``route'' command on a workstation.
+
+To use manual routing, enable it with rtproto, then set each
+nodes routing tables with the add-route-to-adj-node command.
+For example:
+\begin{program}
+$ns rtproto Manual
+set n1 [$ns node]
+set n2 [$ns node]
+$ns duplex-link $n1 $n2 10Mb 100ms DropTail
+$n1 add-route-to-adj-node -default $n2
+$n2 add-route-to-adj-node -default $n1
+\end{program}
+
+For a more complete example, see \code{tcl/ex/many_tcp.tcl}.
+
 
 \section{Internals and Architecture of Routing}
 \label{sec:rtg-internals}
