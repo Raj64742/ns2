@@ -55,9 +55,18 @@
  *   packets.
  */
 
+/* Bugreport about rio.cc:
+ *
+ * David Ros and LuiWei have both reported, in June 2002 and in May 2001,
+ * that rio.cc has a bug in that RIO does not calculate a new average
+ * queue length when an OUT packet arrives.
+ * 
+ * This bug has not been checked or repaired.
+ */
+
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.11 2002/03/21 01:42:36 johnh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.12 2004/05/25 03:23:05 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
