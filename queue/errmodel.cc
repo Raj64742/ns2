@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.71 2001/07/05 21:17:46 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.72 2001/07/09 18:37:02 jahn Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.71 2001/07/05 21:17:46 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.72 2001/07/09 18:37:02 jahn Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -393,7 +393,7 @@ static char * st_names[]={ST_NAMES};
 //	If em_ is assigned, then invoke em_->corrupt(p)
 */
 
-MultiStateErrorModel::MultiStateErrorModel() : em_(0)
+MultiStateErrorModel::MultiStateErrorModel() : em_(0), prevTime_(0.0)
 {
 	bind("sttype_", &sttype_);
 	bind("texpired_", &texpired_);
@@ -431,7 +431,7 @@ int MultiStateErrorModel::corrupt(Packet* p)
 {
 	int retval;
 	double now;
-	static double prevTime_ = 0.0;
+	// static double prevTime_ = 0.0;
 	Scheduler & s = Scheduler::instance();
 
 	now = s.clock();

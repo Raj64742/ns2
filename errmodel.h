@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.44 2001/07/05 21:17:46 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.45 2001/07/09 18:37:02 jahn Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -88,6 +88,7 @@ protected:
 	double delay_;		// time to delay packet
 	double bandwidth_;	// bandwidth of the link
 	RandomVariable *ranvar_;// the underlying random variate generator
+
 	int FECstrength_;       // indicate how many corrupted bits are corrected
 	int datapktsize_;
 	int cntrlpktsize_;
@@ -118,6 +119,7 @@ protected:
 	int sttype_;            // type of state trans: 1: 'pkt' prob, 0: 'time'
 	int texpired_;          // timed-state expired?
 	double curperiod_;      // the duration of the current state
+	double prevTime_;       // the last transition time of current state
 	ErrorModel* em_;	// current error model to use
 };
 
