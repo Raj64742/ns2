@@ -49,7 +49,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.4 1997/07/21 22:10:14 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.5 1997/07/22 08:32:46 padmanab Exp $ (UCB)";
 #endif
 
 
@@ -63,6 +63,7 @@ static const char rcsid[] =
 class TcpAsymAgent : public virtual TcpAgent {
 public:
 	TcpAsymAgent();
+	inline double& t_exact_srtt() { return t_exact_srtt_;}
 
 	/* helper functions */
 	virtual void output_helper(Packet* p);
@@ -73,6 +74,7 @@ public:
 protected:
 	int off_tcpasym_;
 	int ecn_to_echo_;
+	double t_exact_srtt_;
 };
 
 static class TCPAHeaderClass : public PacketHeaderClass {
@@ -89,7 +91,7 @@ public:
 	} 
 } class_tcpasym;
 
-TcpAsymAgent::TcpAsymAgent() : TcpAgent(), ecn_to_echo_(0)
+TcpAsymAgent::TcpAsymAgent() : TcpAgent(), ecn_to_echo_(0), t_exact_srtt_(0)
 {
 	bind("off_tcpasym_", &off_tcpasym_);
 }
@@ -167,7 +169,7 @@ void TcpAsymAgent::send_helper(int maxburst)
 	 * so we do not need an explicit check here.
 	 */
 	if (t_seqno() <= highest_ack() + window() && t_seqno() < curseq_) {
-		sched((t_srtt()>>3)*tcp_tick_*maxburst/window(), TCP_TIMER_BURSTSND);
+		sched(t_exact_srtt()*maxburst/window(), TCP_TIMER_BURSTSND);
 	}
 }
 
@@ -184,9 +186,19 @@ void TcpAsymAgent::recv_newack_helper(Packet *pkt)
 	int i;
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	int ackcount = tcph->seqno() - last_ack_;
+	double tao = Scheduler::instance().clock() - tcph->ts_echo();
+	double g = 1/8; /* gain used for smoothing */
+
 	newack(pkt);
+	/* update our fine-grained estimate of the smoothed RTT */
+	if (t_exact_srtt() != 0) 
+		t_exact_srtt() = g*tao + (1-g)*t_exact_srtt();
+	else
+		t_exact_srtt() = tao;
+	/* grow cwnd */
 	for (i=0; i<ackcount; i++)
 		opencwnd();
+	/* if the connection is done, call finish() */
 	if ((highest_ack() >= curseq_-1) && !closed_) {
 		closed_ = 1;
 		finish();
