@@ -27,18 +27,18 @@ The C++ class \code{Agent} includes enough internal state
 to assign various fields to a simulated packet before
 it is sent.
 This state includes the following:
-\begin{quote}
-\begin{itemize}
-        \item[addr\_] - node address of myself (source address in packets)
-        \item[dst\_] - where I am sending packets to
-        \item[size\_] - packet size in bytes (placed into the common packet header)
-        \item[type\_] - type of packet (in the common header, see packet.h)
-        \item[fid\_] - the IP flow identifier (formerly {\em class} in ns-1)
-        \item[prio\_] - the IP priority field
-	\item[flags\_] - packet flags (similar to ns-1)
-	\item[defttl\_] - default IP ttl value
-\end{itemize}
-\end{quote}
+
+\begin{tabularx}{\linewidth}{rX}
+\code{addr\_} & node address of myself (source address in packets) \\
+\code{dst\_} & where I am sending packets to \\
+\code{size\_} & packet size in bytes (placed into the common packet header) \\
+\code{type\_} & type of packet (in the common header, see packet.h) \\
+\code{fid\_} & the IP flow identifier (formerly {\em class} in ns-1) \\
+\code{prio\_} & the IP priority field \\
+\code{flags\_} & packet flags (similar to ns-1) \\
+\code{defttl\_} & default IP ttl value \\
+\end{tabularx}
+
 These variables may be modified by any class derived from \code{Agent},
 although not all of them may be needed by any particular agent.
 
@@ -47,24 +47,19 @@ although not all of them may be needed by any particular agent.
 The \code{Agent} class supports packet generation and reception.
 The following member functions are implemented by the C++ Agent class, and are
 generally {\em not} over-ridden by derived classes:
-\begin{tt}
-\begin{quote}
-\begin{itemize}
-\item[Packet* allocpkt()] - allocate new packet and assign its fields
-\item[Packet* allocpkt(int)] - allocate new packet with a data payload of n bytes and assign its fields
-\end{itemize}
-\end{quote}
-\end{tt}
+
+\begin{tabularx}{\linewidth}{rX}
+\fcn[]{Packet* allocpkt} & allocate new packet and assign its fields \\
+\fcn[int]{Packet* allocpkt} & allocate new packet with a data payload of n bytes and assign its fields \\
+\end{tabularx}
+
 The following member functions are also defined by the \code{Agent} class,
 but {\em are} intended to be over-ridden by classes deriving from Agent:
-\begin{tt}
-\begin{quote}
-\begin{itemize}
-        \item[void timeout(timeout number)] - subclass-specific time out method 
-        \item[void recv(Packet*, Handler*)] - receiving agent main receive path
-\end{itemize}
-\end{quote}
-\end{tt}
+
+\begin{tabularx}{\linewidth}{rX}
+  \fcn[timeout number]{void timeout} & subclass-specific time out method \\
+  \fcn[Packet*, Handler*]{void recv} & receiving agent main receive path \\
+\end{tabularx}
 
 The \code{allocpkt} function is used by derived classes to create
 packets to send.
@@ -86,51 +81,51 @@ defined by upstream nodes).
 
 There are several agents supported in the simulator.
 These are their names in OTcl:
-\begin{quote}
-\begin{itemize}
-        \item[TCP] - a ``Tahoe'' TCP sender (cwnd = 1 on any loss)
-        \item[TCP/Reno] - a ``Reno'' TCP sender  (with fast recovery)
-        \item[TCP/NewReno] - a modified Reno TCP sender (changes fast recovery)
-        \item[TCP/Sack1] - a SACK TCP sender
-        \item[TCP/Fack] - a ``forward'' SACK sender TCP 
-	\item[TCP/FullTcp] - a more full-functioned TCP with 2-way traffic
-	\item[TCP/Vegas] - a ``Vegas'' TCP sender
-	\item[TCP/Vegas/RBP] - a Vegas TCP with ``rate based pacing''
-	\item[TCP/Vegas/RBP] - a Reno TCP with ``rate based pacing''
-	\item[TCP/Asym] - an experimental Tahoe TCP for asymmetric links
-	\item[TCP/Reno/Asym] - an experimental Reno TCP for asymmetric links
-	\item[TCP/Newreno/Asym] - an experimental NewReno TCP for asymmetric links
-        \item[TCPSink] - a Reno or Tahoe TCP receiver (not used for FullTcp)
-        \item[TCPSink/DelAck] - a TCP delayed-ACK receiver
-        \item[TCPSink/Asym] - an experimental  TCP sink for asymmetric links
-        \item[TCPSink/Sack1] - a SACK TCP receiver
-	\item[TCPSink/Sack1/DelAck] - a delayed-ACK SACK TCP receiver
 
-        \item[CBR] - connectioness protocol with sequence numbers
-        \item[CBR/RTP] - an RTP sender and receiver
-	\item[CBR/UDP] - UDP with sequence numbers and traffic sources
-        \item[RTCP] - an RTCP sender and receiver
+\begin{tabularx}{\linewidth}{rX}
+  TCP & a ``Tahoe'' TCP sender (cwnd = 1 on any loss)	\\
+  TCP/Reno & a ``Reno'' TCP sender  (with fast recovery)	\\
+  TCP/NewReno & a modified Reno TCP sender (changes fast recovery)	\\
+  TCP/Sack1 & a SACK TCP sender	\\
+  TCP/Fack & a ``forward'' SACK sender TCP 	\\
+  TCP/FullTcp & a more full-functioned TCP with 2-way traffic	\\
+  TCP/Vegas & a ``Vegas'' TCP sender	\\
+  TCP/Vegas/RBP & a Vegas TCP with ``rate based pacing''	\\
+  TCP/Vegas/RBP & a Reno TCP with ``rate based pacing''	\\
+  TCP/Asym & an experimental Tahoe TCP for asymmetric links	\\
+  TCP/Reno/Asym & an experimental Reno TCP for asymmetric links	\\
+  TCP/Newreno/Asym & an experimental NewReno TCP for asymmetric links	\\
+  TCPSink & a Reno or Tahoe TCP receiver (not used for FullTcp)	\\
+  TCPSink/DelAck & a TCP delayed-ACK receiver	\\
+  TCPSink/Asym & an experimental  TCP sink for asymmetric links	\\
+  TCPSink/Sack1 & a SACK TCP receiver	\\
+  TCPSink/Sack1/DelAck & a delayed-ACK SACK TCP receiver	\\
+	\\
+  CBR & connectioness protocol with sequence numbers	\\
+  CBR/RTP & an RTP sender and receiver	\\
+  CBR/UDP & UDP with sequence numbers and traffic sources	\\
+  RTCP & an RTCP sender and receiver	\\
+	\\
+  LossMonitor & a packet sink which checks for losses	\\
+	\\
+  IVS/Source & an IVS source	\\
+  IVS/Receiver & an IVS receiver	\\
+	\\
+  CtrMcast/Encap & a ``centralised multicast'' encapsulator	\\
+  CtrMcast/Decap & a ``centralised multicast'' de-encapsulator	\\
+  Message & a protocol to carry textual messages	\\
+  Message/Prune & processes multicast routing prune messages	\\
+	\\
+  SRM & an SRM agent with non-adaptive timers	\\
+  SRM/Adaptive & an SRM agent with adaptive timers	\\
+	\\
+  Tap & interfaces the simulator to a live network	\\
+	\\
+  Null & a degenerate agent which discards packets	\\
+	\\
+  rtProto/DV & distance-vector routing protocol agent	\\
+\end{tabularx}
 
-	\item[LossMonitor] - a packet sink which checks for losses
-
-	\item[IVS/Source] - an IVS source
-	\item[IVS/Receiver] - an IVS receiver
-
-	\item[CtrMcast/Encap] - a ``centralised multicast'' encapsulator
-	\item[CtrMcast/Decap] - a ``centralised multicast'' de-encapsulator
-	\item[Message] - a protocol to carry textual messages
-	\item[Message/Prune] - processes multicast routing prune messages
-
-	\item[SRM] - an SRM agent with non-adaptive timers
-	\item[SRM/Adaptive] - an SRM agent with adaptive timers
-
-	\item[Tap] - interfaces the simulator to a live network
-
-	\item[Null] - a degenerate agent which discards packets
-
-	\item[rtProto/DV] - distance-vector routing protocol agent
-\end{itemize}
-\end{quote}
 Agents are used in the implementation of protocols at various layers.
 Thus, for some transport protocols (e.g.~UDP) the distribution
 of packet sizes and/or inter-departure times
@@ -152,24 +147,21 @@ only within OTcl, and is thus is not directly accessible from C++.
 
 The following example illustrates the creation and modification
 of an Agent in OTcl:
-\begin{small}
-\begin{verbatim}
-        set newtcp [new Agent/TCP] ; # create new object (and C++ shadow object)
-        $newtcp set window_ 20 ; # sets the tcp agent's window to 20
-        $newtcp target $dest ; # target is implemented in Connector class
-        $newtcp set portID_ 1 ; # exists only in OTcl, not in C++
-\end{verbatim}
-\end{small}
+\begin{program}
+        set newtcp [new Agent/TCP] \; create new object (and C++ shadow object);
+        $newtcp set window_ 20 \; sets the tcp agent's window to 20;
+        $newtcp target $dest \; target is implemented in Connector class;
+        $newtcp set portID_ 1 \; exists only in OTcl, not in C++;
+\end{program}
 
 \subsection{\shdr{default values}{../ns/ns-default.tcl}{sec:agentdefaults}}
 
 Default values for member variables, those visible in OTcl only and those
 linked between OTcl and C++ with \code{bind} are initialized
-in the \code{tcl/lib/ns-default.tcl} file.  For example,
+in the \nsf{tcl/lib/ns-default.tcl} file.  For example,
 \code{Agent} and \code{CBR_Agent}
 are initialized as follows:
-\begin{small}
-\begin{verbatim}
+\begin{program}
         Agent set fid_ 0
         Agent set prio_ 0
         Agent set addr_ 0
@@ -179,9 +171,8 @@ are initialized as follows:
         Agent/CBR set interval_ 3.75ms
         Agent/CBR set random_ 0
         Agent/CBR set packetSize_ 210
-	...
-\end{verbatim}
-\end{small}
+	\ldots
+\end{program}
 
 Generally these initializations are placed in the OTcl namespace
 before any objects of these types are created.
@@ -193,15 +184,13 @@ to be set to these specified defaults.
 \subsection{\shdr{OTcl methods}{../ns/ns-agent.tcl}{sec:agentmethodsotcl}}
 
 The instance procedures defined for the OTcl \code{Agent} class are
-currently found in \code{tcl/lib/ns-agent.tcl}.
+currently found in \nsf{tcl/lib/ns-agent.tcl}.
 They are as follows:
-\begin{small}
-\begin{verbatim}
-	port - the agent's port identifier
-	dst-port - the destination's port identifier
-	attach-source <stype> - create and attach a Source object to an agent
-\end{verbatim}
-\end{small}
+\begin{tabularx}{\linewidth}{rX}
+\code{port} & the agent's port identifier \\
+\code{dst-port} & the destination's port identifier \\
+\code{attach-source \tup{stype}} & create and attach a Source object to an agent \\
+\end{tabularx}
 
 \section{\shdr{Examples: Tcp, TCP Sink Agents}{tcp-simple.cc}{sec:agentexample}}
 

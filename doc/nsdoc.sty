@@ -2,8 +2,12 @@
 \RequirePackage{html}
 \RequirePackage{alltt}
 
+\RequirePackage{tabularx}
+\renewcommand{\arraystretch}{1.2}
+
 \RequirePackage{pstricks,pst-node}
 
+\ifx\@noresizetrue\undefined
 \evensidemargin       -15pt
 \oddsidemargin        -15pt
 \topmargin            -20pt
@@ -14,6 +18,7 @@
 \parindent            0pt
 \parskip              12pt
 \marginparwidth       1cm
+\fi
 
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\floatpagefraction}{0.9}
@@ -36,7 +41,7 @@
 \def\nsf{\textasciitilde\ns/}
 \def\Tclf{\textasciitilde\emph{Tcl}/}
 
-\def\tup#1{$\langle$#1$\rangle$}
+\def\tup#1{\(\langle\)#1\(\rangle\)}
 %\newif\if@mmode
 \def\code{\bgroup%\ifmmode\@mmodetrue\leavemmode\else\@mmodefalse\fi%
   \catcode`\#=11\catcode`\_=11\catcode`\$=11\catcode`\&=11\relax\@code}
@@ -63,8 +68,8 @@
 
 % Define some convenient environments
 \def\program{\bgroup%
-  \def\;##1;{\hfil;\#{\rmfamily\itshape ##1}}%
-  \def\*##1*/{\hfil/*{\rmfamily\itshape ##1}*/}%
+  \def\;##1;{\hfill;\#{\rmfamily\itshape ##1}}%
+  \def\*##1*/{\hfill/*{\rmfamily\itshape ##1}*/}%
   \alltt%
   \def\bs{\ifmmode\backslash\else\(\backslash\)\fi}%
 }
@@ -108,16 +113,18 @@
           \or July\or August\or September\or October\or November\or December
           \fi \space\number\day, \number\year}
 \fi
-\def\timestamp{\timestring\quad\today}
+\def\timestamp{Version: \timestring\quad\today}
 
 \newif\if@draft\@draftfalse
 \AtEndOfPackage{
   \if@draft
     %\def\today{Version: \timestamp}
-    \gdef\@oddhead{\footnotesize\rm\hfil\textbf{DRAFT}\enspace Version: \timestamp}
-    \gdef\@evenhead{\footnotesize\rm\hfl\textbf{DRAFT}\enspace Version: \timestamp}
+    \gdef\@oddhead{\footnotesize\rm\hfil\textbf{DRAFT}\enspace\timestamp}
+    \gdef\@evenhead{\footnotesize\rm\hfil\textbf{DRAFT}\enspace\timestamp}
     \RequirePackage[notref]{showkeys}
     \RequirePackage[english,firsttwo,light]{draftcopy}
+  \else
+    \gdef\timestamp{\today}
   \fi
 }
 \DeclareOption{draft}{\@drafttrue}

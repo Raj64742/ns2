@@ -31,10 +31,10 @@ Conversely, a routing protocol is a realisation of a specific algorithm.
 Currently, Static and Session routing use
 the
 \fcnref{Dijkstra's all-pairs SPF algorithm \cite{}}{../ns-2/route.cc}{%
-	RouteLogic::compute\_routes};
+        RouteLogic::compute\_routes};
 one type of dynamic routing strategy is currently implemented: the
 \fcnref{Distributed Bellman-Ford algorithm \cite{}}{../ns-2/route-proto.tcl}{%
-	Agent/rtProto/DV::compute\_routes}.
+        Agent/rtProto/DV::compute\_routes}.
 In \ns, we blur the distinction between strategy and protocol for
 static and session routing, considering them simply as protocols%
 \footnote{The consideration is that static and session routing
@@ -97,7 +97,7 @@ The default preference values used by each protocol are derived from
 a class variable, \code{preference_}, for that protocol.
 The current defaults are:
 \begin{program}
-        Agent/rtProto set preference_ 200		\; global default preference;
+        Agent/rtProto set preference_ 200               \; global default preference;
         Agent/rtProto/Direct\footnote{Direct is a special routing strategy that is used in conjunction with Dynamic routing.  We will describe this in greater detail as part of the route architecture description.} set preference_ 100
         Agent/rtProto/DV set preference_ 120
 \end{program}
@@ -143,6 +143,11 @@ The following shows a simple topology, and cost configuration
 that can achieve such a result:
 
 \hfil
+\begin{minipage}{1.5in}
+Nodes $n_1$ and $n_2$ use different paths to reach each other.
+All other pairs of nodes use symetric paths to reach each other.
+\end{minipage}
+\hfil
 \begin{minipage}{1in}
   \begin{pspicture}(-1,-1)(1,1)
     \cnodeput( 0, 1){r1}{$r_1$}
@@ -156,9 +161,8 @@ that can achieve such a result:
 \begin{minipage}{1.5in}
   \begin{program}
     $ns cost $n1 $r1 2
-    $ns cost $r1 $n2 2
     $ns cost $n2 $r2 2
-    $ns cost $r2 $n1 2
+    $ns cost $r2 $n2 3
   \end{program}
 \end{minipage}
 \hfil
@@ -195,7 +199,7 @@ The static route computation strategy is
 the default route computation mechanism  in \ns.
 This strategy uses the
 \fcnref{Dijkstra's all-pairs SPF algorithm \cite{}}{../ns-2/route.cc}{%
-	RouteLogic::compute\_routes}.
+        RouteLogic::compute\_routes}.
 The route computation algorithm is run exactly once
 prior to the start of the simulation.
 The routes are computed
@@ -544,7 +548,7 @@ Other procedures relate to responding to topology changes and
 
 \paragraph{Other Extensions to the Simulator, Node, Link, and Classifier}
 \begin{list}{---}{}
-\item	% class Simulator
+\item   % class Simulator
   We have discussed the methods \proc[]{rtproto} and \proc[]{cost}
   in the class Simulator \href{earlier}{Section}{sec:API}.
   The one other method used internally is
@@ -553,7 +557,7 @@ Other procedures relate to responding to topology changes and
 
   The method is used by the class Simulator, and unicast and multicast routing.
 
-\item	% class Node
+\item   % class Node
    The class Node contains these additional instance procedures
    to support dynamic unicast routing:
 \fcnref{\proc[]{init-routing}}{../ns-2/route-proto.tcl}{Node::init-routing},
@@ -602,7 +606,7 @@ to the nullagent specified.
 Q:  WHY DOES IT NOT POINT TO NULLAGENT IF THE ENTRIES IN THE MPATHCLASSIFIER
 GOES TO ZERO?
 
-\item	% class Link
+\item   % class Link
   The main extension to the class Link for unicast routing is
   to support the notion of link costs.
   The instance variable \code{cost_}
@@ -618,7 +622,7 @@ GOES TO ZERO?
   similar to the simulator instance procedures to set the queue or delay
   on a link.
   
-\item	% class Classifier
+\item   % class Classifier
 The \clsref{Classifier}{../ns-2/ns-lib.tcl}
 contains three new procedures, two of which overloads an existing
 instproc-like, and the other two provide new functionality.
@@ -678,7 +682,7 @@ If new routes were installed in the node,
 \proc[]{send-updates} for each of the protocols operating at the node.
 The procedure will also
 \fcnref{flag the multicast route
-	object}{../ns-2/route-proto.tcl}{rtObject::flag-multicast}
+        object}{../ns-2/route-proto.tcl}{rtObject::flag-multicast}
 of the route changes at the node, indicating the number of changes 
 that have been executed.
 \proc[]{rtObject::flag-multicast} will, in turn, notify
@@ -700,7 +704,7 @@ even if that update does not result in any change in its own routing tables.
 Once the detailed actions at each of the affected nodes is completed,
 the network dynamics models will
 \fcnref{notify the RouteLogic instance (\proc[]{RouteLogic::notify})}{%
-	../ns-2/route-proto.tcl}{RouteLogic::notify} 
+        ../ns-2/route-proto.tcl}{RouteLogic::notify} 
 of changes to topology.
 This procedure invokes the procedure \proc[]{compute-all}
 for each of the protocols that were ever installed at any of the nodes.
@@ -768,7 +772,7 @@ and creates the relevant \code{rtPeer} objects.
 
 The
 \fcnref{constructor for the DV agent}{%
-	../ns-2/route-proto.tcl}{Agent/rtProto/DV::init}
+        ../ns-2/route-proto.tcl}{Agent/rtProto/DV::init}
 initialises a number of instance variables;
 each agent stores an array, indexed by the destiantion node handle,
 of the preference and metric, the interface (or link) to the next hop,
@@ -811,7 +815,7 @@ This procedure packages the update, taking the
 split-horizon and poison reverse mechanisms into account.
 It invokes the instproc-like,
 \fcnref{\proc[]{send-update} (Note the singular case)}{%
-	../ns-2/rtProto.cc}{rtProtoDV::command}
+        ../ns-2/rtProto.cc}{rtProtoDV::command}
 to send the actual update.
 The actual route update is stored in the class variable
 \code{msg_} indexed by a non-decreasing integer as index.
@@ -821,7 +825,7 @@ and back.
 
 When 
 \fcnref{a peer receives a route update}{../ns-2/route-proto.tcl}{%
-	Agent/rtProto/DV::recv-update}
+        Agent/rtProto/DV::recv-update}
 it first checks to determine if the update from differs from the previous
 ones.
 The agent will compute new routes if the update contains new information.
