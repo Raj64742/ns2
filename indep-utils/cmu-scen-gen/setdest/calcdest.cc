@@ -11,7 +11,7 @@ extern "C" {
 #include <unistd.h>
 /* #include <err.h>*/
 };
-#include "../../../rng.h"
+#include "../../../tools/rng.h"
 #include "setdest.h"
 
 //#define		DEBUG

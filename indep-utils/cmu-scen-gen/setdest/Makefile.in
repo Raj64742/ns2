@@ -25,7 +25,7 @@
 #
 # Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.6 2000/02/16 18:08:24 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.7 2002/01/07 18:43:12 haldar Exp $
 
 # Top level hierarchy
 prefix	= @prefix@
@@ -58,7 +58,7 @@ calcdest: rng.o calcdest.o
 
 rng.o:
 	@rm -f $@
-	$(CC) -c $(DEFINE) -o $@ ../../../rng.cc
+	$(CC) -c $(DEFINE) -I../../.. -o $@ ../../../tools/rng.cc
 
 setbox: setbox.o
 	$(CC) -o setbox $@.o $(LDFLAGS) $(CFLAGS) $(LIBS)
