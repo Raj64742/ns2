@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.6 1998/02/16 20:37:54 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.7 1998/02/19 18:28:31 hari Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -41,6 +41,7 @@
 #include "ip.h"
 #include "tcp.h"
 #include "ll.h"
+#include "mac.h"
 #include "flags.h"
 #include "template.h"
 
@@ -49,9 +50,9 @@
 #define SNOOP_CLOSED    0x02	/* connection closed */
 #define SNOOP_NOACK     0x04	/* no ack seen yet */
 #define SNOOP_FULL      0x08	/* snoop cache full */
-#define SNOOP_HIGHWATER 0x10	/* snoop highwater mark reached */
-#define SNOOP_RTTFLAG   0x20	/* can compute RTT if this is set */
-#define SNOOP_ALIVE     0x40	/* connection has been alive past 1 sec */
+#define SNOOP_RTTFLAG   0x10	/* can compute RTT if this is set */
+#define SNOOP_ALIVE     0x20	/* connection has been alive past 1 sec */
+#define SNOOP_WLALIVE   0x40	/* wl connection has been alive past 1 sec */
 #define SNOOP_WLEMPTY   0x80
 
 #define SNOOP_MAXWIND   100	/* XXX */
@@ -85,6 +86,7 @@ class LLSnoop : public LL {
   public:
 	LLSnoop() : LL() { bind("integrate_", &integrate_);}
 	void recv(Packet *, Handler *);
+	void sendto(Packet *);
 	void snoop_rtt(double);
 	inline double timeout() { 
 		return max(srtt_+4*rttvar_, snoopTick_);
@@ -116,13 +118,15 @@ class Snoop : public NsObject {
 	void recv(Packet *, Handler *);
 	void handle(Event *);
 	int snoop_rxmit(Packet *);
-	inline int next(int i) { return (i+1) % SNOOP_MAXWIND; }
-	inline int prev(int i) { return ((i == 0) ? SNOOP_MAXWIND-1 : i-1); };
+	inline int next(int i) { return (i+1) % maxbufs_; }
+	inline int prev(int i) { return ((i == 0) ? maxbufs_-1 : i-1); };
 	inline int wl_next(int i) { return (i+1) % SNOOP_WLSEQS; }
 	inline int wl_prev(int i) { return ((i == 0) ? SNOOP_WLSEQS-1 : i-1);};
 
   protected:
 	int command(int argc, const char*const* argv);
+	void reset();
+	void wlreset();
 	void snoop_data(Packet *);
 	int  snoop_ack(Packet *);
 	void snoop_wless_data(Packet *);
@@ -132,7 +136,8 @@ class Snoop : public NsObject {
 	void snoop_rtt(double);
 	int snoop_qlong();
 	int snoop_insert(Packet *);
-	inline int empty_(){return bufhead_==buftail_ &&!(fstate_&SNOOP_FULL);}
+	inline int empty_()
+		{return (bufhead_==buftail_ &&!(fstate_&SNOOP_FULL));}
 	void savepkt_(Packet *, int, int);
 	void update_state_();
 	inline double timeout() { 
@@ -170,12 +175,14 @@ class Snoop : public NsObject {
 	int      wl_buftail_;
 	hdr_seq  *wlseqs_[SNOOP_WLSEQS];	/* ringbuf of wless data */
 
+	int      maxbufs_;	/* max number of pkt bufs */
 	double   snoopTick_;	/* minimum rxmission timer granularity */
 	double   g_;		/* gain in EWMA for srtt_ and rttvar_ */
 	int      integrate_;	/* integrate loss rec across active conns */
 	int      off_ll_;	/* ll header offset */
 	int      off_snoop_;	/* snoop header offset */
 	int      off_tcp_;	/* tcp header offset */
+	int      lru_;		/* an lru cache? */
 };
 
 class SnoopRxmitHandler : public Handler {

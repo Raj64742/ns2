@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.11 1998/02/16 20:37:39 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.12 1998/02/19 18:28:31 hari Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -65,18 +65,52 @@ Snoop::Snoop() : NsObject(),
 	bind("snoopDisable_", &snoopDisable_);
 	bind_time("srtt_", &srtt_);
 	bind_time("rttvar_", &rttvar_);
+	bind("maxbufs_", &maxbufs_);
 	bind("snoopTick_", &snoopTick_);
 	bind("g_", &g_);
 	bind("tailTime_", &tailTime_);
 	bind("rxmitStatus_", &rxmitStatus_);
+	bind("lru_", &lru_);
 
 	rxmitHandler_ = new SnoopRxmitHandler(this);
-	persistHandler_ = new SnoopPersistHandler(this);
 	
 	for (int i = 0; i < SNOOP_MAXWIND; i++) /* data from wired->wireless */
 		pkts_[i] = 0;
 	for (int i = 0; i < SNOOP_WLSEQS; i++) {/* data from wireless->wired */
 		wlseqs_[i] = (hdr_seq *) malloc(sizeof(hdr_seq));
+		wlseqs_[i]->seq = wlseqs_[i]->num = 0;
+	}
+	if (maxbufs_ == 0)
+		maxbufs_ = SNOOP_MAXWIND;
+}
+
+void
+Snoop::reset()
+{
+//	printf("%x resetting\n", this);
+	fstate_ = 0;
+	lastSeen_ = -1;
+	lastAck_ = -1;
+	expNextAck_ = 0;
+	expDupacks_ = 0;
+	bufhead_ = buftail_ = 0;
+	if (toutPending_)
+		Scheduler::instance().cancel(toutPending_);
+	toutPending_ = 0;
+	for (int i = 0; i < SNOOP_MAXWIND; i++) {
+		if (pkts_[i]) {
+			Packet::free(pkts_[i]);
+			pkts_[i] = 0;
+		}
+	}
+}
+
+void 
+Snoop::wlreset()
+{
+	wl_state_ = SNOOP_WLEMPTY;
+	wl_bufhead_ = wl_buftail_ = 0;
+	for (int i = 0; i < SNOOP_WLSEQS; i++) {
 		wlseqs_[i]->seq = wlseqs_[i]->num = 0;
 	}
 }
@@ -131,6 +165,8 @@ void LLSnoop::recv(Packet *p, Handler *h)
 	snoop->recv(p, h);
 	if (integrate_)
 		tcl.evalf("%s integrate %d %d", name(), iph->src(),iph->dst());
+	if (h)			/* resume higher layer (queue) */
+		Scheduler::instance().schedule(h, &intr_, 0.000001);
 	return;
 }
 
@@ -151,8 +187,7 @@ Snoop::recv(Packet* p, Handler* h)
 		snoop_data(p);
 	else if (type == PT_ACK)
 		snoop_wired_ack(p);
-	callback_ = h;
-	parent_->sendto(p, h);	/* vector to LLSnoop's sendto() */
+	parent_->sendto(p);	/* vector to LLSnoop's sendto() */
 }
 
 /*
@@ -198,8 +233,13 @@ Snoop::snoop_data(Packet *p)
 	int seq = ((hdr_tcp*)p->access(off_tcp_))->seqno();
 	int resetPending = 0;
 
-/*	printf("snoop_data: %f sending packet %d\n", s.clock(), seq);*/
-	if (fstate_ & SNOOP_FULL) {
+//	printf("%x snoop_data: %f sending packet %d\n", this, s.clock(), seq);
+	
+	if (fstate_ & SNOOP_ALIVE && seq == 0)
+		reset();
+	fstate_ |= SNOOP_ALIVE;
+	if ((fstate_ & SNOOP_FULL) && !lru_) {
+//		printf("snoop full, fwd'ing\n t %d h %d", buftail_, bufhead_);
 		if (seq > lastSeen_)
 			lastSeen_ = seq;
 		return;
@@ -237,7 +277,17 @@ Snoop::snoop_insert(Packet *p)
 
 	if (seq <= lastAck_)
 		return retval;
-	if (seq > lastSeen_) {	// fast path in common case
+	
+	if (fstate_ & SNOOP_FULL) {
+		/* free tail and go on */
+		printf("snoop full, making room\n");
+		Packet::free(pkts_[buftail_]);
+		pkts_[buftail_] = 0;
+		buftail_ = next(buftail_);
+		fstate_ |= ~SNOOP_FULL;
+	}
+			     
+	if (seq > lastSeen_ || pkts_[buftail_] == 0) { // in-seq or empty cache
 		i = bufhead_;
 		bufhead_ = next(bufhead_);
 	} else if (seq < ((hdr_snoop*)pkts_[buftail_]->access
@@ -263,6 +313,8 @@ Snoop::snoop_insert(Packet *p)
 				break;
 			}
 		}
+		if (i == bufhead_)
+			bufhead_ = next(bufhead_);
 	}
 	savepkt_(p, seq, i);
 	if (bufhead_ == buftail_)
@@ -402,6 +454,10 @@ Snoop::snoop_wless_data(Packet *p)
 {
 	struct hdr_tcp *th = (hdr_tcp *)(p->access(off_tcp_));
 	int i, seq = th->seqno();
+
+	if (wl_state_ & SNOOP_WLALIVE && seq == 0)
+		wlreset();
+	wl_state_ |= SNOOP_WLALIVE;
 
 	if (wl_state_ & SNOOP_WLEMPTY && seq >= wl_lastAck_) {
 		wlseqs_[wl_bufhead_]->seq = seq;
@@ -551,6 +607,14 @@ Snoop::snoop_rtt(double sndTime)
 	}
 }
 
+void
+LLSnoop::sendto(Packet *p)
+{
+	((hdr_ll*)p->access(off_ll_))->seqno() = ++seqno_;
+	((hdr_mac*)p->access(off_mac_))->macDA() = macDA_;
+	sendtarget_->recv(p, 0);
+}
+
 /* 
  * Calculate smoothed rtt estimate and linear deviation.
  */
@@ -594,14 +658,14 @@ Snoop::snoop_rxmit(Packet *pkt)
 		if (sh->numRxmit() < SNOOP_MAX_RXMIT && snoop_qlong()) {
 /*			&& sh->seqno() == lastAck_+1)  */
 
-#if 0				
+#if 0
 			printf("%f Rxmitting packet %d\n", s.clock(), 
 			       ((hdr_tcp*)pkt->access(off_tcp_))->seqno());
 #endif
 			sh->sndTime() = s.clock();
 			sh->numRxmit() = sh->numRxmit() + 1;
 			Packet *p = pkt->copy();
-			parent_->sendto(p, callback_);
+			parent_->sendto(p);
 		} else 
 			return SNOOP_PROPAGATE;
 	}
@@ -635,9 +699,3 @@ SnoopRxmitHandler::handle(Event *)
 			snoop_->expNextAck_ = snoop_->next(snoop_->buftail_);
 	}
 }
-
-void
-SnoopPersistHandler::handle(Event *) 
-{
-}
-
