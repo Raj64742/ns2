@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.396 2000/06/21 01:04:48 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.397 2000/06/21 05:49:28 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,7 +21,15 @@
 	Release of ns-2.1b7</a> [PENDING]</h3>
 <ul>
  <p>
-
+       <LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
+       <b>Tue Jun 20 22:42:50 PDT 2000</b><br>
+       First pass at adding RIO code to NS.  This RIO code is from
+       Yun Wang, based on the code used by Wenjia Fang, and was ported
+       to ns-2.1b6 by J. Scott.  The RIO code in ns-default.tcl 
+       and ns-compat.tcl is currently commented-out,
+       and rio.o and semantic-rio.o have not been added to Makefile.in.
+       Ultimately, QUEUE/RIO should be restructured to use QUEUE/RED.
+       <p>
   <LI><B><A HREF="http://www.isi.edu/~xuanc/">[xuanc]</A></B>
        <b>Mon Jun  12 17:13:45 PDT 2000</b><br>
 	A single hop, preamble based TDMA mac layer (Mac/Tdma) was added.
