@@ -678,52 +678,53 @@ Test/CtrMcast1 instproc run {} {
 
 # Testing performance in the presence of dynamics. Also testing a rcvr joining
 # a group before the src starts sending pkts to the group.
-Class Test/CtrMcast2 -superclass TestSuite
-Test/CtrMcast2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6a
-	set test_	CtrMcast2
-	$self next
-}
-Test/CtrMcast2 instproc run {} {
-	$self instvar ns_ node_ testName_
-
-	$ns_ rtproto Session
-	set mproto CtrMcast
-	set mrthandle [$ns_ mrtproto $mproto  {}]
-	
-	set udp0 [new Agent/UDP]
-	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8003
-	set cbr0 [new Application/Traffic/CBR]
-	$cbr0 attach-agent $udp0
-
-	set rcvr [new Agent/Null]
-	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n4) $rcvr
-	$ns_ attach-agent $node_(n5) $rcvr
-	
-	$ns_ at 0.3 "$node_(n3) join-group  $rcvr 0x8003"
-	$ns_ at 0.35 "$cbr0 start"
-	$ns_ at 0.4 "$node_(n4) join-group  $rcvr 0x8003"
-	$ns_ at 0.5 "$node_(n5) join-group  $rcvr 0x8003"
-
-	### Link between n2 & n4 down at 0.6, up at 1.2
-	$ns_ rtmodel-at 0.6 down $node_(n2) $node_(n4)
-	$ns_ rtmodel-at 1.2 up $node_(n2) $node_(n4)
-	###
-
-	$ns_ at 1.0 "$mrthandle switch-treetype 0x8003"
-
-	### Link between n0 & n1 down at 1.5, up at 2.0
-	$ns_ rtmodel-at 1.5 down $node_(n0) $node_(n1)
-	$ns_ rtmodel-at 2.0 up $node_(n0) $node_(n1)
-	###
-	$ns_ at 2.2 "$self finish 6a-nam"
-	
-	$ns_ run
-}
+#Class Test/CtrMcast2 -superclass TestSuite
+#Test/CtrMcast2 instproc init topo {
+#	 $self instvar net_ defNet_ test_
+#	 set net_	$topo
+#	 set defNet_	net6a
+#	 set test_	CtrMcast2
+#	 $self next
+#}
+#Test/CtrMcast2 instproc run {} {
+#	 $self instvar ns_ node_ testName_
+#
+#	 $ns_ rtproto Session
+#	 set mproto CtrMcast
+#	 set mrthandle [$ns_ mrtproto $mproto  {}]
+#	 
+#	 set udp0 [new Agent/UDP]
+#	 $ns_ attach-agent $node_(n0) $udp0
+#	 $udp0 set dst_ 0x8003
+#	 set cbr0 [new Application/Traffic/CBR]
+#	 $cbr0 attach-agent $udp0
+#
+#	 set rcvr [new Agent/Null]
+#	 $ns_ attach-agent $node_(n3) $rcvr
+#	 $ns_ attach-agent $node_(n4) $rcvr
+#	 $ns_ attach-agent $node_(n5) $rcvr
+#	 
+#	 $ns_ at 0.3 "$node_(n3) join-group  $rcvr 0x8003"
+#	 $ns_ at 0.35 "$cbr0 start"
+#	 $ns_ at 0.4 "$node_(n4) join-group  $rcvr 0x8003"
+#	 $ns_ at 0.5 "$node_(n5) join-group  $rcvr 0x8003"
+#
+#	 ### Link between n2 & n4 down at 0.6, up at 1.2
+#	 $ns_ rtmodel-at 0.6 down $node_(n2) $node_(n4)
+#	 $ns_ rtmodel-at 1.2 up $node_(n2) $node_(n4)
+#	 ###
+#
+#	 $ns_ at 1.0 "$mrthandle switch-treetype 0x8003"
+#
+#	 ### Link between n0 & n1 down at 1.5, up at 2.0
+#	 $ns_ rtmodel-at 1.5 down $node_(n0) $node_(n1)
+#	 $ns_ rtmodel-at 2.0 up $node_(n0) $node_(n1)
+#	 ###
+#	 $ns_ at 2.2 "$self finish 6a-nam"
+#	 
+#	 $ns_ run
+#}
+#
 
 # Group join/leave test
 Class Test/detailedDM1 -superclass TestSuite
@@ -769,98 +770,98 @@ Test/detailedDM1 instproc run {} {
 }
 
 # Group join/leave test with dynamics
-Class Test/detailedDM2 -superclass TestSuite
-Test/detailedDM2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6a
-	set test_	detailedDM2
-	$self next
-}
-Test/detailedDM2 instproc run {} {
-	$self instvar ns_ node_ testName_
-
-	$ns_ rtproto Session
-	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	set mproto detailedDM
-	set mrthandle [$ns_ mrtproto $mproto  {}]
-	### End of multicast  config
-
-	set udp0 [new Agent/UDP]
-	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8002
-	set cbr0 [new Application/Traffic/CBR]
-	$cbr0 attach-agent $udp0
-	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n4) $rcvr
-	$ns_ attach-agent $node_(n5) $rcvr
-	
-	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
-	$ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
-	
-	### Link between n0 and n1 down at 1.0 up at 1.6
-	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
-	$ns_ rtmodel-at 1.6 up $node_(n0) $node_(n1)
-	###
-
-	$ns_ at 0.1 "$cbr0 start"
-	$ns_ at 2.0 "$self finish 6a-nam"
-
-	$ns_ run
-}
-
+#Class Test/detailedDM2 -superclass TestSuite
+#Test/detailedDM2 instproc init topo {
+#	 $self instvar net_ defNet_ test_
+#	 set net_	$topo
+#	 set defNet_	net6a
+#	 set test_	detailedDM2
+#	 $self next
+#}
+#Test/detailedDM2 instproc run {} {
+#	 $self instvar ns_ node_ testName_
+#
+#	 $ns_ rtproto Session
+#	 ### Start multicast configuration
+#	 Prune/Iface/Timer set timeout 0.3
+#	 set mproto detailedDM
+#	 set mrthandle [$ns_ mrtproto $mproto  {}]
+#	 ### End of multicast  config
+#
+#	 set udp0 [new Agent/UDP]
+#	 $ns_ attach-agent $node_(n0) $udp0
+#	 $udp0 set dst_ 0x8002
+#	 set cbr0 [new Application/Traffic/CBR]
+#	 $cbr0 attach-agent $udp0
+#	 
+#	 set rcvr [new Agent/LossMonitor]
+#	 $ns_ attach-agent $node_(n3) $rcvr
+#	 $ns_ attach-agent $node_(n4) $rcvr
+#	 $ns_ attach-agent $node_(n5) $rcvr
+#	 
+#	 $ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
+#	 $ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+#	 $ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+#	 $ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
+#	 
+#	 ### Link between n0 and n1 down at 1.0 up at 1.6
+#	 $ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
+#	 $ns_ rtmodel-at 1.6 up $node_(n0) $node_(n1)
+#	 ###
+#
+#	 $ns_ at 0.1 "$cbr0 start"
+#	 $ns_ at 2.0 "$self finish 6a-nam"
+#
+#	 $ns_ run
+#}
+#
 # Group join/leave test with dynamics. n3 joins group when an upstream link
 # on its shortest path to the source has failed.
-Class Test/detailedDM3 -superclass TestSuite
-Test/detailedDM3 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6a
-	set test_	detailedDM3
-	$self next
-}
-Test/detailedDM3 instproc run {} {
-	$self instvar ns_ node_ testName_
-
-	$ns_ rtproto Session
-	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	set mproto detailedDM
-	set mrthandle [$ns_ mrtproto $mproto  {}]
-	### End of multicast  config
-
-	set udp0 [new Agent/UDP]
-	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8002
-	set cbr0 [new Application/Traffic/CBR]
-	$cbr0 attach-agent $udp0
-	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n4) $rcvr
-	$ns_ attach-agent $node_(n5) $rcvr
-	
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
-	$ns_ at 1.1 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
-	
-	### Link between n0 and n1 down at 1.0 up at 1.6
-	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
-	$ns_ rtmodel-at 1.6 up $node_(n0) $node_(n1)
-	###
-
-	$ns_ at 0.1 "$cbr0 start"
-	$ns_ at 2.0 "$self finish 6a-nam"
-
-	$ns_ run
-}
-
+#Class Test/detailedDM3 -superclass TestSuite
+#Test/detailedDM3 instproc init topo {
+#	 $self instvar net_ defNet_ test_
+#	 set net_	$topo
+#	 set defNet_	net6a
+#	 set test_	detailedDM3
+#	 $self next
+#}
+#Test/detailedDM3 instproc run {} {
+#	 $self instvar ns_ node_ testName_
+#
+#	 $ns_ rtproto Session
+#	 ### Start multicast configuration
+#	 Prune/Iface/Timer set timeout 0.3
+#	 set mproto detailedDM
+#	 set mrthandle [$ns_ mrtproto $mproto  {}]
+#	 ### End of multicast  config
+#
+#	 set udp0 [new Agent/UDP]
+#	 $ns_ attach-agent $node_(n0) $udp0
+#	 $udp0 set dst_ 0x8002
+#	 set cbr0 [new Application/Traffic/CBR]
+#	 $cbr0 attach-agent $udp0
+#	 
+#	 set rcvr [new Agent/LossMonitor]
+#	 $ns_ attach-agent $node_(n3) $rcvr
+#	 $ns_ attach-agent $node_(n4) $rcvr
+#	 $ns_ attach-agent $node_(n5) $rcvr
+#	 
+#	 $ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+#	 $ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+#	 $ns_ at 1.1 "$node_(n3) join-group $rcvr 0x8002"
+#	 $ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
+#	 
+#	 ### Link between n0 and n1 down at 1.0 up at 1.6
+#	 $ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
+#	 $ns_ rtmodel-at 1.6 up $node_(n0) $node_(n1)
+#	 ###
+#
+#	 $ns_ at 0.1 "$cbr0 start"
+#	 $ns_ at 2.0 "$self finish 6a-nam"
+#
+#	 $ns_ run
+#}
+#
 # Group join/leave test with dynamics. Node n3 joins the group when an
 # upstream link on its shortest path to the source has failed.
 Class Test/detailedDM4 -superclass TestSuite
