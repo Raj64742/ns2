@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.33 2000/08/20 04:27:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.34 2000/10/05 05:40:37 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -430,7 +430,7 @@ Test/impulseDiscount instproc init {} {
     set net_	net2
     set test_	impulseDiscount
     Agent/TFRCSink set discount_ 1
-    Test/impulseDiscount instproc run {} [Test/impulse info instbody run ]
+    Test/impulseDiscount instproc run {} [Test/impulseCA info instbody run ]
     $self next
 }
 
@@ -442,18 +442,18 @@ Test/impulseDiscountCA instproc init {} {
     Agent/TFRCSink set discount_ 1
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
-    Test/impulseDiscountCA instproc run {} [Test/impulse info instbody run ]
+    Test/impulseDiscountCA instproc run {} [Test/impulseCA info instbody run ]
     $self next
 }
 
-Class Test/impulse -superclass TestSuite
-Test/impulse instproc init {} {
-    $self instvar net_ test_
-    set net_	net2
-    set test_	impulse
-    Agent/TFRCSink set discount_ 0
-    $self next
-}
+# Class Test/impulse -superclass TestSuite
+# Test/impulse instproc init {} {
+#     $self instvar net_ test_
+#     set net_	net2
+#     set test_	impulse
+#     Agent/TFRCSink set discount_ 0
+#     $self next
+# }
 
 Class Test/impulseCA -superclass TestSuite
 Test/impulseCA instproc init {} {
@@ -463,11 +463,11 @@ Test/impulseCA instproc init {} {
     Agent/TFRCSink set discount_ 0
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
-    Test/impulseCA instproc run {} [Test/impulse info instbody run ]
+#    Test/impulseCA instproc run {} [Test/impulseCA info instbody run ]
     $self next
 }
 
-Test/impulse instproc run {} {
+Test/impulseCA instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
@@ -894,19 +894,71 @@ Test/twoDrops instproc run {} {
     $ns_ run
 }
 
-Class Test/HighLoss -superclass TestSuite
-Test/HighLoss instproc init {} {
+# Class Test/HighLoss -superclass TestSuite
+# Test/HighLoss instproc init {} {
+#     $self instvar net_ test_ stopTime1_
+#     set net_	net2
+#     set test_ HighLoss	
+#     Agent/TFRCSink set discount_ 1
+#     Agent/TFRCSink set smooth_ 1
+#     Agent/TFRC set df_ 0.95
+#     Agent/TFRC set ca_ 1
+#     set stopTime1_ 60
+#     $self next
+# }
+# Test/HighLoss instproc run {} {
+#     global quiet
+#     $self instvar ns_ node_ testName_ interval_ dumpfile_ stopTime1_
+#     $self setTopo
+#     set interval_ 1
+#     set stopTime $stopTime1_
+#     set stopTime0 [expr $stopTime - 0.001]
+#     set stopTime2 [expr $stopTime + 0.001]
+# 
+#     set dumpfile_ [open temp.s w]
+#     if {$quiet == "false"} {
+#         set tracefile [open all.tr w]
+#         $ns_ trace-all $tracefile
+#     }
+# 
+#     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+#     $ns_ at 0.0 "$tf1 start"
+# 
+#     set udp1 [$ns_ create-connection UDP $node_(s2) UDP $node_(s4) 1]
+# 		set cbr1 [$udp1 attach-app Traffic/CBR]
+# 		$cbr1 set rate_ 3Mb
+# 		$ns_ at [expr $stopTime1_/3.0] "$cbr1 start"   
+# 		$ns_ at [expr 2.0*$stopTime1_/3.0] "$cbr1 stop"   
+# 
+#     $self tfccDump 1 $tf1 $interval_ $dumpfile_
+# 
+#     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+#     #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+#     $ns_ at $stopTime "$self cleanupAll $testName_" 
+#     if {$quiet == "false"} {
+# 	$ns_ at $stopTime2 "close $tracefile"
+#     }
+#     $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+# 
+#     # trace only the bottleneck link
+#     $ns_ run
+# }
+  
+Class Test/HighLossConservative -superclass TestSuite
+Test/HighLossConservative instproc init {} {
     $self instvar net_ test_ stopTime1_
     set net_	net2
-    set test_ HighLoss	
+    set test_ HighLossConservative	
     Agent/TFRCSink set discount_ 1
     Agent/TFRCSink set smooth_ 1
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
+    Agent/TFRC set conservative_ true
     set stopTime1_ 60
+    # Test/HighLossConservative instproc run {} [Test/HighLoss info instbody run ]
     $self next
 }
-Test/HighLoss instproc run {} {
+Test/HighLossConservative instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ stopTime1_
     $self setTopo
@@ -944,20 +996,6 @@ Test/HighLoss instproc run {} {
     $ns_ run
 }
 
-Class Test/HighLossConservative -superclass TestSuite
-Test/HighLossConservative instproc init {} {
-    $self instvar net_ test_ stopTime1_
-    set net_	net2
-    set test_ HighLossConservative	
-    Agent/TFRCSink set discount_ 1
-    Agent/TFRCSink set smooth_ 1
-    Agent/TFRC set df_ 0.95
-    Agent/TFRC set ca_ 1
-    Agent/TFRC set conservative_ true
-    set stopTime1_ 60
-    Test/HighLossConservative instproc run {} [Test/HighLoss info instbody run ]
-    $self next
-}
 
 Class Test/HighLossTCP -superclass TestSuite
 Test/HighLossTCP instproc init {} {
