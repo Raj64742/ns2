@@ -6,6 +6,7 @@
 #
 set dotrace 1
 set stoptime 200.0
+set owdelay 1000ms
 
 set myaddr "10.11.12.13"
 set ns [new Simulator]
@@ -56,12 +57,12 @@ set node0 [$ns node]
 set node1 [$ns node]
 set node2 [$ns node]
 
-$ns simplex-link $node0 $node1 1Mb 10ms DropTail
-$ns simplex-link $node1 $node0 1Mb 10ms DropTail
-$ns simplex-link $node0 $node2 1Mb 10ms DropTail
-$ns simplex-link $node2 $node0 1Mb 10ms DropTail
-$ns simplex-link $node1 $node2 1Mb 10ms DropTail
-$ns simplex-link $node2 $node1 1Mb 10ms DropTail
+$ns simplex-link $node0 $node1 1Mb $owdelay DropTail
+$ns simplex-link $node1 $node0 1Mb $owdelay DropTail
+$ns simplex-link $node0 $node2 1Mb $owdelay DropTail
+$ns simplex-link $node2 $node0 1Mb $owdelay DropTail
+$ns simplex-link $node1 $node2 1Mb $owdelay DropTail
+$ns simplex-link $node2 $node1 1Mb $owdelay DropTail
 
 #
 # attach-agent winds up calling $node attach $agent which does
