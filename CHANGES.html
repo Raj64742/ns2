@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.436 2000/11/13 18:07:07 haoboy Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.437 2000/11/13 22:15:22 johnh Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -3784,15 +3784,6 @@ Added traffic generation modules to implement on/off sources with exponentially
 and pareto distributed on and off times, and a traffic generation module
 that is driven by a trace file. New files: trafgen.h, pareto.cc, expoo.cc,
 traffictrace.cc, traffictrace.h, udp.cc, udp.h.</li>
-
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <li>
 To support the pareto on/off source, added the function Random::pareto()
 to random.h.</li>
@@ -3806,14 +3797,6 @@ to random.h.</li>
 <li>
 CBQ is now part of the simulator</li>
 
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <p>Generally works.
 <li>
 ALL default queue sizes are now 50 [per ns-1 defaults]</li>
@@ -3821,66 +3804,26 @@ ALL default queue sizes are now 50 [per ns-1 defaults]</li>
 <li>
 QueueMonitors now know the difference between</li>
 
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <p>drops, arrivals, and departures and can monitor these
 <li>
 new class called 'Samples' which collects samples</li>
 
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <p>points of something and can provide a mean and variance of the points
 (see integrator.cc)
 <li>
 Queues can be flow controlled</li>
 
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <p>by forcing them to be blocked or unblocked as needed. Also it's possible
 to make it so that when they send a packet they become blocked rather than
 unblocked.
 <li>
 common packet header</li>
 
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <p>contains a timestamp field; this is used to compute queueing delay for
 individual packets at queues
 <li>
 classifier-hash</li>
 
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
 <p>a classifier to identify 'flows' ... still in development, but presently
 used by cbq
 <li>
