@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.4 1999/03/13 03:53:14 haoboy Exp $
+   $Id: dsdv.cc,v 1.5 1999/03/26 01:27:12 yaxu Exp $
 
    */
 
@@ -251,10 +251,11 @@ DSDV_Agent::helper_callback (Event * e)
 	  tracepkt (p, now, myaddr_, "PU");
 	}
 
-      assert (!HDR_CMN (p)->xmit_failure_);	// DEBUG 0x2
-      if (p)
+      if (p) {
+              assert (!HDR_CMN (p)->xmit_failure_);	// DEBUG 0x2
       // send out update packet jitter to avoid sync
 	      s.schedule (target_, p, jitter(DSDV_BROADCAST_JITTER, be_random_));
+      }
 
       // put the periodic update sending callback back onto the 
       // the scheduler queue for next time....
