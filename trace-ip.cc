@@ -37,7 +37,7 @@
 
 class TraceIp : public Trace {
 public:
-	TraceIp(int type) : Trace(type), mask_(~0), shift_(8) {
+	TraceIp(int type) : Trace(type) {
 		bind("mask_", &mask_);
 		bind("shift_", &shift_);
 	}

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.33 1998/02/05 03:45:27 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.34 1998/02/16 20:37:42 hari Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -299,7 +299,7 @@ Packet* Agent::allocpkt() const
 	ch->size() = size_;
 	ch->timestamp() = Scheduler::instance().clock();
 	ch->iface() = -2;	/* XXX arbitrary */
-	ch->error() = 0;	/* not corrupt to start with */
+	ch->error() = 0;	/* pkt not corrupt to start with */
 
 	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
 	iph->src() = addr_;
@@ -311,6 +311,7 @@ Packet* Agent::allocpkt() const
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	hf->ecn_capable_ = 0;
 	hf->ecn_ = 0;
+	hf->eln_ = 0;
 	hf->ecn_to_echo_ = 0;
 	hf->fs_ = 0;
 	hf->no_ts_ = 0;

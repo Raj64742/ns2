@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.6 1997/10/26 05:42:09 hari Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.7 1998/02/16 20:37:50 hari Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -44,7 +44,8 @@ struct hdr_flags {
 	unsigned char ecn_;          /* transport receiver notifying
 				      *  transport sender of ECN */
 	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the opposite direction */
-	unsigned char fs_;           /* tcp fast start (work in progress --venkat) */
+	unsigned char eln_;     /* explicit loss notification */
+	unsigned char fs_;	/* tcp fast start (work in progress --venkat) */
 	unsigned char no_ts_;	/* don't use the tstamp of this pkt for rtt */
 	unsigned char pri_;
 	unsigned char usr1_;

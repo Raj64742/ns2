@@ -33,24 +33,32 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.10 1998/01/23 21:36:06 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.11 1998/02/16 20:37:39 hari Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
 
+static class LLSnoopClass : public TclClass {
+ public:
+        LLSnoopClass() : TclClass("LL/LLSnoop") {}
+        TclObject* create(int, const char*const*) {
+                return (new LLSnoop());
+        }
+} llsnoop_class;
+
 static class SnoopClass : public TclClass {
  public:
-        SnoopClass() : TclClass("LL/Snoop") {}
+        SnoopClass() : TclClass("Snoop") {}
         TclObject* create(int, const char*const*) {
-                return (new Snoop(SNOOP_MAKEHANDLER));
+                return (new Snoop());
         }
 } snoop_class;
 
-
-Snoop::Snoop(int makeHandler) :
-	fstate_(0), lastWin_(0), lastSeen_(-1), lastSize_(0), lastAck_(-1), 
-	expNextAck_(0), expDupacks_(0), bufhead_(0), buftail_(0),
-	toutPending_(0)
+Snoop::Snoop() : NsObject(),
+	fstate_(0), wl_state_(SNOOP_WLEMPTY), lastSeen_(-1), lastAck_(-1), 
+	wl_lastSeen_(-1), wl_lastAck_(-1), 
+	expNextAck_(0), expDupacks_(0), bufhead_(0), buftail_(0), 
+	wl_bufhead_(0), wl_buftail_(0), toutPending_(0)
 {
 	bind("off_snoop_", &off_snoop_);
 	bind("off_tcp_", &off_tcp_);
@@ -59,24 +67,76 @@ Snoop::Snoop(int makeHandler) :
 	bind_time("rttvar_", &rttvar_);
 	bind("snoopTick_", &snoopTick_);
 	bind("g_", &g_);
-	
+	bind("tailTime_", &tailTime_);
+	bind("rxmitStatus_", &rxmitStatus_);
+
 	rxmitHandler_ = new SnoopRxmitHandler(this);
 	persistHandler_ = new SnoopPersistHandler(this);
 	
-	for (int i = 0; i < SNOOP_MAXWIND; i++) 
+	for (int i = 0; i < SNOOP_MAXWIND; i++) /* data from wired->wireless */
 		pkts_[i] = 0;
+	for (int i = 0; i < SNOOP_WLSEQS; i++) {/* data from wireless->wired */
+		wlseqs_[i] = (hdr_seq *) malloc(sizeof(hdr_seq));
+		wlseqs_[i]->seq = wlseqs_[i]->num = 0;
+	}
 }
 
 
 int 
 Snoop::command(int argc, const char*const* argv)
 {
-	return LL::command(argc, argv); // for now, only this much
+	Tcl& tcl = Tcl::instance();
+
+	if (argc == 3) {
+		if (strcmp(argv[1], "llsnoop") == 0) {
+			parent_ = (LLSnoop *) TclObject::lookup(argv[2]);
+			if (parent_)
+				recvtarget_ = parent_->rtg();
+			return (TCL_OK);
+		}
+		
+		if (strcmp(argv[1], "check-rxmit") == 0) {
+			if (empty_()) {
+				rxmitStatus_ = SNOOP_PROPAGATE;
+				return (TCL_OK);
+			}
+
+			Packet *p = pkts_[buftail_];
+			hdr_snoop *sh = ((hdr_snoop*)p->access(off_snoop_));
+
+			if (sh->sndTime()!=-1 && sh->sndTime()<atoi(argv[2]) &&
+			    sh->numRxmit() == 0)
+				/* candidate for retransmission */
+				rxmitStatus_ = snoop_rxmit(p);
+			else
+				rxmitStatus_ = SNOOP_PROPAGATE;
+			return (TCL_OK);
+		}
+	}
+}
+
+void LLSnoop::recv(Packet *p, Handler *h)
+{
+	Tcl &tcl = Tcl::instance();
+	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+	
+	/* get-snoop creates a snoop object if none currently exists */
+	if (h == 0)
+		/* In ns, addresses have ports embedded in them. */
+		tcl.evalf("%s get-snoop %d %d", name(), iph->dst(),iph->src());
+	else
+		tcl.evalf("%s get-snoop %d %d", name(), iph->src(),iph->dst());
+	
+	Snoop *snoop = (Snoop *) TclObject::lookup(tcl.result());
+	snoop->recv(p, h);
+	if (integrate_)
+		tcl.evalf("%s integrate %d %d", name(), iph->src(),iph->dst());
+	return;
 }
 
 /*
- * Receive a packet from higher layer.  Call snoop_data() if TCP packet and
- * forward it on if it's an ack.
+ * Receive a packet from higher layer or from the network.  
+ * Call snoop_data() if TCP packet and forward it on if it's an ack.
  */
 void
 Snoop::recv(Packet* p, Handler* h)
@@ -88,14 +148,11 @@ Snoop::recv(Packet* p, Handler* h)
 	int type = ((hdr_cmn*)p->access(off_cmn_))->ptype();
         /* Put packet (if not ack) in cache after checking, and send it on */
 	if (type == PT_TCP)
-		snoop_data_(p);
-/*	else if (type == PT_ACK)
-		printf("---- %f sending ack %d\n", 
-		       Scheduler::instance().clock(),
-		       ((hdr_tcp*)p->access(off_tcp_))->seqno());
-*/
+		snoop_data(p);
+	else if (type == PT_ACK)
+		snoop_wired_ack(p);
 	callback_ = h;
-	LL::recv(p, h);
+	parent_->sendto(p, h);	/* vector to LLSnoop's sendto() */
 }
 
 /*
@@ -113,14 +170,17 @@ Snoop::handle(Event *e)
 
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 	if (((hdr_cmn*) p->access(off_cmn_))->error()) {
-		drop(p);        // drop packet if it's been corrupted
+		parent_->drop(p);        // drop packet if it's been corrupted
 		return;
 	}
 
 	if (type == PT_ACK)
-		prop = snoop_ack_(p);
+		prop = snoop_ack(p);
+	else if (type == PT_TCP) /* XXX what about TELNET? */
+		snoop_wless_data(p);
+
 	if (prop == SNOOP_PROPAGATE)
-		s.schedule(recvtarget_, e, delay_);
+		s.schedule(recvtarget_, e, parent_->delay());
 	else {			// suppress ack
 /*		printf("---- %f suppressing ack %d\n", s.clock(), seq);*/
 		Packet::free(p);
@@ -132,40 +192,37 @@ Snoop::handle(Event *e)
  * this function is called.
  */
 void
-Snoop::snoop_data_(Packet *p)
+Snoop::snoop_data(Packet *p)
 {
 	Scheduler &s = Scheduler::instance();
 	int seq = ((hdr_tcp*)p->access(off_tcp_))->seqno();
-	int size = ((hdr_cmn*)p->access(off_cmn_))->size();
 	int resetPending = 0;
 
-/*	printf("snoop_data_: %f sending packet %d\n", s.clock(), seq);*/
+/*	printf("snoop_data: %f sending packet %d\n", s.clock(), seq);*/
 	if (fstate_ & SNOOP_FULL) {
-		if (seq > lastSeen_) {
+		if (seq > lastSeen_)
 			lastSeen_ = seq;
-			lastSize_ = size;
-		}
 		return;
 	}
 	/* 
 	 * Only if the ifq is NOT full do we insert, since otherwise we want
 	 * congestion control to kick in.
 	 */
-	if (ifq_->length() < ifq_->limit()-1)
-		resetPending = insert_(p);
+	if (parent_->ifq()->length() < parent_->ifq()->limit()-1)
+		resetPending = snoop_insert(p);
 	if (toutPending_ && resetPending == SNOOP_TAIL) {
 		s.cancel(toutPending_);
 		toutPending_ = 0;
 	}
 	if (!toutPending_ && !empty_()) {
 		toutPending_ = (Event *) (pkts_[buftail_]);
-		s.schedule(rxmitHandler_, toutPending_, timeout_());
+		s.schedule(rxmitHandler_, toutPending_, timeout());
 	}
 	return;
 }
 
 /* 
- * insert_() does all the hard work for snoop_data(). It traverses the 
+ * snoop_insert() does all the hard work for snoop_data(). It traverses the 
  * snoop cache and looks for the right place to insert this packet (or
  * determines if its already been cached). It then decides whether
  * this is a packet in the normal increasing sequence, whether it
@@ -174,10 +231,9 @@ Snoop::snoop_data_(Packet *p)
  * was buffered by us before.
  */
 int
-Snoop::insert_(Packet *p)
+Snoop::snoop_insert(Packet *p)
 {
 	int i, seq = ((hdr_tcp*)p->access(off_tcp_))->seqno(), retval=0;
-	int size = ((hdr_cmn*)p->access(off_cmn_))->size();
 
 	if (seq <= lastAck_)
 		return retval;
@@ -230,10 +286,8 @@ Snoop::insert_(Packet *p)
 		}
 		expNextAck_ = buftail_;
 		retval = SNOOP_TAIL;
-	} else {
+	} else
 		lastSeen_ = seq;
-		lastSize_ = size;
-	}
 	return retval;
 }
 
@@ -254,13 +308,11 @@ Snoop::savepkt_(Packet *p, int seq, int i)
  * Return SNOOP_SUPPRESS if ack is to be suppressed and SNOOP_PROPAGATE o.w.
  */
 int
-Snoop::snoop_ack_(Packet *p)
+Snoop::snoop_ack(Packet *p)
 {
 	Packet *pkt;
 
 	int ack = ((hdr_tcp*)p->access(off_tcp_))->seqno();
-//	int win = ((hdr_tcp*)p->access(off_tcp_))->win();
-/*printf("snoop_ack_: %f got ack %d\n", Scheduler::instance().clock(), ack);*/
 	/*
 	 * There are 3 cases:
 	 * 1. lastAck_ > ack.  In this case what has happened is
@@ -273,8 +325,7 @@ Snoop::snoop_ack_(Packet *p)
 	 *    Set expDupacks_ to number of packets already sent
 	 *    This is the number of dup acks to ignore.
 	 * 3. lastAck_ < ack.  Set lastAck_ = ack, and update
-	 *    the head of the buffer queue. Also clean up buffers of ack'd
-	 *    packets.
+	 *    the head of the buffer queue. Also clean up ack'd packets.
 	 */
 	if (fstate_ & SNOOP_CLOSED || lastAck_ > ack)
 		return SNOOP_PROPAGATE;	// send ack onward
@@ -331,7 +382,7 @@ Snoop::snoop_ack_(Packet *p)
 		/* free buffers */
 		double sndTime = snoop_cleanbufs_(ack);
 		if (sndTime != -1)
-			snoop_rtt_(sndTime);
+			snoop_rtt(sndTime);
 		expDupacks_ = 0;
 		expNextAck_ = buftail_;
 		lastAck_ = ack;
@@ -339,8 +390,102 @@ Snoop::snoop_ack_(Packet *p)
 	return SNOOP_PROPAGATE;
 }
 
+/* 
+ * Handle data packets that arrive from a wireless link, and we're not
+ * the end recipient.  See if there are any holes in the transmission, and
+ * if there are, mark them as candidates for wireless loss.  Then, when
+ * (dup)acks troop back for this loss, set the ELN bit in their header, to
+ * help the sender (or a snoop agent downstream) retransmit.
+ */
+void
+Snoop::snoop_wless_data(Packet *p)
+{
+	struct hdr_tcp *th = (hdr_tcp *)(p->access(off_tcp_));
+	int i, seq = th->seqno();
+
+	if (wl_state_ & SNOOP_WLEMPTY && seq >= wl_lastAck_) {
+		wlseqs_[wl_bufhead_]->seq = seq;
+		wlseqs_[wl_bufhead_]->num = 1;
+		wl_buftail_ = wl_bufhead_;
+		wl_bufhead_ = wl_next(wl_bufhead_);
+		wl_lastSeen_ = seq;
+		wl_state_ &= ~SNOOP_WLEMPTY;
+		return;
+	}
+	/* WL data list definitely not empty at this point. */
+	if (seq >= wl_lastSeen_) {
+		wl_lastSeen_ = seq;
+		i = wl_prev(wl_bufhead_);
+		if (wlseqs_[i]->seq + wlseqs_[i]->num == seq) {
+			wlseqs_[i]->num++;
+			return;
+		}
+		i = wl_bufhead_;
+		wl_bufhead_ = wl_next(wl_bufhead_);
+	} else if (seq == wlseqs_[i = wl_buftail_]->seq - 1) {
+	} else
+		return;
+
+	wlseqs_[i]->seq = seq;
+	wlseqs_[i]->num++;
+
+	/* Ignore network out-of-ordering and retransmissions for now */
+	return;
+}
+
 /*
- * Clean snoop cache of packets that have been acked.
+ * Ack from wired side (for sender on "other" side of wireless link.
+ */
+void 
+Snoop::snoop_wired_ack(Packet *p)
+{
+	hdr_tcp *th = (hdr_tcp *)(p->access(off_tcp_));
+	int ack = th->seqno();
+	int i;
+	
+	if (ack == wl_lastAck_ && snoop_wlessloss(ack)) {
+		((hdr_flags*)p->access(off_flags_))->eln_ = 1;
+	} else if (ack > wl_lastAck_) {
+		/* update info about unack'd data */
+		for (i = wl_buftail_; i != wl_bufhead_; i = wl_next(i)) {
+			hdr_seq *t = wlseqs_[i];
+			if (t->seq + t->num - 1 <= ack) {
+				t->seq = t->num = 0;
+			} else if (ack < t->seq) {
+				break;
+			} else if (ack < t->seq + t->num - 1) {
+				/* ack for part of a block */
+				t->num -= ack - t->seq +1;
+				t->seq = ack + 1;
+				break;
+			}
+		}
+		wl_buftail_ = i;
+		if (wl_buftail_ == wl_bufhead_)
+			wl_state_ |= SNOOP_WLEMPTY;
+		wl_lastAck_ = ack;
+		/* Even a new ack could cause an ELN to be set. */
+		if (wl_bufhead_ != wl_buftail_ && snoop_wlessloss(ack))
+			((hdr_flags*)p->access(off_flags_))->eln_ = 1;
+	}
+}
+
+/* 
+ * Return 1 if we think this packet loss was not congestion-related, and 
+ * 0 otherwise.  This function simply implements the lookup into the table
+ * that maintains this info; most of the hard work is done in 
+ * snoop_wless_data() and snoop_wired_ack().
+ */
+int
+Snoop::snoop_wlessloss(int ack)
+{
+	if ((wl_bufhead_ == wl_buftail_) || wlseqs_[wl_buftail_]->seq > ack+1)
+		return 1;
+	return 0;
+}
+
+/*
+ * clean snoop cache of packets that have been acked.
  */
 double
 Snoop::snoop_cleanbufs_(int ack)
@@ -355,14 +500,14 @@ Snoop::snoop_cleanbufs_(int ack)
 		return sndTime;
 	int i = buftail_;
 	do {
-		Packet *p = pkts_[i];
-		hdr_snoop *sh = (hdr_snoop *)p->access(off_snoop_);
-		int seq = ((hdr_tcp*)p->access(off_tcp_))->seqno();
+		hdr_snoop *sh = (hdr_snoop *)pkts_[i]->access(off_snoop_);
+		int seq = ((hdr_tcp*)pkts_[i]->access(off_tcp_))->seqno();
+
 		if (seq <= ack) {
 			sndTime = sh->sndTime();
 			Packet::free(pkts_[i]);
 			pkts_[i] = 0;
-			fstate_ &= ~SNOOP_FULL;	// XXX redundant?
+			fstate_ &= ~SNOOP_FULL;	/* XXX redundant? */
 		} else if (seq > ack)
 			break;
 		i = next(i);
@@ -374,16 +519,43 @@ Snoop::snoop_cleanbufs_(int ack)
 	}
 	if (!empty_()) {
 		toutPending_ = (Event *) (pkts_[buftail_]);
-		s.schedule(rxmitHandler_, toutPending_, timeout_());
+		s.schedule(rxmitHandler_, toutPending_, timeout());
+		hdr_snoop *sh=(hdr_snoop *)pkts_[buftail_]->access(off_snoop_);
+		tailTime_ = sh->sndTime();
 	}
 	return sndTime;
 }
 
 /* 
- * Calculate smoothed rtt estimates.  XXX to be modified
+ * Calculate smoothed rtt estimate and linear deviation.
  */
 void
-Snoop::snoop_rtt_(double sndTime)
+Snoop::snoop_rtt(double sndTime)
+{
+	double rtt = Scheduler::instance().clock() - sndTime;
+
+	if (parent_->integrate()) {
+		parent_->snoop_rtt(sndTime);
+		return;
+	}
+	
+	if (rtt > 0) {
+		srtt_ = g_*srtt_ + (1-g_)*rtt;
+		double delta = rtt - srtt_;
+		if (delta < 0)
+			delta = -delta;
+		if (rttvar_ != 0)
+			rttvar_ = g_*delta + (1-g_)*rttvar_;
+		else 
+			rttvar_ = delta;
+	}
+}
+
+/* 
+ * Calculate smoothed rtt estimate and linear deviation.
+ */
+void
+LLSnoop::snoop_rtt(double sndTime)
 {
 	double rtt = Scheduler::instance().clock() - sndTime;
 	if (rtt > 0) {
@@ -405,7 +577,7 @@ int
 Snoop::snoop_qlong()
 {
 	/* For now only instantaneous lengths */
-	if (ifq_->length() <= 3*ifq_->limit()/4)
+	if (parent_->ifq()->length() <= 3*parent_->ifq()->limit()/4)
 		return 1;
 	return 0;
 }
@@ -419,15 +591,17 @@ Snoop::snoop_rxmit(Packet *pkt)
 	Scheduler& s = Scheduler::instance();
 	if (pkt != 0) {
 		hdr_snoop *sh = (hdr_snoop *)pkt->access(off_snoop_);
-		if (sh->numRxmit() < SNOOP_MAX_RXMIT && snoop_qlong() &&
-		    sh->seqno() == lastAck_+1) {
-/*			printf("%f Rxmitting packet %d\n", s.clock(), 
+		if (sh->numRxmit() < SNOOP_MAX_RXMIT && snoop_qlong()) {
+/*			&& sh->seqno() == lastAck_+1)  */
+
+#if 0				
+			printf("%f Rxmitting packet %d\n", s.clock(), 
 			       ((hdr_tcp*)pkt->access(off_tcp_))->seqno());
-*/
+#endif
 			sh->sndTime() = s.clock();
 			sh->numRxmit() = sh->numRxmit() + 1;
 			Packet *p = pkt->copy();
-			LL::recv(p, callback_);
+			parent_->sendto(p, callback_);
 		} else 
 			return SNOOP_PROPAGATE;
 	}
@@ -435,8 +609,13 @@ Snoop::snoop_rxmit(Packet *pkt)
 	if (toutPending_)
 		s.cancel(toutPending_);
 	toutPending_ = (Event *)pkt;
-	s.schedule(rxmitHandler_, toutPending_, timeout_());
+	s.schedule(rxmitHandler_, toutPending_, timeout());
 	return SNOOP_SUPPRESS;
+}
+
+void 
+Snoop::snoop_cleanup()
+{
 }
 
 void
@@ -461,3 +640,4 @@ void
 SnoopPersistHandler::handle(Event *) 
 {
 }
+

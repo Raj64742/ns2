@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.49 1998/02/05 21:00:45 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.50 1998/02/16 20:37:43 hari Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -76,6 +76,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("overhead_", &overhead_);
 	bind("tcpTick_", &tcp_tick_);
 	bind("ecn_", &ecn_);
+        bind("eln_", &eln_);
+        bind("eln_rxmit_thresh_", &eln_rxmit_thresh_);
 	bind("packetSize_", &size_);
 	bind_bool("bugFix_", &bug_fix_);
 	bind_bool("slow_start_restart_", &slow_start_restart_);
@@ -711,6 +713,10 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
 	} else if (tcph->seqno() == last_ack_) {
+                if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
+                        tcp_eln(pkt);
+                        return;
+                }
 		if (++dupacks_ == NUMDUPACKS) {
                    /* The line below, for "bug_fix_" true, avoids
 		    * problems with multiple fast retransmits in one
@@ -786,6 +792,28 @@ void TcpAgent::timeout(int tno)
 	else {
 		timeout_nonrtx(tno);
 	}
+}
+
+/* 
+ * Check if the packet (ack) has the ELN bit set, and if it does, and if the
+ * last ELN-rxmitted packet is smaller than this one, then retransmit the
+ * packet.  Do not adjust the cwnd when this happens.
+ */
+void TcpAgent::tcp_eln(Packet *pkt)
+{
+        int eln_rxmit;
+        hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+        int ack = tcph->seqno();
+
+        if (++dupacks_ == eln_rxmit_thresh_ && ack > eln_last_rxmit_) {
+                /* Retransmit this packet */
+                output(last_ack_ + 1, TCP_REASON_DUPACK);
+                eln_last_rxmit_ = last_ack_+1;
+        } else
+                send_much(0, 0, maxburst_);
+
+        Packet::free(pkt);
+        return;
 }
 
 /*

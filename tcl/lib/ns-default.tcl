@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.90 1998/02/09 21:03:17 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.91 1998/02/16 20:39:30 hari Exp $
 
 
 #
@@ -100,6 +100,9 @@ Agent/TCP set trace_all_oneline_ false
 
 Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
+
+Agent/TCP set eln_ 0
+Agent/TCP set eln_rxmit_thresh_ 1
 
 # setting this to 1 implements some changes to reno 
 # proposed by Janey Hoe (other than fixing reno's

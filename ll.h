@@ -32,13 +32,15 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.10 1998/01/23 08:11:08 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.11 1998/02/16 20:37:51 hari Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
 #define ns_ll_h
 
 #include "delay.h"
+
+class Mac;
 
 enum LLFrameType {
 	LL_DATA   = 0x0001,
@@ -62,12 +64,16 @@ public:
 	virtual void recv(Packet* p, Handler* h);
 	virtual void recvfrom(Packet* p);
 	virtual void sendto(Packet* p, Handler* h);
+        inline Mac* mac() { return mac_; }
+        inline Queue *ifq() { return ifq_; }
+        inline NsObject* rtg() { return recvtarget_; }
 protected:
 	int command(int argc, const char*const* argv);
 	int seqno_;		// link-layer sequence number
 	int macDA_;		// destination MAC address
 	int off_ll_;		// offset of link-layer header
 	int off_mac_;		// offset of MAC header
+        Mac *mac_;					   
         Queue* ifq_;		// interface queue
         NsObject* sendtarget_;	// where packet is passed down the stack
 	NsObject* recvtarget_;	// where packet is passed up the stack

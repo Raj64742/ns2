@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.20 1997/10/13 22:24:42 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.21 1998/02/16 20:37:45 hari Exp $ (LBL)";
 #endif
 
 //
@@ -136,6 +136,10 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		partialnewack_helper(pkt);
 	    }
    	} else if (tcph->seqno() == last_ack_)  {
+                if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
+                        tcp_eln(pkt);
+                        return;
+                }
 		if (++dupacks_ == NUMDUPACKS) {
 			/*
 			 * Assume we dropped just one packet.

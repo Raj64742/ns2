@@ -313,6 +313,12 @@ LanLink instproc create-error { src dstlist emname rate unit {trans ""}} {
 				$unit]
 		set e2 [new ErrorModel/MultiState/TwoStateMarkov $rate $trans \
 				$unit]
+	} elseif { $emname == "emp" } {
+		# rate0-3 are actually filenames here!
+		set e1 [new ErrorModel/Empirical]
+		$e1 initrv [list [lindex $rate 0] [lindex $rate 1]]
+		set e2 [new ErrorModel/Empirical]
+		$e2 initrv [list [lindex $rate 2] [lindex $rate 3]]
 	} else {
 		set e1 [new ErrorModel/Expo $rate $unit]
 		set e2 [new ErrorModel/Expo $rate $unit]

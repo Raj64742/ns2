@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.5 1997/11/06 04:17:07 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.6 1998/02/16 20:37:54 hari Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -41,6 +41,7 @@
 #include "ip.h"
 #include "tcp.h"
 #include "ll.h"
+#include "flags.h"
 #include "template.h"
 
 /* Snoop states */
@@ -51,17 +52,22 @@
 #define SNOOP_HIGHWATER 0x10	/* snoop highwater mark reached */
 #define SNOOP_RTTFLAG   0x20	/* can compute RTT if this is set */
 #define SNOOP_ALIVE     0x40	/* connection has been alive past 1 sec */
-#define SNOOP_SL_REXMT  0x80	/* for persist timeout */
+#define SNOOP_WLEMPTY   0x80
 
 #define SNOOP_MAXWIND   100	/* XXX */
-#define SNOOP_MAXCONN   64	/* XXX */
+#define SNOOP_WLSEQS    8
 #define SNOOP_MIN_TIMO  0.100	/* in seconds */
 #define SNOOP_MAX_RXMIT 10	/* quite arbitrary at this point */
-#define SNOOP_PROPAGATE 0
-#define SNOOP_SUPPRESS   1
+#define SNOOP_PROPAGATE 1
+#define SNOOP_SUPPRESS  2
 
 #define SNOOP_MAKEHANDLER 1
 #define SNOOP_TAIL 1
+
+struct hdr_seq {
+	int seq;
+	int num;
+};
 
 struct hdr_snoop {
 	int seqno_;
@@ -75,6 +81,24 @@ struct hdr_snoop {
 	inline double& sndTime() { return sndTime_; }
 };
 
+class LLSnoop : public LL {
+  public:
+	LLSnoop() : LL() { bind("integrate_", &integrate_);}
+	void recv(Packet *, Handler *);
+	void snoop_rtt(double);
+	inline double timeout() { 
+		return max(srtt_+4*rttvar_, snoopTick_);
+	}
+	inline int integrate() { return integrate_; }
+  protected:
+	int    integrate_;
+	double srtt_;
+	double rttvar_;
+	double g_;
+	double snoopTick_;	/* minimum rxmission timer granularity */
+};
+
+
 class SnoopHeaderClass : public PacketHeaderClass {
 public:
         SnoopHeaderClass() : PacketHeaderClass("PacketHeader/Snoop",
@@ -84,55 +108,74 @@ public:
 class SnoopRxmitHandler;
 class SnoopPersistHandler;
 
-class Snoop : public LL {
+class Snoop : public NsObject {
 	friend SnoopRxmitHandler;
 	friend SnoopPersistHandler;
   public:
-	Snoop(int makeHandler=0);
-	int  command(int argc, const char*const* argv);
-	void recv(Packet *, Handler *);	/* control of snoop actions */
-	void handle(Event *);	/* control of snoop actions */
+	Snoop();
+	void recv(Packet *, Handler *);
+	void handle(Event *);
 	int snoop_rxmit(Packet *);
 	inline int next(int i) { return (i+1) % SNOOP_MAXWIND; }
 	inline int prev(int i) { return ((i == 0) ? SNOOP_MAXWIND-1 : i-1); };
+	inline int wl_next(int i) { return (i+1) % SNOOP_WLSEQS; }
+	inline int wl_prev(int i) { return ((i == 0) ? SNOOP_WLSEQS-1 : i-1);};
 
   protected:
-	void snoop_data_(Packet *);
-	int  snoop_ack_(Packet *);
+	int command(int argc, const char*const* argv);
+	void snoop_data(Packet *);
+	int  snoop_ack(Packet *);
+	void snoop_wless_data(Packet *);
+	void snoop_wired_ack(Packet *);
+	int  snoop_wlessloss(int);
 	double snoop_cleanbufs_(int);
-	void snoop_rtt_(double);
+	void snoop_rtt(double);
 	int snoop_qlong();
-	int insert_(Packet *);
+	int snoop_insert(Packet *);
 	inline int empty_(){return bufhead_==buftail_ &&!(fstate_&SNOOP_FULL);}
 	void savepkt_(Packet *, int, int);
 	void update_state_();
-	inline double timeout_() { 
-		return max(srtt_+4*rttvar_, snoopTick_);
+	inline double timeout() { 
+		if (!parent_->integrate())
+			return max(srtt_+4*rttvar_, snoopTick_);
+		else
+			return parent_->timeout();
 	}
+	void snoop_cleanup();
+	
+	LLSnoop *parent_;	/* the parent link layer object */
+	NsObject* recvtarget_;	/* where packet is passed up the stack */
 	Handler  *callback_;
 	SnoopRxmitHandler *rxmitHandler_; /* used in rexmissions */
 	SnoopPersistHandler *persistHandler_; /* for connection (in)activity */
 	int      snoopDisable_;	/* disable snoop for this mobile */
-	int      connId_;	/* which connection -- unique from dst:port */
 	u_short  fstate_;	/* state of connection */
-	u_short  lastWin_;	/* last flow control window size from sender */
-	nsaddr_t destAddr_;	/* identifies mobile host */
 	int      lastSeen_;	/* first byte of last packet buffered */
-	int      lastSize_;	/* size of last cached segment */
         int      lastAck_;	/* last byte recd. by mh for sure */
 	int      expNextAck_;	/* expected next ack after dup sequence */
 	short    expDupacks_;	/* expected number of dup acks */
 	double   srtt_;		/* smoothed rtt estimate */
 	double   rttvar_;	/* linear deviation */
+	double   tailTime_;	/* time at which earliest unack'd pkt sent */
+	int      rxmitStatus_;
+	Event    *toutPending_;	/* # pending timeouts */
 	short    bufhead_;	/* next pkt goes here */
 	short    buftail_;	/* first unack'd pkt */
-	Event    *toutPending_;	/* # pending timeouts */
-	Packet   *pkts_[SNOOP_MAXWIND]; /* ringbuf of cached mbufs */
+	Packet   *pkts_[SNOOP_MAXWIND]; /* ringbuf of cached pkts */
 	
+	int      wl_state_;
+	int      wl_lastSeen_;
+	int      wl_lastAck_;
+	int      wl_bufhead_;
+	int      wl_buftail_;
+	hdr_seq  *wlseqs_[SNOOP_WLSEQS];	/* ringbuf of wless data */
+
 	double   snoopTick_;	/* minimum rxmission timer granularity */
 	double   g_;		/* gain in EWMA for srtt_ and rttvar_ */
+	int      integrate_;	/* integrate loss rec across active conns */
+	int      off_ll_;	/* ll header offset */
 	int      off_snoop_;	/* snoop header offset */
-	int      off_tcp_;	/* snoop header offset */
+	int      off_tcp_;	/* tcp header offset */
 };
 
 class SnoopRxmitHandler : public Handler {

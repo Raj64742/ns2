@@ -64,7 +64,7 @@ LL/LLSnoop instproc get-snoop { src dst } {
 	
 	if { ![info exists snoops_($src:$dst)] } {
 		# make a new snoop agent if none exists
-		puts "making new snoop $src $dst"
+#		puts "making new snoop $src $dst"
 		set snoops_($src:$dst) [new Snoop]
 	}
 	# make snoop's llsnoop_ ourself, and make it's recvtarget_ same as ours

@@ -33,7 +33,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.20 1997/12/17 01:16:10 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.21 1998/02/16 20:37:52 hari Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -47,6 +47,8 @@ enum ErrorUnit { EU_PKT=0, EU_BYTE, EU_TIME };
 #define EU_NAMES "pkt", "byte", "time"
 #define STR2EU(s) (!strcmp(s,"byte") ? EU_BYTE : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
 
+#define EM_GOOD 1
+#define EM_BAD  2
 
 /* 
  * Basic object for error models.  This can be used unchanged by error 
@@ -57,18 +59,18 @@ enum ErrorUnit { EU_PKT=0, EU_BYTE, EU_TIME };
 class ErrorModel : public Connector {
   public:
 	ErrorModel();
-	virtual void recv(Packet*, Handler*);
-	virtual void copy(ErrorModel*);
-	virtual int corrupt(Packet*);
+	virtual void recv(Packet *, Handler *);
+	virtual void copy(ErrorModel *);
+	virtual int corrupt(Packet *);
 	virtual int CorruptPkt(Packet *);
 	virtual int CorruptTime(Packet *);
 	virtual int CorruptByte(Packet *);
 	virtual void em_reset();
 	inline double rate() { return rate_; }
+	virtual int command(int argc, const char*const* argv);
   protected:
-	int command(int argc, const char*const* argv);
 	ErrorUnit unit_;	/* error unit in pkts, bytes, or time */
-	RandomVariable* ranvar_;/* the underlying random variate generator */
+	RandomVariable *ranvar_;/* the underlying random variate generator */
 	double rate_;		/* mean pkts between errors (for EU_PKT), or
 				 * mean bytes between errors (for EU_BYTE), or 
 				 * mean time between errors (for EU_TIME). */
@@ -84,6 +86,16 @@ class ErrorModel : public Connector {
 	Packet *pkt_;		/* pointer to incoming packet */
 };
 
+class EmpiricalErrorModel : public ErrorModel {
+  public:
+	EmpiricalErrorModel() : ErrorModel() { unit_ = EU_TIME; };
+	virtual int CorruptTime(Packet *);
+	int command(int argc, const char*const* argv);
+  protected:
+	RandomVariable *grv_;
+	RandomVariable *brv_;
+	int state_;
+};
 
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.19 1997/10/13 22:24:42 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.20 1998/02/16 20:37:47 hari Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -75,6 +75,10 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		dupwnd_ = 0;
 		recv_newack_helper(pkt);
    	} else if (tcph->seqno() == last_ack_)  {
+                if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
+                        tcp_eln(pkt);
+                        return;
+                }
 		if (++dupacks_ == NUMDUPACKS) {
 			/*
 			 * Assume we dropped just one packet.

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.29 1998/01/23 21:08:33 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.30 1998/02/16 20:37:40 hari Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -51,6 +51,14 @@ public:
 		return (new ErrorModel);
 	}
 } class_errormodel;
+
+static class EmpErrorModelClass : public TclClass {
+public:
+	EmpErrorModelClass() : TclClass("ErrorModel/Empirical") {}
+	TclObject* create(int, const char*const*) {
+		return (new EmpiricalErrorModel);
+	}
+} class_emp_errormodel;
 
 static char* eu_names[] = { EU_NAMES };
 
@@ -171,8 +179,8 @@ void ErrorModel::recv(Packet* p, Handler* h)
 int ErrorModel::corrupt(Packet* p)
 {
 	/* If no random var is specified, assume uniform random variable */
-	if (!enable_) return 0;
-
+	if (!enable_) 
+		return 0;
 	switch (unit_) {
 	case EU_PKT: 
 		return CorruptPkt(p);
@@ -247,7 +255,6 @@ int ErrorModel::CorruptTime(Packet *p)
 	return numerrs;
 }
 
-
 /*
  * Decide whether or not to corrupt this packet, based on a byte-based error
  * model.  The main parameter used in errByte_, which is the number of
@@ -286,6 +293,74 @@ void ErrorModel::em_reset()
 	return;
 }
 
+int EmpiricalErrorModel::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+
+	if (argc == 3) {
+		if (strcmp(argv[1], "granvar") == 0) {
+			grv_ = (RandomVariable*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "branvar") == 0) {
+			brv_ = (RandomVariable*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+	}
+	if (argc == 2) {
+		if (strcmp(argv[1], "granvar") == 0) {
+			tcl.resultf("%s", grv_->name());
+			return (TCL_OK);
+		} 
+		if (strcmp(argv[1], "branvar") == 0) {
+			tcl.resultf("%s", brv_->name());
+			return (TCL_OK);
+		}
+	}
+	return ErrorModel::command(argc, argv);
+}
+
+/*
+ * Empirical error model based on CDFs of errored and error-free lengths.  
+ */
+int
+EmpiricalErrorModel::CorruptTime(Packet *p)
+{
+	/* 
+	 * First get MAC header.  It has the transmission time (txtime)
+	 * of the packet in one of it's fields.  Then, get the time
+	 * interval [t-txtime, t], where t is the current time.  The
+	 * goal is to figure out whether the channel would have
+	 * corrupted the packet during that interval. 
+	 */
+	Scheduler &s = Scheduler::instance();
+	double now = s.clock();
+	int numerrs = 0;
+	double start = now - ((hdr_mac*) p->access(off_mac_))->txtime();
+
+	if (firstTime_) {
+		state_ = EM_GOOD;
+		errTime_ = grv_->value();
+		firstTime_ = 0;
+	}
+		
+	while (errTime_ < start) {
+		/* toggle states */
+		if (state_ == EM_GOOD) {
+			errTime_ += brv_->value();
+			state_ = EM_BAD;
+		} else {
+			errTime_ += grv_->value();
+			state_ = EM_GOOD;
+		}
+	}
+
+	if (errTime_ >= now && state_ == EM_GOOD)
+		return 0;
+	return 1;
+}
+
+
 
 static class SelectErrorModelClass : public TclClass {
 public:
@@ -294,7 +369,6 @@ public:
 		return (new SelectErrorModel);
 	}
 } class_selecterrormodel;
-
 
 SelectErrorModel::SelectErrorModel() : ErrorModel()
 {

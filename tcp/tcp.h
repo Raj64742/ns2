@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.37 1998/02/12 03:46:09 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.38 1998/02/16 20:37:49 hari Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -220,6 +220,7 @@ protected:
 	void reset();
 	void newack(Packet*);
 	void quench(int how);
+	void tcp_eln(Packet *pkt); /* reaction to ELN (usually wireless) */
 	void finish(); /* called when the connection is terminated */
 
 	/* Helper functions. Currently used by tcp-asym */
@@ -285,6 +286,9 @@ protected:
 	TracedInt maxseq_;	/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* Explicit Congestion Notification */
+        int eln_;               /* Explicit Loss Notification (wireless) */
+        int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
+        int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */
 	double firstsent_;	/* When first packet was sent  --Allman */
 	int off_tcp_;
 	int slow_start_restart_; /* boolean: re-init cwnd after connection 
