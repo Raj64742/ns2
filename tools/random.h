@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.h,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.h,v 1.2 1997/01/23 00:02:15 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -38,12 +38,10 @@
 
 #include <math.h>
 
-#ifdef sun
-#if defined(__svr4__) || defined(__SVR4)
-#include <stdlib.h>
-#else
+#if defined(sun) && !(defined(__svr4__) || defined(__SVR4))
 extern "C" long random();
-#endif
+#else
+#include <stdlib.h>
 #endif
 
 class Random {
