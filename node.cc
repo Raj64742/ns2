@@ -25,7 +25,7 @@ int
 Node::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
-		if(strncasecmp(argv[1], "addif", 5) == 0) {
+		if(strcmp(argv[1], "addif") == 0) {
 			WiredPhy* n = (WiredPhy*) TclObject::lookup(argv[2]);
 			if(n == 0)
 				return TCL_ERROR;
