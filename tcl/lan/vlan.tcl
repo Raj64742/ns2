@@ -50,6 +50,7 @@ LanNode instproc node-addr {{addr ""}} {
 LanNode instproc reset {} {
 	#NOTHING: needed for node processing by ns routing
 }
+LanNode instproc is-lan? {} { return 1 }
 LanNode instproc dump-namconfig {} {
 	$self instvar ns_ bw_ delay_ nodelist_ id_
 	$ns_ puts-nam-config \
@@ -65,6 +66,9 @@ LanNode instproc dump-namconfig {} {
 	}
 }
 
+#
+# multicast support
+#
 LanNode instproc enable-mcast sim {
 	$self instvar switch_ defRouter_
 
@@ -75,6 +79,28 @@ LanNode instproc enable-mcast sim {
 	$defRouter_ switch $switch_
 }
 
+LanNode instproc init-outLink {} { 
+#
+#	$self instvar outLink_ nodelist_ lanIface_
+#	foreach node $nodelist_ {
+#		set iface [$lanIface_([$node id]) set iface_]
+#                set label [$iface set intf_label_]
+#                set outLink_($label) $oif
+# 	}
+}
+LanNode instproc start-mcast {} { 
+	#NOTHING
+}
+LanNode instproc getArbiter {} {
+	$self instvar arbiter_
+	if ![info exists arbiter_] {
+		set arbiter_ [new McastProtoArbiter ""]
+	}
+	return $arbiter_
+}
+LanNode instproc attach {agent} {
+	#NOTHING
+}
 LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
 	$self instvar bw_ delay_ ifqType_ macType_ chanType_
@@ -93,7 +119,9 @@ LanNode instproc init {ns args} {
 		set address_ $id_
 	}
 	set defRouter_ [new lanRouter $ns $self]
-
+	if [Simulator set EnableMcast_] {
+		$self enable-mcast $ns
+	}
 	set channel_ [new $chanType_]
 	set mcl_ [new Classifier/Mac]
 	$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
@@ -151,15 +179,18 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 		$mac channel $channel_
 		$mac mcl $mcl_
 		$mcl_ install [$mac set addr_] $mac
-		
+
 		set lanIface_([$src id]) $nif
 		$nif instvar iface_ ;#interface object
 		$ns_ set interfaces_($src:$self) $iface_
 		$ns_ set interfaces_($self:$src) $iface_
+		$src add-neighbor $self
 
 		set sid [$src id]
 		set link_($sid:$id_) [new Vlink $ns_ $self $sid $id_ $bw 0]
 		set link_($id_:$sid) [new Vlink $ns_ $self $id_ $sid $bw 0]
+		$link_($sid:$id_) set ifacein_ $nif
+		$nif set intf_label_ [[$iface_ entry] set intf_label_]
 
 		$link_($sid:$id_) queue [$nif set ifq_]
 		$link_($id_:$sid) queue [$nif set ifq_]
@@ -273,3 +304,5 @@ lanRouter instproc init {ns lan} {
 	$self lanaddr [$lan node-addr]
 	$self routelogic [$ns get-routelogic]
 }
+
+Node instproc is-lan? {} { return 0 }
