@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.24 1999/03/16 17:53:27 yuriy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.25 1999/06/10 00:32:55 salehi Exp $
 #
 
 #
@@ -39,6 +39,16 @@
 Node instproc shape { shape } {
 	$self instvar attr_ 
 	set attr_(SHAPE) $shape
+}
+
+# Returns the current shape of the node
+Node instproc shape? {} {
+	$self instvar attr_
+	if [info exists attr_(SHAPE)] {
+		return $attr_(SHAPE)
+	} else {
+		return ""
+	}
 }
 
 Node instproc color { color } {
