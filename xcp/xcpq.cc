@@ -91,6 +91,9 @@ Packet* XCPQueue::deque()
 	
 	Packet* p = REDQueue::deque();
 	do_before_packet_departure(p);
+
+	max_queue_ci_ = max(length(), max_queue_ci_);
+	min_queue_ci_ = min(length(), min_queue_ci_);
 	
 	return (p);
 }
@@ -103,6 +106,9 @@ void XCPQueue::drop(Packet* p)
 
 void XCPQueue::enque(Packet* pkt)
 {
+	max_queue_ci_ = max(length(), max_queue_ci_);
+	min_queue_ci_ = min(length(), min_queue_ci_);
+
 	do_on_packet_arrival(pkt);
 	REDQueue::enque(pkt);
 }
@@ -191,8 +197,8 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 		pos_fbk = xh->delta_throughput_ + neg_fbk;
 	}
 /* L 24-25 */
-	residue_pos_fbk_ = max(0, residue_pos_fbk_ - pos_fbk);
-	residue_neg_fbk_ = max(0, residue_neg_fbk_ - neg_fbk);
+	residue_pos_fbk_ = max(0.0, residue_pos_fbk_ - pos_fbk);
+	residue_neg_fbk_ = max(0.0, residue_neg_fbk_ - neg_fbk);
 /* L 34 */
 	if (residue_pos_fbk_ == 0.0)
 		Cp_ = 0.0;
@@ -241,10 +247,10 @@ void XCPQueue::Te_timeout()
 		double spreaded_bytes = b_[0];
 		double tp = t_[0];
 		for (int i = 1; i <= maxb_; ++i) {
-			double spill = b_[i]/(i+1) + .5;
+			double spill = b_[i]/(i+1);
 			spreaded_bytes += spill;
 			b_[i-1] = b_[i] - spill;
-
+			
 			spill = t_[i]/(i+1);
 		        tp += spill;
 			t_[i-1] = t_[i] - spill;
@@ -284,8 +290,8 @@ void XCPQueue::Te_timeout()
 /* L 9 ends here */
 	}
 /* L 12, 13 */	
-	residue_pos_fbk_ = max(0,  phi_bps) + shuffled_traffic_bps;
-	residue_neg_fbk_ = max(0, -phi_bps) + shuffled_traffic_bps;
+	residue_pos_fbk_ = max(0.0,  phi_bps) + shuffled_traffic_bps;
+	residue_neg_fbk_ = max(0.0, -phi_bps) + shuffled_traffic_bps;
 
 	if (sum_inv_throughput_ == 0.0)
 		sum_inv_throughput_ = 1.0;
@@ -302,8 +308,11 @@ void XCPQueue::Te_timeout()
 		trace_var("avg_rtt_", avg_rtt_);
 		trace_var("residue_pos_fbk_", residue_pos_fbk_);
 		trace_var("residue_neg_fbk_", residue_neg_fbk_);
-		trace_var("Qsize", curq_);
 		trace_var("Qavg", edv_.v_ave);
+		trace_var("Qsize", length());
+		trace_var("min_queue_ci_", double(min_queue_ci_));
+		trace_var("max_queue_ci_", double(max_queue_ci_));
+
 		trace_var("routerId", routerId_);
 	} 
 	num_cc_packets_in_Te_ = 0;
@@ -322,6 +331,8 @@ void XCPQueue::Te_timeout()
 
 /* L 18 */
 	estimation_control_timer_->resched(Te_);
+
+	min_queue_ci_ = max_queue_ci_ = length();
 }
 
 // Estimation & Control Helpers
@@ -354,6 +365,8 @@ void XCPQueue::init_vars()
 	for (int i = 0; i<BSIZE; ++i)
 		b_[i] = t_[i] = 0;
 	maxb_ = 0;
+
+	min_queue_ci_ = max_queue_ci_ = length();
 }
 
 
@@ -362,7 +375,7 @@ void XCPTimer::expire(Event *) {
 }
 
 
-void XCPQueue::trace_var(char * var_name, double var)
+void XCPQueue::trace_var(char *var_name, double var)
 {
 	char wrk[500];
 	double now = Scheduler::instance().clock();

@@ -53,8 +53,10 @@ class XCPQueue : public REDQueue {
 	Packet* deque();
 	
 protected:
-	double max(double d1, double d2) { return (d1 > d2) ? d1 : d2; }
+        double max(double d1, double d2) { return (d1 > d2) ? d1 : d2; }
 	double min(double d1, double d2) { return (d1 < d2) ? d1 : d2; }
+        int max(int i1, int i2) { return (i1 > i2) ? i1 : i2; }
+	int min(int i1, int i2) { return (i1 < i2) ? i1 : i2; }
 	double abs(double d) { return (d < 0) ? -d : d; }
 	
 	virtual void trace_var(char * var_name, double var);
@@ -107,7 +109,9 @@ protected:
 	double			t_[BSIZE];
 	int			maxb_;
 	static const double	BWIDTH = 0.01;
- 
+	int			min_queue_ci_;
+	int			max_queue_ci_;
+
 	Tcl_Channel queue_trace_file_;
 };
 
