@@ -4,12 +4,14 @@
 Class TestSuite
 source mechanisms.tcl
 source sources.tcl
-
+source rtm_plot.tcl
 
 TestSuite instproc init {} {
         $self instvar ns_ defNet_ net_ test_ topo_ node_ testName_
+	$self instvar scheduler_
 
         set ns_ [new Simulator]
+	set scheduler_ [$ns_ set scheduler_]
         if {$net_ == ""} {
                 set net_ $defNet_
         }
@@ -34,64 +36,6 @@ TestSuite instproc init {} {
         } else {
                 set testName_ "$test_:$net_"
         }
-}
-
-TestSuite instproc finish file {
-        global env
-	$self instvar graphfile_ flowfile_
-        set perlCode {
-                sub BEGIN { $c = 0; @p = @a = @d = @lu = @ld = (); }
-                /^[\+-] / && do {
-                        if ($F[4] eq 'tcp') {
-                                push(@p, $F[1], ' ',            \
-                                        $F[7] + ($F[10] % 90) * 0.01, "\n");
-                        } elsif ($F[4] eq 'ack') {
-                                push(@a, $F[1], ' ',            \
-                                        $F[7] + ($F[10] % 90) * 0.01, "\n");
-                        }
-                        $c = $F[7] if ($c < $F[7]);
-                        next;
-                };
-                /^d / && do {
-                        push(@d, $F[1], ' ',            \
-                                        $F[7] + ($F[10] % 90) * 0.01, "\n");
-                        next;
-                };
-                /link-down/ && push(@ld, $F[1]);
-                /link-up/ && push(@lu, $F[1]);
-                sub END {
-                        print "\"packets\n", @p, "\n";
-                        # insert dummy data sets
-                        # so we get X's for marks in data-set 4
-                        print "\"skip-1\n0 1\n\n\"skip-2\n0 1\n\n";
-                        #
-                        # Repeat the first line twice in the drops file because
-                        # often we have only one drop and xgraph won't print
-                        # marks for data sets with only one point.
-                        #
-                        print "\n", '"drops', "\n", @d[0..3], @d;
-                        # To plot acks, uncomment the following line
-                        # print "\n", '"acks', "\n", @a;
-                        $c++;
-                        foreach $i (@ld) {
-                                print "\n\"link-down\n$i 0\n$i $c\n";
-                        }
-                        foreach $i (@lu) {
-                                print "\n\"link-up\n$i 0\n$i $c\n";
-                        }
-                }
-        }
-        set f [open $graphfile_ w]
-        puts $f "TitleText: $file"
-        puts $f "Device: Postscript"
-        exec perl -ane $perlCode $flowfile_ >@ $f
-        close $f
-        if [info exists env(DISPLAY)] {
-            exec xgraph -display $env(DISPLAY) -bb -tk -nl -m -x time -y packet $graphfile_ &
-        } else {
-            puts "output trace is in temp.rands"
-        }
-        exit 0
 }
 
 #------------------------------------------------------------------
@@ -164,8 +108,9 @@ Topology/net2 instproc init ns {
 # prints "time: $time class: $class bytes: $bytes" for the link.
 #
 TestSuite instproc linkDumpFlows { linkmon interval stoptime } {
-	$self instvar ns_ flowfile_
-        set f [open $flowfile_ w]
+	$self instvar ns_ linkflowfile_
+        set f [open $linkflowfile_ w]
+puts "linkDumpFlows: opening file $linkflowfile_, fdesc: $f"
         TestSuite instproc dump1 { file linkmon interval } {
 		$self instvar ns_ linkmon_
                 $ns_ at [expr [$ns_ now] + $interval] \
@@ -179,7 +124,7 @@ TestSuite instproc linkDumpFlows { linkmon interval stoptime } {
 		}
         }
         $ns_ at $interval "$self dump1 $f $linkmon $interval"
-        $ns_ at $stoptime "close $f"
+        $ns_ at $stoptime "flush $f"
 }
 
 Class Test/one -superclass TestSuite
@@ -193,15 +138,27 @@ Test/one instproc init topo {
 }
 
 Test/one instproc config {} {
-	$self instvar flowfile_ graphfile_ penaltyfile_ flowgraphfile_
-	$self instvar goodflowfile_ badflowfile_
+	$self instvar linkflowfile_ linkgraphfile_
+	$self instvar goodflowfile_ goodgraphfile_
+	$self instvar badflowfile_ badgraphfile_
+	$self instvar label_ post_
 
-	set goodflowfile_ gflow.tr
-	set badflowfile_ bflow.tr
-	set flowfile_ ff.tr
-	set graphfile_ reclass.xgr
-	set penaltyfile_ reclassa.tr
-	set flowgraphfile_ ff.xgr
+	set label_ RECLASS2
+
+	set linkflowfile_ RECLASS2.tr
+	set linkgraphfile_ RECLASS2.xgr
+
+	set goodflowfile_ RECLASS2_gf.tr
+	set goodgraphfile_ RECLASS2_gf.xgr
+
+	set badflowfile_ RECLASS2_bf.tr
+	set badgraphfile_ RECLASS2_bf.xgr
+
+	set post_ [new PostProcess $label_ $linkflowfile_ $linkgraphfile_ \
+		$goodflowfile_ $goodgraphfile_ \
+		$badflowfile_ $badgraphfile_]
+
+	$post_ set format_ "xgraph"
 }
 
 #
@@ -266,6 +223,13 @@ Test/one instproc run {} {
 
 	ns-random 0
 	$ns_ run
+}
+
+Test/one instproc finish {} {
+	$self instvar post_ scheduler_
+	$scheduler_ halt
+	set bandwidth 1500
+	$post_ plot_bytes $bandwidth
 }
 
 TestSuite proc usage {} {
