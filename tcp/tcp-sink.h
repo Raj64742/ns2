@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.13 1999/03/05 18:45:32 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.14 1999/11/24 22:20:08 hyunahpa Exp $ (LBL)
  */
  
 #ifndef ns_tcpsink_h
@@ -97,6 +97,12 @@ public:
 protected:
 	void ack(Packet*);
 	virtual void add_to_ack(Packet* pkt);
+
+#ifdef TCP_DELAY_BIND	
+        virtual void delay_bind_init_all();
+        virtual int delay_bind_dispatch(const char *varName, const char *localName);
+#endif
+
 	Acker* acker_;
 	int ts_echo_bugfix_;
 

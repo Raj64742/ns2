@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.35 1998/08/03 23:20:29 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.36 1999/11/24 22:20:09 hyunahpa Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -119,7 +119,9 @@ public:
 	void sync();
 	void clear();
 	void dumplist();	// for debugging
+
 protected:
+
 	int off_tcp_;		// TCP header offset
 	int off_cmn_;		// common header offset
 	seginfo* head_;		// head of segs linked list
@@ -143,6 +145,11 @@ class FullTcpAgent : public TcpAgent {
 	virtual int command(int argc, const char*const* argv);
 
  protected:
+
+ #ifdef TCP_DELAY_BIND
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, const char *localName);
+ #endif
 	int closed_;
 	int ts_option_size_;	// header bytes in a ts option
 	int pipe_;		// estimate of pipe occupancy (for Sack)
@@ -181,7 +188,7 @@ class FullTcpAgent : public TcpAgent {
 	virtual void dupack_action();	// what to do on dup acks
 	virtual void pack_action(Packet*);	// action on partial acks
 	virtual void ack_action(Packet*);	// action on acks
-	virtual void reset();       		// reset to a known point
+       	virtual void reset();       		// reset to a known point
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	virtual int build_options(hdr_tcp*);	// insert opts, return len
 
@@ -223,6 +230,7 @@ class FullTcpAgent : public TcpAgent {
 };
 
 class NewRenoFullTcpAgent : public FullTcpAgent {
+
 public:
 	NewRenoFullTcpAgent();
 protected:

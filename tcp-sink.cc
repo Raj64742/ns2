@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.36 1999/10/12 15:43:21 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.37 1999/11/24 22:20:09 hyunahpa Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -125,10 +125,37 @@ int Acker::update(int seq, int numBytes)
 
 TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL)
 {
+#ifdef TCP_DELAY_BIND
+#else       
 	bind("packetSize_", &size_);
 	bind("maxSackBlocks_", &max_sack_blocks_); // used only by sack
 	bind_bool("ts_echo_bugfix_", &ts_echo_bugfix_);
+#endif
 }
+
+#ifdef TCP_DELAY_BIND
+void
+TcpSink::delay_bind_init_all()
+{
+        delay_bind_init_one("packetSize_");
+        delay_bind_init_one("maxSackBlocks_");
+        delay_bind_init_one("ts_echo_bugfix_");
+
+	Agent::delay_bind_init_all();
+}
+#endif
+
+#ifdef TCP_DELAY_BIND
+int
+TcpSink::delay_bind_dispatch(const char *varName, const char *localName)
+{
+        DELAY_BIND_DISPATCH(varName, localName, "packetSize_", delay_bind, &size_);
+        DELAY_BIND_DISPATCH(varName, localName, "maxSackBlocks_", delay_bind, &max_sack_blocks_);
+        DELAY_BIND_DISPATCH(varName, localName, "ts_echo_bugfix_", delay_bind_bool, &ts_echo_bugfix_);
+
+        return Agent::delay_bind_dispatch(varName, localName);
+}
+#endif
 
 void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
 {
@@ -255,7 +282,6 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 {
 	bind_time("interval_", &interval_);
 }
-
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {

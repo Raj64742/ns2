@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.75 1999/09/09 03:22:51 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.76 1999/11/24 22:20:10 hyunahpa Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -134,31 +134,84 @@ public:
  *	segsperack: for delayed ACKs, how many to wait before ACKing
  *	segsize: segment size to use when sending
  */
-FullTcpAgent::FullTcpAgent() : 
+FullTcpAgent::FullTcpAgent() :  
 	closed_(0), pipe_(0), fastrecov_(FALSE), 
 	last_send_time_(-1.0), infinite_send_(0), irs_(-1), 
 	delack_timer_(this), flags_(0), 
 	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE), 
 	last_state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
 {
-	bind("segsperack_", &segs_per_ack_);
-	bind("segsize_", &maxseg_);
-	bind("tcprexmtthresh_", &tcprexmtthresh_);
-	bind("iss_", &iss_);
-	bind_bool("nodelay_", &nodelay_);
-	bind_bool("data_on_syn_",&data_on_syn_);
-	bind_bool("dupseg_fix_", &dupseg_fix_);
-	bind_bool("dupack_reset_", &dupack_reset_);
-	bind_bool("close_on_empty_", &close_on_empty_);
-	bind_time("interval_", &delack_interval_);
-	bind("ts_option_size_", &ts_option_size_);
-	bind_bool("reno_fastrecov_", &reno_fastrecov_);
-	bind_bool("pipectrl_", &pipectrl_);
-	bind_bool("open_cwnd_on_pack_", &open_cwnd_on_pack_);
-	bind_bool("halfclose_", &halfclose_);
+#ifdef TCP_DELAY_BIND
+#else
+        bind("segsperack_", &segs_per_ack_);
+        bind("segsize_", &maxseg_);
+        bind("tcprexmtthresh_", &tcprexmtthresh_);
+        bind("iss_", &iss_);
+        bind_bool("nodelay_", &nodelay_);
+        bind_bool("data_on_syn_",&data_on_syn_);
+        bind_bool("dupseg_fix_", &dupseg_fix_);
+        bind_bool("dupack_reset_", &dupack_reset_);
+        bind_bool("close_on_empty_", &close_on_empty_);
+        bind_time("interval_", &delack_interval_);
+        bind("ts_option_size_", &ts_option_size_);
+        bind_bool("reno_fastrecov_", &reno_fastrecov_);
+        bind_bool("pipectrl_", &pipectrl_);
+        bind_bool("open_cwnd_on_pack_", &open_cwnd_on_pack_);
+        bind_bool("halfclose_", &halfclose_);
 
-	reset();
+        reset();
+#endif
 }
+
+#ifdef TCP_DELAY_BIND
+void
+FullTcpAgent::delay_bind_init_all()
+{
+        delay_bind_init_one("segsperack_");
+        delay_bind_init_one("segsize_");
+        delay_bind_init_one("tcprexmtthresh_");
+        delay_bind_init_one("iss_");
+        delay_bind_init_one("nodelay_");
+        delay_bind_init_one("data_on_syn_");
+        delay_bind_init_one("dupseg_fix_");
+        delay_bind_init_one("dupack_reset_");
+        delay_bind_init_one("close_on_empty_");
+        delay_bind_init_one("interval_");
+        delay_bind_init_one("ts_option_size_");
+        delay_bind_init_one("reno_fastrecov_");
+        delay_bind_init_one("pipectrl_");
+        delay_bind_init_one("open_cwnd_on_pack_");
+        delay_bind_init_one("halfclose_");
+
+	TcpAgent::delay_bind_init_all();
+       
+      	reset();
+}
+#endif
+
+#ifdef TCP_DELAY_BIND
+int
+FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName)
+{
+        DELAY_BIND_DISPATCH(varName, localName, "segsperack_", delay_bind, &segs_per_ack_);
+        DELAY_BIND_DISPATCH(varName, localName, "segsize_", delay_bind, &maxseg_);
+        DELAY_BIND_DISPATCH(varName, localName, "tcprexmtthresh_", delay_bind, &tcprexmtthresh_);
+        DELAY_BIND_DISPATCH(varName, localName, "iss_", delay_bind, &iss_);
+        DELAY_BIND_DISPATCH(varName, localName, "nodelay_", delay_bind_bool, &nodelay_);
+        DELAY_BIND_DISPATCH(varName, localName, "data_on_syn_", delay_bind_bool, &data_on_syn_);
+        DELAY_BIND_DISPATCH(varName, localName, "dupseg_fix_", delay_bind_bool, &dupseg_fix_);
+        DELAY_BIND_DISPATCH(varName, localName, "dupack_reset_", delay_bind_bool, &dupack_reset_);
+        DELAY_BIND_DISPATCH(varName, localName, "close_on_empty_", delay_bind_bool, &close_on_empty_);
+        DELAY_BIND_DISPATCH(varName, localName, "interval_", delay_bind_time, &delack_interval_);
+        DELAY_BIND_DISPATCH(varName, localName, "ts_option_size_", delay_bind, &ts_option_size_);
+        DELAY_BIND_DISPATCH(varName, localName, "reno_fastrecov_", delay_bind_bool, &reno_fastrecov_);
+        DELAY_BIND_DISPATCH(varName, localName, "pipectrl_", delay_bind_bool, &pipectrl_);
+        DELAY_BIND_DISPATCH(varName, localName, "open_cwnd_on_pack_", delay_bind_bool, &open_cwnd_on_pack_);
+        DELAY_BIND_DISPATCH(varName, localName, "halfclose_", delay_bind_bool, &halfclose_);
+
+        return TcpAgent::delay_bind_dispatch(varName, localName);
+}
+#endif
 
 /*
  * reset to starting point, don't set state_ here,
@@ -169,7 +222,7 @@ void
 FullTcpAgent::reset()
 {
 	cancel_timers();	// cancel timers first
-	TcpAgent::reset();	// resets most variables
+      	TcpAgent::reset();	// resets most variables
 	rq_.clear();
 	rtt_init();
 
