@@ -152,35 +152,39 @@ proc test_droptail1 { seed } {
     global queuetype category
     set queuetype packets
     set category forced
-    test droptail1 $seed plot_dropsinbytes d1 create_flowstats flowDump DropTail
+    test droptail1 $seed plot_dropsinbytes d1 create_flowstats2 flowDump DropTail
 }
 
 # packet drop metric, queue in packets, Drop-Tail
 proc test_droptail2 { seed } {
-    global queuetype
+    global queuetype category
     set queuetype packets
     set category forced
-    test droptail2 $seed plot_dropsinpackets d2 create_flowstats flowDump DropTail
+    test droptail2 $seed plot_dropsinpackets d2 create_flowstats2 flowDump DropTail
 }
 
 # byte drop metric, queue in bytes, Drop-Tail
 proc test_droptail3 { seed } {
     global ns_link queuetype category
     set queuetype bytes
+    ##
+    ## not implemented yet in ns-2
     set ns_link(queue-in-bytes) true
     set ns_link(mean_pktsize) 512
     set category forced
-    test droptail3 $seed plot_dropsinbytes d3 create_flowstats flowDump DropTail
+    test droptail3 $seed plot_dropsinbytes d3 create_flowstats2 flowDump DropTail
 }
 
 # packet drop metric, queue in bytes, Drop-Tail
 proc test_droptail4 { seed } {
     global ns_link queuetype category
     set queuetype bytes
+    ##
+    ## not implemented yet in ns-2
     set ns_link(queue-in-bytes) true
     set ns_link(mean_pktsize) 512
     set category forced
-    test droptail4 $seed plot_dropsinpackets d4 create_flowstats flowDump DropTail
+    test droptail4 $seed plot_dropsinpackets d4 create_flowstats2 flowDump DropTail
 }
 
 
