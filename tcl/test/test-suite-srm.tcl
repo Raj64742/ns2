@@ -192,7 +192,7 @@ TestSuite instproc init {} {
     } else {
 	set ns_ [new Simulator]
 	$ns_ trace-all [open temp.rands w]
-	$ns_ namtrace-all [open out.nam w]
+	#$ns_ namtrace-all [open out.nam w]
 	Simulator set EnableMcast_ 1
 	Simulator set NumberInterfaces_ 1
     }
