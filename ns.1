@@ -1073,8 +1073,10 @@ transmitted (but not necessarily received).
 
 .SH "DROP-TAIL OBJECTS"
 Drop-tail objects are a subclass of Queue objects that implement simple
-FIFO queue.  There are no methods, configuration parameter,
-or state variables that are specific to drop-tail objects.
+FIFO queue.  There are no methods that are specific to drop-tail
+objects.  The only configuration parameter is \fIdrop-front_\fP, 
+which when set to true causes the queue to behave as a drop-from-front
+queueing discipline.  This variable is set to false by default.
 
 .SH "FQ OBJECTS"
 FQ objects are a subclass of Queue objects that implement
@@ -1162,9 +1164,18 @@ Set to "true" to mark packets by setting
 the congestion indication bit in packet headers 
 rather than drop packets.
 .IP \fIdrop-tail_\fP
-Set to true to use drop-tail rather than random-drop when the queue
-overflows or the average queue size exceeds "maxthresh_".
+Set to true to use drop-tail rather than random-drop or
+drop-from-front when the queue overflows or the average queue size 
+exceeds "maxthresh_".  This is th default behavior.
 For a further explanation of these variables, see [2].
+.IP \fIdrop-rand_\fP
+Set to true to use random-drop rather than drop-tail or
+drop-from-front when the queue overflows or the average queue size 
+exceeds "maxthresh_".
+.IP \fIdrop-front_\fP
+Set to true to use drop-from-front rather than drop-tail or random drop
+when the queue overflows or the average queue size exceeds
+"maxthresh_".
 .LP
 .HD
 State Variables
