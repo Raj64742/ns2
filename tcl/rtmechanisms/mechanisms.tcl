@@ -88,7 +88,7 @@ RTMechanisms instproc mmetric { op flows } {
 RTMechanisms instproc setstate { flow reason bandwidth droprate } { 
 	$self instvar state_ ns_
 
-	$self vprint "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
+	$self vprint 1 "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
 
 	set state_($flow,reason) $reason
 	set state_($flow,bandwidth) $bandwidth
@@ -103,7 +103,7 @@ RTMechanisms instproc pallot allotment {
 
 	$badclass_ newallot $allotment
 	$goodclass_ newallot [expr $Maxallot_ - $allotment]
-	$self vprint "PALLOT: Allots: pbox: $allotment, okbox: [expr $Maxallot_ - $allotment]"
+	$self vprint 1 "PALLOT: Allots: pbox: $allotment, okbox: [expr $Maxallot_ - $allotment]"
 }
 
 # add a flow to the flow history array (for unresponsive test)
@@ -165,7 +165,7 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 	$self instvar okboxfm_ pboxfm_
 	$self instvar Max_cbw_
 
-	$self vprint "penalizing flow $badflow, guideline bw: $guideline_bw"
+	$self vprint 1 "penalizing flow $badflow, guideline bw: $guideline_bw"
 
 	incr npenalty_
 	set classifier [$cbqlink_ classifier]
@@ -205,7 +205,7 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 	set nallot [expr $new_pbw / $bw]
 
 	$self pallot $nallot
-	$self vprint "penalize done.."
+	$self vprint 2 "penalize done.."
 }
 
 #
@@ -220,7 +220,7 @@ RTMechanisms instproc unpenalize goodflow {
 	incr npenalty_ -1
 
 	set classifier [$cbqlink_ classifier]
-	$self vprint "UNPENALIZE flow $goodflow"
+	$self vprint 1 "UNPENALIZE flow $goodflow"
 
 	#
 	# delete the bad flow from the cbq/mechanisms classifier
@@ -256,7 +256,7 @@ RTMechanisms instproc unpenalize goodflow {
 	set nallot [expr $new_cbw / $bw]
 
 	$self pallot $nallot
-	$self vprint "unpenalize done..."
+	$self vprint 2 "unpenalize done..."
 }
 
 # Check if bandwidth in penalty box should be adjusted.
@@ -303,14 +303,14 @@ RTMechanisms instproc sched-detect {} {
 	$self instvar Detect_interval_ detect_pending_
 	$self instvar ns_
 	if { $detect_pending_ == "true" } {
-		$self vprint "SCHEDULING DETECT (NO, ALREADY PENDING)"
+		$self vprint 2 "SCHEDULING DETECT (NO, ALREADY PENDING)"
 		return
 	}
 	set now [$ns_ now]
 	set then [expr $now + $Detect_interval_]
 	set detect_pending_ true
 	$ns_ at $then "$self do_detect"
-	$self vprint "SCHEDULING DETECT for $then"
+	$self vprint 2 "SCHEDULING DETECT for $then"
 }
 	
 RTMechanisms instproc do_detect {} {
@@ -325,7 +325,7 @@ RTMechanisms instproc do_detect {} {
 
 	set detect_pending_ false
 	set now [$ns_ now]
-	$self vprint "DO_DETECT started at time $now, last: $last_detect_"
+	$self vprint 2 "DO_DETECT started at time $now, last: $last_detect_"
 	set elapsed [expr $now - $last_detect_]
 	set last_detect_ $now
 	if { $elapsed < $Mintime_ } {
@@ -342,11 +342,11 @@ RTMechanisms instproc do_detect {} {
 	set badflow [lindex $M 0]
 	set maxmetric [lindex $M 1]
 
-	$self vprint "DO_DETECT: droprateG: $droprateG (drops:$ndrops, arrs:$parrivals"
-	$self vprint "DO_DETECT: possible bad flow: $badflow ([$badflow set src_], [$badflow set dst_], [$badflow set flowid_]), maxmetric:$maxmetric"
+	$self vprint 2 "DO_DETECT: droprateG: $droprateG (drops:$ndrops, arrs:$parrivals"
+	$self vprint 2 "DO_DETECT: possible bad flow: $badflow ([$badflow set src_], [$badflow set dst_], [$badflow set flowid_]), maxmetric:$maxmetric"
 
 	if { $badflow == "none" } {
-		$self vprint "DO_DETECT: no candidate bad flows... returning"
+		$self vprint 1 "DO_DETECT: no candidate bad flows... returning"
 		$self sched-detect
 		# nobody
 		return
@@ -357,7 +357,7 @@ RTMechanisms instproc do_detect {} {
 		set known true
 		set flowage [expr $now - $state_($badflow,ctime)]
 		if { $flowage < $Mintime_ } {
-			$self vprint "DO_DETECT: flow $badflow too young ($flowage)"
+			$self vprint 1 "DO_DETECT: flow $badflow too young ($flowage)"
 			$self sched-detect
 			return
 		}
@@ -421,7 +421,7 @@ RTMechanisms instproc do_detect {} {
 		$f reset
 	}
 	$okboxfm_ reset
-	$self vprint "do_detect complete..."
+	$self vprint 2 "do_detect complete..."
 }
 
 
@@ -434,14 +434,14 @@ RTMechanisms instproc sched-reward {} {
 	$self instvar Reward_interval_ reward_pending_ 
 	$self instvar ns_
 	if { $reward_pending_ == "true" } {
-		$self vprint "SCHEDULING REWARD (NO, ALREADY PENDING)"
+		$self vprint 2 "SCHEDULING REWARD (NO, ALREADY PENDING)"
 		return
 	}
 	set now [$ns_ now]
 	set then [expr $now + $Reward_interval_]
 	set reward_pending_ true
 	$ns_ at $then "$self do_reward"
-	$self vprint "SCHEDULING REWARD for $then"
+	$self vprint 2 "SCHEDULING REWARD for $then"
 }
 RTMechanisms instproc do_reward {} {
 	$self instvar ns_
@@ -456,7 +456,7 @@ RTMechanisms instproc do_reward {} {
 
 	set reward_pending_ false
 	set now [$ns_ now]
-	$self vprint "DO_REWARD starting at $now, last: $last_reward_"
+	$self vprint 2 "DO_REWARD starting at $now, last: $last_reward_"
 	set elapsed [expr $now - $last_reward_]
 	set last_reward_ $now
 
@@ -470,12 +470,12 @@ RTMechanisms instproc do_reward {} {
 	set badBps [expr $barrivals / $elapsed]
 	set pflows [$pboxfm_ flows] ; # all penalized flows
 
-	$self vprint "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals)"
-	$self vprint "DO_REWARD: badbox pool of flows: $pflows"
+	$self vprint 1 "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals)"
+	$self vprint 2 "DO_REWARD: badbox pool of flows: $pflows"
 
 	if { $parrivals == 0 && $elapsed > $Mintime_ } {
 		# nothing!, everybody becomes good
-		$self vprint "do_reward: no bad flows, reward all"
+		$self vprint 1 "do_reward: no bad flows, reward all"
 		foreach f $pflows {
 			$self unpenalize $f
 		}
@@ -493,9 +493,9 @@ RTMechanisms instproc do_reward {} {
 		return
 	}
 	set flowage [expr $now - $state_($goodflow,ctime)]
-	$self vprint "found flow $goodflow as potential good-guy (age: $flowage)"
+	$self vprint 2 "found flow $goodflow as potential good-guy (age: $flowage)"
 	if { $flowage < $Mintime_ } {
-		$self vprint "DO_REWARD: flow $goodflow too young ($flowage) to be rewarded"
+		$self vprint 1 "DO_REWARD: flow $goodflow too young ($flowage) to be rewarded"
 		$self sched-reward
 		return
 	}
@@ -558,5 +558,5 @@ RTMechanisms instproc do_reward {} {
 		$f reset
 	}
 	$pboxfm_ reset
-	$self vprint "do_reward complete..."
+	$self vprint 2 "do_reward complete..."
 }

@@ -16,7 +16,7 @@ RTMechanisms instproc bindboxes {} {
         set goodslot_ [$classifier installNext $goodclass_]
 	set badslot_ [$classifier installNext $badclass_]
         $classifier set default_ $goodslot_
-	$self vprint "bindboxes: cbq classifier: $classifier, gslot: $goodslot_, bslot: $badslot_, defslot: $goodslot_"
+	$self vprint 2 "bindboxes: cbq classifier: $classifier, gslot: $goodslot_, bslot: $badslot_, defslot: $goodslot_"
 }
 
 RTMechanisms instproc set_red_params { redq psize qlim bytes wait } {
@@ -43,7 +43,7 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
         set badclass_ [new CBQClass]
         set goodclass_ [new CBQClass]
 
-	$self vprint "makeboxes: bclass:$badclass_, gclass:$goodclass_"
+	$self vprint 2 "makeboxes: bclass:$badclass_, gclass:$goodclass_"
 
         set badq [new Queue/RED]
         $badq link [$cbqlink_ link]
@@ -81,7 +81,7 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
 	$edsnoop target $drophead_
 	$goodq early-drop-target $edsnoop
 
-	$self vprint "makeboxes completing: okfm: $okboxfm, okfmcl: [$okboxfm classifier], okredQ: $goodq; pboxfm: $pboxfm, pboxfmcl: [$pboxfm classifier], pboxredQ: $badq"
+	$self vprint 2 "makeboxes completing: okfm: $okboxfm, okfmcl: [$okboxfm classifier], okredQ: $goodq; pboxfm: $pboxfm, pboxfmcl: [$pboxfm classifier], pboxredQ: $badq"
 }
 
 #
