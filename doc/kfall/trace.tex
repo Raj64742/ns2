@@ -49,7 +49,12 @@ classes defined in \code{trace.cc}:
 	\item [Trace/Drop] - packet drop at a queue (delivered to drop-target)
 	\item [SnoopQueue/In] - on input, collect a time/size sample (pass packet on)
 	\item [SnoopQueue/Out] - on output, collect a time/size sample (pass packet on)
+	\item [SnoopQueue/Drop] - on drop, collect a time/size sample (pass packet on)
 	\item [QueueMonitor] - receive and aggregate collected samples from snoopers
+	\item [QueueMonitor/ED] - queue-monitor capable of distinguishing between ``early'' and standard packet drops
+	\item [QueueMonitor/ED/Flowmon] - per-flow statistics monitor (manager)
+	\item [QueueMonitor/ED/Flow] - per-flow statistics container
+	\item [QueueMonitor/Compat] - a replacement for a standard QueueMonitor when ns-1 compatibility is in use
 \end{itemize}
 \end{quote}
 
