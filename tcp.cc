@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.47 1998/01/21 20:02:52 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.48 1998/01/21 21:30:59 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -60,7 +60,8 @@ public:
 } class_tcp;
 
 TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
-	ts_peer_(0),dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
+	rtt_ts_(0.0), ts_peer_(0),dupacks_(0), t_seqno_(0),
+	highest_ack_(0), cwnd_(0),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
 	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(1),
 	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this),
@@ -225,10 +226,10 @@ double TcpAgent::rtt_timeout()
 /* This has been modified to use the tahoe code. */
 void TcpAgent::rtt_update(double tao)
 {
+	double now = Scheduler::instance().clock();
 	if (ts_option_)
 		t_rtt_ = int(tao /tcp_tick_ + 0.5);
 	else {
-		double now = Scheduler::instance().clock();
 		double sendtime = now - tao;
 		sendtime += boot_time_;
 		double tickoff = fmod(sendtime, tcp_tick_);
@@ -260,7 +261,10 @@ void TcpAgent::rtt_update(double tao)
 	//    (unscaled) smoothed round trip estimate
 	//    plus 4 times (unscaled) rttvar. 
 	//
-	t_rtxcur_ = (((t_rttvar_ << (2 + (T_SRTT_BITS - T_RTTVAR_BITS))) + t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
+	t_rtxcur_ = (((t_rttvar_ << (2 + (T_SRTT_BITS - T_RTTVAR_BITS))) +
+		t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
+
+	return;
 }
 
 void TcpAgent::rtt_backoff()
@@ -309,6 +313,7 @@ void TcpAgent::output(int seqno, int reason)
 			rtt_active_ = 1;
 			if (seqno > rtt_seq_) {
 				rtt_seq_ = seqno;
+				rtt_ts_ = Scheduler::instance().clock();
 			}
 					
 		}
@@ -623,7 +628,7 @@ void TcpAgent::newack(Packet* pkt)
 			t_backoff_ = 1;
 			rtt_active_ = 0;
 			if (!ts_option_)
-				rtt_update(now - tcph->ts_echo());
+				rtt_update(now - rtt_ts_);
 		}
 	}
 	/* update average window */

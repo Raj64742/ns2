@@ -153,7 +153,7 @@ TcpSessionAgent::newack(Packet *pkt)
 			t_backoff_ = 1;
 			rtt_active_ = 0;
 			if (!ts_option_)
-				rtt_update(now - tcph->ts_echo());
+				rtt_update(now - rtt_ts_);
 		}
 	}
 	if (seg_iter.count() > 0)
