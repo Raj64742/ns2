@@ -6,7 +6,7 @@
 PATH=$PATH:../../bin:.
 PROGNAME=$0
 if [ $# -lt 2 ]; then
-	echo "Usage: $0 tracefile <xgraph | gnuplot>"
+	echo "Usage: $0 tracefile <xgraph | gnuplot> testname"
 	exit 1;
 fi
 GNAME=$1
