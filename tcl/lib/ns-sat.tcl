@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.5 1999/08/29 01:29:14 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.6 1999/10/19 05:05:32 tomh Exp $
 
 
 # ======================================================================
@@ -51,9 +51,11 @@ Node/SatNode instproc init args {
 	set nifs_	0		;# number of network interfaces
 	# Create a drop trace to log packets for which no route exists
 	set ns_ [Simulator instance]
-	set dropT_ [$ns_ create-trace Sat/Drop [$ns_ set traceAllFile_] \
-	  $self $self ""]
-	$self set_trace $dropT_
+	set trace_ [$ns_ get-ns-traceall]
+	if {$trace_ != ""} {
+		set dropT_ [$ns_ create-trace Sat/Drop $trace_ $self $self ""]
+		$self set_trace $dropT_
+	}
 
 
 }
