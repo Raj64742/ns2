@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.14 1997/07/21 21:54:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.15 1997/07/24 18:07:12 sfloyd Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -288,9 +288,6 @@ public:
 
 Sacker::Sacker()
 {
-	max_sack_blocks_ = 3;
-
-	/*XXX what's the point of binding if this can change?*/
 	sf_ = new SackStack(max_sack_blocks_);
 }
 
