@@ -34,13 +34,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.2 1997/08/25 04:04:37 breslau Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.3 1997/09/08 21:34:06 heideman Exp $ (LBL)";
 #endif
 
 /* new random number generator */
 
 #ifndef WIN32
-#include <sys/time.h>
+#include <sys/time.h>   // for gettimeofday
+#include <unistd.h>
 #endif
 
 #include <stdio.h>
@@ -291,56 +292,6 @@ RNG::set_seed(RNGSources source, int seed = 1)
 
 
 /*
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  * RNGTest:
  * Make sure the RNG makes known values.
  * Optionally, print out some stuff.
